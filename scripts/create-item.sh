@@ -23,7 +23,7 @@ hash turtle 2>/dev/null || { echo >&2 "turtle not on \$PATH. Need to set \$JENA_
 
 urlencode() {
   python -c 'import urllib.parse, sys; print(urllib.parse.quote(sys.argv[1], sys.argv[2]))' \
-    "$1" "$urlencode_safe"
+    "$1"
 }
 
 args=()
@@ -100,6 +100,7 @@ if [ -z "$slug" ] ; then
     slug=$(uuidgen | tr '[:upper:]' '[:lower:]') # lowercase
 fi
 encoded_slug=$(urlencode "$slug")
+target="${container}${encoded_slug}/"
 
 args+=("-f")
 args+=("$cert_pem_file")
@@ -107,16 +108,15 @@ args+=("-p")
 args+=("$cert_password")
 args+=("-t")
 args+=("text/turtle")
-args+=("${container}${encoded_slug}/")
+args+=("${target}")
 
 turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"
 turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy#> .\n"
-turtle+="<${container}${encoded_slug}/> a dh:Item .\n"
-turtle+="<${container}${encoded_slug}/> dct:title \"${title}\" .\n"
+turtle+="<${target}> a dh:Item .\n"
+turtle+="<${target}> dct:title \"${title}\" .\n"
 
 if [ -n "$description" ] ; then
-    turtle+="<${container}${encoded_slug}/> dct:description \"${description}\" .\n"
+    turtle+="<${target}> dct:description \"${description}\" .\n"
 fi
-
 
 echo -e "$turtle" | turtle --base="$base" | ./put.sh "${args[@]}"

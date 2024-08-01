@@ -2,7 +2,7 @@
 
 print_usage()
 {
-    printf "Appends content instance to document.\n"
+    printf "Removes content block from document.\n"
     printf "\n"
     printf "Usage:  %s options TARGET_URI\n" "$0"
     printf "\n"
@@ -11,11 +11,8 @@ print_usage()
     printf "  -p, --cert-password CERT_PASSWORD    Password of the WebID certificate\n"
     printf "  --proxy PROXY_URL                    The host this request will be proxied through (optional)\n"
     printf "\n"
-    printf "  --query QUERY_URI                    URI of a SELECT query\n"
-    printf "  --mode MODE_URI                      URI of the content mode (list, grid etc.) (optional)\n"
+    printf "  --block BLOCK_URI                    URI of the content block\n"
 }
-
-hash turtle 2>/dev/null || { echo >&2 "turtle not on \$PATH. Need to set \$JENA_HOME. Aborting."; exit 1; }
 
 args=()
 while [[ $# -gt 0 ]]
@@ -38,13 +35,8 @@ do
         shift # past argument
         shift # past value
         ;;
-        --query)
-        query="$2"
-        shift # past argument
-        shift # past value
-        ;;
-        --mode)
-        mode="$2"
+        --block)
+        block="$2"
         shift # past argument
         shift # past value
         ;;
@@ -64,13 +56,13 @@ if [ -z "$cert_password" ] ; then
     print_usage
     exit 1
 fi
-if [ -z "$query" ] ; then
+if [ -z "$block" ] ; then
     print_usage
     exit 1
 fi
 
 target="$1"
-this="$1"
+this="$target"
 
 if [ -n "$proxy" ]; then
     # rewrite target hostname to proxy hostname
@@ -79,40 +71,24 @@ if [ -n "$proxy" ]; then
     target="${target/$target_host/$proxy_host}"
 fi
 
-if [ -n "$mode" ] ; then
-    mode_bgp="?block ac:mode <${mode}> ."
-fi
-
-# SPARQL update logic from https://github.com/enridaga/list-benchmark/tree/master/queries
-
 curl -X PATCH \
     -v -f -k \
     -E "$cert_pem_file":"$cert_password" \
     -H "Content-Type: application/sparql-update" \
     "$target" \
      --data-binary @- <<EOF
-PREFIX  ldh:  <https://w3id.org/atomgraph/linkeddatahub#>
-PREFIX  ac:   <https://w3id.org/atomgraph/client#>
-PREFIX  rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-PREFIX  xsd:  <http://www.w3.org/2001/XMLSchema#>
-
-INSERT {
-  <${this}> ?property ?block .
-  ?block a ldh:View ;
-      spin:query <${query}> .
-  ${mode_bgp}
+DELETE
+{
+    <${this}> ?seq <${block}> .
+    <${block}> ?p ?o .
 }
 WHERE
-  { { SELECT  (( MAX(?index) + 1 ) AS ?next)
-      WHERE
-        { <${this}>
-                    ?seq      ?block .
-          ?block  a  ldh:Content
-          BIND(xsd:integer(substr(str(?seq), 45)) AS ?index)
-        }
+{
+    <${this}> ?seq <${block}> .
+    OPTIONAL
+    {
+        <${block}> ?p ?o
     }
-    BIND(iri(concat(str(rdf:), "_", str(coalesce(?next, 1)))) AS ?property)
-    BIND(uri(concat(str(<${this}>), "#id", struuid())) AS ?block)
-  };
+}
 
 EOF

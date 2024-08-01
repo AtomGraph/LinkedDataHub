@@ -2,7 +2,7 @@
 
 print_usage()
 {
-    printf "Creates a chart for SPARQL SELECT query results.\n"
+    printf "Appends a generic service using endpoint URI.\n"
     printf "\n"
     printf "Usage:  %s options\n" "$0"
     printf "\n"
@@ -12,21 +12,14 @@ print_usage()
     printf "  -b, --base BASE_URI                  Base URI of the application\n"
     printf "  --proxy PROXY_URL                    The host this request will be proxied through (optional)\n"
     printf "\n"
-    printf "  --title TITLE                        Title of the chart\n"
-    printf "  --description DESCRIPTION            Description of the chart (optional)\n"
-    printf "  --slug STRING                        String that will be used as URI path segment (optional)\n"
+    printf "  --title TITLE                        Title of the service\n"
+    printf "  --description DESCRIPTION            Description of the service (optional)\n"
+    printf "  --slug SLUG                          String that will be used as URI path segment (optional)\n"
     printf "\n"
-    printf "  --query QUERY_URI                    URI of the SELECT query\n"
-    printf "  --chart-type TYPE_URI                URI of the chart type\n"
-    printf "  --category-var-name CATEGORY_VAR     Name of the variable used as category (without leading '?')\n"
-    printf "  --series-var-name SERIES_VAR         Name of the variable used as series (without leading '?')\n"
-}
-
-hash turtle 2>/dev/null || { echo >&2 "turtle not on \$PATH. Need to set \$JENA_HOME. Aborting."; exit 1; }
-
-urlencode() {
-  python -c 'import urllib.parse, sys; print(urllib.parse.quote(sys.argv[1], sys.argv[2]))' \
-    "$1" "$urlencode_safe"
+    printf "  --endpoint ENDPOINT_URI              Endpoint URI\n"
+    printf "  --graph-store GRAPH_STORE_URI        Graph Store URI (optional)\n"
+    printf "  --auth-user AUTH_USER                Authorization username (optional)\n"
+    printf "  --auth-pwd AUTH_PASSWORD             Authorization password (optional)\n"
 }
 
 args=()
@@ -60,28 +53,27 @@ do
         shift # past argument
         shift # past value
         ;;
-        --slug)
-        slug="$2"
+        --fragment)
+        fragment="$2"
         shift # past argument
         shift # past value
         ;;
-        --query)
-        query="$2"
+        --endpoint)
+        endpoint="$2"
         shift # past argument
         shift # past value
         ;;
-        --chart-type)
-        chart_type="$2"
+        --graph-store)
+        graph_store="$2"
         shift # past argument
         shift # past value
         ;;
-        --category-var-name)
-        category_var_name="$2"
-        shift # past argument
+        --auth-user)
+        auth_user=true
         shift # past value
         ;;
-        --series-var-name)
-        series_var_name="$2"
+        --auth-pwd)
+        auth_pwd="$2"
         shift # past argument
         shift # past value
         ;;
@@ -109,29 +101,10 @@ if [ -z "$title" ] ; then
     print_usage
     exit 1
 fi
-if [ -z "$query" ] ; then
+if [ -z "$endpoint" ] ; then
     print_usage
     exit 1
 fi
-if [ -z "$chart_type" ] ; then
-    print_usage
-    exit 1
-fi
-if [ -z "$category_var_name" ] ; then
-    print_usage
-    exit 1
-fi
-if [ -z "$series_var_name" ] ; then
-    print_usage
-    exit 1
-fi
-
-if [ -z "$slug" ] ; then
-    slug=$(uuidgen | tr '[:upper:]' '[:lower:]') # lowercase
-fi
-encoded_slug=$(urlencode "$slug")
-
-container="${base}charts/"
 
 args+=("-f")
 args+=("$cert_pem_file")
@@ -139,26 +112,38 @@ args+=("-p")
 args+=("$cert_password")
 args+=("-t")
 args+=("text/turtle") # content type
-args+=("${container}${encoded_slug}/")
+
+if [ -n "$fragment" ] ; then
+    # relative URI that will be resolved against the request URI
+    subject="<#${fragment}>"
+else
+    subject="_:subject"
+fi
 
 turtle+="@prefix ldh:	<https://w3id.org/atomgraph/linkeddatahub#> .\n"
 turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy#> .\n"
+turtle+="@prefix a:	<https://w3id.org/atomgraph/core#> .\n"
 turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"
 turtle+="@prefix foaf:	<http://xmlns.com/foaf/0.1/> .\n"
-turtle+="@prefix spin:  <http://spinrdf.org/spin#> .\n"
-turtle+="_:chart a ldh:ResultSetChart .\n"
-turtle+="_:chart dct:title \"${title}\" .\n"
-turtle+="_:chart spin:query <${query}> .\n"
-turtle+="_:chart ldh:chartType <${chart_type}> .\n"
-turtle+="_:chart ldh:categoryVarName \"${category_var_name}\" .\n"
-turtle+="_:chart ldh:seriesVarName \"${series_var_name}\" .\n"
-turtle+="<${container}${encoded_slug}/> a dh:Item .\n"
-turtle+="<${container}${encoded_slug}/> dct:title \"${title}\" .\n"
-turtle+="<${container}${encoded_slug}/> foaf:primaryTopic _:chart .\n"
+turtle+="@prefix sd:	<http://www.w3.org/ns/sparql-service-description#> .\n"
+turtle+="${subject} a sd:Service .\n"
+turtle+="${subject} dct:title \"${title}\" .\n"
+turtle+="${subject} sd:endpoint <${endpoint}> .\n"
+turtle+="${subject} sd:supportedLanguage sd:SPARQL11Query .\n"
+turtle+="${subject} sd:supportedLanguage sd:SPARQL11Update .\n"
 
+if [ -n "$graph_store" ] ; then
+    turtle+="${subject} a:graphStore <${graph_store}> .\n"
+fi
+if [ -n "$auth_user" ] ; then
+    turtle+="${subject} a:authUser \"${auth_user}\" .\n"
+fi
+if [ -n "$auth_pwd" ] ; then
+    turtle+="${subject} a:authPwd \"${auth_pwd}\" .\n"
+fi
 if [ -n "$description" ] ; then
-    turtle+="_:chart dct:description \"${description}\" .\n"
+    turtle+="_:query dct:description \"${description}\" .\n"
 fi
 
 # submit Turtle doc to the server
-echo -e "$turtle" | turtle --base="$base" | ./put.sh "${args[@]}"
+echo -e "$turtle" | ./post.sh "${args[@]}"

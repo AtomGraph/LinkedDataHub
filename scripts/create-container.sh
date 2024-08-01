@@ -17,14 +17,14 @@ print_usage()
     printf "  --description DESCRIPTION            Description of the container (optional)\n"
     printf "  --slug STRING                        String that will be used as URI path segment (optional)\n"
     printf "\n"
-    printf "  --content CONTENT_URI                URI of the content list (optional)\n"
+    printf "  --block BLOCK_URI                    URI of the content block (optional)\n"
 }
 
 hash turtle 2>/dev/null || { echo >&2 "turtle not on \$PATH. Need to set \$JENA_HOME. Aborting."; exit 1; }
 
 urlencode() {
   python -c 'import urllib.parse, sys; print(urllib.parse.quote(sys.argv[1], sys.argv[2]))' \
-    "$1" "$urlencode_safe"
+    "$1"
 }
 
 args=()
@@ -63,8 +63,8 @@ do
         shift # past argument
         shift # past value
         ;;
-        --content)
-        content="$2"
+        --block)
+        block="$2"
         shift # past argument
         shift # past value
         ;;
@@ -111,6 +111,7 @@ if [ -z "$slug" ] ; then
     slug=$(uuidgen | tr '[:upper:]' '[:lower:]') # lowercase
 fi
 encoded_slug=$(urlencode "$slug")
+target="${parent}${encoded_slug}/"
 
 args+=("-f")
 args+=("$cert_pem_file")
@@ -118,26 +119,29 @@ args+=("-p")
 args+=("$cert_password")
 args+=("-t")
 args+=("text/turtle")
-args+=("${parent}${encoded_slug}/")
+args+=("$target")
 
 turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy#> .\n"
-turtle+="@prefix ac:	<https://w3id.org/atomgraph/client#> .\n"
 turtle+="@prefix ldh:	<https://w3id.org/atomgraph/linkeddatahub#> .\n"
 turtle+="@prefix rdf:	<http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n"
 turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"
-turtle+="<${parent}${encoded_slug}/> a dh:Container .\n"
-turtle+="<${parent}${encoded_slug}/> dct:title \"${title}\" .\n"
-if [ -n "$content" ] ; then
-    turtle+="<${parent}${encoded_slug}/> rdf:_1 <${content}> .\n"
+turtle+="@prefix spin:	<http://spinrdf.org/spin#> .\n"
+turtle+="<${target}> a dh:Container .\n"
+turtle+="<${target}> dct:title \"${title}\" .\n"
+
+if [ -n "$block" ] ; then
+    turtle+="<${target}> rdf:_1 <${block}> .\n"
 else
-    content_triples="a ldh:Content; rdf:value ldh:ChildrenView"
+    block_triples="a ldh:View ; spin:query ldh:SelectChildren"
     if [ -n "$mode" ] ; then
-        content_triples+="; ac:mode <${mode}> "
+        block_triples+="; ac:mode <${mode}> "
     fi
-    turtle+="<${parent}${encoded_slug}/> rdf:_1 [ ${content_triples} ] .\n"
+    turtle+="@prefix ac:	<https://w3id.org/atomgraph/client#> .\n"
+    turtle+="<${target}> rdf:_1 [ ${block_triples} ] .\n"
 fi
+
 if [ -n "$description" ] ; then
-    turtle+="<${parent}${encoded_slug}/> dct:description \"${description}\" .\n"
+    turtle+="<${target}> dct:description \"${description}\" .\n"
 fi
 
 echo -e "$turtle" | turtle --base="$base" | ./put.sh "${args[@]}"
