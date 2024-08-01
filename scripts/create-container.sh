@@ -24,7 +24,7 @@ hash turtle 2>/dev/null || { echo >&2 "turtle not on \$PATH. Need to set \$JENA_
 
 urlencode() {
   python -c 'import urllib.parse, sys; print(urllib.parse.quote(sys.argv[1], sys.argv[2]))' \
-    "$1"
+    "$1" "$urlencode_safe"
 }
 
 args=()
