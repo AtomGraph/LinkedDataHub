@@ -79,6 +79,8 @@ curl -X PATCH \
     -H "Content-Type: application/sparql-update" \
     "$target" \
      --data-binary @- <<EOF
+PREFIX  rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+
 DELETE
 {
     <${this}> ?seq ${block} .
@@ -87,6 +89,7 @@ DELETE
 WHERE
 {
     <${this}> ?seq ${block} .
+    FILTER(strstarts(str(?seq), concat(str(rdf:), "_")))
     OPTIONAL
     {
         ${block} ?p ?o
