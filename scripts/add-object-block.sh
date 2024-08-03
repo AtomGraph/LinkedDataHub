@@ -136,7 +136,7 @@ turtle+="${subject} a ldh:Object .\n"
 turtle+="${subject} rdf:value <${value}> .\n"
 
 if [ -n "$title" ] ; then
-turtle+="${subject} dct:title \"${title}\" .\n"
+    turtle+="${subject} dct:title \"${title}\" .\n"
 fi
 if [ -n "$description" ] ; then
     turtle+="${subject} dct:description \"${description}\" .\n"

@@ -17,6 +17,7 @@ print_usage()
     printf "  --fragment STRING                    String that will be used as URI fragment identifier (optional)\n"
     printf "\n"
     printf "  --query QUERY_URI                    URI of the SELECT query\n"
+    printf "  --mode MODE_URI                      URI of the block mode (list, grid etc.) (optional)\n"
 }
 
 args=()
@@ -65,6 +66,11 @@ do
         shift # past argument
         shift # past value
         ;;
+        --mode)
+        mode="$2"
+        shift # past argument
+        shift # past value
+        ;;
         *)    # unknown arguments
         args+=("$1") # save it in an array for later
         shift # past argument
@@ -82,10 +88,6 @@ if [ -z "$cert_password" ] ; then
     exit 1
 fi
 if [ -z "$base" ] ; then
-    print_usage
-    exit 1
-fi
-if [ -z "$title" ] ; then
     print_usage
     exit 1
 fi
@@ -127,11 +129,17 @@ turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"
 turtle+="@prefix spin:  <http://spinrdf.org/spin#> .\n"
 turtle+="<${target}> <${sequence_property}> ${subject} .\n"
 turtle+="${subject} a ldh:View .\n"
-turtle+="${subject} dct:title \"${title}\" .\n"
 turtle+="${subject} spin:query <${query}> .\n"
 
+if [ -n "$title" ] ; then
+    turtle+="${subject} dct:title \"${title}\" .\n"
+fi
 if [ -n "$description" ] ; then
     turtle+="${subject} dct:description \"${description}\" .\n"
+fi
+if [ -n "$mode" ] ; then
+    turtle+="@prefix ac:	<https://w3id.org/atomgraph/client#> .\n"
+    turtle+="${subject} ac:mode <${mode}> .\n"
 fi
 
 # submit Turtle doc to the server
