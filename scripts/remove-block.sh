@@ -11,7 +11,7 @@ print_usage()
     printf "  -p, --cert-password CERT_PASSWORD    Password of the WebID certificate\n"
     printf "  --proxy PROXY_URL                    The host this request will be proxied through (optional)\n"
     printf "\n"
-    printf "  --block BLOCK_URI                    URI of the content block\n"
+    printf "  --block BLOCK_URI                    URI of the content block (optional)\n"
 }
 
 args=()
@@ -71,6 +71,12 @@ if [ -n "$proxy" ]; then
     target="${target/$target_host/$proxy_host}"
 fi
 
+if [ -n "$block" ] ; then
+    block="<${block}>"
+else
+    block="?block"
+fi
+
 curl -X PATCH \
     -v -f -k \
     -E "$cert_pem_file":"$cert_password" \
@@ -79,15 +85,15 @@ curl -X PATCH \
      --data-binary @- <<EOF
 DELETE
 {
-    <${this}> ?seq <${block}> .
-    <${block}> ?p ?o .
+    <${this}> ?seq ${block} .
+    ${block} ?p ?o .
 }
 WHERE
 {
-    <${this}> ?seq <${block}> .
+    <${this}> ?seq ${block} .
     OPTIONAL
     {
-        <${block}> ?p ?o
+        ${block} ?p ?o
     }
 }
 
