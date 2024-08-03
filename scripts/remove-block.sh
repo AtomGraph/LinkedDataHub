@@ -56,10 +56,6 @@ if [ -z "$cert_password" ] ; then
     print_usage
     exit 1
 fi
-if [ -z "$block" ] ; then
-    print_usage
-    exit 1
-fi
 
 target="$1"
 this="$target"
