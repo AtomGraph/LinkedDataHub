@@ -562,16 +562,16 @@ WHERE
             <!-- store ETag header value under window.LinkedDataHub.contents[$content-uri].etag -->
             <ixsl:set-property name="etag" select="$etag" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $uri || '`')"/>
         
-            <xsl:variable name="post-construct-ids" select="key('elements-by-class', 'post-construct', ixsl:page())/@id" as="xs:string*"/>
+<!--            <xsl:variable name="post-construct-ids" select="key('elements-by-class', 'post-construct', ixsl:page())/@id" as="xs:string*"/>
             <xsl:if test="not(empty($post-construct-ids))">
                 <xsl:variable name="containers" select="id($post-construct-ids, ixsl:page())" as="element()*"/>
                 <xsl:for-each select="$containers">
                     <xsl:apply-templates select="." mode="ldh:PostConstruct"/>
 
-                    <!-- container could be hidden server-side -->
+                     container could be hidden server-side 
                     <ixsl:set-style name="display" select="'block'"/>
                 </xsl:for-each>
-            </xsl:if>
+            </xsl:if>-->
             
             <xsl:if test="acl:mode() = '&acl;Write'">
                 <xsl:variable name="xhtml-content-ids" select="key('elements-by-class', 'xhtml-content', ixsl:page())/@id" as="xs:string*"/>
