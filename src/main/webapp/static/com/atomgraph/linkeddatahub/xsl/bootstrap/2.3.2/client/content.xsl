@@ -379,6 +379,8 @@ exclude-result-prefixes="#all"
                     
                     <xsl:variable name="resource" select="key('resources', $resource-uri)" as="element()?"/>
                     <xsl:message>ldh:LoadBlockObjectValue ldh:RenderBlock</xsl:message>
+                    <xsl:message>$resource-uri: <xsl:value-of select="$resource-uri"/> $resource: <xsl:value-of select="serialize($resource)"/></xsl:message>
+                    
                     <xsl:apply-templates select="$resource" mode="ldh:RenderBlock">
                         <xsl:with-param name="container" select="$container"/>
                     </xsl:apply-templates>
