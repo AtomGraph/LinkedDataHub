@@ -1020,6 +1020,12 @@ exclude-result-prefixes="#all"
         <xsl:context-item as="element()" use="required"/> <!-- container element -->
         <xsl:param name="acl-modes" as="xs:anyURI*"/>
         <xsl:param name="refresh-content" as="xs:boolean?"/>
+        
+        <xsl:message>
+            @about: <xsl:value-of select="@about"/>
+            ancestor::div[@about][1]: <xsl:value-of select="ancestor::div[@about][1]"/>
+        </xsl:message>
+        
         <xsl:variable name="this" select="ancestor::div[@about][1]/@about" as="xs:anyURI"/>
         <xsl:variable name="content-uri" select="(@about, $this)[1]" as="xs:anyURI"/> <!-- fallback to @about for charts, queries etc. -->
         <xsl:variable name="container" select="." as="element()"/>
