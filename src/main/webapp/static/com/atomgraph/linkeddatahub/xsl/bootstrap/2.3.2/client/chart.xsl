@@ -202,8 +202,8 @@ exclude-result-prefixes="#all"
     
     <!-- chart content -->
     <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = ('&ldh;ResultSetChart', '&ldh;GraphChart')][spin:query/@rdf:resource][ldh:chartType/@rdf:resource]" mode="ldh:RenderBlock" priority="1">
-        <xsl:param name="container" as="element()"/>
         <xsl:param name="this" as="xs:anyURI"/>
+        <xsl:param name="container" as="element()"/>
         <xsl:param name="graph" as="xs:anyURI?"/>
         <xsl:param name="mode" as="xs:anyURI?"/>
         <xsl:param name="content-uri" select="xs:anyURI($container/@about)" as="xs:anyURI"/>

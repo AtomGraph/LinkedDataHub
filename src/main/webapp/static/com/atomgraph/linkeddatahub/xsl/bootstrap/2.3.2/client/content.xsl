@@ -292,6 +292,7 @@ exclude-result-prefixes="#all"
     <!-- object block (RDF resource) -->
     
     <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&ldh;Object'][rdf:value/@rdf:resource]" mode="ldh:RenderBlock" priority="1">
+        <xsl:param name="this" as="xs:anyURI"/>
         <xsl:param name="container" as="element()"/>
         <xsl:param name="block-type" select="rdf:type/@rdf:resource" as="xs:anyURI"/>
         <xsl:param name="resource-uri" select="rdf:value/@rdf:resource" as="xs:anyURI?"/>
@@ -315,6 +316,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="request" as="item()*">
             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                 <xsl:call-template name="ldh:LoadBlockObjectValue">
+                    <xsl:with-param name="this" select="$this"/>
                     <xsl:with-param name="container" select="$container"/>
                     <xsl:with-param name="block-type" select="$block-type"/>
                     <xsl:with-param name="resource-uri" select="$resource-uri"/>
@@ -330,6 +332,7 @@ exclude-result-prefixes="#all"
     <!-- default block (RDF resource) -->
     
     <xsl:template match="*[*][@rdf:about]" mode="ldh:RenderBlock">
+        <xsl:param name="this" as="xs:anyURI"/>
         <xsl:param name="container" as="element()"/>
         <xsl:param name="block-type" select="rdf:type/@rdf:resource" as="xs:anyURI"/>
         <xsl:param name="graph" as="xs:anyURI?"/>
@@ -363,6 +366,7 @@ exclude-result-prefixes="#all"
     <xsl:template name="ldh:LoadBlockObjectValue">
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="container" as="element()"/>
+        <xsl:param name="this" as="xs:anyURI"/>
         <xsl:param name="block-type" as="xs:anyURI"/>
         <xsl:param name="resource-uri" as="xs:anyURI"/>
         <xsl:param name="graph" as="xs:anyURI?"/>
@@ -382,6 +386,7 @@ exclude-result-prefixes="#all"
                     <xsl:message>$resource-uri: <xsl:value-of select="$resource-uri"/> $resource: <xsl:value-of select="serialize($resource)"/></xsl:message>
                     
                     <xsl:apply-templates select="$resource" mode="ldh:RenderBlock">
+                        <xsl:with-param name="this" select="$this"/>
                         <xsl:with-param name="container" select="$container"/>
                     </xsl:apply-templates>
                 </xsl:for-each>
