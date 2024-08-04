@@ -559,13 +559,13 @@ extension-element-prefixes="ixsl"
     </xsl:template>
     
     <!-- query and chart overrides TO-DO: move to a vocab-specific stylesheet -->
-<!--    <xsl:template match="*[@rdf:about][sp:text/text()] | *[@rdf:about][spin:query/@rdf:resource][ldh:chartType/@rdf:resource]" mode="bs2:Row" priority="1">
+    <xsl:template match="*[@rdf:about][sp:text/text()] | *[@rdf:about][spin:query/@rdf:resource][ldh:chartType/@rdf:resource]" mode="bs2:Row" priority="1">
         <xsl:param name="id" select="if (contains(@rdf:about, ac:absolute-path(ldh:base-uri(.)) || '#')) then substring-after(@rdf:about, ac:absolute-path(ldh:base-uri(.)) || '#') else generate-id()" as="xs:string?"/>
         <xsl:param name="class" select="'row-fluid content resource-content'" as="xs:string?"/>
         <xsl:param name="about" select="@rdf:about" as="xs:anyURI?"/>
         <xsl:param name="typeof" select="rdf:type/@rdf:resource/xs:anyURI(.)" as="xs:anyURI*"/>
         <xsl:param name="mode" as="xs:anyURI?"/>
-        <xsl:param name="style" select="'display: none;'" as="xs:string?"/>
+        <xsl:param name="style" select="'display: none;'" as="xs:string?"/> <!-- TO-DO: remove? -->
 
         <xsl:next-match>
             <xsl:with-param name="id" select="$id"/>
@@ -575,7 +575,7 @@ extension-element-prefixes="ixsl"
             <xsl:with-param name="mode" select="$mode"/>
             <xsl:with-param name="style" select="$style"/>
         </xsl:next-match>
-    </xsl:template>-->
+    </xsl:template>
     
     <!-- hide inlined blank node resources from the main block flow -->
     <xsl:template match="*[*][key('resources', @rdf:nodeID)][count(key('predicates-by-object', @rdf:nodeID)[not(self::foaf:primaryTopic)]) = 1]" mode="bs2:Row" priority="1">
