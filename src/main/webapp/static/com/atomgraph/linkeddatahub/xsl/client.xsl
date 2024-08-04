@@ -588,6 +588,9 @@ WHERE
             <xsl:if test="not(empty($resource-content-ids))">
                 <xsl:variable name="containers" select="id($resource-content-ids, ixsl:page())" as="element()*"/>
                 <xsl:for-each select="$containers">
+                    <!-- container could be hidden server-side -->
+                    <ixsl:set-style name="display" select="'block'"/>
+        
                     <xsl:call-template name="ldh:LoadBlock">
                         <xsl:with-param name="acl-modes" select="$acl-modes"/>
                         <xsl:with-param name="refresh-content" select="$refresh-content"/>
