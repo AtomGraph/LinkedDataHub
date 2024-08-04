@@ -214,6 +214,10 @@ exclude-result-prefixes="#all"
         <xsl:variable name="series" select="ldh:seriesProperty/@rdf:resource | ldh:seriesVarName" as="xs:string*"/>
         <xsl:variable name="canvas-id" select="generate-id() || '-chart-canvas'" as="xs:string?"/>
 
+        <xsl:message>
+            Chart ldh:RenderBlock rdf:type/@rdf:resource: <xsl:value-of select="rdf:type/@rdf:resource"/>
+        </xsl:message>
+        
         <xsl:for-each select="$container//div[@class = 'bar']">
             <ixsl:set-style name="width" select="'66%'" object="."/>
         </xsl:for-each>
