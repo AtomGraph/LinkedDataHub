@@ -46,6 +46,8 @@ exclude-result-prefixes="#all"
     <xsl:variable name="content-delete-string" as="xs:string">
         <!-- TO-DO: refactor to update the following index properties -->
         <![CDATA[
+            PREFIX  rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+
             DELETE
             {
                 $this ?seq $block .
@@ -54,6 +56,7 @@ exclude-result-prefixes="#all"
             WHERE
             {
                 $this ?seq $block .
+                FILTER(strstarts(str(?seq), concat(str(rdf:), "_")))
                 OPTIONAL
                 {
                     $block ?p ?o
