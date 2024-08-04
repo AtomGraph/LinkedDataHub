@@ -1022,7 +1022,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="refresh-content" as="xs:boolean?"/>
         
         <xsl:message>
-            @about: <xsl:value-of select="@about"/> @id: <xsl:value-f select="@id"/>
+            @about: <xsl:value-of select="@about"/> @id: <xsl:value-of select="@id"/>
             ancestor::div[@about][1]: <xsl:value-of select="serialize(ancestor::div[@about][1])"/>
         </xsl:message>
         
