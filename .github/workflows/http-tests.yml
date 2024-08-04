@@ -30,7 +30,7 @@ jobs:
         shell: bash
         working-directory: http-tests
       - name: Build Docker image & Run Docker containers
-        run: docker-compose -f docker-compose.yml -f ./http-tests/docker-compose.http-tests.yml --env-file ./http-tests/.env up --build -d
+        run: docker compose -f docker-compose.yml -f ./http-tests/docker-compose.http-tests.yml --env-file ./http-tests/.env up --build -d
       - name: Wait for the server to start...
         run: while ! (status=$(curl -k -s -w "%{http_code}\n" https://localhost:4443 -o /dev/null) && echo "$status" && echo "$status" | grep "403") ; do sleep 1 ; done # wait for the webapp to start (returns 403 by default)
       - name: Run HTTP test scripts
@@ -38,6 +38,6 @@ jobs:
         shell: bash
         working-directory: http-tests
       - name: Stop Docker containers
-        run: docker-compose --env-file ./http-tests/.env down
+        run: docker compose --env-file ./http-tests/.env down
       - name: Remove Docker containers
-        run: docker-compose --env-file ./http-tests/.env rm -f
+        run: docker compose --env-file ./http-tests/.env rm -f
