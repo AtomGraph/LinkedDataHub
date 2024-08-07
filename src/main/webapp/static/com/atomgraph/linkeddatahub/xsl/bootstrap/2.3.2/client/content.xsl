@@ -388,6 +388,7 @@ exclude-result-prefixes="#all"
                     <xsl:apply-templates select="$resource" mode="ldh:RenderBlock">
                         <xsl:with-param name="this" select="$this"/>
                         <xsl:with-param name="container" select="$container"/>
+                        <xsl:with-param name="mode" select="$mode"/>
                     </xsl:apply-templates>
                 </xsl:for-each>
             </xsl:when>
