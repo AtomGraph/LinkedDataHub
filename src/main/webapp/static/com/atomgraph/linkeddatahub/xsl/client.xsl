@@ -556,17 +556,6 @@ WHERE
             <ixsl:set-property name="results" select="." object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $uri || '`')"/>
             <!-- store ETag header value under window.LinkedDataHub.contents[$content-uri].etag -->
             <ixsl:set-property name="etag" select="$etag" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $uri || '`')"/>
-        
-<!--            <xsl:variable name="post-construct-ids" select="key('elements-by-class', 'post-construct', ixsl:page())/@id" as="xs:string*"/>
-            <xsl:if test="not(empty($post-construct-ids))">
-                <xsl:variable name="containers" select="id($post-construct-ids, ixsl:page())" as="element()*"/>
-                <xsl:for-each select="$containers">
-                    <xsl:apply-templates select="." mode="ldh:PostConstruct"/>
-
-                     container could be hidden server-side 
-                    <ixsl:set-style name="display" select="'block'"/>
-                </xsl:for-each>
-            </xsl:if>-->
             
             <xsl:if test="acl:mode() = '&acl;Write'">
                 <xsl:variable name="xhtml-content-ids" select="key('elements-by-class', 'xhtml-content', ixsl:page())/@id" as="xs:string*"/>
@@ -583,20 +572,16 @@ WHERE
             </xsl:if>
             
             <!-- this has to go after <xsl:result-document href="#{$container-id}"> because otherwise new elements will be injected and the $resource-content-ids lookup will not work anymore -->
-            <!-- load resource contents -->
-            <xsl:variable name="resource-content-ids" select="key('elements-by-class', 'resource-content', ixsl:page())/@id" as="xs:string*"/>
-            <xsl:if test="not(empty($resource-content-ids))">
-                <xsl:variable name="containers" select="id($resource-content-ids, ixsl:page())" as="element()*"/>
-                <xsl:for-each select="$containers">
-                    <!-- container could be hidden server-side -->
-                    <ixsl:set-style name="display" select="'block'"/>
-        
-                    <xsl:call-template name="ldh:LoadBlock">
-                        <xsl:with-param name="acl-modes" select="$acl-modes"/>
-                        <xsl:with-param name="refresh-content" select="$refresh-content"/>
-                    </xsl:call-template>
-                </xsl:for-each>
-            </xsl:if>
+            <!-- load content blocks -->
+            <xsl:for-each select="key('elements-by-class', 'row-fluid', ixsl:page())[@about][@typeof]">
+                <!-- container could be hidden server-side -->
+                <ixsl:set-style name="display" select="'block'"/>
+
+                <xsl:call-template name="ldh:LoadBlock">
+                    <xsl:with-param name="acl-modes" select="$acl-modes"/>
+                    <xsl:with-param name="refresh-content" select="$refresh-content"/>
+                </xsl:call-template>
+            </xsl:for-each>
             
             <!-- is a new instance of Service was created, reload the LinkedDataHub.apps data and re-render the service dropdown -->
             <xsl:if test="//ldt:base or //sd:endpoint">

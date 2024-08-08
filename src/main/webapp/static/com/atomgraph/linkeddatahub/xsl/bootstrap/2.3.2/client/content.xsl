@@ -1092,7 +1092,7 @@ exclude-result-prefixes="#all"
                     <xsl:with-param name="refresh-content" select="$refresh-content"/>
                 </xsl:apply-templates>
             
-                <!-- initialize map -->
+                <!-- initialize map TO-DO: move inside ldh:RenderBlock? -->
                 <xsl:if test="key('elements-by-class', 'map-canvas', $container)">
                     <xsl:for-each select="$results">
                         <xsl:call-template name="ldh:DrawMap">
@@ -1101,23 +1101,6 @@ exclude-result-prefixes="#all"
                         </xsl:call-template>
                     </xsl:for-each>
                 </xsl:if>
-                
-                <!-- initialize chart -->
-<!--                <xsl:for-each select="key('elements-by-class', 'chart-canvas', $container)">
-                    <xsl:variable name="canvas-id" select="@id" as="xs:string"/>
-                    <xsl:variable name="chart-type" select="xs:anyURI('&ac;Table')" as="xs:anyURI"/>
-                    <xsl:variable name="category" as="xs:string?"/>
-                    <xsl:variable name="series" select="distinct-values($results/*/*/concat(namespace-uri(), local-name()))" as="xs:string*"/>
-                    <xsl:variable name="data-table" select="ac:rdf-data-table($results, $category, $series)"/>
-
-                    <xsl:call-template name="ldh:RenderChart">
-                        <xsl:with-param name="data-table" select="$data-table"/>
-                        <xsl:with-param name="canvas-id" select="$canvas-id"/>
-                        <xsl:with-param name="chart-type" select="$chart-type"/>
-                        <xsl:with-param name="category" select="$category"/>
-                        <xsl:with-param name="series" select="$series"/>
-                    </xsl:call-template>
-                </xsl:for-each>-->
             </xsl:when>
             <!-- content could not be loaded from Linked Data, attempt a fallback to a DESCRIBE query over the local endpoint -->
             <!--
