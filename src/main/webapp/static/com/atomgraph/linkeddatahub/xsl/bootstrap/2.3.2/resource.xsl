@@ -508,7 +508,7 @@ extension-element-prefixes="ixsl"
     <!-- resource content overrides -->
     <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = ('&ldh;View', '&ldh;Object')]" mode="bs2:Row" priority="1">
         <xsl:param name="id" select="if (contains(@rdf:about, ac:absolute-path(ldh:base-uri(.)) || '#')) then substring-after(@rdf:about, ac:absolute-path(ldh:base-uri(.)) || '#') else generate-id()" as="xs:string?"/>
-        <xsl:param name="class" select="'row-fluid content resource-content'" as="xs:string?"/>
+        <xsl:param name="class" select="'row-fluid' || if ($ac:mode = '&ldh;ContentMode') then ' content resource-content' else ()" as="xs:string?"/>
         <xsl:param name="about" select="@rdf:about" as="xs:anyURI?"/>
         <xsl:param name="typeof" select="rdf:type/@rdf:resource/xs:anyURI(.)" as="xs:anyURI*"/>
         <xsl:param name="left-class" select="'left-nav span2'" as="xs:string?"/>
@@ -561,7 +561,7 @@ extension-element-prefixes="ixsl"
     <!-- query and chart overrides TO-DO: move to a vocab-specific stylesheet -->
     <xsl:template match="*[@rdf:about][sp:text/text()] | *[@rdf:about][spin:query/@rdf:resource][ldh:chartType/@rdf:resource]" mode="bs2:Row" priority="1">
         <xsl:param name="id" select="if (contains(@rdf:about, ac:absolute-path(ldh:base-uri(.)) || '#')) then substring-after(@rdf:about, ac:absolute-path(ldh:base-uri(.)) || '#') else generate-id()" as="xs:string?"/>
-        <xsl:param name="class" select="'row-fluid content resource-content'" as="xs:string?"/>
+        <xsl:param name="class" select="'row-fluid' || if ($ac:mode = '&ldh;ContentMode') then ' content resource-content' else ()" as="xs:string?"/>
         <xsl:param name="about" select="@rdf:about" as="xs:anyURI?"/>
         <xsl:param name="typeof" select="rdf:type/@rdf:resource/xs:anyURI(.)" as="xs:anyURI*"/>
         <xsl:param name="mode" as="xs:anyURI?"/>
