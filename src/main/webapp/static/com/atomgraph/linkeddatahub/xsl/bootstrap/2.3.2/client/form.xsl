@@ -651,10 +651,22 @@ WHERE
             <xsl:message>.add-value $fieldset: <xsl:value-of select="serialize(.)"/></xsl:message>
 
             <xsl:result-document href="?." method="ixsl:append-content">
-                <xsl:apply-templates select="$property" mode="bs2:FormControl">
-                    <!-- generate fresh $for value because otherwise we can generate existing IDs from the same constructor -->
-                    <xsl:with-param name="for" select="'id' || ac:uuid()"/>
-                </xsl:apply-templates>
+                <xsl:choose>
+                    <!-- TO-DO: unify bs2:TypeControl and bs2:FormControl? -->
+                    <xsl:when test="$property-uri = '&rdf;type'">
+                        <xsl:apply-templates select="$property" mode="bs2:TypeControl">
+                            <!-- generate fresh $for value because otherwise we can generate existing IDs from the same constructor -->
+                            <xsl:with-param name="for" select="'id' || ac:uuid()"/>
+                        </xsl:apply-templates>
+                    </xsl:when>
+                    <xsl:otherwise>
+                        <xsl:apply-templates select="$property" mode="bs2:FormControl">
+                            <!-- generate fresh $for value because otherwise we can generate existing IDs from the same constructor -->
+                            <xsl:with-param name="for" select="'id' || ac:uuid()"/>
+                        </xsl:apply-templates>
+                    </xsl:otherwise>
+                </xsl:choose>
+                
                 <xsl:message>
                     $property bs2:FormControl
                     XXX
