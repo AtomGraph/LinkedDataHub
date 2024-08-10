@@ -642,14 +642,11 @@ WHERE
             </xsl:choose>
         </xsl:variable>
         <xsl:variable name="property" select="$resource/*[concat(namespace-uri(), local-name()) = $property-uri]" as="element()"/>
-        <xsl:message>.add-value $property: <xsl:value-of select="serialize($property)"/> $property/../@rdf:about: <xsl:value-of select="$property/../@rdf:about"/> $property/../@rdf:nodeID: <xsl:value-of select="$property/../@rdf:nodeID"/></xsl:message>
         
         <!-- remove the current property control group from the current position -->
         <xsl:sequence select="ixsl:call($property-control-group, 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
 
         <xsl:for-each select="$fieldset">
-            <xsl:message>.add-value $fieldset: <xsl:value-of select="serialize(.)"/></xsl:message>
-
             <xsl:result-document href="?." method="ixsl:append-content">
                 <xsl:choose>
                     <!-- TO-DO: unify bs2:TypeControl and bs2:FormControl? -->
@@ -657,6 +654,7 @@ WHERE
                         <xsl:apply-templates select="$property" mode="bs2:TypeControl">
                             <!-- generate fresh $for value because otherwise we can generate existing IDs from the same constructor -->
                             <xsl:with-param name="for" select="'id' || ac:uuid()"/>
+                            <xsl:with-param name="$type-metadata" select="$constructed-doc"/>
                         </xsl:apply-templates>
                     </xsl:when>
                     <xsl:otherwise>
@@ -666,16 +664,6 @@ WHERE
                         </xsl:apply-templates>
                     </xsl:otherwise>
                 </xsl:choose>
-                
-                <xsl:message>
-                    $property bs2:FormControl
-                    XXX
-                    <xsl:apply-templates select="$property" mode="bs2:FormControl">
-                        <!-- generate fresh $for value because otherwise we can generate existing IDs from the same constructor -->
-                        <xsl:with-param name="for" select="'id' || ac:uuid()"/>
-                    </xsl:apply-templates>
-                    /XXX
-                </xsl:message>
                 
                 <!-- append the property control group at the end of the fieldset -->
                 <xsl:copy-of select="$property-control-group"/>
