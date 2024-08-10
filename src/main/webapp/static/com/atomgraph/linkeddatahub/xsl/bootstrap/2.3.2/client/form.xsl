@@ -629,10 +629,12 @@ WHERE
             <xsl:choose>
                 <!-- $forClass constructor found -->
                 <xsl:when test="key('resources-by-type', $forClass, $constructed-doc)[not(key('predicates-by-object', @rdf:nodeID))]">
+                    <xsl:message>$forClass constructor found</xsl:message>
                     <xsl:sequence select="key('resources-by-type', $forClass, $constructed-doc)[not(key('predicates-by-object', @rdf:nodeID))]"/>
                 </xsl:when>
                 <!-- $forClass constructor not found -->
                 <xsl:otherwise>
+                    <xsl:message>$forClass constructor not found</xsl:message>
                     <rdf:Description rdf:nodeID="A1">
                         <rdf:type rdf:resource="{$forClass}"/>
                     </rdf:Description>
@@ -653,6 +655,15 @@ WHERE
                     <!-- generate fresh $for value because otherwise we can generate existing IDs from the same constructor -->
                     <xsl:with-param name="for" select="'id' || ac:uuid()"/>
                 </xsl:apply-templates>
+                <xsl:message>
+                    $property bs2:FormControl
+                    XXX
+                    <xsl:apply-templates select="$property" mode="bs2:FormControl">
+                        <!-- generate fresh $for value because otherwise we can generate existing IDs from the same constructor -->
+                        <xsl:with-param name="for" select="'id' || ac:uuid()"/>
+                    </xsl:apply-templates>
+                    /XXX
+                </xsl:message>
                 
                 <!-- append the property control group at the end of the fieldset -->
                 <xsl:copy-of select="$property-control-group"/>
