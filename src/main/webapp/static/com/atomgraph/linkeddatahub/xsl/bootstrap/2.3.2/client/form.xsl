@@ -642,7 +642,7 @@ WHERE
             </xsl:choose>
         </xsl:variable>
         <xsl:variable name="property" select="$resource/*[concat(namespace-uri(), local-name()) = $property-uri]" as="element()"/>
-        <xsl:message>.add-value $property: <xsl:value-of select="serialize($property)"/></xsl:message>
+        <xsl:message>.add-value $property: <xsl:value-of select="serialize($property)"/> $property/../@rdf:about: <xsl:value-of select="$property/../@rdf:about"/> $property/../@rdf:nodeID: <xsl:value-of select="$property/../@rdf:nodeID"/></xsl:message>
         
         <!-- remove the current property control group from the current position -->
         <xsl:sequence select="ixsl:call($property-control-group, 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
