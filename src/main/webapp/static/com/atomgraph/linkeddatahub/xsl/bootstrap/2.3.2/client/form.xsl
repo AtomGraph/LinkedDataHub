@@ -654,7 +654,7 @@ WHERE
                         <xsl:apply-templates select="$property" mode="bs2:TypeControl">
                             <!-- generate fresh $for value because otherwise we can generate existing IDs from the same constructor -->
                             <xsl:with-param name="for" select="'id' || ac:uuid()"/>
-                            <xsl:with-param name="$type-metadata" select="$constructed-doc"/>
+                            <xsl:with-param name="type-metadata" select="$constructed-doc"/>
                         </xsl:apply-templates>
                     </xsl:when>
                     <xsl:otherwise>
