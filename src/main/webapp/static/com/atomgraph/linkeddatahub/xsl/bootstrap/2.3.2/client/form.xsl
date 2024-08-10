@@ -640,11 +640,14 @@ WHERE
             </xsl:choose>
         </xsl:variable>
         <xsl:variable name="property" select="$resource/*[concat(namespace-uri(), local-name()) = $property-uri]" as="element()"/>
-
+        <xsl:message>.add-value $property: <xsl:value-of select="serialize($property)"/></xsl:message>
+        
         <!-- remove the current property control group from the current position -->
         <xsl:sequence select="ixsl:call($property-control-group, 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
 
         <xsl:for-each select="$fieldset">
+            <xsl:message>.add-value $fieldset: <xsl:value-of select="serialize(.)"/></xsl:message>
+
             <xsl:result-document href="?." method="ixsl:append-content">
                 <xsl:apply-templates select="$property" mode="bs2:FormControl">
                     <!-- generate fresh $for value because otherwise we can generate existing IDs from the same constructor -->
