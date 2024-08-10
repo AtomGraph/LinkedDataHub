@@ -620,12 +620,25 @@ WHERE
         <xsl:variable name="property-uri" select="../preceding-sibling::*/select/option[ixsl:get(., 'selected') = true()]/ixsl:get(., 'value')" as="xs:anyURI"/>
         <xsl:variable name="seq-property" select="starts-with($property-uri, '&rdf;_')" as="xs:boolean"/>
         <xsl:variable name="forClass" select="ancestor::div[@typeof][contains-token(@class, 'row-fluid')]/@typeof" as="xs:anyURI*"/>
-        <xsl:message>$forClass: <xsl:value-of select="$forClass"/></xsl:message>
+        <xsl:message>.add-value $forClass: <xsl:value-of select="$forClass"/> $property-uri: <xsl:value-of select="$property-uri"/></xsl:message>
 
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
         <xsl:variable name="constructed-doc" select="ldh:construct-forClass($forClass)" as="document-node()"/> <!-- TO-DO: asynchronous request -->
-        <xsl:variable name="resource" select="key('resources-by-type', $forClass, $constructed-doc)[not(key('predicates-by-object', @rdf:nodeID))]" as="element()"/>
+        <xsl:variable name="resource" as="element()">
+            <xsl:choose>
+                <!-- $forClass constructor found -->
+                <xsl:when test="key('resources-by-type', $forClass, $constructed-doc)[not(key('predicates-by-object', @rdf:nodeID))]">
+                    <xsl:sequence select="key('resources-by-type', $forClass, $constructed-doc)[not(key('predicates-by-object', @rdf:nodeID))]"/>
+                </xsl:when>
+                <!-- $forClass constructor not found -->
+                <xsl:otherwise>
+                    <rdf:Description rdf:nodeID="A1">
+                        <rdf:type rdf:resource="{$forClass}"/>
+                    </rdf:Description>
+                </xsl:otherwise>
+            </xsl:choose>
+        </xsl:variable>
         <xsl:variable name="property" select="$resource/*[concat(namespace-uri(), local-name()) = $property-uri]" as="element()"/>
 
         <!-- remove the current property control group from the current position -->

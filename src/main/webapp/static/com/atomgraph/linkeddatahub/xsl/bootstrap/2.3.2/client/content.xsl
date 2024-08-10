@@ -307,10 +307,6 @@ exclude-result-prefixes="#all"
         </xsl:for-each>
         <xsl:message>ldh:Object ldh:RenderBlock</xsl:message>
 
-<!--        <xsl:for-each select="$container">
-            <ixsl:set-attribute name="typeof" select="$block-type" object="."/>
-        </xsl:for-each>-->
-
         <!-- don't use ldh:base-uri(.) because its value comes from the last HTML document load -->
         <xsl:variable name="request-uri" select="ldh:href($ldt:base, if (starts-with($graph, $ldt:base)) then $graph else ac:absolute-path(xs:anyURI(ixsl:location())), map{}, ac:document-uri($resource-uri), $graph, ())" as="xs:anyURI"/>
         <xsl:variable name="request" as="item()*">
@@ -318,7 +314,6 @@ exclude-result-prefixes="#all"
                 <xsl:call-template name="ldh:LoadBlockObjectValue">
                     <xsl:with-param name="this" select="$this"/>
                     <xsl:with-param name="container" select="$container"/>
-<!--                    <xsl:with-param name="block-type" select="$block-type"/>-->
                     <xsl:with-param name="resource-uri" select="$resource-uri"/>
                     <xsl:with-param name="graph" select="$graph"/>
                     <xsl:with-param name="mode" select="$mode"/>
@@ -334,7 +329,6 @@ exclude-result-prefixes="#all"
     <xsl:template match="*[*][@rdf:about]" mode="ldh:RenderBlock">
         <xsl:param name="this" as="xs:anyURI"/>
         <xsl:param name="container" as="element()"/>
-<!--        <xsl:param name="block-type" select="rdf:type/@rdf:resource" as="xs:anyURI"/>-->
         <xsl:param name="graph" as="xs:anyURI?"/>
         <xsl:param name="mode" as="xs:anyURI?"/>
         <xsl:param name="refresh-content" as="xs:boolean?"/>
@@ -352,7 +346,6 @@ exclude-result-prefixes="#all"
             <ixsl:schedule-action http-request="map{ 'method': 'POST', 'href': sd:endpoint(), 'media-type': 'application/sparql-query', 'body': $query-string, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                 <xsl:call-template name="ldh:LoadBlockObjectMetadata">
                     <xsl:with-param name="container" select="$container"/>
-<!--                    <xsl:with-param name="block-type" select="$block-type"/>-->
                     <xsl:with-param name="resource" select="."/>
                     <xsl:with-param name="graph" select="$graph"/>
                     <xsl:with-param name="mode" select="$mode"/>
@@ -367,7 +360,6 @@ exclude-result-prefixes="#all"
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="container" as="element()"/>
         <xsl:param name="this" as="xs:anyURI"/>
-<!--        <xsl:param name="block-type" as="xs:anyURI"/>-->
         <xsl:param name="resource-uri" as="xs:anyURI"/>
         <xsl:param name="graph" as="xs:anyURI?"/>
         <xsl:param name="mode" as="xs:anyURI?"/>
@@ -426,7 +418,6 @@ exclude-result-prefixes="#all"
     <xsl:template name="ldh:LoadBlockObjectMetadata">
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="container" as="element()"/>
-<!--        <xsl:param name="block-type" as="xs:anyURI"/>-->
         <xsl:param name="resource" as="element()"/>
         <xsl:param name="graph" as="xs:anyURI?"/>
         <xsl:param name="mode" as="xs:anyURI?"/>
