@@ -87,7 +87,8 @@ INSERT
 
   <acl/authorizations/public-sparql-post/#this> a acl:Authorization ;
       acl:accessTo <../sparql> ;
-      acl:mode acl:Append . # hacky way to allow queries over POST
+      acl:mode acl:Append ;
+      acl:agentClass foaf:Agent, acl:AuthenticatedAgent . # hacky way to allow queries over POST
 }
 WHERE
 {}
