@@ -84,6 +84,10 @@ INSERT
 {
   <acl/authorizations/public/#this> acl:accessToClass def:Root, dh:Container, dh:Item, nfo:FileDataObject ;
       acl:accessTo <../sparql> .
+
+  <acl/authorizations/public-sparql-post/#this> a acl:Authorization ;
+      acl:accessTo <../sparql> ;
+      acl:mode acl:Append . # hacky way to allow queries over POST
 }
 WHERE
 {}
