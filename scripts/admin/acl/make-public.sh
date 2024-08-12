@@ -75,10 +75,11 @@ curl -X PATCH \
      --data-binary @- <<EOF
 BASE <${base}admin/>
 
-PREFIX  acl:  <http://www.w3.org/ns/auth/acl#>
+PREFIX  acl: <http://www.w3.org/ns/auth/acl#>
 PREFIX  def: <https://w3id.org/atomgraph/linkeddatahub/default#>
 PREFIX  dh:  <https://www.w3.org/ns/ldt/document-hierarchy#>
 PREFIX  nfo: <http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#>
+PREFIX  foaf: <http://xmlns.com/foaf/0.1/>
 
 INSERT
 {
