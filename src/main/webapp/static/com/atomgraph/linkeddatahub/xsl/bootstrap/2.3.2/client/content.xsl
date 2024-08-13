@@ -1017,15 +1017,16 @@ exclude-result-prefixes="#all"
         <xsl:param name="doc" as="document-node()"/>
         <xsl:param name="refresh-content" as="xs:boolean?"/>
         
-        <xsl:message>
-            ldh:LoadBlock @about: <xsl:value-of select="@about"/> @id: <xsl:value-of select="@id"/>
-            ancestor::div[@about][1]: <xsl:value-of select="serialize(ancestor::div[@about][1])"/>
-        </xsl:message>
-        
         <xsl:variable name="this" select="ancestor::div[@about][1]/@about" as="xs:anyURI"/>
         <xsl:variable name="content-uri" select="(@about, $this)[1]" as="xs:anyURI"/> <!-- fallback to @about for charts, queries etc. -->
         <xsl:variable name="container" select="." as="element()"/>
-        
+
+        <xsl:message>
+            ldh:LoadBlock @about: <xsl:value-of select="@about"/> @id: <xsl:value-of select="@id"/>
+            ancestor::div[@about][1]: <xsl:value-of select="serialize(ancestor::div[@about][1])"/>
+            $this: <xsl:value-of select="$this"/>
+        </xsl:message>
+
         <xsl:choose>
             <xsl:when test="key('resources', $this, $doc)">
                 <xsl:apply-templates select="key('resources', $this, $doc)" mode="ldh:RenderBlock">
