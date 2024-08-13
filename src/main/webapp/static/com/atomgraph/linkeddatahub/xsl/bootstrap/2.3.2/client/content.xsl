@@ -1010,9 +1010,9 @@ exclude-result-prefixes="#all"
     <!-- CALLBACKS -->
     
     <!-- load content -->
-    
-    <xsl:template name="ldh:LoadBlock">
-        <xsl:context-item as="element()" use="required"/> <!-- container element -->
+
+    <!-- TO-DO: move to respective stylesheets and call the named ldh:LoadBlock template -->
+    <xsl:template match="*[@about][@typeof = ('&ldh;View;, '&ldh;Object', '&ldh;ResultSetChart', '&ldh;GraphChart')]" mode="ldh:LoadBlock" priority="1">
         <xsl:param name="acl-modes" as="xs:anyURI*"/>
         <xsl:param name="doc" as="document-node()"/>
         <xsl:param name="refresh-content" as="xs:boolean?"/>
@@ -1068,6 +1068,12 @@ exclude-result-prefixes="#all"
         </xsl:choose>
     </xsl:template>
     
+    <xsl:template match="*[@about][@typeof]" mode="ldh:LoadBlock" >
+        <xsl:call-template name="ldh:BlockRendered">
+            <xsl:with-param name="container" select="."/>
+        </xsl:call-template>
+    </xsl:template>
+
     <!-- embed content -->
     
     <xsl:template name="ldh:BlockLoaded">
