@@ -1017,11 +1017,11 @@ exclude-result-prefixes="#all"
         <xsl:param name="doc" as="document-node()"/>
         <xsl:param name="refresh-content" as="xs:boolean?"/>
 
-        <xsl:apply-templates select="." mode="ldh:LoadBlock">
+        <xsl:call-template name="ldh:LoadBlock">
             <xsl:with-param name="acl-modes" select="$acl-modes"/>
             <xsl:with-param name="doc" select="$doc"/>
             <xsl:with-param name="refresh-content" select="$refresh-content"/>
-        </xsl:apply-templates>
+        </xsl:call-template>
     </xsl:template>
     
     <xsl:template match="*[@about][@typeof]" mode="ldh:LoadBlock" >
