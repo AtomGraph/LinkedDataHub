@@ -1011,8 +1011,27 @@ exclude-result-prefixes="#all"
     
     <!-- load content -->
 
-    <!-- TO-DO: move to respective stylesheets and call the named ldh:LoadBlock template -->
+    <!-- TO-DO: move to respective stylesheets -->
     <xsl:template match="*[@about][@typeof = ('&ldh;View;, '&ldh;Object', '&ldh;ResultSetChart', '&ldh;GraphChart')]" mode="ldh:LoadBlock" priority="1">
+        <xsl:param name="acl-modes" as="xs:anyURI*"/>
+        <xsl:param name="doc" as="document-node()"/>
+        <xsl:param name="refresh-content" as="xs:boolean?"/>
+
+        <xsl:apply-templates select="." mode="ldh:LoadBlock">
+            <xsl:with-param name="acl-modes" select="$acl-modes"/>
+            <xsl:with-param name="doc" select="$results"/>
+            <xsl:with-param name="refresh-content" select="$refresh-content"/>
+        </xsl:apply-templates>
+    </xsl:template>
+    
+    <xsl:template match="*[@about][@typeof]" mode="ldh:LoadBlock" >
+        <xsl:call-template name="ldh:BlockRendered">
+            <xsl:with-param name="container" select="."/>
+        </xsl:call-template>
+    </xsl:template>
+    
+    <xsl:template name="ldh:LoadBlock">
+        <xsl:context-item as="element()" use="required"/> <!-- container element -->
         <xsl:param name="acl-modes" as="xs:anyURI*"/>
         <xsl:param name="doc" as="document-node()"/>
         <xsl:param name="refresh-content" as="xs:boolean?"/>
@@ -1066,12 +1085,6 @@ exclude-result-prefixes="#all"
                 <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
             </xsl:otherwise>
         </xsl:choose>
-    </xsl:template>
-    
-    <xsl:template match="*[@about][@typeof]" mode="ldh:LoadBlock" >
-        <xsl:call-template name="ldh:BlockRendered">
-            <xsl:with-param name="container" select="."/>
-        </xsl:call-template>
     </xsl:template>
 
     <!-- embed content -->
