@@ -422,7 +422,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="show-edit-button" as="xs:boolean?"/>
 
         <xsl:message>
-            ldh:LoadBlockObjectMetadata $resource: <xsl:value-of select="$resource"/>
+            ldh:LoadBlockObjectMetadata $resource: <xsl:value-of select="serialize($resource)"/>
         </xsl:message>
         
         <xsl:choose>
