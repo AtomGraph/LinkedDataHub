@@ -1019,7 +1019,7 @@ exclude-result-prefixes="#all"
 
         <xsl:apply-templates select="." mode="ldh:LoadBlock">
             <xsl:with-param name="acl-modes" select="$acl-modes"/>
-            <xsl:with-param name="doc" select="$results"/>
+            <xsl:with-param name="doc" select="$doc"/>
             <xsl:with-param name="refresh-content" select="$refresh-content"/>
         </xsl:apply-templates>
     </xsl:template>
