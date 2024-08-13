@@ -1012,7 +1012,7 @@ exclude-result-prefixes="#all"
     <!-- load content -->
 
     <!-- TO-DO: move to respective stylesheets -->
-    <xsl:template match="*[@about][@typeof = ('&ldh;View;, '&ldh;Object', '&ldh;ResultSetChart', '&ldh;GraphChart')]" mode="ldh:LoadBlock" priority="1">
+    <xsl:template match="*[@about][@typeof = ('&ldh;View', '&ldh;Object', '&ldh;ResultSetChart', '&ldh;GraphChart')]" mode="ldh:LoadBlock" priority="1">
         <xsl:param name="acl-modes" as="xs:anyURI*"/>
         <xsl:param name="doc" as="document-node()"/>
         <xsl:param name="refresh-content" as="xs:boolean?"/>
