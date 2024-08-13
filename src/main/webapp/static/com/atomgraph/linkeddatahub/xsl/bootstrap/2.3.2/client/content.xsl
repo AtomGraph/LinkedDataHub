@@ -141,7 +141,6 @@ exclude-result-prefixes="#all"
     <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&ldh;View'][spin:query/@rdf:resource]" mode="ldh:RenderBlock" priority="1">
         <xsl:param name="this" as="xs:anyURI"/>
         <xsl:param name="container" as="element()"/>
-<!--        <xsl:param name="block-type" select="rdf:type/@rdf:resource" as="xs:anyURI"/>-->
         <xsl:param name="graph" select="ldh:graph/@rdf:resource" as="xs:anyURI?"/>
         <xsl:param name="mode" select="ac:mode/@rdf:resource" as="xs:anyURI?"/>
         <xsl:param name="refresh-content" as="xs:boolean?"/>
@@ -294,7 +293,6 @@ exclude-result-prefixes="#all"
     <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&ldh;Object'][rdf:value/@rdf:resource]" mode="ldh:RenderBlock" priority="1">
         <xsl:param name="this" as="xs:anyURI"/>
         <xsl:param name="container" as="element()"/>
-<!--        <xsl:param name="block-type" select="rdf:type/@rdf:resource" as="xs:anyURI"/>-->
         <xsl:param name="resource-uri" select="rdf:value/@rdf:resource" as="xs:anyURI?"/>
         <xsl:param name="graph" select="ldh:graph/@rdf:resource" as="xs:anyURI?"/>
         <xsl:param name="mode" select="ac:mode/@rdf:resource" as="xs:anyURI?"/>
@@ -340,7 +338,7 @@ exclude-result-prefixes="#all"
             <!-- update progress bar -->
             <ixsl:set-style name="width" select="'75%'" object="."/>
         </xsl:for-each>
-        <xsl:message>default ldh:RenderBlock</xsl:message>
+        <xsl:message>default ldh:RenderBlock @rdf:about: <xsl:value-of select="@rdf:about"/> $this: <xsl:value-of select="$this"/></xsl:message>
 
         <xsl:variable name="request" as="item()*">
             <ixsl:schedule-action http-request="map{ 'method': 'POST', 'href': sd:endpoint(), 'media-type': 'application/sparql-query', 'body': $query-string, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
@@ -1015,7 +1013,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="refresh-content" as="xs:boolean?"/>
         
         <xsl:message>
-            @about: <xsl:value-of select="@about"/> @id: <xsl:value-of select="@id"/>
+            ldh:LoadBlock @about: <xsl:value-of select="@about"/> @id: <xsl:value-of select="@id"/>
             ancestor::div[@about][1]: <xsl:value-of select="serialize(ancestor::div[@about][1])"/>
         </xsl:message>
         
