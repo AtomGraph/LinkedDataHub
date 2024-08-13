@@ -421,6 +421,10 @@ exclude-result-prefixes="#all"
         <xsl:param name="mode" as="xs:anyURI?"/>
         <xsl:param name="show-edit-button" as="xs:boolean?"/>
 
+        <xsl:message>
+            ldh:LoadBlockObjectMetadata $resource: <xsl:value-of select="$resource"/>
+        </xsl:message>
+        
         <xsl:choose>
             <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
                 <xsl:variable name="object-metadata" select="?body" as="document-node()"/>
