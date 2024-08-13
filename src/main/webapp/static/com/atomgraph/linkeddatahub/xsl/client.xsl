@@ -579,6 +579,7 @@ WHERE
 
                 <xsl:call-template name="ldh:LoadBlock">
                     <xsl:with-param name="acl-modes" select="$acl-modes"/>
+                    <xsl:with-param name="doc" select="$results"/>
                     <xsl:with-param name="refresh-content" select="$refresh-content"/>
                 </xsl:call-template>
             </xsl:for-each>

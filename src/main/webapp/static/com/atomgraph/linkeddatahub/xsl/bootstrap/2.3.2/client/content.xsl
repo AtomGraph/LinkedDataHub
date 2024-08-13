@@ -1011,6 +1011,7 @@ exclude-result-prefixes="#all"
     <xsl:template name="ldh:LoadBlock">
         <xsl:context-item as="element()" use="required"/> <!-- container element -->
         <xsl:param name="acl-modes" as="xs:anyURI*"/>
+        <xsl:param name="doc" as="document-node()"/>
         <xsl:param name="refresh-content" as="xs:boolean?"/>
         
         <xsl:message>
@@ -1021,35 +1022,47 @@ exclude-result-prefixes="#all"
         <xsl:variable name="this" select="ancestor::div[@about][1]/@about" as="xs:anyURI"/>
         <xsl:variable name="content-uri" select="(@about, $this)[1]" as="xs:anyURI"/> <!-- fallback to @about for charts, queries etc. -->
         <xsl:variable name="container" select="." as="element()"/>
-        <xsl:variable name="progress-container" select="if (contains-token(@class, 'row-fluid')) then ./div[contains-token(@class, 'main')] else ." as="element()"/>
-
-        <!-- container could be hidden server-side -->
-        <ixsl:set-style name="display" select="'block'"/>
         
-        <!-- show progress bar in the middle column -->
-        <xsl:for-each select="$progress-container">
-            <xsl:result-document href="?." method="ixsl:replace-content">
-                <div class="progress-bar">
-                    <div class="progress progress-striped active">
-                        <div class="bar" style="width: 25%;"></div>
-                    </div>
-                </div>
-            </xsl:result-document>
-        </xsl:for-each>
-
-        <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, ac:document-uri($content-uri))" as="xs:anyURI"/>
-        <xsl:variable name="request" as="item()*">
-            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': ac:document-uri($request-uri), 'headers': map{ 'Accept': 'application/rdf+xml' } }">
-                <xsl:call-template name="ldh:BlockLoaded">
+        <xsl:choose>
+            <xsl:when test="key('resources', $this, $doc)">
+                <xsl:apply-templates select="key('resources', $this, $doc)" mode="ldh:RenderBlock">
                     <xsl:with-param name="this" select="$this"/>
-                    <xsl:with-param name="content-uri" select="$content-uri"/>
                     <xsl:with-param name="container" select="$container"/>
-                    <xsl:with-param name="acl-modes" select="$acl-modes"/>
                     <xsl:with-param name="refresh-content" select="$refresh-content"/>
-                </xsl:call-template>
-            </ixsl:schedule-action>
-        </xsl:variable>
-        <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
+                </xsl:apply-templates>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:variable name="progress-container" select="if (contains-token(@class, 'row-fluid')) then ./div[contains-token(@class, 'main')] else ." as="element()"/>
+
+                <!-- container could be hidden server-side -->
+                <ixsl:set-style name="display" select="'block'"/>
+
+                <!-- show progress bar in the middle column -->
+                <xsl:for-each select="$progress-container">
+                    <xsl:result-document href="?." method="ixsl:replace-content">
+                        <div class="progress-bar">
+                            <div class="progress progress-striped active">
+                                <div class="bar" style="width: 25%;"></div>
+                            </div>
+                        </div>
+                    </xsl:result-document>
+                </xsl:for-each>
+
+                <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, ac:document-uri($content-uri))" as="xs:anyURI"/>
+                <xsl:variable name="request" as="item()*">
+                    <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': ac:document-uri($request-uri), 'headers': map{ 'Accept': 'application/rdf+xml' } }">
+                        <xsl:call-template name="ldh:BlockLoaded">
+                            <xsl:with-param name="this" select="$this"/>
+                            <xsl:with-param name="content-uri" select="$content-uri"/>
+                            <xsl:with-param name="container" select="$container"/>
+                            <xsl:with-param name="acl-modes" select="$acl-modes"/>
+                            <xsl:with-param name="refresh-content" select="$refresh-content"/>
+                        </xsl:call-template>
+                    </ixsl:schedule-action>
+                </xsl:variable>
+                <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
+            </xsl:otherwise>
+        </xsl:choose>
     </xsl:template>
     
     <!-- embed content -->
@@ -1191,20 +1204,7 @@ exclude-result-prefixes="#all"
                 <xsl:for-each select="$container">
                     <!-- set @about attribute -->
                     <ixsl:set-attribute name="about" select="$content-uri"/>
-<!--                     update @data-content-value value 
-                    <ixsl:set-property name="dataset.contentValue" select="$content-value" object="."/>
 
-                    <xsl:choose>
-                        <xsl:when test="$mode">
-                             update @data-content-mode value 
-                            <ixsl:set-property name="dataset.contentMode" select="$mode" object="."/>
-                        </xsl:when>
-                        <xsl:when test="ixsl:contains(., 'dataset.contentMode')">
-                             remove @data-content-mode 
-                            <ixsl:remove-property name="dataset.contentMode" object="."/>
-                        </xsl:when>
-                    </xsl:choose>-->
-                    
                     <xsl:call-template name="ldh:LoadBlock"/>
                 </xsl:for-each>
             </xsl:when>
