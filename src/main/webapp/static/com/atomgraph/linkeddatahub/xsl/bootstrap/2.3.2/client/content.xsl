@@ -1022,14 +1022,13 @@ exclude-result-prefixes="#all"
         <xsl:variable name="container" select="." as="element()"/>
 
         <xsl:message>
-            ldh:LoadBlock @about: <xsl:value-of select="@about"/> @id: <xsl:value-of select="@id"/>
+            ldh:LoadBlock @about: <xsl:value-of select="@about"/> @id: <xsl:value-of select="@id"/> $this: <xsl:value-of select="$this"/>
             ancestor::div[@about][1]: <xsl:value-of select="serialize(ancestor::div[@about][1])"/>
-            $this: <xsl:value-of select="$this"/>
         </xsl:message>
 
         <xsl:choose>
-            <xsl:when test="key('resources', $this, $doc)">
-                <xsl:apply-templates select="key('resources', $this, $doc)" mode="ldh:RenderBlock">
+            <xsl:when test="key('resources', $content-uri, $doc)">
+                <xsl:apply-templates select="key('resources', $content-uri, $doc)" mode="ldh:RenderBlock">
                     <xsl:with-param name="this" select="$this"/>
                     <xsl:with-param name="container" select="$container"/>
                     <xsl:with-param name="refresh-content" select="$refresh-content"/>
