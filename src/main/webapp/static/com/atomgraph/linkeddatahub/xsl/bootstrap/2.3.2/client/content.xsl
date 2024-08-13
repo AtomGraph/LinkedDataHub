@@ -421,10 +421,6 @@ exclude-result-prefixes="#all"
         <xsl:param name="mode" as="xs:anyURI?"/>
         <xsl:param name="show-edit-button" as="xs:boolean?"/>
 
-        <xsl:message>
-            ldh:LoadBlockObjectMetadata $resource: <xsl:value-of select="serialize($resource)"/>
-        </xsl:message>
-        
         <xsl:choose>
             <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
                 <xsl:variable name="object-metadata" select="?body" as="document-node()"/>
@@ -443,6 +439,11 @@ exclude-result-prefixes="#all"
                     </xsl:apply-templates>
                 </xsl:variable>
 
+            <xsl:message>
+                ldh:LoadBlockObjectMetadata $resource: <xsl:value-of select="serialize($resource)"/>
+                ldh:LoadBlockObjectMetadata $row: <xsl:value-of select="serialize($row)"/>
+            </xsl:message>
+        
                 <xsl:for-each select="$container">
                     <xsl:result-document href="?." method="ixsl:replace-content">
                         <xsl:copy-of select="$row/*"/> <!-- inject the content of div.row-fluid -->
