@@ -557,20 +557,6 @@ WHERE
             <!-- store ETag header value under window.LinkedDataHub.contents[$content-uri].etag -->
             <ixsl:set-property name="etag" select="$etag" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $uri || '`')"/>
             
-<!--            <xsl:if test="acl:mode() = '&acl;Write'">
-                <xsl:variable name="xhtml-content-ids" select="key('elements-by-class', 'xhtml-content', ixsl:page())/@id" as="xs:string*"/>
-                <xsl:if test="not(empty($xhtml-content-ids))">
-                    <xsl:variable name="containers" select="id($xhtml-content-ids, ixsl:page())" as="element()*"/>
-                    <xsl:for-each select="$containers">
-                        <xsl:variable name="container" select="." as="element()"/>
-                        
-                        <xsl:call-template name="ldh:BlockRendered">
-                            <xsl:with-param name="container" select="$container"/>
-                        </xsl:call-template>
-                    </xsl:for-each>
-                </xsl:if>
-            </xsl:if>-->
-            
             <!-- this has to go after <xsl:result-document href="#{$container-id}"> because otherwise new elements will be injected and the $resource-content-ids lookup will not work anymore -->
             <!-- load content blocks -->
             <xsl:for-each select="key('elements-by-class', 'row-fluid', ixsl:page())[@about][@typeof]">

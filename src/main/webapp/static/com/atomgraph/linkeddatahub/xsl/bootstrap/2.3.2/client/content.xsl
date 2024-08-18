@@ -136,158 +136,6 @@ exclude-result-prefixes="#all"
 
     <xsl:template match="*[rdf:type/@rdf:resource = '&ldh;XHTML']/rdf:value/xhtml:*" mode="bs2:FormControlTypeLabel" priority="1"/>
 
-    <!-- VIEW -->
-    
-    <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&ldh;View'][spin:query/@rdf:resource]" mode="ldh:RenderBlock" priority="1">
-        <xsl:param name="this" as="xs:anyURI"/>
-        <xsl:param name="container" as="element()"/>
-        <xsl:param name="graph" select="ldh:graph/@rdf:resource" as="xs:anyURI?"/>
-        <xsl:param name="mode" select="ac:mode/@rdf:resource" as="xs:anyURI?"/>
-        <xsl:param name="refresh-content" as="xs:boolean?"/>
-        <xsl:param name="base-uri" select="ldh:base-uri(.)" as="xs:anyURI"/>
-        <xsl:param name="content-uri" select="if ($container/@about) then $container/@about else xs:anyURI(ac:absolute-path($base-uri) || '#' || $container/@id)" as="xs:anyURI"/>
-        <xsl:variable name="query-uri" select="xs:anyURI(spin:query/@rdf:resource)" as="xs:anyURI"/>
-        
-<!--        <xsl:for-each select="$container">
-            <ixsl:set-attribute name="typeof" select="$block-type" object="."/>
-        </xsl:for-each>-->
-        <xsl:message>ldh:View ldh:RenderBlock</xsl:message>
-        
-        <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, ac:document-uri($query-uri))" as="xs:anyURI"/>
-        <xsl:variable name="request" as="item()*">
-            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
-                <xsl:call-template name="ldh:ViewQueryLoad">
-                    <xsl:with-param name="this" select="$this"/>
-                    <xsl:with-param name="container" select="$container"/>
-                    <xsl:with-param name="mode" select="$mode"/>
-                    <xsl:with-param name="refresh-content" select="$refresh-content"/>
-                    <xsl:with-param name="content" select="."/>
-                    <xsl:with-param name="content-uri" select="$content-uri"/>
-                    <xsl:with-param name="query-uri" select="$query-uri"/>
-                </xsl:call-template>
-            </ixsl:schedule-action>
-        </xsl:variable>
-        <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
-    </xsl:template>
-    
-    <xsl:template name="ldh:ViewQueryLoad">
-        <xsl:context-item as="map(*)" use="required"/>
-        <xsl:param name="this" as="xs:anyURI"/>
-        <xsl:param name="container" as="element()"/>
-        <xsl:param name="mode" as="xs:anyURI?"/>
-        <xsl:param name="refresh-content" as="xs:boolean?"/>
-        <xsl:param name="content" as="element()"/>
-        <xsl:param name="content-uri" as="xs:anyURI"/>
-        <xsl:param name="query-uri" as="xs:anyURI"/>
-
-        <xsl:choose>
-            <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
-                <xsl:for-each select="?body">
-                    <xsl:variable name="select-query" select="key('resources', $query-uri)" as="element()"/>
-                    <xsl:variable name="service-uri" select="xs:anyURI($select-query/ldh:service/@rdf:resource)" as="xs:anyURI?"/>
-                    <!-- set $this variable value unless getting the query string from state -->
-                    <xsl:variable name="select-string" select="replace($select-query/sp:text, '$this', '&lt;' || $this || '&gt;', 'q')" as="xs:string"/>
-                    <xsl:variable name="select-xml" as="document-node()">
-                        <xsl:variable name="select-json" as="item()">
-                            <xsl:variable name="select-builder" select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromString', [ $select-string ])"/>
-                            <xsl:sequence select="ixsl:call($select-builder, 'build', [])"/>
-                        </xsl:variable>
-                        <xsl:variable name="select-json-string" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ $select-json ])" as="xs:string"/>
-                        <xsl:sequence select="json-to-xml($select-json-string)"/>
-                    </xsl:variable>
-                    <xsl:variable name="initial-var-name" select="$select-xml/json:map/json:array[@key = 'variables']/json:string[1]/substring-after(., '?')" as="xs:string"/>
-                    <xsl:variable name="focus-var-name" select="$initial-var-name" as="xs:string"/>
-                    <!-- service can be explicitly specified on content using ldh:service -->
-                    <xsl:variable name="service" select="key('resources', $service-uri, ixsl:get(ixsl:window(), 'LinkedDataHub.apps'))" as="element()?"/>
-                    <xsl:variable name="endpoint" select="($service/sd:endpoint/@rdf:resource/xs:anyURI(.), sd:endpoint())[1]" as="xs:anyURI"/>
-
-                    <xsl:message>
-                        $service-uri: <xsl:value-of select="$service-uri"/>
-                        $service/sd:endpoint/@rdf:resource: <xsl:value-of select="$service/sd:endpoint/@rdf:resource"/>
-                        $endpoint: <xsl:value-of select="$endpoint"/>
-                    </xsl:message>
-                    
-                    <xsl:choose>
-                        <!-- service URI is not specified or specified and can be loaded -->
-                        <xsl:when test="not($service-uri) or ($service-uri and exists($service))">
-                            <!-- window.LinkedDataHub.contents[{$content-uri}] object is already created -->
-                            <!-- store the initial SELECT query (without modifiers) -->
-                            <ixsl:set-property name="select-query" select="$select-string" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`')"/>
-                            <!-- store the first var name of the initial SELECT query -->
-                            <ixsl:set-property name="initial-var-name" select="$initial-var-name" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`')"/>
-                            <xsl:if test="$service-uri">
-                                <!-- store (the URI of) the service -->
-                                <ixsl:set-property name="service-uri" select="$service-uri" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`')"/>
-                                <ixsl:set-property name="service" select="$service" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`')"/>
-                            </xsl:if>
-
-                            <xsl:variable name="select-xml" as="document-node()">
-                                <xsl:document>
-                                    <xsl:apply-templates select="$select-xml" mode="ldh:replace-limit">
-                                        <xsl:with-param name="limit" select="$page-size" tunnel="yes"/>
-                                    </xsl:apply-templates>
-                                </xsl:document>
-                            </xsl:variable>
-                            <xsl:variable name="select-xml" as="document-node()">
-                                <xsl:document>
-                                    <xsl:apply-templates select="$select-xml" mode="ldh:replace-offset">
-                                        <xsl:with-param name="offset" select="0" tunnel="yes"/>
-                                    </xsl:apply-templates>
-                                </xsl:document>
-                            </xsl:variable>
-
-                            <!-- store the transformed query XML -->
-                            <ixsl:set-property name="select-xml" select="$select-xml" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`')"/>
-                            <!-- update progress bar -->
-                            <xsl:for-each select="$container//div[@class = 'bar']">
-                                <ixsl:set-style name="width" select="'63%'" object="."/>
-                            </xsl:for-each>
-
-                            <xsl:call-template name="ldh:RenderView">
-                                <xsl:with-param name="container" select="$container"/>
-                                <xsl:with-param name="content-uri" select="$content-uri"/>
-                                <xsl:with-param name="content" select="$content"/> <!-- unused? -->
-                                <xsl:with-param name="select-string" select="$select-string"/>
-                                <xsl:with-param name="select-xml" select="$select-xml"/>
-                                <xsl:with-param name="endpoint" select="$endpoint"/>
-                                <xsl:with-param name="initial-var-name" select="$initial-var-name"/>
-                                <xsl:with-param name="focus-var-name" select="$focus-var-name"/>
-                                <xsl:with-param name="active-mode" select="if ($mode) then $mode else xs:anyURI('&ac;ListMode')"/>
-                                <xsl:with-param name="refresh-content" select="$refresh-content"/>
-                            </xsl:call-template>
-                        </xsl:when>
-                        <xsl:otherwise>
-                            <xsl:for-each select="$container//div[contains-token(@class, 'main')]">
-                                <xsl:result-document href="?." method="ixsl:replace-content">
-                                    <div class="alert alert-block">
-                                        <strong>Could not load service resource: <a href="{$service-uri}"><xsl:value-of select="$service-uri"/></a></strong>
-                                    </div>
-                                </xsl:result-document>
-                            </xsl:for-each>
-
-                            <xsl:call-template name="ldh:BlockRendered">
-                                <xsl:with-param name="container" select="$container"/>
-                            </xsl:call-template>
-                        </xsl:otherwise>
-                    </xsl:choose>
-                </xsl:for-each>
-            </xsl:when>
-            <xsl:otherwise>
-                <xsl:for-each select="$container//div[contains-token(@class, 'main')]">
-                    <xsl:result-document href="?." method="ixsl:replace-content">
-                        <div class="alert alert-block">
-                            <strong>Could not load query resource: <a href="{$query-uri}"><xsl:value-of select="$query-uri"/></a></strong>
-                        </div>
-                    </xsl:result-document>
-                </xsl:for-each>
-
-                <xsl:call-template name="ldh:BlockRendered">
-                    <xsl:with-param name="container" select="$container"/>
-                </xsl:call-template>
-            </xsl:otherwise>
-        </xsl:choose>
-    </xsl:template>
-    
     <!-- object block (RDF resource) -->
     
     <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&ldh;Object'][rdf:value/@rdf:resource]" mode="ldh:RenderBlock" priority="1">
@@ -1047,11 +895,21 @@ exclude-result-prefixes="#all"
 
         <xsl:choose>
             <xsl:when test="key('resources', $content-uri, $doc)">
+                <!--
                 <xsl:apply-templates select="key('resources', $content-uri, $doc)" mode="ldh:RenderBlock">
                     <xsl:with-param name="this" select="$this"/>
                     <xsl:with-param name="container" select="$container"/>
                     <xsl:with-param name="refresh-content" select="$refresh-content"/>
                 </xsl:apply-templates>
+                -->
+                
+                <xsl:call-template name="ldh:BlockLoaded">
+                    <xsl:with-param name="this" select="$this"/>
+                    <xsl:with-param name="content-uri" select="$content-uri"/>
+                    <xsl:with-param name="container" select="$container"/>
+                    <xsl:with-param name="acl-modes" select="$acl-modes"/>
+                    <xsl:with-param name="refresh-content" select="$refresh-content"/>
+                </xsl:call-template>
             </xsl:when>
             <xsl:otherwise>
                 <xsl:variable name="progress-container" select="if (contains-token(@class, 'row-fluid')) then ./div[contains-token(@class, 'main')] else ." as="element()"/>
