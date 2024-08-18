@@ -1000,6 +1000,7 @@ exclude-result-prefixes="#all"
     
     <xsl:template name="ldh:BlockLoaded">
         <xsl:param name="block" as="element()"/>
+        <xsl:param name="this" as="xs:anyURI"/>
         <xsl:param name="container" as="element()"/>
         <xsl:param name="content-uri" as="xs:anyURI"/>
         <xsl:param name="acl-modes" as="xs:anyURI*"/>
