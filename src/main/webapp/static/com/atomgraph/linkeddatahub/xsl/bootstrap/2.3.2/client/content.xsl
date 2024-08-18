@@ -895,15 +895,8 @@ exclude-result-prefixes="#all"
 
         <xsl:choose>
             <xsl:when test="key('resources', $content-uri, $doc)">
-                <!--
-                <xsl:apply-templates select="key('resources', $content-uri, $doc)" mode="ldh:RenderBlock">
-                    <xsl:with-param name="this" select="$this"/>
-                    <xsl:with-param name="container" select="$container"/>
-                    <xsl:with-param name="refresh-content" select="$refresh-content"/>
-                </xsl:apply-templates>
-                -->
-                
                 <xsl:call-template name="ldh:BlockLoaded">
+                    <xsl:with-param name="block" select="."/>
                     <xsl:with-param name="this" select="$this"/>
                     <xsl:with-param name="content-uri" select="$content-uri"/>
                     <xsl:with-param name="container" select="$container"/>
@@ -931,7 +924,7 @@ exclude-result-prefixes="#all"
                 <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, ac:document-uri($content-uri))" as="xs:anyURI"/>
                 <xsl:variable name="request" as="item()*">
                     <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': ac:document-uri($request-uri), 'headers': map{ 'Accept': 'application/rdf+xml' } }">
-                        <xsl:call-template name="ldh:BlockLoaded">
+                        <xsl:call-template name="ldh:BlockLoadedCallback">
                             <xsl:with-param name="this" select="$this"/>
                             <xsl:with-param name="content-uri" select="$content-uri"/>
                             <xsl:with-param name="container" select="$container"/>
@@ -945,9 +938,9 @@ exclude-result-prefixes="#all"
         </xsl:choose>
     </xsl:template>
 
-    <!-- embed content -->
+    <!-- block loaded callback -->
     
-    <xsl:template name="ldh:BlockLoaded">
+    <xsl:template name="ldh:BlockLoadedCallback">
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="this" as="xs:anyURI"/>
         <xsl:param name="container" as="element()"/>
@@ -959,32 +952,14 @@ exclude-result-prefixes="#all"
         <xsl:variable name="block" select="key('resources', $content-uri, ?body)" as="element()?"/>
         <xsl:choose>
             <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml' and $block">
-                <xsl:variable name="results" select="?body" as="document-node()"/>
-                <!-- create new cache entry using content URI as key -->
-                <ixsl:set-property name="{'`' || $content-uri || '`'}" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.contents')"/>
-                <!-- store this content element -->
-                <ixsl:set-property name="content" select="$block" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`')"/>
-
-                <xsl:for-each select="$container//div[@class = 'bar']">
-                    <!-- update progress bar -->
-                    <ixsl:set-style name="width" select="'50%'" object="."/>
-                </xsl:for-each>
-
-                <xsl:apply-templates select="$block" mode="ldh:RenderBlock">
+                <xsl:call-template name="ldh:BlockLoaded">
+                    <xsl:with-param name="block" select="$block"/>
                     <xsl:with-param name="this" select="$this"/>
+                    <xsl:with-param name="content-uri" select="$content-uri"/>
                     <xsl:with-param name="container" select="$container"/>
+                    <xsl:with-param name="acl-modes" select="$acl-modes"/>
                     <xsl:with-param name="refresh-content" select="$refresh-content"/>
-                </xsl:apply-templates>
-            
-                <!-- initialize map TO-DO: move inside ldh:RenderBlock? -->
-                <xsl:if test="key('elements-by-class', 'map-canvas', $container)">
-                    <xsl:for-each select="$results">
-                        <xsl:call-template name="ldh:DrawMap">
-                            <xsl:with-param name="content-uri" select="$content-uri"/>
-                            <xsl:with-param name="canvas-id" select="key('elements-by-class', 'map-canvas', $container)/@id" />
-                        </xsl:call-template>
-                    </xsl:for-each>
-                </xsl:if>
+                </xsl:call-template>
             </xsl:when>
             <!-- content could not be loaded from Linked Data, attempt a fallback to a DESCRIBE query over the local endpoint -->
             <!--
@@ -994,7 +969,7 @@ exclude-result-prefixes="#all"
                 <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, $results-uri)" as="xs:anyURI"/>
                 <xsl:variable name="request" as="item()*">
                     <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': ac:document-uri($request-uri), 'headers': map{ 'Accept': 'application/rdf+xml' } }">
-                        <xsl:call-template name="ldh:BlockLoaded">
+                        <xsl:call-template name="ldh:BlockLoadedCallback">
                             <xsl:with-param name="this" select="$this"/>
                             <xsl:with-param name="content-uri" select="$content-uri"/>
                             <xsl:with-param name="container" select="$container"/>
@@ -1021,6 +996,42 @@ exclude-result-prefixes="#all"
         </xsl:choose>
     </xsl:template>
 
+    <!-- block loaded -->
+    
+    <xsl:template name="ldh:BlockLoaded">
+        <xsl:param name="block" as="element()"/>
+        <xsl:param name="container" as="element()"/>
+        <xsl:param name="content-uri" as="xs:anyURI"/>
+        <xsl:param name="acl-modes" as="xs:anyURI*"/>
+        <xsl:param name="refresh-content" as="xs:boolean?"/>
+
+        <!-- create new cache entry using content URI as key -->
+        <ixsl:set-property name="{'`' || $content-uri || '`'}" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.contents')"/>
+        <!-- store this content element -->
+        <ixsl:set-property name="content" select="$block" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`')"/>
+
+        <xsl:for-each select="$container//div[@class = 'bar']">
+            <!-- update progress bar -->
+            <ixsl:set-style name="width" select="'50%'" object="."/>
+        </xsl:for-each>
+
+        <xsl:apply-templates select="$block" mode="ldh:RenderBlock">
+            <xsl:with-param name="this" select="$this"/>
+            <xsl:with-param name="container" select="$container"/>
+            <xsl:with-param name="refresh-content" select="$refresh-content"/>
+        </xsl:apply-templates>
+
+        <!-- initialize map TO-DO: move inside ldh:RenderBlock? -->
+        <xsl:if test="key('elements-by-class', 'map-canvas', $container)">
+            <xsl:for-each select="root($block)">
+                <xsl:call-template name="ldh:DrawMap">
+                    <xsl:with-param name="content-uri" select="$content-uri"/>
+                    <xsl:with-param name="canvas-id" select="key('elements-by-class', 'map-canvas', $container)/@id" />
+                </xsl:call-template>
+            </xsl:for-each>
+        </xsl:if>
+    </xsl:template>
+    
     <!-- embed DESCRIBE/CONSTRUCT result -->
     
     <xsl:template name="onQueryContentLoad">
