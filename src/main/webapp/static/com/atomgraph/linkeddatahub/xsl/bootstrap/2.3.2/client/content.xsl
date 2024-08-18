@@ -896,7 +896,7 @@ exclude-result-prefixes="#all"
         <xsl:choose>
             <xsl:when test="key('resources', $content-uri, $doc)">
                 <xsl:call-template name="ldh:BlockLoaded">
-                    <xsl:with-param name="block" select="."/>
+                    <xsl:with-param name="block" select="key('resources', $content-uri, $doc)"/>
                     <xsl:with-param name="this" select="$this"/>
                     <xsl:with-param name="content-uri" select="$content-uri"/>
                     <xsl:with-param name="container" select="$container"/>
