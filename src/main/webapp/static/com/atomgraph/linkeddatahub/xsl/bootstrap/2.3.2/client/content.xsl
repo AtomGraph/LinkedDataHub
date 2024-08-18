@@ -890,7 +890,7 @@ exclude-result-prefixes="#all"
 
         <xsl:message>
             ldh:LoadBlock @about: <xsl:value-of select="@about"/> @id: <xsl:value-of select="@id"/> $this: <xsl:value-of select="$this"/>
-            ancestor::div[@about][1]: <xsl:value-of select="serialize(ancestor::div[@about][1])"/>
+            <!-- ancestor::div[@about][1]: <xsl:value-of select="serialize(ancestor::div[@about][1])"/> -->
         </xsl:message>
 
         <xsl:choose>
@@ -1006,6 +1006,11 @@ exclude-result-prefixes="#all"
         <xsl:param name="acl-modes" as="xs:anyURI*"/>
         <xsl:param name="refresh-content" as="xs:boolean?"/>
 
+        <xsl:message>
+            ldh:BlockLoaded
+            $block: <xs:value-of select="serialize($block)"/>
+            $this: <xsl:value-of select="$this"/>
+        </xsl:message>
         <!-- create new cache entry using content URI as key -->
         <ixsl:set-property name="{'`' || $content-uri || '`'}" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.contents')"/>
         <!-- store this content element -->
