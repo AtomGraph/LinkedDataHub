@@ -305,10 +305,10 @@ exclude-result-prefixes="#all"
     </xsl:template>
 
     <xsl:template match="*" mode="ldh:BlockRendered">
+        <xsl:variable name="element" select="." as="element()"/>
         <xsl:message>ldh:BlockRendered</xsl:message>
         
         <!-- insert "Edit" button if the agent has acl:Write access -->
-        <!--
         <xsl:for-each select=".//div[contains-token(@class, 'main')]">
             <xsl:if test="not(button[contains-token(@class, 'btn-edit')])">
                 <xsl:result-document href="?." method="ixsl:replace-content">
@@ -318,11 +318,10 @@ exclude-result-prefixes="#all"
                         </button>
                     </xsl:if>
 
-                    <xsl:copy-of select=".//div[contains-token(@class, 'main')]/*"/>
+                    <xsl:copy-of select="$element//div[contains-token(@class, 'main')]/*"/>
                 </xsl:result-document>
             </xsl:if>
         </xsl:for-each>
-            -->
     </xsl:template>
     
     <!-- EVENT LISTENERS -->
