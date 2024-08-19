@@ -181,9 +181,7 @@ exclude-result-prefixes="#all"
                                 </xsl:result-document>
                             </xsl:for-each>
 
-                            <xsl:call-template name="ldh:BlockRendered">
-                                <xsl:with-param name="container" select="$container"/>
-                            </xsl:call-template>
+                            <xsl:apply-templates select="$container" mode="ldh:BlockRendered"/>
                         </xsl:otherwise>
                     </xsl:choose>
                 </xsl:for-each>
@@ -197,9 +195,7 @@ exclude-result-prefixes="#all"
                     </xsl:result-document>
                 </xsl:for-each>
 
-                <xsl:call-template name="ldh:BlockRendered">
-                    <xsl:with-param name="container" select="$container"/>
-                </xsl:call-template>
+                <xsl:apply-templates select="$container" mode="ldh:BlockRendered"/>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
@@ -1557,9 +1553,7 @@ exclude-result-prefixes="#all"
                             </xsl:result-document>
                         </xsl:for-each>
                         
-                        <xsl:call-template name="ldh:BlockRendered">
-                            <xsl:with-param name="container" select="$container"/>
-                        </xsl:call-template>
+                        <xsl:apply-templates select="$container" mode="ldh:BlockRendered"/>
 
                         <!-- make sure the asynchronous templates below execute after ldh:BlockRendered -->
                         <xsl:for-each select="$bgp-triples-map">

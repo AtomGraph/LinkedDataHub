@@ -234,11 +234,9 @@ exclude-result-prefixes="#all"
             <xsl:result-document href="?." method="ixsl:replace-content">
                 <xsl:copy-of select="$row/*"/>
             </xsl:result-document>
+            
+            <xsl:apply-templates select="." mode="ldh:BlockRendered"/>
         </xsl:for-each>
-
-        <xsl:call-template name="ldh:BlockRendered">
-            <xsl:with-param name="container" select="$container"/>
-        </xsl:call-template>
 
         <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, $query-uri)" as="xs:anyURI"/>
         <xsl:variable name="request" as="item()*">

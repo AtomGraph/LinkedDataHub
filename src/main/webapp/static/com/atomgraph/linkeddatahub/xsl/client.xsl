@@ -796,9 +796,7 @@ WHERE
                             </xsl:call-template>
                             
                             <!-- post-process the container -->
-                            <xsl:call-template name="ldh:BlockRendered">
-                                <xsl:with-param name="container" select="$container"/>
-                            </xsl:call-template>
+                            <xsl:apply-templates select="$container" mode="ldh:BlockRendered"/>
                         </xsl:otherwise>
                     </xsl:choose>
                     

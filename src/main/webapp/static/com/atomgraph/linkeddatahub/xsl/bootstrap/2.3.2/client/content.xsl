@@ -239,9 +239,7 @@ exclude-result-prefixes="#all"
                     </xsl:result-document>
                 </xsl:for-each>
                 
-                <xsl:call-template name="ldh:BlockRendered">
-                    <xsl:with-param name="container" select="$container"/>
-                </xsl:call-template>
+                <xsl:apply-templates select="$container" mode="ldh:BlockRendered"/>
             </xsl:when>
             <xsl:otherwise>
                 <xsl:for-each select="$container//div[contains-token(@class, 'main')]">
@@ -252,9 +250,7 @@ exclude-result-prefixes="#all"
                     </xsl:result-document>
                 </xsl:for-each>
 
-                <xsl:call-template name="ldh:BlockRendered">
-                    <xsl:with-param name="container" select="$container"/>
-                </xsl:call-template>
+                <xsl:apply-templates select="$container" mode="ldh:BlockRendered"/>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
@@ -296,13 +292,11 @@ exclude-result-prefixes="#all"
                     <xsl:result-document href="?." method="ixsl:replace-content">
                         <xsl:copy-of select="$row/*"/> <!-- inject the content of div.row-fluid -->
                     </xsl:result-document>
-                </xsl:for-each>
+                    
+                    <xsl:apply-templates select="." mode="ldh:BlockRendered"/>
 
-                <xsl:call-template name="ldh:BlockRendered">
-                    <xsl:with-param name="container" select="$container"/>
-                </xsl:call-template>
-                
-                <xsl:apply-templates select="$container/*" mode="ldh:PostConstruct"/>
+                    <xsl:apply-templates select="*" mode="ldh:PostConstruct"/>
+                </xsl:for-each>
             </xsl:when>
             <xsl:otherwise>
                 <xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ ?message ])[current-date() lt xs:date('2000-01-01')]"/>
@@ -310,11 +304,9 @@ exclude-result-prefixes="#all"
         </xsl:choose>
     </xsl:template>
 
-    <xsl:template name="ldh:BlockRendered">
-        <xsl:param name="container" as="element()"/>
-
+    <xsl:template match="*" mode="ldh:BlockRendered">
         <!-- insert "Edit" button if the agent has acl:Write access -->
-        <xsl:for-each select="$container//div[contains-token(@class, 'main')]">
+        <xsl:for-each select=".//div[contains-token(@class, 'main')]">
             <xsl:if test="not(button[contains-token(@class, 'btn-edit')])">
                 <xsl:result-document href="?." method="ixsl:replace-content">
                     <xsl:if test="acl:mode() = '&acl;Write'">
@@ -323,7 +315,7 @@ exclude-result-prefixes="#all"
                         </button>
                     </xsl:if>
 
-                    <xsl:copy-of select="$container//div[contains-token(@class, 'main')]/*"/>
+                    <xsl:copy-of select=".//div[contains-token(@class, 'main')]/*"/>
                 </xsl:result-document>
             </xsl:if>
         </xsl:for-each>
@@ -876,9 +868,7 @@ exclude-result-prefixes="#all"
     </xsl:template>
     
     <xsl:template match="*[@about][@typeof = '&ldh;XHTML']" mode="ldh:LoadBlock" priority="1">
-        <xsl:call-template name="ldh:BlockRendered">
-            <xsl:with-param name="container" select="."/>
-        </xsl:call-template>
+        <xsl:apply-templates select="." mode="ldh:BlockRendered"/>
     </xsl:template>
     
     <xsl:template name="ldh:LoadBlock">
@@ -991,10 +981,8 @@ exclude-result-prefixes="#all"
                         </div>
                     </xsl:result-document>
                 </xsl:for-each>
-                
-                <xsl:call-template name="ldh:BlockRendered">
-                    <xsl:with-param name="container" select="$container"/>
-                </xsl:call-template>
+
+                <xsl:apply-templates select="$container" mode="ldh:BlockRendered"/>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
@@ -1065,11 +1053,9 @@ exclude-result-prefixes="#all"
                         <xsl:result-document href="?." method="ixsl:replace-content">
                             <xsl:copy-of select="$row/*"/>
                         </xsl:result-document>
+                        
+                        <xsl:apply-templates select="." mode="ldh:BlockRendered"/>
                     </xsl:for-each>
-
-                    <xsl:call-template name="ldh:BlockRendered">
-                        <xsl:with-param name="container" select="$container"/>
-                    </xsl:call-template>
                 </xsl:for-each>
             </xsl:when>
             <xsl:otherwise>
@@ -1081,9 +1067,7 @@ exclude-result-prefixes="#all"
                     </xsl:result-document>
                 </xsl:for-each>
                 
-                <xsl:call-template name="ldh:BlockRendered">
-                    <xsl:with-param name="container" select="$container"/>
-                </xsl:call-template>
+                <xsl:apply-templates select="$container" mode="ldh:BlockRendered"/>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
