@@ -608,7 +608,10 @@ exclude-result-prefixes="#all"
             <!-- updating existing content -->
             <xsl:when test="$container/@about">
                 <xsl:for-each select="$container">
-                    <xsl:call-template name="ldh:LoadBlock"/>
+                    <xsl:variable name="doc" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path(xs:anyURI(ixsl:location())) || '`'), 'results')" as="document-node()"/>
+                    <xsl:call-template name="ldh:LoadBlock">
+                        <xsl:with-param name="doc" select="$doc"/>
+                    </xsl:call-template>
                 </xsl:for-each>
             </xsl:when> 
             <!-- remove content that hasn't been saved yet -->
@@ -860,7 +863,7 @@ exclude-result-prefixes="#all"
     <!-- load content -->
 
     <!-- TO-DO: move to respective stylesheets -->
-    <xsl:template match="*[@about][@typeof = ('&ldh;View', '&ldh;Object', '&ldh;ResultSetChart', '&ldh;GraphChart')]" mode="ldh:LoadBlock" priority="1">
+    <xsl:template match="*[@about][@typeof = ('&ldh;View', '&ldh;Object', '&ldh;ResultSetChart', '&ldh;GraphChart')]" mode="ldh:LoadBlock" priority="2">
         <xsl:param name="acl-modes" as="xs:anyURI*"/>
         <xsl:param name="doc" as="document-node()"/>
         <xsl:param name="refresh-content" as="xs:boolean?"/>
@@ -872,7 +875,7 @@ exclude-result-prefixes="#all"
         </xsl:call-template>
     </xsl:template>
     
-    <xsl:template match="*[@about][@typeof]" mode="ldh:LoadBlock" >
+    <xsl:template match="*[@about][@typeof = '&ldh;XHTML']" mode="ldh:LoadBlock" priority="1">
         <xsl:call-template name="ldh:BlockRendered">
             <xsl:with-param name="container" select="."/>
         </xsl:call-template>
