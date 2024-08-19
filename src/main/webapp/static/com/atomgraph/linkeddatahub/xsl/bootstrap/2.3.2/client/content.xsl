@@ -531,8 +531,8 @@ exclude-result-prefixes="#all"
     
     <!-- delete content onclick (increased priority to take precedence over form.xsl .btn-remove-resource) -->
     
-    <xsl:template match="div[contains-token(@class, 'content')]//button[contains-token(@class, 'btn-remove-resource')]" mode="ixsl:onclick" priority="3">
-        <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'content')]" as="element()"/>
+    <xsl:template match="div[@typeof = ('&ldh;XHTML', '&ldh;View', '&ldh;Object')]//button[contains-token(@class, 'btn-remove-resource')]" mode="ixsl:onclick" priority="3">
+        <xsl:variable name="container" select="ancestor::div[@typeof = ('&ldh;XHTML', '&ldh;View', '&ldh;Object')]" as="element()"/>
 
         <xsl:choose>
             <!-- delete existing content -->
@@ -566,8 +566,8 @@ exclude-result-prefixes="#all"
     
     <!-- XHTML content cancel onclick - prioritize over resource content -->
     
-    <xsl:template match="div[contains-token(@class, 'xhtml-content')]//button[contains-token(@class, 'btn-cancel')]" mode="ixsl:onclick" priority="2">
-        <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'xhtml-content')]" as="element()"/>
+    <xsl:template match="div[@typeof = '&ldh;XHTML']//button[contains-token(@class, 'btn-cancel')]" mode="ixsl:onclick" priority="2">
+        <xsl:variable name="container" select="ancestor::div[@typeof = '&ldh;XHTML']" as="element()"/>
 
         <xsl:message>XHTML content cancel onclick</xsl:message>
         
@@ -599,8 +599,8 @@ exclude-result-prefixes="#all"
     
     <!-- resource content/SPARQL content cancel onclick -->
     
-    <xsl:template match="div[contains-token(@class, 'content')]//button[contains-token(@class, 'btn-cancel')]" mode="ixsl:onclick" priority="1"> <!-- prioritize over form.xsl -->
-        <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'content')]" as="element()"/>
+    <xsl:template match="div[@typeof = ('&ldh;View', '&ldh;Object')]//button[contains-token(@class, 'btn-cancel')]" mode="ixsl:onclick" priority="1"> <!-- prioritize over form.xsl -->
+        <xsl:variable name="container" select="ancestor::div[@typeof = ('&ldh;View', '&ldh;Object')]" as="element()"/>
 
         <xsl:message>resource content</xsl:message>
 
