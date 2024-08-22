@@ -305,7 +305,8 @@ exclude-result-prefixes="#all"
         </xsl:choose>
     </xsl:template>
 
-    <xsl:template match="*" mode="ldh:BlockRendered">
+    <!-- TO-DO: move to respective stylesheets -->
+    <xsl:template match="div[@typeof = ('&ldh;XHTML', '&ldh;View', '&ldh;Object')]" mode="ldh:BlockRendered" priority="1">
         <xsl:variable name="element" select="." as="element()"/>
         <xsl:message>ldh:BlockRendered</xsl:message>
         
