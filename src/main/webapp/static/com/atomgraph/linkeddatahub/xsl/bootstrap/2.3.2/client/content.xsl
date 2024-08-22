@@ -227,6 +227,7 @@ exclude-result-prefixes="#all"
                         <xsl:with-param name="this" select="$this"/>
                         <xsl:with-param name="container" select="$container"/>
                         <xsl:with-param name="mode" select="$mode"/>
+                        <xsl:with-param name="show-edit-button" select="$show-edit-button" tunnel="yes"/>
                     </xsl:apply-templates>
                 </xsl:for-each>
             </xsl:when>
