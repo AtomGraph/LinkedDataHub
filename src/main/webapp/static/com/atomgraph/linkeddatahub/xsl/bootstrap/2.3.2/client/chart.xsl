@@ -223,7 +223,7 @@ exclude-result-prefixes="#all"
         </xsl:for-each>
         
         <xsl:variable name="row" as="element()*">
-            <xsl:apply-templates select="." mode="bs2:Row">
+            <xsl:apply-templates select="." mode="bs2:Block">
                 <xsl:with-param name="graph" select="$graph" tunnel="yes"/>
                 <xsl:with-param name="mode" select="$mode"/>
                 <xsl:with-param name="canvas-id" select="$canvas-id" tunnel="yes"/>

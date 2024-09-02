@@ -225,7 +225,7 @@ WHERE
                 <!-- proxy $created-uri to make sure we get RDF/XML. TO-DO: load asynchronously? -->
                 <xsl:variable name="request-uri" select="ac:build-uri($created-uri, map{ 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
                 <xsl:for-each select="document($request-uri)">
-                    <xsl:apply-templates select="key('resources-by-type', '&foaf;Person')[@rdf:about]" mode="bs2:Row"/>
+                    <xsl:apply-templates select="key('resources-by-type', '&foaf;Person')[@rdf:about]" mode="bs2:Block"/>
                 </xsl:for-each>
             </xsl:result-document>
         </xsl:for-each>
@@ -453,7 +453,7 @@ WHERE
         <xsl:variable name="resource" select="key('resources', $about, $doc)" as="element()"/>
 
         <xsl:variable name="row" as="node()*">
-            <xsl:apply-templates select="$resource" mode="bs2:Row"/>
+            <xsl:apply-templates select="$resource" mode="bs2:Block"/>
         </xsl:variable>
 
         <xsl:for-each select="$container">
@@ -700,7 +700,7 @@ WHERE
                 
                 <xsl:variable name="classes" select="()" as="element()*"/>
                 <xsl:variable name="row" as="element()">
-                    <xsl:apply-templates select="$resources/rdf:RDF/*" mode="bs2:Row">
+                    <xsl:apply-templates select="$resources/rdf:RDF/*" mode="bs2:Block">
                         <xsl:with-param name="classes" select="$classes"/>
                         <xsl:with-param name="style" select="()"/> <!-- TO-DO: remove? -->
                         <xsl:with-param name="type-content" select="false()"/>

@@ -276,7 +276,7 @@ exclude-result-prefixes="#all"
                 </xsl:for-each>
 
                 <xsl:variable name="row" as="node()*">
-                    <xsl:apply-templates select="$resource" mode="bs2:Row">
+                    <xsl:apply-templates select="$resource" mode="bs2:Block">
                         <xsl:with-param name="graph" select="$graph" tunnel="yes"/>
                         <xsl:with-param name="mode" select="$mode"/>
                         <xsl:with-param name="show-edit-button" select="$show-edit-button" tunnel="yes"/>
@@ -1049,7 +1049,7 @@ exclude-result-prefixes="#all"
                     <ixsl:set-style name="display" select="'none'" object="$container//div[@class = 'progress-bar']"/>
 
                     <xsl:variable name="row" as="element()*">
-                        <xsl:apply-templates select="." mode="bs2:Row">
+                        <xsl:apply-templates select="." mode="bs2:Block">
                             <xsl:with-param name="mode" select="$mode"/>
                         </xsl:apply-templates>
                     </xsl:variable>

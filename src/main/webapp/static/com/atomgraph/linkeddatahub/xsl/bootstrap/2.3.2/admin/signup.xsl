@@ -50,7 +50,7 @@ exclude-result-prefixes="#all">
         <div about="{ac:absolute-path(base-uri($main-doc))}" id="content-body" class="container-fluid">
             <xsl:apply-templates select="key('resources', ac:absolute-path(base-uri($main-doc)))" mode="ldh:ContentList"/>
 
-            <xsl:apply-templates select="." mode="bs2:Row"/>
+            <xsl:apply-templates select="." mode="bs2:Block"/>
         </div>
     </xsl:template>
     
@@ -62,7 +62,7 @@ exclude-result-prefixes="#all">
     
     <xsl:template match="rdf:RDF[if (doc-available(ac:absolute-path($ldh:requestUri))) then (key('resources', ac:absolute-path($ldh:requestUri), document(ac:absolute-path($ldh:requestUri)))/rdf:type/@rdf:resource = '&adm;SignUp') else false()]" mode="bs2:ModeTabs" priority="2"/>
 
-    <xsl:template match="*[rdf:type/@rdf:resource = '&adm;SignUp'][$ac:method = 'GET']" mode="bs2:Row" priority="2">
+    <xsl:template match="*[rdf:type/@rdf:resource = '&adm;SignUp'][$ac:method = 'GET']" mode="bs2:Block" priority="2">
         <xsl:variable name="constructors" select="ldh:query-result(map{}, resolve-uri('ns', $ldt:base), $constructor-query || ' VALUES $Type { ' || string-join(for $type in '&foaf;Person' return '&lt;' || $type || '&gt;', ' ') || ' }')" as="document-node()?"/>
         <xsl:apply-templates select="ldh:construct(map{ xs:anyURI('&foaf;Person'): $constructors//srx:result[srx:binding[@name = 'Type'] = '&foaf;Person']/srx:binding[@name = 'construct']/srx:literal/string() })" mode="bs2:RowForm">
             <xsl:with-param name="id" select="'form-signup'"/>
@@ -79,7 +79,7 @@ exclude-result-prefixes="#all">
     </xsl:template>
 
     <!-- constraint violation -->
-    <xsl:template match="rdf:RDF[if (doc-available(ac:absolute-path($ldh:requestUri))) then (key('resources', ac:absolute-path($ldh:requestUri), document(ac:absolute-path($ldh:requestUri)))/rdf:type/@rdf:resource = '&adm;SignUp') else false()][$ac:method = 'POST'][key('resources-by-type', '&spin;ConstraintViolation') or key('resources-by-type', '&sh;ValidationResult')]" mode="bs2:Row" priority="3">
+    <xsl:template match="rdf:RDF[if (doc-available(ac:absolute-path($ldh:requestUri))) then (key('resources', ac:absolute-path($ldh:requestUri), document(ac:absolute-path($ldh:requestUri)))/rdf:type/@rdf:resource = '&adm;SignUp') else false()][$ac:method = 'POST'][key('resources-by-type', '&spin;ConstraintViolation') or key('resources-by-type', '&sh;ValidationResult')]" mode="bs2:Block" priority="3">
         <xsl:apply-templates select="." mode="bs2:RowForm">
             <xsl:with-param name="id" select="'form-signup'"/>
             <xsl:with-param name="action" select="ac:absolute-path(base-uri($main-doc))"/>
@@ -94,7 +94,7 @@ exclude-result-prefixes="#all">
         </xsl:apply-templates>
     </xsl:template>
     
-<!--    <xsl:template match="rdf:RDF[if (doc-available(ac:absolute-path($ldh:requestUri))) then (key('resources', ac:absolute-path($ldh:requestUri), document(ac:absolute-path($ldh:requestUri)))/rdf:type/@rdf:resource = '&adm;SignUp') else false()][$ac:method = 'POST'][not(key('resources-by-type', '&http;Response'))][1]" mode="bs2:Row" priority="3">
+<!--    <xsl:template match="rdf:RDF[if (doc-available(ac:absolute-path($ldh:requestUri))) then (key('resources', ac:absolute-path($ldh:requestUri), document(ac:absolute-path($ldh:requestUri)))/rdf:type/@rdf:resource = '&adm;SignUp') else false()][$ac:method = 'POST'][not(key('resources-by-type', '&http;Response'))][1]" mode="bs2:Block" priority="3">
         <div class="row-fluid">
             <div class="main offset2 span7">
                 <div class="alert alert-success row-fluid">
@@ -116,7 +116,7 @@ exclude-result-prefixes="#all">
     </xsl:template>-->
     
     <!-- suppress resources other than foaf:Person and cert:PublicKey -->
-    <xsl:template match="*[if (doc-available(ac:absolute-path($ldh:requestUri))) then (key('resources', ac:absolute-path($ldh:requestUri), document(ac:absolute-path($ldh:requestUri)))/rdf:type/@rdf:resource = '&adm;SignUp') else false()][$ac:method = 'POST'][not(key('resources-by-type', '&http;Response'))][not(rdf:type/@rdf:resource = ('&foaf;Person', '&cert;PublicKey'))]" mode="bs2:Row" priority="2"/>
+    <xsl:template match="*[if (doc-available(ac:absolute-path($ldh:requestUri))) then (key('resources', ac:absolute-path($ldh:requestUri), document(ac:absolute-path($ldh:requestUri)))/rdf:type/@rdf:resource = '&adm;SignUp') else false()][$ac:method = 'POST'][not(key('resources-by-type', '&http;Response'))][not(rdf:type/@rdf:resource = ('&foaf;Person', '&cert;PublicKey'))]" mode="bs2:Block" priority="2"/>
 
     <!-- disable the right nav (backlinks etc.) -->
     <xsl:template match="*[*][@rdf:about or @rdf:nodeID][if (doc-available(ac:absolute-path($ldh:requestUri))) then (key('resources', ac:absolute-path($ldh:requestUri), document(ac:absolute-path($ldh:requestUri)))/rdf:type/@rdf:resource = '&adm;SignUp') else false()]" mode="bs2:Right"/>

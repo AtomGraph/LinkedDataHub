@@ -765,7 +765,7 @@ LIMIT   100
     <xsl:template match="rdf:RDF[key('resources', ac:absolute-path(ldh:base-uri(.)))][$ac:mode = '&ldht;InfoWindowMode']" mode="xhtml:Body" priority="1">
         <body>
             <div> <!-- SPARQLMap renders the first child of <body> as InfoWindow -->
-                <xsl:apply-templates select="." mode="bs2:Block">
+                <xsl:apply-templates select=".">
                     <xsl:with-param name="display" select="true()" tunnel="yes"/>
                 </xsl:apply-templates>
             </div>
@@ -827,9 +827,9 @@ LIMIT   100
             </xsl:apply-templates>
 
             <xsl:choose>
-                <!-- error responses always rendered in bs2:Row mode, no matter what $ac:mode specifies -->
+                <!-- error responses always rendered in bs2:Block mode, no matter what $ac:mode specifies -->
                 <xsl:when test="key('resources-by-type', '&http;Response') and not(key('resources-by-type', '&spin;ConstraintViolation')) and not(key('resources-by-type', '&sh;ValidationResult'))">
-                    <xsl:apply-templates select="." mode="bs2:Row">
+                    <xsl:apply-templates select="." mode="bs2:Block">
                         <xsl:with-param name="template-query" select="$template-query" tunnel="yes"/>
                         <xsl:sort select="ac:label(.)"/>
                     </xsl:apply-templates>
@@ -863,7 +863,7 @@ LIMIT   100
                     </xsl:apply-templates>
                 </xsl:when>
                 <xsl:otherwise>
-                    <xsl:apply-templates select="." mode="bs2:Row">
+                    <xsl:apply-templates select="." mode="bs2:Block">
                         <xsl:with-param name="classes" select="$classes"/>
                         <xsl:sort select="ac:label(.)"/>
                     </xsl:apply-templates>

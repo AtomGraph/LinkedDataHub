@@ -65,13 +65,13 @@ exclude-result-prefixes="#all">
         <div about="{ac:absolute-path(base-uri($main-doc))}" id="content-body" class="container-fluid">
             <xsl:apply-templates select="key('resources', ac:absolute-path(base-uri($main-doc)))" mode="ldh:ContentList"/>
 
-            <xsl:apply-templates select="." mode="bs2:Row"/>
+            <xsl:apply-templates select="." mode="bs2:Block"/>
         </div>
     </xsl:template>
 
     <xsl:template match="rdf:RDF[if (doc-available(ac:absolute-path($ldh:requestUri))) then (key('resources', ac:absolute-path($ldh:requestUri), document(ac:absolute-path($ldh:requestUri)))/rdf:type/@rdf:resource = '&adm;RequestAccess') else false()]" mode="bs2:ModeTabs" priority="2"/>
 
-    <xsl:template match="*[rdf:type/@rdf:resource = '&adm;RequestAccess'][$ac:method = 'GET']" mode="bs2:Row" priority="2">
+    <xsl:template match="*[rdf:type/@rdf:resource = '&adm;RequestAccess'][$ac:method = 'GET']" mode="bs2:Block" priority="2">
         <xsl:variable name="constructor" as="document-node()">
             <xsl:document>
                 <xsl:variable name="constructors" select="ldh:query-result(map{}, resolve-uri('ns', $ldt:base), $constructor-query || ' VALUES $Type { ' || string-join(for $type in ('&dh;Item', '&lacl;AuthorizationRequest') return '&lt;' || $type || '&gt;', ' ') || ' }')" as="document-node()?"/>
@@ -99,7 +99,7 @@ exclude-result-prefixes="#all">
     </xsl:template>
 
     <!-- suppress other resources -->
-    <xsl:template match="*[if (doc-available(ac:absolute-path($ldh:requestUri))) then (key('resources', ac:absolute-path($ldh:requestUri), document(ac:absolute-path($ldh:requestUri)))/rdf:type/@rdf:resource = '&adm;RequestAccess') else false()][$ac:method = 'POST'][not(key('resources-by-type', '&http;Response'))]" mode="bs2:Row" priority="2"/>
+    <xsl:template match="*[if (doc-available(ac:absolute-path($ldh:requestUri))) then (key('resources', ac:absolute-path($ldh:requestUri), document(ac:absolute-path($ldh:requestUri)))/rdf:type/@rdf:resource = '&adm;RequestAccess') else false()][$ac:method = 'POST'][not(key('resources-by-type', '&http;Response'))]" mode="bs2:Block" priority="2"/>
 
     <!-- hide object blank nodes (that only have a single rdf:type property) from constructed models -->
     <xsl:template match="rdf:Description[$ac:method = 'GET'][@rdf:nodeID][not(rdf:type/@rdf:resource = ('&lacl;AuthorizationRequest', '&dh;Item'))][if (doc-available(ac:absolute-path($ldh:requestUri))) then (key('resources', ac:absolute-path($ldh:requestUri), document(ac:absolute-path($ldh:requestUri)))/rdf:type/@rdf:resource = '&adm;RequestAccess') else false()]" mode="bs2:RowForm" priority="3"/>

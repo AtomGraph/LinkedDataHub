@@ -1042,7 +1042,7 @@ $series: <xsl:value-of select="$series"/>
                     <xsl:variable name="doc-uri" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/>
                     <xsl:result-document href="?." method="ixsl:append-content">
                         <ul class="well well-small nav nav-list">
-                            <xsl:apply-templates select="$results/rdf:RDF/rdf:Description[not(@rdf:about = $doc-uri)]" mode="bs2:List">
+                            <xsl:apply-templates select="$results/rdf:RDF/rdf:Description[not(@rdf:about = $doc-uri)]" mode="xhtml:ListItem">
                                 <xsl:sort select="ac:label(.)" order="ascending" lang="{$ldt:lang}"/>
                                 <xsl:with-param name="mode" select="ixsl:query-params()?mode[1]" tunnel="yes"/> <!-- TO-DO: support multiple modes -->
                                 <xsl:with-param name="render-id" select="false()" tunnel="yes"/>

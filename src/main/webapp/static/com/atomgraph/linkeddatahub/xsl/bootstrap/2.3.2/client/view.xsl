@@ -754,7 +754,7 @@ exclude-result-prefixes="#all"
                 </xsl:apply-templates>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:apply-templates select="$results" mode="bs2:Block">
+                <xsl:apply-templates select="$results">
                     <xsl:with-param name="show-edit-button" select="false()" tunnel="yes"/>
                     <xsl:with-param name="endpoint" select="if (not($endpoint = sd:endpoint())) then $endpoint else ()" tunnel="yes"/>
                 </xsl:apply-templates>
@@ -836,7 +836,7 @@ exclude-result-prefixes="#all"
             <xsl:with-param name="select-xml" select="$select-xml"/>
         </xsl:call-template>
 
-        <xsl:apply-templates select="." mode="bs2:BlockList"/>
+        <xsl:apply-templates select="." mode="bs2:List"/>
 
         <xsl:call-template name="bs2:PagerList">
             <xsl:with-param name="result-count" select="$result-count"/>
@@ -844,7 +844,7 @@ exclude-result-prefixes="#all"
         </xsl:call-template>
     </xsl:template>
 
-    <xsl:template match="*[key('resources', foaf:primaryTopic/@rdf:resource)]" mode="bs2:BlockList" priority="1">
+    <xsl:template match="*[key('resources', foaf:primaryTopic/@rdf:resource)]" mode="bs2:List" priority="1">
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="class" select="'well'" as="xs:string?"/>
 
@@ -876,9 +876,9 @@ exclude-result-prefixes="#all"
     </xsl:template>
 
     <!-- hide resources that will be shown paired/nested with a document -->
-    <xsl:template match="*[key('resources-by-primary-topic', @rdf:about)]" mode="bs2:BlockList" priority="1"/>
+    <xsl:template match="*[key('resources-by-primary-topic', @rdf:about)]" mode="bs2:List" priority="1"/>
     
-    <xsl:template match="*[*][@rdf:*[local-name() = ('about', 'nodeID')]]" mode="bs2:BlockList" priority="0.8">
+    <xsl:template match="*[*][@rdf:*[local-name() = ('about', 'nodeID')]]" mode="bs2:List" priority="0.8">
         <xsl:apply-templates select="." mode="bs2:Header"/>
     </xsl:template>
 

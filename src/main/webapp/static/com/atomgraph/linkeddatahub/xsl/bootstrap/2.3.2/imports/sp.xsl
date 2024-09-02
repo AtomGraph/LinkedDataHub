@@ -39,7 +39,7 @@ exclude-result-prefixes="#all">
 
     <!-- ROW: WRONG IMPORT PRECEDENCE! -->
     
-<!--    <xsl:template match="*[sp:text/text()]" mode="bs2:Row" priority="1">
+<!--    <xsl:template match="*[sp:text/text()]" mode="bs2:Block" priority="1">
         <xsl:param name="id" select="generate-id()" as="xs:string?"/>
         <xsl:param name="class" select="'row-fluid post-construct'" as="xs:string?"/>
         <xsl:param name="about" select="@rdf:about" as="xs:anyURI?"/>
@@ -59,7 +59,7 @@ exclude-result-prefixes="#all">
     
     <!-- BLOCK MODE -->
 
-    <xsl:template match="*[sp:text/text()]" mode="bs2:Block">
+    <xsl:template match="*[sp:text/text()]">
         <xsl:param name="method" select="'get'" as="xs:string"/>
         <xsl:param name="action" select="xs:anyURI('')" as="xs:anyURI"/>
         <xsl:param name="id" select="'id' || ac:uuid()" as="xs:string?"/>
