@@ -124,7 +124,7 @@ extension-element-prefixes="ixsl"
                 <xsl:attribute name="class" select="$class"/>
             </xsl:if>
         
-            <xsl:apply-templates mode="bs2:Block"/>
+            <xsl:apply-templates/>
         </div>
     </xsl:template>
     
@@ -206,15 +206,15 @@ extension-element-prefixes="ixsl"
             </div>
         </xsl:if>
     </xsl:template>
-    
-    <!-- ROW BLOCK -->
+        
+    <!-- BLOCK -->
     
     <xsl:template match="rdf:RDF" mode="bs2:Row">
         <xsl:param name="create-resource" select="true()" as="xs:boolean"/>
         <xsl:param name="classes" as="element()*"/>
 
         <!-- select elements explicitly, because Saxon-JS chokes on text nodes here -->
-        <!-- hide the content resources - cannot suppress them in the resource-level bs2:Row because its being reused ldh:ContentList/bs2:RowContent modes -->
+        <!-- hide the content resources - cannot suppress them in the resource-level bs2:Block because its being reused ldh:ContentList/bs2:RowContent modes -->
         <xsl:apply-templates select="*[not(rdf:type/@rdf:resource = ('&ldh;XHTML', '&ldh;View', '&ldh;Object'))]" mode="#current">
             <xsl:sort select="ac:label(.)"/>
         </xsl:apply-templates>

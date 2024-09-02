@@ -91,9 +91,16 @@ public class CSVGraphStoreRowProcessor implements RowProcessor // extends com.at
                 Model namedModel = rowDataset.getNamedModel(graphUri);
                 if (!namedModel.isEmpty()) add(Entity.entity(namedModel, APPLICATION_NTRIPLES_TYPE), graphUri);
                 
-                // purge cache entries that include the graph URI
-                if (getService().getBackendProxy() != null) ban(getService().getClient(), getService().getBackendProxy(), graphUri).close();
-                if (getAdminService() != null && getAdminService().getBackendProxy() != null) ban(getAdminService().getClient(), getAdminService().getBackendProxy(), graphUri).close();
+                try
+                {
+                    // purge cache entries that include the graph URI
+                    if (getService().getBackendProxy() != null) ban(getService().getClient(), getService().getBackendProxy(), graphUri).close();
+                    if (getAdminService() != null && getAdminService().getBackendProxy() != null) ban(getAdminService().getClient(), getAdminService().getBackendProxy(), graphUri).close();
+                }
+                catch (Exception e)
+                {
+                    if (log.isErrorEnabled()) log.error("Error banning URI <{}> from backend proxy cache", graphUri);
+                }
             }
         );
     }

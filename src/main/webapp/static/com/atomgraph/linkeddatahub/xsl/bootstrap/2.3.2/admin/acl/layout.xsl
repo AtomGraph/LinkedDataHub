@@ -90,7 +90,7 @@ WHERE
                                     <xsl:for-each select="$notifications/rdf:RDF/*[@rdf:about]">
                                         <xsl:sort select="dct:created[1]/xs:dateTime(.)" order="descending"/>
 
-                                        <xsl:apply-templates select="." mode="bs2:List"/>
+                                        <xsl:apply-templates select="." mode="xhtml:ListItem"/>
                                     </xsl:for-each>
                                 </ul>
                             </div>

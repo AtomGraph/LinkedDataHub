@@ -71,7 +71,6 @@ exclude-result-prefixes="#all"
 extension-element-prefixes="ixsl"
 >
 
-    <xsl:import href="bootstrap/2.3.2/imports/xml-to-string.xsl"/>
     <xsl:import href="../../../../com/atomgraph/client/xsl/converters/RDFXML2SVG.xsl"/>
     <xsl:import href="../../../../com/atomgraph/client/xsl/functions.xsl"/>
     <xsl:import href="../../../../com/atomgraph/client/xsl/imports/default.xsl"/>
@@ -98,7 +97,7 @@ extension-element-prefixes="ixsl"
 
     <xsl:include href="bootstrap/2.3.2/client/functions.xsl"/>
     <xsl:include href="bootstrap/2.3.2/client/navigation.xsl"/>
-    <xsl:include href="bootstrap/2.3.2/client/content.xsl"/>
+    <xsl:include href="bootstrap/2.3.2/client/block.xsl"/>
     <xsl:include href="bootstrap/2.3.2/client/modal.xsl"/>
     <xsl:include href="bootstrap/2.3.2/client/chart.xsl"/>
     <xsl:include href="bootstrap/2.3.2/client/view.xsl"/>
@@ -208,14 +207,13 @@ WHERE
             WHERE
               { GRAPH ?graph
                   { ?this  ?p  ?literal
-                    FILTER ( ( datatype(?literal) = xsd:string ) || ( datatype(?literal) = rdf:langString ) )
+                    FILTER ( datatype(?literal) IN (xsd:string, rdf:langString) )
                     FILTER ( ?p IN (rdfs:label, dc:title, dct:title, foaf:name, foaf:givenName, foaf:familyName, sioc:name, skos:prefLabel, schema1:name, schema2:name) )
                   }
               }
         ]]>
         <!-- VALUES $Type goes here -->
     </xsl:param>
-    <xsl:param name="force-exclude-all-namespaces" select="true()"/> <!-- used by xml-to-string.xsl -->
     <xsl:param name="system-containers" as="map(xs:anyURI, map(xs:string, xs:string))">
         <xsl:map>
             <xsl:map-entry key="resolve-uri('apps/', $ldt:base)">
@@ -315,7 +313,7 @@ WHERE
     </xsl:template>
 
     <!-- TEMPLATES -->
-    
+  
     <!-- we don't want to include per-vocabulary stylesheets -->
     
     <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="ac:label">
@@ -557,15 +555,13 @@ WHERE
             <!-- store ETag header value under window.LinkedDataHub.contents[$content-uri].etag -->
             <ixsl:set-property name="etag" select="$etag" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $uri || '`')"/>
             
-            <!-- this has to go after <xsl:result-document href="#{$container-id}"> because otherwise new elements will be injected and the $resource-content-ids lookup will not work anymore -->
-            <!-- load content blocks -->
-            <xsl:for-each select="key('elements-by-class', 'row-fluid', ixsl:page())[@about][@typeof]">
+            <!-- this has to go after <xsl:result-document href="#{$container-id}"> because otherwise new elements will be injected and the lookup will not work anymore -->
+            <!-- load top-level content blocks -->
+            <xsl:for-each select="id('content-body', ixsl:page())/div">
                 <!-- container could be hidden server-side -->
                 <ixsl:set-style name="display" select="'block'"/>
-
-                <xsl:apply-templates select="." mode="ldh:LoadBlock">
-                    <xsl:with-param name="acl-modes" select="$acl-modes"/>
-                    <xsl:with-param name="doc" select="$results"/>
+            
+                <xsl:apply-templates select="." mode="ldh:RenderBlock">
                     <xsl:with-param name="refresh-content" select="$refresh-content"/>
                 </xsl:apply-templates>
             </xsl:for-each>
@@ -583,7 +579,7 @@ WHERE
             <!-- initialize map -->
             <xsl:if test="key('elements-by-class', 'map-canvas', ixsl:page())">
                 <xsl:call-template name="ldh:DrawMap">
-                    <xsl:with-param name="content-uri" select="$uri"/>
+                    <xsl:with-param name="block-uri" select="$uri"/>
                     <xsl:with-param name="canvas-id" select="key('elements-by-class', 'map-canvas', ixsl:page())/@id" />
                 </xsl:call-template>
             </xsl:if>
@@ -708,7 +704,7 @@ WHERE
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="container" as="element()"/>
         <xsl:param name="results-uri" as="xs:anyURI"/>
-        <xsl:param name="content-uri" select="$results-uri" as="xs:anyURI"/>
+        <xsl:param name="block-uri" select="$results-uri" as="xs:anyURI"/>
         <xsl:param name="chart-canvas-id" as="xs:string"/>
         <xsl:param name="chart-type" select="xs:anyURI('&ac;Table')" as="xs:anyURI"/>
         <xsl:param name="category" as="xs:string?"/>
@@ -796,22 +792,22 @@ WHERE
                             </xsl:call-template>
                             
                             <!-- post-process the container -->
-                            <xsl:apply-templates select="$container" mode="ldh:BlockRendered"/>
+                            <!-- <xsl:apply-templates select="$container" mode="ldh:BlockRendered"/> -->
                         </xsl:otherwise>
                     </xsl:choose>
                     
 <xsl:message>
-$content-uri: <xsl:copy-of select="$content-uri"/>
+$block-uri: <xsl:copy-of select="$block-uri"/>
 $results: <xsl:copy-of select="$results"/>
 $category: <xsl:value-of select="$category"/>
 $series: <xsl:value-of select="$series"/>
 </xsl:message>
 
                     <!-- create new cache entry using content URI as key -->
-                    <ixsl:set-property name="{'`' || $content-uri || '`'}" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.contents')"/>
-                    <ixsl:set-property name="results" select="$results" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`')"/>
+                    <ixsl:set-property name="{'`' || $block-uri || '`'}" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.contents')"/>
+                    <ixsl:set-property name="results" select="$results" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`')"/>
                     <xsl:variable name="data-table" select="if ($results/rdf:RDF) then ac:rdf-data-table($results, $category, $series) else ac:sparql-results-data-table($results, $category, $series)"/>
-                    <ixsl:set-property name="data-table" select="$data-table" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`')"/>
+                    <ixsl:set-property name="data-table" select="$data-table" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`')"/>
 
                     <xsl:call-template name="ldh:RenderChart">
                         <xsl:with-param name="data-table" select="$data-table"/>
@@ -1042,7 +1038,7 @@ $series: <xsl:value-of select="$series"/>
                     <xsl:variable name="doc-uri" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/>
                     <xsl:result-document href="?." method="ixsl:append-content">
                         <ul class="well well-small nav nav-list">
-                            <xsl:apply-templates select="$results/rdf:RDF/rdf:Description[not(@rdf:about = $doc-uri)]" mode="bs2:List">
+                            <xsl:apply-templates select="$results/rdf:RDF/rdf:Description[not(@rdf:about = $doc-uri)]" mode="xhtml:ListItem">
                                 <xsl:sort select="ac:label(.)" order="ascending" lang="{$ldt:lang}"/>
                                 <xsl:with-param name="mode" select="ixsl:query-params()?mode[1]" tunnel="yes"/> <!-- TO-DO: support multiple modes -->
                                 <xsl:with-param name="render-id" select="false()" tunnel="yes"/>

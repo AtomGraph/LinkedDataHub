@@ -423,6 +423,24 @@ exclude-result-prefixes="#all"
         </xsl:copy>
     </xsl:template>
     
+    <!-- RDFa overrides -->
+
+    <xsl:template match="@rdf:resource" mode="xhtml:DefinitionDescription">
+        <xsl:variable name="property-uri" select="../concat(namespace-uri(), local-name())" as="xs:string"/>
+        
+        <dd property="{$property-uri}" resource="{.}">
+            <xsl:apply-templates select="."/>
+        </dd>
+    </xsl:template>
+    
+    <xsl:template match="node()" mode="xhtml:DefinitionDescription">
+        <xsl:variable name="property-uri" select="../concat(namespace-uri(), local-name())" as="xs:string"/>
+        
+        <dd property="{$property-uri}">
+            <xsl:apply-templates select="."/>
+        </dd>
+    </xsl:template>
+    
     <!-- DEFAULT -->
     
     <!-- property -->
@@ -1031,7 +1049,10 @@ exclude-result-prefixes="#all"
         <xsl:param name="type-label" select="true()" as="xs:boolean"/>
 
         <textarea name="ol" id="{$id}" class="wymeditor">
-            <xsl:apply-templates select="xhtml:*" mode="xml-to-string"/>
+            <xsl:variable name="xhtml" as="element()*">
+                <xsl:copy-of select="xhtml:*" copy-namespaces="no"/>
+            </xsl:variable>
+            <xsl:value-of select="serialize($xhtml)"/>
         </textarea>
         <xsl:call-template name="xhtml:Input">
             <xsl:with-param name="type" select="'hidden'"/>
@@ -1110,6 +1131,7 @@ exclude-result-prefixes="#all"
     </xsl:template>
 
     <!-- XHTML CONTENT IDENTITY TRANSFORM -->
+    <!-- used to strip namespace declarations -->
     
     <xsl:template match="*" mode="ldh:XHTMLContent" priority="1">
         <xsl:element name="{name()}">
