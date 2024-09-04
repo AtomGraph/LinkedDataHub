@@ -311,7 +311,7 @@ WHERE
 
                     <xsl:message>
                         $about: <xsl:value-of select="$about"/>
-                        ?body: <xsl:value-of select="."/>
+                        ?body: <xsl:value-of select="serialize(.)"/>
                     </xsl:message>
 
                     <xsl:variable name="resource" select="key('resources', $about)" as="element()"/> <!-- TO-DO: handle error -->
