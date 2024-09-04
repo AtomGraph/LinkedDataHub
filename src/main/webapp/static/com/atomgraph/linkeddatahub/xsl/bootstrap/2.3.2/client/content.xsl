@@ -213,15 +213,15 @@ exclude-result-prefixes="#all"
 
         <xsl:choose>
             <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
-                <xsl:for-each select="?body">
-                    <xsl:for-each select="$container//div[@class = 'bar']">
-                        <!-- update progress bar -->
-                        <ixsl:set-style name="width" select="'88%'" object="."/>
-                    </xsl:for-each>
+                <xsl:for-each select="$container//div[@class = 'bar']">
+                    <!-- update progress bar -->
+                    <ixsl:set-style name="width" select="'88%'" object="."/>
+                </xsl:for-each>
                     
-                    <xsl:variable name="resource" select="key('resources', $resource-uri)" as="element()?"/>
+                <xsl:for-each select="?body">
                     <xsl:message>ldh:LoadBlockObjectValue ldh:RenderBlock</xsl:message>
                     <xsl:message>$resource-uri: <xsl:value-of select="$resource-uri"/> $resource: <xsl:value-of select="serialize($resource)"/></xsl:message>
+                    <xsl:variable name="resource" select="key('resources', $resource-uri)" as="element()?"/>
                     
                     <xsl:apply-templates select="$resource" mode="ldh:RenderBlock">
                         <xsl:with-param name="this" select="$this"/>
