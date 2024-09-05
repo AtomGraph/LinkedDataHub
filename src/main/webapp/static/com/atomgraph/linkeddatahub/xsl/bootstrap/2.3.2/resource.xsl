@@ -469,13 +469,6 @@ extension-element-prefixes="ixsl"
 
         <xsl:apply-templates select="." mode="bs2:RowContentHeader"/>
 
-        <!-- temporary markup for the content "Edit" button until we find a better solution -->
-        <div class="row-fluid">
-            <div class="span12">
-                <button type="button" class="btn btn-edit">Edit</button>
-            </div>
-        </div>
-
         <div>
             <xsl:if test="$id">
                 <xsl:attribute name="id" select="$id"/>
@@ -496,6 +489,8 @@ extension-element-prefixes="ixsl"
                 <xsl:attribute name="draggable" select="'false'"/>
             </xsl:if>
             
+            <button type="button" class="btn btn-edit pull-right">Edit</button>
+
             <xsl:apply-templates select="." mode="bs2:Left"/>
 
             <div>
@@ -526,13 +521,6 @@ extension-element-prefixes="ixsl"
         <xsl:param name="draggable" select="$acl:mode = '&acl;Write'" as="xs:boolean?"/>
 
         <xsl:apply-templates select="key('resources', .)" mode="bs2:RowContentHeader"/>
-        
-        <!-- temporary markup for the content "Edit" button until we find a better solution -->
-        <div class="row-fluid">
-            <div class="span12">
-                <button type="button" class="btn btn-edit">Edit</button>
-            </div>
-        </div>
 
         <div about="{.}">
             <xsl:if test="$id">
@@ -554,6 +542,8 @@ extension-element-prefixes="ixsl"
                 <xsl:attribute name="draggable" select="'false'"/>
             </xsl:if>
 
+            <button type="button" class="btn btn-edit pull-right">Edit</button>
+            
             <div>
                 <xsl:if test="$left-class">
                     <xsl:attribute name="class" select="$left-class"/>
