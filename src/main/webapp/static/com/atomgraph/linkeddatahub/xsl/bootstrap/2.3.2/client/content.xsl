@@ -311,6 +311,7 @@ exclude-result-prefixes="#all"
         <xsl:message>ldh:BlockRendered</xsl:message>
         
         <!-- insert "Edit" button if the agent has acl:Write access -->
+        <!--
         <xsl:for-each select=".//div[contains-token(@class, 'main')]">
             <xsl:if test="not(button[contains-token(@class, 'btn-edit')])">
                 <xsl:result-document href="?." method="ixsl:replace-content">
@@ -324,6 +325,7 @@ exclude-result-prefixes="#all"
                 </xsl:result-document>
             </xsl:if>
         </xsl:for-each>
+        -->
     </xsl:template>
     
     <!-- EVENT LISTENERS -->
@@ -577,9 +579,11 @@ exclude-result-prefixes="#all"
 
                 <xsl:for-each select="$container/div[contains-token(@class, 'main')]">
                     <xsl:result-document href="?." method="ixsl:replace-content">
+                        <!--
                         <button type="button" class="btn btn-edit pull-right">
                             <xsl:apply-templates select="key('resources', '&ac;EditMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
                         </button>
+                        -->
 
                         <xsl:copy-of select="$content-value"/>
                     </xsl:result-document>

@@ -489,7 +489,13 @@ extension-element-prefixes="ixsl"
                 <xsl:attribute name="draggable" select="'false'"/>
             </xsl:if>
             
-            <button type="button" class="btn btn-edit pull-right">Edit</button>
+            <div class="row-fluid" style="position: relative; top: 30px; margin-top: -30px; z-index: 1;">
+                <div class="span12">
+                    <button type="button" class="btn btn-edit pull-right">
+                        <xsl:apply-templates select="key('resources', '&ac;EditMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
+                    </button>
+                </div>
+            </div>
 
             <xsl:apply-templates select="." mode="bs2:Left"/>
 
@@ -542,8 +548,14 @@ extension-element-prefixes="ixsl"
                 <xsl:attribute name="draggable" select="'false'"/>
             </xsl:if>
 
-            <button type="button" class="btn btn-edit pull-right">Edit</button>
-            
+            <div class="row-fluid" style="position: relative; top: 30px; margin-top: -30px; z-index: 1;">
+                <div class="span12">
+                    <button type="button" class="btn btn-edit pull-right">
+                        <xsl:apply-templates select="key('resources', '&ac;EditMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
+                    </button>
+                </div>
+            </div>
+
             <div>
                 <xsl:if test="$left-class">
                     <xsl:attribute name="class" select="$left-class"/>
