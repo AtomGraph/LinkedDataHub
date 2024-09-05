@@ -497,20 +497,22 @@ extension-element-prefixes="ixsl"
                 </div>
             </div>
 
-            <xsl:apply-templates select="." mode="bs2:Left"/>
+            <div class="row-fluid">
+                <xsl:apply-templates select="." mode="bs2:Left"/>
 
-            <div>
-                <xsl:if test="$main-class">
-                    <xsl:attribute name="class" select="$main-class"/>
-                </xsl:if>
+                <div>
+                    <xsl:if test="$main-class">
+                        <xsl:attribute name="class" select="$main-class"/>
+                    </xsl:if>
 
-                <xsl:apply-templates select="rdf:value[@rdf:parseType = 'Literal']/xhtml:div" mode="ldh:XHTMLContent">
-                    <xsl:with-param name="transclude" select="$transclude" tunnel="yes"/>
-                    <xsl:with-param name="base" select="$base" tunnel="yes"/>
-                </xsl:apply-templates>
+                    <xsl:apply-templates select="rdf:value[@rdf:parseType = 'Literal']/xhtml:div" mode="ldh:XHTMLContent">
+                        <xsl:with-param name="transclude" select="$transclude" tunnel="yes"/>
+                        <xsl:with-param name="base" select="$base" tunnel="yes"/>
+                    </xsl:apply-templates>
+                </div>
+
+                <xsl:apply-templates select="." mode="bs2:Right"/>
             </div>
-            
-            <xsl:apply-templates select="." mode="bs2:Right"/>
         </div>
     </xsl:template>
     
@@ -556,22 +558,24 @@ extension-element-prefixes="ixsl"
                 </div>
             </div>
 
-            <div>
-                <xsl:if test="$left-class">
-                    <xsl:attribute name="class" select="$left-class"/>
-                </xsl:if>
-            </div>
+            <div class="row-fluid">
+                <div>
+                    <xsl:if test="$left-class">
+                        <xsl:attribute name="class" select="$left-class"/>
+                    </xsl:if>
+                </div>
 
-            <div>
-                <xsl:if test="$main-class">
-                    <xsl:attribute name="class" select="$main-class"/>
-                </xsl:if>
-            </div>
-            
-            <div>
-                <xsl:if test="$right-class">
-                    <xsl:attribute name="class" select="$right-class"/>
-                </xsl:if>
+                <div>
+                    <xsl:if test="$main-class">
+                        <xsl:attribute name="class" select="$main-class"/>
+                    </xsl:if>
+                </div>
+
+                <div>
+                    <xsl:if test="$right-class">
+                        <xsl:attribute name="class" select="$right-class"/>
+                    </xsl:if>
+                </div>
             </div>
         </div>
     </xsl:template>
