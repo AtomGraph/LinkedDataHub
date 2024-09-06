@@ -372,7 +372,7 @@ exclude-result-prefixes="#all"
     <xsl:template match="div[contains-token(@class, 'content')][contains-token(@class, 'row-fluid')]//button[contains-token(@class, 'btn-save-query')]" mode="ixsl:onclick">
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'content')][contains-token(@class, 'row-fluid')]" as="element()"/>
-        <xsl:variable name="about" select="$container/@about" as="xs:anyURI"/>
+        <xsl:variable name="about" select="ancestor::div[@about][1]/@about" as="xs:anyURI"/>
         <xsl:variable name="textarea" select="ancestor::form/descendant::textarea[@name = 'query']" as="element()"/>
         <xsl:variable name="yasqe" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.yasqe'), $textarea/ixsl:get(., 'id'))"/>
         <xsl:variable name="query-string" select="ixsl:call($yasqe, 'getValue', [])" as="xs:string?"/> <!-- get query string from YASQE -->
@@ -485,7 +485,7 @@ exclude-result-prefixes="#all"
     
     <xsl:template match="div[@about][contains-token(@class, 'content')][contains-token(@class, 'row-fluid')]//button[contains-token(@class, 'btn-save-chart')]" mode="ixsl:onclick">
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
-        <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'content')]" as="element()"/>
+        <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'row-fluid')]" as="element()"/>
         <xsl:variable name="textarea-id" select="$container//textarea[@name = 'query']/ixsl:get(., 'id')" as="xs:string"/>
         <xsl:variable name="yasqe" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.yasqe'), $textarea-id)"/>
         <xsl:variable name="query-string" select="ixsl:call($yasqe, 'getValue', [])" as="xs:string"/> <!-- get query string from YASQE -->

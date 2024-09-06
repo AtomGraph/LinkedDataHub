@@ -263,7 +263,7 @@ WHERE
     <xsl:template match="div[contains-token(@class, 'row-fluid')]//button[contains-token(@class, 'btn-edit')][not(contains-token(@class, 'disabled'))]" mode="ixsl:onclick">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'row-fluid')][1]" as="element()"/>
-        <xsl:variable name="about" select="$container/@about" as="xs:anyURI"/>
+        <xsl:variable name="about" select="ancestor::div[@about][1]/@about" as="xs:anyURI"/>
         <xsl:variable name="graph" as="xs:anyURI?"/>
 
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
@@ -416,7 +416,7 @@ WHERE
     <xsl:template match="div[@about][@typeof = ('&ldh;ResultSetChart', '&ldh;GraphChart')]//button[contains-token(@class, 'btn-cancel')][not(contains-token(@class, 'disabled'))]" mode="ixsl:onclick" priority="1">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'row-fluid')][1]" as="element()"/>
-        <xsl:variable name="content-uri" select="xs:anyURI($container/@about)" as="xs:anyURI"/>
+<!--        <xsl:variable name="content-uri" select="xs:anyURI($container/@about)" as="xs:anyURI"/>-->
         <xsl:variable name="content-id" select="ixsl:get($container, 'id')" as="xs:string"/>
         <xsl:variable name="about" select="$container/@about" as="xs:anyURI"/>
 
@@ -445,7 +445,7 @@ WHERE
     <xsl:template match="div[@about][@typeof]//button[contains-token(@class, 'btn-cancel')][not(contains-token(@class, 'disabled'))]" mode="ixsl:onclick">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'row-fluid')][1]" as="element()"/>
-        <xsl:variable name="about" select="$container/@about" as="xs:anyURI"/>
+        <xsl:variable name="about" select="ancestor::div[@about][1]/@about" as="xs:anyURI"/>
 
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
         
@@ -1312,7 +1312,7 @@ WHERE
     <!-- remove the whole div.row-fluid containing the form -->
     <xsl:template match="div[contains-token(@class, 'row-fluid')]//button[contains-token(@class, 'btn-remove-resource')]" mode="ixsl:onclick" priority="2">
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'row-fluid')][1]" as="element()"/>
-        <xsl:variable name="about" select="$container/@about" as="xs:anyURI?"/>
+        <xsl:variable name="about" select="ancestor::div[@about][1]/@about" as="xs:anyURI"/>
         <xsl:variable name="form" select="ancestor::form" as="element()"/>
         <xsl:variable name="action" select="ixsl:get($form, 'action')" as="xs:anyURI"/>
         <xsl:message>ldh:base-uri(.): <xsl:value-of select="ldh:base-uri(.)"/></xsl:message>

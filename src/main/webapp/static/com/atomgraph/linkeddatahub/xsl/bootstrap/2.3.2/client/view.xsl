@@ -533,8 +533,6 @@ exclude-result-prefixes="#all"
         <xsl:param name="active-mode" as="xs:anyURI"/>
         <xsl:param name="refresh-content" as="xs:boolean?"/>
 
-<!--        <ixsl:set-property name="dataset.contentMode" select="$active-mode" object="$container"/>-->
-        
         <xsl:for-each select="$container//div[@class = 'bar']">
             <ixsl:set-style name="width" select="'75%'" object="."/>
         </xsl:for-each>
