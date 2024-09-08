@@ -577,13 +577,14 @@ exclude-result-prefixes="#all"
     <!-- XHTML content cancel onclick - prioritize over resource content -->
     
     <xsl:template match="div[@typeof = '&ldh;XHTML']//button[contains-token(@class, 'btn-cancel')]" mode="ixsl:onclick" priority="2">
-        <xsl:variable name="container" select="ancestor::div[@typeof = '&ldh;XHTML']" as="element()"/>
+        <xsl:variable name="about" select="ancestor::div[@typeof = '&ldh;XHTML']/@about" as="xs:anyURI?"/>
+        <xsl:variable name="container" select="ancestor::div[@typeof = '&ldh;XHTML']/div[contains-token(@class, 'row-fluid')][2]" as="element()"/>
 
         <xsl:message>XHTML content cancel onclick</xsl:message>
         
         <xsl:choose>
             <!-- restore existing content -->
-            <xsl:when test="$container/@about">
+            <xsl:when test="$about">
                 <xsl:variable name="textarea" select="ancestor::div[contains-token(@class, 'main')]//textarea[contains-token(@class, 'wymeditor')]" as="element()"/>
                 <xsl:variable name="old-content-string" select="string($textarea)" as="xs:string"/>
                 <xsl:variable name="content-value" select="ldh:parse-html('&lt;div&gt;' || $old-content-string || '&lt;/div&gt;', 'application/xhtml+xml')" as="document-node()"/>

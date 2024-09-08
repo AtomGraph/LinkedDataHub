@@ -559,7 +559,7 @@ WHERE
             
             <!-- this has to go after <xsl:result-document href="#{$container-id}"> because otherwise new elements will be injected and the $resource-content-ids lookup will not work anymore -->
             <!-- load content blocks -->
-            <xsl:for-each select="key('elements-by-class', 'row-fluid', ixsl:page())[@about][@typeof]">
+            <xsl:for-each select="key('elements-by-class', 'content', ixsl:page())">
                 <!-- container could be hidden server-side -->
                 <ixsl:set-style name="display" select="'block'"/>
 

@@ -459,7 +459,7 @@ extension-element-prefixes="ixsl"
     <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&ldh;XHTML'][rdf:value[@rdf:parseType = 'Literal']/xhtml:div]" mode="bs2:Block" priority="1">
         <!-- TO-DO: use $ldh:requestUri to resolve URIs server-side -->
         <xsl:param name="id" select="if (contains(@rdf:about, ac:absolute-path(ldh:base-uri(.)) || '#')) then substring-after(@rdf:about, ac:absolute-path(ldh:base-uri(.)) || '#') else generate-id()" as="xs:string?"/>
-        <xsl:param name="class" select="'row-fluid content'" as="xs:string?"/>
+        <xsl:param name="class" select="'row-fluid'" as="xs:string?"/>
         <xsl:param name="about" select="@rdf:about" as="xs:anyURI?"/>
         <xsl:param name="typeof" select="rdf:type/@rdf:resource/xs:anyURI(.)" as="xs:anyURI*"/>
         <xsl:param name="main-class" select="'main span7'" as="xs:string?"/>
@@ -497,7 +497,7 @@ extension-element-prefixes="ixsl"
                 </div>
             </div>
 
-            <div class="row-fluid">
+            <div class="row-fluid content">
                 <xsl:apply-templates select="." mode="bs2:Left"/>
 
                 <div>
@@ -520,7 +520,7 @@ extension-element-prefixes="ixsl"
     <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = ('&ldh;View', '&ldh;Object')]" mode="bs2:Block" priority="1">
         <!-- TO-DO: use $ldh:requestUri to resolve URIs server-side -->
         <xsl:param name="id" select="if (contains(@rdf:about, ac:absolute-path(ldh:base-uri(.)) || '#')) then substring-after(@rdf:about, ac:absolute-path(ldh:base-uri(.)) || '#') else generate-id()" as="xs:string?"/>
-        <xsl:param name="class" select="'row-fluid content'" as="xs:string?"/>
+        <xsl:param name="class" select="'row-fluid'" as="xs:string?"/>
         <xsl:param name="about" select="@rdf:about" as="xs:anyURI?"/>
         <xsl:param name="typeof" select="rdf:type/@rdf:resource/xs:anyURI(.)" as="xs:anyURI*"/>
         <xsl:param name="left-class" select="'left-nav span2'" as="xs:string?"/>
@@ -558,7 +558,7 @@ extension-element-prefixes="ixsl"
                 </div>
             </div>
 
-            <div class="row-fluid">
+            <div class="row-fluid content">
                 <div>
                     <xsl:if test="$left-class">
                         <xsl:attribute name="class" select="$left-class"/>
@@ -584,7 +584,7 @@ extension-element-prefixes="ixsl"
     <xsl:template match="*[@rdf:about][sp:text/text()] | *[@rdf:about][spin:query/@rdf:resource][ldh:chartType/@rdf:resource]" mode="bs2:Block" priority="1">
         <!-- TO-DO: use $ldh:requestUri to resolve URIs server-side -->
         <xsl:param name="id" select="if (contains(@rdf:about, ac:absolute-path(ldh:base-uri(.)) || '#')) then substring-after(@rdf:about, ac:absolute-path(ldh:base-uri(.)) || '#') else generate-id()" as="xs:string?"/>
-        <xsl:param name="class" select="'row-fluid'" as="xs:string?"/>
+        <xsl:param name="class" select="'row-fluid content'" as="xs:string?"/>
         <xsl:param name="about" select="@rdf:about" as="xs:anyURI?"/>
         <xsl:param name="typeof" select="rdf:type/@rdf:resource/xs:anyURI(.)" as="xs:anyURI*"/>
         <xsl:param name="mode" as="xs:anyURI?"/>
@@ -615,7 +615,7 @@ extension-element-prefixes="ixsl"
     <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:Block">
         <!-- TO-DO: use $ldh:requestUri to resolve URIs server-side -->
         <xsl:param name="id" select="if (contains(@rdf:about, ac:absolute-path(ldh:base-uri(.)) || '#')) then substring-after(@rdf:about, ac:absolute-path(ldh:base-uri(.)) || '#') else generate-id()" as="xs:string?"/>
-        <xsl:param name="class" as="xs:string?"/>
+        <xsl:param name="class" select="'row-fluid'" as="xs:string?"/>
         <xsl:param name="about" select="@rdf:about" as="xs:anyURI?"/>
         <xsl:param name="typeof" select="rdf:type/@rdf:resource/xs:anyURI(.)" as="xs:anyURI*"/>
         <xsl:param name="mode" as="xs:anyURI?"/>
@@ -639,20 +639,22 @@ extension-element-prefixes="ixsl"
                 <xsl:attribute name="style" select="$style"/>
             </xsl:if>
             
-            <xsl:apply-templates select="." mode="bs2:Row">
-                <xsl:with-param name="mode" select="$mode"/>
-            </xsl:apply-templates>
+            <div class="span12">
+                <xsl:apply-templates select="." mode="bs2:Row">
+                    <xsl:with-param name="mode" select="$mode"/>
+                </xsl:apply-templates>
 
-            <xsl:if test="$type-content">
-                <!-- render contents attached to the types of this resource using ldh:template -->
-                <xsl:variable name="types" select="rdf:type/@rdf:resource" as="xs:anyURI*" use-when="system-property('xsl:product-name') = 'SAXON'"/>
-                <xsl:variable name="content-values" select="if (exists($types) and doc-available(resolve-uri('ns?query=ASK%20%7B%7D', $ldt:base))) then (ldh:query-result(map{}, resolve-uri('ns', $ldt:base), $template-query || ' VALUES $Type { ' || string-join(for $type in $types return '&lt;' || $type || '&gt;', ' ') || ' }')//srx:binding[@name = 'content']/srx:uri/xs:anyURI(.)) else ()" as="xs:anyURI*" use-when="system-property('xsl:product-name') = 'SAXON'"/>
-                <xsl:for-each select="$content-values" use-when="system-property('xsl:product-name') = 'SAXON'">
-                    <xsl:if test="doc-available(ac:document-uri(.))">
-                        <xsl:apply-templates select="key('resources', ., document(ac:document-uri(.)))" mode="bs2:Row"/>
-                    </xsl:if>
-                </xsl:for-each>
-            </xsl:if>
+                <xsl:if test="$type-content">
+                    <!-- render contents attached to the types of this resource using ldh:template -->
+                    <xsl:variable name="types" select="rdf:type/@rdf:resource" as="xs:anyURI*" use-when="system-property('xsl:product-name') = 'SAXON'"/>
+                    <xsl:variable name="content-values" select="if (exists($types) and doc-available(resolve-uri('ns?query=ASK%20%7B%7D', $ldt:base))) then (ldh:query-result(map{}, resolve-uri('ns', $ldt:base), $template-query || ' VALUES $Type { ' || string-join(for $type in $types return '&lt;' || $type || '&gt;', ' ') || ' }')//srx:binding[@name = 'content']/srx:uri/xs:anyURI(.)) else ()" as="xs:anyURI*" use-when="system-property('xsl:product-name') = 'SAXON'"/>
+                    <xsl:for-each select="$content-values" use-when="system-property('xsl:product-name') = 'SAXON'">
+                        <xsl:if test="doc-available(ac:document-uri(.))">
+                            <xsl:apply-templates select="key('resources', ., document(ac:document-uri(.)))" mode="bs2:Row"/>
+                        </xsl:if>
+                    </xsl:for-each>
+                </xsl:if>
+            </div>
         </div>
     </xsl:template>
     
@@ -661,7 +663,7 @@ extension-element-prefixes="ixsl"
     <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:Row">
         <!-- TO-DO: use $ldh:requestUri to resolve URIs server-side -->
         <xsl:param name="id" as="xs:string?"/>
-        <xsl:param name="class" select="'row-fluid'" as="xs:string?"/>
+        <xsl:param name="class" select="'row-fluid content'" as="xs:string?"/>
         <xsl:param name="about" select="@rdf:about" as="xs:anyURI?"/>
         <xsl:param name="typeof" select="rdf:type/@rdf:resource/xs:anyURI(.)" as="xs:anyURI*"/>
         <xsl:param name="mode" as="xs:anyURI?"/>
