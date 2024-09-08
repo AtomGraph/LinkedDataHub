@@ -94,7 +94,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="mode" as="xs:anyURI?"/>
         <xsl:param name="refresh-content" as="xs:boolean?"/>
         <xsl:param name="content" as="element()"/>
-        <xsl:param name="content-uri" as="xs:anyURI"/>
+        <xsl:param name="block-uri" as="xs:anyURI"/>
         <xsl:param name="query-uri" as="xs:anyURI"/>
 
         <xsl:choose>
