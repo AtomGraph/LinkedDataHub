@@ -870,7 +870,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="refresh-content" as="xs:boolean?"/>
         
         <xsl:variable name="this" select="ancestor::div[@about][1]/@about" as="xs:anyURI"/>
-        <xsl:variable name="content-uri" select="(@about, $this)[1]" as="xs:anyURI"/> <!-- fallback to @about for charts, queries etc. -->
+        <xsl:variable name="block-uri" select="(@about, $this)[1]" as="xs:anyURI"/> <!-- fallback to @about for charts, queries etc. -->
         <xsl:variable name="container" select="." as="element()"/>
 
         <xsl:message>
@@ -879,11 +879,11 @@ exclude-result-prefixes="#all"
         </xsl:message>
 
         <xsl:choose>
-            <xsl:when test="key('resources', $content-uri, $doc)">
+            <xsl:when test="key('resources', $block-uri, $doc)">
                 <xsl:call-template name="ldh:BlockLoaded">
-                    <xsl:with-param name="block" select="key('resources', $content-uri, $doc)"/>
+                    <xsl:with-param name="block" select="key('resources', $block-uri, $doc)"/>
                     <xsl:with-param name="this" select="$this"/>
-                    <xsl:with-param name="content-uri" select="$content-uri"/>
+                    <xsl:with-param name="block-uri" select="$block-uri"/>
                     <xsl:with-param name="container" select="$container"/>
                     <xsl:with-param name="acl-modes" select="$acl-modes"/>
                     <xsl:with-param name="refresh-content" select="$refresh-content"/>
@@ -906,12 +906,12 @@ exclude-result-prefixes="#all"
                     </xsl:result-document>
                 </xsl:for-each>
 
-                <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, ac:document-uri($content-uri))" as="xs:anyURI"/>
+                <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, ac:document-uri($block-uri))" as="xs:anyURI"/>
                 <xsl:variable name="request" as="item()*">
                     <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': ac:document-uri($request-uri), 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                         <xsl:call-template name="ldh:BlockLoadedCallback">
                             <xsl:with-param name="this" select="$this"/>
-                            <xsl:with-param name="content-uri" select="$content-uri"/>
+                            <xsl:with-param name="block-uri" select="$block-uri"/>
                             <xsl:with-param name="container" select="$container"/>
                             <xsl:with-param name="acl-modes" select="$acl-modes"/>
                             <xsl:with-param name="refresh-content" select="$refresh-content"/>
@@ -929,18 +929,18 @@ exclude-result-prefixes="#all"
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="this" as="xs:anyURI"/>
         <xsl:param name="container" as="element()"/>
-        <xsl:param name="content-uri" as="xs:anyURI"/>
+        <xsl:param name="block-uri" as="xs:anyURI"/>
         <xsl:param name="acl-modes" as="xs:anyURI*"/>
         <xsl:param name="refresh-content" as="xs:boolean?"/>
         
         <!-- for some reason Saxon-JS 2.3 does not see this variable if it's inside <xsl:when> -->
-        <xsl:variable name="block" select="key('resources', $content-uri, ?body)" as="element()?"/>
+        <xsl:variable name="block" select="key('resources', $block-uri, ?body)" as="element()?"/>
         <xsl:choose>
             <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml' and $block">
                 <xsl:call-template name="ldh:BlockLoaded">
                     <xsl:with-param name="block" select="$block"/>
                     <xsl:with-param name="this" select="$this"/>
-                    <xsl:with-param name="content-uri" select="$content-uri"/>
+                    <xsl:with-param name="block-uri" select="$block-uri"/>
                     <xsl:with-param name="container" select="$container"/>
                     <xsl:with-param name="acl-modes" select="$acl-modes"/>
                     <xsl:with-param name="refresh-content" select="$refresh-content"/>
@@ -949,14 +949,14 @@ exclude-result-prefixes="#all"
             <!-- content could not be loaded from Linked Data, attempt a fallback to a DESCRIBE query over the local endpoint -->
             <!--
             <xsl:when test="?status = 502">
-                <xsl:variable name="query-string" select="'DESCRIBE &lt;' || $content-uri || '&gt;'" as="xs:string"/>
+                <xsl:variable name="query-string" select="'DESCRIBE &lt;' || $block-uri || '&gt;'" as="xs:string"/>
                 <xsl:variable name="results-uri" select="ac:build-uri($sd:endpoint, map{ 'query': $query-string })" as="xs:anyURI"/>
                 <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, $results-uri)" as="xs:anyURI"/>
                 <xsl:variable name="request" as="item()*">
                     <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': ac:document-uri($request-uri), 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                         <xsl:call-template name="ldh:BlockLoadedCallback">
                             <xsl:with-param name="this" select="$this"/>
-                            <xsl:with-param name="content-uri" select="$content-uri"/>
+                            <xsl:with-param name="block-uri" select="$block-uri"/>
                             <xsl:with-param name="container" select="$container"/>
                             <xsl:with-param name="acl-modes" select="$acl-modes"/>
                         </xsl:call-template>
@@ -969,7 +969,7 @@ exclude-result-prefixes="#all"
                 <xsl:for-each select="$container//div[contains-token(@class, 'main')]">
                     <xsl:result-document href="?." method="ixsl:replace-content">
                         <div class="alert alert-block">
-                            <strong>Could not load content block: <a href="{$content-uri}"><xsl:value-of select="$content-uri"/></a></strong>
+                            <strong>Could not load content block: <a href="{$block-uri}"><xsl:value-of select="$block-uri"/></a></strong>
                         </div>
                     </xsl:result-document>
                 </xsl:for-each>
@@ -985,7 +985,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="block" as="element()"/>
         <xsl:param name="this" as="xs:anyURI"/>
         <xsl:param name="container" as="element()"/>
-        <xsl:param name="content-uri" as="xs:anyURI"/>
+        <xsl:param name="block-uri" as="xs:anyURI"/>
         <xsl:param name="acl-modes" as="xs:anyURI*"/>
         <xsl:param name="refresh-content" as="xs:boolean?"/>
 
@@ -995,9 +995,9 @@ exclude-result-prefixes="#all"
             $this: <xsl:value-of select="$this"/>
         </xsl:message>
         <!-- create new cache entry using content URI as key -->
-        <ixsl:set-property name="{'`' || $content-uri || '`'}" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.contents')"/>
+        <ixsl:set-property name="{'`' || $block-uri || '`'}" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.contents')"/>
         <!-- store this content element -->
-        <ixsl:set-property name="content" select="$block" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`')"/>
+        <ixsl:set-property name="content" select="$block" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`')"/>
 
         <xsl:for-each select="$container//div[@class = 'bar']">
             <!-- update progress bar -->
@@ -1014,7 +1014,7 @@ exclude-result-prefixes="#all"
         <xsl:if test="key('elements-by-class', 'map-canvas', $container)">
             <xsl:for-each select="root($block)">
                 <xsl:call-template name="ldh:DrawMap">
-                    <xsl:with-param name="content-uri" select="$content-uri"/>
+                    <xsl:with-param name="block-uri" select="$block-uri"/>
                     <xsl:with-param name="canvas-id" select="key('elements-by-class', 'map-canvas', $container)/@id" />
                 </xsl:call-template>
             </xsl:for-each>

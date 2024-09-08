@@ -150,14 +150,14 @@ exclude-result-prefixes="#all"
     
     <xsl:template name="ldh:DrawMap">
         <xsl:context-item as="document-node()" use="required"/>
-        <xsl:param name="content-uri" as="xs:anyURI"/>
+        <xsl:param name="block-uri" as="xs:anyURI"/>
         <xsl:param name="canvas-id" as="xs:string"/>
-        <xsl:param name="initial-load" select="not(ixsl:contains(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`'), 'map'))" as="xs:boolean"/>
+        <xsl:param name="initial-load" select="not(ixsl:contains(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`'), 'map'))" as="xs:boolean"/>
         <xsl:param name="max-zoom" select="16" as="xs:integer"/>
         <xsl:param name="padding" select="(10, 10, 10, 10)" as="xs:integer*"/>
-        <xsl:variable name="zoom" select="if (not($initial-load)) then xs:integer(ixsl:call(ixsl:call(ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`'), 'map'), 'getView', []), 'getZoom', [])) else 4" as="xs:integer"/>
+        <xsl:variable name="zoom" select="if (not($initial-load)) then xs:integer(ixsl:call(ixsl:call(ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`'), 'map'), 'getView', []), 'getZoom', [])) else 4" as="xs:integer"/>
         <xsl:variable name="map" select="ldh:create-map($canvas-id, 0, 0, $zoom)" as="item()"/>
-        <ixsl:set-property name="map" select="$map" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`')"/>
+        <ixsl:set-property name="map" select="$map" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`')"/>
 
         <xsl:call-template name="ldh:AddMapLayers">
             <xsl:with-param name="map" select="$map"/>

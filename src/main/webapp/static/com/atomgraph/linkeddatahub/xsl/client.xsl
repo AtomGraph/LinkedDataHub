@@ -583,7 +583,7 @@ WHERE
             <!-- initialize map -->
             <xsl:if test="key('elements-by-class', 'map-canvas', ixsl:page())">
                 <xsl:call-template name="ldh:DrawMap">
-                    <xsl:with-param name="content-uri" select="$uri"/>
+                    <xsl:with-param name="block-uri" select="$uri"/>
                     <xsl:with-param name="canvas-id" select="key('elements-by-class', 'map-canvas', ixsl:page())/@id" />
                 </xsl:call-template>
             </xsl:if>
