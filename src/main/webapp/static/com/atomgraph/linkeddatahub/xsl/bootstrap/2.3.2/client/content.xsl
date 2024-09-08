@@ -240,7 +240,7 @@ exclude-result-prefixes="#all"
                     </xsl:result-document>
                 </xsl:for-each>
                 
-                <xsl:apply-templates select="$container" mode="ldh:BlockRendered"/>
+<!--                <xsl:apply-templates select="$container" mode="ldh:BlockRendered"/>-->
             </xsl:when>
             <xsl:otherwise>
                 <xsl:for-each select="$container//div[contains-token(@class, 'main')]">
@@ -251,7 +251,7 @@ exclude-result-prefixes="#all"
                     </xsl:result-document>
                 </xsl:for-each>
 
-                <xsl:apply-templates select="$container" mode="ldh:BlockRendered"/>
+<!--                <xsl:apply-templates select="$container" mode="ldh:BlockRendered"/>-->
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
@@ -294,7 +294,7 @@ exclude-result-prefixes="#all"
                         <xsl:copy-of select="$row/*"/> <!-- inject the content of div.row-fluid -->
                     </xsl:result-document>
                     
-                    <xsl:apply-templates select="." mode="ldh:BlockRendered"/>
+<!--                    <xsl:apply-templates select="." mode="ldh:BlockRendered"/>-->
 
                     <xsl:apply-templates select="*" mode="ldh:PostConstruct"/>
                 </xsl:for-each>
@@ -303,29 +303,6 @@ exclude-result-prefixes="#all"
                 <xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ ?message ])[current-date() lt xs:date('2000-01-01')]"/>
             </xsl:otherwise>
         </xsl:choose>
-    </xsl:template>
-
-    <!-- TO-DO: move to respective stylesheets -->
-    <xsl:template match="div[@typeof = ('&ldh;XHTML', '&ldh;View', '&ldh;Object')]" mode="ldh:BlockRendered" priority="1">
-        <xsl:variable name="element" select="." as="element()"/>
-        <xsl:message>ldh:BlockRendered</xsl:message>
-        
-        <!-- insert "Edit" button if the agent has acl:Write access -->
-        <!--
-        <xsl:for-each select=".//div[contains-token(@class, 'main')]">
-            <xsl:if test="not(button[contains-token(@class, 'btn-edit')])">
-                <xsl:result-document href="?." method="ixsl:replace-content">
-                    <xsl:if test="acl:mode() = '&acl;Write'">
-                        <button type="button" class="btn btn-edit pull-right">
-                            <xsl:apply-templates select="key('resources', '&ac;EditMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
-                        </button>
-                    </xsl:if>
-
-                    <xsl:copy-of select="$element//div[contains-token(@class, 'main')]/*"/>
-                </xsl:result-document>
-            </xsl:if>
-        </xsl:for-each>
-        -->
     </xsl:template>
     
     <!-- EVENT LISTENERS -->
@@ -542,23 +519,23 @@ exclude-result-prefixes="#all"
     <!-- delete content onclick (increased priority to take precedence over form.xsl .btn-remove-resource) -->
     
     <xsl:template match="div[@typeof = ('&ldh;XHTML', '&ldh;View', '&ldh;Object')]//button[contains-token(@class, 'btn-remove-resource')]" mode="ixsl:onclick" priority="3">
-        <xsl:variable name="container" select="ancestor::div[@typeof = ('&ldh;XHTML', '&ldh;View', '&ldh;Object')]" as="element()"/>
+        <xsl:variable name="block" select="ancestor::div[@typeof = ('&ldh;XHTML', '&ldh;View', '&ldh;Object')]" as="element()"/>
 
         <xsl:choose>
             <!-- delete existing content -->
-            <xsl:when test="$container/@about">
+            <xsl:when test="$block/@about">
                 <!-- show a confirmation prompt -->
                 <xsl:if test="ixsl:call(ixsl:window(), 'confirm', [ ac:label(key('resources', 'are-you-sure', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))) ])">
                     <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
-                    <xsl:variable name="block-uri" select="$container/@about" as="xs:anyURI"/>
+                    <xsl:variable name="block-uri" select="$block/@about" as="xs:anyURI"/>
                     <xsl:variable name="update-string" select="replace($content-delete-string, '$this', '&lt;' || ac:absolute-path(ldh:base-uri(.)) || '&gt;', 'q')" as="xs:string"/>
                     <xsl:variable name="update-string" select="replace($update-string, '$block', '&lt;' || $block-uri || '&gt;', 'q')" as="xs:string"/>
                     <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, ac:absolute-path(ldh:base-uri(.)))" as="xs:anyURI"/>
                     <xsl:variable name="request" as="item()*">
                         <ixsl:schedule-action http-request="map{ 'method': 'PATCH', 'href': $request-uri, 'media-type': 'application/sparql-update', 'body': $update-string }">
-                            <xsl:call-template name="onContentDelete">
-                                <xsl:with-param name="container" select="$container"/>
+                            <xsl:call-template name="onBlockDelete">
+                                <xsl:with-param name="block" select="$block"/>
                             </xsl:call-template>
                         </ixsl:schedule-action>
                     </xsl:variable>
@@ -567,43 +544,37 @@ exclude-result-prefixes="#all"
             </xsl:when>
             <!-- remove content that hasn't been saved yet -->
             <xsl:otherwise>
-                <xsl:for-each select="$container">
+                <xsl:for-each select="$block">
                     <xsl:sequence select="ixsl:call(., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
                 </xsl:for-each>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
     
-    <!-- XHTML content cancel onclick - prioritize over resource content -->
+    <!-- XHTML block cancel onclick - prioritize over resource content -->
     
     <xsl:template match="div[@typeof = '&ldh;XHTML']//button[contains-token(@class, 'btn-cancel')]" mode="ixsl:onclick" priority="2">
-        <xsl:variable name="about" select="ancestor::div[@typeof = '&ldh;XHTML']/@about" as="xs:anyURI?"/>
-        <xsl:variable name="container" select="ancestor::div[@typeof = '&ldh;XHTML']/div[contains-token(@class, 'row-fluid')][2]" as="element()"/>
+        <xsl:variable name="block" select="ancestor::div[@typeof = '&ldh;XHTML'" as="element()"/>
+        <xsl:variable name="container" select="$block/div[contains-token(@class, 'row-fluid')][2]" as="element()"/>
 
-        <xsl:message>XHTML content cancel onclick</xsl:message>
+        <xsl:message>XHTML block cancel onclick</xsl:message>
         
         <xsl:choose>
-            <!-- restore existing content -->
-            <xsl:when test="$about">
+            <!-- restore existing block -->
+            <xsl:when test="$block/@about">
                 <xsl:variable name="textarea" select="ancestor::div[contains-token(@class, 'main')]//textarea[contains-token(@class, 'wymeditor')]" as="element()"/>
-                <xsl:variable name="old-content-string" select="string($textarea)" as="xs:string"/>
-                <xsl:variable name="content-value" select="ldh:parse-html('&lt;div&gt;' || $old-content-string || '&lt;/div&gt;', 'application/xhtml+xml')" as="document-node()"/>
+                <xsl:variable name="old-xhtml-string" select="string($textarea)" as="xs:string"/>
+                <xsl:variable name="xhtml" select="ldh:parse-html('&lt;div&gt;' || $old-xhtml-string || '&lt;/div&gt;', 'application/xhtml+xml')" as="document-node()"/>
 
                 <xsl:for-each select="$container/div[contains-token(@class, 'main')]">
                     <xsl:result-document href="?." method="ixsl:replace-content">
-                        <!--
-                        <button type="button" class="btn btn-edit pull-right">
-                            <xsl:apply-templates select="key('resources', '&ac;EditMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
-                        </button>
-                        -->
-
-                        <xsl:copy-of select="$content-value"/>
+                        <xsl:copy-of select="$xhtml"/>
                     </xsl:result-document>
                 </xsl:for-each>
             </xsl:when>
-            <!-- remove content that hasn't been saved yet -->
+            <!-- remove block that hasn't been saved yet -->
             <xsl:otherwise>
-                <xsl:for-each select="$container">
+                <xsl:for-each select="$block">
                     <xsl:sequence select="ixsl:call(., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
                 </xsl:for-each>
             </xsl:otherwise>
@@ -613,13 +584,14 @@ exclude-result-prefixes="#all"
     <!-- resource content/SPARQL content cancel onclick -->
     
     <xsl:template match="div[@typeof = ('&ldh;View', '&ldh;Object')]//button[contains-token(@class, 'btn-cancel')]" mode="ixsl:onclick" priority="1"> <!-- prioritize over form.xsl -->
-        <xsl:variable name="container" select="ancestor::div[@typeof = ('&ldh;View', '&ldh;Object')]" as="element()"/>
+        <xsl:variable name="block" select="ancestor::div[@typeof = ('&ldh;View', '&ldh;Object')" as="element()"/>
+        <xsl:variable name="container" select="$block/div[contains-token(@class, 'row-fluid')][2]" as="element()"/>
 
-        <xsl:message>resource content</xsl:message>
+        <xsl:message>resource block</xsl:message>
 
         <xsl:choose>
-            <!-- updating existing content -->
-            <xsl:when test="$container/@about">
+            <!-- updating existing block -->
+            <xsl:when test="$block/@about">
                 <xsl:for-each select="$container">
                     <xsl:variable name="doc" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path(xs:anyURI(ixsl:location())) || '`'), 'results')" as="document-node()"/>
                     <xsl:call-template name="ldh:LoadBlock">
@@ -629,21 +601,21 @@ exclude-result-prefixes="#all"
             </xsl:when> 
             <!-- remove content that hasn't been saved yet -->
             <xsl:otherwise>
-                <xsl:for-each select="$container">
+                <xsl:for-each select="$block">
                     <xsl:sequence select="ixsl:call(., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
                 </xsl:for-each>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
 
-    <xsl:template match="div[contains-token(@class, 'row-fluid')]//button[contains-token(@class, 'add-constructor')][@data-for-class = '&ldh;XHTML']" mode="ixsl:onclick" priority="2"> <!-- prioritize over form.xsl -->
+<!--    <xsl:template match="div[contains-token(@class, 'row-fluid')]//button[contains-token(@class, 'add-constructor')][@data-for-class = '&ldh;XHTML']" mode="ixsl:onclick" priority="2">  prioritize over form.xsl 
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'row-fluid')][1]" as="element()"/>
 
         <xsl:message>
             ldh:XHTML .add-constructor onclick
         </xsl:message>
         
-        <!-- call the default handler in form.xsl -->
+         call the default handler in form.xsl 
         <xsl:next-match/>
         
         <xsl:message>Toggle .content.xhtml-content</xsl:message>
@@ -653,18 +625,18 @@ exclude-result-prefixes="#all"
         </xsl:for-each>
     </xsl:template>
     
-    <!-- appends new resource block to the content list -->
-    <xsl:template match="div[contains-token(@class, 'row-fluid')]//button[contains-token(@class, 'add-constructor')][@data-for-class = ('&ldh;View', '&ldh;Object')]" mode="ixsl:onclick" priority="2"> <!-- prioritize over form.xsl -->
+     appends new resource block to the content list 
+    <xsl:template match="div[contains-token(@class, 'row-fluid')]//button[contains-token(@class, 'add-constructor')][@data-for-class = ('&ldh;View', '&ldh;Object')]" mode="ixsl:onclick" priority="2">  prioritize over form.xsl 
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'row-fluid')][1]" as="element()"/>
     
-        <!-- call the default handler in form.xsl -->
+         call the default handler in form.xsl 
         <xsl:next-match/>
         
         <xsl:message>Toggle .content</xsl:message>
         <xsl:for-each select="$container">
             <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'content', true() ])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:for-each>
-    </xsl:template>
+    </xsl:template>-->
     
     <!-- submit SPARQL query form (prioritize over default template in form.xsl) -->
     
@@ -679,7 +651,8 @@ exclude-result-prefixes="#all"
         <xsl:variable name="service-uri" select="$service-control-group/descendant::input[@name = 'ou']/ixsl:get(., 'value')" as="xs:anyURI?"/>
         <xsl:variable name="service" select="key('resources', $service-uri, ixsl:get(ixsl:window(), 'LinkedDataHub.apps'))" as="element()?"/>
         <xsl:variable name="endpoint" select="($service/sd:endpoint/@rdf:resource/xs:anyURI(.), sd:endpoint())[1]" as="xs:anyURI"/>
-        <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'row-fluid')][1]" as="element()"/>
+        <xsl:variable name="block" select="ancestor::div[@typeof = ('&sp;Ask', '&sp;Select', '&sp;Describe', '&sp;Construct')]" as="element()"/>
+        <xsl:variable name="container" select="$block/div[contains-token(@class, 'row-fluid')][1]" as="element()"/>
         <xsl:variable name="content-id" select="$container/@id" as="xs:string"/>
         <xsl:variable name="content-uri" select="if ($container/@about) then $container/@about else xs:anyURI(ac:absolute-path(ldh:base-uri(.)) || '#' || $content-id)" as="xs:anyURI"/>
         <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': $query-string })" as="xs:anyURI"/>
@@ -799,7 +772,7 @@ exclude-result-prefixes="#all"
     
     <!-- start dragging content (or its descendants) -->
     
-    <xsl:template match="div[ixsl:query-params()?mode = '&ldh;ContentMode'][contains-token(@class, 'content')][contains-token(@class, 'row-fluid')]/descendant-or-self::*" mode="ixsl:ondragstart">
+    <xsl:template match="div[ixsl:query-params()?mode = '&ldh;ContentMode'][@typeof][contains-token(@class, 'row-fluid')]/descendant-or-self::*" mode="ixsl:ondragstart">
         <xsl:choose>
             <!-- allow drag on the content <div> -->
             <xsl:when test="self::div[contains-token(@class, 'content')][contains-token(@class, 'row-fluid')]">
@@ -816,18 +789,18 @@ exclude-result-prefixes="#all"
 
     <!-- dragging content over other content -->
     
-    <xsl:template match="div[ixsl:query-params()?mode = '&ldh;ContentMode'][contains-token(@class, 'content')][contains-token(@class, 'row-fluid')][acl:mode() = '&acl;Write']" mode="ixsl:ondragover">
+    <xsl:template match="div[ixsl:query-params()?mode = '&ldh;ContentMode'][@typeof][contains-token(@class, 'row-fluid')][acl:mode() = '&acl;Write']" mode="ixsl:ondragover">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <ixsl:set-property name="dataTransfer.dropEffect" select="'move'" object="ixsl:event()"/>
     </xsl:template>
 
     <!-- change the style of elements when content is dragged over them -->
     
-    <xsl:template match="div[ixsl:query-params()?mode = '&ldh;ContentMode'][contains-token(@class, 'content')][contains-token(@class, 'row-fluid')][acl:mode() = '&acl;Write']" mode="ixsl:ondragenter">
+    <xsl:template match="div[ixsl:query-params()?mode = '&ldh;ContentMode'][@typeof][contains-token(@class, 'row-fluid')][acl:mode() = '&acl;Write']" mode="ixsl:ondragenter">
         <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'drag-over', true() ])[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
 
-    <xsl:template match="div[ixsl:query-params()?mode = '&ldh;ContentMode'][contains-token(@class, 'content')][contains-token(@class, 'row-fluid')][acl:mode() = '&acl;Write']" mode="ixsl:ondragleave">
+    <xsl:template match="div[ixsl:query-params()?mode = '&ldh;ContentMode'][@typeof][contains-token(@class, 'row-fluid')][acl:mode() = '&acl;Write']" mode="ixsl:ondragleave">
         <xsl:variable name="related-target" select="ixsl:get(ixsl:event(), 'relatedTarget')" as="element()?"/> <!-- the element drag entered (optional) -->
 
         <!-- only remove class if the related target does not have this div as ancestor (is not its child) -->
@@ -838,7 +811,7 @@ exclude-result-prefixes="#all"
 
     <!-- dropping content over other content -->
     
-    <xsl:template match="div[ixsl:query-params()?mode = '&ldh;ContentMode'][contains-token(@class, 'content')][contains-token(@class, 'row-fluid')][acl:mode() = '&acl;Write']" mode="ixsl:ondrop">
+    <xsl:template match="div[ixsl:query-params()?mode = '&ldh;ContentMode'][@typeof][contains-token(@class, 'row-fluid')][acl:mode() = '&acl;Write']" mode="ixsl:ondrop">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <xsl:variable name="container" select="." as="element()"/>
         <xsl:variable name="content-uri" select="@about" as="xs:anyURI?"/>
@@ -861,9 +834,7 @@ exclude-result-prefixes="#all"
                 <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, ac:absolute-path(ldh:base-uri(.)))" as="xs:anyURI"/>
                 <xsl:variable name="request" as="item()*">
                     <ixsl:schedule-action http-request="map{ 'method': 'PATCH', 'href': $request-uri, 'media-type': 'application/sparql-update', 'body': $update-string }">
-                        <xsl:call-template name="onContentSwap">
-                            <xsl:with-param name="container" select="$container"/>
-                        </xsl:call-template>
+                        <xsl:call-template name="onBlockSwap"/>
                     </ixsl:schedule-action>
                 </xsl:variable>
                 <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
@@ -876,7 +847,7 @@ exclude-result-prefixes="#all"
     <!-- load content -->
 
     <!-- TO-DO: move to respective stylesheets -->
-    <xsl:template match="*[@about][@typeof = ('&ldh;View', '&ldh;Object', '&ldh;ResultSetChart', '&ldh;GraphChart')]" mode="ldh:LoadBlock" priority="2">
+    <xsl:template match="*[@about][@typeof = ('&ldh;View', '&ldh;Object', '&ldh;ResultSetChart', '&ldh;GraphChart')]/div[contains-token(@class, 'content')]" mode="ldh:LoadBlock" priority="2">
         <xsl:param name="acl-modes" as="xs:anyURI*"/>
         <xsl:param name="doc" as="document-node()"/>
         <xsl:param name="refresh-content" as="xs:boolean?"/>
@@ -888,8 +859,8 @@ exclude-result-prefixes="#all"
         </xsl:call-template>
     </xsl:template>
     
-    <xsl:template match="*[@about][@typeof = '&ldh;XHTML']" mode="ldh:LoadBlock" priority="1">
-        <xsl:apply-templates select="." mode="ldh:BlockRendered"/>
+    <xsl:template match="*[@about][@typeof = '&ldh;XHTML']/div[contains-token(@class, 'content')]" mode="ldh:LoadBlock" priority="1">
+<!--        <xsl:apply-templates select="." mode="ldh:BlockRendered"/>-->
     </xsl:template>
     
     <xsl:template name="ldh:LoadBlock">
@@ -1003,7 +974,7 @@ exclude-result-prefixes="#all"
                     </xsl:result-document>
                 </xsl:for-each>
 
-                <xsl:apply-templates select="$container" mode="ldh:BlockRendered"/>
+<!--                <xsl:apply-templates select="$container" mode="ldh:BlockRendered"/>-->
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
@@ -1075,7 +1046,7 @@ exclude-result-prefixes="#all"
                             <xsl:copy-of select="$row/*"/>
                         </xsl:result-document>
                         
-                        <xsl:apply-templates select="." mode="ldh:BlockRendered"/>
+<!--                        <xsl:apply-templates select="." mode="ldh:BlockRendered"/>-->
                     </xsl:for-each>
                 </xsl:for-each>
             </xsl:when>
@@ -1088,14 +1059,14 @@ exclude-result-prefixes="#all"
                     </xsl:result-document>
                 </xsl:for-each>
                 
-                <xsl:apply-templates select="$container" mode="ldh:BlockRendered"/>
+                <!-- <xsl:apply-templates select="$container" mode="ldh:BlockRendered"/> -->
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
     
     <!-- resource content update -->
     
-    <xsl:template name="onSPARQLContentUpdate">
+<!--    <xsl:template name="onSPARQLContentUpdate">
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="content-uri" as="xs:anyURI"/>
         <xsl:param name="container" as="element()"/>
@@ -1107,7 +1078,7 @@ exclude-result-prefixes="#all"
         <xsl:choose>
             <xsl:when test="?status = 200">
                 <xsl:for-each select="$container">
-                    <!-- set @about attribute -->
+                     set @about attribute 
                     <ixsl:set-attribute name="about" select="$content-uri"/>
 
                     <xsl:call-template name="ldh:LoadBlock"/>
@@ -1117,19 +1088,19 @@ exclude-result-prefixes="#all"
                 <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ 'Could not update resource content' ])[current-date() lt xs:date('2000-01-01')]"/>
             </xsl:otherwise>
         </xsl:choose>
-    </xsl:template>
+    </xsl:template>-->
     
     <!-- content delete -->
 
-    <xsl:template name="onContentDelete">
+    <xsl:template name="onBlockDelete">
         <xsl:context-item as="map(*)" use="required"/>
-        <xsl:param name="container" as="element()"/>
+        <xsl:param name="block" as="element()"/>
 
         <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
 
         <xsl:choose>
             <xsl:when test="?status = (200, 204)">
-                <xsl:for-each select="$container">
+                <xsl:for-each select="$block">
                     <xsl:sequence select="ixsl:call(., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
                 </xsl:for-each>
             </xsl:when>
@@ -1141,9 +1112,8 @@ exclude-result-prefixes="#all"
     
     <!-- content swap (drag & drop) -->
     
-    <xsl:template name="onContentSwap">
+    <xsl:template name="onBlockSwap">
         <xsl:context-item as="map(*)" use="required"/>
-        <xsl:param name="container" as="element()"/>
 
         <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
         

@@ -235,7 +235,7 @@ exclude-result-prefixes="#all"
                 <xsl:copy-of select="$row/*"/>
             </xsl:result-document>
             
-            <xsl:apply-templates select="." mode="ldh:BlockRendered"/>
+<!--            <xsl:apply-templates select="." mode="ldh:BlockRendered"/>-->
         </xsl:for-each>
 
         <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, $query-uri)" as="xs:anyURI"/>
