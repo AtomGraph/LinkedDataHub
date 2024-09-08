@@ -554,7 +554,7 @@ exclude-result-prefixes="#all"
     <!-- XHTML block cancel onclick - prioritize over resource content -->
     
     <xsl:template match="div[@typeof = '&ldh;XHTML']//button[contains-token(@class, 'btn-cancel')]" mode="ixsl:onclick" priority="2">
-        <xsl:variable name="block" select="ancestor::div[@typeof = '&ldh;XHTML'" as="element()"/>
+        <xsl:variable name="block" select="ancestor::div[@typeof = '&ldh;XHTML']" as="element()"/>
         <xsl:variable name="container" select="$block/div[contains-token(@class, 'row-fluid')][2]" as="element()"/>
 
         <xsl:message>XHTML block cancel onclick</xsl:message>
@@ -584,7 +584,7 @@ exclude-result-prefixes="#all"
     <!-- resource content/SPARQL content cancel onclick -->
     
     <xsl:template match="div[@typeof = ('&ldh;View', '&ldh;Object')]//button[contains-token(@class, 'btn-cancel')]" mode="ixsl:onclick" priority="1"> <!-- prioritize over form.xsl -->
-        <xsl:variable name="block" select="ancestor::div[@typeof = ('&ldh;View', '&ldh;Object')" as="element()"/>
+        <xsl:variable name="block" select="ancestor::div[@typeof = ('&ldh;View', '&ldh;Object')]" as="element()"/>
         <xsl:variable name="container" select="$block/div[contains-token(@class, 'row-fluid')][2]" as="element()"/>
 
         <xsl:message>resource block</xsl:message>
