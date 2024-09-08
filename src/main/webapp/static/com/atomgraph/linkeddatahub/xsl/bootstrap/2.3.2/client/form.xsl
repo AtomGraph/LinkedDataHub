@@ -262,9 +262,9 @@ WHERE
     
     <xsl:template match="div[contains-token(@class, 'row-fluid')]//button[contains-token(@class, 'btn-edit')][not(contains-token(@class, 'disabled'))]" mode="ixsl:onclick">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
-        <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'row-fluid')][1]" as="element()"/>
-        <xsl:variable name="about" select="ancestor::div[@about][1]/@about" as="xs:anyURI"/>
-        <xsl:variable name="graph" as="xs:anyURI?"/>
+        <xsl:param name="container" select="ancestor::div[contains-token(@class, 'row-fluid')][1]" as="element()"/>
+        <xsl:param name="about" select="ancestor::div[@about][1]/@about" as="xs:anyURI"/>
+        <xsl:param name="graph" as="xs:anyURI?"/>
 
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
         
