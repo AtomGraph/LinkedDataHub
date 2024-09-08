@@ -333,7 +333,6 @@ exclude-result-prefixes="#all"
     <!-- override inline editing form for content types (do nothing if the button is disabled) - prioritize over form.xsl -->
     
     <xsl:template match="div[contains-token(@class, 'row-fluid')]//button[contains-token(@class, 'btn-edit')][not(contains-token(@class, 'disabled'))]" mode="ixsl:onclick" priority="1">
-        <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <!-- for content types, button.btn-edit is placed in its own div.row-fluid, therefore the next row is the actual container -->
         <xsl:param name="container" select="ancestor::div[contains-token(@class, 'row-fluid')][1]/following-sibling::div[contains-token(@class, 'row-fluid')]" as="element()"/>
 
