@@ -653,8 +653,8 @@ exclude-result-prefixes="#all"
         <xsl:variable name="endpoint" select="($service/sd:endpoint/@rdf:resource/xs:anyURI(.), sd:endpoint())[1]" as="xs:anyURI"/>
         <xsl:variable name="block" select="ancestor::div[@typeof = ('&sp;Ask', '&sp;Select', '&sp;Describe', '&sp;Construct')]" as="element()"/>
         <xsl:variable name="container" select="$block/div[contains-token(@class, 'row-fluid')][1]" as="element()"/>
-        <xsl:variable name="content-id" select="$container/@id" as="xs:string"/>
-        <xsl:variable name="content-uri" select="if ($container/@about) then $container/@about else xs:anyURI(ac:absolute-path(ldh:base-uri(.)) || '#' || $content-id)" as="xs:anyURI"/>
+        <xsl:variable name="block-id" select="$block/@id" as="xs:string"/>
+        <xsl:variable name="block-uri" select="if ($block/@about) then $block/@about else xs:anyURI(ac:absolute-path(ldh:base-uri(.)) || '#' || $block-id)" as="xs:anyURI"/>
         <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': $query-string })" as="xs:anyURI"/>
         <xsl:variable name="request-uri" select="ldh:href($ldt:base, $ldt:base, map{}, $results-uri)" as="xs:anyURI"/>
         <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml,application/rdf+xml;q=0.9' } }" as="map(xs:string, item())"/>
@@ -668,10 +668,10 @@ exclude-result-prefixes="#all"
                 <xsl:call-template name="onSPARQLResultsLoad">
                     <xsl:with-param name="endpoint" select="$endpoint"/>
                     <xsl:with-param name="results-uri" select="$results-uri"/>
-                    <xsl:with-param name="content-uri" select="xs:anyURI(ac:absolute-path(ldh:base-uri(.)) || '#' || $content-id)"/>
+                    <xsl:with-param name="block-uri" select="$block-uri"/>
                     <xsl:with-param name="container" select="$container"/>
-                    <xsl:with-param name="chart-canvas-id" select="$content-id || '-chart-canvas'"/>
-                    <xsl:with-param name="results-container-id" select="$content-id || '-query-results'"/>
+                    <xsl:with-param name="chart-canvas-id" select="$block-id || '-chart-canvas'"/>
+                    <xsl:with-param name="results-container-id" select="$block-id || '-query-results'"/>
                     <xsl:with-param name="query-string" select="$query-string"/>
                 </xsl:call-template>
             </ixsl:schedule-action>
@@ -714,8 +714,8 @@ exclude-result-prefixes="#all"
         <xsl:variable name="query-uri" select="xs:anyURI(ac:absolute-path(ldh:base-uri(.)) || '#' || $query-id)" as="xs:anyURI"/>
         <xsl:variable name="query-type" select="ldh:query-type($query-string)" as="xs:string?"/>
         <xsl:variable name="forClass" select="xs:anyURI('&sp;' || upper-case(substring($query-type, 1, 1)) || lower-case(substring($query-type, 2)))" as="xs:anyURI"/>
-        <xsl:variable name="container-id" select="'id' || ac:uuid()" as="xs:string"/>
-        <xsl:variable name="container-uri" select="xs:anyURI(ac:absolute-path(ldh:base-uri(.)) || '#' || $container-id)" as="xs:anyURI"/>
+        <xsl:variable name="block-id" select="'id' || ac:uuid()" as="xs:string"/>
+        <xsl:variable name="block-uri" select="xs:anyURI(ac:absolute-path(ldh:base-uri(.)) || '#' || $block-id)" as="xs:anyURI"/>
         <xsl:variable name="constructor" as="document-node()">
             <xsl:document>
                 <rdf:RDF>
@@ -729,16 +729,16 @@ exclude-result-prefixes="#all"
                             <ldh:service rdf:resource="$service-uri"/>
                         </xsl:if>
                     </rdf:Description>
-                    <rdf:Description rdf:about="{$container-uri}">
+                    <rdf:Description rdf:about="{$block-uri}">
                         <rdf:type rdf:resource="&ldh;View"/>
                         <spin:query rdf:resource="{$query-uri}"/>
                     </rdf:Description>
                 </rdf:RDF>
             </xsl:document>
         </xsl:variable>
-        <xsl:variable name="content-id" select="$container/@id" as="xs:string"/>
-        <xsl:variable name="content-uri" select="if ($container/@about) then $container/@about else xs:anyURI(ac:absolute-path(ldh:base-uri(.)) || '#' || $content-id)" as="xs:anyURI"/>
-        <xsl:variable name="value" select="$constructor//*[@rdf:about = $container-uri]" as="element()"/>
+<!--        <xsl:variable name="content-id" select="$container/@id" as="xs:string"/>
+        <xsl:variable name="block-uri" select="if ($container/@about) then $container/@about else xs:anyURI(ac:absolute-path(ldh:base-uri(.)) || '#' || $content-id)" as="xs:anyURI"/>-->
+        <xsl:variable name="value" select="$constructor//*[@rdf:about = $block-uri]" as="element()"/>
 
         <!-- deactivate other tabs -->
         <xsl:for-each select="../../li">
@@ -752,9 +752,9 @@ exclude-result-prefixes="#all"
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
         <!-- create new cache entry using content URI as key -->
-        <ixsl:set-property name="{'`' || $content-uri || '`'}" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.contents')"/>
+        <ixsl:set-property name="{'`' || $block-uri || '`'}" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.contents')"/>
         <!-- store this content element -->
-        <ixsl:set-property name="content" select="$value" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`')"/>
+        <ixsl:set-property name="content" select="$value" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`')"/>
 
         <xsl:for-each select="$container//div[@class = 'bar']">
             <!-- update progress bar -->
@@ -764,7 +764,7 @@ exclude-result-prefixes="#all"
         <xsl:apply-templates select="$value" mode="ldh:RenderBlock">
             <xsl:with-param name="this" select="id('content-body', ixsl:page())/@about"/>
             <xsl:with-param name="container" select="$container//div[contains-token(@class, 'sparql-query-results')]"/>
-            <xsl:with-param name="content-uri" select="$content-uri"/>
+            <xsl:with-param name="block-uri" select="$block-uri"/>
             <xsl:with-param name="base-uri" select="ac:absolute-path(ldh:base-uri(.))"/>
             <xsl:with-param name="select-query" select="$constructor//*[@rdf:about = $query-uri]"/>
         </xsl:apply-templates>

@@ -203,11 +203,12 @@ exclude-result-prefixes="#all"
     <!-- chart content -->
     <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = ('&ldh;ResultSetChart', '&ldh;GraphChart')][spin:query/@rdf:resource][ldh:chartType/@rdf:resource]" mode="ldh:RenderBlock" priority="1">
         <xsl:param name="this" as="xs:anyURI"/>
+        <xsl:param name="block" as="element()"/>
         <xsl:param name="container" as="element()"/>
         <xsl:param name="graph" as="xs:anyURI?"/>
         <xsl:param name="mode" as="xs:anyURI?"/>
-        <xsl:param name="content-uri" select="xs:anyURI($container/@about)" as="xs:anyURI"/>
-        <xsl:param name="content-id" select="ixsl:get($container, 'id')" as="xs:string"/>
+        <xsl:param name="block-uri" select="xs:anyURI($block/@about)" as="xs:anyURI"/>
+<!--        <xsl:param name="block-id" select="ixsl:get($block, 'id')" as="xs:string"/>-->
         <xsl:variable name="query-uri" select="xs:anyURI(spin:query/@rdf:resource)" as="xs:anyURI"/>
         <xsl:variable name="chart-type" select="xs:anyURI(ldh:chartType/@rdf:resource)" as="xs:anyURI?"/>
         <xsl:variable name="category" select="ldh:categoryProperty/@rdf:resource | ldh:categoryVarName" as="xs:string?"/>
@@ -243,8 +244,8 @@ exclude-result-prefixes="#all"
             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                 <xsl:call-template name="onChartQueryLoad">
                     <xsl:with-param name="this" select="$this"/>
-                    <xsl:with-param name="content-uri" select="$content-uri"/>
-                    <xsl:with-param name="content-id" select="$content-id"/>
+                    <xsl:with-param name="block-uri" select="$block-uri"/>
+<!--                    <xsl:with-param name="block-id" select="$block-id"/>-->
                     <xsl:with-param name="query-uri" select="$query-uri"/>
                     <xsl:with-param name="chart-type" select="$chart-type"/>
                     <xsl:with-param name="category" select="$category"/>
@@ -368,8 +369,8 @@ exclude-result-prefixes="#all"
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="container" as="element()"/>
         <xsl:param name="this" as="xs:anyURI"/>
-        <xsl:param name="content-uri" as="xs:anyURI"/>
-        <xsl:param name="content-id" as="xs:string"/>
+        <xsl:param name="block-uri" as="xs:anyURI"/>
+<!--        <xsl:param name="block-id" as="xs:string"/>-->
         <xsl:param name="query-uri" as="xs:anyURI"/>
         <xsl:param name="chart-type" as="xs:anyURI"/>
         <xsl:param name="category" as="xs:string?"/>
@@ -403,7 +404,7 @@ exclude-result-prefixes="#all"
                                 <xsl:with-param name="results-uri" select="$results-uri"/>
                                 <xsl:with-param name="container" select="$container"/>
                                 <xsl:with-param name="chart-canvas-id" select="$canvas-id"/>
-                                <xsl:with-param name="content-uri" select="$content-uri"/>
+                                <xsl:with-param name="block-uri" select="$block-uri"/>
                                 <xsl:with-param name="chart-type" select="$chart-type"/>
                                 <xsl:with-param name="category" select="$category"/>
                                 <xsl:with-param name="series" select="$series"/>

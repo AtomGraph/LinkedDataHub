@@ -120,8 +120,8 @@ exclude-result-prefixes="#all"
     
     <xsl:template name="ldh:LoadGeoResources">
         <xsl:param name="container" as="element()"/>
-        <xsl:param name="content-id" as="xs:string"/>
-        <xsl:param name="content-uri" as="xs:anyURI"/>
+        <xsl:param name="container-id" as="xs:string"/>
+        <xsl:param name="block-uri" as="xs:anyURI"/>
         <xsl:param name="content" as="element()?"/>
         <xsl:param name="select-xml" as="document-node()"/>
         <xsl:param name="endpoint" as="xs:anyURI"/>
@@ -139,8 +139,8 @@ exclude-result-prefixes="#all"
         <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
             <xsl:call-template name="onGeoResultsLoad">
                 <xsl:with-param name="container" select="$container"/>
-                <xsl:with-param name="content-id" select="$content-id"/>
-                <xsl:with-param name="content-uri" select="$content-uri"/>
+                <xsl:with-param name="container-id" select="$container-id"/>
+                <xsl:with-param name="block-uri" select="$block-uri"/>
                 <xsl:with-param name="content" select="$content"/>
             </xsl:call-template>
         </ixsl:schedule-action>
@@ -324,8 +324,8 @@ exclude-result-prefixes="#all"
     <xsl:template name="onGeoResultsLoad">
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="container" as="element()"/>
-        <xsl:param name="content-id" as="xs:string"/>
-        <xsl:param name="content-uri" select="xs:anyURI($container/@about)" as="xs:anyURI"/>
+        <xsl:param name="container-id" as="xs:string"/>
+        <xsl:param name="block-uri" select="xs:anyURI($container/@about)" as="xs:anyURI"/>
         <xsl:param name="content" as="element()?"/>
         
         <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
@@ -334,8 +334,8 @@ exclude-result-prefixes="#all"
             <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
                 <xsl:for-each select="?body">
                     <xsl:call-template name="ldh:DrawMap">
-                        <xsl:with-param name="content-uri" select="$content-uri"/>
-                        <xsl:with-param name="canvas-id" select="$content-id || '-map-canvas'" />
+                        <xsl:with-param name="block-uri" select="$block-uri"/>
+                        <xsl:with-param name="canvas-id" select="$container-id || '-map-canvas'" />
                     </xsl:call-template>
                 </xsl:for-each>
             </xsl:when>
