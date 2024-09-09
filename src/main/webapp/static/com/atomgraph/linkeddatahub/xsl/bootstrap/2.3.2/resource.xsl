@@ -355,7 +355,6 @@ extension-element-prefixes="ixsl"
     
     <!-- RIGHT NAV -->
     
-    <!-- .resource-content instances -->
     <xsl:template match="*[rdf:type/@rdf:resource = '&ldh;Object'][rdf:value/@rdf:resource]" mode="bs2:Right" priority="1">
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="class" select="'right-nav span3'" as="xs:string?"/>
