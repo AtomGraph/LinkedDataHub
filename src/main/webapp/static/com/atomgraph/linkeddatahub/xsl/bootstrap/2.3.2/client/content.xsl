@@ -1007,6 +1007,7 @@ exclude-result-prefixes="#all"
 
         <xsl:message>
             ldh:BlockLoaded
+            exists($block): <xsl:value-of select="exists($block)"/>
             $block: <xs:value-of select="serialize($block)"/>
             $this: <xsl:value-of select="$this"/>
         </xsl:message>
