@@ -208,7 +208,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="graph" as="xs:anyURI?"/>
         <xsl:param name="mode" as="xs:anyURI?"/>
         <xsl:param name="block-uri" select="xs:anyURI($block/@about)" as="xs:anyURI"/>
-<!--        <xsl:param name="block-id" select="ixsl:get($block, 'id')" as="xs:string"/>-->
+        <xsl:param name="container-id" select="ixsl:get($container, 'id')" as="xs:string"/>
         <xsl:variable name="query-uri" select="xs:anyURI(spin:query/@rdf:resource)" as="xs:anyURI"/>
         <xsl:variable name="chart-type" select="xs:anyURI(ldh:chartType/@rdf:resource)" as="xs:anyURI?"/>
         <xsl:variable name="category" select="ldh:categoryProperty/@rdf:resource | ldh:categoryVarName" as="xs:string?"/>
@@ -245,7 +245,7 @@ exclude-result-prefixes="#all"
                 <xsl:call-template name="onChartQueryLoad">
                     <xsl:with-param name="this" select="$this"/>
                     <xsl:with-param name="block-uri" select="$block-uri"/>
-<!--                    <xsl:with-param name="block-id" select="$block-id"/>-->
+                    <xsl:with-param name="container-id" select="$container-id"/>
                     <xsl:with-param name="query-uri" select="$query-uri"/>
                     <xsl:with-param name="chart-type" select="$chart-type"/>
                     <xsl:with-param name="category" select="$category"/>
@@ -370,7 +370,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="container" as="element()"/>
         <xsl:param name="this" as="xs:anyURI"/>
         <xsl:param name="block-uri" as="xs:anyURI"/>
-<!--        <xsl:param name="block-id" as="xs:string"/>-->
+        <xsl:param name="container-id" as="xs:string"/>
         <xsl:param name="query-uri" as="xs:anyURI"/>
         <xsl:param name="chart-type" as="xs:anyURI"/>
         <xsl:param name="category" as="xs:string?"/>
@@ -412,7 +412,7 @@ exclude-result-prefixes="#all"
                                 <xsl:with-param name="content-method" select="xs:QName('ixsl:append-content')"/>
                                 <xsl:with-param name="push-state" select="false()"/>
                                 <xsl:with-param name="show-chart-save" select="false()"/>
-                                <xsl:with-param name="results-container-id" select="$content-id || '-query-results'"/>
+                                <xsl:with-param name="results-container-id" select="$container-id || '-query-results'"/>
                             </xsl:call-template>
                         </ixsl:schedule-action>
                     </xsl:variable>
