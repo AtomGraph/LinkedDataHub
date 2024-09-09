@@ -884,7 +884,7 @@ exclude-result-prefixes="#all"
         <!-- for some reason Saxon-JS 2.3 does not see this variable if it's inside <xsl:when> -->
         <xsl:variable name="block" select="key('resources', $block-uri, $doc)" as="element()?"/>
         <xsl:choose>
-            <xsl:when test="key('resources', $block-uri, $doc)">
+            <xsl:when test="exists($block)">
                 <xsl:message>
                     ldh:LoadBlock
                     $block-uri: <xsl:value-of select="$block-uri"/>
