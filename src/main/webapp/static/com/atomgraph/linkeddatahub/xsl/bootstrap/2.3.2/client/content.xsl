@@ -890,15 +890,16 @@ exclude-result-prefixes="#all"
                     $block-uri: <xsl:value-of select="$block-uri"/>
                     $block: <xsl:value-of select="serialize($block)"/>
                 </xsl:message>
-        
-                <xsl:call-template name="ldh:BlockLoaded">
-                    <xsl:with-param name="block" select="$block"/>
-                    <xsl:with-param name="this" select="$this"/>
-                    <xsl:with-param name="block-uri" select="$block-uri"/>
-                    <xsl:with-param name="container" select="$container"/>
-                    <xsl:with-param name="acl-modes" select="$acl-modes"/>
-                    <xsl:with-param name="refresh-content" select="$refresh-content"/>
-                </xsl:call-template>
+
+                <xsl:for-each select="$block">
+                    <xsl:call-template name="ldh:BlockLoaded">
+                        <xsl:with-param name="this" select="$this"/>
+                        <xsl:with-param name="block-uri" select="$block-uri"/>
+                        <xsl:with-param name="container" select="$container"/>
+                        <xsl:with-param name="acl-modes" select="$acl-modes"/>
+                        <xsl:with-param name="refresh-content" select="$refresh-content"/>
+                    </xsl:call-template>
+                </xsl:for-each>
             </xsl:when>
             <xsl:otherwise>
                 <xsl:variable name="progress-container" select="if (contains-token(@class, 'row-fluid')) then ./div[contains-token(@class, 'main')] else ." as="element()"/>
@@ -953,14 +954,15 @@ exclude-result-prefixes="#all"
         
         <xsl:choose>
             <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml' and $block">
-                <xsl:call-template name="ldh:BlockLoaded">
-                    <xsl:with-param name="block" select="$block"/>
-                    <xsl:with-param name="this" select="$this"/>
-                    <xsl:with-param name="block-uri" select="$block-uri"/>
-                    <xsl:with-param name="container" select="$container"/>
-                    <xsl:with-param name="acl-modes" select="$acl-modes"/>
-                    <xsl:with-param name="refresh-content" select="$refresh-content"/>
-                </xsl:call-template>
+                <xsl:for-each select="$block">
+                    <xsl:call-template name="ldh:BlockLoaded">
+                        <xsl:with-param name="this" select="$this"/>
+                        <xsl:with-param name="block-uri" select="$block-uri"/>
+                        <xsl:with-param name="container" select="$container"/>
+                        <xsl:with-param name="acl-modes" select="$acl-modes"/>
+                        <xsl:with-param name="refresh-content" select="$refresh-content"/>
+                    </xsl:call-template>
+                </xsl:for-each>
             </xsl:when>
             <!-- content could not be loaded from Linked Data, attempt a fallback to a DESCRIBE query over the local endpoint -->
             <!--
@@ -998,7 +1000,7 @@ exclude-result-prefixes="#all"
     <!-- block loaded -->
     
     <xsl:template name="ldh:BlockLoaded">
-        <xsl:param name="block" as="element()"/>
+        <xsl:context-item as="element()" use="required"/>
         <xsl:param name="this" as="xs:anyURI"/>
         <xsl:param name="container" as="element()"/>
         <xsl:param name="block-uri" as="xs:anyURI"/>
@@ -1007,21 +1009,20 @@ exclude-result-prefixes="#all"
 
         <xsl:message>
             ldh:BlockLoaded
-            exists($block): <xsl:value-of select="exists($block)"/>
-            $block: <xs:value-of select="serialize($block)"/>
+            block: <xs:value-of select="serialize(.)"/>
             $this: <xsl:value-of select="$this"/>
         </xsl:message>
         <!-- create new cache entry using content URI as key -->
         <ixsl:set-property name="{'`' || $block-uri || '`'}" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.contents')"/>
         <!-- store this content element -->
-        <ixsl:set-property name="content" select="$block" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`')"/>
+        <ixsl:set-property name="content" select="." object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`')"/>
 
         <xsl:for-each select="$container//div[@class = 'bar']">
             <!-- update progress bar -->
             <ixsl:set-style name="width" select="'50%'" object="."/>
         </xsl:for-each>
 
-        <xsl:apply-templates select="$block" mode="ldh:RenderBlock">
+        <xsl:apply-templates select="." mode="ldh:RenderBlock">
             <xsl:with-param name="this" select="$this"/>
             <xsl:with-param name="container" select="$container"/>
             <xsl:with-param name="refresh-content" select="$refresh-content"/>
