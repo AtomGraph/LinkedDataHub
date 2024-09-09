@@ -883,6 +883,12 @@ exclude-result-prefixes="#all"
 
         <xsl:choose>
             <xsl:when test="key('resources', $block-uri, $doc)">
+                <xsl:message>
+                    ldh:LoadBlock
+                    $block-uri: <xsl:value-of select="$block-uri"/>
+                    $block: <xsl:value-of select="serialize(key('resources', $block-uri, $doc))"/>
+                </xsl:message>
+        
                 <xsl:call-template name="ldh:BlockLoaded">
                     <xsl:with-param name="block" select="key('resources', $block-uri, $doc)"/>
                     <xsl:with-param name="this" select="$this"/>
@@ -938,6 +944,11 @@ exclude-result-prefixes="#all"
         
         <!-- for some reason Saxon-JS 2.3 does not see this variable if it's inside <xsl:when> -->
         <xsl:variable name="block" select="key('resources', $block-uri, ?body)" as="element()?"/>
+        <xsl:message>
+            ldh:BlockLoadedCallback
+            $block: <xsl:value-of select="serialize($block)"/>
+        </xsl:message>
+        
         <xsl:choose>
             <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml' and $block">
                 <xsl:call-template name="ldh:BlockLoaded">
