@@ -881,16 +881,18 @@ exclude-result-prefixes="#all"
             <!-- ancestor::div[@about][1]: <xsl:value-of select="serialize(ancestor::div[@about][1])"/> -->
         </xsl:message>
 
+        <!-- for some reason Saxon-JS 2.3 does not see this variable if it's inside <xsl:when> -->
+        <xsl:variable name="block" select="key('resources', $block-uri, $doc)" as="element()?"/>
         <xsl:choose>
             <xsl:when test="key('resources', $block-uri, $doc)">
                 <xsl:message>
                     ldh:LoadBlock
                     $block-uri: <xsl:value-of select="$block-uri"/>
-                    $block: <xsl:value-of select="serialize(key('resources', $block-uri, $doc))"/>
+                    $block: <xsl:value-of select="serialize($block)"/>
                 </xsl:message>
         
                 <xsl:call-template name="ldh:BlockLoaded">
-                    <xsl:with-param name="block" select="key('resources', $block-uri, $doc)"/>
+                    <xsl:with-param name="block" select="$block"/>
                     <xsl:with-param name="this" select="$this"/>
                     <xsl:with-param name="block-uri" select="$block-uri"/>
                     <xsl:with-param name="container" select="$container"/>
