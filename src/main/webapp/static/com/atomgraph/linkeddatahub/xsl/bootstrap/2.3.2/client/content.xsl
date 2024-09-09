@@ -1024,6 +1024,7 @@ exclude-result-prefixes="#all"
 
         <xsl:apply-templates select="." mode="ldh:RenderBlock">
             <xsl:with-param name="this" select="$this"/>
+            <xsl:with-param name="block" select="."/>
             <xsl:with-param name="container" select="$container"/>
             <xsl:with-param name="refresh-content" select="$refresh-content"/>
         </xsl:apply-templates>
