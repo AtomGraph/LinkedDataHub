@@ -1030,7 +1030,7 @@ exclude-result-prefixes="#all"
 
         <!-- initialize map TO-DO: move inside ldh:RenderBlock? -->
         <xsl:if test="key('elements-by-class', 'map-canvas', $container)">
-            <xsl:for-each select="root($block)">
+            <xsl:for-each select="root(.)">
                 <xsl:call-template name="ldh:DrawMap">
                     <xsl:with-param name="block-uri" select="$block-uri"/>
                     <xsl:with-param name="canvas-id" select="key('elements-by-class', 'map-canvas', $container)/@id" />
