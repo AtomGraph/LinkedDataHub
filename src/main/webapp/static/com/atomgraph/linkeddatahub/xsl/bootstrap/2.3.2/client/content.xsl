@@ -141,6 +141,7 @@ exclude-result-prefixes="#all"
     <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&ldh;Object'][rdf:value/@rdf:resource]" mode="ldh:RenderBlock" priority="1">
         <xsl:param name="this" as="xs:anyURI"/>
         <xsl:param name="block" as="element()"/>
+        <xsl:param name="block-uri" select="$block/@about" as="xs:anyURI"/>
         <xsl:param name="container" as="element()"/>
         <xsl:param name="resource-uri" select="rdf:value/@rdf:resource" as="xs:anyURI?"/>
         <xsl:param name="graph" select="ldh:graph/@rdf:resource" as="xs:anyURI?"/>
@@ -161,6 +162,7 @@ exclude-result-prefixes="#all"
                 <xsl:call-template name="ldh:LoadBlockObjectValue">
                     <xsl:with-param name="this" select="$this"/>
                     <xsl:with-param name="block" select="$block"/>
+                    <xsl:with-param name="block-uri" select="$block-uri"/>
                     <xsl:with-param name="container" select="$container"/>
                     <xsl:with-param name="resource-uri" select="$resource-uri"/>
                     <xsl:with-param name="graph" select="$graph"/>
@@ -207,6 +209,7 @@ exclude-result-prefixes="#all"
     <xsl:template name="ldh:LoadBlockObjectValue">
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="block" as="element()"/>
+        <xsl:param name="block-uri" as="xs:anyURI"/>
         <xsl:param name="container" as="element()"/>
         <xsl:param name="this" as="xs:anyURI"/>
         <xsl:param name="resource-uri" as="xs:anyURI"/>
@@ -229,6 +232,7 @@ exclude-result-prefixes="#all"
                     <xsl:apply-templates select="$resource" mode="ldh:RenderBlock">
                         <xsl:with-param name="this" select="$this"/>
                         <xsl:with-param name="block" select="$block"/>
+                        <xsl:with-param name="block-uri" select="$block-uri"/>
                         <xsl:with-param name="container" select="$container"/>
                         <xsl:with-param name="mode" select="$mode"/>
                         <xsl:with-param name="show-edit-button" select="$show-edit-button" tunnel="yes"/>
@@ -1028,6 +1032,7 @@ exclude-result-prefixes="#all"
         <xsl:apply-templates select="." mode="ldh:RenderBlock">
             <xsl:with-param name="this" select="$this"/>
             <xsl:with-param name="block" select="."/>
+            <xsl:with-param name="block-uri" select="$block-uri"/>
             <xsl:with-param name="container" select="$container"/>
             <xsl:with-param name="refresh-content" select="$refresh-content"/>
         </xsl:apply-templates>
