@@ -592,7 +592,7 @@ exclude-result-prefixes="#all"
         <xsl:choose>
             <!-- updating existing block -->
             <xsl:when test="$block/@about">
-                <xsl:for-each select="$container">
+                <xsl:for-each select="$block">
                     <xsl:variable name="doc" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path(xs:anyURI(ixsl:location())) || '`'), 'results')" as="document-node()"/>
                     <xsl:call-template name="ldh:LoadBlock">
                         <xsl:with-param name="doc" select="$doc"/>
@@ -848,15 +848,18 @@ exclude-result-prefixes="#all"
 
     <!-- TO-DO: move to respective stylesheets -->
     <xsl:template match="*[@about][@typeof = ('&ldh;View', '&ldh;Object', '&ldh;ResultSetChart', '&ldh;GraphChart')]/div[contains-token(@class, 'content')]" mode="ldh:LoadBlock" priority="2">
+        <xsl:param name="block" select="ancestor::div[@about][1]" as="element()"/>
         <xsl:param name="acl-modes" as="xs:anyURI*"/>
         <xsl:param name="doc" as="document-node()"/>
         <xsl:param name="refresh-content" as="xs:boolean?"/>
 
-        <xsl:call-template name="ldh:LoadBlock">
-            <xsl:with-param name="acl-modes" select="$acl-modes"/>
-            <xsl:with-param name="doc" select="$doc"/>
-            <xsl:with-param name="refresh-content" select="$refresh-content"/>
-        </xsl:call-template>
+        <xsl:for-each select="$block">
+            <xsl:call-template name="ldh:LoadBlock">
+                <xsl:with-param name="acl-modes" select="$acl-modes"/>
+                <xsl:with-param name="doc" select="$doc"/>
+                <xsl:with-param name="refresh-content" select="$refresh-content"/>
+            </xsl:call-template>
+        </xsl:for-each>
     </xsl:template>
     
     <xsl:template match="*[@about][@typeof = '&ldh;XHTML']/div[contains-token(@class, 'content')]" mode="ldh:LoadBlock" priority="1">
@@ -864,7 +867,7 @@ exclude-result-prefixes="#all"
     </xsl:template>
     
     <xsl:template name="ldh:LoadBlock">
-        <xsl:context-item as="element()" use="required"/> <!-- container element -->
+        <xsl:context-item as="element()" use="required"/> <!-- block element -->
         <xsl:param name="acl-modes" as="xs:anyURI*"/>
         <xsl:param name="doc" as="document-node()"/>
         <xsl:param name="refresh-content" as="xs:boolean?"/>
