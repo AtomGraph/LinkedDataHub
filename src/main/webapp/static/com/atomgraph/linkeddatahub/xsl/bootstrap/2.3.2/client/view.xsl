@@ -595,7 +595,7 @@ exclude-result-prefixes="#all"
                 <xsl:call-template name="ldh:RenderViewMode">
                     <xsl:with-param name="container" select="$container"/>
                     <xsl:with-param name="container-id" select="$container-id"/>
-                    <xsl:with-param name="block-uri" select="$content-uri"/>
+                    <xsl:with-param name="block-uri" select="$block-uri"/>
                     <xsl:with-param name="endpoint" select="$endpoint"/>
                     <xsl:with-param name="content" select="$content"/>
                     <xsl:with-param name="results" select="$results"/>
