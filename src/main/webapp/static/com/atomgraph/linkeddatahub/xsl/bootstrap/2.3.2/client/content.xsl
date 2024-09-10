@@ -856,12 +856,14 @@ exclude-result-prefixes="#all"
     <!-- TO-DO: move to respective stylesheets -->
     <xsl:template match="*[@about][@typeof = ('&ldh;View', '&ldh;Object', '&ldh;ResultSetChart', '&ldh;GraphChart')]/div[contains-token(@class, 'content')]" mode="ldh:LoadBlock" priority="2">
         <xsl:param name="block" select="ancestor::div[@about][1]" as="element()"/>
+        <xsl:param name="container" select="." as="element()"/>
         <xsl:param name="acl-modes" as="xs:anyURI*"/>
         <xsl:param name="doc" as="document-node()"/>
         <xsl:param name="refresh-content" as="xs:boolean?"/>
 
         <xsl:for-each select="$block">
             <xsl:call-template name="ldh:LoadBlock">
+                <xsl:with-param name="container" select="$container"/>
                 <xsl:with-param name="acl-modes" select="$acl-modes"/>
                 <xsl:with-param name="doc" select="$doc"/>
                 <xsl:with-param name="refresh-content" select="$refresh-content"/>
@@ -875,13 +877,13 @@ exclude-result-prefixes="#all"
     
     <xsl:template name="ldh:LoadBlock">
         <xsl:context-item as="element()" use="required"/> <!-- block element -->
+        <xsl:param name="container"as="element()"/>
         <xsl:param name="acl-modes" as="xs:anyURI*"/>
         <xsl:param name="doc" as="document-node()"/>
         <xsl:param name="refresh-content" as="xs:boolean?"/>
         
         <xsl:variable name="this" select="ancestor::div[@about][1]/@about" as="xs:anyURI"/>
         <xsl:variable name="block-uri" select="(@about, $this)[1]" as="xs:anyURI"/> <!-- fallback to @about for charts, queries etc. -->
-        <xsl:variable name="container" select="." as="element()"/>
 
         <xsl:message>
             ldh:LoadBlock @about: <xsl:value-of select="@about"/> @id: <xsl:value-of select="@id"/> $this: <xsl:value-of select="$this"/>
