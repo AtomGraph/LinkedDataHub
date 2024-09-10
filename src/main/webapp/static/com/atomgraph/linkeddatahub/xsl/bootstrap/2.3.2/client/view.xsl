@@ -1467,6 +1467,11 @@ exclude-result-prefixes="#all"
         <xsl:param name="order-by-container-id" select="$container-id || '-container-order'" as="xs:string"/>
         <xsl:param name="result-count-container-id" select="$container-id || '-result-count'" as="xs:string"/>
         
+        <xsl:message>
+            onContainerResultsLoad
+            $content-container: <xsl:value-of select="$content-container"/>
+        </xsl:message>
+        
         <!-- update progress bar -->
         <xsl:for-each select="$container//div[@class = 'bar']">
             <ixsl:set-style name="width" select="'75%'" object="."/>
