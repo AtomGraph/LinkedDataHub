@@ -557,6 +557,11 @@ exclude-result-prefixes="#all"
             </xsl:map>
         </xsl:variable>
         
+        <xsl:message>
+            ldh:RenderView
+            $container: <xsl:value-of select="$container"/>
+        </xsl:message>
+        
         <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': $headers }">
             <xsl:call-template name="onContainerResultsLoad">
                 <xsl:with-param name="container" select="$container"/>
@@ -1466,11 +1471,6 @@ exclude-result-prefixes="#all"
         <xsl:param name="container-results-id" select="$container-id || '-container-results'" as="xs:string"/>
         <xsl:param name="order-by-container-id" select="$container-id || '-container-order'" as="xs:string"/>
         <xsl:param name="result-count-container-id" select="$container-id || '-result-count'" as="xs:string"/>
-        
-        <xsl:message>
-            onContainerResultsLoad
-            $content-container: <xsl:value-of select="$content-container"/>
-        </xsl:message>
         
         <!-- update progress bar -->
         <xsl:for-each select="$container//div[@class = 'bar']">
