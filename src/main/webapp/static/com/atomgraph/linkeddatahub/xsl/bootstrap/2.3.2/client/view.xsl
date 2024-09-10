@@ -559,7 +559,7 @@ exclude-result-prefixes="#all"
         
         <xsl:message>
             ldh:RenderView
-            $container: <xsl:value-of select="$container"/>
+            $container: <xsl:value-of select="serialize($container)"/>
         </xsl:message>
         
         <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': $headers }">
