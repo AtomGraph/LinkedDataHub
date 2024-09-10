@@ -877,7 +877,7 @@ exclude-result-prefixes="#all"
     
     <xsl:template name="ldh:LoadBlock">
         <xsl:context-item as="element()" use="required"/> <!-- block element -->
-        <xsl:param name="container"as="element()"/>
+        <xsl:param name="container" as="element()"/>
         <xsl:param name="acl-modes" as="xs:anyURI*"/>
         <xsl:param name="doc" as="document-node()"/>
         <xsl:param name="refresh-content" as="xs:boolean?"/>
