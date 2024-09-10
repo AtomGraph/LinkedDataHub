@@ -65,9 +65,6 @@ exclude-result-prefixes="#all"
         <xsl:param name="block-uri" select="if ($block/@about) then $block/@about else xs:anyURI(ac:absolute-path($base-uri) || '#' || $block/@id)" as="xs:anyURI"/>
         <xsl:variable name="query-uri" select="xs:anyURI(spin:query/@rdf:resource)" as="xs:anyURI"/>
         
-<!--        <xsl:for-each select="$container">
-            <ixsl:set-attribute name="typeof" select="$block-type" object="."/>
-        </xsl:for-each>-->
         <xsl:message>ldh:View ldh:RenderBlock</xsl:message>
         
         <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, ac:document-uri($query-uri))" as="xs:anyURI"/>
@@ -119,9 +116,11 @@ exclude-result-prefixes="#all"
                     <xsl:variable name="endpoint" select="($service/sd:endpoint/@rdf:resource/xs:anyURI(.), sd:endpoint())[1]" as="xs:anyURI"/>
 
                     <xsl:message>
+                        ldh:ViewQueryLoad
                         $service-uri: <xsl:value-of select="$service-uri"/>
                         $service/sd:endpoint/@rdf:resource: <xsl:value-of select="$service/sd:endpoint/@rdf:resource"/>
                         $endpoint: <xsl:value-of select="$endpoint"/>
+                        $container: <xsl:value-of select="serialize($container)"/>
                     </xsl:message>
                     
                     <xsl:choose>

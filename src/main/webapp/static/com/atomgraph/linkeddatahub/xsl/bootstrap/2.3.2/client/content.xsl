@@ -1017,6 +1017,7 @@ exclude-result-prefixes="#all"
         <xsl:message>
             ldh:BlockLoaded
             block: <xs:value-of select="serialize(.)"/>
+            $container: <xs:value-of select="serialize($container)"/>
             $this: <xsl:value-of select="$this"/>
         </xsl:message>
         <!-- create new cache entry using content URI as key -->
