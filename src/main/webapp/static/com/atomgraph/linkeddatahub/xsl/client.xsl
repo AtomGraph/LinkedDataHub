@@ -316,6 +316,11 @@ WHERE
 
     <!-- TEMPLATES -->
     
+    <!-- temporary workaround to override the default template coming from xml-to-string.xsl -->
+    <xsl:template match="/">
+        <xsl:apply-templates/>
+    </xsl:template>
+  
     <!-- we don't want to include per-vocabulary stylesheets -->
     
     <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="ac:label">
