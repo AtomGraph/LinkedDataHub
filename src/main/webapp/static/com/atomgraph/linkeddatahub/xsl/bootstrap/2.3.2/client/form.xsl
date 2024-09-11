@@ -260,9 +260,10 @@ WHERE
     
     <!-- enable inline editing form (do nothing if the button is disabled) -->
     
-    <xsl:template match="div[contains-token(@class, 'row-fluid')]//button[contains-token(@class, 'btn-edit')][not(contains-token(@class, 'disabled'))]" mode="ixsl:onclick">
-        <xsl:param name="container" select="ancestor::div[contains-token(@class, 'row-fluid')][1]" as="element()"/>
-        <xsl:param name="about" select="ancestor::div[@about][1]/@about" as="xs:anyURI"/>
+    <xsl:template match="div[@about]//div[contains-token(@class, 'content')]//button[contains-token(@class, 'btn-edit')][not(contains-token(@class, 'disabled'))]" mode="ixsl:onclick">
+        <xsl:param name="block" select="ancestor::div[@about][1]" as="element()"/>
+        <xsl:param name="container" select="ancestor::div[contains-token(@class, 'content')][1]" as="element()"/>
+        <xsl:param name="about" select="$block/@about" as="xs:anyURI"/>
         <xsl:param name="graph" as="xs:anyURI?"/>
 
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
@@ -413,12 +414,12 @@ WHERE
     
     <!-- disable inline editing form (do nothing if the button is disabled) -->
     
-    <xsl:template match="div[@about][@typeof = ('&ldh;ResultSetChart', '&ldh;GraphChart')]//button[contains-token(@class, 'btn-cancel')][not(contains-token(@class, 'disabled'))]" mode="ixsl:onclick" priority="1">
+    <xsl:template match="div[@about][@typeof = ('&ldh;ResultSetChart', '&ldh;GraphChart')]//div[contains-token(@class, 'content')]//button[contains-token(@class, 'btn-cancel')][not(contains-token(@class, 'disabled'))]" mode="ixsl:onclick" priority="1">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
-        <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'row-fluid')][1]" as="element()"/>
-<!--        <xsl:variable name="content-uri" select="xs:anyURI($container/@about)" as="xs:anyURI"/>-->
+        <xsl:variable name="block" select="ancestor::div[@about][1]" as="element()"/>
+        <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'content')][1]" as="element()"/>
         <xsl:variable name="content-id" select="ixsl:get($container, 'id')" as="xs:string"/>
-        <xsl:variable name="about" select="$container/@about" as="xs:anyURI"/>
+        <xsl:variable name="about" select="$block/@about" as="xs:anyURI"/>
 
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
         
@@ -442,10 +443,11 @@ WHERE
     </xsl:template>
     
     <!-- TO-DO: unify -->
-    <xsl:template match="div[@about][@typeof]//button[contains-token(@class, 'btn-cancel')][not(contains-token(@class, 'disabled'))]" mode="ixsl:onclick">
+    <xsl:template match="div[@about][@typeof]//div[contains-token(@class, 'content')]//button[contains-token(@class, 'btn-cancel')][not(contains-token(@class, 'disabled'))]" mode="ixsl:onclick">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
+        <xsl:variable name="block" select="ancestor::div[@about][1]" as="element()"/>
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'row-fluid')][1]" as="element()"/>
-        <xsl:variable name="about" select="ancestor::div[@about][1]/@about" as="xs:anyURI"/>
+        <xsl:variable name="about" select="$block/@about" as="xs:anyURI"/>
 
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
         
@@ -563,15 +565,16 @@ WHERE
     
     <!-- submit instance update form using PATCH -->
     
-    <xsl:template match="div[@about][contains-token(@class, 'row-fluid')][@typeof]//form[contains-token(@class, 'form-horizontal')][upper-case(@method) = 'PATCH']" mode="ixsl:onsubmit" priority="1">
+    <xsl:template match="div[@about][@typeof]//div[contains-token(@class, 'content')]//form[contains-token(@class, 'form-horizontal')][upper-case(@method) = 'PATCH']" mode="ixsl:onsubmit" priority="1">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
-        <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'row-fluid')][1]" as="element()?"/>
+        <xsl:variable name="block" select="ancestor::div[@typeof][1]" as="element()"/>
+        <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'content')][1]" as="element()?"/>
         <xsl:variable name="form" select="." as="element()"/>
         <xsl:variable name="id" select="ixsl:get($form, 'id')" as="xs:string"/>
         <xsl:variable name="action" select="ixsl:get($form, 'action')" as="xs:anyURI"/>
         <xsl:variable name="enctype" select="ixsl:get($form, 'enctype')" as="xs:string"/>
         <xsl:variable name="accept" select="'application/xhtml+xml'" as="xs:string"/>
-        <xsl:variable name="about" select="ancestor::div[@typeof][1]/@about" as="xs:anyURI"/>
+        <xsl:variable name="about" select="$block/@about" as="xs:anyURI"/>
         <xsl:message>ldh:base-uri(.): <xsl:value-of select="ldh:base-uri(.)"/></xsl:message>
         <xsl:variable name="etag" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path(ldh:base-uri(.)) || '`'), 'etag')" as="xs:string"/>
         <xsl:message>$etag: <xsl:value-of select="$etag"/></xsl:message>
@@ -618,7 +621,7 @@ WHERE
     
     <!-- add new property to form -->
     
-    <xsl:template match="div[@typeof][contains-token(@class, 'row-fluid')]//form//button[contains-token(@class, 'add-value')]" mode="ixsl:onclick">
+    <xsl:template match="div[@typeof]//form//button[contains-token(@class, 'add-value')]" mode="ixsl:onclick">
         <xsl:variable name="form" select="ancestor::form" as="element()?"/>
         <xsl:variable name="property-control-group" select="../.." as="element()"/>
         <xsl:variable name="fieldset" select="$property-control-group/.." as="element()"/>
