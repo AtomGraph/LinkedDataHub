@@ -320,7 +320,7 @@ exclude-result-prefixes="#all"
     <xsl:template match="div[@typeof = ('&ldh;XHTML', '&ldh;View', '&ldh;Object')]//button[contains-token(@class, 'btn-edit')][not(contains-token(@class, 'disabled'))]" mode="ixsl:onclick" priority="1">
         <xsl:param name="block" select="ancestor::div[@typeof][1]" as="element()"/>
         <!-- for content types, button.btn-edit is placed in its own div.row-fluid, therefore the next row is the actual container -->
-        <xsl:param name="container" select="$block/div[contains-token(@class, 'content')]" as="element()"/>
+        <xsl:param name="container" select="$block/div/div[contains-token(@class, 'content')]" as="element()"/>
 
         <xsl:message>
             content types .btn-edit onclick
@@ -667,7 +667,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="service" select="key('resources', $service-uri, ixsl:get(ixsl:window(), 'LinkedDataHub.apps'))" as="element()?"/>
         <xsl:variable name="endpoint" select="($service/sd:endpoint/@rdf:resource/xs:anyURI(.), sd:endpoint())[1]" as="xs:anyURI"/>
         <xsl:variable name="block" select="ancestor::div[@typeof][1]" as="element()"/>
-        <xsl:variable name="container" select="$block/div[contains-token(@class, 'content')][1]" as="element()"/>
+        <xsl:variable name="container" select="$block/div/div[contains-token(@class, 'content')][1]" as="element()"/>
         <xsl:variable name="block-id" select="$block/@id" as="xs:string"/>
         <xsl:variable name="block-uri" select="if ($block/@about) then $block/@about else xs:anyURI(ac:absolute-path(ldh:base-uri(.)) || '#' || $block-id)" as="xs:anyURI"/>
         <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': $query-string })" as="xs:anyURI"/>
