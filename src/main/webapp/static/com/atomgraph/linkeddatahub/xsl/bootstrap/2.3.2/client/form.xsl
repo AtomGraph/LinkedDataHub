@@ -260,7 +260,7 @@ WHERE
     
     <!-- enable inline editing form (do nothing if the button is disabled) -->
     
-    <xsl:template match="div[@about]/div[contains-token(@class, 'content')]//button[contains-token(@class, 'btn-edit')][not(contains-token(@class, 'disabled'))]" mode="ixsl:onclick">
+    <xsl:template match="div[@about]//div[contains-token(@class, 'content')]//button[contains-token(@class, 'btn-edit')][not(contains-token(@class, 'disabled'))]" mode="ixsl:onclick">
         <xsl:param name="block" select="ancestor::div[@about][1]" as="element()"/>
         <xsl:param name="container" select="ancestor::div[contains-token(@class, 'content')][1]" as="element()"/>
         <xsl:param name="about" select="$block/@about" as="xs:anyURI"/>
@@ -414,7 +414,7 @@ WHERE
     
     <!-- disable inline editing form (do nothing if the button is disabled) -->
     
-    <xsl:template match="div[@about][@typeof = ('&ldh;ResultSetChart', '&ldh;GraphChart')]/div[contains-token(@class, 'content')]//button[contains-token(@class, 'btn-cancel')][not(contains-token(@class, 'disabled'))]" mode="ixsl:onclick" priority="1">
+    <xsl:template match="div[@about][@typeof = ('&ldh;ResultSetChart', '&ldh;GraphChart')]//div[contains-token(@class, 'content')]//button[contains-token(@class, 'btn-cancel')][not(contains-token(@class, 'disabled'))]" mode="ixsl:onclick" priority="1">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <xsl:variable name="block" select="ancestor::div[@about][1]" as="element()"/>
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'content')][1]" as="element()"/>
@@ -443,7 +443,7 @@ WHERE
     </xsl:template>
     
     <!-- TO-DO: unify -->
-    <xsl:template match="div[@about][@typeof]/div[contains-token(@class, 'content')]//button[contains-token(@class, 'btn-cancel')][not(contains-token(@class, 'disabled'))]" mode="ixsl:onclick">
+    <xsl:template match="div[@about][@typeof]//div[contains-token(@class, 'content')]//button[contains-token(@class, 'btn-cancel')][not(contains-token(@class, 'disabled'))]" mode="ixsl:onclick">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <xsl:variable name="block" select="ancestor::div[@about][1]" as="element()"/>
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'row-fluid')][1]" as="element()"/>
@@ -565,7 +565,7 @@ WHERE
     
     <!-- submit instance update form using PATCH -->
     
-    <xsl:template match="div[@about][@typeof]/div[contains-token(@class, 'content')]//form[contains-token(@class, 'form-horizontal')][upper-case(@method) = 'PATCH']" mode="ixsl:onsubmit" priority="1">
+    <xsl:template match="div[@about][@typeof]//div[contains-token(@class, 'content')]//form[contains-token(@class, 'form-horizontal')][upper-case(@method) = 'PATCH']" mode="ixsl:onsubmit" priority="1">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <xsl:variable name="block" select="ancestor::div[@typeof][1]" as="element()"/>
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'content')][1]" as="element()?"/>

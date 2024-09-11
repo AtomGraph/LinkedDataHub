@@ -488,29 +488,31 @@ extension-element-prefixes="ixsl"
                 <xsl:attribute name="draggable" select="'false'"/>
             </xsl:if>
             
-            <div class="row-fluid" style="position: relative; top: 30px; margin-top: -30px; z-index: 1;">
-                <div class="span12">
-                    <button type="button" class="btn btn-edit pull-right">
-                        <xsl:apply-templates select="key('resources', '&ac;EditMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
-                    </button>
-                </div>
-            </div>
-
-            <div class="row-fluid content">
-                <xsl:apply-templates select="." mode="bs2:Left"/>
-
-                <div>
-                    <xsl:if test="$main-class">
-                        <xsl:attribute name="class" select="$main-class"/>
-                    </xsl:if>
-
-                    <xsl:apply-templates select="rdf:value[@rdf:parseType = 'Literal']/xhtml:div" mode="ldh:XHTMLContent">
-                        <xsl:with-param name="transclude" select="$transclude" tunnel="yes"/>
-                        <xsl:with-param name="base" select="$base" tunnel="yes"/>
-                    </xsl:apply-templates>
+            <div class="span12">
+                <div class="row-fluid" style="position: relative; top: 30px; margin-top: -30px; z-index: 1;">
+                    <div class="span12">
+                        <button type="button" class="btn btn-edit pull-right">
+                            <xsl:apply-templates select="key('resources', '&ac;EditMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
+                        </button>
+                    </div>
                 </div>
 
-                <xsl:apply-templates select="." mode="bs2:Right"/>
+                <div class="row-fluid content">
+                    <xsl:apply-templates select="." mode="bs2:Left"/>
+
+                    <div>
+                        <xsl:if test="$main-class">
+                            <xsl:attribute name="class" select="$main-class"/>
+                        </xsl:if>
+
+                        <xsl:apply-templates select="rdf:value[@rdf:parseType = 'Literal']/xhtml:div" mode="ldh:XHTMLContent">
+                            <xsl:with-param name="transclude" select="$transclude" tunnel="yes"/>
+                            <xsl:with-param name="base" select="$base" tunnel="yes"/>
+                        </xsl:apply-templates>
+                    </div>
+
+                    <xsl:apply-templates select="." mode="bs2:Right"/>
+                </div>
             </div>
         </div>
     </xsl:template>
@@ -549,31 +551,33 @@ extension-element-prefixes="ixsl"
                 <xsl:attribute name="draggable" select="'false'"/>
             </xsl:if>
 
-            <div class="row-fluid" style="position: relative; top: 30px; margin-top: -30px; z-index: 1;">
-                <div class="span12">
-                    <button type="button" class="btn btn-edit pull-right">
-                        <xsl:apply-templates select="key('resources', '&ac;EditMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
-                    </button>
-                </div>
-            </div>
-
-            <div class="row-fluid content">
-                <div>
-                    <xsl:if test="$left-class">
-                        <xsl:attribute name="class" select="$left-class"/>
-                    </xsl:if>
+            <div class="span12">
+                <div class="row-fluid" style="position: relative; top: 30px; margin-top: -30px; z-index: 1;">
+                    <div class="span12">
+                        <button type="button" class="btn btn-edit pull-right">
+                            <xsl:apply-templates select="key('resources', '&ac;EditMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
+                        </button>
+                    </div>
                 </div>
 
-                <div>
-                    <xsl:if test="$main-class">
-                        <xsl:attribute name="class" select="$main-class"/>
-                    </xsl:if>
-                </div>
+                <div class="row-fluid content">
+                    <div>
+                        <xsl:if test="$left-class">
+                            <xsl:attribute name="class" select="$left-class"/>
+                        </xsl:if>
+                    </div>
 
-                <div>
-                    <xsl:if test="$right-class">
-                        <xsl:attribute name="class" select="$right-class"/>
-                    </xsl:if>
+                    <div>
+                        <xsl:if test="$main-class">
+                            <xsl:attribute name="class" select="$main-class"/>
+                        </xsl:if>
+                    </div>
+
+                    <div>
+                        <xsl:if test="$right-class">
+                            <xsl:attribute name="class" select="$right-class"/>
+                        </xsl:if>
+                    </div>
                 </div>
             </div>
         </div>
