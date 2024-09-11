@@ -75,7 +75,6 @@ exclude-result-prefixes="#all"
                     <xsl:with-param name="container" select="$container"/>
                     <xsl:with-param name="mode" select="$mode"/>
                     <xsl:with-param name="refresh-content" select="$refresh-content"/>
-                    <xsl:with-param name="content" select="."/>
                     <xsl:with-param name="block-uri" select="$block-uri"/>
                     <xsl:with-param name="query-uri" select="$query-uri"/>
                 </xsl:call-template>
@@ -90,7 +89,6 @@ exclude-result-prefixes="#all"
         <xsl:param name="container" as="element()"/>
         <xsl:param name="mode" as="xs:anyURI?"/>
         <xsl:param name="refresh-content" as="xs:boolean?"/>
-        <xsl:param name="content" as="element()"/>
         <xsl:param name="block-uri" as="xs:anyURI"/>
         <xsl:param name="query-uri" as="xs:anyURI"/>
 
@@ -162,7 +160,6 @@ exclude-result-prefixes="#all"
                             <xsl:call-template name="ldh:RenderView">
                                 <xsl:with-param name="container" select="$container"/>
                                 <xsl:with-param name="block-uri" select="$block-uri"/>
-                                <xsl:with-param name="content" select="$content"/> <!-- unused? -->
                                 <xsl:with-param name="select-string" select="$select-string"/>
                                 <xsl:with-param name="select-xml" select="$select-xml"/>
                                 <xsl:with-param name="endpoint" select="$endpoint"/>
@@ -524,7 +521,6 @@ exclude-result-prefixes="#all"
     <xsl:template name="ldh:RenderView">
         <xsl:param name="container" as="element()"/>
         <xsl:param name="block-uri" as="xs:anyURI"/> <!-- select="xs:anyURI($container/@about)" -->
-        <xsl:param name="content" as="element()?"/>
         <xsl:param name="select-string" as="xs:string"/>
         <xsl:param name="select-xml" as="document-node()"/>
         <xsl:param name="endpoint" select="xs:anyURI"/>
@@ -566,7 +562,6 @@ exclude-result-prefixes="#all"
                 <xsl:with-param name="container" select="$container"/>
                 <xsl:with-param name="container-id" select="generate-id($container)"/>
                 <xsl:with-param name="block-uri" select="$block-uri"/>
-                <xsl:with-param name="content" select="$content"/>
                 <xsl:with-param name="active-mode" select="$active-mode"/>
                 <xsl:with-param name="select-string" select="$select-string"/>
                 <xsl:with-param name="select-xml" select="$select-xml"/>
@@ -583,7 +578,6 @@ exclude-result-prefixes="#all"
         <xsl:param name="container-id" as="xs:string"/>
         <xsl:param name="block-uri" as="xs:anyURI"/>
         <xsl:param name="endpoint" as="xs:anyURI"/>
-        <xsl:param name="content" as="element()?"/>
         <xsl:param name="results" as="document-node()"/>
         <xsl:param name="active-mode" as="xs:anyURI"/>
         <xsl:param name="select-xml" as="document-node()"/>
@@ -601,7 +595,6 @@ exclude-result-prefixes="#all"
                     <xsl:with-param name="container-id" select="$container-id"/>
                     <xsl:with-param name="block-uri" select="$block-uri"/>
                     <xsl:with-param name="endpoint" select="$endpoint"/>
-                    <xsl:with-param name="content" select="$content"/>
                     <xsl:with-param name="results" select="$results"/>
                     <xsl:with-param name="object-metadata" select="$object-metadata"/>
                     <xsl:with-param name="active-mode" select="$active-mode"/>
@@ -624,7 +617,6 @@ exclude-result-prefixes="#all"
         <xsl:param name="container-id" as="xs:string"/>
         <xsl:param name="block-uri" as="xs:anyURI"/>
         <xsl:param name="endpoint" as="xs:anyURI"/>
-        <xsl:param name="content" as="element()?"/>
         <xsl:param name="results" as="document-node()"/>
         <xsl:param name="object-metadata" as="document-node()"/>
         <xsl:param name="active-mode" as="xs:anyURI"/>
@@ -663,7 +655,6 @@ exclude-result-prefixes="#all"
                 <xsl:with-param name="container" select="$container"/>
                 <xsl:with-param name="container-id" select="$container-id"/>
                 <xsl:with-param name="block-uri" select="$block-uri"/>
-                <xsl:with-param name="content" select="$content"/>
                 <xsl:with-param name="select-xml" select="$select-xml"/>
                 <xsl:with-param name="endpoint" select="$endpoint"/>
             </xsl:call-template>
@@ -1054,7 +1045,6 @@ exclude-result-prefixes="#all"
         <xsl:variable name="block-uri" select="xs:anyURI($block/@about)" as="xs:anyURI"/>
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'content')]" as="element()"/>
         <xsl:variable name="results-container" select="$container//div[contains-token(@class, 'container-results')]" as="element()"/> <!-- results in the middle column -->
-        <xsl:variable name="content" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`'), 'content')" as="element()"/>
         <xsl:variable name="active-class" select="../@class" as="xs:string"/>
         <xsl:variable name="active-mode" select="map:get($class-modes, $active-class)" as="xs:anyURI"/>
         <xsl:variable name="select-xml" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`'), 'select-xml')" as="document-node()"/>
@@ -1079,10 +1069,9 @@ exclude-result-prefixes="#all"
             <ixsl:schedule-action http-request="map{ 'method': 'POST', 'href': sd:endpoint(), 'media-type': 'application/sparql-query', 'body': $query-string, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                 <xsl:call-template name="ldh:LoadContainerObjectMetadata">
                     <xsl:with-param name="container" select="$results-container"/>
-                    <xsl:with-param name="container-id" select="$container/@id"/>
+                    <xsl:with-param name="container-id" select="generate-id($container)"/>
                     <xsl:with-param name="block-uri" select="$block-uri"/>
                     <xsl:with-param name="endpoint" select="$endpoint"/>
-                    <xsl:with-param name="content" select="$content"/>
                     <xsl:with-param name="results" select="$results"/>
                     <xsl:with-param name="active-mode" select="$active-mode"/>
                     <xsl:with-param name="select-xml" select="$select-xml"/>
@@ -1099,7 +1088,6 @@ exclude-result-prefixes="#all"
         <xsl:variable name="block" select="ancestor::div[@about][1]" as="element()"/>
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'content')]" as="element()"/>
         <xsl:variable name="block-uri" select="xs:anyURI($block/@about)" as="xs:anyURI"/>
-        <xsl:variable name="content" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`'), 'content')" as="element()"/>
         <xsl:variable name="active-class" select="tokenize($container//ul[contains-token(@class, 'nav-tabs')]/li[contains-token(@class, 'active')]/@class, ' ')[not(. = 'active')]" as="xs:string"/>
         <xsl:variable name="active-mode" select="map:get($class-modes, $active-class)" as="xs:anyURI"/>
         <xsl:variable name="select-string" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`'), 'select-query')" as="xs:string"/>
@@ -1127,7 +1115,6 @@ exclude-result-prefixes="#all"
         <xsl:call-template name="ldh:RenderView">
             <xsl:with-param name="container" select="$container"/>
             <xsl:with-param name="block-uri" select="$block-uri"/>
-            <xsl:with-param name="content" select="$content"/>
             <xsl:with-param name="active-mode" select="$active-mode"/>
             <xsl:with-param name="select-string" select="$select-string"/>
             <xsl:with-param name="select-xml" select="$select-xml"/>
@@ -1143,7 +1130,6 @@ exclude-result-prefixes="#all"
         <xsl:variable name="block" select="ancestor::div[@about][1]" as="element()"/>
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'content')]" as="element()"/>
         <xsl:variable name="block-uri" select="xs:anyURI($block/@about)" as="xs:anyURI"/>
-        <xsl:variable name="content" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`'), 'content')" as="element()"/>
         <xsl:variable name="active-class" select="tokenize($container//ul[contains-token(@class, 'nav-tabs')]/li[contains-token(@class, 'active')]/@class, ' ')[not(. = 'active')]" as="xs:string"/>
         <xsl:variable name="active-mode" select="map:get($class-modes, $active-class)" as="xs:anyURI"/>
         <xsl:variable name="select-string" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`'), 'select-query')" as="xs:string"/>
@@ -1171,7 +1157,6 @@ exclude-result-prefixes="#all"
         <xsl:call-template name="ldh:RenderView">
             <xsl:with-param name="container" select="$container"/>
             <xsl:with-param name="block-uri" select="$block-uri"/>
-            <xsl:with-param name="content" select="$content"/>
             <xsl:with-param name="active-mode" select="$active-mode"/>
             <xsl:with-param name="select-string" select="$select-string"/>
             <xsl:with-param name="select-xml" select="$select-xml"/>
@@ -1186,7 +1171,6 @@ exclude-result-prefixes="#all"
         <xsl:variable name="block" select="ancestor::div[@about][1]" as="element()"/>
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'content')]" as="element()"/>
         <xsl:variable name="block-uri" select="xs:anyURI($block/@about)" as="xs:anyURI"/>
-        <xsl:variable name="content" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`'), 'content')" as="element()"/>
         <xsl:variable name="active-class" select="tokenize($container//ul[contains-token(@class, 'nav-tabs')]/li[contains-token(@class, 'active')]/@class, ' ')[not(. = 'active')]" as="xs:string"/>
         <xsl:variable name="active-mode" select="map:get($class-modes, $active-class)" as="xs:anyURI"/>
         <xsl:variable name="predicate" select="ixsl:get(., 'value')" as="xs:anyURI?"/>
@@ -1214,7 +1198,6 @@ exclude-result-prefixes="#all"
         <xsl:call-template name="ldh:RenderView">
             <xsl:with-param name="container" select="$container"/>
             <xsl:with-param name="block-uri" select="$block-uri"/>
-            <xsl:with-param name="content" select="$content"/>
             <xsl:with-param name="active-mode" select="$active-mode"/>
             <xsl:with-param name="select-string" select="$select-string"/>
             <xsl:with-param name="select-xml" select="$select-xml"/>
@@ -1230,7 +1213,6 @@ exclude-result-prefixes="#all"
         <xsl:variable name="block" select="ancestor::div[@about][1]" as="element()"/>
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'content')]" as="element()"/>
         <xsl:variable name="block-uri" select="xs:anyURI($block/@about)" as="xs:anyURI"/>
-        <xsl:variable name="content" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`'), 'content')" as="element()"/>
         <xsl:variable name="active-class" select="tokenize($container//ul[contains-token(@class, 'nav-tabs')]/li[contains-token(@class, 'active')]/@class, ' ')[not(. = 'active')]" as="xs:string"/>
         <xsl:variable name="active-mode" select="map:get($class-modes, $active-class)" as="xs:anyURI"/>
         <xsl:variable name="desc" select="contains(@class, 'btn-order-by-desc')" as="xs:boolean"/>
@@ -1256,7 +1238,6 @@ exclude-result-prefixes="#all"
         <xsl:call-template name="ldh:RenderView">
             <xsl:with-param name="container" select="$container"/>
             <xsl:with-param name="block-uri" select="$block-uri"/>
-            <xsl:with-param name="content" select="$content"/>
             <xsl:with-param name="active-mode" select="$active-mode"/>
             <xsl:with-param name="select-string" select="$select-string"/>
             <xsl:with-param name="select-xml" select="$select-xml"/>
@@ -1291,7 +1272,6 @@ exclude-result-prefixes="#all"
                 <xsl:for-each select="$container">
                     <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
-                    <!--<xsl:variable name="container-id" select="@id" as="xs:string"/>-->
                     <!-- the subject is a variable - trim the leading question mark -->
                     <xsl:variable name="subject-var-name" select="substring-after($bgp-triples-map/json:string[@key = 'subject'], '?')" as="xs:string"/>
                     <!-- predicate is a URI -->
@@ -1369,7 +1349,6 @@ exclude-result-prefixes="#all"
         <xsl:variable name="block" select="ancestor::div[@about][1]" as="element()"/>
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'content')]" as="element()"/>
         <xsl:variable name="block-uri" select="xs:anyURI($block/@about)" as="xs:anyURI"/>
-        <xsl:variable name="content" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`'), 'content')" as="element()"/>
         <xsl:variable name="active-class" select="tokenize($container//ul[contains-token(@class, 'nav-tabs')]/li[contains-token(@class, 'active')]/@class, ' ')[not(. = 'active')]" as="xs:string"/>
         <xsl:variable name="active-mode" select="map:get($class-modes, $active-class)" as="xs:anyURI"/>
         <xsl:variable name="var-name" select="@name" as="xs:string"/>
@@ -1399,7 +1378,6 @@ exclude-result-prefixes="#all"
         <xsl:call-template name="ldh:RenderView">
             <xsl:with-param name="container" select="$container"/>
             <xsl:with-param name="block-uri" select="$block-uri"/>
-            <xsl:with-param name="content" select="$content"/>
             <xsl:with-param name="active-mode" select="$active-mode"/>
             <xsl:with-param name="select-string" select="$select-string"/>
             <xsl:with-param name="select-xml" select="$select-xml"/>
@@ -1414,7 +1392,6 @@ exclude-result-prefixes="#all"
         <xsl:variable name="block" select="ancestor::div[@about][1]" as="element()"/>
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'content')]" as="element()"/>
         <xsl:variable name="block-uri" select="xs:anyURI($block/@about)" as="xs:anyURI"/>
-        <xsl:variable name="content" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`'), 'content')" as="element()"/>
         <xsl:variable name="active-class" select="tokenize($container//ul[contains-token(@class, 'nav-tabs')]/li[contains-token(@class, 'active')]/@class, ' ')[not(. = 'active')]" as="xs:string"/>
         <xsl:variable name="active-mode" select="map:get($class-modes, $active-class)" as="xs:anyURI"/>
         <xsl:variable name="predicate" select="input/@value" as="xs:anyURI"/>
@@ -1441,7 +1418,6 @@ exclude-result-prefixes="#all"
         <xsl:call-template name="ldh:RenderView">
             <xsl:with-param name="container" select="$container"/>
             <xsl:with-param name="block-uri" select="$block-uri"/>
-            <xsl:with-param name="content" select="$content"/>
             <xsl:with-param name="active-mode" select="$active-mode"/>
             <xsl:with-param name="select-string" select="$select-string"/>
             <xsl:with-param name="select-xml" select="$select-xml"/>
@@ -1458,7 +1434,6 @@ exclude-result-prefixes="#all"
         <xsl:param name="container" as="element()"/>
         <xsl:param name="container-id" as="xs:string"/>
         <xsl:param name="block-uri" as="xs:anyURI"/>
-        <xsl:param name="content" as="element()?"/>
         <xsl:param name="active-mode" as="xs:anyURI"/>
         <xsl:param name="select-xml" as="document-node()"/>
         <xsl:param name="initial-var-name" as="xs:string"/>
@@ -1596,7 +1571,6 @@ exclude-result-prefixes="#all"
                                 <xsl:with-param name="container-id" select="$container-id"/>
                                 <xsl:with-param name="block-uri" select="$block-uri"/>
                                 <xsl:with-param name="endpoint" select="$endpoint"/>
-                                <xsl:with-param name="content" select="$content"/>
                                 <xsl:with-param name="results" select="$sorted-results"/>
                                 <xsl:with-param name="active-mode" select="$active-mode"/>
                                 <xsl:with-param name="select-xml" select="$select-xml"/>

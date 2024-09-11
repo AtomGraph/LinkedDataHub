@@ -322,6 +322,11 @@ exclude-result-prefixes="#all"
         <!-- for content types, button.btn-edit is placed in its own div.row-fluid, therefore the next row is the actual container -->
         <xsl:param name="container" select="$block//div[contains-token(@class, 'content')]" as="element()"/>
 
+        <xsl:message>
+            content types .btn-edit onclick
+            $container: <xsl:value-of select="serialize($container)"/>
+        </xsl:message>
+        
         <xsl:next-match>
             <xsl:with-param name="container" select="$container"/>
         </xsl:next-match>

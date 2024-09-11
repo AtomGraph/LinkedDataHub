@@ -122,7 +122,6 @@ exclude-result-prefixes="#all"
         <xsl:param name="container" as="element()"/>
         <xsl:param name="container-id" as="xs:string"/>
         <xsl:param name="block-uri" as="xs:anyURI"/>
-        <xsl:param name="content" as="element()?"/>
         <xsl:param name="select-xml" as="document-node()"/>
         <xsl:param name="endpoint" as="xs:anyURI"/>
         
@@ -141,7 +140,6 @@ exclude-result-prefixes="#all"
                 <xsl:with-param name="container" select="$container"/>
                 <xsl:with-param name="container-id" select="$container-id"/>
                 <xsl:with-param name="block-uri" select="$block-uri"/>
-                <xsl:with-param name="content" select="$content"/>
             </xsl:call-template>
         </ixsl:schedule-action>
     </xsl:template>
@@ -326,7 +324,6 @@ exclude-result-prefixes="#all"
         <xsl:param name="container" as="element()"/>
         <xsl:param name="container-id" as="xs:string"/>
         <xsl:param name="block-uri" select="xs:anyURI($container/@about)" as="xs:anyURI"/>
-        <xsl:param name="content" as="element()?"/>
         
         <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
         
