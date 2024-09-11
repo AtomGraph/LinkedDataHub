@@ -207,6 +207,15 @@ extension-element-prefixes="ixsl"
         </xsl:if>
     </xsl:template>
     
+    <!-- DEFAULT -->
+    <!-- TO-DO: belongs in Web-Client -->
+    
+    <xsl:template match="rdf:RDF">
+        <xsl:apply-templates>
+            <xsl:sort select="ac:label(.)"/>
+        </xsl:apply-templates>
+    </xsl:template>
+        
     <!-- BLOCK -->
     
     <xsl:template match="rdf:RDF" mode="bs2:Block">

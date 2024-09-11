@@ -259,8 +259,9 @@ WHERE
     <!-- EVENT HANDLERS -->
     
     <!-- enable inline editing form (do nothing if the button is disabled) -->
+    <!-- don't use div[contains-token(@class, 'content')] in the match because it's overriden in content.xsl -->
     
-    <xsl:template match="div[@about]//div[contains-token(@class, 'content')]//button[contains-token(@class, 'btn-edit')][not(contains-token(@class, 'disabled'))]" mode="ixsl:onclick">
+    <xsl:template match="div[@about]//button[contains-token(@class, 'btn-edit')][not(contains-token(@class, 'disabled'))]" mode="ixsl:onclick">
         <xsl:param name="block" select="ancestor::div[@about][1]" as="element()"/>
         <xsl:param name="container" select="ancestor::div[contains-token(@class, 'content')][1]" as="element()"/>
         <xsl:param name="about" select="$block/@about" as="xs:anyURI"/>
