@@ -71,7 +71,6 @@ exclude-result-prefixes="#all"
 extension-element-prefixes="ixsl"
 >
 
-<!--    <xsl:import href="bootstrap/2.3.2/imports/xml-to-string.xsl"/>-->
     <xsl:import href="../../../../com/atomgraph/client/xsl/converters/RDFXML2SVG.xsl"/>
     <xsl:import href="../../../../com/atomgraph/client/xsl/functions.xsl"/>
     <xsl:import href="../../../../com/atomgraph/client/xsl/imports/default.xsl"/>
@@ -215,7 +214,6 @@ WHERE
         ]]>
         <!-- VALUES $Type goes here -->
     </xsl:param>
-<!--    <xsl:param name="force-exclude-all-namespaces" select="true()"/>  used by xml-to-string.xsl -->
     <xsl:param name="system-containers" as="map(xs:anyURI, map(xs:string, xs:string))">
         <xsl:map>
             <xsl:map-entry key="resolve-uri('apps/', $ldt:base)">
