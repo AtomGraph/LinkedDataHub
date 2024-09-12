@@ -1031,7 +1031,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="type-label" select="true()" as="xs:boolean"/>
 
         <textarea name="ol" id="{$id}" class="wymeditor">
-            <xsl:variable name="html" as="element()">
+            <xsl:variable name="html" as="element()*">
                 <xsl:apply-templates select="xhtml:*" mode="ldh:XHTMLContent"/>
             </xsl:variable>
             <xsl:value-of select="serialize($html)"/>
