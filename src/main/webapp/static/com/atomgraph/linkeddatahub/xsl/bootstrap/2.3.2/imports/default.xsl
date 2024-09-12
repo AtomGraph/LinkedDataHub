@@ -1031,7 +1031,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="type-label" select="true()" as="xs:boolean"/>
 
         <textarea name="ol" id="{$id}" class="wymeditor">
-            <xsl:value-of select="serialize(xhtml:*, map{ 'undeclare-prefixes': true() })"/>
+            <xsl:value-of select="serialize(xhtml:*, map{ 'method': 'html', 'undeclare-prefixes': true() })"/>
         </textarea>
         <xsl:call-template name="xhtml:Input">
             <xsl:with-param name="type" select="'hidden'"/>
