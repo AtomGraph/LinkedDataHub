@@ -1031,10 +1031,10 @@ exclude-result-prefixes="#all"
         <xsl:param name="type-label" select="true()" as="xs:boolean"/>
 
         <textarea name="ol" id="{$id}" class="wymeditor">
-            <xsl:variable name="html" as="element()*">
-                <xsl:apply-templates select="xhtml:*" mode="ldh:XHTMLContent"/>
+            <xsl:variable name="xhtml" as="element()*">
+                <xsl:copy-of select="xhtml:*" copy-namespaces="no"/>
             </xsl:variable>
-            <xsl:value-of select="serialize($html)"/>
+            <xsl:value-of select="serialize($xhtml)"/>
         </textarea>
         <xsl:call-template name="xhtml:Input">
             <xsl:with-param name="type" select="'hidden'"/>
