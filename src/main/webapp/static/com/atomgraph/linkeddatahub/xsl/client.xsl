@@ -207,7 +207,7 @@ WHERE
             WHERE
               { GRAPH ?graph
                   { ?this  ?p  ?literal
-                    FILTER ( ( datatype(?literal) = xsd:string ) || ( datatype(?literal) = rdf:langString ) )
+                    FILTER ( datatype(?literal) IN (xsd:string, rdf:langString) )
                     FILTER ( ?p IN (rdfs:label, dc:title, dct:title, foaf:name, foaf:givenName, foaf:familyName, sioc:name, skos:prefLabel, schema1:name, schema2:name) )
                   }
               }
