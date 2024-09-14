@@ -498,7 +498,8 @@ WHERE
         </xsl:param>
         <xsl:param name="request-body" select="$resources" as="document-node()"/>
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
-        <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'row-fluid')][1]" as="element()?"/> <!-- no container means the form was modal -->
+        <xsl:variable name="block" select="ancestor::div[@typeof][1]" as="element()"/>
+        <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'content')][1]" as="element()?"/> <!-- no container means the form was modal -->
         <xsl:variable name="form" select="." as="element()"/>
         <xsl:variable name="id" select="ixsl:get($form, 'id')" as="xs:string"/>
         <xsl:variable name="action" select="ixsl:get($form, 'action')" as="xs:anyURI"/>
@@ -553,6 +554,7 @@ WHERE
                     <ixsl:schedule-action http-request="map{ 'method': $method, 'href': $request-uri, 'media-type': 'application/rdf+xml', 'body': $request-body, 'headers': map{ 'If-Match': $etag, 'Accept': $accept } }">
                         <xsl:call-template name="ldh:ResourceUpdated">
                             <xsl:with-param name="doc-uri" select="$doc-uri"/>
+                            <xsl:with-param name="block" select="$block"/>
                             <xsl:with-param name="container" select="$container"/>
                             <xsl:with-param name="form" select="$form"/>
                             <xsl:with-param name="resources" select="$resources"/>
@@ -611,6 +613,7 @@ WHERE
             <ixsl:schedule-action http-request="map{ 'method': 'PATCH', 'href': $request-uri, 'media-type': 'application/sparql-update', 'body': $update-string, 'headers': map{ 'If-Match': $etag, 'Accept': 'application/rdf+xml', 'Cache-Control': 'no-cache' } }">
                 <xsl:call-template name="ldh:ResourceUpdated">
                     <xsl:with-param name="doc-uri" select="ac:absolute-path(ldh:base-uri(.))"/>
+                    <xsl:with-param name="block" select="$block"/>
                     <xsl:with-param name="container" select="$container"/>
                     <xsl:with-param name="form" select="$form"/>
                     <xsl:with-param name="resources" select="$resources"/>
@@ -689,6 +692,7 @@ WHERE
     <xsl:template name="ldh:ResourceUpdated">
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="doc-uri" as="xs:anyURI"/>
+        <xsl:param name="block" as="element()"/>
         <xsl:param name="container" as="element()?"/>
         <xsl:param name="form" as="element()?"/>
         <xsl:param name="resources" as="document-node()"/>
@@ -702,13 +706,9 @@ WHERE
                     <!-- store ETag header value under window.LinkedDataHub.contents[$doc-uri].etag -->
                     <ixsl:set-property name="etag" select="$etag" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $doc-uri || '`')"/>
                 </xsl:if>
-                
-                <xsl:message>
-                    $resources: <xsl:value-of select="serialize($resources)"/>
-                </xsl:message>
-                
+
                 <xsl:variable name="classes" select="()" as="element()*"/>
-                <xsl:variable name="row" as="element()">
+                <xsl:variable name="new-block" as="element()">
                     <xsl:apply-templates select="$resources/rdf:RDF/*" mode="bs2:Block">
                         <xsl:with-param name="classes" select="$classes"/>
                         <xsl:with-param name="style" select="()"/> <!-- TO-DO: remove? -->
@@ -718,28 +718,28 @@ WHERE
                 </xsl:variable>
                 <xsl:message>
                     $resources: <xsl:value-of select="serialize($resources)"/>
-                    $row: <xsl:value-of select="serialize($row)"/>
+                    $new-block: <xsl:value-of select="serialize($new-block)"/>
                 </xsl:message>
                 
-                <xsl:for-each select="$container">
+                <xsl:for-each select="$block">
                     <xsl:result-document href="?." method="ixsl:replace-content">
-                        <xsl:copy-of select="$row/*"/>
+                        <xsl:copy-of select="$new-block/*"/>
                     </xsl:result-document>
 
                     <xsl:message>
                         Existing @about: <xsl:value-of select="@about"/>
                     </xsl:message>
-                    <ixsl:set-attribute name="about" select="$row/@about"/>
-                    <ixsl:set-attribute name="class" select="$row/@class"/>
+                    <ixsl:set-attribute name="about" select="$new-block/@about"/>
+                    <ixsl:set-attribute name="class" select="$new-block/@class"/>
 
                     <!-- if the updated resource is a content resource, load it TO-DO: this belongs in content.xsl -->
-                    <xsl:if test="contains-token($row/@class, 'content')">
+<!--                    <xsl:if test="contains-token($new-block/@class, 'content')">-->
                         <xsl:call-template name="ldh:LoadBlock">
                             <xsl:with-param name="doc" select="$resources"/>
                         </xsl:call-template>
-                    </xsl:if>
+<!--                    </xsl:if>-->
                     
-                    <!-- <xsl:if test="contains-token($row/@class, 'post-construct')"> -->
+                    <!-- <xsl:if test="contains-token($new-block/@class, 'post-construct')"> -->
                         <xsl:apply-templates select="." mode="ldh:PostConstruct"/>
                     <!-- </xsl:if> -->
                 </xsl:for-each>
@@ -1564,6 +1564,7 @@ WHERE
     <xsl:template match="." mode="ixsl:onMultipartResourceUpdated">
         <xsl:variable name="event" select="ixsl:event()"/>
         <xsl:variable name="doc-uri" select="ixsl:get(ixsl:get($event, 'detail'), 'docUri')" as="xs:anyURI"/>
+        <xsl:variable name="block" select="ixsl:get(ixsl:get($event, 'detail'), 'block')" as="element()"/>
         <xsl:variable name="container" select="ixsl:get(ixsl:get($event, 'detail'), 'container')" as="element()"/>
         <xsl:variable name="resources" select="ixsl:get(ixsl:get($event, 'detail'), 'resources')" as="document-node()"/>
         <xsl:variable name="form" select="ixsl:get(ixsl:get($event, 'detail'), 'target')" as="element()"/> <!-- not ixsl:get(ixsl:event(), 'target') because that's the whole document -->
@@ -1588,6 +1589,7 @@ WHERE
         <xsl:for-each select="$response">
             <xsl:call-template name="ldh:ResourceUpdated">
                 <xsl:with-param name="doc-uri" select="$doc-uri"/>
+                <xsl:with-param name="block" select="$block"/>
                 <xsl:with-param name="container" select="$container"/>
                 <xsl:with-param name="form" select="$form"/>
                 <xsl:with-param name="resources" select="$resources"/>
