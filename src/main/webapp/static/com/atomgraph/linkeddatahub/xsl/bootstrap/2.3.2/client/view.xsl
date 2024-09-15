@@ -1448,6 +1448,7 @@ exclude-result-prefixes="#all"
         
         <xsl:message>
             onContainerResultsLoad
+            $container: <xsl:value-of select="serialize($container)"/>
             $content-container: <xsl:value-of select="serialize($content-container)"/>
             exists($content-container//div[contains-token(@class, 'container-results')]): <xsl:value-of select="exists($content-container//div[contains-token(@class, 'container-results')])"/>
         </xsl:message>
