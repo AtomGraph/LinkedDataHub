@@ -208,7 +208,7 @@ exclude-result-prefixes="#all"
             </ixsl:schedule-action>
         </xsl:variable>
         <xsl:message>before ldh:LoadBlockObjectMetadata</xsl:message>
-        <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
+        <!-- <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/> -->
         <xsl:message>after ldh:LoadBlockObjectMetadata</xsl:message>
     </xsl:template>
     
