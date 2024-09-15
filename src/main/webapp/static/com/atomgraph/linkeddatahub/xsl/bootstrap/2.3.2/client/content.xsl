@@ -208,8 +208,8 @@ exclude-result-prefixes="#all"
             </ixsl:schedule-action>
         </xsl:variable>
         <xsl:message>before ldh:LoadBlockObjectMetadata</xsl:message>
-        <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
-        <xsl:message>after ldh:LoadBlockObjectMetadata</xsl:message>
+<!--        <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>-->
+        <xsl:message>before ldh:LoadBlockObjectMetadata</xsl:message>
     </xsl:template>
     
     <xsl:template name="ldh:LoadBlockObjectValue">
@@ -246,8 +246,6 @@ exclude-result-prefixes="#all"
                 </xsl:for-each>
             </xsl:when>
             <xsl:when test="?status = 406">
-                <xsl:message>ldh:LoadBlockObjectValue ?status = 406</xsl:message>
-
                 <xsl:for-each select="$container//div[contains-token(@class, 'main')]">
                     <xsl:result-document href="?." method="ixsl:replace-content">
                         <div class="offset2 span7 main">
@@ -259,8 +257,6 @@ exclude-result-prefixes="#all"
 <!--                <xsl:apply-templates select="$container" mode="ldh:BlockRendered"/>-->
             </xsl:when>
             <xsl:otherwise>
-                <xsl:message>ldh:LoadBlockObjectValue otherwise</xsl:message>
-
                 <xsl:for-each select="$container//div[contains-token(@class, 'main')]">
                     <xsl:result-document href="?." method="ixsl:replace-content">
                         <div class="alert alert-block">
@@ -906,8 +902,6 @@ exclude-result-prefixes="#all"
         <xsl:message>
             ldh:LoadBlock @about: <xsl:value-of select="@about"/> @id: <xsl:value-of select="@id"/> $this: <xsl:value-of select="$this"/>
             <!-- ancestor::div[@about][1]: <xsl:value-of select="serialize(ancestor::div[@about][1])"/> -->
-            $doc instance of document-node(): <xsl:value-of select="$doc instance of document-node()"/>
-            $doc: <xsl:value-of select="serialize($doc)"/>
         </xsl:message>
 
         <!-- for some reason Saxon-JS 2.3 does not see this variable if it's inside <xsl:when> -->
@@ -1062,6 +1056,7 @@ exclude-result-prefixes="#all"
         </xsl:apply-templates>
 
         <!-- initialize map TO-DO: move inside ldh:RenderBlock? -->
+        <!--
         <xsl:if test="key('elements-by-class', 'map-canvas', $container)">
             <xsl:for-each select="root(.)">
                 <xsl:call-template name="ldh:DrawMap">
@@ -1070,6 +1065,7 @@ exclude-result-prefixes="#all"
                 </xsl:call-template>
             </xsl:for-each>
         </xsl:if>
+        -->
     </xsl:template>
     
     <!-- embed DESCRIBE/CONSTRUCT result -->
