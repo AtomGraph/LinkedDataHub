@@ -734,14 +734,14 @@ WHERE
 
                     <!-- if the updated resource is a content resource, load it TO-DO: this belongs in content.xsl -->
 <!--                    <xsl:if test="contains-token($new-block/@class, 'content')">-->
-                        <xsl:call-template name="ldh:LoadBlock">
+<!--                        <xsl:call-template name="ldh:LoadBlock">
                             <xsl:with-param name="doc" select="$resources"/>
                             <xsl:with-param name="container" select="$container"/>
-                        </xsl:call-template>
+                        </xsl:call-template>-->
 <!--                    </xsl:if>-->
                     
                     <!-- <xsl:if test="contains-token($new-block/@class, 'post-construct')"> -->
-                        <xsl:apply-templates select="." mode="ldh:PostConstruct"/>
+<!--                        <xsl:apply-templates select="." mode="ldh:PostConstruct"/>-->
                     <!-- </xsl:if> -->
                 </xsl:for-each>
                 
