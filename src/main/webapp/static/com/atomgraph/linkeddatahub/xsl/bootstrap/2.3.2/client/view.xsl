@@ -819,6 +819,11 @@ exclude-result-prefixes="#all"
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="class" select="'well well-small'" as="xs:string?"/>
         
+        <xsl:message>
+            mode="ldh:RenderFacets" WTF
+            $id: <xsl:value-of select="$id"/>
+        </xsl:message>
+        
         <div>
             <xsl:if test="$id">
                 <xsl:attribute name="id" select="$id"/>
