@@ -770,6 +770,8 @@ exclude-result-prefixes="#all"
 
         <xsl:message>
             ldh:RenderFacets
+            current(): <xsl:value-of select="serialize(.)"/>
+            parent:: <xsl:value-of select="serialize(..)"/>
             $sub-container-id: <xsl:value-of select="$sub-container-id"/>
         </xsl:message>
         
