@@ -1502,7 +1502,7 @@ exclude-result-prefixes="#all"
                     <ixsl:set-property name="results" select="$sorted-results" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`')"/>
 
                     <xsl:variable name="initial-load" select="empty($content-container//div[@id = $container-results-id])" as="xs:boolean"/>
-                    <xsl:message>$initial-load: <xsl:vlue-of select="$initial-load"/></xsl:message>
+                    <xsl:message>$initial-load: <xsl:value-of select="$initial-load"/></xsl:message>
                     <!-- first time rendering the container results -->
                     <xsl:if test="$initial-load">
                         <xsl:for-each select="$content-container">
