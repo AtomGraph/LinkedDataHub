@@ -434,7 +434,7 @@ WHERE
 
         <xsl:apply-templates select="$chart" mode="ldh:RenderBlock">
             <xsl:with-param name="this" select="ancestor::div[@about][1]/@about"/>
-            <xsl:with-param name="container" select="$container"/>
+<!--            <xsl:with-param name="container" select="$container"/>-->
         </xsl:apply-templates>
         
         <!-- initialize event listeners -->
@@ -737,7 +737,7 @@ WHERE
 <!--                    <xsl:if test="contains-token($new-block/@class, 'content')">-->
                         <xsl:call-template name="ldh:LoadBlock">
                             <xsl:with-param name="doc" select="$resources"/>
-                            <xsl:with-param name="container" select="$container"/>
+<!--                            <xsl:with-param name="container" select="$container"/>-->
                         </xsl:call-template>
 <!--                    </xsl:if>-->
                     

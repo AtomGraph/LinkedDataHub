@@ -142,7 +142,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="this" as="xs:anyURI"/>
         <xsl:param name="block" as="element()"/>
         <xsl:param name="block-uri" select="$block/@about" as="xs:anyURI"/>
-        <xsl:param name="container" as="element()"/>
+        <xsl:param name="container" select="$block/div/div[contains-token(@class, 'row-fluid')][1]" as="element()"/>
         <xsl:param name="resource-uri" select="rdf:value/@rdf:resource" as="xs:anyURI?"/>
         <xsl:param name="graph" select="ldh:graph/@rdf:resource" as="xs:anyURI?"/>
         <xsl:param name="mode" select="ac:mode/@rdf:resource" as="xs:anyURI?"/>
@@ -178,7 +178,7 @@ exclude-result-prefixes="#all"
     
     <xsl:template match="*[*][@rdf:about]" mode="ldh:RenderBlock">
         <xsl:param name="this" as="xs:anyURI"/>
-        <xsl:param name="container" as="element()"/>
+        <xsl:param name="container" select="$block//div[contains-token(@class, 'row-fluid')][1]" as="element()"/>
         <xsl:param name="graph" as="xs:anyURI?"/>
         <xsl:param name="mode" as="xs:anyURI?"/>
         <xsl:param name="refresh-content" as="xs:boolean?"/>
@@ -239,7 +239,7 @@ exclude-result-prefixes="#all"
                         <xsl:with-param name="this" select="$this"/>
                         <xsl:with-param name="block" select="$block"/>
                         <xsl:with-param name="block-uri" select="$block-uri"/>
-                        <xsl:with-param name="container" select="$container"/>
+<!--                        <xsl:with-param name="container" select="$container"/>-->
                         <xsl:with-param name="mode" select="$mode"/>
                         <xsl:with-param name="show-edit-button" select="$show-edit-button" tunnel="yes"/>
                     </xsl:apply-templates>
@@ -608,7 +608,7 @@ exclude-result-prefixes="#all"
     
     <xsl:template match="div[@typeof = ('&ldh;View', '&ldh;Object')]//div[contains-token(@class, 'content')]//button[contains-token(@class, 'btn-cancel')]" mode="ixsl:onclick" priority="1"> <!-- prioritize over form.xsl -->
         <xsl:variable name="block" select="ancestor::div[@typeof][1]" as="element()"/>
-        <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'content')][1]" as="element()"/>
+<!--        <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'content')][1]" as="element()"/>-->
 
         <xsl:message>resource block</xsl:message>
 
@@ -619,7 +619,7 @@ exclude-result-prefixes="#all"
                     <xsl:variable name="doc" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path(xs:anyURI(ixsl:location())) || '`'), 'results')" as="document-node()"/>
                     <xsl:call-template name="ldh:LoadBlock">
                         <xsl:with-param name="doc" select="$doc"/>
-                        <xsl:with-param name="container" select="$container"/>
+<!--                        <xsl:with-param name="container" select="$container"/>-->
                     </xsl:call-template>
                 </xsl:for-each>
             </xsl:when> 
@@ -872,14 +872,14 @@ exclude-result-prefixes="#all"
     <!-- TO-DO: move to respective stylesheets -->
     <xsl:template match="*[@about][@typeof = ('&ldh;View', '&ldh;Object', '&ldh;ResultSetChart', '&ldh;GraphChart')]//div[contains-token(@class, 'content')]" mode="ldh:LoadBlock" priority="2">
         <xsl:param name="block" select="ancestor::div[@about][1]" as="element()"/>
-        <xsl:param name="container" select="." as="element()"/>
+<!--        <xsl:param name="container" select="." as="element()"/>-->
         <xsl:param name="acl-modes" as="xs:anyURI*"/>
         <xsl:param name="doc" as="document-node()"/>
         <xsl:param name="refresh-content" as="xs:boolean?"/>
 
         <xsl:for-each select="$block">
             <xsl:call-template name="ldh:LoadBlock">
-                <xsl:with-param name="container" select="$container"/>
+<!--                <xsl:with-param name="container" select="$container"/>-->
                 <xsl:with-param name="acl-modes" select="$acl-modes"/>
                 <xsl:with-param name="doc" select="$doc"/>
                 <xsl:with-param name="refresh-content" select="$refresh-content"/>
@@ -889,7 +889,7 @@ exclude-result-prefixes="#all"
 
     <xsl:template name="ldh:LoadBlock">
         <xsl:context-item as="element()" use="required"/> <!-- block element -->
-        <xsl:param name="container" as="element()"/>
+<!--        <xsl:param name="container" as="element()"/>-->
         <xsl:param name="acl-modes" as="xs:anyURI*"/>
         <xsl:param name="doc" as="document-node()"/>
         <xsl:param name="refresh-content" as="xs:boolean?"/>
@@ -916,7 +916,7 @@ exclude-result-prefixes="#all"
                     <xsl:call-template name="ldh:BlockLoaded">
                         <xsl:with-param name="this" select="$this"/>
                         <xsl:with-param name="block-uri" select="$block-uri"/>
-                        <xsl:with-param name="container" select="$container"/>
+<!--                        <xsl:with-param name="container" select="$container"/>-->
                         <xsl:with-param name="acl-modes" select="$acl-modes"/>
                         <xsl:with-param name="refresh-content" select="$refresh-content"/>
                     </xsl:call-template>
@@ -1023,7 +1023,7 @@ exclude-result-prefixes="#all"
     <xsl:template name="ldh:BlockLoaded">
         <xsl:context-item as="element()" use="required"/>
         <xsl:param name="this" as="xs:anyURI"/>
-        <xsl:param name="container" as="element()"/>
+<!--        <xsl:param name="container" as="element()"/>-->
         <xsl:param name="block-uri" as="xs:anyURI"/>
         <xsl:param name="acl-modes" as="xs:anyURI*"/>
         <xsl:param name="refresh-content" as="xs:boolean?"/>
@@ -1031,17 +1031,17 @@ exclude-result-prefixes="#all"
         <xsl:message>
             ldh:BlockLoaded
             block: <xs:value-of select="serialize(.)"/>
-            $container: <xs:value-of select="serialize($container)"/>
+<!--            $container: <xs:value-of select="serialize($container)"/>-->
             $this: <xsl:value-of select="$this"/>
             root(block)?: <xsl:value-of select="if (root(.) instance of document-node()) then true() else false()"/>
-            root($container)?: <xsl:value-of select="if (root($container) instance of document-node()) then true() else false()"/>
+<!--            root($container)?: <xsl:value-of select="if (root($container) instance of document-node()) then true() else false()"/>-->
         </xsl:message>
         <!-- create new cache entry using content URI as key -->
         <ixsl:set-property name="{'`' || $block-uri || '`'}" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.contents')"/>
         <!-- store this content element -->
         <ixsl:set-property name="content" select="." object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`')"/>
 
-        <xsl:for-each select="$container//div[@class = 'bar']">
+        <xsl:for-each select=".//div[@class = 'bar']">
             <!-- update progress bar -->
             <ixsl:set-style name="width" select="'50%'" object="."/>
         </xsl:for-each>
@@ -1050,7 +1050,7 @@ exclude-result-prefixes="#all"
             <xsl:with-param name="this" select="$this"/>
             <xsl:with-param name="block" select="."/>
             <xsl:with-param name="block-uri" select="$block-uri"/>
-            <xsl:with-param name="container" select="$container"/>
+<!--            <xsl:with-param name="container" select="$container"/>-->
             <xsl:with-param name="refresh-content" select="$refresh-content"/>
         </xsl:apply-templates>
 

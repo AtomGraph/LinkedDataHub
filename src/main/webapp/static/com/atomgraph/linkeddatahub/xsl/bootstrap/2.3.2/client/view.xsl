@@ -57,7 +57,7 @@ exclude-result-prefixes="#all"
     <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&ldh;View'][spin:query/@rdf:resource]" mode="ldh:RenderBlock" priority="1">
         <xsl:param name="this" as="xs:anyURI"/>
         <xsl:param name="block" as="element()"/>
-        <xsl:param name="container" as="element()"/>
+        <xsl:param name="container" select="$block/div/div[contains-token(@class, 'row-fluid')][2]" as="element()"/>
         <xsl:param name="graph" select="ldh:graph/@rdf:resource" as="xs:anyURI?"/>
         <xsl:param name="mode" select="ac:mode/@rdf:resource" as="xs:anyURI?"/>
         <xsl:param name="refresh-content" as="xs:boolean?"/>
@@ -1609,12 +1609,6 @@ exclude-result-prefixes="#all"
                          <ixsl:set-style name="display" select="'none'" object="."/>
                      </xsl:for-each>
                 
-                     <xsl:for-each select="$container/div[contains-token(@class, 'left-nav')]">
-                        <xsl:result-document href="?." method="ixsl:append-content">
-                            <p>WTF</p>
-                        </xsl:result-document>
-                     </xsl:for-each>
-                     
                     <!-- use the initial (not the current transformed) SELECT query and focus var name for facet rendering -->
                     <xsl:for-each select="$container/div[contains-token(@class, 'left-nav')]">
                         <xsl:call-template name="ldh:RenderFacets">
