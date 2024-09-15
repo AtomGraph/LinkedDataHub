@@ -741,7 +741,7 @@ WHERE
 <!--                    </xsl:if>-->
                     
                     <!-- <xsl:if test="contains-token($new-block/@class, 'post-construct')"> -->
-<!--                        <xsl:apply-templates select="." mode="ldh:PostConstruct"/>-->
+                        <xsl:apply-templates select="." mode="ldh:PostConstruct"/>
                     <!-- </xsl:if> -->
                 </xsl:for-each>
                 
