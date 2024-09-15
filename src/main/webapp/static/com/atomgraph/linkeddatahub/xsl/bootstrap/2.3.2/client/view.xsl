@@ -771,7 +771,6 @@ exclude-result-prefixes="#all"
         <xsl:message>
             ldh:RenderFacets
             $sub-container-id: <xsl:value-of select="$sub-container-id"/>
-            id($sub-container-id, ixsl:page()): <xsl:value-of select="id($sub-container-id, ixsl:page())"/>
         </xsl:message>
         
         <!-- only append facets if they are not already present -->
@@ -782,6 +781,9 @@ exclude-result-prefixes="#all"
                 </xsl:apply-templates>
             </xsl:result-document>
             
+            <xsl:message>
+            exists(id($sub-container-id, ixsl:page())): <xsl:value-of select="exists(id($sub-container-id, ixsl:page()))"/>
+            </xsl:message>
             <xsl:variable name="sub-container" select="id($sub-container-id, ixsl:page())" as="element()"/>
             <!-- use the BGPs where the predicate is a URI value and the subject and object are variables -->
             <xsl:variable name="bgp-triples-map" select="$select-xml//json:map[json:string[@key = 'type'] = 'bgp']/json:array[@key = 'triples']/json:map[json:string[@key = 'subject'] = '?' || $initial-var-name][not(starts-with(json:string[@key = 'predicate'], '?'))][starts-with(json:string[@key = 'object'], '?')]" as="element()*"/>
