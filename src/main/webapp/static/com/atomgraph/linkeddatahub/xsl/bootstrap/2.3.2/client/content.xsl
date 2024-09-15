@@ -1025,6 +1025,7 @@ exclude-result-prefixes="#all"
             block: <xs:value-of select="serialize(.)"/>
             $container: <xs:value-of select="serialize($container)"/>
             $this: <xsl:value-of select="$this"/>
+            root(block)?: <xsl:value-of select="if (root(.) instance of document-node()) then true() else false()"/>
         </xsl:message>
         <!-- create new cache entry using content URI as key -->
         <ixsl:set-property name="{'`' || $block-uri || '`'}" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.contents')"/>
