@@ -1055,6 +1055,7 @@ exclude-result-prefixes="#all"
         </xsl:apply-templates>
 
         <!-- initialize map TO-DO: move inside ldh:RenderBlock? -->
+        <!-- currently causes "Uncaught XError: No containing document for key()" -->
         <!--
         <xsl:if test="key('elements-by-class', 'map-canvas', $container)">
             <xsl:for-each select="root(.)">
