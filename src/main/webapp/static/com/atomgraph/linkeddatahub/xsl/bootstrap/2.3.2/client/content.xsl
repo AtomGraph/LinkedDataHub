@@ -208,7 +208,7 @@ exclude-result-prefixes="#all"
             </ixsl:schedule-action>
         </xsl:variable>
         <xsl:message>before ldh:LoadBlockObjectMetadata</xsl:message>
-<!--        <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>-->
+        <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
         <xsl:message>before ldh:LoadBlockObjectMetadata</xsl:message>
     </xsl:template>
     
@@ -312,8 +312,6 @@ exclude-result-prefixes="#all"
                         <xsl:copy-of select="$row/*"/> <!-- inject the content of div.row-fluid -->
                     </xsl:result-document>
                     
-<!--                    <xsl:apply-templates select="." mode="ldh:BlockRendered"/>-->
-
                     <xsl:apply-templates select="*" mode="ldh:PostConstruct"/>
                 </xsl:for-each>
             </xsl:when>
@@ -1036,6 +1034,7 @@ exclude-result-prefixes="#all"
             $container: <xs:value-of select="serialize($container)"/>
             $this: <xsl:value-of select="$this"/>
             root(block)?: <xsl:value-of select="if (root(.) instance of document-node()) then true() else false()"/>
+            root($container)?: <xsl:value-of select="if (root($container) instance of document-node()) then true() else false()"/>
         </xsl:message>
         <!-- create new cache entry using content URI as key -->
         <ixsl:set-property name="{'`' || $block-uri || '`'}" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.contents')"/>
