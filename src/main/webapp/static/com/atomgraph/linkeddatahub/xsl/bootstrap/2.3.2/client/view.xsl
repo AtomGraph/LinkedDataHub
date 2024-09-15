@@ -1456,7 +1456,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="select-string" as="xs:string"/>
         <xsl:param name="endpoint" as="xs:anyURI"/>
         <!-- if  the container is full-width row (.row-fluid), render results in the middle column (.main) -->
-        <xsl:param name="content-container" select="if (contains-token($container/@class, 'row-fluid')) then $container/div[contains-token(@class, 'main')] else $container" as="element()"/>
+        <xsl:param name="content-container" select="$container/div[contains-token(@class, 'main')]" as="element()"/>
         <xsl:param name="container-results-id" select="$container-id || '-container-results'" as="xs:string"/>
         <xsl:param name="order-by-container-id" select="$container-id || '-container-order'" as="xs:string"/>
         <xsl:param name="result-count-container-id" select="$container-id || '-result-count'" as="xs:string"/>
@@ -1502,6 +1502,7 @@ exclude-result-prefixes="#all"
                     <ixsl:set-property name="results" select="$sorted-results" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`')"/>
 
                     <xsl:variable name="initial-load" select="empty($content-container//div[@id = $container-results-id])" as="xs:boolean"/>
+                    <xsl:message>$initial-load: <xsl:vlue-of select="$initial-load"/></xsl:message>
                     <!-- first time rendering the container results -->
                     <xsl:if test="$initial-load">
                         <xsl:for-each select="$content-container">
@@ -1608,6 +1609,12 @@ exclude-result-prefixes="#all"
                          <ixsl:set-style name="display" select="'none'" object="."/>
                      </xsl:for-each>
                 
+                     <xsl:for-each select="$container/div[contains-token(@class, 'left-nav')]">
+                        <xsl:result-document href="?." method="ixsl:append-content">
+                            <p>WTF</p>
+                        </xsl:result-document>
+                     </xsl:for-each>
+                     
                     <!-- use the initial (not the current transformed) SELECT query and focus var name for facet rendering -->
                     <xsl:for-each select="$container/div[contains-token(@class, 'left-nav')]">
                         <xsl:call-template name="ldh:RenderFacets">
