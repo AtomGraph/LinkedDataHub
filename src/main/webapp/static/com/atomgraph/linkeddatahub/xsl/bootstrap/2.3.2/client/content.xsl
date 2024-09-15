@@ -207,7 +207,9 @@ exclude-result-prefixes="#all"
                 </xsl:call-template>
             </ixsl:schedule-action>
         </xsl:variable>
+        <xsl:message>before ldh:LoadBlockObjectMetadata</xsl:message>
         <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
+        <xsl:message>after ldh:LoadBlockObjectMetadata</xsl:message>
     </xsl:template>
     
     <xsl:template name="ldh:LoadBlockObjectValue">
@@ -244,6 +246,8 @@ exclude-result-prefixes="#all"
                 </xsl:for-each>
             </xsl:when>
             <xsl:when test="?status = 406">
+                <xsl:message>ldh:LoadBlockObjectValue ?status = 406</xsl:message>
+
                 <xsl:for-each select="$container//div[contains-token(@class, 'main')]">
                     <xsl:result-document href="?." method="ixsl:replace-content">
                         <div class="offset2 span7 main">
@@ -255,6 +259,8 @@ exclude-result-prefixes="#all"
 <!--                <xsl:apply-templates select="$container" mode="ldh:BlockRendered"/>-->
             </xsl:when>
             <xsl:otherwise>
+                <xsl:message>ldh:LoadBlockObjectValue otherwise</xsl:message>
+
                 <xsl:for-each select="$container//div[contains-token(@class, 'main')]">
                     <xsl:result-document href="?." method="ixsl:replace-content">
                         <div class="alert alert-block">
