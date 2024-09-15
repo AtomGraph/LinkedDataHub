@@ -183,6 +183,10 @@ exclude-result-prefixes="#all"
         <xsl:param name="mode" as="xs:anyURI?"/>
         <xsl:param name="refresh-content" as="xs:boolean?"/>
         <xsl:param name="show-edit-button" select="false()" as="xs:boolean?"/>
+        <xsl:message>default ldh:RenderBlock $object-uris</xsl:message>
+        <xsl:message>root(.)?: <xsl:value-of select="if (root(.) instance of document-node()) then true() else false()"/></xsl:message>
+        <xsl:message>$object-uris: <xsl:value-of select="distinct-values(*/@rdf:resource[not(key('resources', .))])"/></xsl:message>
+
         <xsl:variable name="object-uris" select="distinct-values(*/@rdf:resource[not(key('resources', .))])" as="xs:string*"/>
         <xsl:variable name="query-string" select="$object-metadata-query || ' VALUES $this { ' || string-join(for $uri in $object-uris return '&lt;' || $uri || '&gt;', ' ') || ' }'" as="xs:string"/>
 
