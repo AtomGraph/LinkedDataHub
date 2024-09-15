@@ -768,6 +768,12 @@ exclude-result-prefixes="#all"
         <!-- use the first SELECT variable as the facet variable name (so that we do not generate facets based on other variables) -->
         <xsl:variable name="initial-var-name" select="$select-xml/json:map/json:array[@key = 'variables']/json:string[1]/substring-after(., '?')" as="xs:string"/>
 
+        <xsl:message>
+            ldh:RenderFacets
+            $sub-container-id: <xsl:value-of select="$sub-container-id"/>
+            id($sub-container-id, ixsl:page()): <xsl:value-of select="id($sub-container-id, ixsl:page())"/>
+        </xsl:message>
+        
         <!-- only append facets if they are not already present -->
         <xsl:if test="not(id($sub-container-id, ixsl:page()))">
             <xsl:result-document href="?." method="ixsl:append-content">
@@ -1449,8 +1455,6 @@ exclude-result-prefixes="#all"
         <xsl:message>
             onContainerResultsLoad
             $container: <xsl:value-of select="serialize($container)"/>
-            $content-container: <xsl:value-of select="serialize($content-container)"/>
-            exists($content-container//div[contains-token(@class, 'container-results')]): <xsl:value-of select="exists($content-container//div[contains-token(@class, 'container-results')])"/>
         </xsl:message>
         
         <!-- update progress bar -->
@@ -1570,7 +1574,11 @@ exclude-result-prefixes="#all"
 
                     <xsl:variable name="object-uris" select="distinct-values($sorted-results/rdf:RDF/rdf:Description/*/@rdf:resource[not(key('resources', .))])" as="xs:string*"/>
                     <xsl:variable name="query-string" select="$object-metadata-query || ' VALUES $this { ' || string-join(for $uri in $object-uris return '&lt;' || $uri || '&gt;', ' ') || ' }'" as="xs:string"/>
-
+                    <xsl:message>
+                        $content-container: <xsl:value-of select="serialize($content-container)"/>
+                        exists($content-container//div[contains-token(@class, 'container-results')]): <xsl:value-of select="exists($content-container//div[contains-token(@class, 'container-results')])"/>
+                    </xsl:message>
+                    
                     <xsl:variable name="request" as="item()*">
                         <ixsl:schedule-action http-request="map{ 'method': 'POST', 'href': sd:endpoint(), 'media-type': 'application/sparql-query', 'body': $query-string, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                             <xsl:call-template name="ldh:LoadContainerObjectMetadata">
