@@ -906,6 +906,8 @@ exclude-result-prefixes="#all"
         <xsl:message>
             ldh:LoadBlock @about: <xsl:value-of select="@about"/> @id: <xsl:value-of select="@id"/> $this: <xsl:value-of select="$this"/>
             <!-- ancestor::div[@about][1]: <xsl:value-of select="serialize(ancestor::div[@about][1])"/> -->
+            $doc instance of document-node(): <xsl:value-of select="$doc instance of document-node()"/>
+            $doc: <xsl:value-of select="serialize($doc)"/>
         </xsl:message>
 
         <!-- for some reason Saxon-JS 2.3 does not see this variable if it's inside <xsl:when> -->

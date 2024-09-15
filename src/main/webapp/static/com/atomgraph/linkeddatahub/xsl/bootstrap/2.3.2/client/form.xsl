@@ -717,6 +717,7 @@ WHERE
                     </xsl:apply-templates>
                 </xsl:variable>
                 <xsl:message>
+                    $resources instance of document-node(): <xsl:value-of select="$resources instance of document-node()"/>
                     $resources: <xsl:value-of select="serialize($resources)"/>
                     $new-block: <xsl:value-of select="serialize($new-block)"/>
                 </xsl:message>
@@ -734,10 +735,10 @@ WHERE
 
                     <!-- if the updated resource is a content resource, load it TO-DO: this belongs in content.xsl -->
 <!--                    <xsl:if test="contains-token($new-block/@class, 'content')">-->
-<!--                        <xsl:call-template name="ldh:LoadBlock">
+                        <xsl:call-template name="ldh:LoadBlock">
                             <xsl:with-param name="doc" select="$resources"/>
                             <xsl:with-param name="container" select="$container"/>
-                        </xsl:call-template>-->
+                        </xsl:call-template>
 <!--                    </xsl:if>-->
                     
                     <!-- <xsl:if test="contains-token($new-block/@class, 'post-construct')"> -->
