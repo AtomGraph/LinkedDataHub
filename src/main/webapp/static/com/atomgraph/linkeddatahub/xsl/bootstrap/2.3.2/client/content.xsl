@@ -945,7 +945,7 @@ exclude-result-prefixes="#all"
                         <xsl:call-template name="ldh:BlockLoadedCallback">
                             <xsl:with-param name="this" select="$this"/>
                             <xsl:with-param name="block-uri" select="$block-uri"/>
-                            <xsl:with-param name="container" select="$container"/>
+<!--                            <xsl:with-param name="container" select="$container"/>-->
                             <xsl:with-param name="acl-modes" select="$acl-modes"/>
                             <xsl:with-param name="refresh-content" select="$refresh-content"/>
                         </xsl:call-template>
@@ -961,7 +961,7 @@ exclude-result-prefixes="#all"
     <xsl:template name="ldh:BlockLoadedCallback">
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="this" as="xs:anyURI"/>
-        <xsl:param name="container" as="element()"/>
+<!--        <xsl:param name="container" as="element()"/>-->
         <xsl:param name="block-uri" as="xs:anyURI"/>
         <xsl:param name="acl-modes" as="xs:anyURI*"/>
         <xsl:param name="refresh-content" as="xs:boolean?"/>
@@ -979,7 +979,7 @@ exclude-result-prefixes="#all"
                     <xsl:call-template name="ldh:BlockLoaded">
                         <xsl:with-param name="this" select="$this"/>
                         <xsl:with-param name="block-uri" select="$block-uri"/>
-                        <xsl:with-param name="container" select="$container"/>
+<!--                        <xsl:with-param name="container" select="$container"/>-->
                         <xsl:with-param name="acl-modes" select="$acl-modes"/>
                         <xsl:with-param name="refresh-content" select="$refresh-content"/>
                     </xsl:call-template>
