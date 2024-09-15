@@ -191,8 +191,6 @@ exclude-result-prefixes="#all"
                         </div>
                     </xsl:result-document>
                 </xsl:for-each>
-
-<!--                <xsl:apply-templates select="$container" mode="ldh:BlockRendered"/>-->
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>

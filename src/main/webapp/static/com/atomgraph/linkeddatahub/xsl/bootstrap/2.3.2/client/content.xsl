@@ -944,6 +944,7 @@ exclude-result-prefixes="#all"
                     <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': ac:document-uri($request-uri), 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                         <xsl:call-template name="ldh:BlockLoadedCallback">
                             <xsl:with-param name="this" select="$this"/>
+                            <xsl:with-param name="block" select="$block"/>
                             <xsl:with-param name="block-uri" select="$block-uri"/>
 <!--                            <xsl:with-param name="container" select="$container"/>-->
                             <xsl:with-param name="acl-modes" select="$acl-modes"/>
@@ -961,6 +962,7 @@ exclude-result-prefixes="#all"
     <xsl:template name="ldh:BlockLoadedCallback">
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="this" as="xs:anyURI"/>
+        <xsl:param name="block" as="element()"/>
 <!--        <xsl:param name="container" as="element()"/>-->
         <xsl:param name="block-uri" as="xs:anyURI"/>
         <xsl:param name="acl-modes" as="xs:anyURI*"/>
@@ -1005,15 +1007,13 @@ exclude-result-prefixes="#all"
             </xsl:when>
             -->
             <xsl:otherwise>
-                <xsl:for-each select="$container//div[contains-token(@class, 'main')]">
+                <xsl:for-each select="$block"> <!-- TO-DO: don't override the edit button etc.! -->
                     <xsl:result-document href="?." method="ixsl:replace-content">
                         <div class="alert alert-block">
                             <strong>Could not load content block: <a href="{$block-uri}"><xsl:value-of select="$block-uri"/></a></strong>
                         </div>
                     </xsl:result-document>
                 </xsl:for-each>
-
-<!--                <xsl:apply-templates select="$container" mode="ldh:BlockRendered"/>-->
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
@@ -1105,8 +1105,6 @@ exclude-result-prefixes="#all"
                         </div>
                     </xsl:result-document>
                 </xsl:for-each>
-                
-                <!-- <xsl:apply-templates select="$container" mode="ldh:BlockRendered"/> -->
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
