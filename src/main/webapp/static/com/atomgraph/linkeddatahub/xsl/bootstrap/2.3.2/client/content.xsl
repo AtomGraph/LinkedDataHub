@@ -611,6 +611,7 @@ exclude-result-prefixes="#all"
                     <xsl:variable name="doc" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path(xs:anyURI(ixsl:location())) || '`'), 'results')" as="document-node()"/>
                     <xsl:call-template name="ldh:LoadBlock">
                         <xsl:with-param name="doc" select="$doc"/>
+                        <xsl:with-param name="container" select="$container"/>
                     </xsl:call-template>
                 </xsl:for-each>
             </xsl:when> 
