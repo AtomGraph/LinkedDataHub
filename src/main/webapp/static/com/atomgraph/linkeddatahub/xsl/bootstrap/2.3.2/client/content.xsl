@@ -870,12 +870,12 @@ exclude-result-prefixes="#all"
 
     <!-- TO-DO: move to respective stylesheets -->
     <xsl:template match="*[@about][@typeof = ('&ldh;View', '&ldh;Object', '&ldh;ResultSetChart', '&ldh;GraphChart')]" mode="ldh:LoadBlock" priority="2">
-        <xsl:param name="block" select="ancestor::div[@about][1]" as="element()"/>
+        <xsl:param name="html-block" select="." as="element()"/>
         <xsl:param name="acl-modes" as="xs:anyURI*"/>
         <xsl:param name="doc" as="document-node()"/>
         <xsl:param name="refresh-content" as="xs:boolean?"/>
 
-        <xsl:for-each select="$block">
+        <xsl:for-each select="$html-block">
             <xsl:call-template name="ldh:LoadBlock">
                 <xsl:with-param name="acl-modes" select="$acl-modes"/>
                 <xsl:with-param name="doc" select="$doc"/>
@@ -885,21 +885,21 @@ exclude-result-prefixes="#all"
     </xsl:template>
 
     <xsl:template name="ldh:LoadBlock">
-        <xsl:context-item as="element()" use="required"/> <!-- block element -->
+        <xsl:context-item as="element()" use="required"/> <!-- block HTML element -->
+        <xsl:param name="html-block" select="." as="element()"/>
         <xsl:param name="acl-modes" as="xs:anyURI*"/>
         <xsl:param name="doc" as="document-node()"/>
         <xsl:param name="refresh-content" as="xs:boolean?"/>
 
         <xsl:message>
-            serialize(.): <xsl:value-of select="serialize(.)"/>
+            serialize($html-block): <xsl:value-of select="serialize($html-block)"/>
             serialize(ancestor::div[@about]): <xsl:value-of select="ancestor::div[@about]"/>
         </xsl:message>
-        <xsl:variable name="this" select="ancestor::div[@about][1]/@about" as="xs:anyURI"/>
-        <xsl:variable name="block-uri" select="(@about, $this)[1]" as="xs:anyURI"/> <!-- fallback to @about for charts, queries etc. -->
+        <xsl:variable name="this" select="ancestor::div[@about][1]/@about" as="xs:anyURI"/> <!-- the page URL -->
+        <xsl:variable name="block-uri" select="($html-block/@about, $this)[1]" as="xs:anyURI"/> <!-- fallback to @about for charts, queries etc. -->
 
         <xsl:message>
-            ldh:LoadBlock @about: <xsl:value-of select="@about"/> @id: <xsl:value-of select="@id"/> $this: <xsl:value-of select="$this"/>
-            <!-- ancestor::div[@about][1]: <xsl:value-of select="serialize(ancestor::div[@about][1])"/> -->
+            ldh:LoadBlock $html-block/@about: <xsl:value-of select="$html-block/@about"/> $html-block/@id: <xsl:value-of select="$html-block/@id"/> $this: <xsl:value-of select="$this"/>
         </xsl:message>
 
         <!-- for some reason Saxon-JS 2.3 does not see this variable if it's inside <xsl:when> -->
@@ -922,7 +922,7 @@ exclude-result-prefixes="#all"
                 </xsl:for-each>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:variable name="progress-container" select="if (contains-token(@class, 'row-fluid')) then ./div[contains-token(@class, 'main')] else ." as="element()"/>
+                <xsl:variable name="progress-container" select="if (contains-token($html-block/@class, 'row-fluid')) then $html-block/div[contains-token(@class, 'main')] else $html-block" as="element()"/>
 
                 <!-- container could be hidden server-side -->
                 <ixsl:set-style name="display" select="'block'"/>
@@ -945,7 +945,6 @@ exclude-result-prefixes="#all"
                             <xsl:with-param name="this" select="$this"/>
                             <xsl:with-param name="block" select="$block"/>
                             <xsl:with-param name="block-uri" select="$block-uri"/>
-<!--                            <xsl:with-param name="container" select="$container"/>-->
                             <xsl:with-param name="acl-modes" select="$acl-modes"/>
                             <xsl:with-param name="refresh-content" select="$refresh-content"/>
                         </xsl:call-template>
