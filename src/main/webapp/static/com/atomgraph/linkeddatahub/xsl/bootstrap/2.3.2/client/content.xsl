@@ -1020,7 +1020,7 @@ exclude-result-prefixes="#all"
     <xsl:template name="ldh:BlockLoaded">
         <xsl:context-item as="element()" use="required"/>
         <xsl:param name="this" as="xs:anyURI"/>
-        <xsl:param name="block" select="." as="xs:anyURI"/>
+        <xsl:param name="block" select="." as="element()"/>
         <xsl:param name="block-uri" as="xs:anyURI"/>
         <xsl:param name="acl-modes" as="xs:anyURI*"/>
         <xsl:param name="refresh-content" as="xs:boolean?"/>
