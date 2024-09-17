@@ -889,7 +889,11 @@ exclude-result-prefixes="#all"
         <xsl:param name="acl-modes" as="xs:anyURI*"/>
         <xsl:param name="doc" as="document-node()"/>
         <xsl:param name="refresh-content" as="xs:boolean?"/>
-        
+
+        <xsl:message>
+            serialize(.): <xsl:value-of select="serialize(.)"/>
+            serialize(ancestor::div[@about]): <xsl:value-of select="ancestor::div[@about]"/>
+        </xsl:message>
         <xsl:variable name="this" select="ancestor::div[@about][1]/@about" as="xs:anyURI"/>
         <xsl:variable name="block-uri" select="(@about, $this)[1]" as="xs:anyURI"/> <!-- fallback to @about for charts, queries etc. -->
 
