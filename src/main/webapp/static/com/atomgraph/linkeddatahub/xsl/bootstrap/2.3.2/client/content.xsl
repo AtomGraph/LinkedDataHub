@@ -142,7 +142,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="this" as="xs:anyURI"/>
         <xsl:param name="block" as="element()"/>
         <xsl:param name="block-uri" select="$block/@about" as="xs:anyURI"/>
-        <xsl:param name="container" select="$block/div/div[contains-token(@class, 'row-fluid')][1]" as="element()"/>
+        <xsl:param name="container" select="$block/div/div[contains-token(@class, 'row-fluid')][2]" as="element()"/>
         <xsl:param name="resource-uri" select="rdf:value/@rdf:resource" as="xs:anyURI?"/>
         <xsl:param name="graph" select="ldh:graph/@rdf:resource" as="xs:anyURI?"/>
         <xsl:param name="mode" select="ac:mode/@rdf:resource" as="xs:anyURI?"/>

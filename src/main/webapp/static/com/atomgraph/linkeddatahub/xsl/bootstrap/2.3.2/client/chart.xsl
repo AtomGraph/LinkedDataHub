@@ -204,7 +204,7 @@ exclude-result-prefixes="#all"
     <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = ('&ldh;ResultSetChart', '&ldh;GraphChart')][spin:query/@rdf:resource][ldh:chartType/@rdf:resource]" mode="ldh:RenderBlock" priority="1">
         <xsl:param name="this" as="xs:anyURI"/>
         <xsl:param name="block" as="element()"/>
-        <xsl:param name="container" select="$block/div/div[contains-token(@class, 'row-fluid')][1]" as="element()"/>
+        <xsl:param name="container" select="$block/div/div[contains-token(@class, 'row-fluid')][2]" as="element()"/>
         <xsl:param name="graph" as="xs:anyURI?"/>
         <xsl:param name="mode" as="xs:anyURI?"/>
         <xsl:param name="block-uri" select="xs:anyURI($block/@about)" as="xs:anyURI"/>
