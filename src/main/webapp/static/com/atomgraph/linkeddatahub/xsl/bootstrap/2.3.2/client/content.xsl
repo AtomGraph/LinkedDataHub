@@ -886,43 +886,41 @@ exclude-result-prefixes="#all"
 
     <xsl:template name="ldh:LoadBlock">
         <xsl:context-item as="element()" use="required"/> <!-- block HTML element -->
-        <xsl:param name="html-block" select="." as="element()"/>
         <xsl:param name="acl-modes" as="xs:anyURI*"/>
         <xsl:param name="doc" as="document-node()"/>
         <xsl:param name="refresh-content" as="xs:boolean?"/>
 
         <xsl:message>
-            serialize($html-block): <xsl:value-of select="serialize($html-block)"/>
+            serialize(.): <xsl:value-of select="serialize(.)"/>
             serialize(ancestor::div[@about]): <xsl:value-of select="ancestor::div[@about]"/>
         </xsl:message>
         <xsl:variable name="this" select="ancestor::div[@about][1]/@about" as="xs:anyURI"/> <!-- the page URL -->
         <xsl:variable name="block-uri" select="($html-block/@about, $this)[1]" as="xs:anyURI"/> <!-- fallback to @about for charts, queries etc. -->
 
         <xsl:message>
-            ldh:LoadBlock $html-block/@about: <xsl:value-of select="$html-block/@about"/> $html-block/@id: <xsl:value-of select="$html-block/@id"/> $this: <xsl:value-of select="$this"/>
+            ldh:LoadBlock @about: <xsl:value-of select="@about"/> @id: <xsl:value-of select="@id"/> $this: <xsl:value-of select="$this"/>
         </xsl:message>
 
         <!-- for some reason Saxon-JS 2.3 does not see this variable if it's inside <xsl:when> -->
-        <xsl:variable name="block" select="key('resources', $block-uri, $doc)" as="element()?"/>
+        <xsl:variable name="resource" select="key('resources', $block-uri, $doc)" as="element()?"/>
         <xsl:choose>
-            <xsl:when test="exists($block)">
+            <xsl:when test="exists($resource)">
                 <xsl:message>
                     ldh:LoadBlock
                     $block-uri: <xsl:value-of select="$block-uri"/>
-                    $block: <xsl:value-of select="serialize($block)"/>
+                    $resource: <xsl:value-of select="serialize($resource)"/>
                 </xsl:message>
 
-                <xsl:for-each select="$block">
-                    <xsl:call-template name="ldh:BlockLoaded">
-                        <xsl:with-param name="this" select="$this"/>
-                        <xsl:with-param name="block-uri" select="$block-uri"/>
-                        <xsl:with-param name="acl-modes" select="$acl-modes"/>
-                        <xsl:with-param name="refresh-content" select="$refresh-content"/>
-                    </xsl:call-template>
-                </xsl:for-each>
+                <xsl:call-template name="ldh:BlockLoaded">
+                    <xsl:with-param name="this" select="$this"/>
+                    <xsl:with-param name="resource" select="$resource"/>
+                    <xsl:with-param name="block-uri" select="$block-uri"/>
+                    <xsl:with-param name="acl-modes" select="$acl-modes"/>
+                    <xsl:with-param name="refresh-content" select="$refresh-content"/>
+                </xsl:call-template>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:variable name="progress-container" select="if (contains-token($html-block/@class, 'row-fluid')) then $html-block/div[contains-token(@class, 'main')] else $html-block" as="element()"/>
+                <xsl:variable name="progress-container" select="if (contains-token(@class, 'row-fluid')) then ./div[contains-token(@class, 'main')] else ." as="element()"/>
 
                 <!-- container could be hidden server-side -->
                 <ixsl:set-style name="display" select="'block'"/>
@@ -961,23 +959,23 @@ exclude-result-prefixes="#all"
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="this" as="xs:anyURI"/>
         <xsl:param name="block" as="element()"/>
-<!--        <xsl:param name="container" as="element()"/>-->
         <xsl:param name="block-uri" as="xs:anyURI"/>
         <xsl:param name="acl-modes" as="xs:anyURI*"/>
         <xsl:param name="refresh-content" as="xs:boolean?"/>
         
         <!-- for some reason Saxon-JS 2.3 does not see this variable if it's inside <xsl:when> -->
-        <xsl:variable name="block" select="key('resources', $block-uri, ?body)" as="element()?"/>
+        <xsl:variable name="resource" select="key('resources', $block-uri, ?body)" as="element()?"/>
         <xsl:message>
             ldh:BlockLoadedCallback
-            $block: <xsl:value-of select="serialize($block)"/>
+            $resource: <xsl:value-of select="serialize($resource)"/>
         </xsl:message>
         
         <xsl:choose>
-            <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml' and $block">
+            <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml' and $resource">
                 <xsl:for-each select="$block">
                     <xsl:call-template name="ldh:BlockLoaded">
                         <xsl:with-param name="this" select="$this"/>
+                        <xsl:with-param name="resource" select="$resource"/>
                         <xsl:with-param name="block-uri" select="$block-uri"/>
                         <xsl:with-param name="acl-modes" select="$acl-modes"/>
                         <xsl:with-param name="refresh-content" select="$refresh-content"/>
@@ -1020,29 +1018,28 @@ exclude-result-prefixes="#all"
     <xsl:template name="ldh:BlockLoaded">
         <xsl:context-item as="element()" use="required"/>
         <xsl:param name="this" as="xs:anyURI"/>
-        <xsl:param name="block" select="." as="element()"/>
+        <xsl:param name="resource" as="element()"/>
         <xsl:param name="block-uri" as="xs:anyURI"/>
         <xsl:param name="acl-modes" as="xs:anyURI*"/>
         <xsl:param name="refresh-content" as="xs:boolean?"/>
 
         <xsl:message>
             ldh:BlockLoaded
-            block: <xs:value-of select="serialize($block)"/>
             $this: <xsl:value-of select="$this"/>
-            root($block)?: <xsl:value-of select="if (root($block) instance of document-node()) then true() else false()"/>
-            count($block/div/div[contains-token(@class, 'row-fluid')]): <xsl:value-of select="count($block/div/div[contains-token(@class, 'row-fluid')])"/>
+            current(): <xs:value-of select="serialize(.)"/>
+            count(./div/div[contains-token(@class, 'row-fluid')]): <xsl:value-of select="count(./div/div[contains-token(@class, 'row-fluid')])"/>
         </xsl:message>
         <!-- create new cache entry using content URI as key -->
         <ixsl:set-property name="{'`' || $block-uri || '`'}" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.contents')"/>
         <!-- store this content element -->
-        <ixsl:set-property name="content" select="." object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`')"/>
+        <ixsl:set-property name="content" select="$resource" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`')"/>
 
         <xsl:for-each select=".//div[@class = 'bar']">
             <!-- update progress bar -->
             <ixsl:set-style name="width" select="'50%'" object="."/>
         </xsl:for-each>
 
-        <xsl:apply-templates select="." mode="ldh:RenderBlock">
+        <xsl:apply-templates select="$resource" mode="ldh:RenderBlock">
             <xsl:with-param name="this" select="$this"/>
             <xsl:with-param name="block" select="."/>
             <xsl:with-param name="block-uri" select="$block-uri"/>
