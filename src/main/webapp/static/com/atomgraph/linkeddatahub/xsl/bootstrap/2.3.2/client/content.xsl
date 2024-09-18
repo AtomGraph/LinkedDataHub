@@ -760,8 +760,6 @@ exclude-result-prefixes="#all"
                 </rdf:RDF>
             </xsl:document>
         </xsl:variable>
-<!--        <xsl:variable name="content-id" select="$container/@id" as="xs:string"/>
-        <xsl:variable name="block-uri" select="if ($container/@about) then $container/@about else xs:anyURI(ac:absolute-path(ldh:base-uri(.)) || '#' || $content-id)" as="xs:anyURI"/>-->
         <xsl:variable name="value" select="$constructor//*[@rdf:about = $block-uri]" as="element()"/>
 
         <!-- deactivate other tabs -->
@@ -888,17 +886,33 @@ exclude-result-prefixes="#all"
         <xsl:param name="doc" as="document-node()"/>
         <xsl:param name="refresh-content" as="xs:boolean?"/>
 
+        <xsl:variable name="this" select="ancestor::div[@about][1]/@about" as="xs:anyURI"/> <!-- the page URL -->
+        <xsl:variable name="block-uri" select="(@about, $this)[1]" as="xs:anyURI"/> <!-- fallback to @about for charts, queries etc. -->
         <xsl:message>
             serialize(.): <xsl:value-of select="serialize(.)"/>
             serialize(ancestor::div[@about]): <xsl:value-of select="ancestor::div[@about]"/>
-        </xsl:message>
-        <xsl:variable name="this" select="ancestor::div[@about][1]/@about" as="xs:anyURI"/> <!-- the page URL -->
-        <xsl:variable name="block-uri" select="(@about, $this)[1]" as="xs:anyURI"/> <!-- fallback to @about for charts, queries etc. -->
-
-        <xsl:message>
             ldh:LoadBlock @about: <xsl:value-of select="@about"/> @id: <xsl:value-of select="@id"/> $this: <xsl:value-of select="$this"/>
         </xsl:message>
 
+        <xsl:variable name="progress-container" select="if (contains-token(@class, 'row-fluid')) then ./div[contains-token(@class, 'main')] else ." as="element()"/>
+        <xsl:message>
+            $progress-container: <xsl:value-of select="serialize($progress-container)"/>
+        </xsl:message>
+
+        <!-- container could be hidden server-side -->
+        <!-- <ixsl:set-style name="display" select="'block'"/> -->
+
+        <!-- show progress bar in the middle column -->
+        <xsl:for-each select="$progress-container">
+            <xsl:result-document href="?." method="ixsl:replace-content">
+                <div class="progress-bar">
+                    <div class="progress progress-striped active">
+                        <div class="bar" style="width: 25%;"></div>
+                    </div>
+                </div>
+            </xsl:result-document>
+        </xsl:for-each>
+                
         <!-- for some reason Saxon-JS 2.3 does not see this variable if it's inside <xsl:when> -->
         <xsl:variable name="resource" select="key('resources', $block-uri, $doc)" as="element()?"/>
         <xsl:choose>
@@ -918,22 +932,6 @@ exclude-result-prefixes="#all"
                 </xsl:call-template>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:variable name="progress-container" select="if (contains-token(@class, 'row-fluid')) then ./div[contains-token(@class, 'main')] else ." as="element()"/>
-
-                <!-- container could be hidden server-side -->
-                <ixsl:set-style name="display" select="'block'"/>
-
-                <!-- show progress bar in the middle column -->
-                <xsl:for-each select="$progress-container">
-                    <xsl:result-document href="?." method="ixsl:replace-content">
-                        <div class="progress-bar">
-                            <div class="progress progress-striped active">
-                                <div class="bar" style="width: 25%;"></div>
-                            </div>
-                        </div>
-                    </xsl:result-document>
-                </xsl:for-each>
-
                 <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, ac:document-uri($block-uri))" as="xs:anyURI"/>
                 <xsl:variable name="request" as="item()*">
                     <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': ac:document-uri($request-uri), 'headers': map{ 'Accept': 'application/rdf+xml' } }">
@@ -967,6 +965,11 @@ exclude-result-prefixes="#all"
             ldh:BlockLoadedCallback
             $resource: <xsl:value-of select="serialize($resource)"/>
         </xsl:message>
+        
+        <xsl:for-each select=".//div[@class = 'bar']">
+            <!-- update progress bar -->
+            <ixsl:set-style name="width" select="'37%'" object="."/>
+        </xsl:for-each>
         
         <xsl:choose>
             <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml' and $resource">
