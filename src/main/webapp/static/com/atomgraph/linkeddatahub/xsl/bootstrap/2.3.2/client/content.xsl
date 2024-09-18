@@ -618,9 +618,9 @@ exclude-result-prefixes="#all"
             <xsl:when test="$block/@about">
                 <xsl:for-each select="$block">
                     <xsl:variable name="doc" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path(xs:anyURI(ixsl:location())) || '`'), 'results')" as="document-node()"/>
-                    <xsl:call-template name="ldh:LoadBlock">
+                    <xsl:apply-templates select="." mode="ldh:LoadBlock">
                         <xsl:with-param name="doc" select="$doc"/>
-                    </xsl:call-template>
+                    </xsl:apply-templates>
                 </xsl:for-each>
             </xsl:when> 
             <!-- remove content that hasn't been saved yet -->
@@ -872,29 +872,16 @@ exclude-result-prefixes="#all"
         <xsl:param name="acl-modes" as="xs:anyURI*"/>
         <xsl:param name="doc" as="document-node()"/>
         <xsl:param name="refresh-content" as="xs:boolean?"/>
-
-        <xsl:call-template name="ldh:LoadBlock">
-            <xsl:with-param name="acl-modes" select="$acl-modes"/>
-            <xsl:with-param name="doc" select="$doc"/>
-            <xsl:with-param name="refresh-content" select="$refresh-content"/>
-        </xsl:call-template>
-    </xsl:template>
-
-    <xsl:template name="ldh:LoadBlock">
-        <xsl:context-item as="element()" use="required"/> <!-- block HTML element -->
-        <xsl:param name="acl-modes" as="xs:anyURI*"/>
-        <xsl:param name="doc" as="document-node()"/>
-        <xsl:param name="refresh-content" as="xs:boolean?"/>
-
-        <xsl:variable name="this" select="ancestor::div[@about][1]/@about" as="xs:anyURI"/> <!-- the page URL -->
-        <xsl:variable name="block-uri" select="(@about, $this)[1]" as="xs:anyURI"/> <!-- fallback to @about for charts, queries etc. -->
+        <xsl:param name="this" select="ancestor::div[@about][1]/@about" as="xs:anyURI"/> <!-- the page URL -->
+        <xsl:param name="block-uri" select="(@about, $this)[1]" as="xs:anyURI"/> <!-- fallback to @about for charts, queries etc. -->
         <xsl:message>
             serialize(.): <xsl:value-of select="serialize(.)"/>
             serialize(ancestor::div[@about]): <xsl:value-of select="ancestor::div[@about]"/>
             ldh:LoadBlock @about: <xsl:value-of select="@about"/> @id: <xsl:value-of select="@id"/> $this: <xsl:value-of select="$this"/>
         </xsl:message>
 
-        <xsl:variable name="progress-container" select="if (contains-token(@class, 'row-fluid')) then ./div[contains-token(@class, 'main')] else ." as="element()"/>
+        <!-- <xsl:variable name="progress-container" select="if (contains-token(@class, 'row-fluid')) then ./div[contains-token(@class, 'main')] else ." as="element()"/> -->
+        <xsl:variable name="progress-container" select=".//div[contains-token(@class, 'main')]" as="element()"/>
         <xsl:message>
             $progress-container: <xsl:value-of select="serialize($progress-container)"/>
         </xsl:message>
