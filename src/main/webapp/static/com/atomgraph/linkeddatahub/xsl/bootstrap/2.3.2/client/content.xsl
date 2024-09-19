@@ -838,6 +838,7 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <xsl:variable name="block-uri" select="@about" as="xs:anyURI?"/>
         <xsl:variable name="drop-block-uri" select="ixsl:call(ixsl:get(ixsl:event(), 'dataTransfer'), 'getData', [ 'text/uri-list' ])" as="xs:anyURI"/>
+        <xsl:message>ixsl:ondrop $drop-block-uri: <xsl:value-of select="$drop-block-uri"/></xsl:message>
         
         <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'drag-over', false() ])[current-date() lt xs:date('2000-01-01')]"/>
 
