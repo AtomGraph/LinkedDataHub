@@ -801,7 +801,8 @@ exclude-result-prefixes="#all"
             <!-- allow drag on the block element itself -->
             <xsl:when test="self::div[@typeof][contains-token(@class, 'row-fluid')]">
                 <ixsl:set-property name="dataTransfer.effectAllowed" select="'move'" object="ixsl:event()"/>
-                <xsl:sequence select="ixsl:call(ixsl:get(ixsl:event(), 'dataTransfer'), 'setData', [ 'text/uri-list', @about ])"/>
+                <xsl:variable name="block-uri" select="@about" as="xs:anyURI"/>
+                <xsl:sequence select="ixsl:call(ixsl:get(ixsl:event(), 'dataTransfer'), 'setData', [ 'text/uri-list', $block-uri ])"/>
             </xsl:when>
             <!-- prevent drag on its descendants. This makes sure that content drag-and-drop doesn't interfere with drag events in the Map and Graph modes -->
             <xsl:otherwise>
