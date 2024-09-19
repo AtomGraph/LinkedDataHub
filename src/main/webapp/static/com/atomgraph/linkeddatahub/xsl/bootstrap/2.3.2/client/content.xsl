@@ -795,9 +795,11 @@ exclude-result-prefixes="#all"
     <!-- start dragging content (or its descendants) -->
     
     <xsl:template match="div[contains-token(@class, 'container-fluid')]/div[ixsl:query-params()?mode = '&ldh;ContentMode'][@about][@typeof][contains-token(@class, 'row-fluid')]/descendant-or-self::*" mode="ixsl:ondragstart">
+        <xsl:message>ixsl:ondragstart</xsl:message>
+        
         <xsl:choose>
             <!-- allow drag on the block element itself -->
-            <xsl:when test="div[contains-token(@class, 'container-fluid')]/div[@typeof][contains-token(@class, 'row-fluid')]">
+            <xsl:when test="self::div[contains-token(@class, 'container-fluid')]/div[@typeof][contains-token(@class, 'row-fluid')]">
                 <ixsl:set-property name="dataTransfer.effectAllowed" select="'move'" object="ixsl:event()"/>
                 <xsl:sequence select="ixsl:call(ixsl:get(ixsl:event(), 'dataTransfer'), 'setData', [ 'text/uri-list', @about ])"/>
             </xsl:when>
