@@ -956,7 +956,7 @@ exclude-result-prefixes="#all"
             $resource: <xsl:value-of select="serialize($resource)"/>
         </xsl:message>
         
-        <xsl:for-each select=".//div[@class = 'bar']">
+        <xsl:for-each select="$block//div[@class = 'bar']">
             <!-- update progress bar -->
             <ixsl:set-style name="width" select="'37%'" object="."/>
         </xsl:for-each>
