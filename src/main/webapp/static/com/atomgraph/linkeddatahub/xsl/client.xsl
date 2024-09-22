@@ -556,8 +556,8 @@ WHERE
             <ixsl:set-property name="etag" select="$etag" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $uri || '`')"/>
             
             <!-- this has to go after <xsl:result-document href="#{$container-id}"> because otherwise new elements will be injected and the lookup will not work anymore -->
-            <!-- load content blocks -->
-            <xsl:for-each select="key('elements-by-class', 'row-fluid', ixsl:page())[@about][@typeof]">
+            <!-- load top-level content blocks -->
+            <xsl:for-each select="div[contains-token(@class, 'container-fluid')]/[@about][@typeof]">
                 <!-- container could be hidden server-side -->
                 <ixsl:set-style name="display" select="'block'"/>
 
