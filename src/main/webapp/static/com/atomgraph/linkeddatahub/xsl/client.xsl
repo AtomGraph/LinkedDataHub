@@ -557,7 +557,7 @@ WHERE
             
             <!-- this has to go after <xsl:result-document href="#{$container-id}"> because otherwise new elements will be injected and the lookup will not work anymore -->
             <!-- load top-level content blocks -->
-            <xsl:for-each select="//div[contains-token(@class, 'container-fluid')]/[@about][@typeof]">
+            <xsl:for-each select="//div[contains-token(@class, 'container-fluid')]/div[@about][@typeof]">
                 <!-- container could be hidden server-side -->
                 <ixsl:set-style name="display" select="'block'"/>
 
