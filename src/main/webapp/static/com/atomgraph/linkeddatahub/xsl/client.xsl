@@ -557,18 +557,16 @@ WHERE
             
             <!-- this has to go after <xsl:result-document href="#{$container-id}"> because otherwise new elements will be injected and the lookup will not work anymore -->
             <!-- load top-level content blocks -->
-            <xsl:message>
-                ldh:RDFDocumentLoaded
-                id('content-body', ixsl:page())/div[@about][@typeof]
-                <xsl:for-each select="id('content-body', ixsl:page())/div[@about][@typeof]">
-                  @about: <xsl:value-of select="@about"/>
-                  @typeof: <xsl:value-of select="@typeof"/>
-                </xsl:for-each>
-            </xsl:message>
             <xsl:for-each select="id('content-body', ixsl:page())/div[@about][@typeof]">
                 <!-- container could be hidden server-side -->
                 <ixsl:set-style name="display" select="'block'"/>
 
+                <xsl:message>
+                    ldh:RDFDocumentLoaded
+                    @about: <xsl:value-of select="@about"/>
+                    @typeof: <xsl:value-of select="@typeof"/>
+                </xsl:message>
+            
                 <xsl:apply-templates select="." mode="ldh:LoadBlock">
                     <xsl:with-param name="acl-modes" select="$acl-modes"/>
                     <xsl:with-param name="doc" select="$results"/>

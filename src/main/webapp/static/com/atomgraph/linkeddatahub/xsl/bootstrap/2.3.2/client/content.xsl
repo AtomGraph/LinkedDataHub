@@ -878,9 +878,8 @@ exclude-result-prefixes="#all"
         <xsl:param name="this" select="ancestor::div[@about][1]/@about" as="xs:anyURI"/> <!-- the page URL -->
         <xsl:param name="block-uri" select="(@about, $this)[1]" as="xs:anyURI"/> <!-- fallback to @about for charts, queries etc. -->
         <xsl:message>
-            serialize(.): <xsl:value-of select="serialize(.)"/>
-            serialize(ancestor::div[@about]): <xsl:value-of select="ancestor::div[@about]"/>
-            ldh:LoadBlock @about: <xsl:value-of select="@about"/> @id: <xsl:value-of select="@id"/> $this: <xsl:value-of select="$this"/>
+            <!-- serialize(ancestor::div[@about]): <xsl:value-of select="ancestor::div[@about]"/> -->
+            ldh:LoadBlock @about: <xsl:value-of select="@about"/> @typeof: <xsl:value-of select="@typeof"/> @id: <xsl:value-of select="@id"/> $this: <xsl:value-of select="$this"/>
         </xsl:message>
 
         <!-- <xsl:variable name="progress-container" select="if (contains-token(@class, 'row-fluid')) then ./div[contains-token(@class, 'main')] else ." as="element()"/> -->
