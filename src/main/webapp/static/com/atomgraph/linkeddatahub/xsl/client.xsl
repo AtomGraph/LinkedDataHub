@@ -559,7 +559,11 @@ WHERE
             <!-- load top-level content blocks -->
             <xsl:message>
                 ldh:RDFDocumentLoaded
-                id('content-body', ixsl:page())/div[@about][@typeof]/@about: <xsl:value-of select="id('content-body', ixsl:page())/div[@about][@typeof]/@about"/>
+                id('content-body', ixsl:page())/div[@about][@typeof]
+                <xsl:for-each select="id('content-body', ixsl:page())/div[@about][@typeof]">
+                  @about: <xsl:value-of select="@about"/>
+                  @typeof: <xsl:value-of select="@typeof"/>
+                </xsl:for-each>
             </xsl:message>
             <xsl:for-each select="id('content-body', ixsl:page())/div[@about][@typeof]">
                 <!-- container could be hidden server-side -->
