@@ -254,6 +254,8 @@ WHERE
     <xsl:key name="elements-by-class" match="*" use="tokenize(@class, ' ')"/>
     <xsl:key name="status-by-code" match="*[@rdf:about] | *[@rdf:nodeID]" use="http:statusCodeNumber/xs:integer(.)"/>
 
+    <xsl:mode name="ldh:LoadBlock" on-no-match="shallow-copy"/>
+    
     <xsl:strip-space elements="*"/>
     
     <!-- INITIAL TEMPLATE -->
