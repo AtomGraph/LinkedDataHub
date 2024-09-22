@@ -579,6 +579,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="results" as="document-node()"/>
         <xsl:param name="active-mode" as="xs:anyURI"/>
         <xsl:param name="select-xml" as="document-node()"/>
+        <xsl:param name="base-uri" as="xs:anyURI"/>
 
         <xsl:choose>
             <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
@@ -597,6 +598,7 @@ exclude-result-prefixes="#all"
                     <xsl:with-param name="object-metadata" select="$object-metadata"/>
                     <xsl:with-param name="active-mode" select="$active-mode"/>
                     <xsl:with-param name="select-xml" select="$select-xml"/>
+                    <xsl:with-param name="base-uri" select="$base-uri"/>
                 </xsl:call-template>
             </xsl:when>
             <xsl:otherwise>
@@ -619,7 +621,8 @@ exclude-result-prefixes="#all"
         <xsl:param name="object-metadata" as="document-node()"/>
         <xsl:param name="active-mode" as="xs:anyURI"/>
         <xsl:param name="select-xml" as="document-node()"/>
-        
+        <xsl:param name="base-uri" as="xs:anyURI"/>
+
         <xsl:for-each select="$container">
             <xsl:result-document href="?." method="ixsl:replace-content">
                 <xsl:call-template name="container-mode">
@@ -655,6 +658,7 @@ exclude-result-prefixes="#all"
                 <xsl:with-param name="block-uri" select="$block-uri"/>
                 <xsl:with-param name="select-xml" select="$select-xml"/>
                 <xsl:with-param name="endpoint" select="$endpoint"/>
+                <xsl:with-param name="base-uri" select="$base-uri"/>
             </xsl:call-template>
         </xsl:if>
         <xsl:if test="$active-mode = '&ac;ChartMode'">
@@ -1088,6 +1092,7 @@ exclude-result-prefixes="#all"
                     <xsl:with-param name="results" select="$results"/>
                     <xsl:with-param name="active-mode" select="$active-mode"/>
                     <xsl:with-param name="select-xml" select="$select-xml"/>
+                    <xsl:with-param name="base-uri" select="ldh:base-uri(.)"/>
                 </xsl:call-template>
             </ixsl:schedule-action>
         </xsl:variable>
@@ -1597,6 +1602,7 @@ exclude-result-prefixes="#all"
                                 <xsl:with-param name="results" select="$sorted-results"/>
                                 <xsl:with-param name="active-mode" select="$active-mode"/>
                                 <xsl:with-param name="select-xml" select="$select-xml"/>
+                                <xsl:with-param name="base-uri" select="ldh:base-uri(.)"/>
                             </xsl:call-template>
                         </ixsl:schedule-action>
                     </xsl:variable>

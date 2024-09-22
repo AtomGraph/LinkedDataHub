@@ -124,7 +124,8 @@ exclude-result-prefixes="#all"
         <xsl:param name="block-uri" as="xs:anyURI"/>
         <xsl:param name="select-xml" as="document-node()"/>
         <xsl:param name="endpoint" as="xs:anyURI"/>
-        
+        <xsl:param name="base-uri" as="xs:anyURI"/>
+
         <!-- wrap SELECT into a DESCRIBE -->
         <xsl:variable name="query-xml" as="element()">
             <xsl:apply-templates select="$select-xml" mode="ldh:wrap-describe"/>
@@ -134,7 +135,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="query-string" select="ixsl:call(ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromQuery', [ $query-json ]), 'toString', [])" as="xs:string"/>
         <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': $query-string })" as="xs:anyURI"/>
         <xsl:message>ldh:LoadGeoResources $results-uri: <xsl:value-of select="$results-uri"/></xsl:message>
-        <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, $results-uri)" as="xs:anyURI"/>
+        <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path($base-uri), map{}, $results-uri)" as="xs:anyURI"/>
         <xsl:message>ldh:LoadGeoResources $request-uri: <xsl:value-of select="$request-uri"/></xsl:message>
 
         <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
