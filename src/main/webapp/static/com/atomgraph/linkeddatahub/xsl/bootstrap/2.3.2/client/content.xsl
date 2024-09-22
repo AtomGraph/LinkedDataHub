@@ -938,6 +938,15 @@ exclude-result-prefixes="#all"
         </xsl:choose>
     </xsl:template>
 
+    <xsl:template match="*[@about][@typeof]" mode="ldh:LoadBlock" priority="1">
+        <xsl:message>
+            default ldh:LoadBlock
+            @about: <xsl:value-of select="@about"/> @typeof: <xsl:value-of select="@typeof"/>
+        </xsl:message>
+
+        <xsl:next-match/>
+    </xsl:template>
+    
     <!-- block loaded callback -->
     
     <xsl:template name="ldh:BlockLoadedCallback">
