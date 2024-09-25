@@ -583,26 +583,6 @@ extension-element-prefixes="ixsl"
         </div>
     </xsl:template>
     
-    <!-- query and chart overrides TO-DO: move to a vocab-specific stylesheet -->
-<!--    <xsl:template match="*[@rdf:about][sp:text/text()] | *[@rdf:about][spin:query/@rdf:resource][ldh:chartType/@rdf:resource]" mode="bs2:Block" priority="1">
-         TO-DO: use $ldh:requestUri to resolve URIs server-side 
-        <xsl:param name="id" select="if (contains(@rdf:about, ac:absolute-path(ldh:base-uri(.)) || '#')) then substring-after(@rdf:about, ac:absolute-path(ldh:base-uri(.)) || '#') else generate-id()" as="xs:string?"/>
-        <xsl:param name="class" select="'row-fluid content'" as="xs:string?"/>
-        <xsl:param name="about" select="@rdf:about" as="xs:anyURI?"/>
-        <xsl:param name="typeof" select="rdf:type/@rdf:resource/xs:anyURI(.)" as="xs:anyURI*"/>
-        <xsl:param name="mode" as="xs:anyURI?"/>
-        <xsl:param name="style" select="'display: none;'" as="xs:string?"/>  TO-DO: remove? 
-
-        <xsl:next-match>
-            <xsl:with-param name="id" select="$id"/>
-            <xsl:with-param name="class" select="$class"/>
-            <xsl:with-param name="about" select="$about"/>
-            <xsl:with-param name="typeof" select="$typeof"/>
-            <xsl:with-param name="mode" select="$mode"/>
-            <xsl:with-param name="style" select="$style"/>
-        </xsl:next-match>
-    </xsl:template>-->
-    
     <!-- hide inlined blank node resources from the main block flow -->
     <xsl:template match="*[*][key('resources', @rdf:nodeID)][count(key('predicates-by-object', @rdf:nodeID)[not(self::foaf:primaryTopic)]) = 1]" mode="bs2:Block" priority="1">
         <xsl:param name="display" select="false()" as="xs:boolean" tunnel="yes"/>
@@ -623,49 +603,56 @@ extension-element-prefixes="ixsl"
         <xsl:param name="typeof" select="rdf:type/@rdf:resource/xs:anyURI(.)" as="xs:anyURI*"/>
         <xsl:param name="mode" as="xs:anyURI?"/>
         <xsl:param name="style" as="xs:string?"/>
-        <xsl:param name="type-content" select="true()" as="xs:boolean"/>
+<!--        <xsl:param name="type-content" select="true()" as="xs:boolean"/>-->
+        <xsl:variable name="types" select="rdf:type/@rdf:resource" as="xs:anyURI*" use-when="system-property('xsl:product-name') = 'SAXON'"/>
+        <xsl:variable name="content-values" select="if (exists($types) and doc-available(resolve-uri('ns?query=ASK%20%7B%7D', $ldt:base))) then (ldh:query-result(map{}, resolve-uri('ns', $ldt:base), $template-query || ' VALUES $Type { ' || string-join(for $type in $types return '&lt;' || $type || '&gt;', ' ') || ' }')//srx:binding[@name = 'content']/srx:uri/xs:anyURI(.)) else ()" as="xs:anyURI*" use-when="system-property('xsl:product-name') = 'SAXON'"/>
 
-        <div>
-            <xsl:if test="$id">
-                <xsl:attribute name="id" select="$id"/>
-            </xsl:if>
-            <xsl:if test="$class">
-                <xsl:attribute name="class" select="$class"/>
-            </xsl:if>
-            <xsl:if test="$about">
-                <xsl:attribute name="about" select="$about"/>
-            </xsl:if>
-            <xsl:if test="exists($typeof)">
-                <xsl:attribute name="typeof" select="string-join($typeof, ' ')"/>
-            </xsl:if>
-            <xsl:if test="$style">
-                <xsl:attribute name="style" select="$style"/>
-            </xsl:if>
-            
-            <div class="span12">
+        <xsl:choose>
+            <xsl:when test="exists($content-values)">
+                <div>
+                    <xsl:if test="$id">
+                        <xsl:attribute name="id" select="$id"/>
+                    </xsl:if>
+                    <xsl:if test="$class">
+                        <xsl:attribute name="class" select="$class"/>
+                    </xsl:if>
+                    <xsl:if test="$about">
+                        <xsl:attribute name="about" select="$about"/>
+                    </xsl:if>
+                    <xsl:if test="exists($typeof)">
+                        <xsl:attribute name="typeof" select="string-join($typeof, ' ')"/>
+                    </xsl:if>
+                    <xsl:if test="$style">
+                        <xsl:attribute name="style" select="$style"/>
+                    </xsl:if>
+
+                    <div class="span12">
+                        <xsl:apply-templates select="." mode="bs2:Row">
+                            <xsl:with-param name="mode" select="$mode"/>
+                        </xsl:apply-templates>
+
+                        <!-- render contents attached to the types of this resource using ldh:template -->
+                        <xsl:for-each select="$content-values" use-when="system-property('xsl:product-name') = 'SAXON'">
+                            <xsl:if test="doc-available(ac:document-uri(.))">
+                                <xsl:apply-templates select="key('resources', ., document(ac:document-uri(.)))" mode="bs2:Row"/>
+                            </xsl:if>
+                        </xsl:for-each>
+                    </div>
+                </div>
+            </xsl:when>
+            <xsl:otherwise>
                 <xsl:apply-templates select="." mode="bs2:Row">
                     <xsl:with-param name="mode" select="$mode"/>
                 </xsl:apply-templates>
-
-                <xsl:if test="$type-content">
-                    <!-- render contents attached to the types of this resource using ldh:template -->
-                    <xsl:variable name="types" select="rdf:type/@rdf:resource" as="xs:anyURI*" use-when="system-property('xsl:product-name') = 'SAXON'"/>
-                    <xsl:variable name="content-values" select="if (exists($types) and doc-available(resolve-uri('ns?query=ASK%20%7B%7D', $ldt:base))) then (ldh:query-result(map{}, resolve-uri('ns', $ldt:base), $template-query || ' VALUES $Type { ' || string-join(for $type in $types return '&lt;' || $type || '&gt;', ' ') || ' }')//srx:binding[@name = 'content']/srx:uri/xs:anyURI(.)) else ()" as="xs:anyURI*" use-when="system-property('xsl:product-name') = 'SAXON'"/>
-                    <xsl:for-each select="$content-values" use-when="system-property('xsl:product-name') = 'SAXON'">
-                        <xsl:if test="doc-available(ac:document-uri(.))">
-                            <xsl:apply-templates select="key('resources', ., document(ac:document-uri(.)))" mode="bs2:Row"/>
-                        </xsl:if>
-                    </xsl:for-each>
-                </xsl:if>
-            </div>
-        </div>
+            </xsl:otherwise>
+        </xsl:choose>
     </xsl:template>
     
     <!-- ROW -->
     
     <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:Row">
         <!-- TO-DO: use $ldh:requestUri to resolve URIs server-side -->
-        <xsl:param name="id" select="'row-' || generate-id()" as="xs:string?"/>
+        <xsl:param name="id" select="if (contains(@rdf:about, ac:absolute-path(ldh:base-uri(.)) || '#')) then substring-after(@rdf:about, ac:absolute-path(ldh:base-uri(.)) || '#') else generate-id()" as="xs:string?"/>
         <xsl:param name="class" select="'row-fluid'" as="xs:string?"/>
         <xsl:param name="about" select="@rdf:about" as="xs:anyURI?"/>
         <xsl:param name="typeof" select="rdf:type/@rdf:resource/xs:anyURI(.)" as="xs:anyURI*"/>
