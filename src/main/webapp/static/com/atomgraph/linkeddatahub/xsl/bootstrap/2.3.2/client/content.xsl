@@ -913,7 +913,6 @@ exclude-result-prefixes="#all"
                     <xsl:with-param name="this" select="$this"/>
                     <xsl:with-param name="resource" select="$resource"/>
                     <xsl:with-param name="block-uri" select="$block-uri"/>
-                    <xsl:with-param name="container" select="."/>
                     <xsl:with-param name="acl-modes" select="$acl-modes"/>
                     <xsl:with-param name="refresh-content" select="$refresh-content"/>
                 </xsl:call-template>
