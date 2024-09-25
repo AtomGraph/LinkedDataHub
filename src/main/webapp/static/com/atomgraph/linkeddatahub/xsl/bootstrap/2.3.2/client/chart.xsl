@@ -203,11 +203,11 @@ exclude-result-prefixes="#all"
     <!-- chart content -->
     <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = ('&ldh;ResultSetChart', '&ldh;GraphChart')][spin:query/@rdf:resource][ldh:chartType/@rdf:resource]" mode="ldh:RenderBlock" priority="1">
         <xsl:param name="this" as="xs:anyURI"/>
-        <xsl:param name="block" as="element()"/>
-        <xsl:param name="container" select="$block/div/div[contains-token(@class, 'row-fluid')][2]" as="element()"/>
+<!--        <xsl:param name="block" as="element()"/>-->
+        <xsl:param name="container" as="element()"/>
         <xsl:param name="graph" as="xs:anyURI?"/>
         <xsl:param name="mode" as="xs:anyURI?"/>
-        <xsl:param name="block-uri" select="xs:anyURI($block/@about)" as="xs:anyURI"/>
+        <xsl:param name="block-uri" as="xs:anyURI"/> <!-- select="xs:anyURI($block/@about)" -->
         <xsl:param name="container-id" select="ixsl:get($container, 'id')" as="xs:string"/>
         <xsl:variable name="query-uri" select="xs:anyURI(spin:query/@rdf:resource)" as="xs:anyURI"/>
         <xsl:variable name="chart-type" select="xs:anyURI(ldh:chartType/@rdf:resource)" as="xs:anyURI?"/>
@@ -235,8 +235,6 @@ exclude-result-prefixes="#all"
             <xsl:result-document href="?." method="ixsl:replace-content">
                 <xsl:copy-of select="$row/*"/>
             </xsl:result-document>
-            
-<!--            <xsl:apply-templates select="." mode="ldh:BlockRendered"/>-->
         </xsl:for-each>
 
         <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, $query-uri)" as="xs:anyURI"/>

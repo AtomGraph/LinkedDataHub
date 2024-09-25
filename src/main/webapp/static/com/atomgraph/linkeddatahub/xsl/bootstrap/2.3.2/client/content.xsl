@@ -140,9 +140,9 @@ exclude-result-prefixes="#all"
     
     <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&ldh;Object'][rdf:value/@rdf:resource]" mode="ldh:RenderBlock" priority="1">
         <xsl:param name="this" as="xs:anyURI"/>
-        <xsl:param name="block" as="element()"/>
-        <xsl:param name="block-uri" select="$block/@about" as="xs:anyURI"/>
-        <xsl:param name="container" select="$block/div/div[contains-token(@class, 'row-fluid')][2]" as="element()"/>
+<!--        <xsl:param name="block" as="element()"/>-->
+        <xsl:param name="block-uri" as="xs:anyURI"/> <!-- select="$block/@about" -->
+        <xsl:param name="container" as="element()"/>
         <xsl:param name="resource-uri" select="rdf:value/@rdf:resource" as="xs:anyURI?"/>
         <xsl:param name="graph" select="ldh:graph/@rdf:resource" as="xs:anyURI?"/>
         <xsl:param name="mode" select="ac:mode/@rdf:resource" as="xs:anyURI?"/>
@@ -161,7 +161,7 @@ exclude-result-prefixes="#all"
             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                 <xsl:call-template name="ldh:LoadBlockObjectValue">
                     <xsl:with-param name="this" select="$this"/>
-                    <xsl:with-param name="block" select="$block"/>
+<!--                    <xsl:with-param name="block" select="$block"/>-->
                     <xsl:with-param name="block-uri" select="$block-uri"/>
                     <xsl:with-param name="container" select="$container"/>
                     <xsl:with-param name="resource-uri" select="$resource-uri"/>
@@ -178,8 +178,8 @@ exclude-result-prefixes="#all"
     
     <xsl:template match="*[*][@rdf:about]" mode="ldh:RenderBlock">
         <xsl:param name="this" as="xs:anyURI"/>
-        <xsl:param name="block" as="element()"/>
-        <xsl:param name="container" select="$block//div[contains-token(@class, 'row-fluid')][1]" as="element()"/>
+<!--        <xsl:param name="block" as="element()"/>-->
+        <xsl:param name="container" as="element()"/>
         <xsl:param name="graph" as="xs:anyURI?"/>
         <xsl:param name="mode" as="xs:anyURI?"/>
         <xsl:param name="refresh-content" as="xs:boolean?"/>
@@ -215,7 +215,7 @@ exclude-result-prefixes="#all"
     
     <xsl:template name="ldh:LoadBlockObjectValue">
         <xsl:context-item as="map(*)" use="required"/>
-        <xsl:param name="block" as="element()"/>
+<!--        <xsl:param name="block" as="element()"/>-->
         <xsl:param name="block-uri" as="xs:anyURI"/>
         <xsl:param name="container" as="element()"/>
         <xsl:param name="this" as="xs:anyURI"/>
@@ -238,7 +238,7 @@ exclude-result-prefixes="#all"
                     
                     <xsl:apply-templates select="$resource" mode="ldh:RenderBlock">
                         <xsl:with-param name="this" select="$this"/>
-                        <xsl:with-param name="block" select="$block"/>
+<!--                        <xsl:with-param name="block" select="$block"/>-->
                         <xsl:with-param name="block-uri" select="$block-uri"/>
                         <xsl:with-param name="container" select="$container"/>
                         <xsl:with-param name="mode" select="$mode"/>
@@ -254,8 +254,6 @@ exclude-result-prefixes="#all"
                         </div>
                     </xsl:result-document>
                 </xsl:for-each>
-                
-<!--                <xsl:apply-templates select="$container" mode="ldh:BlockRendered"/>-->
             </xsl:when>
             <xsl:otherwise>
                 <xsl:for-each select="$container//div[contains-token(@class, 'main')]">
@@ -265,8 +263,6 @@ exclude-result-prefixes="#all"
                         </div>
                     </xsl:result-document>
                 </xsl:for-each>
-
-<!--                <xsl:apply-templates select="$container" mode="ldh:BlockRendered"/>-->
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
@@ -875,11 +871,12 @@ exclude-result-prefixes="#all"
         <xsl:param name="acl-modes" as="xs:anyURI*"/>
         <xsl:param name="doc" as="document-node()"/>
         <xsl:param name="refresh-content" as="xs:boolean?"/>
-        <xsl:param name="this" select="ancestor::div[@about][1]/@about" as="xs:anyURI"/> <!-- the page URL -->
-        <xsl:param name="block-uri" select="(@about, $this)[1]" as="xs:anyURI"/> <!-- fallback to @about for charts, queries etc. -->
+        <xsl:param name="block" select="ancestor-or-self::div[@about][1]" as="element()"/>
+        <xsl:param name="this" select="$block/@about" as="xs:anyURI"/>
+        <xsl:param name="block-uri" select="$block/@about" as="xs:anyURI"/> <!-- fallback to @about for charts, queries etc.??? -->
         <xsl:message>
             <!-- serialize(ancestor::div[@about]): <xsl:value-of select="ancestor::div[@about]"/> -->
-            ldh:LoadBlock @about: <xsl:value-of select="@about"/> @typeof: <xsl:value-of select="@typeof"/> @id: <xsl:value-of select="@id"/> $this: <xsl:value-of select="$this"/>
+            ldh:LoadBlock $block/@about: <xsl:value-of select="$block/@about"/> @typeof: <xsl:value-of select="@typeof"/> @id: <xsl:value-of select="@id"/> $this: <xsl:value-of select="$this"/>
         </xsl:message>
 
         <!-- <xsl:variable name="progress-container" select="if (contains-token(@class, 'row-fluid')) then ./div[contains-token(@class, 'main')] else ." as="element()"/> -->
@@ -916,6 +913,7 @@ exclude-result-prefixes="#all"
                     <xsl:with-param name="this" select="$this"/>
                     <xsl:with-param name="resource" select="$resource"/>
                     <xsl:with-param name="block-uri" select="$block-uri"/>
+                    <xsl:with-param name="container" select="."/>
                     <xsl:with-param name="acl-modes" select="$acl-modes"/>
                     <xsl:with-param name="refresh-content" select="$refresh-content"/>
                 </xsl:call-template>
@@ -926,8 +924,9 @@ exclude-result-prefixes="#all"
                     <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': ac:document-uri($request-uri), 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                         <xsl:call-template name="ldh:BlockLoadedCallback">
                             <xsl:with-param name="this" select="$this"/>
-                            <xsl:with-param name="block" select="."/>
+                            <xsl:with-param name="block" select="block"/>
                             <xsl:with-param name="block-uri" select="$block-uri"/>
+                            <xsl:with-param name="container" select="."/>
                             <xsl:with-param name="acl-modes" select="$acl-modes"/>
                             <xsl:with-param name="refresh-content" select="$refresh-content"/>
                         </xsl:call-template>
@@ -954,6 +953,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="this" as="xs:anyURI"/>
         <xsl:param name="block" as="element()"/>
         <xsl:param name="block-uri" as="xs:anyURI"/>
+        <xsl:param name="container" as="element()"/>
         <xsl:param name="acl-modes" as="xs:anyURI*"/>
         <xsl:param name="refresh-content" as="xs:boolean?"/>
         
@@ -971,7 +971,7 @@ exclude-result-prefixes="#all"
         
         <xsl:choose>
             <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml' and $resource">
-                <xsl:for-each select="$block">
+                <xsl:for-each select="$container">
                     <xsl:call-template name="ldh:BlockLoaded">
                         <xsl:with-param name="this" select="$this"/>
                         <xsl:with-param name="resource" select="$resource"/>
@@ -1040,8 +1040,9 @@ exclude-result-prefixes="#all"
 
         <xsl:apply-templates select="$resource" mode="ldh:RenderBlock">
             <xsl:with-param name="this" select="$this"/>
-            <xsl:with-param name="block" select="."/>
+<!--            <xsl:with-param name="block" select="."/>-->
             <xsl:with-param name="block-uri" select="$block-uri"/>
+            <xsl:with-param name="container" select="."/>
             <xsl:with-param name="refresh-content" select="$refresh-content"/>
         </xsl:apply-templates>
 
