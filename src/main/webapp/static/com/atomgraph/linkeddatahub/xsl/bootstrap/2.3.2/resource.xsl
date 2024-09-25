@@ -604,8 +604,8 @@ extension-element-prefixes="ixsl"
         <xsl:param name="mode" as="xs:anyURI?"/>
         <xsl:param name="style" as="xs:string?"/>
 <!--        <xsl:param name="type-content" select="true()" as="xs:boolean"/>-->
-        <xsl:variable name="types" select="rdf:type/@rdf:resource" as="xs:anyURI*" use-when="system-property('xsl:product-name') = 'SAXON'"/>
-        <xsl:variable name="content-values" select="if (exists($types) and doc-available(resolve-uri('ns?query=ASK%20%7B%7D', $ldt:base))) then (ldh:query-result(map{}, resolve-uri('ns', $ldt:base), $template-query || ' VALUES $Type { ' || string-join(for $type in $types return '&lt;' || $type || '&gt;', ' ') || ' }')//srx:binding[@name = 'content']/srx:uri/xs:anyURI(.)) else ()" as="xs:anyURI*" use-when="system-property('xsl:product-name') = 'SAXON'"/>
+        <xsl:variable name="types" select="rdf:type/@rdf:resource" as="xs:anyURI*"/>
+        <xsl:variable name="content-values" select="if (exists($types) and doc-available(resolve-uri('ns?query=ASK%20%7B%7D', $ldt:base))) then (ldh:query-result(map{}, resolve-uri('ns', $ldt:base), $template-query || ' VALUES $Type { ' || string-join(for $type in $types return '&lt;' || $type || '&gt;', ' ') || ' }')//srx:binding[@name = 'content']/srx:uri/xs:anyURI(.)) else ()" as="xs:anyURI*"/>
 
         <xsl:choose>
             <xsl:when test="exists($content-values)">
