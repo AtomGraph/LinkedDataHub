@@ -780,7 +780,7 @@ exclude-result-prefixes="#all"
         </xsl:for-each>
                 
         <xsl:apply-templates select="$value" mode="ldh:RenderBlock">
-            <xsl:with-param name="this" select="id('content-body', ixsl:page())/@about"/>
+            <xsl:with-param name="this" select="ancestor::div[@about][1]/@about"/>
             <xsl:with-param name="container" select="$container//div[contains-token(@class, 'sparql-query-results')]"/>
             <xsl:with-param name="block-uri" select="$block-uri"/>
             <xsl:with-param name="base-uri" select="ac:absolute-path(ldh:base-uri(.))"/>
@@ -872,7 +872,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="doc" as="document-node()"/>
         <xsl:param name="refresh-content" as="xs:boolean?"/>
         <xsl:param name="block" select="ancestor-or-self::div[@about][1]" as="element()"/>
-        <xsl:param name="this" select="$block/@about" as="xs:anyURI"/>
+        <xsl:param name="this" select="$block/ancestor::div[@about][1]/@about" as="xs:anyURI"/>
         <xsl:param name="block-uri" select="$block/@about" as="xs:anyURI"/> <!-- fallback to @about for charts, queries etc.??? -->
         <xsl:message>
             <!-- serialize(ancestor::div[@about]): <xsl:value-of select="ancestor::div[@about]"/> -->
@@ -903,6 +903,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="resource" select="key('resources', $block-uri, $doc)" as="element()?"/>
         <xsl:choose>
             <xsl:when test="exists($resource)">
+                <!-- content is part the current document -->
                 <xsl:message>
                     ldh:LoadBlock
                     $block-uri: <xsl:value-of select="$block-uri"/>
@@ -918,6 +919,7 @@ exclude-result-prefixes="#all"
                 </xsl:call-template>
             </xsl:when>
             <xsl:otherwise>
+                <!-- content is located outside of the current document -->
                 <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, ac:document-uri($block-uri))" as="xs:anyURI"/>
                 <xsl:variable name="request" as="item()*">
                     <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': ac:document-uri($request-uri), 'headers': map{ 'Accept': 'application/rdf+xml' } }">
