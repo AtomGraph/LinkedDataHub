@@ -56,13 +56,13 @@ exclude-result-prefixes="#all"
 
     <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&ldh;View'][spin:query/@rdf:resource]" mode="ldh:RenderBlock" priority="1">
         <xsl:param name="this" as="xs:anyURI"/>
-        <xsl:param name="block" as="element()"/>
+<!--        <xsl:param name="block" as="element()"/>-->
         <xsl:param name="container" as="element()"/>
         <xsl:param name="graph" select="ldh:graph/@rdf:resource" as="xs:anyURI?"/>
         <xsl:param name="mode" select="ac:mode/@rdf:resource" as="xs:anyURI?"/>
         <xsl:param name="refresh-content" as="xs:boolean?"/>
         <xsl:param name="base-uri" select="ldh:base-uri(.)" as="xs:anyURI"/>
-        <xsl:param name="block-uri" select="if ($block/@about) then $block/@about else xs:anyURI(ac:absolute-path($base-uri) || '#' || $block/@id)" as="xs:anyURI"/>
+        <xsl:param name="block-uri" as="xs:anyURI"/>
         <xsl:variable name="query-uri" select="xs:anyURI(spin:query/@rdf:resource)" as="xs:anyURI"/>
         
         <xsl:message>ldh:View ldh:RenderBlock</xsl:message>
