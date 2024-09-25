@@ -322,7 +322,7 @@ exclude-result-prefixes="#all"
     
     <!-- override inline editing form for content types (do nothing if the button is disabled) - prioritize over form.xsl -->
     
-    <xsl:template match="div[@typeof = ('&ldh;XHTML', '&ldh;View', '&ldh;Object')]/preceding-sibling::div//button[contains-token(@class, 'btn-edit')][not(contains-token(@class, 'disabled'))]" mode="ixsl:onclick" priority="1">
+    <xsl:template match="div[following-sibling::div[@typeof = ('&ldh;XHTML', '&ldh;View', '&ldh;Object')]]//button[contains-token(@class, 'btn-edit')][not(contains-token(@class, 'disabled'))]" mode="ixsl:onclick" priority="1">
         <xsl:param name="block" select="ancestor::div[@about][1]" as="element()"/>
         <!-- for content types, button.btn-edit is placed in its own div.row-fluid, therefore the next row is the actual container -->
         <xsl:param name="container" select="$block//div[@typeof]" as="element()"/>
