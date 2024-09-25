@@ -478,9 +478,9 @@ extension-element-prefixes="ixsl"
             <xsl:if test="$about">
                 <xsl:attribute name="about" select="$about"/>
             </xsl:if>
-            <xsl:if test="exists($typeof)">
+<!--            <xsl:if test="exists($typeof)">
                 <xsl:attribute name="typeof" select="string-join($typeof, ' ')"/>
-            </xsl:if>
+            </xsl:if>-->
             <xsl:if test="$draggable = true()">
                 <xsl:attribute name="draggable" select="'true'"/>
             </xsl:if>
@@ -498,6 +498,10 @@ extension-element-prefixes="ixsl"
                 </div>
 
                 <div id="row-{generate-id()}" class="row-fluid content">
+                    <xsl:if test="exists($typeof)">
+                        <xsl:attribute name="typeof" select="string-join($typeof, ' ')"/>
+                    </xsl:if>
+            
                     <xsl:apply-templates select="." mode="bs2:Left"/>
 
                     <div>
@@ -541,9 +545,9 @@ extension-element-prefixes="ixsl"
             <xsl:if test="$about">
                 <xsl:attribute name="about" select="$about"/>
             </xsl:if>
-            <xsl:if test="exists($typeof)">
+<!--            <xsl:if test="exists($typeof)">
                 <xsl:attribute name="typeof" select="string-join($typeof, ' ')"/>
-            </xsl:if>
+            </xsl:if>-->
             <xsl:if test="$draggable = true()">
                 <xsl:attribute name="draggable" select="'true'"/>
             </xsl:if>
@@ -561,6 +565,10 @@ extension-element-prefixes="ixsl"
                 </div>
 
                 <div id="row-{generate-id()}" class="row-fluid content">
+                    <xsl:if test="exists($typeof)">
+                        <xsl:attribute name="typeof" select="string-join($typeof, ' ')"/>
+                    </xsl:if>
+            
                     <div>
                         <xsl:if test="$left-class">
                             <xsl:attribute name="class" select="$left-class"/>
@@ -618,9 +626,9 @@ extension-element-prefixes="ixsl"
                     <xsl:if test="$about">
                         <xsl:attribute name="about" select="$about"/>
                     </xsl:if>
-                    <xsl:if test="exists($typeof)">
+<!--                    <xsl:if test="exists($typeof)">
                         <xsl:attribute name="typeof" select="string-join($typeof, ' ')"/>
-                    </xsl:if>
+                    </xsl:if>-->
                     <xsl:if test="$style">
                         <xsl:attribute name="style" select="$style"/>
                     </xsl:if>
