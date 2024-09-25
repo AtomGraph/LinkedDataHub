@@ -327,7 +327,7 @@ exclude-result-prefixes="#all"
     <!-- override inline editing form for content types (do nothing if the button is disabled) - prioritize over form.xsl -->
     
     <xsl:template match="div[@typeof = ('&ldh;XHTML', '&ldh;View', '&ldh;Object')]//button[contains-token(@class, 'btn-edit')][not(contains-token(@class, 'disabled'))]" mode="ixsl:onclick" priority="1">
-        <xsl:param name="block" select="ancestor::div[@typeof][1]" as="element()"/>
+        <xsl:param name="block" select="ancestor::div[@about][1]" as="element()"/>
         <!-- for content types, button.btn-edit is placed in its own div.row-fluid, therefore the next row is the actual container -->
         <xsl:param name="container" select="$block/div/div[contains-token(@class, 'content')]" as="element()"/>
 
@@ -383,7 +383,7 @@ exclude-result-prefixes="#all"
     
     <xsl:template match="div[@typeof]//div[contains-token(@class, 'content')]//button[contains-token(@class, 'btn-save-query')]" mode="ixsl:onclick">
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
-        <xsl:variable name="block" select="ancestor::div[@typeof][1]" as="element()"/>
+        <xsl:variable name="block" select="ancestor::div[@about][1]" as="element()"/>
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'content')][1]" as="element()"/>
         <xsl:variable name="about" select="$block/@about" as="xs:anyURI"/>
         <xsl:variable name="textarea" select="ancestor::form/descendant::textarea[@name = 'query']" as="element()"/>
@@ -543,7 +543,7 @@ exclude-result-prefixes="#all"
     <!-- delete content onclick (increased priority to take precedence over form.xsl .btn-remove-resource) -->
     
     <xsl:template match="div[@typeof = ('&ldh;XHTML', '&ldh;View', '&ldh;Object')]//button[contains-token(@class, 'btn-remove-resource')]" mode="ixsl:onclick" priority="3">
-        <xsl:variable name="block" select="ancestor::div[@typeof][1]" as="element()"/>
+        <xsl:variable name="block" select="ancestor::div[@about][1]" as="element()"/>
 
         <xsl:choose>
             <!-- delete existing content -->
@@ -578,7 +578,7 @@ exclude-result-prefixes="#all"
     <!-- XHTML block cancel onclick - prioritize over resource content -->
     
     <xsl:template match="div[@typeof = '&ldh;XHTML']//div[contains-token(@class, 'content')]//button[contains-token(@class, 'btn-cancel')]" mode="ixsl:onclick" priority="2">
-        <xsl:variable name="block" select="ancestor::div[@typeof][1]" as="element()"/>
+        <xsl:variable name="block" select="ancestor::div[@about][1]" as="element()"/>
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'content')][1]" as="element()"/>
 
         <xsl:message>XHTML block cancel onclick</xsl:message>
@@ -608,7 +608,7 @@ exclude-result-prefixes="#all"
     <!-- resource content/SPARQL content cancel onclick -->
     
     <xsl:template match="div[@typeof = ('&ldh;View', '&ldh;Object')]//div[contains-token(@class, 'content')]//button[contains-token(@class, 'btn-cancel')]" mode="ixsl:onclick" priority="1"> <!-- prioritize over form.xsl -->
-        <xsl:variable name="block" select="ancestor::div[@typeof][1]" as="element()"/>
+        <xsl:variable name="block" select="ancestor::div[@about][1]" as="element()"/>
 <!--        <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'content')][1]" as="element()"/>-->
 
         <xsl:message>resource block</xsl:message>
@@ -675,7 +675,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="service-uri" select="$service-control-group/descendant::input[@name = 'ou']/ixsl:get(., 'value')" as="xs:anyURI?"/>
         <xsl:variable name="service" select="key('resources', $service-uri, ixsl:get(ixsl:window(), 'LinkedDataHub.apps'))" as="element()?"/>
         <xsl:variable name="endpoint" select="($service/sd:endpoint/@rdf:resource/xs:anyURI(.), sd:endpoint())[1]" as="xs:anyURI"/>
-        <xsl:variable name="block" select="ancestor::div[@typeof][1]" as="element()"/>
+        <xsl:variable name="block" select="ancestor::div[@about][1]" as="element()"/>
         <xsl:variable name="container" select="$block/div/div[contains-token(@class, 'content')][1]" as="element()"/>
         <xsl:variable name="block-id" select="$block/@id" as="xs:string"/>
         <xsl:variable name="block-uri" select="if ($block/@about) then $block/@about else xs:anyURI(ac:absolute-path(ldh:base-uri(.)) || '#' || $block-id)" as="xs:anyURI"/>
@@ -794,7 +794,7 @@ exclude-result-prefixes="#all"
     
     <!-- start dragging content (or its descendants) -->
     
-    <xsl:template match="div[contains-token(@class, 'container-fluid')]/div[ixsl:query-params()?mode = '&ldh;ContentMode'][@about][@typeof][contains-token(@class, 'row-fluid')]/descendant-or-self::*" mode="ixsl:ondragstart">
+    <xsl:template match="div[contains-token(@class, 'container-fluid')]/div[ixsl:query-params()?mode = '&ldh;ContentMode'][@about][contains-token(@class, 'row-fluid')]/descendant-or-self::*" mode="ixsl:ondragstart">
         <xsl:message>ixsl:ondragstart</xsl:message>
         
         <xsl:choose>
@@ -813,18 +813,18 @@ exclude-result-prefixes="#all"
 
     <!-- dragging content over other content -->
     
-    <xsl:template match="div[contains-token(@class, 'container-fluid')]/div[ixsl:query-params()?mode = '&ldh;ContentMode'][@about][@typeof][contains-token(@class, 'row-fluid')][acl:mode() = '&acl;Write']" mode="ixsl:ondragover">
+    <xsl:template match="div[contains-token(@class, 'container-fluid')]/div[ixsl:query-params()?mode = '&ldh;ContentMode'][@about][contains-token(@class, 'row-fluid')][acl:mode() = '&acl;Write']" mode="ixsl:ondragover">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <ixsl:set-property name="dataTransfer.dropEffect" select="'move'" object="ixsl:event()"/>
     </xsl:template>
 
     <!-- change the style of elements when content is dragged over them -->
     
-    <xsl:template match="div[contains-token(@class, 'container-fluid')]/div[ixsl:query-params()?mode = '&ldh;ContentMode'][@about][@typeof][contains-token(@class, 'row-fluid')][acl:mode() = '&acl;Write']" mode="ixsl:ondragenter">
+    <xsl:template match="div[contains-token(@class, 'container-fluid')]/div[ixsl:query-params()?mode = '&ldh;ContentMode'][@about][contains-token(@class, 'row-fluid')][acl:mode() = '&acl;Write']" mode="ixsl:ondragenter">
         <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'drag-over', true() ])[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
 
-    <xsl:template match="div[contains-token(@class, 'container-fluid')]/div[ixsl:query-params()?mode = '&ldh;ContentMode'][@about][@typeof][contains-token(@class, 'row-fluid')][acl:mode() = '&acl;Write']" mode="ixsl:ondragleave">
+    <xsl:template match="div[contains-token(@class, 'container-fluid')]/div[ixsl:query-params()?mode = '&ldh;ContentMode'][@about][contains-token(@class, 'row-fluid')][acl:mode() = '&acl;Write']" mode="ixsl:ondragleave">
         <xsl:variable name="related-target" select="ixsl:get(ixsl:event(), 'relatedTarget')" as="element()?"/> <!-- the element drag entered (optional) -->
 
         <!-- only remove class if the related target does not have this div as ancestor (is not its child) -->
@@ -835,7 +835,7 @@ exclude-result-prefixes="#all"
 
     <!-- dropping content over other content -->
     
-    <xsl:template match="div[contains-token(@class, 'container-fluid')]/div[ixsl:query-params()?mode = '&ldh;ContentMode'][@about][@typeof][acl:mode() = '&acl;Write']" mode="ixsl:ondrop">
+    <xsl:template match="div[contains-token(@class, 'container-fluid')]/div[ixsl:query-params()?mode = '&ldh;ContentMode'][@about][acl:mode() = '&acl;Write']" mode="ixsl:ondrop">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <xsl:variable name="block-uri" select="@about" as="xs:anyURI?"/>
         <xsl:variable name="drop-block-uri" select="ixsl:call(ixsl:get(ixsl:event(), 'dataTransfer'), 'getData', [ 'text/uri-list' ])" as="xs:anyURI"/>
