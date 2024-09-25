@@ -325,7 +325,7 @@ exclude-result-prefixes="#all"
     <xsl:template match="div[@typeof = ('&ldh;XHTML', '&ldh;View', '&ldh;Object')]//button[contains-token(@class, 'btn-edit')][not(contains-token(@class, 'disabled'))]" mode="ixsl:onclick" priority="1">
         <xsl:param name="block" select="ancestor::div[@about][1]" as="element()"/>
         <!-- for content types, button.btn-edit is placed in its own div.row-fluid, therefore the next row is the actual container -->
-        <xsl:param name="container" select="ancestor::div[@typeof][1]" as="element()"/>
+        <xsl:param name="container" select="$block/div[@typeof]" as="element()"/>
 
         <xsl:message>
             content types .btn-edit onclick
@@ -378,10 +378,10 @@ exclude-result-prefixes="#all"
     <!-- save query onclick -->
     <!-- TO-DO: use @typeof in match so that we don't need a custom button.btn-save-query class -->
     
-    <xsl:template match="div[@typeof]//div[contains-token(@class, 'content')]//button[contains-token(@class, 'btn-save-query')]" mode="ixsl:onclick">
+    <xsl:template match="div[@typeof]//button[contains-token(@class, 'btn-save-query')]" mode="ixsl:onclick">
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
         <xsl:variable name="block" select="ancestor::div[@about][1]" as="element()"/>
-        <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'content')][1]" as="element()"/>
+        <xsl:variable name="container" select="ancestor::div[@typeof][1]" as="element()"/>
         <xsl:variable name="about" select="$block/@about" as="xs:anyURI"/>
         <xsl:variable name="textarea" select="ancestor::form/descendant::textarea[@name = 'query']" as="element()"/>
         <xsl:variable name="yasqe" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.yasqe'), $textarea/ixsl:get(., 'id'))"/>
@@ -448,7 +448,7 @@ exclude-result-prefixes="#all"
         
     <!-- open query onclick -->
     
-    <xsl:template match="div[contains-token(@class, 'content')]//button[contains-token(@class, 'btn-open-query')]" mode="ixsl:onclick">
+    <xsl:template match="button[contains-token(@class, 'btn-open-query')]" mode="ixsl:onclick">
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'content')]" as="element()"/>
         <xsl:variable name="content-value" select="ixsl:get($container//div[contains-token(@class, 'main')]//input[@name = 'ou'], 'value')" as="xs:anyURI"/>
         <xsl:variable name="textarea" select="ancestor::form/descendant::textarea[@name = 'query']" as="element()"/>
@@ -574,9 +574,9 @@ exclude-result-prefixes="#all"
     
     <!-- XHTML block cancel onclick - prioritize over resource content -->
     
-    <xsl:template match="div[@typeof = '&ldh;XHTML']//div[contains-token(@class, 'content')]//button[contains-token(@class, 'btn-cancel')]" mode="ixsl:onclick" priority="2">
+    <xsl:template match="div[@typeof = '&ldh;XHTML']//button[contains-token(@class, 'btn-cancel')]" mode="ixsl:onclick" priority="2">
         <xsl:variable name="block" select="ancestor::div[@about][1]" as="element()"/>
-        <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'content')][1]" as="element()"/>
+        <xsl:variable name="container" select="ancestor::div[@typeof][1]" as="element()"/>
 
         <xsl:message>XHTML block cancel onclick</xsl:message>
         
@@ -604,9 +604,9 @@ exclude-result-prefixes="#all"
     
     <!-- resource content/SPARQL content cancel onclick -->
     
-    <xsl:template match="div[@typeof = ('&ldh;View', '&ldh;Object')]//div[contains-token(@class, 'content')]//button[contains-token(@class, 'btn-cancel')]" mode="ixsl:onclick" priority="1"> <!-- prioritize over form.xsl -->
+    <xsl:template match="div[@typeof = ('&ldh;View', '&ldh;Object')]//button[contains-token(@class, 'btn-cancel')]" mode="ixsl:onclick" priority="1"> <!-- prioritize over form.xsl -->
         <xsl:variable name="block" select="ancestor::div[@about][1]" as="element()"/>
-<!--        <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'content')][1]" as="element()"/>-->
+<!--        <xsl:variable name="container" select="ancestor::div[@typeof][1]" as="element()"/>-->
 
         <xsl:message>resource block</xsl:message>
 
@@ -661,7 +661,7 @@ exclude-result-prefixes="#all"
     
     <!-- submit SPARQL query form (prioritize over default template in form.xsl) -->
     
-    <xsl:template match="div[@typeof = ('&sp;Ask', '&sp;Select', '&sp;Describe', '&sp;Construct')]//div[contains-token(@class, 'content')]//form[contains-token(@class, 'sparql-query-form ')]" mode="ixsl:onsubmit" priority="2"> <!-- prioritize over form.xsl -->
+    <xsl:template match="div[@typeof = ('&sp;Ask', '&sp;Select', '&sp;Describe', '&sp;Construct')]//form[contains-token(@class, 'sparql-query-form ')]" mode="ixsl:onsubmit" priority="2"> <!-- prioritize over form.xsl -->
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <xsl:message>.sparql-query-form onsubmit</xsl:message>
@@ -702,7 +702,7 @@ exclude-result-prefixes="#all"
 
     <!-- toggle query results to chart mode (prioritize over container.xsl) -->
     
-    <xsl:template match="div[contains-token(@class, 'content')]//ul[contains-token(@class, 'nav-tabs')][contains-token(@class, 'nav-query-results')]/li[contains-token(@class, 'chart-mode')][not(contains-token(@class, 'active'))]/a" mode="ixsl:onclick" priority="1">
+    <xsl:template match="ul[contains-token(@class, 'nav-tabs')][contains-token(@class, 'nav-query-results')]/li[contains-token(@class, 'chart-mode')][not(contains-token(@class, 'active'))]/a" mode="ixsl:onclick" priority="1">
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'content')]" as="element()"/>
         <xsl:variable name="form" select="$container//form[contains-token(@class, 'sparql-query-form')]" as="element()"/>
 
@@ -722,8 +722,8 @@ exclude-result-prefixes="#all"
     
     <!-- toggle query results to container mode (prioritize over container.xsl) -->
     
-    <xsl:template match="div[contains-token(@class, 'content')]//ul[contains-token(@class, 'nav-tabs')][contains-token(@class, 'nav-query-results')]/li[contains-token(@class, 'container-mode')][not(contains-token(@class, 'active'))]/a" mode="ixsl:onclick" priority="1">
-        <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'content')][1]" as="element()"/>
+    <xsl:template match="ul[contains-token(@class, 'nav-tabs')][contains-token(@class, 'nav-query-results')]/li[contains-token(@class, 'container-mode')][not(contains-token(@class, 'active'))]/a" mode="ixsl:onclick" priority="1">
+        <xsl:variable name="container" select="ancestor::div[@typeof][1]" as="element()"/>
         <xsl:variable name="form" select="$container//form[contains-token(@class, 'sparql-query-form')]" as="element()"/>
         <xsl:variable name="textarea-id" select="$form//textarea[@name = 'query']/ixsl:get(., 'id')" as="xs:string"/>
         <xsl:variable name="yasqe" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.yasqe'), $textarea-id)"/>
