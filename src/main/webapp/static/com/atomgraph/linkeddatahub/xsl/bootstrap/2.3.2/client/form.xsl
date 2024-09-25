@@ -263,7 +263,7 @@ WHERE
     
     <xsl:template match="div[@about]//button[contains-token(@class, 'btn-edit')][not(contains-token(@class, 'disabled'))]" mode="ixsl:onclick">
         <xsl:param name="block" select="ancestor::div[@about][1]" as="element()"/>
-        <xsl:param name="container" select="ancestor::div[contains-token(@class, 'content')][1]" as="element()"/>
+        <xsl:param name="container" select="ancestor::div[@typeof][1]" as="element()"/>
         <xsl:param name="about" select="$block/@about" as="xs:anyURI"/>
         <xsl:param name="graph" as="xs:anyURI?"/>
 

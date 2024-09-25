@@ -325,7 +325,7 @@ exclude-result-prefixes="#all"
     <xsl:template match="div[@typeof = ('&ldh;XHTML', '&ldh;View', '&ldh;Object')]//button[contains-token(@class, 'btn-edit')][not(contains-token(@class, 'disabled'))]" mode="ixsl:onclick" priority="1">
         <xsl:param name="block" select="ancestor::div[@about][1]" as="element()"/>
         <!-- for content types, button.btn-edit is placed in its own div.row-fluid, therefore the next row is the actual container -->
-        <xsl:param name="container" select="$block/div/div[contains-token(@class, 'content')]" as="element()"/>
+        <xsl:param name="container" select="ancestor::div[@typeof][1]" as="element()"/>
 
         <xsl:message>
             content types .btn-edit onclick
@@ -344,9 +344,10 @@ exclude-result-prefixes="#all"
         <xsl:param name="triples" select="ldh:parse-rdf-post($elements)" as="element()*"/>
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         
-        <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'row-fluid')][1]" as="element()"/>
+        <xsl:variable name="block" select="ancestor::div[@about][1]" as="element()"/>
+        <xsl:variable name="container" select="ancestor::div[@typeof][1]" as="element()"/>
         <xsl:variable name="block-uri" select="xs:anyURI(.//input[@name = 'su'] => ixsl:get('value'))" as="xs:anyURI"/>
-        <xsl:variable name="sequence-number" select="count($container/preceding-sibling::div[@about][contains-token(@class, 'content')]) + 1" as="xs:integer"/>
+        <xsl:variable name="sequence-number" select="count($block/preceding-sibling::div[@about]) + 1" as="xs:integer"/>
         <xsl:variable name="sequence-property" select="xs:anyURI('&rdf;_' || $sequence-number)" as="xs:anyURI"/>
         <xsl:variable name="sequence-triple" as="element()">
             <json:map>
