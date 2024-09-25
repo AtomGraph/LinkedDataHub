@@ -923,7 +923,7 @@ exclude-result-prefixes="#all"
                     <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': ac:document-uri($request-uri), 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                         <xsl:call-template name="ldh:BlockLoadedCallback">
                             <xsl:with-param name="this" select="$this"/>
-                            <xsl:with-param name="block" select="block"/>
+                            <xsl:with-param name="block" select="$block"/>
                             <xsl:with-param name="block-uri" select="$block-uri"/>
                             <xsl:with-param name="container" select="."/>
                             <xsl:with-param name="acl-modes" select="$acl-modes"/>
