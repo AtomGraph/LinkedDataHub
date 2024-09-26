@@ -364,6 +364,7 @@ exclude-result-prefixes="#all"
         </xsl:message>
         
         <xsl:next-match>
+            <xsl:with-param name="block" select="$block"/>
             <!-- append $sequence-triple to $request-body that is sent with the HTTP request, but not to $resources which are rendered after the block update (don't want to show it) -->
             <xsl:with-param name="request-body" as="document-node()">
                 <xsl:document>

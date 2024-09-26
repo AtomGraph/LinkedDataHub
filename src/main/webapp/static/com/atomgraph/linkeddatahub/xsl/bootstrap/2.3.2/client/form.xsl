@@ -498,8 +498,8 @@ WHERE
         </xsl:param>
         <xsl:param name="request-body" select="$resources" as="document-node()"/>
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
-        <xsl:variable name="block" select="ancestor::div[@about][1]" as="element()"/>
         <xsl:variable name="container" select="ancestor::div[@typeof][1]" as="element()?"/> <!-- no container means the form was modal -->
+        <xsl:variable name="block" select="$container" as="element()?"/> <!-- block has no @about at this stage (before saving it) -->
         <xsl:variable name="form" select="." as="element()"/>
         <xsl:variable name="id" select="ixsl:get($form, 'id')" as="xs:string"/>
         <xsl:variable name="action" select="ixsl:get($form, 'action')" as="xs:anyURI"/>
