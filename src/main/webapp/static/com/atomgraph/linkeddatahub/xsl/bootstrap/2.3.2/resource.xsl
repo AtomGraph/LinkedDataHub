@@ -497,7 +497,10 @@ extension-element-prefixes="ixsl"
                     </div>
                 </div>
 
-                <div id="row-{generate-id()}" class="row-fluid content">
+                <div id="row-{generate-id()}" class="row-fluid">
+                    <xsl:if test="$about">
+                        <xsl:attribute name="about" select="$about"/>
+                    </xsl:if>
                     <xsl:if test="exists($typeof)">
                         <xsl:attribute name="typeof" select="string-join($typeof, ' ')"/>
                     </xsl:if>
@@ -564,7 +567,10 @@ extension-element-prefixes="ixsl"
                     </div>
                 </div>
 
-                <div id="row-{generate-id()}" class="row-fluid content">
+                <div id="row-{generate-id()}" class="row-fluid">
+                    <xsl:if test="$about">
+                        <xsl:attribute name="about" select="$about"/>
+                    </xsl:if>
                     <xsl:if test="exists($typeof)">
                         <xsl:attribute name="typeof" select="string-join($typeof, ' ')"/>
                     </xsl:if>
