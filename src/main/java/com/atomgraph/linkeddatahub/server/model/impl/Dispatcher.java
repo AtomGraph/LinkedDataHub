@@ -25,7 +25,7 @@ import com.atomgraph.linkeddatahub.resource.Transform;
 import com.atomgraph.linkeddatahub.resource.admin.Clear;
 import com.atomgraph.linkeddatahub.resource.admin.RequestAccess;
 import com.atomgraph.linkeddatahub.resource.admin.SignUp;
-import com.atomgraph.linkeddatahub.resource.graph.Item;
+import com.atomgraph.linkeddatahub.resource.Graph;
 import java.util.Optional;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.Path;
@@ -242,7 +242,7 @@ public class Dispatcher
      */
     public Class getDocumentClass()
     {
-        return Item.class;
+        return Graph.class;
     }
     
     /**

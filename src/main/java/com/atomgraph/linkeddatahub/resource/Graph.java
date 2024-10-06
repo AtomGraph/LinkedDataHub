@@ -14,7 +14,7 @@
  *  limitations under the License.
  *
  */
-package com.atomgraph.linkeddatahub.resource.graph;
+package com.atomgraph.linkeddatahub.resource;
 
 import com.atomgraph.client.vocabulary.AC;
 import com.atomgraph.core.MediaTypes;
@@ -113,10 +113,10 @@ import org.slf4j.LoggerFactory;
  * 
  * @author {@literal Martynas Jusevičius <martynas@atomgraph.com>}
  */
-public class Item extends GraphStoreImpl
+public class Graph extends GraphStoreImpl
 {
     
-    private static final Logger log = LoggerFactory.getLogger(Item.class);
+    private static final Logger log = LoggerFactory.getLogger(Graph.class);
 
     private final Set<String> allowedMethods;
     
@@ -135,7 +135,7 @@ public class Item extends GraphStoreImpl
      * @param system system application
      */
     @Inject
-    public Item(@Context Request request, @Context UriInfo uriInfo, MediaTypes mediaTypes,
+    public Graph(@Context Request request, @Context UriInfo uriInfo, MediaTypes mediaTypes,
         com.atomgraph.linkeddatahub.apps.model.Application application, Optional<Ontology> ontology, Optional<Service> service,
         @Context SecurityContext securityContext, Optional<AgentContext> agentContext,
         @Context Providers providers, com.atomgraph.linkeddatahub.Application system)
