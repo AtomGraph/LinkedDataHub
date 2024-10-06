@@ -206,9 +206,8 @@ public class Item extends GraphStoreImpl
             throw new WebApplicationException("Method '" + HttpMethod.PUT + "' is not allowed on document URI <" + getURI() + ">", Response.status(Response.Status.METHOD_NOT_ALLOWED).allow(getAllowedMethods()).build());
         }
         
-        Resource resource = model.createResource(getURI().toString());
         // enforce that request URI always end with a slash and is present in the RDF document
-        if (!getURI().toString().endsWith("/") || !model.containsResource(resource))
+        if (!getURI().toString().endsWith("/"))
         {
             if (log.isErrorEnabled()) log.error("Document URI <{}> does not end with a slash", getURI());
             throw new WebApplicationException("Document URI <" + getURI() + "> does not end with a slash", UNPROCESSABLE_ENTITY.getStatusCode()); // 422 Unprocessable Entity
@@ -227,8 +226,8 @@ public class Item extends GraphStoreImpl
         }
 
         Resource parent = model.createResource(getURI().resolve("..").toString());
-
-        resource.removeAll(SIOC.HAS_PARENT).
+        Resource resource = model.createResource(getURI().toString()).
+            removeAll(SIOC.HAS_PARENT).
             removeAll(SIOC.HAS_CONTAINER);
 
         if (!getApplication().getBaseURI().equals(getURI())) // don't update Root document's metadata

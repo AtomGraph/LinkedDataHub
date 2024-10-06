@@ -219,44 +219,37 @@ public class ImportExecutor
      */
     protected Function<Throwable, Void> failure(final Service service, final Import importInst, final Resource provImport)
     {
-        return new Function<Throwable, Void>()
-        {
-
-            @Override
-            public Void apply(Throwable t)
+        return (Throwable t) -> {
+            if (log.isErrorEnabled()) log.error("Could not write Import: {}", importInst, t);
+            
+            if (t instanceof CompletionException)
             {
-                if (log.isErrorEnabled()) log.error("Could not write Import: {}", importInst, t);
-                
-                if (t instanceof CompletionException)
+                // could not parse CSV
+                if (t.getCause() instanceof TextParsingException tpe)
                 {
-                    // could not parse CSV
-                    if (t.getCause() instanceof TextParsingException tpe) 
-                    {
-                        Resource exception = provImport.getModel().createResource().
+                    Resource exception = provImport.getModel().createResource().
                             addProperty(RDF.type, PROV.Entity).
                             addLiteral(DCTerms.description, tpe.getMessage()).
                             addProperty(PROV.wasGeneratedBy, provImport); // connect Response to exception
-                        provImport.addProperty(PROV.endedAtTime, importInst.getModel().createTypedLiteral(Calendar.getInstance()));
-                        
-                        appendProvGraph(provImport, service.getGraphStoreClient());
-                    }
-                    // could not save RDF
-                    if (t.getCause() instanceof ImportException ie) 
-                    {
-                        Resource exception = provImport.getModel().createResource().
+                    provImport.addProperty(PROV.endedAtTime, importInst.getModel().createTypedLiteral(Calendar.getInstance()));
+                    
+                    appendProvGraph(provImport, service.getGraphStoreClient());
+                }
+                // could not save RDF
+                if (t.getCause() instanceof ImportException ie)
+                {
+                    Resource exception = provImport.getModel().createResource().
                             addProperty(RDF.type, PROV.Entity).
                             addLiteral(DCTerms.description, ie.getMessage()).
                             addProperty(PROV.wasGeneratedBy, provImport); // connect Response to exception
-                        
-                        provImport.addProperty(PROV.endedAtTime, importInst.getModel().createTypedLiteral(Calendar.getInstance()));
-                        
-                        appendProvGraph(provImport, service.getGraphStoreClient());
-                    }
+                    
+                    provImport.addProperty(PROV.endedAtTime, importInst.getModel().createTypedLiteral(Calendar.getInstance()));
+                    
+                    appendProvGraph(provImport, service.getGraphStoreClient());
                 }
-                
-                return null;
             }
             
+            return null;
         };
     }
 
