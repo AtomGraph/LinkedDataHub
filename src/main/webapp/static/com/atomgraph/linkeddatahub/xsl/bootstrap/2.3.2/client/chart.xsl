@@ -231,27 +231,9 @@ exclude-result-prefixes="#all"
             <ixsl:set-style name="width" select="'66%'" object="."/>
         </xsl:for-each>
 
-        <!--
-        <xsl:variable name="row" as="element()*">
-            <xsl:apply-templates select="." mode="bs2:Header"/>
-                <xsl:with-param name="graph" select="$graph" tunnel="yes"/>
-                <xsl:with-param name="mode" select="$mode"/>
-                <xsl:with-param name="canvas-id" select="$canvas-id" tunnel="yes"/>
-            </xsl:apply-templates>
-        </xsl:variable>
-        -->
-
         <xsl:for-each select="$container//div[contains-token(@class, 'main')]">
             <xsl:result-document href="?." method="ixsl:append-content">
                 <form method="{$method}" action="{$action}">
-                    <!--
-                    <xsl:if test="$id">
-                        <xsl:attribute name="id" select="$id"/>
-                    </xsl:if>
-                    <xsl:if test="$class">
-                        <xsl:attribute name="class" select="$class"/>
-                    </xsl:if>
-                    -->
                     <xsl:if test="$accept-charset">
                         <xsl:attribute name="accept-charset" select="$accept-charset"/>
                     </xsl:if>
@@ -465,7 +447,6 @@ exclude-result-prefixes="#all"
         <xsl:param name="block" as="element()"/>
         <xsl:param name="container" as="element()"/>
         <xsl:param name="this" as="xs:anyURI"/>
-<!--        <xsl:param name="block-uri" as="xs:anyURI"/>-->
         <xsl:param name="container-id" as="xs:string"/>
         <xsl:param name="query-uri" as="xs:anyURI"/>
         <xsl:param name="chart-type" as="xs:anyURI"/>
@@ -477,7 +458,6 @@ exclude-result-prefixes="#all"
         <xsl:choose>
             <xsl:when test="?status = 200 and ?media-type = ('application/rdf+xml', 'application/sparql-results+xml')">
                 <xsl:for-each select="?body">
-<!--                    <xsl:variable name="query-type" select="xs:anyURI(key('resources', $query-uri)/rdf:type/@rdf:resource)" as="xs:anyURI"/>-->
                     <xsl:variable name="query-string" select="key('resources', $query-uri)/sp:text" as="xs:string"/>
                     <xsl:variable name="query-string" select="replace($query-string, '$this', '&lt;' || $this || '&gt;', 'q')" as="xs:string"/>
                     <!-- TO-DO: use SPARQLBuilder to set LIMIT -->
