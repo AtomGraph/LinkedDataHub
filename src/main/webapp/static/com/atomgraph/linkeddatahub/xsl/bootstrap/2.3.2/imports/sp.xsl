@@ -59,11 +59,11 @@ exclude-result-prefixes="#all">
     
     <!-- BLOCK MODE -->
 
-    <xsl:template match="*[sp:text/text()]">
+<!--    <xsl:template match="*[sp:text/text()]">
         <xsl:param name="method" select="'get'" as="xs:string"/>
         <xsl:param name="action" select="xs:anyURI('')" as="xs:anyURI"/>
         <xsl:param name="id" select="'id' || ac:uuid()" as="xs:string?"/>
-        <xsl:param name="class" select="'sparql-query-form form-horizontal'" as="xs:string?"/> <!-- .sparql-query-form will trigger ldh:PostConstruct and initialize YASQE -->
+        <xsl:param name="class" select="'sparql-query-form form-horizontal'" as="xs:string?"/>  .sparql-query-form will trigger ldh:PostConstruct and initialize YASQE 
         <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
         <xsl:param name="enctype" as="xs:string?"/>
         <xsl:param name="textarea-id" select="'id' || ac:uuid()" as="xs:string"/>
@@ -106,23 +106,23 @@ exclude-result-prefixes="#all">
                 <div class="controls">
                     <xsl:choose>
                         <xsl:when test="$service-uri">
-                            <!-- apply templates if server-side -->
+                             apply templates if server-side 
                             <xsl:apply-templates select="key('resources', $service-uri, document(ac:document-uri($service-uri)))" mode="ldh:Typeahead" use-when="system-property('xsl:product-name') = 'SAXON'">
                                 <xsl:with-param name="forClass" select="$forClass"/>
                             </xsl:apply-templates>
                             
                             <xsl:if test="true()" use-when="system-property('xsl:product-name') eq 'SaxonJS'">
-                                <!-- need to explicitly request RDF/XML, otherwise we get HTML -->
+                                 need to explicitly request RDF/XML, otherwise we get HTML 
                                 <xsl:variable name="request-uri" select="ac:build-uri(ac:document-uri($service-uri), map{ 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
                                 <xsl:message>
                                     $request-uri: <xsl:value-of select="$request-uri"/>
                                 </xsl:message>
-                                <!-- TO-DO: refactor asynchronously -->
+                                 TO-DO: refactor asynchronously 
                                 <xsl:apply-templates select="key('resources', $service-uri, document($request-uri))" mode="ldh:Typeahead">
                                     <xsl:with-param name="forClass" select="$forClass"/>
                                 </xsl:apply-templates>
                                 
-                                <!--
+                                
                                 <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, $query-uri)" as="xs:anyURI"/>
                                 <xsl:variable name="request" as="item()*">
                                     <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
@@ -134,7 +134,7 @@ exclude-result-prefixes="#all">
                                     </ixsl:schedule-action>
                                 </xsl:variable>
                                 <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
-                                -->
+                                
                             </xsl:if>
                         </xsl:when>
                         <xsl:otherwise>
@@ -180,7 +180,7 @@ exclude-result-prefixes="#all">
         <xsl:if test="$show-properties">
             <xsl:apply-templates select="." mode="bs2:PropertyList"/>
         </xsl:if>
-    </xsl:template>
+    </xsl:template>-->
 
     <xsl:template name="onQueryServiceLoad">
         <xsl:context-item as="map(*)" use="required"/>

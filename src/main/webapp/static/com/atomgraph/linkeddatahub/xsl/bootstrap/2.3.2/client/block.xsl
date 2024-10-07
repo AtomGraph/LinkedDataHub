@@ -136,6 +136,118 @@ exclude-result-prefixes="#all"
 
     <xsl:template match="*[rdf:type/@rdf:resource = '&ldh;XHTML']/rdf:value/xhtml:*" mode="bs2:FormControlTypeLabel" priority="1"/>
 
+    <xsl:template match="*[@typeof = ('&sp;Ask', '&sp;Select', '&sp;Describe', '&sp;Construct')][descendant::*[@property = '&sp;text'][text()]]" mode="ldh:RenderBlock" priority="1">
+        <xsl:param name="block" select="ancestor::*[@about][1]" as="element()"/>
+        <xsl:param name="about" select="$block/@about" as="xs:anyURI"/>
+        <xsl:param name="block-uri" select="$about" as="xs:anyURI"/>
+        <xsl:param name="container" select="." as="element()"/>
+        <xsl:param name="graph" select="descendant::*[@property = '&ldh;graph']/@resource" as="xs:anyURI?"/>
+        <xsl:param name="mode" select="descendant::*[@property = '&ac;mode']/@resource" as="xs:anyURI?"/>
+        <xsl:param name="refresh-content" as="xs:boolean?"/>
+        <xsl:param name="show-edit-button" select="false()" as="xs:boolean?"/>
+        <xsl:param name="textarea-id" select="generate-id() || '-textarea'" as="xs:string"/>
+        <xsl:param name="service-uri" select="descendant::*[@property = '&ldh;service']/@resource" as="xs:anyURI?"/>
+        <xsl:param name="endpoint" as="xs:anyURI?"/>
+        <xsl:param name="query" select="descendant::*[@property = '&sp;text']/text()" as="xs:string"/>
+        <xsl:param name="show-properties" select="false()" as="xs:boolean"/>
+        <xsl:param name="forClass" select="xs:anyURI('&sd;Service')" as="xs:anyURI"/>
+        
+        <xsl:message>
+            Query ldh:RenderBlock @typeof: <xsl:value-of select="@typeof"/> $about: <xsl:value-of select="$about"/>
+            $service-uri: <xsl:value-of select="$service-uri"/>
+        </xsl:message>
+        
+        <xsl:for-each select="$block//div[contains-token(@class, 'bar')]">
+            <ixsl:set-style name="width" select="'66%'" object="."/>
+        </xsl:for-each>
+
+        <xsl:for-each select="$container//div[contains-token(@class, 'main')]">
+            <xsl:result-document href="?." method="ixsl:append-content">
+                <xsl:apply-templates select="." mode="bs2:Header"/>
+
+                <form id="{$textarea-id}" method="'get'" action="">
+                    <div class="control-group">
+                        <xsl:call-template name="xhtml:Input">
+                            <xsl:with-param name="name" select="'pu'"/>
+                            <xsl:with-param name="type" select="'hidden'"/>
+                            <xsl:with-param name="value" select="'&ldh;service'"/>
+                        </xsl:call-template>
+
+                        <label class="control-label">
+                            <xsl:apply-templates select="key('resources', '&ldh;service', document(ac:document-uri('&ldh;')))" mode="ac:label"/>
+                        </label>
+                        <div class="controls">
+                            <xsl:choose>
+                                <xsl:when test="$service-uri">
+                                    <!-- need to explicitly request RDF/XML, otherwise we get HTML -->
+                                    <xsl:variable name="request-uri" select="ac:build-uri(ac:document-uri($service-uri), map{ 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
+                                    <xsl:message>
+                                        $request-uri: <xsl:value-of select="$request-uri"/>
+                                    </xsl:message>
+                                    <!-- TO-DO: refactor asynchronously -->
+                                    <xsl:apply-templates select="key('resources', $service-uri, document($request-uri))" mode="ldh:Typeahead">
+                                        <xsl:with-param name="forClass" select="$forClass"/>
+                                    </xsl:apply-templates>
+
+                                    <!--
+                                    <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, $query-uri)" as="xs:anyURI"/>
+                                    <xsl:variable name="request" as="item()*">
+                                        <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
+                                            <xsl:call-template name="onQueryServiceLoad">
+                                                <xsl:with-param name="container" select="$container"/>
+                                                <xsl:with-param name="forClass" select="$forClass"/>
+                                                <xsl:with-param name="service-uri" select="$service-uri"/>
+                                            </xsl:call-template>
+                                        </ixsl:schedule-action>
+                                    </xsl:variable>
+                                    <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
+                                    -->
+                                </xsl:when>
+                                <xsl:otherwise>
+                                    <xsl:call-template name="bs2:Lookup">
+                                        <xsl:with-param name="forClass" select="$forClass"/>
+                                    </xsl:call-template>
+                                </xsl:otherwise>
+                            </xsl:choose>
+                        </div>
+                    </div>
+
+                    <textarea name="query" class="span12 sparql-query-string" rows="15">
+                        <xsl:if test="$textarea-id">
+                            <xsl:attribute name="id" select="$textarea-id"/>
+                        </xsl:if>
+
+                        <xsl:value-of select="$query"/>
+                    </textarea>
+
+                    <div class="form-actions">
+                        <button type="submit">
+                            <xsl:apply-templates select="key('resources', 'run', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ldh:logo">
+                                <xsl:with-param name="class" select="'btn btn-primary btn-run-query'"/>
+                            </xsl:apply-templates>
+
+                            <xsl:value-of>
+                                <xsl:apply-templates select="key('resources', 'run', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                            </xsl:value-of>
+                        </button>
+                        <button type="button" class="btn btn-primary btn-open-query">
+                            <xsl:value-of>
+                                <xsl:apply-templates select="key('resources', 'open', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                            </xsl:value-of>
+                        </button>
+                        <button type="button" class="btn btn-primary btn-save btn-save-query">
+                            <xsl:value-of>
+                                <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                            </xsl:value-of>
+                        </button>
+                    </div>
+                </form>
+            </xsl:result-document>
+        </xsl:for-each>
+        
+        <xsl:apply-templates select="." mode="ldh:PostConstruct"/>
+    </xsl:template>
+    
     <!-- object block (RDF resource) -->
     
     <xsl:template match="*[@typeof = '&ldh;Object'][descendant::*[@property = '&rdf;value'][@resource]]" mode="ldh:RenderBlock" priority="1">
@@ -277,8 +389,6 @@ exclude-result-prefixes="#all"
                             <xsl:copy-of select="$row"/>
                         </div>
                     </xsl:result-document>
-                    
-                    <xsl:apply-templates select="*" mode="ldh:PostConstruct"/>
                     
                     <xsl:apply-templates mode="ldh:RenderBlock"/> <!-- recurse down the block hierarchy -->
                 </xsl:for-each>
