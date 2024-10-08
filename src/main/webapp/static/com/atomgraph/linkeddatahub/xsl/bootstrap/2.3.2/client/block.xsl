@@ -163,8 +163,6 @@ exclude-result-prefixes="#all"
 
         <xsl:for-each select="$container//div[contains-token(@class, 'main')]">
             <xsl:result-document href="?." method="ixsl:append-content">
-                <xsl:apply-templates select="." mode="bs2:Header"/>
-
                 <form id="{$textarea-id}" method="'get'" action="">
                     <div class="control-group">
                         <xsl:call-template name="xhtml:Input">
