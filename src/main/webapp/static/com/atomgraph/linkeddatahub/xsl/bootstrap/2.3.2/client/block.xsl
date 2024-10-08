@@ -163,7 +163,7 @@ exclude-result-prefixes="#all"
 
         <xsl:for-each select="$container//div[contains-token(@class, 'main')]">
             <xsl:result-document href="?." method="ixsl:append-content">
-                <form method="get" action="">
+                <form class="sparql-query-form form-horizontal" method="get" action="">
                     <div class="control-group">
                         <xsl:call-template name="xhtml:Input">
                             <xsl:with-param name="name" select="'pu'"/>
