@@ -163,7 +163,7 @@ exclude-result-prefixes="#all"
 
         <xsl:for-each select="$container//div[contains-token(@class, 'main')]">
             <xsl:result-document href="?." method="ixsl:append-content">
-                <form id="{$textarea-id}" method="'get'" action="">
+                <form method="get" action="">
                     <div class="control-group">
                         <xsl:call-template name="xhtml:Input">
                             <xsl:with-param name="name" select="'pu'"/>
@@ -210,11 +210,7 @@ exclude-result-prefixes="#all"
                         </div>
                     </div>
 
-                    <textarea name="query" class="span12 sparql-query-string" rows="15">
-                        <xsl:if test="$textarea-id">
-                            <xsl:attribute name="id" select="$textarea-id"/>
-                        </xsl:if>
-
+                    <textarea id="{$textarea-id}" name="query" class="span12 sparql-query-string" rows="15">
                         <xsl:value-of select="$query"/>
                     </textarea>
 
