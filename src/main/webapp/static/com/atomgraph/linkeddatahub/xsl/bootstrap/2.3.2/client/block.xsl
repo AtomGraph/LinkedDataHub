@@ -405,7 +405,7 @@ exclude-result-prefixes="#all"
     <!-- show block controls -->
     
     <xsl:template match="div[contains-token(@class, 'row-fluid')]" mode="ixsl:onmousemove"> <!-- TO-DO: better selector -->
-        <xsl:variable name="bound" select="ixsl:call($selected-node, 'getBoundingClientRect', [])"/>
+        <xsl:variable name="bound" select="ixsl:call(., 'getBoundingClientRect', [])"/>
         <xsl:variable name="y" select="ixsl:get($bound, 'y')" as="xs:integer"/>
         
         <!-- check that the mouse is on the top edge -->
