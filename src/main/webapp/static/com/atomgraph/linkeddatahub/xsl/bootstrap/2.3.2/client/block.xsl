@@ -406,7 +406,7 @@ exclude-result-prefixes="#all"
     
     <xsl:template match="div[contains-token(@class, 'block')]" mode="ixsl:onmousemove"> <!-- TO-DO: better selector -->
         <xsl:variable name="dom-y" select="ixsl:get(ixsl:event(), 'clientY')"/>
-        <xsl:variable name="bound" select="ixsl:call(ixsl:get(ixsl:event(), 'target'), 'getBoundingClientRect', [])"/>
+        <xsl:variable name="bound" select="ixsl:call(., 'getBoundingClientRect', [])"/>
         <xsl:variable name="offset-y" select="$dom-y - ixsl:get($bound, 'y')"/>
 
         <xsl:message>
