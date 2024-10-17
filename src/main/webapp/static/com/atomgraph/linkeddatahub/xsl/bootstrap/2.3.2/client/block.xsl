@@ -409,7 +409,7 @@ exclude-result-prefixes="#all"
             .row-fluid onmousemove
         </xsl:message>
         <xsl:variable name="bound" select="ixsl:call(., 'getBoundingClientRect', [])"/>
-        <xsl:variable name="y" select="ixsl:get($bound, 'y')" as="xs:integer"/>
+        <xsl:variable name="y" select="ixsl:get($bound, 'y')"/>
         
         <!-- check that the mouse is on the top edge -->
         <xsl:if test="$y &lt; 20">
