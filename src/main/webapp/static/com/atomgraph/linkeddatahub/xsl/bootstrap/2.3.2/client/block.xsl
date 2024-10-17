@@ -414,14 +414,14 @@ exclude-result-prefixes="#all"
             .block onmousemove @id: <xsl:value-of select="@id"/> $offset-y: <xsl:value-of select="$offset-y"/>
         </xsl:message>
         
-        <xsl:variable name="block-controls" select="key('elements-by-class', 'row-block-controls', .)" as="element()"/>
+        <xsl:variable name="btn-edit-block" select="key('elements-by-class', 'btn-edit-block', .)" as="element()"/>
         <!-- check that the mouse is on the top edge and show the block controls if they're not already shown -->
-        <xsl:if test="$offset-y &lt;= $offset-y-treshold and ixsl:style($block-controls)?display = 'none'">
-            <ixsl:set-style name="display" select="'block'" object="$block-controls"/>
+        <xsl:if test="$offset-y &lt;= $offset-y-treshold and ixsl:style($btn-edit-block)?display = 'none'">
+            <ixsl:set-style name="display" select="'block'" object="$btn-edit-block"/>
         </xsl:if>
         <!-- check that the mouse is outside the top edge and hide the block controls if they're not already hidden -->
-        <xsl:if test="$offset-y &gt; $offset-y-treshold and ixsl:style($block-controls)?display = 'block'">
-            <ixsl:set-style name="display" select="'none'" object="$block-controls"/>
+        <xsl:if test="$offset-y &gt; $offset-y-treshold and ixsl:style($btn-edit-block)?display = 'block'">
+            <ixsl:set-style name="display" select="'none'" object="$btn-edit-block"/>
         </xsl:if>
     </xsl:template>
 
