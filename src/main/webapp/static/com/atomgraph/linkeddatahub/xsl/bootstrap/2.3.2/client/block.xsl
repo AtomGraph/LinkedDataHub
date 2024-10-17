@@ -407,9 +407,12 @@ exclude-result-prefixes="#all"
     <!-- show block controls -->
     
     <xsl:template match="div[contains-token(@class, 'block')]" mode="ixsl:onmousemove"> <!-- TO-DO: better selector -->
+        <xsl:variable name="dom-x" select="ixsl:get(ixsl:event(), 'clientX')" as="xs:double"/>
         <xsl:variable name="dom-y" select="ixsl:get(ixsl:event(), 'clientY')" as="xs:double"/>
         <xsl:variable name="bound" select="ixsl:call(., 'getBoundingClientRect', [])"/>
+        <xsl:variable name="offset-x" select="$dom-y - ixsl:get($bound, 'x')" as="xs:double"/>
         <xsl:variable name="offset-y" select="$dom-y - ixsl:get($bound, 'y')" as="xs:double"/>
+        <xsl:variable name="offset-x-treshold" select="120" as="xs:double"/>
         <xsl:variable name="offset-y-treshold" select="20" as="xs:double"/>
 
 <!--        <xsl:message>
@@ -421,11 +424,11 @@ exclude-result-prefixes="#all"
             .row-block-controls z-index: <xsl:value-of select="ixsl:style($row-block-controls)?z-index"/>
         </xsl:message>
         <!-- check that the mouse is on the top edge and show the block controls if they're not already shown -->
-        <xsl:if test="$offset-y &lt;= $offset-y-treshold and ixsl:style($row-block-controls)?z-index = '-1'">
+        <xsl:if test="$offset-x &lt;= $offset-x-treshold and $offset-y &lt;= $offset-y-treshold and ixsl:style($row-block-controls)?z-index = '-1'">
             <ixsl:set-style name="z-index" select="'1'" object="$row-block-controls"/>
         </xsl:if>
         <!-- check that the mouse is outside the top edge and hide the block controls if they're not already hidden -->
-        <xsl:if test="$offset-y &gt; $offset-y-treshold and ixsl:style($row-block-controls)?z-index = '1'">
+        <xsl:if test="$offset-x &gt; $offset-x-treshold and $offset-y &gt; $offset-y-treshold and ixsl:style($row-block-controls)?z-index = '1'">
             <ixsl:set-style name="z-index" select="'-1'" object="$row-block-controls"/>
         </xsl:if>
     </xsl:template>
