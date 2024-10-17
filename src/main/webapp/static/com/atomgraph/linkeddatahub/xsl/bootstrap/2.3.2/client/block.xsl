@@ -408,7 +408,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="bound" select="ixsl:call(., 'getBoundingClientRect', [])"/>
         <xsl:variable name="y" select="ixsl:get($bound, 'y')" as="xs:double"/>
         <xsl:message>
-            .block onmousemove $y: <xsl:value-of select="$y"/>
+            .block onmousemove @id: <xsl:value-of select="@id"/> $y: <xsl:value-of select="$y"/>
         </xsl:message>
         
         <!-- check that the mouse is on the top edge -->
