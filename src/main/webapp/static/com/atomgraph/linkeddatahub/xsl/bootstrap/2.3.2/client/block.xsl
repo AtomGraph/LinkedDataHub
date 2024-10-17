@@ -410,7 +410,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="dom-x" select="ixsl:get(ixsl:event(), 'clientX')" as="xs:double"/>
         <xsl:variable name="dom-y" select="ixsl:get(ixsl:event(), 'clientY')" as="xs:double"/>
         <xsl:variable name="bound" select="ixsl:call(., 'getBoundingClientRect', [])"/>
-        <xsl:variable name="offset-x" select="$dom-y - ixsl:get($bound, 'x')" as="xs:double"/>
+        <xsl:variable name="offset-x" select="$dom-x - ixsl:get($bound, 'x')" as="xs:double"/>
         <xsl:variable name="offset-y" select="$dom-y - ixsl:get($bound, 'y')" as="xs:double"/>
         <xsl:variable name="offset-x-treshold" select="120" as="xs:double"/>
         <xsl:variable name="offset-y-treshold" select="20" as="xs:double"/>
@@ -422,6 +422,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="row-block-controls" select="key('elements-by-class', 'row-block-controls', .)" as="element()"/>
         <xsl:message>
             .row-block-controls z-index: <xsl:value-of select="ixsl:style($row-block-controls)?z-index"/>
+            $offset-x: <xsl:value-of select="$offset-x"/> $offset-y: <xsl:value-of select="$offset-y"/>
         </xsl:message>
         <!-- check that the mouse is on the top edge and show the block controls if they're not already shown -->
         <xsl:if test="$offset-x &lt;= $offset-x-treshold and $offset-y &lt;= $offset-y-treshold and ixsl:style($row-block-controls)?z-index = '-1'">
