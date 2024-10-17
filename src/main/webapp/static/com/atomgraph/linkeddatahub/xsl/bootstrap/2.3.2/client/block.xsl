@@ -405,18 +405,23 @@ exclude-result-prefixes="#all"
     <!-- show block controls -->
     
     <xsl:template match="div[contains-token(@class, 'block')]" mode="ixsl:onmousemove"> <!-- TO-DO: better selector -->
-        <xsl:variable name="dom-y" select="ixsl:get(ixsl:event(), 'clientY')"/>
+        <xsl:variable name="dom-y" select="ixsl:get(ixsl:event(), 'clientY')" as="xs:double"/>
         <xsl:variable name="bound" select="ixsl:call(., 'getBoundingClientRect', [])"/>
-        <xsl:variable name="offset-y" select="$dom-y - ixsl:get($bound, 'y')"/>
+        <xsl:variable name="offset-y" select="$dom-y - ixsl:get($bound, 'y')" as="xs:double"/>
+        <xsl:variable name="offset-y-treshold" select="20" as="xs:double"/>
 
         <xsl:message>
             .block onmousemove @id: <xsl:value-of select="@id"/> $offset-y: <xsl:value-of select="$offset-y"/>
         </xsl:message>
         
-        <!-- check that the mouse is on the top edge -->
-        <xsl:if test="$offset-y &lt; 20">
-<!--            <ixsl:set-style name="display" select="'block'" object="id('doc-tree', ixsl:page())"/>-->
-            <xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ 'toggle block actions' ])"/>
+        <xsl:variable name="block-controls" select="key('elements-by-class', 'row-block-controls', .)" as="element()"/>
+        <!-- check that the mouse is on the top edge and show the block controls if they're not already shown -->
+        <xsl:if test="$offset-y &lt;= $offset-y-treshold and ixsl:style($block-controls)?display = 'none'">
+            <ixsl:set-style name="display" select="'block'" object="$block-controls"/>
+        </xsl:if>
+        <!-- check that the mouse is outside the top edge and hide the block controls if they're not already hidden -->
+        <xsl:if test="$offset-y &gt; $offset-y-treshold and ixsl:style($block-controls)?display = 'block'">
+            <ixsl:set-style name="display" select="'none'" object="$block-controls"/>
         </xsl:if>
     </xsl:template>
 
