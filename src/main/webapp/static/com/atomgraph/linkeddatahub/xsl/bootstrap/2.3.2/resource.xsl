@@ -489,7 +489,7 @@ extension-element-prefixes="ixsl"
             </xsl:if>
 
             <div class="span12 progress progress-striped active">
-                <div class="row-fluid" style="position: relative; top: 30px; margin-top: -30px; z-index: 1;">
+                <div class="row-fluid row-block-controls" style="position: relative; top: 30px; margin-top: -30px; z-index: 1; display: none;">
                     <div class="span12">
                         <button type="button" class="btn btn-edit pull-right">
                             <xsl:apply-templates select="key('resources', '&ac;EditMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>

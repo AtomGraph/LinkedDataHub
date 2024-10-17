@@ -402,6 +402,19 @@ exclude-result-prefixes="#all"
     
     <!-- EVENT LISTENERS -->
     
+    <!-- show block controls -->
+    
+    <xsl:template match="div[contains-token(@class, 'row-fluid')]" mode="ixsl:onmousemove"> <!-- TO-DO: better selector -->
+        <xsl:variable name="bound" select="ixsl:call($selected-node, 'getBoundingClientRect', [])"/>
+        <xsl:variable name="y" select="ixsl:get($bound, 'y')" as="xs:integer"/>
+        
+        <!-- check that the mouse is on the top edge -->
+        <xsl:if test="$y &lt; 20">
+<!--            <ixsl:set-style name="display" select="'block'" object="id('doc-tree', ixsl:page())"/>-->
+            <xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ 'toggle block actions' ])"/>
+        </xsl:if>
+    </xsl:template>
+
     <!-- override inline editing form for content types (do nothing if the button is disabled) - prioritize over form.xsl -->
     
     <xsl:template match="div[following-sibling::div[@typeof = ('&ldh;XHTML', '&ldh;View', '&ldh;Object')]]//button[contains-token(@class, 'btn-edit')][not(contains-token(@class, 'disabled'))]" mode="ixsl:onclick" priority="1">
