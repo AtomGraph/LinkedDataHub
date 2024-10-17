@@ -405,14 +405,13 @@ exclude-result-prefixes="#all"
     <!-- show block controls -->
     
     <xsl:template match="div[contains-token(@class, 'block')]" mode="ixsl:onmousemove"> <!-- TO-DO: better selector -->
-        <xsl:variable name="bound" select="ixsl:call(., 'getBoundingClientRect', [])"/>
-        <xsl:variable name="y" select="ixsl:get($bound, 'y')" as="xs:double"/>
+        <xsl:variable name="offset-y" select="ixsl:get(ixsl:event(), 'offsetY')" as="xs:double"/>
         <xsl:message>
-            .block onmousemove @id: <xsl:value-of select="@id"/> $y: <xsl:value-of select="$y"/>
+            .block onmousemove @id: <xsl:value-of select="@id"/> $offset-y: <xsl:value-of select="$offset-y"/>
         </xsl:message>
         
         <!-- check that the mouse is on the top edge -->
-        <xsl:if test="$y &lt; 20">
+        <xsl:if test="$offset-y &lt; 20">
 <!--            <ixsl:set-style name="display" select="'block'" object="id('doc-tree', ixsl:page())"/>-->
             <xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ 'toggle block actions' ])"/>
         </xsl:if>
