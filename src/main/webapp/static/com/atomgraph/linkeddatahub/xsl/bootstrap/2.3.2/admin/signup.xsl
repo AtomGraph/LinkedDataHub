@@ -66,14 +66,10 @@ exclude-result-prefixes="#all">
         <xsl:variable name="constructors" select="ldh:query-result(map{}, resolve-uri('ns', $ldt:base), $constructor-query || ' VALUES $Type { ' || string-join(for $type in '&foaf;Person' return '&lt;' || $type || '&gt;', ' ') || ' }')" as="document-node()?"/>
         <xsl:apply-templates select="ldh:construct(map{ xs:anyURI('&foaf;Person'): $constructors//srx:result[srx:binding[@name = 'Type'] = '&foaf;Person']/srx:binding[@name = 'construct']/srx:literal/string() })" mode="bs2:RowForm">
             <xsl:with-param name="id" select="'form-signup'"/>
+            <xsl:with-param name="method" select="'post'"/> <!-- don't use PATCH which is the default -->
             <xsl:with-param name="action" select="ac:absolute-path(base-uri($main-doc))"/>
             <xsl:with-param name="enctype" select="()"/> <!-- don't use 'multipart/form-data' which is the default -->
             <xsl:with-param name="create-resource" select="false()"/>
-            <!--
-            <xsl:with-param name="constructor-query" select="$constructor-query" tunnel="yes"/>
-            <xsl:with-param name="constraint-query" select="$constraint-query" tunnel="yes"/>
-            <xsl:with-param name="shape-query" select="$shape-query" tunnel="yes"/>
-            -->
             <xsl:with-param name="base-uri" select="ac:absolute-path(base-uri($main-doc))" tunnel="yes"/> <!-- base-uri() is empty on constructed documents -->
         </xsl:apply-templates>
     </xsl:template>
@@ -82,14 +78,10 @@ exclude-result-prefixes="#all">
     <xsl:template match="rdf:RDF[if (doc-available(ac:absolute-path($ldh:requestUri))) then (key('resources', ac:absolute-path($ldh:requestUri), document(ac:absolute-path($ldh:requestUri)))/rdf:type/@rdf:resource = '&adm;SignUp') else false()][$ac:method = 'POST'][key('resources-by-type', '&spin;ConstraintViolation') or key('resources-by-type', '&sh;ValidationResult')]" mode="bs2:Row" priority="3">
         <xsl:apply-templates select="." mode="bs2:RowForm">
             <xsl:with-param name="id" select="'form-signup'"/>
+            <xsl:with-param name="method" select="'post'"/> <!-- don't use PATCH which is the default -->
             <xsl:with-param name="action" select="ac:absolute-path(base-uri($main-doc))"/>
             <xsl:with-param name="enctype" select="()"/>
             <xsl:with-param name="create-resource" select="false()"/>
-            <!--
-            <xsl:with-param name="constructor-query" select="$constructor-query" tunnel="yes"/>
-            <xsl:with-param name="constraint-query" select="$constraint-query" tunnel="yes"/>
-            <xsl:with-param name="shape-query" select="$shape-query" tunnel="yes"/>
-            -->
             <xsl:with-param name="base-uri" select="ac:absolute-path(base-uri($main-doc))" tunnel="yes"/> <!-- base-uri() is empty on constructed documents -->
         </xsl:apply-templates>
     </xsl:template>

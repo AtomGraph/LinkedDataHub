@@ -232,6 +232,7 @@ import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.apache.connector.ApacheClientProperties;
 import org.glassfish.jersey.apache.connector.ApacheConnectorProvider;
 import org.glassfish.jersey.client.ClientProperties;
+import org.glassfish.jersey.client.RequestEntityProcessing;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.glassfish.jersey.process.internal.RequestScoped;
 import org.glassfish.jersey.server.ResourceConfig;
@@ -626,6 +627,7 @@ public class Application extends ResourceConfig
             importClient = getClient(keyStore, clientKeyStorePassword, trustStore, maxConnPerRoute, maxTotalConn, importKeepAliveStrategy);
             noCertClient = getNoCertClient(trustStore, maxConnPerRoute, maxTotalConn);
             
+            importClient.property(ClientProperties.REQUEST_ENTITY_PROCESSING, RequestEntityProcessing.BUFFERED); // https://stackoverflow.com/questions/42139436/jersey-client-throws-cannot-retry-request-with-a-non-repeatable-request-entity
             if (maxContentLength != null)
             {
                 client.register(new ContentLengthLimitFilter(maxContentLength));
