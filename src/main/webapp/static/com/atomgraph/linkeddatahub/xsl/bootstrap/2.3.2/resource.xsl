@@ -930,7 +930,6 @@ extension-element-prefixes="ixsl"
         <xsl:param name="id" select="concat('constructor-', generate-id())" as="xs:string?"/>
         <xsl:param name="with-label" select="false()" as="xs:boolean"/>
         <xsl:param name="base-uri" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI" tunnel="yes"/>
-<!--        <xsl:variable name="forShape" select="@rdf:about" as="xs:anyURI"/>-->
         
         <button title="{@rdf:about}" data-for-shape="{@rdf:about}">
             <xsl:if test="$id">
@@ -1059,11 +1058,10 @@ extension-element-prefixes="ixsl"
     <!-- ROW FORM -->
 
     <!-- hide constraint violations and HTTP responses in the form - they are displayed as errors on the edited resources -->
-    <xsl:template match="*[rdf:type/@rdf:resource = ('&spin;ConstraintViolation', '&sh;ValidationResult', '&sh;ValidationReport', '&http;Response')]" mode="bs2:RowForm" priority="3" use-when="system-property('xsl:product-name') = 'SAXON'"/>
+    <xsl:template match="*[rdf:type/@rdf:resource = ('&spin;ConstraintViolation', '&sh;ValidationResult', '&sh;ValidationReport', '&http;Response')]" mode="bs2:RowForm" priority="3"/>
 
     <!-- hide object blank nodes that only have a single rdf:type property from constructed models, unless the type is owl:NamedIndividual -->
     <xsl:template match="*[@rdf:nodeID][$ac:method = 'GET'][key('predicates-by-object', @rdf:nodeID)][not(* except rdf:type or rdf:type/@rdf:resource = '&owl;NamedIndividual')]" mode="bs2:RowForm" priority="2" use-when="system-property('xsl:product-name') = 'SAXON'"/>
-
     <!-- hide object blank nodes that only have a single rdf:type property from constructed models, unless the type is owl:NamedIndividual -->
     <xsl:template match="*[@rdf:nodeID][key('predicates-by-object', @rdf:nodeID)][not(* except rdf:type or rdf:type/@rdf:resource = '&owl;NamedIndividual')]" mode="bs2:RowForm" priority="2" use-when="system-property('xsl:product-name') eq 'SaxonJS'"/>
 
@@ -1451,7 +1449,7 @@ extension-element-prefixes="ixsl"
     
     <!-- VIOLATION -->
 
-    <xsl:template match="*[rdf:type/@rdf:resource = '&ldh;URISyntaxViolation']" mode="bs2:Violation" use-when="system-property('xsl:product-name') = 'SAXON'">
+    <xsl:template match="*[rdf:type/@rdf:resource = '&ldh;URISyntaxViolation']" mode="bs2:Violation">
         <xsl:param name="class" select="'alert alert-error'" as="xs:string?"/>
 
         <div>
@@ -1468,7 +1466,7 @@ extension-element-prefixes="ixsl"
     </xsl:template>
         
     <!-- take constraint labels from sitemap instead of response, if possible -->
-    <xsl:template match="*[rdf:type/@rdf:resource = '&spin;ConstraintViolation']" mode="bs2:Violation" use-when="system-property('xsl:product-name') = 'SAXON'">
+    <xsl:template match="*[rdf:type/@rdf:resource = '&spin;ConstraintViolation']" mode="bs2:Violation">
         <xsl:param name="class" select="'alert alert-error'" as="xs:string?"/>
 
         <div>
@@ -1486,7 +1484,7 @@ extension-element-prefixes="ixsl"
         </div>
     </xsl:template>
     
-    <xsl:template match="*[rdf:type/@rdf:resource = '&sh;ValidationResult']" mode="bs2:Violation" use-when="system-property('xsl:product-name') = 'SAXON'">
+    <xsl:template match="*[rdf:type/@rdf:resource = '&sh;ValidationResult']" mode="bs2:Violation">
         <xsl:param name="class" select="'alert alert-error'" as="xs:string?"/>
 
         <div>
@@ -1504,11 +1502,11 @@ extension-element-prefixes="ixsl"
     
     <!-- EXCEPTION -->
     
-    <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:Exception" use-when="system-property('xsl:product-name') = 'SAXON'"/>
+    <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:Exception"/>
 
     <!-- OBJECT -->
     
-    <xsl:template match="*[*][@rdf:about or @rdf:nodeID]" mode="bs2:Object" use-when="system-property('xsl:product-name') = 'SAXON'"/>
+    <xsl:template match="*[*][@rdf:about or @rdf:nodeID]" mode="bs2:Object"/>
 
     <!-- ### SHARED BETWEEN SERVER AND CLIENT -->
     

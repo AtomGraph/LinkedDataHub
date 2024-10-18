@@ -301,6 +301,8 @@ public class ValidatingModelProvider extends com.atomgraph.server.io.ValidatingM
      */
     public static Statement mboxHashStmt(Statement stmt, MessageDigest messageDigest)
     {
+        if (!stmt.getObject().isURIResource()) return stmt; // don't hash if the mbox value is not a URI
+        
         try (InputStream is = new ByteArrayInputStream(stmt.getResource().getURI().getBytes(StandardCharsets.UTF_8));
             DigestInputStream dis = new DigestInputStream(is, messageDigest))
         {

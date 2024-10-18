@@ -458,13 +458,6 @@ WHERE
         </a>
     </xsl:template>
     
-    <!-- if document has a topic, show it as the typeahead value instead -->
-    <!--
-    <xsl:template match="*[*][key('resources', foaf:primaryTopic/@rdf:resource)]" mode="ldh:Typeahead">
-        <xsl:apply-templates select="key('resources', foaf:primaryTopic/@rdf:resource)" mode="#current"/>
-    </xsl:template>
-    -->
-    
     <!-- classes for system container breadcrumbs -->
     
     <xsl:template match="*[@rdf:about = map:keys($system-containers)]" mode="bs2:BreadCrumbListItem" priority="1">

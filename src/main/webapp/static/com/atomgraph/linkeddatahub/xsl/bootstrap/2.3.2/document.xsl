@@ -207,7 +207,7 @@ extension-element-prefixes="ixsl"
         </xsl:if>
     </xsl:template>
         
-    <!-- BLOCK -->
+    <!-- ROW -->
     
     <xsl:template match="rdf:RDF" mode="bs2:Row">
         <xsl:param name="create-resource" select="true()" as="xs:boolean"/>

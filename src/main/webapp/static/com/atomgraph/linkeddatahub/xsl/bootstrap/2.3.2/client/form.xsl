@@ -380,7 +380,7 @@ WHERE
                 <xsl:variable name="object-uris" select="distinct-values($resource/*/@rdf:resource[not(key('resources', .))])" as="xs:string*"/>
                 <xsl:variable name="query-string" select="$object-metadata-query || ' VALUES $this { ' || string-join(for $uri in $object-uris return '&lt;' || $uri || '&gt;', ' ') || ' }'" as="xs:string"/>
                 <xsl:variable name="request-uri" select="ac:build-uri(resolve-uri('sparql', $ldt:base), map{ 'query': $query-string, 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
-                <xsl:variable name="object-metadata" select="document($request-uri)" as="document-node()"/>
+                <xsl:variable name="object-metadata" select="if (doc-available($request-uri)) then document($request-uri) else ()" as="document-node()?"/>
                 <xsl:message>
                     $object-uris: <xsl:value-of select="$object-uris"/>
                     $object-metadata: <xsl:value-of select="serialize($object-metadata)"/>
@@ -587,7 +587,6 @@ WHERE
         <xsl:variable name="id" select="ixsl:get($form, 'id')" as="xs:string"/>
         <xsl:variable name="action" select="ixsl:get($form, 'action')" as="xs:anyURI"/>
         <xsl:variable name="enctype" select="ixsl:get($form, 'enctype')" as="xs:string"/>
-<!--        <xsl:variable name="accept" select="'application/xhtml+xml'" as="xs:string"/>-->
         <xsl:variable name="about" select="$block/@about" as="xs:anyURI"/>
         <xsl:message>ldh:base-uri(.): <xsl:value-of select="ldh:base-uri(.)"/></xsl:message>
         <xsl:variable name="etag" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path(ldh:base-uri(.)) || '`'), 'etag')" as="xs:string"/>
@@ -770,56 +769,60 @@ WHERE
             </xsl:when>
             <!-- POST or PUT constraint violation response is 422 Unprocessable Entity, bad RDF syntax is 400 Bad Request -->
             <xsl:when test="?status = (400, 422) and starts-with(?media-type, 'application/rdf+xml')"> <!-- allow 'application/rdf+xml;charset=UTF-8' as well -->
-                
-                <xsl:variable name="body" select="?body" as="document-node()"/>
-                <!-- iterate each form fieldset as resource -->
-                <xsl:for-each select="$form/fieldset">
-                    <!-- guard against multiple subject URI/bnode values as there can be nested fieldsets -->
-                    <xsl:variable name="resource-uri" select="(.//input[@name = 'su'])[1]/ixsl:get(., 'value')" as="xs:anyURI?"/>
-                    <xsl:variable name="resource-bnode" select="(.//input[@name = 'sb'])[1]/ixsl:get(., 'value')" as="xs:string?"/>
-                    <xsl:message>
-                        $resource-uri: <xsl:value-of select="$resource-uri"/>
-                        $resource-bnode: <xsl:value-of select="$resource-bnode"/>
-                    </xsl:message>
-                    <!-- select violations specific to this resource -->
-                    <!-- TO-DO: key('violations-by-value', $resources//*/@rdf:resource, ?body) -->
-                    <xsl:variable name="violations" select="key('violations-by-root', ($resource-uri, $resource-bnode), $body) | key('violations-by-focus-node', ($resource-uri, $resource-bnode), $body)" as="element()*"/>
-                    <xsl:message>$violations: <xsl:value-of select="serialize($violations)"/></xsl:message>
+                <xsl:variable name="forClass" select="$container/@typeof" as="xs:anyURI"/>
+                <xsl:variable name="resource" select="key('resources-by-type', $forClass, ?body)[not(key('predicates-by-object', @rdf:nodeID)[not(../rdf:type/@rdf:resource = '&spin;ConstraintViolation')])]" as="element()"/>
+                <!-- TO-DO: refactor to use asynchronous HTTP requests -->
+                <xsl:variable name="types" select="distinct-values($resource/rdf:type/@rdf:resource)" as="xs:anyURI*"/>
+                <xsl:variable name="property-uris" select="distinct-values($resource/*/concat(namespace-uri(), local-name()))" as="xs:string*"/>
+                <xsl:variable name="query-string" select="'DESCRIBE $Type VALUES $Type { ' || string-join(for $uri in $property-uris return '&lt;' || $uri || '&gt;', ' ') || ' }'" as="xs:string"/>
+                <xsl:variable name="request-uri" select="ac:build-uri(resolve-uri('ns', $ldt:base), map{ 'query': $query-string, 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
+                <xsl:variable name="property-metadata" select="document($request-uri)" as="document-node()"/>
 
-                    <!-- iterate control groups as properties -->
-                    <xsl:for-each select="./div[contains-token(@class, 'control-group')][input[@name = 'pu']]">
-                        <xsl:variable name="predicate" select="input[@name = 'pu']/ixsl:get(., 'value')" as="xs:anyURI"/>
-                        
-                        <xsl:choose>
-                            <!-- if there are SPIN or SHACL violations specific to the predicate of this control group, set error class on the group -->
-                            <!-- TO-DO: @rdf:resource = $violations/ldh:violationValue -->
-                            <xsl:when test="$violations[spin:violationPath/@rdf:resource = $predicate or sh:resultPath/@rdf:resource = $predicate]">
-                                <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'error', true() ])[current-date() lt xs:date('2000-01-01')]"/>
-                            </xsl:when>
-                            <!-- otherwise, remove the error class -->
-                            <xsl:otherwise>
-                                <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'error', false() ])[current-date() lt xs:date('2000-01-01')]"/>
-                            </xsl:otherwise>
-                        </xsl:choose>
-                    </xsl:for-each>
-                    
-                    <xsl:for-each select="./div[contains-token(@class, 'violations')]">
-                        <xsl:choose>
-                            <!-- render violations if they exist for this resource -->
-                            <xsl:when test="exists($violations)">
-                                <xsl:result-document href="?." method="ixsl:replace-content">
-                                    <xsl:apply-templates select="$violations" mode="bs2:Violation"/>
-                                </xsl:result-document>
-                                <ixsl:set-style name="display" select="'block'"/>
-                            </xsl:when>
-                            <!-- hide any previous violations if this resource now has none -->
-                            <xsl:otherwise>
-                                <ixsl:set-style name="display" select="'none'"/>
-                            </xsl:otherwise>
-                        </xsl:choose>
-                    </xsl:for-each>
-                </xsl:for-each>
+                <xsl:variable name="query-string" select="$constructor-query || ' VALUES $Type { ' || string-join(for $type in $types return '&lt;' || $type || '&gt;', ' ') || ' }'" as="xs:string"/>
+                <xsl:variable name="request-uri" select="ac:build-uri(resolve-uri('ns', $ldt:base), map{ 'query': $query-string, 'accept': 'application/sparql-results+xml' })" as="xs:anyURI"/>
+                <xsl:variable name="constructors" select="if (exists($types)) then document($request-uri) else ()" as="document-node()?"/>
+
+                <xsl:message>
+                    ConstraintViolation $constructors: <xsl:value-of select="serialize($constructors)"/>
+                </xsl:message>
+
+                <xsl:variable name="query-string" select="$constraint-query || ' VALUES $Type { ' || string-join(for $type in $types return '&lt;' || $type || '&gt;', ' ') || ' }'" as="xs:string"/>
+                <xsl:variable name="request-uri" select="ac:build-uri(resolve-uri('ns', $ldt:base), map{ 'query': $query-string, 'accept': 'application/sparql-results+xml' })" as="xs:anyURI"/>
+                <xsl:variable name="constraints" select="if (exists($types)) then document($request-uri) else ()" as="document-node()?"/>
                 
+                <xsl:variable name="query-string" select="$shape-query || ' VALUES $Type { ' || string-join(for $type in $types return '&lt;' || $type || '&gt;', ' ') || ' }'" as="xs:string"/>
+                <xsl:variable name="request-uri" select="ac:build-uri(resolve-uri('ns', $ldt:base), map{ 'query': $query-string, 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
+                <xsl:variable name="shapes" select="document($request-uri)" as="document-node()"/>
+
+                <xsl:variable name="object-uris" select="distinct-values($resource/*/@rdf:resource[not(key('resources', .))])" as="xs:string*"/>
+                <xsl:variable name="query-string" select="$object-metadata-query || ' VALUES $this { ' || string-join(for $uri in $object-uris return '&lt;' || $uri || '&gt;', ' ') || ' }'" as="xs:string"/>
+                <xsl:variable name="request-uri" select="ac:build-uri(resolve-uri('sparql', $ldt:base), map{ 'query': $query-string, 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
+                <xsl:variable name="object-metadata" select="if (doc-available($request-uri)) then document($request-uri) else ()" as="document-node()?"/>
+                <xsl:message>
+                    $object-uris: <xsl:value-of select="$object-uris"/>
+                    $object-metadata: <xsl:value-of select="serialize($object-metadata)"/>
+                </xsl:message>
+                
+                <xsl:variable name="row-form" as="node()*">
+                    <xsl:apply-templates select="$resource" mode="bs2:RowForm">
+                        <xsl:with-param name="method" select="$form/@method"/>
+<!--                        <xsl:with-param name="type-metadata" select="$type-metadata" tunnel="yes"/>-->
+                        <xsl:with-param name="property-metadata" select="$property-metadata" tunnel="yes"/>
+                        <xsl:with-param name="constructors" select="$constructors" tunnel="yes"/>
+                        <xsl:with-param name="constraints" select="$constraints" tunnel="yes"/>
+                        <xsl:with-param name="shapes" select="$shapes" tunnel="yes"/>
+                        <xsl:with-param name="object-metadata" select="$object-metadata" tunnel="yes"/>
+                    </xsl:apply-templates>
+                </xsl:variable>
+                
+                <xsl:for-each select="$block">
+                    <xsl:result-document href="?." method="ixsl:replace-content">
+                        <xsl:copy-of select="$row-form/*"/>
+                    </xsl:result-document>
+
+                    <xsl:apply-templates select="." mode="ldh:PostConstruct"/>
+                </xsl:for-each>
+
                 <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
             </xsl:when>
             <!-- error response -->
