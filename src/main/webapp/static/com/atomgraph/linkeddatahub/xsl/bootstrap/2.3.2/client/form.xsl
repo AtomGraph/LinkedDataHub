@@ -774,8 +774,9 @@ WHERE
                 <xsl:variable name="body" select="?body" as="document-node()"/>
                 <!-- iterate each form fieldset as resource -->
                 <xsl:for-each select="$form/fieldset">
-                    <xsl:variable name="resource-uri" select=".//input[@name = 'su']/ixsl:get(., 'value')" as="xs:anyURI?"/>
-                    <xsl:variable name="resource-bnode" select=".//input[@name = 'sb']/ixsl:get(., 'value')" as="xs:string?"/>
+                    <!-- guard against multiple subject URI/bnode values as there can be nested fieldsets -->
+                    <xsl:variable name="resource-uri" select=".//input[@name = 'su'][1]/ixsl:get(., 'value')" as="xs:anyURI?"/>
+                    <xsl:variable name="resource-bnode" select=".//input[@name = 'sb'][1]/ixsl:get(., 'value')" as="xs:string?"/>
                     <xsl:message>
                         $resource-uri: <xsl:value-of select="$resource-uri"/>
                         $resource-bnode: <xsl:value-of select="$resource-bnode"/>
