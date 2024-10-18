@@ -622,12 +622,11 @@ public class Application extends ResourceConfig
             trustStore = KeyStore.getInstance("JKS");
             trustStore.load(new FileInputStream(new java.io.File(new URI(clientTrustStoreURIString))), clientTrustStorePassword.toCharArray());
             
-            client = getClient(keyStore, clientKeyStorePassword, trustStore, maxConnPerRoute, maxTotalConn, null);
-            externalClient = getClient(keyStore, clientKeyStorePassword, trustStore, maxConnPerRoute, maxTotalConn, null);
-            importClient = getClient(keyStore, clientKeyStorePassword, trustStore, maxConnPerRoute, maxTotalConn, importKeepAliveStrategy);
+            client = getClient(keyStore, clientKeyStorePassword, trustStore, maxConnPerRoute, maxTotalConn, null, false);
+            externalClient = getClient(keyStore, clientKeyStorePassword, trustStore, maxConnPerRoute, maxTotalConn, null, false);
+            importClient = getClient(keyStore, clientKeyStorePassword, trustStore, maxConnPerRoute, maxTotalConn, importKeepAliveStrategy, true);
             noCertClient = getNoCertClient(trustStore, maxConnPerRoute, maxTotalConn);
             
-            importClient.property(ClientProperties.REQUEST_ENTITY_PROCESSING, RequestEntityProcessing.BUFFERED); // https://stackoverflow.com/questions/42139436/jersey-client-throws-cannot-retry-request-with-a-non-repeatable-request-entity
             if (maxContentLength != null)
             {
                 client.register(new ContentLengthLimitFilter(maxContentLength));
@@ -1325,13 +1324,14 @@ public class Application extends ResourceConfig
      * @param maxConnPerRoute max connections per route
      * @param maxTotalConn max total connections
      * @param keepAliveStrategy keep-alive strategy (specific to Apache HTTP client)
+     * @param buffered true if request entity should be buffered
      * @return client instance
      * @throws NoSuchAlgorithmException SSL algorithm error
      * @throws KeyStoreException keystore loading error
      * @throws UnrecoverableKeyException key loading error
      * @throws KeyManagementException key loading error
      */
-    public static Client getClient(KeyStore keyStore, String keyStorePassword, KeyStore trustStore, Integer maxConnPerRoute, Integer maxTotalConn, ConnectionKeepAliveStrategy keepAliveStrategy) throws NoSuchAlgorithmException, KeyStoreException, UnrecoverableKeyException, KeyManagementException
+    public static Client getClient(KeyStore keyStore, String keyStorePassword, KeyStore trustStore, Integer maxConnPerRoute, Integer maxTotalConn, ConnectionKeepAliveStrategy keepAliveStrategy, boolean buffered) throws NoSuchAlgorithmException, KeyStoreException, UnrecoverableKeyException, KeyManagementException
     {
         if (keyStore == null) throw new IllegalArgumentException("KeyStore cannot be null");
         if (keyStorePassword == null) throw new IllegalArgumentException("KeyStore password string cannot be null");
@@ -1397,6 +1397,7 @@ public class Application extends ResourceConfig
         config.property(ClientProperties.FOLLOW_REDIRECTS, true);
         config.property(ApacheClientProperties.CONNECTION_MANAGER, conman);
         if (keepAliveStrategy != null) config.property(ApacheClientProperties.KEEPALIVE_STRATEGY, keepAliveStrategy);
+        if (buffered) config.property(ClientProperties.REQUEST_ENTITY_PROCESSING, RequestEntityProcessing.BUFFERED); // https://stackoverflow.com/questions/42139436/jersey-client-throws-cannot-retry-request-with-a-non-repeatable-request-entity
 
         return ClientBuilder.newBuilder().
             withConfig(config).
