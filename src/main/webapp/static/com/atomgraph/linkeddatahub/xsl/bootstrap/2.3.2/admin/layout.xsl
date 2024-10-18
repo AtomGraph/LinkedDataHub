@@ -140,19 +140,21 @@ exclude-result-prefixes="#all">
     <xsl:template match="rdf:RDF[$ac:method = 'GET']" mode="bs2:RowForm" use-when="system-property('xsl:product-name') = 'SAXON'">
         <xsl:param name="id" select="concat('form-', generate-id())" as="xs:string?"/>
         <xsl:param name="class" select="'row-fluid'" as="xs:string?"/>
+        <xsl:param name="method" select="'patch'" as="xs:string"/>
         <xsl:param name="action" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, ac:build-uri(ac:absolute-path(ldh:base-uri(.)), map{ '_method': 'PUT', 'mode': for $mode in $ac:mode return string($mode) }))" as="xs:anyURI"/>
         <xsl:param name="enctype" select="'multipart/form-data'" as="xs:string?"/>
         <xsl:param name="create-resource" select="true()" as="xs:boolean"/>
         <!-- TO-DO: generate ontology classes from the OWL vocabulary -->
-        <xsl:param name="ontology-classes" select="for $class-uri in ('&ldh;Constructor', '&owl;Class', '&owl;DatatypeProperty', '&owl;ObjectProperty', '&owl;Restriction') return key('resources', $class-uri, document(ac:document-uri($class-uri)))" as="element()*"/>
+        <xsl:param name="classes" select="for $class-uri in ('&ldh;Constructor', '&owl;Class', '&owl;DatatypeProperty', '&owl;ObjectProperty', '&owl;Restriction') return key('resources', $class-uri, document(ac:document-uri($class-uri)))" as="element()*"/>
 
         <xsl:next-match>
             <xsl:with-param name="id" select="$id"/>
             <xsl:with-param name="class" select="$class"/>
+            <xsl:with-param name="method" select="$method"/>
             <xsl:with-param name="action" select="$action"/>
             <xsl:with-param name="enctype" select="$enctype"/>
             <xsl:with-param name="create-resource" select="$create-resource"/>
-            <xsl:with-param name="classes" select="$ontology-classes"/>
+            <xsl:with-param name="classes" select="$classes"/>
         </xsl:next-match>
     </xsl:template>
     
