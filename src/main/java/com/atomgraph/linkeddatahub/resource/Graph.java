@@ -634,7 +634,7 @@ public class Graph extends GraphStoreImpl
         try
         {
             Service adminService = getApplication().canAs(EndUserApplication.class) ? getApplication().as(EndUserApplication.class).getAdminApplication().getService() : null;
-            LinkedDataClient ldc = LinkedDataClient.create(getSystem().getClient(), getSystem().getMediaTypes()).
+            LinkedDataClient ldc = LinkedDataClient.create(getSystem().getImportClient(), getSystem().getMediaTypes()).
                 delegation(getUriInfo().getBaseUri(), getAgentContext().orElse(null));
 
             while (it.hasNext())

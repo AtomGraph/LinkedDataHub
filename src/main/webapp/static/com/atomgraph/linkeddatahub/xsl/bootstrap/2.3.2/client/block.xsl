@@ -421,10 +421,6 @@ exclude-result-prefixes="#all"
         </xsl:message>-->
         
         <xsl:variable name="row-block-controls" select="key('elements-by-class', 'row-block-controls', .)" as="element()"/>
-        <xsl:message>
-            .row-block-controls z-index: <xsl:value-of select="ixsl:style($row-block-controls)?z-index"/>
-            $offset-x: <xsl:value-of select="$offset-x"/> $offset-y: <xsl:value-of select="$offset-y"/>
-        </xsl:message>
         <!-- check that the mouse is on the top edge and show the block controls if they're not already shown -->
         <xsl:if test="$offset-x &gt;= $width - $offset-x-treshold and $offset-y &lt;= $offset-y-treshold and ixsl:style($row-block-controls)?z-index = '-1'">
             <ixsl:set-style name="z-index" select="'1'" object="$row-block-controls"/>
