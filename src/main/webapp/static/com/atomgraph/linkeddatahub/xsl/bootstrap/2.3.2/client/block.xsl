@@ -406,7 +406,7 @@ exclude-result-prefixes="#all"
     
     <!-- show block controls -->
     
-    <xsl:template match="div[contains-token(@class, 'block')]" mode="ixsl:onmousemove"> <!-- TO-DO: better selector -->
+    <xsl:template match="div[contains-token(@class, 'block')][acl:mode() = '&acl;Write']" mode="ixsl:onmousemove"> <!-- TO-DO: better selector -->
         <xsl:variable name="dom-x" select="ixsl:get(ixsl:event(), 'clientX')" as="xs:double"/>
         <xsl:variable name="dom-y" select="ixsl:get(ixsl:event(), 'clientY')" as="xs:double"/>
         <xsl:variable name="rect" select="ixsl:call(., 'getBoundingClientRect', [])"/>
@@ -415,10 +415,6 @@ exclude-result-prefixes="#all"
         <xsl:variable name="width" select="ixsl:get($rect, 'width')" as="xs:double"/>
         <xsl:variable name="offset-x-treshold" select="120" as="xs:double"/>
         <xsl:variable name="offset-y-treshold" select="20" as="xs:double"/>
-
-<!--        <xsl:message>
-            .block onmousemove @id: <xsl:value-of select="@id"/> $offset-y: <xsl:value-of select="$offset-y"/>
-        </xsl:message>-->
         
         <xsl:variable name="row-block-controls" select="key('elements-by-class', 'row-block-controls', .)" as="element()"/>
         <!-- check that the mouse is on the top edge and show the block controls if they're not already shown -->
