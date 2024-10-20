@@ -461,11 +461,6 @@ extension-element-prefixes="ixsl"
         <xsl:param name="class" select="'row-fluid block'" as="xs:string?"/>
         <xsl:param name="about" select="@rdf:about" as="xs:anyURI?"/>
         <xsl:param name="typeof" select="rdf:type/@rdf:resource/xs:anyURI(.)" as="xs:anyURI*"/>
-        <!--
-        <xsl:param name="left-class" select="'left-nav span2'" as="xs:string?"/>
-        <xsl:param name="main-class" select="'main span7'" as="xs:string?"/>
-        <xsl:param name="right-class" select="'right-nav span3'" as="xs:string?"/>
-        -->
         <xsl:param name="draggable" select="$acl:mode = '&acl;Write'" as="xs:boolean?"/>
 
         <xsl:apply-templates select="key('resources', .)" mode="bs2:RowContentHeader"/>
@@ -493,9 +488,11 @@ extension-element-prefixes="ixsl"
             <div class="span12 progress progress-striped active">
                 <div class="row-fluid row-block-controls" style="position: relative; top: 30px; margin-top: -30px; z-index: 1;">
                     <div class="span12">
-                        <button type="button" class="btn btn-edit pull-right">
-                            <xsl:apply-templates select="key('resources', '&ac;EditMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
-                        </button>
+                        <xsl:if test="$acl:mode = '&acl;Write'">
+                            <button type="button" class="btn btn-edit pull-right">
+                                <xsl:apply-templates select="key('resources', '&ac;EditMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
+                            </button>
+                        </xsl:if>
                         <div class="row-fluid">
                             <div style="width: 50%;" class="span12 bar"></div>
                         </div>
@@ -548,9 +545,11 @@ extension-element-prefixes="ixsl"
             <div class="span12">
                 <div class="row-fluid row-block-controls" style="position: relative; top: 30px; margin-top: -30px; z-index: 1;">
                     <div class="span12">
-                        <button type="button" class="btn btn-edit pull-right">
-                            <xsl:apply-templates select="key('resources', '&ac;EditMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
-                        </button>
+                        <xsl:if test="$acl:mode = '&acl;Write'">
+                            <button type="button" class="btn btn-edit pull-right">
+                                <xsl:apply-templates select="key('resources', '&ac;EditMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
+                            </button>
+                        </xsl:if>
                     </div>
                 </div>
 
