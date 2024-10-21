@@ -110,13 +110,12 @@ public class CSVGraphStoreRowProcessor implements RowProcessor // extends com.at
      * 
      * @param entity request entity
      * @param graphURI the graph URI
-     * @return JAX-RS response
      */
-    protected Response add(Entity entity, String graphURI)
+    protected void add(Entity entity, String graphURI)
     {
         try (Response headResponse = getLinkedDataClient().head(URI.create(graphURI)))
         {
-            if (headResponse.getStatus() == Response.Status.OK.getStatusCode()) // POST if graph already exists
+            if (headResponse.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL)) // POST if graph already exists
             {
                 try (Response cr = getLinkedDataClient().post(URI.create(graphURI), getLinkedDataClient().getReadableMediaTypes(Model.class), entity))
                 {
@@ -125,10 +124,6 @@ public class CSVGraphStoreRowProcessor implements RowProcessor // extends com.at
                         if (log.isErrorEnabled()) log.error("RDF document with URI <{}> could not be successfully created using POST. Status code: {}", graphURI, cr.getStatus());
                         throw new ImportException(new IOException("RDF document with URI <" + graphURI + "> could not be successfully created using POST. Status code: " + cr.getStatus()));
                     }
-
-                    return Response.status(cr.getStatus()).
-                        entity(cr.readEntity(Model.class)).
-                        build();
                 }
             }
             else // PUT to create graph
@@ -140,10 +135,6 @@ public class CSVGraphStoreRowProcessor implements RowProcessor // extends com.at
                         if (log.isErrorEnabled()) log.error("RDF document with URI <{}> could not be successfully created using PUT. Status code: {}", graphURI, cr.getStatus());
                         throw new RuntimeException(new IOException("RDF document with URI <" + graphURI + "> could not be successfully created using PUT. Status code: " + cr.getStatus()));
                     }
-
-                    return Response.status(cr.getStatus()).
-                        entity(cr.readEntity(Model.class)).
-                        build();
                 }
             }
         }
