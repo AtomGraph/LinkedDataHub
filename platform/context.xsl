@@ -38,6 +38,7 @@ xmlns:google="&google;"
     <xsl:param name="ldhc:maxConnPerRoute"/>
     <xsl:param name="ldhc:maxTotalConn"/>
     <xsl:param name="ldhc:importKeepAlive"/>
+    <xsl:param name="ldhc:maxImportThreads"/>
     <xsl:param name="ldhc:notificationAddress"/>
     <xsl:param name="ldhc:enableWebIDSignUp"/>
     <xsl:param name="ldhc:oidcRefreshTokens"/>
@@ -126,6 +127,9 @@ xmlns:google="&google;"
             </xsl:if>
             <xsl:if test="$ldhc:importKeepAlive">
                 <Parameter name="&ldhc;importKeepAlive" value="{$ldhc:importKeepAlive}" override="false"/>
+            </xsl:if>
+            <xsl:if test="$ldhc:maxImportThreads">
+                <Parameter name="&ldhc;maxImportThreads" value="{$ldhc:maxImportThreads}" override="false"/>
             </xsl:if>
             <xsl:if test="$ldhc:notificationAddress">
                 <Parameter name="&ldhc;notificationAddress" value="{$ldhc:notificationAddress}" override="false"/>
