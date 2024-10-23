@@ -699,6 +699,7 @@ WHERE
         <xsl:param name="results-uri" as="xs:anyURI"/>
         <xsl:param name="block-uri" select="$results-uri" as="xs:anyURI"/>
         <xsl:param name="chart-canvas-id" as="xs:string"/>
+        <xsl:param name="chart-uri" as="xs:anyURI?"/>
         <xsl:param name="chart-type" select="xs:anyURI('&ac;Table')" as="xs:anyURI"/>
         <xsl:param name="category" as="xs:string?"/>
         <xsl:param name="series" as="xs:string*"/>
@@ -783,24 +784,22 @@ WHERE
                                 <xsl:with-param name="category" select="$category"/>
                                 <xsl:with-param name="series" select="$series"/>
                             </xsl:call-template>
-                            
-                            <!-- post-process the container -->
-                            <!-- <xsl:apply-templates select="$container" mode="ldh:BlockRendered"/> -->
                         </xsl:otherwise>
                     </xsl:choose>
                     
 <xsl:message>
 $block-uri: <xsl:copy-of select="$block-uri"/>
+$chart-uri: <xsl:copy-of select="$chart-uri"/>
 $results: <xsl:copy-of select="$results"/>
 $category: <xsl:value-of select="$category"/>
 $series: <xsl:value-of select="$series"/>
 </xsl:message>
 
                     <!-- create new cache entry using content URI as key -->
-                    <ixsl:set-property name="{'`' || $block-uri || '`'}" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.contents')"/>
-                    <ixsl:set-property name="results" select="$results" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`')"/>
+                    <ixsl:set-property name="{'`' || $chart-uri || '`'}" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.contents')"/>
+                    <ixsl:set-property name="results" select="$results" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $chart-uri || '`')"/>
                     <xsl:variable name="data-table" select="if ($results/rdf:RDF) then ac:rdf-data-table($results, $category, $series) else ac:sparql-results-data-table($results, $category, $series)"/>
-                    <ixsl:set-property name="data-table" select="$data-table" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`')"/>
+                    <ixsl:set-property name="data-table" select="$data-table" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $chart-uri || '`')"/>
 
                     <xsl:call-template name="ldh:RenderChart">
                         <xsl:with-param name="data-table" select="$data-table"/>

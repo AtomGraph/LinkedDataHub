@@ -201,13 +201,12 @@ exclude-result-prefixes="#all"
     </xsl:template>
     
     <!-- chart block -->
-    <xsl:template match="*[@typeof = ('&ldh;ResultSetChart', '&ldh;GraphChart')][descendant::*[@property = '&spin;query'][@resource]][descendant::*[@property = '&ldh;chartType'][@resource]]" mode="ldh:RenderBlock" priority="1">
+    <xsl:template match="*[@about][@typeof = ('&ldh;ResultSetChart', '&ldh;GraphChart')][descendant::*[@property = '&spin;query'][@resource]][descendant::*[@property = '&ldh;chartType'][@resource]]" mode="ldh:RenderBlock" priority="1">
         <xsl:param name="block" select="ancestor::div[@about][1]" as="element()"/>
-        <xsl:param name="about" select="$block/@about" as="xs:anyURI"/>
+        <xsl:param name="about" select="@about" as="xs:anyURI"/>
         <xsl:param name="container" select="." as="element()"/>
         <xsl:param name="graph" select="descendant::*[@property = '&ldh;graph']/@resource" as="xs:anyURI?"/>
         <xsl:param name="mode" select="descendant::*[@property = '&ac;mode']/@resource" as="xs:anyURI?"/>
-        <xsl:param name="block-uri" select="$about" as="xs:anyURI"/>
         <xsl:param name="container-id" select="ixsl:get($container, 'id')" as="xs:string"/>
         <xsl:param name="method" select="'patch'" as="xs:string"/>
         <xsl:param name="action" select="xs:anyURI('')" as="xs:anyURI"/>
@@ -323,6 +322,7 @@ exclude-result-prefixes="#all"
                     <xsl:with-param name="this" select="$about"/>
                     <xsl:with-param name="block" select="$block"/>
                     <xsl:with-param name="container-id" select="$container-id"/>
+                    <xsl:with-param name="chart-uri" select="$about"/>
                     <xsl:with-param name="query-uri" select="$query-uri"/>
                     <xsl:with-param name="chart-type" select="$chart-type"/>
                     <xsl:with-param name="category" select="$category"/>
@@ -448,6 +448,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="container" as="element()"/>
         <xsl:param name="this" as="xs:anyURI"/>
         <xsl:param name="container-id" as="xs:string"/>
+        <xsl:param name="chart-uri" as="xs:anyURI"/>
         <xsl:param name="query-uri" as="xs:anyURI"/>
         <xsl:param name="chart-type" as="xs:anyURI"/>
         <xsl:param name="category" as="xs:string?"/>
@@ -481,6 +482,7 @@ exclude-result-prefixes="#all"
                                 <xsl:with-param name="container" select="$container"/>
                                 <xsl:with-param name="chart-canvas-id" select="$canvas-id"/>
                                 <xsl:with-param name="block-uri" select="$block/@about"/>
+                                <xsl:with-param name="chart-uri" select="$chart-uri"/>
                                 <xsl:with-param name="chart-type" select="$chart-type"/>
                                 <xsl:with-param name="category" select="$category"/>
                                 <xsl:with-param name="series" select="$series"/>
