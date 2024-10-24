@@ -509,7 +509,7 @@ WHERE
         </xsl:param>
         <xsl:param name="request-body" select="$resources" as="document-node()"/>
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
-        <xsl:Variable name="modal" select="exists(ancestor::div[contains-token(@class, 'modal-constructor')])" as="xs:boolean"/>
+        <xsl:variable name="modal" select="exists(ancestor::div[contains-token(@class, 'modal-constructor')])" as="xs:boolean"/>
         <xsl:variable name="container" select="ancestor::div[@typeof][1]" as="element()"/>
         <xsl:variable name="block" select="$container" as="element()"/> <!-- block has no @about at this stage (before saving it) -->
         <xsl:variable name="form" select="." as="element()"/>
