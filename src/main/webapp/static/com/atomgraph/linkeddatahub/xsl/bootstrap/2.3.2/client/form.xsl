@@ -761,7 +761,8 @@ WHERE
 
                     <xsl:apply-templates select="." mode="ldh:RenderBlock"/>
 
-                    <xsl:apply-templates select="." mode="ldh:PostConstruct"/>
+                    <!-- don't apply ldh:PostConstruct as ldh:RenderBlock should do it already -->
+<!--                    <xsl:apply-templates select="." mode="ldh:PostConstruct"/>-->
                 </xsl:for-each>
                 
                 <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
