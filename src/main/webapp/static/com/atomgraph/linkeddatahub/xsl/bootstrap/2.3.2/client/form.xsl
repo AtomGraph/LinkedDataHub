@@ -488,15 +488,15 @@ WHERE
     
     <!-- submit document creation form using PUT -->
     
-    <xsl:template match="div[contains-token(@class, 'modal-constructor')]//form[contains-token(@class, 'form-horizontal')]" mode="ixsl:onsubmit" priority="1">
+<!--    <xsl:template match="div[contains-token(@class, 'modal-constructor')]//form[contains-token(@class, 'form-horizontal')]" mode="ixsl:onsubmit" priority="1">
         <xsl:next-match>
             <xsl:with-param name="method" select="'put'"/>
         </xsl:next-match>
-    </xsl:template>
+    </xsl:template>-->
     
     <!-- submit instance creation form using POST -->
     
-    <xsl:template match="form[contains-token(@class, 'form-horizontal')][upper-case(@method) = 'POST']" mode="ixsl:onsubmit">
+    <xsl:template match="form[contains-token(@class, 'form-horizontal')]" mode="ixsl:onsubmit">
         <xsl:param name="method" select="@method" as="xs:string"/>
         <xsl:param name="elements" select=".//input | .//textarea | .//select" as="element()*"/>
         <xsl:param name="triples" select="ldh:parse-rdf-post($elements)" as="element()*"/>
@@ -566,7 +566,7 @@ WHERE
                         <xsl:call-template name="ldh:ResourceUpdated">
                             <xsl:with-param name="doc-uri" select="$doc-uri"/>
                             <xsl:with-param name="block" select="$block"/>
-                            <xsl:with-param name="container" select="$container"/>
+<!--                            <xsl:with-param name="container" select="$container"/>-->
                             <xsl:with-param name="form" select="$form"/>
                             <xsl:with-param name="resources" select="$resources"/>
                         </xsl:call-template>
@@ -624,7 +624,7 @@ WHERE
                 <xsl:call-template name="ldh:ResourceUpdated">
                     <xsl:with-param name="doc-uri" select="ac:absolute-path(ldh:base-uri(.))"/>
                     <xsl:with-param name="block" select="$block"/>
-                    <xsl:with-param name="container" select="$container"/>
+<!--                    <xsl:with-param name="container" select="$container"/>-->
                     <xsl:with-param name="form" select="$form"/>
                     <xsl:with-param name="resources" select="$resources"/>
                 </xsl:call-template>
@@ -703,7 +703,7 @@ WHERE
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="doc-uri" as="xs:anyURI"/>
         <xsl:param name="block" as="element()"/>
-        <xsl:param name="container" as="element()?"/>
+<!--        <xsl:param name="container" as="element()?"/>-->
         <xsl:param name="form" as="element()?"/>
         <xsl:param name="resources" as="document-node()"/>
 
@@ -769,9 +769,8 @@ WHERE
             </xsl:when>
             <!-- POST or PUT constraint violation response is 422 Unprocessable Entity, bad RDF syntax is 400 Bad Request -->
             <xsl:when test="?status = (400, 422) and starts-with(?media-type, 'application/rdf+xml')"> <!-- allow 'application/rdf+xml;charset=UTF-8' as well -->
-                <xsl:variable name="forClass" select="$container/@typeof" as="xs:anyURI"/>
-                <xsl:message>$forClass: <xsl:value-of select="$forClass"/></xsl:message>
-                <xsl:variable name="resource" select="key('resources-by-type', $forClass, ?body)[not(key('predicates-by-object', @rdf:nodeID)[not(../rdf:type/@rdf:resource = '&spin;ConstraintViolation')])]" as="element()"/>
+<!--                <xsl:variable name="resource" select="key('resources-by-type', $forClass, ?body)[not(key('predicates-by-object', @rdf:nodeID)[not(../rdf:type/@rdf:resource = '&spin;ConstraintViolation')])]" as="element()"/>-->
+                <xsl:variable name="body" select="?body" as="document-node()"/>
                 <!-- TO-DO: refactor to use asynchronous HTTP requests -->
                 <xsl:variable name="types" select="distinct-values($resource/rdf:type/@rdf:resource)" as="xs:anyURI*"/>
                 <xsl:variable name="property-uris" select="distinct-values($resource/*/concat(namespace-uri(), local-name()))" as="xs:string*"/>
@@ -805,7 +804,7 @@ WHERE
                 </xsl:message>
                 
                 <xsl:variable name="row-form" as="node()*">
-                    <xsl:apply-templates select="$resource" mode="bs2:RowForm">
+                    <xsl:apply-templates select="$body/rdf:RDF/*" mode="bs2:RowForm">
                         <xsl:with-param name="method" select="$form/@method"/>
 <!--                        <xsl:with-param name="type-metadata" select="$type-metadata" tunnel="yes"/>-->
                         <xsl:with-param name="property-metadata" select="$property-metadata" tunnel="yes"/>
@@ -894,7 +893,7 @@ WHERE
 
                 <xsl:apply-templates select="$constructed-doc" mode="bs2:Form"> <!-- document level template -->
                     <xsl:with-param name="about" select="()"/> <!-- don't set @about on the container until after the resource is saved -->
-                    <xsl:with-param name="method" select="'post'"/> <!-- browsers do not allow PUT form method -->
+                    <xsl:with-param name="method" select="'put'"/>
                     <xsl:with-param name="action" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, $doc-uri)" as="xs:anyURI"/>
                     <xsl:with-param name="form-actions-class" select="'form-actions modal-footer'" as="xs:string?"/>
                     <xsl:with-param name="classes" select="$classes"/>
@@ -1603,7 +1602,7 @@ WHERE
             <xsl:call-template name="ldh:ResourceUpdated">
                 <xsl:with-param name="doc-uri" select="$doc-uri"/>
                 <xsl:with-param name="block" select="$block"/>
-                <xsl:with-param name="container" select="$container"/>
+<!--                <xsl:with-param name="container" select="$container"/>-->
                 <xsl:with-param name="form" select="$form"/>
                 <xsl:with-param name="resources" select="$resources"/>
             </xsl:call-template>
