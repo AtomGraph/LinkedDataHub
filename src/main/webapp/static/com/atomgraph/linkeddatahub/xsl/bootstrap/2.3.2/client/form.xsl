@@ -811,21 +811,23 @@ WHERE
                 <xsl:choose>
                     <xsl:when test="$modal">
                         <xsl:variable name="form" as="element()*">
-                            <xsl:apply-templates select="$body" mode="bs2:Form"> <!-- document level template -->
-                                <xsl:with-param name="about" select="()"/> <!-- don't set @about on the container until after the resource is saved -->
-                                <xsl:with-param name="method" select="'put'"/>
-                                <xsl:with-param name="action" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, $doc-uri)" as="xs:anyURI"/>
-                                <xsl:with-param name="form-actions-class" select="'form-actions modal-footer'" as="xs:string?"/>
-                                <xsl:with-param name="classes" select="()"/>
-<!--                                <xsl:with-param name="type-metadata" select="$type-metadata" tunnel="yes"/>-->
-                                <xsl:with-param name="property-metadata" select="$property-metadata" tunnel="yes"/>
-<!--                                <xsl:with-param name="constructor" select="$constructed-doc" tunnel="yes"/>-->
-                                <xsl:with-param name="constructors" select="()" tunnel="yes"/> <!-- can be empty because modal form is only used to create Container/Item instances -->
-                                <xsl:with-param name="constraints" select="$constraints" tunnel="yes"/>
-                                <xsl:with-param name="shapes" select="()" tunnel="yes"/> <!-- there will be no shapes as modal form is only used to create Container/Item instances -->
-                                <xsl:with-param name="base-uri" select="$doc-uri" tunnel="yes"/> <!-- ac:absolute-path(ldh:base-uri(.)) is empty on constructed documents -->
-                                <!-- <xsl:sort select="ac:label(.)"/> -->
-                            </xsl:apply-templates>
+                            <xsl:for-each select="$body">
+                                <xsl:apply-templates select="." mode="bs2:Form"> <!-- document level template -->
+                                    <xsl:with-param name="about" select="()"/> <!-- don't set @about on the container until after the resource is saved -->
+                                    <xsl:with-param name="method" select="'put'"/>
+                                    <xsl:with-param name="action" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, $doc-uri)" as="xs:anyURI"/>
+                                    <xsl:with-param name="form-actions-class" select="'form-actions modal-footer'" as="xs:string?"/>
+                                    <xsl:with-param name="classes" select="()"/>
+    <!--                                <xsl:with-param name="type-metadata" select="$type-metadata" tunnel="yes"/>-->
+                                    <xsl:with-param name="property-metadata" select="$property-metadata" tunnel="yes"/>
+    <!--                                <xsl:with-param name="constructor" select="$constructed-doc" tunnel="yes"/>-->
+                                    <xsl:with-param name="constructors" select="()" tunnel="yes"/> <!-- can be empty because modal form is only used to create Container/Item instances -->
+                                    <xsl:with-param name="constraints" select="$constraints" tunnel="yes"/>
+                                    <xsl:with-param name="shapes" select="()" tunnel="yes"/> <!-- there will be no shapes as modal form is only used to create Container/Item instances -->
+                                    <xsl:with-param name="base-uri" select="ac:absolute-path(ldh:base-uri(.))" tunnel="yes"/> <!-- ac:absolute-path(ldh:base-uri(.)) is empty on constructed documents -->
+                                    <!-- <xsl:sort select="ac:label(.)"/> -->
+                                </xsl:apply-templates>
+                            </xsl:for-each>
                         </xsl:variable>
 
                         <xsl:for-each select="$block">
