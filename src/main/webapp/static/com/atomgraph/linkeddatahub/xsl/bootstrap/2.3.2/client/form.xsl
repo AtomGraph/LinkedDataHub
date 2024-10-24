@@ -910,7 +910,7 @@ WHERE
             </xsl:variable>
 
             <xsl:result-document href="?." method="ixsl:append-content">
-                <div class="modal modal-constructor fade in">
+                <div class="modal modal-constructor fade in" typeof="{$forClass}"> <!-- $forClass used by ldh:ResourceUpdated in case of 4xx response -->
                     <!--
                     <xsl:if test="$id">
                         <xsl:attribute name="id" select="$id"/>
