@@ -218,12 +218,13 @@ exclude-result-prefixes="#all"
         <xsl:param name="series-id" select="'series'" as="xs:string"/>
         <xsl:variable name="query-uri" select="descendant::*[@property = '&spin;query']/@resource" as="xs:anyURI"/>
         <xsl:variable name="chart-type" select="descendant::*[@property = '&ldh;chartType']/@resource" as="xs:anyURI?"/>
-        <xsl:variable name="category" select="descendant::*[@property = '&ldh;categoryProperty']/@resource | descendant::*[@property = '&ldh;categoryVarName']/@resource" as="xs:string?"/>
-        <xsl:variable name="series" select="descendant::*[@property = '&ldh;seriesProperty']/@resource | descendant::*[@property = '&ldh;seriesVarName']/@resource" as="xs:string*"/>
+        <xsl:variable name="category" select="descendant::*[@property = '&ldh;categoryProperty']/@resource | descendant::*[@property = '&ldh;categoryVarName']/text()" as="xs:string?"/>
+        <xsl:variable name="series" select="descendant::*[@property = '&ldh;seriesProperty']/@resource | descendant::*[@property = '&ldh;seriesVarName']/text()" as="xs:string*"/>
         <xsl:variable name="canvas-id" select="generate-id() || '-chart-canvas'" as="xs:string?"/>
 
         <xsl:message>
             Chart ldh:RenderBlock @typeof: <xsl:value-of select="@typeof"/> $about: <xsl:value-of select="$about"/>
+            $category: <xsl:value-of select="$category"/> $series: <xsl:value-of select="$series"/>
         </xsl:message>
         
         <xsl:for-each select="$block//div[contains-token(@class, 'bar')]">
