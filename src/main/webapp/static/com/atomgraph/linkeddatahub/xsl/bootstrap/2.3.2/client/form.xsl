@@ -772,8 +772,8 @@ WHERE
 <!--                <xsl:variable name="resource" select="key('resources-by-type', $forClass, ?body)[not(key('predicates-by-object', @rdf:nodeID)[not(../rdf:type/@rdf:resource = '&spin;ConstraintViolation')])]" as="element()"/>-->
                 <xsl:variable name="body" select="?body" as="document-node()"/>
                 <!-- TO-DO: refactor to use asynchronous HTTP requests -->
-                <xsl:variable name="types" select="distinct-values($resource/rdf:type/@rdf:resource)" as="xs:anyURI*"/>
-                <xsl:variable name="property-uris" select="distinct-values($resource/*/concat(namespace-uri(), local-name()))" as="xs:string*"/>
+                <xsl:variable name="types" select="distinct-values($body/rdf:RDF/*/rdf:type/@rdf:resource)" as="xs:anyURI*"/>
+                <xsl:variable name="property-uris" select="distinct-values($body/rdf:RDF/*/concat(namespace-uri(), local-name()))" as="xs:string*"/>
                 <xsl:variable name="query-string" select="'DESCRIBE $Type VALUES $Type { ' || string-join(for $uri in $property-uris return '&lt;' || $uri || '&gt;', ' ') || ' }'" as="xs:string"/>
                 <xsl:variable name="request-uri" select="ac:build-uri(resolve-uri('ns', $ldt:base), map{ 'query': $query-string, 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
                 <xsl:variable name="property-metadata" select="document($request-uri)" as="document-node()"/>
@@ -794,7 +794,7 @@ WHERE
                 <xsl:variable name="request-uri" select="ac:build-uri(resolve-uri('ns', $ldt:base), map{ 'query': $query-string, 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
                 <xsl:variable name="shapes" select="document($request-uri)" as="document-node()"/>
 
-                <xsl:variable name="object-uris" select="distinct-values($resource/*/@rdf:resource[not(key('resources', .))])" as="xs:string*"/>
+                <xsl:variable name="object-uris" select="distinct-values($body/rdf:RDF/*/*/@rdf:resource[not(key('resources', .))])" as="xs:string*"/>
                 <xsl:variable name="query-string" select="$object-metadata-query || ' VALUES $this { ' || string-join(for $uri in $object-uris return '&lt;' || $uri || '&gt;', ' ') || ' }'" as="xs:string"/>
                 <xsl:variable name="request-uri" select="ac:build-uri(resolve-uri('sparql', $ldt:base), map{ 'query': $query-string, 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
                 <xsl:variable name="object-metadata" select="if (doc-available($request-uri)) then document($request-uri) else ()" as="document-node()?"/>
