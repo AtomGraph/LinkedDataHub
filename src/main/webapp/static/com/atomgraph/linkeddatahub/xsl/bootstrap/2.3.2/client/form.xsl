@@ -811,7 +811,7 @@ WHERE
                 <xsl:choose>
                     <xsl:when test="$modal">
                         <xsl:variable name="form" as="element()*">
-                            <xsl:apply-templates select="$constructed-doc" mode="bs2:Form"> <!-- document level template -->
+                            <xsl:apply-templates select="$body" mode="bs2:Form"> <!-- document level template -->
                                 <xsl:with-param name="about" select="()"/> <!-- don't set @about on the container until after the resource is saved -->
                                 <xsl:with-param name="method" select="'put'"/>
                                 <xsl:with-param name="action" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, $doc-uri)" as="xs:anyURI"/>
