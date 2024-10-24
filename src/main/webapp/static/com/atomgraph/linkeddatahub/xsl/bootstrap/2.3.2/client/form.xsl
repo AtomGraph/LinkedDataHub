@@ -509,8 +509,9 @@ WHERE
         </xsl:param>
         <xsl:param name="request-body" select="$resources" as="document-node()"/>
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
-        <xsl:variable name="container" select="ancestor::div[@typeof][1]" as="element()?"/> <!-- no container means the form was modal -->
-        <xsl:variable name="block" select="$container" as="element()?"/> <!-- block has no @about at this stage (before saving it) -->
+        <xsl:Variable name="modal" select="exists(ancestor::div[contains-token(@class, 'modal-constructor')])" as="xs:boolean"/>
+        <xsl:variable name="container" select="ancestor::div[@typeof][1]" as="element()"/>
+        <xsl:variable name="block" select="$container" as="element()"/> <!-- block has no @about at this stage (before saving it) -->
         <xsl:variable name="form" select="." as="element()"/>
         <xsl:variable name="id" select="ixsl:get($form, 'id')" as="xs:string"/>
         <xsl:variable name="action" select="ixsl:get($form, 'action')" as="xs:anyURI"/>
@@ -568,6 +569,7 @@ WHERE
                             <xsl:with-param name="block" select="$block"/>
 <!--                            <xsl:with-param name="container" select="$container"/>-->
                             <xsl:with-param name="form" select="$form"/>
+                            <xsl:with-param name="modal" select="$modal"/>
                             <xsl:with-param name="resources" select="$resources"/>
                         </xsl:call-template>
                     </ixsl:schedule-action>
@@ -703,10 +705,14 @@ WHERE
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="doc-uri" as="xs:anyURI"/>
         <xsl:param name="block" as="element()"/>
-<!--        <xsl:param name="container" as="element()?"/>-->
         <xsl:param name="form" as="element()?"/>
+        <xsl:param name="modal" select="false()" as="xs:boolean"/>
         <xsl:param name="resources" as="document-node()"/>
 
+        <xsl:message>
+            ldh:ResourceUpdated $doc-uri: <xsl:value-of select="$doc-uri"/> $modal: <xsl:value-of select="$modal"/>
+        </xsl:message>
+        
         <xsl:choose>
             <!-- POST data appended successfully -->
             <xsl:when test="?status = (200, 204)">
@@ -769,11 +775,10 @@ WHERE
             </xsl:when>
             <!-- POST or PUT constraint violation response is 422 Unprocessable Entity, bad RDF syntax is 400 Bad Request -->
             <xsl:when test="?status = (400, 422) and starts-with(?media-type, 'application/rdf+xml')"> <!-- allow 'application/rdf+xml;charset=UTF-8' as well -->
-<!--                <xsl:variable name="resource" select="key('resources-by-type', $forClass, ?body)[not(key('predicates-by-object', @rdf:nodeID)[not(../rdf:type/@rdf:resource = '&spin;ConstraintViolation')])]" as="element()"/>-->
                 <xsl:variable name="body" select="?body" as="document-node()"/>
                 <!-- TO-DO: refactor to use asynchronous HTTP requests -->
-                <xsl:variable name="types" select="distinct-values($body/rdf:RDF/*/rdf:type/@rdf:resource)" as="xs:anyURI*"/>
-                <xsl:variable name="property-uris" select="distinct-values($body/rdf:RDF/*/concat(namespace-uri(), local-name()))" as="xs:string*"/>
+                <xsl:variable name="types" select="distinct-values($body/rdf:RDF/*[not(@rdf:about = $doc-uri)]/rdf:type/@rdf:resource)" as="xs:anyURI*"/>
+                <xsl:variable name="property-uris" select="distinct-values($body/rdf:RDF/*[not(@rdf:about = $doc-uri)]/*/concat(namespace-uri(), local-name()))" as="xs:string*"/>
                 <xsl:variable name="query-string" select="'DESCRIBE $Type VALUES $Type { ' || string-join(for $uri in $property-uris return '&lt;' || $uri || '&gt;', ' ') || ' }'" as="xs:string"/>
                 <xsl:variable name="request-uri" select="ac:build-uri(resolve-uri('ns', $ldt:base), map{ 'query': $query-string, 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
                 <xsl:variable name="property-metadata" select="document($request-uri)" as="document-node()"/>
@@ -789,7 +794,7 @@ WHERE
                 <xsl:variable name="query-string" select="$constraint-query || ' VALUES $Type { ' || string-join(for $type in $types return '&lt;' || $type || '&gt;', ' ') || ' }'" as="xs:string"/>
                 <xsl:variable name="request-uri" select="ac:build-uri(resolve-uri('ns', $ldt:base), map{ 'query': $query-string, 'accept': 'application/sparql-results+xml' })" as="xs:anyURI"/>
                 <xsl:variable name="constraints" select="if (exists($types)) then document($request-uri) else ()" as="document-node()?"/>
-                
+
                 <xsl:variable name="query-string" select="$shape-query || ' VALUES $Type { ' || string-join(for $type in $types return '&lt;' || $type || '&gt;', ' ') || ' }'" as="xs:string"/>
                 <xsl:variable name="request-uri" select="ac:build-uri(resolve-uri('ns', $ldt:base), map{ 'query': $query-string, 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
                 <xsl:variable name="shapes" select="document($request-uri)" as="document-node()"/>
@@ -802,26 +807,70 @@ WHERE
                     $object-uris: <xsl:value-of select="$object-uris"/>
                     $object-metadata: <xsl:value-of select="serialize($object-metadata)"/>
                 </xsl:message>
-                
-                <xsl:variable name="row-form" as="node()*">
-                    <xsl:apply-templates select="$body/rdf:RDF/*" mode="bs2:RowForm">
-                        <xsl:with-param name="method" select="$form/@method"/>
-<!--                        <xsl:with-param name="type-metadata" select="$type-metadata" tunnel="yes"/>-->
-                        <xsl:with-param name="property-metadata" select="$property-metadata" tunnel="yes"/>
-                        <xsl:with-param name="constructors" select="$constructors" tunnel="yes"/>
-                        <xsl:with-param name="constraints" select="$constraints" tunnel="yes"/>
-                        <xsl:with-param name="shapes" select="$shapes" tunnel="yes"/>
-                        <xsl:with-param name="object-metadata" select="$object-metadata" tunnel="yes"/>
-                    </xsl:apply-templates>
-                </xsl:variable>
-                
-                <xsl:for-each select="$block">
-                    <xsl:result-document href="?." method="ixsl:replace-content">
-                        <xsl:copy-of select="$row-form/*"/>
-                    </xsl:result-document>
 
-                    <xsl:apply-templates select="." mode="ldh:PostConstruct"/>
-                </xsl:for-each>
+                <xsl:choose>
+                    <xsl:when test="$modal">
+                        <xsl:variable name="form" as="element()*">
+                            <xsl:apply-templates select="$constructed-doc" mode="bs2:Form"> <!-- document level template -->
+                                <xsl:with-param name="about" select="()"/> <!-- don't set @about on the container until after the resource is saved -->
+                                <xsl:with-param name="method" select="'put'"/>
+                                <xsl:with-param name="action" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, $doc-uri)" as="xs:anyURI"/>
+                                <xsl:with-param name="form-actions-class" select="'form-actions modal-footer'" as="xs:string?"/>
+                                <xsl:with-param name="classes" select="()"/>
+<!--                                <xsl:with-param name="type-metadata" select="$type-metadata" tunnel="yes"/>-->
+                                <xsl:with-param name="property-metadata" select="$property-metadata" tunnel="yes"/>
+                                <xsl:with-param name="constructor" select="$constructed-doc" tunnel="yes"/>
+                                <xsl:with-param name="constructors" select="()" tunnel="yes"/> <!-- can be empty because modal form is only used to create Container/Item instances -->
+                                <xsl:with-param name="constraints" select="$constraints" tunnel="yes"/>
+                                <xsl:with-param name="shapes" select="()" tunnel="yes"/> <!-- there will be no shapes as modal form is only used to create Container/Item instances -->
+                                <xsl:with-param name="base-uri" select="ac:absolute-path(ldh:base-uri(.))" tunnel="yes"/> <!-- ac:absolute-path(ldh:base-uri(.)) is empty on constructed documents -->
+                                <!-- <xsl:sort select="ac:label(.)"/> -->
+                            </xsl:apply-templates>
+                        </xsl:variable>
+
+                        <xsl:for-each select="$block">
+                            <xsl:result-document href="?." method="ixsl:replace-content">
+                                <div class="modal-header">
+                                    <button type="button" class="close">&#215;</button>
+
+                                    <legend>
+                                        <!-- <xsl:value-of select="$legend-label"/> -->
+                                    </legend>
+                                </div>
+
+                                <div class="modal-body">
+                                    <xsl:copy-of select="$form"/>
+                                </div>
+                            </xsl:result-document>
+                        </xsl:for-each>
+                        
+                        <xsl:if test="id($form/@id, ixsl:page())">
+                            <xsl:apply-templates select="id($form/@id, ixsl:page())" mode="ldh:PostConstruct"/>
+                        </xsl:if>
+                    </xsl:when>
+                    <xsl:otherwise>
+                        <xsl:variable name="row-form" as="node()*">
+                            <!-- filter out the current document which might be in the constraint violation response attached by an rdf:_N property to a block resource -->
+                            <xsl:apply-templates select="$body/rdf:RDF/*[not(@rdf:about = $doc-uri)]" mode="bs2:RowForm">
+                                <xsl:with-param name="method" select="$form/@method"/>
+        <!--                        <xsl:with-param name="type-metadata" select="$type-metadata" tunnel="yes"/>-->
+                                <xsl:with-param name="property-metadata" select="$property-metadata" tunnel="yes"/>
+                                <xsl:with-param name="constructors" select="$constructors" tunnel="yes"/>
+                                <xsl:with-param name="constraints" select="$constraints" tunnel="yes"/>
+                                <xsl:with-param name="shapes" select="$shapes" tunnel="yes"/>
+                                <xsl:with-param name="object-metadata" select="$object-metadata" tunnel="yes"/>
+                            </xsl:apply-templates>
+                        </xsl:variable>
+
+                        <xsl:for-each select="$block">
+                            <xsl:result-document href="?." method="ixsl:replace-content">
+                                <xsl:copy-of select="$row-form/*"/>
+                            </xsl:result-document>
+
+                            <xsl:apply-templates select="." mode="ldh:PostConstruct"/>
+                    </xsl:for-each>
+                    </xsl:otherwise>
+                </xsl:choose>
 
                 <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
             </xsl:when>
