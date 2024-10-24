@@ -770,6 +770,7 @@ WHERE
             <!-- POST or PUT constraint violation response is 422 Unprocessable Entity, bad RDF syntax is 400 Bad Request -->
             <xsl:when test="?status = (400, 422) and starts-with(?media-type, 'application/rdf+xml')"> <!-- allow 'application/rdf+xml;charset=UTF-8' as well -->
                 <xsl:variable name="forClass" select="$container/@typeof" as="xs:anyURI"/>
+                <xsl:message>$forClass: <xsl:value-of select="$forClass"/></xsl:message>
                 <xsl:variable name="resource" select="key('resources-by-type', $forClass, ?body)[not(key('predicates-by-object', @rdf:nodeID)[not(../rdf:type/@rdf:resource = '&spin;ConstraintViolation')])]" as="element()"/>
                 <!-- TO-DO: refactor to use asynchronous HTTP requests -->
                 <xsl:variable name="types" select="distinct-values($resource/rdf:type/@rdf:resource)" as="xs:anyURI*"/>
