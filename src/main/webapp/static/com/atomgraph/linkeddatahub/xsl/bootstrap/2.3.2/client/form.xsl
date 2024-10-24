@@ -819,7 +819,7 @@ WHERE
                                 <xsl:with-param name="classes" select="()"/>
 <!--                                <xsl:with-param name="type-metadata" select="$type-metadata" tunnel="yes"/>-->
                                 <xsl:with-param name="property-metadata" select="$property-metadata" tunnel="yes"/>
-                                <xsl:with-param name="constructor" select="$constructed-doc" tunnel="yes"/>
+<!--                                <xsl:with-param name="constructor" select="$constructed-doc" tunnel="yes"/>-->
                                 <xsl:with-param name="constructors" select="()" tunnel="yes"/> <!-- can be empty because modal form is only used to create Container/Item instances -->
                                 <xsl:with-param name="constraints" select="$constraints" tunnel="yes"/>
                                 <xsl:with-param name="shapes" select="()" tunnel="yes"/> <!-- there will be no shapes as modal form is only used to create Container/Item instances -->
