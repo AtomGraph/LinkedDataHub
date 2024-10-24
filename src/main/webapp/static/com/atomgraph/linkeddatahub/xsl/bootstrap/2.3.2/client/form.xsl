@@ -814,8 +814,8 @@ WHERE
                             <xsl:for-each select="$body">
                                 <xsl:apply-templates select="." mode="bs2:Form"> <!-- document level template -->
                                     <xsl:with-param name="about" select="()"/> <!-- don't set @about on the container until after the resource is saved -->
-                                    <xsl:with-param name="method" select="'put'"/>
-                                    <xsl:with-param name="action" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, $doc-uri)" as="xs:anyURI"/>
+                                    <xsl:with-param name="method" select="$form/@method"/>
+                                    <xsl:with-param name="action" select="$form/@action" as="xs:anyURI"/>
                                     <xsl:with-param name="form-actions-class" select="'form-actions modal-footer'" as="xs:string?"/>
                                     <xsl:with-param name="classes" select="()"/>
     <!--                                <xsl:with-param name="type-metadata" select="$type-metadata" tunnel="yes"/>-->
