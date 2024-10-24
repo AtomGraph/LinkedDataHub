@@ -8,6 +8,7 @@
     <!ENTITY rdfs       "http://www.w3.org/2000/01/rdf-schema#">
     <!ENTITY xsd        "http://www.w3.org/2001/XMLSchema#">
     <!ENTITY owl        "http://www.w3.org/2002/07/owl#">
+    <!ENTITY http       "http://www.w3.org/2011/http#">
     <!ENTITY ldt        "https://www.w3.org/ns/ldt#">
     <!ENTITY dh         "https://www.w3.org/ns/ldt/document-hierarchy#">
     <!ENTITY cert       "http://www.w3.org/ns/auth/cert#">
@@ -95,6 +96,12 @@ WHERE
 
     <!-- TEMPLATES -->
     
+    <!-- hide constraint violations and HTTP responses in the row form - they are displayed as errors on the edited resources -->
+    <xsl:template match="*[rdf:type/@rdf:resource = ('&spin;ConstraintViolation', '&sh;ValidationResult', '&sh;ValidationReport', '&http;Response')]" mode="bs2:RowForm" priority="3"/>
+
+    <!-- hide constraint violations and HTTP responses in the form - they are displayed as errors on the edited resources -->
+    <xsl:template match="*[rdf:type/@rdf:resource = ('&spin;ConstraintViolation', '&sh;ValidationResult', '&sh;ValidationReport', '&http;Response')]" mode="bs2:Form" priority="3"/>
+
     <!-- canonicalize XML in rdf:XMLLiterals -->
     <xsl:template match="json:string[@key = 'object'][ends-with(., '^^&rdf;XMLLiteral')]" mode="ldh:CanonicalizeXML" priority="1">
         <xsl:copy>
