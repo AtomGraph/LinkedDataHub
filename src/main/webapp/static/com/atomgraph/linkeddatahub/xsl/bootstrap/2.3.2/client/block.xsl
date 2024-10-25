@@ -148,7 +148,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="textarea-id" select="generate-id() || '-textarea'" as="xs:string"/>
         <xsl:param name="service-uri" select="descendant::*[@property = '&ldh;service']/@resource" as="xs:anyURI?"/>
         <xsl:param name="endpoint" as="xs:anyURI?"/>
-        <xsl:param name="query" select="string(descendant::*[@property = '&sp;text'])" as="xs:string"/>
+        <xsl:param name="query" select="string(descendant::*[@property = '&sp;text']/pre)" as="xs:string"/>
         <xsl:param name="show-properties" select="false()" as="xs:boolean"/>
         <xsl:param name="forClass" select="xs:anyURI('&sd;Service')" as="xs:anyURI"/>
         
