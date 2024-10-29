@@ -39,7 +39,7 @@
 
     <queries/#select-queries-query> a sp:Select ;
         dct:title "Select query resources" ;
-        sp:text """PREFIX  sp:  <http://spinrdf.org/sp>
+        sp:text """PREFIX  sp:  <http://spinrdf.org/sp#>
 
 SELECT DISTINCT  ?s
 WHERE
