@@ -92,19 +92,20 @@ extension-element-prefixes="ixsl"
     <xsl:import href="converters/RDFXML2DataTable.xsl"/>
     <xsl:import href="converters/SPARQLXMLResults2DataTable.xsl"/>
     <xsl:import href="converters/RDFXML2GeoJSON.xsl"/>
-    <xsl:import href="query-transforms.xsl"/>
-    <xsl:import href="typeahead.xsl"/>
-
+    
+    <xsl:include href="bootstrap/2.3.2/client/query-transforms.xsl"/>
+    <xsl:include href="bootstrap/2.3.2/client/typeahead.xsl"/>
     <xsl:include href="bootstrap/2.3.2/client/functions.xsl"/>
     <xsl:include href="bootstrap/2.3.2/client/navigation.xsl"/>
     <xsl:include href="bootstrap/2.3.2/client/block.xsl"/>
     <xsl:include href="bootstrap/2.3.2/client/modal.xsl"/>
-    <xsl:include href="bootstrap/2.3.2/client/chart.xsl"/>
     <xsl:include href="bootstrap/2.3.2/client/view.xsl"/>
     <xsl:include href="bootstrap/2.3.2/client/form.xsl"/>
     <xsl:include href="bootstrap/2.3.2/client/map.xsl"/>
     <xsl:include href="bootstrap/2.3.2/client/graph.xsl"/>
     <xsl:include href="bootstrap/2.3.2/client/constructor.xsl"/>
+    <xsl:include href="bootstrap/2.3.2/client/block/chart.xsl"/>
+    <xsl:include href="bootstrap/2.3.2/client/block/query.xsl"/>
     
     <xsl:param name="ac:contextUri" as="xs:anyURI"/>
     <xsl:param name="ldt:base" as="xs:anyURI"/>

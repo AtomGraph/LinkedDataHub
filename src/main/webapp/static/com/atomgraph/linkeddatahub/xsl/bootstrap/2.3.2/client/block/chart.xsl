@@ -3,7 +3,6 @@
     <!ENTITY def    "https://w3id.org/atomgraph/linkeddatahub/default#">
     <!ENTITY ldh    "https://w3id.org/atomgraph/linkeddatahub#">
     <!ENTITY ac     "https://w3id.org/atomgraph/client#">
-    <!ENTITY ac     "https://w3id.org/atomgraph/client#">
     <!ENTITY rdf    "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
     <!ENTITY xsd    "http://www.w3.org/2001/XMLSchema#">
     <!ENTITY srx    "http://www.w3.org/2005/sparql-results#">
@@ -12,6 +11,7 @@
     <!ENTITY sioc   "http://rdfs.org/sioc/ns#">
     <!ENTITY sp     "http://spinrdf.org/sp#">
     <!ENTITY spin   "http://spinrdf.org/spin#">
+    <!ENTITY dct    "http://purl.org/dc/terms/">
 ]>
 <xsl:stylesheet version="3.0"
 xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
@@ -30,6 +30,7 @@ xmlns:ldt="&ldt;"
 xmlns:sd="&sd;"
 xmlns:sp="&sp;"
 xmlns:spin="&spin;"
+xmlns:dct="&dct;"
 xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
 extension-element-prefixes="ixsl"
 exclude-result-prefixes="#all"
@@ -200,7 +201,7 @@ exclude-result-prefixes="#all"
         </xsl:if>
     </xsl:template>
     
-    <!-- chart block -->
+    <!-- render chart block -->
     <xsl:template match="*[@about][@typeof = ('&ldh;ResultSetChart', '&ldh;GraphChart')][descendant::*[@property = '&spin;query'][@resource]][descendant::*[@property = '&ldh;chartType'][@resource]]" mode="ldh:RenderBlock" priority="1">
         <xsl:param name="block" select="ancestor::div[@about][1]" as="element()"/>
         <xsl:param name="about" select="@about" as="xs:anyURI"/>
@@ -336,7 +337,7 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
     
-    <!-- EVENT HANDLERS -->
+    <!-- EVENT LISTENERS -->
     
     <!-- chart-type onchange -->
     
@@ -439,6 +440,53 @@ exclude-result-prefixes="#all"
             <xsl:with-param name="category" select="$category"/>
             <xsl:with-param name="series" select="$series"/>
         </xsl:call-template>
+    </xsl:template>
+    
+    <!-- save chart onclick -->
+    
+    <xsl:template match="div[@about][@typeof]//button[contains-token(@class, 'btn-save-chart')]" mode="ixsl:onclick">
+        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+        <xsl:variable name="container" select="ancestor::div[@typeof][1]" as="element()"/>
+        <xsl:variable name="textarea-id" select="$container//textarea[@name = 'query']/ixsl:get(., 'id')" as="xs:string"/>
+        <xsl:variable name="yasqe" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.yasqe'), $textarea-id)"/>
+        <xsl:variable name="query-string" select="ixsl:call($yasqe, 'getValue', [])" as="xs:string"/> <!-- get query string from YASQE -->
+        <xsl:variable name="service-uri" select="xs:anyURI(ixsl:get(id('query-service'), 'value'))" as="xs:anyURI?"/> <!-- TO-DO: fix content-embedded queries -->
+        <xsl:variable name="query-type" select="ldh:query-type($query-string)" as="xs:string"/>
+        <xsl:variable name="forClass" select="if ($query-type = ('SELECT', 'ASK')) then xs:anyURI('&ldh;ResultSetChart') else xs:anyURI('&ldh;GraphChart')" as="xs:anyURI"/>
+        <xsl:variable name="chart-type" select="../..//select[contains-token(@class, 'chart-type')]/ixsl:get(., 'value')" as="xs:anyURI?"/>
+        <xsl:variable name="category" select="../..//select[contains-token(@class, 'chart-category')]/ixsl:get(., 'value')" as="xs:string?"/>
+        <xsl:variable name="series" as="xs:string*">
+            <xsl:for-each select="../..//select[contains-token(@class, 'chart-series')]">
+                <xsl:variable name="select" select="." as="element()"/>
+                <xsl:for-each select="0 to xs:integer(ixsl:get(., 'selectedOptions.length')) - 1">
+                    <xsl:sequence select="ixsl:get(ixsl:call(ixsl:get($select, 'selectedOptions'), 'item', [ . ]), 'value')"/>
+                </xsl:for-each>
+            </xsl:for-each>
+        </xsl:variable>
+
+        <xsl:message>SAVE CHART query URI: <xsl:value-of select="$container/@about"/></xsl:message>
+        
+        <xsl:variable name="constructor" as="document-node()">
+            <xsl:document>
+                <rdf:RDF>
+                    <rdf:Description>
+                        <rdf:type rdf:resource="{$forClass}"/>
+                        <dct:title rdf:nodeID="title"/>
+                        <ldh:chartType rdf:resource="{$chart-type}"/>
+                        <ldh:categoryVarName><xsl:value-of select="$category"/></ldh:categoryVarName>
+                        <xsl:for-each select="$series">
+                            <ldh:seriesVarName><xsl:value-of select="."/></ldh:seriesVarName>
+                        </xsl:for-each>
+                        <spin:query rdf:resource="{$container/@about}"/>
+                    </rdf:Description>
+                    <rdf:Description rdf:nodeID="title">
+                        <rdf:type rdf:resource="&xsd;string"/>
+                    </rdf:Description>
+                </rdf:RDF>
+            </xsl:document>
+        </xsl:variable>
+        
+        <xsl:message>Save chart $constructor: <xsl:value-of select="serialize($constructor)"/></xsl:message>
     </xsl:template>
     
     <!-- CALLBACKS -->
