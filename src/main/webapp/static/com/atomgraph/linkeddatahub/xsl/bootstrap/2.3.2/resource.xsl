@@ -1329,9 +1329,11 @@ extension-element-prefixes="ixsl"
                 <xsl:with-param name="type-metadata" select="$type-metadata" tunnel="yes"/>
             </xsl:apply-templates>
 
-            <div class="violations" style="display: none">
-                <xsl:apply-templates select="$violations" mode="bs2:Violation"/>
-            </div>
+            <xsl:if test="exists($violations)">
+                <div class="violations">
+                    <xsl:apply-templates select="$violations" mode="bs2:Violation"/>
+                </div>
+            </xsl:if>
             
             <!-- create inputs for both resource description and constructor template properties -->
             <xsl:apply-templates select="* | $template/*[not(concat(namespace-uri(), local-name()) = current()/*/concat(namespace-uri(), local-name()))][not(self::rdf:type)]" mode="#current">

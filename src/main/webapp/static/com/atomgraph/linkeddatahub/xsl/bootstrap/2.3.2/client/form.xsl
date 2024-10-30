@@ -797,6 +797,7 @@ WHERE
 
                 <xsl:message>
                     ConstraintViolation $constructors: <xsl:value-of select="serialize($constructors)"/>
+                    $block/@id: <xsl:value-of select="$block/@id"/>
                 </xsl:message>
 
                 <xsl:variable name="query-string" select="$constraint-query || ' VALUES $Type { ' || string-join(for $type in $types return '&lt;' || $type || '&gt;', ' ') || ' }'" as="xs:string"/>
@@ -871,14 +872,18 @@ WHERE
                                 <xsl:with-param name="object-metadata" select="$object-metadata" tunnel="yes"/>
                             </xsl:apply-templates>
                         </xsl:variable>
-
+                        
+<!--                        <xsl:message>
+                            $row-form: <xsl:value-of select="serialize($row-form)"/>
+                        </xsl:message>-->
+                        
                         <xsl:for-each select="$block">
                             <xsl:result-document href="?." method="ixsl:replace-content">
                                 <xsl:copy-of select="$row-form/*"/>
                             </xsl:result-document>
 
                             <xsl:apply-templates select="." mode="ldh:PostConstruct"/>
-                    </xsl:for-each>
+                        </xsl:for-each>
                     </xsl:otherwise>
                 </xsl:choose>
 
