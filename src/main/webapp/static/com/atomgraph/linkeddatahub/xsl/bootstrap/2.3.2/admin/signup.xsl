@@ -67,26 +67,26 @@ exclude-result-prefixes="#all">
 
     <!-- constraint violation -->
     <xsl:template match="rdf:RDF[ldh:base-uri(.) = resolve-uri(encode-for-uri('sign up'), $ldt:base)][key('resources-by-type', '&spin;ConstraintViolation') or key('resources-by-type', '&sh;ValidationResult')]" mode="bs2:Row" priority="3">
-        <xsl:apply-templates select="." mode="bs2:RowForm">
+        SIGNUPA<xsl:apply-templates select="." mode="bs2:RowForm">
             <xsl:with-param name="id" select="'form-signup'"/>
             <xsl:with-param name="method" select="'post'"/> <!-- don't use PATCH which is the default -->
             <xsl:with-param name="action" select="ac:absolute-path(base-uri($main-doc))"/>
             <xsl:with-param name="enctype" select="()"/>
             <xsl:with-param name="create-resource" select="false()"/>
             <xsl:with-param name="base-uri" select="ac:absolute-path(base-uri($main-doc))" tunnel="yes"/> <!-- base-uri() is empty on constructed documents -->
-        </xsl:apply-templates>
+        </xsl:apply-templates>/SIGNUPA
     </xsl:template>
 
     <xsl:template match="*[rdf:type/@rdf:resource = '&adm;SignUp']" mode="bs2:Row" priority="2">
         <xsl:variable name="constructors" select="ldh:query-result(map{}, resolve-uri('ns', $ldt:base), $constructor-query || ' VALUES $Type { ' || string-join(for $type in '&foaf;Person' return '&lt;' || $type || '&gt;', ' ') || ' }')" as="document-node()?"/>
-        <xsl:apply-templates select="ldh:construct(map{ xs:anyURI('&foaf;Person'): $constructors//srx:result[srx:binding[@name = 'Type'] = '&foaf;Person']/srx:binding[@name = 'construct']/srx:literal/string() })" mode="bs2:RowForm">
+        SIGNUPB<xsl:apply-templates select="ldh:construct(map{ xs:anyURI('&foaf;Person'): $constructors//srx:result[srx:binding[@name = 'Type'] = '&foaf;Person']/srx:binding[@name = 'construct']/srx:literal/string() })" mode="bs2:RowForm">
             <xsl:with-param name="id" select="'form-signup'"/>
             <xsl:with-param name="method" select="'post'"/> <!-- don't use PATCH which is the default -->
             <xsl:with-param name="action" select="ac:absolute-path(base-uri($main-doc))"/>
             <xsl:with-param name="enctype" select="()"/> <!-- don't use 'multipart/form-data' which is the default -->
             <xsl:with-param name="create-resource" select="false()"/>
             <xsl:with-param name="base-uri" select="ac:absolute-path(base-uri($main-doc))" tunnel="yes"/> <!-- base-uri() is empty on constructed documents -->
-        </xsl:apply-templates>
+        </xsl:apply-templates>/SIGNUPB
     </xsl:template>
 
 <!--    <xsl:template match="rdf:RDF[ldh:base-uri(.) = resolve-uri(encode-for-uri('sign up'), $ldt:base)][not(key('resources-by-type', '&http;Response'))][1]" mode="bs2:Row" priority="3">
