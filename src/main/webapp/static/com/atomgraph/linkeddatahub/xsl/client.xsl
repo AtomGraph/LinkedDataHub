@@ -93,6 +93,7 @@ extension-element-prefixes="ixsl"
     <xsl:import href="converters/SPARQLXMLResults2DataTable.xsl"/>
     <xsl:import href="converters/RDFXML2GeoJSON.xsl"/>
     
+    <xsl:include href="bootstrap/2.3.2/admin/signup.xsl"/>
     <xsl:include href="bootstrap/2.3.2/client/query-transforms.xsl"/>
     <xsl:include href="bootstrap/2.3.2/client/typeahead.xsl"/>
     <xsl:include href="bootstrap/2.3.2/client/functions.xsl"/>
