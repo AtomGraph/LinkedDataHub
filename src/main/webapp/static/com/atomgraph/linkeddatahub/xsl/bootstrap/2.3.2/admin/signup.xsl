@@ -67,7 +67,6 @@ exclude-result-prefixes="#all">
 
     <!-- constraint violation -->
     <xsl:template match="rdf:RDF[ac:absolute-path($ldh:requestUri) = resolve-uri(encode-for-uri('sign up'), $ldt:base)][key('resources-by-type', '&spin;ConstraintViolation') or key('resources-by-type', '&sh;ValidationResult')]" mode="bs2:Row" priority="3">
-        SIGNUPA<xsl:copy-of select="."/>/SIGNUPA
         <xsl:apply-templates select="." mode="bs2:RowForm">
             <xsl:with-param name="id" select="'form-signup'"/>
             <xsl:with-param name="method" select="'post'"/> <!-- don't use PATCH which is the default -->
@@ -80,7 +79,6 @@ exclude-result-prefixes="#all">
 
     <xsl:template match="rdf:RDF[ac:absolute-path($ldh:requestUri) = resolve-uri(encode-for-uri('sign up'), $ldt:base)]" mode="bs2:Row" priority="2">
         <xsl:variable name="constructors" select="ldh:query-result(map{}, resolve-uri('ns', $ldt:base), $constructor-query || ' VALUES $Type { ' || string-join(for $type in '&foaf;Person' return '&lt;' || $type || '&gt;', ' ') || ' }')" as="document-node()?"/>
-        SIGNUPB<xsl:copy-of select="."/>/SIGNUPB
         <xsl:apply-templates select="ldh:construct(map{ xs:anyURI('&foaf;Person'): $constructors//srx:result[srx:binding[@name = 'Type'] = '&foaf;Person']/srx:binding[@name = 'construct']/srx:literal/string() })" mode="bs2:RowForm">
             <xsl:with-param name="id" select="'form-signup'"/>
             <xsl:with-param name="method" select="'post'"/> <!-- don't use PATCH which is the default -->
