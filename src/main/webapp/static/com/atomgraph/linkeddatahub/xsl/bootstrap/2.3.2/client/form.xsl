@@ -873,9 +873,9 @@ WHERE
                             </xsl:apply-templates>
                         </xsl:variable>
                         
-                        <xsl:message>
+<!--                        <xsl:message>
                             $row-form: <xsl:value-of select="serialize($row-form)"/>
-                        </xsl:message>
+                        </xsl:message>-->
                         
                         <xsl:for-each select="$block">
                             <xsl:result-document href="?." method="ixsl:replace-content">
