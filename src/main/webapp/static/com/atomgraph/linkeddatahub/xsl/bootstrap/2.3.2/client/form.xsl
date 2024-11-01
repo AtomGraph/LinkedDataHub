@@ -150,15 +150,6 @@ WHERE
         </xsl:for-each>
     </xsl:template>
 
-    <xsl:template match="textarea[@id][contains-token(@class, 'sparql-query-string')]" mode="ldh:PostConstruct" priority="1">
-        <xsl:variable name="textarea-id" select="ixsl:get(., 'id')" as="xs:string"/>
-        <!-- initialize YASQE SPARQL editor on the textarea -->
-        <xsl:variable name="js-statement" as="element()">
-            <root statement="YASQE.fromTextArea(document.getElementById('{$textarea-id}'), {{ persistent: null }})"/>
-        </xsl:variable>
-        <ixsl:set-property name="{$textarea-id}" select="ixsl:eval(string($js-statement/@statement))" object="ixsl:get(ixsl:window(), 'LinkedDataHub.yasqe')"/>
-    </xsl:template>
-    
     <!-- TO-DO: phase out as regular ixsl: event templates -->
     <xsl:template match="fieldset//input" mode="ldh:PostConstruct" priority="1">
         <!-- subject value change -->
@@ -268,7 +259,7 @@ WHERE
     <!-- enable inline editing form (do nothing if the button is disabled) -->
     
     <xsl:template match="div[@about]//button[contains-token(@class, 'btn-edit')][not(contains-token(@class, 'disabled'))]" mode="ixsl:onclick">
-        <xsl:param name="block" select="ancestor::div[@about][1]" as="element()"/>
+        <xsl:param name="block" select="ancestor::div[contains-token(@class, 'block')][1]" as="element()"/>
         <xsl:param name="container" select="ancestor::div[@typeof][1]" as="element()"/>
         <xsl:param name="about" select="$block/@about" as="xs:anyURI"/>
         <xsl:param name="graph" as="xs:anyURI?"/>
@@ -435,7 +426,7 @@ WHERE
     
     <xsl:template match="div[@about][@typeof = ('&ldh;ResultSetChart', '&ldh;GraphChart')]//button[contains-token(@class, 'btn-cancel')][not(contains-token(@class, 'disabled'))]" mode="ixsl:onclick" priority="1">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
-        <xsl:variable name="block" select="ancestor::div[@about][1]" as="element()"/>
+        <xsl:variable name="block" select="ancestor::div[contains-token(@class, 'block')][1]" as="element()"/>
         <xsl:variable name="container" select="ancestor::div[@typeof][1]" as="element()"/>
         <xsl:variable name="content-id" select="ixsl:get($container, 'id')" as="xs:string"/>
         <xsl:variable name="about" select="$block/@about" as="xs:anyURI"/>
@@ -464,7 +455,7 @@ WHERE
     <!-- TO-DO: unify -->
     <xsl:template match="div[@typeof]//button[contains-token(@class, 'btn-cancel')][not(contains-token(@class, 'disabled'))]" mode="ixsl:onclick">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
-        <xsl:variable name="block" select="ancestor::div[@about][1]" as="element()"/>
+        <xsl:variable name="block" select="ancestor::div[contains-token(@class, 'block')][1]" as="element()"/>
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'row-fluid')][1]" as="element()"/>
         <xsl:variable name="about" select="$block/@about" as="xs:anyURI"/>
 
@@ -590,7 +581,7 @@ WHERE
     
     <xsl:template match="div[@typeof]//form[contains-token(@class, 'form-horizontal')][upper-case(@method) = 'PATCH']" mode="ixsl:onsubmit" priority="1">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
-        <xsl:variable name="block" select="ancestor::div[@about][1]" as="element()"/>
+        <xsl:variable name="block" select="ancestor::div[contains-token(@class, 'block')][1]" as="element()"/>
         <xsl:variable name="container" select="ancestor::div[@typeof][1]" as="element()?"/>
         <xsl:variable name="form" select="." as="element()"/>
         <xsl:variable name="id" select="ixsl:get($form, 'id')" as="xs:string"/>
@@ -774,7 +765,10 @@ WHERE
                     <xsl:result-document href="?." method="ixsl:replace-content">
                         <xsl:copy-of select="$new-block/*"/>
                     </xsl:result-document>
+                </xsl:for-each>
 
+                <!-- cannot be in $block context because it contains old DOM (pre-ixsl:replace-content) -->
+                <xsl:for-each select="id($block/@id, ixsl:page())">
                     <xsl:apply-templates select="." mode="ldh:RenderBlock"/>
                 </xsl:for-each>
                 
@@ -868,9 +862,10 @@ WHERE
                             </xsl:result-document>
                         </xsl:for-each>
                         
-                        <xsl:if test="id($form/@id, ixsl:page())">
-                            <xsl:apply-templates select="id($form/@id, ixsl:page())" mode="ldh:PostConstruct"/>
-                        </xsl:if>
+                    <!-- cannot be in $form context because it contains old DOM (pre-ixsl:replace-content) -->
+                        <xsl:for-each select="id($form/@id, ixsl:page())">
+                            <xsl:apply-templates select="." mode="ldh:PostConstruct"/>
+                        </xsl:for-each>
                     </xsl:when>
                     <xsl:otherwise>
                         <xsl:variable name="row-form" as="node()*">
@@ -894,7 +889,10 @@ WHERE
                             <xsl:result-document href="?." method="ixsl:replace-content">
                                 <xsl:copy-of select="$row-form/*"/>
                             </xsl:result-document>
-
+                        </xsl:for-each>
+                        
+                        <!-- cannot be in $block context because it contains old DOM (pre-ixsl:replace-content) -->
+                        <xsl:for-each select="id($block/@id, ixsl:page())">
                             <xsl:apply-templates select="." mode="ldh:PostConstruct"/>
                         </xsl:for-each>
                     </xsl:otherwise>
@@ -1097,7 +1095,15 @@ WHERE
                     <xsl:with-param name="show-cancel-button" select="false()"/>
                 </xsl:apply-templates>
             </xsl:variable>
-                                
+
+            <!-- replace block element attributes TO-DO: shouldn't be necessary in SaxonJS 3 using method="ixsl:replace-element": https://saxonica.plan.io/issues/6303#note-2 -->
+            <xsl:for-each select="@*">
+                <ixsl:remove-attribute object="$container" name="{name()}"/>
+            </xsl:for-each>
+            <xsl:for-each select="$row-form/@*">
+                <ixsl:set-attribute object="$container" name="{name()}" select="."/>
+            </xsl:for-each>
+
             <xsl:result-document href="?." method="ixsl:replace-content">
                 <xsl:copy-of select="$row-form/*"/>
             </xsl:result-document>
@@ -1404,8 +1410,8 @@ WHERE
     
     <!-- remove the whole div.row-fluid containing the form -->
     <xsl:template match="div[contains-token(@class, 'row-fluid')]//button[contains-token(@class, 'btn-remove-resource')]" mode="ixsl:onclick" priority="2">
-        <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'row-fluid')][1]" as="element()"/>
-        <xsl:variable name="about" select="ancestor::div[@about][1]/@about" as="xs:anyURI"/>
+        <xsl:variable name="block" select="ancestor::div[contains-token(@class, 'block')][1]" as="element()"/>
+        <xsl:variable name="about" select="$block/@about" as="xs:anyURI"/>
         <xsl:variable name="form" select="ancestor::form" as="element()"/>
         <xsl:variable name="action" select="ixsl:get($form, 'action')" as="xs:anyURI"/>
         <xsl:message>ldh:base-uri(.): <xsl:value-of select="ldh:base-uri(.)"/></xsl:message>
@@ -1467,7 +1473,7 @@ WHERE
             </xsl:when>
             <!-- remove content that hasn't been saved yet -->
             <xsl:otherwise>
-                <xsl:for-each select="$container">
+                <xsl:for-each select="$block">
                     <xsl:sequence select="ixsl:call(., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
                 </xsl:for-each>
             </xsl:otherwise>

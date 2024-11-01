@@ -203,8 +203,8 @@ exclude-result-prefixes="#all"
     
     <!-- render chart block -->
     <xsl:template match="*[@about][@typeof = ('&ldh;ResultSetChart', '&ldh;GraphChart')][descendant::*[@property = '&spin;query'][@resource]][descendant::*[@property = '&ldh;chartType'][@resource]]" mode="ldh:RenderBlock" priority="1">
-        <xsl:param name="block" select="ancestor::div[@about][1]" as="element()"/>
-        <xsl:param name="about" select="@about" as="xs:anyURI"/>
+        <xsl:param name="block" select="ancestor-or-self::div[contains-token(@class, 'block')][1]" as="element()"/>
+        <xsl:param name="about" select="$block/@about" as="xs:anyURI"/>
         <xsl:param name="container" select="." as="element()"/>
         <xsl:param name="graph" select="descendant::*[@property = '&ldh;graph']/@resource" as="xs:anyURI?"/>
         <xsl:param name="mode" select="descendant::*[@property = '&ac;mode']/@resource" as="xs:anyURI?"/>

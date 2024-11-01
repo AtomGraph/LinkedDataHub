@@ -453,7 +453,13 @@ extension-element-prefixes="ixsl"
     </xsl:template>
     
     <!-- BLOCK -->
-    
+
+    <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = ('&sp;Describe', '&sp;Construct', '&sp;Ask', '&sp;Select')]" mode="bs2:Row" priority="1">
+        <xsl:next-match>
+            <xsl:with-param name="class" select="'row-fluid block'"/>
+        </xsl:next-match>
+    </xsl:template>
+        
     <!-- resource block overrides -->
     <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = ('&ldh;View', '&ldh;Object')]" mode="bs2:Row" priority="1">
         <!-- TO-DO: use $ldh:requestUri to resolve URIs server-side -->
@@ -489,7 +495,7 @@ extension-element-prefixes="ixsl"
                 <div class="row-fluid row-block-controls" style="position: relative; top: 30px; margin-top: -30px; z-index: 1;">
                     <div class="span12">
                         <xsl:if test="$acl:mode = '&acl;Write'">
-                            <button type="button" class="btn btn-edit pull-right">
+                            <button type="button" class="btn btn-edit pull-right" style="display: none;">
                                 <xsl:apply-templates select="key('resources', '&ac;EditMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
                             </button>
                         </xsl:if>
@@ -546,7 +552,7 @@ extension-element-prefixes="ixsl"
                 <div class="row-fluid row-block-controls" style="position: relative; top: 30px; margin-top: -30px; z-index: 1;">
                     <div class="span12">
                         <xsl:if test="$acl:mode = '&acl;Write'">
-                            <button type="button" class="btn btn-edit pull-right">
+                            <button type="button" class="btn btn-edit pull-right" style="display: none;">
                                 <xsl:apply-templates select="key('resources', '&ac;EditMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
                             </button>
                         </xsl:if>
@@ -1058,9 +1064,16 @@ extension-element-prefixes="ixsl"
 
     <!-- hide object blank nodes that only have a single rdf:type property from constructed models, unless the type is owl:NamedIndividual -->
     <xsl:template match="*[@rdf:nodeID][$ac:method = 'GET'][key('predicates-by-object', @rdf:nodeID)][not(* except rdf:type or rdf:type/@rdf:resource = '&owl;NamedIndividual')]" mode="bs2:RowForm" priority="2" use-when="system-property('xsl:product-name') = 'SAXON'"/>
+
     <!-- hide object blank nodes that only have a single rdf:type property from constructed models, unless the type is owl:NamedIndividual -->
     <xsl:template match="*[@rdf:nodeID][key('predicates-by-object', @rdf:nodeID)][not(* except rdf:type or rdf:type/@rdf:resource = '&owl;NamedIndividual')]" mode="bs2:RowForm" priority="2" use-when="system-property('xsl:product-name') eq 'SaxonJS'"/>
 
+    <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = ('&ldh;XHTML', '&ldh;View', '&ldh;Object', '&sp;Describe', '&sp;Construct', '&sp;Ask', '&sp;Select')]" mode="bs2:RowForm" priority="1">
+        <xsl:next-match>
+            <xsl:with-param name="class" select="'row-fluid block'"/>
+        </xsl:next-match>
+    </xsl:template>
+    
     <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:RowForm">
         <xsl:param name="id" select="if (contains(@rdf:about, ac:absolute-path(ldh:base-uri(.)) || '#')) then substring-after(@rdf:about, ac:absolute-path(ldh:base-uri(.)) || '#') else generate-id()" as="xs:string?"/>
         <xsl:param name="class" select="'row-fluid'" as="xs:string?"/>

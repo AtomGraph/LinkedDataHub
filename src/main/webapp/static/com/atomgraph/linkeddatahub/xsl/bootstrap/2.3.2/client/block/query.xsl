@@ -58,10 +58,58 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="$query-string"/>
     </xsl:template>
     
+    <!-- render query editor -->
+    
+    <xsl:template match="textarea[@id][contains-token(@class, 'sparql-query-string')]" mode="ldh:PostConstruct" priority="1">
+        <xsl:variable name="textarea-id" select="ixsl:get(., 'id')" as="xs:string"/>
+        <!-- initialize YASQE SPARQL editor on the textarea -->
+        <xsl:variable name="js-statement" as="element()">
+            <root statement="YASQE.fromTextArea(document.getElementById('{$textarea-id}'), {{ persistent: null }})"/>
+        </xsl:variable>
+        <ixsl:set-property name="{$textarea-id}" select="ixsl:eval(string($js-statement/@statement))" object="ixsl:get(ixsl:window(), 'LinkedDataHub.yasqe')"/>
+    </xsl:template>
+    
+    <xsl:template name="onQueryServiceLoad">
+        <xsl:context-item as="map(*)" use="required"/>
+        <xsl:param name="container" as="element()"/>
+        <xsl:param name="forClass" as="xs:anyURI"/>
+        <xsl:param name="service-uri" as="xs:anyURI"/>
+        
+        <xsl:choose>
+            <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
+                <xsl:variable name="results" select="?body" as="document-node()"/>
+
+                <xsl:message>
+                    $service: <xsl:value-of select="serialize(key('resources', $service-uri, $results))"/>
+                </xsl:message>
+
+                <xsl:result-document href="?." method="ixsl:append-content">
+                    <xsl:apply-templates select="key('resources', $service-uri, $results)" mode="ldh:Typeahead">
+                        <xsl:with-param name="forClass" select="$forClass"/>
+                    </xsl:apply-templates>
+                </xsl:result-document>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:variable name="response" select="." as="map(*)"/>
+                <!-- error response - could not load service -->
+                <xsl:for-each select="$container">
+                    <xsl:result-document href="?." method="ixsl:replace-content">
+                        <div class="alert alert-block">
+                            <strong>Error loading service:</strong>
+                            <pre>
+                                <xsl:value-of select="$response?message"/>
+                            </pre>
+                        </div>
+                    </xsl:result-document>
+                </xsl:for-each>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:template>
+    
     <!-- render query block -->
     
-    <xsl:template match="*[@typeof = ('&sp;Ask', '&sp;Select', '&sp;Describe', '&sp;Construct')][descendant::*[@property = '&sp;text'][text()]]" mode="ldh:RenderBlock" priority="1">
-        <xsl:param name="block" select="ancestor::*[@about][1]" as="element()"/>
+    <xsl:template match="*[@typeof = ('&sp;Ask', '&sp;Select', '&sp;Describe', '&sp;Construct')][descendant::*[@property = '&sp;text'][pre/text()]]" mode="ldh:RenderBlock" priority="1">
+        <xsl:param name="block" select="ancestor-or-self::div[contains-token(@class, 'block')][1]" as="element()"/>
         <xsl:param name="about" select="$block/@about" as="xs:anyURI"/>
         <xsl:param name="block-uri" select="$about" as="xs:anyURI"/>
         <xsl:param name="container" select="." as="element()"/>
@@ -78,7 +126,8 @@ exclude-result-prefixes="#all"
         
         <xsl:message>
             Query ldh:RenderBlock @typeof: <xsl:value-of select="@typeof"/> $about: <xsl:value-of select="$about"/>
-            $service-uri: <xsl:value-of select="$service-uri"/>
+            $service-uri: <xsl:value-of select="$service-uri"/> $textarea-id: <xsl:value-of select="$textarea-id"/>
+            $query: <xsl:value-of select="$query"/>
         </xsl:message>
         
         <xsl:for-each select="$block//div[contains-token(@class, 'bar')]">
@@ -167,7 +216,18 @@ exclude-result-prefixes="#all"
             </xsl:result-document>
         </xsl:for-each>
         
-        <xsl:apply-templates select="." mode="ldh:PostConstruct"/>
+        <xsl:apply-templates mode="#current"/>
+    </xsl:template>
+    
+    <!-- render query editor -->
+    
+    <xsl:template match="textarea[@id][contains-token(@class, 'sparql-query-string')]" mode="ldh:RenderBlock" priority="1">
+        <xsl:variable name="textarea-id" select="ixsl:get(., 'id')" as="xs:string"/>
+        <!-- initialize YASQE SPARQL editor on the textarea -->
+        <xsl:variable name="js-statement" as="element()">
+            <root statement="YASQE.fromTextArea(document.getElementById('{$textarea-id}'), {{ persistent: null }})"/>
+        </xsl:variable>
+        <ixsl:set-property name="{$textarea-id}" select="ixsl:eval(string($js-statement/@statement))" object="ixsl:get(ixsl:window(), 'LinkedDataHub.yasqe')"/>
     </xsl:template>
     
     <!-- EVENT LISTENERS -->
@@ -185,7 +245,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="service-uri" select="$service-control-group/descendant::input[@name = 'ou']/ixsl:get(., 'value')" as="xs:anyURI?"/>
         <xsl:variable name="service" select="key('resources', $service-uri, ixsl:get(ixsl:window(), 'LinkedDataHub.apps'))" as="element()?"/>
         <xsl:variable name="endpoint" select="($service/sd:endpoint/@rdf:resource/xs:anyURI(.), sd:endpoint())[1]" as="xs:anyURI"/>
-        <xsl:variable name="block" select="ancestor::div[@about][1]" as="element()"/>
+        <xsl:variable name="block" select="ancestor::div[contains-token(@class, 'block')][1]" as="element()"/>
         <xsl:variable name="container" select="$block" as="element()"/> <!-- since we're not in content mode -->
         <xsl:variable name="block-id" select="$block/@id" as="xs:string"/>
         <xsl:variable name="block-uri" select="if ($block/@about) then $block/@about else xs:anyURI(ac:absolute-path(ldh:base-uri(.)) || '#' || $block-id)" as="xs:anyURI"/>
@@ -236,7 +296,7 @@ exclude-result-prefixes="#all"
     <!-- toggle query results to container mode (prioritize over container.xsl) -->
     
     <xsl:template match="ul[contains-token(@class, 'nav-tabs')][contains-token(@class, 'nav-query-results')]/li[contains-token(@class, 'container-mode')][not(contains-token(@class, 'active'))]/a" mode="ixsl:onclick" priority="1">
-        <xsl:variable name="block" select="ancestor::div[@about][1]" as="element()"/>
+        <xsl:variable name="block" select="ancestor::div[contains-token(@class, 'block')][1]" as="element()"/>
         <xsl:variable name="container" select="ancestor::div[@typeof][1]" as="element()"/>
         <xsl:variable name="form" select="$container//form[contains-token(@class, 'sparql-query-form')]" as="element()"/>
         <xsl:variable name="textarea-id" select="$form//textarea[@name = 'query']/ixsl:get(., 'id')" as="xs:string"/>
@@ -302,13 +362,13 @@ exclude-result-prefixes="#all"
             <xsl:with-param name="select-query" select="$constructor//*[@rdf:about = $query-uri]"/>
         </xsl:apply-templates>
     </xsl:template>
-
+    
     <!-- save query onclick -->
     <!-- TO-DO: use @typeof in match so that we don't need a custom button.btn-save-query class -->
     
     <xsl:template match="div[@typeof]//button[contains-token(@class, 'btn-save-query')]" mode="ixsl:onclick">
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
-        <xsl:variable name="block" select="ancestor::div[@about][1]" as="element()"/>
+        <xsl:variable name="block" select="ancestor::div[contains-token(@class, 'block')][1]" as="element()"/>
         <xsl:variable name="container" select="ancestor::div[@typeof][1]" as="element()"/>
         <xsl:variable name="about" select="$block/@about" as="xs:anyURI"/>
         <xsl:variable name="textarea" select="ancestor::form/descendant::textarea[@name = 'query']" as="element()"/>

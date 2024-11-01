@@ -75,6 +75,7 @@ extension-element-prefixes="ixsl"
     <xsl:import href="../../../../com/atomgraph/client/xsl/functions.xsl"/>
     <xsl:import href="../../../../com/atomgraph/client/xsl/imports/default.xsl"/>
     <xsl:import href="../../../../com/atomgraph/client/xsl/imports/rdf.xsl"/>
+    <xsl:import href="../../../../com/atomgraph/client/xsl/imports/sp.xsl"/>
     <xsl:import href="../../../../com/atomgraph/client/xsl/bootstrap/2.3.2/imports/default.xsl"/>
     <xsl:import href="bootstrap/2.3.2/imports/default.xsl"/>
     <xsl:import href="../../../../com/atomgraph/client/xsl/bootstrap/2.3.2/resource.xsl"/>

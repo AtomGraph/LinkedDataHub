@@ -52,7 +52,7 @@ exclude-result-prefixes="#all"
     <!-- object block (RDF resource) -->
     
     <xsl:template match="*[@typeof = '&ldh;Object'][descendant::*[@property = '&rdf;value'][@resource]]" mode="ldh:RenderBlock" priority="1">
-        <xsl:param name="block" select="ancestor::*[@about][1]" as="element()"/>
+        <xsl:param name="block" select="ancestor::div[contains-token(@class, 'block')][1]" as="element()"/>
         <xsl:param name="about" select="$block/@about" as="xs:anyURI"/>
         <xsl:param name="block-uri" select="$about" as="xs:anyURI"/>
         <xsl:param name="container" select="." as="element()"/>

@@ -114,6 +114,12 @@ exclude-result-prefixes="#all"
 
     <!-- TEMPLATES -->
 
+    <!-- render block -->
+    
+    <xsl:template match="*" mode="ldh:RenderBlock">
+        <xsl:apply-templates mode="#current"/>
+    </xsl:template>
+    
     <!-- hide type control -->
     <xsl:template match="*[rdf:type/@rdf:resource = '&ldh;XHTML']" mode="bs2:TypeControl" priority="1">
         <xsl:next-match>
@@ -134,7 +140,7 @@ exclude-result-prefixes="#all"
     
     <!-- show block controls -->
     
-    <xsl:template match="div[contains-token(@class, 'block')][acl:mode() = '&acl;Write']" mode="ixsl:onmousemove"> <!-- TO-DO: better selector -->
+    <xsl:template match="div[contains-token(@class, 'block')][key('elements-by-class', 'row-block-controls', .)][acl:mode() = '&acl;Write']" mode="ixsl:onmousemove"> <!-- TO-DO: better selector -->
         <xsl:variable name="dom-x" select="ixsl:get(ixsl:event(), 'clientX')" as="xs:double"/>
         <xsl:variable name="dom-y" select="ixsl:get(ixsl:event(), 'clientY')" as="xs:double"/>
         <xsl:variable name="rect" select="ixsl:call(., 'getBoundingClientRect', [])"/>
@@ -145,20 +151,23 @@ exclude-result-prefixes="#all"
         <xsl:variable name="offset-y-treshold" select="20" as="xs:double"/>
         
         <xsl:variable name="row-block-controls" select="key('elements-by-class', 'row-block-controls', .)" as="element()"/>
+        <xsl:variable name="btn-edit" select="key('elements-by-class', 'btn-edit', $row-block-controls)" as="element()"/>
         <!-- check that the mouse is on the top edge and show the block controls if they're not already shown -->
         <xsl:if test="$offset-x &gt;= $width - $offset-x-treshold and $offset-y &lt;= $offset-y-treshold and ixsl:style($row-block-controls)?z-index = '-1'">
             <ixsl:set-style name="z-index" select="'1'" object="$row-block-controls"/>
+            <ixsl:set-style name="display" select="'block'" object="$btn-edit"/>
         </xsl:if>
         <!-- check that the mouse is outside the top edge and hide the block controls if they're not already hidden -->
         <xsl:if test="$offset-x &lt; $width - $offset-x-treshold and $offset-y &gt; $offset-y-treshold and ixsl:style($row-block-controls)?z-index = '1'">
             <ixsl:set-style name="z-index" select="'-1'" object="$row-block-controls"/>
+            <ixsl:set-style name="display" select="'none'" object="$btn-edit"/>
         </xsl:if>
     </xsl:template>
 
     <!-- override inline editing form for content types (do nothing if the button is disabled) - prioritize over form.xsl -->
     
     <xsl:template match="div[following-sibling::div[@typeof = ('&ldh;XHTML', '&ldh;View', '&ldh;Object')]]//button[contains-token(@class, 'btn-edit')][not(contains-token(@class, 'disabled'))]" mode="ixsl:onclick" priority="1">
-        <xsl:param name="block" select="ancestor::div[@about][1]" as="element()"/>
+        <xsl:param name="block" select="ancestor::div[contains-token(@class, 'block')][1]" as="element()"/>
         <!-- for content types, button.btn-edit is placed in its own div.row-fluid, therefore the next row is the actual container -->
         <xsl:param name="container" select="$block/descendant::div[@typeof][1]" as="element()"/> <!-- other resources can be nested within object -->
 
@@ -179,7 +188,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="triples" select="ldh:parse-rdf-post($elements)" as="element()*"/>
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <xsl:variable name="container" select="ancestor::div[@typeof][1]" as="element()"/>
-        <xsl:variable name="block" select="$container" as="element()"/> <!-- block has no @about at this stage (before saving it) -->
+        <xsl:variable name="block" select="ancestor::div[contains-token(@class, 'block')][1]" as="element()"/>
         <xsl:variable name="block-uri" select="xs:anyURI(.//input[@name = 'su'] => ixsl:get('value'))" as="xs:anyURI"/>
         <xsl:variable name="sequence-number" select="count($block/preceding-sibling::div[@about]) + 1" as="xs:integer"/>
         <xsl:variable name="sequence-property" select="xs:anyURI('&rdf;_' || $sequence-number)" as="xs:anyURI"/>
@@ -213,7 +222,7 @@ exclude-result-prefixes="#all"
     <!-- delete content onclick (increased priority to take precedence over form.xsl .btn-remove-resource) -->
     
     <xsl:template match="div[@typeof = ('&ldh;XHTML', '&ldh;View', '&ldh;Object')]//button[contains-token(@class, 'btn-remove-resource')]" mode="ixsl:onclick" priority="3">
-        <xsl:variable name="block" select="ancestor::div[@about][1]" as="element()"/>
+        <xsl:variable name="block" select="ancestor::div[contains-token(@class, 'block')][1]" as="element()"/>
 
         <xsl:choose>
             <!-- delete existing content -->
@@ -248,7 +257,7 @@ exclude-result-prefixes="#all"
     <!-- XHTML block cancel onclick - prioritize over resource content -->
     
     <xsl:template match="div[@typeof = '&ldh;XHTML']//button[contains-token(@class, 'btn-cancel')]" mode="ixsl:onclick" priority="2">
-        <xsl:variable name="block" select="ancestor::div[@about][1]" as="element()"/>
+        <xsl:variable name="block" select="ancestor::div[contains-token(@class, 'block')][1]" as="element()"/>
         <xsl:variable name="container" select="ancestor::div[@typeof][1]" as="element()"/>
 
         <xsl:message>XHTML block cancel onclick</xsl:message>
@@ -278,7 +287,7 @@ exclude-result-prefixes="#all"
     <!-- resource content/SPARQL content cancel onclick -->
     
     <xsl:template match="div[@typeof = ('&ldh;View', '&ldh;Object')]//button[contains-token(@class, 'btn-cancel')]" mode="ixsl:onclick" priority="1"> <!-- prioritize over form.xsl -->
-        <xsl:variable name="block" select="ancestor::div[@about][1]" as="element()"/>
+        <xsl:variable name="block" select="ancestor::div[contains-token(@class, 'block')][1]" as="element()"/>
 <!--        <xsl:variable name="container" select="ancestor::div[@typeof][1]" as="element()"/>-->
 
         <xsl:message>resource block</xsl:message>
