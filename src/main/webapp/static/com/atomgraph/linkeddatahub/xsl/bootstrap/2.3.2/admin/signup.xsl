@@ -113,15 +113,15 @@ exclude-result-prefixes="#all">
     <!-- suppress resources other than foaf:Person and cert:PublicKey -->
     <!-- <xsl:template match="*[ac:absolute-path($ldh:requestUri) = resolve-uri(encode-for-uri('sign up'), $ldt:base)][not(key('resources-by-type', '&http;Response'))][not(rdf:type/@rdf:resource = ('&foaf;Person', '&cert;X509Certificate'))]" mode="bs2:Row" priority="2"/> -->
 
+    <!-- hide resources from constructed models -->
+    <xsl:template match="rdf:Description[not(rdf:type/@rdf:resource = ('&foaf;Person', '&adm;SignUp'))][ac:absolute-path($ldh:requestUri) = resolve-uri(encode-for-uri('sign up'), $ldt:base)]" mode="bs2:RowForm" priority="3"/>
+
     <!-- hide type control -->
     <xsl:template match="*[*][@rdf:about or @rdf:nodeID][ac:absolute-path($ldh:requestUri) = resolve-uri(encode-for-uri('sign up'), $ldt:base)]" mode="bs2:TypeControl" priority="2">
         <xsl:next-match>
             <xsl:with-param name="hidden" select="true()"/>
         </xsl:next-match>
     </xsl:template>
-
-    <!-- hide object blank nodes (that only have a single rdf:type property) from constructed models -->
-    <xsl:template match="rdf:Description[@rdf:nodeID][not(rdf:type/@rdf:resource = ('&foaf;Person', '&adm;SignUp'))][ac:absolute-path($ldh:requestUri) = resolve-uri(encode-for-uri('sign up'), $ldt:base)]" mode="bs2:RowForm" priority="3"/>
 
     <xsl:template match="*[*][@rdf:about or @rdf:nodeID][ac:absolute-path($ldh:requestUri) = resolve-uri(encode-for-uri('sign up'), $ldt:base)]" mode="bs2:FormControl" priority="1">
         <xsl:next-match>
