@@ -1,4 +1,4 @@
-FROM --platform=$BUILDPLATFORM maven:3.8.4-openjdk-17 as maven
+FROM --platform=$BUILDPLATFORM maven:3.8.4-openjdk-17 AS maven
 
 # download and extract Jena
 
