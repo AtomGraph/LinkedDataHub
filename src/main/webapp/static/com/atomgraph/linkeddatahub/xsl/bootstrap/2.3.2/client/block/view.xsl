@@ -54,6 +54,22 @@ exclude-result-prefixes="#all"
         
     <!-- TEMPLATES -->
 
+    <!-- hide type control -->
+    <xsl:template match="*[rdf:type/@rdf:resource = '&ldh;View']" mode="bs2:TypeControl" priority="1">
+        <xsl:next-match>
+            <xsl:with-param name="hidden" select="true()"/>
+        </xsl:next-match>
+    </xsl:template>
+    
+    <!-- provide a property label which otherwise would default to local-name() client-side (since $property-metadata is not loaded) -->
+    <xsl:template match="*[rdf:type/@rdf:resource = '&ldh;View']/rdfs:label | *[rdf:type/@rdf:resource = '&ldh;View']/ac:mode" mode="bs2:FormControl">
+        <xsl:next-match>
+            <xsl:with-param name="label" select="ac:property-label(.)"/>
+        </xsl:next-match>
+    </xsl:template>
+        
+    <!-- render view -->
+    
     <xsl:template match="*[@typeof = '&ldh;View'][descendant::*[@property = '&spin;query'][@resource]]" mode="ldh:RenderBlock" priority="1">
         <xsl:param name="block" select="ancestor::*[@about][1]" as="element()"/>
         <xsl:param name="about" select="$block/@about" as="xs:anyURI"/>

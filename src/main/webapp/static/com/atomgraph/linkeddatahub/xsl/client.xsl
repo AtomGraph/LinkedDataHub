@@ -100,11 +100,12 @@ extension-element-prefixes="ixsl"
     <xsl:include href="bootstrap/2.3.2/client/navigation.xsl"/>
     <xsl:include href="bootstrap/2.3.2/client/block.xsl"/>
     <xsl:include href="bootstrap/2.3.2/client/modal.xsl"/>
-    <xsl:include href="bootstrap/2.3.2/client/view.xsl"/>
     <xsl:include href="bootstrap/2.3.2/client/form.xsl"/>
     <xsl:include href="bootstrap/2.3.2/client/map.xsl"/>
     <xsl:include href="bootstrap/2.3.2/client/graph.xsl"/>
     <xsl:include href="bootstrap/2.3.2/client/constructor.xsl"/>
+    <xsl:include href="bootstrap/2.3.2/client/block/object.xsl"/>
+    <xsl:include href="bootstrap/2.3.2/client/block/view.xsl"/>
     <xsl:include href="bootstrap/2.3.2/client/block/chart.xsl"/>
     <xsl:include href="bootstrap/2.3.2/client/block/query.xsl"/>
     
