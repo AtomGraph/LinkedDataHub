@@ -797,6 +797,7 @@ WHERE
 
                 <xsl:message>
                     ConstraintViolation $constructors: <xsl:value-of select="serialize($constructors)"/>
+                    $block/@id: <xsl:value-of select="$block/@id"/>
                 </xsl:message>
 
                 <xsl:variable name="query-string" select="$constraint-query || ' VALUES $Type { ' || string-join(for $type in $types return '&lt;' || $type || '&gt;', ' ') || ' }'" as="xs:string"/>
