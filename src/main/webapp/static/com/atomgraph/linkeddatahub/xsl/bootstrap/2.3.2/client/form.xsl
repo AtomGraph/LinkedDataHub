@@ -872,7 +872,11 @@ WHERE
                                 <xsl:with-param name="object-metadata" select="$object-metadata" tunnel="yes"/>
                             </xsl:apply-templates>
                         </xsl:variable>
-
+                        
+                        <xsl:message>
+                            $row-form: <xsl:value-of select="serialize($row-form)"/>
+                        </xsl:message>
+                        
                         <xsl:for-each select="$block">
                             <xsl:result-document href="?." method="ixsl:replace-content">
                                 <xsl:copy-of select="$row-form/*"/>
