@@ -67,14 +67,14 @@ exclude-result-prefixes="#all">
 
     <!-- constraint violation -->
     <xsl:template match="rdf:RDF[ac:absolute-path($ldh:requestUri) = resolve-uri(encode-for-uri('sign up'), $ldt:base)][key('resources-by-type', '&spin;ConstraintViolation') or key('resources-by-type', '&sh;ValidationResult')]" mode="bs2:Row" priority="3">
-        <xsl:apply-templates select="." mode="bs2:RowForm">
+        SIGNUP<xsl:apply-templates select="." mode="bs2:RowForm">
             <xsl:with-param name="id" select="'form-signup'"/>
             <xsl:with-param name="method" select="'post'"/> <!-- don't use PATCH which is the default -->
             <xsl:with-param name="action" select="ac:absolute-path(base-uri($main-doc))"/>
             <xsl:with-param name="enctype" select="()"/>
             <xsl:with-param name="create-resource" select="false()"/>
             <xsl:with-param name="base-uri" select="ac:absolute-path(base-uri($main-doc))" tunnel="yes"/> <!-- base-uri() is empty on constructed documents -->
-        </xsl:apply-templates>
+        </xsl:apply-templates>/SIGNUP
     </xsl:template>
 
     <xsl:template match="rdf:RDF[ac:absolute-path($ldh:requestUri) = resolve-uri(encode-for-uri('sign up'), $ldt:base)]" mode="bs2:Row" priority="2">
@@ -113,6 +113,13 @@ exclude-result-prefixes="#all">
     <!-- suppress resources other than foaf:Person and cert:PublicKey -->
     <!-- <xsl:template match="*[ac:absolute-path($ldh:requestUri) = resolve-uri(encode-for-uri('sign up'), $ldt:base)][not(key('resources-by-type', '&http;Response'))][not(rdf:type/@rdf:resource = ('&foaf;Person', '&cert;X509Certificate'))]" mode="bs2:Row" priority="2"/> -->
 
+    <!-- hide type control -->
+    <xsl:template match="*[*][@rdf:about or @rdf:nodeID][ac:absolute-path($ldh:requestUri) = resolve-uri(encode-for-uri('sign up'), $ldt:base)]" mode="bs2:TypeControl" priority="2">
+        <xsl:next-match>
+            <xsl:with-param name="hidden" select="true()"/>
+        </xsl:next-match>
+    </xsl:template>
+
     <!-- hide object blank nodes (that only have a single rdf:type property) from constructed models -->
     <xsl:template match="rdf:Description[@rdf:nodeID][not(rdf:type/@rdf:resource = ('&foaf;Person', '&adm;SignUp'))][ac:absolute-path($ldh:requestUri) = resolve-uri(encode-for-uri('sign up'), $ldt:base)]" mode="bs2:RowForm" priority="3"/>
 
@@ -124,7 +131,7 @@ exclude-result-prefixes="#all">
         </xsl:next-match>
     </xsl:template>
 
-    <xsl:template match="*[@rdf:about or @rdf:nodeID][ac:absolute-path($ldh:requestUri) = resolve-uri(encode-for-uri('sign up'), $ldt:base)]/sioc:has_parent | *[@rdf:about or @rdf:nodeID][ac:absolute-path($ldh:requestUri) = resolve-uri(encode-for-uri('sign up'), $ldt:base)]/sioc:has_container" mode="bs2:FormControl">
+<!--    <xsl:template match="*[@rdf:about or @rdf:nodeID][ac:absolute-path($ldh:requestUri) = resolve-uri(encode-for-uri('sign up'), $ldt:base)]/sioc:has_parent | *[@rdf:about or @rdf:nodeID][ac:absolute-path($ldh:requestUri) = resolve-uri(encode-for-uri('sign up'), $ldt:base)]/sioc:has_container" mode="bs2:FormControl">
         <xsl:apply-templates select="." mode="xhtml:Input">
             <xsl:with-param name="type" select="'hidden'"/>
         </xsl:apply-templates>
@@ -134,7 +141,7 @@ exclude-result-prefixes="#all">
             <xsl:with-param name="type" select="'hidden'"/>
             <xsl:with-param name="value" select="resolve-uri('acl/agents/', $ldt:base)"/>
         </xsl:call-template>
-    </xsl:template>
+    </xsl:template>-->
     
     <xsl:template match="foaf:based_near/@rdf:*[ac:absolute-path($ldh:requestUri) = resolve-uri(encode-for-uri('sign up'), $ldt:base)]" mode="bs2:FormControl" priority="1">
         <xsl:param name="id" select="generate-id()" as="xs:string"/>
@@ -191,59 +198,6 @@ exclude-result-prefixes="#all">
     </xsl:template>
 
     <xsl:template match="foaf:mbox/@rdf:*" mode="bs2:FormControlTypeLabel">
-        <xsl:param name="type" as="xs:string?"/>
-
-        <xsl:if test="not($type = 'hidden')">
-            <span class="help-inline">Literal</span>
-        </xsl:if>
-    </xsl:template>
-    
-    <xsl:template match="foaf:member/@rdf:*[ac:absolute-path($ldh:requestUri) = resolve-uri(encode-for-uri('sign up'), $ldt:base)]" mode="bs2:FormControl" priority="1">
-        <xsl:param name="type" select="'text'" as="xs:string"/>
-        <xsl:param name="id" as="xs:string?"/>
-        <xsl:param name="class" as="xs:string?"/>
-        <xsl:param name="disabled" select="false()" as="xs:boolean"/>
-        <xsl:param name="type-label" select="true()" as="xs:boolean"/>
-
-        <input type="hidden" name="ob" value="org"/>
-        
-        <!-- replace URI resource lookup with blank node -->
-        <fieldset>
-            <input type="hidden" name="sb" value="org"/>
-            
-            <div class="control-group">
-                <input type="hidden" name="pu" value="&foaf;name"/>
-
-                <label class="control-label" for="{$id}">
-                    <xsl:value-of>
-                        <xsl:apply-templates select="key('resources', '&foaf;name', document(ac:document-uri('&foaf;')))" mode="ac:label"/>
-                    </xsl:value-of>
-                </label>
-                <div class="controls">
-                    <xsl:call-template name="xhtml:Input">
-                        <xsl:with-param name="name" select="'ol'"/>
-                        <xsl:with-param name="type" select="$type"/>
-                        <xsl:with-param name="id" select="$id"/>
-                        <xsl:with-param name="class" select="$class"/>
-                        <xsl:with-param name="disabled" select="$disabled"/>
-                    </xsl:call-template>
-
-                    <xsl:if test="$type-label">
-                        <xsl:apply-templates select="." mode="bs2:FormControlTypeLabel">
-                            <xsl:with-param name="type" select="$type"/>
-                        </xsl:apply-templates>
-                    </xsl:if>
-                </div>
-            </div>
-        </fieldset>
-        
-        <!-- restore subject context -->
-        <xsl:apply-templates select="../../@rdf:about | ../../@rdf:nodeID" mode="#current">
-            <xsl:with-param name="type" select="'hidden'"/>
-        </xsl:apply-templates>
-    </xsl:template>
-    
-    <xsl:template match="foaf:member/@rdf:*[ac:absolute-path($ldh:requestUri) = resolve-uri(encode-for-uri('sign up'), $ldt:base)]" mode="bs2:FormControlTypeLabel">
         <xsl:param name="type" as="xs:string?"/>
 
         <xsl:if test="not($type = 'hidden')">
@@ -347,13 +301,6 @@ exclude-result-prefixes="#all">
         </div>
     </xsl:template>
     
-    <!-- hide type control -->
-    <xsl:template match="*[*][@rdf:about or @rdf:nodeID][ac:absolute-path($ldh:requestUri) = resolve-uri(encode-for-uri('sign up'), $ldt:base)]" mode="bs2:TypeControl" priority="2">
-        <xsl:next-match>
-            <xsl:with-param name="hidden" select="true()"/>
-        </xsl:next-match>
-    </xsl:template>
-
     <!--  hide properties -->
     <xsl:template match="dh:slug[ac:absolute-path($ldh:requestUri) = resolve-uri(encode-for-uri('sign up'), $ldt:base)] | foaf:primaryTopic[ac:absolute-path($ldh:requestUri) = resolve-uri(encode-for-uri('sign up'), $ldt:base)] | foaf:isPrimaryTopicOf[ac:absolute-path($ldh:requestUri) = resolve-uri(encode-for-uri('sign up'), $ldt:base)] | cert:modulus[ac:absolute-path($ldh:requestUri) = resolve-uri(encode-for-uri('sign up'), $ldt:base)] | cert:exponent[ac:absolute-path($ldh:requestUri) = resolve-uri(encode-for-uri('sign up'), $ldt:base)]" mode="bs2:FormControl" priority="3">
         <xsl:apply-templates select="." mode="xhtml:Input">

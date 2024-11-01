@@ -878,7 +878,7 @@ WHERE
                             </xsl:result-document>
 
                             <xsl:apply-templates select="." mode="ldh:PostConstruct"/>
-                    </xsl:for-each>
+                        </xsl:for-each>
                     </xsl:otherwise>
                 </xsl:choose>
 
