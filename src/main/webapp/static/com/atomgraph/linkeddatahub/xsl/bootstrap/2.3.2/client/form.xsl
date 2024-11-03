@@ -720,6 +720,22 @@ WHERE
             ldh:ResourceUpdated $doc-uri: <xsl:value-of select="$doc-uri"/> $modal: <xsl:value-of select="$modal"/>
         </xsl:message>
         
+        <xsl:apply-templates select="." mode="ldh:ProcessUpdateResponse">
+            <xsl:with-param name="doc-uri" select="$doc-uri"/>
+            <xsl:with-param name="block" select="$block"/>
+            <xsl:with-param name="form" select="$form"/>
+            <xsl:with-param name="modal" select="$modal"/>
+            <xsl:with-param name="resources" select="$resources"/>
+        </xsl:apply-templates>
+    </xsl:template>
+    
+    <xsl:template match=".[. instance of map(*)]" mode="ldh:ProcessUpdateResponse">
+        <xsl:param name="doc-uri" as="xs:anyURI"/>
+        <xsl:param name="block" as="element()"/>
+        <xsl:param name="form" as="element()?"/>
+        <xsl:param name="modal" select="false()" as="xs:boolean"/>
+        <xsl:param name="resources" as="document-node()"/>
+        
         <xsl:choose>
             <!-- POST data appended successfully -->
             <xsl:when test="?status = (200, 204)">
@@ -760,9 +776,6 @@ WHERE
                     </xsl:result-document>
 
                     <xsl:apply-templates select="." mode="ldh:RenderBlock"/>
-
-                    <!-- don't apply ldh:PostConstruct as ldh:RenderBlock should do it already -->
-<!--                    <xsl:apply-templates select="." mode="ldh:PostConstruct"/>-->
                 </xsl:for-each>
                 
                 <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
