@@ -425,6 +425,7 @@ LIMIT   100
                             "Q{}app-request-uri": servicesRequestUri
                             };
                         
+                        SaxonJS.setConfigurationProperty("nativeGetElementById", true);
                         SaxonJS.getResource({location: servicesRequestUri, type: "xml", headers: { "Accept": "application/rdf+xml" } }).
                             then(resource => {
                                 stylesheetParams["Q{https://w3id.org/atomgraph/linkeddatahub#}apps"] = resource;
