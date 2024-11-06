@@ -1069,8 +1069,20 @@ extension-element-prefixes="ixsl"
     <xsl:template match="*[@rdf:nodeID][key('predicates-by-object', @rdf:nodeID)][not(* except rdf:type or rdf:type/@rdf:resource = '&owl;NamedIndividual')]" mode="bs2:RowForm" priority="2" use-when="system-property('xsl:product-name') eq 'SaxonJS'"/>
 
     <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = ('&ldh;XHTML', '&ldh;View', '&ldh;Object', '&sp;Describe', '&sp;Construct', '&sp;Ask', '&sp;Select')]" mode="bs2:RowForm" priority="1">
+        <xsl:param name="about" select="@rdf:about" as="xs:anyURI?"/>
+        <xsl:param name="typeof" select="rdf:type/@rdf:resource/xs:anyURI(.)" as="xs:anyURI*"/>
+        <xsl:param name="class" select="'row-fluid block'" as="xs:string?"/>
+        <xsl:param name="method" select="'patch'" as="xs:string"/>
+        <xsl:param name="action" select="ldh:href($ldt:base, ac:absolute-path($base-uri), map{}, ac:build-uri(ac:absolute-path($base-uri), map{ 'mode': for $mode in $ac:mode return string($mode) }))" as="xs:anyURI"/>
+        <xsl:param name="show-cancel-button" select="true()" as="xs:boolean"/>
+
         <xsl:next-match>
-            <xsl:with-param name="class" select="'row-fluid block'"/>
+            <xsl:with-param name="about" select="$about"/>
+            <xsl:with-param name="typeof" select="$typeof"/>
+            <xsl:with-param name="class" select="$class"/>
+            <xsl:with-param name="method" select="$method"/>
+            <xsl:with-param name="action" select="$action"/>
+            <xsl:with-param name="show-cancel-button" select="$show-cancel-button"/>
         </xsl:next-match>
     </xsl:template>
     
@@ -1167,7 +1179,7 @@ extension-element-prefixes="ixsl"
     <xsl:template match="*[@rdf:nodeID][key('predicates-by-object', @rdf:nodeID)][not(* except rdf:type or rdf:type/@rdf:resource = '&owl;NamedIndividual')]" mode="bs2:Form" priority="2"/>
 
     <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:Form">
-        <xsl:param name="classes" as="element()*"/>
+<!--        <xsl:param name="classes" as="element()*"/>-->
 
         <xsl:apply-templates select="." mode="bs2:FormControl">
             <xsl:with-param name="inline" select="false()" tunnel="yes"/>

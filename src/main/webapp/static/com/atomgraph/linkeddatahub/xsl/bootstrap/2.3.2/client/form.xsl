@@ -1084,7 +1084,7 @@ WHERE
                     <xsl:with-param name="about" select="()"/> <!-- don't set @about on the container until after the resource is saved -->
                     <xsl:with-param name="method" select="$method"/>
                     <xsl:with-param name="action" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, $doc-uri)" as="xs:anyURI"/>
-                    <xsl:with-param name="classes" select="$classes"/> <!-- TO-DO: unused? -->
+<!--                    <xsl:with-param name="classes" select="$classes"/>-->
                     <xsl:with-param name="type-metadata" select="$type-metadata" tunnel="yes"/>
                     <xsl:with-param name="property-metadata" select="$property-metadata" tunnel="yes"/>
                     <xsl:with-param name="constructor" select="$constructed-doc" tunnel="yes"/>
