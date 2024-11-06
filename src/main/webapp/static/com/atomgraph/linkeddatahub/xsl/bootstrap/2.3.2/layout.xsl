@@ -764,17 +764,7 @@ LIMIT   100
     
     <!-- BODY -->
 
-    <xsl:template match="rdf:RDF[key('resources', ac:absolute-path(ldh:base-uri(.)))][$ac:mode = '&ldht;InfoWindowMode']" mode="xhtml:Body" priority="1">
-        <body>
-            <div> <!-- SPARQLMap renders the first child of <body> as InfoWindow -->
-                <xsl:apply-templates select=".">
-                    <xsl:with-param name="display" select="true()" tunnel="yes"/>
-                </xsl:apply-templates>
-            </div>
-        </body>
-    </xsl:template>
-
-    <xsl:template match="rdf:RDF[key('resources', ac:absolute-path(ldh:base-uri(.)))][$ac:mode = '&ldht;ObjectMode']" mode="xhtml:Body" priority="2">
+<!--    <xsl:template match="rdf:RDF[key('resources', ac:absolute-path(ldh:base-uri(.)))][$ac:mode = '&ldht;ObjectMode']" mode="xhtml:Body" priority="2">
         <body class="embed">
             <div>
                 <xsl:apply-templates select="." mode="bs2:Object">
@@ -782,7 +772,7 @@ LIMIT   100
                 </xsl:apply-templates>
             </div>
         </body>
-    </xsl:template>
+    </xsl:template>-->
 
     <xsl:template match="rdf:RDF | srx:sparql" mode="xhtml:Body">
         <body>

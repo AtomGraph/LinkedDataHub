@@ -318,6 +318,7 @@ exclude-result-prefixes="#all"
     
     <xsl:template match="div[ixsl:query-params()?mode = '&ldh;ContentMode'][@about][contains-token(@class, 'block')]/descendant-or-self::*" mode="ixsl:ondragstart">
         <xsl:message>ixsl:ondragstart</xsl:message>
+        <xsl:message>exists(key('elements-by-class', 'map-canvas')): <xsl:value-of select="exists(key('elements-by-class', 'map-canvas'))"/></xsl:message>
         
         <xsl:choose>
             <!-- allow drag on the block element itself -->

@@ -355,9 +355,7 @@ exclude-result-prefixes="#all"
     <xsl:template match="." mode="ixsl:onMapMarkerClick">
         <xsl:param name="event" select="ixsl:event()"/>
         <xsl:param name="map" select="ixsl:get(ixsl:get($event, 'detail'), 'map')"/>
-
         <xsl:variable name="event" select="ixsl:get(ixsl:get($event, 'detail'), 'ol-event')"/> <!-- override the helper CustomEvent with the original OpenLayers event -->
-
         <xsl:variable name="js-statement" as="xs:string">
             <![CDATA[
                 function (feat, layer) {
@@ -372,16 +370,13 @@ exclude-result-prefixes="#all"
             <xsl:variable name="id" select="xs:anyURI(ixsl:call($feature, 'getId', []))" as="xs:string"/>
             <xsl:if test="starts-with($id, 'http://') or starts-with($id, 'https://')"> <!-- InfoWindow not possible for blank nodes -->
                 <xsl:variable name="uri" select="xs:anyURI($id)" as="xs:anyURI"/>
-                <!-- InfoWindowMode is handled as a special case in layout.xsl -->
-                <xsl:variable name="mode" select="'https://w3id.org/atomgraph/linkeddatahub/templates#InfoWindowMode'" as="xs:string"/>
-                <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), ldh:query-params(xs:anyURI($mode)), $uri)" as="xs:anyURI"/>
+                <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, ac:absolute-path($uri))" as="xs:anyURI"/>
 
                 <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
                 <xsl:variable name="request" as="item()*">
-                    <!-- request HTML instead of XHTML -->
-                    <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'text/html' } }">
-                        <xsl:call-template name="onInfoWindowLoad">
+                    <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
+                        <xsl:call-template name="onFeatureDescriptionLoad">
                             <xsl:with-param name="event" select="$event"/>
                             <xsl:with-param name="map" select="$map"/>
                             <xsl:with-param name="feature" select="$feature"/>
@@ -394,7 +389,7 @@ exclude-result-prefixes="#all"
         </xsl:if>
     </xsl:template>
     
-    <xsl:template name="onInfoWindowLoad">
+    <xsl:template name="onFeatureDescriptionLoad">
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="event"/>
         <xsl:param name="map"/>
@@ -402,11 +397,14 @@ exclude-result-prefixes="#all"
         <xsl:param name="uri" as="xs:anyURI"/>
         
         <xsl:choose>
-            <xsl:when test="?status = 200 and starts-with(?media-type, 'text/html')">
+            <xsl:when test="?status = 200 and starts-with(?media-type, 'application/rdf+xml')">
                 <xsl:for-each select="?body">
                     <xsl:variable name="info-window-options" select="ldh:new-object()"/>
-                    <!-- render first child of <body> as InfoWindow content -->
-                    <xsl:variable name="info-window-html" select="/html/body/*[1]" as="element()"/>
+                    <xsl:variable name="info-window-html" as="element()">
+                        <xsl:apply-templates select="key('resources', $uri)">
+                            <xsl:with-param name="show-edit-button" select="false()" tunnel="yes"/>
+                        </xsl:apply-templates>
+                    </xsl:variable>
                     <xsl:variable name="coord" select="ixsl:get($event, 'coordinate')"/>
                     <xsl:variable name="container" select="ixsl:call(ixsl:page(), 'createElement', [ 'div' ])" as="element()"/>
                     <xsl:sequence select="ixsl:call(ixsl:call($map, 'getOverlayContainerStopEvent', []), 'appendChild', [ $container ])[current-date() lt xs:date('2000-01-01')]"/>
@@ -429,7 +427,7 @@ exclude-result-prefixes="#all"
                             </div>
                             
                             <div class="modal-body">
-                                <xsl:copy-of select="$info-window-html"/>
+                                <xsl:sequence select="$info-window-html"/>
                             </div>
                         </xsl:result-document>
                     </xsl:for-each>
