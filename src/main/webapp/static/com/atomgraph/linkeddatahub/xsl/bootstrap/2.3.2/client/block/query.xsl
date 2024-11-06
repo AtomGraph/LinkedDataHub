@@ -117,7 +117,10 @@ exclude-result-prefixes="#all"
         <xsl:param name="mode" select="descendant::*[@property = '&ac;mode']/@resource" as="xs:anyURI?"/>
         <xsl:param name="refresh-content" as="xs:boolean?"/>
         <xsl:param name="show-edit-button" select="false()" as="xs:boolean?"/>
-        <xsl:param name="textarea-id" select="generate-id() || '-textarea'" as="xs:string"/>
+        <xsl:param name="textarea-id" select="generate-id() || '-textarea'" as="xs:string?"/>
+        <xsl:param name="textarea-class" select="'span12 sparql-query-string'" as="xs:string?"/>
+        <xsl:param name="textarea-name" select="'query'" as="xs:string?"/>
+        <xsl:param name="textarea-rows" select="15" as="xs:integer?"/>
         <xsl:param name="service-uri" select="descendant::*[@property = '&ldh;service']/@resource" as="xs:anyURI?"/>
         <xsl:param name="endpoint" as="xs:anyURI?"/>
         <xsl:param name="query" select="string(descendant::*[@property = '&sp;text']/pre)" as="xs:string"/>
@@ -187,7 +190,20 @@ exclude-result-prefixes="#all"
                         </div>
                     </div>
 
-                    <textarea id="{$textarea-id}" name="query" class="span12 sparql-query-string" rows="15">
+                    <textarea>
+                        <xsl:if test="$textarea-id">
+                            <xsl:attribute name="id" select="$textarea-id"/>
+                        </xsl:if>
+                        <xsl:if test="$textarea-class">
+                            <xsl:attribute name="class" select="$textarea-class"/>
+                        </xsl:if>
+                        <xsl:if test="$textarea-name">
+                            <xsl:attribute name="name" select="$textarea-name"/>
+                        </xsl:if>
+                        <xsl:if test="$textarea-rows">
+                            <xsl:attribute name="rows" select="$textarea-rows"/>
+                        </xsl:if>
+                        
                         <xsl:value-of select="$query"/>
                     </textarea>
 

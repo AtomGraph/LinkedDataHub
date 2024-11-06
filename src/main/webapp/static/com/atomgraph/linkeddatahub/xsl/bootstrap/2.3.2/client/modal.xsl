@@ -462,6 +462,8 @@ LIMIT   10
             </xsl:when>
             <!-- all required values present, proceed to submit form-->
             <xsl:otherwise>
+                <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+
                 <xsl:sequence select="$control-groups/ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'error', false() ])[current-date() lt xs:date('2000-01-01')]"/>
 
                 <xsl:variable name="form" select="." as="element()"/>

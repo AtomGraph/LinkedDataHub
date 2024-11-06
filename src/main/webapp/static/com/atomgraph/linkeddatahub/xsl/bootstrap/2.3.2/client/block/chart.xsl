@@ -222,6 +222,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="category" select="descendant::*[@property = '&ldh;categoryProperty']/@resource | descendant::*[@property = '&ldh;categoryVarName']/text()" as="xs:string?"/>
         <xsl:variable name="series" select="descendant::*[@property = '&ldh;seriesProperty']/@resource | descendant::*[@property = '&ldh;seriesVarName']/text()" as="xs:string*"/>
         <xsl:variable name="canvas-id" select="generate-id() || '-chart-canvas'" as="xs:string?"/>
+        <xsl:variable name="canvas-class" select="'chart-canvas'" as="xs:string?"/>
 
         <xsl:message>
             Chart ldh:RenderBlock @typeof: <xsl:value-of select="@typeof"/> $about: <xsl:value-of select="$about"/>
@@ -300,7 +301,14 @@ exclude-result-prefixes="#all"
                         </div>
                     </fieldset>
 
-                    <div id="{$canvas-id}"></div>
+                    <div>
+                        <xsl:if test="$canvas-id">
+                            <xsl:attribute name="id" select="$canvas-id"/>
+                        </xsl:if>
+                        <xsl:if test="$canvas-class">
+                            <xsl:attribute name="class" select="$canvas-class"/>
+                        </xsl:if>
+                    </div>
 
                     <!-- <xsl:if test="$show-save"> -->
                         <div class="form-actions">
