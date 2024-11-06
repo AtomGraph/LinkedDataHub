@@ -124,18 +124,18 @@ WHERE
         </xsl:copy>
     </xsl:template>
     
-    <xsl:template match="*" mode="ldh:PostConstruct">
+    <xsl:template match="*" mode="ldh:RenderRowForm">
         <xsl:apply-templates mode="#current"/>
     </xsl:template>
     
-    <xsl:template match="text()" mode="ldh:PostConstruct"/>
+    <xsl:template match="text()" mode="ldh:RenderRowForm"/>
 
     <!-- subject type change -->
-    <xsl:template match="select[contains-token(@class, 'subject-type')]" mode="ldh:PostConstruct" priority="1">
+    <xsl:template match="select[contains-token(@class, 'subject-type')]" mode="ldh:RenderRowForm" priority="1">
         <xsl:sequence select="ixsl:call(., 'addEventListener', [ 'change', ixsl:get(ixsl:window(), 'onSubjectTypeChange') ])[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
     
-    <xsl:template match="textarea[contains-token(@class, 'wymeditor')]" mode="ldh:PostConstruct" priority="1">
+    <xsl:template match="textarea[contains-token(@class, 'wymeditor')]" mode="ldh:RenderRowForm" priority="1">
         <!-- call .wymeditor() on textarea to show WYMEditor -->
         <xsl:sequence select="ixsl:call(ixsl:call(ixsl:window(), 'jQuery', [ . ]), 'wymeditor', [])[current-date() lt xs:date('2000-01-01')]"/>
         <xsl:variable name="wymeditor" select="ixsl:call(ixsl:get(ixsl:window(), 'jQuery'), 'getWymeditorByTextarea', [ . ])" as="item()"/>
@@ -151,7 +151,7 @@ WHERE
     </xsl:template>
 
     <!-- TO-DO: phase out as regular ixsl: event templates -->
-    <xsl:template match="fieldset//input" mode="ldh:PostConstruct" priority="1">
+    <xsl:template match="fieldset//input" mode="ldh:RenderRowForm" priority="1">
         <!-- subject value change -->
         <xsl:if test="contains-token(@class, 'subject')">
             <xsl:sequence select="ixsl:call(., 'addEventListener', [ 'change', ixsl:get(ixsl:window(), 'onSubjectValueChange') ])[current-date() lt xs:date('2000-01-01')]"/>
@@ -162,7 +162,7 @@ WHERE
     </xsl:template>
     
     <!-- inject datetime-local inputs (only if the input is visible) TO-DO: align structure of constructor and editing form controls -->
-    <xsl:template match="input[not(@type = 'hidden')][@name = 'ol'][following-sibling::input[@name = 'lt'][@value = '&xsd;dateTime']] | input[@name = 'ol'][@value][../following-sibling::div/input[@name = 'lt'][@value = '&xsd;dateTime']]" mode="ldh:PostConstruct" priority="2">
+    <xsl:template match="input[not(@type = 'hidden')][@name = 'ol'][following-sibling::input[@name = 'lt'][@value = '&xsd;dateTime']] | input[@name = 'ol'][@value][../following-sibling::div/input[@name = 'lt'][@value = '&xsd;dateTime']]" mode="ldh:RenderRowForm" priority="2">
         <ixsl:set-attribute name="type" select="'datetime-local'"/>
         <ixsl:set-attribute name="step" select="'1'"/>
 
@@ -410,7 +410,7 @@ WHERE
                 </xsl:for-each>
 
                 <!-- initialize event listeners -->
-                <xsl:apply-templates select="$container/*" mode="ldh:PostConstruct"/>
+                <xsl:apply-templates select="$container/*" mode="ldh:RenderRowForm"/>
 
                 <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
             </xsl:when>
@@ -441,13 +441,13 @@ WHERE
         <xsl:variable name="doc" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path(xs:anyURI(ixsl:location())) || '`'), 'results')" as="document-node()"/>
         <xsl:variable name="chart" select="key('resources', $about, $doc)" as="element()"/>
 
-        <xsl:apply-templates select="$chart" mode="ldh:RenderBlock">
+        <xsl:apply-templates select="$chart" mode="ldh:RenderRow">
             <xsl:with-param name="this" select="ancestor::div[@about][1]/@about"/>
 <!--            <xsl:with-param name="container" select="$container"/>-->
         </xsl:apply-templates>
         
         <!-- initialize event listeners -->
-        <xsl:apply-templates select="$container/*" mode="ldh:PostConstruct"/>
+<!--        <xsl:apply-templates select="$container/*" mode="ldh:RenderRowForm"/>-->
 
         <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
     </xsl:template>
@@ -478,8 +478,8 @@ WHERE
                 <xsl:copy-of select="$row/*"/> <!-- inject the content of div.row-fluid -->
             </xsl:result-document>
         </xsl:for-each>
-        <!-- initialize event listeners -->
-        <xsl:apply-templates select="$container/*" mode="ldh:PostConstruct"/>
+
+        <xsl:apply-templates select="$container/*" mode="ldh:RenderRow"/>
 
         <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
     </xsl:template>
@@ -565,7 +565,6 @@ WHERE
                         <xsl:call-template name="ldh:ResourceUpdated">
                             <xsl:with-param name="doc-uri" select="$doc-uri"/>
                             <xsl:with-param name="block" select="$block"/>
-<!--                            <xsl:with-param name="container" select="$container"/>-->
                             <xsl:with-param name="form" select="$form"/>
                             <xsl:with-param name="modal" select="$modal"/>
                             <xsl:with-param name="resources" select="$resources"/>
@@ -624,7 +623,6 @@ WHERE
                 <xsl:call-template name="ldh:ResourceUpdated">
                     <xsl:with-param name="doc-uri" select="ac:absolute-path(ldh:base-uri(.))"/>
                     <xsl:with-param name="block" select="$block"/>
-<!--                    <xsl:with-param name="container" select="$container"/>-->
                     <xsl:with-param name="form" select="$form"/>
                     <xsl:with-param name="resources" select="$resources"/>
                 </xsl:call-template>
@@ -692,7 +690,7 @@ WHERE
             </xsl:result-document>
             
             <!-- initialize the last property control group after it's appended -->
-            <xsl:apply-templates select="(./div[contains-token(@class, 'control-group')][input/@name = 'pu'])[last()]" mode="ldh:PostConstruct"/>
+            <xsl:apply-templates select="(./div[contains-token(@class, 'control-group')][input/@name = 'pu'])[last()]" mode="ldh:RenderRowForm"/>
         </xsl:for-each>
         
         <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
@@ -769,7 +767,7 @@ WHERE
 
                 <!-- cannot be in $block context because it contains old DOM (pre-ixsl:replace-content) -->
                 <xsl:for-each select="id($block/@id, ixsl:page())">
-                    <xsl:apply-templates select="." mode="ldh:RenderBlock"/>
+                    <xsl:apply-templates select="." mode="ldh:RenderRow"/>
                 </xsl:for-each>
                 
                 <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
@@ -864,7 +862,7 @@ WHERE
                         
                     <!-- cannot be in $form context because it contains old DOM (pre-ixsl:replace-content) -->
                         <xsl:for-each select="id($form/@id, ixsl:page())">
-                            <xsl:apply-templates select="." mode="ldh:PostConstruct"/>
+                            <xsl:apply-templates select="." mode="ldh:RenderRowForm"/>
                         </xsl:for-each>
                     </xsl:when>
                     <xsl:otherwise>
@@ -893,7 +891,7 @@ WHERE
                         
                         <!-- cannot be in $block context because it contains old DOM (pre-ixsl:replace-content) -->
                         <xsl:for-each select="id($block/@id, ixsl:page())">
-                            <xsl:apply-templates select="." mode="ldh:PostConstruct"/>
+                            <xsl:apply-templates select="." mode="ldh:RenderRowForm"/>
                         </xsl:for-each>
                     </xsl:otherwise>
                 </xsl:choose>
@@ -1006,7 +1004,7 @@ WHERE
             </xsl:result-document>
 
             <xsl:if test="id($form/@id, ixsl:page())">
-                <xsl:apply-templates select="id($form/@id, ixsl:page())" mode="ldh:PostConstruct"/>
+                <xsl:apply-templates select="id($form/@id, ixsl:page())" mode="ldh:RenderRowForm"/>
             </xsl:if>
         </xsl:for-each>
 
@@ -1109,7 +1107,7 @@ WHERE
             </xsl:result-document>
 
             <!-- add event listeners to the descendants of the form. TO-DO: replace with XSLT -->
-            <xsl:apply-templates select="." mode="ldh:PostConstruct"/>
+            <xsl:apply-templates select="." mode="ldh:RenderRowForm"/>
         </xsl:for-each>
 
         <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
@@ -1378,7 +1376,7 @@ WHERE
             
             <!-- add event listeners to the descendants of the fieldset TO-DO: replace with XSLT -->
             <xsl:if test="id(@id, ixsl:page())">
-                <xsl:apply-templates select="id(@id, ixsl:page())" mode="ldh:PostConstruct"/>
+                <xsl:apply-templates select="id(@id, ixsl:page())" mode="ldh:RenderRowForm"/>
             </xsl:if>
         </xsl:for-each>
 
@@ -1685,7 +1683,6 @@ WHERE
             <xsl:call-template name="ldh:ResourceUpdated">
                 <xsl:with-param name="doc-uri" select="$doc-uri"/>
                 <xsl:with-param name="block" select="$block"/>
-<!--                <xsl:with-param name="container" select="$container"/>-->
                 <xsl:with-param name="form" select="$form"/>
                 <xsl:with-param name="resources" select="$resources"/>
             </xsl:call-template>

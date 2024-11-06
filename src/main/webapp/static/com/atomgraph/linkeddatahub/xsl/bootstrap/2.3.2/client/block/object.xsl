@@ -51,7 +51,7 @@ exclude-result-prefixes="#all"
     
     <!-- object block (RDF resource) -->
     
-    <xsl:template match="*[@typeof = '&ldh;Object'][descendant::*[@property = '&rdf;value'][@resource]]" mode="ldh:RenderBlock" priority="1">
+    <xsl:template match="*[@typeof = '&ldh;Object'][descendant::*[@property = '&rdf;value'][@resource]]" mode="ldh:RenderRow" priority="1">
         <xsl:param name="block" select="ancestor::div[contains-token(@class, 'block')][1]" as="element()"/>
         <xsl:param name="about" select="$block/@about" as="xs:anyURI"/>
         <xsl:param name="block-uri" select="$about" as="xs:anyURI"/>
@@ -192,7 +192,7 @@ exclude-result-prefixes="#all"
                         </div>
                     </xsl:result-document>
                     
-                    <xsl:apply-templates mode="ldh:RenderBlock"/> <!-- recurse down the block hierarchy -->
+                    <xsl:apply-templates mode="ldh:RenderRow"/> <!-- recurse down the block hierarchy -->
                 </xsl:for-each>
                 
                 <!-- hide the progress bar -->

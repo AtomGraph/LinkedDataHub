@@ -559,7 +559,7 @@ WHERE
                 <!-- container could be hidden server-side -->
                 <ixsl:set-style name="display" select="'block'"/>
             
-                <xsl:apply-templates select="." mode="ldh:RenderBlock">
+                <xsl:apply-templates select="." mode="ldh:RenderRow">
                     <xsl:with-param name="refresh-content" select="$refresh-content"/>
                 </xsl:apply-templates>
             </xsl:for-each>

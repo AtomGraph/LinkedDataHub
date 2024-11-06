@@ -116,7 +116,7 @@ exclude-result-prefixes="#all"
 
     <!-- render block -->
     
-    <xsl:template match="*" mode="ldh:RenderBlock">
+    <xsl:template match="*" mode="ldh:RenderRow">
         <xsl:apply-templates mode="#current"/>
     </xsl:template>
     

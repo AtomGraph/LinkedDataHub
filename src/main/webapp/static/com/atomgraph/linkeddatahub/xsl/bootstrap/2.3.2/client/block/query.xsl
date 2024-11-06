@@ -60,7 +60,7 @@ exclude-result-prefixes="#all"
     
     <!-- render query editor -->
     
-    <xsl:template match="textarea[@id][contains-token(@class, 'sparql-query-string')]" mode="ldh:PostConstruct" priority="1">
+    <xsl:template match="textarea[@id][contains-token(@class, 'sparql-query-string')]" mode="ldh:RenderRowForm" priority="1">
         <xsl:variable name="textarea-id" select="ixsl:get(., 'id')" as="xs:string"/>
         <!-- initialize YASQE SPARQL editor on the textarea -->
         <xsl:variable name="js-statement" as="element()">
@@ -108,7 +108,7 @@ exclude-result-prefixes="#all"
     
     <!-- render query block -->
     
-    <xsl:template match="*[@typeof = ('&sp;Ask', '&sp;Select', '&sp;Describe', '&sp;Construct')][descendant::*[@property = '&sp;text'][pre/text()]]" mode="ldh:RenderBlock" priority="1">
+    <xsl:template match="*[@typeof = ('&sp;Ask', '&sp;Select', '&sp;Describe', '&sp;Construct')][descendant::*[@property = '&sp;text'][pre/text()]]" mode="ldh:RenderRow" priority="1">
         <xsl:param name="block" select="ancestor-or-self::div[contains-token(@class, 'block')][1]" as="element()"/>
         <xsl:param name="about" select="$block/@about" as="xs:anyURI"/>
         <xsl:param name="block-uri" select="$about" as="xs:anyURI"/>
@@ -221,7 +221,7 @@ exclude-result-prefixes="#all"
     
     <!-- render query editor -->
     
-    <xsl:template match="textarea[@id][contains-token(@class, 'sparql-query-string')]" mode="ldh:RenderBlock" priority="1">
+    <xsl:template match="textarea[@id][contains-token(@class, 'sparql-query-string')]" mode="ldh:RenderRow" priority="1">
         <xsl:variable name="textarea-id" select="ixsl:get(., 'id')" as="xs:string"/>
         <!-- initialize YASQE SPARQL editor on the textarea -->
         <xsl:variable name="js-statement" as="element()">
@@ -354,7 +354,7 @@ exclude-result-prefixes="#all"
             <ixsl:set-style name="width" select="'50%'" object="."/>
         </xsl:for-each>
                 
-        <xsl:apply-templates select="$value" mode="ldh:RenderBlock">
+        <xsl:apply-templates select="$value" mode="ldh:RenderRow">
             <xsl:with-param name="this" select="ancestor::div[@about][1]/@about"/>
             <xsl:with-param name="container" select="$container//div[contains-token(@class, 'sparql-query-results')]"/>
             <xsl:with-param name="block-uri" select="$block-uri"/>
