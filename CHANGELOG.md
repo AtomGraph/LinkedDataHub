@@ -1,3 +1,7 @@
+## [4.0.10] - 2024-11-07
+### Changed
+- Fixed namespace prefix declaration in client-side XSLT
+
 ## [4.0.9] - 2024-02-07
 ### Changed
 - Fixed dragging within a map
