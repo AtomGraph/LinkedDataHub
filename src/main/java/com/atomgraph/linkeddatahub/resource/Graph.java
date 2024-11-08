@@ -88,6 +88,8 @@ import org.apache.jena.ontology.Ontology;
 import org.apache.jena.query.Dataset;
 import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.rdf.model.Model;
+import org.apache.jena.rdf.model.ModelFactory;
+import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.ResIterator;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
@@ -319,9 +321,18 @@ public class Graph extends GraphStoreImpl
         ResponseBuilder rb = response.evaluatePreconditions();
         if (rb != null) return rb.build(); // preconditions not met
 
+        Model beforeUpdateModel = ModelFactory.createDefaultModel().add(existingModel);
         dataset = DatasetFactory.wrap(existingModel);
         UpdateAction.execute(updateRequest, dataset); // update model in memory
-        validate(dataset.getDefaultModel()); // this would normally be done transparently by the ValidatingModelProvider
+        
+        Set<Resource> changedResources = getChangedResources(beforeUpdateModel, existingModel);
+        Model changedModel = ModelFactory.createDefaultModel();
+
+        // collect triples of changed resources into a new model which will be validated - no point validating resources that haven't changed
+        for (Resource resource : changedResources)
+            changedModel.add(resource.listProperties());
+
+        validate(changedModel); // this would normally be done transparently by the ValidatingModelProvider
         put(dataset.getDefaultModel(), Boolean.FALSE, getURI());
         
         return getInternalResponse(dataset.getDefaultModel(), null).getResponseBuilder(). // entity tag of the updated graph
@@ -330,6 +341,32 @@ public class Graph extends GraphStoreImpl
             header(HttpHeaders.CONTENT_LOCATION, getURI()).
             tag(getInternalResponse(dataset.getDefaultModel(), null).getVariantEntityTag()). // TO-DO: optimize!
             build();
+    }
+    
+    /**
+     * Gets a diff of triples between two models and returns a set of their subject resources.
+     * 
+     * @param beforeUpdateModel model before the update
+     * @param afterUpdateModel model after the update
+     * @return 
+     */
+    public Set<Resource> getChangedResources(Model beforeUpdateModel, Model afterUpdateModel)
+    {
+        if (beforeUpdateModel == null) throw new IllegalArgumentException("Model before update cannot be null");
+        if (afterUpdateModel == null) throw new IllegalArgumentException("Model after update cannot be null");
+
+        Model addedTriples = afterUpdateModel.difference(beforeUpdateModel);
+        Model removedTriples = beforeUpdateModel.difference(afterUpdateModel);
+
+        Set<Resource> changedResources = new HashSet<>();
+        addedTriples.listStatements().forEachRemaining(statement -> {
+            changedResources.add(statement.getSubject());
+        });
+        removedTriples.listStatements().forEachRemaining(statement -> {
+            changedResources.add(statement.getSubject());
+        });
+        
+        return changedResources;
     }
     
     /**
