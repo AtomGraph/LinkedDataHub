@@ -330,7 +330,7 @@ public class Graph extends GraphStoreImpl
 
         // collect triples of changed resources into a new model which will be validated - no point validating resources that haven't changed
         for (Resource resource : changedResources)
-            changedModel.add(resource.listProperties());
+            changedModel.add(existingModel.listStatements(resource, null, (RDFNode) null));
 
         validate(changedModel); // this would normally be done transparently by the ValidatingModelProvider
         put(dataset.getDefaultModel(), Boolean.FALSE, getURI());
