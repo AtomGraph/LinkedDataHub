@@ -797,4 +797,47 @@ LIMIT   10
         </xsl:choose>
     </xsl:template>
     
+    <xsl:template name="onTypeaheadResourceLoad">
+        <xsl:context-item as="map(*)" use="required"/>
+        <xsl:param name="resource-uri" as="xs:anyURI"/>
+        <xsl:param name="typeahead-span" as="element()"/>
+
+        <xsl:choose>
+            <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
+                <xsl:for-each select="?body">
+                    <xsl:variable name="resource" select="key('resources', $resource-uri)" as="element()?"/>
+
+                    <xsl:choose>
+                        <xsl:when test="$resource">
+                            <xsl:for-each select="$typeahead-span">
+                                <xsl:variable name="typeahead" as="element()">
+                                    <xsl:apply-templates select="$resource" mode="ldh:Typeahead">
+                                        <!-- <xsl:with-param name="forClass" select="$forClass"/> -->
+                                    </xsl:apply-templates>
+                                </xsl:variable>
+
+                                <xsl:result-document href="?." method="ixsl:replace-content">
+                                    <xsl:sequence select="$typeahead/*"/>
+                                </xsl:result-document>
+                            </xsl:for-each>
+                        </xsl:when>
+                        <xsl:otherwise>
+                            <!-- resource description not found, render lookup input -->
+                            <xsl:call-template name="bs2:Lookup">
+                                <xsl:with-param name="class" select="'resource-typeahead typeahead'"/>
+                                <xsl:with-param name="list-class" select="'resource-typeahead typeahead dropdown-menu'"/>
+                                <xsl:with-param name="value" select="$resource-uri"/>
+                            </xsl:call-template>
+                        </xsl:otherwise>
+                    </xsl:choose>
+                </xsl:for-each>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ ?message ])"/>
+            </xsl:otherwise>
+        </xsl:choose>
+        
+        <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
+    </xsl:template>
+    
 </xsl:stylesheet>

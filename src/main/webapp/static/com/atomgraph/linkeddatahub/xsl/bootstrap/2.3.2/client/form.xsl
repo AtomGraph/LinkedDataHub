@@ -791,6 +791,10 @@ WHERE
                 <xsl:variable name="body" select="?body" as="document-node()"/>
                 <!-- TO-DO: refactor to use asynchronous HTTP requests -->
                 <xsl:variable name="types" select="distinct-values($body/rdf:RDF/*[not(@rdf:about = $doc-uri)]/rdf:type/@rdf:resource)" as="xs:anyURI*"/>
+                <xsl:variable name="query-string" select="'DESCRIBE $Type VALUES $Type { ' || string-join(for $type in $types return '&lt;' || $type || '&gt;', ' ') || ' }'" as="xs:string"/>
+                <xsl:variable name="request-uri" select="ac:build-uri(resolve-uri('ns', $ldt:base), map{ 'query': $query-string, 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
+                <xsl:variable name="type-metadata" select="if (exists($types)) then document($request-uri) else ()" as="document-node()?"/>
+
                 <xsl:variable name="property-uris" select="distinct-values($body/rdf:RDF/*[not(@rdf:about = $doc-uri)]/*/concat(namespace-uri(), local-name()))" as="xs:string*"/>
                 <xsl:variable name="query-string" select="'DESCRIBE $Type VALUES $Type { ' || string-join(for $uri in $property-uris return '&lt;' || $uri || '&gt;', ' ') || ' }'" as="xs:string"/>
                 <xsl:variable name="request-uri" select="ac:build-uri(resolve-uri('ns', $ldt:base), map{ 'query': $query-string, 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
@@ -832,7 +836,7 @@ WHERE
                                     <xsl:with-param name="action" select="$form/@action" as="xs:anyURI"/>
                                     <xsl:with-param name="form-actions-class" select="'form-actions modal-footer'" as="xs:string?"/>
                                     <xsl:with-param name="classes" select="()"/>
-    <!--                                <xsl:with-param name="type-metadata" select="$type-metadata" tunnel="yes"/>-->
+                                    <xsl:with-param name="type-metadata" select="$type-metadata" tunnel="yes"/>
                                     <xsl:with-param name="property-metadata" select="$property-metadata" tunnel="yes"/>
     <!--                                <xsl:with-param name="constructor" select="$constructed-doc" tunnel="yes"/>-->
                                     <xsl:with-param name="constructors" select="()" tunnel="yes"/> <!-- can be empty because modal form is only used to create Container/Item instances -->
@@ -870,7 +874,7 @@ WHERE
                             <!-- filter out the current document which might be in the constraint violation response attached by an rdf:_N property to a block resource -->
                             <xsl:apply-templates select="$body/rdf:RDF/*[not(@rdf:about = $doc-uri)]" mode="bs2:RowForm">
                                 <xsl:with-param name="method" select="$form/@method"/>
-        <!--                        <xsl:with-param name="type-metadata" select="$type-metadata" tunnel="yes"/>-->
+                                <xsl:with-param name="type-metadata" select="$type-metadata" tunnel="yes"/>
                                 <xsl:with-param name="property-metadata" select="$property-metadata" tunnel="yes"/>
                                 <xsl:with-param name="constructors" select="$constructors" tunnel="yes"/>
                                 <xsl:with-param name="constraints" select="$constraints" tunnel="yes"/>
@@ -1687,49 +1691,6 @@ WHERE
                 <xsl:with-param name="resources" select="$resources"/>
             </xsl:call-template>
         </xsl:for-each>
-    </xsl:template>
-    
-    <xsl:template name="onTypeaheadResourceLoad">
-        <xsl:context-item as="map(*)" use="required"/>
-        <xsl:param name="resource-uri" as="xs:anyURI"/>
-        <xsl:param name="typeahead-span" as="element()"/>
-
-        <xsl:choose>
-            <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
-                <xsl:for-each select="?body">
-                    <xsl:variable name="resource" select="key('resources', $resource-uri)" as="element()?"/>
-
-                    <xsl:choose>
-                        <xsl:when test="$resource">
-                            <xsl:for-each select="$typeahead-span">
-                                <xsl:variable name="typeahead" as="element()">
-                                    <xsl:apply-templates select="$resource" mode="ldh:Typeahead">
-                                        <!-- <xsl:with-param name="forClass" select="$forClass"/> -->
-                                    </xsl:apply-templates>
-                                </xsl:variable>
-
-                                <xsl:result-document href="?." method="ixsl:replace-content">
-                                    <xsl:sequence select="$typeahead/*"/>
-                                </xsl:result-document>
-                            </xsl:for-each>
-                        </xsl:when>
-                        <xsl:otherwise>
-                            <!-- resource description not found, render lookup input -->
-                            <xsl:call-template name="bs2:Lookup">
-                                <xsl:with-param name="class" select="'resource-typeahead typeahead'"/>
-                                <xsl:with-param name="list-class" select="'resource-typeahead typeahead dropdown-menu'"/>
-                                <xsl:with-param name="value" select="$resource-uri"/>
-                            </xsl:call-template>
-                        </xsl:otherwise>
-                    </xsl:choose>
-                </xsl:for-each>
-            </xsl:when>
-            <xsl:otherwise>
-                <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ ?message ])"/>
-            </xsl:otherwise>
-        </xsl:choose>
-        
-        <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
     </xsl:template>
     
 </xsl:stylesheet>
