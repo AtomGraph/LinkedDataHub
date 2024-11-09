@@ -95,6 +95,7 @@ import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.rdf.model.StmtIterator;
+import org.apache.jena.sparql.modify.request.UpdateDeleteWhere;
 import org.apache.jena.sparql.modify.request.UpdateModify;
 import org.apache.jena.sparql.vocabulary.FOAF;
 import org.apache.jena.update.Update;
@@ -301,7 +302,8 @@ public class Graph extends GraphStoreImpl
             throw new WebApplicationException("Only a single SPARQL Update is supported by PATCH", UNPROCESSABLE_ENTITY.getStatusCode()); // 422 Unprocessable Entity
 
         Update update = updateRequest.getOperations().get(0);
-        if (!(update instanceof UpdateModify)) throw new WebApplicationException("Only INSERT/WHERE form of SPARQL Update are supported by PATCH", UNPROCESSABLE_ENTITY.getStatusCode()); // 422 Unprocessable Entity
+        if (!(update instanceof UpdateModify || update instanceof UpdateDeleteWhere))
+            throw new WebApplicationException("Only INSERT/WHERE and DELETE WHERE forms of SPARQL Update are supported by PATCH", UNPROCESSABLE_ENTITY.getStatusCode()); // 422 Unprocessable Entity
 
         // check for GRAPH keyword which is disallowed
         PatchUpdateVisitor visitor = new PatchUpdateVisitor();
