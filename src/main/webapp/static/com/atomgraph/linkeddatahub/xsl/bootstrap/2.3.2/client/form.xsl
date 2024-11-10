@@ -1413,10 +1413,11 @@ WHERE
     <!-- remove the whole div.row-fluid containing the form -->
     <xsl:template match="div[contains-token(@class, 'row-fluid')]//button[contains-token(@class, 'btn-remove-resource')]" mode="ixsl:onclick" priority="2">
         <xsl:variable name="block" select="ancestor::div[contains-token(@class, 'block')][1]" as="element()"/>
-        <xsl:variable name="about" select="$block/@about" as="xs:anyURI"/>
+        <xsl:variable name="about" select="$block/@about" as="xs:anyURI?"/>
         <xsl:variable name="form" select="ancestor::form" as="element()"/>
         <xsl:variable name="action" select="ixsl:get($form, 'action')" as="xs:anyURI"/>
         <xsl:message>ldh:base-uri(.): <xsl:value-of select="ldh:base-uri(.)"/></xsl:message>
+        <xsl:message>$about: <xsl:value-of select="$about"/></xsl:message>
         <xsl:variable name="etag" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path($action) || '`'), 'etag')" as="xs:string"/>
         <xsl:message>$etag: <xsl:value-of select="$etag"/></xsl:message>
 
@@ -1457,9 +1458,9 @@ WHERE
                         </json:map>
                     </xsl:variable>
                     <xsl:variable name="update-json-string" select="xml-to-json($update-xml)" as="xs:string"/>
-            <xsl:message>
-                <xsl:value-of select="$update-json-string"/>
-            </xsl:message>
+                    <xsl:message>
+                        <xsl:value-of select="$update-json-string"/>
+                    </xsl:message>
                     <xsl:variable name="update-json" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'parse', [ $update-json-string ])"/>
                     <xsl:variable name="update-string" select="ixsl:call($sparql-generator, 'stringify', [ $update-json ])" as="xs:string"/>
                     <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, $action)" as="xs:anyURI"/>
