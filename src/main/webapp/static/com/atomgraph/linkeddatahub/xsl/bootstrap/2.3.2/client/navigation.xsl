@@ -176,6 +176,18 @@ exclude-result-prefixes="#all"
     
     <!-- EVENT HANDLERS -->
     
+    <!-- show left-side document tree -->
+    
+    <xsl:template match="body[id('doc-tree', ixsl:page())]" mode="ixsl:onmousemove">
+        <xsl:variable name="x" select="ixsl:get(ixsl:event(), 'clientX')"/>
+        
+        <!-- check that the mouse is on the left edge -->
+        <xsl:if test="$x = 0">
+            <!-- show #doc-tree -->
+            <ixsl:set-style name="display" select="'block'" object="id('doc-tree', ixsl:page())"/>
+        </xsl:if>
+    </xsl:template>
+    
     <!-- hide the document tree container if its position is fixed (i.e. the layout is not responsive) -->
     <xsl:template match="div[@id = 'doc-tree'][ixsl:style(.)?position = 'fixed']" mode="ixsl:onmouseout">
         <xsl:variable name="related-target" select="ixsl:get(ixsl:event(), 'relatedTarget')" as="element()?"/> <!-- the element mouse entered -->

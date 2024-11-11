@@ -332,7 +332,7 @@ exclude-result-prefixes="#all"
                     <xsl:with-param name="this" select="$about"/>
                     <xsl:with-param name="block" select="$block"/>
                     <xsl:with-param name="container-id" select="$container-id"/>
-                    <xsl:with-param name="chart-uri" select="$about"/>
+<!--                    <xsl:with-param name="chart-uri" select="$about"/>-->
                     <xsl:with-param name="query-uri" select="$query-uri"/>
                     <xsl:with-param name="chart-type" select="$chart-type"/>
                     <xsl:with-param name="category" select="$category"/>
@@ -531,7 +531,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="container" as="element()"/>
         <xsl:param name="this" as="xs:anyURI"/>
         <xsl:param name="container-id" as="xs:string"/>
-        <xsl:param name="chart-uri" as="xs:anyURI"/>
+<!--        <xsl:param name="chart-uri" as="xs:anyURI"/>-->
         <xsl:param name="query-uri" as="xs:anyURI"/>
         <xsl:param name="chart-type" as="xs:anyURI"/>
         <xsl:param name="category" as="xs:string?"/>
@@ -559,19 +559,17 @@ exclude-result-prefixes="#all"
 
                     <xsl:variable name="request" as="item()*">
                         <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml,application/rdf+xml;q=0.9' } }">
-                            <xsl:call-template name="onSPARQLResultsLoad">
+                            <xsl:call-template name="onChartSPARQLResultsLoad">
                                 <xsl:with-param name="endpoint" select="$endpoint"/>
                                 <xsl:with-param name="results-uri" select="$results-uri"/>
                                 <xsl:with-param name="container" select="$container"/>
                                 <xsl:with-param name="chart-canvas-id" select="$canvas-id"/>
                                 <xsl:with-param name="block-uri" select="$block/@about"/>
-                                <xsl:with-param name="chart-uri" select="$chart-uri"/>
                                 <xsl:with-param name="chart-type" select="$chart-type"/>
                                 <xsl:with-param name="category" select="$category"/>
                                 <xsl:with-param name="series" select="$series"/>
                                 <xsl:with-param name="show-editor" select="false()"/>
                                 <xsl:with-param name="content-method" select="xs:QName('ixsl:append-content')"/>
-                                <xsl:with-param name="push-state" select="false()"/>
                                 <xsl:with-param name="show-chart-save" select="false()"/>
                                 <xsl:with-param name="results-container-id" select="$container-id || '-query-results'"/>
                             </xsl:call-template>
@@ -583,6 +581,88 @@ exclude-result-prefixes="#all"
             <xsl:otherwise>
                 <ixsl:set-style name="display" select="'none'" object="$block//div[contains-token(@class, 'bar')]"/>
         
+                <!-- error response - could not load query results -->
+                <xsl:for-each select="$container">
+                    <xsl:result-document href="?." method="ixsl:replace-content">
+                        <div class="alert alert-block">
+                            <strong>Error during query execution:</strong>
+                            <pre>
+                                <xsl:value-of select="$response?message"/>
+                            </pre>
+                        </div>
+                    </xsl:result-document>
+                </xsl:for-each>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:template>
+    
+    <!-- SPARQL results laoded -->
+    
+    <xsl:template name="onChartSPARQLResultsLoad">
+        <xsl:context-item as="map(*)" use="required"/>
+        <xsl:param name="container" as="element()"/>
+        <xsl:param name="results-uri" as="xs:anyURI"/>
+        <xsl:param name="block-uri" select="$results-uri" as="xs:anyURI"/>
+        <xsl:param name="chart-canvas-id" as="xs:string"/>
+        <xsl:param name="chart-type" select="xs:anyURI('&ac;Table')" as="xs:anyURI"/>
+        <xsl:param name="category" as="xs:string?"/>
+        <xsl:param name="series" as="xs:string*"/>
+        <xsl:param name="query-string" as="xs:string?"/>
+        <xsl:param name="endpoint" as="xs:anyURI?"/>
+        <xsl:param name="content-method" select="xs:QName('ixsl:replace-content')" as="xs:QName"/>
+        <xsl:param name="show-editor" select="true()" as="xs:boolean"/>
+        <xsl:param name="show-chart-save" select="true()" as="xs:boolean"/>
+        <xsl:param name="results-container-id" select="ixsl:get($container, 'id') || '-query-results'" as="xs:string"/>
+        <xsl:param name="results-container-class" select="'sparql-query-results'" as="xs:string"/>
+
+        <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
+        
+        <xsl:variable name="response" select="." as="map(*)"/>
+        <xsl:choose>
+            <xsl:when test="?status = 200 and ?media-type = ('application/rdf+xml', 'application/sparql-results+xml')">
+                <xsl:for-each select="?body">
+                    <xsl:variable name="results" select="." as="document-node()"/>
+                    <xsl:variable name="category" select="if (exists($category)) then $category else (if (rdf:RDF) then distinct-values(rdf:RDF/*/*/concat(namespace-uri(), local-name()))[1] else srx:sparql/srx:head/srx:variable[1]/@name)" as="xs:string?"/>
+                    <xsl:variable name="series" select="if (exists($series)) then $series else (if (rdf:RDF) then distinct-values(rdf:RDF/*/*/concat(namespace-uri(), local-name())) else srx:sparql/srx:head/srx:variable/@name)" as="xs:string*"/>
+
+                    <xsl:call-template name="ldh:RenderChartForm">
+                        <xsl:with-param name="container" select="$container"/>
+                        <xsl:with-param name="category" select="$category"/>
+                        <xsl:with-param name="series" select="$series"/>
+                    </xsl:call-template>
+
+                    
+<xsl:message>
+$block-uri: <xsl:copy-of select="$block-uri"/>
+$results: <xsl:copy-of select="$results"/>
+$category: <xsl:value-of select="$category"/>
+$series: <xsl:value-of select="$series"/>
+</xsl:message>
+
+                    <!-- create new cache entry using content URI as key -->
+                    <ixsl:set-property name="{'`' || $block-uri || '`'}" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.contents')"/>
+                    <ixsl:set-property name="results" select="$results" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`')"/>
+                    <xsl:variable name="data-table" select="if ($results/rdf:RDF) then ac:rdf-data-table($results, $category, $series) else ac:sparql-results-data-table($results, $category, $series)"/>
+                    <ixsl:set-property name="data-table" select="$data-table" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`')"/>
+
+                    <xsl:call-template name="ldh:RenderChart">
+                        <xsl:with-param name="data-table" select="$data-table"/>
+                        <xsl:with-param name="canvas-id" select="$chart-canvas-id"/>
+                        <xsl:with-param name="chart-type" select="$chart-type"/>
+                        <xsl:with-param name="category" select="$category"/>
+                        <xsl:with-param name="series" select="$series"/>
+                    </xsl:call-template>
+
+                    <xsl:for-each select="$container//div[@class = 'progress-bar']">
+                        <ixsl:set-style name="display" select="'none'" object="."/>
+                    </xsl:for-each>
+                </xsl:for-each>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:for-each select="$container//div[@class = 'progress-bar']">
+                    <ixsl:set-style name="display" select="'none'" object="."/>
+                </xsl:for-each>
+                    
                 <!-- error response - could not load query results -->
                 <xsl:for-each select="$container">
                     <xsl:result-document href="?." method="ixsl:replace-content">
