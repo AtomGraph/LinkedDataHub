@@ -305,9 +305,9 @@ WHERE
                 
                 <xsl:for-each select="?body">
                     <ixsl:set-property name="{'`' || ac:absolute-path(ldh:base-uri(.)) || '`'}" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.contents')"/>
-                    <!-- store document under window.LinkedDataHub.contents[$content-uri].results -->
+                    <!-- store document under window.LinkedDataHub.contents[$base-uri].results -->
                     <ixsl:set-property name="results" select="." object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path(ldh:base-uri(.)) || '`')"/>
-                    <!-- store ETag header value under window.LinkedDataHub.contents[$content-uri].etag -->
+                    <!-- store ETag header value under window.LinkedDataHub.contents[$base-uri].etag -->
                     <ixsl:set-property name="etag" select="$etag" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path(ldh:base-uri(.)) || '`')"/>
 
                     <xsl:message>
@@ -420,36 +420,6 @@ WHERE
                 <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ ?message ])"/>
             </xsl:otherwise>
         </xsl:choose>
-    </xsl:template>
-    
-    <!-- disable inline editing form (do nothing if the button is disabled) -->
-    
-    <xsl:template match="div[@about][@typeof = ('&ldh;ResultSetChart', '&ldh;GraphChart')]//button[contains-token(@class, 'btn-cancel')][not(contains-token(@class, 'disabled'))]" mode="ixsl:onclick" priority="1">
-        <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
-        <xsl:variable name="block" select="ancestor::div[contains-token(@class, 'block')][1]" as="element()"/>
-        <xsl:variable name="container" select="ancestor::div[@typeof][1]" as="element()"/>
-        <xsl:variable name="content-id" select="ixsl:get($container, 'id')" as="xs:string"/>
-        <xsl:variable name="about" select="$block/@about" as="xs:anyURI"/>
-
-        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
-        
-        <xsl:message>ixsl:get(., 'baseURI'): <xsl:value-of select="ixsl:get(., 'baseURI')"/></xsl:message>
-        <xsl:message>ldh:base-uri(.): <xsl:value-of select="ldh:base-uri(.)"/></xsl:message>
-        <xsl:message>ixsl:location(): <xsl:value-of select="ixsl:location()"/></xsl:message>
-
-        <!-- not using ldh:base-uri(.) because it goes stale when DOM is replaced -->
-        <xsl:variable name="doc" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path(xs:anyURI(ixsl:location())) || '`'), 'results')" as="document-node()"/>
-        <xsl:variable name="chart" select="key('resources', $about, $doc)" as="element()"/>
-
-        <xsl:apply-templates select="$chart" mode="ldh:RenderRow">
-            <xsl:with-param name="this" select="ancestor::div[@about][1]/@about"/>
-<!--            <xsl:with-param name="container" select="$container"/>-->
-        </xsl:apply-templates>
-        
-        <!-- initialize event listeners -->
-<!--        <xsl:apply-templates select="$container/*" mode="ldh:RenderRowForm"/>-->
-
-        <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
     </xsl:template>
     
     <!-- TO-DO: unify -->
@@ -744,12 +714,14 @@ WHERE
                         <xsl:sort select="ac:label(.)"/>
                     </xsl:apply-templates>
                 </xsl:variable>
+                <!--
                 <xsl:message>
                     $resources instance of document-node(): <xsl:value-of select="$resources instance of document-node()"/>
                     $resources: <xsl:value-of select="serialize($resources)"/>
                     $block: <xsl:value-of select="serialize($block)"/>
                     $new-block: <xsl:value-of select="serialize($new-block)"/>
                 </xsl:message>
+                -->
                 
                 <xsl:for-each select="$block">
                     <!-- replace block element attributes TO-DO: shouldn't be necessary in SaxonJS 3 using method="ixsl:replace-element": https://saxonica.plan.io/issues/6303#note-2 -->

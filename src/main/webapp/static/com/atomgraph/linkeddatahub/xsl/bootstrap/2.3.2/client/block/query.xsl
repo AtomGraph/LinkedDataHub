@@ -371,7 +371,7 @@ exclude-result-prefixes="#all"
         </xsl:for-each>
                 
         <xsl:apply-templates select="$value" mode="ldh:RenderRow">
-            <xsl:with-param name="this" select="ancestor::div[@about][1]/@about"/>
+            <xsl:with-param name="this" select="ancestor::div[@about][1]/@about"/> <!-- not the same as $block-uri! -->
             <xsl:with-param name="container" select="$container//div[contains-token(@class, 'sparql-query-results')]"/>
             <xsl:with-param name="block-uri" select="$block-uri"/>
             <xsl:with-param name="base-uri" select="ac:absolute-path(ldh:base-uri(.))"/>
