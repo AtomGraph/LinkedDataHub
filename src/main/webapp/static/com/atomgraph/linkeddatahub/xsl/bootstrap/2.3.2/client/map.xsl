@@ -335,7 +335,7 @@ exclude-result-prefixes="#all"
                 <xsl:for-each select="?body">
                     <xsl:call-template name="ldh:DrawMap">
                         <xsl:with-param name="block-uri" select="$block-uri"/>
-                        <xsl:with-param name="canvas-id" select="$container-id || '-map-canvas'" />
+                        <xsl:with-param name="canvas-id" select="$container-id || '-map-canvas'"/>
                     </xsl:call-template>
                 </xsl:for-each>
             </xsl:when>

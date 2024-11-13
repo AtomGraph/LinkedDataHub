@@ -237,14 +237,14 @@ exclude-result-prefixes="#all"
                                     <!-- if the literal is of type rdf:XMLLiteral, wrap its value to make it well-formed XHTML (previously done by the RDFPostCleanupInterceptor) -->
                                     <xsl:variable name="datatype" select="$next-input/ixsl:get(., 'value')" as="xs:anyURI"/>
                                     <xsl:variable name="value" select="if ($datatype = '&rdf;XMLLiteral') then '&lt;div xmlns=&quot;http://www.w3.org/1999/xhtml&quot;&gt;' || ixsl:get(., 'value') || '&lt;/div&gt;' else ixsl:get(., 'value')" as="xs:string"/>
-                                    <json:string key="object">&quot;<xsl:value-of select="$value"/>&quot;^^<xsl:value-of select="$datatype"/></json:string>
+                                    <json:string key="object">&quot;<xsl:value-of select="$value"/>&quot;^^&lt;<xsl:value-of select="$datatype"/>&gt;</json:string>
                                 </xsl:when>
                                 <!-- typed literal -->
                                 <xsl:when test="@name = 'lt' and $next-input/@name = 'ol'">
                                     <!-- if the literal is of type rdf:XMLLiteral, wrap its value to make it well-formed XHTML (previously done by the RDFPostCleanupInterceptor) -->
                                     <xsl:variable name="datatype" select="ixsl:get(., 'value')" as="xs:anyURI"/>
                                     <xsl:variable name="value" select="if ($datatype = '&rdf;XMLLiteral') then '&lt;div xmlns=&quot;http://www.w3.org/1999/xhtml&quot;&gt;' || $next-input/ixsl:get(., 'value') || '&lt;/div&gt;' else $next-input/ixsl:get(., 'value')" as="xs:string"/>
-                                    <json:string key="object">&quot;<xsl:value-of select="$value"/>&quot;^^<xsl:value-of select="$datatype"/></json:string>
+                                    <json:string key="object">&quot;<xsl:value-of select="$value"/>&quot;^^&lt;<xsl:value-of select="$datatype"/>&gt;</json:string>
                                 </xsl:when>
                                 <!-- language-tagged literal -->
                                 <xsl:when test="@name = 'ol' and $next-input/@name = 'll'">
@@ -326,7 +326,7 @@ exclude-result-prefixes="#all"
                                     <!-- XML literal has to be fixed previously, otherwise parse-xml() will fail -->
                                     <xsl:analyze-string select="." regex="^&quot;(.*)&quot;\^\^&lt;&rdf;XMLLiteral&gt;$">
                                         <xsl:matching-substring>
-                                            <xsl:sequence select="parse-xml(regex-group(1))" />
+                                            <xsl:sequence select="parse-xml(regex-group(1))"/>
                                         </xsl:matching-substring>
                                     </xsl:analyze-string>
                                 </xsl:when>
@@ -335,13 +335,13 @@ exclude-result-prefixes="#all"
                                     <xsl:attribute name="rdf:datatype">
                                         <xsl:analyze-string select="." regex="^&quot;(.*)&quot;\^\^&lt;(.*)&gt;$">
                                             <xsl:matching-substring>
-                                                <xsl:sequence select="regex-group(2)" />
+                                                <xsl:sequence select="regex-group(2)"/>
                                             </xsl:matching-substring>
                                         </xsl:analyze-string>
                                     </xsl:attribute>
                                     <xsl:analyze-string select="." regex="^&quot;(.*)&quot;\^\^&lt;(.*)&gt;$">
                                         <xsl:matching-substring>
-                                            <xsl:sequence select="regex-group(1)" />
+                                            <xsl:sequence select="regex-group(1)"/>
                                         </xsl:matching-substring>
                                     </xsl:analyze-string>
                                 </xsl:when>
@@ -350,13 +350,13 @@ exclude-result-prefixes="#all"
                                     <xsl:attribute name="xml:lang">
                                         <xsl:analyze-string select="." regex="^&quot;(.*?)&quot;@(.*)$">
                                             <xsl:matching-substring>
-                                                <xsl:sequence select="regex-group(2)" />
+                                                <xsl:sequence select="regex-group(2)"/>
                                             </xsl:matching-substring>
                                         </xsl:analyze-string>
                                     </xsl:attribute>
                                     <xsl:analyze-string select="." regex="^&quot;(.*?)&quot;@(.*)$">
                                         <xsl:matching-substring>
-                                            <xsl:sequence select="regex-group(1)" />
+                                            <xsl:sequence select="regex-group(1)"/>
                                         </xsl:matching-substring>
                                     </xsl:analyze-string>
                                 </xsl:when>
