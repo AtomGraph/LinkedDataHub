@@ -585,6 +585,7 @@ WHERE
                 </rdf:RDF>
             </xsl:document>
         </xsl:variable>
+        <xsl:message>RDF/XML: <xsl:value-of select="serialize($resources)"/></xsl:message>
         <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, $action)" as="xs:anyURI"/>
         
         <xsl:variable name="request" as="item()*">
