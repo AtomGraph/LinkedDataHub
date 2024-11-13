@@ -336,7 +336,7 @@ exclude-result-prefixes="#all"
         </xsl:variable>
         <xsl:variable name="this" select="ancestor::div[@about][1]/@about" as="xs:anyURI"/> <!-- not the same as $block-uri! -->
         <xsl:message>$block-uri: <xsl:value-of select="$block-uri"/> $block-uri: <xsl:value-of select="$block-uri"/></xsl:message>
-        <xsl:message>$constructor: <xsl:value-of select="serialize($constructor)"/></xsl:message>
+        <xsl:message>$view-html: <xsl:value-of select="serialize($view-html)"/></xsl:message>
 
         <!-- deactivate other tabs -->
         <xsl:for-each select="../../li">
