@@ -324,10 +324,10 @@ exclude-result-prefixes="#all"
                             <xsl:choose>
                                 <!-- XML literal -->
                                 <!-- note: SPARQL.js 2.x does NOT wrap the datatype URI into <> -->
-                                <xsl:when test="matches(., '^&quot;(.*)&quot;\^\^&rdf;XMLLiteral$')">
+                                <xsl:when test="matches(., '^&quot;(.*)&quot;\^\^&rdf;XMLLiteral$', 's')">
                                     <xsl:attribute name="rdf:parseType" select="'Literal'"/>
                                     <!-- XML literal has to be fixed previously, otherwise parse-xml() will fail -->
-                                    <xsl:analyze-string select="." regex="^&quot;(.*)&quot;\^\^&rdf;XMLLiteral$">
+                                    <xsl:analyze-string select="." regex="^&quot;(.*)&quot;\^\^&rdf;XMLLiteral$" flags="s">
                                         <xsl:matching-substring>
                                             <xsl:sequence select="parse-xml(regex-group(1))"/>
                                         </xsl:matching-substring>
@@ -335,31 +335,21 @@ exclude-result-prefixes="#all"
                                 </xsl:when>
                                 <!-- typed literal -->
                                 <!-- note: SPARQL.js 2.x does NOT wrap the datatype URI into <> -->
-                                <xsl:when test="matches(., '^&quot;(.*)&quot;\^\^(.*)$')">
-                                    <xsl:attribute name="rdf:datatype">
-                                        <xsl:analyze-string select="." regex="^&quot;(.*)&quot;\^\^(.*)$">
-                                            <xsl:matching-substring>
-                                                <xsl:sequence select="regex-group(2)"/>
-                                            </xsl:matching-substring>
-                                        </xsl:analyze-string>
-                                    </xsl:attribute>
-                                    <xsl:analyze-string select="." regex="^&quot;(.*)&quot;\^\^(.*)$">
+                                <xsl:when test="matches(., '^&quot;(.*)&quot;\^\^(.*)$', 's')">
+                                    <xsl:analyze-string select="." regex="^&quot;(.*)&quot;\^\^(.*)$" flags="s">
                                         <xsl:matching-substring>
+                                            <xsl:attribute name="rdf:datatype" select="regex-group(2)"/>
+
                                             <xsl:sequence select="regex-group(1)"/>
                                         </xsl:matching-substring>
                                     </xsl:analyze-string>
                                 </xsl:when>
                                 <!-- language-tagged literal -->
-                                <xsl:when test="matches(., '^&quot;(.*?)&quot;@(.*)$')">
-                                    <xsl:attribute name="xml:lang">
-                                        <xsl:analyze-string select="." regex="^&quot;(.*?)&quot;@(.*)$">
-                                            <xsl:matching-substring>
-                                                <xsl:sequence select="regex-group(2)"/>
-                                            </xsl:matching-substring>
-                                        </xsl:analyze-string>
-                                    </xsl:attribute>
-                                    <xsl:analyze-string select="." regex="^&quot;(.*?)&quot;@(.*)$">
+                                <xsl:when test="matches(., '^&quot;(.*?)&quot;@(.*)$', 's')">
+                                    <xsl:analyze-string select="." regex="^&quot;(.*?)&quot;@(.*)$" flags="s">
                                         <xsl:matching-substring>
+                                            <xsl:attribute name="xml:lang" select="regex-group(2)"/>
+
                                             <xsl:sequence select="regex-group(1)"/>
                                         </xsl:matching-substring>
                                     </xsl:analyze-string>
