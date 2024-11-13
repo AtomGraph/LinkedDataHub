@@ -327,14 +327,13 @@ exclude-result-prefixes="#all"
         <xsl:variable name="query-type" select="xs:anyURI('&sp;' || upper-case(substring($query-form, 1, 1)) || lower-case(substring($query-form, 2)))" as="xs:anyURI"/>
         <xsl:variable name="block-id" select="'id' || ac:uuid()" as="xs:string"/>
         <xsl:variable name="block-uri" select="if ($block/@about) then $block/@about else xs:anyURI(ac:absolute-path(ldh:base-uri(.)) || '#' || $block-id)" as="xs:anyURI"/>
-        <xsl:variable name="constructor" as="document-node()"> <!-- make sure the structure will match the ldh:RenderRow pattern in view.xsl -->
+        <xsl:variable name="view-html" as="document-node()"> <!-- make sure the structure will match the ldh:RenderRow pattern in view.xsl -->
             <xsl:document>
                 <div about="{$block-uri}" typeof="&ldh;View">
                     <div property="&spin;query" resource="{$query-uri}"/>
                 </div>
             </xsl:document>
         </xsl:variable>
-<!--        <xsl:variable name="view" select="$constructor//*[@rdf:about = $block-uri]" as="element()"/>-->
         <xsl:variable name="this" select="ancestor::div[@about][1]/@about" as="xs:anyURI"/> <!-- not the same as $block-uri! -->
         <xsl:message>$block-uri: <xsl:value-of select="$block-uri"/> $block-uri: <xsl:value-of select="$block-uri"/></xsl:message>
         <xsl:message>$constructor: <xsl:value-of select="serialize($constructor)"/></xsl:message>
@@ -360,12 +359,11 @@ exclude-result-prefixes="#all"
             <ixsl:set-style name="width" select="'50%'" object="."/>
         </xsl:for-each>
                 
-        <xsl:apply-templates select="$constructor" mode="ldh:RenderRow">
+        <xsl:apply-templates select="$view-html" mode="ldh:RenderRow">
             <xsl:with-param name="block" select="$block"/>
             <xsl:with-param name="container" select="$container//div[contains-token(@class, 'sparql-query-results')]"/>
             <xsl:with-param name="this" select="$this"/>
             <xsl:with-param name="base-uri" select="ac:absolute-path(ldh:base-uri(.))"/>
-            <xsl:with-param name="select-query" select="$constructor//*[@rdf:about = $query-uri]"/>
         </xsl:apply-templates>
     </xsl:template>
     

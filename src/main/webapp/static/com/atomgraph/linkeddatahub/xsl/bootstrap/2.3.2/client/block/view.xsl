@@ -84,7 +84,8 @@ exclude-result-prefixes="#all"
         <xsl:param name="query-uri" select="descendant::*[@property = '&spin;query']/@resource" as="xs:anyURI"/>
         
         <xsl:message>ldh:View ldh:RenderBlock $about: <xsl:value-of select="$about"/></xsl:message>
-        
+        <xsl:message>ldh:View $query-uri: <xsl:value-of select="$query-uri"/></xsl:message>
+
         <xsl:for-each select="$block//div[contains-token(@class, 'bar')]">
             <!-- update progress bar -->
             <ixsl:set-style name="width" select="'75%'" object="."/>
