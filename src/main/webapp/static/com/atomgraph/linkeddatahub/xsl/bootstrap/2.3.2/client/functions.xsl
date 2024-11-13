@@ -237,14 +237,16 @@ exclude-result-prefixes="#all"
                                     <!-- if the literal is of type rdf:XMLLiteral, wrap its value to make it well-formed XHTML (previously done by the RDFPostCleanupInterceptor) -->
                                     <xsl:variable name="datatype" select="$next-input/ixsl:get(., 'value')" as="xs:anyURI"/>
                                     <xsl:variable name="value" select="if ($datatype = '&rdf;XMLLiteral') then '&lt;div xmlns=&quot;http://www.w3.org/1999/xhtml&quot;&gt;' || ixsl:get(., 'value') || '&lt;/div&gt;' else ixsl:get(., 'value')" as="xs:string"/>
-                                    <json:string key="object">&quot;<xsl:value-of select="$value"/>&quot;^^&lt;<xsl:value-of select="$datatype"/>&gt;</json:string>
+                                    <!-- note: SPARQL.js 2.x does NOT wrap the datatype URI into <> -->
+                                    <json:string key="object">&quot;<xsl:value-of select="$value"/>&quot;^^<xsl:value-of select="$datatype"/></json:string>
                                 </xsl:when>
                                 <!-- typed literal -->
                                 <xsl:when test="@name = 'lt' and $next-input/@name = 'ol'">
                                     <!-- if the literal is of type rdf:XMLLiteral, wrap its value to make it well-formed XHTML (previously done by the RDFPostCleanupInterceptor) -->
                                     <xsl:variable name="datatype" select="ixsl:get(., 'value')" as="xs:anyURI"/>
                                     <xsl:variable name="value" select="if ($datatype = '&rdf;XMLLiteral') then '&lt;div xmlns=&quot;http://www.w3.org/1999/xhtml&quot;&gt;' || $next-input/ixsl:get(., 'value') || '&lt;/div&gt;' else $next-input/ixsl:get(., 'value')" as="xs:string"/>
-                                    <json:string key="object">&quot;<xsl:value-of select="$value"/>&quot;^^&lt;<xsl:value-of select="$datatype"/>&gt;</json:string>
+                                    <!-- note: SPARQL.js 2.x does NOT wrap the datatype URI into <> -->
+                                    <json:string key="object">&quot;<xsl:value-of select="$value"/>&quot;^^<xsl:value-of select="$datatype"/></json:string>
                                 </xsl:when>
                                 <!-- language-tagged literal -->
                                 <xsl:when test="@name = 'ol' and $next-input/@name = 'll'">
@@ -321,25 +323,27 @@ exclude-result-prefixes="#all"
                             <!-- TO-DO: upgrade SPARQL.js to 3.x. We need regex functions in the following logic because quoting/escaping sucks in SPARQL.js 2.x -->
                             <xsl:choose>
                                 <!-- XML literal -->
-                                <xsl:when test="matches(., '^&quot;(.*)&quot;\^\^&lt;&rdf;XMLLiteral&gt;$')">
+                                <!-- note: SPARQL.js 2.x does NOT wrap the datatype URI into <> -->
+                                <xsl:when test="matches(., '^&quot;(.*)&quot;\^\^&rdf;XMLLiteral$')">
                                     <xsl:attribute name="rdf:parseType" select="'Literal'"/>
                                     <!-- XML literal has to be fixed previously, otherwise parse-xml() will fail -->
-                                    <xsl:analyze-string select="." regex="^&quot;(.*)&quot;\^\^&lt;&rdf;XMLLiteral&gt;$">
+                                    <xsl:analyze-string select="." regex="^&quot;(.*)&quot;\^\^&rdf;XMLLiteral$">
                                         <xsl:matching-substring>
                                             <xsl:sequence select="parse-xml(regex-group(1))"/>
                                         </xsl:matching-substring>
                                     </xsl:analyze-string>
                                 </xsl:when>
                                 <!-- typed literal -->
-                                <xsl:when test="matches(., '^&quot;(.*)&quot;\^\^&lt;(.*)&gt;$')">
+                                <!-- note: SPARQL.js 2.x does NOT wrap the datatype URI into <> -->
+                                <xsl:when test="matches(., '^&quot;(.*)&quot;\^\^(.*)$')">
                                     <xsl:attribute name="rdf:datatype">
-                                        <xsl:analyze-string select="." regex="^&quot;(.*)&quot;\^\^&lt;(.*)&gt;$">
+                                        <xsl:analyze-string select="." regex="^&quot;(.*)&quot;\^\^(.*)$">
                                             <xsl:matching-substring>
                                                 <xsl:sequence select="regex-group(2)"/>
                                             </xsl:matching-substring>
                                         </xsl:analyze-string>
                                     </xsl:attribute>
-                                    <xsl:analyze-string select="." regex="^&quot;(.*)&quot;\^\^&lt;(.*)&gt;$">
+                                    <xsl:analyze-string select="." regex="^&quot;(.*)&quot;\^\^(.*)$">
                                         <xsl:matching-substring>
                                             <xsl:sequence select="regex-group(1)"/>
                                         </xsl:matching-substring>
