@@ -293,7 +293,7 @@ exclude-result-prefixes="#all"
         </xsl:choose>
     </xsl:function>
     
-    <!-- parses SPARQL.js triple maps into RDF/XML. Depends on the SPARQL.js serialization used in the ldh:parse-rdf-post function -->
+    <!-- parses SPARQL.js triple maps into RDF/XML. Depends on the SPARQL.js serialization used in the ldh:parse-rdf-post() function -->
     <xsl:function name="ldh:triples-to-descriptions" as="element()*">
         <xsl:param name="triples" as="element()*"/>
         
@@ -318,27 +318,51 @@ exclude-result-prefixes="#all"
                     <xsl:element namespace="{$namespace}" name="ns:{$local-name}">
                         <xsl:for-each select="json:string[@key = 'object']">
                             <!-- object -->
+                            <!-- TO-DO: upgrade SPARQL.js to 3.x. We need regex functions in the following logic because quoting/escaping sucks in SPARQL.js 2.x -->
                             <xsl:choose>
                                 <!-- XML literal -->
-                                <xsl:when test="starts-with(., '&quot;') and contains(., '&quot;^^') and substring-after(., '&quot;^^') = '&rdf;XMLLiteral'">
+                                <xsl:when test="matches(., '^&quot;(.*)&quot;\^\^&lt;&rdf;XMLLiteral&gt;$')">
                                     <xsl:attribute name="rdf:parseType" select="'Literal'"/>
                                     <!-- XML literal has to be fixed previously, otherwise parse-xml() will fail -->
-                                    <xsl:sequence select="parse-xml(substring-before(substring-after(., '&quot;'), '&quot;^^'))"/>
-                                </xsl:when>
-                                <!-- language-tagged literal -->
-                                <xsl:when test="starts-with(., '&quot;') and contains(., '&quot;^^')">
-                                    <xsl:attribute name="rdf:datatype" select="substring-after(., '&quot;^^')"/>
-                                    <xsl:sequence select="substring-before(substring-after(., '&quot;'), '&quot;^^')"/>
+                                    <xsl:analyze-string select="." regex="^&quot;(.*)&quot;\^\^&lt;&rdf;XMLLiteral&gt;$">
+                                        <xsl:matching-substring>
+                                            <xsl:sequence select="parse-xml(regex-group(1))" />
+                                        </xsl:matching-substring>
+                                    </xsl:analyze-string>
                                 </xsl:when>
                                 <!-- typed literal -->
-                                <xsl:when test="starts-with(., '&quot;') and contains(., '&quot;@')">
-                                    <xsl:attribute name="xml:lang" select="substring-after(., '&quot;@')"/>
-                                    <xsl:sequence select="substring-before(substring-after(., '&quot;'), '&quot;@')"/>
+                                <xsl:when test="matches(., '^&quot;(.*)&quot;\^\^&lt;(.*)&gt;$')">
+                                    <xsl:attribute name="rdf:datatype">
+                                        <xsl:analyze-string select="." regex="^&quot;(.*)&quot;\^\^&lt;(.*)&gt;$">
+                                            <xsl:matching-substring>
+                                                <xsl:sequence select="regex-group(2)" />
+                                            </xsl:matching-substring>
+                                        </xsl:analyze-string>
+                                    </xsl:attribute>
+                                    <xsl:analyze-string select="." regex="^&quot;(.*)&quot;\^\^&lt;(.*)&gt;$">
+                                        <xsl:matching-substring>
+                                            <xsl:sequence select="regex-group(1)" />
+                                        </xsl:matching-substring>
+                                    </xsl:analyze-string>
                                 </xsl:when>
-                                <!-- TO-DO: XMLLiteral! -->
+                                <!-- language-tagged literal -->
+                                <xsl:when test="matches(., '^&quot;(.*?)&quot;@(.*)$')">
+                                    <xsl:attribute name="xml:lang">
+                                        <xsl:analyze-string select="." regex="^&quot;(.*?)&quot;@(.*)$">
+                                            <xsl:matching-substring>
+                                                <xsl:sequence select="regex-group(2)" />
+                                            </xsl:matching-substring>
+                                        </xsl:analyze-string>
+                                    </xsl:attribute>
+                                    <xsl:analyze-string select="." regex="^&quot;(.*?)&quot;@(.*)$">
+                                        <xsl:matching-substring>
+                                            <xsl:sequence select="regex-group(1)" />
+                                        </xsl:matching-substring>
+                                    </xsl:analyze-string>
+                                </xsl:when>
                                 <!-- plain literal -->
                                 <xsl:when test="starts-with(., '&quot;') and ends-with(., '&quot;')">
-                                    <xsl:sequence select="substring-before(substring-after(., '&quot;'), '&quot;')"/>
+                                    <xsl:sequence select="substring(., 2, string-length(.) - 2)"/> <!-- trim first and last character -->
                                 </xsl:when>
                                 <!-- blank node -->
                                 <xsl:when test="starts-with(., '_:')">
