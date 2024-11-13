@@ -325,17 +325,17 @@ exclude-result-prefixes="#all"
         <xsl:variable name="query-uri" select="xs:anyURI(ac:absolute-path(ldh:base-uri(.)) || '#' || $query-id)" as="xs:anyURI"/>
         <xsl:variable name="query-form" select="ldh:query-type($query-string)" as="xs:string?"/>
         <xsl:variable name="query-type" select="xs:anyURI('&sp;' || upper-case(substring($query-form, 1, 1)) || lower-case(substring($query-form, 2)))" as="xs:anyURI"/>
-        <xsl:variable name="block-id" select="'id' || ac:uuid()" as="xs:string"/>
-        <xsl:variable name="block-uri" select="if ($block/@about) then $block/@about else xs:anyURI(ac:absolute-path(ldh:base-uri(.)) || '#' || $block-id)" as="xs:anyURI"/>
+        <xsl:variable name="view-block-id" select="'id' || ac:uuid()" as="xs:string"/>
+        <xsl:variable name="view-block-uri" select="xs:anyURI(ac:absolute-path(ldh:base-uri(.)) || '#' || $view-block-id)" as="xs:anyURI"/>
         <xsl:variable name="view-html" as="document-node()"> <!-- make sure the structure will match the ldh:RenderRow pattern in view.xsl -->
             <xsl:document>
-                <div about="{$block-uri}" typeof="&ldh;View">
-                    <div property="&spin;query" resource="{$query-uri}"/>
+                <div about="{$view-block-uri}" typeof="&ldh;View">
+                    <div property="&spin;query" resource="{$block-uri}"/>
                 </div>
             </xsl:document>
         </xsl:variable>
         <xsl:variable name="this" select="ancestor::div[@about][1]/@about" as="xs:anyURI"/> <!-- not the same as $block-uri! -->
-        <xsl:message>$block-uri: <xsl:value-of select="$block-uri"/> $block-uri: <xsl:value-of select="$block-uri"/></xsl:message>
+        <xsl:message>$block-uri: <xsl:value-of select="$block-uri"/> $view-block-uri: <xsl:value-of select="$view-block-uri"/></xsl:message>
         <xsl:message>$view-html: <xsl:value-of select="serialize($view-html)"/></xsl:message>
 
         <!-- deactivate other tabs -->

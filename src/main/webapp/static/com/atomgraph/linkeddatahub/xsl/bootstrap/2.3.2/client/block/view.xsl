@@ -117,7 +117,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="block-uri" select="$block/@about" as="xs:anyURI"/>
         <xsl:param name="query-uri" as="xs:anyURI"/>
 
-        <xsl:message>ldh:ViewQueryLoad $this: <xsl:value-of select="$this"/> serialize($this): <xsl:value-of select="serialize($this)"/></xsl:message>
+        <xsl:message>ldh:ViewQueryLoad $this: <xsl:value-of select="$this"/></xsl:message>
         
         <xsl:choose>
             <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
