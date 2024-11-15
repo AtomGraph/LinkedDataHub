@@ -459,7 +459,6 @@ exclude-result-prefixes="#all"
     <xsl:template match="div[@about][@typeof]//button[contains-token(@class, 'btn-save-chart')]" mode="ixsl:onclick">
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
         <xsl:variable name="block" select="ancestor::div[contains-token(@class, 'block')][1]" as="element()"/>
-        <!-- <xsl:variable name="container" select="ancestor::div[@typeof][1]" as="element()"/> -->
         <xsl:variable name="textarea-id" select="$block//textarea[@name = 'query']/ixsl:get(., 'id')" as="xs:string"/>
         <xsl:variable name="yasqe" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.yasqe'), $textarea-id)"/>
         <xsl:variable name="query-string" select="ixsl:call($yasqe, 'getValue', [])" as="xs:string"/> <!-- get query string from YASQE -->
@@ -478,50 +477,77 @@ exclude-result-prefixes="#all"
         </xsl:variable>
 
         <xsl:message>SAVE CHART query URI: <xsl:value-of select="$block/@about"/></xsl:message>
-        <xsl:message>SAVE CHART $query-string: <xsl:value-of select="$query-string"/></xsl:message>
         
-        <!-- <xsl:template match="*[@about][@typeof = ('&ldh;ResultSetChart', '&ldh;GraphChart')][descendant::*[@property = '&spin;query'][@resource]][descendant::*[@property = '&ldh;chartType'][@resource]]" mode="ldh:RenderRow" priority="1"> -->
-        <!-- <xsl:variable name="category" select="descendant::*[@property = '&ldh;categoryProperty']/@resource | descendant::*[@property = '&ldh;categoryVarName']/text()" as="xs:string?"/>
-        <xsl:variable name="series" select="descendant::*[@property = '&ldh;seriesProperty']/@resource | descendant::*[@property = '&ldh;seriesVarName']/text()" as="xs:string*"/> -->
-
-        <xsl:variable name="chart-html" as="document-node()">
+        <xsl:variable name="constructed-doc" as="document-node()">
             <xsl:document>
-                <div typeof="{$forClass}">
-                    <div property="&spin;query" resource="{$block/@about}"/>
-                    <div property="&ldh;chartType" resource="{$chart-type}"/>
-                    
-                    <xsl:if test="$forClass = '&ldh;ResultSetChart'">
-                        <xsl:for-each select="$category">
-                            <div property="&ldh;categoryVarName"><xsl:value-of select="."/></div>
-                        </xsl:for-each>
-                        
+                <rdf:RDF>
+                    <rdf:Description>
+                        <rdf:type rdf:resource="{$forClass}"/>
+                        <dct:title rdf:nodeID="title"/>
+                        <ldh:chartType rdf:resource="{$chart-type}"/>
+                        <ldh:categoryVarName><xsl:value-of select="$category"/></ldh:categoryVarName>
                         <xsl:for-each select="$series">
-                            <div property="&ldh;seriesVarName"><xsl:value-of select="."/></div>
+                            <ldh:seriesVarName><xsl:value-of select="."/></ldh:seriesVarName>
                         </xsl:for-each>
-                    </xsl:if>
-                    <xsl:if test="$forClass = '&ldh;GraphChart'">
-                        <xsl:for-each select="$category">
-                            <div property="&ldh;categoryProperty" resource="{.}"/>
-                        </xsl:for-each>
-                        
-                        <xsl:for-each select="$series">
-                            <div property="&ldh;seriesProperty" resource="{.}"/>
-                        </xsl:for-each>
-                    </xsl:if>
-                </div>
+                        <spin:query rdf:resource="{$block/@about}"/>
+                    </rdf:Description>
+                    <rdf:Description rdf:nodeID="title">
+                        <rdf:type rdf:resource="&xsd;string"/>
+                    </rdf:Description>
+                </rdf:RDF>
             </xsl:document>
         </xsl:variable>
-        
-        <xsl:message>Save chart $chart-html: <xsl:value-of select="serialize($chart-html)"/></xsl:message>
-        
-        <!--
-        <xsl:apply-templates select="$chart-html" mode="ldh:RenderRow">
-            <xsl:with-param name="block" select="$block"/>
-            <xsl:with-param name="container" select="$container//div[contains-token(@class, 'sparql-query-results')]"/>
-            <xsl:with-param name="this" select="$this"/>
-            <xsl:with-param name="base-uri" select="ac:absolute-path(ldh:base-uri(.))"/>
-        </xsl:apply-templates>
-        -->
+        <xsl:message>Save chart $constructed-doc: <xsl:value-of select="serialize($constructed-doc)"/></xsl:message>
+
+        <xsl:variable name="row-form" as="element()*">
+            <!-- TO-DO: refactor to use asynchronous HTTP requests -->
+            <xsl:variable name="types" select="distinct-values($resource/rdf:type/@rdf:resource)" as="xs:anyURI*"/>
+            <xsl:variable name="query-string" select="'DESCRIBE $Type VALUES $Type { ' || string-join(for $type in $types return '&lt;' || $type || '&gt;', ' ') || ' }'" as="xs:string"/>
+            <xsl:variable name="request-uri" select="ac:build-uri(resolve-uri('ns', $ldt:base), map{ 'query': $query-string, 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
+            <xsl:variable name="type-metadata" select="if (exists($types)) then document($request-uri) else ()" as="document-node()?"/>
+
+            <xsl:variable name="property-uris" select="distinct-values($resource/*/concat(namespace-uri(), local-name()))" as="xs:string*"/>
+            <xsl:variable name="query-string" select="'DESCRIBE $Type VALUES $Type { ' || string-join(for $uri in $property-uris return '&lt;' || $uri || '&gt;', ' ') || ' }'" as="xs:string"/>
+            <xsl:variable name="request-uri" select="ac:build-uri(resolve-uri('ns', $ldt:base), map{ 'query': $query-string, 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
+            <xsl:variable name="property-metadata" select="document($request-uri)" as="document-node()"/>
+
+            <xsl:variable name="query-string" select="$constructor-query || ' VALUES $Type { ' || string-join(for $type in $types return '&lt;' || $type || '&gt;', ' ') || ' }'" as="xs:string"/>
+            <xsl:variable name="request-uri" select="ac:build-uri(resolve-uri('ns', $ldt:base), map{ 'query': $query-string, 'accept': 'application/sparql-results+xml' })" as="xs:anyURI"/>
+            <xsl:variable name="constructors" select="if (exists($types)) then document($request-uri) else ()" as="document-node()?"/>
+
+            <xsl:message>
+                .add-constructor $constructors: <xsl:value-of select="serialize($constructors)"/>
+            </xsl:message>
+
+            <xsl:variable name="query-string" select="$constraint-query || ' VALUES $Type { ' || string-join(for $type in $types return '&lt;' || $type || '&gt;', ' ') || ' }'" as="xs:string"/>
+            <xsl:variable name="request-uri" select="ac:build-uri(resolve-uri('ns', $ldt:base), map{ 'query': $query-string, 'accept': 'application/sparql-results+xml' })" as="xs:anyURI"/>
+            <xsl:variable name="constraints" select="if (exists($types)) then document($request-uri) else ()" as="document-node()?"/>
+
+            <xsl:variable name="query-string" select="$shape-query || ' VALUES $Type { ' || string-join(for $type in $types return '&lt;' || $type || '&gt;', ' ') || ' }'" as="xs:string"/>
+            <xsl:variable name="request-uri" select="ac:build-uri(resolve-uri('ns', $ldt:base), map{ 'query': $query-string, 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
+            <xsl:variable name="shapes" select="document($request-uri)" as="document-node()"/>
+
+            <xsl:apply-templates select="$constructed-doc" mode="bs2:RowForm">
+                <xsl:with-param name="about" select="()"/> <!-- don't set @about on the container until after the resource is saved -->
+                <xsl:with-param name="method" select="$method"/>
+                <xsl:with-param name="action" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, $doc-uri)" as="xs:anyURI"/>
+                <xsl:with-param name="type-metadata" select="$type-metadata" tunnel="yes"/>
+                <xsl:with-param name="property-metadata" select="$property-metadata" tunnel="yes"/>
+                <xsl:with-param name="constructor" select="$constructed-doc" tunnel="yes"/>
+                <xsl:with-param name="constructors" select="$constructors" tunnel="yes"/>
+                <xsl:with-param name="constraints" select="$constraints" tunnel="yes"/>
+                <xsl:with-param name="shapes" select="$shapes" tunnel="yes"/>
+                <xsl:with-param name="base-uri" select="ac:absolute-path(ldh:base-uri(.))" tunnel="yes"/> <!-- ac:absolute-path(ldh:base-uri(.)) is empty on constructed documents -->
+                <xsl:with-param name="show-cancel-button" select="false()"/>
+            </xsl:apply-templates>
+        </xsl:variable>
+            
+        <xsl:variable name="content-body" select="id('content-body', ixsl:page())" as="element()"/>
+        <xsl:for-each select="$content-body">
+            <xsl:result-document href="?." method="ixsl:append-content">
+                <xsl:sequence select="$row-form"/>
+            </xsl:result-document>
+        </xsl:for-each>
     </xsl:template>
     
     <!-- disable inline editing form (do nothing if the button is disabled) -->
