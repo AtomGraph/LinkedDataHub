@@ -499,6 +499,7 @@ exclude-result-prefixes="#all"
         </xsl:variable>
         <xsl:message>Save chart $constructed-doc: <xsl:value-of select="serialize($constructed-doc)"/></xsl:message>
 
+        <xsl:variable name="doc-uri" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/>
         <xsl:variable name="method" select="'post'" as="xs:string"/>
         <xsl:variable name="resource" select="key('resources-by-type', $forClass, $constructed-doc)[not(key('predicates-by-object', @rdf:nodeID))]" as="element()"/>
         <xsl:variable name="row-form" as="element()*">
