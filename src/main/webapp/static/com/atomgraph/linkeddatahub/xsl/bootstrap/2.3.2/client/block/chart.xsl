@@ -544,23 +544,17 @@ exclude-result-prefixes="#all"
                 <xsl:with-param name="show-cancel-button" select="false()"/>
             </xsl:apply-templates>
         </xsl:variable>
-
-        <!-- copy following block siblings -->
-        <xsl:variable name="following-siblings" select="$block/following-sibling::*" as="element()*"/>
-        <!-- remove following block siblings -->
-        <xsl:for-each select="$following-siblings">
-            <xsl:sequence select="ixsl:call(., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
-        </xsl:for-each>
-
-        <xsl:variable name="content-body" select="id('content-body', ixsl:page())" as="element()"/>
-        <!-- TO-DO: replace with <xsl:result-document href="?." method="ixsl:insert-after"> when SaxonJS 3 is available https://saxonica.plan.io/issues/5543 -->
+        
+        <xsl:message>trace($row-form): <xsl:value-of select="trace($row-form)"/></xsl:message>
+            
+<!--        <xsl:variable name="content-body" select="id('content-body', ixsl:page())" as="element()"/>
         <xsl:for-each select="$content-body">
             <xsl:result-document href="?." method="ixsl:append-content">
                 <xsl:sequence select="$row-form"/>
-                <!-- re-insert following siblings -->
-                <xsl:sequence select="$following-siblings"/>
             </xsl:result-document>
-        </xsl:for-each>
+        </xsl:for-each>-->
+        <!-- insert $row-form after the $block TO-DO: replace with <xsl:result-document href="?." method="ixsl:insert-after"> when SaxonJS 3 is available https://saxonica.plan.io/issues/5543 -->
+        <xsl:sequence select="ixsl:call($block, 'after', [ $row-form ])[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
     
     <!-- disable inline editing form (do nothing if the button is disabled) -->
