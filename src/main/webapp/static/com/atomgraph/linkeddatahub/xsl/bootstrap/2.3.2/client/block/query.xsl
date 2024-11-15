@@ -349,15 +349,10 @@ exclude-result-prefixes="#all"
         
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
-<!--         create new cache entry using content URI as key 
-        <ixsl:set-property name="{'`' || $block-uri || '`'}" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.contents')"/>
-         store this content element 
-        <ixsl:set-property name="content" select="$value" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`')"/>-->
-
-        <xsl:for-each select="$block//div[contains-token(@class, 'bar')]">
-            <!-- update progress bar -->
+<!--        <xsl:for-each select="$block//div[contains-token(@class, 'bar')]">
+             update progress bar 
             <ixsl:set-style name="width" select="'50%'" object="."/>
-        </xsl:for-each>
+        </xsl:for-each>-->
                 
         <xsl:apply-templates select="$view-html" mode="ldh:RenderRow">
             <xsl:with-param name="block" select="$block"/>

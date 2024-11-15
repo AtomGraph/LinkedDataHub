@@ -234,7 +234,11 @@ exclude-result-prefixes="#all"
         </xsl:for-each>
 
         <xsl:for-each select="$container//div[contains-token(@class, 'main')]">
-            <xsl:result-document href="?." method="ixsl:append-content">
+            <xsl:variable name="header" select="./div/div[@class = 'well']" as="element()"/>
+
+            <xsl:result-document href="?." method="ixsl:replace-content">
+                <xsl:copy-of select="$header"/>
+
                 <form method="{$method}" action="{$action}">
                     <xsl:if test="$accept-charset">
                         <xsl:attribute name="accept-charset" select="$accept-charset"/>
