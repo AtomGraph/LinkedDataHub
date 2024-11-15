@@ -217,6 +217,17 @@ exclude-result-prefixes="#all"
         <xsl:param name="chart-type-id" select="'chart-type'" as="xs:string"/>
         <xsl:param name="category-id" select="'category'" as="xs:string"/>
         <xsl:param name="series-id" select="'series'" as="xs:string"/>
+        <xsl:param name="form-actions" as="element()">
+            <div class="form-actions">
+                <button class="btn btn-primary btn-save-chart" type="button">
+                    <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ldh:logo">
+                        <xsl:with-param name="class" select="'btn btn-primary btn-save-chart'"/>
+                    </xsl:apply-templates>
+
+                    <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                </button>
+            </div>
+        </xsl:param>
         <xsl:variable name="query-uri" select="descendant::*[@property = '&spin;query']/@resource" as="xs:anyURI"/>
         <xsl:variable name="chart-type" select="descendant::*[@property = '&ldh;chartType']/@resource" as="xs:anyURI?"/>
         <xsl:variable name="category" select="descendant::*[@property = '&ldh;categoryProperty']/@resource | descendant::*[@property = '&ldh;categoryVarName']/text()" as="xs:string?"/>
@@ -314,17 +325,7 @@ exclude-result-prefixes="#all"
                         </xsl:if>
                     </div>
 
-                    <!-- <xsl:if test="$show-save"> -->
-                        <div class="form-actions">
-                            <button class="btn btn-primary btn-save-chart" type="button">
-                                <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ldh:logo">
-                                    <xsl:with-param name="class" select="'btn btn-primary btn-save-chart'"/>
-                                </xsl:apply-templates>
-
-                                <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
-                            </button>
-                        </div>
-                    <!-- </xsl:if> -->
+                    <xsl:sequence select="$form-actions"/>
                 </form>
             </xsl:result-document>
         </xsl:for-each>
@@ -336,7 +337,6 @@ exclude-result-prefixes="#all"
                     <xsl:with-param name="this" select="$about"/>
                     <xsl:with-param name="block" select="$block"/>
                     <xsl:with-param name="container-id" select="$container-id"/>
-<!--                    <xsl:with-param name="chart-uri" select="$about"/>-->
                     <xsl:with-param name="query-uri" select="$query-uri"/>
                     <xsl:with-param name="chart-type" select="$chart-type"/>
                     <xsl:with-param name="category" select="$category"/>
@@ -454,9 +454,9 @@ exclude-result-prefixes="#all"
         </xsl:call-template>
     </xsl:template>
     
-    <!-- save chart onclick -->
+    <!-- create chart onclick (appends new chart instance with query and category/series fields filled out) -->
     
-    <xsl:template match="div[@about][@typeof]//button[contains-token(@class, 'btn-save-chart')]" mode="ixsl:onclick">
+    <xsl:template match="div[@about][@typeof]//button[contains-token(@class, 'btn-create-chart')]" mode="ixsl:onclick">
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
         <xsl:variable name="block" select="ancestor::div[contains-token(@class, 'block')][1]" as="element()"/>
         <xsl:variable name="textarea-id" select="$block//textarea[@name = 'query']/ixsl:get(., 'id')" as="xs:string"/>
@@ -476,7 +476,7 @@ exclude-result-prefixes="#all"
             </xsl:for-each>
         </xsl:variable>
 
-        <xsl:message>SAVE CHART query URI: <xsl:value-of select="$block/@about"/></xsl:message>
+        <xsl:message>CREATE CHART query URI: <xsl:value-of select="$block/@about"/></xsl:message>
         
         <xsl:variable name="constructed-doc" as="document-node()">
             <xsl:document>
@@ -497,7 +497,7 @@ exclude-result-prefixes="#all"
                 </rdf:RDF>
             </xsl:document>
         </xsl:variable>
-        <xsl:message>Save chart $constructed-doc: <xsl:value-of select="serialize($constructed-doc)"/></xsl:message>
+        <xsl:message>Create chart $constructed-doc: <xsl:value-of select="serialize($constructed-doc)"/></xsl:message>
 
         <xsl:variable name="doc-uri" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/>
         <xsl:variable name="method" select="'post'" as="xs:string"/>
@@ -545,12 +545,14 @@ exclude-result-prefixes="#all"
             </xsl:apply-templates>
         </xsl:variable>
             
-        <xsl:variable name="content-body" select="id('content-body', ixsl:page())" as="element()"/>
+<!--        <xsl:variable name="content-body" select="id('content-body', ixsl:page())" as="element()"/>
         <xsl:for-each select="$content-body">
             <xsl:result-document href="?." method="ixsl:append-content">
                 <xsl:sequence select="$row-form"/>
             </xsl:result-document>
-        </xsl:for-each>
+        </xsl:for-each>-->
+        <!-- insert $row-form after the $block TO-DO: replace with <xsl:result-document href="?." method="ixsl:insert-after"> when SaxonJS 3 is available https://saxonica.plan.io/issues/5543 -->
+        <xsl:sequence select="ixsl:call($block, 'after', [ $row-form ])[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
     
     <!-- disable inline editing form (do nothing if the button is disabled) -->

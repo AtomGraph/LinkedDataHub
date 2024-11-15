@@ -535,7 +535,19 @@ exclude-result-prefixes="#all"
                                 <xsl:with-param name="chart-type" select="$chart-type"/>
                                 <xsl:with-param name="category" select="$category"/>
                                 <xsl:with-param name="series" select="$series"/>
-                                <xsl:with-param name="show-save" select="$show-chart-save"/>
+                                <xsl:with-param name="form-actions" as="element()">
+                                    <div class="form-actions">
+                                        <button class="btn btn-primary btn-create-chart" type="button">
+                                            <xsl:apply-templates select="key('resources', '&ac;ConstructMode', document(ac:document-uri('&ac;')))" mode="ldh:logo">
+                                                <xsl:with-param name="class" select="'btn btn-primary create-action btn-create-chart'"/>
+                                            </xsl:apply-templates>
+
+                                            <xsl:value-of>
+                                                <xsl:apply-templates select="key('resources', '&ac;ConstructMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
+                                            </xsl:value-of>
+                                        </button>
+                                    </div>
+                                </xsl:with-param>
                             </xsl:apply-templates>
                         </xsl:result-document>
                     </xsl:for-each>
