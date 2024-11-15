@@ -491,7 +491,7 @@ exclude-result-prefixes="#all"
                     <div property="&ldh;chartType" resource="{$chart-type}"/>
                     
                     <xsl:if test="$forClass = '&ldh;ResultSetChart'">
-                        <xsl:for-each>
+                        <xsl:for-each select="$category">
                             <div property="&ldh;categoryVarName" resource="{.}"/>
                         </xsl:for-each>
                         
@@ -500,7 +500,7 @@ exclude-result-prefixes="#all"
                         </xsl:for-each>
                     </xsl:if>
                     <xsl:if test="$forClass = '&ldh;GraphChart'">
-                        <xsl:for-each test="$category">
+                        <xsl:for-each select="$category">
                             <div property="&ldh;categoryProperty" resource="{.}"/>
                         </xsl:for-each>
                         
