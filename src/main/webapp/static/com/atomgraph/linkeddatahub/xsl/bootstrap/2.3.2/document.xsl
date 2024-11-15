@@ -308,6 +308,19 @@ extension-element-prefixes="ixsl"
         <xsl:param name="query" as="xs:string?"/>
         <xsl:param name="show-controls" select="true()" as="xs:boolean"/>
         <xsl:param name="show-save" select="true()" as="xs:boolean"/>
+        <xsl:param name="form-actions" as="element()">
+            <xsl:if test="$show-save">
+                <div class="form-actions">
+                    <button class="btn btn-primary btn-save-chart" type="button">
+                        <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ldh:logo">
+                            <xsl:with-param name="class" select="'btn btn-primary btn-save-chart'"/>
+                        </xsl:apply-templates>
+
+                        <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                    </button>
+                </div>
+            </xsl:if>
+        </xsl:param>
 
         <xsl:if test="$show-controls">
             <form method="{$method}" action="{$action}">
@@ -430,17 +443,7 @@ extension-element-prefixes="ixsl"
                     </xsl:if>
                 </div>
         
-                <xsl:if test="$show-save">
-                    <div class="form-actions">
-                        <button class="btn btn-primary btn-save-chart" type="button">
-                            <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ldh:logo">
-                                <xsl:with-param name="class" select="'btn btn-primary btn-save-chart'"/>
-                            </xsl:apply-templates>
-                            
-                            <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
-                        </button>
-                    </div>
-                </xsl:if>
+                <xsl:sequence select="$form-actions"/>
             </form>
         </xsl:if>
     </xsl:template>
@@ -471,7 +474,20 @@ extension-element-prefixes="ixsl"
         <xsl:param name="query" as="xs:string?"/>
         <xsl:param name="show-controls" select="true()" as="xs:boolean"/>
         <xsl:param name="show-save" select="true()" as="xs:boolean"/>
+        <xsl:param name="form-actions" as="element()">
+            <xsl:if test="$show-save">
+                <div class="form-actions">
+                    <button class="btn btn-primary btn-save-chart" type="button">
+                        <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ldh:logo">
+                            <xsl:with-param name="class" select="'btn btn-primary btn-save-chart'"/>
+                        </xsl:apply-templates>
 
+                        <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                    </button>
+                </div>
+            </xsl:if>
+        </xsl:param>
+        
         <xsl:if test="$show-controls">
             <form method="{$method}" action="{$action}">
                 <xsl:if test="$id">
@@ -583,17 +599,7 @@ extension-element-prefixes="ixsl"
                     </xsl:if>
                 </div>
         
-                <xsl:if test="$show-save">
-                    <div class="form-actions">
-                        <button class="btn btn-primary btn-save-chart" type="button">
-                            <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ldh:logo">
-                                <xsl:with-param name="class" select="'btn btn-primary btn-save-chart'"/>
-                            </xsl:apply-templates>
-                            
-                            <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
-                        </button>
-                    </div>
-                </xsl:if>
+                <xsl:sequence select="$form-actions"/>
             </form>
         </xsl:if>
     </xsl:template>
