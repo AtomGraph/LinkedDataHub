@@ -458,8 +458,9 @@ exclude-result-prefixes="#all"
     
     <xsl:template match="div[@about][@typeof]//button[contains-token(@class, 'btn-save-chart')]" mode="ixsl:onclick">
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
-        <xsl:variable name="container" select="ancestor::div[@typeof][1]" as="element()"/>
-        <xsl:variable name="textarea-id" select="$container//textarea[@name = 'query']/ixsl:get(., 'id')" as="xs:string"/>
+        <xsl:variable name="block" select="ancestor::div[contains-token(@class, 'block')][1]" as="element()"/>
+        <!-- <xsl:variable name="container" select="ancestor::div[@typeof][1]" as="element()"/> -->
+        <xsl:variable name="textarea-id" select="$block//textarea[@name = 'query']/ixsl:get(., 'id')" as="xs:string"/>
         <xsl:variable name="yasqe" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.yasqe'), $textarea-id)"/>
         <xsl:variable name="query-string" select="ixsl:call($yasqe, 'getValue', [])" as="xs:string"/> <!-- get query string from YASQE -->
         <xsl:variable name="service-uri" select="xs:anyURI(ixsl:get(id('query-service'), 'value'))" as="xs:anyURI?"/> <!-- TO-DO: fix content-embedded queries -->
@@ -476,29 +477,51 @@ exclude-result-prefixes="#all"
             </xsl:for-each>
         </xsl:variable>
 
-        <xsl:message>SAVE CHART query URI: <xsl:value-of select="$container/@about"/></xsl:message>
+        <xsl:message>SAVE CHART query URI: <xsl:value-of select="$block/@about"/></xsl:message>
+        <xsl:message>SAVE CHART $query-string: <xsl:value-of select="$query-string"/></xsl:message>
         
-        <xsl:variable name="constructor" as="document-node()">
+        <!-- <xsl:template match="*[@about][@typeof = ('&ldh;ResultSetChart', '&ldh;GraphChart')][descendant::*[@property = '&spin;query'][@resource]][descendant::*[@property = '&ldh;chartType'][@resource]]" mode="ldh:RenderRow" priority="1"> -->
+        <!-- <xsl:variable name="category" select="descendant::*[@property = '&ldh;categoryProperty']/@resource | descendant::*[@property = '&ldh;categoryVarName']/text()" as="xs:string?"/>
+        <xsl:variable name="series" select="descendant::*[@property = '&ldh;seriesProperty']/@resource | descendant::*[@property = '&ldh;seriesVarName']/text()" as="xs:string*"/> -->
+
+        <xsl:variable name="chart-html" as="document-node()">
             <xsl:document>
-                <rdf:RDF>
-                    <rdf:Description>
-                        <rdf:type rdf:resource="{$forClass}"/>
-                        <dct:title rdf:nodeID="title"/>
-                        <ldh:chartType rdf:resource="{$chart-type}"/>
-                        <ldh:categoryVarName><xsl:value-of select="$category"/></ldh:categoryVarName>
-                        <xsl:for-each select="$series">
-                            <ldh:seriesVarName><xsl:value-of select="."/></ldh:seriesVarName>
+                <div typeof="{$forClass}">
+                    <div property="&spin;query" resource="{$block/@about}"/>
+                    <div property="&ldh;chartType" resource="{$chart-type}"/>
+                    
+                    <xsl:if test="$forClass = '&ldh;ResultSetChart'">
+                        <xsl:for-each>
+                            <div property="&ldh;categoryVarName" resource="{.}"/>
                         </xsl:for-each>
-                        <spin:query rdf:resource="{$container/@about}"/>
-                    </rdf:Description>
-                    <rdf:Description rdf:nodeID="title">
-                        <rdf:type rdf:resource="&xsd;string"/>
-                    </rdf:Description>
-                </rdf:RDF>
+                        
+                        <xsl:for-each select="$series">
+                            <div property="&ldh;seriesVarName" resource="{.}"/>
+                        </xsl:for-each>
+                    </xsl:if>
+                    <xsl:if test="$forClass = '&ldh;GraphChart'">
+                        <xsl:for-each test="$category">
+                            <div property="&ldh;categoryProperty" resource="{.}"/>
+                        </xsl:for-each>
+                        
+                        <xsl:for-each select="$series">
+                            <div property="&ldh;seriesProperty" resource="{.}"/>
+                        </xsl:for-each>
+                    </xsl:if>
+                </div>
             </xsl:document>
         </xsl:variable>
         
-        <xsl:message>Save chart $constructor: <xsl:value-of select="serialize($constructor)"/></xsl:message>
+        <xsl:message>Save chart $chart-html: <xsl:value-of select="serialize($chart-html)"/></xsl:message>
+        
+        <!--
+        <xsl:apply-templates select="$chart-html" mode="ldh:RenderRow">
+            <xsl:with-param name="block" select="$block"/>
+            <xsl:with-param name="container" select="$container//div[contains-token(@class, 'sparql-query-results')]"/>
+            <xsl:with-param name="this" select="$this"/>
+            <xsl:with-param name="base-uri" select="ac:absolute-path(ldh:base-uri(.))"/>
+        </xsl:apply-templates>
+        -->
     </xsl:template>
     
     <!-- disable inline editing form (do nothing if the button is disabled) -->
