@@ -480,8 +480,8 @@ exclude-result-prefixes="#all"
         
         <xsl:variable name="constructed-doc" as="document-node()">
             <xsl:document>
-                <rdf:RDF>
-                    <rdf:Description>
+                <rdf:RDF> 
+                    <rdf:Description rdf:nodeID="chart">
                         <rdf:type rdf:resource="{$forClass}"/>
                         <dct:title rdf:nodeID="title"/>
                         <ldh:chartType rdf:resource="{$chart-type}"/>
