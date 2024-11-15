@@ -499,6 +499,7 @@ exclude-result-prefixes="#all"
         </xsl:variable>
         <xsl:message>Save chart $constructed-doc: <xsl:value-of select="serialize($constructed-doc)"/></xsl:message>
 
+        <xsl:variable name="resource" select="key('resources-by-type', $forClass, $constructed-doc)[not(key('predicates-by-object', @rdf:nodeID))]" as="element()"/>
         <xsl:variable name="row-form" as="element()*">
             <!-- TO-DO: refactor to use asynchronous HTTP requests -->
             <xsl:variable name="types" select="distinct-values($resource/rdf:type/@rdf:resource)" as="xs:anyURI*"/>
