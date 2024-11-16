@@ -455,7 +455,7 @@ exclude-result-prefixes="#all"
         </xsl:call-template>
     </xsl:template>
     
-    <!-- create chart onclick (appends new chart instance with query and category/series fields filled out) -->
+    <!-- create chart onclick (appends a new chart block after this, with query and category/series fields filled out) -->
     
     <xsl:template match="div[@about][@typeof]//button[contains-token(@class, 'btn-create-chart')]" mode="ixsl:onclick">
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
@@ -545,14 +545,12 @@ exclude-result-prefixes="#all"
                 <xsl:with-param name="show-cancel-button" select="false()"/>
             </xsl:apply-templates>
         </xsl:variable>
-        <!--
-        <xsl:variable name="row-form" as="element()*">
-            <xsl:apply-templates select="$row-form" mode="ldh:RenderRowForm"/>
-        </xsl:variable>
-        -->
         
         <!-- insert $row-form after the $block TO-DO: replace with <xsl:result-document href="?." method="ixsl:insert-after"> when SaxonJS 3 is available https://saxonica.plan.io/issues/5543 -->
         <xsl:sequence select="ixsl:call($block, 'after', [ $row-form ])[current-date() lt xs:date('2000-01-01')]"/>
+
+        <!-- apply client-side templates on the appended row form (now following sibling of the $block) -->
+        <xsl:apply-templates select="$block/following-sibling::*[1]" mode="ldh:RenderRowForm"/>
         
         <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
     </xsl:template>
