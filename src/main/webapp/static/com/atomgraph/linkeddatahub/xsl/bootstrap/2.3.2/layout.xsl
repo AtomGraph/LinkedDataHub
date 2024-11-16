@@ -420,6 +420,7 @@ LIMIT   100
                                     </xsl:if>
                                 </xsl:for-each>
                             </xsl:if> -->
+                            <xsl:text disable-output-escaping="yes">
                             <![CDATA[
                         ];
                         const docPromises = locationMapping.map(mapping => SaxonJS.getResource({location: mapping.altName, type: "xml"}));
@@ -458,7 +459,7 @@ LIMIT   100
                             }).
                             catch(err => console.log("Transformation failed: " + err));
                     }
-                ]]>
+                ]]></xsl:text>
                 <xsl:text disable-output-escaping="yes">
                   //]]&gt;
                 </xsl:text>
