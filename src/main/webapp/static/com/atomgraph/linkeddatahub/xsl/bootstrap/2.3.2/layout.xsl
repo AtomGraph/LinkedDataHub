@@ -366,17 +366,15 @@ LIMIT   100
         <script type="text/javascript">
             <xsl:text disable-output-escaping="yes">
               //&lt;![CDATA[
-            </xsl:text>
-            <![CDATA[
-                var baseUri = ]]><xsl:value-of select="'&quot;' || $ldt:base || '&quot;'"/><![CDATA[;
-                var absolutePath = ]]><xsl:value-of select="'&quot;' || ac:absolute-path(ldh:base-uri(.)) || '&quot;'"/><![CDATA[;
-                var ontologyUri = ]]><xsl:value-of select="'&quot;' || $ldt:ontology || '&quot;'"/><![CDATA[;
-                var endpointUri = ]]><xsl:value-of select="if ($sd:endpoint) then '&quot;' || $sd:endpoint || '&quot;'  else 'null'"/><![CDATA[;
-                var contextUri = ]]><xsl:value-of select="if ($ac:contextUri) then '&quot;' || $ac:contextUri || '&quot;'  else 'null'"/><![CDATA[;
-                var agentUri = []]><xsl:value-of select="if ($acl:agent) then '&quot;' || $acl:agent || '&quot;'  else 'null'"/><![CDATA[];
-                var accessModeUri = []]><xsl:value-of select="string-join(for $mode in $acl:mode return '&quot;' || $mode || '&quot;', ', ')"/><![CDATA[];
-            ]]>
-            <xsl:text disable-output-escaping="yes">
+                <![CDATA[
+                    var baseUri = ]]><xsl:value-of select="'&quot;' || $ldt:base || '&quot;'"/><![CDATA[;
+                    var absolutePath = ]]><xsl:value-of select="'&quot;' || ac:absolute-path(ldh:base-uri(.)) || '&quot;'"/><![CDATA[;
+                    var ontologyUri = ]]><xsl:value-of select="'&quot;' || $ldt:ontology || '&quot;'"/><![CDATA[;
+                    var endpointUri = ]]><xsl:value-of select="if ($sd:endpoint) then '&quot;' || $sd:endpoint || '&quot;'  else 'null'"/><![CDATA[;
+                    var contextUri = ]]><xsl:value-of select="if ($ac:contextUri) then '&quot;' || $ac:contextUri || '&quot;'  else 'null'"/><![CDATA[;
+                    var agentUri = []]><xsl:value-of select="if ($acl:agent) then '&quot;' || $acl:agent || '&quot;'  else 'null'"/><![CDATA[];
+                    var accessModeUri = []]><xsl:value-of select="string-join(for $mode in $acl:mode return '&quot;' || $mode || '&quot;', ', ')"/><![CDATA[];
+                ]]>
               //]]&gt;
             </xsl:text>
         </script>
@@ -392,15 +390,15 @@ LIMIT   100
                 <xsl:text disable-output-escaping="yes">
                   //&lt;![CDATA[
                 </xsl:text>
-                <![CDATA[
+                <xsl:text disable-output-escaping="yes"><![CDATA[
                     window.onload = function() {
                         const locationMapping = [
-                            ]]>
+                            ]]></xsl:text>
                             <xsl:for-each select="map:keys($location-mapping)">
                                 <xsl:text>{ name: "</xsl:text>
                                 <xsl:value-of select="."/>
                                 <xsl:text>", altName: "</xsl:text>
-                                <xsl:value-of select="map:get($location-mapping, .)"/>
+                                <xsl:value-of select="map:get($location-mapping, .)" disable-output-escaping="yes"/>
                                 <xsl:text>" }</xsl:text>
                                 <xsl:if test="position() != last()">
                                     <xsl:text>,&#xa;</xsl:text>
