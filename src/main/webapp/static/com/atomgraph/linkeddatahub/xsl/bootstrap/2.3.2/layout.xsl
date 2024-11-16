@@ -424,7 +424,7 @@ LIMIT   100
                             <![CDATA[
                         ];
                         const docPromises = locationMapping.map(mapping => SaxonJS.getResource({location: mapping.altName, type: "xml"}));
-                        const servicesRequestUri = "]]><xsl:value-of select="$app-request-uri"/><![CDATA[";
+                        const servicesRequestUri = "]]></xsl:text><xsl:value-of select="$app-request-uri"/><xsl:text disable-output-escaping="yes"><![CDATA[";
                         const stylesheetParams = {
                             "Q{https://w3id.org/atomgraph/client#}contextUri": contextUri, // servlet context URI
                             "Q{https://www.w3.org/ns/ldt#}base": baseUri,
@@ -451,9 +451,9 @@ LIMIT   100
                                 };
                                 return SaxonJS.transform({
                                     documentPool: cache,
-                                    stylesheetLocation: "]]><xsl:value-of select="$client-stylesheet"/><![CDATA[",
+                                    stylesheetLocation: "]]></xsl:text><xsl:value-of select="$client-stylesheet"/><xsl:text disable-output-escaping="yes"><![CDATA[",
                                     initialTemplate: "main",
-                                    logLevel: ]]><xsl:value-of select="$saxon-js-log-level"/><![CDATA[,
+                                    logLevel: ]]></xsl:text><xsl:value-of select="$saxon-js-log-level"/><xsl:text disable-output-escaping="yes"><![CDATA[,
                                     stylesheetParams: stylesheetParams
                                 }, "async");
                             }).
