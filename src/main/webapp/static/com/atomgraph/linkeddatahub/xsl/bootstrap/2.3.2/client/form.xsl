@@ -1056,9 +1056,11 @@ WHERE
                 <xsl:with-param name="show-cancel-button" select="false()"/>
             </xsl:apply-templates>
         </xsl:variable>
+        <!--
         <xsl:variable name="row-form" as="element()*">
             <xsl:apply-templates select="$row-form" mode="ldh:RenderRowForm"/>
         </xsl:variable>
+        -->
 
         <!-- insert $row-form before the .add-constructor container TO-DO: replace with <xsl:result-document href="?." method="ixsl:insert-after"> when SaxonJS 3 is available https://saxonica.plan.io/issues/5543 -->
         <xsl:sequence select="ixsl:call($container, 'before', [ $row-form ])[current-date() lt xs:date('2000-01-01')]"/>
