@@ -366,15 +366,17 @@ LIMIT   100
         <script type="text/javascript">
             <xsl:text disable-output-escaping="yes">
               //&lt;![CDATA[
-                <![CDATA[
-                    var baseUri = ]]><xsl:value-of select="'&quot;' || $ldt:base || '&quot;'"/><![CDATA[;
-                    var absolutePath = ]]><xsl:value-of select="'&quot;' || ac:absolute-path(ldh:base-uri(.)) || '&quot;'"/><![CDATA[;
-                    var ontologyUri = ]]><xsl:value-of select="'&quot;' || $ldt:ontology || '&quot;'"/><![CDATA[;
-                    var endpointUri = ]]><xsl:value-of select="if ($sd:endpoint) then '&quot;' || $sd:endpoint || '&quot;'  else 'null'"/><![CDATA[;
-                    var contextUri = ]]><xsl:value-of select="if ($ac:contextUri) then '&quot;' || $ac:contextUri || '&quot;'  else 'null'"/><![CDATA[;
-                    var agentUri = []]><xsl:value-of select="if ($acl:agent) then '&quot;' || $acl:agent || '&quot;'  else 'null'"/><![CDATA[];
-                    var accessModeUri = []]><xsl:value-of select="string-join(for $mode in $acl:mode return '&quot;' || $mode || '&quot;', ', ')"/><![CDATA[];
-                ]]>
+            </xsl:text>
+            <![CDATA[
+                var baseUri = ]]><xsl:value-of select="'&quot;' || $ldt:base || '&quot;'" disable-output-escaping="yes"/><![CDATA[;
+                var absolutePath = ]]><xsl:value-of select="'&quot;' || ac:absolute-path(ldh:base-uri(.)) || '&quot;'" disable-output-escaping="yes"/><![CDATA[;
+                var ontologyUri = ]]><xsl:value-of select="'&quot;' || $ldt:ontology || '&quot;'" disable-output-escaping="yes"/><![CDATA[;
+                var endpointUri = ]]><xsl:value-of select="if ($sd:endpoint) then '&quot;' || $sd:endpoint || '&quot;'  else 'null'" disable-output-escaping="yes"/><![CDATA[;
+                var contextUri = ]]><xsl:value-of select="if ($ac:contextUri) then '&quot;' || $ac:contextUri || '&quot;'  else 'null'" disable-output-escaping="yes"/><![CDATA[;
+                var agentUri = []]><xsl:value-of select="if ($acl:agent) then '&quot;' || $acl:agent || '&quot;'  else 'null'" disable-output-escaping="yes"/><![CDATA[];
+                var accessModeUri = []]><xsl:value-of select="string-join(for $mode in $acl:mode return '&quot;' || $mode || '&quot;', ', ')" disable-output-escaping="yes"/><![CDATA[];
+            ]]>
+            <xsl:text disable-output-escaping="yes">
               //]]&gt;
             </xsl:text>
         </script>
