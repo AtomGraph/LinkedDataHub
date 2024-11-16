@@ -93,7 +93,7 @@ exclude-result-prefixes="#all">
     <!--  To use xsl:import-schema, you need the schema-aware version of Saxon -->
     <!-- <xsl:import-schema namespace="http://www.w3.org/1999/xhtml" schema-location="http://www.w3.org/2002/08/xhtml/xhtml1-transitional.xsd"/> -->
 
-    <xsl:output method="xhtml" encoding="UTF-8" indent="yes" omit-xml-declaration="yes" doctype-system="http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd" doctype-public="-//W3C//DTD XHTML 1.0 Strict//EN" media-type="application/xhtml+xml" cdata-section-elements="script"/>
+    <xsl:output method="xhtml" encoding="UTF-8" indent="yes" omit-xml-declaration="yes" doctype-system="http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd" doctype-public="-//W3C//DTD XHTML 1.0 Strict//EN" media-type="application/xhtml+xml"/>
 
     <xsl:param name="ldh:base" as="xs:anyURI" static="yes"/>
     <xsl:param name="ldh:requestUri" as="xs:anyURI"/>
@@ -364,6 +364,9 @@ LIMIT   100
         <!-- LinkedDataHub scripts -->
         <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/jquery.js', $ac:contextUri)}" defer="defer"></script>
         <script type="text/javascript">
+            <xsl:text disable-output-escaping="yes">
+              //&lt;![CDATA[
+            </xsl:text>
             <![CDATA[
                 var baseUri = ]]><xsl:value-of select="'&quot;' || $ldt:base || '&quot;'"/><![CDATA[;
                 var absolutePath = ]]><xsl:value-of select="'&quot;' || ac:absolute-path(ldh:base-uri(.)) || '&quot;'"/><![CDATA[;
@@ -373,6 +376,9 @@ LIMIT   100
                 var agentUri = []]><xsl:value-of select="if ($acl:agent) then '&quot;' || $acl:agent || '&quot;'  else 'null'"/><![CDATA[];
                 var accessModeUri = []]><xsl:value-of select="string-join(for $mode in $acl:mode return '&quot;' || $mode || '&quot;', ', ')"/><![CDATA[];
             ]]>
+            <xsl:text disable-output-escaping="yes">
+              //]]&gt;
+            </xsl:text>
         </script>
         <xsl:if test="$load-wymeditor">
             <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/wymeditor/jquery.wymeditor.js', $ac:contextUri)}" defer="defer"></script>
@@ -383,6 +389,9 @@ LIMIT   100
         <xsl:if test="$load-saxon-js">
             <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/saxon-js/SaxonJS2.rt.js', $ac:contextUri)}" defer="defer"></script>
             <script type="text/javascript">
+                <xsl:text disable-output-escaping="yes">
+                  //&lt;![CDATA[
+                </xsl:text>
                 <![CDATA[
                     window.onload = function() {
                         const locationMapping = [
@@ -450,6 +459,9 @@ LIMIT   100
                             catch(err => console.log("Transformation failed: " + err));
                     }
                 ]]>
+                <xsl:text disable-output-escaping="yes">
+                  //]]&gt;
+                </xsl:text>
             </script>
         </xsl:if>
         <xsl:if test="$load-sparql-builder">
