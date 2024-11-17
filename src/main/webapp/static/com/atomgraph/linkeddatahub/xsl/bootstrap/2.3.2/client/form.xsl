@@ -279,8 +279,8 @@ WHERE
         <xsl:if test="not(ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $about || '`'))">
             <ixsl:set-property name="{'`' || $about || '`'}" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.contents')"/>
         </xsl:if>
-        <!-- clone of the current DOM content so it can be restored if .btn-cancel is clicked -->
-        <ixsl:set-property name="block-html" select="ixsl:call($block, 'cloneNode', [])" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $about || '`')"/>
+        <!-- deep clone of the current DOM content so it can be restored if .btn-cancel is clicked -->
+        <ixsl:set-property name="block-html" select="ixsl:call($block, 'cloneNode', [ true() ])" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $about || '`')"/>
 
         <!-- if the URI is external, dereference it through the proxy -->
         <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, ac:absolute-path(ldh:base-uri(.)), $graph, ())" as="xs:anyURI"/>
