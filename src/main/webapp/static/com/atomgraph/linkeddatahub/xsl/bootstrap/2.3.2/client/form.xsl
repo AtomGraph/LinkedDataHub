@@ -448,7 +448,7 @@ WHERE
         <!-- restore snapshot of block HTML that was captured before entering editing mode -->
         <xsl:for-each select="$block">
             <xsl:result-document href="?." method="ixsl:replace-content">
-                <xsl:sequence select="$$block-html/*"/>
+                <xsl:sequence select="$block-html/*"/>
             </xsl:result-document>
         </xsl:for-each>
 
