@@ -449,6 +449,9 @@ WHERE
             </xsl:result-document>
         </xsl:for-each>
 
+        <!-- remove the $block-html value -->
+        <ixsl:remove-property name="block-html" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $about || '`')"/>
+
         <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
     </xsl:template>
     
