@@ -557,7 +557,7 @@ exclude-result-prefixes="#all"
     
     <!-- disable inline editing form (do nothing if the button is disabled) -->
     
-    <xsl:template match="div[@about][@typeof = ('&ldh;ResultSetChart', '&ldh;GraphChart')]//button[contains-token(@class, 'btn-cancel')][not(contains-token(@class, 'disabled'))]" mode="ixsl:onclick" priority="1">
+<!--    <xsl:template match="div[@about][@typeof = ('&ldh;ResultSetChart', '&ldh;GraphChart')]//button[contains-token(@class, 'btn-cancel')][not(contains-token(@class, 'disabled'))]" mode="ixsl:onclick" priority="1">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <xsl:variable name="block" select="ancestor::div[contains-token(@class, 'block')][1]" as="element()"/>
         <xsl:variable name="container" select="ancestor::div[@typeof][1]" as="element()"/>
@@ -569,7 +569,7 @@ exclude-result-prefixes="#all"
         <xsl:message>ldh:base-uri(.): <xsl:value-of select="ldh:base-uri(.)"/></xsl:message>
         <xsl:message>ixsl:location(): <xsl:value-of select="ixsl:location()"/></xsl:message>
 
-        <!-- not using ldh:base-uri(.) because it goes stale when DOM is replaced -->
+         not using ldh:base-uri(.) because it goes stale when DOM is replaced 
         <xsl:variable name="doc" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path(xs:anyURI(ixsl:location())) || '`'), 'results')" as="document-node()"/>
         <xsl:variable name="chart" select="key('resources', $about, $doc)" as="element()"/>
 
@@ -578,7 +578,7 @@ exclude-result-prefixes="#all"
         </xsl:apply-templates>
 
         <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
-    </xsl:template>
+    </xsl:template>-->
     
     <!-- CALLBACKS -->
 

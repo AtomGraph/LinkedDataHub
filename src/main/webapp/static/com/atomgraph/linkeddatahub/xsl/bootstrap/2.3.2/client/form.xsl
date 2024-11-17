@@ -433,14 +433,8 @@ WHERE
 
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
         
-        <xsl:message>ixsl:get(., 'baseURI'): <xsl:value-of select="ixsl:get(., 'baseURI')"/></xsl:message>
-        <xsl:message>ldh:base-uri(.): <xsl:value-of select="ldh:base-uri(.)"/></xsl:message>
-        <xsl:message>ixsl:location(): <xsl:value-of select="ixsl:location()"/></xsl:message>
-
         <!-- retrieve HTML stored before editing mode was enabled -->
         <xsl:variable name="block-html" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $about || '`'), 'block-html')" as="element()"/>
-        <xsl:message>$block: <xsl:value-of select="serialize($block)"/></xsl:message>
-        <xsl:message>$block-html: <xsl:value-of select="serialize($block-html)"/></xsl:message>
 
         <!-- restore snapshot of block HTML that was captured before entering editing mode -->
         <xsl:for-each select="$block">
