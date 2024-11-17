@@ -254,66 +254,6 @@ exclude-result-prefixes="#all"
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
-    
-    <!-- XHTML block cancel onclick - prioritize over resource content -->
-    
-<!--    <xsl:template match="div[@typeof = '&ldh;XHTML']//button[contains-token(@class, 'btn-cancel')]" mode="ixsl:onclick" priority="2">
-        <xsl:variable name="block" select="ancestor::div[contains-token(@class, 'block')][1]" as="element()"/>
-        <xsl:variable name="container" select="ancestor::div[@typeof][1]" as="element()"/>
-
-        <xsl:message>XHTML block cancel onclick</xsl:message>
-        
-        <xsl:choose>
-             restore existing block 
-            <xsl:when test="$block/@about">
-                <xsl:variable name="textarea" select="ancestor::div[contains-token(@class, 'main')]//textarea[contains-token(@class, 'wymeditor')]" as="element()"/>
-                <xsl:variable name="old-xhtml-string" select="string($textarea)" as="xs:string"/>
-                <xsl:variable name="xhtml" select="ldh:parse-html('&lt;div&gt;' || $old-xhtml-string || '&lt;/div&gt;', 'application/xhtml+xml')" as="document-node()"/>
-
-                <xsl:for-each select="$container/div[contains-token(@class, 'main')]">
-                    <xsl:result-document href="?." method="ixsl:replace-content">
-                        <xsl:copy-of select="$xhtml"/>
-                    </xsl:result-document>
-                </xsl:for-each>
-            </xsl:when>
-             remove block that hasn't been saved yet 
-            <xsl:otherwise>
-                <xsl:for-each select="$block">
-                    <xsl:sequence select="ixsl:call(., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
-                </xsl:for-each>
-            </xsl:otherwise>
-        </xsl:choose>
-    </xsl:template>-->
-    
-    <!-- resource content/SPARQL content cancel onclick -->
-    
-<!--    <xsl:template match="div[@typeof = ('&ldh;View', '&ldh;Object')]//button[contains-token(@class, 'btn-cancel')]" mode="ixsl:onclick" priority="1">  prioritize over form.xsl 
-        <xsl:variable name="block" select="ancestor::div[contains-token(@class, 'block')][1]" as="element()"/>
-        <xsl:variable name="container" select="ancestor::div[@typeof][1]" as="element()"/>
-
-        <xsl:message>resource block</xsl:message>
-
-        <xsl:choose>
-             updating existing block 
-            <xsl:when test="$block/@about">
-                <xsl:for-each select="$block">
-                    <xsl:variable name="doc" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path(xs:anyURI(ixsl:location())) || '`'), 'results')" as="document-node()"/>
-                     TO-DO: restore block HTML from cache 
-                     
-                    <xsl:apply-templates select="." mode="ldh:LoadBlock">
-                        <xsl:with-param name="doc" select="$doc"/>
-                    </xsl:apply-templates>
-                    
-                </xsl:for-each>
-            </xsl:when> 
-             remove content that hasn't been saved yet 
-            <xsl:otherwise>
-                <xsl:for-each select="$block">
-                    <xsl:sequence select="ixsl:call(., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
-                </xsl:for-each>
-            </xsl:otherwise>
-        </xsl:choose>
-    </xsl:template>-->
 
     <!-- start dragging content (or its descendants) -->
     
@@ -391,32 +331,6 @@ exclude-result-prefixes="#all"
     </xsl:template>
     
     <!-- CALLBACKS -->
-
-    <!-- resource content update -->
-    
-<!--    <xsl:template name="onSPARQLContentUpdate">
-        <xsl:context-item as="map(*)" use="required"/>
-        <xsl:param name="content-uri" as="xs:anyURI"/>
-        <xsl:param name="container" as="element()"/>
-        <xsl:param name="content-value" as="xs:anyURI"/>
-        <xsl:param name="mode" as="xs:anyURI?"/>
-
-        <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
-
-        <xsl:choose>
-            <xsl:when test="?status = 200">
-                <xsl:for-each select="$container">
-                     set @about attribute 
-                    <ixsl:set-attribute name="about" select="$content-uri"/>
-
-                    <xsl:call-template name="ldh:LoadBlock"/>
-                </xsl:for-each>
-            </xsl:when>
-            <xsl:otherwise>
-                <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ 'Could not update resource content' ])[current-date() lt xs:date('2000-01-01')]"/>
-            </xsl:otherwise>
-        </xsl:choose>
-    </xsl:template>-->
     
     <!-- content delete -->
 
