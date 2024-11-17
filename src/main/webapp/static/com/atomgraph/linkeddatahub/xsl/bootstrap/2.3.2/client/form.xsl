@@ -261,7 +261,7 @@ WHERE
     
     <xsl:template match="div[@about]//button[contains-token(@class, 'btn-edit')][not(contains-token(@class, 'disabled'))]" mode="ixsl:onclick">
         <xsl:param name="block" select="ancestor::div[contains-token(@class, 'block')][1]" as="element()"/>
-        <xsl:param name="container" select="ancestor::div[@typeof][1]" as="element()"/>
+<!--        <xsl:param name="container" select="ancestor::div[@typeof][1]" as="element()"/>-->
         <xsl:param name="about" select="$block/@about" as="xs:anyURI"/>
         <xsl:param name="graph" as="xs:anyURI?"/>
 
@@ -276,7 +276,9 @@ WHERE
             <xsl:variable name="etag" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path(ldh:base-uri(.)) || '`'), 'etag')" as="xs:string"/>
             <xsl:message>ldh:LoadEditedDocument $etag: <xsl:value-of select="$etag"/></xsl:message>
         </xsl:if>
-        
+        <!-- current HTML so it can be restored if .btn-cancel is clicked -->
+        <ixsl:set-property name="block-html" select="$block" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`')"/>
+
         <!-- if the URI is external, dereference it through the proxy -->
         <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, ac:absolute-path(ldh:base-uri(.)), $graph, ())" as="xs:anyURI"/>
         
@@ -285,7 +287,7 @@ WHERE
             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                 <xsl:call-template name="ldh:LoadEditedDocument">
                     <xsl:with-param name="block" select="$block"/>
-                    <xsl:with-param name="container" select="$container"/>
+<!--                    <xsl:with-param name="container" select="$container"/>-->
                     <xsl:with-param name="about" select="$about"/>
                 </xsl:call-template>
             </ixsl:schedule-action>
@@ -296,7 +298,7 @@ WHERE
     <xsl:template name="ldh:LoadEditedDocument">
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="block" as="element()"/>
-        <xsl:param name="container" as="element()"/>
+<!--        <xsl:param name="container" as="element()"/>-->
         <xsl:param name="about" as="xs:anyURI"/>
 
         <xsl:choose>
@@ -326,7 +328,7 @@ WHERE
                         <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                             <xsl:call-template name="ldh:LoadTypeMetadata">
                                 <xsl:with-param name="block" select="$block"/>
-                                <xsl:with-param name="container" select="$container"/>
+<!--                                <xsl:with-param name="container" select="$container"/>-->
                                 <xsl:with-param name="resource" select="$resource"/>
                                 <xsl:with-param name="types" select="$types"/>
                             </xsl:call-template>
@@ -346,7 +348,7 @@ WHERE
     <xsl:template name="ldh:LoadTypeMetadata">
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="block" as="element()"/>
-        <xsl:param name="container" as="element()"/>
+<!--        <xsl:param name="container" as="element()"/>-->
         <xsl:param name="resource" as="element()"/>
         <xsl:param name="types" as="xs:anyURI*"/>
 
@@ -411,7 +413,7 @@ WHERE
                 </xsl:for-each>
 
                 <!-- initialize event listeners -->
-                <xsl:apply-templates select="$container/*" mode="ldh:RenderRowForm"/>
+                <xsl:apply-templates select="$block" mode="ldh:RenderRowForm"/>
 
                 <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
             </xsl:when>
@@ -436,32 +438,20 @@ WHERE
         <xsl:message>ldh:base-uri(.): <xsl:value-of select="ldh:base-uri(.)"/></xsl:message>
         <xsl:message>ixsl:location(): <xsl:value-of select="ixsl:location()"/></xsl:message>
 
-        <!-- not using ldh:base-uri(.) because it goes stale when DOM is replaced -->
-        <xsl:variable name="doc" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path(xs:anyURI(ixsl:location())) || '`'), 'results')" as="document-node()"/>
-        <xsl:variable name="resource" select="key('resources', $about, $doc)" as="element()"/>
+        <!-- retrieve stored HTML before editing mode was enabled -->
+        <xsl:variable name="block-html" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $about || '`'), 'block-html')" as="document-node()"/>
+        <xsl:message>$block-html: <xsl:value-of select="serialize($block-html)"/></xsl:message>
 
-        <xsl:variable name="row" as="node()*">
-            <xsl:apply-templates select="$resource" mode="bs2:Row"/>
-        </xsl:variable>
-
-        <xsl:for-each select="$container">
+        <xsl:for-each select="$block">
             <xsl:result-document href="?." method="ixsl:replace-content">
                 <xsl:copy-of select="$row/*"/> <!-- inject the content of div.row-fluid -->
             </xsl:result-document>
         </xsl:for-each>
 
-        <xsl:apply-templates select="$container/*" mode="ldh:RenderRow"/>
+        <!-- <xsl:apply-templates select="$block" mode="ldh:RenderRow"/> -->
 
         <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
     </xsl:template>
-    
-    <!-- submit document creation form using PUT -->
-    
-<!--    <xsl:template match="div[contains-token(@class, 'modal-constructor')]//form[contains-token(@class, 'form-horizontal')]" mode="ixsl:onsubmit" priority="1">
-        <xsl:next-match>
-            <xsl:with-param name="method" select="'put'"/>
-        </xsl:next-match>
-    </xsl:template>-->
     
     <!-- submit instance creation form using POST -->
     
