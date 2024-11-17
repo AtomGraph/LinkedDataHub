@@ -261,7 +261,6 @@ WHERE
     
     <xsl:template match="div[@about]//button[contains-token(@class, 'btn-edit')][not(contains-token(@class, 'disabled'))]" mode="ixsl:onclick">
         <xsl:param name="block" select="ancestor::div[contains-token(@class, 'block')][1]" as="element()"/>
-<!--        <xsl:param name="container" select="ancestor::div[@typeof][1]" as="element()"/>-->
         <xsl:param name="about" select="$block/@about" as="xs:anyURI"/>
         <xsl:param name="graph" as="xs:anyURI?"/>
 
@@ -271,7 +270,8 @@ WHERE
         <xsl:message>ixsl:get(., 'baseURI'): <xsl:value-of select="ixsl:get(., 'baseURI')"/></xsl:message>
         <xsl:message>ldh:base-uri(.): <xsl:value-of select="ldh:base-uri(.)"/></xsl:message>
         <xsl:message>ixsl:location(): <xsl:value-of select="ixsl:location()"/></xsl:message>
-        
+        <xsl:message>.btn-edit $block: <xsl:value-of select="serialize($block)"/></xsl:message>
+
         <xsl:if test="ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path(ldh:base-uri(.)) || '`')">
             <xsl:variable name="etag" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path(ldh:base-uri(.)) || '`'), 'etag')" as="xs:string"/>
             <xsl:message>ldh:LoadEditedDocument $etag: <xsl:value-of select="$etag"/></xsl:message>
@@ -290,7 +290,6 @@ WHERE
             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                 <xsl:call-template name="ldh:LoadEditedDocument">
                     <xsl:with-param name="block" select="$block"/>
-<!--                    <xsl:with-param name="container" select="$container"/>-->
                     <xsl:with-param name="about" select="$about"/>
                 </xsl:call-template>
             </ixsl:schedule-action>
@@ -301,7 +300,6 @@ WHERE
     <xsl:template name="ldh:LoadEditedDocument">
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="block" as="element()"/>
-<!--        <xsl:param name="container" as="element()"/>-->
         <xsl:param name="about" as="xs:anyURI"/>
 
         <xsl:choose>
@@ -331,7 +329,6 @@ WHERE
                         <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                             <xsl:call-template name="ldh:LoadTypeMetadata">
                                 <xsl:with-param name="block" select="$block"/>
-<!--                                <xsl:with-param name="container" select="$container"/>-->
                                 <xsl:with-param name="resource" select="$resource"/>
                                 <xsl:with-param name="types" select="$types"/>
                             </xsl:call-template>
@@ -351,7 +348,6 @@ WHERE
     <xsl:template name="ldh:LoadTypeMetadata">
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="block" as="element()"/>
-<!--        <xsl:param name="container" as="element()"/>-->
         <xsl:param name="resource" as="element()"/>
         <xsl:param name="types" as="xs:anyURI*"/>
 
@@ -441,7 +437,7 @@ WHERE
         <xsl:message>ldh:base-uri(.): <xsl:value-of select="ldh:base-uri(.)"/></xsl:message>
         <xsl:message>ixsl:location(): <xsl:value-of select="ixsl:location()"/></xsl:message>
 
-        <!-- retrieve stored HTML before editing mode was enabled -->
+        <!-- retrieve HTML stored before editing mode was enabled -->
         <xsl:variable name="block-html" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $about || '`'), 'block-html')" as="element()"/>
         <xsl:message>$block: <xsl:value-of select="serialize($block)"/></xsl:message>
         <xsl:message>$block-html: <xsl:value-of select="serialize($block-html)"/></xsl:message>
