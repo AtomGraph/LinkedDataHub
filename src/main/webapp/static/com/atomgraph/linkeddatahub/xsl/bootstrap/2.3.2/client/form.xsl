@@ -442,7 +442,7 @@ WHERE
         <xsl:message>ixsl:location(): <xsl:value-of select="ixsl:location()"/></xsl:message>
 
         <!-- retrieve stored HTML before editing mode was enabled -->
-        <xsl:variable name="block-html" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $about || '`'), 'block-html')" as="document-node()"/>
+        <xsl:variable name="block-html" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $about || '`'), 'block-html')" as="element()"/>
         <xsl:message>$block-html: <xsl:value-of select="serialize($block-html)"/></xsl:message>
 
         <!--
