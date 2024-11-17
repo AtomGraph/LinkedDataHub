@@ -442,11 +442,13 @@ WHERE
         <xsl:variable name="block-html" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $about || '`'), 'block-html')" as="document-node()"/>
         <xsl:message>$block-html: <xsl:value-of select="serialize($block-html)"/></xsl:message>
 
+        <!--
         <xsl:for-each select="$block">
             <xsl:result-document href="?." method="ixsl:replace-content">
-                <xsl:copy-of select="$row/*"/> <!-- inject the content of div.row-fluid -->
+                <xsl:copy-of select="$row/*"/>
             </xsl:result-document>
         </xsl:for-each>
+        -->
 
         <!-- <xsl:apply-templates select="$block" mode="ldh:RenderRow"/> -->
 
