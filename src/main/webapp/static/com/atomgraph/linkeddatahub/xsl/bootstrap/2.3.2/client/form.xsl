@@ -443,7 +443,8 @@ WHERE
 
         <!-- retrieve stored HTML before editing mode was enabled -->
         <xsl:variable name="block-html" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $about || '`'), 'block-html')" as="element()"/>
-<!--        <xsl:message>$block-html: <xsl:value-of select="serialize($block-html)"/></xsl:message>-->
+        <xsl:message>$block: <xsl:value-of select="serialize($block)"/></xsl:message>
+        <xsl:message>$block-html: <xsl:value-of select="serialize($block-html)"/></xsl:message>
 
         <!-- restore snapshot of block HTML that was captured before entering editing mode -->
         <xsl:for-each select="$block">
