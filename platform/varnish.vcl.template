@@ -56,11 +56,15 @@ sub vcl_recv {
         /* Authenticated requests are not cacheable */
         return (pass);
     }
+
     if (req.http.Cookie) {
-        # only allow cookies in the admin app (for login etc.)
+        /* only allow cookies in the admin app (for login etc.) */
         if(req.url !~ "^/admin(/.*)?$") {
             unset req.http.Cookie;
+            return (hash);
         }
+        /* if other cookies are present, request is not cacheable */
+        return (pass);
     }
 
     return (hash);
