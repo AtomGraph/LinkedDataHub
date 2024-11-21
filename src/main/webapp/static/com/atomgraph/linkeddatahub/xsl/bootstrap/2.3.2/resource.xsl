@@ -655,6 +655,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="typeof" select="rdf:type/@rdf:resource/xs:anyURI(.)" as="xs:anyURI*"/>
         <xsl:param name="mode" as="xs:anyURI?"/>
         <xsl:param name="style" as="xs:string?"/>
+        <xsl:param name="main-class" select="'main span7'" as="xs:string?"/>
 
         <div>
             <xsl:if test="$id">
@@ -675,7 +676,11 @@ extension-element-prefixes="ixsl"
             
             <xsl:apply-templates select="." mode="bs2:Left"/>
 
-            <div class="main span7">
+            <div>
+                <xsl:if test="$main-class">
+                    <xsl:attribute name="class" select="$main-class"/>
+                </xsl:if>
+                
                 <xsl:variable name="doc" as="document-node()">
                     <xsl:document>
                         <rdf:RDF>
@@ -1082,6 +1087,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="button-class" select="'btn btn-primary wymupdate'" as="xs:string?"/>
         <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
         <xsl:param name="show-cancel-button" select="true()" as="xs:boolean"/>
+        <xsl:param name="main-class" select="'main span7'" as="xs:string?"/>
 
         <div>
             <xsl:if test="$id">
@@ -1099,7 +1105,11 @@ extension-element-prefixes="ixsl"
             
             <xsl:apply-templates select="." mode="bs2:Left"/>
 
-            <div class="main span7">
+            <div>
+                <xsl:if test="$main-class">
+                    <xsl:attribute name="class" select="$main-class"/>
+                </xsl:if>
+                
                 <form method="{$method}" action="{$action}" class="form-horizontal">
                     <xsl:if test="$form-id">
                         <xsl:attribute name="id" select="$form-id"/>
