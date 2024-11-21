@@ -1140,7 +1140,7 @@ exclude-result-prefixes="#all"
     </xsl:template>-->
 
     <xsl:template match="@* | node()" mode="ldh:XHTMLContent">
-        <xsl:copy>
+        <xsl:copy copy-namespaces="no">
             <xsl:apply-templates select="@* | node()" mode="#current"/>
         </xsl:copy>
     </xsl:template>

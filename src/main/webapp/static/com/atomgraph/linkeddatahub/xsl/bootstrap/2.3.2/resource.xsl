@@ -901,14 +901,6 @@ extension-element-prefixes="ixsl"
         </xsl:for-each>
     </xsl:template>
 
-    <!-- ROW BLOCKS -->
-    
-<!--    <xsl:template match="@rdf:resource[key('resources', .)]" mode="bs2:RowContent" priority="2">
-        <xsl:apply-templates select="key('resources', .)" mode="bs2:Row"/>
-    </xsl:template>
-    
-    <xsl:template match="*" mode="bs2:RowContent"/>-->
-
     <!-- ROW CONTENT HEADER -->
     
     <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = ('&ldh;View', '&ldh;Object')]" mode="bs2:RowContentHeader" priority="1">
