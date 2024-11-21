@@ -57,15 +57,9 @@ sub vcl_recv {
         return (pass);
     }
     if (req.http.Cookie) {
-        # explicitly allow only cookies required by LDH server-side
-        set req.http.Cookie = ";" + req.http.Cookie;
-        set req.http.Cookie = regsuball(req.http.Cookie, "; +", ";");
-        set req.http.Cookie = regsuball(req.http.Cookie, ";(LinkedDataHub\.state|LinkedDataHub\.id_token)=", "; \1=");
-        set req.http.Cookie = regsuball(req.http.Cookie, ";[^ ][^;]*", "");
-        set req.http.Cookie = regsuball(req.http.Cookie, "^[; ]+|[; ]+$", "");
-
-        if (req.http.cookie ~ "^\s*$") {
-            unset req.http.cookie;
+        # only allow cookies in the admin app (for login etc.)
+        if(req.url !~ "^/admin(/.*)?$") {
+            unset req.http.Cookie;
         }
     }
 
