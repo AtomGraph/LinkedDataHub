@@ -891,18 +891,18 @@ extension-element-prefixes="ixsl"
         </xsl:variable>
 
         <xsl:variable name="this" select="@rdf:about" as="xs:anyURI"/>
-        <xsl:for-each select="$predicates"> <!-- do not iterate $predicates/@rdf:resource sequence as it will be sorted differently -->
-            <xsl:apply-templates select="@rdf:resource" mode="bs2:RowContent"/>
+        <xsl:for-each select="$predicates[@rdf:resource]"> <!-- do not iterate $predicates/@rdf:resource sequence as it will be sorted differently -->
+            <xsl:apply-templates select="key('resources', @rdf:resource)" mode="bs2:Row"/>
         </xsl:for-each>
     </xsl:template>
 
     <!-- ROW BLOCKS -->
     
-    <xsl:template match="@rdf:resource[key('resources', .)]" mode="bs2:RowContent" priority="2">
+<!--    <xsl:template match="@rdf:resource[key('resources', .)]" mode="bs2:RowContent" priority="2">
         <xsl:apply-templates select="key('resources', .)" mode="bs2:Row"/>
     </xsl:template>
     
-    <xsl:template match="*" mode="bs2:RowContent"/>
+    <xsl:template match="*" mode="bs2:RowContent"/>-->
 
     <!-- ROW CONTENT HEADER -->
     
