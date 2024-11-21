@@ -1132,13 +1132,12 @@ exclude-result-prefixes="#all"
     </xsl:template>
 
     <!-- XHTML CONTENT IDENTITY TRANSFORM -->
-    <!-- used to strip namespace declarations -->
     
-    <xsl:template match="*" mode="ldh:XHTMLContent" priority="1">
+<!--    <xsl:template match="*" mode="ldh:XHTMLContent" priority="1">
         <xsl:element name="{name()}">
             <xsl:apply-templates select="@* | node()" mode="#current"/>
         </xsl:element>
-    </xsl:template>
+    </xsl:template>-->
 
     <xsl:template match="@* | node()" mode="ldh:XHTMLContent">
         <xsl:copy>
