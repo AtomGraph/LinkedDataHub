@@ -15,14 +15,14 @@ acl local {
 
 sub vcl_recv {
     if (req.method == "PURGE") {
-        if (!client.ip ~ local && !client.ip ~ remote) {
+        if (!client.ip ~ local) {
             return (synth(403, "Unknown IP address '" + client.ip + "'. Access denied."));
         }
         return (purge);
     }
 
     if (req.method == "BAN") { # supports only 2 URIs!
-        if (!client.ip ~ local && !client.ip ~ remote) {
+        if (!client.ip ~ local) {
             return (synth(403, "Unknown IP address '" + client.ip + "'. Access denied."));
         }
 
