@@ -50,6 +50,11 @@ sub vcl_recv {
         return (pass);
     }
 
+    if (req.http.Client-Cert && (req.http.Accept ~ "text/html" || req.http.Accept ~ "application/xhtml+xml")) {
+        /* Authenticated (X)HTML requests are not cacheable (since they're user-specific) */
+        return (pass);
+    }
+
     if (req.http.Cookie) {
         # explicitly allow only cookies required by LDH server-side
         set req.http.Cookie = ";" + req.http.Cookie;
@@ -57,11 +62,6 @@ sub vcl_recv {
         set req.http.Cookie = regsuball(req.http.Cookie, ";(LinkedDataHub\.state|LinkedDataHub\.id_token)=", "; \1=");
         set req.http.Cookie = regsuball(req.http.Cookie, ";[^ ][^;]*", "");
         set req.http.Cookie = regsuball(req.http.Cookie, "^[; ]+|[; ]+$", "");
-
-        if (req.http.Cookie ~ "LinkedDataHub\.id_token=") {
-            # Extract the LinkedDataHub.id_token value
-            set req.http.X-LinkedDataHub-Id-Token = regsub(req.http.Cookie, ".*LinkedDataHub\.id_token=([^; ]+).*", "\1");
-        }
 
         if (req.http.cookie ~ "^\s*$") {
             unset req.http.cookie;
@@ -71,38 +71,7 @@ sub vcl_recv {
     return (hash);
 }
 
-sub vcl_hash {
-    hash_data(req.url);
-    hash_data(req.http.Host);
-
-    # static resources are not user-dependent
-    if (req.url ~ "^/static/") {
-        return (lookup);
-    }
-
-    # include user identifiers if flagged for user-specific content
-    if (req.http.X-User-Specific == "true") {
-        # include the client certificate in the hash, if it exists
-        if (req.http.Client-Cert) {
-            hash_data(req.http.Client-Cert);
-        }
-
-        # include LinkedDataHub.id_token cookie value in the hash, if it exists
-        if (req.http.X-LinkedDataHub-Id-Token) {
-            hash_data(req.http.X-LinkedDataHub-Id-Token);
-        }
-    }
-
-    return (lookup);
-}
-
 sub vcl_backend_response {
-    /* flag user-specific content only when (X)HTML is returned */
-    if (beresp.http.Content-Type ~ "text/html" || beresp.http.Content-Type ~ "application/xhtml+xml") {
-        set beresp.http.X-User-Specific = "true";
-        set req.http.X-User-Specific = "true"; # pass to req for hash calculation
-    }
-
     /* purge URLs after updates */
     if ((beresp.status == 200 || beresp.status == 201 || beresp.status == 204) && bereq.method ~ "POST|PUT|DELETE|PATCH") {
         set beresp.http.X-LinkedDataHub = "Banned";
