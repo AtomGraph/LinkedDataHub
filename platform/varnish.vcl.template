@@ -75,20 +75,34 @@ sub vcl_hash {
     hash_data(req.url);
     hash_data(req.http.Host);
 
-    # include the client certificate in the hash, if it exists
-    if (req.http.Client-Cert) {
-        hash_data(req.http.Client-Cert);
+    # static resources are not user-dependent
+    if (req.url ~ "^/static/") {
+        return (lookup);
     }
 
-    # include LinkedDataHub.id_token cookie value in the hash, if it exists
-    if (req.http.X-LinkedDataHub-Id-Token) {
-        hash_data(req.http.X-LinkedDataHub-Id-Token);
+    # include user identifiers if flagged for user-specific content
+    if (req.http.X-User-Specific == "true") {
+        # include the client certificate in the hash, if it exists
+        if (req.http.Client-Cert) {
+            hash_data(req.http.Client-Cert);
+        }
+
+        # include LinkedDataHub.id_token cookie value in the hash, if it exists
+        if (req.http.X-LinkedDataHub-Id-Token) {
+            hash_data(req.http.X-LinkedDataHub-Id-Token);
+        }
     }
 
     return (lookup);
 }
 
 sub vcl_backend_response {
+    /* flag user-specific content only when (X)HTML is returned */
+    if (beresp.http.Content-Type ~ "text/html" || beresp.http.Content-Type ~ "application/xhtml+xml") {
+        set beresp.http.X-User-Specific = "true";
+        set req.http.X-User-Specific = "true"; # pass to req for hash calculation
+    }
+
     /* purge URLs after updates */
     if ((beresp.status == 200 || beresp.status == 201 || beresp.status == 204) && bereq.method ~ "POST|PUT|DELETE|PATCH") {
         set beresp.http.X-LinkedDataHub = "Banned";
