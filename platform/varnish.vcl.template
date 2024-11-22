@@ -1,6 +1,7 @@
 vcl 4.0;
 
 import std;
+import digest;
 
 backend default {
     .host = "${BACKEND_HOST}";
@@ -71,7 +72,8 @@ sub vcl_hash {
     hash_data(req.http.Host);
 
     if (req.http.Client-Cert) {
-        hash_data(std.digest("sha256", req.http.Client-Cert));
+        # Include SHA-256 hash of the Client-Cert header in the cache key
+        hash_data(digest.hash_sha256(req.http.Client-Cert));
     }
 
     return (lookup);
