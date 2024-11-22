@@ -13,9 +13,6 @@ acl local {
     "${CLIENT_HOST}";
 }
 
-acl remote {
-}
-
 sub vcl_recv {
     if (req.method == "PURGE") {
         if (!client.ip ~ local && !client.ip ~ remote) {
@@ -52,22 +49,32 @@ sub vcl_recv {
         /* We only deal with GET and HEAD by default */
         return (pass);
     }
-    if (req.http.Client-Cert) {
-        /* Authenticated requests are not cacheable */
-        return (pass);
-    }
 
     if (req.http.Cookie) {
-        /* only allow cookies in the admin app (for login etc.) */
-        if(req.url !~ "^/admin(/.*)?$") {
-            unset req.http.Cookie;
-            return (hash);
+        # explicitly allow only cookies required by LDH server-side
+        set req.http.Cookie = ";" + req.http.Cookie;
+        set req.http.Cookie = regsuball(req.http.Cookie, "; +", ";");
+        set req.http.Cookie = regsuball(req.http.Cookie, ";(LinkedDataHub\.state|LinkedDataHub\.id_token)=", "; \1=");
+        set req.http.Cookie = regsuball(req.http.Cookie, ";[^ ][^;]*", "");
+        set req.http.Cookie = regsuball(req.http.Cookie, "^[; ]+|[; ]+$", "");
+
+        if (req.http.cookie ~ "^\s*$") {
+            unset req.http.cookie;
         }
-        /* if other cookies are present, request is not cacheable */
-        return (pass);
     }
 
     return (hash);
+}
+
+sub vcl_hash {
+    hash_data(req.url);
+    hash_data(req.http.Host);
+
+    if (req.http.Client-Cert) {
+        hash_data(std.digest("sha256", req.http.Client-Cert));
+    }
+
+    return (lookup);
 }
 
 sub vcl_backend_response {
