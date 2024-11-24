@@ -722,7 +722,6 @@ public class Application extends ResourceConfig
             xsltProc.registerExtensionFunction(new UUID());
             xsltProc.registerExtensionFunction(new DecodeURI());
             xsltProc.registerExtensionFunction(new com.atomgraph.linkeddatahub.writer.function.Construct(xsltProc));
-            xsltProc.registerExtensionFunction(new com.atomgraph.linkeddatahub.writer.function.Reserialize(xsltProc));
             xsltProc.registerExtensionFunction(new com.atomgraph.linkeddatahub.writer.function.SendHTTPRequest(xsltProc, client));
             
             Model mappingModel = locationMapper.toModel();
@@ -1385,7 +1384,6 @@ public class Application extends ResourceConfig
         };
         if (maxConnPerRoute != null) conman.setDefaultMaxPerRoute(maxConnPerRoute);
         if (maxTotalConn != null) conman.setMaxTotal(maxTotalConn);
-//        if (log.isDebugEnabled()) client.addFilter(new LoggingFilter(System.out));
 
         ClientConfig config = new ClientConfig();
         config.connectorProvider(new ApacheConnectorProvider());
@@ -1396,10 +1394,10 @@ public class Application extends ResourceConfig
         config.register(new QueryProvider());
         config.register(new UpdateRequestProvider());
         config.property(ClientProperties.FOLLOW_REDIRECTS, true);
+        config.property(ClientProperties.REQUEST_ENTITY_PROCESSING, RequestEntityProcessing.BUFFERED); // https://stackoverflow.com/questions/42139436/jersey-client-throws-cannot-retry-request-with-a-non-repeatable-request-entity
         config.property(ApacheClientProperties.CONNECTION_MANAGER, conman);
         //config.property(ApacheClientProperties.CONNECTION_CLOSING_STRATEGY, new ApacheConnectionClosingStrategy.GracefulClosingStrategy());
         if (keepAliveStrategy != null) config.property(ApacheClientProperties.KEEPALIVE_STRATEGY, keepAliveStrategy);
-        config.property(ClientProperties.REQUEST_ENTITY_PROCESSING, RequestEntityProcessing.BUFFERED); // https://stackoverflow.com/questions/42139436/jersey-client-throws-cannot-retry-request-with-a-non-repeatable-request-entity
 
         return ClientBuilder.newBuilder().
             withConfig(config).
@@ -1473,6 +1471,7 @@ public class Application extends ResourceConfig
             config.register(new QueryProvider());
             config.register(new UpdateRequestProvider()); // TO-DO: UpdateRequestProvider
             config.property(ClientProperties.FOLLOW_REDIRECTS, true);
+            config.property(ClientProperties.REQUEST_ENTITY_PROCESSING, RequestEntityProcessing.BUFFERED); // https://stackoverflow.com/questions/42139436/jersey-client-throws-cannot-retry-request-with-a-non-repeatable-request-entity
             config.property(ApacheClientProperties.CONNECTION_MANAGER, conman);
 
             return ClientBuilder.newBuilder().
@@ -1496,8 +1495,6 @@ public class Application extends ResourceConfig
             if ( log.isErrorEnabled()) log.error("Key management error: {}", ex);
             throw new IllegalStateException(ex);
         }
-        
-        //if (log.isDebugEnabled()) client.addFilter(new LoggingFilter(System.out));
     }
     
     /**
