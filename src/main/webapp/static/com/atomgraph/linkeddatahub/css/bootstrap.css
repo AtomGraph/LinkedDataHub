@@ -41,6 +41,7 @@ li button.btn-edit-constructors, li button.btn-add-data, li button.btn-add-ontol
 .btn-file { background-image: url('../icons/ic_file_upload_black_24px.svg'); }
 .btn-import { background-image: url('../icons/ic_transform_black_24px.svg'); }
 .btn-chart { background-image: url('../icons/ic_show_chart_black_24px.svg'); }
+.btn-view { background-image: url('../icons/ic_view_list_black_24px.svg'); }
 .btn-latest { background-image: url('../icons/ic_new_releases_black_24px.svg'); }
 .btn-geo { background-image: url('../icons/ic_location_on_black_24px.svg'); }
 .btn-logo { background-position: left; background-repeat: no-repeat; padding-left: 32px; }

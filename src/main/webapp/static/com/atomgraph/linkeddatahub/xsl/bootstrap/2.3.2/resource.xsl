@@ -143,6 +143,12 @@ extension-element-prefixes="ixsl"
         <xsl:attribute name="class" select="concat($class, ' ', 'btn-logo btn-chart')"/>
     </xsl:template>
 
+    <xsl:template match="*[@rdf:about = '&ldh;View']" mode="ldh:logo">
+        <xsl:param name="class" as="xs:string?"/>
+        
+        <xsl:attribute name="class" select="concat($class, ' ', 'btn-logo btn-view')"/>
+    </xsl:template>
+
     <xsl:template match="*[@rdf:about = ('&ldh;URISyntaxViolation', '&spin;ConstraintViolation', '&sh;ValidationResult', '&sh;ValidationReport', '&ldh;ResourceExistsException')]" mode="ldh:logo">
         <xsl:param name="class" as="xs:string?"/>
         
