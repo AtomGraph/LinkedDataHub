@@ -903,7 +903,7 @@ extension-element-prefixes="ixsl"
 
     <!-- ROW CONTENT HEADER -->
     
-    <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = ('&ldh;XHTML', '&ldh;Object')]" mode="bs2:RowContentHeader" priority="1">
+    <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&ldh;Object']" mode="bs2:RowContentHeader" priority="1">
         <xsl:variable name="anchor" as="node()*">
             <xsl:for-each select="@rdf:about">
                 <xsl:apply-templates select="key('resources', ., document(ac:document-uri(.)))" mode="xhtml:Anchor">
