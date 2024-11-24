@@ -28,106 +28,62 @@ PREFIX  sioc: <http://rdfs.org/sioc/ns#>
 DESCRIBE ?auth
 FROM <urn:x-arq:UnionGraph>
 WHERE
-  {   { ?auth  acl:mode  $Mode
-          { ?auth  acl:accessTo  $this }
-      UNION
-        { ?auth  acl:accessTo  $Container
-          SERVICE $endpoint
-            { GRAPH $Container
-                {   { $Container  a  def:Root }
-                  UNION
-                    { $Container  a  dh:Container }
-                }
-              FILTER NOT EXISTS { GRAPH $this
-                                    { $this  ?thisP  ?thisO }
-                                }
-            }
-        }
-        UNION
-          {   { ?auth  acl:accessToClass  ?Type }
-            UNION
-              { ?auth  acl:accessToClass  ?Class .
-                ?Type (rdfs:subClassOf)* ?Class
-              }
-            SERVICE $endpoint
-              {   { GRAPH $this
-                      { $this  a  ?Type }
-                  }
-                UNION
-                  { GRAPH $Container
-                      {   { $Container  a  def:Root }
-                        UNION
-                          { $Container  a  dh:Container }
-                        $Container  a  ?Type
-                      }
-                    FILTER NOT EXISTS { GRAPH $this
-                                          { $this  ?thisP  ?thisO }
-                                      }
-                  }
-                UNION
-                  { GRAPH ?g
-                      { $this  a  <http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#FileDataObject> ;
-                               a  ?Type
-                      }
-                  }
-              }
-          }
-        {   { ?auth  acl:agent  $agent}
-          UNION
-            { ?auth   acl:agentGroup  ?Group .
-              ?Group  foaf:member     $agent
-            }
-        }
-      }
-    UNION
-      { ?auth  acl:mode  $Mode
-          { ?auth  acl:agentClass  foaf:Agent }
-        UNION
-          { ?auth  acl:agentClass  $AuthenticatedAgentClass }
-          { ?auth  acl:accessTo  $this }
-        UNION
-          { ?auth  acl:accessTo  $Container
-            SERVICE $endpoint
-              { GRAPH $Container
-                  {   { $Container  a  def:Root }
-                    UNION
-                      { $Container  a  dh:Container }
-                  }
-                FILTER NOT EXISTS { GRAPH $this
-                                      { ?this  ?thisP  ?thisO }
-                                  }
-              }
-          }
-        UNION
-          {   { ?auth  acl:accessToClass  ?Type }
-            UNION
-              { ?auth  acl:accessToClass  ?Class .
-                ?Type (rdfs:subClassOf)* ?Class
-              }
-            SERVICE $endpoint
-              {   { GRAPH $this
-                      { $this  a  ?Type }
-                  }
-                UNION
-                  { GRAPH $Container
-                      {   { $Container  a  def:Root }
-                        UNION
-                          { $Container  a  dh:Container }
-                        $Container  a  ?Type
-                      }
-                    FILTER NOT EXISTS { GRAPH $this
-                                          { $this  ?thisP  ?thisO }
-                                      }
-                  }
-                UNION
-                  { GRAPH ?g
-                      { $this  a  <http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#FileDataObject> ;
-                               a  ?Type
-                      }
-                  }
-              }
-          }
-      }
+  {
+    { ?auth  acl:agent  $agent}
+   UNION
+     { ?auth   acl:agentGroup  ?Group .
+       ?Group  foaf:member     $agent
+     }
+   UNION
+     { ?auth  acl:agentClass  foaf:Agent }
+   UNION
+     { ?auth  acl:agentClass  $AuthenticatedAgentClass }
+
+     ?auth  acl:mode  $Mode .
+
+     { ?auth  acl:accessTo  $this }
+   UNION
+     { ?auth  acl:accessTo  $Container
+       SERVICE $endpoint
+         { GRAPH $Container
+             {   { $Container  a  def:Root }
+               UNION
+                 { $Container  a  dh:Container }
+             }
+           FILTER NOT EXISTS { GRAPH $this
+                                 { $this  ?thisP  ?thisO }
+                             }
+         }
+     }
+   UNION
+     {   { ?auth  acl:accessToClass  ?Type }
+       UNION
+         { ?auth  acl:accessToClass  ?Class .
+           ?Type (rdfs:subClassOf)* ?Class
+         }
+       SERVICE $endpoint
+         {   { GRAPH $this
+                 { $this  a  ?Type }
+             }
+           UNION
+             { GRAPH $Container
+                 {   { $Container  a  def:Root }
+                   UNION
+                     { $Container  a  dh:Container }
+                   $Container  a  ?Type
+                 }
+               FILTER NOT EXISTS { GRAPH $this
+                                     { $this  ?thisP  ?thisO }
+                                 }
+             }
+           UNION
+             { GRAPH ?g
+                 { $this  a  <http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#FileDataObject> ;
+                          a  ?Type
+                 }
+             }
+         }
+     }
   }
 ]]></param-value>
     </context-param>
