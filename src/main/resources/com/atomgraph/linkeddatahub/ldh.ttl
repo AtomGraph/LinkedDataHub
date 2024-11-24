@@ -189,7 +189,6 @@
 # charts
 
 :Chart a rdfs:Class, owl:Class ;
-    rdfs:subClassOf :Block ;
     rdfs:label "Chart" ;
     spin:constructor :ChartConstructor ;
     spin:constraint :MissingQuery, :MissingChartType ;
@@ -301,7 +300,6 @@
 # view
 
 :View a rdfs:Class, owl:Class ;
-    rdfs:subClassOf :Block ;
     rdfs:label "View" ;
     spin:constructor :ViewConstructor ;
     spin:constraint :MissingQuery ;

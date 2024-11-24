@@ -462,7 +462,7 @@ extension-element-prefixes="ixsl"
     </xsl:template>
         
     <!-- resource block overrides -->
-    <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = ('&ldh;View', '&ldh;Object')]" mode="bs2:Row" priority="1">
+    <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&ldh;Object']" mode="bs2:Row" priority="1">
         <!-- TO-DO: use $ldh:requestUri to resolve URIs server-side -->
         <xsl:param name="id" select="if (contains(@rdf:about, ac:absolute-path(ldh:base-uri(.)) || '#')) then substring-after(@rdf:about, ac:absolute-path(ldh:base-uri(.)) || '#') else generate-id()" as="xs:string?"/>
         <xsl:param name="class" select="'row-fluid block'" as="xs:string?"/>
@@ -903,7 +903,7 @@ extension-element-prefixes="ixsl"
 
     <!-- ROW CONTENT HEADER -->
     
-    <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = ('&ldh;View', '&ldh;Object')]" mode="bs2:RowContentHeader" priority="1">
+    <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = ('&ldh;XHTML', '&ldh;Object')]" mode="bs2:RowContentHeader" priority="1">
         <xsl:variable name="anchor" as="node()*">
             <xsl:for-each select="@rdf:about">
                 <xsl:apply-templates select="key('resources', ., document(ac:document-uri(.)))" mode="xhtml:Anchor">
@@ -1382,9 +1382,9 @@ extension-element-prefixes="ixsl"
     
     <!-- PROPERTY CONTROL -->
     
-    <!-- hide property dropdown for content instances -->
+    <!-- hide property dropdown for block instances -->
     
-    <xsl:template match="*[rdf:type/@rdf:resource = ('&ldh;XHTML', '&ldh;Object', '&ldh;View')]" mode="bs2:PropertyControl" priority="1"/>
+    <xsl:template match="*[rdf:type/@rdf:resource = ('&ldh;XHTML', '&ldh;Object')]" mode="bs2:PropertyControl" priority="1"/>
     
     <xsl:template match="*[@rdf:about or @rdf:nodeID]" mode="bs2:PropertyControl">
         <xsl:param name="class" as="xs:string?"/>

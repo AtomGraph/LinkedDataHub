@@ -196,9 +196,6 @@ extension-element-prefixes="ixsl"
                         <button type="button" class="btn btn-primary create-action add-constructor" data-for-class="&ldh;XHTML">
                             <xsl:apply-templates select="key('resources', '&ldh;XHTML', document(ac:document-uri('&ldh;')))" mode="ac:label"/>
                         </button>
-                        <button type="button" class="btn btn-primary create-action add-constructor" data-for-class="&ldh;View">
-                            <xsl:apply-templates select="key('resources', '&ldh;View', document(ac:document-uri('&ldh;')))" mode="ac:label"/>
-                        </button>
                         <button type="button" class="btn btn-primary create-action add-constructor" data-for-class="&ldh;Object">
                             <xsl:apply-templates select="key('resources', '&ldh;Object', document(ac:document-uri('&ldh;')))" mode="ac:label"/>
                         </button>
@@ -215,8 +212,8 @@ extension-element-prefixes="ixsl"
         <xsl:param name="classes" as="element()*"/>
 
         <!-- select elements explicitly, because Saxon-JS chokes on text nodes here -->
-        <!-- hide the content resources - cannot suppress them in the resource-level bs2:Block because its being reused ldh:ContentList/bs2:RowContent modes -->
-        <xsl:apply-templates select="*[not(rdf:type/@rdf:resource = ('&ldh;XHTML', '&ldh;View', '&ldh;Object'))]" mode="#current">
+        <!-- hide the content resources - cannot suppress them in the resource-level bs2:Block because its being reused ldh:ContentList/bs2:Row modes -->
+        <xsl:apply-templates select="*[not(rdf:type/@rdf:resource = ('&ldh;XHTML', '&ldh;Object'))]" mode="#current">
             <xsl:sort select="ac:label(.)"/>
         </xsl:apply-templates>
         
