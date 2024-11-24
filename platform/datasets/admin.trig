@@ -16,7 +16,7 @@
     <> a def:Root ;
         dct:title "Root" ;
         dct:description "Root container" ;
-        rdf:_1 <#select-children-view> .
+        rdf:_1 <#select-children> .
 
     <#select-children> a ldh:Object ;
         rdf:value <#select-children-view> .
@@ -36,10 +36,10 @@
         dct:description "SPARQL queries" ;
         rdf:_1 <queries/#select-queries> .
 
-    <queries/#select-children> a ldh:Object ;
-        rdf:value <#select-children-view> .
+    <queries/#select-queries> a ldh:Object ;
+        rdf:value <#select-queries-view> .
 
-    <queries/#select-children-view> a ldh:View ;
+    <queries/#select-queries-view> a ldh:View ;
         dct:title "Query view" ;
         spin:query <queries/#select-queries-query> .
 
