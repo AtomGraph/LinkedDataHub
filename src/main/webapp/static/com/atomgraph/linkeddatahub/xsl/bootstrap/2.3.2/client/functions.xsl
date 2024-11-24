@@ -71,42 +71,6 @@ exclude-result-prefixes="#all"
         <xsl:sequence xmlns:fn="http://www.w3.org/2005/xpath-functions" select="analyze-string($query-string, '[^a-zA-Z]?(SELECT|ASK|DESCRIBE|CONSTRUCT)[^a-zA-Z]', 'i')/fn:match[1]/fn:group[@nr = '1']/string() => upper-case()"/>
     </xsl:function>
 
-    <!-- reserialize RDF/XML document by moving nested rdf:Descriptions to top-level following Jena's "plain" RDF/XML structure  -->
-    <xsl:function name="ldh:reserialize" as="document-node()">
-        <xsl:param name="doc" as="document-node()"/>
-        
-        <xsl:document>
-            <xsl:apply-templates select="$doc" mode="ldh:Reserialize"/>
-        </xsl:document>
-    </xsl:function>
-    
-    <xsl:template match="rdf:RDF" mode="ldh:Reserialize" priority="1">
-        <xsl:copy>
-            <xsl:apply-templates select="@* | node()" mode="#current"/>
-
-            <xsl:for-each select="rdf:Description/*/rdf:Description">
-                <xsl:copy>
-                    <xsl:attribute name="rdf:nodeID" select="generate-id()"/>
-                    
-                    <xsl:apply-templates select="@* | node()" mode="#current"/>
-                </xsl:copy>
-            </xsl:for-each>
-        </xsl:copy>
-    </xsl:template>
-    
-    <xsl:template match="rdf:Description/*[rdf:Description]" mode="ldh:Reserialize" priority="1">
-        <xsl:copy>
-            <xsl:attribute name="rdf:nodeID" select="generate-id(rdf:Description)"/>
-        </xsl:copy>
-    </xsl:template>
-
-    <!-- identity transform -->
-    <xsl:template match="@* | node()" mode="ldh:Reserialize">
-        <xsl:copy>
-            <xsl:apply-templates select="@* | node()" mode="#current"/>
-        </xsl:copy>
-    </xsl:template>
-    
     <xsl:function name="ldh:new-object">
         <xsl:variable name="js-statement" as="element()">
             <root statement="{{ }}"/>
