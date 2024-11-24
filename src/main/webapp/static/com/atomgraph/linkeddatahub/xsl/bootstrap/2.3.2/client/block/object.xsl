@@ -175,12 +175,10 @@ exclude-result-prefixes="#all"
                     </xsl:apply-templates>
                 </xsl:variable>
 
-            <!--
             <xsl:message>
                 ldh:LoadBlockObjectMetadata $resource: <xsl:value-of select="serialize($resource)"/>
                 ldh:LoadBlockObjectMetadata $row: <xsl:value-of select="serialize($row)"/>
             </xsl:message>
-            -->
         
                 <!-- hide the row with the block controls -->
                 <ixsl:set-style name="z-index" select="'-1'" object="key('elements-by-class', 'row-block-controls', $block)"/>
