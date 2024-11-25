@@ -29,37 +29,43 @@ DESCRIBE ?auth
 FROM <urn:x-arq:UnionGraph>
 WHERE
   {
-    VALUES ?this { UNDEF }
-    {
-        SELECT ?auth ?this ?Type
-        {
-            { ?auth  acl:agent  $agent}
-           UNION
-             { ?auth   acl:agentGroup  ?Group .
-               ?Group  foaf:member     $agent
+   VALUES $this { UNDEF }
+
+    { ?auth  acl:agent  $agent}
+   UNION
+     { ?auth   acl:agentGroup  ?Group .
+       ?Group  foaf:member     $agent
+     }
+   UNION
+     { ?auth  acl:agentClass  foaf:Agent }
+   UNION
+     { ?auth  acl:agentClass  $AuthenticatedAgentClass }
+
+     ?auth  acl:mode  $Mode .
+
+     { ?auth  acl:accessTo  $this }
+   UNION
+     { ?auth  acl:accessTo  $Container
+       SERVICE $endpoint
+         { GRAPH $Container
+             {   { $Container  a  def:Root }
+               UNION
+                 { $Container  a  dh:Container }
              }
-           UNION
-             { ?auth  acl:agentClass  foaf:Agent }
-           UNION
-             { ?auth  acl:agentClass  $AuthenticatedAgentClass }
-
-             ?auth  acl:mode  $Mode .
-
-              { ?auth  acl:accessTo  ?this }
-            UNION
-              { ?auth  acl:accessToClass  ?Type }
-            UNION
-              { ?auth  acl:accessToClass  ?Class .
-                ?Type (rdfs:subClassOf)* ?Class
-              }
-        }
-    }
-    SERVICE $endpoint
-      {
-         SELECT ?this ?Type
-         {
-             { GRAPH ?this
-                 { ?this  a  ?Type }
+           FILTER NOT EXISTS { GRAPH $this
+                                 { $this  ?thisP  ?thisO }
+                             }
+         }
+     }
+   UNION
+     {   { ?auth  acl:accessToClass  ?Type }
+       UNION
+         { ?auth  acl:accessToClass  ?Class .
+           ?Type (rdfs:subClassOf)* ?Class
+         }
+       SERVICE $endpoint
+         {   { GRAPH $this
+                 { $this  a  ?Type }
              }
            UNION
              { GRAPH $Container
@@ -68,18 +74,18 @@ WHERE
                      { $Container  a  dh:Container }
                    $Container  a  ?Type
                  }
-               FILTER NOT EXISTS { GRAPH ?this
-                                     { ?this  ?thisP  ?thisO }
+               FILTER NOT EXISTS { GRAPH $this
+                                     { $this  ?thisP  ?thisO }
                                  }
              }
            UNION
              { GRAPH ?g
-                 { ?this  a  <http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#FileDataObject> ;
+                 { $this  a  <http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#FileDataObject> ;
                           a  ?Type
                  }
              }
          }
-      }
+     }
   }
 ]]></param-value>
     </context-param>
@@ -95,8 +101,8 @@ DESCRIBE ?auth
 FROM <urn:x-arq:UnionGraph>
 WHERE
   {
-    VALUES ?this { UNDEF }
-
+    VALUES $this { UNDEF }
+            
       { ?auth  acl:mode           acl:Control .
         ?doc   foaf:primaryTopic  ?auth
           { ?auth  acl:agent  $agent }
@@ -108,12 +114,12 @@ WHERE
     UNION
       { ?auth  acl:agentClass  $AuthenticatedAgentClass ;
                acl:mode        $Mode
-          { ?auth  acl:accessTo  ?this
+          { ?auth  acl:accessTo  $this
             OPTIONAL
-              { ?this  a  ?Type }
+              { $this  a  ?Type }
           }
         UNION
-          { ?this  a  ?Type
+          { $this  a  ?Type
               { ?auth  acl:accessToClass  ?Type }
             UNION
               { ?auth  acl:accessToClass  ?Class .
@@ -124,12 +130,12 @@ WHERE
     UNION
       { ?auth  acl:agentClass  foaf:Agent ;
                acl:mode        acl:Read
-          { ?auth  acl:accessTo  ?this
+          { ?auth  acl:accessTo  $this
             OPTIONAL
-              { ?this  a  ?Type }
+              { $this  a  ?Type }
           }
         UNION
-          { ?this  a  ?Type
+          { $this  a  ?Type
               { ?auth  acl:accessToClass  ?Type }
             UNION
               { ?auth  acl:accessToClass  ?Class .
@@ -137,7 +143,7 @@ WHERE
               }
           }
         # only namespace, signup, OAuth2 login and WebID profiles can be public in admin app, nothing else
-        FILTER ( ?this IN (uri(concat(str($base), "ns")), uri(concat(str($base), "sign%20up")), uri(concat(str($base), "oauth2/login")), uri(concat(str($base), "oauth2/authorize/google"))) || strstarts(str(?this), concat(str($base), "acl/agents/")) || strstarts(str(?this), concat(str($base), "acl/public-keys/")))
+        FILTER ( $this IN (uri(concat(str($base), "ns")), uri(concat(str($base), "sign%20up")), uri(concat(str($base), "oauth2/login")), uri(concat(str($base), "oauth2/authorize/google"))) || strstarts(str($this), concat(str($base), "acl/agents/")) || strstarts(str($this), concat(str($base), "acl/public-keys/")))
       }
   }
 ]]></param-value>
