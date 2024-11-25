@@ -44,9 +44,11 @@ import jakarta.ws.rs.container.ContainerRequestFilter;
 import jakarta.ws.rs.container.PreMatching;
 import jakarta.ws.rs.core.Response;
 import java.net.URI;
-import org.apache.jena.graph.Node;
+import java.util.ArrayList;
+import java.util.List;
 import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.query.ParameterizedSparqlString;
+import org.apache.jena.query.Query;
 import org.apache.jena.query.QuerySolutionMap;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Property;
@@ -55,8 +57,12 @@ import org.apache.jena.rdf.model.ResIterator;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.sparql.core.Var;
+import org.apache.jena.sparql.engine.binding.Binding;
+import org.apache.jena.sparql.engine.binding.BindingBuilder;
+import org.apache.jena.sparql.syntax.Element;
+import org.apache.jena.sparql.syntax.ElementData;
+import org.apache.jena.sparql.syntax.ElementGroup;
 import org.apache.jena.vocabulary.RDFS;
-import org.apache.jena.sparql.syntax.syntaxtransform.QueryTransformOps;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -200,12 +206,52 @@ public class AuthorizationFilter implements ContainerRequestFilter
     public Resource authorize(ContainerRequestContext request, Resource agent, Resource accessMode)
     {
         ParameterizedSparqlString pss = getApplication().canAs(EndUserApplication.class) ? getAuthQuery() : getOwnerAuthQuery();
-        
-        Map<Var, Node> substitutionMap = new HashMap<>();
-        substitutionMap.put(Var.alloc(SPIN.THIS_VAR_NAME), NodeFactory.createURI(request.getUriInfo().getAbsolutePath().toString())); // substitute ?this in VALUES
-        pss = new ParameterizedSparqlString(QueryTransformOps.transform(pss.asQuery(), substitutionMap).toString());
+        pss = new ParameterizedSparqlString(injectValuesBlock(pss.asQuery(), request.getUriInfo().getAbsolutePath()).toString());
 
         return authorize(getAuthorizationParams(ResourceFactory.createResource(request.getUriInfo().getAbsolutePath().toString()), agent, accessMode), pss);
+    }
+    
+    protected Query injectValuesBlock(Query query, URI absolutePath)
+    {
+        if (query == null) throw new IllegalArgumentException("Query cannot be null");
+
+        ElementGroup body = (ElementGroup)query.getQueryPattern();
+
+        // Iterate through the elements to find the VALUES block
+        for (Element element : body.getElements())
+        {
+            if (element instanceof ElementData valuesClause)
+            {
+                List<Binding> updatedRows = new ArrayList<>();
+
+                // Iterate over all rows in the VALUES block
+                for (Binding row : valuesClause.getRows())
+                {
+                    BindingBuilder rowBuilder = BindingBuilder.create();
+                    for (Var var : valuesClause.getVars())
+                    {
+                        switch (var.getVarName())
+                        {
+                            case SPIN.THIS_VAR_NAME -> // Assign a new URI for ?this
+                                rowBuilder.add(var, NodeFactory.createURI(absolutePath.toString()));
+                            // case "agent" -> // Assign a new URI for ?agent
+                            //    rowBuilder.add(var, NodeFactory.createURI("http://example.org/agent"));
+                            default -> // Copy the original value for other variables
+                                rowBuilder.add(var, row.get(var));
+                        }
+                    }
+                    updatedRows.add(rowBuilder.build());
+                }
+
+                // Replace the old rows with the updated ones
+                valuesClause.getRows().clear();
+                valuesClause.getRows().addAll(updatedRows);
+
+                break;
+            }
+        }
+
+        return query;
     }
     
     /**
