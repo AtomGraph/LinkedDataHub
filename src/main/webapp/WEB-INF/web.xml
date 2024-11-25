@@ -29,7 +29,7 @@ DESCRIBE ?auth
 FROM <urn:x-arq:UnionGraph>
 WHERE
   {
-    VALUES ?this { $thisValue }
+    VALUES ?this { UNDEF }
     {
         SELECT ?auth ?this ?Type
         {
@@ -95,7 +95,7 @@ DESCRIBE ?auth
 FROM <urn:x-arq:UnionGraph>
 WHERE
   {
-    VALUES ?this { $thisValue }
+    VALUES ?this { UNDEF }
 
       { ?auth  acl:mode           acl:Control .
         ?doc   foaf:primaryTopic  ?auth

@@ -44,6 +44,8 @@ import jakarta.ws.rs.container.ContainerRequestFilter;
 import jakarta.ws.rs.container.PreMatching;
 import jakarta.ws.rs.core.Response;
 import java.net.URI;
+import org.apache.jena.graph.Node;
+import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.query.ParameterizedSparqlString;
 import org.apache.jena.query.QuerySolutionMap;
 import org.apache.jena.rdf.model.Model;
@@ -52,7 +54,9 @@ import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.ResIterator;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
+import org.apache.jena.sparql.core.Var;
 import org.apache.jena.vocabulary.RDFS;
+import org.apache.jena.sparql.syntax.syntaxtransform.QueryTransformOps;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -158,7 +162,7 @@ public class AuthorizationFilter implements ContainerRequestFilter
     public QuerySolutionMap getAuthorizationParams(Resource absolutePath, Resource agent, Resource accessMode)
     {
         QuerySolutionMap qsm = new QuerySolutionMap();
-        qsm.add("thisValue", absolutePath); // ?this is now assigned using VALUES
+        //qsm.add("this", absolutePath); // ?this is now assigned using VALUES
         qsm.add("Mode", accessMode);
         qsm.add(LDT.Ontology.getLocalName(), getApplication().getOntology());
         qsm.add(LDT.base.getLocalName(), getApplication().getBase());
@@ -195,18 +199,25 @@ public class AuthorizationFilter implements ContainerRequestFilter
      */
     public Resource authorize(ContainerRequestContext request, Resource agent, Resource accessMode)
     {
-        return authorize(getAuthorizationParams(ResourceFactory.createResource(request.getUriInfo().getAbsolutePath().toString()), agent, accessMode));
+        ParameterizedSparqlString pss = getApplication().canAs(EndUserApplication.class) ? getAuthQuery() : getOwnerAuthQuery();
+        
+        Map<Var, Node> substitutionMap = new HashMap<>();
+        substitutionMap.put(Var.alloc(SPIN.THIS_VAR_NAME), NodeFactory.createURI(request.getUriInfo().getAbsolutePath().toString())); // substitute ?this in VALUES
+        pss = new ParameterizedSparqlString(QueryTransformOps.transform(pss.asQuery(), substitutionMap).toString());
+
+        return authorize(getAuthorizationParams(ResourceFactory.createResource(request.getUriInfo().getAbsolutePath().toString()), agent, accessMode), pss);
     }
     
     /**
      * Authorizes current request by applying solution map on the authorization query and executing it.
      * 
      * @param qsm solution map
+     * @param pss parameterized SPARQL string
      * @return authorization resource or null
      */
-    public Resource authorize(QuerySolutionMap qsm)
+    public Resource authorize(QuerySolutionMap qsm, ParameterizedSparqlString pss)
     {
-        Model authModel = loadAuth(qsm);
+        Model authModel = loadAuth(qsm, pss);
         
         // type check will not work on LACL subclasses without InfModel
         Resource authorization = getResourceByPropertyValue(authModel, ACL.mode, null);
@@ -219,14 +230,13 @@ public class AuthorizationFilter implements ContainerRequestFilter
      * Loads authorization model.
      * 
      * @param qsm solution map
+     * @param pss parameterized SPARQL string
      * @return authorization model
      */
-    protected Model loadAuth(QuerySolutionMap qsm)
+    protected Model loadAuth(QuerySolutionMap qsm, ParameterizedSparqlString pss)
     {
         if (qsm == null) throw new IllegalArgumentException("QuerySolutionMap cannot be null");
 
-        final ParameterizedSparqlString pss = getApplication().canAs(EndUserApplication.class) ? getAuthQuery() : getOwnerAuthQuery();
-        
         if (getApplication().canAs(EndUserApplication.class))
             pss.setIri(SD.endpoint.getLocalName(), getApplication().getService().getSPARQLEndpoint().toString()); // needed for federation with the end-user endpoint
 
