@@ -51,7 +51,7 @@ WHERE
                  { $Container  a  dh:Container }
              }
            FILTER NOT EXISTS { GRAPH $this
-                                 { $this  ?thisP  ?thisO }
+                                 { $this  sioc:has_parent|sioc:has_container  $Container }
                              }
          }
      }
@@ -73,7 +73,7 @@ WHERE
                    $Container  a  ?Type
                  }
                FILTER NOT EXISTS { GRAPH $this
-                                     { $this  ?thisP  ?thisO }
+                                     { $this  sioc:has_parent|sioc:has_container  $Container }
                                  }
              }
            UNION
