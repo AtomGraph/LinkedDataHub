@@ -104,7 +104,7 @@ services:
     entrypoint: /bin/sh -c "cp /etc/varnish/default.vcl.template /etc/varnish/default.vcl && sed -i 's|$${BACKEND_HOST}|'"$$BACKEND_HOST"'|g' /etc/varnish/default.vcl && sed -i 's|$${BACKEND_PORT}|'"$$BACKEND_PORT"'|g' /etc/varnish/default.vcl && sed -i 's|$${CLIENT_HOST}|'"$$CLIENT_HOST"'|g' /etc/varnish/default.vcl && /usr/local/bin/docker-varnish-entrypoint \"$$0\" \"$$@\""
     command: [ "-t", "86400" ] # time to live
     volumes:
-      - ./platform/varnish.vcl.template:/etc/varnish/default.vcl.template:ro
+      - ./platform/varnish-frontend.vcl.template:/etc/varnish/default.vcl.template:ro
   varnish-admin:
     image: varnish:7.3.0
     user: root # otherwise the varnish user does not have permissions to the mounted folder which is owner by root
@@ -119,7 +119,7 @@ services:
     entrypoint: /bin/sh -c "cp /etc/varnish/default.vcl.template /etc/varnish/default.vcl && sed -i 's|$${BACKEND_HOST}|'"$$BACKEND_HOST"'|g' /etc/varnish/default.vcl && sed -i 's|$${BACKEND_PORT}|'"$$BACKEND_PORT"'|g' /etc/varnish/default.vcl && sed -i 's|$${CLIENT_HOST}|'"$$CLIENT_HOST"'|g' /etc/varnish/default.vcl && /usr/local/bin/docker-varnish-entrypoint \"$$0\" \"$$@\""
     command: [ "-t", "86400" ] # time to live
     volumes:
-      - ./platform/varnish.vcl.template:/etc/varnish/default.vcl.template:ro
+      - ./platform/varnish-backend.vcl.template:/etc/varnish/default.vcl.template:ro
   varnish-end-user:
     image: varnish:7.3.0
     user: root # otherwise varnish user does not have permissions to the mounted folder which is owner by root
@@ -134,7 +134,7 @@ services:
     entrypoint: /bin/sh -c "cp /etc/varnish/default.vcl.template /etc/varnish/default.vcl && sed -i 's|$${BACKEND_HOST}|'"$$BACKEND_HOST"'|g' /etc/varnish/default.vcl && sed -i 's|$${BACKEND_PORT}|'"$$BACKEND_PORT"'|g' /etc/varnish/default.vcl && sed -i 's|$${CLIENT_HOST}|'"$$CLIENT_HOST"'|g' /etc/varnish/default.vcl && /usr/local/bin/docker-varnish-entrypoint \"$$0\" \"$$@\""
     command: [ "-t", "86400" ] # time to live
     volumes:
-      - ./platform/varnish.vcl.template:/etc/varnish/default.vcl.template:ro
+      - ./platform/varnish-backend.vcl.template:/etc/varnish/default.vcl.template:ro
   email-server:
     image: namshi/smtp
     environment:

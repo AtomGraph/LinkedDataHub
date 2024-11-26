@@ -13,16 +13,19 @@ acl local {
     "${CLIENT_HOST}";
 }
 
+acl remote {
+}
+
 sub vcl_recv {
     if (req.method == "PURGE") {
-        if (!client.ip ~ local) {
+        if (!client.ip ~ local && !client.ip ~ remote) {
             return (synth(403, "Unknown IP address '" + client.ip + "'. Access denied."));
         }
         return (purge);
     }
 
     if (req.method == "BAN") { # supports only 2 URIs!
-        if (!client.ip ~ local) {
+        if (!client.ip ~ local && !client.ip ~ remote) {
             return (synth(403, "Unknown IP address '" + client.ip + "'. Access denied."));
         }
 
@@ -49,7 +52,10 @@ sub vcl_recv {
         /* We only deal with GET and HEAD by default */
         return (pass);
     }
-
+    if (req.http.Client-Cert) {
+        /* Authenticated requests are not cacheable */
+        return (pass);
+    }
     if (req.http.Cookie) {
         # explicitly allow only cookies required by LDH server-side
         set req.http.Cookie = ";" + req.http.Cookie;
@@ -58,19 +64,9 @@ sub vcl_recv {
         set req.http.Cookie = regsuball(req.http.Cookie, ";[^ ][^;]*", "");
         set req.http.Cookie = regsuball(req.http.Cookie, "^[; ]+|[; ]+$", "");
 
-        if (req.http.Cookie ~ "LinkedDataHub\.id_token=") {
-            # extract the LinkedDataHub.id_token value
-            set req.http.X-LinkedDataHub-Id-Token = regsub(req.http.Cookie, ".*LinkedDataHub\.id_token=([^; ]+).*", "\1");
-        }
-
         if (req.http.cookie ~ "^\s*$") {
             unset req.http.cookie;
         }
-    }
-
-    if ((req.http.Client-Cert || req.http.X-LinkedDataHub-Id-Token) && (req.http.Accept ~ "text/html" || req.http.Accept ~ "application/xhtml+xml")) {
-        /* Authenticated (X)HTML requests are not cacheable (since they're user-specific) */
-        return (pass);
     }
 
     return (hash);
