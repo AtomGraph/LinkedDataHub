@@ -810,7 +810,8 @@ LIMIT   100
         <xsl:param name="typeof" select="key('resources', ac:absolute-path(ldh:base-uri(.)))/rdf:type/@rdf:resource/xs:anyURI(.)" as="xs:anyURI*"/>
         <xsl:param name="classes" select="for $class-uri in $default-classes return key('resources', $class-uri, document(ac:document-uri($class-uri)))" as="element()*"/>
         <xsl:param name="doc-types" select="key('resources', ac:absolute-path(ldh:base-uri(.)))/rdf:type/@rdf:resource[ . = ('&def;Root', '&dh;Container', '&dh;Item')]" as="xs:anyURI*"/>
-        <xsl:param name="content-values" select="if (exists($doc-types) and doc-available(resolve-uri('ns?query=ASK%20%7B%7D', $ldt:base))) then (ldh:query-result(map{}, resolve-uri('ns', $ldt:base), $template-query || ' VALUES $Type { ' || string-join(for $type in $doc-types return '&lt;' || $type || '&gt;', ' ') || ' }')//srx:binding[@name = 'content']/srx:uri/xs:anyURI(.)) else ()" as="xs:anyURI*"/>
+        <!-- take care not to load unnecessary documents over HTTP when the response is an error response -->
+        <xsl:param name="content-values" select="if exists($doc-types) then (if doc-available(resolve-uri('ns?query=ASK%20%7B%7D', $ldt:base))) then (ldh:query-result(map{}, resolve-uri('ns', $ldt:base), $template-query || ' VALUES $Type { ' || string-join(for $type in $doc-types return '&lt;' || $type || '&gt;', ' ') || ' }')//srx:binding[@name = 'content']/srx:uri/xs:anyURI(.)) else ()) else ()" as="xs:anyURI*"/>
         <xsl:param name="has-content" select="key('resources', key('resources', ac:absolute-path(ldh:base-uri(.)))/rdf:*[starts-with(local-name(), '_')]/@rdf:resource) or exists($content-values)" as="xs:boolean"/>
 
         <div>
