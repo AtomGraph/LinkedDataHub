@@ -1353,36 +1353,35 @@ public class Application extends ResourceConfig
             register("http", new PlainConnectionSocketFactory()).
             build();
 
-        PoolingHttpClientConnectionManager conman = new PoolingHttpClientConnectionManager(socketFactoryRegistry);
-//        {
-//
-//            // https://github.com/eclipse-ee4j/jersey/issues/4449
-//
-//            @Override
-//            public void close()
-//            {
-//                super.shutdown();
-//            }
-//
-//            @Override
-//            public void shutdown()
-//            {
-//                // Disable shutdown of the pool. This will be done later, when this factory is closed
-//                // This is a workaround for finalize method on jerseys ClientRuntime which
-//                // closes the client and shuts down the connection pool when it is garbage collected
-//            };
-//            
-//            // https://github.com/eclipse-ee4j/jersey/issues/2855
-//            
-//            @Override
-//            public void releaseConnection(final HttpClientConnection managedConn, final Object state, final long keepalive, final TimeUnit timeUnit)
-//            {
-//                // set state to null to allow reuse of connections
-//                super.releaseConnection(managedConn, null, keepalive, timeUnit);
-//            }
-//
-//        };
+        PoolingHttpClientConnectionManager conman = new PoolingHttpClientConnectionManager(socketFactoryRegistry)
+        {
 
+            // https://github.com/eclipse-ee4j/jersey/issues/4449
+
+            @Override
+            public void close()
+            {
+                super.shutdown();
+            }
+
+            @Override
+            public void shutdown()
+            {
+                // Disable shutdown of the pool. This will be done later, when this factory is closed
+                // This is a workaround for finalize method on jerseys ClientRuntime which
+                // closes the client and shuts down the connection pool when it is garbage collected
+            };
+            
+            // https://github.com/eclipse-ee4j/jersey/issues/2855
+            
+            @Override
+            public void releaseConnection(final HttpClientConnection managedConn, final Object state, final long keepalive, final TimeUnit timeUnit)
+            {
+                // set state to null to allow reuse of connections
+                super.releaseConnection(managedConn, null, keepalive, timeUnit);
+            }
+
+        };
         if (maxConnPerRoute != null) conman.setDefaultMaxPerRoute(maxConnPerRoute);
         if (maxTotalConn != null) conman.setMaxTotal(maxTotalConn);
 
@@ -1395,6 +1394,7 @@ public class Application extends ResourceConfig
         config.register(new QueryProvider());
         config.register(new UpdateRequestProvider());
         config.property(ClientProperties.FOLLOW_REDIRECTS, true);
+        config.property(ClientProperties.CONNECT_TIMEOUT, 1000);
         config.property(ClientProperties.REQUEST_ENTITY_PROCESSING, RequestEntityProcessing.BUFFERED); // https://stackoverflow.com/questions/42139436/jersey-client-throws-cannot-retry-request-with-a-non-repeatable-request-entity
         config.property(ApacheClientProperties.CONNECTION_MANAGER, conman);
         //config.property(ApacheClientProperties.CONNECTION_CLOSING_STRATEGY, new ApacheConnectionClosingStrategy.GracefulClosingStrategy());
