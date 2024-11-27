@@ -1353,35 +1353,36 @@ public class Application extends ResourceConfig
             register("http", new PlainConnectionSocketFactory()).
             build();
 
-        PoolingHttpClientConnectionManager conman = new PoolingHttpClientConnectionManager(socketFactoryRegistry)
-        {
+        PoolingHttpClientConnectionManager conman = new PoolingHttpClientConnectionManager(socketFactoryRegistry);
+//        {
+//
+//            // https://github.com/eclipse-ee4j/jersey/issues/4449
+//
+//            @Override
+//            public void close()
+//            {
+//                super.shutdown();
+//            }
+//
+//            @Override
+//            public void shutdown()
+//            {
+//                // Disable shutdown of the pool. This will be done later, when this factory is closed
+//                // This is a workaround for finalize method on jerseys ClientRuntime which
+//                // closes the client and shuts down the connection pool when it is garbage collected
+//            };
+//            
+//            // https://github.com/eclipse-ee4j/jersey/issues/2855
+//            
+//            @Override
+//            public void releaseConnection(final HttpClientConnection managedConn, final Object state, final long keepalive, final TimeUnit timeUnit)
+//            {
+//                // set state to null to allow reuse of connections
+//                super.releaseConnection(managedConn, null, keepalive, timeUnit);
+//            }
+//
+//        };
 
-            // https://github.com/eclipse-ee4j/jersey/issues/4449
-
-            @Override
-            public void close()
-            {
-                super.shutdown();
-            }
-
-            @Override
-            public void shutdown()
-            {
-                // Disable shutdown of the pool. This will be done later, when this factory is closed
-                // This is a workaround for finalize method on jerseys ClientRuntime which
-                // closes the client and shuts down the connection pool when it is garbage collected
-            };
-            
-            // https://github.com/eclipse-ee4j/jersey/issues/2855
-            
-            @Override
-            public void releaseConnection(final HttpClientConnection managedConn, final Object state, final long keepalive, final TimeUnit timeUnit)
-            {
-                // set state to null to allow reuse of connections
-                super.releaseConnection(managedConn, null, keepalive, timeUnit);
-            }
-
-        };
         if (maxConnPerRoute != null) conman.setDefaultMaxPerRoute(maxConnPerRoute);
         if (maxTotalConn != null) conman.setMaxTotal(maxTotalConn);
 
