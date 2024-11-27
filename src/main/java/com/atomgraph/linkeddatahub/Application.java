@@ -1336,7 +1336,8 @@ public class Application extends ResourceConfig
         if (keyStore == null) throw new IllegalArgumentException("KeyStore cannot be null");
         if (keyStorePassword == null) throw new IllegalArgumentException("KeyStore password string cannot be null");
         if (trustStore == null) throw new IllegalArgumentException("KeyStore (truststore) cannot be null");
-
+        Integer connIdleTimeout = 5000;
+        
         // for client authentication
         KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
         kmf.init(keyStore, keyStorePassword.toCharArray());
@@ -1384,6 +1385,8 @@ public class Application extends ResourceConfig
         };
         if (maxConnPerRoute != null) conman.setDefaultMaxPerRoute(maxConnPerRoute);
         if (maxTotalConn != null) conman.setMaxTotal(maxTotalConn);
+        conman.setValidateAfterInactivity(connIdleTimeout); // check connections idle for more than Varnish's idle_timeout which is 5s
+        //conman.closeIdleConnections(connIdleTimeout, TimeUnit.MILLISECONDS); // match the Varnish idle timeout
 
         ClientConfig config = new ClientConfig();
         config.connectorProvider(new ApacheConnectorProvider());
@@ -1394,7 +1397,7 @@ public class Application extends ResourceConfig
         config.register(new QueryProvider());
         config.register(new UpdateRequestProvider());
         config.property(ClientProperties.FOLLOW_REDIRECTS, true);
-        config.property(ClientProperties.CONNECT_TIMEOUT, 1000);
+        //config.property(ClientProperties.CONNECT_TIMEOUT, 1000);
         config.property(ClientProperties.REQUEST_ENTITY_PROCESSING, RequestEntityProcessing.BUFFERED); // https://stackoverflow.com/questions/42139436/jersey-client-throws-cannot-retry-request-with-a-non-repeatable-request-entity
         config.property(ApacheClientProperties.CONNECTION_MANAGER, conman);
         //config.property(ApacheClientProperties.CONNECTION_CLOSING_STRATEGY, new ApacheConnectionClosingStrategy.GracefulClosingStrategy());
