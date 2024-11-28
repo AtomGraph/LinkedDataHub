@@ -171,6 +171,7 @@ import com.atomgraph.server.mapper.SPINConstraintViolationExceptionMapper;
 import com.atomgraph.spinrdf.vocabulary.SP;
 import com.github.jsonldjava.core.DocumentLoader;
 import com.github.jsonldjava.core.JsonLdOptions;
+import jakarta.inject.Inject;
 import java.io.FileOutputStream;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
@@ -192,6 +193,7 @@ import jakarta.ws.rs.InternalServerErrorException;
 import jakarta.ws.rs.client.Client;
 import jakarta.ws.rs.client.ClientBuilder;
 import jakarta.ws.rs.client.ClientRequestFilter;
+import java.util.concurrent.ScheduledExecutorService;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.stream.StreamSource;
 import net.jodah.expiringmap.ExpiringMap;
@@ -230,7 +232,6 @@ import org.glassfish.hk2.api.TypeLiteral;
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.apache.connector.ApacheClientProperties;
-import org.glassfish.jersey.apache.connector.ApacheConnectionClosingStrategy;
 import org.glassfish.jersey.apache.connector.ApacheConnectorProvider;
 import org.glassfish.jersey.client.ClientProperties;
 import org.glassfish.jersey.client.RequestEntityProcessing;
@@ -251,6 +252,7 @@ public class Application extends ResourceConfig
     
     private static final Logger log = LoggerFactory.getLogger(Application.class);
 
+    private @Inject ScheduledExecutorService idleConnectionMonitor;
     private final ExecutorService importThreadPool;
     private final ServletConfig servletConfig;
     private final EventBus eventBus = new EventBus();
@@ -623,10 +625,10 @@ public class Application extends ResourceConfig
             trustStore = KeyStore.getInstance("JKS");
             trustStore.load(new FileInputStream(new java.io.File(new URI(clientTrustStoreURIString))), clientTrustStorePassword.toCharArray());
             
-            client = getClient(keyStore, clientKeyStorePassword, trustStore, maxConnPerRoute, maxTotalConn, null, false);
-            externalClient = getClient(keyStore, clientKeyStorePassword, trustStore, maxConnPerRoute, maxTotalConn, null, false);
-            importClient = getClient(keyStore, clientKeyStorePassword, trustStore, maxConnPerRoute, maxTotalConn, importKeepAliveStrategy, true);
-            noCertClient = getNoCertClient(trustStore, maxConnPerRoute, maxTotalConn);
+            client = createClient(keyStore, clientKeyStorePassword, trustStore, maxConnPerRoute, maxTotalConn, null, false);
+            externalClient = createClient(keyStore, clientKeyStorePassword, trustStore, maxConnPerRoute, maxTotalConn, null, false);
+            importClient = createClient(keyStore, clientKeyStorePassword, trustStore, maxConnPerRoute, maxTotalConn, importKeepAliveStrategy, true);
+            noCertClient = createNoCertClient(trustStore, maxConnPerRoute, maxTotalConn);
             
             if (maxContentLength != null)
             {
@@ -1331,7 +1333,7 @@ public class Application extends ResourceConfig
      * @throws UnrecoverableKeyException key loading error
      * @throws KeyManagementException key loading error
      */
-    public static Client getClient(KeyStore keyStore, String keyStorePassword, KeyStore trustStore, Integer maxConnPerRoute, Integer maxTotalConn, ConnectionKeepAliveStrategy keepAliveStrategy, boolean buffered) throws NoSuchAlgorithmException, KeyStoreException, UnrecoverableKeyException, KeyManagementException
+    public Client createClient(KeyStore keyStore, String keyStorePassword, KeyStore trustStore, Integer maxConnPerRoute, Integer maxTotalConn, ConnectionKeepAliveStrategy keepAliveStrategy, boolean buffered) throws NoSuchAlgorithmException, KeyStoreException, UnrecoverableKeyException, KeyManagementException
     {
         if (keyStore == null) throw new IllegalArgumentException("KeyStore cannot be null");
         if (keyStorePassword == null) throw new IllegalArgumentException("KeyStore password string cannot be null");
@@ -1417,7 +1419,7 @@ public class Application extends ResourceConfig
      * @param maxTotalConn max total connections
      * @return client instance
      */
-    public static Client getNoCertClient(KeyStore trustStore, Integer maxConnPerRoute, Integer maxTotalConn)
+    public Client createNoCertClient(KeyStore trustStore, Integer maxConnPerRoute, Integer maxTotalConn)
     {
         try
         {
@@ -1465,7 +1467,22 @@ public class Application extends ResourceConfig
             if (maxConnPerRoute != null) conman.setDefaultMaxPerRoute(maxConnPerRoute);
             if (maxTotalConn != null) conman.setMaxTotal(maxTotalConn);
             conman.setValidateAfterInactivity(5000); // check connections idle for more than Varnish's idle_timeout which is 5s
-
+            
+            Integer idleConnTimeout = 5000;
+            // create monitor thread that evicts idle connections: https://hc.apache.org/httpcomponents-client-4.5.x/current/tutorial/html/connmgmt.html#d5e418
+            idleConnectionMonitor.scheduleAtFixedRate(() ->
+            {
+                try
+                {
+                    if (log.isDebugEnabled()) log.debug("Evicting idle HTTP connections (every {} ms)", idleConnTimeout);
+                    conman.closeIdleConnections(idleConnTimeout, TimeUnit.MILLISECONDS);
+                }
+                catch (Exception ex)
+                {
+                    if (log.isErrorEnabled()) log.error("Error closing idle connections: {}", ex);
+                }
+            }, 0, idleConnTimeout, java.util.concurrent.TimeUnit.MILLISECONDS);
+        
             ClientConfig config = new ClientConfig();
             config.connectorProvider(new ApacheConnectorProvider());
             config.register(MultiPartFeature.class);
@@ -1486,17 +1503,17 @@ public class Application extends ResourceConfig
         }
         catch (NoSuchAlgorithmException ex)
         {
-            if ( log.isErrorEnabled()) log.error("No such algorithm: {}", ex);
+            if (log.isErrorEnabled()) log.error("No such algorithm: {}", ex);
             throw new IllegalStateException(ex);
         }
         catch (KeyStoreException ex)
         {
-            if ( log.isErrorEnabled()) log.error("Key store error: {}", ex);
+            if (log.isErrorEnabled()) log.error("Key store error: {}", ex);
             throw new IllegalStateException(ex);
         }
         catch (KeyManagementException ex)
         {
-            if ( log.isErrorEnabled()) log.error("Key management error: {}", ex);
+            if (log.isErrorEnabled()) log.error("Key management error: {}", ex);
             throw new IllegalStateException(ex);
         }
     }
