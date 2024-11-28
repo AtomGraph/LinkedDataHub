@@ -1336,7 +1336,6 @@ public class Application extends ResourceConfig
         if (keyStore == null) throw new IllegalArgumentException("KeyStore cannot be null");
         if (keyStorePassword == null) throw new IllegalArgumentException("KeyStore password string cannot be null");
         if (trustStore == null) throw new IllegalArgumentException("KeyStore (truststore) cannot be null");
-        Integer connIdleTimeout = 5000;
         
         // for client authentication
         KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
@@ -1385,8 +1384,8 @@ public class Application extends ResourceConfig
         };
         if (maxConnPerRoute != null) conman.setDefaultMaxPerRoute(maxConnPerRoute);
         if (maxTotalConn != null) conman.setMaxTotal(maxTotalConn);
-        conman.setValidateAfterInactivity(connIdleTimeout); // check connections idle for more than Varnish's idle_timeout which is 5s
-        //conman.closeIdleConnections(connIdleTimeout, TimeUnit.MILLISECONDS); // match the Varnish idle timeout
+        conman.setValidateAfterInactivity(5000); // check connections idle for more than Varnish's idle_timeout which is 5s
+        //conman.closeIdleConnections(5, TimeUnit.SECONDS); // Match the Varnish idle timeout
 
         ClientConfig config = new ClientConfig();
         config.connectorProvider(new ApacheConnectorProvider());
@@ -1465,6 +1464,7 @@ public class Application extends ResourceConfig
             };
             if (maxConnPerRoute != null) conman.setDefaultMaxPerRoute(maxConnPerRoute);
             if (maxTotalConn != null) conman.setMaxTotal(maxTotalConn);
+            conman.setValidateAfterInactivity(5000); // check connections idle for more than Varnish's idle_timeout which is 5s
 
             ClientConfig config = new ClientConfig();
             config.connectorProvider(new ApacheConnectorProvider());
