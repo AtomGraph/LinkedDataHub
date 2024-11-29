@@ -171,8 +171,6 @@ import com.atomgraph.server.mapper.SPINConstraintViolationExceptionMapper;
 import com.atomgraph.spinrdf.vocabulary.SP;
 import com.github.jsonldjava.core.DocumentLoader;
 import com.github.jsonldjava.core.JsonLdOptions;
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
 import java.io.FileOutputStream;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
@@ -238,7 +236,6 @@ import org.glassfish.jersey.client.ClientProperties;
 import org.glassfish.jersey.client.RequestEntityProcessing;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.glassfish.jersey.process.internal.RequestScoped;
-import org.glassfish.jersey.server.BackgroundScheduler;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.server.filter.HttpMethodOverrideFilter;
 
@@ -254,7 +251,6 @@ public class Application extends ResourceConfig
     
     private static final Logger log = LoggerFactory.getLogger(Application.class);
 
-    private @Inject @BackgroundScheduler @Named("jersey-background-task-scheduler") ScheduledExecutorService idleConnectionMonitor;
     private final ExecutorService importThreadPool;
     private final ServletConfig servletConfig;
     private final EventBus eventBus = new EventBus();
@@ -1335,7 +1331,7 @@ public class Application extends ResourceConfig
      * @throws UnrecoverableKeyException key loading error
      * @throws KeyManagementException key loading error
      */
-    public Client createClient(KeyStore keyStore, String keyStorePassword, KeyStore trustStore, Integer maxConnPerRoute, Integer maxTotalConn, ConnectionKeepAliveStrategy keepAliveStrategy, boolean buffered) throws NoSuchAlgorithmException, KeyStoreException, UnrecoverableKeyException, KeyManagementException
+    public static Client createClient(KeyStore keyStore, String keyStorePassword, KeyStore trustStore, Integer maxConnPerRoute, Integer maxTotalConn, ConnectionKeepAliveStrategy keepAliveStrategy, boolean buffered) throws NoSuchAlgorithmException, KeyStoreException, UnrecoverableKeyException, KeyManagementException
     {
         if (keyStore == null) throw new IllegalArgumentException("KeyStore cannot be null");
         if (keyStorePassword == null) throw new IllegalArgumentException("KeyStore password string cannot be null");
@@ -1389,8 +1385,23 @@ public class Application extends ResourceConfig
         if (maxConnPerRoute != null) conman.setDefaultMaxPerRoute(maxConnPerRoute);
         if (maxTotalConn != null) conman.setMaxTotal(maxTotalConn);
         conman.setValidateAfterInactivity(5000); // check connections idle for more than Varnish's idle_timeout which is 5s
-        //conman.closeIdleConnections(5, TimeUnit.SECONDS); // Match the Varnish idle timeout
 
+        Integer idleConnTimeout = 5000;
+        // create monitor thread that evicts idle connections: https://hc.apache.org/httpcomponents-client-4.5.x/current/tutorial/html/connmgmt.html#d5e418
+        ScheduledExecutorService  idleConnectionMonitor = Executors.newSingleThreadScheduledExecutor();
+        idleConnectionMonitor.scheduleAtFixedRate(() ->
+        {
+            try
+            {
+                if (log.isDebugEnabled()) log.debug("Evicting idle HTTP connections (every {} ms)", idleConnTimeout);
+                conman.closeIdleConnections(idleConnTimeout, TimeUnit.MILLISECONDS);
+            }
+            catch (Exception ex)
+            {
+                if (log.isErrorEnabled()) log.error("Error closing idle connections: {}", ex);
+            }
+        }, 0, idleConnTimeout, java.util.concurrent.TimeUnit.MILLISECONDS);
+            
         ClientConfig config = new ClientConfig();
         config.connectorProvider(new ApacheConnectorProvider());
         config.register(MultiPartFeature.class);
@@ -1421,7 +1432,7 @@ public class Application extends ResourceConfig
      * @param maxTotalConn max total connections
      * @return client instance
      */
-    public Client createNoCertClient(KeyStore trustStore, Integer maxConnPerRoute, Integer maxTotalConn)
+    public static Client createNoCertClient(KeyStore trustStore, Integer maxConnPerRoute, Integer maxTotalConn)
     {
         try
         {
@@ -1472,6 +1483,7 @@ public class Application extends ResourceConfig
             
             Integer idleConnTimeout = 5000;
             // create monitor thread that evicts idle connections: https://hc.apache.org/httpcomponents-client-4.5.x/current/tutorial/html/connmgmt.html#d5e418
+            ScheduledExecutorService  idleConnectionMonitor = Executors.newSingleThreadScheduledExecutor();
             idleConnectionMonitor.scheduleAtFixedRate(() ->
             {
                 try
@@ -1496,7 +1508,7 @@ public class Application extends ResourceConfig
             config.property(ClientProperties.FOLLOW_REDIRECTS, true);
             config.property(ClientProperties.REQUEST_ENTITY_PROCESSING, RequestEntityProcessing.BUFFERED); // https://stackoverflow.com/questions/42139436/jersey-client-throws-cannot-retry-request-with-a-non-repeatable-request-entity
             config.property(ApacheClientProperties.CONNECTION_MANAGER, conman);
-            
+
             return ClientBuilder.newBuilder().
                 withConfig(config).
                 sslContext(ctx).
