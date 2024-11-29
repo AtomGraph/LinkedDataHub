@@ -1384,9 +1384,9 @@ public class Application extends ResourceConfig
         };
         if (maxConnPerRoute != null) conman.setDefaultMaxPerRoute(maxConnPerRoute);
         if (maxTotalConn != null) conman.setMaxTotal(maxTotalConn);
-        conman.setValidateAfterInactivity(5000); // check connections idle for more than Varnish's idle_timeout which is 5s
+        conman.setValidateAfterInactivity(6000); // check connections idle for more than Varnish's idle_timeout which is 5s
 
-        Integer idleConnTimeout = 5000;
+        Integer idleConnTimeout = 4000;
         // create monitor thread that evicts idle connections: https://hc.apache.org/httpcomponents-client-4.5.x/current/tutorial/html/connmgmt.html#d5e418
         ScheduledExecutorService  idleConnectionMonitor = Executors.newSingleThreadScheduledExecutor();
         idleConnectionMonitor.scheduleAtFixedRate(() ->
@@ -1479,9 +1479,9 @@ public class Application extends ResourceConfig
             };
             if (maxConnPerRoute != null) conman.setDefaultMaxPerRoute(maxConnPerRoute);
             if (maxTotalConn != null) conman.setMaxTotal(maxTotalConn);
-            conman.setValidateAfterInactivity(5000); // check connections idle for more than Varnish's idle_timeout which is 5s
+            conman.setValidateAfterInactivity(6000); // check connections idle for more than Varnish's idle_timeout which is 5s
             
-            Integer idleConnTimeout = 5000;
+            Integer idleConnTimeout = 4000;
             // create monitor thread that evicts idle connections: https://hc.apache.org/httpcomponents-client-4.5.x/current/tutorial/html/connmgmt.html#d5e418
             ScheduledExecutorService  idleConnectionMonitor = Executors.newSingleThreadScheduledExecutor();
             idleConnectionMonitor.scheduleAtFixedRate(() ->
