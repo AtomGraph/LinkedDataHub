@@ -1385,7 +1385,7 @@ public class Application extends ResourceConfig
         };
         if (maxConnPerRoute != null) conman.setDefaultMaxPerRoute(maxConnPerRoute);
         if (maxTotalConn != null) conman.setMaxTotal(maxTotalConn);
-        //conman.setValidateAfterInactivity(6000); // check connections idle for more than Varnish's idle_timeout which is 5s
+        conman.setValidateAfterInactivity(30000); // check connections idle for more than Varnish's idle_timeout which is 5s
 
         Integer idleConnTimeout = 4000;
         // create monitor thread that evicts idle connections: https://hc.apache.org/httpcomponents-client-4.5.x/current/tutorial/html/connmgmt.html#d5e418
@@ -1416,6 +1416,8 @@ public class Application extends ResourceConfig
         config.property(ClientProperties.REQUEST_ENTITY_PROCESSING, RequestEntityProcessing.BUFFERED); // https://stackoverflow.com/questions/42139436/jersey-client-throws-cannot-retry-request-with-a-non-repeatable-request-entity
         config.property(ApacheClientProperties.CONNECTION_MANAGER, conman);
         config.property(ApacheClientProperties.CONNECTION_CLOSING_STRATEGY, new ApacheConnectionClosingStrategy.GracefulClosingStrategy());
+        
+        keepAliveStrategy = (HttpResponse response, HttpContext context) -> { return 55000; };
         if (keepAliveStrategy != null) config.property(ApacheClientProperties.KEEPALIVE_STRATEGY, keepAliveStrategy);
 
         return ClientBuilder.newBuilder().
@@ -1480,7 +1482,7 @@ public class Application extends ResourceConfig
             };
             if (maxConnPerRoute != null) conman.setDefaultMaxPerRoute(maxConnPerRoute);
             if (maxTotalConn != null) conman.setMaxTotal(maxTotalConn);
-            //conman.setValidateAfterInactivity(6000); // check connections idle for more than Varnish's idle_timeout which is 5s
+            conman.setValidateAfterInactivity(30000); // check connections idle for more than Varnish's idle_timeout which is 5s
             
             Integer idleConnTimeout = 4000;
             // create monitor thread that evicts idle connections: https://hc.apache.org/httpcomponents-client-4.5.x/current/tutorial/html/connmgmt.html#d5e418
@@ -1510,7 +1512,10 @@ public class Application extends ResourceConfig
             config.property(ClientProperties.REQUEST_ENTITY_PROCESSING, RequestEntityProcessing.BUFFERED); // https://stackoverflow.com/questions/42139436/jersey-client-throws-cannot-retry-request-with-a-non-repeatable-request-entity
             config.property(ApacheClientProperties.CONNECTION_MANAGER, conman);
             config.property(ApacheClientProperties.CONNECTION_CLOSING_STRATEGY, new ApacheConnectionClosingStrategy.GracefulClosingStrategy());
-
+            
+            ConnectionKeepAliveStrategy keepAliveStrategy = (HttpResponse response, HttpContext context) -> { return 55000; };
+            if (keepAliveStrategy != null) config.property(ApacheClientProperties.KEEPALIVE_STRATEGY, keepAliveStrategy);
+        
             return ClientBuilder.newBuilder().
                 withConfig(config).
                 sslContext(ctx).
