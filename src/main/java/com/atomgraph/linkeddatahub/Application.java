@@ -231,6 +231,7 @@ import org.glassfish.hk2.api.TypeLiteral;
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.apache.connector.ApacheClientProperties;
+import org.glassfish.jersey.apache.connector.ApacheConnectionClosingStrategy;
 import org.glassfish.jersey.apache.connector.ApacheConnectorProvider;
 import org.glassfish.jersey.client.ClientProperties;
 import org.glassfish.jersey.client.RequestEntityProcessing;
@@ -1414,7 +1415,7 @@ public class Application extends ResourceConfig
         //config.property(ClientProperties.CONNECT_TIMEOUT, 1000);
         config.property(ClientProperties.REQUEST_ENTITY_PROCESSING, RequestEntityProcessing.BUFFERED); // https://stackoverflow.com/questions/42139436/jersey-client-throws-cannot-retry-request-with-a-non-repeatable-request-entity
         config.property(ApacheClientProperties.CONNECTION_MANAGER, conman);
-        //config.property(ApacheClientProperties.CONNECTION_CLOSING_STRATEGY, new ApacheConnectionClosingStrategy.GracefulClosingStrategy());
+        config.property(ApacheClientProperties.CONNECTION_CLOSING_STRATEGY, new ApacheConnectionClosingStrategy.GracefulClosingStrategy());
         if (keepAliveStrategy != null) config.property(ApacheClientProperties.KEEPALIVE_STRATEGY, keepAliveStrategy);
 
         return ClientBuilder.newBuilder().
@@ -1508,6 +1509,7 @@ public class Application extends ResourceConfig
             config.property(ClientProperties.FOLLOW_REDIRECTS, true);
             config.property(ClientProperties.REQUEST_ENTITY_PROCESSING, RequestEntityProcessing.BUFFERED); // https://stackoverflow.com/questions/42139436/jersey-client-throws-cannot-retry-request-with-a-non-repeatable-request-entity
             config.property(ApacheClientProperties.CONNECTION_MANAGER, conman);
+            config.property(ApacheClientProperties.CONNECTION_CLOSING_STRATEGY, new ApacheConnectionClosingStrategy.GracefulClosingStrategy());
 
             return ClientBuilder.newBuilder().
                 withConfig(config).
