@@ -1412,8 +1412,8 @@ public class Application extends ResourceConfig
         config.register(new QueryProvider());
         config.register(new UpdateRequestProvider());
         config.property(ClientProperties.FOLLOW_REDIRECTS, true);
-        config.property(ClientProperties.CONNECT_TIMEOUT, 1000);
-        config.property(ClientProperties.READ_TIMEOUT, 1000);
+        config.property(ClientProperties.CONNECT_TIMEOUT, 3000);
+        config.property(ClientProperties.READ_TIMEOUT, 30000);
         config.property(ClientProperties.REQUEST_ENTITY_PROCESSING, RequestEntityProcessing.BUFFERED); // https://stackoverflow.com/questions/42139436/jersey-client-throws-cannot-retry-request-with-a-non-repeatable-request-entity
         config.property(ApacheClientProperties.CONNECTION_MANAGER, conman);
         config.property(ApacheClientProperties.CONNECTION_CLOSING_STRATEGY, new ApacheConnectionClosingStrategy.GracefulClosingStrategy());
@@ -1510,8 +1510,8 @@ public class Application extends ResourceConfig
             config.register(new QueryProvider());
             config.register(new UpdateRequestProvider()); // TO-DO: UpdateRequestProvider
             config.property(ClientProperties.FOLLOW_REDIRECTS, true);
-            config.property(ClientProperties.CONNECT_TIMEOUT, 1000);
-            config.property(ClientProperties.READ_TIMEOUT, 1000);
+            config.property(ClientProperties.CONNECT_TIMEOUT, 3000);
+            config.property(ClientProperties.READ_TIMEOUT, 30000);
             config.property(ClientProperties.REQUEST_ENTITY_PROCESSING, RequestEntityProcessing.BUFFERED); // https://stackoverflow.com/questions/42139436/jersey-client-throws-cannot-retry-request-with-a-non-repeatable-request-entity
             config.property(ApacheClientProperties.CONNECTION_MANAGER, conman);
             config.property(ApacheClientProperties.CONNECTION_CLOSING_STRATEGY, new ApacheConnectionClosingStrategy.GracefulClosingStrategy());
