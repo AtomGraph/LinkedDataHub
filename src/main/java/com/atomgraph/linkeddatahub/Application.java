@@ -1387,21 +1387,21 @@ public class Application extends ResourceConfig
         if (maxTotalConn != null) conman.setMaxTotal(maxTotalConn);
         conman.setValidateAfterInactivity(30000); // check connections idle for more than Varnish's idle_timeout which is 5s
 
-        Integer idleConnTimeout = 4000;
+//        Integer idleConnTimeout = 4000;
         // create monitor thread that evicts idle connections: https://hc.apache.org/httpcomponents-client-4.5.x/current/tutorial/html/connmgmt.html#d5e418
-        ScheduledExecutorService  idleConnectionMonitor = Executors.newSingleThreadScheduledExecutor();
-        idleConnectionMonitor.scheduleAtFixedRate(() ->
-        {
-            try
-            {
-                if (log.isDebugEnabled()) log.debug("Evicting idle HTTP connections (every {} ms)", idleConnTimeout);
-                conman.closeIdleConnections(idleConnTimeout, TimeUnit.MILLISECONDS);
-            }
-            catch (Exception ex)
-            {
-                if (log.isErrorEnabled()) log.error("Error closing idle connections: {}", ex);
-            }
-        }, 0, idleConnTimeout, java.util.concurrent.TimeUnit.MILLISECONDS);
+//        ScheduledExecutorService  idleConnectionMonitor = Executors.newSingleThreadScheduledExecutor();
+//        idleConnectionMonitor.scheduleAtFixedRate(() ->
+//        {
+//            try
+//            {
+//                if (log.isDebugEnabled()) log.debug("Evicting idle HTTP connections (every {} ms)", idleConnTimeout);
+//                conman.closeIdleConnections(idleConnTimeout, TimeUnit.MILLISECONDS);
+//            }
+//            catch (Exception ex)
+//            {
+//                if (log.isErrorEnabled()) log.error("Error closing idle connections: {}", ex);
+//            }
+//        }, 0, idleConnTimeout, java.util.concurrent.TimeUnit.MILLISECONDS);
             
         ClientConfig config = new ClientConfig();
         config.connectorProvider(new ApacheConnectorProvider());
@@ -1485,21 +1485,21 @@ public class Application extends ResourceConfig
             if (maxTotalConn != null) conman.setMaxTotal(maxTotalConn);
             conman.setValidateAfterInactivity(30000); // check connections idle for more than Varnish's idle_timeout which is 5s
             
-            Integer idleConnTimeout = 4000;
+//            Integer idleConnTimeout = 4000;
             // create monitor thread that evicts idle connections: https://hc.apache.org/httpcomponents-client-4.5.x/current/tutorial/html/connmgmt.html#d5e418
-            ScheduledExecutorService  idleConnectionMonitor = Executors.newSingleThreadScheduledExecutor();
-            idleConnectionMonitor.scheduleAtFixedRate(() ->
-            {
-                try
-                {
-                    if (log.isDebugEnabled()) log.debug("Evicting idle HTTP connections (every {} ms)", idleConnTimeout);
-                    conman.closeIdleConnections(idleConnTimeout, TimeUnit.MILLISECONDS);
-                }
-                catch (Exception ex)
-                {
-                    if (log.isErrorEnabled()) log.error("Error closing idle connections: {}", ex);
-                }
-            }, 0, idleConnTimeout, java.util.concurrent.TimeUnit.MILLISECONDS);
+//            ScheduledExecutorService  idleConnectionMonitor = Executors.newSingleThreadScheduledExecutor();
+//            idleConnectionMonitor.scheduleAtFixedRate(() ->
+//            {
+//                try
+//                {
+//                    if (log.isDebugEnabled()) log.debug("Evicting idle HTTP connections (every {} ms)", idleConnTimeout);
+//                    conman.closeIdleConnections(idleConnTimeout, TimeUnit.MILLISECONDS);
+//                }
+//                catch (Exception ex)
+//                {
+//                    if (log.isErrorEnabled()) log.error("Error closing idle connections: {}", ex);
+//                }
+//            }, 0, idleConnTimeout, java.util.concurrent.TimeUnit.MILLISECONDS);
         
             ClientConfig config = new ClientConfig();
             config.connectorProvider(new ApacheConnectorProvider());
