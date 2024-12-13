@@ -204,7 +204,9 @@ import net.sf.saxon.s9api.XsltCompiler;
 import net.sf.saxon.s9api.XsltExecutable;
 import nu.xom.XPathException;
 import org.apache.http.HttpClientConnection;
+import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpRequestRetryHandler;
 import org.apache.http.config.Registry;
 import org.apache.http.config.RegistryBuilder;
 import org.apache.http.conn.ConnectionKeepAliveStrategy;
@@ -214,6 +216,7 @@ import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.protocol.HttpContext;
+import org.apache.http.protocol.HttpCoreContext;
 import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.ResIterator;
@@ -230,7 +233,6 @@ import org.glassfish.hk2.api.TypeLiteral;
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.apache.connector.ApacheClientProperties;
-import org.glassfish.jersey.apache.connector.ApacheConnectionClosingStrategy;
 import org.glassfish.jersey.apache.connector.ApacheConnectorProvider;
 import org.glassfish.jersey.client.ClientProperties;
 import org.glassfish.jersey.client.RequestEntityProcessing;
@@ -1384,7 +1386,8 @@ public class Application extends ResourceConfig
         };
         if (maxConnPerRoute != null) conman.setDefaultMaxPerRoute(maxConnPerRoute);
         if (maxTotalConn != null) conman.setMaxTotal(maxTotalConn);
-
+        int maxRetryCount = 3;
+        
         ClientConfig config = new ClientConfig();
         config.connectorProvider(new ApacheConnectorProvider());
         config.register(MultiPartFeature.class);
@@ -1396,6 +1399,23 @@ public class Application extends ResourceConfig
         config.property(ClientProperties.FOLLOW_REDIRECTS, true);
         config.property(ClientProperties.REQUEST_ENTITY_PROCESSING, RequestEntityProcessing.BUFFERED); // https://stackoverflow.com/questions/42139436/jersey-client-throws-cannot-retry-request-with-a-non-repeatable-request-entity
         config.property(ApacheClientProperties.CONNECTION_MANAGER, conman);
+        config.property(ApacheClientProperties.RETRY_HANDLER, (HttpRequestRetryHandler) (IOException ex, int executionCount, HttpContext context) ->
+        {
+            // Extract the HTTP host from the context
+            HttpHost targetHost = (HttpHost) context.getAttribute(HttpCoreContext.HTTP_TARGET_HOST);
+            String serverName = targetHost != null ? targetHost.getHostName() : "Unknown";
+
+            if (executionCount > maxRetryCount) {
+                if (log.isWarnEnabled()) log.warn("Maximum tries reached for client HTTP pool to server '{}'", serverName);
+                return false;
+            }
+            if (ex instanceof org.apache.http.NoHttpResponseException) {
+                if (log.isWarnEnabled()) log.warn("No response from server '{}' on {} call", serverName, executionCount);
+                return true;
+            }
+            return false;
+        });
+        
         //config.property(ApacheClientProperties.CONNECTION_CLOSING_STRATEGY, new ApacheConnectionClosingStrategy.GracefulClosingStrategy());
         if (keepAliveStrategy != null) config.property(ApacheClientProperties.KEEPALIVE_STRATEGY, keepAliveStrategy);
 
@@ -1461,6 +1481,7 @@ public class Application extends ResourceConfig
             };
             if (maxConnPerRoute != null) conman.setDefaultMaxPerRoute(maxConnPerRoute);
             if (maxTotalConn != null) conman.setMaxTotal(maxTotalConn);
+            int maxRetryCount = 3;
 
             ClientConfig config = new ClientConfig();
             config.connectorProvider(new ApacheConnectorProvider());
@@ -1473,7 +1494,23 @@ public class Application extends ResourceConfig
             config.property(ClientProperties.FOLLOW_REDIRECTS, true);
             config.property(ClientProperties.REQUEST_ENTITY_PROCESSING, RequestEntityProcessing.BUFFERED); // https://stackoverflow.com/questions/42139436/jersey-client-throws-cannot-retry-request-with-a-non-repeatable-request-entity
             config.property(ApacheClientProperties.CONNECTION_MANAGER, conman);
+            config.property(ApacheClientProperties.RETRY_HANDLER, (HttpRequestRetryHandler) (IOException ex, int executionCount, HttpContext context) ->
+            {
+                // Extract the HTTP host from the context
+                HttpHost targetHost = (HttpHost) context.getAttribute(HttpCoreContext.HTTP_TARGET_HOST);
+                String serverName = targetHost != null ? targetHost.getHostName() : "Unknown";
 
+                if (executionCount > maxRetryCount) {
+                    if (log.isWarnEnabled()) log.warn("Maximum tries reached for client HTTP pool to server '{}'", serverName);
+                    return false;
+                }
+                if (ex instanceof org.apache.http.NoHttpResponseException) {
+                    if (log.isWarnEnabled()) log.warn("No response from server '{}' on {} call", serverName, executionCount);
+                    return true;
+                }
+                return false;
+            });
+        
             return ClientBuilder.newBuilder().
                 withConfig(config).
                 sslContext(ctx).
