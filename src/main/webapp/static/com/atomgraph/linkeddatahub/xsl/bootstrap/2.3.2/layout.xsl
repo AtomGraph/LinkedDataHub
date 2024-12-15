@@ -174,7 +174,7 @@ LIMIT   100
             SELECT  *
             WHERE
               {
-                $Type  ldh:template  ?content
+                $Type  ldh:template  ?block
               }
         ]]>
         <!-- VALUES $Type goes here -->
