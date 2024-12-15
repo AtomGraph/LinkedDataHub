@@ -130,7 +130,7 @@ exclude-result-prefixes="#all"
                     <xsl:variable name="service-uri" select="xs:anyURI($select-query/ldh:service/@rdf:resource)" as="xs:anyURI?"/>
                     <!-- set $this variable value unless getting the query string from state -->
                     <xsl:variable name="select-string" select="replace($select-query/sp:text, '$this', '&lt;' || $this || '&gt;', 'q')" as="xs:string"/>
-                    <xsl:variable name="select-string" select="replace($select-query/sp:text, '$about', '&lt;' || $about || '&gt;', 'q')" as="xs:string"/>
+                    <xsl:variable name="select-string" select="replace($select-string, '$about', '&lt;' || $about || '&gt;', 'q')" as="xs:string"/>
                     <xsl:message>$select-string: <xsl:value-of select="$select-string"/></xsl:message>
                     <xsl:variable name="select-xml" as="document-node()">
                         <xsl:variable name="select-json" as="item()">
