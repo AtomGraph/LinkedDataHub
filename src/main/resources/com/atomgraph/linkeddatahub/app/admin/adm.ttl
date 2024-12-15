@@ -90,7 +90,7 @@ WHERE
       {   { ?class  a  owl:Class }
         UNION
           { ?class  a  rdfs:Class }
-        ?class  rdfs:isDefinedBy  $this
+        ?class  rdfs:isDefinedBy  $about
       }
   }
 """ .
@@ -234,7 +234,7 @@ PREFIX  acl:  <http://www.w3.org/ns/auth/acl#>
 SELECT DISTINCT  ?agent
 WHERE
   { GRAPH ?authGraph
-      { $this  acl:agent  ?agent }
+      { $about  acl:agent  ?agent }
   }
 """ ;
     rdfs:isDefinedBy : .

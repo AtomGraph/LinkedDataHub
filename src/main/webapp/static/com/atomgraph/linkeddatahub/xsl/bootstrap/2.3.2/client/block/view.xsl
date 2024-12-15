@@ -76,12 +76,13 @@ exclude-result-prefixes="#all"
     <xsl:template match="*[@typeof = '&ldh;View'][descendant::*[@property = '&spin;query'][@resource]]" mode="ldh:RenderRow" priority="1">
         <xsl:param name="block" select="ancestor-or-self::div[contains-token(@class, 'block')][1]" as="element()"/>
         <xsl:param name="about" select="$block/@about" as="xs:anyURI"/>
-        <xsl:param name="this" select="$block/ancestor::*[@about][1]/@about" as="xs:anyURI"/> <!-- outer @about context -->
+        <xsl:param name="this" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/> <!-- document URL -->
+        <xsl:param name="about" select="$block/ancestor::*[@about][1]/@about" as="xs:anyURI"/> <!-- outer @about context -->
         <xsl:param name="container" select="." as="element()"/>
         <xsl:param name="graph" select="descendant::*[@property = '&ldh;graph']/@resource" as="xs:anyURI?"/>
         <xsl:param name="mode" select="descendant::*[@property = '&ac;mode']/@resource" as="xs:anyURI?"/>
         <xsl:param name="refresh-content" as="xs:boolean?"/>
-        <xsl:param name="base-uri" select="ldh:base-uri(.)" as="xs:anyURI"/>
+<!--        <xsl:param name="base-uri" select="ldh:base-uri(.)" as="xs:anyURI"/>-->
         <xsl:param name="query-uri" select="descendant::*[@property = '&spin;query']/@resource" as="xs:anyURI"/>
         
         <xsl:message>ldh:View ldh:RenderBlock $about: <xsl:value-of select="$about"/></xsl:message>
@@ -97,6 +98,7 @@ exclude-result-prefixes="#all"
             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                 <xsl:call-template name="ldh:ViewQueryLoad">
                     <xsl:with-param name="this" select="$this"/>
+                    <xsl:with-param name="about" select="$about"/>
                     <xsl:with-param name="block" select="$block"/>
                     <xsl:with-param name="container" select="$container"/>
                     <xsl:with-param name="mode" select="$mode"/>
@@ -111,6 +113,7 @@ exclude-result-prefixes="#all"
     <xsl:template name="ldh:ViewQueryLoad">
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="this" as="xs:anyURI"/>
+        <xsl:param name="about" as="xs:anyURI"/>
         <xsl:param name="block" as="element()"/>
         <xsl:param name="container" as="element()"/>
         <xsl:param name="mode" as="xs:anyURI?"/>
@@ -127,6 +130,7 @@ exclude-result-prefixes="#all"
                     <xsl:variable name="service-uri" select="xs:anyURI($select-query/ldh:service/@rdf:resource)" as="xs:anyURI?"/>
                     <!-- set $this variable value unless getting the query string from state -->
                     <xsl:variable name="select-string" select="replace($select-query/sp:text, '$this', '&lt;' || $this || '&gt;', 'q')" as="xs:string"/>
+                    <xsl:variable name="select-string" select="replace($select-query/sp:text, '$about', '&lt;' || $about || '&gt;', 'q')" as="xs:string"/>
                     <xsl:message>$select-string: <xsl:value-of select="$select-string"/></xsl:message>
                     <xsl:variable name="select-xml" as="document-node()">
                         <xsl:variable name="select-json" as="item()">
