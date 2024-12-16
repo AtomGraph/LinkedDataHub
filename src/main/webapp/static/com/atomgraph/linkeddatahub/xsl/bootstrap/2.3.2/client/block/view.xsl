@@ -75,7 +75,7 @@ exclude-result-prefixes="#all"
     
     <xsl:template match="*[@typeof = '&ldh;View'][descendant::*[@property = '&spin;query'][@resource]]" mode="ldh:RenderRow" priority="1">
         <xsl:param name="block" select="ancestor-or-self::div[contains-token(@class, 'block')][1]" as="element()"/>
-        <xsl:param name="about" select="$block/@about" as="xs:anyURI"/>
+<!--        <xsl:param name="about" select="$block/@about" as="xs:anyURI"/>-->
         <xsl:param name="this" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/> <!-- document URL -->
         <xsl:param name="parent-about" select="$block/ancestor::*[@about][1]/@about" as="xs:anyURI"/> <!-- outer @about context -->
         <xsl:param name="container" select="." as="element()"/>
@@ -85,8 +85,9 @@ exclude-result-prefixes="#all"
 <!--        <xsl:param name="base-uri" select="ldh:base-uri(.)" as="xs:anyURI"/>-->
         <xsl:param name="query-uri" select="descendant::*[@property = '&spin;query']/@resource" as="xs:anyURI"/>
         
-        <xsl:message>ldh:View ldh:RenderBlock $about: <xsl:value-of select="$about"/></xsl:message>
+<!--        <xsl:message>ldh:View ldh:RenderBlock $about: <xsl:value-of select="$about"/></xsl:message>-->
         <xsl:message>ldh:View $query-uri: <xsl:value-of select="$query-uri"/></xsl:message>
+        <xsl:message>ldh:View $parent-about: <xsl:value-of select="$parent-about"/></xsl:message>
 
         <xsl:for-each select="$block//div[contains-token(@class, 'bar')]">
             <!-- update progress bar -->
