@@ -606,23 +606,42 @@ extension-element-prefixes="ixsl"
     <xsl:template match="*[not($ldh:renderSystemResources)][@rdf:about = ac:absolute-path(ldh:base-uri(.)) and rdf:type/@rdf:resource = ('&def;Root', '&dh;Container', '&dh;Item')]" mode="bs2:Row" priority="1" use-when="system-property('xsl:product-name') = 'SAXON'"/>
 
     <!-- overriding template used to inject ldh:template blocks (server-side only) -->
-<!--    <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:Row" priority="0.7" use-when="system-property('xsl:product-name') = 'SAXON'">
-         TO-DO: use $ldh:requestUri to resolve URIs server-side 
+    <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:Row" priority="0.7" use-when="system-property('xsl:product-name') = 'SAXON'">
+        <!-- TO-DO: use $ldh:requestUri to resolve URIs server-side -->
         <xsl:param name="id" select="if (contains(@rdf:about, ac:absolute-path(ldh:base-uri(.)) || '#')) then substring-after(@rdf:about, ac:absolute-path(ldh:base-uri(.)) || '#') else generate-id()" as="xs:string?"/>
         <xsl:param name="class" select="'row-fluid block'" as="xs:string?"/>
         <xsl:param name="about" select="@rdf:about" as="xs:anyURI?"/>
         <xsl:param name="typeof" select="rdf:type/@rdf:resource/xs:anyURI(.)" as="xs:anyURI*"/>
         <xsl:param name="mode" as="xs:anyURI?"/>
         <xsl:param name="style" as="xs:string?"/>
-         take care not to load unnecessary documents over HTTP when $typeof is empty 
+        <!-- take care not to load unnecessary documents over HTTP when $typeof is empty -->
         <xsl:variable name="block-values" select="if (exists($typeof)) then (if (doc-available(resolve-uri('ns?query=ASK%20%7B%7D', $ldt:base))) then (ldh:query-result(map{}, resolve-uri('ns', $ldt:base), $template-query || ' VALUES $Type { ' || string-join(for $type in $typeof return '&lt;' || $type || '&gt;', ' ') || ' }')//srx:binding[@name = 'block']/srx:uri/xs:anyURI(.)) else ()) else ()" as="xs:anyURI*" use-when="system-property('xsl:product-name') = 'SAXON'"/>
 
         <xsl:choose>
             <xsl:when test="exists($block-values)">
-                <div class="row-fluid">
+                <div>
+                    <xsl:if test="$id">
+                        <xsl:attribute name="id" select="$id"/>
+                    </xsl:if>
+                    <xsl:if test="$class">
+                        <xsl:attribute name="class" select="$class"/>
+                    </xsl:if>
+                    <xsl:if test="$about">
+                        <xsl:attribute name="about" select="$about"/>
+                    </xsl:if>
+        <!--            <xsl:if test="exists($typeof)">
+                        <xsl:attribute name="typeof" select="string-join($typeof, ' ')"/>
+                    </xsl:if>-->
+<!--                    <xsl:if test="$draggable = true()">
+                        <xsl:attribute name="draggable" select="'true'"/>
+                    </xsl:if>
+                    <xsl:if test="$draggable = false()">
+                        <xsl:attribute name="draggable" select="'false'"/>
+                    </xsl:if>-->
+            
                     <div class="span12">
                         <xsl:next-match>
-                            <xsl:with-param name="id" select="()"/>  unset @id 
+                            <xsl:with-param name="id" select="()"/> <!-- unset @id -->
                             <xsl:with-param name="class" select="$class"/>
                             <xsl:with-param name="about" select="$about"/>
                             <xsl:with-param name="typeof" select="$typeof"/>
@@ -630,11 +649,11 @@ extension-element-prefixes="ixsl"
                             <xsl:with-param name="style" select="$style"/>
                         </xsl:next-match>
 
-                         render contents attached to the types of this resource using ldh:template 
+                        <!-- render contents attached to the types of this resource using ldh:template -->
                         <xsl:for-each select="$block-values" use-when="system-property('xsl:product-name') = 'SAXON'">
                             <xsl:if test="doc-available(ac:document-uri(.))">
                                 <xsl:apply-templates select="key('resources', ., document(ac:document-uri(.)))" mode="bs2:Row">
-                                    <xsl:with-param name="about" select="()"/>  unset the @about 
+                                    <xsl:with-param name="about" select="()"/> <!-- unset the @about -->
                                 </xsl:apply-templates>
                             </xsl:if>
                         </xsl:for-each>
@@ -652,7 +671,7 @@ extension-element-prefixes="ixsl"
                 </xsl:next-match>
             </xsl:otherwise>
         </xsl:choose>
-    </xsl:template>-->
+    </xsl:template>
 
     <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:Row">
         <!-- TO-DO: use $ldh:requestUri to resolve URIs server-side -->
@@ -663,8 +682,6 @@ extension-element-prefixes="ixsl"
         <xsl:param name="mode" as="xs:anyURI?"/>
         <xsl:param name="style" as="xs:string?"/>
         <xsl:param name="main-class" select="'main span7'" as="xs:string?"/>
-        <!-- take care not to load unnecessary documents over HTTP when $typeof is empty -->
-        <xsl:variable name="block-values" select="if (exists($typeof)) then (if (doc-available(resolve-uri('ns?query=ASK%20%7B%7D', $ldt:base))) then (ldh:query-result(map{}, resolve-uri('ns', $ldt:base), $template-query || ' VALUES $Type { ' || string-join(for $type in $typeof return '&lt;' || $type || '&gt;', ' ') || ' }')//srx:binding[@name = 'block']/srx:uri/xs:anyURI(.)) else ()) else ()" as="xs:anyURI*" use-when="system-property('xsl:product-name') = 'SAXON'"/>
 
         <div>
             <xsl:if test="$id">
@@ -714,15 +731,6 @@ extension-element-prefixes="ixsl"
                         <xsl:apply-templates select="."/>
                     </xsl:otherwise>
                 </xsl:choose>
-                
-                <!-- render contents attached to the types of this resource using ldh:template -->
-                <xsl:for-each select="$block-values" use-when="system-property('xsl:product-name') = 'SAXON'">
-                    <xsl:if test="doc-available(ac:document-uri(.))">
-                        <xsl:apply-templates select="key('resources', ., document(ac:document-uri(.)))" mode="bs2:Row">
-                            <xsl:with-param name="about" select="()"/> <!-- unset the @about -->
-                        </xsl:apply-templates>
-                    </xsl:if>
-                </xsl:for-each>
             </div>
 
             <xsl:apply-templates select="." mode="bs2:Right"/>
