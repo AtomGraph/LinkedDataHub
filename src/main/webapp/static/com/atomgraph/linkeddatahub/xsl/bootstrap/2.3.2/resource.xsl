@@ -653,7 +653,7 @@ extension-element-prefixes="ixsl"
                         <xsl:for-each select="$block-values" use-when="system-property('xsl:product-name') = 'SAXON'">
                             <xsl:if test="doc-available(ac:document-uri(.))">
                                 <xsl:apply-templates select="key('resources', ., document(ac:document-uri(.)))" mode="bs2:Row">
-                                    <xsl:with-param name="about" select="()"/> <!-- unset the @about -->
+                                    <xsl:with-param name="about" select="xs:anyURI(ac:absolute-path(ldh:base-uri(.)) || '#id' || ac:uuid())"/> <!-- set a unique @about -->
                                 </xsl:apply-templates>
                             </xsl:if>
                         </xsl:for-each>
