@@ -649,11 +649,12 @@ extension-element-prefixes="ixsl"
                             <xsl:with-param name="style" select="$style"/>
                         </xsl:next-match>
 
+                        <xsl:variable name="base-uri" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/>
                         <!-- render contents attached to the types of this resource using ldh:template -->
                         <xsl:for-each select="$block-values" use-when="system-property('xsl:product-name') = 'SAXON'">
                             <xsl:if test="doc-available(ac:document-uri(.))">
                                 <xsl:apply-templates select="key('resources', ., document(ac:document-uri(.)))" mode="bs2:Row">
-                                    <xsl:with-param name="about" select="xs:anyURI(ac:absolute-path(ldh:base-uri(.)) || '#id' || ac:uuid())"/> <!-- set a unique @about -->
+                                    <xsl:with-param name="about" select="xs:anyURI($base-uri || '#id' || ac:uuid())"/> <!-- set a unique @about -->
                                 </xsl:apply-templates>
                             </xsl:if>
                         </xsl:for-each>
