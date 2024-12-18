@@ -574,8 +574,11 @@ dh:Item spin:constructor :TitleConstructor, :DescriptionConstructor, :PrimaryTop
         PREFIX spin:    <http://spinrdf.org/spin#>
 
         CONSTRUCT {
-            $this rdf:_1 [ a ldh:View ;
-                spin:query ldh:SelectChildren
+            $this rdf:_1 [ a ldh:Object ;
+                rdf:value [
+                    a ldh:View ;
+                    spin:query ldh:SelectChildren
+                ]
             ] .
         }
         WHERE {}""" ;
