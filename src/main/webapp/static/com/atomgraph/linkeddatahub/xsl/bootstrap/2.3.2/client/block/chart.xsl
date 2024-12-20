@@ -365,9 +365,10 @@ exclude-result-prefixes="#all"
                 </xsl:for-each>
             </xsl:for-each>
         </xsl:variable>
-        <xsl:variable name="block" select="ancestor::div[contains-token(@class, 'block')][1]" as="element()"/>
-        <xsl:variable name="block-id" select="$block/@id" as="xs:string"/>
-        <xsl:variable name="block-uri" select="if ($block/@about) then $block/@about else xs:anyURI(ac:absolute-path(ldh:base-uri(.)) || '#' || $block-id)" as="xs:anyURI"/>
+        <xsl:variable name="block" select="ancestor::div[contains-token(@class, 'block')][1]" as="element()?"/>
+        <xsl:variable name="block-id" select="$block/@id" as="xs:string?"/>
+        <!-- if there is no block, the chart is rendering the current document -->
+        <xsl:variable name="block-uri" select="if ($block/@about) then $block/@about else (if ($block-id) then xs:anyURI(ac:absolute-path(ldh:base-uri(.)) || '#' || $block-id) else ac:absolute-path(ldh:base-uri(.)))" as="xs:anyURI"/>
         <xsl:variable name="chart-canvas-id" select="ancestor::fieldset/following-sibling::div/@id" as="xs:string"/>
         <xsl:variable name="results" select="if (ixsl:contains(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`'), 'results')) then ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`'), 'results') else root(ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`'), 'content'))" as="document-node()"/>
         
@@ -400,9 +401,10 @@ exclude-result-prefixes="#all"
                 </xsl:for-each>
             </xsl:for-each>
         </xsl:variable>
-        <xsl:variable name="block" select="ancestor::div[contains-token(@class, 'block')][1]" as="element()"/>
-        <xsl:variable name="block-id" select="$block/@id" as="xs:string"/>
-        <xsl:variable name="block-uri" select="if ($block/@about) then $block/@about else xs:anyURI(ac:absolute-path(ldh:base-uri(.)) || '#' || $block-id)" as="xs:anyURI"/>
+        <xsl:variable name="block" select="ancestor::div[contains-token(@class, 'block')][1]" as="element()?"/>
+        <xsl:variable name="block-id" select="$block/@id" as="xs:string?"/>
+        <!-- if there is no block, the chart is rendering the current document -->
+        <xsl:variable name="block-uri" select="if ($block/@about) then $block/@about else (if ($block-id) then xs:anyURI(ac:absolute-path(ldh:base-uri(.)) || '#' || $block-id) else ac:absolute-path(ldh:base-uri(.)))" as="xs:anyURI"/>
         <xsl:variable name="chart-canvas-id" select="ancestor::fieldset/following-sibling::div/@id" as="xs:string"/>
         <xsl:variable name="results" select="if (ixsl:contains(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`'), 'results')) then ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`'), 'results') else root(ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`'), 'content'))" as="document-node()"/>
 
@@ -433,9 +435,10 @@ exclude-result-prefixes="#all"
                 <xsl:sequence select="ixsl:get(ixsl:call(ixsl:get($select, 'selectedOptions'), 'item', [ . ]), 'value')"/>
             </xsl:for-each>
         </xsl:variable>
-        <xsl:variable name="block" select="ancestor::div[contains-token(@class, 'block')][1]" as="element()"/>
-        <xsl:variable name="block-id" select="$block/@id" as="xs:string"/>
-        <xsl:variable name="block-uri" select="if ($block/@about) then $block/@about else xs:anyURI(ac:absolute-path(ldh:base-uri(.)) || '#' || $block-id)" as="xs:anyURI"/>
+        <xsl:variable name="block" select="ancestor::div[contains-token(@class, 'block')][1]" as="element()?"/>
+        <xsl:variable name="block-id" select="$block/@id" as="xs:string?"/>
+        <!-- if there is no block, the chart is rendering the current document -->
+        <xsl:variable name="block-uri" select="if ($block/@about) then $block/@about else (if ($block-id) then xs:anyURI(ac:absolute-path(ldh:base-uri(.)) || '#' || $block-id) else ac:absolute-path(ldh:base-uri(.)))" as="xs:anyURI"/>
         <xsl:variable name="chart-canvas-id" select="ancestor::fieldset/following-sibling::div/@id" as="xs:string"/>
         <xsl:variable name="results" select="if (ixsl:contains(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`'), 'results')) then ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`'), 'results') else root(ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`'), 'content'))" as="document-node()"/>
 
