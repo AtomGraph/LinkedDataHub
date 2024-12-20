@@ -718,7 +718,7 @@ exclude-result-prefixes="#all"
         <!-- hide the row with the block controls -->
         <ixsl:set-style name="z-index" select="'-1'" object="key('elements-by-class', 'row-block-controls', $block)"/>
         <!-- hide the progress bar -->
-        <xsl:for-each select="$block/div[contains-token(@class, 'span12')]">
+        <xsl:for-each select="$container/parent::div[contains-token(@class, 'span12')]">
             <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'progress', false() ])[current-date() lt xs:date('2000-01-01')]"/>
             <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'progress-striped', false() ])[current-date() lt xs:date('2000-01-01')]"/>
             <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'active', false() ])[current-date() lt xs:date('2000-01-01')]"/>
