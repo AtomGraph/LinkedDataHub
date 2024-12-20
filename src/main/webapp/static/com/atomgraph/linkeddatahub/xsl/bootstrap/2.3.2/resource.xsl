@@ -507,7 +507,7 @@ extension-element-prefixes="ixsl"
                             </button>
                         </xsl:if>
                         <div class="row-fluid">
-                            <div style="width: 50%;" class="span12 bar"></div>
+                            <div style="width: 25%;" class="span12 bar"></div>
                         </div>
                     </div>
                 </div>

@@ -67,7 +67,7 @@ exclude-result-prefixes="#all"
 
         <xsl:for-each select="$block//div[contains-token(@class, 'bar')]">
             <!-- update progress bar -->
-            <ixsl:set-style name="width" select="'75%'" object="."/>
+            <ixsl:set-style name="width" select="'50%'" object="."/>
         </xsl:for-each>
         
         <!-- don't use ldh:base-uri(.) because its value comes from the last HTML document load -->
@@ -175,14 +175,11 @@ exclude-result-prefixes="#all"
                     </xsl:apply-templates>
                 </xsl:variable>
 
-            <xsl:message>
-                ldh:LoadBlockObjectMetadata $resource: <xsl:value-of select="serialize($resource)"/>
-                ldh:LoadBlockObjectMetadata $row: <xsl:value-of select="serialize($row)"/>
-            </xsl:message>
+                <xsl:message>
+                    ldh:LoadBlockObjectMetadata $resource: <xsl:value-of select="serialize($resource)"/>
+                    ldh:LoadBlockObjectMetadata $row: <xsl:value-of select="serialize($row)"/>
+                </xsl:message>
         
-                <!-- hide the row with the block controls -->
-                <ixsl:set-style name="z-index" select="'-1'" object="key('elements-by-class', 'row-block-controls', $block)"/>
-                
                 <xsl:for-each select="$container">
                     <xsl:result-document href="?." method="ixsl:replace-content">
                         <!-- wrap the row -->
@@ -193,13 +190,16 @@ exclude-result-prefixes="#all"
                     
                     <xsl:apply-templates mode="ldh:RenderRow"/> <!-- recurse down the block hierarchy -->
                 </xsl:for-each>
+
+                <!-- hide the row with the block controls -->
+<!--                <ixsl:set-style name="z-index" select="'-1'" object="key('elements-by-class', 'row-block-controls', $block)"/>-->
                 
                 <!-- hide the progress bar -->
-                <xsl:for-each select="$block/div[contains-token(@class, 'span12')]">
+<!--                <xsl:for-each select="$block/div[contains-token(@class, 'span12')]">
                     <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'progress', false() ])[current-date() lt xs:date('2000-01-01')]"/>
                     <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'progress-striped', false() ])[current-date() lt xs:date('2000-01-01')]"/>
                     <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'active', false() ])[current-date() lt xs:date('2000-01-01')]"/>
-                </xsl:for-each>
+                </xsl:for-each>-->
             </xsl:when>
             <xsl:otherwise>
                 <xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ ?message ])[current-date() lt xs:date('2000-01-01')]"/>

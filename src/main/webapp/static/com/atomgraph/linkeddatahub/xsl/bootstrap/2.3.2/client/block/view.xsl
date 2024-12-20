@@ -215,8 +215,6 @@ exclude-result-prefixes="#all"
                                     </div>
                                 </xsl:result-document>
                             </xsl:for-each>
-
-<!--                            <xsl:apply-templates select="$container" mode="ldh:BlockRendered"/>-->
                         </xsl:otherwise>
                     </xsl:choose>
                 </xsl:for-each>
@@ -1607,9 +1605,6 @@ exclude-result-prefixes="#all"
                             </xsl:result-document>
                         </xsl:for-each>
                         
-<!--                        <xsl:apply-templates select="$container" mode="ldh:BlockRendered"/>-->
-
-                        <!-- make sure the asynchronous templates below execute after ldh:BlockRendered -->
                         <xsl:for-each select="$bgp-triples-map">
                             <!-- only simple properties in the BGP are supported, not property paths etc. -->
                             <xsl:if test="json:string[@key = 'predicate']">
