@@ -218,7 +218,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="chart-type-id" select="'chart-type'" as="xs:string"/>
         <xsl:param name="category-id" select="'category'" as="xs:string"/>
         <xsl:param name="series-id" select="'series'" as="xs:string"/>
-        <xsl:param name="form-actions" as="element()">
+        <xsl:param name="form-actions" as="element()?">
             <div class="form-actions">
                 <button class="btn btn-primary btn-save-chart" type="button">
                     <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ldh:logo">

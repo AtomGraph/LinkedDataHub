@@ -306,7 +306,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="query" as="xs:string?"/>
         <xsl:param name="show-controls" select="true()" as="xs:boolean"/>
         <xsl:param name="show-save" select="true()" as="xs:boolean"/>
-        <xsl:param name="form-actions" as="element()">
+        <xsl:param name="form-actions" as="element()?">
             <xsl:if test="$show-save">
                 <div class="form-actions">
                     <button class="btn btn-primary btn-save-chart" type="button">
@@ -472,7 +472,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="query" as="xs:string?"/>
         <xsl:param name="show-controls" select="true()" as="xs:boolean"/>
         <xsl:param name="show-save" select="true()" as="xs:boolean"/>
-        <xsl:param name="form-actions" as="element()">
+        <xsl:param name="form-actions" as="element()?s">
             <xsl:if test="$show-save">
                 <div class="form-actions">
                     <button class="btn btn-primary btn-save-chart" type="button">
