@@ -622,6 +622,7 @@ exclude-result-prefixes="#all"
                             <xsl:call-template name="onChartSPARQLResultsLoad">
                                 <xsl:with-param name="endpoint" select="$endpoint"/>
                                 <xsl:with-param name="results-uri" select="$results-uri"/>
+                                <xsl:with-param name="block" select="$block"/>
                                 <xsl:with-param name="container" select="$container"/>
                                 <xsl:with-param name="chart-canvas-id" select="$canvas-id"/>
                                 <xsl:with-param name="block-uri" select="$block/@about"/>
@@ -660,6 +661,7 @@ exclude-result-prefixes="#all"
     
     <xsl:template name="onChartSPARQLResultsLoad">
         <xsl:context-item as="map(*)" use="required"/>
+        <xsl:param name="block" as="element()"/>
         <xsl:param name="container" as="element()"/>
         <xsl:param name="results-uri" as="xs:anyURI"/>
         <xsl:param name="block-uri" select="$results-uri" as="xs:anyURI"/>
@@ -713,8 +715,16 @@ $series: <xsl:value-of select="$series"/>
                         <xsl:with-param name="series" select="$series"/>
                     </xsl:call-template>
 
-                    <xsl:for-each select="$container//div[@class = 'progress-bar']">
+<!--                    <xsl:for-each select="$container//div[@class = 'progress-bar']">
                         <ixsl:set-style name="display" select="'none'" object="."/>
+                    </xsl:for-each>-->
+                    <!-- hide the row with the block controls -->
+                    <ixsl:set-style name="z-index" select="'-1'" object="key('elements-by-class', 'row-block-controls', $block)"/>
+                    <!-- hide the progress bar -->
+                    <xsl:for-each select="$block/div[contains-token(@class, 'span12')]">
+                        <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'progress', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+                        <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'progress-striped', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+                        <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'active', false() ])[current-date() lt xs:date('2000-01-01')]"/>
                     </xsl:for-each>
                 </xsl:for-each>
             </xsl:when>
