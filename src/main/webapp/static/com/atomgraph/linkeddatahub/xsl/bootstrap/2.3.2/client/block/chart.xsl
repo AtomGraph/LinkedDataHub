@@ -718,8 +718,7 @@ $series: <xsl:value-of select="$series"/>
 <!--                    <xsl:for-each select="$container//div[@class = 'progress-bar']">
                         <ixsl:set-style name="display" select="'none'" object="."/>
                     </xsl:for-each>-->
-                    <!-- hide the row with the block controls -->
-                    <ixsl:set-style name="z-index" select="'-1'" object="key('elements-by-class', 'row-block-controls', $block)"/>
+                    
                     <!-- hide the progress bar -->
                     <xsl:for-each select="$container/parent::div[contains-token(@class, 'span12')]">
                         <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'progress', false() ])[current-date() lt xs:date('2000-01-01')]"/>
