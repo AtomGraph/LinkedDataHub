@@ -188,7 +188,9 @@ exclude-result-prefixes="#all"
                         </div>
                     </xsl:result-document>
                     
-                    <xsl:apply-templates mode="ldh:RenderRow"/> <!-- recurse down the block hierarchy -->
+                    <xsl:apply-templates mode="ldh:RenderRow"> <!-- recurse down the block hierarchy -->
+                        <xsl:with-param name="block" select="$block"/>
+                    </xsl:apply-templates>
                 </xsl:for-each>
 
                 <!-- hide the row with the block controls -->
