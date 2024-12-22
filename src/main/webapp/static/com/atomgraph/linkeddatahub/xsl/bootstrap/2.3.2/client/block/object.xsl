@@ -207,7 +207,7 @@ exclude-result-prefixes="#all"
         </xsl:choose>
     </xsl:template>
     
-    <xsl:template match="*[@typeof]" mode="ldh:RenderRow" priority="1">
+    <xsl:template match="*[@typeof[not(. = ('&ldh;Object', '&ldh;View', '&ldh;GraphChart', '&ldh;ResultSetChart'))]]" mode="ldh:RenderRow" priority="1">
         <xsl:apply-templates mode="#current"/>
         
         <!-- hide the progress bar -->
