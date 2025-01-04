@@ -980,7 +980,7 @@ WHERE
     
     <xsl:template match="a[not(@target)][@href]" mode="ixsl:onclick">
         <xsl:message>WTF
-            starts-with(resolve-uri(@href, ldh:base-uri(.)): <xsl:value-of select="starts-with(resolve-uri(@href, ldh:base-uri(.))"/>
+            resolve-uri(@href, ldh:base-uri(.)): <xsl:value-of select="resolve-uri(@href, ldh:base-uri(.))"/>
         </xsl:message>
     </xsl:template>
     
