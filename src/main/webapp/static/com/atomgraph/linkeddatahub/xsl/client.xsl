@@ -954,7 +954,7 @@ WHERE
     
     <!-- intercept all HTML and SVG link clicks except to /uploads/ and those in the navbar (except breadcrumb bar, .brand and app list) and the footer -->
     <!-- resolve URLs against the current document URL because they can be relative -->
-    <xsl:template match="a[not(@target)][starts-with(resolve-uri(@href, ldh:base-uri(.)), 'http://') or starts-with(resolve-uri(@href, ldh:base-uri(.)), 'https://')][not(starts-with(resolve-uri(@href, ldh:base-uri(.)), resolve-uri('uploads/', $ldt:base)))][ancestor::div[@id = 'breadcrumb-nav'] or not(ancestor::div[tokenize(@class, ' ') = ('navbar', 'footer')])] | a[contains-token(@class, 'brand')] | div[button[contains-token(@class, 'btn-apps')]]/ul//a | svg:a[not(@target)][starts-with(resolve-uri(@href, ldh:base-uri(.)), 'http://') or starts-with(resolve-uri(@href, ldh:base-uri(.)), 'https://')][not(starts-with(resolve-uri(@href, ldh:base-uri(.)), resolve-uri('uploads/', $ldt:base)))]" mode="ixsl:onclick" priority="1">
+    <xsl:template match="a[not(@target)][starts-with(resolve-uri(@href, ldh:base-uri(.)), 'http://') or starts-with(resolve-uri(@href, ldh:base-uri(.)), 'https://')][not(starts-with(resolve-uri(@href, ldh:base-uri(.)), resolve-uri('uploads/', $ldt:base)))][ancestor::div[@id = 'breadcrumb-nav'] or not(ancestor::div[tokenize(@class, ' ') = ('navbar', 'footer')])] | a[contains-token(@class, 'brand')] | div[button[contains-token(@class, 'btn-apps')]]/ul//a | svg:a[not(@target)][starts-with(resolve-uri(@href, ldh:base-uri(.)), 'http://') or starts-with(resolve-uri(@href, ldh:base-uri(.)), 'https://')][not(starts-with(resolve-uri(@href, ldh:base-uri(.)), resolve-uri('uploads/', $ldt:base)))]" mode="ixsl:onclick">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <xsl:variable name="href" select="resolve-uri(@href, ldh:base-uri(.))" as="xs:anyURI"/> <!-- resolve relative URIs -->
         
@@ -976,12 +976,6 @@ WHERE
         
         <!-- store the new request object -->
         <ixsl:set-property name="request" select="$request" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
-    </xsl:template>
-    
-    <xsl:template match="a[not(@target)][@href]" mode="ixsl:onclick">
-        <xsl:message>WTF
-            resolve-uri(@href, ldh:base-uri(.)): <xsl:value-of select="resolve-uri(@href, ldh:base-uri(.))"/>
-        </xsl:message>
     </xsl:template>
     
     <xsl:template match="form[contains-token(@class, 'navbar-form')]" mode="ixsl:onsubmit">
