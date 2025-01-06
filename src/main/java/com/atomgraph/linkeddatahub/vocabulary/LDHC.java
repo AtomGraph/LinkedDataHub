@@ -142,7 +142,10 @@ public class LDHC
 
     /** Import keep-alive property */
     public static final DatatypeProperty importKeepAlive = m_model.createDatatypeProperty( NS + "importKeepAlive" );
-    
+
+    /** HTTP client request retry count */
+    public static final DatatypeProperty maxRequestRetries = m_model.createDatatypeProperty( NS + "maxRequestRetries" );
+
     /** Max content length property */
     public static final DatatypeProperty maxContentLength = m_model.createDatatypeProperty( NS + "maxContentLength" );
 

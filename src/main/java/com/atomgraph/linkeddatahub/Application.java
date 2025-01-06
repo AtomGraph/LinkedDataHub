@@ -205,11 +205,9 @@ import net.sf.saxon.s9api.XsltExecutable;
 import nu.xom.XPathException;
 import org.apache.http.HttpClientConnection;
 import org.apache.http.HttpHost;
-import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpRequestRetryHandler;
 import org.apache.http.config.Registry;
 import org.apache.http.config.RegistryBuilder;
-import org.apache.http.conn.ConnectionKeepAliveStrategy;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
 import org.apache.http.conn.socket.PlainConnectionSocketFactory;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
@@ -331,8 +329,7 @@ public class Application extends ResourceConfig
             servletConfig.getServletContext().getInitParameter(LDHC.maxContentLength.getURI()) != null ? Integer.valueOf(servletConfig.getServletContext().getInitParameter(LDHC.maxContentLength.getURI())) : null,
             servletConfig.getServletContext().getInitParameter(LDHC.maxConnPerRoute.getURI()) != null ? Integer.valueOf(servletConfig.getServletContext().getInitParameter(LDHC.maxConnPerRoute.getURI())) : null,
             servletConfig.getServletContext().getInitParameter(LDHC.maxTotalConn.getURI()) != null ? Integer.valueOf(servletConfig.getServletContext().getInitParameter(LDHC.maxTotalConn.getURI())) : null,
-            // TO-DO: respect "timeout" header param in the ConnectionKeepAliveStrategy?
-            servletConfig.getServletContext().getInitParameter(LDHC.importKeepAlive.getURI()) != null ? (HttpResponse response, HttpContext context) -> Integer.valueOf(servletConfig.getServletContext().getInitParameter(LDHC.importKeepAlive.getURI())) : null,
+            servletConfig.getServletContext().getInitParameter(LDHC.maxRequestRetries.getURI()) != null ? Integer.valueOf(servletConfig.getServletContext().getInitParameter(LDHC.maxRequestRetries.getURI())) : null,
             servletConfig.getServletContext().getInitParameter(LDHC.maxImportThreads.getURI()) != null ? Integer.valueOf(servletConfig.getServletContext().getInitParameter(LDHC.maxImportThreads.getURI())) : null,
             servletConfig.getServletContext().getInitParameter(LDHC.notificationAddress.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.notificationAddress.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(LDHC.supportedLanguages.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.supportedLanguages.getURI()) : null,
@@ -389,7 +386,7 @@ public class Application extends ResourceConfig
      * @param maxContentLength maximum size of request entity
      * @param maxConnPerRoute maximum client connections per rout
      * @param maxTotalConn maximum total client connections
-     * @param importKeepAliveStrategy keep-alive strategy for the HTTP client used for imports
+     * @param maxRequestRetries maximum number of times that the HTTP client will retry a request
      * @param maxImportThreads maximum number of threads used for asynchronous imports
      * @param notificationAddressString email address used to send notifications
      * @param supportedLanguageCodes comma-separated codes of supported languages
@@ -412,7 +409,7 @@ public class Application extends ResourceConfig
             final String baseURIString, final String proxyScheme, final String proxyHostname, final Integer proxyPort,
             final String uploadRootString, final boolean invalidateCache,
             final Integer cookieMaxAge, final boolean enableLinkedDataProxy, final Integer maxContentLength,
-            final Integer maxConnPerRoute, final Integer maxTotalConn, final ConnectionKeepAliveStrategy importKeepAliveStrategy, final Integer maxImportThreads,
+            final Integer maxConnPerRoute, final Integer maxTotalConn, final Integer maxRequestRetries, final Integer maxImportThreads,
             final String notificationAddressString, final String supportedLanguageCodes, final boolean enableWebIDSignUp, final String oidcRefreshTokensPropertiesPath,
             final String mailUser, final String mailPassword, final String smtpHost, final String smtpPort,
             final String googleClientID, final String googleClientSecret)
@@ -627,8 +624,8 @@ public class Application extends ResourceConfig
             
             client = getClient(keyStore, clientKeyStorePassword, trustStore, maxConnPerRoute, maxTotalConn, null, false);
             externalClient = getClient(keyStore, clientKeyStorePassword, trustStore, maxConnPerRoute, maxTotalConn, null, false);
-            importClient = getClient(keyStore, clientKeyStorePassword, trustStore, maxConnPerRoute, maxTotalConn, importKeepAliveStrategy, true);
-            noCertClient = getNoCertClient(trustStore, maxConnPerRoute, maxTotalConn);
+            importClient = getClient(keyStore, clientKeyStorePassword, trustStore, maxConnPerRoute, maxTotalConn, maxRequestRetries, true);
+            noCertClient = getNoCertClient(trustStore, maxConnPerRoute, maxTotalConn, maxRequestRetries);
             
             if (maxContentLength != null)
             {
@@ -1325,7 +1322,7 @@ public class Application extends ResourceConfig
      * @param trustStore truststore
      * @param maxConnPerRoute max connections per route
      * @param maxTotalConn max total connections
-     * @param keepAliveStrategy keep-alive strategy (specific to Apache HTTP client)
+     * @param maxRequestRetries maximum number of times that the HTTP client will retry a request
      * @param buffered true if request entity should be buffered
      * @return client instance
      * @throws NoSuchAlgorithmException SSL algorithm error
@@ -1333,7 +1330,7 @@ public class Application extends ResourceConfig
      * @throws UnrecoverableKeyException key loading error
      * @throws KeyManagementException key loading error
      */
-    public static Client getClient(KeyStore keyStore, String keyStorePassword, KeyStore trustStore, Integer maxConnPerRoute, Integer maxTotalConn, ConnectionKeepAliveStrategy keepAliveStrategy, boolean buffered) throws NoSuchAlgorithmException, KeyStoreException, UnrecoverableKeyException, KeyManagementException
+    public static Client getClient(KeyStore keyStore, String keyStorePassword, KeyStore trustStore, Integer maxConnPerRoute, Integer maxTotalConn, Integer maxRequestRetries, boolean buffered) throws NoSuchAlgorithmException, KeyStoreException, UnrecoverableKeyException, KeyManagementException
     {
         if (keyStore == null) throw new IllegalArgumentException("KeyStore cannot be null");
         if (keyStorePassword == null) throw new IllegalArgumentException("KeyStore password string cannot be null");
@@ -1386,7 +1383,6 @@ public class Application extends ResourceConfig
         };
         if (maxConnPerRoute != null) conman.setDefaultMaxPerRoute(maxConnPerRoute);
         if (maxTotalConn != null) conman.setMaxTotal(maxTotalConn);
-        int maxRetryCount = 3;
         
         ClientConfig config = new ClientConfig();
         config.connectorProvider(new ApacheConnectorProvider());
@@ -1399,25 +1395,26 @@ public class Application extends ResourceConfig
         config.property(ClientProperties.FOLLOW_REDIRECTS, true);
         config.property(ClientProperties.REQUEST_ENTITY_PROCESSING, RequestEntityProcessing.BUFFERED); // https://stackoverflow.com/questions/42139436/jersey-client-throws-cannot-retry-request-with-a-non-repeatable-request-entity
         config.property(ApacheClientProperties.CONNECTION_MANAGER, conman);
-        config.property(ApacheClientProperties.RETRY_HANDLER, (HttpRequestRetryHandler) (IOException ex, int executionCount, HttpContext context) ->
-        {
-            // Extract the HTTP host from the context
-            HttpHost targetHost = (HttpHost) context.getAttribute(HttpCoreContext.HTTP_TARGET_HOST);
-            String serverName = targetHost != null ? targetHost.getHostName() : "Unknown";
-
-            if (executionCount > maxRetryCount) {
-                if (log.isWarnEnabled()) log.warn("Maximum tries reached for client HTTP pool to server '{}'", serverName);
-                return false;
-            }
-            if (ex instanceof org.apache.http.NoHttpResponseException) {
-                if (log.isWarnEnabled()) log.warn("No response from server '{}' on {} call", serverName, executionCount);
-                return true;
-            }
-            return false;
-        });
         
-        //config.property(ApacheClientProperties.CONNECTION_CLOSING_STRATEGY, new ApacheConnectionClosingStrategy.GracefulClosingStrategy());
-        if (keepAliveStrategy != null) config.property(ApacheClientProperties.KEEPALIVE_STRATEGY, keepAliveStrategy);
+        if (maxRequestRetries != null)
+            config.property(ApacheClientProperties.RETRY_HANDLER, (HttpRequestRetryHandler) (IOException ex, int executionCount, HttpContext context) ->
+            {
+                // Extract the HTTP host from the context
+                HttpHost targetHost = (HttpHost) context.getAttribute(HttpCoreContext.HTTP_TARGET_HOST);
+                String serverName = targetHost != null ? targetHost.getHostName() : "Unknown";
+
+                if (executionCount > maxRequestRetries)
+                {
+                    if (log.isWarnEnabled()) log.warn("Maximum tries reached for client HTTP pool to server '{}'", serverName);
+                    return false;
+                }
+                if (ex instanceof org.apache.http.NoHttpResponseException)
+                {
+                    if (log.isWarnEnabled()) log.warn("No response from server '{}' on {} call", serverName, executionCount);
+                    return true;
+                }
+                return false;
+            });
 
         return ClientBuilder.newBuilder().
             withConfig(config).
@@ -1432,9 +1429,10 @@ public class Application extends ResourceConfig
      * @param trustStore client truststore
      * @param maxConnPerRoute max connections per route
      * @param maxTotalConn max total connections
+     * @param maxRequestRetries maximum number of times that the HTTP client will retry a request
      * @return client instance
      */
-    public static Client getNoCertClient(KeyStore trustStore, Integer maxConnPerRoute, Integer maxTotalConn)
+    public static Client getNoCertClient(KeyStore trustStore, Integer maxConnPerRoute, Integer maxTotalConn, Integer maxRequestRetries)
     {
         try
         {
@@ -1481,7 +1479,6 @@ public class Application extends ResourceConfig
             };
             if (maxConnPerRoute != null) conman.setDefaultMaxPerRoute(maxConnPerRoute);
             if (maxTotalConn != null) conman.setMaxTotal(maxTotalConn);
-            int maxRetryCount = 3;
 
             ClientConfig config = new ClientConfig();
             config.connectorProvider(new ApacheConnectorProvider());
@@ -1494,22 +1491,26 @@ public class Application extends ResourceConfig
             config.property(ClientProperties.FOLLOW_REDIRECTS, true);
             config.property(ClientProperties.REQUEST_ENTITY_PROCESSING, RequestEntityProcessing.BUFFERED); // https://stackoverflow.com/questions/42139436/jersey-client-throws-cannot-retry-request-with-a-non-repeatable-request-entity
             config.property(ApacheClientProperties.CONNECTION_MANAGER, conman);
-            config.property(ApacheClientProperties.RETRY_HANDLER, (HttpRequestRetryHandler) (IOException ex, int executionCount, HttpContext context) ->
-            {
-                // Extract the HTTP host from the context
-                HttpHost targetHost = (HttpHost) context.getAttribute(HttpCoreContext.HTTP_TARGET_HOST);
-                String serverName = targetHost != null ? targetHost.getHostName() : "Unknown";
+            
+            if (maxRequestRetries != null)
+                config.property(ApacheClientProperties.RETRY_HANDLER, (HttpRequestRetryHandler) (IOException ex, int executionCount, HttpContext context) ->
+                {
+                    // Extract the HTTP host from the context
+                    HttpHost targetHost = (HttpHost) context.getAttribute(HttpCoreContext.HTTP_TARGET_HOST);
+                    String serverName = targetHost != null ? targetHost.getHostName() : "Unknown";
 
-                if (executionCount > maxRetryCount) {
-                    if (log.isWarnEnabled()) log.warn("Maximum tries reached for client HTTP pool to server '{}'", serverName);
+                    if (executionCount > maxRequestRetries)
+                    {
+                        if (log.isWarnEnabled()) log.warn("Maximum tries reached for client HTTP pool to server '{}'", serverName);
+                        return false;
+                    }
+                    if (ex instanceof org.apache.http.NoHttpResponseException)
+                    {
+                        if (log.isWarnEnabled()) log.warn("No response from server '{}' on {} call", serverName, executionCount);
+                        return true;
+                    }
                     return false;
-                }
-                if (ex instanceof org.apache.http.NoHttpResponseException) {
-                    if (log.isWarnEnabled()) log.warn("No response from server '{}' on {} call", serverName, executionCount);
-                    return true;
-                }
-                return false;
-            });
+                });
         
             return ClientBuilder.newBuilder().
                 withConfig(config).

@@ -713,6 +713,10 @@ if [ -n "$MAX_TOTAL_CONN" ]; then
     MAX_TOTAL_CONN_PARAM="--stringparam ldhc:maxTotalConn '$MAX_TOTAL_CONN' "
 fi
 
+if [ -n "$MAX_REQUEST_RETRIES" ]; then
+    MAX_REQUEST_RETRIES_PARAM="--stringparam ldhc:maxRequestRetries '$MAX_REQUEST_RETRIES' "
+fi
+
 if [ -n "$IMPORT_KEEPALIVE" ]; then
     IMPORT_KEEPALIVE_PARAM="--stringparam ldhc:importKeepAlive '$IMPORT_KEEPALIVE' "
 fi
@@ -769,6 +773,7 @@ transform="xsltproc \
   $MAX_CONTENT_LENGTH_PARAM \
   $MAX_CONN_PER_ROUTE_PARAM \
   $MAX_TOTAL_CONN_PARAM \
+  $MAX_REQUEST_RETRIES_PARAM \
   $IMPORT_KEEPALIVE_PARAM \
   $MAX_IMPORT_THREADS_PARAM \
   $NOTIFICATION_ADDRESS_PARAM \
