@@ -13,8 +13,8 @@
     <!ENTITY http   "http://www.w3.org/2011/http#">
     <!ENTITY sc     "http://www.w3.org/2011/http-statusCodes#">
     <!ENTITY acl    "http://www.w3.org/ns/auth/acl#">
-    <!ENTITY sd     "http://www.w3.org/ns/sparql-service-description#">
     <!ENTITY sh     "http://www.w3.org/ns/shacl#">
+    <!ENTITY sd     "http://www.w3.org/ns/sparql-service-description#">
     <!ENTITY ldt    "https://www.w3.org/ns/ldt#">
     <!ENTITY dh     "https://www.w3.org/ns/ldt/document-hierarchy#">
     <!ENTITY dct    "http://purl.org/dc/terms/">
@@ -306,7 +306,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="query" as="xs:string?"/>
         <xsl:param name="show-controls" select="true()" as="xs:boolean"/>
         <xsl:param name="show-save" select="true()" as="xs:boolean"/>
-        <xsl:param name="form-actions" as="element()">
+        <xsl:param name="form-actions" as="element()?">
             <xsl:if test="$show-save">
                 <div class="form-actions">
                     <button class="btn btn-primary btn-save-chart" type="button">
@@ -472,7 +472,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="query" as="xs:string?"/>
         <xsl:param name="show-controls" select="true()" as="xs:boolean"/>
         <xsl:param name="show-save" select="true()" as="xs:boolean"/>
-        <xsl:param name="form-actions" as="element()">
+        <xsl:param name="form-actions" as="element()?">
             <xsl:if test="$show-save">
                 <div class="form-actions">
                     <button class="btn btn-primary btn-save-chart" type="button">

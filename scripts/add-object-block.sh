@@ -91,10 +91,6 @@ if [ -z "$base" ] ; then
     print_usage
     exit 1
 fi
-if [ -z "$title" ] ; then
-    print_usage
-    exit 1
-fi
 if [ -z "$value" ] ; then
     print_usage
     exit 1

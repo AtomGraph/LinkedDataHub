@@ -21,8 +21,8 @@
     <!ENTITY sc     "http://www.w3.org/2011/http-statusCodes#">
     <!ENTITY acl    "http://www.w3.org/ns/auth/acl#">
     <!ENTITY cert   "http://www.w3.org/ns/auth/cert#">
-    <!ENTITY sd     "http://www.w3.org/ns/sparql-service-description#">
     <!ENTITY sh     "http://www.w3.org/ns/shacl#">
+    <!ENTITY sd     "http://www.w3.org/ns/sparql-service-description#">
     <!ENTITY ldt    "https://www.w3.org/ns/ldt#">
     <!ENTITY c      "https://www.w3.org/ns/ldt/core/domain#">
     <!ENTITY ct     "https://www.w3.org/ns/ldt/core/templates#">
@@ -174,7 +174,7 @@ LIMIT   100
             SELECT  *
             WHERE
               {
-                $Type  ldh:template  ?content
+                $Type  ldh:template  ?block
               }
         ]]>
         <!-- VALUES $Type goes here -->

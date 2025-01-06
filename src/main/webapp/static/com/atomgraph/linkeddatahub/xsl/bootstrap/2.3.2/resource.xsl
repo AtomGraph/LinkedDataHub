@@ -18,8 +18,8 @@
     <!ENTITY acl    "http://www.w3.org/ns/auth/acl#">
     <!ENTITY ldt    "https://www.w3.org/ns/ldt#">
     <!ENTITY dh     "https://www.w3.org/ns/ldt/document-hierarchy#">
-    <!ENTITY sd     "http://www.w3.org/ns/sparql-service-description#">
     <!ENTITY sh     "http://www.w3.org/ns/shacl#">
+    <!ENTITY sd     "http://www.w3.org/ns/sparql-service-description#">
     <!ENTITY dct    "http://purl.org/dc/terms/">
     <!ENTITY foaf   "http://xmlns.com/foaf/0.1/">
     <!ENTITY sioc   "http://rdfs.org/sioc/ns#">
@@ -460,21 +460,16 @@ extension-element-prefixes="ixsl"
     </xsl:template>
     
     <!-- BLOCK -->
-
-    <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = ('&sp;Describe', '&sp;Construct', '&sp;Ask', '&sp;Select')]" mode="bs2:Row" priority="1">
-        <xsl:next-match>
-            <xsl:with-param name="class" select="'row-fluid block'"/>
-        </xsl:next-match>
-    </xsl:template>
         
     <!-- resource block overrides -->
-    <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&ldh;Object']" mode="bs2:Row" priority="1">
+    <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = ('&ldh;Object', '&ldh;View', '&ldh;GraphChart', '&ldh;ResultSetChart', '&sp;Describe', '&sp;Construct', '&sp;Ask', '&sp;Select')]" mode="bs2:Row" priority="1">
         <!-- TO-DO: use $ldh:requestUri to resolve URIs server-side -->
         <xsl:param name="id" select="if (contains(@rdf:about, ac:absolute-path(ldh:base-uri(.)) || '#')) then substring-after(@rdf:about, ac:absolute-path(ldh:base-uri(.)) || '#') else generate-id()" as="xs:string?"/>
         <xsl:param name="class" select="'row-fluid block'" as="xs:string?"/>
         <xsl:param name="about" select="@rdf:about" as="xs:anyURI?"/>
         <xsl:param name="typeof" select="rdf:type/@rdf:resource/xs:anyURI(.)" as="xs:anyURI*"/>
         <xsl:param name="draggable" select="$acl:mode = '&acl;Write'" as="xs:boolean?"/>
+        <xsl:param name="show-row-block-controls" select="true()" as="xs:boolean"/>
 
         <xsl:apply-templates select="key('resources', .)" mode="bs2:RowContentHeader"/>
 
@@ -498,24 +493,29 @@ extension-element-prefixes="ixsl"
                 <xsl:attribute name="draggable" select="'false'"/>
             </xsl:if>
 
-            <div class="span12 progress progress-striped active">
-                <div class="row-fluid row-block-controls" style="position: relative; top: 30px; margin-top: -30px; z-index: 1;">
-                    <div class="span12">
-                        <xsl:if test="$acl:mode = '&acl;Write'">
-                            <button type="button" class="btn btn-edit pull-right" style="display: none;">
-                                <xsl:apply-templates select="key('resources', '&ac;EditMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
-                            </button>
-                        </xsl:if>
-                        <div class="row-fluid">
-                            <div style="width: 50%;" class="span12 bar"></div>
+            <div class="span12">
+                <xsl:if test="$show-row-block-controls">
+                    <xsl:attribute name="class" select="'span12 progress progress-striped active'"/>
+                    
+                    <div class="row-fluid row-block-controls" style="position: relative; top: 30px; margin-top: -30px; z-index: 1;">
+                        <div class="span12">
+                            <xsl:if test="$acl:mode = '&acl;Write'">
+                                <button type="button" class="btn btn-edit pull-right" style="display: none;">
+                                    <xsl:apply-templates select="key('resources', '&ac;EditMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
+                                </button>
+                            </xsl:if>
+                            <div class="row-fluid">
+                                <div style="width: 25%;" class="span12 bar"></div>
+                            </div>
                         </div>
                     </div>
-                </div>
+                </xsl:if>
 
                 <!-- client-side $container -->
                 <xsl:next-match>
-                    <xsl:with-param name="id" select="()"/> <!-- only top-level blocks have @id-->
-                    <xsl:with-param name="about" select="()"/> <!-- only top-level blocks have @about -->
+                    <xsl:with-param name="id" select="()"/> <!-- only block <div>s have @id-->
+                    <xsl:with-param name="about" select="()"/> <!-- only block <div>s have @about -->
+                    <xsl:with-param name="class" select="'row-fluid'"/>
                 </xsl:next-match>
             </div>
         </div>
@@ -619,7 +619,26 @@ extension-element-prefixes="ixsl"
 
         <xsl:choose>
             <xsl:when test="exists($block-values)">
-                <div class="row-fluid">
+                <div>
+                    <xsl:if test="$id">
+                        <xsl:attribute name="id" select="$id"/>
+                    </xsl:if>
+                    <xsl:if test="$class">
+                        <xsl:attribute name="class" select="$class"/>
+                    </xsl:if>
+                    <xsl:if test="$about">
+                        <xsl:attribute name="about" select="$about"/>
+                    </xsl:if>
+        <!--            <xsl:if test="exists($typeof)">
+                        <xsl:attribute name="typeof" select="string-join($typeof, ' ')"/>
+                    </xsl:if>-->
+<!--                    <xsl:if test="$draggable = true()">
+                        <xsl:attribute name="draggable" select="'true'"/>
+                    </xsl:if>
+                    <xsl:if test="$draggable = false()">
+                        <xsl:attribute name="draggable" select="'false'"/>
+                    </xsl:if>-->
+            
                     <div class="span12">
                         <xsl:next-match>
                             <xsl:with-param name="id" select="()"/> <!-- unset @id -->
@@ -630,11 +649,14 @@ extension-element-prefixes="ixsl"
                             <xsl:with-param name="style" select="$style"/>
                         </xsl:next-match>
 
+                        <xsl:variable name="base-uri" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/>
                         <!-- render contents attached to the types of this resource using ldh:template -->
                         <xsl:for-each select="$block-values" use-when="system-property('xsl:product-name') = 'SAXON'">
                             <xsl:if test="doc-available(ac:document-uri(.))">
+                                <xsl:variable name="id" select="'#id' || ac:uuid()" as="xs:string"/>
                                 <xsl:apply-templates select="key('resources', ., document(ac:document-uri(.)))" mode="bs2:Row">
-                                    <xsl:with-param name="about" select="()"/> <!-- unset the @about -->
+                                    <xsl:with-param name="about" select="xs:anyURI($base-uri || $id)"/> <!-- set a unique @about -->
+                                    <xsl:with-param name="id" select="$id"/>
                                 </xsl:apply-templates>
                             </xsl:if>
                         </xsl:for-each>
