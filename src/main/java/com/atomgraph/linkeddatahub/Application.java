@@ -1400,7 +1400,7 @@ public class Application extends ResourceConfig
             config.property(ApacheClientProperties.RETRY_HANDLER, (HttpRequestRetryHandler) (IOException ex, int executionCount, HttpContext context) ->
             {
                 // Extract the HTTP host from the context
-                HttpHost targetHost = (HttpHost) context.getAttribute(HttpCoreContext.HTTP_TARGET_HOST);
+                HttpHost targetHost = (HttpHost)context.getAttribute(HttpCoreContext.HTTP_TARGET_HOST);
                 String serverName = targetHost != null ? targetHost.getHostName() : "Unknown";
 
                 if (executionCount > maxRequestRetries)
@@ -1496,7 +1496,7 @@ public class Application extends ResourceConfig
                 config.property(ApacheClientProperties.RETRY_HANDLER, (HttpRequestRetryHandler) (IOException ex, int executionCount, HttpContext context) ->
                 {
                     // Extract the HTTP host from the context
-                    HttpHost targetHost = (HttpHost) context.getAttribute(HttpCoreContext.HTTP_TARGET_HOST);
+                    HttpHost targetHost = (HttpHost)context.getAttribute(HttpCoreContext.HTTP_TARGET_HOST);
                     String serverName = targetHost != null ? targetHost.getHostName() : "Unknown";
 
                     if (executionCount > maxRequestRetries)
