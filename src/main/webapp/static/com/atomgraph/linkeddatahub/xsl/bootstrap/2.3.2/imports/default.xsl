@@ -276,40 +276,6 @@ exclude-result-prefixes="#all"
         </xsl:if>
     </xsl:function>
 
-    <xsl:function name="ldh:listSubClasses" as="attribute()*" cache="yes">
-        <xsl:param name="class" as="xs:anyURI"/>
-        <xsl:param name="direct" as="xs:boolean"/>
-        <xsl:param name="ontology" as="xs:anyURI"/>
-        
-        <xsl:variable name="ontologies" select="$ontology, ldh:ontologyImports($ontology)" as="xs:anyURI*"/>
-        <xsl:variable name="ontology-docs" as="document-node()*">
-            <xsl:for-each select="$ontologies">
-                <xsl:if test="doc-available(ac:document-uri(.))">
-                    <xsl:sequence select="document(ac:document-uri(.))"/>
-                </xsl:if>
-            </xsl:for-each>
-        </xsl:variable>
-        
-        <xsl:sequence select="ldh:listSubClassesInDocuments($class, $direct, $ontology-docs)"/>
-    </xsl:function>
-    
-    <!-- this is a different, not follow-your-nose Linked Data search as in ldh:listSuperClasses() as we don't know the URIs of the documents containing subclasses -->
-    <!-- start with the $ldt:ontology document and traverse imported RDF ontologies recursively looking for rdfs:subClassOf triples -->
-    <xsl:function name="ldh:listSubClassesInDocuments" as="attribute()*" cache="yes">
-        <xsl:param name="class" as="xs:anyURI"/>
-        <xsl:param name="direct" as="xs:boolean"/>
-        <xsl:param name="ontology-docs" as="document-node()*"/>
-
-        <xsl:for-each select="$ontology-docs">
-            <xsl:variable name="subclasses" select="key('resources-by-subclass', $class, .)/@rdf:about[not(. = $class)]" as="attribute()*"/>
-            <xsl:sequence select="$subclasses"/>
-
-            <xsl:for-each select="$subclasses">
-                <xsl:sequence select="ldh:listSubClassesInDocuments(., $direct, $ontology-docs)"/>
-            </xsl:for-each>
-        </xsl:for-each>
-    </xsl:function>
-    
     <xsl:function name="ac:value-intersect" as="xs:anyAtomicType*">
         <xsl:param name="arg1" as="xs:anyAtomicType*"/>
         <xsl:param name="arg2" as="xs:anyAtomicType*"/>
@@ -1202,19 +1168,6 @@ exclude-result-prefixes="#all"
                 <xsl:copy/>
             </xsl:otherwise>
         </xsl:choose>
-    </xsl:template>
-    
-    <!-- DEFINITIONS -->
-    <!-- show language tag if it's present TO-DO: move to Web-Client -->
-    
-    <xsl:template match="text()[../@xml:lang]" mode="xhtml:DefinitionDescription">
-        <dd>
-            <span class="label label-info pull-right">
-                <xsl:value-of select="../@xml:lang"/>
-            </span>
-
-            <xsl:apply-templates select="."/>
-        </dd>
     </xsl:template>
     
 </xsl:stylesheet>

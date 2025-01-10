@@ -1010,7 +1010,6 @@ extension-element-prefixes="ixsl"
         <xsl:param name="subclasses" as="attribute()*"/>
         <xsl:param name="with-label" select="false()" as="xs:boolean"/>
         <xsl:param name="base-uri" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI" tunnel="yes"/>
-<!--        <xsl:variable name="forClass" select="@rdf:about" as="xs:anyURI"/>-->
 
         <xsl:if test="doc-available(ac:document-uri(@rdf:about))">
             <!-- if subclasses exist, render a dropdown with multiple constructor choices. Otherwise, only render a single constructor button -->
