@@ -436,6 +436,18 @@ exclude-result-prefixes="#all"
         </dd>
     </xsl:template>
     
+    <xsl:template match="text()[../@xml:lang]" mode="xhtml:DefinitionDescription">
+        <xsl:variable name="property-uri" select="../concat(namespace-uri(), local-name())" as="xs:string"/>
+
+        <dd property="{$property-uri}">
+            <span class="label label-info pull-right">
+                <xsl:value-of select="../@xml:lang"/>
+            </span>
+
+            <xsl:apply-templates select="."/>
+        </dd>
+    </xsl:template>
+    
     <xsl:template match="node()" mode="xhtml:DefinitionDescription">
         <xsl:variable name="property-uri" select="../concat(namespace-uri(), local-name())" as="xs:string"/>
         
