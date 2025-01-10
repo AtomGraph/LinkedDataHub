@@ -9,7 +9,7 @@ purge_cache "$ADMIN_VARNISH_SERVICE"
 # request agent's HTML description
 
 html=$(curl -k -f -s -N \
-    -H 'Accept: text/html' \
+    -H 'Accept: application/xhtml+xml' \
   "$AGENT_URI")
 
 # check that the description does *not* include foaf:mbox property
