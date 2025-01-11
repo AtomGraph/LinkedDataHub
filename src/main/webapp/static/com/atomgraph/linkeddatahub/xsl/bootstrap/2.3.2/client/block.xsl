@@ -276,7 +276,7 @@ exclude-result-prefixes="#all"
         <xsl:choose>
             <!-- allow drag on the block element (not necessarily top-level) -->
             <xsl:when test="self::div[contains-token(@class, 'block')]">
-                <xsl:message>ixsl:ondragstart top-level block</xsl:message>
+                <xsl:message>ixsl:ondragstart block: <xsl:value-of select="serialize(.)"/></xsl:message>
                 <ixsl:set-property name="dataTransfer.effectAllowed" select="'move'" object="ixsl:event()"/>
                 <!-- get the top-level block for this block (could be self) and use its URI -->
                 <!-- TO-DO: better condition for checking whether blocks are top-level? -->
