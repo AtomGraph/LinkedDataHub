@@ -173,6 +173,7 @@ exclude-result-prefixes="#all"
                         <xsl:with-param name="show-edit-button" select="$show-edit-button" tunnel="yes"/>
                         <xsl:with-param name="object-metadata" select="$object-metadata" tunnel="yes"/>
                         <xsl:with-param name="show-row-block-controls" select="false()"/> <!-- blocks nested within ldh:Object do not show their own progress bars -->
+                        <xsl:with-param name="draggable" select="false()"/> <!-- blocks nested within ldh:Object are not draggable -->
                     </xsl:apply-templates>
                 </xsl:variable>
 

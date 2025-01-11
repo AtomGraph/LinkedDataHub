@@ -489,9 +489,6 @@ extension-element-prefixes="ixsl"
             <xsl:if test="$draggable = true()">
                 <xsl:attribute name="draggable" select="'true'"/>
             </xsl:if>
-            <xsl:if test="$draggable = false()">
-                <xsl:attribute name="draggable" select="'false'"/>
-            </xsl:if>
 
             <div class="span12">
                 <xsl:if test="$show-row-block-controls">
@@ -550,9 +547,6 @@ extension-element-prefixes="ixsl"
             </xsl:if>-->
             <xsl:if test="$draggable = true()">
                 <xsl:attribute name="draggable" select="'true'"/>
-            </xsl:if>
-            <xsl:if test="$draggable = false()">
-                <xsl:attribute name="draggable" select="'false'"/>
             </xsl:if>
             
             <div class="span12">
@@ -635,9 +629,7 @@ extension-element-prefixes="ixsl"
 <!--                    <xsl:if test="$draggable = true()">
                         <xsl:attribute name="draggable" select="'true'"/>
                     </xsl:if>
-                    <xsl:if test="$draggable = false()">
-                        <xsl:attribute name="draggable" select="'false'"/>
-                    </xsl:if>-->
+-->
             
                     <div class="span12">
                         <xsl:next-match>
