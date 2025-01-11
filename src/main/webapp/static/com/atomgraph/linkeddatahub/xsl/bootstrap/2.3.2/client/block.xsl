@@ -274,11 +274,13 @@ exclude-result-prefixes="#all"
         <xsl:message>exists(key('elements-by-class', 'map-canvas')): <xsl:value-of select="exists(key('elements-by-class', 'map-canvas'))"/></xsl:message>
         
         <xsl:choose>
-            <!-- allow drag on the top-level block element itself -->
-            <xsl:when test="self::div[contains-token(@class, 'block')][parent::div[@id = 'content-body']]">
+            <!-- allow drag on the block element (not necessarily top-level) -->
+            <xsl:when test="self::div[contains-token(@class, 'block')]">
                 <xsl:message>ixsl:ondragstart top-level block</xsl:message>
                 <ixsl:set-property name="dataTransfer.effectAllowed" select="'move'" object="ixsl:event()"/>
-                <xsl:variable name="block-uri" select="@about" as="xs:anyURI"/>
+                <!-- get the top-level block for this block (could be self) and use its URI -->
+                <!-- TO-DO: better condition for checking whether blocks are top-level? -->
+                <xsl:variable name="block-uri" select="ancestor-or-self::div[@about][contains-token(@class, 'block')][parent::div[@id = 'content-body']]/@about" as="xs:anyURI"/>
                 <xsl:sequence select="ixsl:call(ixsl:get(ixsl:event(), 'dataTransfer'), 'setData', [ 'text/uri-list', $block-uri ])"/>
             </xsl:when>
             <!-- prevent drag on its descendants. This makes sure that content drag-and-drop doesn't interfere with drag events in the Map and Graph modes -->
