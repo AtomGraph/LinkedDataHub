@@ -267,34 +267,36 @@ exclude-result-prefixes="#all"
         </xsl:choose>
     </xsl:template>
 
-    <!-- start dragging content (or its descendants) -->
+    <!-- start dragging top-level block (or its descendants) -->
     
     <xsl:template match="div[@id = 'content-body']/div[ixsl:query-params()?mode = '&ldh;ContentMode'][@about][contains-token(@class, 'block')]/descendant-or-self::*" mode="ixsl:ondragstart">
         <xsl:message>ixsl:ondragstart</xsl:message>
         <xsl:message>exists(key('elements-by-class', 'map-canvas')): <xsl:value-of select="exists(key('elements-by-class', 'map-canvas'))"/></xsl:message>
         
         <xsl:choose>
-            <!-- allow drag on the block element itself -->
+            <!-- allow drag on the top-level block element itself -->
             <xsl:when test="self::div[contains-token(@class, 'block')][parent::div[@id = 'content-body']]">
+                <xsl:message>ixsl:ondragstart top-level block</xsl:message>
                 <ixsl:set-property name="dataTransfer.effectAllowed" select="'move'" object="ixsl:event()"/>
                 <xsl:variable name="block-uri" select="@about" as="xs:anyURI"/>
                 <xsl:sequence select="ixsl:call(ixsl:get(ixsl:event(), 'dataTransfer'), 'setData', [ 'text/uri-list', $block-uri ])"/>
             </xsl:when>
             <!-- prevent drag on its descendants. This makes sure that content drag-and-drop doesn't interfere with drag events in the Map and Graph modes -->
             <xsl:otherwise>
+                <xsl:message>ixsl:ondragstart NON top-level block</xsl:message>
                 <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
 
-    <!-- dragging content over other content -->
+    <!-- dragging content over other block -->
     
     <xsl:template match="div[@id = 'content-body']/div[ixsl:query-params()?mode = '&ldh;ContentMode'][@about][contains-token(@class, 'block')][acl:mode() = '&acl;Write']" mode="ixsl:ondragover">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <ixsl:set-property name="dataTransfer.dropEffect" select="'move'" object="ixsl:event()"/>
     </xsl:template>
 
-    <!-- change the style of elements when content is dragged over them -->
+    <!-- change the style of blocks when content is dragged over them -->
     
     <xsl:template match="div[@id = 'content-body']/div[ixsl:query-params()?mode = '&ldh;ContentMode'][@about][contains-token(@class, 'block')][acl:mode() = '&acl;Write']" mode="ixsl:ondragenter">
         <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'drag-over', true() ])[current-date() lt xs:date('2000-01-01')]"/>
@@ -309,7 +311,7 @@ exclude-result-prefixes="#all"
         </xsl:if>
     </xsl:template>
 
-    <!-- dropping content over other content -->
+    <!-- dropping block over other top-level block -->
     
     <xsl:template match="div[@id = 'content-body']/div[ixsl:query-params()?mode = '&ldh;ContentMode'][@about][contains-token(@class, 'block')][acl:mode() = '&acl;Write']" mode="ixsl:ondrop">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
