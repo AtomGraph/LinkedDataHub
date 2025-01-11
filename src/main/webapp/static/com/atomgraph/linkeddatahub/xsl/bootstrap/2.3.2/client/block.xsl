@@ -283,7 +283,7 @@ exclude-result-prefixes="#all"
             </xsl:when>
             <!-- prevent drag on its descendants. This makes sure that content drag-and-drop doesn't interfere with drag events in the Map and Graph modes -->
             <xsl:otherwise>
-                <xsl:message>ixsl:ondragstart NON top-level block</xsl:message>
+                <xsl:message>ixsl:ondragstart NON top-level block: <xsl:value-of select="serialize(.)"/></xsl:message>
                 <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
             </xsl:otherwise>
         </xsl:choose>
