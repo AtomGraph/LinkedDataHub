@@ -267,7 +267,7 @@ exclude-result-prefixes="#all"
         </xsl:choose>
     </xsl:template>
 
-    <!-- start dragging top-level block (or its descendants) -->
+    <!-- start dragging top-level block (or its descendants - necessary for Map and Graph modes to work correctly) -->
     
     <xsl:template match="div[@id = 'content-body']/div[ixsl:query-params()?mode = '&ldh;ContentMode'][@about][contains-token(@class, 'block')]/descendant-or-self::*" mode="ixsl:ondragstart">
         <xsl:message>ixsl:ondragstart</xsl:message>
@@ -275,12 +275,11 @@ exclude-result-prefixes="#all"
         
         <xsl:choose>
             <!-- allow drag on the block element (not necessarily top-level) -->
-            <xsl:when test="self::div[contains-token(@class, 'block')]">
+            <!-- TO-DO: better condition for checking whether blocks are top-level? -->
+            <xsl:when test="self::div[contains-token(@class, 'block')][parent::div[@id = 'content-body']]">
                 <xsl:message>ixsl:ondragstart block: <xsl:value-of select="serialize(.)"/></xsl:message>
                 <ixsl:set-property name="dataTransfer.effectAllowed" select="'move'" object="ixsl:event()"/>
-                <!-- get the top-level block for this block (could be self) and use its URI -->
-                <!-- TO-DO: better condition for checking whether blocks are top-level? -->
-                <xsl:variable name="block-uri" select="ancestor-or-self::div[@about][contains-token(@class, 'block')][parent::div[@id = 'content-body']]/@about" as="xs:anyURI"/>
+                <xsl:variable name="block-uri" select="@about" as="xs:anyURI"/>
                 <xsl:sequence select="ixsl:call(ixsl:get(ixsl:event(), 'dataTransfer'), 'setData', [ 'text/uri-list', $block-uri ])"/>
             </xsl:when>
             <!-- prevent drag on its descendants. This makes sure that content drag-and-drop doesn't interfere with drag events in the Map and Graph modes -->
@@ -329,8 +328,8 @@ exclude-result-prefixes="#all"
             <xsl:if test="not($block-uri = $drop-block-uri)">
                 <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
-                <xsl:variable name="drop-content" select="key('element-by-about', $drop-block-uri)" as="element()"/>
-                <xsl:sequence select="ixsl:call(., 'after', [ $drop-content ])"/>
+                <xsl:variable name="drop-block" select="key('element-by-about', $drop-block-uri)" as="element()"/>
+                <xsl:sequence select="ixsl:call(., 'after', [ $drop-block ])"/>
                 <!-- TO-DO: use a VALUES block instead -->
                 <xsl:variable name="update-string" select="replace($block-swap-string, '$this', '&lt;' || ac:absolute-path(ldh:base-uri(.)) || '&gt;', 'q')" as="xs:string"/>
                 <xsl:variable name="update-string" select="replace($update-string, '$targetBlock', '&lt;' || $block-uri || '&gt;', 'q')" as="xs:string"/>
