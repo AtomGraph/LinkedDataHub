@@ -275,7 +275,7 @@ exclude-result-prefixes="#all"
         
         <xsl:choose>
             <!-- allow drag on the block element itself -->
-            <xsl:when test="self::div[contains-token(@class, 'block')]">
+            <xsl:when test="self::div[contains-token(@class, 'block')][parent::div[@id = 'content-body']]">
                 <ixsl:set-property name="dataTransfer.effectAllowed" select="'move'" object="ixsl:event()"/>
                 <xsl:variable name="block-uri" select="@about" as="xs:anyURI"/>
                 <xsl:sequence select="ixsl:call(ixsl:get(ixsl:event(), 'dataTransfer'), 'setData', [ 'text/uri-list', $block-uri ])"/>
