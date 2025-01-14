@@ -1,4 +1,4 @@
-FROM --platform=$BUILDPLATFORM maven:3.8.4-openjdk-17 AS maven
+FROM maven:3.8.4-openjdk-17 AS maven
 
 # download and extract Jena
 
@@ -22,7 +22,7 @@ RUN mvn -Pstandalone clean install
 
 # ==============================
 
-FROM atomgraph/letsencrypt-tomcat:10.1.4
+FROM atomgraph/letsencrypt-tomcat:10.1.34
 
 LABEL maintainer="martynas@atomgraph.com"
 
