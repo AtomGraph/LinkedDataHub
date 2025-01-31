@@ -8,3 +8,4 @@
 /node_modules
 /docker-compose.override.yml
 /ssl
+.DS_Store

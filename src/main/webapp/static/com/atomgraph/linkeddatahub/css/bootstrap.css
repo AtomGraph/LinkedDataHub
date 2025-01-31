@@ -111,7 +111,7 @@ h2.item-logo { background-image: url('../icons/file.svg'); background-position: 
 .modal-header { position: sticky; top: 0; background-color: white; z-index: 1060; }
 .modal-header legend { margin-bottom: 0; }
 .close { font-size: 35px; opacity: 0.4; }
-.modal-body { max-height: none; }
+.modal-body { max-height: 80vh; }
 .modal-footer { position: sticky; bottom: 0; background-color: white; z-index: 1060; }
 .modal-first-time-message { margin-left: 0; width: 80%; left: 10%; }
 .modal-first-time-message .hero-unit { margin-bottom: 0; }
