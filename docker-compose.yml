@@ -74,7 +74,7 @@ services:
       - OWNER_ORGANIZATION=${OWNER_ORGANIZATION}
       - OWNER_LOCALITY=${OWNER_LOCALITY}
       - OWNER_STATE_OR_PROVINCE=${OWNER_STATE_OR_PROVINCE}
-      - OWNER_COUNTRY_NAME=${OWNER_COUNTRY_NAME}      
+      - OWNER_COUNTRY_NAME=${OWNER_COUNTRY_NAME}
     secrets:
       - owner_cert_password
       - secretary_cert_password
