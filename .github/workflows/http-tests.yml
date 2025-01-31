@@ -23,8 +23,8 @@ jobs:
             JENA_HOME: "${{ runner.temp }}/apache-jena-${{ env.JENA_VERSION }}"
       - name: Checkout code
         uses: actions/checkout@v3
-        with:
-          path: http-tests
+      - name: Generating server certificate
+        run: ./scripts/server-cert-gen.sh .env nginx ssl
       - name: Writing secrets to files
         run: |
           mkdir -p ./secrets
@@ -32,7 +32,6 @@ jobs:
           printf "%s" "${{ secrets.HTTP_TEST_SECRETARY_CERT_PASSWORD }}" > ./secrets/secretary_cert_password.txt
           printf "%s" "${{ secrets.HTTP_TEST_SECRETARY_CERT_PASSWORD }}" > ./secrets/client_truststore_password.txt
         shell: bash
-        working-directory: http-tests
       - name: Build Docker image & Run Docker containers
         run: docker compose -f docker-compose.yml -f ./http-tests/docker-compose.http-tests.yml --env-file ./http-tests/.env up --build -d
       - name: Wait for the server to start...
