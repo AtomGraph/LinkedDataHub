@@ -7,5 +7,6 @@
 /node
 /node_modules
 /docker-compose.override.yml
+/secrets
 /ssl
 .DS_Store

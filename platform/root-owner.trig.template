@@ -40,7 +40,7 @@
 
     <acl/public-keys/${OWNER_KEY_UUID}/#this> a cert:PublicKey ;
         rdfs:label "${OWNER_COMMON_NAME}" ;
-        cert:modulus "${OWNER_CERT_MODULUS}"^^xsd:hexBinary;
+        cert:modulus "${OWNER_PUBLIC_KEY_MODULUS}"^^xsd:hexBinary;
         cert:exponent 65537 .
 
 }

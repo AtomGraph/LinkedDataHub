@@ -1,3 +1,10 @@
+secrets:
+  owner_cert_password:
+    file: ./secrets/owner_cert_password.txt
+  secretary_cert_password:
+    file: ./secrets/secretary_cert_password.txt
+  client_truststore_password:
+    file: ./secrets/client_truststore_password.txt
 services:
   nginx:
     image: nginx:1.23.3
@@ -49,8 +56,6 @@ services:
       - HTTP_REDIRECT_PORT=${HTTPS_PORT}
       - HTTPS_PROXY_PORT=${HTTPS_PORT}
       - HTTPS=false
-      - CLIENT_KEYSTORE_PASSWORD=${SECRETARY_CERT_PASSWORD}
-      - CLIENT_TRUSTSTORE_PASSWORD=LinkedDataHub
       - SELF_SIGNED_CERT=true # only on localhost
       - SIGN_UP_CERT_VALIDITY=180
       - IMPORT_KEEPALIVE=1200000
@@ -62,11 +67,23 @@ services:
       - OWNER_MBOX=${OWNER_MBOX}
       # - GOOGLE_CLIENT_ID=
       # - GOOGLE_CLIENT_SECRET=
+      #- OWNER_URI=${OWNER_URI}
+      - OWNER_GIVEN_NAME=${OWNER_GIVEN_NAME}
+      - OWNER_FAMILY_NAME=${OWNER_FAMILY_NAME}
+      - OWNER_ORG_UNIT=${OWNER_ORG_UNIT}
+      - OWNER_ORGANIZATION=${OWNER_ORGANIZATION}
+      - OWNER_LOCALITY=${OWNER_LOCALITY}
+      - OWNER_STATE_OR_PROVINCE=${OWNER_STATE_OR_PROVINCE}
+      - OWNER_COUNTRY_NAME=${OWNER_COUNTRY_NAME}      
+    secrets:
+      - owner_cert_password
+      - secretary_cert_password
+      - client_truststore_password
     volumes:
       - /var/linkeddatahub/oidc
       - ./ssl/server:/var/linkeddatahub/ssl/server:ro
-      - ./ssl/owner/public.pem:/var/linkeddatahub/ssl/owner/public.pem:ro
-      - ./ssl/secretary:/var/linkeddatahub/ssl/secretary:ro
+      - ./ssl/owner:/var/linkeddatahub/ssl/owner
+      #- ./ssl/secretary:/var/linkeddatahub/ssl/secretary
       - ./uploads:/var/www/linkeddatahub/uploads
       - ./config/dev.log4j.properties:/usr/local/tomcat/webapps/ROOT/WEB-INF/classes/log4j.properties:ro
       - ./config/system-varnish.trig:/var/linkeddatahub/datasets/system.trig:ro
