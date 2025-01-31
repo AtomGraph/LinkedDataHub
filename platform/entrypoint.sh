@@ -104,6 +104,16 @@ if [ -z "$OWNER_MBOX" ]; then
     exit 1
 fi
 
+if [ -z "$OWNER_GIVEN_NAME" ]; then
+    echo '$OWNER_GIVEN_NAME not set'
+    exit 1
+fi
+
+if [ -z "$OWNER_FAMILY_NAME" ]; then
+    echo '$OWNER_FAMILY_NAME not set'
+    exit 1
+fi
+
 if [ -z "$OWNER_PUBLIC_KEY" ]; then
     echo '$OWNER_PUBLIC_KEY not set'
     exit 1
@@ -124,18 +134,13 @@ if [ -z "$SECRETARY_CERT_ALIAS" ]; then
     exit 1
 fi
 
+if [ -z "$SECRETARY_COMMON_NAME" ]; then
+    echo '$SECRETARY_COMMON_NAME not set'
+    exit 1
+fi
+
 if [ -z "$CLIENT_TRUSTSTORE" ]; then
     echo '$CLIENT_TRUSTSTORE not set'
-    exit 1
-fi
-
-if [ -z "$CLIENT_KEYSTORE_PASSWORD" ]; then
-    echo '$CLIENT_KEYSTORE_PASSWORD not set'
-    exit 1
-fi
-
-if [ -z "$CLIENT_TRUSTSTORE_PASSWORD" ]; then
-    echo '$CLIENT_TRUSTSTORE_PASSWORD not set'
     exit 1
 fi
 
@@ -288,82 +293,149 @@ append_quads()
     fi
 }
 
+generate_cert()
+{
+    local alias="$1"
+    local webid_uri="$2"
+    local common_name="$3"           # Accept common name as a single argument
+    local org_unit="${4:-}"
+    local organization="${5:-}"
+    local locality="${6:-}"
+    local state_or_province="${7:-}"
+    local country_name="${8:-}"
+    local validity_days="${9}"
+    local keystore_output="${10}"
+    local keystore_password="${11}"
+    local cert_output="${12}"
+    local public_key_output="${13}"
+    local private_key_output="${14}"
+
+    # Build the Distinguished Name (DN) string, only including components if they're non-empty
+    dname="CN=${common_name}"
+    [ -n "$organization" ] && dname="$dname,O=${organization}"
+    [ -n "$org_unit" ] && dname="$dname,OU=${org_unit}"
+    [ -n "$locality" ] && dname="$dname,L=${locality}"
+    [ -n "$state_or_province" ] && dname="$dname,ST=${state_or_province}"
+    [ -n "$country_name" ] && dname="$dname,C=${country_name}"
+
+    mkdir -p "$(dirname "$keystore_output")"
+ 
+    # Generate keystore using keytool with the specified alias
+    keytool -genkeypair \
+        -alias "$alias" \
+        -keyalg RSA \
+        -storetype PKCS12 \
+        -keystore "$keystore_output" \
+        -storepass "$keystore_password" \
+        -keypass "$keystore_password" \
+        -dname "$dname" \
+        -ext "SAN=uri:${webid_uri}" \
+        -validity "$validity_days"
+
+    if [ -n "$cert_output" ]; then
+        mkdir -p "$(dirname "$cert_output")"
+
+        # Convert keystore to PEM certificate
+        openssl pkcs12 -in "$keystore_output" \
+            -passin pass:"$keystore_password" \
+            -out "$cert_output" \
+            -passout pass:"$keystore_password" \
+            -clcerts
+    fi
+
+    if [ -n "$public_key_output" ]; then
+        # Extract public key from the certificate
+        openssl x509 -in "$cert_output" -pubkey -noout > "$public_key_output"
+    fi
+}
+
 get_modulus()
 {
     local key_pem="$1"
-
-    modulus_string=$(openssl x509 -noout -modulus -in "$key_pem")
-    modulus="${modulus_string##*Modulus=}" # cut Modulus= text
-    echo "$modulus" | tr '[:upper:]' '[:lower:]' # lowercase
+    modulus_string=$(openssl rsa -pubin -in "$key_pem" -modulus -noout)
+    modulus="${modulus_string##*Modulus=}"  # cut the 'Modulus=' part
+    echo "$modulus" | tr '[:upper:]' '[:lower:]'  # lowercase the modulus
 }
 
-get_common_name()
-{
-    local key_pem="$1"
+OWNER_UUID=$(uuidgen | tr '[:upper:]' '[:lower:]') # lowercase
+OWNER_URI="${OWNER_URI:-${BASE_URI}admin/acl/agents/${OWNER_UUID}/#this}" # WebID URI. Can be external!
+OWNER_COMMON_NAME="$OWNER_GIVEN_NAME $OWNER_FAMILY_NAME" # those are required
 
-    openssl x509 -noout -subject -in "$key_pem" -nameopt lname,sep_multiline,utf8 | grep 'commonName' | cut -d "=" -f 2
-}
+SECRETARY_UUID=$(uuidgen | tr '[:upper:]' '[:lower:]') # lowercase
+SECRETARY_URI="${SECRETARY_URI:-${BASE_URI}admin/acl/agents/${SECRETARY_UUID}/#this}" # WebID URI. Can be external!
 
-get_webid_uri()
-{
-    local key_pem="$1"
-
-    openssl x509 -in "$key_pem" -text -noout \
-      -certopt no_subject,no_header,no_version,no_serial,no_signame,no_validity,no_issuer,no_pubkey,no_sigdump,no_aux \
-      | awk '/X509v3 Subject Alternative Name/ {getline; print}' | xargs | tail -c +5
-}
-
-OWNER_COMMON_NAME=$(get_common_name "$OWNER_PUBLIC_KEY")
-
-if [ -z "$OWNER_COMMON_NAME" ]; then
-    echo "Owner's public key does not contain CN (commonName) metadata"
-    exit 1
-fi
-
-OWNER_URI=$(get_webid_uri "$OWNER_PUBLIC_KEY")
-
-if [ -z "$OWNER_URI" ]; then
-    echo "Owner's public key does not contain a SAN:URI (subjectAlternativeName) extension with a WebID URI"
-    exit 1
-fi
+OWNER_DATASET_PATH="/var/linkeddatahub/datasets/owner/${OWNER_CERT_ALIAS}.trig"
 
 printf "\n### Owner's WebID URI: %s\n" "$OWNER_URI"
 
-# strip fragment from the URL, if any
+# generate owner's keystore, cert, and public key if the public key does not exist
+if [ ! -f "$OWNER_PUBLIC_KEY" ]; then
+    printf "\n### Generating owner's certificates and public key since they're not provided\n"
 
-case "$OWNER_URI" in
-  *#*) OWNER_DOC_URI=$(echo "$OWNER_URI" | cut -d "#" -f 1) ;;
-  *) OWNER_DOC_URI="$OWNER_URI" ;;
-esac
+    if [ ! -f "/run/secrets/owner_cert_password" ]; then
+        echo "'owner_cert_password' secret is missing"
+        exit 1
+    fi
 
-OWNER_CERT_MODULUS=$(get_modulus "$OWNER_PUBLIC_KEY")
+    OWNER_CERT_PASSWORD=$(cat /run/secrets/owner_cert_password)
 
-printf "\n### Root owner WebID certificate's modulus: %s\n" "$OWNER_CERT_MODULUS"
+    generate_cert "$OWNER_CERT_ALIAS" "$OWNER_URI" \
+                  "$OWNER_GIVEN_NAME $OWNER_FAMILY_NAME" \
+                  "$OWNER_ORG_UNIT" "$OWNER_ORGANIZATION" \
+                  "$OWNER_LOCALITY" "$OWNER_STATE_OR_PROVINCE" "$OWNER_COUNTRY_NAME" \
+                  "$CERT_VALIDITY" "$OWNER_KEYSTORE" "$OWNER_CERT_PASSWORD" \
+                  "$OWNER_CERT" "$OWNER_PUBLIC_KEY" "$OWNER_PRIVATE_KEY"
 
-OWNER_KEY_UUID=$(uuidgen | tr '[:upper:]' '[:lower:]') # lowercase
-export OWNER_COMMON_NAME OWNER_URI OWNER_DOC_URI OWNER_CERT_MODULUS OWNER_KEY_UUID
+    # write owner's metadata to a file
 
-SECRETARY_URI=$(get_webid_uri "$SECRETARY_CERT")
+    mkdir -p "$(dirname "$OWNER_DATASET_PATH")"
 
-if [ -z "$SECRETARY_URI" ]; then
-    echo "Secretary's public key does not contain a SAN:URI (subjectAlternativeName) extension with a WebID URI"
-    exit 1
+    OWNER_DOC_URI="${BASE_URI}admin/acl/agents/${OWNER_UUID}/"
+    OWNER_KEY_UUID=$(uuidgen | tr '[:upper:]' '[:lower:]') # lowercase
+    OWNER_PUBLIC_KEY_MODULUS=$(get_modulus "$OWNER_PUBLIC_KEY")
+
+    printf "\n### Root owner WebID public key modulus: %s\n" "$OWNER_PUBLIC_KEY_MODULUS"
+
+    export OWNER_COMMON_NAME OWNER_URI OWNER_DOC_URI OWNER_PUBLIC_KEY_MODULUS OWNER_KEY_UUID SECRETARY_URI
+    envsubst < root-owner.trig.template > "$OWNER_DATASET_PATH"
 fi
+
+
+SECRETARY_DATASET_PATH="/var/linkeddatahub/datasets/secretary/${SECRETARY_CERT_ALIAS}.trig"
 
 printf "\n### Secretary's WebID URI: %s\n" "$SECRETARY_URI"
 
-# strip fragment from the URL, if any
+# generate secretary's keystore,  cert, and public key if the public key does not exist
+if [ ! -f "$SECRETARY_PUBLIC_KEY" ]; then
+    printf "\n### Generating secretary's certificates and public key since they're not provided\n"
 
-case "$SECRETARY_URI" in
-  *#*) SECRETARY_DOC_URI=$(echo "$SECRETARY_URI" | cut -d "#" -f 1) ;;
-  *) SECRETARY_DOC_URI="$SECRETARY_URI" ;;
-esac
+    if [ ! -f "/run/secrets/secretary_cert_password" ]; then
+        echo "'secretary_cert_password' secret is missing"
+        exit 1
+    fi
 
-SECRETARY_CERT_MODULUS=$(get_modulus "$SECRETARY_CERT")
-printf "\n### Secretary WebID certificate's modulus: %s\n" "$SECRETARY_CERT_MODULUS"
+    SECRETARY_CERT_PASSWORD=$(cat /run/secrets/secretary_cert_password)
 
-SECRETARY_KEY_UUID=$(uuidgen | tr '[:upper:]' '[:lower:]') # lowercase
-export SECRETARY_URI SECRETARY_DOC_URI SECRETARY_CERT_MODULUS SECRETARY_KEY_UUID
+    generate_cert "$SECRETARY_CERT_ALIAS" "$SECRETARY_URI" \
+                  "$SECRETARY_COMMON_NAME" \
+                  "" "" \
+                  "" "" "" \
+                  "$CERT_VALIDITY" "$SECRETARY_KEYSTORE" "$SECRETARY_CERT_PASSWORD" \
+                  "$SECRETARY_CERT" "$SECRETARY_PUBLIC_KEY" "$SECRETARY_PRIVATE_KEY"
+
+    # write secretary's metadata to a file
+
+    mkdir -p "$(dirname "$SECRETARY_DATASET_PATH")"
+
+    SECRETARY_DOC_URI="${BASE_URI}admin/acl/agents/${SECRETARY_UUID}/"
+    SECRETARY_KEY_UUID=$(uuidgen | tr '[:upper:]' '[:lower:]') # lowercase
+    SECRETARY_PUBLIC_KEY_MODULUS=$(get_modulus "$SECRETARY_PUBLIC_KEY")
+
+    printf "\n### Secretary WebID public key modulus: %s\n" "$SECRETARY_PUBLIC_KEY_MODULUS"
+
+    export SECRETARY_URI SECRETARY_DOC_URI SECRETARY_PUBLIC_KEY_MODULUS SECRETARY_KEY_UUID
+    envsubst < root-secretary.trig.template > "$SECRETARY_DATASET_PATH"
+fi
 
 if [ -z "$LOAD_DATASETS" ]; then
     if [ ! -d /var/linkeddatahub/based-datasets ]; then
@@ -515,8 +587,6 @@ for app in "${apps[@]}"; do
                 curl "$END_USER_DATASET_URL" > "$END_USER_DATASET" ;;
         esac
 
-        trig --base="$end_user_base_uri" "$END_USER_DATASET" > /var/linkeddatahub/based-datasets/end-user.nq
-
         case "$ADMIN_DATASET_URL" in
             "file://"*)
                 ADMIN_DATASET=$(echo "$ADMIN_DATASET_URL" | cut -c 8-) # strip leading file://
@@ -530,7 +600,7 @@ for app in "${apps[@]}"; do
                 curl "$ADMIN_DATASET_URL" > "$ADMIN_DATASET" ;;
         esac
 
-        trig --base="$admin_base_uri" "$ADMIN_DATASET" > /var/linkeddatahub/based-datasets/admin.nq
+        trig --base="$end_user_base_uri" "$END_USER_DATASET" > /var/linkeddatahub/based-datasets/end-user.nq
 
         printf "\n### Waiting for %s...\n" "$end_user_quad_store_url"
         wait_for_url "$end_user_quad_store_url" "$end_user_service_auth_user" "$end_user_service_auth_pwd" "$TIMEOUT" "application/n-quads"
@@ -538,35 +608,23 @@ for app in "${apps[@]}"; do
         printf "\n### Loading end-user dataset into the triplestore...\n"
         append_quads "$end_user_quad_store_url" "$end_user_service_auth_user" "$end_user_service_auth_pwd" /var/linkeddatahub/based-datasets/end-user.nq "application/n-quads"
 
+        trig --base="$admin_base_uri" "$ADMIN_DATASET" > /var/linkeddatahub/based-datasets/admin.nq
+
         printf "\n### Waiting for %s...\n" "$admin_quad_store_url"
         wait_for_url "$admin_quad_store_url" "$admin_service_auth_user" "$admin_service_auth_pwd" "$TIMEOUT" "application/n-quads"
 
         printf "\n### Loading admin dataset into the triplestore...\n"
         append_quads "$admin_quad_store_url" "$admin_service_auth_user" "$admin_service_auth_pwd" /var/linkeddatahub/based-datasets/admin.nq "application/n-quads"
 
-        # append owner metadata to the root admin dataset
-
-        envsubst < root-owner.trig.template > root-owner.trig
-
-        trig --base="$admin_base_uri" --output=nq root-owner.trig > root-owner.nq
+        trig --base="$admin_base_uri" --output=nq "$OWNER_DATASET_PATH" > /var/linkeddatahub/based-datasets/root-owner.nq
 
         printf "\n### Uploading the metadata of the owner agent...\n\n"
+        append_quads "$admin_quad_store_url" "$admin_service_auth_user" "$admin_service_auth_pwd" /var/linkeddatahub/based-datasets/root-owner.nq "application/n-quads"
 
-        append_quads "$admin_quad_store_url" "$admin_service_auth_user" "$admin_service_auth_pwd" root-owner.nq "application/n-quads"
-
-        rm -f root-owner.trig root-owner.nq
-
-        # append secretary metadata to the root admin dataset
-
-        envsubst < root-secretary.trig.template > root-secretary.trig
-
-        trig --base="$admin_base_uri" --output=nq root-secretary.trig > root-secretary.nq
+        trig --base="$admin_base_uri" --output=nq "$SECRETARY_DATASET_PATH" > /var/linkeddatahub/based-datasets/root-secretary.nq
 
         printf "\n### Uploading the metadata of the secretary agent...\n\n"
-
-        append_quads "$admin_quad_store_url" "$admin_service_auth_user" "$admin_service_auth_pwd" root-secretary.nq "application/n-quads"
-
-        rm -f root-secretary.trig root-secretary.nq
+        append_quads "$admin_quad_store_url" "$admin_service_auth_user" "$admin_service_auth_pwd" /var/linkeddatahub/based-datasets/root-secretary.nq "application/n-quads"
     fi
 done
 
@@ -586,6 +644,20 @@ fi
 mkdir -p "$(dirname "$CLIENT_KEYSTORE")"
 
 cp -f "$CLIENT_KEYSTORE_MOUNT" "$(dirname "$CLIENT_KEYSTORE")"
+
+# set passwords from secrets
+
+if [ ! -f "/run/secrets/secretary_cert_password" ]; then
+    echo "'secretary_cert_password' secret is missing"
+    exit 1
+fi
+if [ ! -f "/run/secrets/client_truststore_password" ]; then
+    echo "'client_truststore_password' secret is missing"
+    exit 1
+fi
+
+CLIENT_KEYSTORE_PASSWORD=$(cat /run/secrets/secretary_cert_password)
+CLIENT_TRUSTSTORE_PASSWORD=$(cat /run/secrets/client_truststore_password)
 
 # if CLIENT_TRUSTSTORE does not exist:
 # 1. import the certificate into the CLIENT_TRUSTSTORE
