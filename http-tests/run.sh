@@ -85,11 +85,6 @@ function purge_cache()
     fi
 }
 
-echo "JENA_HOME: $JENA_HOME"
-
-ls -l ./ssl/owner
-ls -l ./datasets/owner
-
 export OWNER_URI="$("$SCRIPT_ROOT"/webid-uri.sh "$OWNER_CERT_FILE")"
 if [ -z "$OWNER_URI" ]; then
     echo "Failed to extract the owner's WebID URI from the cert file: $OWNER_CERT_FILE"
