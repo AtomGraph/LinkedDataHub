@@ -24,7 +24,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
       - name: Generating server certificate
-        run: ./scripts/server-cert-gen.sh .env nginx ssl
+        run: ./scripts/server-cert-gen.sh ./http-tests/.env nginx ssl
       - name: Writing secrets to files
         run: |
           mkdir -p ./secrets
