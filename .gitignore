@@ -8,6 +8,7 @@
 /node_modules
 /docker-compose.override.yml
 /secrets
+/datasets
 /ssl
 /http-tests/ssl
 /http-tests/datasets

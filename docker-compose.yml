@@ -84,6 +84,8 @@ services:
       - ./ssl/server:/var/linkeddatahub/ssl/server:ro
       - ./ssl/owner:/var/linkeddatahub/ssl/owner
       #- ./ssl/secretary:/var/linkeddatahub/ssl/secretary
+      - ./datasets/owner:/var/linkeddatahub/datasets/owner
+      - ./datasets/secretary:/var/linkeddatahub/datasets/secretary
       - ./uploads:/var/www/linkeddatahub/uploads
       - ./config/dev.log4j.properties:/usr/local/tomcat/webapps/ROOT/WEB-INF/classes/log4j.properties:ro
       - ./config/system-varnish.trig:/var/linkeddatahub/datasets/system.trig:ro
