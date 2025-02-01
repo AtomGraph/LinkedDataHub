@@ -1,5 +1,5 @@
+.DS_Store
 /target
-/certs
 /.env
 /data
 /uploads
@@ -9,4 +9,5 @@
 /docker-compose.override.yml
 /secrets
 /ssl
-.DS_Store
+/http-tests/ssl
+/http-tests/datasets

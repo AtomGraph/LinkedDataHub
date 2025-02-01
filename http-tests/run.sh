@@ -85,7 +85,7 @@ function purge_cache()
     fi
 }
 
-ll ./datasets/owner
+ls -l ./datasets/owner
 
 export OWNER_URI="$("$SCRIPT_ROOT"/webid-uri.sh "$OWNER_CERT_FILE")"
 if [ -z "$OWNER_URI" ]; then
