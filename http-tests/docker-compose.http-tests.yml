@@ -11,12 +11,19 @@ services:
     environment:
       - JPDA_ADDRESS=*:8000 # debugger host - performance hit when enabled
     volumes:
-      - ./config/system-varnish.trig:/var/linkeddatahub/datasets/system.trig:ro
+      - ./http-tests/datasets/owner:/var/linkeddatahub/datasets/owner
+      - ./http-tests/datasets/secretary:/var/linkeddatahub/datasets/secretary
+      - ./http-tests/uploads:/var/www/linkeddatahub/uploads
       - ./http-tests/ssl/server:/var/linkeddatahub/ssl/server
       - ./http-tests/ssl/owner:/var/linkeddatahub/ssl/owner
+      - ./http-tests/ssl/secretary:/var/linkeddatahub/ssl/secretary
   fuseki-admin:
     ports:
       - 3030:3030
+    #volumes:
+    #  -./http-tests/data/admin:/fuseki/databases
   fuseki-end-user:
     ports:
       - 3031:3030
+    #volumes:
+    #  - ./http-tests/data/end-user:/fuseki/databases

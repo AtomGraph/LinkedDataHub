@@ -85,6 +85,8 @@ function purge_cache()
     fi
 }
 
+realpath .
+
 ls -l ./datasets/owner
 
 export OWNER_URI="$("$SCRIPT_ROOT"/webid-uri.sh "$OWNER_CERT_FILE")"
