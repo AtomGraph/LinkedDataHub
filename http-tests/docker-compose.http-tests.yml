@@ -13,6 +13,7 @@ services:
     volumes:
       - ./config/system-varnish.trig:/var/linkeddatahub/datasets/system.trig:ro
       - ./http-tests/ssl/server:/var/linkeddatahub/ssl/server
+      - ./http-tests/ssl/owner:/var/linkeddatahub/ssl/owner
   fuseki-admin:
     ports:
       - 3030:3030
