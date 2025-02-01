@@ -14,7 +14,7 @@ print_usage()
     printf "  --source SOURCE_URI                  URI of the imported ontology\n"
 }
 
-hash turtle 2>/dev/null || { echo >&2 "turtle not on \$PATH. Need to set \$JENA_HOME. Aborting."; exit 1; }
+hash turtle 2>/dev/null || { echo >&2 "turtle not on \$PATH.  Aborting."; exit 1; }
 hash curl 2>/dev/null || { echo >&2 "curl not on \$PATH. Aborting."; exit 1; }
 
 args=()

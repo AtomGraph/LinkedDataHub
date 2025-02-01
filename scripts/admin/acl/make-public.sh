@@ -13,7 +13,7 @@ print_usage()
     printf "  --proxy PROXY_URL                    The host this request will be proxied through (optional)\n"
 }
 
-hash turtle 2>/dev/null || { echo >&2 "turtle not on \$PATH. Need to set \$JENA_HOME. Aborting."; exit 1; }
+hash turtle 2>/dev/null || { echo >&2 "turtle not on \$PATH.  Aborting."; exit 1; }
 
 args=()
 while [[ $# -gt 0 ]]

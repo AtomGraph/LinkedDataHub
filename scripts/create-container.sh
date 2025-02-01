@@ -20,7 +20,7 @@ print_usage()
     printf "  --block BLOCK_URI                    URI of the content block (optional)\n"
 }
 
-hash turtle 2>/dev/null || { echo >&2 "turtle not on \$PATH. Need to set \$JENA_HOME. Aborting."; exit 1; }
+hash turtle 2>/dev/null || { echo >&2 "turtle not on \$PATH.  Aborting."; exit 1; }
 
 urlencode() {
   python -c 'import urllib.parse, sys; print(urllib.parse.quote(sys.argv[1], sys.argv[2]))' \
