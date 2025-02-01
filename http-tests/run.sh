@@ -90,7 +90,7 @@ realpath .
 ls -l ./ssl/owner
 ls -l ./datasets/owner
 
-export OWNER_URI="$("$SCRIPT_ROOT"/webid-uri.sh "$OWNER_CERT_FILE")"
+export OWNER_URI="$(sudo "$SCRIPT_ROOT"/webid-uri.sh "$OWNER_CERT_FILE")"
 if [ -z "$OWNER_URI" ]; then
     echo "Failed to extract the owner's WebID URI from the cert file: $OWNER_CERT_FILE"
     exit 1
@@ -98,7 +98,7 @@ fi
 
 printf "### Owner agent URI: %s\n" "$OWNER_URI"
 
-export SECRETARY_URI="$("$SCRIPT_ROOT"/webid-uri.sh "$SECRETARY_CERT_FILE")"
+export SECRETARY_URI="$(sudo "$SCRIPT_ROOT"/webid-uri.sh "$SECRETARY_CERT_FILE")"
 
 if [ -z "$SECRETARY_URI" ]; then
     echo "Failed to extract the secretary's WebID URI from the cert file: $SECRETARY_CERT_FILE"
