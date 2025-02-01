@@ -85,7 +85,7 @@ function purge_cache()
     fi
 }
 
-realpath .
+echo "JENA_HOME: $JENA_HOME"
 
 ls -l ./ssl/owner
 ls -l ./datasets/owner
