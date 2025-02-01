@@ -38,7 +38,7 @@ jobs:
       - name: Wait for the server to start...
         run: while ! (status=$(curl -k -s -w "%{http_code}\n" https://localhost:4443 -o /dev/null) && echo "$status" && echo "$status" | grep "403") ; do sleep 1 ; done # wait for the webapp to start (returns 403 by default)
       - name: Run HTTP test scripts
-        run: sudo ./run.sh "$PWD/ssl/owner/cert.pem" "${{ secrets.HTTP_TEST_OWNER_CERT_PASSWORD }}" "$PWD/ssl/secretary/cert.pem" "${{ secrets.HTTP_TEST_SECRETARY_CERT_PASSWORD }}"
+        run: sudo --preserve-env=JENA_HOME ./run.sh "$PWD/ssl/owner/cert.pem" "${{ secrets.HTTP_TEST_OWNER_CERT_PASSWORD }}" "$PWD/ssl/secretary/cert.pem" "${{ secrets.HTTP_TEST_SECRETARY_CERT_PASSWORD }}"
         shell: bash
         working-directory: http-tests
       - name: Stop Docker containers
