@@ -7,7 +7,7 @@ purge_cache "$END_USER_VARNISH_SERVICE"
 purge_cache "$ADMIN_VARNISH_SERVICE"
 purge_cache "$FRONTEND_VARNISH_SERVICE"
 
-pwd=$(realpath -s "$PWD")
+pwd=$(realpath "$PWD")
 
 pushd . > /dev/null && cd "$SCRIPT_ROOT/admin/acl"
 
