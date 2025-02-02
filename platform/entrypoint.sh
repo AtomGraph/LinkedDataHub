@@ -297,7 +297,7 @@ generate_cert()
 {
     local alias="$1"
     local webid_uri="$2"
-    local common_name="$3"           # Accept common name as a single argument
+    local common_name="$3"
     local org_unit="${4:-}"
     local organization="${5:-}"
     local locality="${6:-}"
@@ -399,7 +399,6 @@ if [ ! -f "$OWNER_PUBLIC_KEY" ]; then
     export OWNER_COMMON_NAME OWNER_URI OWNER_DOC_URI OWNER_PUBLIC_KEY_MODULUS OWNER_KEY_UUID SECRETARY_URI
     envsubst < root-owner.trig.template > "$OWNER_DATASET_PATH"
 fi
-
 
 SECRETARY_DATASET_PATH="/var/linkeddatahub/datasets/secretary/${SECRETARY_CERT_ALIAS}.trig"
 
