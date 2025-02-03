@@ -189,6 +189,7 @@ ENV PATH="${PATH}:${JENA_HOME}/bin"
 
 RUN useradd --no-log-init -U ldh && \
     chown -R ldh:ldh . && \
+    mkdir -p "$(dirname "$OIDC_REFRESH_TOKENS")" && \
     chown -R ldh:ldh /var/linkeddatahub && \
     mkdir -p "${UPLOAD_ROOT}/${UPLOAD_CONTAINER_PATH}" && \
     chown -R ldh:ldh "$UPLOAD_ROOT" && \
