@@ -83,7 +83,7 @@ services:
       - /var/linkeddatahub/oidc
       - ./ssl/server:/var/linkeddatahub/ssl/server:ro
       - ./ssl/owner:/var/linkeddatahub/ssl/owner
-      #- ./ssl/secretary:/var/linkeddatahub/ssl/secretary
+      - ./ssl/secretary:/var/linkeddatahub/ssl/secretary
       - ./datasets/owner:/var/linkeddatahub/datasets/owner
       - ./datasets/secretary:/var/linkeddatahub/datasets/secretary
       - ./uploads:/var/www/linkeddatahub/uploads
