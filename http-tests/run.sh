@@ -85,7 +85,7 @@ function purge_cache()
     fi
 }
 
-id -u -n && id -u
+id -u -g
 
 ls -l ./ssl/owner
 ls -l ./datasets/owner
