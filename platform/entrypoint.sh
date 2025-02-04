@@ -788,10 +788,6 @@ if [ -n "$MAX_REQUEST_RETRIES" ]; then
     MAX_REQUEST_RETRIES_PARAM="--stringparam ldhc:maxRequestRetries '$MAX_REQUEST_RETRIES' "
 fi
 
-if [ -n "$IMPORT_KEEPALIVE" ]; then
-    IMPORT_KEEPALIVE_PARAM="--stringparam ldhc:importKeepAlive '$IMPORT_KEEPALIVE' "
-fi
-
 if [ -n "$MAX_IMPORT_THREADS" ]; then
     MAX_IMPORT_THREADS_PARAM="--stringparam ldhc:maxImportThreads '$MAX_IMPORT_THREADS' "
 fi
@@ -845,7 +841,6 @@ transform="xsltproc \
   $MAX_CONN_PER_ROUTE_PARAM \
   $MAX_TOTAL_CONN_PARAM \
   $MAX_REQUEST_RETRIES_PARAM \
-  $IMPORT_KEEPALIVE_PARAM \
   $MAX_IMPORT_THREADS_PARAM \
   $NOTIFICATION_ADDRESS_PARAM \
   $ENABLE_WEBID_SIGNUP_PARAM \
