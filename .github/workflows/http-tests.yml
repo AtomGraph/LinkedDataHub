@@ -26,10 +26,7 @@ jobs:
       - name: Add bin/ and its subdirectories to PATH
         run: |
           echo "$GITHUB_WORKSPACE"
-          echo "$GITHUB_WORKSPACE/bin" >> "$GITHUB_PATH"
-          for d in "$GITHUB_WORKSPACE/bin"/*/; do
-            echo "$d" >> "$GITHUB_PATH"
-          done
+          find "$GITHUB_WORKSPACE/bin" -type d >> "$GITHUB_PATH"
       - name: Generating server certificate
         run: |
           echo "$PATH"
