@@ -369,6 +369,7 @@ OWNER_DATASET_PATH="/var/linkeddatahub/datasets/owner/${OWNER_CERT_ALIAS}.trig"
 printf "\n### Owner's WebID URI: %s\n" "$OWNER_URI"
 
 # generate owner's keystore, cert, and public key if the public key does not exist
+# store owner's metadata in an RDF dataset
 if [ ! -f "$OWNER_PUBLIC_KEY" ]; then
     printf "\n### Generating owner's certificates and public key since they're not provided\n"
 
@@ -405,6 +406,7 @@ SECRETARY_DATASET_PATH="/var/linkeddatahub/datasets/secretary/${SECRETARY_CERT_A
 printf "\n### Secretary's WebID URI: %s\n" "$SECRETARY_URI"
 
 # generate secretary's keystore,  cert, and public key if the public key does not exist
+# store secretary's metadata in an RDF dataset
 if [ ! -f "$SECRETARY_PUBLIC_KEY" ]; then
     printf "\n### Generating secretary's certificates and public key since they're not provided\n"
 

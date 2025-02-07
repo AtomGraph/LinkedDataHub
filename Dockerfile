@@ -87,6 +87,8 @@ ENV CLIENT_TRUSTSTORE="$CATALINA_HOME/webapps/ROOT/WEB-INF/client.truststore"
 
 ENV CERT_VALIDITY=3650
 
+ENV SIGN_UP_CERT_VALIDITY=
+
 ENV LOAD_DATASETS=
 
 ENV CONTEXT_DATASET_URL=file:///var/linkeddatahub/datasets/system.trig
