@@ -2,7 +2,7 @@
 
 print_usage()
 {
-    printf "Creates a container document.\n"
+    printf "Transforms CSV data into RDF using a SPARQL query and imports it.\n"
     printf "\n"
     printf "Usage:  %s options\n" "$0"
     printf "\n"
@@ -13,11 +13,12 @@ print_usage()
     printf "  --proxy PROXY_URL                    The host this request will be proxied through (optional)\n"
     printf "\n"
     printf "  --title TITLE                        Title of the container\n"
-    printf "  --parent PARENT_URI                  URI of the parent container\n"
     printf "  --description DESCRIPTION            Description of the container (optional)\n"
     printf "  --slug STRING                        String that will be used as URI path segment (optional)\n"
     printf "\n"
-    printf "  --block BLOCK_URI                    URI of the content block (optional)\n"
+    printf "  --query QUERY_URI                    URI of the CONSTRUCT mapping query\n"
+    printf "  --file FILE_URI                      URI of the CSV file\n"
+    printf "  --delimiter CHAR                     Delimiter char (default: ',')\n"
 }
 
 hash turtle 2>/dev/null || { echo >&2 "turtle not on \$PATH.  Aborting."; exit 1; }
@@ -58,23 +59,23 @@ do
         shift # past argument
         shift # past value
         ;;
-        --parent)
-        parent="$2"
-        shift # past argument
-        shift # past value
-        ;;
-        --block)
-        block="$2"
-        shift # past argument
-        shift # past value
-        ;;
-        --mode)
-        mode="$2"
-        shift # past argument
-        shift # past value
-        ;;
         --slug)
         slug="$2"
+        shift # past argument
+        shift # past value
+        ;;
+        --query)
+        query="$2"
+        shift # past argument
+        shift # past value
+        ;;
+        --file)
+        file="$2"
+        shift # past argument
+        shift # past value
+        ;;
+        --delimiter)
+        delimiter="$2"
         shift # past argument
         shift # past value
         ;;
@@ -84,7 +85,7 @@ do
         ;;
     esac
 done
-set -- "${args[@]}" # restore args parameters
+set -- "${args[@]}" # restore args
 
 if [ -z "$cert_pem_file" ] ; then
     print_usage
@@ -102,7 +103,15 @@ if [ -z "$title" ] ; then
     print_usage
     exit 1
 fi
-if [ -z "$parent" ] ; then
+if [ -z "$query" ] ; then
+    print_usage
+    exit 1
+fi
+if [ -z "$file" ] ; then
+    print_usage
+    exit 1
+fi
+if [ -z "$delimiter" ] ; then
     print_usage
     exit 1
 fi
@@ -111,37 +120,34 @@ if [ -z "$slug" ] ; then
     slug=$(uuidgen | tr '[:upper:]' '[:lower:]') # lowercase
 fi
 encoded_slug=$(urlencode "$slug")
-target="${parent}${encoded_slug}/"
+
+container="${base}imports/"
 
 args+=("-f")
 args+=("$cert_pem_file")
 args+=("-p")
 args+=("$cert_password")
 args+=("-t")
-args+=("text/turtle")
-args+=("$target")
+args+=("text/turtle") # content type
+args+=("${container}${encoded_slug}/")
 
-turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy#> .\n"
 turtle+="@prefix ldh:	<https://w3id.org/atomgraph/linkeddatahub#> .\n"
-turtle+="@prefix rdf:	<http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n"
+turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy#> .\n"
 turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"
+turtle+="@prefix foaf:	<http://xmlns.com/foaf/0.1/> .\n"
 turtle+="@prefix spin:	<http://spinrdf.org/spin#> .\n"
-turtle+="<${target}> a dh:Container .\n"
-turtle+="<${target}> dct:title \"${title}\" .\n"
-
-if [ -n "$block" ] ; then
-    turtle+="<${target}> rdf:_1 <${block}> .\n"
-else
-    block_triples="a ldh:View ; spin:query ldh:SelectChildren"
-    if [ -n "$mode" ] ; then
-        block_triples+="; ac:mode <${mode}> "
-    fi
-    turtle+="@prefix ac:	<https://w3id.org/atomgraph/client#> .\n"
-    turtle+="<${target}> rdf:_1 [ ${block_triples} ] .\n"
-fi
+turtle+="_:import a ldh:CSVImport .\n"
+turtle+="_:import dct:title \"${title}\" .\n"
+turtle+="_:import spin:query <${query}> .\n"
+turtle+="_:import ldh:file <${file}> .\n"
+turtle+="_:import ldh:delimiter \"${delimiter}\" .\n"
+turtle+="<${container}${encoded_slug}/> a dh:Item .\n"
+turtle+="<${container}${encoded_slug}/> foaf:primaryTopic _:import .\n"
+turtle+="<${container}${encoded_slug}/> dct:title \"${title}\" .\n"
 
 if [ -n "$description" ] ; then
-    turtle+="<${target}> dct:description \"${description}\" .\n"
+    turtle+="_:import dct:description \"${description}\" .\n"
 fi
 
-echo -e "$turtle" | turtle --base="$base" | ./put.sh "${args[@]}"
+# submit Turtle doc to the server
+echo -e "$turtle" | turtle --base="$base" | put.sh "${args[@]}"

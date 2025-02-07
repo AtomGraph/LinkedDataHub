@@ -7,8 +7,6 @@ purge_cache "$END_USER_VARNISH_SERVICE"
 purge_cache "$ADMIN_VARNISH_SERVICE"
 purge_cache "$FRONTEND_VARNISH_SERVICE"
 
-pushd . > /dev/null && cd "$SCRIPT_ROOT/admin/model"
-
 # create class
 
 namespace_doc="${END_USER_BASE_URL}ns"
@@ -16,7 +14,7 @@ namespace="${namespace_doc}#"
 ontology_doc="${ADMIN_BASE_URL}ontologies/namespace/"
 class="${namespace_doc}#NewClass"
 
-./add-class.sh \
+add-class.sh \
   -f "$OWNER_CERT_FILE" \
   -p "$OWNER_CERT_PWD" \
   -b "$ADMIN_BASE_URL" \
@@ -25,19 +23,13 @@ class="${namespace_doc}#NewClass"
   --sub-class-of "https://www.w3.org/ns/ldt/document-hierarchy#Item" \
   "$ontology_doc"
 
-popd > /dev/null
-
 # clear ontology from memory
 
-pushd . > /dev/null && cd "$SCRIPT_ROOT/admin"
-
-./clear-ontology.sh \
+clear-ontology.sh \
   -f "$OWNER_CERT_FILE" \
   -p "$OWNER_CERT_PWD" \
   -b "$ADMIN_BASE_URL" \
   --ontology "$namespace"
-
-popd > /dev/null
 
 # check that the class is present in the ontology
 

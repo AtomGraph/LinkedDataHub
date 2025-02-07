@@ -7,8 +7,6 @@ purge_cache "$END_USER_VARNISH_SERVICE"
 purge_cache "$ADMIN_VARNISH_SERVICE"
 purge_cache "$FRONTEND_VARNISH_SERVICE"
 
-pushd . > /dev/null && cd "$SCRIPT_ROOT/admin/model"
-
 # create restriction
 
 namespace_doc="${END_USER_BASE_URL}ns"
@@ -16,7 +14,7 @@ namespace="${namespace_doc}#"
 ontology_doc="${ADMIN_BASE_URL}ontologies/namespace/"
 restriction="${namespace_doc}#Restriction"
 
-./add-restriction.sh \
+add-restriction.sh \
   -f "$OWNER_CERT_FILE" \
   -p "$OWNER_CERT_PWD" \
   -b "$ADMIN_BASE_URL" \
@@ -26,19 +24,13 @@ restriction="${namespace_doc}#Restriction"
   --all-values-from "http://www.w3.org/2000/01/rdf-schema#Resource" \
   "$ontology_doc"
 
-popd > /dev/null
-
 # clear ontology from memory
 
-pushd . > /dev/null && cd "$SCRIPT_ROOT/admin"
-
-./clear-ontology.sh \
+clear-ontology.sh \
   -f "$OWNER_CERT_FILE" \
   -p "$OWNER_CERT_PWD" \
   -b "$ADMIN_BASE_URL" \
   --ontology "$namespace"
-
-popd > /dev/null
 
 # check that the restriction is present in the ontology
 

@@ -9,25 +9,19 @@ purge_cache "$FRONTEND_VARNISH_SERVICE"
 
 pwd=$(realpath "$PWD")
 
-pushd . > /dev/null && cd "$SCRIPT_ROOT/admin/acl"
-
 # add agent to the writers group
 
-./add-agent-to-group.sh \
+add-agent-to-group.sh \
   -f "$OWNER_CERT_FILE" \
   -p "$OWNER_CERT_PWD" \
   --agent "$AGENT_URI" \
   "${ADMIN_BASE_URL}acl/groups/writers/"
 
-popd > /dev/null
-
-pushd . > /dev/null && cd "$SCRIPT_ROOT/imports"
-
 # create file
 
 file_content_type="text/csv"
 
-file_doc=$(./create-file.sh \
+file_doc=$(create-file.sh \
 -f "$AGENT_CERT_FILE" \
 -p "$AGENT_CERT_PWD" \
 -b "$END_USER_BASE_URL" \
@@ -35,15 +29,11 @@ file_doc=$(./create-file.sh \
 --file "$pwd/test.csv" \
 --file-content-type "${file_content_type}")
 
-pushd . > /dev/null && cd "$SCRIPT_ROOT"
-
-file_doc_ntriples=$(./get.sh \
+file_doc_ntriples=$(get.sh \
   -f "$AGENT_CERT_FILE" \
   -p "$AGENT_CERT_PWD" \
   --accept 'application/n-triples' \
   "$file_doc")
-
-popd > /dev/null
 
 # echo "FILE NTRIPLES: $file_doc_ntriples"
 

@@ -7,13 +7,11 @@ purge_cache "$END_USER_VARNISH_SERVICE"
 purge_cache "$ADMIN_VARNISH_SERVICE"
 purge_cache "$FRONTEND_VARNISH_SERVICE"
 
-pushd . > /dev/null && cd "$SCRIPT_ROOT"
-
 # create container
 
 slug="test"
 
-container=$(./create-container.sh \
+container=$(create-container.sh \
   -f "$OWNER_CERT_FILE" \
   -p "$OWNER_CERT_PWD" \
   -b "$END_USER_BASE_URL" \
@@ -21,13 +19,9 @@ container=$(./create-container.sh \
   --slug "$slug" \
   --parent "$END_USER_BASE_URL")
 
-popd > /dev/null
-
-pushd . > /dev/null && cd "$SCRIPT_ROOT/admin/acl"
-
 # add an explicit read/write authorization for the owner because add-agent-to-group.sh won't work non-existing URI
 
-./create-authorization.sh \
+create-authorization.sh \
 -b "$ADMIN_BASE_URL" \
   -f "$OWNER_CERT_FILE" \
   -p "$OWNER_CERT_PWD" \
@@ -36,8 +30,6 @@ pushd . > /dev/null && cd "$SCRIPT_ROOT/admin/acl"
   --to "$container" \
   --read \
   --write
-
-popd > /dev/null
 
 # delete document
 

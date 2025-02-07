@@ -2,7 +2,7 @@
 
 print_usage()
 {
-    printf "Appends an XHTML block.\n"
+    printf "Appends an object block.\n"
     printf "\n"
     printf "Usage:  %s options TARGET_URI\n" "$0"
     printf "\n"
@@ -16,7 +16,8 @@ print_usage()
     printf "  --description DESCRIPTION            Description(optional)\n"
     printf "  --fragment STRING                    String that will be used as URI fragment identifier (optional)\n"
     printf "\n"
-    printf "  --value XHTML                        XHTML as canonical XML\n"
+    printf "  --value RESOURCE_URI                 URI of the object resource\n"
+    printf "  --mode MODE_URI                      URI of the block mode (list, grid etc.) (optional)\n"
 }
 
 args=()
@@ -65,6 +66,11 @@ do
         shift # past argument
         shift # past value
         ;;
+        --mode)
+        mode="$2"
+        shift # past argument
+        shift # past value
+        ;;
         *)    # unknown arguments
         args+=("$1") # save it in an array for later
         shift # past argument
@@ -92,7 +98,7 @@ fi
 
 target="$1"
 
-ntriples=$(./get.sh \
+ntriples=$(get.sh \
   -f "$cert_pem_file" \
   -p "$cert_password" \
  --proxy "$proxy" \
@@ -122,8 +128,8 @@ turtle+="@prefix ldh:	<https://w3id.org/atomgraph/linkeddatahub#> .\n"
 turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"
 turtle+="@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n"
 turtle+="<${target}> <${sequence_property}> ${subject} .\n"
-turtle+="${subject} a ldh:XHTML .\n"
-turtle+="${subject} rdf:value \"${value}\"^^rdf:XMLLiteral .\n"
+turtle+="${subject} a ldh:Object .\n"
+turtle+="${subject} rdf:value <${value}> .\n"
 
 if [ -n "$title" ] ; then
     turtle+="${subject} dct:title \"${title}\" .\n"
@@ -131,6 +137,10 @@ fi
 if [ -n "$description" ] ; then
     turtle+="${subject} dct:description \"${description}\" .\n"
 fi
+if [ -n "$mode" ] ; then
+    turtle+="@prefix ac:	<https://w3id.org/atomgraph/client#> .\n"
+    turtle+="${subject} ac:mode <${mode}> .\n"
+fi
 
 # submit Turtle doc to the server
-echo -e "$turtle" | ./post.sh "${args[@]}"
+echo -e "$turtle" | post.sh "${args[@]}"

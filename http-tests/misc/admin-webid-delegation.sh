@@ -7,18 +7,14 @@ purge_cache "$END_USER_VARNISH_SERVICE"
 purge_cache "$ADMIN_VARNISH_SERVICE"
 purge_cache "$FRONTEND_VARNISH_SERVICE"
 
-pushd . > /dev/null && cd "$SCRIPT_ROOT"
-
 # check that the acl:delegates triple exists in the agent's description
 
-./get.sh \
+get.sh \
   -f "$AGENT_CERT_FILE" \
   -p "$AGENT_CERT_PWD" \
   --accept 'application/n-triples' \
   "$AGENT_URI" \
 | grep "<${SECRETARY_URI}> <http://www.w3.org/ns/auth/acl#delegates> <${AGENT_URI}>"
-
-popd
 
 # agent not authorized - delegation should fail
 
@@ -29,17 +25,13 @@ curl --head -k -w "%{http_code}\n" -o /dev/null -s \
   "$ADMIN_BASE_URL" \
 | grep -q "$STATUS_FORBIDDEN"
 
-pushd . > /dev/null && cd "$SCRIPT_ROOT/admin/acl"
-
 # add agent to the owners group to be able to control the admin app
 
-./add-agent-to-group.sh \
+add-agent-to-group.sh \
   -f "$OWNER_CERT_FILE" \
   -p "$OWNER_CERT_PWD" \
   --agent "$AGENT_URI" \
   "${ADMIN_BASE_URL}acl/groups/owners/"
-
-popd > /dev/null
 
 # agent authorized - delegation should succeed
 

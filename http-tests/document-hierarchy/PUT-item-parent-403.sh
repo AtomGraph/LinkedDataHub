@@ -7,33 +7,25 @@ purge_cache "$END_USER_VARNISH_SERVICE"
 purge_cache "$ADMIN_VARNISH_SERVICE"
 purge_cache "$FRONTEND_VARNISH_SERVICE"
 
-pushd . > /dev/null && cd "$SCRIPT_ROOT/admin/acl"
-
 # add agent to the writers
 
-./add-agent-to-group.sh \
+add-agent-to-group.sh \
   -f "$OWNER_CERT_FILE" \
   -p "$OWNER_CERT_PWD" \
   --agent "$AGENT_URI" \
   "${ADMIN_BASE_URL}acl/groups/writers/"
 
-popd > /dev/null
-
-pushd . > /dev/null && cd "$SCRIPT_ROOT"
-
 # create item
 
 slug="test-item"
 
-item=$(./create-item.sh \
+item=$(create-item.sh \
   -f "$AGENT_CERT_FILE" \
   -p "$AGENT_CERT_PWD" \
   -b "$END_USER_BASE_URL" \
   --title "Test" \
   --slug "$slug" \
   --container "$END_USER_BASE_URL")
-
-popd > /dev/null
 
 # check that item as parent is forbidden
 

@@ -7,9 +7,7 @@ purge_cache "$END_USER_VARNISH_SERVICE"
 purge_cache "$ADMIN_VARNISH_SERVICE"
 purge_cache "$FRONTEND_VARNISH_SERVICE"
 
-file=$(./create-file.sh)
-
-pushd . > /dev/null && cd "$SCRIPT_ROOT"
+file=$(create-file.sh)
 
 etag=$(
   curl -k -i -f -s -G \
@@ -19,8 +17,6 @@ etag=$(
 | grep 'ETag' \
 | tr -d '\r' \
 | sed -En 's/^ETag: (.*)$/\1/p')
-
-popd > /dev/null
 
 curl -k -w "%{http_code}\n" -o /dev/null -f -s -G \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
