@@ -25,9 +25,9 @@ jobs:
         uses: actions/checkout@v3
       - name: Add bin/ and its subdirectories to PATH
         run: |
-          ls -l bin
-          echo "bin" >> "$GITHUB_PATH"
-          for d in "bin"/*/; do
+          echo "$GITHUB_WORKSPACE"
+          echo "$GITHUB_WORKSPACE/bin" >> "$GITHUB_PATH"
+          for d in "$GITHUB_WORKSPACE/bin"/*/; do
             echo "$d" >> "$GITHUB_PATH"
           done
       - name: Generating server certificate
