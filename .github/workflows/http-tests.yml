@@ -29,7 +29,7 @@ jobs:
             echo "$d" >> "$GITHUB_PATH"
           done
       - name: Generating server certificate
-        run: ../scripts/server-cert-gen.sh .env nginx ssl
+        run: server-cert-gen.sh .env nginx ssl
         working-directory: http-tests
       - name: Writing secrets to files
         run: |
