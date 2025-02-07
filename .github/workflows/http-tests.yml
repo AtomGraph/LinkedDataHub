@@ -23,8 +23,9 @@ jobs:
           echo "${{ runner.temp }}/apache-jena-${{ env.JENA_VERSION }}/bin" >> $GITHUB_PATH
       - name: Checkout code
         uses: actions/checkout@v3
-      - name: Add all subdirectories in bin/ to PATH
+      - name: Add bin/ and its subdirectories to PATH
         run: |
+          echo "bin" >> "$GITHUB_PATH"
           for d in "bin"/*/; do
             echo "$d" >> "$GITHUB_PATH"
           done
