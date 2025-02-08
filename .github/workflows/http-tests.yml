@@ -25,11 +25,9 @@ jobs:
         uses: actions/checkout@v3
       - name: Add bin/ and its subdirectories to PATH
         run: |
-          echo "$GITHUB_WORKSPACE"
           find "$GITHUB_WORKSPACE/bin" -type d >> "$GITHUB_PATH"
       - name: Generating server certificate
         run: |
-          echo "$PATH"
           server-cert-gen.sh .env nginx ssl
         working-directory: http-tests
       - name: Writing secrets to files
