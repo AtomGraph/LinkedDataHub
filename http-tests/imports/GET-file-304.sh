@@ -7,7 +7,7 @@ purge_cache "$END_USER_VARNISH_SERVICE"
 purge_cache "$ADMIN_VARNISH_SERVICE"
 purge_cache "$FRONTEND_VARNISH_SERVICE"
 
-file=$(create-file.sh)
+file=$(./create-file.sh)
 
 etag=$(
   curl -k -i -f -s -G \
