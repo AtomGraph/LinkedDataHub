@@ -2,7 +2,7 @@
 
 print_usage()
 {
-    printf "Creates an OWL restriction.\n"
+    printf "Creates a new ontology.\n"
     printf "\n"
     printf "Usage:  %s options [TARGET_URI]\n" "$0"
     printf "\n"
@@ -12,16 +12,19 @@ print_usage()
     printf "  -b, --base BASE_URI                  Base URI of the admin application\n"
     printf "  --proxy PROXY_URL                    The host this request will be proxied through (optional)\n"
     printf "\n"
-    printf "  --label LABEL                        Label of the restriction\n"
-    printf "  --comment COMMENT                    Description of the restriction (optional)\n"
+    printf "  --label LABEL                        Label of the ontology\n"
+    printf "  --comment COMMENT                    Description of the ontology (optional)\n"
+    printf "  --slug STRING                        String that will be used as URI path segment (optional)\n"
     printf "\n"
-    printf "  --uri URI                            URI of the restriction (optional)\n"
-    printf "  --on-property PROPERTY_URI           URI of the restricted property (optional)\n"
-    printf "  --all-values-from URI                URI value of owl:allValuesFrom (optional)\n"
-    printf "  --has-value URI                      URI value of owl:hasValue (optional)\n"
+    printf "  --uri URI                            URI of the ontology (optional)\n"
 }
 
 hash turtle 2>/dev/null || { echo >&2 "turtle not on \$PATH.  Aborting."; exit 1; }
+
+urlencode() {
+  python -c 'import urllib.parse, sys; print(urllib.parse.quote(sys.argv[1], sys.argv[2]))' \
+    "$1" "$urlencode_safe"
+}
 
 args=()
 while [[ $# -gt 0 ]]
@@ -54,23 +57,13 @@ do
         shift # past argument
         shift # past value
         ;;
+        --slug)
+        slug="$2"
+        shift # past argument
+        shift # past value
+        ;;
         --uri)
         uri="$2"
-        shift # past argument
-        shift # past value
-        ;;
-        --on-property)
-        on_property="$2"
-        shift # past argument
-        shift # past value
-        ;;
-        --all-values-from)
-        all_values_from="$2"
-        shift # past argument
-        shift # past value
-        ;;
-        --has-value)
-        has_value="$2"
         shift # past argument
         shift # past value
         ;;
@@ -98,17 +91,20 @@ if [ -z "$label" ] ; then
     print_usage
     exit 1
 fi
-if [ -z "$1" ]; then
-    print_usage
-    exit 1
-fi
+
+container="${base}ontologies/"
 
 # allow explicit URIs
 if [ -n "$uri" ] ; then
-    restriction="<${uri}>" # URI
+    ontology="<${uri}>" # URI
 else
-    restriction="_:restriction" # blank node
+    ontology="_:ontology" # blank node
 fi
+
+if [ -z "$slug" ] ; then
+    slug=$(uuidgen | tr '[:upper:]' '[:lower:]') # lowercase
+fi
+encoded_slug=$(urlencode "$slug")
 
 args+=("-f")
 args+=("$cert_pem_file")
@@ -116,26 +112,23 @@ args+=("-p")
 args+=("$cert_password")
 args+=("-t")
 args+=("text/turtle") # content type
+args+=("${container}${encoded_slug}/")
 
+turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy#> .\n"
 turtle+="@prefix owl:	<http://www.w3.org/2002/07/owl#> .\n"
 turtle+="@prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .\n"
-turtle+="@prefix owl:	<http://www.w3.org/2002/07/owl#> .\n"
-turtle+="@prefix spin:	<http://spinrdf.org/spin#> .\n"
-turtle+="${restriction} a owl:Restriction .\n"
-turtle+="${restriction} rdfs:label \"${label}\" .\n"
+turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"
+turtle+="@prefix foaf:	<http://xmlns.com/foaf/0.1/> .\n"
+turtle+="@prefix sp:	<http://spinrdf.org/sp#> .\n"
+turtle+="${ontology} a owl:Ontology .\n"
+turtle+="${ontology} rdfs:label \"${label}\" .\n"
+turtle+="<${container}${encoded_slug}/> a dh:Item .\n"
+turtle+="<${container}${encoded_slug}/> foaf:primaryTopic ${ontology} .\n"
+turtle+="<${container}${encoded_slug}/> dct:title \"${label}\" .\n"
 
 if [ -n "$comment" ] ; then
-    turtle+="${restriction} rdfs:comment \"${comment}\" .\n"
-fi
-if [ -n "$on_property" ] ; then
-    turtle+="${restriction} owl:onProperty <$on_property> .\n"
-fi
-if [ -n "$all_values_from" ] ; then
-    turtle+="${restriction} owl:allValuesFrom <$all_values_from> .\n"
-fi
-if [ -n "$has_value" ] ; then
-    turtle+="${restriction} owl:hasValue <$has_value> .\n"
+    turtle+="${ontology} rdfs:comment \"${comment}\" .\n"
 fi
 
 # submit Turtle doc to the server
-echo -e "$turtle" | turtle --base="$base" | ../../post.sh "${args[@]}"
+echo -e "$turtle" | turtle --base="$base" | put.sh "${args[@]}"

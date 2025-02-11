@@ -2,9 +2,9 @@
 
 print_usage()
 {
-    printf "Creates a SPARQL SELECT query.\n"
+    printf "Appends an object block.\n"
     printf "\n"
-    printf "Usage:  %s options\n" "$0"
+    printf "Usage:  %s options TARGET_URI\n" "$0"
     printf "\n"
     printf "Options:\n"
     printf "  -f, --cert-pem-file CERT_FILE        .pem file with the WebID certificate of the agent\n"
@@ -12,12 +12,12 @@ print_usage()
     printf "  -b, --base BASE_URI                  Base URI of the application\n"
     printf "  --proxy PROXY_URL                    The host this request will be proxied through (optional)\n"
     printf "\n"
-    printf "  --title TITLE                        Title of the chart\n"
-    printf "  --description DESCRIPTION            Description of the chart (optional)\n"
+    printf "  --title TITLE                        Title\n"
+    printf "  --description DESCRIPTION            Description(optional)\n"
     printf "  --fragment STRING                    String that will be used as URI fragment identifier (optional)\n"
     printf "\n"
-    printf "  --query-file ABS_PATH                Absolute path to the text file with the SPARQL query string\n"
-    printf "  --service SERVICE_URI                URI of the SPARQL service specific to this query (optional)\n"
+    printf "  --value RESOURCE_URI                 URI of the object resource\n"
+    printf "  --mode MODE_URI                      URI of the block mode (list, grid etc.) (optional)\n"
 }
 
 args=()
@@ -33,6 +33,11 @@ do
         ;;
         -p|--cert-password)
         cert_password="$2"
+        shift # past argument
+        shift # past value
+        ;;
+        --proxy)
+        proxy="$2"
         shift # past argument
         shift # past value
         ;;
@@ -56,13 +61,13 @@ do
         shift # past argument
         shift # past value
         ;;
-        --query-file)
-        query_file="$2"
+        --value)
+        value="$2"
         shift # past argument
         shift # past value
         ;;
-        --service)
-        service="$2"
+        --mode)
+        mode="$2"
         shift # past argument
         shift # past value
         ;;
@@ -86,16 +91,24 @@ if [ -z "$base" ] ; then
     print_usage
     exit 1
 fi
-if [ -z "$title" ] ; then
-    print_usage
-    exit 1
-fi
-if [ -z "$query_file" ] ; then
+if [ -z "$value" ] ; then
     print_usage
     exit 1
 fi
 
-query=$(<"$query_file") # read query string from file
+target="$1"
+
+ntriples=$(get.sh \
+  -f "$cert_pem_file" \
+  -p "$cert_password" \
+ --proxy "$proxy" \
+  --accept 'application/n-triples' \
+  "$target")
+
+# extract the numbers from the sequence properties
+sequence_number=$(echo "$ntriples" | grep "<${target}> <http://www.w3.org/1999/02/22-rdf-syntax-ns#_" | cut -d " " -f 2 | cut -d'#' -f 2 | cut -d '_' -f 2 | cut -d '>' -f 1 |  sort -nr | head -n1)
+sequence_number=$((sequence_number + 1)) # increase the counter
+sequence_property="http://www.w3.org/1999/02/22-rdf-syntax-ns#_${sequence_number}"
 
 args+=("-f")
 args+=("$cert_pem_file")
@@ -113,17 +126,21 @@ fi
 
 turtle+="@prefix ldh:	<https://w3id.org/atomgraph/linkeddatahub#> .\n"
 turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"
-turtle+="@prefix sp:	<http://spinrdf.org/sp#> .\n"
-turtle+="${subject} a sp:Select .\n"
-turtle+="${subject} dct:title \"${title}\" .\n"
-turtle+="${subject} sp:text \"\"\"${query}\"\"\" .\n"
+turtle+="@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n"
+turtle+="<${target}> <${sequence_property}> ${subject} .\n"
+turtle+="${subject} a ldh:Object .\n"
+turtle+="${subject} rdf:value <${value}> .\n"
 
-if [ -n "$service" ] ; then
-    turtle+="${subject} ldh:service <${service}> .\n"
+if [ -n "$title" ] ; then
+    turtle+="${subject} dct:title \"${title}\" .\n"
 fi
 if [ -n "$description" ] ; then
     turtle+="${subject} dct:description \"${description}\" .\n"
 fi
+if [ -n "$mode" ] ; then
+    turtle+="@prefix ac:	<https://w3id.org/atomgraph/client#> .\n"
+    turtle+="${subject} ac:mode <${mode}> .\n"
+fi
 
 # submit Turtle doc to the server
-echo -e "$turtle" | ./post.sh "${args[@]}"
+echo -e "$turtle" | post.sh "${args[@]}"

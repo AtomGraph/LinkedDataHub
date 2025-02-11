@@ -99,11 +99,11 @@ It takes a few clicks and filling out a form to install the product into your ow
     * If this option does not appear in Chrome (as observed on some MacOS), you can open `chrome://flags/#allow-insecure-localhost`, switch `Allow invalid certificates for resources loaded from localhost` to `Enabled` and restart Chrome
   * `.env_sample` and `.env` files might be invisible in MacOS Finder which hides filenames starting with a dot. You should be able to [create it using Terminal](https://stackoverflow.com/questions/5891365/mac-os-x-doesnt-allow-to-name-files-starting-with-a-dot-how-do-i-name-the-hta) however.
   * On Linux your user may need to be a member of the `docker` group. Add it using
-  ```
+  ```shell
   sudo usermod -aG docker ${USER}
   ```
   and re-login with your user. An alternative, but not recommended, is to run
-  ```
+  ```shell
   sudo docker-compose up
   ```
 </details>
@@ -164,7 +164,7 @@ The options are described in more detail in the [configuration documentation](ht
   ## Reset
 
   If you need to start fresh and wipe the existing setup (e.g. after configuring a new base URI), you can do that using
-  ```
+  ```shell
   sudo rm -rf data uploads && docker-compose down -v
   ```
 
@@ -181,11 +181,15 @@ _:warning: This will **remove the persisted data and files** as well as Docker v
 
 LinkedDataHub CLI wraps the HTTP API into a set of shell scripts with convenient parameters. The scripts can be used for testing, automation, scheduled execution and such. It is usually much quicker to perform actions using CLI rather than the user interface, as well as easier to reproduce.
 
-The scripts can be found in the [`scripts`](https://github.com/AtomGraph/LinkedDataHub/tree/master/scripts) subfolder.
+The scripts can be found in the [`bin`](https://github.com/AtomGraph/LinkedDataHub/tree/master/bin) subfolder. In order to use them, add the `bin` folder and its subfolders to the `$PATH`. For example:
+
+```shell
+    export PATH="$(find bin -type d -exec realpath {} \; | tr '\n' ':')$PATH"
+```
 
 _:warning: The CLI scripts internally use [Jena's CLI commands](https://jena.apache.org/documentation/tools/). Set up the Jena environment before running the scripts._
 
-An environment variable `JENA_HOME` is used by all the command line tools to configure the class path automatically for you. You can set this up as follows:
+The environment variable `JENA_HOME` is used by all the command line tools to configure the class path automatically for you. You can set this up as follows:
 
 **On Linux / Mac**
 
@@ -201,11 +205,7 @@ An environment variable `JENA_HOME` is used by all the command line tools to con
 
 ### [Demo apps](https://github.com/AtomGraph/LinkedDataHub-Apps)
 
-These demo applications can be installed into a LinkedDataHub instance using the provided CLI scripts.
-
-_:warning: Before running app installation scripts that use LinkedDataHub's CLI scripts, set the `SCRIPT_ROOT` environmental variable to the [`scripts`](https://github.com/AtomGraph/LinkedDataHub/tree/master/scripts) subfolder of your LinkedDataHub fork or clone._ For example:
-
-    export SCRIPT_ROOT="/c/Users/namedgraph/WebRoot/AtomGraph/LinkedDataHub/scripts"
+These demo applications can be installed into a LinkedDataHub instance using `make install`. You will need to provide the path to your WebID certificate as well as its password.
 
 ## How to get involved
 

@@ -11,7 +11,6 @@ export OWNER_CERT_FILE="$1"
 export OWNER_CERT_PWD="$2"
 export SECRETARY_CERT_FILE="$3"
 export SECRETARY_CERT_PWD="$4"
-export SCRIPT_ROOT="$PWD/../scripts"
 
 export STATUS_OK=200
 export STATUS_DELETE_SUCCESS='200|204'
@@ -85,13 +84,7 @@ function purge_cache()
     fi
 }
 
-id -u
-id -g
-
-ls -l ./ssl/owner
-ls -l ./datasets/owner
-
-export OWNER_URI="$("$SCRIPT_ROOT"/webid-uri.sh "$OWNER_CERT_FILE")"
+export OWNER_URI="$(webid-uri.sh "$OWNER_CERT_FILE")"
 if [ -z "$OWNER_URI" ]; then
     echo "Failed to extract the owner's WebID URI from the cert file: $OWNER_CERT_FILE"
     exit 1
@@ -99,7 +92,7 @@ fi
 
 printf "### Owner agent URI: %s\n" "$OWNER_URI"
 
-export SECRETARY_URI="$("$SCRIPT_ROOT"/webid-uri.sh "$SECRETARY_CERT_FILE")"
+export SECRETARY_URI="$(webid-uri.sh "$SECRETARY_CERT_FILE")"
 
 if [ -z "$SECRETARY_URI" ]; then
     echo "Failed to extract the secretary's WebID URI from the cert file: $SECRETARY_CERT_FILE"
@@ -132,7 +125,7 @@ start_time=$(date +%s)
 run_tests "signup.sh"
 (( error_count += $? ))
 
-export AGENT_URI="$("$SCRIPT_ROOT"/webid-uri.sh "$AGENT_CERT_FILE")"
+export AGENT_URI="$(webid-uri.sh "$AGENT_CERT_FILE")"
 printf "### Signed up agent URI: %s\n" "$AGENT_URI"
 
 # store the end-user and admin datasets

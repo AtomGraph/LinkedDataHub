@@ -2,22 +2,22 @@
 
 print_usage()
 {
-    printf "Creates an ACL agent group.\n"
+    printf "Creates a container document.\n"
     printf "\n"
     printf "Usage:  %s options\n" "$0"
     printf "\n"
     printf "Options:\n"
     printf "  -f, --cert-pem-file CERT_FILE        .pem file with the WebID certificate of the agent\n"
     printf "  -p, --cert-password CERT_PASSWORD    Password of the WebID certificate\n"
-    printf "  -b, --base BASE_URI                  Base URI of the admin application\n"
+    printf "  -b, --base BASE_URI                  Base URI of the application\n"
     printf "  --proxy PROXY_URL                    The host this request will be proxied through (optional)\n"
     printf "\n"
-    printf "  --name NAME                          Name of the group\n"
-    printf "  --description DESCRIPTION            Description of the group (optional)\n"
+    printf "  --title TITLE                        Title of the container\n"
+    printf "  --parent PARENT_URI                  URI of the parent container\n"
+    printf "  --description DESCRIPTION            Description of the container (optional)\n"
     printf "  --slug STRING                        String that will be used as URI path segment (optional)\n"
     printf "\n"
-    printf "  --uri URI                            URI of the group (optional)\n"
-    printf "  --member MEMBER_URI                  URI of the member agent (optional)\n"
+    printf "  --block BLOCK_URI                    URI of the content block (optional)\n"
 }
 
 hash turtle 2>/dev/null || { echo >&2 "turtle not on \$PATH.  Aborting."; exit 1; }
@@ -48,8 +48,8 @@ do
         shift # past argument
         shift # past value
         ;;
-        --name)
-        name="$2"
+        --title)
+        title="$2"
         shift # past argument
         shift # past value
         ;;
@@ -58,18 +58,23 @@ do
         shift # past argument
         shift # past value
         ;;
+        --parent)
+        parent="$2"
+        shift # past argument
+        shift # past value
+        ;;
+        --block)
+        block="$2"
+        shift # past argument
+        shift # past value
+        ;;
+        --mode)
+        mode="$2"
+        shift # past argument
+        shift # past value
+        ;;
         --slug)
         slug="$2"
-        shift # past argument
-        shift # past value
-        ;;
-        --uri)
-        uri="$2"
-        shift # past argument
-        shift # past value
-        ;;
-        --member)
-        members+=("$2")
         shift # past argument
         shift # past value
         ;;
@@ -79,7 +84,7 @@ do
         ;;
     esac
 done
-set -- "${args[@]}" # restore args
+set -- "${args[@]}" # restore args parameters
 
 if [ -z "$cert_pem_file" ] ; then
     print_usage
@@ -93,11 +98,11 @@ if [ -z "$base" ] ; then
     print_usage
     exit 1
 fi
-if [ -z "$name" ] ; then
+if [ -z "$title" ] ; then
     print_usage
     exit 1
 fi
-if [ ${#members[@]} -eq 0 ]; then
+if [ -z "$parent" ] ; then
     print_usage
     exit 1
 fi
@@ -106,41 +111,37 @@ if [ -z "$slug" ] ; then
     slug=$(uuidgen | tr '[:upper:]' '[:lower:]') # lowercase
 fi
 encoded_slug=$(urlencode "$slug")
-
-container="${base}acl/groups/"
-
-# allow explicit URIs
-if [ -n "$uri" ] ; then
-    group="<${uri}>" # URI
-else
-    group="_:auth" # blank node
-fi
+target="${parent}${encoded_slug}/"
 
 args+=("-f")
 args+=("$cert_pem_file")
 args+=("-p")
 args+=("$cert_password")
 args+=("-t")
-args+=("text/turtle") # content type
-args+=("${container}${encoded_slug}/")
+args+=("text/turtle")
+args+=("$target")
 
 turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy#> .\n"
+turtle+="@prefix ldh:	<https://w3id.org/atomgraph/linkeddatahub#> .\n"
+turtle+="@prefix rdf:	<http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n"
 turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"
-turtle+="@prefix foaf:	<http://xmlns.com/foaf/0.1/> .\n"
-turtle+="${group} a foaf:Group .\n"
-turtle+="${group} foaf:name \"${label}\" .\n"
-turtle+="<${container}${encoded_slug}/> a dh:Item .\n"
-turtle+="<${container}${encoded_slug}/> foaf:primaryTopic ${group} .\n"
-turtle+="<${container}${encoded_slug}/> dct:title \"${label}\" .\n"
+turtle+="@prefix spin:	<http://spinrdf.org/spin#> .\n"
+turtle+="<${target}> a dh:Container .\n"
+turtle+="<${target}> dct:title \"${title}\" .\n"
 
-if [ -n "$description" ] ; then
-    turtle+="${group} dct:description \"${description}\" .\n"
+if [ -n "$block" ] ; then
+    turtle+="<${target}> rdf:_1 <${block}> .\n"
+else
+    block_triples="a ldh:View ; spin:query ldh:SelectChildren"
+    if [ -n "$mode" ] ; then
+        block_triples+="; ac:mode <${mode}> "
+    fi
+    turtle+="@prefix ac:	<https://w3id.org/atomgraph/client#> .\n"
+    turtle+="<${target}> rdf:_1 [ ${block_triples} ] .\n"
 fi
 
-for member in "${members[@]}"
-do
-    turtle+="${group} foaf:member <$member> .\n"
-done
+if [ -n "$description" ] ; then
+    turtle+="<${target}> dct:description \"${description}\" .\n"
+fi
 
-# submit Turtle doc to the server
-echo -e "$turtle" | turtle --base="$base" | ../../put.sh "${args[@]}"
+echo -e "$turtle" | turtle --base="$base" | put.sh "${args[@]}"

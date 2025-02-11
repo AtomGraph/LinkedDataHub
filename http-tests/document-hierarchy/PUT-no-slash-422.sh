@@ -7,11 +7,9 @@ purge_cache "$END_USER_VARNISH_SERVICE"
 purge_cache "$ADMIN_VARNISH_SERVICE"
 purge_cache "$FRONTEND_VARNISH_SERVICE"
 
-pushd . > /dev/null && cd "$SCRIPT_ROOT/admin/acl"
-
 # add an explicit read/write authorization for the parent since the child document will inherit it
 
-./create-authorization.sh \
+create-authorization.sh \
   -b "$ADMIN_BASE_URL" \
   -f "$OWNER_CERT_FILE" \
   -p "$OWNER_CERT_PWD" \
@@ -20,8 +18,6 @@ pushd . > /dev/null && cd "$SCRIPT_ROOT/admin/acl"
   --to "$END_USER_BASE_URL" \
   --read \
   --write
-
-popd > /dev/null
 
 # replace the graph (note that the request URI does not end with a slash)
 

@@ -6,8 +6,6 @@ initialize_dataset "$ADMIN_BASE_URL" "$TMP_ADMIN_DATASET" "$ADMIN_ENDPOINT_URL"
 purge_cache "$END_USER_VARNISH_SERVICE"
 purge_cache "$ADMIN_VARNISH_SERVICE"
 
-pushd . > /dev/null && cd "$SCRIPT_ROOT/admin"
-
 namespace_doc="${END_USER_BASE_URL}ns"
 namespace="${namespace_doc}#"
 ontology_doc="${ADMIN_BASE_URL}ontologies/namespace/"
@@ -15,7 +13,7 @@ import_uri="http://www.w3.org/ns/auth/acl"
 
 # add ontology import
 
-./add-ontology-import.sh \
+add-ontology-import.sh \
   -f "$OWNER_CERT_FILE" \
   -p "$OWNER_CERT_PWD" \
   --import "$import_uri" \
@@ -23,13 +21,11 @@ import_uri="http://www.w3.org/ns/auth/acl"
 
 # clear the namespace ontology from memory
 
-./clear-ontology.sh \
+clear-ontology.sh \
   -f "$OWNER_CERT_FILE" \
   -p "$OWNER_CERT_PWD" \
   -b "$ADMIN_BASE_URL" \
   --ontology "$namespace"
-
-popd > /dev/null
 
 # check that the import is present in the namespace ontology
 

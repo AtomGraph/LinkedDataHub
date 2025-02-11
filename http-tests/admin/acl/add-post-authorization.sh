@@ -22,11 +22,9 @@ EOF
 ) \
 | grep -q "$STATUS_FORBIDDEN"
 
-pushd . > /dev/null && cd "$SCRIPT_ROOT/admin/acl"
-
 # create authorization
 
-./create-authorization.sh \
+create-authorization.sh \
   -f "$OWNER_CERT_FILE" \
   -p "$OWNER_CERT_PWD" \
   -b "$ADMIN_BASE_URL" \
@@ -34,8 +32,6 @@ pushd . > /dev/null && cd "$SCRIPT_ROOT/admin/acl"
   --agent "$AGENT_URI" \
   --to "$END_USER_BASE_URL" \
   --append
-
-popd > /dev/null
 
 # access is allowed after authorization is created
 

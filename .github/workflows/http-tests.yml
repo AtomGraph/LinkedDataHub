@@ -18,13 +18,17 @@ jobs:
       - name: Unpack Jena
         run: tar -zxf jena.tar.gz
         working-directory: ${{ runner.temp }}
-      - name: Set JENA_HOME and Update PATH
+      - name: Set JENA_HOME and update PATH
         run: |
           echo "${{ runner.temp }}/apache-jena-${{ env.JENA_VERSION }}/bin" >> $GITHUB_PATH
       - name: Checkout code
         uses: actions/checkout@v3
+      - name: Add bin/ and its subdirectories to PATH
+        run: |
+          find "$GITHUB_WORKSPACE/bin" -type d >> "$GITHUB_PATH"
       - name: Generating server certificate
-        run: ../scripts/server-cert-gen.sh .env nginx ssl
+        run: |
+          server-cert-gen.sh .env nginx ssl
         working-directory: http-tests
       - name: Writing secrets to files
         run: |

@@ -2,7 +2,7 @@
 
 print_usage()
 {
-    printf "Adds a SPARQL CONSTRUCT query.\n"
+    printf "Creates an OWL restriction.\n"
     printf "\n"
     printf "Usage:  %s options [TARGET_URI]\n" "$0"
     printf "\n"
@@ -12,11 +12,13 @@ print_usage()
     printf "  -b, --base BASE_URI                  Base URI of the admin application\n"
     printf "  --proxy PROXY_URL                    The host this request will be proxied through (optional)\n"
     printf "\n"
-    printf "  --label LABEL                        Label of the query\n"
-    printf "  --comment COMMENT                    Description of the query (optional)\n"
+    printf "  --label LABEL                        Label of the restriction\n"
+    printf "  --comment COMMENT                    Description of the restriction (optional)\n"
     printf "\n"
-    printf "  --uri URI                            URI of the query (optional)\n"
-    printf "  --query-file ABS_PATH                Absolute path to the text file with the SPARQL query string\n"
+    printf "  --uri URI                            URI of the restriction (optional)\n"
+    printf "  --on-property PROPERTY_URI           URI of the restricted property (optional)\n"
+    printf "  --all-values-from URI                URI value of owl:allValuesFrom (optional)\n"
+    printf "  --has-value URI                      URI value of owl:hasValue (optional)\n"
 }
 
 hash turtle 2>/dev/null || { echo >&2 "turtle not on \$PATH.  Aborting."; exit 1; }
@@ -57,8 +59,18 @@ do
         shift # past argument
         shift # past value
         ;;
-        --query-file)
-        query_file="$2"
+        --on-property)
+        on_property="$2"
+        shift # past argument
+        shift # past value
+        ;;
+        --all-values-from)
+        all_values_from="$2"
+        shift # past argument
+        shift # past value
+        ;;
+        --has-value)
+        has_value="$2"
         shift # past argument
         shift # past value
         ;;
@@ -86,10 +98,6 @@ if [ -z "$label" ] ; then
     print_usage
     exit 1
 fi
-if [ -z "$query_file" ] ; then
-    print_usage
-    exit 1
-fi
 if [ -z "$1" ]; then
     print_usage
     exit 1
@@ -97,12 +105,10 @@ fi
 
 # allow explicit URIs
 if [ -n "$uri" ] ; then
-    query="<${uri}>" # URI
+    restriction="<${uri}>" # URI
 else
-    query="_:query" # blank node
+    restriction="_:restriction" # blank node
 fi
-
-query_string=$(<"$query_file") # read query string from file
 
 args+=("-f")
 args+=("$cert_pem_file")
@@ -111,15 +117,25 @@ args+=("$cert_password")
 args+=("-t")
 args+=("text/turtle") # content type
 
-turtle+="@prefix sp:	<http://spinrdf.org/sp#> .\n"
+turtle+="@prefix owl:	<http://www.w3.org/2002/07/owl#> .\n"
 turtle+="@prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .\n"
-turtle+="${query} a sp:Construct .\n"
-turtle+="${query} rdfs:label \"${label}\" .\n"
-turtle+="${query} sp:text \"\"\"${query_string}\"\"\" .\n"
+turtle+="@prefix owl:	<http://www.w3.org/2002/07/owl#> .\n"
+turtle+="@prefix spin:	<http://spinrdf.org/spin#> .\n"
+turtle+="${restriction} a owl:Restriction .\n"
+turtle+="${restriction} rdfs:label \"${label}\" .\n"
 
 if [ -n "$comment" ] ; then
-    turtle+="${query} rdfs:comment \"${comment}\" .\n"
+    turtle+="${restriction} rdfs:comment \"${comment}\" .\n"
+fi
+if [ -n "$on_property" ] ; then
+    turtle+="${restriction} owl:onProperty <$on_property> .\n"
+fi
+if [ -n "$all_values_from" ] ; then
+    turtle+="${restriction} owl:allValuesFrom <$all_values_from> .\n"
+fi
+if [ -n "$has_value" ] ; then
+    turtle+="${restriction} owl:hasValue <$has_value> .\n"
 fi
 
 # submit Turtle doc to the server
-echo -e "$turtle" | turtle --base="$base" | ../../post.sh "${args[@]}"
+echo -e "$turtle" | turtle --base="$base" | post.sh "${args[@]}"

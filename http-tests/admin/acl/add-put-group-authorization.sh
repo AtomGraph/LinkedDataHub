@@ -22,11 +22,9 @@ EOF
 ) \
 | grep -q "$STATUS_FORBIDDEN"
 
-pushd . > /dev/null && cd "$SCRIPT_ROOT/admin/acl"
-
 # create group
 
-group_doc=$(./create-group.sh \
+group_doc=$(create-group.sh \
   -f "$OWNER_CERT_FILE" \
   -p "$OWNER_CERT_PWD" \
   -b "$ADMIN_BASE_URL" \
@@ -42,7 +40,7 @@ group=$(curl -s -k \
 
 # create authorization
 
-./create-authorization.sh \
+create-authorization.sh \
   -f "$OWNER_CERT_FILE" \
   -p "$OWNER_CERT_PWD" \
   -b "$ADMIN_BASE_URL" \
@@ -51,19 +49,13 @@ group=$(curl -s -k \
   --to "$END_USER_BASE_URL" \
   --write
 
-popd > /dev/null
-
 # get the graph content
 
-pushd . && cd "$SCRIPT_ROOT"
-
-root_ntriples=$(./get.sh \
+root_ntriples=$(get.sh \
   -f "$OWNER_CERT_FILE" \
   -p "$OWNER_CERT_PWD" \
   --accept 'application/n-triples' \
   "$END_USER_BASE_URL")
-
-popd > /dev/null
 
 # access is allowed after authorization is created
 # request body with document instance is required

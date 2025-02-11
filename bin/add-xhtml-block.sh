@@ -2,9 +2,9 @@
 
 print_usage()
 {
-    printf "Appends a generic service using endpoint URI.\n"
+    printf "Appends an XHTML block.\n"
     printf "\n"
-    printf "Usage:  %s options\n" "$0"
+    printf "Usage:  %s options TARGET_URI\n" "$0"
     printf "\n"
     printf "Options:\n"
     printf "  -f, --cert-pem-file CERT_FILE        .pem file with the WebID certificate of the agent\n"
@@ -12,14 +12,11 @@ print_usage()
     printf "  -b, --base BASE_URI                  Base URI of the application\n"
     printf "  --proxy PROXY_URL                    The host this request will be proxied through (optional)\n"
     printf "\n"
-    printf "  --title TITLE                        Title of the service\n"
-    printf "  --description DESCRIPTION            Description of the service (optional)\n"
-    printf "  --slug SLUG                          String that will be used as URI path segment (optional)\n"
+    printf "  --title TITLE                        Title\n"
+    printf "  --description DESCRIPTION            Description(optional)\n"
+    printf "  --fragment STRING                    String that will be used as URI fragment identifier (optional)\n"
     printf "\n"
-    printf "  --endpoint ENDPOINT_URI              Endpoint URI\n"
-    printf "  --graph-store GRAPH_STORE_URI        Graph Store URI (optional)\n"
-    printf "  --auth-user AUTH_USER                Authorization username (optional)\n"
-    printf "  --auth-pwd AUTH_PASSWORD             Authorization password (optional)\n"
+    printf "  --value XHTML                        XHTML as canonical XML\n"
 }
 
 args=()
@@ -35,6 +32,11 @@ do
         ;;
         -p|--cert-password)
         cert_password="$2"
+        shift # past argument
+        shift # past value
+        ;;
+        --proxy)
+        proxy="$2"
         shift # past argument
         shift # past value
         ;;
@@ -58,22 +60,8 @@ do
         shift # past argument
         shift # past value
         ;;
-        --endpoint)
-        endpoint="$2"
-        shift # past argument
-        shift # past value
-        ;;
-        --graph-store)
-        graph_store="$2"
-        shift # past argument
-        shift # past value
-        ;;
-        --auth-user)
-        auth_user=true
-        shift # past value
-        ;;
-        --auth-pwd)
-        auth_pwd="$2"
+        --value)
+        value="$2"
         shift # past argument
         shift # past value
         ;;
@@ -97,14 +85,24 @@ if [ -z "$base" ] ; then
     print_usage
     exit 1
 fi
-if [ -z "$title" ] ; then
+if [ -z "$value" ] ; then
     print_usage
     exit 1
 fi
-if [ -z "$endpoint" ] ; then
-    print_usage
-    exit 1
-fi
+
+target="$1"
+
+ntriples=$(get.sh \
+  -f "$cert_pem_file" \
+  -p "$cert_password" \
+ --proxy "$proxy" \
+  --accept 'application/n-triples' \
+  "$target")
+
+# extract the numbers from the sequence properties
+sequence_number=$(echo "$ntriples" | grep "<${target}> <http://www.w3.org/1999/02/22-rdf-syntax-ns#_" | cut -d " " -f 2 | cut -d'#' -f 2 | cut -d '_' -f 2 | cut -d '>' -f 1 |  sort -nr | head -n1)
+sequence_number=$((sequence_number + 1)) # increase the counter
+sequence_property="http://www.w3.org/1999/02/22-rdf-syntax-ns#_${sequence_number}"
 
 args+=("-f")
 args+=("$cert_pem_file")
@@ -121,29 +119,18 @@ else
 fi
 
 turtle+="@prefix ldh:	<https://w3id.org/atomgraph/linkeddatahub#> .\n"
-turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy#> .\n"
-turtle+="@prefix a:	<https://w3id.org/atomgraph/core#> .\n"
 turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"
-turtle+="@prefix foaf:	<http://xmlns.com/foaf/0.1/> .\n"
-turtle+="@prefix sd:	<http://www.w3.org/ns/sparql-service-description#> .\n"
-turtle+="${subject} a sd:Service .\n"
-turtle+="${subject} dct:title \"${title}\" .\n"
-turtle+="${subject} sd:endpoint <${endpoint}> .\n"
-turtle+="${subject} sd:supportedLanguage sd:SPARQL11Query .\n"
-turtle+="${subject} sd:supportedLanguage sd:SPARQL11Update .\n"
+turtle+="@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n"
+turtle+="<${target}> <${sequence_property}> ${subject} .\n"
+turtle+="${subject} a ldh:XHTML .\n"
+turtle+="${subject} rdf:value \"${value}\"^^rdf:XMLLiteral .\n"
 
-if [ -n "$graph_store" ] ; then
-    turtle+="${subject} a:graphStore <${graph_store}> .\n"
-fi
-if [ -n "$auth_user" ] ; then
-    turtle+="${subject} a:authUser \"${auth_user}\" .\n"
-fi
-if [ -n "$auth_pwd" ] ; then
-    turtle+="${subject} a:authPwd \"${auth_pwd}\" .\n"
+if [ -n "$title" ] ; then
+    turtle+="${subject} dct:title \"${title}\" .\n"
 fi
 if [ -n "$description" ] ; then
-    turtle+="_:query dct:description \"${description}\" .\n"
+    turtle+="${subject} dct:description \"${description}\" .\n"
 fi
 
 # submit Turtle doc to the server
-echo -e "$turtle" | ./post.sh "${args[@]}"
+echo -e "$turtle" | post.sh "${args[@]}"

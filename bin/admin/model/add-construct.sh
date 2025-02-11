@@ -2,7 +2,7 @@
 
 print_usage()
 {
-    printf "Adds a SPARQL SELECT query.\n"
+    printf "Adds a SPARQL CONSTRUCT query.\n"
     printf "\n"
     printf "Usage:  %s options [TARGET_URI]\n" "$0"
     printf "\n"
@@ -17,7 +17,6 @@ print_usage()
     printf "\n"
     printf "  --uri URI                            URI of the query (optional)\n"
     printf "  --query-file ABS_PATH                Absolute path to the text file with the SPARQL query string\n"
-    printf "  --service SERVICE_URI                URI of the SPARQL service specific to this query (optional)\n"
 }
 
 hash turtle 2>/dev/null || { echo >&2 "turtle not on \$PATH.  Aborting."; exit 1; }
@@ -60,11 +59,6 @@ do
         ;;
         --query-file)
         query_file="$2"
-        shift # past argument
-        shift # past value
-        ;;
-        --service)
-        service="$2"
         shift # past argument
         shift # past value
         ;;
@@ -117,20 +111,15 @@ args+=("$cert_password")
 args+=("-t")
 args+=("text/turtle") # content type
 
-turtle+="@prefix ldh:	<https://w3id.org/atomgraph/linkeddatahub#> .\n"
 turtle+="@prefix sp:	<http://spinrdf.org/sp#> .\n"
 turtle+="@prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .\n"
-turtle+="${query} a sp:Select .\n"
+turtle+="${query} a sp:Construct .\n"
 turtle+="${query} rdfs:label \"${label}\" .\n"
 turtle+="${query} sp:text \"\"\"${query_string}\"\"\" .\n"
 
 if [ -n "$comment" ] ; then
     turtle+="${query} rdfs:comment \"${comment}\" .\n"
 fi
-if [ -n "$service" ] ; then
-    turtle+="@prefix ldh:	<https://w3id.org/atomgraph/linkeddatahub#> .\n"
-    turtle+="${query} ldh:service <${service}> .\n"
-fi
 
 # submit Turtle doc to the server
-echo -e "$turtle" | turtle --base="$base" | ../../post.sh "${args[@]}"
+echo -e "$turtle" | turtle --base="$base" | post.sh "${args[@]}"

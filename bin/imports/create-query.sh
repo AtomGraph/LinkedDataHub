@@ -2,9 +2,9 @@
 
 print_usage()
 {
-    printf "Appends an XHTML block.\n"
+    printf "Creates a SPARQL CONSTRUCT query.\n"
     printf "\n"
-    printf "Usage:  %s options TARGET_URI\n" "$0"
+    printf "Usage:  %s options\n" "$0"
     printf "\n"
     printf "Options:\n"
     printf "  -f, --cert-pem-file CERT_FILE        .pem file with the WebID certificate of the agent\n"
@@ -12,11 +12,18 @@ print_usage()
     printf "  -b, --base BASE_URI                  Base URI of the application\n"
     printf "  --proxy PROXY_URL                    The host this request will be proxied through (optional)\n"
     printf "\n"
-    printf "  --title TITLE                        Title\n"
-    printf "  --description DESCRIPTION            Description(optional)\n"
-    printf "  --fragment STRING                    String that will be used as URI fragment identifier (optional)\n"
+    printf "  --title TITLE                        Title of the chart\n"
+    printf "  --description DESCRIPTION            Description of the chart (optional)\n"
+    printf "  --slug STRING                        String that will be used as URI path segment (optional)\n"
     printf "\n"
-    printf "  --value XHTML                        XHTML as canonical XML\n"
+    printf "  --query-file ABS_PATH                Absolute path to the text file with the SPARQL query string\n"
+}
+
+hash turtle 2>/dev/null || { echo >&2 "turtle not on \$PATH.  Aborting."; exit 1; }
+
+urlencode() {
+  python -c 'import urllib.parse, sys; print(urllib.parse.quote(sys.argv[1], sys.argv[2]))' \
+    "$1" "$urlencode_safe"
 }
 
 args=()
@@ -35,11 +42,6 @@ do
         shift # past argument
         shift # past value
         ;;
-        --proxy)
-        proxy="$2"
-        shift # past argument
-        shift # past value
-        ;;
         -b|--base)
         base="$2"
         shift # past argument
@@ -55,13 +57,13 @@ do
         shift # past argument
         shift # past value
         ;;
-        --fragment)
-        fragment="$2"
+        --slug)
+        slug="$2"
         shift # past argument
         shift # past value
         ;;
-        --value)
-        value="$2"
+        --query-file)
+        query_file="$2"
         shift # past argument
         shift # past value
         ;;
@@ -85,24 +87,22 @@ if [ -z "$base" ] ; then
     print_usage
     exit 1
 fi
-if [ -z "$value" ] ; then
+if [ -z "$title" ] ; then
+    print_usage
+    exit 1
+fi
+if [ -z "$query_file" ] ; then
     print_usage
     exit 1
 fi
 
-target="$1"
+if [ -z "$slug" ] ; then
+    slug=$(uuidgen | tr '[:upper:]' '[:lower:]') # lowercase
+fi
+encoded_slug=$(urlencode "$slug")
 
-ntriples=$(./get.sh \
-  -f "$cert_pem_file" \
-  -p "$cert_password" \
- --proxy "$proxy" \
-  --accept 'application/n-triples' \
-  "$target")
-
-# extract the numbers from the sequence properties
-sequence_number=$(echo "$ntriples" | grep "<${target}> <http://www.w3.org/1999/02/22-rdf-syntax-ns#_" | cut -d " " -f 2 | cut -d'#' -f 2 | cut -d '_' -f 2 | cut -d '>' -f 1 |  sort -nr | head -n1)
-sequence_number=$((sequence_number + 1)) # increase the counter
-sequence_property="http://www.w3.org/1999/02/22-rdf-syntax-ns#_${sequence_number}"
+container="${base}queries/"
+query=$(<"$query_file") # read query string from file
 
 args+=("-f")
 args+=("$cert_pem_file")
@@ -110,27 +110,23 @@ args+=("-p")
 args+=("$cert_password")
 args+=("-t")
 args+=("text/turtle") # content type
-
-if [ -n "$fragment" ] ; then
-    # relative URI that will be resolved against the request URI
-    subject="<#${fragment}>"
-else
-    subject="_:subject"
-fi
+args+=("${container}${encoded_slug}/")
 
 turtle+="@prefix ldh:	<https://w3id.org/atomgraph/linkeddatahub#> .\n"
+turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy#> .\n"
 turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"
-turtle+="@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n"
-turtle+="<${target}> <${sequence_property}> ${subject} .\n"
-turtle+="${subject} a ldh:XHTML .\n"
-turtle+="${subject} rdf:value \"${value}\"^^rdf:XMLLiteral .\n"
+turtle+="@prefix foaf:	<http://xmlns.com/foaf/0.1/> .\n"
+turtle+="@prefix sp:	<http://spinrdf.org/sp#> .\n"
+turtle+="_:query a sp:Construct .\n"
+turtle+="_:query dct:title \"${title}\" .\n"
+turtle+="_:query sp:text \"\"\"${query}\"\"\" .\n"
+turtle+="<${container}${encoded_slug}/> a dh:Item .\n"
+turtle+="<${container}${encoded_slug}/> foaf:primaryTopic _:query .\n"
+turtle+="<${container}${encoded_slug}/> dct:title \"${title}\" .\n"
 
-if [ -n "$title" ] ; then
-    turtle+="${subject} dct:title \"${title}\" .\n"
-fi
 if [ -n "$description" ] ; then
-    turtle+="${subject} dct:description \"${description}\" .\n"
+    turtle+="_:query dct:description \"${description}\" .\n"
 fi
 
 # submit Turtle doc to the server
-echo -e "$turtle" | ./post.sh "${args[@]}"
+echo -e "$turtle" | turtle --base="$base" | put.sh "${args[@]}"

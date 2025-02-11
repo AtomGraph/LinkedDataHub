@@ -139,7 +139,7 @@ if [ -z "$proxy" ] ; then
     proxy="$base"
 fi
 
-query_doc=$(./create-query.sh \
+query_doc=$(create-query.sh \
   -b "$base" \
   -f "$cert_pem_file" \
   -p "$cert_password" \
@@ -149,9 +149,7 @@ query_doc=$(./create-query.sh \
   --query-file "$query_file"
 )
 
-pushd . > /dev/null && cd "$SCRIPT_ROOT"
-
-query_ntriples=$(./get.sh \
+query_ntriples=$(get.sh \
   -f "$cert_pem_file" \
   -p "$cert_password" \
   --proxy "$proxy" \
@@ -159,11 +157,9 @@ query_ntriples=$(./get.sh \
   "$query_doc"
 )
 
-popd > /dev/null
-
 query=$(echo "$query_ntriples" | sed -rn "s/<${query_doc//\//\\/}> <http:\/\/xmlns.com\/foaf\/0.1\/primaryTopic> <(.*)> \./\1/p" | head -1)
 
-file_doc=$(./create-file.sh \
+file_doc=$(create-file.sh \
   -b "$base" \
   -f "$cert_pem_file" \
   -p "$cert_password" \
@@ -175,20 +171,16 @@ file_doc=$(./create-file.sh \
   --file-content-type "text/csv"
 )
 
-pushd . > /dev/null && cd "$SCRIPT_ROOT"
-
-file_ntriples=$(./get.sh \
+file_ntriples=$(get.sh \
   -f "$cert_pem_file" \
   -p "$cert_password" \
   --proxy "$proxy" \
   --accept 'application/n-triples' \
   "$file_doc")
 
-popd > /dev/null
-
 file=$(echo "$file_ntriples" | sed -rn "s/<${file_doc//\//\\/}> <http:\/\/xmlns.com\/foaf\/0.1\/primaryTopic> <(.*)> \./\1/p" | head -1)
 
-./create-csv-import.sh \
+create-csv-import.sh \
   -b "$base" \
   -f "$cert_pem_file" \
   -p "$cert_password" \
@@ -198,3 +190,4 @@ file=$(echo "$file_ntriples" | sed -rn "s/<${file_doc//\//\\/}> <http:\/\/xmlns.
   --query "$query" \
   --file "$file" \
   --delimiter "$delimiter"
+  

@@ -2,7 +2,7 @@
 
 print_usage()
 {
-    printf "Creates a SPIN constraint that makes a property required.\n"
+    printf "Adds an ontology class.\n"
     printf "\n"
     printf "Usage:  %s options [TARGET_URI]\n" "$0"
     printf "\n"
@@ -12,16 +12,20 @@ print_usage()
     printf "  -b, --base BASE_URI                  Base URI of the admin application\n"
     printf "  --proxy PROXY_URL                    The host this request will be proxied through (optional)\n"
     printf "\n"
-    printf "  --label LABEL                        Label of the constraint\n"
-    printf "  --comment COMMENT                    Description of the constraint (optional)\n"
+    printf "  --label LABEL                        Label of the class\n"
+    printf "  --comment COMMENT                    Description of the class (optional)\n"
     printf "\n"
-    printf "  --uri URI                            URI of the constraint (optional)\n"
-    printf "  --property PROPERTY_URI              URI of the constrained property\n"
+    printf "  --uri URI                            URI of the class (optional)\n"
+    printf "  --constructor CONSTRUCT_URI          URI of the constructor CONSTRUCT query (optional)\n"
+    printf "  --constraint CONSTRAINT_URI          URI of the SPIN constraint (optional)\n"
+    printf "  --sub-class-of SUPER_CLASS_URI       URI of the superclass (optional)\n"
+
 }
 
 hash turtle 2>/dev/null || { echo >&2 "turtle not on \$PATH.  Aborting."; exit 1; }
 
 args=()
+super_classes=() # --super-class-of can have multiple values, so we need an array
 while [[ $# -gt 0 ]]
 do
     key="$1"
@@ -57,8 +61,18 @@ do
         shift # past argument
         shift # past value
         ;;
-        --property)
-        property="$2"
+        --constructor)
+        constructor="$2"
+        shift # past argument
+        shift # past value
+        ;;
+        --constraint)
+        constraint="$2"
+        shift # past argument
+        shift # past value
+        ;;
+        --sub-class-of)
+        super_classes+=("$2")
         shift # past argument
         shift # past value
         ;;
@@ -86,10 +100,6 @@ if [ -z "$label" ] ; then
     print_usage
     exit 1
 fi
-if [ -z "$property" ] ; then
-    print_usage
-    exit 1
-fi
 if [ -z "$1" ]; then
     print_usage
     exit 1
@@ -97,9 +107,9 @@ fi
 
 # allow explicit URIs
 if [ -n "$uri" ] ; then
-    constraint="<${uri}>" # URI
+    class="<${uri}>" # URI
 else
-    constraint="_:constraint" # blank node
+    class="_:class" # blank node
 fi
 
 args+=("-f")
@@ -109,16 +119,31 @@ args+=("$cert_password")
 args+=("-t")
 args+=("text/turtle") # content type
 
-turtle+="@prefix ldh:	<https://w3id.org/atomgraph/linkeddatahub#> .\n"
+turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy#> .\n"
+turtle+="@prefix owl:	<http://www.w3.org/2002/07/owl#> .\n"
 turtle+="@prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .\n"
-turtle+="@prefix sp:	<http://spinrdf.org/sp#> .\n"
-turtle+="${constraint} a ldh:MissingPropertyValue .\n"
-turtle+="${constraint} rdfs:label \"${label}\" .\n"
-turtle+="${constraint} sp:arg1 <${property}> .\n"
+turtle+="@prefix ldt:	<https://www.w3.org/ns/ldt#> .\n"
+turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"
+turtle+="@prefix foaf:	<http://xmlns.com/foaf/0.1/> .\n"
+turtle+="@prefix spin:	<http://spinrdf.org/spin#> .\n"
+turtle+="@prefix sioc:	<http://rdfs.org/sioc/ns#> .\n"
+turtle+="${class} a owl:Class .\n"
+turtle+="${class} rdfs:label \"${label}\" .\n"
 
 if [ -n "$comment" ] ; then
-    turtle+="${constraint} rdfs:comment \"${comment}\" .\n"
+    turtle+="${class} rdfs:comment \"${comment}\" .\n"
+fi
+if [ -n "$constructor" ] ; then
+    turtle+="${class} spin:constructor <$constructor> .\n"
+fi
+if [ -n "$constraint" ] ; then
+    turtle+="${class} spin:constraint <$constraint> .\n"
 fi
 
+for sub_class_of in "${super_classes[@]}"
+do
+    turtle+="${class} rdfs:subClassOf <$sub_class_of> .\n"
+done
+
 # submit Turtle doc to the server
-echo -e "$turtle" | turtle --base="$base" | ../../post.sh "${args[@]}"
+echo -e "$turtle" | turtle --base="$base" | post.sh "${args[@]}"

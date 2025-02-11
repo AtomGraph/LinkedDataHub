@@ -7,16 +7,13 @@ purge_cache "$END_USER_VARNISH_SERVICE"
 purge_cache "$ADMIN_VARNISH_SERVICE"
 purge_cache "$FRONTEND_VARNISH_SERVICE"
 
-pushd . > /dev/null && cd "$SCRIPT_ROOT/admin/acl"
-
 # add agent to the writers group
 
-./add-agent-to-group.sh \
+add-agent-to-group.sh \
   -f "$OWNER_CERT_FILE" \
   -p "$OWNER_CERT_PWD" \
   --agent "$AGENT_URI" \
   "${ADMIN_BASE_URL}acl/groups/writers/"
-popd > /dev/null
 
 # replace the graph (note that the document does not have its description in the request body)
 
@@ -36,9 +33,7 @@ EOF
 ) \
 | grep -q "$STATUS_CREATED"
 
-pushd . > /dev/null && cd "$SCRIPT_ROOT"
-
-item_ntriples=$(./get.sh \
+item_ntriples=$(get.sh \
   -f "$AGENT_CERT_FILE" \
   -p "$AGENT_CERT_PWD" \
   --accept 'application/n-triples' \
@@ -78,7 +73,7 @@ EOF
 ) \
 | grep -q "$STATUS_OK"
 
-item_ntriples=$(./get.sh \
+item_ntriples=$(get.sh \
   -f "$AGENT_CERT_FILE" \
   -p "$AGENT_CERT_PWD" \
   --accept 'application/n-triples' \
@@ -106,5 +101,3 @@ echo "$item_ntriples" | grep "<${item}> <http://purl.org/dc/terms/created> \""
 echo "$item_ntriples" | grep "<${item}> <http://purl.org/dc/terms/modified> \""
 
 # write the same data again into the existing graph
-
-popd > /dev/null

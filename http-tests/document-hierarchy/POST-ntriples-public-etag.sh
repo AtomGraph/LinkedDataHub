@@ -7,11 +7,9 @@ purge_cache "$END_USER_VARNISH_SERVICE"
 purge_cache "$ADMIN_VARNISH_SERVICE"
 purge_cache "$FRONTEND_VARNISH_SERVICE"
 
-pushd . > /dev/null && cd "$SCRIPT_ROOT/admin/acl"
-
 # add agent to the writers group
 
-./add-agent-to-group.sh \
+add-agent-to-group.sh \
   -f "$OWNER_CERT_FILE" \
   -p "$OWNER_CERT_PWD" \
   --agent "$AGENT_URI" \
@@ -19,7 +17,7 @@ pushd . > /dev/null && cd "$SCRIPT_ROOT/admin/acl"
 
 # create public authorization
 
-./create-authorization.sh \
+create-authorization.sh \
   -f "$OWNER_CERT_FILE" \
   -p "$OWNER_CERT_PWD" \
   -b "$ADMIN_BASE_URL" \
@@ -28,10 +26,6 @@ pushd . > /dev/null && cd "$SCRIPT_ROOT/admin/acl"
   --to "$END_USER_BASE_URL" \
   --read
 
-popd > /dev/null
-
-pushd . > /dev/null && cd "$SCRIPT_ROOT"
-
 etag_before=$(
   curl -k -i -f -s -G \
     -H "Accept: application/n-triples" \
@@ -39,8 +33,6 @@ etag_before=$(
 | grep 'ETag' \
 | tr -d '\r' \
 | sed -En 's/^ETag: (.*)$/\1/p')
-
-popd > /dev/null
 
 # append new triples to the graph
 
@@ -59,8 +51,6 @@ EOF
 
 # check that the ETag value changed
 
-pushd . > /dev/null && cd "$SCRIPT_ROOT"
-
 etag_after=$(
   curl -k -i -f -s -G \
     -H "Accept: application/n-triples" \
@@ -68,8 +58,6 @@ etag_after=$(
 | grep 'ETag' \
 | tr -d '\r' \
 | sed -En 's/^ETag: (.*)$/\1/p')
-
-popd > /dev/null
 
 if [ "$etag_before" = "$etag_after" ]; then
     echo "The new ETag value '${etag_after}' is the same as the old one '${etag_before} despite the update'"

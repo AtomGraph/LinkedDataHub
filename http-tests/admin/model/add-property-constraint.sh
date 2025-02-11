@@ -7,8 +7,6 @@ purge_cache "$END_USER_VARNISH_SERVICE"
 purge_cache "$ADMIN_VARNISH_SERVICE"
 purge_cache "$FRONTEND_VARNISH_SERVICE"
 
-pushd . > /dev/null && cd "$SCRIPT_ROOT/admin/model"
-
 # create a constraint making the sioc:content property mandatory
 
 namespace_doc="${END_USER_BASE_URL}ns"
@@ -16,7 +14,7 @@ namespace="${namespace_doc}#"
 ontology_doc="${ADMIN_BASE_URL}ontologies/namespace/"
 constraint="${namespace_doc}#NewConstraint"
 
-./add-property-constraint.sh \
+add-property-constraint.sh \
   -f "$OWNER_CERT_FILE" \
   -p "$OWNER_CERT_PWD" \
   -b "$ADMIN_BASE_URL" \
@@ -27,7 +25,7 @@ constraint="${namespace_doc}#NewConstraint"
 
 # create a class with the constraint
 
-./add-class.sh \
+add-class.sh \
   -f "$OWNER_CERT_FILE" \
   -p "$OWNER_CERT_PWD" \
   -b "$ADMIN_BASE_URL" \
@@ -37,19 +35,13 @@ constraint="${namespace_doc}#NewConstraint"
   --sub-class-of "https://www.w3.org/ns/ldt/document-hierarchy#Item" \
   "$ontology_doc"
 
-popd > /dev/null
-
 # clear ontology from memory
 
-pushd . > /dev/null && cd "$SCRIPT_ROOT/admin"
-
-./clear-ontology.sh \
+clear-ontology.sh \
   -f "$OWNER_CERT_FILE" \
   -p "$OWNER_CERT_PWD" \
   -b "$ADMIN_BASE_URL" \
   --ontology "$namespace"
-
-popd > /dev/null
 
 # check that the constraint is present in the ontology
 
@@ -60,8 +52,6 @@ curl -k -f -s -N \
 
 # check that creating an instance of the class without sioc:content returns 422 Unprocessable Entity due to missing sioc:content
 
-pushd . > /dev/null && cd "$SCRIPT_ROOT"
-
 turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"
 turtle+="@prefix sioc:	<http://rdfs.org/sioc/ns#> .\n"
 turtle+="_:item a <${namespace_doc}#ConstrainedClass> .\n"
@@ -70,7 +60,7 @@ turtle+="_:item sioc:has_container <${END_USER_BASE_URL}> .\n"
 
 response=$(echo -e "$turtle" \
 | turtle --base="$END_USER_BASE_URL" \
-| ./put.sh \
+| put.sh \
   -f "$OWNER_CERT_FILE" \
   -p "$OWNER_CERT_PWD" \
   --content-type "text/turtle" \
@@ -79,5 +69,3 @@ response=$(echo -e "$turtle" \
 
 echo "$response" \
 | grep "HTTP/1.1 422" > /dev/null
-
-popd > /dev/null
