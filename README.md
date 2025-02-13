@@ -184,7 +184,7 @@ LinkedDataHub CLI wraps the HTTP API into a set of shell scripts with convenient
 The scripts can be found in the [`bin`](https://github.com/AtomGraph/LinkedDataHub/tree/master/bin) subfolder. In order to use them, add the `bin` folder and its subfolders to the `$PATH`. For example:
 
 ```shell
-    export PATH="$(find bin -type d -exec realpath {} \; | tr '\n' ':')$PATH"
+export PATH="$(find bin -type d -exec realpath {} \; | tr '\n' ':')$PATH"
 ```
 
 _:warning: The CLI scripts internally use [Jena's CLI commands](https://jena.apache.org/documentation/tools/). Set up the Jena environment before running the scripts._
