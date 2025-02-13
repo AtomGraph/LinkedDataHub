@@ -19,6 +19,7 @@ package com.atomgraph.linkeddatahub.client;
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.linkeddatahub.client.filter.auth.IDTokenDelegationFilter;
 import com.atomgraph.linkeddatahub.client.filter.auth.WebIDDelegationFilter;
+import com.atomgraph.linkeddatahub.client.util.RetryAfterHelper;
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
 import com.atomgraph.linkeddatahub.server.security.IDTokenSecurityContext;
 import com.atomgraph.linkeddatahub.server.security.WebIDSecurityContext;
@@ -128,9 +129,11 @@ public class LinkedDataClient extends com.atomgraph.core.client.LinkedDataClient
     @Override
     public Response get(URI uri, jakarta.ws.rs.core.MediaType[] acceptedTypes)
     {
-        return getWebTarget(uri).request(acceptedTypes).
-            header(HttpHeaders.USER_AGENT, getUserAgentHeaderValue()).
-            get();
+        WebTarget webTarget = getWebTarget(uri);
+        return new RetryAfterHelper(5000L).execWithRetry(() ->
+            webTarget.request(acceptedTypes)
+                     .header(HttpHeaders.USER_AGENT, getUserAgentHeaderValue())
+                     .get());
     }
     
     /**

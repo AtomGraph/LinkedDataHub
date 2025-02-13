@@ -68,9 +68,6 @@ import com.atomgraph.linkeddatahub.writer.factory.XsltExecutableSupplierFactory;
 import com.atomgraph.client.util.XsltResolver;
 import com.atomgraph.core.client.LinkedDataClient;
 import com.atomgraph.linkeddatahub.client.filter.ClientUriRewriteFilter;
-import com.atomgraph.linkeddatahub.client.filter.RateLimitRequestFilter;
-import com.atomgraph.linkeddatahub.client.filter.RateLimitResponseFilter;
-import com.atomgraph.linkeddatahub.client.util.RateLimitTracker;
 import com.atomgraph.linkeddatahub.imports.ImportExecutor;
 import com.atomgraph.linkeddatahub.io.HtmlJsonLDReaderFactory;
 import com.atomgraph.linkeddatahub.io.JsonLDReader;
@@ -1387,8 +1384,6 @@ public class Application extends ResourceConfig
         if (maxConnPerRoute != null) conman.setDefaultMaxPerRoute(maxConnPerRoute);
         if (maxTotalConn != null) conman.setMaxTotal(maxTotalConn);
         
-        RateLimitTracker rateLimitTracker = new RateLimitTracker();
-
         ClientConfig config = new ClientConfig();
         config.connectorProvider(new ApacheConnectorProvider());
         config.register(MultiPartFeature.class);
@@ -1397,8 +1392,6 @@ public class Application extends ResourceConfig
         config.register(new ResultSetProvider());
         config.register(new QueryProvider());
         config.register(new UpdateRequestProvider());
-        config.register(new RateLimitRequestFilter(rateLimitTracker));  // Delays requests
-        config.register(new RateLimitResponseFilter(rateLimitTracker, 5000L)); // Handles 429 responses
         config.property(ClientProperties.FOLLOW_REDIRECTS, true);
         config.property(ClientProperties.REQUEST_ENTITY_PROCESSING, RequestEntityProcessing.BUFFERED); // https://stackoverflow.com/questions/42139436/jersey-client-throws-cannot-retry-request-with-a-non-repeatable-request-entity
         config.property(ApacheClientProperties.CONNECTION_MANAGER, conman);
@@ -1487,8 +1480,6 @@ public class Application extends ResourceConfig
             if (maxConnPerRoute != null) conman.setDefaultMaxPerRoute(maxConnPerRoute);
             if (maxTotalConn != null) conman.setMaxTotal(maxTotalConn);
 
-            RateLimitTracker rateLimitTracker = new RateLimitTracker();
-
             ClientConfig config = new ClientConfig();
             config.connectorProvider(new ApacheConnectorProvider());
             config.register(MultiPartFeature.class);
@@ -1497,8 +1488,6 @@ public class Application extends ResourceConfig
             config.register(new ResultSetProvider());
             config.register(new QueryProvider());
             config.register(new UpdateRequestProvider()); // TO-DO: UpdateRequestProvider
-            config.register(new RateLimitRequestFilter(rateLimitTracker));  // Delays requests
-            config.register(new RateLimitResponseFilter(rateLimitTracker, 5000L)); // Handles 429 responses
             config.property(ClientProperties.FOLLOW_REDIRECTS, true);
             config.property(ClientProperties.REQUEST_ENTITY_PROCESSING, RequestEntityProcessing.BUFFERED); // https://stackoverflow.com/questions/42139436/jersey-client-throws-cannot-retry-request-with-a-non-repeatable-request-entity
             config.property(ApacheClientProperties.CONNECTION_MANAGER, conman);
