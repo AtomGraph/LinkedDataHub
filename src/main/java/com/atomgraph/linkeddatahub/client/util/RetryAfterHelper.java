@@ -23,7 +23,7 @@ import java.util.function.Supplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-// TO-DO: move to Core?
+// TO-DO: move to ClientBase in Core?
 public class RetryAfterHelper
 {
     
