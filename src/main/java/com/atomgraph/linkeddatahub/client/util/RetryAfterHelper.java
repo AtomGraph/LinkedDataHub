@@ -23,6 +23,7 @@ import java.util.function.Supplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+// TO-DO: move to Core?
 public class RetryAfterHelper
 {
     
@@ -72,6 +73,7 @@ public class RetryAfterHelper
                 
                 continue;
             }
+            
             return response;
         }
     }
