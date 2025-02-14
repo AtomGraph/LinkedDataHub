@@ -25,8 +25,10 @@ import com.atomgraph.linkeddatahub.server.security.IDTokenSecurityContext;
 import com.atomgraph.linkeddatahub.server.security.WebIDSecurityContext;
 import java.net.URI;
 import jakarta.ws.rs.client.Client;
+import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.client.WebTarget;
 import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -134,6 +136,30 @@ public class LinkedDataClient extends com.atomgraph.core.client.LinkedDataClient
             webTarget.request(acceptedTypes)
                      .header(HttpHeaders.USER_AGENT, getUserAgentHeaderValue())
                      .get());
+    }
+   
+    @Override
+    public Response post(URI uri, MediaType[] acceptedTypes, Entity entity)
+    {
+        WebTarget webTarget = getWebTarget(uri);
+        return new RetryAfterHelper(5000L).execWithRetry(() ->
+            webTarget.request(acceptedTypes).post(entity));
+    }
+    
+    @Override
+    public Response put(URI uri, MediaType[] acceptedTypes, Entity entity)
+    {
+        WebTarget webTarget = getWebTarget(uri);
+        return new RetryAfterHelper(5000L).execWithRetry(() ->
+            webTarget.request(acceptedTypes).put(entity));
+    }
+    
+    @Override
+    public Response delete(URI uri)
+    {
+        WebTarget webTarget = getWebTarget(uri);
+        return new RetryAfterHelper(5000L).execWithRetry(() ->
+            webTarget.request().delete());
     }
     
     /**
