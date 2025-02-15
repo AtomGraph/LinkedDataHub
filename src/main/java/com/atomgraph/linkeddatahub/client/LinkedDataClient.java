@@ -35,6 +35,8 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Linked Data client that supports WebID and OIDC delegation.
+ * Sends <code>User-Agent</code> header to impersonate a web browser.
+ * Respects <code>Retry-After</code> response headers.
  * 
  * @author {@literal Martynas Jusevičius <martynas@atomgraph.com>}
  */
@@ -50,6 +52,8 @@ public class LinkedDataClient extends com.atomgraph.core.client.LinkedDataClient
 
     private URI baseURI;
     private AgentContext agentContext;
+    private long defaultDelayMillis;
+    private final int maxRetryCount;
     
     /**
      * Constructs Linked Data client from HTTP client and media types.
@@ -59,9 +63,38 @@ public class LinkedDataClient extends com.atomgraph.core.client.LinkedDataClient
      */
     protected LinkedDataClient(Client client, MediaTypes mediaTypes)
     {
-        super(client, mediaTypes);
+        this(client, mediaTypes, 5000L, 3);
     }
     
+    /**
+     * Constructs Linked Data client from HTTP client and media types.
+     * 
+     * @param client HTTP client
+     * @param mediaTypes registry of supported readable/writable media types
+     * @param defaultDelayMillis default period the client waits before retrying the request
+     * @param maxRetryCount maximum number of request retries
+     */
+    protected LinkedDataClient(Client client, MediaTypes mediaTypes, long defaultDelayMillis, int maxRetryCount)
+    {
+        super(client, mediaTypes);
+        this.defaultDelayMillis = defaultDelayMillis;
+        this.maxRetryCount = maxRetryCount;
+    }
+    
+    /**
+     * Factory method that accepts HTTP client, media types, and max retry count.
+     * 
+     * @param client HTTP client
+     * @param mediaTypes registry of supported readable/writable media types
+     * @param defaultDelayMillis default period the client waits before retrying the request
+     * @param maxRetryCount max request retry count
+     * @return Linked Data client instance
+     */
+    public static LinkedDataClient create(Client client, MediaTypes mediaTypes, long defaultDelayMillis, int maxRetryCount)
+    {
+        return new LinkedDataClient(client, mediaTypes, defaultDelayMillis, maxRetryCount);
+    }
+   
     /**
      * Factory method that accepts HTTP client and media types.
      * 
@@ -120,19 +153,11 @@ public class LinkedDataClient extends com.atomgraph.core.client.LinkedDataClient
         return webTarget;
     }
     
-    /**
-     * Executes HTTP <code>GET</code> request.
-     * Sends <code>User-Agent</code> header to impersonate a web browser.
-     * 
-     * @param uri request URI
-     * @param acceptedTypes accepted media types
-     * @return response
-     */
     @Override
     public Response get(URI uri, jakarta.ws.rs.core.MediaType[] acceptedTypes)
     {
         WebTarget webTarget = getWebTarget(uri);
-        return new RetryAfterHelper(5000L).execWithRetry(() ->
+        return new RetryAfterHelper(getDefaultDelayMillis(), getMaxRetryCount()).invokeWithRetry(() ->
             webTarget.request(acceptedTypes)
                      .header(HttpHeaders.USER_AGENT, getUserAgentHeaderValue())
                      .get());
@@ -142,7 +167,7 @@ public class LinkedDataClient extends com.atomgraph.core.client.LinkedDataClient
     public Response post(URI uri, MediaType[] acceptedTypes, Entity entity)
     {
         WebTarget webTarget = getWebTarget(uri);
-        return new RetryAfterHelper(5000L).execWithRetry(() ->
+        return new RetryAfterHelper(getDefaultDelayMillis(), getMaxRetryCount()).invokeWithRetry(() ->
             webTarget.request(acceptedTypes).post(entity));
     }
     
@@ -150,7 +175,7 @@ public class LinkedDataClient extends com.atomgraph.core.client.LinkedDataClient
     public Response put(URI uri, MediaType[] acceptedTypes, Entity entity)
     {
         WebTarget webTarget = getWebTarget(uri);
-        return new RetryAfterHelper(5000L).execWithRetry(() ->
+        return new RetryAfterHelper(getDefaultDelayMillis(), getMaxRetryCount()).invokeWithRetry(() ->
             webTarget.request(acceptedTypes).put(entity));
     }
     
@@ -158,7 +183,7 @@ public class LinkedDataClient extends com.atomgraph.core.client.LinkedDataClient
     public Response delete(URI uri)
     {
         WebTarget webTarget = getWebTarget(uri);
-        return new RetryAfterHelper(5000L).execWithRetry(() ->
+        return new RetryAfterHelper(getDefaultDelayMillis(), getMaxRetryCount()).invokeWithRetry(() ->
             webTarget.request().delete());
     }
     
@@ -190,6 +215,26 @@ public class LinkedDataClient extends com.atomgraph.core.client.LinkedDataClient
     public String getUserAgentHeaderValue()
     {
         return USER_AGENT;
+    }
+    
+    /**
+     * Returns default period the client waits before retrying the request
+     * 
+     * @return millisecond amount
+     */
+    public long getDefaultDelayMillis()
+    {
+        return defaultDelayMillis;
+    }
+    
+    /**
+     * Returns the maximum amount of request retries
+     * 
+     * @return max request retry count
+     */
+    public int getMaxRetryCount()
+    {
+        return maxRetryCount;
     }
     
 }
