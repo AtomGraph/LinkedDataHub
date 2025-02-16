@@ -174,6 +174,9 @@ public class Graph extends GraphStoreImpl
         if (log.isTraceEnabled()) log.trace("POST Graph Store request with RDF payload: {} payload size(): {}", model, model.size());
 
         final Model existingModel = getService().getGraphStoreClient().getModel(getURI().toString());
+        com.atomgraph.core.model.impl.Response response = getInternalResponse(existingModel, null);
+        ResponseBuilder rb = response.evaluatePreconditions();
+        if (rb != null) return rb.build(); // preconditions not met
         
         model.createResource(getURI().toString()).
             removeAll(DCTerms.modified).
@@ -185,11 +188,9 @@ public class Graph extends GraphStoreImpl
         // is this implemented correctly? The specification is not very clear.
         if (log.isDebugEnabled()) log.debug("POST Model to named graph with URI: {}", getURI());
         getService().getGraphStoreClient().add(getURI().toString(), model); // append new data to existing model
-        
-        submitImports(model);
-
-        getInternalResponse(existingModel, null).evaluatePreconditions();
         Model updatedModel = existingModel.add(model);
+
+        submitImports(model);
         
         return Response.noContent().
             tag(getInternalResponse(updatedModel, null).getVariantEntityTag()). // entity tag of the updated graph
@@ -257,6 +258,10 @@ public class Graph extends GraphStoreImpl
         }
         else // updating existing graph
         {
+            com.atomgraph.core.model.impl.Response response = getInternalResponse(existingModel, null);
+            ResponseBuilder rb = response.evaluatePreconditions();
+            if (rb != null) return rb.build(); // preconditions not met
+        
             // retain metadata from existing document resource
             ExtendedIterator<Statement> it = existingModel.createResource(getURI().toString()).listProperties(DCTerms.created).
                 andThen(existingModel.createResource(getURI().toString()).listProperties(DCTerms.creator));
