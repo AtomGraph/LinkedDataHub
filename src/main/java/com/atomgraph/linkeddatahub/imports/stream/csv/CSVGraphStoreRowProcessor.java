@@ -16,14 +16,15 @@
  */
 package com.atomgraph.linkeddatahub.imports.stream.csv;
 
-import static com.atomgraph.core.MediaType.APPLICATION_NTRIPLES_TYPE;
-import com.atomgraph.core.client.LinkedDataClient;
+import com.atomgraph.linkeddatahub.client.LinkedDataClient;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.server.exception.ImportException;
 import com.univocity.parsers.common.ParsingContext;
 import com.univocity.parsers.common.processor.RowProcessor;
 import jakarta.ws.rs.client.Client;
-import jakarta.ws.rs.client.Entity;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.MultivaluedHashMap;
+import jakarta.ws.rs.core.MultivaluedMap;
 import jakarta.ws.rs.core.Response;
 import java.io.IOException;
 import java.net.URI;
@@ -89,7 +90,7 @@ public class CSVGraphStoreRowProcessor implements RowProcessor // extends com.at
             {
                 // exceptions get swallowed by the client? TO-DO: wait for completion
                 Model namedModel = rowDataset.getNamedModel(graphUri);
-                if (!namedModel.isEmpty()) add(Entity.entity(namedModel, APPLICATION_NTRIPLES_TYPE), graphUri);
+                if (!namedModel.isEmpty()) add(namedModel, graphUri);
                 
                 try
                 {
@@ -108,33 +109,36 @@ public class CSVGraphStoreRowProcessor implements RowProcessor // extends com.at
     /**
      * Creates a graph using <code>PUT</code> if it doesn't exist, otherwise appends data using <code>POST</code>.
      * 
-     * @param entity request entity
+     * @param namedModel model
      * @param graphURI the graph URI
      */
-    protected void add(Entity entity, String graphURI)
+    protected void add(Model namedModel, String graphURI)
     {
-        try (Response headResponse = getLinkedDataClient().head(URI.create(graphURI)))
+        // <code>If-None-Match</code> used with the <code>*</code> value can be used to save a file only if it does not already exist,
+        // guaranteeing that the upload won't accidentally overwrite another upload and lose the data of the previous <code>PUT</code>
+        // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/If-None-Match
+        MultivaluedMap<String, Object> headers = new MultivaluedHashMap();
+        headers.putSingle(HttpHeaders.IF_NONE_MATCH, "*");
+
+        try (Response putResponse = getLinkedDataClient().put(URI.create(graphURI), namedModel, headers))
         {
-            if (headResponse.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL)) // POST if graph already exists
+            if (putResponse.getStatusInfo().equals(Response.Status.PRECONDITION_FAILED))
             {
-                try (Response cr = getLinkedDataClient().post(URI.create(graphURI), getLinkedDataClient().getReadableMediaTypes(Model.class), entity))
-                {
-                    if (!cr.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
+                try (Response postResponse = getLinkedDataClient().post(URI.create(graphURI), namedModel))
+                {                                
+                    if (!postResponse.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
                     {
-                        if (log.isErrorEnabled()) log.error("RDF document with URI <{}> could not be successfully created using POST. Status code: {}", graphURI, cr.getStatus());
-                        throw new ImportException(new IOException("RDF document with URI <" + graphURI + "> could not be successfully created using POST. Status code: " + cr.getStatus()));
+                        if (log.isErrorEnabled()) log.error("RDF document with URI <{}> could not be successfully created using PUT. Status code: {}", graphURI, postResponse.getStatus());
+                        throw new ImportException(new IOException("RDF document with URI <" + graphURI + "> could not be successfully created using PUT. Status code: " + postResponse.getStatus()));
                     }
                 }
             }
-            else // PUT to create graph
+            else
             {
-                try (Response cr = getLinkedDataClient().put(URI.create(graphURI), getLinkedDataClient().getReadableMediaTypes(Model.class), entity))
+                if (!putResponse.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
                 {
-                    if (!cr.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
-                    {
-                        if (log.isErrorEnabled()) log.error("RDF document with URI <{}> could not be successfully created using PUT. Status code: {}", graphURI, cr.getStatus());
-                        throw new RuntimeException(new IOException("RDF document with URI <" + graphURI + "> could not be successfully created using PUT. Status code: " + cr.getStatus()));
-                    }
+                    if (log.isErrorEnabled()) log.error("RDF document with URI <{}> could not be successfully created using PUT. Status code: {}", graphURI, putResponse.getStatus());
+                    throw new RuntimeException(new IOException("RDF document with URI <" + graphURI + "> could not be successfully created using PUT. Status code: " + putResponse.getStatus()));
                 }
             }
         }
