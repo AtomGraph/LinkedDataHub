@@ -26,10 +26,13 @@ import com.atomgraph.linkeddatahub.server.security.WebIDSecurityContext;
 import java.net.URI;
 import jakarta.ws.rs.client.Client;
 import jakarta.ws.rs.client.Entity;
+import static jakarta.ws.rs.client.Entity.entity;
 import jakarta.ws.rs.client.WebTarget;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.MultivaluedMap;
 import jakarta.ws.rs.core.Response;
+import org.apache.jena.rdf.model.Model;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -177,6 +180,15 @@ public class LinkedDataClient extends com.atomgraph.core.client.LinkedDataClient
         WebTarget webTarget = getWebTarget(uri);
         return new RetryAfterHelper(getDefaultDelayMillis(), getMaxRetryCount()).invokeWithRetry(() ->
             webTarget.request(acceptedTypes).put(entity));
+    }
+    
+    public Response put(URI uri, Model model, MultivaluedMap<String, Object> headers)
+    {
+        WebTarget webTarget = getWebTarget(uri);
+        return new RetryAfterHelper(getDefaultDelayMillis(), getMaxRetryCount()).invokeWithRetry(() ->
+            webTarget.request(getReadableMediaTypes(Model.class)).
+                headers(headers).
+                put(Entity.entity(model, getDefaultMediaType())));
     }
     
     @Override
