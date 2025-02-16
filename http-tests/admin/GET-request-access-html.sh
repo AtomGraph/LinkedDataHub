@@ -11,7 +11,7 @@ purge_cache "$ADMIN_VARNISH_SERVICE"
 curl -k -w "%{http_code}\n" -o /dev/null -f -s \
   -G \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
-  -H 'Accept: application/xhtml+xml' \
+  -H 'Accept: text/html' \
   --data-urlencode "access-to=${END_USER_BASE_URL}" \
   "${ADMIN_BASE_URL}request%20access" \
 | grep -q "$STATUS_OK"

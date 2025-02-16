@@ -22,4 +22,4 @@ content_type=$(curl --head -k -w "%{content_type}\n" -f -s -o /dev/null \
   -H 'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9' \
   "$END_USER_BASE_URL")
 
-[ "$content_type" = 'application/xhtml+xml;charset=UTF-8' ] || exit 1
+[ "$content_type" = 'text/html;charset=UTF-8' ] || exit 1
