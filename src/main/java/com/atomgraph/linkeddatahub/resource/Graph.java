@@ -287,6 +287,8 @@ public class Graph extends GraphStoreImpl
         }
     }
     
+    // TO-DO: evaluate preconditions for DELETE!!!
+    
     /**
      * Implements <code>PATCH</code> method of SPARQL Graph Store Protocol.
      * Accepts SPARQL update as the request body which is executed in the context of the specified graph.
