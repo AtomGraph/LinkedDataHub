@@ -174,8 +174,7 @@ public class Graph extends GraphStoreImpl
         if (log.isTraceEnabled()) log.trace("POST Graph Store request with RDF payload: {} payload size(): {}", model, model.size());
 
         final Model existingModel = getService().getGraphStoreClient().getModel(getURI().toString());
-        com.atomgraph.core.model.impl.Response response = getInternalResponse(existingModel, null);
-        ResponseBuilder rb = response.evaluatePreconditions();
+        ResponseBuilder rb = getRequest().evaluatePreconditions(getLastModified(existingModel, getURI()), getEntityTag(existingModel));
         if (rb != null) return rb.build(); // preconditions not met
         
         model.createResource(getURI().toString()).
@@ -218,11 +217,12 @@ public class Graph extends GraphStoreImpl
         }
         
         new Skolemizer(getURI().toString()).apply(model);
-        //final boolean existingGraph = getService().getGraphStoreClient().containsModel(getURI().toString());
         Model existingModel = null;
         try
         {
             existingModel = getService().getGraphStoreClient().getModel(getURI().toString());
+            ResponseBuilder rb = getRequest().evaluatePreconditions(getLastModified(existingModel, getURI()), getEntityTag(existingModel));
+            if (rb != null) return rb.build(); // preconditions not met
         }
         catch (NotFoundException ex)
         {
@@ -257,11 +257,7 @@ public class Graph extends GraphStoreImpl
                 build();
         }
         else // updating existing graph
-        {
-            com.atomgraph.core.model.impl.Response response = getInternalResponse(existingModel, null);
-            ResponseBuilder rb = response.evaluatePreconditions();
-            if (rb != null) return rb.build(); // preconditions not met
-        
+        {        
             // retain metadata from existing document resource
             ExtendedIterator<Statement> it = existingModel.createResource(getURI().toString()).listProperties(DCTerms.created).
                 andThen(existingModel.createResource(getURI().toString()).listProperties(DCTerms.creator));
@@ -286,8 +282,6 @@ public class Graph extends GraphStoreImpl
                 build();
         }
     }
-    
-    // TO-DO: evaluate preconditions for DELETE!!!
     
     /**
      * Implements <code>PATCH</code> method of SPARQL Graph Store Protocol.
@@ -326,8 +320,7 @@ public class Graph extends GraphStoreImpl
         final Model existingModel = getService().getGraphStoreClient().getModel(getURI().toString());
         if (existingModel == null) throw new NotFoundException("Named graph with URI <" + getURI() + "> not found");
 
-        com.atomgraph.core.model.impl.Response response = getInternalResponse(existingModel, null);
-        ResponseBuilder rb = response.evaluatePreconditions();
+        ResponseBuilder rb = getRequest().evaluatePreconditions(getLastModified(existingModel, getURI()), getEntityTag(existingModel));
         if (rb != null) return rb.build(); // preconditions not met
 
         Model beforeUpdateModel = ModelFactory.createDefaultModel().add(existingModel);
@@ -494,7 +487,18 @@ public class Graph extends GraphStoreImpl
     {
         if (!getAllowedMethods().contains(HttpMethod.DELETE))
             throw new WebApplicationException("Cannot delete document", Response.status(Response.Status.METHOD_NOT_ALLOWED).allow(getAllowedMethods()).build());
-        
+
+        try
+        {
+            Model existingModel = getService().getGraphStoreClient().getModel(getURI().toString());
+            ResponseBuilder rb = getRequest().evaluatePreconditions(getLastModified(existingModel, getURI()), getEntityTag(existingModel));
+            if (rb != null) return rb.build(); // preconditions not met
+        }
+        catch (NotFoundException ex)
+        {
+            //if (existingModel == null) existingModel = null;
+        }
+            
         return super.delete(false, getURI());
     }
     
