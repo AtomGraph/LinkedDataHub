@@ -55,6 +55,7 @@ import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.EntityTag;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Request;
@@ -174,7 +175,8 @@ public class Graph extends GraphStoreImpl
         if (log.isTraceEnabled()) log.trace("POST Graph Store request with RDF payload: {} payload size(): {}", model, model.size());
 
         final Model existingModel = getService().getGraphStoreClient().getModel(getURI().toString());
-        ResponseBuilder rb = getRequest().evaluatePreconditions(getLastModified(existingModel, getURI()), getEntityTag(existingModel));
+        
+        ResponseBuilder rb = evaluatePreconditions(existingModel);
         if (rb != null) return rb.build(); // preconditions not met
         
         model.createResource(getURI().toString()).
@@ -221,7 +223,8 @@ public class Graph extends GraphStoreImpl
         try
         {
             existingModel = getService().getGraphStoreClient().getModel(getURI().toString());
-            ResponseBuilder rb = getRequest().evaluatePreconditions(getLastModified(existingModel, getURI()), getEntityTag(existingModel));
+            
+            ResponseBuilder rb = evaluatePreconditions(existingModel);
             if (rb != null) return rb.build(); // preconditions not met
         }
         catch (NotFoundException ex)
@@ -320,7 +323,7 @@ public class Graph extends GraphStoreImpl
         final Model existingModel = getService().getGraphStoreClient().getModel(getURI().toString());
         if (existingModel == null) throw new NotFoundException("Named graph with URI <" + getURI() + "> not found");
 
-        ResponseBuilder rb = getRequest().evaluatePreconditions(getLastModified(existingModel, getURI()), getEntityTag(existingModel));
+        ResponseBuilder rb = evaluatePreconditions(existingModel);
         if (rb != null) return rb.build(); // preconditions not met
 
         Model beforeUpdateModel = ModelFactory.createDefaultModel().add(existingModel);
@@ -491,7 +494,8 @@ public class Graph extends GraphStoreImpl
         try
         {
             Model existingModel = getService().getGraphStoreClient().getModel(getURI().toString());
-            ResponseBuilder rb = getRequest().evaluatePreconditions(getLastModified(existingModel, getURI()), getEntityTag(existingModel));
+            
+            ResponseBuilder rb = evaluatePreconditions(existingModel);
             if (rb != null) return rb.build(); // preconditions not met
         }
         catch (NotFoundException ex)
@@ -799,6 +803,15 @@ public class Graph extends GraphStoreImpl
         if (reader instanceof ValidatingModelProvider validatingModelProvider) return validatingModelProvider.processRead(model);
         
         throw new InternalServerErrorException("Could not obtain ValidatingModelProvider instance");
+    }
+    
+    public ResponseBuilder evaluatePreconditions(Model model)
+    {
+        Date lastModified = getLastModified(model, getURI());
+        EntityTag etag = getEntityTag(model);
+        
+        if (lastModified != null) return getRequest().evaluatePreconditions(lastModified, etag);
+        else return getRequest().evaluatePreconditions(etag);
     }
     
     /**
