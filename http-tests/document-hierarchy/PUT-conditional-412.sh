@@ -29,7 +29,7 @@ create-authorization.sh \
 # attempt to replace the graph with a random ETag value
 
 (
-curl -k -w "%{http_code}\n" -o /dev/null -f -s \
+curl -k -w "%{http_code}\n" -o /dev/null -s \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
   -X PUT \
   -H "Accept: application/n-triples" \

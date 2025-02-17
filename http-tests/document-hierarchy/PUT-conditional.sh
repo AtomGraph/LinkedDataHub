@@ -45,7 +45,7 @@ curl -k -w "%{http_code}\n" -o /dev/null -f -s \
   -X PUT \
   -H "Accept: application/n-triples" \
   -H "Content-Type: application/n-triples" \
-  -H "If-Match: \"${etag_before}\"" \
+  -H "If-Match: ${etag_before}" \
   --data-binary @- \
   "$END_USER_BASE_URL" <<EOF
 <${END_USER_BASE_URL}> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/atomgraph/linkeddatahub/default#Root> .
