@@ -805,6 +805,13 @@ public class Graph extends GraphStoreImpl
         throw new InternalServerErrorException("Could not obtain ValidatingModelProvider instance");
     }
     
+    /**
+     * Evaluates the state of the given graph against the request preconditions.
+     * Checks the last modified data (if any) and calculates an <code>ETag</code> value.
+     * 
+     * @param model RDF model
+     * @return {@code jakarta.ws.rs.core.Response.ResponseBuilder} instance. <code>null</code> if preconditions are not met.
+     */
     public ResponseBuilder evaluatePreconditions(Model model)
     {
         Date lastModified = getLastModified(model, getURI());
