@@ -16,6 +16,7 @@
  */
 package com.atomgraph.linkeddatahub.resource;
 
+import com.atomgraph.client.util.HTMLMediaTypePredicate;
 import com.atomgraph.client.vocabulary.AC;
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.core.model.EndpointAccessor;
@@ -521,7 +522,8 @@ public class Graph extends GraphStoreImpl
                 getEntityTag(model),
                 getWritableMediaTypes(Model.class),
                 getLanguages(),
-                getEncodings());
+                getEncodings(),
+                new HTMLMediaTypePredicate());
     }
     
     /**
