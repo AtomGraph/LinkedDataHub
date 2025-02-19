@@ -122,8 +122,7 @@ public class Item extends com.atomgraph.linkeddatahub.resource.Graph
     public ResponseBuilder getResponseBuilder(Model model, URI graphUri)
     {
         // do not pass language list as languages do not apply to binary files
-        List<Variant> variants = com.atomgraph.core.model.impl.Response.getVariantListBuilder(getWritableMediaTypes(Model.class), Collections.emptyList(), getEncodings()).
-            add().build();
+        List<Variant> variants = com.atomgraph.core.model.impl.Response.getVariants(getWritableMediaTypes(Model.class), Collections.emptyList(), getEncodings());
         Variant variant = getRequest().selectVariant(variants);
         if (variant == null)
         {
