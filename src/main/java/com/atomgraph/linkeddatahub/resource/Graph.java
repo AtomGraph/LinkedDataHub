@@ -526,6 +526,19 @@ public class Graph extends GraphStoreImpl
     }
     
     /**
+     * Get response builder.
+     * 
+     * @param model RDF model
+     * @param graphUri graph URI
+     * @return response builder
+     */
+    @Override
+    public ResponseBuilder getResponseBuilder(Model model, URI graphUri)
+    {
+        return getInternalResponse(model, graphUri).getResponseBuilder();
+    }
+    
+    /**
      * List allowed HTTP methods for the current graph URI.
      * Exceptions apply to the application's Root document, owner's WebID document, and secretary's WebID document.
      * 
