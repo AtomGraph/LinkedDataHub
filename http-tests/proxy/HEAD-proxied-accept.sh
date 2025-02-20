@@ -7,13 +7,13 @@ purge_cache "$END_USER_VARNISH_SERVICE"
 purge_cache "$ADMIN_VARNISH_SERVICE"
 purge_cache "$FRONTEND_VARNISH_SERVICE"
 
-# add agent to the writers group to be able to read/write documents
+# add agent to the readers group to be able to read documents
 
 add-agent-to-group.sh \
   -f "$OWNER_CERT_FILE" \
   -p "$OWNER_CERT_PWD" \
   --agent "$AGENT_URI" \
-  "${ADMIN_BASE_URL}acl/groups/writers/"
+  "${ADMIN_BASE_URL}acl/groups/readers/"
 
 # check that ?accept URL param overrides Accept header and returns Turtle (use Chrome's default Accept value)
 

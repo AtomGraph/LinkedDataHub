@@ -15,17 +15,6 @@ add-agent-to-group.sh \
   --agent "$AGENT_URI" \
   "${ADMIN_BASE_URL}acl/groups/writers/"
 
-# create public authorization
-
-create-authorization.sh \
-  -f "$OWNER_CERT_FILE" \
-  -p "$OWNER_CERT_PWD" \
-  -b "$ADMIN_BASE_URL" \
-  --label "Public access authorization" \
-  --agent-class 'http://xmlns.com/foaf/0.1/Agent' \
-  --to "$END_USER_BASE_URL" \
-  --read
-
 # store the ETag value
 
 etag_before=$(
