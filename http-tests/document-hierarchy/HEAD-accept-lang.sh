@@ -21,7 +21,6 @@ content_lang=$(curl -G --head -k -f -s -o /dev/null -D - \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
   -H 'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9' \
   -H 'Accept-Language: es-ES,es;q=0.9,en-US;q=0.8,en;q=0.7' \
-  --data-urlencode "accept=text/turtle" \
   "$END_USER_BASE_URL"\
 | tr -d '\r' | sed -En 's/^Content-Language: (.*)$/\1/p')
 
