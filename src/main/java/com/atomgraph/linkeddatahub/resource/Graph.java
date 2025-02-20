@@ -56,7 +56,6 @@ import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.Context;
-import jakarta.ws.rs.core.EntityTag;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Request;
@@ -514,7 +513,7 @@ public class Graph extends GraphStoreImpl
      * @param graphUri graph URI
      * @return response
      */
-    public com.atomgraph.core.model.impl.Response getInternalResponse(Model model, URI graphUri) // TO-DO: graphUri not required?
+    public com.atomgraph.core.model.impl.Response getInternalResponse(Model model, URI graphUri)
     {
         return new com.atomgraph.core.model.impl.Response(getRequest(),
                 model,
@@ -816,11 +815,7 @@ public class Graph extends GraphStoreImpl
      */
     public ResponseBuilder evaluatePreconditions(Model model)
     {
-        Date lastModified = getLastModified(model, getURI());
-        EntityTag etag = getEntityTag(model);
-        
-        if (lastModified != null) return getRequest().evaluatePreconditions(lastModified, etag);
-        else return getRequest().evaluatePreconditions(etag);
+        return getInternalResponse(model, getURI()).evaluatePreconditions();
     }
     
     /**
