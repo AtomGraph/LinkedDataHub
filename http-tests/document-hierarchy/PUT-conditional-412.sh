@@ -15,25 +15,15 @@ add-agent-to-group.sh \
   --agent "$AGENT_URI" \
   "${ADMIN_BASE_URL}acl/groups/writers/"
 
-# store the ETag value
-
-etag_before=$(
-  curl -k -i -f -s -G \
-    -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
-    -H "Accept: application/n-triples" \
-  "$END_USER_BASE_URL" \
-| grep 'ETag' \
-| tr -d '\r' \
-| sed -En 's/^ETag: (.*)$/\1/p')
-
-# replace the graph
+# attempt to replace the graph with a random ETag value
 
 (
-curl -k -w "%{http_code}\n" -o /dev/null -f -s \
+curl -k -w "%{http_code}\n" -o /dev/null -s \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
   -X PUT \
   -H "Accept: application/n-triples" \
   -H "Content-Type: application/n-triples" \
+  -H "If-Match: \"random-etag\"" \
   --data-binary @- \
   "$END_USER_BASE_URL" <<EOF
 <${END_USER_BASE_URL}> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/atomgraph/linkeddatahub/default#Root> .
@@ -42,20 +32,4 @@ curl -k -w "%{http_code}\n" -o /dev/null -f -s \
 <${END_USER_BASE_URL}named-subject-put> <http://example.com/another-predicate> "another named object PUT" .
 EOF
 ) \
-| grep -q "$STATUS_OK"
-
-# check that the ETag value changed
-
-etag_after=$(
-  curl -k -i -f -s -G \
-    -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
-    -H "Accept: application/n-triples" \
-  "$END_USER_BASE_URL" \
-| grep 'ETag' \
-| tr -d '\r' \
-| sed -En 's/^ETag: (.*)$/\1/p')
-
-if [ "$etag_before" = "$etag_after" ]; then
-    echo "The new ETag value '${etag_after}' is the same as the old one '${etag_before} despite the update'"
-    exit 1
-fi
+| grep -q "$STATUS_PRECONDITION_FAILED"

@@ -15,6 +15,8 @@ add-agent-to-group.sh \
   --agent "$AGENT_URI" \
   "${ADMIN_BASE_URL}acl/groups/writers/"
 
+# store the ETag value
+
 etag_before=$(
   curl -k -i -f -s -G \
     -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
@@ -24,33 +26,21 @@ etag_before=$(
 | tr -d '\r' \
 | sed -En 's/^ETag: (.*)$/\1/p')
 
-# append new triples to the graph
+# append to the graph only if the ETag value matches
 
 (
 curl -k -w "%{http_code}\n" -o /dev/null -f -s \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
+  -X POST \
   -H "Accept: application/n-triples" \
   -H "Content-Type: application/n-triples" \
+  -H "If-Match: ${etag_before}" \
   --data-binary @- \
   "$END_USER_BASE_URL" <<EOF
-<${END_USER_BASE_URL}named-subject-post> <http://example.com/default-predicate> "named object POST" .
-<${END_USER_BASE_URL}named-subject-post> <http://example.com/another-predicate> "another named object POST" .
+<${END_USER_BASE_URL}> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/atomgraph/linkeddatahub/default#Root> .
+<${END_USER_BASE_URL}> <http://purl.org/dc/terms/title> "Root" .
+<${END_USER_BASE_URL}named-subject-put> <http://example.com/default-predicate> "named object PUT" .
+<${END_USER_BASE_URL}named-subject-put> <http://example.com/another-predicate> "another named object PUT" .
 EOF
 ) \
 | grep -q "$STATUS_NO_CONTENT"
-
-# check that the ETag value changed
-
-etag_after=$(
-  curl -k -i -f -s -G \
-    -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
-    -H "Accept: application/n-triples" \
-  "$END_USER_BASE_URL" \
-| grep 'ETag' \
-| tr -d '\r' \
-| sed -En 's/^ETag: (.*)$/\1/p')
-
-if [ "$etag_before" = "$etag_after" ]; then
-    echo "The new ETag value '${etag_after}' is the same as the old one '${etag_before} despite the update'"
-    exit 1
-fi

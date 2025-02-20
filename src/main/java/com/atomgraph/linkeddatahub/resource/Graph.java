@@ -16,6 +16,7 @@
  */
 package com.atomgraph.linkeddatahub.resource;
 
+import com.atomgraph.client.util.HTMLMediaTypePredicate;
 import com.atomgraph.client.vocabulary.AC;
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.core.model.EndpointAccessor;
@@ -175,6 +176,9 @@ public class Graph extends GraphStoreImpl
 
         final Model existingModel = getService().getGraphStoreClient().getModel(getURI().toString());
         
+        ResponseBuilder rb = evaluatePreconditions(existingModel);
+        if (rb != null) return rb.build(); // preconditions not met
+        
         model.createResource(getURI().toString()).
             removeAll(DCTerms.modified).
             addLiteral(DCTerms.modified, ResourceFactory.createTypedLiteral(GregorianCalendar.getInstance()));
@@ -185,11 +189,9 @@ public class Graph extends GraphStoreImpl
         // is this implemented correctly? The specification is not very clear.
         if (log.isDebugEnabled()) log.debug("POST Model to named graph with URI: {}", getURI());
         getService().getGraphStoreClient().add(getURI().toString(), model); // append new data to existing model
-        
-        submitImports(model);
-
-        getInternalResponse(existingModel, null).evaluatePreconditions();
         Model updatedModel = existingModel.add(model);
+
+        submitImports(model);
         
         return Response.noContent().
             tag(getInternalResponse(updatedModel, null).getVariantEntityTag()). // entity tag of the updated graph
@@ -217,11 +219,13 @@ public class Graph extends GraphStoreImpl
         }
         
         new Skolemizer(getURI().toString()).apply(model);
-        //final boolean existingGraph = getService().getGraphStoreClient().containsModel(getURI().toString());
         Model existingModel = null;
         try
         {
             existingModel = getService().getGraphStoreClient().getModel(getURI().toString());
+            
+            ResponseBuilder rb = evaluatePreconditions(existingModel);
+            if (rb != null) return rb.build(); // preconditions not met
         }
         catch (NotFoundException ex)
         {
@@ -256,7 +260,7 @@ public class Graph extends GraphStoreImpl
                 build();
         }
         else // updating existing graph
-        {
+        {        
             // retain metadata from existing document resource
             ExtendedIterator<Statement> it = existingModel.createResource(getURI().toString()).listProperties(DCTerms.created).
                 andThen(existingModel.createResource(getURI().toString()).listProperties(DCTerms.creator));
@@ -319,8 +323,7 @@ public class Graph extends GraphStoreImpl
         final Model existingModel = getService().getGraphStoreClient().getModel(getURI().toString());
         if (existingModel == null) throw new NotFoundException("Named graph with URI <" + getURI() + "> not found");
 
-        com.atomgraph.core.model.impl.Response response = getInternalResponse(existingModel, null);
-        ResponseBuilder rb = response.evaluatePreconditions();
+        ResponseBuilder rb = evaluatePreconditions(existingModel);
         if (rb != null) return rb.build(); // preconditions not met
 
         Model beforeUpdateModel = ModelFactory.createDefaultModel().add(existingModel);
@@ -487,7 +490,19 @@ public class Graph extends GraphStoreImpl
     {
         if (!getAllowedMethods().contains(HttpMethod.DELETE))
             throw new WebApplicationException("Cannot delete document", Response.status(Response.Status.METHOD_NOT_ALLOWED).allow(getAllowedMethods()).build());
-        
+
+        try
+        {
+            Model existingModel = getService().getGraphStoreClient().getModel(getURI().toString());
+            
+            ResponseBuilder rb = evaluatePreconditions(existingModel);
+            if (rb != null) return rb.build(); // preconditions not met
+        }
+        catch (NotFoundException ex)
+        {
+            //if (existingModel == null) existingModel = null;
+        }
+            
         return super.delete(false, getURI());
     }
     
@@ -498,7 +513,7 @@ public class Graph extends GraphStoreImpl
      * @param graphUri graph URI
      * @return response
      */
-    public com.atomgraph.core.model.impl.Response getInternalResponse(Model model, URI graphUri) // TO-DO: graphUri not required?
+    public com.atomgraph.core.model.impl.Response getInternalResponse(Model model, URI graphUri)
     {
         return new com.atomgraph.core.model.impl.Response(getRequest(),
                 model,
@@ -506,7 +521,21 @@ public class Graph extends GraphStoreImpl
                 getEntityTag(model),
                 getWritableMediaTypes(Model.class),
                 getLanguages(),
-                getEncodings());
+                getEncodings(),
+                new HTMLMediaTypePredicate());
+    }
+    
+    /**
+     * Get response builder.
+     * 
+     * @param model RDF model
+     * @param graphUri graph URI
+     * @return response builder
+     */
+    @Override
+    public ResponseBuilder getResponseBuilder(Model model, URI graphUri)
+    {
+        return getInternalResponse(model, graphUri).getResponseBuilder();
     }
     
     /**
@@ -788,6 +817,18 @@ public class Graph extends GraphStoreImpl
         if (reader instanceof ValidatingModelProvider validatingModelProvider) return validatingModelProvider.processRead(model);
         
         throw new InternalServerErrorException("Could not obtain ValidatingModelProvider instance");
+    }
+    
+    /**
+     * Evaluates the state of the given graph against the request preconditions.
+     * Checks the last modified data (if any) and calculates an <code>ETag</code> value.
+     * 
+     * @param model RDF model
+     * @return {@code jakarta.ws.rs.core.Response.ResponseBuilder} instance. <code>null</code> if preconditions are not met.
+     */
+    public ResponseBuilder evaluatePreconditions(Model model)
+    {
+        return getInternalResponse(model, getURI()).evaluatePreconditions();
     }
     
     /**
