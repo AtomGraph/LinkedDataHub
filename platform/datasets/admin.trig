@@ -572,6 +572,25 @@ WHERE
 
 }
 
+# ACL endpoint
+
+<acl/authorizations/acl/>
+{
+
+    <acl/authorizations/acl/> a dh:Item ;
+        sioc:has_container <acl/authorizations/> ;
+        dct:title "ACL endpoint access" ;
+        foaf:primaryTopic <acl/authorizations/acl/#this> .
+
+    <acl/authorizations/acl/#this> a acl:Authorization ;
+        rdfs:label "ACL endpoint access" ;
+        rdfs:comment "Allows read-only non-authenticated access" ;
+        acl:accessTo <../acl> ;
+        acl:mode acl:Read ;
+        acl:agentClass foaf:Agent, acl:AuthenticatedAgent .
+
+}
+
 # sign up
 
 <acl/authorizations/sign-up/>

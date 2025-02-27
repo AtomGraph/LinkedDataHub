@@ -81,7 +81,6 @@ exclude-result-prefixes="#all">
     <xsl:import href="../../../../client/xsl/bootstrap/2.3.2/internal-layout.xsl"/>
     <xsl:import href="imports/default.xsl"/>
     <xsl:import href="imports/ac.xsl"/>
-    <!-- <xsl:import href="imports/ldh.xsl"/> -->
     <xsl:import href="imports/dct.xsl"/>
     <xsl:import href="imports/nfo.xsl"/>
     <xsl:import href="imports/rdf.xsl"/>
@@ -131,6 +130,7 @@ exclude-result-prefixes="#all">
             <xsl:map-entry key="resolve-uri(ac:document-uri(xs:anyURI('&rdf;')), $ac:contextUri)" select="ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri(xs:anyURI('&rdf;'))), 'accept': 'application/rdf+xml' })"/>
             <xsl:map-entry key="resolve-uri(ac:document-uri(xs:anyURI('&rdfs;')), $ac:contextUri)" select="ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri(xs:anyURI('&rdfs;'))), 'accept': 'application/rdf+xml' })"/>
             <xsl:map-entry key="resolve-uri(ac:document-uri(xs:anyURI('&owl;')), $ac:contextUri)" select="ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri(xs:anyURI('&owl;'))), 'accept': 'application/rdf+xml' })"/>
+            <xsl:map-entry key="resolve-uri(ac:document-uri(xs:anyURI('&acl;')), $ac:contextUri)" select="ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri(xs:anyURI('&acl;'))), 'accept': 'application/rdf+xml' })"/>
             <xsl:map-entry key="resolve-uri(ac:document-uri(xs:anyURI('&sd;')), $ac:contextUri)" select="ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri(xs:anyURI('&sd;'))), 'accept': 'application/rdf+xml' })"/>
             <xsl:map-entry key="resolve-uri(ac:document-uri(xs:anyURI('&sh;')), $ac:contextUri)" select="ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri(xs:anyURI('&sh;'))), 'accept': 'application/rdf+xml' })"/>
         </xsl:map>
@@ -1087,12 +1087,11 @@ LIMIT   100
                 
                 <xsl:apply-templates select="." mode="ac:label"/>
                 
-                <xsl:variable name="request-access-to" select="ac:build-uri(lacl:requestAccess/@rdf:resource, map{ 'access-to': string($ac:uri) } )" as="xs:anyURI"/>
-                <a href="{ldh:href($ldt:base, ac:absolute-path($ldh:requestUri), map{}, $request-access-to)}" class="btn btn-primary pull-right">
+                <button type="button" class="btn btn-primary btn-request-access pull-right">
                     <xsl:value-of>
                         <xsl:apply-templates select="key('resources', 'request-access', document('translations.rdf'))" mode="ac:label"/>
                     </xsl:value-of>
-                </a>
+                </button>
             </h2>
         </div>
     </xsl:template>

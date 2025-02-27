@@ -41,7 +41,7 @@ exclude-result-prefixes="#all">
 
     <xsl:import href="../layout.xsl"/>
     <xsl:include href="signup.xsl"/>
-    <xsl:include href="request-access.xsl"/>
+<!--    <xsl:include href="request-access.xsl"/>-->
     <xsl:include href="acl/layout.xsl"/>
 
     <xsl:param name="default-classes" select="(xs:anyURI('&owl;Ontology'), xs:anyURI('&sh;NodeShape'), xs:anyURI('&sh;PropertyShape'), xs:anyURI('&acl;Authorization'), xs:anyURI('&foaf;Person'), xs:anyURI('&cert;PublicKey'), xs:anyURI('&sioc;UserAccount'), xs:anyURI('&foaf;Group'))" as="xs:anyURI*"/>

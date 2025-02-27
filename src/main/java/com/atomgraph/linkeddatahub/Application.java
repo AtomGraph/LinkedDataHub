@@ -258,7 +258,7 @@ public class Application extends ResourceConfig
     private final Map<String, OntModelSpec> endUserOntModelSpecs;
     private final MediaTypes mediaTypes;
     private final Client client, externalClient, importClient, noCertClient;
-    private final Query authQuery, ownerAuthQuery, webIDQuery, agentQuery, userAccountQuery, ontologyQuery; // no relative URIs
+    private final Query authQuery, ownerAuthQuery, aclQuery, ownerAclQuery, webIDQuery, agentQuery, userAccountQuery, ontologyQuery; // no relative URIs
     private final Integer maxGetRequestSize;
     private final boolean preemptiveAuth;
     private final Processor xsltProc = new Processor(false);
@@ -294,7 +294,7 @@ public class Application extends ResourceConfig
      * @param servletConfig servlet config
      * @throws URISyntaxException throw on URI syntax errors
      * @throws MalformedURLException thrown on URL syntax errors
-     * @throws IOException thrown on I/O erros
+     * @throws IOException thrown on I/O errors
      */
     public Application(@Context ServletConfig servletConfig) throws URISyntaxException, MalformedURLException, IOException
     {
@@ -314,6 +314,8 @@ public class Application extends ResourceConfig
             servletConfig.getServletContext().getInitParameter(LDHC.clientTrustStorePassword.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.clientTrustStorePassword.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(LDHC.authQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.authQuery.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(LDHC.ownerAuthQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.ownerAuthQuery.getURI()) : null,
+            servletConfig.getServletContext().getInitParameter(LDHC.aclQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.aclQuery.getURI()) : null,
+            servletConfig.getServletContext().getInitParameter(LDHC.ownerAclQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.ownerAclQuery.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(LDHC.webIDQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.webIDQuery.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(LDHC.agentQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.agentQuery.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(LDHC.userAccountQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.userAccountQuery.getURI()) : null,
@@ -370,7 +372,9 @@ public class Application extends ResourceConfig
      * @param clientTrustStoreURIString location of the client's truststore
      * @param clientTrustStorePassword client truststore's password
      * @param authQueryString SPARQL string of the authorization query
-     * @param ownerAuthQueryString SPARQL string of the admin authorization query
+     * @param ownerAuthQueryString SPARQL string of the owner's authorization query
+     * @param aclQueryString SPARQL string of the ACL query
+     * @param ownerAclQueryString SPARQL string of the owner's ACL query
      * @param webIDQueryString SPARQL string of the WebID validation query
      * @param agentQueryString SPARQL string of the <code>Agent</code> lookup query
      * @param userAccountQueryString SPARQL string of the <code>UserAccount</code> lookup query
@@ -405,7 +409,7 @@ public class Application extends ResourceConfig
             final String clientKeyStoreURIString, final String clientKeyStorePassword,
             final String secretaryCertAlias,
             final String clientTrustStoreURIString, final String clientTrustStorePassword,
-            final String authQueryString, final String ownerAuthQueryString, final String webIDQueryString, final String agentQueryString, final String userAccountQueryString, final String ontologyQueryString,
+            final String authQueryString, final String ownerAuthQueryString, final String aclQueryString, final String ownerAclQueryString, final String webIDQueryString, final String agentQueryString, final String userAccountQueryString, final String ontologyQueryString,
             final String baseURIString, final String proxyScheme, final String proxyHostname, final Integer proxyPort,
             final String uploadRootString, final boolean invalidateCache,
             final Integer cookieMaxAge, final boolean enableLinkedDataProxy, final Integer maxContentLength,
@@ -445,6 +449,20 @@ public class Application extends ResourceConfig
             throw new ConfigurationException(LDHC.ownerAuthQuery);
         }
         this.ownerAuthQuery = QueryFactory.create(ownerAuthQueryString);
+        
+        if (aclQueryString == null)
+        {
+            if (log.isErrorEnabled()) log.error("ACL SPARQL query is not configured properly");
+            throw new ConfigurationException(LDHC.aclQuery);
+        }
+        this.aclQuery = QueryFactory.create(aclQueryString);
+        
+        if (ownerAclQueryString == null)
+        {
+            if (log.isErrorEnabled()) log.error("Owner's ACL SPARQL query is not configured properly");
+            throw new ConfigurationException(LDHC.ownerAclQuery);
+        }
+        this.ownerAclQuery = QueryFactory.create(ownerAclQueryString);
         
         if (webIDQueryString == null)
         {
@@ -1668,6 +1686,28 @@ public class Application extends ResourceConfig
     public Query getOwnerAuthQuery()
     {
         return ownerAuthQuery.cloneQuery();
+    }
+    
+    /**
+     * Returns the authorization query.
+     * Used to check access to end-user apps.
+     * 
+     * @return query object
+     */
+    public Query getACLQuery()
+    {
+        return aclQuery.cloneQuery();
+    }
+    
+    /**
+     * Returns the owner authorization query.
+     * Used to check access to admin apps.
+     * 
+     * @return query object
+     */
+    public Query getOwnerACLQuery()
+    {
+        return ownerAclQuery.cloneQuery();
     }
     
     /**

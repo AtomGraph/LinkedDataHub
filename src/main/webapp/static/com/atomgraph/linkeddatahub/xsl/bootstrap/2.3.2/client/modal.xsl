@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE xsl:stylesheet [
+    <!ENTITY lacl   "https://w3id.org/atomgraph/linkeddatahub/admin/acl#">
     <!ENTITY def    "https://w3id.org/atomgraph/linkeddatahub/default#">
     <!ENTITY ldh    "https://w3id.org/atomgraph/linkeddatahub#">
     <!ENTITY ac     "https://w3id.org/atomgraph/client#">
@@ -7,6 +8,7 @@
     <!ENTITY xsd    "http://www.w3.org/2001/XMLSchema#">
     <!ENTITY owl    "http://www.w3.org/2002/07/owl#">
     <!ENTITY srx    "http://www.w3.org/2005/sparql-results#">
+    <!ENTITY acl    "http://www.w3.org/ns/auth/acl#">
     <!ENTITY ldt    "https://www.w3.org/ns/ldt#">
     <!ENTITY dh     "https://www.w3.org/ns/ldt/document-hierarchy#">
     <!ENTITY sd     "http://www.w3.org/ns/sparql-service-description#">
@@ -30,6 +32,7 @@ xmlns:array="http://www.w3.org/2005/xpath-functions/array"
 xmlns:ac="&ac;"
 xmlns:ldh="&ldh;"
 xmlns:rdf="&rdf;"
+xmlns:acl="&acl;"
 xmlns:srx="&srx;"
 xmlns:ldt="&ldt;"
 xmlns:sd="&sd;"
@@ -336,6 +339,97 @@ LIMIT   10
         </div>
     </xsl:template>
     
+    <!-- cannot construct acl:Authorization normally because the agent might not have access to the namespace endpoint -->
+    <xsl:template name="ldh:RequestAccessForm">
+        <xsl:param name="id" select="'request-access'" as="xs:string?"/>
+        <xsl:param name="button-class" select="'btn btn-primary btn-save'" as="xs:string?"/>
+        <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
+        <xsl:param name="action" select="resolve-uri(encode-for-uri('request access'), $ldt:base)" as="xs:anyURI"/>
+        <xsl:param name="legend-label" select="ac:label(key('resources', 'request-access', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri))))" as="xs:string"/>
+        
+        <div class="modal modal-constructor fade in">
+            <xsl:if test="$id">
+                <xsl:attribute name="id" select="$id"/>
+            </xsl:if>
+
+            <div class="modal-header">
+                <button type="button" class="close">&#215;</button>
+
+                <legend>
+                    <xsl:value-of select="$legend-label"/>
+                </legend>
+            </div>
+
+            <div class="modal-body">
+                <form id="form-request-access" class="form-horizontal" method="POST" action="{$action}">
+                    <xsl:comment>This form uses RDF/POST encoding: https://atomgraph.github.io/RDF-POST/</xsl:comment>
+                    <xsl:call-template name="xhtml:Input">
+                        <xsl:with-param name="name" select="'rdf'"/>
+                        <xsl:with-param name="type" select="'hidden'"/>
+                    </xsl:call-template>
+            
+                    <fieldset>
+                        <input type="hidden" name="su" value="{$acl:agent}"/> <!-- will be verified server-side -->
+                        <input type="hidden" name="pu" value="&rdf;type"/>
+                        <input type="hidden" name="ou" value="&lacl;AuthorizationRequest"/>
+                        <input type="hidden" name="pu" value="&lacl;requestAgent"/>
+                        <input type="hidden" name="ou" value="{$acl:agent}"/>
+                        <input type="hidden" name="pu" value="&lacl;requestAccessTo"/>
+                        <input type="hidden" name="ou" value="{ac:absolute-path(ldh:base-uri(.))}"/>
+                        
+<!--                        <div class="control-group">
+                            <input type="hidden" name="pu" value="&acl;agentGroup"/>
+
+                            <label for="agent-group" class="control-label">Agent group</label>
+                            <div class="controls">
+                                <xsl:call-template name="bs2:Lookup">
+                                    <xsl:with-param name="forClass" select="xs:anyURI('&acl;Group')"/>
+                                    <xsl:with-param name="class" select="'resource-typeahead typeahead'"/>
+                                    <xsl:with-param name="list-class" select="'resource-typeahead typeahead dropdown-menu'"/>
+                                </xsl:call-template>
+                            </div>
+                        </div>-->
+                        <div class="control-group">
+                            <input type="hidden" name="pu" value="&lacl;requestMode"/>
+
+                            <label for="agent-group" class="control-label">Access mode</label>
+                            <div class="controls">
+                                <xsl:variable name="modes" select="key('resources-by-subclass', '&acl;Access', document(ac:document-uri('&acl;')))" as="element()*"/>
+                                <xsl:variable name="default" select="xs:anyURI('&acl;Read')" as="xs:anyURI*"/>
+                                <select name="ou" id="{generate-id()}" multiple="multiple" size="{count($modes)}">
+                                    <xsl:for-each select="$modes">
+                                        <xsl:sort select="ac:label(.)" lang="{$ldt:lang}"/>
+                                        <xsl:apply-templates select="." mode="xhtml:Option">
+                                            <xsl:with-param name="selected" select="@rdf:about = $default"/>
+                                        </xsl:apply-templates>
+                                    </xsl:for-each>
+                                </select>
+                            </div>
+                        </div>
+                   </fieldset>
+                   
+                    <div class="form-actions modal-footer">
+                        <button type="submit" class="{$button-class}">
+                            <xsl:value-of>
+                                <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                            </xsl:value-of>
+                        </button>
+                        <button type="button" class="btn btn-close">
+                            <xsl:value-of>
+                                <xsl:apply-templates select="key('resources', 'close', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                            </xsl:value-of>
+                        </button>
+                        <button type="reset" class="btn btn-reset">
+                            <xsl:value-of>
+                                <xsl:apply-templates select="key('resources', 'reset', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                            </xsl:value-of>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </xsl:template>
+    
     <xsl:template name="ldh:ReconcileForm">
         <xsl:param name="id" select="'reconcile'" as="xs:string?"/>
         <xsl:param name="button-class" select="'btn btn-primary btn-save'" as="xs:string?"/>
@@ -435,12 +529,20 @@ LIMIT   10
         </xsl:call-template>
     </xsl:template>
     
+    <xsl:template match="button[contains-token(@class, 'btn-request-access')]" mode="ixsl:onclick">
+        <xsl:call-template name="ldh:ShowModalForm">
+            <xsl:with-param name="form" as="element()">
+                <xsl:call-template name="ldh:RequestAccessForm"/>
+            </xsl:with-param>
+        </xsl:call-template>
+    </xsl:template>
+    
     <xsl:template match="button[contains-token(@class, 'btn-reconcile')]" mode="ixsl:onclick">
         <xsl:variable name="resource" select="input[@name = 'resource']/@value" as="xs:anyURI"/>
         <xsl:variable name="label" select="input[@name = 'label']/@value" as="xs:string"/>
         <xsl:variable name="service" select="input[@name = 'service']/@value" as="xs:anyURI"/>
         
-        <xsl:call-template name="ldh:ShowReconcileForm">
+        <xsl:call-template name="ldh:ShowModalForm">
             <xsl:with-param name="form" as="element()">
                 <xsl:call-template name="ldh:ReconcileForm">
                     <xsl:with-param name="resource" select="$resource"/>
@@ -548,6 +650,43 @@ LIMIT   10
         </xsl:choose>
     </xsl:template>
     
+    <!-- validate form before submitting it and show errors on required control-groups where input values are missing -->
+    <xsl:template match="form[@id = 'form-request-access']" mode="ixsl:onsubmit" priority="1">
+        <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
+        <xsl:variable name="control-groups" select="descendant::div[contains-token(@class, 'control-group')][contains-token(@class, 'required')]" as="element()*"/>
+        <xsl:choose>
+            <!-- input values missing, throw an error -->
+            <xsl:when test="false()">
+<!--            <xsl:when test="exists($control-groups/descendant::input[@name = ('ol', 'ou')][not(ixsl:get(., 'value'))])">-->
+                <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
+                <xsl:sequence select="$control-groups[descendant::input[@name = ('ol', 'ou')][not(ixsl:get(., 'value'))]]/ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'error', true() ])[current-date() lt xs:date('2000-01-01')]"/>
+            </xsl:when>
+            <!-- all required values present, proceed to submit form-->
+            <xsl:otherwise>
+                <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+
+                <xsl:sequence select="$control-groups/ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'error', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+
+                <xsl:variable name="form" select="." as="element()"/>
+                <xsl:variable name="method" select="ixsl:get(., 'method')" as="xs:string"/>
+                <xsl:variable name="action" select="ixsl:get(., 'action')" as="xs:anyURI"/>
+                <xsl:variable name="enctype" select="ixsl:get(., 'enctype')" as="xs:string"/>
+                <xsl:variable name="form-data" select="ldh:new('URLSearchParams', [ ldh:new('FormData', [ $form ]) ])"/>
+                <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, $action)" as="xs:anyURI"/>
+
+                <xsl:variable name="request" as="item()*">
+                    <ixsl:schedule-action http-request="map{ 'method': $method, 'href': $request-uri, 'media-type': $enctype, 'body': $form-data, 'headers': map{} }"> <!-- 'Accept': $accept -->
+                        <xsl:call-template name="ldh:ModalFormSubmit">
+                            <xsl:with-param name="action" select="$action"/>
+                            <xsl:with-param name="form" select="$form"/>
+                        </xsl:call-template>
+                    </ixsl:schedule-action>
+                </xsl:variable>
+                <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:template>
+    
     <xsl:template match="input[contains-token(@class, 'subject-slug')]" mode="ixsl:onkeyup" priority="1">
         <xsl:param name="slug" select="ixsl:get(., 'value')" as="xs:string?"/>
         <xsl:param name="su-input" select="preceding-sibling::input[@name = 'su']" as="element()"/>
@@ -596,10 +735,10 @@ LIMIT   10
             </xsl:for-each>
         </xsl:if>
     </xsl:template>
+
+    <!-- show modal form -->
     
-    <!-- show "Reconcile" form -->
-    
-    <xsl:template name="ldh:ShowReconcileForm">
+    <xsl:template name="ldh:ShowModalForm">
         <xsl:param name="form" as="element()"/>
         
         <!-- don't append the div if it's already there -->
@@ -696,9 +835,11 @@ LIMIT   10
                         <xsl:call-template name="bs2:SignUpComplete"/>
                     </xsl:when>
                     <!-- special case for request access form -->
+                    <!--
                     <xsl:when test="ixsl:get($form, 'id') = 'form-request-access'">
                         <xsl:call-template name="bs2:AccessRequestComplete"/>
                     </xsl:when>
+                    -->
                     <!-- if the form submit did not originate from a typeahead (target), load the created resource -->
                     <xsl:otherwise>
                         <xsl:variable name="request" as="item()*">

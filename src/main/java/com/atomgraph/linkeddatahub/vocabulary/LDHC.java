@@ -68,6 +68,12 @@ public class LDHC
     /** Owner auth property */
     public static final DatatypeProperty ownerAuthQuery = m_model.createDatatypeProperty( NS + "ownerAuthQuery" );
 
+    /** ACL query property */
+    public static final DatatypeProperty aclQuery = m_model.createDatatypeProperty( NS + "aclQuery" );
+
+    /** Owner's ACL property */
+    public static final DatatypeProperty ownerAclQuery = m_model.createDatatypeProperty( NS + "ownerAclQuery" );
+
     /** WebID query property */
     public static final DatatypeProperty webIDQuery = m_model.createDatatypeProperty( NS + "webIDQuery" );
 
