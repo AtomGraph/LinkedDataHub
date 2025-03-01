@@ -340,7 +340,7 @@ LIMIT   10
     </xsl:template>
     
     <!-- cannot construct acl:Authorization normally because the agent might not have access to the namespace endpoint -->
-    <xsl:template name="ldh:RequestAccessForm">
+    <xsl:template match="rdf:RDF" mode="ldh:RequestAccessForm">
         <xsl:param name="id" select="'request-access'" as="xs:string?"/>
         <xsl:param name="button-class" select="'btn btn-primary btn-save'" as="xs:string?"/>
         <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
@@ -369,44 +369,67 @@ LIMIT   10
                     </xsl:call-template>
             
                     <fieldset>
-                        <input type="hidden" name="su" value="{$acl:agent}"/> <!-- will be verified server-side -->
-                        <input type="hidden" name="pu" value="&rdf;type"/>
-                        <input type="hidden" name="ou" value="&lacl;AuthorizationRequest"/>
-                        <input type="hidden" name="pu" value="&lacl;requestAgent"/>
-                        <input type="hidden" name="ou" value="{$acl:agent}"/>
-                        <input type="hidden" name="pu" value="&lacl;requestAccessTo"/>
-                        <input type="hidden" name="ou" value="{ac:absolute-path(ldh:base-uri(.))}"/>
-                        
-<!--                        <div class="control-group">
-                            <input type="hidden" name="pu" value="&acl;agentGroup"/>
+                        <legend>Permissions Matrix</legend>
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>Group / Agent</th>
+                                    <th>Read</th>
+                                    <th>Write</th>
+                                    <th>Append</th>
+                                    <th>Manage</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <xsl:for-each-group select="rdf:Description[acl:agent/@rdf:resource or acl:agentGroup/@rdf:resource]"
+                                                    group-by="acl:agent/@rdf:resource | acl:agentGroup/@rdf:resource">
+                                    <xsl:apply-templates select="." mode="auth-group"/>
+                                </xsl:for-each-group>
+                            </tbody>
+                        </table>
+                    </fieldset>
 
-                            <label for="agent-group" class="control-label">Agent group</label>
-                            <div class="controls">
-                                <xsl:call-template name="bs2:Lookup">
-                                    <xsl:with-param name="forClass" select="xs:anyURI('&acl;Group')"/>
-                                    <xsl:with-param name="class" select="'resource-typeahead typeahead'"/>
-                                    <xsl:with-param name="list-class" select="'resource-typeahead typeahead dropdown-menu'"/>
-                                </xsl:call-template>
-                            </div>
-                        </div>-->
-                        <div class="control-group">
-                            <input type="hidden" name="pu" value="&lacl;requestMode"/>
-
-                            <label for="agent-group" class="control-label">Access mode</label>
-                            <div class="controls">
-                                <xsl:variable name="modes" select="key('resources-by-subclass', '&acl;Access', document(ac:document-uri('&acl;')))" as="element()*"/>
-                                <xsl:variable name="default" select="xs:anyURI('&acl;Read')" as="xs:anyURI*"/>
-                                <select name="ou" id="{generate-id()}" multiple="multiple" size="{count($modes)}">
-                                    <xsl:for-each select="$modes">
-                                        <xsl:sort select="ac:label(.)" lang="{$ldt:lang}"/>
-                                        <xsl:apply-templates select="." mode="xhtml:Option">
-                                            <xsl:with-param name="selected" select="@rdf:about = $default"/>
-                                        </xsl:apply-templates>
-                                    </xsl:for-each>
-                                </select>
-                            </div>
-                        </div>
-                   </fieldset>
+                    <fieldset>
+                        <legend>URL-Based Access</legend>
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>Class Name</th>
+                                    <th>Read</th>
+                                    <th>Write</th>
+                                    <th>Append</th>
+                                    <th>Manage</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <xsl:for-each-group select="rdf:Description[acl:accessTo/@rdf:resource]"
+                                                    group-by="acl:accessTo/@rdf:resource">
+                                    <xsl:apply-templates select="." mode="auth-group"/>
+                                </xsl:for-each-group>
+                            </tbody>
+                        </table>
+                    </fieldset>
+                    
+                    <fieldset>
+                        <legend>Class-Based Access</legend>
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>Class Name</th>
+                                    <th>Read</th>
+                                    <th>Write</th>
+                                    <th>Append</th>
+                                    <th>Manage</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <xsl:for-each-group select="rdf:Description[acl:accessToClass/@rdf:resource]"
+                                                    group-by="acl:accessToClass/@rdf:resource">
+                                    <xsl:apply-templates select="." mode="auth-group"/>
+                                </xsl:for-each-group>
+                            </tbody>
+                        </table>
+                    </fieldset>
                    
                     <div class="form-actions modal-footer">
                         <button type="submit" class="{$button-class}">
@@ -428,6 +451,32 @@ LIMIT   10
                 </form>
             </div>
         </div>
+    </xsl:template>
+    
+    <xsl:template match="rdf:Description" mode="auth-group">
+        <tr>
+            <td>
+                <xsl:value-of select="current-grouping-key()"/>
+            </td>
+            <xsl:apply-templates select="." mode="access-table"/>
+        </tr>
+    </xsl:template>
+
+    <xsl:template match="rdf:Description" mode="access-table">
+        <xsl:variable name="auth-modes" select="acl:mode/@rdf:resource"/>
+
+        <xsl:for-each select="('&acl;Read', '&acl;Write', '&acl;Append', '&acl;Control')">
+            <xsl:variable name="current-mode" select="."/>
+            <td>
+                <label class="checkbox">
+                    <input type="checkbox">
+                        <xsl:if test="$current-mode = $auth-modes">
+                            <xsl:attribute name="checked">checked</xsl:attribute>
+                        </xsl:if>
+                    </input>
+                </label>
+            </td>
+        </xsl:for-each>
     </xsl:template>
     
     <xsl:template name="ldh:ReconcileForm">
@@ -530,11 +579,13 @@ LIMIT   10
     </xsl:template>
     
     <xsl:template match="button[contains-token(@class, 'btn-request-access')]" mode="ixsl:onclick">
-        <xsl:call-template name="ldh:ShowModalForm">
-            <xsl:with-param name="form" as="element()">
-                <xsl:call-template name="ldh:RequestAccessForm"/>
-            </xsl:with-param>
-        </xsl:call-template>
+        <xsl:variable name="request-uri" select="ldh:href($ldt:base, resolve-uri('access', $ldt:base), map{ 'this': string(ac:absolute-path(ldh:base-uri(.))) })" as="xs:anyURI"/>
+        <xsl:variable name="request" as="item()*">
+            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
+                <xsl:call-template name="onAccessResponseLoad"/>
+            </ixsl:schedule-action>
+        </xsl:variable>
+        <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
     
     <xsl:template match="button[contains-token(@class, 'btn-reconcile')]" mode="ixsl:onclick">
@@ -980,6 +1031,25 @@ LIMIT   10
         </xsl:choose>
         
         <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
+    </xsl:template>
+    
+    <xsl:template name="onAccessResponseLoad">
+        <xsl:context-item as="map(*)" use="required"/>
+
+        <xsl:choose>
+            <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
+                <xsl:variable name="body" select="?body" as="document-node()"/>
+                
+                <xsl:call-template name="ldh:ShowModalForm">
+                    <xsl:with-param name="form" as="element()">
+                        <xsl:apply-templates select="$body" mode="ldh:RequestAccessForm"/>
+                    </xsl:with-param>
+                </xsl:call-template>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ ?message ])"/>
+            </xsl:otherwise>
+        </xsl:choose>
     </xsl:template>
     
 </xsl:stylesheet>

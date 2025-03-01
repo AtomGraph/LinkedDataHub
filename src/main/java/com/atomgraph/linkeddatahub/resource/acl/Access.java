@@ -29,6 +29,7 @@ import com.atomgraph.linkeddatahub.vocabulary.SIOC;
 import com.atomgraph.server.vocabulary.LDT;
 import com.atomgraph.spinrdf.vocabulary.SPIN;
 import jakarta.inject.Inject;
+import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.Context;
@@ -37,6 +38,7 @@ import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.SecurityContext;
 import jakarta.ws.rs.core.UriInfo;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Optional;
 import org.apache.jena.ontology.Ontology;
@@ -59,6 +61,7 @@ public class Access extends com.atomgraph.core.model.impl.SPARQLEndpointImpl
     private static final Logger log = LoggerFactory.getLogger(Access.class);
 
     private final URI uri;
+    private final UriInfo uriInfo;
     private final Application application;
     private final Optional<AgentContext> agentContext;
     private final ParameterizedSparqlString aclQuery, ownerAclQuery;
@@ -88,6 +91,7 @@ public class Access extends com.atomgraph.core.model.impl.SPARQLEndpointImpl
                 mediaTypes);
 
         this.uri = uriInfo.getAbsolutePath();
+        this.uriInfo = uriInfo;
         this.application = application;
         this.agentContext = agentContext;
         aclQuery = new ParameterizedSparqlString(system.getACLQuery().toString());
@@ -99,15 +103,23 @@ public class Access extends com.atomgraph.core.model.impl.SPARQLEndpointImpl
     public Response get(@QueryParam(QUERY) Query query,
             @QueryParam(DEFAULT_GRAPH_URI) List<URI> defaultGraphUris, @QueryParam(NAMED_GRAPH_URI) List<URI> namedGraphUris)
     {
-        final Agent agent;
-        if (getAgentContext().isPresent()) agent = getAgentContext().get().getAgent();
-        else agent = null; // public access
-        
+        final Agent agent = getAgentContext().map(AgentContext::getAgent).orElse(null);
         final ParameterizedSparqlString pss = getApplication().canAs(EndUserApplication.class) ? getACLQuery() : getOwnerACLQuery();
-        pss.setParams(getAuthorizationParams(ResourceFactory.createResource(getURI().toString()), agent, null));
-        query = pss.asQuery(); // override any supplied query with the ACL one
         
-        return super.get(query, defaultGraphUris, namedGraphUris);
+        try
+        {
+            if (!getUriInfo().getQueryParameters().containsKey(SPIN.THIS_VAR_NAME)) throw new BadRequestException();
+            URI accessTo = new URI(getUriInfo().getQueryParameters().getFirst(SPIN.THIS_VAR_NAME)); // ?this query param needs to be passed
+
+            pss.setParams(getAuthorizationParams(ResourceFactory.createResource(accessTo.toString()), agent, null));
+            query = pss.asQuery(); // override any supplied query with the ACL one
+                    
+            return super.get(query, defaultGraphUris, namedGraphUris);
+        }
+        catch (URISyntaxException ex)
+        {
+            throw new BadRequestException(ex);
+        }
     }
     
     /**
@@ -164,11 +176,21 @@ public class Access extends com.atomgraph.core.model.impl.SPARQLEndpointImpl
      * 
      * @return resource URI
      */
-    public URI getURI()
-    {
-        return uri;
-    }
+//    public URI getURI()
+//    {
+//        return uri;
+//    }
 
+    /**
+     * Returns URI info for the current request.
+     * 
+     * @return URI info
+     */
+    public UriInfo getUriInfo()
+    {
+        return uriInfo;
+    }
+    
     /**
      * Returns agent context.
      * 
@@ -199,6 +221,10 @@ public class Access extends com.atomgraph.core.model.impl.SPARQLEndpointImpl
     public ParameterizedSparqlString getOwnerACLQuery()
     {
         return ownerAclQuery.copy();
+    }
+
+    private Exception BadRequestException(URISyntaxException ex) {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
     
 }

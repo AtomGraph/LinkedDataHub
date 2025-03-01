@@ -151,7 +151,7 @@ public class Dispatcher
      * 
      * @return endpoint resource
      */
-    @Path("xxx")
+    @Path("access")
     public Class getAccess()
     {
         return getProxyClass().orElse(Access.class);

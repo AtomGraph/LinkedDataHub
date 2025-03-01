@@ -585,7 +585,7 @@ WHERE
     <acl/authorizations/acl/#this> a acl:Authorization ;
         rdfs:label "ACL endpoint access" ;
         rdfs:comment "Allows read-only non-authenticated access" ;
-        acl:accessTo <../acl> ;
+        acl:accessTo <../access> ;
         acl:mode acl:Read ;
         acl:agentClass foaf:Agent, acl:AuthenticatedAgent .
 
@@ -703,7 +703,7 @@ WHERE
         rdfs:label "Full control" ;
         rdfs:comment "Allows full read/write access to all application resources" ;
         acl:accessToClass dh:Item, dh:Container, def:Root ;
-        acl:accessTo <../sparql>, <../service>, <../importer>, <../add>, <../generate>, <../ns> ;
+        acl:accessTo <../sparql>, <../service>, <../importer>, <../transform>, <../generate>, <../ns> ;
         acl:mode acl:Read, acl:Append, acl:Write, acl:Control ;
         acl:agentGroup <acl/groups/owners/#this> .
 
@@ -723,7 +723,7 @@ WHERE
         rdfs:label "Write/append access" ;
         rdfs:comment "Allows write access to all documents and containers" ;
         acl:accessToClass dh:Item, dh:Container, def:Root ;
-        acl:accessTo <../sparql>, <../service>, <../importer>, <../add>, <../generate>, <../ns> ;
+        acl:accessTo <../sparql>, <../service>, <../importer>, <../transform>, <../generate>, <../ns> ;
         acl:mode acl:Write, acl:Append ;
         acl:agentGroup <acl/groups/owners/#this>, <acl/groups/writers/#this> .
 
