@@ -60,7 +60,6 @@ public class Access extends com.atomgraph.core.model.impl.SPARQLEndpointImpl
     
     private static final Logger log = LoggerFactory.getLogger(Access.class);
 
-    private final URI uri;
     private final UriInfo uriInfo;
     private final Application application;
     private final Optional<AgentContext> agentContext;
@@ -89,8 +88,6 @@ public class Access extends com.atomgraph.core.model.impl.SPARQLEndpointImpl
                     application.as(EndUserApplication.class).getAdminApplication().getService() :
                     application.getService(),
                 mediaTypes);
-
-        this.uri = uriInfo.getAbsolutePath();
         this.uriInfo = uriInfo;
         this.application = application;
         this.agentContext = agentContext;
@@ -104,6 +101,11 @@ public class Access extends com.atomgraph.core.model.impl.SPARQLEndpointImpl
             @QueryParam(DEFAULT_GRAPH_URI) List<URI> defaultGraphUris, @QueryParam(NAMED_GRAPH_URI) List<URI> namedGraphUris)
     {
         final Agent agent = getAgentContext().map(AgentContext::getAgent).orElse(null);
+//        final Agent agent = ModelFactory.createDefaultModel().
+//                createResource(getUriInfo().getQueryParameters().getFirst("agent")).
+//                addProperty(RDF.type, FOAF.Agent).
+//                as(Agent.class);
+                
         final ParameterizedSparqlString pss = getApplication().canAs(EndUserApplication.class) ? getACLQuery() : getOwnerACLQuery();
         
         try
@@ -170,16 +172,6 @@ public class Access extends com.atomgraph.core.model.impl.SPARQLEndpointImpl
     {
         return application;
     }
-    
-    /**
-     * Returns URI of this resource.
-     * 
-     * @return resource URI
-     */
-//    public URI getURI()
-//    {
-//        return uri;
-//    }
 
     /**
      * Returns URI info for the current request.
