@@ -1087,7 +1087,7 @@ LIMIT   100
                 
                 <xsl:apply-templates select="." mode="ac:label"/>
                 
-                <button type="button" class="btn btn-primary btn-request-access pull-right">
+                <button type="button" class="btn btn-primary btn-access-form pull-right">
                     <xsl:value-of>
                         <xsl:apply-templates select="key('resources', 'request-access', document('translations.rdf'))" mode="ac:label"/>
                     </xsl:value-of>
