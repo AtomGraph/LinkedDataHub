@@ -343,7 +343,7 @@ LIMIT   10
         <xsl:param name="id" select="'request-access'" as="xs:string?"/>
         <xsl:param name="button-class" select="'btn btn-primary btn-access-form'" as="xs:string?"/>
         <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
-        <xsl:param name="action" select="resolve-uri(encode-for-uri('access/request'), $ldt:base)" as="xs:anyURI"/>
+        <xsl:param name="action" select="resolve-uri('access/request', $ldt:base)" as="xs:anyURI"/>
         <xsl:param name="legend-label" select="ac:label(key('resources', 'request-access', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri))))" as="xs:string"/>
         <xsl:param name="agent" as="xs:anyURI"/>
         
@@ -416,11 +416,13 @@ LIMIT   10
     
     <xsl:template match="rdf:RDF" mode="request-access-matrix">
         <xsl:param name="agent" as="xs:anyURI"/>
+        <!-- TO-DO: support agent-group? -->
         <xsl:param name="this" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/>
-
+        <xsl:param name="access-modes" select="(xs:anyURI('&acl;Read'), xs:anyURI('&acl;Append'), xs:anyURI('&acl;Write'), xs:anyURI('&acl;Control'))" as="xs:anyURI*"/>
+        
         <fieldset>
             <legend>URL-based access</legend>
-            <table class="table table-bordered">
+            <table class="table table-striped">
                 <colgroup>
                     <col style="width: 40%;"/>
                     <col style="width: 15%;"/>
@@ -431,10 +433,13 @@ LIMIT   10
                 <thead>
                     <tr>
                         <th>URL</th>
-                        <th>Read</th>
-                        <th>Write</th>
-                        <th>Append</th>
-                        <th>Control</th>
+                        <xsl:for-each select="$access-modes">
+                            <th>
+                                <xsl:value-of>
+                                    <xsl:apply-templates select="key('resources', ., document(ac:document-uri('&acl;')))" mode="ac:label"/>
+                                </xsl:value-of>
+                            </th>
+                        </xsl:for-each>
                     </tr>
                 </thead>
                 <tbody>
@@ -443,19 +448,20 @@ LIMIT   10
                         <xsl:variable name="this-auth" as="element()">
                             <rdf:Description>
                                 <rdf:type rdf:resource="&acl;Authorization"/>
+                                <acl:agent rdf:resource="{$agent}"/>
                                 <acl:accessTo rdf:resource="{$this}"/>
                             </rdf:Description>
                         </xsl:variable>
                         
                         <xsl:apply-templates select="$this-auth" mode="access-to">
-                            <xsl:with-param name="access-to" select="$this"/>
+                            <xsl:with-param name="access-modes" select="$access-modes"/>                           
                         </xsl:apply-templates>
                     </xsl:if>
                     
                     <xsl:for-each-group select="rdf:Description[(acl:agent/@rdf:resource, acl:agentGroup/@rdf:resource, acl:agentClass/@rdf:resource) = $agent][acl:accessTo/@rdf:resource]"
                                         group-by="acl:accessTo/@rdf:resource">
                         <xsl:apply-templates select="." mode="access-to">
-                            <xsl:with-param name="access-to" select="current-grouping-key()"/>
+                            <xsl:with-param name="access-modes" select="$access-modes"/>
                         </xsl:apply-templates>
                     </xsl:for-each-group>
                 </tbody>
@@ -464,7 +470,7 @@ LIMIT   10
 
         <fieldset>
             <legend>Class-based access</legend>
-            <table class="table table-bordered">
+            <table class="table table-striped">
                 <colgroup>
                     <col style="width: 40%;"/>
                     <col style="width: 15%;"/>
@@ -475,34 +481,39 @@ LIMIT   10
                 <thead>
                     <tr>
                         <th>Class name</th>
-                        <th>Read</th>
-                        <th>Write</th>
-                        <th>Append</th>
-                        <th>Control</th>
+                        <xsl:for-each select="$access-modes">
+                            <th>
+                                <xsl:value-of>
+                                    <xsl:apply-templates select="key('resources', ., document(ac:document-uri('&acl;')))" mode="ac:label"/>
+                                </xsl:value-of>
+                            </th>
+                        </xsl:for-each>
                     </tr>
                 </thead>
                 <tbody>
+                    <xsl:variable name="default-classes" select="(xs:anyURI('&def;Root'), xs:anyURI('&dh;Container'), xs:anyURI('&dh;Item'), xs:anyURI('&nfo;FileDataObject'))" as="xs:anyURI*"/>
                     <!-- the current document's class is always shown -->
                     <xsl:if test="not(rdf:Description[acl:accessToClass/@rdf:resource = ac:absolute-path(ldh:base-uri(.))])">
-                        <xsl:variable name="this-types" select="(xs:anyURI('&dh;Container'), xs:anyURI('&dh;Item'))" as="xs:anyURI*"/>
-                        <xsl:for-each select="$this-types">
+                        <xsl:for-each select="$default-classes">
                             <xsl:variable name="this-auth" as="element()">
                                 <rdf:Description>
                                     <rdf:type rdf:resource="&acl;Authorization"/>
+                                    <acl:agent rdf:resource="{$agent}"/>
                                     <acl:accessToClass rdf:resource="{.}"/>
                                 </rdf:Description>
                             </xsl:variable>
 
                             <xsl:apply-templates select="$this-auth" mode="access-to-class">
-                                <xsl:with-param name="access-to-class" select="."/>
+                                <xsl:with-param name="access-modes" select="$access-modes"/>
                             </xsl:apply-templates>
                         </xsl:for-each>
                     </xsl:if>
 
-                    <xsl:for-each-group select="rdf:Description[(acl:agent/@rdf:resource, acl:agentGroup/@rdf:resource, acl:agentClass/@rdf:resource) = $agent][acl:accessToClass/@rdf:resource]"
+                    <!-- the types of this document that are not already show as $default-classes -->
+                    <xsl:for-each-group select="rdf:Description[(acl:agent/@rdf:resource, acl:agentGroup/@rdf:resource, acl:agentClass/@rdf:resource) = $agent][acl:accessToClass/@rdf:resource[not(. = $default-classes)]]"
                                         group-by="acl:accessToClass/@rdf:resource">
                         <xsl:apply-templates select="." mode="access-to-class">
-                            <xsl:with-param name="access-to-class" select="current-grouping-key()"/>
+                            <xsl:with-param name="access-modes" select="$access-modes"/>
                         </xsl:apply-templates>
                     </xsl:for-each-group>
                 </tbody>
@@ -511,10 +522,11 @@ LIMIT   10
     </xsl:template>
     
     <xsl:template match="rdf:Description" mode="access-to">
-        <xsl:param name="access-to" as="xs:anyURI"/>
-        
+        <xsl:param name="access-to" select="acl:accessTo/@rdf:resource" as="xs:anyURI"/>
+        <xsl:param name="access-modes" as="xs:anyURI*"/>
+
         <tr>
-            <td data-access-to="{$access-to}">
+            <td>
                 <a href="{$access-to}" target="_blank">
                     <xsl:value-of select="$access-to"/>
                 </a>
@@ -522,20 +534,25 @@ LIMIT   10
                 <input type="hidden" name="sb" value="access-to-class-{generate-id()}"/>
                 <input type="hidden" name="pu" value="&rdf;type"/>
                 <input type="hidden" name="ou" value="&acl;Authorization"/>
+                <input type="hidden" name="pu" value="&acl;agent"/> <!-- TO-DO: support acl:agentGroup -->
+                <input type="hidden" name="ou" value="{acl:agent/@rdf:resource}"/>
                 <input type="hidden" name="pu" value="&acl;accessTo"/>
-                <input type="hidden" name="ou" value="{$access-to}"/>
-                <input type="hidden" name="pu" value="&acl;accessMode"/>
+                <input type="hidden" name="ou" value="{acl:accessTo/@rdf:resource}"/>
+                <input type="hidden" name="pu" value="&acl;mode"/>
             </td>
             
-            <xsl:apply-templates select="." mode="access-table"/>
+            <xsl:apply-templates select="." mode="access-table">
+                <xsl:with-param name="access-modes" select="$access-modes"/>
+            </xsl:apply-templates>
         </tr>
     </xsl:template>
 
     <xsl:template match="rdf:Description" mode="access-to-class">
-        <xsl:param name="access-to-class" as="xs:anyURI"/>
+        <xsl:param name="access-to-class" select="acl:accessToClass/@rdf:resource" as="xs:anyURI"/>
+        <xsl:param name="access-modes" as="xs:anyURI*"/>
 
         <tr>
-            <td data-access-to-class="{$access-to-class}">
+            <td>
                 <a href="{$access-to-class}" target="_blank">
                     <xsl:value-of>
                         <xsl:apply-templates select="key('resources', $access-to-class, document(ac:document-uri($access-to-class)))" mode="ac:label"/>
@@ -545,19 +562,24 @@ LIMIT   10
                 <input type="hidden" name="sb" value="access-to-class-{generate-id()}"/>
                 <input type="hidden" name="pu" value="&rdf;type"/>
                 <input type="hidden" name="ou" value="&acl;Authorization"/>
+                <input type="hidden" name="pu" value="&acl;agent"/> <!-- TO-DO: support acl:agentGroup -->
+                <input type="hidden" name="ou" value="{acl:agent/@rdf:resource}"/>
                 <input type="hidden" name="pu" value="&acl;accessToClass"/>
                 <input type="hidden" name="ou" value="{$access-to-class}"/>
-                <input type="hidden" name="pu" value="&acl;accessMode"/>
+                <input type="hidden" name="pu" value="&acl;mode"/>
             </td>
             
-            <xsl:apply-templates select="." mode="access-table"/>
+            <xsl:apply-templates select="." mode="access-table">
+                <xsl:with-param name="access-modes" select="$access-modes"/>
+            </xsl:apply-templates>
         </tr>
     </xsl:template>
     
     <xsl:template match="rdf:Description" mode="access-table">
-        <xsl:variable name="auth-modes" select="acl:mode/@rdf:resource"/>
+        <xsl:param name="access-modes" as="xs:anyURI*"/>
+        <xsl:variable name="auth-modes" select="acl:mode/@rdf:resource" as="xs:anyURI*"/>
 
-        <xsl:for-each select="('&acl;Read', '&acl;Append', '&acl;Write', '&acl;Control')">
+        <xsl:for-each select="$access-modes">
             <xsl:variable name="current-mode" select="."/>
             <td>
                 <label class="checkbox">

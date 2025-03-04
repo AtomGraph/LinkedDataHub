@@ -31,7 +31,7 @@ public interface AdminApplication extends Application
      * 
      * @see com.atomgraph.linkeddatahub.resource.admin.RequestAccess
      */
-    public static final String REQUEST_ACCESS_PATH = "request access";
+    public static final String REQUEST_ACCESS_PATH = "access/request";
     
     /**
      * The relative path of the authorization request container.

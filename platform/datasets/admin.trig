@@ -572,21 +572,40 @@ WHERE
 
 }
 
-# ACL endpoint
+# access endpoint
 
-<acl/authorizations/acl/>
+<acl/authorizations/access/>
 {
 
-    <acl/authorizations/acl/> a dh:Item ;
+    <acl/authorizations/access/> a dh:Item ;
         sioc:has_container <acl/authorizations/> ;
-        dct:title "ACL endpoint access" ;
-        foaf:primaryTopic <acl/authorizations/acl/#this> .
+        dct:title "Access description access" ;
+        foaf:primaryTopic <acl/authorizations/access/#this> .
 
-    <acl/authorizations/acl/#this> a acl:Authorization ;
-        rdfs:label "ACL endpoint access" ;
-        rdfs:comment "Allows read-only non-authenticated access" ;
+    <acl/authorizations/access/#this> a acl:Authorization ;
+        rdfs:label "Access description access" ;
+        rdfs:comment "Allows non-authenticated access" ;
         acl:accessTo <../access> ;
         acl:mode acl:Read ;
+        acl:agentClass foaf:Agent, acl:AuthenticatedAgent .
+
+}
+
+# access request endpoint
+
+<acl/authorizations/access-request/>
+{
+
+    <acl/authorizations/access-request/> a dh:Item ;
+        sioc:has_container <acl/authorizations/> ;
+        dct:title "Access request access" ;
+        foaf:primaryTopic <acl/authorizations/access-request/#this> .
+
+    <acl/authorizations/access-request/#this> a acl:Authorization ;
+        rdfs:label "Access request access" ;
+        rdfs:comment "Allows non-authenticated access" ;
+        acl:accessTo <../access/request> ;
+        acl:mode acl:Append ;
         acl:agentClass foaf:Agent, acl:AuthenticatedAgent .
 
 }

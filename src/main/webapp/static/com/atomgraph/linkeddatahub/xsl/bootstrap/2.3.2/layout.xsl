@@ -133,6 +133,7 @@ exclude-result-prefixes="#all">
             <xsl:map-entry key="resolve-uri(ac:document-uri(xs:anyURI('&acl;')), $ac:contextUri)" select="ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri(xs:anyURI('&acl;'))), 'accept': 'application/rdf+xml' })"/>
             <xsl:map-entry key="resolve-uri(ac:document-uri(xs:anyURI('&sd;')), $ac:contextUri)" select="ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri(xs:anyURI('&sd;'))), 'accept': 'application/rdf+xml' })"/>
             <xsl:map-entry key="resolve-uri(ac:document-uri(xs:anyURI('&sh;')), $ac:contextUri)" select="ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri(xs:anyURI('&sh;'))), 'accept': 'application/rdf+xml' })"/>
+            <xsl:map-entry key="resolve-uri(ac:document-uri(xs:anyURI('&nfo;')), $ac:contextUri)" select="ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri(xs:anyURI('&nfo;'))), 'accept': 'application/rdf+xml' })"/>
         </xsl:map>
     </xsl:param>
     <xsl:param name="explore-service-query" as="xs:string">

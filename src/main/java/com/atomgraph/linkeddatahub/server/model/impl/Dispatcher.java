@@ -26,6 +26,7 @@ import com.atomgraph.linkeddatahub.resource.admin.RequestAccess;
 import com.atomgraph.linkeddatahub.resource.admin.SignUp;
 import com.atomgraph.linkeddatahub.resource.Graph;
 import com.atomgraph.linkeddatahub.resource.acl.Access;
+import com.atomgraph.linkeddatahub.resource.acl.AccessRequest;
 import java.util.Optional;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.Path;
@@ -147,7 +148,7 @@ public class Dispatcher
     }
     
     /**
-     * Returns the access request endpoint.
+     * Returns the access description endpoint.
      * 
      * @return endpoint resource
      */
@@ -155,6 +156,17 @@ public class Dispatcher
     public Class getAccess()
     {
         return getProxyClass().orElse(Access.class);
+    }
+
+    /**
+     * Returns the access description endpoint.
+     * 
+     * @return endpoint resource
+     */
+    @Path("access/request")
+    public Class getAccessRequest()
+    {
+        return getProxyClass().orElse(AccessRequest.class);
     }
     
     /**
