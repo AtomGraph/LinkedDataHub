@@ -338,22 +338,6 @@ WHERE
 
 }
 
-<request%20access>
-{
-
-    <request%20access> a adm:RequestAccess ;
-        dct:title "Request access" ;
-        rdf:_1 <request%20access#id023e3fee-a546-4209-b52c-7b65ebb52aa4> .
-
-    <request%20access#id023e3fee-a546-4209-b52c-7b65ebb52aa4> a ldh:XHTML ;
-        rdf:value """<div xmlns="http://www.w3.org/1999/xhtml">
-    <p class="lead">Request access</p>
-    <p>Ask for access to a restricted resource by making a request. It will be reviewed by the application's
-        administrators.</p>
-    </div>"""^^rdf:XMLLiteral .
-
-}
-
 <oauth2/login>
 {
 
@@ -585,7 +569,7 @@ WHERE
     <acl/authorizations/access/#this> a acl:Authorization ;
         rdfs:label "Access description access" ;
         rdfs:comment "Allows non-authenticated access" ;
-        acl:accessTo <../access> ;
+        acl:accessTo <access> ;
         acl:mode acl:Read ;
         acl:agentClass foaf:Agent, acl:AuthenticatedAgent .
 
@@ -604,7 +588,7 @@ WHERE
     <acl/authorizations/access-request/#this> a acl:Authorization ;
         rdfs:label "Access request access" ;
         rdfs:comment "Allows non-authenticated access" ;
-        acl:accessTo <../access/request> ;
+        acl:accessTo <access/request> ;
         acl:mode acl:Append ;
         acl:agentClass foaf:Agent, acl:AuthenticatedAgent .
 

@@ -18,14 +18,16 @@ package com.atomgraph.linkeddatahub.resource.acl;
 
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.core.exception.ConfigurationException;
+import com.atomgraph.linkeddatahub.apps.model.AdminApplication;
 import static com.atomgraph.linkeddatahub.apps.model.AdminApplication.AUTHORIZATION_REQUEST_PATH;
-import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.model.auth.Agent;
 import com.atomgraph.linkeddatahub.resource.admin.RequestAccess;
 import com.atomgraph.linkeddatahub.server.model.impl.GraphStoreImpl;
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
+import com.atomgraph.linkeddatahub.server.util.Skolemizer;
 import com.atomgraph.linkeddatahub.vocabulary.ACL;
+import com.atomgraph.linkeddatahub.vocabulary.FOAF;
 import com.atomgraph.linkeddatahub.vocabulary.LACL;
 import com.atomgraph.linkeddatahub.vocabulary.LDHC;
 import jakarta.inject.Inject;
@@ -78,12 +80,10 @@ public class AccessRequest extends GraphStoreImpl
     {
         super(request, uriInfo, mediaTypes, application, ontology, service, securityContext, agentContext, providers, system);
         if (log.isDebugEnabled()) log.debug("Constructing {}", getClass());
+        if (!application.canAs(AdminApplication.class)) throw new IllegalStateException("The " + getClass() + " endpoint is only available on admin applications");
         if (securityContext == null || !(securityContext.getUserPrincipal() instanceof Agent)) throw new IllegalStateException("Agent is not authenticated");
 
-        Resource adminBaseUri = application.canAs(EndUserApplication.class) ?
-                    application.as(EndUserApplication.class).getAdminApplication().getBase() :
-                    application.getBase();
-        authRequestContainerUriBuilder = UriBuilder.fromUri(URI.create(adminBaseUri.toString())).path(AUTHORIZATION_REQUEST_PATH);
+        authRequestContainerUriBuilder = UriBuilder.fromUri(URI.create(application.getBase().toString())).path(AUTHORIZATION_REQUEST_PATH);
         
         emailSubject = servletConfig.getServletContext().getInitParameter(LDHC.requestAccessEMailSubject.getURI());
         if (emailSubject == null) throw new InternalServerErrorException(new ConfigurationException(LDHC.requestAccessEMailSubject));
@@ -104,8 +104,6 @@ public class AccessRequest extends GraphStoreImpl
     @Override
     public Response post(Model model, @QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUri)
     {
-        graphUri = getAuthRequestContainerUriBuilder().path(UUID.randomUUID().toString() + "/").build(); // URI of the new access request graph
-        Model requestModel = ModelFactory.createDefaultModel();
         ResIterator it = model.listResourcesWithProperty(RDF.type, ACL.Authorization);
         try
         {
@@ -113,11 +111,15 @@ public class AccessRequest extends GraphStoreImpl
             {
                 Resource authorization = it.next();
                 
+                graphUri = getAuthRequestContainerUriBuilder().path(UUID.randomUUID().toString() + "/").build(); // URI of the new access request graph
+                Model requestModel = ModelFactory.createDefaultModel();
+                
                 Resource accessMode = authorization.getPropertyResourceValue(ACL.mode);
                 // the RDF/POST encoding in the access request form can produce authorizations without modes (when none a checked) - ignore those
                 if (accessMode == null) continue;
                 
                 Resource agent = authorization.getPropertyResourceValue(ACL.agent);
+                // TO-DO: double-check agent
                 Resource agentGroup = authorization.getPropertyResourceValue(ACL.agentGroup);
                 Resource accessTo = authorization.getPropertyResourceValue(ACL.accessTo);
                 Resource accessToClass = authorization.getPropertyResourceValue(ACL.accessToClass);
@@ -131,18 +133,9 @@ public class AccessRequest extends GraphStoreImpl
                 if (accessTo != null) accessRequest.addProperty(LACL.requestAccessTo, accessTo);
                 if (accessToClass != null) accessRequest.addProperty(LACL.requestAccessToClass, accessToClass);
                 
-                //if (!agent.equals(getAgentContext().get().getAgent())) throw new IllegalStateException("Agent requesting access must be authenticated");
-
-//                Resource owner = getApplication().getMaker();
-//                if (owner == null) throw new IllegalStateException("Application <" + getApplication().getURI() + "> does not have a maker (foaf:maker)");
-//                String ownerURI = owner.getURI();
-
-//                LinkedDataClient ldc = LinkedDataClient.create(getSystem().getClient(), getSystem().getMediaTypes()).
-//                    delegation(getUriInfo().getBaseUri(), getAgentContext().orElse(null));
-//                Model agentModel = ldc.getModel(ownerURI);
-//                owner = agentModel.getResource(ownerURI);
-//                if (!agentModel.containsResource(owner)) throw new IllegalStateException("Could not load agent's <" + ownerURI + "> description from admin service");
-
+                Resource doc = requestModel.createResource(graphUri.toString()).
+                    addProperty(FOAF.primaryTopic, accessRequest);
+                
     //            try
     //            {
     //                sendEmail(owner, accessRequest);
@@ -151,15 +144,24 @@ public class AccessRequest extends GraphStoreImpl
     //            {
     //                if (log.isErrorEnabled()) log.error("Could not send access request email to Agent: {}", getAgentContext().get().getAgent().getURI());
     //            }
+
+                new Skolemizer(graphUri.toString()).apply(requestModel);
+                // store access request in the admin service
+                //getApplication().as(EndUserApplication.class).getAdminApplication().getService().getGraphStoreClient().add(graphUri.toASCIIString(), requestModel);
+                try (Response resp = super.post(requestModel, false, graphUri))
+                {
+                    resp.close();
+                } // don't wrap into try-with-resources because that will close the Response
             }
-            
-           return super.post(requestModel, false, graphUri); // don't wrap into try-with-resources because that will close the Response
+           
+            return Response.ok().build();
         }
         finally
         {
             it.close();
         }
     }
+
     
     /**
      * Returns the URI builder for authorization requests.

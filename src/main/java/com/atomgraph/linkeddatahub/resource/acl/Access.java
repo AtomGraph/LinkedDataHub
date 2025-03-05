@@ -20,6 +20,7 @@ import com.atomgraph.core.MediaTypes;
 import static com.atomgraph.core.model.SPARQLEndpoint.DEFAULT_GRAPH_URI;
 import static com.atomgraph.core.model.SPARQLEndpoint.NAMED_GRAPH_URI;
 import static com.atomgraph.core.model.SPARQLEndpoint.QUERY;
+import com.atomgraph.linkeddatahub.apps.model.AdminApplication;
 import com.atomgraph.linkeddatahub.apps.model.Application;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import com.atomgraph.linkeddatahub.model.auth.Agent;
@@ -83,11 +84,9 @@ public class Access extends com.atomgraph.core.model.impl.SPARQLEndpointImpl
             @Context SecurityContext securityContext, Optional<AgentContext> agentContext,
             com.atomgraph.linkeddatahub.Application system)
     {
-        super(request,
-                application.canAs(EndUserApplication.class) ?
-                    application.as(EndUserApplication.class).getAdminApplication().getService() :
-                    application.getService(),
-                mediaTypes);
+        super(request, application.getService(), mediaTypes);
+        if (!application.canAs(AdminApplication.class)) throw new IllegalStateException("The " + getClass() + " endpoint is only available on admin applications");
+
         this.uriInfo = uriInfo;
         this.application = application;
         this.agentContext = agentContext;

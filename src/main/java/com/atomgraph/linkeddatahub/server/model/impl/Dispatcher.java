@@ -22,7 +22,6 @@ import com.atomgraph.linkeddatahub.resource.Generate;
 import com.atomgraph.linkeddatahub.resource.Namespace;
 import com.atomgraph.linkeddatahub.resource.Transform;
 import com.atomgraph.linkeddatahub.resource.admin.Clear;
-import com.atomgraph.linkeddatahub.resource.admin.RequestAccess;
 import com.atomgraph.linkeddatahub.resource.admin.SignUp;
 import com.atomgraph.linkeddatahub.resource.Graph;
 import com.atomgraph.linkeddatahub.resource.acl.Access;
@@ -169,16 +168,16 @@ public class Dispatcher
         return getProxyClass().orElse(AccessRequest.class);
     }
     
-    /**
-     * Returns the ACL access request endpoint.
-     * 
-     * @return endpoint resource
-     */
-    @Path("request access")
-    public Class getRequestAccess()
-    {
-        return getProxyClass().orElse(RequestAccess.class);
-    }
+//    /**
+//     * Returns the ACL access request endpoint.
+//     * 
+//     * @return endpoint resource
+//     */
+//    @Path("request access")
+//    public Class getRequestAccess()
+//    {
+//        return getProxyClass().orElse(RequestAccess.class);
+//    }
 
     /**
      * Returns content-addressed file item resource.

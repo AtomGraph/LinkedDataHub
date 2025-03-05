@@ -296,7 +296,7 @@ extension-element-prefixes="ixsl"
     <xsl:template match="*[@rdf:about = '&acl;Access']" mode="ldh:logo">
         <xsl:param name="class" as="xs:string?"/>
         
-        <xsl:attribute name="class" select="concat($class, ' ', 'btn-acl')"/>
+        <xsl:attribute name="class" select="concat($class, ' ', 'btn-access-form')"/>
     </xsl:template>
 
     <xsl:template match="*[rdf:type/@rdf:resource = '&http;Response'][lacl:requestAccess/@rdf:resource]" mode="ldh:logo">

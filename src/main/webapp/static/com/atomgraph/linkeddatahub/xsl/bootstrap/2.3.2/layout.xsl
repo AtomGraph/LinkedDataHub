@@ -1163,19 +1163,7 @@ LIMIT   100
                         <xsl:with-param name="class" select="'btn dropdown-toggle'"/>
                     </xsl:apply-templates>
                     <xsl:apply-templates select="key('resources', '&acl;Access', document(ac:document-uri('&acl;')))" mode="ac:label"/>
-                    <xsl:text> </xsl:text>
-                    <span class="caret"></span>
                 </button>
-
-                <ul class="dropdown-menu">
-                    <xsl:for-each select="key('resources-by-subclass', '&acl;Access', document(ac:document-uri('&acl;')))">
-                        <xsl:sort select="ac:label(.)"/>
-                        <xsl:apply-templates select="." mode="bs2:AccessListItem">
-                            <xsl:with-param name="enabled" select="$acl:mode"/>
-                            <xsl:with-param name="base-uri" select="$base-uri" tunnel="yes"/>
-                        </xsl:apply-templates>
-                    </xsl:for-each>
-                </ul>
             </div>
         </xsl:if>
     </xsl:template>
