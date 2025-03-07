@@ -22,14 +22,15 @@ import com.atomgraph.linkeddatahub.apps.model.AdminApplication;
 import static com.atomgraph.linkeddatahub.apps.model.AdminApplication.AUTHORIZATION_REQUEST_PATH;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.model.auth.Agent;
-import com.atomgraph.linkeddatahub.resource.admin.RequestAccess;
 import com.atomgraph.linkeddatahub.server.model.impl.GraphStoreImpl;
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
 import com.atomgraph.linkeddatahub.server.util.Skolemizer;
 import com.atomgraph.linkeddatahub.vocabulary.ACL;
+import com.atomgraph.linkeddatahub.vocabulary.DH;
 import com.atomgraph.linkeddatahub.vocabulary.FOAF;
 import com.atomgraph.linkeddatahub.vocabulary.LACL;
 import com.atomgraph.linkeddatahub.vocabulary.LDHC;
+import com.atomgraph.linkeddatahub.vocabulary.SIOC;
 import jakarta.inject.Inject;
 import jakarta.servlet.ServletConfig;
 import jakarta.ws.rs.DefaultValue;
@@ -66,7 +67,7 @@ import org.slf4j.LoggerFactory;
 public class AccessRequest extends GraphStoreImpl
 {
     
-    private static final Logger log = LoggerFactory.getLogger(RequestAccess.class);
+    private static final Logger log = LoggerFactory.getLogger(AccessRequest.class);
     
     private final String emailSubject;
     private final String emailText;
@@ -133,7 +134,10 @@ public class AccessRequest extends GraphStoreImpl
                 if (accessTo != null) accessRequest.addProperty(LACL.requestAccessTo, accessTo);
                 if (accessToClass != null) accessRequest.addProperty(LACL.requestAccessToClass, accessToClass);
                 
-                Resource doc = requestModel.createResource(graphUri.toString()).
+                // attach document to parent explicitly because this class extends GraphStoreImpl and not Graph (which would handle it implicitly)
+                requestModel.createResource(graphUri.toString()).
+                    addProperty(RDF.type, DH.Item).
+                    addProperty(SIOC.HAS_CONTAINER, requestModel.createResource(getAuthRequestContainerUriBuilder().build().toString())).
                     addProperty(FOAF.primaryTopic, accessRequest);
                 
     //            try

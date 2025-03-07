@@ -839,38 +839,32 @@ LIMIT   10
     <!-- validate form before submitting it and show errors on required control-groups where input values are missing -->
     <xsl:template match="form[@id = 'form-request-access']" mode="ixsl:onsubmit" priority="1">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
-        <xsl:variable name="control-groups" select="descendant::div[contains-token(@class, 'control-group')][contains-token(@class, 'required')]" as="element()*"/>
-        <xsl:choose>
-            <!-- input values missing, throw an error -->
-            <xsl:when test="false()">
-<!--            <xsl:when test="exists($control-groups/descendant::input[@name = ('ol', 'ou')][not(ixsl:get(., 'value'))])">-->
-                <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
-                <xsl:sequence select="$control-groups[descendant::input[@name = ('ol', 'ou')][not(ixsl:get(., 'value'))]]/ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'error', true() ])[current-date() lt xs:date('2000-01-01')]"/>
-            </xsl:when>
-            <!-- all required values present, proceed to submit form-->
-            <xsl:otherwise>
-                <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+        <xsl:variable name="form" select="." as="element()"/>
 
-                <xsl:sequence select="$control-groups/ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'error', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+        
+        <!-- disable hidden inputs on table rows where all acl:mode checkboxes are a) disabled by default b) enabled but left unchecked -->
+        <!-- otherwise RDF/POST will generate acl:Authorization instances without acl:mode values which will fail constraint validation -->
+        <!-- we don't want to use the values of disabled checkboxes in the request because those authorizations already exist -->
+        <xsl:for-each select="$form//tbody/tr[every $checkbox in descendant::input[@type = 'checkbox'][@name = 'ou'] satisfies (ixsl:get($checkbox, 'disabled') or not(ixsl:get($checkbox, 'disabled')) and not(ixsl:get($checkbox, 'checked')))]//input">
+            <ixsl:set-property name="disabled" select="true()" object="."/>
+        </xsl:for-each>
 
-                <xsl:variable name="form" select="." as="element()"/>
-                <xsl:variable name="method" select="ixsl:get(., 'method')" as="xs:string"/>
-                <xsl:variable name="action" select="ixsl:get(., 'action')" as="xs:anyURI"/>
-                <xsl:variable name="enctype" select="ixsl:get(., 'enctype')" as="xs:string"/>
-                <xsl:variable name="form-data" select="ldh:new('URLSearchParams', [ ldh:new('FormData', [ $form ]) ])"/>
-                <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, $action)" as="xs:anyURI"/>
+        <xsl:variable name="method" select="ixsl:get(., 'method')" as="xs:string"/>
+        <xsl:variable name="action" select="ixsl:get(., 'action')" as="xs:anyURI"/>
+        <xsl:variable name="enctype" select="ixsl:get(., 'enctype')" as="xs:string"/>
+        <xsl:variable name="form-data" select="ldh:new('URLSearchParams', [ ldh:new('FormData', [ $form ]) ])"/>
+        <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, $action)" as="xs:anyURI"/>
 
-                <xsl:variable name="request" as="item()*">
-                    <ixsl:schedule-action http-request="map{ 'method': $method, 'href': $request-uri, 'media-type': $enctype, 'body': $form-data, 'headers': map{} }"> <!-- 'Accept': $accept -->
-                        <xsl:call-template name="ldh:ModalFormSubmit">
-                            <xsl:with-param name="action" select="$action"/>
-                            <xsl:with-param name="form" select="$form"/>
-                        </xsl:call-template>
-                    </ixsl:schedule-action>
-                </xsl:variable>
-                <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
-            </xsl:otherwise>
-        </xsl:choose>
+        <xsl:variable name="request" as="item()*">
+            <ixsl:schedule-action http-request="map{ 'method': $method, 'href': $request-uri, 'media-type': $enctype, 'body': $form-data, 'headers': map{} }"> <!-- 'Accept': $accept -->
+                <xsl:call-template name="ldh:ModalFormSubmit">
+                    <xsl:with-param name="action" select="$action"/>
+                    <xsl:with-param name="form" select="$form"/>
+                </xsl:call-template>
+            </ixsl:schedule-action>
+        </xsl:variable>
+        <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
     
     <xsl:template match="input[contains-token(@class, 'subject-slug')]" mode="ixsl:onkeyup" priority="1">
