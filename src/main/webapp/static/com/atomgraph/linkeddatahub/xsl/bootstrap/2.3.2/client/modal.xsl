@@ -988,7 +988,7 @@ LIMIT   10
                 </xsl:choose>
             </xsl:when>
             <!-- special case for generate containers form: redirect to the parent container -->
-            <xsl:when test="ixsl:get($form, 'id') = ('form-generate-containers')">
+            <xsl:when test="ixsl:get($form, 'id') = 'form-generate-containers'">
                 <xsl:variable name="control-group" select="$form/descendant::div[contains-token(@class, 'control-group')][input[@name = 'pu'][@value = '&sioc;has_parent']]" as="element()*"/>
                 <xsl:variable name="uri" select="$control-group/descendant::input[@name = 'ou']/ixsl:get(., 'value')" as="xs:anyURI"/>
                 
@@ -1006,6 +1006,12 @@ LIMIT   10
                 <!-- remove the modal div -->
                 <xsl:sequence select="ixsl:call($form/ancestor::div[contains-token(@class, 'modal')], 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
             </xsl:when>
+            <xsl:when test="?status = 200 and ixsl:get($form, 'id') = 'form-request-access'">
+                <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
+
+                <!-- remove the modal div -->
+                <xsl:sequence select="ixsl:call($form/ancestor::div[contains-token(@class, 'modal')], 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
+            </xsl:when>
             <!-- POST created new resource successfully -->
             <xsl:when test="?status = 201 and ?headers?location">
                 <xsl:variable name="created-uri" select="?headers?location" as="xs:anyURI"/>
@@ -1014,12 +1020,6 @@ LIMIT   10
                     <xsl:when test="ixsl:get($form, 'id') = 'form-signup'">
                         <xsl:call-template name="bs2:SignUpComplete"/>
                     </xsl:when>
-                    <!-- special case for request access form -->
-                    <!--
-                    <xsl:when test="ixsl:get($form, 'id') = 'form-request-access'">
-                        <xsl:call-template name="bs2:AccessRequestComplete"/>
-                    </xsl:when>
-                    -->
                     <!-- if the form submit did not originate from a typeahead (target), load the created resource -->
                     <xsl:otherwise>
                         <xsl:variable name="request" as="item()*">
@@ -1029,8 +1029,6 @@ LIMIT   10
                                 </xsl:call-template>
                             </ixsl:schedule-action>
                         </xsl:variable>
-                        
-                        <!-- store the new request object -->
                         <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
                     </xsl:otherwise>
                 </xsl:choose>
