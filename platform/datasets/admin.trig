@@ -439,7 +439,7 @@ WHERE
     <acl/authorizations/> a dh:Container ;
         sioc:has_parent <acl/> ;
         dct:title "Authorizations" ;
-        dct:description "Manage requests for access" ;
+        dct:description "Manage who has access to which resources" ;
         rdf:_1 <acl/authorizations/#select-children> .
 
     <acl/authorizations/#select-children> a ldh:View ;
@@ -453,7 +453,7 @@ WHERE
     <acl/authorization-requests/> a dh:Container ;
         sioc:has_parent <acl/> ;
         dct:title "Authorization requests" ;
-        dct:description "Manage who has access to which resources" ;
+        dct:description "Manage requests for access" ;
         rdf:_1 <acl/authorization-requests/#select-children> .
 
     <acl/authorization-requests/#select-children> a ldh:View ;
@@ -556,6 +556,25 @@ WHERE
 
 }
 
+# SPARQL endpoint
+
+<acl/authorizations/sparql-endpoint/>
+{
+
+    <acl/authorizations/sparql-endpoint/> a dh:Item ;
+        sioc:has_container <acl/authorizations/> ;
+        dct:title "SPARQL endpoint access" ;
+        foaf:primaryTopic <acl/authorizations/sparql-endpoint/#this> .
+
+    <acl/authorizations/sparql-endpoint/#this> a acl:Authorization ;
+        rdfs:label "SPARQL endpoint access" ;
+        rdfs:comment "Allows only authenticated access" ;
+        acl:accessTo <../sparql> ;
+        acl:mode acl:Read, acl:Append ; # allow queries over GET as well as POST
+        acl:agentClass acl:AuthenticatedAgent .
+
+}
+
 # access endpoint
 
 <acl/authorizations/access/>
@@ -611,26 +630,6 @@ WHERE
         acl:accessToClass adm:SignUp ;
         acl:mode acl:Read, acl:Append ;
         acl:agentClass foaf:Agent .
-
-}
-
-# request access
-
-<acl/authorizations/request-access/>
-{
-
-    <acl/authorizations/request-access/> a dh:Item ;
-        sioc:has_container <acl/authorizations/> ;
-        dct:title "Authorization request access" ;
-        foaf:primaryTopic <acl/authorizations/request-access/#this> .
-
-    <acl/authorizations/request-access/#this> a acl:Authorization ;
-        rdfs:label "Request access" ;
-        rdfs:comment "Required to enable authorization requests" ;
-        acl:accessTo <ns> ; # TO-DO: only allow <ns> access by the secretary agent?
-        acl:accessToClass adm:RequestAccess ;
-        acl:mode acl:Read, acl:Append ;
-        acl:agentClass acl:AuthenticatedAgent . # not public, Agent must be authenticated
 
 }
 
@@ -692,7 +691,6 @@ WHERE
 }
 
 # full access
-
 
 <acl/authorizations/full-control/>
 {

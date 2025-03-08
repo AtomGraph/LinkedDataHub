@@ -105,7 +105,8 @@ public class Access extends com.atomgraph.core.model.impl.SPARQLEndpointImpl
 //                addProperty(RDF.type, FOAF.Agent).
 //                as(Agent.class);
                 
-        final ParameterizedSparqlString pss = getApplication().canAs(EndUserApplication.class) ? getACLQuery() : getOwnerACLQuery();
+        //final ParameterizedSparqlString pss = getApplication().canAs(EndUserApplication.class) ? getACLQuery() : getOwnerACLQuery();
+        final ParameterizedSparqlString pss = getACLQuery();
         
         try
         {

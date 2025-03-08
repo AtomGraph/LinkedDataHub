@@ -467,10 +467,14 @@ LIMIT   10
                     <!-- [(acl:agent/@rdf:resource, acl:agentGroup/@rdf:resource, acl:agentClass/@rdf:resource) = $agent] -->
                     <xsl:for-each-group select="rdf:Description[acl:accessTo/@rdf:resource]"
                                         group-by="acl:accessTo/@rdf:resource">
+                        <xsl:variable name="granted-access-modes" select="distinct-values(current-group()/acl:mode/@rdf:resource)" as="xs:anyURI*"/>
+
+                        <!-- applying on the first authorization in the group -->
                         <xsl:apply-templates select="." mode="access-to">
                             <xsl:with-param name="agent" select="$agent"/>
                             <xsl:with-param name="access-modes" select="$access-modes"/>
                             <xsl:with-param name="access-to" select="current-grouping-key()"/>
+                            <xsl:with-param name="granted-access-modes" select="$granted-access-modes"/>
                         </xsl:apply-templates>
                     </xsl:for-each-group>
                 </tbody>
@@ -524,10 +528,14 @@ LIMIT   10
                     <!-- [(acl:agent/@rdf:resource, acl:agentGroup/@rdf:resource, acl:agentClass/@rdf:resource) = $agent] -->
                     <xsl:for-each-group select="rdf:Description[acl:accessToClass/@rdf:resource[not(. = $default-classes)]]"
                                         group-by="acl:accessToClass/@rdf:resource">
+                        <xsl:variable name="granted-access-modes" select="distinct-values(current-group()/acl:mode/@rdf:resource)" as="xs:anyURI*"/>
+
+                        <!-- applying on the first authorization in the group -->                        
                         <xsl:apply-templates select="." mode="access-to-class">
                             <xsl:with-param name="agent" select="$agent"/>
                             <xsl:with-param name="access-modes" select="$access-modes"/>
                             <xsl:with-param name="access-to-class" select="current-grouping-key()"/>
+                            <xsl:with-param name="granted-access-modes" select="$granted-access-modes"/>
                         </xsl:apply-templates>
                     </xsl:for-each-group>
                 </tbody>
@@ -539,6 +547,7 @@ LIMIT   10
         <xsl:param name="agent" as="xs:anyURI"/>
         <xsl:param name="access-to" as="xs:anyURI"/>
         <xsl:param name="access-modes" as="xs:anyURI*"/>
+        <xsl:param name="granted-access-modes" as="xs:anyURI*"/>
 
         <tr>
             <td>
@@ -558,6 +567,7 @@ LIMIT   10
             
             <xsl:apply-templates select="." mode="access-table">
                 <xsl:with-param name="access-modes" select="$access-modes"/>
+                <xsl:with-param name="granted-access-modes" select="$granted-access-modes"/>
             </xsl:apply-templates>
         </tr>
     </xsl:template>
@@ -566,6 +576,7 @@ LIMIT   10
         <xsl:param name="agent" as="xs:anyURI"/>
         <xsl:param name="access-to-class" as="xs:anyURI"/>
         <xsl:param name="access-modes" as="xs:anyURI*"/>
+        <xsl:param name="granted-access-modes" as="xs:anyURI*"/>
 
         <tr>
             <td>
@@ -587,20 +598,21 @@ LIMIT   10
             
             <xsl:apply-templates select="." mode="access-table">
                 <xsl:with-param name="access-modes" select="$access-modes"/>
+                <xsl:with-param name="granted-access-modes" select="$granted-access-modes"/>
             </xsl:apply-templates>
         </tr>
     </xsl:template>
     
     <xsl:template match="rdf:Description" mode="access-table">
         <xsl:param name="access-modes" as="xs:anyURI*"/>
-        <xsl:variable name="auth-modes" select="acl:mode/@rdf:resource" as="xs:anyURI*"/>
+        <xsl:param name="granted-access-modes" as="xs:anyURI*"/>
 
         <xsl:for-each select="$access-modes">
             <xsl:variable name="current-mode" select="."/>
             <td>
                 <label class="checkbox">
                     <input type="checkbox" name="ou" value="{$current-mode}">
-                        <xsl:if test="$current-mode = $auth-modes">
+                        <xsl:if test="$current-mode = $granted-access-modes">
                             <!-- the modes that the agent already has access to are disabled since the agent cannot ask for less access, only more -->
                             <xsl:attribute name="checked">checked</xsl:attribute>
                             <xsl:attribute name="disabled">disabled</xsl:attribute>
