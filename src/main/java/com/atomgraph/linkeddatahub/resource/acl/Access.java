@@ -22,7 +22,8 @@ import static com.atomgraph.core.model.SPARQLEndpoint.NAMED_GRAPH_URI;
 import static com.atomgraph.core.model.SPARQLEndpoint.QUERY;
 import com.atomgraph.linkeddatahub.apps.model.AdminApplication;
 import com.atomgraph.linkeddatahub.apps.model.Application;
-import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
+import com.atomgraph.linkeddatahub.client.SesameProtocolClient;
+import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.model.auth.Agent;
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
 import com.atomgraph.linkeddatahub.vocabulary.ACL;
@@ -40,14 +41,19 @@ import jakarta.ws.rs.core.SecurityContext;
 import jakarta.ws.rs.core.UriInfo;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import org.apache.jena.ontology.Ontology;
 import org.apache.jena.query.ParameterizedSparqlString;
 import org.apache.jena.query.Query;
 import org.apache.jena.query.QuerySolutionMap;
+import org.apache.jena.query.ResultSet;
+import org.apache.jena.query.ResultSetRewindable;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
+import org.apache.jena.sparql.core.Var;
+import org.apache.jena.sparql.engine.binding.Binding;
 import org.apache.jena.vocabulary.RDFS;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -106,16 +112,21 @@ public class Access extends com.atomgraph.core.model.impl.SPARQLEndpointImpl
 //                as(Agent.class);
                 
         //final ParameterizedSparqlString pss = getApplication().canAs(EndUserApplication.class) ? getACLQuery() : getOwnerACLQuery();
-        final ParameterizedSparqlString pss = getACLQuery();
+        final ParameterizedSparqlString authPss = getACLQuery();
         
         try
         {
             if (!getUriInfo().getQueryParameters().containsKey(SPIN.THIS_VAR_NAME)) throw new BadRequestException();
-            URI accessTo = new URI(getUriInfo().getQueryParameters().getFirst(SPIN.THIS_VAR_NAME)); // ?this query param needs to be passed
+            Resource accessTo = ResourceFactory.createResource(new URI(getUriInfo().getQueryParameters().getFirst(SPIN.THIS_VAR_NAME)).toString()); // $this query param needs to be passed
 
-            pss.setParams(getAuthorizationParams(ResourceFactory.createResource(accessTo.toString()), agent, null));
-            query = pss.asQuery(); // override any supplied query with the ACL one
-                    
+            QuerySolutionMap qsm = new QuerySolutionMap();
+            qsm.add(SPIN.THIS_VAR_NAME, accessTo);
+            ResultSet docTypes = loadResultSet(getEndUserService(), getDocumentTypeQuery(), qsm);
+
+            authPss.setParams(getAuthorizationParams(accessTo, agent));
+            query = authPss.asQuery(); // override any supplied query with the ACL one
+            setResultSetValues(query, docTypes);
+                
             return super.get(query, defaultGraphUris, namedGraphUris);
         }
         catch (URISyntaxException ex)
@@ -129,18 +140,15 @@ public class Access extends com.atomgraph.core.model.impl.SPARQLEndpointImpl
      * 
      * @param absolutePath request URL without query string
      * @param agent agent resource or null
-     * @param accessMode ACL access mode
      * @return solution map
      */
-    public QuerySolutionMap getAuthorizationParams(Resource absolutePath, Resource agent, Resource accessMode)
+    public QuerySolutionMap getAuthorizationParams(Resource absolutePath, Resource agent)
     {
         QuerySolutionMap qsm = new QuerySolutionMap();
         qsm.add(SPIN.THIS_VAR_NAME, absolutePath);
         qsm.add(LDT.Ontology.getLocalName(), getApplication().getOntology());
         qsm.add(LDT.base.getLocalName(), getApplication().getBase());
 
-        if (accessMode != null) qsm.add("Mode", accessMode);
-        
         if (!absolutePath.equals(getApplication().getBase())) // enable $Container pattern, unless the Root document is requested
         {
             URI container = URI.create(absolutePath.getURI()).resolve("..");
@@ -161,6 +169,64 @@ public class Access extends com.atomgraph.core.model.impl.SPARQLEndpointImpl
         }
         
         return qsm;
+    }
+    
+    /**
+     * Loads authorization graph from the admin service.
+     * 
+     * @param service SPARQL service
+     * @param pss auth query string
+     * @param qsm query solution map (applied to the query string or sent as request params, depending on the protocol)
+     * @return authorization graph (can be empty)
+     * @see com.atomgraph.linkeddatahub.vocabulary.LDHC#authQuery
+     */
+    protected ResultSet loadResultSet(com.atomgraph.linkeddatahub.model.Service service, ParameterizedSparqlString pss, QuerySolutionMap qsm)
+    {
+        if (service == null) throw new IllegalArgumentException("Service cannot be null");
+        if (pss == null) throw new IllegalArgumentException("ParameterizedSparqlString cannot be null");
+        if (qsm == null) throw new IllegalArgumentException("QuerySolutionMap cannot be null");
+        
+        // send query bindings separately from the query if the service supports the Sesame protocol
+        if (service.getSPARQLClient() instanceof SesameProtocolClient sesameProtocolClient)
+            try (Response cr = sesameProtocolClient.query(pss.asQuery(), ResultSet.class, qsm)) // register(new CacheControlFilter(CacheControl.valueOf("no-cache"))). // add Cache-Control: no-cache to request
+            {
+                return cr.readEntity(ResultSet.class);
+            }
+        else
+        {
+            pss.setParams(qsm);
+            try (Response cr = service.getSPARQLClient(). // register(new CacheControlFilter(CacheControl.valueOf("no-cache"))). // add Cache-Control: no-cache to request
+                query(pss.asQuery(), ResultSet.class))
+            {
+                return cr.readEntity(ResultSetRewindable.class);
+            }
+        }
+    }
+    
+    public Query setResultSetValues(Query query, ResultSet resultSet)
+    {
+        if (query == null) throw new IllegalArgumentException("Query cannot be null");
+        if (resultSet == null) throw new IllegalArgumentException("ResultSet cannot be null");
+        
+        List<Var> vars = resultSet.getResultVars().stream().map(Var::alloc).toList();
+        List<Binding> values = new ArrayList<>();
+        while (resultSet.hasNext())
+            values.add(resultSet.nextBinding());
+
+        query.setValuesDataBlock(vars, values);
+        return query;
+    }
+    
+    /**
+     * Returns the SPARQL service for end-user data.
+     * 
+     * @return service resource
+     */
+    protected Service getEndUserService()
+    {
+        return getApplication().canAs(AdminApplication.class) ?
+            getApplication().as(AdminApplication.class).getEndUserApplication().getService() :
+            getApplication().getService();
     }
     
     /**
@@ -214,9 +280,15 @@ public class Access extends com.atomgraph.core.model.impl.SPARQLEndpointImpl
     {
         return ownerAclQuery.copy();
     }
-
-    private Exception BadRequestException(URISyntaxException ex) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    
+    public ParameterizedSparqlString getDocumentTypeQuery()
+    {
+        // TO-DO: move to web.xml
+        return new ParameterizedSparqlString("SELECT ?Type\n" +
+            "WHERE\n" +
+            "  { GRAPH $this\n" +
+            "      { $this  a  ?Type }\n" +
+            "  }");
     }
     
 }
