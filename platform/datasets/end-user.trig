@@ -26,6 +26,40 @@
 
 }
 
+# ENDPOINTS
+
+<sparql>
+{
+
+    <sparql> a foaf:Document ;
+        dct:title "SPARQL endpoint" .
+
+}
+
+<ns>
+{
+
+    <ns> a foaf:Document ;
+        dct:title "Namespace endpoint" .
+
+}
+
+<access>
+{
+
+    <access> a foaf:Document ;
+        dct:title "Access endpoint" .
+
+}
+
+<access/request>
+{
+
+    <access/request> a foaf:Document ;
+        dct:title "Access request endpoint" .
+
+}
+
 # CONTAINERS
 
 <queries/>

@@ -15,15 +15,12 @@
         <param-name>https://w3id.org/atomgraph/linkeddatahub/config#authCacheControl</param-name>
         <param-value>max-age=69</param-value>
     </context-param>
-    <context-param>
+<!--    <context-param>
         <param-name>https://w3id.org/atomgraph/linkeddatahub/config#authQuery</param-name>
         <param-value><![CDATA[
-PREFIX  def:  <https://w3id.org/atomgraph/linkeddatahub/default#>
-PREFIX  dh:   <https://www.w3.org/ns/ldt/document-hierarchy#>
 PREFIX  rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX  acl:  <http://www.w3.org/ns/auth/acl#>
 PREFIX  foaf: <http://xmlns.com/foaf/0.1/>
-PREFIX  sioc: <http://rdfs.org/sioc/ns#>
 
 DESCRIBE ?auth
 FROM <urn:x-arq:UnionGraph>
@@ -39,61 +36,28 @@ WHERE
    UNION
      { ?auth  acl:agentClass  $AuthenticatedAgentClass }
 
-     ?auth  acl:mode  $Mode .
+     ?auth  acl:mode  ?Mode .
 
      { ?auth  acl:accessTo  $this }
    UNION
      { ?auth  acl:accessTo  $Container
-       SERVICE $endpoint
-         { GRAPH $Container
-             {   { $Container  a  def:Root }
-               UNION
-                 { $Container  a  dh:Container }
-             }
-           FILTER NOT EXISTS { GRAPH $this
-                                 { $this  sioc:has_parent|sioc:has_container  $Container }
-                             }
-         }
-     }
+      }
    UNION
      {   { ?auth  acl:accessToClass  ?Type }
        UNION
          { ?auth  acl:accessToClass  ?Class .
            ?Type (rdfs:subClassOf)* ?Class
          }
-       SERVICE $endpoint
-         {   { GRAPH $this
-                 { $this  a  ?Type }
-             }
-           UNION
-             { GRAPH $Container
-                 {   { $Container  a  def:Root }
-                   UNION
-                     { $Container  a  dh:Container }
-                   $Container  a  ?Type
-                 }
-               FILTER NOT EXISTS { GRAPH $this
-                                     { $this  sioc:has_parent|sioc:has_container  $Container }
-                                 }
-             }
-           UNION
-             { GRAPH ?g
-                 { $this  a  <http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#FileDataObject> ;
-                          a  ?Type
-                 }
-             }
-         }
      }
   }
 ]]></param-value>
-    </context-param>
+    </context-param>-->
     <context-param>
         <param-name>https://w3id.org/atomgraph/linkeddatahub/config#ownerAuthQuery</param-name>
         <param-value><![CDATA[
 PREFIX  rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX  acl:  <http://www.w3.org/ns/auth/acl#>
 PREFIX  foaf: <http://xmlns.com/foaf/0.1/>
-PREFIX  sioc: <http://rdfs.org/sioc/ns#>
 
 DESCRIBE ?auth
 FROM <urn:x-arq:UnionGraph>
@@ -108,7 +72,7 @@ WHERE
       }
     UNION
       { ?auth  acl:agentClass  $AuthenticatedAgentClass ;
-               acl:mode        $Mode
+               acl:mode        ?Mode
           { ?auth  acl:accessTo  $this
             OPTIONAL
               { $this  a  ?Type }
@@ -146,12 +110,9 @@ WHERE
     <context-param>
         <param-name>https://w3id.org/atomgraph/linkeddatahub/config#aclQuery</param-name>
         <param-value><![CDATA[
-PREFIX  def:  <https://w3id.org/atomgraph/linkeddatahub/default#>
-PREFIX  dh:   <https://www.w3.org/ns/ldt/document-hierarchy#>
 PREFIX  rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX  acl:  <http://www.w3.org/ns/auth/acl#>
 PREFIX  foaf: <http://xmlns.com/foaf/0.1/>
-PREFIX  sioc: <http://rdfs.org/sioc/ns#>
 
 DESCRIBE ?auth
 FROM <urn:x-arq:UnionGraph>
@@ -167,7 +128,7 @@ WHERE
    UNION
      { ?auth  acl:agentClass  $AuthenticatedAgentClass }
 
-     ?auth  acl:mode  $Mode .
+     ?auth  acl:mode  ?Mode .
 
      { ?auth  acl:accessTo  $this }
    UNION
@@ -188,7 +149,6 @@ WHERE
 PREFIX  rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX  acl:  <http://www.w3.org/ns/auth/acl#>
 PREFIX  foaf: <http://xmlns.com/foaf/0.1/>
-PREFIX  sioc: <http://rdfs.org/sioc/ns#>
 
 DESCRIBE ?auth
 FROM <urn:x-arq:UnionGraph>
@@ -203,7 +163,7 @@ WHERE
       }
     UNION
       { ?auth  acl:agentClass  $AuthenticatedAgentClass ;
-               acl:mode        $Mode
+               acl:mode        ?Mode
           { ?auth  acl:accessTo  $this
             OPTIONAL
               { $this  a  ?Type }

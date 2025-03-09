@@ -117,15 +117,14 @@ public class Access extends com.atomgraph.core.model.impl.SPARQLEndpointImpl
         try
         {
             if (!getUriInfo().getQueryParameters().containsKey(SPIN.THIS_VAR_NAME)) throw new BadRequestException();
-            Resource accessTo = ResourceFactory.createResource(new URI(getUriInfo().getQueryParameters().getFirst(SPIN.THIS_VAR_NAME)).toString()); // $this query param needs to be passed
+            Resource accessTo = ResourceFactory.createResource(new URI(getUriInfo().getQueryParameters().getFirst(SPIN.THIS_VAR_NAME)).toString()); // ?this query param needs to be passed
 
-            QuerySolutionMap qsm = new QuerySolutionMap();
-            qsm.add(SPIN.THIS_VAR_NAME, accessTo);
-            ResultSet docTypes = loadResultSet(getEndUserService(), getDocumentTypeQuery(), qsm);
+            QuerySolutionMap docTypeQsm = new QuerySolutionMap();
+            docTypeQsm.add(SPIN.THIS_VAR_NAME, accessTo);
+            ResultSet docTypes = loadResultSet(getEndUserService(), getDocumentTypeQuery(), docTypeQsm);
 
             authPss.setParams(getAuthorizationParams(accessTo, agent));
-            query = authPss.asQuery(); // override any supplied query with the ACL one
-            setResultSetValues(query, docTypes);
+            query = setResultSetValues(authPss.asQuery(), docTypes);
                 
             return super.get(query, defaultGraphUris, namedGraphUris);
         }
@@ -172,7 +171,7 @@ public class Access extends com.atomgraph.core.model.impl.SPARQLEndpointImpl
     }
     
     /**
-     * Loads authorization graph from the admin service.
+     * Loads SPARQL result set from a service.
      * 
      * @param service SPARQL service
      * @param pss auth query string
@@ -203,6 +202,13 @@ public class Access extends com.atomgraph.core.model.impl.SPARQLEndpointImpl
         }
     }
     
+    /**
+     * Converts a SPARQL result set into a <code>VALUES</code> block.
+     * 
+     * @param query SPARQL query
+     * @param resultSet result set
+     * @return query with appended values
+     */
     public Query setResultSetValues(Query query, ResultSet resultSet)
     {
         if (query == null) throw new IllegalArgumentException("Query cannot be null");
@@ -281,6 +287,11 @@ public class Access extends com.atomgraph.core.model.impl.SPARQLEndpointImpl
         return ownerAclQuery.copy();
     }
     
+    /**
+     * Returns a query that selects the types of a given document.
+     * 
+     * @return SPARQL string
+     */
     public ParameterizedSparqlString getDocumentTypeQuery()
     {
         // TO-DO: move to web.xml

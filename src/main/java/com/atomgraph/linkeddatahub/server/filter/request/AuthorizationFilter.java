@@ -17,7 +17,6 @@
 package com.atomgraph.linkeddatahub.server.filter.request;
 
 import com.atomgraph.client.vocabulary.AC;
-import com.atomgraph.core.vocabulary.SD;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import com.atomgraph.linkeddatahub.client.SesameProtocolClient;
 import com.atomgraph.linkeddatahub.server.exception.auth.AuthorizationException;
@@ -43,14 +42,19 @@ import jakarta.ws.rs.container.ContainerRequestFilter;
 import jakarta.ws.rs.container.PreMatching;
 import jakarta.ws.rs.core.Response;
 import java.net.URI;
+import java.util.ArrayList;
+import java.util.List;
 import org.apache.jena.query.ParameterizedSparqlString;
+import org.apache.jena.query.Query;
 import org.apache.jena.query.QuerySolutionMap;
+import org.apache.jena.query.ResultSet;
+import org.apache.jena.query.ResultSetRewindable;
 import org.apache.jena.rdf.model.Model;
-import org.apache.jena.rdf.model.Property;
-import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.ResIterator;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
+import org.apache.jena.sparql.core.Var;
+import org.apache.jena.sparql.engine.binding.Binding;
 import org.apache.jena.vocabulary.RDFS;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -88,7 +92,7 @@ public class AuthorizationFilter implements ContainerRequestFilter
     @Inject jakarta.inject.Provider<com.atomgraph.linkeddatahub.apps.model.Application> app;
     @Inject jakarta.inject.Provider<Optional<com.atomgraph.linkeddatahub.apps.model.Dataset>> dataset;
     
-    private ParameterizedSparqlString authQuery, ownerAuthQuery;
+    private ParameterizedSparqlString aclQuery, ownerAclQuery;
 
     /**
      * Post-construct initialization.
@@ -96,8 +100,8 @@ public class AuthorizationFilter implements ContainerRequestFilter
     @PostConstruct
     public void init()
     {
-        authQuery = new ParameterizedSparqlString(getSystem().getAuthQuery().toString());
-        ownerAuthQuery = new ParameterizedSparqlString(getSystem().getOwnerAuthQuery().toString());
+        aclQuery = new ParameterizedSparqlString(getSystem().getACLQuery().toString());
+        ownerAclQuery = new ParameterizedSparqlString(getSystem().getOwnerACLQuery().toString());
     }
     
     @Override
@@ -192,24 +196,31 @@ public class AuthorizationFilter implements ContainerRequestFilter
      */
     public Resource authorize(ContainerRequestContext request, Resource agent, Resource accessMode)
     {
-        return authorize(getAuthorizationParams(ResourceFactory.createResource(request.getUriInfo().getAbsolutePath().toString()), agent), accessMode);
+        Resource accessTo = ResourceFactory.createResource(request.getUriInfo().getAbsolutePath().toString());
+
+        QuerySolutionMap docTypeQsm = new QuerySolutionMap();
+        docTypeQsm.add(SPIN.THIS_VAR_NAME, accessTo);
+        ResultSet docTypes = loadResultSet(getApplication().getService(), getDocumentTypeQuery(), docTypeQsm);
+        
+        ParameterizedSparqlString pss = getApplication().canAs(EndUserApplication.class) ? getACLQuery() : getOwnerACLQuery();
+        Query query = setResultSetValues(pss.asQuery(), docTypes);
+        pss = new ParameterizedSparqlString(query.toString()); // make sure VALUES are now part of the query string
+        assert pss.toString().contains("VALUES");
+        
+        Model authModel = loadModel(getAdminService(), pss, getAuthorizationParams(accessTo, agent));
+        return authorize(authModel, accessMode, docTypes);
     }
     
     /**
      * Authorizes current request by applying solution map on the authorization query and executing it.
      * 
-     * @param qsm solution map
+     * @param authModel model with authorizations
      * @param accessMode ACL access mode
+     * @param docTypes document types
      * @return authorization resource or null
      */
-    public Resource authorize(QuerySolutionMap qsm, Resource accessMode)
+    public Resource authorize(Model authModel, Resource accessMode, ResultSet docTypes)
     {
-        Model authModel = loadAuth(qsm);
-        
-        // type check will not work on LACL subclasses without InfModel
-        //Resource authorization = getResourceByPropertyValue(authModel, ACL.mode, null);
-        //if (authorization == null) authorization = getResourceByPropertyValue(authModel, ResourceFactory.createProperty(LACL.NS + "accessProperty"), null); // creator access
-        
         ResIterator it = authModel.listResourcesWithProperty(ACL.mode, accessMode);
         try
         {
@@ -225,27 +236,9 @@ public class AuthorizationFilter implements ContainerRequestFilter
         
         return null;
     }
-
-    /**
-     * Loads authorization model.
-     * 
-     * @param qsm solution map
-     * @return authorization model
-     */
-    protected Model loadAuth(QuerySolutionMap qsm)
-    {
-        if (qsm == null) throw new IllegalArgumentException("QuerySolutionMap cannot be null");
-
-        final ParameterizedSparqlString pss = getApplication().canAs(EndUserApplication.class) ? getAuthQuery() : getOwnerAuthQuery();
-        
-        if (getApplication().canAs(EndUserApplication.class))
-            pss.setIri(SD.endpoint.getLocalName(), getApplication().getService().getSPARQLEndpoint().toString()); // needed for federation with the end-user endpoint
-
-        return loadModel(getAdminService(), pss, qsm);
-    }
     
     /**
-     * Loads authorization graph from the admin service.
+     * Loads RDF graph from a service.
      * 
      * @param service SPARQL service
      * @param pss auth query string
@@ -277,31 +270,71 @@ public class AuthorizationFilter implements ContainerRequestFilter
     }
     
     /**
-     * Returns resource which has a specified property with a specified value, from the specified model.
-     * If there are multiple matching resources, one is selected in undefined order.
+     * Loads SPARQL result set from a service.
      * 
-     * @param model model
-     * @param property property
-     * @param value value
-     * @return resource or null, if none matched
+     * @param service SPARQL service
+     * @param pss auth query string
+     * @param qsm query solution map (applied to the query string or sent as request params, depending on the protocol)
+     * @return authorization graph (can be empty)
+     * @see com.atomgraph.linkeddatahub.vocabulary.LDHC#authQuery
      */
-    protected Resource getResourceByPropertyValue(Model model, Property property, RDFNode value)
+    protected ResultSet loadResultSet(com.atomgraph.linkeddatahub.model.Service service, ParameterizedSparqlString pss, QuerySolutionMap qsm)
     {
-        if (model == null) throw new IllegalArgumentException("Model cannot be null");
-        if (property == null) throw new IllegalArgumentException("Property cannot be null");
+        if (service == null) throw new IllegalArgumentException("Service cannot be null");
+        if (pss == null) throw new IllegalArgumentException("ParameterizedSparqlString cannot be null");
+        if (qsm == null) throw new IllegalArgumentException("QuerySolutionMap cannot be null");
         
-        ResIterator it = model.listSubjectsWithProperty(property, value);
+        // send query bindings separately from the query if the service supports the Sesame protocol
+        if (service.getSPARQLClient() instanceof SesameProtocolClient sesameProtocolClient)
+            try (Response cr = sesameProtocolClient.query(pss.asQuery(), ResultSet.class, qsm)) // register(new CacheControlFilter(CacheControl.valueOf("no-cache"))). // add Cache-Control: no-cache to request
+            {
+                return cr.readEntity(ResultSet.class);
+            }
+        else
+        {
+            pss.setParams(qsm);
+            try (Response cr = service.getSPARQLClient(). // register(new CacheControlFilter(CacheControl.valueOf("no-cache"))). // add Cache-Control: no-cache to request
+                query(pss.asQuery(), ResultSet.class))
+            {
+                return cr.readEntity(ResultSetRewindable.class);
+            }
+        }
+    }
+    
+    /**
+     * Converts a SPARQL result set into a <code>VALUES</code> block.
+     * 
+     * @param query SPARQL query
+     * @param resultSet result set
+     * @return query with appended values
+     */
+    public Query setResultSetValues(Query query, ResultSet resultSet)
+    {
+        if (query == null) throw new IllegalArgumentException("Query cannot be null");
+        if (resultSet == null) throw new IllegalArgumentException("ResultSet cannot be null");
         
-        try
-        {
-            if (it.hasNext()) return it.next();
-        }
-        finally
-        {
-            it.close();
-        }
+        List<Var> vars = resultSet.getResultVars().stream().map(Var::alloc).toList();
+        List<Binding> values = new ArrayList<>();
+        while (resultSet.hasNext())
+            values.add(resultSet.nextBinding());
 
-        return null;
+        query.setValuesDataBlock(vars, values);
+        return query;
+    }
+    
+    /**
+     * Returns a query that selects the types of a given document.
+     * 
+     * @return SPARQL string
+     */
+    public ParameterizedSparqlString getDocumentTypeQuery()
+    {
+        // TO-DO: move to web.xml
+        return new ParameterizedSparqlString("SELECT ?Type\n" +
+            "WHERE\n" +
+            "  { GRAPH $this\n" +
+            "      { $this  a  ?Type }\n" +
+            "  }");
     }
     
     /**
@@ -352,9 +385,9 @@ public class AuthorizationFilter implements ContainerRequestFilter
      * 
      * @return SPARQL string
      */
-    public ParameterizedSparqlString getAuthQuery()
+    public ParameterizedSparqlString getACLQuery()
     {
-        return authQuery.copy();
+        return aclQuery.copy();
     }
 
     /**
@@ -363,9 +396,9 @@ public class AuthorizationFilter implements ContainerRequestFilter
      * 
      * @return SPARQL string
      */
-    public ParameterizedSparqlString getOwnerAuthQuery()
+    public ParameterizedSparqlString getOwnerACLQuery()
     {
-        return ownerAuthQuery.copy();
+        return ownerAclQuery.copy();
     }
     
 }

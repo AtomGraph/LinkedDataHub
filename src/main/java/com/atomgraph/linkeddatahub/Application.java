@@ -258,7 +258,7 @@ public class Application extends ResourceConfig
     private final Map<String, OntModelSpec> endUserOntModelSpecs;
     private final MediaTypes mediaTypes;
     private final Client client, externalClient, importClient, noCertClient;
-    private final Query authQuery, ownerAuthQuery, aclQuery, ownerAclQuery, webIDQuery, agentQuery, userAccountQuery, ontologyQuery; // no relative URIs
+    private final Query aclQuery, ownerAclQuery, webIDQuery, agentQuery, userAccountQuery, ontologyQuery; // no relative URIs
     private final Integer maxGetRequestSize;
     private final boolean preemptiveAuth;
     private final Processor xsltProc = new Processor(false);
@@ -436,19 +436,19 @@ public class Application extends ResourceConfig
             throw new ConfigurationException(LDHC.clientTrustStore);
         }
         
-        if (authQueryString == null)
-        {
-            if (log.isErrorEnabled()) log.error("Authentication SPARQL query is not configured properly");
-            throw new ConfigurationException(LDHC.authQuery);
-        }
-        this.authQuery = QueryFactory.create(authQueryString);
-        
-        if (ownerAuthQueryString == null)
-        {
-            if (log.isErrorEnabled()) log.error("Owner authorization SPARQL query is not configured properly");
-            throw new ConfigurationException(LDHC.ownerAuthQuery);
-        }
-        this.ownerAuthQuery = QueryFactory.create(ownerAuthQueryString);
+//        if (authQueryString == null)
+//        {
+//            if (log.isErrorEnabled()) log.error("Authentication SPARQL query is not configured properly");
+//            throw new ConfigurationException(LDHC.authQuery);
+//        }
+//        this.authQuery = QueryFactory.create(authQueryString);
+//        
+//        if (ownerAuthQueryString == null)
+//        {
+//            if (log.isErrorEnabled()) log.error("Owner authorization SPARQL query is not configured properly");
+//            throw new ConfigurationException(LDHC.ownerAuthQuery);
+//        }
+//        this.ownerAuthQuery = QueryFactory.create(ownerAuthQueryString);
         
         if (aclQueryString == null)
         {
@@ -1672,21 +1672,21 @@ public class Application extends ResourceConfig
      * 
      * @return query object
      */
-    public Query getAuthQuery()
-    {
-        return authQuery.cloneQuery();
-    }
-    
-    /**
-     * Returns the owner authorization query.
-     * Used to check access to admin apps.
-     * 
-     * @return query object
-     */
-    public Query getOwnerAuthQuery()
-    {
-        return ownerAuthQuery.cloneQuery();
-    }
+//    public Query getAuthQuery()
+//    {
+//        return authQuery.cloneQuery();
+//    }
+//    
+//    /**
+//     * Returns the owner authorization query.
+//     * Used to check access to admin apps.
+//     * 
+//     * @return query object
+//     */
+//    public Query getOwnerAuthQuery()
+//    {
+//        return ownerAuthQuery.cloneQuery();
+//    }
     
     /**
      * Returns the authorization query.
