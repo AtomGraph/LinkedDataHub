@@ -591,8 +591,8 @@ LIMIT   100
             <xsl:if test="$class">
                 <xsl:attribute name="class" select="$class"/>
             </xsl:if>
-            
-            <xsl:if test="doc-available(ac:absolute-path($ldh:requestUri))">
+
+            <xsl:if test="$acl:mode = '&acl;Write' and not(key('resources-by-type', '&http;Response')) and doc-available(ac:absolute-path($ldh:requestUri))">
                 <!-- if the current resource is an Item, hide the "Create" dropdown as items cannot have child documents -->
                 <xsl:if test="not(key('resources', ac:absolute-path($ldh:requestUri), document(ac:absolute-path($ldh:requestUri)))/rdf:type/@rdf:resource = '&dh;Item')">
                     <xsl:variable name="document-classes" select="key('resources', ('&dh;Container', '&dh;Item'), document(ac:document-uri('&def;')))" as="element()*"/>

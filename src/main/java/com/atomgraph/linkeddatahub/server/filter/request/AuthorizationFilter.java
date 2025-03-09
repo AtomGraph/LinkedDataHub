@@ -25,7 +25,6 @@ import com.atomgraph.linkeddatahub.model.auth.Agent;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.server.security.AuthorizationContext;
 import com.atomgraph.linkeddatahub.vocabulary.ACL;
-import com.atomgraph.linkeddatahub.vocabulary.LACL;
 import com.atomgraph.linkeddatahub.vocabulary.SIOC;
 import com.atomgraph.server.vocabulary.LDT;
 import com.atomgraph.spinrdf.vocabulary.SPIN;
@@ -152,14 +151,13 @@ public class AuthorizationFilter implements ContainerRequestFilter
      * 
      * @param absolutePath request URL without query string
      * @param agent agent resource or null
-     * @param accessMode ACL access mode
      * @return solution map
      */
-    public QuerySolutionMap getAuthorizationParams(Resource absolutePath, Resource agent, Resource accessMode)
+    public QuerySolutionMap getAuthorizationParams(Resource absolutePath, Resource agent)
     {
         QuerySolutionMap qsm = new QuerySolutionMap();
         qsm.add(SPIN.THIS_VAR_NAME, absolutePath);
-        qsm.add("Mode", accessMode);
+        //qsm.add("Mode", accessMode);
         qsm.add(LDT.Ontology.getLocalName(), getApplication().getOntology());
         qsm.add(LDT.base.getLocalName(), getApplication().getBase());
         
@@ -195,24 +193,38 @@ public class AuthorizationFilter implements ContainerRequestFilter
      */
     public Resource authorize(ContainerRequestContext request, Resource agent, Resource accessMode)
     {
-        return authorize(getAuthorizationParams(ResourceFactory.createResource(request.getUriInfo().getAbsolutePath().toString()), agent, accessMode));
+        return authorize(getAuthorizationParams(ResourceFactory.createResource(request.getUriInfo().getAbsolutePath().toString()), agent), accessMode);
     }
     
     /**
      * Authorizes current request by applying solution map on the authorization query and executing it.
      * 
      * @param qsm solution map
+     * @param accessMode ACL access mode
      * @return authorization resource or null
      */
-    public Resource authorize(QuerySolutionMap qsm)
+    public Resource authorize(QuerySolutionMap qsm, Resource accessMode)
     {
         Model authModel = loadAuth(qsm);
         
         // type check will not work on LACL subclasses without InfModel
-        Resource authorization = getResourceByPropertyValue(authModel, ACL.mode, null);
-        if (authorization == null) authorization = getResourceByPropertyValue(authModel, ResourceFactory.createProperty(LACL.NS + "accessProperty"), null); // creator access
-            
-        return authorization;
+        //Resource authorization = getResourceByPropertyValue(authModel, ACL.mode, null);
+        //if (authorization == null) authorization = getResourceByPropertyValue(authModel, ResourceFactory.createProperty(LACL.NS + "accessProperty"), null); // creator access
+        
+        ResIterator it = authModel.listResourcesWithProperty(ACL.mode, accessMode);
+        try
+        {
+            if (it.hasNext())
+            {
+                return it.next();
+            }
+        }
+        finally
+        {
+            it.close();
+        }
+        
+        return null;
     }
 
     /**
