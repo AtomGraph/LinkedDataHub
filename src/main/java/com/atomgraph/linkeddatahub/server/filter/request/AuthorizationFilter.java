@@ -348,11 +348,19 @@ public class AuthorizationFilter implements ContainerRequestFilter
     public ParameterizedSparqlString getDocumentTypeQuery()
     {
         // TO-DO: move to web.xml
-        return new ParameterizedSparqlString("SELECT ?Type\n" +
-            "WHERE\n" +
-            "  { GRAPH $this\n" +
-            "      { $this  a  ?Type }\n" +
-            "  }");
+        return new ParameterizedSparqlString("SELECT  ?Type\n" +
+"WHERE\n" +
+"  {   { GRAPH ?this\n" +
+"          { ?this  a  ?Type }\n" +
+"      }\n" +
+"    UNION\n" +
+"      { { GRAPH ?g\n" +
+"            { ?this  a  <http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#FileDataObject> ;\n" +
+"                     a  ?Type\n" +
+"            }\n" +
+"        }\n" +
+"      }\n" +
+"  }");
     }
     
     /**
