@@ -122,11 +122,17 @@ public class Access extends com.atomgraph.core.model.impl.SPARQLEndpointImpl
             QuerySolutionMap docTypeQsm = new QuerySolutionMap();
             docTypeQsm.add(SPIN.THIS_VAR_NAME, accessTo);
             ResultSet docTypes = loadResultSet(getEndUserService(), getDocumentTypeQuery(), docTypeQsm);
+            try
+            {
+                authPss.setParams(getAuthorizationParams(accessTo, agent));
+                query = setResultSetValues(authPss.asQuery(), docTypes);
 
-            authPss.setParams(getAuthorizationParams(accessTo, agent));
-            query = setResultSetValues(authPss.asQuery(), docTypes);
-                
-            return super.get(query, defaultGraphUris, namedGraphUris);
+                return super.get(query, defaultGraphUris, namedGraphUris);
+            }
+            finally
+            {
+                docTypes.close();
+            }
         }
         catch (URISyntaxException ex)
         {

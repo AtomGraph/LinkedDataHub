@@ -24,7 +24,6 @@ import com.atomgraph.linkeddatahub.model.auth.Agent;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.server.security.AuthorizationContext;
 import com.atomgraph.linkeddatahub.vocabulary.ACL;
-import com.atomgraph.linkeddatahub.vocabulary.SIOC;
 import com.atomgraph.server.vocabulary.LDT;
 import com.atomgraph.spinrdf.vocabulary.SPIN;
 import java.io.IOException;
@@ -164,13 +163,13 @@ public class AuthorizationFilter implements ContainerRequestFilter
         qsm.add(LDT.Ontology.getLocalName(), getApplication().getOntology());
         qsm.add(LDT.base.getLocalName(), getApplication().getBase());
         
-        if (!absolutePath.equals(getApplication().getBase())) // enable $Container pattern, unless the Root document is requested
-        {
-            URI container = URI.create(absolutePath.getURI()).resolve("..");
-            qsm.add(SIOC.CONTAINER.getLocalName(), ResourceFactory.createResource(container.toString()));
-        }
-        else // disable $Container pattern
-            qsm.add(SIOC.CONTAINER.getLocalName(), RDFS.Resource);
+//        if (!absolutePath.equals(getApplication().getBase())) // enable $Container pattern, unless the Root document is requested
+//        {
+//            URI container = URI.create(absolutePath.getURI()).resolve("..");
+//            qsm.add(SIOC.CONTAINER.getLocalName(), ResourceFactory.createResource(container.toString()));
+//        }
+//        else // disable $Container pattern
+//            qsm.add(SIOC.CONTAINER.getLocalName(), RDFS.Resource);
 
         if (agent != null)
         {
@@ -201,14 +200,37 @@ public class AuthorizationFilter implements ContainerRequestFilter
         QuerySolutionMap docTypeQsm = new QuerySolutionMap();
         docTypeQsm.add(SPIN.THIS_VAR_NAME, accessTo);
         ResultSet docTypes = loadResultSet(getApplication().getService(), getDocumentTypeQuery(), docTypeQsm);
-        
-        ParameterizedSparqlString pss = getApplication().canAs(EndUserApplication.class) ? getACLQuery() : getOwnerACLQuery();
-        Query query = setResultSetValues(pss.asQuery(), docTypes);
-        pss = new ParameterizedSparqlString(query.toString()); // make sure VALUES are now part of the query string
-        assert pss.toString().contains("VALUES");
-        
-        Model authModel = loadModel(getAdminService(), pss, getAuthorizationParams(accessTo, agent));
-        return authorize(authModel, accessMode, docTypes);
+        try
+        {
+            if (!docTypes.hasNext()) // if the document resource has no types, we assume the document does not exist
+            {
+                // special case for PUT requests to non-existing document: allow if the agent has acl:Write acess to the *parent* URI
+                if (accessMode.equals(ACL.Write))
+                {
+                    URI parentURI = URI.create(accessTo.getURI()).resolve("..");
+                    log.debug("Requested document <{}> not found, falling back to parent URI <{}>", accessTo, parentURI);
+                    accessTo = ResourceFactory.createResource(parentURI.toString());
+                    
+                    docTypeQsm = new QuerySolutionMap();
+                    docTypeQsm.add(SPIN.THIS_VAR_NAME, accessTo);
+                    docTypes.close();
+                    docTypes = loadResultSet(getApplication().getService(), getDocumentTypeQuery(), docTypeQsm);
+                }
+                else return null;
+            }
+
+            ParameterizedSparqlString pss = getApplication().canAs(EndUserApplication.class) ? getACLQuery() : getOwnerACLQuery();
+            Query query = setResultSetValues(pss.asQuery(), docTypes);
+            pss = new ParameterizedSparqlString(query.toString()); // make sure VALUES are now part of the query string
+            assert pss.toString().contains("VALUES");
+
+            Model authModel = loadModel(getAdminService(), pss, getAuthorizationParams(accessTo, agent));
+            return authorize(authModel, accessMode, docTypes);
+        }
+        finally
+        {
+            docTypes.close();
+        }
     }
     
     /**
