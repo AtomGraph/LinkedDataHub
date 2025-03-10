@@ -226,7 +226,7 @@ public class AuthorizationFilter implements ContainerRequestFilter
             assert pss.toString().contains("VALUES");
 
             Model authModel = loadModel(getAdminService(), pss, getAuthorizationParams(accessTo, agent));
-            return authorize(authModel, accessMode, docTypes);
+            return authorize(authModel, accessMode);
         }
         finally
         {
@@ -239,10 +239,9 @@ public class AuthorizationFilter implements ContainerRequestFilter
      * 
      * @param authModel model with authorizations
      * @param accessMode ACL access mode
-     * @param docTypes document types
      * @return authorization resource or null
      */
-    public Resource authorize(Model authModel, Resource accessMode, ResultSet docTypes)
+    public Resource authorize(Model authModel, Resource accessMode)
     {
         ResIterator it = authModel.listResourcesWithProperty(ACL.mode, accessMode);
         try
