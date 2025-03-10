@@ -160,8 +160,8 @@ public class AuthorizationFilter implements ContainerRequestFilter
     {
         QuerySolutionMap qsm = new QuerySolutionMap();
         qsm.add(SPIN.THIS_VAR_NAME, absolutePath);
-        qsm.add(LDT.Ontology.getLocalName(), getApplication().getOntology());
-        qsm.add(LDT.base.getLocalName(), getApplication().getBase());
+//        qsm.add(LDT.Ontology.getLocalName(), getApplication().getOntology());
+//        qsm.add(LDT.base.getLocalName(), getApplication().getBase());
         
 //        if (!absolutePath.equals(getApplication().getBase())) // enable $Container pattern, unless the Root document is requested
 //        {
@@ -206,7 +206,7 @@ public class AuthorizationFilter implements ContainerRequestFilter
             if (!docTypes.hasNext()) // if the document resource has no types, we assume the document does not exist
             {
                 // special case for PUT requests to non-existing document: allow if the agent has acl:Write acess to the *parent* URI
-                if (accessMode.equals(ACL.Write))
+                if (request.getMethod().equals(HttpMethod.PUT))
                 {
                     URI parentURI = URI.create(accessTo.getURI()).resolve("..");
                     log.debug("Requested document <{}> not found, falling back to parent URI <{}>", accessTo, parentURI);
@@ -247,17 +247,12 @@ public class AuthorizationFilter implements ContainerRequestFilter
         ResIterator it = authModel.listResourcesWithProperty(ACL.mode, accessMode);
         try
         {
-            if (it.hasNext())
-            {
-                return it.next();
-            }
+            return it.nextOptional().orElse(null);
         }
         finally
         {
             it.close();
-        }
-        
-        return null;
+        }        
     }
     
     /**
