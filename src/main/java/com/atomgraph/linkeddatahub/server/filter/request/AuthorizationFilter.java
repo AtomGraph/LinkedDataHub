@@ -200,6 +200,7 @@ public class AuthorizationFilter implements ContainerRequestFilter
         QuerySolutionMap docTypeQsm = new QuerySolutionMap();
         docTypeQsm.add(SPIN.THIS_VAR_NAME, accessTo);
         ResultSet docTypes = loadResultSet(getApplication().getService(), getDocumentTypeQuery(), docTypeQsm);
+        
         try
         {
             if (!docTypes.hasNext()) // if the document resource has no types, we assume the document does not exist

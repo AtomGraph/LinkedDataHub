@@ -132,8 +132,6 @@ WHERE
 
      { ?auth  acl:accessTo  $this }
    UNION
-     { ?auth  acl:accessTo  $Container }
-   UNION
      {   { ?auth  acl:accessToClass  ?Type }
        UNION
          { ?auth  acl:accessToClass  ?Class .
