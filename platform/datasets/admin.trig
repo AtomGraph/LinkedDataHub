@@ -372,10 +372,20 @@ WHERE
 
 }
 
+# ENDPOINTS
+
+<clear>
+{
+
+    <clear> a foaf:Document ;
+        dct:title "Clear ontology endpoint" .
+
+}
+
 <oauth2/login>
 {
 
-    <oauth2/login> a dh:Item ;
+    <oauth2/login> a foaf:Document ;
         dct:title "OAuth 2.0 login" .
 
 }
@@ -383,7 +393,7 @@ WHERE
 <oauth2/authorize/google>
 {
 
-    <oauth2/authorize/google> a dh:Item ;
+    <oauth2/authorize/google> a foaf:Document ;
         dct:title "Google OAuth2.0 authorization" .
 
 }
