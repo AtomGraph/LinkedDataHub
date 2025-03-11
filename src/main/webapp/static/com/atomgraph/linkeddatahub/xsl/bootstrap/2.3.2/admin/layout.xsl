@@ -41,7 +41,6 @@ exclude-result-prefixes="#all">
 
     <xsl:import href="../layout.xsl"/>
     <xsl:include href="signup.xsl"/>
-<!--    <xsl:include href="request-access.xsl"/>-->
     <xsl:include href="acl/layout.xsl"/>
 
     <xsl:param name="default-classes" select="(xs:anyURI('&owl;Ontology'), xs:anyURI('&sh;NodeShape'), xs:anyURI('&sh;PropertyShape'), xs:anyURI('&acl;Authorization'), xs:anyURI('&foaf;Person'), xs:anyURI('&cert;PublicKey'), xs:anyURI('&sioc;UserAccount'), xs:anyURI('&foaf;Group'))" as="xs:anyURI*"/>
@@ -101,7 +100,7 @@ exclude-result-prefixes="#all">
     
     <!-- ROW FORM - we need the overriding templates as well -->
     
-    <!-- add "Create" button to the creatable class list below the form. Needs to pass parameters from signup.xsl and request-access.xsl!!! -->
+    <!-- add "Create" button to the creatable class list below the form. Needs to pass parameters from signup.xsl!!! -->
     <xsl:template match="rdf:RDF[$ac:method = 'GET']" mode="bs2:RowForm" use-when="system-property('xsl:product-name') = 'SAXON'">
         <xsl:param name="id" select="concat('form-', generate-id())" as="xs:string?"/>
         <xsl:param name="class" select="'row-fluid'" as="xs:string?"/>
@@ -124,7 +123,7 @@ exclude-result-prefixes="#all">
     </xsl:template>
     
     <!-- allow subject editing in admin EditMode -->
-    <!-- there are templates (e.g. in signup.xsl and request-access.xsl overriding this so we need to pass the params through -->
+    <!-- there are templates (e.g. in signup.xsl) overriding this so we need to pass the params through -->
     <xsl:template match="*[*][@rdf:about or @rdf:nodeID]" mode="bs2:FormControl">
         <xsl:param name="legend" select="true()" as="xs:boolean"/>
         <xsl:param name="show-subject" select="not(rdf:type/@rdf:resource = ('&dh;Item', '&dh;Container'))" as="xs:boolean" tunnel="yes"/>
