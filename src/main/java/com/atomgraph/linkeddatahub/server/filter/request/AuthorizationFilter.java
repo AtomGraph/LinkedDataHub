@@ -222,11 +222,10 @@ public class AuthorizationFilter implements ContainerRequestFilter
                     docTypes = loadResultSet(getApplication().getService(), getDocumentTypeQuery(), docTypeQsm);
                     
                     Set<Resource> parentTypes = new HashSet<>();
-                    while (docTypes.hasNext())
-                        parentTypes.add(docTypes.next().getResource("Type"));
+                    docTypes.forEachRemaining(qs -> parentTypes.add(qs.getResource("Type")));
                     
                     // only root and containers allow child documents
-                    if (!(parentTypes.contains(Default.Root) || parentTypes.contains(DH.Container))) return null;
+                    if (Collections.disjoint(parentTypes, Set.of(Default.Root, DH.Container))) return null;
                     
                     docTypes.reset(); // rewind result set to the beginning
                 }
