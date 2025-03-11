@@ -24,6 +24,7 @@ import com.atomgraph.linkeddatahub.model.auth.Agent;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.server.security.AuthorizationContext;
 import com.atomgraph.linkeddatahub.vocabulary.ACL;
+import com.atomgraph.linkeddatahub.vocabulary.Default;
 import com.atomgraph.linkeddatahub.vocabulary.SIOC;
 import com.atomgraph.server.vocabulary.LDT;
 import com.atomgraph.spinrdf.vocabulary.SPIN;
@@ -224,7 +225,8 @@ public class AuthorizationFilter implements ContainerRequestFilter
                     while (docTypes.hasNext())
                         parentTypes.add(docTypes.next().getResource("Type"));
                     
-                    if (!parentTypes.contains(SIOC.CONTAINER)) return null; // only containers allow child documents
+                    // only root and containers allow child documents
+                    if (!(parentTypes.contains(Default.Root) || parentTypes.contains(SIOC.CONTAINER))) return null;
                     
                     docTypes.reset(); // rewind result set to the beginning
                 }
