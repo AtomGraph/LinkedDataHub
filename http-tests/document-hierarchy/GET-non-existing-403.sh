@@ -17,24 +17,8 @@ add-agent-to-group.sh \
 
 # check that access to graph with parent is allowed, but the graph is not found
 
-update=$(cat <<EOF
-PREFIX  rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-
-INSERT
-{
-  <${END_USER_BASE_URL}> rdf:_2 <${END_USER_BASE_URL}#whateverest>
-}
-WHERE
-{}
-EOF
-)
-
-(
-curl -k -w "%{http_code}\n" -o /dev/null -s \
+curl -k -w "%{http_code}\n" -o /dev/null -s -G \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
-  -X PATCH \
-  -H "Content-Type: application/sparql-update" \
+  -H "Accept: application/n-triples" \
   "${END_USER_BASE_URL}non-existing/" \
-   --data-binary "$update"
-) \
-| grep -q "$STATUS_NOT_FOUND"
+| grep -q "$STATUS_FORBIDDEN"

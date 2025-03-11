@@ -7,9 +7,24 @@ purge_cache "$END_USER_VARNISH_SERVICE"
 purge_cache "$ADMIN_VARNISH_SERVICE"
 purge_cache "$FRONTEND_VARNISH_SERVICE"
 
-# check that read access without authorization is forbidden
+# check that write access without authorization is forbidden
 
-curl -k -w "%{http_code}\n" -o /dev/null -s -G \
+update=$(cat <<EOF
+PREFIX  rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+
+INSERT
+{
+  <${END_USER_BASE_URL}> rdf:_2 <${END_USER_BASE_URL}#whateverest>
+}
+WHERE
+{}
+EOF
+)
+
+curl -k -w "%{http_code}\n" -o /dev/null -f -s \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
+  -X PATCH \
+  -H "Content-Type: application/sparql-update" \
   "$END_USER_BASE_URL" \
+   --data-binary "$update" \
 | grep -q "$STATUS_FORBIDDEN"

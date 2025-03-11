@@ -15,11 +15,11 @@ add-agent-to-group.sh \
   --agent "$AGENT_URI" \
   "${ADMIN_BASE_URL}acl/groups/writers/"
 
-# check that access to graph with parent is allowed, but the graph is not found
+# check that access to non-existing graph is forbidden
 
 curl -k -w "%{http_code}\n" -o /dev/null -s -G \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
   -X DELETE \
   -H "Accept: application/n-triples" \
   "${END_USER_BASE_URL}non-existing/" \
-| grep -q "$STATUS_NOT_FOUND"
+| grep -q "$STATUS_FORBIDDEN"

@@ -7,16 +7,11 @@ purge_cache "$END_USER_VARNISH_SERVICE"
 purge_cache "$ADMIN_VARNISH_SERVICE"
 purge_cache "$FRONTEND_VARNISH_SERVICE"
 
-# check that append access without authorization is forbidden
+# check that write access without authorization is forbidden
 
-(
 curl -k -w "%{http_code}\n" -o /dev/null -s \
-  -X POST \
+  -X DELETE \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
-  -H "Content-Type: application/n-triples" \
-   --data-binary @- \
-  "$END_USER_BASE_URL" <<EOF
-<http://s> <http://p> <http://o> .
-EOF
-) \
+  -H "Accept: application/n-triples" \
+    "$END_USER_BASE_URL" \
 | grep -q "$STATUS_FORBIDDEN"
