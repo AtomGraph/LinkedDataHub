@@ -116,11 +116,9 @@ public class AccessRequest extends GraphStoreImpl
                 Model requestModel = ModelFactory.createDefaultModel();
                 
                 Resource accessMode = authorization.getPropertyResourceValue(ACL.mode);
-                // the RDF/POST encoding in the access request form can produce authorizations without modes (when none a checked) - ignore those
-                if (accessMode == null) continue;
-                
                 Resource agent = authorization.getPropertyResourceValue(ACL.agent);
-                // TO-DO: double-check agent
+                if (!agent.equals(getAgentContext().get().getAgent())) throw new IllegalStateException("Agent requesting access must be authenticated");
+
                 Resource agentGroup = authorization.getPropertyResourceValue(ACL.agentGroup);
                 Resource accessTo = authorization.getPropertyResourceValue(ACL.accessTo);
                 Resource accessToClass = authorization.getPropertyResourceValue(ACL.accessToClass);

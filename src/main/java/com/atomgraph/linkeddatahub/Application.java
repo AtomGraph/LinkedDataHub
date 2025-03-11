@@ -312,8 +312,6 @@ public class Application extends ResourceConfig
             servletConfig.getServletContext().getInitParameter(LDHC.secretaryCertAlias.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.secretaryCertAlias.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(LDHC.clientTrustStore.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.clientTrustStore.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(LDHC.clientTrustStorePassword.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.clientTrustStorePassword.getURI()) : null,
-            servletConfig.getServletContext().getInitParameter(LDHC.authQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.authQuery.getURI()) : null,
-            servletConfig.getServletContext().getInitParameter(LDHC.ownerAuthQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.ownerAuthQuery.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(LDHC.aclQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.aclQuery.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(LDHC.ownerAclQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.ownerAclQuery.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(LDHC.webIDQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.webIDQuery.getURI()) : null,
@@ -371,8 +369,6 @@ public class Application extends ResourceConfig
      * @param secretaryCertAlias alias of the secretary's certificate
      * @param clientTrustStoreURIString location of the client's truststore
      * @param clientTrustStorePassword client truststore's password
-     * @param authQueryString SPARQL string of the authorization query
-     * @param ownerAuthQueryString SPARQL string of the owner's authorization query
      * @param aclQueryString SPARQL string of the ACL query
      * @param ownerAclQueryString SPARQL string of the owner's ACL query
      * @param webIDQueryString SPARQL string of the WebID validation query
@@ -409,7 +405,7 @@ public class Application extends ResourceConfig
             final String clientKeyStoreURIString, final String clientKeyStorePassword,
             final String secretaryCertAlias,
             final String clientTrustStoreURIString, final String clientTrustStorePassword,
-            final String authQueryString, final String ownerAuthQueryString, final String aclQueryString, final String ownerAclQueryString, final String webIDQueryString, final String agentQueryString, final String userAccountQueryString, final String ontologyQueryString,
+            final String aclQueryString, final String ownerAclQueryString, final String webIDQueryString, final String agentQueryString, final String userAccountQueryString, final String ontologyQueryString,
             final String baseURIString, final String proxyScheme, final String proxyHostname, final Integer proxyPort,
             final String uploadRootString, final boolean invalidateCache,
             final Integer cookieMaxAge, final boolean enableLinkedDataProxy, final Integer maxContentLength,
@@ -435,20 +431,6 @@ public class Application extends ResourceConfig
             if (log.isErrorEnabled()) log.error("Client truststore store ({}) not configured", LDHC.clientTrustStore.getURI());
             throw new ConfigurationException(LDHC.clientTrustStore);
         }
-        
-//        if (authQueryString == null)
-//        {
-//            if (log.isErrorEnabled()) log.error("Authentication SPARQL query is not configured properly");
-//            throw new ConfigurationException(LDHC.authQuery);
-//        }
-//        this.authQuery = QueryFactory.create(authQueryString);
-//        
-//        if (ownerAuthQueryString == null)
-//        {
-//            if (log.isErrorEnabled()) log.error("Owner authorization SPARQL query is not configured properly");
-//            throw new ConfigurationException(LDHC.ownerAuthQuery);
-//        }
-//        this.ownerAuthQuery = QueryFactory.create(ownerAuthQueryString);
         
         if (aclQueryString == null)
         {
@@ -1665,28 +1647,6 @@ public class Application extends ResourceConfig
     {
         return secretaryWebIDURI;
     }
-    
-    /**
-     * Returns the authorization query.
-     * Used to check access to end-user apps.
-     * 
-     * @return query object
-     */
-//    public Query getAuthQuery()
-//    {
-//        return authQuery.cloneQuery();
-//    }
-//    
-//    /**
-//     * Returns the owner authorization query.
-//     * Used to check access to admin apps.
-//     * 
-//     * @return query object
-//     */
-//    public Query getOwnerAuthQuery()
-//    {
-//        return ownerAuthQuery.cloneQuery();
-//    }
     
     /**
      * Returns the authorization query.

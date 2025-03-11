@@ -748,7 +748,7 @@ WHERE
         rdfs:label "Full control" ;
         rdfs:comment "Allows full read/write access to all application resources" ;
         acl:accessToClass dh:Item, dh:Container, def:Root ;
-        acl:accessTo <../sparql>, <../service>, <../importer>, <../transform>, <../generate>, <../ns> ;
+        acl:accessTo <../sparql>, <../importer>, <../transform>, <../generate>, <../ns>, <clear> ;
         acl:mode acl:Read, acl:Append, acl:Write, acl:Control ;
         acl:agentGroup <acl/groups/owners/#this> .
 
@@ -768,7 +768,7 @@ WHERE
         rdfs:label "Write/append access" ;
         rdfs:comment "Allows write access to all documents and containers" ;
         acl:accessToClass dh:Item, dh:Container, def:Root ;
-        acl:accessTo <../sparql>, <../service>, <../importer>, <../transform>, <../generate>, <../ns> ;
+        acl:accessTo <../sparql>, <../importer>, <../transform>, <../generate>, <../ns> ;
         acl:mode acl:Write, acl:Append ;
         acl:agentGroup <acl/groups/owners/#this>, <acl/groups/writers/#this> .
 
@@ -788,7 +788,7 @@ WHERE
         rdfs:label "Read access" ;
         rdfs:comment "Allows read access to all resources" ;
         acl:accessToClass dh:Item, dh:Container, def:Root, <http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#FileDataObject> ;
-        acl:accessTo <../sparql>, <../service> ;
+        acl:accessTo <../sparql> ;
         acl:mode acl:Read ;
         acl:agentGroup <acl/groups/owners/#this>, <acl/groups/writers/#this>, <acl/groups/readers/#this> .
 

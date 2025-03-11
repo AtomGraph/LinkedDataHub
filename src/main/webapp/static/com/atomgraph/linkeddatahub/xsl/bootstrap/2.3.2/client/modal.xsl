@@ -448,24 +448,16 @@ LIMIT   10
                 </thead>
                 <tbody>
                     <!-- the current document's URL is always shown -->
-                    <xsl:if test="not(rdf:Description[acl:accessTo/@rdf:resource = $this])">
-                        <xsl:variable name="this-auth" as="element()">
-                            <rdf:Description>
-                                <rdf:type rdf:resource="&acl;Authorization"/>
-                                <acl:agent rdf:resource="{$agent}"/>
-                                <acl:accessTo rdf:resource="{$this}"/>
-                            </rdf:Description>
-                        </xsl:variable>
-                        
-                        <xsl:apply-templates select="$this-auth" mode="access-to">
-                            <xsl:with-param name="agent" select="$agent"/>
-                            <xsl:with-param name="access-modes" select="$access-modes"/>
-                            <xsl:with-param name="access-to" select="$this"/>
-                        </xsl:apply-templates>
-                    </xsl:if>
+                    <xsl:variable name="this-auth" as="element()">
+                        <rdf:Description>
+                            <rdf:type rdf:resource="&acl;Authorization"/>
+                            <acl:agent rdf:resource="{$agent}"/>
+                            <acl:accessTo rdf:resource="{$this}"/>
+                        </rdf:Description>
+                    </xsl:variable>
                     
                     <!-- [(acl:agent/@rdf:resource, acl:agentGroup/@rdf:resource, acl:agentClass/@rdf:resource) = $agent] -->
-                    <xsl:for-each-group select="rdf:Description[acl:accessTo/@rdf:resource]"
+                    <xsl:for-each-group select="($this-auth, rdf:Description[acl:accessTo/@rdf:resource])"
                                         group-by="acl:accessTo/@rdf:resource">
                         <xsl:variable name="granted-access-modes" select="distinct-values(current-group()/acl:mode/@rdf:resource)" as="xs:anyURI*"/>
 
@@ -506,27 +498,19 @@ LIMIT   10
                 <tbody>
                     <xsl:variable name="default-classes" select="(xs:anyURI('&def;Root'), xs:anyURI('&dh;Container'), xs:anyURI('&dh;Item'), xs:anyURI('&nfo;FileDataObject'))" as="xs:anyURI*"/>
                     <!-- the current document's class is always shown -->
-                    <xsl:if test="not(rdf:Description[acl:accessToClass/@rdf:resource = ac:absolute-path(ldh:base-uri(.))])">
+                    <xsl:variable name="this-auth" as="element()*">
                         <xsl:for-each select="$default-classes">
-                            <xsl:variable name="this-auth" as="element()">
-                                <rdf:Description>
-                                    <rdf:type rdf:resource="&acl;Authorization"/>
-                                    <acl:agent rdf:resource="{$agent}"/>
-                                    <acl:accessToClass rdf:resource="{.}"/>
-                                </rdf:Description>
-                            </xsl:variable>
-
-                            <xsl:apply-templates select="$this-auth" mode="access-to-class">
-                                <xsl:with-param name="agent" select="$agent"/>
-                                <xsl:with-param name="access-modes" select="$access-modes"/>
-                                <xsl:with-param name="access-to-class" select="."/>
-                            </xsl:apply-templates>
+                            <rdf:Description>
+                                <rdf:type rdf:resource="&acl;Authorization"/>
+                                <acl:agent rdf:resource="{$agent}"/>
+                                <acl:accessToClass rdf:resource="{.}"/>
+                            </rdf:Description>
                         </xsl:for-each>
-                    </xsl:if>
+                    </xsl:variable>
 
                     <!-- the types of this document that are not already show as $default-classes -->
                     <!-- [(acl:agent/@rdf:resource, acl:agentGroup/@rdf:resource, acl:agentClass/@rdf:resource) = $agent] -->
-                    <xsl:for-each-group select="rdf:Description[acl:accessToClass/@rdf:resource[not(. = $default-classes)]]"
+                    <xsl:for-each-group select="($this-auth, rdf:Description[acl:accessToClass/@rdf:resource[not(. = $default-classes)]])"
                                         group-by="acl:accessToClass/@rdf:resource">
                         <xsl:variable name="granted-access-modes" select="distinct-values(current-group()/acl:mode/@rdf:resource)" as="xs:anyURI*"/>
 
