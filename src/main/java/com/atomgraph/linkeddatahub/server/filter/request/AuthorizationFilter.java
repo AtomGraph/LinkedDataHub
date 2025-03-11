@@ -24,6 +24,7 @@ import com.atomgraph.linkeddatahub.model.auth.Agent;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.server.security.AuthorizationContext;
 import com.atomgraph.linkeddatahub.vocabulary.ACL;
+import com.atomgraph.linkeddatahub.vocabulary.SIOC;
 import com.atomgraph.server.vocabulary.LDT;
 import com.atomgraph.spinrdf.vocabulary.SPIN;
 import java.io.IOException;
@@ -42,7 +43,9 @@ import jakarta.ws.rs.container.PreMatching;
 import jakarta.ws.rs.core.Response;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import org.apache.jena.query.ParameterizedSparqlString;
 import org.apache.jena.query.Query;
 import org.apache.jena.query.QuerySolutionMap;
@@ -196,17 +199,17 @@ public class AuthorizationFilter implements ContainerRequestFilter
     public Resource authorize(ContainerRequestContext request, Resource agent, Resource accessMode)
     {
         Resource accessTo = ResourceFactory.createResource(request.getUriInfo().getAbsolutePath().toString());
-
+        
         QuerySolutionMap docTypeQsm = new QuerySolutionMap();
         docTypeQsm.add(SPIN.THIS_VAR_NAME, accessTo);
-        ResultSet docTypes = loadResultSet(getApplication().getService(), getDocumentTypeQuery(), docTypeQsm);
+        ResultSetRewindable docTypes = loadResultSet(getApplication().getService(), getDocumentTypeQuery(), docTypeQsm);
         
         try
         {
             if (!docTypes.hasNext()) // if the document resource has no types, we assume the document does not exist
             {
                 // special case for PUT requests to non-existing document: allow if the agent has acl:Write acess to the *parent* URI
-                if (request.getMethod().equals(HttpMethod.PUT))
+                if (request.getMethod().equals(HttpMethod.PUT) && accessMode.equals(ACL.Write))
                 {
                     URI parentURI = URI.create(accessTo.getURI()).resolve("..");
                     log.debug("Requested document <{}> not found, falling back to parent URI <{}>", accessTo, parentURI);
@@ -216,6 +219,14 @@ public class AuthorizationFilter implements ContainerRequestFilter
                     docTypeQsm.add(SPIN.THIS_VAR_NAME, accessTo);
                     docTypes.close();
                     docTypes = loadResultSet(getApplication().getService(), getDocumentTypeQuery(), docTypeQsm);
+                    
+                    Set<Resource> parentTypes = new HashSet<>();
+                    while (docTypes.hasNext())
+                        parentTypes.add(docTypes.next().getResource("Type"));
+                    
+                    if (!parentTypes.contains(SIOC.CONTAINER)) return null; // only containers allow child documents
+                    
+                    docTypes.reset(); // rewind result set to the beginning
                 }
                 else return null;
             }
@@ -295,7 +306,7 @@ public class AuthorizationFilter implements ContainerRequestFilter
      * @return authorization graph (can be empty)
      * @see com.atomgraph.linkeddatahub.vocabulary.LDHC#authQuery
      */
-    protected ResultSet loadResultSet(com.atomgraph.linkeddatahub.model.Service service, ParameterizedSparqlString pss, QuerySolutionMap qsm)
+    protected ResultSetRewindable loadResultSet(com.atomgraph.linkeddatahub.model.Service service, ParameterizedSparqlString pss, QuerySolutionMap qsm)
     {
         if (service == null) throw new IllegalArgumentException("Service cannot be null");
         if (pss == null) throw new IllegalArgumentException("ParameterizedSparqlString cannot be null");
@@ -305,7 +316,7 @@ public class AuthorizationFilter implements ContainerRequestFilter
         if (service.getSPARQLClient() instanceof SesameProtocolClient sesameProtocolClient)
             try (Response cr = sesameProtocolClient.query(pss.asQuery(), ResultSet.class, qsm)) // register(new CacheControlFilter(CacheControl.valueOf("no-cache"))). // add Cache-Control: no-cache to request
             {
-                return cr.readEntity(ResultSet.class);
+                return cr.readEntity(ResultSetRewindable.class);
             }
         else
         {
