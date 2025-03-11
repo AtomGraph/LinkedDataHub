@@ -125,9 +125,9 @@ public class AccessRequest extends GraphStoreImpl
                 
                 Resource accessRequest = requestModel.createResource().
                     addProperty(RDF.type, LACL.AuthorizationRequest).
+                    addProperty(LACL.requestAgent, agent).
                     addProperty(LACL.requestMode, accessMode).
                     addLiteral(DCTerms.created, GregorianCalendar.getInstance());
-                if (agent != null) accessRequest.addProperty(LACL.requestAgent, agent);
                 if (agentGroup != null) accessRequest.addProperty(LACL.requestAgentGroup, agentGroup);
                 if (accessTo != null) accessRequest.addProperty(LACL.requestAccessTo, accessTo);
                 if (accessToClass != null) accessRequest.addProperty(LACL.requestAccessToClass, accessToClass);

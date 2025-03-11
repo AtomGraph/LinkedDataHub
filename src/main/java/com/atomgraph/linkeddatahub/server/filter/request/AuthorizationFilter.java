@@ -164,17 +164,8 @@ public class AuthorizationFilter implements ContainerRequestFilter
     {
         QuerySolutionMap qsm = new QuerySolutionMap();
         qsm.add(SPIN.THIS_VAR_NAME, absolutePath);
-//        qsm.add(LDT.Ontology.getLocalName(), getApplication().getOntology());
         qsm.add(LDT.base.getLocalName(), getApplication().getBase());
         
-//        if (!absolutePath.equals(getApplication().getBase())) // enable $Container pattern, unless the Root document is requested
-//        {
-//            URI container = URI.create(absolutePath.getURI()).resolve("..");
-//            qsm.add(SIOC.CONTAINER.getLocalName(), ResourceFactory.createResource(container.toString()));
-//        }
-//        else // disable $Container pattern
-//            qsm.add(SIOC.CONTAINER.getLocalName(), RDFS.Resource);
-
         if (agent != null)
         {
             qsm.add("AuthenticatedAgentClass", ACL.AuthenticatedAgent); // enable AuthenticatedAgent UNION branch
@@ -204,6 +195,8 @@ public class AuthorizationFilter implements ContainerRequestFilter
         QuerySolutionMap docTypeQsm = new QuerySolutionMap();
         docTypeQsm.add(SPIN.THIS_VAR_NAME, accessTo);
         ResultSetRewindable docTypes = loadResultSet(getApplication().getService(), getDocumentTypeQuery(), docTypeQsm);
+        
+        // TO-DO: allow full access if the agent is the creator of the document
         
         try
         {
