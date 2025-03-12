@@ -55,6 +55,7 @@ import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.ResIterator;
 import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.rdf.model.StmtIterator;
 import org.apache.jena.vocabulary.DCTerms;
 import org.apache.jena.vocabulary.RDF;
 import org.slf4j.Logger;
@@ -115,7 +116,6 @@ public class AccessRequest extends GraphStoreImpl
                 graphUri = getAuthRequestContainerUriBuilder().path(UUID.randomUUID().toString() + "/").build(); // URI of the new access request graph
                 Model requestModel = ModelFactory.createDefaultModel();
                 
-                Resource accessMode = authorization.getPropertyResourceValue(ACL.mode);
                 Resource agent = authorization.getPropertyResourceValue(ACL.agent);
                 if (!agent.equals(getAgentContext().get().getAgent())) throw new IllegalStateException("Agent requesting access must be authenticated");
 
@@ -126,8 +126,19 @@ public class AccessRequest extends GraphStoreImpl
                 Resource accessRequest = requestModel.createResource().
                     addProperty(RDF.type, LACL.AuthorizationRequest).
                     addProperty(LACL.requestAgent, agent).
-                    addProperty(LACL.requestMode, accessMode).
                     addLiteral(DCTerms.created, GregorianCalendar.getInstance());
+
+                // add all requested access modes
+                StmtIterator modeIt = authorization.listProperties(ACL.mode);
+                try
+                {
+                    modeIt.forEachRemaining(stmt -> accessRequest.addProperty(LACL.requestMode, stmt.getResource()));
+                }
+                finally
+                {
+                    modeIt.close();
+                }
+                
                 if (agentGroup != null) accessRequest.addProperty(LACL.requestAgentGroup, agentGroup);
                 if (accessTo != null) accessRequest.addProperty(LACL.requestAccessTo, accessTo);
                 if (accessToClass != null) accessRequest.addProperty(LACL.requestAccessToClass, accessToClass);

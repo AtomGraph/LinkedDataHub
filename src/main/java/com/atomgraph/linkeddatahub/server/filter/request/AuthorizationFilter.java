@@ -49,15 +49,18 @@ import java.util.List;
 import java.util.Set;
 import org.apache.jena.query.ParameterizedSparqlString;
 import org.apache.jena.query.Query;
+import org.apache.jena.query.QuerySolution;
 import org.apache.jena.query.QuerySolutionMap;
 import org.apache.jena.query.ResultSet;
 import org.apache.jena.query.ResultSetRewindable;
 import org.apache.jena.rdf.model.Model;
+import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.ResIterator;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.engine.binding.Binding;
+import org.apache.jena.vocabulary.RDF;
 import org.apache.jena.vocabulary.RDFS;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -195,11 +198,16 @@ public class AuthorizationFilter implements ContainerRequestFilter
         QuerySolutionMap docTypeQsm = new QuerySolutionMap();
         docTypeQsm.add(SPIN.THIS_VAR_NAME, accessTo);
         ResultSetRewindable docTypes = loadResultSet(getApplication().getService(), getDocumentTypeQuery(), docTypeQsm);
-        
-        // TO-DO: allow full access if the agent is the creator of the document
-        
+
         try
         {
+            // special case where the agent is the owner of the requested document - automatically grant acl:Read/acl:Append/acl:Write access
+            if (isOwner(docTypes, agent))
+            {
+                log.debug("Agent <{}> is the owner of <{}>, granting acl:Read/acl:Append/acl:Write access", agent, accessTo);
+                return createOwnerAuthorization(accessTo, agent);
+            }
+
             if (!docTypes.hasNext()) // if the document resource has no types, we assume the document does not exist
             {
                 // special case for PUT requests to non-existing document: allow if the agent has acl:Write acess to the *parent* URI
@@ -214,6 +222,13 @@ public class AuthorizationFilter implements ContainerRequestFilter
                     docTypes.close();
                     docTypes = loadResultSet(getApplication().getService(), getDocumentTypeQuery(), docTypeQsm);
                     
+                    // special case where the agent is the owner of the requested document - automatically grant acl:Read/acl:Append/acl:Write access
+                    if (isOwner(docTypes, agent))
+                    {
+                        log.debug("Agent <{}> is the owner of <{}>, granting acl:Read/acl:Append/acl:Write access", agent, accessTo);
+                        return createOwnerAuthorization(accessTo, agent);
+                    }
+            
                     Set<Resource> parentTypes = new HashSet<>();
                     docTypes.forEachRemaining(qs -> parentTypes.add(qs.getResource("Type")));
                     
@@ -259,6 +274,28 @@ public class AuthorizationFilter implements ContainerRequestFilter
         }        
     }
     
+    /**
+     * Checks if the given agent is the <code>acl:owner</code> of the document.
+     * 
+     * @param docTypes The result set containing document metadata.
+     * @param agent The agent whose ownership is checked.
+     * @return true if the agent is the owner, false otherwise.
+     */
+    protected boolean isOwner(ResultSetRewindable docTypes, Resource agent)
+    {
+        Resource owner = null;
+
+        while (docTypes.hasNext())
+        {
+            QuerySolution qs = docTypes.next();
+            if (owner == null && qs.contains("owner")) owner = qs.getResource("owner");
+        }
+
+        docTypes.reset();
+
+        return owner != null && owner.equals(agent);
+    }
+
     /**
      * Loads RDF graph from a service.
      * 
@@ -345,6 +382,27 @@ public class AuthorizationFilter implements ContainerRequestFilter
     }
     
     /**
+     * Creates a special <code>acl:Authorization</code> resource for an owner.
+     * @param accessTo requested URI
+     * @param agent authenticated agent
+     * @return authorization resource
+     */
+    public Resource createOwnerAuthorization(Resource accessTo, Resource agent)
+    {
+        if (accessTo == null) throw new IllegalArgumentException("Document resource cannot be null");
+        if (agent == null) throw new IllegalArgumentException("Agent resource cannot be null");
+
+        return ModelFactory.createDefaultModel().
+                createResource().
+                addProperty(RDF.type, ACL.Authorization).
+                addProperty(ACL.accessTo, accessTo).
+                addProperty(ACL.agent, agent).
+                addProperty(ACL.mode, ACL.Read).
+                addProperty(ACL.mode, ACL.Write).
+                addProperty(ACL.mode, ACL.Append);
+    }
+
+    /**
      * Returns a query that selects the types of a given document.
      * 
      * @return SPARQL string
@@ -352,17 +410,29 @@ public class AuthorizationFilter implements ContainerRequestFilter
     public ParameterizedSparqlString getDocumentTypeQuery()
     {
         // TO-DO: move to web.xml
-        return new ParameterizedSparqlString("SELECT  ?Type\n" +
+        return new ParameterizedSparqlString("PREFIX acl: <http://www.w3.org/ns/auth/acl#>\n" +
+"\n" +
+"SELECT  ?Type ?owner\n" +
 "WHERE\n" +
-"  {   { GRAPH ?this\n" +
-"          { ?this  a  ?Type }\n" +
+"  {   { GRAPH $this\n" +
+"          { $this\n" +
+"                      a  ?Type\n" +
+"            OPTIONAL\n" +
+"            {\n" +
+"                $this acl:owner ?owner\n" +
+"            }\n" +
+"          }\n" +
 "      }\n" +
 "    UNION\n" +
-"      { { GRAPH ?g\n" +
-"            { ?this  a  <http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#FileDataObject> ;\n" +
-"                     a  ?Type\n" +
+"      { GRAPH ?g\n" +
+"            { $this\n" +
+"                        a  <http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#FileDataObject> ;\n" +
+"                        a  ?Type\n" +
+"                OPTIONAL\n" +
+"                {\n" +
+"                    $this acl:owner ?owner\n" +
+"                }\n" +
 "            }\n" +
-"        }\n" +
 "      }\n" +
 "  }");
     }

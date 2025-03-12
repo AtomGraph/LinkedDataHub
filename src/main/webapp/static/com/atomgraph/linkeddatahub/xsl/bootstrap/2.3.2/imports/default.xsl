@@ -1182,4 +1182,48 @@ exclude-result-prefixes="#all"
         </xsl:choose>
     </xsl:template>
     
+    <!-- TO-DO: move to Web-Client -->
+    <xsl:template name="xhtml:Input">
+        <xsl:param name="type" as="xs:string"/>
+        <xsl:param name="id" as="xs:string?"/>
+        <xsl:param name="class" as="xs:string?"/>
+        <xsl:param name="name" as="xs:string?"/>
+        <xsl:param name="style" as="xs:string?"/>
+        <xsl:param name="disabled" as="xs:boolean?"/>
+        <xsl:param name="title" as="xs:string?"/>
+        <xsl:param name="value" as="xs:string?"/>
+        <xsl:param name="checked" as="xs:boolean?"/>
+        <xsl:param name="autocomplete" select="true()" as="xs:boolean?"/>
+        
+        <input type="{$type}">
+            <xsl:if test="$id">
+                <xsl:attribute name="id" select="$id"/>
+            </xsl:if>
+            <xsl:if test="$class">
+                <xsl:attribute name="class" select="$class"/>
+            </xsl:if>
+            <xsl:if test="$name">
+                <xsl:attribute name="name" select="$name"/>
+            </xsl:if>
+            <xsl:if test="$style">
+                <xsl:attribute name="style" select="$style"/>
+            </xsl:if>
+            <xsl:if test="$disabled">
+                <xsl:attribute name="disabled" select="'disabled'"/>
+            </xsl:if>
+            <xsl:if test="$title">
+                <xsl:attribute name="title" select="$title"/>
+            </xsl:if>
+            <xsl:if test="exists($value)"> <!-- needs to allow empty strings -->
+                <xsl:attribute name="value" select="$value"/>
+            </xsl:if>
+            <xsl:if test="$checked">
+                <xsl:attribute name="checked" select="'checked'"/>
+            </xsl:if>
+            <xsl:if test="not($autocomplete)">
+                <xsl:attribute name="autocomplete" select="'off'"/>
+            </xsl:if>
+        </input>
+    </xsl:template>
+    
 </xsl:stylesheet>

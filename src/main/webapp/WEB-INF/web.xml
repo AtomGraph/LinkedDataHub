@@ -15,7 +15,6 @@
         <param-name>https://w3id.org/atomgraph/linkeddatahub/config#authCacheControl</param-name>
         <param-value>max-age=69</param-value>
     </context-param>
-
     <context-param>
         <param-name>https://w3id.org/atomgraph/linkeddatahub/config#aclQuery</param-name>
         <param-value><![CDATA[
@@ -73,10 +72,10 @@ WHERE
           { ?auth  acl:accessTo  $this
           }
         UNION
-          { ?auth  acl:accessToClass  ?Type }
+          { ?auth  acl:accessToClass  $Type }
         UNION
           { ?auth  acl:accessToClass  ?Class .
-            ?Type (rdfs:subClassOf)* ?Class
+            $Type (rdfs:subClassOf)* ?Class
           }
       }
     UNION
@@ -85,10 +84,10 @@ WHERE
           { ?auth  acl:accessTo  $this
           }
         UNION
-          { ?auth  acl:accessToClass  ?Type }
+          { ?auth  acl:accessToClass  $Type }
         UNION
           { ?auth  acl:accessToClass  ?Class .
-            ?Type (rdfs:subClassOf)* ?Class
+            $Type (rdfs:subClassOf)* ?Class
           }
         # only namespace, signup, OAuth2 login and WebID profiles can be public in admin app, nothing else
         FILTER ( $this IN (uri(concat(str($base), "ns")), uri(concat(str($base), "sign%20up")), uri(concat(str($base), "oauth2/login")), uri(concat(str($base), "oauth2/authorize/google"))) || strstarts(str($this), concat(str($base), "acl/agents/")) || strstarts(str($this), concat(str($base), "acl/public-keys/")))

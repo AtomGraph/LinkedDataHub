@@ -160,7 +160,7 @@ exclude-result-prefixes="#all"
         <xsl:choose>
             <xsl:when test="$inputs[1]/@name = 'rdf'">
                 <xsl:variable name="value-inputs" select="subsequence($inputs, 2)[ixsl:contains(., 'value')]" as="element()*"/> <!-- skip the initial <input name="rdf"/> -->
-                <xsl:variable name="value-inputs" select="$value-inputs[not(ixsl:get(., 'value') = '')]" as="element()*"/> <!-- filter out empty values -->
+                <xsl:variable name="value-inputs" select="$value-inputs[not(@name = 'ol' and ixsl:get(., 'value') = '')]" as="element()*"/> <!-- filter out empty literal values (empty 'su' values are valid: those are relative subject URIs) -->
                 <xsl:iterate select="$value-inputs">
                     <xsl:param name="subj-input" select="if ($value-inputs[1]/@name = ('sb', 'su')) then $value-inputs[1] else ()" as="element()?"/>
                     <xsl:param name="pred-input" as="element()?"/>
