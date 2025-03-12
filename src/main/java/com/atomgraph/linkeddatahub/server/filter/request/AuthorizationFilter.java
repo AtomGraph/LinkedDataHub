@@ -222,13 +222,6 @@ public class AuthorizationFilter implements ContainerRequestFilter
                     docTypes.close();
                     docTypes = loadResultSet(getApplication().getService(), getDocumentTypeQuery(), docTypeQsm);
                     
-                    // special case where the agent is the owner of the requested document - automatically grant acl:Read/acl:Append/acl:Write access
-                    if (isOwner(docTypes, agent))
-                    {
-                        log.debug("Agent <{}> is the owner of <{}>, granting acl:Read/acl:Append/acl:Write access", agent, accessTo);
-                        return createOwnerAuthorization(accessTo, agent);
-                    }
-            
                     Set<Resource> parentTypes = new HashSet<>();
                     docTypes.forEachRemaining(qs -> parentTypes.add(qs.getResource("Type")));
                     
@@ -236,6 +229,13 @@ public class AuthorizationFilter implements ContainerRequestFilter
                     if (Collections.disjoint(parentTypes, Set.of(Default.Root, DH.Container))) return null;
                     
                     docTypes.reset(); // rewind result set to the beginning
+                    
+                    // special case where the agent is the owner of the requested document - automatically grant acl:Read/acl:Append/acl:Write access
+                    if (isOwner(docTypes, agent))
+                    {
+                        log.debug("Agent <{}> is the owner of <{}>, granting acl:Read/acl:Append/acl:Write access", agent, accessTo);
+                        return createOwnerAuthorization(accessTo, agent);
+                    }
                 }
                 else return null;
             }
