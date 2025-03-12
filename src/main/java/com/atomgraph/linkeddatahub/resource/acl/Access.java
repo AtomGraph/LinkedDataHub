@@ -28,6 +28,8 @@ import com.atomgraph.linkeddatahub.model.auth.Agent;
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
 import com.atomgraph.linkeddatahub.server.util.AuthorizationParams;
 import com.atomgraph.linkeddatahub.server.util.SetResultSetValues;
+import com.atomgraph.linkeddatahub.vocabulary.ACL;
+import com.atomgraph.linkeddatahub.vocabulary.LACL;
 import com.atomgraph.spinrdf.vocabulary.SPIN;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.BadRequestException;
@@ -45,11 +47,15 @@ import java.util.Optional;
 import org.apache.jena.ontology.Ontology;
 import org.apache.jena.query.ParameterizedSparqlString;
 import org.apache.jena.query.Query;
+import org.apache.jena.query.QuerySolution;
 import org.apache.jena.query.QuerySolutionMap;
 import org.apache.jena.query.ResultSet;
 import org.apache.jena.query.ResultSetRewindable;
+import org.apache.jena.rdf.model.Model;
+import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
+import org.apache.jena.vocabulary.RDF;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -112,19 +118,29 @@ public class Access extends com.atomgraph.core.model.impl.SPARQLEndpointImpl
         
         try
         {
-            if (!getUriInfo().getQueryParameters().containsKey(SPIN.THIS_VAR_NAME)) throw new BadRequestException();
+            if (!getUriInfo().getQueryParameters().containsKey(SPIN.THIS_VAR_NAME)) throw new BadRequestException("?this query param is not provided");
             Resource accessTo = ResourceFactory.createResource(new URI(getUriInfo().getQueryParameters().getFirst(SPIN.THIS_VAR_NAME)).toString()); // ?this query param needs to be passed
             if (log.isDebugEnabled()) log.debug("Loading current agent's authorizations for the <{}> document", accessTo);
             
             QuerySolutionMap docTypeQsm = new QuerySolutionMap();
             docTypeQsm.add(SPIN.THIS_VAR_NAME, accessTo);
-            ResultSet docTypes = loadResultSet(getEndUserService(), getDocumentTypeQuery(), docTypeQsm);
+            ResultSetRewindable docTypes = loadResultSet(getEndUserService(), getDocumentTypeQuery(), docTypeQsm);
             try
             {
                 authPss.setParams(new AuthorizationParams(getApplication().getBase(), accessTo, agent).get());
                 query = new SetResultSetValues().apply(authPss.asQuery(), docTypes);
+                assert query.toString().contains("VALUES");
+                docTypes.reset();
 
-                return super.get(query, defaultGraphUris, namedGraphUris);
+                Model authModel = getEndpointAccessor().loadModel(query, defaultGraphUris, namedGraphUris);
+                // special case where the agent is the owner of the requested document - automatically grant acl:Read/acl:Append/acl:Write access
+                if (isOwner(docTypes, agent))
+                {
+                    log.debug("Agent <{}> is the owner of <{}>, granting acl:Read/acl:Append/acl:Write access", agent, accessTo);
+                    authModel.add(createOwnerAuthorization(accessTo, agent).getModel());
+                }
+                
+                return getResponseBuilder(authModel).build();
             }
             finally
             {
@@ -146,7 +162,7 @@ public class Access extends com.atomgraph.core.model.impl.SPARQLEndpointImpl
      * @return authorization graph (can be empty)
      * @see com.atomgraph.linkeddatahub.vocabulary.LDHC#authQuery
      */
-    protected ResultSet loadResultSet(com.atomgraph.linkeddatahub.model.Service service, ParameterizedSparqlString pss, QuerySolutionMap qsm)
+    protected ResultSetRewindable loadResultSet(com.atomgraph.linkeddatahub.model.Service service, ParameterizedSparqlString pss, QuerySolutionMap qsm)
     {
         if (service == null) throw new IllegalArgumentException("Service cannot be null");
         if (pss == null) throw new IllegalArgumentException("ParameterizedSparqlString cannot be null");
@@ -156,7 +172,7 @@ public class Access extends com.atomgraph.core.model.impl.SPARQLEndpointImpl
         if (service.getSPARQLClient() instanceof SesameProtocolClient sesameProtocolClient)
             try (Response cr = sesameProtocolClient.query(pss.asQuery(), ResultSet.class, qsm)) // register(new CacheControlFilter(CacheControl.valueOf("no-cache"))). // add Cache-Control: no-cache to request
             {
-                return cr.readEntity(ResultSet.class);
+                return cr.readEntity(ResultSetRewindable.class);
             }
         else
         {
@@ -167,6 +183,50 @@ public class Access extends com.atomgraph.core.model.impl.SPARQLEndpointImpl
                 return cr.readEntity(ResultSetRewindable.class);
             }
         }
+    }
+    
+    /**
+     * Checks if the given agent is the <code>acl:owner</code> of the document.
+     * 
+     * @param docTypes The result set containing document metadata.
+     * @param agent The agent whose ownership is checked.
+     * @return true if the agent is the owner, false otherwise.
+     */
+    protected boolean isOwner(ResultSetRewindable docTypes, Resource agent)
+    {
+        Resource owner = null;
+
+        while (docTypes.hasNext())
+        {
+            QuerySolution qs = docTypes.next();
+            if (owner == null && qs.contains("owner")) owner = qs.getResource("owner");
+        }
+
+        docTypes.reset();
+
+        return owner != null && owner.equals(agent);
+    }
+    
+    /**
+     * Creates a special <code>acl:Authorization</code> resource for an owner.
+     * @param accessTo requested URI
+     * @param agent authenticated agent
+     * @return authorization resource
+     */
+    public Resource createOwnerAuthorization(Resource accessTo, Resource agent)
+    {
+        if (accessTo == null) throw new IllegalArgumentException("Document resource cannot be null");
+        if (agent == null) throw new IllegalArgumentException("Agent resource cannot be null");
+
+        return ModelFactory.createDefaultModel().
+                createResource().
+                addProperty(RDF.type, ACL.Authorization).
+                addProperty(RDF.type, LACL.OwnerAuthorization).
+                addProperty(ACL.accessTo, accessTo).
+                addProperty(ACL.agent, agent).
+                addProperty(ACL.mode, ACL.Read).
+                addProperty(ACL.mode, ACL.Write).
+                addProperty(ACL.mode, ACL.Append);
     }
     
     /**

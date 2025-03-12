@@ -445,8 +445,10 @@ LIMIT   10
                             <acl:accessTo rdf:resource="{$this}"/>
                         </rdf:Description>
                     </xsl:variable>
-                    
-                    <xsl:for-each-group select="($this-auth, rdf:Description[acl:accessTo/@rdf:resource])"
+
+                    <!-- append an authorization for the current URL unless such already exists (e.g. lacl:OwnerAuthorization) -->
+                    <xsl:variable name="has-access-to-this-auth" select="exists(rdf:Description[acl:accessTo/@rdf:resource = $this])" as="xs:boolean"/>
+                    <xsl:for-each-group select="if ($has-access-to-this-auth) then rdf:Description[acl:accessTo/@rdf:resource] else ($this-auth, rdf:Description[acl:accessTo/@rdf:resource])"
                                         group-by="acl:accessTo/@rdf:resource[starts-with(., $ldt:base)]">
                         <xsl:variable name="granted-access-modes" select="distinct-values(current-group()/acl:mode/@rdf:resource)" as="xs:anyURI*"/>
 
@@ -578,11 +580,16 @@ LIMIT   10
     <xsl:template match="rdf:Description" mode="access-table">
         <xsl:param name="access-modes" as="xs:anyURI*"/>
         <xsl:param name="granted-access-modes" as="xs:anyURI*"/>
+        <xsl:param name="is-owner" select="rdf:type/@rdf:resource = '&lacl;OwnerAuthorization'" as="xs:boolean"/>
 
         <xsl:for-each select="$access-modes">
             <xsl:variable name="current-mode" select="."/>
             <td>
                 <label class="checkbox">
+                    <xsl:if test="$is-owner">
+                        <xsl:attribute name="class" select="'checkbox label label-info'"/>
+                    </xsl:if>
+                    
                     <input type="checkbox" name="ou" value="{$current-mode}">
                         <xsl:if test="$current-mode = $granted-access-modes">
                             <!-- the modes that the agent already has access to are disabled since the agent cannot ask for less access, only more -->
@@ -590,6 +597,12 @@ LIMIT   10
                             <xsl:attribute name="disabled">disabled</xsl:attribute>
                         </xsl:if>
                     </input>
+
+                    <xsl:if test="$is-owner">
+                        <xsl:value-of>
+                            <xsl:apply-templates select="key('resources', '&acl;owner', document(ac:document-uri('&acl;')))" mode="ac:label"/>
+                        </xsl:value-of>
+                    </xsl:if>
                 </label>
             </td>
         </xsl:for-each>

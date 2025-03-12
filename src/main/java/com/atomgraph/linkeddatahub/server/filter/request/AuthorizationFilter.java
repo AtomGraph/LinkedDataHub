@@ -217,7 +217,7 @@ public class AuthorizationFilter implements ContainerRequestFilter
             assert pss.toString().contains("VALUES");
 
             Model authModel = loadModel(getAdminService(), pss, new AuthorizationParams(getApplication().getBase(), accessTo, agent).get());
-            return authorize(authModel, accessMode);
+            return getAuthorizationByMode(authModel, accessMode);
         }
         finally
         {
@@ -226,13 +226,13 @@ public class AuthorizationFilter implements ContainerRequestFilter
     }
     
     /**
-     * Authorizes current request by applying solution map on the authorization query and executing it.
+     * Returns an authorization from the given model that has the given access mode..
      * 
      * @param authModel model with authorizations
      * @param accessMode ACL access mode
      * @return authorization resource or null
      */
-    public Resource authorize(Model authModel, Resource accessMode)
+    public Resource getAuthorizationByMode(Model authModel, Resource accessMode)
     {
         ResIterator it = authModel.listResourcesWithProperty(ACL.mode, accessMode);
         try
@@ -345,7 +345,7 @@ public class AuthorizationFilter implements ContainerRequestFilter
         return ModelFactory.createDefaultModel().
                 createResource().
                 addProperty(RDF.type, ACL.Authorization).
-                addProperty(RDF.type, LACL.CreatorAuthorization).
+                addProperty(RDF.type, LACL.OwnerAuthorization).
                 addProperty(ACL.accessTo, accessTo).
                 addProperty(ACL.agent, agent).
                 addProperty(ACL.mode, ACL.Read).
