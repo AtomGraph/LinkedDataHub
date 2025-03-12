@@ -65,6 +65,7 @@ import org.slf4j.LoggerFactory;
  * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
+@Deprecated
 public class RequestAccess extends GraphStoreImpl
 {
     

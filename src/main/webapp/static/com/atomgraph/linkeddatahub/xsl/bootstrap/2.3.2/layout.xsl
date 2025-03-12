@@ -81,7 +81,6 @@ exclude-result-prefixes="#all">
     <xsl:import href="../../../../client/xsl/bootstrap/2.3.2/internal-layout.xsl"/>
     <xsl:import href="imports/default.xsl"/>
     <xsl:import href="imports/ac.xsl"/>
-    <!-- <xsl:import href="imports/ldh.xsl"/> -->
     <xsl:import href="imports/dct.xsl"/>
     <xsl:import href="imports/nfo.xsl"/>
     <xsl:import href="imports/rdf.xsl"/>
@@ -131,8 +130,10 @@ exclude-result-prefixes="#all">
             <xsl:map-entry key="resolve-uri(ac:document-uri(xs:anyURI('&rdf;')), $ac:contextUri)" select="ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri(xs:anyURI('&rdf;'))), 'accept': 'application/rdf+xml' })"/>
             <xsl:map-entry key="resolve-uri(ac:document-uri(xs:anyURI('&rdfs;')), $ac:contextUri)" select="ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri(xs:anyURI('&rdfs;'))), 'accept': 'application/rdf+xml' })"/>
             <xsl:map-entry key="resolve-uri(ac:document-uri(xs:anyURI('&owl;')), $ac:contextUri)" select="ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri(xs:anyURI('&owl;'))), 'accept': 'application/rdf+xml' })"/>
+            <xsl:map-entry key="resolve-uri(ac:document-uri(xs:anyURI('&acl;')), $ac:contextUri)" select="ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri(xs:anyURI('&acl;'))), 'accept': 'application/rdf+xml' })"/>
             <xsl:map-entry key="resolve-uri(ac:document-uri(xs:anyURI('&sd;')), $ac:contextUri)" select="ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri(xs:anyURI('&sd;'))), 'accept': 'application/rdf+xml' })"/>
             <xsl:map-entry key="resolve-uri(ac:document-uri(xs:anyURI('&sh;')), $ac:contextUri)" select="ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri(xs:anyURI('&sh;'))), 'accept': 'application/rdf+xml' })"/>
+            <xsl:map-entry key="resolve-uri(ac:document-uri(xs:anyURI('&nfo;')), $ac:contextUri)" select="ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri(xs:anyURI('&nfo;'))), 'accept': 'application/rdf+xml' })"/>
         </xsl:map>
     </xsl:param>
     <xsl:param name="explore-service-query" as="xs:string">
@@ -590,8 +591,8 @@ LIMIT   100
             <xsl:if test="$class">
                 <xsl:attribute name="class" select="$class"/>
             </xsl:if>
-            
-            <xsl:if test="doc-available(ac:absolute-path($ldh:requestUri))">
+
+            <xsl:if test="$acl:mode = '&acl;Write' and not(key('resources-by-type', '&http;Response')) and doc-available(ac:absolute-path($ldh:requestUri))">
                 <!-- if the current resource is an Item, hide the "Create" dropdown as items cannot have child documents -->
                 <xsl:if test="not(key('resources', ac:absolute-path($ldh:requestUri), document(ac:absolute-path($ldh:requestUri)))/rdf:type/@rdf:resource = '&dh;Item')">
                     <xsl:variable name="document-classes" select="key('resources', ('&dh;Container', '&dh;Item'), document(ac:document-uri('&def;')))" as="element()*"/>
@@ -1087,12 +1088,11 @@ LIMIT   100
                 
                 <xsl:apply-templates select="." mode="ac:label"/>
                 
-                <xsl:variable name="request-access-to" select="ac:build-uri(lacl:requestAccess/@rdf:resource, map{ 'access-to': string($ac:uri) } )" as="xs:anyURI"/>
-                <a href="{ldh:href($ldt:base, ac:absolute-path($ldh:requestUri), map{}, $request-access-to)}" class="btn btn-primary pull-right">
+                <button type="button" class="btn btn-primary btn-access-form pull-right">
                     <xsl:value-of>
                         <xsl:apply-templates select="key('resources', 'request-access', document('translations.rdf'))" mode="ac:label"/>
                     </xsl:value-of>
-                </a>
+                </button>
             </h2>
         </div>
     </xsl:template>
@@ -1141,9 +1141,6 @@ LIMIT   100
             <xsl:if test="$ldh:ajaxRendering">
                 <div class="pull-right">
                     <button type="button" title="{ac:label(key('resources', 'save-as-title', document('translations.rdf')))}">
-                        <xsl:message>ldh:base-uri(.): <xsl:value-of select="ldh:base-uri(.)"/></xsl:message>
-                        <xsl:message>$ldh:requestUri: <xsl:value-of select="$ldh:requestUri"/></xsl:message>
-
                         <xsl:apply-templates select="key('resources', 'save-as', document('translations.rdf'))" mode="ldh:logo">
                             <!-- disable button if external document is not being browsed or the agent has no acl:Write access -->
                             <xsl:with-param name="class" select="'btn' || (if ((ac:absolute-path(ldh:base-uri(.)) = ac:absolute-path($ldh:requestUri)) or not($acl:mode = '&acl;Write')) then ' disabled' else ())"/>
@@ -1160,22 +1157,10 @@ LIMIT   100
             <div class="btn-group pull-right">
                 <button type="button" title="{ac:label(key('resources', 'acl-list-title', document('translations.rdf')))}">
                     <xsl:apply-templates select="key('resources', '&acl;Access', document(ac:document-uri('&acl;')))" mode="ldh:logo">
-                        <xsl:with-param name="class" select="'btn dropdown-toggle'"/>
+                        <xsl:with-param name="class" select="'btn'"/>
                     </xsl:apply-templates>
                     <xsl:apply-templates select="key('resources', '&acl;Access', document(ac:document-uri('&acl;')))" mode="ac:label"/>
-                    <xsl:text> </xsl:text>
-                    <span class="caret"></span>
                 </button>
-
-                <ul class="dropdown-menu">
-                    <xsl:for-each select="key('resources-by-subclass', '&acl;Access', document(ac:document-uri('&acl;')))">
-                        <xsl:sort select="ac:label(.)"/>
-                        <xsl:apply-templates select="." mode="bs2:AccessListItem">
-                            <xsl:with-param name="enabled" select="$acl:mode"/>
-                            <xsl:with-param name="base-uri" select="$base-uri" tunnel="yes"/>
-                        </xsl:apply-templates>
-                    </xsl:for-each>
-                </ul>
             </div>
         </xsl:if>
     </xsl:template>

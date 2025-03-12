@@ -93,7 +93,6 @@ public class Add extends GraphStoreImpl // TO-DO: does not need to extend GraphS
         super(request, uriInfo, mediaTypes, application, ontology, service, securityContext, agentContext, providers, system);
     }
     
-
     @GET
     @Override
     public Response get(@QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUri)

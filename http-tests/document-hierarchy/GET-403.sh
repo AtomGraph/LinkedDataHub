@@ -7,9 +7,9 @@ purge_cache "$END_USER_VARNISH_SERVICE"
 purge_cache "$ADMIN_VARNISH_SERVICE"
 purge_cache "$FRONTEND_VARNISH_SERVICE"
 
-# check that non-existing graph is forbidden
+# check that read access without authorization is forbidden
 
 curl -k -w "%{http_code}\n" -o /dev/null -s -G \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
-  "${END_USER_BASE_URL}non-existing/" \
+  "$END_USER_BASE_URL" \
 | grep -q "$STATUS_FORBIDDEN"

@@ -31,7 +31,6 @@ import java.util.HashMap;
 import jakarta.inject.Inject;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.ws.rs.container.ContainerRequestContext;
-import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.UriInfo;
 import jakarta.ws.rs.ext.Providers;
 import org.glassfish.hk2.api.Factory;
@@ -51,7 +50,6 @@ public class DataManagerFactory implements Factory<DataManager>
     private static final Logger log = LoggerFactory.getLogger(DataManagerFactory.class);
 
     @Context UriInfo uriInfo;
-    @Context ResourceContext resourceContext;
     @Context HttpServletRequest httpServletRequest;
     @Context Providers providers;
     @Context ServiceLocator serviceLocator;

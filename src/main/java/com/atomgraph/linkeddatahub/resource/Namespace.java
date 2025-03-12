@@ -113,8 +113,8 @@ public class Namespace extends com.atomgraph.core.model.impl.SPARQLEndpointImpl
                 Model instances = ModelFactory.createDefaultModel();
                 
                 forClasses.stream().
-                    map(forClass -> getOntology().getOntModel().getOntClass(checkURI(forClass).toString())).
-                    filter(forClass -> forClass != null).
+                    map(forClass -> Optional.ofNullable(getOntology().getOntModel().getOntClass(checkURI(forClass).toString()))).
+                    flatMap(Optional::stream).
                     forEach(forClass -> new Constructor().construct(forClass, instances, getApplication().getBase().getURI()));
                 
                 return getResponseBuilder(instances).build();

@@ -53,6 +53,9 @@ public class LACL
 
     /** Authorization request class */
     public static final OntClass AuthorizationRequest = m_model.createClass( NS + "AuthorizationRequest" );
+    
+    /** Authorization request class */
+    public static final OntClass OwnerAuthorization = m_model.createClass( NS + "OwnerAuthorization" );
 
     /** Password property */
     public static final DatatypeProperty password = m_model.createDatatypeProperty( NS + "password" );
@@ -60,12 +63,21 @@ public class LACL
     /** Issuer property */
     public static final DatatypeProperty issuer = m_model.createDatatypeProperty( NS + "issuer" );
 
+        /** Request agent property **/
+    public static final ObjectProperty requestMode = m_model.createObjectProperty( NS + "requestMode" );
+
     /** Request agent property **/
     public static final ObjectProperty requestAgent = m_model.createObjectProperty( NS + "requestAgent" );
+
+    /** Request agent group property **/
+    public static final ObjectProperty requestAgentGroup = m_model.createObjectProperty( NS + "requestAgentGroup" );
 
     /** Request access to property */
     public static final ObjectProperty requestAccessTo = m_model.createObjectProperty( NS + "requestAccessTo" );
 
+        /** Request access to class property */
+    public static final ObjectProperty requestAccessToClass = m_model.createObjectProperty( NS + "requestAccessToClass" );
+    
     /** Request access property */
     public static final ObjectProperty requestAccess = m_model.createObjectProperty( NS + "requestAccess" );
 

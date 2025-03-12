@@ -30,6 +30,7 @@ import com.atomgraph.linkeddatahub.server.model.impl.GraphStoreImpl;
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
 import com.atomgraph.linkeddatahub.server.util.PatchUpdateVisitor;
 import com.atomgraph.linkeddatahub.server.util.Skolemizer;
+import com.atomgraph.linkeddatahub.vocabulary.ACL;
 import com.atomgraph.linkeddatahub.vocabulary.DH;
 import com.atomgraph.linkeddatahub.vocabulary.LDH;
 import com.atomgraph.linkeddatahub.vocabulary.NFO;
@@ -249,7 +250,8 @@ public class Graph extends GraphStoreImpl
         if (existingModel == null) // creating new graph and attaching it to the document hierarchy
         {
             resource.addLiteral(DCTerms.created, ResourceFactory.createTypedLiteral(GregorianCalendar.getInstance()));
-            if (getAgentContext().isPresent()) resource.addProperty(DCTerms.creator, getAgentContext().get().getAgent());
+            if (getAgentContext().isPresent()) resource.addProperty(DCTerms.creator, getAgentContext().get().getAgent()).
+                    addProperty(ACL.owner, getAgentContext().get().getAgent());
 
             if (log.isDebugEnabled()) log.debug("PUT Model into new named graph with URI: {}", getURI());
             getService().getGraphStoreClient().putModel(getURI().toString(), model); // TO-DO: catch exceptions
@@ -263,7 +265,8 @@ public class Graph extends GraphStoreImpl
         {        
             // retain metadata from existing document resource
             ExtendedIterator<Statement> it = existingModel.createResource(getURI().toString()).listProperties(DCTerms.created).
-                andThen(existingModel.createResource(getURI().toString()).listProperties(DCTerms.creator));
+                andThen(existingModel.createResource(getURI().toString()).listProperties(DCTerms.creator)).
+                andThen(existingModel.createResource(getURI().toString()).listProperties(ACL.owner));
             try
             {
                 it.forEach(stmt -> model.add(stmt));

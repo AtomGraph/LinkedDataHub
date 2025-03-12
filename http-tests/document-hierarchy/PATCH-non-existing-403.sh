@@ -15,10 +15,26 @@ add-agent-to-group.sh \
   --agent "$AGENT_URI" \
   "${ADMIN_BASE_URL}acl/groups/writers/"
 
-# check that access to graph with parent is allowed, but the graph is not found
+# check that write access to non-existing graph is forbidden
 
-curl -k -w "%{http_code}\n" -o /dev/null -s -G \
+update=$(cat <<EOF
+PREFIX  rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+
+INSERT
+{
+  <${END_USER_BASE_URL}> rdf:_2 <${END_USER_BASE_URL}#whateverest>
+}
+WHERE
+{}
+EOF
+)
+
+(
+curl -k -w "%{http_code}\n" -o /dev/null -s \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
-  -H "Accept: application/n-triples" \
+  -X PATCH \
+  -H "Content-Type: application/sparql-update" \
   "${END_USER_BASE_URL}non-existing/" \
-| grep -q "$STATUS_NOT_FOUND"
+   --data-binary "$update"
+) \
+| grep -q "$STATUS_FORBIDDEN"

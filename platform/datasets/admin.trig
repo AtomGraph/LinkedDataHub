@@ -26,6 +26,40 @@
 
 }
 
+# ENDPOINTS
+
+<sparql>
+{
+
+    <sparql> a foaf:Document ;
+        dct:title "SPARQL endpoint" .
+
+}
+
+<ns>
+{
+
+    <ns> a foaf:Document ;
+        dct:title "Namespace endpoint" .
+
+}
+
+<access>
+{
+
+    <access> a foaf:Document ;
+        dct:title "Access endpoint" .
+
+}
+
+<access/request>
+{
+
+    <access/request> a foaf:Document ;
+        dct:title "Access request endpoint" .
+
+}
+
 # CONTAINERS
 
 <queries/>
@@ -338,26 +372,20 @@ WHERE
 
 }
 
-<request%20access>
+# ENDPOINTS
+
+<clear>
 {
 
-    <request%20access> a adm:RequestAccess ;
-        dct:title "Request access" ;
-        rdf:_1 <request%20access#id023e3fee-a546-4209-b52c-7b65ebb52aa4> .
-
-    <request%20access#id023e3fee-a546-4209-b52c-7b65ebb52aa4> a ldh:XHTML ;
-        rdf:value """<div xmlns="http://www.w3.org/1999/xhtml">
-    <p class="lead">Request access</p>
-    <p>Ask for access to a restricted resource by making a request. It will be reviewed by the application's
-        administrators.</p>
-    </div>"""^^rdf:XMLLiteral .
+    <clear> a foaf:Document ;
+        dct:title "Clear ontology endpoint" .
 
 }
 
 <oauth2/login>
 {
 
-    <oauth2/login> a dh:Item ;
+    <oauth2/login> a foaf:Document ;
         dct:title "OAuth 2.0 login" .
 
 }
@@ -365,7 +393,7 @@ WHERE
 <oauth2/authorize/google>
 {
 
-    <oauth2/authorize/google> a dh:Item ;
+    <oauth2/authorize/google> a foaf:Document ;
         dct:title "Google OAuth2.0 authorization" .
 
 }
@@ -455,7 +483,7 @@ WHERE
     <acl/authorizations/> a dh:Container ;
         sioc:has_parent <acl/> ;
         dct:title "Authorizations" ;
-        dct:description "Manage requests for access" ;
+        dct:description "Manage who has access to which resources" ;
         rdf:_1 <acl/authorizations/#select-children> .
 
     <acl/authorizations/#select-children> a ldh:View ;
@@ -469,7 +497,7 @@ WHERE
     <acl/authorization-requests/> a dh:Container ;
         sioc:has_parent <acl/> ;
         dct:title "Authorization requests" ;
-        dct:description "Manage who has access to which resources" ;
+        dct:description "Manage requests for access" ;
         rdf:_1 <acl/authorization-requests/#select-children> .
 
     <acl/authorization-requests/#select-children> a ldh:View ;
@@ -572,6 +600,63 @@ WHERE
 
 }
 
+# SPARQL endpoint
+
+<acl/authorizations/sparql-endpoint/>
+{
+
+    <acl/authorizations/sparql-endpoint/> a dh:Item ;
+        sioc:has_container <acl/authorizations/> ;
+        dct:title "SPARQL endpoint access" ;
+        foaf:primaryTopic <acl/authorizations/sparql-endpoint/#this> .
+
+    <acl/authorizations/sparql-endpoint/#this> a acl:Authorization ;
+        rdfs:label "SPARQL endpoint access" ;
+        rdfs:comment "Allows only authenticated access" ;
+        acl:accessTo <../sparql> ;
+        acl:mode acl:Read, acl:Append ; # allow queries over GET as well as POST
+        acl:agentClass acl:AuthenticatedAgent .
+
+}
+
+# access endpoint
+
+<acl/authorizations/access/>
+{
+
+    <acl/authorizations/access/> a dh:Item ;
+        sioc:has_container <acl/authorizations/> ;
+        dct:title "Access description access" ;
+        foaf:primaryTopic <acl/authorizations/access/#this> .
+
+    <acl/authorizations/access/#this> a acl:Authorization ;
+        rdfs:label "Access description access" ;
+        rdfs:comment "Allows non-authenticated access" ;
+        acl:accessTo <access> ;
+        acl:mode acl:Read ;
+        acl:agentClass foaf:Agent, acl:AuthenticatedAgent .
+
+}
+
+# access request endpoint
+
+<acl/authorizations/access-request/>
+{
+
+    <acl/authorizations/access-request/> a dh:Item ;
+        sioc:has_container <acl/authorizations/> ;
+        dct:title "Access request access" ;
+        foaf:primaryTopic <acl/authorizations/access-request/#this> .
+
+    <acl/authorizations/access-request/#this> a acl:Authorization ;
+        rdfs:label "Access request access" ;
+        rdfs:comment "Allows non-authenticated access" ;
+        acl:accessTo <access/request> ;
+        acl:mode acl:Append ;
+        acl:agentClass foaf:Agent, acl:AuthenticatedAgent .
+
+}
+
 # sign up
 
 <acl/authorizations/sign-up/>
@@ -589,26 +674,6 @@ WHERE
         acl:accessToClass adm:SignUp ;
         acl:mode acl:Read, acl:Append ;
         acl:agentClass foaf:Agent .
-
-}
-
-# request access
-
-<acl/authorizations/request-access/>
-{
-
-    <acl/authorizations/request-access/> a dh:Item ;
-        sioc:has_container <acl/authorizations/> ;
-        dct:title "Authorization request access" ;
-        foaf:primaryTopic <acl/authorizations/request-access/#this> .
-
-    <acl/authorizations/request-access/#this> a acl:Authorization ;
-        rdfs:label "Request access" ;
-        rdfs:comment "Required to enable authorization requests" ;
-        acl:accessTo <ns> ; # TO-DO: only allow <ns> access by the secretary agent?
-        acl:accessToClass adm:RequestAccess ;
-        acl:mode acl:Read, acl:Append ;
-        acl:agentClass acl:AuthenticatedAgent . # not public, Agent must be authenticated
 
 }
 
@@ -671,7 +736,6 @@ WHERE
 
 # full access
 
-
 <acl/authorizations/full-control/>
 {
 
@@ -684,7 +748,7 @@ WHERE
         rdfs:label "Full control" ;
         rdfs:comment "Allows full read/write access to all application resources" ;
         acl:accessToClass dh:Item, dh:Container, def:Root ;
-        acl:accessTo <../sparql>, <../service>, <../importer>, <../add>, <../generate>, <../ns> ;
+        acl:accessTo <../sparql>, <../importer>, <../transform>, <../generate>, <../ns>, <clear> ;
         acl:mode acl:Read, acl:Append, acl:Write, acl:Control ;
         acl:agentGroup <acl/groups/owners/#this> .
 
@@ -704,7 +768,7 @@ WHERE
         rdfs:label "Write/append access" ;
         rdfs:comment "Allows write access to all documents and containers" ;
         acl:accessToClass dh:Item, dh:Container, def:Root ;
-        acl:accessTo <../sparql>, <../service>, <../importer>, <../add>, <../generate>, <../ns> ;
+        acl:accessTo <../sparql>, <../importer>, <../transform>, <../generate>, <../ns> ;
         acl:mode acl:Write, acl:Append ;
         acl:agentGroup <acl/groups/owners/#this>, <acl/groups/writers/#this> .
 
@@ -724,28 +788,9 @@ WHERE
         rdfs:label "Read access" ;
         rdfs:comment "Allows read access to all resources" ;
         acl:accessToClass dh:Item, dh:Container, def:Root, <http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#FileDataObject> ;
-        acl:accessTo <../sparql>, <../service> ;
+        acl:accessTo <../sparql> ;
         acl:mode acl:Read ;
         acl:agentGroup <acl/groups/owners/#this>, <acl/groups/writers/#this>, <acl/groups/readers/#this> .
-
-}
-
-# creator access
-
-<acl/authorizations/creator/>
-{
-
-    <acl/authorizations/creator/> a dh:Item ;
-        sioc:has_container <acl/authorizations/> ;
-        dct:title "Creator access" ;
-        foaf:primaryTopic <acl/authorizations/creator/#this> .
-
-    <acl/authorizations/creator/#this> a lacl:CreatorAuthorization ;
-        rdfs:label "Creator access" ;
-        rdfs:comment "Creators have full control of their created resources" ;
-        lacl:accessProperty foaf:maker ;
-        acl:accessToClass dh:Item, dh:Container, def:Root ;
-        acl:agentClass acl:AuthenticatedAgent .
 
 }
 
