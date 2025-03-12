@@ -95,7 +95,7 @@ public class AuthorizationFilter implements ContainerRequestFilter
     @Inject jakarta.inject.Provider<com.atomgraph.linkeddatahub.apps.model.Application> app;
     @Inject jakarta.inject.Provider<Optional<com.atomgraph.linkeddatahub.apps.model.Dataset>> dataset;
     
-    private ParameterizedSparqlString aclQuery, ownerAclQuery;
+    private ParameterizedSparqlString documentTypeQuery, aclQuery, ownerAclQuery;
 
     /**
      * Post-construct initialization.
@@ -103,6 +103,7 @@ public class AuthorizationFilter implements ContainerRequestFilter
     @PostConstruct
     public void init()
     {
+        documentTypeQuery = new ParameterizedSparqlString(system.getDocumentTypeQuery().toString());
         aclQuery = new ParameterizedSparqlString(getSystem().getACLQuery().toString());
         ownerAclQuery = new ParameterizedSparqlString(getSystem().getOwnerACLQuery().toString());
     }
@@ -353,38 +354,13 @@ public class AuthorizationFilter implements ContainerRequestFilter
     }
 
     /**
-     * Returns a query that selects the types of a given document.
+     * Returns a query that loads document type and owner metadata.
      * 
      * @return SPARQL string
      */
     public ParameterizedSparqlString getDocumentTypeQuery()
     {
-        // TO-DO: move to web.xml
-        return new ParameterizedSparqlString("PREFIX acl: <http://www.w3.org/ns/auth/acl#>\n" +
-"\n" +
-"SELECT  ?Type ?owner\n" +
-"WHERE\n" +
-"  {   { GRAPH $this\n" +
-"          { $this\n" +
-"                      a  ?Type\n" +
-"            OPTIONAL\n" +
-"            {\n" +
-"                $this acl:owner ?owner\n" +
-"            }\n" +
-"          }\n" +
-"      }\n" +
-"    UNION\n" +
-"      { GRAPH ?g\n" +
-"            { $this\n" +
-"                        a  <http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#FileDataObject> ;\n" +
-"                        a  ?Type\n" +
-"                OPTIONAL\n" +
-"                {\n" +
-"                    $this acl:owner ?owner\n" +
-"                }\n" +
-"            }\n" +
-"      }\n" +
-"  }");
+        return documentTypeQuery.copy();
     }
     
     /**

@@ -65,7 +65,7 @@ public class Access extends com.atomgraph.core.model.impl.SPARQLEndpointImpl
     private final UriInfo uriInfo;
     private final Application application;
     private final Optional<AgentContext> agentContext;
-    private final ParameterizedSparqlString aclQuery, ownerAclQuery;
+    private final ParameterizedSparqlString documentTypeQuery, aclQuery, ownerAclQuery;
     
     /**
      * Constructs endpoint from the in-memory ontology model.
@@ -91,6 +91,7 @@ public class Access extends com.atomgraph.core.model.impl.SPARQLEndpointImpl
         this.uriInfo = uriInfo;
         this.application = application;
         this.agentContext = agentContext;
+        documentTypeQuery = new ParameterizedSparqlString(system.getDocumentTypeQuery().toString());
         aclQuery = new ParameterizedSparqlString(system.getACLQuery().toString());
         ownerAclQuery = new ParameterizedSparqlString(system.getOwnerACLQuery().toString());
     }
@@ -113,7 +114,8 @@ public class Access extends com.atomgraph.core.model.impl.SPARQLEndpointImpl
         {
             if (!getUriInfo().getQueryParameters().containsKey(SPIN.THIS_VAR_NAME)) throw new BadRequestException();
             Resource accessTo = ResourceFactory.createResource(new URI(getUriInfo().getQueryParameters().getFirst(SPIN.THIS_VAR_NAME)).toString()); // ?this query param needs to be passed
-
+            if (log.isDebugEnabled()) log.debug("Loading current agent's authorizations for the <{}> document", accessTo);
+            
             QuerySolutionMap docTypeQsm = new QuerySolutionMap();
             docTypeQsm.add(SPIN.THIS_VAR_NAME, accessTo);
             ResultSet docTypes = loadResultSet(getEndUserService(), getDocumentTypeQuery(), docTypeQsm);
@@ -232,18 +234,13 @@ public class Access extends com.atomgraph.core.model.impl.SPARQLEndpointImpl
     }
     
     /**
-     * Returns a query that selects the types of a given document.
+     * Returns a query that loads document type and owner metadata.
      * 
      * @return SPARQL string
      */
     public ParameterizedSparqlString getDocumentTypeQuery()
     {
-        // TO-DO: move to web.xml
-        return new ParameterizedSparqlString("SELECT ?Type\n" +
-            "WHERE\n" +
-            "  { GRAPH $this\n" +
-            "      { $this  a  ?Type }\n" +
-            "  }");
+        return documentTypeQuery.copy();
     }
     
 }

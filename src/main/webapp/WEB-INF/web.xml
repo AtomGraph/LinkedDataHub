@@ -16,6 +16,36 @@
         <param-value>max-age=69</param-value>
     </context-param>
     <context-param>
+        <param-name>https://w3id.org/atomgraph/linkeddatahub/config#documentTypeQuery</param-name>
+        <param-value><![CDATA[
+PREFIX acl: <http://www.w3.org/ns/auth/acl#>
+            
+SELECT  ?Type ?owner
+WHERE
+  {   { GRAPH $this
+          { $this
+                      a  ?Type
+            OPTIONAL
+            {
+                $this acl:owner ?owner
+            }
+          }
+      }
+    UNION
+      { GRAPH ?g
+            { $this
+                        a  <http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#FileDataObject> ;
+                        a  ?Type
+                OPTIONAL
+                {
+                    $this acl:owner ?owner
+                }
+            }
+      }
+  }
+]]></param-value>
+    </context-param> 
+    <context-param>
         <param-name>https://w3id.org/atomgraph/linkeddatahub/config#aclQuery</param-name>
         <param-value><![CDATA[
 PREFIX  rdfs: <http://www.w3.org/2000/01/rdf-schema#>

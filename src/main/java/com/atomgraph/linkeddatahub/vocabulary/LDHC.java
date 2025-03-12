@@ -62,11 +62,8 @@ public class LDHC
     /** Proxy port property */
     public static final DatatypeProperty proxyPort = m_model.createDatatypeProperty( NS + "proxyPort" );
 
-    /** Auth query property */
-    public static final DatatypeProperty authQuery = m_model.createDatatypeProperty( NS + "authQuery" );
-
-    /** Owner auth property */
-    public static final DatatypeProperty ownerAuthQuery = m_model.createDatatypeProperty( NS + "ownerAuthQuery" );
+    /** Document type query property */
+    public static final DatatypeProperty documentTypeQuery = m_model.createDatatypeProperty( NS + "documentTypeQuery" );
 
     /** ACL query property */
     public static final DatatypeProperty aclQuery = m_model.createDatatypeProperty( NS + "aclQuery" );
