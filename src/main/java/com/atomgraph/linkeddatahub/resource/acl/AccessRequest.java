@@ -58,6 +58,7 @@ import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.StmtIterator;
 import org.apache.jena.vocabulary.DCTerms;
 import org.apache.jena.vocabulary.RDF;
+import org.apache.jena.vocabulary.RDFS;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -119,6 +120,9 @@ public class AccessRequest extends GraphStoreImpl
                 Resource agent = authorization.getPropertyResourceValue(ACL.agent);
                 if (!agent.equals(getAgentContext().get().getAgent())) throw new IllegalStateException("Agent requesting access must be authenticated");
 
+                String humanReadableName = getAgentsHumanReadableName(getAgentContext().get().getAgent());
+                String accessRequestLabel = humanReadableName != null ? "Access request by " + humanReadableName : null; // TO-DO: localize the string
+                        
                 Resource agentGroup = authorization.getPropertyResourceValue(ACL.agentGroup);
                 Resource accessTo = authorization.getPropertyResourceValue(ACL.accessTo);
                 Resource accessToClass = authorization.getPropertyResourceValue(ACL.accessToClass);
@@ -127,7 +131,8 @@ public class AccessRequest extends GraphStoreImpl
                     addProperty(RDF.type, LACL.AuthorizationRequest).
                     addProperty(LACL.requestAgent, agent).
                     addLiteral(DCTerms.created, GregorianCalendar.getInstance());
-
+                if (accessRequestLabel != null) accessRequest.addLiteral(RDFS.label, accessRequestLabel);
+                    
                 // add all requested access modes
                 StmtIterator modeIt = authorization.listProperties(ACL.mode);
                 try
@@ -144,11 +149,12 @@ public class AccessRequest extends GraphStoreImpl
                 if (accessToClass != null) accessRequest.addProperty(LACL.requestAccessToClass, accessToClass);
                 
                 // attach document to parent explicitly because this class extends GraphStoreImpl and not Graph (which would handle it implicitly)
-                requestModel.createResource(graphUri.toString()).
+                Resource doc = requestModel.createResource(graphUri.toString()).
                     addProperty(RDF.type, DH.Item).
                     addProperty(SIOC.HAS_CONTAINER, requestModel.createResource(getAuthRequestContainerUriBuilder().build().toString())).
                     addProperty(FOAF.primaryTopic, accessRequest);
-                
+                if (accessRequestLabel != null) doc.addLiteral(DCTerms.title, accessRequestLabel);
+
     //            try
     //            {
     //                sendEmail(owner, accessRequest);
@@ -175,6 +181,15 @@ public class AccessRequest extends GraphStoreImpl
         }
     }
 
+    public String getAgentsHumanReadableName(Agent agent)
+    {
+        if (agent.hasProperty(FOAF.givenName) && agent.hasProperty(FOAF.familyName))
+            return agent.getProperty(FOAF.givenName).getString() + " " + agent.getProperty(FOAF.familyName).getString();
+        
+        if (agent.hasProperty(FOAF.name)) return agent.getProperty(FOAF.name).getString();
+        
+        return null;
+    }
     
     /**
      * Returns the URI builder for authorization requests.

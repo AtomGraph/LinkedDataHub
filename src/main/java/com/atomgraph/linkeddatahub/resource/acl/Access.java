@@ -26,9 +26,8 @@ import com.atomgraph.linkeddatahub.client.SesameProtocolClient;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.model.auth.Agent;
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
-import com.atomgraph.linkeddatahub.vocabulary.ACL;
-import com.atomgraph.linkeddatahub.vocabulary.SIOC;
-import com.atomgraph.server.vocabulary.LDT;
+import com.atomgraph.linkeddatahub.server.util.AuthorizationParams;
+import com.atomgraph.linkeddatahub.server.util.SetResultSetValues;
 import com.atomgraph.spinrdf.vocabulary.SPIN;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.BadRequestException;
@@ -41,7 +40,6 @@ import jakarta.ws.rs.core.SecurityContext;
 import jakarta.ws.rs.core.UriInfo;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import org.apache.jena.ontology.Ontology;
@@ -52,9 +50,6 @@ import org.apache.jena.query.ResultSet;
 import org.apache.jena.query.ResultSetRewindable;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
-import org.apache.jena.sparql.core.Var;
-import org.apache.jena.sparql.engine.binding.Binding;
-import org.apache.jena.vocabulary.RDFS;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -124,8 +119,8 @@ public class Access extends com.atomgraph.core.model.impl.SPARQLEndpointImpl
             ResultSet docTypes = loadResultSet(getEndUserService(), getDocumentTypeQuery(), docTypeQsm);
             try
             {
-                authPss.setParams(getAuthorizationParams(accessTo, agent));
-                query = setResultSetValues(authPss.asQuery(), docTypes);
+                authPss.setParams(new AuthorizationParams(getApplication().getBase(), accessTo, agent).get());
+                query = new SetResultSetValues().apply(authPss.asQuery(), docTypes);
 
                 return super.get(query, defaultGraphUris, namedGraphUris);
             }
@@ -138,33 +133,6 @@ public class Access extends com.atomgraph.core.model.impl.SPARQLEndpointImpl
         {
             throw new BadRequestException(ex);
         }
-    }
-    
-    /**
-     * Builds solution map for the authorization query.
-     * 
-     * @param absolutePath request URL without query string
-     * @param agent agent resource or null
-     * @return solution map
-     */
-    public QuerySolutionMap getAuthorizationParams(Resource absolutePath, Resource agent)
-    {
-        QuerySolutionMap qsm = new QuerySolutionMap();
-        qsm.add(SPIN.THIS_VAR_NAME, absolutePath);
-        qsm.add(LDT.base.getLocalName(), getApplication().getBase());
-        
-        if (agent != null)
-        {
-            qsm.add("AuthenticatedAgentClass", ACL.AuthenticatedAgent); // enable AuthenticatedAgent UNION branch
-            qsm.add("agent", agent);
-        }
-        else
-        {
-            qsm.add("AuthenticatedAgentClass", RDFS.Resource); // disable AuthenticatedAgent UNION branch
-            qsm.add("agent", RDFS.Resource); // disables UNION branch with $agent
-        }
-        
-        return qsm;
     }
     
     /**
@@ -197,27 +165,6 @@ public class Access extends com.atomgraph.core.model.impl.SPARQLEndpointImpl
                 return cr.readEntity(ResultSetRewindable.class);
             }
         }
-    }
-    
-    /**
-     * Converts a SPARQL result set into a <code>VALUES</code> block.
-     * 
-     * @param query SPARQL query
-     * @param resultSet result set
-     * @return query with appended values
-     */
-    public Query setResultSetValues(Query query, ResultSet resultSet)
-    {
-        if (query == null) throw new IllegalArgumentException("Query cannot be null");
-        if (resultSet == null) throw new IllegalArgumentException("ResultSet cannot be null");
-        
-        List<Var> vars = resultSet.getResultVars().stream().map(Var::alloc).toList();
-        List<Binding> values = new ArrayList<>();
-        while (resultSet.hasNext())
-            values.add(resultSet.nextBinding());
-
-        query.setValuesDataBlock(vars, values);
-        return query;
     }
     
     /**

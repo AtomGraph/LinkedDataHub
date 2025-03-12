@@ -23,10 +23,12 @@ import com.atomgraph.linkeddatahub.server.exception.auth.AuthorizationException;
 import com.atomgraph.linkeddatahub.model.auth.Agent;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.server.security.AuthorizationContext;
+import com.atomgraph.linkeddatahub.server.util.AuthorizationParams;
+import com.atomgraph.linkeddatahub.server.util.SetResultSetValues;
 import com.atomgraph.linkeddatahub.vocabulary.ACL;
 import com.atomgraph.linkeddatahub.vocabulary.DH;
 import com.atomgraph.linkeddatahub.vocabulary.Default;
-import com.atomgraph.server.vocabulary.LDT;
+import com.atomgraph.linkeddatahub.vocabulary.LACL;
 import com.atomgraph.spinrdf.vocabulary.SPIN;
 import java.io.IOException;
 import java.util.Collections;
@@ -43,9 +45,7 @@ import jakarta.ws.rs.container.ContainerRequestFilter;
 import jakarta.ws.rs.container.PreMatching;
 import jakarta.ws.rs.core.Response;
 import java.net.URI;
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import org.apache.jena.query.ParameterizedSparqlString;
 import org.apache.jena.query.Query;
@@ -58,10 +58,7 @@ import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.ResIterator;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
-import org.apache.jena.sparql.core.Var;
-import org.apache.jena.sparql.engine.binding.Binding;
 import org.apache.jena.vocabulary.RDF;
-import org.apache.jena.vocabulary.RDFS;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -157,33 +154,6 @@ public class AuthorizationFilter implements ContainerRequestFilter
     }
     
     /**
-     * Builds solution map for the authorization query.
-     * 
-     * @param absolutePath request URL without query string
-     * @param agent agent resource or null
-     * @return solution map
-     */
-    public QuerySolutionMap getAuthorizationParams(Resource absolutePath, Resource agent)
-    {
-        QuerySolutionMap qsm = new QuerySolutionMap();
-        qsm.add(SPIN.THIS_VAR_NAME, absolutePath);
-        qsm.add(LDT.base.getLocalName(), getApplication().getBase());
-        
-        if (agent != null)
-        {
-            qsm.add("AuthenticatedAgentClass", ACL.AuthenticatedAgent); // enable AuthenticatedAgent UNION branch
-            qsm.add("agent", agent);
-        }
-        else
-        {
-            qsm.add("AuthenticatedAgentClass", RDFS.Resource); // disable AuthenticatedAgent UNION branch
-            qsm.add("agent", RDFS.Resource); // disables UNION branch with $agent
-        }
-        
-        return qsm;
-    }
-    
-    /**
      * Returns authorization for the current request.
      * 
      * @param request current request
@@ -241,11 +211,11 @@ public class AuthorizationFilter implements ContainerRequestFilter
             }
 
             ParameterizedSparqlString pss = getApplication().canAs(EndUserApplication.class) ? getACLQuery() : getOwnerACLQuery();
-            Query query = setResultSetValues(pss.asQuery(), docTypes);
+            Query query = new SetResultSetValues().apply(pss.asQuery(), docTypes);
             pss = new ParameterizedSparqlString(query.toString()); // make sure VALUES are now part of the query string
             assert pss.toString().contains("VALUES");
 
-            Model authModel = loadModel(getAdminService(), pss, getAuthorizationParams(accessTo, agent));
+            Model authModel = loadModel(getAdminService(), pss, new AuthorizationParams(getApplication().getBase(), accessTo, agent).get());
             return authorize(authModel, accessMode);
         }
         finally
@@ -361,27 +331,6 @@ public class AuthorizationFilter implements ContainerRequestFilter
     }
     
     /**
-     * Converts a SPARQL result set into a <code>VALUES</code> block.
-     * 
-     * @param query SPARQL query
-     * @param resultSet result set
-     * @return query with appended values
-     */
-    public Query setResultSetValues(Query query, ResultSet resultSet)
-    {
-        if (query == null) throw new IllegalArgumentException("Query cannot be null");
-        if (resultSet == null) throw new IllegalArgumentException("ResultSet cannot be null");
-        
-        List<Var> vars = resultSet.getResultVars().stream().map(Var::alloc).toList();
-        List<Binding> values = new ArrayList<>();
-        while (resultSet.hasNext())
-            values.add(resultSet.nextBinding());
-
-        query.setValuesDataBlock(vars, values);
-        return query;
-    }
-    
-    /**
      * Creates a special <code>acl:Authorization</code> resource for an owner.
      * @param accessTo requested URI
      * @param agent authenticated agent
@@ -395,6 +344,7 @@ public class AuthorizationFilter implements ContainerRequestFilter
         return ModelFactory.createDefaultModel().
                 createResource().
                 addProperty(RDF.type, ACL.Authorization).
+                addProperty(RDF.type, LACL.CreatorAuthorization).
                 addProperty(ACL.accessTo, accessTo).
                 addProperty(ACL.agent, agent).
                 addProperty(ACL.mode, ACL.Read).

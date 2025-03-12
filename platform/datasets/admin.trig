@@ -794,25 +794,6 @@ WHERE
 
 }
 
-# creator access
-
-<acl/authorizations/creator/>
-{
-
-    <acl/authorizations/creator/> a dh:Item ;
-        sioc:has_container <acl/authorizations/> ;
-        dct:title "Creator access" ;
-        foaf:primaryTopic <acl/authorizations/creator/#this> .
-
-    <acl/authorizations/creator/#this> a lacl:CreatorAuthorization ;
-        rdfs:label "Creator access" ;
-        rdfs:comment "Creators have full control of their created resources" ;
-        lacl:accessProperty foaf:maker ;
-        acl:accessToClass dh:Item, dh:Container, def:Root ;
-        acl:agentClass acl:AuthenticatedAgent .
-
-}
-
 # GROUPS
 
 # owners

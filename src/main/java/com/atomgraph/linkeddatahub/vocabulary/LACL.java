@@ -53,6 +53,9 @@ public class LACL
 
     /** Authorization request class */
     public static final OntClass AuthorizationRequest = m_model.createClass( NS + "AuthorizationRequest" );
+    
+    /** Authorization request class */
+    public static final OntClass CreatorAuthorization = m_model.createClass( NS + "CreatorAuthorization" );
 
     /** Password property */
     public static final DatatypeProperty password = m_model.createDatatypeProperty( NS + "password" );

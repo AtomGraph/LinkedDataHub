@@ -377,16 +377,6 @@ LIMIT   10
                                 <option value="{$agent}">
                                     <xsl:value-of select="$agent"/> (me)
                                 </option>
-                                
-                                <!-- cannot request access for agent classes as those are system config -->
-                                <!--
-                                <xsl:for-each-group select="rdf:Description[acl:agent/@rdf:resource or acl:agentGroup/@rdf:resource]"
-                                                    group-by="acl:agent/@rdf:resource | acl:agentGroup/@rdf:resource">
-                                    <option value="{current-grouping-key()}">
-                                        <xsl:value-of select="current-grouping-key()"/>
-                                    </option>
-                                </xsl:for-each-group>
-                                -->
                             </select>
                         </div>
                     </fieldset>
@@ -456,9 +446,8 @@ LIMIT   10
                         </rdf:Description>
                     </xsl:variable>
                     
-                    <!-- [(acl:agent/@rdf:resource, acl:agentGroup/@rdf:resource, acl:agentClass/@rdf:resource) = $agent] -->
                     <xsl:for-each-group select="($this-auth, rdf:Description[acl:accessTo/@rdf:resource])"
-                                        group-by="acl:accessTo/@rdf:resource">
+                                        group-by="acl:accessTo/@rdf:resource[starts-with(., $ldt:base)]">
                         <xsl:variable name="granted-access-modes" select="distinct-values(current-group()/acl:mode/@rdf:resource)" as="xs:anyURI*"/>
 
                         <!-- applying on the first authorization in the group -->
@@ -509,7 +498,6 @@ LIMIT   10
                     </xsl:variable>
 
                     <!-- the types of this document that are not already show as $default-classes -->
-                    <!-- [(acl:agent/@rdf:resource, acl:agentGroup/@rdf:resource, acl:agentClass/@rdf:resource) = $agent] -->
                     <xsl:for-each-group select="($this-auth, rdf:Description[acl:accessToClass/@rdf:resource[not(. = $default-classes)]])"
                                         group-by="acl:accessToClass/@rdf:resource">
                         <xsl:variable name="granted-access-modes" select="distinct-values(current-group()/acl:mode/@rdf:resource)" as="xs:anyURI*"/>
