@@ -136,7 +136,7 @@ public class Access extends com.atomgraph.core.model.impl.SPARQLEndpointImpl
                 Model authModel = getEndpointAccessor().loadModel(query, defaultGraphUris, namedGraphUris);
                 // special case where the agent is the owner of the requested document - automatically grant acl:Read/acl:Append/acl:Write access
                 if (isOwner(accessTo, agent))
-                {
+                { 
                     log.debug("Agent <{}> is the owner of <{}>, granting acl:Read/acl:Append/acl:Write access", agent, accessTo);
                     authModel.add(createOwnerAuthorization(accessTo, agent).getModel());
                 }
