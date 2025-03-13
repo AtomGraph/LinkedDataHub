@@ -412,14 +412,13 @@ LIMIT   10
         <xsl:param name="agent" as="xs:anyURI"/>
         <!-- TO-DO: support agent-group? -->
         <xsl:param name="this" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/>
-        <xsl:param name="access-modes" select="(xs:anyURI('&acl;Read'), xs:anyURI('&acl;Append'), xs:anyURI('&acl;Write'), xs:anyURI('&acl;Control'))" as="xs:anyURI*"/>
+        <xsl:param name="access-modes" select="(xs:anyURI('&acl;Read'), xs:anyURI('&acl;Append'), xs:anyURI('&acl;Write'))" as="xs:anyURI*"/>
         
         <fieldset>
             <legend>URL-based access</legend>
             <table class="table table-striped">
                 <colgroup>
-                    <col style="width: 40%;"/>
-                    <col style="width: 15%;"/>
+                    <col style="width: 55%;"/>
                     <col style="width: 15%;"/>
                     <col style="width: 15%;"/>
                     <col style="width: 15%;"/>
@@ -468,8 +467,7 @@ LIMIT   10
             <legend>Class-based access</legend>
             <table class="table table-striped">
                 <colgroup>
-                    <col style="width: 40%;"/>
-                    <col style="width: 15%;"/>
+                    <col style="width: 55%;"/>
                     <col style="width: 15%;"/>
                     <col style="width: 15%;"/>
                     <col style="width: 15%;"/>
