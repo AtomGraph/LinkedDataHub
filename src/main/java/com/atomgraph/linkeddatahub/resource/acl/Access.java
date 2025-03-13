@@ -119,22 +119,23 @@ public class Access extends com.atomgraph.core.model.impl.SPARQLEndpointImpl
         try
         {
             if (!getUriInfo().getQueryParameters().containsKey(SPIN.THIS_VAR_NAME)) throw new BadRequestException("?this query param is not provided");
+            
             Resource accessTo = ResourceFactory.createResource(new URI(getUriInfo().getQueryParameters().getFirst(SPIN.THIS_VAR_NAME)).toString()); // ?this query param needs to be passed
             if (log.isDebugEnabled()) log.debug("Loading current agent's authorizations for the <{}> document", accessTo);
             
-            QuerySolutionMap docTypeQsm = new QuerySolutionMap();
-            docTypeQsm.add(SPIN.THIS_VAR_NAME, accessTo);
-            ResultSetRewindable docTypes = loadResultSet(getEndUserService(), getDocumentTypeQuery(), docTypeQsm);
+            QuerySolutionMap thisQsm = new QuerySolutionMap();
+            thisQsm.add(SPIN.THIS_VAR_NAME, accessTo);
+            ResultSetRewindable docTypesResult = loadResultSet(getEndUserService(), getDocumentTypeQuery(), thisQsm);
+            
             try
             {
                 authPss.setParams(new AuthorizationParams(getApplication().getBase(), accessTo, agent).get());
-                query = new SetResultSetValues().apply(authPss.asQuery(), docTypes);
+                query = new SetResultSetValues().apply(authPss.asQuery(), docTypesResult);
                 assert query.toString().contains("VALUES");
-                docTypes.reset();
 
                 Model authModel = getEndpointAccessor().loadModel(query, defaultGraphUris, namedGraphUris);
                 // special case where the agent is the owner of the requested document - automatically grant acl:Read/acl:Append/acl:Write access
-                if (isOwner(docTypes, agent))
+                if (isOwner(accessTo, agent))
                 {
                     log.debug("Agent <{}> is the owner of <{}>, granting acl:Read/acl:Append/acl:Write access", agent, accessTo);
                     authModel.add(createOwnerAuthorization(accessTo, agent).getModel());
@@ -144,7 +145,7 @@ public class Access extends com.atomgraph.core.model.impl.SPARQLEndpointImpl
             }
             finally
             {
-                docTypes.close();
+                docTypesResult.close();
             }
         }
         catch (URISyntaxException ex)
@@ -188,21 +189,47 @@ public class Access extends com.atomgraph.core.model.impl.SPARQLEndpointImpl
     /**
      * Checks if the given agent is the <code>acl:owner</code> of the document.
      * 
-     * @param docTypes The result set containing document metadata.
-     * @param agent The agent whose ownership is checked.
+     * @param accessTo the document URI
+     * @param agent the agent whose ownership is checked.
      * @return true if the agent is the owner, false otherwise.
      */
-    protected boolean isOwner(ResultSetRewindable docTypes, Resource agent)
+    protected boolean isOwner(Resource accessTo, Resource agent)
     {
+        QuerySolutionMap qsm = new QuerySolutionMap();
+        qsm.add(SPIN.THIS_VAR_NAME, accessTo);
+
+        ResultSetRewindable docOwnerResult = loadResultSet(getApplication().getService(), getDocumentOwnerQuery(), qsm); // could use ASK query in principle
+        try
+        {
+            return isOwner(docOwnerResult, agent);
+        }
+        finally
+        {
+            docOwnerResult.close();
+        }
+    }
+    
+    /**
+     * Checks if the given agent is the <code>acl:owner</code> of the document.
+     * 
+     * @param docOwnerResult the result set containing document metadata
+     * @param agent the agent whose ownership is checked
+     * @return true if the agent is the owner, false otherwise.
+     */
+    protected boolean isOwner(ResultSetRewindable docOwnerResult, Resource agent)
+    {
+        if (docOwnerResult == null) throw new IllegalArgumentException("ResultSet cannot be null");
+        if (agent == null) throw new IllegalArgumentException("Agent resource cannot be null");
+
         Resource owner = null;
 
-        while (docTypes.hasNext())
+        while (docOwnerResult.hasNext())
         {
-            QuerySolution qs = docTypes.next();
+            QuerySolution qs = docOwnerResult.next();
             if (owner == null && qs.contains("owner")) owner = qs.getResource("owner");
         }
 
-        docTypes.reset();
+        docOwnerResult.reset();
 
         return owner != null && owner.equals(agent);
     }
@@ -301,6 +328,17 @@ public class Access extends com.atomgraph.core.model.impl.SPARQLEndpointImpl
     public ParameterizedSparqlString getDocumentTypeQuery()
     {
         return documentTypeQuery.copy();
+    }
+    
+    public ParameterizedSparqlString getDocumentOwnerQuery()
+    {
+        return new ParameterizedSparqlString("PREFIX  acl:  <http://www.w3.org/ns/auth/acl#>\n" +
+"\n" +
+"SELECT  ?owner\n" +
+"WHERE\n" +
+"  { GRAPH $this\n" +
+"      { $this  acl:owner  ?owner }\n" +
+"  }");
     }
     
 }

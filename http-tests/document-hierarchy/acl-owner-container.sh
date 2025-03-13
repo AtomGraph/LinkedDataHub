@@ -27,7 +27,7 @@ container=$(create-container.sh \
   --slug "$slug" \
   --parent "$END_USER_BASE_URL")
 
-# check that the item was created at the expected URL and attached to the document hierarchy
+# check that the created container has the agent as owner
 
 get.sh \
   -f "$AGENT_CERT_FILE" \

@@ -166,20 +166,20 @@ public class AuthorizationFilter implements ContainerRequestFilter
     {
         Resource accessTo = ResourceFactory.createResource(request.getUriInfo().getAbsolutePath().toString());
         
-        QuerySolutionMap docTypeQsm = new QuerySolutionMap();
-        docTypeQsm.add(SPIN.THIS_VAR_NAME, accessTo);
-        ResultSetRewindable docTypes = loadResultSet(getApplication().getService(), getDocumentTypeQuery(), docTypeQsm);
+        // special case where the agent is the owner of the requested document - automatically grant acl:Read/acl:Append/acl:Write access
+        if (agent != null && isOwner(accessTo, agent))
+        {
+            log.debug("Agent <{}> is the owner of <{}>, granting acl:Read/acl:Append/acl:Write access", agent, accessTo);
+            return createOwnerAuthorization(accessTo, agent);
+        }
+        
+        QuerySolutionMap thisQsm = new QuerySolutionMap();
+        thisQsm.add(SPIN.THIS_VAR_NAME, accessTo);
 
+        ResultSetRewindable docTypesResult = loadResultSet(getApplication().getService(), getDocumentTypeQuery(), thisQsm);
         try
         {
-            // special case where the agent is the owner of the requested document - automatically grant acl:Read/acl:Append/acl:Write access
-            if (isOwner(docTypes, agent))
-            {
-                log.debug("Agent <{}> is the owner of <{}>, granting acl:Read/acl:Append/acl:Write access", agent, accessTo);
-                return createOwnerAuthorization(accessTo, agent);
-            }
-
-            if (!docTypes.hasNext()) // if the document resource has no types, we assume the document does not exist
+            if (!docTypesResult.hasNext()) // if the document resource has no types, we assume the document does not exist
             {
                 // special case for PUT requests to non-existing document: allow if the agent has acl:Write acess to the *parent* URI
                 if (request.getMethod().equals(HttpMethod.PUT) && accessMode.equals(ACL.Write))
@@ -187,32 +187,39 @@ public class AuthorizationFilter implements ContainerRequestFilter
                     URI parentURI = URI.create(accessTo.getURI()).resolve("..");
                     log.debug("Requested document <{}> not found, falling back to parent URI <{}>", accessTo, parentURI);
                     accessTo = ResourceFactory.createResource(parentURI.toString());
-                    
-                    docTypeQsm = new QuerySolutionMap();
-                    docTypeQsm.add(SPIN.THIS_VAR_NAME, accessTo);
-                    docTypes.close();
-                    docTypes = loadResultSet(getApplication().getService(), getDocumentTypeQuery(), docTypeQsm);
-                    
-                    Set<Resource> parentTypes = new HashSet<>();
-                    docTypes.forEachRemaining(qs -> parentTypes.add(qs.getResource("Type")));
-                    
-                    // only root and containers allow child documents
-                    if (Collections.disjoint(parentTypes, Set.of(Default.Root, DH.Container))) return null;
-                    
-                    docTypes.reset(); // rewind result set to the beginning
-                    
+
+                    thisQsm = new QuerySolutionMap();
+                    thisQsm.add(SPIN.THIS_VAR_NAME, accessTo);
+
                     // special case where the agent is the owner of the requested document - automatically grant acl:Read/acl:Append/acl:Write access
-                    if (isOwner(docTypes, agent))
+                    if (agent != null && isOwner(accessTo, agent))
                     {
                         log.debug("Agent <{}> is the owner of <{}>, granting acl:Read/acl:Append/acl:Write access", agent, accessTo);
                         return createOwnerAuthorization(accessTo, agent);
+                    }
+
+                    docTypesResult.close();
+                    docTypesResult = loadResultSet(getApplication().getService(), getDocumentTypeQuery(), thisQsm);
+                    try
+                    {
+                        Set<Resource> parentTypes = new HashSet<>();
+                        docTypesResult.forEachRemaining(qs -> parentTypes.add(qs.getResource("Type")));
+
+                        // only root and containers allow child documents
+                        if (Collections.disjoint(parentTypes, Set.of(Default.Root, DH.Container))) return null;
+
+                        docTypesResult.reset(); // rewind result set to the beginning
+                    }
+                    finally
+                    {
+                        docTypesResult.close(); 
                     }
                 }
                 else return null;
             }
 
             ParameterizedSparqlString pss = getApplication().canAs(EndUserApplication.class) ? getACLQuery() : getOwnerACLQuery();
-            Query query = new SetResultSetValues().apply(pss.asQuery(), docTypes);
+            Query query = new SetResultSetValues().apply(pss.asQuery(), docTypesResult);
             pss = new ParameterizedSparqlString(query.toString()); // make sure VALUES are now part of the query string
             assert pss.toString().contains("VALUES");
 
@@ -221,7 +228,7 @@ public class AuthorizationFilter implements ContainerRequestFilter
         }
         finally
         {
-            docTypes.close();
+            docTypesResult.close();
         }
     }
     
@@ -248,21 +255,47 @@ public class AuthorizationFilter implements ContainerRequestFilter
     /**
      * Checks if the given agent is the <code>acl:owner</code> of the document.
      * 
-     * @param docTypes The result set containing document metadata.
-     * @param agent The agent whose ownership is checked.
+     * @param accessTo the document URI
+     * @param agent the agent whose ownership is checked.
      * @return true if the agent is the owner, false otherwise.
      */
-    protected boolean isOwner(ResultSetRewindable docTypes, Resource agent)
+    protected boolean isOwner(Resource accessTo, Resource agent)
     {
+        QuerySolutionMap qsm = new QuerySolutionMap();
+        qsm.add(SPIN.THIS_VAR_NAME, accessTo);
+
+        ResultSetRewindable docOwnerResult = loadResultSet(getApplication().getService(), getDocumentOwnerQuery(), qsm); // could use ASK query in principle
+        try
+        {
+            return isOwner(docOwnerResult, agent);
+        }
+        finally
+        {
+            docOwnerResult.close();
+        }
+    }
+    
+    /**
+     * Checks if the given agent is the <code>acl:owner</code> of the document.
+     * 
+     * @param docOwnerResult the result set containing document metadata
+     * @param agent the agent whose ownership is checked
+     * @return true if the agent is the owner, false otherwise.
+     */
+    protected boolean isOwner(ResultSetRewindable docOwnerResult, Resource agent)
+    {
+        if (docOwnerResult == null) throw new IllegalArgumentException("ResultSet cannot be null");
+        if (agent == null) throw new IllegalArgumentException("Agent resource cannot be null");
+
         Resource owner = null;
 
-        while (docTypes.hasNext())
+        while (docOwnerResult.hasNext())
         {
-            QuerySolution qs = docTypes.next();
+            QuerySolution qs = docOwnerResult.next();
             if (owner == null && qs.contains("owner")) owner = qs.getResource("owner");
         }
 
-        docTypes.reset();
+        docOwnerResult.reset();
 
         return owner != null && owner.equals(agent);
     }
@@ -361,6 +394,17 @@ public class AuthorizationFilter implements ContainerRequestFilter
     public ParameterizedSparqlString getDocumentTypeQuery()
     {
         return documentTypeQuery.copy();
+    }
+    
+    public ParameterizedSparqlString getDocumentOwnerQuery()
+    {
+        return new ParameterizedSparqlString("PREFIX  acl:  <http://www.w3.org/ns/auth/acl#>\n" +
+"\n" +
+"SELECT  ?owner\n" +
+"WHERE\n" +
+"  { GRAPH $this\n" +
+"      { $this  acl:owner  $owner }\n" +
+"  }");
     }
     
     /**

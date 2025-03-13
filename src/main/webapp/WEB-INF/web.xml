@@ -5,7 +5,7 @@
     version="5.0"
     id="linkeddatahub">
     <display-name>LinkedDataHub</display-name>
-    <description>The Knowledge Graph notebook</description>
+    <description>The low-code Knowledge Graph application platform</description>
     <!-- most of the following context-params can be set in docker-compose.yml (via conf/ROOT.xml) -->
     <context-param>
         <param-name>https://w3id.org/atomgraph/linkeddatahub/config#supportedLanguages</param-name>
@@ -20,15 +20,11 @@
         <param-value><![CDATA[
 PREFIX acl: <http://www.w3.org/ns/auth/acl#>
             
-SELECT  ?Type ?owner
+SELECT  ?Type
 WHERE
   {   { GRAPH $this
           { $this
                       a  ?Type
-            OPTIONAL
-            {
-                $this acl:owner ?owner
-            }
           }
       }
     UNION
@@ -36,12 +32,20 @@ WHERE
             { $this
                         a  <http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#FileDataObject> ;
                         a  ?Type
-                OPTIONAL
-                {
-                    $this acl:owner ?owner
-                }
             }
       }
+  }
+]]></param-value>
+    </context-param>
+    <context-param>
+        <param-name>https://w3id.org/atomgraph/linkeddatahub/config#documentOwnerQuery</param-name>
+        <param-value><![CDATA[
+PREFIX  acl:  <http://www.w3.org/ns/auth/acl#>
+
+SELECT  ?owner
+WHERE
+  { GRAPH $this
+      { $this  acl:owner  ?owner }
   }
 ]]></param-value>
     </context-param> 
