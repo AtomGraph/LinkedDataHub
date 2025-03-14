@@ -46,7 +46,6 @@ import java.util.Optional;
 import org.apache.jena.ontology.Ontology;
 import org.apache.jena.query.ParameterizedSparqlString;
 import org.apache.jena.query.Query;
-import org.apache.jena.query.QuerySolution;
 import org.apache.jena.query.QuerySolutionMap;
 import org.apache.jena.query.ResultSetRewindable;
 import org.apache.jena.rdf.model.Model;
@@ -162,46 +161,23 @@ public class Access extends com.atomgraph.core.model.impl.SPARQLEndpointImpl
      */
     protected boolean isOwner(Resource accessTo, Resource agent)
     {
+        if (agent == null) return false;
+
         QuerySolutionMap qsm = new QuerySolutionMap();
         qsm.add(SPIN.THIS_VAR_NAME, accessTo);
+
         ParameterizedSparqlString pss = getDocumentOwnerQuery();
         pss.setParams(qsm);
 
-        ResultSetRewindable docOwnerResult = getEndpointAccessor().select(pss.asQuery(), List.of(), List.of());
-        //loadResultSet(getApplication().getService(), getDocumentOwnerQuery(), qsm); // could use ASK query in principle
+        ResultSetRewindable ownerResult = getEndpointAccessor().select(pss.asQuery(), List.of(), List.of());
         try
         {
-            return isOwner(docOwnerResult, agent);
+            return ownerResult.hasNext() && agent.equals(ownerResult.next().getResource("owner"));
         }
         finally
         {
-            docOwnerResult.close();
+            ownerResult.close();
         }
-    }
-    
-    /**
-     * Checks if the given agent is the <code>acl:owner</code> of the document.
-     * 
-     * @param docOwnerResult the result set containing document metadata
-     * @param agent the agent whose ownership is checked
-     * @return true if the agent is the owner, false otherwise.
-     */
-    protected boolean isOwner(ResultSetRewindable docOwnerResult, Resource agent)
-    {
-        if (docOwnerResult == null) throw new IllegalArgumentException("ResultSet cannot be null");
-        if (agent == null) throw new IllegalArgumentException("Agent resource cannot be null");
-
-        Resource owner = null;
-
-        while (docOwnerResult.hasNext())
-        {
-            QuerySolution qs = docOwnerResult.next();
-            if (owner == null && qs.contains("owner")) owner = qs.getResource("owner");
-        }
-
-        docOwnerResult.reset();
-
-        return owner != null && owner.equals(agent);
     }
     
     /**
