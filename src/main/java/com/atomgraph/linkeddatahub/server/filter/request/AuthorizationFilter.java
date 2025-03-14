@@ -32,7 +32,6 @@ import com.atomgraph.linkeddatahub.vocabulary.LACL;
 import com.atomgraph.spinrdf.vocabulary.SPIN;
 import java.io.IOException;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import jakarta.annotation.PostConstruct;
@@ -55,7 +54,6 @@ import org.apache.jena.query.ResultSet;
 import org.apache.jena.query.ResultSetRewindable;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
-import org.apache.jena.rdf.model.ResIterator;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.vocabulary.RDF;
@@ -76,20 +74,14 @@ public class AuthorizationFilter implements ContainerRequestFilter
     /**
      * A mapping of HTTP methods to ACL access modes.
      */
-    public static final Map<String, Resource> ACCESS_MODES;
-    static
-    {
-        final Map<String, Resource> accessModes = new HashMap<>();
-        
-        accessModes.put(HttpMethod.GET, ACL.Read);
-        accessModes.put(HttpMethod.HEAD, ACL.Read);
-        accessModes.put(HttpMethod.POST, ACL.Append);
-        accessModes.put(HttpMethod.PUT, ACL.Write);
-        accessModes.put(HttpMethod.DELETE, ACL.Write);
-        accessModes.put(HttpMethod.PATCH, ACL.Write);
-        
-        ACCESS_MODES = Collections.unmodifiableMap(accessModes);
-    }
+    public static final Map<String, Resource> ACCESS_MODES = Map.of(
+        HttpMethod.GET, ACL.Read,
+        HttpMethod.HEAD, ACL.Read,
+        HttpMethod.POST, ACL.Append,
+        HttpMethod.PUT, ACL.Write,
+        HttpMethod.DELETE, ACL.Write,
+        HttpMethod.PATCH, ACL.Write
+    );
     
     @Inject com.atomgraph.linkeddatahub.Application system;
     @Inject jakarta.inject.Provider<com.atomgraph.linkeddatahub.apps.model.Application> app;
@@ -239,15 +231,10 @@ public class AuthorizationFilter implements ContainerRequestFilter
      */
     public Resource getAuthorizationByMode(Model authModel, Resource accessMode)
     {
-        ResIterator it = authModel.listResourcesWithProperty(ACL.mode, accessMode);
-        try
-        {
-            return it.nextOptional().orElse(null);
-        }
-        finally
-        {
-            it.close();
-        }        
+        return authModel.listResourcesWithProperty(ACL.mode, accessMode).
+            toList().stream().
+            findFirst().
+            orElse(null);      
     }
     
     /**
