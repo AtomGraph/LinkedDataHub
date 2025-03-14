@@ -68,7 +68,7 @@ public class Access extends com.atomgraph.core.model.impl.SPARQLEndpointImpl
     private final UriInfo uriInfo;
     private final Application application;
     private final Optional<AgentContext> agentContext;
-    private final ParameterizedSparqlString documentTypeQuery, aclQuery, ownerAclQuery;
+    private final ParameterizedSparqlString documentTypeQuery, documentOwnerQuery, aclQuery, ownerAclQuery;
     
     /**
      * Constructs endpoint from the in-memory ontology model.
@@ -95,6 +95,7 @@ public class Access extends com.atomgraph.core.model.impl.SPARQLEndpointImpl
         this.application = application;
         this.agentContext = agentContext;
         documentTypeQuery = new ParameterizedSparqlString(system.getDocumentTypeQuery().toString());
+        documentOwnerQuery = new ParameterizedSparqlString(system.getDocumentOwnerQuery().toString());
         aclQuery = new ParameterizedSparqlString(system.getACLQuery().toString());
         ownerAclQuery = new ParameterizedSparqlString(system.getOwnerACLQuery().toString());
     }
@@ -245,6 +246,26 @@ public class Access extends com.atomgraph.core.model.impl.SPARQLEndpointImpl
     }
     
     /**
+     * Returns a query that loads document type metadata.
+     * 
+     * @return SPARQL string
+     */
+    public ParameterizedSparqlString getDocumentTypeQuery()
+    {
+        return documentTypeQuery.copy();
+    }
+
+    /**
+     * Returns a query that loads document owner metadata.
+     * 
+     * @return SPARQL string
+     */  
+    public ParameterizedSparqlString getDocumentOwnerQuery()
+    {
+        return documentOwnerQuery.copy();
+    }
+    
+    /**
      * Returns authorization query.
      * Used on end-user applications.
      * 
@@ -264,27 +285,6 @@ public class Access extends com.atomgraph.core.model.impl.SPARQLEndpointImpl
     public ParameterizedSparqlString getOwnerACLQuery()
     {
         return ownerAclQuery.copy();
-    }
-    
-    /**
-     * Returns a query that loads document type and owner metadata.
-     * 
-     * @return SPARQL string
-     */
-    public ParameterizedSparqlString getDocumentTypeQuery()
-    {
-        return documentTypeQuery.copy();
-    }
-    
-    public ParameterizedSparqlString getDocumentOwnerQuery()
-    {
-        return new ParameterizedSparqlString("PREFIX  acl:  <http://www.w3.org/ns/auth/acl#>\n" +
-"\n" +
-"SELECT  ?owner\n" +
-"WHERE\n" +
-"  { GRAPH $this\n" +
-"      { $this  acl:owner  ?owner }\n" +
-"  }");
     }
     
 }

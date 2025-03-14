@@ -65,6 +65,9 @@ public class LDHC
     /** Document type query property */
     public static final DatatypeProperty documentTypeQuery = m_model.createDatatypeProperty( NS + "documentTypeQuery" );
 
+    /** Document owner query property */
+    public static final DatatypeProperty documentOwnerQuery = m_model.createDatatypeProperty( NS + "documentOwnerQuery" );
+
     /** ACL query property */
     public static final DatatypeProperty aclQuery = m_model.createDatatypeProperty( NS + "aclQuery" );
 

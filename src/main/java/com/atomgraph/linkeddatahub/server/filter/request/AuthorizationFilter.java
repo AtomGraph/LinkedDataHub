@@ -86,7 +86,7 @@ public class AuthorizationFilter implements ContainerRequestFilter
     @Inject jakarta.inject.Provider<com.atomgraph.linkeddatahub.apps.model.Application> app;
     @Inject jakarta.inject.Provider<Optional<com.atomgraph.linkeddatahub.apps.model.Dataset>> dataset;
     
-    private ParameterizedSparqlString documentTypeQuery, aclQuery, ownerAclQuery;
+    private ParameterizedSparqlString documentTypeQuery, documentOwnerQuery, aclQuery, ownerAclQuery;
 
     /**
      * Post-construct initialization.
@@ -95,6 +95,7 @@ public class AuthorizationFilter implements ContainerRequestFilter
     public void init()
     {
         documentTypeQuery = new ParameterizedSparqlString(system.getDocumentTypeQuery().toString());
+        documentOwnerQuery = new ParameterizedSparqlString(system.getDocumentOwnerQuery().toString());
         aclQuery = new ParameterizedSparqlString(getSystem().getACLQuery().toString());
         ownerAclQuery = new ParameterizedSparqlString(getSystem().getOwnerACLQuery().toString());
     }
@@ -349,27 +350,6 @@ public class AuthorizationFilter implements ContainerRequestFilter
                 addProperty(ACL.mode, ACL.Write).
                 addProperty(ACL.mode, ACL.Append);
     }
-
-    /**
-     * Returns a query that loads document type and owner metadata.
-     * 
-     * @return SPARQL string
-     */
-    public ParameterizedSparqlString getDocumentTypeQuery()
-    {
-        return documentTypeQuery.copy();
-    }
-    
-    public ParameterizedSparqlString getDocumentOwnerQuery()
-    {
-        return new ParameterizedSparqlString("PREFIX  acl:  <http://www.w3.org/ns/auth/acl#>\n" +
-"\n" +
-"SELECT  ?owner\n" +
-"WHERE\n" +
-"  { GRAPH $this\n" +
-"      { $this  acl:owner  $owner }\n" +
-"  }");
-    }
     
     /**
      * Returns the SPARQL service for agent data.
@@ -413,6 +393,26 @@ public class AuthorizationFilter implements ContainerRequestFilter
         return system;
     }
 
+    /**
+     * Returns a query that loads document type metadata.
+     * 
+     * @return SPARQL string
+     */
+    public ParameterizedSparqlString getDocumentTypeQuery()
+    {
+        return documentTypeQuery.copy();
+    }
+    
+    /**
+     * Returns a query that loads document owner metadata.
+     * 
+     * @return SPARQL string
+     */  
+    public ParameterizedSparqlString getDocumentOwnerQuery()
+    {
+        return documentOwnerQuery.copy();
+    }
+    
     /**
      * Returns authorization query.
      * Used on end-user applications.
