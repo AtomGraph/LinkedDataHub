@@ -185,25 +185,19 @@ public class AuthorizationFilter implements ContainerRequestFilter
 
                     docTypesResult.close();
                     docTypesResult = loadResultSet(getApplication().getService(), getDocumentTypeQuery(), thisQsm);
-                    try
-                    {
-                        Set<Resource> parentTypes = new HashSet<>();
-                        docTypesResult.forEachRemaining(qs -> parentTypes.add(qs.getResource("Type")));
 
-                        // only root and containers allow child documents. This needs to be checked before checking ownership
-                        if (Collections.disjoint(parentTypes, Set.of(Default.Root, DH.Container))) return null;
-                        docTypesResult.reset(); // rewind result set to the beginning - it's used again later on
-                        
-                        // special case where the agent is the owner of the requested document - automatically grant acl:Read/acl:Append/acl:Write access
-                        if (agent != null && isOwner(accessTo, agent))
-                        {
-                            log.debug("Agent <{}> is the owner of <{}>, granting acl:Read/acl:Append/acl:Write access", agent, accessTo);
-                            return createOwnerAuthorization(accessTo, agent);
-                        }
-                    }
-                    finally
+                    Set<Resource> parentTypes = new HashSet<>();
+                    docTypesResult.forEachRemaining(qs -> parentTypes.add(qs.getResource("Type")));
+
+                    // only root and containers allow child documents. This needs to be checked before checking ownership
+                    if (Collections.disjoint(parentTypes, Set.of(Default.Root, DH.Container))) return null;
+                    docTypesResult.reset(); // rewind result set to the beginning - it's used again later on
+
+                    // special case where the agent is the owner of the requested document - automatically grant acl:Read/acl:Append/acl:Write access
+                    if (agent != null && isOwner(accessTo, agent))
                     {
-                        docTypesResult.close(); 
+                        log.debug("Agent <{}> is the owner of <{}>, granting acl:Read/acl:Append/acl:Write access", agent, accessTo);
+                        return createOwnerAuthorization(accessTo, agent);
                     }
                 }
                 else return null;
