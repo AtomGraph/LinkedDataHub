@@ -124,7 +124,7 @@ public class Access extends com.atomgraph.core.model.impl.SPARQLEndpointImpl
             ParameterizedSparqlString typePss = getDocumentTypeQuery();
             typePss.setParams(thisQsm);
             
-            ResultSetRewindable docTypesResult = getEndpointAccessor().select(typePss.asQuery(), null, null);
+            ResultSetRewindable docTypesResult = getEndpointAccessor().select(typePss.asQuery(), List.of(), List.of());
             try
             {
                 final ParameterizedSparqlString authPss = getACLQuery();
