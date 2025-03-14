@@ -132,7 +132,7 @@ public class Access extends com.atomgraph.core.model.impl.SPARQLEndpointImpl
                 Query authQuery = new SetResultSetValues().apply(authPss.asQuery(), docTypesResult);
                 assert authQuery.toString().contains("VALUES");
 
-                Model authModel = getEndpointAccessor().loadModel(authQuery, defaultGraphUris, namedGraphUris);
+                Model authModel = getEndpointAccessor().loadModel(authQuery, List.of(), List.of());
                 // special case where the agent is the owner of the requested document - automatically grant acl:Read/acl:Append/acl:Write access
                 if (isOwner(accessTo, agent))
                 {
@@ -167,7 +167,7 @@ public class Access extends com.atomgraph.core.model.impl.SPARQLEndpointImpl
         ParameterizedSparqlString pss = getDocumentOwnerQuery();
         pss.setParams(qsm);
 
-        ResultSetRewindable docOwnerResult = getEndpointAccessor().select(pss.asQuery(), null, null);
+        ResultSetRewindable docOwnerResult = getEndpointAccessor().select(pss.asQuery(), List.of(), List.of());
         //loadResultSet(getApplication().getService(), getDocumentOwnerQuery(), qsm); // could use ASK query in principle
         try
         {
