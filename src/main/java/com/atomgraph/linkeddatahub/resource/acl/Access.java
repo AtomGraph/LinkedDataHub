@@ -22,7 +22,6 @@ import static com.atomgraph.core.model.SPARQLEndpoint.NAMED_GRAPH_URI;
 import static com.atomgraph.core.model.SPARQLEndpoint.QUERY;
 import com.atomgraph.linkeddatahub.apps.model.AdminApplication;
 import com.atomgraph.linkeddatahub.apps.model.Application;
-import com.atomgraph.linkeddatahub.client.SesameProtocolClient;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.model.auth.Agent;
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
@@ -49,7 +48,6 @@ import org.apache.jena.query.ParameterizedSparqlString;
 import org.apache.jena.query.Query;
 import org.apache.jena.query.QuerySolution;
 import org.apache.jena.query.QuerySolutionMap;
-import org.apache.jena.query.ResultSet;
 import org.apache.jena.query.ResultSetRewindable;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
@@ -104,7 +102,7 @@ public class Access extends com.atomgraph.core.model.impl.SPARQLEndpointImpl
     
     @Override
     @GET
-    public Response get(@QueryParam(QUERY) Query query,
+    public Response get(@QueryParam(QUERY) Query unused,
             @QueryParam(DEFAULT_GRAPH_URI) List<URI> defaultGraphUris, @QueryParam(NAMED_GRAPH_URI) List<URI> namedGraphUris)
     {
         final Agent agent = getAgentContext().map(AgentContext::getAgent).orElse(null);
@@ -113,9 +111,7 @@ public class Access extends com.atomgraph.core.model.impl.SPARQLEndpointImpl
 //                addProperty(RDF.type, FOAF.Agent).
 //                as(Agent.class);
                 
-        //final ParameterizedSparqlString pss = getApplication().canAs(EndUserApplication.class) ? getACLQuery() : getOwnerACLQuery();
-        final ParameterizedSparqlString authPss = getACLQuery();
-        
+        //final ParameterizedSparqlString pss = getApplication().canAs(EndUserApplication.class) ? getACLQuery() : getOwnerACLQuery();        
         try
         {
             if (!getUriInfo().getQueryParameters().containsKey(SPIN.THIS_VAR_NAME)) throw new BadRequestException("?this query param is not provided");
@@ -125,15 +121,18 @@ public class Access extends com.atomgraph.core.model.impl.SPARQLEndpointImpl
             
             QuerySolutionMap thisQsm = new QuerySolutionMap();
             thisQsm.add(SPIN.THIS_VAR_NAME, accessTo);
-            ResultSetRewindable docTypesResult = loadResultSet(getEndUserService(), getDocumentTypeQuery(), thisQsm);
+            ParameterizedSparqlString typePss = getDocumentTypeQuery();
+            typePss.setParams(thisQsm);
             
+            ResultSetRewindable docTypesResult = getEndpointAccessor().select(typePss.asQuery(), null, null);
             try
             {
+                final ParameterizedSparqlString authPss = getACLQuery();
                 authPss.setParams(new AuthorizationParams(getApplication().getBase(), accessTo, agent).get());
-                query = new SetResultSetValues().apply(authPss.asQuery(), docTypesResult);
-                assert query.toString().contains("VALUES");
+                Query authQuery = new SetResultSetValues().apply(authPss.asQuery(), docTypesResult);
+                assert authQuery.toString().contains("VALUES");
 
-                Model authModel = getEndpointAccessor().loadModel(query, defaultGraphUris, namedGraphUris);
+                Model authModel = getEndpointAccessor().loadModel(authQuery, defaultGraphUris, namedGraphUris);
                 // special case where the agent is the owner of the requested document - automatically grant acl:Read/acl:Append/acl:Write access
                 if (isOwner(accessTo, agent))
                 {
@@ -155,38 +154,6 @@ public class Access extends com.atomgraph.core.model.impl.SPARQLEndpointImpl
     }
     
     /**
-     * Loads SPARQL result set from a service.
-     * 
-     * @param service SPARQL service
-     * @param pss auth query string
-     * @param qsm query solution map (applied to the query string or sent as request params, depending on the protocol)
-     * @return authorization graph (can be empty)
-     * @see com.atomgraph.linkeddatahub.vocabulary.LDHC#authQuery
-     */
-    protected ResultSetRewindable loadResultSet(com.atomgraph.linkeddatahub.model.Service service, ParameterizedSparqlString pss, QuerySolutionMap qsm)
-    {
-        if (service == null) throw new IllegalArgumentException("Service cannot be null");
-        if (pss == null) throw new IllegalArgumentException("ParameterizedSparqlString cannot be null");
-        if (qsm == null) throw new IllegalArgumentException("QuerySolutionMap cannot be null");
-        
-        // send query bindings separately from the query if the service supports the Sesame protocol
-        if (service.getSPARQLClient() instanceof SesameProtocolClient sesameProtocolClient)
-            try (Response cr = sesameProtocolClient.query(pss.asQuery(), ResultSet.class, qsm)) // register(new CacheControlFilter(CacheControl.valueOf("no-cache"))). // add Cache-Control: no-cache to request
-            {
-                return cr.readEntity(ResultSetRewindable.class);
-            }
-        else
-        {
-            pss.setParams(qsm);
-            try (Response cr = service.getSPARQLClient(). // register(new CacheControlFilter(CacheControl.valueOf("no-cache"))). // add Cache-Control: no-cache to request
-                query(pss.asQuery(), ResultSet.class))
-            {
-                return cr.readEntity(ResultSetRewindable.class);
-            }
-        }
-    }
-    
-    /**
      * Checks if the given agent is the <code>acl:owner</code> of the document.
      * 
      * @param accessTo the document URI
@@ -197,8 +164,11 @@ public class Access extends com.atomgraph.core.model.impl.SPARQLEndpointImpl
     {
         QuerySolutionMap qsm = new QuerySolutionMap();
         qsm.add(SPIN.THIS_VAR_NAME, accessTo);
+        ParameterizedSparqlString pss = getDocumentOwnerQuery();
+        pss.setParams(qsm);
 
-        ResultSetRewindable docOwnerResult = loadResultSet(getApplication().getService(), getDocumentOwnerQuery(), qsm); // could use ASK query in principle
+        ResultSetRewindable docOwnerResult = getEndpointAccessor().select(pss.asQuery(), null, null);
+        //loadResultSet(getApplication().getService(), getDocumentOwnerQuery(), qsm); // could use ASK query in principle
         try
         {
             return isOwner(docOwnerResult, agent);

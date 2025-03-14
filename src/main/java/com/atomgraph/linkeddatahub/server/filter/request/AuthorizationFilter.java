@@ -191,13 +191,6 @@ public class AuthorizationFilter implements ContainerRequestFilter
                     thisQsm = new QuerySolutionMap();
                     thisQsm.add(SPIN.THIS_VAR_NAME, accessTo);
 
-                    // special case where the agent is the owner of the requested document - automatically grant acl:Read/acl:Append/acl:Write access
-                    if (agent != null && isOwner(accessTo, agent))
-                    {
-                        log.debug("Agent <{}> is the owner of <{}>, granting acl:Read/acl:Append/acl:Write access", agent, accessTo);
-                        return createOwnerAuthorization(accessTo, agent);
-                    }
-
                     docTypesResult.close();
                     docTypesResult = loadResultSet(getApplication().getService(), getDocumentTypeQuery(), thisQsm);
                     try
@@ -205,10 +198,15 @@ public class AuthorizationFilter implements ContainerRequestFilter
                         Set<Resource> parentTypes = new HashSet<>();
                         docTypesResult.forEachRemaining(qs -> parentTypes.add(qs.getResource("Type")));
 
-                        // only root and containers allow child documents
+                        // only root and containers allow child documents. This needs to be checked before checking ownership
                         if (Collections.disjoint(parentTypes, Set.of(Default.Root, DH.Container))) return null;
-
-                        docTypesResult.reset(); // rewind result set to the beginning
+                        
+                        // special case where the agent is the owner of the requested document - automatically grant acl:Read/acl:Append/acl:Write access
+                        if (agent != null && isOwner(accessTo, agent))
+                        {
+                            log.debug("Agent <{}> is the owner of <{}>, granting acl:Read/acl:Append/acl:Write access", agent, accessTo);
+                            return createOwnerAuthorization(accessTo, agent);
+                        }
                     }
                     finally
                     {
