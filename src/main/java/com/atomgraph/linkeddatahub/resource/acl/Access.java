@@ -124,7 +124,7 @@ public class Access extends com.atomgraph.core.model.impl.SPARQLEndpointImpl
             ParameterizedSparqlString typePss = getDocumentTypeQuery();
             typePss.setParams(thisQsm);
             
-            ResultSetRewindable docTypesResult = getEndpointAccessor().select(typePss.asQuery(), List.of(), List.of());
+            ResultSetRewindable docTypesResult = getEndUserService().getEndpointAccessor().select(typePss.asQuery(), List.of(), List.of());
             try
             {
                 final ParameterizedSparqlString authPss = getACLQuery();
@@ -170,7 +170,7 @@ public class Access extends com.atomgraph.core.model.impl.SPARQLEndpointImpl
         ParameterizedSparqlString pss = getDocumentOwnerQuery();
         pss.setParams(qsm);
 
-        ResultSetRewindable ownerResult = getEndpointAccessor().select(pss.asQuery(), List.of(), List.of());
+        ResultSetRewindable ownerResult = getEndUserService().getEndpointAccessor().select(pss.asQuery(), List.of(), List.of());
         try
         {
             return ownerResult.hasNext() && agent.equals(ownerResult.next().getResource("owner"));
