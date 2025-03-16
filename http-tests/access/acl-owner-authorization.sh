@@ -36,8 +36,8 @@ ntriples=$(curl -k -s -G \
   "${ADMIN_BASE_URL}access"
 )
 
-auth1=$(cat "$ntriples" | grep "<http://www.w3.org/1999/02/22-rdf-syntax-ns#> <https://w3id.org/atomgraph/linkeddatahub/admin/acl#OwnerAuthorization>" | cut -d' ' -f1 | head -n1)
-auth2=$(cat "$ntriples" | grep "<http://www.w3.org/ns/auth/acl#agent> <${AGENT_URI}>" | cut -d' ' -f1 | head -n1)
+auth1=$(echo "$ntriples" | grep -F "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/atomgraph/linkeddatahub/admin/acl#OwnerAuthorization>" | cut -d' ' -f1)
+auth2=$(echo "$ntriples" | grep -F "<http://www.w3.org/ns/auth/acl#agent> <${AGENT_URI}>" | cut -d' ' -f1)
 
 # if the subjects of the two triples are different, the agent is not the owner of the container
 if [ "$auth1" != "$auth2" ]; then
