@@ -83,10 +83,6 @@ exclude-result-prefixes="#all"
         <xsl:param name="refresh-content" as="xs:boolean?"/>
         <xsl:param name="query-uri" select="descendant::*[@property = '&spin;query']/@resource" as="xs:anyURI"/>
         
-<!--        <xsl:message>ldh:View ldh:RenderBlock $about: <xsl:value-of select="$about"/></xsl:message>-->
-        <xsl:message>ldh:View $query-uri: <xsl:value-of select="$query-uri"/></xsl:message>
-        <xsl:message>ldh:View $parent-about: <xsl:value-of select="$parent-about"/></xsl:message>
-
         <xsl:for-each select="$block//div[contains-token(@class, 'bar')]">
             <!-- update progress bar -->
             <ixsl:set-style name="width" select="'75%'" object="."/>
@@ -119,8 +115,6 @@ exclude-result-prefixes="#all"
         <xsl:param name="refresh-content" as="xs:boolean?"/>
         <xsl:param name="block-uri" select="$block/@about" as="xs:anyURI"/>
         <xsl:param name="query-uri" as="xs:anyURI"/>
-
-        <xsl:message>ldh:ViewQueryLoad $this: <xsl:value-of select="$this"/></xsl:message>
         
         <xsl:choose>
             <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
@@ -130,7 +124,6 @@ exclude-result-prefixes="#all"
                     <!-- set $this variable value unless getting the query string from state -->
                     <xsl:variable name="select-string" select="replace($select-query/sp:text, '$this', '&lt;' || $this || '&gt;', 'q')" as="xs:string"/>
                     <xsl:variable name="select-string" select="replace($select-string, '$about', '&lt;' || $about || '&gt;', 'q')" as="xs:string"/>
-                    <xsl:message>$select-string: <xsl:value-of select="$select-string"/></xsl:message>
                     <xsl:variable name="select-xml" as="document-node()">
                         <xsl:variable name="select-json" as="item()">
                             <xsl:variable name="select-builder" select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromString', [ $select-string ])"/>
@@ -144,13 +137,6 @@ exclude-result-prefixes="#all"
                     <!-- service can be explicitly specified on content using ldh:service -->
                     <xsl:variable name="service" select="if ($service-uri) then key('resources', $service-uri, document(ac:build-uri(ac:document-uri($service-uri), map{ 'accept': 'application/rdf+xml' }))) else ()" as="element()?"/> <!-- TO-DO: refactor asynchronously -->
                     <xsl:variable name="endpoint" select="($service/sd:endpoint/@rdf:resource/xs:anyURI(.), sd:endpoint())[1]" as="xs:anyURI"/>
-
-                    <xsl:message>
-                        ldh:ViewQueryLoad
-                        $service-uri: <xsl:value-of select="$service-uri"/>
-                        $service/sd:endpoint/@rdf:resource: <xsl:value-of select="$service/sd:endpoint/@rdf:resource"/>
-                        $endpoint: <xsl:value-of select="$endpoint"/>
-                    </xsl:message>
                     
                     <xsl:choose>
                         <!-- service URI is not specified or specified and can be loaded -->
@@ -583,12 +569,7 @@ exclude-result-prefixes="#all"
                 </xsl:if>
             </xsl:map>
         </xsl:variable>
-        
-        <xsl:message>
-            ldh:RenderView
-            $container: <xsl:value-of select="serialize($container)"/>
-        </xsl:message>
-        
+                
         <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': $headers }">
             <xsl:call-template name="onContainerResultsLoad">
                 <xsl:with-param name="block" select="$block"/>
@@ -811,13 +792,6 @@ exclude-result-prefixes="#all"
         <xsl:variable name="select-xml" select="json-to-xml($select-json-string)" as="document-node()"/>
         <!-- use the first SELECT variable as the facet variable name (so that we do not generate facets based on other variables) -->
         <xsl:variable name="initial-var-name" select="$select-xml/json:map/json:array[@key = 'variables']/json:string[1]/substring-after(., '?')" as="xs:string"/>
-
-        <xsl:message>
-            ldh:RenderFacets
-            current(): <xsl:value-of select="serialize(.)"/>
-            parent:: <xsl:value-of select="serialize(..)"/>
-            $sub-container-id: <xsl:value-of select="$sub-container-id"/>
-        </xsl:message>
         
         <!-- only append facets if they are not already present -->
         <xsl:if test="not(id($sub-container-id, ixsl:page()))">
@@ -827,9 +801,6 @@ exclude-result-prefixes="#all"
                 </xsl:apply-templates>
             </xsl:result-document>
             
-            <xsl:message>
-            exists(id($sub-container-id, ixsl:page())): <xsl:value-of select="exists(id($sub-container-id, ixsl:page()))"/>
-            </xsl:message>
             <xsl:variable name="sub-container" select="id($sub-container-id, ixsl:page())" as="element()"/>
             <!-- use the BGPs where the predicate is a URI value and the subject and object are variables -->
             <xsl:variable name="bgp-triples-map" select="$select-xml//json:map[json:string[@key = 'type'] = 'bgp']/json:array[@key = 'triples']/json:map[json:string[@key = 'subject'] = '?' || $initial-var-name][not(starts-with(json:string[@key = 'predicate'], '?'))][starts-with(json:string[@key = 'object'], '?')]" as="element()*"/>
@@ -862,12 +833,7 @@ exclude-result-prefixes="#all"
     <xsl:template match="*" mode="ldh:RenderFacets">
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="class" select="'well well-small'" as="xs:string?"/>
-        
-        <xsl:message>
-            mode="ldh:RenderFacets" WTF
-            $id: <xsl:value-of select="$id"/>
-        </xsl:message>
-        
+                
         <div>
             <xsl:if test="$id">
                 <xsl:attribute name="id" select="$id"/>
@@ -1506,11 +1472,6 @@ exclude-result-prefixes="#all"
         <xsl:param name="order-by-container-id" select="$container-id || '-container-order'" as="xs:string"/>
         <xsl:param name="result-count-container-id" select="$container-id || '-result-count'" as="xs:string"/>
         
-        <xsl:message>
-            onContainerResultsLoad
-            $container: <xsl:value-of select="serialize($container)"/>
-        </xsl:message>
-        
         <!-- update progress bar -->
         <xsl:for-each select="$block//div[contains-token(@class, 'bar')]">
             <ixsl:set-style name="width" select="'75%'" object="."/>
@@ -1625,12 +1586,7 @@ exclude-result-prefixes="#all"
                     </xsl:if>
 
                     <xsl:variable name="object-uris" select="distinct-values($sorted-results/rdf:RDF/rdf:Description/*/@rdf:resource[not(key('resources', .))])" as="xs:string*"/>
-                    <xsl:variable name="query-string" select="$object-metadata-query || ' VALUES $this { ' || string-join(for $uri in $object-uris return '&lt;' || $uri || '&gt;', ' ') || ' }'" as="xs:string"/>
-                    <xsl:message>
-                        $content-container: <xsl:value-of select="serialize($content-container)"/>
-                        exists($content-container//div[contains-token(@class, 'container-results')]): <xsl:value-of select="exists($content-container//div[contains-token(@class, 'container-results')])"/>
-                    </xsl:message>
-                    
+                    <xsl:variable name="query-string" select="$object-metadata-query || ' VALUES $this { ' || string-join(for $uri in $object-uris return '&lt;' || $uri || '&gt;', ' ') || ' }'" as="xs:string"/>                    
                     <xsl:variable name="request" as="item()*">
                         <ixsl:schedule-action http-request="map{ 'method': 'POST', 'href': sd:endpoint(), 'media-type': 'application/sparql-query', 'body': $query-string, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                             <xsl:call-template name="ldh:LoadContainerObjectMetadata">

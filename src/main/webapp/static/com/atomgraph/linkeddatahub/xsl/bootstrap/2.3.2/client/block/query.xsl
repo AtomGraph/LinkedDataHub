@@ -80,10 +80,6 @@ exclude-result-prefixes="#all"
             <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
                 <xsl:variable name="results" select="?body" as="document-node()"/>
 
-                <xsl:message>
-                    $service: <xsl:value-of select="serialize(key('resources', $service-uri, $results))"/>
-                </xsl:message>
-
                 <xsl:result-document href="?." method="ixsl:append-content">
                     <xsl:apply-templates select="key('resources', $service-uri, $results)" mode="ldh:Typeahead">
                         <xsl:with-param name="forClass" select="$forClass"/>
@@ -128,12 +124,6 @@ exclude-result-prefixes="#all"
         <xsl:param name="show-properties" select="false()" as="xs:boolean"/>
         <xsl:param name="forClass" select="xs:anyURI('&sd;Service')" as="xs:anyURI"/>
         
-        <xsl:message>
-            Query ldh:RenderBlock @typeof: <xsl:value-of select="@typeof"/> $about: <xsl:value-of select="$about"/>
-            $service-uri: <xsl:value-of select="$service-uri"/> $textarea-id: <xsl:value-of select="$textarea-id"/>
-            $query: <xsl:value-of select="$query"/>
-        </xsl:message>
-        
         <xsl:for-each select="$block//div[contains-token(@class, 'bar')]">
             <ixsl:set-style name="width" select="'66%'" object="."/>
         </xsl:for-each>
@@ -160,9 +150,6 @@ exclude-result-prefixes="#all"
                                 <xsl:when test="$service-uri">
                                     <!-- need to explicitly request RDF/XML, otherwise we get HTML -->
                                     <xsl:variable name="request-uri" select="ac:build-uri(ac:document-uri($service-uri), map{ 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
-                                    <xsl:message>
-                                        $request-uri: <xsl:value-of select="$request-uri"/>
-                                    </xsl:message>
                                     <!-- TO-DO: refactor asynchronously -->
                                     <xsl:apply-templates select="key('resources', $service-uri, document($request-uri))" mode="ldh:Typeahead">
                                         <xsl:with-param name="forClass" select="$forClass"/>
@@ -261,7 +248,6 @@ exclude-result-prefixes="#all"
     <xsl:template match="div[@typeof = ('&sp;Ask', '&sp;Select', '&sp;Describe', '&sp;Construct')]//form[contains-token(@class, 'sparql-query-form ')]" mode="ixsl:onsubmit" priority="2"> <!-- prioritize over form.xsl -->
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
-        <xsl:message>.sparql-query-form onsubmit</xsl:message>
         <xsl:variable name="textarea-id" select="descendant::textarea[@name = 'query']/ixsl:get(., 'id')" as="xs:string"/>
         <xsl:variable name="yasqe" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.yasqe'), $textarea-id)"/>
         <xsl:variable name="query-string" select="ixsl:call($yasqe, 'getValue', [])" as="xs:string"/> <!-- get query string from YASQE -->
@@ -277,10 +263,6 @@ exclude-result-prefixes="#all"
         <xsl:variable name="request-uri" select="ldh:href($ldt:base, $ldt:base, map{}, $results-uri)" as="xs:anyURI"/>
         <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml,application/rdf+xml;q=0.9' } }" as="map(xs:string, item())"/>
 
-        <xsl:message>
-            $service-uri: <xsl:value-of select="$service-uri"/>
-            $endpoint: <xsl:value-of select="$endpoint"/>
-        </xsl:message>
         <xsl:variable name="request" as="item()*">
             <ixsl:schedule-action http-request="$request">
                 <xsl:call-template name="onSPARQLResultsLoad">
@@ -343,8 +325,6 @@ exclude-result-prefixes="#all"
             </xsl:document>
         </xsl:variable>
         <xsl:variable name="this" select="ancestor::div[@about][1]/@about" as="xs:anyURI"/> <!-- not the same as $block/@about! -->
-        <xsl:message>$block/@about: <xsl:value-of select="$block/@about"/> $view-block-uri: <xsl:value-of select="$view-block-uri"/></xsl:message>
-        <xsl:message>$view-html: <xsl:value-of select="serialize($view-html)"/></xsl:message>
 
         <!-- deactivate other tabs -->
         <xsl:for-each select="../../li">
@@ -397,10 +377,6 @@ exclude-result-prefixes="#all"
             </xsl:apply-templates>
         </xsl:variable>
         <xsl:variable name="triples" select="ldh:descriptions-to-triples($query)" as="element()*"/>
-        <xsl:message>
-            $query: <xsl:value-of select="serialize($query)"/>
-            $query triples: <xsl:value-of select="serialize($triples)"/>
-        </xsl:message>
         <xsl:variable name="update-string" select="ldh:triples-to-sparql-update($about, $triples)" as="xs:string"/>
         <xsl:variable name="resources" as="document-node()">
             <xsl:document>
@@ -559,13 +535,6 @@ exclude-result-prefixes="#all"
                             </xsl:apply-templates>
                         </xsl:result-document>
                     </xsl:for-each>
-                    
-<xsl:message>
-$block-uri: <xsl:copy-of select="$block-uri"/>
-$results: <xsl:copy-of select="$results"/>
-$category: <xsl:value-of select="$category"/>
-$series: <xsl:value-of select="$series"/>
-</xsl:message>
 
                     <!-- create new cache entry using content URI as key -->
                     <ixsl:set-property name="{'`' || $block-uri || '`'}" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.contents')"/>

@@ -1251,7 +1251,6 @@ extension-element-prefixes="ixsl"
         <xsl:param name="base-uri" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI" tunnel="yes"/>
         <xsl:param name="show-subject" select="not(starts-with(@rdf:about, $base-uri) or @rdf:nodeID)" as="xs:boolean" tunnel="yes"/>
         <xsl:param name="required" select="rdf:type/@rdf:resource = ('&dh;Container', '&dh;Item')" as="xs:boolean"/> <!-- Container/Item instances cannot be removed -->
-        <xsl:message>Resource-level bs2:FormControl $forClass: <xsl:value-of select="$forClass"/> $constructor: <xsl:value-of select="serialize($constructor)"/></xsl:message>
         
         <fieldset>
             <xsl:if test="$id">
@@ -1270,22 +1269,13 @@ extension-element-prefixes="ixsl"
                                 <button type="button" class="btn btn-large pull-right btn-remove-resource" title="Remove this resource"></button>
                             </div>
                         </xsl:if>
-
-                        <xsl:message>
-                            $type-metadata: <xsl:value-of select="serialize($type-metadata)"/>
-                        </xsl:message>
-                        <xsl:message>
-                            $constructors: <xsl:value-of select="serialize($constructors)"/>
-                        </xsl:message>
                         
                         <div class="pull-right">
                             <xsl:if test="exists($type-metadata) and exists($constructors)">
                                 <div class="btn-group">
                                     <!-- show list of types that have constructors (excluding built-in system classes) -->
                                     <xsl:variable name="constructor-classes" select="distinct-values($constructors//srx:binding[@name = 'Type']/srx:uri)[not(starts-with(., '&dh;') or starts-with(., '&ldh;') or starts-with(., '&def;') or starts-with(., '&lapp;') or starts-with(., '&sp;') or starts-with(., '&nfo;'))]" as="xs:anyURI*"/>
-                        <xsl:message>
-                            $constructor-classes: <xsl:value-of select="$constructor-classes"/>
-                        </xsl:message>
+
                                     <button type="button" class="btn dropdown-toggle btn-edit-actions">
                                         <!-- only admins should see the button as only they have access to the ontologies with constructors in them -->
                                         <xsl:if test="not($acl:mode = '&acl;Control' and exists($constructor-classes))">
@@ -1411,7 +1401,6 @@ extension-element-prefixes="ixsl"
         <!--<xsl:param name="label" select="true()" as="xs:boolean"/>-->
         <xsl:param name="template" as="element()*"/>
         <xsl:param name="id" select="generate-id()" as="xs:string"/>
-        <!-- <xsl:param name="forClass" as="xs:anyURI*"/> -->
         <xsl:param name="property-metadata" as="document-node()?"/>
         <xsl:variable name="seq-properties" select="for $property in ../rdf:Description/*/concat(namespace-uri(), local-name())[starts-with(., '&rdf;' || '_')] return xs:anyURI($property)" as="xs:anyURI*"/>
         <xsl:variable name="max-seq-index" select="if (empty($seq-properties)) then 0 else max(for $seq-property in $seq-properties return xs:integer(substring-after($seq-property, '&rdf;' || '_')))" as="xs:integer"/>

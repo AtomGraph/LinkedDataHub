@@ -173,6 +173,11 @@ WHERE
             <ixsl:set-attribute name="value" select="$datetime-local"/>
         </xsl:if>
     </xsl:template>
+
+    <!-- set focus on the first required input -->
+    <xsl:template match="fieldset//div[contains-token(@class, 'required')][1]//input" mode="ldh:RenderRowForm" priority="1">
+        <xsl:sequence select="ixsl:call(., 'focus', [])[current-date() lt xs:date('2000-01-01')]"/>
+    </xsl:template>
     
     <xsl:template match="*" mode="ldh:FormPreSubmit">
         <xsl:apply-templates mode="#current"/>
@@ -267,14 +272,8 @@ WHERE
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
         
-        <xsl:message>ixsl:get(., 'baseURI'): <xsl:value-of select="ixsl:get(., 'baseURI')"/></xsl:message>
-        <xsl:message>ldh:base-uri(.): <xsl:value-of select="ldh:base-uri(.)"/></xsl:message>
-        <xsl:message>ixsl:location(): <xsl:value-of select="ixsl:location()"/></xsl:message>
-        <xsl:message>.btn-edit $block: <xsl:value-of select="serialize($block)"/></xsl:message>
-
         <xsl:if test="ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path(ldh:base-uri(.)) || '`')">
             <xsl:variable name="etag" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path(ldh:base-uri(.)) || '`'), 'etag')" as="xs:string"/>
-            <xsl:message>ldh:LoadEditedDocument $etag: <xsl:value-of select="$etag"/></xsl:message>
         </xsl:if>
         <xsl:if test="not(ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $about || '`'))">
             <ixsl:set-property name="{'`' || $about || '`'}" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.contents')"/>
@@ -305,7 +304,6 @@ WHERE
         <xsl:choose>
             <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
                 <xsl:variable name="etag" select="?headers?etag" as="xs:string?"/>
-                <xsl:message>ETag: <xsl:value-of select="$etag"/></xsl:message>
                 
                 <xsl:for-each select="?body">
                     <ixsl:set-property name="{'`' || ac:absolute-path(ldh:base-uri(.)) || '`'}" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.contents')"/>
@@ -313,11 +311,6 @@ WHERE
                     <ixsl:set-property name="results" select="." object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path(ldh:base-uri(.)) || '`')"/>
                     <!-- store ETag header value under window.LinkedDataHub.contents[$base-uri].etag -->
                     <ixsl:set-property name="etag" select="$etag" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path(ldh:base-uri(.)) || '`')"/>
-
-                    <xsl:message>
-                        $about: <xsl:value-of select="$about"/>
-                        ?body: <xsl:value-of select="serialize(.)"/>
-                    </xsl:message>
 
                     <xsl:variable name="resource" select="key('resources', $about)" as="element()"/> <!-- TO-DO: handle error -->
                     <xsl:variable name="types" select="distinct-values($resource/rdf:type/@rdf:resource)" as="xs:anyURI*"/>
@@ -365,10 +358,6 @@ WHERE
                 <xsl:variable name="request-uri" select="ac:build-uri(resolve-uri('ns', $ldt:base), map{ 'query': $query-string, 'accept': 'application/sparql-results+xml' })" as="xs:anyURI"/>
                 <xsl:variable name="constructors" select="if (exists($types)) then document($request-uri) else ()" as="document-node()?"/>
 
-                <xsl:message>
-                    .btn-edit $constructors: <xsl:value-of select="serialize($constructors)"/>
-                </xsl:message>
-
                 <xsl:variable name="query-string" select="$constraint-query || ' VALUES $Type { ' || string-join(for $type in $types return '&lt;' || $type || '&gt;', ' ') || ' }'" as="xs:string"/>
                 <xsl:variable name="request-uri" select="ac:build-uri(resolve-uri('ns', $ldt:base), map{ 'query': $query-string, 'accept': 'application/sparql-results+xml' })" as="xs:anyURI"/>
                 <xsl:variable name="constraints" select="if (exists($types)) then document($request-uri) else ()" as="document-node()?"/>
@@ -381,10 +370,6 @@ WHERE
                 <xsl:variable name="query-string" select="$object-metadata-query || ' VALUES $this { ' || string-join(for $uri in $object-uris return '&lt;' || $uri || '&gt;', ' ') || ' }'" as="xs:string"/>
                 <xsl:variable name="request-uri" select="ac:build-uri(resolve-uri('sparql', $ldt:base), map{ 'query': $query-string, 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
                 <xsl:variable name="object-metadata" select="if (doc-available($request-uri)) then document($request-uri) else ()" as="document-node()?"/>
-                <xsl:message>
-                    $object-uris: <xsl:value-of select="$object-uris"/>
-                    $object-metadata: <xsl:value-of select="serialize($object-metadata)"/>
-                </xsl:message>
 
                 <xsl:for-each select="$block">
                     <xsl:variable name="row" as="node()*">
@@ -473,34 +458,16 @@ WHERE
         <xsl:variable name="enctype" select="ixsl:get($form, 'enctype')" as="xs:string"/>
         <xsl:variable name="accept" select="'application/rdf+xml'" as="xs:string"/>
         <xsl:variable name="etag" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path(ldh:base-uri(.)) || '`'), 'etag')" as="xs:string"/>
-        <xsl:message>$etag: <xsl:value-of select="$etag"/></xsl:message>
 
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
-        <xsl:message>
-            <xsl:for-each select="$elements">
-                @name: <xsl:value-of select="@name"/> ixsl:get(., 'value'): <xsl:value-of select="if (ixsl:contains(., 'value')) then ixsl:get(., 'value') else 'None'"/> ixsl:get(., 'value') = '': <xsl:value-of select="ixsl:get(., 'value') = ''"/>
-            </xsl:for-each>
-        </xsl:message>
-        <xsl:message>
-            $triples: <xsl:value-of select="serialize($triples)"/>
-        </xsl:message>
-        
         <!-- canonicalize XML in rdf:XMLLiterals -->
         <xsl:variable name="triples" as="element()*">
             <xsl:apply-templates select="$triples" mode="ldh:CanonicalizeXML"/>
         </xsl:variable>
-        <xsl:message>
-            c14n $triples: <xsl:value-of select="serialize($triples)"/>
-        </xsl:message>
-
         <xsl:variable name="doc-uri" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/>
         <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, $action)" as="xs:anyURI"/>
 
-        <xsl:message>form.form-horizontal ixsl:onsubmit</xsl:message>
-        <xsl:message>$triples: <xsl:value-of select="serialize($triples)"/></xsl:message>
-        <xsl:message>RDF/XML: <xsl:value-of select="serialize($resources)"/></xsl:message>
-        
         <!-- pre-process form before submitting it -->
         <!-- <xsl:apply-templates select="." mode="ldh:FormPreSubmit"/> -->
             
@@ -544,26 +511,17 @@ WHERE
         <xsl:variable name="action" select="ixsl:get($form, 'action')" as="xs:anyURI"/>
         <xsl:variable name="enctype" select="ixsl:get($form, 'enctype')" as="xs:string"/>
         <xsl:variable name="about" select="$block/@about" as="xs:anyURI"/>
-        <xsl:message>ldh:base-uri(.): <xsl:value-of select="ldh:base-uri(.)"/></xsl:message>
         <xsl:variable name="etag" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path(ldh:base-uri(.)) || '`'), 'etag')" as="xs:string"/>
-        <xsl:message>$etag: <xsl:value-of select="$etag"/></xsl:message>
 
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
         
         <xsl:variable name="elements" select=".//input | .//textarea | .//select" as="element()*"/>
-        <xsl:variable name="triples" select="ldh:parse-rdf-post($elements)" as="element()*"/>
-        <xsl:message>
-            $triples: <xsl:value-of select="serialize($triples)"/>
-        </xsl:message>
-        
+        <xsl:variable name="triples" select="ldh:parse-rdf-post($elements)" as="element()*"/>        
         <!-- canonicalize XML in rdf:XMLLiterals -->
         <xsl:variable name="triples" as="element()*">
             <xsl:apply-templates select="$triples" mode="ldh:CanonicalizeXML"/>
         </xsl:variable>
-        <xsl:message>
-            c14n $triples: <xsl:value-of select="serialize($triples)"/>
-        </xsl:message>
-        
+
         <xsl:variable name="update-string" select="ldh:triples-to-sparql-update($about, $triples)" as="xs:string"/>
         <xsl:variable name="resources" as="document-node()">
             <xsl:document>
@@ -572,7 +530,6 @@ WHERE
                 </rdf:RDF>
             </xsl:document>
         </xsl:variable>
-        <xsl:message>RDF/XML: <xsl:value-of select="serialize($resources)"/></xsl:message>
         <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, $action)" as="xs:anyURI"/>
         
         <xsl:variable name="request" as="item()*">
@@ -598,7 +555,6 @@ WHERE
         <xsl:variable name="property-uri" select="../preceding-sibling::*/select/option[ixsl:get(., 'selected') = true()]/ixsl:get(., 'value')" as="xs:anyURI"/>
         <xsl:variable name="seq-property" select="starts-with($property-uri, '&rdf;_')" as="xs:boolean"/>
         <xsl:variable name="forClass" select="ancestor::div[@typeof][contains-token(@class, 'row-fluid')]/@typeof" as="xs:anyURI*"/>
-        <xsl:message>.add-value $forClass: <xsl:value-of select="$forClass"/> $property-uri: <xsl:value-of select="$property-uri"/></xsl:message>
 
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
@@ -607,12 +563,10 @@ WHERE
             <xsl:choose>
                 <!-- $forClass constructor found -->
                 <xsl:when test="key('resources-by-type', $forClass, $constructed-doc)[not(key('predicates-by-object', @rdf:nodeID))]">
-                    <xsl:message>$forClass constructor found</xsl:message>
                     <xsl:sequence select="key('resources-by-type', $forClass, $constructed-doc)[not(key('predicates-by-object', @rdf:nodeID))]"/>
                 </xsl:when>
                 <!-- $forClass constructor not found -->
                 <xsl:otherwise>
-                    <xsl:message>$forClass constructor not found</xsl:message>
                     <rdf:Description rdf:nodeID="A1">
                         <rdf:type rdf:resource="{$forClass}"/>
                     </rdf:Description>
@@ -663,10 +617,6 @@ WHERE
         <xsl:param name="modal" select="false()" as="xs:boolean"/>
         <xsl:param name="resources" as="document-node()"/>
 
-        <xsl:message>
-            ldh:ResourceUpdated $doc-uri: <xsl:value-of select="$doc-uri"/> $modal: <xsl:value-of select="$modal"/>
-        </xsl:message>
-        
         <xsl:apply-templates select="." mode="ldh:ProcessUpdateResponse">
             <xsl:with-param name="doc-uri" select="$doc-uri"/>
             <xsl:with-param name="block" select="$block"/>
@@ -688,7 +638,6 @@ WHERE
             <xsl:when test="?status = (200, 204)">
                 <xsl:variable name="etag" select="?headers?etag" as="xs:string?"/>
                 <xsl:if test="$etag">
-                    <xsl:message>$etag: <xsl:value-of select="$etag"/></xsl:message>
                     <!-- store ETag header value under window.LinkedDataHub.contents[$doc-uri].etag -->
                     <ixsl:set-property name="etag" select="$etag" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $doc-uri || '`')"/>
                 </xsl:if>
@@ -702,14 +651,6 @@ WHERE
                         <xsl:sort select="ac:label(.)"/>
                     </xsl:apply-templates>
                 </xsl:variable>
-                <!--
-                <xsl:message>
-                    $resources instance of document-node(): <xsl:value-of select="$resources instance of document-node()"/>
-                    $resources: <xsl:value-of select="serialize($resources)"/>
-                    $block: <xsl:value-of select="serialize($block)"/>
-                    $new-block: <xsl:value-of select="serialize($new-block)"/>
-                </xsl:message>
-                -->
                 
                 <xsl:for-each select="$block">
                     <!-- replace block element attributes TO-DO: shouldn't be necessary in SaxonJS 3 using method="ixsl:replace-element": https://saxonica.plan.io/issues/6303#note-2 -->
@@ -764,11 +705,6 @@ WHERE
                 <xsl:variable name="request-uri" select="ac:build-uri(resolve-uri('ns', $ldt:base), map{ 'query': $query-string, 'accept': 'application/sparql-results+xml' })" as="xs:anyURI"/>
                 <xsl:variable name="constructors" select="if (exists($types)) then document($request-uri) else ()" as="document-node()?"/>
 
-                <xsl:message>
-                    ConstraintViolation $constructors: <xsl:value-of select="serialize($constructors)"/>
-                    $block/@id: <xsl:value-of select="$block/@id"/>
-                </xsl:message>
-
                 <xsl:variable name="query-string" select="$constraint-query || ' VALUES $Type { ' || string-join(for $type in $types return '&lt;' || $type || '&gt;', ' ') || ' }'" as="xs:string"/>
                 <xsl:variable name="request-uri" select="ac:build-uri(resolve-uri('ns', $ldt:base), map{ 'query': $query-string, 'accept': 'application/sparql-results+xml' })" as="xs:anyURI"/>
                 <xsl:variable name="constraints" select="if (exists($types)) then document($request-uri) else ()" as="document-node()?"/>
@@ -781,10 +717,6 @@ WHERE
                 <xsl:variable name="query-string" select="$object-metadata-query || ' VALUES $this { ' || string-join(for $uri in $object-uris return '&lt;' || $uri || '&gt;', ' ') || ' }'" as="xs:string"/>
                 <xsl:variable name="request-uri" select="ac:build-uri(resolve-uri('sparql', $ldt:base), map{ 'query': $query-string, 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
                 <xsl:variable name="object-metadata" select="if (doc-available($request-uri)) then document($request-uri) else ()" as="document-node()?"/>
-                <xsl:message>
-                    $object-uris: <xsl:value-of select="$object-uris"/>
-                    $object-metadata: <xsl:value-of select="serialize($object-metadata)"/>
-                </xsl:message>
 
                 <xsl:choose>
                     <xsl:when test="$modal">
@@ -843,10 +775,6 @@ WHERE
                             </xsl:apply-templates>
                         </xsl:variable>
                         
-<!--                        <xsl:message>
-                            $row-form: <xsl:value-of select="serialize($row-form)"/>
-                        </xsl:message>-->
-                        
                         <xsl:for-each select="$block">
                             <xsl:result-document href="?." method="ixsl:replace-content">
                                 <xsl:copy-of select="$row-form/*"/>
@@ -894,11 +822,9 @@ WHERE
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])[current-date() lt xs:date('2000-01-01')]"/>
         <xsl:variable name="content-body" select="id('content-body', ixsl:page())" as="element()"/>
         <xsl:variable name="forClass" select="@data-for-class" as="xs:anyURI"/>
-        <xsl:message>forClass: <xsl:value-of select="$forClass"/></xsl:message>
         <xsl:variable name="constructed-doc" select="ldh:construct-forClass($forClass)" as="document-node()"/>
         <xsl:variable name="doc-uri" select="resolve-uri(ac:uuid() || '/', ac:absolute-path(ldh:base-uri(.)))" as="xs:anyURI"/> <!-- build a relative URI for the child document -->
         <xsl:variable name="this" select="$doc-uri" as="xs:anyURI"/>
-        <xsl:message>ldh:base-uri(.): <xsl:value-of select="ldh:base-uri(.)"/> $doc-uri: <xsl:value-of select="$doc-uri"/> $this: <xsl:value-of select="$doc-uri"/></xsl:message>
         <!-- set document URI instead of blank node -->
         <xsl:variable name="constructed-doc" as="document-node()">
             <xsl:document>
@@ -982,12 +908,10 @@ WHERE
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])[current-date() lt xs:date('2000-01-01')]"/>
         <xsl:variable name="content-body" select="id('content-body', ixsl:page())" as="element()"/>
         <xsl:variable name="forClass" select="@data-for-class" as="xs:anyURI"/>
-        <xsl:message>forClass: <xsl:value-of select="$forClass"/></xsl:message>
         <xsl:variable name="constructed-doc" select="ldh:construct-forClass($forClass)" as="document-node()"/>
         <xsl:variable name="doc-uri" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/>
         <xsl:variable name="id" select="'id' || ac:uuid()" as="xs:string"/>
         <xsl:variable name="this" select="xs:anyURI($doc-uri || '#' || $id)" as="xs:anyURI"/>
-        <xsl:message>ldh:base-uri(.): <xsl:value-of select="ldh:base-uri(.)"/> $doc-uri: <xsl:value-of select="$doc-uri"/> $this: <xsl:value-of select="$doc-uri"/></xsl:message>
         <!-- set document URI instead of blank node -->
         <xsl:variable name="constructed-doc" as="document-node()">
             <xsl:document>
@@ -1015,10 +939,6 @@ WHERE
             <xsl:variable name="query-string" select="$constructor-query || ' VALUES $Type { ' || string-join(for $type in $types return '&lt;' || $type || '&gt;', ' ') || ' }'" as="xs:string"/>
             <xsl:variable name="request-uri" select="ac:build-uri(resolve-uri('ns', $ldt:base), map{ 'query': $query-string, 'accept': 'application/sparql-results+xml' })" as="xs:anyURI"/>
             <xsl:variable name="constructors" select="if (exists($types)) then document($request-uri) else ()" as="document-node()?"/>
-
-            <xsl:message>
-                .add-constructor $constructors: <xsl:value-of select="serialize($constructors)"/>
-            </xsl:message>
 
             <xsl:variable name="query-string" select="$constraint-query || ' VALUES $Type { ' || string-join(for $type in $types return '&lt;' || $type || '&gt;', ' ') || ' }'" as="xs:string"/>
             <xsl:variable name="request-uri" select="ac:build-uri(resolve-uri('ns', $ldt:base), map{ 'query': $query-string, 'accept': 'application/sparql-results+xml' })" as="xs:anyURI"/>
@@ -1125,7 +1045,6 @@ WHERE
         <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, $results-uri)" as="xs:anyURI"/> <!-- proxy the results -->
         <!-- TO-DO: use <ixsl:schedule-action> instead of document() -->
         <xsl:variable name="results" select="document($request-uri)" as="document-node()"/>
-        <xsl:message>typeahead $forClass: <xsl:value-of select="$forClass"/></xsl:message>
 
         <xsl:choose>
             <xsl:when test="$key-code = 'Escape'">
@@ -1222,7 +1141,6 @@ WHERE
         </xsl:for-each>
 
         <xsl:variable name="forClass" select="$resource/@rdf:about" as="xs:anyURI"/>
-        <xsl:message>forClass: <xsl:value-of select="$forClass"/></xsl:message>
         <xsl:variable name="doc-uri" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/>
         <xsl:variable name="this" select="xs:anyURI($doc-uri || '#id' || ac:uuid())" as="xs:anyURI"/>
         <!-- TO-DO: refactor to use asynchronous HTTP requests -->
@@ -1351,10 +1269,7 @@ WHERE
         <xsl:variable name="about" select="$block/@about" as="xs:anyURI?"/>
         <xsl:variable name="form" select="ancestor::form" as="element()"/>
         <xsl:variable name="action" select="ixsl:get($form, 'action')" as="xs:anyURI"/>
-        <xsl:message>ldh:base-uri(.): <xsl:value-of select="ldh:base-uri(.)"/></xsl:message>
-        <xsl:message>$about: <xsl:value-of select="$about"/></xsl:message>
         <xsl:variable name="etag" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path($action) || '`'), 'etag')" as="xs:string"/>
-        <xsl:message>$etag: <xsl:value-of select="$etag"/></xsl:message>
 
         <xsl:choose>
             <!-- delete existing content -->
@@ -1393,9 +1308,6 @@ WHERE
                         </json:map>
                     </xsl:variable>
                     <xsl:variable name="update-json-string" select="xml-to-json($update-xml)" as="xs:string"/>
-                    <xsl:message>
-                        <xsl:value-of select="$update-json-string"/>
-                    </xsl:message>
                     <xsl:variable name="update-json" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'parse', [ $update-json-string ])"/>
                     <xsl:variable name="update-string" select="ixsl:call($sparql-generator, 'stringify', [ $update-json ])" as="xs:string"/>
                     <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, $action)" as="xs:anyURI"/>

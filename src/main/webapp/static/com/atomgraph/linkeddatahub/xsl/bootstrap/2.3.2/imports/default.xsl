@@ -311,10 +311,6 @@ exclude-result-prefixes="#all"
         <xsl:param name="body" as="item()?"/>
         <xsl:param name="headers" as="map(xs:string, xs:string)"/>
         
-        <xsl:message>
-            ldh:send-request !!!!
-        </xsl:message>
-        
         <xsl:message use-when="system-property('xsl:product-name') = 'SAXON'" terminate="yes">
             Not implemented -- com.atomgraph.linkeddatahub.writer.function.SendHTTPRequest needs to be registered as an extension function
         </xsl:message>
@@ -720,12 +716,6 @@ exclude-result-prefixes="#all"
         <xsl:param name="id" select="generate-id()" as="xs:string"/>
         <xsl:param name="for" select="generate-id((node() | @rdf:resource | @rdf:nodeID)[1])" as="xs:string"/>
         <xsl:param name="class" select="concat('control-group', if ($error) then ' error' else (), if ($required) then ' required' else ())" as="xs:string?"/>
-        <xsl:message>
-            $type-constraints: <xsl:copy-of select="serialize($type-constraints)"/>
-        </xsl:message>
-        <xsl:message>
-            $type-shapes: <xsl:copy-of select="serialize($type-shapes)"/>
-        </xsl:message>
         
         <div>
             <xsl:if test="$class">

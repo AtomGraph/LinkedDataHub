@@ -478,10 +478,7 @@ exclude-result-prefixes="#all"
                     <xsl:sequence select="ixsl:get(ixsl:call(ixsl:get($select, 'selectedOptions'), 'item', [ . ]), 'value')"/>
                 </xsl:for-each>
             </xsl:for-each>
-        </xsl:variable>
-
-        <xsl:message>CREATE CHART query URI: <xsl:value-of select="$block/@about"/></xsl:message>
-        
+        </xsl:variable>        
         <xsl:variable name="constructed-doc" as="document-node()">
             <xsl:document>
                 <rdf:RDF> 
@@ -501,7 +498,6 @@ exclude-result-prefixes="#all"
                 </rdf:RDF>
             </xsl:document>
         </xsl:variable>
-        <xsl:message>Create chart $constructed-doc: <xsl:value-of select="serialize($constructed-doc)"/></xsl:message>
 
         <xsl:variable name="doc-uri" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/>
         <xsl:variable name="method" select="'post'" as="xs:string"/>

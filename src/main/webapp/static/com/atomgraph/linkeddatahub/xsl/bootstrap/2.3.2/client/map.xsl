@@ -135,9 +135,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="query-json" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'parse', [ $query-json-string ])"/>
         <xsl:variable name="query-string" select="ixsl:call(ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromQuery', [ $query-json ]), 'toString', [])" as="xs:string"/>
         <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': $query-string })" as="xs:anyURI"/>
-        <xsl:message>ldh:LoadGeoResources $results-uri: <xsl:value-of select="$results-uri"/></xsl:message>
         <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path($base-uri), map{}, $results-uri)" as="xs:anyURI"/>
-        <xsl:message>ldh:LoadGeoResources $request-uri: <xsl:value-of select="$request-uri"/></xsl:message>
 
         <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
             <xsl:call-template name="onGeoResultsLoad">

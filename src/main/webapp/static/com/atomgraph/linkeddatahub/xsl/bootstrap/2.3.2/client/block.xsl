@@ -183,11 +183,6 @@ exclude-result-prefixes="#all"
         <xsl:param name="block" select="ancestor::div[contains-token(@class, 'block')][1]" as="element()"/>
         <!-- for content types, button.btn-edit is placed in its own div.row-fluid, therefore the next row is the actual container -->
         <xsl:param name="container" select="$block/descendant::div[@typeof][1]" as="element()"/> <!-- other resources can be nested within object -->
-
-        <xsl:message>
-            content types .btn-edit onclick
-            $container: <xsl:value-of select="serialize($container)"/>
-        </xsl:message>
         
         <xsl:next-match>
 <!--            <xsl:with-param name="container" select="$container"/>-->
@@ -212,12 +207,6 @@ exclude-result-prefixes="#all"
                 <json:string key="object"><xsl:sequence select="$block-uri"/></json:string>
             </json:map>
         </xsl:variable>
-        <xsl:message>
-            block $triples: <xsl:value-of select="serialize($triples)"/>
-        </xsl:message>
-        <xsl:message>
-            block $sequence-triple: <xsl:value-of select="serialize($sequence-triple)"/>
-        </xsl:message>
         
         <xsl:next-match>
             <xsl:with-param name="block" select="$block"/>
@@ -270,21 +259,16 @@ exclude-result-prefixes="#all"
     <!-- start dragging top-level block (or its descendants - necessary for Map and Graph modes to work correctly) -->
     
     <xsl:template match="div[@id = 'content-body']/div[ixsl:query-params()?mode = '&ldh;ContentMode'][@about][contains-token(@class, 'block')]/descendant-or-self::*" mode="ixsl:ondragstart">
-        <xsl:message>ixsl:ondragstart</xsl:message>
-        <xsl:message>exists(key('elements-by-class', 'map-canvas')): <xsl:value-of select="exists(key('elements-by-class', 'map-canvas'))"/></xsl:message>
-        
         <xsl:choose>
             <!-- allow drag on the block element (not necessarily top-level) -->
             <!-- TO-DO: better condition for checking whether blocks are top-level? -->
             <xsl:when test="self::div[contains-token(@class, 'block')][parent::div[@id = 'content-body']]">
-                <xsl:message>ixsl:ondragstart block: <xsl:value-of select="serialize(.)"/></xsl:message>
                 <ixsl:set-property name="dataTransfer.effectAllowed" select="'move'" object="ixsl:event()"/>
                 <xsl:variable name="block-uri" select="@about" as="xs:anyURI"/>
                 <xsl:sequence select="ixsl:call(ixsl:get(ixsl:event(), 'dataTransfer'), 'setData', [ 'text/uri-list', $block-uri ])"/>
             </xsl:when>
             <!-- prevent drag on its descendants. This makes sure that content drag-and-drop doesn't interfere with drag events in the Map and Graph modes -->
             <xsl:otherwise>
-                <xsl:message>ixsl:ondragstart NON top-level block: <xsl:value-of select="serialize(.)"/></xsl:message>
                 <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
             </xsl:otherwise>
         </xsl:choose>
@@ -318,7 +302,6 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <xsl:variable name="block-uri" select="@about" as="xs:anyURI?"/>
         <xsl:variable name="drop-block-uri" select="ixsl:call(ixsl:get(ixsl:event(), 'dataTransfer'), 'getData', [ 'text/uri-list' ])" as="xs:anyURI"/>
-        <xsl:message>ixsl:ondrop $drop-block-uri: <xsl:value-of select="$drop-block-uri"/></xsl:message>
         
         <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'drag-over', false() ])[current-date() lt xs:date('2000-01-01')]"/>
 

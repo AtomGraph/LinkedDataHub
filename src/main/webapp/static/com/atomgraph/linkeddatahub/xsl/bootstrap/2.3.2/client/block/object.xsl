@@ -63,8 +63,6 @@ exclude-result-prefixes="#all"
         <xsl:param name="refresh-content" as="xs:boolean?"/>
         <xsl:param name="show-edit-button" select="false()" as="xs:boolean?"/>
 
-        <xsl:message>ldh:Object ldh:RenderBlock @about: <xsl:value-of select="@about"/></xsl:message>
-
         <xsl:for-each select="$block//div[contains-token(@class, 'bar')]">
             <!-- update progress bar -->
             <ixsl:set-style name="width" select="'50%'" object="."/>
@@ -104,13 +102,9 @@ exclude-result-prefixes="#all"
                 </xsl:for-each>
                     
                 <xsl:for-each select="?body">
-                    <xsl:message>ldh:LoadBlockObjectValue ldh:RenderBlock</xsl:message>
                     <xsl:variable name="resource" select="key('resources', $resource-uri)" as="element()?"/>
                     <xsl:variable name="object-uris" select="distinct-values($resource/*/@rdf:resource[not(key('resources', ., root($resource)))])" as="xs:string*"/>
-                    <xsl:variable name="query-string" select="$object-metadata-query || ' VALUES $this { ' || string-join(for $uri in $object-uris return '&lt;' || $uri || '&gt;', ' ') || ' }'" as="xs:string"/>
-                    <xsl:message>$object-uris: <xsl:value-of select="$object-uris"/></xsl:message>
-                    <xsl:message>$resource-uri: <xsl:value-of select="$resource-uri"/> $resource: <xsl:value-of select="serialize($resource)"/></xsl:message>
-                    
+                    <xsl:variable name="query-string" select="$object-metadata-query || ' VALUES $this { ' || string-join(for $uri in $object-uris return '&lt;' || $uri || '&gt;', ' ') || ' }'" as="xs:string"/>                    
                     <xsl:variable name="request" as="item()*">
                         <ixsl:schedule-action http-request="map{ 'method': 'POST', 'href': sd:endpoint(), 'media-type': 'application/sparql-query', 'body': $query-string, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                             <xsl:call-template name="ldh:LoadBlockObjectMetadata">
@@ -158,10 +152,6 @@ exclude-result-prefixes="#all"
         <xsl:param name="mode" as="xs:anyURI?"/>
         <xsl:param name="show-edit-button" as="xs:boolean?"/>
 
-        <xsl:message>
-            ldh:LoadBlockObjectMetadata
-            ?body: <xsl:value-of select="serialize(?body)"/>
-        </xsl:message>
         <xsl:choose>
             <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
                 <xsl:variable name="object-metadata" select="?body" as="document-node()"/>
@@ -176,11 +166,6 @@ exclude-result-prefixes="#all"
                         <xsl:with-param name="draggable" select="false()"/> <!-- blocks nested within ldh:Object are not draggable -->
                     </xsl:apply-templates>
                 </xsl:variable>
-
-                <xsl:message>
-                    ldh:LoadBlockObjectMetadata $resource: <xsl:value-of select="serialize($resource)"/>
-                    ldh:LoadBlockObjectMetadata $row: <xsl:value-of select="serialize($row)"/>
-                </xsl:message>
         
                 <xsl:for-each select="$container">
                     <xsl:result-document href="?." method="ixsl:replace-content">
@@ -192,16 +177,6 @@ exclude-result-prefixes="#all"
                     
                     <xsl:apply-templates mode="ldh:RenderRow"/> <!-- recurse down the block hierarchy -->
                 </xsl:for-each>
-
-                <!-- hide the row with the block controls -->
-<!--                <ixsl:set-style name="z-index" select="'-1'" object="key('elements-by-class', 'row-block-controls', $block)"/>-->
-                
-                <!-- hide the progress bar -->
-<!--                <xsl:for-each select="$block/div[contains-token(@class, 'span12')]">
-                    <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'progress', false() ])[current-date() lt xs:date('2000-01-01')]"/>
-                    <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'progress-striped', false() ])[current-date() lt xs:date('2000-01-01')]"/>
-                    <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'active', false() ])[current-date() lt xs:date('2000-01-01')]"/>
-                </xsl:for-each>-->
             </xsl:when>
             <xsl:otherwise>
                 <xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ ?message ])[current-date() lt xs:date('2000-01-01')]"/>
