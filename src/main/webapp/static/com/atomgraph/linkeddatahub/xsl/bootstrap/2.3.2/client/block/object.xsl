@@ -103,25 +103,38 @@ exclude-result-prefixes="#all"
                     
                 <xsl:for-each select="?body">
                     <xsl:variable name="resource" select="key('resources', $resource-uri)" as="element()?"/>
-                    <xsl:variable name="object-uris" select="distinct-values($resource/*/@rdf:resource[not(key('resources', ., root($resource)))])" as="xs:string*"/>
-                    <xsl:variable name="query-string" select="$object-metadata-query || ' VALUES $this { ' || string-join(for $uri in $object-uris return '&lt;' || $uri || '&gt;', ' ') || ' }'" as="xs:string"/>                    
-                    <xsl:variable name="request" as="item()*">
-                        <ixsl:schedule-action http-request="map{ 'method': 'POST', 'href': sd:endpoint(), 'media-type': 'application/sparql-query', 'body': $query-string, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
-                            <xsl:call-template name="ldh:LoadBlockObjectMetadata">
-                                <xsl:with-param name="block" select="$block"/>
-                                <xsl:with-param name="container" select="$container"/>
-                                <xsl:with-param name="resource" select="$resource"/>
-                                <xsl:with-param name="graph" select="$graph"/>
-                                <xsl:with-param name="mode" select="$mode"/>
-                                <xsl:with-param name="show-edit-button" select="$show-edit-button"/>
-                            </xsl:call-template>
-                        </ixsl:schedule-action>
-                    </xsl:variable>
-                    <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
+                    <xsl:choose>
+                        <xsl:when test="$resource">
+                            <xsl:variable name="object-uris" select="distinct-values($resource/*/@rdf:resource[not(key('resources', ., root($resource)))])" as="xs:string*"/>
+                            <xsl:variable name="query-string" select="$object-metadata-query || ' VALUES $this { ' || string-join(for $uri in $object-uris return '&lt;' || $uri || '&gt;', ' ') || ' }'" as="xs:string"/>                    
+                            <xsl:variable name="request" as="item()*">
+                                <ixsl:schedule-action http-request="map{ 'method': 'POST', 'href': sd:endpoint(), 'media-type': 'application/sparql-query', 'body': $query-string, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
+                                    <xsl:call-template name="ldh:LoadBlockObjectMetadata">
+                                        <xsl:with-param name="block" select="$block"/>
+                                        <xsl:with-param name="container" select="$container"/>
+                                        <xsl:with-param name="resource" select="$resource"/>
+                                        <xsl:with-param name="graph" select="$graph"/>
+                                        <xsl:with-param name="mode" select="$mode"/>
+                                        <xsl:with-param name="show-edit-button" select="$show-edit-button"/>
+                                    </xsl:call-template>
+                                </ixsl:schedule-action>
+                            </xsl:variable>
+                            <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
+                        </xsl:when>
+                        <xsl:otherwise>
+                            <xsl:for-each select="$container">
+                                <xsl:result-document href="?." method="ixsl:replace-content">
+                                    <div class="alert alert-block">
+                                        <strong>Document loaded successfully but resource was not found: <a href="{$resource-uri}"><xsl:value-of select="$resource-uri"/></a></strong>
+                                    </div>
+                                </xsl:result-document>
+                            </xsl:for-each>
+                        </xsl:otherwise>
+                    </xsl:choose>
                 </xsl:for-each>
             </xsl:when>
             <xsl:when test="?status = 406">
-                <xsl:for-each select="$container//div[contains-token(@class, 'main')]">
+                <xsl:for-each select="$container">
                     <xsl:result-document href="?." method="ixsl:replace-content">
                         <div class="offset2 span7 main">
                             <object data="{$resource-uri}"/>
@@ -130,7 +143,7 @@ exclude-result-prefixes="#all"
                 </xsl:for-each>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:for-each select="$container//div[contains-token(@class, 'main')]">
+                <xsl:for-each select="$container">
                     <xsl:result-document href="?." method="ixsl:replace-content">
                         <div class="alert alert-block">
                             <strong>Could not load resource: <a href="{$resource-uri}"><xsl:value-of select="$resource-uri"/></a></strong>
