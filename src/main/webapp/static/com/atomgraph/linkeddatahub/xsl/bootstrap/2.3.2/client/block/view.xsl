@@ -637,7 +637,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="active-mode" as="xs:anyURI"/>
         <xsl:param name="select-xml" as="document-node()"/>
         <xsl:param name="base-uri" as="xs:anyURI"/>
-
+        
         <xsl:for-each select="$container">
             <xsl:result-document href="?." method="ixsl:replace-content">
                 <xsl:call-template name="container-mode">
@@ -844,6 +844,15 @@ exclude-result-prefixes="#all"
         </div>
     </xsl:template>
         
+    <!-- DEFAULT  -->
+    
+    <!-- TO-DO: move to Web-Client -->
+    <xsl:template match="rdf:RDF">
+        <xsl:apply-templates>
+            <xsl:sort select="ac:label(.)"/>
+        </xsl:apply-templates>
+    </xsl:template>
+    
     <!-- block list -->
 
     <xsl:template match="rdf:RDF" mode="bs2:ContainerBlockList" use-when="system-property('xsl:product-name') eq 'SaxonJS'">

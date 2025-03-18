@@ -810,11 +810,13 @@ if [ -n "$MAIL_PASSWORD" ]; then
     MAIL_PASSWORD_PARAM="--stringparam mail.password '$MAIL_PASSWORD' "
 fi
 
-if [ -n "$GOOGLE_CLIENT_ID" ]; then
+if [ -f "/run/secrets/google_client_id" ]; then
+    GOOGLE_CLIENT_ID=$(cat /run/secrets/google_client_id)
     GOOGLE_CLIENT_ID_PARAM="--stringparam google:clientID '$GOOGLE_CLIENT_ID' "
 fi
 
-if [ -n "$GOOGLE_CLIENT_SECRET" ]; then
+if [ -f "/run/secrets/google_client_secret" ]; then
+    GOOGLE_CLIENT_SECRET=$(cat /run/secrets/google_client_secret)
     GOOGLE_CLIENT_SECRET_PARAM="--stringparam google:clientSecret '$GOOGLE_CLIENT_SECRET' "
 fi
 

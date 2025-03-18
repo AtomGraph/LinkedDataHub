@@ -5,6 +5,10 @@ secrets:
     file: ./secrets/secretary_cert_password.txt
   client_truststore_password:
     file: ./secrets/client_truststore_password.txt
+  #google_client_id:
+  #  file: ./secrets/google_client_id.txt
+  #google_client_secret:
+  #  file: ./secrets/google_client_secret.txt
 services:
   nginx:
     image: nginx:1.23.3
@@ -64,8 +68,6 @@ services:
       - MAIL_SMTP_PORT=25
       - MAIL_USER=linkeddatahub@localhost
       - OWNER_MBOX=${OWNER_MBOX}
-      # - GOOGLE_CLIENT_ID=
-      # - GOOGLE_CLIENT_SECRET=
       #- OWNER_URI=${OWNER_URI}
       - OWNER_GIVEN_NAME=${OWNER_GIVEN_NAME}
       - OWNER_FAMILY_NAME=${OWNER_FAMILY_NAME}
@@ -78,6 +80,8 @@ services:
       - owner_cert_password
       - secretary_cert_password
       - client_truststore_password
+      #- google_client_id
+      #- google_client_secret
     volumes:
       - /var/linkeddatahub/oidc
       - ./ssl/server:/var/linkeddatahub/ssl/server:ro
