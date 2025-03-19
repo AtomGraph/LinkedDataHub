@@ -593,8 +593,8 @@ LIMIT   100
             </xsl:if>
 
             <xsl:if test="$acl:mode = '&acl;Write' and not(key('resources-by-type', '&http;Response')) and doc-available(ac:absolute-path($ldh:requestUri))">
-                <!-- if the current resource is an Item, hide the "Create" dropdown as items cannot have child documents -->
-                <xsl:if test="not(key('resources', ac:absolute-path($ldh:requestUri), document(ac:absolute-path($ldh:requestUri)))/rdf:type/@rdf:resource = '&dh;Item')">
+                <!-- child documents can be created only if the current document is the Root or a container -->
+                <xsl:if test="key('resources', ac:absolute-path($ldh:requestUri), document(ac:absolute-path($ldh:requestUri)))/rdf:type/@rdf:resource = ('&def;Root', '&dh;Container')">
                     <xsl:variable name="document-classes" select="key('resources', ('&dh;Container', '&dh;Item'), document(ac:document-uri('&def;')))" as="element()*"/>
                     <xsl:apply-templates select="." mode="bs2:Create">
                         <xsl:with-param name="class" select="'btn-group pull-left'"/>
