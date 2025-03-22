@@ -1,6 +1,6 @@
 /* global contextUri, baseUri, requestUri, absolutePath, lang, xslt2proc, UriBuilder, SaxonJS, ontologyUri, contextUri */
 
-var fetchDispatchXML = function(url, method, headers, body, target, docUri, resources, container, eventName)
+var fetchDispatchXML = function(url, method, headers, body, target, docUri, resources, block, eventName)
 {
     let request = new Request(url, { "method": method, "headers": headers, "body": body });
     
@@ -14,14 +14,14 @@ var fetchDispatchXML = function(url, method, headers, body, target, docUri, reso
             then(function(xmlString)
             {
                 let xml = new DOMParser().parseFromString(xmlString, "text/xml");
-                let event = new CustomEvent(eventName, { "detail": { "action": url, "response": response, "xml": xml, "target": target, "docUri": docUri, "resources": resources, "container": container } } );
+                let event = new CustomEvent(eventName, { "detail": { "action": url, "response": response, "xml": xml, "target": target, "docUri": docUri, "resources": resources, "block": block } } );
                 // no need to add event listeners here, that is done by IXSL
                 document.dispatchEvent(event);
             });
         }
         else
         {
-            let event = new CustomEvent(eventName, { "detail": { "action": url, "response": response, "target": target, "docUri": docUri, "resources": resources, "container": container } } );
+            let event = new CustomEvent(eventName, { "detail": { "action": url, "response": response, "target": target, "docUri": docUri, "resources": resources, "block": block } } );
             // no need to add event listeners here, that is done by IXSL
             document.dispatchEvent(event);
         }
@@ -35,14 +35,14 @@ var fetchDispatchXML = function(url, method, headers, body, target, docUri, reso
             then(function(xmlString)
             {
                 let xml = new DOMParser().parseFromString(xmlString, "text/xml");
-                let event = new CustomEvent(eventName, { "detail": { "response": response, "xml": xml, "target": target, "docUri": docUri, "resources": resources, "container": container } } );
+                let event = new CustomEvent(eventName, { "detail": { "response": response, "xml": xml, "target": target, "docUri": docUri, "resources": resources, "block": block } } );
                 // no need to add event listeners here, that is done by IXSL
                 document.dispatchEvent(event);
             });
         }
         else
         {
-            let event = new CustomEvent(eventName, { "detail": { "response": response, "target": target, "docUri": docUri, "resources": resources, "container": container } } );
+            let event = new CustomEvent(eventName, { "detail": { "response": response, "target": target, "docUri": docUri, "resources": resources, "block": block } } );
             // no need to add event listeners here, that is done by IXSL
             document.dispatchEvent(event);
         }

@@ -450,8 +450,8 @@ WHERE
         <xsl:param name="request-body" select="$resources" as="document-node()"/>
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <xsl:variable name="modal" select="exists(ancestor::div[contains-token(@class, 'modal-constructor')])" as="xs:boolean"/>
-        <xsl:variable name="container" select="ancestor::div[@typeof][1]" as="element()"/>
-        <xsl:variable name="block" select="$container" as="element()"/> <!-- block has no @about at this stage (before saving it) -->
+<!--        <xsl:variable name="container" select="ancestor::div[@typeof][1]" as="element()"/>-->
+        <xsl:variable name="block" select="ancestor::div[@typeof][1]" as="element()"/> <!-- block has no @about at this stage (before saving it) -->
         <xsl:variable name="form" select="." as="element()"/>
         <xsl:variable name="id" select="ixsl:get($form, 'id')" as="xs:string"/>
         <xsl:variable name="action" select="ixsl:get($form, 'action')" as="xs:anyURI"/>
@@ -480,7 +480,7 @@ WHERE
                 <ixsl:set-property name="If-Match" select="$etag" object="$headers"/>
                 
                 <!-- TO-DO: refactor fetchDispatchXML using IXSL -->
-                <xsl:sequence select="js:fetchDispatchXML($request-uri, $method, $headers, $form-data, ., $doc-uri, $resources, $container, 'MultipartResourceUpdated')[current-date() lt xs:date('2000-01-01')]"/>
+                <xsl:sequence select="js:fetchDispatchXML($request-uri, $method, $headers, $form-data, ., $doc-uri, $resources, $block, 'MultipartResourceUpdated')[current-date() lt xs:date('2000-01-01')]"/>
             </xsl:when>
             <xsl:otherwise>
                 <xsl:variable name="request" as="item()*">
@@ -505,7 +505,7 @@ WHERE
     <xsl:template match="div[@typeof]//form[contains-token(@class, 'form-horizontal')][upper-case(@method) = 'PATCH']" mode="ixsl:onsubmit" priority="1">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <xsl:variable name="block" select="ancestor::div[contains-token(@class, 'block')][1]" as="element()"/>
-        <xsl:variable name="container" select="ancestor::div[@typeof][1]" as="element()?"/>
+<!--        <xsl:variable name="container" select="ancestor::div[@typeof][1]" as="element()?"/>-->
         <xsl:variable name="form" select="." as="element()"/>
         <xsl:variable name="id" select="ixsl:get($form, 'id')" as="xs:string"/>
         <xsl:variable name="action" select="ixsl:get($form, 'action')" as="xs:anyURI"/>
@@ -922,7 +922,7 @@ WHERE
             </xsl:document>
         </xsl:variable>
         <xsl:variable name="classes" select="()" as="element()*"/>
-
+        
         <xsl:variable name="resource" select="key('resources-by-type', $forClass, $constructed-doc)[not(key('predicates-by-object', @rdf:nodeID))]" as="element()"/>
         <xsl:variable name="row-form" as="element()*">
             <!-- TO-DO: refactor to use asynchronous HTTP requests -->
@@ -1181,7 +1181,7 @@ WHERE
                     </xsl:for-each-group>
                 </rdf:RDF>
             </xsl:document>
-        </xsl:variable>
+        </xsl:variable>        
         <xsl:variable name="classes" select="()" as="element()*"/>
 
         <!-- update @typeof value -->
@@ -1510,7 +1510,7 @@ WHERE
         <xsl:variable name="event" select="ixsl:event()"/>
         <xsl:variable name="doc-uri" select="ixsl:get(ixsl:get($event, 'detail'), 'docUri')" as="xs:anyURI"/>
         <xsl:variable name="block" select="ixsl:get(ixsl:get($event, 'detail'), 'block')" as="element()"/>
-        <xsl:variable name="container" select="ixsl:get(ixsl:get($event, 'detail'), 'container')" as="element()"/>
+<!--        <xsl:variable name="container" select="ixsl:get(ixsl:get($event, 'detail'), 'container')" as="element()"/>-->
         <xsl:variable name="resources" select="ixsl:get(ixsl:get($event, 'detail'), 'resources')" as="document-node()"/>
         <xsl:variable name="form" select="ixsl:get(ixsl:get($event, 'detail'), 'target')" as="element()"/> <!-- not ixsl:get(ixsl:event(), 'target') because that's the whole document -->
         <xsl:variable name="response" select="ixsl:get(ixsl:get($event, 'detail'), 'response')"/>

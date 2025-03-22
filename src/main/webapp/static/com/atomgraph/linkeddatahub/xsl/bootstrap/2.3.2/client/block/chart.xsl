@@ -235,11 +235,6 @@ exclude-result-prefixes="#all"
         <xsl:variable name="series" select="descendant::*[@property = '&ldh;seriesProperty']/@resource | descendant::*[@property = '&ldh;seriesVarName']/text()" as="xs:string*"/>
         <xsl:variable name="canvas-id" select="generate-id() || '-chart-canvas'" as="xs:string?"/>
         <xsl:variable name="canvas-class" select="'chart-canvas'" as="xs:string?"/>
-
-        <xsl:message>
-            Chart ldh:RenderBlock @typeof: <xsl:value-of select="@typeof"/> $about: <xsl:value-of select="$about"/>
-            $category: <xsl:value-of select="$category"/> $series: <xsl:value-of select="$series"/>
-        </xsl:message>
         
         <xsl:for-each select="$block//div[contains-token(@class, 'bar')]">
             <ixsl:set-style name="width" select="'66%'" object="."/>
@@ -688,14 +683,6 @@ exclude-result-prefixes="#all"
                         <xsl:with-param name="category" select="$category"/>
                         <xsl:with-param name="series" select="$series"/>
                     </xsl:call-template>
-
-                    
-<xsl:message>
-$block-uri: <xsl:copy-of select="$block-uri"/>
-$results: <xsl:copy-of select="$results"/>
-$category: <xsl:value-of select="$category"/>
-$series: <xsl:value-of select="$series"/>
-</xsl:message>
 
                     <!-- create new cache entry using content URI as key -->
                     <ixsl:set-property name="{'`' || $block-uri || '`'}" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.contents')"/>
