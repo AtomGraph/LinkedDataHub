@@ -1,8 +1,8 @@
-      Version 1.0, June 2020
+      Version 2.0, December 2024
       
-      Software: This license applies to the packages "xslt3" and "saxon-js"
-      distributed via npm (https://www.npmjs.com) and to the modules SaxonJS2.js
-      and SaxonJS2.rt.js available for download from the Saxonica web site
+      Software: This license applies to the packages "xslt3-he" and "saxonjs-he"
+      distributed via npm (https://www.npmjs.com) and to the modules SaxonJS3.js
+      and SaxonJS3.rt.js available for download from the Saxonica web site
       (https://www.saxonica.com/).
       
       Copyright: The copyright in the Software belongs to Saxonica Ltd, except

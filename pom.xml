@@ -346,7 +346,7 @@
                         </goals>
                         <phase>package</phase>
                         <configuration>
-                            <arguments>xslt3 -t -xsl:${project.build.directory}/${build.warName}${saxon-js.stylesheet} -export:${project.build.directory}/${build.warName}${saxon-js.stylesheet}.sef.json -nogo -ns:##html5 -relocate:on</arguments>
+                            <arguments>xslt3-he -t -xsl:${project.build.directory}/${build.warName}${saxon-js.stylesheet} -export:${project.build.directory}/${build.warName}${saxon-js.stylesheet}.sef.json -nogo -ns:##html5 -relocate:on</arguments>
                         </configuration>
                     </execution>
                 </executions>

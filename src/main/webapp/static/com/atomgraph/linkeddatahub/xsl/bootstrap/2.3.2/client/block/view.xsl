@@ -354,9 +354,10 @@ exclude-result-prefixes="#all"
         <xsl:variable name="query-string" select="ixsl:call(ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromQuery', [ $select-json ]), 'toString', [])" as="xs:string"/>
         <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': $query-string })" as="xs:anyURI"/>
         <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, $results-uri)" as="xs:anyURI"/>
-
+<!--        <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml' } }" as="map(*)"/>-->
+        
         <!-- load result count -->
-        <xsl:variable name="request" as="item()*">
+<!--        <xsl:variable name="request" as="item()*">
             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml' } }">
                 <xsl:call-template name="ldh:ResultCountResultsLoad">
                     <xsl:with-param name="container" select="."/>
@@ -364,9 +365,70 @@ exclude-result-prefixes="#all"
                 </xsl:call-template>
             </ixsl:schedule-action>
         </xsl:variable>
-        <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
+        <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>-->
+        
+        <!-- Step 1: Base HTTP request -->
+        <xsl:variable name="http-request" as="map(*)" select="
+          map {
+            'method': 'GET',
+            'href': $request-uri,
+            'headers': map { 'Accept': 'application/sparql-results+xml' }
+          }"/>
+        <!-- Step 2: Context for template call -->
+        <xsl:variable name="template-context" as="map(*)" select="
+          map {
+            'container': .,
+            'count-var-name': $count-var-name,
+            'ldh:on-success-function': QName('&ldh;', 'ldh:ResultCountResultsLoad')
+          }"/>
+        <!-- Step 3: Merge into one enriched request -->
+        <xsl:variable name="request" select="map:merge(($http-request, $template-context))" as="map(*)"/>
+        <xsl:sequence select="ldh:send-request($request)[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
     
+    <!-- SAXON 3 PROMISES -->
+    
+    <xsl:function name="ldh:send-request">
+        <xsl:param name="request" as="map(*)"/>
+
+        <ixsl:promise 
+            select="ixsl:http-request($request)" 
+            on-completion="ldh:handle-response($request, ?)" 
+            on-failure="ldh:fail#1"/>
+    </xsl:function>
+
+    <xsl:function name="ldh:handle-response" ixsl:updating="yes">
+        <xsl:param name="request" as="map(*)"/>
+        <xsl:param name="response" as="map(*)"/>
+  
+        <xsl:choose>
+            <xsl:when test="$response?status = 429">
+                <xsl:variable name="retry-after" select="
+                  if (map:contains($response?headers, 'Retry-After')) 
+                  then xs:integer($response?headers('Retry-After')) 
+                  else 5"/>
+                <ixsl:promise 
+                  select="ixsl:sleep($retry-after * 1000)" 
+                  on-completion="function() { ldh:send-request($request) }"/>
+            </xsl:when>
+            <xsl:otherwise>
+                <!-- Dynamically invoke the callback function -->
+                <xsl:variable name="callback-name" select="$request('ldh:on-success-function')" as="xs:QName"/>
+                <xsl:variable name="callback-func" select="function-lookup($callback-name, 2)"/>
+
+                <xsl:message>Calling callback function: <xsl:value-of select="string($callback-name)"/></xsl:message>
+
+                <xsl:sequence select="$callback-func($request, $response)"/>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:function>
+
+    <xsl:function name="ldh:fail">
+        <xsl:param name="error" as="map(*)"/>
+
+        <xsl:message>ldh:fail $error: <xsl:value-of select="serialize($error, map{ 'method': 'json' })"/></xsl:message>
+    </xsl:function>
+      
     <!-- order by -->
     
     <xsl:template name="bs2:OrderBy">
@@ -1887,34 +1949,51 @@ exclude-result-prefixes="#all"
         </xsl:for-each>
     </xsl:template>
     
-    <xsl:template name="ldh:ResultCountResultsLoad">
-        <xsl:context-item as="map(*)" use="required"/>
-        <xsl:param name="container" as="element()"/>
-        <xsl:param name="count-var-name" as="xs:string"/>
+    <!--    <xsl:template name="ldh:ResultCountResultsLoad">-->
+    <xsl:function name="ldh:ResultCountResultsLoad" as="item()*" ixsl:updating="yes">
+        <xsl:param name="request" as="map(*)"/>
+        <xsl:param name="response" as="map(*)"/>
+        <xsl:variable name="container" select="$request('container')" as="element()"/>
+        <xsl:variable name="count-var-name" select="$request('count-var-name')" as="xs:string"/>
 
-        <xsl:choose>
-            <xsl:when test="?status = 200 and ?media-type = 'application/sparql-results+xml'">
-                <xsl:for-each select="?body">
-                    <xsl:variable name="results" select="." as="document-node()"/>
+        <xsl:for-each select="$response">
+            <xsl:message>
+                exists($container): <xsl:value-of select="exists($container)"/>
+                serialize($container): <xsl:value-of select="serialize($container)"/>
+<!--                $request: <xsl:value-of select="serialize(.)"/>-->
+                exists(?body): <xsl:value-of select="exists(?body)"/>
+            </xsl:message>
+
+            <xsl:choose>
+                <xsl:when test="?status = 200 and ?media-type = 'application/sparql-results+xml'">
+                    <xsl:for-each select="?body">
+                        <xsl:message>context item 0: <xsl:value-of select="serialize(.)"/></xsl:message>
+
+                        <xsl:variable name="results" select="." as="document-node()"/>
+                        <xsl:for-each select="$container">
+                            <xsl:message>context item 1: <xsl:value-of select="serialize(.)"/></xsl:message>
+
+                            <xsl:result-document href="?." method="ixsl:replace-content">
+                                <xsl:message>context item 2: <xsl:value-of select="serialize(.)"/></xsl:message>
+
+                                <xsl:apply-templates select="." mode="ldh:ResultCountResultsLoad">
+                                    <xsl:with-param name="results" select="$results"/>
+                                    <xsl:with-param name="count-var-name" select="$count-var-name"/>
+                                </xsl:apply-templates>
+                            </xsl:result-document>
+                        </xsl:for-each>
+                    </xsl:for-each>
+                </xsl:when>
+                <xsl:otherwise>
                     <xsl:for-each select="$container">
                         <xsl:result-document href="?." method="ixsl:replace-content">
-                            <xsl:apply-templates select="." mode="ldh:ResultCountResultsLoad">
-                                <xsl:with-param name="results" select="$results"/>
-                                <xsl:with-param name="count-var-name" select="$count-var-name"/>
-                            </xsl:apply-templates>
+                            <span class="alert">Error loading result count</span>
                         </xsl:result-document>
                     </xsl:for-each>
-                </xsl:for-each>
-            </xsl:when>
-            <xsl:otherwise>
-                <xsl:for-each select="$container">
-                    <xsl:result-document href="?." method="ixsl:replace-content">
-                        <span class="alert">Error loading result count</span>
-                    </xsl:result-document>
-                </xsl:for-each>
-            </xsl:otherwise>
-        </xsl:choose>
-    </xsl:template>
+                </xsl:otherwise>
+            </xsl:choose>
+        </xsl:for-each>
+    </xsl:function>
 
     <xsl:template match="*" mode="ldh:ResultCountResultsLoad">
         <xsl:param name="results" as="document-node()"/>
