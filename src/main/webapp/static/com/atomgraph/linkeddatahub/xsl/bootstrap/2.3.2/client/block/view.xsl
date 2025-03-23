@@ -388,7 +388,7 @@ exclude-result-prefixes="#all"
     
     <!-- SAXON 3 PROMISES -->
     
-    <xsl:function name="ldh:send-request">
+    <xsl:function name="ldh:send-request" ixsl:updating="yes">
         <xsl:param name="request" as="map(*)"/>
 
         <ixsl:promise 
