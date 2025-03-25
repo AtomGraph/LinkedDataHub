@@ -44,6 +44,14 @@
 
 }
 
+<add>
+{
+
+    <add> a foaf:Document ;
+        dct:title "Add data endpoint" .
+
+}
+
 <access>
 {
 

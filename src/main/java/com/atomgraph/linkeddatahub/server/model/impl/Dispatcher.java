@@ -18,6 +18,7 @@ package com.atomgraph.linkeddatahub.server.model.impl;
 
 import com.atomgraph.client.vocabulary.AC;
 import com.atomgraph.linkeddatahub.apps.model.Dataset;
+import com.atomgraph.linkeddatahub.resource.Add;
 import com.atomgraph.linkeddatahub.resource.Generate;
 import com.atomgraph.linkeddatahub.resource.Namespace;
 import com.atomgraph.linkeddatahub.resource.Transform;
@@ -167,17 +168,6 @@ public class Dispatcher
     {
         return getProxyClass().orElse(AccessRequest.class);
     }
-    
-//    /**
-//     * Returns the ACL access request endpoint.
-//     * 
-//     * @return endpoint resource
-//     */
-//    @Path("request access")
-//    public Class getRequestAccess()
-//    {
-//        return getProxyClass().orElse(RequestAccess.class);
-//    }
 
     /**
      * Returns content-addressed file item resource.
@@ -191,16 +181,16 @@ public class Dispatcher
         return getProxyClass().orElse(com.atomgraph.linkeddatahub.resource.upload.sha1.Item.class);
     }
 
-//    /**
-//     * Returns the endpoint for synchronous RDF imports.
-//     * 
-//     * @return endpoint resource
-//     */
-//    @Path("add")
-//    public Class getAddEndpoint()
-//    {
-//        return getProxyClass().orElse(Add.class);
-//    }
+    /**
+     * Returns the endpoint for synchronous RDF imports.
+     * 
+     * @return endpoint resource
+     */
+    @Path("add")
+    public Class getAddEndpoint()
+    {
+        return getProxyClass().orElse(Add.class);
+    }
     
     /**
      * Returns the endpoint for synchronous RDF imports with a <code>CONSTRUCT</code> query transformation.

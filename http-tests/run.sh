@@ -137,6 +137,8 @@ download_dataset "$ADMIN_ENDPOINT_URL" > "$TMP_ADMIN_DATASET"
 
 ### Other tests ###
 
+run_tests $(find ./add/ -type f -name '*.sh')
+(( error_count += $? ))
 run_tests $(find ./admin/ -type f -name '*.sh')
 (( error_count += $? ))
 run_tests $(find ./access/ -type f -name '*.sh')
