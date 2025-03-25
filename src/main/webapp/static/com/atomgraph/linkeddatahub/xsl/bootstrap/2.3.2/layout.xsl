@@ -84,6 +84,7 @@ exclude-result-prefixes="#all">
     <xsl:import href="imports/dct.xsl"/>
     <xsl:import href="imports/nfo.xsl"/>
     <xsl:import href="imports/rdf.xsl"/>
+    <xsl:import href="imports/rdfs.xsl"/>   
     <xsl:import href="imports/sioc.xsl"/>
     <xsl:import href="imports/sp.xsl"/>
     <xsl:import href="resource.xsl"/>

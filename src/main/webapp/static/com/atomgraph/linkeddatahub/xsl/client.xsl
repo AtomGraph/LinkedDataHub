@@ -87,6 +87,7 @@ extension-element-prefixes="ixsl"
     <xsl:import href="bootstrap/2.3.2/imports/dct.xsl"/>
     <xsl:import href="bootstrap/2.3.2/imports/nfo.xsl"/>
     <xsl:import href="bootstrap/2.3.2/imports/rdf.xsl"/>
+    <xsl:import href="bootstrap/2.3.2/imports/rdfs.xsl"/>
     <xsl:import href="bootstrap/2.3.2/imports/sioc.xsl"/>
     <xsl:import href="bootstrap/2.3.2/imports/sp.xsl"/>
     <xsl:import href="bootstrap/2.3.2/resource.xsl"/>
