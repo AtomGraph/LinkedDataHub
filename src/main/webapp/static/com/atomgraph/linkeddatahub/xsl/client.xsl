@@ -828,7 +828,6 @@ WHERE
                         </xsl:variable>
                         <xsl:variable name="mode-class" select="map:keys($mode-classes)[contains-token($nav-tab-class, .)]" as="xs:string"/>
                         <xsl:variable name="mode" select="xs:anyURI(map:get($mode-classes, $mode-class))" as="xs:anyURI"/>
-                        <xsl:message>$nav-tab-class: <xsl:value-of select="$nav-tab-class"/> $mode-class: <xsl:value-of select="$mode-class"/> $mode: <xsl:value-of select="$mode"/></xsl:message>
                         <xsl:variable name="fragment" select="substring-after($href, '#')" as="xs:string"/>
                         <xsl:sequence select="xs:anyURI(ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, ac:build-uri($href, map:merge(($query-params, map{ 'mode': string($mode) } ))), $fragment))"/>
                     </xsl:when>
