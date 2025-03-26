@@ -443,10 +443,53 @@ exclude-result-prefixes="#all"
             </json:map>
         </xsl:variable>
         <xsl:variable name="update-json-string" select="xml-to-json($update-xml)" as="xs:string"/>
-<xsl:message>
-    <xsl:value-of select="$update-json-string"/>
-</xsl:message>
         <xsl:variable name="update-json" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'parse', [ $update-json-string ])"/>
         <xsl:sequence select="ixsl:call($sparql-generator, 'stringify', [ $update-json ])"/>
     </xsl:function>
+    
+    <!-- generic HTTP client promises (SaxonJS 3) -->
+    
+    <xsl:function name="ldh:send-request" ixsl:updating="yes">
+        <xsl:param name="request" as="map(*)"/>
+        <xsl:param name="sleep-result" as="item()?"/> <!-- not used but has to be declared: https://saxonica.plan.io/issues/6727 -->
+
+        <ixsl:promise 
+            select="ixsl:http-request($request)" 
+            on-completion="ldh:handle-response($request, ?)" 
+            on-failure="ldh:fail#1"/>
+    </xsl:function>
+
+    <xsl:function name="ldh:handle-response" ixsl:updating="yes">
+        <xsl:param name="request" as="map(*)"/>
+        <xsl:param name="response" as="map(*)"/>
+        <xsl:variable name="default-retry-after" select="1" as="xs:integer"/>
+
+        <xsl:choose>
+            <xsl:when test="$response?status = 429">
+                <xsl:variable name="retry-after" select="
+                  if (map:contains($response?headers, 'Retry-After')) 
+                  then xs:integer($response?headers('Retry-After')) 
+                  else $default-retry-after"/>
+                <ixsl:promise 
+                  select="ixsl:sleep($retry-after * 1000)" 
+                  on-completion="ldh:send-request($request, ?)"/>
+            </xsl:when>
+            <xsl:otherwise>
+                <!-- Dynamically invoke the callback function -->
+                <xsl:variable name="callback-name" select="$request('ldh:on-success-function')" as="xs:QName"/>
+                <xsl:variable name="callback-func" select="function-lookup($callback-name, 2)"/>
+
+                <xsl:message>Callback function: <xsl:value-of select="string($callback-name)"/></xsl:message>
+
+                <xsl:sequence select="$callback-func($request, $response)"/>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:function>
+
+    <xsl:function name="ldh:fail">
+        <xsl:param name="error" as="map(*)"/>
+
+        <xsl:message>ldh:fail $error: <xsl:value-of select="serialize($error, map{ 'method': 'json' })"/></xsl:message>
+    </xsl:function>
+    
 </xsl:stylesheet>
