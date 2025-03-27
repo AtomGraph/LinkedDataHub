@@ -151,12 +151,7 @@ exclude-result-prefixes="#all"
                 <!-- store count in a hidden input -->
                 <input type="hidden" name="count" value="{srx:binding[@name = $count-var-name]/srx:literal}"/>
 
-                <input type="checkbox" name="{$object-var-name}" value="{srx:binding[@name = $object-var-name]/srx:*}"> <!-- can be srx:literal -->
-                <!-- TO-DO: reload state from URL query params -->
-<!--                                    <xsl:if test="$filter/*/@rdf:resource = @rdf:about">
-                        <xsl:attribute name="checked" select="'checked'"/>
-                    </xsl:if>-->
-                </input>
+                <input type="checkbox" name="{$object-var-name}" value="{srx:binding[@name = $object-var-name]/srx:*}"/> <!-- can be srx:literal -->
                 <span title="{srx:binding[@name = $object-var-name]/srx:*}">
                     <xsl:choose>
                         <!-- label explicitly supplied -->
