@@ -62,6 +62,7 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Request;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.Response.ResponseBuilder;
+import static jakarta.ws.rs.core.Response.Status.PERMANENT_REDIRECT;
 import jakarta.ws.rs.core.SecurityContext;
 import jakarta.ws.rs.core.UriInfo;
 import jakarta.ws.rs.ext.MessageBodyReader;
@@ -212,11 +213,16 @@ public class Graph extends GraphStoreImpl
             throw new WebApplicationException("Method '" + HttpMethod.PUT + "' is not allowed on document URI <" + getURI() + ">", Response.status(Response.Status.METHOD_NOT_ALLOWED).allow(getAllowedMethods()).build());
         }
         
-        // enforce that request URI always end with a slash and is present in the RDF document
+        // enforce that request URI always end with a slash - by redirecting to it if doesn't not already
         if (!getURI().toString().endsWith("/"))
         {
-            if (log.isErrorEnabled()) log.error("Document URI <{}> does not end with a slash", getURI());
-            throw new WebApplicationException("Document URI <" + getURI() + "> does not end with a slash", UNPROCESSABLE_ENTITY.getStatusCode()); // 422 Unprocessable Entity
+            String uriWithSlash = getURI().toString() + "/";
+
+            if (log.isDebugEnabled()) log.debug("Redirecting document URI <> to <{}> in order to enforce trailing a slash", getURI(), uriWithSlash);
+
+            return Response.status(PERMANENT_REDIRECT).
+                location(URI.create(uriWithSlash)).
+                build();
         }
         
         new Skolemizer(getURI().toString()).apply(model);
