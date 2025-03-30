@@ -1113,7 +1113,7 @@ exclude-result-prefixes="#all"
     
     <!-- real numbers -->
     
-    <xsl:template match="text()[../@rdf:datatype = '&xsd;float'] | text()[../@rdf:datatype = '&xsd;double']" priority="1" mode="xhtml:Input">
+    <xsl:template match="text()[../@rdf:datatype = '&xsd;float'] | text()[../@rdf:datatype = '&xsd;double']" mode="xhtml:Input" priority="1">
         <xsl:param name="type" select="'text'" as="xs:string"/>
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="class" as="xs:string?"/>
@@ -1135,6 +1135,36 @@ exclude-result-prefixes="#all"
         </xsl:call-template>
     </xsl:template>
 
+    <!-- datetimes -->
+    
+    <xsl:template match="text()[../@rdf:datatype = '&xsd;dateTime'][. castable as xs:dateTime][../@rdf:datatype = '&xsd;dateTime']" mode="xhtml:Input" priority="1" >
+        <xsl:param name="type" select="'datetime-local'" as="xs:string"/>
+        <xsl:param name="id" as="xs:string?"/>
+        <xsl:param name="class" as="xs:string?"/>
+        <xsl:param name="disabled" select="false()" as="xs:boolean"/>
+
+        <xsl:call-template name="xhtml:Input">
+            <xsl:with-param name="name" select="'ol'"/>
+            <xsl:with-param name="type" select="'datetime-local'"/> <!-- TO-DO: what is passing $type? Cannot use it because the value is 'text' -->
+            <xsl:with-param name="id" select="$id"/>
+            <xsl:with-param name="class" select="$class"/>
+            <xsl:with-param name="disabled" select="$disabled"/>
+            <xsl:with-param name="value" select="format-dateTime(xs:dateTime(.), '[Y0001]-[M01]-[D01]T[H01]:[m01]:[s01]')"/>
+        </xsl:call-template>
+        
+        <xsl:call-template name="xhtml:Input">
+            <xsl:with-param name="type" select="'hidden'"/>
+            <xsl:with-param name="name" select="'lt'"/>
+            <xsl:with-param name="value" select="../@rdf:datatype"/>
+        </xsl:call-template>
+
+        <xsl:call-template name="xhtml:Input">
+            <xsl:with-param name="class" select="'input-mini input-timezone'"/> 
+            <xsl:with-param name="type" select="'text'"/>
+            <xsl:with-param name="value" select="format-dateTime(xs:dateTime(.), '[Z]')"/>
+        </xsl:call-template>
+    </xsl:template>
+        
     <!-- XHTML CONTENT IDENTITY TRANSFORM -->
 
     <xsl:template match="@* | node()" mode="ldh:XHTMLContent">

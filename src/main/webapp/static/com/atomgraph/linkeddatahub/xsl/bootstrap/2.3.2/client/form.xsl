@@ -161,18 +161,6 @@ WHERE
         <!-- TO-DO: move to a better place. Does not take effect if typeahead is reset -->
         <ixsl:set-property object="." name="autocomplete" select="'off'"/>
     </xsl:template>
-    
-    <!-- inject datetime-local inputs (only if the input is visible) TO-DO: align structure of constructor and editing form controls -->
-    <xsl:template match="input[not(@type = 'hidden')][@name = 'ol'][following-sibling::input[@name = 'lt'][@value = '&xsd;dateTime']] | input[@name = 'ol'][@value][../following-sibling::div/input[@name = 'lt'][@value = '&xsd;dateTime']]" mode="ldh:RenderRowForm" priority="2">
-        <ixsl:set-attribute name="type" select="'datetime-local'"/>
-        <ixsl:set-attribute name="step" select="'1'"/>
-
-        <xsl:if test="@value">
-            <!-- adjust the datetime value to the implicit (user's) timezone and format it to make it a legal datetime-local value: https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/datetime-local#value -->
-            <xsl:variable name="datetime-local" select="format-dateTime(adjust-dateTime-to-timezone(xs:dateTime(@value)), '[Y0001]-[M01]-[D01]T[H01]:[m01]:[s01]')" as="xs:string"/>        
-            <ixsl:set-attribute name="value" select="$datetime-local"/>
-        </xsl:if>
-    </xsl:template>
 
     <!-- set focus on the first required input -->
     <xsl:template match="fieldset//div[contains-token(@class, 'required')][1]//input" mode="ldh:RenderRowForm" priority="1">
@@ -195,11 +183,15 @@ WHERE
         <ixsl:remove-attribute name="name"/>
     </xsl:template>
     
-    <!-- adjust datetime-local values to the implicit timezone -->
+    <!-- append timezone to the datetime-local values -->
     <xsl:template match="input[@type = 'datetime-local'][ixsl:get(., 'value')]" mode="ldh:FormPreSubmit" priority="1">
         <!-- set the input type back to 'text' because 'datetime-local' does not accept the timezoned value -->
         <ixsl:set-attribute name="type" select="'text'"/>
-        <ixsl:set-property name="value" select="string(adjust-dateTime-to-timezone(ixsl:get(., 'value')))" object="."/>
+        
+        <xsl:variable name="timezone" select="ixsl:get(following-sibling::input[contains-token(@class, 'input-timezone')], 'value')" as="xs:string"/>
+        <!--TO-DO: handle invalid timezone values -->
+        <xsl:variable name="timezoned-value" select="xs:dateTime(ixsl:get(., 'value') || $timezone)" as="xs:dateTime"/>
+        <ixsl:set-property name="value" select="$timezoned-value" object="."/>
     </xsl:template>
     
     <xsl:template name="bs2:SignUpComplete">
@@ -469,7 +461,7 @@ WHERE
         <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, $action)" as="xs:anyURI"/>
 
         <!-- pre-process form before submitting it -->
-        <!-- <xsl:apply-templates select="." mode="ldh:FormPreSubmit"/> -->
+        <xsl:apply-templates select="." mode="ldh:FormPreSubmit"/>
             
         <xsl:choose>
             <!-- we need to handle multipart requests specially because of Saxon-JS 2 limitations: https://saxonica.plan.io/issues/4732 -->
@@ -515,6 +507,9 @@ WHERE
 
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
         
+        <!-- pre-process form before submitting it -->
+        <xsl:apply-templates select="." mode="ldh:FormPreSubmit"/>
+
         <xsl:variable name="elements" select=".//input | .//textarea | .//select" as="element()*"/>
         <xsl:variable name="triples" select="ldh:parse-rdf-post($elements)" as="element()*"/>        
         <!-- canonicalize XML in rdf:XMLLiterals -->
