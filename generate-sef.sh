@@ -8,4 +8,4 @@ find ./target/ROOT/static/com/atomgraph  -type f -name "*.xsl" -exec sh -c 'xmls
 
 # compile client.xsl to SEF. The output path is mounted in docker-compose.override.yml
 
-npx xslt3 -t -xsl:./target/ROOT/static/com/atomgraph/linkeddatahub/xsl/client.xsl -export:./target/ROOT/static/com/atomgraph/linkeddatahub/xsl/client.xsl.sef.json -nogo -ns:##html5 -relocate:on
+npx xslt3-he -t -xsl:./target/ROOT/static/com/atomgraph/linkeddatahub/xsl/client.xsl -export:./target/ROOT/static/com/atomgraph/linkeddatahub/xsl/client.xsl.sef.json -nogo -ns:##html5 -relocate:on
