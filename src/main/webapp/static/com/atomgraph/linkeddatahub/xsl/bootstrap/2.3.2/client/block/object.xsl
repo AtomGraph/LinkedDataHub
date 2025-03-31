@@ -133,22 +133,20 @@ exclude-result-prefixes="#all"
                     </xsl:choose>
                 </xsl:for-each>
             </xsl:when>
-            <xsl:when test="?status = 406">
+            <xsl:otherwise>
                 <xsl:for-each select="$container">
                     <xsl:result-document href="?." method="ixsl:replace-content">
                         <div class="offset2 span7 main">
                             <object data="{$resource-uri}"/>
                         </div>
                     </xsl:result-document>
-                </xsl:for-each>
-            </xsl:when>
-            <xsl:otherwise>
-                <xsl:for-each select="$container">
-                    <xsl:result-document href="?." method="ixsl:replace-content">
-                        <div class="alert alert-block">
-                            <strong>Could not load resource: <a href="{$resource-uri}"><xsl:value-of select="$resource-uri"/></a></strong>
-                        </div>
-                    </xsl:result-document>
+                    
+                    <!-- hide the progress bar -->
+                    <xsl:for-each select="ancestor::div[contains-token(@class, 'span12')][contains-token(@class, 'progress')][contains-token(@class, 'active')]">
+                        <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'progress', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+                        <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'progress-striped', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+                        <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'active', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+                    </xsl:for-each>
                 </xsl:for-each>
             </xsl:otherwise>
         </xsl:choose>
