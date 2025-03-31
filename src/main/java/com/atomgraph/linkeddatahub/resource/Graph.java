@@ -218,11 +218,16 @@ public class Graph extends GraphStoreImpl
         {
             String uriWithSlash = getURI().toString() + "/";
 
-            if (log.isDebugEnabled()) log.debug("Redirecting document URI <> to <{}> in order to enforce trailing a slash", getURI(), uriWithSlash);
+            if (log.isDebugEnabled()) log.debug("Redirecting document URI <{}> to <{}> in order to enforce trailing a slash", getURI(), uriWithSlash);
 
             return Response.status(PERMANENT_REDIRECT).
                 location(URI.create(uriWithSlash)).
                 build();
+        }
+        if (getURI().getPath().contains("//"))
+        {
+            if (log.isDebugEnabled()) log.debug("Rejected document URI <{}> - double slashes are not allowed", getURI());
+            throw new BadRequestException("Double slashes not allowed in document URIs");
         }
         
         new Skolemizer(getURI().toString()).apply(model);
