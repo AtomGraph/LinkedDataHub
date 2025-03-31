@@ -26,4 +26,4 @@ curl -k -w "%{http_code}\n" -o /dev/null -s \
   "${END_USER_BASE_URL}non-existing/" <<EOF
 EOF
 ) \
-| grep -q "$STATUS_OK"
+| grep -q "$STATUS_CREATED"
