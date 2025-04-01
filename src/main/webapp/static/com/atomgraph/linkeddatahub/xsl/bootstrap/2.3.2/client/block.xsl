@@ -177,9 +177,9 @@ exclude-result-prefixes="#all"
         </xsl:if>
     </xsl:template>
 
-    <!-- override inline editing form for content types (do nothing if the button is disabled) - prioritize over form.xsl -->
+    <!-- override inline editing form for block types (do nothing if the button is disabled) - prioritize over form.xsl -->
     
-    <xsl:template match="div[following-sibling::div[@typeof = ('&ldh;XHTML', '&ldh;View', '&ldh;Object')]]//button[contains-token(@class, 'btn-edit')][not(contains-token(@class, 'disabled'))]" mode="ixsl:onclick" priority="1">
+    <xsl:template match="div[following-sibling::div[@typeof = ('&ldh;XHTML', '&ldh;Object')]]//button[contains-token(@class, 'btn-edit')][not(contains-token(@class, 'disabled'))]" mode="ixsl:onclick" priority="1">
         <xsl:param name="block" select="ancestor::div[contains-token(@class, 'block')][1]" as="element()"/>
         <!-- for content types, button.btn-edit is placed in its own div.row-fluid, therefore the next row is the actual container -->
         <xsl:param name="container" select="$block/descendant::div[@typeof][1]" as="element()"/> <!-- other resources can be nested within object -->
@@ -191,7 +191,7 @@ exclude-result-prefixes="#all"
     
     <!-- append new block form onsubmit (using POST) -->
     
-    <xsl:template match="div[@typeof = ('&ldh;XHTML', '&ldh;View', '&ldh;Object')]//form[contains-token(@class, 'form-horizontal')][upper-case(@method) = 'POST']" mode="ixsl:onsubmit" priority="2"> <!-- prioritize over form.xsl -->
+    <xsl:template match="div[@typeof = ('&ldh;XHTML', '&ldh;Object')]//form[contains-token(@class, 'form-horizontal')][upper-case(@method) = 'POST']" mode="ixsl:onsubmit" priority="2"> <!-- prioritize over form.xsl -->
         <xsl:param name="elements" select=".//input | .//textarea | .//select" as="element()*"/>
         <xsl:param name="triples" select="ldh:parse-rdf-post($elements)" as="element()*"/>
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
@@ -221,13 +221,13 @@ exclude-result-prefixes="#all"
         </xsl:next-match>
     </xsl:template>
 
-    <!-- delete content onclick (increased priority to take precedence over form.xsl .btn-remove-resource) -->
+    <!-- delete block onclick (increased priority to take precedence over form.xsl .btn-remove-resource) -->
     
-    <xsl:template match="div[@typeof = ('&ldh;XHTML', '&ldh;View', '&ldh;Object')]//button[contains-token(@class, 'btn-remove-resource')]" mode="ixsl:onclick" priority="3">
+    <xsl:template match="div[@typeof = ('&ldh;XHTML', '&ldh;Object')]//button[contains-token(@class, 'btn-remove-resource')]" mode="ixsl:onclick" priority="3">
         <xsl:variable name="block" select="ancestor::div[contains-token(@class, 'block')][1]" as="element()"/>
 
         <xsl:choose>
-            <!-- delete existing content -->
+            <!-- delete existing block -->
             <xsl:when test="$block/@about">
                 <!-- show a confirmation prompt -->
                 <xsl:if test="ixsl:call(ixsl:window(), 'confirm', [ ac:label(key('resources', 'are-you-sure', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))) ])">
@@ -247,7 +247,7 @@ exclude-result-prefixes="#all"
                     <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
                 </xsl:if>
             </xsl:when>
-            <!-- remove content that hasn't been saved yet -->
+            <!-- remove block that hasn't been saved yet -->
             <xsl:otherwise>
                 <xsl:for-each select="$block">
                     <xsl:sequence select="ixsl:call(., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
@@ -274,14 +274,14 @@ exclude-result-prefixes="#all"
         </xsl:choose>
     </xsl:template>
 
-    <!-- dragging content over other block -->
+    <!-- dragging block over other block -->
     
     <xsl:template match="div[@id = 'content-body']/div[ixsl:query-params()?mode = '&ldh;ContentMode'][@about][contains-token(@class, 'block')][acl:mode() = '&acl;Write']" mode="ixsl:ondragover">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <ixsl:set-property name="dataTransfer.dropEffect" select="'move'" object="ixsl:event()"/>
     </xsl:template>
 
-    <!-- change the style of blocks when content is dragged over them -->
+    <!-- change the style of blocks when block is dragged over them -->
     
     <xsl:template match="div[@id = 'content-body']/div[ixsl:query-params()?mode = '&ldh;ContentMode'][@about][contains-token(@class, 'block')][acl:mode() = '&acl;Write']" mode="ixsl:ondragenter">
         <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'drag-over', true() ])[current-date() lt xs:date('2000-01-01')]"/>
@@ -305,7 +305,7 @@ exclude-result-prefixes="#all"
         
         <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'drag-over', false() ])[current-date() lt xs:date('2000-01-01')]"/>
 
-        <!-- only persist the change if the content is already saved and has an @about -->
+        <!-- only persist the change if the block is already saved and has an @about -->
         <xsl:if test="$block-uri">
             <!-- move dropped element after this element, if they're not the same -->
             <xsl:if test="not($block-uri = $drop-block-uri)">
@@ -330,7 +330,7 @@ exclude-result-prefixes="#all"
     
     <!-- CALLBACKS -->
     
-    <!-- content delete -->
+    <!-- block delete -->
 
     <xsl:template name="onBlockDelete">
         <xsl:context-item as="map(*)" use="required"/>
@@ -345,12 +345,12 @@ exclude-result-prefixes="#all"
                 </xsl:for-each>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ 'Could not delete content' ])[current-date() lt xs:date('2000-01-01')]"/>
+                <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ 'Could not delete block' ])[current-date() lt xs:date('2000-01-01')]"/>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
     
-    <!-- content swap (drag & drop) -->
+    <!-- block swap (drag & drop) -->
     
     <xsl:template name="onBlockSwap">
         <xsl:context-item as="map(*)" use="required"/>
@@ -361,7 +361,7 @@ exclude-result-prefixes="#all"
             <xsl:when test="?status = 204">
             </xsl:when>
             <xsl:otherwise>
-                <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ 'Could not swap content' ])[current-date() lt xs:date('2000-01-01')]"/>
+                <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ 'Could not swap block' ])[current-date() lt xs:date('2000-01-01')]"/>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
