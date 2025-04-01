@@ -1137,32 +1137,65 @@ exclude-result-prefixes="#all"
 
     <!-- datetimes -->
     
-    <xsl:template match="text()[../@rdf:datatype = '&xsd;dateTime'][. castable as xs:dateTime][../@rdf:datatype = '&xsd;dateTime']" mode="xhtml:Input" priority="1" >
+    <xsl:template match="text()[../@rdf:datatype = '&xsd;dateTime'][. castable as xs:dateTime][../@rdf:datatype = '&xsd;dateTime']" mode="bs2:FormControl" priority="1">
+        <xsl:param name="type" select="'datetime-local'" as="xs:string"/>
+        <xsl:param name="id" select="generate-id()" as="xs:string"/>
+        <xsl:param name="class" as="xs:string?"/>
+        <xsl:param name="disabled" select="false()" as="xs:boolean"/>
+        <xsl:param name="type-label" select="true()" as="xs:boolean"/>
+
+        <xsl:apply-templates select="." mode="xhtml:Input">
+            <xsl:with-param name="type" select="$type"/>
+            <xsl:with-param name="id" select="$id"/>
+            <xsl:with-param name="class" select="$class"/>
+            <xsl:with-param name="disabled" select="$disabled"/>
+        </xsl:apply-templates>
+
+        <xsl:if test="$type-label">
+            <xsl:apply-templates select="." mode="bs2:FormControlTypeLabel">
+                <xsl:with-param name="type" select="$type"/>
+            </xsl:apply-templates>
+        </xsl:if>
+    </xsl:template>
+    
+    <xsl:template match="text()[../@rdf:datatype = '&xsd;dateTime'][. castable as xs:dateTime][../@rdf:datatype = '&xsd;dateTime']" mode="xhtml:Input" priority="1">
         <xsl:param name="type" select="'datetime-local'" as="xs:string"/>
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="class" as="xs:string?"/>
         <xsl:param name="disabled" select="false()" as="xs:boolean"/>
 
-        <xsl:call-template name="xhtml:Input">
-            <xsl:with-param name="name" select="'ol'"/>
-            <xsl:with-param name="type" select="'datetime-local'"/> <!-- TO-DO: what is passing $type? Cannot use it because the value is 'text' -->
-            <xsl:with-param name="id" select="$id"/>
-            <xsl:with-param name="class" select="$class"/>
-            <xsl:with-param name="disabled" select="$disabled"/>
-            <xsl:with-param name="value" select="format-dateTime(xs:dateTime(.), '[Y0001]-[M01]-[D01]T[H01]:[m01]:[s01]')"/>
-        </xsl:call-template>
-        
-        <xsl:call-template name="xhtml:Input">
-            <xsl:with-param name="type" select="'hidden'"/>
-            <xsl:with-param name="name" select="'lt'"/>
-            <xsl:with-param name="value" select="../@rdf:datatype"/>
-        </xsl:call-template>
+        <xsl:choose>
+            <xsl:when test="$type = 'datetime-local'"> <!-- could also be 'hidden' -->
+                <xsl:call-template name="xhtml:Input">
+                    <xsl:with-param name="name" select="'ol'"/>
+                    <xsl:with-param name="type" select="$type"/>
+                    <xsl:with-param name="id" select="$id"/>
+                    <xsl:with-param name="class" select="$class"/>
+                    <xsl:with-param name="disabled" select="$disabled"/>
+                    <xsl:with-param name="value" select="format-dateTime(xs:dateTime(.), '[Y0001]-[M01]-[D01]T[H01]:[m01]:[s01]')"/>
+                </xsl:call-template>
 
-        <xsl:call-template name="xhtml:Input">
-            <xsl:with-param name="class" select="'input-mini input-timezone'"/> 
-            <xsl:with-param name="type" select="'text'"/>
-            <xsl:with-param name="value" select="format-dateTime(xs:dateTime(.), '[Z]')"/>
-        </xsl:call-template>
+                <xsl:call-template name="xhtml:Input">
+                    <xsl:with-param name="type" select="'hidden'"/>
+                    <xsl:with-param name="name" select="'lt'"/>
+                    <xsl:with-param name="value" select="../@rdf:datatype"/>
+                </xsl:call-template>
+
+                <xsl:call-template name="xhtml:Input">
+                    <xsl:with-param name="class" select="'input-mini input-timezone'"/> 
+                    <xsl:with-param name="type" select="'text'"/>
+                    <xsl:with-param name="value" select="format-dateTime(xs:dateTime(.), '[Z]')"/>
+                </xsl:call-template>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:next-match>
+                    <xsl:with-param name="type" select="$type"/>
+                    <xsl:with-param name="id" select="$id"/>
+                    <xsl:with-param name="class" select="$class"/>
+                    <xsl:with-param name="disabled" select="$disabled"/>
+                </xsl:next-match>
+            </xsl:otherwise>
+        </xsl:choose>
     </xsl:template>
         
     <!-- XHTML CONTENT IDENTITY TRANSFORM -->
