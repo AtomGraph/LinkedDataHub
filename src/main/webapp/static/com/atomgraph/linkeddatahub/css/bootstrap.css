@@ -14,14 +14,16 @@ body.embed { padding-top: 0; }
 .navbar-form .btn-search { background-image: url('../icons/ic_search_white_24px.svg'); background-position: center center; background-repeat: no-repeat; width: 34px; height: 34px; }
 .action-bar { background-color: #dfdfdf; }
 .action-bar form { margin-bottom: 0; }
+.action-bar .span7 .row-fluid > * { margin-top: 10px; }
 .action-bar .add-constructor, .dropdown-menu .add-constructor { background-color: inherit; display: block; text-align: left; width: 100%; }
 .action-bar .add-constructor:hover { color: #ffffff; background-color: #007af5; }
-.action-bar .breadcrumb { background-color: inherit; margin-top: 10px; margin-bottom: 0; padding-left: 0; padding-top: 5px; }
+.action-bar .breadcrumb { background-color: inherit; margin-bottom: 0; padding-left: 0; padding-top: 5px; }
 .action-bar .breadcrumb .container-logo { background-image: url('../icons/folder.svg'); background-position: left center; background-repeat: no-repeat; padding-left: 28px; }
 .action-bar .breadcrumb .item-logo { background-image: url('../icons/file.svg'); background-position: left center; background-repeat: no-repeat; padding-left: 28px; }
 .action-bar .breadcrumb .btn-group { margin-top: -4px; }
-.action-bar #breadcrumb-nav > .label-info { margin-top: 10px; padding: 8px 15px; margin-right: 8px; font-size: inherit; background-color: #9954bb; }
-.action-bar #created-modified-date p { text-align: right; margin-top: 10px; padding-top: 5px; }
+.action-bar #breadcrumb-nav > .label-info { padding: 8px 15px; margin-right: 8px; font-size: inherit; background-color: #9954bb; }
+.action-bar #doc-controls { text-align: right; padding-top: 5px; }
+.action-bar #doc-controls .btn-edit { margin-top: -5px; margin-left: 10px; }
 .action-bar p.alert { margin-bottom: 0; }
 .nav-header.btn { color: inherit; }
 ul.dropdown-menu { max-height: 26em; overflow-x: hidden; overflow-y: auto; }

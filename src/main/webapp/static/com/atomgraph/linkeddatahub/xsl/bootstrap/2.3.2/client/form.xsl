@@ -11,6 +11,7 @@
     <!ENTITY http       "http://www.w3.org/2011/http#">
     <!ENTITY ldt        "https://www.w3.org/ns/ldt#">
     <!ENTITY dh         "https://www.w3.org/ns/ldt/document-hierarchy#">
+    <!ENTITY acl        "http://www.w3.org/ns/auth/acl#">
     <!ENTITY cert       "http://www.w3.org/ns/auth/cert#">
     <!ENTITY sd         "http://www.w3.org/ns/sparql-service-description#">
     <!ENTITY sh         "http://www.w3.org/ns/shacl#">
@@ -38,8 +39,10 @@ xmlns:rdfs="&rdfs;"
 xmlns:dct="&dct;"
 xmlns:typeahead="&typeahead;"
 xmlns:ldt="&ldt;"
+xmlns:acl="&acl;"
 xmlns:sd="&sd;"
 xmlns:sh="&sh;"
+xmlns:sioc="&sioc;"
 xmlns:spin="&spin;"
 xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
 extension-element-prefixes="ixsl"
@@ -103,6 +106,19 @@ WHERE
     <!-- hide constraint violations and HTTP responses in the form - they are displayed as errors on the edited resources -->
     <xsl:template match="*[rdf:type/@rdf:resource = ('&spin;ConstraintViolation', '&sh;ValidationResult', '&sh;ValidationReport', '&http;Response')]" mode="bs2:Form" priority="3"/>
 
+    <!-- hide the system properties of document resources (they are set automatically by LinkedDataHub) -->
+    <xsl:template match="*[rdf:type/@rdf:resource = ('&def;Root', '&dh;Container', '&dh;Item')]/dct:created | *[rdf:type/@rdf:resource = ('&def;Root', '&dh;Container', '&dh;Item')]/dct:modified | *[rdf:type/@rdf:resource = ('&def;Root', '&dh;Container', '&dh;Item')]/sioc:has_container | *[rdf:type/@rdf:resource = ('&def;Root', '&dh;Container', '&dh;Item')]/sioc:has_parent | *[rdf:type/@rdf:resource = ('&def;Root', '&dh;Container', '&dh;Item')]/dct:creator | *[rdf:type/@rdf:resource = ('&def;Root', '&dh;Container', '&dh;Item')]/acl:owner | *[rdf:type/@rdf:resource = ('&def;Root', '&dh;Container', '&dh;Item')]/rdf:*[starts-with(local-name(), '_')]" mode="bs2:FormControl" priority="1">
+        <xsl:apply-templates select="." mode="xhtml:Input">
+            <xsl:with-param name="type" select="'hidden'"/>
+        </xsl:apply-templates>
+        <xsl:apply-templates select="node() | @rdf:resource | @rdf:nodeID" mode="xhtml:Input">
+            <xsl:with-param name="type" select="'hidden'"/>
+        </xsl:apply-templates>
+        <xsl:apply-templates select="@xml:lang | @rdf:datatype" mode="xhtml:Input">
+            <xsl:with-param name="type" select="'hidden'"/>
+        </xsl:apply-templates>
+    </xsl:template>
+    
     <!-- canonicalize XML in rdf:XMLLiterals -->
     <xsl:template match="json:string[@key = 'object'][ends-with(., '^^&rdf;XMLLiteral')]" mode="ldh:CanonicalizeXML" priority="1">
         <xsl:copy>
@@ -189,7 +205,7 @@ WHERE
         <ixsl:set-attribute name="type" select="'text'"/>
         
         <xsl:variable name="timezone" select="ixsl:get(following-sibling::input[contains-token(@class, 'input-timezone')], 'value')" as="xs:string"/>
-        <!--TO-DO: handle invalid timezone values -->
+        <!-- concatenate datetime-local value together with timezone TO-DO: handle invalid timezone values -->
         <xsl:variable name="timezoned-value" select="xs:dateTime(ixsl:get(., 'value') || $timezone)" as="xs:dateTime"/>
         <ixsl:set-property name="value" select="$timezoned-value" object="."/>
     </xsl:template>
@@ -264,9 +280,9 @@ WHERE
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
         
-        <xsl:if test="ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path(ldh:base-uri(.)) || '`')">
+<!--        <xsl:if test="ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path(ldh:base-uri(.)) || '`')">
             <xsl:variable name="etag" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path(ldh:base-uri(.)) || '`'), 'etag')" as="xs:string"/>
-        </xsl:if>
+        </xsl:if>-->
         <xsl:if test="not(ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $about || '`'))">
             <ixsl:set-property name="{'`' || $about || '`'}" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.contents')"/>
         </xsl:if>
@@ -275,11 +291,10 @@ WHERE
 
         <!-- if the URI is external, dereference it through the proxy -->
         <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, ac:absolute-path(ldh:base-uri(.)), $graph, ())" as="xs:anyURI"/>
-        
         <xsl:variable name="request" as="item()*">
             <!-- If-Match header checks preconditions, i.e. that the graph has not been modified in the meanwhile --> 
             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
-                <xsl:call-template name="ldh:LoadEditedDocument">
+                <xsl:call-template name="ldh:LoadEditedResource">
                     <xsl:with-param name="block" select="$block"/>
                     <xsl:with-param name="about" select="$about"/>
                 </xsl:call-template>
@@ -288,7 +303,7 @@ WHERE
         <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
 
-    <xsl:template name="ldh:LoadEditedDocument">
+    <xsl:template name="ldh:LoadEditedResource">
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="block" as="element()"/>
         <xsl:param name="about" as="xs:anyURI"/>
