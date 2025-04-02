@@ -88,7 +88,7 @@ exclude-result-prefixes="#all"
             'query-uri': $query-uri
           }"/>
         <xsl:variable name="request" select="map:merge(($http-request, $callback-context))" as="map(*)"/>
-        <xsl:sequence select="ixsl:http-request($request, ()) =>
+        <xsl:sequence select="ixsl:http-request($request) =>
             ixsl:then(ldh:handle-response($request, ?)) =>
             ixsl:then(ldh:view-query-load($request, ?))"/>
     </xsl:template>
@@ -251,7 +251,7 @@ exclude-result-prefixes="#all"
             'count-var-name': $count-var-name
           }"/>
         <xsl:variable name="request" select="map:merge(($http-request, $callback-context))" as="map(*)"/>
-        <xsl:sequence select="ixsl:http-request($request, ()) =>
+        <xsl:sequence select="ixsl:http-request($request) =>
             ixsl:then(ldh:handle-response($request, ?)) =>
             ixsl:then(ldh:result-count-results-load($request, ?))"/>
     </xsl:template>
@@ -451,7 +451,7 @@ exclude-result-prefixes="#all"
             'endpoint': $endpoint
           }"/>
         <xsl:variable name="request" select="map:merge(($http-request, $callback-context))" as="map(*)"/>
-        <xsl:sequence select="ixsl:http-request($request, ()) =>
+        <xsl:sequence select="ixsl:http-request($request) =>
             ixsl:then(ldh:handle-response($request, ?)) =>
             ixsl:then(ldh:on-container-results-load($request, ?))"/>
     </xsl:template>
@@ -652,7 +652,7 @@ exclude-result-prefixes="#all"
                         'object-var-name': $object-var-name
                       }"/>
                     <xsl:variable name="request" select="map:merge(($http-request, $callback-context))" as="map(*)"/>
-                    <xsl:sequence select="ixsl:http-request($request, ()) =>
+                    <xsl:sequence select="ixsl:http-request($request) =>
                         ixsl:then(ldh:handle-response($request, ?)) =>
                         ixsl:then(ldh:facet-filter-results-load($request, ?))"/>
                 </xsl:if>
@@ -874,7 +874,7 @@ exclude-result-prefixes="#all"
                 'results': $results
               }"/>
             <xsl:variable name="request" select="map:merge(($http-request, $callback-context))" as="map(*)"/>
-            <xsl:sequence select="ixsl:http-request($request, ()) =>
+            <xsl:sequence select="ixsl:http-request($request) =>
                 ixsl:then(ldh:handle-response($request, ?)) =>
                 ixsl:then(ldh:parallax-results-load($request, ?))"/>
         </xsl:if>
@@ -945,7 +945,7 @@ exclude-result-prefixes="#all"
             'base-uri': ldh:base-uri(.)
           }"/>
         <xsl:variable name="request" select="map:merge(($http-request, $callback-context))" as="map(*)"/>
-        <xsl:sequence select="ixsl:http-request($request, ()) =>
+        <xsl:sequence select="ixsl:http-request($request) =>
             ixsl:then(ldh:handle-response($request, ?)) =>
             ixsl:then(ldh:container-object-metadata-results-load($request, ?))"/>
     </xsl:template>
@@ -1184,7 +1184,7 @@ exclude-result-prefixes="#all"
                         'label-sample-var-name': $label-sample-var-name
                       }"/>
                     <xsl:variable name="request" select="map:merge(($http-request, $callback-context))" as="map(*)"/>
-                    <xsl:sequence select="ixsl:http-request($request, ()) =>
+                    <xsl:sequence select="ixsl:http-request($request) =>
                         ixsl:then(ldh:handle-response($request, ?)) =>
                         ixsl:then(ldh:facet-value-results-load($request, ?))"/>
                 </xsl:for-each>
@@ -1558,7 +1558,7 @@ exclude-result-prefixes="#all"
                             'base-uri': ldh:base-uri(.)
                           }"/>
                         <xsl:variable name="request" select="map:merge(($http-request, $callback-context))" as="map(*)"/>
-                        <xsl:sequence select="ixsl:http-request($request, ()) =>
+                        <xsl:sequence select="ixsl:http-request($request) =>
                             ixsl:then(ldh:handle-response($request, ?)) =>
                             ixsl:then(ldh:container-object-metadata-results-load($request, ?))"/>
                                             
@@ -1660,7 +1660,7 @@ exclude-result-prefixes="#all"
                                 'predicate': $predicate
                               }"/>
                             <xsl:variable name="request" select="map:merge(($http-request, $callback-context))" as="map(*)"/>
-                            <xsl:sequence select="ixsl:http-request($request, ()) =>
+                            <xsl:sequence select="ixsl:http-request($request) =>
                                 ixsl:then(ldh:handle-response($request, ?)) =>
                                 ixsl:then(ldh:parallax-property-load($request, ?))"/>
                         </xsl:for-each-group>
@@ -1778,7 +1778,7 @@ exclude-result-prefixes="#all"
                                             'value-result': $value-result
                                           }"/>
                                         <xsl:variable name="request" select="map:merge(($http-request, $callback-context))" as="map(*)"/>
-                                        <xsl:sequence select="ixsl:http-request($request, ()) =>
+                                        <xsl:sequence select="ixsl:http-request($request) =>
                                             ixsl:then(ldh:handle-response($request, ?)) =>
                                             ixsl:then(ldh:facet-value-type-load($request, ?))"/>
                                     </xsl:for-each>
