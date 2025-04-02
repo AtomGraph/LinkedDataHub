@@ -1282,19 +1282,20 @@ WHERE
                 </div>
             </xsl:result-document>
         </xsl:for-each>
+        <xsl:variable name="block" select="id($block-id, ixsl:page())" as="element()"/>
         
         <!-- if the URI is external, dereference it through the proxy -->
         <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, ac:absolute-path(ldh:base-uri(.)), $graph, ())" as="xs:anyURI"/>
-        <xsl:variable name="request" as="item()*">
-            <!-- If-Match header checks preconditions, i.e. that the graph has not been modified in the meanwhile --> 
-            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
-                <xsl:call-template name="ldh:LoadEditedResource">
-                    <xsl:with-param name="block" select="id($block-id, ixsl:page())"/>
-                    <xsl:with-param name="about" select="$about"/>
-                </xsl:call-template>
-            </ixsl:schedule-action>
-        </xsl:variable>
-        <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
+        <xsl:variable name="http-request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
+        <xsl:variable name="callback-context" as="map(*)" select="
+          map{
+            'block': $block,
+            'about': $about
+          }"/>
+        <xsl:variable name="request" select="map:merge(($http-request, $callback-context))" as="map(*)"/>
+        <xsl:sequence select="ixsl:http-request($request) =>
+            ixsl:then(ldh:handle-response($request, ?)) =>
+            ixsl:then(ldh:load-edited-resource($request, ?))"/>
     </xsl:template>
     
     <!-- document mode tabs -->
