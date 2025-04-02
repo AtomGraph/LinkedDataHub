@@ -85,11 +85,12 @@ exclude-result-prefixes="#all"
             'container': $container,
             'mode': $mode,
             'refresh-content': $refresh-content,
-            'query-uri': $query-uri,
-            'ldh:on-success-function': QName('&ldh;', 'ldh:view-query-load')
+            'query-uri': $query-uri
           }"/>
         <xsl:variable name="request" select="map:merge(($http-request, $callback-context))" as="map(*)"/>
-        <xsl:sequence select="ldh:send-request($request, ())[current-date() lt xs:date('2000-01-01')]"/>
+        <xsl:sequence select="ixsl:http-request($request, ()) =>
+            ixsl:then(ldh:handle-response($request, ?)) =>
+            ixsl:then(ldh:view-query-load($request, ?))"/>
     </xsl:template>
     
     <!-- hide type control -->
@@ -247,11 +248,12 @@ exclude-result-prefixes="#all"
         <xsl:variable name="callback-context" as="map(*)" select="
           map {
             'container': .,
-            'count-var-name': $count-var-name,
-            'ldh:on-success-function': QName('&ldh;', 'ldh:result-count-results-load')
+            'count-var-name': $count-var-name
           }"/>
         <xsl:variable name="request" select="map:merge(($http-request, $callback-context))" as="map(*)"/>
-        <xsl:sequence select="ldh:send-request($request, ())[current-date() lt xs:date('2000-01-01')]"/>
+        <xsl:sequence select="ixsl:http-request($request, ()) =>
+            ixsl:then(ldh:handle-response($request, ?)) =>
+            ixsl:then(ldh:result-count-results-load($request, ?))"/>
     </xsl:template>
     
     <!-- order by -->
@@ -446,11 +448,12 @@ exclude-result-prefixes="#all"
             'select-xml': $select-xml,
             'initial-var-name': $initial-var-name,
             'focus-var-name': $focus-var-name,
-            'endpoint': $endpoint,
-            'ldh:on-success-function': QName('&ldh;', 'ldh:on-container-results-load')
+            'endpoint': $endpoint
           }"/>
         <xsl:variable name="request" select="map:merge(($http-request, $callback-context))" as="map(*)"/>
-        <xsl:sequence select="ldh:send-request($request, ())[current-date() lt xs:date('2000-01-01')]"/>
+        <xsl:sequence select="ixsl:http-request($request, ()) =>
+            ixsl:then(ldh:handle-response($request, ?)) =>
+            ixsl:then(ldh:on-container-results-load($request, ?))"/>
     </xsl:template>
 
     <!-- $container here is the inner result container, not the content container! -->
@@ -646,11 +649,12 @@ exclude-result-prefixes="#all"
                         'container': $sub-container,
                         'subject-var-name': $subject-var-name,
                         'predicate': $predicate,
-                        'object-var-name': $object-var-name,
-                        'ldh:on-success-function': QName('&ldh;', 'ldh:facet-filter-results-load')
+                        'object-var-name': $object-var-name
                       }"/>
                     <xsl:variable name="request" select="map:merge(($http-request, $callback-context))" as="map(*)"/>
-                    <xsl:sequence select="ldh:send-request($request, ())[current-date() lt xs:date('2000-01-01')]"/>
+                    <xsl:sequence select="ixsl:http-request($request, ()) =>
+                        ixsl:then(ldh:handle-response($request, ?)) =>
+                        ixsl:then(ldh:facet-filter-results-load($request, ?))"/>
                 </xsl:if>
             </xsl:for-each>
         </xsl:if>
@@ -867,11 +871,12 @@ exclude-result-prefixes="#all"
               map{
                 'container': id($properties-container-id, ixsl:page()),
                 'var-name': $focus-var-name,
-                'results': $results,
-                'ldh:on-success-function': QName('&ldh;', 'ldh:parallax-results-load')
+                'results': $results
               }"/>
             <xsl:variable name="request" select="map:merge(($http-request, $callback-context))" as="map(*)"/>
-            <xsl:sequence select="ldh:send-request($request, ())[current-date() lt xs:date('2000-01-01')]"/>
+            <xsl:sequence select="ixsl:http-request($request, ()) =>
+                ixsl:then(ldh:handle-response($request, ?)) =>
+                ixsl:then(ldh:parallax-results-load($request, ?))"/>
         </xsl:if>
     </xsl:template>
 
@@ -937,11 +942,12 @@ exclude-result-prefixes="#all"
             'results': $results,
             'active-mode': $active-mode,
             'select-xml': $select-xml,
-            'base-uri': ldh:base-uri(.),
-            'ldh:on-success-function': QName('&ldh;', 'ldh:container-object-metadata-results-load')
+            'base-uri': ldh:base-uri(.)
           }"/>
         <xsl:variable name="request" select="map:merge(($http-request, $callback-context))" as="map(*)"/>
-        <xsl:sequence select="ldh:send-request($request, ())[current-date() lt xs:date('2000-01-01')]"/>
+        <xsl:sequence select="ixsl:http-request($request, ()) =>
+            ixsl:then(ldh:handle-response($request, ?)) =>
+            ixsl:then(ldh:container-object-metadata-results-load($request, ?))"/>
     </xsl:template>
 
     <!-- pager prev links -->
@@ -1175,11 +1181,12 @@ exclude-result-prefixes="#all"
                         'predicate': $predicate,
                         'object-var-name': $object-var-name,
                         'count-var-name': $count-var-name,
-                        'label-sample-var-name': $label-sample-var-name,
-                        'ldh:on-success-function': QName('&ldh;', 'ldh:facet-value-results-load')
+                        'label-sample-var-name': $label-sample-var-name
                       }"/>
                     <xsl:variable name="request" select="map:merge(($http-request, $callback-context))" as="map(*)"/>
-                    <xsl:sequence select="ldh:send-request($request, ())[current-date() lt xs:date('2000-01-01')]"/>
+                    <xsl:sequence select="ixsl:http-request($request, ()) =>
+                        ixsl:then(ldh:handle-response($request, ?)) =>
+                        ixsl:then(ldh:facet-value-results-load($request, ?))"/>
                 </xsl:for-each>
             </xsl:when>
             <xsl:otherwise>
@@ -1526,11 +1533,12 @@ exclude-result-prefixes="#all"
                                         'container': id($order-by-container-id, ixsl:page()),
                                         'id': $id,
                                         'predicate': $predicate,
-                                        'order-by-predicate': $order-by-predicate,
-                                        'ldh:on-success-function': QName('&ldh;', 'ldh:order-by-results-load')
+                                        'order-by-predicate': $order-by-predicate
                                       }"/>
                                     <xsl:variable name="request" select="map:merge(($http-request, $callback-context))" as="map(*)"/>
-                                    <xsl:sequence select="ldh:send-request($request, ())[current-date() lt xs:date('2000-01-01')]"/>
+                                    <xsl:sequence select="ixsl:http-request($request) =>
+                                        ixsl:then(ldh:handle-response($request, ?)) =>
+                                        ixsl:then(ldh:order-by-results-load($request, ?))"/>
                                 </xsl:if>
                             </xsl:for-each>
                         </xsl:if>
@@ -1547,12 +1555,13 @@ exclude-result-prefixes="#all"
                             'results': $sorted-results,
                             'active-mode': $active-mode,
                             'select-xml': $select-xml,
-                            'base-uri': ldh:base-uri(.),
-                            'ldh:on-success-function': QName('&ldh;', 'ldh:container-object-metadata-results-load')
+                            'base-uri': ldh:base-uri(.)
                           }"/>
                         <xsl:variable name="request" select="map:merge(($http-request, $callback-context))" as="map(*)"/>
-                        <xsl:sequence select="ldh:send-request($request, ())[current-date() lt xs:date('2000-01-01')]"/>
-        
+                        <xsl:sequence select="ixsl:http-request($request, ()) =>
+                            ixsl:then(ldh:handle-response($request, ?)) =>
+                            ixsl:then(ldh:container-object-metadata-results-load($request, ?))"/>
+                                            
                         <!-- hide progress bar -->
                          <xsl:for-each select="$container//div[@class = 'progress-bar']">
                              <ixsl:set-style name="display" select="'none'" object="."/>
@@ -1648,11 +1657,12 @@ exclude-result-prefixes="#all"
                             <xsl:variable name="callback-context" as="map(*)" select="
                               map{
                                 'container': $container,
-                                'predicate': $predicate,
-                                'ldh:on-success-function': QName('&ldh;', 'ldh:parallax-property-load')
+                                'predicate': $predicate
                               }"/>
                             <xsl:variable name="request" select="map:merge(($http-request, $callback-context))" as="map(*)"/>
-                            <xsl:sequence select="ldh:send-request($request, ())[current-date() lt xs:date('2000-01-01')]"/>
+                            <xsl:sequence select="ixsl:http-request($request, ()) =>
+                                ixsl:then(ldh:handle-response($request, ?)) =>
+                                ixsl:then(ldh:parallax-property-load($request, ?))"/>
                         </xsl:for-each-group>
                     </xsl:for-each>
                 </xsl:when>
@@ -1765,11 +1775,12 @@ exclude-result-prefixes="#all"
                                             'object-var-name': $object-var-name,
                                             'count-var-name': $count-var-name,
                                             'object-type': $object-type,
-                                            'value-result': $value-result,
-                                            'ldh:on-success-function': QName('&ldh;', 'ldh:facet-value-type-load')
+                                            'value-result': $value-result
                                           }"/>
                                         <xsl:variable name="request" select="map:merge(($http-request, $callback-context))" as="map(*)"/>
-                                        <xsl:sequence select="ldh:send-request($request, ())[current-date() lt xs:date('2000-01-01')]"/>
+                                        <xsl:sequence select="ixsl:http-request($request, ()) =>
+                                            ixsl:then(ldh:handle-response($request, ?)) =>
+                                            ixsl:then(ldh:facet-value-type-load($request, ?))"/>
                                     </xsl:for-each>
                                 </xsl:when>
                                 <xsl:otherwise>

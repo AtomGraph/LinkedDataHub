@@ -448,18 +448,8 @@ exclude-result-prefixes="#all"
     </xsl:function>
     
     <!-- generic HTTP client promises (SaxonJS 3) -->
-    
-    <xsl:function name="ldh:send-request" ixsl:updating="yes">
-        <xsl:param name="request" as="map(*)"/>
-        <xsl:param name="sleep-result" as="item()?"/> <!-- not used but has to be declared: https://saxonica.plan.io/issues/6727 -->
 
-        <ixsl:promise 
-            select="ixsl:http-request($request)" 
-            on-completion="ldh:handle-response($request, ?)" 
-            on-failure="ldh:fail#1"/>
-    </xsl:function>
-
-    <xsl:function name="ldh:handle-response" ixsl:updating="yes">
+    <xsl:function name="ldh:handle-response" as="item()*" ixsl:updating="yes">
         <xsl:param name="request" as="map(*)"/>
         <xsl:param name="response" as="map(*)"/>
         <xsl:variable name="default-retry-after" select="1" as="xs:integer"/>
@@ -470,26 +460,26 @@ exclude-result-prefixes="#all"
                   if (map:contains($response?headers, 'Retry-After')) 
                   then xs:integer($response?headers('Retry-After')) 
                   else $default-retry-after"/>
-                <ixsl:promise 
-                  select="ixsl:sleep($retry-after * 1000)" 
-                  on-completion="ldh:send-request($request, ?)"/>
-            </xsl:when>
+
+                <xsl:sequence select="
+                  ixsl:sleep($retry-after * 1000)
+                    => ixsl:then(ldh:retry-request($request, ?))
+                "/>
+          </xsl:when>
             <xsl:otherwise>
-                <!-- Dynamically invoke the callback function -->
-                <xsl:variable name="callback-name" select="$request('ldh:on-success-function')" as="xs:QName"/>
-                <xsl:variable name="callback-func" select="function-lookup($callback-name, 2)"/>
-
-                <xsl:message>Callback function: <xsl:value-of select="string($callback-name)"/></xsl:message>
-
-                <xsl:sequence select="$callback-func($request, $response)"/>
+                <xsl:sequence select="$response"/>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:function>
 
-    <xsl:function name="ldh:fail">
-        <xsl:param name="error" as="map(*)"/>
+    <xsl:function name="ldh:retry-request" as="item()*" ixsl:updating="yes">
+        <xsl:param name="request" as="map(*)"/>
+        <xsl:param name="sleep-result" as="item()?"/>
 
-        <xsl:message>ldh:fail $error: <xsl:value-of select="serialize($error, map{ 'method': 'json' })"/></xsl:message>
+        <xsl:sequence select="
+          ixsl:http-request($request)
+            => ixsl:then(ldh:handle-response($request, ?))
+        "/>
     </xsl:function>
     
 </xsl:stylesheet>
