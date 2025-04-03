@@ -1239,64 +1239,6 @@ WHERE
             <xsl:with-param name="graph" select="ac:absolute-path(ldh:base-uri(.))"/>
         </xsl:call-template>
     </xsl:template>
-
-    <!-- open a form form document editing -->
-    
-    <xsl:template match="div[contains-token(@class, 'navbar')]//div[@id = 'doc-controls']//button[contains-token(@class, 'btn-edit')]" mode="ixsl:onclick">
-        <xsl:variable name="about" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/> <!-- editing the current document resources -->
-        <xsl:variable name="graph" as="xs:anyURI?"/>
-
-        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
-
-<!--        <xsl:if test="ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path(ldh:base-uri(.)) || '`')">
-            <xsl:variable name="etag" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path(ldh:base-uri(.)) || '`'), 'etag')" as="xs:string"/>
-        </xsl:if>-->
-        <xsl:if test="not(ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $about || '`'))">
-            <ixsl:set-property name="{'`' || $about || '`'}" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.contents')"/>
-        </xsl:if>
-
-        <xsl:variable name="block-id" select="'block-' || generate-id()" as="xs:string"/>
-        <xsl:for-each select="ixsl:page()//body">
-            <xsl:result-document href="?." method="ixsl:append-content">
-                <div class="modal modal-constructor fade in">
-                    <form class="form-horizontal constructor-template" about="{$about}">
-                        <div class="modal-header">
-                            <button type="button" class="close">&#215;</button>
-                        </div>
-                        <div class="modal-body" id="{$block-id}">
-                            <!-- to be injected -->
-                        </div>
-                        <div class="form-actions modal-footer">
-                            <button type="button" class="btn btn-primary btn-save">
-                                <xsl:value-of>
-                                    <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
-                                </xsl:value-of>
-                            </button>
-                            <button type="button" class="btn btn-close">
-                                <xsl:value-of>
-                                    <xsl:apply-templates select="key('resources', 'cancel', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
-                                </xsl:value-of>
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </xsl:result-document>
-        </xsl:for-each>
-        <xsl:variable name="block" select="id($block-id, ixsl:page())" as="element()"/>
-        
-        <!-- if the URI is external, dereference it through the proxy -->
-        <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, ac:absolute-path(ldh:base-uri(.)), $graph, ())" as="xs:anyURI"/>
-        <xsl:variable name="http-request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
-        <xsl:variable name="callback-context" as="map(*)" select="
-          map{
-            'block': $block,
-            'about': $about
-          }"/>
-        <xsl:variable name="request" select="map:merge(($http-request, $callback-context))" as="map(*)"/>
-        <xsl:sequence select="ixsl:http-request($request) =>
-            ixsl:then(ldh:handle-response($request, ?)) =>
-            ixsl:then(ldh:load-edited-resource($request, ?))"/>
-    </xsl:template>
     
     <!-- document mode tabs -->
     
