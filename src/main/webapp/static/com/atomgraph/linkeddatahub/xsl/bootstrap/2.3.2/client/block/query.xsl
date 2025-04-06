@@ -59,9 +59,156 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="$query-string"/>
     </xsl:template>
     
+    <!-- custom row layout with query editor -->
+    
+    <xsl:template match="*[rdf:type/@rdf:resource = ('&sp;Ask', '&sp;Select', '&sp;Describe', '&sp;Construct')][sp:text/text()]" mode="bs2:Row" priority="2">
+        <!-- TO-DO: use $ldh:requestUri to resolve URIs server-side -->
+        <xsl:param name="id" select="if (contains(@rdf:about, ac:absolute-path(ldh:base-uri(.)) || '#')) then substring-after(@rdf:about, ac:absolute-path(ldh:base-uri(.)) || '#') else generate-id()" as="xs:string?"/>
+        <xsl:param name="class" select="'row-fluid block'" as="xs:string?"/>
+        <xsl:param name="about" select="@rdf:about" as="xs:anyURI?"/>
+        <xsl:param name="typeof" select="rdf:type/@rdf:resource/xs:anyURI(.)" as="xs:anyURI*"/>
+<!--        <xsl:param name="mode" as="xs:anyURI?"/>-->
+        <xsl:param name="style" as="xs:string?"/>
+        <xsl:param name="main-class" select="'main span7'" as="xs:string?"/>
+        <xsl:param name="method" select="'get'" as="xs:string"/>
+        <xsl:param name="action" select="xs:anyURI('')" as="xs:anyURI"/>
+        <xsl:param name="form-id" select="'id' || ac:uuid()" as="xs:string?"/>
+        <xsl:param name="form-class" select="'sparql-query-form form-horizontal'" as="xs:string?"/> <!-- .sparql-query-form will trigger ldh:PostConstruct and initialize YASQE -->
+        <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
+        <xsl:param name="enctype" as="xs:string?"/>
+        <xsl:param name="textarea-id" select="'id' || ac:uuid()" as="xs:string"/>
+        <xsl:param name="mode" as="xs:anyURI*"/>
+        <xsl:param name="service-uri" select="ldh:service/@rdf:resource/xs:anyURI(.)" as="xs:anyURI?"/>
+        <xsl:param name="endpoint" as="xs:anyURI?"/>
+        <xsl:param name="query" select="sp:text" as="xs:string"/>
+        <xsl:param name="show-properties" select="false()" as="xs:boolean"/>
+        <xsl:param name="forClass" select="xs:anyURI('&sd;Service')" as="xs:anyURI"/>
+        <xsl:message>
+            $service-uri: <xsl:value-of select="$service-uri"/>
+        </xsl:message>
+        
+        <div>
+            <xsl:if test="$id">
+                <xsl:attribute name="id" select="$id"/>
+            </xsl:if>
+            <xsl:if test="$class">
+                <xsl:attribute name="class" select="$class"/>
+            </xsl:if>
+            <xsl:if test="$about">
+                <xsl:attribute name="about" select="$about"/>
+            </xsl:if>
+            <xsl:if test="exists($typeof)">
+                <xsl:attribute name="typeof" select="string-join($typeof, ' ')"/>
+            </xsl:if>
+            <xsl:if test="$style">
+                <xsl:attribute name="style" select="$style"/>
+            </xsl:if>
+            
+            <xsl:apply-templates select="." mode="bs2:Left"/>
+
+            <div>
+                <xsl:if test="$main-class">
+                    <xsl:attribute name="class" select="$main-class"/>
+                </xsl:if>
+                
+                <xsl:apply-templates select="." mode="bs2:Header"/>
+
+                <form method="{$method}" action="{$action}">
+                    <xsl:if test="$form-id">
+                        <xsl:attribute name="id" select="$form-id"/>
+                    </xsl:if>
+                    <xsl:if test="$form-class">
+                        <xsl:attribute name="class" select="$form-class"/>
+                    </xsl:if>
+                    <xsl:if test="$accept-charset">
+                        <xsl:attribute name="accept-charset" select="$accept-charset"/>
+                    </xsl:if>
+                    <xsl:if test="$enctype">
+                        <xsl:attribute name="enctype" select="$enctype"/>
+                    </xsl:if>
+
+                    <div class="control-group">
+                        <xsl:call-template name="xhtml:Input">
+                            <xsl:with-param name="name" select="'pu'"/>
+                            <xsl:with-param name="type" select="'hidden'"/>
+                            <xsl:with-param name="value" select="'&ldh;service'"/>
+                        </xsl:call-template>
+
+                        <label class="control-label">
+                            <xsl:apply-templates select="key('resources', '&ldh;service', document(ac:document-uri('&ldh;')))" mode="ac:label"/>
+                        </label>
+                        <div class="controls">
+                            <xsl:choose>
+                                <xsl:when test="$service-uri">
+                                    <!-- apply templates if server-side -->
+                                    <xsl:apply-templates select="key('resources', $service-uri, document(ac:document-uri($service-uri)))" mode="ldh:Typeahead" use-when="system-property('xsl:product-name') = 'SAXON'">
+                                        <xsl:with-param name="forClass" select="$forClass"/>
+                                    </xsl:apply-templates>
+
+                                    <xsl:if test="true()" use-when="system-property('xsl:product-name') eq 'SaxonJS'">
+                                        <!-- need to explicitly request RDF/XML, otherwise we get HTML -->
+                                        <xsl:variable name="request-uri" select="ac:build-uri(ac:document-uri($service-uri), map{ 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
+                                        <xsl:message>
+                                            $request-uri: <xsl:value-of select="$request-uri"/>
+                                        </xsl:message>
+                                        <!-- TO-DO: refactor asynchronously -->
+                                        <xsl:apply-templates select="key('resources', $service-uri, document($request-uri))" mode="ldh:Typeahead">
+                                            <xsl:with-param name="forClass" select="$forClass"/>
+                                        </xsl:apply-templates>
+                                    </xsl:if>
+                                </xsl:when>
+                                <xsl:otherwise>
+                                    <xsl:call-template name="bs2:Lookup">
+                                        <xsl:with-param name="forClass" select="$forClass"/>
+                                    </xsl:call-template>
+                                </xsl:otherwise>
+                            </xsl:choose>
+                        </div>
+                    </div>
+
+                    <textarea name="query" class="span12 sparql-query-string" rows="15">
+                        <xsl:if test="$textarea-id">
+                            <xsl:attribute name="id" select="$textarea-id"/>
+                        </xsl:if>
+
+                        <xsl:value-of select="$query"/>
+                    </textarea>
+
+                    <div class="form-actions">
+                        <button type="submit">
+                            <xsl:apply-templates select="key('resources', 'run', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ldh:logo">
+                                <xsl:with-param name="class" select="'btn btn-primary btn-run-query'"/>
+                            </xsl:apply-templates>
+
+                            <xsl:value-of>
+                                <xsl:apply-templates select="key('resources', 'run', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                            </xsl:value-of>
+                        </button>
+                        <button type="button" class="btn btn-primary btn-open-query">
+                            <xsl:value-of>
+                                <xsl:apply-templates select="key('resources', 'open', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                            </xsl:value-of>
+                        </button>
+                        <button type="button" class="btn btn-primary btn-save btn-save-query">
+                            <xsl:value-of>
+                                <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                            </xsl:value-of>
+                        </button>
+                    </div>
+                </form>
+
+                <xsl:if test="$show-properties">
+                    <xsl:apply-templates select="." mode="bs2:PropertyList"/>
+                </xsl:if>
+            </div>
+
+            <xsl:apply-templates select="." mode="bs2:Right"/>
+        </div>
+    </xsl:template>
+
     <!-- render query editor -->
     
-    <xsl:template match="textarea[@id][contains-token(@class, 'sparql-query-string')]" mode="ldh:RenderRowForm" priority="1">
+    <xsl:template match="textarea[@id][contains-token(@class, 'sparql-query-string')]" mode="ldh:RenderRowForm" priority="1" use-when="system-property('xsl:product-name') eq 'SaxonJS'">
         <xsl:variable name="textarea-id" select="ixsl:get(., 'id')" as="xs:string"/>
         <!-- initialize YASQE SPARQL editor on the textarea -->
         <xsl:variable name="js-statement" as="element()">
@@ -70,7 +217,7 @@ exclude-result-prefixes="#all"
         <ixsl:set-property name="{$textarea-id}" select="ixsl:eval(string($js-statement/@statement))" object="ixsl:get(ixsl:window(), 'LinkedDataHub.yasqe')"/>
     </xsl:template>
     
-    <xsl:template name="onQueryServiceLoad">
+    <xsl:template name="onQueryServiceLoad" use-when="system-property('xsl:product-name') eq 'SaxonJS'">
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="container" as="element()"/>
         <xsl:param name="forClass" as="xs:anyURI"/>
@@ -105,7 +252,7 @@ exclude-result-prefixes="#all"
     
     <!-- render query block -->
     
-    <xsl:template match="*[@typeof = ('&sp;Ask', '&sp;Select', '&sp;Describe', '&sp;Construct')][descendant::*[@property = '&sp;text'][pre/text()]]" mode="ldh:RenderRow" priority="1">
+    <xsl:template match="*[@typeof = ('&sp;Ask', '&sp;Select', '&sp;Describe', '&sp;Construct')][descendant::*[@property = '&sp;text'][pre/text()]]" mode="ldh:RenderRow" priority="1" use-when="system-property('xsl:product-name') eq 'SaxonJS'">
         <xsl:param name="block" select="ancestor-or-self::div[contains-token(@class, 'block')][1]" as="element()"/>
         <xsl:param name="about" select="$block/@about" as="xs:anyURI"/>
         <xsl:param name="block-uri" select="$about" as="xs:anyURI"/>
@@ -127,101 +274,9 @@ exclude-result-prefixes="#all"
         <xsl:for-each select="$block//div[contains-token(@class, 'bar')]">
             <ixsl:set-style name="width" select="'66%'" object="."/>
         </xsl:for-each>
-
-        <xsl:for-each select="$container//div[contains-token(@class, 'main')]">
-            <xsl:variable name="header" select="./div/div[@class = 'well']" as="element()"/>
-            
-            <xsl:result-document href="?." method="ixsl:replace-content">
-                <xsl:copy-of select="$header"/>
-                
-                <form class="sparql-query-form form-horizontal" method="get" action="">
-                    <div class="control-group">
-                        <xsl:call-template name="xhtml:Input">
-                            <xsl:with-param name="name" select="'pu'"/>
-                            <xsl:with-param name="type" select="'hidden'"/>
-                            <xsl:with-param name="value" select="'&ldh;service'"/>
-                        </xsl:call-template>
-
-                        <label class="control-label">
-                            <xsl:apply-templates select="key('resources', '&ldh;service', document(ac:document-uri('&ldh;')))" mode="ac:label"/>
-                        </label>
-                        <div class="controls">
-                            <xsl:choose>
-                                <xsl:when test="$service-uri">
-                                    <!-- need to explicitly request RDF/XML, otherwise we get HTML -->
-                                    <xsl:variable name="request-uri" select="ac:build-uri(ac:document-uri($service-uri), map{ 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
-                                    <!-- TO-DO: refactor asynchronously -->
-                                    <xsl:apply-templates select="key('resources', $service-uri, document($request-uri))" mode="ldh:Typeahead">
-                                        <xsl:with-param name="forClass" select="$forClass"/>
-                                    </xsl:apply-templates>
-
-                                    <!--
-                                    <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, $query-uri)" as="xs:anyURI"/>
-                                    <xsl:variable name="request" as="item()*">
-                                        <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
-                                            <xsl:call-template name="onQueryServiceLoad">
-                                                <xsl:with-param name="container" select="$container"/>
-                                                <xsl:with-param name="forClass" select="$forClass"/>
-                                                <xsl:with-param name="service-uri" select="$service-uri"/>
-                                            </xsl:call-template>
-                                        </ixsl:schedule-action>
-                                    </xsl:variable>
-                                    <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
-                                    -->
-                                </xsl:when>
-                                <xsl:otherwise>
-                                    <xsl:call-template name="bs2:Lookup">
-                                        <xsl:with-param name="forClass" select="$forClass"/>
-                                    </xsl:call-template>
-                                </xsl:otherwise>
-                            </xsl:choose>
-                        </div>
-                    </div>
-
-                    <textarea>
-                        <xsl:if test="$textarea-id">
-                            <xsl:attribute name="id" select="$textarea-id"/>
-                        </xsl:if>
-                        <xsl:if test="$textarea-class">
-                            <xsl:attribute name="class" select="$textarea-class"/>
-                        </xsl:if>
-                        <xsl:if test="$textarea-name">
-                            <xsl:attribute name="name" select="$textarea-name"/>
-                        </xsl:if>
-                        <xsl:if test="$textarea-rows">
-                            <xsl:attribute name="rows" select="$textarea-rows"/>
-                        </xsl:if>
-                        
-                        <xsl:value-of select="$query"/>
-                    </textarea>
-
-                    <div class="form-actions">
-                        <button type="submit">
-                            <xsl:apply-templates select="key('resources', 'run', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ldh:logo">
-                                <xsl:with-param name="class" select="'btn btn-primary btn-run-query'"/>
-                            </xsl:apply-templates>
-
-                            <xsl:value-of>
-                                <xsl:apply-templates select="key('resources', 'run', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
-                            </xsl:value-of>
-                        </button>
-                        <button type="button" class="btn btn-primary btn-open-query">
-                            <xsl:value-of>
-                                <xsl:apply-templates select="key('resources', 'open', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
-                            </xsl:value-of>
-                        </button>
-                        <button type="button" class="btn btn-primary btn-save btn-save-query">
-                            <xsl:value-of>
-                                <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
-                            </xsl:value-of>
-                        </button>
-                    </div>
-                </form>
-            </xsl:result-document>
-        </xsl:for-each>
         
         <!-- hide the progress bar - either of this block (if it contains a progress bar) or of the parent block -->
-        <xsl:for-each select="($block//div[contains-token(@class, 'span12')][contains-token(@class, 'progress')][contains-token(@class, 'active')], $block/ancestor::div[contains-token(@class, 'block')]//div[contains-token(@class, 'span12')][contains-token(@class, 'progress')][contains-token(@class, 'active')])[1]">
+        <xsl:for-each select="($block//div[contains-token(@class, 'span12')][contains-token(@class, 'progress')][contains-token(@class, 'active')], $block/ancestor::div[contains-token(@class, 'block')]//div[contains-token(@class, 'span12')][contains-token(@class, 'progress')][contains-token(@class, 'active')])[1]" use-when="system-property('xsl:product-name') eq 'SaxonJS'">
             <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'progress', false() ])[current-date() lt xs:date('2000-01-01')]"/>
             <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'progress-striped', false() ])[current-date() lt xs:date('2000-01-01')]"/>
             <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'active', false() ])[current-date() lt xs:date('2000-01-01')]"/>
@@ -232,7 +287,7 @@ exclude-result-prefixes="#all"
     
     <!-- render query editor -->
     
-    <xsl:template match="textarea[@id][contains-token(@class, 'sparql-query-string')]" mode="ldh:RenderRow" priority="1">
+    <xsl:template match="textarea[@id][contains-token(@class, 'sparql-query-string')]" mode="ldh:RenderRow" priority="1" use-when="system-property('xsl:product-name') eq 'SaxonJS'">
         <xsl:variable name="textarea-id" select="ixsl:get(., 'id')" as="xs:string"/>
         <!-- initialize YASQE SPARQL editor on the textarea -->
         <xsl:variable name="js-statement" as="element()">
@@ -245,7 +300,7 @@ exclude-result-prefixes="#all"
     
     <!-- submit SPARQL query form (prioritize over default template in form.xsl) -->
     
-    <xsl:template match="div[@typeof = ('&sp;Ask', '&sp;Select', '&sp;Describe', '&sp;Construct')]//form[contains-token(@class, 'sparql-query-form ')]" mode="ixsl:onsubmit" priority="2"> <!-- prioritize over form.xsl -->
+    <xsl:template match="div[@typeof = ('&sp;Ask', '&sp;Select', '&sp;Describe', '&sp;Construct')]//form[contains-token(@class, 'sparql-query-form ')]" mode="ixsl:onsubmit" priority="2" use-when="system-property('xsl:product-name') eq 'SaxonJS'"> <!-- prioritize over form.xsl -->
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <xsl:variable name="textarea-id" select="descendant::textarea[@name = 'query']/ixsl:get(., 'id')" as="xs:string"/>
@@ -281,7 +336,7 @@ exclude-result-prefixes="#all"
 
     <!-- toggle query results to chart mode (prioritize over view.xsl) -->
     
-    <xsl:template match="ul[contains-token(@class, 'nav-tabs')][contains-token(@class, 'nav-query-results')]/li[contains-token(@class, 'chart-mode')][not(contains-token(@class, 'active'))]/a" mode="ixsl:onclick" priority="1">
+    <xsl:template match="ul[contains-token(@class, 'nav-tabs')][contains-token(@class, 'nav-query-results')]/li[contains-token(@class, 'chart-mode')][not(contains-token(@class, 'active'))]/a" mode="ixsl:onclick" priority="1" use-when="system-property('xsl:product-name') eq 'SaxonJS'">
         <xsl:variable name="container" select="ancestor::div[@typeof][1]" as="element()"/>
         <xsl:variable name="form" select="$container//form[contains-token(@class, 'sparql-query-form')]" as="element()"/>
 
@@ -301,7 +356,7 @@ exclude-result-prefixes="#all"
     
     <!-- toggle query results to container mode (prioritize over view.xsl) -->
     
-    <xsl:template match="ul[contains-token(@class, 'nav-tabs')][contains-token(@class, 'nav-query-results')]/li[contains-token(@class, 'container-mode')][not(contains-token(@class, 'active'))]/a" mode="ixsl:onclick" priority="1">
+    <xsl:template match="ul[contains-token(@class, 'nav-tabs')][contains-token(@class, 'nav-query-results')]/li[contains-token(@class, 'container-mode')][not(contains-token(@class, 'active'))]/a" mode="ixsl:onclick" priority="1" use-when="system-property('xsl:product-name') eq 'SaxonJS'">
         <xsl:variable name="block" select="ancestor::div[contains-token(@class, 'block')][1]" as="element()"/>
         <xsl:variable name="container" select="ancestor::div[@typeof][1]" as="element()"/>
         <xsl:variable name="form" select="$container//form[contains-token(@class, 'sparql-query-form')]" as="element()"/>
@@ -353,7 +408,7 @@ exclude-result-prefixes="#all"
     <!-- save query onclick -->
     <!-- TO-DO: use @typeof in match so that we don't need a custom button.btn-save-query class -->
     
-    <xsl:template match="div[@typeof]//button[contains-token(@class, 'btn-save-query')]" mode="ixsl:onclick">
+    <xsl:template match="div[@typeof]//button[contains-token(@class, 'btn-save-query')]" mode="ixsl:onclick" use-when="system-property('xsl:product-name') eq 'SaxonJS'">
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
         <xsl:variable name="block" select="ancestor::div[contains-token(@class, 'block')][1]" as="element()"/>
         <xsl:variable name="container" select="ancestor::div[@typeof][1]" as="element()"/>
@@ -361,6 +416,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="textarea" select="ancestor::form/descendant::textarea[@name = 'query']" as="element()"/>
         <xsl:variable name="yasqe" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.yasqe'), $textarea/ixsl:get(., 'id'))"/>
         <xsl:variable name="query-string" select="ixsl:call($yasqe, 'getValue', [])" as="xs:string?"/> <!-- get query string from YASQE -->
+        <xsl:variable name="method" select="'PATCH'" as="xs:string"/>
         <xsl:variable name="action" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/>
         <xsl:variable name="accept" select="'application/rdf+xml'" as="xs:string"/>
         <xsl:variable name="etag" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path(ldh:base-uri(.)) || '`'), 'etag')" as="xs:string"/>
@@ -386,24 +442,26 @@ exclude-result-prefixes="#all"
             </xsl:document>
         </xsl:variable>
         <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, $action)" as="xs:anyURI"/>
-        
-        <xsl:variable name="request" as="item()*">
-            <!-- If-Match header checks preconditions, i.e. that the graph has not been modified in the meanwhile --> 
-            <ixsl:schedule-action http-request="map{ 'method': 'PATCH', 'href': $request-uri, 'media-type': 'application/sparql-update', 'body': $update-string, 'headers': map{ 'If-Match': $etag, 'Accept': 'application/rdf+xml', 'Cache-Control': 'no-cache' } }">
-                <xsl:call-template name="ldh:ResourceUpdated">
-                    <xsl:with-param name="doc-uri" select="ac:absolute-path(ldh:base-uri(.))"/>
-                    <xsl:with-param name="block" select="$block"/>
-<!--                    <xsl:with-param name="container" select="$container"/>-->
-                    <xsl:with-param name="resources" select="$resources"/>
-                </xsl:call-template>
-            </ixsl:schedule-action>
-        </xsl:variable>
-        <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
+        <!-- If-Match header checks preconditions, i.e. that the graph has not been modified in the meanwhile -->
+        <xsl:variable name="request" select="map{ 'method': $method, 'href': $request-uri, 'media-type': 'application/sparql-update', 'body': $update-string, 'headers': map{ 'If-Match': $etag, 'Accept': 'application/rdf+xml', 'Cache-Control': 'no-cache' } }" as="map(*)"/>
+        <xsl:variable name="context" as="map(*)" select="
+          map{
+            'request': $request,
+            'doc-uri': ac:absolute-path(ldh:base-uri(.)),
+            'block': $block,
+            'resources': $resources
+          }"/>
+        <ixsl:promise select="
+          ixsl:http-request($context('request'))                          (: Step 1: send initial request :)
+            => ixsl:then(ldh:rethread-response($context, ?))              (: Step 2: attach response to context :)
+            => ixsl:then(ldh:handle-responseA#1)                           (: Step 3: handle 429s, etc. :)
+            => ixsl:then(ldh:row-form-patch-response#1)
+        "/>
     </xsl:template>
     
     <!-- open query onclick -->
     
-    <xsl:template match="button[contains-token(@class, 'btn-open-query')]" mode="ixsl:onclick">
+    <xsl:template match="button[contains-token(@class, 'btn-open-query')]" mode="ixsl:onclick" use-when="system-property('xsl:product-name') eq 'SaxonJS'">
         <xsl:variable name="container" select="ancestor::div[@typeof][1]" as="element()"/>
         <xsl:variable name="content-value" select="ixsl:get($container//div[contains-token(@class, 'main')]//input[@name = 'ou'], 'value')" as="xs:anyURI"/>
         <xsl:variable name="textarea" select="ancestor::form/descendant::textarea[@name = 'query']" as="element()"/>
@@ -447,7 +505,7 @@ exclude-result-prefixes="#all"
     
     <!-- callbacks -->
     
-    <xsl:template name="onSPARQLResultsLoad">
+    <xsl:template name="onSPARQLResultsLoad" use-when="system-property('xsl:product-name') eq 'SaxonJS'">
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="container" as="element()"/>
         <xsl:param name="results-uri" as="xs:anyURI"/>

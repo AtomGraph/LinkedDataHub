@@ -701,6 +701,75 @@ WHERE
     
     <!-- Linked Data browser -->
     
+    <xsl:function name="ldh:xhtml-document-loaded" as="map(*)" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:message>ldh:xhtml-document-loaded</xsl:message>
+
+        <xsl:variable name="href" select="$context('href')" as="xs:anyURI?"/> <!-- absolute URI! -->
+        <xsl:variable name="service-uri" select="if (id('search-service', ixsl:page())) then xs:anyURI(ixsl:get(id('search-service', ixsl:page()), 'value')) else ()" as="xs:anyURI?"/>
+        <xsl:variable name="service" select="if ($service-uri) then key('resources', $service-uri, document(ac:build-uri(ac:document-uri($service-uri), map{ 'accept': 'application/rdf+xml' }))) else ()" as="element()?"/> <!-- TO-DO: refactor asynchronously -->
+        <xsl:variable name="push-state" select="true()" as="xs:boolean"/>
+        <xsl:variable name="refresh-content" as="xs:boolean?"/>
+        <!-- $graph defaults to ac:absolute-path($href), $uri defaults to $graph -->
+        <xsl:variable name="graph" select="if (exists(ixsl:query-params()?graph)) then xs:anyURI(ixsl:query-params()?graph[1]) else ac:absolute-path($href)" as="xs:anyURI"/>
+        <xsl:variable name="uri" select="if (exists(ixsl:query-params()?uri)) then xs:anyURI(ixsl:query-params()?uri[1]) else $graph" as="xs:anyURI"/>
+        <xsl:variable name="response" select="$context('response')" as="map(*)"/>
+
+        <!-- set #uri value -->
+        <xsl:for-each select="id('uri', ixsl:page())">
+            <ixsl:set-property name="value" select="if (not(starts-with($uri, $ldt:base))) then $uri else ()" object="."/>
+        </xsl:for-each>
+        
+        <xsl:for-each select="$response">
+            <xsl:choose>
+                <xsl:when test="?status = 0">
+                    <!-- HTTP request was terminated - do nothing -->
+                </xsl:when>
+                <xsl:when test="starts-with(?media-type, 'application/xhtml+xml')">
+                    <xsl:variable name="endpoint-link" select="tokenize(?headers?link, ',')[contains(., '&sd;endpoint')]" as="xs:string?"/>
+                    <xsl:variable name="endpoint" select="if ($endpoint-link) then xs:anyURI(substring-before(substring-after(substring-before($endpoint-link, ';'), '&lt;'), '&gt;')) else ()" as="xs:anyURI?"/>
+                    <xsl:variable name="base-link" select="tokenize(?headers?link, ',')[contains(., '&ldt;base')]" as="xs:string?"/>
+                    <!-- set new base URI if the current app has changed -->
+                    <xsl:if test="$base-link">
+                        <xsl:variable name="base" select="xs:anyURI(substring-before(substring-after(substring-before($base-link, ';'), '&lt;'), '&gt;'))" as="xs:anyURI"/>
+                        <xsl:if test="not($base = ldt:base())">
+                            <xsl:message>Application change. Base URI: <xsl:value-of select="$base"/></xsl:message>
+                            <xsl:call-template name="ldt:AppChanged">
+                                <xsl:with-param name="base" select="$base"/>
+                            </xsl:call-template>
+                        </xsl:if>
+                        <ixsl:set-property name="base" select="$base" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+                    </xsl:if>
+
+                    <xsl:apply-templates select="?body" mode="ldh:HTMLDocumentLoaded">
+                        <xsl:with-param name="href" select="$href"/>
+                        <xsl:with-param name="endpoint" select="$endpoint"/>
+                        <xsl:with-param name="container" select="id($body-id, ixsl:page())"/>
+                        <xsl:with-param name="push-state" select="$push-state"/>
+                        <xsl:with-param name="refresh-content" select="$refresh-content"/>
+                    </xsl:apply-templates>
+                </xsl:when>
+                <xsl:otherwise>
+                    <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
+
+                    <!-- error response - could not load document -->
+                    <xsl:result-document href="#content-body" method="ixsl:replace-content">
+                        <div class="alert alert-block">
+                            <strong>Error loading XHTML document</strong>
+                            <xsl:if test="$response?message">
+                                <pre>
+                                    <xsl:value-of select="$response?message"/>
+                                </pre>
+                            </xsl:if>
+                        </div>
+                    </xsl:result-document>
+                </xsl:otherwise>
+            </xsl:choose>
+        </xsl:for-each>
+        
+        <xsl:sequence select="$context"/>
+    </xsl:function>
+    
     <xsl:template name="ldh:DocumentLoaded">
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="href" as="xs:anyURI?"/> <!-- absolute URI! -->
