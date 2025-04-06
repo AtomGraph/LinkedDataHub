@@ -357,7 +357,7 @@ WHERE
       <xsl:param name="context" as="map(*)"/>
       <xsl:param name="response" as="map(*)"/>
 
-      <xsl:sequence select="map:merge(($context, map{ 'response': $response }))"/>
+      <xsl:sequence select="map:merge(($context, map{ 'response': $response }), map{ 'duplicates': 'use-last' })"/>
     </xsl:function>
 
     <xsl:function name="ldh:http-request-threaded" as="map(*)" ixsl:updating="yes">
@@ -436,51 +436,7 @@ WHERE
                           'resource': $resource,
                           'types': $types,
                           'response': () (: clear old response :)
-                        }))"/>
-                    </xsl:for-each>
-                </xsl:when>
-                <!-- error response -->
-                <xsl:otherwise>
-                    <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
-                    <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ ?message ])"/>
-                </xsl:otherwise>
-            </xsl:choose>
-        </xsl:for-each>
-    </xsl:function>
-    
-    <xsl:function name="ldh:load-edited-resource" as="item()*" ixsl:updating="yes">
-        <xsl:param name="request" as="map(*)"/>
-        <xsl:param name="response" as="map(*)"/>
-        <xsl:variable name="block" select="$request('block')" as="element()"/>
-        <xsl:variable name="about" select="$request('about')" as="xs:anyURI"/>
-
-        <xsl:for-each select="$response">
-            <xsl:choose>
-                <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
-                    <xsl:variable name="etag" select="?headers?etag" as="xs:string?"/>
-
-                    <xsl:for-each select="?body">
-                        <ixsl:set-property name="{'`' || ac:absolute-path(ldh:base-uri(.)) || '`'}" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.contents')"/>
-                        <!-- store document under window.LinkedDataHub.contents[$base-uri].results -->
-                        <ixsl:set-property name="results" select="." object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path(ldh:base-uri(.)) || '`')"/>
-                        <!-- store ETag header value under window.LinkedDataHub.contents[$base-uri].etag -->
-                        <ixsl:set-property name="etag" select="$etag" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path(ldh:base-uri(.)) || '`')"/>
-
-                        <xsl:variable name="resource" select="key('resources', $about)" as="element()"/> <!-- TO-DO: handle error -->
-                        <xsl:variable name="types" select="distinct-values($resource/rdf:type/@rdf:resource)" as="xs:anyURI*"/>
-                        <xsl:variable name="query-string" select="'DESCRIBE $Type VALUES $Type { ' || string-join(for $type in $types return '&lt;' || $type || '&gt;', ' ') || ' }'" as="xs:string"/>
-                        <xsl:variable name="request-uri" select="ac:build-uri(resolve-uri('ns', $ldt:base), map{ 'query': $query-string, 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
-                        <xsl:variable name="http-request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
-                        <xsl:variable name="callback-context" as="map(*)" select="
-                          map{
-                            'block': $block,
-                            'resource': $resource,
-                            'types': $types
-                          }"/>
-                        <xsl:variable name="request" select="map:merge(($http-request, $callback-context))" as="map(*)"/>
-                        <xsl:sequence select="ixsl:http-request($request) =>
-                            ixsl:then(ldh:handle-response($request, ?)) =>
-                            ixsl:then(ldh:load-type-metadata($request, ?))"/>
+                        }), map{ 'duplicates': 'use-last' })"/>
                     </xsl:for-each>
                 </xsl:when>
                 <!-- error response -->
@@ -535,7 +491,7 @@ WHERE
                         'constraints': $constraints,
                         'shapes': $shapes,
                         'object-metadata': $object-metadata
-                    }))"/>
+                    }), map{ 'duplicates': 'use-last' })"/>
                 </xsl:when>
                 <!-- error response -->
                 <xsl:otherwise>
@@ -560,7 +516,7 @@ WHERE
         </xsl:variable>
         <xsl:sequence select="map:merge(($context, map{
             'document': $document
-        }))"/>
+        }), map{ 'duplicates': 'use-last' })"/>
     </xsl:function>
     
     <xsl:function name="ldh:render-row-form" as="item()*" ixsl:updating="yes">
@@ -823,7 +779,7 @@ WHERE
         <xsl:param name="block" select="ancestor::div[contains-token(@class, 'modal-constructor')]" as="element()"/>
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <xsl:variable name="form" select="." as="element()"/>
-        <xsl:variable name="method" select="@method" as="xs:string"/>
+        <xsl:variable name="method" select="upper-case(@method)" as="xs:string"/>
         <xsl:variable name="modal" select="false()" as="xs:boolean"/>
         <xsl:variable name="id" select="ixsl:get($form, 'id')" as="xs:string"/>
         <xsl:variable name="action" select="ixsl:get($form, 'action')" as="xs:anyURI"/>
@@ -877,7 +833,7 @@ WHERE
         <xsl:param name="block" select="ancestor::div[contains-token(@class, 'block')][1]" as="element()"/>
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <xsl:variable name="form" select="." as="element()"/>
-        <xsl:variable name="method" select="@method" as="xs:string"/>
+        <xsl:variable name="method" select="upper-case(@method)" as="xs:string"/>
         <xsl:variable name="modal" select="false()" as="xs:boolean"/>
         <xsl:variable name="id" select="ixsl:get($form, 'id')" as="xs:string"/>
         <xsl:variable name="action" select="ixsl:get($form, 'action')" as="xs:anyURI"/>
@@ -1105,7 +1061,7 @@ WHERE
             <xsl:sequence select="map:merge((
               $context,
               map{ 'rendered-row': $rendered }
-            ))"/>        
+            ), map{ 'duplicates': 'use-last' })"/>        
 
             <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
         </xsl:for-each>
@@ -1120,11 +1076,13 @@ WHERE
         <xsl:for-each select="$response">
             <xsl:variable name="href" select="ac:absolute-path(xs:anyURI(ixsl:location()))" as="xs:anyURI"/> <!-- TO-DO: pass $context?base-uri -->
             <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $href, 'headers': map{ 'Accept': 'application/xhtml+xml' } }" as="map(*)"/>
-            <xsl:variable name="context" as="map(*)" select="
+            <xsl:variable name="context" select="map:merge((
+              $context,
               map{
                 'request': $request,
                 'href': $href
-              }"/>
+              }
+            ), map{ 'duplicates': 'use-last' })" as="map(*)"/>  
             <xsl:sequence select="
               ixsl:http-request($context('request'))                          (: Step 1: send initial request :)
                 => ixsl:then(ldh:rethread-response($context, ?))              (: Step 2: attach response to context :)
@@ -1164,14 +1122,15 @@ WHERE
         <xsl:variable name="block" select="$context('block')" as="element()"/>
         <xsl:variable name="form" select="$context('form')" as="element()?"/>
         <xsl:variable name="modal" select="$context('modal')" as="xs:boolean"/>
-        <xsl:variable name="resources" select="$context('resources')" as="document-node()"/>
+<!--        <xsl:variable name="resources" select="$context('resources')" as="document-node()"/>-->
         
         <xsl:message>ldh:modal-form-submit-violation</xsl:message>
 
         <xsl:for-each select="$response">
             <xsl:variable name="body" select="?body" as="document-node()"/>
             <!-- TO-DO: refactor to use asynchronous HTTP requests -->
-            <xsl:variable name="types" select="distinct-values($body/rdf:RDF/*[not(@rdf:about = $doc-uri)]/rdf:type/@rdf:resource)" as="xs:anyURI*"/>
+            <!-- inverse $types expression compared to ldh:row-form-submit-violation -->
+            <xsl:variable name="types" select="distinct-values($body/rdf:RDF/*[@rdf:about = $doc-uri]/rdf:type/@rdf:resource)" as="xs:anyURI*"/>
             <xsl:variable name="query-string" select="'DESCRIBE $Type VALUES $Type { ' || string-join(for $type in $types return '&lt;' || $type || '&gt;', ' ') || ' }'" as="xs:string"/>
             <xsl:variable name="request-uri" select="ac:build-uri(resolve-uri('ns', $ldt:base), map{ 'query': $query-string, 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
             <xsl:variable name="type-metadata" select="if (exists($types)) then document($request-uri) else ()" as="document-node()?"/>
@@ -1251,7 +1210,7 @@ WHERE
         <xsl:variable name="block" select="$context('block')" as="element()"/>
         <xsl:variable name="form" select="$context('form')" as="element()?"/>
         <xsl:variable name="modal" select="$context('modal')" as="xs:boolean"/>
-        <xsl:variable name="resources" select="$context('resources')" as="document-node()"/>
+<!--        <xsl:variable name="resources" select="$context('resources')" as="document-node()"/>-->
         
         <xsl:message>ldh:row-form-submit-violation</xsl:message>
 
