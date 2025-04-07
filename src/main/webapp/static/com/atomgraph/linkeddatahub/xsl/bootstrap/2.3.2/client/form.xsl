@@ -289,10 +289,10 @@ WHERE
           ixsl:http-request($context('request'))                          (: Step 1: send initial request :)
             => ixsl:then(ldh:rethread-response($context, ?))              (: Step 2: attach response to context :)
             => ixsl:then(ldh:handle-responseA#1)                           (: Step 3: handle 429s, etc. :)
-            => ixsl:then(ldh:load-edited-resourceA#1)                      (: Step 4: extract resource, build next request :)
+            => ixsl:then(ldh:load-edited-resource#1)                      (: Step 4: extract resource, build next request :)
             => ixsl:then(ldh:http-request-threaded#1)                     (: Step 5: send next request and rethread :)
             => ixsl:then(ldh:handle-responseA#1)                           (: Step 6: handle retry if needed :)
-            => ixsl:then(ldh:load-type-metadataA#1)                        (: Step 7: final step using full context :)
+            => ixsl:then(ldh:load-type-metadata#1)                        (: Step 7: final step using full context :)
             => ixsl:then(ldh:render-row-form#1)
         "/>
     </xsl:template>
@@ -305,6 +305,7 @@ WHERE
         <xsl:param name="method" select="'patch'" as="xs:string"/>
         <xsl:param name="form-actions-class" select="'form-actions modal-footer'" as="xs:string?"/>
         <xsl:param name="button-class" select="'btn btn-primary wymupdate'" as="xs:string?"/>
+        <xsl:variable name="content-body" select="id('content-body', ixsl:page())" as="element()"/>
 
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
@@ -316,7 +317,7 @@ WHERE
         </xsl:if>
 
         <xsl:variable name="block-id" select="'block-' || generate-id()" as="xs:string"/>
-        <xsl:for-each select="ixsl:page()//body">
+        <xsl:for-each select="$content-body">
             <xsl:result-document href="?." method="ixsl:append-content">
                 <div class="modal modal-constructor fade in" about="{$about}">
                     <div class="modal-header">
@@ -344,10 +345,10 @@ WHERE
           ixsl:http-request($context('request'))                          (: Step 1: send initial request :)
             => ixsl:then(ldh:rethread-response($context, ?))              (: Step 2: attach response to context :)
             => ixsl:then(ldh:handle-responseA#1)                           (: Step 3: handle 429s, etc. :)
-            => ixsl:then(ldh:load-edited-resourceA#1)                      (: Step 4: extract resource, build next request :)
+            => ixsl:then(ldh:load-edited-resource#1)                      (: Step 4: extract resource, build next request :)
             => ixsl:then(ldh:http-request-threaded#1)                     (: Step 5: send next request and rethread :)
             => ixsl:then(ldh:handle-responseA#1)                           (: Step 6: handle retry if needed :)
-            => ixsl:then(ldh:load-type-metadataA#1)                        (: Step 7: final step using full context :)
+            => ixsl:then(ldh:load-type-metadata#1)                        (: Step 7: final step using full context :)
             => ixsl:then(ldh:wrap-into-document#1)
             => ixsl:then(ldh:render-form#1)
         "/>
@@ -407,7 +408,7 @@ WHERE
       "/>
     </xsl:function>
 
-    <xsl:function name="ldh:load-edited-resourceA" as="map(*)" ixsl:updating="yes">
+    <xsl:function name="ldh:load-edited-resource" as="map(*)" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
         <xsl:variable name="response" select="$context('response')" as="map(*)"/>
         <xsl:variable name="block" select="$context('block')" as="element()"/>
@@ -448,7 +449,7 @@ WHERE
         </xsl:for-each>
     </xsl:function>
     
-    <xsl:function name="ldh:load-type-metadataA" as="map(*)" ixsl:updating="yes">
+    <xsl:function name="ldh:load-type-metadata" as="map(*)" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
         <xsl:variable name="response" select="$context('response')" as="map(*)"/>
         <xsl:variable name="block" select="$context('block')" as="element()"/>
@@ -495,8 +496,6 @@ WHERE
                 </xsl:when>
                 <!-- error response -->
                 <xsl:otherwise>
-<!--                    <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
-                    <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ ?message ])"/>-->
                     <xsl:sequence select="error(QName('&ldh;', 'ldh:type-metadata-response-error'), 'Could not load type metadata', map{ 'code': 999 })"/>
                 </xsl:otherwise>
             </xsl:choose>
@@ -602,80 +601,6 @@ WHERE
         <xsl:apply-templates select="$block" mode="ldh:RenderRowForm"/>
 
         <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
-    </xsl:function>
-    
-    <xsl:function name="ldh:load-type-metadata" as="item()*" ixsl:updating="yes">
-        <xsl:param name="request" as="map(*)"/>
-        <xsl:param name="response" as="map(*)"/>        
-        <xsl:variable name="block" select="$request('block')" as="element()"/>
-        <xsl:variable name="resource" select="$request('resource')" as="element()"/>
-        <xsl:variable name="types" select="$request('types')" as="xs:anyURI*"/>
-
-        <xsl:for-each select="$response">
-            <xsl:choose>
-                <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
-                    <xsl:variable name="type-metadata" select="?body" as="document-node()?"/>
-
-                    <!-- TO-DO: refactor to use asynchronous HTTP requests -->
-                    <xsl:variable name="property-uris" select="distinct-values($resource/*/concat(namespace-uri(), local-name()))" as="xs:string*"/>
-                    <xsl:variable name="query-string" select="'DESCRIBE $Type VALUES $Type { ' || string-join(for $uri in $property-uris return '&lt;' || $uri || '&gt;', ' ') || ' }'" as="xs:string"/>
-                    <xsl:variable name="request-uri" select="ac:build-uri(resolve-uri('ns', $ldt:base), map{ 'query': $query-string, 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
-                    <xsl:variable name="property-metadata" select="document($request-uri)" as="document-node()"/>
-
-                    <xsl:variable name="query-string" select="$constructor-query || ' VALUES $Type { ' || string-join(for $type in $types return '&lt;' || $type || '&gt;', ' ') || ' }'" as="xs:string"/>
-                    <xsl:variable name="request-uri" select="ac:build-uri(resolve-uri('ns', $ldt:base), map{ 'query': $query-string, 'accept': 'application/sparql-results+xml' })" as="xs:anyURI"/>
-                    <xsl:variable name="constructors" select="if (exists($types)) then document($request-uri) else ()" as="document-node()?"/>
-
-                    <xsl:variable name="query-string" select="$constraint-query || ' VALUES $Type { ' || string-join(for $type in $types return '&lt;' || $type || '&gt;', ' ') || ' }'" as="xs:string"/>
-                    <xsl:variable name="request-uri" select="ac:build-uri(resolve-uri('ns', $ldt:base), map{ 'query': $query-string, 'accept': 'application/sparql-results+xml' })" as="xs:anyURI"/>
-                    <xsl:variable name="constraints" select="if (exists($types)) then document($request-uri) else ()" as="document-node()?"/>
-
-                    <xsl:variable name="query-string" select="$shape-query || ' VALUES $Type { ' || string-join(for $type in $types return '&lt;' || $type || '&gt;', ' ') || ' }'" as="xs:string"/>
-                    <xsl:variable name="request-uri" select="ac:build-uri(resolve-uri('ns', $ldt:base), map{ 'query': $query-string, 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
-                    <xsl:variable name="shapes" select="document($request-uri)" as="document-node()"/>
-
-                    <xsl:variable name="object-uris" select="distinct-values($resource/*/@rdf:resource[not(key('resources', .))])" as="xs:string*"/>
-                    <xsl:variable name="query-string" select="$object-metadata-query || ' VALUES $this { ' || string-join(for $uri in $object-uris return '&lt;' || $uri || '&gt;', ' ') || ' }'" as="xs:string"/>
-                    <xsl:variable name="request-uri" select="ac:build-uri(resolve-uri('sparql', $ldt:base), map{ 'query': $query-string, 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
-                    <xsl:variable name="object-metadata" select="if (doc-available($request-uri)) then document($request-uri) else ()" as="document-node()?"/>
-
-                    <xsl:for-each select="$block">
-                        <xsl:variable name="row" as="node()*">
-                            <xsl:apply-templates select="$resource" mode="bs2:RowForm">
-                                <xsl:with-param name="type-metadata" select="$type-metadata" tunnel="yes"/>
-                                <xsl:with-param name="property-metadata" select="$property-metadata" tunnel="yes"/>
-                                <xsl:with-param name="constructors" select="$constructors" tunnel="yes"/>
-                                <xsl:with-param name="constraints" select="$constraints" tunnel="yes"/>
-                                <xsl:with-param name="shapes" select="$shapes" tunnel="yes"/>
-                                <xsl:with-param name="object-metadata" select="$object-metadata" tunnel="yes"/>
-                            </xsl:apply-templates>
-                        </xsl:variable>
-
-                        <!-- replace block element attributes TO-DO: shouldn't be necessary in SaxonJS 3 using method="ixsl:replace-element": https://saxonica.plan.io/issues/6303#note-2 -->
-                        <xsl:for-each select="@*">
-                            <ixsl:remove-attribute object="$block" name="{name()}"/>
-                        </xsl:for-each>
-                        <xsl:for-each select="$row/@*">
-                            <ixsl:set-attribute object="$block" name="{name()}" select="."/>
-                        </xsl:for-each>
-
-                        <xsl:result-document href="?." method="ixsl:replace-content">
-                            <xsl:copy-of select="$row/*"/> <!-- inject the content of div.row-fluid -->
-                        </xsl:result-document>
-                    </xsl:for-each>
-
-                    <!-- initialize event listeners -->
-                    <xsl:apply-templates select="$block" mode="ldh:RenderRowForm"/>
-
-                    <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
-                </xsl:when>
-                <!-- error response -->
-                <xsl:otherwise>
-                    <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
-                    <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ ?message ])"/>
-                </xsl:otherwise>
-            </xsl:choose>
-        </xsl:for-each>
     </xsl:function>
     
     <!-- TO-DO: unify -->
@@ -948,8 +873,8 @@ WHERE
 
         <xsl:message>ldh:modal-form-patch-response</xsl:message>
 
-        <xsl:variable name="response" select="map:get($context, 'response')" as="map(*)?"/>
-        <xsl:variable name="status" select="$response?status" as="xs:double?"/>
+        <xsl:variable name="response" select="$context('response')" as="map(*)"/>
+        <xsl:variable name="status" select="$response?status" as="xs:double"/>
         <xsl:variable name="media-type" select="$response?media-type" as="xs:string?"/>
 
         <xsl:choose>
@@ -967,8 +892,8 @@ WHERE
 
     <xsl:function name="ldh:row-form-patch-response" as="map(*)" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
-        <xsl:variable name="response" select="map:get($context, 'response')" as="map(*)?"/>
-        <xsl:variable name="status" select="$response?status" as="xs:double?"/>
+        <xsl:variable name="response" select="$context('response')" as="map(*)"/>
+        <xsl:variable name="status" select="$response?status" as="xs:double"/>
         <xsl:variable name="media-type" select="$response?media-type" as="xs:string?"/>
 
         <xsl:message>ldh:row-form-patch-response</xsl:message>
@@ -988,8 +913,8 @@ WHERE
     
     <xsl:function name="ldh:form-horizontal-response" as="map(*)" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
-        <xsl:variable name="response" select="map:get($context, 'response')" as="map(*)?"/>
-        <xsl:variable name="status" select="$response?status" as="xs:double?"/>
+        <xsl:variable name="response" select="$context('response')" as="map(*)"/>
+        <xsl:variable name="status" select="$response?status" as="xs:double"/>
         <xsl:variable name="media-type" select="$response?media-type" as="xs:string?"/>
         <xsl:variable name="modal" select="map:get($context, 'modal')" as="xs:boolean"/>
         
