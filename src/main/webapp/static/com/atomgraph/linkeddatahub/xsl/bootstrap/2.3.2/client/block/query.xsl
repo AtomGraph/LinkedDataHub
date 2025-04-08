@@ -454,7 +454,7 @@ exclude-result-prefixes="#all"
         <ixsl:promise select="
           ixsl:http-request($context('request'))                          (: Step 1: send initial request :)
             => ixsl:then(ldh:rethread-response($context, ?))              (: Step 2: attach response to context :)
-            => ixsl:then(ldh:handle-responseA#1)                           (: Step 3: handle 429s, etc. :)
+            => ixsl:then(ldh:handle-response#1)                           (: Step 3: handle 429s, etc. :)
             => ixsl:then(ldh:row-form-patch-response#1)
         "/>
     </xsl:template>

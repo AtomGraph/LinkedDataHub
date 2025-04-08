@@ -288,10 +288,10 @@ WHERE
         <ixsl:promise select="
           ixsl:http-request($context('request'))                          (: Step 1: send initial request :)
             => ixsl:then(ldh:rethread-response($context, ?))              (: Step 2: attach response to context :)
-            => ixsl:then(ldh:handle-responseA#1)                           (: Step 3: handle 429s, etc. :)
+            => ixsl:then(ldh:handle-response#1)                           (: Step 3: handle 429s, etc. :)
             => ixsl:then(ldh:load-edited-resource#1)                      (: Step 4: extract resource, build next request :)
             => ixsl:then(ldh:http-request-threaded#1)                     (: Step 5: send next request and rethread :)
-            => ixsl:then(ldh:handle-responseA#1)                           (: Step 6: handle retry if needed :)
+            => ixsl:then(ldh:handle-response#1)                           (: Step 6: handle retry if needed :)
             => ixsl:then(ldh:load-type-metadata#1)                        (: Step 7: final step using full context :)
             => ixsl:then(ldh:render-row-form#1)
         "/>
@@ -344,70 +344,16 @@ WHERE
         <ixsl:promise select="
           ixsl:http-request($context('request'))                          (: Step 1: send initial request :)
             => ixsl:then(ldh:rethread-response($context, ?))              (: Step 2: attach response to context :)
-            => ixsl:then(ldh:handle-responseA#1)                           (: Step 3: handle 429s, etc. :)
+            => ixsl:then(ldh:handle-response#1)                           (: Step 3: handle 429s, etc. :)
             => ixsl:then(ldh:load-edited-resource#1)                      (: Step 4: extract resource, build next request :)
             => ixsl:then(ldh:http-request-threaded#1)                     (: Step 5: send next request and rethread :)
-            => ixsl:then(ldh:handle-responseA#1)                           (: Step 6: handle retry if needed :)
+            => ixsl:then(ldh:handle-response#1)                           (: Step 6: handle retry if needed :)
             => ixsl:then(ldh:load-type-metadata#1)                        (: Step 7: final step using full context :)
             => ixsl:then(ldh:wrap-into-document#1)
             => ixsl:then(ldh:render-form#1)
         "/>
     </xsl:template>
     
-    <xsl:function name="ldh:rethread-response" as="map(*)" ixsl:updating="no">
-      <xsl:param name="context" as="map(*)"/>
-      <xsl:param name="response" as="map(*)"/>
-
-      <xsl:sequence select="map:merge(($context, map{ 'response': $response }), map{ 'duplicates': 'use-last' })"/>
-    </xsl:function>
-
-    <xsl:function name="ldh:http-request-threaded" as="map(*)" ixsl:updating="yes">
-      <xsl:param name="context" as="map(*)"/>
-
-      <xsl:sequence select="
-        ixsl:http-request($context('request'))
-          => ixsl:then(ldh:rethread-response($context, ?))
-      "/>
-    </xsl:function>
-
-    <xsl:function name="ldh:handle-responseA" as="item()*" ixsl:updating="yes">
-      <xsl:param name="context" as="map(*)"/>
-
-      <xsl:variable name="request" select="$context('request')" as="map(*)"/>
-      <xsl:variable name="response" select="$context('response')" as="map(*)"/>
-      <xsl:variable name="default-retry-after" select="1" as="xs:integer"/>
-
-      <xsl:choose>
-        <xsl:when test="$response?status = 429">
-          <xsl:variable name="retry-after" select="
-            if (map:contains($response?headers, 'Retry-After')) 
-            then xs:integer($response?headers('Retry-After')) 
-            else $default-retry-after"/>
-
-          <xsl:sequence select="
-            ixsl:sleep($retry-after * 1000)
-                => ixsl:then(ldh:retry-requestA($context, ?))
-          "/>
-        </xsl:when>
-        <xsl:otherwise>
-          <xsl:sequence select="$context"/>
-        </xsl:otherwise>
-      </xsl:choose>
-    </xsl:function>
-
-    <xsl:function name="ldh:retry-requestA" as="item()*" ixsl:updating="yes">
-      <xsl:param name="context" as="map(*)"/>
-      <xsl:param name="sleep-result" as="item()?"/>
-
-      <xsl:variable name="request" select="$context('request')"/>
-
-      <xsl:sequence select="
-        ixsl:http-request($request)
-          => ixsl:then(ldh:rethread-response($context, ?))
-          => ixsl:then(ldh:handle-responseA#1)
-      "/>
-    </xsl:function>
-
     <xsl:function name="ldh:load-edited-resource" as="map(*)" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
         <xsl:variable name="response" select="$context('response')" as="map(*)"/>
@@ -442,8 +388,9 @@ WHERE
                 </xsl:when>
                 <!-- error response -->
                 <xsl:otherwise>
-                    <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
-                    <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ ?message ])"/>
+<!--                    <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
+                    <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ ?message ])"/>-->
+                    <xsl:sequence select="error(QName('&ldh;', 'ldh:ldh:load-edited-resource-error'), 'Could not load edited resource', map{ 'code': 999 })"/>
                 </xsl:otherwise>
             </xsl:choose>
         </xsl:for-each>
@@ -691,7 +638,7 @@ WHERE
                 <ixsl:promise select="
                   ixsl:http-request($context('request'))                          (: Step 1: send initial request :)
                     => ixsl:then(ldh:rethread-response($context, ?))              (: Step 2: attach response to context :)
-                    => ixsl:then(ldh:handle-responseA#1)                           (: Step 3: handle 429s, etc. :)
+                    => ixsl:then(ldh:handle-response#1)                           (: Step 3: handle 429s, etc. :)
                     => ixsl:then(ldh:form-horizontal-response#1)
                 "/>   
             </xsl:otherwise>
@@ -747,7 +694,7 @@ WHERE
         <ixsl:promise select="
           ixsl:http-request($context('request'))                          (: Step 1: send initial request :)
             => ixsl:then(ldh:rethread-response($context, ?))              (: Step 2: attach response to context :)
-            => ixsl:then(ldh:handle-responseA#1)                           (: Step 3: handle 429s, etc. :)
+            => ixsl:then(ldh:handle-response#1)                           (: Step 3: handle 429s, etc. :)
             => ixsl:then(ldh:modal-form-patch-response#1)
         " on-failure="ldh:form-horizontal-submit-error#1"/>
     </xsl:template>
@@ -801,7 +748,7 @@ WHERE
         <ixsl:promise select="
           ixsl:http-request($context('request'))                          (: Step 1: send initial request :)
             => ixsl:then(ldh:rethread-response($context, ?))              (: Step 2: attach response to context :)
-            => ixsl:then(ldh:handle-responseA#1)                           (: Step 3: handle 429s, etc. :)
+            => ixsl:then(ldh:handle-response#1)                           (: Step 3: handle 429s, etc. :)
             => ixsl:then(ldh:row-form-patch-response#1)
         "/>
     </xsl:template>
@@ -1011,7 +958,7 @@ WHERE
             <xsl:sequence select="
               ixsl:http-request($context('request'))                          (: Step 1: send initial request :)
                 => ixsl:then(ldh:rethread-response($context, ?))              (: Step 2: attach response to context :)
-                => ixsl:then(ldh:handle-responseA#1)                           (: Step 3: handle 429s, etc. :)
+                => ixsl:then(ldh:handle-response#1)                           (: Step 3: handle 429s, etc. :)
                 => ixsl:then(ldh:xhtml-document-loaded#1)
             "/>
         </xsl:for-each>        
@@ -1034,7 +981,7 @@ WHERE
             <xsl:sequence select="
               ixsl:http-request($context('request'))                          (: Step 1: send initial request :)
                 => ixsl:then(ldh:rethread-response($context, ?))              (: Step 2: attach response to context :)
-                => ixsl:then(ldh:handle-responseA#1)                           (: Step 3: handle 429s, etc. :)
+                => ixsl:then(ldh:handle-response#1)                           (: Step 3: handle 429s, etc. :)
                 => ixsl:then(ldh:xhtml-document-loaded#1)
             "/>
         </xsl:for-each>        

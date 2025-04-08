@@ -450,36 +450,57 @@ exclude-result-prefixes="#all"
     <!-- generic HTTP client promises (SaxonJS 3) -->
 
     <xsl:function name="ldh:handle-response" as="item()*" ixsl:updating="yes">
-        <xsl:param name="request" as="map(*)"/>
-        <xsl:param name="response" as="map(*)"/>
-        <xsl:variable name="default-retry-after" select="1" as="xs:integer"/>
+      <xsl:param name="context" as="map(*)"/>
 
-        <xsl:choose>
-            <xsl:when test="$response?status = 429">
-                <xsl:variable name="retry-after" select="
-                  if (map:contains($response?headers, 'Retry-After')) 
-                  then xs:integer($response?headers('Retry-After')) 
-                  else $default-retry-after"/>
+      <xsl:variable name="request" select="$context('request')" as="map(*)"/>
+      <xsl:variable name="response" select="$context('response')" as="map(*)"/>
+      <xsl:variable name="default-retry-after" select="1" as="xs:integer"/>
 
-                <xsl:sequence select="
-                  ixsl:sleep($retry-after * 1000)
-                    => ixsl:then(ldh:retry-request($request, ?))
-                "/>
-          </xsl:when>
-            <xsl:otherwise>
-                <xsl:sequence select="$response"/>
-            </xsl:otherwise>
-        </xsl:choose>
+      <xsl:choose>
+        <xsl:when test="$response?status = 429">
+          <xsl:variable name="retry-after" select="
+            if (map:contains($response?headers, 'Retry-After')) 
+            then xs:integer($response?headers('Retry-After')) 
+            else $default-retry-after"/>
+
+          <xsl:sequence select="
+            ixsl:sleep($retry-after * 1000)
+                => ixsl:then(ldh:retry-request($context, ?))
+          "/>
+        </xsl:when>
+        <xsl:otherwise>
+          <xsl:sequence select="$context"/>
+        </xsl:otherwise>
+      </xsl:choose>
     </xsl:function>
 
     <xsl:function name="ldh:retry-request" as="item()*" ixsl:updating="yes">
-        <xsl:param name="request" as="map(*)"/>
-        <xsl:param name="sleep-result" as="item()?"/>
+      <xsl:param name="context" as="map(*)"/>
+      <xsl:param name="sleep-result" as="item()?"/>
 
-        <xsl:sequence select="
-          ixsl:http-request($request)
-            => ixsl:then(ldh:handle-response($request, ?))
-        "/>
+      <xsl:variable name="request" select="$context('request')"/>
+
+      <xsl:sequence select="
+        ixsl:http-request($request)
+          => ixsl:then(ldh:rethread-response($context, ?))
+          => ixsl:then(ldh:handle-response#1)
+      "/>
+    </xsl:function>
+    
+    <xsl:function name="ldh:rethread-response" as="map(*)" ixsl:updating="no">
+      <xsl:param name="context" as="map(*)"/>
+      <xsl:param name="response" as="map(*)"/>
+
+      <xsl:sequence select="map:merge(($context, map{ 'response': $response }), map{ 'duplicates': 'use-last' })"/>
+    </xsl:function>
+
+    <xsl:function name="ldh:http-request-threaded" as="map(*)" ixsl:updating="yes">
+      <xsl:param name="context" as="map(*)"/>
+
+      <xsl:sequence select="
+        ixsl:http-request($context('request'))
+          => ixsl:then(ldh:rethread-response($context, ?))
+      "/>
     </xsl:function>
     
 </xsl:stylesheet>

@@ -90,7 +90,7 @@ exclude-result-prefixes="#all"
           }"/>
         <ixsl:promise select="ixsl:http-request($context('request')) =>
             ixsl:then(ldh:rethread-response($context, ?)) =>
-            ixsl:then(ldh:handle-responseA#1) =>
+            ixsl:then(ldh:handle-response#1) =>
             ixsl:then(ldh:view-query-load#1)"
             on-failure="ldh:form-horizontal-submit-error#1"/>
     </xsl:template>
@@ -255,7 +255,7 @@ exclude-result-prefixes="#all"
           }"/>
         <ixsl:promise select="ixsl:http-request($context('request')) =>
             ixsl:then(ldh:rethread-response($context, ?)) =>
-            ixsl:then(ldh:handle-responseA#1) =>
+            ixsl:then(ldh:handle-response#1) =>
             ixsl:then(ldh:result-count-results-load#1)"
             on-failure="ldh:form-horizontal-submit-error#1"/>
     </xsl:template>
@@ -457,7 +457,7 @@ exclude-result-prefixes="#all"
           }"/>
         <ixsl:promise select="ixsl:http-request($context('request')) =>
             ixsl:then(ldh:rethread-response($context, ?)) =>        
-            ixsl:then(ldh:handle-responseA#1) =>
+            ixsl:then(ldh:handle-response#1) =>
             ixsl:then(ldh:container-results-response#1)"
             on-failure="ldh:form-horizontal-submit-error#1"/>
     </xsl:template>
@@ -474,6 +474,10 @@ exclude-result-prefixes="#all"
         <xsl:param name="select-xml" as="document-node()"/>
         <xsl:param name="base-uri" as="xs:anyURI"/>
         
+        <xsl:for-each select="$block//div[contains-token(@class, 'bar')]">
+            <ixsl:set-style name="width" select="'88%'" object="."/>
+        </xsl:for-each>
+
         <xsl:for-each select="$container">
             <xsl:result-document href="?." method="ixsl:replace-content">
                 <xsl:call-template name="ldh:ViewModeChoice">
@@ -660,7 +664,7 @@ exclude-result-prefixes="#all"
                       }"/>
                     <ixsl:promise select="ixsl:http-request($context('request')) =>
                         ixsl:then(ldh:rethread-response($context, ?)) =>        
-                        ixsl:then(ldh:handle-responseA#1) =>
+                        ixsl:then(ldh:handle-response#1) =>
                         ixsl:then(ldh:facet-filter-results-load#1)"
                         on-failure="ldh:form-horizontal-submit-error#1"/>
                 </xsl:if>
@@ -884,7 +888,7 @@ exclude-result-prefixes="#all"
               }"/>
             <ixsl:promise select="ixsl:http-request($context('request')) =>
                 ixsl:then(ldh:rethread-response($context, ?)) =>
-                ixsl:then(ldh:handle-responseA#1) =>
+                ixsl:then(ldh:handle-response#1) =>
                 ixsl:then(ldh:parallax-results-load#1)"
                 on-failure="ldh:form-horizontal-submit-error#1"/>
         </xsl:if>
@@ -957,7 +961,7 @@ exclude-result-prefixes="#all"
           }"/>
         <ixsl:promise select="ixsl:http-request($context('request')) =>
             ixsl:then(ldh:rethread-response($context, ?)) =>
-            ixsl:then(ldh:handle-responseA#1) =>
+            ixsl:then(ldh:handle-response#1) =>
             ixsl:then(ldh:container-object-metadata-results-load#1)"
             on-failure="ldh:form-horizontal-submit-error#1"/>
     </xsl:template>
@@ -1199,7 +1203,7 @@ exclude-result-prefixes="#all"
 
                     <ixsl:promise select="ixsl:http-request($context('request')) =>
                         ixsl:then(ldh:rethread-response($context, ?)) =>
-                        ixsl:then(ldh:handle-responseA#1) =>
+                        ixsl:then(ldh:handle-response#1) =>
                         ixsl:then(ldh:facet-value-results-load#1)"
                         on-failure="ldh:form-horizontal-submit-error#1"/>
                 </xsl:for-each>
@@ -1559,7 +1563,7 @@ exclude-result-prefixes="#all"
                                       }"/>
                                     <ixsl:promise select="ixsl:http-request($context('request')) =>
                                         ixsl:then(ldh:rethread-response($context, ?)) =>
-                                        ixsl:then(ldh:handle-responseA#1) =>
+                                        ixsl:then(ldh:handle-response#1) =>
                                         ixsl:then(ldh:order-by-results-load#1)"
                                         on-failure="ldh:form-horizontal-submit-error#1"/>
                                 </xsl:if>
@@ -1584,7 +1588,7 @@ exclude-result-prefixes="#all"
                             }), map{ 'duplicates': 'use-last' })"/>
                         <ixsl:promise select="ixsl:http-request($context('request')) =>
                             ixsl:then(ldh:rethread-response($context, ?)) =>
-                            ixsl:then(ldh:handle-responseA#1) =>
+                            ixsl:then(ldh:handle-response#1) =>
                             ixsl:then(ldh:container-object-metadata-results-load#1)"
                             on-failure="ldh:form-horizontal-submit-error#1"/>
                              
@@ -1698,7 +1702,7 @@ exclude-result-prefixes="#all"
                             ), map{ 'duplicates': 'use-last' })"/> 
                             <ixsl:promise select="ixsl:http-request($context('request')) =>
                                 ixsl:then(ldh:rethread-response($context, ?)) =>
-                                ixsl:then(ldh:handle-responseA#1) =>
+                                ixsl:then(ldh:handle-response#1) =>
                                 ixsl:then(ldh:parallax-property-load#1)"
                                 on-failure="ldh:form-horizontal-submit-error#1"/>
                         </xsl:for-each-group>
@@ -1826,7 +1830,7 @@ exclude-result-prefixes="#all"
                                           }"/>
                                         <ixsl:promise select="ixsl:http-request($context('request')) =>
                                             ixsl:then(ldh:rethread-response($context, ?)) =>
-                                            ixsl:then(ldh:handle-responseA#1) =>
+                                            ixsl:then(ldh:handle-response#1) =>
                                             ixsl:then(ldh:facet-value-type-load#1)"
                                             on-failure="ldh:form-horizontal-submit-error#1"/>
                                     </xsl:for-each>
@@ -2013,10 +2017,6 @@ exclude-result-prefixes="#all"
             <xsl:choose>
                 <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
                     <xsl:variable name="object-metadata" select="?body" as="document-node()"/>
-
-                    <xsl:for-each select="$block//div[contains-token(@class, 'bar')]">
-                        <ixsl:set-style name="width" select="'88%'" object="."/>
-                    </xsl:for-each>
 
                     <xsl:call-template name="ldh:RenderViewMode">
                         <xsl:with-param name="block" select="$block"/>
