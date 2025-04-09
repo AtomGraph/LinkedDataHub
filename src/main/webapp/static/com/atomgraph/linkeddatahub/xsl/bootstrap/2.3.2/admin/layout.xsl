@@ -42,8 +42,6 @@ exclude-result-prefixes="#all">
     <xsl:import href="../layout.xsl"/>
     <xsl:include href="signup.xsl"/>
     <xsl:include href="acl/layout.xsl"/>
-
-    <xsl:param name="default-classes" select="(xs:anyURI('&owl;Ontology'), xs:anyURI('&sh;NodeShape'), xs:anyURI('&sh;PropertyShape'), xs:anyURI('&acl;Authorization'), xs:anyURI('&foaf;Person'), xs:anyURI('&cert;PublicKey'), xs:anyURI('&sioc;UserAccount'), xs:anyURI('&foaf;Group'))" as="xs:anyURI*"/>
     
     <xsl:template match="rdf:RDF[$foaf:Agent]" mode="bs2:Create" priority="1">
         <xsl:param name="classes" as="element()*"/>
@@ -101,7 +99,7 @@ exclude-result-prefixes="#all">
     <!-- ROW FORM - we need the overriding templates as well -->
     
     <!-- add "Create" button to the creatable class list below the form. Needs to pass parameters from signup.xsl!!! -->
-    <xsl:template match="rdf:RDF[$ac:method = 'GET']" mode="bs2:RowForm" use-when="system-property('xsl:product-name') = 'SAXON'">
+    <xsl:template match="rdf:RDF[$ac:method = 'GET']" mode="bs2:Row">
         <xsl:param name="id" select="concat('form-', generate-id())" as="xs:string?"/>
         <xsl:param name="class" select="'row-fluid'" as="xs:string?"/>
         <xsl:param name="method" select="'patch'" as="xs:string"/>
@@ -109,7 +107,8 @@ exclude-result-prefixes="#all">
         <xsl:param name="enctype" select="'multipart/form-data'" as="xs:string?"/>
         <xsl:param name="create-resource" select="true()" as="xs:boolean"/>
         <!-- TO-DO: generate ontology classes from the OWL vocabulary -->
-        <xsl:param name="classes" select="for $class-uri in ('&ldh;Constructor', '&owl;Class', '&owl;DatatypeProperty', '&owl;ObjectProperty', '&owl;Restriction') return key('resources', $class-uri, document(ac:document-uri($class-uri)))" as="element()*"/>
+        <xsl:param name="class-uris" select="(xs:anyURI('&owl;Ontology'), xs:anyURI('&owl;Class'), xs:anyURI('&owl;DatatypeProperty'), xs:anyURI('&owl;ObjectProperty'), xs:anyURI('&owl;Restriction'), xs:anyURI('&ldh;Constructor'), xs:anyURI('&sh;NodeShape'), xs:anyURI('&sh;PropertyShape'), xs:anyURI('&acl;Authorization'), xs:anyURI('&foaf;Person'), xs:anyURI('&cert;PublicKey'), xs:anyURI('&sioc;UserAccount'), xs:anyURI('&foaf;Group'))" as="xs:anyURI*"/>
+        <xsl:param name="classes" select="for $class-uri in $class-uris return key('resources', $class-uri, document(ac:document-uri($class-uri)))" as="element()*"/>
 
         <xsl:next-match>
             <xsl:with-param name="id" select="$id"/>

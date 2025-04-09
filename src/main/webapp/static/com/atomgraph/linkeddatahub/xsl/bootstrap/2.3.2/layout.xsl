@@ -114,7 +114,6 @@ exclude-result-prefixes="#all">
     <xsl:param name="ldhc:enableWebIDSignUp" as="xs:boolean"/>
     <xsl:param name="ldh:renderSystemResources" select="false()" as="xs:boolean"/>
     <xsl:param name="google:clientID" as="xs:string?"/>
-    <xsl:param name="default-classes" select="(xs:anyURI('&lapp;Application'), xs:anyURI('&sd;Service'), xs:anyURI('&nfo;FileDataObject'), xs:anyURI('&sp;Construct'), xs:anyURI('&sp;Describe'), xs:anyURI('&sp;Select'), xs:anyURI('&sp;Ask'), xs:anyURI('&ldh;RDFImport'), xs:anyURI('&ldh;CSVImport'), xs:anyURI('&ldh;GraphChart'), xs:anyURI('&ldh;ResultSetChart'), xs:anyURI('&ldh;View'))" as="xs:anyURI*"/>
     <xsl:param name="location-mapping" as="map(xs:anyURI, xs:anyURI)">
         <xsl:map>
             <xsl:map-entry key="resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)" select="resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)"/>
@@ -800,7 +799,6 @@ LIMIT   100
         <xsl:param name="class" select="'container-fluid'" as="xs:string?"/>
         <xsl:param name="about" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI?"/>
         <xsl:param name="typeof" select="key('resources', ac:absolute-path(ldh:base-uri(.)))/rdf:type/@rdf:resource/xs:anyURI(.)" as="xs:anyURI*"/>
-        <xsl:param name="classes" select="for $class-uri in $default-classes return key('resources', $class-uri, document(ac:document-uri($class-uri)))" as="element()*"/>
         <xsl:param name="doc-types" select="key('resources', ac:absolute-path(ldh:base-uri(.)))/rdf:type/@rdf:resource[ . = ('&def;Root', '&dh;Container', '&dh;Item')]" as="xs:anyURI*"/>
         <!-- take care not to load unnecessary documents over HTTP when $doc-types is empty -->
         <xsl:param name="block-values" select="if (exists($doc-types)) then (if (doc-available(resolve-uri('ns?query=ASK%20%7B%7D', $ldt:base))) then (ldh:query-result(map{}, resolve-uri('ns', $ldt:base), $template-query || ' VALUES $Type { ' || string-join(for $type in $doc-types return '&lt;' || $type || '&gt;', ' ') || ' }')//srx:binding[@name = 'content']/srx:uri/xs:anyURI(.)) else ()) else ()" as="xs:anyURI*"/>
@@ -864,7 +862,6 @@ LIMIT   100
                 </xsl:when>
                 <xsl:otherwise>
                     <xsl:apply-templates select="." mode="bs2:Row">
-                        <xsl:with-param name="classes" select="$classes"/>
                         <xsl:sort select="ac:label(.)"/>
                     </xsl:apply-templates>
                 </xsl:otherwise>

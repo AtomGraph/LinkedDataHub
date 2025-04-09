@@ -1184,8 +1184,6 @@ extension-element-prefixes="ixsl"
     <xsl:template match="*[@rdf:nodeID][key('predicates-by-object', @rdf:nodeID)][not(* except rdf:type or rdf:type/@rdf:resource = '&owl;NamedIndividual')]" mode="bs2:Form" priority="2"/>
 
     <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:Form">
-<!--        <xsl:param name="classes" as="element()*"/>-->
-
         <xsl:apply-templates select="." mode="bs2:FormControl">
             <xsl:with-param name="inline" select="false()" tunnel="yes"/>
         </xsl:apply-templates>
