@@ -1149,9 +1149,9 @@ WHERE
     
     <xsl:function name="ldh:form-horizontal-submit-error" as="map(*)" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
-        <xsl:variable name="response" select="$context('response')" as="map(*)"/>
+        <xsl:variable name="response" select="$context('response')" as="map(*)?"/>
 
-        <xsl:message>ldh:form-horizontal-submit-error</xsl:message>
+        <xsl:message>ldh:form-horizontal-submit-error <xsl:value-of select="serialize($context, map{ 'method': 'json' })"/></xsl:message>
 
         <xsl:for-each select="$response">
             <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
