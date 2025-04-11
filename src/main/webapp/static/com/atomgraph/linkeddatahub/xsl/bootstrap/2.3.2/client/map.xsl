@@ -148,7 +148,7 @@ exclude-result-prefixes="#all"
             ixsl:then(ldh:rethread-response($context, ?)) =>
             ixsl:then(ldh:handle-response#1) =>
             ixsl:then(ldh:geo-results-response#1)"
-            on-failure="ldh:form-horizontal-submit-error#1"/>
+            on-failure="ldh:promise-failure#1"/>
     </xsl:template>
     
     <!-- create and render OpenLayers map -->

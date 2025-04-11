@@ -503,4 +503,19 @@ exclude-result-prefixes="#all"
       "/>
     </xsl:function>
     
+    <xsl:function name="ldh:promise-failure" ixsl:updating="yes">
+        <xsl:param name="error" as="map(*)"/>
+
+        <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
+        <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ $error?message ])"/>
+    </xsl:function>
+    
+    <xsl:function name="ldh:error-response-alert" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:variable name="response" select="$context('response')" as="map(*)?"/>
+
+        <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
+        <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ $response?message ])"/>
+    </xsl:function>
+    
 </xsl:stylesheet>

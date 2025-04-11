@@ -92,7 +92,7 @@ exclude-result-prefixes="#all"
             ixsl:then(ldh:rethread-response($context, ?)) =>
             ixsl:then(ldh:handle-response#1) =>
             ixsl:then(ldh:view-query-load#1)"
-            on-failure="ldh:form-horizontal-submit-error#1"/>
+            on-failure="ldh:promise-failure#1"/>
     </xsl:template>
     
     <!-- hide type control -->
@@ -257,7 +257,7 @@ exclude-result-prefixes="#all"
             ixsl:then(ldh:rethread-response($context, ?)) =>
             ixsl:then(ldh:handle-response#1) =>
             ixsl:then(ldh:result-count-results-load#1)"
-            on-failure="ldh:form-horizontal-submit-error#1"/>
+            on-failure="ldh:promise-failure#1"/>
     </xsl:template>
     
     <!-- order by -->
@@ -459,7 +459,7 @@ exclude-result-prefixes="#all"
             ixsl:then(ldh:rethread-response($context, ?)) =>        
             ixsl:then(ldh:handle-response#1) =>
             ixsl:then(ldh:container-results-response#1)"
-            on-failure="ldh:form-horizontal-submit-error#1"/>
+            on-failure="ldh:promise-failure#1"/>
     </xsl:template>
 
     <!-- $container here is the inner result container, not the content container! -->
@@ -666,7 +666,7 @@ exclude-result-prefixes="#all"
                         ixsl:then(ldh:rethread-response($context, ?)) =>        
                         ixsl:then(ldh:handle-response#1) =>
                         ixsl:then(ldh:facet-filter-results-load#1)"
-                        on-failure="ldh:form-horizontal-submit-error#1"/>
+                        on-failure="ldh:promise-failure#1"/>
                 </xsl:if>
             </xsl:for-each>
         </xsl:if>
@@ -890,7 +890,7 @@ exclude-result-prefixes="#all"
                 ixsl:then(ldh:rethread-response($context, ?)) =>
                 ixsl:then(ldh:handle-response#1) =>
                 ixsl:then(ldh:parallax-results-load#1)"
-                on-failure="ldh:form-horizontal-submit-error#1"/>
+                on-failure="ldh:promise-failure#1"/>
         </xsl:if>
     </xsl:template>
 
@@ -963,7 +963,7 @@ exclude-result-prefixes="#all"
             ixsl:then(ldh:rethread-response($context, ?)) =>
             ixsl:then(ldh:handle-response#1) =>
             ixsl:then(ldh:container-object-metadata-results-load#1)"
-            on-failure="ldh:form-horizontal-submit-error#1"/>
+            on-failure="ldh:promise-failure#1"/>
     </xsl:template>
 
     <!-- pager prev links -->
@@ -1205,7 +1205,7 @@ exclude-result-prefixes="#all"
                         ixsl:then(ldh:rethread-response($context, ?)) =>
                         ixsl:then(ldh:handle-response#1) =>
                         ixsl:then(ldh:facet-value-results-load#1)"
-                        on-failure="ldh:form-horizontal-submit-error#1"/>
+                        on-failure="ldh:promise-failure#1"/>
                 </xsl:for-each>
             </xsl:when>
             <xsl:otherwise>
@@ -1565,7 +1565,7 @@ exclude-result-prefixes="#all"
                                         ixsl:then(ldh:rethread-response($context, ?)) =>
                                         ixsl:then(ldh:handle-response#1) =>
                                         ixsl:then(ldh:order-by-results-load#1)"
-                                        on-failure="ldh:form-horizontal-submit-error#1"/>
+                                        on-failure="ldh:promise-failure#1"/>
                                 </xsl:if>
                             </xsl:for-each>
                         </xsl:if>
@@ -1590,7 +1590,7 @@ exclude-result-prefixes="#all"
                             ixsl:then(ldh:rethread-response($context, ?)) =>
                             ixsl:then(ldh:handle-response#1) =>
                             ixsl:then(ldh:container-object-metadata-results-load#1)"
-                            on-failure="ldh:form-horizontal-submit-error#1"/>
+                            on-failure="ldh:promise-failure#1"/>
                              
                         <!-- hide progress bar -->
                          <xsl:for-each select="$container//div[@class = 'progress-bar']">
@@ -1704,7 +1704,7 @@ exclude-result-prefixes="#all"
                                 ixsl:then(ldh:rethread-response($context, ?)) =>
                                 ixsl:then(ldh:handle-response#1) =>
                                 ixsl:then(ldh:parallax-property-load#1)"
-                                on-failure="ldh:form-horizontal-submit-error#1"/>
+                                on-failure="ldh:promise-failure#1"/>
                         </xsl:for-each-group>
                     </xsl:for-each>
                 </xsl:when>
@@ -1832,7 +1832,7 @@ exclude-result-prefixes="#all"
                                             ixsl:then(ldh:rethread-response($context, ?)) =>
                                             ixsl:then(ldh:handle-response#1) =>
                                             ixsl:then(ldh:facet-value-type-load#1)"
-                                            on-failure="ldh:form-horizontal-submit-error#1"/>
+                                            on-failure="ldh:promise-failure#1"/>
                                     </xsl:for-each>
                                 </xsl:when>
                                 <xsl:otherwise>

@@ -696,7 +696,7 @@ WHERE
             => ixsl:then(ldh:rethread-response($context, ?))              (: Step 2: attach response to context :)
             => ixsl:then(ldh:handle-response#1)                           (: Step 3: handle 429s, etc. :)
             => ixsl:then(ldh:modal-form-patch-response#1)
-        " on-failure="ldh:form-horizontal-submit-error#1"/>
+        " on-failure="ldh:promise-failure#1"/>
     </xsl:template>
         
     <!-- submit instance update block-form using PATCH -->
@@ -832,7 +832,7 @@ WHERE
               <xsl:sequence select="ldh:modal-form-submit-violation($context)"/>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:sequence select="ldh:form-horizontal-submit-error($context)"/>
+                <xsl:sequence select="ldh:error-response-alert($context)"/>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:function>
@@ -853,7 +853,7 @@ WHERE
               <xsl:sequence select="ldh:row-form-submit-violation($context)"/>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:sequence select="ldh:form-horizontal-submit-error($context)"/>
+                <xsl:sequence select="ldh:error-response-alert($context)"/>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:function>
@@ -878,7 +878,7 @@ WHERE
               <xsl:sequence select="ldh:modal-form-submit-violation($context)"/>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:sequence select="ldh:form-horizontal-submit-error($context)"/>
+                <xsl:sequence select="ldh:error-response-alert($context)"/>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:function>
@@ -1142,20 +1142,6 @@ WHERE
             </xsl:for-each>
 
             <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>            
-        </xsl:for-each>
-        
-        <xsl:sequence select="$context"/>
-    </xsl:function>
-    
-    <xsl:function name="ldh:form-horizontal-submit-error" as="map(*)" ixsl:updating="yes">
-        <xsl:param name="context" as="map(*)"/>
-        <xsl:variable name="response" select="$context('response')" as="map(*)?"/>
-
-        <xsl:message>ldh:form-horizontal-submit-error <xsl:value-of select="serialize($context, map{ 'method': 'json' })"/></xsl:message>
-
-        <xsl:for-each select="$response">
-            <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
-            <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ ?message ])"/>
         </xsl:for-each>
         
         <xsl:sequence select="$context"/>
