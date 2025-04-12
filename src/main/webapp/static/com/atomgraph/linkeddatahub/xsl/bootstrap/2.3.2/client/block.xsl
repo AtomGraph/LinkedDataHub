@@ -115,7 +115,7 @@ exclude-result-prefixes="#all"
 
     <!-- TEMPLATES -->
 
-    <!-- render block -->
+    <!-- render row -->
     
     <!-- match resources that are not LDH system resources -->
     <xsl:template match="*[@typeof[not(. = ('&ldh;Object', '&ldh;View', '&ldh;GraphChart', '&ldh;ResultSetChart'))]]" mode="ldh:RenderRow" priority="1">
@@ -181,7 +181,7 @@ exclude-result-prefixes="#all"
     
     <xsl:template match="div[following-sibling::div[@typeof = ('&ldh;XHTML', '&ldh;Object')]]//button[contains-token(@class, 'btn-edit')][not(contains-token(@class, 'disabled'))]" mode="ixsl:onclick" priority="1">
         <xsl:param name="block" select="ancestor::div[contains-token(@class, 'block')][1]" as="element()"/>
-        <!-- for content types, button.btn-edit is placed in its own div.row-fluid, therefore the next row is the actual container -->
+        <!-- for block types, button.btn-edit is placed in its own div.row-fluid, therefore the next row is the actual container -->
         <xsl:param name="container" select="$block/descendant::div[@typeof][1]" as="element()"/> <!-- other resources can be nested within object -->
         
         <xsl:next-match>

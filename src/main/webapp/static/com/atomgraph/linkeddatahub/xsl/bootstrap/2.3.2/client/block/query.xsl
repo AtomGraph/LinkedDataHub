@@ -361,6 +361,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="textarea" select="ancestor::form/descendant::textarea[@name = 'query']" as="element()"/>
         <xsl:variable name="yasqe" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.yasqe'), $textarea/ixsl:get(., 'id'))"/>
         <xsl:variable name="query-string" select="ixsl:call($yasqe, 'getValue', [])" as="xs:string?"/> <!-- get query string from YASQE -->
+        <xsl:variable name="method" select="'PATCH'" as="xs:string"/>
         <xsl:variable name="action" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/>
         <xsl:variable name="accept" select="'application/rdf+xml'" as="xs:string"/>
         <xsl:variable name="etag" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path(ldh:base-uri(.)) || '`'), 'etag')" as="xs:string"/>
@@ -377,7 +378,7 @@ exclude-result-prefixes="#all"
             </xsl:apply-templates>
         </xsl:variable>
         <xsl:variable name="triples" select="ldh:descriptions-to-triples($query)" as="element()*"/>
-        <xsl:variable name="update-string" select="ldh:triples-to-sparql-update($about, $triples)" as="xs:string"/>
+        <xsl:variable name="update-string" select="ldh:insertdelete-update(ldh:triples-to-bgp(ldh:uri-po-pattern($about)), ldh:triples-to-bgp($triples), ldh:triples-to-bgp(ldh:uri-po-pattern($about)))" as="xs:string"/>
         <xsl:variable name="resources" as="document-node()">
             <xsl:document>
                 <rdf:RDF>
@@ -386,19 +387,21 @@ exclude-result-prefixes="#all"
             </xsl:document>
         </xsl:variable>
         <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, $action)" as="xs:anyURI"/>
-        
-        <xsl:variable name="request" as="item()*">
-            <!-- If-Match header checks preconditions, i.e. that the graph has not been modified in the meanwhile --> 
-            <ixsl:schedule-action http-request="map{ 'method': 'PATCH', 'href': $request-uri, 'media-type': 'application/sparql-update', 'body': $update-string, 'headers': map{ 'If-Match': $etag, 'Accept': 'application/rdf+xml', 'Cache-Control': 'no-cache' } }">
-                <xsl:call-template name="ldh:ResourceUpdated">
-                    <xsl:with-param name="doc-uri" select="ac:absolute-path(ldh:base-uri(.))"/>
-                    <xsl:with-param name="block" select="$block"/>
-<!--                    <xsl:with-param name="container" select="$container"/>-->
-                    <xsl:with-param name="resources" select="$resources"/>
-                </xsl:call-template>
-            </ixsl:schedule-action>
-        </xsl:variable>
-        <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
+        <!-- If-Match header checks preconditions, i.e. that the graph has not been modified in the meanwhile -->
+        <xsl:variable name="request" select="map{ 'method': $method, 'href': $request-uri, 'media-type': 'application/sparql-update', 'body': $update-string, 'headers': map{ 'If-Match': $etag, 'Accept': 'application/rdf+xml', 'Cache-Control': 'no-cache' } }" as="map(*)"/>
+        <xsl:variable name="context" as="map(*)" select="
+          map{
+            'request': $request,
+            'doc-uri': ac:absolute-path(ldh:base-uri(.)),
+            'block': $block,
+            'resources': $resources
+          }"/>
+        <ixsl:promise select="
+          ixsl:http-request($context('request'))                          (: Step 1: send initial request :)
+            => ixsl:then(ldh:rethread-response($context, ?))              (: Step 2: attach response to context :)
+            => ixsl:then(ldh:handle-response#1)                           (: Step 3: handle 429s, etc. :)
+            => ixsl:then(ldh:row-form-patch-response#1)
+        "/>
     </xsl:template>
     
     <!-- open query onclick -->

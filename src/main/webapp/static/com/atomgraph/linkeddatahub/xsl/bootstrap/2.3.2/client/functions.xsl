@@ -400,24 +400,38 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="ixsl:call($js-function, 'call', [ (), $doc ])"/>
     </xsl:function>
     
+    <!-- builds an <$about> ?p ?o triple pattern for the given $about URI -->
+    
+    <xsl:function name="ldh:uri-po-pattern" as="element()*">
+        <xsl:param name="about" as="xs:anyURI"/>
+
+        <json:map>
+            <json:string key="subject"><xsl:sequence select="$about"/></json:string>
+            <json:string key="predicate">?p</json:string>
+            <json:string key="object">?o</json:string>
+        </json:map>
+    </xsl:function>
+    
+    <!-- wraps triple pattern into BGP pattern -->
+    
+    <xsl:function name="ldh:triples-to-bgp" as="element()">
+        <xsl:param name="triples" as="element()*"/>
+
+        <json:map>
+            <json:string key="type">bgp</json:string>
+            <json:array key="triples">
+                <xsl:sequence select="$triples"/>
+            </json:array>
+        </json:map>
+    </xsl:function>
+    
     <!-- builds SPARQL update by injecting SPARQL.js triples into the INSERT block -->
 
-    <xsl:function name="ldh:triples-to-sparql-update" as="xs:string">
-        <xsl:param name="about" as="xs:anyURI"/>
-        <xsl:param name="triples" as="element()*"/>
-        
-        <xsl:variable name="where-pattern" as="element()">
-            <json:map>
-                <json:string key="type">bgp</json:string>
-                <json:array key="triples">
-                    <json:map>
-                        <json:string key="subject"><xsl:sequence select="$about"/></json:string>
-                        <json:string key="predicate">?p</json:string>
-                        <json:string key="object">?o</json:string>
-                    </json:map>
-                </json:array>
-            </json:map>
-        </xsl:variable>
+    <xsl:function name="ldh:insertdelete-update" as="xs:string">
+        <xsl:param name="delete-pattern" as="element()*"/>
+        <xsl:param name="insert-pattern" as="element()*"/>
+        <xsl:param name="where-pattern" as="element()*"/>
+
         <xsl:variable name="update-xml" as="element()">
             <json:map>
                 <json:string key="type">update</json:string>
@@ -425,15 +439,10 @@ exclude-result-prefixes="#all"
                     <json:map>
                         <json:string key="updateType">insertdelete</json:string>
                         <json:array key="delete">
-                            <xsl:sequence select="$where-pattern"/>
+                            <xsl:sequence select="$delete-pattern"/>
                         </json:array>
                         <json:array key="insert">
-                            <json:map>
-                                <json:string key="type">bgp</json:string>
-                                <json:array key="triples">
-                                    <xsl:sequence select="$triples"/>
-                                </json:array>
-                            </json:map>
+                            <xsl:sequence select="$insert-pattern"/>
                         </json:array>
                         <json:array key="where">
                             <xsl:sequence select="$where-pattern"/>
@@ -450,36 +459,72 @@ exclude-result-prefixes="#all"
     <!-- generic HTTP client promises (SaxonJS 3) -->
 
     <xsl:function name="ldh:handle-response" as="item()*" ixsl:updating="yes">
-        <xsl:param name="request" as="map(*)"/>
-        <xsl:param name="response" as="map(*)"/>
-        <xsl:variable name="default-retry-after" select="1" as="xs:integer"/>
+      <xsl:param name="context" as="map(*)"/>
 
-        <xsl:choose>
-            <xsl:when test="$response?status = 429">
-                <xsl:variable name="retry-after" select="
-                  if (map:contains($response?headers, 'Retry-After')) 
-                  then xs:integer($response?headers('Retry-After')) 
-                  else $default-retry-after"/>
+      <xsl:variable name="request" select="$context('request')" as="map(*)"/>
+      <xsl:variable name="response" select="$context('response')" as="map(*)"/>
+      <xsl:variable name="default-retry-after" select="1" as="xs:integer"/>
 
-                <xsl:sequence select="
-                  ixsl:sleep($retry-after * 1000)
-                    => ixsl:then(ldh:retry-request($request, ?))
-                "/>
-          </xsl:when>
-            <xsl:otherwise>
-                <xsl:sequence select="$response"/>
-            </xsl:otherwise>
-        </xsl:choose>
+      <xsl:choose>
+        <xsl:when test="$response?status = 429">
+          <xsl:variable name="retry-after" select="
+            if (map:contains($response?headers, 'Retry-After')) 
+            then xs:integer($response?headers('Retry-After')) 
+            else $default-retry-after"/>
+
+          <xsl:sequence select="
+            ixsl:sleep($retry-after * 1000)
+                => ixsl:then(ldh:retry-request($context, ?))
+          "/>
+        </xsl:when>
+        <xsl:otherwise>
+          <xsl:sequence select="$context"/>
+        </xsl:otherwise>
+      </xsl:choose>
     </xsl:function>
 
     <xsl:function name="ldh:retry-request" as="item()*" ixsl:updating="yes">
-        <xsl:param name="request" as="map(*)"/>
-        <xsl:param name="sleep-result" as="item()?"/>
+      <xsl:param name="context" as="map(*)"/>
+      <xsl:param name="sleep-result" as="item()?"/>
 
-        <xsl:sequence select="
-          ixsl:http-request($request)
-            => ixsl:then(ldh:handle-response($request, ?))
-        "/>
+      <xsl:variable name="request" select="$context('request')"/>
+
+      <xsl:sequence select="
+        ixsl:http-request($request)
+          => ixsl:then(ldh:rethread-response($context, ?))
+          => ixsl:then(ldh:handle-response#1)
+      "/>
+    </xsl:function>
+    
+    <xsl:function name="ldh:rethread-response" as="map(*)" ixsl:updating="no">
+      <xsl:param name="context" as="map(*)"/>
+      <xsl:param name="response" as="map(*)"/>
+
+      <xsl:sequence select="map:merge(($context, map{ 'response': $response }), map{ 'duplicates': 'use-last' })"/>
+    </xsl:function>
+
+    <xsl:function name="ldh:http-request-threaded" as="map(*)" ixsl:updating="yes">
+      <xsl:param name="context" as="map(*)"/>
+
+      <xsl:sequence select="
+        ixsl:http-request($context('request'))
+          => ixsl:then(ldh:rethread-response($context, ?))
+      "/>
+    </xsl:function>
+    
+    <xsl:function name="ldh:promise-failure" ixsl:updating="yes">
+        <xsl:param name="error" as="map(*)"/>
+
+        <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
+        <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ $error?message ])"/>
+    </xsl:function>
+    
+    <xsl:function name="ldh:error-response-alert" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:variable name="response" select="$context('response')" as="map(*)?"/>
+
+        <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
+        <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ $response?message ])"/>
     </xsl:function>
     
 </xsl:stylesheet>

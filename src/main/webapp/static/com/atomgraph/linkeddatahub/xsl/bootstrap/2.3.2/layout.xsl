@@ -626,11 +626,15 @@ LIMIT   100
             <div class="row-fluid">
                 <xsl:apply-templates select="." mode="bs2:BreadCrumbBar"/>
                 
-                <div id="created-modified-date" class="span3">
-                    <p>
-                        <xsl:apply-templates select="key('resources', ac:absolute-path(ldh:base-uri(.)))" mode="bs2:Timestamp"/>
-                    </p>
-                </div>
+                <div id="doc-controls" class="span3">
+                    <xsl:apply-templates select="key('resources', ac:absolute-path(ldh:base-uri(.)))" mode="bs2:Timestamp"/>
+
+                    <xsl:if test="$acl:mode = '&acl;Write'">
+                        <button type="button" class="btn btn-edit pull-right">
+                            <xsl:apply-templates select="key('resources', '&ac;EditMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
+                        </button>
+                    </xsl:if>
+                </div>                
             </div>
         </div>
     </xsl:template>
