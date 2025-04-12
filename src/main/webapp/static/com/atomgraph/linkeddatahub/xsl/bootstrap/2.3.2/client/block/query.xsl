@@ -353,7 +353,7 @@ exclude-result-prefixes="#all"
     <!-- save query onclick -->
     <!-- TO-DO: use @typeof in match so that we don't need a custom button.btn-save-query class -->
     
-    <xsl:template match="div[@typeof]//button[contains-token(@class, 'btn-save-query')]" mode="ixsl:onclick" use-when="system-property('xsl:product-name') eq 'SaxonJS'">
+    <xsl:template match="div[@typeof]//button[contains-token(@class, 'btn-save-query')]" mode="ixsl:onclick">
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
         <xsl:variable name="block" select="ancestor::div[contains-token(@class, 'block')][1]" as="element()"/>
         <xsl:variable name="container" select="ancestor::div[@typeof][1]" as="element()"/>
