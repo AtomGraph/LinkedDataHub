@@ -924,7 +924,7 @@ WHERE
         </xsl:choose>
     </xsl:function>
     
-    <xsl:function name="ldh:form-horizontal-response" as="map(*)" ixsl:updating="yes">
+    <xsl:function name="ldh:form-horizontal-response" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
         <xsl:variable name="response" select="$context('response')" as="map(*)"/>
         <xsl:variable name="status" select="$response?status" as="xs:double"/>
@@ -1186,8 +1186,6 @@ WHERE
                     <xsl:with-param name="object-metadata" select="$object-metadata" tunnel="yes"/>
                 </xsl:apply-templates>
             </xsl:variable>
-
-            <xsl:message>BBB</xsl:message>
 
             <xsl:for-each select="$block">
                 <xsl:result-document href="?." method="ixsl:replace-content">
@@ -1960,7 +1958,7 @@ WHERE
             'form': $form,
             'resources': $resources
           }"/>
-        <ixsl:promise select="ldh:form-horizontal-response#1"/>
+        <xsl:sequence select="ldh:form-horizontal-response($context)"/>
     </xsl:template>
     
 </xsl:stylesheet>
