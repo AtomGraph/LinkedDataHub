@@ -412,20 +412,26 @@ exclude-result-prefixes="#all"
         </json:map>
     </xsl:function>
     
+    <!-- wraps triple pattern into BGP pattern -->
+    
+    <xsl:function name="ldh:triples-to-bgp" as="element()">
+        <xsl:param name="triples" as="element()*"/>
+
+        <json:map>
+            <json:string key="type">bgp</json:string>
+            <json:array key="triples">
+                <xsl:sequence select="$triples"/>
+            </json:array>
+        </json:map>
+    </xsl:function>
+    
     <!-- builds SPARQL update by injecting SPARQL.js triples into the INSERT block -->
 
-    <xsl:function name="ldh:triples-to-sparql-update" as="xs:string">
-        <xsl:param name="where-triples" as="element()*"/>
-        <xsl:param name="insert-triples" as="element()*"/>
-        
-        <xsl:variable name="where-pattern" as="element()">
-            <json:map>
-                <json:string key="type">bgp</json:string>
-                <json:array key="triples">
-                    <xsl:sequence select="$where-triples"/>
-                </json:array>
-            </json:map>
-        </xsl:variable>
+    <xsl:function name="ldh:insertdelete-update" as="xs:string">
+        <xsl:param name="delete-pattern" as="element()*"/>
+        <xsl:param name="insert-pattern" as="element()*"/>
+        <xsl:param name="where-pattern" as="element()*"/>
+
         <xsl:variable name="update-xml" as="element()">
             <json:map>
                 <json:string key="type">update</json:string>
@@ -433,15 +439,10 @@ exclude-result-prefixes="#all"
                     <json:map>
                         <json:string key="updateType">insertdelete</json:string>
                         <json:array key="delete">
-                            <xsl:sequence select="$where-pattern"/>
+                            <xsl:sequence select="$delete-pattern"/>
                         </json:array>
                         <json:array key="insert">
-                            <json:map>
-                                <json:string key="type">bgp</json:string>
-                                <json:array key="triples">
-                                    <xsl:sequence select="$insert-triples"/>
-                                </json:array>
-                            </json:map>
+                            <xsl:sequence select="$insert-pattern"/>
                         </json:array>
                         <json:array key="where">
                             <xsl:sequence select="$where-pattern"/>

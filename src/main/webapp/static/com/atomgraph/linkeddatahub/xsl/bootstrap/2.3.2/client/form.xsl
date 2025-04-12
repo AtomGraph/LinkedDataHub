@@ -670,8 +670,74 @@ WHERE
         <xsl:variable name="triples" as="element()*">
             <xsl:apply-templates select="$triples" mode="ldh:CanonicalizeXML"/>
         </xsl:variable>
-
-        <xsl:variable name="update-string" select="ldh:triples-to-sparql-update(ldh:uri-po-pattern($about), $triples)" as="xs:string"/>
+        <!-- need a customer DELETE/WHERE pattern because the default $about ?p ?o would delete system properties such as dct:created or sioc:has_parent -->
+        <xsl:variable name="where-pattern" as="element()*">
+            <json:map>
+                <json:string key="type">bgp</json:string>
+                <json:array key="triples">
+                    <json:map>
+                        <json:string key="subject"><xsl:value-of select="$about"/></json:string>
+                        <json:string key="predicate">?p</json:string>
+                        <json:string key="object">?o</json:string>
+                    </json:map>
+                </json:array>
+            </json:map>
+            <json:map>
+                <json:string key="type">filter</json:string>
+                <json:map key="expression">
+                    <json:string key="type">operation</json:string>
+                    <json:string key="operator">notin</json:string>
+                    <json:array key="args">
+                        <json:string>?p</json:string>
+                        <json:array>
+                            <json:string>&dct;reated</json:string>
+                            <json:string>&dct;modified</json:string>
+                            <json:string>&sioc;has_parent</json:string>
+                            <json:string>&sioc;has_container</json:string>
+                            <json:string>&dct;creator</json:string>
+                            <json:string>&acl;owner</json:string>
+                        </json:array>
+                    </json:array>
+                </json:map>
+            </json:map>
+            <json:map>
+                <json:string key="type">filter</json:string>
+                <json:map key="expression">
+                    <json:string key="type">operation</json:string>
+                    <json:string key="operator">!</json:string>
+                    <json:array key="args">
+                        <json:map>
+                            <json:string key="type">operation</json:string>
+                            <json:string key="operator">strstarts</json:string>
+                            <json:array key="args">
+                                <json:map>
+                                    <json:string key="type">operation</json:string>
+                                    <json:string key="operator">str</json:string>
+                                    <json:array key="args">
+                                        <json:string>?p</json:string>
+                                    </json:array>
+                                </json:map>
+                                <json:map>
+                                    <json:string key="type">operation</json:string>
+                                    <json:string key="operator">concat</json:string>
+                                    <json:array key="args">
+                                        <json:map>
+                                            <json:string key="type">operation</json:string>
+                                            <json:string key="operator">str</json:string>
+                                            <json:array key="args">
+                                                <json:string>http://www.w3.org/1999/02/22-rdf-syntax-ns#</json:string>
+                                            </json:array>
+                                        </json:map>
+                                        <json:string>"_"</json:string>
+                                    </json:array>
+                                </json:map>
+                            </json:array>
+                        </json:map>
+                    </json:array>
+                </json:map>
+            </json:map>
+        </xsl:variable>
+        <xsl:variable name="update-string" select="ldh:insertdelete-update(ldh:triples-to-bgp(ldh:uri-po-pattern($about)), ldh:triples-to-bgp($triples), $where-pattern)" as="xs:string"/>
         <xsl:variable name="resources" as="document-node()">
             <xsl:document>
                 <rdf:RDF>
@@ -725,7 +791,7 @@ WHERE
             <xsl:apply-templates select="$triples" mode="ldh:CanonicalizeXML"/>
         </xsl:variable>
 
-        <xsl:variable name="update-string" select="ldh:triples-to-sparql-update(ldh:uri-po-pattern($about), $triples)" as="xs:string"/>
+        <xsl:variable name="update-string" select="ldh:insertdelete-update(ldh:triples-to-bgp(ldh:uri-po-pattern($about)), ldh:triples-to-bgp($triples), ldh:triples-to-bgp(ldh:uri-po-pattern($about)))" as="xs:string"/>
         <xsl:variable name="resources" as="document-node()">
             <xsl:document>
                 <rdf:RDF>
@@ -815,7 +881,7 @@ WHERE
         <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
     </xsl:template>
 
-    <xsl:function name="ldh:modal-form-patch-response" as="map(*)" ixsl:updating="yes">
+    <xsl:function name="ldh:modal-form-patch-response" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
 
         <xsl:message>ldh:modal-form-patch-response</xsl:message>
@@ -837,7 +903,7 @@ WHERE
         </xsl:choose>
     </xsl:function>
 
-    <xsl:function name="ldh:row-form-patch-response" as="map(*)" ixsl:updating="yes">
+    <xsl:function name="ldh:row-form-patch-response" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
         <xsl:variable name="response" select="$context('response')" as="map(*)"/>
         <xsl:variable name="status" select="$response?status" as="xs:double"/>
@@ -883,7 +949,7 @@ WHERE
         </xsl:choose>
     </xsl:function>
     
-    <xsl:function name="ldh:form-horizontal-submit-success" as="map(*)" ixsl:updating="yes">
+    <xsl:function name="ldh:form-horizontal-submit-success" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
         <xsl:variable name="response" select="$context('response')" as="map(*)"/>
         <xsl:variable name="doc-uri" select="$context('doc-uri')" as="xs:anyURI"/>
@@ -925,21 +991,14 @@ WHERE
                 </xsl:result-document>
             </xsl:for-each>
 
-            <xsl:variable name="rendered" as="item()*">
-                <!-- cannot be in $block context because it contains old DOM (pre-ixsl:replace-content) -->
-                <xsl:apply-templates select="id($block/@id, ixsl:page())" mode="ldh:RenderRow"/>
-            </xsl:variable>
+            <!-- cannot be in $block context because it contains old DOM (pre-ixsl:replace-content) -->
+            <xsl:apply-templates select="id($block/@id, ixsl:page())" mode="ldh:RenderRow"/>
             
-            <xsl:sequence select="map:merge((
-              $context,
-              map{ 'rendered-row': $rendered }
-            ), map{ 'duplicates': 'use-last' })"/>        
-
             <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
         </xsl:for-each>
     </xsl:function>
 
-    <xsl:function name="ldh:modal-form-submit-success" as="map(*)" ixsl:updating="yes">
+    <xsl:function name="ldh:modal-form-submit-success" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
         <xsl:variable name="response" select="$context('response')" as="map(*)"/>
 
@@ -955,7 +1014,7 @@ WHERE
                 'href': $href
               }
             ), map{ 'duplicates': 'use-last' })" as="map(*)"/>  
-            <xsl:sequence select="
+            <ixsl:promise select="
               ixsl:http-request($context('request'))                          (: Step 1: send initial request :)
                 => ixsl:then(ldh:rethread-response($context, ?))              (: Step 2: attach response to context :)
                 => ixsl:then(ldh:handle-response#1)                           (: Step 3: handle 429s, etc. :)
@@ -964,7 +1023,7 @@ WHERE
         </xsl:for-each>        
     </xsl:function>
     
-    <xsl:function name="ldh:modal-form-submit-created" as="map(*)" ixsl:updating="yes">
+    <xsl:function name="ldh:modal-form-submit-created" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
         <xsl:variable name="response" select="$context('response')" as="map(*)"/>
 
@@ -978,7 +1037,7 @@ WHERE
                 'request': $request,
                 'href': $href
               }"/>
-            <xsl:sequence select="
+            <ixsl:promise select="
               ixsl:http-request($context('request'))                          (: Step 1: send initial request :)
                 => ixsl:then(ldh:rethread-response($context, ?))              (: Step 2: attach response to context :)
                 => ixsl:then(ldh:handle-response#1)                           (: Step 3: handle 429s, etc. :)
@@ -987,7 +1046,7 @@ WHERE
         </xsl:for-each>        
     </xsl:function>
     
-    <xsl:function name="ldh:modal-form-submit-violation" as="map(*)" ixsl:updating="yes">
+    <xsl:function name="ldh:modal-form-submit-violation" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
         <xsl:variable name="response" select="$context('response')" as="map(*)"/>
         <xsl:variable name="doc-uri" select="$context('doc-uri')" as="xs:anyURI"/>
@@ -1075,7 +1134,7 @@ WHERE
         <xsl:sequence select="$context"/>
     </xsl:function>
     
-    <xsl:function name="ldh:row-form-submit-violation" as="map(*)" ixsl:updating="yes">
+    <xsl:function name="ldh:row-form-submit-violation" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
         <xsl:variable name="response" select="$context('response')" as="map(*)"/>
         <xsl:variable name="doc-uri" select="$context('doc-uri')" as="xs:anyURI"/>

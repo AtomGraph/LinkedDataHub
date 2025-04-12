@@ -378,7 +378,7 @@ exclude-result-prefixes="#all"
             </xsl:apply-templates>
         </xsl:variable>
         <xsl:variable name="triples" select="ldh:descriptions-to-triples($query)" as="element()*"/>
-        <xsl:variable name="update-string" select="ldh:triples-to-sparql-update(ldh:uri-po-pattern($about), $triples)" as="xs:string"/>
+        <xsl:variable name="update-string" select="ldh:insertdelete-update(ldh:triples-to-bgp(ldh:uri-po-pattern($about)), ldh:triples-to-bgp($triples), ldh:triples-to-bgp(ldh:uri-po-pattern($about)))" as="xs:string"/>
         <xsl:variable name="resources" as="document-node()">
             <xsl:document>
                 <rdf:RDF>
