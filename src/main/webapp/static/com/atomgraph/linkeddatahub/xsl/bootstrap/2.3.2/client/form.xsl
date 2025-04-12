@@ -671,7 +671,7 @@ WHERE
             <xsl:apply-templates select="$triples" mode="ldh:CanonicalizeXML"/>
         </xsl:variable>
 
-        <xsl:variable name="update-string" select="ldh:triples-to-sparql-update($about, $triples)" as="xs:string"/>
+        <xsl:variable name="update-string" select="ldh:triples-to-sparql-update(ldh:uri-po-pattern($about), $triples)" as="xs:string"/>
         <xsl:variable name="resources" as="document-node()">
             <xsl:document>
                 <rdf:RDF>
@@ -725,7 +725,7 @@ WHERE
             <xsl:apply-templates select="$triples" mode="ldh:CanonicalizeXML"/>
         </xsl:variable>
 
-        <xsl:variable name="update-string" select="ldh:triples-to-sparql-update($about, $triples)" as="xs:string"/>
+        <xsl:variable name="update-string" select="ldh:triples-to-sparql-update(ldh:uri-po-pattern($about), $triples)" as="xs:string"/>
         <xsl:variable name="resources" as="document-node()">
             <xsl:document>
                 <rdf:RDF>

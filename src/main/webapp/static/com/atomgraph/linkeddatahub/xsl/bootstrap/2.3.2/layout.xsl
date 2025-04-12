@@ -89,7 +89,6 @@ exclude-result-prefixes="#all">
     <xsl:import href="imports/sp.xsl"/>
     <xsl:import href="resource.xsl"/>
     <xsl:import href="document.xsl"/>
-    <xsl:import href="client/block/query.xsl"/>
     
     <!--  To use xsl:import-schema, you need the schema-aware version of Saxon -->
     <!-- <xsl:import-schema namespace="http://www.w3.org/1999/xhtml" schema-location="http://www.w3.org/2002/08/xhtml/xhtml1-transitional.xsd"/> -->

@@ -115,7 +115,7 @@ exclude-result-prefixes="#all"
 
     <!-- TEMPLATES -->
 
-    <!-- render block -->
+    <!-- render row -->
     
     <!-- match resources that are not LDH system resources -->
     <xsl:template match="*[@typeof[not(. = ('&ldh;Object', '&ldh;View', '&ldh;GraphChart', '&ldh;ResultSetChart'))]]" mode="ldh:RenderRow" priority="1">

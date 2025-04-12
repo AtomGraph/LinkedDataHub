@@ -400,21 +400,29 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="ixsl:call($js-function, 'call', [ (), $doc ])"/>
     </xsl:function>
     
+    <!-- builds an <$about> ?p ?o triple pattern for the given $about URI -->
+    
+    <xsl:function name="ldh:uri-po-pattern" as="element()*">
+        <xsl:param name="about" as="xs:anyURI"/>
+
+        <json:map>
+            <json:string key="subject"><xsl:sequence select="$about"/></json:string>
+            <json:string key="predicate">?p</json:string>
+            <json:string key="object">?o</json:string>
+        </json:map>
+    </xsl:function>
+    
     <!-- builds SPARQL update by injecting SPARQL.js triples into the INSERT block -->
 
     <xsl:function name="ldh:triples-to-sparql-update" as="xs:string">
-        <xsl:param name="about" as="xs:anyURI"/>
-        <xsl:param name="triples" as="element()*"/>
+        <xsl:param name="where-triples" as="element()*"/>
+        <xsl:param name="insert-triples" as="element()*"/>
         
         <xsl:variable name="where-pattern" as="element()">
             <json:map>
                 <json:string key="type">bgp</json:string>
                 <json:array key="triples">
-                    <json:map>
-                        <json:string key="subject"><xsl:sequence select="$about"/></json:string>
-                        <json:string key="predicate">?p</json:string>
-                        <json:string key="object">?o</json:string>
-                    </json:map>
+                    <xsl:sequence select="$where-triples"/>
                 </json:array>
             </json:map>
         </xsl:variable>
@@ -431,7 +439,7 @@ exclude-result-prefixes="#all"
                             <json:map>
                                 <json:string key="type">bgp</json:string>
                                 <json:array key="triples">
-                                    <xsl:sequence select="$triples"/>
+                                    <xsl:sequence select="$insert-triples"/>
                                 </json:array>
                             </json:map>
                         </json:array>
