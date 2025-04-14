@@ -29,7 +29,7 @@
     sd:endpoint <http://fuseki-admin:3030/ds/> ;
     a:graphStore <http://fuseki-admin:3030/ds/> ;
     a:quadStore <http://fuseki-admin:3030/ds/> ;
-    lapp:backendProxy <http://nginx-admin:8080/> .
+    lapp:backendProxy <http://varnish-admin/> .
 
 # root end-user
 
@@ -48,4 +48,4 @@
     sd:endpoint <http://fuseki-end-user:3030/ds/> ;
     a:graphStore <http://fuseki-end-user:3030/ds/> ;
     a:quadStore <http://fuseki-end-user:3030/ds/> ;
-    lapp:backendProxy <http://nginx-end-user:8080/> .
+    lapp:backendProxy <http://varnish-end-user/> .

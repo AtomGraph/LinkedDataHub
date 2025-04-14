@@ -128,37 +128,16 @@ services:
     command: [ "-t", "86400" ] # time to live
     volumes:
       - ./platform/varnish-frontend.vcl.template:/etc/varnish/default.vcl.template:ro
-  nginx-admin:
-    image: nginx:1.23.3
-    depends_on:
-      - varnish-admin
-    command: /bin/sh -c "cp /etc/nginx/nginx.conf.template /etc/nginx/nginx.conf && sed -i 's|$${UPSTREAM_SERVER}|'"$$UPSTREAM_SERVER"'|g' /etc/nginx/nginx.conf && sed -i 's|$${UPSTREAM_HTTP_PORT}|'"$$UPSTREAM_HTTP_PORT"'|g' /etc/nginx/nginx.conf && sed -i 's|$${SERVER_HTTP_PORT}|'"$$SERVER_HTTP_PORT"'|g' /etc/nginx/nginx.conf && nginx -g 'daemon off;'"
-    environment:
-      - UPSTREAM_SERVER=varnish-admin
-      - UPSTREAM_HTTP_PORT=80
-      - SERVER_HTTP_PORT=8080 # because of nginx-unprivileged
-    volumes:
-      - ./platform/nginx-backend.conf.template:/etc/nginx/nginx.conf.template:ro
-  nginx-end-user:
-    image: nginx:1.23.3
-    depends_on:
-      - varnish-end-user
-    command: /bin/sh -c "cp /etc/nginx/nginx.conf.template /etc/nginx/nginx.conf && sed -i 's|$${UPSTREAM_SERVER}|'"$$UPSTREAM_SERVER"'|g' /etc/nginx/nginx.conf && sed -i 's|$${UPSTREAM_HTTP_PORT}|'"$$UPSTREAM_HTTP_PORT"'|g' /etc/nginx/nginx.conf && sed -i 's|$${SERVER_HTTP_PORT}|'"$$SERVER_HTTP_PORT"'|g' /etc/nginx/nginx.conf && nginx -g 'daemon off;'"
-    environment:
-      - UPSTREAM_SERVER=varnish-end-user
-      - UPSTREAM_HTTP_PORT=80
-      - SERVER_HTTP_PORT=8080 # because of nginx-unprivileged
-    volumes:
-      - ./platform/nginx-backend.conf.template:/etc/nginx/nginx.conf.template:ro
   varnish-admin:
     image: varnish:7.3.0
     user: root # otherwise the varnish user does not have permissions to the mounted folder which is owner by root
     depends_on:
       - linkeddatahub
+      - nginx-admin
     tmpfs: /var/lib/varnish/varnishd:exec
     environment:
-      - BACKEND_HOST=fuseki-admin
-      - BACKEND_PORT=3030
+      - BACKEND_HOST=nginx-admin
+      - BACKEND_PORT=8080
       - CLIENT_HOST=linkeddatahub
       - VARNISH_SIZE=1G
     entrypoint: /bin/sh -c "cp /etc/varnish/default.vcl.template /etc/varnish/default.vcl && sed -i 's|$${BACKEND_HOST}|'"$$BACKEND_HOST"'|g' /etc/varnish/default.vcl && sed -i 's|$${BACKEND_PORT}|'"$$BACKEND_PORT"'|g' /etc/varnish/default.vcl && sed -i 's|$${CLIENT_HOST}|'"$$CLIENT_HOST"'|g' /etc/varnish/default.vcl && /usr/local/bin/docker-varnish-entrypoint \"$$0\" \"$$@\""
@@ -170,16 +149,39 @@ services:
     user: root # otherwise varnish user does not have permissions to the mounted folder which is owner by root
     depends_on:
       - linkeddatahub
+      - nginx-end-user
     tmpfs: /var/lib/varnish/varnishd:exec
     environment:
-      - BACKEND_HOST=fuseki-end-user
-      - BACKEND_PORT=3030
+      - BACKEND_HOST=nginx-end-user
+      - BACKEND_PORT=8080
       - CLIENT_HOST=linkeddatahub
       - VARNISH_SIZE=1G
     entrypoint: /bin/sh -c "cp /etc/varnish/default.vcl.template /etc/varnish/default.vcl && sed -i 's|$${BACKEND_HOST}|'"$$BACKEND_HOST"'|g' /etc/varnish/default.vcl && sed -i 's|$${BACKEND_PORT}|'"$$BACKEND_PORT"'|g' /etc/varnish/default.vcl && sed -i 's|$${CLIENT_HOST}|'"$$CLIENT_HOST"'|g' /etc/varnish/default.vcl && /usr/local/bin/docker-varnish-entrypoint \"$$0\" \"$$@\""
     command: [ "-t", "86400", "-p", "timeout_idle=60s" ] # time to live
     volumes:
       - ./platform/varnish-backend.vcl.template:/etc/varnish/default.vcl.template:ro
+  nginx-admin:
+    image: nginx:1.23.3
+    depends_on:
+      - fuseki-admin
+    command: /bin/sh -c "cp /etc/nginx/nginx.conf.template /etc/nginx/nginx.conf && sed -i 's|$${UPSTREAM_SERVER}|'"$$UPSTREAM_SERVER"'|g' /etc/nginx/nginx.conf && sed -i 's|$${UPSTREAM_HTTP_PORT}|'"$$UPSTREAM_HTTP_PORT"'|g' /etc/nginx/nginx.conf && sed -i 's|$${SERVER_HTTP_PORT}|'"$$SERVER_HTTP_PORT"'|g' /etc/nginx/nginx.conf && nginx -g 'daemon off;'"
+    environment:
+      - UPSTREAM_SERVER=fuseki-admin
+      - UPSTREAM_HTTP_PORT=3030
+      - SERVER_HTTP_PORT=8080 # because of nginx-unprivileged
+    volumes:
+      - ./platform/nginx-backend.conf.template:/etc/nginx/nginx.conf.template:ro
+  nginx-end-user:
+    image: nginx:1.23.3
+    depends_on:
+      - fuseki-end-user
+    command: /bin/sh -c "cp /etc/nginx/nginx.conf.template /etc/nginx/nginx.conf && sed -i 's|$${UPSTREAM_SERVER}|'"$$UPSTREAM_SERVER"'|g' /etc/nginx/nginx.conf && sed -i 's|$${UPSTREAM_HTTP_PORT}|'"$$UPSTREAM_HTTP_PORT"'|g' /etc/nginx/nginx.conf && sed -i 's|$${SERVER_HTTP_PORT}|'"$$SERVER_HTTP_PORT"'|g' /etc/nginx/nginx.conf && nginx -g 'daemon off;'"
+    environment:
+      - UPSTREAM_SERVER=fuseki-end-user
+      - UPSTREAM_HTTP_PORT=3030
+      - SERVER_HTTP_PORT=8080 # because of nginx-unprivileged
+    volumes:
+      - ./platform/nginx-backend.conf.template:/etc/nginx/nginx.conf.template:ro
   email-server:
     image: namshi/smtp
     environment:
