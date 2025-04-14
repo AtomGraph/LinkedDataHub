@@ -178,6 +178,7 @@ public class LinkedDataClient extends com.atomgraph.core.client.LinkedDataClient
                 getMaxRetryCount()).
             post(entity);
     }
+    
     @Override
     public Response put(URI uri, MediaType[] acceptedTypes, Entity entity)
     {
@@ -212,7 +213,8 @@ public class LinkedDataClient extends com.atomgraph.core.client.LinkedDataClient
                 webTarget.request(),
                 getDefaultDelayMillis(),
                 getMaxRetryCount()
-            ).delete();
+            ).
+            delete();
     }
     
     /**
