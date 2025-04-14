@@ -43,8 +43,10 @@ import org.slf4j.LoggerFactory;
  * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
+@Deprecated
 public class RetryAfterHelper
 {
+    
     private static final Logger log = LoggerFactory.getLogger(RetryAfterHelper.class);
 
     private final long defaultDelayMillis;

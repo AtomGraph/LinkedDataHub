@@ -17,7 +17,6 @@
 package com.atomgraph.linkeddatahub.model.impl;
 
 import com.atomgraph.core.MediaTypes;
-import com.atomgraph.core.client.GraphStoreClient;
 import com.atomgraph.core.client.QuadStoreClient;
 import com.atomgraph.core.client.SPARQLClient;
 import com.atomgraph.core.model.DatasetAccessor;
@@ -28,6 +27,7 @@ import com.atomgraph.core.model.impl.remote.DatasetQuadAccessorImpl;
 import com.atomgraph.core.model.impl.remote.EndpointAccessorImpl;
 import com.atomgraph.core.vocabulary.A;
 import com.atomgraph.core.vocabulary.SD;
+import com.atomgraph.linkeddatahub.client.GraphStoreClient;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.vocabulary.LAPP;
 import java.net.URI;
@@ -156,7 +156,7 @@ public class ServiceImpl extends ResourceImpl implements Service
     }
 
     @Override
-    public GraphStoreClient getGraphStoreClient()
+    public com.atomgraph.core.client.GraphStoreClient getGraphStoreClient()
     {
         return getGraphStoreClient(getClient().target(getProxiedURI(URI.create(getGraphStore().getURI()))));
     }

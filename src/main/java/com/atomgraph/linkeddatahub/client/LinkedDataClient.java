@@ -19,14 +19,13 @@ package com.atomgraph.linkeddatahub.client;
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.linkeddatahub.client.filter.auth.IDTokenDelegationFilter;
 import com.atomgraph.linkeddatahub.client.filter.auth.WebIDDelegationFilter;
-import com.atomgraph.linkeddatahub.client.util.RetryAfterHelper;
+import com.atomgraph.linkeddatahub.client.util.RetryingInvocationBuilder;
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
 import com.atomgraph.linkeddatahub.server.security.IDTokenSecurityContext;
 import com.atomgraph.linkeddatahub.server.security.WebIDSecurityContext;
 import java.net.URI;
 import jakarta.ws.rs.client.Client;
 import jakarta.ws.rs.client.Entity;
-import static jakarta.ws.rs.client.Entity.entity;
 import jakarta.ws.rs.client.WebTarget;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
@@ -160,43 +159,60 @@ public class LinkedDataClient extends com.atomgraph.core.client.LinkedDataClient
     public Response get(URI uri, jakarta.ws.rs.core.MediaType[] acceptedTypes)
     {
         WebTarget webTarget = getWebTarget(uri);
-        return new RetryAfterHelper(getDefaultDelayMillis(), getMaxRetryCount()).invokeWithRetry(() ->
-            webTarget.request(acceptedTypes)
-                     .header(HttpHeaders.USER_AGENT, getUserAgentHeaderValue())
-                     .get());
+
+        return new RetryingInvocationBuilder(
+                webTarget.
+                request(acceptedTypes).
+                header(HttpHeaders.USER_AGENT, getUserAgentHeaderValue()), getDefaultDelayMillis(), getMaxRetryCount()).
+            get();
     }
    
     @Override
     public Response post(URI uri, MediaType[] acceptedTypes, Entity entity)
     {
         WebTarget webTarget = getWebTarget(uri);
-        return new RetryAfterHelper(getDefaultDelayMillis(), getMaxRetryCount()).invokeWithRetry(() ->
-            webTarget.request(acceptedTypes).post(entity));
+        
+        return new RetryingInvocationBuilder(
+                webTarget.request(acceptedTypes),
+                getDefaultDelayMillis(),
+                getMaxRetryCount()).
+            post(entity);
     }
-    
     @Override
     public Response put(URI uri, MediaType[] acceptedTypes, Entity entity)
     {
         WebTarget webTarget = getWebTarget(uri);
-        return new RetryAfterHelper(getDefaultDelayMillis(), getMaxRetryCount()).invokeWithRetry(() ->
-            webTarget.request(acceptedTypes).put(entity));
+        
+        return new RetryingInvocationBuilder(
+                webTarget.request(acceptedTypes),
+                getDefaultDelayMillis(),
+                getMaxRetryCount()
+                ).
+            put(entity);
     }
     
     public Response put(URI uri, Model model, MultivaluedMap<String, Object> headers)
     {
         WebTarget webTarget = getWebTarget(uri);
-        return new RetryAfterHelper(getDefaultDelayMillis(), getMaxRetryCount()).invokeWithRetry(() ->
-            webTarget.request(getReadableMediaTypes(Model.class)).
-                headers(headers).
-                put(Entity.entity(model, getDefaultMediaType())));
+        
+        return new RetryingInvocationBuilder(
+                webTarget.request(getReadableMediaTypes(Model.class)).headers(headers),
+                getDefaultDelayMillis(),
+                getMaxRetryCount()
+            ).
+            put(Entity.entity(model, getDefaultMediaType()));
     }
     
     @Override
     public Response delete(URI uri)
     {
         WebTarget webTarget = getWebTarget(uri);
-        return new RetryAfterHelper(getDefaultDelayMillis(), getMaxRetryCount()).invokeWithRetry(() ->
-            webTarget.request().delete());
+        
+        return new RetryingInvocationBuilder(
+                webTarget.request(),
+                getDefaultDelayMillis(),
+                getMaxRetryCount()
+            ).delete();
     }
     
     /**
