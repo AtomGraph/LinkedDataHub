@@ -575,12 +575,21 @@ WHERE
         <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
     </xsl:template>
     
-    <!-- submit instance creation row-form using POST or modal form using PUT -->
+    <!-- submit instance creation modal form using PUT -->
+    
+    <xsl:template match="div[contains-token(@class, 'modal-constructor')]//form[contains-token(@class, 'form-horizontal')][upper-case(@method) = 'PUT']" mode="ixsl:onsubmit" priority="2">
+        <xsl:next-match>
+            <xsl:with-param name="callback" select="ldh:modal-form-response#1"/>
+        </xsl:next-match>
+    </xsl:template>
+    
+    <!-- submit instance creation row-form using POST -->
     
     <xsl:template match="form[ancestor::div[@typeof]][contains-token(@class, 'form-horizontal')]" mode="ixsl:onsubmit">
         <xsl:param name="block" select="ancestor::div[@typeof][1]" as="element()"/> <!-- block has no @about at this stage (before saving it) -->
         <xsl:param name="form" select="." as="element()"/>
         <xsl:param name="method" select="upper-case(@method)" as="xs:string"/>
+        <xsl:param name="callback" select="ldh:row-form-response#1" as="function(map(*)) as item()*"/>
         <xsl:param name="elements" select=".//input | .//textarea | .//select" as="element()*"/>
         <xsl:param name="triples" select="ldh:parse-rdf-post($elements)" as="element()*"/>
         <xsl:param name="resources" as="document-node()">
@@ -592,7 +601,6 @@ WHERE
         </xsl:param>
         <xsl:param name="request-body" select="$resources" as="document-node()"/>
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
-        <xsl:variable name="modal" select="exists(ancestor::div[contains-token(@class, 'modal-constructor')])" as="xs:boolean"/>
         <xsl:variable name="id" select="ixsl:get($form, 'id')" as="xs:string"/>
         <xsl:variable name="action" select="ixsl:get($form, 'action')" as="xs:anyURI"/>
         <xsl:variable name="enctype" select="ixsl:get($form, 'enctype')" as="xs:string"/>
@@ -631,7 +639,6 @@ WHERE
                     'doc-uri': $doc-uri,
                     'block': $block,
                     'form': $form,
-                    'modal': $modal,
                     'resources': $resources
                   }"/>
             
@@ -639,7 +646,7 @@ WHERE
                   ixsl:http-request($context('request'))                          (: Step 1: send initial request :)
                     => ixsl:then(ldh:rethread-response($context, ?))              (: Step 2: attach response to context :)
                     => ixsl:then(ldh:handle-response#1)                           (: Step 3: handle 429s, etc. :)
-                    => ixsl:then(ldh:form-horizontal-response#1)
+                    => ixsl:then($callback)
                 " on-failure="ldh:promise-failure#1"/>
             </xsl:otherwise>
         </xsl:choose>
@@ -652,7 +659,6 @@ WHERE
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <xsl:variable name="form" select="." as="element()"/>
         <xsl:variable name="method" select="upper-case(@method)" as="xs:string"/>
-        <xsl:variable name="modal" select="false()" as="xs:boolean"/>
         <xsl:variable name="id" select="ixsl:get($form, 'id')" as="xs:string"/>
         <xsl:variable name="action" select="ixsl:get($form, 'action')" as="xs:anyURI"/>
         <xsl:variable name="enctype" select="ixsl:get($form, 'enctype')" as="xs:string"/>
@@ -754,25 +760,23 @@ WHERE
             'doc-uri': ac:absolute-path(ldh:base-uri(.)),
             'block': $block,
             'form': $form,
-            'modal': $modal,
             'resources': $resources
           }"/>
         <ixsl:promise select="
           ixsl:http-request($context('request'))                          (: Step 1: send initial request :)
             => ixsl:then(ldh:rethread-response($context, ?))              (: Step 2: attach response to context :)
             => ixsl:then(ldh:handle-response#1)                           (: Step 3: handle 429s, etc. :)
-            => ixsl:then(ldh:modal-form-patch-response#1)
+            => ixsl:then(ldh:modal-form-response#1)
         " on-failure="ldh:promise-failure#1"/>
     </xsl:template>
         
-    <!-- submit instance update block-form using PATCH -->
+    <!-- submit instance update row-form using PATCH -->
     
     <xsl:template match="div[contains-token(@class, 'block')]//form[contains-token(@class, 'form-horizontal')][upper-case(@method) = 'PATCH']" mode="ixsl:onsubmit" priority="1">
         <xsl:param name="block" select="ancestor::div[contains-token(@class, 'block')][1]" as="element()"/>
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <xsl:variable name="form" select="." as="element()"/>
         <xsl:variable name="method" select="upper-case(@method)" as="xs:string"/>
-        <xsl:variable name="modal" select="false()" as="xs:boolean"/>
         <xsl:variable name="id" select="ixsl:get($form, 'id')" as="xs:string"/>
         <xsl:variable name="action" select="ixsl:get($form, 'action')" as="xs:anyURI"/>
         <xsl:variable name="enctype" select="ixsl:get($form, 'enctype')" as="xs:string"/>
@@ -808,14 +812,13 @@ WHERE
             'doc-uri': ac:absolute-path(ldh:base-uri(.)),
             'block': $block,
             'form': $form,
-            'modal': $modal,
             'resources': $resources
           }"/>
         <ixsl:promise select="
           ixsl:http-request($context('request'))                          (: Step 1: send initial request :)
             => ixsl:then(ldh:rethread-response($context, ?))              (: Step 2: attach response to context :)
             => ixsl:then(ldh:handle-response#1)                           (: Step 3: handle 429s, etc. :)
-            => ixsl:then(ldh:row-form-patch-response#1)
+            => ixsl:then(ldh:row-form-response#1)
         " on-failure="ldh:promise-failure#1"/>
     </xsl:template>
     
@@ -881,35 +884,13 @@ WHERE
         <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
     </xsl:template>
 
-    <xsl:function name="ldh:modal-form-patch-response" ixsl:updating="yes">
-        <xsl:param name="context" as="map(*)"/>
-
-        <xsl:message>ldh:modal-form-patch-response</xsl:message>
-
-        <xsl:variable name="response" select="$context('response')" as="map(*)"/>
-        <xsl:variable name="status" select="$response?status" as="xs:double"/>
-        <xsl:variable name="media-type" select="$response?media-type" as="xs:string?"/>
-
-        <xsl:choose>
-            <xsl:when test="$status = (200, 204)">
-                <xsl:sequence select="ldh:modal-form-submit-success($context)"/>
-            </xsl:when>
-            <xsl:when test="$status = (400, 422) and starts-with($media-type, 'application/rdf+xml')">
-              <xsl:sequence select="ldh:modal-form-submit-violation($context)"/>
-            </xsl:when>
-            <xsl:otherwise>
-                <xsl:sequence select="ldh:error-response-alert($context)"/>
-            </xsl:otherwise>
-        </xsl:choose>
-    </xsl:function>
-
-    <xsl:function name="ldh:row-form-patch-response" ixsl:updating="yes">
+    <xsl:function name="ldh:row-form-response" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
         <xsl:variable name="response" select="$context('response')" as="map(*)"/>
         <xsl:variable name="status" select="$response?status" as="xs:double"/>
         <xsl:variable name="media-type" select="$response?media-type" as="xs:string?"/>
 
-        <xsl:message>ldh:row-form-patch-response</xsl:message>
+        <xsl:message>ldh:row-form-response</xsl:message>
 
         <xsl:choose>
             <xsl:when test="$status = (200, 204)">
@@ -924,14 +905,13 @@ WHERE
         </xsl:choose>
     </xsl:function>
     
-    <xsl:function name="ldh:form-horizontal-response" ixsl:updating="yes">
+    <xsl:function name="ldh:modal-form-response" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
         <xsl:variable name="response" select="$context('response')" as="map(*)"/>
         <xsl:variable name="status" select="$response?status" as="xs:double"/>
         <xsl:variable name="media-type" select="$response?media-type" as="xs:string?"/>
-        <xsl:variable name="modal" select="map:get($context, 'modal')" as="xs:boolean"/>
         
-        <xsl:message>ldh:form-horizontal-response</xsl:message>
+        <xsl:message>ldh:modal-form-response</xsl:message>
 
         <xsl:choose>
             <xsl:when test="$status = (200, 204)">
@@ -955,7 +935,6 @@ WHERE
         <xsl:variable name="doc-uri" select="$context('doc-uri')" as="xs:anyURI"/>
         <xsl:variable name="block" select="$context('block')" as="element()"/>
         <xsl:variable name="form" select="$context('form')" as="element()?"/>
-        <xsl:variable name="modal" select="$context('modal')" as="xs:boolean"/>
         <xsl:variable name="resources" select="$context('resources')" as="document-node()"/>
 
         <xsl:message>ldh:form-horizontal-submit-success</xsl:message>
@@ -1052,8 +1031,6 @@ WHERE
         <xsl:variable name="doc-uri" select="$context('doc-uri')" as="xs:anyURI"/>
         <xsl:variable name="block" select="$context('block')" as="element()"/>
         <xsl:variable name="form" select="$context('form')" as="element()?"/>
-        <xsl:variable name="modal" select="$context('modal')" as="xs:boolean"/>
-<!--        <xsl:variable name="resources" select="$context('resources')" as="document-node()"/>-->
         
         <xsl:message>ldh:modal-form-submit-violation</xsl:message>
 
@@ -1140,8 +1117,6 @@ WHERE
         <xsl:variable name="doc-uri" select="$context('doc-uri')" as="xs:anyURI"/>
         <xsl:variable name="block" select="$context('block')" as="element()"/>
         <xsl:variable name="form" select="$context('form')" as="element()?"/>
-        <xsl:variable name="modal" select="$context('modal')" as="xs:boolean"/>
-<!--        <xsl:variable name="resources" select="$context('resources')" as="document-node()"/>-->
         
         <xsl:message>ldh:row-form-submit-violation</xsl:message>
 
@@ -1958,7 +1933,7 @@ WHERE
             'form': $form,
             'resources': $resources
           }"/>
-        <xsl:sequence select="ldh:form-horizontal-response($context)"/>
+        <xsl:sequence select="ldh:modal-form-response($context)"/>
     </xsl:template>
     
 </xsl:stylesheet>
