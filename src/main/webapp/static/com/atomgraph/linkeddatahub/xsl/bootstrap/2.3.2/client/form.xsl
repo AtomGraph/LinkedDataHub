@@ -294,7 +294,7 @@ WHERE
             => ixsl:then(ldh:handle-response#1)                           (: Step 6: handle retry if needed :)
             => ixsl:then(ldh:load-type-metadata#1)                        (: Step 7: final step using full context :)
             => ixsl:then(ldh:render-row-form#1)
-        "/>
+        " on-failure="ldh:promise-failure#1"/>
     </xsl:template>
 
     <!-- open a form form document editing -->
@@ -351,7 +351,7 @@ WHERE
             => ixsl:then(ldh:load-type-metadata#1)                        (: Step 7: final step using full context :)
             => ixsl:then(ldh:wrap-into-document#1)
             => ixsl:then(ldh:render-form#1)
-        "/>
+        " on-failure="ldh:promise-failure#1"/>
     </xsl:template>
     
     <xsl:function name="ldh:load-edited-resource" as="map(*)" ixsl:updating="yes">
@@ -640,7 +640,7 @@ WHERE
                     => ixsl:then(ldh:rethread-response($context, ?))              (: Step 2: attach response to context :)
                     => ixsl:then(ldh:handle-response#1)                           (: Step 3: handle 429s, etc. :)
                     => ixsl:then(ldh:form-horizontal-response#1)
-                "/>   
+                " on-failure="ldh:promise-failure#1"/>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
@@ -816,7 +816,7 @@ WHERE
             => ixsl:then(ldh:rethread-response($context, ?))              (: Step 2: attach response to context :)
             => ixsl:then(ldh:handle-response#1)                           (: Step 3: handle 429s, etc. :)
             => ixsl:then(ldh:row-form-patch-response#1)
-        "/>
+        " on-failure="ldh:promise-failure#1"/>
     </xsl:template>
     
     <!-- add new property to form -->
@@ -1019,7 +1019,7 @@ WHERE
                 => ixsl:then(ldh:rethread-response($context, ?))              (: Step 2: attach response to context :)
                 => ixsl:then(ldh:handle-response#1)                           (: Step 3: handle 429s, etc. :)
                 => ixsl:then(ldh:xhtml-document-loaded#1)
-            "/>
+           " on-failure="ldh:promise-failure#1"/>
         </xsl:for-each>        
     </xsl:function>
     
@@ -1042,7 +1042,7 @@ WHERE
                 => ixsl:then(ldh:rethread-response($context, ?))              (: Step 2: attach response to context :)
                 => ixsl:then(ldh:handle-response#1)                           (: Step 3: handle 429s, etc. :)
                 => ixsl:then(ldh:xhtml-document-loaded#1)
-            "/>
+            " on-failure="ldh:promise-failure#1"/>
         </xsl:for-each>        
     </xsl:function>
     
