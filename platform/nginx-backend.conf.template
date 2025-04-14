@@ -8,7 +8,7 @@ http {
     include       mime.types;
     default_type  application/octet-stream;
 
-    # Define a shared memory zone for rate limiting (keyed by client IP)
+    # Rate limiting: 5 requests per second per IP
     limit_req_zone $binary_remote_addr zone=api_ratelimit:10m rate=5r/s;
     limit_req_status 429;
 
@@ -19,15 +19,17 @@ http {
     server {
         listen ${SERVER_HTTP_PORT};
 
-        # Optional: allow health checks or pre-flight OPTIONS through without limits
+        # Health check path
         location = /healthz {
             return 200 'ok';
             add_header Content-Type text/plain;
         }
 
         location / {
-            # Apply rate limiting
-            limit_req zone=api_ratelimit nodelay;
+            # Apply rate limiting with burst buffer
+            limit_req zone=api_ratelimit burst=10;
+            # Optional: tell clients how long to wait (1s = 5r/s baseline)
+            add_header Retry-After 1 always;
 
             proxy_pass http://varnish_backend;
             proxy_set_header Host $host;
