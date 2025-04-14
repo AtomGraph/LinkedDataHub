@@ -79,7 +79,7 @@
         rdf:_1 <queries/#select-queries> .
 
     <queries/#select-queries> a ldh:Object ;
-        rdf:value <#select-queries-view> .
+        rdf:value <queries/#select-queries-view> .
 
     <queries/#select-queries-view> a ldh:View ;
         dct:title "Query view" ;
