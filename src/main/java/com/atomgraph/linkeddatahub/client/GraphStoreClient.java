@@ -37,23 +37,17 @@ public class GraphStoreClient extends com.atomgraph.core.client.GraphStoreClient
 
     private static final Logger log = LoggerFactory.getLogger(GraphStoreClient.class);
 
-    private final long defaultDelayMillis = 5000L;
-    private final int maxRetryCount = 3;
+    private final long defaultDelayMillis; // = 5000L;
+    private final int maxRetryCount; // = 3;
 
-    protected GraphStoreClient(MediaTypes mediaTypes, WebTarget endpoint) {
+    protected GraphStoreClient(MediaTypes mediaTypes, WebTarget endpoint, long defaultDelayMillis, int maxRetryCount) {
         super(mediaTypes, endpoint);
+        this.defaultDelayMillis = defaultDelayMillis;
+        this.maxRetryCount = maxRetryCount;
     }
 
-    protected GraphStoreClient(WebTarget endpoint) {
-        this(new MediaTypes(), endpoint);
-    }
-
-    public static GraphStoreClient create(MediaTypes mediaTypes, WebTarget endpoint) {
-        return new GraphStoreClient(mediaTypes, endpoint);
-    }
-
-    public static GraphStoreClient create(WebTarget endpoint) {
-        return new GraphStoreClient(endpoint);
+    public static GraphStoreClient create(MediaTypes mediaTypes, WebTarget endpoint, long defaultDelayMillis, int maxRetryCount) {
+        return new GraphStoreClient(mediaTypes, endpoint, defaultDelayMillis, maxRetryCount);
     }
 
     @Override

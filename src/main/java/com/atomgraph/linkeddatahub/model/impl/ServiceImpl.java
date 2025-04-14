@@ -18,7 +18,6 @@ package com.atomgraph.linkeddatahub.model.impl;
 
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.core.client.QuadStoreClient;
-import com.atomgraph.core.client.SPARQLClient;
 import com.atomgraph.core.model.DatasetAccessor;
 import com.atomgraph.core.model.DatasetQuadAccessor;
 import com.atomgraph.core.model.EndpointAccessor;
@@ -28,6 +27,7 @@ import com.atomgraph.core.model.impl.remote.EndpointAccessorImpl;
 import com.atomgraph.core.vocabulary.A;
 import com.atomgraph.core.vocabulary.SD;
 import com.atomgraph.linkeddatahub.client.GraphStoreClient;
+import com.atomgraph.linkeddatahub.client.SPARQLClient;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.vocabulary.LAPP;
 import java.net.URI;
@@ -131,11 +131,13 @@ public class ServiceImpl extends ResourceImpl implements Service
     public SPARQLClient getSPARQLClient(WebTarget webTarget)
     {
         SPARQLClient sparqlClient;
-        
+        final long defaultDelayMillis = 1000L;
+        final int maxRetryCount = 3;
+
         if (getMaxGetRequestSize() != null)
-            sparqlClient = SPARQLClient.create(getMediaTypes(), webTarget, getMaxGetRequestSize());
+            sparqlClient = SPARQLClient.create(getMediaTypes(), webTarget, getMaxGetRequestSize(), defaultDelayMillis, maxRetryCount);
         else
-            sparqlClient = SPARQLClient.create(getMediaTypes(), webTarget);
+            sparqlClient = SPARQLClient.create(getMediaTypes(), webTarget, defaultDelayMillis, maxRetryCount);
         
         if (getAuthUser() != null && getAuthPwd() != null)
         {
@@ -169,8 +171,10 @@ public class ServiceImpl extends ResourceImpl implements Service
      */
     public GraphStoreClient getGraphStoreClient(WebTarget webTarget)
     {
-        GraphStoreClient graphStoreClient = GraphStoreClient.create(webTarget);
-        
+        final long defaultDelayMillis = 1000L;
+        final int maxRetryCount = 3;
+        GraphStoreClient graphStoreClient = GraphStoreClient.create(getMediaTypes(), webTarget, defaultDelayMillis, maxRetryCount);
+
         if (getAuthUser() != null && getAuthPwd() != null)
         {
             HttpAuthenticationFeature authFeature = HttpAuthenticationFeature.basicBuilder().

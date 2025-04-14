@@ -34,31 +34,27 @@ public class SPARQLClient extends com.atomgraph.core.client.SPARQLClient {
 
     private static final Logger log = LoggerFactory.getLogger(SPARQLClient.class);
 
-    private final long defaultDelayMillis = 1000L;
-    private final int maxRetryCount = 3;
+    private final long defaultDelayMillis; // = 1000L;
+    private final int maxRetryCount; // = 3;
 
-    protected SPARQLClient(MediaTypes mediaTypes, WebTarget endpoint, int maxGetRequestSize) {
+    protected SPARQLClient(MediaTypes mediaTypes, WebTarget endpoint, int maxGetRequestSize, long defaultDelayMillis, int maxRetryCount) {
         super(mediaTypes, endpoint, maxGetRequestSize);
+        this.defaultDelayMillis = defaultDelayMillis;
+        this.maxRetryCount = maxRetryCount;
     }
 
-    protected SPARQLClient(MediaTypes mediaTypes, WebTarget endpoint) {
-        this(mediaTypes, endpoint, 8192);
+    protected SPARQLClient(MediaTypes mediaTypes, WebTarget endpoint, long defaultDelayMillis, int maxRetryCount) {
+        super(mediaTypes, endpoint);
+        this.defaultDelayMillis = defaultDelayMillis;
+        this.maxRetryCount = maxRetryCount;
     }
 
-    protected SPARQLClient(WebTarget endpoint) {
-        this(new MediaTypes(), endpoint);
+    public static SPARQLClient create(MediaTypes mediaTypes, WebTarget endpoint, int maxGetRequestSize, long defaultDelayMillis, int maxRetryCount) {
+        return new SPARQLClient(mediaTypes, endpoint, maxGetRequestSize, defaultDelayMillis, maxRetryCount);
     }
 
-    public static SPARQLClient create(MediaTypes mediaTypes, WebTarget endpoint, int maxGetRequestSize) {
-        return new SPARQLClient(mediaTypes, endpoint, maxGetRequestSize);
-    }
-
-    public static SPARQLClient create(MediaTypes mediaTypes, WebTarget endpoint) {
-        return new SPARQLClient(mediaTypes, endpoint);
-    }
-
-    public static SPARQLClient create(WebTarget endpoint) {
-        return new SPARQLClient(endpoint);
+    public static SPARQLClient create(MediaTypes mediaTypes, WebTarget endpoint, long defaultDelayMillis, int maxRetryCount) {
+        return new SPARQLClient(mediaTypes, endpoint, defaultDelayMillis, maxRetryCount);
     }
 
     @Override

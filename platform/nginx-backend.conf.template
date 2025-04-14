@@ -1,0 +1,38 @@
+worker_processes 1;
+
+events {
+    worker_connections 1024;
+}
+
+http {
+    include       mime.types;
+    default_type  application/octet-stream;
+
+    # Define a shared memory zone for rate limiting (keyed by client IP)
+    limit_req_zone $binary_remote_addr zone=api_ratelimit:10m rate=5r/s;
+    limit_req_status 429;
+
+    upstream varnish_backend {
+        server ${UPSTREAM_SERVER}:${UPSTREAM_HTTP_PORT};
+    }
+
+    server {
+        listen ${SERVER_HTTP_PORT};
+
+        # Optional: allow health checks or pre-flight OPTIONS through without limits
+        location = /healthz {
+            return 200 'ok';
+            add_header Content-Type text/plain;
+        }
+
+        location / {
+            # Apply rate limiting
+            limit_req zone=api_ratelimit nodelay;
+
+            proxy_pass http://varnish_backend;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        }
+    }
+}
