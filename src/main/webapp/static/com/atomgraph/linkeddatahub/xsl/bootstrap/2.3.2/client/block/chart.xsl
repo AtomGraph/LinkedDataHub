@@ -621,7 +621,6 @@ exclude-result-prefixes="#all"
                                 <xsl:with-param name="category" select="$category"/>
                                 <xsl:with-param name="series" select="$series"/>
                                 <xsl:with-param name="show-editor" select="false()"/>
-                                <xsl:with-param name="content-method" select="xs:QName('ixsl:append-content')"/>
                                 <xsl:with-param name="show-chart-save" select="false()"/>
                                 <xsl:with-param name="results-container-id" select="$container-id || '-query-results'"/>
                             </xsl:call-template>
@@ -662,11 +661,9 @@ exclude-result-prefixes="#all"
         <xsl:param name="series" as="xs:string*"/>
         <xsl:param name="query-string" as="xs:string?"/>
         <xsl:param name="endpoint" as="xs:anyURI?"/>
-        <xsl:param name="content-method" select="xs:QName('ixsl:replace-content')" as="xs:QName"/>
         <xsl:param name="show-editor" select="true()" as="xs:boolean"/>
         <xsl:param name="show-chart-save" select="true()" as="xs:boolean"/>
         <xsl:param name="results-container-id" select="ixsl:get($container, 'id') || '-query-results'" as="xs:string"/>
-        <xsl:param name="results-container-class" select="'sparql-query-results'" as="xs:string"/>
 
         <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
         

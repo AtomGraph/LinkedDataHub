@@ -262,7 +262,45 @@ exclude-result-prefixes="#all"
         <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': $query-string })" as="xs:anyURI"/>
         <xsl:variable name="request-uri" select="ldh:href($ldt:base, $ldt:base, map{}, $results-uri)" as="xs:anyURI"/>
         <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml,application/rdf+xml;q=0.9' } }" as="map(xs:string, item())"/>
+        <xsl:variable name="results-container-id" select="$block-id || '-query-results'" as="xs:string"/>
+        <xsl:variable name="results-container-class" select="'sparql-query-results'" as="xs:string"/>
+        <xsl:variable name="results-container-about" select="xs:anyURI(ac:absolute-path(ldh:base-uri(.)) || '#' || $results-container-id)" as="xs:anyURI"/>
 
+        <!-- create results/error container element if it doesn't exist  -->
+        <xsl:if test="not(id($results-container-id, ixsl:page()))">
+            <!-- TO-DO: find a better solution. $container in ContentMode is the whole .content row but in ReadMode it's .main -->
+            <xsl:for-each select="if ($container//div[contains-token(@class, 'main')]) then $container//div[contains-token(@class, 'main')] else $container">
+                <xsl:variable name="active-mode" select="xs:anyURI('&ac;ChartMode')" as="xs:anyURI"/>
+
+                <xsl:result-document href="?." method="ixsl:append-content">
+                    <xsl:if test="$query-string">
+                        <ul class="nav nav-tabs nav-query-results">
+                            <li class="chart-mode">
+                                <xsl:if test="$active-mode = '&ac;ChartMode'">
+                                    <xsl:attribute name="class" select="'chart-mode active'"/>
+                                </xsl:if>
+
+                                <a>
+                                    <xsl:apply-templates select="key('resources', '&ldh;Chart', document(ac:document-uri('&ldh;')))" mode="ac:label"/>
+                                </a>
+                            </li>
+                            <li class="view-mode">
+                                <xsl:if test="$active-mode = '&ac;ViewMode'">
+                                    <xsl:attribute name="class" select="'view-mode active'"/>
+                                </xsl:if>
+
+                                <a>
+                                    <xsl:apply-templates select="key('resources', '&ldh;View', document(ac:document-uri('&ldh;')))" mode="ac:label"/>
+                                </a>
+                            </li>
+                        </ul>
+                    </xsl:if>
+
+                    <div class="{$results-container-class}" id="{$results-container-id}" about="{$results-container-about}"></div>
+                </xsl:result-document>
+            </xsl:for-each>
+        </xsl:if>
+        
         <xsl:variable name="request" as="item()*">
             <ixsl:schedule-action http-request="$request">
                 <xsl:call-template name="onSPARQLResultsLoad">
@@ -271,7 +309,7 @@ exclude-result-prefixes="#all"
                     <xsl:with-param name="block-uri" select="$block-uri"/>
                     <xsl:with-param name="container" select="$container"/>
                     <xsl:with-param name="chart-canvas-id" select="$block-id || '-chart-canvas'"/>
-                    <xsl:with-param name="results-container-id" select="$block-id || '-query-results'"/>
+                    <xsl:with-param name="results-container" select="id($results-container-id, ixsl:page())"/>
                     <xsl:with-param name="query-string" select="$query-string"/>
                 </xsl:call-template>
             </ixsl:schedule-action>
@@ -299,9 +337,9 @@ exclude-result-prefixes="#all"
         <xsl:apply-templates select="$form" mode="ixsl:onsubmit"/>
     </xsl:template>
     
-    <!-- toggle query results to container mode (prioritize over view.xsl) -->
+    <!-- toggle query results to view mode (prioritize over view.xsl) -->
     
-    <xsl:template match="ul[contains-token(@class, 'nav-tabs')][contains-token(@class, 'nav-query-results')]/li[contains-token(@class, 'container-mode')][not(contains-token(@class, 'active'))]/a" mode="ixsl:onclick" priority="1">
+    <xsl:template match="ul[contains-token(@class, 'nav-tabs')][contains-token(@class, 'nav-query-results')]/li[contains-token(@class, 'view-mode')][not(contains-token(@class, 'active'))]/a" mode="ixsl:onclick" priority="1">
         <xsl:variable name="block" select="ancestor::div[contains-token(@class, 'block')][1]" as="element()"/>
         <xsl:variable name="container" select="ancestor::div[@typeof][1]" as="element()"/>
         <xsl:variable name="form" select="$container//form[contains-token(@class, 'sparql-query-form')]" as="element()"/>
@@ -342,9 +380,19 @@ exclude-result-prefixes="#all"
             <ixsl:set-style name="width" select="'50%'" object="."/>
         </xsl:for-each>-->
                 
+        <xsl:variable name="view-container" select="$container//div[contains-token(@class, 'sparql-query-results')]" as="element()"/>
+        <!-- ensure the HTML structure is compatible with what view expects -->
+        <xsl:for-each select="$view-container">
+            <ixsl:set-attribute name="typeof" select="'&ldh;View'" object="$view-container"/>
+            
+            <xsl:result-document href="?." method="ixsl:replace-content">
+                <div class="main"></div>
+            </xsl:result-document>
+        </xsl:for-each>
+        
         <xsl:apply-templates select="$view-html" mode="ldh:RenderRow">
             <xsl:with-param name="block" select="$block"/>
-            <xsl:with-param name="container" select="$container//div[contains-token(@class, 'sparql-query-results')]"/>
+            <xsl:with-param name="container" select="$view-container"/>
             <xsl:with-param name="this" select="$this"/>
             <xsl:with-param name="base-uri" select="ac:absolute-path(ldh:base-uri(.))"/>
         </xsl:apply-templates>
@@ -464,47 +512,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="content-method" select="xs:QName('ixsl:replace-content')" as="xs:QName"/>
         <xsl:param name="show-editor" select="true()" as="xs:boolean"/>
         <xsl:param name="show-chart-save" select="true()" as="xs:boolean"/>
-        <xsl:param name="results-container-id" select="ixsl:get($container, 'id') || '-query-results'" as="xs:string"/>
-        <xsl:param name="results-container-class" select="'sparql-query-results'" as="xs:string"/>
-
-        <!-- create results/error container element if it doesn't exist  -->
-        <xsl:if test="not(id($results-container-id, ixsl:page()))">
-            <!-- TO-DO: find a better solution. $container in ContentMode is the whole .content row but in ReadMode it's .main -->
-            <xsl:for-each select="if ($container//div[contains-token(@class, 'main')]) then $container//div[contains-token(@class, 'main')] else $container">
-                <xsl:variable name="active-mode" select="xs:anyURI('&ac;ChartMode')" as="xs:anyURI"/>
-
-                <xsl:result-document href="?." method="ixsl:append-content">
-                    <xsl:if test="$query-string">
-                        <ul class="nav nav-tabs nav-query-results">
-                            <li class="chart-mode">
-                                <xsl:if test="$active-mode = '&ac;ChartMode'">
-                                    <xsl:attribute name="class" select="'chart-mode active'"/>
-                                </xsl:if>
-
-                                <a>
-                                    <xsl:apply-templates select="key('resources', '&ac;ChartMode', document(ac:document-uri('&ac;')))" mode="ldh:logo"/>
-                                    <xsl:apply-templates select="key('resources', '&ac;ChartMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
-                                </a>
-                            </li>
-                            <li class="container-mode">
-                                <xsl:if test="$active-mode = '&ac;ContainerMode'">
-                                    <xsl:attribute name="class" select="'container-mode active'"/>
-                                </xsl:if>
-
-                                <a>
-                                    <xsl:apply-templates select="key('resources', '&ac;ContainerMode', document(ac:document-uri('&ac;')))" mode="ldh:logo"/>
-                                    <xsl:apply-templates select="key('resources', '&ac;ContainerMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
-                                </a>
-                            </li>
-                        </ul>
-                    </xsl:if>
-
-                    <div class="{$results-container-class}" id="{$results-container-id}"></div>
-                </xsl:result-document>
-            </xsl:for-each>
-        </xsl:if>
-
-        <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
+        <xsl:param name="results-container" as="element()"/>
         
         <xsl:variable name="response" select="." as="map(*)"/>
         <xsl:choose>
@@ -514,7 +522,7 @@ exclude-result-prefixes="#all"
                     <xsl:variable name="category" select="if (exists($category)) then $category else (if (rdf:RDF) then distinct-values(rdf:RDF/*/*/concat(namespace-uri(), local-name()))[1] else srx:sparql/srx:head/srx:variable[1]/@name)" as="xs:string?"/>
                     <xsl:variable name="series" select="if (exists($series)) then $series else (if (rdf:RDF) then distinct-values(rdf:RDF/*/*/concat(namespace-uri(), local-name())) else srx:sparql/srx:head/srx:variable/@name)" as="xs:string*"/>
 
-                    <xsl:for-each select="id($results-container-id, ixsl:page())">
+                    <xsl:for-each select="$results-container">
                         <xsl:result-document href="?." method="ixsl:replace-content">
                             <xsl:apply-templates select="$results" mode="bs2:Chart">
                                 <xsl:with-param name="endpoint" select="if (not($endpoint = sd:endpoint())) then $endpoint else ()" tunnel="yes"/>
@@ -564,7 +572,7 @@ exclude-result-prefixes="#all"
                 </xsl:for-each>
                     
                 <!-- error response - could not load query results -->
-                <xsl:for-each select="id($results-container-id, ixsl:page())">
+                <xsl:for-each select="$results-container">
                     <xsl:result-document href="?." method="ixsl:replace-content">
                         <div class="alert alert-block">
                             <strong>Error during query execution:</strong>
@@ -576,6 +584,8 @@ exclude-result-prefixes="#all"
                 </xsl:for-each>
             </xsl:otherwise>
         </xsl:choose>
+        
+        <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
     </xsl:template>
     
 </xsl:stylesheet>
