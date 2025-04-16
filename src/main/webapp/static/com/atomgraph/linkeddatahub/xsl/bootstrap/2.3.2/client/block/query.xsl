@@ -334,6 +334,16 @@ exclude-result-prefixes="#all"
         
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
         
+        <xsl:variable name="view-container" select="$container//div[contains-token(@class, 'sparql-query-results')]" as="element()"/>
+        <!-- ensure the HTML structure is compatible with what view expects -->
+        <xsl:for-each select="$view-container">
+            <ixsl:set-attribute name="typeof" select="'&ldh;View'" object="$view-container"/>
+            
+            <xsl:result-document href="?." method="ixsl:replace-content">
+                <div class="main"></div>
+            </xsl:result-document>
+        </xsl:for-each>
+
         <xsl:apply-templates select="$form" mode="ixsl:onsubmit"/>
     </xsl:template>
     
