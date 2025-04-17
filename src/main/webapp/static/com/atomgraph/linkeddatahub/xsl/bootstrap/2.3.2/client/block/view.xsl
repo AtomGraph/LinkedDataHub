@@ -90,7 +90,7 @@ exclude-result-prefixes="#all"
         <ixsl:promise select="ixsl:http-request($context('request')) =>
             ixsl:then(ldh:rethread-response($context, ?)) =>
             ixsl:then(ldh:handle-response#1) =>
-            ixsl:then(ldh:view-query-load#1)"
+            ixsl:then(ldh:view-query-response#1)"
             on-failure="ldh:promise-failure#1"/>
     </xsl:template>
     
@@ -625,6 +625,7 @@ exclude-result-prefixes="#all"
     <xsl:template name="ldh:RenderViewResults">
         <xsl:context-item as="element()" use="required"/>
         <xsl:param name="block" as="element()"/>
+        <xsl:param name="container" as="element()"/>
         <xsl:param name="results" as="document-node()"/>
         <xsl:param name="select-xml" as="document-node()"/>
         <xsl:param name="bgp-triples-map" as="element()*"/>
@@ -770,6 +771,11 @@ exclude-result-prefixes="#all"
                 </xsl:call-template>
             </xsl:otherwise>
         </xsl:choose>
+        
+        <!-- hide progress bar -->
+        <xsl:for-each select="$container//div[@class = 'progress-bar']">
+            <ixsl:set-style name="display" select="'none'" object="."/>
+        </xsl:for-each>
     </xsl:template>
     
     <!-- facets -->
@@ -1486,7 +1492,7 @@ exclude-result-prefixes="#all"
 
     <!-- CALLBACKS -->
     
-    <xsl:function name="ldh:view-query-load" as="map(*)" ixsl:updating="yes">
+    <xsl:function name="ldh:view-query-response" as="map(*)" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
         <xsl:variable name="response" select="$context('response')" as="map(*)"/>
         <xsl:variable name="this" select="$context('this')" as="xs:anyURI"/>
@@ -1498,7 +1504,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="query-uri" select="$context('query-uri')" as="xs:anyURI"/>
         <xsl:variable name="block-uri" select="$block/@about" as="xs:anyURI"/>
 
-        <xsl:message>ldh:view-query-load</xsl:message>
+        <xsl:message>ldh:view-query-response</xsl:message>
 
         <xsl:for-each select="$response">
             <xsl:choose>
@@ -1657,6 +1663,7 @@ exclude-result-prefixes="#all"
                         <xsl:for-each select="$container/div[contains-token(@class, 'main')]">
                             <xsl:call-template name="ldh:RenderViewResults">
                                 <xsl:with-param name="block" select="$block"/>
+                                <xsl:with-param name="container" select="$container"/>
                                 <xsl:with-param name="results" select="$sorted-results"/>
                                 <xsl:with-param name="select-xml" select="$select-xml"/>
                                 <xsl:with-param name="bgp-triples-map" select="$bgp-triples-map"/>
@@ -1686,11 +1693,6 @@ exclude-result-prefixes="#all"
                                 <xsl:with-param name="focus-var-name" select="$focus-var-name"/>
                                 <xsl:with-param name="sub-container-id" select="$container-id || '-right-nav'"/>
                             </xsl:call-template>
-                        </xsl:for-each>
-
-                        <!-- hide progress bar -->
-                        <xsl:for-each select="$container//div[@class = 'progress-bar']">
-                            <ixsl:set-style name="display" select="'none'" object="."/>
                         </xsl:for-each>
 
                         <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
