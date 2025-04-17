@@ -284,15 +284,19 @@ exclude-result-prefixes="#all"
                                     <xsl:apply-templates select="key('resources', '&ldh;Chart', document(ac:document-uri('&ldh;')))" mode="ac:label"/>
                                 </a>
                             </li>
-                            <li class="view-mode">
-                                <xsl:if test="$active-mode = '&ac;ViewMode'">
-                                    <xsl:attribute name="class" select="'view-mode active'"/>
-                                </xsl:if>
+                            
+                            <!-- view mode only avaible for SELECT query results -->
+                            <xsl:if test="ancestor::*[@typeof][1]/@typeof = '&sp;Select'">
+                                <li class="view-mode">
+                                    <xsl:if test="$active-mode = '&ac;ViewMode'">
+                                        <xsl:attribute name="class" select="'view-mode active'"/>
+                                    </xsl:if>
 
-                                <a>
-                                    <xsl:apply-templates select="key('resources', '&ldh;View', document(ac:document-uri('&ldh;')))" mode="ac:label"/>
-                                </a>
-                            </li>
+                                    <a>
+                                        <xsl:apply-templates select="key('resources', '&ldh;View', document(ac:document-uri('&ldh;')))" mode="ac:label"/>
+                                    </a>
+                                </li>
+                            </xsl:if>
                         </ul>
                     </xsl:if>
 

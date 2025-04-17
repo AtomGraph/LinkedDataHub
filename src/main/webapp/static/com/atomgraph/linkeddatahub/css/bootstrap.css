@@ -93,6 +93,7 @@ li button.btn-edit-constructors, li button.btn-add-data, li button.btn-add-ontol
 #content-body > [about].row-fluid { overflow-x: auto; margin-bottom: 20px; }
 #content-body > [about].row-fluid, .constructor-triple.row-fluid { border-bottom: 2px solid rgb(223, 223, 223); }
 #content-body > [about].row-fluid.drag-over { border-bottom: 4px dotted #0f82f5; }
+.row-fluid.block { max-height: 80em; }
 .list-mode.active { background-image: url('../icons/ic_navigate_before_black_24px.svg'); }
 legend.create-action { background-image: url('../icons/ic_note_add_black_24px.svg'); background-position: 12px center; background-repeat: no-repeat; padding-left: 40px; }
 alert.violation { background-image: url('../icons/ic_error_white_24px.svg '); background-position: 12px center; background-repeat: no-repeat; padding-left: 40px; }
@@ -145,6 +146,7 @@ button.add-typeahead { width: 219px; }
 .control-group.required .control-label { font-weight: bold; }
 .description { display: none; }
 .content .dl-horizontal { max-height: 35em; overflow: auto; }
+div[typeof="https://w3id.org/atomgraph/linkeddatahub#XHTML"] .main { font-size: larger; line-height: 25px; }
 div[typeof="https://w3id.org/atomgraph/linkeddatahub#XHTML"] .form-horizontal .control-label { display: none; }
 div[typeof="https://w3id.org/atomgraph/linkeddatahub#XHTML"] .form-horizontal .controls { margin-left: 0; }
 .span12.progress > div:first-child { background-color: #e9ecef; }

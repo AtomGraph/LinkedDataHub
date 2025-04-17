@@ -70,168 +70,196 @@ exclude-result-prefixes="#all"
         
         <!-- don't use ldh:base-uri(.) because its value comes from the last HTML document load -->
         <xsl:variable name="request-uri" select="ldh:href($ldt:base, if (starts-with($graph, $ldt:base)) then $graph else ac:absolute-path(xs:anyURI(ixsl:location())), map{}, ac:document-uri($resource-uri), $graph, ())" as="xs:anyURI"/>
-        <xsl:variable name="request" as="item()*">
-            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
-                <xsl:call-template name="ldh:LoadBlockObjectValue">
-                    <xsl:with-param name="block" select="$block"/>
-                    <xsl:with-param name="container" select="$container"/>
-                    <xsl:with-param name="resource-uri" select="$resource-uri"/>
-                    <xsl:with-param name="graph" select="$graph"/>
-                    <xsl:with-param name="mode" select="$mode"/>
-                    <xsl:with-param name="show-edit-button" select="$show-edit-button"/>
-                </xsl:call-template>
-            </ixsl:schedule-action>
-        </xsl:variable>
-        <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
+        <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
+        <xsl:variable name="context" as="map(*)" select="
+          map{
+            'request': $request,
+            'block': $block,
+            'container': $container,
+            'resource-uri': $resource-uri,
+            'graph': $graph,
+            'mode': $mode,
+            'show-edit-button': $show-edit-button
+          }"/>
+        <ixsl:promise select="ixsl:http-request($context('request')) =>
+            ixsl:then(ldh:rethread-response($context, ?)) =>
+            ixsl:then(ldh:handle-response#1) =>
+            ixsl:then(ldh:block-object-value-response#1)"
+            on-failure="ldh:promise-failure#1"/>
     </xsl:template>
     
-    <xsl:template name="ldh:LoadBlockObjectValue">
-        <xsl:context-item as="map(*)" use="required"/>
-        <xsl:param name="block" as="element()"/>
-        <xsl:param name="container" as="element()"/>
-        <xsl:param name="resource-uri" as="xs:anyURI"/>
-        <xsl:param name="graph" as="xs:anyURI?"/>
-        <xsl:param name="mode" as="xs:anyURI?"/>
-        <xsl:param name="show-edit-button" as="xs:boolean?"/>
+    <xsl:function name="ldh:block-object-value-response" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:variable name="response" select="$context('response')" as="map(*)"/>
+        <xsl:variable name="block" select="$context('block')" as="element()"/>
+        <xsl:variable name="container" select="$context('container')" as="element()"/>
+        <xsl:variable name="resource-uri" select="$context('resource-uri')" as="xs:anyURI"/>
+        <xsl:variable name="graph" select="$context('graph')" as="xs:anyURI?"/>
+        <xsl:variable name="mode" select="$context('mode')" as="xs:anyURI?"/>
+        <xsl:variable name="show-edit-button" select="$context('show-edit-button')" as="xs:boolean?"/>
 
-        <xsl:choose>
-            <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
-                <xsl:for-each select="$block//div[contains-token(@class, 'bar')]">
-                    <!-- update progress bar -->
-                    <ixsl:set-style name="width" select="'88%'" object="."/>
-                </xsl:for-each>
-                    
-                <xsl:for-each select="?body">
-                    <xsl:variable name="resource" select="key('resources', $resource-uri)" as="element()?"/>
-                    <xsl:choose>
-                        <!-- only attempt to load object metadata for local resources -->
-                        <xsl:when test="$resource and starts-with($resource-uri, $ldt:base)">
-                            <xsl:variable name="object-uris" select="distinct-values($resource/*/@rdf:resource[not(key('resources', ., root($resource)))])" as="xs:string*"/>
-                            <xsl:variable name="query-string" select="$object-metadata-query || ' VALUES $this { ' || string-join(for $uri in $object-uris return '&lt;' || $uri || '&gt;', ' ') || ' }'" as="xs:string"/>                    
-                            <xsl:variable name="request" as="item()*">
-                                <ixsl:schedule-action http-request="map{ 'method': 'POST', 'href': sd:endpoint(), 'media-type': 'application/sparql-query', 'body': $query-string, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
-                                    <xsl:call-template name="ldh:LoadBlockObjectMetadata">
-                                        <xsl:with-param name="block" select="$block"/>
-                                        <xsl:with-param name="container" select="$container"/>
-                                        <xsl:with-param name="resource" select="$resource"/>
-                                        <xsl:with-param name="graph" select="$graph"/>
+        <xsl:for-each select="$response">
+            <xsl:choose>
+                <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
+                    <xsl:for-each select="$block//div[contains-token(@class, 'bar')]">
+                        <!-- update progress bar -->
+                        <ixsl:set-style name="width" select="'88%'" object="."/>
+                    </xsl:for-each>
+
+                    <xsl:for-each select="?body">
+                        <xsl:variable name="resource" select="key('resources', $resource-uri)" as="element()?"/>
+                        <xsl:choose>
+                            <!-- only attempt to load object metadata for local resources -->
+                            <xsl:when test="$resource and starts-with($resource-uri, $ldt:base)">
+                                <xsl:message>ldh:block-object-value-response local $resource-uri: <xsl:value-of select="$resource-uri"/></xsl:message>
+                                <xsl:variable name="object-uris" select="distinct-values($resource/*/@rdf:resource[not(key('resources', ., root($resource)))])" as="xs:string*"/>
+                                <xsl:variable name="query-string" select="$object-metadata-query || ' VALUES $this { ' || string-join(for $uri in $object-uris return '&lt;' || $uri || '&gt;', ' ') || ' }'" as="xs:string"/>                    
+                               <xsl:variable name="request" select="map{ 'method': 'POST', 'href': sd:endpoint(), 'media-type': 'application/sparql-query', 'body': $query-string, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
+                                <xsl:variable name="context" as="map(*)" select="
+                                  map{
+                                    'request': $request,
+                                    'block': $block,
+                                    'container': $container,
+                                    'resource': $resource,
+                                    'graph': $graph,
+                                    'mode': $mode,
+                                    'show-edit-button': $show-edit-button
+                                  }"/>
+                                <ixsl:promise select="ixsl:http-request($context('request')) =>
+                                    ixsl:then(ldh:rethread-response($context, ?)) =>
+                                    ixsl:then(ldh:handle-response#1) =>
+                                    ixsl:then(ldh:block-object-metadata-response#1)"
+                                    on-failure="ldh:promise-failure#1"/>
+                            </xsl:when>
+                            <xsl:when test="$resource">
+                                <xsl:message>ldh:block-object-value-response external $resource-uri: <xsl:value-of select="$resource-uri"/></xsl:message>
+                                <xsl:variable name="row" as="node()*">
+                                    <xsl:apply-templates select="$resource" mode="bs2:Row">
+                                        <xsl:with-param name="graph" select="$graph" tunnel="yes"/>
                                         <xsl:with-param name="mode" select="$mode"/>
-                                        <xsl:with-param name="show-edit-button" select="$show-edit-button"/>
-                                    </xsl:call-template>
-                                </ixsl:schedule-action>
-                            </xsl:variable>
-                            <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
-                        </xsl:when>
-                        <xsl:when test="$resource">
-                            <xsl:variable name="row" as="node()*">
-                                <xsl:apply-templates select="$resource" mode="bs2:Row">
-                                    <xsl:with-param name="graph" select="$graph" tunnel="yes"/>
-                                    <xsl:with-param name="mode" select="$mode"/>
-                                    <xsl:with-param name="show-edit-button" select="$show-edit-button" tunnel="yes"/>
-                                    <xsl:with-param name="show-row-block-controls" select="false()"/> <!-- blocks nested within ldh:Object do not show their own progress bars -->
-                                    <xsl:with-param name="draggable" select="false()"/> <!-- blocks nested within ldh:Object are not draggable -->
-                                </xsl:apply-templates>
-                            </xsl:variable>
+                                        <xsl:with-param name="show-edit-button" select="$show-edit-button" tunnel="yes"/>
+                                        <xsl:with-param name="show-row-block-controls" select="false()"/> <!-- blocks nested within ldh:Object do not show their own progress bars -->
+                                        <xsl:with-param name="draggable" select="false()"/> <!-- blocks nested within ldh:Object are not draggable -->
+                                    </xsl:apply-templates>
+                                </xsl:variable>
 
-                            <xsl:for-each select="$container">
-                                <xsl:result-document href="?." method="ixsl:replace-content">
-                                    <!-- wrap the row -->
-                                    <div class="span12">
-                                        <xsl:copy-of select="$row"/>
-                                    </div>
-                                </xsl:result-document>
+                                <xsl:for-each select="$container">
+                                    <xsl:result-document href="?." method="ixsl:replace-content">
+                                        <!-- wrap the row -->
+                                        <div class="span12">
+                                            <xsl:copy-of select="$row"/>
+                                        </div>
+                                    </xsl:result-document>
 
-                                <xsl:apply-templates mode="ldh:RenderRow"/> <!-- recurse down the block hierarchy -->
-                            </xsl:for-each>
-                        </xsl:when>
-                        <xsl:otherwise>
-                            <xsl:for-each select="$container">
-                                <xsl:result-document href="?." method="ixsl:replace-content">
-                                    <div class="alert alert-block">
-                                        <strong>Document loaded successfully but resource was not found: <a href="{$resource-uri}"><xsl:value-of select="$resource-uri"/></a></strong>
-                                    </div>
-                                </xsl:result-document>
-                            </xsl:for-each>
-                        </xsl:otherwise>
-                    </xsl:choose>
-                </xsl:for-each>
-            </xsl:when>
-            <xsl:when test="?status = 406">
-                <xsl:for-each select="$container">
-                    <xsl:result-document href="?." method="ixsl:replace-content">
-                        <div class="offset2 span7 main">
-                            <object data="{$resource-uri}"/>
-                        </div>
-                    </xsl:result-document>
-                    
-                    <!-- hide the progress bar -->
-                    <xsl:for-each select="ancestor::div[contains-token(@class, 'span12')][contains-token(@class, 'progress')][contains-token(@class, 'active')]">
-                        <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'progress', false() ])[current-date() lt xs:date('2000-01-01')]"/>
-                        <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'progress-striped', false() ])[current-date() lt xs:date('2000-01-01')]"/>
-                        <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'active', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+                                    <xsl:apply-templates mode="ldh:RenderRow"/> <!-- recurse down the block hierarchy -->
+                                    
+                                    <!-- hide the progress bar -->
+                                    <xsl:for-each select="ancestor::div[contains-token(@class, 'span12')][contains-token(@class, 'progress')][contains-token(@class, 'active')]">
+                                        <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'progress', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+                                        <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'progress-striped', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+                                        <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'active', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+                                    </xsl:for-each>
+                                </xsl:for-each>
+                            </xsl:when>
+                            <xsl:otherwise>
+                                <xsl:for-each select="$container">
+                                    <xsl:result-document href="?." method="ixsl:replace-content">
+                                        <div class="alert alert-block">
+                                            <strong>Document loaded successfully but resource was not found: <a href="{$resource-uri}"><xsl:value-of select="$resource-uri"/></a></strong>
+                                        </div>
+                                    </xsl:result-document>
+                                </xsl:for-each>
+                            </xsl:otherwise>
+                        </xsl:choose>
                     </xsl:for-each>
-                </xsl:for-each>
-            </xsl:when>
-            <xsl:otherwise>
-                <xsl:for-each select="$container">
-                    <xsl:result-document href="?." method="ixsl:replace-content">
-                        <div class="alert alert-block">
-                            <strong>Could not load resource: <a href="{$resource-uri}"><xsl:value-of select="$resource-uri"/></a></strong>
-                        </div>
-                    </xsl:result-document>
+                </xsl:when>
+                <xsl:when test="?status = 406">
+                    <xsl:for-each select="$container">
+                        <xsl:result-document href="?." method="ixsl:replace-content">
+                            <div class="offset2 span7 main">
+                                <object data="{$resource-uri}"/>
+                            </div>
+                        </xsl:result-document>
 
-                    <!-- hide the progress bar -->
-                    <xsl:for-each select="ancestor::div[contains-token(@class, 'span12')][contains-token(@class, 'progress')][contains-token(@class, 'active')]">
-                        <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'progress', false() ])[current-date() lt xs:date('2000-01-01')]"/>
-                        <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'progress-striped', false() ])[current-date() lt xs:date('2000-01-01')]"/>
-                        <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'active', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+                        <!-- hide the progress bar -->
+                        <xsl:for-each select="ancestor::div[contains-token(@class, 'span12')][contains-token(@class, 'progress')][contains-token(@class, 'active')]">
+                            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'progress', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+                            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'progress-striped', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+                            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'active', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+                        </xsl:for-each>
                     </xsl:for-each>
-                </xsl:for-each>
-            </xsl:otherwise>
-        </xsl:choose>
-    </xsl:template>
+                </xsl:when>
+                <xsl:otherwise>
+                    <xsl:for-each select="$container">
+                        <xsl:result-document href="?." method="ixsl:replace-content">
+                            <div class="alert alert-block">
+                                <strong>Could not load resource: <a href="{$resource-uri}"><xsl:value-of select="$resource-uri"/></a></strong>
+                            </div>
+                        </xsl:result-document>
+
+                        <!-- hide the progress bar -->
+                        <xsl:for-each select="ancestor::div[contains-token(@class, 'span12')][contains-token(@class, 'progress')][contains-token(@class, 'active')]">
+                            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'progress', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+                            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'progress-striped', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+                            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'active', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+                        </xsl:for-each>
+                    </xsl:for-each>
+                </xsl:otherwise>
+            </xsl:choose>
+        </xsl:for-each>
+    </xsl:function>
     
  <!-- replaces the block with a row -->
     
-    <xsl:template name="ldh:LoadBlockObjectMetadata">
-        <xsl:context-item as="map(*)" use="required"/>
-        <xsl:param name="block" as="element()"/>
-        <xsl:param name="container" as="element()"/>
-        <xsl:param name="resource" as="element()"/>
-        <xsl:param name="graph" as="xs:anyURI?"/>
-        <xsl:param name="mode" as="xs:anyURI?"/>
-        <xsl:param name="show-edit-button" as="xs:boolean?"/>
+    <xsl:function name="ldh:block-object-metadata-response" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:variable name="response" select="$context('response')" as="map(*)"/>
+        <xsl:variable name="block" select="$context('block')" as="element()"/>
+        <xsl:variable name="container" select="$context('container')" as="element()"/>
+        <xsl:variable name="resource" select="$context('resource')" as="element()"/>
+        <xsl:variable name="graph" select="$context('graph')" as="xs:anyURI?"/>
+        <xsl:variable name="mode" select="$context('mode')" as="xs:anyURI?"/>
+        <xsl:variable name="show-edit-button" select="$context('show-edit-button')" as="xs:boolean?"/>
 
-        <xsl:choose>
-            <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
-                <xsl:variable name="object-metadata" select="?body" as="document-node()"/>
+        <xsl:for-each select="$response">
+            <xsl:choose>
+                <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
+                    <xsl:variable name="object-metadata" select="?body" as="document-node()"/>
 
-                <xsl:variable name="row" as="node()*">
-                    <xsl:apply-templates select="$resource" mode="bs2:Row">
-                        <xsl:with-param name="graph" select="$graph" tunnel="yes"/>
-                        <xsl:with-param name="mode" select="$mode"/>
-                        <xsl:with-param name="show-edit-button" select="$show-edit-button" tunnel="yes"/>
-                        <xsl:with-param name="object-metadata" select="$object-metadata" tunnel="yes"/>
-                        <xsl:with-param name="show-row-block-controls" select="false()"/> <!-- blocks nested within ldh:Object do not show their own progress bars -->
-                        <xsl:with-param name="draggable" select="false()"/> <!-- blocks nested within ldh:Object are not draggable -->
-                    </xsl:apply-templates>
-                </xsl:variable>
-        
-                <xsl:for-each select="$container">
-                    <xsl:result-document href="?." method="ixsl:replace-content">
-                        <!-- wrap the row -->
-                        <div class="span12">
-                            <xsl:copy-of select="$row"/>
-                        </div>
-                    </xsl:result-document>
-                    
-                    <xsl:apply-templates mode="ldh:RenderRow"/> <!-- recurse down the block hierarchy -->
-                </xsl:for-each>
-            </xsl:when>
-            <xsl:otherwise>
-                <xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ ?message ])[current-date() lt xs:date('2000-01-01')]"/>
-            </xsl:otherwise>
-        </xsl:choose>
-    </xsl:template>
+                    <xsl:variable name="row" as="node()*">
+                        <xsl:apply-templates select="$resource" mode="bs2:Row">
+                            <xsl:with-param name="graph" select="$graph" tunnel="yes"/>
+                            <xsl:with-param name="mode" select="$mode"/>
+                            <xsl:with-param name="show-edit-button" select="$show-edit-button" tunnel="yes"/>
+                            <xsl:with-param name="object-metadata" select="$object-metadata" tunnel="yes"/>
+                            <xsl:with-param name="show-row-block-controls" select="false()"/> <!-- blocks nested within ldh:Object do not show their own progress bars -->
+                            <xsl:with-param name="draggable" select="false()"/> <!-- blocks nested within ldh:Object are not draggable -->
+                        </xsl:apply-templates>
+                    </xsl:variable>
+
+                    <xsl:for-each select="$container">
+                        <xsl:result-document href="?." method="ixsl:replace-content">
+                            <!-- wrap the row -->
+                            <div class="span12">
+                                <xsl:copy-of select="$row"/>
+                            </div>
+                        </xsl:result-document>
+
+                        <xsl:apply-templates mode="ldh:RenderRow"/> <!-- recurse down the block hierarchy -->
+                        
+                        <!-- hide the progress bar -->
+                        <xsl:for-each select="ancestor::div[contains-token(@class, 'span12')][contains-token(@class, 'progress')][contains-token(@class, 'active')]">
+                            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'progress', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+                            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'progress-striped', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+                            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'active', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+                        </xsl:for-each>
+                    </xsl:for-each>
+                </xsl:when>
+                <xsl:otherwise>
+                    <xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ ?message ])[current-date() lt xs:date('2000-01-01')]"/>
+                </xsl:otherwise>
+            </xsl:choose>
+        </xsl:for-each>
+    </xsl:function>
 
 </xsl:stylesheet>
