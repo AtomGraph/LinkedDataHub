@@ -496,8 +496,19 @@ exclude-result-prefixes="#all"
                 </rdf:RDF>
             </xsl:document>
         </xsl:variable>
-
         <xsl:variable name="doc-uri" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/>
+        <xsl:variable name="id" select="'id' || ac:uuid()" as="xs:string"/>
+        <xsl:variable name="this" select="xs:anyURI($doc-uri || '#' || $id)" as="xs:anyURI"/>
+        <!-- set document URI instead of blank node -->
+        <xsl:variable name="constructed-doc" as="document-node()">
+            <xsl:document>
+                <xsl:apply-templates select="$constructed-doc" mode="ldh:SetResourceID">
+                    <xsl:with-param name="forClass" select="$forClass" tunnel="yes"/>
+                    <xsl:with-param name="about" select="$this" tunnel="yes"/>
+                </xsl:apply-templates>
+            </xsl:document>
+        </xsl:variable>
+
         <xsl:variable name="method" select="'post'" as="xs:string"/>
         <xsl:variable name="resource" select="key('resources-by-type', $forClass, $constructed-doc)[not(key('predicates-by-object', @rdf:nodeID))]" as="element()"/>
         <xsl:variable name="row-form" as="element()*">
@@ -515,10 +526,6 @@ exclude-result-prefixes="#all"
             <xsl:variable name="query-string" select="$constructor-query || ' VALUES $Type { ' || string-join(for $type in $types return '&lt;' || $type || '&gt;', ' ') || ' }'" as="xs:string"/>
             <xsl:variable name="request-uri" select="ac:build-uri(resolve-uri('ns', $ldt:base), map{ 'query': $query-string, 'accept': 'application/sparql-results+xml' })" as="xs:anyURI"/>
             <xsl:variable name="constructors" select="if (exists($types)) then document($request-uri) else ()" as="document-node()?"/>
-
-            <xsl:message>
-                .add-constructor $constructors: <xsl:value-of select="serialize($constructors)"/>
-            </xsl:message>
 
             <xsl:variable name="query-string" select="$constraint-query || ' VALUES $Type { ' || string-join(for $type in $types return '&lt;' || $type || '&gt;', ' ') || ' }'" as="xs:string"/>
             <xsl:variable name="request-uri" select="ac:build-uri(resolve-uri('ns', $ldt:base), map{ 'query': $query-string, 'accept': 'application/sparql-results+xml' })" as="xs:anyURI"/>

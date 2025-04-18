@@ -53,6 +53,9 @@ ldh:Import spin:constructor ldh:TitleConstructor, ldh:DescriptionConstructor ;
 ldh:Chart spin:constructor ldh:TitleConstructor, ldh:DescriptionConstructor ;
     spin:constraint :MissingTitle .
 
+ldh:View spin:constructor ldh:TitleConstructor, ldh:DescriptionConstructor .
+    # spin:constraint :MissingTitle .
+
 nfo:FileDataObject rdfs:label "File" ;
     spin:constructor ldh:TitleConstructor, ldh:DescriptionConstructor ;
     spin:constraint :MissingTitle .
