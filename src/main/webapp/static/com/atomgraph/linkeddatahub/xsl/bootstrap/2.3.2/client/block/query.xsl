@@ -105,7 +105,7 @@ exclude-result-prefixes="#all"
     
     <!-- render query block -->
     
-    <xsl:template match="*[@typeof = ('&sp;Ask', '&sp;Select', '&sp;Describe', '&sp;Construct')][descendant::*[@property = '&sp;text'][pre/text()]]" mode="ldh:RenderRow" priority="1">
+    <xsl:template match="*[@typeof = ('&sp;Ask', '&sp;Select', '&sp;Describe', '&sp;Construct')][descendant::*[@property = '&sp;text'][pre/text()]]" mode="ldh:RenderRow" priority="2 "> <!-- prioritize above block.xsl -->
         <xsl:param name="block" select="ancestor-or-self::div[contains-token(@class, 'block')][1]" as="element()"/>
         <xsl:param name="about" select="$block/@about" as="xs:anyURI"/>
         <xsl:param name="block-uri" select="$about" as="xs:anyURI"/>
@@ -154,20 +154,6 @@ exclude-result-prefixes="#all"
                                     <xsl:apply-templates select="key('resources', $service-uri, document($request-uri))" mode="ldh:Typeahead">
                                         <xsl:with-param name="forClass" select="$forClass"/>
                                     </xsl:apply-templates>
-
-                                    <!--
-                                    <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, $query-uri)" as="xs:anyURI"/>
-                                    <xsl:variable name="request" as="item()*">
-                                        <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
-                                            <xsl:call-template name="onQueryServiceLoad">
-                                                <xsl:with-param name="container" select="$container"/>
-                                                <xsl:with-param name="forClass" select="$forClass"/>
-                                                <xsl:with-param name="service-uri" select="$service-uri"/>
-                                            </xsl:call-template>
-                                        </ixsl:schedule-action>
-                                    </xsl:variable>
-                                    <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
-                                    -->
                                 </xsl:when>
                                 <xsl:otherwise>
                                     <xsl:call-template name="bs2:Lookup">
@@ -574,17 +560,9 @@ exclude-result-prefixes="#all"
                         <xsl:with-param name="category" select="$category"/>
                         <xsl:with-param name="series" select="$series"/>
                     </xsl:call-template>
-
-                    <xsl:for-each select="$container//div[@class = 'progress-bar']">
-                        <ixsl:set-style name="display" select="'none'" object="."/>
-                    </xsl:for-each>
                 </xsl:for-each>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:for-each select="$container//div[@class = 'progress-bar']">
-                    <ixsl:set-style name="display" select="'none'" object="."/>
-                </xsl:for-each>
-                    
                 <!-- error response - could not load query results -->
                 <xsl:for-each select="$results-container">
                     <xsl:result-document href="?." method="ixsl:replace-content">

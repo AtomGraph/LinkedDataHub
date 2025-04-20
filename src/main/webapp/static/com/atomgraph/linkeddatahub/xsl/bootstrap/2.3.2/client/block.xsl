@@ -117,20 +117,6 @@ exclude-result-prefixes="#all"
 
     <!-- render row -->
     
-    <!-- match resources that are not LDH system resources -->
-<!--    <xsl:template match="*[@typeof[not(. = ('&ldh;Object', '&ldh;View', '&ldh;GraphChart', '&ldh;ResultSetChart'))]]" mode="ldh:RenderRow" priority="1">
-        <xsl:apply-templates mode="#current"/>
-        
-        <xsl:message>HELLO? @about: <xsl:value-of select="@about"/></xsl:message>
-        
-         hide the progress bar 
-        <xsl:for-each select="ancestor::div[contains-token(@class, 'span12')][contains-token(@class, 'progress')][contains-token(@class, 'active')]">
-            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'progress', false() ])[current-date() lt xs:date('2000-01-01')]"/>
-            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'progress-striped', false() ])[current-date() lt xs:date('2000-01-01')]"/>
-            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'active', false() ])[current-date() lt xs:date('2000-01-01')]"/>
-        </xsl:for-each>
-    </xsl:template>-->
-
     <xsl:template match="*" mode="ldh:RenderRow">
         <xsl:apply-templates mode="#current"/>
     </xsl:template>

@@ -35,6 +35,19 @@ exclude-result-prefixes="#all"
 >
 
     <!-- TEMPLATES -->
+        
+<!--    <xsl:template match="div[@typeof = '&ldh;Object']/div/div[@about]" mode="ldh:RenderRow" priority="1">
+        <xsl:apply-templates mode="#current"/>
+
+        <xsl:message>HELLO? @about: <xsl:value-of select="@about"/></xsl:message>
+
+         hide the progress bar 
+        <xsl:for-each select="ancestor::div[contains-token(@class, 'span12')][contains-token(@class, 'progress')][contains-token(@class, 'active')]">
+            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'progress', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'progress-striped', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'active', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+        </xsl:for-each>
+    </xsl:template>-->
 
     <!-- hide type control -->
     <xsl:template match="*[rdf:type/@rdf:resource = '&ldh;Object']" mode="bs2:TypeControl" priority="1">
@@ -52,7 +65,7 @@ exclude-result-prefixes="#all"
     
     <!-- object block (RDF resource) -->
     
-    <xsl:template match="*[@typeof = '&ldh;Object'][descendant::*[@property = '&rdf;value'][@resource]]" mode="ldh:RenderRow" priority="1">
+    <xsl:template match="*[@typeof = '&ldh;Object'][descendant::*[@property = '&rdf;value'][@resource]]" mode="ldh:RenderRow" priority="2"> <!-- prioritize above block.xsl -->
         <xsl:param name="block" select="ancestor::div[contains-token(@class, 'block')][1]" as="element()"/>
         <xsl:param name="about" select="$block/@about" as="xs:anyURI"/>
         <xsl:param name="block-uri" select="$about" as="xs:anyURI"/>
@@ -110,11 +123,11 @@ exclude-result-prefixes="#all"
                         <xsl:variable name="resource" select="key('resources', $resource-uri)" as="element()?"/>
                         <xsl:choose>
                             <!-- only attempt to load object metadata for local resources -->
-                            <xsl:when test="$resource and starts-with($resource-uri, $ldt:base)">
-                                <xsl:message>ldh:block-object-value-response local $resource-uri: <xsl:value-of select="$resource-uri"/></xsl:message>
-                                <xsl:variable name="object-uris" select="distinct-values($resource/*/@rdf:resource[not(key('resources', ., root($resource)))])" as="xs:string*"/>
+                            <xsl:when test="$resource">
+                                <xsl:message>ldh:block-object-value-response $resource-uri: <xsl:value-of select="$resource-uri"/></xsl:message>
+                                <xsl:variable name="object-uris" select="distinct-values($resource/*/@rdf:resource[starts-with(., $ldt:base)][not(key('resources', ., root($resource)))])" as="xs:string*"/>
                                 <xsl:variable name="query-string" select="$object-metadata-query || ' VALUES $this { ' || string-join(for $uri in $object-uris return '&lt;' || $uri || '&gt;', ' ') || ' }'" as="xs:string"/>                    
-                               <xsl:variable name="request" select="map{ 'method': 'POST', 'href': sd:endpoint(), 'media-type': 'application/sparql-query', 'body': $query-string, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
+                                <xsl:variable name="request" select="map{ 'method': 'POST', 'href': sd:endpoint(), 'media-type': 'application/sparql-query', 'body': $query-string, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
                                 <xsl:variable name="context" as="map(*)" select="
                                   map{
                                     'request': $request,
@@ -130,36 +143,6 @@ exclude-result-prefixes="#all"
                                     ixsl:then(ldh:handle-response#1) =>
                                     ixsl:then(ldh:block-object-metadata-response#1)"
                                     on-failure="ldh:promise-failure#1"/>
-                            </xsl:when>
-                            <xsl:when test="$resource">
-                                <xsl:message>ldh:block-object-value-response external $resource-uri: <xsl:value-of select="$resource-uri"/></xsl:message>
-                                <xsl:variable name="row" as="node()*">
-                                    <xsl:apply-templates select="$resource" mode="bs2:Row">
-                                        <xsl:with-param name="graph" select="$graph" tunnel="yes"/>
-                                        <xsl:with-param name="mode" select="$mode"/>
-                                        <xsl:with-param name="show-edit-button" select="$show-edit-button" tunnel="yes"/>
-                                        <xsl:with-param name="show-row-block-controls" select="false()"/> <!-- blocks nested within ldh:Object do not show their own progress bars -->
-                                        <xsl:with-param name="draggable" select="false()"/> <!-- blocks nested within ldh:Object are not draggable -->
-                                    </xsl:apply-templates>
-                                </xsl:variable>
-
-                                <xsl:for-each select="$container">
-                                    <xsl:result-document href="?." method="ixsl:replace-content">
-                                        <!-- wrap the row -->
-                                        <div class="span12">
-                                            <xsl:copy-of select="$row"/>
-                                        </div>
-                                    </xsl:result-document>
-
-                                    <xsl:apply-templates mode="ldh:RenderRow"/> <!-- recurse down the block hierarchy -->
-                                    
-                                    <!-- hide the progress bar -->
-                                    <xsl:for-each select="ancestor::div[contains-token(@class, 'span12')][contains-token(@class, 'progress')][contains-token(@class, 'active')]">
-                                        <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'progress', false() ])[current-date() lt xs:date('2000-01-01')]"/>
-                                        <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'progress-striped', false() ])[current-date() lt xs:date('2000-01-01')]"/>
-                                        <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'active', false() ])[current-date() lt xs:date('2000-01-01')]"/>
-                                    </xsl:for-each>
-                                </xsl:for-each>
                             </xsl:when>
                             <xsl:otherwise>
                                 <xsl:for-each select="$container">
@@ -247,12 +230,7 @@ exclude-result-prefixes="#all"
 
                         <xsl:apply-templates mode="ldh:RenderRow"/> <!-- recurse down the block hierarchy -->
                         
-                        <!-- hide the progress bar -->
-                        <xsl:for-each select="ancestor::div[contains-token(@class, 'span12')][contains-token(@class, 'progress')][contains-token(@class, 'active')]">
-                            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'progress', false() ])[current-date() lt xs:date('2000-01-01')]"/>
-                            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'progress-striped', false() ])[current-date() lt xs:date('2000-01-01')]"/>
-                            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'active', false() ])[current-date() lt xs:date('2000-01-01')]"/>
-                        </xsl:for-each>
+                        <!-- cannot hide the progress bar here as the blocks might continue loading -->
                     </xsl:for-each>
                 </xsl:when>
                 <xsl:otherwise>

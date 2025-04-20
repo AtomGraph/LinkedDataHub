@@ -255,7 +255,7 @@ exclude-result-prefixes="#all"
         <ixsl:promise select="ixsl:http-request($context('request')) =>
             ixsl:then(ldh:rethread-response($context, ?)) =>
             ixsl:then(ldh:handle-response#1) =>
-            ixsl:then(ldh:result-count-results-load#1)"
+            ixsl:then(ldh:result-count-response#1)"
             on-failure="ldh:promise-failure#1"/>
     </xsl:template>
     
@@ -472,10 +472,6 @@ exclude-result-prefixes="#all"
         <xsl:param name="active-mode" as="xs:anyURI"/>
         <xsl:param name="select-xml" as="document-node()"/>
         <xsl:param name="base-uri" as="xs:anyURI"/>
-        
-        <xsl:for-each select="$block//div[contains-token(@class, 'bar')]">
-            <ixsl:set-style name="width" select="'88%'" object="."/>
-        </xsl:for-each>
 
         <xsl:for-each select="$container">
             <xsl:result-document href="?." method="ixsl:replace-content">
@@ -544,11 +540,6 @@ exclude-result-prefixes="#all"
     <xsl:template name="render-container-error">
         <xsl:param name="container" as="element()"/>
         <xsl:param name="message" as="xs:string"/>
-
-        <!-- update progress bar -->
-        <xsl:for-each select="$container//div[@class = 'progress-bar']">
-            <ixsl:set-style name="display" select="'none'" object="."/>
-        </xsl:for-each>
 
         <xsl:for-each select="$container">
             <xsl:result-document href="?." method="ixsl:replace-content">
@@ -726,11 +717,15 @@ exclude-result-prefixes="#all"
                     <ixsl:promise select="ixsl:http-request($context('request')) =>
                         ixsl:then(ldh:rethread-response($context, ?)) =>
                         ixsl:then(ldh:handle-response#1) =>
-                        ixsl:then(ldh:order-by-results-load#1)"
+                        ixsl:then(ldh:order-by-response#1)"
                         on-failure="ldh:promise-failure#1"/>
                 </xsl:if>
             </xsl:for-each>
         </xsl:if>
+        
+        <xsl:for-each select="$block//div[contains-token(@class, 'bar')]">
+            <ixsl:set-style name="width" select="'88%'" object="."/>
+        </xsl:for-each>
         
         <!-- only load object metadata when querying the local endpoint -->
         <xsl:choose>
@@ -754,7 +749,7 @@ exclude-result-prefixes="#all"
                 <ixsl:promise select="ixsl:http-request($context('request')) =>
                     ixsl:then(ldh:rethread-response($context, ?)) =>
                     ixsl:then(ldh:handle-response#1) =>
-                    ixsl:then(ldh:container-object-metadata-results-load#1)"
+                    ixsl:then(ldh:view-object-metadata-response#1)"
                     on-failure="ldh:promise-failure#1"/>
             </xsl:when>
             <xsl:otherwise>
@@ -771,11 +766,6 @@ exclude-result-prefixes="#all"
                 </xsl:call-template>
             </xsl:otherwise>
         </xsl:choose>
-        
-        <!-- hide progress bar -->
-        <xsl:for-each select="$container//div[@class = 'progress-bar']">
-            <ixsl:set-style name="display" select="'none'" object="."/>
-        </xsl:for-each>
     </xsl:template>
     
     <!-- facets -->
@@ -822,7 +812,7 @@ exclude-result-prefixes="#all"
                     <ixsl:promise select="ixsl:http-request($context('request')) =>
                         ixsl:then(ldh:rethread-response($context, ?)) =>        
                         ixsl:then(ldh:handle-response#1) =>
-                        ixsl:then(ldh:facet-filter-results-load#1)"
+                        ixsl:then(ldh:facet-filter-response#1)"
                         on-failure="ldh:promise-failure#1"/>
                 </xsl:if>
             </xsl:for-each>
@@ -1046,7 +1036,7 @@ exclude-result-prefixes="#all"
             <ixsl:promise select="ixsl:http-request($context('request')) =>
                 ixsl:then(ldh:rethread-response($context, ?)) =>
                 ixsl:then(ldh:handle-response#1) =>
-                ixsl:then(ldh:parallax-results-load#1)"
+                ixsl:then(ldh:parallax-response#1)"
                 on-failure="ldh:promise-failure#1"/>
         </xsl:if>
     </xsl:template>
@@ -1124,7 +1114,7 @@ exclude-result-prefixes="#all"
                 <ixsl:promise select="ixsl:http-request($context('request')) =>
                     ixsl:then(ldh:rethread-response($context, ?)) =>
                     ixsl:then(ldh:handle-response#1) =>
-                    ixsl:then(ldh:container-object-metadata-results-load#1)"
+                    ixsl:then(ldh:view-object-metadata-response#1)"
                     on-failure="ldh:promise-failure#1"/>
             </xsl:when>
             <xsl:otherwise>
@@ -1381,7 +1371,7 @@ exclude-result-prefixes="#all"
                     <ixsl:promise select="ixsl:http-request($context('request')) =>
                         ixsl:then(ldh:rethread-response($context, ?)) =>
                         ixsl:then(ldh:handle-response#1) =>
-                        ixsl:then(ldh:facet-value-results-load#1)"
+                        ixsl:then(ldh:facet-value-response#1)"
                         on-failure="ldh:promise-failure#1"/>
                 </xsl:for-each>
             </xsl:when>
@@ -1715,7 +1705,7 @@ exclude-result-prefixes="#all"
     </xsl:function>
     
     <!-- transform SPARQL BGP triple into facet header and placeholder -->
-    <xsl:function name="ldh:facet-filter-results-load" as="map(*)" ixsl:updating="yes">
+    <xsl:function name="ldh:facet-filter-response" as="map(*)" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
         <xsl:variable name="response" select="$context('response')" as="map(*)"/>
         <xsl:variable name="container" select="$context('container')" as="element()"/>
@@ -1723,7 +1713,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="predicate" select="$context('predicate')" as="xs:anyURI"/>
         <xsl:variable name="object-var-name" select="$context('object-var-name')" as="xs:string"/>
 
-        <xsl:message>ldh:facet-filter-results-load</xsl:message>
+        <xsl:message>ldh:facet-filter-response</xsl:message>
         
         <xsl:for-each select="$response">
             <xsl:if test="?status = 200 and ?media-type = 'application/rdf+xml' and ?body">
@@ -1744,14 +1734,14 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="$context"/>
     </xsl:function>
     
-    <xsl:function name="ldh:parallax-results-load" as="map(*)" ixsl:updating="yes">
+    <xsl:function name="ldh:parallax-response" as="map(*)" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
         <xsl:variable name="response" select="$context('response')" as="map(*)"/>
         <xsl:variable name="container" select="$context('container')" as="element()"/>
         <xsl:variable name="var-name" select="$context('var-name')" as="xs:string"/>
         <xsl:variable name="results" select="$context('results')" as="document-node()"/>
         
-        <xsl:message>ldh:parallax-results-load</xsl:message>
+        <xsl:message>ldh:parallax-response</xsl:message>
         
         <xsl:for-each select="$response">
             <xsl:choose>
@@ -1774,7 +1764,7 @@ exclude-result-prefixes="#all"
                             <ixsl:promise select="ixsl:http-request($context('request')) =>
                                 ixsl:then(ldh:rethread-response($context, ?)) =>
                                 ixsl:then(ldh:handle-response#1) =>
-                                ixsl:then(ldh:parallax-property-load#1)"
+                                ixsl:then(ldh:parallax-property-response#1)"
                                 on-failure="ldh:promise-failure#1"/>
                         </xsl:for-each-group>
                     </xsl:for-each>
@@ -1799,7 +1789,7 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="$context"/>
     </xsl:function>
     
-    <xsl:function name="ldh:parallax-property-load" as="map(*)" ixsl:updating="yes">
+    <xsl:function name="ldh:parallax-property-response" as="map(*)" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
         <xsl:variable name="response" select="$context('response')" as="map(*)"/>
         <xsl:variable name="container" select="$context('container')" as="element()"/>
@@ -1807,7 +1797,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="id" select="$context('id')" as="xs:string?"/>
         <xsl:variable name="predicate" select="$context('predicate')" as="xs:anyURI"/>
         
-        <xsl:message>ldh:parallax-property-load</xsl:message>
+        <xsl:message>ldh:parallax-property-response</xsl:message>
         
         <xsl:for-each select="$response">
             <xsl:variable name="results" select="if (?status = 200 and ?media-type = 'application/rdf+xml') then ?body else ()" as="document-node()?"/>
@@ -1858,7 +1848,7 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="$context"/>
     </xsl:function>
     
-    <xsl:function name="ldh:facet-value-results-load" as="map(*)" ixsl:updating="yes">
+    <xsl:function name="ldh:facet-value-response" as="map(*)" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
         <xsl:variable name="response" select="$context('response')" as="map(*)"/>
         <xsl:variable name="container" select="$context('container')" as="element()"/>
@@ -1867,7 +1857,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="count-var-name" select="$context('count-var-name')" as="xs:string"/>
         <xsl:variable name="label-sample-var-name" select="$context('label-sample-var-name')" as="xs:string"/>
 
-        <xsl:message>ldh:facet-value-results-load</xsl:message>
+        <xsl:message>ldh:facet-value-response</xsl:message>
         
         <xsl:for-each select="$response">
             <xsl:variable name="response" select="." as="map(*)"/>
@@ -1902,7 +1892,7 @@ exclude-result-prefixes="#all"
                                         <ixsl:promise select="ixsl:http-request($context('request')) =>
                                             ixsl:then(ldh:rethread-response($context, ?)) =>
                                             ixsl:then(ldh:handle-response#1) =>
-                                            ixsl:then(ldh:facet-value-type-load#1)"
+                                            ixsl:then(ldh:facet-value-type-response#1)"
                                             on-failure="ldh:promise-failure#1"/>
                                     </xsl:for-each>
                                 </xsl:when>
@@ -1956,7 +1946,7 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="$context"/>
     </xsl:function>
     
-    <xsl:function name="ldh:facet-value-type-load" as="item()*" ixsl:updating="yes">
+    <xsl:function name="ldh:facet-value-type-response" as="item()*" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
         <xsl:variable name="response" select="$context('response')" as="map(*)"/>
         <xsl:variable name="container" select="$context('container')" as="element()"/>
@@ -1965,7 +1955,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="object-type" select="$context('object-type')" as="xs:anyURI"/>
         <xsl:variable name="value-result" select="$context('value-result')" as="element()"/>
 
-        <xsl:message>ldh:facet-value-type-load</xsl:message>
+        <xsl:message>ldh:facet-value-type-response</xsl:message>
 
         <xsl:for-each select="$response">
             <xsl:variable name="results" select="if (?status = 200 and ?media-type = 'application/rdf+xml') then ?body else ()" as="document-node()?"/>
@@ -2006,13 +1996,13 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="$context"/>
     </xsl:function>
     
-    <xsl:function name="ldh:result-count-results-load" as="map(*)" ixsl:updating="yes">
+    <xsl:function name="ldh:result-count-response" as="map(*)" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
         <xsl:variable name="response" select="$context('response')" as="map(*)"/>
         <xsl:variable name="container" select="$context('container')" as="element()"/>
         <xsl:variable name="count-var-name" select="$context('count-var-name')" as="xs:string"/>
 
-        <xsl:message>ldh:result-count-results-load</xsl:message>
+        <xsl:message>ldh:result-count-response</xsl:message>
 
         <xsl:for-each select="$response">
             <xsl:choose>
@@ -2043,7 +2033,7 @@ exclude-result-prefixes="#all"
         
     <!-- order by -->
     
-    <xsl:function name="ldh:order-by-results-load" as="map(*)" ixsl:updating="yes">
+    <xsl:function name="ldh:order-by-response" as="map(*)" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
         <xsl:variable name="response" select="$context('response')" as="map(*)"/>
         <xsl:variable name="container" select="$context('container')" as="element()"/>
@@ -2051,7 +2041,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="predicate" select="$context('predicate')" as="xs:anyURI"/>
         <xsl:variable name="order-by-predicate" select="$context('order-by-predicate')" as="xs:anyURI?"/>
 
-        <xsl:message>ldh:order-by-results-load</xsl:message>
+        <xsl:message>ldh:order-by-response</xsl:message>
         
         <xsl:for-each select="$response">
             <xsl:if test="?status = 200 and ?media-type = 'application/rdf+xml' and ?body">
@@ -2070,7 +2060,7 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="$context"/>
     </xsl:function>
     
-    <xsl:function name="ldh:container-object-metadata-results-load" as="map(*)" ixsl:updating="yes">
+    <xsl:function name="ldh:view-object-metadata-response" as="map(*)" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
         <xsl:variable name="response" select="$context('response')" as="map(*)"/>
         <xsl:variable name="block" select="$context('block')" as="element()"/>
@@ -2082,7 +2072,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="select-xml" select="$context('select-xml')" as="document-node()"/>
         <xsl:variable name="base-uri" select="$context('base-uri')" as="xs:anyURI"/>
 
-        <xsl:message>ldh:container-object-metadata-results-load</xsl:message>
+        <xsl:message>ldh:view-object-metadata-response</xsl:message>
         
         <xsl:for-each select="$response">
             <xsl:choose>

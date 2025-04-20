@@ -514,16 +514,18 @@ WHERE
                     </xsl:if>
 
                     <ul class="breadcrumb pull-left">
-                        <!-- list items will be injected by ldh:BreadCrumbResourceLoaded -->
+                        <!-- list items will be injected by ldh:breadcrumb-resource-response -->
                     </ul>
                 </xsl:result-document>
 
-                <!-- passing response map(*) as the context here! -->
-                <xsl:call-template name="ldh:BreadCrumbResourceLoaded">
-                    <xsl:with-param name="container" select="id('breadcrumb-nav', ixsl:page())"/>
-                    <!-- strip the query string if it's present -->
-                    <xsl:with-param name="uri" select="$graph"/>
-                </xsl:call-template>
+                <xsl:variable name="context" as="map(*)" select="
+                  map{
+                    'response': $response,
+                    'container': id('breadcrumb-nav', ixsl:page()),
+                    'uri': $graph,
+                    'leaf': true()
+                  }"/>
+                <xsl:sequence select="ldh:breadcrumb-resource-response($context)"/>
             </xsl:if>
 
             <!-- checking acl:mode here because this template is called after every document load (also the initial load) and has access to ?headers -->
@@ -954,35 +956,6 @@ WHERE
                 </xsl:call-template>
             </xsl:result-document>
         </xsl:for-each>
-    </xsl:template>
-    
-    <xsl:template name="onBacklinksLoad">
-        <xsl:context-item as="map(*)" use="required"/>
-        <xsl:param name="backlinks-container" as="element()"/>
-
-        <xsl:choose>
-            <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
-                <xsl:variable name="results" select="?body" as="document-node()"/>
-                
-                <xsl:for-each select="$backlinks-container">
-                    <xsl:variable name="doc-uri" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/>
-                    <xsl:result-document href="?." method="ixsl:append-content">
-                        <ul class="well well-small nav nav-list">
-                            <xsl:apply-templates select="$results/rdf:RDF/rdf:Description[not(@rdf:about = $doc-uri)]" mode="xhtml:ListItem">
-                                <xsl:sort select="ac:label(.)" order="ascending" lang="{$ldt:lang}"/>
-                                <xsl:with-param name="mode" select="ixsl:query-params()?mode[1]" tunnel="yes"/> <!-- TO-DO: support multiple modes -->
-                                <xsl:with-param name="render-id" select="false()" tunnel="yes"/>
-                            </xsl:apply-templates>
-                        </ul>
-                    </xsl:result-document>
-                </xsl:for-each>
-            </xsl:when>
-            <xsl:otherwise>
-                <xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ ?message ])[current-date() lt xs:date('2000-01-01')]"/>
-            </xsl:otherwise>
-        </xsl:choose>
-        
-        <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
     </xsl:template>
 
     <!-- EVENT LISTENERS -->
