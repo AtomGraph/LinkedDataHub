@@ -203,7 +203,7 @@ exclude-result-prefixes="#all"
     </xsl:template>
     
     <!-- render chart block -->
-    <xsl:template match="*[@typeof = ('&ldh;ResultSetChart', '&ldh;GraphChart')][descendant::*[@property = '&spin;query'][@resource]][descendant::*[@property = '&ldh;chartType'][@resource]]" mode="ldh:RenderRow" priority="2"> <!-- prioritize above block.xsl -->
+<!--    <xsl:template match="*[@typeof = ('&ldh;ResultSetChart', '&ldh;GraphChart')][descendant::*[@property = '&spin;query'][@resource]][descendant::*[@property = '&ldh;chartType'][@resource]]" mode="ldh:RenderRow" priority="2">  prioritize above block.xsl 
         <xsl:param name="block" select="ancestor-or-self::div[contains-token(@class, 'block')][1]" as="element()"/>
         <xsl:param name="about" select="$block/@about" as="xs:anyURI"/>
         <xsl:param name="container" select="." as="element()"/>
@@ -262,7 +262,7 @@ exclude-result-prefixes="#all"
                                         <xsl:apply-templates select="key('resources', '&ldh;chartType', document(ac:document-uri('&ldh;')))" mode="ac:label"/>
                                     </xsl:value-of>
                                 </label>
-                                <!--  TO-DO: replace with xsl:apply-templates on ac:Chart subclasses as in imports/ldh.xsl -->
+                                  TO-DO: replace with xsl:apply-templates on ac:Chart subclasses as in imports/ldh.xsl 
                                 <select id="{$chart-type-id}" name="ou" class="input-medium chart-type">
                                     <option value="&ac;Table">
                                         <xsl:if test="$chart-type = '&ac;Table'">
@@ -346,7 +346,7 @@ exclude-result-prefixes="#all"
             ixsl:then(ldh:handle-response#1) =>
             ixsl:then(ldh:chart-query-response#1)"
             on-failure="ldh:promise-failure#1"/>
-    </xsl:template>
+    </xsl:template>-->
     
     <!-- EVENT LISTENERS -->
     

@@ -120,6 +120,8 @@ exclude-result-prefixes="#all"
     <xsl:template match="*" mode="ldh:RenderRow">
         <xsl:apply-templates mode="#current"/>
     </xsl:template>
+
+    <xsl:template match="text()" mode="ldh:RenderRow"/>
     
     <!-- hide type control -->
     <xsl:template match="*[rdf:type/@rdf:resource = '&ldh;XHTML']" mode="bs2:TypeControl" priority="1">

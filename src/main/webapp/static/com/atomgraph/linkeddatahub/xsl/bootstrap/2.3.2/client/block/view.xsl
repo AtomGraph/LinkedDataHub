@@ -58,10 +58,10 @@ exclude-result-prefixes="#all"
 
     <!-- render view -->
     
-    <xsl:template match="*[@typeof = '&ldh;View'][descendant::*[@property = '&spin;query'][@resource]]" mode="ldh:RenderRow" priority="2"> <!-- prioritize above block.xsl -->
+<!--    <xsl:template match="*[@typeof = '&ldh;View'][descendant::*[@property = '&spin;query'][@resource]]" mode="ldh:RenderRow" priority="2">  prioritize above block.xsl 
         <xsl:param name="block" select="ancestor-or-self::div[contains-token(@class, 'block')][1]" as="element()"/>
-        <xsl:param name="this" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/> <!-- document URL -->
-        <xsl:param name="parent-about" select="$block/ancestor::*[@about][1]/@about" as="xs:anyURI"/> <!-- outer @about context -->
+        <xsl:param name="this" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/>  document URL 
+        <xsl:param name="parent-about" select="$block/ancestor::*[@about][1]/@about" as="xs:anyURI"/>  outer @about context 
         <xsl:param name="container" select="." as="element()"/>
         <xsl:param name="graph" select="descendant::*[@property = '&ldh;graph']/@resource" as="xs:anyURI?"/>
         <xsl:param name="mode" select="descendant::*[@property = '&ac;mode']/@resource" as="xs:anyURI?"/>
@@ -69,13 +69,13 @@ exclude-result-prefixes="#all"
         <xsl:param name="query-uri" select="descendant::*[@property = '&spin;query']/@resource" as="xs:anyURI"/>
         
         <xsl:for-each select="$block//div[contains-token(@class, 'bar')]">
-            <!-- update progress bar -->
+             update progress bar 
             <ixsl:set-style name="width" select="'75%'" object="."/>
         </xsl:for-each>
         
         <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, ac:document-uri($query-uri))" as="xs:anyURI"/>
         <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
-        <!-- $about in the query gets set to the @about of the *parent* block  -->
+         $about in the query gets set to the @about of the *parent* block  
         <xsl:variable name="context" as="map(*)" select="
           map{
             'request': $request,
@@ -92,7 +92,7 @@ exclude-result-prefixes="#all"
             ixsl:then(ldh:handle-response#1) =>
             ixsl:then(ldh:view-query-response#1)"
             on-failure="ldh:promise-failure#1"/>
-    </xsl:template>
+    </xsl:template>-->
     
     <!-- hide type control -->
     <xsl:template match="*[rdf:type/@rdf:resource = '&ldh;View']" mode="bs2:TypeControl" priority="1">

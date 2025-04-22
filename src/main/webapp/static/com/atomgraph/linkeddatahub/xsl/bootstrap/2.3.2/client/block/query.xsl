@@ -105,7 +105,7 @@ exclude-result-prefixes="#all"
     
     <!-- render query block -->
     
-    <xsl:template match="*[@typeof = ('&sp;Ask', '&sp;Select', '&sp;Describe', '&sp;Construct')][descendant::*[@property = '&sp;text'][pre/text()]]" mode="ldh:RenderRow" priority="2 "> <!-- prioritize above block.xsl -->
+    <xsl:template match="*[@typeof = ('&sp;Ask', '&sp;Select', '&sp;Describe', '&sp;Construct')][descendant::*[@property = '&sp;text'][pre/text()]]" mode="ldh:RenderRow" as="function(item()?) as item()*" priority="2 "> <!-- prioritize above block.xsl -->
         <xsl:param name="block" select="ancestor-or-self::div[contains-token(@class, 'block')][1]" as="element()"/>
         <xsl:param name="about" select="$block/@about" as="xs:anyURI"/>
         <xsl:param name="block-uri" select="$about" as="xs:anyURI"/>
@@ -127,13 +127,95 @@ exclude-result-prefixes="#all"
         <xsl:for-each select="$block//div[contains-token(@class, 'bar')]">
             <ixsl:set-style name="width" select="'66%'" object="."/>
         </xsl:for-each>
+        
+        <xsl:variable name="child-thunk" as="function(map(*)) as item()*?">
+          <xsl:apply-templates mode="#current"/>
+        </xsl:variable>
 
+        <xsl:variable name="context" as="map(*)" select="
+          map{
+            'container': $container,
+            'textarea-id': $textarea-id,
+            'textarea-class': $textarea-class,
+            'textarea-name': $textarea-name,
+            'textarea-rows': $textarea-rows,
+            'query': $query,
+            'service-uri': $service-uri,
+            'forClass': $forClass
+          }"/>
+  
+        <xsl:sequence select="
+          ldh:load-block#4(
+            $context,
+            ldh:render-query#1,
+            $child-thunk,
+            ?
+          )
+        "/>
+    </xsl:template>
+
+    <xsl:function name="ldh:load-block" ixsl:updating="yes" as="map(*)">
+      <xsl:param name="context"     as="map(*)"/>
+      <xsl:param name="self-thunk"  as="function(map(*)) as item()*"/>
+      <xsl:param name="child-thunk" as="function(map(*)) as item()*?"/>
+      <xsl:param name="ignored"     as="item()?"/>
+
+      <xsl:sequence select="
+        ixsl:all-settled(
+            array{
+              $self-thunk($context),
+              if ($child-thunk) then $child-thunk($context) else ()
+            }
+        )
+        => ixsl:then(
+            ldh:hide-block-progress-bar1(
+              $context,
+              ?
+            )
+        )
+        "/>
+    </xsl:function>
+
+    <xsl:function name="ldh:hide-block-progress-bar1" as="map(*)" ixsl:updating="yes">
+        <xsl:param name="context"     as="map(*)"/>
+        <xsl:param name="results" as="array(*)"/>
+        <xsl:message>ldh:hide-block-progress-bar</xsl:message>
+        
+        <xsl:variable name="container" select="$context('container')" as="element()"/>
+
+        <!-- hide the progress bar -->
+        <xsl:for-each select="$container/ancestor::div[contains-token(@class, 'span12')][contains-token(@class, 'progress')][contains-token(@class, 'active')]">
+            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'progress', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'progress-striped', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'active', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+        </xsl:for-each>
+        
+        <xsl:sequence select="$context"/>
+    </xsl:function>
+    
+    <xsl:function name="ldh:render-query" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:variable name="container" select="$context('container')" as="element()"/>
+        <xsl:variable name="textarea-id" select="$context('textarea-id')" as="xs:string?"/>
+        <xsl:variable name="textarea-class" select="$context('textarea-class')" as="xs:string?"/>
+        <xsl:variable name="textarea-name" select="$context('textarea-name')" as="xs:string?"/>
+        <xsl:variable name="textarea-rows" select="$context('textarea-rows')" as="xs:integer?"/>
+        <xsl:variable name="query" select="$context('query')" as="xs:string"/>
+        <xsl:variable name="service-uri" select="$context('service-uri')" as="xs:anyURI?"/>
+        <xsl:variable name="forClass" select="$context('forClass')" as="xs:anyURI"/>
+        
+        <xsl:message>ldh:render-query exists($container//div[contains-token(@class, 'main')]): <xsl:value-of select="exists($container//div[contains-token(@class, 'main')])"/></xsl:message>
+        <xsl:message>ldh:render-query $container/@id: <xsl:value-of select="$container/@id"/> $container: <xsl:value-of select="serialize($container)"/></xsl:message>
+        <xsl:message>ldh:render-query $container//div[contains-token(@class, 'main')]: <xsl:value-of select="serialize($container//div[contains-token(@class, 'main')])"/></xsl:message>
+  
         <xsl:for-each select="$container//div[contains-token(@class, 'main')]">
             <xsl:variable name="header" select="./div/div[@class = 'well']" as="element()"/>
             
+            <xsl:message>contains(.): <xsl:value-of select="ixsl:call(ixsl:page(), 'contains', [ . ])"/></xsl:message>
+<!--            <xsl:sequence select="ixsl:call(., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>-->
             <xsl:result-document href="?." method="ixsl:replace-content">
                 <xsl:copy-of select="$header"/>
-                
+                                
                 <form class="sparql-query-form form-horizontal" method="get" action="">
                     <div class="control-group">
                         <xsl:call-template name="xhtml:Input">
@@ -206,26 +288,24 @@ exclude-result-prefixes="#all"
             </xsl:result-document>
         </xsl:for-each>
         
-        <!-- hide the progress bar - either of this block (if it contains a progress bar) or of the parent block -->
-        <xsl:for-each select="($block//div[contains-token(@class, 'span12')][contains-token(@class, 'progress')][contains-token(@class, 'active')], $block/ancestor::div[contains-token(@class, 'block')]//div[contains-token(@class, 'span12')][contains-token(@class, 'progress')][contains-token(@class, 'active')])[1]">
-            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'progress', false() ])[current-date() lt xs:date('2000-01-01')]"/>
-            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'progress-striped', false() ])[current-date() lt xs:date('2000-01-01')]"/>
-            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'active', false() ])[current-date() lt xs:date('2000-01-01')]"/>
-        </xsl:for-each>
-        
-        <xsl:apply-templates mode="#current"/>
-    </xsl:template>
-    
-    <!-- render query editor -->
-    
-    <xsl:template match="textarea[@id][contains-token(@class, 'sparql-query-string')]" mode="ldh:RenderRow" priority="1">
-        <xsl:variable name="textarea-id" select="ixsl:get(., 'id')" as="xs:string"/>
         <!-- initialize YASQE SPARQL editor on the textarea -->
         <xsl:variable name="js-statement" as="element()">
             <root statement="YASQE.fromTextArea(document.getElementById('{$textarea-id}'), {{ persistent: null }})"/>
         </xsl:variable>
         <ixsl:set-property name="{$textarea-id}" select="ixsl:eval(string($js-statement/@statement))" object="ixsl:get(ixsl:window(), 'LinkedDataHub.yasqe')"/>
-    </xsl:template>
+    </xsl:function>
+    
+    <!-- render query editor -->
+    
+<!--    <xsl:template match="textarea[@id][contains-token(@class, 'sparql-query-string')]" mode="ldh:RenderRow" as="item()" priority="1">
+        <xsl:message>YASQE!!!</xsl:message>
+        <xsl:variable name="textarea-id" select="ixsl:get(., 'id')" as="xs:string"/>
+         initialize YASQE SPARQL editor on the textarea 
+        <xsl:variable name="js-statement" as="element()">
+            <root statement="YASQE.fromTextArea(document.getElementById('{$textarea-id}'), {{ persistent: null }})"/>
+        </xsl:variable>
+        <ixsl:set-property name="{$textarea-id}" select="ixsl:eval(string($js-statement/@statement))" object="ixsl:get(ixsl:window(), 'LinkedDataHub.yasqe')"/>        
+    </xsl:template>-->
     
     <!-- EVENT LISTENERS -->
     
