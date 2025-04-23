@@ -105,7 +105,7 @@ exclude-result-prefixes="#all"
     
     <!-- render query block -->
     
-    <xsl:template match="*[@typeof = ('&sp;Ask', '&sp;Select', '&sp;Describe', '&sp;Construct')][descendant::*[@property = '&sp;text'][pre/text()]]" mode="ldh:RenderRow" as="function(item()?) as item()*" priority="2 "> <!-- prioritize above block.xsl -->
+    <xsl:template match="*[@typeof = ('&sp;Ask', '&sp;Select', '&sp;Describe', '&sp;Construct')][descendant::*[@property = '&sp;text'][pre/text()]]" mode="ldh:RenderRow" as="function(item()?) as map(*)" priority="2 "> <!-- prioritize above block.xsl -->
         <xsl:param name="block" select="ancestor-or-self::div[contains-token(@class, 'block')][1]" as="element()"/>
         <xsl:param name="about" select="$block/@about" as="xs:anyURI"/>
         <xsl:param name="block-uri" select="$about" as="xs:anyURI"/>
@@ -177,11 +177,12 @@ exclude-result-prefixes="#all"
     </xsl:function>
 
     <xsl:function name="ldh:hide-block-progress-bar1" as="map(*)" ixsl:updating="yes">
-        <xsl:param name="context"     as="map(*)"/>
+        <xsl:param name="context" as="map(*)"/>
         <xsl:param name="results" as="array(*)"/>
-        <xsl:message>ldh:hide-block-progress-bar</xsl:message>
-        
+              
         <xsl:variable name="container" select="$context('container')" as="element()"/>
+
+        <xsl:message>ldh:hide-block-progress-bar $container/@typeof: <xsl:value-of select="$container/@typeof"/></xsl:message>
 
         <!-- hide the progress bar -->
         <xsl:for-each select="$container/ancestor::div[contains-token(@class, 'span12')][contains-token(@class, 'progress')][contains-token(@class, 'active')]">
@@ -204,15 +205,12 @@ exclude-result-prefixes="#all"
         <xsl:variable name="service-uri" select="$context('service-uri')" as="xs:anyURI?"/>
         <xsl:variable name="forClass" select="$context('forClass')" as="xs:anyURI"/>
         
-        <xsl:message>ldh:render-query exists($container//div[contains-token(@class, 'main')]): <xsl:value-of select="exists($container//div[contains-token(@class, 'main')])"/></xsl:message>
-        <xsl:message>ldh:render-query $container/@id: <xsl:value-of select="$container/@id"/> $container: <xsl:value-of select="serialize($container)"/></xsl:message>
-        <xsl:message>ldh:render-query $container//div[contains-token(@class, 'main')]: <xsl:value-of select="serialize($container//div[contains-token(@class, 'main')])"/></xsl:message>
-  
+      <xsl:message>ldh:render-query</xsl:message>
+
         <xsl:for-each select="$container//div[contains-token(@class, 'main')]">
             <xsl:variable name="header" select="./div/div[@class = 'well']" as="element()"/>
             
             <xsl:message>contains(.): <xsl:value-of select="ixsl:call(ixsl:page(), 'contains', [ . ])"/></xsl:message>
-<!--            <xsl:sequence select="ixsl:call(., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>-->
             <xsl:result-document href="?." method="ixsl:replace-content">
                 <xsl:copy-of select="$header"/>
                                 

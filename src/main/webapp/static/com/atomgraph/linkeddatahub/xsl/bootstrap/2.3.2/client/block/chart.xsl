@@ -203,7 +203,8 @@ exclude-result-prefixes="#all"
     </xsl:template>
     
     <!-- render chart block -->
-<!--    <xsl:template match="*[@typeof = ('&ldh;ResultSetChart', '&ldh;GraphChart')][descendant::*[@property = '&spin;query'][@resource]][descendant::*[@property = '&ldh;chartType'][@resource]]" mode="ldh:RenderRow" priority="2">  prioritize above block.xsl 
+    
+    <xsl:template match="*[@typeof = ('&ldh;ResultSetChart', '&ldh;GraphChart')][descendant::*[@property = '&spin;query'][@resource]][descendant::*[@property = '&ldh;chartType'][@resource]]" mode="ldh:RenderRow" as="function(item()?) as map(*)" priority="2"> <!-- prioritize above block.xsl -->
         <xsl:param name="block" select="ancestor-or-self::div[contains-token(@class, 'block')][1]" as="element()"/>
         <xsl:param name="about" select="$block/@about" as="xs:anyURI"/>
         <xsl:param name="container" select="." as="element()"/>
@@ -240,6 +241,97 @@ exclude-result-prefixes="#all"
             <ixsl:set-style name="width" select="'66%'" object="."/>
         </xsl:for-each>
 
+        <xsl:variable name="child-thunk" as="function(map(*)) as item()*?">
+          <xsl:apply-templates mode="#current"/>
+        </xsl:variable>
+        
+        <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, $query-uri)" as="xs:anyURI"/>
+        <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
+        <xsl:variable name="context" as="map(*)" select="
+          map{
+            'request': $request,
+            'this': $about,
+            'block': $block,
+            'container': $container,
+            'container-id': $container-id,
+            'method': $method,
+            'action': $action,
+            'accept-charset': $accept-charset,
+            'enctype': $enctype,
+            'chart-type-id': $chart-type-id,
+            'category-id': $category-id,
+            'series-id': $series-id,
+            'query-uri': $query-uri,
+            'chart-type': $chart-type,
+            'category': $category,
+            'series': $series,
+            'canvas-id': $canvas-id,
+            'canvas-class': $canvas-class,
+            'form-actions': $form-actions
+          }"/>
+        
+        <xsl:sequence select="
+          ldh:load-block#4(
+            $context,
+            ldh:chart-self-thunk#1,
+            $child-thunk,
+            ?
+          )
+        "/>
+    </xsl:template>
+    
+    <!-- this is the one thunk you hand to load-block#4 -->
+    <xsl:function name="ldh:chart-self-thunk" as="item()*" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:message>ldh:chart-self-thunk</xsl:message>
+        <xsl:sequence select="
+          ixsl:resolve($context)
+            => ixsl:then(ldh:render-chart#1)      (: scaffold the chart UI :)
+            => ixsl:then(ldh:chart-query-thunk#1)  (: first HTTP → query :)
+            => ixsl:then(ldh:chart-results-thunk#1) (: second HTTP → results :)
+        "/>
+    </xsl:function>
+    
+    <!-- only the first HTTP → query‐response lives here -->
+    <xsl:function name="ldh:chart-query-thunk" as="item()*" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:message>ldh:chart-query-thunk</xsl:message>
+        <xsl:sequence select="
+          ixsl:http-request($context('request'))
+            => ixsl:then(ldh:rethread-response($context, ?))
+            => ixsl:then(ldh:handle-response#1)
+            => ixsl:then(ldh:chart-query-response#1)
+        "/>
+    </xsl:function>
+
+    <xsl:function name="ldh:chart-results-thunk" as="item()*" ixsl:updating="yes">
+      <xsl:param name="context" as="map(*)"/>
+      <xsl:message>ldh:chart-results-thunk</xsl:message>
+      <xsl:sequence select="
+        ixsl:http-request($context('request'))
+          => ixsl:then(ldh:rethread-response($context, ?))
+          => ixsl:then(ldh:handle-response#1)
+          => ixsl:then(ldh:chart-results-response#1)
+      "/>
+    </xsl:function>
+
+    <xsl:function name="ldh:render-chart" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:variable name="container" select="$context('container')" as="element()"/>
+        <xsl:variable name="method" select="$context('method')" as="xs:string"/>
+        <xsl:variable name="action" select="$context('action')" as="xs:anyURI"/>
+        <xsl:variable name="accept-charset" select="$context('accept-charset')" as="xs:string?"/>
+        <xsl:variable name="enctype" select="$context('enctype')" as="xs:string?"/>
+        <xsl:variable name="chart-type-id" select="$context('chart-type-id')" as="xs:string"/>
+        <xsl:variable name="category-id" select="$context('category-id')" as="xs:string"/>
+        <xsl:variable name="series-id" select="$context('series-id')" as="xs:string"/>
+        <xsl:variable name="chart-type" select="$context('chart-type')" as="xs:anyURI?"/>
+        <xsl:variable name="canvas-id" select="$context('canvas-id')" as="xs:string?"/>
+        <xsl:variable name="canvas-class" select="$context('canvas-class')" as="xs:string?"/>
+        <xsl:variable name="form-actions" select="$context('form-actions')" as="element()?"/>
+
+        <xsl:message>ldh:render-chart</xsl:message>
+
         <xsl:for-each select="$container//div[contains-token(@class, 'main')]">
             <xsl:variable name="header" select="./div/div[@class = 'well']" as="element()"/>
 
@@ -262,7 +354,7 @@ exclude-result-prefixes="#all"
                                         <xsl:apply-templates select="key('resources', '&ldh;chartType', document(ac:document-uri('&ldh;')))" mode="ac:label"/>
                                     </xsl:value-of>
                                 </label>
-                                  TO-DO: replace with xsl:apply-templates on ac:Chart subclasses as in imports/ldh.xsl 
+                                <!--  TO-DO: replace with xsl:apply-templates on ac:Chart subclasses as in imports/ldh.xsl -->
                                 <select id="{$chart-type-id}" name="ou" class="input-medium chart-type">
                                     <option value="&ac;Table">
                                         <xsl:if test="$chart-type = '&ac;Table'">
@@ -325,28 +417,9 @@ exclude-result-prefixes="#all"
                 </form>
             </xsl:result-document>
         </xsl:for-each>
-
-        <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, $query-uri)" as="xs:anyURI"/>
-        <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
-        <xsl:variable name="context" as="map(*)" select="
-          map{
-            'request': $request,
-            'this': $about,
-            'block': $block,
-            'container': $container,
-            'container-id': $container-id,
-            'query-uri': $query-uri,
-            'chart-type': $chart-type,
-            'category': $category,
-            'series': $series,
-            'canvas-id': $canvas-id
-          }"/>
-        <ixsl:promise select="ixsl:http-request($context('request')) =>
-            ixsl:then(ldh:rethread-response($context, ?)) =>
-            ixsl:then(ldh:handle-response#1) =>
-            ixsl:then(ldh:chart-query-response#1)"
-            on-failure="ldh:promise-failure#1"/>
-    </xsl:template>-->
+        
+        <xsl:sequence select="$context"/>
+    </xsl:function>
     
     <!-- EVENT LISTENERS -->
     
@@ -576,6 +649,8 @@ exclude-result-prefixes="#all"
         <xsl:variable name="series" select="$context('series')" as="xs:string*"/>
         <xsl:variable name="canvas-id" select="$context('canvas-id')" as="xs:string"/>
 
+        <xsl:message>ldh:chart-query-response</xsl:message>
+
         <xsl:for-each select="$response">
             <xsl:variable name="response" select="." as="map(*)"/>
             <xsl:choose>
@@ -597,7 +672,7 @@ exclude-result-prefixes="#all"
                         </xsl:for-each>
 
                         <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml,application/rdf+xml;q=0.9' } }" as="map(*)"/>
-                        <xsl:variable name="context" as="map(*)" select="
+                        <xsl:sequence select="
                           map{
                             'request': $request,
                             'endpoint': $endpoint,
@@ -613,11 +688,6 @@ exclude-result-prefixes="#all"
                             'show-chart-save': false(),
                             'results-container-id': $container-id || '-query-results'
                           }"/>
-                        <ixsl:promise select="ixsl:http-request($context('request')) =>
-                            ixsl:then(ldh:rethread-response($context, ?)) =>
-                            ixsl:then(ldh:handle-response#1) =>
-                            ixsl:then(ldh:chart-results-response#1)"
-                            on-failure="ldh:promise-failure#1"/>
                     </xsl:for-each>
                 </xsl:when>
                 <xsl:otherwise>
@@ -639,11 +709,11 @@ exclude-result-prefixes="#all"
                             </div>
                         </xsl:result-document>
                     </xsl:for-each>
+                    
+                    <xsl:sequence select="$context"/>
                 </xsl:otherwise>
             </xsl:choose>
         </xsl:for-each>
-        
-        <xsl:sequence select="$context"/>
     </xsl:function>
     
     <!-- SPARQL results response -->
@@ -664,6 +734,8 @@ exclude-result-prefixes="#all"
         <xsl:variable name="show-chart-save" select="$context('show-chart-save')" as="xs:boolean"/>
         <xsl:variable name="results-container-id" select="$context('results-container-id')"  as="xs:string"/>
 
+        <xsl:message>ldh:chart-results-response</xsl:message>
+        
         <xsl:for-each select="$response">
             <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
 
@@ -694,23 +766,9 @@ exclude-result-prefixes="#all"
                             <xsl:with-param name="category" select="$category"/>
                             <xsl:with-param name="series" select="$series"/>
                         </xsl:call-template>
-
-                        <!-- hide the progress bar - either of this block (if it contains a progress bar) or of the parent block -->
-                        <xsl:for-each select="($block//div[contains-token(@class, 'span12')][contains-token(@class, 'progress')][contains-token(@class, 'active')], $block/ancestor::div[contains-token(@class, 'block')]//div[contains-token(@class, 'span12')][contains-token(@class, 'progress')][contains-token(@class, 'active')])[1]">
-                            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'progress', false() ])[current-date() lt xs:date('2000-01-01')]"/>
-                            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'progress-striped', false() ])[current-date() lt xs:date('2000-01-01')]"/>
-                            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'active', false() ])[current-date() lt xs:date('2000-01-01')]"/>
-                        </xsl:for-each>
                     </xsl:for-each>
                 </xsl:when>
                 <xsl:otherwise>
-                    <!-- hide the progress bar - either of this block (if it contains a progress bar) or of the parent block -->
-                    <xsl:for-each select="($block//div[contains-token(@class, 'span12')][contains-token(@class, 'progress')][contains-token(@class, 'active')], $block/ancestor::div[contains-token(@class, 'block')]//div[contains-token(@class, 'span12')][contains-token(@class, 'progress')][contains-token(@class, 'active')])[1]">
-                        <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'progress', false() ])[current-date() lt xs:date('2000-01-01')]"/>
-                        <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'progress-striped', false() ])[current-date() lt xs:date('2000-01-01')]"/>
-                        <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'active', false() ])[current-date() lt xs:date('2000-01-01')]"/>
-                    </xsl:for-each>
-
                     <!-- error response - could not load query results -->
                     <xsl:for-each select="$container">
                         <xsl:result-document href="?." method="ixsl:replace-content">
