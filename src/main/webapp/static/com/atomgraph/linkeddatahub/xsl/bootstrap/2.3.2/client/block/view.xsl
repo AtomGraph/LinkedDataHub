@@ -58,7 +58,7 @@ exclude-result-prefixes="#all"
 
     <!-- render view -->
     
-    <xsl:template match="*[@typeof = '&ldh;View'][descendant::*[@property = '&spin;query'][@resource]]" mode="ldh:RenderRow" priority="2"> <!-- prioritize above block.xsl -->
+    <xsl:template match="*[@typeof = '&ldh;View'][descendant::*[@property = '&spin;query'][@resource]]" mode="ldh:RenderRow" as="function(item()?) as map(*)" priority="2"> <!-- prioritize above block.xsl -->
         <xsl:param name="block" select="ancestor-or-self::div[contains-token(@class, 'block')][1]" as="element()"/>
         <xsl:param name="this" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/> <!-- document URL -->
         <xsl:param name="parent-about" select="$block/ancestor::*[@about][1]/@about" as="xs:anyURI"/> <!-- outer @about context -->
@@ -108,30 +108,44 @@ exclude-result-prefixes="#all"
         "/>            
     </xsl:template>
     
-    <xsl:function name="ldh:view-http-thunk" as="item()*" ixsl:updating="yes">
-        <xsl:param name="context" as="map(*)"/>
-
-        <xsl:message>ldh:view-http-thunk</xsl:message>
-
-        <xsl:sequence select="
-          ixsl:http-request($context('request')) =>
-              ixsl:then(ldh:rethread-response($context, ?)) =>
-              ixsl:then(ldh:handle-response#1) =>
-              ixsl:then(ldh:view-query-response#1)
-        "/>
-    </xsl:function>
-
     <xsl:function name="ldh:view-self-thunk" as="item()*" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
 
         <xsl:message>ldh:view-self-thunk</xsl:message>
 
         <xsl:sequence select="
-          ixsl:resolve($context)
-            => ixsl:then(ldh:view-http-thunk#1)    (: then kick off HTTP₁→HTTP₂ chain :)
+            ixsl:resolve($context) =>
+                ixsl:then(ldh:view-query-thunk#1) =>
+                ixsl:then(ldh:view-results-thunk#1)
         "/>
     </xsl:function>
     
+    <xsl:function name="ldh:view-query-thunk" as="item()*" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+
+        <xsl:message>ldh:view-query-thunk</xsl:message>
+
+        <xsl:sequence select="
+            ixsl:http-request($context('request')) =>
+                ixsl:then(ldh:rethread-response($context, ?)) =>
+                ixsl:then(ldh:handle-response#1) =>
+                ixsl:then(ldh:view-query-response#1)
+        "/>
+    </xsl:function>
+    
+    <xsl:function name="ldh:view-results-thunk" as="item()*" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+        
+        <xsl:message>ldh:view-results-thunk</xsl:message>
+
+        <xsl:sequence select="
+            ixsl:http-request($context('request')) =>
+                ixsl:then(ldh:rethread-response($context, ?)) =>        
+                ixsl:then(ldh:handle-response#1) =>
+                ixsl:then(ldh:view-results-response#1)
+        "/>
+    </xsl:function>
+
     <!-- hide type control -->
     <xsl:template match="*[rdf:type/@rdf:resource = '&ldh;View']" mode="bs2:TypeControl" priority="1">
         <xsl:next-match>
@@ -479,7 +493,7 @@ exclude-result-prefixes="#all"
             </xsl:map>
         </xsl:variable>
         <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': $headers }" as="map(*)"/>
-        <xsl:variable name="context" as="map(*)" select="
+        <xsl:sequence select="
           map{
             'request': $request,
             'block': $block,
@@ -492,11 +506,11 @@ exclude-result-prefixes="#all"
             'focus-var-name': $focus-var-name,
             'endpoint': $endpoint
           }"/>
-        <ixsl:promise select="ixsl:http-request($context('request')) =>
+<!--        <ixsl:promise select="ixsl:http-request($context('request')) =>
             ixsl:then(ldh:rethread-response($context, ?)) =>        
             ixsl:then(ldh:handle-response#1) =>
             ixsl:then(ldh:view-results-response#1)"
-            on-failure="ldh:promise-failure#1"/>
+            on-failure="ldh:promise-failure#1"/>-->
     </xsl:template>
 
     <!-- $container here is the inner result container, not the content container! -->
@@ -1630,11 +1644,11 @@ exclude-result-prefixes="#all"
                             </div>
                         </xsl:result-document>
                     </xsl:for-each>
+                    
+                    <xsl:sequence select="$context"/>
                 </xsl:otherwise>
             </xsl:choose>
-        </xsl:for-each>
-        
-        <xsl:sequence select="$context"/>
+        </xsl:for-each>        
     </xsl:function>
     
     <!-- when view RDF/XML results load, render them -->

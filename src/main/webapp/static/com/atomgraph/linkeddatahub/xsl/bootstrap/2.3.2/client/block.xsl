@@ -320,6 +320,28 @@ exclude-result-prefixes="#all"
     
     <!-- CALLBACKS -->
     
+    <xsl:function name="ldh:load-block" ixsl:updating="yes" as="map(*)">
+      <xsl:param name="context" as="map(*)"/>
+      <xsl:param name="self-thunk" as="function(map(*)) as item()*"/>
+      <xsl:param name="child-thunk" as="function(map(*)) as item()*?"/>
+      <xsl:param name="ignored" as="item()?"/>
+
+      <xsl:sequence select="
+        ixsl:all-settled(
+            array{
+              $self-thunk($context),
+              if ($child-thunk) then $child-thunk($context) else ()
+            }
+        )
+        => ixsl:then(
+            ldh:hide-block-progress-bar1(
+              $context,
+              ?
+            )
+        )
+        "/>
+    </xsl:function>
+    
     <!-- block delete -->
 
     <xsl:template name="onBlockDelete">

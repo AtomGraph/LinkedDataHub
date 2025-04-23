@@ -285,10 +285,10 @@ exclude-result-prefixes="#all"
         <xsl:param name="context" as="map(*)"/>
         <xsl:message>ldh:chart-self-thunk</xsl:message>
         <xsl:sequence select="
-          ixsl:resolve($context)
-            => ixsl:then(ldh:render-chart#1)      (: scaffold the chart UI :)
-            => ixsl:then(ldh:chart-query-thunk#1)  (: first HTTP → query :)
-            => ixsl:then(ldh:chart-results-thunk#1) (: second HTTP → results :)
+            ixsl:resolve($context) =>
+                ixsl:then(ldh:render-chart#1) =>
+                ixsl:then(ldh:chart-query-thunk#1) =>
+                ixsl:then(ldh:chart-results-thunk#1)
         "/>
     </xsl:function>
     
@@ -297,22 +297,22 @@ exclude-result-prefixes="#all"
         <xsl:param name="context" as="map(*)"/>
         <xsl:message>ldh:chart-query-thunk</xsl:message>
         <xsl:sequence select="
-          ixsl:http-request($context('request'))
-            => ixsl:then(ldh:rethread-response($context, ?))
-            => ixsl:then(ldh:handle-response#1)
-            => ixsl:then(ldh:chart-query-response#1)
+            ixsl:http-request($context('request')) =>
+                ixsl:then(ldh:rethread-response($context, ?)) =>
+                ixsl:then(ldh:handle-response#1) =>
+                ixsl:then(ldh:chart-query-response#1)
         "/>
     </xsl:function>
 
     <xsl:function name="ldh:chart-results-thunk" as="item()*" ixsl:updating="yes">
-      <xsl:param name="context" as="map(*)"/>
-      <xsl:message>ldh:chart-results-thunk</xsl:message>
-      <xsl:sequence select="
-        ixsl:http-request($context('request'))
-          => ixsl:then(ldh:rethread-response($context, ?))
-          => ixsl:then(ldh:handle-response#1)
-          => ixsl:then(ldh:chart-results-response#1)
-      "/>
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:message>ldh:chart-results-thunk</xsl:message>
+        <xsl:sequence select="
+            ixsl:http-request($context('request')) =>
+                ixsl:then(ldh:rethread-response($context, ?)) =>
+                ixsl:then(ldh:handle-response#1) =>
+                ixsl:then(ldh:chart-results-response#1)
+        "/>
     </xsl:function>
 
     <xsl:function name="ldh:render-chart" ixsl:updating="yes">
