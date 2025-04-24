@@ -74,7 +74,7 @@ exclude-result-prefixes="#all"
         </xsl:for-each>
         
         <xsl:variable name="child-thunk" as="function(map(*)) as item()*?">
-          <xsl:apply-templates mode="#current"/>
+            <xsl:apply-templates mode="#current"/>
         </xsl:variable>
         
         <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, ac:document-uri($query-uri))" as="xs:anyURI"/>
@@ -91,12 +91,6 @@ exclude-result-prefixes="#all"
             'refresh-content': $refresh-content,
             'query-uri': $query-uri
           }"/>
-        
-<!--        <ixsl:promise select="ixsl:http-request($context('request')) =>
-            ixsl:then(ldh:rethread-response($context, ?)) =>
-            ixsl:then(ldh:handle-response#1) =>
-            ixsl:then(ldh:view-query-response#1)"
-            on-failure="ldh:promise-failure#1"/>-->
             
         <xsl:sequence select="
           ldh:load-block#4(
@@ -105,7 +99,7 @@ exclude-result-prefixes="#all"
             $child-thunk,
             ?
           )
-        "/>            
+        "/>
     </xsl:template>
     
     <xsl:function name="ldh:view-self-thunk" as="item()*" ixsl:updating="yes">
@@ -506,11 +500,6 @@ exclude-result-prefixes="#all"
             'focus-var-name': $focus-var-name,
             'endpoint': $endpoint
           }"/>
-<!--        <ixsl:promise select="ixsl:http-request($context('request')) =>
-            ixsl:then(ldh:rethread-response($context, ?)) =>        
-            ixsl:then(ldh:handle-response#1) =>
-            ixsl:then(ldh:view-results-response#1)"
-            on-failure="ldh:promise-failure#1"/>-->
     </xsl:template>
 
     <!-- $container here is the inner result container, not the content container! -->

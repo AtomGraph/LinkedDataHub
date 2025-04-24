@@ -129,7 +129,7 @@ exclude-result-prefixes="#all"
         </xsl:for-each>
         
         <xsl:variable name="child-thunk" as="function(map(*)) as item()*?">
-          <xsl:apply-templates mode="#current"/>
+            <xsl:apply-templates mode="#current"/>
         </xsl:variable>
 
         <xsl:variable name="context" as="map(*)" select="
@@ -153,24 +153,6 @@ exclude-result-prefixes="#all"
           )
         "/>
     </xsl:template>
-
-    <xsl:function name="ldh:hide-block-progress-bar1" as="map(*)" ixsl:updating="yes">
-        <xsl:param name="context" as="map(*)"/>
-        <xsl:param name="results" as="array(*)"/>
-              
-        <xsl:variable name="container" select="$context('container')" as="element()"/>
-
-        <xsl:message>ldh:hide-block-progress-bar $container/@typeof: <xsl:value-of select="$container/@typeof"/></xsl:message>
-
-        <!-- hide the progress bar -->
-        <xsl:for-each select="$container/ancestor::div[contains-token(@class, 'span12')][contains-token(@class, 'progress')][contains-token(@class, 'active')]">
-            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'progress', false() ])[current-date() lt xs:date('2000-01-01')]"/>
-            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'progress-striped', false() ])[current-date() lt xs:date('2000-01-01')]"/>
-            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'active', false() ])[current-date() lt xs:date('2000-01-01')]"/>
-        </xsl:for-each>
-        
-        <xsl:sequence select="$context"/>
-    </xsl:function>
     
     <xsl:function name="ldh:render-query" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
