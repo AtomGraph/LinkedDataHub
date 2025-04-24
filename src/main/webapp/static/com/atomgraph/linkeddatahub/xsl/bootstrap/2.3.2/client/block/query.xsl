@@ -253,18 +253,6 @@ exclude-result-prefixes="#all"
         <ixsl:set-property name="{$textarea-id}" select="ixsl:eval(string($js-statement/@statement))" object="ixsl:get(ixsl:window(), 'LinkedDataHub.yasqe')"/>
     </xsl:function>
     
-    <!-- render query editor -->
-    
-<!--    <xsl:template match="textarea[@id][contains-token(@class, 'sparql-query-string')]" mode="ldh:RenderRow" as="item()" priority="1">
-        <xsl:message>YASQE!!!</xsl:message>
-        <xsl:variable name="textarea-id" select="ixsl:get(., 'id')" as="xs:string"/>
-         initialize YASQE SPARQL editor on the textarea 
-        <xsl:variable name="js-statement" as="element()">
-            <root statement="YASQE.fromTextArea(document.getElementById('{$textarea-id}'), {{ persistent: null }})"/>
-        </xsl:variable>
-        <ixsl:set-property name="{$textarea-id}" select="ixsl:eval(string($js-statement/@statement))" object="ixsl:get(ixsl:window(), 'LinkedDataHub.yasqe')"/>        
-    </xsl:template>-->
-    
     <!-- EVENT LISTENERS -->
     
     <!-- submit SPARQL query form (prioritize over default template in form.xsl) -->
@@ -428,12 +416,16 @@ exclude-result-prefixes="#all"
             </xsl:result-document>
         </xsl:for-each>
         
-        <xsl:apply-templates select="$view-html" mode="ldh:RenderRow">
-            <xsl:with-param name="block" select="$block"/>
-            <xsl:with-param name="container" select="$view-container"/>
-            <xsl:with-param name="this" select="$this"/>
-            <xsl:with-param name="base-uri" select="ac:absolute-path(ldh:base-uri(.))"/>
-        </xsl:apply-templates>
+        <xsl:variable name="factory" as="function(item()?) as item()*?">
+            <xsl:apply-templates select="$view-html" mode="ldh:RenderRow">
+                <xsl:with-param name="block" select="$block"/>
+                <xsl:with-param name="container" select="$view-container"/>
+                <xsl:with-param name="this" select="$this"/>
+                <xsl:with-param name="base-uri" select="ac:absolute-path(ldh:base-uri(.))"/>
+            </xsl:apply-templates>
+        </xsl:variable>
+        <!-- invoke the factory -->
+        <xsl:sequence select="$factory(())"/>
     </xsl:template>
     
     <!-- save query onclick -->
