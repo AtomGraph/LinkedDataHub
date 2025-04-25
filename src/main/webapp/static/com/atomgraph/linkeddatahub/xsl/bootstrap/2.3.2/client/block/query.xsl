@@ -424,6 +424,7 @@ exclude-result-prefixes="#all"
                 <xsl:with-param name="base-uri" select="ac:absolute-path(ldh:base-uri(.))"/>
             </xsl:apply-templates>
         </xsl:variable>
+        
         <!-- invoke the factory -->
         <xsl:sequence select="$factory(())"/>
     </xsl:template>

@@ -1205,15 +1205,23 @@ exclude-result-prefixes="#all"
         <!-- store the transformed query XML -->
         <ixsl:set-property name="select-xml" select="$select-xml" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`')"/>
         
-        <xsl:call-template name="ldh:RenderView">
-            <xsl:with-param name="block" select="$block"/>
-            <xsl:with-param name="container" select="$container"/>
-            <xsl:with-param name="active-mode" select="$active-mode"/>
-            <xsl:with-param name="select-string" select="$select-string"/>
-            <xsl:with-param name="select-xml" select="$select-xml"/>
-            <xsl:with-param name="initial-var-name" select="$initial-var-name"/>
-            <xsl:with-param name="endpoint" select="$endpoint"/>
-        </xsl:call-template>
+        <xsl:variable name="context" as="map(*)">
+            <xsl:call-template name="ldh:RenderView">
+                <xsl:with-param name="block" select="$block"/>
+                <xsl:with-param name="container" select="$container"/>
+                <xsl:with-param name="active-mode" select="$active-mode"/>
+                <xsl:with-param name="select-string" select="$select-string"/>
+                <xsl:with-param name="select-xml" select="$select-xml"/>
+                <xsl:with-param name="initial-var-name" select="$initial-var-name"/>
+                <xsl:with-param name="endpoint" select="$endpoint"/>
+            </xsl:call-template>
+        </xsl:variable>
+        
+        <ixsl:promise select="
+            ixsl:resolve($context) =>
+                ixsl:then(ldh:view-results-thunk#1)
+            "
+            on-failure="ldh:promise-failure#1"/>
     </xsl:template>
 
     <!-- pager next links -->
@@ -1247,15 +1255,23 @@ exclude-result-prefixes="#all"
         <!-- store the transformed query XML -->
         <ixsl:set-property name="select-xml" select="$select-xml" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`')"/>
         
-        <xsl:call-template name="ldh:RenderView">
-            <xsl:with-param name="block" select="$block"/>
-            <xsl:with-param name="container" select="$container"/>
-            <xsl:with-param name="active-mode" select="$active-mode"/>
-            <xsl:with-param name="select-string" select="$select-string"/>
-            <xsl:with-param name="select-xml" select="$select-xml"/>
-            <xsl:with-param name="initial-var-name" select="$initial-var-name"/>
-            <xsl:with-param name="endpoint" select="$endpoint"/>
-        </xsl:call-template>
+        <xsl:variable name="context" as="map(*)">
+            <xsl:call-template name="ldh:RenderView">
+                <xsl:with-param name="block" select="$block"/>
+                <xsl:with-param name="container" select="$container"/>
+                <xsl:with-param name="active-mode" select="$active-mode"/>
+                <xsl:with-param name="select-string" select="$select-string"/>
+                <xsl:with-param name="select-xml" select="$select-xml"/>
+                <xsl:with-param name="initial-var-name" select="$initial-var-name"/>
+                <xsl:with-param name="endpoint" select="$endpoint"/>
+            </xsl:call-template>
+        </xsl:variable>
+        
+        <ixsl:promise select="
+            ixsl:resolve($context) =>
+                ixsl:then(ldh:view-results-thunk#1)
+            "
+            on-failure="ldh:promise-failure#1"/>
     </xsl:template>
     
     <!-- order by onchange -->
@@ -1288,15 +1304,23 @@ exclude-result-prefixes="#all"
         <!-- store the transformed query XML -->
         <ixsl:set-property name="select-xml" select="$select-xml" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`')"/>
 
-        <xsl:call-template name="ldh:RenderView">
-            <xsl:with-param name="block" select="$block"/>
-            <xsl:with-param name="container" select="$container"/>
-            <xsl:with-param name="active-mode" select="$active-mode"/>
-            <xsl:with-param name="select-string" select="$select-string"/>
-            <xsl:with-param name="select-xml" select="$select-xml"/>
-            <xsl:with-param name="initial-var-name" select="$initial-var-name"/>
-            <xsl:with-param name="endpoint" select="$endpoint"/>
-        </xsl:call-template>
+        <xsl:variable name="context" as="map(*)">
+            <xsl:call-template name="ldh:RenderView">
+                <xsl:with-param name="block" select="$block"/>
+                <xsl:with-param name="container" select="$container"/>
+                <xsl:with-param name="active-mode" select="$active-mode"/>
+                <xsl:with-param name="select-string" select="$select-string"/>
+                <xsl:with-param name="select-xml" select="$select-xml"/>
+                <xsl:with-param name="initial-var-name" select="$initial-var-name"/>
+                <xsl:with-param name="endpoint" select="$endpoint"/>
+            </xsl:call-template>
+        </xsl:variable>
+        
+        <ixsl:promise select="
+            ixsl:resolve($context) =>
+                ixsl:then(ldh:view-results-thunk#1)
+            "
+            on-failure="ldh:promise-failure#1"/>
     </xsl:template>
     
     <!-- ascending/descending onclick -->
@@ -1328,15 +1352,23 @@ exclude-result-prefixes="#all"
         <!-- store the transformed query XML -->
         <ixsl:set-property name="select-xml" select="$select-xml" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`')"/>
 
-        <xsl:call-template name="ldh:RenderView">
-            <xsl:with-param name="block" select="$block"/>
-            <xsl:with-param name="container" select="$container"/>
-            <xsl:with-param name="active-mode" select="$active-mode"/>
-            <xsl:with-param name="select-string" select="$select-string"/>
-            <xsl:with-param name="select-xml" select="$select-xml"/>
-            <xsl:with-param name="initial-var-name" select="$initial-var-name"/>
-            <xsl:with-param name="endpoint" select="$endpoint"/>
-        </xsl:call-template>
+        <xsl:variable name="context" as="map(*)">
+            <xsl:call-template name="ldh:RenderView">
+                <xsl:with-param name="block" select="$block"/>
+                <xsl:with-param name="container" select="$container"/>
+                <xsl:with-param name="active-mode" select="$active-mode"/>
+                <xsl:with-param name="select-string" select="$select-string"/>
+                <xsl:with-param name="select-xml" select="$select-xml"/>
+                <xsl:with-param name="initial-var-name" select="$initial-var-name"/>
+                <xsl:with-param name="endpoint" select="$endpoint"/>
+            </xsl:call-template>
+        </xsl:variable>
+        
+        <ixsl:promise select="
+            ixsl:resolve($context) =>
+                ixsl:then(ldh:view-results-thunk#1)
+            "
+            on-failure="ldh:promise-failure#1"/>
         
         <!-- toggle the arrow direction -->
         <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'btn-order-by-desc' ])[current-date() lt xs:date('2000-01-01')]"/>
@@ -1470,15 +1502,23 @@ exclude-result-prefixes="#all"
         <!-- store the transformed query XML -->
         <ixsl:set-property name="select-xml" select="$select-xml" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`')"/>
 
-        <xsl:call-template name="ldh:RenderView">
-            <xsl:with-param name="block" select="$block"/>
-            <xsl:with-param name="container" select="$container"/>
-            <xsl:with-param name="active-mode" select="$active-mode"/>
-            <xsl:with-param name="select-string" select="$select-string"/>
-            <xsl:with-param name="select-xml" select="$select-xml"/>
-            <xsl:with-param name="initial-var-name" select="$initial-var-name"/>
-            <xsl:with-param name="endpoint" select="$endpoint"/>
-        </xsl:call-template>
+        <xsl:variable name="context" as="map(*)">
+            <xsl:call-template name="ldh:RenderView">
+                <xsl:with-param name="block" select="$block"/>
+                <xsl:with-param name="container" select="$container"/>
+                <xsl:with-param name="active-mode" select="$active-mode"/>
+                <xsl:with-param name="select-string" select="$select-string"/>
+                <xsl:with-param name="select-xml" select="$select-xml"/>
+                <xsl:with-param name="initial-var-name" select="$initial-var-name"/>
+                <xsl:with-param name="endpoint" select="$endpoint"/>
+            </xsl:call-template>
+        </xsl:variable>
+        
+        <ixsl:promise select="
+            ixsl:resolve($context) =>
+                ixsl:then(ldh:view-results-thunk#1)
+            "
+            on-failure="ldh:promise-failure#1"/>
     </xsl:template>
 
     <!-- parallax onclick -->
@@ -1510,15 +1550,23 @@ exclude-result-prefixes="#all"
         <!-- store the transformed query XML -->
         <ixsl:set-property name="select-xml" select="$select-xml" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`')"/>
 
-        <xsl:call-template name="ldh:RenderView">
-            <xsl:with-param name="block" select="$block"/>
-            <xsl:with-param name="container" select="$container"/>
-            <xsl:with-param name="active-mode" select="$active-mode"/>
-            <xsl:with-param name="select-string" select="$select-string"/>
-            <xsl:with-param name="select-xml" select="$select-xml"/>
-            <xsl:with-param name="initial-var-name" select="$initial-var-name"/>
-            <xsl:with-param name="endpoint" select="$endpoint"/>
-        </xsl:call-template>
+        <xsl:variable name="context" as="map(*)">
+            <xsl:call-template name="ldh:RenderView">
+                <xsl:with-param name="block" select="$block"/>
+                <xsl:with-param name="container" select="$container"/>
+                <xsl:with-param name="active-mode" select="$active-mode"/>
+                <xsl:with-param name="select-string" select="$select-string"/>
+                <xsl:with-param name="select-xml" select="$select-xml"/>
+                <xsl:with-param name="initial-var-name" select="$initial-var-name"/>
+                <xsl:with-param name="endpoint" select="$endpoint"/>
+            </xsl:call-template>
+        </xsl:variable>
+        
+        <ixsl:promise select="
+            ixsl:resolve($context) =>
+                ixsl:then(ldh:view-results-thunk#1)
+            "
+            on-failure="ldh:promise-failure#1"/>
     </xsl:template>
 
     <!-- CALLBACKS -->
