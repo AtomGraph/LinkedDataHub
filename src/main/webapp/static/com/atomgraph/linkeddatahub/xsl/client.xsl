@@ -564,9 +564,18 @@ WHERE
                     <!-- container could be hidden server-side -->
                     <ixsl:set-style name="display" select="'block'"/>
 
-                    <xsl:apply-templates select="." mode="ldh:RenderRow">
-                        <xsl:with-param name="refresh-content" select="$refresh-content"/>
-                    </xsl:apply-templates>
+                    <xsl:variable name="factory" as="function(item()?) as item()*?">
+                        <xsl:apply-templates select="." mode="ldh:RenderRow">
+                            <xsl:with-param name="refresh-content" select="$refresh-content"/>
+                        </xsl:apply-templates>
+                    </xsl:variable>
+
+                    <xsl:message>exists($factory): <xsl:value-of select="exists($factory)"/></xsl:message>
+
+                    <xsl:if test="exists($factory)">
+                        <!-- fire the promise chain once, passing a dummy start value -->
+                        <ixsl:promise select="$factory(())" on-failure="ldh:promise-failure#1"/>
+                    </xsl:if>
                 </xsl:for-each>
 
                 <!-- is a new instance of Service was created, reload the LinkedDataHub.apps data and re-render the service dropdown -->

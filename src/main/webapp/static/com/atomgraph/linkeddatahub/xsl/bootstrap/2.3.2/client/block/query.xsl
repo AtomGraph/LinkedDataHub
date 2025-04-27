@@ -105,7 +105,7 @@ exclude-result-prefixes="#all"
     
     <!-- render query block -->
     
-    <xsl:template match="*[@typeof = ('&sp;Ask', '&sp;Select', '&sp;Describe', '&sp;Construct')][descendant::*[@property = '&sp;text'][pre/text()]]" mode="ldh:RenderRow" priority="2 "> <!-- prioritize above block.xsl -->
+    <xsl:template match="*[@typeof = ('&sp;Ask', '&sp;Select', '&sp;Describe', '&sp;Construct')][descendant::*[@property = '&sp;text'][pre/text()]]" mode="ldh:RenderRow" as="function(item()?) as map(*)" priority="2 "> <!-- prioritize above block.xsl -->
         <xsl:param name="block" select="ancestor-or-self::div[contains-token(@class, 'block')][1]" as="element()"/>
         <xsl:param name="about" select="$block/@about" as="xs:anyURI"/>
         <xsl:param name="block-uri" select="$about" as="xs:anyURI"/>
@@ -127,13 +127,53 @@ exclude-result-prefixes="#all"
         <xsl:for-each select="$block//div[contains-token(@class, 'bar')]">
             <ixsl:set-style name="width" select="'66%'" object="."/>
         </xsl:for-each>
+        
+        <xsl:variable name="child-thunk" as="function(map(*)) as item()*?">
+            <xsl:apply-templates mode="#current"/>
+        </xsl:variable>
+
+        <xsl:variable name="context" as="map(*)" select="
+          map{
+            'container': $container,
+            'textarea-id': $textarea-id,
+            'textarea-class': $textarea-class,
+            'textarea-name': $textarea-name,
+            'textarea-rows': $textarea-rows,
+            'query': $query,
+            'service-uri': $service-uri,
+            'forClass': $forClass
+          }"/>
+  
+        <xsl:sequence select="
+          ldh:load-block#4(
+            $context,
+            ldh:render-query#1,
+            $child-thunk,
+            ?
+          )
+        "/>
+    </xsl:template>
+    
+    <xsl:function name="ldh:render-query" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:variable name="container" select="$context('container')" as="element()"/>
+        <xsl:variable name="textarea-id" select="$context('textarea-id')" as="xs:string?"/>
+        <xsl:variable name="textarea-class" select="$context('textarea-class')" as="xs:string?"/>
+        <xsl:variable name="textarea-name" select="$context('textarea-name')" as="xs:string?"/>
+        <xsl:variable name="textarea-rows" select="$context('textarea-rows')" as="xs:integer?"/>
+        <xsl:variable name="query" select="$context('query')" as="xs:string"/>
+        <xsl:variable name="service-uri" select="$context('service-uri')" as="xs:anyURI?"/>
+        <xsl:variable name="forClass" select="$context('forClass')" as="xs:anyURI"/>
+        
+      <xsl:message>ldh:render-query</xsl:message>
 
         <xsl:for-each select="$container//div[contains-token(@class, 'main')]">
             <xsl:variable name="header" select="./div/div[@class = 'well']" as="element()"/>
             
+            <xsl:message>contains(.): <xsl:value-of select="ixsl:call(ixsl:page(), 'contains', [ . ])"/></xsl:message>
             <xsl:result-document href="?." method="ixsl:replace-content">
                 <xsl:copy-of select="$header"/>
-                
+                                
                 <form class="sparql-query-form form-horizontal" method="get" action="">
                     <div class="control-group">
                         <xsl:call-template name="xhtml:Input">
@@ -206,26 +246,12 @@ exclude-result-prefixes="#all"
             </xsl:result-document>
         </xsl:for-each>
         
-        <!-- hide the progress bar - either of this block (if it contains a progress bar) or of the parent block -->
-        <xsl:for-each select="($block//div[contains-token(@class, 'span12')][contains-token(@class, 'progress')][contains-token(@class, 'active')], $block/ancestor::div[contains-token(@class, 'block')]//div[contains-token(@class, 'span12')][contains-token(@class, 'progress')][contains-token(@class, 'active')])[1]">
-            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'progress', false() ])[current-date() lt xs:date('2000-01-01')]"/>
-            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'progress-striped', false() ])[current-date() lt xs:date('2000-01-01')]"/>
-            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'active', false() ])[current-date() lt xs:date('2000-01-01')]"/>
-        </xsl:for-each>
-        
-        <xsl:apply-templates mode="#current"/>
-    </xsl:template>
-    
-    <!-- render query editor -->
-    
-    <xsl:template match="textarea[@id][contains-token(@class, 'sparql-query-string')]" mode="ldh:RenderRow" priority="1">
-        <xsl:variable name="textarea-id" select="ixsl:get(., 'id')" as="xs:string"/>
         <!-- initialize YASQE SPARQL editor on the textarea -->
         <xsl:variable name="js-statement" as="element()">
             <root statement="YASQE.fromTextArea(document.getElementById('{$textarea-id}'), {{ persistent: null }})"/>
         </xsl:variable>
         <ixsl:set-property name="{$textarea-id}" select="ixsl:eval(string($js-statement/@statement))" object="ixsl:get(ixsl:window(), 'LinkedDataHub.yasqe')"/>
-    </xsl:template>
+    </xsl:function>
     
     <!-- EVENT LISTENERS -->
     
@@ -390,12 +416,17 @@ exclude-result-prefixes="#all"
             </xsl:result-document>
         </xsl:for-each>
         
-        <xsl:apply-templates select="$view-html" mode="ldh:RenderRow">
-            <xsl:with-param name="block" select="$block"/>
-            <xsl:with-param name="container" select="$view-container"/>
-            <xsl:with-param name="this" select="$this"/>
-            <xsl:with-param name="base-uri" select="ac:absolute-path(ldh:base-uri(.))"/>
-        </xsl:apply-templates>
+        <xsl:variable name="factory" as="function(item()?) as item()*?">
+            <xsl:apply-templates select="$view-html" mode="ldh:RenderRow">
+                <xsl:with-param name="block" select="$block"/>
+                <xsl:with-param name="container" select="$view-container"/>
+                <xsl:with-param name="this" select="$this"/>
+                <xsl:with-param name="base-uri" select="ac:absolute-path(ldh:base-uri(.))"/>
+            </xsl:apply-templates>
+        </xsl:variable>
+        
+        <!-- invoke the factory -->
+        <xsl:sequence select="$factory(())"/>
     </xsl:template>
     
     <!-- save query onclick -->
