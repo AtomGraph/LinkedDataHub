@@ -775,21 +775,39 @@ exclude-result-prefixes="#all"
             <ixsl:set-style name="width" select="'88%'" object="."/>
         </xsl:for-each>
         
-        <xsl:variable name="object-uris" select="distinct-values($results/rdf:RDF/rdf:Description/*/@rdf:resource[not(key('resources', .))])" as="xs:string*"/>
-        <xsl:variable name="query-string" select="$object-metadata-query || ' VALUES $this { ' || string-join(for $uri in $object-uris return '&lt;' || $uri || '&gt;', ' ') || ' }'" as="xs:string"/>                    
-        <xsl:variable name="request" select="map{ 'method': 'POST', 'href': $endpoint, 'media-type': 'application/sparql-query', 'body': $query-string, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
-        <xsl:sequence select="
-            map{
-                'request': $request,
-                'block': $block,
-                'container': .//div[contains-token(@class, 'container-results')],
-                'container-id': $container-id,
-                'endpoint': $endpoint,
-                'results': $results,
-                'active-mode': $active-mode,
-                'select-xml': $select-xml,
-                'base-uri': $base-uri
-            }"/>
+        <!-- only load object metadata when querying the local endpoint -->
+        <xsl:choose>
+            <xsl:when test="$endpoint = sd:endpoint()">
+                <xsl:variable name="object-uris" select="distinct-values($results/rdf:RDF/rdf:Description/*/@rdf:resource[not(key('resources', .))])" as="xs:string*"/>
+                <xsl:variable name="query-string" select="$object-metadata-query || ' VALUES $this { ' || string-join(for $uri in $object-uris return '&lt;' || $uri || '&gt;', ' ') || ' }'" as="xs:string"/>                    
+                <xsl:variable name="request" select="map{ 'method': 'POST', 'href': $endpoint, 'media-type': 'application/sparql-query', 'body': $query-string, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
+                <xsl:sequence select="
+                    map{
+                        'request': $request,
+                        'block': $block,
+                        'container': .//div[contains-token(@class, 'container-results')],
+                        'container-id': $container-id,
+                        'endpoint': $endpoint,
+                        'results': $results,
+                        'active-mode': $active-mode,
+                        'select-xml': $select-xml,
+                        'base-uri': $base-uri
+                    }"/>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:call-template name="ldh:RenderViewMode">
+                    <xsl:with-param name="block" select="$block"/>
+                    <xsl:with-param name="container" select=".//div[contains-token(@class, 'container-results')]"/>
+                    <xsl:with-param name="container-id" select="$container-id"/>
+                    <xsl:with-param name="endpoint" select="$endpoint"/>
+                    <xsl:with-param name="results" select="$results"/>
+                    <xsl:with-param name="object-metadata" select="()"/>
+                    <xsl:with-param name="active-mode" select="$active-mode"/>
+                    <xsl:with-param name="select-xml" select="$select-xml"/>
+                    <xsl:with-param name="base-uri" select="$base-uri"/>
+                </xsl:call-template>
+            </xsl:otherwise>
+        </xsl:choose>
     </xsl:template>
     
     <!-- facets -->
@@ -1728,43 +1746,22 @@ exclude-result-prefixes="#all"
                             </xsl:document>
                         </xsl:variable>
         
-                        <!-- only load object metadata when querying the local endpoint -->
-                        <xsl:choose>
-                            <xsl:when test="$endpoint = sd:endpoint()">
-                                <!-- returns $context map -->
-                                <xsl:for-each select="$container/div[contains-token(@class, 'main')]">
-                                    <xsl:call-template name="ldh:RenderViewResults">
-                                        <xsl:with-param name="block" select="$block"/>
-                                        <xsl:with-param name="container" select="$container"/>
-                                        <xsl:with-param name="results" select="$sorted-results"/>
-                                        <xsl:with-param name="select-xml" select="$select-xml"/>
-                                        <xsl:with-param name="bgp-triples-map" select="$bgp-triples-map"/>
-                                        <xsl:with-param name="container-id" select="$container-id"/>
-                                        <xsl:with-param name="endpoint" select="$endpoint"/>
-                                        <xsl:with-param name="focus-var-name" select="$focus-var-name"/>
-                                        <xsl:with-param name="desc" select="$desc"/>
-                                        <xsl:with-param name="order-by-predicate" select="$order-by-predicate"/>
-                                        <xsl:with-param name="result-count-container-id" select="$result-count-container-id"/>
-                                        <xsl:with-param name="active-mode" select="$active-mode"/>
-                                    </xsl:call-template>
-                                </xsl:for-each>
-                            </xsl:when>
-                            <xsl:otherwise>
-                                <xsl:call-template name="ldh:RenderViewMode">
-                                    <xsl:with-param name="block" select="$block"/>
-                                    <xsl:with-param name="container" select=".//div[contains-token(@class, 'container-results')]"/>
-                                    <xsl:with-param name="container-id" select="$container-id"/>
-                                    <xsl:with-param name="endpoint" select="$endpoint"/>
-                                    <xsl:with-param name="results" select="."/>
-                                    <xsl:with-param name="object-metadata" select="()"/>
-                                    <xsl:with-param name="active-mode" select="$active-mode"/>
-                                    <xsl:with-param name="select-xml" select="$select-xml"/>
-                                    <xsl:with-param name="base-uri" select="ldh:base-uri(.)"/>
-                                </xsl:call-template>
-
-                                <xsl:sequence select="$context"/>
-                            </xsl:otherwise>
-                        </xsl:choose>
+                        <xsl:for-each select="$container/div[contains-token(@class, 'main')]">
+                            <xsl:call-template name="ldh:RenderViewResults">
+                                <xsl:with-param name="block" select="$block"/>
+                                <xsl:with-param name="container" select="$container"/>
+                                <xsl:with-param name="results" select="$sorted-results"/>
+                                <xsl:with-param name="select-xml" select="$select-xml"/>
+                                <xsl:with-param name="bgp-triples-map" select="$bgp-triples-map"/>
+                                <xsl:with-param name="container-id" select="$container-id"/>
+                                <xsl:with-param name="endpoint" select="$endpoint"/>
+                                <xsl:with-param name="focus-var-name" select="$focus-var-name"/>
+                                <xsl:with-param name="desc" select="$desc"/>
+                                <xsl:with-param name="order-by-predicate" select="$order-by-predicate"/>
+                                <xsl:with-param name="result-count-container-id" select="$result-count-container-id"/>
+                                <xsl:with-param name="active-mode" select="$active-mode"/>
+                            </xsl:call-template>
+                        </xsl:for-each>
 
                         <!-- use the initial (not the current transformed) SELECT query and focus var name for facet rendering -->
                         <xsl:for-each select="$container/div[contains-token(@class, 'left-nav')]">
