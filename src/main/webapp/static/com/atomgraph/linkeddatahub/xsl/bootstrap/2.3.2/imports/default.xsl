@@ -118,12 +118,12 @@ exclude-result-prefixes="#all"
             <!-- proxy external URI/graph -->
             <xsl:when test="$uri and $graph">
                 <xsl:variable name="fragment" select="if ($fragment) then $fragment else encode-for-uri($uri)" as="xs:string?"/>
-                <xsl:sequence select="xs:anyURI(ac:build-uri($absolute-path, map:merge((map{ 'uri': string($uri), 'graph': string($graph) }, $query-params))) || (if ($fragment) then ('#' || $fragment) else ()))"/>
+                <xsl:sequence select="xs:anyURI(ac:build-uri($base, map:merge((map{ 'uri': string($uri), 'graph': string($graph) }, $query-params))) || (if ($fragment) then ('#' || $fragment) else ()))"/>
             </xsl:when>
             <!-- proxy external URI -->
             <xsl:when test="$uri">
                 <xsl:variable name="fragment" select="if ($fragment) then $fragment else encode-for-uri($uri)" as="xs:string?"/>
-                <xsl:sequence select="xs:anyURI(ac:build-uri($absolute-path, map:merge((map{ 'uri': string($uri) }, $query-params))) || (if ($fragment) then ('#' || $fragment) else ()))"/>
+                <xsl:sequence select="xs:anyURI(ac:build-uri($base, map:merge((map{ 'uri': string($uri) }, $query-params))) || (if ($fragment) then ('#' || $fragment) else ()))"/>
             </xsl:when>
             <!-- no URI supplied -->
             <xsl:otherwise>
