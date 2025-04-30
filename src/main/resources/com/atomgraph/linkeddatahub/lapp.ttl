@@ -93,7 +93,6 @@
 
 :ApplicationConstructor a ldh:Constructor ;
     sp:text """
-      PREFIX ldh:     <https://w3id.org/atomgraph/linkeddatahub#>
       PREFIX ldt:     <https://www.w3.org/ns/ldt#>
       PREFIX rdfs:    <http://www.w3.org/2000/01/rdf-schema#>
 

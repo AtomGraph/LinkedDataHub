@@ -670,7 +670,7 @@ WHERE
         <!-- if the URI is external, dereference it through the proxy -->
         <!-- add a bogus query parameter to give the RDF/XML document a different URL in the browser cache, otherwise it will clash with the HTML representation -->
         <!-- this is due to broken browser behavior re. Vary and conditional requests: https://stackoverflow.com/questions/60799116/firefox-if-none-match-headers-ignore-content-type-and-vary/60802443 -->
-        <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, ac:document-uri($uri), $graph, ())" as="xs:anyURI"/>
+        <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path($ldh:requestUri), map{}, ac:document-uri($uri), $graph, ())" as="xs:anyURI"/>
         <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
         <xsl:variable name="context" as="map(*)" select="
           map{
@@ -915,7 +915,7 @@ WHERE
                         <xsl:variable name="mode-class" select="map:keys($mode-classes)[contains-token($nav-tab-class, .)]" as="xs:string"/>
                         <xsl:variable name="mode" select="xs:anyURI(map:get($mode-classes, $mode-class))" as="xs:anyURI"/>
                         <xsl:variable name="fragment" select="substring-after($href, '#')" as="xs:string"/>
-                        <xsl:sequence select="xs:anyURI(ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, ac:build-uri($href, map:merge(($query-params, map{ 'mode': string($mode) } ))), $fragment))"/>
+                        <xsl:sequence select="xs:anyURI(ldh:href($ldt:base, ac:absolute-path($ldh:requestUri), map{}, ac:build-uri($href, map:merge(($query-params, map{ 'mode': string($mode) } ))), $fragment))"/>
                     </xsl:when>
                     <xsl:otherwise>
                         <xsl:sequence select="$href"/>
@@ -1041,7 +1041,7 @@ WHERE
         <xsl:if test="$uri-string castable as xs:anyURI and (starts-with($uri-string, 'http://') or starts-with($uri-string, 'https://'))">
             <xsl:variable name="uri" select="xs:anyURI($uri-string)" as="xs:anyURI"/>
             <!-- dereferenced external resources through a proxy -->
-            <xsl:variable name="href" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, $uri)" as="xs:anyURI"/>
+            <xsl:variable name="href" select="ldh:href($ldt:base, ac:absolute-path($ldh:requestUri), map{}, $uri)" as="xs:anyURI"/>
             <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
             <!-- abort the previous request, if any -->
@@ -1119,7 +1119,7 @@ WHERE
                     <!-- resource URI selected in the typeahead -->
                     <xsl:variable name="uri" select="$menu/li[contains-token(@class, 'active')]/input[@name = 'ou']/ixsl:get(., 'value')" as="xs:anyURI"/>
                     <!-- dereference external resources through a proxy -->
-                    <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, $uri)" as="xs:anyURI"/>
+                    <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path($ldh:requestUri), map{}, $uri)" as="xs:anyURI"/>
                     
                     <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
@@ -1183,7 +1183,7 @@ WHERE
                 <xsl:variable name="service" select="if ($service-uri) then key('resources', $service-uri, document(ac:build-uri(ac:document-uri($service-uri), map{ 'accept': 'application/rdf+xml' }))) else ()" as="element()?"/> <!-- TO-DO: refactor asynchronously -->
                 <xsl:variable name="endpoint" select="($service/sd:endpoint/@rdf:resource/xs:anyURI(.), resolve-uri('sparql', $ldt:base))[1]" as="xs:anyURI"/>
                 <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': string($query-string) })" as="xs:anyURI"/>
-                <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, $results-uri)" as="xs:anyURI"/>
+                <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path($ldh:requestUri), map{}, $results-uri)" as="xs:anyURI"/>
                 
                 <ixsl:schedule-action wait="$delay">
                     <xsl:call-template name="typeahead:load-xml">
@@ -1207,7 +1207,7 @@ WHERE
         <!-- redirect to the resource URI selected in the typeahead -->
         <xsl:variable name="uri" select="input[@name = 'ou']/ixsl:get(., 'value')" as="xs:anyURI"/>
         <!-- dereference external resources through a proxy -->
-        <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, $uri)" as="xs:anyURI"/>
+        <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path($ldh:requestUri), map{}, $uri)" as="xs:anyURI"/>
         
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
         
@@ -1230,7 +1230,7 @@ WHERE
     </xsl:template>
     
     <xsl:template match="button[contains-token(@class, 'btn-delete')][not(contains-token(@class, 'disabled'))]" mode="ixsl:onclick">
-        <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, ac:absolute-path(ldh:base-uri(.)))" as="xs:anyURI"/>
+        <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path($ldh:requestUri), map{}, ac:absolute-path(ldh:base-uri(.)))" as="xs:anyURI"/>
 
         <xsl:if test="ixsl:call(ixsl:window(), 'confirm', [ ac:label(key('resources', 'are-you-sure', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))) ])">
             <xsl:variable name="request" as="item()*">

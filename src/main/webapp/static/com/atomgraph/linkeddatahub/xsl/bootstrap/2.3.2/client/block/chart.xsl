@@ -245,7 +245,7 @@ exclude-result-prefixes="#all"
           <xsl:apply-templates mode="#current"/>
         </xsl:variable>
         
-        <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, $query-uri)" as="xs:anyURI"/>
+        <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path($ldh:requestUri), map{}, $query-uri)" as="xs:anyURI"/>
         <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
         <xsl:variable name="context" as="map(*)" select="
           map{
@@ -611,7 +611,7 @@ exclude-result-prefixes="#all"
             <xsl:apply-templates select="$constructed-doc" mode="bs2:RowForm">
                 <xsl:with-param name="about" select="()"/> <!-- don't set @about on the container until after the resource is saved -->
                 <xsl:with-param name="method" select="$method"/>
-                <xsl:with-param name="action" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, $doc-uri)" as="xs:anyURI"/>
+                <xsl:with-param name="action" select="ldh:href($ldt:base, ac:absolute-path($ldh:requestUri), map{}, $doc-uri)" as="xs:anyURI"/>
                 <xsl:with-param name="type-metadata" select="$type-metadata" tunnel="yes"/>
                 <xsl:with-param name="property-metadata" select="$property-metadata" tunnel="yes"/>
                 <xsl:with-param name="constructor" select="$constructed-doc" tunnel="yes"/>
@@ -664,7 +664,7 @@ exclude-result-prefixes="#all"
                         <xsl:variable name="service" select="if ($service-uri) then key('resources', $service-uri, document(ac:build-uri(ac:document-uri($service-uri), map{ 'accept': 'application/rdf+xml' }))) else ()" as="element()?"/> <!-- TO-DO: refactor asynchronously -->
                         <xsl:variable name="endpoint" select="($service/sd:endpoint/@rdf:resource/xs:anyURI(.), sd:endpoint())[1]" as="xs:anyURI"/>
                         <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': $query-string })" as="xs:anyURI"/>
-                        <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, $results-uri)" as="xs:anyURI"/>
+                        <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path($ldh:requestUri), map{}, $results-uri)" as="xs:anyURI"/>
 
                         <!-- update progress bar -->
                         <xsl:for-each select="$block//div[contains-token(@class, 'bar')]">
