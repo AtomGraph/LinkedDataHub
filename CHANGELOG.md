@@ -1,3 +1,13 @@
+## [4.0.10] - 2024-11-07
+### Changed
+- Fixed namespace prefix declaration in client-side XSLT
+
+## [4.0.9] - 2024-02-07
+### Changed
+- Fixed dragging within a map
+- Fixed Docker build issue caused by an old Node.js version
+- Fixed Login with Google caused by Varnish configuration stripping HTTP cookies
+
 ## [4.0.8] - 2023-07-11
 ### Changed
 - Dependency on `com.atomgraph.server` (new module) instead of `com.atomgraph.processor`
