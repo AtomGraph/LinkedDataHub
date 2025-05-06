@@ -127,10 +127,6 @@ exclude-result-prefixes="#all"
         <xsl:for-each select="$block//div[contains-token(@class, 'bar')]">
             <ixsl:set-style name="width" select="'66%'" object="."/>
         </xsl:for-each>
-        
-        <xsl:variable name="child-thunk" as="function(map(*)) as item()*?">
-            <xsl:apply-templates mode="#current"/>
-        </xsl:variable>
 
         <xsl:variable name="context" as="map(*)" select="
           map{
@@ -145,12 +141,11 @@ exclude-result-prefixes="#all"
           }"/>
   
         <xsl:sequence select="
-          ldh:load-block#4(
-            $context,
-            ldh:render-query#1,
-            $child-thunk,
-            ?
-          )
+            ldh:load-block#3(
+                $context,
+                ldh:render-query#1,
+                ?
+            )
         "/>
     </xsl:template>
     

@@ -57,7 +57,7 @@ exclude-result-prefixes="#all"
     <!-- TEMPLATES -->
 
     <!-- render view -->
-    
+
     <xsl:template match="*[@typeof = '&ldh;View'][descendant::*[@property = '&spin;query'][@resource]]" mode="ldh:RenderRow" as="function(item()?) as map(*)" priority="2"> <!-- prioritize above block.xsl -->
         <xsl:param name="block" select="ancestor-or-self::div[contains-token(@class, 'block')][1]" as="element()"/>
         <xsl:param name="this" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/> <!-- document URL -->
@@ -72,11 +72,7 @@ exclude-result-prefixes="#all"
             <!-- update progress bar -->
             <ixsl:set-style name="width" select="'50%'" object="."/>
         </xsl:for-each>
-        
-        <xsl:variable name="child-thunk" as="function(map(*)) as item()*?">
-            <xsl:apply-templates mode="#current"/>
-        </xsl:variable>
-        
+                
         <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path($ldh:requestUri), map{}, ac:document-uri($query-uri))" as="xs:anyURI"/>
         <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
         <!-- $about in the query gets set to the @about of the *parent* block  -->
@@ -93,12 +89,11 @@ exclude-result-prefixes="#all"
           }"/>
             
         <xsl:sequence select="
-          ldh:load-block#4(
-            $context,
-            ldh:view-self-thunk#1,
-            $child-thunk,
-            ?
-          )
+            ldh:load-block#3(
+                $context,
+                ldh:view-self-thunk#1,
+                ?
+            )
         "/>
     </xsl:template>
     
@@ -1784,15 +1779,15 @@ exclude-result-prefixes="#all"
                         <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
                     </xsl:for-each>
                 </xsl:when>
-                <xsl:otherwise>
-                    <xsl:sequence select="$context"/>
-                    
+                <xsl:otherwise>                   
                     <!-- error response - could not load query results -->
                     <xsl:call-template name="render-container-error">
                         <xsl:with-param name="container" select="$container"/>
                         <xsl:with-param name="message" select="?message"/>
                     </xsl:call-template>
                 </xsl:otherwise>
+                
+                <xsl:sequence select="$context"/>
             </xsl:choose>
         </xsl:for-each>
         

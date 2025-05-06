@@ -240,10 +240,6 @@ exclude-result-prefixes="#all"
         <xsl:for-each select="$block//div[contains-token(@class, 'bar')]">
             <ixsl:set-style name="width" select="'66%'" object="."/>
         </xsl:for-each>
-
-        <xsl:variable name="child-thunk" as="function(map(*)) as item()*?">
-          <xsl:apply-templates mode="#current"/>
-        </xsl:variable>
         
         <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path($ldh:requestUri), map{}, $query-uri)" as="xs:anyURI"/>
         <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
@@ -271,12 +267,11 @@ exclude-result-prefixes="#all"
           }"/>
         
         <xsl:sequence select="
-          ldh:load-block#4(
-            $context,
-            ldh:chart-self-thunk#1,
-            $child-thunk,
-            ?
-          )
+            ldh:load-block#3(
+              $context,
+              ldh:chart-self-thunk#1,
+              ?
+            )
         "/>
     </xsl:template>
     
@@ -718,7 +713,7 @@ exclude-result-prefixes="#all"
     
     <!-- SPARQL results response -->
 
-    <xsl:function name="ldh:chart-results-response" ixsl:updating="yes">
+    <xsl:function name="ldh:chart-results-response" as="map(*)" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
         <xsl:variable name="response" select="$context('response')" as="map(*)"/>
         <xsl:variable name="block" select="$context('block')" as="element()"/>
@@ -766,6 +761,8 @@ exclude-result-prefixes="#all"
                             <xsl:with-param name="category" select="$category"/>
                             <xsl:with-param name="series" select="$series"/>
                         </xsl:call-template>
+                        
+                        <xsl:sequence select="$context"/>
                     </xsl:for-each>
                 </xsl:when>
                 <xsl:otherwise>
@@ -780,9 +777,11 @@ exclude-result-prefixes="#all"
                             </div>
                         </xsl:result-document>
                     </xsl:for-each>
+                    
+                    <xsl:sequence select="$context"/>
                 </xsl:otherwise>
             </xsl:choose>
-        </xsl:for-each>
+        </xsl:for-each>        
     </xsl:function>
     
 </xsl:stylesheet>

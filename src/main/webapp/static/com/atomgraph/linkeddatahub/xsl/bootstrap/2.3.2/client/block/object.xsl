@@ -35,19 +35,6 @@ exclude-result-prefixes="#all"
 >
 
     <!-- TEMPLATES -->
-        
-<!--    <xsl:template match="div[@typeof = '&ldh;Object']/div/div[@about]" mode="ldh:RenderRow" priority="1">
-        <xsl:apply-templates mode="#current"/>
-
-        <xsl:message>HELLO? @about: <xsl:value-of select="@about"/></xsl:message>
-
-         hide the progress bar 
-        <xsl:for-each select="ancestor::div[contains-token(@class, 'span12')][contains-token(@class, 'progress')][contains-token(@class, 'active')]">
-            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'progress', false() ])[current-date() lt xs:date('2000-01-01')]"/>
-            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'progress-striped', false() ])[current-date() lt xs:date('2000-01-01')]"/>
-            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'active', false() ])[current-date() lt xs:date('2000-01-01')]"/>
-        </xsl:for-each>
-    </xsl:template>-->
 
     <!-- hide type control -->
     <xsl:template match="*[rdf:type/@rdf:resource = '&ldh;Object']" mode="bs2:TypeControl" priority="1">
@@ -65,7 +52,7 @@ exclude-result-prefixes="#all"
     
     <!-- object block (RDF resource) -->
     
-    <xsl:template match="*[@typeof = '&ldh;Object'][descendant::*[@property = '&rdf;value'][@resource]]" mode="ldh:RenderRow" as="item()" priority="2"> <!-- prioritize above block.xsl -->
+    <xsl:template match="*[@typeof = '&ldh;Object'][descendant::*[@property = '&rdf;value'][@resource]]" mode="ldh:RenderRow" as="function(item()?) as map(*)" priority="2"> <!-- prioritize above block.xsl -->
         <xsl:param name="block" select="ancestor::div[contains-token(@class, 'block')][1]" as="element()"/>
         <xsl:param name="about" select="$block/@about" as="xs:anyURI"/>
         <xsl:param name="block-uri" select="$about" as="xs:anyURI"/>
@@ -80,10 +67,6 @@ exclude-result-prefixes="#all"
             <!-- update progress bar -->
             <ixsl:set-style name="width" select="'50%'" object="."/>
         </xsl:for-each>
-        
-        <xsl:variable name="child-thunk" as="function(map(*)) as item()*?">
-            <xsl:apply-templates mode="#current"/>
-        </xsl:variable>
 
         <!-- don't use ldh:base-uri(.) because its value comes from the last HTML document load -->
         <xsl:variable name="request-uri" select="ldh:href($ldt:base, if (starts-with($graph, $ldt:base)) then $graph else ac:absolute-path(xs:anyURI(ixsl:location())), map{}, ac:document-uri($resource-uri), $graph, ())" as="xs:anyURI"/>
@@ -100,12 +83,11 @@ exclude-result-prefixes="#all"
           }"/>
         
         <xsl:sequence select="
-          ldh:load-block#4(
-            $context,
-            ldh:object-self-thunk#1,
-            $child-thunk,
-            ?
-          )
+            ldh:load-block#3(
+                $context,
+                ldh:object-self-thunk#1,
+                ?
+            )
         "/>
     </xsl:template>
     
@@ -303,9 +285,21 @@ exclude-result-prefixes="#all"
         <xsl:param name="context" as="map(*)"/>
         <xsl:variable name="obj-value-id" select="$context('obj-value-id')" as="xs:string"/>
 
-        <xsl:message>ldh:block-object-apply $obj-value-id: <xsl:value-of select="$obj-value-id"/></xsl:message>
+        <xsl:message>ldh:block-object-apply $obj-value-id: <xsl:value-of select="$obj-value-id"/> exists(id($obj-value-id, ixsl:page())): <xsl:value-of select="exists(id($obj-value-id, ixsl:page()))"/></xsl:message>
+    
+        <!-- get the optional promise of the object value resource -->
+        <xsl:variable name="rendered" as="(function(item()?) as map(*))?">
+            <xsl:apply-templates select="id($obj-value-id, ixsl:page())" mode="ldh:RenderRow"/>
+        </xsl:variable>
         
-        <xsl:apply-templates select="id($obj-value-id, ixsl:page())" mode="ldh:RenderRow"/>
+        <xsl:sequence select="if (exists($rendered)) then $rendered else ldh:object-noop#2($context, ?)"/>
     </xsl:function>
     
+    <xsl:function name="ldh:object-noop" as="map(*)" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:param name="ignored" as="item()?" />
+        <!-- just return the context, doing nothing else -->
+        <xsl:sequence select="$context"/>
+    </xsl:function>
+
 </xsl:stylesheet>
