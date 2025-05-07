@@ -460,64 +460,67 @@ exclude-result-prefixes="#all"
     <!-- generic HTTP client promises (SaxonJS 3) -->
 
     <xsl:function name="ldh:handle-response" as="item()*" ixsl:updating="yes">
-      <xsl:param name="context" as="map(*)"/>
+        <xsl:param name="context" as="map(*)"/>
 
-      <xsl:variable name="request" select="$context('request')" as="map(*)"/>
-      <xsl:variable name="response" select="$context('response')" as="map(*)"/>
-      <xsl:variable name="default-retry-after" select="1" as="xs:integer"/>
+        <xsl:variable name="request" select="$context('request')" as="map(*)"/>
+        <xsl:variable name="response" select="$context('response')" as="map(*)"/>
+        <xsl:variable name="default-retry-after" select="1" as="xs:integer"/>
 
-      <xsl:choose>
-        <xsl:when test="$response?status = 429">
-          <xsl:variable name="retry-after" select="
-            if (map:contains($response?headers, 'Retry-After')) 
-            then xs:integer($response?headers('Retry-After')) 
-            else $default-retry-after"/>
+        <xsl:choose>
+            <xsl:when test="$response?status = 429">
+                <xsl:variable name="retry-after" select="
+                  if (map:contains($response?headers, 'Retry-After')) 
+                  then xs:integer($response?headers('Retry-After')) 
+                  else $default-retry-after"/>
 
-          <xsl:sequence select="
-            ixsl:sleep($retry-after * 1000)
-                => ixsl:then(ldh:retry-request($context, ?))
-          "/>
-        </xsl:when>
-        <xsl:otherwise>
-          <xsl:sequence select="$context"/>
-        </xsl:otherwise>
-      </xsl:choose>
+                <xsl:sequence select="
+                  ixsl:sleep($retry-after * 1000)
+                      => ixsl:then(ldh:retry-request($context, ?))
+                "/>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:sequence select="$context"/>
+            </xsl:otherwise>
+        </xsl:choose>
     </xsl:function>
 
     <xsl:function name="ldh:retry-request" as="item()*" ixsl:updating="yes">
-      <xsl:param name="context" as="map(*)"/>
-      <xsl:param name="sleep-result" as="item()?"/>
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:param name="sleep-result" as="item()?"/>
 
-      <xsl:variable name="request" select="$context('request')"/>
+        <xsl:variable name="request" select="$context('request')"/>
 
-      <xsl:sequence select="
-        ixsl:http-request($request)
-          => ixsl:then(ldh:rethread-response($context, ?))
-          => ixsl:then(ldh:handle-response#1)
-      "/>
+        <xsl:sequence select="
+          ixsl:http-request($request)
+            => ixsl:then(ldh:rethread-response($context, ?))
+            => ixsl:then(ldh:handle-response#1)
+        "/>
     </xsl:function>
     
     <xsl:function name="ldh:rethread-response" as="map(*)" ixsl:updating="no">
-      <xsl:param name="context" as="map(*)"/>
-      <xsl:param name="response" as="map(*)"/>
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:param name="response" as="map(*)"/>
 
-      <xsl:sequence select="map:merge(($context, map{ 'response': $response }), map{ 'duplicates': 'use-last' })"/>
+        <xsl:sequence select="map:merge(($context, map{ 'response': $response }), map{ 'duplicates': 'use-last' })"/>
     </xsl:function>
 
     <xsl:function name="ldh:http-request-threaded" as="map(*)" ixsl:updating="yes">
-      <xsl:param name="context" as="map(*)"/>
+        <xsl:param name="context" as="map(*)"/>
 
-      <xsl:sequence select="
-        ixsl:http-request($context('request'))
-          => ixsl:then(ldh:rethread-response($context, ?))
-      "/>
+        <xsl:sequence select="
+          ixsl:http-request($context('request'))
+            => ixsl:then(ldh:rethread-response($context, ?))
+        "/>
     </xsl:function>
     
     <xsl:function name="ldh:promise-failure" ixsl:updating="yes">
         <xsl:param name="error" as="map(*)"/>
 
         <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
-        <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ $error?message ])"/>
+        
+        <xsl:if test="$error?code ne 'Q{&ldh;}HTTPError'">
+            <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ $error?message ])"/>
+        </xsl:if>
     </xsl:function>
     
     <xsl:function name="ldh:error-response-alert" ixsl:updating="yes">

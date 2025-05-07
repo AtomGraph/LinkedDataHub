@@ -99,6 +99,14 @@ exclude-result-prefixes="#all"
                         </div>
                     </xsl:result-document>
                 </xsl:for-each>
+                
+                <xsl:sequence select="
+                    error(
+                      QName('&ldh;', 'ldh:HTTPError'),
+                      concat('HTTP ', ?status, ' returned: ', ?message),
+                      $response
+                    )
+                "/>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
@@ -143,13 +151,22 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="
             ldh:load-block#3(
                 $context,
-                ldh:render-query#1,
+                ldh:query-self-thunk#1,
                 ?
             )
         "/>
     </xsl:template>
     
-    <xsl:function name="ldh:render-query" ixsl:updating="yes">
+    <xsl:function name="ldh:query-self-thunk" as="item()*" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:message>ldh:chart-self-thunk</xsl:message>
+        <xsl:sequence select="
+            ixsl:resolve($context) =>
+                ixsl:then(ldh:render-query#1)
+        "/>
+    </xsl:function>
+    
+    <xsl:function name="ldh:render-query" as="map(*)" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
         <xsl:variable name="container" select="$context('container')" as="element()"/>
         <xsl:variable name="textarea-id" select="$context('textarea-id')" as="xs:string?"/>
@@ -160,7 +177,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="service-uri" select="$context('service-uri')" as="xs:anyURI?"/>
         <xsl:variable name="forClass" select="$context('forClass')" as="xs:anyURI"/>
         
-      <xsl:message>ldh:render-query</xsl:message>
+        <xsl:message>ldh:render-query</xsl:message>
 
         <xsl:for-each select="$container//div[contains-token(@class, 'main')]">
             <xsl:variable name="header" select="./div/div[@class = 'well']" as="element()"/>
@@ -246,6 +263,8 @@ exclude-result-prefixes="#all"
             <root statement="YASQE.fromTextArea(document.getElementById('{$textarea-id}'), {{ persistent: null }})"/>
         </xsl:variable>
         <ixsl:set-property name="{$textarea-id}" select="ixsl:eval(string($js-statement/@statement))" object="ixsl:get(ixsl:window(), 'LinkedDataHub.yasqe')"/>
+        
+        <xsl:sequence select="$context"/>
     </xsl:function>
     
     <!-- EVENT LISTENERS -->
@@ -600,6 +619,14 @@ exclude-result-prefixes="#all"
                         </div>
                     </xsl:result-document>
                 </xsl:for-each>
+                
+                <xsl:sequence select="
+                    error(
+                      QName('&ldh;', 'ldh:HTTPError'),
+                      concat('HTTP ', ?status, ' returned: ', ?message),
+                      $response
+                    )
+                "/>
             </xsl:otherwise>
         </xsl:choose>
         

@@ -343,7 +343,6 @@ exclude-result-prefixes="#all"
         <xsl:variable name="container" select="$context('container')" as="element()"/>
 
         <xsl:message>ldh:hide-block-progress-bar $container/@typeof: <xsl:value-of select="$container/@typeof"/></xsl:message>
-        <xsl:message>ldh:hide-block-progress-bar serialize($result): <xsl:value-of select="serialize($result, map{ 'method': 'adaptive' })"/></xsl:message>
         
         <!-- hide the progress bar -->
         <xsl:for-each select="$container/ancestor::div[contains-token(@class, 'span12')][contains-token(@class, 'progress')][contains-token(@class, 'active')]">

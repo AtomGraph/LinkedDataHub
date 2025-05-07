@@ -310,7 +310,7 @@ exclude-result-prefixes="#all"
         "/>
     </xsl:function>
 
-    <xsl:function name="ldh:render-chart" ixsl:updating="yes">
+    <xsl:function name="ldh:render-chart" as="map(*)" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
         <xsl:variable name="container" select="$context('container')" as="element()"/>
         <xsl:variable name="method" select="$context('method')" as="xs:string"/>
@@ -705,7 +705,13 @@ exclude-result-prefixes="#all"
                         </xsl:result-document>
                     </xsl:for-each>
                     
-                    <xsl:sequence select="$context"/>
+                    <xsl:sequence select="
+                      error(
+                        QName('&ldh;', 'ldh:HTTPError'),
+                        concat('HTTP ', ?status, ' returned: ', ?message),
+                        $response
+                      )
+                    "/>
                 </xsl:otherwise>
             </xsl:choose>
         </xsl:for-each>
@@ -778,7 +784,13 @@ exclude-result-prefixes="#all"
                         </xsl:result-document>
                     </xsl:for-each>
                     
-                    <xsl:sequence select="$context"/>
+                    <xsl:sequence select="
+                      error(
+                        QName('&ldh;', 'ldh:HTTPError'),
+                        concat('HTTP ', ?status, ' returned: ', ?message),
+                        $response
+                      )
+                    "/>
                 </xsl:otherwise>
             </xsl:choose>
         </xsl:for-each>        

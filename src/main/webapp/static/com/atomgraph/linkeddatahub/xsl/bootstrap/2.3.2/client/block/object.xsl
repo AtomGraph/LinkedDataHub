@@ -181,6 +181,14 @@ exclude-result-prefixes="#all"
                                         </div>
                                     </xsl:result-document>
                                 </xsl:for-each>
+                                
+                                <xsl:sequence select="
+                                    error(
+                                      QName('&ldh;', 'ldh:HTTPError'),
+                                      concat('HTTP ', ?status, ' returned: ', ?message),
+                                      $response
+                                    )
+                                "/>
                             </xsl:otherwise>
                         </xsl:choose>
                     </xsl:for-each>
@@ -192,13 +200,6 @@ exclude-result-prefixes="#all"
                                 <object data="{$resource-uri}"/>
                             </div>
                         </xsl:result-document>
-
-                        <!-- hide the progress bar -->
-<!--                        <xsl:for-each select="ancestor::div[contains-token(@class, 'span12')][contains-token(@class, 'progress')][contains-token(@class, 'active')]">
-                            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'progress', false() ])[current-date() lt xs:date('2000-01-01')]"/>
-                            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'progress-striped', false() ])[current-date() lt xs:date('2000-01-01')]"/>
-                            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'active', false() ])[current-date() lt xs:date('2000-01-01')]"/>
-                        </xsl:for-each>-->
                     </xsl:for-each>
                 </xsl:when>
                 <xsl:otherwise>
@@ -209,12 +210,13 @@ exclude-result-prefixes="#all"
                             </div>
                         </xsl:result-document>
 
-                        <!-- hide the progress bar -->
-<!--                        <xsl:for-each select="ancestor::div[contains-token(@class, 'span12')][contains-token(@class, 'progress')][contains-token(@class, 'active')]">
-                            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'progress', false() ])[current-date() lt xs:date('2000-01-01')]"/>
-                            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'progress-striped', false() ])[current-date() lt xs:date('2000-01-01')]"/>
-                            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'active', false() ])[current-date() lt xs:date('2000-01-01')]"/>
-                        </xsl:for-each> -->
+                        <xsl:sequence select="
+                            error(
+                              QName('&ldh;', 'ldh:HTTPError'),
+                              concat('HTTP ', ?status, ' returned: ', ?message),
+                              $response
+                            )
+                        "/>
                     </xsl:for-each>
                     
                     <xsl:sequence select="$context"/>                    

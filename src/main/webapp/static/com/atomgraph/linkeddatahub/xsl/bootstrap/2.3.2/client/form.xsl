@@ -289,7 +289,7 @@ WHERE
             => ixsl:then(ldh:load-edited-resource#1)                      (: Step 4: extract resource, build next request :)
             => ixsl:then(ldh:http-request-threaded#1)                     (: Step 5: send next request and rethread :)
             => ixsl:then(ldh:handle-response#1)                           (: Step 6: handle retry if needed :)
-            => ixsl:then(ldh:load-type-metadata#1)                        (: Step 7: final step using full context :)
+            => ixsl:then(ldh:set-type-metadata#1)                         (: Step 7: final step using full context :)
             => ixsl:then(ldh:render-row-form#1)
         " on-failure="ldh:promise-failure#1"/>
     </xsl:template>
@@ -345,7 +345,7 @@ WHERE
             => ixsl:then(ldh:load-edited-resource#1)                      (: Step 4: extract resource, build next request :)
             => ixsl:then(ldh:http-request-threaded#1)                     (: Step 5: send next request and rethread :)
             => ixsl:then(ldh:handle-response#1)                           (: Step 6: handle retry if needed :)
-            => ixsl:then(ldh:load-type-metadata#1)                        (: Step 7: final step using full context :)
+            => ixsl:then(ldh:set-type-metadata#1)                        (: Step 7: final step using full context :)
             => ixsl:then(ldh:wrap-into-document#1)
             => ixsl:then(ldh:render-form#1)
         " on-failure="ldh:promise-failure#1"/>
@@ -385,15 +385,13 @@ WHERE
                 </xsl:when>
                 <!-- error response -->
                 <xsl:otherwise>
-<!--                    <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
-                    <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ ?message ])"/>-->
-                    <xsl:sequence select="error(QName('&ldh;', 'ldh:ldh:load-edited-resource-error'), 'Could not load edited resource', map{ 'code': 999 })"/>
+                    <xsl:sequence select="error(QName('&ldh;', 'ldh:load-edited-resource-error'), 'Could not load edited resource', map{ 'code': 999 })"/>
                 </xsl:otherwise>
             </xsl:choose>
         </xsl:for-each>
     </xsl:function>
     
-    <xsl:function name="ldh:load-type-metadata" as="map(*)" ixsl:updating="yes">
+    <xsl:function name="ldh:set-type-metadata" as="map(*)" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
         <xsl:variable name="response" select="$context('response')" as="map(*)"/>
         <xsl:variable name="block" select="$context('block')" as="element()"/>
@@ -440,7 +438,7 @@ WHERE
                 </xsl:when>
                 <!-- error response -->
                 <xsl:otherwise>
-                    <xsl:sequence select="error(QName('&ldh;', 'ldh:type-metadata-response-error'), 'Could not load type metadata', map{ 'code': 999 })"/>
+                    <xsl:sequence select="error(QName('&ldh;', 'ldh:type-metadata-response-error'), 'Could not load type metadata', $response)"/>
                 </xsl:otherwise>
             </xsl:choose>
         </xsl:for-each>
@@ -968,7 +966,12 @@ WHERE
             </xsl:for-each>
 
             <!-- cannot be in $block context because it contains old DOM (pre-ixsl:replace-content) -->
-            <xsl:apply-templates select="id($block/@id, ixsl:page())" mode="ldh:RenderRow"/>
+            <xsl:variable name="factory" as="function(item()?) as item()*?">
+                <xsl:apply-templates select="id($block/@id, ixsl:page())" mode="ldh:RenderRow"/>!!!!
+            </xsl:variable>
+            
+            <!-- invoke the factory -->
+            <xsl:sequence select="$factory(())"/>
             
             <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
         </xsl:for-each>
