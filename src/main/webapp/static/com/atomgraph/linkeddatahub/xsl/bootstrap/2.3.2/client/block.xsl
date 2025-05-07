@@ -117,11 +117,11 @@ exclude-result-prefixes="#all"
 
     <!-- render row -->
     
-    <xsl:template match="*" mode="ldh:RenderRow">
+    <xsl:template match="*" mode="ldh:RenderRow" as="(function(item()?) as map(*))?">
         <xsl:apply-templates mode="#current"/>
     </xsl:template>
 
-    <xsl:template match="text()" mode="ldh:RenderRow"/>
+    <xsl:template match="text()" mode="ldh:RenderRow" as="(function(item()?) as map(*))?"/>
     
     <!-- hide type control -->
     <xsl:template match="*[rdf:type/@rdf:resource = '&ldh;XHTML']" mode="bs2:TypeControl" priority="1">
@@ -321,35 +321,29 @@ exclude-result-prefixes="#all"
     <!-- CALLBACKS -->
     
     <xsl:function name="ldh:load-block" ixsl:updating="yes" as="map(*)">
-      <xsl:param name="context" as="map(*)"/>
-      <xsl:param name="self-thunk" as="function(map(*)) as item()*"/>
-      <xsl:param name="child-thunk" as="function(map(*)) as item()*?"/>
-      <xsl:param name="ignored" as="item()?"/>
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:param name="thunk" as="function(map(*)) as item()*"/>
+        <xsl:param name="ignored" as="item()?"/>
 
-      <xsl:sequence select="
-        ixsl:all-settled(
-            array{
-              $self-thunk($context),
-              if ($child-thunk) then $child-thunk($context) else ()
-            }
-        )
-        => ixsl:then(
-            ldh:hide-block-progress-bar(
-              $context,
-              ?
-            )
-        )
-        "/>
+        <xsl:sequence select="
+            $thunk($context) =>
+                ixsl:then(
+                    ldh:hide-block-progress-bar(
+                        $context,
+                        ?
+                        )
+                    )
+          "/>
     </xsl:function>
     
     <xsl:function name="ldh:hide-block-progress-bar" as="map(*)" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
-        <xsl:param name="results" as="array(*)"/>
+        <xsl:param name="ignored" as="item()?"/>
               
         <xsl:variable name="container" select="$context('container')" as="element()"/>
 
         <xsl:message>ldh:hide-block-progress-bar $container/@typeof: <xsl:value-of select="$container/@typeof"/></xsl:message>
-
+        
         <!-- hide the progress bar -->
         <xsl:for-each select="$container/ancestor::div[contains-token(@class, 'span12')][contains-token(@class, 'progress')][contains-token(@class, 'active')]">
             <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'progress', false() ])[current-date() lt xs:date('2000-01-01')]"/>

@@ -240,10 +240,6 @@ exclude-result-prefixes="#all"
         <xsl:for-each select="$block//div[contains-token(@class, 'bar')]">
             <ixsl:set-style name="width" select="'66%'" object="."/>
         </xsl:for-each>
-
-        <xsl:variable name="child-thunk" as="function(map(*)) as item()*?">
-          <xsl:apply-templates mode="#current"/>
-        </xsl:variable>
         
         <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path($ldh:requestUri), map{}, $query-uri)" as="xs:anyURI"/>
         <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
@@ -271,12 +267,11 @@ exclude-result-prefixes="#all"
           }"/>
         
         <xsl:sequence select="
-          ldh:load-block#4(
-            $context,
-            ldh:chart-self-thunk#1,
-            $child-thunk,
-            ?
-          )
+            ldh:load-block#3(
+              $context,
+              ldh:chart-self-thunk#1,
+              ?
+            )
         "/>
     </xsl:template>
     
@@ -315,7 +310,7 @@ exclude-result-prefixes="#all"
         "/>
     </xsl:function>
 
-    <xsl:function name="ldh:render-chart" ixsl:updating="yes">
+    <xsl:function name="ldh:render-chart" as="map(*)" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
         <xsl:variable name="container" select="$context('container')" as="element()"/>
         <xsl:variable name="method" select="$context('method')" as="xs:string"/>
@@ -698,11 +693,11 @@ exclude-result-prefixes="#all"
                         <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'active', false() ])[current-date() lt xs:date('2000-01-01')]"/>
                     </xsl:for-each>
 
-                    <!-- error response - could not load query results -->
+                    <!-- error response - could not load query -->
                     <xsl:for-each select="$container">
                         <xsl:result-document href="?." method="ixsl:replace-content">
                             <div class="alert alert-block">
-                                <strong>Error during query execution:</strong>
+                                <strong>Could not load query from <a href="{$query-uri}"><xsl:value-of select="$query-uri"/></a></strong>
                                 <pre>
                                     <xsl:value-of select="$response?message"/>
                                 </pre>
@@ -710,7 +705,14 @@ exclude-result-prefixes="#all"
                         </xsl:result-document>
                     </xsl:for-each>
                     
-                    <xsl:sequence select="$context"/>
+                    <xsl:sequence select="ldh:hide-block-progress-bar($context, ())[current-date() lt xs:date('2000-01-01')]"/>
+                    <xsl:sequence select="
+                      error(
+                        QName('&ldh;', 'ldh:HTTPError'),
+                        concat('HTTP ', ?status, ' returned: ', ?message),
+                        $response
+                      )
+                    "/>
                 </xsl:otherwise>
             </xsl:choose>
         </xsl:for-each>
@@ -718,7 +720,7 @@ exclude-result-prefixes="#all"
     
     <!-- SPARQL results response -->
 
-    <xsl:function name="ldh:chart-results-response" ixsl:updating="yes">
+    <xsl:function name="ldh:chart-results-response" as="map(*)" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
         <xsl:variable name="response" select="$context('response')" as="map(*)"/>
         <xsl:variable name="block" select="$context('block')" as="element()"/>
@@ -766,6 +768,8 @@ exclude-result-prefixes="#all"
                             <xsl:with-param name="category" select="$category"/>
                             <xsl:with-param name="series" select="$series"/>
                         </xsl:call-template>
+                        
+                        <xsl:sequence select="$context"/>
                     </xsl:for-each>
                 </xsl:when>
                 <xsl:otherwise>
@@ -780,9 +784,18 @@ exclude-result-prefixes="#all"
                             </div>
                         </xsl:result-document>
                     </xsl:for-each>
+                    
+                    <xsl:sequence select="ldh:hide-block-progress-bar($context, ())[current-date() lt xs:date('2000-01-01')]"/>
+                    <xsl:sequence select="
+                      error(
+                        QName('&ldh;', 'ldh:HTTPError'),
+                        concat('HTTP ', ?status, ' returned: ', ?message),
+                        $response
+                      )
+                    "/>
                 </xsl:otherwise>
             </xsl:choose>
-        </xsl:for-each>
+        </xsl:for-each>        
     </xsl:function>
     
 </xsl:stylesheet>
