@@ -967,11 +967,13 @@ WHERE
 
             <!-- cannot be in $block context because it contains old DOM (pre-ixsl:replace-content) -->
             <xsl:variable name="factory" as="function(item()?) as item()*?">
-                <xsl:apply-templates select="id($block/@id, ixsl:page())" mode="ldh:RenderRow"/>!!!!
+                <xsl:apply-templates select="id($block/@id, ixsl:page())" mode="ldh:RenderRow"/>
             </xsl:variable>
-            
-            <!-- invoke the factory -->
-            <xsl:sequence select="$factory(())"/>
+            <xsl:message>exists($factory): <xsl:value-of select="exists($factory)"/></xsl:message>
+            <xsl:if test="exists($factory)">
+                <!-- invoke the factory -->
+                <xsl:sequence select="$factory(())"/>
+            </xsl:if>
             
             <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
         </xsl:for-each>

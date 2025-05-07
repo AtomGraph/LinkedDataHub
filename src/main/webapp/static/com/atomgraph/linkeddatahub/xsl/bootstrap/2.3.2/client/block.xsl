@@ -338,7 +338,7 @@ exclude-result-prefixes="#all"
     
     <xsl:function name="ldh:hide-block-progress-bar" as="map(*)" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
-        <xsl:param name="result" as="map(*)"/>
+        <xsl:param name="ignored" as="item()?"/>
               
         <xsl:variable name="container" select="$context('container')" as="element()"/>
 

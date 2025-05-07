@@ -693,11 +693,11 @@ exclude-result-prefixes="#all"
                         <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'active', false() ])[current-date() lt xs:date('2000-01-01')]"/>
                     </xsl:for-each>
 
-                    <!-- error response - could not load query results -->
+                    <!-- error response - could not load query -->
                     <xsl:for-each select="$container">
                         <xsl:result-document href="?." method="ixsl:replace-content">
                             <div class="alert alert-block">
-                                <strong>Error during query execution:</strong>
+                                <strong>Could not load query from <a href="{$query-uri}"><xsl:value-of select="$query-uri"/></a></strong>
                                 <pre>
                                     <xsl:value-of select="$response?message"/>
                                 </pre>
@@ -705,6 +705,7 @@ exclude-result-prefixes="#all"
                         </xsl:result-document>
                     </xsl:for-each>
                     
+                    <xsl:sequence select="ldh:hide-block-progress-bar($context, ())[current-date() lt xs:date('2000-01-01')]"/>
                     <xsl:sequence select="
                       error(
                         QName('&ldh;', 'ldh:HTTPError'),
@@ -784,6 +785,7 @@ exclude-result-prefixes="#all"
                         </xsl:result-document>
                     </xsl:for-each>
                     
+                    <xsl:sequence select="ldh:hide-block-progress-bar($context, ())[current-date() lt xs:date('2000-01-01')]"/>
                     <xsl:sequence select="
                       error(
                         QName('&ldh;', 'ldh:HTTPError'),

@@ -153,10 +153,7 @@ exclude-result-prefixes="#all"
                     <xsl:choose>
                         <xsl:when test="$endpoint = sd:endpoint()">
                             <xsl:variable name="object-uris" select="distinct-values($results/rdf:RDF/rdf:Description/*/@rdf:resource[not(key('resources', .))])" as="xs:string*"/>
-                            <xsl:message>ldh:load-object-metadata $results/rdf:RDF/rdf:Description/*/@rdf:resource: <xsl:value-of select="$results/rdf:RDF/rdf:Description/*/@rdf:resource"/></xsl:message>
-                            <xsl:message>ldh:load-object-metadata $object-uris: <xsl:value-of select="$object-uris"/></xsl:message>
                             <xsl:variable name="query-string" select="$object-metadata-query || ' VALUES $this { ' || string-join(for $uri in $object-uris return '&lt;' || $uri || '&gt;', ' ') || ' }'" as="xs:string"/>                    
-                            <xsl:message>ldh:load-object-metadata $query-string: <xsl:value-of select="$query-string"/></xsl:message>
                             <xsl:variable name="request" select="map{ 'method': 'POST', 'href': $endpoint, 'media-type': 'application/sparql-query', 'body': $query-string, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
                             <xsl:sequence select="map:merge(($context, map{ 'request': $request , 'response': () , 'results': $results }), map{ 'duplicates': 'use-last' })"/>
                         </xsl:when>
@@ -169,11 +166,17 @@ exclude-result-prefixes="#all"
                     <xsl:for-each select="$container">
                         <xsl:result-document href="?." method="ixsl:replace-content">
                             <div class="alert alert-block">
-                                <strong>Could not load container results</strong>
+                                <strong>Could not load query results from <a href="{$endpoint}"><xsl:value-of select="$endpoint"/></a></strong>
+                                <pre>
+                                    <xsl:value-of select="$response?message"/>
+                                </pre>
                             </div>
                         </xsl:result-document>
                     </xsl:for-each>
 
+                    <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
+
+                    <xsl:sequence select="ldh:hide-block-progress-bar($context, ())[current-date() lt xs:date('2000-01-01')]"/>
                     <xsl:sequence select="
                       error(
                         QName('&ldh;', 'ldh:HTTPError'),
@@ -204,6 +207,7 @@ exclude-result-prefixes="#all"
                         <xsl:with-param name="message" select="?message"/>
                     </xsl:call-template>
                     
+                    <xsl:sequence select="ldh:hide-block-progress-bar($context, ())[current-date() lt xs:date('2000-01-01')]"/>
                     <xsl:sequence select="
                       error(
                         QName('&ldh;', 'ldh:HTTPError'),
@@ -663,7 +667,7 @@ exclude-result-prefixes="#all"
         </xsl:for-each>
     </xsl:template>
     
-    <!-- container results -->
+    <!-- view mode choice -->
     
     <xsl:template name="ldh:ViewModeChoice">
         <xsl:param name="container-id" as="xs:string"/>
@@ -744,12 +748,12 @@ exclude-result-prefixes="#all"
         <xsl:variable name="container-results-id" select="$container-id || '-container-results'" as="xs:string"/>
         <xsl:variable name="base-uri" select="ldh:base-uri(.)" as="xs:anyURI"/>
 
-        <!-- store sorted results as the current container results -->
+        <!-- store sorted results as the current view results -->
         <ixsl:set-property name="results" select="$results" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block/@about || '`')"/>
 
         <xsl:variable name="initial-load" select="empty(.//div[@id = $container-results-id])" as="xs:boolean"/>
         <xsl:message>$initial-load: <xsl:value-of select="$initial-load"/></xsl:message>
-        <!-- first time rendering the container results -->
+        <!-- first time rendering the view results -->
         <xsl:if test="$initial-load">
             <xsl:result-document href="?." method="ixsl:replace-content">
                 <div class="pull-right">
@@ -1694,6 +1698,9 @@ exclude-result-prefixes="#all"
                                     <xsl:result-document href="?." method="ixsl:replace-content">
                                         <div class="alert alert-block">
                                             <strong>Could not load service resource: <a href="{$service-uri}"><xsl:value-of select="$service-uri"/></a></strong>
+                                            <pre>
+                                                <xsl:value-of select="$response?message"/>
+                                            </pre>
                                         </div>
                                     </xsl:result-document>
                                 </xsl:for-each>
@@ -1706,10 +1713,14 @@ exclude-result-prefixes="#all"
                         <xsl:result-document href="?." method="ixsl:replace-content">
                             <div class="alert alert-block">
                                 <strong>Could not load query resource: <a href="{$query-uri}"><xsl:value-of select="$query-uri"/></a></strong>
+                                <pre>
+                                    <xsl:value-of select="$response?message"/>
+                                </pre>
                             </div>
                         </xsl:result-document>
                     </xsl:for-each>
                     
+                    <xsl:sequence select="ldh:hide-block-progress-bar($context, ())[current-date() lt xs:date('2000-01-01')]"/>
                     <xsl:sequence select="
                       error(
                         QName('&ldh;', 'ldh:HTTPError'),

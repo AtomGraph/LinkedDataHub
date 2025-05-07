@@ -70,7 +70,7 @@ exclude-result-prefixes="#all"
         <ixsl:set-property name="{$textarea-id}" select="ixsl:eval(string($js-statement/@statement))" object="ixsl:get(ixsl:window(), 'LinkedDataHub.yasqe')"/>
     </xsl:template>
     
-    <xsl:template name="onQueryServiceLoad">
+<!--    <xsl:template name="onQueryServiceLoad">
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="container" as="element()"/>
         <xsl:param name="forClass" as="xs:anyURI"/>
@@ -88,7 +88,7 @@ exclude-result-prefixes="#all"
             </xsl:when>
             <xsl:otherwise>
                 <xsl:variable name="response" select="." as="map(*)"/>
-                <!-- error response - could not load service -->
+                 error response - could not load service 
                 <xsl:for-each select="$container">
                     <xsl:result-document href="?." method="ixsl:replace-content">
                         <div class="alert alert-block">
@@ -109,7 +109,7 @@ exclude-result-prefixes="#all"
                 "/>
             </xsl:otherwise>
         </xsl:choose>
-    </xsl:template>
+    </xsl:template>-->
     
     <!-- render query block -->
     
@@ -331,6 +331,7 @@ exclude-result-prefixes="#all"
             </xsl:for-each>
         </xsl:if>
         
+        <!-- TO-DO: refactor as promise -->
         <xsl:variable name="request" as="item()*">
             <ixsl:schedule-action http-request="$request">
                 <xsl:call-template name="onSPARQLResultsLoad">
@@ -620,6 +621,8 @@ exclude-result-prefixes="#all"
                     </xsl:result-document>
                 </xsl:for-each>
                 
+                <!-- TO-DO: $context -->
+                <xsl:sequence select="ldh:hide-block-progress-bar(map{}, ())[current-date() lt xs:date('2000-01-01')]"/>
                 <xsl:sequence select="
                     error(
                       QName('&ldh;', 'ldh:HTTPError'),
