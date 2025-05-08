@@ -152,14 +152,14 @@ LIMIT   10
                                     <button type="button" class="btn dropdown-toggle create-action"></button>
                                     <ul class="dropdown-menu">
                                         <li>
-                                            <button data-for-class="&dh;Container" href="{ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), ldh:query-params(xs:anyURI('&ac;ModalMode'), xs:anyURI('&dh;Container')), ac:absolute-path(ldh:base-uri(.)))}" class="btn add-constructor" title="&dh;Container" id="{generate-id()}-remote-rdf-container">
+                                            <button data-for-class="&dh;Container" href="{ldh:href($ldt:base, ac:absolute-path($ldh:requestUri), ldh:query-params(xs:anyURI('&ac;ModalMode'), xs:anyURI('&dh;Container')), ac:absolute-path(ldh:base-uri(.)))}" class="btn add-constructor" title="&dh;Container" id="{generate-id()}-remote-rdf-container">
                                                 <xsl:value-of>
                                                     <xsl:apply-templates select="key('resources', '&dh;Container', document(ac:document-uri('&dh;')))" mode="ac:label"/>
                                                 </xsl:value-of>
                                             </button>
                                         </li>
                                         <li>
-                                            <button data-for-class="&dh;Item" href="{ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), ldh:query-params(xs:anyURI('&ac;ModalMode'), xs:anyURI('&dh;Item')), ac:absolute-path(ldh:base-uri(.)))}" type="button" class="btn add-constructor" title="&dh;Item" id="{generate-id()}-remote-rdf-item">
+                                            <button data-for-class="&dh;Item" href="{ldh:href($ldt:base, ac:absolute-path($ldh:requestUri), ldh:query-params(xs:anyURI('&ac;ModalMode'), xs:anyURI('&dh;Item')), ac:absolute-path(ldh:base-uri(.)))}" type="button" class="btn add-constructor" title="&dh;Item" id="{generate-id()}-remote-rdf-item">
                                                 <xsl:value-of>
                                                     <xsl:apply-templates select="key('resources', '&dh;Item', document(ac:document-uri('&dh;')))" mode="ac:label"/>
                                                 </xsl:value-of>
@@ -755,7 +755,7 @@ LIMIT   10
                 <xsl:variable name="action" select="ixsl:get(., 'action')" as="xs:anyURI"/>
                 <xsl:variable name="enctype" select="ixsl:get(., 'enctype')" as="xs:string"/>
                 <xsl:variable name="form-data" select="ldh:new('URLSearchParams', [ ldh:new('FormData', [ $form ]) ])"/>
-                <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, $action)" as="xs:anyURI"/>
+                <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path($ldh:requestUri), map{}, $action)" as="xs:anyURI"/>
 
                 <xsl:variable name="request" as="item()*">
                     <ixsl:schedule-action http-request="map{ 'method': $method, 'href': $request-uri, 'media-type': $enctype, 'body': $form-data, 'headers': map{} }"> <!-- 'Accept': $accept -->
@@ -849,7 +849,7 @@ LIMIT   10
         <xsl:variable name="action" select="ixsl:get(., 'action')" as="xs:anyURI"/>
         <xsl:variable name="enctype" select="ixsl:get(., 'enctype')" as="xs:string"/>
         <xsl:variable name="form-data" select="ldh:new('URLSearchParams', [ ldh:new('FormData', [ $form ]) ])"/>
-        <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, $action)" as="xs:anyURI"/>
+        <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path($ldh:requestUri), map{}, $action)" as="xs:anyURI"/>
 
         <xsl:variable name="request" as="item()*">
             <ixsl:schedule-action http-request="map{ 'method': $method, 'href': $request-uri, 'media-type': $enctype, 'body': $form-data, 'headers': map{} }"> <!-- 'Accept': $accept -->

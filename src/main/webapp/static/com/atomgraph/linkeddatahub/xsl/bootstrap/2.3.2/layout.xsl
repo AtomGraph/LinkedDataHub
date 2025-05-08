@@ -563,7 +563,7 @@ LIMIT   100
                 
                 <input type="text" id="uri" name="uri" class="input-xxlarge typeahead">
                     <xsl:if test="not(starts-with(ac:absolute-path(ldh:base-uri(.)), $ldt:base))">
-                        <xsl:attribute name="value" select="."/>
+                        <xsl:attribute name="value" select="ac:absolute-path(ldh:base-uri(.))"/>
                     </xsl:if>
                 </input>
                 <!-- placeholder used by the client-side typeahead -->

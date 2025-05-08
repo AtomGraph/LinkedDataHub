@@ -491,7 +491,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="graph" as="xs:anyURI?" tunnel="yes"/>
         <xsl:param name="query-string" select="'DESCRIBE &lt;' || . || '&gt;'" as="xs:string"/>
         <xsl:param name="fragment" select="if (starts-with(., $ldt:base)) then (if (contains(., '#')) then substring-after(., '#') else ()) else encode-for-uri(.)" as="xs:string?"/>
-        <xsl:param name="href" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, if ($endpoint) then xs:anyURI($endpoint || '?query=' || encode-for-uri($query-string)) else xs:anyURI(.), $graph, $fragment)" as="xs:anyURI"/>
+        <xsl:param name="href" select="ldh:href($ldt:base, ac:absolute-path($ldh:requestUri), map{}, if ($endpoint) then xs:anyURI($endpoint || '?query=' || encode-for-uri($query-string)) else xs:anyURI(.), $graph, $fragment)" as="xs:anyURI"/>
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="title" select="." as="xs:string?"/>
         <xsl:param name="class" as="xs:string?"/>
@@ -510,7 +510,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="endpoint" as="xs:anyURI?" tunnel="yes"/>
         <xsl:param name="query-string" select="'DESCRIBE &lt;' || . || '&gt;'" as="xs:string"/>
         <xsl:param name="fragment" select="if (starts-with(., $ldt:base)) then (if (contains(., '#')) then substring-after(., '#') else ()) else encode-for-uri(.)" as="xs:string?"/>
-        <xsl:param name="href" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, if ($endpoint) then xs:anyURI($endpoint || '?query=' || encode-for-uri($query-string)) else xs:anyURI(.), $fragment)" as="xs:anyURI"/>
+        <xsl:param name="href" select="ldh:href($ldt:base, ac:absolute-path($ldh:requestUri), map{}, if ($endpoint) then xs:anyURI($endpoint || '?query=' || encode-for-uri($query-string)) else xs:anyURI(.), $fragment)" as="xs:anyURI"/>
         <xsl:param name="id" select="$fragment" as="xs:string?"/>
         <xsl:param name="label" select="if (parent::rdf:Description) then ac:svg-label(..) else ac:svg-object-label(.)" as="xs:string"/>
         <xsl:param name="title" select="$label" as="xs:string"/>
@@ -534,7 +534,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="endpoint" as="xs:anyURI?" tunnel="yes"/>
         <xsl:param name="query-string" select="'DESCRIBE &lt;' || . || '&gt;'" as="xs:string"/>
         <xsl:param name="fragment" select="if (starts-with(., $ldt:base)) then (if (contains(., '#')) then substring-after(., '#') else ()) else encode-for-uri(.)" as="xs:string?"/>
-        <xsl:param name="href" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, if ($endpoint) then xs:anyURI($endpoint || '?query=' || encode-for-uri($query-string)) else xs:anyURI(.), $fragment)" as="xs:anyURI"/>
+        <xsl:param name="href" select="ldh:href($ldt:base, ac:absolute-path($ldh:requestUri), map{}, if ($endpoint) then xs:anyURI($endpoint || '?query=' || encode-for-uri($query-string)) else xs:anyURI(.), $fragment)" as="xs:anyURI"/>
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="title" select="." as="xs:string?"/>
         <xsl:param name="class" as="xs:string?"/>

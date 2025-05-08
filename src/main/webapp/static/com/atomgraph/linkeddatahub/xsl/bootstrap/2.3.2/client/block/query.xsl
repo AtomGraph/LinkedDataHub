@@ -70,7 +70,7 @@ exclude-result-prefixes="#all"
         <ixsl:set-property name="{$textarea-id}" select="ixsl:eval(string($js-statement/@statement))" object="ixsl:get(ixsl:window(), 'LinkedDataHub.yasqe')"/>
     </xsl:template>
     
-    <xsl:template name="onQueryServiceLoad">
+<!--    <xsl:template name="onQueryServiceLoad">
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="container" as="element()"/>
         <xsl:param name="forClass" as="xs:anyURI"/>
@@ -88,7 +88,7 @@ exclude-result-prefixes="#all"
             </xsl:when>
             <xsl:otherwise>
                 <xsl:variable name="response" select="." as="map(*)"/>
-                <!-- error response - could not load service -->
+                 error response - could not load service 
                 <xsl:for-each select="$container">
                     <xsl:result-document href="?." method="ixsl:replace-content">
                         <div class="alert alert-block">
@@ -99,9 +99,17 @@ exclude-result-prefixes="#all"
                         </div>
                     </xsl:result-document>
                 </xsl:for-each>
+                
+                <xsl:sequence select="
+                    error(
+                      QName('&ldh;', 'ldh:HTTPError'),
+                      concat('HTTP ', ?status, ' returned: ', ?message),
+                      $response
+                    )
+                "/>
             </xsl:otherwise>
         </xsl:choose>
-    </xsl:template>
+    </xsl:template>-->
     
     <!-- render query block -->
     
@@ -127,10 +135,6 @@ exclude-result-prefixes="#all"
         <xsl:for-each select="$block//div[contains-token(@class, 'bar')]">
             <ixsl:set-style name="width" select="'66%'" object="."/>
         </xsl:for-each>
-        
-        <xsl:variable name="child-thunk" as="function(map(*)) as item()*?">
-            <xsl:apply-templates mode="#current"/>
-        </xsl:variable>
 
         <xsl:variable name="context" as="map(*)" select="
           map{
@@ -145,16 +149,24 @@ exclude-result-prefixes="#all"
           }"/>
   
         <xsl:sequence select="
-          ldh:load-block#4(
-            $context,
-            ldh:render-query#1,
-            $child-thunk,
-            ?
-          )
+            ldh:load-block#3(
+                $context,
+                ldh:query-self-thunk#1,
+                ?
+            )
         "/>
     </xsl:template>
     
-    <xsl:function name="ldh:render-query" ixsl:updating="yes">
+    <xsl:function name="ldh:query-self-thunk" as="item()*" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:message>ldh:chart-self-thunk</xsl:message>
+        <xsl:sequence select="
+            ixsl:resolve($context) =>
+                ixsl:then(ldh:render-query#1)
+        "/>
+    </xsl:function>
+    
+    <xsl:function name="ldh:render-query" as="map(*)" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
         <xsl:variable name="container" select="$context('container')" as="element()"/>
         <xsl:variable name="textarea-id" select="$context('textarea-id')" as="xs:string?"/>
@@ -165,7 +177,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="service-uri" select="$context('service-uri')" as="xs:anyURI?"/>
         <xsl:variable name="forClass" select="$context('forClass')" as="xs:anyURI"/>
         
-      <xsl:message>ldh:render-query</xsl:message>
+        <xsl:message>ldh:render-query</xsl:message>
 
         <xsl:for-each select="$container//div[contains-token(@class, 'main')]">
             <xsl:variable name="header" select="./div/div[@class = 'well']" as="element()"/>
@@ -251,6 +263,8 @@ exclude-result-prefixes="#all"
             <root statement="YASQE.fromTextArea(document.getElementById('{$textarea-id}'), {{ persistent: null }})"/>
         </xsl:variable>
         <ixsl:set-property name="{$textarea-id}" select="ixsl:eval(string($js-statement/@statement))" object="ixsl:get(ixsl:window(), 'LinkedDataHub.yasqe')"/>
+        
+        <xsl:sequence select="$context"/>
     </xsl:function>
     
     <!-- EVENT LISTENERS -->
@@ -317,6 +331,7 @@ exclude-result-prefixes="#all"
             </xsl:for-each>
         </xsl:if>
         
+        <!-- TO-DO: refactor as promise -->
         <xsl:variable name="request" as="item()*">
             <ixsl:schedule-action http-request="$request">
                 <xsl:call-template name="onSPARQLResultsLoad">
@@ -465,7 +480,7 @@ exclude-result-prefixes="#all"
                 </rdf:RDF>
             </xsl:document>
         </xsl:variable>
-        <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, $action)" as="xs:anyURI"/>
+        <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path($ldh:requestUri), map{}, $action)" as="xs:anyURI"/>
         <!-- If-Match header checks preconditions, i.e. that the graph has not been modified in the meanwhile -->
         <xsl:variable name="request" select="map{ 'method': $method, 'href': $request-uri, 'media-type': 'application/sparql-update', 'body': $update-string, 'headers': map{ 'If-Match': $etag, 'Accept': 'application/rdf+xml', 'Cache-Control': 'no-cache' } }" as="map(*)"/>
         <xsl:variable name="context" as="map(*)" select="
@@ -605,6 +620,16 @@ exclude-result-prefixes="#all"
                         </div>
                     </xsl:result-document>
                 </xsl:for-each>
+                
+                <!-- TO-DO: $context -->
+                <xsl:sequence select="ldh:hide-block-progress-bar(map{}, ())[current-date() lt xs:date('2000-01-01')]"/>
+                <xsl:sequence select="
+                    error(
+                      QName('&ldh;', 'ldh:HTTPError'),
+                      concat('HTTP ', ?status, ' returned: ', ?message),
+                      $response
+                    )
+                "/>
             </xsl:otherwise>
         </xsl:choose>
         

@@ -379,7 +379,7 @@ exclude-result-prefixes="#all"
             <xsl:variable name="id" select="xs:anyURI(ixsl:call($feature, 'getId', []))" as="xs:string"/>
             <xsl:if test="starts-with($id, 'http://') or starts-with($id, 'https://')"> <!-- InfoWindow not possible for blank nodes -->
                 <xsl:variable name="uri" select="xs:anyURI($id)" as="xs:anyURI"/>
-                <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri(.)), map{}, ac:absolute-path($uri))" as="xs:anyURI"/>
+                <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path($ldh:requestUri), map{}, ac:absolute-path($uri))" as="xs:anyURI"/>
 
                 <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
