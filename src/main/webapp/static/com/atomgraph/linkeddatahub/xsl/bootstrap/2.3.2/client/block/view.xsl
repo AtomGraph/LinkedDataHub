@@ -842,9 +842,7 @@ exclude-result-prefixes="#all"
         <xsl:for-each select="$block//div[contains-token(@class, 'bar')]">
             <ixsl:set-style name="width" select="'88%'" object="."/>
         </xsl:for-each>
-        
-        <xsl:message>ldh:RenderViewResults $object-metadata: <xsl:value-of select="$object-metadata"/></xsl:message>
-        
+                
         <xsl:call-template name="ldh:RenderViewMode">
             <xsl:with-param name="block" select="$block"/>
             <xsl:with-param name="container" select=".//div[contains-token(@class, 'container-results')]"/>

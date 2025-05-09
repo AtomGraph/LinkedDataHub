@@ -570,8 +570,6 @@ WHERE
                         </xsl:apply-templates>
                     </xsl:variable>
 
-                    <xsl:message>@id: <xsl:value-of select="@id"/> exists($factory): <xsl:value-of select="exists($factory)"/></xsl:message>
-
                     <xsl:if test="exists($factory)">
                         <!-- fire the promise chain once, passing a dummy start value -->
                         <ixsl:promise select="$factory(())" on-failure="ldh:promise-failure#1"/>

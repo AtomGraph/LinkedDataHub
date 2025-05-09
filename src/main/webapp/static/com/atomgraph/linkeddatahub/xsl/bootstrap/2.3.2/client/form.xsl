@@ -969,7 +969,7 @@ WHERE
             <xsl:variable name="factory" as="function(item()?) as item()*?">
                 <xsl:apply-templates select="id($block/@id, ixsl:page())" mode="ldh:RenderRow"/>
             </xsl:variable>
-            <xsl:message>exists($factory): <xsl:value-of select="exists($factory)"/></xsl:message>
+
             <xsl:if test="exists($factory)">
                 <!-- invoke the factory -->
                 <xsl:sequence select="$factory(())"/>

@@ -52,6 +52,14 @@
 
 }
 
+<generate>
+{
+
+    <generate> a foaf:Document ;
+        dct:title "Generate data endpoint" .
+
+}
+
 <access>
 {
 
