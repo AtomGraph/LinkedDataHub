@@ -891,6 +891,9 @@ WHERE
             <xsl:when test="$status = (200, 204)">
                 <xsl:sequence select="ldh:form-horizontal-submit-success($context)"/>
             </xsl:when>
+            <xsl:when test="$status = 201 and map:contains($response?headers, 'location')">
+                <xsl:sequence select="ldh:form-submit-created($context)"/>
+            </xsl:when>
             <xsl:when test="$status = (400, 422) and starts-with($media-type, 'application/rdf+xml')">
               <xsl:sequence select="ldh:row-form-submit-violation($context)"/>
             </xsl:when>
@@ -913,7 +916,7 @@ WHERE
                 <xsl:sequence select="ldh:form-horizontal-submit-success($context)"/>
             </xsl:when>
             <xsl:when test="$status = 201 and map:contains($response?headers, 'location')">
-                <xsl:sequence select="ldh:modal-form-submit-created($context)"/> <!-- 201 Created an only happen via PUT from modal form -->
+                <xsl:sequence select="ldh:form-submit-created($context)"/>
             </xsl:when>
             <xsl:when test="$status = (400, 422) and starts-with($media-type, 'application/rdf+xml')">
               <xsl:sequence select="ldh:modal-form-submit-violation($context)"/>
@@ -1004,11 +1007,11 @@ WHERE
         </xsl:for-each>        
     </xsl:function>
     
-    <xsl:function name="ldh:modal-form-submit-created" ixsl:updating="yes">
+    <xsl:function name="ldh:form-submit-created" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
         <xsl:variable name="response" select="$context('response')" as="map(*)"/>
 
-        <xsl:message>ldh:modal-form-submit-created</xsl:message>
+        <xsl:message>ldh:form-submit-created</xsl:message>
 
         <xsl:for-each select="$response">
             <xsl:variable name="href" select="?headers?location" as="xs:anyURI"/>
