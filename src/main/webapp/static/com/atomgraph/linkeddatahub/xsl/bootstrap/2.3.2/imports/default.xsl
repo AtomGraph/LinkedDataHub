@@ -351,7 +351,8 @@ exclude-result-prefixes="#all"
     
     <!-- SET DOCUMENT URI -->
     
-    <xsl:template match="rdf:Description[@rdf:nodeID]" mode="ldh:SetResourceID" priority="1">
+    <!-- resource has to have properties other than rdf:type -->
+    <xsl:template match="rdf:Description[@rdf:nodeID][* except rdf:type]" mode="ldh:SetResourceID" priority="1">
         <xsl:param name="forClass" as="xs:anyURI" tunnel="yes"/>
         <xsl:param name="about" as="xs:anyURI?" tunnel="yes"/>
         <xsl:param name="nodeID" as="xs:string?" tunnel="yes"/>

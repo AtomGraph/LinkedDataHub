@@ -1321,9 +1321,11 @@ WHERE
             </xsl:document>
         </xsl:variable>
         <xsl:variable name="classes" select="()" as="element()*"/>
+
+        <!-- object blank nodes that only have a single rdf:type property from constructed models -->
+        <xsl:variable name="resource" select="key('resources-by-type', $forClass, $constructed-doc)[not(key('predicates-by-object', @rdf:nodeID))][* except rdf:type]" as="element()"/>
         
-        <xsl:variable name="resource" select="key('resources-by-type', $forClass, $constructed-doc)[not(key('predicates-by-object', @rdf:nodeID))]" as="element()"/>
-        <xsl:variable name="row-form" as="element()*">
+        <xsl:variable name="row-form" as="element()">
             <!-- TO-DO: refactor to use asynchronous HTTP requests -->
             <xsl:variable name="types" select="distinct-values($resource/rdf:type/@rdf:resource)" as="xs:anyURI*"/>
             <xsl:variable name="query-string" select="'DESCRIBE $Type VALUES $Type { ' || string-join(for $type in $types return '&lt;' || $type || '&gt;', ' ') || ' }'" as="xs:string"/>
