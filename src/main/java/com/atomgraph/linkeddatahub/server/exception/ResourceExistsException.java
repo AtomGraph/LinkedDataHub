@@ -26,6 +26,7 @@ import org.apache.jena.rdf.model.Resource;
  * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
+@Deprecated
 public class ResourceExistsException extends ModelException
 {
 

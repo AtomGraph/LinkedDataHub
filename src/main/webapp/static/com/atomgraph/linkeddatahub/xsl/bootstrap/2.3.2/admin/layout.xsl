@@ -19,7 +19,8 @@
     <!ENTITY foaf   "http://xmlns.com/foaf/0.1/">
     <!ENTITY spin   "http://spinrdf.org/spin#">
 ]>
-<xsl:stylesheet version="2.0"
+<xsl:stylesheet version="3.0"
+xmlns="http://www.w3.org/1999/xhtml"
 xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
 xmlns:xhtml="http://www.w3.org/1999/xhtml"
 xmlns:xs="http://www.w3.org/2001/XMLSchema"
@@ -40,25 +41,12 @@ exclude-result-prefixes="#all">
 
     <xsl:import href="../layout.xsl"/>
     <xsl:include href="signup.xsl"/>
-    <xsl:include href="request-access.xsl"/>
     <xsl:include href="acl/layout.xsl"/>
-
-    <xsl:param name="default-classes" as="map(xs:string, xs:anyURI)">
-        <xsl:map>
-            <xsl:map-entry key="'&owl;Ontology'" select="resolve-uri('model/ontologies/', $ldt:base)"/>
-            <xsl:map-entry key="'&sh;NodeShape'" select="resolve-uri('model/shapes/', $ldt:base)"/>
-            <xsl:map-entry key="'&sh;PropertyShape'" select="resolve-uri('model/shapes/', $ldt:base)"/>
-            <xsl:map-entry key="'&acl;Authorization'" select="resolve-uri('acl/authorizations/', $ldt:base)"/>
-            <xsl:map-entry key="'&foaf;Person'" select="resolve-uri('acl/agents/', $ldt:base)"/>
-            <xsl:map-entry key="'&cert;PublicKey'" select="resolve-uri('acl/public-keys/', $ldt:base)"/>
-            <xsl:map-entry key="'&sioc;UserAccount'" select="resolve-uri('acl/users/', $ldt:base)"/>
-            <xsl:map-entry key="'&foaf;Group'" select="resolve-uri('acl/groups/', $ldt:base)"/>
-        </xsl:map>
-    </xsl:param>
     
     <xsl:template match="rdf:RDF[$foaf:Agent]" mode="bs2:Create" priority="1">
         <xsl:param name="classes" as="element()*"/>
         <xsl:param name="create-graph" select="false()" as="xs:boolean"/>
+        <xsl:param name="base-uri" select="ldh:base-uri(.)" as="xs:anyURI"/>
 
         <div class="btn-group pull-left">
             <button type="button" title="{ac:label(key('resources', 'create-instance-title', document('../translations.rdf')))}">
@@ -74,6 +62,7 @@ exclude-result-prefixes="#all">
 
             <ul class="dropdown-menu">
                 <xsl:apply-templates select="$classes" mode="bs2:ConstructorListItem">
+                    <xsl:with-param name="base-uri" select="$base-uri" tunnel="yes"/>
                     <xsl:with-param name="create-graph" select="$create-graph"/>
                     <xsl:sort select="ac:label(.)"/>
                 </xsl:apply-templates>
@@ -95,13 +84,6 @@ exclude-result-prefixes="#all">
             
             <ul class="dropdown-menu">
                 <li>
-                    <button type="button" title="{ac:label(key('resources', 'add-data-title', document('../translations.rdf')))}" class="btn btn-add-data">
-                        <xsl:value-of>
-                            <xsl:apply-templates select="key('resources', 'add-data', document('../translations.rdf'))" mode="ac:label"/>
-                        </xsl:value-of>
-                    </button>
-                </li>
-                <li>
                     <button type="button" title="{ac:label(key('resources', 'import-ontology-title', document('../translations.rdf')))}" class="btn btn-add-ontology">
                         <xsl:value-of>
                             <xsl:apply-templates select="key('resources', 'import-ontology', document('../translations.rdf'))" mode="ac:label"/>
@@ -115,45 +97,32 @@ exclude-result-prefixes="#all">
     <xsl:template match="*" mode="bs2:AddData"/>
     
     <!-- ROW FORM - we need the overriding templates as well -->
-
-    <xsl:template match="rdf:RDF[$ac:forClass = ('&ldh;CSVImport', '&ldh;RDFImport')][$ac:method = 'GET']" mode="bs2:RowForm" priority="2" use-when="system-property('xsl:product-name') = 'SAXON'">
-        <xsl:param name="action" select="ac:build-uri(resolve-uri('importer', $ldt:base), map{ 'forClass': string($ac:forClass), 'mode': '&ac;EditMode' })" as="xs:anyURI"/>
-        <xsl:param name="classes" as="element()*"/>
-
-        <xsl:next-match>
-            <xsl:with-param name="action" select="$action"/>
-            <xsl:with-param name="classes" select="$classes"/>
-        </xsl:next-match>
-    </xsl:template>
     
-    <xsl:template match="rdf:RDF[$ac:forClass][$ac:method = 'GET']" mode="bs2:RowForm" priority="1" use-when="system-property('xsl:product-name') = 'SAXON'">
-        <xsl:param name="action" select="ac:build-uri($a:graphStore, map{ 'forClass': string($ac:forClass), 'mode': '&ac;EditMode' })" as="xs:anyURI"/>
-        <xsl:param name="classes" as="element()*"/>
-
-        <xsl:next-match>
-            <xsl:with-param name="action" select="$action"/>
-            <xsl:with-param name="classes" select="$classes"/>
-        </xsl:next-match>
-    </xsl:template>
-    
-    <!-- add sp:Construct to the creatable class list below the form. Needs to pass parameters from signup.xsl and request-access.xsl!!! -->
-    <xsl:template match="rdf:RDF[$ac:method = 'GET']" mode="bs2:RowForm" use-when="system-property('xsl:product-name') = 'SAXON'">
-        <xsl:param name="action" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), map{}, ac:build-uri(ac:uri(), map{ '_method': 'PUT', 'mode': for $mode in $ac:mode return string($mode) }))" as="xs:anyURI"/>
+    <!-- add "Create" button to the creatable class list below the form. Needs to pass parameters from signup.xsl!!! -->
+    <xsl:template match="rdf:RDF[$ac:method = 'GET']" mode="bs2:Row">
+        <xsl:param name="id" select="concat('form-', generate-id())" as="xs:string?"/>
+        <xsl:param name="class" select="'row-fluid'" as="xs:string?"/>
+        <xsl:param name="method" select="'patch'" as="xs:string"/>
+        <xsl:param name="action" select="ldh:href($ldt:base, ac:absolute-path($ldh:requestUri), map{}, ac:build-uri(ac:absolute-path(ldh:base-uri(.)), map{ '_method': 'PUT', 'mode': for $mode in $ac:mode return string($mode) }))" as="xs:anyURI"/>
         <xsl:param name="enctype" select="'multipart/form-data'" as="xs:string?"/>
         <xsl:param name="create-resource" select="true()" as="xs:boolean"/>
         <!-- TO-DO: generate ontology classes from the OWL vocabulary -->
-        <xsl:param name="ontology-classes" select="for $class-uri in ('&ldh;Constructor', '&owl;Class', '&owl;DatatypeProperty', '&owl;ObjectProperty', '&owl;Restriction') return key('resources', $class-uri, document(ac:document-uri($class-uri)))" as="element()*"/>
+        <xsl:param name="class-uris" select="(xs:anyURI('&owl;Ontology'), xs:anyURI('&owl;Class'), xs:anyURI('&owl;DatatypeProperty'), xs:anyURI('&owl;ObjectProperty'), xs:anyURI('&owl;Restriction'), xs:anyURI('&ldh;Constructor'), xs:anyURI('&sh;NodeShape'), xs:anyURI('&sh;PropertyShape'), xs:anyURI('&acl;Authorization'), xs:anyURI('&foaf;Person'), xs:anyURI('&cert;PublicKey'), xs:anyURI('&sioc;UserAccount'), xs:anyURI('&foaf;Group'))" as="xs:anyURI*"/>
+        <xsl:param name="classes" select="for $class-uri in $class-uris return key('resources', $class-uri, document(ac:document-uri($class-uri)))" as="element()*"/>
 
         <xsl:next-match>
-            <xsl:with-param name="classes" select="$ontology-classes"/>
+            <xsl:with-param name="id" select="$id"/>
+            <xsl:with-param name="class" select="$class"/>
+            <xsl:with-param name="method" select="$method"/>
             <xsl:with-param name="action" select="$action"/>
             <xsl:with-param name="enctype" select="$enctype"/>
             <xsl:with-param name="create-resource" select="$create-resource"/>
+            <xsl:with-param name="classes" select="$classes"/>
         </xsl:next-match>
     </xsl:template>
     
     <!-- allow subject editing in admin EditMode -->
-    <!-- there are templates (e.g. in signup.xsl and request-access.xsl overriding this so we need to pass the params through -->
+    <!-- there are templates (e.g. in signup.xsl) overriding this so we need to pass the params through -->
     <xsl:template match="*[*][@rdf:about or @rdf:nodeID]" mode="bs2:FormControl">
         <xsl:param name="legend" select="true()" as="xs:boolean"/>
         <xsl:param name="show-subject" select="not(rdf:type/@rdf:resource = ('&dh;Item', '&dh;Container'))" as="xs:boolean" tunnel="yes"/>

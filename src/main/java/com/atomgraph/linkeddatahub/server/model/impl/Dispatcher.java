@@ -20,13 +20,13 @@ import com.atomgraph.client.vocabulary.AC;
 import com.atomgraph.linkeddatahub.apps.model.Dataset;
 import com.atomgraph.linkeddatahub.resource.Add;
 import com.atomgraph.linkeddatahub.resource.Generate;
-import com.atomgraph.linkeddatahub.resource.Importer;
 import com.atomgraph.linkeddatahub.resource.Namespace;
 import com.atomgraph.linkeddatahub.resource.Transform;
 import com.atomgraph.linkeddatahub.resource.admin.Clear;
-import com.atomgraph.linkeddatahub.resource.admin.RequestAccess;
 import com.atomgraph.linkeddatahub.resource.admin.SignUp;
-import com.atomgraph.linkeddatahub.resource.graph.Item;
+import com.atomgraph.linkeddatahub.resource.Graph;
+import com.atomgraph.linkeddatahub.resource.acl.Access;
+import com.atomgraph.linkeddatahub.resource.acl.AccessRequest;
 import java.util.Optional;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.Path;
@@ -66,31 +66,39 @@ public class Dispatcher
     }
     
     /**
-     * Returns JAX-RS resource that will handle this request.
+     * Returns proxy class that takes precedence over the default JAX-RS path matching.
      * The request is proxied in two cases:
      * <ul>
-     *   <li>externally (URI specified by the <code>?uri</code> query param)</li>
+     *   <li>externally (URI specified by the <code>?uri</code> query param, when <code>?graph</code> query param not set)</li>
      *   <li>internally if it matches a <code>lapp:Dataset</code> specified in the system app config</li>
      * </ul>
-     * Otherwise, fall back to SPARQL Graph Store backed by the app's service.
-     * 
-     * @return resource
+     * @return optional class
      */
-    @Path("{path: .*}")
-    public Object getSubResource()
+    public Optional<Class> getProxyClass()
     {
         if (getUriInfo().getQueryParameters().containsKey(AC.uri.getLocalName()))
         {
             if (log.isDebugEnabled()) log.debug("No Application matched request URI <{}>, dispatching to ProxyResourceBase", getUriInfo().getQueryParameters().getFirst(AC.uri.getLocalName()));
-            return ProxyResourceBase.class;
+            return Optional.of(ProxyResourceBase.class);
         }
         if (getDataset().isPresent())
         {
             if (log.isDebugEnabled()) log.debug("Serving request URI <{}> from Dataset <{}>, dispatching to ProxyResourceBase", getUriInfo().getAbsolutePath(), getDataset().get());
-            return ProxyResourceBase.class;
+            return Optional.of(ProxyResourceBase.class);
         }
-
-        return getResourceClass();
+        
+        return Optional.empty();
+    }
+    
+    /**
+     * Returns JAX-RS resource that will handle this request.
+     * 
+     * @return resource
+     */
+    @Path("{path: .*}")
+    public Class getSubResource()
+    {
+        return getProxyClass().orElse(getDocumentClass());
     }
     
     // TO-DO: move @Path annotations onto respective classes?
@@ -101,20 +109,9 @@ public class Dispatcher
      * @return endpoint resource
      */
     @Path("sparql")
-    public Object getSPARQLEndpoint()
+    public Class getSPARQLEndpoint()
     {
-        return SPARQLEndpointImpl.class;
-    }
-
-    /**
-     * Returns Graph Store Protocol endpoint.
-     * 
-     * @return endpoint resource
-     */
-    @Path("service")
-    public Object getGraphStore()
-    {
-        return GraphStoreImpl.class;
+        return getProxyClass().orElse(SPARQLEndpointImpl.class);
     }
 
     /**
@@ -123,9 +120,9 @@ public class Dispatcher
      * @return endpoint resource
      */
     @Path("ns")
-    public Object getNamespace()
+    public Class getNamespace()
     {
-        return Namespace.class;
+        return getProxyClass().orElse(Namespace.class);
     }
 
     /**
@@ -134,9 +131,9 @@ public class Dispatcher
      * @return namespace resource
      */
     @Path("ns/{slug}/")
-    public Object getSubOntology()
+    public Class getSubOntology()
     {
-        return Namespace.class;
+        return getProxyClass().orElse(Namespace.class);
     }
     
     /**
@@ -145,20 +142,31 @@ public class Dispatcher
      * @return endpoint resource
      */
     @Path("sign up")
-    public Object getSignUp()
+    public Class getSignUp()
     {
-        return SignUp.class;
+        return getProxyClass().orElse(SignUp.class);
     }
     
     /**
-     * Returns the ACL access request endpoint.
+     * Returns the access description endpoint.
      * 
      * @return endpoint resource
      */
-    @Path("request access")
-    public Object getRequestAccess()
+    @Path("access")
+    public Class getAccess()
     {
-        return RequestAccess.class;
+        return getProxyClass().orElse(Access.class);
+    }
+
+    /**
+     * Returns the access description endpoint.
+     * 
+     * @return endpoint resource
+     */
+    @Path("access/request")
+    public Class getAccessRequest()
+    {
+        return getProxyClass().orElse(AccessRequest.class);
     }
 
     /**
@@ -168,20 +176,9 @@ public class Dispatcher
      * @see com.atomgraph.linkeddatahub.apps.model.Application#UPLOADS_PATH
      */
     @Path("uploads/{sha1sum}")
-    public Object getFileItem()
+    public Class getFileItem()
     {
-        return com.atomgraph.linkeddatahub.resource.upload.sha1.Item.class;
-    }
-    
-    /**
-     * Returns the endpoint for asynchronous CSV and RDF imports.
-     * 
-     * @return endpoint resource
-     */
-    @Path("importer")
-    public Object getImportEndpoint()
-    {
-        return Importer.class;
+        return getProxyClass().orElse(com.atomgraph.linkeddatahub.resource.upload.sha1.Item.class);
     }
 
     /**
@@ -190,9 +187,9 @@ public class Dispatcher
      * @return endpoint resource
      */
     @Path("add")
-    public Object getAddEndpoint()
+    public Class getAddEndpoint()
     {
-        return Add.class;
+        return getProxyClass().orElse(Add.class);
     }
     
     /**
@@ -201,9 +198,9 @@ public class Dispatcher
      * @return endpoint resource
      */
     @Path("transform")
-    public Object getTransformEndpoint()
+    public Class getTransformEndpoint()
     {
-        return Transform.class;
+        return getProxyClass().orElse(Transform.class);
     }
     
     /**
@@ -212,9 +209,9 @@ public class Dispatcher
      * @return endpoint resource
      */
     @Path("generate")
-    public Object getGenerateEndpoint()
+    public Class getGenerateEndpoint()
     {
-        return Generate.class;
+        return getProxyClass().orElse(Generate.class);
     }
     
     /**
@@ -223,9 +220,9 @@ public class Dispatcher
      * @return endpoint resource
      */
     @Path("clear")
-    public Object getClearEndpoint()
+    public Class getClearEndpoint()
     {
-        return Clear.class;
+        return getProxyClass().orElse(Clear.class);
     }
     
     /**
@@ -234,9 +231,9 @@ public class Dispatcher
      * @return endpoint resource
      */
     @Path("oauth2/authorize/google")
-    public Object getAuthorizeGoogle()
+    public Class getAuthorizeGoogle()
     {
-        return com.atomgraph.linkeddatahub.resource.admin.oauth2.google.Authorize.class;
+        return getProxyClass().orElse(com.atomgraph.linkeddatahub.resource.admin.oauth2.google.Authorize.class);
     }
 
     /**
@@ -245,9 +242,9 @@ public class Dispatcher
      * @return endpoint resource
      */
     @Path("oauth2/login")
-    public Object getOAuth2Login()
+    public Class getOAuth2Login()
     {
-        return com.atomgraph.linkeddatahub.resource.admin.oauth2.Login.class;
+        return getProxyClass().orElse(com.atomgraph.linkeddatahub.resource.admin.oauth2.Login.class);
     }
     
     /**
@@ -255,9 +252,9 @@ public class Dispatcher
      * 
      * @return resource class
      */
-    public Class getResourceClass()
+    public Class getDocumentClass()
     {
-        return Item.class;
+        return Graph.class;
     }
     
     /**

@@ -36,21 +36,21 @@
 
 :Document a rdfs:Class ;
     rdfs:subClassOf foaf:Document ;
-    ldt:path "{slug}/" ;
+    # ldt:path "{slug}/" ;
     rdfs:label "Document" ;
-    spin:constructor :DocumentConstructor ;
+    # spin:constructor :DocumentConstructor ;
     rdfs:isDefinedBy : .
 
 :Container a rdfs:Class ;
     rdfs:subClassOf :Document, sioc:Container ;
-    spin:constructor :ContainerConstructor ;
+    # spin:constructor :ContainerConstructor ;
     rdfs:label "Container" ;
     rdfs:comment "An area in which content Items are contained" ;
     rdfs:isDefinedBy : .
 
 :Item a rdfs:Class ;
     rdfs:subClassOf :Document, sioc:Item ;
-    spin:constructor :ItemConstructor ;
+    # spin:constructor :ItemConstructor ;
     rdfs:label "Item" ;
     rdfs:comment "An Item is something which can be in a Container" ;
     rdfs:isDefinedBy : .

@@ -344,6 +344,9 @@
     <rdf:Description rdf:nodeID="html">
         <rdfs:label xml:lang="en-US">HTML</rdfs:label>
     </rdf:Description>
+    <rdf:Description rdf:nodeID="sparql">
+        <rdfs:label xml:lang="en-US">SPARQL</rdfs:label>
+    </rdf:Description>
     <rdf:Description rdf:nodeID="literal">
         <rdfs:label xml:lang="en-US">Literal</rdfs:label>
     </rdf:Description>

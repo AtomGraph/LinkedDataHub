@@ -16,14 +16,18 @@
  */
 package com.atomgraph.linkeddatahub.imports.stream.csv;
 
-import com.atomgraph.core.client.GraphStoreClient;
+import com.atomgraph.linkeddatahub.client.LinkedDataClient;
 import com.atomgraph.linkeddatahub.model.Service;
-import com.atomgraph.linkeddatahub.server.util.Skolemizer;
+import com.atomgraph.linkeddatahub.server.exception.ImportException;
 import com.univocity.parsers.common.ParsingContext;
 import com.univocity.parsers.common.processor.RowProcessor;
-import java.util.function.Function;
 import jakarta.ws.rs.client.Client;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.MultivaluedHashMap;
+import jakarta.ws.rs.core.MultivaluedMap;
 import jakarta.ws.rs.core.Response;
+import java.io.IOException;
+import java.net.URI;
 import org.apache.jena.atlas.lib.IRILib;
 import org.apache.jena.query.Dataset;
 import org.apache.jena.query.Query;
@@ -33,6 +37,8 @@ import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Resource;
 import org.glassfish.jersey.uri.UriComponent;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -41,11 +47,12 @@ import org.glassfish.jersey.uri.UriComponent;
 public class CSVGraphStoreRowProcessor implements RowProcessor // extends com.atomgraph.etl.csv.stream.CSVStreamRDFProcessor
 {
 
+    private static final Logger log = LoggerFactory.getLogger(CSVGraphStoreRowProcessor.class);
+
     private final Service service, adminService;
-    private final GraphStoreClient graphStoreClient;
+    private final LinkedDataClient ldc;
     private final String base;
     private final Query query;
-    private final Function<Model, Resource> createGraph;
     private int subjectCount, tripleCount;
 
     /**
@@ -53,19 +60,17 @@ public class CSVGraphStoreRowProcessor implements RowProcessor // extends com.at
      * 
      * @param service SPARQL service of the application
      * @param adminService SPARQL service of the admin application
-     * @param graphStoreClient the GSP client
+     * @param ldc Linked Data client
      * @param base base URI
      * @param query transformation query
-     * @param createGraph function that derives graph URI from a document model
      */
-    public CSVGraphStoreRowProcessor(Service service, Service adminService, GraphStoreClient graphStoreClient, String base, Query query, Function<Model, Resource> createGraph)
+    public CSVGraphStoreRowProcessor(Service service, Service adminService, LinkedDataClient ldc, String base, Query query)
     {
         this.service = service;
         this.adminService = adminService;
-        this.graphStoreClient = graphStoreClient;
+        this.ldc = ldc;
         this.base = base;
         this.query = query;
-        this.createGraph = createGraph;
     }
 
     @Override
@@ -79,28 +84,64 @@ public class CSVGraphStoreRowProcessor implements RowProcessor // extends com.at
     {
         Dataset rowDataset = transformRow(row, context);
         
-        // graph name not specified, will be assigned by the server. Exceptions get swallowed by the client! TO-DO: wait for completion
-        if (!rowDataset.getDefaultModel().isEmpty()) 
-        {
-            String graphUri = getCreateGraph().apply(rowDataset.getDefaultModel()).getURI();
-            new Skolemizer(graphUri).apply(rowDataset.getDefaultModel());
-            getGraphStoreClient().add(graphUri, rowDataset.getDefaultModel());
-            
-            // purge cache entries that include the graph URI
-            if (getService().getBackendProxy() != null) ban(getService().getClient(), getService().getBackendProxy(), graphUri).close();
-            if (getAdminService() != null && getAdminService().getBackendProxy() != null) ban(getAdminService().getClient(), getAdminService().getBackendProxy(), graphUri).close();
-        }
+        // the default graph is ignored!
         
         rowDataset.listNames().forEachRemaining(graphUri -> 
             {
-                // exceptions get swallowed by the client! TO-DO: wait for completion
-                if (!rowDataset.getNamedModel(graphUri).isEmpty()) getGraphStoreClient().add(graphUri, rowDataset.getNamedModel(graphUri));
+                // exceptions get swallowed by the client? TO-DO: wait for completion
+                Model namedModel = rowDataset.getNamedModel(graphUri);
+                if (!namedModel.isEmpty()) add(namedModel, graphUri);
                 
-                // purge cache entries that include the graph URI
-                if (getService().getBackendProxy() != null) ban(getService().getClient(), getService().getBackendProxy(), graphUri).close();
-                if (getAdminService() != null && getAdminService().getBackendProxy() != null) ban(getAdminService().getClient(), getAdminService().getBackendProxy(), graphUri).close();
+                try
+                {
+                    // purge cache entries that include the graph URI
+                    if (getService().getBackendProxy() != null) ban(getService().getClient(), getService().getBackendProxy(), graphUri).close();
+                    if (getAdminService() != null && getAdminService().getBackendProxy() != null) ban(getAdminService().getClient(), getAdminService().getBackendProxy(), graphUri).close();
+                }
+                catch (Exception e)
+                {
+                    if (log.isErrorEnabled()) log.error("Error banning URI <{}> from backend proxy cache", graphUri);
+                }
             }
         );
+    }
+    
+    /**
+     * Creates a graph using <code>PUT</code> if it doesn't exist, otherwise appends data using <code>POST</code>.
+     * 
+     * @param namedModel model
+     * @param graphURI the graph URI
+     */
+    protected void add(Model namedModel, String graphURI)
+    {
+        // <code>If-None-Match</code> used with the <code>*</code> value can be used to save a file only if it does not already exist,
+        // guaranteeing that the upload won't accidentally overwrite another upload and lose the data of the previous <code>PUT</code>
+        // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/If-None-Match
+        MultivaluedMap<String, Object> headers = new MultivaluedHashMap();
+        headers.putSingle(HttpHeaders.IF_NONE_MATCH, "*");
+
+        try (Response putResponse = getLinkedDataClient().put(URI.create(graphURI), namedModel, headers))
+        {
+            if (putResponse.getStatusInfo().equals(Response.Status.PRECONDITION_FAILED))
+            {
+                try (Response postResponse = getLinkedDataClient().post(URI.create(graphURI), namedModel))
+                {                                
+                    if (!postResponse.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
+                    {
+                        if (log.isErrorEnabled()) log.error("RDF document with URI <{}> could not be successfully created using PUT. Status code: {}", graphURI, postResponse.getStatus());
+                        throw new ImportException(new IOException("RDF document with URI <" + graphURI + "> could not be successfully created using PUT. Status code: " + postResponse.getStatus()));
+                    }
+                }
+            }
+            else
+            {
+                if (!putResponse.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
+                {
+                    if (log.isErrorEnabled()) log.error("RDF document with URI <{}> could not be successfully created using PUT. Status code: {}", graphURI, putResponse.getStatus());
+                    throw new RuntimeException(new IOException("RDF document with URI <" + graphURI + "> could not be successfully created using PUT. Status code: " + putResponse.getStatus()));
+                }
+            }
+        }
     }
     
     /**
@@ -183,16 +224,6 @@ public class CSVGraphStoreRowProcessor implements RowProcessor // extends com.at
     }
     
     /**
-     * Returns the Graph Store Protocol client.
-     * 
-     * @return client
-     */
-    public GraphStoreClient getGraphStoreClient()
-    {
-        return graphStoreClient;
-    }
-    
-    /**
      * Returns base URI.
      * @return base URI string
      */
@@ -232,14 +263,13 @@ public class CSVGraphStoreRowProcessor implements RowProcessor // extends com.at
     }
     
     /**
-     * Returns function that is used to create graph names (URIs).
+     * Returns the HTTP client.
      * 
-     * @return function
+     * @return client object
      */
-    public Function<Model, Resource> getCreateGraph()
+    public LinkedDataClient getLinkedDataClient()
     {
-        return createGraph;
+        return ldc;
     }
-    
     
 }

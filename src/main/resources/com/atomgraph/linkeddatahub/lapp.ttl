@@ -87,23 +87,17 @@
             rdfs:label "Missing base URI" ;
             sp:arg1 ldt:base
         ] ;
-        #[ a ldh:MissingPropertyValue ;
-        #    rdfs:label "Missing SPARQL service" ;
-        #    sp:arg1 ldt:service
-        #] ;
     rdfs:label "Application" ;
     rdfs:comment "An application represents a data space identified by its base URI, in which application resource URIs are relative to the base URI. The only application interface (API) is read-write RESTful Linked data, backed by an RDF dataset accessible as a SPARQL 1.1 service. Application structure is defined in an ontology, which can import other ontologies." ;
     rdfs:isDefinedBy : .
 
 :ApplicationConstructor a ldh:Constructor ;
     sp:text """
-      PREFIX ldh:     <https://w3id.org/atomgraph/linkeddatahub#>
       PREFIX ldt:     <https://www.w3.org/ns/ldt#>
       PREFIX rdfs:    <http://www.w3.org/2000/01/rdf-schema#>
 
       CONSTRUCT {
-          $this ldt:base [ a rdfs:Resource ] ;
-            ldt:service [ a ldh:Service ] .
+          $this ldt:base [ a rdfs:Resource ] .
       }
       WHERE {
     }""" ;

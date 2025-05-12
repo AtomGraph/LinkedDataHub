@@ -1,0 +1,64 @@
+vcl 4.0;
+
+import std;
+
+backend default {
+    .host = "${BACKEND_HOST}";
+    .port = "${BACKEND_PORT}";
+    .first_byte_timeout = 60s;
+}
+
+acl local {
+    "localhost";
+    "${CLIENT_HOST}";
+}
+
+sub vcl_recv {
+    if (req.method == "PURGE") {
+        if (!client.ip ~ local) {
+            return (synth(403, "Unknown IP address '" + client.ip + "'. Access denied."));
+        }
+        return (purge);
+    }
+
+    if (req.method == "BAN") { # supports only 2 URIs!
+        if (!client.ip ~ local) {
+            return (synth(403, "Unknown IP address '" + client.ip + "'. Access denied."));
+        }
+
+        set req.http.X-Escaped-Request-URI-1 = regsub(req.http.X-Escaped-Request-URI, ",.*$", ""); # remove header value after comma
+        set req.http.X-Escaped-Request-URI-2 = regsub(req.http.X-Escaped-Request-URI, "^.*,", ""); # remove header value before comma
+        ban("req.url ~ " + req.http.X-Escaped-Request-URI-1);
+        ban("req.url ~ " + req.http.X-Escaped-Request-URI-2);
+        return (synth(200, "Banned"));
+    }
+
+    if (req.method != "GET" &&
+      req.method != "HEAD" &&
+      req.method != "PUT" &&
+      req.method != "POST" &&
+      req.method != "TRACE" &&
+      req.method != "OPTIONS" &&
+      req.method != "DELETE" &&
+      req.method != "PATCH") {
+        /* Non-RFC2616 or CONNECT which is weird. */
+        return (pipe);
+    }
+
+    if (req.method != "GET" && req.method != "HEAD") {
+        /* We only deal with GET and HEAD by default */
+        return (pass);
+    }
+
+    return (hash);
+}
+
+sub vcl_backend_response {
+    /* purge URLs after updates */
+    if ((beresp.status == 200 || beresp.status == 201 || beresp.status == 204) && bereq.method ~ "POST|PUT|DELETE|PATCH") {
+        set beresp.http.X-LinkedDataHub = "Banned";
+        ban("req.url == " + bereq.url + " && req.http.host == " + bereq.http.host);
+    }
+
+    return (deliver);
+}

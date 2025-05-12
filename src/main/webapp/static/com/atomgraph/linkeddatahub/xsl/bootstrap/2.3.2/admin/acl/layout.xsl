@@ -9,7 +9,8 @@
     <!ENTITY dct    "http://purl.org/dc/terms/">
     <!ENTITY foaf   "http://xmlns.com/foaf/0.1/">
 ]>
-<xsl:stylesheet version="2.0"
+<xsl:stylesheet version="3.0"
+xmlns="http://www.w3.org/1999/xhtml"
 xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
 xmlns:xhtml="http://www.w3.org/1999/xhtml"
 xmlns:xs="http://www.w3.org/2001/XMLSchema"
@@ -30,7 +31,7 @@ exclude-result-prefixes="#all">
     <xsl:template match="rdf:RDF" mode="bs2:NavBarNavList">
         <xsl:if test="$foaf:Agent//@rdf:about">
             <ul class="nav pull-right">
-                <li>
+<!--                <li>
                     <xsl:if test="$ac:mode = '&ac;QueryEditorMode'">
                         <xsl:attribute name="class" select="'active'"/>
                     </xsl:if>
@@ -40,7 +41,7 @@ exclude-result-prefixes="#all">
                             <xsl:apply-templates select="key('resources', 'sparql-editor', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
                         </xsl:value-of>
                     </a>
-                </li>
+                </li>-->
 
                 <xsl:variable name="notification-query" as="xs:string">
                     <![CDATA[
@@ -90,7 +91,7 @@ WHERE
                                     <xsl:for-each select="$notifications/rdf:RDF/*[@rdf:about]">
                                         <xsl:sort select="dct:created[1]/xs:dateTime(.)" order="descending"/>
 
-                                        <xsl:apply-templates select="." mode="bs2:List"/>
+                                        <xsl:apply-templates select="." mode="xhtml:ListItem"/>
                                     </xsl:for-each>
                                 </ul>
                             </div>

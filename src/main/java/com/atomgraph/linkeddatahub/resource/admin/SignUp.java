@@ -247,7 +247,7 @@ public class SignUp extends GraphStoreImpl
                     certPublicKey);
                 new Skolemizer(publicKeyGraphUri.toString()).apply(publicKeyModel);
                 
-                Response publicKeyResponse = super.post(publicKeyModel, false, publicKeyGraphUri);
+                Response publicKeyResponse = super.put(publicKeyModel, false, publicKeyGraphUri);
                 if (publicKeyResponse.getStatus() != Response.Status.CREATED.getStatusCode())
                 {
                     if (log.isErrorEnabled()) log.error("Cannot create PublicKey");
@@ -258,7 +258,7 @@ public class SignUp extends GraphStoreImpl
                 agent.addProperty(Cert.key, publicKey); // add public key
                 agentModel.add(agentModel.createResource(getSystem().getSecretaryWebIDURI().toString()), ACL.delegates, agent); // make secretary delegate whis agent
 
-                Response agentResponse = super.post(agentModel, false, agentGraphUri);
+                Response agentResponse = super.put(agentModel, false, agentGraphUri);
                 if (agentResponse.getStatus() != Response.Status.CREATED.getStatusCode())
                 {
                     if (log.isErrorEnabled()) log.error("Cannot create Agent");
@@ -275,7 +275,7 @@ public class SignUp extends GraphStoreImpl
                     publicKeyGraphUri);
                 new Skolemizer(authGraphUri.toString()).apply(authModel);
 
-                Response authResponse = super.post(authModel, false, authGraphUri);
+                Response authResponse = super.put(authModel, false, authGraphUri);
                 if (authResponse.getStatus() != Response.Status.CREATED.getStatusCode())
                 {
                     if (log.isErrorEnabled()) log.error("Cannot create Authorization");
@@ -297,9 +297,7 @@ public class SignUp extends GraphStoreImpl
                     LocalDate certExpires = LocalDate.now().plusDays(getValidityDays()); // ((X509Certificate)cert).getNotAfter(); 
                     sendEmail(agent, certExpires, keyStoreBytes, keyStoreFileName);
 
-                    return Response.ok().
-                        entity(agentModel.add(publicKeyModel)).
-                        build(); // don't return 201 Created as we don't want a redirect in client.xsl
+                    return agentResponse; // 201 Created
                 }
             }
         }

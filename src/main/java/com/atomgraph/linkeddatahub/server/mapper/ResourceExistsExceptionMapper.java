@@ -32,6 +32,7 @@ import org.apache.jena.rdf.model.Resource;
  * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
+@Deprecated
 public class ResourceExistsExceptionMapper extends ExceptionMapperBase implements ExceptionMapper<ResourceExistsException>
 {
     

@@ -6,11 +6,13 @@ PREFIX sioc:       <http://rdfs.org/sioc/ns#>
 
 CONSTRUCT
 {
-    ?item a dh:Item ;
-        sioc:has_container ?container ;
-        dh:slug ?id ;
-        dct:title ?string ;
-        rdf:value ?integer
+    GRAPH ?item
+    {
+        ?item a dh:Item ;
+            sioc:has_container ?container ;
+            dct:title ?string ;
+            rdf:value ?integer
+    }
 }
 WHERE
 {

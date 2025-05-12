@@ -18,6 +18,8 @@ package com.atomgraph.linkeddatahub.server.filter.response;
 
 import com.atomgraph.client.vocabulary.AC;
 import com.atomgraph.linkeddatahub.MediaType;
+import static com.atomgraph.linkeddatahub.writer.XSLTWriterBase.SYSTEM_ID_PROPERTY;
+import static com.atomgraph.server.status.UnprocessableEntityStatus.UNPROCESSABLE_ENTITY;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -36,6 +38,7 @@ import jakarta.ws.rs.container.ContainerResponseFilter;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.UriInfo;
+import java.net.URISyntaxException;
 import javax.xml.transform.Source;
 import javax.xml.transform.stream.StreamSource;
 import net.sf.saxon.s9api.SaxonApiException;
@@ -72,6 +75,25 @@ public class XsltExecutableFilter implements ContainerResponseFilter
 
             if (stylesheet != null) req.setProperty(AC.stylesheet.getURI(), getXsltExecutable(stylesheet));
             else req.setProperty(AC.stylesheet.getURI(), getSystem().getXsltExecutable());
+            
+            // systemId (base URI) is only set on successful documents or '422 Unprocessable Entity' (ConstraintViolation) error responses
+            if (resp.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL) ||
+                    resp.getStatusInfo().getStatusCode() == UNPROCESSABLE_ENTITY.getStatusCode())
+            {
+                final URI systemId;
+
+                try
+                {
+                    if (getURI() != null) systemId = getURI();
+                    else systemId = req.getUriInfo().getRequestUri();
+
+                    req.setProperty(SYSTEM_ID_PROPERTY, systemId);
+                }
+                catch (URISyntaxException ex)
+                {
+                    throw new InternalServerErrorException(ex);
+                }
+            }
         }
     }
     
@@ -178,6 +200,22 @@ public class XsltExecutableFilter implements ContainerResponseFilter
         return null;
     }
 
+    public URI getURI() throws URISyntaxException
+    {
+        return getURIParam(getUriInfo(), AC.uri.getLocalName());
+    }
+    
+    public URI getURIParam(UriInfo uriInfo, String name) throws URISyntaxException
+    {
+        if (uriInfo == null) throw new IllegalArgumentException("UriInfo cannot be null");
+        if (name == null) throw new IllegalArgumentException("String cannot be null");
+
+        if (uriInfo.getQueryParameters().containsKey(name))
+            return new URI(uriInfo.getQueryParameters().getFirst(name));
+        
+        return null;
+    }
+    
     /**
      * Returns HTTP client.
      * 

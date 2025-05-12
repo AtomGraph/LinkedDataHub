@@ -29,7 +29,6 @@ import jakarta.ws.rs.ext.Providers;
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.server.io.FileRangeOutput;
-import com.atomgraph.linkeddatahub.server.model.impl.GraphStoreImpl;
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -62,14 +61,13 @@ import org.slf4j.LoggerFactory;
  * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-public class Item extends GraphStoreImpl
+public class Item extends com.atomgraph.linkeddatahub.resource.Graph
 {
     private static final Logger log = LoggerFactory.getLogger(Item.class);
     
     private static final String ACCEPT_RANGES = "Accept-Ranges";
     private static final String BYTES_RANGE = "bytes";
     private static final String RANGE = "Range";
-    private static final String IF_RANGE = "If-Range";
     private static final String CONTENT_RANGE = "Content-Range";
     private static final int CHUNK_SIZE = 1024 * 1024; // 1MB chunks
 
@@ -124,8 +122,7 @@ public class Item extends GraphStoreImpl
     public ResponseBuilder getResponseBuilder(Model model, URI graphUri)
     {
         // do not pass language list as languages do not apply to binary files
-        List<Variant> variants = com.atomgraph.core.model.impl.Response.getVariantListBuilder(getWritableMediaTypes(Model.class), Collections.emptyList(), getEncodings()).
-            add().build();
+        List<Variant> variants = com.atomgraph.core.model.impl.Response.getVariants(getWritableMediaTypes(Model.class), Collections.emptyList(), getEncodings());
         Variant variant = getRequest().selectVariant(variants);
         if (variant == null)
         {

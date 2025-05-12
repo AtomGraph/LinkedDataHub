@@ -1,0 +1,44 @@
+name: ci
+
+on:
+  push:
+    tags:
+      - '*'
+
+jobs:
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ vars.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Extract version parts
+        id: version
+        run: |
+          VERSION="${{ github.ref_name }}"
+          MAJOR="${VERSION%%.*}"
+          MINOR="${VERSION%.*}"
+          MINOR="${MINOR#*.}"
+          echo "MAJOR=$MAJOR" >> $GITHUB_ENV
+          echo "MINOR=$MAJOR.$MINOR" >> $GITHUB_ENV
+          echo "FULL_VERSION=$VERSION" >> $GITHUB_ENV
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: |
+            atomgraph/linkeddatahub:latest
+            atomgraph/linkeddatahub:${{ env.FULL_VERSION }}
+            atomgraph/linkeddatahub:${{ env.MINOR }}
+            atomgraph/linkeddatahub:${{ env.MAJOR }}

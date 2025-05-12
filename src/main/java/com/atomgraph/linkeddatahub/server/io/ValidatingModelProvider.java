@@ -58,6 +58,7 @@ import jakarta.ws.rs.core.SecurityContext;
 import java.util.HashMap;
 import java.util.Map;
 import org.apache.commons.codec.binary.Hex;
+import org.apache.jena.query.Query;
 import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.rdf.model.StmtIterator;
 import org.apache.jena.riot.RDFFormat;
@@ -97,24 +98,6 @@ public class ValidatingModelProvider extends com.atomgraph.server.io.ValidatingM
     {
         this.messageDigest = messageDigest;
     }
-    
-//    @Override
-//    public Model read(Model model, InputStream is, Lang lang, String baseURI)
-//    {
-//        if (lang == null) throw new IllegalArgumentException("Lang must be not null");
-//
-//        CollectingErrorHandler errorHandler = new CollectingErrorHandler(); // collect parse errors. do not throw exceptions
-//        //ParserProfile parserProfile = RiotLib.profile(baseURI, true, true, errorHandler);
-//        read(model, is, lang, baseURI, errorHandler);
-//
-//        if (!errorHandler.getViolations().isEmpty())
-//        {
-//            if (log.isDebugEnabled()) log.debug("RDF syntax errors detected while parsing model: {}", errorHandler.getViolations());
-//            throw new RDFSyntaxException(errorHandler.getViolations(), model);
-//        }
-//
-//        return model;
-//    }
     
     @Override
     public Model write(Model model, OutputStream os, Lang lang, String baseURI)
@@ -202,7 +185,21 @@ public class ValidatingModelProvider extends com.atomgraph.server.io.ValidatingM
             try
             {
                 String queryString = resource.getProperty(SP.text).getString();
-                QueryFactory.create(queryString);
+                Query query = QueryFactory.create(queryString);
+                
+                // query resource's rdf:type does not match its query string
+                if ((resource.hasProperty(RDF.type, SP.Ask) && !query.isAskType()) ||
+                        (resource.hasProperty(RDF.type, SP.Select) && !query.isSelectType()) ||
+                        (resource.hasProperty(RDF.type, SP.Describe) && !query.isDescribeType()) ||
+                        (resource.hasProperty(RDF.type, SP.Construct) && !query.isConstructType()))
+                {
+                    if (log.isDebugEnabled()) log.debug("Bad request - SPARQL query's type does not match its query string");
+                    List<ConstraintViolation> cvs = new ArrayList<>();
+                    List<SimplePropertyPath> paths = new ArrayList<>();
+                    paths.add(new ObjectPropertyPath(resource, SP.text));
+                    cvs.add(new ConstraintViolation(resource, paths, null, "SPARQL query's type does not match its query string", null));
+                    throw new SPINConstraintViolationException(cvs, resource.getModel());
+                }
             }
             catch (QueryParseException ex)
             {
@@ -304,6 +301,8 @@ public class ValidatingModelProvider extends com.atomgraph.server.io.ValidatingM
      */
     public static Statement mboxHashStmt(Statement stmt, MessageDigest messageDigest)
     {
+        if (!stmt.getObject().isURIResource()) return stmt; // don't hash if the mbox value is not a URI
+        
         try (InputStream is = new ByteArrayInputStream(stmt.getResource().getURI().getBytes(StandardCharsets.UTF_8));
             DigestInputStream dis = new DigestInputStream(is, messageDigest))
         {

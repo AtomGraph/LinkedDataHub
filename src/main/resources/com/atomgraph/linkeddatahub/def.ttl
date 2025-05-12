@@ -23,7 +23,7 @@
 
 :Root a owl:Class ;
     rdfs:subClassOf sioc:Space, sioc:Container ;
-    spin:constructor ldh:TitleConstructor, ldh:DescriptionConstructor, ldh:PrimaryTopicConstructor, ldh:ContentConstructor ;
+    spin:constructor ldh:TitleConstructor, ldh:DescriptionConstructor, ldh:PrimaryTopicConstructor, ldh:BlockConstructor ;
     spin:constraint :MissingTitle ; # roots do not have parents, therefore no ldh:MissingParent
     rdfs:label "Root" ;
     rdfs:isDefinedBy : .
@@ -52,6 +52,9 @@ ldh:Import spin:constructor ldh:TitleConstructor, ldh:DescriptionConstructor ;
 
 ldh:Chart spin:constructor ldh:TitleConstructor, ldh:DescriptionConstructor ;
     spin:constraint :MissingTitle .
+
+ldh:View spin:constructor ldh:TitleConstructor, ldh:DescriptionConstructor .
+    # spin:constraint :MissingTitle .
 
 nfo:FileDataObject rdfs:label "File" ;
     spin:constructor ldh:TitleConstructor, ldh:DescriptionConstructor ;

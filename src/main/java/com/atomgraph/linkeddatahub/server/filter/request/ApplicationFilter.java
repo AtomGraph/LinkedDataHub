@@ -18,6 +18,7 @@ package com.atomgraph.linkeddatahub.server.filter.request;
 
 import com.atomgraph.client.vocabulary.AC;
 import com.atomgraph.linkeddatahub.vocabulary.LAPP;
+import com.atomgraph.linkeddatahub.vocabulary.LDH;
 import com.atomgraph.linkeddatahub.writer.Mode;
 import java.io.IOException;
 import java.util.Collections;
@@ -26,10 +27,17 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import jakarta.annotation.Priority;
 import jakarta.inject.Inject;
+import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.container.ContainerRequestFilter;
 import jakarta.ws.rs.container.PreMatching;
 import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.MultivaluedHashMap;
+import jakarta.ws.rs.core.MultivaluedMap;
+import jakarta.ws.rs.core.UriBuilder;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.Map.Entry;
 import org.apache.jena.rdf.model.Resource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -63,7 +71,38 @@ public class ApplicationFilter implements ContainerRequestFilter
 
         com.atomgraph.linkeddatahub.apps.model.Application app = appResource.as(com.atomgraph.linkeddatahub.apps.model.Application.class);
         request.setProperty(LAPP.Application.getURI(), app); // wrap into a helper class so it doesn't interfere with injection of Application
-        request.setRequestUri(app.getBaseURI(), request.getUriInfo().getRequestUri()); // there's always ldt:base
+        
+        // use the ?graph URL parameter to override the effective request URI if its URI value is relative to the app's base URI
+        final URI requestURI;
+        if (request.getUriInfo().getQueryParameters().containsKey(LDH.graph.getLocalName()))
+            try
+            {
+                URI graphURI = new URI(request.getUriInfo().getQueryParameters().getFirst(LDH.graph.getLocalName()));
+                if (!app.getBaseURI().relativize(graphURI).isAbsolute()) // if ?graph query param value is relative to the app's base URI
+                {
+                    // pass on query parameters except ?graph
+                    MultivaluedMap<String, String> queryParams = new MultivaluedHashMap();
+                    queryParams.putAll(request.getUriInfo().getQueryParameters());
+                    queryParams.remove(LDH.graph.getLocalName());
+                    queryParams.remove(AC.uri.getLocalName());
+
+                    UriBuilder builder = UriBuilder.fromUri(graphURI);;
+                    
+                    for (Entry<String, List<String>> params : queryParams.entrySet())
+                        for (String value : params.getValue())
+                            builder.queryParam(params.getKey(), value);
+                        
+                    requestURI = builder.build();
+                }
+                else requestURI = request.getUriInfo().getRequestUri();
+            }
+            catch (URISyntaxException ex)
+            {
+                if (log.isErrorEnabled()) log.error("Graph URI syntax error", ex);
+                throw new BadRequestException(ex);
+            }
+        else requestURI = request.getUriInfo().getRequestUri();
+        request.setRequestUri(app.getBaseURI(), requestURI); // there's always ldt:base
 
         // override "Accept" header using then ?accept= param value. TO-DO: move to a separate ContainerRequestFilter?
         // has to go before ?uri logic because that will change the UriInfo

@@ -211,9 +211,9 @@ exclude-result-prefixes="xs">
 
     <xsl:template match="text()[../@rdf:datatype = '&xsd;time']" mode="ac:DataTable">
         <json:array key="v">
-            <json:number><xsl:value-of select="substring(., 1, 2)" /></json:number>
-            <json:number><xsl:value-of select="substring(., 4, 2)" /></json:number>
-            <json:number><xsl:value-of select="substring(., 7, 2)" /></json:number>
+            <json:number><xsl:value-of select="substring(., 1, 2)"/></json:number>
+            <json:number><xsl:value-of select="substring(., 4, 2)"/></json:number>
+            <json:number><xsl:value-of select="substring(., 7, 2)"/></json:number>
 
             <xsl:if test="contains(., '.')">
                 <json:number><xsl:value-of select="substring(substring-after(., '.'), 1, 3)"/></json:number>

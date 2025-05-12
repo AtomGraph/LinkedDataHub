@@ -16,12 +16,17 @@
  */
 package com.atomgraph.linkeddatahub.server.model.impl;
 
+import com.atomgraph.client.util.HTMLMediaTypePredicate;
 import com.atomgraph.core.MediaTypes;
+import com.atomgraph.core.util.ModelUtils;
 import com.atomgraph.linkeddatahub.model.Service;
 import java.util.Optional;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.EntityTag;
 import jakarta.ws.rs.core.Request;
+import jakarta.ws.rs.core.Response;
+import org.apache.jena.rdf.model.Model;
 
 /**
  * LinkedDataHub SPARQL endpoint implementation.
@@ -43,6 +48,26 @@ public class SPARQLEndpointImpl extends com.atomgraph.core.model.impl.SPARQLEndp
     public SPARQLEndpointImpl(@Context Request request, Optional<Service> service, MediaTypes mediaTypes)
     {
         super(request, service.get(), mediaTypes);
+    }
+    
+    /**
+     * Returns response builder for the given RDF model.
+     * 
+     * @param model RDF model
+     * @return response builder
+     */
+    @Override
+    public Response.ResponseBuilder getResponseBuilder(Model model)
+    {
+        return new com.atomgraph.core.model.impl.Response(getRequest(),
+                model,
+                null,
+                new EntityTag(Long.toHexString(ModelUtils.hashModel(model))),
+                getWritableMediaTypes(Model.class),
+                getLanguages(),
+                getEncodings(),
+                new HTMLMediaTypePredicate()).
+            getResponseBuilder();
     }
     
 }

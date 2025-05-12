@@ -80,6 +80,7 @@ public abstract class XSLTWriterBase extends com.atomgraph.client.writer.XSLTWri
     private static final Set<String> NAMESPACES;
     /** The relative URL of the RDF file with localized labels */
     public static final String TRANSLATIONS_PATH = "static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf";
+    public static final String SYSTEM_ID_PROPERTY = "com.atomgraph.linkeddatahub.writer.XSLTWriterBase.systemId";
     
     static
     {
@@ -121,11 +122,10 @@ public abstract class XSLTWriterBase extends com.atomgraph.client.writer.XSLTWri
 
         try
         {
-            params.put(new QName("ldh", LDH.absolutePath.getNameSpace(), LDH.absolutePath.getLocalName()), new XdmAtomicValue(getAbsolutePath()));
             params.put(new QName("ldh", LDH.requestUri.getNameSpace(), LDH.requestUri.getLocalName()), new XdmAtomicValue(getRequestURI()));
             if (getURI() != null) params.put(new QName("ac", AC.uri.getNameSpace(), AC.uri.getLocalName()), new XdmAtomicValue(getURI()));
-            else params.put(new QName("ac", AC.uri.getNameSpace(), AC.uri.getLocalName()), new XdmAtomicValue(getAbsolutePath()));
-
+            else params.put(new QName("ac", AC.uri.getNameSpace(), AC.uri.getLocalName()), new XdmAtomicValue(getRequestURI()));
+            
             com.atomgraph.linkeddatahub.apps.model.Application app = getApplication().get();
             if (log.isDebugEnabled()) log.debug("Passing $lapp:Application to XSLT: <{}>", app);
             params.put(new QName("ldt", LDT.base.getNameSpace(), LDT.base.getLocalName()), new XdmAtomicValue(app.getBaseURI()));
@@ -279,6 +279,20 @@ public abstract class XSLTWriterBase extends com.atomgraph.client.writer.XSLTWri
     }
     
     /**
+     * Returns the base URI of the main RDF/XML document being transformed.
+     * 
+     * @return base URL
+     */
+    @Override
+    public String getSystemId()
+    {
+        if (getContainerRequestContext().hasProperty(SYSTEM_ID_PROPERTY))
+            return getContainerRequestContext().getProperty(SYSTEM_ID_PROPERTY).toString();
+        
+        return null;
+    }
+    
+    /**
      * Returns system application.
      * 
      * @return JAX-RS application
@@ -318,12 +332,6 @@ public abstract class XSLTWriterBase extends com.atomgraph.client.writer.XSLTWri
     public jakarta.inject.Provider<DataManager> getDataManagerProvider()
     {
         return dataManager;
-    }
-    
-    @Override
-    public URI getURI() throws URISyntaxException
-    {
-        return getURIParam(getUriInfo(), AC.uri.getLocalName());
     }
 
     @Override

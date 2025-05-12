@@ -16,9 +16,7 @@ curl -k -w "%{http_code}\n" -o /dev/null -v \
 
 # create public authorization
 
-pushd . > /dev/null && cd "$SCRIPT_ROOT/admin/acl"
-
-./create-authorization.sh \
+create-authorization.sh \
   -f "$OWNER_CERT_FILE" \
   -p "$OWNER_CERT_PWD" \
   -b "$ADMIN_BASE_URL" \
@@ -26,8 +24,6 @@ pushd . > /dev/null && cd "$SCRIPT_ROOT/admin/acl"
   --agent-class 'http://xmlns.com/foaf/0.1/Agent' \
   --to "$END_USER_BASE_URL" \
   --read
-
-popd > /dev/null
 
 # public access is allowed after authorization is created
 

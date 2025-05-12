@@ -8,6 +8,7 @@
 @prefix sioc:	<http://rdfs.org/sioc/ns#> .
 @prefix foaf:	<http://xmlns.com/foaf/0.1/> .
 @prefix dct:	<http://purl.org/dc/terms/> .
+@prefix spin:	<http://spinrdf.org/spin#> .
 
 <>
 {
@@ -17,8 +18,61 @@
         dct:description "Root container" ;
         rdf:_1 <#select-children> .
 
-    <#select-children> a ldh:Content ;
-        rdf:value ldh:SelectChildren .
+    <#select-children> a ldh:Object ;
+        rdf:value <#select-children-view> .
+
+    <#select-children-view> a ldh:View ;
+        spin:query ldh:SelectChildren .
+
+}
+
+# ENDPOINTS
+
+<sparql>
+{
+
+    <sparql> a foaf:Document ;
+        dct:title "SPARQL endpoint" .
+
+}
+
+<ns>
+{
+
+    <ns> a foaf:Document ;
+        dct:title "Namespace endpoint" .
+
+}
+
+<add>
+{
+
+    <add> a foaf:Document ;
+        dct:title "Add data endpoint" .
+
+}
+
+<generate>
+{
+
+    <generate> a foaf:Document ;
+        dct:title "Generate data endpoint" .
+
+}
+
+<access>
+{
+
+    <access> a foaf:Document ;
+        dct:title "Access endpoint" .
+
+}
+
+<access/request>
+{
+
+    <access/request> a foaf:Document ;
+        dct:title "Access request endpoint" .
 
 }
 
@@ -30,10 +84,31 @@
     <queries/> a dh:Container ;
         dct:title "Queries" ;
         dct:description "SPARQL queries" ;
-        rdf:_1 <queries/#select-children> .
+        rdf:_1 <queries/#select-queries> .
 
-    <queries/#select-children> a ldh:Content ;
-        rdf:value ldh:SelectChildren .
+    <queries/#select-queries> a ldh:Object ;
+        rdf:value <queries/#select-queries-view> .
+
+    <queries/#select-queries-view> a ldh:View ;
+        dct:title "Query view" ;
+        spin:query <queries/#select-queries-query> .
+
+    <queries/#select-queries-query> a sp:Select ;
+        dct:title "Select query resources" ;
+        sp:text """PREFIX  sp:  <http://spinrdf.org/sp#>
+
+SELECT DISTINCT  ?s
+WHERE
+  { GRAPH ?g
+      {   { ?s  a  sp:Select }
+        UNION
+          { ?s  a  sp:Construct }
+        UNION
+          { ?s  a  sp:Describe }
+        UNION
+          { ?s  a  sp:Ask }
+      }
+  }""" .
 
 }
 
@@ -48,13 +123,11 @@
     <queries/select-instances/#this> a sp:Select ;
         dct:title "Select instances" ;
         dct:description "Selects instances of type from the default graph" ;
-        sp:text """
-SELECT DISTINCT ?s
+        sp:text """SELECT DISTINCT ?s
 WHERE
   { ?s  a   $type ;
         ?p  ?o
-  }
-    """ .
+  }""" .
 
 }
 
@@ -69,15 +142,13 @@ WHERE
     <queries/select-instances-in-graphs/#this> a sp:Select ;
         dct:title "Select instances in graphs" ;
         dct:description "Selects instances of type from named graphs" ;
-        sp:text """
-SELECT DISTINCT ?s
+        sp:text """SELECT DISTINCT ?s
 WHERE
   { GRAPH ?g
       { ?s  a   $type ;
             ?p  ?o
       }
-  }
-    """ .
+  }""" .
 
 }
 
@@ -87,10 +158,24 @@ WHERE
     <files/> a dh:Container ;
         dct:title "Files" ;
         dct:description "Uploaded files" ;
-        rdf:_1 <files/#select-children> .
+        rdf:_1 <files/#select-files> .
 
-    <files/#select-children> a ldh:Content ;
-        rdf:value ldh:SelectChildren .
+    <files/#select-files> a ldh:Object ;
+        rdf:value <files/#select-files-view> .
+
+    <files/#select-files-view> a ldh:View ;
+        dct:title "File view" ;
+        spin:query <files/#select-files-query> .
+
+    <files/#select-files-query> a sp:Select ;
+        dct:title "Select file resources" ;
+        sp:text """PREFIX  nfo:  <http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#>
+
+SELECT DISTINCT  ?s
+WHERE
+  { GRAPH ?g
+      { ?s  a  nfo:FileDataObject }
+  }""" .
 
 }
 
@@ -100,10 +185,27 @@ WHERE
     <imports/> a dh:Container ;
         dct:title "Imports" ;
         dct:description "Data imports" ;
-        rdf:_1 <imports/#select-children> .
+        rdf:_1 <imports/#select-imports> .
 
-    <imports/#select-children> a ldh:Content ;
-        rdf:value ldh:SelectChildren .
+    <imports/#select-imports> a ldh:Object ;
+        rdf:value <imports/#select-imports-view> .
+
+    <imports/#select-imports-view> a ldh:View ;
+        dct:title "Import view" ;
+        spin:query <imports/#select-imports-query> .
+
+    <imports/#select-imports-query> a sp:Select ;
+        dct:title "Select import resources" ;
+        sp:text """PREFIX  ldh:  <https://w3id.org/atomgraph/linkeddatahub#>
+
+SELECT DISTINCT  ?s
+WHERE
+  { GRAPH ?g
+      {   { ?s  a  ldh:CSVImport }
+        UNION
+          { ?s  a  ldh:RDFImport }
+      }
+  }""" .
 
 }
 
@@ -115,29 +217,31 @@ WHERE
         dct:description "Geolocated resources" ;
         rdf:_1 <geo/#select-geo> .
 
-    <geo/#select-geo> a ldh:Content ;
-        rdf:value <geo/#select-geo-query> ;
+    <geo/#select-geo> a ldh:Object ;
+        rdf:value <geo/#select-geo-view> .
+
+    <geo/#select-geo-view> a ldh:View ;
+        dct:title "Geo view" ;
+        spin:query <geo/#select-geo-query> ;
         ac:mode ac:MapMode .
 
     <geo/#select-geo-query> a sp:Select ;
         dct:title "Select geo resources" ;
-        sp:text """
-    PREFIX  geo:  <http://www.w3.org/2003/01/geo/wgs84_pos#>
-    PREFIX  dct:  <http://purl.org/dc/terms/>
+        sp:text """PREFIX  geo:  <http://www.w3.org/2003/01/geo/wgs84_pos#>
+PREFIX  dct:  <http://purl.org/dc/terms/>
 
-    SELECT  DISTINCT ?resource
-    WHERE
-    { GRAPH ?graph
-      { ?resource  geo:lat  ?lat ;
-                  geo:long  ?long
-        OPTIONAL
-          { ?resource  a                    ?type }
-        OPTIONAL
-          { ?resource  dct:title  ?title }
-      }
-    }
-    ORDER BY ?title
-    """ .
+SELECT  DISTINCT ?resource
+WHERE
+{ GRAPH ?graph
+  { ?resource  geo:lat  ?lat ;
+              geo:long  ?long
+    OPTIONAL
+      { ?resource  a                    ?type }
+    OPTIONAL
+      { ?resource  dct:title  ?title }
+  }
+}
+ORDER BY ?title""" .
 
 }
 
@@ -149,21 +253,23 @@ WHERE
         dct:description "Latest resources" ;
         rdf:_1 <latest/#select-latest> .
 
-    <latest/#select-latest> a ldh:Content ;
-        rdf:value <latest/#select-latest-query> .
+    <latest/#select-latest> a ldh:Object ;
+        rdf:value <latest/#select-latest-view> .
+
+    <latest/#select-latest-view> a ldh:View ;
+        dct:title "Latest resources view" ;
+        spin:query <latest/#select-latest-query> .
 
     <latest/#select-latest-query> a sp:Select ;
         dct:title "Select latest" ;
-        sp:text """
-    PREFIX  dct:  <http://purl.org/dc/terms/>
+        sp:text """PREFIX  dct:  <http://purl.org/dc/terms/>
 
-    SELECT DISTINCT  ?dated
-    WHERE
-    { GRAPH ?graph
-      { ?dated  dct:created  ?created }
-    }
-    ORDER BY DESC(?created)
-    """ .
+SELECT DISTINCT  ?dated
+WHERE
+{ GRAPH ?graph
+  { ?dated  dct:created  ?created }
+}
+ORDER BY DESC(?created)""" .
 
 }
 
@@ -173,13 +279,29 @@ WHERE
     <charts/> a dh:Container ;
         dct:title "Charts" ;
         dct:description "Saved charts" ;
-        rdf:_1 <charts/#select-children> .
+        rdf:_1 <charts/#select-charts> .
 
-    <charts/#select-children> a ldh:Content ;
-        rdf:value ldh:SelectChildren .
+    <charts/#select-charts> a ldh:Object ;
+        rdf:value <charts/#select-charts-view> .
+
+    <charts/#select-charts-view> a ldh:View ;
+        dct:title "Chart view" ;
+        spin:query <charts/#select-charts-query> .
+
+    <charts/#select-charts-query> a sp:Select ;
+        dct:title "Select chart resources" ;
+        sp:text """PREFIX  ldh:  <https://w3id.org/atomgraph/linkeddatahub#>
+
+SELECT DISTINCT  ?s
+WHERE
+  { GRAPH ?g
+      {   { ?s  a  ldh:GraphChart }
+        UNION
+          { ?s  a  ldh:ResultSetChart }
+      }
+  }""" .
 
 }
-
 
 <apps/>
 {
@@ -187,10 +309,24 @@ WHERE
     <apps/> a dh:Container ;
         dct:title "Apps" ;
         dct:description "Linked Data applications" ;
-        rdf:_1 <apps/#select-children> .
+        rdf:_1 <apps/#select-apps> .
 
-    <apps/#select-children> a ldh:Content ;
-        rdf:value ldh:SelectChildren .
+    <apps/#select-apps> a ldh:Object ;
+        rdf:value <apps/#select-apps-view> .
+
+    <apps/#select-apps-view> a ldh:View ;
+        dct:title "Application view" ;
+        spin:query <apps/#select-apps-query> .
+
+    <apps/#select-apps-query> a sp:Select ;
+        dct:title "Select application resources" ;
+        sp:text """PREFIX  lapp: <https://w3id.org/atomgraph/linkeddatahub/apps#>
+
+SELECT DISTINCT  ?s
+WHERE
+  { GRAPH ?g
+      { ?s  a  lapp:Application }
+  }""" .
 
 }
 
@@ -200,9 +336,23 @@ WHERE
     <services/> a dh:Container ;
         dct:title "Services" ;
         dct:description "SPARQL services" ;
-        rdf:_1 <services/#select-children> .
+        rdf:_1 <services/#select-services> .
 
-    <services/#select-children> a ldh:Content ;
-        rdf:value ldh:SelectChildren .
+    <services/#select-services> a ldh:Object ;
+        rdf:value <services/#select-services-view> .
+
+    <services/#select-services-view> a ldh:View ;
+        dct:title "Service view" ;
+        spin:query <services/#select-services-query> .
+
+    <services/#select-services-query> a sp:Select ;
+        dct:title "Select service resources" ;
+        sp:text """PREFIX  sd:   <http://www.w3.org/ns/sparql-service-description#>
+
+SELECT DISTINCT  ?s
+WHERE
+  { GRAPH ?g
+      { ?s  a  sd:Service }
+  }""" .
 
 }

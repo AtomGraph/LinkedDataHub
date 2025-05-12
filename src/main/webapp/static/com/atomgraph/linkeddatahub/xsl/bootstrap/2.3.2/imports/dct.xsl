@@ -11,7 +11,8 @@
     <!ENTITY foaf   "http://xmlns.com/foaf/0.1/">
     <!ENTITY dct    "http://purl.org/dc/terms/">
 ]>
-<xsl:stylesheet version="2.0"
+<xsl:stylesheet version="3.0"
+xmlns="http://www.w3.org/1999/xhtml"
 xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
 xmlns:xhtml="http://www.w3.org/1999/xhtml"
 xmlns:xs="http://www.w3.org/2001/XMLSchema"
@@ -24,20 +25,21 @@ xmlns:dct="&dct;"
 xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
 exclude-result-prefixes="#all">
 
+    <xsl:preserve-space elements="dct:description"/>
+    
+    <xsl:template match="dct:description/text()" mode="bs2:FormControl">
+        <xsl:param name="type-label" select="true()" as="xs:boolean"/>
+        <xsl:param name="rows" select="10" as="xs:integer"/>
+        
+        <textarea name="ol" id="{generate-id()}" rows="{$rows}">
+            <xsl:value-of select="."/>
+        </textarea>
 
-    <!-- hide the dct:created/dct:modified properties of graph resources (dct:modified is set automatically by the Graph Store) -->
-    <xsl:template match="*[rdf:type/@rdf:resource = ('&def;Root', '&dh;Container', '&dh;Item')]/dct:created | *[rdf:type/@rdf:resource = ('&def;Root', '&dh;Container', '&dh;Item')]/dct:modified | *[rdf:type/@rdf:resource = ('&adm;Root', '&dh;Container', '&dh;Item')]/dct:created | *[rdf:type/@rdf:resource = ('&adm;Root', '&dh;Container', '&dh;Item')]/dct:modified" mode="bs2:FormControl" priority="1">
-        <xsl:apply-templates select="." mode="xhtml:Input">
-            <xsl:with-param name="type" select="'hidden'"/>
-        </xsl:apply-templates>
-        <xsl:apply-templates select="node() | @rdf:resource | @rdf:nodeID" mode="xhtml:Input">
-            <xsl:with-param name="type" select="'hidden'"/>
-        </xsl:apply-templates>
-        <xsl:apply-templates select="@xml:lang | @rdf:datatype" mode="xhtml:Input">
-            <xsl:with-param name="type" select="'hidden'"/>
-        </xsl:apply-templates>
+        <xsl:if test="$type-label">
+            <xsl:apply-templates select="." mode="bs2:FormControlTypeLabel"/>
+        </xsl:if>
     </xsl:template>
-
+    
     <xsl:template match="dct:format/@rdf:nodeID" mode="bs2:FormControl">
         <xsl:param name="id" select="generate-id()" as="xs:string"/>
         <xsl:param name="class" as="xs:string?"/>

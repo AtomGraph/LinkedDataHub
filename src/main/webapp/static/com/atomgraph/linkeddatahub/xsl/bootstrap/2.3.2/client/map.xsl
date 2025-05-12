@@ -9,6 +9,7 @@
     <!ENTITY gs     "http://www.opengis.net/ont/geosparql#">
 ]>
 <xsl:stylesheet version="3.0"
+xmlns="http://www.w3.org/1999/xhtml"
 xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
 xmlns:ixsl="http://saxonica.com/ns/interactiveXSLT"
 xmlns:js="http://saxonica.com/ns/globalJS"
@@ -120,11 +121,11 @@ exclude-result-prefixes="#all"
     
     <xsl:template name="ldh:LoadGeoResources">
         <xsl:param name="container" as="element()"/>
-        <xsl:param name="content-id" as="xs:string"/>
-        <xsl:param name="content-uri" as="xs:anyURI"/>
-        <xsl:param name="content" as="element()?"/>
+        <xsl:param name="container-id" as="xs:string"/>
+        <xsl:param name="block-uri" as="xs:anyURI"/>
         <xsl:param name="select-xml" as="document-node()"/>
         <xsl:param name="endpoint" as="xs:anyURI"/>
+        <xsl:param name="base-uri" as="xs:anyURI"/>
         
         <!-- wrap SELECT into a DESCRIBE -->
         <xsl:variable name="query-xml" as="element()">
@@ -134,30 +135,34 @@ exclude-result-prefixes="#all"
         <xsl:variable name="query-json" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'parse', [ $query-json-string ])"/>
         <xsl:variable name="query-string" select="ixsl:call(ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromQuery', [ $query-json ]), 'toString', [])" as="xs:string"/>
         <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': $query-string })" as="xs:anyURI"/>
-        <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), map{}, $results-uri)" as="xs:anyURI"/>
-
-        <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
-            <xsl:call-template name="onGeoResultsLoad">
-                <xsl:with-param name="container" select="$container"/>
-                <xsl:with-param name="content-id" select="$content-id"/>
-                <xsl:with-param name="content-uri" select="$content-uri"/>
-                <xsl:with-param name="content" select="$content"/>
-            </xsl:call-template>
-        </ixsl:schedule-action>
+        <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path($base-uri), map{}, $results-uri)" as="xs:anyURI"/>
+        <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
+        <xsl:variable name="context" as="map(*)" select="
+          map{
+            'request': $request,
+            'container': $container,
+            'container-id': $container-id,
+            'block-uri': $block-uri
+          }"/>
+        <ixsl:promise select="ixsl:http-request($context('request')) =>
+            ixsl:then(ldh:rethread-response($context, ?)) =>
+            ixsl:then(ldh:handle-response#1) =>
+            ixsl:then(ldh:geo-results-response#1)"
+            on-failure="ldh:promise-failure#1"/>
     </xsl:template>
     
     <!-- create and render OpenLayers map -->
     
     <xsl:template name="ldh:DrawMap">
         <xsl:context-item as="document-node()" use="required"/>
-        <xsl:param name="content-uri" as="xs:anyURI"/>
+        <xsl:param name="block-uri" as="xs:anyURI"/>
         <xsl:param name="canvas-id" as="xs:string"/>
-        <xsl:param name="initial-load" select="not(ixsl:contains(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`'), 'map'))" as="xs:boolean"/>
+        <xsl:param name="initial-load" select="not(ixsl:contains(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`'), 'map'))" as="xs:boolean"/>
         <xsl:param name="max-zoom" select="16" as="xs:integer"/>
         <xsl:param name="padding" select="(10, 10, 10, 10)" as="xs:integer*"/>
-        <xsl:variable name="zoom" select="if (not($initial-load)) then xs:integer(ixsl:call(ixsl:call(ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`'), 'map'), 'getView', []), 'getZoom', [])) else 4" as="xs:integer"/>
+        <xsl:variable name="zoom" select="if (not($initial-load)) then xs:integer(ixsl:call(ixsl:call(ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`'), 'map'), 'getView', []), 'getZoom', [])) else 4" as="xs:integer"/>
         <xsl:variable name="map" select="ldh:create-map($canvas-id, 0, 0, $zoom)" as="item()"/>
-        <ixsl:set-property name="map" select="$map" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`')"/>
+        <ixsl:set-property name="map" select="$map" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`')"/>
 
         <xsl:call-template name="ldh:AddMapLayers">
             <xsl:with-param name="map" select="$map"/>
@@ -321,43 +326,45 @@ exclude-result-prefixes="#all"
     <!-- CALLBACKS -->
     
     <!-- when container RDF/XML results load, render them -->
-    <xsl:template name="onGeoResultsLoad">
-        <xsl:context-item as="map(*)" use="required"/>
-        <xsl:param name="container" as="element()"/>
-        <xsl:param name="content-id" as="xs:string"/>
-        <xsl:param name="content-uri" select="xs:anyURI($container/@about)" as="xs:anyURI"/>
-        <xsl:param name="content" as="element()?"/>
+    <xsl:function name="ldh:geo-results-response" as="map(*)" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:variable name="response" select="$context('response')" as="map(*)"/>
+        <xsl:variable name="container" select="$context('container')" as="element()"/>
+        <xsl:variable name="container-id" select="$context('container-id')" as="xs:string"/>
+        <xsl:variable name="block-uri" select="$context('block-uri')" as="xs:anyURI"/>
         
         <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
         
-        <xsl:choose>
-            <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
-                <xsl:for-each select="?body">
-                    <xsl:call-template name="ldh:DrawMap">
-                        <xsl:with-param name="content-uri" select="$content-uri"/>
-                        <xsl:with-param name="canvas-id" select="$content-id || '-map-canvas'" />
+        <xsl:for-each select="$response">
+            <xsl:choose>
+                <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
+                    <xsl:for-each select="?body">
+                        <xsl:call-template name="ldh:DrawMap">
+                            <xsl:with-param name="block-uri" select="$block-uri"/>
+                            <xsl:with-param name="canvas-id" select="$container-id || '-map-canvas'"/>
+                        </xsl:call-template>
+                    </xsl:for-each>
+                </xsl:when>
+                <xsl:otherwise>
+                    <!-- error response - could not load query results -->
+                    <xsl:call-template name="render-container-error">
+                        <xsl:with-param name="container" select="$container"/>
+                        <xsl:with-param name="message" select="?message"/>
                     </xsl:call-template>
-                </xsl:for-each>
-            </xsl:when>
-            <xsl:otherwise>
-                <!-- error response - could not load query results -->
-                <xsl:call-template name="render-container-error">
-                    <xsl:with-param name="container" select="$container"/>
-                    <xsl:with-param name="message" select="?message"/>
-                </xsl:call-template>
-            </xsl:otherwise>
-        </xsl:choose>
+                </xsl:otherwise>
+            </xsl:choose>
+        </xsl:for-each>
         
         <!-- loading is done - restore the default mouse cursor -->
         <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
-    </xsl:template>
+        
+        <xsl:sequence select="$context"/>
+    </xsl:function>
 
     <xsl:template match="." mode="ixsl:onMapMarkerClick">
         <xsl:param name="event" select="ixsl:event()"/>
         <xsl:param name="map" select="ixsl:get(ixsl:get($event, 'detail'), 'map')"/>
-
         <xsl:variable name="event" select="ixsl:get(ixsl:get($event, 'detail'), 'ol-event')"/> <!-- override the helper CustomEvent with the original OpenLayers event -->
-
         <xsl:variable name="js-statement" as="xs:string">
             <![CDATA[
                 function (feat, layer) {
@@ -372,16 +379,13 @@ exclude-result-prefixes="#all"
             <xsl:variable name="id" select="xs:anyURI(ixsl:call($feature, 'getId', []))" as="xs:string"/>
             <xsl:if test="starts-with($id, 'http://') or starts-with($id, 'https://')"> <!-- InfoWindow not possible for blank nodes -->
                 <xsl:variable name="uri" select="xs:anyURI($id)" as="xs:anyURI"/>
-                <!-- InfoWindowMode is handled as a special case in layout.xsl -->
-                <xsl:variable name="mode" select="'https://w3id.org/atomgraph/linkeddatahub/templates#InfoWindowMode'" as="xs:string"/>
-                <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), ldh:query-params(xs:anyURI($mode)), $uri)" as="xs:anyURI"/>
+                <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path($ldh:requestUri), map{}, ac:absolute-path($uri))" as="xs:anyURI"/>
 
                 <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
                 <xsl:variable name="request" as="item()*">
-                    <!-- request HTML instead of XHTML -->
-                    <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'text/html' } }">
-                        <xsl:call-template name="onInfoWindowLoad">
+                    <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
+                        <xsl:call-template name="onFeatureDescriptionLoad">
                             <xsl:with-param name="event" select="$event"/>
                             <xsl:with-param name="map" select="$map"/>
                             <xsl:with-param name="feature" select="$feature"/>
@@ -394,7 +398,7 @@ exclude-result-prefixes="#all"
         </xsl:if>
     </xsl:template>
     
-    <xsl:template name="onInfoWindowLoad">
+    <xsl:template name="onFeatureDescriptionLoad">
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="event"/>
         <xsl:param name="map"/>
@@ -402,11 +406,14 @@ exclude-result-prefixes="#all"
         <xsl:param name="uri" as="xs:anyURI"/>
         
         <xsl:choose>
-            <xsl:when test="?status = 200 and starts-with(?media-type, 'text/html')">
+            <xsl:when test="?status = 200 and starts-with(?media-type, 'application/rdf+xml')">
                 <xsl:for-each select="?body">
                     <xsl:variable name="info-window-options" select="ldh:new-object()"/>
-                    <!-- render first child of <body> as InfoWindow content -->
-                    <xsl:variable name="info-window-html" select="/html/body/*[1]" as="element()"/>
+                    <xsl:variable name="info-window-html" as="element()">
+                        <xsl:apply-templates select="key('resources', $uri)">
+                            <xsl:with-param name="show-edit-button" select="false()" tunnel="yes"/>
+                        </xsl:apply-templates>
+                    </xsl:variable>
                     <xsl:variable name="coord" select="ixsl:get($event, 'coordinate')"/>
                     <xsl:variable name="container" select="ixsl:call(ixsl:page(), 'createElement', [ 'div' ])" as="element()"/>
                     <xsl:sequence select="ixsl:call(ixsl:call($map, 'getOverlayContainerStopEvent', []), 'appendChild', [ $container ])[current-date() lt xs:date('2000-01-01')]"/>
@@ -429,7 +436,7 @@ exclude-result-prefixes="#all"
                             </div>
                             
                             <div class="modal-body">
-                                <xsl:copy-of select="$info-window-html"/>
+                                <xsl:sequence select="$info-window-html"/>
                             </div>
                         </xsl:result-document>
                     </xsl:for-each>
@@ -448,7 +455,7 @@ exclude-result-prefixes="#all"
     
     <!-- close popup overlay (info window) -->
     
-    <xsl:template match="div[contains-token(@class, 'ol-overlay-container')]//div[contains-token(@class, 'modal-header')]/button[contains-token(@class, 'close')]" mode="ixsl:onclick" >
+    <xsl:template match="div[contains-token(@class, 'ol-overlay-container')]//div[contains-token(@class, 'modal-header')]/button[contains-token(@class, 'close')]" mode="ixsl:onclick">
         <xsl:variable name="content-uri" select="ancestor::div[@about][1]/@about" as="xs:anyURI"/>
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'ol-overlay-container')]/div" as="element()"/>
         <xsl:variable name="map" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`'), 'map')"/>

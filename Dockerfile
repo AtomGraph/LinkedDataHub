@@ -1,4 +1,4 @@
-FROM maven:3.8.4-openjdk-17 as maven
+FROM maven:3.8.4-openjdk-17 AS maven
 
 # download and extract Jena
 
@@ -22,7 +22,7 @@ RUN mvn -Pstandalone clean install
 
 # ==============================
 
-FROM atomgraph/letsencrypt-tomcat:10.1.4
+FROM atomgraph/letsencrypt-tomcat:10.1.34
 
 LABEL maintainer="martynas@atomgraph.com"
 
@@ -37,10 +37,6 @@ ARG UPLOAD_CONTAINER_PATH=uploads
 ENV SOURCE_COMMIT=$SOURCE_COMMIT
 
 WORKDIR $CATALINA_HOME
-
-# add XSLT stylesheet that makes changes to ROOT.xml
-
-COPY platform/context.xsl conf/context.xsl
 
 ENV CACHE_MODEL_LOADS=true
 
@@ -72,17 +68,26 @@ ENV HTTPS=false
 
 ENV SERVER_CERT=/var/linkeddatahub/ssl/server/server.crt
 
-ENV SECRETARY_CERT=/var/linkeddatahub/ssl/secretary/cert.pem
+ENV OWNER_CERT_ALIAS=root-owner
+ENV OWNER_KEYSTORE=/var/linkeddatahub/ssl/owner/keystore.p12
+ENV OWNER_CERT=/var/linkeddatahub/ssl/owner/cert.pem
+ENV OWNER_PUBLIC_KEY=/var/linkeddatahub/ssl/owner/public.pem
+ENV OWNER_PRIVATE_KEY=/var/linkeddatahub/ssl/owner/private.key
 
-ENV SECRETARY_CERT_ALIAS=secretary
+ENV SECRETARY_COMMON_NAME=LinkedDataHub
+ENV SECRETARY_CERT_ALIAS=root-secretary
+ENV SECRETARY_KEYSTORE=/var/linkeddatahub/ssl/secretary/keystore.p12
+ENV SECRETARY_CERT=/var/linkeddatahub/ssl/secretary/cert.pem
+ENV SECRETARY_PUBLIC_KEY=/var/linkeddatahub/ssl/secretary/public.pem
+ENV SECRETARY_PRIVATE_KEY=/var/linkeddatahub/ssl/secretary/private.key
 
 ENV CLIENT_KEYSTORE_MOUNT=/var/linkeddatahub/ssl/secretary/keystore.p12
-
 ENV CLIENT_KEYSTORE="$CATALINA_HOME/webapps/ROOT/WEB-INF/keystore.p12"
-
 ENV CLIENT_TRUSTSTORE="$CATALINA_HOME/webapps/ROOT/WEB-INF/client.truststore"
 
-ENV OWNER_PUBLIC_KEY=/var/linkeddatahub/ssl/owner/public.pem
+ENV CERT_VALIDITY=3650
+
+ENV SIGN_UP_CERT_VALIDITY=
 
 ENV LOAD_DATASETS=
 
@@ -102,11 +107,13 @@ ENV MAX_CONN_PER_ROUTE=20
 
 ENV MAX_TOTAL_CONN=40
 
+ENV MAX_REQUEST_RETRIES=3
+
 ENV IMPORT_KEEPALIVE=
 
-ENV GOOGLE_CLIENT_ID=
+ENV MAX_IMPORT_THREADS=10
 
-ENV GOOGLE_CLIENT_SECRET=
+ENV SERVLET_NAME=
 
 ENV GENERATE_SITEMAP=true
 
@@ -119,6 +126,14 @@ RUN apt-get update --allow-releaseinfo-change && \
     apt-get install -y uuid-runtime && \
     rm -rf webapps/* && \
     rm -rf /var/lib/apt/lists/*
+
+# add XSLT stylesheet that makes changes to ROOT.xml
+
+COPY platform/context.xsl /var/linkeddatahub/xsl/context.xsl
+
+# add XSLT stylesheet that makes changes to web.xml
+
+COPY platform/web.xsl /var/linkeddatahub/xsl/web.xsl
 
 # copy entrypoint
 
@@ -172,6 +187,7 @@ ENV PATH="${PATH}:${JENA_HOME}/bin"
 
 RUN useradd --no-log-init -U ldh && \
     chown -R ldh:ldh . && \
+    mkdir -p "$(dirname "$OIDC_REFRESH_TOKENS")" && \
     chown -R ldh:ldh /var/linkeddatahub && \
     mkdir -p "${UPLOAD_ROOT}/${UPLOAD_CONTAINER_PATH}" && \
     chown -R ldh:ldh "$UPLOAD_ROOT" && \
@@ -180,7 +196,7 @@ RUN useradd --no-log-init -U ldh && \
 
 RUN ./import-letsencrypt-stg-roots.sh
 
-HEALTHCHECK --start-period=80s --interval=20s --timeout=10s \
+HEALTHCHECK --start-period=80s --retries=5 \
     CMD curl -f -I "http://localhost:${HTTP_PORT}/ns" -H "Accept: application/n-triples" || exit 1 # relies on public access to the namespace document
 
 USER ldh

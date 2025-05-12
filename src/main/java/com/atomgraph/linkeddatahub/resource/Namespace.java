@@ -16,6 +16,8 @@
  */
 package com.atomgraph.linkeddatahub.resource;
 
+import com.atomgraph.client.util.Constructor;
+import com.atomgraph.client.vocabulary.AC;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Request;
 import jakarta.ws.rs.core.Response;
@@ -44,9 +46,14 @@ import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.Response.Status;
 import jakarta.ws.rs.core.SecurityContext;
 import jakarta.ws.rs.core.UriInfo;
+import org.apache.jena.iri.IRI;
+import org.apache.jena.iri.IRIFactory;
 import org.apache.jena.ontology.Ontology;
 import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.query.Query;
+import org.apache.jena.rdf.model.Model;
+import org.apache.jena.rdf.model.ModelFactory;
+import org.apache.jena.riot.system.Checker;
 import org.apache.jena.update.UpdateRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,7 +69,9 @@ public class Namespace extends com.atomgraph.core.model.impl.SPARQLEndpointImpl
     private static final Logger log = LoggerFactory.getLogger(Namespace.class);
 
     private final URI uri;
+    private final UriInfo uriInfo;
     private final Application application;
+    private final Ontology ontology;
     private final com.atomgraph.linkeddatahub.Application system;
 
     /**
@@ -83,7 +92,9 @@ public class Namespace extends com.atomgraph.core.model.impl.SPARQLEndpointImpl
     {
         super(request, new ServiceImpl(DatasetFactory.create(ontology.get().getOntModel()), mediaTypes), mediaTypes);
         this.uri = uriInfo.getAbsolutePath();
+        this.uriInfo = uriInfo;
         this.application = application;
+        this.ontology = ontology.get();
         this.system = system;
     }
 
@@ -95,10 +106,25 @@ public class Namespace extends com.atomgraph.core.model.impl.SPARQLEndpointImpl
         // if query param is not provided and the app is end-user, return the namespace ontology associated with this document
         if (query == null)
         {
+            // construct instances for a list of ontology classes whose URIs are provided as ?forClass
+            if (getUriInfo().getQueryParameters().containsKey(AC.forClass.getLocalName()))
+            {
+                List<String> forClasses = getUriInfo().getQueryParameters().get(AC.forClass.getLocalName());
+                Model instances = ModelFactory.createDefaultModel();
+                
+                forClasses.stream().
+                    map(forClass -> Optional.ofNullable(getOntology().getOntModel().getOntClass(checkURI(forClass).toString()))).
+                    flatMap(Optional::stream).
+                    forEach(forClass -> new Constructor().construct(forClass, instances, getApplication().getBase().getURI()));
+                
+                return getResponseBuilder(instances).build();
+            }
+            
             if (getApplication().canAs(EndUserApplication.class))
             {
                 String ontologyURI = getURI().toString() + "#"; // TO-DO: hard-coding "#" is not great. Replace with RDF property lookup.
                 if (log.isDebugEnabled()) log.debug("Returning namespace ontology from OntDocumentManager: {}", ontologyURI);
+                // not returning the injected in-memory ontology because it has inferences applied to it
                 OntologyModelGetter modelGetter = new OntologyModelGetter(getApplication().as(EndUserApplication.class),
                         getSystem().getOntModelSpec(), getSystem().getOntologyQuery(), getSystem().getClient(), getSystem().getMediaTypes());
                 return getResponseBuilder(modelGetter.getModel(ontologyURI)).build();
@@ -130,6 +156,23 @@ public class Namespace extends com.atomgraph.core.model.impl.SPARQLEndpointImpl
     }
     
     /**
+     * Checks URI syntax. Throws exception if invalid.
+     * 
+     * @param classIRIStr URI string
+     * @return IRI
+     */
+    public static IRI checkURI(String classIRIStr)
+    {
+        if (classIRIStr == null) throw new IllegalArgumentException("URI String cannot be null");
+
+        IRI classIRI = IRIFactory.iriImplementation().create(classIRIStr);
+        // throws Exceptions on bad URIs:
+        Checker.iriViolations(classIRI);
+
+        return classIRI;
+    }
+    
+    /**
      * Returns URI of this resource.
      * 
      * @return resource URI
@@ -140,6 +183,16 @@ public class Namespace extends com.atomgraph.core.model.impl.SPARQLEndpointImpl
     }
     
     /**
+     * Returns URI info for the current request.
+     * 
+     * @return URI info
+     */
+    public UriInfo getUriInfo()
+    {
+        return uriInfo;
+    }
+    
+    /**
      * Returns the current application.
      * 
      * @return application resource
@@ -147,6 +200,16 @@ public class Namespace extends com.atomgraph.core.model.impl.SPARQLEndpointImpl
     public Application getApplication()
     {
         return application;
+    }
+    
+    /**
+     * Returns the ontology of the current application.
+     * 
+     * @return application ontology
+     */
+    public Ontology getOntology()
+    {
+        return ontology;
     }
     
     /**

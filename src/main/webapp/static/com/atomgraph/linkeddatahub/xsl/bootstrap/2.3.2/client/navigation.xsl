@@ -11,6 +11,7 @@
     <!ENTITY sioc   "http://rdfs.org/sioc/ns#">
 ]>
 <xsl:stylesheet version="3.0"
+xmlns="http://www.w3.org/1999/xhtml"
 xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
 xmlns:ixsl="http://saxonica.com/ns/interactiveXSLT"
 xmlns:prop="http://saxonica.com/ns/html-property"
@@ -145,17 +146,19 @@ exclude-result-prefixes="#all"
         <xsl:variable name="query-json" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'parse', [ $query-json-string ])"/>
         <xsl:variable name="query-string" select="ixsl:call(ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromQuery', [ $query-json ]), 'toString', [])" as="xs:string"/>
         <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': $query-string })" as="xs:anyURI"/>
-        <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), map{}, $results-uri)" as="xs:anyURI"/>
-
-        <xsl:variable name="request" as="item()*">
-            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
-                <xsl:call-template name="ldh:DocTreeResourceLoaded">
-                    <xsl:with-param name="container" select="$container"/>
-                    <xsl:with-param name="uri" select="$uri"/>
-                </xsl:call-template>
-            </ixsl:schedule-action>
-        </xsl:variable>
-        <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
+        <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path($ldh:requestUri), map{}, $results-uri)" as="xs:anyURI"/>
+        <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
+        <xsl:variable name="context" as="map(*)" select="
+          map{
+            'request': $request,
+            'container': $container,
+            'uri': $uri
+          }"/>
+        <ixsl:promise select="ixsl:http-request($context('request')) =>
+            ixsl:then(ldh:rethread-response($context, ?)) =>
+            ixsl:then(ldh:handle-response#1) =>
+            ixsl:then(ldh:doc-tree-resource-response#1)"
+            on-failure="ldh:promise-failure#1"/>
     </xsl:template>
     
     <xsl:template match="*[@rdf:about]" mode="bs2:DocTreeListItem">
@@ -175,6 +178,18 @@ exclude-result-prefixes="#all"
     </xsl:template>
     
     <!-- EVENT HANDLERS -->
+    
+    <!-- show left-side document tree -->
+    
+    <xsl:template match="body[id('doc-tree', ixsl:page())]" mode="ixsl:onmousemove">
+        <xsl:variable name="x" select="ixsl:get(ixsl:event(), 'clientX')"/>
+        
+        <!-- check that the mouse is on the left edge -->
+        <xsl:if test="$x = 0">
+            <!-- show #doc-tree -->
+            <ixsl:set-style name="display" select="'block'" object="id('doc-tree', ixsl:page())"/>
+        </xsl:if>
+    </xsl:template>
     
     <!-- hide the document tree container if its position is fixed (i.e. the layout is not responsive) -->
     <xsl:template match="div[@id = 'doc-tree'][ixsl:style(.)?position = 'fixed']" mode="ixsl:onmouseout">
@@ -244,84 +259,183 @@ exclude-result-prefixes="#all"
 
         <ixsl:set-style name="display" select="'none'" object="$container/ul"/>
     </xsl:template>
+
+    <!-- backlinks -->
+    
+    <xsl:template match="div[contains-token(@class, 'backlinks-nav')]//*[contains-token(@class, 'nav-header')]" mode="ixsl:onclick">
+        <xsl:variable name="backlinks-container" select="ancestor::div[contains-token(@class, 'backlinks-nav')]" as="element()"/>
+        <xsl:variable name="block" select="ancestor::div[contains-token(@class, 'block')][1]" as="element()"/>
+        <xsl:variable name="block-uri" select="$block/@about" as="xs:anyURI"/>
+        <xsl:variable name="query-string" select="replace($backlinks-string, '$this', '&lt;' || $block-uri || '&gt;', 'q')" as="xs:string"/>
+        <xsl:variable name="service-uri" select="if (ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`')) then (if (ixsl:contains(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`'), 'service-uri')) then ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`'), 'service-uri') else ()) else ()" as="xs:anyURI?"/>
+        <xsl:variable name="service" select="if ($service-uri) then key('resources', $service-uri, document(ac:build-uri(ac:document-uri($service-uri), map{ 'accept': 'application/rdf+xml' }))) else ()" as="element()?"/> <!-- TO-DO: refactor asynchronously -->
+        <xsl:variable name="endpoint" select="($service/sd:endpoint/@rdf:resource/xs:anyURI(.), sd:endpoint())[1]" as="xs:anyURI"/>
+        <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': string($query-string) })" as="xs:anyURI"/>
+        <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path($ldh:requestUri), map{}, $results-uri)" as="xs:anyURI"/>
+        
+        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+
+        <xsl:choose>
+            <!-- backlink nav list is not rendered yet - load it -->
+            <xsl:when test="not(following-sibling::*[contains-token(@class, 'nav')])">
+                <!-- toggle the caret direction -->
+                <xsl:for-each select="span[contains-token(@class, 'caret')]">
+                    <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'caret-reversed' ])[current-date() lt xs:date('2000-01-01')]"/>
+                </xsl:for-each>
+
+                <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
+                <xsl:variable name="context" as="map(*)" select="
+                  map{
+                    'request': $request,
+                    'backlinks-container': $backlinks-container
+                  }"/>
+                <ixsl:promise select="ixsl:http-request($context('request')) =>
+                    ixsl:then(ldh:rethread-response($context, ?)) =>
+                    ixsl:then(ldh:handle-response#1) =>
+                    ixsl:then(ldh:backlinks-response#1)"
+                    on-failure="ldh:promise-failure#1"/>
+            </xsl:when>
+            <!-- show the nav list -->
+            <xsl:when test="ixsl:style(following-sibling::*[contains-token(@class, 'nav')])?display = 'none'">
+                <ixsl:set-style name="display" select="'block'" object="following-sibling::*[contains-token(@class, 'nav')]"/>
+            </xsl:when>
+            <!-- hide the nav list -->
+            <xsl:otherwise>
+                <ixsl:set-style name="display" select="'none'" object="following-sibling::*[contains-token(@class, 'nav')]"/>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:template>
     
     <!-- CALLBACKS -->
-    
-    <xsl:template name="ldh:BreadCrumbResourceLoaded">
-        <xsl:context-item as="map(*)" use="required"/>
-        <xsl:param name="container" as="element()"/>
-        <xsl:param name="uri" as="xs:anyURI"/>
-        <xsl:param name="leaf" select="true()" as="xs:boolean"/>
+        
+    <xsl:function name="ldh:breadcrumb-resource-response" as="map(*)" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:variable name="response" select="$context('response')" as="map(*)"/>
+        <xsl:variable name="container" select="$context('container')" as="element()"/>
+        <xsl:variable name="uri" select="$context('uri')" as="xs:anyURI"/>
+        <xsl:variable name="leaf" select="$context('leaf')" as="xs:boolean"/>
 
-        <xsl:choose>
-            <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
-                <xsl:for-each select="?body">
-                    <xsl:variable name="resource" select="key('resources', $uri)" as="element()?"/>
-                    <xsl:variable name="parent-uri" select="$resource/sioc:has_container/@rdf:resource | $resource/sioc:has_parent/@rdf:resource" as="xs:anyURI?"/>
-                    <xsl:if test="$parent-uri">
-                        <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), map{}, $parent-uri)" as="xs:anyURI"/>
-                        <xsl:variable name="request" as="item()*">
-                            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
-                                <xsl:call-template name="ldh:BreadCrumbResourceLoaded">
-                                    <xsl:with-param name="container" select="$container"/>
-                                    <xsl:with-param name="uri" select="$parent-uri"/>
-                                    <xsl:with-param name="leaf" select="false()"/> <!-- parent resources cannot be leaves -->
-                                </xsl:call-template>
-                            </ixsl:schedule-action>
-                        </xsl:variable>
-                        <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
-                    </xsl:if>
+        <xsl:message>ldh:breadcrumb-resource-response</xsl:message>
 
-                    <!-- append to the breadcrumb list -->
-                    <xsl:for-each select="$container/ul">
-                        <xsl:variable name="content" select="*" as="element()*"/>
-                        <!-- we want to prepend the parent resource to the beginning of the breadcrumb list -->
-                        <xsl:result-document href="?." method="ixsl:replace-content">
-                            <xsl:apply-templates select="$resource" mode="bs2:BreadCrumbListItem">
-                                <xsl:with-param name="leaf" select="$leaf"/>
-                            </xsl:apply-templates>
-                            
-                            <xsl:copy-of select="$content"/>
-                        </xsl:result-document>
+        <xsl:for-each select="$response">
+            <xsl:choose>
+                <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
+                    <xsl:for-each select="?body">
+                        <xsl:variable name="resource" select="key('resources', $uri)" as="element()?"/>
+                        <xsl:variable name="parent-uri" select="$resource/sioc:has_container/@rdf:resource | $resource/sioc:has_parent/@rdf:resource" as="xs:anyURI?"/>
+                        <xsl:if test="$parent-uri">
+                            <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path($ldh:requestUri), map{}, $parent-uri)" as="xs:anyURI"/>
+                            <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
+                            <xsl:variable name="context" as="map(*)" select="
+                              map{
+                                'request': $request,
+                                'container': $container,
+                                'uri': $parent-uri,
+                                'leaf': false()
+                              }"/>
+                            <ixsl:promise select="ixsl:http-request($context('request')) =>
+                                ixsl:then(ldh:rethread-response($context, ?)) =>
+                                ixsl:then(ldh:handle-response#1) =>
+                                ixsl:then(ldh:breadcrumb-resource-response#1)"
+                                on-failure="ldh:promise-failure#1"/>
+                        </xsl:if>
+
+                        <!-- append to the breadcrumb list -->
+                        <xsl:for-each select="$container/ul">
+                            <xsl:variable name="content" select="*" as="element()*"/>
+                            <!-- we want to prepend the parent resource to the beginning of the breadcrumb list -->
+                            <xsl:result-document href="?." method="ixsl:replace-content">
+                                <xsl:apply-templates select="$resource" mode="bs2:BreadCrumbListItem">
+                                    <xsl:with-param name="leaf" select="$leaf"/>
+                                </xsl:apply-templates>
+
+                                <xsl:copy-of select="$content"/>
+                            </xsl:result-document>
+                        </xsl:for-each>
                     </xsl:for-each>
-                </xsl:for-each>
-            </xsl:when>
-            <xsl:otherwise>
-                <xsl:message>
-                    Error loading breadcrumbs for URI: <xsl:value-of select="$uri"/>
-                </xsl:message>
-            </xsl:otherwise>
-        </xsl:choose>
-    </xsl:template>
-    
-    <xsl:template name="ldh:DocTreeResourceLoaded">
-        <xsl:context-item as="map(*)" use="required"/>
-        <xsl:param name="container" as="element()"/> <!-- <ul> element -->
-        <xsl:param name="uri" as="xs:anyURI"/>
+                </xsl:when>
+                <xsl:otherwise>
+                    <xsl:message>
+                        Error loading breadcrumbs for URI: <xsl:value-of select="$uri"/>
+                    </xsl:message>
+                </xsl:otherwise>
+            </xsl:choose>
+        </xsl:for-each>
+        
+        <xsl:sequence select="$context"/>
+    </xsl:function>
 
-        <xsl:choose>
-            <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
-                <xsl:for-each select="?body">
-                    <xsl:variable name="resources" select="rdf:RDF/*[@rdf:about]" as="element()*"/>
-                    <!-- append to the doc tree list -->
-                    <xsl:for-each select="$container">
+    <xsl:function name="ldh:doc-tree-resource-response" as="map(*)" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:variable name="response" select="$context('response')" as="map(*)"/>
+        <xsl:variable name="container" select="$context('container')" as="element()"/> <!-- <ul> element -->
+        <xsl:variable name="uri" select="$context('uri')" as="xs:anyURI"/>
+
+        <xsl:message>ldh:doc-tree-resource-response</xsl:message>
+        
+        <xsl:for-each select="$response">
+            <xsl:choose>
+                <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
+                    <xsl:for-each select="?body">
+                        <xsl:variable name="resources" select="rdf:RDF/*[@rdf:about]" as="element()*"/>
+                        <!-- append to the doc tree list -->
+                        <xsl:for-each select="$container">
+                            <xsl:result-document href="?." method="ixsl:append-content">
+                                <xsl:apply-templates select="$resources" mode="bs2:DocTreeListItem">
+                                    <xsl:sort select="ac:label(.)"/>
+                                    <!--<xsl:with-param name="active" select="@rdf:about = $uri"/>-->
+                                </xsl:apply-templates>
+                            </xsl:result-document>
+                        </xsl:for-each>
+
+                        <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
+                    </xsl:for-each>
+                </xsl:when>
+                <xsl:otherwise>
+                    <xsl:message>
+                        Error loading document tree for URI :<xsl:value-of select="$uri"/>
+                    </xsl:message>
+                </xsl:otherwise>
+            </xsl:choose>
+        </xsl:for-each>
+        
+        <xsl:sequence select="$context"/>
+    </xsl:function>
+    
+    <xsl:function name="ldh:backlinks-response" as="map(*)" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:variable name="response" select="$context('response')" as="map(*)"/>
+        <xsl:variable name="backlinks-container" select="$context('backlinks-container')" as="element()"/>
+
+        <xsl:message>ldh:backlinks-response</xsl:message>
+        
+        <xsl:for-each select="$response">
+            <xsl:choose>
+                <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
+                    <xsl:variable name="results" select="?body" as="document-node()"/>
+
+                    <xsl:for-each select="$backlinks-container">
+                        <xsl:variable name="doc-uri" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/>
                         <xsl:result-document href="?." method="ixsl:append-content">
-                            <xsl:apply-templates select="$resources" mode="bs2:DocTreeListItem">
-                                <xsl:sort select="ac:label(.)"/>
-                                <!--<xsl:with-param name="active" select="@rdf:about = $uri"/>-->
-                            </xsl:apply-templates>
+                            <ul class="well well-small nav nav-list">
+                                <xsl:apply-templates select="$results/rdf:RDF/rdf:Description[not(@rdf:about = $doc-uri)]" mode="xhtml:ListItem">
+                                    <xsl:sort select="ac:label(.)" order="ascending" lang="{$ldt:lang}"/>
+                                    <xsl:with-param name="mode" select="ixsl:query-params()?mode[1]" tunnel="yes"/> <!-- TO-DO: support multiple modes -->
+                                    <xsl:with-param name="render-id" select="false()" tunnel="yes"/>
+                                </xsl:apply-templates>
+                            </ul>
                         </xsl:result-document>
                     </xsl:for-each>
-                    
-                    <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
-                </xsl:for-each>
-            </xsl:when>
-            <xsl:otherwise>
-                <xsl:message>
-                    Error loading document tree for URI :<xsl:value-of select="$uri"/>
-                </xsl:message>
-            </xsl:otherwise>
-        </xsl:choose>
-    </xsl:template>
+                </xsl:when>
+                <xsl:otherwise>
+                    <xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ ?message ])[current-date() lt xs:date('2000-01-01')]"/>
+                </xsl:otherwise>
+            </xsl:choose>
+        </xsl:for-each>
+
+        <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
+
+        <xsl:sequence select="$context"/>
+    </xsl:function>
     
 </xsl:stylesheet>

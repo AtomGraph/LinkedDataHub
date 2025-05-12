@@ -16,12 +16,14 @@
  */
 package com.atomgraph.linkeddatahub.server.filter.request;
 
-import com.atomgraph.linkeddatahub.server.exception.PayloadTooLargeException;
-import com.atomgraph.linkeddatahub.server.util.stream.RejectTooLargeInputStream;
+import com.atomgraph.linkeddatahub.client.util.RejectTooLargeResponseInputStream;
+import com.atomgraph.linkeddatahub.server.exception.RequestContentTooLargeException;
+import com.atomgraph.linkeddatahub.server.util.RejectTooLargeRequestInputStream;
 import java.io.IOException;
 import jakarta.annotation.Priority;
-import jakarta.inject.Inject;
-import jakarta.ws.rs.HttpMethod;
+import jakarta.ws.rs.client.ClientRequestContext;
+import jakarta.ws.rs.client.ClientResponseContext;
+import jakarta.ws.rs.client.ClientResponseFilter;
 import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.container.ContainerRequestFilter;
 import jakarta.ws.rs.container.PreMatching;
@@ -36,45 +38,66 @@ import org.slf4j.LoggerFactory;
  */
 @PreMatching
 @Priority(100) // the very first request filter
-public class ContentLengthLimitFilter implements ContainerRequestFilter
+public class ContentLengthLimitFilter implements ContainerRequestFilter, ClientResponseFilter
 {
 
     private static final Logger log = LoggerFactory.getLogger(ContentLengthLimitFilter.class);
-
-    @Inject com.atomgraph.linkeddatahub.Application system;
+    private final int maxContentLength;
+    
+    public ContentLengthLimitFilter(int maxContentLength)
+    {
+        this.maxContentLength = maxContentLength;
+    }
 
     @Override
     public void filter(ContainerRequestContext crc) throws IOException
     {
-        if (getSystem().getMaxContentLength() == null) return; // skip the filter if max Content-Length limit is not configured
-        if (!(crc.getMethod().equals(HttpMethod.POST) || crc.getMethod().equals(HttpMethod.PUT))) return; // only check Content-Length on POST and PUT requests
+        if (!crc.hasEntity()) return;
             
         String contentLengthString = crc.getHeaders().getFirst(HttpHeaders.CONTENT_LENGTH);
         // we cannot abort here with Status.LENGTH_REQUIRED if we want to allow streaming. That is the job of RejectTooLongInputStream
         if (contentLengthString == null)
         {
-            crc.setEntityStream(new RejectTooLargeInputStream(crc.getEntityStream(), getSystem().getMaxContentLength()));
+            crc.setEntityStream(new RejectTooLargeRequestInputStream(crc.getEntityStream(), getMaxContentLength()));
             return;
         }
         
-        int contentLength = Integer.valueOf(contentLengthString);
-        if (contentLength > getSystem().getMaxContentLength())
+        int contentLength = Integer.parseInt(contentLengthString);
+        if (contentLength > getMaxContentLength())
         {
-            if (log.isDebugEnabled()) log.debug("POST or PUT request rejected due to Content-Length: {} which is larger than the configured limit {}", contentLength, getSystem().getMaxContentLength());
-            throw new PayloadTooLargeException(getSystem().getMaxContentLength(), contentLength);
+            if (log.isDebugEnabled()) log.debug("POST or PUT request rejected due to Content-Length: {} which is larger than the configured limit {}", contentLength, getMaxContentLength());
+            throw new RequestContentTooLargeException(getMaxContentLength(), contentLength);
         }
         
-        crc.setEntityStream(new RejectTooLargeInputStream(crc.getEntityStream(), getSystem().getMaxContentLength()));
+        crc.setEntityStream(new RejectTooLargeRequestInputStream(crc.getEntityStream(), getMaxContentLength()));
     }
 
-    /**
-     * Returns system application.
-     * 
-     * @return JAX-RS application
-     */
-    public com.atomgraph.linkeddatahub.Application getSystem()
+    @Override
+    public void filter(ClientRequestContext requestContext, ClientResponseContext responseContext) throws IOException
     {
-        return system;
+        if (!responseContext.hasEntity()) return;
+        
+        String contentLengthString = responseContext.getHeaders().getFirst(HttpHeaders.CONTENT_LENGTH);
+        // we cannot abort here with Status.LENGTH_REQUIRED if we want to allow streaming. That is the job of RejectTooLongInputStream
+        if (contentLengthString == null)
+        {
+            responseContext.setEntityStream(new RejectTooLargeResponseInputStream(responseContext.getEntityStream(), getMaxContentLength()));
+            return;
+        }
+        
+        int contentLength = Integer.parseInt(contentLengthString);
+        if (contentLength > getMaxContentLength())
+        {
+            if (log.isDebugEnabled()) log.debug("POST or PUT request rejected due to Content-Length: {} which is larger than the configured limit {}", contentLength, getMaxContentLength());
+            throw new RequestContentTooLargeException(getMaxContentLength(), contentLength);
+        }
+        
+        responseContext.setEntityStream(new RejectTooLargeResponseInputStream(responseContext.getEntityStream(), getMaxContentLength()));
+    }
+
+    public int getMaxContentLength()
+    {
+        return maxContentLength;
     }
     
 }

@@ -7,19 +7,15 @@ purge_cache "$END_USER_VARNISH_SERVICE"
 purge_cache "$ADMIN_VARNISH_SERVICE"
 purge_cache "$FRONTEND_VARNISH_SERVICE"
 
-pwd=$(realpath -s "$PWD")
+pwd=$(realpath "$PWD")
 
-pushd . > /dev/null && cd "$SCRIPT_ROOT/admin/acl"
+# add agent to the writers group to be able to read/write documents
 
-# add agent to the writers group to be able to read/write documents (might already be done by another test)
-
-./add-agent-to-group.sh \
+add-agent-to-group.sh \
   -f "$OWNER_CERT_FILE" \
   -p "$OWNER_CERT_PWD" \
   --agent "$AGENT_URI" \
   "${ADMIN_BASE_URL}acl/groups/writers/"
-
-popd > /dev/null
 
 file="$(mktemp)"
 truncate -s 3M "${file}" # assuming MAX_CONTENT_LENGTH is set to 2MB

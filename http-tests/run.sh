@@ -11,7 +11,6 @@ export OWNER_CERT_FILE="$1"
 export OWNER_CERT_PWD="$2"
 export SECRETARY_CERT_FILE="$3"
 export SECRETARY_CERT_PWD="$4"
-export SCRIPT_ROOT="$PWD/../scripts"
 
 export STATUS_OK=200
 export STATUS_DELETE_SUCCESS='200|204'
@@ -23,12 +22,14 @@ export STATUS_NO_CONTENT=204
 export STATUS_UPDATED='201|204'
 export STATUS_SEE_OTHER=303
 export STATUS_NOT_MODIFIED=304
+export STATUS_PERMANENT_REDIRECT=308
 export STATUS_BAD_REQUEST=400
 export STATUS_UNAUTHORIZED=401
 export STATUS_FORBIDDEN=403
 export STATUS_NOT_FOUND=404
 export STATUS_METHOD_NOT_ALLOWED=405
 export STATUS_NOT_ACCEPTABLE=406
+export STATUS_PRECONDITION_FAILED=412
 export STATUS_REQUEST_ENTITY_TOO_LARGE=413
 export STATUS_UNSUPPORTED_MEDIA=415
 export STATUS_UNPROCESSABLE_ENTITY=422
@@ -80,15 +81,26 @@ function purge_cache()
 {
     local service_name="$1"
 
-    if [ -n "$(docker-compose -f "$HTTP_TEST_ROOT/../docker-compose.yml" -f "$HTTP_TEST_ROOT/docker-compose.http-tests.yml" --env-file "$HTTP_TEST_ROOT/.env" ps -q | grep "$(docker-compose -f "$HTTP_TEST_ROOT/../docker-compose.yml" -f "$HTTP_TEST_ROOT/docker-compose.http-tests.yml" --env-file "$HTTP_TEST_ROOT/.env" ps -q $service_name )" )" ]; then
-        docker-compose -f "$HTTP_TEST_ROOT/../docker-compose.yml" -f "$HTTP_TEST_ROOT/docker-compose.http-tests.yml" --env-file "$HTTP_TEST_ROOT/.env" exec -T "$service_name" varnishadm "ban req.url ~ /" > /dev/null # purge all entries
+    if [ -n "$(docker compose -f "$HTTP_TEST_ROOT/../docker-compose.yml" -f "$HTTP_TEST_ROOT/docker-compose.http-tests.yml" --env-file "$HTTP_TEST_ROOT/.env" ps -q | grep "$(docker compose -f "$HTTP_TEST_ROOT/../docker-compose.yml" -f "$HTTP_TEST_ROOT/docker-compose.http-tests.yml" --env-file "$HTTP_TEST_ROOT/.env" ps -q $service_name )" )" ]; then
+        docker compose -f "$HTTP_TEST_ROOT/../docker-compose.yml" -f "$HTTP_TEST_ROOT/docker-compose.http-tests.yml" --env-file "$HTTP_TEST_ROOT/.env" exec -T "$service_name" varnishadm "ban req.url ~ /" > /dev/null # purge all entries
     fi
 }
 
-export OWNER_URI="$("$SCRIPT_ROOT"/webid-uri.sh "$OWNER_CERT_FILE")"
+export OWNER_URI="$(webid-uri.sh "$OWNER_CERT_FILE")"
+if [ -z "$OWNER_URI" ]; then
+    echo "Failed to extract the owner's WebID URI from the cert file: $OWNER_CERT_FILE"
+    exit 1
+fi
+
 printf "### Owner agent URI: %s\n" "$OWNER_URI"
 
-export SECRETARY_URI="$("$SCRIPT_ROOT"/webid-uri.sh "$SECRETARY_CERT_FILE")"
+export SECRETARY_URI="$(webid-uri.sh "$SECRETARY_CERT_FILE")"
+
+if [ -z "$SECRETARY_URI" ]; then
+    echo "Failed to extract the secretary's WebID URI from the cert file: $SECRETARY_CERT_FILE"
+    exit 1
+fi
+
 printf "### Secretary agent URI: %s\n" "$SECRETARY_URI"
 
 export -f initialize_dataset
@@ -115,7 +127,7 @@ start_time=$(date +%s)
 run_tests "signup.sh"
 (( error_count += $? ))
 
-export AGENT_URI="$("$SCRIPT_ROOT"/webid-uri.sh "$AGENT_CERT_FILE")"
+export AGENT_URI="$(webid-uri.sh "$AGENT_CERT_FILE")"
 printf "### Signed up agent URI: %s\n" "$AGENT_URI"
 
 # store the end-user and admin datasets
@@ -126,11 +138,15 @@ download_dataset "$ADMIN_ENDPOINT_URL" > "$TMP_ADMIN_DATASET"
 
 ### Other tests ###
 
+run_tests $(find ./add/ -type f -name '*.sh')
+(( error_count += $? ))
 run_tests $(find ./admin/ -type f -name '*.sh')
+(( error_count += $? ))
+run_tests $(find ./access/ -type f -name '*.sh')
 (( error_count += $? ))
 run_tests $(find ./imports/ -type f -name '*.sh')
 (( error_count += $? ))
-run_tests $(find ./graph-store-protocol/ -type f -name '*.sh')
+run_tests $(find ./document-hierarchy/ -type f -name '*.sh')
 (( error_count += $? ))
 run_tests $(find ./misc/ -type f -name '*.sh')
 (( error_count += $? ))

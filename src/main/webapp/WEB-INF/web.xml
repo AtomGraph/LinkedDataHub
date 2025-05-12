@@ -5,101 +5,95 @@
     version="5.0"
     id="linkeddatahub">
     <display-name>LinkedDataHub</display-name>
-    <description>The Knowledge Graph notebook</description>
+    <description>The low-code Knowledge Graph application platform</description>
     <!-- most of the following context-params can be set in docker-compose.yml (via conf/ROOT.xml) -->
     <context-param>
         <param-name>https://w3id.org/atomgraph/linkeddatahub/config#supportedLanguages</param-name>
         <param-value>en,es</param-value>
     </context-param>
     <context-param>
-        <param-name>https://w3id.org/atomgraph/linkeddatahub/config#maxImportThreads</param-name>
-        <param-value>10</param-value>
-    </context-param>
-    <context-param>
         <param-name>https://w3id.org/atomgraph/linkeddatahub/config#authCacheControl</param-name>
         <param-value>max-age=69</param-value>
     </context-param>
     <context-param>
-        <param-name>https://w3id.org/atomgraph/linkeddatahub/config#authQuery</param-name>
+        <param-name>https://w3id.org/atomgraph/linkeddatahub/config#documentTypeQuery</param-name>
         <param-value><![CDATA[
-PREFIX  rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-PREFIX  acl:  <http://www.w3.org/ns/auth/acl#>
-PREFIX  foaf: <http://xmlns.com/foaf/0.1/>
-PREFIX  sioc: <http://rdfs.org/sioc/ns#>
-
-DESCRIBE ?auth
-FROM <urn:x-arq:UnionGraph>
+PREFIX acl: <http://www.w3.org/ns/auth/acl#>
+            
+SELECT  ?Type
 WHERE
-  {   { ?auth  acl:mode  $Mode
-          { ?auth  acl:accessTo  $this }
-        UNION
-          {   { ?auth  acl:accessToClass  ?Type }
-            UNION
-              { ?auth  acl:accessToClass  ?Class .
-                ?Type (rdfs:subClassOf)* ?Class
-              }
-            SERVICE ?endpoint
-              {   { GRAPH $this
-                      { $this  a  ?Type }
-                  }
-                UNION
-                  { { GRAPH ?g
-                        { $this  a  <http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#FileDataObject> ;
-                                 a  ?Type
-                        }
-                    }
-                  }
-              }
+  {   { GRAPH $this
+          { $this
+                      a  ?Type
           }
-        {   { ?auth  acl:agent  $agent}
-          UNION
-            { ?auth   acl:agentGroup  ?Group .
-              ?Group  foaf:member     $agent
-            }
-        }
       }
     UNION
-      { ?auth  acl:mode  $Mode
-          { ?auth  acl:agentClass  foaf:Agent }
-        UNION
-          { ?auth  acl:agentClass  $AuthenticatedAgentClass }
-          { ?auth  acl:accessTo  $this }
-        UNION
-          {   { ?auth  acl:accessToClass  ?Type }
-            UNION
-              { ?auth  acl:accessToClass  ?Class .
-                ?Type (rdfs:subClassOf)* ?Class
-              }
-            SERVICE ?endpoint
-              {   { GRAPH $this
-                      { $this  a  ?Type }
-                  }
-                UNION
-                  { { GRAPH ?g
-                        { $this  a  <http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#FileDataObject> ;
-                                 a  ?Type
-                        }
-                    }
-                  }
-              }
-          }
+      { GRAPH ?g
+            { $this
+                        a  <http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#FileDataObject> ;
+                        a  ?Type
+            }
       }
   }
 ]]></param-value>
     </context-param>
     <context-param>
-        <param-name>https://w3id.org/atomgraph/linkeddatahub/config#ownerAuthQuery</param-name>
+        <param-name>https://w3id.org/atomgraph/linkeddatahub/config#documentOwnerQuery</param-name>
+        <param-value><![CDATA[
+PREFIX  acl:  <http://www.w3.org/ns/auth/acl#>
+
+SELECT  ?owner
+WHERE
+  { GRAPH $this
+      { $this  acl:owner  ?owner }
+  }
+]]></param-value>
+    </context-param> 
+    <context-param>
+        <param-name>https://w3id.org/atomgraph/linkeddatahub/config#aclQuery</param-name>
         <param-value><![CDATA[
 PREFIX  rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX  acl:  <http://www.w3.org/ns/auth/acl#>
 PREFIX  foaf: <http://xmlns.com/foaf/0.1/>
-PREFIX  sioc: <http://rdfs.org/sioc/ns#>
+
+DESCRIBE ?auth
+FROM <urn:x-arq:UnionGraph>
+WHERE
+  {
+    { ?auth  acl:agent  $agent }
+   UNION
+     { ?auth   acl:agentGroup  ?Group .
+       ?Group  foaf:member     $agent
+     }
+   UNION
+     { ?auth  acl:agentClass  foaf:Agent }
+   UNION
+     { ?auth  acl:agentClass  $AuthenticatedAgentClass }
+
+     ?auth  acl:mode  ?Mode .
+
+     { ?auth  acl:accessTo  $this }
+   UNION
+     {   { ?auth  acl:accessToClass  $Type }
+       UNION
+         { ?auth  acl:accessToClass  ?Class .
+           $Type (rdfs:subClassOf)* ?Class
+         }
+     }
+  }
+]]></param-value>
+    </context-param>
+    <context-param>
+        <param-name>https://w3id.org/atomgraph/linkeddatahub/config#ownerAclQuery</param-name>
+        <param-value><![CDATA[
+PREFIX  rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX  acl:  <http://www.w3.org/ns/auth/acl#>
+PREFIX  foaf: <http://xmlns.com/foaf/0.1/>
 
 DESCRIBE ?auth
 FROM <urn:x-arq:UnionGraph>
 WHERE
   {   { ?auth  acl:mode           acl:Control .
-        ?doc   foaf:primaryTopic  ?auth
           { ?auth  acl:agent  $agent }
         UNION
           { ?auth   acl:agentGroup  ?Group .
@@ -108,37 +102,29 @@ WHERE
       }
     UNION
       { ?auth  acl:agentClass  $AuthenticatedAgentClass ;
-               acl:mode        $Mode
+               acl:mode        ?Mode
           { ?auth  acl:accessTo  $this
-            OPTIONAL
-              { $this  a  ?Type }
           }
         UNION
-          { $this  a  ?Type
-              { ?auth  acl:accessToClass  ?Type }
-            UNION
-              { ?auth  acl:accessToClass  ?Class .
-                ?Type (rdfs:subClassOf)* ?Class
-              }
+          { ?auth  acl:accessToClass  $Type }
+        UNION
+          { ?auth  acl:accessToClass  ?Class .
+            $Type (rdfs:subClassOf)* ?Class
           }
       }
     UNION
       { ?auth  acl:agentClass  foaf:Agent ;
                acl:mode        acl:Read
           { ?auth  acl:accessTo  $this
-            OPTIONAL
-              { $this  a  ?Type }
           }
         UNION
-          { $this  a  ?Type
-              { ?auth  acl:accessToClass  ?Type }
-            UNION
-              { ?auth  acl:accessToClass  ?Class .
-                ?Type (rdfs:subClassOf)* ?Class
-              }
+          { ?auth  acl:accessToClass  $Type }
+        UNION
+          { ?auth  acl:accessToClass  ?Class .
+            $Type (rdfs:subClassOf)* ?Class
           }
         # only namespace, signup, OAuth2 login and WebID profiles can be public in admin app, nothing else
-        FILTER ( $this IN (uri(concat(str($base), "ns")), uri(concat(str($base), "sign%20up")), uri(concat(str($base), "oauth2/login")), uri(concat(str($base), "oauth2/authorize/google"))) || strstarts(str($this), concat(str($base), "acl/agents/")) || strstarts(str($this), concat(str($base), "acl/public-keys/")))
+        FILTER ( $this IN (uri(concat(str($base), "ns")), uri(concat(str($base), "sign%20up")), uri(concat(str($base), "oauth2/login")), uri(concat(str($base), "oauth2/authorize/google")), uri(concat(str($base), "transform"))) || strstarts(str($this), concat(str($base), "acl/agents/")) || strstarts(str($this), concat(str($base), "acl/public-keys/")))
       }
   }
 ]]></param-value>

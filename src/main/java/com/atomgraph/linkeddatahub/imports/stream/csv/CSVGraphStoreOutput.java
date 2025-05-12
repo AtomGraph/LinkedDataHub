@@ -16,15 +16,12 @@
  */
 package com.atomgraph.linkeddatahub.imports.stream.csv;
 
-import com.atomgraph.core.client.GraphStoreClient;
+import com.atomgraph.linkeddatahub.client.LinkedDataClient;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.univocity.parsers.csv.CsvParser;
 import com.univocity.parsers.csv.CsvParserSettings;
 import java.io.Reader;
-import java.util.function.Function;
 import org.apache.jena.query.Query;
-import org.apache.jena.rdf.model.Model;
-import org.apache.jena.rdf.model.Resource;
 
 /**
  * RDF output stream.
@@ -49,22 +46,21 @@ public class CSVGraphStoreOutput // extends com.atomgraph.etl.csv.stream.CSVStre
      * 
      * @param service SPARQL service of the application
      * @param adminService SPARQL service of the admin application
-     * @param graphStoreClient GSP client for RDF results
+     * @param ldc Linked Data client
+     * @param base base URI
      * @param reader CSV reader
-     * @param base application base URI
      * @param query <code>CONSTRUCT</code> transformation query
-     * @param createGraph function that derives graph URI from a document model
      * @param delimiter CSV delimiter
      * @param maxCharsPerColumn max number of characters per column
      */
-    public CSVGraphStoreOutput(Service service, Service adminService, GraphStoreClient graphStoreClient, Reader reader, String base, Query query, Function<Model, Resource> createGraph, char delimiter, Integer maxCharsPerColumn)
+    public CSVGraphStoreOutput(Service service, Service adminService, LinkedDataClient ldc, String base, Reader reader, Query query, char delimiter, Integer maxCharsPerColumn)
     {
         this.base = base;
         this.reader = reader;
         this.query = query;
         this.delimiter = delimiter;
         this.maxCharsPerColumn = maxCharsPerColumn;
-        this.processor = new CSVGraphStoreRowProcessor(service, adminService, graphStoreClient, base, query, createGraph);
+        this.processor = new CSVGraphStoreRowProcessor(service, adminService, ldc, base, query);
         
         CsvParserSettings parserSettings = new CsvParserSettings();
         parserSettings.setLineSeparatorDetectionEnabled(true);

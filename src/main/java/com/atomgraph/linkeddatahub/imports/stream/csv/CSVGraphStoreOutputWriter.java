@@ -16,7 +16,7 @@
  */
 package com.atomgraph.linkeddatahub.imports.stream.csv;
 
-import com.atomgraph.core.client.GraphStoreClient;
+import com.atomgraph.linkeddatahub.client.LinkedDataClient;
 import com.atomgraph.linkeddatahub.model.Service;
 import java.io.File;
 import java.io.FileInputStream;
@@ -32,8 +32,6 @@ import java.util.function.Function;
 import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.Response;
 import org.apache.jena.query.Query;
-import org.apache.jena.rdf.model.Model;
-import org.apache.jena.rdf.model.Resource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,10 +48,9 @@ public class CSVGraphStoreOutputWriter implements Function<Response, CSVGraphSto
     private static final Logger log = LoggerFactory.getLogger(CSVGraphStoreOutputWriter.class);
 
     private final Service service, adminService;
-    private final GraphStoreClient graphStoreClient;
+    private final LinkedDataClient ldc;
     private final String baseURI;
     private final Query query;
-    private final Function<Model, Resource> createGraph;
     private final char delimiter;
     
     /**
@@ -61,20 +58,18 @@ public class CSVGraphStoreOutputWriter implements Function<Response, CSVGraphSto
      * 
      * @param service SPARQL service of the application
      * @param adminService SPARQL service of the admin application
-     * @param graphStoreClient GSP client
+     * @param ldc Linked Data client
      * @param baseURI base URI
      * @param query transformation query
-     * @param createGraph function that derives graph URI from a document model
      * @param delimiter CSV delimiter
      */
-    public CSVGraphStoreOutputWriter(Service service, Service adminService, GraphStoreClient graphStoreClient, String baseURI, Query query, Function<Model, Resource> createGraph, char delimiter)
+    public CSVGraphStoreOutputWriter(Service service, Service adminService, LinkedDataClient ldc,  String baseURI, Query query, char delimiter)
     {
         this.service = service;
         this.adminService = adminService;
-        this.graphStoreClient = graphStoreClient;
+        this.ldc = ldc;
         this.baseURI = baseURI;
         this.query = query;
-        this.createGraph = createGraph;
         this.delimiter = delimiter;
     }
     
@@ -94,7 +89,7 @@ public class CSVGraphStoreOutputWriter implements Function<Response, CSVGraphSto
             
             try (InputStream fis = new FileInputStream(tempFile); Reader reader = new InputStreamReader(fis, StandardCharsets.UTF_8))
             {
-                CSVGraphStoreOutput output = new CSVGraphStoreOutput(getService(), getAdminService(), getGraphStoreClient(), reader, getBaseURI(), getQuery(), getCreateGraph(), getDelimiter(), null);
+                CSVGraphStoreOutput output = new CSVGraphStoreOutput(getService(), getAdminService(), getLinkedDataClient(), getBaseURI(), reader, getQuery(), getDelimiter(), null);
                 output.write();
                 return output;
             }
@@ -131,13 +126,13 @@ public class CSVGraphStoreOutputWriter implements Function<Response, CSVGraphSto
     }
     
     /**
-     * Returns the Graph Store Protocol client.
+     * Returns the Linked Data client.
      * 
-     * @return client
+     * @return client object
      */
-    public GraphStoreClient getGraphStoreClient()
+    public LinkedDataClient getLinkedDataClient()
     {
-        return graphStoreClient;
+        return ldc;
     }
     
     /**
@@ -168,16 +163,6 @@ public class CSVGraphStoreOutputWriter implements Function<Response, CSVGraphSto
     public char getDelimiter()
     {
         return delimiter;
-    }
-    
-    /**
-     * Returns function that is used to create graph names (URIs).
-     * 
-     * @return function
-     */
-    public Function<Model, Resource> getCreateGraph()
-    {
-        return createGraph;
     }
     
 }

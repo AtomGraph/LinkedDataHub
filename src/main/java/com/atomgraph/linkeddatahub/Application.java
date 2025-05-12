@@ -66,7 +66,7 @@ import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.writer.factory.xslt.XsltExecutableSupplier;
 import com.atomgraph.linkeddatahub.writer.factory.XsltExecutableSupplierFactory;
 import com.atomgraph.client.util.XsltResolver;
-import com.atomgraph.core.client.LinkedDataClient;
+import com.atomgraph.linkeddatahub.client.LinkedDataClient;
 import com.atomgraph.linkeddatahub.client.filter.ClientUriRewriteFilter;
 import com.atomgraph.linkeddatahub.imports.ImportExecutor;
 import com.atomgraph.linkeddatahub.io.HtmlJsonLDReaderFactory;
@@ -97,19 +97,16 @@ import com.atomgraph.server.mapper.ConfigurationExceptionMapper;
 import com.atomgraph.linkeddatahub.server.factory.OntologyFactory;
 import com.atomgraph.linkeddatahub.server.factory.ServiceFactory;
 import com.atomgraph.linkeddatahub.server.filter.request.OntologyFilter;
-import com.atomgraph.linkeddatahub.server.filter.request.MultipartRDFPostCleanupFilter;
 import com.atomgraph.linkeddatahub.server.filter.request.AuthorizationFilter;
 import com.atomgraph.linkeddatahub.server.filter.request.auth.IDTokenFilter;
 import com.atomgraph.linkeddatahub.server.filter.request.ContentLengthLimitFilter;
 import com.atomgraph.linkeddatahub.server.filter.request.auth.ProxiedWebIDFilter;
-import com.atomgraph.linkeddatahub.server.filter.response.ResponseHeaderFilter;
+import com.atomgraph.linkeddatahub.server.filter.response.ResponseHeadersFilter;
 import com.atomgraph.linkeddatahub.server.filter.response.BackendInvalidationFilter;
 import com.atomgraph.linkeddatahub.server.filter.response.XsltExecutableFilter;
-import com.atomgraph.linkeddatahub.server.interceptor.RDFPostCleanupInterceptor;
-import com.atomgraph.linkeddatahub.server.interceptor.UpdateRequestCleanupInterceptor;
+import com.atomgraph.linkeddatahub.server.interceptor.RDFPostMediaTypeInterceptor;
 import com.atomgraph.linkeddatahub.server.mapper.auth.oauth2.TokenExpiredExceptionMapper;
 import com.atomgraph.linkeddatahub.server.model.impl.Dispatcher;
-import com.atomgraph.linkeddatahub.server.model.impl.GraphStoreImpl;
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
 import com.atomgraph.linkeddatahub.server.security.AuthorizationContext;
 import com.atomgraph.linkeddatahub.server.util.MessageBuilder;
@@ -207,20 +204,22 @@ import net.sf.saxon.s9api.XsltCompiler;
 import net.sf.saxon.s9api.XsltExecutable;
 import nu.xom.XPathException;
 import org.apache.http.HttpClientConnection;
-import org.apache.http.HttpResponse;
+import org.apache.http.HttpHost;
+import org.apache.http.client.HttpRequestRetryHandler;
 import org.apache.http.config.Registry;
 import org.apache.http.config.RegistryBuilder;
-import org.apache.http.conn.ConnectionKeepAliveStrategy;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
 import org.apache.http.conn.socket.PlainConnectionSocketFactory;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.protocol.HttpContext;
+import org.apache.http.protocol.HttpCoreContext;
 import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.ResIterator;
 import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.riot.resultset.ResultSetLang;
 import org.apache.jena.riot.system.ErrorHandlerFactory;
 import org.apache.jena.riot.system.ParserProfile;
 import org.apache.jena.riot.system.RiotLib;
@@ -234,6 +233,7 @@ import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.apache.connector.ApacheClientProperties;
 import org.glassfish.jersey.apache.connector.ApacheConnectorProvider;
 import org.glassfish.jersey.client.ClientProperties;
+import org.glassfish.jersey.client.RequestEntityProcessing;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.glassfish.jersey.process.internal.RequestScoped;
 import org.glassfish.jersey.server.ResourceConfig;
@@ -258,7 +258,7 @@ public class Application extends ResourceConfig
     private final Map<String, OntModelSpec> endUserOntModelSpecs;
     private final MediaTypes mediaTypes;
     private final Client client, externalClient, importClient, noCertClient;
-    private final Query authQuery, ownerAuthQuery, webIDQuery, agentQuery, userAccountQuery, ontologyQuery; // no relative URIs
+    private final Query documentTypeQuery, documentOwnerQuery, aclQuery, ownerAclQuery, webIDQuery, agentQuery, userAccountQuery, ontologyQuery; // no relative URIs
     private final Integer maxGetRequestSize;
     private final boolean preemptiveAuth;
     private final Processor xsltProc = new Processor(false);
@@ -294,7 +294,7 @@ public class Application extends ResourceConfig
      * @param servletConfig servlet config
      * @throws URISyntaxException throw on URI syntax errors
      * @throws MalformedURLException thrown on URL syntax errors
-     * @throws IOException thrown on I/O erros
+     * @throws IOException thrown on I/O errors
      */
     public Application(@Context ServletConfig servletConfig) throws URISyntaxException, MalformedURLException, IOException
     {
@@ -312,8 +312,10 @@ public class Application extends ResourceConfig
             servletConfig.getServletContext().getInitParameter(LDHC.secretaryCertAlias.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.secretaryCertAlias.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(LDHC.clientTrustStore.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.clientTrustStore.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(LDHC.clientTrustStorePassword.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.clientTrustStorePassword.getURI()) : null,
-            servletConfig.getServletContext().getInitParameter(LDHC.authQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.authQuery.getURI()) : null,
-            servletConfig.getServletContext().getInitParameter(LDHC.ownerAuthQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.ownerAuthQuery.getURI()) : null,
+            servletConfig.getServletContext().getInitParameter(LDHC.documentTypeQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.documentTypeQuery.getURI()) : null,
+            servletConfig.getServletContext().getInitParameter(LDHC.documentOwnerQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.documentOwnerQuery.getURI()) : null,
+            servletConfig.getServletContext().getInitParameter(LDHC.aclQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.aclQuery.getURI()) : null,
+            servletConfig.getServletContext().getInitParameter(LDHC.ownerAclQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.ownerAclQuery.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(LDHC.webIDQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.webIDQuery.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(LDHC.agentQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.agentQuery.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(LDHC.userAccountQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.userAccountQuery.getURI()) : null,
@@ -329,8 +331,7 @@ public class Application extends ResourceConfig
             servletConfig.getServletContext().getInitParameter(LDHC.maxContentLength.getURI()) != null ? Integer.valueOf(servletConfig.getServletContext().getInitParameter(LDHC.maxContentLength.getURI())) : null,
             servletConfig.getServletContext().getInitParameter(LDHC.maxConnPerRoute.getURI()) != null ? Integer.valueOf(servletConfig.getServletContext().getInitParameter(LDHC.maxConnPerRoute.getURI())) : null,
             servletConfig.getServletContext().getInitParameter(LDHC.maxTotalConn.getURI()) != null ? Integer.valueOf(servletConfig.getServletContext().getInitParameter(LDHC.maxTotalConn.getURI())) : null,
-            // TO-DO: respect "timeout" header param in the ConnectionKeepAliveStrategy?
-            servletConfig.getServletContext().getInitParameter(LDHC.importKeepAlive.getURI()) != null ? (HttpResponse response, HttpContext context) -> Integer.valueOf(servletConfig.getServletContext().getInitParameter(LDHC.importKeepAlive.getURI())) : null,
+            servletConfig.getServletContext().getInitParameter(LDHC.maxRequestRetries.getURI()) != null ? Integer.valueOf(servletConfig.getServletContext().getInitParameter(LDHC.maxRequestRetries.getURI())) : null,
             servletConfig.getServletContext().getInitParameter(LDHC.maxImportThreads.getURI()) != null ? Integer.valueOf(servletConfig.getServletContext().getInitParameter(LDHC.maxImportThreads.getURI())) : null,
             servletConfig.getServletContext().getInitParameter(LDHC.notificationAddress.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.notificationAddress.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(LDHC.supportedLanguages.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.supportedLanguages.getURI()) : null,
@@ -370,8 +371,10 @@ public class Application extends ResourceConfig
      * @param secretaryCertAlias alias of the secretary's certificate
      * @param clientTrustStoreURIString location of the client's truststore
      * @param clientTrustStorePassword client truststore's password
-     * @param authQueryString SPARQL string of the authorization query
-     * @param ownerAuthQueryString SPARQL string of the admin authorization query
+     * @param documentTypeQueryString SPARQL string of the document type query
+     * @param documentOwnerQueryString SPARQL string of the document owner query
+     * @param aclQueryString SPARQL string of the ACL query
+     * @param ownerAclQueryString SPARQL string of the owner's ACL query
      * @param webIDQueryString SPARQL string of the WebID validation query
      * @param agentQueryString SPARQL string of the <code>Agent</code> lookup query
      * @param userAccountQueryString SPARQL string of the <code>UserAccount</code> lookup query
@@ -387,7 +390,7 @@ public class Application extends ResourceConfig
      * @param maxContentLength maximum size of request entity
      * @param maxConnPerRoute maximum client connections per rout
      * @param maxTotalConn maximum total client connections
-     * @param importKeepAliveStrategy keep-alive strategy for the HTTP client used for imports
+     * @param maxRequestRetries maximum number of times that the HTTP client will retry a request
      * @param maxImportThreads maximum number of threads used for asynchronous imports
      * @param notificationAddressString email address used to send notifications
      * @param supportedLanguageCodes comma-separated codes of supported languages
@@ -406,11 +409,12 @@ public class Application extends ResourceConfig
             final String clientKeyStoreURIString, final String clientKeyStorePassword,
             final String secretaryCertAlias,
             final String clientTrustStoreURIString, final String clientTrustStorePassword,
-            final String authQueryString, final String ownerAuthQueryString, final String webIDQueryString, final String agentQueryString, final String userAccountQueryString, final String ontologyQueryString,
+            final String documentTypeQueryString, final String documentOwnerQueryString, final String aclQueryString, final String ownerAclQueryString,
+            final String webIDQueryString, final String agentQueryString, final String userAccountQueryString, final String ontologyQueryString,
             final String baseURIString, final String proxyScheme, final String proxyHostname, final Integer proxyPort,
             final String uploadRootString, final boolean invalidateCache,
             final Integer cookieMaxAge, final boolean enableLinkedDataProxy, final Integer maxContentLength,
-            final Integer maxConnPerRoute, final Integer maxTotalConn, final ConnectionKeepAliveStrategy importKeepAliveStrategy, final Integer maxImportThreads,
+            final Integer maxConnPerRoute, final Integer maxTotalConn, final Integer maxRequestRetries, final Integer maxImportThreads,
             final String notificationAddressString, final String supportedLanguageCodes, final boolean enableWebIDSignUp, final String oidcRefreshTokensPropertiesPath,
             final String mailUser, final String mailPassword, final String smtpHost, final String smtpPort,
             final String googleClientID, final String googleClientSecret)
@@ -433,19 +437,33 @@ public class Application extends ResourceConfig
             throw new ConfigurationException(LDHC.clientTrustStore);
         }
         
-        if (authQueryString == null)
+        if (documentTypeQueryString == null)
         {
-            if (log.isErrorEnabled()) log.error("Authentication SPARQL query is not configured properly");
-            throw new ConfigurationException(LDHC.authQuery);
+            if (log.isErrorEnabled()) log.error("Document type SPARQL query is not configured properly");
+            throw new ConfigurationException(LDHC.documentTypeQuery);
         }
-        this.authQuery = QueryFactory.create(authQueryString);
+        this.documentTypeQuery = QueryFactory.create(documentTypeQueryString);
+
+        if (documentOwnerQueryString == null)
+        {
+            if (log.isErrorEnabled()) log.error("Document owner SPARQL query is not configured properly");
+            throw new ConfigurationException(LDHC.documentOwnerQuery);
+        }
+        this.documentOwnerQuery = QueryFactory.create(documentOwnerQueryString);
         
-        if (ownerAuthQueryString == null)
+        if (aclQueryString == null)
         {
-            if (log.isErrorEnabled()) log.error("Owner authorization SPARQL query is not configured properly");
-            throw new ConfigurationException(LDHC.ownerAuthQuery);
+            if (log.isErrorEnabled()) log.error("ACL SPARQL query is not configured properly");
+            throw new ConfigurationException(LDHC.aclQuery);
         }
-        this.ownerAuthQuery = QueryFactory.create(ownerAuthQueryString);
+        this.aclQuery = QueryFactory.create(aclQueryString);
+        
+        if (ownerAclQueryString == null)
+        {
+            if (log.isErrorEnabled()) log.error("Owner's ACL SPARQL query is not configured properly");
+            throw new ConfigurationException(LDHC.ownerAclQuery);
+        }
+        this.ownerAclQuery = QueryFactory.create(ownerAclQueryString);
         
         if (webIDQueryString == null)
         {
@@ -578,6 +596,16 @@ public class Application extends ResourceConfig
         RDFLanguages.register(RDFLanguages.RDFPOST);
         RDFParserRegistry.registerLangTriples(RDFLanguages.RDFPOST, new RDFPostReaderFactory());
 
+        // register ResultSet languages until we start using Jena 5.x with https://github.com/apache/jena/pull/2510
+        RDFLanguages.register(ResultSetLang.RS_XML);
+        RDFLanguages.register(ResultSetLang.RS_JSON);
+        RDFLanguages.register(ResultSetLang.RS_CSV);
+        RDFLanguages.register(ResultSetLang.RS_TSV);
+        RDFLanguages.register(ResultSetLang.RS_Thrift);
+        RDFLanguages.register(ResultSetLang.RS_Protobuf);
+        // Not output-only text.
+        RDFLanguages.register(ResultSetLang.RS_None);
+        
         // add HTML/JSON-LD reader
         DocumentLoader documentLoader = new DocumentLoader();
         JsonLdOptions jsonLdOptions = new JsonLdOptions();
@@ -613,10 +641,18 @@ public class Application extends ResourceConfig
             trustStore = KeyStore.getInstance("JKS");
             trustStore.load(new FileInputStream(new java.io.File(new URI(clientTrustStoreURIString))), clientTrustStorePassword.toCharArray());
             
-            client = getClient(keyStore, clientKeyStorePassword, trustStore, maxConnPerRoute, maxTotalConn, null);
-            externalClient = getClient(keyStore, clientKeyStorePassword, trustStore, maxConnPerRoute, maxTotalConn, null);
-            importClient = getClient(keyStore, clientKeyStorePassword, trustStore, maxConnPerRoute, maxTotalConn, importKeepAliveStrategy);
-            noCertClient = getNoCertClient(trustStore, maxConnPerRoute, maxTotalConn);
+            client = getClient(keyStore, clientKeyStorePassword, trustStore, maxConnPerRoute, maxTotalConn, null, false);
+            externalClient = getClient(keyStore, clientKeyStorePassword, trustStore, maxConnPerRoute, maxTotalConn, null, false);
+            importClient = getClient(keyStore, clientKeyStorePassword, trustStore, maxConnPerRoute, maxTotalConn, maxRequestRetries, true);
+            noCertClient = getNoCertClient(trustStore, maxConnPerRoute, maxTotalConn, maxRequestRetries);
+            
+            if (maxContentLength != null)
+            {
+                client.register(new ContentLengthLimitFilter(maxContentLength));
+                externalClient.register(new ContentLengthLimitFilter(maxContentLength));
+                importClient.register(new ContentLengthLimitFilter(maxContentLength));
+                noCertClient.register(new ContentLengthLimitFilter(maxContentLength));
+            }
             
             if (proxyHostname != null)
             {
@@ -704,7 +740,6 @@ public class Application extends ResourceConfig
             xsltProc.registerExtensionFunction(new UUID());
             xsltProc.registerExtensionFunction(new DecodeURI());
             xsltProc.registerExtensionFunction(new com.atomgraph.linkeddatahub.writer.function.Construct(xsltProc));
-            xsltProc.registerExtensionFunction(new com.atomgraph.linkeddatahub.writer.function.Reserialize(xsltProc));
             xsltProc.registerExtensionFunction(new com.atomgraph.linkeddatahub.writer.function.SendHTTPRequest(xsltProc, client));
             
             Model mappingModel = locationMapper.toModel();
@@ -937,10 +972,8 @@ public class Application extends ResourceConfig
         register(ProxiedWebIDFilter.class);
         register(IDTokenFilter.class);
         register(AuthorizationFilter.class);
-        register(ContentLengthLimitFilter.class);
-        register(new RDFPostCleanupInterceptor()); // for application/x-www-form-urlencoded
-        register(new UpdateRequestCleanupInterceptor()); // for application/sparql-update
-        register(new MultipartRDFPostCleanupFilter()); // for multipart/form-data
+        if (getMaxContentLength() != null) register(new ContentLengthLimitFilter(getMaxContentLength()));
+        register(new RDFPostMediaTypeInterceptor()); // for application/x-www-form-urlencoded
     }
 
     /**
@@ -948,7 +981,7 @@ public class Application extends ResourceConfig
      */
     protected void registerContainerResponseFilters()
     {
-        register(new ResponseHeaderFilter());
+        register(new ResponseHeadersFilter());
         register(new XsltExecutableFilter());
         if (isInvalidateCache()) register(new BackendInvalidationFilter());
 //        register(new ProvenanceFilter());
@@ -1282,7 +1315,7 @@ public class Application extends ResourceConfig
      */
     public void submitImport(CSVImport csvImport, com.atomgraph.linkeddatahub.apps.model.Application app, Service service, Service adminService, String baseURI, LinkedDataClient ldc)
     {
-        new ImportExecutor(importThreadPool).start(service, adminService, baseURI, ldc, service.getGraphStoreClient(), GraphStoreImpl.CREATE_GRAPH, csvImport);
+        new ImportExecutor(importThreadPool).start(service, adminService, baseURI, ldc, csvImport);
     }
     
     /**
@@ -1297,7 +1330,7 @@ public class Application extends ResourceConfig
      */
     public void submitImport(RDFImport rdfImport, com.atomgraph.linkeddatahub.apps.model.Application app, Service service, Service adminService, String baseURI, LinkedDataClient ldc)
     {
-        new ImportExecutor(importThreadPool).start(service, adminService, baseURI, ldc, service.getGraphStoreClient(), rdfImport);
+        new ImportExecutor(importThreadPool).start(service, adminService, baseURI, ldc, rdfImport);
     }
     
     /**
@@ -1308,14 +1341,15 @@ public class Application extends ResourceConfig
      * @param trustStore truststore
      * @param maxConnPerRoute max connections per route
      * @param maxTotalConn max total connections
-     * @param keepAliveStrategy keep-alive strategy (specific to Apache HTTP client)
+     * @param maxRequestRetries maximum number of times that the HTTP client will retry a request
+     * @param buffered true if request entity should be buffered
      * @return client instance
      * @throws NoSuchAlgorithmException SSL algorithm error
      * @throws KeyStoreException keystore loading error
      * @throws UnrecoverableKeyException key loading error
      * @throws KeyManagementException key loading error
      */
-    public static Client getClient(KeyStore keyStore, String keyStorePassword, KeyStore trustStore, Integer maxConnPerRoute, Integer maxTotalConn, ConnectionKeepAliveStrategy keepAliveStrategy) throws NoSuchAlgorithmException, KeyStoreException, UnrecoverableKeyException, KeyManagementException
+    public static Client getClient(KeyStore keyStore, String keyStorePassword, KeyStore trustStore, Integer maxConnPerRoute, Integer maxTotalConn, Integer maxRequestRetries, boolean buffered) throws NoSuchAlgorithmException, KeyStoreException, UnrecoverableKeyException, KeyManagementException
     {
         if (keyStore == null) throw new IllegalArgumentException("KeyStore cannot be null");
         if (keyStorePassword == null) throw new IllegalArgumentException("KeyStore password string cannot be null");
@@ -1368,8 +1402,7 @@ public class Application extends ResourceConfig
         };
         if (maxConnPerRoute != null) conman.setDefaultMaxPerRoute(maxConnPerRoute);
         if (maxTotalConn != null) conman.setMaxTotal(maxTotalConn);
-//        if (log.isDebugEnabled()) client.addFilter(new LoggingFilter(System.out));
-
+        
         ClientConfig config = new ClientConfig();
         config.connectorProvider(new ApacheConnectorProvider());
         config.register(MultiPartFeature.class);
@@ -1379,8 +1412,28 @@ public class Application extends ResourceConfig
         config.register(new QueryProvider());
         config.register(new UpdateRequestProvider());
         config.property(ClientProperties.FOLLOW_REDIRECTS, true);
+        config.property(ClientProperties.REQUEST_ENTITY_PROCESSING, RequestEntityProcessing.BUFFERED); // https://stackoverflow.com/questions/42139436/jersey-client-throws-cannot-retry-request-with-a-non-repeatable-request-entity
         config.property(ApacheClientProperties.CONNECTION_MANAGER, conman);
-        if (keepAliveStrategy != null) config.property(ApacheClientProperties.KEEPALIVE_STRATEGY, keepAliveStrategy);
+        
+        if (maxRequestRetries != null)
+            config.property(ApacheClientProperties.RETRY_HANDLER, (HttpRequestRetryHandler) (IOException ex, int executionCount, HttpContext context) ->
+            {
+                // Extract the HTTP host from the context
+                HttpHost targetHost = (HttpHost)context.getAttribute(HttpCoreContext.HTTP_TARGET_HOST);
+                String serverName = targetHost != null ? targetHost.getHostName() : "Unknown";
+
+                if (executionCount > maxRequestRetries)
+                {
+                    if (log.isWarnEnabled()) log.warn("Maximum tries reached for client HTTP pool to server '{}'", serverName);
+                    return false;
+                }
+                if (ex instanceof org.apache.http.NoHttpResponseException)
+                {
+                    if (log.isWarnEnabled()) log.warn("No response from server '{}' on {} call", serverName, executionCount);
+                    return true;
+                }
+                return false;
+            });
 
         return ClientBuilder.newBuilder().
             withConfig(config).
@@ -1395,9 +1448,10 @@ public class Application extends ResourceConfig
      * @param trustStore client truststore
      * @param maxConnPerRoute max connections per route
      * @param maxTotalConn max total connections
+     * @param maxRequestRetries maximum number of times that the HTTP client will retry a request
      * @return client instance
      */
-    public static Client getNoCertClient(KeyStore trustStore, Integer maxConnPerRoute, Integer maxTotalConn)
+    public static Client getNoCertClient(KeyStore trustStore, Integer maxConnPerRoute, Integer maxTotalConn, Integer maxRequestRetries)
     {
         try
         {
@@ -1454,8 +1508,29 @@ public class Application extends ResourceConfig
             config.register(new QueryProvider());
             config.register(new UpdateRequestProvider()); // TO-DO: UpdateRequestProvider
             config.property(ClientProperties.FOLLOW_REDIRECTS, true);
+            config.property(ClientProperties.REQUEST_ENTITY_PROCESSING, RequestEntityProcessing.BUFFERED); // https://stackoverflow.com/questions/42139436/jersey-client-throws-cannot-retry-request-with-a-non-repeatable-request-entity
             config.property(ApacheClientProperties.CONNECTION_MANAGER, conman);
+            
+            if (maxRequestRetries != null)
+                config.property(ApacheClientProperties.RETRY_HANDLER, (HttpRequestRetryHandler) (IOException ex, int executionCount, HttpContext context) ->
+                {
+                    // Extract the HTTP host from the context
+                    HttpHost targetHost = (HttpHost)context.getAttribute(HttpCoreContext.HTTP_TARGET_HOST);
+                    String serverName = targetHost != null ? targetHost.getHostName() : "Unknown";
 
+                    if (executionCount > maxRequestRetries)
+                    {
+                        if (log.isWarnEnabled()) log.warn("Maximum tries reached for client HTTP pool to server '{}'", serverName);
+                        return false;
+                    }
+                    if (ex instanceof org.apache.http.NoHttpResponseException)
+                    {
+                        if (log.isWarnEnabled()) log.warn("No response from server '{}' on {} call", serverName, executionCount);
+                        return true;
+                    }
+                    return false;
+                });
+        
             return ClientBuilder.newBuilder().
                 withConfig(config).
                 sslContext(ctx).
@@ -1477,8 +1552,6 @@ public class Application extends ResourceConfig
             if ( log.isErrorEnabled()) log.error("Key management error: {}", ex);
             throw new IllegalStateException(ex);
         }
-        
-        //if (log.isDebugEnabled()) client.addFilter(new LoggingFilter(System.out));
     }
     
     /**
@@ -1595,14 +1668,36 @@ public class Application extends ResourceConfig
     }
     
     /**
+     * Returns the document type query.
+     * Used to retrieve the document type metadata.
+     * 
+     * @return query object
+     */
+    public Query getDocumentTypeQuery()
+    {
+        return documentTypeQuery.cloneQuery();
+    }
+
+    /**
+     * Returns the document owner query.
+     * Used to retrieve the document owner metadata.
+     * 
+     * @return query object
+     */
+    public Query getDocumentOwnerQuery()
+    {
+        return documentOwnerQuery.cloneQuery();
+    }
+    
+    /**
      * Returns the authorization query.
      * Used to check access to end-user apps.
      * 
      * @return query object
      */
-    public Query getAuthQuery()
+    public Query getACLQuery()
     {
-        return authQuery.cloneQuery();
+        return aclQuery.cloneQuery();
     }
     
     /**
@@ -1611,9 +1706,9 @@ public class Application extends ResourceConfig
      * 
      * @return query object
      */
-    public Query getOwnerAuthQuery()
+    public Query getOwnerACLQuery()
     {
-        return ownerAuthQuery.cloneQuery();
+        return ownerAclQuery.cloneQuery();
     }
     
     /**

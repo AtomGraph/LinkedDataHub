@@ -16,11 +16,9 @@ curl -k -w "%{http_code}\n" -o /dev/null -s \
   "$END_USER_BASE_URL" \
 | grep -q "$STATUS_FORBIDDEN"
 
-pushd . > /dev/null && cd "$SCRIPT_ROOT/admin/acl"
-
 # create group
 
-group_doc=$(./create-group.sh \
+group_doc=$(create-group.sh \
   -f "$OWNER_CERT_FILE" \
   -p "$OWNER_CERT_PWD" \
   -b "$ADMIN_BASE_URL" \
@@ -34,15 +32,11 @@ group=$(curl -s -k \
   | cat \
   | sed -rn "s/<${group_doc//\//\\/}> <http:\/\/xmlns.com\/foaf\/0.1\/primaryTopic> <(.*)> \./\1/p")
 
-popd > /dev/null
-
-pushd . > /dev/null && cd "$SCRIPT_ROOT"
-
 # create container
 
 slug="test"
 
-container=$(./create-container.sh \
+container=$(create-container.sh \
   -f "$OWNER_CERT_FILE" \
   -p "$OWNER_CERT_PWD" \
   -b "$END_USER_BASE_URL" \
@@ -50,13 +44,9 @@ container=$(./create-container.sh \
   --slug "$slug" \
   --parent "$END_USER_BASE_URL")
 
-popd > /dev/null
-
-pushd . > /dev/null && cd "$SCRIPT_ROOT/admin/acl"
-
 # create authorization
 
-./create-authorization.sh \
+create-authorization.sh \
   -f "$OWNER_CERT_FILE" \
   -p "$OWNER_CERT_PWD" \
   -b "$ADMIN_BASE_URL" \
@@ -64,8 +54,6 @@ pushd . > /dev/null && cd "$SCRIPT_ROOT/admin/acl"
   --agent-group "$group" \
   --to "$container" \
   --write
-
-popd > /dev/null
 
 # access is allowed after authorization is created
 

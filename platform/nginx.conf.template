@@ -48,7 +48,7 @@ http {
 
         location ^~ /static/ {
             proxy_pass http://linkeddatahub;
-            limit_req zone=static_files burst=20 nodelay;
+            limit_req zone=static_files burst=50 nodelay;
 
             add_header Cache-Control "public, max-age=604800, immutable";
         }

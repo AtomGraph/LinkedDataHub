@@ -10,6 +10,7 @@
     <!ENTITY spin   "http://spinrdf.org/spin#">
 ]>
 <xsl:stylesheet version="3.0"
+xmlns="http://www.w3.org/1999/xhtml"
 xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
 xmlns:ixsl="http://saxonica.com/ns/interactiveXSLT"
 xmlns:prop="http://saxonica.com/ns/html-property"
@@ -31,31 +32,6 @@ extension-element-prefixes="ixsl"
 exclude-result-prefixes="#all"
 >
 
-    <xsl:variable name="constructor-query" as="xs:string">
-        <![CDATA[
-            PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-            PREFIX sp:   <http://spinrdf.org/sp#>
-            PREFIX spin: <http://spinrdf.org/spin#>
-
-            SELECT  ?constructor ?construct
-            WHERE
-              { $Type (rdfs:subClassOf)*/spin:constructor  ?constructor .
-                ?constructor sp:text ?construct .
-              }
-        ]]>
-    </xsl:variable>
-    <xsl:variable name="shape-query" as="xs:string">
-        <![CDATA[
-            PREFIX  sh:   <http://www.w3.org/ns/shacl#>
-
-            DESCRIBE $Shape ?property
-            WHERE
-              { $Shape  sh:targetClass  $Type
-                OPTIONAL
-                  { $Shape  sh:property  ?property }
-              }
-        ]]>
-    </xsl:variable>
     <xsl:variable name="type-graph-query" as="xs:string">
         <![CDATA[
             SELECT DISTINCT  ?graph
@@ -110,7 +86,7 @@ exclude-result-prefixes="#all"
         
         <ixsl:set-style name="cursor" select="'progress'" object="."/>
 
-        <xsl:variable name="query-string" select="replace($constructor-query, '$Type', '&lt;' || $type || '&gt;', 'q')" as="xs:string"/>
+        <xsl:variable name="query-string" select="$constructor-query || ' VALUES $Type { &lt;' || $type || '&gt; }'" as="xs:string"/>
         <!-- ldh:query-result function does the same synchronously -->
         <xsl:variable name="results-uri" select="ac:build-uri(resolve-uri('ns', $ldt:base), map{ 'query': $query-string })" as="xs:anyURI"/>
         <xsl:variable name="request" as="item()*">
@@ -222,16 +198,15 @@ exclude-result-prefixes="#all"
                 <xsl:when test="$predicate">
                     <xsl:variable name="request-uri" select="ac:build-uri(resolve-uri('ns', $ldt:base), map{ 'query': 'DESCRIBE &lt;' || $predicate || '&gt;', 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
 
-                    <span>
-                        <xsl:apply-templates select="key('resources', $predicate, document($request-uri))" mode="ldh:Typeahead">
-                            <xsl:with-param name="class" select="'btn add-typeahead add-property-typeahead'"/>
-                        </xsl:apply-templates>
-                    </span>
+                    <xsl:apply-templates select="key('resources', $predicate, document($request-uri))" mode="ldh:Typeahead">
+                        <xsl:with-param name="class" select="'btn add-typeahead add-property-typeahead'"/>
+                    </xsl:apply-templates>
                 </xsl:when>
                 <xsl:otherwise>
                     <xsl:variable name="uuid" select="ixsl:call(ixsl:window(), 'generateUUID', [])" as="xs:string"/>
 
                     <xsl:call-template name="bs2:Lookup">
+                        <xsl:with-param name="forClass" select="xs:anyURI('&rdf;Property')"/>
                         <xsl:with-param name="class" select="'property-typeahead typeahead'"/>
                         <xsl:with-param name="id" select="'input-' || $uuid"/>
                         <xsl:with-param name="list-class" select="'property-typeahead typeahead dropdown-menu'"/>
@@ -240,7 +215,7 @@ exclude-result-prefixes="#all"
             </xsl:choose>
 
             <!-- used by typeahead to set $Type -->
-            <input type="hidden" class="forClass" value="&rdf;Property" autocomplete="off"/>
+            <!-- <input type="hidden" class="forClass" value="&rdf;Property" autocomplete="off"/> -->
         </label>
     </xsl:template>
     
@@ -250,7 +225,7 @@ exclude-result-prefixes="#all"
 
         <div class="controls">
             <div class="btn-group pull-right">
-                <button type="button" class="btn btn-small pull-right btn-remove-property">
+                <button type="button" class="btn btn-small pull-right btn-remove-property" tabindex="-1">
                     <xsl:attribute name="title">
                         <xsl:value-of>
                             <xsl:apply-templates select="key('resources', 'remove-stmt', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
@@ -392,29 +367,25 @@ exclude-result-prefixes="#all"
     <xsl:template name="ldh:ConstructorResourceObject">
         <xsl:param name="object-type" as="xs:anyURI?"/>
 
-        <span>
-            <xsl:choose>
-                <xsl:when test="$object-type">
-                    <xsl:variable name="request-uri" select="ac:build-uri(resolve-uri('ns', $ldt:base), map{ 'query': 'DESCRIBE &lt;' || $object-type || '&gt;', 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
+        <xsl:choose>
+            <xsl:when test="$object-type">
+                <xsl:variable name="request-uri" select="ac:build-uri(resolve-uri('ns', $ldt:base), map{ 'query': 'DESCRIBE &lt;' || $object-type || '&gt;', 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
 
-                    <xsl:apply-templates select="key('resources', $object-type, document($request-uri))" mode="ldh:Typeahead">
-                        <xsl:with-param name="class" select="'btn add-typeahead add-class-typeahead'"/>
-                    </xsl:apply-templates>
-                </xsl:when>
-                <xsl:otherwise>
-                    <xsl:variable name="uuid" select="ixsl:call(ixsl:window(), 'generateUUID', [])" as="xs:string"/>
+                <xsl:apply-templates select="key('resources', $object-type, document($request-uri))" mode="ldh:Typeahead">
+                    <xsl:with-param name="class" select="'btn add-typeahead add-class-typeahead'"/>
+                </xsl:apply-templates>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:variable name="uuid" select="ixsl:call(ixsl:window(), 'generateUUID', [])" as="xs:string"/>
 
-                    <xsl:call-template name="bs2:Lookup">
-                        <xsl:with-param name="class" select="'class-typeahead typeahead'"/>
-                        <xsl:with-param name="id" select="'input-' || $uuid"/>
-                        <xsl:with-param name="list-class" select="'class-typeahead typeahead dropdown-menu'"/>
-                    </xsl:call-template>
-                </xsl:otherwise>
-            </xsl:choose>
-        </span>
-        
-        <!-- used by typeahead to set $Type -->
-        <input type="hidden" class="forClass" value="&rdfs;Class" autocomplete="off"/>
+                <xsl:call-template name="bs2:Lookup">
+                    <xsl:with-param name="forClass" select="xs:anyURI('&rdfs;Class')"/>
+                    <xsl:with-param name="class" select="'class-typeahead typeahead'"/>
+                    <xsl:with-param name="id" select="'input-' || $uuid"/>
+                    <xsl:with-param name="list-class" select="'class-typeahead typeahead dropdown-menu'"/>
+                </xsl:call-template>
+            </xsl:otherwise>
+        </xsl:choose>
     </xsl:template>
     
     <!-- EVENT HANDLERS -->
@@ -519,7 +490,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="type" select="ancestor::form/@about" as="xs:anyURI"/> <!-- the URI of the class that constructors are attached to -->
         <xsl:variable name="query-string" select="replace($type-graph-query, '$Type', '&lt;' || $type || '&gt;', 'q')" as="xs:string"/>
         <xsl:variable name="results-uri" select="ac:build-uri(resolve-uri('admin/sparql', $ldt:base), map{ 'query': $query-string })" as="xs:anyURI"/>
-        <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), map{}, $results-uri)" as="xs:anyURI"/>
+        <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path($ldh:requestUri), map{}, $results-uri)" as="xs:anyURI"/>
 
         <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
 
@@ -588,7 +559,7 @@ exclude-result-prefixes="#all"
                     <xsl:variable name="update-string" select="replace($constructor-update-string, '$this', '&lt;' || $constructor-uri || '&gt;', 'q')" as="xs:string"/>
                     <xsl:variable name="update-string" select="replace($update-string, '$text', '&quot;&quot;&quot;' || $construct-string || '&quot;&quot;&quot;', 'q')" as="xs:string"/>
                     <!-- what if the constructor URI is not relative to the document URI? -->
-                    <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), map{}, ac:document-uri($constructor-uri))" as="xs:anyURI"/>
+                    <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path($ldh:requestUri), map{}, ac:document-uri($constructor-uri))" as="xs:anyURI"/>
                     <xsl:variable name="request" as="item()*">
                         <ixsl:schedule-action http-request="map{ 'method': 'PATCH', 'href': $request-uri, 'media-type': 'application/sparql-update', 'body': $update-string }">
                             <xsl:call-template name="onConstructorUpdate">
@@ -613,7 +584,7 @@ exclude-result-prefixes="#all"
         <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
 
         <xsl:choose>
-            <xsl:when test="?status = 200">
+            <xsl:when test="?status = (200, 204)">
                 <xsl:for-each select="$container">
                     <xsl:call-template name="ldh:CloseModal"/>
                 </xsl:for-each>
@@ -654,7 +625,7 @@ exclude-result-prefixes="#all"
                         <xsl:variable name="update-string" select="replace($constructor-insert-string, '$this', '&lt;' || $constructor-uri || '&gt;', 'q')" as="xs:string"/>
                         <xsl:variable name="update-string" select="replace($update-string, '$Type', '&lt;' || $type || '&gt;', 'q')" as="xs:string"/>
                         <!-- what if the constructor URI is not relative to the document URI? -->
-                        <xsl:variable name="request-uri" select="ldh:href($ldt:base, ldh:absolute-path(ldh:href()), map{}, ac:document-uri($constructor-uri))" as="xs:anyURI"/>
+                        <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path($ldh:requestUri), map{}, ac:document-uri($constructor-uri))" as="xs:anyURI"/>
                         <xsl:variable name="request" as="item()*">
                             <ixsl:schedule-action http-request="map{ 'method': 'PATCH', 'href': $request-uri, 'media-type': 'application/sparql-update', 'body': $update-string }">
                                 <xsl:call-template name="onConstructorAppend">

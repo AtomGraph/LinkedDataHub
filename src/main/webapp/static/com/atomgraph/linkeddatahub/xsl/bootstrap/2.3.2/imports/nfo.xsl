@@ -7,7 +7,8 @@
     <!ENTITY ldt    "https://www.w3.org/ns/ldt#">
     <!ENTITY nfo    "http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#">
 ]>
-<xsl:stylesheet version="2.0"
+<xsl:stylesheet version="3.0"
+xmlns="http://www.w3.org/1999/xhtml"
 xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
 xmlns:xhtml="http://www.w3.org/1999/xhtml"
 xmlns:xs="http://www.w3.org/2001/XMLSchema"
@@ -25,7 +26,7 @@ exclude-result-prefixes="#all">
         <xsl:apply-templates select="key('resources', 'file', document('../translations.rdf'))" mode="#current"/>
     </xsl:template>
 
-    <xsl:template match="*[@rdf:*[local-name() = 'nodeID']]/nfo:fileName/@rdf:*[local-name() = 'nodeID'][key('resources', .)[not(* except rdf:type[@rdf:resource = '&xsd;string'])]]" mode="bs2:FormControl">
+    <xsl:template match="nfo:fileName/@rdf:nodeID[key('resources', .)[not(* except rdf:type[@rdf:resource = '&xsd;string'])]]" mode="bs2:FormControl">
         <xsl:param name="id" select="generate-id()" as="xs:string"/>
         <xsl:param name="class" as="xs:string?"/>
         <xsl:param name="accept" as="xs:string?"/>
@@ -50,7 +51,7 @@ exclude-result-prefixes="#all">
         </xsl:next-match>
     </xsl:template>
 
-    <xsl:template match="*[@rdf:*[local-name() = 'nodeID']]/nfo:fileName/@rdf:*[local-name() = 'nodeID'][key('resources', .)[not(* except rdf:type[@rdf:resource = '&xsd;string'])]]" mode="bs2:FormControlTypeLabel">
+    <xsl:template match="nfo:fileName/@rdf:nodeID[key('resources', .)[not(* except rdf:type[@rdf:resource = '&xsd;string'])]]" mode="bs2:FormControlTypeLabel">
         <xsl:param name="type" as="xs:string?"/>
 
         <xsl:if test="not($type = 'hidden')">

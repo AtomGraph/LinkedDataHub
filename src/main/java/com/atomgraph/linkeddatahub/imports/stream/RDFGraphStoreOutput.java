@@ -16,11 +16,17 @@
  */
 package com.atomgraph.linkeddatahub.imports.stream;
 
-import com.atomgraph.core.client.GraphStoreClient;
+import com.atomgraph.linkeddatahub.client.LinkedDataClient;
 import com.atomgraph.linkeddatahub.model.Service;
+import com.atomgraph.linkeddatahub.server.exception.ImportException;
 import java.io.InputStream;
 import jakarta.ws.rs.client.Client;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.MultivaluedHashMap;
+import jakarta.ws.rs.core.MultivaluedMap;
 import jakarta.ws.rs.core.Response;
+import java.io.IOException;
+import java.net.URI;
 import org.apache.jena.query.Dataset;
 import org.apache.jena.query.Query;
 import org.apache.jena.query.QueryExecution;
@@ -30,6 +36,8 @@ import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
 import org.glassfish.jersey.uri.UriComponent;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Reads RDF from input stream and writes it into a named graph.
@@ -40,8 +48,10 @@ import org.glassfish.jersey.uri.UriComponent;
 public class RDFGraphStoreOutput
 {
 
+    private static final Logger log = LoggerFactory.getLogger(RDFGraphStoreOutput.class);
+
     private final Service service, adminService;
-    private final GraphStoreClient graphStoreClient;
+    private final LinkedDataClient ldc;
     private final String base;
     private final InputStream is;
     private final Query query;
@@ -53,18 +63,18 @@ public class RDFGraphStoreOutput
      * 
      * @param service SPARQL service of the application
      * @param adminService SPARQL service of the admin application
-     * @param graphStoreClient GSP client for RDF results
+     * @param ldc Linked Data client for RDF results
      * @param is RDF input stream
      * @param base base URI
      * @param query <code>CONSTRUCT</code> transformation query or null
      * @param lang RDF language
      * @param graphURI named graph URI
      */
-    public RDFGraphStoreOutput(Service service, Service adminService, GraphStoreClient graphStoreClient, InputStream is, String base, Query query, Lang lang, String graphURI)
+    public RDFGraphStoreOutput(Service service, Service adminService, LinkedDataClient ldc, InputStream is, String base, Query query, Lang lang, String graphURI)
     {
         this.service = service;
         this.adminService = adminService;
-        this.graphStoreClient = graphStoreClient;
+        this.ldc = ldc;
         this.is = is;
         this.base = base;
         this.query = query;
@@ -76,6 +86,7 @@ public class RDFGraphStoreOutput
      * Reads RDF and writes (possibly transformed) RDF into a named graph.
      * The input is transformed if the SPARQL transformation query was provided.
      * Extended SPARQL syntax is used to allow the <code>CONSTRUCT GRAPH</code> query form.
+     * The default graph output is ignored.
      */
     public void write()
     {
@@ -90,12 +101,43 @@ public class RDFGraphStoreOutput
 
                 dataset.listNames().forEachRemaining(graphUri ->
                     {
-                         // exceptions get swallowed by the client! TO-DO: wait for completion
-                        if (!dataset.getNamedModel(graphUri).isEmpty()) getGraphStoreClient().add(graphUri, dataset.getNamedModel(graphUri));
+                        Model namedModel = dataset.getNamedModel(graphUri);
                         
-                        // purge cache entries that include the graph URI
-                        if (getService().getBackendProxy() != null) ban(getService().getClient(), getService().getBackendProxy(), graphUri).close();
-                        if (getAdminService() != null && getAdminService().getBackendProxy() != null) ban(getAdminService().getClient(), getAdminService().getBackendProxy(), graphUri).close();
+                        if (!namedModel.isEmpty())
+                        {
+                            // <code>If-None-Match</code> used with the <code>*</code> value can be used to save a file only if it does not already exist,
+                            // guaranteeing that the upload won't accidentally overwrite another upload and lose the data of the previous <code>PUT</code>
+                            // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/If-None-Match
+                            MultivaluedMap<String, Object> headers = new MultivaluedHashMap();
+                            headers.putSingle(HttpHeaders.IF_NONE_MATCH, "*");
+                            
+                            try (Response putResponse = getLinkedDataClient().put(URI.create(graphUri), namedModel, headers))
+                            {
+                                if (putResponse.getStatusInfo().equals(Response.Status.PRECONDITION_FAILED))
+                                {
+                                    try (Response postResponse = getLinkedDataClient().post(URI.create(graphUri), namedModel))
+                                    {                                
+                                        if (!postResponse.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
+                                        {
+                                            if (log.isErrorEnabled()) log.error("RDF document with URI <{}> could not be successfully created using PUT. Status code: {}", graphUri, postResponse.getStatus());
+                                            throw new ImportException(new IOException("RDF document with URI <" + graphUri + "> could not be successfully created using PUT. Status code: " + postResponse.getStatus()));
+                                        }
+                                    }
+                                }
+                                else
+                                {
+                                    if (!putResponse.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
+                                    {
+                                        if (log.isErrorEnabled()) log.error("RDF document with URI <{}> could not be successfully created using PUT. Status code: {}", graphUri, putResponse.getStatus());
+                                        throw new ImportException(new IOException("RDF document with URI <" + graphUri + "> could not be successfully created using PUT. Status code: " + putResponse.getStatus()));
+                                    }
+                                }
+                            }
+                        
+                            // purge cache entries that include the graph URI
+                            if (getService().getBackendProxy() != null) ban(getService().getClient(), getService().getBackendProxy(), graphUri).close();
+                            if (getAdminService() != null && getAdminService().getBackendProxy() != null) ban(getAdminService().getClient(), getAdminService().getBackendProxy(), graphUri).close();
+                        }
                     }
                 );
             }
@@ -104,8 +146,35 @@ public class RDFGraphStoreOutput
         {
             if (getGraphURI() == null) throw new IllegalStateException("Neither RDFImport query nor graph name is specified");
             
-            getGraphStoreClient().add(getGraphURI(), model); // exceptions get swallowed by the client! TO-DO: wait for completion
-            
+            // <code>If-None-Match</code> used with the <code>*</code> value can be used to save a file only if it does not already exist,
+            // guaranteeing that the upload won't accidentally overwrite another upload and lose the data of the previous <code>PUT</code>
+            // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/If-None-Match
+            MultivaluedMap<String, Object> headers = new MultivaluedHashMap();
+            headers.putSingle(HttpHeaders.IF_NONE_MATCH, "*");
+
+            try (Response putResponse = getLinkedDataClient().put(URI.create(getGraphURI()), model, headers))
+            {
+                if (putResponse.getStatusInfo().equals(Response.Status.PRECONDITION_FAILED))
+                {
+                    try (Response postResponse = getLinkedDataClient().post(URI.create(getGraphURI()), model))
+                    {
+                        if (!postResponse.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
+                        {
+                            if (log.isErrorEnabled()) log.error("RDF document with URI <{}> could not be successfully created using PUT. Status code: {}", getGraphURI(), postResponse.getStatus());
+                            throw new ImportException(new IOException("RDF document with URI <" + getGraphURI() + "> could not be successfully created using PUT. Status code: " + postResponse.getStatus()));
+                        }
+                    }
+                }
+                else
+                {
+                    if (!putResponse.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
+                    {
+                        if (log.isErrorEnabled()) log.error("RDF document with URI <{}> could not be successfully created using PUT. Status code: {}", getGraphURI(), putResponse.getStatus());
+                        throw new ImportException(new IOException("RDF document with URI <" + getGraphURI() + "> could not be successfully created using PUT. Status code: " + putResponse.getStatus()));
+                    }
+                }
+            }
+                
             // purge cache entries that include the graph URI
             if (getService().getBackendProxy() != null) ban(getService().getClient(), getService().getBackendProxy(), getGraphURI()).close();
             if (getAdminService() != null && getAdminService().getBackendProxy() != null) ban(getAdminService().getClient(), getAdminService().getBackendProxy(), getGraphURI()).close();
@@ -153,13 +222,13 @@ public class RDFGraphStoreOutput
     }
     
     /**
-     * Returns Graph Store Protocol client.
+     * Returns Linked Data client.
      * 
-     * @return GSP client
+     * @return client object
      */
-    public GraphStoreClient getGraphStoreClient()
+    public LinkedDataClient getLinkedDataClient()
     {
-        return graphStoreClient;
+        return ldc;
     }
     
     /**

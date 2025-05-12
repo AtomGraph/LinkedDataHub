@@ -1,4 +1,14 @@
-version: "2.3"
+secrets:
+  owner_cert_password:
+    file: ./secrets/owner_cert_password.txt
+  secretary_cert_password:
+    file: ./secrets/secretary_cert_password.txt
+  client_truststore_password:
+    file: ./secrets/client_truststore_password.txt
+  #google_client_id:
+  #  file: ./secrets/google_client_id.txt
+  #google_client_secret:
+  #  file: ./secrets/google_client_secret.txt
 services:
   nginx:
     image: nginx:1.23.3
@@ -29,6 +39,10 @@ services:
   linkeddatahub:
     user: root # otherwise the ldh user does not have permissions to the mounted folder which is owner by root
     build: .
+    mem_limit: 2048m
+    depends_on:
+      - fuseki-admin
+      - fuseki-end-user
     environment:
     #  - JPDA_ADDRESS=*:8000 # debugger host - performance hit when enabled
       - CATALINA_OPTS=-XX:+UseContainerSupport -XX:MaxRAMPercentage=75 --add-exports java.base/sun.security.tools.keytool=ALL-UNNAMED # heap will use up to 75% of container's RAM
@@ -46,31 +60,42 @@ services:
       - HTTP_REDIRECT_PORT=${HTTPS_PORT}
       - HTTPS_PROXY_PORT=${HTTPS_PORT}
       - HTTPS=false
-      - CLIENT_KEYSTORE_PASSWORD=${SECRETARY_CERT_PASSWORD}
-      - CLIENT_TRUSTSTORE_PASSWORD=LinkedDataHub
       - SELF_SIGNED_CERT=true # only on localhost
       - SIGN_UP_CERT_VALIDITY=180
-      - IMPORT_KEEPALIVE=1200000
       - MAX_CONTENT_LENGTH=2097152
       - NOTIFICATION_ADDRESS=LinkedDataHub <notifications@localhost>
       - MAIL_SMTP_HOST=email-server
       - MAIL_SMTP_PORT=25
       - MAIL_USER=linkeddatahub@localhost
       - OWNER_MBOX=${OWNER_MBOX}
-      # - GOOGLE_CLIENT_ID=
-      # - GOOGLE_CLIENT_SECRET=
+      #- OWNER_URI=${OWNER_URI}
+      - OWNER_GIVEN_NAME=${OWNER_GIVEN_NAME}
+      - OWNER_FAMILY_NAME=${OWNER_FAMILY_NAME}
+      - OWNER_ORG_UNIT=${OWNER_ORG_UNIT}
+      - OWNER_ORGANIZATION=${OWNER_ORGANIZATION}
+      - OWNER_LOCALITY=${OWNER_LOCALITY}
+      - OWNER_STATE_OR_PROVINCE=${OWNER_STATE_OR_PROVINCE}
+      - OWNER_COUNTRY_NAME=${OWNER_COUNTRY_NAME}
+    secrets:
+      - owner_cert_password
+      - secretary_cert_password
+      - client_truststore_password
+      #- google_client_id
+      #- google_client_secret
     volumes:
       - /var/linkeddatahub/oidc
       - ./ssl/server:/var/linkeddatahub/ssl/server:ro
-      - ./ssl/owner/public.pem:/var/linkeddatahub/ssl/owner/public.pem:ro
-      - ./ssl/secretary:/var/linkeddatahub/ssl/secretary:ro
+      - ./ssl/owner:/var/linkeddatahub/ssl/owner
+      - ./ssl/secretary:/var/linkeddatahub/ssl/secretary
+      - ./datasets/owner:/var/linkeddatahub/datasets/owner
+      - ./datasets/secretary:/var/linkeddatahub/datasets/secretary
       - ./uploads:/var/www/linkeddatahub/uploads
       - ./config/dev.log4j.properties:/usr/local/tomcat/webapps/ROOT/WEB-INF/classes/log4j.properties:ro
       - ./config/system-varnish.trig:/var/linkeddatahub/datasets/system.trig:ro
       - ./platform/datasets/admin.trig:/var/linkeddatahub/datasets/admin.trig:ro
       - ./platform/datasets/end-user.trig:/var/linkeddatahub/datasets/end-user.trig:ro
   fuseki-admin:
-    image: atomgraph/fuseki:4.6.1
+    image: atomgraph/fuseki:4.7.0
     user: root # otherwise fuseki user does not have permissions to the mounted folder which is owner by root
     expose:
       - 3030
@@ -79,7 +104,7 @@ services:
       - ./data/admin:/fuseki/databases
     command: [ "--config", "/fuseki/config.ttl" ]
   fuseki-end-user:
-    image: atomgraph/fuseki:4.6.1
+    image: atomgraph/fuseki:4.7.0
     user: root # otherwise the fuseki user does not have permissions to the mounted folder which is owner by root
     expose:
       - 3030
@@ -97,12 +122,12 @@ services:
       - VARNISH_HTTP_PORT=6060
       - BACKEND_HOST=linkeddatahub
       - BACKEND_PORT=7070
-      - CLIENT_HOST=linkeddatahub
-      - VARNISH_TTL=86400
+      - CLIENT_HOST=localhost
       - VARNISH_SIZE=1G
-    entrypoint: /bin/sh -c "cp /etc/varnish/default.vcl.template /etc/varnish/default.vcl && sed -i 's|$${BACKEND_HOST}|'"$$BACKEND_HOST"'|g' /etc/varnish/default.vcl && sed -i 's|$${BACKEND_PORT}|'"$$BACKEND_PORT"'|g' /etc/varnish/default.vcl && sed -i 's|$${CLIENT_HOST}|'"$$CLIENT_HOST"'|g' /etc/varnish/default.vcl && /usr/local/bin/docker-varnish-entrypoint"
+    entrypoint: /bin/sh -c "cp /etc/varnish/default.vcl.template /etc/varnish/default.vcl && sed -i 's|$${BACKEND_HOST}|'"$$BACKEND_HOST"'|g' /etc/varnish/default.vcl && sed -i 's|$${BACKEND_PORT}|'"$$BACKEND_PORT"'|g' /etc/varnish/default.vcl && sed -i 's|$${CLIENT_HOST}|'"$$CLIENT_HOST"'|g' /etc/varnish/default.vcl && /usr/local/bin/docker-varnish-entrypoint \"$$0\" \"$$@\""
+    command: [ "-t", "86400" ] # time to live
     volumes:
-      - ./platform/varnish.vcl.template:/etc/varnish/default.vcl.template:ro
+      - ./platform/varnish-frontend.vcl.template:/etc/varnish/default.vcl.template:ro
   varnish-admin:
     image: varnish:7.3.0
     user: root # otherwise the varnish user does not have permissions to the mounted folder which is owner by root
@@ -113,11 +138,11 @@ services:
       - BACKEND_HOST=fuseki-admin
       - BACKEND_PORT=3030
       - CLIENT_HOST=linkeddatahub
-      - VARNISH_TTL=86400
       - VARNISH_SIZE=1G
-    entrypoint: /bin/sh -c "cp /etc/varnish/default.vcl.template /etc/varnish/default.vcl && sed -i 's|$${BACKEND_HOST}|'"$$BACKEND_HOST"'|g' /etc/varnish/default.vcl && sed -i 's|$${BACKEND_PORT}|'"$$BACKEND_PORT"'|g' /etc/varnish/default.vcl && sed -i 's|$${CLIENT_HOST}|'"$$CLIENT_HOST"'|g' /etc/varnish/default.vcl && /usr/local/bin/docker-varnish-entrypoint"
+    entrypoint: /bin/sh -c "cp /etc/varnish/default.vcl.template /etc/varnish/default.vcl && sed -i 's|$${BACKEND_HOST}|'"$$BACKEND_HOST"'|g' /etc/varnish/default.vcl && sed -i 's|$${BACKEND_PORT}|'"$$BACKEND_PORT"'|g' /etc/varnish/default.vcl && sed -i 's|$${CLIENT_HOST}|'"$$CLIENT_HOST"'|g' /etc/varnish/default.vcl && /usr/local/bin/docker-varnish-entrypoint \"$$0\" \"$$@\""
+    command: [ "-t", "86400", "-p", "timeout_idle=60s" ] # time to live
     volumes:
-      - ./platform/varnish.vcl.template:/etc/varnish/default.vcl.template:ro
+      - ./platform/varnish-backend.vcl.template:/etc/varnish/default.vcl.template:ro
   varnish-end-user:
     image: varnish:7.3.0
     user: root # otherwise varnish user does not have permissions to the mounted folder which is owner by root
@@ -128,11 +153,11 @@ services:
       - BACKEND_HOST=fuseki-end-user
       - BACKEND_PORT=3030
       - CLIENT_HOST=linkeddatahub
-      - VARNISH_TTL=86400
       - VARNISH_SIZE=1G
-    entrypoint: /bin/sh -c "cp /etc/varnish/default.vcl.template /etc/varnish/default.vcl && sed -i 's|$${BACKEND_HOST}|'"$$BACKEND_HOST"'|g' /etc/varnish/default.vcl && sed -i 's|$${BACKEND_PORT}|'"$$BACKEND_PORT"'|g' /etc/varnish/default.vcl && sed -i 's|$${CLIENT_HOST}|'"$$CLIENT_HOST"'|g' /etc/varnish/default.vcl && /usr/local/bin/docker-varnish-entrypoint"
+    entrypoint: /bin/sh -c "cp /etc/varnish/default.vcl.template /etc/varnish/default.vcl && sed -i 's|$${BACKEND_HOST}|'"$$BACKEND_HOST"'|g' /etc/varnish/default.vcl && sed -i 's|$${BACKEND_PORT}|'"$$BACKEND_PORT"'|g' /etc/varnish/default.vcl && sed -i 's|$${CLIENT_HOST}|'"$$CLIENT_HOST"'|g' /etc/varnish/default.vcl && /usr/local/bin/docker-varnish-entrypoint \"$$0\" \"$$@\""
+    command: [ "-t", "86400", "-p", "timeout_idle=60s" ] # time to live
     volumes:
-      - ./platform/varnish.vcl.template:/etc/varnish/default.vcl.template:ro
+      - ./platform/varnish-backend.vcl.template:/etc/varnish/default.vcl.template:ro
   email-server:
     image: namshi/smtp
     environment:

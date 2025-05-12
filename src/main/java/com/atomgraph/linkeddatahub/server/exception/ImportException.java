@@ -16,8 +16,6 @@
  */
 package com.atomgraph.linkeddatahub.server.exception;
 
-import org.apache.jena.rdf.model.Model;
-
 /**
  * Exception thrown when data import terminates unexpectedly.
  * 
@@ -26,29 +24,14 @@ import org.apache.jena.rdf.model.Model;
 public class ImportException extends RuntimeException
 {
     
-    /** Import model */
-    private final Model model;
-    
     /**
      * Constructs exception.
      * 
-     * @param message error message
-     * @param model import model
+     * @param ex error
      */
-    public ImportException(String message, Model model)
+    public ImportException(Throwable ex)
     {
-        super(message);
-        this.model = model;
-    }
-    
-    /**
-     * Returns the import model.
-     * 
-     * @return RDF model
-     */
-    public Model getModel()
-    {
-        return model;
+        super(ex);
     }
     
 }

@@ -92,7 +92,6 @@ public class Add extends GraphStoreImpl // TO-DO: does not need to extend GraphS
         super(request, uriInfo, mediaTypes, application, ontology, service, securityContext, agentContext, providers, system);
     }
     
-
     @GET
     @Override
     public Response get(@QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUri)
@@ -137,7 +136,6 @@ public class Add extends GraphStoreImpl // TO-DO: does not need to extend GraphS
      */
     @POST
     @Consumes(MediaType.MULTIPART_FORM_DATA)
-    @Override
     public Response postMultipart(FormDataMultiPart multiPart, @QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUri)
     {
         if (log.isDebugEnabled()) log.debug("MultiPart fields: {} body parts: {}", multiPart.getFields(), multiPart.getBodyParts());

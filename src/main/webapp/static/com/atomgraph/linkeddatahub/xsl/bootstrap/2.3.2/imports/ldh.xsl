@@ -6,8 +6,10 @@
     <!ENTITY rdfs   "http://www.w3.org/2000/01/rdf-schema#">
     <!ENTITY xsd    "http://www.w3.org/2001/XMLSchema#">
     <!ENTITY ldt    "https://www.w3.org/ns/ldt#">
+    <!ENTITY dh     "https://www.w3.org/ns/ldt/document-hierarchy#">
 ]>
-<xsl:stylesheet version="2.0"
+<xsl:stylesheet version="3.0"
+xmlns="http://www.w3.org/1999/xhtml"
 xmlns:xhtml="http://www.w3.org/1999/xhtml"
 xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
 xmlns:xs="http://www.w3.org/2001/XMLSchema"
@@ -19,7 +21,9 @@ xmlns:ldt="&ldt;"
 xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
 exclude-result-prefixes="#all">
     
-    <!-- override the value of ldh:chartType with a dropdown of ac:Chart subclasses (currently in the APL vocabulary) -->
+    <!-- FORM CONTROL MODE -->
+    
+    <!-- override the value of ldh:chartType with a dropdown of ac:Chart subclasses (currently in the LDH vocabulary) -->
     <xsl:template match="ldh:chartType/@rdf:resource | ldh:chartType/@rdf:nodeID" mode="bs2:FormControl">
         <xsl:param name="type-label" select="true()" as="xs:boolean"/>
         <xsl:variable name="value" select="." as="xs:string"/>

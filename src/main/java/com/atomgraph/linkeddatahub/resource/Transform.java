@@ -23,6 +23,7 @@ import com.atomgraph.linkeddatahub.client.LinkedDataClient;
 import com.atomgraph.linkeddatahub.imports.QueryLoader;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.server.io.ValidatingModelProvider;
+import com.atomgraph.linkeddatahub.server.model.impl.GraphStoreImpl;
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
 import com.atomgraph.linkeddatahub.vocabulary.NFO;
 import com.atomgraph.spinrdf.vocabulary.SPIN;
@@ -64,7 +65,7 @@ import org.slf4j.LoggerFactory;
  * 
  * @author {@literal Martynas Jusevičius <martynas@atomgraph.com>}
  */
-public class Transform extends Add
+public class Transform extends GraphStoreImpl
 {
 
     private static final Logger log = LoggerFactory.getLogger(Transform.class);
@@ -144,7 +145,6 @@ public class Transform extends Add
      */
     @POST
     @Consumes(MediaType.MULTIPART_FORM_DATA)
-    @Override
     public Response postMultipart(FormDataMultiPart multiPart, @QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUri)
     {
         if (log.isDebugEnabled()) log.debug("MultiPart fields: {} body parts: {}", multiPart.getFields(), multiPart.getBodyParts());
@@ -177,7 +177,6 @@ public class Transform extends Add
      * @param fileNameBodyPartMap parts of the multipart request
      * @return response response
      */
-    @Override
     public Response postFileBodyPart(Model model, Map<String, FormDataBodyPart> fileNameBodyPartMap)
     {
         if (model == null) throw new IllegalArgumentException("Model cannot be null");
@@ -220,6 +219,26 @@ public class Transform extends Add
         finally
         {
             resIt.close();
+        }
+    }
+    
+    /**
+     * Forwards <code>POST</code> request to a graph.
+     * 
+     * @param entity request entity
+     * @param graphURI the graph URI
+     * @return JAX-RS response
+     */
+    protected Response forwardPost(Entity entity, String graphURI)
+    {
+        LinkedDataClient ldc = LinkedDataClient.create(getSystem().getClient(), getSystem().getMediaTypes()).
+            delegation(getUriInfo().getBaseUri(), getAgentContext().orElse(null));
+        // forward the stream to the named graph document. Buffer the entity first so that the server response is not returned before the client response completes
+        try (Response response = ldc.post(URI.create(graphURI), ldc.getReadableMediaTypes(Model.class), entity))
+        {
+            return Response.status(response.getStatus()).
+                entity(response.readEntity(Model.class)).
+                build();
         }
     }
     

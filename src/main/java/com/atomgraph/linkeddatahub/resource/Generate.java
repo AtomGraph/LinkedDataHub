@@ -139,7 +139,7 @@ public class Generate extends GraphStoreImpl
                     createContainer(containerModel,
                         containerGraphURI, parent,
                         cls.getLocalName() + "s",
-                        createContent(containerModel, createContainerSelect(containerModel,
+                        createView(containerModel, createContainerSelect(containerModel,
                             "Select " + cls.getLocalName(),
                             pss.asQuery(),
                             service)));
@@ -215,11 +215,11 @@ public class Generate extends GraphStoreImpl
      * @param query query resource
      * @return content resource
      */
-    public Resource createContent(Model model, Resource query)
+    public Resource createView(Model model, Resource query)
     {
         return model.createResource().
-            addProperty(RDF.type, LDH.Content).
-            addProperty(RDF.value, query);
+            addProperty(RDF.type, LDH.View).
+            addProperty(SPIN.query, query);
     }
     
     /** 

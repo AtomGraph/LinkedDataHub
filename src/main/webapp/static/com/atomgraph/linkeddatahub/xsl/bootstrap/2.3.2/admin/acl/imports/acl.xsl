@@ -16,7 +16,8 @@
     <!ENTITY sioc   "http://rdfs.org/sioc/ns#">
     <!ENTITY dct    "http://purl.org/dc/terms/">
 ]>
-<xsl:stylesheet version="2.0"
+<xsl:stylesheet version="3.0"
+xmlns="http://www.w3.org/1999/xhtml"
 xmlns:xhtml="http://www.w3.org/1999/xhtml"
 xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
 xmlns:xs="http://www.w3.org/2001/XMLSchema"
@@ -61,9 +62,9 @@ exclude-result-prefixes="#all">
 
     <xsl:template match="acl:mode[position() &gt; 1]" mode="bs2:FormControl" priority="2"/>
 
-    <xsl:template match="*[lacl:requestAccessTo/@rdf:resource]" mode="bs2:Block" priority="1">
+    <xsl:template match="*[rdf:type/@rdf:resource = '&lacl;AuthorizationRequest']" priority="1">
         <xsl:param name="method" select="'post'" as="xs:string"/>
-        <xsl:param name="action" select="ac:build-uri($a:graphStore, map{ 'forClass': '&acl;Authorization' })" as="xs:anyURI"/>
+        <xsl:param name="action" select="ldh:href($ldt:base, resolve-uri(ac:uuid() || '/', resolve-uri('acl/authorizations/', $ldt:base)), map{ '_method': 'PUT' })" as="xs:anyURI"/> <!-- create new authorization document -->
         <xsl:param name="id" select="concat('form-', generate-id())" as="xs:string?"/>
         <xsl:param name="class" select="'form-horizontal'" as="xs:string?"/>
         <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
@@ -99,7 +100,8 @@ exclude-result-prefixes="#all">
                 <xsl:with-param name="name" select="'rdf'"/>
                 <xsl:with-param name="type" select="'hidden'"/>
             </xsl:call-template>
-
+            
+            <!-- acl:Authorization instance -->
             <xsl:call-template name="xhtml:Input">
                 <xsl:with-param name="name" select="'sb'"/>
                 <xsl:with-param name="value" select="'auth'"/>
@@ -183,9 +185,10 @@ exclude-result-prefixes="#all">
                 <xsl:with-param name="type" select="'hidden'"/>
             </xsl:call-template>
 
+            <!-- dh:Item document -->
             <xsl:call-template name="xhtml:Input">
-                <xsl:with-param name="name" select="'sb'"/>
-                <xsl:with-param name="value" select="'auth-item'"/>
+                <xsl:with-param name="name" select="'su'"/>
+                <xsl:with-param name="value" select="''"/>
                 <xsl:with-param name="type" select="'hidden'"/>
             </xsl:call-template>
             <xsl:call-template name="xhtml:Input">
@@ -196,16 +199,6 @@ exclude-result-prefixes="#all">
             <xsl:call-template name="xhtml:Input">
                 <xsl:with-param name="name" select="'ou'"/>
                 <xsl:with-param name="value" select="'&dh;Item'"/> <!-- Item class URI -->
-                <xsl:with-param name="type" select="'hidden'"/>
-            </xsl:call-template>
-            <xsl:call-template name="xhtml:Input">
-                <xsl:with-param name="name" select="'pu'"/>
-                <xsl:with-param name="value" select="'&sioc;has_container'"/>
-                <xsl:with-param name="type" select="'hidden'"/>
-            </xsl:call-template>
-            <xsl:call-template name="xhtml:Input">
-                <xsl:with-param name="name" select="'ou'"/>
-                <xsl:with-param name="value" select="resolve-uri('acl/authorizations/', $ldt:base)"/>
                 <xsl:with-param name="type" select="'hidden'"/>
             </xsl:call-template>
             <xsl:call-template name="xhtml:Input">
