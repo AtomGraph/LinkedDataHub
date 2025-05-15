@@ -549,7 +549,7 @@ LIMIT   100
     
     <!-- check if agent has access to the user endpoint by executing a dummy query ASK {} -->
     <xsl:template match="rdf:RDF[doc-available(resolve-uri('sparql?query=ASK%20%7B%7D', $ldt:base))] | srx:sparql[doc-available(resolve-uri('sparql?query=ASK%20%7B%7D', $ldt:base))]" mode="bs2:SearchBar" priority="1">
-        <form action="" method="get" class="navbar-form pull-left" accept-charset="UTF-8" title="{ac:label(key('resources', 'search-title', document('translations.rdf')))}">
+        <form action="{ac:absolute-path($ldh:requestUri)}" method="get" class="navbar-form pull-left" accept-charset="UTF-8" title="{ac:label(key('resources', 'search-title', document('translations.rdf')))}">
             <div class="input-append">
                 <select id="search-service" name="service">
                     <option value="">
