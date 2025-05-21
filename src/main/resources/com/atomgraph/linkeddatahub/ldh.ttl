@@ -91,6 +91,11 @@
     rdfs:label "Series variable name" ;
     rdfs:isDefinedBy : .
 
+:template a owl:ObjectProperty ;
+    rdfs:domain rdfs:Class ;
+    rdfs:label "Class-level content block" ;
+    rdfs:isDefinedBy : .
+
 # CLASSES
 
 # constructor
@@ -473,6 +478,11 @@ ORDER BY ?title
 """ ;
     rdfs:isDefinedBy : .
 
+:ChildrenView a :View ;
+    rdfs:label "Children view" ;
+    spin:query :SelectChildren ;
+    rdfs:isDefinedBy : .
+
 # CLIENT TERMS. TO-DO: move to a separate Web-Client ontology?
 
 ac:Chart a rdfs:Class, owl:Class ;
@@ -566,31 +576,14 @@ dh:Item spin:constructor :TitleConstructor, :DescriptionConstructor, :PrimaryTop
         WHERE {}""" ;
     rdfs:isDefinedBy : .
 
-:ChildrenViewContructor a :Constructor ;
-    rdfs:label "Container content constructor" ;
-    sp:text """
-        PREFIX ldh:     <https://w3id.org/atomgraph/linkeddatahub#>
-        PREFIX rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-        PREFIX spin:    <http://spinrdf.org/spin#>
-
-        CONSTRUCT {
-            $this rdf:_1 [ a ldh:Object ;
-                rdf:value [
-                    a ldh:View ;
-                    spin:query ldh:SelectChildren
-                ]
-            ] .
-        }
-        WHERE {}""" ;
-    rdfs:isDefinedBy : .
-
 :MissingContainer a :MissingPropertyValue ;
     rdfs:label "Missing container" ;
     rdfs:comment "Requires items to have a parent container" ;
     sp:arg1 sioc:has_container ;
     rdfs:isDefinedBy : .
 
-dh:Container spin:constructor :TitleConstructor, :DescriptionConstructor, :PrimaryTopicConstructor, :ChildrenViewContructor .
+dh:Container spin:constructor :TitleConstructor, :DescriptionConstructor, :PrimaryTopicConstructor ;
+    :template :ChildrenView .
 
 :MissingParent a :MissingPropertyValue ;
     rdfs:label "Missing parent" ;

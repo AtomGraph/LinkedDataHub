@@ -916,7 +916,6 @@ extension-element-prefixes="ixsl"
             </xsl:perform-sort>
         </xsl:variable>
 
-        <xsl:variable name="this" select="@rdf:about" as="xs:anyURI"/>
         <xsl:for-each select="$predicates[@rdf:resource]"> <!-- do not iterate $predicates/@rdf:resource sequence as it will be sorted differently -->
             <xsl:apply-templates select="key('resources', @rdf:resource)" mode="bs2:Row"/>
         </xsl:for-each>
