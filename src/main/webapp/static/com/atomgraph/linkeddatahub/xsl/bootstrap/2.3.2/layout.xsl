@@ -549,7 +549,7 @@ LIMIT   100
     
     <!-- check if agent has access to the user endpoint by executing a dummy query ASK {} -->
     <xsl:template match="rdf:RDF[doc-available(resolve-uri('sparql?query=ASK%20%7B%7D', $ldt:base))] | srx:sparql[doc-available(resolve-uri('sparql?query=ASK%20%7B%7D', $ldt:base))]" mode="bs2:SearchBar" priority="1">
-        <form action="" method="get" class="navbar-form pull-left" accept-charset="UTF-8" title="{ac:label(key('resources', 'search-title', document('translations.rdf')))}">
+        <form action="{ac:absolute-path($ldh:requestUri)}" method="get" class="navbar-form pull-left" accept-charset="UTF-8" title="{ac:label(key('resources', 'search-title', document('translations.rdf')))}">
             <div class="input-append">
                 <select id="search-service" name="service">
                     <option value="">
@@ -805,7 +805,7 @@ LIMIT   100
         <xsl:param name="typeof" select="key('resources', ac:absolute-path(ldh:base-uri(.)))/rdf:type/@rdf:resource/xs:anyURI(.)" as="xs:anyURI*"/>
         <xsl:param name="doc-types" select="key('resources', ac:absolute-path(ldh:base-uri(.)))/rdf:type/@rdf:resource[ . = ('&def;Root', '&dh;Container', '&dh;Item')]" as="xs:anyURI*"/>
         <!-- take care not to load unnecessary documents over HTTP when $doc-types is empty -->
-        <xsl:param name="block-values" select="if (exists($doc-types)) then (if (doc-available(resolve-uri('ns?query=ASK%20%7B%7D', $ldt:base))) then (ldh:query-result(map{}, resolve-uri('ns', $ldt:base), $template-query || ' VALUES $Type { ' || string-join(for $type in $doc-types return '&lt;' || $type || '&gt;', ' ') || ' }')//srx:binding[@name = 'content']/srx:uri/xs:anyURI(.)) else ()) else ()" as="xs:anyURI*"/>
+        <xsl:param name="block-values" select="if (exists($doc-types)) then (if (doc-available(resolve-uri('ns?query=ASK%20%7B%7D', $ldt:base))) then (ldh:query-result(map{}, resolve-uri('ns', $ldt:base), $template-query || ' VALUES $Type { ' || string-join(for $type in $doc-types return '&lt;' || $type || '&gt;', ' ') || ' }')//srx:binding[@name = 'block']/srx:uri/xs:anyURI(.)) else ()) else ()" as="xs:anyURI*"/>
         <xsl:param name="has-content" select="key('resources', key('resources', ac:absolute-path(ldh:base-uri(.)))/rdf:*[starts-with(local-name(), '_')]/@rdf:resource) or exists($block-values)" as="xs:boolean"/>
 
         <div>
@@ -829,7 +829,7 @@ LIMIT   100
             </xsl:apply-templates>
 
             <xsl:choose>
-                <!-- error responses always rendered in bs2:Block mode, no matter what $ac:mode specifies -->
+                <!-- error responses always rendered in bs2:Row mode, no matter what $ac:mode specifies -->
                 <xsl:when test="key('resources-by-type', '&http;Response') and not(key('resources-by-type', '&spin;ConstraintViolation')) and not(key('resources-by-type', '&sh;ValidationResult'))">
                     <xsl:apply-templates select="." mode="bs2:Row">
                         <xsl:with-param name="template-query" select="$template-query" tunnel="yes"/>
@@ -838,13 +838,13 @@ LIMIT   100
                 </xsl:when>
                 <!-- check if the current document has content or its class has content -->
                 <xsl:when test="(empty($ac:mode) and $has-content) or $ac:mode = '&ldh;ContentMode'">
-                    <xsl:apply-templates select="." mode="ldh:ContentList"/>
-
                     <xsl:for-each select="$block-values">
                         <xsl:if test="doc-available(ac:document-uri(.))">
                             <xsl:apply-templates select="key('resources', ., document(ac:document-uri(.)))" mode="bs2:Row"/>
                         </xsl:if>
                     </xsl:for-each>
+
+                    <xsl:apply-templates select="." mode="ldh:ContentList"/>
                 </xsl:when>
                 <xsl:when test="$ac:mode = '&ac;MapMode'">
                     <xsl:apply-templates select="." mode="bs2:Map">
