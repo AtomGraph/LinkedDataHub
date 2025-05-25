@@ -675,7 +675,7 @@ exclude-result-prefixes="#all"
         <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
     </xsl:template>
     
-    <!-- save query onclick -->
+    <!-- save chart onclick -->
     <!-- TO-DO: use @typeof in match so that we don't need a custom button.btn-save-chart class -->
     
     <xsl:template match="div[@typeof]//button[contains-token(@class, 'btn-save-chart')]" mode="ixsl:onclick">
