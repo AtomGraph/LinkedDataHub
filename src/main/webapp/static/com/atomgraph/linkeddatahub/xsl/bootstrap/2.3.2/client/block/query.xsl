@@ -43,17 +43,9 @@ exclude-result-prefixes="#all"
         <xsl:attribute name="class" select="concat($class, ' ', 'btn-run-query')"/>
     </xsl:template>
     
-   <!-- identity transform -->
-   
-    <xsl:template match="@* | node()" mode="ldh:SetQueryString">
-        <xsl:copy>
-            <xsl:apply-templates select="@* | node()" mode="#current"/>
-        </xsl:copy>
-    </xsl:template>
-    
     <!-- set query string -->
 
-    <xsl:template match="sp:text/text()" mode="ldh:SetQueryString" priority="1">
+    <xsl:template match="sp:text/text()" mode="ldh:Identity" priority="1">
         <xsl:param name="query-string" as="xs:string" tunnel="yes"/>
 
         <xsl:sequence select="$query-string"/>
@@ -467,7 +459,7 @@ exclude-result-prefixes="#all"
 
         <!-- replace the query string (sp:text value) on the query resource -->
         <xsl:variable name="query" as="element()">
-            <xsl:apply-templates select="$query" mode="ldh:SetQueryString">
+            <xsl:apply-templates select="$query" mode="ldh:Identity">
                 <xsl:with-param name="query-string" select="$query-string" tunnel="yes"/>
             </xsl:apply-templates>
         </xsl:variable>
