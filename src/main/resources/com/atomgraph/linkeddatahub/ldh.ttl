@@ -576,14 +576,29 @@ dh:Item spin:constructor :TitleConstructor, :DescriptionConstructor, :PrimaryTop
         WHERE {}""" ;
     rdfs:isDefinedBy : .
 
+:ChildrenViewContructor a :Constructor ;
+    rdfs:label "Container content constructor" ;
+    sp:text """
+        PREFIX ldh:     <https://w3id.org/atomgraph/linkeddatahub#>
+        PREFIX rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+        PREFIX spin:    <http://spinrdf.org/spin#>
+
+        CONSTRUCT {
+            $this rdf:_1 [
+                a ldh:Object ;
+                rdf:value ldh:ChildrenView ;
+            ] .
+        }
+        WHERE {}""" ;
+    rdfs:isDefinedBy : .
+
 :MissingContainer a :MissingPropertyValue ;
     rdfs:label "Missing container" ;
     rdfs:comment "Requires items to have a parent container" ;
     sp:arg1 sioc:has_container ;
     rdfs:isDefinedBy : .
 
-dh:Container spin:constructor :TitleConstructor, :DescriptionConstructor, :PrimaryTopicConstructor ;
-    :template :ChildrenView .
+dh:Container spin:constructor :TitleConstructor, :DescriptionConstructor, :PrimaryTopicConstructor, :ChildrenViewContructor .
 
 :MissingParent a :MissingPropertyValue ;
     rdfs:label "Missing parent" ;

@@ -805,8 +805,10 @@ LIMIT   100
         <xsl:param name="typeof" select="key('resources', ac:absolute-path(ldh:base-uri(.)))/rdf:type/@rdf:resource/xs:anyURI(.)" as="xs:anyURI*"/>
         <xsl:param name="doc-types" select="key('resources', ac:absolute-path(ldh:base-uri(.)))/rdf:type/@rdf:resource[ . = ('&def;Root', '&dh;Container', '&dh;Item')]" as="xs:anyURI*"/>
         <!-- take care not to load unnecessary documents over HTTP when $doc-types is empty -->
-        <xsl:param name="block-values" select="if (exists($doc-types)) then (if (doc-available(resolve-uri('ns?query=ASK%20%7B%7D', $ldt:base))) then (ldh:query-result(map{}, resolve-uri('ns', $ldt:base), $template-query || ' VALUES $Type { ' || string-join(for $type in $doc-types return '&lt;' || $type || '&gt;', ' ') || ' }')//srx:binding[@name = 'block']/srx:uri/xs:anyURI(.)) else ()) else ()" as="xs:anyURI*"/>
-        <xsl:param name="has-content" select="key('resources', key('resources', ac:absolute-path(ldh:base-uri(.)))/rdf:*[starts-with(local-name(), '_')]/@rdf:resource) or exists($block-values)" as="xs:boolean"/>
+        <xsl:param name="template-block-uris" select="if (exists($doc-types)) then (if (doc-available(resolve-uri('ns?query=ASK%20%7B%7D', $ldt:base))) then (ldh:query-result(map{}, resolve-uri('ns', $ldt:base), $template-query || ' VALUES $Type { ' || string-join(for $type in $doc-types return '&lt;' || $type || '&gt;', ' ') || ' }')//srx:binding[@name = 'block']/srx:uri/xs:anyURI(.)) else ()) else ()" as="xs:anyURI*"/>
+        <xsl:param name="block-uris" select="key('resources', ac:absolute-path(ldh:base-uri(.)))/rdf:*[starts-with(local-name(), '_')]/@rdf:resource" as="xs:anyURI*"/>
+        <!-- document has content when either explicitly declared document-level blocks exist or template-declared class-level blocks exist -->
+        <xsl:param name="has-content" select="exists(for $block-uri in $block-uris return (if (doc-available(ac:document-uri($block-uri))) then key('resources', $block-uri, document(ac:document-uri($block-uri))) else ())) or exists($template-block-uris)" as="xs:boolean"/>
 
         <div>
             <xsl:if test="$id">
@@ -838,7 +840,7 @@ LIMIT   100
                 </xsl:when>
                 <!-- check if the current document has content or its class has content -->
                 <xsl:when test="(empty($ac:mode) and $has-content) or $ac:mode = '&ldh;ContentMode'">
-                    <xsl:for-each select="$block-values">
+                    <xsl:for-each select="$template-block-uris">
                         <xsl:if test="doc-available(ac:document-uri(.))">
                             <xsl:apply-templates select="key('resources', ., document(ac:document-uri(.)))" mode="bs2:Row"/>
                         </xsl:if>

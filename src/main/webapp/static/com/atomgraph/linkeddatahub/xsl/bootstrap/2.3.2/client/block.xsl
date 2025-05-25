@@ -115,6 +115,14 @@ exclude-result-prefixes="#all"
 
     <!-- TEMPLATES -->
 
+    <!-- identity transform -->
+   
+    <xsl:template match="@* | node()" mode="ldh:Identity">
+        <xsl:copy>
+            <xsl:apply-templates select="@* | node()" mode="#current"/>
+        </xsl:copy>
+    </xsl:template>
+    
     <!-- render row -->
     
     <xsl:template match="*" mode="ldh:RenderRow" as="(function(item()?) as map(*))?">
