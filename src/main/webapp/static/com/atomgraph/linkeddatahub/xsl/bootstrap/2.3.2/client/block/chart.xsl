@@ -39,6 +39,54 @@ exclude-result-prefixes="#all"
 
     <!-- TEMPLATES -->
     
+    <!-- set chart properties -->
+
+    <xsl:template match="ldh:chartType | ldh:categoryVarName | ldh:categoryProperty | ldh:seriesVarName | ldh:seriesProperty" mode="ldh:Identity" priority="1"/>
+
+    <xsl:template match="*[rdf:type/@rdf:resource = '&ldh;ResultSetChart']" mode="ldh:Identity" priority="1">
+        <xsl:param name="chart-type" as="xs:anyURI" tunnel="yes"/>
+        <xsl:param name="category" as="xs:string?" tunnel="yes"/>
+        <xsl:param name="series" as="xs:string*" tunnel="yes"/>
+
+        <xsl:copy>
+            <xsl:apply-templates select="@* | node()" mode="#current"/>
+            
+            <xsl:for-each select="$chart-type">
+                <ldh:chartType rdf:resource="{.}"/>
+            </xsl:for-each>
+            <xsl:for-each select="$category">
+                <ldh:categoryVarName>
+                    <xsl:value-of select="."/>
+                </ldh:categoryVarName>
+            </xsl:for-each>
+            <xsl:for-each select="$series">
+                <ldh:seriesVarName>
+                    <xsl:value-of select="."/>
+                </ldh:seriesVarName>
+            </xsl:for-each>
+        </xsl:copy>
+    </xsl:template>
+    
+    <xsl:template match="*[rdf:type/@rdf:resource = '&ldh;GraphChart']" mode="ldh:Identity" priority="1">
+        <xsl:param name="chart-type" as="xs:anyURI" tunnel="yes"/>
+        <xsl:param name="category" as="xs:string?" tunnel="yes"/>
+        <xsl:param name="series" as="xs:string*" tunnel="yes"/>
+
+        <xsl:copy>
+            <xsl:apply-templates select="@* | node()" mode="#current"/>
+
+            <xsl:for-each select="$chart-type">
+                <ldh:chartType rdf:resource="{.}"/>
+            </xsl:for-each>
+            <xsl:for-each select="$category">
+                <ldh:categoryProperty rdf:resource="{.}"/>
+            </xsl:for-each>
+            <xsl:for-each select="$series">
+                <ldh:seriesProperty rdf:resource="{.}"/>
+            </xsl:for-each>
+        </xsl:copy>
+    </xsl:template>
+    
     <!-- TO-DO: make 'data-table' configurable -->
     <xsl:template name="ac:draw-chart">
         <xsl:param name="data-table"/>
@@ -216,9 +264,9 @@ exclude-result-prefixes="#all"
         <xsl:param name="button-class" select="'btn'" as="xs:string?"/>
         <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
         <xsl:param name="enctype" as="xs:string?"/>
-        <xsl:param name="chart-type-id" select="'chart-type'" as="xs:string"/>
-        <xsl:param name="category-id" select="'category'" as="xs:string"/>
-        <xsl:param name="series-id" select="'series'" as="xs:string"/>
+        <xsl:param name="chart-type-id" select="'chart-type-' || generate-id()" as="xs:string"/>
+        <xsl:param name="category-id" select="'category-' || generate-id()" as="xs:string"/>
+        <xsl:param name="series-id" select="'series-' || generate-id()" as="xs:string"/>
         <xsl:param name="form-actions" as="element()?">
             <div class="form-actions">
                 <button class="btn btn-primary btn-save-chart" type="button">
@@ -625,6 +673,67 @@ exclude-result-prefixes="#all"
         <xsl:apply-templates select="$block/following-sibling::*[1]" mode="ldh:RenderRowForm"/>
         
         <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
+    </xsl:template>
+    
+    <!-- save query onclick -->
+    <!-- TO-DO: use @typeof in match so that we don't need a custom button.btn-save-chart class -->
+    
+    <xsl:template match="div[@typeof]//button[contains-token(@class, 'btn-save-chart')]" mode="ixsl:onclick">
+        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+        <xsl:variable name="block" select="ancestor::div[contains-token(@class, 'block')][1]" as="element()"/>
+        <xsl:variable name="container" select="ancestor::div[@typeof][1]" as="element()"/>
+        <xsl:variable name="about" select="$block/@about" as="xs:anyURI"/>
+        <xsl:variable name="query-uri" select="$container//descendant::*[@property = '&spin;query']/@resource" as="xs:anyURI"/>
+        <xsl:variable name="chart-type" select="$container//form//select[contains-token(@class, 'chart-type')]/ixsl:get(., 'value')" as="xs:anyURI?"/>
+        <xsl:variable name="category" select="$container//form//select[contains-token(@class, 'chart-category')]/ixsl:get(., 'value')" as="xs:string?"/>
+        <xsl:variable name="series" as="xs:string*">
+            <xsl:for-each select="$container//form//select[contains-token(@class, 'chart-series')]">
+                <xsl:variable name="select" select="." as="element()"/>
+                <xsl:for-each select="0 to xs:integer(ixsl:get(., 'selectedOptions.length')) - 1">
+                    <xsl:sequence select="ixsl:get(ixsl:call(ixsl:get($select, 'selectedOptions'), 'item', [ . ]), 'value')"/>
+                </xsl:for-each>
+            </xsl:for-each>
+        </xsl:variable>
+        <xsl:variable name="method" select="'PATCH'" as="xs:string"/>
+        <xsl:variable name="action" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/>
+        <xsl:variable name="accept" select="'application/rdf+xml'" as="xs:string"/>
+        <xsl:variable name="etag" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path(ldh:base-uri(.)) || '`'), 'etag')" as="xs:string"/>
+        <!-- not using ldh:base-uri(.) because it goes stale when DOM is replaced -->
+        <xsl:variable name="doc" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path(xs:anyURI(ixsl:location())) || '`'), 'results')" as="document-node()"/>
+        <xsl:variable name="chart" select="key('resources', $about, $doc)" as="element()"/>
+        <!-- update the properties on the chart resource -->
+        <xsl:variable name="chart" as="element()">
+            <xsl:apply-templates select="$chart" mode="ldh:Identity">
+                <xsl:with-param name="chart-type" select="$chart-type" tunnel="yes"/>
+                <xsl:with-param name="series" select="$series" tunnel="yes"/>
+                <xsl:with-param name="category" select="$category" tunnel="yes"/>
+            </xsl:apply-templates>
+        </xsl:variable>
+        <xsl:variable name="triples" select="ldh:descriptions-to-triples($chart)" as="element()*"/>
+        <xsl:variable name="update-string" select="ldh:insertdelete-update(ldh:triples-to-bgp(ldh:uri-po-pattern($about)), ldh:triples-to-bgp($triples), ldh:triples-to-bgp(ldh:uri-po-pattern($about)))" as="xs:string"/>
+        <xsl:variable name="resources" as="document-node()">
+            <xsl:document>
+                <rdf:RDF>
+                    <xsl:sequence select="ldh:triples-to-descriptions($triples)"/>
+                </rdf:RDF>
+            </xsl:document>
+        </xsl:variable>
+        <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path($ldh:requestUri), map{}, $action)" as="xs:anyURI"/>
+        <!-- If-Match header checks preconditions, i.e. that the graph has not been modified in the meanwhile -->
+        <xsl:variable name="request" select="map{ 'method': $method, 'href': $request-uri, 'media-type': 'application/sparql-update', 'body': $update-string, 'headers': map{ 'If-Match': $etag, 'Accept': 'application/rdf+xml', 'Cache-Control': 'no-cache' } }" as="map(*)"/>
+        <xsl:variable name="context" as="map(*)" select="
+          map{
+            'request': $request,
+            'doc-uri': ac:absolute-path(ldh:base-uri(.)),
+            'block': $block,
+            'resources': $resources
+          }"/>
+        <ixsl:promise select="
+          ixsl:http-request($context('request'))                          (: Step 1: send initial request :)
+            => ixsl:then(ldh:rethread-response($context, ?))              (: Step 2: attach response to context :)
+            => ixsl:then(ldh:handle-response#1)                           (: Step 3: handle 429s, etc. :)
+            => ixsl:then(ldh:row-form-response#1)
+        "/>
     </xsl:template>
     
     <!-- CALLBACKS -->
