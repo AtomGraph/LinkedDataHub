@@ -4,8 +4,8 @@
 
 ![LinkedDataHub screenshots](https://github.com/AtomGraph/LinkedDataHub/raw/master/screenshots.png)
 
-What's new in LinkedDataHub v3? Watch this video for a feature overview:
-[![What's new in LinkedDataHub v3? Feature overview](https://img.youtube.com/vi/phRL6QtVTG0/0.jpg)](https://www.youtube.com/watch?v=phRL6QtVTG0)
+What's new in LinkedDataHub v5? Watch this video for a feature overview:
+[![What's new in LinkedDataHub v3? Feature overview](https://img.youtube.com/vi/LaOouEYhp_c/0.jpg)](https://www.youtube.com/watch?v=LaOouEYhp_c)
 
 We started the project with the intention to use it for Linked Data publishing, but gradually realized that we've built a multi-purpose data-driven platform.
 
