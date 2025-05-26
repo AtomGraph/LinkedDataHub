@@ -198,11 +198,6 @@ The environment variable `JENA_HOME` is used by all the command line tools to co
 
 ## Sample applications
 
-### Third party
-
-* [KGDN](https://kgdev.net) - an open-source, collaborative project documenting RDF Knowledge Graph technologies, including RDF, SPARQL, OWL, and SHACL
-* [LDH Uploader](https://github.com/tmciver/ldh-uploader) - a collection of shell scripts used to upload files or directory of files to a LinkedDataHub instance by [@tmciver](https://github.com/tmciver)
-
 ### [Demo apps](https://github.com/AtomGraph/LinkedDataHub-Apps)
 
 These demo applications can be installed into a LinkedDataHub instance using `make install`. You will need to provide the path to your WebID certificate as well as its password.
