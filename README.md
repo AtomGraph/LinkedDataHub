@@ -59,10 +59,14 @@ It takes a few clicks and filling out a form to install the product into your ow
      ```
   3. Setup server's SSL certificates by running this from command line:
      ```shell
-     ./scripts/server-cert-gen.sh .env nginx ssl
+     ./bin/server-cert-gen.sh .env nginx ssl
      ```
      The script will create an `ssl` sub-folder where the SSL certificates and/or public keys will be placed.
-  4. Launch the application services by running this from command line:
+  4. Create the following secrets with certificate passwords:
+     - `secrets/client_truststore_password.txt`
+     - `secrets/owner_cert_password.txt`
+     - `secrets/secretary_cert_password.txt`
+  5. Launch the application services by running this from command line:
      ```shell
      docker-compose up --build
      ```
@@ -72,22 +76,23 @@ It takes a few clicks and filling out a form to install the product into your ow
        * `secretary` stores root application's WebID certificate, keystore, and public key
        * `server` stores the server's certificate (also used by nginx)
      - `data` where the triplestore(s) will persist RDF data
+     - `datasets` where LDH persists agent metadata files
      - `uploads` where LDH stores content-hashed file uploads
      It should take up to half a minute as datasets are being loaded into triplestores. After a successful startup, the last line of the Docker log should read something like:
      ```
      linkeddatahub_1     | 09-Feb-2021 14:18:10.536 INFO [main] org.apache.catalina.startup.Catalina.start Server startup in [32609] milliseconds
      ```
-  5. Install `ssl/owner/keystore.p12` into a web browser of your choice (password is the `$owner_cert_pwd` value supplied to `setup.sh`)
+  6. Install `ssl/owner/keystore.p12` into a web browser of your choice (password is the `owner_cert_password` secret value)
      - Google Chrome: `Settings > Advanced > Manage Certificates > Import...`
      - Mozilla Firefox: `Options > Privacy > Security > View Certificates... > Import...`
      - Apple Safari: The file is installed directly into the operating system. Open the file and import it using the [Keychain Access](https://support.apple.com/guide/keychain-access/what-is-keychain-access-kyca1083/mac) tool (drag it to the `local` section).
      - Microsoft Edge: Does not support certificate management, you need to install the file into Windows. [Read more here](https://social.technet.microsoft.com/Forums/en-US/18301fff-0467-4e41-8dee-4e44823ed5bf/microsoft-edge-browser-and-ssl-certificates?forum=win10itprogeneral).
-  6. For authenticated API access use the `ssl/owner/cert.pem` HTTPS client certificate.
+  7. For authenticated API access use the `ssl/owner/cert.pem` HTTPS client certificate.
      If you are running Linux with user other than `root`, you might need to fix the certificate permissions because Docker bind mounts are owned by `root` by default. For example:
      ```shell
      sudo setfacl -m u:$(whoami):r ./ssl/owner/*
      ```
-  7. Open **https://localhost:4443/** in the web browser or use `curl` for API access, for example:
+  8. Open **https://localhost:4443/** in the web browser or use `curl` for API access, for example:
      ```shell
      curl -k -E ./ssl/owner/cert.pem:<your cert password> -H "Accept: text/turtle" 'https://localhost:4443/'
      ```
