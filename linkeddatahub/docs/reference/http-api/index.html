@@ -38,7 +38,8 @@
             <div class="container-fluid"><a class="brand" href="https://atomgraph.github.io/LinkedDataHub/">LinkedDataHub</a><div class="nav-collapse collapse">
                   <ul class="nav">
                      <li class="active">
-                        <div class="btn-group"><a class="btn" href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/">Documentation v3</a><button class="btn dropdown-toggle" data-toggle="dropdown"><span class="caret"></span></button><ul class="dropdown-menu">
+                        <div class="btn-group"><a class="btn" href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/">Documentation v5</a><button class="btn dropdown-toggle" data-toggle="dropdown"><span class="caret"></span></button><ul class="dropdown-menu">
+                              <li><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/v3/">Documentation v3</a></li>
                               <li><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/v2/">Documentation v2</a></li>
                            </ul>
                         </div>
@@ -52,65 +53,78 @@
       <div class="container-fluid">
          <div class="row-fluid">
             <nav class="span2">
-               <h2>LinkedDataHub v3</h2>
                <ul class="nav nav-list">
-                  <li><a href="../../about/index.html" title="An RDF-native Knowledge Graph notebook">About LinkedDataHub</a></li>
                   <li><a href="../../get-started/index.html" title="All the basics of LinkedDataHub. From installation to extending the model and user interface.">Get started</a><ul class="nav nav-list">
-                        <li><a href="../../get-started/get-an-account/index.html" title="How to get login to LinkedDataHub">Get an account</a></li>
                         <li><a href="../../get-started/request-access/index.html" title="How to get access to an application">Request access</a></li>
+                        <li><a href="../../get-started/get-an-account/index.html" title="How to get login to LinkedDataHub">Get an account</a></li>
                         <li><a href="../../get-started/setup/index.html" title="Setup LinkedDataHub on your local machine or access it in the cloud">Setup</a></li>
                      </ul>
                   </li>
                   <li><a href="../index.html" title="A list of LinkedDataHub's features and their functions, split into general and administration parts">Reference</a><ul class="nav nav-list">
-                        <li><a href="../administration/index.html" title="Access control and domain model management">Administration</a><ul class="nav nav-list">
-                              <li><a href="../administration/acl/index.html" title="Agents, groups, and authorizations">Access control</a></li>
-                              <li><a href="../administration/model/index.html" title="Ontology classes, constraints, properties etc.">Model</a></li>
-                           </ul>
-                        </li>
                         <li><a href="../command-line-interface/index.html" title="CLI scripts can be used perform all actions available in the UI">Command line interface</a></li>
-                        <li><a href="../configuration/index.html" title="Overview of configuration options">Configuration</a></li>
-                        <li><a href="../data-management/index.html" title="Management actions that can be performed on documents (graphs) and their content">Data management</a><ul class="nav nav-list">
-                              <li><a href="../data-management/contents/index.html" title="Content blocks and the basic data content actions">Content management</a></li>
-                              <li><a href="../data-management/documents/index.html" title="Document hierarchy and the basic data management actions">Document management</a></li>
-                           </ul>
-                        </li>
-                        <li><a href="../dataset/index.html" title="The default RDF dataset structure used by LinkedDataHub">RDF dataset</a></li>
                         <li><a href="../dataspace/index.html" title="LinkedDataHub dataspaces, applications, and services">Dataspace</a></li>
-                        <li class="active"><a href="" title="Learn how to access and manage RDF data over generic HTTP API">HTTP API</a></li>
                         <li><a href="../imports/index.html" title="Types of data imports supported by LinkedDataHub">Imports</a><ul class="nav nav-list">
-                              <li><a href="../imports/csv/index.html" title="CSV imports and mapping to RDF using SPARQL CONSTRUCT">CSV imports</a></li>
                               <li><a href="../imports/rdf/index.html" title="RDF imports and transforming RDF using SPARQL CONSTRUCT">RDF imports</a></li>
+                              <li><a href="../imports/csv/index.html" title="CSV imports and mapping to RDF using SPARQL CONSTRUCT">CSV imports</a></li>
                            </ul>
                         </li>
                         <li><a href="../stylesheets/index.html" title="Built-in XSLT and CSS stylesheets">Stylesheets</a></li>
+                        <li><a href="../configuration/index.html" title="Overview of configuration options">Configuration</a></li>
+                        <li><a href="../administration/index.html" title="Access control and domain model management">Administration</a><ul class="nav nav-list">
+                              <li><a href="../administration/ontologies/index.html" title="Ontology classes, constraints, properties etc.">Ontologies</a></li>
+                              <li><a href="../administration/acl/index.html" title="Agents, groups, and authorizations">Access control</a></li>
+                           </ul>
+                        </li>
                         <li><a href="../user-interface/index.html" title="A walk through the main features of application user interface">User interface</a></li>
+                        <li><a href="../dataset/index.html" title="The default RDF dataset structure used by LinkedDataHub">RDF dataset</a></li>
+                        <li class="active"><a href="" title="Learn how to access and manage RDF data over generic HTTP API">HTTP API</a></li>
+                        <li><a href="../data-model/index.html" title="Document and content structure as well as actions that can be performed on them">Data model</a><ul class="nav nav-list">
+                              <li><a href="../data-model/blocks/index.html" title="Content blocks and the basic data content actions">Content blocks</a><ul class="nav nav-list">
+                                    <li><a href="../data-model/blocks/objects/index.html" title="Blocks that embed/transclude any dereferenceable URI">Object blocks</a></li>
+                                    <li><a href="../data-model/blocks/xhtml/index.html" title="Blocks that embed XHTML markup as an RDF literal">XHTML blocks</a></li>
+                                 </ul>
+                              </li>
+                              <li><a href="../data-model/documents/index.html" title="Document hierarchy and the basic data management actions">Documents</a><ul class="nav nav-list">
+                                    <li><a href="../data-model/documents/items/index.html" title="Items are analogous to files in a filesystem">Items</a></li>
+                                    <li><a href="../data-model/documents/containers/index.html" title="Containers are analogous to folders in a filesystem">Containers</a></li>
+                                 </ul>
+                              </li>
+                              <li><a href="../data-model/resources/index.html" title="RDF resources and their management">Resources</a><ul class="nav nav-list">
+                                    <li><a href="../data-model/resources/views/index.html" title="Paginated views based on SPARQL queries">Views</a></li>
+                                    <li><a href="../data-model/resources/queries/index.html" title="Interactive SPARQL queries">Queries</a></li>
+                                    <li><a href="../data-model/resources/charts/index.html" title="Interactive charts based on SPARQL queries">Charts</a></li>
+                                 </ul>
+                              </li>
+                           </ul>
+                        </li>
                      </ul>
                   </li>
                   <li><a href="../../user-guide/index.html" title="Step-by-step tutorials for everyday tasks with LinkedDataHub">User guide</a><ul class="nav nav-list">
-                        <li><a href="../../user-guide/add-data/index.html" title="Fork RDF data from Linked Data resources and SPARQL results">Add data</a></li>
-                        <li><a href="../../user-guide/browse-data/index.html" title="Use LinkedDataHub's built-in Linked Data browser to explore remote datasources">Browse data</a></li>
-                        <li><a href="../../user-guide/build-apps/index.html" title="Using LinkedDataHub as a low-code platform for Knowledge Graph applications">Build apps</a></li>
-                        <li><a href="../../user-guide/change-layout/index.html" title="How to customize the layout of an application and the UI of the resources">Change layout</a></li>
-                        <li><a href="../../user-guide/change-model/index.html" title="Change the model: create constructors, classes, and constraints">Change the model</a></li>
-                        <li><a href="../../user-guide/change-system-base-uri/index.html" title="How to change host, port, or the path LinkedDataHub service runs on">Change system base URI</a></li>
                         <li><a href="../../user-guide/create-data/index.html" title="How to create documents, content, and instances">Create data</a><ul class="nav nav-list">
-                              <li><a href="../../user-guide/create-data/create-content/index.html" title="Learn how to create data-driven content">Create content</a></li>
                               <li><a href="../../user-guide/create-data/create-documents/index.html" title="Learn how to create container and item documents">Create documents</a></li>
-                              <li><a href="../../user-guide/create-data/create-instances/index.html" title="Learn how to create of built-in and user-defined classes">Create instances</a></li>
+                              <li><a href="../../user-guide/create-data/create-resources/index.html" title="Learn how to create of built-in and user-defined classes">Create instances</a></li>
+                              <li><a href="../../user-guide/create-data/create-content/index.html" title="Learn how to create data-driven content">Create content</a></li>
                            </ul>
                         </li>
-                        <li><a href="../../user-guide/import-data/index.html" title="How to import data into LinkedDataHub">Import data</a><ul class="nav nav-list">
-                              <li><a href="../../user-guide/import-data/import-csv-data/index.html" title="Step by step guide to converting CSV data to RDF and importing into end-user application">Import CSV data</a></li>
-                              <li><a href="../../user-guide/import-data/import-rdf-data/index.html" title="Step by step guide to importing RDF data">Import RDF data</a></li>
-                           </ul>
-                        </li>
-                        <li><a href="../../user-guide/manage-dataspaces/index.html" title="Create or change a dataspace, configure SPARQL services and XSLT stylesheets">Manage dataspaces</a></li>
-                        <li><a href="../../user-guide/navigate-data/index.html" title="Navigate the document hierarchy, related results, and backlinks">Navigate data</a></li>
-                        <li><a href="../../user-guide/query-data/index.html" title="Learn how to query application data with SPARQL, store queries and charts">Query data</a></li>
                         <li><a href="../../user-guide/search-data/index.html" title="Search for resources using text keywords">Search data</a></li>
+                        <li><a href="../../user-guide/query-data/index.html" title="Learn how to query application data with SPARQL, store queries and charts">Query data</a></li>
+                        <li><a href="../../user-guide/import-data/index.html" title="How to import data into LinkedDataHub">Import data</a><ul class="nav nav-list">
+                              <li><a href="../../user-guide/import-data/import-rdf-data/index.html" title="Step by step guide to importing RDF data">Import RDF data</a></li>
+                              <li><a href="../../user-guide/import-data/import-csv-data/index.html" title="Step by step guide to converting CSV data to RDF and importing into end-user application">Import CSV data</a></li>
+                           </ul>
+                        </li>
+                        <li><a href="../../user-guide/add-data/index.html" title="Fork RDF data from Linked Data resources and SPARQL results">Add data</a></li>
+                        <li><a href="../../user-guide/navigate-data/index.html" title="Navigate the document hierarchy, related results, and backlinks">Navigate data</a></li>
+                        <li><a href="../../user-guide/manage-dataspaces/index.html" title="Create or change a dataspace, configure SPARQL services and XSLT stylesheets">Manage dataspaces</a></li>
+                        <li><a href="../../user-guide/change-layout/index.html" title="How to customize the layout of an application and the UI of the resources">Change layout</a></li>
+                        <li><a href="../../user-guide/browse-data/index.html" title="Use LinkedDataHub's built-in Linked Data browser to explore remote datasources">Browse data</a></li>
                         <li><a href="../../user-guide/upload-file/index.html" title="Learn how to upload files to LinkedDataHub">Upload file</a></li>
+                        <li><a href="../../user-guide/change-model/index.html" title="Change the model: create constructors, classes, and constraints">Change the model</a></li>
+                        <li><a href="../../user-guide/build-apps/index.html" title="Using LinkedDataHub as a low-code platform for Knowledge Graph applications">Build apps</a></li>
+                        <li><a href="../../user-guide/change-system-base-uri/index.html" title="How to change host, port, or the path LinkedDataHub service runs on">Change system base URI</a></li>
                      </ul>
                   </li>
+                  <li><a href="../../about/index.html" title="An RDF-native Knowledge Graph application platform">About LinkedDataHub</a></li>
                </ul>
             </nav>
             <main class="span7">
@@ -152,15 +166,15 @@
                      <h2 id="acl">Access control</h2>
                      
                      <p>All HTTP access to <a href="#documents">documents</a> is subject to <a href="../administration/acl/">access
-                           control</a>. Requesting a resource with insufficient access rights will result in <code>403 Forbidden</code> response. That  means either:</p>
+                           control</a>. Requesting a document with insufficient access rights will result in <code>403 Forbidden</code> response. That  means either:</p>
                      
                      <ul>
                         
-                        <li>the user is not authenticated and public access to the resource is not allowed</li>
+                        <li>the user is not authenticated and public access to the document is not allowed</li>
                         
                         <li>the user is authenticated but the associated agent does not have an authorization
-                           to <a href="../data-management/documents/#manage">perform the action</a> on the
-                           requested resource</li>
+                           to <a href="../data-model/documents/#manage">perform the action</a> on the
+                           requested document</li>
                         </ul>
                      </div>
                   
@@ -168,9 +182,18 @@
                      
                      <h2 id="documents">Managing documents</h2>
                      
-                     <p>LinkedDataHub supports the <a href="https://www.w3.org/TR/sparql11-http-rdf-update/#indirect-graph-identification" target="_blank">indirect graph identification</a> using the <code>service</code> endpoint and the
-                        <code>graph</code> URL parameter as well as the <a href="https://www.w3.org/TR/sparql11-http-rdf-update/#direct-graph-identification" target="_blank">direct identification</a>, since every document is also a
-                        <a href="../dataset/#structure">named graph</a>.</p>
+                     <p>eEry document is also a <a href="../dataset/#structure">named graph</a> in the application's RDF dataset. LinkedDataHub supports the SPARQL Graph Store Protocol's
+                        <a href="https://www.w3.org/TR/sparql11-http-rdf-update/#direct-graph-identification" target="_blank">direct graph identification</a> as the HTTP CRUD protocol for managing document data.</p>
+                     
+                     <div class="alert alert-info">
+                        
+                        <p>GSP <a href="https://www.w3.org/TR/sparql11-http-rdf-update/#indirect-graph-identification" target="_blank">indirect graph identification</a> is not supported starting with LinkedDataHub version 5.x.</p>
+                        </div>
+                     
+                     <p>The API also supports the <code>PATCH</code> HTTP method which is <a href="https://www.w3.org/TR/sparql11-http-rdf-update/#http-patch">optional in GSP</a>. It accepts graph-scoped SPARQL updates that will modify the requested document.
+                        Only the <code>INSERT/WHERE</code> and <code>DELETE WHERE</code> forms are supported; <code>GRAPH</code> patterns are not allowed.</p>
+                     
+                     <p>Trailing slashes in document URIs are enforced using <code>308 Permanent Redirect</code> responses.</p>
                      
                      <table class="table">
                         
@@ -196,13 +219,13 @@
                               
                               <th rowspan="2"><code id="ld-get">GET</code></th>
                               
-                              <td rowspan="2">Returns description of requested resource</td>
+                              <td rowspan="2">Returns the data of a document</td>
                               
                               <td rowspan="2"><code>200 OK</code></td>
                               
                               <td><code>404 Not Found</code></td>
                               
-                              <td>Resource with request URI not found</td>
+                              <td>Document with request URI not found</td>
                               </tr>
                            
                            <tr>
@@ -216,9 +239,9 @@
                               
                               <th rowspan="5"><code id="ld-post">POST</code></th>
                               
-                              <td rowspan="5">Appends data to the application dataset (creates or updates resource descriptions)</td>
+                              <td rowspan="5">Appends data to a named graph</td>
                               
-                              <td rowspan="5"><code>200 OK</code> <code>201 Created</code></td>
+                              <td rowspan="5"><code>204 No Content</code></td>
                               
                               <td><code>400 Bad Request</code></td>
                               
@@ -227,16 +250,9 @@
                            
                            <tr>
                               
-                              <td><code>400 Bad Request</code></td>
+                              <td><code>404 Not Found</code></td>
                               
-                              <td><a href="../administration/model/#constraints">Constraint</a> violation</td>
-                              </tr>
-                           
-                           <tr>
-                              
-                              <td><code>409 Conflict</code></td>
-                              
-                              <td>Resource already exists</td>
+                              <td>Document with request URI not found</td>
                               </tr>
                            
                            <tr>
@@ -251,33 +267,31 @@
                               <td><code>415 Unsupported Media Type</code></td>
                               
                               <td><a href="#con-neg">Media type</a> not supported</td>
+                              </tr>
+                           
+                           <tr>
+                              
+                              <td><code>422 Unprocessable Entity</code></td>
+                              
+                              <td><a href="../administration/ontologies/#constraints">Constraint</a> violation</td>
                               </tr>
                            
                            <tr>
                               
                               <th rowspan="5"><code id="ld-put">PUT</code></th>
                               
-                              <td rowspan="5">Creates or replaces resource descriptions</td>
+                              <td rowspan="5">Upserts a document</td>
                               
-                              <td rowspan="5"><code>200 OK</code> <code>201 Created</code></td>
+                              <td rowspan="5"><code>200 OK</code> <code>201 Created</code> <code>308 Permanent Redirect</code></td>
                               
-                              <td><code>400 Bad Request</code></td>
+                              <td rowspan="2"><code>400 Bad Request</code></td>
                               
                               <td><a href="#con-neg">RDF syntax error</a></td>
                               </tr>
                            
                            <tr>
                               
-                              <td><code>400 Bad Request</code></td>
-                              
-                              <td><a href="../administration/model/#constraints">Constraint</a> violation</td>
-                              </tr>
-                           
-                           <tr>
-                              
-                              <td><code>400 Bad Request</code></td>
-                              
-                              <td>Request body does not contain a document instance</td>
+                              <td>Malformed document URI</td>
                               </tr>
                            
                            <tr>
@@ -296,9 +310,16 @@
                            
                            <tr>
                               
+                              <td><code>422 Unprocessable Entity</code></td>
+                              
+                              <td><a href="../administration/ontologies/#constraints">Constraint</a> violation</td>
+                              </tr>
+                           
+                           <tr>
+                              
                               <th rowspan="2"><code id="ld-delete">DELETE</code></th>
                               
-                              <td rowspan="2">Removes the description of the requested resource</td>
+                              <td rowspan="2">Removes the requested document</td>
                               
                               <td rowspan="2"><code>204 No Content</code></td>
                               
@@ -311,56 +332,108 @@
                               
                               <td><code>404 Not Found</code></td>
                               
-                              <td>Resource with request URI not found</td>
+                              <td>Document with request URI not found</td>
+                              </tr>
+                           
+                           <tr>
+                              
+                              <th rowspan="2"><code id="ld-patch">PATCH</code></th>
+                              
+                              <td rowspan="2">Modifies a document using SPARQL Update</td>
+                              
+                              <td rowspan="2"><code>204 No Content</code></td>
+                              
+                              <td><code>422 Unprocessable Entity</code></td>
+                              
+                              <td>SPARQL update string violates syntax constraints</td>
                               </tr>
                            </tbody>
                         </table>
-                     </div>
-                  
-                  <div>
                      
-                     <h2 id="graph-names">Graph names</h2>
-                     
-                     <p>If RDF data is submitted to the <code>service</code> endpoint using the <code>POST</code> method and the graph name is not specified, then the request RDF body must contain
-                        <em>one</em> blank node instance of either <code>dh:Item</code>
-                        with a <code>sioc:has_container</code> URI value or <code>dh:Container</code> with a <code>sioc:has_parent</code> URI value. They will be used to establish the <a href="../data-management/documents/#hierarchy">parent/child relationship</a> of the
-                        specified parent container and the document being created from the RDF request body.
-                        The new document's URI will be relative to its parent's. For example (Turtle syntax):</p>
-                     
-                     <pre><code>@prefix dh:     &lt;https://www.w3.org/ns/ldt/document-hierarchy#&gt; .
+                     <div>
+                        
+                        <h3 id="document-metadata">Document metadata</h3>
+                        
+                        <p>Unlike earlier versions, LinkedDataHub 5.x manages the <a href="../data-model/documents/#hierarchy">document hierarchy</a> automatically.</p>
+                        
+                        <p>By default, LinkedDataHub treats an RDF document as an item by giving it the <code>dh:Item</code> type and attaching it to the parent container using <code>sioc:has_container</code>. If the client wants to create a container instead, it has to explicitly add the
+                           <code>dh:Container</code> type on the document resource; the new container will be attached to its parent using
+                           <code>sioc:has_container</code>. In either case, the URI of the new document's will be relative to its parent's.</p>
+                        
+                        <p>LinkedDataHub will also manage additional document metadata, such as its owner and
+                           creation/modification timestamps.</p>
+                        
+                        <p>For example, this HTTP request to create a new container (Turtle syntax):</p>
+                        
+                        <pre><code>PUT /namedgraph/new-container/ HTTP/1.1
+Host: linkeddatahub.com
+Content-Type: text/turtle
+
+@prefix dh:     &lt;https://www.w3.org/ns/ldt/document-hierarchy#&gt; .
 @prefix dct:    &lt;http://purl.org/dc/terms/&gt; .
+
+&lt;&gt; a dh:Container ;
+    dct:title "New container" .</code></pre>
+                        
+                        <p>will produce the following document triples:</p>
+                        
+                        <pre><code>@prefix dh:     &lt;https://www.w3.org/ns/ldt/document-hierarchy#&gt; .
+@prefix dct:    &lt;http://purl.org/dc/terms/&gt; .
+@prefix xsd:    &lt;http://www.w3.org/2001/XMLSchema#&gt; .
 @prefix sioc:   &lt;http://rdfs.org/sioc/ns#&gt; .
-@prefix foaf:   &lt;http://xmlns.com/foaf/0.1/&gt; .
+@prefix acl:    &lt;http://www.w3.org/ns/auth/acl#&gt; .
 
-[ a dh:Item ;
-    sioc:has_container &lt;https://localhost:4443/files/&gt; ;
-    dct:title "New file" ;
-    foaf:primaryTopic _:file 
-] .
+&lt;https://linkeddatahub.com/namedgraph/new-container/&gt;
+    a dh:Container ;
+    dct:created "2025-03-31T21:46:21.984Z"^^xsd:dateTime ;
+    dct:creator &lt;https://linkeddatahub.com/namedgraph/admin/acl/agents/fda0009e-191b-4f07-838c-5daf2a74b35f/#this&gt; ;
+    dct:title "New container" ;
+    sioc:has_parent &lt;https://linkeddatahub.com/namedgraph/&gt; ;
+    acl:owner &lt;https://linkeddatahub.com/namedgraph/admin/acl/agents/fda0009e-191b-4f07-838c-5daf2a74b35f/#this&gt; .</code></pre>     
+                        
+                        <p>The HTTP request to produce a new item can be empty:</p>
+                        
+                        <pre><code>PUT /namedgraph/new-container/ HTTP/1.1
+Host: linkeddatahub.com
+Content-Type: text/turtle</code></pre>
+                        
+                        <p>It will create an item document with the following triples:</p>
+                        
+                        <pre><code>@prefix dh:    &lt;https://www.w3.org/ns/ldt/document-hierarchy#&gt; .
+@prefix dct:    &lt;http://purl.org/dc/terms/&gt; .
+@prefix xsd:    &lt;http://www.w3.org/2001/XMLSchema#&gt; .
+@prefix sioc:   &lt;http://rdfs.org/sioc/ns#&gt; .
+@prefix acl:    &lt;http://www.w3.org/ns/auth/acl#&gt; .
 
-# _:file and other resources here</code></pre>
-                     </div>
-                  
-                  <div>
+&lt;https://linkeddatahub.com/namedgraph/new-item/&gt;
+    a dh:Item ;
+    dct:created "2025-03-31T20:45:42.802Z"^^xsd:dateTime ;
+    dct:creator &lt;https://linkeddatahub.com/acl/agents/d47e1f9b-c8d0-4546-840f-5d9fbb479da2/#id9d3814f2-53bc-42e9-b1ab-46cbc9a94263&gt; ;
+    sioc:has_container &lt;https://linkeddatahub.com/namedgraph/&gt; ;
+    acl:owner &lt;https://linkeddatahub.com/admin/acl/agents/d47e1f9b-c8d0-4546-840f-5d9fbb479da2/#id9d3814f2-53bc-42e9-b1ab-46cbc9a94263&gt; .</code></pre>
+                        </div>
                      
-                     <h2 id="constraints">Built-in constraints</h2>
-                     
-                     <p>LinkedDataHub has a few built-in constraints that are not found in the standard Graph
-                        Store Protocol:</p>
-                     
-                     <ul>
+                     <div>
                         
-                        <li>It's not possible delete the root resource</li>
+                        <h3 id="constraints">Built-in constraints</h3>
                         
-                        <li>It's not possible to modify or delete the documents of the owner agent and the secretary
-                           agent</li>
+                        <p>LinkedDataHub has a few built-in constraints that are not found in the standard Graph
+                           Store Protocol:</p>
                         
-                        <li>A document (which is also a named graph in the graph store) must always contain an
-                           RDF resource with its URI and type <code>def:Root</code>, <code>dh:Container</code>, or <code>dh:Item</code>
-                           (see <a href="../administration/model/#ontologies">ontologies</a>)</li>
-                        </ul>
-                     
-                     <p>The built in constraints are similar to, but separate from the <a href="../administration/model/#constraints">ontology constraints</a>.</p>
+                        <ul>
+                           
+                           <li>It's not possible delete the root document</li>
+                           
+                           <li>It's not possible to modify or delete the documents of the owner agent and the secretary
+                              agent</li>
+                           
+                           <li>A document (which is also a named graph in the graph store) must always contain an
+                              RDF resource with its URI and type <code>def:Root</code>, <code>dh:Container</code>, or <code>dh:Item</code>
+                              (see <a href="../administration/ontologies/#ontologies">ontologies</a>)</li>
+                           </ul>
+                        
+                        <p>The built in constraints are similar to, but separate from the <a href="../administration/ontologies/#constraints">ontology constraints</a>.</p>
+                        </div>
                      </div>
                   
                   <div>
@@ -405,19 +478,23 @@
                      
                      <dl>
                         
-                        <dt><samp>admin/request%20accesss</samp></dt>
+                        <dt><samp>admin/access</samp></dt>
                         
-                        <dd>Access request</dd>
+                        <dd>Access metadata (for the authenticated agent)</dd>
+                        
+                        <dt><samp>admin/access/request</samp></dt>
+                        
+                        <dd>Access request (for the authenticated agent)</dd>
                         
                         <dt><samp>admin/sign%20up</samp></dt>
                         
-                        <dd>WebID-TLS agent signup</dd>
+                        <dd>WebID-WebID agent signup</dd>
                         
                         <dt><samp>admin/oauth2/login</samp></dt>
                         
                         <dd>OpenID Connect with Google signup</dd>
                         
-                        <dt><samp>oauth2/authorize/google</samp></dt>
+                        <dt><samp>admin/oauth2/authorize/google</samp></dt>
                         
                         <dd>OpenID Connect callback</dd>
                         
@@ -493,7 +570,7 @@
                         as HTTP proxy cache. You can check the age of the response by inspecting the <code>Age</code> response header (the value is in seconds).</p>
                      
                      <p>LinkedDataHub sends <code>ETag</code> response headers that are derived as hashes of the requested document's RDF content.
-                        Every serialization format (HTML, RDF/XML, Turtle etc.) gets a distinct <em>ETag</em> value.</p>
+                        Every serialization format (HTML, RDF/XML, Turtle etc.) gets a distinct <code>ETag</code> value.</p>
                      
                      <p>Caching of LinkedDataHub responses can be enabled on the nginx HTTP proxy server by
                         uncommenting the <code>add_header Cache-Control</code> directives in the <samp>platform/nginx.conf.template</samp> file.

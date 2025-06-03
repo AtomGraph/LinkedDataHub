@@ -1,0 +1,291 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html><html xmlns="http://www.w3.org/1999/xhtml">
+   <head>
+      <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+      <title>LinkedDataHub v3 - Build apps</title>
+      <meta name="description" content="Using LinkedDataHub as a low-code platform for Knowledge Graph applications"/>
+      <link rel="up" href="../index.html"/>
+      <link href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/files/css/bootstrap.css" rel="stylesheet" type="text/css"/>
+      <link href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/files/css/bootstrap-responsive.css" rel="stylesheet" type="text/css"/>
+      <link href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/files/css/linkeddatahub-bootstrap.css" rel="stylesheet" type="text/css"/>
+      <style type="text/css">
+                body { padding-top: 60px; }
+                object { width: 100%; min-height: 640px; }
+            </style><script type="text/javascript" src="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/files/js/jquery.min.js"></script><script type="text/javascript" src="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/files/js/bootstrap.min.js"></script><script type="text/javascript">
+                $(document).ready(function()
+                {
+
+                    $("ul.nav-tabs a").on("click", function()
+                    {
+                        $(this).closest("ul").children().toggleClass("active", false); // deactivate other tabs
+                        $(this).closest("li").toggleClass("active", true); // activate this tab
+                        $(this).closest("ul").next().children().toggleClass("active", false); // deactivate other tab panes
+                        $(this).closest("ul").next().children().eq($(this).closest("li").index()).toggleClass("active", true); // activate this tab pane
+                    });
+
+                });
+            </script><script async="async" src="https://www.googletagmanager.com/gtag/js?id=UA-38402002-6"></script><script>
+                
+                    window.dataLayer = window.dataLayer || [];
+                    function gtag(){dataLayer.push(arguments);}
+                    gtag('js', new Date());
+
+                    gtag('config', 'UA-38402002-6');
+                
+            </script></head>
+   <body>
+      <div class="navbar navbar-fixed-top">
+         <div class="navbar-inner">
+            <div class="container-fluid"><a class="brand" href="https://atomgraph.github.io/LinkedDataHub/">LinkedDataHub</a><div class="nav-collapse collapse">
+                  <ul class="nav">
+                     <li class="active">
+                        <div class="btn-group"><a class="btn" href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/">Documentation v3</a><button class="btn dropdown-toggle" data-toggle="dropdown"><span class="caret"></span></button><ul class="dropdown-menu">
+                              <li><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/v2/">Documentation v2</a></li>
+                           </ul>
+                        </div>
+                     </li>
+                     <li><a href="https://github.com/AtomGraph/LinkedDataHub" target="_blank">Code</a></li>
+                  </ul>
+               </div>
+            </div>
+         </div>
+      </div>
+      <div class="container-fluid">
+         <div class="row-fluid">
+            <nav class="span2">
+               <h2>LinkedDataHub v3</h2>
+               <ul class="nav nav-list">
+                  <li><a href="../../about/index.html" title="An RDF-native Knowledge Graph notebook">About LinkedDataHub</a></li>
+                  <li><a href="../../get-started/index.html" title="All the basics of LinkedDataHub. From installation to extending the model and user interface.">Get started</a><ul class="nav nav-list">
+                        <li><a href="../../get-started/get-an-account/index.html" title="How to get login to LinkedDataHub">Get an account</a></li>
+                        <li><a href="../../get-started/request-access/index.html" title="How to get access to an application">Request access</a></li>
+                        <li><a href="../../get-started/setup/index.html" title="Setup LinkedDataHub on your local machine or access it in the cloud">Setup</a></li>
+                     </ul>
+                  </li>
+                  <li><a href="../../reference/index.html" title="A list of LinkedDataHub's features and their functions, split into general and administration parts">Reference</a><ul class="nav nav-list">
+                        <li><a href="../../reference/administration/index.html" title="Access control and domain model management">Administration</a><ul class="nav nav-list">
+                              <li><a href="../../reference/administration/acl/index.html" title="Agents, groups, and authorizations">Access control</a></li>
+                              <li><a href="../../reference/administration/model/index.html" title="Ontology classes, constraints, properties etc.">Model</a></li>
+                           </ul>
+                        </li>
+                        <li><a href="../../reference/command-line-interface/index.html" title="CLI scripts can be used perform all actions available in the UI">Command line interface</a></li>
+                        <li><a href="../../reference/configuration/index.html" title="Overview of configuration options">Configuration</a></li>
+                        <li><a href="../../reference/data-management/index.html" title="Management actions that can be performed on documents (graphs) and their content">Data management</a><ul class="nav nav-list">
+                              <li><a href="../../reference/data-management/contents/index.html" title="Content blocks and the basic data content actions">Content management</a></li>
+                              <li><a href="../../reference/data-management/documents/index.html" title="Document hierarchy and the basic data management actions">Document management</a></li>
+                           </ul>
+                        </li>
+                        <li><a href="../../reference/dataset/index.html" title="The default RDF dataset structure used by LinkedDataHub">RDF dataset</a></li>
+                        <li><a href="../../reference/dataspace/index.html" title="LinkedDataHub dataspaces, applications, and services">Dataspace</a></li>
+                        <li><a href="../../reference/http-api/index.html" title="Learn how to access and manage RDF data over generic HTTP API">HTTP API</a></li>
+                        <li><a href="../../reference/imports/index.html" title="Types of data imports supported by LinkedDataHub">Imports</a><ul class="nav nav-list">
+                              <li><a href="../../reference/imports/csv/index.html" title="CSV imports and mapping to RDF using SPARQL CONSTRUCT">CSV imports</a></li>
+                              <li><a href="../../reference/imports/rdf/index.html" title="RDF imports and transforming RDF using SPARQL CONSTRUCT">RDF imports</a></li>
+                           </ul>
+                        </li>
+                        <li><a href="../../reference/stylesheets/index.html" title="Built-in XSLT and CSS stylesheets">Stylesheets</a></li>
+                        <li><a href="../../reference/user-interface/index.html" title="A walk through the main features of application user interface">User interface</a></li>
+                     </ul>
+                  </li>
+                  <li><a href="../index.html" title="Step-by-step tutorials for everyday tasks with LinkedDataHub">User guide</a><ul class="nav nav-list">
+                        <li><a href="../add-data/index.html" title="Fork RDF data from Linked Data resources and SPARQL results">Add data</a></li>
+                        <li><a href="../browse-data/index.html" title="Use LinkedDataHub's built-in Linked Data browser to explore remote datasources">Browse data</a></li>
+                        <li class="active"><a href="" title="Using LinkedDataHub as a low-code platform for Knowledge Graph applications">Build apps</a></li>
+                        <li><a href="../change-layout/index.html" title="How to customize the layout of an application and the UI of the resources">Change layout</a></li>
+                        <li><a href="../change-model/index.html" title="Change the model: create constructors, classes, and constraints">Change the model</a></li>
+                        <li><a href="../change-system-base-uri/index.html" title="How to change host, port, or the path LinkedDataHub service runs on">Change system base URI</a></li>
+                        <li><a href="../create-data/index.html" title="How to create documents, content, and instances">Create data</a><ul class="nav nav-list">
+                              <li><a href="../create-data/create-content/index.html" title="Learn how to create data-driven content">Create content</a></li>
+                              <li><a href="../create-data/create-documents/index.html" title="Learn how to create container and item documents">Create documents</a></li>
+                              <li><a href="../create-data/create-instances/index.html" title="Learn how to create of built-in and user-defined classes">Create instances</a></li>
+                           </ul>
+                        </li>
+                        <li><a href="../import-data/index.html" title="How to import data into LinkedDataHub">Import data</a><ul class="nav nav-list">
+                              <li><a href="../import-data/import-csv-data/index.html" title="Step by step guide to converting CSV data to RDF and importing into end-user application">Import CSV data</a></li>
+                              <li><a href="../import-data/import-rdf-data/index.html" title="Step by step guide to importing RDF data">Import RDF data</a></li>
+                           </ul>
+                        </li>
+                        <li><a href="../manage-dataspaces/index.html" title="Create or change a dataspace, configure SPARQL services and XSLT stylesheets">Manage dataspaces</a></li>
+                        <li><a href="../navigate-data/index.html" title="Navigate the document hierarchy, related results, and backlinks">Navigate data</a></li>
+                        <li><a href="../query-data/index.html" title="Learn how to query application data with SPARQL, store queries and charts">Query data</a></li>
+                        <li><a href="../search-data/index.html" title="Search for resources using text keywords">Search data</a></li>
+                        <li><a href="../upload-file/index.html" title="Learn how to upload files to LinkedDataHub">Upload file</a></li>
+                     </ul>
+                  </li>
+               </ul>
+            </nav>
+            <main class="span7">
+               <header>
+                  <h1>Build apps</h1>
+               </header>
+               <div>
+                  
+                  <p class="lead">Using LinkedDataHub as a low-code platform for Knowledge Graph applications</p>
+                  
+                  <p>Every component in LinkedDataHub is data-driven and was designed with extensibility
+                     in mind. You can override behavior (e.g. Java method or XSLT template) without having
+                     to modify LinkedDataHub's
+                     codebase, and more importantly, without having to write the same logic from scratch.</p>
+                  
+                  <p>The following sections are split by component/layer and explain how to extend them
+                     when building bespoke apps.</p>
+                  
+                  <div>
+                     
+                     <h2 id="docker">Docker</h2>
+                     
+                     <p>You can go a long way just by mounting files (e.g. config files, ontologies, stylesheets)
+                        into LinkedDataHub's default Docker setup. But you may also want to build a dedicated
+                        Docker image for your app using LinkedDataHub as the base. Usually this is done to
+                        <code>COPY</code> files inside the the image or <code>RUN</code> additional commands.</p>
+                     
+                     <p>Here's an sample Dockerfile that copies custom stylesheets into the app's Docker image:</p>
+                     
+                     <pre>FROM atomgraph/linkeddatahub:4.0.0
+
+ARG SAXON_VERSION=9.9.1-2
+ 
+USER root
+
+RUN curl -fsSL https://deb.nodesource.com/setup_16.x | bash - &amp;&amp; \
+    apt-get update --allow-releaseinfo-change &amp;&amp; \
+    apt-get install -y nodejs &amp;&amp; \
+    rm -rf /var/lib/apt/lists/* &amp;&amp; \
+    mkdir /home/ldh &amp;&amp; chown ldh:ldh /home/ldh
+
+USER ldh
+
+RUN npm install saxon-js &amp;&amp; \
+    npm install xslt3
+
+WORKDIR $CATALINA_HOME/webapps/ROOT/static
+
+COPY --chown=ldh:ldh files/layout.xsl net/example/xsl/layout.xsl
+COPY --chown=ldh:ldh files/client.xsl net/example/xsl/client.xsl
+
+# pre-processing stylesheets in order to inline XML entities which SaxonJS does not support
+RUN curl https://repo1.maven.org/maven2/net/sf/saxon/Saxon-HE/${SAXON_VERSION}/Saxon-HE-${SAXON_VERSION}.jar -O &amp;&amp; \
+    cat com/atomgraph/linkeddatahub/xsl/client.xsl | grep 'xsl:import' | cut -d '"' -f 2 | xargs -I{} java -cp Saxon-HE-${SAXON_VERSION}.jar net.sf.saxon.Query -qs:"." -s:com/atomgraph/linkeddatahub/xsl/{} -o:com/atomgraph/linkeddatahub/xsl/{} &amp;&amp; \
+    cat com/atomgraph/linkeddatahub/xsl/client.xsl | grep 'xsl:include' | cut -d '"' -f 2 | xargs -I{} java -cp Saxon-HE-${SAXON_VERSION}.jar net.sf.saxon.Query -qs:"." -s:com/atomgraph/linkeddatahub/xsl/{} -o:com/atomgraph/linkeddatahub/xsl/{} &amp;&amp; \
+    java -cp Saxon-HE-${SAXON_VERSION}.jar net.sf.saxon.Query -qs:"." -s:com/atomgraph/linkeddatahub/xsl/client.xsl -o:com/atomgraph/linkeddatahub/xsl/client.xsl &amp;&amp; \
+    java -cp Saxon-HE-${SAXON_VERSION}.jar net.sf.saxon.Query -qs:"." -s:net/example/xsl/client.xsl -o:net/example/xsl/client.xsl &amp;&amp; \
+    npx xslt3 -t -xsl:net/example/xsl/client.xsl -export:net/example/xsl/client.xsl.sef.json -nogo -ns:##html5 -relocate:on &amp;&amp; \
+    rm Saxon-HE-${SAXON_VERSION}.jar &amp;&amp; \
+    setfacl -Rm user:ldh:rwx net/example/xsl
+
+WORKDIR $CATALINA_HOME</pre>
+                     </div>
+                  
+                  <div>
+                     
+                     <h2 id="java">Java</h2>
+                     
+                     <p>The Java layer of LinkedDataHub is a Maven project with a webapp layout. The codebase
+                        uses JAX-RS, specifically <a href="https://eclipse-ee4j.github.io/jersey/" target="_blank">Jersey 3</a>, as the HTTP/REST framework and uses <a href="https://jena.apache.org" target="_blank">Apache Jena</a> for RDF I/O.</p>
+                     
+                     <p>If you want to extend the Java codebase, for example to add a custom REST endpoint,
+                        you need to create a new Maven project with LinkedDataHub as dependency:</p>
+                     
+                     <pre>&lt;dependency&gt;
+    &lt;groupId&gt;com.atomgraph&lt;/groupId&gt;
+    &lt;artifactId&gt;linkeddatahub&lt;/artifactId&gt;
+    &lt;version&gt;4.0.0&lt;/version&gt;
+    &lt;classifier&gt;classes&lt;/classifier&gt;
+&lt;/dependency&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;com.atomgraph&lt;/groupId&gt;
+    &lt;artifactId&gt;linkeddatahub&lt;/artifactId&gt;
+    &lt;version&gt;4.0.0&lt;/version&gt;
+    &lt;type&gt;war&lt;/type&gt;
+&lt;/dependency&gt;</pre>
+                     
+                     <p>After adding the new endpoint, you'll also need to extend the LinkedDataHub's JAX-RS
+                        application (<code>com.atomgraph.linkeddatahub.Application</code>) and register your class there.</p>
+                     
+                     <p>By convention, static files (e.g. stylesheets, images) are placed in the <samp>src/main/webapp/static/</samp> folder in the codebase, which then becomes <samp>/usr/local/tomcat/webapps/ROOT/static/</samp> within the webapp deployed in the Docker container, and is available as <samp>${base}static/</samp> over HTTP.</p>
+                     
+                     <p>This means that if you want to deploy static files as part of your LinkedDataHub app,
+                        you will have to either mount them into the <samp>/usr/local/tomcat/webapps/ROOT/static/</samp> folder in the container, or copy them into a custom Docker image to the same effect.</p>
+                     
+                     <p>You can allow Java debugger access using <a href="../../reference/configuration/#debug">configuration properties</a>.</p>
+                     </div>
+                  
+                  <div>
+                     
+                     <h2 id="xslt">XSLT</h2>
+                     
+                     <p>LinkedDataHub uses <a href="https://www.w3.org/TR/xslt-30/" target="_blank">XSLT 3.0</a> for UI rendering both on the server- and on the client-side.</p>
+                     
+                     <p>You can specify a custom server-side XSLT 3.0 stylesheet in the <a href="../manage-dataspaces/#change-stylesheet">dataspace configuration</a>.</p>
+                     
+                     <p>You can reuse LinkedDataHub's stylesheets by importing them as explained in the <a href="../change-layout/">change layout</a> user guide.</p>
+                     
+                     <h3 id="server-side-xslt">Server-side</h3>
+                     
+                     <p>The default server-side stylesheet <samp>layout.xsl</samp> and its imports can be found in the <samp>src/main/webapp/static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2</samp> folder.</p>
+                     
+                     <h3 id="client-side-xslt">Client-side</h3>
+                     
+                     <p>Client-side stylesheets are used to implement the interactive parts of the UI (event
+                        handling, AJAX calls etc.) using the <a href="https://www.saxonica.com/saxon-js/documentation2/index.html#!ixsl-extension" target="_blank">IXSL extension</a>
+                        provided by the SaxonJS library. This way the frontend is made completely declarative
+                        and does not require almost any Javascript code, with exceptions of 3rd party libraries
+                        such as Google Charts and OpenLayers.</p>
+                     
+                     <p>Client-side stylesheets share common document-, resource-, and property-level templates
+                        with the server-side stylesheets. The client-side stylesheet may not contain any XML
+                        entity declarations (limitation of
+                        SaxonJS) and must be <a href="https://www.saxonica.com/saxon-js/documentation2/index.html#!starting/export" target="_blank">compiled into a SEF file</a> before it can be run by the SaxonJS runtime.
+                        By default, the URL of the client-side SEF stylesheet can be specified as the <code>$client-stylesheet</code> param of the document-level server-side <code>xhtml:Script</code> template.</p>
+                     </div>
+                  
+                  <div>
+                     
+                     <h2 id="rdf">RDF</h2>
+                     
+                     <p>You can modify or extend the <a href="../../reference/dataset/#default-datasets">default RDF datasets</a> used by LinkedDataHub. However, a better practice is to use the 
+                        <a href="../../reference/command-line-interface/">CLI scripts</a> to create documents and to <a href="../../reference/imports/">import CSV and RDF data</a>.</p>
+                     </div>
+                  
+                  <p class="lead"><a href="https://github.com/AtomGraph/LinkedDataHub-Apps" target="_blank">See the LinkedDataHub app repository for more examples.</a></p>
+                  </div>
+               <nav></nav>
+            </main>
+         </div>
+      </div>
+      <div class="footer container-fluid">
+         <div class="row-fluid">
+            <div class="offset2 span8">
+               <div class="span3">
+                  <h2 class="nav-header">About</h2>
+                  <ul class="nav nav-list">
+                     <li><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/about/" target="_blank">LinkedDataHub</a></li>
+                     <li><a href="https://atomgraph.com" target="_blank">AtomGraph</a></li>
+                  </ul>
+               </div>
+               <div class="span3">
+                  <h2 class="nav-header">Resources</h2>
+                  <ul class="nav nav-list">
+                     <li><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/" target="_blank">Documentation</a></li>
+                     <li><a href="https://www.youtube.com/channel/UCtrdvnVjM99u9hrjESwfCeg" target="_blank">Screencasts</a></li>
+                  </ul>
+               </div>
+               <div class="span3">
+                  <h2 class="nav-header">Support</h2>
+                  <ul class="nav nav-list">
+                     <li><a href="https://groups.io/g/linkeddatahub" target="_blank">Mailing list</a></li>
+                     <li><a href="https://github.com/AtomGraph/LinkedDataHub/issues" target="_blank">Report issues</a></li>
+                     <li><a href="mailto:support@linkeddatahub.com">Contact support</a></li>
+                  </ul>
+               </div>
+               <div class="span3">
+                  <h2 class="nav-header">Follow us</h2>
+                  <ul class="nav nav-list">
+                     <li><a href="https://twitter.com/atomgraphhq" target="_blank">@atomgraphhq</a></li>
+                     <li><a href="https://github.com/AtomGraph" target="_blank">github.com/AtomGraph</a></li>
+                  </ul>
+               </div>
+            </div>
+         </div>
+      </div>
+   </body>
+</html>

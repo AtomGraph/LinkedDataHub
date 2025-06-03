@@ -6,3 +6,4 @@
 /.node
 /.node_modules
 /node/node
+.DS_Store
