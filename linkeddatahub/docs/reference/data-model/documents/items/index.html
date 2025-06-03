@@ -142,6 +142,9 @@
                      <p>Document roperties such as <code>sioc:has_container</code>, <code>dct:created</code>, <code>dct:modified</code>, <code>acl:owner</code> are <a href="../../../http-api/#document-metadata">automatically managed</a> by LinkedDataHub.</p>
                      
                      <pre>@prefix dh: &lt;https://www.w3.org/ns/ldt/document-hierarchy#&gt; .
+@prefix ldh: &lt;https://w3id.org/atomgraph/linkeddatahub#&gt; .
+@prefix ac: &lt;https://w3id.org/atomgraph/client#&gt; .
+@prefix rdf: &lt;http://www.w3.org/1999/02/22-rdf-syntax-ns#&gt; .
 @prefix dct: &lt;http://purl.org/dc/terms/&gt; .
 @prefix xsd: &lt;http://www.w3.org/2001/XMLSchema#&gt; .
 @prefix sioc: &lt;http://rdfs.org/sioc/ns#&gt; .
@@ -149,11 +152,22 @@
 
 &lt;https://localhost:4443/concepts/example/&gt;
     a       dh:Item ;
+    rdf:_1  &lt;https://localhost:4443/concepts/example/#xhtml-block&gt; ;
+    rdf:_2  &lt;https://localhost:4443/concepts/example/#object-block&gt; ;
     dct:created "2025-06-02T19:49:48.126Z"^^xsd:dateTime ;
     dct:creator &lt;https://localhost:4443/admin/acl/agents/865c2431-8436-4ae8-b300-2a531a013cd0/#this&gt; ;
     dct:title "Example" ;
     sioc:has_container &lt;https://localhost:4443/2005d1e1-de5c-4c0d-bcab-002c203ff1a9/&gt; ;
-    acl:owner &lt;https://localhost:4443/admin/acl/agents/865c2431-8436-4ae8-b300-2a531a013cd0/#this&gt; .</pre>    
+    acl:owner &lt;https://localhost:4443/admin/acl/agents/865c2431-8436-4ae8-b300-2a531a013cd0/#this&gt; .
+    
+&lt;https://localhost:4443/concepts/example/#xhtml-block&gt;
+    a       ldh:XHTML ;
+    rdf:value "&lt;div xmlns=\"http://www.w3.org/1999/xhtml\"&gt;\n&lt;p&gt;A paragraph&lt;/p&gt;\n&lt;/div&gt;"^^rdf:XMLLiteral .
+
+&lt;https://localhost:4443/concepts/example/#object-block&gt;
+    a       ldh:Object ;
+    rdf:value &lt;http://dbpedia.org/resource/Copenhagen&gt; ;
+    ac:mode  ac:MapMode .</pre>    
                      </div>
                   
                   <div>
