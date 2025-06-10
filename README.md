@@ -76,10 +76,7 @@ It takes a few clicks and filling out a form to install the product into your ow
      - `data` where the triplestore(s) will persist RDF data
      - `datasets` where LDH persists agent metadata files
      - `uploads` where LDH stores content-hashed file uploads
-     It should take up to half a minute as datasets are being loaded into triplestores. After a successful startup, the last line of the Docker log should read something like:
-     ```
-     linkeddatahub_1     | 09-Feb-2021 14:18:10.536 INFO [main] org.apache.catalina.startup.Catalina.start Server startup in [32609] milliseconds
-     ```
+     It should take up to half a minute as datasets are being loaded into triplestores. After a successful startup you should see periodic healtcheck requests being made to the https://localhost:4443/ns URL.
   6. Install `ssl/owner/keystore.p12` into a web browser of your choice (password is the `owner_cert_password` secret value)
      - Google Chrome: `Settings > Advanced > Manage Certificates > Import...`
      - Mozilla Firefox: `Options > Privacy > Security > View Certificates... > Import...`
@@ -189,6 +186,7 @@ The scripts can be found in the [`bin`](https://github.com/AtomGraph/LinkedDataH
 ```shell
 export PATH="$(find bin -type d -exec realpath {} \; | tr '\n' ':')$PATH"
 ```
+If you will be using LinkedDataHub's CLI regurarly, add the above command to your shell profile.
 
 _:warning: The CLI scripts internally use [Jena's CLI commands](https://jena.apache.org/documentation/tools/). Set up the Jena environment before running the scripts._
 
