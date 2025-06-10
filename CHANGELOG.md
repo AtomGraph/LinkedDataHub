@@ -1,3 +1,76 @@
+## [5.0.14] - 2025-05-25
+### Added
+- Inline chart save feature for better user experience
+
+### Changed
+- Improved template match patterns for better performance
+
+### Fixed
+- Fixed action URL in navbar form
+- Comment fixes in codebase
+
+## [5.0.0] - 2025-05-12
+### Added
+- Saxon-JS upgraded from 2.x to 3.x with "suspended promise tree" architecture
+- Auto-generation of WebID certificates (owner and secretary) in entrypoint
+- Request access modal forms with ACL integration
+- Multi-platform Docker images (ARM64 + AMD64) with GitHub Actions
+- Modal document editing forms with in-place editing
+- Rate limiting and retry logic for HTTP 429 responses with `Retry-After` headers
+- Conditional HTTP requests support (`ETag`, `If-None-Match`, preconditions)
+- Access control endpoints for authorization management
+- Progress indicators for long-running operations
+- Drag-and-drop improvements for block reorganization
+- SPARQL endpoint read-only access for authenticated agents
+- Enhanced form controls with better `datetime-local` rendering
+- New HTTP test suite for conditional requests and access endpoints
+- Chart creation workflow improvements
+- View system overhaul - `ldh:View` now embedded via `ldh:Object`
+- Secrets management for Google OAuth credentials
+- Enhanced SSL/TLS management with automated keystore generation
+- MacOS compatibility improvements
+
+### Changed
+- CLI tools reorganization - scripts moved to `bin/` directory with PATH management
+- Client-side named templates converted to XPath functions for better composability
+- Promise-based rendering for charts, views, and objects
+- `ldh:View` is now a "normal" resource instead of content block
+- Authorization query optimization for better performance
+- Document type injection with dynamic `VALUES` for type-based queries
+- Varnish configuration improvements with separate VCL templates
+- User-specific content handling with proper cache bypass
+- RDF/POST parser improvements for empty values and relative URIs
+- SPARQL.js 2.x compatibility with regex fixes for datatype URIs
+- Container orchestration with memory limits and better configuration
+- Base image updates: `atomgraph/letsencrypt-tomcat:10.1.34`, `atomgraph/fuseki:4.7.0`
+- XHTML namespace handling with default `xmlns="http://www.w3.org/1999/xhtml"`
+- Block system improvements with better nesting and unique identifiers
+- Authorization filter improvements with `SERVICE`-less queries
+- Static file optimizations with increased burst limits
+
+### Fixed
+- Multiple null pointer exceptions in Java code
+- XPath syntax errors in XSLT stylesheets
+- Variable naming conflicts and scoping issues
+- Certificate permission issues across platforms
+- Progress bar visibility and selector issues
+- Block rendering and nesting logic
+- Form submission and response handling
+- Chart rendering and display logic
+- View navigation and object loading
+- HTTP status code handling (`201 Created`, `308 Permanent Redirect`)
+- Double slash URI prevention in requests
+- Container CSS and modal sizing issues
+- RDFS-specific vocabulary support
+
+### Removed
+- `IMPORT_KEEPALIVE` parameter
+- Unused `Reserialize` Saxon function (replaced with pure XSLT)
+- Debug output from XSLT stylesheets
+- Unnecessary `ixsl:http-request` arguments
+- Secret environment variables from Dockerfile
+- `bs2:RowContent` mode in XSLT
+
 ## [4.0.10] - 2024-11-07
 ### Changed
 - Fixed namespace prefix declaration in client-side XSLT
