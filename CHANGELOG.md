@@ -1,3 +1,9 @@
+
+## [5.0.15] - 2025-06-15
+### Changed
+- Inlined nginx and Varnish config templates into `docker-compose.yml`
+- SaxonJS 3 bump to 3.0.0-beta-2
+
 ## [5.0.14] - 2025-05-25
 ### Added
 - Inline chart save feature for better user experience
@@ -9,7 +15,7 @@
 - Fixed action URL in navbar form
 - Comment fixes in codebase
 
-## [5.0.0] - 2025-05-12
+## [5.0.13] - 2025-05-12
 ### Added
 - Saxon-JS upgraded from 2.x to 3.x with "suspended promise tree" architecture
 - Auto-generation of WebID certificates (owner and secretary) in entrypoint
