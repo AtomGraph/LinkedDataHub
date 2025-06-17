@@ -267,15 +267,12 @@
                            to have, as well as expected datatypes of their
                            values. Constructors are used in create/edit modes. A class can have multiple constructors.</p>
                         
-                        <p>For example, one of the constructors of the <code>dh:Container</code> and <code>dh:Item</code> <a href="#classes">classes</a>:</p>
+                        <p>For example, the constructor of the <code>ldh:XHTML</code> <a href="#classes">class</a>:</p>
                         
                         <pre><code>PREFIX rdf:     &lt;http://www.w3.org/1999/02/22-rdf-syntax-ns#&gt;
-PREFIX xsd:     &lt;http://www.w3.org/2001/XMLSchema#&gt;
-PREFIX sioc:    &lt;http://rdfs.org/sioc/ns#&gt;
-PREFIX dct:     &lt;http://purl.org/dc/terms/&gt;
 
 CONSTRUCT {
-  $this sioc:content "&lt;div xmlns=\"http://www.w3.org/1999/xhtml\"&gt;&lt;/div&gt;"^^rdf:XMLLiteral .
+  $this rdf:value "&lt;div xmlns=\"http://www.w3.org/1999/xhtml\"&gt;&lt;/div&gt;"^^rdf:XMLLiteral .
 }
 WHERE {}</code></pre>
                         
