@@ -168,7 +168,7 @@ configs:
               ssl_certificate_key /etc/nginx/ssl/server.key;
               ssl_session_cache shared:SSL:1m;
               ssl_prefer_server_ciphers on;
-              ssl_verify_client off;
+              ssl_verify_client optional_no_ca;
 
               location / {
                   proxy_pass http://linkeddatahub;
