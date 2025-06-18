@@ -330,7 +330,7 @@
                 <version>1.15.1</version>
                 <configuration>
                     <nodeVersion>v22.16.0</nodeVersion>
-                    <npmVersion>11.4.2</npmVersion> <!-- or any recent compatible version -->
+                    <npmVersion>11.4.2</npmVersion>
                 </configuration>
                 <executions>
                     <execution>
