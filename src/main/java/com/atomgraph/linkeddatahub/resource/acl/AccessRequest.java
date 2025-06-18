@@ -63,6 +63,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
+ * Resource for handling ACL access requests.
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
@@ -181,6 +182,12 @@ public class AccessRequest extends GraphStoreImpl
         }
     }
 
+    /**
+     * Returns a human-readable name for the agent.
+     * 
+     * @param agent the agent
+     * @return human-readable name or null if not available
+     */
     public String getAgentsHumanReadableName(Agent agent)
     {
         if (agent.hasProperty(FOAF.givenName) && agent.hasProperty(FOAF.familyName))

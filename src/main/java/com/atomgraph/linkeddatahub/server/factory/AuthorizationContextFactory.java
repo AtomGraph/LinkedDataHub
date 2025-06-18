@@ -24,6 +24,7 @@ import org.glassfish.hk2.api.Factory;
 import org.glassfish.hk2.api.ServiceLocator;
 
 /**
+ * Factory for creating authorization context instances.
  *
  * @author {@literal Martynas Jusevičius <martynas@atomgraph.com>}
  */

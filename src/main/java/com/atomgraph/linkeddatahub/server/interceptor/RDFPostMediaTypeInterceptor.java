@@ -35,7 +35,6 @@ import org.slf4j.LoggerFactory;
  * Request interceptor that fixes RDF/POST media type.
  * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
- * @see com.atomgraph.linkeddatahub.server.filter.request.MultipartRDFPostCleanupFilter
  */
 @Priority(Priorities.ENTITY_CODER)
 public class RDFPostMediaTypeInterceptor implements ReaderInterceptor

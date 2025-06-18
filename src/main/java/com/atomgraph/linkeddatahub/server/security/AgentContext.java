@@ -19,6 +19,7 @@ package com.atomgraph.linkeddatahub.server.security;
 import com.atomgraph.linkeddatahub.model.auth.Agent;
 
 /**
+ * Context that provides access to the authenticated agent.
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */

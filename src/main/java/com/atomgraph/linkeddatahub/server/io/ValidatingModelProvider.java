@@ -73,7 +73,6 @@ import org.slf4j.LoggerFactory;
  * JAX-RS provider that skolemizes blank node resources in the input RDF model.
  * It also fixes values of various properties.
  * 
- * @see com.atomgraph.linkeddatahub.server.interceptor.RDFPostCleanupInterceptor#fixValues(List<String>, List<String>, String)
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
 public class ValidatingModelProvider extends com.atomgraph.server.io.ValidatingModelProvider

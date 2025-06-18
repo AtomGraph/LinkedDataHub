@@ -128,7 +128,7 @@ public abstract class AuthenticationFilter implements ContainerRequestFilter
      * @param qsm query solution map (applied to the query string or sent as request params, depending on the protocol)
      * @param service SPARQL service
      * @return authorization graph (can be empty)
-     * @see com.atomgraph.linkeddatahub.vocabulary.LDHC#authQuery
+     * @see com.atomgraph.linkeddatahub.vocabulary.LDHC#aclQuery
      */
     protected Model loadModel(ParameterizedSparqlString pss, QuerySolutionMap qsm, com.atomgraph.linkeddatahub.model.Service service)
     {

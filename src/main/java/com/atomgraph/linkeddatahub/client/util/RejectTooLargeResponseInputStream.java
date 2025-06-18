@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 /**
+ * Input stream that rejects HTTP responses that exceed the maximum size limit.
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */

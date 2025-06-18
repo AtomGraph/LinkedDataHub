@@ -19,6 +19,7 @@ package com.atomgraph.linkeddatahub.writer.factory.xslt;
 import net.sf.saxon.s9api.XsltExecutable;
 
 /**
+ * Implementation of XSLT executable supplier.
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */

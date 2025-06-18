@@ -29,6 +29,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
+ * Factory for creating XSLT executable supplier instances.
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */

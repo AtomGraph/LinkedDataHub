@@ -10,6 +10,7 @@ import org.apache.jena.sparql.modify.request.UpdateModify;
 import org.apache.jena.sparql.modify.request.UpdateVisitorBase;
 
 /**
+ * Visitor for SPARQL PATCH updates to detect named graph usage.
  *
  * @author {@literal Martynas Jusevičius <martynas@atomgraph.com>}
  */

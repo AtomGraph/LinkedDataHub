@@ -27,6 +27,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
+ * Factory for creating mode instances.
  *
  * @author {@literal Martynas Jusevičius <martynas@atomgraph.com>}
  */

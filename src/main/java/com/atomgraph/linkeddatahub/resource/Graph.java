@@ -369,7 +369,7 @@ public class Graph extends GraphStoreImpl
      * 
      * @param beforeUpdateModel model before the update
      * @param afterUpdateModel model after the update
-     * @return 
+     * @return set of changed resources
      */
     public Set<Resource> getChangedResources(Model beforeUpdateModel, Model afterUpdateModel)
     {
@@ -708,6 +708,11 @@ public class Graph extends GraphStoreImpl
         }
     }
     
+    /**
+     * Submits imports for the given model.
+     * 
+     * @param model the RDF model
+     */
     public void submitImports(Model model)
     {
         if (model == null) throw new IllegalArgumentException("Model cannot be null");

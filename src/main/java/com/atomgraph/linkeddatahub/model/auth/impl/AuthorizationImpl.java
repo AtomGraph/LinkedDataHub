@@ -34,6 +34,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
+ * Implementation of authorization model.
  *
  * @author {@literal Martynas Jusevičius <martynas@atomgraph.com>}
  */

@@ -19,6 +19,8 @@ package com.atomgraph.linkeddatahub.server.util;
 import java.nio.file.Path;
 
 /**
+ * WebID client certificate generator utility.
+ *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
 public class WebIDCertGen

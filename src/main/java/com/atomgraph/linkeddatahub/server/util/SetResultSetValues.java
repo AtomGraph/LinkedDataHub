@@ -25,6 +25,7 @@ import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.engine.binding.Binding;
 
 /**
+ * Utility class for setting SPARQL result set values as a VALUES block in a query.
  *
  * @author Martynas.Jusevicius
  */
