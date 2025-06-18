@@ -1,5 +1,5 @@
 /**
- *  Copyright 2121 Martynas Jusevičius <martynas@atomgraph.com>
+ *  Copyright 2021 Martynas Jusevičius <martynas@atomgraph.com>
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -260,7 +260,9 @@ public class Graph extends GraphStoreImpl
 
         if (existingModel == null) // creating new graph and attaching it to the document hierarchy
         {
-            resource.addLiteral(DCTerms.created, ResourceFactory.createTypedLiteral(GregorianCalendar.getInstance()));
+            resource.removeAll(DCTerms.created). // remove any client-supplied dct:created values
+                addLiteral(DCTerms.created, ResourceFactory.createTypedLiteral(GregorianCalendar.getInstance()));
+            
             if (getAgentContext().isPresent()) resource.addProperty(DCTerms.creator, getAgentContext().get().getAgent()).
                     addProperty(ACL.owner, getAgentContext().get().getAgent());
 
@@ -367,7 +369,7 @@ public class Graph extends GraphStoreImpl
      * 
      * @param beforeUpdateModel model before the update
      * @param afterUpdateModel model after the update
-     * @return 
+     * @return set of changed resources
      */
     public Set<Resource> getChangedResources(Model beforeUpdateModel, Model afterUpdateModel)
     {
@@ -706,6 +708,11 @@ public class Graph extends GraphStoreImpl
         }
     }
     
+    /**
+     * Submits imports for the given model.
+     * 
+     * @param model the RDF model
+     */
     public void submitImports(Model model)
     {
         if (model == null) throw new IllegalArgumentException("Model cannot be null");

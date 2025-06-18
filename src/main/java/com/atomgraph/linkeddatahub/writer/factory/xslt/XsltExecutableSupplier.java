@@ -20,6 +20,7 @@ import java.util.function.Supplier;
 import net.sf.saxon.s9api.XsltExecutable;
 
 /**
+ * Supplier interface for XSLT executable instances.
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */

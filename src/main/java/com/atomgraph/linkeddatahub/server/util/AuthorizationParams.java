@@ -74,16 +74,31 @@ public class AuthorizationParams implements Supplier<QuerySolutionMap>
         return qsm;
     }
 
+    /**
+     * Gets the base resource for authorization.
+     * 
+     * @return the base resource
+     */
     public Resource getBase()
     {
         return base;
     }
 
+    /**
+     * Gets the absolute path resource for authorization.
+     * 
+     * @return the absolute path resource
+     */
     public Resource getAbsolutePath()
     {
         return absolutePath;
     }
 
+    /**
+     * Gets the agent resource for authorization.
+     * 
+     * @return the agent resource
+     */
     public Resource getAgent()
     {
         return agent;

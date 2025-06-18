@@ -182,6 +182,14 @@ public class LinkedDataClient extends com.atomgraph.core.client.LinkedDataClient
             webTarget.request(acceptedTypes).put(entity));
     }
     
+    /**
+     * Sends a PUT request with RDF model data to the specified URI.
+     * 
+     * @param uri the target URI
+     * @param model the RDF model to send
+     * @param headers additional HTTP headers
+     * @return the HTTP response
+     */
     public Response put(URI uri, Model model, MultivaluedMap<String, Object> headers)
     {
         WebTarget webTarget = getWebTarget(uri);

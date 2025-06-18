@@ -66,6 +66,7 @@ public abstract class GraphStoreImpl extends com.atomgraph.core.model.impl.Graph
     private final com.atomgraph.linkeddatahub.Application system;
     private final UriBuilder uploadsUriBuilder;
     private final MessageDigest messageDigest;
+    /** The URIs for owner and secretary documents. */
     protected final URI ownerDocURI, secretaryDocURI;
     private final SecurityContext securityContext;
     private final Optional<AgentContext> agentContext;

@@ -267,7 +267,7 @@ public class AuthorizationFilter implements ContainerRequestFilter
      * @param pss auth query string
      * @param qsm query solution map (applied to the query string or sent as request params, depending on the protocol)
      * @return authorization graph (can be empty)
-     * @see com.atomgraph.linkeddatahub.vocabulary.LDHC#authQuery
+     * @see com.atomgraph.linkeddatahub.vocabulary.LDHC#aclQuery
      */
     protected Model loadModel(com.atomgraph.linkeddatahub.model.Service service, ParameterizedSparqlString pss, QuerySolutionMap qsm)
     {
@@ -299,7 +299,7 @@ public class AuthorizationFilter implements ContainerRequestFilter
      * @param pss auth query string
      * @param qsm query solution map (applied to the query string or sent as request params, depending on the protocol)
      * @return authorization graph (can be empty)
-     * @see com.atomgraph.linkeddatahub.vocabulary.LDHC#authQuery
+     * @see com.atomgraph.linkeddatahub.vocabulary.LDHC#aclQuery
      */
     protected ResultSetRewindable loadResultSet(com.atomgraph.linkeddatahub.model.Service service, ParameterizedSparqlString pss, QuerySolutionMap qsm)
     {

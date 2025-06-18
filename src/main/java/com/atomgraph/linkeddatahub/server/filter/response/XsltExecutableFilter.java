@@ -200,11 +200,25 @@ public class XsltExecutableFilter implements ContainerResponseFilter
         return null;
     }
 
+    /**
+     * Gets the URI parameter from the request.
+     * 
+     * @return the URI parameter
+     * @throws URISyntaxException if the URI is malformed
+     */
     public URI getURI() throws URISyntaxException
     {
         return getURIParam(getUriInfo(), AC.uri.getLocalName());
     }
     
+    /**
+     * Gets a URI parameter from the provided UriInfo.
+     * 
+     * @param uriInfo the URI information
+     * @param name the parameter name
+     * @return the URI parameter value
+     * @throws URISyntaxException if the URI is malformed
+     */
     public URI getURIParam(UriInfo uriInfo, String name) throws URISyntaxException
     {
         if (uriInfo == null) throw new IllegalArgumentException("UriInfo cannot be null");

@@ -39,7 +39,6 @@ import org.slf4j.LoggerFactory;
  *     RetryAfterHelper helper = new RetryAfterHelper(5000L, 3);
  *     Response response = helper.invokeWithRetry(() -&gt; client.target(url).request().get());
  * </pre>
- * </p>
  * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
@@ -50,6 +49,12 @@ public class RetryAfterHelper
     private final long defaultDelayMillis;
     private final int maxRetryCount;
     
+    /**
+     * Constructs retry helper.
+     * 
+     * @param defaultDelayMillis default delay in milliseconds
+     * @param maxRetryCount maximum retry count
+     */
     public RetryAfterHelper(long defaultDelayMillis, int maxRetryCount)
     {
         this.defaultDelayMillis = defaultDelayMillis;

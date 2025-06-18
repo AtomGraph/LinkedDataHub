@@ -24,6 +24,7 @@ import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Resource;
 
 /**
+ * Document Hierarchy vocabulary.
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
@@ -37,6 +38,7 @@ public class DH
     public static final String NS = "https://www.w3.org/ns/ldt/document-hierarchy#";
     
     /** <p>The namespace of the vocabulary as a string</p>
+     *  @return namespace URI
      *  @see #NS */
     public static String getURI()
     {

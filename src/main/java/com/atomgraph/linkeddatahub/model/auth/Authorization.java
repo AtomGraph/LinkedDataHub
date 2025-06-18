@@ -21,6 +21,7 @@ import java.util.Set;
 import org.apache.jena.rdf.model.Resource;
 
 /**
+ * Authorization interface for access control.
  *
  * @author {@literal Martynas Jusevičius <martynas@atomgraph.com>}
  */

@@ -44,6 +44,11 @@ public class ContentLengthLimitFilter implements ContainerRequestFilter, ClientR
     private static final Logger log = LoggerFactory.getLogger(ContentLengthLimitFilter.class);
     private final int maxContentLength;
     
+    /**
+     * Constructs content length limit filter.
+     * 
+     * @param maxContentLength maximum content length
+     */
     public ContentLengthLimitFilter(int maxContentLength)
     {
         this.maxContentLength = maxContentLength;
@@ -95,6 +100,11 @@ public class ContentLengthLimitFilter implements ContainerRequestFilter, ClientR
         responseContext.setEntityStream(new RejectTooLargeResponseInputStream(responseContext.getEntityStream(), getMaxContentLength()));
     }
 
+    /**
+     * Returns the maximum content length.
+     * 
+     * @return maximum content length in bytes
+     */
     public int getMaxContentLength()
     {
         return maxContentLength;

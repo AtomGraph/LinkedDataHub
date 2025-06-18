@@ -3,7 +3,7 @@
 
     <groupId>com.atomgraph</groupId>
     <artifactId>linkeddatahub</artifactId>
-    <version>5.0.15-SNAPSHOT</version>
+    <version>5.0.16-SNAPSHOT</version>
     <packaging>${packaging.type}</packaging>
 
     <name>AtomGraph LinkedDataHub</name>
@@ -329,7 +329,8 @@
                 <artifactId>frontend-maven-plugin</artifactId>
                 <version>1.15.1</version>
                 <configuration>
-                    <nodeVersion>v18.17.0</nodeVersion>
+                    <nodeVersion>v22.16.0</nodeVersion>
+                    <npmVersion>11.4.2</npmVersion>
                 </configuration>
                 <executions>
                     <execution>

@@ -57,6 +57,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
+ * ACL access control endpoint for querying authorization data.
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */

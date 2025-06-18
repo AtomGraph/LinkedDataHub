@@ -80,6 +80,7 @@ public abstract class XSLTWriterBase extends com.atomgraph.client.writer.XSLTWri
     private static final Set<String> NAMESPACES;
     /** The relative URL of the RDF file with localized labels */
     public static final String TRANSLATIONS_PATH = "static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf";
+    /** System property name for the XSLT system ID. */
     public static final String SYSTEM_ID_PROPERTY = "com.atomgraph.linkeddatahub.writer.XSLTWriterBase.systemId";
     
     static
@@ -228,7 +229,7 @@ public abstract class XSLTWriterBase extends com.atomgraph.client.writer.XSLTWri
      * @param headerMap response headers
      * @param property rel property
      * @return filtered headers
-     * @see com.atomgraph.linkeddatahub.server.filter.response.ResponseHeaderFilter
+     * @see com.atomgraph.linkeddatahub.server.filter.response.ResponseHeadersFilter
      */
     @Override
     public URI getLinkURI(MultivaluedMap<String, Object> headerMap, ObjectProperty property)

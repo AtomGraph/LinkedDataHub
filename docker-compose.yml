@@ -13,7 +13,9 @@ services:
   nginx:
     image: nginx:1.23.3
     mem_limit: 128m
-    command: /bin/sh -c "cp /etc/nginx/nginx.conf.template /etc/nginx/nginx.conf && sed -i 's|$${HTTPS_PORT}|'"$$HTTPS_PORT"'|g' /etc/nginx/nginx.conf && sed -i 's|$${UPSTREAM_SERVER}|'"$$UPSTREAM_SERVER"'|g' /etc/nginx/nginx.conf && sed -i 's|$${UPSTREAM_HTTP_PORT}|'"$$UPSTREAM_HTTP_PORT"'|g' /etc/nginx/nginx.conf && sed -i 's|$${SERVER_NAME}|'"$$SERVER_NAME"'|g' /etc/nginx/nginx.conf && sed -i 's|$${SERVER_HTTPS_PORT}|'"$$SERVER_HTTPS_PORT"'|g' /etc/nginx/nginx.conf && sed -i 's|$${SERVER_HTTP_PORT}|'"$$SERVER_HTTP_PORT"'|g' /etc/nginx/nginx.conf && sed -i 's|$${SERVER_CERT_FILE}|'"$$SERVER_CERT_FILE"'|g' /etc/nginx/nginx.conf && sed -i 's|$${SERVER_KEY_FILE}|'"$$SERVER_KEY_FILE"'|g' /etc/nginx/nginx.conf && sed -i 's|$${SSL_VERIFY_CLIENT}|'"$$SSL_VERIFY_CLIENT"'|g' /etc/nginx/nginx.conf && sed -i 's|$${MAX_BODY_SIZE}|'"$$MAX_BODY_SIZE"'|g' /etc/nginx/nginx.conf && sed -i 's|$${SERVER_CLIENT_CERT_HTTPS_PORT}|'"$$SERVER_CLIENT_CERT_HTTPS_PORT"'|g' /etc/nginx/nginx.conf && nginx -g 'daemon off;'"
+    configs:
+      - source: nginx_conf
+        target: /etc/nginx/nginx.conf
     depends_on:
       linkeddatahub:
         condition: service_healthy
@@ -21,20 +23,7 @@ services:
       - ${HTTP_PORT}:8080 # allow Tomcat to do HTTP to HTTPS redirect
       - ${HTTPS_PORT}:8443 # HTTPS
       - ${HTTPS_CLIENT_CERT_PORT:-5443}:9443 # HTTPS client cert
-    environment:
-      - HTTPS_PORT=${HTTPS_PORT}
-      - UPSTREAM_SERVER=varnish-frontend
-      - UPSTREAM_HTTP_PORT=6060
-      - SERVER_NAME=${HOST}
-      - SERVER_HTTPS_PORT=8443 # because of nginx-unprivileged
-      - SERVER_HTTP_PORT=8080 # because of nginx-unprivileged
-      - SERVER_CLIENT_CERT_HTTPS_PORT=9443 # 
-      - SERVER_CERT_FILE=/etc/nginx/ssl/server.crt
-      - SERVER_KEY_FILE=/etc/nginx/ssl/server.key
-      - SSL_VERIFY_CLIENT=optional_no_ca
-      - MAX_BODY_SIZE=2097152
     volumes:
-      - ./platform/nginx.conf.template:/etc/nginx/nginx.conf.template:ro
       - ./ssl/server:/etc/nginx/ssl:ro
   linkeddatahub:
     user: root # otherwise the ldh user does not have permissions to the mounted folder which is owner by root
@@ -92,8 +81,6 @@ services:
       - ./uploads:/var/www/linkeddatahub/uploads
       - ./config/dev.log4j.properties:/usr/local/tomcat/webapps/ROOT/WEB-INF/classes/log4j.properties:ro
       - ./config/system-varnish.trig:/var/linkeddatahub/datasets/system.trig:ro
-      - ./platform/datasets/admin.trig:/var/linkeddatahub/datasets/admin.trig:ro
-      - ./platform/datasets/end-user.trig:/var/linkeddatahub/datasets/end-user.trig:ro
   fuseki-admin:
     image: atomgraph/fuseki:4.7.0
     user: root # otherwise fuseki user does not have permissions to the mounted folder which is owner by root
@@ -115,50 +102,351 @@ services:
   varnish-frontend:
     image: varnish:7.3.0
     user: root # otherwise varnish user does not have permissions to the mounted folder which is owner by root
+    configs:
+      - source: varnish-frontend_vcl
+        target: /etc/varnish/default.vcl
     depends_on:
       - linkeddatahub
     tmpfs: /var/lib/varnish/varnishd:exec
     environment:
       - VARNISH_HTTP_PORT=6060
-      - BACKEND_HOST=linkeddatahub
-      - BACKEND_PORT=7070
-      - CLIENT_HOST=localhost
       - VARNISH_SIZE=1G
-    entrypoint: /bin/sh -c "cp /etc/varnish/default.vcl.template /etc/varnish/default.vcl && sed -i 's|$${BACKEND_HOST}|'"$$BACKEND_HOST"'|g' /etc/varnish/default.vcl && sed -i 's|$${BACKEND_PORT}|'"$$BACKEND_PORT"'|g' /etc/varnish/default.vcl && sed -i 's|$${CLIENT_HOST}|'"$$CLIENT_HOST"'|g' /etc/varnish/default.vcl && /usr/local/bin/docker-varnish-entrypoint \"$$0\" \"$$@\""
     command: [ "-t", "86400" ] # time to live
-    volumes:
-      - ./platform/varnish-frontend.vcl.template:/etc/varnish/default.vcl.template:ro
   varnish-admin:
     image: varnish:7.3.0
     user: root # otherwise the varnish user does not have permissions to the mounted folder which is owner by root
+    configs:
+      - source: varnish-admin_vcl
+        target: /etc/varnish/default.vcl
     depends_on:
       - linkeddatahub
     tmpfs: /var/lib/varnish/varnishd:exec
     environment:
-      - BACKEND_HOST=fuseki-admin
-      - BACKEND_PORT=3030
-      - CLIENT_HOST=linkeddatahub
       - VARNISH_SIZE=1G
-    entrypoint: /bin/sh -c "cp /etc/varnish/default.vcl.template /etc/varnish/default.vcl && sed -i 's|$${BACKEND_HOST}|'"$$BACKEND_HOST"'|g' /etc/varnish/default.vcl && sed -i 's|$${BACKEND_PORT}|'"$$BACKEND_PORT"'|g' /etc/varnish/default.vcl && sed -i 's|$${CLIENT_HOST}|'"$$CLIENT_HOST"'|g' /etc/varnish/default.vcl && /usr/local/bin/docker-varnish-entrypoint \"$$0\" \"$$@\""
     command: [ "-t", "86400", "-p", "timeout_idle=60s" ] # time to live
-    volumes:
-      - ./platform/varnish-backend.vcl.template:/etc/varnish/default.vcl.template:ro
   varnish-end-user:
     image: varnish:7.3.0
     user: root # otherwise varnish user does not have permissions to the mounted folder which is owner by root
+    configs:
+      - source: varnish-end-user_vcl
+        target: /etc/varnish/default.vcl
     depends_on:
       - linkeddatahub
     tmpfs: /var/lib/varnish/varnishd:exec
     environment:
-      - BACKEND_HOST=fuseki-end-user
-      - BACKEND_PORT=3030
-      - CLIENT_HOST=linkeddatahub
       - VARNISH_SIZE=1G
-    entrypoint: /bin/sh -c "cp /etc/varnish/default.vcl.template /etc/varnish/default.vcl && sed -i 's|$${BACKEND_HOST}|'"$$BACKEND_HOST"'|g' /etc/varnish/default.vcl && sed -i 's|$${BACKEND_PORT}|'"$$BACKEND_PORT"'|g' /etc/varnish/default.vcl && sed -i 's|$${CLIENT_HOST}|'"$$CLIENT_HOST"'|g' /etc/varnish/default.vcl && /usr/local/bin/docker-varnish-entrypoint \"$$0\" \"$$@\""
     command: [ "-t", "86400", "-p", "timeout_idle=60s" ] # time to live
-    volumes:
-      - ./platform/varnish-backend.vcl.template:/etc/varnish/default.vcl.template:ro
   email-server:
     image: namshi/smtp
     environment:
       - DISABLE_IPV6=true
+configs:
+  nginx_conf:
+    content: |
+      pid /tmp/nginx.pid;
+
+      events { 
+          worker_connections 1024;
+      }
+
+      http {
+          upstream linkeddatahub {
+              server varnish-frontend:6060;
+          }
+
+          limit_req_zone $$binary_remote_addr zone=linked_data:10m rate=6r/s;
+          limit_req_zone $$binary_remote_addr zone=static_files:10m rate=20r/s;
+          limit_req_status 429;
+
+          client_max_body_size 2097152;
+
+          # server with optional client cert authentication
+          server {
+              listen 8443 ssl;
+              server_name ${HOST};
+              ssl_certificate /etc/nginx/ssl/server.crt;
+              ssl_certificate_key /etc/nginx/ssl/server.key;
+              ssl_session_cache shared:SSL:1m;
+              ssl_prefer_server_ciphers on;
+              ssl_verify_client optional_no_ca;
+
+              location / {
+                  proxy_pass http://linkeddatahub;
+                  #proxy_cache backcache;
+                  limit_req zone=linked_data burst=20 nodelay;
+
+                  proxy_set_header Client-Cert '';
+                  proxy_set_header Client-Cert $$ssl_client_escaped_cert;
+
+                  # add_header Cache-Control "public, max-age=86400";
+              }
+
+              location ^~ /uploads/ {
+                  proxy_pass http://linkeddatahub;
+                  limit_req zone=static_files burst=20 nodelay;
+
+                  proxy_set_header Client-Cert '';
+                  proxy_set_header Client-Cert $$ssl_client_escaped_cert;
+
+                  add_header Cache-Control "public, max-age=604800, immutable";
+              }
+
+              location ^~ /static/ {
+                  proxy_pass http://linkeddatahub;
+                  limit_req zone=static_files burst=50 nodelay;
+
+                  add_header Cache-Control "public, max-age=604800, immutable";
+              }
+          }
+
+          # server with client cert authentication on
+          server {
+              listen 9443 ssl;
+              server_name ${HOST};
+              ssl_certificate /etc/nginx/ssl/server.crt;
+              ssl_certificate_key /etc/nginx/ssl/server.key;
+              ssl_session_cache shared:SSL:1m;  
+              ssl_prefer_server_ciphers on;
+              ssl_verify_client optional_no_ca;
+
+              location / {
+                  proxy_pass http://linkeddatahub;
+                  #proxy_cache backcache;
+                  limit_req zone=linked_data burst=20 nodelay;
+
+                  proxy_set_header Client-Cert '';
+                  proxy_set_header Client-Cert $$ssl_client_escaped_cert;
+              }
+
+              location ^~ /static/ {
+                  proxy_pass http://linkeddatahub;
+                  limit_req zone=static_files burst=50 nodelay;
+              }
+          }
+
+          server {
+              listen 8080;
+              server_name ${HOST};
+          
+              location / {
+                  return 301 https://$$server_name:${HTTPS_PORT}$$request_uri;
+              }
+          }
+
+      }
+  varnish-frontend_vcl:
+    content: |
+      vcl 4.0;
+
+      import std;
+
+      backend default {
+          .host = "linkeddatahub";
+          .port = "7070";
+          .first_byte_timeout = 60s;
+      }
+
+      acl local {
+          "localhost";
+      }
+
+      acl remote {
+      }
+
+      sub vcl_recv {
+          if (req.method == "PURGE") {
+              if (!client.ip ~ local && !client.ip ~ remote) {
+                  return (synth(403, "Unknown IP address '" + client.ip + "'. Access denied."));
+              }
+              return (purge);
+          }
+
+          if (req.method == "BAN") { # supports only 2 URIs!
+              if (!client.ip ~ local && !client.ip ~ remote) {
+                  return (synth(403, "Unknown IP address '" + client.ip + "'. Access denied."));
+              }
+
+              set req.http.X-Escaped-Request-URI-1 = regsub(req.http.X-Escaped-Request-URI, ",.*$", ""); # remove header value after comma
+              set req.http.X-Escaped-Request-URI-2 = regsub(req.http.X-Escaped-Request-URI, "^.*,", ""); # remove header value before comma
+              ban("req.url ~ " + req.http.X-Escaped-Request-URI-1);
+              ban("req.url ~ " + req.http.X-Escaped-Request-URI-2);
+              return (synth(200, "Banned"));
+          }
+
+          if (req.method != "GET" &&
+            req.method != "HEAD" &&
+            req.method != "PUT" &&
+            req.method != "POST" &&
+            req.method != "TRACE" &&
+            req.method != "OPTIONS" &&
+            req.method != "DELETE" &&
+            req.method != "PATCH") {
+              /* Non-RFC2616 or CONNECT which is weird. */
+              return (pipe);
+          }
+
+          if (req.method != "GET" && req.method != "HEAD") {
+              /* We only deal with GET and HEAD by default */
+              return (pass);
+          }
+          if (req.http.Client-Cert) {
+              /* Authenticated requests are not cacheable */
+              return (pass);
+          }
+          if (req.http.Cookie) {
+              # explicitly allow only cookies required by LDH server-side
+              set req.http.Cookie = ";" + req.http.Cookie;
+              set req.http.Cookie = regsuball(req.http.Cookie, "; +", ";");
+              set req.http.Cookie = regsuball(req.http.Cookie, ";(LinkedDataHub\.state|LinkedDataHub\.id_token)=", "; \1=");
+              set req.http.Cookie = regsuball(req.http.Cookie, ";[^ ][^;]*", "");
+              set req.http.Cookie = regsuball(req.http.Cookie, "^[; ]+|[; ]+$", "");
+
+              if (req.http.cookie ~ "^\s*$") {
+                  unset req.http.cookie;
+              }
+          }
+
+          return (hash);
+      }
+
+      sub vcl_backend_response {
+          /* purge URLs after updates */
+          if ((beresp.status == 200 || beresp.status == 201 || beresp.status == 204) && bereq.method ~ "POST|PUT|DELETE|PATCH") {
+              set beresp.http.X-LinkedDataHub = "Banned";
+              ban("req.url == " + bereq.url + " && req.http.host == " + bereq.http.host);
+          }
+
+          return (deliver);
+      }
+  varnish-admin_vcl:
+    content: |
+      vcl 4.0;
+
+      import std;
+
+      backend default {
+          .host = "fuseki-admin";
+          .port = "3030";
+          .first_byte_timeout = 60s;
+      }
+
+      acl local {
+          "localhost";
+          "linkeddatahub";
+      }
+
+      sub vcl_recv {
+          if (req.method == "PURGE") {
+              if (!client.ip ~ local) {
+                  return (synth(403, "Unknown IP address '" + client.ip + "'. Access denied."));
+              }
+              return (purge);
+          }
+
+          if (req.method == "BAN") { # supports only 2 URIs!
+              if (!client.ip ~ local) {
+                  return (synth(403, "Unknown IP address '" + client.ip + "'. Access denied."));
+              }
+
+              set req.http.X-Escaped-Request-URI-1 = regsub(req.http.X-Escaped-Request-URI, ",.*$", ""); # remove header value after comma
+              set req.http.X-Escaped-Request-URI-2 = regsub(req.http.X-Escaped-Request-URI, "^.*,", ""); # remove header value before comma
+              ban("req.url ~ " + req.http.X-Escaped-Request-URI-1);
+              ban("req.url ~ " + req.http.X-Escaped-Request-URI-2);
+              return (synth(200, "Banned"));
+          }
+
+          if (req.method != "GET" &&
+            req.method != "HEAD" &&
+            req.method != "PUT" &&
+            req.method != "POST" &&
+            req.method != "TRACE" &&
+            req.method != "OPTIONS" &&
+            req.method != "DELETE" &&
+            req.method != "PATCH") {
+              /* Non-RFC2616 or CONNECT which is weird. */
+              return (pipe);
+          }
+
+          if (req.method != "GET" && req.method != "HEAD") {
+              /* We only deal with GET and HEAD by default */
+              return (pass);
+          }
+
+          return (hash);
+      }
+
+      sub vcl_backend_response {
+          /* purge URLs after updates */
+          if ((beresp.status == 200 || beresp.status == 201 || beresp.status == 204) && bereq.method ~ "POST|PUT|DELETE|PATCH") {
+              set beresp.http.X-LinkedDataHub = "Banned";
+              ban("req.url == " + bereq.url + " && req.http.host == " + bereq.http.host);
+          }
+
+          return (deliver);
+      }
+  varnish-end-user_vcl:
+    content: |
+      vcl 4.0;
+
+      import std;
+
+      backend default {
+          .host = "fuseki-end-user";
+          .port = "3030";
+          .first_byte_timeout = 60s;
+      }
+
+      acl local {
+          "localhost";
+          "linkeddatahub";
+      }
+
+      sub vcl_recv {
+          if (req.method == "PURGE") {
+              if (!client.ip ~ local) {
+                  return (synth(403, "Unknown IP address '" + client.ip + "'. Access denied."));
+              }
+              return (purge);
+          }
+
+          if (req.method == "BAN") { # supports only 2 URIs!
+              if (!client.ip ~ local) {
+                  return (synth(403, "Unknown IP address '" + client.ip + "'. Access denied."));
+              }
+
+              set req.http.X-Escaped-Request-URI-1 = regsub(req.http.X-Escaped-Request-URI, ",.*$", ""); # remove header value after comma
+              set req.http.X-Escaped-Request-URI-2 = regsub(req.http.X-Escaped-Request-URI, "^.*,", ""); # remove header value before comma
+              ban("req.url ~ " + req.http.X-Escaped-Request-URI-1);
+              ban("req.url ~ " + req.http.X-Escaped-Request-URI-2);
+              return (synth(200, "Banned"));
+          }
+
+          if (req.method != "GET" &&
+            req.method != "HEAD" &&
+            req.method != "PUT" &&
+            req.method != "POST" &&
+            req.method != "TRACE" &&
+            req.method != "OPTIONS" &&
+            req.method != "DELETE" &&
+            req.method != "PATCH") {
+              /* Non-RFC2616 or CONNECT which is weird. */
+              return (pipe);
+          }
+
+          if (req.method != "GET" && req.method != "HEAD") {
+              /* We only deal with GET and HEAD by default */
+              return (pass);
+          }
+
+          return (hash);
+      }
+
+      sub vcl_backend_response {
+          /* purge URLs after updates */
+          if ((beresp.status == 200 || beresp.status == 201 || beresp.status == 204) && bereq.method ~ "POST|PUT|DELETE|PATCH") {
+              set beresp.http.X-LinkedDataHub = "Banned";
+              ban("req.url == " + bereq.url + " && req.http.host == " + bereq.http.host);
+          }
+
+          return (deliver);
+      }

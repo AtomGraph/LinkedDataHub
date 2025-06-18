@@ -45,6 +45,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
+ * XSLT-based message body writer for SPARQL result sets.
  *
  * @author {@literal Martynas Jusevičius <martynas@atomgraph.com>}
  */

@@ -41,6 +41,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
+ * CSV row processor that transforms CSV data to RDF and stores it in a graph store.
  *
  * @author {@literal Martynas Jusevičius <martynas@atomgraph.com>}
  */
