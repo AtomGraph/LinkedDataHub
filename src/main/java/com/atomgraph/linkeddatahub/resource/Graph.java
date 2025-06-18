@@ -260,7 +260,9 @@ public class Graph extends GraphStoreImpl
 
         if (existingModel == null) // creating new graph and attaching it to the document hierarchy
         {
-            resource.addLiteral(DCTerms.created, ResourceFactory.createTypedLiteral(GregorianCalendar.getInstance()));
+            resource.removeAll(DCTerms.created). // remove any client-supplied dct:created values
+                addLiteral(DCTerms.created, ResourceFactory.createTypedLiteral(GregorianCalendar.getInstance()));
+            
             if (getAgentContext().isPresent()) resource.addProperty(DCTerms.creator, getAgentContext().get().getAgent()).
                     addProperty(ACL.owner, getAgentContext().get().getAgent());
 
