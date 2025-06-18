@@ -76,6 +76,21 @@ public class AccessRequest extends GraphStoreImpl
     private final String emailText;
     private final UriBuilder authRequestContainerUriBuilder;
     
+    /**
+     * Constructs an AccessRequest resource handler.
+     * 
+     * @param request HTTP request context
+     * @param uriInfo URI information context
+     * @param mediaTypes supported media types
+     * @param application current application
+     * @param ontology optional application ontology
+     * @param service optional SPARQL service
+     * @param securityContext security context
+     * @param agentContext optional agent context
+     * @param providers JAX-RS providers
+     * @param system system application
+     * @param servletConfig servlet configuration
+     */
     @Inject
     public AccessRequest(@Context Request request, @Context UriInfo uriInfo, MediaTypes mediaTypes,
             com.atomgraph.linkeddatahub.apps.model.Application application, Optional<Ontology> ontology, Optional<Service> service,
