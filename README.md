@@ -134,6 +134,24 @@ It takes a few clicks and filling out a form to install the product into your ow
 
 _:warning: Do not use blank nodes to identify applications or services. We recommend using the `urn:` URI scheme, since LinkedDataHub application resources are not accessible under their own dataspace._
 
+  ### Secrets
+
+  Secrets used in `docker-compose.yml`:
+
+  <dl>
+    <dt><code>owner_cert_password</code></dt>
+    <dd>Password of the owner's WebID certificate</dd>
+    <dt><code>secretary_cert_password</code></dt>
+    <dd>Password of the secretary's WebID certificate</dd>
+    <dt><code>client_truststore_password</code></dt>
+    <dd>Password of the client truststore</dd>
+    <dt><code>google_client_id</code></dt>
+    <dd>Google's OAuth client ID</dd>
+    <dd>Login with Google authentication is enabled when this value is provided</dd>
+    <dt><code>google_client_secret</code></dt>
+    <dd>Google's OAuth client secret</dd>
+  </dl>
+
   ### Environment
 
   LinkedDataHub supports a range of configuration options that can be passed as environment parameters in `docker-compose.yml`. The most common ones are:
@@ -153,10 +171,6 @@ _:warning: Do not use blank nodes to identify applications or services. We recom
     <dd>Hostname of the mail server</dd>
     <dt><code>MAIL_SMTP_PORT</code></dt>
     <dd>Port number of the mail server</dd>
-    <dt><code>GOOGLE_CLIENT_ID</code></dt>
-    <dd>OAuth 2.0 Client ID from Google. When provided, enables the <samp>Login with Google</samp> authentication method.</dd>
-    <dt><code>GOOGLE_CLIENT_SECRET</code></dt>
-    <dd>Client secret from Google</dd>
   </dl>
 
 The options are described in more detail in the [configuration documentation](https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/reference/configuration/).
@@ -257,3 +271,4 @@ Commercial consulting, development, and support are available from [AtomGraph](h
 * [linkeddatahub/Lobby](https://gitter.im/linkeddatahub/Lobby) on gitter
 * [@atomgraphhq](https://twitter.com/atomgraphhq) on Twitter
 * [AtomGraph](https://www.linkedin.com/company/atomgraph/) on LinkedIn
+* [@atomgraph](https://www.youtube.com/@atomgraph) on YouTube
