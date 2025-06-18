@@ -1,8 +1,9 @@
 
-## [5.0.15] - 2025-06-15
+## [5.0.16] - 2025-06-15
 ## Added
 - Javadoc comments
 
+## [5.0.15] - 2025-06-15
 ### Changed
 - Inlined nginx and Varnish config templates into `docker-compose.yml`
 - SaxonJS 3 bump to 3.0.0-beta-2
