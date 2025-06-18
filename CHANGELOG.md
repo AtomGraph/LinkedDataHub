@@ -4,6 +4,9 @@
 - Inlined nginx and Varnish config templates into `docker-compose.yml`
 - SaxonJS 3 bump to 3.0.0-beta-2
 
+### Fixed
+- Remove user-supplied `dct:created` values to prevent timestamp conflicts                                                                                                                          - SSL client certificate verification configuration in docker-compose.yml
+
 ## [5.0.14] - 2025-05-25
 ### Added
 - Inline chart save feature for better user experience
