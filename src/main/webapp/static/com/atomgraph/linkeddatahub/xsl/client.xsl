@@ -209,17 +209,17 @@ WHERE
 
             CONSTRUCT 
               { 
-                ?this ?p ?literal .
+                $this ?p ?literal .
               }
             WHERE
               { GRAPH ?graph
-                  { ?this  ?p  ?literal
-                    FILTER ( datatype(?literal) IN (xsd:string, rdf:langString) )
+                  { $this  ?p  ?literal
+                    FILTER ( ( datatype(?literal) = xsd:string ) || ( datatype(?literal) = rdf:langString ) )
                     FILTER ( ?p IN (rdfs:label, dc:title, dct:title, foaf:name, foaf:givenName, foaf:familyName, sioc:name, skos:prefLabel, schema1:name, schema2:name) )
                   }
               }
         ]]>
-        <!-- VALUES $Type goes here -->
+        <!-- VALUES $this goes here -->
     </xsl:param>
     <xsl:param name="system-containers" as="map(xs:anyURI, map(xs:string, xs:string))">
         <xsl:map>

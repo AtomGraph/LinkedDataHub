@@ -1322,8 +1322,8 @@ WHERE
         </xsl:variable>
         <xsl:variable name="classes" select="()" as="element()*"/>
 
-        <!-- object blank nodes that only have a single rdf:type property from constructed models -->
-        <xsl:variable name="resource" select="key('resources-by-type', $forClass, $constructed-doc)[not(key('predicates-by-object', @rdf:nodeID))][* except rdf:type]" as="element()"/>
+        <!-- object blank nodes that are either owl:NamedIndividual or only have a single rdf:type property from constructed models -->
+        <xsl:variable name="resource" select="key('resources-by-type', $forClass, $constructed-doc)[rdf:type/@rdf:resource = '&owl;NamedIndividual' or (not(key('predicates-by-object', @rdf:nodeID)) and exists(* except rdf:type))]" as="element()"/>
         
         <xsl:variable name="row-form" as="element()">
             <!-- TO-DO: refactor to use asynchronous HTTP requests -->
