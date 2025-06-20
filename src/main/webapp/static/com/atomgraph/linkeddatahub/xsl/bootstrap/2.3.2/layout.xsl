@@ -108,8 +108,6 @@ exclude-result-prefixes="#all">
     <xsl:param name="ac:method" as="xs:string"/>
     <xsl:param name="ac:mode" as="xs:anyURI*"/> <!-- select="xs:anyURI('&ac;ReadMode')" -->
     <xsl:param name="acl:mode" as="xs:anyURI*"/>
-    <!-- <xsl:param name="ldh:forShape" as="xs:anyURI?"/> -->
-    <xsl:param name="ldh:createGraph" select="false()" as="xs:boolean"/>
     <xsl:param name="ldh:ajaxRendering" select="true()" as="xs:boolean"/>
     <xsl:param name="ldhc:enableWebIDSignUp" as="xs:boolean"/>
     <xsl:param name="ldh:renderSystemResources" select="false()" as="xs:boolean"/>

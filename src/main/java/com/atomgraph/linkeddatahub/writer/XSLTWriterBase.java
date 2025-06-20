@@ -159,10 +159,6 @@ public abstract class XSLTWriterBase extends com.atomgraph.client.writer.XSLTWri
                 params.put(new QName("acl", ACL.mode.getNameSpace(), ACL.mode.getLocalName()),
                     XdmValue.makeSequence(getAuthorizationContext().get().get().getModeURIs()));
 
-            if (getUriInfo().getQueryParameters().containsKey(LDH.createGraph.getLocalName()))
-                params.put(new QName("ldh", LDH.createGraph.getNameSpace(), LDH.createGraph.getLocalName()),
-                    new XdmAtomicValue(Boolean.parseBoolean(getUriInfo().getQueryParameters().getFirst(LDH.createGraph.getLocalName()))));
-
             // TO-DO: move to client-side?
             if (getUriInfo().getQueryParameters().containsKey(LDH.access_to.getLocalName()))
                 params.put(new QName("ldh", LDH.access_to.getNameSpace(), LDH.access_to.getLocalName()),

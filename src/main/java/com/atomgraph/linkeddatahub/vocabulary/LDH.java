@@ -98,12 +98,8 @@ public class LDH
     /** Request URI property */
     public static final ObjectProperty requestUri = m_model.createObjectProperty(NS + "requestUri");
     
-    /** Create graph property */
-    public static final DatatypeProperty createGraph = m_model.createDatatypeProperty( NS + "createGraph" );
-    
-
     /** Service property */
-    public static final DatatypeProperty service = m_model.createDatatypeProperty( NS + "service" );
+    public static final ObjectProperty service = m_model.createObjectProperty( NS + "service" );
 
     /**
      * For shape property */
