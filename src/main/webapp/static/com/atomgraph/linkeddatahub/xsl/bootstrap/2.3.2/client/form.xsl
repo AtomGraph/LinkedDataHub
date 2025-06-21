@@ -294,7 +294,7 @@ WHERE
         " on-failure="ldh:promise-failure#1"/>
     </xsl:template>
 
-    <!-- open a form form document editing -->
+    <!-- open a form for document editing -->
     
     <xsl:template match="div[contains-token(@class, 'navbar')]//div[@id = 'doc-controls']//button[contains-token(@class, 'btn-edit')]" mode="ixsl:onclick">
         <xsl:param name="about" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/> <!-- editing the current document resources -->
@@ -1322,8 +1322,8 @@ WHERE
         </xsl:variable>
         <xsl:variable name="classes" select="()" as="element()*"/>
 
-        <!-- object blank nodes that only have a single rdf:type property from constructed models -->
-        <xsl:variable name="resource" select="key('resources-by-type', $forClass, $constructed-doc)[not(key('predicates-by-object', @rdf:nodeID))][* except rdf:type]" as="element()"/>
+        <!-- object blank nodes that are either owl:NamedIndividual or only have a single rdf:type property from constructed models -->
+        <xsl:variable name="resource" select="key('resources-by-type', $forClass, $constructed-doc)[rdf:type/@rdf:resource = '&owl;NamedIndividual' or (not(key('predicates-by-object', @rdf:nodeID)) and exists(* except rdf:type))]" as="element()"/>
         
         <xsl:variable name="row-form" as="element()">
             <!-- TO-DO: refactor to use asynchronous HTTP requests -->

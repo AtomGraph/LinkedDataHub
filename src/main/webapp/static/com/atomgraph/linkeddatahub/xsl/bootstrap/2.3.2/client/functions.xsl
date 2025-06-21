@@ -38,7 +38,14 @@ exclude-result-prefixes="#all"
     <xsl:function name="ldh:base-uri" as="xs:anyURI">
         <xsl:param name="arg" as="node()"/> <!-- ignored -->
 
-        <xsl:sequence select="ac:document-uri(ixsl:get(ixsl:window(), 'location.href'))"/>
+        <xsl:choose>
+            <xsl:when test="ixsl:query-params()?uri">
+                <xsl:sequence select="ac:document-uri(ixsl:query-params()?uri)"/>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:sequence select="ac:document-uri(ixsl:get(ixsl:window(), 'location.href'))"/>
+            </xsl:otherwise>
+        </xsl:choose>
     </xsl:function>
     
     <xsl:function name="ldt:base" as="xs:anyURI">

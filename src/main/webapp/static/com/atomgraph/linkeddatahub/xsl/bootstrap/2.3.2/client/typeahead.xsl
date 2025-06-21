@@ -131,7 +131,7 @@ version="3.0"
                 </xsl:for-each>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ ?message ])"/>
+                <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ ?message ])"/>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>

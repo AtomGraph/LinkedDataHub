@@ -209,17 +209,17 @@ WHERE
 
             CONSTRUCT 
               { 
-                ?this ?p ?literal .
+                $this ?p ?literal .
               }
             WHERE
               { GRAPH ?graph
-                  { ?this  ?p  ?literal
-                    FILTER ( datatype(?literal) IN (xsd:string, rdf:langString) )
+                  { $this  ?p  ?literal
+                    FILTER ( ( datatype(?literal) = xsd:string ) || ( datatype(?literal) = rdf:langString ) )
                     FILTER ( ?p IN (rdfs:label, dc:title, dct:title, foaf:name, foaf:givenName, foaf:familyName, sioc:name, skos:prefLabel, schema1:name, schema2:name) )
                   }
               }
         ]]>
-        <!-- VALUES $Type goes here -->
+        <!-- VALUES $this goes here -->
     </xsl:param>
     <xsl:param name="system-containers" as="map(xs:anyURI, map(xs:string, xs:string))">
         <xsl:map>
@@ -1083,7 +1083,7 @@ WHERE
             </xsl:when>
             <xsl:otherwise>
                 <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
-                <xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ ?message ])[current-date() lt xs:date('2000-01-01')]"/>
+                <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ ?message ])[current-date() lt xs:date('2000-01-01')]"/>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
@@ -1369,7 +1369,7 @@ WHERE
                             <xsl:sequence select="js:fetchDispatchXML($base-uri, 'POST', $headers, $file, ., (), (), (), 'RDFFileUpload')[current-date() lt xs:date('2000-01-01')]"/>
                         </xsl:when>
                         <xsl:otherwise>
-                            <xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ 'The file extension or media type is not a supported RDF triple syntax' ])[current-date() lt xs:date('2000-01-01')]"/>
+                            <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ 'The file extension or media type is not a supported RDF triple syntax' ])[current-date() lt xs:date('2000-01-01')]"/>
                         </xsl:otherwise>
                     </xsl:choose>
                 </xsl:for-each>
@@ -1406,7 +1406,7 @@ WHERE
             <xsl:otherwise>
                 <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
                 <xsl:variable name="message" select="ixsl:get($response, 'statusText')" as="xs:string"/>
-                <xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ $message ])[current-date() lt xs:date('2000-01-01')]"/>
+                <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ $message ])[current-date() lt xs:date('2000-01-01')]"/>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>

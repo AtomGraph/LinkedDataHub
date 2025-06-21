@@ -108,8 +108,6 @@ exclude-result-prefixes="#all">
     <xsl:param name="ac:method" as="xs:string"/>
     <xsl:param name="ac:mode" as="xs:anyURI*"/> <!-- select="xs:anyURI('&ac;ReadMode')" -->
     <xsl:param name="acl:mode" as="xs:anyURI*"/>
-    <!-- <xsl:param name="ldh:forShape" as="xs:anyURI?"/> -->
-    <xsl:param name="ldh:createGraph" select="false()" as="xs:boolean"/>
     <xsl:param name="ldh:ajaxRendering" select="true()" as="xs:boolean"/>
     <xsl:param name="ldhc:enableWebIDSignUp" as="xs:boolean"/>
     <xsl:param name="ldh:renderSystemResources" select="false()" as="xs:boolean"/>
@@ -238,17 +236,17 @@ LIMIT   100
 
             CONSTRUCT 
               { 
-                ?this ?p ?literal .
+                $this ?p ?literal .
               }
             WHERE
               { GRAPH ?graph
-                  { ?this  ?p  ?literal
+                  { $this  ?p  ?literal
                     FILTER ( ( datatype(?literal) = xsd:string ) || ( datatype(?literal) = rdf:langString ) )
                     FILTER ( ?p IN (rdfs:label, dc:title, dct:title, foaf:name, foaf:givenName, foaf:familyName, sioc:name, skos:prefLabel, schema1:name, schema2:name) )
                   }
               }
         ]]>
-        <!-- VALUES $Type goes here -->
+        <!-- VALUES $this goes here -->
     </xsl:param>
     
     <xsl:key name="violations-by-root" match="*[@rdf:about] | *[@rdf:nodeID]" use="spin:violationRoot/@rdf:resource | spin:violationRoot/@rdf:nodeID"/>
