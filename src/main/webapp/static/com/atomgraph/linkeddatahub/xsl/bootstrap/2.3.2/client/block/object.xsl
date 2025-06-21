@@ -277,7 +277,7 @@ exclude-result-prefixes="#all"
                     <xsl:sequence select="map:put($context, 'obj-value-id', $obj-value-id)"/>
                 </xsl:when>
                 <xsl:otherwise>
-                    <xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ ?message ])[current-date() lt xs:date('2000-01-01')]"/>
+                    <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ ?message ])[current-date() lt xs:date('2000-01-01')]"/>
                     
                     <xsl:sequence select="$context"/>
                 </xsl:otherwise>
