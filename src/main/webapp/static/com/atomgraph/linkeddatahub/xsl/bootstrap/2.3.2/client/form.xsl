@@ -294,7 +294,7 @@ WHERE
         " on-failure="ldh:promise-failure#1"/>
     </xsl:template>
 
-    <!-- open a form form document editing -->
+    <!-- open a form for document editing -->
     
     <xsl:template match="div[contains-token(@class, 'navbar')]//div[@id = 'doc-controls']//button[contains-token(@class, 'btn-edit')]" mode="ixsl:onclick">
         <xsl:param name="about" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/> <!-- editing the current document resources -->
