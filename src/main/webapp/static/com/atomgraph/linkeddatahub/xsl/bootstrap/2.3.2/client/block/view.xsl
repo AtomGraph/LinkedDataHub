@@ -74,10 +74,6 @@ exclude-result-prefixes="#all"
             <ixsl:set-style name="width" select="'50%'" object="."/>
         </xsl:for-each>
         
-        <xsl:message>
-            $parent-about: <xsl:value-of select="$parent-about"/>
-        </xsl:message>
-        
         <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path($ldh:requestUri), map{}, ac:document-uri($query-uri))" as="xs:anyURI"/>
         <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
         <!-- $about in the query gets set to the @about of the *parent* block  -->
