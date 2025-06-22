@@ -564,16 +564,18 @@ WHERE
                     <!-- container could be hidden server-side -->
                     <ixsl:set-style name="display" select="'block'"/>
 
-                    <xsl:variable name="factory" as="function(item()?) as item()*?">
+                    <!-- one top-level <div> can contain multiple blocks that need to be rendered via factory -->   
+                    <xsl:variable name="factories" as="(function(item()?) as item()*)*">
                         <xsl:apply-templates select="." mode="ldh:RenderRow">
                             <xsl:with-param name="refresh-content" select="$refresh-content"/>
                         </xsl:apply-templates>
                     </xsl:variable>
 
-                    <xsl:if test="exists($factory)">
+                    <xsl:for-each select="$factories">
+                        <xsl:variable name="factory" select="."/>
                         <!-- fire the promise chain once, passing a dummy start value -->
                         <ixsl:promise select="$factory(())" on-failure="ldh:promise-failure#1"/>
-                    </xsl:if>
+                    </xsl:for-each>
                 </xsl:for-each>
 
                 <!-- is a new instance of Service was created, reload the LinkedDataHub.apps data and re-render the service dropdown -->
