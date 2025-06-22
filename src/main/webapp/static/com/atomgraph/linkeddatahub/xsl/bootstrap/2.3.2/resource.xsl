@@ -884,8 +884,12 @@ extension-element-prefixes="ixsl"
     <!-- TIMESTAMP -->
     
     <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:Timestamp">
-        <xsl:variable name="max-modified-datetime" select="max((dct:created/text()[. castable as xs:date]/xs:date(.), dct:created/text()[. castable as xs:dateTime]/xs:dateTime(.), dct:modified/text()[. castable as xs:date]/xs:date(.), dct:modified/text()[. castable as xs:dateTime]/xs:dateTime(.)))" as="item()?"/>
-        <xsl:apply-templates select="(dct:created/text(), dct:modified/text())[. = $max-modified-datetime]"/>
+        <xsl:variable name="sorted-date-time-properties" as="element()*">
+            <xsl:perform-sort select="(dct:created, dct:modified)[text()[. castable as xs:date or . castable as xs:dateTime]]">
+                <xsl:sort select="if (text() castable as xs:date) then xs:dateTime(concat(text(), 'T00:00:00')) else xs:dateTime(text())" order="ascending"/>
+            </xsl:perform-sort>
+        </xsl:variable>
+        <xsl:apply-templates select="$sorted-date-time-properties[last()]/text()"/>
     </xsl:template>
     
     <!-- TYPE LIST -->
