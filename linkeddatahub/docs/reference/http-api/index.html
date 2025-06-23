@@ -182,7 +182,7 @@
                      
                      <h2 id="documents">Managing documents</h2>
                      
-                     <p>eEry document is also a <a href="../dataset/#structure">named graph</a> in the application's RDF dataset. LinkedDataHub supports the SPARQL Graph Store Protocol's
+                     <p>Every document is also a <a href="../dataset/#structure">named graph</a> in the application's RDF dataset. LinkedDataHub supports the SPARQL Graph Store Protocol's
                         <a href="https://www.w3.org/TR/sparql11-http-rdf-update/#direct-graph-identification" target="_blank">direct graph identification</a> as the HTTP CRUD protocol for managing document data.</p>
                      
                      <div class="alert alert-info">
@@ -427,9 +427,8 @@ Content-Type: text/turtle</code></pre>
                            <li>It's not possible to modify or delete the documents of the owner agent and the secretary
                               agent</li>
                            
-                           <li>A document (which is also a named graph in the graph store) must always contain an
-                              RDF resource with its URI and type <code>def:Root</code>, <code>dh:Container</code>, or <code>dh:Item</code>
-                              (see <a href="../administration/ontologies/#ontologies">ontologies</a>)</li>
+                           <li>A document can only be created with a URL relative to an existing container (i.e.
+                              resolving <samp>..</samp> against the new document's URL must identify an existing container)</li>
                            </ul>
                         
                         <p>The built in constraints are similar to, but separate from the <a href="../administration/ontologies/#constraints">ontology constraints</a>.</p>
