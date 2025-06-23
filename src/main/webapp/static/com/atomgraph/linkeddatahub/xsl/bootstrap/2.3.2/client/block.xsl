@@ -125,11 +125,11 @@ exclude-result-prefixes="#all"
     
     <!-- render row -->
     
-    <xsl:template match="*" mode="ldh:RenderRow" as="(function(item()?) as map(*))?">
+    <xsl:template match="*" mode="ldh:RenderRow" as="(function(item()?) as map(*))*">
         <xsl:apply-templates mode="#current"/>
     </xsl:template>
 
-    <xsl:template match="text()" mode="ldh:RenderRow" as="(function(item()?) as map(*))?"/>
+    <xsl:template match="text()" mode="ldh:RenderRow" as="(function(item()?) as map(*))*"/>
     
     <!-- hide type control -->
     <xsl:template match="*[rdf:type/@rdf:resource = '&ldh;XHTML']" mode="bs2:TypeControl" priority="1">
@@ -161,7 +161,8 @@ exclude-result-prefixes="#all"
         <xsl:variable name="offset-x-treshold" select="120" as="xs:double"/>
         <xsl:variable name="offset-y-treshold" select="20" as="xs:double"/>
         
-        <xsl:variable name="row-block-controls" select="key('elements-by-class', 'row-block-controls', .)" as="element()"/>
+        <!-- there might be multiple .row-block-controls in a block if the main block is followed by blocks rendered from ldh:template -->
+        <xsl:variable name="row-block-controls" select="key('elements-by-class', 'row-block-controls', .)[1]" as="element()"/>
         <xsl:variable name="btn-edit" select="key('elements-by-class', 'btn-edit', $row-block-controls)" as="element()"/>
         <!-- check that the mouse is on the top edge and show the block controls if they're not already shown -->
         <xsl:if test="$offset-x &gt;= $width - $offset-x-treshold and $offset-y &lt;= $offset-y-treshold and ixsl:style($row-block-controls)?z-index = '-1'">

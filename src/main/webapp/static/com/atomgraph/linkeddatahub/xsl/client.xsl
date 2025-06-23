@@ -104,7 +104,7 @@ extension-element-prefixes="ixsl"
     <xsl:include href="bootstrap/2.3.2/client/block.xsl"/>
     <xsl:include href="bootstrap/2.3.2/client/modal.xsl"/>
     <xsl:include href="bootstrap/2.3.2/client/form.xsl"/>
-    <xsl:include href="bootstrap/2.3.2/client/map.xsl"/>
+    <xsl:include href="bootstrap/2.3.2/client/map.xsl"/> <!-- include in view.xsl and object.xsl instead? -->
     <xsl:include href="bootstrap/2.3.2/client/graph.xsl"/>
     <xsl:include href="bootstrap/2.3.2/client/constructor.xsl"/>
     <xsl:include href="bootstrap/2.3.2/client/block/object.xsl"/>
@@ -209,17 +209,17 @@ WHERE
 
             CONSTRUCT 
               { 
-                ?this ?p ?literal .
+                $this ?p ?literal .
               }
             WHERE
               { GRAPH ?graph
-                  { ?this  ?p  ?literal
-                    FILTER ( datatype(?literal) IN (xsd:string, rdf:langString) )
+                  { $this  ?p  ?literal
+                    FILTER ( ( datatype(?literal) = xsd:string ) || ( datatype(?literal) = rdf:langString ) )
                     FILTER ( ?p IN (rdfs:label, dc:title, dct:title, foaf:name, foaf:givenName, foaf:familyName, sioc:name, skos:prefLabel, schema1:name, schema2:name) )
                   }
               }
         ]]>
-        <!-- VALUES $Type goes here -->
+        <!-- VALUES $this goes here -->
     </xsl:param>
     <xsl:param name="system-containers" as="map(xs:anyURI, map(xs:string, xs:string))">
         <xsl:map>
@@ -564,16 +564,18 @@ WHERE
                     <!-- container could be hidden server-side -->
                     <ixsl:set-style name="display" select="'block'"/>
 
-                    <xsl:variable name="factory" as="function(item()?) as item()*?">
+                    <!-- one top-level <div> can contain multiple blocks that need to be rendered via factory -->   
+                    <xsl:variable name="factories" as="(function(item()?) as item()*)*">
                         <xsl:apply-templates select="." mode="ldh:RenderRow">
                             <xsl:with-param name="refresh-content" select="$refresh-content"/>
                         </xsl:apply-templates>
                     </xsl:variable>
 
-                    <xsl:if test="exists($factory)">
+                    <xsl:for-each select="$factories">
+                        <xsl:variable name="factory" select="."/>
                         <!-- fire the promise chain once, passing a dummy start value -->
                         <ixsl:promise select="$factory(())" on-failure="ldh:promise-failure#1"/>
-                    </xsl:if>
+                    </xsl:for-each>
                 </xsl:for-each>
 
                 <!-- is a new instance of Service was created, reload the LinkedDataHub.apps data and re-render the service dropdown -->
@@ -586,7 +588,7 @@ WHERE
                     <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
                 </xsl:if>
 
-                <!-- initialize map -->
+                <!-- initialize maps -->
                 <xsl:if test="key('elements-by-class', 'map-canvas', ixsl:page())">
                     <xsl:call-template name="ldh:DrawMap">
                         <xsl:with-param name="block-uri" select="$uri"/>
@@ -594,7 +596,7 @@ WHERE
                     </xsl:call-template>
                 </xsl:if>
 
-                <!-- initialize chart -->
+                <!-- initialize charts -->
                 <xsl:for-each select="key('elements-by-class', 'chart-canvas', ixsl:page())">
                     <xsl:variable name="canvas-id" select="@id" as="xs:string"/>
                     <xsl:variable name="chart-type" select="xs:anyURI('&ac;Table')" as="xs:anyURI"/>
@@ -1083,7 +1085,7 @@ WHERE
             </xsl:when>
             <xsl:otherwise>
                 <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
-                <xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ ?message ])[current-date() lt xs:date('2000-01-01')]"/>
+                <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ ?message ])[current-date() lt xs:date('2000-01-01')]"/>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
@@ -1369,7 +1371,7 @@ WHERE
                             <xsl:sequence select="js:fetchDispatchXML($base-uri, 'POST', $headers, $file, ., (), (), (), 'RDFFileUpload')[current-date() lt xs:date('2000-01-01')]"/>
                         </xsl:when>
                         <xsl:otherwise>
-                            <xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ 'The file extension or media type is not a supported RDF triple syntax' ])[current-date() lt xs:date('2000-01-01')]"/>
+                            <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ 'The file extension or media type is not a supported RDF triple syntax' ])[current-date() lt xs:date('2000-01-01')]"/>
                         </xsl:otherwise>
                     </xsl:choose>
                 </xsl:for-each>
@@ -1406,7 +1408,7 @@ WHERE
             <xsl:otherwise>
                 <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
                 <xsl:variable name="message" select="ixsl:get($response, 'statusText')" as="xs:string"/>
-                <xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ $message ])[current-date() lt xs:date('2000-01-01')]"/>
+                <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ $message ])[current-date() lt xs:date('2000-01-01')]"/>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>

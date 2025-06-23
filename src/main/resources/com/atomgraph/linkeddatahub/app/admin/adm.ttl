@@ -70,7 +70,7 @@ owl:Ontology spin:constructor [
     ldh:template :OntologyClassView .
 
 :OntologyClassView a ldh:View ;
-    dct:title "Ontology class view" ;
+    dct:title "Ontology classes" ;
     spin:query :SelectOntologyClasses ;
     ac:mode ac:TableMode ;
     rdfs:isDefinedBy : .
@@ -219,7 +219,7 @@ acl:Authorization spin:constructor [
     ldh:template :AuthorizationAgentView .
 
 :AuthorizationAgentView a ldh:View ;
-    dct:title "Authorization agent view" ;
+    dct:title "Authorization agents" ;
     spin:query :SelectAuthorizationAgents ;
     rdfs:isDefinedBy : .
 

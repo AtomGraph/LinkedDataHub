@@ -13,6 +13,7 @@
     <!ENTITY sp     "http://spinrdf.org/sp#">
     <!ENTITY spin   "http://spinrdf.org/spin#">
     <!ENTITY foaf   "http://xmlns.com/foaf/0.1/">
+    <!ENTITY dct    "http://purl.org/dc/terms/">
 ]>
 <xsl:stylesheet version="3.0"
 xmlns="http://www.w3.org/1999/xhtml"
@@ -67,12 +68,12 @@ exclude-result-prefixes="#all"
         <xsl:param name="mode" select="descendant::*[@property = '&ac;mode']/@resource" as="xs:anyURI?"/>
         <xsl:param name="refresh-content" as="xs:boolean?"/>
         <xsl:param name="query-uri" select="descendant::*[@property = '&spin;query']/@resource" as="xs:anyURI"/>
-        
+
         <xsl:for-each select="$block//div[contains-token(@class, 'bar')]">
             <!-- update progress bar -->
             <ixsl:set-style name="width" select="'50%'" object="."/>
         </xsl:for-each>
-                
+        
         <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path($ldh:requestUri), map{}, ac:document-uri($query-uri))" as="xs:anyURI"/>
         <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
         <!-- $about in the query gets set to the @about of the *parent* block  -->
@@ -201,20 +202,8 @@ exclude-result-prefixes="#all"
                     <xsl:sequence select="map:merge(($context, map{ 'object-metadata': $object-metadata }))"/>
                 </xsl:when>
                 <xsl:otherwise>
-                    <!-- error response - could not load query results -->
-                    <xsl:call-template name="render-container-error">
-                        <xsl:with-param name="container" select="$container"/>
-                        <xsl:with-param name="message" select="?message"/>
-                    </xsl:call-template>
-                    
-                    <xsl:sequence select="ldh:hide-block-progress-bar($context, ())[current-date() lt xs:date('2000-01-01')]"/>
-                    <xsl:sequence select="
-                      error(
-                        QName('&ldh;', 'ldh:HTTPError'),
-                        concat('HTTP ', ?status, ' returned: ', ?message),
-                        $response
-                      )
-                    "/>
+                    <!-- ignore object metadata loading errors - treat as empty metadata -->
+                    <xsl:sequence select="$context"/>
                 </xsl:otherwise>
             </xsl:choose>
         </xsl:for-each>
@@ -756,6 +745,10 @@ exclude-result-prefixes="#all"
         <!-- first time rendering the view results -->
         <xsl:if test="$initial-load">
             <xsl:result-document href="?." method="ixsl:replace-content">
+                <h2>
+                    <xsl:value-of select="$container/descendant::*[@property = '&dct;title']"/>
+                </h2>
+  
                 <div class="pull-right">
                     <form class="form-inline">
                         <label for="{$order-by-container-id}">
@@ -1746,8 +1739,6 @@ exclude-result-prefixes="#all"
         <xsl:variable name="endpoint" select="$context('endpoint')" as="xs:anyURI"/>
         <xsl:variable name="object-metadata" select="$context('object-metadata')" as="document-node()?"/>
         <xsl:variable name="result-count-container-id" select="$container-id || '-result-count'" as="xs:string"/>
-
-        <xsl:message>ldh:render-view exists($object-metadata): <xsl:value-of select="exists($object-metadata)"/></xsl:message>
         
         <!-- update progress bar -->
         <xsl:for-each select="$block//div[contains-token(@class, 'bar')]">

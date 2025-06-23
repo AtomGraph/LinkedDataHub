@@ -251,8 +251,6 @@ exclude-result-prefixes="#all"
                 <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
                     <xsl:variable name="object-metadata" select="?body" as="document-node()"/>
 
-                    <xsl:message>ldh:block-object-metadata-response 200</xsl:message>
-
                     <xsl:variable name="row" as="node()*">
                         <xsl:apply-templates select="$resource" mode="bs2:Row">
                             <xsl:with-param name="graph" select="$graph" tunnel="yes"/>
@@ -275,9 +273,55 @@ exclude-result-prefixes="#all"
                     </xsl:for-each>
                     
                     <xsl:sequence select="map:put($context, 'obj-value-id', $obj-value-id)"/>
+                    
+                    <!-- we don't want any of the other resources that may be part of root($resource) document -->
+                    <xsl:variable name="resource-doc" as="document-node()">
+                        <xsl:document>
+                            <rdf:RDF>
+                                <xsl:sequence select="$resource"/>
+                            </rdf:RDF>
+                        </xsl:document>
+                    </xsl:variable>
+                    
+                    <xsl:if test="not(ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block/@about || '`'))">
+                        <ixsl:set-property name="{'`' || $block/@about || '`'}" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.contents')"/>
+                    </xsl:if>
+
+                    <!-- TO-DO: reuse similar initialization code from client.xsl -->
+                    <xsl:if test="$mode = '&ac;MapMode' and key('elements-by-class', 'map-canvas', $block)">
+                        <xsl:for-each select="$resource-doc">
+                            <!-- initialize maps -->
+                            <xsl:if test="key('elements-by-class', 'map-canvas', $block)">
+                                <xsl:call-template name="ldh:DrawMap">
+                                    <xsl:with-param name="block-uri" select="$block/@about"/>
+                                    <xsl:with-param name="canvas-id" select="key('elements-by-class', 'map-canvas', $block)/@id"/>
+                                </xsl:call-template>
+                            </xsl:if>
+                        </xsl:for-each>
+                    </xsl:if>
+                    <xsl:if test="$mode = '&ac;ChartMode' and key('elements-by-class', 'chart-canvas', $block)">
+                        <!-- initialize charts -->
+                        <xsl:for-each select="key('elements-by-class', 'chart-canvas', $block)">
+                            <xsl:variable name="canvas-id" select="@id" as="xs:string"/>
+                            <xsl:variable name="chart-type" select="xs:anyURI('&ac;Table')" as="xs:anyURI"/>
+                            <xsl:variable name="category" as="xs:string?"/>
+                            <xsl:variable name="series" select="distinct-values($resource-doc/*/*/concat(namespace-uri(), local-name()))" as="xs:string*"/>
+                            <xsl:variable name="data-table" select="ac:rdf-data-table($resource-doc, $category, $series)"/>
+
+                            <ixsl:set-property name="data-table" select="$data-table" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block/@about || '`')"/>
+
+                            <xsl:call-template name="ldh:RenderChart">
+                                <xsl:with-param name="data-table" select="$data-table"/>
+                                <xsl:with-param name="canvas-id" select="$canvas-id"/>
+                                <xsl:with-param name="chart-type" select="$chart-type"/>
+                                <xsl:with-param name="category" select="$category"/>
+                                <xsl:with-param name="series" select="$series"/>
+                            </xsl:call-template>
+                        </xsl:for-each>
+                    </xsl:if>
                 </xsl:when>
                 <xsl:otherwise>
-                    <xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ ?message ])[current-date() lt xs:date('2000-01-01')]"/>
+                    <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ ?message ])[current-date() lt xs:date('2000-01-01')]"/>
                     
                     <xsl:sequence select="$context"/>
                 </xsl:otherwise>

@@ -1,3 +1,19 @@
+[5.0.17] - 2025-06-23
+### Changed
+  - Replaced `xsl:value-of` usage in XSLT stylesheets
+  - Removed debug output for cleaner production logs
+
+### Fixed
+  - Fixed map and chart mode rendering for general Linked Data objects in content mode
+  - Refactored date/datetime comparison logic for improved accuracy
+  - Fixed `@id` value handling in client-side processing
+  - Fixed multiple factory promises per top-level `<div>` element
+  - Fixed client-side `ldh:base` function
+  - Fixed default datasets to use `ldh:ChildrenView`
+  - Fixed `owl:NamedIndividual` case in `.add-constructor` onclick handler
+
+### Removed
+  - Removed the unused ldh:createGraph property
 
 ## [5.0.16] - 2025-06-15
 ## Added
