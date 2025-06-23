@@ -104,7 +104,7 @@ extension-element-prefixes="ixsl"
     <xsl:include href="bootstrap/2.3.2/client/block.xsl"/>
     <xsl:include href="bootstrap/2.3.2/client/modal.xsl"/>
     <xsl:include href="bootstrap/2.3.2/client/form.xsl"/>
-    <xsl:include href="bootstrap/2.3.2/client/map.xsl"/>
+    <xsl:include href="bootstrap/2.3.2/client/map.xsl"/> <!-- include in view.xsl and object.xsl instead? -->
     <xsl:include href="bootstrap/2.3.2/client/graph.xsl"/>
     <xsl:include href="bootstrap/2.3.2/client/constructor.xsl"/>
     <xsl:include href="bootstrap/2.3.2/client/block/object.xsl"/>
@@ -588,7 +588,7 @@ WHERE
                     <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
                 </xsl:if>
 
-                <!-- initialize map -->
+                <!-- initialize maps -->
                 <xsl:if test="key('elements-by-class', 'map-canvas', ixsl:page())">
                     <xsl:call-template name="ldh:DrawMap">
                         <xsl:with-param name="block-uri" select="$uri"/>
@@ -596,7 +596,7 @@ WHERE
                     </xsl:call-template>
                 </xsl:if>
 
-                <!-- initialize chart -->
+                <!-- initialize charts -->
                 <xsl:for-each select="key('elements-by-class', 'chart-canvas', ixsl:page())">
                     <xsl:variable name="canvas-id" select="@id" as="xs:string"/>
                     <xsl:variable name="chart-type" select="xs:anyURI('&ac;Table')" as="xs:anyURI"/>

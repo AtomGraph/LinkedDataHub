@@ -716,6 +716,12 @@ extension-element-prefixes="ixsl"
                             <xsl:with-param name="id" select="generate-id() || '-map-canvas'"/>
                         </xsl:apply-templates>
                     </xsl:when>
+                    <xsl:when test="$mode = '&ac;ChartMode'">
+                        <xsl:apply-templates select="$doc" mode="bs2:Chart">
+                            <xsl:with-param name="canvas-id" select="generate-id() || '-chart-canvas'"/>
+                            <xsl:with-param name="show-save" select="false()"/>
+                        </xsl:apply-templates>
+                    </xsl:when>
                     <xsl:when test="$mode = '&ac;GraphMode'">
                         <xsl:apply-templates select=".." mode="bs2:Graph"/>
                     </xsl:when>
