@@ -51,7 +51,7 @@ services:
       - HTTPS=false
       - SELF_SIGNED_CERT=true # only on localhost
       - SIGN_UP_CERT_VALIDITY=180
-      - MAX_CONTENT_LENGTH=2097152
+      - MAX_CONTENT_LENGTH=${MAX_CONTENT_LENGTH:-2097152}
       - NOTIFICATION_ADDRESS=LinkedDataHub <notifications@localhost>
       - MAIL_SMTP_HOST=email-server
       - MAIL_SMTP_PORT=25
@@ -158,7 +158,7 @@ configs:
           limit_req_zone $$binary_remote_addr zone=static_files:10m rate=20r/s;
           limit_req_status 429;
 
-          client_max_body_size 2097152;
+          client_max_body_size ${MAX_CONTENT_LENGTH:-2097152};
 
           # server with optional client cert authentication
           server {
