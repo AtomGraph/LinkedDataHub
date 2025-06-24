@@ -1,4 +1,4 @@
-name: ci
+name: CI
 
 on:
   push:
@@ -24,7 +24,9 @@ jobs:
       - name: Extract version parts
         id: version
         run: |
-          VERSION="${{ github.ref_name }}"
+          RAW_REF="${{ github.ref_name }}"
+          # strip the literal prefix
+          VERSION="${RAW_REF#linkeddatahub-}"
           MAJOR="${VERSION%%.*}"
           MINOR="${VERSION%.*}"
           MINOR="${MINOR#*.}"
