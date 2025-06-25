@@ -80,7 +80,7 @@ services:
       - ./datasets/secretary:/var/linkeddatahub/datasets/secretary
       - ./uploads:/var/www/linkeddatahub/uploads
       - ./config/dev.log4j.properties:/usr/local/tomcat/webapps/ROOT/WEB-INF/classes/log4j.properties:ro
-      - ./config/system-varnish.trig:/var/linkeddatahub/datasets/system.trig:ro
+      - ./config/system.trig:/var/linkeddatahub/datasets/system.trig:ro
   fuseki-admin:
     image: atomgraph/fuseki:4.7.0
     user: root # otherwise fuseki user does not have permissions to the mounted folder which is owner by root
