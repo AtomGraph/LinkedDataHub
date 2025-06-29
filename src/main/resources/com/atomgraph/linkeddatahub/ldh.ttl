@@ -263,7 +263,7 @@
     rdfs:subClassOf :Block ;
     rdfs:label "XHTML" ;
     spin:constructor :XHTMLConstructor ;
-    spin:constraint :MissingValue ;
+    spin:constraint :MissingValue, :ValueCardinality ;
     rdfs:isDefinedBy : .
 
 :XHTMLConstructor a :Constructor ;
@@ -283,7 +283,7 @@
     rdfs:subClassOf :Block ;
     rdfs:label "Object" ;
     spin:constructor :ObjectConstructor ;
-    spin:constraint :MissingValue ;
+    spin:constraint :MissingValue, :ValueCardinality ;
     rdfs:isDefinedBy : .
 
 :ObjectConstructor a :Constructor ;
@@ -395,7 +395,7 @@ WHERE
         spl:valueType rdf:Property
     ] , [ a spl:Argument ;
         spl:predicate sp:arg2 ;
-        spl:optional true
+        spl:valueType xsd:integer
     ] ;
     rdfs:isDefinedBy : .
 
@@ -450,6 +450,12 @@ WHERE
 :MissingValue a :MissingPropertyValue ;
     rdfs:label "Missing value" ;
     sp:arg1 rdf:value ;
+    rdfs:isDefinedBy : .
+
+:ValueCardinality a :PropertyCardinality ;
+    rdfs:label "More than one value" ;
+    sp:arg1 rdf:value ;
+    sp:arg2 1 ;
     rdfs:isDefinedBy : .
 
 # CONTENTS

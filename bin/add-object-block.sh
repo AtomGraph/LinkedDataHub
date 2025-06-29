@@ -116,6 +116,8 @@ args+=("-p")
 args+=("$cert_password")
 args+=("-t")
 args+=("text/turtle") # content type
+args+=("--proxy")
+args+=("$proxy") # tunnel the proxy param
 
 if [ -n "$fragment" ] ; then
     # relative URI that will be resolved against the request URI

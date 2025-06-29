@@ -6,6 +6,7 @@
     <!ENTITY rdf    "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
     <!ENTITY xsd    "http://www.w3.org/2001/XMLSchema#">
     <!ENTITY srx    "http://www.w3.org/2005/sparql-results#">
+    <!ENTITY acl    "http://www.w3.org/ns/auth/acl#">
     <!ENTITY ldt    "https://www.w3.org/ns/ldt#">
     <!ENTITY sd     "http://www.w3.org/ns/sparql-service-description#">
     <!ENTITY sioc   "http://rdfs.org/sioc/ns#">
@@ -27,6 +28,7 @@ xmlns:ac="&ac;"
 xmlns:ldh="&ldh;"
 xmlns:rdf="&rdf;"
 xmlns:srx="&srx;"
+xmlns:acl="&acl;"
 xmlns:ldt="&ldt;"
 xmlns:sd="&sd;"
 xmlns:sp="&sp;"
@@ -456,7 +458,9 @@ exclude-result-prefixes="#all"
                         </xsl:if>
                     </div>
 
-                    <xsl:sequence select="$form-actions"/>
+                    <xsl:if test="acl:mode() = '&acl;Write'">
+                        <xsl:sequence select="$form-actions"/>
+                    </xsl:if>
                 </form>
             </xsl:result-document>
         </xsl:for-each>

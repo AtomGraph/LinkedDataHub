@@ -80,4 +80,13 @@ else
 fi
 
 # resolve RDF document from stdin against base URL and POST to the server and print request URL
-cat - | turtle --base="$url" | curl -w '%{url_effective}\n' -v -k -E "$cert_pem_file":"$cert_password" -d @- -H "Content-Type: ${content_type}" -H "Accept: text/turtle" -o /dev/null "$final_url"
+effective_url=$(cat - | turtle --base="$url" | curl -w '%{url_effective}' -v -k -E "$cert_pem_file":"$cert_password" -d @- -H "Content-Type: ${content_type}" -H "Accept: text/turtle" -o /dev/null "$final_url")
+
+# If using proxy, rewrite the effective URL back to original hostname
+if [ -n "$proxy" ]; then
+    # Replace proxy host with original host in the effective URL
+    rewritten_url="${effective_url/$proxy_host/$url_host}"
+    echo "$rewritten_url"
+else
+    echo "$effective_url"
+fi
