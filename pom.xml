@@ -140,13 +140,13 @@
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>client</artifactId>
-            <version>4.2.4-SNAPSHOT</version>
+            <version>4.2.4</version>
             <classifier>classes</classifier>
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>client</artifactId>
-            <version>4.2.4-SNAPSHOT</version>
+            <version>4.2.4</version>
             <type>war</type>
         </dependency>
         <!-- required by jsonld-java - version same as Jersey's HTTP Client -->
