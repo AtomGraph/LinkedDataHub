@@ -175,5 +175,14 @@ if [ -n "$proxy" ]; then
     target="${target/$target_host/$proxy_host}"
 fi
 
-# POST RDF/POST multipart form from stdin to the server
-echo -e "$rdf_post" | curl -w '%{url_effective}\n' -v -s -k -X PUT -H "Accept: text/turtle" -E "$cert_pem_file":"$cert_password" -o /dev/null --config - "$target"
+# POST RDF/POST multipart form and capture the effective URL
+effective_url=$(echo -e "$rdf_post" | curl -w '%{url_effective}' -v -s -k -X PUT -H "Accept: text/turtle" -E "$cert_pem_file":"$cert_password" -o /dev/null --config - "$target")
+
+# If using proxy, rewrite the effective URL back to original hostname
+if [ -n "$proxy" ]; then
+    # Replace proxy host with original host in the effective URL
+    rewritten_url="${effective_url/$proxy_host/$target_host}"
+    echo "$rewritten_url"
+else
+    echo "$effective_url"
+fi

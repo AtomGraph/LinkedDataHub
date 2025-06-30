@@ -1,4 +1,20 @@
-[5.0.17] - 2025-06-23
+## [5.0.18] - 2025-06-30
+### Added
+- Proxy parameter tunneling in CLI scripts (`add-object-block.sh`, `add-xhtml-block.sh`)
+
+### Changed
+- Web-Client dependency version bump
+- Chart form actions now only display when agent has write access
+- CLI scripts now rewrite effective URLs back to original hostname when using proxy
+- Default configuration now uses `varnish-frontend`
+- `MAX_CONTENT_LENGTH` environment variable moved to `.env` file
+
+### Fixed
+- Fixed object blocks rendering for non-RDF resources (e.g. images)
+- Fixed `rdf:value` cardinality constraint
+- Fixed proxied return URL in `post.sh`
+
+## [5.0.17] - 2025-06-23
 ### Changed
   - Replaced `xsl:value-of` usage in XSLT stylesheets
   - Removed debug output for cleaner production logs

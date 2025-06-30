@@ -5,7 +5,6 @@
     <!ENTITY lacl   "https://w3id.org/atomgraph/linkeddatahub/admin/acl#">
     <!ENTITY def    "https://w3id.org/atomgraph/linkeddatahub/default#">
     <!ENTITY ldh    "https://w3id.org/atomgraph/linkeddatahub#">
-    <!ENTITY ldht   "https://w3id.org/atomgraph/linkeddatahub/templates#">
     <!ENTITY ac     "https://w3id.org/atomgraph/client#">
     <!ENTITY rdf    "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
     <!ENTITY rdfs   "http://www.w3.org/2000/01/rdf-schema#">
@@ -38,7 +37,6 @@ xmlns:map="http://www.w3.org/2005/xpath-functions/map"
 xmlns:json="http://www.w3.org/2005/xpath-functions"
 xmlns:lacl="&lacl;"
 xmlns:ldh="&ldh;"
-xmlns:ldht="&ldht;"
 xmlns:ac="&ac;"
 xmlns:rdf="&rdf;"
 xmlns:rdfs="&rdfs;"
@@ -166,12 +164,6 @@ extension-element-prefixes="ixsl"
         
         <xsl:attribute name="class" select="concat($class, ' ', 'btn-toggle-content')"/>
     </xsl:template>-->
-    
-    <xsl:template match="*[@rdf:about = '&ldht;Ban']" mode="ldh:logo">
-        <xsl:param name="class" as="xs:string?"/>
-        
-        <xsl:attribute name="class" select="concat($class, ' ', 'btn-ban')"/>
-    </xsl:template>
         
     <xsl:template match="*[@rdf:about = '&ac;Delete']" mode="ldh:logo">
         <xsl:param name="class" as="xs:string?"/>

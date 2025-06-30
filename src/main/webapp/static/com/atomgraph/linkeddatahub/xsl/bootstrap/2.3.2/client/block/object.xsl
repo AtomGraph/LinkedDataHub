@@ -202,6 +202,9 @@ exclude-result-prefixes="#all"
                             </div>
                         </xsl:result-document>
                     </xsl:for-each>
+                    
+                    <xsl:sequence select="ldh:hide-block-progress-bar($context, ())[current-date() lt xs:date('2000-01-01')]"/>
+                    <xsl:sequence select="$context"/>
                 </xsl:when>
                 <xsl:otherwise>
                     <xsl:for-each select="$container">
@@ -234,7 +237,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="response" select="$context('response')" as="map(*)"/>
         <xsl:variable name="block" select="$context('block')" as="element()"/>
         <xsl:variable name="container" select="$context('container')" as="element()"/>
-        <xsl:variable name="resource" select="$context('resource')" as="element()"/>
+        <xsl:variable name="resource" select="$context('resource')" as="element()?"/>
         <xsl:variable name="graph" select="$context('graph')" as="xs:anyURI?"/>
         <xsl:variable name="mode" select="$context('mode')" as="xs:anyURI?"/>
         <xsl:variable name="show-edit-button" select="$context('show-edit-button')" as="xs:boolean?"/>
@@ -245,102 +248,117 @@ exclude-result-prefixes="#all"
             <!-- update progress bar -->
             <ixsl:set-style name="width" select="'45%'" object="."/>
         </xsl:for-each>
-                    
-        <xsl:for-each select="$response">
-            <xsl:choose>
-                <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
-                    <xsl:variable name="object-metadata" select="?body" as="document-node()"/>
+        
+        <xsl:choose>
+            <xsl:when test="$resource">
+                <xsl:for-each select="$response">
+                    <xsl:choose>
+                        <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
+                            <xsl:variable name="object-metadata" select="?body" as="document-node()"/>
 
-                    <xsl:variable name="row" as="node()*">
-                        <xsl:apply-templates select="$resource" mode="bs2:Row">
-                            <xsl:with-param name="graph" select="$graph" tunnel="yes"/>
-                            <xsl:with-param name="mode" select="$mode"/>
-                            <xsl:with-param name="show-edit-button" select="$show-edit-button" tunnel="yes"/>
-                            <xsl:with-param name="object-metadata" select="$object-metadata" tunnel="yes"/>
-                            <xsl:with-param name="show-row-block-controls" select="false()"/> <!-- blocks nested within ldh:Object do not show their own progress bars -->
-                            <xsl:with-param name="draggable" select="false()"/> <!-- blocks nested within ldh:Object are not draggable -->
-                        </xsl:apply-templates>
-                    </xsl:variable>
+                            <xsl:variable name="row" as="node()*">
+                                <xsl:apply-templates select="$resource" mode="bs2:Row">
+                                    <xsl:with-param name="graph" select="$graph" tunnel="yes"/>
+                                    <xsl:with-param name="mode" select="$mode"/>
+                                    <xsl:with-param name="show-edit-button" select="$show-edit-button" tunnel="yes"/>
+                                    <xsl:with-param name="object-metadata" select="$object-metadata" tunnel="yes"/>
+                                    <xsl:with-param name="show-row-block-controls" select="false()"/> <!-- blocks nested within ldh:Object do not show their own progress bars -->
+                                    <xsl:with-param name="draggable" select="false()"/> <!-- blocks nested within ldh:Object are not draggable -->
+                                </xsl:apply-templates>
+                            </xsl:variable>
 
-                    <xsl:variable name="obj-value-id" select="'obj-value-' || generate-id($block)" as="xs:string"/>
-                    <xsl:for-each select="$container">
-                        <xsl:result-document href="?." method="ixsl:replace-content">
-                            <!-- wrap the row -->
-                            <div id="{$obj-value-id}" class="span12">
-                                <xsl:copy-of select="$row"/>
-                            </div>
-                        </xsl:result-document>
-                    </xsl:for-each>
-                    
-                    <xsl:sequence select="map:put($context, 'obj-value-id', $obj-value-id)"/>
-                    
-                    <!-- we don't want any of the other resources that may be part of root($resource) document -->
-                    <xsl:variable name="resource-doc" as="document-node()">
-                        <xsl:document>
-                            <rdf:RDF>
-                                <xsl:sequence select="$resource"/>
-                            </rdf:RDF>
-                        </xsl:document>
-                    </xsl:variable>
-                    
-                    <xsl:if test="not(ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block/@about || '`'))">
-                        <ixsl:set-property name="{'`' || $block/@about || '`'}" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.contents')"/>
-                    </xsl:if>
+                            <xsl:variable name="obj-value-id" select="'obj-value-' || generate-id($block)" as="xs:string"/>
+                            <xsl:for-each select="$container">
+                                <xsl:result-document href="?." method="ixsl:replace-content">
+                                    <!-- wrap the row -->
+                                    <div id="{$obj-value-id}" class="span12">
+                                        <xsl:copy-of select="$row"/>
+                                    </div>
+                                </xsl:result-document>
+                            </xsl:for-each>
 
-                    <!-- TO-DO: reuse similar initialization code from client.xsl -->
-                    <xsl:if test="$mode = '&ac;MapMode' and key('elements-by-class', 'map-canvas', $block)">
-                        <xsl:for-each select="$resource-doc">
-                            <!-- initialize maps -->
-                            <xsl:if test="key('elements-by-class', 'map-canvas', $block)">
-                                <xsl:call-template name="ldh:DrawMap">
-                                    <xsl:with-param name="block-uri" select="$block/@about"/>
-                                    <xsl:with-param name="canvas-id" select="key('elements-by-class', 'map-canvas', $block)/@id"/>
-                                </xsl:call-template>
+                            <xsl:sequence select="map:put($context, 'obj-value-id', $obj-value-id)"/>
+
+                            <!-- we don't want any of the other resources that may be part of root($resource) document -->
+                            <xsl:variable name="resource-doc" as="document-node()">
+                                <xsl:document>
+                                    <rdf:RDF>
+                                        <xsl:sequence select="$resource"/>
+                                    </rdf:RDF>
+                                </xsl:document>
+                            </xsl:variable>
+
+                            <xsl:if test="not(ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block/@about || '`'))">
+                                <ixsl:set-property name="{'`' || $block/@about || '`'}" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.contents')"/>
                             </xsl:if>
-                        </xsl:for-each>
-                    </xsl:if>
-                    <xsl:if test="$mode = '&ac;ChartMode' and key('elements-by-class', 'chart-canvas', $block)">
-                        <!-- initialize charts -->
-                        <xsl:for-each select="key('elements-by-class', 'chart-canvas', $block)">
-                            <xsl:variable name="canvas-id" select="@id" as="xs:string"/>
-                            <xsl:variable name="chart-type" select="xs:anyURI('&ac;Table')" as="xs:anyURI"/>
-                            <xsl:variable name="category" as="xs:string?"/>
-                            <xsl:variable name="series" select="distinct-values($resource-doc/*/*/concat(namespace-uri(), local-name()))" as="xs:string*"/>
-                            <xsl:variable name="data-table" select="ac:rdf-data-table($resource-doc, $category, $series)"/>
 
-                            <ixsl:set-property name="data-table" select="$data-table" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block/@about || '`')"/>
+                            <!-- TO-DO: reuse similar initialization code from client.xsl -->
+                            <xsl:if test="$mode = '&ac;MapMode' and key('elements-by-class', 'map-canvas', $block)">
+                                <xsl:for-each select="$resource-doc">
+                                    <!-- initialize maps -->
+                                    <xsl:if test="key('elements-by-class', 'map-canvas', $block)">
+                                        <xsl:call-template name="ldh:DrawMap">
+                                            <xsl:with-param name="block-uri" select="$block/@about"/>
+                                            <xsl:with-param name="canvas-id" select="key('elements-by-class', 'map-canvas', $block)/@id"/>
+                                        </xsl:call-template>
+                                    </xsl:if>
+                                </xsl:for-each>
+                            </xsl:if>
+                            <xsl:if test="$mode = '&ac;ChartMode' and key('elements-by-class', 'chart-canvas', $block)">
+                                <!-- initialize charts -->
+                                <xsl:for-each select="key('elements-by-class', 'chart-canvas', $block)">
+                                    <xsl:variable name="canvas-id" select="@id" as="xs:string"/>
+                                    <xsl:variable name="chart-type" select="xs:anyURI('&ac;Table')" as="xs:anyURI"/>
+                                    <xsl:variable name="category" as="xs:string?"/>
+                                    <xsl:variable name="series" select="distinct-values($resource-doc/*/*/concat(namespace-uri(), local-name()))" as="xs:string*"/>
+                                    <xsl:variable name="data-table" select="ac:rdf-data-table($resource-doc, $category, $series)"/>
 
-                            <xsl:call-template name="ldh:RenderChart">
-                                <xsl:with-param name="data-table" select="$data-table"/>
-                                <xsl:with-param name="canvas-id" select="$canvas-id"/>
-                                <xsl:with-param name="chart-type" select="$chart-type"/>
-                                <xsl:with-param name="category" select="$category"/>
-                                <xsl:with-param name="series" select="$series"/>
-                            </xsl:call-template>
-                        </xsl:for-each>
-                    </xsl:if>
-                </xsl:when>
-                <xsl:otherwise>
-                    <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ ?message ])[current-date() lt xs:date('2000-01-01')]"/>
-                    
-                    <xsl:sequence select="$context"/>
-                </xsl:otherwise>
-            </xsl:choose>
-        </xsl:for-each>        
+                                    <ixsl:set-property name="data-table" select="$data-table" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block/@about || '`')"/>
+
+                                    <xsl:call-template name="ldh:RenderChart">
+                                        <xsl:with-param name="data-table" select="$data-table"/>
+                                        <xsl:with-param name="canvas-id" select="$canvas-id"/>
+                                        <xsl:with-param name="chart-type" select="$chart-type"/>
+                                        <xsl:with-param name="category" select="$category"/>
+                                        <xsl:with-param name="series" select="$series"/>
+                                    </xsl:call-template>
+                                </xsl:for-each>
+                            </xsl:if>
+                        </xsl:when>
+                        <xsl:otherwise>
+                            <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ ?message ])[current-date() lt xs:date('2000-01-01')]"/>
+
+                            <xsl:sequence select="$context"/>
+                        </xsl:otherwise>
+                    </xsl:choose>
+                </xsl:for-each>
+            </xsl:when>
+            <!-- do nothing since there is no RDF $resource in the $context map (maybe it was an non-RDF URI, e.g. an image) -->
+            <xsl:otherwise>
+                <xsl:sequence select="$context"/>
+            </xsl:otherwise>
+        </xsl:choose>
     </xsl:function>
 
     <xsl:function name="ldh:block-object-apply" as="item()" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
-        <xsl:variable name="obj-value-id" select="$context('obj-value-id')" as="xs:string"/>
+        <xsl:variable name="obj-value-id" select="$context('obj-value-id')" as="xs:string?"/>
 
-        <xsl:message>ldh:block-object-apply $obj-value-id: <xsl:value-of select="$obj-value-id"/> exists(id($obj-value-id, ixsl:page())): <xsl:value-of select="exists(id($obj-value-id, ixsl:page()))"/></xsl:message>
-    
-        <!-- get the optional promise of the object value resource -->
-        <xsl:variable name="rendered" as="(function(item()?) as map(*))?">
-            <xsl:apply-templates select="id($obj-value-id, ixsl:page())" mode="ldh:RenderRow"/>
-        </xsl:variable>
-        
-        <xsl:sequence select="if (exists($rendered)) then $rendered else ldh:object-noop#2($context, ?)"/>
+        <xsl:choose>
+            <xsl:when test="$obj-value-id">
+                <xsl:message>ldh:block-object-apply $obj-value-id: <xsl:value-of select="$obj-value-id"/> exists(id($obj-value-id, ixsl:page())): <xsl:value-of select="exists(id($obj-value-id, ixsl:page()))"/></xsl:message>
+
+                <!-- get the optional promise of the object value resource -->
+                <xsl:variable name="rendered" as="(function(item()?) as map(*))?">
+                    <xsl:apply-templates select="id($obj-value-id, ixsl:page())" mode="ldh:RenderRow"/>
+                </xsl:variable>
+
+                <xsl:sequence select="if (exists($rendered)) then $rendered else ldh:object-noop#2($context, ?)"/>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:sequence select="ldh:object-noop#2($context, ?)"/>
+            </xsl:otherwise>
+        </xsl:choose>
     </xsl:function>
     
     <xsl:function name="ldh:object-noop" as="map(*)" ixsl:updating="yes">
