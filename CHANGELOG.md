@@ -1,3 +1,7 @@
+## [5.0.19] - 2025-07-01
+### Fixed
+- Form callback invocation
+
 ## [5.0.18] - 2025-06-30
 ### Added
 - Proxy parameter tunneling in CLI scripts (`add-object-block.sh`, `add-xhtml-block.sh`)
