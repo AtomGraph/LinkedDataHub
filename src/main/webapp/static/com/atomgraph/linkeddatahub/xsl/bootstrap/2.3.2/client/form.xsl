@@ -641,6 +641,7 @@ WHERE
                   ixsl:http-request($context('request'))
                     => ixsl:then(ldh:rethread-response($context, ?))
                     => ixsl:then(ldh:handle-response#1)
+                    => ixsl:then($callback)
                 " on-failure="ldh:promise-failure#1"/>
             </xsl:otherwise>
         </xsl:choose>
