@@ -430,7 +430,7 @@ extension-element-prefixes="ixsl"
     <!-- DEFAULT -->
 
     <!-- embed file content -->
-    <xsl:template match="*[@rdf:about][dct:format]" priority="2">
+    <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&nfo;FileDataObject'][dct:format]" priority="2">
         <xsl:param name="id" select="generate-id()" as="xs:string?"/>
         <xsl:param name="class" as="xs:string?"/>
 
