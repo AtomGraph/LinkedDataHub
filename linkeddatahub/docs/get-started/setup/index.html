@@ -195,6 +195,19 @@ OWNER_COUNTRY_NAME=DK</pre>
                               The script will create an <samp>ssl/server</samp> sub-folder where the SSL certificate will be stored.
                               </li>
                            
+                           <li>Create the following secrets with certificate/truststore passwords:
+                              
+                              <ul>
+                                 
+                                 <li><samp>secrets/client_truststore_password.txt</samp></li>
+                                 
+                                 <li><samp>secrets/owner_cert_password.txt</samp></li>
+                                 
+                                 <li><samp>secrets/secretary_cert_password.txt</samp></li>
+                                 </ul>
+                              The one you will need to remember in order to authenticate with LinkedDataHub <a href="../get-an-account/#install-cert">using WebID client certificate</a> is <samp>owner_cert_password</samp>.
+                              </li>
+                           
                            <li>Run this from command line:
                               
                               <pre>docker-compose up --build</pre>
