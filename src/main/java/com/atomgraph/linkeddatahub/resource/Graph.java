@@ -686,8 +686,11 @@ public class Graph extends GraphStoreImpl
         {
             dis.getMessageDigest().reset();
             File tempFile = File.createTempFile("tmp", null);
-            FileChannel destination = new FileOutputStream(tempFile).getChannel();
-            destination.transferFrom(Channels.newChannel(dis), 0, 104857600);
+            try (FileOutputStream fos = new FileOutputStream(tempFile);
+                 FileChannel destination = fos.getChannel())
+            {
+                destination.transferFrom(Channels.newChannel(dis), 0, 104857600);
+            }
             String sha1Hash = Hex.encodeHexString(dis.getMessageDigest().digest()); // BigInteger seems to have an issue when the leading hex digit is 0
             if (log.isDebugEnabled()) log.debug("Wrote file: {} with SHA1 hash: {}", tempFile, sha1Hash);
 
@@ -699,7 +702,10 @@ public class Graph extends GraphStoreImpl
             if (log.isDebugEnabled()) log.debug("Renaming resource: {} to SHA1 based URI: {}", resource, sha1Uri);
             ResourceUtils.renameResource(resource, sha1Uri.toString());
 
-            return writeFile(sha1Uri, getUriInfo().getBaseUri(), new FileInputStream(tempFile));
+            try (FileInputStream fis = new FileInputStream(tempFile))
+            {
+                return writeFile(sha1Uri, getUriInfo().getBaseUri(), fis);
+            }
         }
         catch (IOException ex)
         {
