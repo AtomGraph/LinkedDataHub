@@ -145,11 +145,13 @@ public class Generate extends GraphStoreImpl
                             service)));
                     new Skolemizer(containerGraphURI.toString()).apply(containerModel);
 
-                    Response containerResponse = super.post(containerModel, false, containerGraphURI);
-                    if (containerResponse.getStatus() != Response.Status.CREATED.getStatusCode())
+                    try (Response containerResponse = super.post(containerModel, false, containerGraphURI))
                     {
-                        if (log.isErrorEnabled()) log.error("Cannot create container");
-                        throw new InternalServerErrorException("Cannot create container");
+                        if (containerResponse.getStatus() != Response.Status.CREATED.getStatusCode())
+                        {
+                            if (log.isErrorEnabled()) log.error("Cannot create container");
+                            throw new InternalServerErrorException("Cannot create container");
+                        }
                     }
                 }
             }
