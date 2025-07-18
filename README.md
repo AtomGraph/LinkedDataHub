@@ -60,10 +60,11 @@ It takes a few clicks and filling out a form to install the product into your ow
      ./bin/server-cert-gen.sh .env nginx ssl
      ```
      The script will create an `ssl` sub-folder where the SSL certificates and/or public keys will be placed.
-  4. Create the following secrets with certificate passwords:
+  4. Create the following secrets with certificate/truststore passwords:
      - `secrets/client_truststore_password.txt`
      - `secrets/owner_cert_password.txt`
      - `secrets/secretary_cert_password.txt`
+     The one you will need to remember in order to authenticate with LinkedDataHub using WebID client certificate is `owner_cert_password`.
   5. Launch the application services by running this from command line:
      ```shell
      docker-compose up --build
