@@ -346,7 +346,7 @@ exclude-result-prefixes="#all"
 
         <xsl:choose>
             <xsl:when test="$obj-value-id">
-                <xsl:message>ldh:block-object-apply $obj-value-id: <xsl:value-of select="$obj-value-id"/> exists(id($obj-value-id, ixsl:page())): <xsl:value-of select="exists(id($obj-value-id, ixsl:page()))"/></xsl:message>
+                <xsl:message>ldh:block-object-apply</xsl:message>
 
                 <!-- get the optional promise of the object value resource -->
                 <xsl:variable name="rendered" as="(function(item()?) as map(*))?">
