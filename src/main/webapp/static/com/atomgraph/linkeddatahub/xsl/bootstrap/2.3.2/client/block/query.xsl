@@ -174,7 +174,6 @@ exclude-result-prefixes="#all"
         <xsl:for-each select="$container//div[contains-token(@class, 'main')]">
             <xsl:variable name="header" select="./div/div[@class = 'well']" as="element()"/>
             
-            <xsl:message>contains(.): <xsl:value-of select="ixsl:call(ixsl:page(), 'contains', [ . ])"/></xsl:message>
             <xsl:result-document href="?." method="ixsl:replace-content">
                 <xsl:copy-of select="$header"/>
                                 

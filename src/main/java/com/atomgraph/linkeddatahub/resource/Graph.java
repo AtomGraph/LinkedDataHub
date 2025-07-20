@@ -190,7 +190,9 @@ public class Graph extends GraphStoreImpl
         
         // is this implemented correctly? The specification is not very clear.
         if (log.isDebugEnabled()) log.debug("POST Model to named graph with URI: {}", getURI());
-        getService().getGraphStoreClient().add(getURI().toString(), model); // append new data to existing model
+        // First remove old dct:modified values from the triplestore, then add new data
+        existingModel.createResource(getURI().toString()).removeAll(DCTerms.modified);
+        getService().getGraphStoreClient().putModel(getURI().toString(), existingModel.add(model)); // replace entire graph to avoid accumulating dct:modified
         Model updatedModel = existingModel.add(model);
 
         submitImports(model);
