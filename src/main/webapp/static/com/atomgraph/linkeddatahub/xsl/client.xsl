@@ -111,7 +111,8 @@ extension-element-prefixes="ixsl"
     <xsl:include href="bootstrap/2.3.2/client/block/view.xsl"/>
     <xsl:include href="bootstrap/2.3.2/client/block/chart.xsl"/>
     <xsl:include href="bootstrap/2.3.2/client/block/query.xsl"/>
-    
+    <xsl:include href="bootstrap/2.3.2/client/block/object/youtube.xsl"/>
+
     <xsl:param name="ac:contextUri" as="xs:anyURI"/>
     <xsl:param name="ldt:base" as="xs:anyURI"/>
     <xsl:param name="ldh:requestUri" select="xs:anyURI(ixsl:location())" as="xs:anyURI"/>
