@@ -130,7 +130,7 @@ It takes a few clicks and filling out a form to install the product into your ow
 
   ### Dataspaces
 
-  Dataspaces are configured in [`config/system.trig`](https://github.com/AtomGraph/LinkedDataHub/blob/master/config/system-varnish.trig). Relative URIs will be resolved against the base URI configured in the `.env` file.
+  Dataspaces are configured in [`config/system.trig`](https://github.com/AtomGraph/LinkedDataHub/blob/master/config/system.trig). Relative URIs will be resolved against the base URI configured in the `.env` file.
 
 _:warning: Do not use blank nodes to identify applications or services. We recommend using the `urn:` URI scheme, since LinkedDataHub application resources are not accessible under their own dataspace._
 
