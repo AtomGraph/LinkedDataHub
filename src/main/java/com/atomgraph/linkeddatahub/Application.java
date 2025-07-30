@@ -192,6 +192,7 @@ import jakarta.ws.rs.InternalServerErrorException;
 import jakarta.ws.rs.client.Client;
 import jakarta.ws.rs.client.ClientBuilder;
 import jakarta.ws.rs.client.ClientRequestFilter;
+import java.util.concurrent.ConcurrentHashMap;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.stream.StreamSource;
 import net.jodah.expiringmap.ExpiringMap;
@@ -280,7 +281,7 @@ public class Application extends ResourceConfig
     private final List<Locale> supportedLanguages;
     private final ExpiringMap<URI, Model> webIDmodelCache = ExpiringMap.builder().expiration(1, TimeUnit.DAYS).build(); // TO-DO: config for the expiration period?
     private final ExpiringMap<String, Model> oidcModelCache = ExpiringMap.builder().variableExpiration().build();
-    private final Map<URI, XsltExecutable> xsltExecutableCache = new HashMap<>();
+    private final Map<URI, XsltExecutable> xsltExecutableCache = new ConcurrentHashMap<>();
     private final MessageDigest messageDigest;
     private final boolean enableWebIDSignUp;
     private final String oidcRefreshTokensPropertiesPath;
@@ -636,10 +637,16 @@ public class Application extends ResourceConfig
         try
         {
             keyStore = KeyStore.getInstance("PKCS12");
-            keyStore.load(new FileInputStream(new java.io.File(new URI(clientKeyStoreURIString))), clientKeyStorePassword.toCharArray());
+            try (FileInputStream keyStoreInputStream = new FileInputStream(new java.io.File(new URI(clientKeyStoreURIString))))
+            {
+                keyStore.load(keyStoreInputStream, clientKeyStorePassword.toCharArray());
+            }
 
             trustStore = KeyStore.getInstance("JKS");
-            trustStore.load(new FileInputStream(new java.io.File(new URI(clientTrustStoreURIString))), clientTrustStorePassword.toCharArray());
+            try (FileInputStream trustStoreInputStream = new FileInputStream(new java.io.File(new URI(clientTrustStoreURIString))))
+            {
+                trustStore.load(trustStoreInputStream, clientTrustStorePassword.toCharArray());
+            }
             
             client = getClient(keyStore, clientKeyStorePassword, trustStore, maxConnPerRoute, maxTotalConn, null, false);
             externalClient = getClient(keyStore, clientKeyStorePassword, trustStore, maxConnPerRoute, maxTotalConn, null, false);
