@@ -95,11 +95,34 @@ exclude-result-prefixes="#all"
     <xsl:function name="ldh:object-self-thunk" as="item()*" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
         <xsl:message>ldh:object-self-thunk</xsl:message>
-        <xsl:sequence select="
-            ixsl:resolve($context) =>
-                ixsl:then(ldh:object-value-thunk#1) =>
-                ixsl:then(ldh:object-metadata-thunk#1)
-        "/>
+        
+        <!-- Check for self-reference and handle it early -->
+        <xsl:variable name="resource-uri" select="$context('resource-uri')" as="xs:anyURI"/>
+        <xsl:variable name="block" select="$context('block')" as="element()"/>
+        <xsl:variable name="about" select="$block/@about" as="xs:anyURI"/>
+        
+        <xsl:choose>
+            <xsl:when test="$resource-uri = $about">
+                <!-- Self-reference detected - render error and return resolved context -->
+                <xsl:variable name="container" select="$context('container')" as="element()"/>
+                <xsl:for-each select="$container">
+                    <xsl:result-document href="?." method="ixsl:replace-content">
+                        <div class="alert alert-block">
+                            <strong>Self-referencing object detected: <a href="{$resource-uri}"><xsl:value-of select="$resource-uri"/></a></strong>
+                        </div>
+                    </xsl:result-document>
+                </xsl:for-each>
+                <xsl:sequence select="ixsl:resolve($context)"/>
+            </xsl:when>
+            <xsl:otherwise>
+                <!-- Normal processing -->
+                <xsl:sequence select="
+                    ixsl:resolve($context) =>
+                        ixsl:then(ldh:object-value-thunk#1) =>
+                        ixsl:then(ldh:object-metadata-thunk#1)
+                "/>
+            </xsl:otherwise>
+        </xsl:choose>
     </xsl:function>
     
     <!-- only the first HTTP → query‐response lives here -->
