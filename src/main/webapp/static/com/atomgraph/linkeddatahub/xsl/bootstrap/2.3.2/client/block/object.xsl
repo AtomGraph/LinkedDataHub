@@ -206,13 +206,7 @@ exclude-result-prefixes="#all"
                                 </xsl:for-each>
                                 
                                 <xsl:sequence select="ldh:hide-block-progress-bar($context, ())[current-date() lt xs:date('2000-01-01')]"/>
-                                <xsl:sequence select="
-                                    error(
-                                      QName('&ldh;', 'ldh:HTTPError'),
-                                      concat('HTTP ', ?status, ' returned: ', ?message),
-                                      $response
-                                    )
-                                "/>
+                                <xsl:sequence select="$context"/>
                             </xsl:otherwise>
                         </xsl:choose>
                     </xsl:for-each>
