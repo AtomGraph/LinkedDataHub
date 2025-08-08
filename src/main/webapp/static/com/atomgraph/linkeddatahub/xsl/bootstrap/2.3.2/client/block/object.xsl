@@ -95,11 +95,34 @@ exclude-result-prefixes="#all"
     <xsl:function name="ldh:object-self-thunk" as="item()*" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
         <xsl:message>ldh:object-self-thunk</xsl:message>
-        <xsl:sequence select="
-            ixsl:resolve($context) =>
-                ixsl:then(ldh:object-value-thunk#1) =>
-                ixsl:then(ldh:object-metadata-thunk#1)
-        "/>
+        
+        <!-- Check for self-reference and handle it early -->
+        <xsl:variable name="resource-uri" select="$context('resource-uri')" as="xs:anyURI"/>
+        <xsl:variable name="block" select="$context('block')" as="element()"/>
+        <xsl:variable name="about" select="$block/@about" as="xs:anyURI"/>
+        
+        <xsl:choose>
+            <xsl:when test="$resource-uri = $about">
+                <!-- Self-reference detected - render error and return resolved context -->
+                <xsl:variable name="container" select="$context('container')" as="element()"/>
+                <xsl:for-each select="$container">
+                    <xsl:result-document href="?." method="ixsl:replace-content">
+                        <div class="alert alert-block">
+                            <strong>Self-referencing object detected: <a href="{$resource-uri}"><xsl:value-of select="$resource-uri"/></a></strong>
+                        </div>
+                    </xsl:result-document>
+                </xsl:for-each>
+                <xsl:sequence select="ixsl:resolve($context)"/>
+            </xsl:when>
+            <xsl:otherwise>
+                <!-- Normal processing -->
+                <xsl:sequence select="
+                    ixsl:resolve($context) =>
+                        ixsl:then(ldh:object-value-thunk#1) =>
+                        ixsl:then(ldh:object-metadata-thunk#1)
+                "/>
+            </xsl:otherwise>
+        </xsl:choose>
     </xsl:function>
     
     <!-- only the first HTTP → query‐response lives here -->
@@ -183,13 +206,7 @@ exclude-result-prefixes="#all"
                                 </xsl:for-each>
                                 
                                 <xsl:sequence select="ldh:hide-block-progress-bar($context, ())[current-date() lt xs:date('2000-01-01')]"/>
-                                <xsl:sequence select="
-                                    error(
-                                      QName('&ldh;', 'ldh:HTTPError'),
-                                      concat('HTTP ', ?status, ' returned: ', ?message),
-                                      $response
-                                    )
-                                "/>
+                                <xsl:sequence select="$context"/>
                             </xsl:otherwise>
                         </xsl:choose>
                     </xsl:for-each>
@@ -346,7 +363,7 @@ exclude-result-prefixes="#all"
 
         <xsl:choose>
             <xsl:when test="$obj-value-id">
-                <xsl:message>ldh:block-object-apply $obj-value-id: <xsl:value-of select="$obj-value-id"/> exists(id($obj-value-id, ixsl:page())): <xsl:value-of select="exists(id($obj-value-id, ixsl:page()))"/></xsl:message>
+                <xsl:message>ldh:block-object-apply</xsl:message>
 
                 <!-- get the optional promise of the object value resource -->
                 <xsl:variable name="rendered" as="(function(item()?) as map(*))?">
