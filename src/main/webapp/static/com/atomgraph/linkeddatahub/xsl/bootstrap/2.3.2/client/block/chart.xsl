@@ -733,9 +733,9 @@ exclude-result-prefixes="#all"
             'resources': $resources
           }"/>
         <ixsl:promise select="
-          ixsl:http-request($context('request'))                          (: Step 1: send initial request :)
-            => ixsl:then(ldh:rethread-response($context, ?))              (: Step 2: attach response to context :)
-            => ixsl:then(ldh:handle-response#1)                           (: Step 3: handle 429s, etc. :)
+          ixsl:http-request($context('request'))
+            => ixsl:then(ldh:rethread-response($context, ?))
+            => ixsl:then(ldh:handle-response#1)
             => ixsl:then(ldh:row-form-response#1)
         "/>
     </xsl:template>

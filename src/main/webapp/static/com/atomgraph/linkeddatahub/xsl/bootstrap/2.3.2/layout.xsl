@@ -88,6 +88,7 @@ exclude-result-prefixes="#all">
     <xsl:import href="imports/sioc.xsl"/>
     <xsl:import href="imports/sp.xsl"/>
     <xsl:import href="resource.xsl"/>
+    <xsl:import href="imports/services/youtube.xsl"/>
     <xsl:import href="document.xsl"/>
     
     <!--  To use xsl:import-schema, you need the schema-aware version of Saxon -->
@@ -386,6 +387,7 @@ LIMIT   100
             <script src="{resolve-uri('static/js/yasqe.js', $ac:contextUri)}" type="text/javascript"></script>
         </xsl:if>
         <xsl:if test="$load-saxon-js">
+            <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/resource-resolver.js', $ac:contextUri)}"></script>
             <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/saxon-js/SaxonJS3.rt.js', $ac:contextUri)}" defer="defer"></script>
             <script type="text/javascript">
                 <xsl:text disable-output-escaping="yes">
@@ -422,7 +424,12 @@ LIMIT   100
                             <xsl:text disable-output-escaping="yes">
                             <![CDATA[
                         ];
-                        const docPromises = locationMapping.map(mapping => SaxonJS.getResource({location: mapping.altName, type: "xml"}));
+                        
+                        const docPromises = locationMapping.map(mapping => 
+                            getResourceWithRetry(mapping.altName).then(content => 
+                                SaxonJS.getResource({text: content, type: "xml"})
+                            )
+                        );
                         const servicesRequestUri = "]]></xsl:text><xsl:value-of select="$app-request-uri"/><xsl:text disable-output-escaping="yes"><![CDATA[";
                         const stylesheetParams = {
                             "Q{https://w3id.org/atomgraph/client#}contextUri": contextUri, // servlet context URI
@@ -436,7 +443,9 @@ LIMIT   100
                             };
                         
                         SaxonJS.setConfigurationProperty("nativeGetElementById", true);
-                        SaxonJS.getResource({location: servicesRequestUri, type: "xml", headers: { "Accept": "application/rdf+xml" } }).
+                        getResourceWithRetry(servicesRequestUri, { "Accept": "application/rdf+xml" }).then(content => 
+                            SaxonJS.getResource({text: content, type: "xml"})
+                        ).
                             then(resource => {
                                 stylesheetParams["Q{https://w3id.org/atomgraph/linkeddatahub#}apps"] = resource;
                                 return Promise.all(docPromises);
@@ -561,7 +570,7 @@ LIMIT   100
                 
                 <input type="text" id="uri" name="uri" class="input-xxlarge typeahead">
                     <xsl:if test="not(starts-with(ac:absolute-path(ldh:base-uri(.)), $ldt:base))">
-                        <xsl:attribute name="value" select="ac:absolute-path(ldh:base-uri(.))"/>
+                        <xsl:attribute name="value" select="ac:document-uri(ldh:base-uri(.))"/>
                     </xsl:if>
                 </input>
                 <!-- placeholder used by the client-side typeahead -->
@@ -1055,15 +1064,15 @@ LIMIT   100
             </button>
             <ul class="dropdown-menu">
                 <li>
-                    <xsl:variable name="href" select="ac:build-uri(ac:absolute-path(ldh:base-uri(.)), let $params := map{ 'accept': 'application/rdf+xml' } return if (not(starts-with(ac:absolute-path(ldh:base-uri(.)), $ldt:base))) then map:merge(($params, map{ 'uri': string(ac:absolute-path(ldh:base-uri(.))) })) else $params)" as="xs:anyURI"/>
+                    <xsl:variable name="href" select="ac:build-uri(ac:absolute-path($ldh:requestUri), let $params := map{ 'accept': 'application/rdf+xml' } return if (not(starts-with(ac:absolute-path(ldh:base-uri(.)), $ldt:base))) then map:merge(($params, map{ 'uri': string(ac:document-uri(ldh:base-uri(.))) })) else $params)" as="xs:anyURI"/>
                     <a href="{$href}" title="application/rdf+xml" target="_blank">RDF/XML</a>
                 </li>
                 <li>
-                    <xsl:variable name="href" select="ac:build-uri(ac:absolute-path(ldh:base-uri(.)), let $params := map{ 'accept': 'text/turtle' } return if (not(starts-with(ac:absolute-path(ldh:base-uri(.)), $ldt:base))) then map:merge(($params, map{ 'uri': string(ac:absolute-path(ldh:base-uri(.))) })) else $params)" as="xs:anyURI"/>
+                    <xsl:variable name="href" select="ac:build-uri(ac:absolute-path($ldh:requestUri), let $params := map{ 'accept': 'text/turtle' } return if (not(starts-with(ac:absolute-path(ldh:base-uri(.)), $ldt:base))) then map:merge(($params, map{ 'uri': string(ac:document-uri(ldh:base-uri(.))) })) else $params)" as="xs:anyURI"/>
                     <a href="{$href}" title="text/turtle" target="_blank">Turtle</a>
                 </li>
                 <li>
-                    <xsl:variable name="href" select="ac:build-uri(ac:absolute-path(ldh:base-uri(.)), let $params := map{ 'accept': 'application/ld+json' } return if (not(starts-with(ac:absolute-path(ldh:base-uri(.)), $ldt:base))) then map:merge(($params, map{ 'uri': string(ac:absolute-path(ldh:base-uri(.))) })) else $params)" as="xs:anyURI"/>
+                    <xsl:variable name="href" select="ac:build-uri(ac:absolute-path($ldh:requestUri), let $params := map{ 'accept': 'application/ld+json' } return if (not(starts-with(ac:absolute-path(ldh:base-uri(.)), $ldt:base))) then map:merge(($params, map{ 'uri': string(ac:document-uri(ldh:base-uri(.))) })) else $params)" as="xs:anyURI"/>
                     <a href="{$href}" title="application/ld+json" target="_blank">JSON-LD</a>
                 </li>
             </ul>
