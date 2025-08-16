@@ -68,6 +68,7 @@ import com.atomgraph.linkeddatahub.writer.factory.XsltExecutableSupplierFactory;
 import com.atomgraph.client.util.XsltResolver;
 import com.atomgraph.linkeddatahub.client.LinkedDataClient;
 import com.atomgraph.linkeddatahub.client.filter.ClientUriRewriteFilter;
+import com.atomgraph.linkeddatahub.client.filter.grddl.YouTubeGRDDLFilter;
 import com.atomgraph.linkeddatahub.imports.ImportExecutor;
 import com.atomgraph.linkeddatahub.io.HtmlJsonLDReaderFactory;
 import com.atomgraph.linkeddatahub.io.JsonLDReader;
@@ -839,6 +840,7 @@ public class Application extends ResourceConfig
         registerContainerRequestFilters();
         registerContainerResponseFilters();
         registerExceptionMappers();
+        registerClientFilters();
         
         eventBus.register(this); // this system application will be receiving events about context changes
         
@@ -1025,6 +1027,24 @@ public class Application extends ResourceConfig
         register(AuthenticationExceptionMapper.class);
         register(AuthorizationExceptionMapper.class);
         register(MessagingExceptionMapper.class);
+    }
+    
+    /**
+     * Registers JAX-RS client filters.
+     */
+    protected void registerClientFilters()
+    {
+        try
+        {
+            // Register YouTube GRDDL filter
+            YouTubeGRDDLFilter youtubeFilter = new YouTubeGRDDLFilter(xsltComp);
+            client.register(youtubeFilter);
+            externalClient.register(youtubeFilter);
+        }
+        catch (SaxonApiException ex)
+        {
+            if (log.isErrorEnabled()) log.error("Failed to initialize GRDDL client filter");
+        }
     }
     
     /**
