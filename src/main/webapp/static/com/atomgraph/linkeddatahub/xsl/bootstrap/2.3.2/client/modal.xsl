@@ -692,7 +692,6 @@ LIMIT   10
                     <xsl:with-param name="legend-label" select="ac:label(key('resources', 'import-ontology', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri))))"/>
                 </xsl:call-template>
             </xsl:with-param>
-            <xsl:with-param name="graph" select="ac:absolute-path(ldh:base-uri(.))"/>
         </xsl:call-template>
     </xsl:template>
 
@@ -701,7 +700,6 @@ LIMIT   10
             <xsl:with-param name="form" as="element()">
                 <xsl:call-template name="ldh:GenerateContainersForm"/>
             </xsl:with-param>
-            <xsl:with-param name="graph" select="ac:absolute-path(ldh:base-uri(.))"/>
         </xsl:call-template>
     </xsl:template>
     
@@ -881,7 +879,7 @@ LIMIT   10
 
     <xsl:template name="ldh:ShowAddDataForm">
         <xsl:param name="form" as="element()"/>
-        <xsl:param name="graph" as="xs:anyURI?"/>
+        <xsl:param name="graph" select="ac:absolute-path($ldh:requestUri)" as="xs:anyURI?"/>
         
         <!-- don't append the div if it's already there -->
         <xsl:if test="not(id($form/@id, ixsl:page()))">

@@ -298,7 +298,6 @@ WHERE
     
     <xsl:template match="div[contains-token(@class, 'navbar')]//div[@id = 'doc-controls']//button[contains-token(@class, 'btn-edit')]" mode="ixsl:onclick">
         <xsl:param name="about" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/> <!-- editing the current document resources -->
-<!--        <xsl:param name="graph" as="xs:anyURI?"/>-->
         <xsl:param name="method" select="'patch'" as="xs:string"/>
         <xsl:param name="form-actions-class" select="'form-actions modal-footer'" as="xs:string?"/>
         <xsl:param name="button-class" select="'btn btn-primary wymupdate'" as="xs:string?"/>

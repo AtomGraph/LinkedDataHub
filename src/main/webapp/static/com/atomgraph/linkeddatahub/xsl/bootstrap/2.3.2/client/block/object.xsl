@@ -71,13 +71,6 @@ exclude-result-prefixes="#all"
         <!-- don't use ldh:base-uri(.) because its value comes from the last HTML document load -->
         <xsl:variable name="request-uri" select="ldh:href(($graph, ac:document-uri($resource-uri))[1], map{})" as="xs:anyURI"/>
         
-        <xsl:message>
-            LDH:OBJECT
-            ($graph, ac:document-uri($resource-uri))[1]: <xsl:value-of select="($graph, ac:document-uri($resource-uri))[1]"/>
-            $resource-uri: <xsl:value-of select="$resource-uri"/>
-            $request-uri: <xsl:value-of select="$request-uri"/>
-        </xsl:message>
-        
         <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
         <xsl:variable name="context" as="map(*)" select="
           map{
@@ -169,7 +162,6 @@ exclude-result-prefixes="#all"
         <xsl:variable name="block" select="$context('block')" as="element()"/>
         <xsl:variable name="container" select="$context('container')" as="element()"/>
         <xsl:variable name="resource-uri" select="$context('resource-uri')" as="xs:anyURI"/>
-<!--        <xsl:variable name="graph" select="$context('graph')" as="xs:anyURI?"/>-->
         <xsl:variable name="mode" select="$context('mode')" as="xs:anyURI?"/>
         <xsl:variable name="show-edit-button" select="$context('show-edit-button')" as="xs:boolean?"/>
 
@@ -261,7 +253,6 @@ exclude-result-prefixes="#all"
         <xsl:variable name="block" select="$context('block')" as="element()"/>
         <xsl:variable name="container" select="$context('container')" as="element()"/>
         <xsl:variable name="resource" select="$context('resource')" as="element()?"/>
-<!--        <xsl:variable name="graph" select="$context('graph')" as="xs:anyURI?"/>-->
         <xsl:variable name="mode" select="$context('mode')" as="xs:anyURI?"/>
         <xsl:variable name="show-edit-button" select="$context('show-edit-button')" as="xs:boolean?"/>
 

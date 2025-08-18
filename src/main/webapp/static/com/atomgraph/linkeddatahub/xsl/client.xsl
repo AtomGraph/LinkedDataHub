@@ -649,11 +649,6 @@ WHERE
             <xsl:map>
                 <xsl:map-entry key="'href'" select="$href"/>
                 <xsl:map-entry key="'container-id'" select="ixsl:get($container, 'id')"/>
-<!--                <xsl:map-entry key="'query-string'" select="$query"/>
-                <xsl:map-entry key="'sparql'" select="$sparql"/>
-                <xsl:if test="$endpoint">
-                    <xsl:map-entry key="'endpoint'" select="$endpoint"/>
-                </xsl:if>-->
             </xsl:map>
         </xsl:variable>
         <xsl:variable name="state-obj" select="ixsl:call(ixsl:window(), 'JSON.parse', [ $state => serialize(map{ 'method': 'json' }) ])"/>
@@ -895,12 +890,12 @@ WHERE
 
         <xsl:if test="$push-state">
             <!-- cannot use ixsl:query-params() because they're not up to date with $href at this point -->
-            <xsl:variable name="query-params" select="if (contains($href, '?')) then ldh:parse-query-params(substring-after($href, '?')) else map{}" as="map(xs:string, xs:string*)"/>
+<!--            <xsl:variable name="query-params" select="if (contains($href, '?')) then ldh:parse-query-params(substring-after($href, '?')) else map{}" as="map(xs:string, xs:string*)"/>
             <xsl:variable name="nav-tab-class" select="id('content-body', ixsl:page())/div[contains-token(@class, 'row-fluid')][1]/ul[contains-token(@class, 'nav-tabs')]/li[contains-token(@class, 'active')]/@class" as="xs:string?"/>
             <xsl:variable name="href" as="xs:anyURI">
                 <xsl:choose>
-                    <!-- if ?mode param is not explicitly specified, change the page's URL to reflect that (there's always an active mode) -->
-                    <!-- need to check .nav-tabs because they might not be rendered (e.g. in case of error response) -->
+                     if ?mode param is not explicitly specified, change the page's URL to reflect that (there's always an active mode) 
+                     need to check .nav-tabs because they might not be rendered (e.g. in case of error response) 
                     <xsl:when test="not(exists($query-params?mode)) and $nav-tab-class">
                         <xsl:variable name="mode-classes" as="map(xs:string, xs:string)">
                             <xsl:map>
@@ -920,10 +915,10 @@ WHERE
                         <xsl:sequence select="$href"/>
                     </xsl:otherwise>
                 </xsl:choose>
-            </xsl:variable>
+            </xsl:variable>-->
         
             <xsl:call-template name="ldh:PushState">
-                <xsl:with-param name="href" select="$href"/>
+                <xsl:with-param name="href" select="ldh:href($href, map{})"/>
                 <xsl:with-param name="title" select="/html/head/title"/>
                 <xsl:with-param name="container" select="$container"/>
             </xsl:call-template>
@@ -1073,7 +1068,7 @@ WHERE
         <xsl:choose>
             <xsl:when test="?status = 204"> <!-- No Content -->
                 <xsl:variable name="href" select="resolve-uri('..', $doc-uri)" as="xs:anyURI"/>
-                <xsl:variable name="request-uri" select="ldh:href($doc-uri, map{})" as="xs:anyURI"/>
+                <xsl:variable name="request-uri" select="ldh:href($href, map{})" as="xs:anyURI"/>
 
                 <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
@@ -1295,7 +1290,6 @@ WHERE
                     <xsl:with-param name="source" select="$uri"/>
                 </xsl:call-template>
             </xsl:with-param>
-            <xsl:with-param name="graph" select="ac:absolute-path(ldh:base-uri(.))"/>
         </xsl:call-template>
     </xsl:template>
     

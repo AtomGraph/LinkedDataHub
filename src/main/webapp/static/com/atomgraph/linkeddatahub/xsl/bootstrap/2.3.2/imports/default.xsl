@@ -91,13 +91,6 @@ exclude-result-prefixes="#all"
         <xsl:param name="uri" as="xs:anyURI?"/>
         <xsl:param name="query-params" as="map(xs:string, xs:string*)"/>
         <xsl:param name="fragment" as="xs:string?"/>
-
-        <xsl:message>
-            ldh:href()
-            $uri: <xsl:value-of select="$uri"/>
-            $query-params: <xsl:value-of select="serialize($query-params, map{ 'method': 'adaptive' })"/>
-            $fragment: <xsl:value-of select="$fragment"/>
-        </xsl:message>
         
         <xsl:choose>
             <!-- proxy URI - internal ones (relative to application's base URI) will be rewritten as absolute path in ApplicationFilter -->
@@ -278,10 +271,15 @@ exclude-result-prefixes="#all"
         </xsl:message>
         
         <xsl:sequence select="map:merge(
-            for $query in tokenize($query-string, '&amp;')
-            return
-                let $param := tokenize($query, '=')
-                return map:entry(ldh:url-decode(head($param)), ldh:url-decode(tail($param)))
+            tokenize($query-string, '&amp;')[normalize-space()]
+            !
+            (let $p := tokenize(., '=')
+             return map:entry(
+               ldh:url-decode($p[1]),
+               if (count($p) &gt; 1)
+               then ldh:url-decode(string-join(subsequence($p, 2), '='))
+               else ''
+             ))
             ,
             map { 'duplicates': 'combine' }
         )"/>
