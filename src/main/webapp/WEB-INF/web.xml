@@ -237,7 +237,8 @@ DELETE WHERE
         <param-value><![CDATA[Congratulations! You have successfully completed the signup on LinkedDataHub's "%s" application.
 
 A PKCS12 client certificate for your WebID is attached to this message. Download the file, install it into your web browser and restart the browser afterwards.
-
+For use with the LinkedDataHub CLI and/or curl, convert the PKCS12 file to PEM using openssl: https://docs.openssl.org/master/man1/openssl-pkcs12/
+            
 Get started with your LinkedDataHub application by following this guide: https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/get-started/
 
 Application's base URI: %s
