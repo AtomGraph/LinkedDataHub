@@ -76,7 +76,7 @@ public abstract class JSONGRDDLFilter implements ClientRequestFilter, ClientResp
         if (log.isDebugEnabled()) log.debug("Compiled GRDDL stylesheet from {} for {}", stylesheetPath, getClass().getSimpleName());
     }
     
-    private URI originalRequestURI; // Store original URI for response processing
+    private static final String ORIGINAL_URI_PROPERTY = "com.atomgraph.linkeddatahub.originalRequestURI";
     
     @Override
     public void filter(ClientRequestContext requestContext) throws IOException
@@ -92,8 +92,8 @@ public abstract class JSONGRDDLFilter implements ClientRequestFilter, ClientResp
         if (jsonURI == null)
             return;
             
-        // Store original URI for response processing
-        this.originalRequestURI = requestURI;
+        // Store original URI in request context for thread-safe response processing
+        requestContext.setProperty(ORIGINAL_URI_PROPERTY, requestURI);
         
         // Redirect request to JSON API endpoint
         requestContext.setUri(jsonURI);
@@ -104,6 +104,9 @@ public abstract class JSONGRDDLFilter implements ClientRequestFilter, ClientResp
     @Override
     public void filter(ClientRequestContext requestContext, ClientResponseContext responseContext) throws IOException
     {
+        // Get the original URI from request context
+        URI originalRequestURI = (URI) requestContext.getProperty(ORIGINAL_URI_PROPERTY);
+        
         // Only process responses if we redirected the original request
         if (originalRequestURI == null)
             return;
@@ -111,10 +114,7 @@ public abstract class JSONGRDDLFilter implements ClientRequestFilter, ClientResp
         // Check if response is JSON
         MediaType contentType = responseContext.getMediaType();
         if (contentType == null || !MediaType.APPLICATION_JSON_TYPE.isCompatible(contentType))
-        {
-            originalRequestURI = null; // Reset for next request
             return;
-        }
             
         try (InputStream entityStream = responseContext.getEntityStream())
         {
@@ -135,10 +135,6 @@ public abstract class JSONGRDDLFilter implements ClientRequestFilter, ClientResp
         {
             if (log.isErrorEnabled()) log.error("GRDDL transformation failed for URI: {}", originalRequestURI, ex);
             throw new BadGatewayException("Failed to transform JSON to RDF", ex);
-        }
-        finally
-        {
-            originalRequestURI = null; // Reset for next request
         }
     }
     
