@@ -262,7 +262,7 @@ WHERE
     <xsl:template match="div[@about]//button[contains-token(@class, 'btn-edit')][not(contains-token(@class, 'disabled'))]" mode="ixsl:onclick">
         <xsl:param name="block" select="ancestor::div[contains-token(@class, 'block')][1]" as="element()"/>
         <xsl:param name="about" select="$block/@about" as="xs:anyURI"/>
-        <xsl:param name="graph" as="xs:anyURI?"/>
+<!--        <xsl:param name="graph" as="xs:anyURI?"/>-->
 
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
@@ -274,7 +274,7 @@ WHERE
         <ixsl:set-property name="block-html" select="ixsl:call($block, 'cloneNode', [ true() ])" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $about || '`')"/>
 
         <!-- if the URI is external, dereference it through the proxy -->
-        <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path($ldh:requestUri), map{}, ac:absolute-path(ldh:base-uri(.)), $graph, ())" as="xs:anyURI"/>
+        <xsl:variable name="request-uri" select="ldh:href(ac:absolute-path(ldh:base-uri(.)), map{})" as="xs:anyURI"/>
         <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
         <xsl:variable name="context" as="map(*)" select="
           map{
@@ -298,7 +298,6 @@ WHERE
     
     <xsl:template match="div[contains-token(@class, 'navbar')]//div[@id = 'doc-controls']//button[contains-token(@class, 'btn-edit')]" mode="ixsl:onclick">
         <xsl:param name="about" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/> <!-- editing the current document resources -->
-        <xsl:param name="graph" as="xs:anyURI?"/>
         <xsl:param name="method" select="'patch'" as="xs:string"/>
         <xsl:param name="form-actions-class" select="'form-actions modal-footer'" as="xs:string?"/>
         <xsl:param name="button-class" select="'btn btn-primary wymupdate'" as="xs:string?"/>
@@ -329,7 +328,7 @@ WHERE
         <xsl:variable name="block" select="id($block-id, ixsl:page())" as="element()"/>
         
         <!-- if the URI is external, dereference it through the proxy -->
-        <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path($ldh:requestUri), map{}, ac:absolute-path(ldh:base-uri(.)), $graph, ())" as="xs:anyURI"/>
+        <xsl:variable name="request-uri" select="ldh:href(ac:absolute-path(ldh:base-uri(.)), map{})" as="xs:anyURI"/>
         <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
         <xsl:variable name="context" as="map(*)" select="
           map{
@@ -513,7 +512,7 @@ WHERE
         <xsl:variable name="shapes" select="$context('shapes')" as="document-node()"/>
         <xsl:variable name="object-metadata" select="$context('object-metadata')" as="document-node()?"/>
         <xsl:variable name="method" select="$context('method')" as="xs:string"/>
-        <xsl:variable name="action" select="ldh:href($ldt:base, ac:absolute-path(ldh:base-uri($document)), map{}, ac:absolute-path(ldh:base-uri($document)))" as="xs:anyURI"/>
+        <xsl:variable name="action" select="ldh:href(ac:absolute-path(ldh:base-uri($document)), map{})" as="xs:anyURI"/>
         
         <xsl:for-each select="$block">
             <xsl:variable name="form" as="node()*">
@@ -609,7 +608,7 @@ WHERE
             <xsl:apply-templates select="$triples" mode="ldh:CanonicalizeXML"/>
         </xsl:variable>
         <xsl:variable name="doc-uri" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/>
-        <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path($ldh:requestUri), map{}, $action)" as="xs:anyURI"/>
+        <xsl:variable name="request-uri" select="ldh:href($action, map{})" as="xs:anyURI"/>
 
         <!-- pre-process form before submitting it -->
         <xsl:apply-templates select="." mode="ldh:FormPreSubmit"/>
@@ -746,7 +745,7 @@ WHERE
                 </rdf:RDF>
             </xsl:document>
         </xsl:variable>
-        <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path($ldh:requestUri), map{}, $action)" as="xs:anyURI"/>
+        <xsl:variable name="request-uri" select="ldh:href($action, map{})" as="xs:anyURI"/>
         <!-- If-Match header checks preconditions, i.e. that the graph has not been modified in the meanwhile -->
         <xsl:variable name="request" select="map{ 'method': $method, 'href': $request-uri, 'media-type': 'application/sparql-update', 'body': $update-string, 'headers': map{ 'If-Match': $etag, 'Accept': 'application/rdf+xml', 'Cache-Control': 'no-cache' } }" as="map(*)"/>
         <xsl:variable name="context" as="map(*)" select="
@@ -798,7 +797,7 @@ WHERE
                 </rdf:RDF>
             </xsl:document>
         </xsl:variable>
-        <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path($ldh:requestUri), map{}, $action)" as="xs:anyURI"/>
+        <xsl:variable name="request-uri" select="ldh:href($action, map{})" as="xs:anyURI"/>
         <!-- If-Match header checks preconditions, i.e. that the graph has not been modified in the meanwhile -->
         <xsl:variable name="request" select="map{ 'method': $method, 'href': $request-uri, 'media-type': 'application/sparql-update', 'body': $update-string, 'headers': map{ 'If-Match': $etag, 'Accept': 'application/rdf+xml', 'Cache-Control': 'no-cache' } }" as="map(*)"/>
         <xsl:variable name="context" as="map(*)" select="
@@ -1256,7 +1255,7 @@ WHERE
                 <xsl:apply-templates select="$constructed-doc" mode="bs2:Form"> <!-- document level template -->
                     <xsl:with-param name="about" select="()"/> <!-- don't set @about on the container until after the resource is saved -->
                     <xsl:with-param name="method" select="'put'"/>
-                    <xsl:with-param name="action" select="ldh:href($ldt:base, ac:absolute-path($ldh:requestUri), map{}, $doc-uri)" as="xs:anyURI"/>
+                    <xsl:with-param name="action" select="ldh:href($doc-uri, map{})" as="xs:anyURI"/>
                     <xsl:with-param name="form-actions-class" select="'form-actions modal-footer'" as="xs:string?"/>
                     <xsl:with-param name="classes" select="$classes"/>
                     <xsl:with-param name="type-metadata" select="$type-metadata" tunnel="yes"/>
@@ -1352,7 +1351,7 @@ WHERE
             <xsl:apply-templates select="$constructed-doc" mode="bs2:RowForm">
                 <xsl:with-param name="about" select="()"/> <!-- don't set @about on the container until after the resource is saved -->
                 <xsl:with-param name="method" select="$method"/>
-                <xsl:with-param name="action" select="ldh:href($ldt:base, ac:absolute-path($ldh:requestUri), map{}, $doc-uri)" as="xs:anyURI"/>
+                <xsl:with-param name="action" select="ldh:href($doc-uri, map{})" as="xs:anyURI"/>
                 <xsl:with-param name="type-metadata" select="$type-metadata" tunnel="yes"/>
                 <xsl:with-param name="property-metadata" select="$property-metadata" tunnel="yes"/>
                 <xsl:with-param name="constructor" select="$constructed-doc" tunnel="yes"/>
@@ -1443,7 +1442,7 @@ WHERE
         <xsl:variable name="query-json" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'parse', [ $query-json-string ])"/>
         <xsl:variable name="query-string" select="ixsl:call(ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromQuery', [ $query-json ]), 'toString', [])" as="xs:string"/>
         <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': string($query-string) })" as="xs:anyURI"/>
-        <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path($ldh:requestUri), map{}, $results-uri)" as="xs:anyURI"/> <!-- proxy the results -->
+        <xsl:variable name="request-uri" select="ldh:href($results-uri, map{})" as="xs:anyURI"/> <!-- proxy the results -->
         <!-- TO-DO: use <ixsl:schedule-action> instead of document() -->
         <xsl:variable name="results" select="document($request-uri)" as="document-node()"/>
 
@@ -1613,7 +1612,7 @@ WHERE
 
                 <xsl:apply-templates select="$resource" mode="bs2:Form">
                     <xsl:with-param name="method" select="'post'"/>
-                    <xsl:with-param name="action" select="ldh:href($ldt:base, ac:absolute-path($ldh:requestUri), map{}, $doc-uri)" as="xs:anyURI"/>
+                    <xsl:with-param name="action" select="ldh:href($doc-uri, map{})" as="xs:anyURI"/>
                     <xsl:with-param name="classes" select="$classes"/>
                     <xsl:with-param name="type-metadata" select="$type-metadata" tunnel="yes"/>
                     <xsl:with-param name="property-metadata" select="$property-metadata" tunnel="yes"/>
@@ -1711,7 +1710,7 @@ WHERE
                     <xsl:variable name="update-json-string" select="xml-to-json($update-xml)" as="xs:string"/>
                     <xsl:variable name="update-json" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'parse', [ $update-json-string ])"/>
                     <xsl:variable name="update-string" select="ixsl:call($sparql-generator, 'stringify', [ $update-json ])" as="xs:string"/>
-                    <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path($ldh:requestUri), map{}, $action)" as="xs:anyURI"/>
+                    <xsl:variable name="request-uri" select="ldh:href($action, map{})" as="xs:anyURI"/>
 
                     <xsl:variable name="request" as="item()*">
                         <!-- If-Match header checks preconditions, i.e. that the graph has not been modified in the meanwhile --> 

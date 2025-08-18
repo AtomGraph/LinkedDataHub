@@ -18,7 +18,6 @@ package com.atomgraph.linkeddatahub.server.filter.request;
 
 import com.atomgraph.client.vocabulary.AC;
 import com.atomgraph.linkeddatahub.vocabulary.LAPP;
-import com.atomgraph.linkeddatahub.vocabulary.LDH;
 import com.atomgraph.linkeddatahub.writer.Mode;
 import java.io.IOException;
 import java.util.Collections;
@@ -72,21 +71,20 @@ public class ApplicationFilter implements ContainerRequestFilter
         com.atomgraph.linkeddatahub.apps.model.Application app = appResource.as(com.atomgraph.linkeddatahub.apps.model.Application.class);
         request.setProperty(LAPP.Application.getURI(), app); // wrap into a helper class so it doesn't interfere with injection of Application
         
-        // use the ?graph URL parameter to override the effective request URI if its URI value is relative to the app's base URI
+        // use the ?uri URL parameter to override the effective request URI if its URI value is relative to the app's base URI
         final URI requestURI;
-        if (request.getUriInfo().getQueryParameters().containsKey(LDH.graph.getLocalName()))
+        if (request.getUriInfo().getQueryParameters().containsKey(AC.uri.getLocalName()))
             try
             {
-                URI graphURI = new URI(request.getUriInfo().getQueryParameters().getFirst(LDH.graph.getLocalName()));
+                URI graphURI = new URI(request.getUriInfo().getQueryParameters().getFirst(AC.uri.getLocalName()));
                 if (!app.getBaseURI().relativize(graphURI).isAbsolute()) // if ?graph query param value is relative to the app's base URI
                 {
                     // pass on query parameters except ?graph
                     MultivaluedMap<String, String> queryParams = new MultivaluedHashMap();
                     queryParams.putAll(request.getUriInfo().getQueryParameters());
-                    queryParams.remove(LDH.graph.getLocalName());
                     queryParams.remove(AC.uri.getLocalName());
 
-                    UriBuilder builder = UriBuilder.fromUri(graphURI);;
+                    UriBuilder builder = UriBuilder.fromUri(graphURI);
                     
                     for (Entry<String, List<String>> params : queryParams.entrySet())
                         for (String value : params.getValue())

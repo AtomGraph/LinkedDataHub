@@ -69,7 +69,8 @@ exclude-result-prefixes="#all"
         </xsl:for-each>
 
         <!-- don't use ldh:base-uri(.) because its value comes from the last HTML document load -->
-        <xsl:variable name="request-uri" select="ldh:href($ldt:base, if (starts-with($graph, $ldt:base)) then $graph else ac:absolute-path(xs:anyURI(ixsl:location())), map{}, ac:document-uri($resource-uri), $graph, ())" as="xs:anyURI"/>
+        <xsl:variable name="request-uri" select="ldh:href(($graph, ac:document-uri($resource-uri))[1], map{})" as="xs:anyURI"/>
+        
         <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
         <xsl:variable name="context" as="map(*)" select="
           map{
@@ -77,7 +78,6 @@ exclude-result-prefixes="#all"
             'block': $block,
             'container': $container,
             'resource-uri': $resource-uri,
-            'graph': $graph,
             'mode': $mode,
             'show-edit-button': $show-edit-button
           }"/>
@@ -162,7 +162,6 @@ exclude-result-prefixes="#all"
         <xsl:variable name="block" select="$context('block')" as="element()"/>
         <xsl:variable name="container" select="$context('container')" as="element()"/>
         <xsl:variable name="resource-uri" select="$context('resource-uri')" as="xs:anyURI"/>
-        <xsl:variable name="graph" select="$context('graph')" as="xs:anyURI?"/>
         <xsl:variable name="mode" select="$context('mode')" as="xs:anyURI?"/>
         <xsl:variable name="show-edit-button" select="$context('show-edit-button')" as="xs:boolean?"/>
 
@@ -191,7 +190,6 @@ exclude-result-prefixes="#all"
                                     'block': $block,
                                     'container': $container,
                                     'resource': $resource,
-                                    'graph': $graph,
                                     'mode': $mode,
                                     'show-edit-button': $show-edit-button
                                   }"/>
@@ -255,7 +253,6 @@ exclude-result-prefixes="#all"
         <xsl:variable name="block" select="$context('block')" as="element()"/>
         <xsl:variable name="container" select="$context('container')" as="element()"/>
         <xsl:variable name="resource" select="$context('resource')" as="element()?"/>
-        <xsl:variable name="graph" select="$context('graph')" as="xs:anyURI?"/>
         <xsl:variable name="mode" select="$context('mode')" as="xs:anyURI?"/>
         <xsl:variable name="show-edit-button" select="$context('show-edit-button')" as="xs:boolean?"/>
 
@@ -275,7 +272,7 @@ exclude-result-prefixes="#all"
 
                             <xsl:variable name="row" as="node()*">
                                 <xsl:apply-templates select="$resource" mode="bs2:Row">
-                                    <xsl:with-param name="graph" select="$graph" tunnel="yes"/>
+<!--                                    <xsl:with-param name="graph" select="$graph" tunnel="yes"/>-->
                                     <xsl:with-param name="mode" select="$mode"/>
                                     <xsl:with-param name="show-edit-button" select="$show-edit-button" tunnel="yes"/>
                                     <xsl:with-param name="object-metadata" select="$object-metadata" tunnel="yes"/>
