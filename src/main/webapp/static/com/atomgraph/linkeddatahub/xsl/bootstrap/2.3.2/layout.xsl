@@ -633,7 +633,7 @@ LIMIT   100
             <div class="row-fluid">
                 <xsl:apply-templates select="." mode="bs2:BreadCrumbBar"/>
                 
-                <div id="doc-controls" class="span3">
+                <div id="doc-controls" class="span4">
                     <xsl:apply-templates select="key('resources', ac:absolute-path(ldh:base-uri(.)))" mode="bs2:Timestamp"/>
 
                     <xsl:if test="$acl:mode = '&acl;Write'">
@@ -666,7 +666,7 @@ LIMIT   100
     
     <xsl:template match="rdf:RDF" mode="bs2:BreadCrumbBar">
         <xsl:param name="id" select="'breadcrumb-nav'" as="xs:string?"/>
-        <xsl:param name="class" select="'span9'" as="xs:string?"/>
+        <xsl:param name="class" select="'span8'" as="xs:string?"/>
 
         <div>
             <xsl:if test="$id">
