@@ -128,19 +128,6 @@ var onSubjectValueChange = function(event)
     oldSubject.val(newValue); // store value in the hidden input
 };
 
-//var ixslTemplateListener = function(stylesheetLocation, initialTemplate, stylesheetParams, templateParams, event)
-//{
-//    templateParams.event = event;
-//
-//    SaxonJS.transform({
-//        "stylesheetLocation": stylesheetLocation,
-//        "initialTemplate": initialTemplate,
-//        "stylesheetParams": stylesheetParams,
-//        "templateParams": templateParams,
-//        "nonInteractive": true
-//    });
-//};
-
 var ixslTemplateListener = function(eventName, map, olEvent)
 {
     let event = new CustomEvent(eventName, { "detail": { "ol-event": olEvent, "map": map } } );

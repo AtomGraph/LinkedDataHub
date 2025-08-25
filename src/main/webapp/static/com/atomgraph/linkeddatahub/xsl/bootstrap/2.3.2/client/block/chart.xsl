@@ -291,7 +291,7 @@ exclude-result-prefixes="#all"
             <ixsl:set-style name="width" select="'66%'" object="."/>
         </xsl:for-each>
         
-        <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path($ldh:requestUri), map{}, $query-uri)" as="xs:anyURI"/>
+        <xsl:variable name="request-uri" select="ldh:href($query-uri, map{})" as="xs:anyURI"/>
         <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
         <xsl:variable name="context" as="map(*)" select="
           map{
@@ -658,7 +658,7 @@ exclude-result-prefixes="#all"
             <xsl:apply-templates select="$constructed-doc" mode="bs2:RowForm">
                 <xsl:with-param name="about" select="()"/> <!-- don't set @about on the container until after the resource is saved -->
                 <xsl:with-param name="method" select="$method"/>
-                <xsl:with-param name="action" select="ldh:href($ldt:base, ac:absolute-path($ldh:requestUri), map{}, $doc-uri)" as="xs:anyURI"/>
+                <xsl:with-param name="action" select="ldh:href($doc-uri, map{})" as="xs:anyURI"/>
                 <xsl:with-param name="type-metadata" select="$type-metadata" tunnel="yes"/>
                 <xsl:with-param name="property-metadata" select="$property-metadata" tunnel="yes"/>
                 <xsl:with-param name="constructor" select="$constructed-doc" tunnel="yes"/>
@@ -722,7 +722,7 @@ exclude-result-prefixes="#all"
                 </rdf:RDF>
             </xsl:document>
         </xsl:variable>
-        <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path($ldh:requestUri), map{}, $action)" as="xs:anyURI"/>
+        <xsl:variable name="request-uri" select="ldh:href($action, map{})" as="xs:anyURI"/>
         <!-- If-Match header checks preconditions, i.e. that the graph has not been modified in the meanwhile -->
         <xsl:variable name="request" select="map{ 'method': $method, 'href': $request-uri, 'media-type': 'application/sparql-update', 'body': $update-string, 'headers': map{ 'If-Match': $etag, 'Accept': 'application/rdf+xml', 'Cache-Control': 'no-cache' } }" as="map(*)"/>
         <xsl:variable name="context" as="map(*)" select="
@@ -733,9 +733,9 @@ exclude-result-prefixes="#all"
             'resources': $resources
           }"/>
         <ixsl:promise select="
-          ixsl:http-request($context('request'))                          (: Step 1: send initial request :)
-            => ixsl:then(ldh:rethread-response($context, ?))              (: Step 2: attach response to context :)
-            => ixsl:then(ldh:handle-response#1)                           (: Step 3: handle 429s, etc. :)
+          ixsl:http-request($context('request'))
+            => ixsl:then(ldh:rethread-response($context, ?))
+            => ixsl:then(ldh:handle-response#1)
             => ixsl:then(ldh:row-form-response#1)
         "/>
     </xsl:template>
@@ -772,7 +772,7 @@ exclude-result-prefixes="#all"
                         <xsl:variable name="service" select="if ($service-uri) then key('resources', $service-uri, document(ac:build-uri(ac:document-uri($service-uri), map{ 'accept': 'application/rdf+xml' }))) else ()" as="element()?"/> <!-- TO-DO: refactor asynchronously -->
                         <xsl:variable name="endpoint" select="($service/sd:endpoint/@rdf:resource/xs:anyURI(.), sd:endpoint())[1]" as="xs:anyURI"/>
                         <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': $query-string })" as="xs:anyURI"/>
-                        <xsl:variable name="request-uri" select="ldh:href($ldt:base, ac:absolute-path($ldh:requestUri), map{}, $results-uri)" as="xs:anyURI"/>
+                        <xsl:variable name="request-uri" select="ldh:href($results-uri, map{})" as="xs:anyURI"/>
 
                         <!-- update progress bar -->
                         <xsl:for-each select="$block//div[contains-token(@class, 'bar')]">

@@ -68,6 +68,7 @@ import com.atomgraph.linkeddatahub.writer.factory.XsltExecutableSupplierFactory;
 import com.atomgraph.client.util.XsltResolver;
 import com.atomgraph.linkeddatahub.client.LinkedDataClient;
 import com.atomgraph.linkeddatahub.client.filter.ClientUriRewriteFilter;
+import com.atomgraph.linkeddatahub.client.filter.grddl.YouTubeGRDDLFilter;
 import com.atomgraph.linkeddatahub.imports.ImportExecutor;
 import com.atomgraph.linkeddatahub.io.HtmlJsonLDReaderFactory;
 import com.atomgraph.linkeddatahub.io.JsonLDReader;
@@ -192,6 +193,7 @@ import jakarta.ws.rs.InternalServerErrorException;
 import jakarta.ws.rs.client.Client;
 import jakarta.ws.rs.client.ClientBuilder;
 import jakarta.ws.rs.client.ClientRequestFilter;
+import java.util.concurrent.ConcurrentHashMap;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.stream.StreamSource;
 import net.jodah.expiringmap.ExpiringMap;
@@ -280,7 +282,7 @@ public class Application extends ResourceConfig
     private final List<Locale> supportedLanguages;
     private final ExpiringMap<URI, Model> webIDmodelCache = ExpiringMap.builder().expiration(1, TimeUnit.DAYS).build(); // TO-DO: config for the expiration period?
     private final ExpiringMap<String, Model> oidcModelCache = ExpiringMap.builder().variableExpiration().build();
-    private final Map<URI, XsltExecutable> xsltExecutableCache = new HashMap<>();
+    private final Map<URI, XsltExecutable> xsltExecutableCache = new ConcurrentHashMap<>();
     private final MessageDigest messageDigest;
     private final boolean enableWebIDSignUp;
     private final String oidcRefreshTokensPropertiesPath;
@@ -636,10 +638,16 @@ public class Application extends ResourceConfig
         try
         {
             keyStore = KeyStore.getInstance("PKCS12");
-            keyStore.load(new FileInputStream(new java.io.File(new URI(clientKeyStoreURIString))), clientKeyStorePassword.toCharArray());
+            try (FileInputStream keyStoreInputStream = new FileInputStream(new java.io.File(new URI(clientKeyStoreURIString))))
+            {
+                keyStore.load(keyStoreInputStream, clientKeyStorePassword.toCharArray());
+            }
 
             trustStore = KeyStore.getInstance("JKS");
-            trustStore.load(new FileInputStream(new java.io.File(new URI(clientTrustStoreURIString))), clientTrustStorePassword.toCharArray());
+            try (FileInputStream trustStoreInputStream = new FileInputStream(new java.io.File(new URI(clientTrustStoreURIString))))
+            {
+                trustStore.load(trustStoreInputStream, clientTrustStorePassword.toCharArray());
+            }
             
             client = getClient(keyStore, clientKeyStorePassword, trustStore, maxConnPerRoute, maxTotalConn, null, false);
             externalClient = getClient(keyStore, clientKeyStorePassword, trustStore, maxConnPerRoute, maxTotalConn, null, false);
@@ -739,6 +747,7 @@ public class Application extends ResourceConfig
 
             xsltProc.registerExtensionFunction(new UUID());
             xsltProc.registerExtensionFunction(new DecodeURI());
+            xsltProc.registerExtensionFunction(new com.atomgraph.linkeddatahub.writer.function.URLDecode());
             xsltProc.registerExtensionFunction(new com.atomgraph.linkeddatahub.writer.function.Construct(xsltProc));
             xsltProc.registerExtensionFunction(new com.atomgraph.linkeddatahub.writer.function.SendHTTPRequest(xsltProc, client));
             
@@ -832,6 +841,7 @@ public class Application extends ResourceConfig
         registerContainerRequestFilters();
         registerContainerResponseFilters();
         registerExceptionMappers();
+        registerClientFilters();
         
         eventBus.register(this); // this system application will be receiving events about context changes
         
@@ -1018,6 +1028,24 @@ public class Application extends ResourceConfig
         register(AuthenticationExceptionMapper.class);
         register(AuthorizationExceptionMapper.class);
         register(MessagingExceptionMapper.class);
+    }
+    
+    /**
+     * Registers JAX-RS client filters.
+     */
+    protected void registerClientFilters()
+    {
+        try
+        {
+            // Register YouTube GRDDL filter
+            YouTubeGRDDLFilter youtubeFilter = new YouTubeGRDDLFilter(xsltComp);
+            client.register(youtubeFilter);
+            externalClient.register(youtubeFilter);
+        }
+        catch (SaxonApiException ex)
+        {
+            if (log.isErrorEnabled()) log.error("Failed to initialize GRDDL client filter");
+        }
     }
     
     /**

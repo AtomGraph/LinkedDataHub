@@ -107,6 +107,6 @@ public class LDH
 
     /**
      * Graph URI property */
-    public static final ObjectProperty graph = m_model.createObjectProperty( NS + "graph" );
+    //public static final ObjectProperty graph = m_model.createObjectProperty( NS + "graph" );
 
 }

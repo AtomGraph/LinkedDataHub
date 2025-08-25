@@ -88,6 +88,7 @@ exclude-result-prefixes="#all">
     <xsl:import href="imports/sioc.xsl"/>
     <xsl:import href="imports/sp.xsl"/>
     <xsl:import href="resource.xsl"/>
+    <xsl:import href="imports/services/youtube.xsl"/>
     <xsl:import href="document.xsl"/>
     
     <!--  To use xsl:import-schema, you need the schema-aware version of Saxon -->
@@ -386,6 +387,7 @@ LIMIT   100
             <script src="{resolve-uri('static/js/yasqe.js', $ac:contextUri)}" type="text/javascript"></script>
         </xsl:if>
         <xsl:if test="$load-saxon-js">
+            <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/resource-resolver.js', $ac:contextUri)}"></script>
             <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/saxon-js/SaxonJS3.rt.js', $ac:contextUri)}" defer="defer"></script>
             <script type="text/javascript">
                 <xsl:text disable-output-escaping="yes">
@@ -422,7 +424,12 @@ LIMIT   100
                             <xsl:text disable-output-escaping="yes">
                             <![CDATA[
                         ];
-                        const docPromises = locationMapping.map(mapping => SaxonJS.getResource({location: mapping.altName, type: "xml"}));
+                        
+                        const docPromises = locationMapping.map(mapping => 
+                            getResourceWithRetry(mapping.altName).then(content => 
+                                SaxonJS.getResource({text: content, type: "xml"})
+                            )
+                        );
                         const servicesRequestUri = "]]></xsl:text><xsl:value-of select="$app-request-uri"/><xsl:text disable-output-escaping="yes"><![CDATA[";
                         const stylesheetParams = {
                             "Q{https://w3id.org/atomgraph/client#}contextUri": contextUri, // servlet context URI
@@ -436,7 +443,9 @@ LIMIT   100
                             };
                         
                         SaxonJS.setConfigurationProperty("nativeGetElementById", true);
-                        SaxonJS.getResource({location: servicesRequestUri, type: "xml", headers: { "Accept": "application/rdf+xml" } }).
+                        getResourceWithRetry(servicesRequestUri, { "Accept": "application/rdf+xml" }).then(content => 
+                            SaxonJS.getResource({text: content, type: "xml"})
+                        ).
                             then(resource => {
                                 stylesheetParams["Q{https://w3id.org/atomgraph/linkeddatahub#}apps"] = resource;
                                 return Promise.all(docPromises);
@@ -561,7 +570,7 @@ LIMIT   100
                 
                 <input type="text" id="uri" name="uri" class="input-xxlarge typeahead">
                     <xsl:if test="not(starts-with(ac:absolute-path(ldh:base-uri(.)), $ldt:base))">
-                        <xsl:attribute name="value" select="ac:absolute-path(ldh:base-uri(.))"/>
+                        <xsl:attribute name="value" select="ac:document-uri(ldh:base-uri(.))"/>
                     </xsl:if>
                 </input>
                 <!-- placeholder used by the client-side typeahead -->
@@ -624,7 +633,7 @@ LIMIT   100
             <div class="row-fluid">
                 <xsl:apply-templates select="." mode="bs2:BreadCrumbBar"/>
                 
-                <div id="doc-controls" class="span3">
+                <div id="doc-controls" class="span4">
                     <xsl:apply-templates select="key('resources', ac:absolute-path(ldh:base-uri(.)))" mode="bs2:Timestamp"/>
 
                     <xsl:if test="$acl:mode = '&acl;Write'">
@@ -657,7 +666,7 @@ LIMIT   100
     
     <xsl:template match="rdf:RDF" mode="bs2:BreadCrumbBar">
         <xsl:param name="id" select="'breadcrumb-nav'" as="xs:string?"/>
-        <xsl:param name="class" select="'span9'" as="xs:string?"/>
+        <xsl:param name="class" select="'span8'" as="xs:string?"/>
 
         <div>
             <xsl:if test="$id">
@@ -803,7 +812,7 @@ LIMIT   100
         <xsl:param name="typeof" select="key('resources', ac:absolute-path(ldh:base-uri(.)))/rdf:type/@rdf:resource/xs:anyURI(.)" as="xs:anyURI*"/>
         <xsl:param name="doc-types" select="key('resources', ac:absolute-path(ldh:base-uri(.)))/rdf:type/@rdf:resource[ . = ('&def;Root', '&dh;Container', '&dh;Item')]" as="xs:anyURI*"/>
         <!-- take care not to load unnecessary documents over HTTP when $doc-types is empty -->
-        <xsl:param name="template-block-uris" select="if (exists($doc-types)) then (if (doc-available(resolve-uri('ns?query=ASK%20%7B%7D', $ldt:base))) then (ldh:query-result(map{}, resolve-uri('ns', $ldt:base), $template-query || ' VALUES $Type { ' || string-join(for $type in $doc-types return '&lt;' || $type || '&gt;', ' ') || ' }')//srx:binding[@name = 'block']/srx:uri/xs:anyURI(.)) else ()) else ()" as="xs:anyURI*"/>
+        <xsl:param name="template-block-uris" select="if (exists($doc-types)) then (if (doc-available(resolve-uri('ns?query=ASK%20%7B%7D', $ldt:base))) then (ldh:query-result(resolve-uri('ns', $ldt:base), $template-query || ' VALUES $Type { ' || string-join(for $type in $doc-types return '&lt;' || $type || '&gt;', ' ') || ' }')//srx:binding[@name = 'block']/srx:uri/xs:anyURI(.)) else ()) else ()" as="xs:anyURI*"/>
         <xsl:param name="block-uris" select="key('resources', ac:absolute-path(ldh:base-uri(.)))/rdf:*[starts-with(local-name(), '_')]/@rdf:resource" as="xs:anyURI*"/>
         <!-- document has content when either explicitly declared document-level blocks exist or template-declared class-level blocks exist -->
         <xsl:param name="has-content" select="exists(for $block-uri in $block-uris return (if (doc-available(ac:document-uri($block-uri))) then key('resources', $block-uri, document(ac:document-uri($block-uri))) else ())) or exists($template-block-uris)" as="xs:boolean"/>
@@ -901,7 +910,7 @@ LIMIT   100
         <xsl:param name="endpoint" select="($sd:endpoint, $ac:endpoint)[1]" as="xs:anyURI"/>
         <xsl:param name="property-uris" select="distinct-values(*/concat(namespace-uri(), local-name()))" as="xs:anyURI*"/>
         <xsl:param name="property-metadata" select="ldh:send-request(resolve-uri('ns', $ldt:base), 'POST', 'application/sparql-query', 'DESCRIBE ' || string-join(for $uri in distinct-values(/rdf:RDF/*/*/concat(namespace-uri(), local-name())) return '&lt;' || $uri || '&gt;', ' '), map{ 'Accept': 'application/rdf+xml' })" as="document-node()"/>
-        <xsl:variable name="local-doc" select="ldh:query-result(map{}, $endpoint, 'DESCRIBE &lt;' || @rdf:about || '&gt;')" as="document-node()"/>
+        <xsl:variable name="local-doc" select="ldh:query-result($endpoint, 'DESCRIBE &lt;' || @rdf:about || '&gt;')" as="document-node()"/>
         <xsl:variable name="original-doc" as="document-node()">
             <xsl:try>
                 <!-- try loading resource by deferencing its URI -->
@@ -1055,15 +1064,15 @@ LIMIT   100
             </button>
             <ul class="dropdown-menu">
                 <li>
-                    <xsl:variable name="href" select="ac:build-uri(ac:absolute-path(ldh:base-uri(.)), let $params := map{ 'accept': 'application/rdf+xml' } return if (not(starts-with(ac:absolute-path(ldh:base-uri(.)), $ldt:base))) then map:merge(($params, map{ 'uri': string(ac:absolute-path(ldh:base-uri(.))) })) else $params)" as="xs:anyURI"/>
+                    <xsl:variable name="href" select="ac:build-uri(ac:absolute-path($ldh:requestUri), let $params := map{ 'accept': 'application/rdf+xml' } return if (not(starts-with(ac:absolute-path(ldh:base-uri(.)), $ldt:base))) then map:merge(($params, map{ 'uri': string(ac:document-uri(ldh:base-uri(.))) })) else $params)" as="xs:anyURI"/>
                     <a href="{$href}" title="application/rdf+xml" target="_blank">RDF/XML</a>
                 </li>
                 <li>
-                    <xsl:variable name="href" select="ac:build-uri(ac:absolute-path(ldh:base-uri(.)), let $params := map{ 'accept': 'text/turtle' } return if (not(starts-with(ac:absolute-path(ldh:base-uri(.)), $ldt:base))) then map:merge(($params, map{ 'uri': string(ac:absolute-path(ldh:base-uri(.))) })) else $params)" as="xs:anyURI"/>
+                    <xsl:variable name="href" select="ac:build-uri(ac:absolute-path($ldh:requestUri), let $params := map{ 'accept': 'text/turtle' } return if (not(starts-with(ac:absolute-path(ldh:base-uri(.)), $ldt:base))) then map:merge(($params, map{ 'uri': string(ac:document-uri(ldh:base-uri(.))) })) else $params)" as="xs:anyURI"/>
                     <a href="{$href}" title="text/turtle" target="_blank">Turtle</a>
                 </li>
                 <li>
-                    <xsl:variable name="href" select="ac:build-uri(ac:absolute-path(ldh:base-uri(.)), let $params := map{ 'accept': 'application/ld+json' } return if (not(starts-with(ac:absolute-path(ldh:base-uri(.)), $ldt:base))) then map:merge(($params, map{ 'uri': string(ac:absolute-path(ldh:base-uri(.))) })) else $params)" as="xs:anyURI"/>
+                    <xsl:variable name="href" select="ac:build-uri(ac:absolute-path($ldh:requestUri), let $params := map{ 'accept': 'application/ld+json' } return if (not(starts-with(ac:absolute-path(ldh:base-uri(.)), $ldt:base))) then map:merge(($params, map{ 'uri': string(ac:document-uri(ldh:base-uri(.))) })) else $params)" as="xs:anyURI"/>
                     <a href="{$href}" title="application/ld+json" target="_blank">JSON-LD</a>
                 </li>
             </ul>
