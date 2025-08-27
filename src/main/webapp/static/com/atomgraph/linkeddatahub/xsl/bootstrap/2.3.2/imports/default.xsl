@@ -248,10 +248,6 @@ exclude-result-prefixes="#all"
     <xsl:function name="ldh:url-decode" as="xs:string" use-when="system-property('xsl:product-name') eq 'SaxonJS'">
         <xsl:param name="encoded-string" as="xs:string"/>
         
-        <xsl:message>
-            $encoded-string: <xsl:value-of select="$encoded-string"/>
-        </xsl:message>
-        
         <xsl:sequence select="ixsl:call(ixsl:window(), 'decodeURIComponent', [ $encoded-string ])"/>
     </xsl:function>
 
@@ -265,10 +261,6 @@ exclude-result-prefixes="#all"
 
     <xsl:function name="ldh:parse-query-params" as="map(xs:string, xs:string*)">
         <xsl:param name="query-string" as="xs:string"/>
-        
-        <xsl:message>
-            $query-string: <xsl:value-of select="$query-string"/>
-        </xsl:message>
         
         <xsl:sequence select="map:merge(
             tokenize($query-string, '&amp;')[normalize-space()]
