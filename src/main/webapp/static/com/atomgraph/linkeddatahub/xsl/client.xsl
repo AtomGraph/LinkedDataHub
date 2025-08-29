@@ -126,7 +126,6 @@ extension-element-prefixes="ixsl"
         </xsl:document>
     </xsl:param>
     <xsl:param name="ac:lang" select="ixsl:get(ixsl:get(ixsl:page(), 'documentElement'), 'lang')" as="xs:string"/>
-    <xsl:param name="ac:mode" select="if (ixsl:query-params()?mode) then for $mode in ixsl:query-params()?mode return xs:anyURI($mode) else xs:anyURI('&ac;ReadMode')" as="xs:anyURI*"/>
     <xsl:param name="ac:forClass" as="xs:anyURI?"/> <!-- used by Web-Client -->
     <xsl:param name="ac:query" select="ixsl:query-params()?query" as="xs:string?"/>
     <xsl:param name="ac:googleMapsKey" select="''" as="xs:string"/>  <!-- cannot remove yet as it's used by container.xsl in Web-Client -->
@@ -274,7 +273,6 @@ WHERE
         <xsl:message>$acl:agent: <xsl:value-of select="$acl:agent"/></xsl:message>
         <xsl:message>count($ldh:apps//*[rdf:type/@rdf:resource = '&sd;Service']): <xsl:value-of select="count($ldh:apps//*[rdf:type/@rdf:resource = '&sd;Service'])"/></xsl:message>
         <xsl:message>$ac:lang: <xsl:value-of select="$ac:lang"/></xsl:message>
-        <xsl:message>$ac:mode: <xsl:value-of select="$ac:mode"/></xsl:message>
         <xsl:message>$sd:endpoint: <xsl:value-of select="$sd:endpoint"/></xsl:message>
         <xsl:message>ixsl:query-params()?uri: <xsl:value-of select="ixsl:query-params()?uri"/></xsl:message>
         <xsl:message>UTC offset: <xsl:value-of select="implicit-timezone()"/></xsl:message>
@@ -488,7 +486,6 @@ WHERE
         <xsl:variable name="response" select="$context('response')" as="map(*)"/>
         <xsl:variable name="uri" select="$context('uri')" as="xs:anyURI"/>
         <xsl:variable name="refresh-content" select="$context('refresh-content')" as="xs:boolean?"/>
-<!--        <xsl:variable name="graph" select="$context('graph')" as="xs:anyURI"/>-->
 
         <xsl:for-each select="$response">
             <!-- load breadcrumbs -->
@@ -513,7 +510,7 @@ WHERE
                             </xsl:otherwise>
                         </xsl:choose>
                     </xsl:if>
-
+                    
                     <ul class="breadcrumb pull-left">
                         <!-- list items will be injected by ldh:breadcrumb-resource-response -->
                     </ul>
@@ -555,6 +552,7 @@ WHERE
                 <xsl:variable name="results" select="." as="document-node()"/>
                 <ixsl:set-property name="{'`' || $uri || '`'}" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.contents')"/>
                 <!-- store document under window.LinkedDataHub.contents[$uri].results -->
+                <!-- should be possible to cache the document using SaxonJS when this issue is resolved: https://saxonica.plan.io/issues/6355 -->
                 <ixsl:set-property name="results" select="." object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $uri || '`')"/>
                 <!-- store ETag header value under window.LinkedDataHub.contents[$uri].etag -->
                 <ixsl:set-property name="etag" select="$etag" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $uri || '`')"/>
@@ -720,9 +718,6 @@ WHERE
         <xsl:variable name="service" select="if ($service-uri) then key('resources', $service-uri, document(ac:build-uri(ac:document-uri($service-uri), map{ 'accept': 'application/rdf+xml' }))) else ()" as="element()?"/> <!-- TO-DO: refactor asynchronously -->
         <xsl:variable name="push-state" select="true()" as="xs:boolean"/>
         <xsl:variable name="refresh-content" as="xs:boolean?"/>
-        <!-- $graph defaults to ac:absolute-path($href), $uri defaults to $graph -->
-<!--        <xsl:variable name="graph" select="if (exists(ixsl:query-params()?graph)) then xs:anyURI(ixsl:query-params()?graph[1]) else ac:absolute-path($href)" as="xs:anyURI"/>-->
-<!--        <xsl:variable name="uri" select="if (exists(ixsl:query-params()?uri)) then xs:anyURI(ixsl:query-params()?uri[1]) else $graph" as="xs:anyURI"/>-->
         <xsl:variable name="response" select="$context('response')" as="map(*)"/>
 
         <!-- set #uri value -->
@@ -787,9 +782,6 @@ WHERE
         <xsl:param name="service" select="if ($service-uri) then key('resources', $service-uri, document(ac:build-uri(ac:document-uri($service-uri), map{ 'accept': 'application/rdf+xml' }))) else ()" as="element()?"/> <!-- TO-DO: refactor asynchronously -->
         <xsl:param name="push-state" select="true()" as="xs:boolean"/>
         <xsl:param name="refresh-content" as="xs:boolean?"/>
-        <!-- $graph defaults to ac:absolute-path($href), $uri defaults to $graph -->
-<!--        <xsl:variable name="graph" select="if (exists(ixsl:query-params()?graph)) then xs:anyURI(ixsl:query-params()?graph[1]) else ac:absolute-path($href)" as="xs:anyURI"/>-->
-<!--        <xsl:variable name="uri" select="if (exists(ixsl:query-params()?uri)) then xs:anyURI(ixsl:query-params()?uri[1]) else $graph" as="xs:anyURI"/>-->
 
         <!-- set #uri value -->
         <xsl:for-each select="id('uri', ixsl:page())">
@@ -1298,13 +1290,12 @@ WHERE
 
     <!-- file drop -->
 
-    <xsl:template match="div[ixsl:query-params()?mode = '&ac;ReadMode'][acl:mode() = '&acl;Write']" mode="ixsl:ondragover">
+    <xsl:template match="div[ac:mode() = '&ac;ReadMode'][acl:mode() = '&acl;Write']" mode="ixsl:ondragover">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
     </xsl:template>
 
-    <xsl:template match="div[ixsl:query-params()?mode = '&ac;ReadMode'][acl:mode() = '&acl;Write']" mode="ixsl:ondrop">
+    <xsl:template match="div[ac:mode() = '&ac;ReadMode'][acl:mode() = '&acl;Write']" mode="ixsl:ondrop">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
-        <xsl:message>$ac:mode: <xsl:value-of select="$ac:mode"/> acl:mode(): <xsl:value-of select="acl:mode()"/></xsl:message>
         <xsl:variable name="base-uri" select="ldh:base-uri(.)" as="xs:anyURI"/>
         <xsl:variable name="rdf-media-types" as="map(xs:string, xs:string)">
             <xsl:map>
