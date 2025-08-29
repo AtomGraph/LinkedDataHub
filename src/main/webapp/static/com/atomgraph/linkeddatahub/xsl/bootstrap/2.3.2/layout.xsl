@@ -576,7 +576,7 @@ LIMIT   100
                 
                 <input type="text" id="uri" name="uri" class="input-xxlarge typeahead">
                     <xsl:if test="not(starts-with(ac:absolute-path(ldh:base-uri(.)), $ldt:base))">
-                        <xsl:attribute name="value" select="ac:document-uri(ldh:base-uri(.))"/>
+                        <xsl:attribute name="value" select="ldh:base-uri(.)"/>
                     </xsl:if>
                 </input>
                 <!-- placeholder used by the client-side typeahead -->
@@ -1063,15 +1063,15 @@ LIMIT   100
             </button>
             <ul class="dropdown-menu">
                 <li>
-                    <xsl:variable name="href" select="ac:build-uri(ac:absolute-path($ldh:requestUri), let $params := map{ 'accept': 'application/rdf+xml' } return if (not(starts-with(ac:absolute-path(ldh:base-uri(.)), $ldt:base))) then map:merge(($params, map{ 'uri': string(ac:document-uri(ldh:base-uri(.))) })) else $params)" as="xs:anyURI"/>
+                    <xsl:variable name="href" select="ac:build-uri(ac:absolute-path($ldh:requestUri), let $params := map{ 'accept': 'application/rdf+xml' } return if (not(starts-with(ac:absolute-path(ldh:base-uri(.)), $ldt:base))) then map:merge(($params, map{ 'uri': string(ldh:base-uri(.)) })) else $params)" as="xs:anyURI"/>
                     <a href="{$href}" title="application/rdf+xml" target="_blank">RDF/XML</a>
                 </li>
                 <li>
-                    <xsl:variable name="href" select="ac:build-uri(ac:absolute-path($ldh:requestUri), let $params := map{ 'accept': 'text/turtle' } return if (not(starts-with(ac:absolute-path(ldh:base-uri(.)), $ldt:base))) then map:merge(($params, map{ 'uri': string(ac:document-uri(ldh:base-uri(.))) })) else $params)" as="xs:anyURI"/>
+                    <xsl:variable name="href" select="ac:build-uri(ac:absolute-path($ldh:requestUri), let $params := map{ 'accept': 'text/turtle' } return if (not(starts-with(ac:absolute-path(ldh:base-uri(.)), $ldt:base))) then map:merge(($params, map{ 'uri': string(ldh:base-uri(.)) })) else $params)" as="xs:anyURI"/>
                     <a href="{$href}" title="text/turtle" target="_blank">Turtle</a>
                 </li>
                 <li>
-                    <xsl:variable name="href" select="ac:build-uri(ac:absolute-path($ldh:requestUri), let $params := map{ 'accept': 'application/ld+json' } return if (not(starts-with(ac:absolute-path(ldh:base-uri(.)), $ldt:base))) then map:merge(($params, map{ 'uri': string(ac:document-uri(ldh:base-uri(.))) })) else $params)" as="xs:anyURI"/>
+                    <xsl:variable name="href" select="ac:build-uri(ac:absolute-path($ldh:requestUri), let $params := map{ 'accept': 'application/ld+json' } return if (not(starts-with(ac:absolute-path(ldh:base-uri(.)), $ldt:base))) then map:merge(($params, map{ 'uri': string(ldh:base-uri(.)) })) else $params)" as="xs:anyURI"/>
                     <a href="{$href}" title="application/ld+json" target="_blank">JSON-LD</a>
                 </li>
             </ul>

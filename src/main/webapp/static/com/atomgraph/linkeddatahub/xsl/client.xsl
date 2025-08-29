@@ -1354,8 +1354,10 @@ WHERE
                     <xsl:sequence select="ixsl:call(ixsl:get(ixsl:window(), 'LinkedDataHub.request'), 'abort', [])"/>
                 </xsl:if>
 
+                <!-- retain the current layout mode (which should be ac:ReadMode -->
+                <xsl:variable name="href" select="ldh:href(ldh:base-uri(.), ldh:query-params(ac:mode()))" as="xs:anyURI"/>
                 <xsl:variable name="request" as="item()*">
-                    <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': ldh:base-uri(.), 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
+                    <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $href, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
                         <xsl:call-template name="ldh:DocumentLoaded">
                             <xsl:with-param name="href" select="ldh:base-uri(.)"/>
                         </xsl:call-template>
