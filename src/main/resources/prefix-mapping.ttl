@@ -33,7 +33,6 @@
    [ lm:name "http://purl.org/dc/elements/1.1/" ;                                lm:altName "com/atomgraph/client/dcelements.rdf" ] ,
    [ lm:name "http://purl.org/dc/terms/" ;                                       lm:altName "com/atomgraph/client/dcterms.rdf" ] ,
    [ lm:name "http://purl.org/goodrelations/v1#" ;                               lm:altName "com/atomgraph/client/goodrelations.owl" ] ,
-   [ lm:name "http://dbpedia.org/ontology/" ;                                    lm:altName "com/atomgraph/client/dbpedia-owl.owl" ] ,
    [ lm:name "http://usefulinc.com/ns/doap#" ;                                   lm:altName "com/atomgraph/client/doap.owl" ] ,
    [ lm:name "http://spinrdf.org/sp#" ;                                          lm:altName "etc/sp.ttl" ] ,
    [ lm:name "http://spinrdf.org/spin#" ;                                        lm:altName "etc/spin.ttl" ] ,
@@ -72,7 +71,6 @@
    [ lm:prefix "http://purl.org/dc/elements/1.1/" ;                              lm:altName "com/atomgraph/client/dcelements.rdf" ] ,
    [ lm:prefix "http://purl.org/dc/terms/" ;                                     lm:altName "com/atomgraph/client/dcterms.rdf" ] ,
    [ lm:prefix "http://purl.org/goodrelations/v1" ;                              lm:altName "com/atomgraph/client/goodrelations.owl" ] ,
-   [ lm:prefix "http://dbpedia.org/ontology/" ;                                  lm:altName "com/atomgraph/client/dbpedia-owl.owl" ] ,
    [ lm:prefix "http://spinrdf.org/sp" ;                                         lm:altName "etc/sp.ttl" ] ,
    [ lm:prefix "http://spinrdf.org/spin" ;                                       lm:altName "etc/spin.ttl" ] ,
    [ lm:prefix "http://spinrdf.org/spl" ;                                        lm:altName "etc/spl.spin.ttl" ]

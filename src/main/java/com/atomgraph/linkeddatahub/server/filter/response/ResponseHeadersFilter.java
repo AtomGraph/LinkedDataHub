@@ -39,6 +39,7 @@ import jakarta.ws.rs.container.ContainerResponseContext;
 import jakarta.ws.rs.container.ContainerResponseFilter;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.Response;
+import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,6 +53,7 @@ public class ResponseHeadersFilter implements ContainerResponseFilter
 {
 
     private static final Logger log = LoggerFactory.getLogger(ResponseHeadersFilter.class);
+    private static final Pattern LINK_SPLITTER = Pattern.compile(",(?=\\s*<)"); // split on commas before next '<'
 
     @Inject jakarta.inject.Provider<Application> app;
     @Inject jakarta.inject.Provider<Optional<Dataset>> dataset;
@@ -73,8 +75,10 @@ public class ResponseHeadersFilter implements ContainerResponseFilter
             getAuthorizationContext().get().getModeURIs().forEach(mode -> response.getHeaders().add(HttpHeaders.LINK, new Link(mode, ACL.mode.getURI(), null)));
         
         List<Object> linkValues = response.getHeaders().get(HttpHeaders.LINK);
+        List<Link> links = parseLinkHeaderValues(linkValues);
+        
         // check whether Link rel=ldt:base is not already set. Link headers might be forwarded by ProxyResourceBase
-        if (getLinksByRel(linkValues, LDT.base.getURI()).isEmpty())
+        if (getLinksByRel(links, LDT.base.getURI()).isEmpty())
         {
             // add Link rel=ldt:base
             response.getHeaders().add(HttpHeaders.LINK, new Link(getApplication().getBaseURI(), LDT.base.getURI(), null));
@@ -91,7 +95,7 @@ public class ResponseHeadersFilter implements ContainerResponseFilter
         else
         {
             // add Link rel=sd:endpoint.
-            if (getLinksByRel(linkValues, SD.endpoint.getURI()).isEmpty() && getDataset().isPresent() && getDataset().get().getService() != null)
+            if (getLinksByRel(links, SD.endpoint.getURI()).isEmpty() && getDataset().isPresent() && getDataset().get().getService() != null)
                 response.getHeaders().add(HttpHeaders.LINK, new Link(URI.create(getDataset().get().getService().getSPARQLEndpoint().getURI()), SD.endpoint.getURI(), null));
         }
         
@@ -104,29 +108,52 @@ public class ResponseHeadersFilter implements ContainerResponseFilter
     }
 
     /**
-     * Filters <code>Link</code> headers by their <code>rel</code> attribute.
+    * Parses HTTP <code>Link</code> headers into individual {@link Link} objects.
+    * 
+    * Handles both multiple header fields and comma-separated values
+    * within a single header field.
+    *
+    * @param linkValues raw <code>Link</code> header values (may contain multiple entries)
+    * @return flat list of parsed {@link Link} objects
+    */
+    protected List<Link> parseLinkHeaderValues(List<Object> linkValues)
+    {
+        List<Link> out = new ArrayList<>();
+        if (linkValues == null) return out;
+
+        for (Object hv : linkValues)
+        {
+            String[] parts = LINK_SPLITTER.split(hv.toString());
+            for (String part : parts)
+            {
+                try
+                {
+                     out.add(Link.valueOf(part.trim()));
+                }
+                 catch (URISyntaxException e)
+                {
+                    // ignore invalid entries
+                }
+            }
+        }
+
+        return out;
+    }
+
+    /**
+     * Returns all <code>Link</code> headers that match the given <code>rel</code> attribute.
      * 
-     * @param linkValues header list
+     * @param links link list
      * @param rel <code>rel</code> value
      * @return filtered header list
      */
-    protected List<Link> getLinksByRel(List<Object> linkValues, String rel)
+    protected List<Link> getLinksByRel(List<Link> links, String rel)
     {
-        List relLinks = new ArrayList<>();
-        
-        if (linkValues != null) linkValues.forEach(linkValue -> {
-            try
-            {
-                Link link = Link.valueOf(linkValue.toString());
-                if (link.getRel().equals(rel)) relLinks.add(link);
-            }
-            catch (URISyntaxException ex)
-            {
-                // ignore invalid Link headers
-            }
-        });
-        
-        return relLinks;
+        return links == null
+            ? List.of()
+            : links.stream()
+                   .filter(link -> rel.equals(link.getRel()))
+                   .toList();
     }
     
     /**

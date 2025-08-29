@@ -100,4 +100,18 @@ echo "$item_ntriples" | grep "<${item}> <http://purl.org/dc/terms/created> \""
 
 echo "$item_ntriples" | grep "<${item}> <http://purl.org/dc/terms/modified> \""
 
+# check that exactly one dct:created and one dct:modified exist (no accumulation)
+
+created_count=$(echo "$item_ntriples" | grep -c "<${item}> <http://purl.org/dc/terms/created> " || true)
+if [ "$created_count" -ne 1 ]; then
+    echo "Expected exactly 1 dct:created property after PUT, found $created_count"
+    exit 1
+fi
+
+modified_count=$(echo "$item_ntriples" | grep -c "<${item}> <http://purl.org/dc/terms/modified> " || true)
+if [ "$modified_count" -ne 1 ]; then
+    echo "Expected exactly 1 dct:modified property after PUT, found $modified_count"
+    exit 1
+fi
+
 # write the same data again into the existing graph

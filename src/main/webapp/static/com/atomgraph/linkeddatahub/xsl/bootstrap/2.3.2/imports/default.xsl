@@ -24,6 +24,7 @@
 <xsl:stylesheet version="3.0"
 xmlns="http://www.w3.org/1999/xhtml"
 xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+xmlns:ixsl="http://saxonica.com/ns/interactiveXSLT"
 xmlns:xs="http://www.w3.org/2001/XMLSchema"
 xmlns:map="http://www.w3.org/2005/xpath-functions/map"
 xmlns:lapp="&lapp;"
@@ -72,62 +73,34 @@ exclude-result-prefixes="#all"
         
         <xsl:sequence select="base-uri($arg)"/>
     </xsl:function>
-    
+      
     <xsl:function name="ldh:href" as="xs:anyURI">
-        <xsl:param name="base" as="xs:anyURI"/>
-        <xsl:param name="absolute-path" as="xs:anyURI"/>
-        <xsl:param name="query-params" as="map(xs:string, xs:string*)"/>
-
-        <xsl:sequence select="ldh:href($base, $absolute-path, $query-params, ())"/>
-    </xsl:function>
-    
-    <xsl:function name="ldh:href" as="xs:anyURI">
-        <xsl:param name="base" as="xs:anyURI"/>
-        <xsl:param name="absolute-path" as="xs:anyURI"/>
-        <xsl:param name="query-params" as="map(xs:string, xs:string*)"/>
         <xsl:param name="uri" as="xs:anyURI?"/>
         
-        <xsl:sequence select="ldh:href($base, $absolute-path, $query-params, $uri, ())"/>
+        <xsl:sequence select="ldh:href($uri, map{}, ())"/>
     </xsl:function>
 
     <xsl:function name="ldh:href" as="xs:anyURI">
-        <xsl:param name="base" as="xs:anyURI"/>
-        <xsl:param name="absolute-path" as="xs:anyURI"/>
-        <xsl:param name="query-params" as="map(xs:string, xs:string*)"/>
         <xsl:param name="uri" as="xs:anyURI?"/>
-        <xsl:param name="fragment" as="xs:string?"/>
-
-        <xsl:sequence select="ldh:href($base, $absolute-path, $query-params, $uri, (), $fragment)"/>
+        <xsl:param name="query-params" as="map(xs:string, xs:string*)"/>
+        
+        <xsl:sequence select="ldh:href($uri, $query-params, ())"/>
     </xsl:function>
     
     <xsl:function name="ldh:href" as="xs:anyURI">
-        <xsl:param name="base" as="xs:anyURI"/>
-        <xsl:param name="absolute-path" as="xs:anyURI"/>
-        <xsl:param name="query-params" as="map(xs:string, xs:string*)"/>
         <xsl:param name="uri" as="xs:anyURI?"/>
-        <xsl:param name="graph" as="xs:anyURI?"/>
+        <xsl:param name="query-params" as="map(xs:string, xs:string*)"/>
         <xsl:param name="fragment" as="xs:string?"/>
-
+        
         <xsl:choose>
-            <!-- do not proxy $uri via ?uri= if it is relative to the $base -->
-            <xsl:when test="$uri and starts-with($uri, $base)">
-                <xsl:variable name="absolute-path" select="xs:anyURI(if (contains($uri, '#')) then substring-before($uri, '#') else $uri)" as="xs:anyURI"/>
-                <xsl:variable name="fragment" select="if ($fragment) then $fragment else if (contains($uri, '#')) then substring-after($uri, '#') else ()" as="xs:string?"/>
-                <xsl:sequence select="xs:anyURI(ac:build-uri($absolute-path, $query-params) || (if ($fragment) then ('#' || $fragment) else ()))"/>
+            <!-- proxy URI - internal ones (relative to application's base URI) will be rewritten as absolute path in ApplicationFilter -->
+            <xsl:when test="$uri and not(starts-with($uri, $ldt:base))">
+                <xsl:sequence select="xs:anyURI(ac:build-uri(ac:absolute-path($ldh:requestUri), map:merge((map{ 'uri': string($uri) }, $query-params))) || (if ($fragment) then ('#' || $fragment) else ()))"/>
             </xsl:when>
-            <!-- proxy external URI/graph -->
-            <xsl:when test="$uri and $graph">
-                <xsl:variable name="fragment" select="if ($fragment) then $fragment else encode-for-uri($uri)" as="xs:string?"/>
-                <xsl:sequence select="xs:anyURI(ac:build-uri($absolute-path, map:merge((map{ 'uri': string($uri), 'graph': string($graph) }, $query-params))) || (if ($fragment) then ('#' || $fragment) else ()))"/>
-            </xsl:when>
-            <!-- proxy external URI -->
-            <xsl:when test="$uri">
-                <xsl:variable name="fragment" select="if ($fragment) then $fragment else encode-for-uri($uri)" as="xs:string?"/>
-                <xsl:sequence select="xs:anyURI(ac:build-uri($absolute-path, map:merge((map{ 'uri': string($uri) }, $query-params))) || (if ($fragment) then ('#' || $fragment) else ()))"/>
-            </xsl:when>
-            <!-- no URI supplied -->
+            <!-- local URI -->
             <xsl:otherwise>
-                <xsl:sequence select="xs:anyURI(ac:build-uri($absolute-path, $query-params) || (if ($fragment) then ('#' || $fragment) else ()))"/>
+                <xsl:variable name="parsed-query-params" select="ldh:parse-query-params(substring-after(ac:document-uri($uri), '?'))" as="map(xs:string, xs:string*)"/>               
+                <xsl:sequence select="xs:anyURI(ac:build-uri(ac:absolute-path($uri), map:merge(($parsed-query-params, $query-params), map{ 'duplicates': 'use-last' } )) || (if ($fragment) then ('#' || $fragment) else ()))"/>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:function>
@@ -146,29 +119,11 @@ exclude-result-prefixes="#all"
     </xsl:function>
 
     <xsl:function name="ldh:query-result" as="document-node()" cache="yes">
-        <xsl:param name="bindings" as="map(xs:string, xs:anyAtomicType)"/>
         <xsl:param name="endpoint" as="xs:anyURI"/>
         <xsl:param name="query" as="xs:string"/>
+        <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': $query })" as="xs:anyURI"/>
+        <xsl:variable name="request-uri" select="ldh:href($results-uri, map{})" as="xs:anyURI"/>
         
-        <xsl:variable name="query-string" as="xs:string">
-            <xsl:iterate select="map:keys($bindings)">
-                <xsl:param name="query" select="$query" as="xs:string"/>
-                
-                <xsl:on-completion>
-                    <xsl:sequence select="$query"/>
-                </xsl:on-completion>
-                
-                <xsl:variable name="key" select="." as="xs:string"/>
-                <xsl:variable name="value" select="map:get($bindings, $key)" as="xs:anyAtomicType"/>
-                
-                <xsl:next-iteration>
-                    <!-- wrap into <> if the value is URI, otherwise wrap into "" as a literal -->
-                    <xsl:with-param name="query" select="if ($value instance of xs:anyURI) then replace($query, $key, concat('&lt;', $value, '&gt;'), 'q') else replace($query, $key, concat('&quot;', $value, '&quot;'), 'q')"/>
-                </xsl:next-iteration>
-            </xsl:iterate>
-        </xsl:variable>
-        <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': $query-string })" as="xs:anyURI"/>
-        <xsl:variable name="request-uri" select="ldh:href($ldt:base, $ldt:base, map{}, $results-uri)" as="xs:anyURI"/>
         <xsl:sequence select="document($request-uri)"/>
     </xsl:function>
 
@@ -184,7 +139,7 @@ exclude-result-prefixes="#all"
     <xsl:function name="ldh:construct-forClass" as="document-node()" cache="yes">
         <xsl:param name="forClass" as="xs:anyURI+"/>
         <xsl:variable name="results-uri" select="ac:build-uri(resolve-uri('ns', $ldt:base), map{ 'forClass': for $class in $forClass return string($class), 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
-        <xsl:variable name="request-uri" select="ldh:href($ldt:base, $ldt:base, map{}, $results-uri)" as="xs:anyURI"/>
+        <xsl:variable name="request-uri" select="ldh:href($results-uri, map{})" as="xs:anyURI"/>
             
         <xsl:sequence select="document($request-uri)"/>
     </xsl:function>
@@ -290,14 +245,33 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="distinct-values($arg1[not(.=$arg2)])"/>
     </xsl:function>
 
+    <xsl:function name="ldh:url-decode" as="xs:string" use-when="system-property('xsl:product-name') eq 'SaxonJS'">
+        <xsl:param name="encoded-string" as="xs:string"/>
+        
+        <xsl:sequence select="ixsl:call(ixsl:window(), 'decodeURIComponent', [ $encoded-string ])"/>
+    </xsl:function>
+
+    <xsl:function name="ldh:url-decode" as="xs:string" use-when="system-property('xsl:product-name') = 'SAXON'" override-extension-function="no" cache="yes">
+        <xsl:param name="encoded-string" as="xs:string"/>
+        
+        <xsl:message terminate="yes">
+            Not implemented -- com.atomgraph.linkeddatahub.writer.function.URLDecode needs to be registered as an extension function
+        </xsl:message>
+    </xsl:function>
+
     <xsl:function name="ldh:parse-query-params" as="map(xs:string, xs:string*)">
         <xsl:param name="query-string" as="xs:string"/>
-
+        
         <xsl:sequence select="map:merge(
-            for $query in tokenize($query-string, '&amp;')
-            return
-                let $param := tokenize($query, '=')
-                return map:entry(head($param), tail($param))
+            tokenize($query-string, '&amp;')[normalize-space()]
+            !
+            (let $p := tokenize(., '=')
+             return map:entry(
+               ldh:url-decode($p[1]),
+               if (count($p) &gt; 1)
+               then ldh:url-decode(string-join(subsequence($p, 2), '='))
+               else ''
+             ))
             ,
             map { 'duplicates': 'combine' }
         )"/>
@@ -488,9 +462,9 @@ exclude-result-prefixes="#all"
     
     <!-- subject resource -->
     <xsl:template match="@rdf:about" mode="xhtml:Anchor">
-        <xsl:param name="graph" as="xs:anyURI?" tunnel="yes"/>
+<!--        <xsl:param name="graph" as="xs:anyURI?" tunnel="yes"/>-->
         <xsl:param name="fragment" select="if (starts-with(., $ldt:base)) then (if (contains(., '#')) then substring-after(., '#') else ()) else encode-for-uri(.)" as="xs:string?"/>
-        <xsl:param name="href" select="ldh:href($ldt:base, ac:absolute-path($ldh:requestUri), map{}, xs:anyURI(.), $graph, $fragment)" as="xs:anyURI"/>
+        <xsl:param name="href" select="ldh:href(xs:anyURI(.), map{}, $fragment)" as="xs:anyURI"/>
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="title" select="." as="xs:string?"/>
         <xsl:param name="class" as="xs:string?"/>
@@ -507,7 +481,7 @@ exclude-result-prefixes="#all"
     
     <xsl:template match="@rdf:about | @rdf:resource" mode="svg:Anchor">
         <xsl:param name="fragment" select="if (starts-with(., $ldt:base)) then (if (contains(., '#')) then substring-after(., '#') else ()) else encode-for-uri(.)" as="xs:string?"/>
-        <xsl:param name="href" select="ldh:href($ldt:base, ac:absolute-path($ldh:requestUri), map{}, xs:anyURI(.), $fragment)" as="xs:anyURI"/>
+        <xsl:param name="href" select="ldh:href(xs:anyURI(.), map{}, $fragment)" as="xs:anyURI"/>
         <xsl:param name="id" select="$fragment" as="xs:string?"/>
         <xsl:param name="label" select="if (parent::rdf:Description) then ac:svg-label(..) else ac:svg-object-label(.)" as="xs:string"/>
         <xsl:param name="title" select="$label" as="xs:string"/>
@@ -529,7 +503,7 @@ exclude-result-prefixes="#all"
     <!-- proxy link URIs if they are external -->
     <xsl:template match="@rdf:resource | srx:uri" priority="2">
         <xsl:param name="fragment" select="if (starts-with(., $ldt:base)) then (if (contains(., '#')) then substring-after(., '#') else ()) else encode-for-uri(.)" as="xs:string?"/>
-        <xsl:param name="href" select="ldh:href($ldt:base, ac:absolute-path($ldh:requestUri), map{}, xs:anyURI(.), $fragment)" as="xs:anyURI"/>
+        <xsl:param name="href" select="ldh:href(xs:anyURI(.), map{}, $fragment)" as="xs:anyURI"/>
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="title" select="." as="xs:string?"/>
         <xsl:param name="class" as="xs:string?"/>

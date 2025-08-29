@@ -114,7 +114,11 @@ public class SendHTTPRequest implements ExtensionFunction
                         if (log.isDebugEnabled()) log.debug("Could not execute ldh:send-request function. href: '{}' method: '{}'", href, method);
                         throw new IOException("Could not execute ldh:send-request function. href: '" + href + "' method: '" + method + "'");
                     }
-                    if (cr.hasEntity()) return getProcessor().newDocumentBuilder().build(new StreamSource(cr.readEntity(InputStream.class)));
+                    if (cr.hasEntity())
+                        try (InputStream is = cr.readEntity(InputStream.class))
+                        {
+                            return getProcessor().newDocumentBuilder().build(new StreamSource(is));
+                        }
                 }
             else
             {
@@ -127,7 +131,12 @@ public class SendHTTPRequest implements ExtensionFunction
                         if (log.isDebugEnabled()) log.debug("Could not execute ldh:send-request function. href: '{}' method: '{}'", href, method);
                         throw new IOException("Could not execute ldh:send-request function. href: '" + href + "' method: '" + method + "'");
                     }
-                    if (cr.hasEntity()) return getProcessor().newDocumentBuilder().build(new StreamSource(cr.readEntity(InputStream.class)));
+                    
+                    if (cr.hasEntity())
+                        try (InputStream is = cr.readEntity(InputStream.class))
+                        {
+                            return getProcessor().newDocumentBuilder().build(new StreamSource(is));
+                        }
                 }
             }
             

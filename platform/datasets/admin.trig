@@ -4,6 +4,7 @@
 @prefix rdf:	<http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix xsd:	<http://www.w3.org/2001/XMLSchema#> .
 @prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy#> .
+@prefix sd:     <http://www.w3.org/ns/sparql-service-description#> .
 @prefix sp:	<http://spinrdf.org/sp#> .
 @prefix sioc:	<http://rdfs.org/sioc/ns#> .
 @prefix foaf:	<http://xmlns.com/foaf/0.1/> .
@@ -87,7 +88,7 @@
         rdf:value <queries/#select-queries-view> .
 
     <queries/#select-queries-view> a ldh:View ;
-        dct:title "Query view" ;
+        dct:title "Queries" ;
         spin:query <queries/#select-queries-query> .
 
     <queries/#select-queries-query> a sp:Select ;
@@ -161,7 +162,7 @@ WHERE
         rdf:value <files/#select-files-view> .
 
     <files/#select-files-view> a ldh:View ;
-        dct:title "File view" ;
+        dct:title "Files" ;
         spin:query <files/#select-files-query> .
 
     <files/#select-files-query> a sp:Select ;
@@ -188,7 +189,7 @@ WHERE
         rdf:value <imports/#select-imports-view> .
 
     <imports/#select-imports-view> a ldh:View ;
-        dct:title "Import view" ;
+        dct:title "Imports" ;
         spin:query <imports/#select-imports-query> .
 
     <imports/#select-imports-query> a sp:Select ;
@@ -218,7 +219,7 @@ WHERE
         rdf:value <geo/#select-geo-view> .
 
     <geo/#select-geo-view> a ldh:View ;
-        dct:title "Geo view" ;
+        dct:title "Geo resources" ;
         spin:query <geo/#select-geo-query> ;
         ac:mode ac:MapMode .
 
@@ -254,7 +255,7 @@ ORDER BY ?title""" .
         rdf:value <latest/#select-latest-view> .
 
     <latest/#select-latest-view> a ldh:View ;
-        dct:title "Latest resources view" ;
+        dct:title "Latest resources" ;
         spin:query <latest/#select-latest-query> .
 
     <latest/#select-latest-query> a sp:Select ;
@@ -282,7 +283,7 @@ ORDER BY DESC(?created)""" .
         rdf:value <charts/#select-charts-view> .
 
     <charts/#select-charts-view> a ldh:View ;
-        dct:title "Chart view" ;
+        dct:title "Charts" ;
         spin:query <charts/#select-charts-query> .
 
     <charts/#select-charts-query> a sp:Select ;
@@ -312,7 +313,7 @@ WHERE
         rdf:value <apps/#select-apps-view> .
 
     <apps/#select-apps-view> a ldh:View ;
-        dct:title "Application view" ;
+        dct:title "Applications" ;
         spin:query <apps/#select-apps-query> .
 
     <apps/#select-apps-query> a sp:Select ;
@@ -339,7 +340,7 @@ WHERE
         rdf:value <services/#select-services-view> .
 
     <services/#select-services-view> a ldh:View ;
-        dct:title "Service view" ;
+        dct:title "Services" ;
         spin:query <services/#select-services-query> .
 
     <services/#select-services-query> a sp:Select ;
@@ -351,6 +352,40 @@ WHERE
   { GRAPH ?g
       { ?s  a  sd:Service }
   }""" .
+
+}
+
+<services/dbpedia/>
+{
+
+    <services/dbpedia/> a dh:Item ;
+        sioc:has_container <queries/> ;
+        dct:title "DBPedia" ;
+        foaf:primaryTopic <services/dbpedia/#this> .
+
+    <services/dbpedia/#this>
+        a sd:Service ;
+        dct:title "DBPedia" ;
+        dct:description "Public SPARQL endpoint providing access to the DBpedia knowledge base, a crowd-sourced community effort to extract structured information from Wikipedia and make this information available on the Web." ;
+        sd:endpoint <https://dbpedia.org/sparql> ;
+        sd:supportedLanguage sd:SPARQL11Query .
+
+}
+
+<services/wikidata/>
+{
+
+    <services/wikidata/> a dh:Item ;
+        sioc:has_container <queries/> ;
+        dct:title "Wikidata" ;
+        foaf:primaryTopic <services/wikidata/#this> .
+
+    <services/wikidata/#this>
+        a sd:Service ;
+        dct:title "Wikidata" ;
+        dct:description "Public SPARQL endpoint providing access to Wikidata, a free and open knowledge base that acts as central storage for the structured data of Wikimedia projects including Wikipedia, Wikivoyage, Wiktionary, Wikisource, and others." ;
+        sd:endpoint <https://query.wikidata.org/sparql> ;
+        sd:supportedLanguage sd:SPARQL11Query .
 
 }
 

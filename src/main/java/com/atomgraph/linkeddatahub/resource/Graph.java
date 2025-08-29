@@ -190,7 +190,9 @@ public class Graph extends GraphStoreImpl
         
         // is this implemented correctly? The specification is not very clear.
         if (log.isDebugEnabled()) log.debug("POST Model to named graph with URI: {}", getURI());
-        getService().getGraphStoreClient().add(getURI().toString(), model); // append new data to existing model
+        // First remove old dct:modified values from the triplestore, then add new data
+        existingModel.createResource(getURI().toString()).removeAll(DCTerms.modified);
+        getService().getGraphStoreClient().putModel(getURI().toString(), existingModel.add(model)); // replace entire graph to avoid accumulating dct:modified
         Model updatedModel = existingModel.add(model);
 
         submitImports(model);
@@ -318,7 +320,7 @@ public class Graph extends GraphStoreImpl
         if (log.isDebugEnabled()) log.debug("PATCH request on named graph with URI: {}", getURI());
         if (log.isDebugEnabled()) log.debug("PATCH update string: {}", updateRequest.toString());
         
-        if (updateRequest.getOperations().size() > 1)
+        if (updateRequest.getOperations().size() != 1)
             throw new WebApplicationException("Only a single SPARQL Update is supported by PATCH", UNPROCESSABLE_ENTITY.getStatusCode()); // 422 Unprocessable Entity
 
         Update update = updateRequest.getOperations().get(0);
@@ -686,8 +688,11 @@ public class Graph extends GraphStoreImpl
         {
             dis.getMessageDigest().reset();
             File tempFile = File.createTempFile("tmp", null);
-            FileChannel destination = new FileOutputStream(tempFile).getChannel();
-            destination.transferFrom(Channels.newChannel(dis), 0, 104857600);
+            try (FileOutputStream fos = new FileOutputStream(tempFile);
+                 FileChannel destination = fos.getChannel())
+            {
+                destination.transferFrom(Channels.newChannel(dis), 0, 104857600);
+            }
             String sha1Hash = Hex.encodeHexString(dis.getMessageDigest().digest()); // BigInteger seems to have an issue when the leading hex digit is 0
             if (log.isDebugEnabled()) log.debug("Wrote file: {} with SHA1 hash: {}", tempFile, sha1Hash);
 
@@ -699,7 +704,10 @@ public class Graph extends GraphStoreImpl
             if (log.isDebugEnabled()) log.debug("Renaming resource: {} to SHA1 based URI: {}", resource, sha1Uri);
             ResourceUtils.renameResource(resource, sha1Uri.toString());
 
-            return writeFile(sha1Uri, getUriInfo().getBaseUri(), new FileInputStream(tempFile));
+            try (FileInputStream fis = new FileInputStream(tempFile))
+            {
+                return writeFile(sha1Uri, getUriInfo().getBaseUri(), fis);
+            }
         }
         catch (IOException ex)
         {
