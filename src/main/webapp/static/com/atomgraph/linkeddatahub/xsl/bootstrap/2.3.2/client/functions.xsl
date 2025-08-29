@@ -43,7 +43,8 @@ exclude-result-prefixes="#all"
                 <xsl:sequence select="ac:document-uri(ixsl:query-params()?uri)"/>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:sequence select="ac:document-uri(ixsl:get(ixsl:window(), 'location.href'))"/>
+                <!-- ignore query params such as ?mode -->
+                <xsl:sequence select="ac:absolute-path(xs:anyURI(ixsl:location()))"/>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:function>
@@ -59,6 +60,14 @@ exclude-result-prefixes="#all"
             if (ixsl:contains(ixsl:window(), 'LinkedDataHub.acl-modes.write')) then xs:anyURI('&acl;Write') else (),
             if (ixsl:contains(ixsl:window(), 'LinkedDataHub.acl-modes.control')) then xs:anyURI('&acl;Control') else ()
         )"/>
+    </xsl:function>
+    
+    <xsl:function name="ac:mode" as="xs:anyURI*">
+        <xsl:variable name="doc" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path(xs:anyURI(ixsl:location())) || '`'), 'results')" as="document-node()"/>
+        <xsl:variable name="block-uris" select="key('resources', ac:absolute-path(xs:anyURI(ixsl:location())), $doc)/rdf:*[starts-with(local-name(), '_')]/@rdf:resource" as="xs:anyURI*"/>
+        <!-- this is an approximation - server-side layout.xsl also checks exists($template-block-uris) which are blocks defined on ontology classes using ldh:template -->
+        <xsl:variable name="has-content" select="exists($block-uris)" as="xs:boolean"/>
+        <xsl:sequence select="if (ixsl:query-params()?mode) then for $mode in ixsl:query-params()?mode return xs:anyURI($mode) else (if ($has-content) then xs:anyURI('&ldh;ContentMode') else xs:anyURI('&ac;ReadMode'))"/>
     </xsl:function>
     
     <xsl:function name="sd:endpoint" as="xs:anyURI">

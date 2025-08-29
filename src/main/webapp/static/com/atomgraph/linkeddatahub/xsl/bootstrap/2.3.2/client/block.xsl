@@ -257,7 +257,7 @@ exclude-result-prefixes="#all"
 
     <!-- start dragging top-level block (or its descendants - necessary for Map and Graph modes to work correctly) -->
     
-    <xsl:template match="div[@id = 'content-body']/div[ixsl:query-params()?mode = '&ldh;ContentMode'][@about][contains-token(@class, 'block')]/descendant-or-self::*" mode="ixsl:ondragstart">
+    <xsl:template match="div[@id = 'content-body']/div[ac:mode() = '&ldh;ContentMode'][@about][contains-token(@class, 'block')]/descendant-or-self::*" mode="ixsl:ondragstart">
         <xsl:choose>
             <!-- allow drag on the block element (not necessarily top-level) -->
             <!-- TO-DO: better condition for checking whether blocks are top-level? -->
@@ -275,18 +275,18 @@ exclude-result-prefixes="#all"
 
     <!-- dragging block over other block -->
     
-    <xsl:template match="div[@id = 'content-body']/div[ixsl:query-params()?mode = '&ldh;ContentMode'][@about][contains-token(@class, 'block')][acl:mode() = '&acl;Write']" mode="ixsl:ondragover">
+    <xsl:template match="div[@id = 'content-body']/div[ac:mode() = '&ldh;ContentMode'][@about][contains-token(@class, 'block')][acl:mode() = '&acl;Write']" mode="ixsl:ondragover">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <ixsl:set-property name="dataTransfer.dropEffect" select="'move'" object="ixsl:event()"/>
     </xsl:template>
 
     <!-- change the style of blocks when block is dragged over them -->
     
-    <xsl:template match="div[@id = 'content-body']/div[ixsl:query-params()?mode = '&ldh;ContentMode'][@about][contains-token(@class, 'block')][acl:mode() = '&acl;Write']" mode="ixsl:ondragenter">
+    <xsl:template match="div[@id = 'content-body']/div[ac:mode() = '&ldh;ContentMode'][@about][contains-token(@class, 'block')][acl:mode() = '&acl;Write']" mode="ixsl:ondragenter">
         <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'drag-over', true() ])[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
 
-    <xsl:template match="div[@id = 'content-body']/div[ixsl:query-params()?mode = '&ldh;ContentMode'][@about][contains-token(@class, 'block')][acl:mode() = '&acl;Write']" mode="ixsl:ondragleave">
+    <xsl:template match="div[@id = 'content-body']/div[ac:mode() = '&ldh;ContentMode'][@about][contains-token(@class, 'block')][acl:mode() = '&acl;Write']" mode="ixsl:ondragleave">
         <xsl:variable name="related-target" select="ixsl:get(ixsl:event(), 'relatedTarget')" as="element()?"/> <!-- the element drag entered (optional) -->
 
         <!-- only remove class if the related target does not have this div as ancestor (is not its child) -->
@@ -297,10 +297,12 @@ exclude-result-prefixes="#all"
 
     <!-- dropping block over other top-level block -->
     
-    <xsl:template match="div[@id = 'content-body']/div[ixsl:query-params()?mode = '&ldh;ContentMode'][@about][contains-token(@class, 'block')][acl:mode() = '&acl;Write']" mode="ixsl:ondrop">
+    <xsl:template match="div[@id = 'content-body']/div[ac:mode() = '&ldh;ContentMode'][@about][contains-token(@class, 'block')][acl:mode() = '&acl;Write']" mode="ixsl:ondrop">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <xsl:variable name="block-uri" select="@about" as="xs:anyURI?"/>
         <xsl:variable name="drop-block-uri" select="ixsl:call(ixsl:get(ixsl:event(), 'dataTransfer'), 'getData', [ 'text/uri-list' ])" as="xs:anyURI"/>
+        
+        <xsl:message>$drop-block-uri: <xsl:value-of select="$drop-block-uri"/></xsl:message>
         
         <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'drag-over', false() ])[current-date() lt xs:date('2000-01-01')]"/>
 
@@ -310,7 +312,8 @@ exclude-result-prefixes="#all"
             <xsl:if test="not($block-uri = $drop-block-uri)">
                 <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
-                <xsl:variable name="drop-block" select="key('element-by-about', $drop-block-uri)" as="element()"/>
+                <!-- TO-DO: sketchy workaround to select block-level elements only because we might have duplicate @about values -->
+                <xsl:variable name="drop-block" select="key('element-by-about', $drop-block-uri)[contains-token(@class, 'block')]" as="element()"/>
                 <xsl:sequence select="ixsl:call(., 'after', [ $drop-block ])"/>
                 <!-- TO-DO: use a VALUES block instead -->
                 <xsl:variable name="update-string" select="replace($block-swap-string, '$this', '&lt;' || ac:absolute-path(ldh:base-uri(.)) || '&gt;', 'q')" as="xs:string"/>
