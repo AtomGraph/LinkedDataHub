@@ -19,6 +19,7 @@ package com.atomgraph.linkeddatahub.server.model.impl;
 import com.atomgraph.client.MediaTypes;
 import com.atomgraph.client.util.DataManager;
 import com.atomgraph.client.vocabulary.AC;
+import com.atomgraph.core.exception.BadGatewayException;
 import com.atomgraph.linkeddatahub.apps.model.Dataset;
 import com.atomgraph.linkeddatahub.client.LinkedDataClient;
 import com.atomgraph.linkeddatahub.client.filter.auth.IDTokenDelegationFilter;
@@ -36,9 +37,11 @@ import jakarta.inject.Inject;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.ws.rs.NotAllowedException;
 import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.NotAcceptableException;
 import jakarta.ws.rs.NotFoundException;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.PUT;
+import jakarta.ws.rs.ProcessingException;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.client.Invocation;
@@ -56,6 +59,7 @@ import org.apache.jena.query.ResultSet;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.util.FileManager;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
+import org.glassfish.jersey.message.internal.MessageBodyProviderNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -207,6 +211,38 @@ public class ProxyResourceBase extends com.atomgraph.client.model.impl.ProxyReso
         if (!getSystem().isEnableLinkedDataProxy()) throw new NotAllowedException("Linked Data proxy not enabled");
 
         return super.get(target, builder);
+    }
+    
+    /**
+     * Forwards POST request with SPARQL query body and returns response from remote resource.
+     * 
+     * @param sparqlQuery SPARQL query string
+     * @return response
+     */
+    @POST
+    @Consumes(com.atomgraph.core.MediaType.APPLICATION_SPARQL_QUERY)
+    public Response post(String sparqlQuery)
+    {
+        if (getWebTarget() == null) throw new NotFoundException("Resource URI not supplied");
+        
+        if (log.isDebugEnabled()) log.debug("POSTing SPARQL query to URI: {}", getWebTarget().getUri());
+        
+        try (Response cr = getWebTarget().request()
+                .accept(getReadableMediaTypes())
+                .post(Entity.entity(sparqlQuery, com.atomgraph.core.MediaType.APPLICATION_SPARQL_QUERY_TYPE)))
+        {
+            return getResponse(cr);
+        }
+        catch (MessageBodyProviderNotFoundException ex)
+        {
+            if (log.isWarnEnabled()) log.debug("Dereferenced URI {} returned non-RDF media type", getWebTarget().getUri());
+            throw new NotAcceptableException(ex);
+        }
+        catch (ProcessingException ex)
+        {
+            if (log.isWarnEnabled()) log.debug("Could not dereference URI: {}", getWebTarget().getUri());
+            throw new BadGatewayException(ex);
+        }
     }
     
     /**
