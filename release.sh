@@ -55,6 +55,23 @@ git checkout -b "$RELEASE_BRANCH"
 
 print_status "Starting Maven release process..."
 
+# Check if release tag already exists and offer to clean up
+RELEASE_TAG="linkeddatahub-$RELEASE_VERSION"
+if git tag -l | grep -q "^$RELEASE_TAG$"; then
+    print_warning "Release tag '$RELEASE_TAG' already exists from a previous attempt."
+    print_warning "This usually means a previous release failed partway through."
+    read -p "Do you want to clean up and retry? (y/N): " -n 1 -r
+    echo
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+        print_status "Cleaning up previous release attempt..."
+        git tag -d "$RELEASE_TAG" 2>/dev/null || true
+        mvn release:clean
+    else
+        print_error "Cannot proceed with existing release tag. Please clean up manually or use a different version."
+        exit 1
+    fi
+fi
+
 # Configure Maven release plugin to not push changes automatically
 mvn release:clean release:prepare -DpushChanges=false -DlocalCheckout=true
 
