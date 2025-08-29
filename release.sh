@@ -59,7 +59,7 @@ print_status "Starting Maven release process..."
 mvn release:clean release:prepare -DpushChanges=false -DlocalCheckout=true
 
 print_status "Performing Maven release (deploying to Sonatype)..."
-mvn release:perform
+mvn release:perform -DlocalCheckout=true
 
 # Capture the commit hashes
 RELEASE_COMMIT=$(git log --oneline -2 --pretty=format:"%H" | tail -1)
