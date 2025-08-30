@@ -460,7 +460,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="class" select="'row-fluid block'" as="xs:string?"/>
         <xsl:param name="about" select="@rdf:about" as="xs:anyURI?"/>
         <xsl:param name="typeof" select="rdf:type/@rdf:resource/xs:anyURI(.)" as="xs:anyURI*"/>
-        <xsl:param name="draggable" select="$acl:mode = '&acl;Write'" as="xs:boolean?"/>
+        <xsl:param name="draggable" select="false()" as="xs:boolean?"/>
         <xsl:param name="show-row-block-controls" select="true()" as="xs:boolean"/>
 
         <xsl:apply-templates select="key('resources', .)" mode="bs2:RowContentHeader"/>
@@ -486,6 +486,11 @@ extension-element-prefixes="ixsl"
                 <xsl:if test="$show-row-block-controls">
                     <xsl:attribute name="class" select="'span12 progress progress-striped active'"/>
                     
+                    <div class="drag-handle">
+                        <xsl:if test="$acl:mode = '&acl;Write'">
+                            <xsl:attribute name="draggable" select="'true'"/>
+                        </xsl:if>
+                    </div>
                     <div class="row-fluid row-block-controls" style="position: relative; top: 30px; margin-top: -30px; z-index: 1;">
                         <div class="span12">
                             <xsl:if test="$acl:mode = '&acl;Write'">
@@ -520,7 +525,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="main-class" select="'main span7'" as="xs:string?"/>
         <xsl:param name="transclude" select="false()" as="xs:boolean"/>
         <xsl:param name="base" as="xs:anyURI?"/>
-        <xsl:param name="draggable" select="$acl:mode = '&acl;Write'" as="xs:boolean?"/>
+        <xsl:param name="draggable" select="false()" as="xs:boolean?"/>
 
         <xsl:apply-templates select="." mode="bs2:RowContentHeader"/>
 
@@ -542,6 +547,11 @@ extension-element-prefixes="ixsl"
             </xsl:if>
             
             <div class="span12">
+                <div class="drag-handle">
+                    <xsl:if test="$acl:mode = '&acl;Write'">
+                        <xsl:attribute name="draggable" select="'true'"/>
+                    </xsl:if>
+                </div>
                 <div class="row-fluid row-block-controls" style="position: relative; top: 30px; margin-top: -30px; z-index: 1;">
                     <div class="span12">
                         <xsl:if test="$acl:mode = '&acl;Write'">
