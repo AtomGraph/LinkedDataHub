@@ -545,6 +545,8 @@ LIMIT   100
             </div>
 
             <xsl:apply-templates select="." mode="bs2:ActionBar"/>
+            
+            <xsl:apply-templates select="." mode="bs2:ExternalBar"/>
         </div>
     </xsl:template>
 
@@ -793,6 +795,84 @@ LIMIT   100
                 </xsl:value-of>
             </a>
         </li>
+    </xsl:template>
+    
+    <xsl:template match="rdf:RDF[not(starts-with(ac:absolute-path(ldh:base-uri(.)), $ldt:base))] | srx:sparql[not(starts-with(ac:absolute-path(ldh:base-uri(.)), $ldt:base))]" mode="bs2:ExternalBar" priority="1">
+        <xsl:param name="id" as="xs:string?"/>
+        <xsl:param name="class" select="'navbar-inner action-bar'" as="xs:string?"/>
+
+        <div>
+            <xsl:if test="$id">
+                <xsl:attribute name="id" select="$id"/>
+            </xsl:if>
+            <xsl:if test="$class">
+                <xsl:attribute name="class" select="$class"/>
+            </xsl:if>
+
+            <div class="container-fluid">
+                <div class="row-fluid">
+                    <xsl:apply-templates select="." mode="bs2:ExternalBarLeft"/>
+
+                    <xsl:apply-templates select="." mode="bs2:ExternalBarMain"/>
+                    
+                    <xsl:apply-templates select="." mode="bs2:ExternalBarRight"/>
+                </div>
+            </div>
+        </div>
+    </xsl:template>
+    
+    <xsl:template match="rdf:RDF | srx:sparql" mode="bs2:ExternalBar"/>
+
+    <xsl:template match="rdf:RDF | srx:sparql" mode="bs2:ExternalBarLeft">
+        <xsl:param name="id" as="xs:string?"/>
+        <xsl:param name="class" select="'span2'" as="xs:string?"/>
+        
+        <div>
+            <xsl:if test="$id">
+                <xsl:attribute name="id" select="$id"/>
+            </xsl:if>
+            <xsl:if test="$class">
+                <xsl:attribute name="class" select="$class"/>
+            </xsl:if>
+
+
+        </div>
+    </xsl:template>
+
+    <xsl:template match="rdf:RDF | srx:sparql" mode="bs2:ExternalBarMain">
+        <xsl:param name="id" as="xs:string?"/>
+        <xsl:param name="class" select="'span7'" as="xs:string?"/>
+
+        <div>
+            <xsl:if test="$id">
+                <xsl:attribute name="id" select="$id"/>
+            </xsl:if>
+            <xsl:if test="$class">
+                <xsl:attribute name="class" select="$class"/>
+            </xsl:if>
+            
+            <div class="row-fluid">
+                <xsl:apply-templates select="." mode="bs2:BreadCrumbBar"/>            
+            </div>
+        </div>
+    </xsl:template>
+    
+    <xsl:template match="rdf:RDF | srx:sparql" mode="bs2:ExternalBarRight">
+        <xsl:param name="id" as="xs:string?"/>
+        <xsl:param name="class" select="'span3'" as="xs:string?"/>
+
+        <div>
+            <xsl:if test="$id">
+                <xsl:attribute name="id" select="$id"/>
+            </xsl:if>
+            <xsl:if test="$class">
+                <xsl:attribute name="class" select="$class"/>
+            </xsl:if>
+            
+            <xsl:apply-templates select="." mode="bs2:MediaTypeList"/>
+
+            <xsl:apply-templates select="." mode="bs2:NavBarActions"/>
+        </div>
     </xsl:template>
     
     <!-- BODY -->
