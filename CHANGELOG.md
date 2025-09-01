@@ -1,3 +1,37 @@
+## [5.0.23] - 2025-08-31
+### Added
+- Drag handles for content blocks - blocks can now only be dragged by their dedicated drag handles
+- Client-side `ac:mode` function for layout mode detection
+
+### Changed
+- Layout mode is now retained after RDF file upload
+- Improved drag-and-drop user experience with precise drag handle controls
+
+## [5.0.22] - 2025-08-29
+### Added
+- SPARQL query support for `ProxyResourceBase` via `POST` requests
+- YouTube object block support with GRDDL transformation
+- New HTTP tests for proxy SPARQL query functionality
+- `JSONGRDDLFilter` feature for processing JSON-LD from HTML script elements
+- New CLI command for `PATCH` requests
+- Self-referencing object detection to prevent infinite loops
+
+### Changed
+- Web-Client dependency version bump
+- Increased nginx rate limits for better performance
+- Uniform `ldh:href` function calls across codebase
+- Improved `Link` header parsing and usage fixes
+- Adjusted document controls size for better UI
+- Enhanced view titles for better user experience
+- Improved tests for document property cardinalities
+- Removed DBPedia's prefix mapping
+
+### Fixed
+- Fixed template match issues
+- Improved `dct:modified` handling in Graph `POST` operations
+- Fixed error handling for "Document loaded successfully but resource was not found" cases
+- HTTP test fixes for better reliability
+
 ## [5.0.19] - 2025-07-01
 ### Fixed
 - Form callback invocation
