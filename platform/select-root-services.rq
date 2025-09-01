@@ -4,17 +4,23 @@ PREFIX a:       <https://w3id.org/atomgraph/core#>
 PREFIX lapp:    <https://w3id.org/atomgraph/linkeddatahub/apps#>
 PREFIX foaf:    <http://xmlns.com/foaf/0.1/>
 
-SELECT ?endUserApp ?endUserBase ?endUserQuadStore ?endUserEndpoint ?endUserAuthUser ?endUserAuthPwd ?endUserMaker ?adminApp ?adminBase ?adminQuadStore ?adminEndpoint ?adminAuthUser ?adminAuthPwd ?adminMaker
+SELECT ?endUserApp ?endUserBase ?endUserGraphStore ?endUserEndpoint ?endUserAuthUser ?endUserAuthPwd ?endUserMaker ?adminApp ?adminBase ?adminGraphStore ?adminEndpoint ?adminAuthUser ?adminAuthPwd ?adminMaker
 {
     ?endUserApp ldt:base ?endUserBase ;
         ldt:service ?endUserService ;
         lapp:adminApplication ?adminApp .
         ?adminApp ldt:service ?adminService ;
             ldt:base ?adminBase .
-    ?endUserService a:quadStore ?endUserQuadStore ;
-        sd:endpoint ?endUserEndpoint .
-    ?adminService a:quadStore ?adminQuadStore ;
-        sd:endpoint ?adminEndpoint .
+    ?endUserService sd:endpoint ?endUserEndpoint .
+    ?adminService sd:endpoint ?adminEndpoint .
+    OPTIONAL
+    {
+        ?endUserService a:graphStore ?endUserGraphStore .
+    }
+    OPTIONAL
+    {
+        ?adminService a:graphStore ?adminGraphStore .
+    }
     OPTIONAL
     {
         ?endUserService a:authUser ?endUserAuthUser ;

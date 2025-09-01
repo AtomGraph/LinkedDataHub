@@ -1,0 +1,400 @@
+signature = [
+    76,
+    168,
+    125,
+    148,
+    224,
+    86,
+    77,
+    231,
+    96,
+    205,
+    191,
+    82,
+    76,
+    82,
+    15,
+    204,
+    86,
+    20,
+    63,
+    161,
+    199,
+    43,
+    41,
+    238,
+    172,
+    49,
+    197,
+    43,
+    139,
+    173,
+    42,
+    126,
+    156,
+    238,
+    95,
+    101,
+    182,
+    255,
+    42,
+    216,
+    229,
+    64,
+    231,
+    194,
+    221,
+    43,
+    23,
+    177,
+    114,
+    144,
+    81,
+    15,
+    35,
+    45,
+    248,
+    87,
+    93,
+    255,
+    215,
+    147,
+    147,
+    6,
+    219,
+    2,
+]
+
+[v1.license]
+kind = "beta"
+text = """
+<h1>Tentris GmbH<br/>END USER LICENSE AGREEMENT<br/>Tentris Beta</h1>
+
+IMPORTANT: READ THIS END USER LICENSE AGREEMENT ("EULA") CAREFULLY BEFORE ACCEPTING THIS EULA BELOW
+
+This Agreement is by and between Tentris GmbH, Leopoldstraße 2-8, 32051 Herford, Germany, ("Tentris") and you, on behalf
+of yourself and any business entity for whom you are acting (collectively "You" or "Your" or "Licensee"). Tentris may
+provide the Software (as defined below) from any of its affiliates (collectively, "Us," "Our," "We," or "Tentris").
+Tentris and Licensee may each hereinafter be referred to individually as a "Party" or collectively as the "Parties".
+By clicking the button that asks You to confirm Your agreement with Our EULA, You, on behalf of yourself and any
+business entity for whom You are acting, expressly consent and agree to be legally bound by all of the terms and
+conditions of this EULA.
+The individual accepting this EULA for a business entity affirms to be authorized by the business entity to accept the
+terms and conditions of this EULA on its behalf. If You do not agree to all of the terms and conditions of this
+Agreement, (1) You should NOT click the button that asks You to confirm Your agreement with Our EULA and (2) You may not
+use the Software. If You do not accept the terms of this EULA, you do not have a license to, and are prohibited from
+using, the Software, in which case You are not permitted to download, install, copy or otherwise use the Software (or
+any portion thereof). If You have already downloaded or installed the Software, You must immediately remove and delete
+the Software from Your system and destroy all copies. If You and Tentris have entered into a separate, written agreement
+for the Software, then the terms of this Agreement shall apply, unless explicitly excluded. This EULA consists of the
+terms and conditions set forth below and any attachments, addenda, exhibits, quotes, and order forms referencing this
+EULA. It shall exclusively apply for the Product. Licensee`s general terms and conditions (or similar) shall not apply,
+even if they are attached to requests for an offer, orders, declarations of acceptance, etc., and regardless of whether
+or not Tentris expressly objects to them in any individual case. They shall only apply insofar as they have been
+explicitly accepted by Tentris in writing.
+
+## 1. Definitions
+
+The following definitions shall apply:
+
+### 1.1.
+
+"Software" means the "Tentris Beta" of the Tentris Database Software and clients and drivers provided by Tentris as well
+as any modification, error correction, patch, bug fix etc. that Tentris makes in any form whatsoever ("Product"). It
+means all proprietary and/or open-source software which may be part of the Product, which may change from time to time.
+Tentris shall not provide any form of support or maintenance for the Software.
+
+### 1.2.
+
+"License" means the authorized use of the Software in accordance with the terms and conditions stipulated in this EULA.
+
+### 1.3.
+
+"Licensee" means the company that has accepted the terms and conditions set forth in this EULA and subsequently acquired
+a License from Tentris by download.
+
+## 2. License and Restrictions
+
+### 2.1.
+
+Tentris hereby grants to Licensee a nonexclusive, non-sublicensable, non-transferable, royalty-free and revocable
+license to use the Software.Tentris retains ownership of the Software, and each copy thereof, which are protected by
+German copyright law and international treaty provisions, as set out below. This license grants you certain rights to
+use the Software; it is not a sale. No rights are granted to any Software which you have not purchased. This right of
+use is limited in time.
+
+### 2.2.
+
+Licensee may not use the Software in a way that circumvents any contractual usage limits or other limitations relating
+to the use of the Software set forth in this EULA, reverse engineer, disassemble, modify, translate, make any attempt to
+discover the source code of the Software in whole or in part, distribute, publish, assign, sublicense, sell, bargain,
+convey, transfer, pledge, lease or grant any further rights to use the Software, modify or create derivative work-based
+Software in whole or in part, tamper with, alter, disable or circumvent the Software's built-in license verification and
+enforcement capabilities, remove of alter any trademark, copyright, logo or other proprietary notices in the Software,
+or use the Software in breach of applicable laws, this EULA, and other instructions and terms stated in the Software or
+otherwise notified by Tentris, disclose the license key in any way.
+
+### 2.3.
+
+If Licensee wishes to publish any Benchmarking Information whether for academic, commercial or any other reason, then
+Licensee may apply to Tentris to do so. "Benchmarking Information" means any data, analysis or opinion expressed in any
+form whatsoever, including graphical, tabular or textual, that relates or purports to relate to any test, evaluation,
+analysis or assessment of the performance of the Licensed Product whether the Licensed Product is named or kept
+anonymous and whether it is compared with any other software or not. Licensee shall contact Tentris at least thirty (30)
+days in advance of any publication, presentation or article referencing the Software. In the event that Licensee fails
+to receive approval from Tentris regarding said use or representation of the Software, Licensee shall not use the name
+of Tentris, the name of the Software or any other information that identifies Tentris or the Software in the publication
+or presentation.
+
+### 2.4.
+
+Without consent of Tentris, the Licensee is not allowed to change, edit or copy the provided Software to an extent that
+is not in accordance with the designated use of Section 69d of the German Copyright Act (hereinafter "UrhG"). Each copy
+must reproduce all copyright and other proprietary rights notices on or in the Software. A decompilation is only
+permitted in accordance with the provisions of Section 69e UrhG (German law).
+
+### 2.5.
+
+The Software shall not be sold, rented, subleased or otherwise distributed in tangible or intangible form. The use by
+and for third parties (e.g., by outsourcing, application service providing) is not permitted.
+
+### 2.6.
+
+Any breach of the restrictions herein will be in violation of this EULA and grant Tentris the right to immediately
+terminate the applicable Software license and/or this EULA.
+
+## 3. Third-party software
+
+### 3.1.
+
+For drivers, Tentris may define deviating license conditions, which shall take precedence over this EULA.
+
+### 3.2.
+
+Software, code or related materials from third parties, including, without limitation, "open source" or "freeware"
+software that is distributed, provided with, or otherwise made use of by the Software ("Third Party Components") may be
+licensed under additional or other license terms that accompany such Third Party Components, and Licensee acknowledges
+and agrees that these accompanying license terms govern their use. Nothing in this EULA grants Licensee rights that
+supersede the license terms that accompany any Third Party Components.
+
+## 4. Proprietary and ownership rights, data rights
+
+## 4.1.
+
+The Software is the sole and exclusive property of Tentris and/or its third-party suppliers (if applicable), including
+all improvements, modifications, and enhancements to the Software, and all copyright, trademark, patent, trade secret,
+database, and other intellectual property and proprietary rights inherent therein or belonging thereto. This EULA does
+not constitute a sale of the Software and no title or proprietary rights to the Software are transferred to Licensee
+under this EULA. Tentris is the exclusive owner of all rights in any copy, translation, modification, adaptation, or
+derivation of the Software, including any improvement or developments thereof suggested by the Licensee.
+
+## 4.2.
+
+Licensee warrants that Licensee is the owner of, or has obtained applicable permission to have and use, all the data and
+content that Licensee enters or uploads using the Software (collectively, "Content"). The Licensee acknowledges that
+Tentris is not responsible for and does not give any assurances to the Licensee regarding the accuracy, quality,
+integrity, legality, reliability, appropriateness, validity, value, usefulness, or copyright of the Content.
+
+## 4.3.
+
+Tentris collects statistical data, trends, and usage information from use of the Software by the Licensee, including
+through the use of the services of third parties providing analytics services for additional technical feedback ("Usage
+Data"). Tentris uses the Usage Data only to develop, improve, support, and operate its products and services during and
+after the term of this EULA and Tentris is the sole and exclusive owner of any collected Usage Data. Tentris will not
+share any Usage Data except in an aggregated, anonymized manner.
+
+## 4.4.
+
+The Licensee may provide suggestions, comments, bug and test reports and other feedback ("Feedback") to Tentris.
+Feedback will not, absent a separate written agreement, create any confidentiality obligation for Tentris. The Licensee
+acknowledges that Tentris will be free to use, disclose, reproduce, or otherwise distribute Feedback without obligation
+or restriction of any kind on account of intellectual property rights or otherwise.
+
+## 5. Confidentiality
+
+## 5.1.
+
+The Licensee hereby agrees to treat all information, including but not limited to Software, documents, presentations,
+etc. as confidential, of which the Licensee became aware or received from Tentris prior to the conclusion of or during
+the term of the EULA which are protected by law, which evidently contain business or company secrets or are marked as
+confidential, notwithstanding the expiration of the EULA, unless such information is publicly known in the absence of a
+breach of this confidentiality obligation ("Confidential Information"). The Licensee hereby agrees to store and secure
+all Confidential Information in a manner as to prevent any unauthorized access by third parties.
+
+## 5.2.
+
+The Licensee will make Confidential Information available only to those employees (including employees of their
+affiliates), subcontractors and third parties who require access to perform the obligations under this Agreement ("Need
+to Know Persons"). The Licensee shall instruct these persons regarding the confidentiality of the objects and documents
+in question and have written agreements in place which ensure the observance of this confidentiality obligation. Access
+to third parties shall not be permitted except with the express written consent of Tentris.
+
+## 5.3.
+
+Licensee may not disclose any benchmarking or results of evaluating the Software without Tentris´s prior written
+consent.
+
+## 6. Registration, Data Protection, Data Processing
+
+### 6.1.
+
+Licensee is required to complete the registration process prior to getting access to the Software, to fill in all
+required information, consent to data processing and email communication. Tentris processes the necessary data of the
+Licensee relevant for business transactions with due consideration of the applicable data protection regulations.
+
+### 6.2.
+
+The Licensee acknowledges and agrees that the Licensee is the controller of the Content, including any personal
+identifiable information therein. The Licensee acknowledges that Tentris specifically disclaims that it is a "data
+controller" and agrees that Tentris is not acting as a "data controller" of any of the Content under any data protection
+laws in which such definition of "data controller" or similar capacity may be found.
+
+### 6.3.
+
+The Content may be transferred to, and processed in, the United States or any other country in which Tentris, its
+affiliates or subcontractors maintain facilities. The Licensee appoints Tentris to perform any transfer of Content to
+any such country and to process it in compliance with the terms of this EULA.
+
+## 7. Limitation of Liability and Exclusion
+
+### 7.1.
+
+Tentris shall not be liable irrespective of the legal grounds except as expressly set forth as follows: Tentris shall be
+liable without limitations (i) in case of intent and gross negligence, (ii) in case of injuries to life, body and
+health, (iii) pursuant to the terms of German Product Liability Act, or (iv) under a guarantee granted by Tentris.
+
+### 7.2.
+
+Notwithstanding the above, Tentris disclaims all warranties express, statutory or implied, including without limitation
+the implied warranties or conditions of merchantability and fitness for a particular purpose or the statutory warranties
+in case of defects as to quality (Sachmangel) or of defects of title (Rechtsmangel). Tentris further disclaims any
+warranty that (a) the Software will meet Licensee’s requirements or will be constantly available, uninterrupted, timely,
+secure, or error-free; (b) the results that may be obtained from the use of the Software will be effective, accurate, or
+reliable; (c) the quality of the Software will meet Licensee’s expectations; or that (d) any errors or defects in the
+Software will be corrected.
+
+## 8. Term and Termination
+
+### 8.1.
+
+This EULA will continue to apply until (a) the expiry date of the License Key (needs to be defined then) provided to
+Licensee by Tentris; or (b) Licensee terminates this EULA at any time by uninstalling and deleting all copies of the
+Software in Licensee‘s possession or control; or (c) we terminate this EULA. We may terminate this EULA at any time for
+any reason (including but not limited to Licensee‘s breach of this EULA in our sole discretion by providing Licensee
+with notice by email. If we notify Licensee of our termination, Licensee must uninstall and delete all copies of the
+Software in Licensee‘s possession or control. Upon request, Licensee (and if Licensee is an entity then such
+certification shall be signed by an authorized representative of Licensee‘s company) shall provide written certification
+that Licensee has uninstalled, deleted and ceased all usage of the Software immediately.
+
+## 9 Compliance with laws; Export Regulations; U.S. Government Restrictions
+
+### 9.1.
+
+The Licensee shall use the Software only for lawful purposes and in conformance with this EULA. The Licensee shall not
+use the Software in any manner that violates the rights of any third party. The Licensee is solely responsible for
+compliance with all applicable laws, including all applicable export, import, and data protection laws and regulations
+relating to the Content.
+
+### 9.2.
+
+Licensee acknowledges that the Software may be subject to United States export laws, statutes and regulations and to
+export laws, statutes and regulations of other countries, and that Licensee will at all times comply with the provisions
+of such laws, statutes and regulations including any necessary or required licenses. Licensee shall not export or
+re-export or otherwise transmit, directly or indirectly, the Software or any direct products thereof into, or use the
+Software or any products thereof in, any country prohibited or restricted under United States export laws, statutes or
+regulations or any other applicable laws.
+
+## 10 Final Revision
+
+### 10.1.
+
+Tentris reserves the right at any time to alter features, specifications, capabilities, functions, licensing terms,
+release dates, general availability or other characteristics of the Software.
+
+### 10.2.
+
+Access to the Software shall not be resold, assigned, or otherwise transferred by Licensee to another person or entity
+without Tentris´s prior written consent.
+
+### 10.3.
+
+If any provision of this EULA is found to be invalid or unenforceable by any court, such provision shall be ineffective
+only to the extent that it is in contravention of applicable laws without invalidating the remaining provisions of the
+EULA. The invalid or missing provision shall be replaced by such a valid provision that most closely reflects the
+economic and business intention of Tentris and Licensee at the time the EULA was concluded.
+
+### 10.4.
+
+In the event of any controversy or claim arising out of or in connection with this, Tentris and Licensee agree to
+consult and negotiate with each other and, recognizing their mutual interests, attempt to reach a satisfactory amicable
+solution. Notwithstanding either Party’s right to seek injunctive relief at a court of competent jurisdiction, both
+shall attempt to find an amicable settlement at least for a period of sixty (60) days upon occurrence of the controversy
+or claim, and Tentris and Licensee shall bring to the competent court of jurisdiction any controversy or claim only upon
+expiry of said settlement period.
+
+### 10.5.
+
+This EULA will be solely governed by the laws of the Federal Republic of Germany without regard to the choice or
+conflicts of law provisions of any jurisdiction, and with the exception of the United Nations Convention on the
+International Sale of Goods (CISG). International Private Law shall not apply to matters of jurisdiction.
+
+### 10.6.
+
+Any references to the application of statutory provisions in this EULA shall be for clarification purposes only. Even
+without such clarification, statutory provisions shall apply unless they are modified or expressly excluded in this
+EULA.
+
+### 10.7.
+
+Without prejudice to paragraph 4 above, any disputes arising out of or in connection with this EULA, regardless of cause
+and their legal foundation, will be subject to the exclusive jurisdiction of the courts located in Bielefeld, Germany (
+Landgericht Bielefeld).
+
+### 10.8.
+
+The failure of either Tentris or Licensee to enforce any right or provision of this EULA will not constitute a waiver of
+such right or provision unless acknowledged and agreed to by that Party in writing.
+
+## 11. Relationship of the Parties
+
+No joint venture, partnership, employment, or agency relationship exists between the Parties as a result of the
+collaboration under this EULA.
+
+## 12. Assignment; Change of Control
+
+This EULA and the rights and obligations thereunder may not be assigned by either Party, whether by operation of law
+or otherwise, without the prior written consent of the other Party, which will not be unreasonably withheld.
+Notwithstanding the foregoing, either Party may assign this EULA in its entirety, without consent of the other
+Party, in connection with a merger, acquisition, corporate reorganization, or sale of all or substantially all of
+its assets not involving a competitor of the other Party. In the event of an assignment as described in the
+preceding sentence, the assigning Party shall provide the other Party with written notice of the assignment. Neither
+Party may assign this EULA to a competitor of the other Party without that other Party’s consent. Subject to the
+foregoing, this EULA will bind and inure to the benefit of the Parties, their respective successors and permitted
+assigns. Any assignment in violation of this § 15(5) shall be deemed void ab initio. § 354a of the German Commercial
+Code (Handelsgesetzbuch, HGB) shall remain unaffected.
+
+## 13. Headings
+
+Headings used in this Agreement are provided for convenience only and shall not be used to construe meaning or
+intent.
+
+## 14. Language
+
+This EULA is made in the English language. For the avoidance of doubt, the English language version of this EULA
+shall prevail over any translation thereof. However, where a German translation of a word or phrase appears in the
+text of this EULA, the German translation of such word or phrase shall prevail.
+
+
+"""
+valid-from = 2025-09-01T06:55:03.251196201Z
+valid-until = 2026-01-01T00:00:00Z
+
+[v1.licensee]
+name = "Martynas Jusevicius"
+email = "martynas@atomgraph.com"
+company = "AtomGraph"
+
+[v1.licensor]
+name = "Tentris GmbH"
+email = "info@tentris.io"
+website = "https://tentris.io/"

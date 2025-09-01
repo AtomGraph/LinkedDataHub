@@ -269,28 +269,90 @@ wait_for_url()
 
 append_quads()
 {
-    local quad_store_url="$1"
+    local graph_store_url="$1"
     local auth_user="$2"
     local auth_pwd="$3"
     local filename="$4"
     local content_type="$5"
 
-    # use HTTP Basic auth if username/password are provided
-    if [ -n "$auth_user" ] && [ -n "$auth_pwd" ]; then
-        curl \
-            -f \
-            --basic \
-            --user "$auth_user":"$auth_pwd" \
-            "$quad_store_url" \
-            -H "Content-Type: ${content_type}" \
-            --data-binary @"$filename"
-    else
-        curl \
-            -f \
-            "$quad_store_url" \
-            -H "Content-Type: ${content_type}" \
-            --data-binary @"$filename"
-    fi
+    # Create temporary SPARQL query to extract distinct graph URIs
+    local query_file=$(mktemp)
+    cat > "$query_file" << 'EOF'
+SELECT DISTINCT ?g WHERE {
+    GRAPH ?g { ?s ?p ?o }
+}
+EOF
+
+    # Execute SPARQL query to get graph URIs safely
+    local graph_uris
+    echo "DEBUG: Attempting to parse file: $filename" >&2
+    echo "DEBUG: First 5 lines of file:" >&2
+    head -5 "$filename" >&2
+    echo "DEBUG: Running graph extraction query..." >&2
+    graph_uris=$(sparql --data="$filename" --query="$query_file" --results=TSV 2>&1 | tee /dev/stderr | tail -n +2 | cut -f1)
+
+    # Clean up query file
+    rm -f "$query_file"
+
+    # Iterate through each graph URI
+    while IFS= read -r graph_uri; do
+        if [ -n "$graph_uri" ]; then
+            # Remove angle brackets if present
+            clean_graph_uri=$(echo "$graph_uri" | sed 's/^<\(.*\)>$/\1/')
+            
+            # Create temporary file for this graph's content
+            temp_file=$(mktemp)
+            
+            # Create SPARQL query to extract triples for specific graph
+            local extract_query=$(mktemp)
+            cat > "$extract_query" << EOF
+CONSTRUCT {
+    ?s ?p ?o
+}
+WHERE {
+    GRAPH <$clean_graph_uri> { ?s ?p ?o }
+}
+EOF
+            
+            # Extract triples for this specific graph as N-Triples
+            echo "DEBUG: Extracting graph: $graph_uri" >&2
+            echo "DEBUG: CONSTRUCT query:" >&2
+            cat "$extract_query" >&2
+            echo "DEBUG: Running CONSTRUCT query..." >&2
+            sparql --data="$filename" --query="$extract_query" --results=NT > "$temp_file" 2>&1 || echo "ERROR: CONSTRUCT failed for graph $graph_uri" >&2
+
+            echo "========== PROCESSING GRAPH: $graph_uri ==========" >&2
+            echo "TEMP QUADS FILE SIZE: $(wc -l < "$temp_file") lines" >&2
+            cat "$temp_file" >&2
+            echo "========== END GRAPH: $graph_uri ==========" >&2
+            
+            # Check curl version
+            echo "DEBUG: curl version: $(curl --version | head -1)" >&2
+            
+            # Send the graph's quads to the graph store
+            if [ -n "$auth_user" ] && [ -n "$auth_pwd" ]; then
+                curl \
+                    -f \
+                    --basic \
+                    --user "$auth_user":"$auth_pwd" \
+                    --url-query "graph=$clean_graph_uri" \
+                    "$graph_store_url" \
+                    -H "Content-Type: application/n-triples" \
+                    --data-binary @"$temp_file"
+            else
+                curl \
+                    -v \
+                    -f \
+                    --url-query "graph=$clean_graph_uri" \
+                    "$graph_store_url" \
+                    -H "Content-Type: application/n-triples" \
+                    --data-binary @"$temp_file"
+            fi
+            
+            # Clean up temporary files
+            rm -f "$temp_file" "$extract_query"
+        fi
+    done <<< "$graph_uris"
 }
 
 generate_cert()
@@ -478,7 +540,7 @@ readarray apps < <(xmlstarlet sel -B \
     -o "\" \"" \
     -v "srx:binding[@name = 'endUserBase']" \
     -o "\" \"" \
-    -v "srx:binding[@name = 'endUserQuadStore']" \
+    -v "srx:binding[@name = 'endUserGraphStore']" \
     -o "\" \"" \
     -v "srx:binding[@name = 'endUserEndpoint']" \
     -o "\" \"" \
@@ -492,7 +554,7 @@ readarray apps < <(xmlstarlet sel -B \
     -o "\" \"" \
     -v "srx:binding[@name = 'adminBase']" \
     -o "\" \"" \
-    -v "srx:binding[@name = 'adminQuadStore']" \
+    -v "srx:binding[@name = 'adminGraphStore']" \
     -o "\" \"" \
     -v "srx:binding[@name = 'adminEndpoint']" \
     -o "\" \"" \
@@ -509,14 +571,14 @@ for app in "${apps[@]}"; do
     app_array=(${app})
     end_user_app="${app_array[0]//\"/}"
     end_user_base_uri="${app_array[1]//\"/}"
-    end_user_quad_store_url="${app_array[2]//\"/}"
+    end_user_graph_store_url="${app_array[2]//\"/}"
     end_user_endpoint_url="${app_array[3]//\"/}"
     end_user_service_auth_user="${app_array[4]//\"/}"
     end_user_service_auth_pwd="${app_array[5]//\"/}"
     end_user_owner="${app_array[6]//\"/}"
     admin_app="${app_array[7]//\"/}"
     admin_base_uri="${app_array[8]//\"/}"
-    admin_quad_store_url="${app_array[9]//\"/}"
+    admin_graph_store_url="${app_array[9]//\"/}"
     admin_endpoint_url="${app_array[10]//\"/}"
     admin_service_auth_user="${app_array[11]//\"/}"
     admin_service_auth_pwd="${app_array[12]//\"/}"
@@ -528,8 +590,8 @@ for app in "${apps[@]}"; do
         printf "\nEnd-user app URI could not be extracted from %s. Exiting...\n" "$CONTEXT_DATASET"
         exit 1
     fi
-    if [ -z "$end_user_quad_store_url" ]; then
-        printf "\nEnd-user quad store URL could not be extracted for the <%s> app. Exiting...\n" "$end_user_app"
+    if [ -z "$end_user_graph_store_url" ]; then
+        printf "\nEnd-user graph store URL could not be extracted for the <%s> app. Exiting...\n" "$end_user_app"
         exit 1
     fi
     if [ -z "$admin_app" ]; then
@@ -540,19 +602,19 @@ for app in "${apps[@]}"; do
         printf "\nAdmin base URI extracted for the <%s> app. Exiting...\n" "$end_user_app"
         exit 1
     fi
-    if [ -z "$admin_quad_store_url" ]; then
-        printf "\nAdmin quad store URL could not be extracted for the <%s> app. Exiting...\n" "$end_user_app"
+    if [ -z "$admin_graph_store_url" ]; then
+        printf "\nAdmin graph store URL could not be extracted for the <%s> app. Exiting...\n" "$end_user_app"
         exit 1
     fi
 
     # check if this app is the root app
     if [ "$end_user_base_uri" = "$BASE_URI" ]; then
         root_end_user_app="$end_user_app"
-        root_end_user_quad_store_url="$end_user_quad_store_url"
+        root_end_user_graph_store_url="$end_user_graph_store_url"
         root_end_user_service_auth_user="$end_user_service_auth_user"
         root_end_user_service_auth_pwd="$end_user_service_auth_pwd"
         root_admin_app="$admin_app"
-        root_admin_quad_store_url="$admin_quad_store_url"
+        root_admin_graph_store_url="$admin_graph_store_url"
         root_admin_service_auth_user="$admin_service_auth_user"
         root_admin_service_auth_pwd="$admin_service_auth_pwd"
     fi
@@ -566,8 +628,8 @@ for app in "${apps[@]}"; do
         echo "<${admin_app}> <http://xmlns.com/foaf/0.1/maker> <${OWNER_URI}> ." >> "$based_context_dataset"
     fi
 
-    printf "\n### Quad store URL of the root end-user service: %s\n" "$end_user_quad_store_url"
-    printf "\n### Quad store URL of the root admin service: %s\n" "$admin_quad_store_url"
+    printf "\n### Graph store URL of the root end-user service: %s\n" "$end_user_graph_store_url"
+    printf "\n### Graph store URL of the root admin service: %s\n" "$admin_graph_store_url"
 
     # load default admin/end-user datasets if we haven't yet created a folder with re-based versions of them (and then create it)
     if [ "$LOAD_DATASETS" = "true" ]; then
@@ -603,33 +665,35 @@ for app in "${apps[@]}"; do
 
         trig --base="$end_user_base_uri" "$END_USER_DATASET" > /var/linkeddatahub/based-datasets/end-user.nq
 
-        printf "\n### Waiting for %s...\n" "$end_user_quad_store_url"
-        wait_for_url "$end_user_quad_store_url" "$end_user_service_auth_user" "$end_user_service_auth_pwd" "$TIMEOUT" "application/n-quads"
+        printf "\n### Waiting for %s...\n" "$end_user_graph_store_url"
+        wait_for_url "$end_user_graph_store_url" "$end_user_service_auth_user" "$end_user_service_auth_pwd" "$TIMEOUT" "application/n-quads"
 
         printf "\n### Loading end-user dataset into the triplestore...\n"
-        append_quads "$end_user_quad_store_url" "$end_user_service_auth_user" "$end_user_service_auth_pwd" /var/linkeddatahub/based-datasets/end-user.nq "application/n-quads"
+        append_quads "$end_user_graph_store_url" "$end_user_service_auth_user" "$end_user_service_auth_pwd" /var/linkeddatahub/based-datasets/end-user.nq "application/n-quads"
 
         trig --base="$admin_base_uri" "$ADMIN_DATASET" > /var/linkeddatahub/based-datasets/admin.nq
 
-        printf "\n### Waiting for %s...\n" "$admin_quad_store_url"
-        wait_for_url "$admin_quad_store_url" "$admin_service_auth_user" "$admin_service_auth_pwd" "$TIMEOUT" "application/n-quads"
+        printf "\n### Waiting for %s...\n" "$admin_graph_store_url"
+        wait_for_url "$admin_graph_store_url" "$admin_service_auth_user" "$admin_service_auth_pwd" "$TIMEOUT" "application/n-quads"
 
         printf "\n### Loading admin dataset into the triplestore...\n"
-        append_quads "$admin_quad_store_url" "$admin_service_auth_user" "$admin_service_auth_pwd" /var/linkeddatahub/based-datasets/admin.nq "application/n-quads"
+        append_quads "$admin_graph_store_url" "$admin_service_auth_user" "$admin_service_auth_pwd" /var/linkeddatahub/based-datasets/admin.nq "application/n-quads"
 
         trig --base="$admin_base_uri" --output=nq "$OWNER_DATASET_PATH" > /var/linkeddatahub/based-datasets/root-owner.nq
 
         printf "\n### Uploading the metadata of the owner agent...\n\n"
-        append_quads "$admin_quad_store_url" "$admin_service_auth_user" "$admin_service_auth_pwd" /var/linkeddatahub/based-datasets/root-owner.nq "application/n-quads"
+        append_quads "$admin_graph_store_url" "$admin_service_auth_user" "$admin_service_auth_pwd" /var/linkeddatahub/based-datasets/root-owner.nq "application/n-quads"
 
         trig --base="$admin_base_uri" --output=nq "$SECRETARY_DATASET_PATH" > /var/linkeddatahub/based-datasets/root-secretary.nq
 
         printf "\n### Uploading the metadata of the secretary agent...\n\n"
-        append_quads "$admin_quad_store_url" "$admin_service_auth_user" "$admin_service_auth_pwd" /var/linkeddatahub/based-datasets/root-secretary.nq "application/n-quads"
+        append_quads "$admin_graph_store_url" "$admin_service_auth_user" "$admin_service_auth_pwd" /var/linkeddatahub/based-datasets/root-secretary.nq "application/n-quads"
     fi
 done
 
 rm -f root_service_metadata.xml
+
+cat "$based_context_dataset"
 
 if [ -z "$root_end_user_app" ]; then
     printf "\nRoot end-user app with base URI <%s> not found. Exiting...\n" "$BASE_URI"
@@ -880,15 +944,15 @@ java -XX:+PrintFlagsFinal -version | grep -iE 'HeapSize|PermSize|ThreadStackSize
 
 # wait for the end-user GSP service
 
-printf "\n### Waiting for %s...\n" "$root_end_user_quad_store_url"
+printf "\n### Waiting for %s...\n" "$root_end_user_graph_store_url"
 
-wait_for_url "$root_end_user_quad_store_url" "$root_end_user_service_auth_user" "$root_end_user_service_auth_pwd" "$TIMEOUT" "application/n-quads"
+wait_for_url "$root_end_user_graph_store_url" "$root_end_user_service_auth_user" "$root_end_user_service_auth_pwd" "$TIMEOUT" "application/n-quads"
 
 # wait for the admin GSP service
 
-printf "\n### Waiting for %s...\n" "$root_admin_quad_store_url"
+printf "\n### Waiting for %s...\n" "$root_admin_graph_store_url"
 
-wait_for_url "$root_admin_quad_store_url" "$root_admin_service_auth_user" "$root_admin_service_auth_pwd" "$TIMEOUT" "application/n-quads"
+wait_for_url "$root_admin_graph_store_url" "$root_admin_service_auth_user" "$root_admin_service_auth_pwd" "$TIMEOUT" "application/n-quads"
 
 # run Tomcat (in debug mode if $JPDA_ADDRESS is defined)
 

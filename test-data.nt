@@ -1,0 +1,5 @@
+<https://example.org/person1> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://schema.org/Person> .
+<https://example.org/person1> <https://schema.org/name> "John Doe" .
+<https://example.org/person1> <https://schema.org/age> "30" .
+<https://example.org/person2> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://schema.org/Person> .
+<https://example.org/person2> <https://schema.org/name> "Jane Smith" .
