@@ -509,23 +509,6 @@ WHERE
                   }"/>
                 <xsl:sequence select="ldh:breadcrumb-resource-response($context)"/>
             </xsl:if>
-            <!-- #external-breadcrumb-nav only visible for external URIs -->
-<!--            <xsl:if test="id('external-breadcrumb-nav', ixsl:page())">
-                <xsl:result-document href="#external-breadcrumb-nav" method="ixsl:replace-content">
-                    <ul class="breadcrumb pull-left">
-                         list items will be injected by ldh:breadcrumb-resource-response 
-                    </ul>
-                </xsl:result-document>
-
-                <xsl:variable name="context" as="map(*)" select="
-                  map{
-                    'response': $response,
-                    'container': id('external-breadcrumb-nav', ixsl:page()),
-                    'uri': $uri,
-                    'leaf': true()
-                  }"/>
-                <xsl:sequence select="ldh:breadcrumb-resource-response($context)"/>
-            </xsl:if>-->
             
             <!-- checking acl:mode here because this template is called after every document load (also the initial load) and has access to ?headers -->
             <!-- set LinkedDataHub.acl-modes objects which are later used by the acl:mode function -->
@@ -661,15 +644,12 @@ WHERE
     <xsl:template name="ldh:RDFDocumentLoad">
         <xsl:param name="uri" as="xs:anyURI"/>
         <xsl:param name="refresh-content" as="xs:boolean?"/>
-        <!-- if the URI is external, dereference it through the proxy -->
-        <!-- add a bogus query parameter to give the RDF/XML document a different URL in the browser cache, otherwise it will clash with the HTML representation -->
-        <!-- this is due to broken browser behavior re. Vary and conditional requests: https://stackoverflow.com/questions/60799116/firefox-if-none-match-headers-ignore-content-type-and-vary/60802443 -->
-        <xsl:variable name="request-uri" select="ldh:href(ac:document-uri($uri), map{}, ())" as="xs:anyURI"/>
+        <xsl:variable name="request-uri" select="ldh:base-uri(.)" as="xs:anyURI"/>
         <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
         <xsl:variable name="context" as="map(*)" select="
           map{
             'request': $request,
-            'uri': $uri,
+            'uri': ldh:base-uri(.),
             'refresh-content': $refresh-content
           }"/>
         <ixsl:promise select="ixsl:http-request($context('request')) =>
@@ -677,6 +657,30 @@ WHERE
             ixsl:then(ldh:handle-response#1) =>
             ixsl:then(ldh:rdf-document-response#1)"
             on-failure="ldh:promise-failure#1"/>
+        
+        <!--  #external-breadcrumb-nav only visible for external URIs -->
+        <xsl:if test="id('external-breadcrumb-nav', ixsl:page())">
+            <xsl:result-document href="#external-breadcrumb-nav" method="ixsl:replace-content">
+                <ul class="breadcrumb pull-left">
+                    <!-- list items will be injected by ldh:breadcrumb-resource-response -->
+                </ul>
+            </xsl:result-document>
+
+            <!-- since the URI is external, dereference it through the proxy -->
+            <xsl:variable name="request-uri" select="ldh:href(ac:document-uri($uri), map{}, ())" as="xs:anyURI"/>
+            <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
+            <xsl:variable name="context" as="map(*)" select="
+              map{
+                'request': $request,
+                'uri': $uri,
+                'refresh-content': $refresh-content
+              }"/>
+        <ixsl:promise select="ixsl:http-request($context('request')) =>
+            ixsl:then(ldh:rethread-response($context, ?)) =>
+            ixsl:then(ldh:handle-response#1) =>
+            ixsl:then(ldh:breadcrumb-resource-response#1)"
+            on-failure="ldh:promise-failure#1"/>
+        </xsl:if>
     </xsl:template>
 
     <!-- service select -->
@@ -938,11 +942,6 @@ WHERE
             <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
             <!-- decode URI from the ?uri query param if the URI was proxied -->
-            
-            <xsl:message>
-                substring-after($href, '?'): <xsl:value-of select="substring-after($href, '?')"/>
-            </xsl:message>
-            
             <xsl:variable name="query-params" select="ldh:parse-query-params(substring-after($href, '?'))" as="map(xs:string, xs:string*)"/>
             <xsl:variable name="uri" select="if (map:contains($query-params, 'uri')) then xs:anyURI(map:get($query-params, 'uri')) else $href" as="xs:anyURI"/>
 
