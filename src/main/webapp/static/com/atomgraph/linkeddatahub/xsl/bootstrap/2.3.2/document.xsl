@@ -138,11 +138,20 @@ extension-element-prefixes="ixsl"
         <xsl:param name="has-content" as="xs:boolean"/>
         <xsl:param name="active-mode" as="xs:anyURI?"/>
         <xsl:param name="ajax-rendering" select="true()" as="xs:boolean"/>
-        <xsl:param name="absolute-path" select="ac:absolute-path($ldh:requestUri)" as="xs:anyURI"/> <!-- make sure mode tabs always link to the local document (not the proxy-loaded doc) -->
+        <xsl:param name="absolute-path" select="ac:absolute-path(ldh:request-uri())" as="xs:anyURI"/> <!-- make sure mode tabs always link to the local document (not the proxy-loaded doc) -->
         <xsl:param name="base-uri" select="ldh:base-uri(.)" as="xs:anyURI"/>
+        <xsl:param name="id" select="'layout-modes'" as="xs:string?"/>
+        <xsl:param name="class" select="'nav nav-tabs offset2 span7'" as="xs:string?"/>
 
         <div class="row-fluid">
-            <ul class="nav nav-tabs offset2 span7">
+            <ul>
+                <xsl:if test="$id">
+                    <xsl:attribute name="id" select="$id"/>
+                </xsl:if>
+                <xsl:if test="$class">
+                    <xsl:attribute name="class" select="$class"/>
+                </xsl:if>
+            
                 <li class="content-mode{if ((empty($active-mode) and $has-content) or $active-mode = '&ldh;ContentMode') then ' active' else() }">
                     <!-- make sure mode tabs always link to the local document (not the proxy-loaded doc) -->
                     <a href="{ldh:href(ac:document-uri(ldh:base-uri(.)), ldh:query-params(xs:anyURI('&ldh;ContentMode')))}">

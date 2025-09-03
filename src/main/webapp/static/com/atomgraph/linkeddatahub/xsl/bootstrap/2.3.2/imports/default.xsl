@@ -68,6 +68,10 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="upper-case(substring($labels[1], 1, 1)) || substring($labels[1], 2)"/>
     </xsl:function>
     
+    <xsl:function name="ldh:request-uri" as="xs:anyURI" use-when="system-property('xsl:product-name') = 'SAXON'">
+        <xsl:sequence select="$ldh:requestUri"/>
+    </xsl:function>
+    
     <xsl:function name="ldh:base-uri" as="xs:anyURI" use-when="system-property('xsl:product-name') = 'SAXON'">
         <xsl:param name="arg" as="node()"/>
         
@@ -95,7 +99,7 @@ exclude-result-prefixes="#all"
         <xsl:choose>
             <!-- proxy URI - internal ones (relative to application's base URI) will be rewritten as absolute path in ApplicationFilter -->
             <xsl:when test="$uri and not(starts-with($uri, $ldt:base))">
-                <xsl:sequence select="xs:anyURI(ac:build-uri(ac:absolute-path($ldh:requestUri), map:merge((map{ 'uri': string($uri) }, $query-params))) || (if ($fragment) then ('#' || $fragment) else ()))"/>
+                <xsl:sequence select="xs:anyURI(ac:build-uri(ac:absolute-path(ldh:request-uri()), map:merge((map{ 'uri': string($uri) }, $query-params))) || (if ($fragment) then ('#' || $fragment) else ()))"/>
             </xsl:when>
             <!-- local URI -->
             <xsl:otherwise>
