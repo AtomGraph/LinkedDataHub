@@ -645,7 +645,7 @@ LIMIT   100
                 </xsl:apply-templates>
                 
                 <div id="doc-controls" class="span4">
-                    <xsl:apply-templates select="key('resources', ac:absolute-path(ldh:base-uri(.)))" mode="bs2:Timestamp"/>
+                    <xsl:apply-templates select="key('resources', ac:absolute-path(ldh:request-uri()))" mode="bs2:Timestamp"/>
 
                     <xsl:if test="$acl:mode = '&acl;Write'">
                         <button type="button" class="btn btn-edit pull-right">

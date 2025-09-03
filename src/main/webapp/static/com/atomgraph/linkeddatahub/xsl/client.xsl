@@ -488,11 +488,8 @@ WHERE
         <xsl:variable name="refresh-content" select="$context('refresh-content')" as="xs:boolean?"/>
 
         <xsl:for-each select="$response">
-            <xsl:message>
-                ldh:rdf-document-response ac:absolute-path($ldh:requestUri): <xsl:value-of select="ac:absolute-path($ldh:requestUri)"/>
-            </xsl:message>
-            
-            <!-- load breadcrumbs -->
+            <!-- load breadcrumbs for the local document -->
+            <!-- cannot reuse $response because we don't know if it was a local or external document -->
             <xsl:if test="id('breadcrumb-nav', ixsl:page())">
                 <xsl:result-document href="#breadcrumb-nav" method="ixsl:replace-content">
                     <ul class="breadcrumb pull-left">
@@ -500,16 +497,46 @@ WHERE
                     </ul>
                 </xsl:result-document>
 
+                <xsl:variable name="request-uri" select="ldh:href(ac:absolute-path(ldh:request-uri()))" as="xs:anyURI"/>
+                <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
                 <xsl:variable name="context" as="map(*)" select="
                   map{
-                    'response': $response,
+                    'request': $request,
                     'container': id('breadcrumb-nav', ixsl:page()),
-                    'uri': ac:absolute-path($ldh:requestUri),
+                    'uri': ac:absolute-path(ldh:request-uri()),
                     'leaf': true()
                   }"/>
-                <xsl:sequence select="ldh:breadcrumb-resource-response($context)"/>
+                <ixsl:promise select="ixsl:http-request($context('request')) =>
+                    ixsl:then(ldh:rethread-response($context, ?)) =>
+                    ixsl:then(ldh:handle-response#1) =>
+                    ixsl:then(ldh:breadcrumb-resource-response#1)"
+                    on-failure="ldh:promise-failure#1"/>
             </xsl:if>
-            
+            <!--  load breadcrumbs for for external URIs -->
+            <xsl:if test="id('external-breadcrumb-nav', ixsl:page())">
+                <xsl:result-document href="#external-breadcrumb-nav" method="ixsl:replace-content">
+                    <ul class="breadcrumb pull-left">
+                        <!-- list items will be injected by ldh:breadcrumb-resource-response -->
+                    </ul>
+                </xsl:result-document>
+
+                <!-- since the URI is external, dereference it through the proxy -->
+                <xsl:variable name="request-uri" select="ldh:href(ac:document-uri($uri))" as="xs:anyURI"/>
+                <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
+                <xsl:variable name="context" as="map(*)" select="
+                  map{
+                    'request': $request,
+                    'container': id('external-breadcrumb-nav', ixsl:page()),
+                    'uri': $uri,
+                    'leaf': true()
+                  }"/>
+                <ixsl:promise select="ixsl:http-request($context('request')) =>
+                    ixsl:then(ldh:rethread-response($context, ?)) =>
+                    ixsl:then(ldh:handle-response#1) =>
+                    ixsl:then(ldh:breadcrumb-resource-response#1)"
+                    on-failure="ldh:promise-failure#1"/>
+            </xsl:if>
+        
             <!-- checking acl:mode here because this template is called after every document load (also the initial load) and has access to ?headers -->
             <!-- set LinkedDataHub.acl-modes objects which are later used by the acl:mode function -->
             <!-- doing it here because this template is called after every document load (also the initial load) and has access to ?headers -->
@@ -644,12 +671,15 @@ WHERE
     <xsl:template name="ldh:RDFDocumentLoad">
         <xsl:param name="uri" as="xs:anyURI"/>
         <xsl:param name="refresh-content" as="xs:boolean?"/>
-        <xsl:variable name="request-uri" select="ldh:base-uri(.)" as="xs:anyURI"/>
+        <!-- if the URI is external, dereference it through the proxy -->
+        <!-- add a bogus query parameter to give the RDF/XML document a different URL in the browser cache, otherwise it will clash with the HTML representation -->
+        <!-- this is due to broken browser behavior re. Vary and conditional requests: https://stackoverflow.com/questions/60799116/firefox-if-none-match-headers-ignore-content-type-and-vary/60802443 -->
+        <xsl:variable name="request-uri" select="ldh:href(ac:document-uri($uri), map{}, ())" as="xs:anyURI"/>
         <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
         <xsl:variable name="context" as="map(*)" select="
           map{
             'request': $request,
-            'uri': ldh:base-uri(.),
+            'uri': $uri,
             'refresh-content': $refresh-content
           }"/>
         <ixsl:promise select="ixsl:http-request($context('request')) =>
@@ -657,30 +687,6 @@ WHERE
             ixsl:then(ldh:handle-response#1) =>
             ixsl:then(ldh:rdf-document-response#1)"
             on-failure="ldh:promise-failure#1"/>
-        
-        <!--  #external-breadcrumb-nav only visible for external URIs -->
-        <xsl:if test="id('external-breadcrumb-nav', ixsl:page())">
-            <xsl:result-document href="#external-breadcrumb-nav" method="ixsl:replace-content">
-                <ul class="breadcrumb pull-left">
-                    <!-- list items will be injected by ldh:breadcrumb-resource-response -->
-                </ul>
-            </xsl:result-document>
-
-            <!-- since the URI is external, dereference it through the proxy -->
-            <xsl:variable name="request-uri" select="ldh:href(ac:document-uri($uri), map{}, ())" as="xs:anyURI"/>
-            <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
-            <xsl:variable name="context" as="map(*)" select="
-              map{
-                'request': $request,
-                'uri': $uri,
-                'refresh-content': $refresh-content
-              }"/>
-        <ixsl:promise select="ixsl:http-request($context('request')) =>
-            ixsl:then(ldh:rethread-response($context, ?)) =>
-            ixsl:then(ldh:handle-response#1) =>
-            ixsl:then(ldh:breadcrumb-resource-response#1)"
-            on-failure="ldh:promise-failure#1"/>
-        </xsl:if>
     </xsl:template>
 
     <!-- service select -->
@@ -721,7 +727,7 @@ WHERE
         <xsl:variable name="href" select="$context('href')" as="xs:anyURI?"/> <!-- absolute URI! -->
         <xsl:variable name="service-uri" select="if (id('search-service', ixsl:page())) then xs:anyURI(ixsl:get(id('search-service', ixsl:page()), 'value')) else ()" as="xs:anyURI?"/>
         <xsl:variable name="service" select="if ($service-uri) then key('resources', $service-uri, document(ac:build-uri(ac:document-uri($service-uri), map{ 'accept': 'application/rdf+xml' }))) else ()" as="element()?"/> <!-- TO-DO: refactor asynchronously -->
-        <xsl:variable name="push-state" select="true()" as="xs:boolean"/>
+        <xsl:variable name="push-state" select="$context('push-state')" as="xs:boolean"/>
         <xsl:variable name="refresh-content" as="xs:boolean?"/>
         <xsl:variable name="response" select="$context('response')" as="map(*)"/>
 
@@ -738,17 +744,13 @@ WHERE
                 <xsl:when test="starts-with(?media-type, 'application/xhtml+xml')">
                     <xsl:variable name="endpoint-link" select="tokenize(?headers?link, ',')[contains(., '&sd;endpoint')]" as="xs:string?"/>
                     <xsl:variable name="endpoint" select="if ($endpoint-link) then xs:anyURI(substring-before(substring-after(substring-before($endpoint-link, ';'), '&lt;'), '&gt;')) else ()" as="xs:anyURI?"/>
-                    <xsl:variable name="base-link" select="tokenize(?headers?link, ',')[contains(., '&ldt;base')]" as="xs:string?"/>
+                    <xsl:variable name="base" select="ldh:origin($href)" as="xs:anyURI"/>
                     <!-- set new base URI if the current app has changed -->
-                    <xsl:if test="$base-link">
-                        <xsl:variable name="base" select="xs:anyURI(substring-before(substring-after(substring-before($base-link, ';'), '&lt;'), '&gt;'))" as="xs:anyURI"/>
-                        <xsl:if test="not($base = ldt:base())">
-                            <xsl:message>Application change. Base URI: <xsl:value-of select="$base"/></xsl:message>
-                            <xsl:call-template name="ldt:AppChanged">
-                                <xsl:with-param name="base" select="$base"/>
-                            </xsl:call-template>
-                        </xsl:if>
-                        <ixsl:set-property name="base" select="$base" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+                    <xsl:if test="not($base = ldt:base())">
+                        <xsl:message>Application change. Base URI: <xsl:value-of select="$base"/></xsl:message>
+                        <xsl:call-template name="ldt:AppChanged">
+                            <xsl:with-param name="base" select="$base"/>
+                        </xsl:call-template>
                     </xsl:if>
 
                     <xsl:apply-templates select="?body" mode="ldh:HTMLDocumentLoaded">
@@ -801,17 +803,12 @@ WHERE
             <xsl:when test="starts-with(?media-type, 'application/xhtml+xml')">
                 <xsl:variable name="endpoint-link" select="tokenize(?headers?link, ',')[contains(., '&sd;endpoint')]" as="xs:string?"/>
                 <xsl:variable name="endpoint" select="if ($endpoint-link) then xs:anyURI(substring-before(substring-after(substring-before($endpoint-link, ';'), '&lt;'), '&gt;')) else ()" as="xs:anyURI?"/>
-                <xsl:variable name="base-link" select="tokenize(?headers?link, ',')[contains(., '&ldt;base')]" as="xs:string?"/>
-                <!-- set new base URI if the current app has changed -->
-                <xsl:if test="$base-link">
-                    <xsl:variable name="base" select="xs:anyURI(substring-before(substring-after(substring-before($base-link, ';'), '&lt;'), '&gt;'))" as="xs:anyURI"/>
-                    <xsl:if test="not($base = ldt:base())">
-                        <xsl:message>Application change. Base URI: <xsl:value-of select="$base"/></xsl:message>
-                        <xsl:call-template name="ldt:AppChanged">
-                            <xsl:with-param name="base" select="$base"/>
-                        </xsl:call-template>
-                    </xsl:if>
-                    <ixsl:set-property name="base" select="$base" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+                <xsl:variable name="base" select="ldh:origin($href)" as="xs:anyURI"/>
+                <xsl:if test="not($base = ldt:base())">
+                    <xsl:message>Application change. Base URI: <xsl:value-of select="$base"/></xsl:message>
+                    <xsl:call-template name="ldt:AppChanged">
+                        <xsl:with-param name="base" select="$base"/>
+                    </xsl:call-template>
                 </xsl:if>
 
                 <xsl:apply-templates select="?body" mode="ldh:HTMLDocumentLoaded">
@@ -946,23 +943,27 @@ WHERE
             <xsl:variable name="uri" select="if (map:contains($query-params, 'uri')) then xs:anyURI(map:get($query-params, 'uri')) else $href" as="xs:anyURI"/>
 
             <!-- abort the previous request, if any -->
-            <xsl:if test="ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub'), 'request')">
+<!--            <xsl:if test="ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub'), 'request')">
                 <xsl:message>Aborting HTTP request that has already been sent</xsl:message>
                 <xsl:sequence select="ixsl:call(ixsl:get(ixsl:window(), 'LinkedDataHub.request'), 'abort', [])"/>
-            </xsl:if>
+            </xsl:if>-->
 
-            <xsl:variable name="request" as="item()*">
-                <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $href, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
-                    <xsl:call-template name="ldh:DocumentLoaded">
-                        <xsl:with-param name="href" select="$href"/>
-                        <!-- we don't want to push the same state we just popped back to -->
-                        <xsl:with-param name="push-state" select="false()"/>
-                    </xsl:call-template>
-                </ixsl:schedule-action>
-            </xsl:variable>
-
+            <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $href, 'headers': map{ 'Accept': 'application/xhtml+xml' } }" as="map(*)"/>
+            <xsl:variable name="context" select="
+              map{
+                'request': $request,
+                'href': $href,
+                'push-state': false()
+              }" as="map(*)"/>
+            <ixsl:promise select="
+              ixsl:http-request($context('request'))
+                => ixsl:then(ldh:rethread-response($context, ?))
+                => ixsl:then(ldh:handle-response#1)
+                => ixsl:then(ldh:xhtml-document-loaded#1)
+            " on-failure="ldh:promise-failure#1"/>
+            
             <!-- store the new request object -->
-            <ixsl:set-property name="request" select="$request" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+<!--            <ixsl:set-property name="request" select="$request" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>-->
         </xsl:if>
     </xsl:template>
     
@@ -978,21 +979,27 @@ WHERE
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
         
         <!-- abort the previous request, if any -->
-        <xsl:if test="ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub'), 'request')">
+<!--        <xsl:if test="ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub'), 'request')">
             <xsl:message>Aborting HTTP request that has already been sent</xsl:message>
             <xsl:sequence select="ixsl:call(ixsl:get(ixsl:window(), 'LinkedDataHub.request'), 'abort', [])"/>
-        </xsl:if>
+        </xsl:if>-->
         
-        <xsl:variable name="request" as="item()*">
-            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $href, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
-                <xsl:call-template name="ldh:DocumentLoaded">
-                    <xsl:with-param name="href" select="$href"/>
-                </xsl:call-template>
-            </ixsl:schedule-action>
-        </xsl:variable>
-        
+        <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $href, 'headers': map{ 'Accept': 'application/xhtml+xml' } }" as="map(*)"/>
+        <xsl:variable name="context" select="
+          map{
+            'request': $request,
+            'href': $href,
+            'push-state': true()
+          }" as="map(*)"/>
+        <ixsl:promise select="
+          ixsl:http-request($context('request'))
+            => ixsl:then(ldh:rethread-response($context, ?))
+            => ixsl:then(ldh:handle-response#1)
+            => ixsl:then(ldh:xhtml-document-loaded#1)
+        " on-failure="ldh:promise-failure#1"/>
+            
         <!-- store the new request object -->
-        <ixsl:set-property name="request" select="$request" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+<!--        <ixsl:set-property name="request" select="$request" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>-->
     </xsl:template>
     
     <xsl:template match="form[contains-token(@class, 'navbar-form')]" mode="ixsl:onsubmit">
@@ -1003,23 +1010,36 @@ WHERE
         <xsl:if test="$uri-string castable as xs:anyURI and (starts-with($uri-string, 'http://') or starts-with($uri-string, 'https://'))">
             <xsl:variable name="uri" select="xs:anyURI($uri-string)" as="xs:anyURI"/>
             <!-- dereferenced external resources through a proxy -->
-            <xsl:variable name="href" select="ldh:href($uri, map{})" as="xs:anyURI"/>
+            <xsl:variable name="href" select="ldh:href($uri)" as="xs:anyURI"/>
             <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
             <!-- abort the previous request, if any -->
-            <xsl:if test="ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub'), 'request')">
+<!--            <xsl:if test="ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub'), 'request')">
                 <xsl:message>Aborting HTTP request that has already been sent</xsl:message>
                 <xsl:sequence select="ixsl:call(ixsl:get(ixsl:window(), 'LinkedDataHub.request'), 'abort', [])"/>
-            </xsl:if>
+            </xsl:if>-->
 
-            <xsl:variable name="request" as="item()*">
+<!--            <xsl:variable name="request" as="item()*">
                 <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $href, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
                     <xsl:call-template name="ldh:DocumentLoaded">
                         <xsl:with-param name="href" select="$href"/>
                     </xsl:call-template>
                 </ixsl:schedule-action>
-            </xsl:variable>
-
+            </xsl:variable>-->
+            <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $href, 'headers': map{ 'Accept': 'application/xhtml+xml' } }" as="map(*)"/>
+            <xsl:variable name="context" select="
+              map{
+                'request': $request,
+                'href': $href,
+                'push-state': true()
+              }" as="map(*)"/>
+            <ixsl:promise select="
+              ixsl:http-request($context('request'))
+                => ixsl:then(ldh:rethread-response($context, ?))
+                => ixsl:then(ldh:handle-response#1)
+                => ixsl:then(ldh:xhtml-document-loaded#1)
+            " on-failure="ldh:promise-failure#1"/>
+        
             <!-- store the new request object -->
             <ixsl:set-property name="request" select="$request" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
         </xsl:if>
@@ -1032,18 +1052,31 @@ WHERE
         <xsl:choose>
             <xsl:when test="?status = 204"> <!-- No Content -->
                 <xsl:variable name="href" select="resolve-uri('..', $doc-uri)" as="xs:anyURI"/>
-                <xsl:variable name="request-uri" select="ldh:href($href, map{})" as="xs:anyURI"/>
+                <xsl:variable name="request-uri" select="ldh:href($href)" as="xs:anyURI"/>
 
                 <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
-                <xsl:variable name="request" as="item()*">
+<!--                <xsl:variable name="request" as="item()*">
                     <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
                         <xsl:call-template name="ldh:DocumentLoaded">
                             <xsl:with-param name="href" select="$href"/>
                         </xsl:call-template>
                     </ixsl:schedule-action>
                 </xsl:variable>
-                <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
+                <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>-->
+                <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }" as="map(*)"/>
+                <xsl:variable name="context" select="
+                  map{
+                    'request': $request,
+                    'href': $href,
+                    'push-state': true()
+                  }" as="map(*)"/>
+                <ixsl:promise select="
+                  ixsl:http-request($context('request'))
+                    => ixsl:then(ldh:rethread-response($context, ?))
+                    => ixsl:then(ldh:handle-response#1)
+                    => ixsl:then(ldh:xhtml-document-loaded#1)
+                " on-failure="ldh:promise-failure#1"/>
             </xsl:when>
             <xsl:otherwise>
                 <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
@@ -1081,17 +1114,17 @@ WHERE
                     <!-- resource URI selected in the typeahead -->
                     <xsl:variable name="uri" select="$menu/li[contains-token(@class, 'active')]/input[@name = 'ou']/ixsl:get(., 'value')" as="xs:anyURI"/>
                     <!-- dereference external resources through a proxy -->
-                    <xsl:variable name="request-uri" select="ldh:href($uri, map{})" as="xs:anyURI"/>
+                    <xsl:variable name="request-uri" select="ldh:href($uri)" as="xs:anyURI"/>
                     
                     <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
                     <!-- abort the previous request, if any -->
-                    <xsl:if test="ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub'), 'request')">
+<!--                    <xsl:if test="ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub'), 'request')">
                         <xsl:message>Aborting HTTP request that has already been sent</xsl:message>
                         <xsl:sequence select="ixsl:call(ixsl:get(ixsl:window(), 'LinkedDataHub.request'), 'abort', [])"/>
-                    </xsl:if>
+                    </xsl:if>-->
 
-                    <xsl:variable name="request" as="item()*">
+<!--                    <xsl:variable name="request" as="item()*">
                         <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
                             <xsl:call-template name="ldh:DocumentLoaded">
                                 <xsl:with-param name="href" select="$uri"/>
@@ -1099,8 +1132,22 @@ WHERE
                         </ixsl:schedule-action>
                     </xsl:variable>
                     
-                    <!-- store the new request object -->
-                    <ixsl:set-property name="request" select="$request" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+                     store the new request object 
+                    <ixsl:set-property name="request" select="$request" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>-->
+                    
+                    <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }" as="map(*)"/>
+                    <xsl:variable name="context" select="
+                      map{
+                        'request': $request,
+                        'href': $uri,
+                        'push-state': true()
+                      }" as="map(*)"/>
+                    <ixsl:promise select="
+                      ixsl:http-request($context('request'))
+                        => ixsl:then(ldh:rethread-response($context, ?))
+                        => ixsl:then(ldh:handle-response#1)
+                        => ixsl:then(ldh:xhtml-document-loaded#1)
+                    " on-failure="ldh:promise-failure#1"/>
                 </xsl:if>
             </xsl:when>
             <xsl:when test="$key-code = 'ArrowUp'">
@@ -1169,17 +1216,17 @@ WHERE
         <!-- redirect to the resource URI selected in the typeahead -->
         <xsl:variable name="uri" select="input[@name = 'ou']/ixsl:get(., 'value')" as="xs:anyURI"/>
         <!-- dereference external resources through a proxy -->
-        <xsl:variable name="request-uri" select="ldh:href($uri, map{})" as="xs:anyURI"/>
+        <xsl:variable name="request-uri" select="ldh:href($uri)" as="xs:anyURI"/>
         
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
         
         <!-- abort the previous request, if any -->
-        <xsl:if test="ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub'), 'request')">
+<!--        <xsl:if test="ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub'), 'request')">
             <xsl:message>Aborting HTTP request that has already been sent</xsl:message>
             <xsl:sequence select="ixsl:call(ixsl:get(ixsl:window(), 'LinkedDataHub.request'), 'abort', [])"/>
-        </xsl:if>
+        </xsl:if>-->
 
-        <xsl:variable name="request" as="item()*">
+<!--        <xsl:variable name="request" as="item()*">
             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
                 <xsl:call-template name="ldh:DocumentLoaded">
                     <xsl:with-param name="href" select="$uri"/>
@@ -1187,8 +1234,22 @@ WHERE
             </ixsl:schedule-action>
         </xsl:variable>
         
-        <!-- store the new request object -->
-        <ixsl:set-property name="request" select="$request" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+         store the new request object 
+        <ixsl:set-property name="request" select="$request" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>-->
+        
+        <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }" as="map(*)"/>
+        <xsl:variable name="context" select="
+          map{
+            'request': $request,
+            'href': $uri,
+            'push-state': true()
+          }" as="map(*)"/>
+        <ixsl:promise select="
+          ixsl:http-request($context('request'))
+            => ixsl:then(ldh:rethread-response($context, ?))
+            => ixsl:then(ldh:handle-response#1)
+            => ixsl:then(ldh:xhtml-document-loaded#1)
+        " on-failure="ldh:promise-failure#1"/>
     </xsl:template>
     
     <xsl:template match="button[contains-token(@class, 'btn-delete')][not(contains-token(@class, 'disabled'))]" mode="ixsl:onclick">
@@ -1271,12 +1332,12 @@ WHERE
         <xsl:sequence select="../ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'active', true() ])[current-date() lt xs:date('2000-01-01')]"/>
 
         <!-- abort the previous request, if any -->
-        <xsl:if test="ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub'), 'request')">
+<!--        <xsl:if test="ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub'), 'request')">
             <xsl:message>Aborting HTTP request that has already been sent</xsl:message>
             <xsl:sequence select="ixsl:call(ixsl:get(ixsl:window(), 'LinkedDataHub.request'), 'abort', [])"/>
-        </xsl:if>
+        </xsl:if>-->
 
-        <xsl:variable name="request" as="item()*">
+<!--        <xsl:variable name="request" as="item()*">
             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $href, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
                 <xsl:call-template name="ldh:DocumentLoaded">
                     <xsl:with-param name="href" select="$href"/>
@@ -1284,8 +1345,22 @@ WHERE
             </ixsl:schedule-action>
         </xsl:variable>
 
-        <!-- store the new request object -->
-        <ixsl:set-property name="request" select="$request" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+         store the new request object 
+        <ixsl:set-property name="request" select="$request" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>-->
+        
+        <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $href, 'headers': map{ 'Accept': 'application/xhtml+xml' } }" as="map(*)"/>
+        <xsl:variable name="context" select="
+          map{
+            'request': $request,
+            'href': $href,
+            'push-state': true()
+          }" as="map(*)"/>
+        <ixsl:promise select="
+          ixsl:http-request($context('request'))
+            => ixsl:then(ldh:rethread-response($context, ?))
+            => ixsl:then(ldh:handle-response#1)
+            => ixsl:then(ldh:xhtml-document-loaded#1)
+        " on-failure="ldh:promise-failure#1"/>
     </xsl:template>
 
     <!-- file drop -->
@@ -1349,14 +1424,14 @@ WHERE
         <xsl:choose>
             <xsl:when test="$status = (200, 204)">
                 <!-- abort the previous request, if any -->
-                <xsl:if test="ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub'), 'request')">
+<!--                <xsl:if test="ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub'), 'request')">
                     <xsl:message>Aborting HTTP request that has already been sent</xsl:message>
                     <xsl:sequence select="ixsl:call(ixsl:get(ixsl:window(), 'LinkedDataHub.request'), 'abort', [])"/>
-                </xsl:if>
+                </xsl:if>-->
 
                 <!-- retain the current layout mode (which should be ac:ReadMode -->
                 <xsl:variable name="href" select="ldh:href(ldh:base-uri(.), ldh:query-params(ac:mode()))" as="xs:anyURI"/>
-                <xsl:variable name="request" as="item()*">
+<!--                <xsl:variable name="request" as="item()*">
                     <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $href, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
                         <xsl:call-template name="ldh:DocumentLoaded">
                             <xsl:with-param name="href" select="ldh:base-uri(.)"/>
@@ -1364,8 +1439,22 @@ WHERE
                     </ixsl:schedule-action>
                 </xsl:variable>
 
-                <!-- store the new request object -->
-                <ixsl:set-property name="request" select="$request" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+                 store the new request object 
+                <ixsl:set-property name="request" select="$request" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>-->
+                
+                <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $href, 'headers': map{ 'Accept': 'application/xhtml+xml' } }" as="map(*)"/>
+                <xsl:variable name="context" select="
+                  map{
+                    'request': $request,
+                    'href': $href,
+                    'push-state': true()
+                  }" as="map(*)"/>
+                <ixsl:promise select="
+                  ixsl:http-request($context('request'))
+                    => ixsl:then(ldh:rethread-response($context, ?))
+                    => ixsl:then(ldh:handle-response#1)
+                    => ixsl:then(ldh:xhtml-document-loaded#1)
+                " on-failure="ldh:promise-failure#1"/>
             </xsl:when>
             <xsl:otherwise>
                 <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>

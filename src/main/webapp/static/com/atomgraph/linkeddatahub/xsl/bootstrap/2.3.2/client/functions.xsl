@@ -53,8 +53,15 @@ exclude-result-prefixes="#all"
         </xsl:choose>
     </xsl:function>
     
+    <xsl:function name="ldh:origin" as="xs:anyURI">
+        <xsl:param name="uri" as="xs:anyURI"/>
+
+        <!-- no trailing slash -->
+        <xsl:sequence select="xs:anyURI(replace($uri, '^(https?://[^/]+).*$', '$1'))"/>
+    </xsl:function>
+    
     <xsl:function name="ldt:base" as="xs:anyURI">
-        <xsl:sequence select="xs:anyURI(ixsl:get(ixsl:window(), 'LinkedDataHub.base'))"/>
+        <xsl:sequence select="xs:anyURI(ldh:origin(xs:anyURI(ixsl:location())) || '/')"/>
     </xsl:function>
 
     <xsl:function name="acl:mode" as="xs:anyURI*">

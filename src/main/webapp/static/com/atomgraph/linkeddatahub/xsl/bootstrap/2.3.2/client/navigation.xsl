@@ -315,11 +315,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="uri" select="$context('uri')" as="xs:anyURI"/>
         <xsl:variable name="leaf" select="$context('leaf')" as="xs:boolean"/>
 
-        <xsl:message>ldh:breadcrumb-resource-response
-        
-        $uri: <xsl:value-of select="$uri"/>
-        $response: <xsl:value-of select="serialize($response, map{ 'method': 'adaptive' })"/>
-        </xsl:message>
+        <xsl:message>ldh:breadcrumb-resource-response</xsl:message>
 
         <xsl:for-each select="$response">
             <xsl:choose>
