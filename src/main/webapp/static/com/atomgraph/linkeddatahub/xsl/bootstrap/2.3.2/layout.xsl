@@ -639,7 +639,10 @@ LIMIT   100
             </xsl:if>
             
             <div class="row-fluid">
-                <xsl:apply-templates select="." mode="bs2:BreadCrumbBar"/>
+                <xsl:apply-templates select="." mode="bs2:BreadCrumbBar">
+                    <xsl:with-param name="id" select="'breadcrumb-nav'"/>
+                    <xsl:with-param name="uri" select="ac:absolute-path($ldh:requestUri)"/>
+                </xsl:apply-templates>
                 
                 <div id="doc-controls" class="span4">
                     <xsl:apply-templates select="key('resources', ac:absolute-path(ldh:base-uri(.)))" mode="bs2:Timestamp"/>
@@ -666,15 +669,18 @@ LIMIT   100
                 <xsl:attribute name="class" select="$class"/>
             </xsl:if>
             
-            <xsl:apply-templates select="." mode="bs2:MediaTypeList"/>
+            <xsl:apply-templates select="." mode="bs2:MediaTypeList">
+                <xsl:with-param name="uri" select="ac:absolute-path($ldh:requestUri)"/>
+            </xsl:apply-templates>
 
             <xsl:apply-templates select="." mode="bs2:NavBarActions"/>
         </div>
     </xsl:template>
     
     <xsl:template match="rdf:RDF" mode="bs2:BreadCrumbBar">
-        <xsl:param name="id" select="'breadcrumb-nav'" as="xs:string?"/>
+        <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="class" select="'span8'" as="xs:string?"/>
+        <xsl:param name="uri" as="xs:string?"/>
 
         <div>
             <xsl:if test="$id">
@@ -689,7 +695,7 @@ LIMIT   100
             <xsl:if test="not($ldh:ajaxRendering)">
                 <ul class="breadcrumb pull-left">
                     <!-- render breadcrumbs server-side -->
-                    <xsl:apply-templates select="key('resources', ac:absolute-path(ldh:base-uri(.)))" mode="bs2:BreadCrumbListItem"/>
+                    <xsl:apply-templates select="key('resources', $uri)" mode="bs2:BreadCrumbListItem"/>
                 </ul>
             </xsl:if>
         </div>
@@ -799,7 +805,7 @@ LIMIT   100
     
     <xsl:template match="rdf:RDF[not(starts-with(ac:absolute-path(ldh:base-uri(.)), $ldt:base))] | srx:sparql[not(starts-with(ac:absolute-path(ldh:base-uri(.)), $ldt:base))]" mode="bs2:ExternalBar" priority="1">
         <xsl:param name="id" as="xs:string?"/>
-        <xsl:param name="class" select="'navbar-inner action-bar'" as="xs:string?"/>
+        <xsl:param name="class" select="'navbar-inner action-bar external-bar'" as="xs:string?"/>
 
         <div>
             <xsl:if test="$id">
@@ -835,7 +841,26 @@ LIMIT   100
                 <xsl:attribute name="class" select="$class"/>
             </xsl:if>
 
-
+<!--            <xsl:variable name="app" select="ldh:match-app($uri, ixsl:get(ixsl:window(), 'LinkedDataHub.apps'))" as="element()?"/>
+            <xsl:choose>
+                 if a known app matches $uri, show link to its ldt:base 
+                <xsl:when test="$app">
+                    <a href="{$app/ldt:base/@rdf:resource}" class="label label-info pull-left">
+                        <xsl:apply-templates select="$app" mode="ac:label"/>
+                    </a>
+                </xsl:when>
+                 otherwise show just a label with the hostname 
+                <xsl:otherwise>
+                    <xsl:variable name="hostname" select="tokenize(substring-after($uri, '://'), '/')[1]" as="xs:string"/>
+                    <span class="label label-info pull-left">
+                        <xsl:value-of select="$hostname"/>
+                    </span>
+                </xsl:otherwise>
+            </xsl:choose>-->
+            <xsl:variable name="hostname" select="tokenize(substring-after(ldh:base-uri(.), '://'), '/')[1]" as="xs:string"/>
+            <span class="label label-info pull-left">
+                <xsl:value-of select="$hostname"/>
+            </span>
         </div>
     </xsl:template>
 
@@ -852,7 +877,10 @@ LIMIT   100
             </xsl:if>
             
             <div class="row-fluid">
-                <xsl:apply-templates select="." mode="bs2:BreadCrumbBar"/>            
+                <xsl:apply-templates select="." mode="bs2:BreadCrumbBar">
+                    <xsl:with-param name="id" select="'external-breadcrumb-nav'"/>
+                    <xsl:with-param name="uri" select="ac:document-uri(ldh:base-uri(.))"/>
+                </xsl:apply-templates>
             </div>
         </div>
     </xsl:template>
@@ -869,9 +897,11 @@ LIMIT   100
                 <xsl:attribute name="class" select="$class"/>
             </xsl:if>
             
-            <xsl:apply-templates select="." mode="bs2:MediaTypeList"/>
+            <xsl:apply-templates select="." mode="bs2:MediaTypeList">
+                <xsl:with-param name="uri" select="ldh:base-uri(.)"/>
+            </xsl:apply-templates>
 
-            <xsl:apply-templates select="." mode="bs2:NavBarActions"/>
+            <xsl:apply-templates select="." mode="bs2:ExternalBarActions"/>
         </div>
     </xsl:template>
     
@@ -1131,6 +1161,8 @@ LIMIT   100
     <!-- MEDIA TYPE LIST  -->
         
     <xsl:template match="rdf:RDF | srx:sparql" mode="bs2:MediaTypeList" priority="1">
+        <xsl:param name="uri" as="xs:anyURI"/>
+        
         <div class="btn-group pull-right">
             <button type="button" id="export-rdf" title="{ac:label(key('resources', 'nav-bar-action-export-rdf-title', document('translations.rdf')))}">
                 <xsl:apply-templates select="key('resources', '&ac;Export', document(ac:document-uri('&ac;')))" mode="ldh:logo">
@@ -1227,7 +1259,22 @@ LIMIT   100
                     <xsl:apply-templates select="key('resources', '&ac;Delete', document(ac:document-uri('&ac;')))" mode="ac:label"/>
                 </button>
             </div>
-
+            
+            <div class="btn-group pull-right">
+                <button type="button" title="{ac:label(key('resources', 'acl-list-title', document('translations.rdf')))}">
+                    <xsl:apply-templates select="key('resources', '&acl;Access', document(ac:document-uri('&acl;')))" mode="ldh:logo">
+                        <xsl:with-param name="class" select="'btn'"/>
+                    </xsl:apply-templates>
+                    <xsl:apply-templates select="key('resources', '&acl;Access', document(ac:document-uri('&acl;')))" mode="ac:label"/>
+                </button>
+            </div>
+        </xsl:if>
+    </xsl:template>
+    
+    <xsl:template match="rdf:RDF" mode="bs2:ExternalBarActions" priority="1">
+        <xsl:param name="base-uri" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/>
+        
+        <xsl:if test="$foaf:Agent//@rdf:about">
             <xsl:if test="$ldh:ajaxRendering">
                 <div class="pull-right">
                     <button type="button" title="{ac:label(key('resources', 'save-as-title', document('translations.rdf')))}">
@@ -1243,15 +1290,6 @@ LIMIT   100
                     </button>
                 </div>
             </xsl:if>
-            
-            <div class="btn-group pull-right">
-                <button type="button" title="{ac:label(key('resources', 'acl-list-title', document('translations.rdf')))}">
-                    <xsl:apply-templates select="key('resources', '&acl;Access', document(ac:document-uri('&acl;')))" mode="ldh:logo">
-                        <xsl:with-param name="class" select="'btn'"/>
-                    </xsl:apply-templates>
-                    <xsl:apply-templates select="key('resources', '&acl;Access', document(ac:document-uri('&acl;')))" mode="ac:label"/>
-                </button>
-            </div>
         </xsl:if>
     </xsl:template>
     

@@ -315,7 +315,11 @@ exclude-result-prefixes="#all"
         <xsl:variable name="uri" select="$context('uri')" as="xs:anyURI"/>
         <xsl:variable name="leaf" select="$context('leaf')" as="xs:boolean"/>
 
-        <xsl:message>ldh:breadcrumb-resource-response</xsl:message>
+        <xsl:message>ldh:breadcrumb-resource-response
+        
+        $uri: <xsl:value-of select="$uri"/>
+        $response: <xsl:value-of select="serialize($response, map{ 'method': 'adaptive' })"/>
+        </xsl:message>
 
         <xsl:for-each select="$response">
             <xsl:choose>
@@ -324,7 +328,7 @@ exclude-result-prefixes="#all"
                         <xsl:variable name="resource" select="key('resources', $uri)" as="element()?"/>
                         <xsl:variable name="parent-uri" select="$resource/sioc:has_container/@rdf:resource | $resource/sioc:has_parent/@rdf:resource" as="xs:anyURI?"/>
                         <xsl:if test="$parent-uri">
-                            <xsl:variable name="request-uri" select="ldh:href($parent-uri, map{})" as="xs:anyURI"/>
+                            <xsl:variable name="request-uri" select="ldh:href($parent-uri)" as="xs:anyURI"/>
                             <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
                             <xsl:variable name="context" as="map(*)" select="
                               map{

@@ -488,29 +488,13 @@ WHERE
         <xsl:variable name="refresh-content" select="$context('refresh-content')" as="xs:boolean?"/>
 
         <xsl:for-each select="$response">
+            <xsl:message>
+                ldh:rdf-document-response ac:absolute-path($ldh:requestUri): <xsl:value-of select="ac:absolute-path($ldh:requestUri)"/>
+            </xsl:message>
+            
             <!-- load breadcrumbs -->
             <xsl:if test="id('breadcrumb-nav', ixsl:page())">
                 <xsl:result-document href="#breadcrumb-nav" method="ixsl:replace-content">
-                    <!-- show label if the resource is external -->
-                    <xsl:if test="not(starts-with($uri, $ldt:base))">
-                        <xsl:variable name="app" select="ldh:match-app($uri, ixsl:get(ixsl:window(), 'LinkedDataHub.apps'))" as="element()?"/>
-                        <xsl:choose>
-                            <!-- if a known app matches $uri, show link to its ldt:base -->
-                            <xsl:when test="$app">
-                                <a href="{$app/ldt:base/@rdf:resource}" class="label label-info pull-left">
-                                    <xsl:apply-templates select="$app" mode="ac:label"/>
-                                </a>
-                            </xsl:when>
-                            <!-- otherwise show just a label with the hostname -->
-                            <xsl:otherwise>
-                                <xsl:variable name="hostname" select="tokenize(substring-after($uri, '://'), '/')[1]" as="xs:string"/>
-                                <span class="label label-info pull-left">
-                                    <xsl:value-of select="$hostname"/>
-                                </span>
-                            </xsl:otherwise>
-                        </xsl:choose>
-                    </xsl:if>
-                    
                     <ul class="breadcrumb pull-left">
                         <!-- list items will be injected by ldh:breadcrumb-resource-response -->
                     </ul>
@@ -520,12 +504,29 @@ WHERE
                   map{
                     'response': $response,
                     'container': id('breadcrumb-nav', ixsl:page()),
-                    'uri': $uri,
+                    'uri': ac:absolute-path($ldh:requestUri),
                     'leaf': true()
                   }"/>
                 <xsl:sequence select="ldh:breadcrumb-resource-response($context)"/>
             </xsl:if>
+            <!-- #external-breadcrumb-nav only visible for external URIs -->
+<!--            <xsl:if test="id('external-breadcrumb-nav', ixsl:page())">
+                <xsl:result-document href="#external-breadcrumb-nav" method="ixsl:replace-content">
+                    <ul class="breadcrumb pull-left">
+                         list items will be injected by ldh:breadcrumb-resource-response 
+                    </ul>
+                </xsl:result-document>
 
+                <xsl:variable name="context" as="map(*)" select="
+                  map{
+                    'response': $response,
+                    'container': id('external-breadcrumb-nav', ixsl:page()),
+                    'uri': $uri,
+                    'leaf': true()
+                  }"/>
+                <xsl:sequence select="ldh:breadcrumb-resource-response($context)"/>
+            </xsl:if>-->
+            
             <!-- checking acl:mode here because this template is called after every document load (also the initial load) and has access to ?headers -->
             <!-- set LinkedDataHub.acl-modes objects which are later used by the acl:mode function -->
             <!-- doing it here because this template is called after every document load (also the initial load) and has access to ?headers -->
