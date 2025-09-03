@@ -67,7 +67,7 @@ exclude-result-prefixes="#all"
     </xsl:function>
     
     <xsl:function name="ac:mode" as="xs:anyURI*">
-        <xsl:variable name="nav-tab-class" select="id('layout-modes')/li[contains-token(@class, 'active')]/@class" as="xs:string"/>
+        <xsl:variable name="nav-tab-class" select="id('layout-modes', ixsl:page())/li[contains-token(@class, 'active')]/@class" as="xs:string"/>
         <xsl:variable name="mode-classes" as="map(xs:string, xs:string)">
             <xsl:map>
                 <xsl:map-entry key="'content-mode'" select="'&ldh;ContentMode'"/>
