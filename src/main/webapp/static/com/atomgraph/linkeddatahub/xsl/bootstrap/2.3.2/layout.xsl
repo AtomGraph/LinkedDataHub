@@ -637,7 +637,10 @@ LIMIT   100
             </xsl:if>
             
             <div class="row-fluid">
-                <xsl:apply-templates select="." mode="bs2:BreadCrumbBar"/>
+                <xsl:apply-templates select="." mode="bs2:BreadCrumbBar">
+                    <xsl:with-param name="id" select="'breadcrumb-nav'"/>
+                    <xsl:with-param name="uri" select="ac:absolute-path(ldh:base-uri(.))"/>
+                </xsl:apply-templates>
                 
                 <div id="doc-controls" class="span4">
                     <xsl:apply-templates select="key('resources', ac:absolute-path(ldh:base-uri(.)))" mode="bs2:Timestamp"/>
@@ -664,15 +667,18 @@ LIMIT   100
                 <xsl:attribute name="class" select="$class"/>
             </xsl:if>
             
-            <xsl:apply-templates select="." mode="bs2:MediaTypeList"/>
+            <xsl:apply-templates select="." mode="bs2:MediaTypeList">
+                <xsl:with-param name="uri" select="ac:absolute-path(ldh:base-uri(.))"/>
+            </xsl:apply-templates>
 
             <xsl:apply-templates select="." mode="bs2:NavBarActions"/>
         </div>
     </xsl:template>
     
     <xsl:template match="rdf:RDF" mode="bs2:BreadCrumbBar">
-        <xsl:param name="id" select="'breadcrumb-nav'" as="xs:string?"/>
+        <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="class" select="'span8'" as="xs:string?"/>
+        <xsl:param name="uri" as="xs:string?"/>
 
         <div>
             <xsl:if test="$id">
@@ -687,7 +693,7 @@ LIMIT   100
             <xsl:if test="not($ldh:ajaxRendering)">
                 <ul class="breadcrumb pull-left">
                     <!-- render breadcrumbs server-side -->
-                    <xsl:apply-templates select="key('resources', ac:absolute-path(ldh:base-uri(.)))" mode="bs2:BreadCrumbListItem"/>
+                    <xsl:apply-templates select="key('resources', $uri)" mode="bs2:BreadCrumbListItem"/>
                 </ul>
             </xsl:if>
         </div>
@@ -1051,6 +1057,8 @@ LIMIT   100
     <!-- MEDIA TYPE LIST  -->
         
     <xsl:template match="rdf:RDF | srx:sparql" mode="bs2:MediaTypeList" priority="1">
+        <xsl:param name="uri" as="xs:anyURI"/>
+        
         <div class="btn-group pull-right">
             <button type="button" id="export-rdf" title="{ac:label(key('resources', 'nav-bar-action-export-rdf-title', document('translations.rdf')))}">
                 <xsl:apply-templates select="key('resources', '&ac;Export', document(ac:document-uri('&ac;')))" mode="ldh:logo">
@@ -1063,15 +1071,15 @@ LIMIT   100
             </button>
             <ul class="dropdown-menu">
                 <li>
-                    <xsl:variable name="href" select="ac:build-uri(ac:absolute-path(ldh:request-uri()), let $params := map{ 'accept': 'application/rdf+xml' } return if (not(starts-with(ac:absolute-path(ldh:base-uri(.)), $ldt:base))) then map:merge(($params, map{ 'uri': string(ldh:base-uri(.)) })) else $params)" as="xs:anyURI"/>
+                    <xsl:variable name="href" select="ac:build-uri(ac:absolute-path(ldh:request-uri()), let $params := map{ 'accept': 'application/rdf+xml' } return if (not(starts-with(ac:absolute-path(ldh:base-uri(.)), $ldt:base))) then map:merge(($params, map{ 'uri': string($uri) })) else $params)" as="xs:anyURI"/>
                     <a href="{$href}" title="application/rdf+xml" target="_blank">RDF/XML</a>
                 </li>
                 <li>
-                    <xsl:variable name="href" select="ac:build-uri(ac:absolute-path(ldh:request-uri()), let $params := map{ 'accept': 'text/turtle' } return if (not(starts-with(ac:absolute-path(ldh:base-uri(.)), $ldt:base))) then map:merge(($params, map{ 'uri': string(ldh:base-uri(.)) })) else $params)" as="xs:anyURI"/>
+                    <xsl:variable name="href" select="ac:build-uri(ac:absolute-path(ldh:request-uri()), let $params := map{ 'accept': 'text/turtle' } return if (not(starts-with(ac:absolute-path(ldh:base-uri(.)), $ldt:base))) then map:merge(($params, map{ 'uri': string($uri) })) else $params)" as="xs:anyURI"/>
                     <a href="{$href}" title="text/turtle" target="_blank">Turtle</a>
                 </li>
                 <li>
-                    <xsl:variable name="href" select="ac:build-uri(ac:absolute-path(ldh:request-uri()), let $params := map{ 'accept': 'application/ld+json' } return if (not(starts-with(ac:absolute-path(ldh:base-uri(.)), $ldt:base))) then map:merge(($params, map{ 'uri': string(ldh:base-uri(.)) })) else $params)" as="xs:anyURI"/>
+                    <xsl:variable name="href" select="ac:build-uri(ac:absolute-path(ldh:request-uri()), let $params := map{ 'accept': 'application/ld+json' } return if (not(starts-with(ac:absolute-path(ldh:base-uri(.)), $ldt:base))) then map:merge(($params, map{ 'uri': string($uri) })) else $params)" as="xs:anyURI"/>
                     <a href="{$href}" title="application/ld+json" target="_blank">JSON-LD</a>
                 </li>
             </ul>
@@ -1147,7 +1155,7 @@ LIMIT   100
                     <xsl:apply-templates select="key('resources', '&ac;Delete', document(ac:document-uri('&ac;')))" mode="ac:label"/>
                 </button>
             </div>
-
+            
             <xsl:if test="$ldh:ajaxRendering">
                 <div class="pull-right">
                     <button type="button" title="{ac:label(key('resources', 'save-as-title', document('translations.rdf')))}">

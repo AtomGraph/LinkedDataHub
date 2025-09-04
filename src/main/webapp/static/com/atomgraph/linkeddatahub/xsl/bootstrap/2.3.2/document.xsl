@@ -301,7 +301,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="method" select="'post'" as="xs:string"/>
         <xsl:param name="doc-type" select="xs:anyURI('&dh;Item')" as="xs:anyURI"/>
         <xsl:param name="type" select="xs:anyURI('&ldh;GraphChart')" as="xs:anyURI"/>
-        <xsl:param name="action" select="ac:build-uri(resolve-uri('charts/', $ldt:base), map{ 'forClass': string($type) })" as="xs:anyURI"/>
+        <xsl:param name="action" select="ac:build-uri(resolve-uri('charts/', $ldt:base), map{ 'forClass': string($type) })" as="xs:anyURI" tunnel="yes"/>
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="class" select="'form-horizontal'" as="xs:string?"/>
         <xsl:param name="button-class" select="'btn'" as="xs:string?"/>
@@ -467,7 +467,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="method" select="'post'" as="xs:string"/>
         <xsl:param name="doc-type" select="xs:anyURI('&dh;Item')" as="xs:anyURI"/>
         <xsl:param name="type" select="xs:anyURI('&ldh;ResultSetChart')" as="xs:anyURI"/>
-        <xsl:param name="action" select="ac:build-uri(resolve-uri('charts/', $ldt:base), map{ 'forClass': string($type) })" as="xs:anyURI"/>
+        <xsl:param name="action" select="ac:build-uri(resolve-uri('charts/', $ldt:base), map{ 'forClass': string($type) })" as="xs:anyURI" tunnel="yes"/>
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="class" select="'form-horizontal'" as="xs:string?"/>
         <xsl:param name="button-class" select="'btn'" as="xs:string?"/>
@@ -679,7 +679,7 @@ extension-element-prefixes="ixsl"
     <xsl:template match="rdf:RDF" mode="bs2:Form">
         <xsl:param name="method" select="'post'" as="xs:string"/>
         <xsl:param name="base-uri" select="ldh:base-uri(.)" as="xs:anyURI" tunnel="yes"/>
-        <xsl:param name="action" select="ldh:href(ac:absolute-path($base-uri))" as="xs:anyURI"/>
+        <xsl:param name="action" select="ldh:href(ac:absolute-path($base-uri))" as="xs:anyURI" tunnel="yes"/>
         <xsl:param name="id" select="concat('form-', generate-id())" as="xs:string?"/>
         <xsl:param name="class" select="'form-horizontal'" as="xs:string?"/>
         <xsl:param name="form-actions-class" select="'form-actions'" as="xs:string?"/>

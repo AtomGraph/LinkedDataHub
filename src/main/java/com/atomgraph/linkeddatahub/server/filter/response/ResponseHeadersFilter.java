@@ -23,6 +23,7 @@ import com.atomgraph.core.vocabulary.SD;
 import com.atomgraph.linkeddatahub.apps.model.Application;
 import com.atomgraph.linkeddatahub.apps.model.Dataset;
 import com.atomgraph.linkeddatahub.model.auth.Agent;
+import com.atomgraph.linkeddatahub.server.model.impl.Dispatcher;
 import com.atomgraph.linkeddatahub.server.security.AuthorizationContext;
 import com.atomgraph.linkeddatahub.vocabulary.ACL;
 import java.io.IOException;
@@ -77,27 +78,17 @@ public class ResponseHeadersFilter implements ContainerResponseFilter
         List<Object> linkValues = response.getHeaders().get(HttpHeaders.LINK);
         List<Link> links = parseLinkHeaderValues(linkValues);
         
-        // check whether Link rel=ldt:base is not already set. Link headers might be forwarded by ProxyResourceBase
-        if (getLinksByRel(links, LDT.base.getURI()).isEmpty())
-        {
-            // add Link rel=ldt:base
-            response.getHeaders().add(HttpHeaders.LINK, new Link(getApplication().getBaseURI(), LDT.base.getURI(), null));
+        if (getLinksByRel(links, SD.endpoint.getURI()).isEmpty())
             // add Link rel=sd:endpoint.
             // TO-DO: The external SPARQL endpoint URL is different from the internal one currently specified as sd:endpoint in the context dataset
-            response.getHeaders().add(HttpHeaders.LINK, new Link(request.getUriInfo().getBaseUriBuilder().path("sparql").build(), SD.endpoint.getURI(), null));
-            // add Link rel=ldt:ontology, if the ontology URI is specified
-            if (getApplication().getOntology() != null)
-                response.getHeaders().add(HttpHeaders.LINK, new Link(URI.create(getApplication().getOntology().getURI()), LDT.ontology.getURI(), null));
-            // add Link rel=ac:stylesheet, if the stylesheet URI is specified
-            if (getApplication().getStylesheet() != null)
-                response.getHeaders().add(HttpHeaders.LINK, new Link(URI.create(getApplication().getStylesheet().getURI()), AC.stylesheet.getURI(), null));
-        }
-        else
-        {
-            // add Link rel=sd:endpoint.
-            if (getLinksByRel(links, SD.endpoint.getURI()).isEmpty() && getDataset().isPresent() && getDataset().get().getService() != null)
-                response.getHeaders().add(HttpHeaders.LINK, new Link(URI.create(getDataset().get().getService().getSPARQLEndpoint().getURI()), SD.endpoint.getURI(), null));
-        }
+            response.getHeaders().add(HttpHeaders.LINK, new Link(request.getUriInfo().getBaseUriBuilder().path(Dispatcher.class, "getSPARQLEndpoint").build(), SD.endpoint.getURI(), null));
+
+        // add Link rel=ldt:ontology, if the ontology URI is specified
+        if (getApplication().getOntology() != null)
+            response.getHeaders().add(HttpHeaders.LINK, new Link(URI.create(getApplication().getOntology().getURI()), LDT.ontology.getURI(), null));
+        // add Link rel=ac:stylesheet, if the stylesheet URI is specified
+        if (getApplication().getStylesheet() != null)
+            response.getHeaders().add(HttpHeaders.LINK, new Link(URI.create(getApplication().getStylesheet().getURI()), AC.stylesheet.getURI(), null));
         
         if (response.getHeaders().get(HttpHeaders.LINK) != null)
         {

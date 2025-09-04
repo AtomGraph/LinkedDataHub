@@ -566,11 +566,15 @@ exclude-result-prefixes="#all"
 
     <!-- FORM CONTROL -->
     
-    <xsl:template match="*[rdf:type/@rdf:resource = ('&dh;Container', '&dh;Item')]/@rdf:about" mode="bs2:FormControl" priority="1">
+    <!-- change constructed blank node input to URI input -->
+    <xsl:template match="*[rdf:type/@rdf:resource = ('&dh;Container', '&dh;Item')]/@rdf:nodeID" mode="bs2:FormControl" priority="1">
         <xsl:param name="type" select="'text'" as="xs:string"/>
         <xsl:param name="id" select="generate-id()" as="xs:string"/>
         <xsl:param name="class" select="'subject-slug input-xxlarge'" as="xs:string?"/>
         <xsl:param name="disabled" select="false()" as="xs:boolean"/>
+        <xsl:param name="action" tunnel="yes"/>
+        <!-- cut slug segment from form action URL -->
+        <xsl:param name="slug" select="substring-before(substring-after($action, ac:absolute-path(ldh:base-uri(.))), '/')" as="xs:string"/>
 
         <div class="control-group">
             <xsl:if test="$type = 'hidden'">
@@ -584,17 +588,16 @@ exclude-result-prefixes="#all"
             </span>
             <div class="controls">
                 <span class="input-prepend input-append">
-                    <input type="hidden" name="su" value="{.}"/>
+                    <input type="hidden" name="su" value="{$action}"/>
                     
                     <span class="add-on">
                         <xsl:value-of select="ac:absolute-path(ldh:base-uri(.))"/>
                     </span>
                     
                     <xsl:call-template name="xhtml:Input">
-                        <!-- <xsl:with-param name="name" select="'su'"/> -->
                         <xsl:with-param name="type" select="'text'"/>
                         <!-- <xsl:with-param name="id" select="$id"/> -->
-                        <xsl:with-param name="value" select="substring-before(substring-after(., ac:absolute-path(ldh:base-uri(.))), '/')"/>
+                        <xsl:with-param name="value" select="$slug"/>
                         <xsl:with-param name="class" select="$class"/>
                         <xsl:with-param name="disabled" select="$disabled"/>
                     </xsl:call-template>
