@@ -668,7 +668,7 @@ LIMIT   100
             </xsl:if>
             
             <xsl:apply-templates select="." mode="bs2:MediaTypeList">
-                <xsl:with-param name="uri" select="ac:absolute-path(ldh:request-uri())"/>
+                <xsl:with-param name="uri" select="ac:absolute-path(ldh:base-uri(.))"/>
             </xsl:apply-templates>
 
             <xsl:apply-templates select="." mode="bs2:NavBarActions"/>
