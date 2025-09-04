@@ -71,7 +71,7 @@ exclude-result-prefixes="#all">
         <xsl:apply-templates select="ldh:construct(map{ xs:anyURI('&foaf;Person'): $constructors//srx:result[srx:binding[@name = 'Type'] = '&foaf;Person']/srx:binding[@name = 'construct']/srx:literal/string() })" mode="bs2:RowForm">
             <xsl:with-param name="id" select="'form-signup'"/>
             <xsl:with-param name="method" select="'post'"/> <!-- don't use PATCH which is the default -->
-            <xsl:with-param name="action" select="ac:absolute-path(base-uri($main-doc))"/>
+            <xsl:with-param name="action" select="ac:absolute-path(base-uri($main-doc))" tunnel="yes"/>
             <xsl:with-param name="enctype" select="()"/> <!-- don't use 'multipart/form-data' which is the default -->
             <xsl:with-param name="create-resource" select="false()"/>
             <xsl:with-param name="base-uri" select="ac:absolute-path(base-uri($main-doc))" tunnel="yes"/> <!-- base-uri() is empty on constructed documents -->

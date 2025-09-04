@@ -64,7 +64,7 @@ exclude-result-prefixes="#all">
 
     <xsl:template match="*[rdf:type/@rdf:resource = '&lacl;AuthorizationRequest']" priority="1">
         <xsl:param name="method" select="'post'" as="xs:string"/>
-        <xsl:param name="action" select="ldh:href(resolve-uri(ac:uuid() || '/', resolve-uri('acl/authorizations/', $ldt:base)), map{ '_method': 'PUT' })" as="xs:anyURI"/> <!-- create new authorization document -->
+        <xsl:param name="action" select="ldh:href(resolve-uri(ac:uuid() || '/', resolve-uri('acl/authorizations/', $ldt:base)), map{ '_method': 'PUT' })" as="xs:anyURI" tunnel="yes"/> <!-- create new authorization document -->
         <xsl:param name="id" select="concat('form-', generate-id())" as="xs:string?"/>
         <xsl:param name="class" select="'form-horizontal'" as="xs:string?"/>
         <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>

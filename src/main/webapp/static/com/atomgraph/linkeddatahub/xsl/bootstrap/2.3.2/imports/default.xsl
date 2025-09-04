@@ -572,7 +572,9 @@ exclude-result-prefixes="#all"
         <xsl:param name="id" select="generate-id()" as="xs:string"/>
         <xsl:param name="class" select="'subject-slug input-xxlarge'" as="xs:string?"/>
         <xsl:param name="disabled" select="false()" as="xs:boolean"/>
-        <xsl:param name="slug" select="ac:uuid()" as="xs:string"/>
+        <xsl:param name="action" tunnel="yes"/>
+        <!-- cut slug segment from form action URL -->
+        <xsl:param name="slug" select="substring-before(substring-after($action, ac:absolute-path(ldh:base-uri(.))), '/')" as="xs:string"/>
 
         <div class="control-group">
             <xsl:if test="$type = 'hidden'">
@@ -586,7 +588,7 @@ exclude-result-prefixes="#all"
             </span>
             <div class="controls">
                 <span class="input-prepend input-append">
-                    <input type="hidden" name="su" value="{ac:absolute-path(ldh:base-uri(.)) || encode-for-uri($slug) || '/'}"/>
+                    <input type="hidden" name="su" value="{$action}"/>
                     
                     <span class="add-on">
                         <xsl:value-of select="ac:absolute-path(ldh:base-uri(.))"/>

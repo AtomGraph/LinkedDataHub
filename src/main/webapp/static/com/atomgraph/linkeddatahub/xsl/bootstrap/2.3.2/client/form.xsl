@@ -518,7 +518,7 @@ WHERE
                 <xsl:apply-templates select="$document" mode="bs2:Form"> <!-- document level template -->
                     <xsl:with-param name="about" select="()"/> <!-- don't set @about on the container until after the resource is saved -->
                     <xsl:with-param name="method" select="$method"/>
-                    <xsl:with-param name="action" select="$action"/>
+                    <xsl:with-param name="action" select="$action" tunnel="yes"/>
                     <xsl:with-param name="form-actions-class" select="'form-actions modal-footer'"/>
                     <xsl:with-param name="classes" select="()"/>
                     <xsl:with-param name="type-metadata" select="$type-metadata" tunnel="yes"/>
@@ -1049,7 +1049,7 @@ WHERE
                     <xsl:apply-templates select="." mode="bs2:Form"> <!-- document level template -->
                         <xsl:with-param name="about" select="()"/> <!-- don't set @about on the container until after the resource is saved -->
                         <xsl:with-param name="method" select="$form/@method"/>
-                        <xsl:with-param name="action" select="$form/@action" as="xs:anyURI"/>
+                        <xsl:with-param name="action" select="$form/@action" as="xs:anyURI" tunnel="yes"/>
                         <xsl:with-param name="form-actions-class" select="'form-actions modal-footer'" as="xs:string?"/>
                         <xsl:with-param name="classes" select="()"/>
                         <xsl:with-param name="type-metadata" select="$type-metadata" tunnel="yes"/>
@@ -1221,7 +1221,7 @@ WHERE
                 <xsl:apply-templates select="$constructed-doc" mode="bs2:Form"> <!-- document level template -->
                     <xsl:with-param name="about" select="()"/> <!-- don't set @about on the container until after the resource is saved -->
                     <xsl:with-param name="method" select="'put'"/>
-                    <xsl:with-param name="action" select="ldh:href($doc-uri, map{})" as="xs:anyURI"/>
+                    <xsl:with-param name="action" select="ldh:href($doc-uri)" as="xs:anyURI" tunnel="yes"/>
                     <xsl:with-param name="form-actions-class" select="'form-actions modal-footer'" as="xs:string?"/>
                     <xsl:with-param name="classes" select="$classes"/>
                     <xsl:with-param name="type-metadata" select="$type-metadata" tunnel="yes"/>
@@ -1317,7 +1317,7 @@ WHERE
             <xsl:apply-templates select="$constructed-doc" mode="bs2:RowForm">
                 <xsl:with-param name="about" select="()"/> <!-- don't set @about on the container until after the resource is saved -->
                 <xsl:with-param name="method" select="$method"/>
-                <xsl:with-param name="action" select="ldh:href($doc-uri, map{})" as="xs:anyURI"/>
+                <xsl:with-param name="action" select="ldh:href($doc-uri)" as="xs:anyURI" tunnel="yes"/>
                 <xsl:with-param name="type-metadata" select="$type-metadata" tunnel="yes"/>
                 <xsl:with-param name="property-metadata" select="$property-metadata" tunnel="yes"/>
                 <xsl:with-param name="constructor" select="$constructed-doc" tunnel="yes"/>
@@ -1578,7 +1578,7 @@ WHERE
 
                 <xsl:apply-templates select="$resource" mode="bs2:Form">
                     <xsl:with-param name="method" select="'post'"/>
-                    <xsl:with-param name="action" select="ldh:href($doc-uri, map{})" as="xs:anyURI"/>
+                    <xsl:with-param name="action" select="ldh:href($doc-uri)" as="xs:anyURI" tunnel="yes"/>
                     <xsl:with-param name="classes" select="$classes"/>
                     <xsl:with-param name="type-metadata" select="$type-metadata" tunnel="yes"/>
                     <xsl:with-param name="property-metadata" select="$property-metadata" tunnel="yes"/>

@@ -771,61 +771,6 @@ WHERE
         <xsl:sequence select="$context"/>
     </xsl:function>
     
-    <xsl:template name="ldh:DocumentLoaded">
-        <xsl:context-item as="map(*)" use="required"/>
-        <xsl:param name="href" as="xs:anyURI?"/> <!-- absolute URI! -->
-        <xsl:param name="service-uri" select="if (id('search-service', ixsl:page())) then xs:anyURI(ixsl:get(id('search-service', ixsl:page()), 'value')) else ()" as="xs:anyURI?"/>
-        <xsl:param name="service" select="if ($service-uri) then key('resources', $service-uri, document(ac:build-uri(ac:document-uri($service-uri), map{ 'accept': 'application/rdf+xml' }))) else ()" as="element()?"/> <!-- TO-DO: refactor asynchronously -->
-        <xsl:param name="push-state" select="true()" as="xs:boolean"/>
-        <xsl:param name="refresh-content" as="xs:boolean?"/>
-
-        <!-- set #uri value -->
-        <xsl:for-each select="id('uri', ixsl:page())">
-            <ixsl:set-property name="value" select="if (not(starts-with($href, $ldt:base))) then $href else ()" object="."/>
-        </xsl:for-each>
-        
-        <xsl:variable name="response" select="." as="map(*)"/>
-        <xsl:choose>
-            <xsl:when test="?status = 0">
-                <!-- HTTP request was terminated - do nothing -->
-            </xsl:when>
-            <xsl:when test="starts-with(?media-type, 'application/xhtml+xml')">
-                <xsl:variable name="endpoint-link" select="tokenize(?headers?link, ',')[contains(., '&sd;endpoint')]" as="xs:string?"/>
-                <xsl:variable name="endpoint" select="if ($endpoint-link) then xs:anyURI(substring-before(substring-after(substring-before($endpoint-link, ';'), '&lt;'), '&gt;')) else ()" as="xs:anyURI?"/>
-                <xsl:variable name="base" select="ldh:origin($href)" as="xs:anyURI"/>
-                <xsl:if test="not($base = ldt:base())">
-                    <xsl:message>Application change. Base URI: <xsl:value-of select="$base"/></xsl:message>
-                    <xsl:call-template name="ldt:AppChanged">
-                        <xsl:with-param name="base" select="$base"/>
-                    </xsl:call-template>
-                </xsl:if>
-
-                <xsl:apply-templates select="?body" mode="ldh:HTMLDocumentLoaded">
-                    <xsl:with-param name="href" select="$href"/>
-                    <xsl:with-param name="endpoint" select="$endpoint"/>
-                    <xsl:with-param name="container" select="id($body-id, ixsl:page())"/>
-                    <xsl:with-param name="push-state" select="$push-state"/>
-                    <xsl:with-param name="refresh-content" select="$refresh-content"/>
-                </xsl:apply-templates>
-            </xsl:when>
-            <xsl:otherwise>
-                <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
-                
-                <!-- error response - could not load document -->
-                <xsl:result-document href="#content-body" method="ixsl:replace-content">
-                    <div class="alert alert-block">
-                        <strong>Error loading XHTML document</strong>
-                        <xsl:if test="$response?message">
-                            <pre>
-                                <xsl:value-of select="$response?message"/>
-                            </pre>
-                        </xsl:if>
-                    </div>
-                </xsl:result-document>
-            </xsl:otherwise>
-        </xsl:choose>
-    </xsl:template>
-    
     <!-- cannot be a named template because overriding templates need to be able to call xsl:next-match (cannot use xsl:origin with Saxon-JS because of XSLT 3.0 packages) -->
     <xsl:template match="/" mode="ldh:HTMLDocumentLoaded">
         <xsl:param name="href" select="ldh:base-uri(.)" as="xs:anyURI"/> <!-- possibly proxied URL -->

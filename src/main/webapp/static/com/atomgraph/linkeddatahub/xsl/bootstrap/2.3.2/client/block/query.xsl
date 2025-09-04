@@ -511,7 +511,7 @@ exclude-result-prefixes="#all"
 
                 <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
-                <!-- abort the previous request, if any -->
+<!--                 abort the previous request, if any 
                 <xsl:if test="ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub'), 'request')">
                     <xsl:message>Aborting HTTP request that has already been sent</xsl:message>
                     <xsl:sequence select="ixsl:call(ixsl:get(ixsl:window(), 'LinkedDataHub.request'), 'abort', [])"/>
@@ -525,8 +525,22 @@ exclude-result-prefixes="#all"
                     </ixsl:schedule-action>
                 </xsl:variable>
 
-                <!-- store the new request object -->
-                <ixsl:set-property name="request" select="$request" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+                 store the new request object 
+                <ixsl:set-property name="request" select="$request" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>-->
+                
+                <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $href, 'headers': map{ 'Accept': 'application/xhtml+xml' } }" as="map(*)"/>
+                <xsl:variable name="context" select="
+                  map{
+                    'request': $request,
+                    'href': $href,
+                    'push-state': true()
+                  }" as="map(*)"/>
+                <ixsl:promise select="
+                  ixsl:http-request($context('request'))
+                    => ixsl:then(ldh:rethread-response($context, ?))
+                    => ixsl:then(ldh:handle-response#1)
+                    => ixsl:then(ldh:xhtml-document-loaded#1)
+                " on-failure="ldh:promise-failure#1"/>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
