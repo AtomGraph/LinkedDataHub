@@ -25,7 +25,6 @@ body.embed { padding-top: 0; }
 .action-bar #doc-controls { text-align: right; padding-top: 5px; }
 .action-bar #doc-controls .btn-edit { margin-top: -5px; margin-left: 10px; }
 .action-bar p.alert { margin-bottom: 0; }
-.action-bar.external-bar { background-color: rgb(238, 238, 238); }
 .nav-header.btn { color: inherit; }
 ul.dropdown-menu { max-height: 26em; overflow-x: hidden; overflow-y: auto; }
 ul.dropdown-menu ul { margin: 0; }

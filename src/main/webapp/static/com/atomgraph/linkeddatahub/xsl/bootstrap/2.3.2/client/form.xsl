@@ -328,7 +328,7 @@ WHERE
         <xsl:variable name="block" select="id($block-id, ixsl:page())" as="element()"/>
         
         <!-- if the URI is external, dereference it through the proxy -->
-        <xsl:variable name="request-uri" select="ldh:href(ac:absolute-path(ldh:base-uri(.)), map{})" as="xs:anyURI"/>
+        <xsl:variable name="request-uri" select="ldh:href($about)" as="xs:anyURI"/>
         <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
         <xsl:variable name="context" as="map(*)" select="
           map{
@@ -980,31 +980,6 @@ WHERE
             <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
         </xsl:for-each>
     </xsl:function>
-
-    <xsl:function name="ldh:modal-form-submit-success" ixsl:updating="yes">
-        <xsl:param name="context" as="map(*)"/>
-        <xsl:variable name="response" select="$context('response')" as="map(*)"/>
-
-        <xsl:message>ldh:modal-form-submit-success</xsl:message>
-
-        <xsl:for-each select="$response">
-            <xsl:variable name="href" select="ac:absolute-path(xs:anyURI(ixsl:location()))" as="xs:anyURI"/> <!-- TO-DO: pass $context?base-uri -->
-            <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $href, 'headers': map{ 'Accept': 'application/xhtml+xml' } }" as="map(*)"/>
-            <xsl:variable name="context" select="map:merge((
-              $context,
-              map{
-                'request': $request,
-                'href': $href
-              }
-            ), map{ 'duplicates': 'use-last' })" as="map(*)"/>  
-            <ixsl:promise select="
-              ixsl:http-request($context('request'))
-                => ixsl:then(ldh:rethread-response($context, ?))
-                => ixsl:then(ldh:handle-response#1)
-                => ixsl:then(ldh:xhtml-document-loaded#1)
-           " on-failure="ldh:promise-failure#1"/>
-        </xsl:for-each>        
-    </xsl:function>
     
     <xsl:function name="ldh:form-submit-created" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
@@ -1018,7 +993,8 @@ WHERE
             <xsl:variable name="context" as="map(*)" select="
               map{
                 'request': $request,
-                'href': $href
+                'href': $href,
+                'push-state': true()
               }"/>
             <ixsl:promise select="
               ixsl:http-request($context('request'))

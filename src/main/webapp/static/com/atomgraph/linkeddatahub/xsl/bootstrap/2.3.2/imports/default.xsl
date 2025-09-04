@@ -330,7 +330,7 @@ exclude-result-prefixes="#all"
     <!-- SET DOCUMENT URI -->
     
     <!-- resource has to have properties other than rdf:type -->
-    <xsl:template match="rdf:Description[@rdf:nodeID][* except rdf:type]" mode="ldh:SetResourceID" priority="1">
+<!--    <xsl:template match="rdf:Description[@rdf:nodeID][* except rdf:type]" mode="ldh:SetResourceID" priority="1">
         <xsl:param name="forClass" as="xs:anyURI" tunnel="yes"/>
         <xsl:param name="about" as="xs:anyURI?" tunnel="yes"/>
         <xsl:param name="nodeID" as="xs:string?" tunnel="yes"/>
@@ -340,7 +340,7 @@ exclude-result-prefixes="#all"
                 <xsl:when test="rdf:type/@rdf:resource = $forClass">
                     <xsl:choose>
                         <xsl:when test="$about">
-                            <xsl:attribute name="rdf:about" select="$about"/> <!-- suppress @rdf:nodeID -->
+                            <xsl:attribute name="rdf:about" select="$about"/>  suppress @rdf:nodeID 
                         </xsl:when>
                         <xsl:when test="$nodeID">
                             <xsl:attribute name="rdf:nodeID" select="$nodeID"/>
@@ -354,7 +354,7 @@ exclude-result-prefixes="#all"
                 </xsl:otherwise>
             </xsl:choose>
         </xsl:copy>
-    </xsl:template>
+    </xsl:template>-->
 
     <!-- identity transform -->
     <xsl:template match="@* | node()" mode="ldh:SetResourceID">
@@ -566,7 +566,8 @@ exclude-result-prefixes="#all"
 
     <!-- FORM CONTROL -->
     
-    <xsl:template match="*[rdf:type/@rdf:resource = ('&dh;Container', '&dh;Item')]/@rdf:about" mode="bs2:FormControl" priority="1">
+    <!-- chang constructed blank node input to URI input -->
+    <xsl:template match="*[rdf:type/@rdf:resource = ('&dh;Container', '&dh;Item')]/@rdf:nodeID" mode="bs2:FormControl" priority="1">
         <xsl:param name="type" select="'text'" as="xs:string"/>
         <xsl:param name="id" select="generate-id()" as="xs:string"/>
         <xsl:param name="class" select="'subject-slug input-xxlarge'" as="xs:string?"/>
@@ -591,7 +592,6 @@ exclude-result-prefixes="#all"
                     </span>
                     
                     <xsl:call-template name="xhtml:Input">
-                        <!-- <xsl:with-param name="name" select="'su'"/> -->
                         <xsl:with-param name="type" select="'text'"/>
                         <!-- <xsl:with-param name="id" select="$id"/> -->
                         <xsl:with-param name="value" select="substring-before(substring-after(., ac:absolute-path(ldh:base-uri(.))), '/')"/>
