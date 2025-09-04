@@ -262,7 +262,6 @@ WHERE
     <xsl:template match="div[@about]//button[contains-token(@class, 'btn-edit')][not(contains-token(@class, 'disabled'))]" mode="ixsl:onclick">
         <xsl:param name="block" select="ancestor::div[contains-token(@class, 'block')][1]" as="element()"/>
         <xsl:param name="about" select="$block/@about" as="xs:anyURI"/>
-<!--        <xsl:param name="graph" as="xs:anyURI?"/>-->
 
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
@@ -1199,15 +1198,6 @@ WHERE
         <xsl:variable name="constructed-doc" select="ldh:construct-forClass($forClass)" as="document-node()"/>
         <xsl:variable name="doc-uri" select="resolve-uri(ac:uuid() || '/', ac:absolute-path(ldh:base-uri(.)))" as="xs:anyURI"/> <!-- build a relative URI for the child document -->
         <xsl:variable name="this" select="$doc-uri" as="xs:anyURI"/>
-        <!-- set document URI instead of blank node -->
-        <xsl:variable name="constructed-doc" as="document-node()">
-            <xsl:document>
-                <xsl:apply-templates select="$constructed-doc" mode="ldh:SetResourceID">
-                    <xsl:with-param name="forClass" select="$forClass" tunnel="yes"/>
-                    <xsl:with-param name="about" select="$this" tunnel="yes"/>
-                </xsl:apply-templates>
-            </xsl:document>
-        </xsl:variable>
         <xsl:variable name="classes" select="()" as="element()*"/>
 
         <xsl:for-each select="$content-body">
