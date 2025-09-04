@@ -488,53 +488,42 @@ WHERE
         <xsl:variable name="refresh-content" select="$context('refresh-content')" as="xs:boolean?"/>
 
         <xsl:for-each select="$response">
-            <!-- load breadcrumbs for the local document -->
-            <!-- cannot reuse $response because we don't know if it was a local or external document -->
+            <!-- load breadcrumbs -->
             <xsl:if test="id('breadcrumb-nav', ixsl:page())">
                 <xsl:result-document href="#breadcrumb-nav" method="ixsl:replace-content">
+                    <!-- show label if the resource is external -->
+                    <xsl:if test="not(starts-with($uri, $ldt:base))">
+                        <xsl:variable name="app" select="ldh:match-app($uri, ixsl:get(ixsl:window(), 'LinkedDataHub.apps'))" as="element()?"/>
+                        <xsl:choose>
+                            <!-- if a known app matches $uri, show link to its ldt:base -->
+                            <xsl:when test="$app">
+                                <a href="{$app/ldt:base/@rdf:resource}" class="label label-info pull-left">
+                                    <xsl:apply-templates select="$app" mode="ac:label"/>
+                                </a>
+                            </xsl:when>
+                            <!-- otherwise show just a label with the hostname -->
+                            <xsl:otherwise>
+                                <xsl:variable name="hostname" select="tokenize(substring-after($uri, '://'), '/')[1]" as="xs:string"/>
+                                <span class="label label-info pull-left">
+                                    <xsl:value-of select="$hostname"/>
+                                </span>
+                            </xsl:otherwise>
+                        </xsl:choose>
+                    </xsl:if>
+                    
                     <ul class="breadcrumb pull-left">
                         <!-- list items will be injected by ldh:breadcrumb-resource-response -->
                     </ul>
                 </xsl:result-document>
 
-                <xsl:variable name="request-uri" select="ldh:href(ac:absolute-path(ldh:request-uri()))" as="xs:anyURI"/>
-                <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
                 <xsl:variable name="context" as="map(*)" select="
                   map{
-                    'request': $request,
+                    'response': $response,
                     'container': id('breadcrumb-nav', ixsl:page()),
-                    'uri': ac:absolute-path(ldh:request-uri()),
-                    'leaf': true()
-                  }"/>
-                <ixsl:promise select="ixsl:http-request($context('request')) =>
-                    ixsl:then(ldh:rethread-response($context, ?)) =>
-                    ixsl:then(ldh:handle-response#1) =>
-                    ixsl:then(ldh:breadcrumb-resource-response#1)"
-                    on-failure="ldh:promise-failure#1"/>
-            </xsl:if>
-            <!--  load breadcrumbs for for external URIs -->
-            <xsl:if test="id('external-breadcrumb-nav', ixsl:page())">
-                <xsl:result-document href="#external-breadcrumb-nav" method="ixsl:replace-content">
-                    <ul class="breadcrumb pull-left">
-                        <!-- list items will be injected by ldh:breadcrumb-resource-response -->
-                    </ul>
-                </xsl:result-document>
-
-                <!-- since the URI is external, dereference it through the proxy -->
-                <xsl:variable name="request-uri" select="ldh:href(ac:document-uri($uri))" as="xs:anyURI"/>
-                <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
-                <xsl:variable name="context" as="map(*)" select="
-                  map{
-                    'request': $request,
-                    'container': id('external-breadcrumb-nav', ixsl:page()),
                     'uri': $uri,
                     'leaf': true()
                   }"/>
-                <ixsl:promise select="ixsl:http-request($context('request')) =>
-                    ixsl:then(ldh:rethread-response($context, ?)) =>
-                    ixsl:then(ldh:handle-response#1) =>
-                    ixsl:then(ldh:breadcrumb-resource-response#1)"
-                    on-failure="ldh:promise-failure#1"/>
+                <xsl:sequence select="ldh:breadcrumb-resource-response($context)"/>
             </xsl:if>
         
             <!-- checking acl:mode here because this template is called after every document load (also the initial load) and has access to ?headers -->
