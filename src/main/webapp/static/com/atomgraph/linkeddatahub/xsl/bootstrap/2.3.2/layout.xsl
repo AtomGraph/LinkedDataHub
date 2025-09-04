@@ -1156,6 +1156,22 @@ LIMIT   100
                 </button>
             </div>
             
+            <xsl:if test="$ldh:ajaxRendering">
+                <div class="pull-right">
+                    <button type="button" title="{ac:label(key('resources', 'save-as-title', document('translations.rdf')))}">
+                        <xsl:apply-templates select="key('resources', 'save-as', document('translations.rdf'))" mode="ldh:logo">
+                            <!-- disable button if external document is not being browsed or the agent has no acl:Write access -->
+                            <xsl:with-param name="class" select="'btn' || (if ((ac:absolute-path(ldh:base-uri(.)) = ac:absolute-path(ldh:request-uri())) or not($acl:mode = '&acl;Write')) then ' disabled' else ())"/>
+                        </xsl:apply-templates>
+
+                        <xsl:value-of>
+                            <xsl:apply-templates select="key('resources', 'save-as', document('translations.rdf'))" mode="ac:label"/>
+                            <xsl:text>...</xsl:text>
+                        </xsl:value-of>
+                    </button>
+                </div>
+            </xsl:if>
+            
             <div class="btn-group pull-right">
                 <button type="button" title="{ac:label(key('resources', 'acl-list-title', document('translations.rdf')))}">
                     <xsl:apply-templates select="key('resources', '&acl;Access', document(ac:document-uri('&acl;')))" mode="ldh:logo">
