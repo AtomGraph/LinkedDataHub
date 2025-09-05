@@ -2,10 +2,16 @@
 ### Added
 - Drag handles for content blocks - blocks can now only be dragged by their dedicated drag handles
 - Client-side `ac:mode` function for layout mode detection
+- New `ldh:request-uri` function for URI handling
+- Container generation form improvements with optional service field
 
 ### Changed
 - Layout mode is now retained after RDF file upload
 - Improved drag-and-drop user experience with precise drag handle controls
+- Promise cleanup and refactoring for better client-side performance
+- Modal form validation fixes
+- Document context handling improvements
+- Removed `ldh:DocumentLoaded` named template for cleaner code
 
 ## [5.0.22] - 2025-08-29
 ### Added
