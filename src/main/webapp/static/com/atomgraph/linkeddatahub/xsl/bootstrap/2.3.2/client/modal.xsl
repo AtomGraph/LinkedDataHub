@@ -284,7 +284,7 @@ LIMIT   10
                                             <span class="help-inline">xsd:integer</span>
                                         </div>
                                     </div>
-                                    <div class="control-group required">
+                                    <div class="control-group">
                                         <input name="pu" type="hidden" value="&ldh;service"/>
                                         <label class="control-label" for="source-service">
                                             <xsl:value-of>
@@ -735,18 +735,26 @@ LIMIT   10
     <!-- validate form before submitting it and show errors on required control-groups where input values are missing -->
     <xsl:template match="form[@id = 'form-add-data'] | form[@id = 'form-clone-data'] | form[@id = 'form-generate-containers']" mode="ixsl:onsubmit" priority="1">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
-        <xsl:variable name="control-groups" select="descendant::div[contains-token(@class, 'control-group')][contains-token(@class, 'required')]" as="element()*"/>
+        <xsl:variable name="control-groups" select="descendant::div[contains-token(@class, 'control-group')]" as="element()*"/>
+        <xsl:variable name="required-control-groups" select="$control-groups[contains-token(@class, 'required')]" as="element()*"/>
+        
+        <!-- clear the errors initially -->
+        <xsl:for-each select="$control-groups">
+            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'error', false() ])[current-date() lt xs:date('2000-01-01')]"/>        
+        </xsl:for-each>
+        
         <xsl:choose>
-            <!-- input values missing, throw an error -->
-            <xsl:when test="exists($control-groups/descendant::input[@name = ('ol', 'ou')][not(ixsl:get(., 'value'))])">
+            <!-- required input values missing, throw an error -->
+            <xsl:when test="exists($required-control-groups/descendant::input[@name = ('ol', 'ou')][not(ixsl:get(., 'value'))])">
                 <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
-                <xsl:sequence select="$control-groups[descendant::input[@name = ('ol', 'ou')][not(ixsl:get(., 'value'))]]/ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'error', true() ])[current-date() lt xs:date('2000-01-01')]"/>
+                <xsl:sequence select="$required-control-groups[descendant::input[@name = ('ol', 'ou')][not(ixsl:get(., 'value'))]]/ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'error', true() ])[current-date() lt xs:date('2000-01-01')]"/>
             </xsl:when>
             <!-- all required values present, proceed to submit form-->
             <xsl:otherwise>
                 <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
-                <xsl:sequence select="$control-groups/ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'error', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+                <!-- pre-process form before submitting it -->
+                <xsl:apply-templates select="." mode="ldh:FormPreSubmit"/>
 
                 <xsl:variable name="form" select="." as="element()"/>
                 <xsl:variable name="method" select="ixsl:get(., 'method')" as="xs:string"/>
@@ -770,29 +778,32 @@ LIMIT   10
 
     <xsl:template match="button[contains-token(@class, 'btn-load-endpoint-schema')]" mode="ixsl:onclick">
         <xsl:variable name="fieldset" select="ancestor::form/fieldset" as="element()"/>
-        <xsl:variable name="service-control-group" select="$fieldset/descendant::div[contains-token(@class, 'control-group')][input[@name = 'pu'][@value = '&ldh;service']]" as="element()"/>
-        <xsl:variable name="service-uri" select="$service-control-group/descendant::input[@name = 'ou']/ixsl:get(., 'value')" as="xs:anyURI"/>
-        <xsl:variable name="limit-control-group" select="$fieldset/descendant::div[contains-token(@class, 'control-group')][input[@name = 'pu'][@value = '&sp;limit']]" as="element()"/>
-        <xsl:variable name="limit-string" select="$limit-control-group/descendant::input[@name = 'ol']/ixsl:get(., 'value')" as="xs:string"/>
+        <xsl:variable name="control-groups" select="descendant::div[contains-token(@class, 'control-group')]" as="element()*"/>
+        <xsl:variable name="required-control-groups" select="$control-groups[contains-token(@class, 'required')]" as="element()*"/>
         <xsl:variable name="timeout" select="30000" as="xs:integer"/> <!-- schema load query timeout in milliseconds -->
-
+        
+        <!-- clear the errors initially -->
+        <xsl:for-each select="$control-groups">
+            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'error', false() ])[current-date() lt xs:date('2000-01-01')]"/>        
+        </xsl:for-each>
+        
         <xsl:choose>
-            <!-- service value missing, throw an error -->
-            <xsl:when test="not($service-uri)">
-                <xsl:sequence select="$service-control-group/ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'error', true() ])[current-date() lt xs:date('2000-01-01')]"/>
-            </xsl:when>
-            <!-- limit value missing, throw an error -->
-            <xsl:when test="not($limit-string) or not($limit-string castable as xs:integer)">
-                <xsl:sequence select="$service-control-group/ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'error', false() ])[current-date() lt xs:date('2000-01-01')]"/>
-                <xsl:sequence select="$limit-control-group/ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'error', true() ])[current-date() lt xs:date('2000-01-01')]"/>
+            <!-- required input values missing, throw an error -->
+            <xsl:when test="exists($required-control-groups/descendant::input[@name = ('ol', 'ou')][not(ixsl:get(., 'value'))])">
+                <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
+                <xsl:sequence select="$required-control-groups[descendant::input[@name = ('ol', 'ou')][not(ixsl:get(., 'value'))]]/ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'error', true() ])[current-date() lt xs:date('2000-01-01')]"/>
             </xsl:when>
             <!-- all required values present/valid, load schema -->
             <xsl:otherwise>
                 <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
-                <xsl:sequence select="$service-control-group/ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'error', false() ])[current-date() lt xs:date('2000-01-01')]"/>
-                <xsl:sequence select="$limit-control-group/ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'error', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+                <!-- pre-process form before submitting it -->
+                <xsl:apply-templates select="ancestor::form" mode="ldh:FormPreSubmit"/>
 
+                <xsl:variable name="service-control-group" select="$fieldset/descendant::div[contains-token(@class, 'control-group')][input[@name = 'pu'][@value = '&ldh;service']]" as="element()"/>
+                <xsl:variable name="service-uri" select="$service-control-group/descendant::input[@name = 'ou']/ixsl:get(., 'value')" as="xs:anyURI?"/>
+                <xsl:variable name="limit-control-group" select="$fieldset/descendant::div[contains-token(@class, 'control-group')][input[@name = 'pu'][@value = '&sp;limit']]" as="element()"/>
+                <xsl:variable name="limit-string" select="$limit-control-group/descendant::input[@name = 'ol']/ixsl:get(., 'value')" as="xs:string"/>
                 <xsl:variable name="limit" select="xs:integer($limit-string)" as="xs:integer"/>
                 <xsl:variable name="select-string" select="$endpoint-classes-string" as="xs:string"/>
                 <xsl:variable name="select-json" as="item()">
@@ -812,10 +823,21 @@ LIMIT   10
                 <xsl:variable name="query-json-string" select="xml-to-json($select-xml)" as="xs:string"/>
                 <xsl:variable name="query-json" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'parse', [ $query-json-string ])"/>
                 <xsl:variable name="query-string" select="ixsl:call(ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromQuery', [ $query-json ]), 'toString', [])" as="xs:string"/>
-                <xsl:variable name="service-doc" select="document(ac:build-uri($ldt:base, map{ 'uri': ac:document-uri($service-uri), 'accept': 'application/rdf+xml' }))" as="document-node()"/> <!-- TO-DO: replace with <ixsl:schedule-action> -->
-                <xsl:variable name="endpoint" select="key('resources', $service-uri, $service-doc)/sd:endpoint/@rdf:resource" as="xs:anyURI"/>
+                <!-- use the specified endpoint if any, fall back to the internal one otherwise -->
+                <xsl:variable name="endpoint" as="xs:anyURI">
+                    <xsl:choose>
+                        <xsl:when test="$service-uri">
+                            <!-- TO-DO: asynchronous request -->
+                            <xsl:variable name="service-doc" select="document(ac:build-uri($ldt:base, map{ 'uri': ac:document-uri($service-uri), 'accept': 'application/rdf+xml' }))" as="document-node()"/> <!-- TO-DO: replace with <ixsl:schedule-action> -->
+                            <xsl:sequence select="key('resources', $service-uri, $service-doc)/sd:endpoint/@rdf:resource"/>
+                         </xsl:when>
+                         <xsl:otherwise>
+                             <xsl:sequence select="sd:endpoint()"/>
+                         </xsl:otherwise>
+                    </xsl:choose>
+                </xsl:variable>    
                 <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': $query-string })" as="xs:anyURI"/>
-                <xsl:variable name="request-uri" select="ldh:href($results-uri, map{})" as="xs:anyURI"/>
+                <xsl:variable name="request-uri" select="ldh:href($results-uri)" as="xs:anyURI"/>
 
                 <xsl:variable name="request" as="item()*">
                     <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml' } }" wait="$timeout">

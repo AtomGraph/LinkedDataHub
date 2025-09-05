@@ -102,15 +102,13 @@ public class Generate extends GraphStoreImpl
     @Override
     public Response post(Model model, @QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUri)
     {
-        ResIterator it = model.listSubjectsWithProperty(LDH.service);
+        ResIterator it = model.listSubjectsWithProperty(SIOC.HAS_PARENT);
         try
         {
             if (!it.hasNext()) throw new BadRequestException("Argument resource not provided");
             
             Resource arg = it.next();
             Resource service = arg.getPropertyResourceValue(LDH.service);
-            if (service == null) throw new BadRequestException("Service URI (ldh:service) not provided");
-
             Resource parent = arg.getPropertyResourceValue(SIOC.HAS_PARENT);
             if (parent == null) throw new BadRequestException("Parent container (sioc:has_parent) not provided");
 
@@ -177,16 +175,19 @@ public class Generate extends GraphStoreImpl
      * @param model RDF model
      * @param title query title
      * @param query query object
-     * @param service SPARQL service resource
+     * @param service optional SPARQL service resource
      * @return query resource
      */
     public Resource createContainerSelect(Model model, String title, Query query, Resource service)
     {
-        return model.createResource().
+        Resource resource = model.createResource().
             addProperty(RDF.type, SP.Select).
             addLiteral(DCTerms.title, title).
-            addProperty(SP.text, query.toString()).
-            addProperty(LDH.service, service);
+            addProperty(SP.text, query.toString());
+        
+        if (service != null) resource.addProperty(LDH.service, service);
+        
+        return resource;
     }
     
     /**
