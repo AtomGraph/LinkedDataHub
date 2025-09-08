@@ -218,6 +218,36 @@ The environment variable `JENA_HOME` is used by all the command line tools to co
 
 These demo applications can be installed into a LinkedDataHub instance using `make install`. You will need to provide the path to your WebID certificate as well as its password.
 
+## AI-Powered Automation
+
+### [Web-Algebra](https://github.com/AtomGraph/Web-Algebra)
+
+Web-Algebra enables AI agents to consume Linked Data and SPARQL as well as control and automate LinkedDataHub operations through natural language instructions.
+This innovative system translates human language into JSON-formatted RDF operations that can be executed against your LinkedDataHub instance.
+
+**Key capabilities:**
+* **Natural Language to RDF Operations**: Translate complex instructions into executable semantic workflows
+* **LLM Agent Integration**: AI agents can compose and execute complex multi-step operations automatically
+* **Atomic Execution**: Complex workflows are compiled into optimized JSON "bytecode" that executes as a single unit
+* **Model Context Protocol (MCP)**: Interactive tools for AI assistants to manage LinkedDataHub content
+
+**Example use cases:**
+
+*Business Analytics:*
+> Analyze quarterly sales performance from our Northwind dataset, identify the top 5 customers by revenue, and create an interactive dashboard showing regional sales trends with automated alerts for territories underperforming by more than 15%
+
+*FAIR Life Sciences Integration:*
+> Query federated endpoints for protein interaction data from UniProt, gene expression profiles from EBI, and clinical trial outcomes from ClinicalTrials.gov, then integrate these datasets through SPARQL CONSTRUCT queries, create cross-references using shared identifiers, and embed the unified knowledge graph into an interactive research article with live data visualizations
+
+**Perfect for:**
+* Business intelligence automation and reporting
+* Federated biomedical data integration and analysis
+* AI-assisted research data discovery and linking
+* Natural language interfaces to knowledge graphs
+* Intelligent data processing and monitoring pipelines
+
+See the [Web-Algebra repository](https://github.com/AtomGraph/Web-Algebra) for setup instructions and examples of AI agents managing LinkedDataHub instances.
+
 ## How to get involved
 
 * contribute a new LDH application or modify [one of ours](https://github.com/AtomGraph/LinkedDataHub-Apps)
