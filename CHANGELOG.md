@@ -7,7 +7,6 @@
 
 ### Changed
 - Layout mode is now retained after RDF file upload
-- Improved drag-and-drop user experience with precise drag handle controls
 - Promise cleanup and refactoring for better client-side performance
 - Modal form validation fixes
 - Document context handling improvements

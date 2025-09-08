@@ -510,24 +510,14 @@ exclude-result-prefixes="#all"
                 <xsl:variable name="href" select="ldh:href($results-uri, map{})" as="xs:anyURI"/>
 
                 <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
-
-<!--                 abort the previous request, if any 
-                <xsl:if test="ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub'), 'request')">
-                    <xsl:message>Aborting HTTP request that has already been sent</xsl:message>
-                    <xsl:sequence select="ixsl:call(ixsl:get(ixsl:window(), 'LinkedDataHub.request'), 'abort', [])"/>
-                </xsl:if>
-
-                <xsl:variable name="request" as="item()*">
-                    <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $href, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
-                        <xsl:call-template name="ldh:DocumentLoaded">
-                            <xsl:with-param name="href" select="$href"/>
-                        </xsl:call-template>
-                    </ixsl:schedule-action>
-                </xsl:variable>
-
-                 store the new request object 
-                <ixsl:set-property name="request" select="$request" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>-->
                 
+                <xsl:if test="ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub'), 'saxonController')">
+                    <xsl:message>Aborting HTTP request that has already been sent</xsl:message>
+                    <xsl:sequence select="ixsl:call(ixsl:get(ixsl:window(), 'LinkedDataHub.saxonController'), 'abort', [])"/>
+                </xsl:if>
+                <xsl:variable name="controller" select="ixsl:abort-controller()"/>
+                <ixsl:set-property name="saxonController" select="$controller" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+
                 <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $href, 'headers': map{ 'Accept': 'application/xhtml+xml' } }" as="map(*)"/>
                 <xsl:variable name="context" select="
                   map{
@@ -536,7 +526,7 @@ exclude-result-prefixes="#all"
                     'push-state': true()
                   }" as="map(*)"/>
                 <ixsl:promise select="
-                  ixsl:http-request($context('request'))
+                  ixsl:http-request($context('request'), $controller)
                     => ixsl:then(ldh:rethread-response($context, ?))
                     => ixsl:then(ldh:handle-response#1)
                     => ixsl:then(ldh:xhtml-document-loaded#1)
