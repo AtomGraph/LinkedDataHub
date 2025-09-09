@@ -7,21 +7,34 @@ purge_cache "$END_USER_VARNISH_SERVICE"
 purge_cache "$ADMIN_VARNISH_SERVICE"
 purge_cache "$FRONTEND_VARNISH_SERVICE"
 
-# test that the owner agent accessing BASE_URL returns correct Link header with all ACL modes
+# create a new document to test ACL modes against
 
-RESPONSE_HEADERS=$(mktemp)
+doc_url=$(create-item.sh \
+  -b "$END_USER_BASE_URL" \
+  -f "$OWNER_CERT_FILE" \
+  -p "$OWNER_CERT_PWD" \
+  --container "$END_USER_BASE_URL" \
+  --title "ACL Test Document" \
+  --slug "acl-test-document"
+)
 
-curl -k -f \
+# test that the owner agent accessing the document returns correct Link header with all ACL modes
+
+response_headers=$(mktemp)
+
+curl -k -f -v \
   -E "$OWNER_CERT_FILE":"$OWNER_CERT_PWD" \
   -H "Accept: application/n-triples" \
-  -D "$RESPONSE_HEADERS" \
+  -D "$response_headers" \
   -o /dev/null \
-  "$END_USER_BASE_URL"
+  "$doc_url"
+
+cat "$response_headers"
 
 # check that each ACL mode is present in Link header (order independent)
-grep -q "Link:.*<http://www.w3.org/ns/auth/acl#Read>; rel=http://www.w3.org/ns/auth/acl#mode" "$RESPONSE_HEADERS"
-grep -q "Link:.*<http://www.w3.org/ns/auth/acl#Write>; rel=http://www.w3.org/ns/auth/acl#mode" "$RESPONSE_HEADERS"
-grep -q "Link:.*<http://www.w3.org/ns/auth/acl#Append>; rel=http://www.w3.org/ns/auth/acl#mode" "$RESPONSE_HEADERS"
-grep -q "Link:.*<http://www.w3.org/ns/auth/acl#Control>; rel=http://www.w3.org/ns/auth/acl#mode" "$RESPONSE_HEADERS"
+grep -q "Link:.*<http://www.w3.org/ns/auth/acl#Read>; rel=http://www.w3.org/ns/auth/acl#mode" "$response_headers"
+grep -q "Link:.*<http://www.w3.org/ns/auth/acl#Write>; rel=http://www.w3.org/ns/auth/acl#mode" "$response_headers"
+grep -q "Link:.*<http://www.w3.org/ns/auth/acl#Append>; rel=http://www.w3.org/ns/auth/acl#mode" "$response_headers"
+grep -q "Link:.*<http://www.w3.org/ns/auth/acl#Control>; rel=http://www.w3.org/ns/auth/acl#mode" "$response_headers"
 
-rm "$RESPONSE_HEADERS"
+rm "$response_headers"

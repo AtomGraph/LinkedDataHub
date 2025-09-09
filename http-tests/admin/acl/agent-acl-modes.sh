@@ -7,24 +7,45 @@ purge_cache "$END_USER_VARNISH_SERVICE"
 purge_cache "$ADMIN_VARNISH_SERVICE"
 purge_cache "$FRONTEND_VARNISH_SERVICE"
 
-# test that the signed up agent accessing BASE_URL returns correct Link header with ACL modes (no Control)
+# add agent to the writers group
 
-RESPONSE_HEADERS=$(mktemp)
+add-agent-to-group.sh \
+  -f "$OWNER_CERT_FILE" \
+  -p "$OWNER_CERT_PWD" \
+  --agent "$AGENT_URI" \
+  "${ADMIN_BASE_URL}acl/groups/writers/"
 
-curl -k -f \
+# create a new document to test ACL modes against
+
+doc_url=$(create-item.sh \
+  -b "$END_USER_BASE_URL" \
+  -f "$AGENT_CERT_FILE" \
+  -p "$AGENT_CERT_PWD" \
+  --container "$END_USER_BASE_URL" \
+  --title "ACL Test Document Agent" \
+  --slug "acl-test-document-agent"
+)
+
+# test that the signed up agent accessing the document returns correct Link header with ACL modes (no Control)
+
+response_headers=$(mktemp)
+
+curl -k -f -v \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
   -H "Accept: application/n-triples" \
-  -D "$RESPONSE_HEADERS" \
+  -D "$response_headers" \
   -o /dev/null \
-  "$END_USER_BASE_URL"
+  "$doc_url"
+
+cat "$response_headers"
 
 # check that each expected ACL mode is present in Link header (order independent)
 # signed up agents should have Read, Write, Append but NOT Control
-grep -q "Link:.*<http://www.w3.org/ns/auth/acl#Read>; rel=http://www.w3.org/ns/auth/acl#mode" "$RESPONSE_HEADERS"
-grep -q "Link:.*<http://www.w3.org/ns/auth/acl#Write>; rel=http://www.w3.org/ns/auth/acl#mode" "$RESPONSE_HEADERS"
-grep -q "Link:.*<http://www.w3.org/ns/auth/acl#Append>; rel=http://www.w3.org/ns/auth/acl#mode" "$RESPONSE_HEADERS"
+grep -q "Link:.*<http://www.w3.org/ns/auth/acl#Read>; rel=http://www.w3.org/ns/auth/acl#mode" "$response_headers"
+grep -q "Link:.*<http://www.w3.org/ns/auth/acl#Write>; rel=http://www.w3.org/ns/auth/acl#mode" "$response_headers"
+grep -q "Link:.*<http://www.w3.org/ns/auth/acl#Append>; rel=http://www.w3.org/ns/auth/acl#mode" "$response_headers"
 
 # verify Control mode is NOT present for signed up agent
-! grep -q "Link:.*<http://www.w3.org/ns/auth/acl#Control>; rel=http://www.w3.org/ns/auth/acl#mode" "$RESPONSE_HEADERS"
+! grep -q "Link:.*<http://www.w3.org/ns/auth/acl#Control>; rel=http://www.w3.org/ns/auth/acl#mode" "$response_headers"
 
-rm "$RESPONSE_HEADERS"
+rm "$response_headers"
