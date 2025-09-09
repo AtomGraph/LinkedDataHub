@@ -11,7 +11,7 @@ purge_cache "$FRONTEND_VARNISH_SERVICE"
 
 RESPONSE_HEADERS=$(mktemp)
 
-curl -k -f -s \
+curl -k -f \
   -E "$OWNER_CERT_FILE":"$OWNER_CERT_PWD" \
   -H "Accept: application/n-triples" \
   -D "$RESPONSE_HEADERS" \

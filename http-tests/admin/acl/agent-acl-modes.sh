@@ -11,14 +11,12 @@ purge_cache "$FRONTEND_VARNISH_SERVICE"
 
 RESPONSE_HEADERS=$(mktemp)
 
-curl -k -f -s \
+curl -k -f \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
   -H "Accept: application/n-triples" \
   -D "$RESPONSE_HEADERS" \
   -o /dev/null \
   "$END_USER_BASE_URL"
-
-cat "$RESPONSE_HEADERS"
 
 # check that each expected ACL mode is present in Link header (order independent)
 # signed up agents should have Read, Write, Append but NOT Control
