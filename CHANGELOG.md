@@ -8,13 +8,13 @@
 
 ### Changed
 - Service input on the container generation form is now optional
-- Layout mode is now retained after RDF file upload
 - IXSL promise cleanup and refactoring for better client-side performance
-- Modal form validation fixes
 - Document context handling improvements
 
 ### Fixed
 - `AuthorizationFilter` to always load authorizations from the admin dataset
+- Modal form validation
+- Layout mode is now retained after RDF file upload
 
 ## [5.0.22] - 2025-08-29
 ### Added
