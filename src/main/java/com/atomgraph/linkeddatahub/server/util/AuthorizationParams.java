@@ -36,6 +36,7 @@ public class AuthorizationParams implements Supplier<QuerySolutionMap>
     
     /**
      * Constructs authorization query solution supplier.
+     * <em>Does not set <samp>$mode</samp> value intentionally as we want to provide the {@link com.atomgraph.linkeddatahub.server.security.AuthorizationContext} with all of the agent's authorizations.</em>
      * 
      * @param base application's base URI
      * @param absolutePath request URL without query string

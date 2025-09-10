@@ -52,6 +52,7 @@ import org.apache.jena.query.QuerySolutionMap;
 import org.apache.jena.query.ResultSet;
 import org.apache.jena.query.ResultSetRewindable;
 import org.apache.jena.rdf.model.Model;
+import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.vocabulary.RDF;
@@ -136,7 +137,7 @@ public class AuthorizationFilter implements ContainerRequestFilter
         else agent = null; // public access
 
         Model authorizations = authorize(request, agent, accessMode);
-        if (authorizations.isEmpty())
+        if (authorizations == null)
         {
             if (log.isTraceEnabled()) log.trace("Access not authorized for request URI: {} and access mode: {}", request.getUriInfo().getAbsolutePath(), accessMode);
             throw new AuthorizationException("Access not authorized for request URI", request.getUriInfo().getAbsolutePath(), accessMode);
@@ -151,13 +152,22 @@ public class AuthorizationFilter implements ContainerRequestFilter
      * @param request current request
      * @param agent agent resource or null
      * @param accessMode ACL access mode
-     * @return authorizations model
+     * @return authorizations model or null if access denied
      */
     public Model authorize(ContainerRequestContext request, Resource agent, Resource accessMode)
     {
         Resource accessTo = ResourceFactory.createResource(request.getUriInfo().getAbsolutePath().toString());
         QuerySolutionMap thisQsm = new QuerySolutionMap();
         thisQsm.add(SPIN.THIS_VAR_NAME, accessTo);
+        Model authorizations = ModelFactory.createDefaultModel();
+
+        // the agent is the owner of the requested document - automatically grant acl:Read/acl:Append/acl:Write access.
+        // Note: the document does not even need to have a type at this point.
+        if (agent != null && isOwner(accessTo, agent))
+        {
+            log.debug("Agent <{}> is the owner of <{}>, granting acl:Read/acl:Append/acl:Write access", agent, accessTo);
+            createOwnerAuthorization(authorizations, accessTo, agent);
+        }
 
         ResultSetRewindable docTypesResult = loadResultSet(getApplication().getService(), getDocumentTypeQuery(), thisQsm);
         try
@@ -183,7 +193,15 @@ public class AuthorizationFilter implements ContainerRequestFilter
                     // only root and containers allow child documents. This needs to be checked before checking ownership
                     if (Collections.disjoint(parentTypes, Set.of(Default.Root, DH.Container))) return null;
                     docTypesResult.reset(); // rewind result set to the beginning - it's used again later on
+                    
+                    // the agent is the owner of the requested document - automatically grant acl:Read/acl:Append/acl:Write access
+                    if (agent != null && isOwner(accessTo, agent))
+                    {
+                        log.debug("Agent <{}> is the owner of <{}>, granting acl:Read/acl:Append/acl:Write access", agent, accessTo);
+                        createOwnerAuthorization(authorizations, accessTo, agent);
+                    }
                 }
+                // access to non-existing documents is denied if the request method is not PUT *and* the agent has no Write access
                 else return null;
             }
         
@@ -192,21 +210,33 @@ public class AuthorizationFilter implements ContainerRequestFilter
             pss = new ParameterizedSparqlString(query.toString()); // make sure VALUES are now part of the query string
             assert pss.toString().contains("VALUES");
 
-            Model authorizations = loadModel(getAdminService(), pss, new AuthorizationParams(getApplication().getBase(), accessTo, agent).get());
-
-            // special case where the agent is the owner of the requested document - automatically grant acl:Read/acl:Append/acl:Write access
-            if (agent != null && isOwner(accessTo, agent))
-            {
-                log.debug("Agent <{}> is the owner of <{}>, granting acl:Read/acl:Append/acl:Write access", agent, accessTo);
-                createOwnerAuthorization(authorizations, accessTo, agent);
-            }
-
+            // note we're not setting the $mode value on the ACL queries as we want to provide the AuthorizationContext with all of the agent's authorizations
+            authorizations.add(loadModel(getAdminService(), pss, new AuthorizationParams(getApplication().getBase(), accessTo, agent).get()));
+            
+            // access denied if the agent has no authorization to the requested document with the requested ACL mode
+            if (getAuthorizationByMode(authorizations, accessMode) == null) return null;
+                
             return authorizations;
         }
         finally
         {
             docTypesResult.close();
         }
+    }
+    
+    /**
+     * Returns an authorization from the given model that has the given access mode..
+     * 
+     * @param authModel model with authorizations
+     * @param accessMode ACL access mode
+     * @return authorization resource or null
+     */
+    public Resource getAuthorizationByMode(Model authModel, Resource accessMode)
+    {
+        return authModel.listResourcesWithProperty(ACL.mode, accessMode).
+            toList().stream().
+            findFirst().
+            orElse(null);      
     }
     
     /**
