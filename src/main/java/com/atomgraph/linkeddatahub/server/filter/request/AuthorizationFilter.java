@@ -340,6 +340,7 @@ public class AuthorizationFilter implements ContainerRequestFilter
      */
     public Resource createOwnerAuthorization(Model model, Resource accessTo, Resource agent)
     {
+        if (model == null) throw new IllegalArgumentException("Model cannot be null");
         if (accessTo == null) throw new IllegalArgumentException("Document resource cannot be null");
         if (agent == null) throw new IllegalArgumentException("Agent resource cannot be null");
 
