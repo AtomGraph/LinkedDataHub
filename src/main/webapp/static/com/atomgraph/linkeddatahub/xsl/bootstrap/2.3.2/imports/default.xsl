@@ -12,6 +12,7 @@
     <!ENTITY owl    "http://www.w3.org/2002/07/owl#">
     <!ENTITY srx    "http://www.w3.org/2005/sparql-results#">
     <!ENTITY http   "http://www.w3.org/2011/http#">
+    <!ENTITY acl    "http://www.w3.org/ns/auth/acl#">
     <!ENTITY ldt    "https://www.w3.org/ns/ldt#">
     <!ENTITY dh     "https://www.w3.org/ns/ldt/document-hierarchy#">
     <!ENTITY sh     "http://www.w3.org/ns/shacl#">
@@ -37,6 +38,7 @@ xmlns:owl="&owl;"
 xmlns:xsd="&xsd;"
 xmlns:srx="&srx;"
 xmlns:http="&http;"
+xmlns:acl="&acl;"
 xmlns:ldt="&ldt;"
 xmlns:sh="&sh;"
 xmlns:sp="&sp;"
@@ -66,6 +68,10 @@ exclude-result-prefixes="#all"
             </xsl:apply-templates>
         </xsl:variable>
         <xsl:sequence select="upper-case(substring($labels[1], 1, 1)) || substring($labels[1], 2)"/>
+    </xsl:function>
+    
+    <xsl:function name="acl:mode" as="xs:anyURI*" use-when="system-property('xsl:product-name') = 'SAXON'">
+        <xsl:sequence select="$acl:mode"/>
     </xsl:function>
     
     <xsl:function name="ldh:request-uri" as="xs:anyURI" use-when="system-property('xsl:product-name') = 'SAXON'">

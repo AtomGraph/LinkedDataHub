@@ -110,7 +110,6 @@ exclude-result-prefixes="#all"
         <xsl:param name="container" select="." as="element()"/>
         <xsl:param name="graph" select="descendant::*[@property = '&ldh;graph']/@resource" as="xs:anyURI?"/>
         <xsl:param name="mode" select="descendant::*[@property = '&ac;mode']/@resource" as="xs:anyURI?"/>
-        <xsl:param name="refresh-content" as="xs:boolean?"/>
         <xsl:param name="show-edit-button" select="false()" as="xs:boolean?"/>
         <xsl:param name="textarea-id" select="generate-id() || '-textarea'" as="xs:string?"/>
         <xsl:param name="textarea-class" select="'span12 sparql-query-string'" as="xs:string?"/>
@@ -404,11 +403,6 @@ exclude-result-prefixes="#all"
         </xsl:for-each>
         
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
-
-<!--        <xsl:for-each select="$block//div[contains-token(@class, 'bar')]">
-             update progress bar 
-            <ixsl:set-style name="width" select="'50%'" object="."/>
-        </xsl:for-each>-->
                 
         <xsl:variable name="view-container" select="$container//div[contains-token(@class, 'sparql-query-results')]" as="element()"/>
         <!-- ensure the HTML structure is compatible with what view expects -->
@@ -430,7 +424,7 @@ exclude-result-prefixes="#all"
         </xsl:variable>
         
         <!-- invoke the factory -->
-        <xsl:sequence select="$factory(())"/>
+        <ixsl:promise select="$factory(())"/>
     </xsl:template>
     
     <!-- save query onclick -->
@@ -452,8 +446,9 @@ exclude-result-prefixes="#all"
         <xsl:variable name="query-type" select="ldh:query-type($query-string)" as="xs:string?"/>
         <!-- not using ldh:base-uri(.) because it goes stale when DOM is replaced -->
         <xsl:variable name="doc" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path(xs:anyURI(ixsl:location())) || '`'), 'results')" as="document-node()"/>
+        <!-- TO-DO: this breaks if the query resource has not yet been loaded as part of the $doc (e.g. freshly saved) -->
         <xsl:variable name="query" select="key('resources', $about, $doc)" as="element()"/>
-
+       
         <!-- replace the query string (sp:text value) on the query resource -->
         <xsl:variable name="query" as="element()">
             <xsl:apply-templates select="$query" mode="ldh:Identity">

@@ -487,13 +487,13 @@ extension-element-prefixes="ixsl"
                     <xsl:attribute name="class" select="'span12 progress progress-striped active'"/>
                     
                     <div class="drag-handle">
-                        <xsl:if test="$acl:mode = '&acl;Write'">
+                        <xsl:if test="acl:mode() = '&acl;Write'">
                             <xsl:attribute name="draggable" select="'true'"/>
                         </xsl:if>
                     </div>
                     <div class="row-fluid row-block-controls" style="position: relative; top: 30px; margin-top: -30px; z-index: 1;">
                         <div class="span12">
-                            <xsl:if test="$acl:mode = '&acl;Write'">
+                            <xsl:if test="acl:mode() = '&acl;Write'">
                                 <button type="button" class="btn btn-edit pull-right" style="display: none;">
                                     <xsl:apply-templates select="key('resources', '&ac;EditMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
                                 </button>
@@ -548,13 +548,13 @@ extension-element-prefixes="ixsl"
             
             <div class="span12">
                 <div class="drag-handle">
-                    <xsl:if test="$acl:mode = '&acl;Write'">
+                    <xsl:if test="acl:mode() = '&acl;Write'">
                         <xsl:attribute name="draggable" select="'true'"/>
                     </xsl:if>
                 </div>
                 <div class="row-fluid row-block-controls" style="position: relative; top: 30px; margin-top: -30px; z-index: 1;">
                     <div class="span12">
-                        <xsl:if test="$acl:mode = '&acl;Write'">
+                        <xsl:if test="acl:mode() = '&acl;Write'">
                             <button type="button" class="btn btn-edit pull-right" style="display: none;">
                                 <xsl:apply-templates select="key('resources', '&ac;EditMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
                             </button>
@@ -1284,7 +1284,7 @@ extension-element-prefixes="ixsl"
 
                                     <button type="button" class="btn dropdown-toggle btn-edit-actions">
                                         <!-- only admins should see the button as only they have access to the ontologies with constructors in them -->
-                                        <xsl:if test="not($acl:mode = '&acl;Control' and exists($constructor-classes))">
+                                        <xsl:if test="not(acl:mode() = '&acl;Control' and exists($constructor-classes))">
                                             <xsl:attribute name="style" select="'display: none'"/>
                                         </xsl:if>
 

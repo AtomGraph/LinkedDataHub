@@ -78,30 +78,6 @@ exclude-result-prefixes="#all">
         </xsl:apply-templates>
     </xsl:template>
 
-<!--    <xsl:template match="rdf:RDF[ac:absolute-path(ldh:request-uri()) = resolve-uri(encode-for-uri('sign up'), $ldt:base)][not(key('resources-by-type', '&http;Response'))][1]" mode="bs2:Row" priority="3">
-        <div class="row-fluid">
-            <div class="main offset2 span7">
-                <div class="alert alert-success row-fluid">
-                    <div class="span1">
-                        <img src="{resolve-uri('static/com/atomgraph/linkeddatahub/icons/baseline_done_white_48dp.png', $ac:contextUri)}" alt="Signup complete"/>
-                    </div>
-                    <div class="span11">
-                        <p>Congratulations! Your WebID profile has been created. You can see its data below.</p>
-                        <p>
-                            <strong>Authentication details have been sent to your email address.</strong>
-                        </p>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <xsl:apply-templates select="key('resources-by-type', '&foaf;Person')[@rdf:about]" mode="#current"/>
-        <xsl:apply-templates select="key('resources-by-type', '&cert;X509Certificate')[@rdf:about]" mode="#current"/>
-    </xsl:template>-->
-    
-    <!-- suppress resources other than foaf:Person and cert:PublicKey -->
-    <!-- <xsl:template match="*[ac:absolute-path(ldh:request-uri()) = resolve-uri(encode-for-uri('sign up'), $ldt:base)][not(key('resources-by-type', '&http;Response'))][not(rdf:type/@rdf:resource = ('&foaf;Person', '&cert;X509Certificate'))]" mode="bs2:Row" priority="2"/> -->
-
     <!-- hide resources from constructed models -->
     <xsl:template match="rdf:Description[not(rdf:type/@rdf:resource = ('&foaf;Person', '&adm;SignUp'))][ac:absolute-path(ldh:request-uri()) = resolve-uri(encode-for-uri('sign up'), $ldt:base)]" mode="bs2:RowForm" priority="3"/>
 
@@ -119,18 +95,6 @@ exclude-result-prefixes="#all">
             <xsl:with-param name="required" select="true()"/>
         </xsl:next-match>
     </xsl:template>
-
-<!--    <xsl:template match="*[@rdf:about or @rdf:nodeID][ac:absolute-path(ldh:request-uri()) = resolve-uri(encode-for-uri('sign up'), $ldt:base)]/sioc:has_parent | *[@rdf:about or @rdf:nodeID][ac:absolute-path(ldh:request-uri()) = resolve-uri(encode-for-uri('sign up'), $ldt:base)]/sioc:has_container" mode="bs2:FormControl">
-        <xsl:apply-templates select="." mode="xhtml:Input">
-            <xsl:with-param name="type" select="'hidden'"/>
-        </xsl:apply-templates>
-
-        <xsl:call-template name="xhtml:Input">
-            <xsl:with-param name="name" select="'ou'"/>
-            <xsl:with-param name="type" select="'hidden'"/>
-            <xsl:with-param name="value" select="resolve-uri('acl/agents/', $ldt:base)"/>
-        </xsl:call-template>
-    </xsl:template>-->
     
     <xsl:template match="foaf:based_near/@rdf:*[ac:absolute-path(ldh:request-uri()) = resolve-uri(encode-for-uri('sign up'), $ldt:base)]" mode="bs2:FormControl" priority="1">
         <xsl:param name="id" select="generate-id()" as="xs:string"/>

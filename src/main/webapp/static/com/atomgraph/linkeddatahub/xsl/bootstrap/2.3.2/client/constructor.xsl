@@ -212,9 +212,6 @@ exclude-result-prefixes="#all"
                     </xsl:call-template>
                 </xsl:otherwise>
             </xsl:choose>
-
-            <!-- used by typeahead to set $Type -->
-            <!-- <input type="hidden" class="forClass" value="&rdf;Property" autocomplete="off"/> -->
         </label>
     </xsl:template>
     
