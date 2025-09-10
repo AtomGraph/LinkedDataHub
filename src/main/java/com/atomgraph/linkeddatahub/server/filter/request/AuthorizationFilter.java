@@ -52,7 +52,6 @@ import org.apache.jena.query.QuerySolutionMap;
 import org.apache.jena.query.ResultSet;
 import org.apache.jena.query.ResultSetRewindable;
 import org.apache.jena.rdf.model.Model;
-import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.vocabulary.RDF;
@@ -136,14 +135,14 @@ public class AuthorizationFilter implements ContainerRequestFilter
         if (request.getSecurityContext().getUserPrincipal() instanceof Agent) agent = ((Agent)(request.getSecurityContext().getUserPrincipal()));
         else agent = null; // public access
 
-        Resource authorization = authorize(request, agent, accessMode);
-        if (authorization == null)
+        Model authorizations = authorize(request, agent, accessMode);
+        if (authorizations.isEmpty())
         {
             if (log.isTraceEnabled()) log.trace("Access not authorized for request URI: {} and access mode: {}", request.getUriInfo().getAbsolutePath(), accessMode);
             throw new AuthorizationException("Access not authorized for request URI", request.getUriInfo().getAbsolutePath(), accessMode);
         }
         else // authorization successful
-            request.setProperty(AuthorizationContext.class.getCanonicalName(), new AuthorizationContext(authorization.getModel()));
+            request.setProperty(AuthorizationContext.class.getCanonicalName(), new AuthorizationContext(authorizations));
     }
     
     /**
@@ -152,19 +151,11 @@ public class AuthorizationFilter implements ContainerRequestFilter
      * @param request current request
      * @param agent agent resource or null
      * @param accessMode ACL access mode
-     * @return authorization resource or null
+     * @return authorizations model
      */
-    public Resource authorize(ContainerRequestContext request, Resource agent, Resource accessMode)
+    public Model authorize(ContainerRequestContext request, Resource agent, Resource accessMode)
     {
         Resource accessTo = ResourceFactory.createResource(request.getUriInfo().getAbsolutePath().toString());
-        
-        // special case where the agent is the owner of the requested document - automatically grant acl:Read/acl:Append/acl:Write access
-        if (agent != null && isOwner(accessTo, agent))
-        {
-            log.debug("Agent <{}> is the owner of <{}>, granting acl:Read/acl:Append/acl:Write access", agent, accessTo);
-            return createOwnerAuthorization(accessTo, agent);
-        }
-        
         QuerySolutionMap thisQsm = new QuerySolutionMap();
         thisQsm.add(SPIN.THIS_VAR_NAME, accessTo);
 
@@ -192,44 +183,30 @@ public class AuthorizationFilter implements ContainerRequestFilter
                     // only root and containers allow child documents. This needs to be checked before checking ownership
                     if (Collections.disjoint(parentTypes, Set.of(Default.Root, DH.Container))) return null;
                     docTypesResult.reset(); // rewind result set to the beginning - it's used again later on
-
-                    // special case where the agent is the owner of the requested document - automatically grant acl:Read/acl:Append/acl:Write access
-                    if (agent != null && isOwner(accessTo, agent))
-                    {
-                        log.debug("Agent <{}> is the owner of <{}>, granting acl:Read/acl:Append/acl:Write access", agent, accessTo);
-                        return createOwnerAuthorization(accessTo, agent);
-                    }
                 }
                 else return null;
             }
-
+        
             ParameterizedSparqlString pss = getApplication().canAs(EndUserApplication.class) ? getACLQuery() : getOwnerACLQuery();
             Query query = new SetResultSetValues().apply(pss.asQuery(), docTypesResult);
             pss = new ParameterizedSparqlString(query.toString()); // make sure VALUES are now part of the query string
             assert pss.toString().contains("VALUES");
 
-            Model authModel = loadModel(getAdminService(), pss, new AuthorizationParams(getApplication().getBase(), accessTo, agent).get());
-            return getAuthorizationByMode(authModel, accessMode);
+            Model authorizations = loadModel(getAdminService(), pss, new AuthorizationParams(getApplication().getBase(), accessTo, agent).get());
+
+            // special case where the agent is the owner of the requested document - automatically grant acl:Read/acl:Append/acl:Write access
+            if (agent != null && isOwner(accessTo, agent))
+            {
+                log.debug("Agent <{}> is the owner of <{}>, granting acl:Read/acl:Append/acl:Write access", agent, accessTo);
+                createOwnerAuthorization(authorizations, accessTo, agent);
+            }
+
+            return authorizations;
         }
         finally
         {
             docTypesResult.close();
         }
-    }
-    
-    /**
-     * Returns an authorization from the given model that has the given access mode..
-     * 
-     * @param authModel model with authorizations
-     * @param accessMode ACL access mode
-     * @return authorization resource or null
-     */
-    public Resource getAuthorizationByMode(Model authModel, Resource accessMode)
-    {
-        return authModel.listResourcesWithProperty(ACL.mode, accessMode).
-            toList().stream().
-            findFirst().
-            orElse(null);      
     }
     
     /**
@@ -326,17 +303,17 @@ public class AuthorizationFilter implements ContainerRequestFilter
     
     /**
      * Creates a special <code>acl:Authorization</code> resource for an owner.
+     * @param model RDF model
      * @param accessTo requested URI
      * @param agent authenticated agent
      * @return authorization resource
      */
-    public Resource createOwnerAuthorization(Resource accessTo, Resource agent)
+    public Resource createOwnerAuthorization(Model model, Resource accessTo, Resource agent)
     {
         if (accessTo == null) throw new IllegalArgumentException("Document resource cannot be null");
         if (agent == null) throw new IllegalArgumentException("Agent resource cannot be null");
 
-        return ModelFactory.createDefaultModel().
-                createResource().
+        return model.createResource().
                 addProperty(RDF.type, ACL.Authorization).
                 addProperty(RDF.type, LACL.OwnerAuthorization).
                 addProperty(ACL.accessTo, accessTo).
