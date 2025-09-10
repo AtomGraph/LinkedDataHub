@@ -1,16 +1,20 @@
-## [5.0.23] - 2025-08-31
+## [5.0.23] - 2025-09-11
 ### Added
 - Drag handles for content blocks - blocks can now only be dragged by their dedicated drag handles
-- Client-side `ac:mode` function for layout mode detection
-- New `ldh:request-uri` function for URI handling
-- Container generation form improvements with optional service field
+- Client-side XPath `ac:mode` function for layout mode detection
+- New `ldh:request-uri` XPath function for URI handling
+- New `acl:mode` XPath function for client-side ACL mode detection   
+- New HTTP tests for ACL `Link` headers to verify authorization modes in response
 
 ### Changed
+- Service input on the container generation form is now optional
 - Layout mode is now retained after RDF file upload
-- Promise cleanup and refactoring for better client-side performance
+- IXSL promise cleanup and refactoring for better client-side performance
 - Modal form validation fixes
 - Document context handling improvements
-- Removed `ldh:DocumentLoaded` named template for cleaner code
+
+### Fixed
+- `AuthorizationFilter` to always load authorizations from the admin dataset
 
 ## [5.0.22] - 2025-08-29
 ### Added
