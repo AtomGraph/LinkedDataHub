@@ -103,7 +103,7 @@ exclude-result-prefixes="#all">
         <xsl:param name="id" select="concat('form-', generate-id())" as="xs:string?"/>
         <xsl:param name="class" select="'row-fluid'" as="xs:string?"/>
         <xsl:param name="method" select="'patch'" as="xs:string"/>
-        <xsl:param name="action" select="ldh:href(ac:build-uri(ac:absolute-path(ldh:base-uri(.)), map{ '_method': 'PUT' }), map{ 'mode': for $mode in $ac:mode return string($mode) })" as="xs:anyURI"/>
+        <xsl:param name="action" select="ldh:href(ac:build-uri(ac:absolute-path(ldh:base-uri(.)), map{ '_method': 'PUT' }))" as="xs:anyURI" tunnel="yes"/>
         <xsl:param name="enctype" select="'multipart/form-data'" as="xs:string?"/>
         <xsl:param name="create-resource" select="true()" as="xs:boolean"/>
         <!-- TO-DO: generate ontology classes from the OWL vocabulary -->
@@ -114,7 +114,7 @@ exclude-result-prefixes="#all">
             <xsl:with-param name="id" select="$id"/>
             <xsl:with-param name="class" select="$class"/>
             <xsl:with-param name="method" select="$method"/>
-            <xsl:with-param name="action" select="$action"/>
+            <xsl:with-param name="action" select="$action" tunnel="yes"/>
             <xsl:with-param name="enctype" select="$enctype"/>
             <xsl:with-param name="create-resource" select="$create-resource"/>
             <xsl:with-param name="classes" select="$classes"/>

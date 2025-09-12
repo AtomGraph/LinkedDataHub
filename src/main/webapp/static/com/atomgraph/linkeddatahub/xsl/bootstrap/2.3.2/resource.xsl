@@ -455,12 +455,12 @@ extension-element-prefixes="ixsl"
         
     <!-- resource block overrides -->
     <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = ('&ldh;Object', '&ldh;View', '&ldh;GraphChart', '&ldh;ResultSetChart', '&sp;Describe', '&sp;Construct', '&sp;Ask', '&sp;Select')]" mode="bs2:Row" priority="1">
-        <!-- TO-DO: use $ldh:requestUri to resolve URIs server-side -->
+        <!-- TO-DO: use ldh:request-uri() to resolve URIs server-side -->
         <xsl:param name="id" select="if (contains(@rdf:about, ac:absolute-path(ldh:base-uri(.)) || '#')) then substring-after(@rdf:about, ac:absolute-path(ldh:base-uri(.)) || '#') else generate-id()" as="xs:string?"/>
         <xsl:param name="class" select="'row-fluid block'" as="xs:string?"/>
         <xsl:param name="about" select="@rdf:about" as="xs:anyURI?"/>
         <xsl:param name="typeof" select="rdf:type/@rdf:resource/xs:anyURI(.)" as="xs:anyURI*"/>
-        <xsl:param name="draggable" select="$acl:mode = '&acl;Write'" as="xs:boolean?"/>
+        <xsl:param name="draggable" select="false()" as="xs:boolean?"/>
         <xsl:param name="show-row-block-controls" select="true()" as="xs:boolean"/>
 
         <xsl:apply-templates select="key('resources', .)" mode="bs2:RowContentHeader"/>
@@ -486,9 +486,14 @@ extension-element-prefixes="ixsl"
                 <xsl:if test="$show-row-block-controls">
                     <xsl:attribute name="class" select="'span12 progress progress-striped active'"/>
                     
+                    <div class="drag-handle">
+                        <xsl:if test="acl:mode() = '&acl;Write'">
+                            <xsl:attribute name="draggable" select="'true'"/>
+                        </xsl:if>
+                    </div>
                     <div class="row-fluid row-block-controls" style="position: relative; top: 30px; margin-top: -30px; z-index: 1;">
                         <div class="span12">
-                            <xsl:if test="$acl:mode = '&acl;Write'">
+                            <xsl:if test="acl:mode() = '&acl;Write'">
                                 <button type="button" class="btn btn-edit pull-right" style="display: none;">
                                     <xsl:apply-templates select="key('resources', '&ac;EditMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
                                 </button>
@@ -512,7 +517,7 @@ extension-element-prefixes="ixsl"
     
     <!-- XHTML content overrides -->
     <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&ldh;XHTML'][rdf:value[@rdf:parseType = 'Literal']/xhtml:div]" mode="bs2:Row" priority="1">
-        <!-- TO-DO: use $ldh:requestUri to resolve URIs server-side -->
+        <!-- TO-DO: use ldh:request-uri() to resolve URIs server-side -->
         <xsl:param name="id" select="if (contains(@rdf:about, ac:absolute-path(ldh:base-uri(.)) || '#')) then substring-after(@rdf:about, ac:absolute-path(ldh:base-uri(.)) || '#') else generate-id()" as="xs:string?"/>
         <xsl:param name="class" select="'row-fluid block'" as="xs:string?"/>
         <xsl:param name="about" select="@rdf:about" as="xs:anyURI?"/>
@@ -520,7 +525,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="main-class" select="'main span7'" as="xs:string?"/>
         <xsl:param name="transclude" select="false()" as="xs:boolean"/>
         <xsl:param name="base" as="xs:anyURI?"/>
-        <xsl:param name="draggable" select="$acl:mode = '&acl;Write'" as="xs:boolean?"/>
+        <xsl:param name="draggable" select="false()" as="xs:boolean?"/>
 
         <xsl:apply-templates select="." mode="bs2:RowContentHeader"/>
 
@@ -542,9 +547,14 @@ extension-element-prefixes="ixsl"
             </xsl:if>
             
             <div class="span12">
+                <div class="drag-handle">
+                    <xsl:if test="acl:mode() = '&acl;Write'">
+                        <xsl:attribute name="draggable" select="'true'"/>
+                    </xsl:if>
+                </div>
                 <div class="row-fluid row-block-controls" style="position: relative; top: 30px; margin-top: -30px; z-index: 1;">
                     <div class="span12">
-                        <xsl:if test="$acl:mode = '&acl;Write'">
+                        <xsl:if test="acl:mode() = '&acl;Write'">
                             <button type="button" class="btn btn-edit pull-right" style="display: none;">
                                 <xsl:apply-templates select="key('resources', '&ac;EditMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
                             </button>
@@ -593,7 +603,7 @@ extension-element-prefixes="ixsl"
 
     <!-- overriding template used to inject ldh:template blocks (server-side only) -->
     <xsl:template match="*[*][@rdf:about][not(rdf:type/@rdf:resource = '&http;Response')] | *[*][@rdf:nodeID][not(rdf:type/@rdf:resource = '&http;Response')]" mode="bs2:Row" priority="0.7" use-when="system-property('xsl:product-name') = 'SAXON'">
-        <!-- TO-DO: use $ldh:requestUri to resolve URIs server-side -->
+        <!-- TO-DO: use ldh:request-uri() to resolve URIs server-side -->
         <xsl:param name="id" select="if (contains(@rdf:about, ac:absolute-path(ldh:base-uri(.)) || '#')) then substring-after(@rdf:about, ac:absolute-path(ldh:base-uri(.)) || '#') else generate-id()" as="xs:string?"/>
         <xsl:param name="class" select="'row-fluid block'" as="xs:string?"/>
         <xsl:param name="about" select="@rdf:about" as="xs:anyURI?"/>
@@ -661,7 +671,7 @@ extension-element-prefixes="ixsl"
     </xsl:template>
 
     <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:Row">
-        <!-- TO-DO: use $ldh:requestUri to resolve URIs server-side -->
+        <!-- TO-DO: use ldh:request-uri() to resolve URIs server-side -->
         <xsl:param name="id" select="if (contains(@rdf:about, ac:absolute-path(ldh:base-uri(.)) || '#')) then substring-after(@rdf:about, ac:absolute-path(ldh:base-uri(.)) || '#') else generate-id()" as="xs:string?"/>
         <xsl:param name="class" select="'row-fluid block'" as="xs:string?"/>
         <xsl:param name="about" select="@rdf:about" as="xs:anyURI?"/>
@@ -1092,7 +1102,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="form-id" select="'form-' || generate-id()" as="xs:string?"/>
         <xsl:param name="method" select="'patch'" as="xs:string"/>
         <xsl:param name="base-uri" select="ldh:base-uri(.)" as="xs:anyURI" tunnel="yes"/>
-        <xsl:param name="action" select="ldh:href(ac:absolute-path($base-uri), map{ 'mode': for $mode in $ac:mode return string($mode) })" as="xs:anyURI"/>
+        <xsl:param name="action" select="ldh:href(ac:absolute-path($base-uri))" as="xs:anyURI" tunnel="yes"/>
         <xsl:param name="enctype" select="if ($typeof = '&nfo;FileDataObject') then 'multipart/form-data' else ()" as="xs:string?"/>
         <xsl:param name="button-class" select="'btn btn-primary wymupdate'" as="xs:string?"/>
         <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
@@ -1141,7 +1151,7 @@ extension-element-prefixes="ixsl"
 
                     <xsl:apply-templates select="." mode="bs2:Form">
                         <xsl:with-param name="method" select="$method"/>
-                        <xsl:with-param name="action" select="$action"/>
+                        <xsl:with-param name="action" select="$action" tunnel="yes"/>
                     </xsl:apply-templates>
 
                     <div class="form-actions">
@@ -1274,7 +1284,7 @@ extension-element-prefixes="ixsl"
 
                                     <button type="button" class="btn dropdown-toggle btn-edit-actions">
                                         <!-- only admins should see the button as only they have access to the ontologies with constructors in them -->
-                                        <xsl:if test="not($acl:mode = '&acl;Control' and exists($constructor-classes))">
+                                        <xsl:if test="not(acl:mode() = '&acl;Control' and exists($constructor-classes))">
                                             <xsl:attribute name="style" select="'display: none'"/>
                                         </xsl:if>
 

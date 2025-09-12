@@ -103,7 +103,7 @@ exclude-result-prefixes="#all"
         
         <xsl:choose>
             <xsl:when test="$resource-uri = $about">
-                <!-- Self-reference detected - render error and return resolved context -->
+                <!-- self-reference detected - render error and return resolved context -->
                 <xsl:variable name="container" select="$context('container')" as="element()"/>
                 <xsl:for-each select="$container">
                     <xsl:result-document href="?." method="ixsl:replace-content">
@@ -115,7 +115,7 @@ exclude-result-prefixes="#all"
                 <xsl:sequence select="ixsl:resolve($context)"/>
             </xsl:when>
             <xsl:otherwise>
-                <!-- Normal processing -->
+                <!-- normal processing -->
                 <xsl:sequence select="
                     ixsl:resolve($context) =>
                         ixsl:then(ldh:object-value-thunk#1) =>

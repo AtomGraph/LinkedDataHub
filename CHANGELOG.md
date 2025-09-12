@@ -1,3 +1,46 @@
+## [5.0.23] - 2025-09-11
+### Added
+- Drag handles for content blocks - blocks can now only be dragged by their dedicated drag handles
+- Client-side XPath `ac:mode` function for layout mode detection
+- New `ldh:request-uri` XPath function for URI handling
+- New `acl:mode` XPath function for client-side ACL mode detection   
+- New HTTP tests for ACL `Link` headers to verify authorization modes in response
+
+### Changed
+- Service input on the container generation form is now optional
+- IXSL promise cleanup and refactoring for better client-side performance
+- Document context handling improvements
+
+### Fixed
+- `AuthorizationFilter` to always load authorizations from the admin dataset
+- Modal form validation
+- Layout mode is now retained after RDF file upload
+
+## [5.0.22] - 2025-08-29
+### Added
+- SPARQL query support for `ProxyResourceBase` via `POST` requests
+- YouTube object block support with GRDDL transformation
+- New HTTP tests for proxy SPARQL query functionality
+- `JSONGRDDLFilter` feature for processing JSON-LD from HTML script elements
+- New CLI command for `PATCH` requests
+- Self-referencing object detection to prevent infinite loops
+
+### Changed
+- Web-Client dependency version bump
+- Increased nginx rate limits for better performance
+- Uniform `ldh:href` function calls across codebase
+- Improved `Link` header parsing and usage fixes
+- Adjusted document controls size for better UI
+- Enhanced view titles for better user experience
+- Improved tests for document property cardinalities
+- Removed DBPedia's prefix mapping
+
+### Fixed
+- Fixed template match issues
+- Improved `dct:modified` handling in Graph `POST` operations
+- Fixed error handling for "Document loaded successfully but resource was not found" cases
+- HTTP test fixes for better reliability
+
 ## [5.0.19] - 2025-07-01
 ### Fixed
 - Form callback invocation

@@ -35,6 +35,10 @@ extension-element-prefixes="ixsl"
 exclude-result-prefixes="#all"
 >
 
+    <xsl:function name="ldh:request-uri" as="xs:anyURI">
+        <xsl:sequence select="xs:anyURI(ixsl:location())"/>
+    </xsl:function>
+
     <xsl:function name="ldh:base-uri" as="xs:anyURI">
         <xsl:param name="arg" as="node()"/> <!-- ignored -->
 
@@ -43,13 +47,21 @@ exclude-result-prefixes="#all"
                 <xsl:sequence select="ac:document-uri(ixsl:query-params()?uri)"/>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:sequence select="ac:document-uri(ixsl:get(ixsl:window(), 'location.href'))"/>
+                <!-- ignore query params such as ?mode -->
+                <xsl:sequence select="ac:absolute-path(xs:anyURI(ixsl:location()))"/>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:function>
     
+    <xsl:function name="ldh:origin" as="xs:anyURI">
+        <xsl:param name="uri" as="xs:anyURI"/>
+
+        <!-- no trailing slash -->
+        <xsl:sequence select="xs:anyURI(replace($uri, '^(https?://[^/]+).*$', '$1'))"/>
+    </xsl:function>
+    
     <xsl:function name="ldt:base" as="xs:anyURI">
-        <xsl:sequence select="xs:anyURI(ixsl:get(ixsl:window(), 'LinkedDataHub.base'))"/>
+        <xsl:sequence select="xs:anyURI(ldh:origin(xs:anyURI(ixsl:location())) || '/')"/>
     </xsl:function>
 
     <xsl:function name="acl:mode" as="xs:anyURI*">
@@ -59,6 +71,21 @@ exclude-result-prefixes="#all"
             if (ixsl:contains(ixsl:window(), 'LinkedDataHub.acl-modes.write')) then xs:anyURI('&acl;Write') else (),
             if (ixsl:contains(ixsl:window(), 'LinkedDataHub.acl-modes.control')) then xs:anyURI('&acl;Control') else ()
         )"/>
+    </xsl:function>
+    
+    <xsl:function name="ac:mode" as="xs:anyURI*">
+        <xsl:variable name="nav-tab-class" select="id('layout-modes', ixsl:page())/li[contains-token(@class, 'active')]/@class" as="xs:string"/>
+        <xsl:variable name="mode-classes" as="map(xs:string, xs:string)">
+            <xsl:map>
+                <xsl:map-entry key="'content-mode'" select="'&ldh;ContentMode'"/>
+                <xsl:map-entry key="'read-mode'" select="'&ac;ReadMode'"/>
+                <xsl:map-entry key="'map-mode'" select="'&ac;MapMode'"/>
+                <xsl:map-entry key="'chart-mode'" select="'&ac;ChartMode'"/>
+                <xsl:map-entry key="'graph-mode'" select="'&ac;GraphMode'"/>
+            </xsl:map>
+        </xsl:variable>
+        <xsl:variable name="mode-class" select="map:keys($mode-classes)[contains-token($nav-tab-class, .)]" as="xs:string"/>
+        <xsl:sequence select="xs:anyURI(map:get($mode-classes, $mode-class))"/>
     </xsl:function>
     
     <xsl:function name="sd:endpoint" as="xs:anyURI">

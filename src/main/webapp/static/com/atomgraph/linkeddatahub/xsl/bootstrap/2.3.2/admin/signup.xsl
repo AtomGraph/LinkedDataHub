@@ -47,7 +47,7 @@ xmlns:spin="&spin;"
 xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
 exclude-result-prefixes="#all">
 
-    <xsl:template match="rdf:RDF[ac:absolute-path($ldh:requestUri) = resolve-uri(encode-for-uri('sign up'), $ldt:base)]" mode="bs2:ContentBody" priority="2" use-when="system-property('xsl:product-name') = 'SAXON'">
+    <xsl:template match="rdf:RDF[ac:absolute-path(ldh:request-uri()) = resolve-uri(encode-for-uri('sign up'), $ldt:base)]" mode="bs2:ContentBody" priority="2" use-when="system-property('xsl:product-name') = 'SAXON'">
         <div about="{ac:absolute-path(base-uri($main-doc))}" id="content-body" class="container-fluid">
             <xsl:apply-templates select="key('resources', ac:absolute-path(base-uri($main-doc)))" mode="ldh:ContentList"/>
 
@@ -56,83 +56,47 @@ exclude-result-prefixes="#all">
     </xsl:template>
     
     <!-- hide "Create" button which otherwise would be shown because acl:Append is allowed for signup -->
-    <xsl:template match="rdf:RDF[ac:absolute-path($ldh:requestUri) = resolve-uri(encode-for-uri('sign up'), $ldt:base)]" mode="bs2:Create" priority="2" use-when="system-property('xsl:product-name') = 'SAXON'"/>
+    <xsl:template match="rdf:RDF[ac:absolute-path(ldh:request-uri()) = resolve-uri(encode-for-uri('sign up'), $ldt:base)]" mode="bs2:Create" priority="2" use-when="system-property('xsl:product-name') = 'SAXON'"/>
 
     <!-- hide "Add data" button which otherwise would be shown because acl:Append is allowed for signup -->
-    <xsl:template match="rdf:RDF[ac:absolute-path($ldh:requestUri) = resolve-uri(encode-for-uri('sign up'), $ldt:base)]" mode="bs2:AddData" priority="2" use-when="system-property('xsl:product-name') = 'SAXON'"/>
+    <xsl:template match="rdf:RDF[ac:absolute-path(ldh:request-uri()) = resolve-uri(encode-for-uri('sign up'), $ldt:base)]" mode="bs2:AddData" priority="2" use-when="system-property('xsl:product-name') = 'SAXON'"/>
     
-    <xsl:template match="rdf:RDF[ac:absolute-path($ldh:requestUri) = resolve-uri(encode-for-uri('sign up'), $ldt:base)]" mode="bs2:ModeTabs" priority="2" use-when="system-property('xsl:product-name') = 'SAXON'"/>
+    <xsl:template match="rdf:RDF[ac:absolute-path(ldh:request-uri()) = resolve-uri(encode-for-uri('sign up'), $ldt:base)]" mode="bs2:ModeTabs" priority="2" use-when="system-property('xsl:product-name') = 'SAXON'"/>
 
     <!-- disable the right nav (backlinks etc.) -->
-    <xsl:template match="*[*][@rdf:about or @rdf:nodeID][ac:absolute-path($ldh:requestUri) = resolve-uri(encode-for-uri('sign up'), $ldt:base)]" mode="bs2:Right" use-when="system-property('xsl:product-name') = 'SAXON'"/>
+    <xsl:template match="*[*][@rdf:about or @rdf:nodeID][ac:absolute-path(ldh:request-uri()) = resolve-uri(encode-for-uri('sign up'), $ldt:base)]" mode="bs2:Right" use-when="system-property('xsl:product-name') = 'SAXON'"/>
 
-    <xsl:template match="rdf:RDF[ac:absolute-path($ldh:requestUri) = resolve-uri(encode-for-uri('sign up'), $ldt:base)]" mode="bs2:Row" priority="2">
+    <xsl:template match="rdf:RDF[ac:absolute-path(ldh:request-uri()) = resolve-uri(encode-for-uri('sign up'), $ldt:base)]" mode="bs2:Row" priority="2">
         <xsl:variable name="constructors" select="ldh:query-result(resolve-uri('ns', $ldt:base), $constructor-query || ' VALUES $Type { ' || string-join(for $type in '&foaf;Person' return '&lt;' || $type || '&gt;', ' ') || ' }')" as="document-node()?"/>
         <xsl:apply-templates select="ldh:construct(map{ xs:anyURI('&foaf;Person'): $constructors//srx:result[srx:binding[@name = 'Type'] = '&foaf;Person']/srx:binding[@name = 'construct']/srx:literal/string() })" mode="bs2:RowForm">
             <xsl:with-param name="id" select="'form-signup'"/>
             <xsl:with-param name="method" select="'post'"/> <!-- don't use PATCH which is the default -->
-            <xsl:with-param name="action" select="ac:absolute-path(base-uri($main-doc))"/>
+            <xsl:with-param name="action" select="ac:absolute-path(base-uri($main-doc))" tunnel="yes"/>
             <xsl:with-param name="enctype" select="()"/> <!-- don't use 'multipart/form-data' which is the default -->
             <xsl:with-param name="create-resource" select="false()"/>
             <xsl:with-param name="base-uri" select="ac:absolute-path(base-uri($main-doc))" tunnel="yes"/> <!-- base-uri() is empty on constructed documents -->
         </xsl:apply-templates>
     </xsl:template>
 
-<!--    <xsl:template match="rdf:RDF[ac:absolute-path($ldh:requestUri) = resolve-uri(encode-for-uri('sign up'), $ldt:base)][not(key('resources-by-type', '&http;Response'))][1]" mode="bs2:Row" priority="3">
-        <div class="row-fluid">
-            <div class="main offset2 span7">
-                <div class="alert alert-success row-fluid">
-                    <div class="span1">
-                        <img src="{resolve-uri('static/com/atomgraph/linkeddatahub/icons/baseline_done_white_48dp.png', $ac:contextUri)}" alt="Signup complete"/>
-                    </div>
-                    <div class="span11">
-                        <p>Congratulations! Your WebID profile has been created. You can see its data below.</p>
-                        <p>
-                            <strong>Authentication details have been sent to your email address.</strong>
-                        </p>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <xsl:apply-templates select="key('resources-by-type', '&foaf;Person')[@rdf:about]" mode="#current"/>
-        <xsl:apply-templates select="key('resources-by-type', '&cert;X509Certificate')[@rdf:about]" mode="#current"/>
-    </xsl:template>-->
-    
-    <!-- suppress resources other than foaf:Person and cert:PublicKey -->
-    <!-- <xsl:template match="*[ac:absolute-path($ldh:requestUri) = resolve-uri(encode-for-uri('sign up'), $ldt:base)][not(key('resources-by-type', '&http;Response'))][not(rdf:type/@rdf:resource = ('&foaf;Person', '&cert;X509Certificate'))]" mode="bs2:Row" priority="2"/> -->
-
     <!-- hide resources from constructed models -->
-    <xsl:template match="rdf:Description[not(rdf:type/@rdf:resource = ('&foaf;Person', '&adm;SignUp'))][ac:absolute-path($ldh:requestUri) = resolve-uri(encode-for-uri('sign up'), $ldt:base)]" mode="bs2:RowForm" priority="3"/>
+    <xsl:template match="rdf:Description[not(rdf:type/@rdf:resource = ('&foaf;Person', '&adm;SignUp'))][ac:absolute-path(ldh:request-uri()) = resolve-uri(encode-for-uri('sign up'), $ldt:base)]" mode="bs2:RowForm" priority="3"/>
 
     <!-- hide type control -->
-    <xsl:template match="*[*][@rdf:about or @rdf:nodeID][ac:absolute-path($ldh:requestUri) = resolve-uri(encode-for-uri('sign up'), $ldt:base)]" mode="bs2:TypeControl" priority="2">
+    <xsl:template match="*[*][@rdf:about or @rdf:nodeID][ac:absolute-path(ldh:request-uri()) = resolve-uri(encode-for-uri('sign up'), $ldt:base)]" mode="bs2:TypeControl" priority="2">
         <xsl:next-match>
             <xsl:with-param name="hidden" select="true()"/>
         </xsl:next-match>
     </xsl:template>
 
-    <xsl:template match="*[*][@rdf:about or @rdf:nodeID][ac:absolute-path($ldh:requestUri) = resolve-uri(encode-for-uri('sign up'), $ldt:base)]" mode="bs2:FormControl" priority="1">
+    <xsl:template match="*[*][@rdf:about or @rdf:nodeID][ac:absolute-path(ldh:request-uri()) = resolve-uri(encode-for-uri('sign up'), $ldt:base)]" mode="bs2:FormControl" priority="1">
         <xsl:next-match>
             <xsl:with-param name="show-subject" select="false()" tunnel="yes"/>
             <xsl:with-param name="legend" select="false()"/>
             <xsl:with-param name="required" select="true()"/>
         </xsl:next-match>
     </xsl:template>
-
-<!--    <xsl:template match="*[@rdf:about or @rdf:nodeID][ac:absolute-path($ldh:requestUri) = resolve-uri(encode-for-uri('sign up'), $ldt:base)]/sioc:has_parent | *[@rdf:about or @rdf:nodeID][ac:absolute-path($ldh:requestUri) = resolve-uri(encode-for-uri('sign up'), $ldt:base)]/sioc:has_container" mode="bs2:FormControl">
-        <xsl:apply-templates select="." mode="xhtml:Input">
-            <xsl:with-param name="type" select="'hidden'"/>
-        </xsl:apply-templates>
-
-        <xsl:call-template name="xhtml:Input">
-            <xsl:with-param name="name" select="'ou'"/>
-            <xsl:with-param name="type" select="'hidden'"/>
-            <xsl:with-param name="value" select="resolve-uri('acl/agents/', $ldt:base)"/>
-        </xsl:call-template>
-    </xsl:template>-->
     
-    <xsl:template match="foaf:based_near/@rdf:*[ac:absolute-path($ldh:requestUri) = resolve-uri(encode-for-uri('sign up'), $ldt:base)]" mode="bs2:FormControl" priority="1">
+    <xsl:template match="foaf:based_near/@rdf:*[ac:absolute-path(ldh:request-uri()) = resolve-uri(encode-for-uri('sign up'), $ldt:base)]" mode="bs2:FormControl" priority="1">
         <xsl:param name="id" select="generate-id()" as="xs:string"/>
         <xsl:param name="class" as="xs:string?"/>
         <xsl:param name="disabled" select="false()" as="xs:boolean"/>
@@ -195,7 +159,7 @@ exclude-result-prefixes="#all">
     </xsl:template>
     
     <!-- make properties required -->
-    <xsl:template match="foaf:givenName[ac:absolute-path($ldh:requestUri) = resolve-uri(encode-for-uri('sign up'), $ldt:base)] | foaf:familyName[ac:absolute-path($ldh:requestUri) = resolve-uri(encode-for-uri('sign up'), $ldt:base)] | foaf:mbox[ac:absolute-path($ldh:requestUri) = resolve-uri(encode-for-uri('sign up'), $ldt:base)] | cert:key[ac:absolute-path($ldh:requestUri) = resolve-uri(encode-for-uri('sign up'), $ldt:base)]" mode="bs2:FormControl" priority="1">
+    <xsl:template match="foaf:givenName[ac:absolute-path(ldh:request-uri()) = resolve-uri(encode-for-uri('sign up'), $ldt:base)] | foaf:familyName[ac:absolute-path(ldh:request-uri()) = resolve-uri(encode-for-uri('sign up'), $ldt:base)] | foaf:mbox[ac:absolute-path(ldh:request-uri()) = resolve-uri(encode-for-uri('sign up'), $ldt:base)] | cert:key[ac:absolute-path(ldh:request-uri()) = resolve-uri(encode-for-uri('sign up'), $ldt:base)]" mode="bs2:FormControl" priority="1">
         <xsl:param name="violations" as="element()*"/>
 
         <xsl:next-match>
@@ -204,7 +168,7 @@ exclude-result-prefixes="#all">
         </xsl:next-match>
     </xsl:template>
     
-    <xsl:template match="cert:key/@rdf:*[ac:absolute-path($ldh:requestUri) = resolve-uri(encode-for-uri('sign up'), $ldt:base)]" mode="bs2:FormControl" priority="1">
+    <xsl:template match="cert:key/@rdf:*[ac:absolute-path(ldh:request-uri()) = resolve-uri(encode-for-uri('sign up'), $ldt:base)]" mode="bs2:FormControl" priority="1">
         <xsl:param name="type" select="'password'" as="xs:string"/>
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="class" as="xs:string?"/>
@@ -246,10 +210,10 @@ exclude-result-prefixes="#all">
     </xsl:template>
     
     <!-- do not show secretary URI input -->
-    <xsl:template match="acl:delegates[ac:absolute-path($ldh:requestUri) = resolve-uri(encode-for-uri('sign up'), $ldt:base)]" mode="bs2:FormControl" priority="1"/>
+    <xsl:template match="acl:delegates[ac:absolute-path(ldh:request-uri()) = resolve-uri(encode-for-uri('sign up'), $ldt:base)]" mode="bs2:FormControl" priority="1"/>
 
     <!-- do not show the email hash value -->
-    <xsl:template match="foaf:mbox_sha1sum[ac:absolute-path($ldh:requestUri) = resolve-uri(encode-for-uri('sign up'), $ldt:base)]" mode="bs2:FormControl" priority="1"/>
+    <xsl:template match="foaf:mbox_sha1sum[ac:absolute-path(ldh:request-uri()) = resolve-uri(encode-for-uri('sign up'), $ldt:base)]" mode="bs2:FormControl" priority="1"/>
 
     <xsl:template name="lacl:password">
         <xsl:param name="this" select="xs:anyURI('&lacl;password')" as="xs:anyURI"/>
@@ -291,7 +255,7 @@ exclude-result-prefixes="#all">
     </xsl:template>
     
     <!--  hide properties -->
-    <xsl:template match="dh:slug[ac:absolute-path($ldh:requestUri) = resolve-uri(encode-for-uri('sign up'), $ldt:base)] | foaf:primaryTopic[ac:absolute-path($ldh:requestUri) = resolve-uri(encode-for-uri('sign up'), $ldt:base)] | foaf:isPrimaryTopicOf[ac:absolute-path($ldh:requestUri) = resolve-uri(encode-for-uri('sign up'), $ldt:base)] | cert:modulus[ac:absolute-path($ldh:requestUri) = resolve-uri(encode-for-uri('sign up'), $ldt:base)] | cert:exponent[ac:absolute-path($ldh:requestUri) = resolve-uri(encode-for-uri('sign up'), $ldt:base)]" mode="bs2:FormControl" priority="3">
+    <xsl:template match="dh:slug[ac:absolute-path(ldh:request-uri()) = resolve-uri(encode-for-uri('sign up'), $ldt:base)] | foaf:primaryTopic[ac:absolute-path(ldh:request-uri()) = resolve-uri(encode-for-uri('sign up'), $ldt:base)] | foaf:isPrimaryTopicOf[ac:absolute-path(ldh:request-uri()) = resolve-uri(encode-for-uri('sign up'), $ldt:base)] | cert:modulus[ac:absolute-path(ldh:request-uri()) = resolve-uri(encode-for-uri('sign up'), $ldt:base)] | cert:exponent[ac:absolute-path(ldh:request-uri()) = resolve-uri(encode-for-uri('sign up'), $ldt:base)]" mode="bs2:FormControl" priority="3">
         <xsl:apply-templates select="." mode="xhtml:Input">
             <xsl:with-param name="type" select="'hidden'"/>
         </xsl:apply-templates>
@@ -303,13 +267,13 @@ exclude-result-prefixes="#all">
         </xsl:apply-templates>
     </xsl:template>
 
-    <xsl:template match="*[@rdf:about = '&foaf;mbox'][ac:absolute-path($ldh:requestUri) = resolve-uri(encode-for-uri('sign up'), $ldt:base)]" mode="ac:label" priority="1">
+    <xsl:template match="*[@rdf:about = '&foaf;mbox'][ac:absolute-path(ldh:request-uri()) = resolve-uri(encode-for-uri('sign up'), $ldt:base)]" mode="ac:label" priority="1">
         <xsl:value-of>
             <xsl:apply-templates select="key('resources', 'email', document('../translations.rdf'))" mode="ac:label"/>
         </xsl:value-of>
     </xsl:template>
 
     <!-- turn off additional properties -->
-    <xsl:template match="*[ac:absolute-path($ldh:requestUri) = resolve-uri(encode-for-uri('sign up'), $ldt:base)]" mode="bs2:PropertyControl" priority="1"/>
+    <xsl:template match="*[ac:absolute-path(ldh:request-uri()) = resolve-uri(encode-for-uri('sign up'), $ldt:base)]" mode="bs2:PropertyControl" priority="1"/>
 
 </xsl:stylesheet>

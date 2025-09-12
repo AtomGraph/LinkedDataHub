@@ -262,7 +262,6 @@ WHERE
     <xsl:template match="div[@about]//button[contains-token(@class, 'btn-edit')][not(contains-token(@class, 'disabled'))]" mode="ixsl:onclick">
         <xsl:param name="block" select="ancestor::div[contains-token(@class, 'block')][1]" as="element()"/>
         <xsl:param name="about" select="$block/@about" as="xs:anyURI"/>
-<!--        <xsl:param name="graph" as="xs:anyURI?"/>-->
 
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
@@ -274,7 +273,7 @@ WHERE
         <ixsl:set-property name="block-html" select="ixsl:call($block, 'cloneNode', [ true() ])" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $about || '`')"/>
 
         <!-- if the URI is external, dereference it through the proxy -->
-        <xsl:variable name="request-uri" select="ldh:href(ac:document-uri(ldh:base-uri(.)))" as="xs:anyURI"/>
+        <xsl:variable name="request-uri" select="ldh:href(ldh:base-uri(.))" as="xs:anyURI"/>
         <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
         <xsl:variable name="context" as="map(*)" select="
           map{
@@ -328,7 +327,7 @@ WHERE
         <xsl:variable name="block" select="id($block-id, ixsl:page())" as="element()"/>
         
         <!-- if the URI is external, dereference it through the proxy -->
-        <xsl:variable name="request-uri" select="ldh:href(ac:absolute-path(ldh:base-uri(.)), map{})" as="xs:anyURI"/>
+        <xsl:variable name="request-uri" select="ldh:href($about)" as="xs:anyURI"/>
         <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
         <xsl:variable name="context" as="map(*)" select="
           map{
@@ -519,7 +518,7 @@ WHERE
                 <xsl:apply-templates select="$document" mode="bs2:Form"> <!-- document level template -->
                     <xsl:with-param name="about" select="()"/> <!-- don't set @about on the container until after the resource is saved -->
                     <xsl:with-param name="method" select="$method"/>
-                    <xsl:with-param name="action" select="$action"/>
+                    <xsl:with-param name="action" select="$action" tunnel="yes"/>
                     <xsl:with-param name="form-actions-class" select="'form-actions modal-footer'"/>
                     <xsl:with-param name="classes" select="()"/>
                     <xsl:with-param name="type-metadata" select="$type-metadata" tunnel="yes"/>
@@ -980,31 +979,6 @@ WHERE
             <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
         </xsl:for-each>
     </xsl:function>
-
-    <xsl:function name="ldh:modal-form-submit-success" ixsl:updating="yes">
-        <xsl:param name="context" as="map(*)"/>
-        <xsl:variable name="response" select="$context('response')" as="map(*)"/>
-
-        <xsl:message>ldh:modal-form-submit-success</xsl:message>
-
-        <xsl:for-each select="$response">
-            <xsl:variable name="href" select="ac:absolute-path(xs:anyURI(ixsl:location()))" as="xs:anyURI"/> <!-- TO-DO: pass $context?base-uri -->
-            <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $href, 'headers': map{ 'Accept': 'application/xhtml+xml' } }" as="map(*)"/>
-            <xsl:variable name="context" select="map:merge((
-              $context,
-              map{
-                'request': $request,
-                'href': $href
-              }
-            ), map{ 'duplicates': 'use-last' })" as="map(*)"/>  
-            <ixsl:promise select="
-              ixsl:http-request($context('request'))
-                => ixsl:then(ldh:rethread-response($context, ?))
-                => ixsl:then(ldh:handle-response#1)
-                => ixsl:then(ldh:xhtml-document-loaded#1)
-           " on-failure="ldh:promise-failure#1"/>
-        </xsl:for-each>        
-    </xsl:function>
     
     <xsl:function name="ldh:form-submit-created" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
@@ -1018,7 +992,8 @@ WHERE
             <xsl:variable name="context" as="map(*)" select="
               map{
                 'request': $request,
-                'href': $href
+                'href': $href,
+                'push-state': true()
               }"/>
             <ixsl:promise select="
               ixsl:http-request($context('request'))
@@ -1074,7 +1049,7 @@ WHERE
                     <xsl:apply-templates select="." mode="bs2:Form"> <!-- document level template -->
                         <xsl:with-param name="about" select="()"/> <!-- don't set @about on the container until after the resource is saved -->
                         <xsl:with-param name="method" select="$form/@method"/>
-                        <xsl:with-param name="action" select="$form/@action" as="xs:anyURI"/>
+                        <xsl:with-param name="action" select="$form/@action" as="xs:anyURI" tunnel="yes"/>
                         <xsl:with-param name="form-actions-class" select="'form-actions modal-footer'" as="xs:string?"/>
                         <xsl:with-param name="classes" select="()"/>
                         <xsl:with-param name="type-metadata" select="$type-metadata" tunnel="yes"/>
@@ -1223,15 +1198,6 @@ WHERE
         <xsl:variable name="constructed-doc" select="ldh:construct-forClass($forClass)" as="document-node()"/>
         <xsl:variable name="doc-uri" select="resolve-uri(ac:uuid() || '/', ac:absolute-path(ldh:base-uri(.)))" as="xs:anyURI"/> <!-- build a relative URI for the child document -->
         <xsl:variable name="this" select="$doc-uri" as="xs:anyURI"/>
-        <!-- set document URI instead of blank node -->
-        <xsl:variable name="constructed-doc" as="document-node()">
-            <xsl:document>
-                <xsl:apply-templates select="$constructed-doc" mode="ldh:SetResourceID">
-                    <xsl:with-param name="forClass" select="$forClass" tunnel="yes"/>
-                    <xsl:with-param name="about" select="$this" tunnel="yes"/>
-                </xsl:apply-templates>
-            </xsl:document>
-        </xsl:variable>
         <xsl:variable name="classes" select="()" as="element()*"/>
 
         <xsl:for-each select="$content-body">
@@ -1255,7 +1221,7 @@ WHERE
                 <xsl:apply-templates select="$constructed-doc" mode="bs2:Form"> <!-- document level template -->
                     <xsl:with-param name="about" select="()"/> <!-- don't set @about on the container until after the resource is saved -->
                     <xsl:with-param name="method" select="'put'"/>
-                    <xsl:with-param name="action" select="ldh:href($doc-uri, map{})" as="xs:anyURI"/>
+                    <xsl:with-param name="action" select="ldh:href($doc-uri)" as="xs:anyURI" tunnel="yes"/>
                     <xsl:with-param name="form-actions-class" select="'form-actions modal-footer'" as="xs:string?"/>
                     <xsl:with-param name="classes" select="$classes"/>
                     <xsl:with-param name="type-metadata" select="$type-metadata" tunnel="yes"/>
@@ -1351,7 +1317,7 @@ WHERE
             <xsl:apply-templates select="$constructed-doc" mode="bs2:RowForm">
                 <xsl:with-param name="about" select="()"/> <!-- don't set @about on the container until after the resource is saved -->
                 <xsl:with-param name="method" select="$method"/>
-                <xsl:with-param name="action" select="ldh:href($doc-uri, map{})" as="xs:anyURI"/>
+                <xsl:with-param name="action" select="ldh:href($doc-uri)" as="xs:anyURI" tunnel="yes"/>
                 <xsl:with-param name="type-metadata" select="$type-metadata" tunnel="yes"/>
                 <xsl:with-param name="property-metadata" select="$property-metadata" tunnel="yes"/>
                 <xsl:with-param name="constructor" select="$constructed-doc" tunnel="yes"/>
@@ -1612,7 +1578,7 @@ WHERE
 
                 <xsl:apply-templates select="$resource" mode="bs2:Form">
                     <xsl:with-param name="method" select="'post'"/>
-                    <xsl:with-param name="action" select="ldh:href($doc-uri, map{})" as="xs:anyURI"/>
+                    <xsl:with-param name="action" select="ldh:href($doc-uri)" as="xs:anyURI" tunnel="yes"/>
                     <xsl:with-param name="classes" select="$classes"/>
                     <xsl:with-param name="type-metadata" select="$type-metadata" tunnel="yes"/>
                     <xsl:with-param name="property-metadata" select="$property-metadata" tunnel="yes"/>
