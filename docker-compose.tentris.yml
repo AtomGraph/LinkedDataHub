@@ -3,6 +3,9 @@ services:
     depends_on:
       - tentris-admin
       - tentris-end-user
+    ports:
+      - 8000:8000 # debugger
+      - 5140:5140 # profiler
     volumes:
       - ./config/tentris/system.trig:/var/linkeddatahub/datasets/system.trig:ro
   tentris-admin:

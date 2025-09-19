@@ -273,23 +273,17 @@ append_quads()
     local auth_user="$2"
     local auth_pwd="$3"
     local filename="$4"
-    local content_type="$5"
 
     # Create temporary SPARQL query to extract distinct graph URIs
-    local query_file=$(mktemp)
+    local query_file
+    query_file=$(mktemp)
     cat > "$query_file" << 'EOF'
-SELECT DISTINCT ?g WHERE {
-    GRAPH ?g { ?s ?p ?o }
-}
+SELECT DISTINCT ?g WHERE { GRAPH ?g { ?s ?p ?o }}
 EOF
 
     # Execute SPARQL query to get graph URIs safely
     local graph_uris
-    echo "DEBUG: Attempting to parse file: $filename" >&2
-    echo "DEBUG: First 5 lines of file:" >&2
-    head -5 "$filename" >&2
-    echo "DEBUG: Running graph extraction query..." >&2
-    graph_uris=$(sparql --data="$filename" --query="$query_file" --results=TSV 2>&1 | tee /dev/stderr | tail -n +2 | cut -f1)
+    graph_uris=$(sparql --data="$filename" --query="$query_file" --results=CSV | tail -n +2 | cut -d, -f1)
 
     # Clean up query file
     rm -f "$query_file"
@@ -297,53 +291,35 @@ EOF
     # Iterate through each graph URI
     while IFS= read -r graph_uri; do
         if [ -n "$graph_uri" ]; then
-            # Remove angle brackets if present
-            clean_graph_uri=$(echo "$graph_uri" | sed 's/^<\(.*\)>$/\1/')
-            
+            # Remove any trailing newlines/whitespace
+            graph_uri=$(echo "$graph_uri" | tr -d '\n\r')
             # Create temporary file for this graph's content
             temp_file=$(mktemp)
-            
-            # Create SPARQL query to extract triples for specific graph
-            local extract_query=$(mktemp)
-            cat > "$extract_query" << EOF
-CONSTRUCT {
-    ?s ?p ?o
-}
-WHERE {
-    GRAPH <$clean_graph_uri> { ?s ?p ?o }
-}
-EOF
-            
-            # Extract triples for this specific graph as N-Triples
-            echo "DEBUG: Extracting graph: $graph_uri" >&2
-            echo "DEBUG: CONSTRUCT query:" >&2
-            cat "$extract_query" >&2
-            echo "DEBUG: Running CONSTRUCT query..." >&2
-            sparql --data="$filename" --query="$extract_query" --results=NT > "$temp_file" 2>&1 || echo "ERROR: CONSTRUCT failed for graph $graph_uri" >&2
 
-            echo "========== PROCESSING GRAPH: $graph_uri ==========" >&2
-            echo "TEMP QUADS FILE SIZE: $(wc -l < "$temp_file") lines" >&2
-            cat "$temp_file" >&2
-            echo "========== END GRAPH: $graph_uri ==========" >&2
-            
-            # Check curl version
-            echo "DEBUG: curl version: $(curl --version | head -1)" >&2
+            # Create SPARQL query to extract triples for specific graph
+            local extract_query
+            extract_query=$(mktemp)
+            cat > "$extract_query" << EOF
+CONSTRUCT { ?s ?p ?o } WHERE { GRAPH <$graph_uri> { ?s ?p ?o } }
+EOF
+
+            # Extract triples for this specific graph as N-Triples
+            sparql --data="$filename" --query="$extract_query" --results=NT > "$temp_file"
             
             # Send the graph's quads to the graph store
             if [ -n "$auth_user" ] && [ -n "$auth_pwd" ]; then
                 curl \
-                    -f \
+                    -f -v \
                     --basic \
                     --user "$auth_user":"$auth_pwd" \
-                    --url-query "graph=$clean_graph_uri" \
+                    --url-query "graph=$graph_uri" \
                     "$graph_store_url" \
                     -H "Content-Type: application/n-triples" \
                     --data-binary @"$temp_file"
             else
                 curl \
-                    -v \
-                    -f \
-                    --url-query "graph=$clean_graph_uri" \
+                    -f -v \
+                    --url-query "graph=$graph_uri" \
                     "$graph_store_url" \
                     -H "Content-Type: application/n-triples" \
                     --data-binary @"$temp_file"
@@ -370,7 +346,6 @@ generate_cert()
     local keystore_password="${11}"
     local cert_output="${12}"
     local public_key_output="${13}"
-    local private_key_output="${14}"
 
     # Build the Distinguished Name (DN) string, only including components if they're non-empty
     dname="CN=${common_name}"
@@ -447,7 +422,7 @@ if [ ! -f "$OWNER_PUBLIC_KEY" ]; then
                   "$OWNER_ORG_UNIT" "$OWNER_ORGANIZATION" \
                   "$OWNER_LOCALITY" "$OWNER_STATE_OR_PROVINCE" "$OWNER_COUNTRY_NAME" \
                   "$CERT_VALIDITY" "$OWNER_KEYSTORE" "$OWNER_CERT_PASSWORD" \
-                  "$OWNER_CERT" "$OWNER_PUBLIC_KEY" "$OWNER_PRIVATE_KEY"
+                  "$OWNER_CERT" "$OWNER_PUBLIC_KEY"
 
     # write owner's metadata to a file
 
@@ -484,7 +459,7 @@ if [ ! -f "$SECRETARY_PUBLIC_KEY" ]; then
                   "" "" \
                   "" "" "" \
                   "$CERT_VALIDITY" "$SECRETARY_KEYSTORE" "$SECRETARY_CERT_PASSWORD" \
-                  "$SECRETARY_CERT" "$SECRETARY_PUBLIC_KEY" "$SECRETARY_PRIVATE_KEY"
+                  "$SECRETARY_CERT" "$SECRETARY_PUBLIC_KEY"
 
     # write secretary's metadata to a file
 
@@ -669,7 +644,7 @@ for app in "${apps[@]}"; do
         wait_for_url "$end_user_graph_store_url" "$end_user_service_auth_user" "$end_user_service_auth_pwd" "$TIMEOUT" "application/n-quads"
 
         printf "\n### Loading end-user dataset into the triplestore...\n"
-        append_quads "$end_user_graph_store_url" "$end_user_service_auth_user" "$end_user_service_auth_pwd" /var/linkeddatahub/based-datasets/end-user.nq "application/n-quads"
+        append_quads "$end_user_graph_store_url" "$end_user_service_auth_user" "$end_user_service_auth_pwd" /var/linkeddatahub/based-datasets/end-user.nq
 
         trig --base="$admin_base_uri" "$ADMIN_DATASET" > /var/linkeddatahub/based-datasets/admin.nq
 
@@ -677,17 +652,17 @@ for app in "${apps[@]}"; do
         wait_for_url "$admin_graph_store_url" "$admin_service_auth_user" "$admin_service_auth_pwd" "$TIMEOUT" "application/n-quads"
 
         printf "\n### Loading admin dataset into the triplestore...\n"
-        append_quads "$admin_graph_store_url" "$admin_service_auth_user" "$admin_service_auth_pwd" /var/linkeddatahub/based-datasets/admin.nq "application/n-quads"
+        append_quads "$admin_graph_store_url" "$admin_service_auth_user" "$admin_service_auth_pwd" /var/linkeddatahub/based-datasets/admin.nq
 
         trig --base="$admin_base_uri" --output=nq "$OWNER_DATASET_PATH" > /var/linkeddatahub/based-datasets/root-owner.nq
 
         printf "\n### Uploading the metadata of the owner agent...\n\n"
-        append_quads "$admin_graph_store_url" "$admin_service_auth_user" "$admin_service_auth_pwd" /var/linkeddatahub/based-datasets/root-owner.nq "application/n-quads"
+        append_quads "$admin_graph_store_url" "$admin_service_auth_user" "$admin_service_auth_pwd" /var/linkeddatahub/based-datasets/root-owner.nq
 
         trig --base="$admin_base_uri" --output=nq "$SECRETARY_DATASET_PATH" > /var/linkeddatahub/based-datasets/root-secretary.nq
 
         printf "\n### Uploading the metadata of the secretary agent...\n\n"
-        append_quads "$admin_graph_store_url" "$admin_service_auth_user" "$admin_service_auth_pwd" /var/linkeddatahub/based-datasets/root-secretary.nq "application/n-quads"
+        append_quads "$admin_graph_store_url" "$admin_service_auth_user" "$admin_service_auth_pwd" /var/linkeddatahub/based-datasets/root-secretary.nq
     fi
 done
 
