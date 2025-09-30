@@ -123,7 +123,6 @@ import com.atomgraph.linkeddatahub.writer.XSLTWriterBase;
 import com.atomgraph.linkeddatahub.writer.factory.ModeFactory;
 import com.atomgraph.linkeddatahub.writer.function.DecodeURI;
 import com.atomgraph.server.mapper.NotAcceptableExceptionMapper;
-import com.atomgraph.server.vocabulary.LDT;
 import com.atomgraph.server.mapper.OntologyExceptionMapper;
 import com.atomgraph.server.mapper.jena.DatatypeFormatExceptionMapper;
 import com.atomgraph.server.mapper.jena.QueryParseExceptionMapper;
@@ -664,7 +663,7 @@ public class Application extends ResourceConfig
             
             if (proxyHostname != null)
             {
-                ClientRequestFilter rewriteFilter = new ClientUriRewriteFilter(baseURI, proxyScheme, proxyHostname, proxyPort); // proxyPort can be null
+                ClientRequestFilter rewriteFilter = new ClientUriRewriteFilter(proxyScheme, proxyHostname, proxyPort); // proxyPort can be null
                 
                 client.register(rewriteFilter);
                 externalClient.register(rewriteFilter);
@@ -1174,21 +1173,7 @@ public class Application extends ResourceConfig
      */
     public Resource matchApp(Resource type, URI absolutePath)
     {
-        return matchApp(getContextModel(), type, absolutePath); // make sure we return an immutable model
-    }
-    
-    /**
-     * Matches application by type and request URL in a given application model.
-     * It finds the apps where request URL is relative to the app base URI, and returns the one with the longest match.
-     * 
-     * @param appModel application model
-     * @param type application type
-     * @param absolutePath request URL without the query string
-     * @return app resource or null, if none matched
-     */
-    public Resource matchApp(Model appModel, Resource type, URI absolutePath)
-    {
-        return getLongestURIResource(getLengthMap(getRelativeBaseApps(appModel, type, absolutePath)));
+        return getAppByOrigin(getContextModel(), type, absolutePath); // make sure we return an immutable model
     }
     
     /**
@@ -1207,35 +1192,56 @@ public class Application extends ResourceConfig
     }
     
     /**
-     * Builds a base URI to application resource map from the application model.
+     * Finds application by origin matching from the application model.
      * Applications are filtered by type first.
-     * 
+     *
      * @param model application model
      * @param type application type
      * @param absolutePath request URL (without the query string)
-     * @return URI to app map
+     * @return app resource or null if no match found
      */
-    public Map<URI, Resource> getRelativeBaseApps(Model model, Resource type, URI absolutePath)
+    public Resource getAppByOrigin(Model model, Resource type, URI absolutePath)
     {
         if (model == null) throw new IllegalArgumentException("Model cannot be null");
         if (type == null) throw new IllegalArgumentException("Resource cannot be null");
         if (absolutePath == null) throw new IllegalArgumentException("URI cannot be null");
 
-        Map<URI, Resource> apps = new HashMap<>();
-        
+        // Normalize request origin with explicit port
+        String requestOrigin = absolutePath.getHost();
+        int port = absolutePath.getPort();
+        if (port == -1)
+        {
+            if ("https".equals(absolutePath.getScheme())) port = 443;
+            else
+                if ("http".equals(absolutePath.getScheme())) port = 80;
+        }
+        requestOrigin += ":" + port;
+
         ResIterator it = model.listSubjectsWithProperty(RDF.type, type);
         try
         {
             while (it.hasNext())
             {
                 Resource app = it.next();
-                
-                if (!app.hasProperty(LDT.base))
-                    throw new InternalServerErrorException(new IllegalStateException("Application resource <" + app.getURI() + "> has no ldt:base value"));
-                
-                URI base = URI.create(app.getPropertyResourceValue(LDT.base).getURI());
-                URI relative = base.relativize(absolutePath);
-                if (!relative.isAbsolute()) apps.put(base, app);
+
+                // Use origin-based matching - return immediately on match since origins are unique
+                if (app.hasProperty(LDH.origin))
+                {
+                    URI appOriginURI = URI.create(app.getPropertyResourceValue(LDH.origin).getURI());
+                    String appOrigin = appOriginURI.getHost();
+                    int appPort = appOriginURI.getPort();
+                    if (appPort == -1) {
+                        // Add default ports
+                        if ("https".equals(appOriginURI.getScheme())) {
+                            appPort = 443;
+                        } else if ("http".equals(appOriginURI.getScheme())) {
+                            appPort = 80;
+                        }
+                    }
+                    String normalizedAppOrigin = appOrigin + ":" + appPort;
+
+                    if (requestOrigin.equals(normalizedAppOrigin)) return app;
+                }
             }
         }
         finally
@@ -1243,7 +1249,7 @@ public class Application extends ResourceConfig
             it.close();
         }
 
-        return apps;
+        return null;
     }
     
     /**

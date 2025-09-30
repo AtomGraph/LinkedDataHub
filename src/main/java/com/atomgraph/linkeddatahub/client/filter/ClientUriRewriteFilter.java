@@ -20,12 +20,13 @@ import java.io.IOException;
 import java.net.URI;
 import jakarta.ws.rs.client.ClientRequestContext;
 import jakarta.ws.rs.client.ClientRequestFilter;
+import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.UriBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Client request filter that rewrites the target URL using a proxy URL.
+ * Client request filter that rewrites the target <samp>localhost</samp> URLs to internal proxy URLs.
  * 
  * @author {@literal Martynas Jusevičius <martynas@atomgraph.com>}
  */
@@ -34,21 +35,18 @@ public class ClientUriRewriteFilter implements ClientRequestFilter
 
     private static final Logger log = LoggerFactory.getLogger(ClientUriRewriteFilter.class);
 
-    private final URI baseURI;
     private final String scheme, hostname;
     private final Integer port;
 
     /**
      * Constructs filter from URI components.
      * 
-     * @param baseURI base URI
      * @param scheme new scheme
      * @param hostname new hostname
      * @param port new port number
      */
-    public ClientUriRewriteFilter(URI baseURI, String scheme, String hostname, Integer port)
+    public ClientUriRewriteFilter(String scheme, String hostname, Integer port)
     {
-        this.baseURI = baseURI;
         this.scheme = scheme;
         this.hostname = hostname;
         this.port = port;
@@ -57,7 +55,12 @@ public class ClientUriRewriteFilter implements ClientRequestFilter
     @Override
     public void filter(ClientRequestContext cr) throws IOException
     {
-        if (getBaseURI().relativize(cr.getUri()).isAbsolute()) return; // don't rewrite URIs that are not relative to the base URI (e.g. SPARQL Protocol URLs)
+        if (!cr.getUri().getHost().equals("localhost") && !cr.getUri().getHost().endsWith(".localhost")) return;
+        
+        // Preserve original host for nginx routing
+        String originalHost = cr.getUri().getHost();
+        if (cr.getUri().getPort() != -1) originalHost += ":" + cr.getUri().getPort();
+        cr.getHeaders().putSingle(HttpHeaders.HOST, originalHost);
 
         String newScheme = cr.getUri().getScheme();
         if (getScheme() != null) newScheme  = getScheme();
@@ -68,17 +71,7 @@ public class ClientUriRewriteFilter implements ClientRequestFilter
         if (log.isDebugEnabled()) log.debug("Rewriting client request URI from '{}' to '{}'", cr.getUri(), newUri);
         cr.setUri(newUri);
     }
-    
-    /**
-     * Base URI of the application
-     * 
-     * @return base URI
-     */
-    public URI getBaseURI()
-    {
-        return baseURI;
-    }
-    
+
     /**
      * Scheme component of the new (rewritten) URI.
      * 

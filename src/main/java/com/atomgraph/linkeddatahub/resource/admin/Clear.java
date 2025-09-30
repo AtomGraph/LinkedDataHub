@@ -101,8 +101,7 @@ public class Clear
             
             // !!! we need to reload the ontology model before returning a response, to make sure the next request already gets the new version !!!
             // same logic as in OntologyFilter. TO-DO: encapsulate?
-            OntologyModelGetter modelGetter = new OntologyModelGetter(app,
-                    ontModelSpec, getSystem().getOntologyQuery(), getSystem().getNoCertClient(), getSystem().getMediaTypes());
+            OntologyModelGetter modelGetter = new OntologyModelGetter(app, ontModelSpec, getSystem().getOntologyQuery());
             ontModelSpec.setImportModelGetter(modelGetter);
             if (log.isDebugEnabled()) log.debug("Started loading ontology with URI '{}' from the admin dataset", ontologyURI);
             Model baseModel = modelGetter.getModel(ontologyURI);

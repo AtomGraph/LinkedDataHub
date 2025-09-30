@@ -125,8 +125,7 @@ public class Namespace extends com.atomgraph.core.model.impl.SPARQLEndpointImpl
                 String ontologyURI = getURI().toString() + "#"; // TO-DO: hard-coding "#" is not great. Replace with RDF property lookup.
                 if (log.isDebugEnabled()) log.debug("Returning namespace ontology from OntDocumentManager: {}", ontologyURI);
                 // not returning the injected in-memory ontology because it has inferences applied to it
-                OntologyModelGetter modelGetter = new OntologyModelGetter(getApplication().as(EndUserApplication.class),
-                        getSystem().getOntModelSpec(), getSystem().getOntologyQuery(), getSystem().getClient(), getSystem().getMediaTypes());
+                OntologyModelGetter modelGetter = new OntologyModelGetter(getApplication().as(EndUserApplication.class), getSystem().getOntModelSpec(), getSystem().getOntologyQuery());
                 return getResponseBuilder(modelGetter.getModel(ontologyURI)).build();
             }
             else throw new BadRequestException("SPARQL query string not provided");

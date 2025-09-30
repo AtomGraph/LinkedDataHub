@@ -21,6 +21,7 @@ import com.atomgraph.linkeddatahub.apps.model.Application;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.vocabulary.FOAF;
 import com.atomgraph.linkeddatahub.vocabulary.LAPP;
+import com.atomgraph.linkeddatahub.vocabulary.LDH;
 import com.atomgraph.server.vocabulary.LDT;
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.graph.Node;
@@ -55,14 +56,26 @@ public class ApplicationImpl extends ResourceImpl implements Application
     @Override
     public Resource getBase()
     {
-        return getPropertyResourceValue(LDT.base);
+        return getModel().createResource(getOriginURI().resolve("/").toString());
     }
     
     @Override
     public URI getBaseURI()
     {
-        if (getBase() != null) return URI.create(getBase().getURI());
-        
+        return getOriginURI().resolve("/");
+    }
+
+    @Override
+    public Resource getOrigin()
+    {
+        return getPropertyResourceValue(LDH.origin);
+    }
+
+    @Override
+    public URI getOriginURI()
+    {
+        if (getOrigin() != null) return URI.create(getOrigin().getURI());
+
         return null;
     }
 

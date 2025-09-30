@@ -17,10 +17,8 @@
 package com.atomgraph.linkeddatahub.server.util;
 
 import com.atomgraph.client.vocabulary.LDT;
-import com.atomgraph.core.MediaTypes;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import com.atomgraph.server.exception.OntologyException;
-import jakarta.ws.rs.client.Client;
 import org.apache.jena.ontology.OntModelSpec;
 import org.apache.jena.query.ParameterizedSparqlString;
 import org.apache.jena.query.Query;
@@ -44,21 +42,6 @@ public class OntologyModelGetter implements org.apache.jena.rdf.model.ModelGette
     private final EndUserApplication app;
     private final OntModelSpec ontModelSpec;
     private final Query ontologyQuery;
-
-    
-    /**
-     * Constructs ontology getter for application.
-     * 
-     * @param app end-user application resource
-     * @param ontModelSpec ontology specification
-     * @param ontologyQuery SPARQL query that loads ontology terms
-     * @param client HTTP client
-     * @param mediaTypes registry of readable/writable media types
-     */
-    public OntologyModelGetter(EndUserApplication app, OntModelSpec ontModelSpec, Query ontologyQuery, Client client, MediaTypes mediaTypes)
-    {
-        this(app, ontModelSpec, ontologyQuery);
-    }
     
     /**
      * Constructs ontology getter for application.

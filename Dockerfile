@@ -72,14 +72,12 @@ ENV OWNER_CERT_ALIAS=root-owner
 ENV OWNER_KEYSTORE=/var/linkeddatahub/ssl/owner/keystore.p12
 ENV OWNER_CERT=/var/linkeddatahub/ssl/owner/cert.pem
 ENV OWNER_PUBLIC_KEY=/var/linkeddatahub/ssl/owner/public.pem
-ENV OWNER_PRIVATE_KEY=/var/linkeddatahub/ssl/owner/private.key
 
 ENV SECRETARY_COMMON_NAME=LinkedDataHub
 ENV SECRETARY_CERT_ALIAS=root-secretary
 ENV SECRETARY_KEYSTORE=/var/linkeddatahub/ssl/secretary/keystore.p12
 ENV SECRETARY_CERT=/var/linkeddatahub/ssl/secretary/cert.pem
 ENV SECRETARY_PUBLIC_KEY=/var/linkeddatahub/ssl/secretary/public.pem
-ENV SECRETARY_PRIVATE_KEY=/var/linkeddatahub/ssl/secretary/private.key
 
 ENV CLIENT_KEYSTORE_MOUNT=/var/linkeddatahub/ssl/secretary/keystore.p12
 ENV CLIENT_KEYSTORE="$CATALINA_HOME/webapps/ROOT/WEB-INF/keystore.p12"

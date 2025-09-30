@@ -115,8 +115,7 @@ public class OntologyFilter implements ContainerRequestFilter
             // only create InfModel if ontology is not already cached
             if (!ontModelSpec.getDocumentManager().getFileManager().hasCachedModel(uri))
             {
-                OntologyModelGetter modelGetter = new OntologyModelGetter(app.as(EndUserApplication.class),
-                        ontModelSpec, getSystem().getOntologyQuery(), getSystem().getNoCertClient(), getSystem().getMediaTypes());
+                OntologyModelGetter modelGetter = new OntologyModelGetter(app.as(EndUserApplication.class), ontModelSpec, getSystem().getOntologyQuery());
                 ontModelSpec.setImportModelGetter(modelGetter);
                 if (log.isDebugEnabled()) log.debug("Started loading ontology with URI '{}' from the admin dataset", uri);
                 Model baseModel = modelGetter.getModel(uri);
