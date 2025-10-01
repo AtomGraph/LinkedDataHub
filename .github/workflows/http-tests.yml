@@ -42,8 +42,7 @@ jobs:
       - name: Run Docker containers
         run: docker compose -f docker-compose.yml -f ./http-tests/docker-compose.http-tests.yml --env-file ./http-tests/.env up -d
       
-      - name: Debug container health (if failed)
-        if: failure()  # Only run if previous step failed
+      - name: Debug container health
         run: |
           echo "=== Container Status ==="
           docker ps -a
