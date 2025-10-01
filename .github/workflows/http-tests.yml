@@ -43,6 +43,19 @@ jobs:
         run: docker compose -f docker-compose.yml -f ./http-tests/docker-compose.http-tests.yml --env-file ./http-tests/.env up -d
       - name: Wait for the server to start...
         run: while ! (status=$(curl -k -s -w "%{http_code}\n" https://localhost:4443 -o /dev/null) && echo "$status" && echo "$status" | grep "403") ; do sleep 1 ; done # wait for the webapp to start (returns 403 by default)
+
+      - name: Debug container health
+        if: always()  # Run even if previous steps fail
+        run: |
+          echo "=== Container Status ==="
+          docker ps -a
+          echo "=== LinkeddataHub Container Logs ==="
+          docker logs linkeddatahub-linkeddatahub-1 --tail 50
+          echo "=== Healthcheck History ==="
+          docker inspect linkeddatahub-linkeddatahub-1 | jq '.[0].State.Health.Log[-5:]' || echo "No healthcheck logs"
+          echo "=== Manual Healthcheck Test ==="
+          docker exec linkeddatahub-linkeddatahub-1 curl -f -I -v "http://localhost:7070/ns" -H "Accept: application/n-triples" || echo "Manual healthcheck failed"
+          
       - name: Fix certificate permissions on the host
         run: |
           sudo chmod 644 ./ssl/owner/cert.pem ./ssl/secretary/cert.pem
