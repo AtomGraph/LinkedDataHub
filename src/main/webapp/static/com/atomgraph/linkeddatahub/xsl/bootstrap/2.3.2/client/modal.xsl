@@ -707,7 +707,7 @@ LIMIT   10
     <xsl:template match="button[contains-token(@class, 'btn-access-form')]" mode="ixsl:onclick">
         <!-- TO-DO: fix for admin apps -->
         <xsl:param name="admin-base-uri" select="xs:anyURI(replace($ldt:base, '^(https?://)', '$1admin.'))" as="xs:anyURI"/>
-        <xsl:variable name="request-uri" select="ldh:href(resolve-uri('access', $admin-base-uri), map{ 'this': string(ac:absolute-path(ldh:base-uri(.))) })" as="xs:anyURI"/>
+        <xsl:variable name="request-uri" select="ldh:href(ac:build-uri(resolve-uri('access', $admin-base-uri), map{ 'this': string(ac:absolute-path(ldh:base-uri(.))) }))" as="xs:anyURI"/>
         <xsl:variable name="request" as="item()*">
             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                 <xsl:call-template name="onAccessResponseLoad">

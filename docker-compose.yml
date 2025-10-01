@@ -56,6 +56,11 @@ services:
       - MAIL_SMTP_HOST=email-server
       - MAIL_SMTP_PORT=25
       - MAIL_USER=linkeddatahub@localhost
+      - REMOTE_IP_VALVE=true
+      - REMOTE_IP_VALVE_PROTOCOL_HEADER=X-Forwarded-Proto
+      - REMOTE_IP_VALVE_PORT_HEADER=X-Forwarded-Port
+      - REMOTE_IP_VALVE_REMOTE_IP_HEADER=X-Forwarded-For
+      - REMOTE_IP_VALVE_HOST_HEADER=X-Forwarded-Host
       - OWNER_MBOX=${OWNER_MBOX}
       #- OWNER_URI=${OWNER_URI}
       - OWNER_GIVEN_NAME=${OWNER_GIVEN_NAME}

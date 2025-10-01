@@ -13,50 +13,80 @@ fi
 # change server configuration
 
 if [ -n "$HTTP" ]; then
-    HTTP_PARAM="--stringparam http $HTTP "
+    HTTP_PARAM="--stringparam Connector.http $HTTP "
 fi
 
-# if [ -n "$HTTP_SCHEME" ]; then
-#     HTTP_SCHEME_PARAM="--stringparam http.scheme $HTTP_SCHEME "
-# fi
+if [ -n "$HTTP_SCHEME" ]; then
+    HTTP_SCHEME_PARAM="--stringparam Connector.scheme.http $HTTP_SCHEME "
+fi
 
 if [ -n "$HTTP_PORT" ]; then
-    HTTP_PORT_PARAM="--stringparam http.port $HTTP_PORT "
+    HTTP_PORT_PARAM="--stringparam Connector.port.http $HTTP_PORT "
 fi
 
-# if [ -n "$HTTP_PROXY_NAME" ]; then
-#     lc_proxy_name=$(echo "$HTTP_PROXY_NAME" | tr '[:upper:]' '[:lower:]') # make sure it's lower-case
-#     HTTP_PROXY_NAME_PARAM="--stringparam http.proxyName $lc_proxy_name "
-# fi
+if [ -n "$HTTP_PROXY_NAME" ]; then
+    lc_proxy_name=$(echo "$HTTP_PROXY_NAME" | tr '[:upper:]' '[:lower:]') # make sure it's lower-case
+    HTTP_PROXY_NAME_PARAM="--stringparam Connector.proxyName.http $lc_proxy_name "
+fi
 
-# if [ -n "$HTTP_PROXY_PORT" ]; then
-#     HTTP_PROXY_PORT_PARAM="--stringparam http.proxyPort $HTTP_PROXY_PORT "
-# fi
+if [ -n "$HTTP_PROXY_PORT" ]; then
+    HTTP_PROXY_PORT_PARAM="--stringparam Connector.proxyPort.http $HTTP_PROXY_PORT "
+fi
 
 if [ -n "$HTTP_REDIRECT_PORT" ]; then
-    HTTP_REDIRECT_PORT_PARAM="--stringparam http.redirectPort $HTTP_REDIRECT_PORT "
+    HTTP_REDIRECT_PORT_PARAM="--stringparam Connector.redirectPort.http $HTTP_REDIRECT_PORT "
 fi
 
 if [ -n "$HTTP_CONNECTION_TIMEOUT" ]; then
-    HTTP_CONNECTION_TIMEOUT_PARAM="--stringparam http.connectionTimeout $HTTP_CONNECTION_TIMEOUT "
+    HTTP_CONNECTION_TIMEOUT_PARAM="--stringparam Connector.connectionTimeout.http $HTTP_CONNECTION_TIMEOUT "
 fi
 
 if [ -n "$HTTP_COMPRESSION" ]; then
-    HTTP_COMPRESSION_PARAM="--stringparam http.compression $HTTP_COMPRESSION "
+    HTTP_COMPRESSION_PARAM="--stringparam Connector.compression.http $HTTP_COMPRESSION "
 fi
 
 if [ -n "$HTTPS" ]; then
-    HTTPS_PARAM="--stringparam https $HTTPS "
+    HTTPS_PARAM="--stringparam Connector.https $HTTPS "
+fi
+
+# RemoteIpValve configuration takes precedence over Connector proxy settings
+
+if [ -n "$REMOTE_IP_VALVE" ]; then
+    REMOTE_IP_VALVE_PARAM="--stringparam RemoteIpValve $REMOTE_IP_VALVE "
+fi
+
+if [ -n "$REMOTE_IP_VALVE_PROTOCOL_HEADER" ]; then
+    REMOTE_IP_VALVE_PROTOCOL_HEADER_PARAM="--stringparam RemoteIpValve.protocolHeader $REMOTE_IP_VALVE_PROTOCOL_HEADER "
+fi
+
+if [ -n "$REMOTE_IP_VALVE_PORT_HEADER" ]; then
+    REMOTE_IP_VALVE_PORT_HEADER_PARAM="--stringparam RemoteIpValve.portHeader $REMOTE_IP_VALVE_PORT_HEADER "
+fi
+
+if [ -n "$REMOTE_IP_VALVE_REMOTE_IP_HEADER" ]; then
+    REMOTE_IP_VALVE_REMOTE_IP_HEADER_PARAM="--stringparam RemoteIpValve.remoteIpHeader $REMOTE_IP_VALVE_REMOTE_IP_HEADER "
+fi
+
+if [ -n "$REMOTE_IP_VALVE_HOST_HEADER" ]; then
+    REMOTE_IP_VALVE_HOST_HEADER_PARAM="--stringparam RemoteIpValve.hostHeader $REMOTE_IP_VALVE_HOST_HEADER "
 fi
 
 transform="xsltproc \
   --output conf/server.xml \
   $HTTP_PARAM \
+  $HTTP_SCHEME_PARAM \
   $HTTP_PORT_PARAM \
+  $HTTP_PROXY_NAME_PARAM \
+  $HTTP_PROXY_PORT_PARAM \
   $HTTP_REDIRECT_PORT_PARAM \
   $HTTP_CONNECTION_TIMEOUT_PARAM \
   $HTTP_COMPRESSION_PARAM \
   $HTTPS_PARAM \
+  $REMOTE_IP_VALVE_PARAM \
+  $REMOTE_IP_VALVE_PROTOCOL_HEADER_PARAM \
+  $REMOTE_IP_VALVE_PORT_HEADER_PARAM \
+  $REMOTE_IP_VALVE_REMOTE_IP_HEADER_PARAM \
+  $REMOTE_IP_VALVE_HOST_HEADER_PARAM \
   conf/letsencrypt-tomcat.xsl \
   conf/server.xml"
 
