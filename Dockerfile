@@ -22,7 +22,7 @@ RUN mvn -Pstandalone clean install
 
 # ==============================
 
-FROM atomgraph/letsencrypt-tomcat:10.1.34
+FROM atomgraph/letsencrypt-tomcat:10.1.46
 
 LABEL maintainer="martynas@atomgraph.com"
 
