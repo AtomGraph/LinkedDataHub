@@ -40,7 +40,7 @@ jobs:
       - name: Build Docker images
         run: docker compose build --no-cache
       - name: Run Docker containers
-        run: docker compose -f docker-compose.yml -f ./http-tests/docker-compose.http-tests.yml --env-file ./http-tests/.env up -d
+        run: docker compose -f docker-compose.yml -f ./http-tests/docker-compose.http-tests.yml --env-file ./http-tests/.env up
       
       - name: Debug container health
         run: |
