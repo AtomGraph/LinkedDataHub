@@ -92,6 +92,11 @@ transform="xsltproc \
 
 eval "$transform"
 
+# debug: print generated server.xml
+echo "=== Generated server.xml ==="
+cat conf/server.xml
+echo "============================"
+
 ### PLATFORM ###
 
 # check mandatory environmental variables (which are used in conf/ROOT.xml)
