@@ -391,7 +391,6 @@ WHERE
 
 ### ADMIN-SPECIFIC
 
-@prefix ns:	<../ns#> .
 @prefix lacl:	<https://w3id.org/atomgraph/linkeddatahub/admin/acl#> .
 @prefix adm:	<https://w3id.org/atomgraph/linkeddatahub/admin#> .
 @prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .
@@ -637,44 +636,6 @@ WHERE
 
 }
 
-# public namespace
-
-<acl/authorizations/public-namespace/>
-{
-
-    <acl/authorizations/public-namespace/> a dh:Item ;
-        sioc:has_container <acl/authorizations/> ;
-        dct:title "Public namespace access" ;
-        foaf:primaryTopic <acl/authorizations/public-namespace/#this> .
-
-    <acl/authorizations/public-namespace/#this> a acl:Authorization ;
-        rdfs:label "Public namespace access" ;
-        rdfs:comment "Allows non-authenticated access" ;
-        acl:accessTo <../ns> ; # end-user ontologies are public
-        acl:mode acl:Read, acl:Append ; # allow queries over GET as well as POST
-        acl:agentClass foaf:Agent, acl:AuthenticatedAgent .
-
-}
-
-# SPARQL endpoint
-
-<acl/authorizations/sparql-endpoint/>
-{
-
-    <acl/authorizations/sparql-endpoint/> a dh:Item ;
-        sioc:has_container <acl/authorizations/> ;
-        dct:title "SPARQL endpoint access" ;
-        foaf:primaryTopic <acl/authorizations/sparql-endpoint/#this> .
-
-    <acl/authorizations/sparql-endpoint/#this> a acl:Authorization ;
-        rdfs:label "SPARQL endpoint access" ;
-        rdfs:comment "Allows only authenticated access" ;
-        acl:accessTo <../sparql> ;
-        acl:mode acl:Read, acl:Append ; # allow queries over GET as well as POST
-        acl:agentClass acl:AuthenticatedAgent .
-
-}
-
 # access endpoint
 
 <acl/authorizations/access/>
@@ -804,49 +765,9 @@ WHERE
         rdfs:label "Full control" ;
         rdfs:comment "Allows full read/write access to all application resources" ;
         acl:accessToClass dh:Item, dh:Container, def:Root ;
-        acl:accessTo <../sparql>, <../importer>, <../add>, <../generate>, <../ns>, <clear>, <transform> ;
+        acl:accessTo <clear>, <transform> ;
         acl:mode acl:Read, acl:Append, acl:Write, acl:Control ;
         acl:agentGroup <acl/groups/owners/#this> .
-
-}
-
-# write/append access
-
-<acl/authorizations/write-append/>
-{
-
-    <acl/authorizations/write-append/> a dh:Item ;
-        sioc:has_container <acl/authorizations/> ;
-        dct:title "Write/append access" ;
-        foaf:primaryTopic <acl/authorizations/write-append/#this> .
-
-    <acl/authorizations/write-append/#this> a acl:Authorization ;
-        rdfs:label "Write/append access" ;
-        rdfs:comment "Allows write access to all documents and containers" ;
-        acl:accessToClass dh:Item, dh:Container, def:Root ;
-        acl:accessTo <../sparql>, <../importer>, <../add>, <../generate>, <../ns> ;
-        acl:mode acl:Write, acl:Append ;
-        acl:agentGroup <acl/groups/owners/#this>, <acl/groups/writers/#this> .
-
-}
-
-# read access
-
-<acl/authorizations/read/>
-{
-
-    <acl/authorizations/read/> a dh:Item ;
-        sioc:has_container <acl/authorizations/> ;
-        dct:title "Read access" ;
-        foaf:primaryTopic <acl/authorizations/read/#this> .
-
-    <acl/authorizations/read/#this> a acl:Authorization ;
-        rdfs:label "Read access" ;
-        rdfs:comment "Allows read access to all resources" ;
-        acl:accessToClass dh:Item, dh:Container, def:Root, <http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#FileDataObject> ;
-        acl:accessTo <../sparql> ;
-        acl:mode acl:Read ;
-        acl:agentGroup <acl/groups/owners/#this>, <acl/groups/writers/#this>, <acl/groups/readers/#this> .
 
 }
 
@@ -915,26 +836,5 @@ WHERE
 
     <ontologies/#select-children> a ldh:Object ;
         rdf:value ldh:ChildrenView .
-
-}
-
-# ONTOLOGIES
-
-# namespace
-
-<ontologies/namespace/>
-{
-
-    <ontologies/namespace/> a dh:Item ;
-        sioc:has_container <ontologies/> ;
-        dct:title "Namespace" ;
-        foaf:primaryTopic ns: .
-
-    ns: a owl:Ontology ;
-        rdfs:label "Namespace" ;
-        rdfs:comment "Namespace of the application" ;
-        foaf:isPrimaryTopicOf <../ns> ;
-        owl:imports <https://w3id.org/atomgraph/linkeddatahub/default#> ;
-        owl:versionInfo "1.0-SNAPSHOT" .
 
 }

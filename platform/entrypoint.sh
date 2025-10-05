@@ -92,11 +92,6 @@ transform="xsltproc \
 
 eval "$transform"
 
-# debug: print generated server.xml
-echo "=== Generated server.xml ==="
-cat conf/server.xml
-echo "============================"
-
 ### PLATFORM ###
 
 # check mandatory environmental variables (which are used in conf/ROOT.xml)
@@ -111,10 +106,10 @@ if [ -z "$PROTOCOL" ]; then
     exit 1
 fi
 
-# if [ -z "$HTTP_PROXY_PORT" ]; then
-#     echo '$HTTP_PROXY_PORT not set'
-#     exit 1
-# fi
+if [ -z "$HTTP_PROXY_PORT" ]; then
+    echo '$HTTP_PROXY_PORT not set'
+    exit 1
+fi
 
 if [ -z "$HTTPS_PROXY_PORT" ]; then
     echo '$HTTPS_PROXY_PORT not set'
@@ -659,6 +654,15 @@ for app in "${apps[@]}"; do
 
         printf "\n### Loading admin dataset into the triplestore...\n"
         append_quads "$admin_quad_store_url" "$admin_service_auth_user" "$admin_service_auth_pwd" /var/linkeddatahub/based-datasets/admin.nq "application/n-quads"
+
+        NAMESPACE_ONTOLOGY_DATASET_PATH="/var/linkeddatahub/datasets/namespace-ontology.trig"
+        export END_USER_BASE_URI="$BASE_URI"
+        envsubst < namespace-ontology.trig.template > "$NAMESPACE_ONTOLOGY_DATASET_PATH"
+
+        trig --base="$ADMIN_BASE_URI" --output=nq "$NAMESPACE_ONTOLOGY_DATASET_PATH" > /var/linkeddatahub/based-datasets/namespace-ontology.nq
+
+        printf "\n### Loading namespace ontology into the admin triplestore...\n"
+        append_quads "$admin_quad_store_url" "$admin_service_auth_user" "$admin_service_auth_pwd" /var/linkeddatahub/based-datasets/namespace-ontology.nq "application/n-quads"
 
         trig --base="$ADMIN_BASE_URI" --output=nq "$OWNER_DATASET_PATH" > /var/linkeddatahub/based-datasets/root-owner.nq
 

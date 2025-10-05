@@ -39,7 +39,7 @@
     dct:title "LinkedDataHub" ;
     # ldt:base <https://localhost:4443/> ;
     ldh:origin <https://localhost:4443> ;
-    ldt:ontology <ns#> ;
+    ldt:ontology <https://localhost:4443/ns#> ;
     ldt:service <urn:linkeddatahub:services/end-user> ;
     lapp:adminApplication <urn:linkeddatahub:apps/admin> ;
     lapp:frontendProxy <http://varnish-frontend:6060/> ;
