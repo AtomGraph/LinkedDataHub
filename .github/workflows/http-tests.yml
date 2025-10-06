@@ -37,24 +37,8 @@ jobs:
           printf "%s" "${{ secrets.HTTP_TEST_SECRETARY_CERT_PASSWORD }}" > ./secrets/secretary_cert_password.txt
           printf "%s" "${{ secrets.HTTP_TEST_SECRETARY_CERT_PASSWORD }}" > ./secrets/client_truststore_password.txt
         shell: bash
-      - name: Build Docker images
-        run: docker compose build --no-cache
-      - name: Run Docker containers
-        run: docker compose -f docker-compose.yml -f ./http-tests/docker-compose.http-tests.yml --env-file ./http-tests/.env up
-      
-      - name: Debug container health
-        run: |
-          echo "=== Container Status ==="
-          docker ps -a
-          echo "=== LinkeddataHub Container Logs ==="
-          docker logs linkeddatahub-linkeddatahub-1 --tail 100 || echo "Could not get logs"
-          echo "=== Healthcheck History ==="
-          docker inspect linkeddatahub-linkeddatahub-1 | jq '.[0].State.Health.Log[-5:]' || echo "No healthcheck logs"
-          echo "=== Manual Healthcheck Test ==="
-          docker exec linkeddatahub-linkeddatahub-1 curl -f -I -v "http://localhost:7070/ns" -H "Accept: application/n-triples" || echo "Manual healthcheck failed or container not running"
-          echo "=== Container Details ==="
-          docker inspect linkeddatahub-linkeddatahub-1 | jq '.[0].State' || echo "Could not inspect container"
-
+      - name: Build Docker image & Run Docker containers
+        run: docker compose -f docker-compose.yml -f ./http-tests/docker-compose.http-tests.yml --env-file ./http-tests/.env up --build -d
       - name: Wait for the server to start...
         run: while ! (status=$(curl -k -s -w "%{http_code}\n" https://localhost:4443 -o /dev/null) && echo "$status" && echo "$status" | grep "403") ; do sleep 1 ; done # wait for the webapp to start (returns 403 by default)
       - name: Fix certificate permissions on the host
