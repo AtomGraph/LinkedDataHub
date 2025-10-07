@@ -1171,9 +1171,9 @@ public class Application extends ResourceConfig
      * @param absolutePath request URL without the query string
      * @return app resource or null, if none matched
      */
-    public Resource matchApp(Resource type, URI absolutePath)
+    public Resource matchApp(URI absolutePath)
     {
-        return getAppByOrigin(getContextModel(), type, absolutePath); // make sure we return an immutable model
+        return getAppByOrigin(getContextModel(), LAPP.Application, absolutePath); // make sure we return an immutable model
     }
     
     /**
@@ -1192,6 +1192,32 @@ public class Application extends ResourceConfig
     }
     
     /**
+     * Normalizes a URI origin by adding explicit default ports (80 for HTTP, 443 for HTTPS).
+     * An origin consists of scheme, hostname, and port.
+     * This allows comparing origins with implicit and explicit default ports.
+     *
+     * @param uri the URI to normalize
+     * @return normalized origin string in format "scheme://host:port"
+     * @see <a href="https://developer.mozilla.org/en-US/docs/Glossary/Origin">Origin - MDN Web Docs</a>
+     */
+    public static String normalizeOrigin(URI uri)
+    {
+        if (uri == null) throw new IllegalArgumentException("URI cannot be null");
+
+        String scheme = uri.getScheme();
+        String host = uri.getHost();
+        int port = uri.getPort();
+
+        if (port == -1)
+        {
+            if ("https".equals(scheme)) port = 443;
+            else if ("http".equals(scheme)) port = 80;
+        }
+
+        return scheme + "://" + host + ":" + port;
+    }
+
+    /**
      * Finds application by origin matching from the application model.
      * Applications are filtered by type first.
      *
@@ -1206,16 +1232,7 @@ public class Application extends ResourceConfig
         if (type == null) throw new IllegalArgumentException("Resource cannot be null");
         if (absolutePath == null) throw new IllegalArgumentException("URI cannot be null");
 
-        // Normalize request origin with explicit port
-        String requestOrigin = absolutePath.getHost();
-        int port = absolutePath.getPort();
-        if (port == -1)
-        {
-            if ("https".equals(absolutePath.getScheme())) port = 443;
-            else
-                if ("http".equals(absolutePath.getScheme())) port = 80;
-        }
-        requestOrigin += ":" + port;
+        String requestOrigin = normalizeOrigin(absolutePath);
 
         ResIterator it = model.listSubjectsWithProperty(RDF.type, type);
         try
@@ -1228,17 +1245,7 @@ public class Application extends ResourceConfig
                 if (app.hasProperty(LDH.origin))
                 {
                     URI appOriginURI = URI.create(app.getPropertyResourceValue(LDH.origin).getURI());
-                    String appOrigin = appOriginURI.getHost();
-                    int appPort = appOriginURI.getPort();
-                    if (appPort == -1) {
-                        // Add default ports
-                        if ("https".equals(appOriginURI.getScheme())) {
-                            appPort = 443;
-                        } else if ("http".equals(appOriginURI.getScheme())) {
-                            appPort = 80;
-                        }
-                    }
-                    String normalizedAppOrigin = appOrigin + ":" + appPort;
+                    String normalizedAppOrigin = normalizeOrigin(appOriginURI);
 
                     if (requestOrigin.equals(normalizedAppOrigin)) return app;
                 }

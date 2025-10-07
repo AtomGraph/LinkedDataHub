@@ -59,7 +59,7 @@ public class ApplicationFilter implements ContainerRequestFilter
     public void filter(ContainerRequestContext request) throws IOException
     {
         // there always have to be an app
-        Resource appResource = getSystem().matchApp(LAPP.Application, request.getUriInfo().getAbsolutePath());
+        Resource appResource = getSystem().matchApp(request.getUriInfo().getAbsolutePath());
         if (appResource == null) throw new IllegalStateException("Request URI '" + request.getUriInfo().getAbsolutePath() + "' has not matched any lapp:Application");
 
         // instead of InfModel, do faster explicit checks for subclasses and add rdf:type
