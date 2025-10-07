@@ -22,7 +22,7 @@ RUN mvn -Pstandalone clean install
 
 # ==============================
 
-FROM atomgraph/letsencrypt-tomcat:10.1.34
+FROM atomgraph/letsencrypt-tomcat:10.1.46
 
 LABEL maintainer="martynas@atomgraph.com"
 
@@ -72,14 +72,12 @@ ENV OWNER_CERT_ALIAS=root-owner
 ENV OWNER_KEYSTORE=/var/linkeddatahub/ssl/owner/keystore.p12
 ENV OWNER_CERT=/var/linkeddatahub/ssl/owner/cert.pem
 ENV OWNER_PUBLIC_KEY=/var/linkeddatahub/ssl/owner/public.pem
-ENV OWNER_PRIVATE_KEY=/var/linkeddatahub/ssl/owner/private.key
 
 ENV SECRETARY_COMMON_NAME=LinkedDataHub
 ENV SECRETARY_CERT_ALIAS=root-secretary
 ENV SECRETARY_KEYSTORE=/var/linkeddatahub/ssl/secretary/keystore.p12
 ENV SECRETARY_CERT=/var/linkeddatahub/ssl/secretary/cert.pem
 ENV SECRETARY_PUBLIC_KEY=/var/linkeddatahub/ssl/secretary/public.pem
-ENV SECRETARY_PRIVATE_KEY=/var/linkeddatahub/ssl/secretary/private.key
 
 ENV CLIENT_KEYSTORE_MOUNT=/var/linkeddatahub/ssl/secretary/keystore.p12
 ENV CLIENT_KEYSTORE="$CATALINA_HOME/webapps/ROOT/WEB-INF/keystore.p12"
@@ -147,11 +145,15 @@ COPY platform/import-letsencrypt-stg-roots.sh import-letsencrypt-stg-roots.sh
 
 COPY platform/select-root-services.rq select-root-services.rq
 
-# copy the metadata of the built-in secretary agent
+# copy the metadata of built-in agents
 
 COPY platform/root-secretary.trig.template root-secretary.trig.template
 
 COPY platform/root-owner.trig.template root-owner.trig.template
+
+# copy the metadata of the namespace ontology
+
+COPY platform/namespace-ontology.trig.template namespace-ontology.trig.template
 
 # copy default datasets
 
@@ -197,7 +199,7 @@ RUN useradd --no-log-init -U ldh && \
 RUN ./import-letsencrypt-stg-roots.sh
 
 HEALTHCHECK --start-period=80s --retries=5 \
-    CMD curl -f -I "http://localhost:${HTTP_PORT}/ns" -H "Accept: application/n-triples" || exit 1 # relies on public access to the namespace document
+    CMD curl -f -I "http://localhost:7070/ns" -H "Accept: application/n-triples" || exit 1 # relies on public access to the namespace document
 
 USER ldh
 

@@ -485,7 +485,8 @@ exclude-result-prefixes="#all"
         <xsl:variable name="button-div" select=".." as="element()"/>
         <xsl:variable name="type" select="ancestor::form/@about" as="xs:anyURI"/> <!-- the URI of the class that constructors are attached to -->
         <xsl:variable name="query-string" select="replace($type-graph-query, '$Type', '&lt;' || $type || '&gt;', 'q')" as="xs:string"/>
-        <xsl:variable name="results-uri" select="ac:build-uri(resolve-uri('admin/sparql', $ldt:base), map{ 'query': $query-string })" as="xs:anyURI"/>
+        <xsl:variable name="admin-base-uri" select="xs:anyURI(replace($ldt:base, '^(https?://)', '$1admin.'))" as="xs:anyURI"/>
+        <xsl:variable name="results-uri" select="ac:build-uri(resolve-uri('sparql', $admin-base-uri), map{ 'query': $query-string })" as="xs:anyURI"/>
         <xsl:variable name="request-uri" select="ldh:href($results-uri, map{})" as="xs:anyURI"/>
 
         <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
@@ -595,7 +596,8 @@ exclude-result-prefixes="#all"
                 <xsl:sequence select="ixsl:call($form-data, 'append', [ 'uri', $ontology-uri ])[current-date() lt xs:date('2000-01-01')]"/>
 
                 <!-- clear this ontology first, then proceed to clear the namespace ontology -->
-                <ixsl:schedule-action http-request="map{ 'method': 'POST', 'href': resolve-uri('admin/clear', ldt:base()), 'media-type': 'application/x-www-form-urlencoded', 'body': $form-data, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
+                <xsl:variable name="admin-base-uri" select="xs:anyURI(replace(ldt:base(), '^(https?://)', '$1admin.'))" as="xs:anyURI"/>
+                <ixsl:schedule-action http-request="map{ 'method': 'POST', 'href': resolve-uri('clear', $admin-base-uri), 'media-type': 'application/x-www-form-urlencoded', 'body': $form-data, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                     <xsl:call-template name="ldh:ClearNamespace"/>
                 </ixsl:schedule-action>
             </xsl:when>
@@ -678,7 +680,8 @@ exclude-result-prefixes="#all"
         <xsl:variable name="form-data" select="ldh:new('URLSearchParams', [ ldh:new('FormData', []) ])"/>
         <xsl:sequence select="ixsl:call($form-data, 'append', [ 'uri', $ontology-uri ])[current-date() lt xs:date('2000-01-01')]"/>
 
-        <ixsl:schedule-action http-request="map{ 'method': 'POST', 'href': resolve-uri('admin/clear', ldt:base()), 'media-type': 'application/x-www-form-urlencoded', 'body': $form-data, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
+        <xsl:variable name="admin-base-uri" select="xs:anyURI(replace(ldt:base(), '^(https?://)', '$1admin.'))" as="xs:anyURI"/>
+        <ixsl:schedule-action http-request="map{ 'method': 'POST', 'href': resolve-uri('clear', $admin-base-uri), 'media-type': 'application/x-www-form-urlencoded', 'body': $form-data, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
             <!-- bogus template call required because of Saxon-JS 2.4 bug: https://saxonica.plan.io/issues/5597 -->
             <xsl:call-template name="ldh:NoOp"/>
         </ixsl:schedule-action>

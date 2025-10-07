@@ -2,15 +2,16 @@ PREFIX ldt:     <https://www.w3.org/ns/ldt#>
 PREFIX sd:      <http://www.w3.org/ns/sparql-service-description#>
 PREFIX a:       <https://w3id.org/atomgraph/core#>
 PREFIX lapp:    <https://w3id.org/atomgraph/linkeddatahub/apps#>
+PREFIX ldh:     <https://w3id.org/atomgraph/linkeddatahub#>
 PREFIX foaf:    <http://xmlns.com/foaf/0.1/>
 
-SELECT ?endUserApp ?endUserBase ?endUserQuadStore ?endUserEndpoint ?endUserAuthUser ?endUserAuthPwd ?endUserMaker ?adminApp ?adminBase ?adminQuadStore ?adminEndpoint ?adminAuthUser ?adminAuthPwd ?adminMaker
+SELECT ?endUserApp ?endUserOrigin ?endUserQuadStore ?endUserEndpoint ?endUserAuthUser ?endUserAuthPwd ?endUserMaker ?adminApp ?adminOrigin ?adminQuadStore ?adminEndpoint ?adminAuthUser ?adminAuthPwd ?adminMaker
 {
-    ?endUserApp ldt:base ?endUserBase ;
+    ?endUserApp ldh:origin ?endUserOrigin ;
         ldt:service ?endUserService ;
         lapp:adminApplication ?adminApp .
         ?adminApp ldt:service ?adminService ;
-            ldt:base ?adminBase .
+            ldh:origin ?adminOrigin .
     ?endUserService a:quadStore ?endUserQuadStore ;
         sd:endpoint ?endUserEndpoint .
     ?adminService a:quadStore ?adminQuadStore ;

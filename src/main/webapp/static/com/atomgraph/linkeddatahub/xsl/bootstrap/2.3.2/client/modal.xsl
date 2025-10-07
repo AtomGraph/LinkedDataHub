@@ -343,7 +343,8 @@ LIMIT   10
         <xsl:param name="id" select="'request-access'" as="xs:string?"/>
         <xsl:param name="button-class" select="'btn btn-primary btn-access-form'" as="xs:string?"/>
         <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
-        <xsl:param name="action" select="resolve-uri('admin/access/request', $ldt:base)" as="xs:anyURI"/> <!-- TO-DO: handle for admin apps -->
+        <xsl:param name="admin-base-uri" select="xs:anyURI(replace($ldt:base, '^(https?://)', '$1admin.'))" as="xs:anyURI"/>
+        <xsl:param name="action" select="resolve-uri('access/request', $admin-base-uri)" as="xs:anyURI"/> <!-- TO-DO: handle for admin apps -->
         <xsl:param name="legend-label" select="ac:label(key('resources', 'request-access', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri))))" as="xs:string"/>
         <xsl:param name="agent" as="xs:anyURI"/>
         
@@ -705,7 +706,8 @@ LIMIT   10
     
     <xsl:template match="button[contains-token(@class, 'btn-access-form')]" mode="ixsl:onclick">
         <!-- TO-DO: fix for admin apps -->
-        <xsl:variable name="request-uri" select="ldh:href(resolve-uri('admin/access', $ldt:base), map{ 'this': string(ac:absolute-path(ldh:base-uri(.))) })" as="xs:anyURI"/>
+        <xsl:param name="admin-base-uri" select="xs:anyURI(replace($ldt:base, '^(https?://)', '$1admin.'))" as="xs:anyURI"/>
+        <xsl:variable name="request-uri" select="ldh:href(ac:build-uri(resolve-uri('access', $admin-base-uri), map{ 'this': string(ac:absolute-path(ldh:base-uri(.))) }))" as="xs:anyURI"/>
         <xsl:variable name="request" as="item()*">
             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                 <xsl:call-template name="onAccessResponseLoad">

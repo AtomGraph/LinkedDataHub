@@ -13,40 +13,62 @@ fi
 # change server configuration
 
 if [ -n "$HTTP" ]; then
-    HTTP_PARAM="--stringparam http $HTTP "
+    HTTP_PARAM="--stringparam Connector.http $HTTP "
 fi
 
 if [ -n "$HTTP_SCHEME" ]; then
-    HTTP_SCHEME_PARAM="--stringparam http.scheme $HTTP_SCHEME "
+    HTTP_SCHEME_PARAM="--stringparam Connector.scheme.http $HTTP_SCHEME "
 fi
 
 if [ -n "$HTTP_PORT" ]; then
-    HTTP_PORT_PARAM="--stringparam http.port $HTTP_PORT "
+    HTTP_PORT_PARAM="--stringparam Connector.port.http $HTTP_PORT "
 fi
 
 if [ -n "$HTTP_PROXY_NAME" ]; then
     lc_proxy_name=$(echo "$HTTP_PROXY_NAME" | tr '[:upper:]' '[:lower:]') # make sure it's lower-case
-    HTTP_PROXY_NAME_PARAM="--stringparam http.proxyName $lc_proxy_name "
+    HTTP_PROXY_NAME_PARAM="--stringparam Connector.proxyName.http $lc_proxy_name "
 fi
 
 if [ -n "$HTTP_PROXY_PORT" ]; then
-    HTTP_PROXY_PORT_PARAM="--stringparam http.proxyPort $HTTP_PROXY_PORT "
+    HTTP_PROXY_PORT_PARAM="--stringparam Connector.proxyPort.http $HTTP_PROXY_PORT "
 fi
 
 if [ -n "$HTTP_REDIRECT_PORT" ]; then
-    HTTP_REDIRECT_PORT_PARAM="--stringparam http.redirectPort $HTTP_REDIRECT_PORT "
+    HTTP_REDIRECT_PORT_PARAM="--stringparam Connector.redirectPort.http $HTTP_REDIRECT_PORT "
 fi
 
 if [ -n "$HTTP_CONNECTION_TIMEOUT" ]; then
-    HTTP_CONNECTION_TIMEOUT_PARAM="--stringparam http.connectionTimeout $HTTP_CONNECTION_TIMEOUT "
+    HTTP_CONNECTION_TIMEOUT_PARAM="--stringparam Connector.connectionTimeout.http $HTTP_CONNECTION_TIMEOUT "
 fi
 
 if [ -n "$HTTP_COMPRESSION" ]; then
-    HTTP_COMPRESSION_PARAM="--stringparam http.compression $HTTP_COMPRESSION "
+    HTTP_COMPRESSION_PARAM="--stringparam Connector.compression.http $HTTP_COMPRESSION "
 fi
 
 if [ -n "$HTTPS" ]; then
-    HTTPS_PARAM="--stringparam https $HTTPS "
+    HTTPS_PARAM="--stringparam Connector.https $HTTPS "
+fi
+
+# RemoteIpValve configuration takes precedence over Connector proxy settings
+
+if [ -n "$REMOTE_IP_VALVE" ]; then
+    REMOTE_IP_VALVE_PARAM="--stringparam RemoteIpValve $REMOTE_IP_VALVE "
+fi
+
+if [ -n "$REMOTE_IP_VALVE_PROTOCOL_HEADER" ]; then
+    REMOTE_IP_VALVE_PROTOCOL_HEADER_PARAM="--stringparam RemoteIpValve.protocolHeader $REMOTE_IP_VALVE_PROTOCOL_HEADER "
+fi
+
+if [ -n "$REMOTE_IP_VALVE_PORT_HEADER" ]; then
+    REMOTE_IP_VALVE_PORT_HEADER_PARAM="--stringparam RemoteIpValve.portHeader $REMOTE_IP_VALVE_PORT_HEADER "
+fi
+
+if [ -n "$REMOTE_IP_VALVE_REMOTE_IP_HEADER" ]; then
+    REMOTE_IP_VALVE_REMOTE_IP_HEADER_PARAM="--stringparam RemoteIpValve.remoteIpHeader $REMOTE_IP_VALVE_REMOTE_IP_HEADER "
+fi
+
+if [ -n "$REMOTE_IP_VALVE_HOST_HEADER" ]; then
+    REMOTE_IP_VALVE_HOST_HEADER_PARAM="--stringparam RemoteIpValve.hostHeader $REMOTE_IP_VALVE_HOST_HEADER "
 fi
 
 transform="xsltproc \
@@ -60,6 +82,11 @@ transform="xsltproc \
   $HTTP_CONNECTION_TIMEOUT_PARAM \
   $HTTP_COMPRESSION_PARAM \
   $HTTPS_PARAM \
+  $REMOTE_IP_VALVE_PARAM \
+  $REMOTE_IP_VALVE_PROTOCOL_HEADER_PARAM \
+  $REMOTE_IP_VALVE_PORT_HEADER_PARAM \
+  $REMOTE_IP_VALVE_REMOTE_IP_HEADER_PARAM \
+  $REMOTE_IP_VALVE_HOST_HEADER_PARAM \
   conf/letsencrypt-tomcat.xsl \
   conf/server.xml"
 
@@ -184,25 +211,35 @@ if [ -z "$MAIL_USER" ]; then
     exit 1
 fi
 
-# construct base URI (ignore default HTTP and HTTPS ports)
+# construct base URI and origins (ignore default HTTP and HTTPS ports for URI, but always include port for origins)
 
 if [ "$PROTOCOL" = "https" ]; then
     if [ "$HTTPS_PROXY_PORT" = 443 ]; then
         export BASE_URI="${PROTOCOL}://${HOST}${ABS_PATH}"
+        export ADMIN_BASE_URI="${PROTOCOL}://admin.${HOST}${ABS_PATH}"
     else
         export BASE_URI="${PROTOCOL}://${HOST}:${HTTPS_PROXY_PORT}${ABS_PATH}"
+        export ADMIN_BASE_URI="${PROTOCOL}://admin.${HOST}:${HTTPS_PROXY_PORT}${ABS_PATH}"
     fi
+    export ORIGIN="${PROTOCOL}://${HOST}:${HTTPS_PROXY_PORT}"
 else
     if [ "$HTTP_PROXY_PORT" = 80 ]; then
         export BASE_URI="${PROTOCOL}://${HOST}${ABS_PATH}"
+        export ADMIN_BASE_URI="${PROTOCOL}://admin.${HOST}${ABS_PATH}"
     else
         export BASE_URI="${PROTOCOL}://${HOST}:${HTTP_PROXY_PORT}${ABS_PATH}"
+        export ADMIN_BASE_URI="${PROTOCOL}://admin.${HOST}:${HTTP_PROXY_PORT}${ABS_PATH}"
     fi
+    export ORIGIN="${PROTOCOL}://${HOST}:${HTTP_PROXY_PORT}"
 fi
 
 BASE_URI=$(echo "$BASE_URI" | tr '[:upper:]' '[:lower:]') # make sure it's lower-case
+ADMIN_BASE_URI=$(echo "$ADMIN_BASE_URI" | tr '[:upper:]' '[:lower:]') # make sure it's lower-case
+ORIGIN=$(echo "$ORIGIN" | tr '[:upper:]' '[:lower:]') # make sure it's lower-case
 
 printf "\n### Base URI: %s\n" "$BASE_URI"
+printf "\n### Admin Base URI: %s\n" "$ADMIN_BASE_URI"
+printf "\n### Origin: %s\n" "$ORIGIN"
 
 # functions that wait for other services to start
 
@@ -308,7 +345,6 @@ generate_cert()
     local keystore_password="${11}"
     local cert_output="${12}"
     local public_key_output="${13}"
-    local private_key_output="${14}"
 
     # Build the Distinguished Name (DN) string, only including components if they're non-empty
     dname="CN=${common_name}"
@@ -358,11 +394,11 @@ get_modulus()
 }
 
 OWNER_UUID=$(uuidgen | tr '[:upper:]' '[:lower:]') # lowercase
-OWNER_URI="${OWNER_URI:-${BASE_URI}admin/acl/agents/${OWNER_UUID}/#this}" # WebID URI. Can be external!
+OWNER_URI="${OWNER_URI:-${ADMIN_BASE_URI}acl/agents/${OWNER_UUID}/#this}" # WebID URI. Can be external!
 OWNER_COMMON_NAME="$OWNER_GIVEN_NAME $OWNER_FAMILY_NAME" # those are required
 
 SECRETARY_UUID=$(uuidgen | tr '[:upper:]' '[:lower:]') # lowercase
-SECRETARY_URI="${SECRETARY_URI:-${BASE_URI}admin/acl/agents/${SECRETARY_UUID}/#this}" # WebID URI. Can be external!
+SECRETARY_URI="${SECRETARY_URI:-${ADMIN_BASE_URI}acl/agents/${SECRETARY_UUID}/#this}" # WebID URI. Can be external!
 
 OWNER_DATASET_PATH="/var/linkeddatahub/datasets/owner/${OWNER_CERT_ALIAS}.trig"
 
@@ -385,13 +421,13 @@ if [ ! -f "$OWNER_PUBLIC_KEY" ]; then
                   "$OWNER_ORG_UNIT" "$OWNER_ORGANIZATION" \
                   "$OWNER_LOCALITY" "$OWNER_STATE_OR_PROVINCE" "$OWNER_COUNTRY_NAME" \
                   "$CERT_VALIDITY" "$OWNER_KEYSTORE" "$OWNER_CERT_PASSWORD" \
-                  "$OWNER_CERT" "$OWNER_PUBLIC_KEY" "$OWNER_PRIVATE_KEY"
+                  "$OWNER_CERT" "$OWNER_PUBLIC_KEY"
 
     # write owner's metadata to a file
 
     mkdir -p "$(dirname "$OWNER_DATASET_PATH")"
 
-    OWNER_DOC_URI="${BASE_URI}admin/acl/agents/${OWNER_UUID}/"
+    OWNER_DOC_URI="${ADMIN_BASE_URI}acl/agents/${OWNER_UUID}/"
     OWNER_KEY_UUID=$(uuidgen | tr '[:upper:]' '[:lower:]') # lowercase
     OWNER_PUBLIC_KEY_MODULUS=$(get_modulus "$OWNER_PUBLIC_KEY")
 
@@ -422,13 +458,13 @@ if [ ! -f "$SECRETARY_PUBLIC_KEY" ]; then
                   "" "" \
                   "" "" "" \
                   "$CERT_VALIDITY" "$SECRETARY_KEYSTORE" "$SECRETARY_CERT_PASSWORD" \
-                  "$SECRETARY_CERT" "$SECRETARY_PUBLIC_KEY" "$SECRETARY_PRIVATE_KEY"
+                  "$SECRETARY_CERT" "$SECRETARY_PUBLIC_KEY"
 
     # write secretary's metadata to a file
 
     mkdir -p "$(dirname "$SECRETARY_DATASET_PATH")"
 
-    SECRETARY_DOC_URI="${BASE_URI}admin/acl/agents/${SECRETARY_UUID}/"
+    SECRETARY_DOC_URI="${ADMIN_BASE_URI}acl/agents/${SECRETARY_UUID}/"
     SECRETARY_KEY_UUID=$(uuidgen | tr '[:upper:]' '[:lower:]') # lowercase
     SECRETARY_PUBLIC_KEY_MODULUS=$(get_modulus "$SECRETARY_PUBLIC_KEY")
 
@@ -476,7 +512,7 @@ readarray apps < <(xmlstarlet sel -B \
     -o "\"" \
     -v "srx:binding[@name = 'endUserApp']" \
     -o "\" \"" \
-    -v "srx:binding[@name = 'endUserBase']" \
+    -v "srx:binding[@name = 'endUserOrigin']" \
     -o "\" \"" \
     -v "srx:binding[@name = 'endUserQuadStore']" \
     -o "\" \"" \
@@ -490,7 +526,7 @@ readarray apps < <(xmlstarlet sel -B \
     -o "\" \"" \
     -v "srx:binding[@name = 'adminApp']" \
     -o "\" \"" \
-    -v "srx:binding[@name = 'adminBase']" \
+    -v "srx:binding[@name = 'adminOrigin']" \
     -o "\" \"" \
     -v "srx:binding[@name = 'adminQuadStore']" \
     -o "\" \"" \
@@ -508,21 +544,21 @@ readarray apps < <(xmlstarlet sel -B \
 for app in "${apps[@]}"; do
     app_array=(${app})
     end_user_app="${app_array[0]//\"/}"
-    end_user_base_uri="${app_array[1]//\"/}"
+    end_user_origin="${app_array[1]//\"/}"
     end_user_quad_store_url="${app_array[2]//\"/}"
     end_user_endpoint_url="${app_array[3]//\"/}"
     end_user_service_auth_user="${app_array[4]//\"/}"
     end_user_service_auth_pwd="${app_array[5]//\"/}"
     end_user_owner="${app_array[6]//\"/}"
     admin_app="${app_array[7]//\"/}"
-    admin_base_uri="${app_array[8]//\"/}"
+    admin_origin="${app_array[8]//\"/}"
     admin_quad_store_url="${app_array[9]//\"/}"
     admin_endpoint_url="${app_array[10]//\"/}"
     admin_service_auth_user="${app_array[11]//\"/}"
     admin_service_auth_pwd="${app_array[12]//\"/}"
     admin_owner="${app_array[13]//\"/}"
 
-    printf "\n### Processing dataspace. End-user app: %s Admin app: %s\n" "$end_user_app" "$admin_app"
+    printf "\n### Processing dataspace. End-user app: %s (origin: %s) Admin app: %s (origin: %s)\n" "$end_user_app" "$end_user_origin" "$admin_app" "$admin_origin"
 
     if [ -z "$end_user_app" ]; then
         printf "\nEnd-user app URI could not be extracted from %s. Exiting...\n" "$CONTEXT_DATASET"
@@ -536,8 +572,8 @@ for app in "${apps[@]}"; do
         printf "\nAdmin app URI could not be extracted for the <%s> app. Exiting...\n" "$end_user_app"
         exit 1
     fi
-    if [ -z "$admin_base_uri" ]; then
-        printf "\nAdmin base URI extracted for the <%s> app. Exiting...\n" "$end_user_app"
+    if [ -z "$admin_origin" ]; then
+        printf "\nAdmin origin could not be extracted for the <%s> app. Exiting...\n" "$end_user_app"
         exit 1
     fi
     if [ -z "$admin_quad_store_url" ]; then
@@ -545,13 +581,15 @@ for app in "${apps[@]}"; do
         exit 1
     fi
 
-    # check if this app is the root app
-    if [ "$end_user_base_uri" = "$BASE_URI" ]; then
+    # check if this app is the root app by comparing origins
+    if [ "$end_user_origin" = "$ORIGIN" ]; then
         root_end_user_app="$end_user_app"
+        root_end_user_origin="$end_user_origin"
         root_end_user_quad_store_url="$end_user_quad_store_url"
         root_end_user_service_auth_user="$end_user_service_auth_user"
         root_end_user_service_auth_pwd="$end_user_service_auth_pwd"
         root_admin_app="$admin_app"
+        root_admin_origin="$admin_origin"
         root_admin_quad_store_url="$admin_quad_store_url"
         root_admin_service_auth_user="$admin_service_auth_user"
         root_admin_service_auth_pwd="$admin_service_auth_pwd"
@@ -601,7 +639,7 @@ for app in "${apps[@]}"; do
                 curl "$ADMIN_DATASET_URL" > "$ADMIN_DATASET" ;;
         esac
 
-        trig --base="$end_user_base_uri" "$END_USER_DATASET" > /var/linkeddatahub/based-datasets/end-user.nq
+        trig --base="$BASE_URI" "$END_USER_DATASET" > /var/linkeddatahub/based-datasets/end-user.nq
 
         printf "\n### Waiting for %s...\n" "$end_user_quad_store_url"
         wait_for_url "$end_user_quad_store_url" "$end_user_service_auth_user" "$end_user_service_auth_pwd" "$TIMEOUT" "application/n-quads"
@@ -609,7 +647,7 @@ for app in "${apps[@]}"; do
         printf "\n### Loading end-user dataset into the triplestore...\n"
         append_quads "$end_user_quad_store_url" "$end_user_service_auth_user" "$end_user_service_auth_pwd" /var/linkeddatahub/based-datasets/end-user.nq "application/n-quads"
 
-        trig --base="$admin_base_uri" "$ADMIN_DATASET" > /var/linkeddatahub/based-datasets/admin.nq
+        trig --base="$ADMIN_BASE_URI" "$ADMIN_DATASET" > /var/linkeddatahub/based-datasets/admin.nq
 
         printf "\n### Waiting for %s...\n" "$admin_quad_store_url"
         wait_for_url "$admin_quad_store_url" "$admin_service_auth_user" "$admin_service_auth_pwd" "$TIMEOUT" "application/n-quads"
@@ -617,12 +655,21 @@ for app in "${apps[@]}"; do
         printf "\n### Loading admin dataset into the triplestore...\n"
         append_quads "$admin_quad_store_url" "$admin_service_auth_user" "$admin_service_auth_pwd" /var/linkeddatahub/based-datasets/admin.nq "application/n-quads"
 
-        trig --base="$admin_base_uri" --output=nq "$OWNER_DATASET_PATH" > /var/linkeddatahub/based-datasets/root-owner.nq
+        NAMESPACE_ONTOLOGY_DATASET_PATH="/var/linkeddatahub/datasets/namespace-ontology.trig"
+        export END_USER_BASE_URI="$BASE_URI"
+        envsubst < namespace-ontology.trig.template > "$NAMESPACE_ONTOLOGY_DATASET_PATH"
+
+        trig --base="$ADMIN_BASE_URI" --output=nq "$NAMESPACE_ONTOLOGY_DATASET_PATH" > /var/linkeddatahub/based-datasets/namespace-ontology.nq
+
+        printf "\n### Loading namespace ontology into the admin triplestore...\n"
+        append_quads "$admin_quad_store_url" "$admin_service_auth_user" "$admin_service_auth_pwd" /var/linkeddatahub/based-datasets/namespace-ontology.nq "application/n-quads"
+
+        trig --base="$ADMIN_BASE_URI" --output=nq "$OWNER_DATASET_PATH" > /var/linkeddatahub/based-datasets/root-owner.nq
 
         printf "\n### Uploading the metadata of the owner agent...\n\n"
         append_quads "$admin_quad_store_url" "$admin_service_auth_user" "$admin_service_auth_pwd" /var/linkeddatahub/based-datasets/root-owner.nq "application/n-quads"
 
-        trig --base="$admin_base_uri" --output=nq "$SECRETARY_DATASET_PATH" > /var/linkeddatahub/based-datasets/root-secretary.nq
+        trig --base="$ADMIN_BASE_URI" --output=nq "$SECRETARY_DATASET_PATH" > /var/linkeddatahub/based-datasets/root-secretary.nq
 
         printf "\n### Uploading the metadata of the secretary agent...\n\n"
         append_quads "$admin_quad_store_url" "$admin_service_auth_user" "$admin_service_auth_pwd" /var/linkeddatahub/based-datasets/root-secretary.nq "application/n-quads"
@@ -632,11 +679,11 @@ done
 rm -f root_service_metadata.xml
 
 if [ -z "$root_end_user_app" ]; then
-    printf "\nRoot end-user app with base URI <%s> not found. Exiting...\n" "$BASE_URI"
+    printf "\nRoot end-user app with origin <%s> not found. Exiting...\n" "$ORIGIN"
     exit 1
 fi
 if [ -z "$root_admin_app" ]; then
-    printf "\nRoot admin app (for end-user app with base URI <%s>) not found. Exiting...\n" "$BASE_URI"
+    printf "\nRoot admin app (for end-user app with origin <%s>) not found. Exiting...\n" "$ORIGIN"
     exit 1
 fi
 

@@ -91,14 +91,6 @@ exclude-result-prefixes="#all"
     <xsl:function name="sd:endpoint" as="xs:anyURI">
         <xsl:sequence select="xs:anyURI(ixsl:get(ixsl:window(), 'LinkedDataHub.endpoint'))"/>
     </xsl:function>
-
-    <!-- finds the app with the longest matching base URI -->
-    <xsl:function name="ldh:match-app" as="element()?">
-        <xsl:param name="uri" as="xs:anyURI"/>
-        <xsl:param name="apps" as="document-node()"/>
-        
-        <xsl:sequence select="let $max-length := max($apps//rdf:Description[ldt:base/@rdf:resource[starts-with($uri, .)]]/string-length(ldt:base/@rdf:resource)) return ($apps//rdf:Description[ldt:base/@rdf:resource[starts-with($uri, .)]][string-length(ldt:base/@rdf:resource) eq $max-length])[1]"/>
-    </xsl:function>
     
     <xsl:function name="ldh:query-type" as="xs:string?">
         <xsl:param name="query-string" as="xs:string"/>
