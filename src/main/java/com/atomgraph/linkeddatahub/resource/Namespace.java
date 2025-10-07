@@ -98,6 +98,22 @@ public class Namespace extends com.atomgraph.core.model.impl.SPARQLEndpointImpl
         this.system = system;
     }
 
+    /**
+     * If SPARQL query is provided, returns its result over the in-memory namespace ontology graph.
+     * If query is not provided
+     * <ul>
+     * <li>returns constructed instance if <samp>forClass</samp> URL param value (ontology class URI) is provided</li>
+     * <li>otherwise, returns the namespace ontology graph (which is standalone, i.e. <em>not</em> the full ontology imports closure)</li>
+     * </ul>
+     * 
+     * @param query SPARQL query string (optional)
+     * @param defaultGraphUris default graph URI (ignored)
+     * @param namedGraphUris named graph URIs (ignored)
+     * 
+     * {@link com.atomgraph.linkeddatahub.server.model.impl.Dispatcher#getNamespace()}
+     * 
+     * @return response
+     */
     @Override
     @GET
     public Response get(@QueryParam(QUERY) Query query,
@@ -122,6 +138,7 @@ public class Namespace extends com.atomgraph.core.model.impl.SPARQLEndpointImpl
             
             if (getApplication().canAs(EndUserApplication.class))
             {
+                // the application ontology MUST use a <ns> URI! This is the URI this ontology endpoint is deployed on by the Dispatcher class
                 String ontologyURI = getApplication().getOntology().getURI();
                 if (log.isDebugEnabled()) log.debug("Returning namespace ontology from OntDocumentManager: {}", ontologyURI);
                 // not returning the injected in-memory ontology because it has inferences applied to it
