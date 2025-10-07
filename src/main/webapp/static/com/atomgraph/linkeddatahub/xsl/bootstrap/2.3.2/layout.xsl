@@ -325,8 +325,8 @@ LIMIT   100
             </xsl:for-each>
         </xsl:for-each>
 
-        <xsl:if test="$lapp:Application//*[ldt:base/@rdf:resource = $ldt:base]">
-            <meta property="og:site_name" content="{ac:label($lapp:Application//*[ldt:base/@rdf:resource = $ldt:base])}"/>
+        <xsl:if test="$lapp:Application//*[ldh:origin/@rdf:resource = $ldh:origin]">
+            <meta property="og:site_name" content="{ac:label($lapp:Application//*[ldh:origin/@rdf:resource = $ldh:origin])}"/>
         </xsl:if>
     </xsl:template>
 
@@ -549,7 +549,7 @@ LIMIT   100
 
     <xsl:template match="rdf:RDF | srx:sparql" mode="bs2:Brand">
         <a class="brand" href="{$ldt:base}">
-            <xsl:if test="$lapp:Application//*[ldt:base/@rdf:resource = $ldt:base]/rdf:type/@rdf:resource = '&lapp;AdminApplication'">
+            <xsl:if test="$lapp:Application//*[ldh:origin/@rdf:resource = $ldh:origin]/rdf:type/@rdf:resource = '&lapp;AdminApplication'">
                 <xsl:attribute name="class" select="'brand admin'"/>
             </xsl:if>
 
@@ -713,14 +713,14 @@ LIMIT   100
                             </button>
                             <ul class="dropdown-menu pull-right">
                                 <xsl:variable name="apps" select="document($app-request-uri)" as="document-node()"/>
-                                <xsl:for-each select="$apps//*[ldt:base/@rdf:resource]">
+                                <xsl:for-each select="$apps//*[ldh:origin/@rdf:resource]">
                                     <xsl:sort select="ac:label(.)" order="ascending" lang="{$ldt:lang}"/>
                                     <li>
 <!--                                        <xsl:if test="$active">
                                             <xsl:attribute name="class" select="'active'"/>
                                         </xsl:if>-->
 
-                                        <a href="{ldt:base/@rdf:resource}" title="{ldt:base/@rdf:resource}">
+                                        <a href="{ldh:origin/@rdf:resource}" title="{ldh:origin/@rdf:resource}">
                                             <xsl:apply-templates select="." mode="ac:label"/>
                                         </a>
                                     </li>
@@ -786,7 +786,7 @@ LIMIT   100
     
     <xsl:template match="*" mode="bs2:SignUp"/>
     
-    <xsl:template match="*[ldt:base/@rdf:resource]" mode="bs2:AppListItem">
+    <xsl:template match="*[ldh:origin/@rdf:resource]" mode="bs2:AppListItem">
         <xsl:param name="active" as="xs:boolean?"/>
         
         <li>
@@ -794,7 +794,7 @@ LIMIT   100
                 <xsl:attribute name="class" select="'active'"/>
             </xsl:if>
 
-            <a href="{ldt:base/@rdf:resource[starts-with(., $ac:contextUri)]}" title="{ldt:base/@rdf:resource[starts-with(., $ac:contextUri)]}">
+            <a href="{ldh:origin/@rdf:resource}" title="{ldh:origin/@rdf:resource}">
                 <xsl:value-of>
                     <xsl:apply-templates select="." mode="ac:label"/>
                 </xsl:value-of>
@@ -1217,10 +1217,10 @@ LIMIT   100
             </button>
 
             <ul class="dropdown-menu">
-                <xsl:if test="$foaf:Agent//@rdf:about and $lapp:Application//*[ldt:base/@rdf:resource = $ldt:base]/rdf:type/@rdf:resource = '&lapp;EndUserApplication'">
+                <xsl:if test="$foaf:Agent//@rdf:about and $lapp:Application//*[ldh:origin/@rdf:resource = $ldh:origin]/rdf:type/@rdf:resource = '&lapp;EndUserApplication'">
                     <li>
                         <xsl:for-each select="$lapp:Application">
-                            <a href="{key('resources', //*[ldt:base/@rdf:resource = $ldt:base]/lapp:adminApplication/(@rdf:resource, @rdf:nodeID))/ldt:base/@rdf:resource[starts-with(., $ac:contextUri)]}" target="_blank">
+                            <a href="{key('resources', //*[ldh:origin/@rdf:resource = $ldh:origin]/lapp:adminApplication/(@rdf:resource, @rdf:nodeID))/ldh:origin/@rdf:resource}" target="_blank">
                                 <xsl:value-of>
                                     <xsl:apply-templates select="key('resources', 'administration', document('translations.rdf'))" mode="ac:label"/>
                                 </xsl:value-of>

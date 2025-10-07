@@ -58,7 +58,13 @@ if [ -z "$base" ] ; then
     exit 1
 fi
 
-target="${base}admin/acl/authorizations/public/"
+admin_uri() {
+    local uri="$1"
+    echo "$uri" | sed 's|://|://admin.|'
+}
+
+admin_base=$(admin_uri "$base")
+target="${admin_base}acl/authorizations/public/"
 
 if [ -n "$proxy" ]; then
     # rewrite target hostname to proxy hostname
@@ -73,7 +79,7 @@ curl -X PATCH \
     -H "Content-Type: application/sparql-update" \
     "$target" \
      --data-binary @- <<EOF
-BASE <${base}admin/>
+BASE <${admin_base}>
 
 PREFIX  acl: <http://www.w3.org/ns/auth/acl#>
 PREFIX  def: <https://w3id.org/atomgraph/linkeddatahub/default#>
@@ -84,10 +90,10 @@ PREFIX  foaf: <http://xmlns.com/foaf/0.1/>
 INSERT
 {
   <acl/authorizations/public/#this> acl:accessToClass def:Root, dh:Container, dh:Item, nfo:FileDataObject ;
-      acl:accessTo <../sparql> .
+      acl:accessTo <${base}sparql> .
 
   <acl/authorizations/public/#sparql-post> a acl:Authorization ;
-      acl:accessTo <../sparql> ;
+      acl:accessTo <${base}sparql> ;
       acl:mode acl:Append ;
       acl:agentClass foaf:Agent, acl:AuthenticatedAgent . # hacky way to allow queries over POST
 }
