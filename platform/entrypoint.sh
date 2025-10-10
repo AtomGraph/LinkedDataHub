@@ -474,13 +474,7 @@ if [ ! -f "$SECRETARY_PUBLIC_KEY" ]; then
     envsubst < root-secretary.trig.template > "$SECRETARY_DATASET_PATH"
 fi
 
-if [ -z "$LOAD_DATASETS" ]; then
-    if [ ! -d /var/linkeddatahub/based-datasets ]; then
-        LOAD_DATASETS=true
-    else
-        LOAD_DATASETS=false
-    fi
-fi
+# Note: LOAD_DATASETS check is now done per-app inside the loop
 
 # base the $CONTEXT_DATASET
 
@@ -584,12 +578,12 @@ for app in "${apps[@]}"; do
     # check if this app is the root app by comparing origins
     if [ "$end_user_origin" = "$ORIGIN" ]; then
         root_end_user_app="$end_user_app"
-        root_end_user_origin="$end_user_origin"
+        #root_end_user_origin="$end_user_origin"
         root_end_user_quad_store_url="$end_user_quad_store_url"
         root_end_user_service_auth_user="$end_user_service_auth_user"
         root_end_user_service_auth_pwd="$end_user_service_auth_pwd"
         root_admin_app="$admin_app"
-        root_admin_origin="$admin_origin"
+        #root_admin_origin="$admin_origin"
         root_admin_quad_store_url="$admin_quad_store_url"
         root_admin_service_auth_user="$admin_service_auth_user"
         root_admin_service_auth_pwd="$admin_service_auth_pwd"
@@ -607,9 +601,13 @@ for app in "${apps[@]}"; do
     printf "\n### Quad store URL of the root end-user service: %s\n" "$end_user_quad_store_url"
     printf "\n### Quad store URL of the root admin service: %s\n" "$admin_quad_store_url"
 
-    # load default admin/end-user datasets if we haven't yet created a folder with re-based versions of them (and then create it)
-    if [ "$LOAD_DATASETS" = "true" ]; then
-        mkdir -p /var/linkeddatahub/based-datasets
+    # Create app-specific subfolder based on end-user origin
+    app_folder=$(echo "$end_user_origin" | sed 's|https://||' | sed 's|http://||' | sed 's|[:/]|-|g')
+
+    # Check if this specific app's datasets have been loaded
+    if [ ! -d "/var/linkeddatahub/based-datasets/${app_folder}" ]; then
+        printf "\n### Loading datasets for app: %s\n" "$app_folder"
+        mkdir -p "/var/linkeddatahub/based-datasets/${app_folder}"
 
         # create query file by injecting environmental variables into the template
 
@@ -618,7 +616,7 @@ for app in "${apps[@]}"; do
                 END_USER_DATASET=$(echo "$END_USER_DATASET_URL" | cut -c 8-) # strip leading file://
 
                 printf "\n### Reading end-user dataset from a local file: %s\n" "$END_USER_DATASET" ;;
-            *)  
+            *)
                 END_USER_DATASET=$(mktemp)
 
                 printf "\n### Downloading end-user dataset from a URL: %s\n" "$END_USER_DATASET_URL"
@@ -631,7 +629,7 @@ for app in "${apps[@]}"; do
                 ADMIN_DATASET=$(echo "$ADMIN_DATASET_URL" | cut -c 8-) # strip leading file://
 
                 printf "\n### Reading admin dataset from a local file: %s\n" "$ADMIN_DATASET" ;;
-            *)  
+            *)
                 ADMIN_DATASET=$(mktemp)
 
                 printf "\n### Downloading admin dataset from a URL: %s\n" "$ADMIN_DATASET_URL"
@@ -639,30 +637,31 @@ for app in "${apps[@]}"; do
                 curl "$ADMIN_DATASET_URL" > "$ADMIN_DATASET" ;;
         esac
 
-        trig --base="$BASE_URI" "$END_USER_DATASET" > /var/linkeddatahub/based-datasets/end-user.nq
+        trig --base="${end_user_origin}/" "$END_USER_DATASET" > "/var/linkeddatahub/based-datasets/${app_folder}/end-user.nq"
 
         printf "\n### Waiting for %s...\n" "$end_user_quad_store_url"
         wait_for_url "$end_user_quad_store_url" "$end_user_service_auth_user" "$end_user_service_auth_pwd" "$TIMEOUT" "application/n-quads"
 
         printf "\n### Loading end-user dataset into the triplestore...\n"
-        append_quads "$end_user_quad_store_url" "$end_user_service_auth_user" "$end_user_service_auth_pwd" /var/linkeddatahub/based-datasets/end-user.nq "application/n-quads"
+        append_quads "$end_user_quad_store_url" "$end_user_service_auth_user" "$end_user_service_auth_pwd" "/var/linkeddatahub/based-datasets/${app_folder}/end-user.nq" "application/n-quads"
 
-        trig --base="$ADMIN_BASE_URI" "$ADMIN_DATASET" > /var/linkeddatahub/based-datasets/admin.nq
+        trig --base="${admin_origin}/" "$ADMIN_DATASET" > "/var/linkeddatahub/based-datasets/${app_folder}/admin.nq"
 
         printf "\n### Waiting for %s...\n" "$admin_quad_store_url"
         wait_for_url "$admin_quad_store_url" "$admin_service_auth_user" "$admin_service_auth_pwd" "$TIMEOUT" "application/n-quads"
 
         printf "\n### Loading admin dataset into the triplestore...\n"
-        append_quads "$admin_quad_store_url" "$admin_service_auth_user" "$admin_service_auth_pwd" /var/linkeddatahub/based-datasets/admin.nq "application/n-quads"
+        append_quads "$admin_quad_store_url" "$admin_service_auth_user" "$admin_service_auth_pwd" "/var/linkeddatahub/based-datasets/${app_folder}/admin.nq" "application/n-quads"
 
-        NAMESPACE_ONTOLOGY_DATASET_PATH="/var/linkeddatahub/datasets/namespace-ontology.trig"
-        export END_USER_BASE_URI="$BASE_URI"
-        envsubst < namespace-ontology.trig.template > "$NAMESPACE_ONTOLOGY_DATASET_PATH"
+        namespace_ontology_dataset_path="/var/linkeddatahub/datasets/${app_folder}/namespace-ontology.trig"
+        mkdir -p "$(dirname "$namespace_ontology_dataset_path")"
+        export end_user_origin admin_origin
+        envsubst < namespace-ontology.trig.template > "$namespace_ontology_dataset_path"
 
-        trig --base="$ADMIN_BASE_URI" --output=nq "$NAMESPACE_ONTOLOGY_DATASET_PATH" > /var/linkeddatahub/based-datasets/namespace-ontology.nq
+        trig --base="${admin_origin}/" --output=nq "$namespace_ontology_dataset_path" > "/var/linkeddatahub/based-datasets/${app_folder}/namespace-ontology.nq"
 
         printf "\n### Loading namespace ontology into the admin triplestore...\n"
-        append_quads "$admin_quad_store_url" "$admin_service_auth_user" "$admin_service_auth_pwd" /var/linkeddatahub/based-datasets/namespace-ontology.nq "application/n-quads"
+        append_quads "$admin_quad_store_url" "$admin_service_auth_user" "$admin_service_auth_pwd" "/var/linkeddatahub/based-datasets/${app_folder}/namespace-ontology.nq" "application/n-quads"
 
         trig --base="$ADMIN_BASE_URI" --output=nq "$OWNER_DATASET_PATH" > /var/linkeddatahub/based-datasets/root-owner.nq
 
