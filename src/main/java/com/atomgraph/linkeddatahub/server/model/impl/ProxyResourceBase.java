@@ -31,20 +31,20 @@ import com.atomgraph.linkeddatahub.server.security.WebIDSecurityContext;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 import java.util.Optional;
 import jakarta.inject.Inject;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.ws.rs.NotAllowedException;
-import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.DELETE;
+import jakarta.ws.rs.GET;
 import jakarta.ws.rs.NotAcceptableException;
 import jakarta.ws.rs.NotFoundException;
+import jakarta.ws.rs.PATCH;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.ProcessingException;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.client.Entity;
-import jakarta.ws.rs.client.Invocation;
 import jakarta.ws.rs.client.WebTarget;
 import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.core.Context;
@@ -58,23 +58,25 @@ import jakarta.ws.rs.ext.Providers;
 import org.apache.jena.query.ResultSet;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.util.FileManager;
-import org.glassfish.jersey.media.multipart.FormDataMultiPart;
 import org.glassfish.jersey.message.internal.MessageBodyProviderNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * JAX-RS resource that proxies Linked Data documents.
+ * Generic HTTP proxy.
  * It uses an HTTP client to dereference URIs and sends back the client response.
- * 
+ *
  * @author {@literal Martynas Jusevičius <martynas@atomgraph.com>}
  */
-public class ProxyResourceBase extends com.atomgraph.client.model.impl.ProxyResourceBase
+public class ProxyResourceBase
 {
 
     private static final Logger log = LoggerFactory.getLogger(ProxyResourceBase.class);
 
     private final UriInfo uriInfo;
+    private final Request request;
+    private final HttpHeaders httpHeaders;
+    private final MediaTypes mediaTypes;
     private final ContainerRequestContext crc;
     private final com.atomgraph.linkeddatahub.apps.model.Application application;
     private final Service service;
@@ -83,6 +85,7 @@ public class ProxyResourceBase extends com.atomgraph.client.model.impl.ProxyReso
     private final MediaType[] readableMediaTypes;
     private final Providers providers;
     private final com.atomgraph.linkeddatahub.Application system;
+    private final WebTarget webTarget;
 
     /**
      * Constructs the resource.
@@ -150,8 +153,10 @@ public class ProxyResourceBase extends com.atomgraph.client.model.impl.ProxyReso
             com.atomgraph.linkeddatahub.Application system, @Context HttpServletRequest httpServletRequest, DataManager dataManager, Optional<AgentContext> agentContext,
             @Context Providers providers)
     {
-        super(uriInfo, request, httpHeaders, mediaTypes, uri, endpoint, query, accept, mode, system.getExternalClient(), httpServletRequest);
         this.uriInfo = uriInfo;
+        this.request = request;
+        this.httpHeaders = httpHeaders;
+        this.mediaTypes = mediaTypes;
         this.application = application;
         this.service = service.get();
         this.crc = crc;
@@ -164,72 +169,81 @@ public class ProxyResourceBase extends com.atomgraph.client.model.impl.ProxyReso
         readableMediaTypesList.addAll(mediaTypes.getReadable(Model.class));
         readableMediaTypesList.addAll(mediaTypes.getReadable(ResultSet.class));
         this.readableMediaTypes = readableMediaTypesList.toArray(MediaType[]::new);
-        
+
+        // Create WebTarget - uri is guaranteed to be non-null by Dispatcher
+        WebTarget target = system.getExternalClient().target(uri);
+
         if (agentContext.isPresent())
         {
             if (agentContext.get() instanceof WebIDSecurityContext)
-                super.getWebTarget().register(new WebIDDelegationFilter(agentContext.get().getAgent()));
-            
+                target.register(new WebIDDelegationFilter(agentContext.get().getAgent()));
+
             if (agentContext.get() instanceof IDTokenSecurityContext iDTokenSecurityContext)
-                super.getWebTarget().register(new IDTokenDelegationFilter(agentContext.get().getAgent(),
+                target.register(new IDTokenDelegationFilter(agentContext.get().getAgent(),
                     iDTokenSecurityContext.getJWTToken(), uriInfo.getBaseUri().getPath(), null));
         }
-    }
-    
-    /**
-     * Gets a request invocation builder for the given target.
-     * 
-     * @param target web target
-     * @return invocation builder
-     */
-    @Override
-    public Invocation.Builder getBuilder(WebTarget target)
-    {
-        return target.request(getReadableMediaTypes()).
-            header(HttpHeaders.USER_AGENT, getUserAgentHeaderValue());
+
+        this.webTarget = target;
     }
     
     /**
      * Forwards <code>GET</code> request and returns response from remote resource.
-     * 
-     * @param target target URI
-     * @param builder invocation builder
+     *
      * @return response
      */
-    @Override
-    public Response get(WebTarget target, Invocation.Builder builder)
+    @GET
+    public Response get()
     {
+        WebTarget target = getWebTarget();
+
         // check if we have the model in the cache first and if yes, return it from there instead making an HTTP request
         if (((FileManager)getDataManager()).hasCachedModel(target.getUri().toString()) ||
                 (getDataManager().isResolvingMapped() && getDataManager().isMapped(target.getUri().toString()))) // read mapped URIs (such as system ontologies) from a file
         {
             if (log.isDebugEnabled()) log.debug("hasCachedModel({}): {}", target.getUri(), ((FileManager)getDataManager()).hasCachedModel(target.getUri().toString()));
             if (log.isDebugEnabled()) log.debug("isMapped({}): {}", target.getUri(), getDataManager().isMapped(target.getUri().toString()));
-            return getResponse(getDataManager().loadModel(target.getUri().toString()));
+            return Response.ok(getDataManager().loadModel(target.getUri().toString())).build();
         }
 
         if (!getSystem().isEnableLinkedDataProxy()) throw new NotAllowedException("Linked Data proxy not enabled");
 
-        return super.get(target, builder);
+        if (log.isDebugEnabled()) log.debug("GETing URI: {}", target.getUri());
+
+        try (Response cr = target.request(getReadableMediaTypes())
+                .header(HttpHeaders.USER_AGENT, getUserAgentHeaderValue())
+                .get())
+        {
+            return getResponse(cr);
+        }
+        catch (MessageBodyProviderNotFoundException ex)
+        {
+            if (log.isWarnEnabled()) log.debug("Dereferenced URI {} returned non-RDF media type", target.getUri());
+            throw new NotAcceptableException(ex);
+        }
+        catch (ProcessingException ex)
+        {
+            if (log.isWarnEnabled()) log.debug("Could not dereference URI: {}", target.getUri());
+            throw new BadGatewayException(ex);
+        }
     }
     
     /**
-     * Forwards POST request with SPARQL query body and returns response from remote resource.
-     * 
-     * @param sparqlQuery SPARQL query string
+     * Forwards POST request and returns response from remote resource.
+     *
+     * @param entity request entity
      * @return response
      */
     @POST
-    @Consumes(com.atomgraph.core.MediaType.APPLICATION_SPARQL_QUERY)
-    public Response post(String sparqlQuery)
+    public Response post(Object entity)
     {
         if (getWebTarget() == null) throw new NotFoundException("Resource URI not supplied");
-        
-        if (log.isDebugEnabled()) log.debug("POSTing SPARQL query to URI: {}", getWebTarget().getUri());
-        
+
+        MediaType contentType = getHttpHeaders().getMediaType();
+        if (log.isDebugEnabled()) log.debug("POSTing entity with Content-Type {} to URI: {}", contentType, getWebTarget().getUri());
+
         try (Response cr = getWebTarget().request()
                 .accept(getReadableMediaTypes())
-                .post(Entity.entity(sparqlQuery, com.atomgraph.core.MediaType.APPLICATION_SPARQL_QUERY_TYPE)))
+                .post(Entity.entity(entity, contentType)))
         {
             return getResponse(cr);
         }
@@ -246,158 +260,183 @@ public class ProxyResourceBase extends com.atomgraph.client.model.impl.ProxyReso
     }
     
     /**
-     * Forwards a multipart <code>POST</code> request returns RDF response from remote resource.
-     * 
-     * @param multiPart form data
-     * @return response
-     */
-    @POST
-    @Consumes(MediaType.MULTIPART_FORM_DATA)
-    public Response postMultipart(FormDataMultiPart multiPart)
-    {
-        if (!getSystem().isEnableLinkedDataProxy()) throw new NotAllowedException("Linked Data proxy not enabled");
-        if (getWebTarget() == null) throw new NotFoundException("Resource URI not supplied"); // cannot throw Exception in constructor: https://github.com/eclipse-ee4j/jersey/issues/4436
-        
-        try (Response cr = getWebTarget().request().
-            accept(getMediaTypes().getReadable(Model.class).toArray(jakarta.ws.rs.core.MediaType[]::new)).
-            post(Entity.entity(multiPart, multiPart.getMediaType())))
-        {
-            if (log.isDebugEnabled()) log.debug("POSTing multipart data to URI: {}", getWebTarget().getUri());
-            return getResponse(cr);
-        }
-    }
-    
-    /**
-     * Forwards a multipart <code>PUT</code> request returns RDF response from remote resource.
-     * 
-     * @param multiPart form data
+     * Forwards PUT request and returns response from remote resource.
+     *
+     * @param entity request entity
      * @return response
      */
     @PUT
-    @Consumes(MediaType.MULTIPART_FORM_DATA)
-    public Response putMultipart(FormDataMultiPart multiPart)
+    public Response put(Object entity)
     {
         if (!getSystem().isEnableLinkedDataProxy()) throw new NotAllowedException("Linked Data proxy not enabled");
-        if (getWebTarget() == null) throw new NotFoundException("Resource URI not supplied"); // cannot throw Exception in constructor: https://github.com/eclipse-ee4j/jersey/issues/4436
-        
-        try (Response cr = getWebTarget().request().
-                accept(getMediaTypes().getReadable(Model.class).toArray(jakarta.ws.rs.core.MediaType[]::new)).
-                put(Entity.entity(multiPart, multiPart.getMediaType())))
+        if (getWebTarget() == null) throw new NotFoundException("Resource URI not supplied");
+
+        MediaType contentType = getHttpHeaders().getMediaType();
+        if (log.isDebugEnabled()) log.debug("PUTing entity with Content-Type {} to URI: {}", contentType, getWebTarget().getUri());
+
+        try (Response cr = getWebTarget().request()
+                .accept(getReadableMediaTypes())
+                .put(Entity.entity(entity, contentType)))
         {
-            if (log.isDebugEnabled()) log.debug("PUTing multipart data to URI: {}", getWebTarget().getUri());
             return getResponse(cr);
         }
+        catch (MessageBodyProviderNotFoundException ex)
+        {
+            if (log.isWarnEnabled()) log.debug("Dereferenced URI {} returned non-RDF media type", getWebTarget().getUri());
+            throw new NotAcceptableException(ex);
+        }
+        catch (ProcessingException ex)
+        {
+            if (log.isWarnEnabled()) log.debug("Could not dereference URI: {}", getWebTarget().getUri());
+            throw new BadGatewayException(ex);
+        }
     }
-    
+
     /**
-     * Returns a list of supported languages.
-     * 
-     * @return list of languages
+     * Forwards PATCH request and returns response from remote resource.
+     *
+     * @param entity request entity
+     * @return response
      */
-    @Override
-    public List<Locale> getLanguages()
+    @PATCH
+    public Response patch(Object entity)
     {
-        return getSystem().getSupportedLanguages();
+        if (!getSystem().isEnableLinkedDataProxy()) throw new NotAllowedException("Linked Data proxy not enabled");
+        if (getWebTarget() == null) throw new NotFoundException("Resource URI not supplied");
+
+        MediaType contentType = getHttpHeaders().getMediaType();
+        if (log.isDebugEnabled()) log.debug("PATCHing entity with Content-Type {} to URI: {}", contentType, getWebTarget().getUri());
+
+        try (Response cr = getWebTarget().request()
+                .accept(getReadableMediaTypes())
+                .method("PATCH", Entity.entity(entity, contentType)))
+        {
+            return getResponse(cr);
+        }
+        catch (MessageBodyProviderNotFoundException ex)
+        {
+            if (log.isWarnEnabled()) log.debug("Dereferenced URI {} returned non-RDF media type", getWebTarget().getUri());
+            throw new NotAcceptableException(ex);
+        }
+        catch (ProcessingException ex)
+        {
+            if (log.isWarnEnabled()) log.debug("Could not dereference URI: {}", getWebTarget().getUri());
+            throw new BadGatewayException(ex);
+        }
     }
-    
+
     /**
-     * Returns the current application.
-     * 
-     * @return application resource
+     * Forwards DELETE request and returns response from remote resource.
+     *
+     * @return response
      */
-    public com.atomgraph.linkeddatahub.apps.model.Application getApplication()
+    @DELETE
+    public Response delete()
     {
-        return application;
+        if (!getSystem().isEnableLinkedDataProxy()) throw new NotAllowedException("Linked Data proxy not enabled");
+        if (getWebTarget() == null) throw new NotFoundException("Resource URI not supplied");
+
+        if (log.isDebugEnabled()) log.debug("DELETEing URI: {}", getWebTarget().getUri());
+
+        try (Response cr = getWebTarget().request()
+                .accept(getReadableMediaTypes())
+                .delete())
+        {
+            return getResponse(cr);
+        }
+        catch (MessageBodyProviderNotFoundException ex)
+        {
+            if (log.isWarnEnabled()) log.debug("Dereferenced URI {} returned non-RDF media type", getWebTarget().getUri());
+            throw new NotAcceptableException(ex);
+        }
+        catch (ProcessingException ex)
+        {
+            if (log.isWarnEnabled()) log.debug("Could not dereference URI: {}", getWebTarget().getUri());
+            throw new BadGatewayException(ex);
+        }
     }
-    
+
     /**
-     * Returns the SPARQL service of the current application.
-     * 
-     * @return service resource
+     * Returns response for the given client response.
+     * Copies status, entity, and headers from the client response.
+     *
+     * @param clientResponse JAX-RS client response
+     * @return response
      */
-    public Service getService()
+    public Response getResponse(Response clientResponse)
     {
-        return service;
+        return Response.status(clientResponse.getStatus())
+                .entity(clientResponse.getEntity())
+                .replaceAll(clientResponse.getHeaders())
+                .build();
     }
-    
+
     /**
-     * Returns request context.
-     * 
-     * @return request context
+     * Returns HTTP headers.
+     *
+     * @return HTTP headers
      */
-    public ContainerRequestContext getContainerRequestContext()
+    protected HttpHeaders getHttpHeaders()
     {
-        return crc;
+        return httpHeaders;
     }
-    
+
     /**
-     * Returns request URI information.
-     * 
-     * @return URI info
+     * Returns web target.
+     *
+     * @return web target
      */
-    @Override
-    public UriInfo getUriInfo()
+    protected WebTarget getWebTarget()
     {
-        return uriInfo;
+        return webTarget;
     }
-    
+
+    /**
+     * Returns media types registry.
+     *
+     * @return media types
+     */
+    protected MediaTypes getMediaTypes()
+    {
+        return mediaTypes;
+    }
+
     /**
      * Returns RDF data manager.
-     * 
+     *
      * @return RDF data manager
      */
-    public DataManager getDataManager()
+    protected DataManager getDataManager()
     {
         return dataManager;
     }
-    
-    /**
-     * Returns the context of authenticated agent.
-     * 
-     * @return agent context
-     */
-    public Optional<AgentContext> getAgentContext()
-    {
-        return agentContext;
-    }
-    
+
     /**
      * Returns readable media types.
-     * 
+     *
      * @return media types
      */
-    @Override
-    public MediaType[] getReadableMediaTypes()
+    protected MediaType[] getReadableMediaTypes()
     {
         return readableMediaTypes;
     }
-    
-    /**
-     * Returns a registry of JAX-RS providers.
-     * 
-     * @return provider registry
-     */
-    public Providers getProviders()
-    {
-        return providers;
-    }
-    
+
     /**
      * Returns the system application.
-     * 
+     *
      * @return JAX-RS application
      */
-    public com.atomgraph.linkeddatahub.Application getSystem()
+    protected com.atomgraph.linkeddatahub.Application getSystem()
     {
         return system;
     }
-    
+
     /**
      * Returns the value of the <code>User-Agent</code> request header.
-     * 
+     *
      * @return header value
      */
-    public String getUserAgentHeaderValue()
+    protected String getUserAgentHeaderValue()
     {
         return LinkedDataClient.USER_AGENT;
     }
