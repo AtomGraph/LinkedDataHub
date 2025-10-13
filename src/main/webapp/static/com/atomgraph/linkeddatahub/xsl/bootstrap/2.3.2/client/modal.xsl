@@ -79,7 +79,7 @@ LIMIT   10
         <xsl:param name="id" select="'add-data'" as="xs:string?"/>
         <xsl:param name="button-class" select="'btn btn-primary btn-save'" as="xs:string?"/>
         <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
-        <xsl:param name="action" select="resolve-uri('add', $ldt:base)" as="xs:anyURI"/>
+        <xsl:param name="action" select="resolve-uri('add', ldt:base())" as="xs:anyURI"/>
         <xsl:param name="source" as="xs:anyURI?"/>
         <xsl:param name="query" as="xs:anyURI?"/>
         <xsl:param name="legend-label" select="ac:label(key('resources', 'add-rdf-data', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri))))" as="xs:string"/>
@@ -207,7 +207,7 @@ LIMIT   10
         <xsl:param name="id" select="'generate-containers'" as="xs:string?"/>
         <xsl:param name="button-class" select="'btn btn-primary btn-save'" as="xs:string?"/>
         <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
-        <xsl:param name="action" select="resolve-uri('generate', $ldt:base)" as="xs:anyURI"/>
+        <xsl:param name="action" select="resolve-uri('generate', ldt:base())" as="xs:anyURI"/>
         <xsl:param name="legend-label" select="ac:label(key('resources', 'generate-containers', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri))))" as="xs:string"/>
         <xsl:param name="arg-bnode-id" select="'generate'" as="xs:string"/>
         <xsl:param name="default-limit" select="10" as="xs:integer"/>
@@ -343,7 +343,7 @@ LIMIT   10
         <xsl:param name="id" select="'request-access'" as="xs:string?"/>
         <xsl:param name="button-class" select="'btn btn-primary btn-access-form'" as="xs:string?"/>
         <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
-        <xsl:param name="admin-base-uri" select="xs:anyURI(replace($ldt:base, '^(https?://)', '$1admin.'))" as="xs:anyURI"/>
+        <xsl:param name="admin-base-uri" select="xs:anyURI(replace(ldt:base(), '^(https?://)', '$1admin.'))" as="xs:anyURI"/>
         <xsl:param name="action" select="resolve-uri('access/request', $admin-base-uri)" as="xs:anyURI"/> <!-- TO-DO: handle for admin apps -->
         <xsl:param name="legend-label" select="ac:label(key('resources', 'request-access', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri))))" as="xs:string"/>
         <xsl:param name="agent" as="xs:anyURI"/>
@@ -449,7 +449,7 @@ LIMIT   10
                     <!-- append an authorization for the current URL unless such already exists (e.g. lacl:OwnerAuthorization) -->
                     <xsl:variable name="has-access-to-this-auth" select="exists(rdf:Description[acl:accessTo/@rdf:resource = $this])" as="xs:boolean"/>
                     <xsl:for-each-group select="if ($has-access-to-this-auth) then rdf:Description[acl:accessTo/@rdf:resource] else ($this-auth, rdf:Description[acl:accessTo/@rdf:resource])"
-                                        group-by="acl:accessTo/@rdf:resource[starts-with(., $ldt:base)]">
+                                        group-by="acl:accessTo/@rdf:resource[starts-with(., ldt:base())]">
                         <xsl:variable name="granted-access-modes" select="distinct-values(current-group()/acl:mode/@rdf:resource)" as="xs:anyURI*"/>
 
                         <!-- applying on the first authorization in the group -->
@@ -673,7 +673,7 @@ LIMIT   10
         <xsl:next-match/>
         
         <!-- set a cookie to never show it again -->
-        <ixsl:set-property name="cookie" select="concat('LinkedDataHub.first-time-message=true; path=/', substring-after($ldt:base, $ac:contextUri), '; expires=Fri, 31 Dec 9999 23:59:59 GMT')" object="ixsl:page()"/>
+        <ixsl:set-property name="cookie" select="concat('LinkedDataHub.first-time-message=true; path=/', substring-after(ldt:base(), $ac:contextUri), '; expires=Fri, 31 Dec 9999 23:59:59 GMT')" object="ixsl:page()"/>
     </xsl:template>
 
     <!-- close modal dialog -->
@@ -688,8 +688,8 @@ LIMIT   10
         <xsl:call-template name="ldh:ShowAddDataForm">
             <xsl:with-param name="form" as="element()">
                 <xsl:call-template name="ldh:AddDataForm">
-                    <xsl:with-param name="action" select="resolve-uri('transform', $ldt:base)"/>
-                    <xsl:with-param name="query" select="resolve-uri('queries/construct-constructors/#this', $ldt:base)"/>
+                    <xsl:with-param name="action" select="resolve-uri('transform', ldt:base())"/>
+                    <xsl:with-param name="query" select="resolve-uri('queries/construct-constructors/#this', ldt:base())"/>
                     <xsl:with-param name="legend-label" select="ac:label(key('resources', 'import-ontology', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri))))"/>
                 </xsl:call-template>
             </xsl:with-param>
@@ -706,7 +706,7 @@ LIMIT   10
     
     <xsl:template match="button[contains-token(@class, 'btn-access-form')]" mode="ixsl:onclick">
         <!-- TO-DO: fix for admin apps -->
-        <xsl:param name="admin-base-uri" select="xs:anyURI(replace($ldt:base, '^(https?://)', '$1admin.'))" as="xs:anyURI"/>
+        <xsl:param name="admin-base-uri" select="xs:anyURI(replace(ldt:base(), '^(https?://)', '$1admin.'))" as="xs:anyURI"/>
         <xsl:variable name="request-uri" select="ldh:href(ac:build-uri(resolve-uri('access', $admin-base-uri), map{ 'this': string(ac:absolute-path(ldh:base-uri(.))) }))" as="xs:anyURI"/>
         <xsl:variable name="request" as="item()*">
             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
@@ -813,7 +813,7 @@ LIMIT   10
             <xsl:choose>
                 <xsl:when test="$service-uri">
                     <!-- TO-DO: asynchronous request -->
-                    <xsl:variable name="service-doc" select="document(ac:build-uri($ldt:base, map{ 'uri': ac:document-uri($service-uri), 'accept': 'application/rdf+xml' }))" as="document-node()"/> <!-- TO-DO: replace with <ixsl:schedule-action> -->
+                    <xsl:variable name="service-doc" select="document(ac:build-uri(ldt:base(), map{ 'uri': ac:document-uri($service-uri), 'accept': 'application/rdf+xml' }))" as="document-node()"/> <!-- TO-DO: replace with <ixsl:schedule-action> -->
                     <xsl:sequence select="key('resources', $service-uri, $service-doc)/sd:endpoint/@rdf:resource"/>
                  </xsl:when>
                  <xsl:otherwise>
@@ -1098,10 +1098,10 @@ LIMIT   10
                                         
                                         <xsl:choose>
                                             <xsl:when test="srx:binding[@name = 'namedGraph']/srx:uri">
-                                                <input type="hidden" name="ou" value="{resolve-uri('queries/select-instances-in-graphs/#this', $ldt:base)}"/>
+                                                <input type="hidden" name="ou" value="{resolve-uri('queries/select-instances-in-graphs/#this', ldt:base())}"/>
                                             </xsl:when>
                                             <xsl:otherwise>
-                                                <input type="hidden" name="ou" value="{resolve-uri('queries/select-instances/#this', $ldt:base)}"/>
+                                                <input type="hidden" name="ou" value="{resolve-uri('queries/select-instances/#this', ldt:base())}"/>
                                             </xsl:otherwise>
                                         </xsl:choose>
                                         

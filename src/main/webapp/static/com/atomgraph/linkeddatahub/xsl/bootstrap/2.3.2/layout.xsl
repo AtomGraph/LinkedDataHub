@@ -96,7 +96,7 @@ exclude-result-prefixes="#all">
 
     <xsl:output method="xhtml" encoding="UTF-8" indent="yes" omit-xml-declaration="yes" doctype-system="http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd" doctype-public="-//W3C//DTD XHTML 1.0 Strict//EN" media-type="application/xhtml+xml"/>
 
-    <xsl:param name="ldh:base" as="xs:anyURI" static="yes"/>
+<!--    <xsl:param name="ldh:base" as="xs:anyURI" static="yes"/>-->
     <xsl:param name="ldh:origin" as="xs:anyURI"/>
     <xsl:param name="ldh:requestUri" as="xs:anyURI"/>
     <xsl:param name="ac:endpoint" select="resolve-uri('sparql', $ldt:base)" as="xs:anyURI"/>
