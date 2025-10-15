@@ -211,7 +211,7 @@ public class AuthorizationFilter implements ContainerRequestFilter
             assert pss.toString().contains("VALUES");
 
             // note we're not setting the $mode value on the ACL queries as we want to provide the AuthorizationContext with all of the agent's authorizations
-            authorizations.add(loadModel(getAdminService(), pss, new AuthorizationParams(getApplication().getBase(), accessTo, agent).get()));
+            authorizations.add(loadModel(getAdminService(), pss, new AuthorizationParams(getAdminBase(), accessTo, agent).get()));
             
             // access denied if the agent has no authorization to the requested document with the requested ACL mode
             if (getAuthorizationByMode(authorizations, accessMode) == null) return null;
@@ -356,7 +356,7 @@ public class AuthorizationFilter implements ContainerRequestFilter
     
     /**
      * Returns the SPARQL service for agent data.
-     * 
+     *
      * @return service resource
      */
     protected Service getAdminService()
@@ -364,6 +364,19 @@ public class AuthorizationFilter implements ContainerRequestFilter
         return getApplication().canAs(EndUserApplication.class) ?
             getApplication().as(EndUserApplication.class).getAdminApplication().getService() :
             getApplication().getService();
+    }
+
+    /**
+     * Returns the base URI of the admin application.
+     * Authorization data is always stored in the admin application's dataspace.
+     *
+     * @return admin application's base URI
+     */
+    protected Resource getAdminBase()
+    {
+        return getApplication().canAs(EndUserApplication.class) ?
+            getApplication().as(EndUserApplication.class).getAdminApplication().getBase() :
+            getApplication().getBase();
     }
     
     /**
