@@ -259,8 +259,8 @@ See the [Web-Algebra repository](https://github.com/AtomGraph/Web-Algebra) for s
 
 LinkedDataHub includes an HTTP [test suite](https://github.com/AtomGraph/LinkedDataHub/tree/master/http-tests). The server implementation is also covered by the [Processor test suite](https://github.com/AtomGraph/Processor/tree/master/http-tests).
 
-![HTTP-tests](https://github.com/AtomGraph/LinkedDataHub/workflows/HTTP-tests/badge.svg?branch=master)
-![HTTP-tests](https://github.com/AtomGraph/LinkedDataHub/workflows/HTTP-tests/badge.svg?branch=develop)
+![HTTP-tests](https://github.com/AtomGraph/LinkedDataHub/actions/workflows/http-tests.yml/badge.svg)
+![HTTP-tests](https://github.com/AtomGraph/LinkedDataHub/actions/workflows/http-tests.yml/badge.svg)
 
 ## Dependencies
 
