@@ -20,6 +20,7 @@ import com.atomgraph.linkeddatahub.vocabulary.LAPP;
 import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.ext.Provider;
+import java.util.Optional;
 import org.glassfish.hk2.api.Factory;
 import org.glassfish.hk2.api.ServiceLocator;
 import org.slf4j.Logger;
@@ -32,32 +33,32 @@ import org.slf4j.LoggerFactory;
  * @see com.atomgraph.linkeddatahub.server.model.impl.Dispatcher
  */
 @Provider
-public class ApplicationFactory implements Factory<com.atomgraph.linkeddatahub.apps.model.Application>
+public class ApplicationFactory implements Factory<Optional<com.atomgraph.linkeddatahub.apps.model.Application>>
 {
 
     private static final Logger log = LoggerFactory.getLogger(ApplicationFactory.class);
-    
+
     @Context private ServiceLocator serviceLocator;
-    
+
     @Override
-    public com.atomgraph.linkeddatahub.apps.model.Application provide()
+    public Optional<com.atomgraph.linkeddatahub.apps.model.Application> provide()
     {
         return getApplication();
     }
 
     @Override
-    public void dispose(com.atomgraph.linkeddatahub.apps.model.Application t)
+    public void dispose(Optional<com.atomgraph.linkeddatahub.apps.model.Application> t)
     {
     }
     
     /**
      * Retrieves application from the request context.
-     * 
-     * @return application resource
+     *
+     * @return optional application resource
      */
-    public com.atomgraph.linkeddatahub.apps.model.Application getApplication()
+    public Optional<com.atomgraph.linkeddatahub.apps.model.Application> getApplication()
     {
-        return (com.atomgraph.linkeddatahub.apps.model.Application)getContainerRequestContext().getProperty(LAPP.Application.getURI());
+        return (Optional<com.atomgraph.linkeddatahub.apps.model.Application>)getContainerRequestContext().getProperty(LAPP.Application.getURI());
     }
     
     /**

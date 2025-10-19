@@ -82,7 +82,7 @@ public class ValidatingModelProvider extends com.atomgraph.server.io.ValidatingM
     @Context UriInfo uriInfo;
     @Context SecurityContext securityContext;
 
-    @Inject jakarta.inject.Provider<com.atomgraph.linkeddatahub.apps.model.Application> application;
+    @Inject jakarta.inject.Provider<Optional<com.atomgraph.linkeddatahub.apps.model.Application>> application;
     @Inject com.atomgraph.linkeddatahub.Application system;
     @Inject jakarta.inject.Provider<Optional<AgentContext>> agentContextProvider;
 
@@ -237,7 +237,7 @@ public class ValidatingModelProvider extends com.atomgraph.server.io.ValidatingM
             }
         }
         
-        if (getApplication().canAs(AdminApplication.class) && resource.hasProperty(RDF.type, OWL.Ontology))
+        if (getApplication().get().canAs(AdminApplication.class) && resource.hasProperty(RDF.type, OWL.Ontology))
         {
             // clear cached OntModel if ontology is updated. TO-DO: send event instead
             getSystem().getOntModelSpec().getDocumentManager().getFileManager().removeCacheModel(resource.getURI());
@@ -258,7 +258,7 @@ public class ValidatingModelProvider extends com.atomgraph.server.io.ValidatingM
     public Model processWrite(Model model)
     {
         // show foaf:mbox in end-user apps
-        if (getApplication().canAs(EndUserApplication.class)) return model;
+        if (getApplication().get().canAs(EndUserApplication.class)) return model;
         // show foaf:mbox for authenticated agents
         if (getSecurityContext() != null && getSecurityContext().getUserPrincipal() instanceof Agent) return model;
 
@@ -317,15 +317,15 @@ public class ValidatingModelProvider extends com.atomgraph.server.io.ValidatingM
     
     /**
      * Returns the end-user application of the current dataspace.
-     * 
+     *
      * @return end-user application resource
      */
     public EndUserApplication getEndUserApplication()
     {
-        if (getApplication().canAs(EndUserApplication.class))
-            return getApplication().as(EndUserApplication.class);
+        if (getApplication().get().canAs(EndUserApplication.class))
+            return getApplication().get().as(EndUserApplication.class);
         else
-            return getApplication().as(AdminApplication.class).getEndUserApplication();
+            return getApplication().get().as(AdminApplication.class).getEndUserApplication();
     }
     
     @Override
@@ -336,10 +336,10 @@ public class ValidatingModelProvider extends com.atomgraph.server.io.ValidatingM
     
     /**
      * Returns current application.
-     * 
-     * @return application resource
+     *
+     * @return optional application resource
      */
-    public com.atomgraph.linkeddatahub.apps.model.Application getApplication()
+    public Optional<com.atomgraph.linkeddatahub.apps.model.Application> getApplication()
     {
         return application.get();
     }

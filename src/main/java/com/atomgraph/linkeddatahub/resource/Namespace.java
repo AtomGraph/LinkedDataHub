@@ -76,7 +76,7 @@ public class Namespace extends com.atomgraph.core.model.impl.SPARQLEndpointImpl
 
     /**
      * Constructs endpoint from the in-memory ontology model.
-     * 
+     *
      * @param request current request
      * @param uriInfo current request's URI info
      * @param application current end-user application
@@ -86,7 +86,7 @@ public class Namespace extends com.atomgraph.core.model.impl.SPARQLEndpointImpl
      * @param system system application
      */
     @Inject
-    public Namespace(@Context Request request, @Context UriInfo uriInfo, 
+    public Namespace(@Context Request request, @Context UriInfo uriInfo,
             Application application, Optional<Ontology> ontology, MediaTypes mediaTypes,
             @Context SecurityContext securityContext, com.atomgraph.linkeddatahub.Application system)
     {

@@ -31,6 +31,7 @@ import jakarta.ws.rs.container.ContainerResponseContext;
 import jakarta.ws.rs.container.ContainerResponseFilter;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.Response;
+import java.util.Optional;
 import org.apache.jena.rdf.model.Resource;
 import org.glassfish.jersey.uri.UriComponent;
 
@@ -50,29 +51,32 @@ public class BackendInvalidationFilter implements ContainerResponseFilter
     public static final String HEADER_NAME = "X-Escaped-Request-URI";
     
     @Inject com.atomgraph.linkeddatahub.Application system;
-    @Inject jakarta.inject.Provider<com.atomgraph.linkeddatahub.apps.model.Application> app;
-    
+    @Inject jakarta.inject.Provider<Optional<com.atomgraph.linkeddatahub.apps.model.Application>> app;
+
     @Override
     public void filter(ContainerRequestContext req, ContainerResponseContext resp) throws IOException
     {
+        // If no application was matched (e.g., non-existent dataspace), skip cache invalidation
+        if (!getApplication().isPresent()) return;
+
         if (getAdminApplication().getService().getBackendProxy() == null) return;
         
         if (req.getMethod().equals(HttpMethod.POST) && resp.getHeaderString(HttpHeaders.LOCATION) != null)
         {
             URI location = (URI)resp.getHeaders().get(HttpHeaders.LOCATION).get(0);
             URI parentURI = location.resolve("..").normalize();
-            
-            ban(getApplication().getService().getBackendProxy(), location.toString()).close();
+
+            ban(getApplication().get().getService().getBackendProxy(), location.toString()).close();
             // ban URI from authorization query results
             ban(getAdminApplication().getService().getBackendProxy(), location.toString()).close();
             // ban parent resource URI in order to avoid stale children data in containers
-            ban(getApplication().getService().getBackendProxy(), parentURI.toString()).close();
-            ban(getApplication().getService().getBackendProxy(), getApplication().getBaseURI().relativize(parentURI).toString()).close(); // URIs can be relative in queries
+            ban(getApplication().get().getService().getBackendProxy(), parentURI.toString()).close();
+            ban(getApplication().get().getService().getBackendProxy(), getApplication().get().getBaseURI().relativize(parentURI).toString()).close(); // URIs can be relative in queries
             // ban all results of queries that use forClass type
             if (req.getUriInfo().getQueryParameters().containsKey(AC.forClass.getLocalName()))
             {
                 String forClass = req.getUriInfo().getQueryParameters().getFirst(AC.forClass.getLocalName());
-                ban(getApplication().getService().getBackendProxy(), forClass).close();
+                ban(getApplication().get().getService().getBackendProxy(), forClass).close();
             }
         }
         
@@ -82,25 +86,23 @@ public class BackendInvalidationFilter implements ContainerResponseFilter
             if (!getAdminApplication().getBaseURI().relativize(req.getUriInfo().getAbsolutePath()).isAbsolute()) // URL is relative to the admin app's base URI
             {
                 ban(getAdminApplication().getService().getBackendProxy(), getAdminApplication().getBaseURI().toString()).close();
-//                ban(getAdminApplication().getService().getBackendProxy(), FOAF.Agent.getURI()).close();
                 ban(getAdminApplication().getService().getBackendProxy(), "foaf:Agent").close(); // queries use prefixed names instead of absolute URIs
-//                ban(getAdminApplication().getService().getBackendProxy(), ACL.AuthenticatedAgent.getURI()).close();
                 ban(getAdminApplication().getService().getBackendProxy(), "acl:AuthenticatedAgent").close();
             }
             
             if (req.getUriInfo().getAbsolutePath().toString().endsWith("/"))
             {
-                ban(getApplication().getService().getBackendProxy(), req.getUriInfo().getAbsolutePath().toString()).close();
+                ban(getApplication().get().getService().getBackendProxy(), req.getUriInfo().getAbsolutePath().toString()).close();
                 // ban URI from authorization query results
                 ban(getAdminApplication().getService().getBackendProxy(), req.getUriInfo().getAbsolutePath().toString()).close();
-                
+
                 // ban parent document URIs (those that have a trailing slash) in order to avoid stale children data in containers
-                if (!req.getUriInfo().getAbsolutePath().equals(getApplication().getBaseURI()))
+                if (!req.getUriInfo().getAbsolutePath().equals(getApplication().get().getBaseURI()))
                 {
                     URI parentURI = req.getUriInfo().getAbsolutePath().resolve("..").normalize();
 
-                    ban(getApplication().getService().getBackendProxy(), parentURI.toString()).close();
-                    ban(getApplication().getService().getBackendProxy(), getApplication().getBaseURI().relativize(parentURI).toString()).close(); // URIs can be relative in queries
+                    ban(getApplication().get().getService().getBackendProxy(), parentURI.toString()).close();
+                    ban(getApplication().get().getService().getBackendProxy(), getApplication().get().getBaseURI().relativize(parentURI).toString()).close(); // URIs can be relative in queries
                 }
             }
         }
@@ -125,23 +127,24 @@ public class BackendInvalidationFilter implements ContainerResponseFilter
 
     /**
      * Returns admin application of the current dataspace.
-     * 
+     *
      * @return admin application resource
      */
     public AdminApplication getAdminApplication()
     {
-        if (getApplication().canAs(EndUserApplication.class))
-            return getApplication().as(EndUserApplication.class).getAdminApplication();
+        com.atomgraph.linkeddatahub.apps.model.Application application = getApplication().get();
+        if (application.canAs(EndUserApplication.class))
+            return application.as(EndUserApplication.class).getAdminApplication();
         else
-            return getApplication().as(AdminApplication.class);
+            return application.as(AdminApplication.class);
     }
     
     /**
      * Returns the current application.
-     * 
-     * @return application resource
+     *
+     * @return optional application resource
      */
-    public com.atomgraph.linkeddatahub.apps.model.Application getApplication()
+    public Optional<com.atomgraph.linkeddatahub.apps.model.Application> getApplication()
     {
         return app.get();
     }

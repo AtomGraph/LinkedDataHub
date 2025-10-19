@@ -901,7 +901,16 @@ public class Application extends ResourceConfig
             @Override
             protected void configure()
             {
-                bindFactory(ApplicationFactory.class).to(com.atomgraph.linkeddatahub.apps.model.Application.class).
+                bindFactory(ApplicationFactory.class).to(new TypeLiteral<Optional<com.atomgraph.linkeddatahub.apps.model.Application>>() {}).
+                in(RequestScoped.class);
+            }
+        });
+        register(new AbstractBinder()
+        {
+            @Override
+            protected void configure()
+            {
+                bindFactory(com.atomgraph.linkeddatahub.server.factory.UnwrappedApplicationFactory.class).to(com.atomgraph.linkeddatahub.apps.model.Application.class).
                 in(RequestScoped.class);
             }
         });

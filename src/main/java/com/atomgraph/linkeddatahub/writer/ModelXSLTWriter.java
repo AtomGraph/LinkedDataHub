@@ -124,14 +124,14 @@ public class ModelXSLTWriter extends XSLTWriterBase implements MessageBodyWriter
 
     /**
      * Hook for RDF model processing before write.
-     * 
+     *
      * @param model RDF model
      * @return RDF model
      */
     public Model processWrite(Model model)
     {
         // show foaf:mbox in end-user apps
-        if (getApplication().get().canAs(EndUserApplication.class)) return model;
+        if (getApplication().get().isPresent() && getApplication().get().get().canAs(EndUserApplication.class)) return model;
         // show foaf:mbox for authenticated agents
         if (getSecurityContext() != null && getSecurityContext().getUserPrincipal() instanceof Agent) return model;
 

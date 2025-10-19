@@ -136,44 +136,13 @@ export TMP_ADMIN_DATASET=$(mktemp)
 download_dataset "$END_USER_ENDPOINT_URL" > "$TMP_END_USER_DATASET"
 download_dataset "$ADMIN_ENDPOINT_URL" > "$TMP_ADMIN_DATASET"
 
-# Add fake cross-dataspace authorizations to test isolation
-# These should be filtered out by FILTER(strstarts(str(?g), str($base)))
-printf "### Adding fake cross-dataspace authorizations to test dataset\n"
-cat >> "$TMP_ADMIN_DATASET" <<EOF
-
-<https://admin.test.localhost:4443/acl/authorizations/fake-read/> {
-    <https://admin.test.localhost:4443/acl/authorizations/fake-read/#this>
-        a <http://www.w3.org/ns/auth/acl#Authorization> ;
-        <http://purl.org/dc/terms/title> "Fake READ authorization from test dataspace" ;
-        <http://www.w3.org/ns/auth/acl#agent> <$AGENT_URI> ;
-        <http://www.w3.org/ns/auth/acl#accessTo> <$END_USER_BASE_URL> ;
-        <http://www.w3.org/ns/auth/acl#mode> <http://www.w3.org/ns/auth/acl#Read> .
-}
-
-<https://admin.test.localhost:4443/acl/authorizations/fake-append/> {
-    <https://admin.test.localhost:4443/acl/authorizations/fake-append/#this>
-        a <http://www.w3.org/ns/auth/acl#Authorization> ;
-        <http://purl.org/dc/terms/title> "Fake APPEND authorization from test dataspace" ;
-        <http://www.w3.org/ns/auth/acl#agent> <$AGENT_URI> ;
-        <http://www.w3.org/ns/auth/acl#accessTo> <$END_USER_BASE_URL> ;
-        <http://www.w3.org/ns/auth/acl#mode> <http://www.w3.org/ns/auth/acl#Append> .
-}
-
-<https://admin.test.localhost:4443/acl/authorizations/fake-write/> {
-    <https://admin.test.localhost:4443/acl/authorizations/fake-write/#this>
-        a <http://www.w3.org/ns/auth/acl#Authorization> ;
-        <http://purl.org/dc/terms/title> "Fake WRITE authorization from test dataspace" ;
-        <http://www.w3.org/ns/auth/acl#agent> <$AGENT_URI> ;
-        <http://www.w3.org/ns/auth/acl#accessTo> <$END_USER_BASE_URL> ;
-        <http://www.w3.org/ns/auth/acl#mode> <http://www.w3.org/ns/auth/acl#Write> .
-}
-EOF
-
 ### Other tests ###
 
 run_tests $(find ./add/ -type f -name '*.sh')
 (( error_count += $? ))
 run_tests $(find ./admin/ -type f -name '*.sh')
+(( error_count += $? ))
+run_tests $(find ./dataspaces/ -type f -name '*.sh')
 (( error_count += $? ))
 run_tests $(find ./access/ -type f -name '*.sh')
 (( error_count += $? ))

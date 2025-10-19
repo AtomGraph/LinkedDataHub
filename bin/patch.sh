@@ -70,4 +70,4 @@ fi
 
 # resolve SPARQL update from stdin against base URL and PATCH it to the server
 # uparse currently does not support --base: https://github.com/apache/jena/issues/3296
-cat - | curl -v -k -E "$cert_pem_file":"$cert_password" --data-binary @- -H "Content-Type: application/sparql-update" -X PATCH -o /dev/null "$final_url"
+cat - | curl -f -v -k -E "$cert_pem_file":"$cert_password" --data-binary @- -H "Content-Type: application/sparql-update" -X PATCH -o /dev/null "$final_url"

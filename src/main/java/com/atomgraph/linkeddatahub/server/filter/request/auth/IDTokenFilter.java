@@ -107,12 +107,13 @@ public class IDTokenFilter extends AuthenticationFilter
     public void filter(ContainerRequestContext request) throws IOException
     {
         if (request.getSecurityContext().getUserPrincipal() != null) return; // skip filter if agent already authorized
-        if (!getApplication().canAs(EndUserApplication.class) && !getApplication().canAs(AdminApplication.class)) return; // skip "primitive" apps
+        if (!getApplication().isPresent()) return; // skip if no application matched
+        if (!getApplication().get().canAs(EndUserApplication.class) && !getApplication().get().canAs(AdminApplication.class)) return; // skip "primitive" apps
 
         // do not verify token for auth endpoints as that will lead to redirect loops
         if (request.getUriInfo().getAbsolutePath().equals(getLoginURL())) return;
         if (request.getUriInfo().getAbsolutePath().equals(getAuthorizeGoogleURL())) return;
-        
+
         super.filter(request);
     }
     
@@ -299,15 +300,15 @@ public class IDTokenFilter extends AuthenticationFilter
     
     /**
      * Returns the admin application of the current dataspace.
-     * 
+     *
      * @return admin application resource
      */
     public AdminApplication getAdminApplication()
     {
-        if (getApplication().canAs(EndUserApplication.class))
-            return getApplication().as(EndUserApplication.class).getAdminApplication();
+        if (getApplication().get().canAs(EndUserApplication.class))
+            return getApplication().get().as(EndUserApplication.class).getAdminApplication();
         else
-            return getApplication().as(AdminApplication.class);
+            return getApplication().get().as(AdminApplication.class);
     }
     
     /**
