@@ -429,11 +429,13 @@ if [ ! -f "$OWNER_PUBLIC_KEY" ]; then
 
     OWNER_DOC_URI="${ADMIN_BASE_URI}acl/agents/${OWNER_UUID}/"
     OWNER_KEY_UUID=$(uuidgen | tr '[:upper:]' '[:lower:]') # lowercase
+    OWNER_KEY_DOC_URI="${ADMIN_BASE_URI}acl/public-keys/${OWNER_KEY_UUID}/"
+    OWNER_KEY_URI="${OWNER_KEY_DOC_URI}#this"
     OWNER_PUBLIC_KEY_MODULUS=$(get_modulus "$OWNER_PUBLIC_KEY")
 
     printf "\n### Root owner WebID public key modulus: %s\n" "$OWNER_PUBLIC_KEY_MODULUS"
 
-    export OWNER_COMMON_NAME OWNER_URI OWNER_DOC_URI OWNER_PUBLIC_KEY_MODULUS OWNER_KEY_UUID SECRETARY_URI
+    export OWNER_COMMON_NAME OWNER_URI OWNER_DOC_URI OWNER_KEY_DOC_URI OWNER_KEY_URI OWNER_PUBLIC_KEY_MODULUS SECRETARY_URI
     envsubst < root-owner.trig.template > "$OWNER_DATASET_PATH"
 fi
 
@@ -466,13 +468,52 @@ if [ ! -f "$SECRETARY_PUBLIC_KEY" ]; then
 
     SECRETARY_DOC_URI="${ADMIN_BASE_URI}acl/agents/${SECRETARY_UUID}/"
     SECRETARY_KEY_UUID=$(uuidgen | tr '[:upper:]' '[:lower:]') # lowercase
+    SECRETARY_KEY_DOC_URI="${ADMIN_BASE_URI}acl/public-keys/${SECRETARY_KEY_UUID}/"
+    SECRETARY_KEY_URI="${SECRETARY_KEY_DOC_URI}#this"
     SECRETARY_PUBLIC_KEY_MODULUS=$(get_modulus "$SECRETARY_PUBLIC_KEY")
 
     printf "\n### Secretary WebID public key modulus: %s\n" "$SECRETARY_PUBLIC_KEY_MODULUS"
 
-    export SECRETARY_URI SECRETARY_DOC_URI SECRETARY_PUBLIC_KEY_MODULUS SECRETARY_KEY_UUID
+    export SECRETARY_URI SECRETARY_DOC_URI SECRETARY_KEY_DOC_URI SECRETARY_KEY_URI SECRETARY_PUBLIC_KEY_MODULUS
     envsubst < root-secretary.trig.template > "$SECRETARY_DATASET_PATH"
 fi
+
+mkdir -p /var/linkeddatahub/based-datasets
+
+# If certs already exist, extract metadata from existing .trig files using SPARQL and create .nq files
+printf "\n### Reading owner metadata from existing file: %s\n" /var/linkeddatahub/based-datasets/root-owner.nq
+
+trig --base="$ADMIN_BASE_URI" --output=nq "$OWNER_DATASET_PATH" > /var/linkeddatahub/based-datasets/root-owner.nq
+
+owner_metadata=$(sparql --data=/var/linkeddatahub/based-datasets/root-owner.nq --query=select-agent-metadata.rq --results=XML)
+
+OWNER_URI=$(echo "$owner_metadata" | xmlstarlet sel -N srx="http://www.w3.org/2005/sparql-results#" -T -t -v "/srx:sparql/srx:results/srx:result/srx:binding[@name='agent']/srx:uri")
+OWNER_DOC_URI=$(echo "$owner_metadata" | xmlstarlet sel -N srx="http://www.w3.org/2005/sparql-results#" -T -t -v "/srx:sparql/srx:results/srx:result/srx:binding[@name='doc']/srx:uri")
+OWNER_KEY_URI=$(echo "$owner_metadata" | xmlstarlet sel -N srx="http://www.w3.org/2005/sparql-results#" -T -t -v "/srx:sparql/srx:results/srx:result/srx:binding[@name='key']/srx:uri")
+OWNER_KEY_DOC_URI=$(echo "$OWNER_KEY_URI" | sed 's|#this$||')
+OWNER_KEY_URI="${OWNER_KEY_DOC_URI}#this"
+
+printf "\n### Extracted OWNER_URI: %s\n" "$OWNER_URI"
+printf "\n### Extracted OWNER_DOC_URI: %s\n" "$OWNER_DOC_URI"
+printf "\n### Extracted OWNER_KEY_URI: %s\n" "$OWNER_KEY_URI"
+printf "\n### Extracted OWNER_KEY_DOC_URI: %s\n" "$OWNER_KEY_DOC_URI"
+
+printf "\n### Reading secretary metadata from existing file: %s\n" /var/linkeddatahub/based-datasets/root-secretary.nq
+
+trig --base="$ADMIN_BASE_URI" --output=nq "$SECRETARY_DATASET_PATH" > /var/linkeddatahub/based-datasets/root-secretary.nq
+
+secretary_metadata=$(sparql --data=/var/linkeddatahub/based-datasets/root-secretary.nq --query=select-agent-metadata.rq --results=XML)
+
+SECRETARY_URI=$(echo "$secretary_metadata" | xmlstarlet sel -N srx="http://www.w3.org/2005/sparql-results#" -T -t -v "/srx:sparql/srx:results/srx:result/srx:binding[@name='agent']/srx:uri")
+SECRETARY_DOC_URI=$(echo "$secretary_metadata" | xmlstarlet sel -N srx="http://www.w3.org/2005/sparql-results#" -T -t -v "/srx:sparql/srx:results/srx:result/srx:binding[@name='doc']/srx:uri")
+SECRETARY_KEY_URI=$(echo "$secretary_metadata" | xmlstarlet sel -N srx="http://www.w3.org/2005/sparql-results#" -T -t -v "/srx:sparql/srx:results/srx:result/srx:binding[@name='key']/srx:uri")
+SECRETARY_KEY_DOC_URI=$(echo "$SECRETARY_KEY_URI" | sed 's|#this$||')
+SECRETARY_KEY_URI="${SECRETARY_KEY_DOC_URI}#this"
+
+printf "\n### Extracted SECRETARY_URI: %s\n" "$SECRETARY_URI"
+printf "\n### Extracted SECRETARY_DOC_URI: %s\n" "$SECRETARY_DOC_URI"
+printf "\n### Extracted SECRETARY_KEY_URI: %s\n" "$SECRETARY_KEY_URI"
+printf "\n### Extracted SECRETARY_KEY_DOC_URI: %s\n" "$SECRETARY_KEY_DOC_URI"
 
 # Note: LOAD_DATASETS check is now done per-app inside the loop
 
@@ -604,8 +645,18 @@ for app in "${apps[@]}"; do
     # Create app-specific subfolder based on end-user origin
     app_folder=$(echo "$end_user_origin" | sed 's|https://||' | sed 's|http://||' | sed 's|[:/]|-|g')
 
-    # Check if this specific app's datasets have been loaded
-    if [ ! -d "/var/linkeddatahub/based-datasets/${app_folder}" ]; then
+    # Determine whether to load datasets for this app
+    load_datasets_for_app="$LOAD_DATASETS"
+    if [ -z "$load_datasets_for_app" ]; then
+        if [ ! -d "/var/linkeddatahub/based-datasets/${app_folder}" ]; then
+            load_datasets_for_app=true
+        else
+            load_datasets_for_app=false
+        fi
+    fi
+
+    # Check if this specific app's datasets should be loaded
+    if [ "$load_datasets_for_app" = true ]; then
         printf "\n### Loading datasets for app: %s\n" "$app_folder"
         mkdir -p "/var/linkeddatahub/based-datasets/${app_folder}"
 
@@ -663,15 +714,53 @@ for app in "${apps[@]}"; do
         printf "\n### Loading namespace ontology into the admin triplestore...\n"
         append_quads "$admin_quad_store_url" "$admin_service_auth_user" "$admin_service_auth_pwd" "/var/linkeddatahub/based-datasets/${app_folder}/namespace-ontology.nq" "application/n-quads"
 
-        trig --base="$ADMIN_BASE_URI" --output=nq "$OWNER_DATASET_PATH" > /var/linkeddatahub/based-datasets/root-owner.nq
+        # Load full owner/secretary metadata (agent + key) only for root app
+        if [ "$end_user_origin" = "$ORIGIN" ]; then
+            cat /var/linkeddatahub/based-datasets/root-owner.nq
+            cat /var/linkeddatahub/based-datasets/root-secretary.nq
 
-        printf "\n### Uploading the metadata of the owner agent...\n\n"
-        append_quads "$admin_quad_store_url" "$admin_service_auth_user" "$admin_service_auth_pwd" /var/linkeddatahub/based-datasets/root-owner.nq "application/n-quads"
+            printf "\n### Uploading the metadata of the owner agent...\n\n"
+            append_quads "$admin_quad_store_url" "$admin_service_auth_user" "$admin_service_auth_pwd" /var/linkeddatahub/based-datasets/root-owner.nq "application/n-quads"
 
-        trig --base="$ADMIN_BASE_URI" --output=nq "$SECRETARY_DATASET_PATH" > /var/linkeddatahub/based-datasets/root-secretary.nq
+            printf "\n### Uploading the metadata of the secretary agent...\n\n"
+            append_quads "$admin_quad_store_url" "$admin_service_auth_user" "$admin_service_auth_pwd" /var/linkeddatahub/based-datasets/root-secretary.nq "application/n-quads"
+        fi
 
-        printf "\n### Uploading the metadata of the secretary agent...\n\n"
-        append_quads "$admin_quad_store_url" "$admin_service_auth_user" "$admin_service_auth_pwd" /var/linkeddatahub/based-datasets/root-secretary.nq "application/n-quads"
+        # Load owner/secretary authorizations for this app (with app-specific UUIDs)
+        # Note: OWNER_URI and SECRETARY_URI reference the root admin URIs
+        owner_auth_dataset_path="/var/linkeddatahub/datasets/${app_folder}/owner-authorization.trig"
+        mkdir -p "$(dirname "$owner_auth_dataset_path")"
+
+        OWNER_AUTH_UUID=$(uuidgen | tr '[:upper:]' '[:lower:]')
+        OWNER_AUTH_DOC_URI="${admin_origin}/acl/authorizations/${OWNER_AUTH_UUID}/"
+        OWNER_AUTH_URI="${OWNER_AUTH_DOC_URI}#auth"
+
+        export OWNER_URI OWNER_DOC_URI OWNER_KEY_DOC_URI OWNER_AUTH_DOC_URI OWNER_AUTH_URI
+        envsubst < root-owner-authorization.trig.template > "$owner_auth_dataset_path"
+
+        cat "$owner_auth_dataset_path"
+
+        trig --base="${admin_origin}/" --output=nq "$owner_auth_dataset_path" > "/var/linkeddatahub/based-datasets/${app_folder}/owner-authorization.nq"
+
+        printf "\n### Uploading owner authorizations for this app...\n\n"
+        append_quads "$admin_quad_store_url" "$admin_service_auth_user" "$admin_service_auth_pwd" "/var/linkeddatahub/based-datasets/${app_folder}/owner-authorization.nq" "application/n-quads"
+
+        secretary_auth_dataset_path="/var/linkeddatahub/datasets/${app_folder}/secretary-authorization.trig"
+        mkdir -p "$(dirname "$secretary_auth_dataset_path")"
+
+        SECRETARY_AUTH_UUID=$(uuidgen | tr '[:upper:]' '[:lower:]')
+        SECRETARY_AUTH_DOC_URI="${admin_origin}/acl/authorizations/${SECRETARY_AUTH_UUID}/"
+        SECRETARY_AUTH_URI="${SECRETARY_AUTH_DOC_URI}#auth"
+
+        export SECRETARY_URI SECRETARY_DOC_URI SECRETARY_KEY_DOC_URI SECRETARY_AUTH_DOC_URI SECRETARY_AUTH_URI
+        envsubst < root-secretary-authorization.trig.template > "$secretary_auth_dataset_path"
+
+        cat "$secretary_auth_dataset_path"
+
+        trig --base="${admin_origin}/" --output=nq "$secretary_auth_dataset_path" > "/var/linkeddatahub/based-datasets/${app_folder}/secretary-authorization.nq"
+
+        printf "\n### Uploading secretary authorizations for this app...\n\n"
+        append_quads "$admin_quad_store_url" "$admin_service_auth_user" "$admin_service_auth_pwd" "/var/linkeddatahub/based-datasets/${app_folder}/secretary-authorization.nq" "application/n-quads"
     fi
 done
 

@@ -6,13 +6,11 @@ set -euo pipefail
 # Try to access admin on non-existent test.localhost dataspace
 curl -k -w "%{http_code}\n" -o /dev/null -s \
   -H "Accept: application/n-triples" \
-  "https://admin.test.localhost:4443/" \
+  "https://admin.non-existing.localhost:4443/" \
 | grep -q "$STATUS_NOT_FOUND"
 
 # Try to access end-user on non-existent test.localhost dataspace
 curl -k -w "%{http_code}\n" -o /dev/null -s \
   -H "Accept: application/n-triples" \
-  "https://test.localhost:4443/" \
+  "https://non-existing.localhost:4443/" \
 | grep -q "$STATUS_NOT_FOUND"
-
-echo "Non-existent dataspaces correctly return 404"

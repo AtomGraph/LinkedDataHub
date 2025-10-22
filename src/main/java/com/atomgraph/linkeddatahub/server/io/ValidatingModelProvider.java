@@ -236,31 +236,34 @@ public class ValidatingModelProvider extends com.atomgraph.server.io.ValidatingM
                 throw new SPINConstraintViolationException(cvs, resource.getModel());
             }
         }
-        
-        if (getApplication().get().canAs(AdminApplication.class) && resource.hasProperty(RDF.type, OWL.Ontology))
+
+        if (getApplication().isPresent() && getApplication().get().canAs(AdminApplication.class) && resource.hasProperty(RDF.type, OWL.Ontology))
         {
             // clear cached OntModel if ontology is updated. TO-DO: send event instead
             getSystem().getOntModelSpec().getDocumentManager().getFileManager().removeCacheModel(resource.getURI());
         }
-        
-        if (resource.hasProperty(RDF.type, ACL.Authorization))
+
+        if (getApplication().isPresent() && resource.hasProperty(RDF.type, ACL.Authorization))
         {
             LinkedDataClient ldc = LinkedDataClient.create(getSystem().getClient(), getSystem().getMediaTypes()).
                 delegation(getUriInfo().getBaseUri(), getAgentContextProvider().get().orElse(null));
             getSystem().getEventBus().post(new com.atomgraph.linkeddatahub.server.event.AuthorizationCreated(getEndUserApplication(),
                 ldc, resource));
         }
-        
+
         return resource;
     }
     
     @Override
     public Model processWrite(Model model)
     {
+        // If no application (e.g., error responses), skip mbox processing
+        if (!getApplication().isPresent()) return super.processWrite(model);
+
         // show foaf:mbox in end-user apps
-        if (getApplication().get().canAs(EndUserApplication.class)) return model;
+        if (getApplication().get().canAs(EndUserApplication.class)) return super.processWrite(model);
         // show foaf:mbox for authenticated agents
-        if (getSecurityContext() != null && getSecurityContext().getUserPrincipal() instanceof Agent) return model;
+        if (getSecurityContext() != null && getSecurityContext().getUserPrincipal() instanceof Agent) return super.processWrite(model);
 
         // show foaf:mbox_sha1sum for all other agents (in admin apps)
         return super.processWrite(hashMboxes(getMessageDigest()).apply(model)); // apply processing from superclasses
