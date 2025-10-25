@@ -145,11 +145,17 @@ COPY platform/import-letsencrypt-stg-roots.sh import-letsencrypt-stg-roots.sh
 
 COPY platform/select-root-services.rq select-root-services.rq
 
+COPY platform/select-agent-metadata.rq select-agent-metadata.rq
+
 # copy the metadata of built-in agents
 
 COPY platform/root-secretary.trig.template root-secretary.trig.template
 
 COPY platform/root-owner.trig.template root-owner.trig.template
+
+COPY platform/root-secretary-authorization.trig.template root-secretary-authorization.trig.template
+
+COPY platform/root-owner-authorization.trig.template root-owner-authorization.trig.template
 
 # copy the metadata of the namespace ontology
 

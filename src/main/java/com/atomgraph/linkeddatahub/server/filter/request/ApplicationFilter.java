@@ -27,6 +27,7 @@ import java.util.stream.Collectors;
 import jakarta.annotation.Priority;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.BadRequestException;
+import jakarta.ws.rs.NotFoundException;
 import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.container.ContainerRequestFilter;
 import jakarta.ws.rs.container.PreMatching;
@@ -58,9 +59,23 @@ public class ApplicationFilter implements ContainerRequestFilter
     @Override
     public void filter(ContainerRequestContext request) throws IOException
     {
+        // used by ModeFactory and ModelXSLTWriterBase - set early so it's available even if app matching fails
+        if (request.getUriInfo().getQueryParameters().containsKey(AC.mode.getLocalName()))
+        {
+            List<String> modeUris = request.getUriInfo().getQueryParameters().get(AC.mode.getLocalName());
+            List<Mode> modes = modeUris.stream().map(Mode::new).collect(Collectors.toList());
+            request.setProperty(AC.mode.getURI(), modes);
+        }
+        else request.setProperty(AC.mode.getURI(), Collections.emptyList());
+
         // there always have to be an app
         Resource appResource = getSystem().matchApp(request.getUriInfo().getAbsolutePath());
-        if (appResource == null) throw new IllegalStateException("Request URI '" + request.getUriInfo().getAbsolutePath() + "' has not matched any lapp:Application");
+        if (appResource == null)
+        {
+            // Set empty Optional so response filters can safely check
+            request.setProperty(LAPP.Application.getURI(), Optional.empty());
+            throw new NotFoundException("Request URI '" + request.getUriInfo().getAbsolutePath() + "' has not matched any lapp:Application");
+        }
 
         // instead of InfModel, do faster explicit checks for subclasses and add rdf:type
         if (!appResource.canAs(com.atomgraph.linkeddatahub.apps.model.Application.class) &&
@@ -69,7 +84,7 @@ public class ApplicationFilter implements ContainerRequestFilter
             throw new IllegalStateException("Resource <" + appResource + "> cannot be cast to lapp:Application");
 
         com.atomgraph.linkeddatahub.apps.model.Application app = appResource.as(com.atomgraph.linkeddatahub.apps.model.Application.class);
-        request.setProperty(LAPP.Application.getURI(), app); // wrap into a helper class so it doesn't interfere with injection of Application
+        request.setProperty(LAPP.Application.getURI(), Optional.of(app)); // wrap in Optional so response filters can handle missing applications
         
         // use the ?uri URL parameter to override the effective request URI if its URI value is relative to the app's base URI
         final URI requestURI;
@@ -106,15 +121,6 @@ public class ApplicationFilter implements ContainerRequestFilter
         // has to go before ?uri logic because that will change the UriInfo
         if (request.getUriInfo().getQueryParameters().containsKey(AC.accept.getLocalName()))
             request.getHeaders().putSingle(HttpHeaders.ACCEPT, request.getUriInfo().getQueryParameters().getFirst(AC.accept.getLocalName()));
-
-        // used by ModeFactory and ModelXSLTWriterBase
-        if (request.getUriInfo().getQueryParameters().containsKey(AC.mode.getLocalName()))
-        {
-            List<String> modeUris = request.getUriInfo().getQueryParameters().get(AC.mode.getLocalName());
-            List<Mode> modes = modeUris.stream().map(Mode::new).collect(Collectors.toList());
-            request.setProperty(AC.mode.getURI(), modes);
-        }
-        else request.setProperty(AC.mode.getURI(), Collections.emptyList());
 
         // TO-DO: move Dataset logic to a separate ContainerRequestFilter?
         Resource datasetResource = getSystem().matchDataset(LAPP.Dataset, request.getUriInfo().getAbsolutePath());

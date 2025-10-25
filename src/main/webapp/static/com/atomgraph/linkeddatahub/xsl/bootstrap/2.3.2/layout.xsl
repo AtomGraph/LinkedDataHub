@@ -268,10 +268,12 @@ LIMIT   100
 
     <xsl:template match="rdf:RDF" mode="xhtml:Title">
         <title>
-            <xsl:value-of>
-                <xsl:apply-templates select="$lapp:Application//*[ldh:origin/@rdf:resource = $ldh:origin]" mode="ac:label"/>
-            </xsl:value-of>
-            <xsl:text> - </xsl:text>
+            <xsl:if test="$lapp:Application//*[ldh:origin/@rdf:resource = $ldh:origin]">
+                <xsl:value-of>
+                    <xsl:apply-templates select="$lapp:Application//*[ldh:origin/@rdf:resource = $ldh:origin]" mode="ac:label"/>
+                </xsl:value-of>
+                <xsl:text> - </xsl:text>
+            </xsl:if>
 
             <xsl:apply-templates mode="#current"/>
         </title>

@@ -93,7 +93,7 @@ public abstract class XSLTWriterBase extends com.atomgraph.client.writer.XSLTWri
     @Context SecurityContext securityContext;
 
     @Inject com.atomgraph.linkeddatahub.Application system;
-    @Inject jakarta.inject.Provider<com.atomgraph.linkeddatahub.apps.model.Application> application;
+    @Inject jakarta.inject.Provider<Optional<com.atomgraph.linkeddatahub.apps.model.Application>> application;
     @Inject jakarta.inject.Provider<DataManager> dataManager;
     @Inject jakarta.inject.Provider<XsltExecutableSupplier> xsltExecSupplier;
     @Inject jakarta.inject.Provider<List<Mode>> modes;
@@ -126,8 +126,15 @@ public abstract class XSLTWriterBase extends com.atomgraph.client.writer.XSLTWri
             params.put(new QName("ldh", LDH.requestUri.getNameSpace(), LDH.requestUri.getLocalName()), new XdmAtomicValue(getRequestURI()));
             if (getURI() != null) params.put(new QName("ac", AC.uri.getNameSpace(), AC.uri.getLocalName()), new XdmAtomicValue(getURI()));
             else params.put(new QName("ac", AC.uri.getNameSpace(), AC.uri.getLocalName()), new XdmAtomicValue(getRequestURI()));
-            
-            com.atomgraph.linkeddatahub.apps.model.Application app = getApplication().get();
+
+            Optional<com.atomgraph.linkeddatahub.apps.model.Application> appOpt = getApplication().get();
+            if (!appOpt.isPresent())
+            {
+                if (log.isWarnEnabled()) log.warn("Application not present in XSLTWriterBase.getParameters()");
+                return params; // return early if no application
+            }
+
+            com.atomgraph.linkeddatahub.apps.model.Application app = appOpt.get();
             if (log.isDebugEnabled()) log.debug("Passing $lapp:Application to XSLT: <{}>", app);
             params.put(new QName("ldt", LDT.base.getNameSpace(), LDT.base.getLocalName()), new XdmAtomicValue(app.getBaseURI()));
             params.put(new QName("ldh", LDH.origin.getNameSpace(), LDH.origin.getLocalName()), new XdmAtomicValue(app.getOriginURI()));
@@ -324,7 +331,7 @@ public abstract class XSLTWriterBase extends com.atomgraph.client.writer.XSLTWri
 
     /**
      * Returns a JAX-RS provider for the RDF data manager.
-     * 
+     *
      * @return provider
      */
     public jakarta.inject.Provider<DataManager> getDataManagerProvider()
@@ -371,10 +378,10 @@ public abstract class XSLTWriterBase extends com.atomgraph.client.writer.XSLTWri
 
     /**
      * Returns a JAX-RS provider for the current application.
-     * 
+     *
      * @return provider
      */
-    public jakarta.inject.Provider<com.atomgraph.linkeddatahub.apps.model.Application> getApplication()
+    public jakarta.inject.Provider<Optional<com.atomgraph.linkeddatahub.apps.model.Application>> getApplication()
     {
         return application;
     }

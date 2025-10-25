@@ -15,7 +15,26 @@ curl -k -w "%{http_code}\n" -o /dev/null -s \
   "$END_USER_BASE_URL" \
 | grep -q "$STATUS_FORBIDDEN"
 
-# create authorization
+# create fake test.localhost authorization (should be filtered out)
+
+create-authorization.sh \
+  -f "$OWNER_CERT_FILE" \
+  -p "$OWNER_CERT_PWD" \
+  -b "https://admin.test.localhost:4443/" \
+  --label "Fake GET authorization from test.localhost" \
+  --agent "$AGENT_URI" \
+  --to "$END_USER_BASE_URL" \
+  --read
+
+# access is still denied (fake authorization filtered out)
+
+curl -k -w "%{http_code}\n" -o /dev/null -s \
+  -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
+  -H "Accept: application/n-triples" \
+  "$END_USER_BASE_URL" \
+| grep -q "$STATUS_FORBIDDEN"
+
+# create real localhost authorization
 
 create-authorization.sh \
   -f "$OWNER_CERT_FILE" \
@@ -26,7 +45,7 @@ create-authorization.sh \
   --to "$END_USER_BASE_URL" \
   --read
 
-# access is allowed after authorization is created
+# access is allowed after real authorization is created
 
 curl -k -w "%{http_code}\n" -o /dev/null -f -s \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \

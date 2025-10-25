@@ -343,7 +343,7 @@ LIMIT   10
         <xsl:param name="id" select="'request-access'" as="xs:string?"/>
         <xsl:param name="button-class" select="'btn btn-primary btn-access-form'" as="xs:string?"/>
         <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
-        <xsl:param name="admin-base-uri" select="xs:anyURI(replace(ldt:base(), '^(https?://)', '$1admin.'))" as="xs:anyURI"/>
+        <xsl:param name="admin-base-uri" select="xs:anyURI(replace(ldh:origin(ldh:base-uri(.)), '^(https?://)', '$1admin.'))" as="xs:anyURI"/>
         <xsl:param name="action" select="resolve-uri('access/request', $admin-base-uri)" as="xs:anyURI"/> <!-- TO-DO: handle for admin apps -->
         <xsl:param name="legend-label" select="ac:label(key('resources', 'request-access', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri))))" as="xs:string"/>
         <xsl:param name="agent" as="xs:anyURI"/>
@@ -412,7 +412,7 @@ LIMIT   10
     <xsl:template match="rdf:RDF" mode="request-access-matrix">
         <xsl:param name="agent" as="xs:anyURI"/>
         <!-- TO-DO: support agent-group? -->
-        <xsl:param name="this" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/>
+        <xsl:param name="this" as="xs:anyURI"/>
         <xsl:param name="access-modes" select="(xs:anyURI('&acl;Read'), xs:anyURI('&acl;Append'), xs:anyURI('&acl;Write'))" as="xs:anyURI*"/>
         
         <fieldset>
@@ -706,12 +706,14 @@ LIMIT   10
     
     <xsl:template match="button[contains-token(@class, 'btn-access-form')]" mode="ixsl:onclick">
         <!-- TO-DO: fix for admin apps -->
-        <xsl:param name="admin-base-uri" select="xs:anyURI(replace(ldt:base(), '^(https?://)', '$1admin.'))" as="xs:anyURI"/>
-        <xsl:variable name="request-uri" select="ldh:href(ac:build-uri(resolve-uri('access', $admin-base-uri), map{ 'this': string(ac:absolute-path(ldh:base-uri(.))) }))" as="xs:anyURI"/>
+        <xsl:param name="admin-base-uri" select="xs:anyURI(replace(ldh:origin(ldh:base-uri(.)), '^(https?://)', '$1admin.'))" as="xs:anyURI"/>
+        <xsl:param name="this" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/>
+        <xsl:variable name="request-uri" select="ldh:href(ac:build-uri(resolve-uri('access', $admin-base-uri), map{ 'this': $this }))" as="xs:anyURI"/>
         <xsl:variable name="request" as="item()*">
             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                 <xsl:call-template name="onAccessResponseLoad">
                     <xsl:with-param name="agent" select="$acl:agent"/>
+                    <xsl:with-param name="this" select="$this"/>
                 </xsl:call-template>
             </ixsl:schedule-action>
         </xsl:variable>
@@ -1183,6 +1185,7 @@ LIMIT   10
     <xsl:template name="onAccessResponseLoad">
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="agent" as="xs:anyURI"/>
+        <xsl:param name="this" as="xs:anyURI"/>
 
         <xsl:choose>
             <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
@@ -1200,6 +1203,7 @@ LIMIT   10
                     <xsl:result-document href="?." method="ixsl:replace-content">
                         <xsl:apply-templates select="$body/rdf:RDF" mode="request-access-matrix">
                             <xsl:with-param name="agent" select="$agent"/>
+                            <xsl:with-param name="this" select="$this"/>
                         </xsl:apply-templates>
                     </xsl:result-document>
                 </xsl:for-each>

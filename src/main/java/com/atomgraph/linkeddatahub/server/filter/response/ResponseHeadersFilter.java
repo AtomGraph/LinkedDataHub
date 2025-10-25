@@ -56,7 +56,7 @@ public class ResponseHeadersFilter implements ContainerResponseFilter
     private static final Logger log = LoggerFactory.getLogger(ResponseHeadersFilter.class);
     private static final Pattern LINK_SPLITTER = Pattern.compile(",(?=\\s*<)"); // split on commas before next '<'
 
-    @Inject jakarta.inject.Provider<Application> app;
+    @Inject jakarta.inject.Provider<Optional<Application>> app;
     @Inject jakarta.inject.Provider<Optional<Dataset>> dataset;
     @Inject jakarta.inject.Provider<Optional<AuthorizationContext>> authorizationContext;
 
@@ -65,31 +65,36 @@ public class ResponseHeadersFilter implements ContainerResponseFilter
     {
         if (response.getStatusInfo().equals(Response.Status.NO_CONTENT))
             response.getHeaders().remove(HttpHeaders.CONTENT_TYPE); // needs to be explicitly unset for some reason
-        
+
         if (request.getSecurityContext().getUserPrincipal() instanceof Agent)
         {
             Agent agent = ((Agent)(request.getSecurityContext().getUserPrincipal()));
             response.getHeaders().add(HttpHeaders.LINK, new Link(URI.create(agent.getURI()), ACL.agent.getURI(), null));
         }
-        
+
         if (getAuthorizationContext().isPresent())
             getAuthorizationContext().get().getModeURIs().forEach(mode -> response.getHeaders().add(HttpHeaders.LINK, new Link(mode, ACL.mode.getURI(), null)));
-        
+
         List<Object> linkValues = response.getHeaders().get(HttpHeaders.LINK);
         List<Link> links = parseLinkHeaderValues(linkValues);
-        
+
         if (getLinksByRel(links, SD.endpoint.getURI()).isEmpty())
             // add Link rel=sd:endpoint.
             // TO-DO: The external SPARQL endpoint URL is different from the internal one currently specified as sd:endpoint in the context dataset
             response.getHeaders().add(HttpHeaders.LINK, new Link(request.getUriInfo().getBaseUriBuilder().path(Dispatcher.class, "getSPARQLEndpoint").build(), SD.endpoint.getURI(), null));
 
-        // add Link rel=ldt:ontology, if the ontology URI is specified
-        if (getApplication().getOntology() != null)
-            response.getHeaders().add(HttpHeaders.LINK, new Link(URI.create(getApplication().getOntology().getURI()), LDT.ontology.getURI(), null));
-        // add Link rel=ac:stylesheet, if the stylesheet URI is specified
-        if (getApplication().getStylesheet() != null)
-            response.getHeaders().add(HttpHeaders.LINK, new Link(URI.create(getApplication().getStylesheet().getURI()), AC.stylesheet.getURI(), null));
-        
+        // Only add application-specific links if application is present
+        if (getApplication().isPresent())
+        {
+            Application application = getApplication().get();
+            // add Link rel=ldt:ontology, if the ontology URI is specified
+            if (application.getOntology() != null)
+                response.getHeaders().add(HttpHeaders.LINK, new Link(URI.create(application.getOntology().getURI()), LDT.ontology.getURI(), null));
+            // add Link rel=ac:stylesheet, if the stylesheet URI is specified
+            if (application.getStylesheet() != null)
+                response.getHeaders().add(HttpHeaders.LINK, new Link(URI.create(application.getStylesheet().getURI()), AC.stylesheet.getURI(), null));
+        }
+
         if (response.getHeaders().get(HttpHeaders.LINK) != null)
         {
             // combine Link header values into a single value because Saxon-JS 2.x is not able to deal with duplicate header names: https://saxonica.plan.io/issues/5199
@@ -149,10 +154,10 @@ public class ResponseHeadersFilter implements ContainerResponseFilter
     
     /**
      * Returns the current application.
-     * 
-     * @return application resource.
+     *
+     * @return optional application resource
      */
-    public com.atomgraph.linkeddatahub.apps.model.Application getApplication()
+    public Optional<com.atomgraph.linkeddatahub.apps.model.Application> getApplication()
     {
         return app.get();
     }
