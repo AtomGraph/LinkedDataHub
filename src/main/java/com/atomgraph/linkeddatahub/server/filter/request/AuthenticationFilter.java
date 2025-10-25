@@ -54,7 +54,7 @@ public abstract class AuthenticationFilter implements ContainerRequestFilter
     public static final String ON_BEHALF_OF = "On-Behalf-Of";
     
     @Inject com.atomgraph.linkeddatahub.Application system;
-    @Inject jakarta.inject.Provider<com.atomgraph.linkeddatahub.apps.model.Application> app;
+    @Inject jakarta.inject.Provider<Optional<com.atomgraph.linkeddatahub.apps.model.Application>> app;
     @Inject jakarta.inject.Provider<Optional<com.atomgraph.linkeddatahub.apps.model.Dataset>> dataset;
 
     /**
@@ -111,14 +111,14 @@ public abstract class AuthenticationFilter implements ContainerRequestFilter
     
     /**
      * Returns the SPARQL service for agent data.
-     * 
+     *
      * @return service resource
      */
     protected Service getAgentService()
     {
-        return getApplication().canAs(EndUserApplication.class) ?
-            getApplication().as(EndUserApplication.class).getAdminApplication().getService() :
-            getApplication().getService();
+        return getApplication().get().canAs(EndUserApplication.class) ?
+            getApplication().get().as(EndUserApplication.class).getAdminApplication().getService() :
+            getApplication().get().getService();
     }
     
     /**
@@ -183,10 +183,10 @@ public abstract class AuthenticationFilter implements ContainerRequestFilter
     
     /**
      * Returns currently matched application.
-     * 
-     * @return application resource
+     *
+     * @return optional application resource
      */
-    public Application getApplication()
+    public Optional<Application> getApplication()
     {
         return app.get();
     }

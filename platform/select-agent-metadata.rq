@@ -1,0 +1,13 @@
+PREFIX foaf: <http://xmlns.com/foaf/0.1/>
+PREFIX cert: <http://www.w3.org/ns/auth/cert#>
+SELECT ?agent ?doc ?key
+WHERE {
+GRAPH ?g1 {
+    ?agent a foaf:Agent .
+    ?agent cert:key ?key .
+}
+GRAPH ?g2 {
+    ?doc foaf:primaryTopic ?agent .
+}
+}
+LIMIT 1

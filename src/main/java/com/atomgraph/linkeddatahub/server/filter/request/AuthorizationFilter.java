@@ -83,7 +83,7 @@ public class AuthorizationFilter implements ContainerRequestFilter
     );
     
     @Inject com.atomgraph.linkeddatahub.Application system;
-    @Inject jakarta.inject.Provider<com.atomgraph.linkeddatahub.apps.model.Application> app;
+    @Inject jakarta.inject.Provider<Optional<com.atomgraph.linkeddatahub.apps.model.Application>> app;
     @Inject jakarta.inject.Provider<Optional<com.atomgraph.linkeddatahub.apps.model.Dataset>> dataset;
     
     private ParameterizedSparqlString documentTypeQuery, documentOwnerQuery, aclQuery, ownerAclQuery;
@@ -120,8 +120,8 @@ public class AuthorizationFilter implements ContainerRequestFilter
             if (log.isWarnEnabled()) log.warn("Skipping authentication/authorization, request method not recognized: {}", request.getMethod());
             return;
         }
-        
-        if (getApplication().isReadAllowed())
+
+        if (getApplication().isPresent() && getApplication().get().isReadAllowed())
         {
             if (request.getMethod().equals(HttpMethod.GET) || request.getMethod().equals(HttpMethod.HEAD)) // allow read-only methods
             {
@@ -169,7 +169,7 @@ public class AuthorizationFilter implements ContainerRequestFilter
             createOwnerAuthorization(authorizations, accessTo, agent);
         }
 
-        ResultSetRewindable docTypesResult = loadResultSet(getApplication().getService(), getDocumentTypeQuery(), thisQsm);
+        ResultSetRewindable docTypesResult = loadResultSet(getApplication().get().getService(), getDocumentTypeQuery(), thisQsm);
         try
         {
             if (!docTypesResult.hasNext()) // if the document resource has no types, we assume the document does not exist
@@ -185,7 +185,7 @@ public class AuthorizationFilter implements ContainerRequestFilter
                     thisQsm.add(SPIN.THIS_VAR_NAME, accessTo);
 
                     docTypesResult.close();
-                    docTypesResult = loadResultSet(getApplication().getService(), getDocumentTypeQuery(), thisQsm);
+                    docTypesResult = loadResultSet(getApplication().get().getService(), getDocumentTypeQuery(), thisQsm);
 
                     Set<Resource> parentTypes = new HashSet<>();
                     docTypesResult.forEachRemaining(qs -> parentTypes.add(qs.getResource("Type")));
@@ -205,13 +205,13 @@ public class AuthorizationFilter implements ContainerRequestFilter
                 else return null;
             }
         
-            ParameterizedSparqlString pss = getApplication().canAs(EndUserApplication.class) ? getACLQuery() : getOwnerACLQuery();
+            ParameterizedSparqlString pss = getApplication().get().canAs(EndUserApplication.class) ? getACLQuery() : getOwnerACLQuery();
             Query query = new SetResultSetValues().apply(pss.asQuery(), docTypesResult);
             pss = new ParameterizedSparqlString(query.toString()); // make sure VALUES are now part of the query string
             assert pss.toString().contains("VALUES");
 
             // note we're not setting the $mode value on the ACL queries as we want to provide the AuthorizationContext with all of the agent's authorizations
-            authorizations.add(loadModel(getAdminService(), pss, new AuthorizationParams(getApplication().getBase(), accessTo, agent).get()));
+            authorizations.add(loadModel(getAdminService(), pss, new AuthorizationParams(getAdminBase(), accessTo, agent).get()));
             
             // access denied if the agent has no authorization to the requested document with the requested ACL mode
             if (getAuthorizationByMode(authorizations, accessMode) == null) return null;
@@ -256,7 +256,7 @@ public class AuthorizationFilter implements ContainerRequestFilter
         ParameterizedSparqlString pss = getDocumentOwnerQuery();
         pss.setParams(qsm);
 
-        ResultSetRewindable ownerResult = loadResultSet(getApplication().getService(), getDocumentOwnerQuery(), qsm); // could use ASK query in principle
+        ResultSetRewindable ownerResult = loadResultSet(getApplication().get().getService(), getDocumentOwnerQuery(), qsm); // could use ASK query in principle
         try
         {
             return ownerResult.hasNext() && agent.equals(ownerResult.next().getResource("owner"));
@@ -356,22 +356,35 @@ public class AuthorizationFilter implements ContainerRequestFilter
     
     /**
      * Returns the SPARQL service for agent data.
-     * 
+     *
      * @return service resource
      */
     protected Service getAdminService()
     {
-        return getApplication().canAs(EndUserApplication.class) ?
-            getApplication().as(EndUserApplication.class).getAdminApplication().getService() :
-            getApplication().getService();
+        return getApplication().get().canAs(EndUserApplication.class) ?
+            getApplication().get().as(EndUserApplication.class).getAdminApplication().getService() :
+            getApplication().get().getService();
+    }
+
+    /**
+     * Returns the base URI of the admin application.
+     * Authorization data is always stored in the admin application's dataspace.
+     *
+     * @return admin application's base URI
+     */
+    protected Resource getAdminBase()
+    {
+        return getApplication().get().canAs(EndUserApplication.class) ?
+            getApplication().get().as(EndUserApplication.class).getAdminApplication().getBase() :
+            getApplication().get().getBase();
     }
     
     /**
      * Returns currently matched application.
-     * 
-     * @return application resource
+     *
+     * @return optional application resource
      */
-    public com.atomgraph.linkeddatahub.apps.model.Application getApplication()
+    public Optional<com.atomgraph.linkeddatahub.apps.model.Application> getApplication()
     {
         return app.get();
     }

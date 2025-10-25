@@ -65,17 +65,19 @@ public class OntologyFilter implements ContainerRequestFilter
     
     /**
      * Retrieves (optional) ontology from the container request context.
-     * 
+     *
      * @param crc request context
      * @return optional ontology
      */
     public Optional<Ontology> getOntology(ContainerRequestContext crc)
     {
-        Application app = getApplication(crc);
-        
+        Optional<Application> appOpt = getApplication(crc);
+
+        if (!appOpt.isPresent()) return Optional.empty();
+
         try
         {
-            return Optional.ofNullable(getOntology(app));
+            return Optional.ofNullable(getOntology(appOpt.get()));
         }
         catch (OntologyException ex)
         {
@@ -115,8 +117,7 @@ public class OntologyFilter implements ContainerRequestFilter
             // only create InfModel if ontology is not already cached
             if (!ontModelSpec.getDocumentManager().getFileManager().hasCachedModel(uri))
             {
-                OntologyModelGetter modelGetter = new OntologyModelGetter(app.as(EndUserApplication.class),
-                        ontModelSpec, getSystem().getOntologyQuery(), getSystem().getNoCertClient(), getSystem().getMediaTypes());
+                OntologyModelGetter modelGetter = new OntologyModelGetter(app.as(EndUserApplication.class), ontModelSpec, getSystem().getOntologyQuery());
                 ontModelSpec.setImportModelGetter(modelGetter);
                 if (log.isDebugEnabled()) log.debug("Started loading ontology with URI '{}' from the admin dataset", uri);
                 Model baseModel = modelGetter.getModel(uri);
@@ -185,13 +186,13 @@ public class OntologyFilter implements ContainerRequestFilter
     
     /**
      * Retrieves application from the container request context.
-     * 
+     *
      * @param crc request context
-     * @return application resource
+     * @return optional application resource
      */
-    public Application getApplication(ContainerRequestContext crc)
+    public Optional<Application> getApplication(ContainerRequestContext crc)
     {
-        return ((Application)crc.getProperty(LAPP.Application.getURI()));
+        return ((Optional<Application>)crc.getProperty(LAPP.Application.getURI()));
     }
 
     /**

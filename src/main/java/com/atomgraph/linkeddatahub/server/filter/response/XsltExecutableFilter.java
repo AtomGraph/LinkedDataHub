@@ -39,6 +39,7 @@ import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.UriInfo;
 import java.net.URISyntaxException;
+import java.util.Optional;
 import javax.xml.transform.Source;
 import javax.xml.transform.stream.StreamSource;
 import net.sf.saxon.s9api.SaxonApiException;
@@ -60,8 +61,8 @@ public class XsltExecutableFilter implements ContainerResponseFilter
     private static final Logger log = LoggerFactory.getLogger(XsltExecutableFilter.class);
 
     @Inject com.atomgraph.linkeddatahub.Application system;
-    @Inject jakarta.inject.Provider<com.atomgraph.linkeddatahub.apps.model.Application> application;
-    
+    @Inject jakarta.inject.Provider<Optional<com.atomgraph.linkeddatahub.apps.model.Application>> application;
+
     @Context UriInfo uriInfo;
     
     @Override
@@ -71,7 +72,9 @@ public class XsltExecutableFilter implements ContainerResponseFilter
         if (resp.getMediaType() != null &&
             (resp.getMediaType().isCompatible(MediaType.TEXT_HTML_TYPE) || resp.getMediaType().isCompatible(MediaType.APPLICATION_XHTML_XML_TYPE)))
         {
-            URI stylesheet = getApplication().getStylesheet() != null ? URI.create(getApplication().getStylesheet().getURI()) : null;
+            URI stylesheet = null;
+            if (getApplication().isPresent() && getApplication().get().getStylesheet() != null)
+                stylesheet = URI.create(getApplication().get().getStylesheet().getURI());
 
             if (stylesheet != null) req.setProperty(AC.stylesheet.getURI(), getXsltExecutable(stylesheet));
             else req.setProperty(AC.stylesheet.getURI(), getSystem().getXsltExecutable());
@@ -282,10 +285,10 @@ public class XsltExecutableFilter implements ContainerResponseFilter
     
     /**
      * Returns current application.
-     * 
-     * @return application resource
+     *
+     * @return optional application resource
      */
-    public com.atomgraph.linkeddatahub.apps.model.Application getApplication()
+    public Optional<com.atomgraph.linkeddatahub.apps.model.Application> getApplication()
     {
         return application.get();
     }
