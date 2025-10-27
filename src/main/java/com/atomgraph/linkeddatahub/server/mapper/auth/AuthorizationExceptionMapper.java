@@ -29,6 +29,7 @@ import com.atomgraph.linkeddatahub.vocabulary.LACL;
 import com.atomgraph.server.mapper.ExceptionMapperBase;
 import com.atomgraph.server.vocabulary.HTTP;
 import java.net.URI;
+import java.util.Optional;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.EntityTag;
@@ -46,7 +47,7 @@ public class AuthorizationExceptionMapper extends ExceptionMapperBase implements
 {
     
     @Context SecurityContext securityContext;
-    @Inject jakarta.inject.Provider<com.atomgraph.linkeddatahub.apps.model.Application> application;
+    @Inject jakarta.inject.Provider<Optional<com.atomgraph.linkeddatahub.apps.model.Application>> application;
 
     /**
      * Constructs mapper from media types.
@@ -67,11 +68,11 @@ public class AuthorizationExceptionMapper extends ExceptionMapperBase implements
                 addLiteral(HTTP.absoluteURI, ex.getAbsolutePath().toString());
         
         // add link to the endpoint for access requests. TO-DO: make the URIs configurable or best - retrieve from sitemap/dataset
-        if (getSecurityContext().getUserPrincipal() != null)
+        if (getSecurityContext().getUserPrincipal() != null && getApplication().isPresent())
         {
-            if (getApplication().canAs(EndUserApplication.class))
+            if (getApplication().get().canAs(EndUserApplication.class))
             {
-                Resource adminBase = getApplication().as(EndUserApplication.class).getAdminApplication().getBase();
+                Resource adminBase = getApplication().get().as(EndUserApplication.class).getAdminApplication().getBase();
 
                 URI requestAccessURI = UriBuilder.fromUri(adminBase.getURI()).
                     path(REQUEST_ACCESS_PATH).
@@ -99,10 +100,10 @@ public class AuthorizationExceptionMapper extends ExceptionMapperBase implements
     
     /**
      * Returns associated application.
-     * 
-     * @return application resource
+     *
+     * @return optional application resource
      */
-    public Application getApplication()
+    public Optional<Application> getApplication()
     {
         return application.get();
     }

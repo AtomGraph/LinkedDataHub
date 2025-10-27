@@ -107,12 +107,7 @@ public class Access extends com.atomgraph.core.model.impl.SPARQLEndpointImpl
             @QueryParam(DEFAULT_GRAPH_URI) List<URI> defaultGraphUris, @QueryParam(NAMED_GRAPH_URI) List<URI> namedGraphUris)
     {
         final Agent agent = getAgentContext().map(AgentContext::getAgent).orElse(null);
-//        final Agent agent = ModelFactory.createDefaultModel().
-//                createResource(getUriInfo().getQueryParameters().getFirst("agent")).
-//                addProperty(RDF.type, FOAF.Agent).
-//                as(Agent.class);
-                
-        //final ParameterizedSparqlString pss = getApplication().canAs(EndUserApplication.class) ? getACLQuery() : getOwnerACLQuery();        
+   
         try
         {
             if (!getUriInfo().getQueryParameters().containsKey(SPIN.THIS_VAR_NAME)) throw new BadRequestException("?this query param is not provided");

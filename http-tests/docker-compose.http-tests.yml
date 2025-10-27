@@ -11,8 +11,10 @@ services:
     environment:
       - JPDA_ADDRESS=*:8000 # debugger host - performance hit when enabled
     volumes:
-      - ./http-tests/datasets/owner:/var/linkeddatahub/datasets/owner
-      - ./http-tests/datasets/secretary:/var/linkeddatahub/datasets/secretary
+      - ./http-tests/config/system.trig:/var/linkeddatahub/datasets/system.trig:ro
+      - ./http-tests/root-owner.trig.template:/var/linkeddatahub/root-owner.trig.template:ro
+      - ./datasets/owner:/var/linkeddatahub/datasets/owner
+      - ./datasets/secretary:/var/linkeddatahub/datasets/secretary
       - ./http-tests/uploads:/var/www/linkeddatahub/uploads
       - ./http-tests/ssl/server:/var/linkeddatahub/ssl/server
       - ./http-tests/ssl/owner:/var/linkeddatahub/ssl/owner

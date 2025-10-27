@@ -493,11 +493,11 @@ WHERE
                 <xsl:result-document href="#breadcrumb-nav" method="ixsl:replace-content">
                     <!-- show label if the resource is external -->
                     <xsl:if test="not(starts-with($uri, $ldt:base))">
-                        <xsl:variable name="app" select="ldh:match-app($uri, ixsl:get(ixsl:window(), 'LinkedDataHub.apps'))" as="element()?"/>
+                        <xsl:variable name="app" select="ixsl:get(ixsl:window(), 'LinkedDataHub.apps')//rdf:Description[ldh:origin/@rdf:resource = ldh:origin(ldt:base())]" as="element()?"/>
                         <xsl:choose>
                             <!-- if a known app matches $uri, show link to its ldt:base -->
                             <xsl:when test="$app">
-                                <a href="{$app/ldt:base/@rdf:resource}" class="label label-info pull-left">
+                                <a href="{$app/ldh:origin/@rdf:resource}" class="label label-info pull-left">
                                     <xsl:apply-templates select="$app" mode="ac:label"/>
                                 </a>
                             </xsl:when>

@@ -17,8 +17,8 @@
 
 : a owl:Ontology ;
     owl:imports ldh:, ldt:, sp:, spin: ;
-    rdfs:label "AtomGraph Application ontology" ;
-    rdfs:comment "Ontology of AtomGraph applications" ;
+    rdfs:label "LinkedDataHub application ontology" ;
+    rdfs:comment "Ontology of LinkedDataHub applications" ;
     owl:versionInfo "1.1.4" .
 
 # PROPERTIES
