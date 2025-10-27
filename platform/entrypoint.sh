@@ -716,9 +716,6 @@ for app in "${apps[@]}"; do
 
         # Load full owner/secretary metadata (agent + key) only for root app
         if [ "$end_user_origin" = "$ORIGIN" ]; then
-            cat /var/linkeddatahub/based-datasets/root-owner.nq
-            cat /var/linkeddatahub/based-datasets/root-secretary.nq
-
             printf "\n### Uploading the metadata of the owner agent...\n\n"
             append_quads "$admin_quad_store_url" "$admin_service_auth_user" "$admin_service_auth_pwd" /var/linkeddatahub/based-datasets/root-owner.nq "application/n-quads"
 
@@ -738,8 +735,6 @@ for app in "${apps[@]}"; do
         export OWNER_URI OWNER_DOC_URI OWNER_KEY_DOC_URI OWNER_AUTH_DOC_URI OWNER_AUTH_URI
         envsubst < root-owner-authorization.trig.template > "$owner_auth_dataset_path"
 
-        cat "$owner_auth_dataset_path"
-
         trig --base="${admin_origin}/" --output=nq "$owner_auth_dataset_path" > "/var/linkeddatahub/based-datasets/${app_folder}/owner-authorization.nq"
 
         printf "\n### Uploading owner authorizations for this app...\n\n"
@@ -754,8 +749,6 @@ for app in "${apps[@]}"; do
 
         export SECRETARY_URI SECRETARY_DOC_URI SECRETARY_KEY_DOC_URI SECRETARY_AUTH_DOC_URI SECRETARY_AUTH_URI
         envsubst < root-secretary-authorization.trig.template > "$secretary_auth_dataset_path"
-
-        cat "$secretary_auth_dataset_path"
 
         trig --base="${admin_origin}/" --output=nq "$secretary_auth_dataset_path" > "/var/linkeddatahub/based-datasets/${app_folder}/secretary-authorization.nq"
 
