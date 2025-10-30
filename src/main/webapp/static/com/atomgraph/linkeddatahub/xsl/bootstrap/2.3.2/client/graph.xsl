@@ -17,6 +17,7 @@ xmlns:xs="http://www.w3.org/2001/XMLSchema"
 xmlns:map="http://www.w3.org/2005/xpath-functions/map"
 xmlns:json="http://www.w3.org/2005/xpath-functions"
 xmlns:array="http://www.w3.org/2005/xpath-functions/array"
+xmlns:math="http://www.w3.org/2005/xpath-functions/math"
 xmlns:ac="&ac;"
 xmlns:ldh="&ldh;"
 xmlns:rdf="&rdf;"
@@ -25,7 +26,7 @@ xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
 extension-element-prefixes="ixsl"
 exclude-result-prefixes="#all"
 >
-    
+
     <xsl:key name="lines-by-start" match="svg:line" use="@data-id1"/>
     <xsl:key name="lines-by-end" match="svg:line" use="@data-id2"/>
 
@@ -147,5 +148,241 @@ exclude-result-prefixes="#all"
             <ixsl:remove-property name="selected-node" object="ixsl:get(ixsl:window(), 'LinkedDataHub.graph')"/>
         </xsl:if>
     </xsl:template>
-    
+
+    <!-- double-click to expand graph by loading resource's objects -->
+
+    <xsl:template match="svg:g[@class = 'subject']" mode="ixsl:ondblclick">
+        <xsl:variable name="resource-uri" select="@about" as="xs:string"/>
+        <xsl:variable name="svg" select="ancestor::svg:svg" as="element()"/>
+
+        <xsl:message>Double-click on graph node: <xsl:value-of select="$resource-uri"/></xsl:message>
+
+        <!-- get the RDF document from window.LinkedDataHub.contents -->
+        <xsl:variable name="doc-uri" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/>
+        <xsl:variable name="doc" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $doc-uri || '`'), 'results')" as="document-node()"/>
+        <xsl:variable name="resource" select="key('resources', $resource-uri, $doc)" as="element()?"/>
+
+        <xsl:choose>
+            <xsl:when test="$resource">
+                <xsl:message>Found resource with <xsl:value-of select="count($resource/*)"/> properties</xsl:message>
+
+                <!-- extract all object URIs from properties -->
+                <xsl:variable name="object-uris" select="$resource/*/@rdf:resource[starts-with(., 'http')]" as="xs:anyURI*"/>
+
+                <xsl:message>Found <xsl:value-of select="count($object-uris)"/> object URIs</xsl:message>
+
+                <!-- get the position of the clicked node -->
+                <xsl:variable name="transforms" select="ixsl:get(., 'transform.baseVal')"/>
+                <xsl:variable name="transform" select="ixsl:call($transforms, 'getItem', [ 0 ])"/>
+                <xsl:variable name="matrix" select="ixsl:get($transform, 'matrix')"/>
+                <xsl:variable name="source-x" select="ixsl:get($matrix, 'e')" as="xs:double"/>
+                <xsl:variable name="source-y" select="ixsl:get($matrix, 'f')" as="xs:double"/>
+
+                <!-- create new SVG nodes and lines for each object URI -->
+                <xsl:variable name="radius" select="150" as="xs:double"/>
+                <xsl:for-each select="$object-uris">
+                    <xsl:variable name="object-uri" select="string(.)" as="xs:string"/>
+                    <xsl:variable name="position" select="position()" as="xs:integer"/>
+
+                    <!-- check if node already exists by @about attribute -->
+                    <xsl:choose>
+                        <xsl:when test="ixsl:page()//svg:g[@about = $object-uri]">
+                            <xsl:message>Node already exists for: <xsl:value-of select="$object-uri"/></xsl:message>
+                        </xsl:when>
+                        <xsl:otherwise>
+                        <!-- arrange new nodes in a circle around the source node -->
+                        <xsl:variable name="angle" select="(2 * 3.14159 * $position) div count($object-uris)" as="xs:double"/>
+                        <xsl:variable name="target-x" select="$source-x + $radius * math:cos($angle)" as="xs:double"/>
+                        <xsl:variable name="target-y" select="$source-y + $radius * math:sin($angle)" as="xs:double"/>
+
+                        <!-- get the resource from the document if it exists -->
+                        <xsl:variable name="object-resource" select="key('resources', $object-uri, $doc)" as="element()?"/>
+
+                        <!-- determine fill color based on rdf:type if resource exists in document -->
+                        <xsl:variable name="random-seed" select="if ($object-resource/rdf:type/@rdf:*) then random-number-generator($object-resource/rdf:type[1]/@rdf:*)?number else ()" as="xs:double?"/>
+                        <xsl:variable name="hsl" select="if ($random-seed) then 'hsl(' || $random-seed * 360 || ', 50%, 70%)' else ()" as="xs:string?"/>
+                        <xsl:variable name="fill" select="if ($hsl) then $hsl else '#acf'" as="xs:string"/>
+
+                        <!-- use URI fragment or last path segment as label -->
+                        <xsl:variable name="label" select="if (contains($object-uri, '#')) then substring-after($object-uri, '#') else tokenize($object-uri, '/')[last()]" as="xs:string"/>
+
+                        <!-- create the connecting line first (so it appears behind the node) -->
+                        <xsl:variable name="r" select="15" as="xs:double"/> <!-- circle radius -->
+                        <xsl:variable name="x-diff" select="$target-x - $source-x" as="xs:double"/>
+                        <xsl:variable name="y-diff" select="$target-y - $source-y" as="xs:double"/>
+
+                        <!-- calculate intersection point at target circle edge -->
+                        <xsl:variable name="tan" select="$x-diff div $y-diff" as="xs:double"/>
+                        <xsl:variable name="yc" select="abs($r div math:sqrt($tan * $tan + 1))" as="xs:double"/>
+                        <xsl:variable name="xc" select="abs($r * $tan * math:sqrt(1 div ($tan * $tan + 1)))" as="xs:double"/>
+                        <xsl:variable name="x2" select="if ($source-x gt $target-x) then ($target-x + $xc) else ($target-x - $xc)" as="xs:double"/>
+                        <xsl:variable name="y2" select="if ($source-y gt $target-y) then ($target-y + $yc) else ($target-y - $yc)" as="xs:double"/>
+
+                        <xsl:for-each select="$svg">
+                            <xsl:result-document href="?." method="ixsl:append-content">
+                                <svg:line x1="{$source-x}" y1="{$source-y}" x2="{$x2}" y2="{$y2}"
+                                          stroke="gray" stroke-width="1" marker-end="url(#triangle)"
+                                          data-id1="{$resource-uri}" data-id2="{$object-uri}"/>
+                            </xsl:result-document>
+                        </xsl:for-each>
+
+                        <!-- create the new node after the line (so it appears on top) -->
+                        <xsl:for-each select="$svg">
+                            <xsl:result-document href="?." method="ixsl:append-content">
+                                <svg:g id="{generate-id(current())}-{$position}" class="subject" about="{$object-uri}" transform="translate({$target-x} {$target-y})">
+                                    <svg:circle r="15" cx="0" cy="0" fill="{$fill}" stroke="gray" stroke-width="1">
+                                        <svg:title><xsl:value-of select="$object-uri"/></svg:title>
+                                    </svg:circle>
+                                    <svg:a href="{$object-uri}">
+                                        <svg:text x="0" y="0" text-anchor="middle" font-size="6" dy="0.3em">
+                                            <xsl:value-of select="$label"/>
+                                        </svg:text>
+                                    </svg:a>
+                                </svg:g>
+                            </xsl:result-document>
+                        </xsl:for-each>
+
+                        <xsl:message>Created node for: <xsl:value-of select="$object-uri"/> at (<xsl:value-of select="$target-x"/>, <xsl:value-of select="$target-y"/>)</xsl:message>
+                        </xsl:otherwise>
+                    </xsl:choose>
+                </xsl:for-each>
+
+                <!-- recalculate viewBox once after all nodes added to avoid flicker -->
+                <xsl:variable name="all-nodes" select="$svg//svg:g[@class = 'subject']" as="element()*"/>
+                <xsl:variable name="padding" select="50" as="xs:double"/>
+
+                <xsl:message>Recalculating viewBox for <xsl:value-of select="count($all-nodes)"/> nodes</xsl:message>
+
+                <!-- collect all x positions -->
+                <xsl:variable name="all-x" as="xs:double*">
+                    <xsl:for-each select="$all-nodes">
+                        <xsl:variable name="transforms" select="ixsl:get(., 'transform.baseVal')"/>
+                        <xsl:variable name="transform" select="ixsl:call($transforms, 'getItem', [ 0 ])"/>
+                        <xsl:variable name="matrix" select="ixsl:get($transform, 'matrix')"/>
+                        <xsl:sequence select="ixsl:get($matrix, 'e')"/>
+                    </xsl:for-each>
+                </xsl:variable>
+
+                <!-- collect all y positions -->
+                <xsl:variable name="all-y" as="xs:double*">
+                    <xsl:for-each select="$all-nodes">
+                        <xsl:variable name="transforms" select="ixsl:get(., 'transform.baseVal')"/>
+                        <xsl:variable name="transform" select="ixsl:call($transforms, 'getItem', [ 0 ])"/>
+                        <xsl:variable name="matrix" select="ixsl:get($transform, 'matrix')"/>
+                        <xsl:sequence select="ixsl:get($matrix, 'f')"/>
+                    </xsl:for-each>
+                </xsl:variable>
+
+                <!-- calculate bounding box with padding -->
+                <xsl:variable name="min-x" select="min($all-x) - $padding" as="xs:double"/>
+                <xsl:variable name="min-y" select="min($all-y) - $padding" as="xs:double"/>
+                <xsl:variable name="max-x" select="max($all-x) + $padding" as="xs:double"/>
+                <xsl:variable name="max-y" select="max($all-y) + $padding" as="xs:double"/>
+                <xsl:variable name="width" select="$max-x - $min-x" as="xs:double"/>
+                <xsl:variable name="height" select="$max-y - $min-y" as="xs:double"/>
+
+                <!-- update viewBox once -->
+                <xsl:variable name="new-viewBox" select="$min-x || ' ' || $min-y || ' ' || $width || ' ' || $height" as="xs:string"/>
+                <ixsl:set-attribute name="viewBox" select="$new-viewBox" object="$svg"/>
+
+                <xsl:message>Updated viewBox to: <xsl:value-of select="$new-viewBox"/></xsl:message>
+
+                <!-- Apply force-directed layout to reposition all nodes -->
+                <xsl:variable name="all-nodes" select="ixsl:page()//svg:g[@class = 'subject']" as="element()*"/>
+                <xsl:variable name="all-lines" select="ixsl:page()//svg:line[@data-id1][@data-id2]" as="element()*"/>
+
+                <!-- Build node-adjacency map from SVG -->
+                <xsl:variable name="node-adjacency" as="map(xs:string, item()*)*">
+                    <xsl:for-each select="$all-nodes">
+                        <xsl:variable name="node-uri" select="@about" as="xs:string"/>
+                        <xsl:variable name="node-id" select="@id" as="xs:string"/>
+
+                        <!-- get current position from transform -->
+                        <xsl:variable name="transforms" select="ixsl:get(., 'transform.baseVal')"/>
+                        <xsl:variable name="transform" select="ixsl:call($transforms, 'getItem', [ 0 ])"/>
+                        <xsl:variable name="matrix" select="ixsl:get($transform, 'matrix')"/>
+                        <xsl:variable name="x" select="ixsl:get($matrix, 'e')" as="xs:double"/>
+                        <xsl:variable name="y" select="ixsl:get($matrix, 'f')" as="xs:double"/>
+
+                        <!-- find adjacent nodes via lines -->
+                        <xsl:variable name="adjacent-uris" select="($all-lines[@data-id1 = $node-uri]/@data-id2, $all-lines[@data-id2 = $node-uri]/@data-id1)" as="xs:string*"/>
+                        <xsl:variable name="adjacent-ids" select="$all-nodes[@about = $adjacent-uris]/@id" as="xs:string*"/>
+                        <xsl:variable name="non-adjacent-ids" select="$all-nodes[not(@about = $adjacent-uris)][not(@about = $node-uri)]/@id" as="xs:string*"/>
+
+                        <xsl:map>
+                            <xsl:map-entry key="'node-id'" select="$node-id"/>
+                            <xsl:map-entry key="'x'" select="$x"/>
+                            <xsl:map-entry key="'y'" select="$y"/>
+                            <xsl:map-entry key="'adjacent-ids'" select="$adjacent-ids"/>
+                            <xsl:map-entry key="'non-adjacent-ids'" select="$non-adjacent-ids"/>
+                        </xsl:map>
+                    </xsl:for-each>
+                </xsl:variable>
+
+                <!-- Build edges map from lines -->
+                <xsl:variable name="edges" as="map(xs:string, item())*">
+                    <xsl:for-each select="$all-lines">
+                        <xsl:variable name="id1-uri" select="@data-id1" as="xs:string"/>
+                        <xsl:variable name="id2-uri" select="@data-id2" as="xs:string"/>
+                        <xsl:variable name="id1" select="$all-nodes[@about = $id1-uri]/@id" as="xs:string?"/>
+                        <xsl:variable name="id2" select="$all-nodes[@about = $id2-uri]/@id" as="xs:string?"/>
+                        <xsl:if test="$id1 and $id2">
+                            <xsl:map>
+                                <xsl:map-entry key="'v-id'" select="$id1"/>
+                                <xsl:map-entry key="'u-id'" select="$id2"/>
+                            </xsl:map>
+                        </xsl:if>
+                    </xsl:for-each>
+                </xsl:variable>
+
+                <xsl:message>Built adjacency map with <xsl:value-of select="count($node-adjacency)"/> nodes and <xsl:value-of select="count($edges)"/> edges</xsl:message>
+
+                <!-- Run force-directed layout iterations -->
+                <xsl:variable name="step-count" select="30" as="xs:integer"/>
+                <xsl:variable name="spring-stiffness" select="0.01" as="xs:double"/>
+                <xsl:variable name="spring-length" select="50" as="xs:double"/>
+                <xsl:variable name="width" select="1000" as="xs:integer"/>
+                <xsl:variable name="height" select="800" as="xs:integer"/>
+                <xsl:variable name="temperature" select="$width div 10" as="xs:double"/>
+
+                <xsl:variable name="final-positions" as="map(xs:string, item()*)*">
+                    <xsl:iterate select="1 to $step-count">
+                        <xsl:param name="node-adjacency" select="$node-adjacency" as="map(xs:string, item()*)*"/>
+                        <xsl:param name="temp" select="$temperature" as="xs:double"/>
+                        <xsl:param name="step" select="1" as="xs:integer"/>
+
+                        <xsl:on-completion>
+                            <xsl:sequence select="$node-adjacency"/>
+                        </xsl:on-completion>
+
+                        <xsl:next-iteration>
+                            <xsl:with-param name="node-adjacency" select="ac:force-step($node-adjacency, $edges, $spring-stiffness, $spring-length, $width, $height, $temp)"/>
+                            <xsl:with-param name="temp" select="$temp - $temperature div ($step + 1)"/>
+                            <xsl:with-param name="step" select="$step + 1"/>
+                        </xsl:next-iteration>
+                    </xsl:iterate>
+                </xsl:variable>
+
+                <!-- Update node positions in the DOM -->
+                <xsl:for-each select="$final-positions">
+                    <xsl:variable name="node-id" select="?node-id" as="xs:string"/>
+                    <xsl:variable name="new-x" select="?x" as="xs:double"/>
+                    <xsl:variable name="new-y" select="?y" as="xs:double"/>
+                    <xsl:variable name="node" select="$all-nodes[@id = $node-id]" as="element()?"/>
+
+                    <xsl:if test="$node">
+                        <xsl:for-each select="$node">
+                            <ixsl:set-attribute name="transform" select="'translate(' || $new-x || ' ' || $new-y || ')'"/>
+                        </xsl:for-each>
+                    </xsl:if>
+                </xsl:for-each>
+
+                <xsl:message>Applied force-directed layout</xsl:message>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:message>Resource not found in document</xsl:message>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:template>
+
 </xsl:stylesheet>
