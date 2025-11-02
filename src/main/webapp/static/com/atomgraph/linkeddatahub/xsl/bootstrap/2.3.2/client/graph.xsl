@@ -186,7 +186,7 @@ exclude-result-prefixes="#all"
 
                     <!-- check if node already exists by @about attribute -->
                     <xsl:choose>
-                        <xsl:when test="ixsl:page()//svg:g[@about = $object-uri]">
+                        <xsl:when test="$svg//svg:g[@about = $object-uri]">
                             <xsl:message>Node already exists for: <xsl:value-of select="$object-uri"/></xsl:message>
                         </xsl:when>
                         <xsl:otherwise>
@@ -247,13 +247,13 @@ exclude-result-prefixes="#all"
                     </xsl:choose>
                 </xsl:for-each>
 
-                <!-- recalculate viewBox once after all nodes added to avoid flicker -->
+                <!-- Recalculate viewBox to include all nodes -->
                 <xsl:variable name="all-nodes" select="$svg//svg:g[@class = 'subject']" as="element()*"/>
                 <xsl:variable name="padding" select="50" as="xs:double"/>
 
                 <xsl:message>Recalculating viewBox for <xsl:value-of select="count($all-nodes)"/> nodes</xsl:message>
 
-                <!-- collect all x positions -->
+                <!-- collect all x positions from nodes -->
                 <xsl:variable name="all-x" as="xs:double*">
                     <xsl:for-each select="$all-nodes">
                         <xsl:variable name="transforms" select="ixsl:get(., 'transform.baseVal')"/>
@@ -263,7 +263,7 @@ exclude-result-prefixes="#all"
                     </xsl:for-each>
                 </xsl:variable>
 
-                <!-- collect all y positions -->
+                <!-- collect all y positions from nodes -->
                 <xsl:variable name="all-y" as="xs:double*">
                     <xsl:for-each select="$all-nodes">
                         <xsl:variable name="transforms" select="ixsl:get(., 'transform.baseVal')"/>
@@ -273,111 +273,28 @@ exclude-result-prefixes="#all"
                     </xsl:for-each>
                 </xsl:variable>
 
-                <!-- calculate bounding box with padding -->
-                <xsl:variable name="min-x" select="min($all-x) - $padding" as="xs:double"/>
-                <xsl:variable name="min-y" select="min($all-y) - $padding" as="xs:double"/>
-                <xsl:variable name="max-x" select="max($all-x) + $padding" as="xs:double"/>
-                <xsl:variable name="max-y" select="max($all-y) + $padding" as="xs:double"/>
+                <!-- get existing viewBox -->
+                <xsl:variable name="existing-viewBox" select="ixsl:get($svg, 'viewBox.baseVal')" as="item()?"/>
+                <xsl:variable name="existing-x" select="ixsl:get($existing-viewBox, 'x')" as="xs:double"/>
+                <xsl:variable name="existing-y" select="ixsl:get($existing-viewBox, 'y')" as="xs:double"/>
+                <xsl:variable name="existing-width" select="ixsl:get($existing-viewBox, 'width')" as="xs:double"/>
+                <xsl:variable name="existing-height" select="ixsl:get($existing-viewBox, 'height')" as="xs:double"/>
+                <xsl:variable name="existing-max-x" select="$existing-x + $existing-width" as="xs:double"/>
+                <xsl:variable name="existing-max-y" select="$existing-y + $existing-height" as="xs:double"/>
+
+                <!-- calculate bounding box with padding, expanding existing viewBox if needed -->
+                <xsl:variable name="min-x" select="min(($all-x, $existing-x)) - $padding" as="xs:double"/>
+                <xsl:variable name="min-y" select="min(($all-y, $existing-y)) - $padding" as="xs:double"/>
+                <xsl:variable name="max-x" select="max(($all-x, $existing-max-x)) + $padding" as="xs:double"/>
+                <xsl:variable name="max-y" select="max(($all-y, $existing-max-y)) + $padding" as="xs:double"/>
                 <xsl:variable name="width" select="$max-x - $min-x" as="xs:double"/>
                 <xsl:variable name="height" select="$max-y - $min-y" as="xs:double"/>
 
-                <!-- update viewBox once -->
+                <!-- update viewBox -->
                 <xsl:variable name="new-viewBox" select="$min-x || ' ' || $min-y || ' ' || $width || ' ' || $height" as="xs:string"/>
                 <ixsl:set-attribute name="viewBox" select="$new-viewBox" object="$svg"/>
 
                 <xsl:message>Updated viewBox to: <xsl:value-of select="$new-viewBox"/></xsl:message>
-
-                <!-- Apply force-directed layout to reposition all nodes -->
-                <xsl:variable name="all-nodes" select="ixsl:page()//svg:g[@class = 'subject']" as="element()*"/>
-                <xsl:variable name="all-lines" select="ixsl:page()//svg:line[@data-id1][@data-id2]" as="element()*"/>
-
-                <!-- Build node-adjacency map from SVG -->
-                <xsl:variable name="node-adjacency" as="map(xs:string, item()*)*">
-                    <xsl:for-each select="$all-nodes">
-                        <xsl:variable name="node-uri" select="@about" as="xs:string"/>
-                        <xsl:variable name="node-id" select="@id" as="xs:string"/>
-
-                        <!-- get current position from transform -->
-                        <xsl:variable name="transforms" select="ixsl:get(., 'transform.baseVal')"/>
-                        <xsl:variable name="transform" select="ixsl:call($transforms, 'getItem', [ 0 ])"/>
-                        <xsl:variable name="matrix" select="ixsl:get($transform, 'matrix')"/>
-                        <xsl:variable name="x" select="ixsl:get($matrix, 'e')" as="xs:double"/>
-                        <xsl:variable name="y" select="ixsl:get($matrix, 'f')" as="xs:double"/>
-
-                        <!-- find adjacent nodes via lines -->
-                        <xsl:variable name="adjacent-uris" select="($all-lines[@data-id1 = $node-uri]/@data-id2, $all-lines[@data-id2 = $node-uri]/@data-id1)" as="xs:string*"/>
-                        <xsl:variable name="adjacent-ids" select="$all-nodes[@about = $adjacent-uris]/@id" as="xs:string*"/>
-                        <xsl:variable name="non-adjacent-ids" select="$all-nodes[not(@about = $adjacent-uris)][not(@about = $node-uri)]/@id" as="xs:string*"/>
-
-                        <xsl:map>
-                            <xsl:map-entry key="'node-id'" select="$node-id"/>
-                            <xsl:map-entry key="'x'" select="$x"/>
-                            <xsl:map-entry key="'y'" select="$y"/>
-                            <xsl:map-entry key="'adjacent-ids'" select="$adjacent-ids"/>
-                            <xsl:map-entry key="'non-adjacent-ids'" select="$non-adjacent-ids"/>
-                        </xsl:map>
-                    </xsl:for-each>
-                </xsl:variable>
-
-                <!-- Build edges map from lines -->
-                <xsl:variable name="edges" as="map(xs:string, item())*">
-                    <xsl:for-each select="$all-lines">
-                        <xsl:variable name="id1-uri" select="@data-id1" as="xs:string"/>
-                        <xsl:variable name="id2-uri" select="@data-id2" as="xs:string"/>
-                        <xsl:variable name="id1" select="$all-nodes[@about = $id1-uri]/@id" as="xs:string?"/>
-                        <xsl:variable name="id2" select="$all-nodes[@about = $id2-uri]/@id" as="xs:string?"/>
-                        <xsl:if test="$id1 and $id2">
-                            <xsl:map>
-                                <xsl:map-entry key="'v-id'" select="$id1"/>
-                                <xsl:map-entry key="'u-id'" select="$id2"/>
-                            </xsl:map>
-                        </xsl:if>
-                    </xsl:for-each>
-                </xsl:variable>
-
-                <xsl:message>Built adjacency map with <xsl:value-of select="count($node-adjacency)"/> nodes and <xsl:value-of select="count($edges)"/> edges</xsl:message>
-
-                <!-- Run force-directed layout iterations -->
-                <xsl:variable name="step-count" select="30" as="xs:integer"/>
-                <xsl:variable name="spring-stiffness" select="0.01" as="xs:double"/>
-                <xsl:variable name="spring-length" select="50" as="xs:double"/>
-                <xsl:variable name="width" select="1000" as="xs:integer"/>
-                <xsl:variable name="height" select="800" as="xs:integer"/>
-                <xsl:variable name="temperature" select="$width div 10" as="xs:double"/>
-
-                <xsl:variable name="final-positions" as="map(xs:string, item()*)*">
-                    <xsl:iterate select="1 to $step-count">
-                        <xsl:param name="node-adjacency" select="$node-adjacency" as="map(xs:string, item()*)*"/>
-                        <xsl:param name="temp" select="$temperature" as="xs:double"/>
-                        <xsl:param name="step" select="1" as="xs:integer"/>
-
-                        <xsl:on-completion>
-                            <xsl:sequence select="$node-adjacency"/>
-                        </xsl:on-completion>
-
-                        <xsl:next-iteration>
-                            <xsl:with-param name="node-adjacency" select="ac:force-step($node-adjacency, $edges, $spring-stiffness, $spring-length, $width, $height, $temp)"/>
-                            <xsl:with-param name="temp" select="$temp - $temperature div ($step + 1)"/>
-                            <xsl:with-param name="step" select="$step + 1"/>
-                        </xsl:next-iteration>
-                    </xsl:iterate>
-                </xsl:variable>
-
-                <!-- Update node positions in the DOM -->
-                <xsl:for-each select="$final-positions">
-                    <xsl:variable name="node-id" select="?node-id" as="xs:string"/>
-                    <xsl:variable name="new-x" select="?x" as="xs:double"/>
-                    <xsl:variable name="new-y" select="?y" as="xs:double"/>
-                    <xsl:variable name="node" select="$all-nodes[@id = $node-id]" as="element()?"/>
-
-                    <xsl:if test="$node">
-                        <xsl:for-each select="$node">
-                            <ixsl:set-attribute name="transform" select="'translate(' || $new-x || ' ' || $new-y || ')'"/>
-                        </xsl:for-each>
-                    </xsl:if>
-                </xsl:for-each>
-
-                <xsl:message>Applied force-directed layout</xsl:message>
             </xsl:when>
             <xsl:otherwise>
                 <xsl:message>Resource not found in document</xsl:message>
