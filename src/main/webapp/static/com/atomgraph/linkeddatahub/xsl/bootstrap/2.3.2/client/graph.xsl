@@ -139,12 +139,19 @@ exclude-result-prefixes="#all"
         <ixsl:set-attribute name="stroke" select="'gray'" object="svg:circle"/>
 
         <!-- unhighlight end nodes -->
-        <xsl:for-each select="id(key('lines-by-start', @id, ixsl:page())/@data-id2, ixsl:page()) | id(key('lines-by-end', @id, ixsl:page())/@data-id1, ixsl:page())">
-            <ixsl:set-attribute name="stroke" select="'gray'" object="svg:circle"/>
-        </xsl:for-each>
-
+        <xsl:if test="key('lines-by-start', @id)/@data-id2">
+            <xsl:for-each select="id(key('lines-by-start', @id)/@data-id2)">
+                <ixsl:set-attribute name="stroke" select="'gray'" object="svg:circle"/>
+            </xsl:for-each>
+        </xsl:if>
+        <xsl:if test="key('lines-by-end', @id)/@data-id1">
+            <xsl:for-each select="id(key('lines-by-end', @id)/@data-id1)">
+                <ixsl:set-attribute name="stroke" select="'gray'" object="svg:circle"/>
+            </xsl:for-each>
+        </xsl:if>
+        
         <!-- unhighlight the lines going to/from this node -->
-        <xsl:for-each select="key('lines-by-start', @id, ixsl:page()) | key('lines-by-end', @id, ixsl:page())">
+        <xsl:for-each select="key('lines-by-start', @id) | key('lines-by-end', @id)">
             <ixsl:set-attribute name="stroke" select="'gray'"/>
             <ixsl:set-attribute name="marker-end" select="'url(#triangle)'"/>
         </xsl:for-each>
@@ -185,11 +192,11 @@ exclude-result-prefixes="#all"
             <xsl:sequence select="ixsl:call($transform, 'setTranslate', [ $svg-x, $svg-y ])"/>
 
             <!-- move line ends together with the target node -->
-            <xsl:for-each select="key('lines-by-start', $selected-node/@id, ixsl:page())">
+            <xsl:for-each select="key('lines-by-start', $selected-node/@id)">
                 <ixsl:set-attribute name="x1" select="string($svg-x)"/>
                 <ixsl:set-attribute name="y1" select="string($svg-y)"/>
             </xsl:for-each>
-            <xsl:for-each select="key('lines-by-end', $selected-node/@id, ixsl:page())">
+            <xsl:for-each select="key('lines-by-end', $selected-node/@id)">
                 <ixsl:set-attribute name="x2" select="string($svg-x)"/>
                 <ixsl:set-attribute name="y2" select="string($svg-y)"/>
             </xsl:for-each>
