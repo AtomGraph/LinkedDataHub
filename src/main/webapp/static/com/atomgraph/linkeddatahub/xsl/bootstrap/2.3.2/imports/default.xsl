@@ -1217,4 +1217,31 @@ exclude-result-prefixes="#all"
         </xsl:choose>
     </xsl:template>
     
+    <!-- GRAPH MODE -->
+    
+    <!-- override RDFXML2SVG template to add dashed border for expandable nodes -->
+    <xsl:template match="@rdf:about" mode="ac:SVG" xmlns="http://www.w3.org/2000/svg">
+        <xsl:param name="id" select="generate-id()" as="xs:string"/>
+        <xsl:param name="r" select="15" as="xs:double"/>
+        <xsl:param name="random-seed" select="if (../rdf:type/@rdf:*) then random-number-generator(../rdf:type[1]/@rdf:*)('number') else ()" as="xs:double?"/>
+        <xsl:param name="hsl" select="if ($random-seed) then 'hsl(' || $random-seed * 360 || ', 50%, 70%)' else ()" as="xs:string?"/>
+        <xsl:param name="fill" select="if ($hsl) then $hsl else '#acf'" as="xs:string"/>
+        <xsl:param name="stroke" select="'gray'" as="xs:string"/>
+        <xsl:param name="stroke-width" select="1" as="xs:integer"/>
+
+        <!-- Check if this node has properties with URI objects (can be expanded) -->
+        <xsl:variable name="has-uri-objects" select="exists(../*/@rdf:resource)" as="xs:boolean"/>
+
+        <g about="{.}" class="subject" id="{$id}" transform="translate(0 0)">
+            <circle cx="0" cy="0" fill="{$fill}" r="{$r}" stroke="{$stroke}" stroke-width="{$stroke-width}">
+                <xsl:if test="$has-uri-objects">
+                    <xsl:attribute name="stroke-dasharray" select="'4 2'"/>
+                </xsl:if>
+                <title><xsl:value-of select="."/></title>
+            </circle>
+
+            <xsl:apply-templates select="." mode="svg:Anchor"/>
+        </g>
+    </xsl:template>
+    
 </xsl:stylesheet>

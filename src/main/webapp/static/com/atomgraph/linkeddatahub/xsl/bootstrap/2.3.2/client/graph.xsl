@@ -30,7 +30,7 @@ exclude-result-prefixes="#all"
     <xsl:key name="lines-by-start" match="svg:line" use="@data-id1"/>
     <xsl:key name="lines-by-end" match="svg:line" use="@data-id2"/>
     <!-- cannot reuse the 'resources' key because it's checking whether resources have properties -->
-    <xsl:key name="descriptions" match="*[@rdf:about] | *[@rdf:nodeID]" use="@rdf:about | @rdf:nodeID"/>
+    <xsl:key name="descriptions" match="rdf:Description" use="@rdf:about | @rdf:nodeID"/>
 
     <xsl:variable name="highlight-color" select="'gold'" as="xs:string"/>
     <xsl:variable name="highlighted-marker-id" select="'triangle-hl'" as="xs:string"/>
@@ -79,7 +79,7 @@ exclude-result-prefixes="#all"
             <xsl:apply-templates mode="#current"/>
         </g>
     </xsl:template>
-    
+
     <xsl:template name="add-highlighted-marker">
         <xsl:param name="id" as="xs:string"/>
         
@@ -349,7 +349,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="existing-max-x" select="$existing-x + $existing-width" as="xs:double"/>
         <xsl:variable name="existing-max-y" select="$existing-y + $existing-height" as="xs:double"/>
 
-        <!-- calculate bounding box with padding, expanding existing viewBox if needed -->
+        <!-- calculate bounding box with padding based on node positions only -->
         <xsl:message>$all-x: <xsl:value-of select="$all-x"/></xsl:message>
         <xsl:message>$all-y: <xsl:value-of select="$all-y"/></xsl:message>
         <xsl:message>$existing-x: <xsl:value-of select="$existing-x"/></xsl:message>
@@ -357,16 +357,16 @@ exclude-result-prefixes="#all"
         <xsl:message>$existing-max-x: <xsl:value-of select="$existing-max-x"/></xsl:message>
         <xsl:message>$existing-max-y: <xsl:value-of select="$existing-max-y"/></xsl:message>
 
-        <xsl:variable name="min-x" select="min(($all-x, $existing-x)) - $padding" as="xs:double"/>
+        <xsl:variable name="min-x" select="min($all-x) - $padding" as="xs:double"/>
         <xsl:message>$min-x: <xsl:value-of select="$min-x"/></xsl:message>
 
-        <xsl:variable name="min-y" select="min(($all-y, $existing-y)) - $padding" as="xs:double"/>
+        <xsl:variable name="min-y" select="min($all-y) - $padding" as="xs:double"/>
         <xsl:message>$min-y: <xsl:value-of select="$min-y"/></xsl:message>
 
-        <xsl:variable name="max-x" select="max(($all-x, $existing-max-x)) + $padding" as="xs:double"/>
+        <xsl:variable name="max-x" select="max($all-x) + $padding" as="xs:double"/>
         <xsl:message>$max-x: <xsl:value-of select="$max-x"/></xsl:message>
 
-        <xsl:variable name="max-y" select="max(($all-y, $existing-max-y)) + $padding" as="xs:double"/>
+        <xsl:variable name="max-y" select="max($all-y) + $padding" as="xs:double"/>
         <xsl:message>$max-y: <xsl:value-of select="$max-y"/></xsl:message>
 
         <xsl:variable name="width" select="$max-x - $min-x" as="xs:double"/>
