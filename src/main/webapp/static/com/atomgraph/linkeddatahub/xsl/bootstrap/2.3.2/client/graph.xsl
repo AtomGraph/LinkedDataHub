@@ -117,13 +117,13 @@ exclude-result-prefixes="#all"
         </xsl:for-each>
         
         <!-- move line end node groups to the end of the document (visually, move to front) -->
-        <xsl:if test="key('lines-by-start', @id)/@data-id2)">
+        <xsl:if test="key('lines-by-start', @id)/@data-id2">
             <xsl:for-each select="id(key('lines-by-start', @id)/@data-id2)">
                 <ixsl:set-attribute name="stroke" select="$highlight-color" object="svg:circle"/>
                 <xsl:sequence select="ixsl:call($svg, 'appendChild', [ .. ])[current-date() lt xs:date('2000-01-01')]"/>
             </xsl:for-each>
         </xsl:if>
-        <xsl:if test="key('lines-by-end', @id)">
+        <xsl:if test="key('lines-by-end', @id)/@data-id1">
             <xsl:for-each select="id(key('lines-by-end', @id)/@data-id1)">
                 <ixsl:set-attribute name="stroke" select="$highlight-color" object="svg:circle"/>
                 <xsl:sequence select="ixsl:call($svg, 'appendChild', [ .. ])[current-date() lt xs:date('2000-01-01')]"/>
