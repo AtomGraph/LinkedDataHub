@@ -29,11 +29,55 @@ exclude-result-prefixes="#all"
 
     <xsl:key name="lines-by-start" match="svg:line" use="@data-id1"/>
     <xsl:key name="lines-by-end" match="svg:line" use="@data-id2"/>
+    <!-- cannot reuse the 'resources' key because it's checking whether resources have properties -->
+    <xsl:key name="descriptions" match="*[@rdf:about] | *[@rdf:nodeID]" use="@rdf:about | @rdf:nodeID"/>
 
     <xsl:variable name="highlight-color" select="'gold'" as="xs:string"/>
     <xsl:variable name="highlighted-marker-id" select="'triangle-hl'" as="xs:string"/>
 
     <!-- TEMPLATES -->
+    
+    <xsl:template match="@* | node()" mode="ldh:MergeRDF">
+        <xsl:copy>
+            <xsl:apply-templates select="@* | node()" mode="#current"/>
+        </xsl:copy>
+    </xsl:template>
+    
+    <xsl:template match="rdf:RDF" mode="ldh:MergeRDF">
+        <xsl:param name="new-rdf" as="document-node()" tunnel="yes"/>
+        
+        <xsl:copy>
+            <xsl:apply-templates select="@* | node()" mode="#current"/>
+            
+            <xsl:variable name="existing-rdf" select="root(.)" as="document-node()"/>
+            <!-- Add new descriptions that don't exist in the existing document -->
+            <xsl:for-each select="$new-rdf/rdf:RDF/*[@rdf:about]">
+                <xsl:if test="not(key('descriptions', @rdf:about, $existing-rdf))">
+                    <xsl:apply-templates select="." mode="#current"/>
+                </xsl:if>
+            </xsl:for-each>
+        </xsl:copy>
+    </xsl:template>
+    
+    <xsl:template match="rdf:Description" mode="ldh:MergeRDF">
+        <xsl:param name="new-rdf" as="document-node()" tunnel="yes"/>
+
+        <xsl:copy>
+            <xsl:apply-templates select="@* | node()" mode="#current"/>
+
+            <!-- Add new properties from $new-rdf for the same resource -->
+            <xsl:variable name="resource-uri" select="@rdf:about" as="xs:anyURI"/>
+            <xsl:apply-templates select="key('resources', $resource-uri, $new-rdf)/*" mode="#current"/>
+        </xsl:copy>
+    </xsl:template>
+        
+    <xsl:template match="*[@rdf:about] | *[@rdf:nodeID]" mode="ac:SVG" xmlns="http://www.w3.org/2000/svg">
+        <g>
+            <xsl:apply-templates select="@rdf:about | @rdf:nodeID" mode="#current"/>
+
+            <xsl:apply-templates mode="#current"/>
+        </g>
+    </xsl:template>
     
     <xsl:template name="add-highlighted-marker">
         <xsl:param name="id" as="xs:string"/>
@@ -160,146 +204,126 @@ exclude-result-prefixes="#all"
         <!-- get the RDF document from window.LinkedDataHub.contents -->
         <xsl:variable name="doc-uri" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/>
         <xsl:variable name="doc" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $doc-uri || '`'), 'results')" as="document-node()"/>
-        <xsl:variable name="resource" select="key('resources', $resource-uri, $doc)" as="element()?"/>
+        <xsl:variable name="resource" select="key('descriptions', $resource-uri, $doc)" as="element()?"/>
 
-        <xsl:choose>
-            <xsl:when test="$resource">
-                <xsl:message>Found resource with <xsl:value-of select="count($resource/*)"/> properties</xsl:message>
+        <!-- extract all object URIs from properties -->
+        <xsl:variable name="object-uris" select="distinct-values($resource/*/@rdf:resource)" as="xs:anyURI*"/>
+        <xsl:message>Found <xsl:value-of select="count($object-uris)"/> object URIs</xsl:message>
 
-                <!-- extract all object URIs from properties -->
-                <xsl:variable name="object-uris" select="$resource/*/@rdf:resource[starts-with(., 'http')]" as="xs:anyURI*"/>
+        <xsl:variable name="new-rdf" as="document-node()">
+            <xsl:choose>
+                <!-- resource properties have already been loaded -->
+                <xsl:when test="$resource/*">
+                    <xsl:message>
+                        resource properties have already been loaded
+                    </xsl:message>
+                    <xsl:document>
+                        <rdf:RDF>
+                            <xsl:for-each select="$object-uris">
+                                <rdf:Description rdf:about="{.}"/>
+                            </xsl:for-each>
+                        </rdf:RDF>
+                    </xsl:document>
+                </xsl:when>
+                <xsl:otherwise>
+                    <xsl:message>
+                        load RDF from the URI of the resource that was double-clicked
+                    </xsl:message>
+                    
+                    <!-- load RDF from the URI of the resource that was double-clicked -->
+                    <!-- TO-DO: refactor asynchronously -->
+                    <xsl:sequence select="document(ac:build-uri(ldt:base(), map{ 'uri': ac:document-uri($resource-uri), 'accept': 'application/rdf+xml' }))"/>
+                </xsl:otherwise>
+            </xsl:choose>
+        </xsl:variable>
 
-                <xsl:message>Found <xsl:value-of select="count($object-uris)"/> object URIs</xsl:message>
+        <!-- Get the existing RDF document that was used to create the current SVG -->
+        <xsl:variable name="initial-load" select="not(ixsl:contains(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $doc-uri || '`'), 'graph'))" as="xs:boolean"/>
+        <xsl:variable name="existing-rdf" select="if ($initial-load) then ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $doc-uri || '`'), 'results') else ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $doc-uri || '`'), 'graph')" as="document-node()?"/>
 
-                <!-- get the position of the clicked node -->
+        <xsl:message>
+            $initial-load: <xsl:value-of select="$initial-load"/>
+        </xsl:message>
+
+        <!-- Build expanded RDF/XML document by merging existing and new resources -->
+        <xsl:variable name="expanded-rdf" as="document-node()">
+            <xsl:document>
+                <xsl:apply-templates select="$existing-rdf" mode="ldh:MergeRDF">
+                    <xsl:with-param name="new-rdf" select="$new-rdf" tunnel="yes"/>
+                </xsl:apply-templates>
+            </xsl:document>
+        </xsl:variable>
+
+        <xsl:message>
+            $expanded-rdf: <xsl:value-of select="serialize($expanded-rdf)"/>
+        </xsl:message>
+
+        <ixsl:set-property name="graph" select="$expanded-rdf" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $doc-uri || '`')"/>
+
+        <!-- Convert merged RDF to SVG using RDFXML2SVG templates -->
+        <xsl:variable name="new-svg-doc" as="document-node()">
+            <xsl:document>
+                <xsl:apply-templates select="$expanded-rdf/rdf:RDF" mode="ac:SVG">
+                    <xsl:with-param name="step-count" select="30"/>
+                </xsl:apply-templates>
+            </xsl:document>
+        </xsl:variable>
+
+        <!-- Replace the entire SVG element using ixsl:replace-element to force re-render -->
+        <xsl:for-each select="$svg">
+            <xsl:result-document href="?." method="ixsl:replace-element">
+                <xsl:copy-of select="$new-svg-doc/svg:svg"/>
+            </xsl:result-document>
+        </xsl:for-each>
+
+        <!-- Recalculate viewBox to include all nodes - select from updated SVG in DOM -->
+        <xsl:variable name="all-nodes" select="$svg//svg:g[@class = 'subject']" as="element()*"/>
+        <xsl:variable name="padding" select="50" as="xs:double"/>
+
+        <xsl:message>Recalculating viewBox for <xsl:value-of select="count($all-nodes)"/> nodes</xsl:message>
+
+        <!-- collect all x positions from nodes -->
+        <xsl:variable name="all-x" as="xs:double*">
+            <xsl:for-each select="$all-nodes">
                 <xsl:variable name="transforms" select="ixsl:get(., 'transform.baseVal')"/>
                 <xsl:variable name="transform" select="ixsl:call($transforms, 'getItem', [ 0 ])"/>
                 <xsl:variable name="matrix" select="ixsl:get($transform, 'matrix')"/>
-                <xsl:variable name="source-x" select="ixsl:get($matrix, 'e')" as="xs:double"/>
-                <xsl:variable name="source-y" select="ixsl:get($matrix, 'f')" as="xs:double"/>
+                <xsl:sequence select="ixsl:get($matrix, 'e')"/>
+            </xsl:for-each>
+        </xsl:variable>
 
-                <!-- create new SVG nodes and lines for each object URI -->
-                <xsl:variable name="radius" select="150" as="xs:double"/>
-                <xsl:for-each select="$object-uris">
-                    <xsl:variable name="object-uri" select="string(.)" as="xs:string"/>
-                    <xsl:variable name="position" select="position()" as="xs:integer"/>
+        <!-- collect all y positions from nodes -->
+        <xsl:variable name="all-y" as="xs:double*">
+            <xsl:for-each select="$all-nodes">
+                <xsl:variable name="transforms" select="ixsl:get(., 'transform.baseVal')"/>
+                <xsl:variable name="transform" select="ixsl:call($transforms, 'getItem', [ 0 ])"/>
+                <xsl:variable name="matrix" select="ixsl:get($transform, 'matrix')"/>
+                <xsl:sequence select="ixsl:get($matrix, 'f')"/>
+            </xsl:for-each>
+        </xsl:variable>
 
-                    <!-- check if node already exists by @about attribute -->
-                    <xsl:choose>
-                        <xsl:when test="$svg//svg:g[@about = $object-uri]">
-                            <xsl:message>Node already exists for: <xsl:value-of select="$object-uri"/></xsl:message>
-                        </xsl:when>
-                        <xsl:otherwise>
-                        <!-- arrange new nodes in a circle around the source node -->
-                        <xsl:variable name="angle" select="(2 * 3.14159 * $position) div count($object-uris)" as="xs:double"/>
-                        <xsl:variable name="target-x" select="$source-x + $radius * math:cos($angle)" as="xs:double"/>
-                        <xsl:variable name="target-y" select="$source-y + $radius * math:sin($angle)" as="xs:double"/>
+        <!-- get existing viewBox -->
+        <xsl:variable name="existing-viewBox" select="ixsl:get($svg, 'viewBox.baseVal')" as="item()?"/>
+        <xsl:variable name="existing-x" select="ixsl:get($existing-viewBox, 'x')" as="xs:double"/>
+        <xsl:variable name="existing-y" select="ixsl:get($existing-viewBox, 'y')" as="xs:double"/>
+        <xsl:variable name="existing-width" select="ixsl:get($existing-viewBox, 'width')" as="xs:double"/>
+        <xsl:variable name="existing-height" select="ixsl:get($existing-viewBox, 'height')" as="xs:double"/>
+        <xsl:variable name="existing-max-x" select="$existing-x + $existing-width" as="xs:double"/>
+        <xsl:variable name="existing-max-y" select="$existing-y + $existing-height" as="xs:double"/>
 
-                        <!-- get the resource from the document if it exists -->
-                        <xsl:variable name="object-resource" select="key('resources', $object-uri, $doc)" as="element()?"/>
+        <!-- calculate bounding box with padding, expanding existing viewBox if needed -->
+        <xsl:variable name="min-x" select="min(($all-x, $existing-x)) - $padding" as="xs:double"/>
+        <xsl:variable name="min-y" select="min(($all-y, $existing-y)) - $padding" as="xs:double"/>
+        <xsl:variable name="max-x" select="max(($all-x, $existing-max-x)) + $padding" as="xs:double"/>
+        <xsl:variable name="max-y" select="max(($all-y, $existing-max-y)) + $padding" as="xs:double"/>
+        <xsl:variable name="width" select="$max-x - $min-x" as="xs:double"/>
+        <xsl:variable name="height" select="$max-y - $min-y" as="xs:double"/>
 
-                        <!-- determine fill color based on rdf:type if resource exists in document -->
-                        <xsl:variable name="random-seed" select="if ($object-resource/rdf:type/@rdf:*) then random-number-generator($object-resource/rdf:type[1]/@rdf:*)?number else ()" as="xs:double?"/>
-                        <xsl:variable name="hsl" select="if ($random-seed) then 'hsl(' || $random-seed * 360 || ', 50%, 70%)' else ()" as="xs:string?"/>
-                        <xsl:variable name="fill" select="if ($hsl) then $hsl else '#acf'" as="xs:string"/>
+        <!-- update viewBox -->
+        <xsl:variable name="new-viewBox" select="$min-x || ' ' || $min-y || ' ' || $width || ' ' || $height" as="xs:string"/>
+        <ixsl:set-attribute name="viewBox" select="$new-viewBox" object="$svg"/>
 
-                        <!-- use URI fragment or last path segment as label -->
-                        <xsl:variable name="label" select="if (contains($object-uri, '#')) then substring-after($object-uri, '#') else tokenize($object-uri, '/')[last()]" as="xs:string"/>
-
-                        <!-- create the connecting line first (so it appears behind the node) -->
-                        <xsl:variable name="r" select="15" as="xs:double"/> <!-- circle radius -->
-                        <xsl:variable name="x-diff" select="$target-x - $source-x" as="xs:double"/>
-                        <xsl:variable name="y-diff" select="$target-y - $source-y" as="xs:double"/>
-
-                        <!-- calculate intersection point at target circle edge -->
-                        <xsl:variable name="tan" select="$x-diff div $y-diff" as="xs:double"/>
-                        <xsl:variable name="yc" select="abs($r div math:sqrt($tan * $tan + 1))" as="xs:double"/>
-                        <xsl:variable name="xc" select="abs($r * $tan * math:sqrt(1 div ($tan * $tan + 1)))" as="xs:double"/>
-                        <xsl:variable name="x2" select="if ($source-x gt $target-x) then ($target-x + $xc) else ($target-x - $xc)" as="xs:double"/>
-                        <xsl:variable name="y2" select="if ($source-y gt $target-y) then ($target-y + $yc) else ($target-y - $yc)" as="xs:double"/>
-
-                        <xsl:for-each select="$svg">
-                            <xsl:result-document href="?." method="ixsl:append-content">
-                                <svg:line x1="{$source-x}" y1="{$source-y}" x2="{$x2}" y2="{$y2}"
-                                          stroke="gray" stroke-width="1" marker-end="url(#triangle)"
-                                          data-id1="{$resource-uri}" data-id2="{$object-uri}"/>
-                            </xsl:result-document>
-                        </xsl:for-each>
-
-                        <!-- create the new node after the line (so it appears on top) -->
-                        <xsl:for-each select="$svg">
-                            <xsl:result-document href="?." method="ixsl:append-content">
-                                <svg:g id="{generate-id(current())}-{$position}" class="subject" about="{$object-uri}" transform="translate({$target-x} {$target-y})">
-                                    <svg:circle r="15" cx="0" cy="0" fill="{$fill}" stroke="gray" stroke-width="1">
-                                        <svg:title><xsl:value-of select="$object-uri"/></svg:title>
-                                    </svg:circle>
-                                    <svg:a href="{$object-uri}">
-                                        <svg:text x="0" y="0" text-anchor="middle" font-size="6" dy="0.3em">
-                                            <xsl:value-of select="$label"/>
-                                        </svg:text>
-                                    </svg:a>
-                                </svg:g>
-                            </xsl:result-document>
-                        </xsl:for-each>
-
-                        <xsl:message>Created node for: <xsl:value-of select="$object-uri"/> at (<xsl:value-of select="$target-x"/>, <xsl:value-of select="$target-y"/>)</xsl:message>
-                        </xsl:otherwise>
-                    </xsl:choose>
-                </xsl:for-each>
-
-                <!-- Recalculate viewBox to include all nodes -->
-                <xsl:variable name="all-nodes" select="$svg//svg:g[@class = 'subject']" as="element()*"/>
-                <xsl:variable name="padding" select="50" as="xs:double"/>
-
-                <xsl:message>Recalculating viewBox for <xsl:value-of select="count($all-nodes)"/> nodes</xsl:message>
-
-                <!-- collect all x positions from nodes -->
-                <xsl:variable name="all-x" as="xs:double*">
-                    <xsl:for-each select="$all-nodes">
-                        <xsl:variable name="transforms" select="ixsl:get(., 'transform.baseVal')"/>
-                        <xsl:variable name="transform" select="ixsl:call($transforms, 'getItem', [ 0 ])"/>
-                        <xsl:variable name="matrix" select="ixsl:get($transform, 'matrix')"/>
-                        <xsl:sequence select="ixsl:get($matrix, 'e')"/>
-                    </xsl:for-each>
-                </xsl:variable>
-
-                <!-- collect all y positions from nodes -->
-                <xsl:variable name="all-y" as="xs:double*">
-                    <xsl:for-each select="$all-nodes">
-                        <xsl:variable name="transforms" select="ixsl:get(., 'transform.baseVal')"/>
-                        <xsl:variable name="transform" select="ixsl:call($transforms, 'getItem', [ 0 ])"/>
-                        <xsl:variable name="matrix" select="ixsl:get($transform, 'matrix')"/>
-                        <xsl:sequence select="ixsl:get($matrix, 'f')"/>
-                    </xsl:for-each>
-                </xsl:variable>
-
-                <!-- get existing viewBox -->
-                <xsl:variable name="existing-viewBox" select="ixsl:get($svg, 'viewBox.baseVal')" as="item()?"/>
-                <xsl:variable name="existing-x" select="ixsl:get($existing-viewBox, 'x')" as="xs:double"/>
-                <xsl:variable name="existing-y" select="ixsl:get($existing-viewBox, 'y')" as="xs:double"/>
-                <xsl:variable name="existing-width" select="ixsl:get($existing-viewBox, 'width')" as="xs:double"/>
-                <xsl:variable name="existing-height" select="ixsl:get($existing-viewBox, 'height')" as="xs:double"/>
-                <xsl:variable name="existing-max-x" select="$existing-x + $existing-width" as="xs:double"/>
-                <xsl:variable name="existing-max-y" select="$existing-y + $existing-height" as="xs:double"/>
-
-                <!-- calculate bounding box with padding, expanding existing viewBox if needed -->
-                <xsl:variable name="min-x" select="min(($all-x, $existing-x)) - $padding" as="xs:double"/>
-                <xsl:variable name="min-y" select="min(($all-y, $existing-y)) - $padding" as="xs:double"/>
-                <xsl:variable name="max-x" select="max(($all-x, $existing-max-x)) + $padding" as="xs:double"/>
-                <xsl:variable name="max-y" select="max(($all-y, $existing-max-y)) + $padding" as="xs:double"/>
-                <xsl:variable name="width" select="$max-x - $min-x" as="xs:double"/>
-                <xsl:variable name="height" select="$max-y - $min-y" as="xs:double"/>
-
-                <!-- update viewBox -->
-                <xsl:variable name="new-viewBox" select="$min-x || ' ' || $min-y || ' ' || $width || ' ' || $height" as="xs:string"/>
-                <ixsl:set-attribute name="viewBox" select="$new-viewBox" object="$svg"/>
-
-                <xsl:message>Updated viewBox to: <xsl:value-of select="$new-viewBox"/></xsl:message>
-            </xsl:when>
-            <xsl:otherwise>
-                <xsl:message>Resource not found in document</xsl:message>
-            </xsl:otherwise>
-        </xsl:choose>
+            <xsl:message>Updated viewBox to: <xsl:value-of select="$new-viewBox"/></xsl:message>
     </xsl:template>
 
 </xsl:stylesheet>
