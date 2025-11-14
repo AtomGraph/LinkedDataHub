@@ -28,9 +28,16 @@ It takes a few clicks and filling out a form to install the product into your ow
 ### Prerequisites
 
 * `bash` shell 4.x. It should be included by default on Linux. On Windows you can install the [Windows Subsystem for Linux](https://docs.microsoft.com/en-us/windows/wsl/install-win10).
-* [`openssl`](https://www.openssl.org/) available on `$PATH`
 * [Docker](https://docs.docker.com/install/) installed. At least 8GB of memory dedicated to Docker is recommended.
 * [Docker Compose](https://docs.docker.com/compose/install/) installed
+
+#### CLI scripts
+
+The following tools are required for CLI scripts in the `bin/` directory:
+
+* [`curl`](https://curl.se/)
+* [`openssl`](https://www.openssl.org/)
+* `python` 3.x
 
 ### Steps
 

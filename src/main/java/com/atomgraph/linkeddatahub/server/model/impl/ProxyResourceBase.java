@@ -179,7 +179,7 @@ public class ProxyResourceBase extends com.atomgraph.client.model.impl.ProxyReso
     
     /**
      * Gets a request invocation builder for the given target.
-     * 
+     *
      * @param target web target
      * @return invocation builder
      */
@@ -188,6 +188,21 @@ public class ProxyResourceBase extends com.atomgraph.client.model.impl.ProxyReso
     {
         return target.request(getReadableMediaTypes()).
             header(HttpHeaders.USER_AGENT, getUserAgentHeaderValue());
+    }
+
+    /**
+     * Returns response for the given client response.
+     * Handles responses without media type (e.g., 204 No Content).
+     *
+     * @param clientResponse client response
+     * @return response
+     */
+    @Override
+    public Response getResponse(Response clientResponse)
+    {
+        if (clientResponse.getMediaType() == null) return Response.status(clientResponse.getStatus()).build();
+
+        return super.getResponse(clientResponse);
     }
     
     /**
@@ -247,22 +262,22 @@ public class ProxyResourceBase extends com.atomgraph.client.model.impl.ProxyReso
     }
 
     /**
-     * Forwards PATCH request with SPARQL query body and returns response from remote resource.
+     * Forwards PATCH request with SPARQL update body and returns response from remote resource.
      *
-     * @param sparqlQuery SPARQL query string
+     * @param sparqlUpdate SPARQL update string
      * @return response
      */
     @PATCH
-    @Consumes(com.atomgraph.core.MediaType.APPLICATION_SPARQL_QUERY)
-    public Response patch(String sparqlQuery)
+    @Consumes(com.atomgraph.core.MediaType.APPLICATION_SPARQL_UPDATE)
+    public Response patch(String sparqlUpdate)
     {
         if (getWebTarget() == null) throw new NotFoundException("Resource URI not supplied");
 
-        if (log.isDebugEnabled()) log.debug("PATCHing SPARQL query to URI: {}", getWebTarget().getUri());
+        if (log.isDebugEnabled()) log.debug("PATCHing SPARQL update to URI: {}", getWebTarget().getUri());
 
         try (Response cr = getWebTarget().request()
                 .accept(getReadableMediaTypes())
-                .method("PATCH", Entity.entity(sparqlQuery, com.atomgraph.core.MediaType.APPLICATION_SPARQL_QUERY_TYPE)))
+                .method("PATCH", Entity.entity(sparqlUpdate, com.atomgraph.core.MediaType.APPLICATION_SPARQL_UPDATE_TYPE)))
         {
             return getResponse(cr);
         }
