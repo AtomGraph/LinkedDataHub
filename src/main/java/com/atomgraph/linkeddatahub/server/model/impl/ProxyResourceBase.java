@@ -262,6 +262,38 @@ public class ProxyResourceBase extends com.atomgraph.client.model.impl.ProxyReso
     }
 
     /**
+     * Forwards POST request with form data and returns response from remote resource.
+     *
+     * @param formData form data string
+     * @return response
+     */
+    @POST
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    public Response postForm(String formData)
+    {
+        if (getWebTarget() == null) throw new NotFoundException("Resource URI not supplied");
+
+        if (log.isDebugEnabled()) log.debug("POSTing form data to URI: {}", getWebTarget().getUri());
+
+        try (Response cr = getWebTarget().request()
+                .accept(getReadableMediaTypes())
+                .post(Entity.entity(formData, MediaType.APPLICATION_FORM_URLENCODED_TYPE)))
+        {
+            return getResponse(cr);
+        }
+        catch (MessageBodyProviderNotFoundException ex)
+        {
+            if (log.isWarnEnabled()) log.debug("Dereferenced URI {} returned non-RDF media type", getWebTarget().getUri());
+            throw new NotAcceptableException(ex);
+        }
+        catch (ProcessingException ex)
+        {
+            if (log.isWarnEnabled()) log.debug("Could not dereference URI: {}", getWebTarget().getUri());
+            throw new BadGatewayException(ex);
+        }
+    }
+
+    /**
      * Forwards PATCH request with SPARQL update body and returns response from remote resource.
      *
      * @param sparqlUpdate SPARQL update string

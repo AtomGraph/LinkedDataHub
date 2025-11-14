@@ -597,7 +597,9 @@ exclude-result-prefixes="#all"
 
                 <!-- clear this ontology first, then proceed to clear the namespace ontology -->
                 <xsl:variable name="admin-base-uri" select="xs:anyURI(replace(ldt:base(), '^(https?://)', '$1admin.'))" as="xs:anyURI"/>
-                <ixsl:schedule-action http-request="map{ 'method': 'POST', 'href': resolve-uri('clear', $admin-base-uri), 'media-type': 'application/x-www-form-urlencoded', 'body': $form-data, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
+                <xsl:variable name="clear-uri" select="resolve-uri('clear', $admin-base-uri)" as="xs:anyURI"/>
+                <xsl:variable name="request-uri" select="ldh:href($clear-uri)" as="xs:anyURI"/>
+                <ixsl:schedule-action http-request="map{ 'method': 'POST', 'href': $request-uri, 'media-type': 'application/x-www-form-urlencoded', 'body': $form-data, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                     <xsl:call-template name="ldh:ClearNamespace"/>
                 </ixsl:schedule-action>
             </xsl:when>
@@ -681,7 +683,9 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="ixsl:call($form-data, 'append', [ 'uri', $ontology-uri ])[current-date() lt xs:date('2000-01-01')]"/>
 
         <xsl:variable name="admin-base-uri" select="xs:anyURI(replace(ldt:base(), '^(https?://)', '$1admin.'))" as="xs:anyURI"/>
-        <ixsl:schedule-action http-request="map{ 'method': 'POST', 'href': resolve-uri('clear', $admin-base-uri), 'media-type': 'application/x-www-form-urlencoded', 'body': $form-data, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
+        <xsl:variable name="clear-uri" select="resolve-uri('clear', $admin-base-uri)" as="xs:anyURI"/>
+        <xsl:variable name="request-uri" select="ldh:href($clear-uri)" as="xs:anyURI"/>
+        <ixsl:schedule-action http-request="map{ 'method': 'POST', 'href': $request-uri, 'media-type': 'application/x-www-form-urlencoded', 'body': $form-data, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
             <!-- bogus template call required because of Saxon-JS 2.4 bug: https://saxonica.plan.io/issues/5597 -->
             <xsl:call-template name="ldh:NoOp"/>
         </ixsl:schedule-action>
