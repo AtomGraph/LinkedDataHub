@@ -90,6 +90,7 @@ extension-element-prefixes="ixsl"
     <xsl:import href="bootstrap/2.3.2/imports/rdfs.xsl"/>
     <xsl:import href="bootstrap/2.3.2/imports/sioc.xsl"/>
     <xsl:import href="bootstrap/2.3.2/imports/sp.xsl"/>
+    <xsl:import href="bootstrap/2.3.2/imports/sh.xsl"/>
     <xsl:import href="bootstrap/2.3.2/resource.xsl"/>
     <xsl:import href="bootstrap/2.3.2/document.xsl"/>
     <xsl:import href="bootstrap/2.3.2/imports/services/youtube.xsl"/>
@@ -136,6 +137,7 @@ extension-element-prefixes="ixsl"
 <![CDATA[
 PREFIX  rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX  skos: <http://www.w3.org/2004/02/skos/core#>
+PREFIX  sh:   <http://www.w3.org/ns/shacl#>
 PREFIX  foaf: <http://xmlns.com/foaf/0.1/>
 PREFIX  sioc: <http://rdfs.org/sioc/ns#>
 PREFIX  dc:   <http://purl.org/dc/elements/1.1/>
@@ -149,14 +151,14 @@ WHERE
     {
     GRAPH ?graph
       { ?resource  a  $Type .
-        ?resource ((((((((rdfs:label|dc:title)|dct:title)|foaf:name)|foaf:givenName)|foaf:familyName)|sioc:name)|skos:prefLabel)|schema1:name)|schema2:name $label
+        ?resource rdfs:label|sh:name|dc:title|dct:title|foaf:name|foaf:givenName|foaf:familyName|sioc:name|skos:prefLabel|schema1:name|schema2:name $label
         FILTER isURI(?resource)
       }
-  }
+    }
     UNION
     {
         ?resource  a  $Type .
-        ?resource ((((((((rdfs:label|dc:title)|dct:title)|foaf:name)|foaf:givenName)|foaf:familyName)|sioc:name)|skos:prefLabel)|schema1:name)|schema2:name $label
+        ?resource rdfs:label|sh:name|dc:title|dct:title|foaf:name|foaf:givenName|foaf:familyName|sioc:name|skos:prefLabel|schema1:name|schema2:name $label
         FILTER isURI(?resource)
     }  
   }
@@ -493,11 +495,11 @@ WHERE
                 <xsl:result-document href="#breadcrumb-nav" method="ixsl:replace-content">
                     <!-- show label if the resource is external -->
                     <xsl:if test="not(starts-with($uri, $ldt:base))">
-                        <xsl:variable name="app" select="ldh:match-app($uri, ixsl:get(ixsl:window(), 'LinkedDataHub.apps'))" as="element()?"/>
+                        <xsl:variable name="app" select="ixsl:get(ixsl:window(), 'LinkedDataHub.apps')//rdf:Description[ldh:origin/@rdf:resource = ldh:origin(ldt:base())]" as="element()?"/>
                         <xsl:choose>
                             <!-- if a known app matches $uri, show link to its ldt:base -->
                             <xsl:when test="$app">
-                                <a href="{$app/ldt:base/@rdf:resource}" class="label label-info pull-left">
+                                <a href="{$app/ldh:origin/@rdf:resource}" class="label label-info pull-left">
                                     <xsl:apply-templates select="$app" mode="ac:label"/>
                                 </a>
                             </xsl:when>

@@ -85,6 +85,7 @@ li button.btn-edit-constructors, li button.btn-add-data, li button.btn-add-ontol
 .btn.btn-expanded-tree { height: 24px; width: 24px; background-image: url('../icons/chevron_right_black_24dp.svg'); }
 .btn.btn-expanded-tree:hover, .btn.btn-expanded-tree:focus { background-position: 0 0; }
 .left-nav .nav, .right-nav .nav { max-height: 20em; overflow: auto; }
+.left-nav, .right-nav { position: sticky; top: 0; }
 .btn.btn-order-by { font-size: 0; color: transparent; background-image: url('../icons/arrow_downward-black-24dp.svg'); background-position: 12px center; background-repeat: no-repeat; padding: 5px 5px 5px 40px; }
 .btn.btn-order-by.btn-order-by-desc { font-size: 0; color: transparent; background-image: url('../icons/arrow_upward-black-24dp.svg'); background-position: 12px center; background-repeat: no-repeat; padding: 5px 5px 5px 40px; }
 .caret.caret-reversed { border-bottom: 4px solid #000000; border-top-width: 0; }

@@ -14,7 +14,25 @@ curl -k -w "%{http_code}\n" -o /dev/null -v \
   "$END_USER_BASE_URL" \
 | grep -q "$STATUS_FORBIDDEN"
 
-# create public authorization
+# create fake test.localhost public authorization (should be filtered out)
+
+create-authorization.sh \
+  -f "$OWNER_CERT_FILE" \
+  -p "$OWNER_CERT_PWD" \
+  -b "https://admin.test.localhost:4443/" \
+  --label "Fake public access from test.localhost" \
+  --agent-class 'http://xmlns.com/foaf/0.1/Agent' \
+  --to "$END_USER_BASE_URL" \
+  --read
+
+# public access is still forbidden (fake authorization filtered out)
+
+curl -k -w "%{http_code}\n" -o /dev/null -v \
+  -H "Accept: application/n-triples" \
+  "$END_USER_BASE_URL" \
+| grep -q "$STATUS_FORBIDDEN"
+
+# create real localhost public authorization
 
 create-authorization.sh \
   -f "$OWNER_CERT_FILE" \
@@ -25,7 +43,7 @@ create-authorization.sh \
   --to "$END_USER_BASE_URL" \
   --read
 
-# public access is allowed after authorization is created
+# public access is allowed after real authorization is created
 
 curl -k -w "%{http_code}\n" -o /dev/null -f -v \
   -H "Accept: application/n-triples" \

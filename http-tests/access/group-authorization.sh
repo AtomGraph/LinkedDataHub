@@ -19,7 +19,7 @@ ntriples=$(curl -k -s -G \
   "${ADMIN_BASE_URL}access"
 )
 
-if echo "$ntriples" | grep -q '<http://www.w3.org/ns/auth/acl#agentGroup> <https://localhost:4443/admin/acl/groups/writers/#this>'; then
+if echo "$ntriples" | grep -q "<http://www.w3.org/ns/auth/acl#agentGroup> <${ADMIN_BASE_URL}acl/groups/writers/#this>"; then
   exit 1
 fi
 
@@ -50,6 +50,6 @@ ntriples=$(curl -k -s -G \
   "${ADMIN_BASE_URL}access"
 )
 
-if ! echo "$ntriples" | grep -q '<http://www.w3.org/ns/auth/acl#agentGroup> <https://localhost:4443/admin/acl/groups/writers/#this>'; then
+if ! echo "$ntriples" | grep -q "<http://www.w3.org/ns/auth/acl#agentGroup> <${ADMIN_BASE_URL}acl/groups/writers/#this>"; then
   exit 1
 fi

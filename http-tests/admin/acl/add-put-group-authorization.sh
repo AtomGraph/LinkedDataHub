@@ -38,7 +38,33 @@ group=$(curl -s -k \
   | cat \
   | sed -rn "s/<${group_doc//\//\\/}> <http:\/\/xmlns.com\/foaf\/0.1\/primaryTopic> <(.*)> \./\1/p")
 
-# create authorization
+# create fake test.localhost authorization (should be filtered out)
+
+create-authorization.sh \
+  -f "$OWNER_CERT_FILE" \
+  -p "$OWNER_CERT_PWD" \
+  -b "https://admin.test.localhost:4443/" \
+  --label "Fake PUT group authorization from test.localhost" \
+  --agent-group "$group" \
+  --to "$END_USER_BASE_URL" \
+  --write
+
+# access is still denied (fake authorization filtered out)
+
+(
+curl -k -w "%{http_code}\n" -o /dev/null -s \
+  -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
+  -H "Content-Type: application/n-triples" \
+  -H "Accept: application/n-triples" \
+  -X PUT \
+   --data-binary @- \
+  "$END_USER_BASE_URL" <<EOF
+<http://s> <http://p> <http://o> .
+EOF
+) \
+| grep -q "$STATUS_FORBIDDEN"
+
+# create real localhost authorization
 
 create-authorization.sh \
   -f "$OWNER_CERT_FILE" \
@@ -57,7 +83,7 @@ root_ntriples=$(get.sh \
   --accept 'application/n-triples' \
   "$END_USER_BASE_URL")
 
-# access is allowed after authorization is created
+# access is allowed after real authorization is created
 # request body with document instance is required
 
 echo "$root_ntriples" \

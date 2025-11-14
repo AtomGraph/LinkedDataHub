@@ -101,6 +101,9 @@ public class LDH
     /** Service property */
     public static final ObjectProperty service = m_model.createObjectProperty( NS + "service" );
 
+    /** Origin property for subdomain-based application matching */
+    public static final ObjectProperty origin = m_model.createObjectProperty( NS + "origin" );
+
     /**
      * For shape property */
     public static final ObjectProperty forShape = m_model.createObjectProperty( NS + "forShape" );

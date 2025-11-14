@@ -39,6 +39,7 @@ import jakarta.ws.rs.NotAllowedException;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.NotAcceptableException;
 import jakarta.ws.rs.NotFoundException;
+import jakarta.ws.rs.PATCH;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.ProcessingException;
@@ -178,7 +179,7 @@ public class ProxyResourceBase extends com.atomgraph.client.model.impl.ProxyReso
     
     /**
      * Gets a request invocation builder for the given target.
-     * 
+     *
      * @param target web target
      * @return invocation builder
      */
@@ -187,6 +188,21 @@ public class ProxyResourceBase extends com.atomgraph.client.model.impl.ProxyReso
     {
         return target.request(getReadableMediaTypes()).
             header(HttpHeaders.USER_AGENT, getUserAgentHeaderValue());
+    }
+
+    /**
+     * Returns response for the given client response.
+     * Handles responses without media type (e.g., 204 No Content).
+     *
+     * @param clientResponse client response
+     * @return response
+     */
+    @Override
+    public Response getResponse(Response clientResponse)
+    {
+        if (clientResponse.getMediaType() == null) return Response.status(clientResponse.getStatus()).build();
+
+        return super.getResponse(clientResponse);
     }
     
     /**
@@ -215,7 +231,7 @@ public class ProxyResourceBase extends com.atomgraph.client.model.impl.ProxyReso
     
     /**
      * Forwards POST request with SPARQL query body and returns response from remote resource.
-     * 
+     *
      * @param sparqlQuery SPARQL query string
      * @return response
      */
@@ -224,9 +240,9 @@ public class ProxyResourceBase extends com.atomgraph.client.model.impl.ProxyReso
     public Response post(String sparqlQuery)
     {
         if (getWebTarget() == null) throw new NotFoundException("Resource URI not supplied");
-        
+
         if (log.isDebugEnabled()) log.debug("POSTing SPARQL query to URI: {}", getWebTarget().getUri());
-        
+
         try (Response cr = getWebTarget().request()
                 .accept(getReadableMediaTypes())
                 .post(Entity.entity(sparqlQuery, com.atomgraph.core.MediaType.APPLICATION_SPARQL_QUERY_TYPE)))
@@ -244,7 +260,71 @@ public class ProxyResourceBase extends com.atomgraph.client.model.impl.ProxyReso
             throw new BadGatewayException(ex);
         }
     }
-    
+
+    /**
+     * Forwards POST request with form data and returns response from remote resource.
+     *
+     * @param formData form data string
+     * @return response
+     */
+    @POST
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    public Response postForm(String formData)
+    {
+        if (getWebTarget() == null) throw new NotFoundException("Resource URI not supplied");
+
+        if (log.isDebugEnabled()) log.debug("POSTing form data to URI: {}", getWebTarget().getUri());
+
+        try (Response cr = getWebTarget().request()
+                .accept(getReadableMediaTypes())
+                .post(Entity.entity(formData, MediaType.APPLICATION_FORM_URLENCODED_TYPE)))
+        {
+            return getResponse(cr);
+        }
+        catch (MessageBodyProviderNotFoundException ex)
+        {
+            if (log.isWarnEnabled()) log.debug("Dereferenced URI {} returned non-RDF media type", getWebTarget().getUri());
+            throw new NotAcceptableException(ex);
+        }
+        catch (ProcessingException ex)
+        {
+            if (log.isWarnEnabled()) log.debug("Could not dereference URI: {}", getWebTarget().getUri());
+            throw new BadGatewayException(ex);
+        }
+    }
+
+    /**
+     * Forwards PATCH request with SPARQL update body and returns response from remote resource.
+     *
+     * @param sparqlUpdate SPARQL update string
+     * @return response
+     */
+    @PATCH
+    @Consumes(com.atomgraph.core.MediaType.APPLICATION_SPARQL_UPDATE)
+    public Response patch(String sparqlUpdate)
+    {
+        if (getWebTarget() == null) throw new NotFoundException("Resource URI not supplied");
+
+        if (log.isDebugEnabled()) log.debug("PATCHing SPARQL update to URI: {}", getWebTarget().getUri());
+
+        try (Response cr = getWebTarget().request()
+                .accept(getReadableMediaTypes())
+                .method("PATCH", Entity.entity(sparqlUpdate, com.atomgraph.core.MediaType.APPLICATION_SPARQL_UPDATE_TYPE)))
+        {
+            return getResponse(cr);
+        }
+        catch (MessageBodyProviderNotFoundException ex)
+        {
+            if (log.isWarnEnabled()) log.debug("Dereferenced URI {} returned non-RDF media type", getWebTarget().getUri());
+            throw new NotAcceptableException(ex);
+        }
+        catch (ProcessingException ex)
+        {
+            if (log.isWarnEnabled()) log.debug("Could not dereference URI: {}", getWebTarget().getUri());
+            throw new BadGatewayException(ex);
+        }
+    }
+
     /**
      * Forwards a multipart <code>POST</code> request returns RDF response from remote resource.
      * 
