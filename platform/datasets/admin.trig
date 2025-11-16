@@ -618,6 +618,24 @@ WHERE
 
 # AUTHORIZATIONS
 
+# public
+
+<acl/authorizations/public/>
+{
+
+    <acl/authorizations/public/> a dh:Item ;
+        sioc:has_container <acl/authorizations/> ;
+        dct:title "Public access" ;
+        foaf:primaryTopic <acl/authorizations/public/#this> .
+
+    <acl/authorizations/public/#this> a acl:Authorization ;
+        rdfs:label "Public access" ;
+        rdfs:comment "Allows non-authenticated access" ;
+        acl:mode acl:Read ;
+        acl:agentClass foaf:Agent, acl:AuthenticatedAgent .
+
+}
+
 # access endpoint
 
 <acl/authorizations/access/>
