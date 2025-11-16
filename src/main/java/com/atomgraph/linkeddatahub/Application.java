@@ -194,6 +194,7 @@ import jakarta.ws.rs.client.Client;
 import jakarta.ws.rs.client.ClientBuilder;
 import jakarta.ws.rs.client.ClientRequestFilter;
 import java.util.concurrent.ConcurrentHashMap;
+import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.stream.StreamSource;
 import net.jodah.expiringmap.ExpiringMap;
@@ -240,6 +241,7 @@ import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.glassfish.jersey.process.internal.RequestScoped;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.server.filter.HttpMethodOverrideFilter;
+import org.xml.sax.SAXException;
 
 /**
  * JAX-RS application subclass.
@@ -593,6 +595,19 @@ public class Application extends ResourceConfig
             }
         }
         else notificationAddress = null;
+
+        try
+        {
+            javax.xml.parsers.SAXParserFactory factory = javax.xml.parsers.SAXParserFactory.newInstance();
+            javax.xml.parsers.SAXParser parser = factory.newSAXParser();
+            org.xml.sax.XMLReader reader = parser.getXMLReader();
+            if (log.isDebugEnabled()) log.debug("SAXParserFactory class: {}", factory.getClass().getName());
+            if (log.isDebugEnabled()) log.debug("XMLReader class: {}", reader.getClass().getName());
+        }
+        catch (ParserConfigurationException | SAXException e)
+        {
+            if (log.isErrorEnabled()) log.error("Failed to get XML parser info", e);
+        }
 
         // add RDF/POST reader
         RDFLanguages.register(RDFLanguages.RDFPOST);
