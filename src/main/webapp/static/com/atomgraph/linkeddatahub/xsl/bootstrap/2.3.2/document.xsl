@@ -662,12 +662,16 @@ extension-element-prefixes="ixsl"
                         <xsl:when test="$property/sh:nodeKind/@rdf:resource = ('&sh;BlankNode', '&sh;IRI', '&sh;BlankNodeOrIRI')">
                             <rdf:type rdf:resource="&rdfs;Resource"/>
                         </xsl:when>
-<!--                            <xsl:when test="$property/sh:nodeKind/@rdf:resource = '&sh;Literal'">
-                            <rdf:type rdf:resource="&rdfs;Literal"/>
-                        </xsl:when>-->
                         <xsl:when test="$property/sh:datatype/@rdf:resource">
                             <rdf:type rdf:resource="{$property/sh:datatype/@rdf:resource}"/>
                         </xsl:when>
+                        <xsl:when test="$property/sh:nodeKind/@rdf:resource = '&sh;Literal'">
+                            <rdf:type rdf:resource="&rdfs;Literal"/>
+                        </xsl:when>
+                        <xsl:otherwise>
+                            <xsl:message>Warning: PropertyShape <xsl:value-of select="(@rdf:about, @rdf:nodeID)[1]"/> for path <xsl:value-of select="sh:path/@rdf:resource"/> has no sh:class, sh:nodeKind, or sh:datatype specified. Defaulting to rdfs:Resource.</xsl:message>
+                            <rdf:type rdf:resource="&rdfs;Resource"/>
+                        </xsl:otherwise>
                     </xsl:choose>
                 </rdf:Description>
             </xsl:element>
