@@ -23,6 +23,7 @@ import com.atomgraph.linkeddatahub.server.mapper.auth.webid.WebIDLoadingExceptio
 import com.atomgraph.linkeddatahub.server.mapper.auth.webid.InvalidWebIDURIExceptionMapper;
 import com.atomgraph.linkeddatahub.server.mapper.auth.AuthorizationExceptionMapper;
 import com.atomgraph.linkeddatahub.server.mapper.auth.AuthenticationExceptionMapper;
+import com.atomgraph.linkeddatahub.server.mapper.ForbiddenExceptionMapper;
 import com.atomgraph.linkeddatahub.server.mapper.auth.webid.WebIDCertificateExceptionMapper;
 import com.atomgraph.client.MediaTypes;
 import com.atomgraph.client.locator.PrefixMapper;
@@ -1051,6 +1052,7 @@ public class Application extends ResourceConfig
         register(ResourceExistsExceptionMapper.class);
         register(QueryParseExceptionMapper.class);
         register(AuthenticationExceptionMapper.class);
+        register(ForbiddenExceptionMapper.class);
         register(AuthorizationExceptionMapper.class);
         register(MessagingExceptionMapper.class);
     }
