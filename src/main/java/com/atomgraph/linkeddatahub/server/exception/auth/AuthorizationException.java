@@ -17,6 +17,7 @@
 package com.atomgraph.linkeddatahub.server.exception.auth;
 
 import com.atomgraph.linkeddatahub.model.auth.Agent;
+import jakarta.ws.rs.ForbiddenException;
 import org.apache.jena.rdf.model.Resource;
 import java.net.URI;
 
@@ -26,7 +27,7 @@ import java.net.URI;
  * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-public class AuthorizationException extends RuntimeException
+public class AuthorizationException extends ForbiddenException
 {
     
     /** URL of the current request (without the query string) */
