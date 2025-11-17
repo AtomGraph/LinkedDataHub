@@ -515,8 +515,9 @@ public class ProxyResourceBase extends com.atomgraph.client.model.impl.ProxyReso
         {
             InetAddress address = InetAddress.getByName(host);
 
-            if (address.isLoopbackAddress())
-                throw new ForbiddenException("Access to loopback addresses is not allowed: " + address.getHostAddress());
+            // Note: We don't block loopback addresses (127.0.0.1, localhost) because the application
+            // legitimately proxies its own endpoints (e.g., /clear, admin operations)
+
             if (address.isLinkLocalAddress())
                 throw new ForbiddenException("Access to link-local addresses is not allowed: " + address.getHostAddress());
             if (address.isSiteLocalAddress())

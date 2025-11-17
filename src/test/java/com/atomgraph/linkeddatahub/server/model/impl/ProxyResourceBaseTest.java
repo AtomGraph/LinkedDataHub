@@ -37,30 +37,6 @@ public class ProxyResourceBaseTest
     }
 
     @Test(expected = ForbiddenException.class)
-    public void testLocalhostBlocked()
-    {
-        ProxyResourceBase.validateNotInternalURL(URI.create("http://localhost:8080/test"));
-    }
-
-    @Test(expected = ForbiddenException.class)
-    public void testLoopbackIPv4Blocked()
-    {
-        ProxyResourceBase.validateNotInternalURL(URI.create("http://127.0.0.1:8080/test"));
-    }
-
-    @Test(expected = ForbiddenException.class)
-    public void testLoopbackIPv4AlternativeBlocked()
-    {
-        ProxyResourceBase.validateNotInternalURL(URI.create("http://127.1.2.3:8080/test"));
-    }
-
-    @Test(expected = ForbiddenException.class)
-    public void testLoopbackIPv6Blocked()
-    {
-        ProxyResourceBase.validateNotInternalURL(URI.create("http://[::1]:8080/test"));
-    }
-
-    @Test(expected = ForbiddenException.class)
     public void testLinkLocalIPv4Blocked()
     {
         ProxyResourceBase.validateNotInternalURL(URI.create("http://169.254.1.1:8080/test"));
