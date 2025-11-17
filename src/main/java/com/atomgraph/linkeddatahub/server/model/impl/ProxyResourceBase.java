@@ -500,9 +500,10 @@ public class ProxyResourceBase extends com.atomgraph.client.model.impl.ProxyReso
      * - Link-local addresses (169.254.0.0/16, fe80::/10)
      *
      * @param uri the URI to validate
+     * @throws IllegalArgumentException if the URI or host is null
      * @throws ForbiddenException if the URI resolves to an internal IP address
      */
-    private final void validateNotInternalURL(URI uri)
+    protected static void validateNotInternalURL(URI uri)
     {
         if (uri == null) throw new IllegalArgumentException("URI cannot be null");
 
