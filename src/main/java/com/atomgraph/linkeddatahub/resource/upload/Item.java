@@ -169,7 +169,8 @@ public class Item extends com.atomgraph.linkeddatahub.resource.Graph
                         lastModified(getLastModified(file)).
                         header(HttpHeaders.CONTENT_LENGTH, rangeOutput.getLength()). // should override Transfer-Encoding: chunked
                         header(ACCEPT_RANGES, BYTES_RANGE).
-                        header(CONTENT_RANGE, contentRangeValue);
+                        header(CONTENT_RANGE, contentRangeValue).
+                        header("Content-Security-Policy", "default-src 'none'; sandbox"); // LNK-011 fix: prevent XSS in uploaded HTML files
                 }
             }
 
@@ -178,7 +179,8 @@ public class Item extends com.atomgraph.linkeddatahub.resource.Graph
                 type(variant.getMediaType()).
                 lastModified(getLastModified(file)).
                 header(HttpHeaders.CONTENT_LENGTH, file.length()). // should override Transfer-Encoding: chunked
-                header(ACCEPT_RANGES, BYTES_RANGE);
+                header(ACCEPT_RANGES, BYTES_RANGE).
+                header("Content-Security-Policy", "default-src 'none'; sandbox"); // LNK-011 fix: prevent XSS in uploaded HTML files
             //header("Content-Disposition", "attachment; filename=\"" + getRequiredProperty(NFO.fileName).getString() + "\"").
         }
         
