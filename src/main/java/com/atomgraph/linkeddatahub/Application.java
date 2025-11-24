@@ -680,8 +680,8 @@ public class Application extends ResourceConfig
             
             if (proxyHostname != null)
             {
-                ClientRequestFilter rewriteFilter = new ClientUriRewriteFilter(proxyScheme, proxyHostname, proxyPort); // proxyPort can be null
-                
+                ClientRequestFilter rewriteFilter = new ClientUriRewriteFilter(baseURI.getHost(), proxyScheme, proxyHostname, proxyPort); // proxyPort can be null
+
                 client.register(rewriteFilter);
                 externalClient.register(rewriteFilter);
                 importClient.register(rewriteFilter);
