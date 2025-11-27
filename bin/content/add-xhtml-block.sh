@@ -15,7 +15,7 @@ print_usage()
     printf "\n"
     printf "  --title TITLE                        Title\n"
     printf "  --description DESCRIPTION            Description(optional)\n"
-    printf "  --fragment STRING                    String that will be used as URI fragment identifier (optional)\n"
+    printf "  --uri URI                            URI of the XHTML block (optional)\n"
     printf "\n"
     printf "  --value XHTML                        XHTML as canonical XML\n"
 }
@@ -56,8 +56,8 @@ do
         shift # past argument
         shift # past value
         ;;
-        --fragment)
-        fragment="$2"
+        --uri)
+        uri="$2"
         shift # past argument
         shift # past value
         ;;
@@ -114,9 +114,8 @@ args+=("text/turtle") # content type
 args+=("--proxy")
 args+=("$proxy") # tunnel the proxy param
 
-if [ -n "$fragment" ] ; then
-    # relative URI that will be resolved against the request URI
-    subject="<#${fragment}>"
+if [ -n "$uri" ] ; then
+    subject="<${uri}>"
 else
     subject="_:subject"
 fi
@@ -136,4 +135,4 @@ if [ -n "$description" ] ; then
 fi
 
 # submit Turtle doc to the server
-echo -e "$turtle" | post.sh "${args[@]}"
+echo -e "$turtle" | turtle --base="$target" | post.sh "${args[@]}"

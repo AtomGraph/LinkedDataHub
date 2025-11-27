@@ -98,4 +98,4 @@ turtle+="_:arg <http://www.w3.org/ns/sparql-service-description#name> <${graph}>
 turtle+="_:arg <http://spinrdf.org/spin#query> <${base}queries/construct-constructors/#this> .\n"
 
 # submit Turtle doc to the server
-echo -e "$turtle" | turtle --base="$base" | curl -s -k -E "$cert_pem_file":"$cert_password" -d @- -H "Content-Type: $content_type" -H "Accept: text/turtle" "$target" -s -D -
+echo -e "$turtle" | turtle --base="$target" | curl -s -k -E "$cert_pem_file":"$cert_password" -d @- -H "Content-Type: $content_type" -H "Accept: text/turtle" "$target" -s -D -

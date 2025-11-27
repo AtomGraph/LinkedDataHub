@@ -83,6 +83,8 @@ do
 done
 set -- "${args[@]}" # restore args
 
+target="$1"
+
 if [ -z "$cert_pem_file" ] ; then
     print_usage
     exit 1
@@ -139,4 +141,4 @@ if [ -n "$has_value" ] ; then
 fi
 
 # submit Turtle doc to the server
-echo -e "$turtle" | turtle --base="$base" | post.sh "${args[@]}"
+echo -e "$turtle" | turtle --base="$target" | post.sh "${args[@]}"

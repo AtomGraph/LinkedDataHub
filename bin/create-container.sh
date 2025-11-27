@@ -145,4 +145,4 @@ if [ -n "$description" ] ; then
     turtle+="<${target}> dct:description \"${description}\" .\n"
 fi
 
-echo -e "$turtle" | turtle --base="$base" | put.sh "${args[@]}"
+echo -e "$turtle" | turtle --base="$target" | put.sh "${args[@]}"

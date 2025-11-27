@@ -17,6 +17,7 @@ print_usage()
     printf "  --description DESCRIPTION            Description of the service (optional)\n"
     printf "  --slug SLUG                          String that will be used as URI path segment (optional)\n"
     printf "\n"
+    printf "  --uri URI                            URI of the service (optional)\n"
     printf "  --endpoint ENDPOINT_URI              Endpoint URI\n"
     printf "  --graph-store GRAPH_STORE_URI        Graph Store URI (optional)\n"
     printf "  --auth-user AUTH_USER                Authorization username (optional)\n"
@@ -54,8 +55,8 @@ do
         shift # past argument
         shift # past value
         ;;
-        --fragment)
-        fragment="$2"
+        --uri)
+        uri="$2"
         shift # past argument
         shift # past value
         ;;
@@ -86,6 +87,8 @@ do
 done
 set -- "${args[@]}" # restore args
 
+target="$1"
+
 if [ -z "$cert_pem_file" ] ; then
     print_usage
     exit 1
@@ -114,9 +117,8 @@ args+=("$cert_password")
 args+=("-t")
 args+=("text/turtle") # content type
 
-if [ -n "$fragment" ] ; then
-    # relative URI that will be resolved against the request URI
-    subject="<#${fragment}>"
+if [ -n "$uri" ] ; then
+    subject="<${uri}>"
 else
     subject="_:subject"
 fi
@@ -147,4 +149,4 @@ if [ -n "$description" ] ; then
 fi
 
 # submit Turtle doc to the server
-echo -e "$turtle" | post.sh "${args[@]}"
+echo -e "$turtle" | turtle --base="$target" | post.sh "${args[@]}"
