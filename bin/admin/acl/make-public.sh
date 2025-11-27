@@ -67,9 +67,10 @@ admin_base=$(admin_uri "$base")
 target="${admin_base}acl/authorizations/public/"
 
 if [ -n "$proxy" ]; then
-    # rewrite target hostname to proxy hostname
+    # rewrite target hostname to proxy hostname (also convert proxy to admin subdomain)
+    admin_proxy=$(admin_uri "$proxy")
     target_host=$(echo "$target" | cut -d '/' -f 1,2,3)
-    proxy_host=$(echo "$proxy" | cut -d '/' -f 1,2,3)
+    proxy_host=$(echo "$admin_proxy" | cut -d '/' -f 1,2,3)
     target="${target/$target_host/$proxy_host}"
 fi
 
