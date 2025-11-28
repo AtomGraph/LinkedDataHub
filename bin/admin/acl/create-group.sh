@@ -49,6 +49,11 @@ do
         shift # past argument
         shift # past value
         ;;
+        --proxy)
+        proxy="$2"
+        shift # past argument
+        shift # past value
+        ;;
         --name)
         name="$2"
         shift # past argument
@@ -126,6 +131,10 @@ args+=("$cert_password")
 args+=("-t")
 args+=("text/turtle") # content type
 args+=("$target")
+if [ -n "$proxy" ]; then
+    args+=("--proxy")
+    args+=("$proxy")
+fi
 
 turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy#> .\n"
 turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"

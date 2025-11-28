@@ -42,6 +42,11 @@ do
         shift # past argument
         shift # past value
         ;;
+        --proxy)
+        proxy="$2"
+        shift # past argument
+        shift # past value
+        ;;
         --title)
         title="$2"
         shift # past argument
@@ -106,6 +111,10 @@ args+=("-p")
 args+=("$cert_password")
 args+=("-t")
 args+=("text/turtle") # content type
+if [ -n "$proxy" ]; then
+    args+=("--proxy")
+    args+=("$proxy")
+fi
 
 if [ -n "$uri" ] ; then
     subject="<${uri}>"

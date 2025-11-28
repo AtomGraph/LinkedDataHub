@@ -48,6 +48,11 @@ do
         shift # past argument
         shift # past value
         ;;
+        --proxy)
+        proxy="$2"
+        shift # past argument
+        shift # past value
+        ;;
         --title)
         title="$2"
         shift # past argument
@@ -114,6 +119,10 @@ args+=("$cert_password")
 args+=("-t")
 args+=("text/turtle") # content type
 args+=("$target")
+if [ -n "$proxy" ]; then
+    args+=("--proxy")
+    args+=("$proxy")
+fi
 
 turtle+="@prefix ldh:	<https://w3id.org/atomgraph/linkeddatahub#> .\n"
 turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy#> .\n"

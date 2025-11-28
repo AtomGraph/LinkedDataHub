@@ -45,6 +45,11 @@ do
         shift # past argument
         shift # past value
         ;;
+        --proxy)
+        proxy="$2"
+        shift # past argument
+        shift # past value
+        ;;
         --title)
         title="$2"
         shift # past argument
@@ -71,7 +76,8 @@ do
         shift # past value
         ;;
         --auth-user)
-        auth_user=true
+        auth_user="$2"
+        shift # past argument
         shift # past value
         ;;
         --auth-pwd)
@@ -116,6 +122,10 @@ args+=("-p")
 args+=("$cert_password")
 args+=("-t")
 args+=("text/turtle") # content type
+if [ -n "$proxy" ]; then
+    args+=("--proxy")
+    args+=("$proxy")
+fi
 
 if [ -n "$uri" ] ; then
     subject="<${uri}>"
@@ -145,7 +155,7 @@ if [ -n "$auth_pwd" ] ; then
     turtle+="${subject} a:authPwd \"${auth_pwd}\" .\n"
 fi
 if [ -n "$description" ] ; then
-    turtle+="_:query dct:description \"${description}\" .\n"
+    turtle+="${subject} dct:description \"${description}\" .\n"
 fi
 
 # submit Turtle doc to the server
