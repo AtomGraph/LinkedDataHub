@@ -277,11 +277,11 @@ LinkedDataHub includes an HTTP [test suite](https://github.com/AtomGraph/LinkedD
 * [SPARQLBuilder](https://github.com/AtomGraph/sparql-builder)
 * [OpenLayers](https://openlayers.org)
 * [Google Charts](https://developers.google.com/chart)
+* [xml-c14n-sync](https://github.com/AtomGraph/xml-c14n-sync)
 
 ### Java
 
 * [Jersey](https://eclipse-ee4j.github.io/jersey/)
-* [XOM](http://www.xom.nu)
 * [JavaMail](https://javaee.github.io/javamail/)
 * [Guava](https://github.com/google/guava)
 * [java-jwt](https://github.com/auth0/java-jwt)

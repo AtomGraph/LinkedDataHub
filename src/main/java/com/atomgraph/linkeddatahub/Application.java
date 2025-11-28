@@ -206,7 +206,6 @@ import net.sf.saxon.s9api.SaxonApiException;
 import net.sf.saxon.s9api.XdmAtomicValue;
 import net.sf.saxon.s9api.XsltCompiler;
 import net.sf.saxon.s9api.XsltExecutable;
-import nu.xom.XPathException;
 import org.apache.http.HttpClientConnection;
 import org.apache.http.HttpHost;
 import org.apache.http.client.HttpRequestRetryHandler;
@@ -787,7 +786,7 @@ public class Application extends ResourceConfig
                     xsltProc.getUnderlyingConfiguration().getGlobalDocumentPool().add(doc, baseURI.resolve(XSLTWriterBase.TRANSLATIONS_PATH).toString());
                 }
             }
-            catch (XPathException | TransformerException ex)
+            catch (TransformerException ex)
             {
                 if (log.isErrorEnabled()) log.error("Error reading mapped RDF document: {}", ex);
                 throw new IllegalStateException(ex);
