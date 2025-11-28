@@ -15,7 +15,7 @@ print_usage()
     printf "\n"
     printf "  --title TITLE                        Title\n"
     printf "  --description DESCRIPTION            Description(optional)\n"
-    printf "  --fragment STRING                    String that will be used as URI fragment identifier (optional)\n"
+    printf "  --uri URI                            URI of the object block (optional)\n"
     printf "\n"
     printf "  --value RESOURCE_URI                 URI of the object resource\n"
     printf "  --mode MODE_URI                      URI of the block mode (list, grid etc.) (optional)\n"
@@ -57,8 +57,8 @@ do
         shift # past argument
         shift # past value
         ;;
-        --fragment)
-        fragment="$2"
+        --uri)
+        uri="$2"
         shift # past argument
         shift # past value
         ;;
@@ -107,7 +107,13 @@ ntriples=$(get.sh \
   "$target")
 
 # extract the numbers from the sequence properties
-sequence_number=$(echo "$ntriples" | grep "<${target}> <http://www.w3.org/1999/02/22-rdf-syntax-ns#_" | cut -d " " -f 2 | cut -d'#' -f 2 | cut -d '_' -f 2 | cut -d '>' -f 1 |  sort -nr | head -n1)
+sequence_number=$(echo "$ntriples" | grep "<${target}> <http://www.w3.org/1999/02/22-rdf-syntax-ns#_" | cut -d " " -f 2 | cut -d'#' -f 2 | cut -d '_' -f 2 | cut -d '>' -f 1 |  sort -nr | head -n1 || echo "0")
+
+# Handle empty sequence_number (no existing sequence properties)
+if [ -z "$sequence_number" ]; then
+    sequence_number=0
+fi
+
 sequence_number=$((sequence_number + 1)) # increase the counter
 sequence_property="http://www.w3.org/1999/02/22-rdf-syntax-ns#_${sequence_number}"
 
@@ -117,12 +123,13 @@ args+=("-p")
 args+=("$cert_password")
 args+=("-t")
 args+=("text/turtle") # content type
-args+=("--proxy")
-args+=("$proxy") # tunnel the proxy param
+if [ -n "$proxy" ]; then
+    args+=("--proxy")
+    args+=("$proxy")
+fi
 
-if [ -n "$fragment" ] ; then
-    # relative URI that will be resolved against the request URI
-    subject="<#${fragment}>"
+if [ -n "$uri" ] ; then
+    subject="<${uri}>"
 else
     subject="_:subject"
 fi
@@ -146,4 +153,4 @@ if [ -n "$mode" ] ; then
 fi
 
 # submit Turtle doc to the server
-echo -e "$turtle" | post.sh "${args[@]}"
+echo -e "$turtle" | turtle --base="$target" | post.sh "${args[@]}"

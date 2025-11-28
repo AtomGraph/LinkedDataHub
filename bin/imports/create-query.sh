@@ -48,6 +48,11 @@ do
         shift # past argument
         shift # past value
         ;;
+        --proxy)
+        proxy="$2"
+        shift # past argument
+        shift # past value
+        ;;
         --title)
         title="$2"
         shift # past argument
@@ -105,13 +110,19 @@ encoded_slug=$(urlencode "$slug")
 container="${base}queries/"
 query=$(<"$query_file") # read query string from file
 
+target="${container}${encoded_slug}/"
+
 args+=("-f")
 args+=("$cert_pem_file")
 args+=("-p")
 args+=("$cert_password")
 args+=("-t")
 args+=("text/turtle") # content type
-args+=("${container}${encoded_slug}/")
+args+=("$target")
+if [ -n "$proxy" ]; then
+    args+=("--proxy")
+    args+=("$proxy")
+fi
 
 turtle+="@prefix ldh:	<https://w3id.org/atomgraph/linkeddatahub#> .\n"
 turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy#> .\n"
@@ -121,13 +132,13 @@ turtle+="@prefix sp:	<http://spinrdf.org/sp#> .\n"
 turtle+="_:query a sp:Construct .\n"
 turtle+="_:query dct:title \"${title}\" .\n"
 turtle+="_:query sp:text \"\"\"${query}\"\"\" .\n"
-turtle+="<${container}${encoded_slug}/> a dh:Item .\n"
-turtle+="<${container}${encoded_slug}/> foaf:primaryTopic _:query .\n"
-turtle+="<${container}${encoded_slug}/> dct:title \"${title}\" .\n"
+turtle+="<${target}> a dh:Item .\n"
+turtle+="<${target}> foaf:primaryTopic _:query .\n"
+turtle+="<${target}> dct:title \"${title}\" .\n"
 
 if [ -n "$description" ] ; then
     turtle+="_:query dct:description \"${description}\" .\n"
 fi
 
 # submit Turtle doc to the server
-echo -e "$turtle" | turtle --base="$base" | put.sh "${args[@]}"
+echo -e "$turtle" | turtle --base="$target" | put.sh "${args[@]}"

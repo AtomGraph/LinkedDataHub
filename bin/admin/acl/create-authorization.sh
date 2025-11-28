@@ -57,6 +57,11 @@ do
         shift # past argument
         shift # past value
         ;;
+        --proxy)
+        proxy="$2"
+        shift # past argument
+        shift # past value
+        ;;
         --label)
         label="$2"
         shift # past argument
@@ -173,13 +178,19 @@ else
     auth="_:auth" # blank node
 fi
 
+target="${container}${encoded_slug}/"
+
 args+=("-f")
 args+=("$cert_pem_file")
 args+=("-p")
 args+=("$cert_password")
 args+=("-t")
 args+=("text/turtle") # content type
-args+=("${container}${encoded_slug}/")
+args+=("$target")
+if [ -n "$proxy" ]; then
+    args+=("--proxy")
+    args+=("$proxy")
+fi
 
 turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy#> .\n"
 turtle+="@prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .\n"
@@ -188,9 +199,9 @@ turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"
 turtle+="@prefix foaf:	<http://xmlns.com/foaf/0.1/> .\n"
 turtle+="${auth} a acl:Authorization .\n"
 turtle+="${auth} rdfs:label \"${label}\" .\n"
-turtle+="<${container}${encoded_slug}/> a dh:Item .\n"
-turtle+="<${container}${encoded_slug}/> foaf:primaryTopic ${auth} .\n"
-turtle+="<${container}${encoded_slug}/> dct:title \"${label}\" .\n"
+turtle+="<${target}> a dh:Item .\n"
+turtle+="<${target}> foaf:primaryTopic ${auth} .\n"
+turtle+="<${target}> dct:title \"${label}\" .\n"
 
 if [ -n "$comment" ] ; then
     turtle+="${auth} rdfs:comment \"${comment}\" .\n"
@@ -231,4 +242,4 @@ if [ -n "$write" ] ; then
 fi
 
 # submit Turtle doc to the server
-echo -e "$turtle" | turtle --base="$base" | put.sh "${args[@]}"
+echo -e "$turtle" | turtle --base="$target" | put.sh "${args[@]}"

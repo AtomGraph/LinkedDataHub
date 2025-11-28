@@ -17,6 +17,7 @@ print_usage()
     printf "  --description DESCRIPTION            Description of the service (optional)\n"
     printf "  --slug SLUG                          String that will be used as URI path segment (optional)\n"
     printf "\n"
+    printf "  --uri URI                            URI of the service (optional)\n"
     printf "  --endpoint ENDPOINT_URI              Endpoint URI\n"
     printf "  --graph-store GRAPH_STORE_URI        Graph Store URI (optional)\n"
     printf "  --auth-user AUTH_USER                Authorization username (optional)\n"
@@ -44,6 +45,11 @@ do
         shift # past argument
         shift # past value
         ;;
+        --proxy)
+        proxy="$2"
+        shift # past argument
+        shift # past value
+        ;;
         --title)
         title="$2"
         shift # past argument
@@ -54,8 +60,8 @@ do
         shift # past argument
         shift # past value
         ;;
-        --fragment)
-        fragment="$2"
+        --uri)
+        uri="$2"
         shift # past argument
         shift # past value
         ;;
@@ -70,7 +76,8 @@ do
         shift # past value
         ;;
         --auth-user)
-        auth_user=true
+        auth_user="$2"
+        shift # past argument
         shift # past value
         ;;
         --auth-pwd)
@@ -85,6 +92,8 @@ do
     esac
 done
 set -- "${args[@]}" # restore args
+
+target="$1"
 
 if [ -z "$cert_pem_file" ] ; then
     print_usage
@@ -113,10 +122,13 @@ args+=("-p")
 args+=("$cert_password")
 args+=("-t")
 args+=("text/turtle") # content type
+if [ -n "$proxy" ]; then
+    args+=("--proxy")
+    args+=("$proxy")
+fi
 
-if [ -n "$fragment" ] ; then
-    # relative URI that will be resolved against the request URI
-    subject="<#${fragment}>"
+if [ -n "$uri" ] ; then
+    subject="<${uri}>"
 else
     subject="_:subject"
 fi
@@ -143,8 +155,8 @@ if [ -n "$auth_pwd" ] ; then
     turtle+="${subject} a:authPwd \"${auth_pwd}\" .\n"
 fi
 if [ -n "$description" ] ; then
-    turtle+="_:query dct:description \"${description}\" .\n"
+    turtle+="${subject} dct:description \"${description}\" .\n"
 fi
 
 # submit Turtle doc to the server
-echo -e "$turtle" | post.sh "${args[@]}"
+echo -e "$turtle" | turtle --base="$target" | post.sh "${args[@]}"

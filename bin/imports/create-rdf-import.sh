@@ -50,6 +50,11 @@ do
         shift # past argument
         shift # past value
         ;;
+        --proxy)
+        proxy="$2"
+        shift # past argument
+        shift # past value
+        ;;
         --title)
         title="$2"
         shift # past argument
@@ -116,13 +121,19 @@ encoded_slug=$(urlencode "$slug")
 
 container="${base}imports/"
 
+target="${container}${encoded_slug}/"
+
 args+=("-f")
 args+=("$cert_pem_file")
 args+=("-p")
 args+=("$cert_password")
 args+=("-t")
 args+=("text/turtle") # content type
-args+=("${container}${encoded_slug}/")
+args+=("$target")
+if [ -n "$proxy" ]; then
+    args+=("--proxy")
+    args+=("$proxy")
+fi
 
 turtle+="@prefix ldh:	<https://w3id.org/atomgraph/linkeddatahub#> .\n"
 turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy#> .\n"
@@ -131,9 +142,9 @@ turtle+="@prefix foaf:	<http://xmlns.com/foaf/0.1/> .\n"
 turtle+="_:import a ldh:RDFImport .\n"
 turtle+="_:import dct:title \"${title}\" .\n"
 turtle+="_:import ldh:file <${file}> .\n"
-turtle+="<${container}${encoded_slug}/> a dh:Item .\n"
-turtle+="<${container}${encoded_slug}/> foaf:primaryTopic _:import .\n"
-turtle+="<${container}${encoded_slug}/> dct:title \"${title}\" .\n"
+turtle+="<${target}> a dh:Item .\n"
+turtle+="<${target}> foaf:primaryTopic _:import .\n"
+turtle+="<${target}> dct:title \"${title}\" .\n"
 
 if [ -n "$graph" ] ; then
     turtle+="@prefix sd:	<http://www.w3.org/ns/sparql-service-description#> .\n"
@@ -148,4 +159,4 @@ if [ -n "$description" ] ; then
 fi
 
 # submit Turtle doc to the server
-echo -e "$turtle" | turtle --base="$base" | put.sh "${args[@]}"
+echo -e "$turtle" | turtle --base="$target" | put.sh "${args[@]}"
