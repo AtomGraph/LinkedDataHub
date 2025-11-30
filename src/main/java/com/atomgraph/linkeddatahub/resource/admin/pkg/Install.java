@@ -28,7 +28,9 @@ import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.FormParam;
 import jakarta.ws.rs.HeaderParam;
 import jakarta.ws.rs.InternalServerErrorException;
+import jakarta.ws.rs.NotFoundException;
 import jakarta.ws.rs.POST;
+import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.client.Client;
 import jakarta.ws.rs.client.WebTarget;
 import jakarta.ws.rs.core.Context;
@@ -153,7 +155,8 @@ public class Install
      *
      * @param packageURI the package URI (e.g., https://packages.linkeddatahub.com/skos/#this)
      * @return Package instance
-     * @throws InternalServerErrorException if package cannot be loaded
+     * @throws NotFoundException if package cannot be found (404)
+     * @throws InternalServerErrorException if package cannot be loaded for other reasons
      */
     private com.atomgraph.linkeddatahub.apps.model.Package getPackage(String packageURI)
     {
@@ -165,6 +168,12 @@ public class Install
             Model model = ldc.getModel(packageURI);
 
             return model.getResource(packageURI).as(com.atomgraph.linkeddatahub.apps.model.Package.class);
+        }
+        catch (WebApplicationException e)
+        {
+            // Re-throw HTTP client errors from LinkedDataClient as-is (404, 403, etc.)
+            log.error("HTTP error loading package from: {}", packageURI, e);
+            throw e;
         }
         catch (Exception e)
         {
