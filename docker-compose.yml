@@ -159,8 +159,19 @@ configs:
               server varnish-frontend:6060;
           }
 
-          limit_req_zone $$binary_remote_addr zone=linked_data:10m rate=15r/s;
-          limit_req_zone $$binary_remote_addr zone=static_files:10m rate=20r/s;
+          # Exempt internal requests from the linkeddatahub container from rate limiting
+          # Use RFC 1918 private IP ranges (same logic as InetAddress.isSiteLocalAddress())
+          map $$remote_addr $$limit_key {
+              default $$binary_remote_addr;
+              ~^10\.          "";  # RFC 1918: 10.0.0.0/8
+              ~^172\.1[6-9]\. "";  # RFC 1918: 172.16.0.0/12 (172.16-19.x.x)
+              ~^172\.2[0-9]\. "";  # RFC 1918: 172.16.0.0/12 (172.20-29.x.x)
+              ~^172\.3[0-1]\. "";  # RFC 1918: 172.16.0.0/12 (172.30-31.x.x)
+              ~^192\.168\.    "";  # RFC 1918: 192.168.0.0/16
+          }
+
+          limit_req_zone $$limit_key zone=linked_data:10m rate=15r/s;
+          limit_req_zone $$limit_key zone=static_files:10m rate=20r/s;
           limit_req_status 429;
 
           client_max_body_size ${MAX_CONTENT_LENGTH:-2097152};
