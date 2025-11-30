@@ -18,7 +18,7 @@ package com.atomgraph.linkeddatahub.resource.admin.pkg;
 
 import com.atomgraph.linkeddatahub.apps.model.AdminApplication;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
-import com.atomgraph.linkeddatahub.server.model.impl.PackageManager;
+import com.atomgraph.linkeddatahub.server.util.UriPath;
 import com.atomgraph.linkeddatahub.server.util.XsltMasterUpdater;
 import jakarta.inject.Inject;
 import jakarta.servlet.ServletContext;
@@ -62,7 +62,6 @@ public class Uninstall
     private static final Logger log = LoggerFactory.getLogger(Uninstall.class);
 
     private final com.atomgraph.linkeddatahub.apps.model.Application application;
-    private final PackageManager packageManager = new PackageManager();
 
     @Context ServletContext servletContext;
 
@@ -96,7 +95,7 @@ public class Uninstall
 
             if (log.isInfoEnabled()) log.info("Uninstalling package: {}", packageURI);
 
-            String packagePath = getPackageManager().uriToPath(packageURI);
+            String packagePath = UriPath.convert(packageURI);
 
             // 1. Remove ontology triples from namespace graph
             uninstallOntology(endUserApp, packagePath);
@@ -176,7 +175,7 @@ public class Uninstall
 
         for (Resource pkg : packages)
         {
-            String pkgPath = getPackageManager().uriToPath(pkg.getURI());
+            String pkgPath = UriPath.convert(pkg.getURI());
             // Exclude the package being removed
             if (!pkgPath.equals(removedPackagePath))
             {
@@ -222,16 +221,6 @@ public class Uninstall
     public ServletContext getServletContext()
     {
         return servletContext;
-    }
-
-    /**
-     * Returns package manager.
-     *
-     * @return package manager
-     */
-    public PackageManager getPackageManager()
-    {
-        return packageManager;
     }
 
 }
