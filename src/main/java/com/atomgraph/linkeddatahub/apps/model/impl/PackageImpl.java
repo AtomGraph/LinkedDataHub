@@ -18,11 +18,17 @@ package com.atomgraph.linkeddatahub.apps.model.impl;
 
 import com.atomgraph.client.vocabulary.AC;
 import com.atomgraph.linkeddatahub.apps.model.Package;
+import com.atomgraph.linkeddatahub.vocabulary.LDH;
 import com.atomgraph.server.vocabulary.LDT;
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.rdf.model.Statement;
+import org.apache.jena.rdf.model.StmtIterator;
 import org.apache.jena.rdf.model.impl.ResourceImpl;
+
+import java.util.HashSet;
+import java.util.Set;
 
 
 /**
@@ -54,6 +60,29 @@ public class PackageImpl extends ResourceImpl implements Package
     public Resource getStylesheet()
     {
         return getPropertyResourceValue(AC.stylesheet);
+    }
+
+    @Override
+    public Set<Resource> getImportedPackages()
+    {
+        Set<Resource> packages = new HashSet<>();
+        StmtIterator it = listProperties(LDH.importPackage);
+
+        try
+        {
+            while (it.hasNext())
+            {
+                Statement stmt = it.next();
+                if (stmt.getObject().isResource())
+                    packages.add(stmt.getResource());
+            }
+        }
+        finally
+        {
+            it.close();
+        }
+
+        return packages;
     }
 
 }

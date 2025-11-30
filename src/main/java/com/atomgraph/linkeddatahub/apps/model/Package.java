@@ -43,4 +43,12 @@ public interface Package extends Resource
      */
     Resource getStylesheet();
 
+    /**
+     * Returns the packages imported by this package.
+     * Packages can transitively import other packages via ldh:import property.
+     *
+     * @return set of imported package resources
+     */
+    java.util.Set<Resource> getImportedPackages();
+
 }

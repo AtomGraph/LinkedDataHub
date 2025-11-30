@@ -19,7 +19,7 @@ package com.atomgraph.linkeddatahub.resource.admin.pkg;
 import com.atomgraph.linkeddatahub.apps.model.AdminApplication;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import com.atomgraph.linkeddatahub.client.LinkedDataClient;
-import com.atomgraph.linkeddatahub.server.model.impl.PackageManager;
+import com.atomgraph.linkeddatahub.server.util.UriPath;
 import com.atomgraph.linkeddatahub.server.util.XsltMasterUpdater;
 import jakarta.inject.Inject;
 import jakarta.servlet.ServletContext;
@@ -39,7 +39,6 @@ import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Resource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Files;
@@ -66,7 +65,6 @@ public class Install
 
     private final com.atomgraph.linkeddatahub.apps.model.Application application;
     private final com.atomgraph.linkeddatahub.Application system;
-    private final PackageManager packageManager = new PackageManager();
 
     @Context ServletContext servletContext;
 
@@ -104,7 +102,7 @@ public class Install
             if (log.isInfoEnabled()) log.info("Installing package: {}", packageURI);
 
             // 1. Fetch package
-            com.atomgraph.linkeddatahub.apps.model.Package pkg = getPackageManager().getPackage(packageURI);
+            com.atomgraph.linkeddatahub.apps.model.Package pkg = getPackage(packageURI);
             if (pkg == null) throw new BadRequestException("Package not found: " + packageURI);
 
             Resource ontology = pkg.getOntology();
@@ -115,7 +113,7 @@ public class Install
             URI ontologyURI = URI.create(ontology.getURI());
             URI stylesheetURI = (stylesheet != null) ? URI.create(stylesheet.getURI()) : null;
 
-            String packagePath = getPackageManager().uriToPath(packageURI);
+            String packagePath = UriPath.convert(packageURI);
 
             // 2. Download and install ontology
             if (log.isDebugEnabled()) log.debug("Downloading package ontology from: {}", ontologyURI);
@@ -146,6 +144,32 @@ public class Install
         {
             log.error("Failed to install package: {}", packageURI, e);
             throw new InternalServerErrorException("Package installation failed: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Loads package metadata from its URI using LinkedDataClient.
+     * Package metadata is expected to be available as Linked Data.
+     *
+     * @param packageURI the package URI (e.g., https://packages.linkeddatahub.com/skos/#this)
+     * @return Package instance
+     * @throws InternalServerErrorException if package cannot be loaded
+     */
+    private com.atomgraph.linkeddatahub.apps.model.Package getPackage(String packageURI)
+    {
+        try
+        {
+            if (log.isDebugEnabled()) log.debug("Loading package from: {}", packageURI);
+
+            LinkedDataClient ldc = LinkedDataClient.create(getSystem().getClient(), getSystem().getMediaTypes());
+            Model model = ldc.getModel(packageURI);
+
+            return model.getResource(packageURI).as(com.atomgraph.linkeddatahub.apps.model.Package.class);
+        }
+        catch (Exception e)
+        {
+            log.error("Failed to load package from: {}", packageURI, e);
+            throw new InternalServerErrorException("Failed to load package from: " + packageURI, e);
         }
     }
 
@@ -221,15 +245,11 @@ public class Install
         List<String> packagePaths = new ArrayList<>();
 
         for (Resource pkg : packages)
-        {
-            packagePaths.add(getPackageManager().uriToPath(pkg.getURI()));
-        }
+            packagePaths.add(UriPath.convert(pkg.getURI()));
 
         // Add the new package
         if (!packagePaths.contains(newPackagePath))
-        {
             packagePaths.add(newPackagePath);
-        }
 
         // Regenerate master stylesheet
         String hostname = app.getBaseURI().getHost();
@@ -289,16 +309,6 @@ public class Install
     public ServletContext getServletContext()
     {
         return servletContext;
-    }
-
-    /**
-     * Returns package manager.
-     *
-     * @return package manager
-     */
-    public PackageManager getPackageManager()
-    {
-        return packageManager;
     }
 
 }
