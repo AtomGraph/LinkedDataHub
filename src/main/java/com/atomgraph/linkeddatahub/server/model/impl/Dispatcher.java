@@ -23,6 +23,8 @@ import com.atomgraph.linkeddatahub.resource.Generate;
 import com.atomgraph.linkeddatahub.resource.Namespace;
 import com.atomgraph.linkeddatahub.resource.Transform;
 import com.atomgraph.linkeddatahub.resource.admin.Clear;
+import com.atomgraph.linkeddatahub.resource.admin.pkg.Install;
+import com.atomgraph.linkeddatahub.resource.admin.pkg.Uninstall;
 import com.atomgraph.linkeddatahub.resource.admin.SignUp;
 import com.atomgraph.linkeddatahub.resource.Graph;
 import com.atomgraph.linkeddatahub.resource.acl.Access;
@@ -216,13 +218,35 @@ public class Dispatcher
     
     /**
      * Returns the endpoint that allows clearing ontologies from cache by URI.
-     * 
+     *
      * @return endpoint resource
      */
     @Path("clear")
     public Class getClearEndpoint()
     {
         return getProxyClass().orElse(Clear.class);
+    }
+
+    /**
+     * Returns the endpoint for installing LinkedDataHub packages.
+     *
+     * @return endpoint resource
+     */
+    @Path("packages/install")
+    public Class getInstallPackageEndpoint()
+    {
+        return getProxyClass().orElse(Install.class);
+    }
+
+    /**
+     * Returns the endpoint for uninstalling LinkedDataHub packages.
+     *
+     * @return endpoint resource
+     */
+    @Path("packages/uninstall")
+    public Class getUninstallPackageEndpoint()
+    {
+        return getProxyClass().orElse(Uninstall.class);
     }
 
     /**

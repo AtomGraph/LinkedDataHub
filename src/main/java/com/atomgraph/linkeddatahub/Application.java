@@ -723,6 +723,7 @@ public class Application extends ResourceConfig
             BuiltinPersonalities.model.add(EndUserApplication.class, new com.atomgraph.linkeddatahub.apps.model.end_user.impl.ApplicationImplementation());
             BuiltinPersonalities.model.add(com.atomgraph.linkeddatahub.apps.model.Application.class, new com.atomgraph.linkeddatahub.apps.model.impl.ApplicationImplementation());
             BuiltinPersonalities.model.add(com.atomgraph.linkeddatahub.apps.model.Dataset.class, new com.atomgraph.linkeddatahub.apps.model.impl.DatasetImplementation());
+            BuiltinPersonalities.model.add(com.atomgraph.linkeddatahub.apps.model.Package.class, new com.atomgraph.linkeddatahub.apps.model.impl.PackageImplementation());
             BuiltinPersonalities.model.add(Service.class, new com.atomgraph.linkeddatahub.model.impl.ServiceImplementation(noCertClient, mediaTypes, maxGetRequestSize));
             BuiltinPersonalities.model.add(Import.class, ImportImpl.factory);
             BuiltinPersonalities.model.add(RDFImport.class, RDFImportImpl.factory);

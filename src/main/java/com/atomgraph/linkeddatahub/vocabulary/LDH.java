@@ -106,7 +106,7 @@ public class LDH
     public static final ObjectProperty forShape = m_model.createObjectProperty( NS + "forShape" );
 
     /**
-     * Graph URI property */
-    //public static final ObjectProperty graph = m_model.createObjectProperty( NS + "graph" );
+     * Import property - used to import packages into an application */
+    public static final ObjectProperty importPackage = m_model.createObjectProperty( NS + "import" );
 
 }
