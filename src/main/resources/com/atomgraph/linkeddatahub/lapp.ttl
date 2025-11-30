@@ -163,6 +163,13 @@
     rdfs:label "Admin application constructor" ;
     rdfs:isDefinedBy : .
 
+# package
+
+:Package a rdfs:Class, owl:Class ;
+    rdfs:label "Package" ;
+    rdfs:comment "A reusable package containing RDF ontology and optional XSLT stylesheet for vocabulary support" ;
+    rdfs:isDefinedBy : .
+
 # CONSTRAINTS
 
 :StartsWithHTTPS a sp:Construct ;

@@ -63,7 +63,10 @@ public class LAPP
 
     /** End-user application class */
     public static final OntClass EndUserApplication = m_model.createClass( NS + "EndUserApplication" );
-    
+
+    /** Package class */
+    public static final OntClass Package = m_model.createClass( NS + "Package" );
+
     /** Admin application class */
     public static final ObjectProperty adminApplication = m_model.createObjectProperty( NS + "adminApplication" );
 
