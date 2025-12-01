@@ -16,5 +16,7 @@
    [ lm:name "http://spinrdf.org/spin#" ;                                       lm:altName "etc/spin.ttl" ] ,
    [ lm:name "http://spinrdf.org/spin" ;                                        lm:altName "etc/spin.ttl" ] ,
    [ lm:name "http://spinrdf.org/spl#" ;                                        lm:altName "etc/spl.spin.ttl" ] ,
-   [ lm:name "http://spinrdf.org/spl" ;                                         lm:altName "etc/spl.spin.ttl" ]
+   [ lm:name "http://spinrdf.org/spl" ;                                         lm:altName "etc/spl.spin.ttl" ] ,
+   [ lm:name "https://packages.linkeddatahub.com/skos/" ;                       lm:altName "com/linkeddatahub/packages/skos/package.ttl" ] ,
+   [ lm:name "https://raw.githubusercontent.com/AtomGraph/LinkedDataHub-Apps/refs/heads/develop/packages/skos/ns.ttl" ; lm:altName "com/linkeddatahub/packages/skos/ns.ttl" ]
 .

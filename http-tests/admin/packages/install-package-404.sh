@@ -14,5 +14,5 @@ curl -k -w "%{http_code}\n" -o /dev/null -s \
   -X POST \
   -H "Content-Type: application/x-www-form-urlencoded" \
   --data-urlencode "package-uri=https://packages.linkeddatahub.com/nonexistent/#package" \
-  "$ADMIN_BASE_URL"packages/install \
+  "${ADMIN_BASE_URL}packages/install" \
 | grep -q "$STATUS_NOT_FOUND"

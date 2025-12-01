@@ -12,5 +12,5 @@ curl -k -w "%{http_code}\n" -o /dev/null -s \
   -E "$OWNER_CERT_FILE":"$OWNER_CERT_PWD" \
   -X POST \
   -H "Content-Type: application/x-www-form-urlencoded" \
-  "$ADMIN_BASE_URL"packages/uninstall \
+  "{$ADMIN_BASE_URL}packages/uninstall" \
 | grep -q "$STATUS_BAD_REQUEST"

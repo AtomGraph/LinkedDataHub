@@ -1,0 +1,123 @@
+@prefix :	    <#> .
+@prefix ns:     <ns#> .
+@prefix ldh:	<https://w3id.org/atomgraph/linkeddatahub#> .
+@prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .
+@prefix sp: 	<http://spinrdf.org/sp#> .
+@prefix spin:	<http://spinrdf.org/spin#> .
+@prefix dct:	<http://purl.org/dc/terms/> .
+@prefix skos:   <http://www.w3.org/2004/02/skos/core#> .
+
+# Concept
+
+# narrower
+
+skos:Concept ldh:template ns:NarrowerConcepts.
+
+ns:NarrowerConcepts a ldh:View ;
+    dct:title "Narrower concepts" ;
+    spin:query ns:SelectNarrowerConcepts ;
+    rdfs:isDefinedBy ns: .
+
+ns:SelectNarrowerConcepts a sp:Select ;
+    rdfs:label "Select narrower concepts" ;
+    sp:text """
+PREFIX  skos: <http://www.w3.org/2004/02/skos/core#>
+
+SELECT DISTINCT  ?narrower
+WHERE
+  { GRAPH ?graph
+      { $about  skos:narrower  ?narrower .
+        GRAPH ?narrowerGraph
+        {
+          ?narrower skos:prefLabel ?prefLabel .
+          FILTER (langMatches(lang(?prefLabel), "en"))
+        }
+      }
+  }
+ORDER BY ?prefLabel
+""" ;
+    rdfs:isDefinedBy ns: .
+
+# broader
+
+skos:Concept ldh:template ns:BroaderConcepts.
+
+ns:BroaderConcepts a ldh:View ;
+    dct:title "Broader concepts" ;
+    spin:query ns:SelectBroaderConcepts ;
+    rdfs:isDefinedBy ns: .
+
+ns:SelectBroaderConcepts a sp:Select ;
+    rdfs:label "Select broader concepts" ;
+    sp:text """
+PREFIX  skos: <http://www.w3.org/2004/02/skos/core#>
+
+SELECT DISTINCT  ?broader
+WHERE
+  { GRAPH ?graph
+      { $about  skos:broader  ?broader .
+        GRAPH ?broaderGraph
+        {
+          ?broader skos:prefLabel ?prefLabel .
+          FILTER (langMatches(lang(?prefLabel), "en"))
+        }
+      }
+  }
+ORDER BY ?prefLabel
+""" ;
+    rdfs:isDefinedBy ns: .
+
+# Collection
+
+skos:Collection ldh:template ns:CollectionMembers.
+
+ns:CollectionMembers a ldh:View ;
+    dct:title "Collection members" ;
+    spin:query ns:SelectCollectionMembers ;
+    rdfs:isDefinedBy ns: .
+
+ns:SelectCollectionMembers a sp:Select ;
+    rdfs:label "Select collection members" ;
+    sp:text """
+PREFIX  skos: <http://www.w3.org/2004/02/skos/core#>
+
+SELECT DISTINCT  ?member
+WHERE
+  { GRAPH ?graph
+      { $about  skos:member  ?member .
+        GRAPH ?memberGraph
+        {
+          ?member skos:prefLabel ?prefLabel .
+          FILTER (langMatches(lang(?prefLabel), "en"))
+        }
+      }
+  }
+ORDER BY ?prefLabel
+""" ;
+    rdfs:isDefinedBy ns: .
+
+# ConceptScheme
+
+skos:ConceptScheme ldh:template ns:ConceptsInScheme.
+
+ns:ConceptsInScheme a ldh:View ;
+    dct:title "Concepts in scheme" ;
+    spin:query ns:SelectConceptsInScheme ;
+    rdfs:isDefinedBy ns: .
+
+ns:SelectConceptsInScheme a sp:Select ;
+    rdfs:label "Select concepts in scheme" ;
+    sp:text """
+PREFIX  skos: <http://www.w3.org/2004/02/skos/core#>
+
+SELECT DISTINCT  ?concept
+WHERE
+  { GRAPH ?graph
+      { ?concept  skos:inScheme  $about ;
+            skos:prefLabel ?prefLabel .
+        FILTER (langMatches(lang(?prefLabel), "en"))
+      }
+  }
+ORDER BY ?prefLabel
+""" ;
+    rdfs:isDefinedBy ns: .

@@ -10,13 +10,6 @@ purge_cache "$FRONTEND_VARNISH_SERVICE"
 # test package URI (SKOS package)
 package_uri="https://packages.linkeddatahub.com/skos/#this"
 
-# ensure package is not installed initially
-docker compose -f "$HTTP_TEST_ROOT/../docker-compose.yml" \
-  -f "$HTTP_TEST_ROOT/docker-compose.http-tests.yml" \
-  --env-file "$HTTP_TEST_ROOT/.env" \
-  exec -T linkeddatahub \
-  test ! -f /usr/local/tomcat/webapps/ROOT/static/com/linkeddatahub/packages/skos/layout.xsl || true
-
 # install package
 curl -k -w "%{http_code}\n" -o /dev/null -f -s \
   -E "$OWNER_CERT_FILE":"$OWNER_CERT_PWD" \
@@ -26,20 +19,13 @@ curl -k -w "%{http_code}\n" -o /dev/null -f -s \
   "$ADMIN_BASE_URL"packages/install \
 | grep -q "$STATUS_SEE_OTHER"
 
-# verify package was installed
-docker compose -f "$HTTP_TEST_ROOT/../docker-compose.yml" \
-  -f "$HTTP_TEST_ROOT/docker-compose.http-tests.yml" \
-  --env-file "$HTTP_TEST_ROOT/.env" \
-  exec -T linkeddatahub \
-  test -f /usr/local/tomcat/webapps/ROOT/static/com/linkeddatahub/packages/skos/layout.xsl
+# verify package stylesheet was installed (should return 200)
+curl -k -f -s -o /dev/null \
+  "${END_USER_BASE_URL}static/com/linkeddatahub/packages/skos/layout.xsl"
 
 # verify master stylesheet includes package
-docker compose -f "$HTTP_TEST_ROOT/../docker-compose.yml" \
-  -f "$HTTP_TEST_ROOT/docker-compose.http-tests.yml" \
-  --env-file "$HTTP_TEST_ROOT/.env" \
-  exec -T linkeddatahub \
-  grep -q "com/linkeddatahub/packages/skos/layout.xsl" \
-  /usr/local/tomcat/webapps/ROOT/static/localhost/layout.xsl
+curl -k -s "$END_USER_BASE_URL"static/localhost/layout.xsl \
+  | grep -q "com/linkeddatahub/packages/skos/layout.xsl"
 
 # uninstall package
 curl -k -w "%{http_code}\n" -o /dev/null -f -s \
@@ -50,16 +36,11 @@ curl -k -w "%{http_code}\n" -o /dev/null -f -s \
   "$ADMIN_BASE_URL"packages/uninstall \
 | grep -q "$STATUS_SEE_OTHER"
 
-# verify package was uninstalled
-docker compose -f "$HTTP_TEST_ROOT/../docker-compose.yml" \
-  -f "$HTTP_TEST_ROOT/docker-compose.http-tests.yml" \
-  --env-file "$HTTP_TEST_ROOT/.env" \
-  exec -T linkeddatahub \
-  test ! -f /usr/local/tomcat/webapps/ROOT/static/com/linkeddatahub/packages/skos/layout.xsl
+# verify package stylesheet was deleted (should return 404)
+curl -k -w "%{http_code}\n" -o /dev/null -s \
+  "${END_USER_BASE_URL}static/com/linkeddatahub/packages/skos/layout.xsl" \
+| grep -q "$STATUS_NOT_FOUND"
 
 # verify master stylesheet no longer includes package
-docker compose -f "$HTTP_TEST_ROOT/../docker-compose.yml" \
-  -f "$HTTP_TEST_ROOT/docker-compose.http-tests.yml" \
-  --env-file "$HTTP_TEST_ROOT/.env" \
-  exec -T linkeddatahub \
-  bash -c '! grep -q "com/linkeddatahub/packages/skos/layout.xsl" /usr/local/tomcat/webapps/ROOT/static/localhost/layout.xsl'
+curl -k -s "$END_USER_BASE_URL"static/localhost/layout.xsl \
+  | grep -v -q "com/linkeddatahub/packages/skos/layout.xsl"
