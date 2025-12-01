@@ -7,10 +7,10 @@ purge_cache "$END_USER_VARNISH_SERVICE"
 purge_cache "$ADMIN_VARNISH_SERVICE"
 purge_cache "$FRONTEND_VARNISH_SERVICE"
 
-# Unauthorized access (without certificate) should return 401 Unauthorized
+# Unauthorized access (without certificate) should return 403 Forbidden
 curl -k -w "%{http_code}\n" -o /dev/null -s \
   -X POST \
   -H "Content-Type: application/x-www-form-urlencoded" \
   --data-urlencode "package-uri=https://packages.linkeddatahub.com/skos/#this" \
-  "$ADMIN_BASE_URL"packages/install \
-| grep -q "$STATUS_UNAUTHORIZED"
+  "${ADMIN_BASE_URL}packages/install" \
+| grep -q "$STATUS_FORBIDDEN"

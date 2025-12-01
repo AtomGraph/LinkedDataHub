@@ -16,21 +16,13 @@ curl -k -w "%{http_code}\n" -o /dev/null -f -s \
   -X POST \
   -H "Content-Type: application/x-www-form-urlencoded" \
   --data-urlencode "package-uri=$package_uri" \
-  "$ADMIN_BASE_URL"packages/install \
+  "${ADMIN_BASE_URL}packages/install" \
 | grep -q "$STATUS_SEE_OTHER"
 
-# verify package stylesheet was installed to filesystem
-# path should be: /static/com/linkeddatahub/packages/skos/layout.xsl
-docker compose -f "$HTTP_TEST_ROOT/../docker-compose.yml" \
-  -f "$HTTP_TEST_ROOT/docker-compose.http-tests.yml" \
-  --env-file "$HTTP_TEST_ROOT/.env" \
-  exec -T linkeddatahub \
-  test -f /usr/local/tomcat/webapps/ROOT/static/com/linkeddatahub/packages/skos/layout.xsl
+# verify package stylesheet was installed (should return 200)
+curl -k -f -s -o /dev/null \
+  "$END_USER_BASE_URL"static/com/linkeddatahub/packages/skos/layout.xsl
 
 # verify master stylesheet was regenerated and includes package import
-docker compose -f "$HTTP_TEST_ROOT/../docker-compose.yml" \
-  -f "$HTTP_TEST_ROOT/docker-compose.http-tests.yml" \
-  --env-file "$HTTP_TEST_ROOT/.env" \
-  exec -T linkeddatahub \
-  grep -q "com/linkeddatahub/packages/skos/layout.xsl" \
-  /usr/local/tomcat/webapps/ROOT/static/localhost/layout.xsl
+curl -k -s "${END_USER_BASE_URL}static/localhost/layout.xsl" \
+  | grep -q "com/linkeddatahub/packages/skos/layout.xsl"

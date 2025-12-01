@@ -16,6 +16,7 @@
  */
 package com.atomgraph.linkeddatahub.resource.admin.pkg;
 
+import com.atomgraph.client.util.DataManager;
 import com.atomgraph.linkeddatahub.apps.model.AdminApplication;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import com.atomgraph.linkeddatahub.client.LinkedDataClient;
@@ -49,6 +50,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import org.apache.jena.util.FileManager;
 
 /**
  * JAX-RS resource that installs a LinkedDataHub package.
@@ -67,6 +69,7 @@ public class Install
 
     private final com.atomgraph.linkeddatahub.apps.model.Application application;
     private final com.atomgraph.linkeddatahub.Application system;
+    private final DataManager dataManager;
 
     @Context ServletContext servletContext;
 
@@ -75,13 +78,16 @@ public class Install
      *
      * @param application matched application (admin app)
      * @param system system application
+     * @param dataManager data manager
      */
     @Inject
     public Install(com.atomgraph.linkeddatahub.apps.model.Application application,
-                   com.atomgraph.linkeddatahub.Application system)
+                   com.atomgraph.linkeddatahub.Application system,
+                   DataManager dataManager)
     {
         this.application = application;
         this.system = system;
+        this.dataManager = dataManager;
     }
 
     /**
@@ -112,14 +118,13 @@ public class Install
 
             if (ontology == null) throw new BadRequestException("Package ontology not found");
 
-            URI ontologyURI = URI.create(ontology.getURI());
             URI stylesheetURI = (stylesheet != null) ? URI.create(stylesheet.getURI()) : null;
 
             String packagePath = UriPath.convert(packageURI);
 
             // 2. Download and install ontology
-            if (log.isDebugEnabled()) log.debug("Downloading package ontology from: {}", ontologyURI);
-            Model ontologyModel = downloadOntology(ontologyURI);
+            if (log.isDebugEnabled()) log.debug("Downloading package ontology from: {}", ontology.getURI());
+            Model ontologyModel = downloadOntology(ontology.getURI());
             installOntology(endUserApp, ontologyModel);
 
             // 3. Download and install stylesheet if present
@@ -164,8 +169,21 @@ public class Install
         {
             if (log.isDebugEnabled()) log.debug("Loading package from: {}", packageURI);
 
-            LinkedDataClient ldc = LinkedDataClient.create(getSystem().getClient(), getSystem().getMediaTypes());
-            Model model = ldc.getModel(packageURI);
+            final Model model;
+            
+            // check if we have the model in the cache first and if yes, return it from there instead making an HTTP request
+            if (((FileManager)getDataManager()).hasCachedModel(packageURI) ||
+                    (getDataManager().isResolvingMapped() && getDataManager().isMapped(packageURI))) // read mapped URIs (such as system ontologies) from a file
+            {
+                if (log.isDebugEnabled()) log.debug("hasCachedModel({}): {}", packageURI, ((FileManager)getDataManager()).hasCachedModel(packageURI));
+                if (log.isDebugEnabled()) log.debug("isMapped({}): {}", packageURI, getDataManager().isMapped(packageURI));
+                model = getDataManager().loadModel(packageURI);
+            }
+            else
+            {
+                LinkedDataClient ldc = LinkedDataClient.create(getSystem().getClient(), getSystem().getMediaTypes());
+                model = ldc.getModel(packageURI);
+            }
 
             return model.getResource(packageURI).as(com.atomgraph.linkeddatahub.apps.model.Package.class);
         }
@@ -185,12 +203,23 @@ public class Install
     /**
      * Downloads RDF from a URI using LinkedDataClient.
      */
-    private Model downloadOntology(URI uri) throws IOException
+    private Model downloadOntology(String uri) throws IOException
     {
-        if (log.isDebugEnabled()) log.debug("Downloading RDF from: {}", uri);
+        if (log.isDebugEnabled()) log.debug("Downloading ontology from: {}", uri);
 
-        LinkedDataClient ldc = LinkedDataClient.create(getSystem().getClient(), getSystem().getMediaTypes());
-        return ldc.getModel(uri.toString());
+        // check if we have the model in the cache first and if yes, return it from there instead making an HTTP request
+        if (((FileManager)getDataManager()).hasCachedModel(uri) ||
+                (getDataManager().isResolvingMapped() && getDataManager().isMapped(uri))) // read mapped URIs (such as system ontologies) from a file
+        {
+            if (log.isDebugEnabled()) log.debug("hasCachedModel({}): {}", uri, ((FileManager)getDataManager()).hasCachedModel(uri));
+            if (log.isDebugEnabled()) log.debug("isMapped({}): {}", uri, getDataManager().isMapped(uri));
+            return getDataManager().loadModel(uri);
+        }
+        else
+        {
+            LinkedDataClient ldc = LinkedDataClient.create(getSystem().getClient(), getSystem().getMediaTypes());
+            return ldc.getModel(uri);
+        }
     }
 
     /**
@@ -206,9 +235,7 @@ public class Install
         try (Response response = target.request("text/xsl", "text/*;q=0.8").get())
         {
             if (!response.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
-            {
                 throw new IOException("Failed to download XSLT from " + uri + ": " + response.getStatus());
-            }
 
             return response.readEntity(String.class);
         }
@@ -320,4 +347,14 @@ public class Install
         return servletContext;
     }
 
+    /**
+     * Returns RDF data manager.
+     * 
+     * @return RDF data manager
+     */
+    public DataManager getDataManager()
+    {
+        return dataManager;
+    }
+    
 }

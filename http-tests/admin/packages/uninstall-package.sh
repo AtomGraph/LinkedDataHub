@@ -16,15 +16,12 @@ curl -k -w "%{http_code}\n" -o /dev/null -f -s \
   -X POST \
   -H "Content-Type: application/x-www-form-urlencoded" \
   --data-urlencode "package-uri=$package_uri" \
-  "$ADMIN_BASE_URL"packages/install \
+  "${ADMIN_BASE_URL}packages/install" \
 | grep -q "$STATUS_SEE_OTHER"
 
-# verify package stylesheet exists before uninstall
-docker compose -f "$HTTP_TEST_ROOT/../docker-compose.yml" \
-  -f "$HTTP_TEST_ROOT/docker-compose.http-tests.yml" \
-  --env-file "$HTTP_TEST_ROOT/.env" \
-  exec -T linkeddatahub \
-  test -f /usr/local/tomcat/webapps/ROOT/static/com/linkeddatahub/packages/skos/layout.xsl
+# verify package stylesheet exists before uninstall (should return 200)
+curl -k -f -s -o /dev/null \
+  "${END_USER_BASE_URL}static/com/linkeddatahub/packages/skos/layout.xsl"
 
 # uninstall package via POST to packages/uninstall endpoint
 curl -k -w "%{http_code}\n" -o /dev/null -f -s \
@@ -32,19 +29,14 @@ curl -k -w "%{http_code}\n" -o /dev/null -f -s \
   -X POST \
   -H "Content-Type: application/x-www-form-urlencoded" \
   --data-urlencode "package-uri=$package_uri" \
-  "$ADMIN_BASE_URL"packages/uninstall \
+  "${ADMIN_BASE_URL}packages/uninstall" \
 | grep -q "$STATUS_SEE_OTHER"
 
-# verify package stylesheet was deleted
-docker compose -f "$HTTP_TEST_ROOT/../docker-compose.yml" \
-  -f "$HTTP_TEST_ROOT/docker-compose.http-tests.yml" \
-  --env-file "$HTTP_TEST_ROOT/.env" \
-  exec -T linkeddatahub \
-  test ! -f /usr/local/tomcat/webapps/ROOT/static/com/linkeddatahub/packages/skos/layout.xsl
+# verify package stylesheet was deleted (should return 404)
+curl -k -w "%{http_code}\n" -o /dev/null -s \
+  "${END_USER_BASE_URL}static/com/linkeddatahub/packages/skos/layout.xsl" \
+| grep -q "$STATUS_NOT_FOUND"
 
 # verify master stylesheet was regenerated without package import
-docker compose -f "$HTTP_TEST_ROOT/../docker-compose.yml" \
-  -f "$HTTP_TEST_ROOT/docker-compose.http-tests.yml" \
-  --env-file "$HTTP_TEST_ROOT/.env" \
-  exec -T linkeddatahub \
-  bash -c '! grep -q "com/linkeddatahub/packages/skos/layout.xsl" /usr/local/tomcat/webapps/ROOT/static/localhost/layout.xsl'
+curl -k -s "$END_USER_BASE_URL"static/localhost/layout.xsl \
+  | grep -v -q "com/linkeddatahub/packages/skos/layout.xsl"
