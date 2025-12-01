@@ -328,6 +328,17 @@ configs:
                   return (pass);
               }
 
+              # Conditional requests must reach backend for validation
+              if (req.http.If-Match || req.http.If-None-Match ||
+                  req.http.If-Modified-Since || req.http.If-Unmodified-Since) {
+                  return (pass);
+              }
+
+              # /access endpoint returns agent-specific group memberships
+              if (req.url ~ "^/access") {
+                  return (pass);
+              }
+
               # SPARQL referencing /acl/agents/ depends on agent identity → don't cache
               if (req.url ~ "%2Facl%2Fagents%2F") {
                   return (pass);
