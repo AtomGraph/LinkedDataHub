@@ -320,10 +320,20 @@ configs:
               /* We only deal with GET and HEAD by default */
               return (pass);
           }
+
           if (req.http.Client-Cert) {
-              /* Authenticated requests are not cacheable */
-              return (pass);
+              # Authenticated HTML is user-specific → never cache
+              if (req.http.Accept ~ "text/html" ||
+                  req.http.Accept ~ "application/xhtml+xml") {
+                  return (pass);
+              }
+
+              # SPARQL referencing /acl/agents/ depends on agent identity → don't cache
+              if (req.url ~ "%2Facl%2Fagents%2F") {
+                  return (pass);
+              }
           }
+
           if (req.http.Cookie) {
               # explicitly allow only cookies required by LDH server-side
               set req.http.Cookie = ";" + req.http.Cookie;
