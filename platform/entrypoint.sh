@@ -493,11 +493,6 @@ OWNER_KEY_URI=$(echo "$owner_metadata" | xmlstarlet sel -N srx="http://www.w3.or
 OWNER_KEY_DOC_URI=$(echo "$OWNER_KEY_URI" | sed 's|#this$||')
 OWNER_KEY_URI="${OWNER_KEY_DOC_URI}#this"
 
-printf "\n### Extracted OWNER_URI: %s\n" "$OWNER_URI"
-printf "\n### Extracted OWNER_DOC_URI: %s\n" "$OWNER_DOC_URI"
-printf "\n### Extracted OWNER_KEY_URI: %s\n" "$OWNER_KEY_URI"
-printf "\n### Extracted OWNER_KEY_DOC_URI: %s\n" "$OWNER_KEY_DOC_URI"
-
 printf "\n### Reading secretary metadata from existing file: %s\n" /var/linkeddatahub/based-datasets/root-secretary.nq
 
 trig --base="$ADMIN_BASE_URI" --output=nq "$SECRETARY_DATASET_PATH" > /var/linkeddatahub/based-datasets/root-secretary.nq
@@ -509,11 +504,6 @@ SECRETARY_DOC_URI=$(echo "$secretary_metadata" | xmlstarlet sel -N srx="http://w
 SECRETARY_KEY_URI=$(echo "$secretary_metadata" | xmlstarlet sel -N srx="http://www.w3.org/2005/sparql-results#" -T -t -v "/srx:sparql/srx:results/srx:result/srx:binding[@name='key']/srx:uri")
 SECRETARY_KEY_DOC_URI=$(echo "$SECRETARY_KEY_URI" | sed 's|#this$||')
 SECRETARY_KEY_URI="${SECRETARY_KEY_DOC_URI}#this"
-
-printf "\n### Extracted SECRETARY_URI: %s\n" "$SECRETARY_URI"
-printf "\n### Extracted SECRETARY_DOC_URI: %s\n" "$SECRETARY_DOC_URI"
-printf "\n### Extracted SECRETARY_KEY_URI: %s\n" "$SECRETARY_KEY_URI"
-printf "\n### Extracted SECRETARY_KEY_DOC_URI: %s\n" "$SECRETARY_KEY_DOC_URI"
 
 # Note: LOAD_DATASETS check is now done per-app inside the loop
 
