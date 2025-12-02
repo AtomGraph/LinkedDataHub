@@ -217,20 +217,22 @@ if [ "$PROTOCOL" = "https" ]; then
     if [ "$HTTPS_PROXY_PORT" = 443 ]; then
         export BASE_URI="${PROTOCOL}://${HOST}${ABS_PATH}"
         export ADMIN_BASE_URI="${PROTOCOL}://admin.${HOST}${ABS_PATH}"
+        export ORIGIN="${PROTOCOL}://${HOST}"
     else
         export BASE_URI="${PROTOCOL}://${HOST}:${HTTPS_PROXY_PORT}${ABS_PATH}"
         export ADMIN_BASE_URI="${PROTOCOL}://admin.${HOST}:${HTTPS_PROXY_PORT}${ABS_PATH}"
+        export ORIGIN="${PROTOCOL}://${HOST}:${HTTPS_PROXY_PORT}"
     fi
-    export ORIGIN="${PROTOCOL}://${HOST}:${HTTPS_PROXY_PORT}"
 else
     if [ "$HTTP_PROXY_PORT" = 80 ]; then
         export BASE_URI="${PROTOCOL}://${HOST}${ABS_PATH}"
         export ADMIN_BASE_URI="${PROTOCOL}://admin.${HOST}${ABS_PATH}"
+        export ORIGIN="${PROTOCOL}://${HOST}"
     else
         export BASE_URI="${PROTOCOL}://${HOST}:${HTTP_PROXY_PORT}${ABS_PATH}"
         export ADMIN_BASE_URI="${PROTOCOL}://admin.${HOST}:${HTTP_PROXY_PORT}${ABS_PATH}"
+        export ORIGIN="${PROTOCOL}://${HOST}:${HTTP_PROXY_PORT}"
     fi
-    export ORIGIN="${PROTOCOL}://${HOST}:${HTTP_PROXY_PORT}"
 fi
 
 BASE_URI=$(echo "$BASE_URI" | tr '[:upper:]' '[:lower:]') # make sure it's lower-case

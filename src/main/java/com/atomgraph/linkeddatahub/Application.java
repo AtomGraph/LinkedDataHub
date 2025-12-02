@@ -1194,7 +1194,6 @@ public class Application extends ResourceConfig
     /**
      * Matches application by type and request URL.
      * 
-     * @param type app type
      * @param absolutePath request URL without the query string
      * @return app resource or null, if none matched
      */
