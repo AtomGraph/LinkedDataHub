@@ -156,7 +156,7 @@ configs:
 
       http {
           upstream linkeddatahub {
-              server varnish-frontend:6060;
+              server ${NGINX_UPSTREAM_SERVER:-varnish-frontend:6060};
           }
 
           # Exempt internal requests from the linkeddatahub container from rate limiting
@@ -184,7 +184,7 @@ configs:
               ssl_certificate_key /etc/nginx/ssl/server.key;
               ssl_session_cache shared:SSL:1m;
               ssl_prefer_server_ciphers on;
-              ssl_verify_client optional_no_ca;
+              ssl_verify_client ${NGINX_SSL_VERIFY_CLIENT:-optional_no_ca};
 
               location / {
                   proxy_pass http://linkeddatahub;
@@ -272,7 +272,7 @@ configs:
       import std;
 
       backend default {
-          .host = "linkeddatahub";
+          .host = "${VARNISH_FRONTEND_BACKEND_HOST:-linkeddatahub}";
           .port = "7070";
           .first_byte_timeout = 60s;
       }
@@ -377,7 +377,7 @@ configs:
       import std;
 
       backend default {
-          .host = "fuseki-admin";
+          .host = "${VARNISH_ADMIN_BACKEND_HOST:-fuseki-admin}";
           .port = "3030";
           .first_byte_timeout = 60s;
       }
@@ -443,7 +443,7 @@ configs:
       import std;
 
       backend default {
-          .host = "fuseki-end-user";
+          .host = "${VARNISH_END_USER_BACKEND_HOST:-fuseki-end-user}";
           .port = "3030";
           .first_byte_timeout = 60s;
       }
