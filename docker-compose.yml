@@ -113,7 +113,8 @@ services:
     depends_on:
       - linkeddatahub
     tmpfs: /var/lib/varnish/varnishd:exec
-    command: [ "-a", "http=:6060,HTTP", "-a", "proxy=:8443,PROXY", "-p", "feature=+http2", "-s", "file,/var/lib/varnish/storage.bin,3G", "-t", "86400" ] # HTTP and PROXY listeners, http2 support, 3GB disk storage, 86400s TTL
+    entrypoint: varnishd
+    command: [ "-F", "-f", "/etc/varnish/default.vcl", "-a", "http=:6060,HTTP", "-a", "proxy=:8443,PROXY", "-p", "feature=+http2", "-s", "file,/var/lib/varnish/storage.bin,3G", "-t", "86400" ] # -F: foreground, -f: config, -a: listeners, -p: http2, -s: storage, -t: TTL
   varnish-admin:
     image: varnish:7.3.0
     user: root # otherwise the varnish user does not have permissions to the mounted folder which is owner by root
@@ -123,7 +124,8 @@ services:
     depends_on:
       - linkeddatahub
     tmpfs: /var/lib/varnish/varnishd:exec
-    command: [ "-p", "feature=+http2", "-s", "malloc,1G", "-t", "86400", "-p", "timeout_idle=60s" ] # 1GB malloc storage, 86400s TTL, 60s idle timeout
+    entrypoint: varnishd
+    command: [ "-F", "-f", "/etc/varnish/default.vcl", "-a", "http=:80,HTTP", "-a", "proxy=:8443,PROXY", "-p", "feature=+http2", "-s", "malloc,1G", "-t", "86400", "-p", "timeout_idle=60s" ] # -F: foreground, -f: config, -a: listeners, -p: http2 + idle timeout, -s: storage, -t: TTL
   varnish-end-user:
     image: varnish:7.3.0
     user: root # otherwise varnish user does not have permissions to the mounted folder which is owner by root
@@ -133,7 +135,8 @@ services:
     depends_on:
       - linkeddatahub
     tmpfs: /var/lib/varnish/varnishd:exec
-    command: [ "-p", "feature=+http2", "-s", "malloc,1G", "-t", "86400", "-p", "timeout_idle=60s" ] # 1GB malloc storage, 86400s TTL, 60s idle timeout
+    entrypoint: varnishd
+    command: [ "-F", "-f", "/etc/varnish/default.vcl", "-a", "http=:80,HTTP", "-a", "proxy=:8443,PROXY", "-p", "feature=+http2", "-s", "malloc,1G", "-t", "86400", "-p", "timeout_idle=60s" ] # -F: foreground, -f: config, -a: listeners, -p: http2 + idle timeout, -s: storage, -t: TTL
   email-server:
     image: namshi/smtp
     environment:
