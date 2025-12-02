@@ -9,6 +9,8 @@ secrets:
   #  file: ./secrets/google_client_id.txt
   #google_client_secret:
   #  file: ./secrets/google_client_secret.txt
+volumes:
+  varnish_frontend_cache:
 services:
   nginx:
     image: nginx:1.23.3
@@ -113,6 +115,8 @@ services:
     depends_on:
       - linkeddatahub
     tmpfs: /var/lib/varnish/varnishd:exec
+    volumes:
+      - varnish_frontend_cache:/var/lib/varnish
     entrypoint: varnishd
     command: [ "-F", "-f", "/etc/varnish/default.vcl", "-a", "http=:6060,HTTP", "-a", "proxy=:8443,PROXY", "-p", "feature=+http2", "-s", "file,/var/lib/varnish/storage.bin,3G", "-t", "86400" ] # -F: foreground, -f: config, -a: listeners, -p: http2, -s: storage, -t: TTL
   varnish-admin:
