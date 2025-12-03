@@ -33,6 +33,7 @@ import org.apache.jena.util.LocationMapper;
 import jakarta.annotation.PostConstruct;
 import jakarta.servlet.ServletConfig;
 import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.Response;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFFormat;
 import org.apache.jena.riot.RDFWriterRegistry;
@@ -41,6 +42,7 @@ import com.atomgraph.client.util.DataManager;
 import com.atomgraph.client.util.DataManagerImpl;
 import com.atomgraph.client.vocabulary.AC;
 import com.atomgraph.client.writer.function.UUID;
+import com.atomgraph.core.client.SPARQLClient;
 import com.atomgraph.core.exception.ConfigurationException;
 import com.atomgraph.core.io.DatasetProvider;
 import com.atomgraph.core.io.ModelProvider;
@@ -162,6 +164,7 @@ import jakarta.servlet.ServletContext;
 import javax.xml.transform.Source;
 import org.apache.jena.ontology.Ontology;
 import org.apache.jena.query.Dataset;
+import org.apache.jena.query.ParameterizedSparqlString;
 import org.apache.jena.query.Query;
 import org.apache.jena.query.QueryExecution;
 import org.apache.jena.query.QueryFactory;
@@ -219,14 +222,12 @@ import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpCoreContext;
 import org.apache.jena.query.DatasetFactory;
-import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.ResIterator;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.riot.resultset.ResultSetLang;
 import org.apache.jena.riot.system.ErrorHandlerFactory;
 import org.apache.jena.riot.system.ParserProfile;
 import org.apache.jena.riot.system.RiotLib;
-import org.apache.jena.sparql.graph.GraphReadOnly;
 import org.apache.jena.vocabulary.DCTerms;
 import org.apache.jena.vocabulary.LocationMappingVocab;
 import org.apache.jena.vocabulary.RDF;
@@ -290,8 +291,9 @@ public class Application extends ResourceConfig
     private final boolean enableWebIDSignUp;
     private final String oidcRefreshTokensPropertiesPath;
     private final Properties oidcRefreshTokens;
-
-    private Dataset contextDataset;
+    private final String contextEndpoint;
+    private final Query applicationQuery;
+    private final Query datasetQuery;
     
     /**
      * Constructs system application and configures it using sevlet config.
@@ -342,6 +344,9 @@ public class Application extends ResourceConfig
             servletConfig.getServletContext().getInitParameter(LDHC.supportedLanguages.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.supportedLanguages.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(LDHC.enableWebIDSignUp.getURI()) != null ? Boolean.parseBoolean(servletConfig.getServletContext().getInitParameter(LDHC.enableWebIDSignUp.getURI())) : true,
             servletConfig.getServletContext().getInitParameter(LDHC.oidcRefreshTokens.getURI()),
+            servletConfig.getServletContext().getInitParameter(LDHC.contextEndpoint.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.contextEndpoint.getURI()) : null,
+            servletConfig.getServletContext().getInitParameter(LDHC.applicationQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.applicationQuery.getURI()) : null,
+            servletConfig.getServletContext().getInitParameter(LDHC.datasetQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.datasetQuery.getURI()) : null,
             servletConfig.getServletContext().getInitParameter("mail.user") != null ? servletConfig.getServletContext().getInitParameter("mail.user") : null,
             servletConfig.getServletContext().getInitParameter("mail.password") != null ? servletConfig.getServletContext().getInitParameter("mail.password") : null,
             servletConfig.getServletContext().getInitParameter("mail.smtp.host") != null ? servletConfig.getServletContext().getInitParameter("mail.smtp.host") : null,
@@ -351,14 +356,6 @@ public class Application extends ResourceConfig
             servletConfig.getServletContext().getInitParameter(ORCID.clientID.getURI()) != null ? servletConfig.getServletContext().getInitParameter(ORCID.clientID.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(ORCID.clientSecret.getURI()) != null ? servletConfig.getServletContext().getInitParameter(ORCID.clientSecret.getURI()) : null
         );
-
-        URI contextDatasetURI = servletConfig.getServletContext().getInitParameter(LDHC.contextDataset.getURI()) != null ? new URI(servletConfig.getServletContext().getInitParameter(LDHC.contextDataset.getURI())) : null;
-        if (contextDatasetURI == null)
-        {
-            if (log.isErrorEnabled()) log.error("Context dataset URI '{}' not configured", LDHC.contextDataset.getURI());
-            throw new ConfigurationException(LDHC.contextDataset);
-        }
-        this.contextDataset = getDataset(servletConfig.getServletContext(), contextDatasetURI);
     }
     
     /**
@@ -403,6 +400,9 @@ public class Application extends ResourceConfig
      * @param supportedLanguageCodes comma-separated codes of supported languages
      * @param enableWebIDSignUp true if WebID signup is enabled
      * @param oidcRefreshTokensPropertiesPath path to the properties file with OIDC refresh tokens
+     * @param contextEndpointURI SPARQL endpoint to load the application and dataset RDF metadata from
+     * @param applicationQueryString SPARQL query string that returns configured applications
+     * @param datasetQueryString SPARQL query string that returns configured datasets
      * @param mailUser username of the SMTP email server
      * @param mailPassword password of the SMTP email server
      * @param smtpHost hostname of the SMTP email server
@@ -425,6 +425,7 @@ public class Application extends ResourceConfig
             final Integer cookieMaxAge, final boolean enableLinkedDataProxy, final Integer maxContentLength,
             final Integer maxConnPerRoute, final Integer maxTotalConn, final Integer maxRequestRetries, final Integer maxImportThreads,
             final String notificationAddressString, final String supportedLanguageCodes, final boolean enableWebIDSignUp, final String oidcRefreshTokensPropertiesPath,
+            final String contextEndpointURI, final String applicationQueryString, final String datasetQueryString,
             final String mailUser, final String mailPassword, final String smtpHost, final String smtpPort,
             final String googleClientID, final String googleClientSecret,
             final String orcidClientID, final String orcidClientSecret)
@@ -538,6 +539,26 @@ public class Application extends ResourceConfig
         }
         this.supportedLanguages = Arrays.asList(supportedLanguageCodes.split(",")).stream().map(code -> Locale.forLanguageTag(code)).collect(Collectors.toList());
         
+        if (contextEndpointURI == null)
+        {
+            if (log.isErrorEnabled()) log.error("Context endpoint URI '{}' not configured", LDHC.contextEndpoint.getURI());
+            throw new ConfigurationException(LDHC.contextEndpoint);
+        }
+        this.contextEndpoint = contextEndpointURI;
+
+        if (applicationQueryString == null)
+        {
+            if (log.isErrorEnabled()) log.error("Application SPARQL query is not configured properly");
+            throw new ConfigurationException(LDHC.applicationQuery);
+        }
+        this.applicationQuery = QueryFactory.create(applicationQueryString);
+        if (datasetQueryString == null)
+        {
+            if (log.isErrorEnabled()) log.error("Dataset SPARQL query is not configured properly");
+            throw new ConfigurationException(LDHC.datasetQuery);
+        }
+        this.datasetQuery = QueryFactory.create(datasetQueryString);
+
         this.servletConfig = servletConfig;
         this.mediaTypes = mediaTypes;
         this.maxGetRequestSize = maxGetRequestSize;
@@ -1234,13 +1255,13 @@ public class Application extends ResourceConfig
     
     /**
      * Matches application by type and request URL.
-     * 
+     *
      * @param absolutePath request URL without the query string
      * @return app resource or null, if none matched
      */
     public Resource matchApp(URI absolutePath)
     {
-        return getAppByOrigin(getContextModel(), LAPP.Application, absolutePath); // make sure we return an immutable model
+        return getAppByOrigin(LAPP.Application, absolutePath);
     }
     
     /**
@@ -1285,42 +1306,53 @@ public class Application extends ResourceConfig
     }
 
     /**
-     * Finds application by origin matching from the application model.
+     * Finds application by origin matching by querying the context SPARQL endpoint.
      * Applications are filtered by type first.
      *
-     * @param model application model
      * @param type application type
      * @param absolutePath request URL (without the query string)
      * @return app resource or null if no match found
      */
-    public Resource getAppByOrigin(Model model, Resource type, URI absolutePath)
+    public Resource getAppByOrigin(Resource type, URI absolutePath)
     {
-        if (model == null) throw new IllegalArgumentException("Model cannot be null");
         if (type == null) throw new IllegalArgumentException("Resource cannot be null");
         if (absolutePath == null) throw new IllegalArgumentException("URI cannot be null");
 
         String requestOrigin = normalizeOrigin(absolutePath);
 
-        ResIterator it = model.listSubjectsWithProperty(RDF.type, type);
-        try
-        {
-            while (it.hasNext())
-            {
-                Resource app = it.next();
+        // Build parameterized query from the configured application query
+        ParameterizedSparqlString pss = new ParameterizedSparqlString(getApplicationQuery().toString());
+        pss.setIri(RDF.type.getLocalName(), type.getURI());
 
-                // Use origin-based matching - return immediately on match since origins are unique
-                if (app.hasProperty(LDH.origin))
+        SPARQLClient sparqlClient = SPARQLClient.create(getMediaTypes(), getClient().target(getContextEndpoint()));
+        try (Response cr = sparqlClient.query(pss.asQuery(), Model.class))
+        {
+            Model model = cr.readEntity(Model.class);
+
+            // Iterate through the results and match by normalized origin
+            ResIterator it = model.listSubjectsWithProperty(RDF.type, type);
+            try
+            {
+                while (it.hasNext())
                 {
+                    Resource app = it.next();
+
+                    if (!app.hasProperty(LDH.origin))
+                    {
+                        if (log.isErrorEnabled()) log.error("Application with URI <'{}'> is missing a <{}> value", app.getURI(), LDH.origin);
+                        throw new ConfigurationException(LDH.origin);
+                    }
+                    
                     URI appOriginURI = URI.create(app.getPropertyResourceValue(LDH.origin).getURI());
                     String normalizedAppOrigin = normalizeOrigin(appOriginURI);
 
                     if (requestOrigin.equals(normalizedAppOrigin)) return app;
                 }
             }
-        }
-        finally
-        {
-            it.close();
+            finally
+            {
+                it.close();
+            }
         }
 
         return null;
@@ -1335,7 +1367,19 @@ public class Application extends ResourceConfig
      */
     public Resource matchDataset(Resource type, URI absolutePath)
     {
-        return matchDataset(getContextModel(), type, absolutePath); // make sure we return an immutable model
+        if (type == null) throw new IllegalArgumentException("Resource cannot be null");
+        if (absolutePath == null) throw new IllegalArgumentException("URI cannot be null");
+
+        // Build parameterized query from the configured dataset query
+        ParameterizedSparqlString pss = new ParameterizedSparqlString(getDatasetQuery().toString());
+        pss.setIri(RDF.type.getLocalName(), type.getURI());
+
+        SPARQLClient sparqlClient = SPARQLClient.create(getMediaTypes(), getClient().target(getContextEndpoint()));
+        try (Response cr = sparqlClient.query(pss.asQuery(), Model.class))
+        {
+            Model model = cr.readEntity(Model.class);
+            return getLongestURIResource(getLengthMap(getRelativeDatasets(model, type, absolutePath)));
+        }
     }
     
     /**
@@ -1941,23 +1985,23 @@ public class Application extends ResourceConfig
     }
     
     /**
-     * Returns RDF dataset with LinkedDataHub application descriptions.
-     * 
-     * @return RDF dataset
+     * Returns the context SPARQL endpoint URL for querying application metadata.
+     *
+     * @return SPARQL endpoint URL
      */
-    protected Dataset getContextDataset()
+    protected String getContextEndpoint()
     {
-        return contextDataset;
+        return contextEndpoint;
     }
 
-    /**
-     * Returns RDF model with LinkedDataHub application descriptions.
-     * 
-     * @return RDF model
-     */
-    public Model getContextModel()
+    protected Query getApplicationQuery()
     {
-        return ModelFactory.createModelForGraph(new GraphReadOnly(getContextDataset().getDefaultModel().getGraph()));
+        return applicationQuery;
+    }
+
+    protected Query getDatasetQuery()
+    {
+        return datasetQuery;
     }
 
     /**

@@ -1,9 +1,12 @@
 @prefix def:	<https://w3id.org/atomgraph/linkeddatahub/default#> .
 @prefix ldh:	<https://w3id.org/atomgraph/linkeddatahub#> .
-@prefix ac:	    <https://w3id.org/atomgraph/client#> .
+@prefix lapp:	<https://w3id.org/atomgraph/linkeddatahub/apps#> .
+@prefix a:	<https://w3id.org/atomgraph/core#> .
+@prefix ac:	<https://w3id.org/atomgraph/client#> .
 @prefix rdf:	<http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix xsd:	<http://www.w3.org/2001/XMLSchema#> .
-@prefix dh:	    <https://www.w3.org/ns/ldt/document-hierarchy#> .
+@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy#> .
+@prefix ldt:	<https://www.w3.org/ns/ldt#> .
 @prefix sd:     <http://www.w3.org/ns/sparql-service-description#> .
 @prefix sp:	    <http://spinrdf.org/sp#> .
 @prefix sioc:	<http://rdfs.org/sioc/ns#> .
@@ -420,5 +423,303 @@ WHERE
         dct:description "Public SPARQL endpoint providing access to Wikidata, a free and open knowledge base that acts as central storage for the structured data of Wikimedia projects including Wikipedia, Wikivoyage, Wiktionary, Wikisource, and others." ;
         sd:endpoint <https://query.wikidata.org/sparql> ;
         sd:supportedLanguage sd:SPARQL11Query .
+
+}
+
+# APPLICATIONS & SERVICES (merged from config/system.trig)
+
+<apps/linkeddatahub/end-user/>
+{
+
+    <apps/linkeddatahub/end-user/> a dh:Item ;
+        sioc:has_container <apps/> ;
+        dct:title "LinkedDataHub" ;
+        foaf:primaryTopic <apps/linkeddatahub/end-user/#this> .
+
+    <apps/linkeddatahub/end-user/#this> a lapp:Application, lapp:EndUserApplication ;
+        dct:title "LinkedDataHub" ;
+        ldh:origin <https://localhost:4443> ;
+        ldt:ontology <https://localhost:4443/ns#> ;
+        ldt:service <services/linkeddatahub/end-user/#this> ;
+        lapp:adminApplication <apps/linkeddatahub/admin/#this> ;
+        lapp:frontendProxy <http://varnish-frontend:6060/> ;
+        lapp:public true .
+
+}
+
+<apps/linkeddatahub/admin/>
+{
+
+    <apps/linkeddatahub/admin/> a dh:Item ;
+        sioc:has_container <apps/> ;
+        dct:title "LinkedDataHub admin" ;
+        foaf:primaryTopic <apps/linkeddatahub/admin/#this> .
+
+    <apps/linkeddatahub/admin/#this> a lapp:Application, lapp:AdminApplication ;
+        dct:title "LinkedDataHub admin" ;
+        ldh:origin <https://admin.localhost:4443> ;
+        ldt:ontology <https://w3id.org/atomgraph/linkeddatahub/admin#> ;
+        ldt:service <services/linkeddatahub/admin/#this> ;
+        ac:stylesheet <static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/admin/layout.xsl> ;
+        lapp:endUserApplication <apps/linkeddatahub/end-user/#this> ;
+        lapp:frontendProxy <http://varnish-frontend:6060/> .
+
+}
+
+<services/linkeddatahub/end-user/>
+{
+
+    <services/linkeddatahub/end-user/> a dh:Item ;
+        sioc:has_container <services/> ;
+        dct:title "LinkedDataHub service" ;
+        foaf:primaryTopic <services/linkeddatahub/end-user/#this> .
+
+    <services/linkeddatahub/end-user/#this> a sd:Service ;
+        dct:title "LinkedDataHub service" ;
+        sd:supportedLanguage sd:SPARQL11Query, sd:SPARQL11Update ;
+        sd:endpoint <http://fuseki-end-user:3030/ds/> ;
+        a:graphStore <http://fuseki-end-user:3030/ds/> ;
+        a:quadStore <http://fuseki-end-user:3030/ds/> ;
+        lapp:backendProxy <http://varnish-end-user/> .
+
+}
+
+<services/linkeddatahub/admin/>
+{
+
+    <services/linkeddatahub/admin/> a dh:Item ;
+        sioc:has_container <services/> ;
+        dct:title "LinkedDataHub admin service" ;
+        foaf:primaryTopic <services/linkeddatahub/admin/#this> .
+
+    <services/linkeddatahub/admin/#this> a sd:Service ;
+        dct:title "LinkedDataHub admin service" ;
+        sd:supportedLanguage sd:SPARQL11Query, sd:SPARQL11Update ;
+        sd:endpoint <http://fuseki-admin:3030/ds/> ;
+        a:graphStore <http://fuseki-admin:3030/ds/> ;
+        a:quadStore <http://fuseki-admin:3030/ds/> ;
+        lapp:backendProxy <http://varnish-admin/> .
+
+}
+
+<apps/papers/end-user/>
+{
+
+    <apps/papers/end-user/> a dh:Item ;
+        sioc:has_container <apps/> ;
+        dct:title "Papers" ;
+        foaf:primaryTopic <apps/papers/end-user/#this> .
+
+    <apps/papers/end-user/#this> a lapp:Application, lapp:EndUserApplication ;
+        dct:title "Papers" ;
+        ldh:origin <https://papers.localhost:4443> ;
+        ldt:ontology <https://papers.localhost:4443/ns#> ;
+        ldt:service <services/papers/end-user/#this> ;
+        lapp:adminApplication <apps/papers/admin/#this> ;
+        lapp:frontendProxy <http://varnish-frontend:6060/> ;
+        lapp:public true .
+
+}
+
+<apps/papers/admin/>
+{
+
+    <apps/papers/admin/> a dh:Item ;
+        sioc:has_container <apps/> ;
+        dct:title "Papers admin" ;
+        foaf:primaryTopic <apps/papers/admin/#this> .
+
+    <apps/papers/admin/#this> a lapp:Application, lapp:AdminApplication ;
+        dct:title "Papers admin" ;
+        ldh:origin <https://admin.papers.localhost:4443> ;
+        ldt:ontology <https://w3id.org/atomgraph/linkeddatahub/admin#> ;
+        ldt:service <services/papers/admin/#this> ;
+        ac:stylesheet <static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/admin/layout.xsl> ;
+        lapp:endUserApplication <apps/papers/end-user/#this> ;
+        lapp:frontendProxy <http://varnish-frontend:6060/> .
+
+}
+
+<services/papers/end-user/>
+{
+
+    <services/papers/end-user/> a dh:Item ;
+        sioc:has_container <services/> ;
+        dct:title "Papers service" ;
+        foaf:primaryTopic <services/papers/end-user/#this> .
+
+    <services/papers/end-user/#this> a sd:Service ;
+        dct:title "Papers service" ;
+        sd:supportedLanguage sd:SPARQL11Query, sd:SPARQL11Update ;
+        sd:endpoint <http://fuseki-end-user:3030/ds/> ;
+        a:graphStore <http://fuseki-end-user:3030/ds/> ;
+        a:quadStore <http://fuseki-end-user:3030/ds/> ;
+        lapp:backendProxy <http://varnish-end-user/> .
+
+}
+
+<services/papers/admin/>
+{
+
+    <services/papers/admin/> a dh:Item ;
+        sioc:has_container <services/> ;
+        dct:title "Papers admin service" ;
+        foaf:primaryTopic <services/papers/admin/#this> .
+
+    <services/papers/admin/#this> a sd:Service ;
+        dct:title "Papers admin service" ;
+        sd:supportedLanguage sd:SPARQL11Query, sd:SPARQL11Update ;
+        sd:endpoint <http://fuseki-admin:3030/ds/> ;
+        a:graphStore <http://fuseki-admin:3030/ds/> ;
+        a:quadStore <http://fuseki-admin:3030/ds/> ;
+        lapp:backendProxy <http://varnish-admin/> .
+
+}
+
+<apps/swib/end-user/>
+{
+
+    <apps/swib/end-user/> a dh:Item ;
+        sioc:has_container <apps/> ;
+        dct:title "SWIB" ;
+        foaf:primaryTopic <apps/swib/end-user/#this> .
+
+    <apps/swib/end-user/#this> a lapp:Application, lapp:EndUserApplication ;
+        dct:title "SWIB" ;
+        ldh:origin <https://swib.localhost:4443> ;
+        ldt:ontology <https://swib.localhost:4443/ns#> ;
+        ldt:service <services/swib/end-user/#this> ;
+        lapp:adminApplication <apps/swib/admin/#this> ;
+        lapp:frontendProxy <http://varnish-frontend:6060/> ;
+        lapp:public true .
+
+}
+
+<apps/swib/admin/>
+{
+
+    <apps/swib/admin/> a dh:Item ;
+        sioc:has_container <apps/> ;
+        dct:title "SWIB admin" ;
+        foaf:primaryTopic <apps/swib/admin/#this> .
+
+    <apps/swib/admin/#this> a lapp:Application, lapp:AdminApplication ;
+        dct:title "SWIB admin" ;
+        ldh:origin <https://admin.swib.localhost:4443> ;
+        ldt:ontology <https://w3id.org/atomgraph/linkeddatahub/admin#> ;
+        ldt:service <services/swib/admin/#this> ;
+        ac:stylesheet <static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/admin/layout.xsl> ;
+        lapp:endUserApplication <apps/swib/end-user/#this> ;
+        lapp:frontendProxy <http://varnish-frontend:6060/> .
+
+}
+
+<services/swib/end-user/>
+{
+
+    <services/swib/end-user/> a dh:Item ;
+        sioc:has_container <services/> ;
+        dct:title "SWIB service" ;
+        foaf:primaryTopic <services/swib/end-user/#this> .
+
+    <services/swib/end-user/#this> a sd:Service ;
+        dct:title "SWIB service" ;
+        sd:supportedLanguage sd:SPARQL11Query, sd:SPARQL11Update ;
+        sd:endpoint <http://fuseki-end-user:3030/ds/> ;
+        a:graphStore <http://fuseki-end-user:3030/ds/> ;
+        a:quadStore <http://fuseki-end-user:3030/ds/> ;
+        lapp:backendProxy <http://varnish-end-user/> .
+
+}
+
+<services/swib/admin/>
+{
+
+    <services/swib/admin/> a dh:Item ;
+        sioc:has_container <services/> ;
+        dct:title "SWIB admin service" ;
+        foaf:primaryTopic <services/swib/admin/#this> .
+
+    <services/swib/admin/#this> a sd:Service ;
+        dct:title "SWIB admin service" ;
+        sd:supportedLanguage sd:SPARQL11Query, sd:SPARQL11Update ;
+        sd:endpoint <http://fuseki-admin:3030/ds/> ;
+        a:graphStore <http://fuseki-admin:3030/ds/> ;
+        a:quadStore <http://fuseki-admin:3030/ds/> ;
+        lapp:backendProxy <http://varnish-admin/> .
+
+}
+
+<apps/portal/end-user/>
+{
+
+    <apps/portal/end-user/> a dh:Item ;
+        sioc:has_container <apps/> ;
+        dct:title "Portal" ;
+        foaf:primaryTopic <apps/portal/end-user/#this> .
+
+    <apps/portal/end-user/#this> a lapp:Application, lapp:EndUserApplication ;
+        dct:title "Portal" ;
+        ldh:origin <https://portal.localhost:4443> ;
+        ldt:ontology <https://portal.localhost:4443/ns#> ;
+        ldt:service <services/portal/end-user/#this> ;
+        lapp:adminApplication <apps/portal/admin/#this> ;
+        lapp:frontendProxy <http://varnish-frontend:6060/> ;
+        lapp:public true .
+
+}
+
+<apps/portal/admin/>
+{
+
+    <apps/portal/admin/> a dh:Item ;
+        sioc:has_container <apps/> ;
+        dct:title "Portal admin" ;
+        foaf:primaryTopic <apps/portal/admin/#this> .
+
+    <apps/portal/admin/#this> a lapp:Application, lapp:AdminApplication ;
+        dct:title "Portal admin" ;
+        ldh:origin <https://admin.portal.localhost:4443> ;
+        ldt:ontology <https://w3id.org/atomgraph/linkeddatahub/admin#> ;
+        ldt:service <services/portal/admin/#this> ;
+        ac:stylesheet <static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/admin/layout.xsl> ;
+        lapp:endUserApplication <apps/portal/end-user/#this> ;
+        lapp:frontendProxy <http://varnish-frontend:6060/> .
+
+}
+
+<services/portal/end-user/>
+{
+
+    <services/portal/end-user/> a dh:Item ;
+        sioc:has_container <services/> ;
+        dct:title "Portal service" ;
+        foaf:primaryTopic <services/portal/end-user/#this> .
+
+    <services/portal/end-user/#this> a sd:Service ;
+        dct:title "Portal service" ;
+        sd:supportedLanguage sd:SPARQL11Query, sd:SPARQL11Update ;
+        sd:endpoint <http://fuseki-end-user:3030/ds/> ;
+        a:graphStore <http://fuseki-end-user:3030/ds/> ;
+        a:quadStore <http://fuseki-end-user:3030/ds/> ;
+        lapp:backendProxy <http://varnish-end-user/> .
+
+}
+
+<services/portal/admin/>
+{
+
+    <services/portal/admin/> a dh:Item ;
+        sioc:has_container <services/> ;
+        dct:title "Portal admin service" ;
+        foaf:primaryTopic <services/portal/admin/#this> .
+
+    <services/portal/admin/#this> a sd:Service ;
+        dct:title "Portal admin service" ;
+        sd:supportedLanguage sd:SPARQL11Query, sd:SPARQL11Update ;
+        sd:endpoint <http://fuseki-admin:3030/ds/> ;
+        a:graphStore <http://fuseki-admin:3030/ds/> ;
+        a:quadStore <http://fuseki-admin:3030/ds/> ;
+        lapp:backendProxy <http://varnish-admin/> .
 
 }

@@ -137,8 +137,14 @@ public class LDHC
     /** Signup cert validity property */
     public static final DatatypeProperty signUpCertValidity = m_model.createDatatypeProperty( NS + "signUpCertValidity" );
 
-    /** Context dataset property */
-    public static final ObjectProperty contextDataset = m_model.createObjectProperty( NS + "contextDataset" );
+    /** Context endpoint property */
+    public static final ObjectProperty contextEndpoint = m_model.createObjectProperty( NS + "contextEndpoint" );
+
+    /** Application query property */
+    public static final DatatypeProperty applicationQuery = m_model.createDatatypeProperty( NS + "applicationQuery" );
+
+    /** Dataset query property */
+    public static final DatatypeProperty datasetQuery = m_model.createDatatypeProperty( NS + "datasetQuery" );
 
     /** Max connections per route property */
     public static final DatatypeProperty maxConnPerRoute = m_model.createDatatypeProperty( NS + "maxConnPerRoute" );

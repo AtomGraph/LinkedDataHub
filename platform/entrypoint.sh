@@ -181,8 +181,8 @@ if [ -z "$SIGN_UP_CERT_VALIDITY" ]; then
     exit 1
 fi
 
-if [ -z "$CONTEXT_DATASET_URL" ]; then
-    echo '$CONTEXT_DATASET_URL not set'
+if [ -z "$CONTEXT_ENDPOINT_URL" ]; then
+    echo '$CONTEXT_ENDPOINT_URL not set'
     exit 1
 fi
 
@@ -509,29 +509,26 @@ SECRETARY_KEY_URI="${SECRETARY_KEY_DOC_URI}#this"
 
 # Note: LOAD_DATASETS check is now done per-app inside the loop
 
-# base the $CONTEXT_DATASET
+# extract app metadata from the end-user dataset for entrypoint initialization
 
-webapp_context_dataset="/WEB-INF/classes/com/atomgraph/linkeddatahub/system.nq"
-based_context_dataset="${PWD}/webapps/ROOT${webapp_context_dataset}"
+based_end_user_dataset=$(mktemp --suffix=.nq)
 
-case "$CONTEXT_DATASET_URL" in
+case "$END_USER_DATASET_URL" in
     "file://"*)
-        CONTEXT_DATASET=$(echo "$CONTEXT_DATASET_URL" | cut -c 8-) # strip leading file://
+        END_USER_DATASET=$(echo "$END_USER_DATASET_URL" | cut -c 8-) # strip leading file://
 
-        printf "\n### Reading context dataset from a local file: %s\n" "$CONTEXT_DATASET" ;;
-    *)  
-        CONTEXT_DATASET=$(mktemp)
+        printf "\n### Reading end-user dataset from a local file for app extraction: %s\n" "$END_USER_DATASET" ;;
+    *)
+        END_USER_DATASET=$(mktemp)
 
-        printf "\n### Downloading context dataset from a URL: %s\n" "$CONTEXT_DATASET_URL"
+        printf "\n### Downloading end-user dataset from a URL for app extraction: %s\n" "$END_USER_DATASET_URL"
 
-        curl "$CONTEXT_DATASET_URL" > "$CONTEXT_DATASET" ;;
+        curl "$END_USER_DATASET_URL" > "$END_USER_DATASET" ;;
 esac
 
-trig --base="$BASE_URI" "$CONTEXT_DATASET" > "$based_context_dataset"
+trig --base="$BASE_URI" --output=nq "$END_USER_DATASET" > "$based_end_user_dataset"
 
-sparql --data="$based_context_dataset" --query="select-root-services.rq" --results=XML > root_service_metadata.xml
-
-# extract app metadata from the system dataset using SPARQL and XPath queries
+sparql --data="$based_end_user_dataset" --query="select-root-services.rq" --results=XML > root_service_metadata.xml
 
 readarray apps < <(xmlstarlet sel -B \
     -N srx="http://www.w3.org/2005/sparql-results#" \
@@ -625,10 +622,10 @@ for app in "${apps[@]}"; do
     # append ownership metadata to apps if it's not present (apps have to be URI resources!)
 
     if [ -z "$end_user_owner" ]; then
-        echo "<${end_user_app}> <http://xmlns.com/foaf/0.1/maker> <${OWNER_URI}> ." >> "$based_context_dataset"
+        echo "<${end_user_app}> <http://xmlns.com/foaf/0.1/maker> <${OWNER_URI}> ." >> "$based_end_user_dataset"
     fi
     if [ -z "$admin_owner" ]; then
-        echo "<${admin_app}> <http://xmlns.com/foaf/0.1/maker> <${OWNER_URI}> ." >> "$based_context_dataset"
+        echo "<${admin_app}> <http://xmlns.com/foaf/0.1/maker> <${OWNER_URI}> ." >> "$based_end_user_dataset"
     fi
 
     printf "\n### Quad store URL of the root end-user service: %s\n" "$end_user_quad_store_url"
@@ -848,8 +845,8 @@ CLIENT_KEYSTORE_PASSWORD_PARAM="--stringparam ldhc:clientKeyStorePassword '$CLIE
 CLIENT_TRUSTSTORE_PASSWORD_PARAM="--stringparam ldhc:clientTrustStorePassword '$CLIENT_TRUSTSTORE_PASSWORD' "
 UPLOAD_ROOT_PARAM="--stringparam ldhc:uploadRoot 'file://$UPLOAD_ROOT' "
 SIGN_UP_CERT_VALIDITY_PARAM="--stringparam ldhc:signUpCertValidity '$SIGN_UP_CERT_VALIDITY' "
-CONTEXT_DATASET_PARAM="--stringparam ldhc:contextDataset '$webapp_context_dataset' "
-MAIL_SMTP_HOST_PARAM="--stringparam mail.smtp.host '$MAIL_SMTP_HOST' "
+CONTEXT_ENDPOINT_PARAM="--stringparam ldhc:contextEndpoint '$CONTEXT_ENDPOINT_URL' "
+MAIL_SMTP_HOST_PARAM="--stringparam ldhc:mail.smtp.host '$MAIL_SMTP_HOST' "
 MAIL_SMTP_PORT_PARAM="--stringparam mail.smtp.port '$MAIL_SMTP_PORT' "
 MAIL_USER_PARAM="--stringparam mail.user '$MAIL_USER' "
 
@@ -967,7 +964,7 @@ transform="xsltproc \
   $CLIENT_TRUSTSTORE_PASSWORD_PARAM \
   $UPLOAD_ROOT_PARAM \
   $SIGN_UP_CERT_VALIDITY_PARAM \
-  $CONTEXT_DATASET_PARAM \
+  $CONTEXT_ENDPOINT_PARAM \
   $AUTH_QUERY_PARAM \
   $OWNER_AUTH_QUERY_PARAM \
   $ENABLE_LINKED_DATA_PROXY_PARAM \

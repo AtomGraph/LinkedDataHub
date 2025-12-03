@@ -55,6 +55,7 @@ services:
       - HTTP_REDIRECT_PORT=${HTTPS_PORT}
       - HTTPS_PROXY_PORT=${HTTPS_PORT}
       - HTTPS=false
+      - CONTEXT_ENDPOINT_URL=http://fuseki-end-user:3030/ds/
       - SELF_SIGNED_CERT=true # only on localhost
       - SIGN_UP_CERT_VALIDITY=180
       - MAX_CONTENT_LENGTH=${MAX_CONTENT_LENGTH:-2097152}
@@ -93,7 +94,8 @@ services:
       - ./datasets/secretary:/var/linkeddatahub/datasets/secretary
       - ./uploads:/var/www/linkeddatahub/uploads
       - ./config/dev.log4j.properties:/usr/local/tomcat/webapps/ROOT/WEB-INF/classes/log4j.properties:ro
-      - ./config/system.trig:/var/linkeddatahub/datasets/system.trig:ro
+      - ./platform/datasets/end-user.trig:/var/linkeddatahub/datasets/end-user.trig:ro
+      - ./platform/datasets/admin.trig:/var/linkeddatahub/datasets/admin.trig:ro
   fuseki-admin:
     image: atomgraph/fuseki:4.7.0
     user: root # otherwise fuseki user does not have permissions to the mounted folder which is owner by root

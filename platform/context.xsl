@@ -32,7 +32,7 @@ xmlns:orcid="&orcid;"
     <xsl:param name="ldhc:clientTrustStorePassword"/>
     <xsl:param name="ldhc:uploadRoot"/>
     <xsl:param name="ldhc:signUpCertValidity"/>
-    <xsl:param name="ldhc:contextDataset"/>
+    <xsl:param name="ldhc:contextEndpoint"/>
     <xsl:param name="ldhc:authQuery"/>
     <xsl:param name="ldhc:ownerAuthQuery"/>
     <xsl:param name="ldhc:enableLinkedDataProxy"/>
@@ -108,8 +108,8 @@ xmlns:orcid="&orcid;"
             <xsl:if test="$ldhc:signUpCertValidity">
                 <Parameter name="&ldhc;signUpCertValidity" value="{$ldhc:signUpCertValidity}" override="false"/>
             </xsl:if>
-            <xsl:if test="$ldhc:contextDataset">
-                <Parameter name="&ldhc;contextDataset" value="{$ldhc:contextDataset}" override="false"/>
+            <xsl:if test="$ldhc:contextEndpoint">
+                <Parameter name="&ldhc;contextEndpoint" value="{$ldhc:contextEndpoint}" override="false"/>
             </xsl:if>
             <xsl:if test="$ldhc:authQuery">
                 <Parameter name="&ldhc;authQuery" value="{$ldhc:authQuery}" override="false"/>

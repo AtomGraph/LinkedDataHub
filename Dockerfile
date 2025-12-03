@@ -89,7 +89,7 @@ ENV SIGN_UP_CERT_VALIDITY=
 
 ENV LOAD_DATASETS=
 
-ENV CONTEXT_DATASET_URL=file:///var/linkeddatahub/datasets/system.trig
+ENV CONTEXT_ENDPOINT_URL=
 
 ENV ADMIN_DATASET_URL=file:///var/linkeddatahub/datasets/admin.trig
 
@@ -160,12 +160,6 @@ COPY platform/root-owner-authorization.trig.template root-owner-authorization.tr
 # copy the metadata of the namespace ontology
 
 COPY platform/namespace-ontology.trig.template namespace-ontology.trig.template
-
-# copy default datasets
-
-COPY platform/datasets/admin.trig /var/linkeddatahub/datasets/admin.trig
-
-COPY platform/datasets/end-user.trig /var/linkeddatahub/datasets/end-user.trig
 
 # copy sitemap query & stylesheet
 

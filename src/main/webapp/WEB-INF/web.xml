@@ -200,8 +200,8 @@ SELECT *
         <param-value><![CDATA[
 PREFIX  owl:  <http://www.w3.org/2002/07/owl#>
 
-CONSTRUCT 
-  { 
+CONSTRUCT
+  {
     ?s ?p ?o .
   }
 WHERE
@@ -215,6 +215,32 @@ WHERE
           { ?s  ?p  ?o }
       }
   }
+]]></param-value>
+    </context-param>
+    <context-param>
+        <param-name>https://w3id.org/atomgraph/linkeddatahub/config#applicationQuery</param-name>
+        <param-value><![CDATA[
+PREFIX ldh: <https://w3id.org/atomgraph/linkeddatahub#>
+
+DESCRIBE ?app
+WHERE {
+  GRAPH ?g {
+    ?app ldh:origin ?origin .
+  }
+}
+]]></param-value>
+    </context-param>
+    <context-param>
+        <param-name>https://w3id.org/atomgraph/linkeddatahub/config#datasetQuery</param-name>
+        <param-value><![CDATA[
+PREFIX lapp: <https://w3id.org/atomgraph/linkeddatahub/apps#>
+
+DESCRIBE ?dataset
+WHERE {
+  GRAPH ?g {
+    ?dataset lapp:prefix ?prefix .
+  }
+}
 ]]></param-value>
     </context-param>
 <!--    <context-param>
