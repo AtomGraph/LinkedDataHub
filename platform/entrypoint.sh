@@ -940,6 +940,16 @@ if [ -f "/run/secrets/google_client_secret" ]; then
     GOOGLE_CLIENT_SECRET_PARAM="--stringparam google:clientSecret '$GOOGLE_CLIENT_SECRET' "
 fi
 
+if [ -f "/run/secrets/orcid_client_id" ]; then
+    ORCID_CLIENT_ID=$(cat /run/secrets/orcid_client_id)
+    ORCID_CLIENT_ID_PARAM="--stringparam orcid:clientID '$ORCID_CLIENT_ID' "
+fi
+
+if [ -f "/run/secrets/orcid_client_secret" ]; then
+    ORCID_CLIENT_SECRET=$(cat /run/secrets/orcid_client_secret)
+    ORCID_CLIENT_SECRET_PARAM="--stringparam orcid:clientSecret '$ORCID_CLIENT_SECRET' "
+fi
+
 transform="xsltproc \
   --output conf/Catalina/localhost/ROOT.xml \
   $CACHE_MODEL_LOADS_PARAM \
@@ -975,6 +985,8 @@ transform="xsltproc \
   $MAIL_PASSWORD_PARAM \
   $GOOGLE_CLIENT_ID_PARAM \
   $GOOGLE_CLIENT_SECRET_PARAM \
+  $ORCID_CLIENT_ID_PARAM \
+  $ORCID_CLIENT_SECRET_PARAM \
   /var/linkeddatahub/xsl/context.xsl \
   conf/Catalina/localhost/ROOT.xml"
 

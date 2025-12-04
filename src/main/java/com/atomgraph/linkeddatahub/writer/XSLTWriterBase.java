@@ -26,6 +26,7 @@ import com.atomgraph.linkeddatahub.vocabulary.ACL;
 import com.atomgraph.linkeddatahub.vocabulary.LDH;
 import com.atomgraph.linkeddatahub.vocabulary.LDHT;
 import com.atomgraph.linkeddatahub.vocabulary.Google;
+import com.atomgraph.linkeddatahub.vocabulary.ORCID;
 import com.atomgraph.linkeddatahub.vocabulary.LAPP;
 import com.atomgraph.client.vocabulary.LDT;
 import com.atomgraph.core.util.Link;
@@ -182,7 +183,9 @@ public abstract class XSLTWriterBase extends com.atomgraph.client.writer.XSLTWri
             params.put(new QName("ldhc", LDHC.enableWebIDSignUp.getNameSpace(), LDHC.enableWebIDSignUp.getLocalName()), new XdmAtomicValue(getSystem().isEnableWebIDSignUp()));
             if (getSystem().getProperty(Google.clientID.getURI()) != null)
                 params.put(new QName("google", Google.clientID.getNameSpace(), Google.clientID.getLocalName()), new XdmAtomicValue((String)getSystem().getProperty(Google.clientID.getURI())));
-            
+            if (getSystem().getProperty(ORCID.clientID.getURI()) != null)
+                params.put(new QName("orcid", ORCID.clientID.getNameSpace(), ORCID.clientID.getLocalName()), new XdmAtomicValue((String)getSystem().getProperty(ORCID.clientID.getURI())));
+
             return params;
         }
         catch (IOException | URISyntaxException | SaxonApiException ex)

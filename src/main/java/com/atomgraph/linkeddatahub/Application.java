@@ -118,6 +118,7 @@ import com.atomgraph.linkeddatahub.vocabulary.FOAF;
 import com.atomgraph.linkeddatahub.vocabulary.LDH;
 import com.atomgraph.linkeddatahub.vocabulary.LDHC;
 import com.atomgraph.linkeddatahub.vocabulary.Google;
+import com.atomgraph.linkeddatahub.vocabulary.ORCID;
 import com.atomgraph.linkeddatahub.vocabulary.LAPP;
 import com.atomgraph.linkeddatahub.writer.Mode;
 import com.atomgraph.linkeddatahub.writer.ResultSetXSLTWriter;
@@ -346,7 +347,9 @@ public class Application extends ResourceConfig
             servletConfig.getServletContext().getInitParameter("mail.smtp.host") != null ? servletConfig.getServletContext().getInitParameter("mail.smtp.host") : null,
             servletConfig.getServletContext().getInitParameter("mail.smtp.port") != null ? servletConfig.getServletContext().getInitParameter("mail.smtp.port") : null,
             servletConfig.getServletContext().getInitParameter(Google.clientID.getURI()) != null ? servletConfig.getServletContext().getInitParameter(Google.clientID.getURI()) : null,
-            servletConfig.getServletContext().getInitParameter(Google.clientSecret.getURI()) != null ? servletConfig.getServletContext().getInitParameter(Google.clientSecret.getURI()) : null
+            servletConfig.getServletContext().getInitParameter(Google.clientSecret.getURI()) != null ? servletConfig.getServletContext().getInitParameter(Google.clientSecret.getURI()) : null,
+            servletConfig.getServletContext().getInitParameter(ORCID.clientID.getURI()) != null ? servletConfig.getServletContext().getInitParameter(ORCID.clientID.getURI()) : null,
+            servletConfig.getServletContext().getInitParameter(ORCID.clientSecret.getURI()) != null ? servletConfig.getServletContext().getInitParameter(ORCID.clientSecret.getURI()) : null
         );
 
         URI contextDatasetURI = servletConfig.getServletContext().getInitParameter(LDHC.contextDataset.getURI()) != null ? new URI(servletConfig.getServletContext().getInitParameter(LDHC.contextDataset.getURI())) : null;
@@ -406,6 +409,8 @@ public class Application extends ResourceConfig
      * @param smtpPort port of the SMTP email server
      * @param googleClientID client ID for Google's OAuth
      * @param googleClientSecret client secret for Google's OAuth
+     * @param orcidClientID client ID for ORCID's OAuth
+     * @param orcidClientSecret client secret for ORCID's OAuth
      */
     public Application(final ServletConfig servletConfig, final MediaTypes mediaTypes,
             final Integer maxGetRequestSize, final boolean cacheModelLoads, final boolean preemptiveAuth,
@@ -421,7 +426,8 @@ public class Application extends ResourceConfig
             final Integer maxConnPerRoute, final Integer maxTotalConn, final Integer maxRequestRetries, final Integer maxImportThreads,
             final String notificationAddressString, final String supportedLanguageCodes, final boolean enableWebIDSignUp, final String oidcRefreshTokensPropertiesPath,
             final String mailUser, final String mailPassword, final String smtpHost, final String smtpPort,
-            final String googleClientID, final String googleClientSecret)
+            final String googleClientID, final String googleClientSecret,
+            final String orcidClientID, final String orcidClientSecret)
     {
         if (clientKeyStoreURIString == null)
         {
@@ -546,7 +552,9 @@ public class Application extends ResourceConfig
         this.oidcRefreshTokens = new Properties();
         if (googleClientID != null) this.property(Google.clientID.getURI(), googleClientID);
         if (googleClientSecret != null) this.property(Google.clientSecret.getURI(), googleClientSecret);
-        
+        if (orcidClientID != null) this.property(ORCID.clientID.getURI(), orcidClientID);
+        if (orcidClientSecret != null) this.property(ORCID.clientSecret.getURI(), orcidClientSecret);
+
         try
         {
             this.uploadRoot = new URI(uploadRootString);

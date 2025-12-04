@@ -4,6 +4,7 @@
     <!ENTITY ac     "https://w3id.org/atomgraph/client#">
     <!ENTITY ldhc   "https://w3id.org/atomgraph/linkeddatahub/config#">
     <!ENTITY google "https://w3id.org/atomgraph/linkeddatahub/services/google#">
+    <!ENTITY orcid  "https://w3id.org/atomgraph/linkeddatahub/services/orcid#">
 ]>
 <xsl:stylesheet version="1.0"
 xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
@@ -11,6 +12,7 @@ xmlns:a="&a;"
 xmlns:ac="&ac;"
 xmlns:ldhc="&ldhc;"
 xmlns:google="&google;"
+xmlns:orcid="&orcid;"
 >
   
     <xsl:output method="xml" indent="yes"/>
@@ -48,6 +50,8 @@ xmlns:google="&google;"
     <xsl:param name="mail.password"/>
     <xsl:param name="google:clientID"/>
     <xsl:param name="google:clientSecret"/>
+    <xsl:param name="orcid:clientID"/>
+    <xsl:param name="orcid:clientSecret"/>
 
     <xsl:template match="@*|node()">
         <xsl:copy>
@@ -157,6 +161,12 @@ xmlns:google="&google;"
             </xsl:if>
             <xsl:if test="$google:clientSecret">
                 <Parameter name="&google;clientSecret" value="{$google:clientSecret}" override="false"/>
+            </xsl:if>
+            <xsl:if test="$orcid:clientID">
+                <Parameter name="&orcid;clientID" value="{$orcid:clientID}" override="false"/>
+            </xsl:if>
+            <xsl:if test="$orcid:clientSecret">
+                <Parameter name="&orcid;clientSecret" value="{$orcid:clientSecret}" override="false"/>
             </xsl:if>
 
             <xsl:apply-templates select="node()"/>

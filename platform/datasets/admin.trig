@@ -453,6 +453,22 @@ WHERE
 
 }
 
+<oauth2/login/orcid>
+{
+
+    <oauth2/login/orcid> a foaf:Document ;
+        dct:title "ORCID OAuth2.0 login" .
+
+}
+
+<oauth2/authorize/orcid>
+{
+
+    <oauth2/authorize/orcid> a foaf:Document ;
+        dct:title "ORCID OAuth2.0 authorization" .
+
+}
+
 <queries/construct-constructors/>
 {
 
@@ -727,6 +743,44 @@ WHERE
         rdfs:label "Google's OAuth2 authorization" ;
         rdfs:comment "Required to enable public OAuth2 login" ;
         acl:accessTo <oauth2/authorize/google> ;
+        acl:mode acl:Read ;
+        acl:agentClass foaf:Agent .
+
+}
+
+# ORCID login
+
+<acl/authorizations/oauth2-login-orcid/>
+{
+
+    <acl/authorizations/oauth2-login-orcid/> a dh:Item ;
+        sioc:has_container <acl/authorizations/> ;
+        dct:title "ORCID OAuth2 login access" ;
+        foaf:primaryTopic <acl/authorizations/oauth2-login-orcid/#this> .
+
+    <acl/authorizations/oauth2-login-orcid/#this> a acl:Authorization ;
+        rdfs:label "ORCID OAuth2 login access" ;
+        rdfs:comment "Required to enable public ORCID OAuth2 login" ;
+        acl:accessTo <oauth2/login/orcid> ;
+        acl:mode acl:Read ;
+        acl:agentClass foaf:Agent .
+
+}
+
+# ORCID authorization
+
+<acl/authorizations/authorize-orcid/>
+{
+
+    <acl/authorizations/authorize-orcid/> a dh:Item ;
+        sioc:has_container <acl/authorizations/> ;
+        dct:title "ORCID's OAuth2 authorization" ;
+        foaf:primaryTopic <acl/authorizations/authorize-orcid/#this> .
+
+    <acl/authorizations/authorize-orcid/#this> a acl:Authorization ;
+        rdfs:label "ORCID's OAuth2 authorization" ;
+        rdfs:comment "Required to enable public ORCID OAuth2 login" ;
+        acl:accessTo <oauth2/authorize/orcid> ;
         acl:mode acl:Read ;
         acl:agentClass foaf:Agent .
 
