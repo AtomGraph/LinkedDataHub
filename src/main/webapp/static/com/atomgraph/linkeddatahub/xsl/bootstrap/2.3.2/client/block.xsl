@@ -345,60 +345,80 @@ exclude-result-prefixes="#all"
     </xsl:template>
 
     <!-- dragging block over other block -->
-    
+
     <xsl:template match="div[@id = 'content-body']/div[ac:mode() = '&ldh;ContentMode'][@about][contains-token(@class, 'block')][acl:mode() = '&acl;Write']" mode="ixsl:ondragover">
-        <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
-        <ixsl:set-property name="dataTransfer.dropEffect" select="'move'" object="ixsl:event()"/>
+        <!-- only handle if drag originated from drag-handle (has text/uri-list item) -->
+        <xsl:variable name="items" select="ixsl:get(ixsl:get(ixsl:event(), 'dataTransfer'), 'items')"/>
+        <xsl:variable name="has-uri-item" select="if (ixsl:get($items, 'length') > 0) then ixsl:get(ixsl:get($items, '0'), 'type') = 'text/uri-list' else false()" as="xs:boolean"/>
+        <xsl:if test="$has-uri-item">
+            <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
+            <ixsl:set-property name="dataTransfer.dropEffect" select="'move'" object="ixsl:event()"/>
+        </xsl:if>
     </xsl:template>
 
     <!-- change the style of blocks when block is dragged over them -->
-    
+
     <xsl:template match="div[@id = 'content-body']/div[ac:mode() = '&ldh;ContentMode'][@about][contains-token(@class, 'block')][acl:mode() = '&acl;Write']" mode="ixsl:ondragenter">
-        <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'drag-over', true() ])[current-date() lt xs:date('2000-01-01')]"/>
+        <!-- only handle if drag originated from drag-handle (has text/uri-list item) -->
+        <xsl:variable name="items" select="ixsl:get(ixsl:get(ixsl:event(), 'dataTransfer'), 'items')"/>
+        <xsl:variable name="has-uri-item" select="if (ixsl:get($items, 'length') > 0) then ixsl:get(ixsl:get($items, '0'), 'type') = 'text/uri-list' else false()" as="xs:boolean"/>
+        <xsl:if test="$has-uri-item">
+            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'drag-over', true() ])[current-date() lt xs:date('2000-01-01')]"/>
+        </xsl:if>
     </xsl:template>
 
     <xsl:template match="div[@id = 'content-body']/div[ac:mode() = '&ldh;ContentMode'][@about][contains-token(@class, 'block')][acl:mode() = '&acl;Write']" mode="ixsl:ondragleave">
-        <xsl:variable name="related-target" select="ixsl:get(ixsl:event(), 'relatedTarget')" as="element()?"/> <!-- the element drag entered (optional) -->
+        <!-- only handle if drag originated from drag-handle (has text/uri-list item) -->
+        <xsl:variable name="items" select="ixsl:get(ixsl:get(ixsl:event(), 'dataTransfer'), 'items')"/>
+        <xsl:variable name="has-uri-item" select="if (ixsl:get($items, 'length') > 0) then ixsl:get(ixsl:get($items, '0'), 'type') = 'text/uri-list' else false()" as="xs:boolean"/>
+        <xsl:if test="$has-uri-item">
+            <xsl:variable name="related-target" select="ixsl:get(ixsl:event(), 'relatedTarget')" as="element()?"/> <!-- the element drag entered (optional) -->
 
-        <!-- only remove class if the related target does not have this div as ancestor (is not its child) -->
-        <xsl:if test="not($related-target/ancestor-or-self::div[. is current()])">
-            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'drag-over', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+            <!-- only remove class if the related target does not have this div as ancestor (is not its child) -->
+            <xsl:if test="not($related-target/ancestor-or-self::div[. is current()])">
+                <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'drag-over', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+            </xsl:if>
         </xsl:if>
     </xsl:template>
 
     <!-- dropping block over other top-level block -->
-    
+
     <xsl:template match="div[@id = 'content-body']/div[ac:mode() = '&ldh;ContentMode'][@about][contains-token(@class, 'block')][acl:mode() = '&acl;Write']" mode="ixsl:ondrop">
-        <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
-        <xsl:variable name="block-uri" select="@about" as="xs:anyURI?"/>
-        <xsl:variable name="drop-block-uri" select="ixsl:call(ixsl:get(ixsl:event(), 'dataTransfer'), 'getData', [ 'text/uri-list' ])" as="xs:anyURI"/>
-        
-        <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'drag-over', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+        <!-- only handle if drag originated from drag-handle (has text/uri-list item) -->
+        <xsl:variable name="items" select="ixsl:get(ixsl:get(ixsl:event(), 'dataTransfer'), 'items')"/>
+        <xsl:variable name="has-uri-item" select="if (ixsl:get($items, 'length') > 0) then ixsl:get(ixsl:get($items, '0'), 'type') = 'text/uri-list' else false()" as="xs:boolean"/>
+        <xsl:if test="$has-uri-item">
+            <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
+            <xsl:variable name="block-uri" select="@about" as="xs:anyURI?"/>
+            <xsl:variable name="drop-block-uri" select="ixsl:call(ixsl:get(ixsl:event(), 'dataTransfer'), 'getData', [ 'text/uri-list' ])" as="xs:anyURI"/>
 
-        <!-- only persist the change if the block is already saved and has an @about -->
-        <xsl:if test="$block-uri">
-            <!-- move dropped element after this element, if they're not the same -->
-            <xsl:if test="not($block-uri = $drop-block-uri)">
-                <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'drag-over', false() ])[current-date() lt xs:date('2000-01-01')]"/>
 
-                <!-- TO-DO: sketchy workaround to select block-level elements only because we might have duplicate @about values -->
-                <xsl:variable name="drop-block" select="key('element-by-about', $drop-block-uri)[contains-token(@class, 'block')]" as="element()"/>
-                <xsl:sequence select="ixsl:call(., 'after', [ $drop-block ])"/>
-                <!-- TO-DO: use a VALUES block instead -->
-                <xsl:variable name="update-string" select="replace($block-swap-string, '$this', '&lt;' || ac:absolute-path(ldh:base-uri(.)) || '&gt;', 'q')" as="xs:string"/>
-                <xsl:variable name="update-string" select="replace($update-string, '$targetBlock', '&lt;' || $block-uri || '&gt;', 'q')" as="xs:string"/>
-                <xsl:variable name="update-string" select="replace($update-string, '$sourceBlock', '&lt;' || $drop-block-uri || '&gt;', 'q')" as="xs:string"/>
-                <xsl:variable name="request-uri" select="ldh:href(ac:absolute-path(ldh:base-uri(.)), map{})" as="xs:anyURI"/>
-                <xsl:variable name="request" as="item()*">
-                    <ixsl:schedule-action http-request="map{ 'method': 'PATCH', 'href': $request-uri, 'media-type': 'application/sparql-update', 'body': $update-string }">
-                        <xsl:call-template name="onBlockSwap"/>
-                    </ixsl:schedule-action>
-                </xsl:variable>
-                <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
+            <!-- only persist the change if the block is already saved and has an @about -->
+            <xsl:if test="$block-uri">
+                <!-- move dropped element after this element, if they're not the same -->
+                <xsl:if test="not($block-uri = $drop-block-uri)">
+                    <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+
+                    <!-- TO-DO: sketchy workaround to select block-level elements only because we might have duplicate @about values -->
+                    <xsl:variable name="drop-block" select="key('element-by-about', $drop-block-uri)[contains-token(@class, 'block')]" as="element()"/>
+                    <xsl:sequence select="ixsl:call(., 'after', [ $drop-block ])"/>
+                    <!-- TO-DO: use a VALUES block instead -->
+                    <xsl:variable name="update-string" select="replace($block-swap-string, '$this', '&lt;' || ac:absolute-path(ldh:base-uri(.)) || '&gt;', 'q')" as="xs:string"/>
+                    <xsl:variable name="update-string" select="replace($update-string, '$targetBlock', '&lt;' || $block-uri || '&gt;', 'q')" as="xs:string"/>
+                    <xsl:variable name="update-string" select="replace($update-string, '$sourceBlock', '&lt;' || $drop-block-uri || '&gt;', 'q')" as="xs:string"/>
+                    <xsl:variable name="request-uri" select="ldh:href(ac:absolute-path(ldh:base-uri(.)), map{})" as="xs:anyURI"/>
+                    <xsl:variable name="request" as="item()*">
+                        <ixsl:schedule-action http-request="map{ 'method': 'PATCH', 'href': $request-uri, 'media-type': 'application/sparql-update', 'body': $update-string }">
+                            <xsl:call-template name="onBlockSwap"/>
+                        </ixsl:schedule-action>
+                    </xsl:variable>
+                    <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
+                </xsl:if>
             </xsl:if>
         </xsl:if>
     </xsl:template>
-    
+
     <!-- CALLBACKS -->
     
     <xsl:function name="ldh:load-block" ixsl:updating="yes" as="map(*)">
