@@ -23,6 +23,7 @@ import com.atomgraph.linkeddatahub.vocabulary.FOAF;
 import com.atomgraph.linkeddatahub.vocabulary.LAPP;
 import com.atomgraph.linkeddatahub.vocabulary.LDH;
 import com.atomgraph.server.vocabulary.LDT;
+import jakarta.ws.rs.core.UriBuilder;
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.rdf.model.Resource;
@@ -123,4 +124,9 @@ public class ApplicationImpl extends ResourceImpl implements Application
         return false;
     }
 
+    @Override
+    public UriBuilder getUriBuilder()
+    {
+        return UriBuilder.fromUri(getOriginURI());
+    }
 }

@@ -21,7 +21,7 @@ import com.atomgraph.linkeddatahub.server.filter.request.AuthenticationFilter;
 import com.atomgraph.linkeddatahub.apps.model.Application;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import com.atomgraph.linkeddatahub.model.auth.Agent;
-import static com.atomgraph.linkeddatahub.resource.admin.oauth2.Login.TOKEN_ENDPOINT;
+import static com.atomgraph.linkeddatahub.resource.oauth2.google.Login.TOKEN_ENDPOINT;
 import com.atomgraph.linkeddatahub.server.security.IDTokenSecurityContext;
 import com.atomgraph.linkeddatahub.vocabulary.FOAF;
 import com.atomgraph.linkeddatahub.vocabulary.Google;
@@ -280,7 +280,7 @@ public class IDTokenFilter extends AuthenticationFilter
      * Returns the URL of the OAuth login endpoint.
      * 
      * @return endpoint URI
-     * @see com.atomgraph.linkeddatahub.resource.admin.oauth2.Login
+     * @see com.atomgraph.linkeddatahub.resource.oauth2.google.Login
      */
     public URI getLoginURL()
     {
@@ -291,7 +291,7 @@ public class IDTokenFilter extends AuthenticationFilter
      * Returns the URL of the Google authorization endpoint.
      * 
      * @return endpoint URI
-     * @see com.atomgraph.linkeddatahub.resource.admin.oauth2.google.Authorize
+     * @see com.atomgraph.linkeddatahub.resource.oauth2.google.Authorize
      */
     public URI getAuthorizeGoogleURL()
     {

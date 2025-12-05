@@ -52,3 +52,79 @@
     a:graphStore <http://fuseki-end-user:3030/ds/> ;
     a:quadStore <http://fuseki-end-user:3030/ds/> ;
     lapp:backendProxy <http://varnish-end-user/> .
+
+# Anna dataspace admin
+
+<urn:linkeddatahub:apps/anna/admin> a lapp:Application, lapp:AdminApplication ;
+    dct:title "Anna admin" ;
+    ldh:origin <https://admin.anna.localhost:4443> ;
+    ldt:ontology <https://w3id.org/atomgraph/linkeddatahub/admin#> ;
+    ldt:service <urn:linkeddatahub:services/anna/admin> ;
+    ac:stylesheet <static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/admin/layout.xsl> ;
+    lapp:endUserApplication <urn:linkeddatahub:apps/anna/end-user> ;
+    lapp:frontendProxy <http://varnish-frontend:6060/> .
+
+<urn:linkeddatahub:services/anna/admin> a sd:Service ;
+    dct:title "Anna admin service" ;
+    sd:supportedLanguage sd:SPARQL11Query, sd:SPARQL11Update ;
+    sd:endpoint <http://fuseki-admin:3030/ds/> ;
+    a:graphStore <http://fuseki-admin:3030/ds/> ;
+    a:quadStore <http://fuseki-admin:3030/ds/> ;
+    lapp:backendProxy <http://varnish-admin/> .
+
+# Anna dataspace end-user
+
+<urn:linkeddatahub:apps/anna/end-user> a lapp:Application, lapp:EndUserApplication ;
+    dct:title "Anna" ;
+    ldh:origin <https://anna.localhost:4443> ;
+    ldt:ontology <https://anna.localhost:4443/ns#> ;
+    ldt:service <urn:linkeddatahub:services/anna/end-user> ;
+    lapp:adminApplication <urn:linkeddatahub:apps/anna/admin> ;
+    lapp:frontendProxy <http://varnish-frontend:6060/> ;
+    lapp:public true .
+
+<urn:linkeddatahub:services/anna/end-user> a sd:Service ;
+    dct:title "Anna service" ;
+    sd:supportedLanguage sd:SPARQL11Query, sd:SPARQL11Update ;
+    sd:endpoint <http://fuseki-end-user:3030/ds/> ;
+    a:graphStore <http://fuseki-end-user:3030/ds/> ;
+    a:quadStore <http://fuseki-end-user:3030/ds/> ;
+    lapp:backendProxy <http://varnish-end-user/> .
+
+# Bjørn dataspace admin
+
+<urn:linkeddatahub:apps/bjorn/admin> a lapp:Application, lapp:AdminApplication ;
+    dct:title "Bjørn admin" ;
+    ldh:origin <https://admin.xn--bjrn-hra.localhost:4443> ;
+    ldt:ontology <https://w3id.org/atomgraph/linkeddatahub/admin#> ;
+    ldt:service <urn:linkeddatahub:services/bjorn/admin> ;
+    ac:stylesheet <static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/admin/layout.xsl> ;
+    lapp:endUserApplication <urn:linkeddatahub:apps/bjorn/end-user> ;
+    lapp:frontendProxy <http://varnish-frontend:6060/> .
+
+<urn:linkeddatahub:services/bjorn/admin> a sd:Service ;
+    dct:title "Bjørn admin service" ;
+    sd:supportedLanguage sd:SPARQL11Query, sd:SPARQL11Update ;
+    sd:endpoint <http://fuseki-admin:3030/ds/> ;
+    a:graphStore <http://fuseki-admin:3030/ds/> ;
+    a:quadStore <http://fuseki-admin:3030/ds/> ;
+    lapp:backendProxy <http://varnish-admin/> .
+
+# Bjørn dataspace end-user
+
+<urn:linkeddatahub:apps/bjorn/end-user> a lapp:Application, lapp:EndUserApplication ;
+    dct:title "Bjørn" ;
+    ldh:origin <https://xn--bjrn-hra.localhost:4443> ;
+    ldt:ontology <https://xn--bjrn-hra.localhost:4443/ns#> ;
+    ldt:service <urn:linkeddatahub:services/bjorn/end-user> ;
+    lapp:adminApplication <urn:linkeddatahub:apps/bjorn/admin> ;
+    lapp:frontendProxy <http://varnish-frontend:6060/> ;
+    lapp:public true .
+
+<urn:linkeddatahub:services/bjorn/end-user> a sd:Service ;
+    dct:title "Bjørn service" ;
+    sd:supportedLanguage sd:SPARQL11Query, sd:SPARQL11Update ;
+    sd:endpoint <http://fuseki-end-user:3030/ds/> ;
+    a:graphStore <http://fuseki-end-user:3030/ds/> ;
+    a:quadStore <http://fuseki-end-user:3030/ds/> ;
+    lapp:backendProxy <http://varnish-end-user/> .

@@ -21,7 +21,6 @@ import com.atomgraph.linkeddatahub.server.filter.request.AuthenticationFilter;
 import com.atomgraph.linkeddatahub.apps.model.Application;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import com.atomgraph.linkeddatahub.model.auth.Agent;
-import com.atomgraph.linkeddatahub.resource.admin.oauth2.orcid.Login;
 import com.atomgraph.linkeddatahub.server.security.IDTokenSecurityContext;
 import com.atomgraph.linkeddatahub.vocabulary.FOAF;
 import com.atomgraph.linkeddatahub.vocabulary.ORCID;
@@ -101,7 +100,7 @@ public class ORCIDTokenFilter extends AuthenticationFilter
         if (!getApplication().get().canAs(EndUserApplication.class) && !getApplication().get().canAs(AdminApplication.class)) return; // skip "primitive" apps
 
         // do not verify token for auth endpoints as that will lead to redirect loops
-        if (request.getUriInfo().getAbsolutePath().equals(getLoginURL())) return;
+        //if (request.getUriInfo().getAbsolutePath().equals(getLoginURL())) return;
         if (request.getUriInfo().getAbsolutePath().equals(getAuthorizeORCIDURL())) return;
 
         super.filter(request);

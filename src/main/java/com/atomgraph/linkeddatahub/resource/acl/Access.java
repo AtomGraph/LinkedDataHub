@@ -16,12 +16,15 @@
  */
 package com.atomgraph.linkeddatahub.resource.acl;
 
+import com.atomgraph.client.util.HTMLMediaTypePredicate;
 import com.atomgraph.core.MediaTypes;
 import static com.atomgraph.core.model.SPARQLEndpoint.DEFAULT_GRAPH_URI;
 import static com.atomgraph.core.model.SPARQLEndpoint.NAMED_GRAPH_URI;
 import static com.atomgraph.core.model.SPARQLEndpoint.QUERY;
+import com.atomgraph.core.util.ModelUtils;
 import com.atomgraph.linkeddatahub.apps.model.AdminApplication;
 import com.atomgraph.linkeddatahub.apps.model.Application;
+import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.model.auth.Agent;
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
@@ -35,15 +38,14 @@ import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.EntityTag;
 import jakarta.ws.rs.core.Request;
 import jakarta.ws.rs.core.Response;
-import jakarta.ws.rs.core.SecurityContext;
 import jakarta.ws.rs.core.UriInfo;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Optional;
-import org.apache.jena.ontology.Ontology;
 import org.apache.jena.query.ParameterizedSparqlString;
 import org.apache.jena.query.Query;
 import org.apache.jena.query.QuerySolutionMap;
@@ -61,13 +63,15 @@ import org.slf4j.LoggerFactory;
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-public class Access extends com.atomgraph.core.model.impl.SPARQLEndpointImpl
+public class Access
 {
     
     private static final Logger log = LoggerFactory.getLogger(Access.class);
 
+    private final Request request;
     private final UriInfo uriInfo;
-    private final Application application;
+    private final MediaTypes mediaTypes;
+    private final EndUserApplication application;
     private final Optional<AgentContext> agentContext;
     private final ParameterizedSparqlString documentTypeQuery, documentOwnerQuery, aclQuery, ownerAclQuery;
     
@@ -76,24 +80,21 @@ public class Access extends com.atomgraph.core.model.impl.SPARQLEndpointImpl
      * 
      * @param request current request
      * @param uriInfo current request's URI info
+     * @param mediaTypes supported media types
      * @param application current end-user application
-     * @param ontology application's ontology
-     * @param mediaTypes registry of readable/writable media types
-     * @param securityContext JAX-RS security context
      * @param agentContext agent context
      * @param system system application
      */
     @Inject
-    public Access(@Context Request request, @Context UriInfo uriInfo, 
-            Application application, Optional<Ontology> ontology, MediaTypes mediaTypes,
-            @Context SecurityContext securityContext, Optional<AgentContext> agentContext,
+    public Access(@Context Request request, @Context UriInfo uriInfo, MediaTypes mediaTypes,
+            Application application, Optional<AgentContext> agentContext,
             com.atomgraph.linkeddatahub.Application system)
     {
-        super(request, application.getService(), mediaTypes);
-        if (!application.canAs(AdminApplication.class)) throw new IllegalStateException("The " + getClass() + " endpoint is only available on admin applications");
-
+        if (!application.canAs(EndUserApplication.class)) throw new IllegalStateException("The " + getClass() + " endpoint is only available on end-user applications");
+        this.request = request;
         this.uriInfo = uriInfo;
-        this.application = application;
+        this.mediaTypes = mediaTypes;
+        this.application = application.as(EndUserApplication.class);
         this.agentContext = agentContext;
         documentTypeQuery = new ParameterizedSparqlString(system.getDocumentTypeQuery().toString());
         documentOwnerQuery = new ParameterizedSparqlString(system.getDocumentOwnerQuery().toString());
@@ -101,7 +102,6 @@ public class Access extends com.atomgraph.core.model.impl.SPARQLEndpointImpl
         ownerAclQuery = new ParameterizedSparqlString(system.getOwnerACLQuery().toString());
     }
     
-    @Override
     @GET
     public Response get(@QueryParam(QUERY) Query unused,
             @QueryParam(DEFAULT_GRAPH_URI) List<URI> defaultGraphUris, @QueryParam(NAMED_GRAPH_URI) List<URI> namedGraphUris)
@@ -128,7 +128,7 @@ public class Access extends com.atomgraph.core.model.impl.SPARQLEndpointImpl
                 Query authQuery = new SetResultSetValues().apply(authPss.asQuery(), docTypesResult);
                 assert authQuery.toString().contains("VALUES");
 
-                Model authModel = getEndpointAccessor().loadModel(authQuery, List.of(), List.of());
+                Model authModel = getApplication().getAdminApplication().getService().getSPARQLClient().loadModel(authQuery);
                 // special case where the agent is the owner of the requested document - automatically grant acl:Read/acl:Append/acl:Write access
                 if (isOwner(accessTo, agent))
                 {
@@ -212,11 +212,35 @@ public class Access extends com.atomgraph.core.model.impl.SPARQLEndpointImpl
     }
     
     /**
+     * Returns response builder for the given RDF model.
+     * 
+     * @param model RDF model
+     * @return response builder
+     */
+    public Response.ResponseBuilder getResponseBuilder(Model model)
+    {
+        return new com.atomgraph.core.model.impl.Response(getRequest(),
+                model,
+                null,
+                new EntityTag(Long.toHexString(ModelUtils.hashModel(model))),
+                getMediaTypes().getWritable(Model.class),
+                null,
+                null,
+                new HTMLMediaTypePredicate()).
+            getResponseBuilder();
+    }
+    
+    public Request getRequest()
+    {
+        return request;
+    }
+    
+    /**
      * Returns the current application.
      * 
      * @return application resource
      */
-    public Application getApplication()
+    public EndUserApplication getApplication()
     {
         return application;
     }
@@ -229,6 +253,11 @@ public class Access extends com.atomgraph.core.model.impl.SPARQLEndpointImpl
     public UriInfo getUriInfo()
     {
         return uriInfo;
+    }
+    
+    public MediaTypes getMediaTypes()
+    {
+        return mediaTypes;
     }
     
     /**

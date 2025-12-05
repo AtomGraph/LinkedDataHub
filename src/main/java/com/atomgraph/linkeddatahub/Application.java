@@ -102,6 +102,7 @@ import com.atomgraph.linkeddatahub.server.filter.request.OntologyFilter;
 import com.atomgraph.linkeddatahub.server.filter.request.AuthorizationFilter;
 import com.atomgraph.linkeddatahub.server.filter.request.auth.IDTokenFilter;
 import com.atomgraph.linkeddatahub.server.filter.request.ContentLengthLimitFilter;
+import com.atomgraph.linkeddatahub.server.filter.request.auth.ORCIDTokenFilter;
 import com.atomgraph.linkeddatahub.server.filter.request.auth.ProxiedWebIDFilter;
 import com.atomgraph.linkeddatahub.server.filter.response.CORSFilter;
 import com.atomgraph.linkeddatahub.server.filter.response.ResponseHeadersFilter;
@@ -1001,6 +1002,11 @@ public class Application extends ResourceConfig
     protected void registerResourceClasses()
     {
         register(Dispatcher.class);
+        // OAuth endpoints - system-level resources not tied to dataspaces
+        register(com.atomgraph.linkeddatahub.resource.oauth2.google.Authorize.class);
+        register(com.atomgraph.linkeddatahub.resource.oauth2.google.Login.class);
+//        register(com.atomgraph.linkeddatahub.resource.admin.oauth2.orcid.Authorize.class);
+//        register(com.atomgraph.linkeddatahub.resource.admin.oauth2.orcid.Login.class);
     }
     
     /**
@@ -1013,6 +1019,7 @@ public class Application extends ResourceConfig
         register(OntologyFilter.class);
         register(ProxiedWebIDFilter.class);
         register(IDTokenFilter.class);
+        register(ORCIDTokenFilter.class);
         register(AuthorizationFilter.class);
         if (getMaxContentLength() != null) register(new ContentLengthLimitFilter(getMaxContentLength()));
         register(new RDFPostMediaTypeInterceptor()); // for application/x-www-form-urlencoded

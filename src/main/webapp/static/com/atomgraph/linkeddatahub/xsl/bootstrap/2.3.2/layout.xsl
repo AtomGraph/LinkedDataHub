@@ -770,51 +770,49 @@ LIMIT   100
         <xsl:param name="webid-signup" select="$ldhc:enableWebIDSignUp" as="xs:boolean"/>
         <xsl:param name="webid-signup-uri" select="resolve-uri('sign%20up', $lapp:Application//*[rdf:type/@rdf:resource = '&lapp;AdminApplication']/ldh:origin/@rdf:resource)" as="xs:anyURI"/>
 
-        <xsl:if test="$google-signup or $orcid-signup or $webid-signup">
-            <!-- OAuth providers dropdown -->
-            <xsl:if test="$google-signup or $orcid-signup">
-                <div class="btn-group pull-right">
-                    <button type="button" class="btn btn-primary dropdown-toggle">
-                        <xsl:value-of>
-                            <xsl:apply-templates select="key('resources', 'login', document('translations.rdf'))" mode="ac:label"/>
-                        </xsl:value-of>
-                        <xsl:text> </xsl:text>
-                        <span class="caret"></span>
-                    </button>
-                    <ul class="dropdown-menu pull-right">
-                        <xsl:if test="$google-signup">
-                            <li>
-                                <xsl:variable name="google-signup-uri" select="ac:build-uri(resolve-uri('oauth2/authorize/google', $lapp:Application//*[rdf:type/@rdf:resource = '&lapp;AdminApplication']/ldh:origin/@rdf:resource), map{ 'referer': string(ac:absolute-path(ldh:request-uri())) })" as="xs:anyURI"/>
-                                <a href="{$google-signup-uri}">
-                                    <xsl:value-of>
-                                        <xsl:apply-templates select="key('resources', 'login-google', document('translations.rdf'))" mode="ac:label"/>
-                                    </xsl:value-of>
-                                </a>
-                            </li>
-                        </xsl:if>
-                        <xsl:if test="$orcid-signup">
-                            <li>
-                                <xsl:variable name="orcid-signup-uri" select="ac:build-uri(resolve-uri('oauth2/authorize/orcid', $lapp:Application//*[rdf:type/@rdf:resource = '&lapp;AdminApplication']/ldh:origin/@rdf:resource), map{ 'referer': string(ac:absolute-path(ldh:request-uri())) })" as="xs:anyURI"/>
-                                <a href="{$orcid-signup-uri}">
-                                    <xsl:value-of>
-                                        <xsl:apply-templates select="key('resources', 'login-orcid', document('translations.rdf'))" mode="ac:label"/>
-                                    </xsl:value-of>
-                                </a>
-                            </li>
-                        </xsl:if>
-                    </ul>
-                </div>
-            </xsl:if>
-            <!-- WebID signup - separate button -->
-            <xsl:if test="$webid-signup">
-                <div class="pull-right">
-                    <a class="btn btn-primary" href="{if (not(starts-with($ldt:base, $ldh:origin))) then ac:build-uri((), map{ 'uri': string($webid-signup-uri) }) else $webid-signup-uri}">
-                        <xsl:value-of>
-                            <xsl:apply-templates select="key('resources', 'sign-up', document('translations.rdf'))" mode="ac:label"/>
-                        </xsl:value-of>
-                    </a>
-                </div>
-            </xsl:if>
+        <!-- OAuth providers dropdown -->
+        <xsl:if test="$google-signup or $orcid-signup">
+            <div class="btn-group pull-right">
+                <button type="button" class="btn btn-primary dropdown-toggle">
+                    <xsl:value-of>
+                        <xsl:apply-templates select="key('resources', 'login', document('translations.rdf'))" mode="ac:label"/>
+                    </xsl:value-of>
+                    <xsl:text> </xsl:text>
+                    <span class="caret"></span>
+                </button>
+                <ul class="dropdown-menu pull-right">
+                    <xsl:if test="$google-signup">
+                        <li>
+                            <xsl:variable name="google-signup-uri" select="ac:build-uri(resolve-uri('oauth2/authorize/google', $ac:contextUri), map{ 'referer': string(ac:absolute-path(ldh:request-uri())) })" as="xs:anyURI"/>
+                            <a href="{$google-signup-uri}">
+                                <xsl:value-of>
+                                    <xsl:apply-templates select="key('resources', 'login-google', document('translations.rdf'))" mode="ac:label"/>
+                                </xsl:value-of>
+                            </a>
+                        </li>
+                    </xsl:if>
+                    <xsl:if test="$orcid-signup">
+                        <li>
+                            <xsl:variable name="orcid-signup-uri" select="ac:build-uri(resolve-uri('admin/oauth2/authorize/orcid', $ac:contextUri), map{ 'referer': string(ac:absolute-path(ldh:request-uri())) })" as="xs:anyURI"/>
+                            <a href="{$orcid-signup-uri}">
+                                <xsl:value-of>
+                                    <xsl:apply-templates select="key('resources', 'login-orcid', document('translations.rdf'))" mode="ac:label"/>
+                                </xsl:value-of>
+                            </a>
+                        </li>
+                    </xsl:if>
+                </ul>
+            </div>
+        </xsl:if>
+        <!-- WebID signup - separate button -->
+        <xsl:if test="$webid-signup">
+            <div class="pull-right">
+                <a class="btn btn-primary" href="{if (not(starts-with($ldt:base, $ldh:origin))) then ac:build-uri((), map{ 'uri': string($webid-signup-uri) }) else $webid-signup-uri}">
+                    <xsl:value-of>
+                        <xsl:apply-templates select="key('resources', 'sign-up', document('translations.rdf'))" mode="ac:label"/>
+                    </xsl:value-of>
+                </a>
+            </div>
         </xsl:if>
     </xsl:template>
     
