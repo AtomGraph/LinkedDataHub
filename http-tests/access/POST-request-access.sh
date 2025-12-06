@@ -30,5 +30,5 @@ curl -w "%{http_code}\n" -o /dev/null -k -s \
   --data-urlencode "ol=Access request by Test Agent" \
   --data-urlencode "pu=http://www.w3.org/ns/auth/acl#agent" \
   --data-urlencode "ou=${AGENT_URI}" \
-  "${ADMIN_BASE_URL}access/request" \
+  "${END_USER_BASE_URL}access/request" \
 | grep -q "$STATUS_OK"
