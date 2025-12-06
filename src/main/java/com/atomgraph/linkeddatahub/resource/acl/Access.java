@@ -124,7 +124,7 @@ public class Access
             try
             {
                 final ParameterizedSparqlString authPss = getACLQuery();
-                authPss.setParams(new AuthorizationParams(getApplication().getBase(), accessTo, agent).get());
+                authPss.setParams(new AuthorizationParams(getApplication().getAdminApplication().getBase(), accessTo, agent).get());
                 Query authQuery = new SetResultSetValues().apply(authPss.asQuery(), docTypesResult);
                 assert authQuery.toString().contains("VALUES");
 

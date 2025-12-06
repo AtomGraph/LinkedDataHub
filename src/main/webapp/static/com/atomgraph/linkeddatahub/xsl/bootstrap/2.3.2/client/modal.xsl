@@ -498,7 +498,7 @@ LIMIT   10
                     </xsl:variable>
 
                     <!-- the types of this document that are not already show as $default-classes -->
-                    <xsl:for-each-group select="($this-auth, rdf:Description[acl:accessToClass/@rdf:resource[not(. = $default-classes)]])"
+                    <xsl:for-each-group select="($this-auth, rdf:Description[acl:accessToClass/@rdf:resource])"
                                         group-by="acl:accessToClass/@rdf:resource">
                         <xsl:variable name="granted-access-modes" select="distinct-values(current-group()/acl:mode/@rdf:resource)" as="xs:anyURI*"/>
 
