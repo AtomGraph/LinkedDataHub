@@ -30,6 +30,7 @@ import com.atomgraph.linkeddatahub.model.auth.Agent;
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
 import com.atomgraph.linkeddatahub.server.util.AuthorizationParams;
 import com.atomgraph.linkeddatahub.vocabulary.ACL;
+import com.atomgraph.linkeddatahub.vocabulary.FOAF;
 import com.atomgraph.linkeddatahub.vocabulary.LACL;
 import com.atomgraph.spinrdf.vocabulary.SPIN;
 import jakarta.inject.Inject;
@@ -51,6 +52,7 @@ import org.apache.jena.query.QuerySolutionMap;
 import org.apache.jena.query.ResultSetRewindable;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
+import org.apache.jena.rdf.model.ResIterator;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.vocabulary.RDF;
@@ -126,13 +128,25 @@ public class Access
                 authPss.setParams(new AuthorizationParams(getApplication().getAdminApplication().getBase(), accessTo, agent).get());
 
                 Model authModel = getApplication().getAdminApplication().getService().getSPARQLClient().loadModel(authPss.asQuery());
+
+                // filter out authorizations with acl:accessToClass foaf:Agent - all agents already have that access
+                ResIterator agentClassIter = authModel.listSubjectsWithProperty(ACL.agentClass, FOAF.Agent);
+                try
+                {
+                    agentClassIter.toList().forEach((auth) -> authModel.removeAll(auth, null, null));
+                }
+                finally
+                {
+                    agentClassIter.close();
+                }
+
                 // special case where the agent is the owner of the requested document - automatically grant acl:Read/acl:Append/acl:Write access
                 if (isOwner(accessTo, agent))
                 {
                     log.debug("Agent <{}> is the owner of <{}>, granting acl:Read/acl:Append/acl:Write access", agent, accessTo);
                     authModel.add(createOwnerAuthorization(accessTo, agent).getModel());
                 }
-                
+
                 return getResponseBuilder(authModel).build();
             }
             finally
