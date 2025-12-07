@@ -310,12 +310,10 @@ public class Login
             }
             
             URI originalReferer = URI.create(new String(Base64.getDecoder().decode(stateCookie.getValue())).split(Pattern.quote(";"))[1]); // fails if referer param was not specified
-            // Cookie path is "/" and domain matches the original referer to ensure cookie works on that dataspace
-            NewCookie jwtCookie = new NewCookie(IDTokenFilter.COOKIE_NAME, idToken, "/", originalReferer.getHost(), NewCookie.DEFAULT_VERSION, null, NewCookie.DEFAULT_MAX_AGE, false);
 
-            return Response.seeOther(originalReferer). // redirect to where the user started authentication
-                cookie(jwtCookie).
-                build();
+            // Pass ID token in URL fragment for client-side cookie setting (works uniformly across all domains)
+            URI redirectUri = URI.create(originalReferer + "#id_token=" + idToken);
+            return Response.seeOther(redirectUri).build();
         }
     }
     

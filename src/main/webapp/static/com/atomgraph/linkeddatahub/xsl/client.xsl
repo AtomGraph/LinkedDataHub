@@ -278,7 +278,18 @@ WHERE
         <xsl:message>$sd:endpoint: <xsl:value-of select="$sd:endpoint"/></xsl:message>
         <xsl:message>ixsl:query-params()?uri: <xsl:value-of select="ixsl:query-params()?uri"/></xsl:message>
         <xsl:message>UTC offset: <xsl:value-of select="implicit-timezone()"/></xsl:message>
-        
+
+        <!-- handle OAuth ID token from URL fragment -->
+        <xsl:variable name="location-hash" select="ixsl:get(ixsl:get(ixsl:window(), 'location'), 'hash')" as="xs:string?"/>
+        <xsl:if test="$location-hash and starts-with($location-hash, '#id_token=')">
+            <xsl:variable name="id-token" select="substring-after($location-hash, '#id_token=')" as="xs:string"/>
+            <!-- set cookie with id_token -->
+            <ixsl:set-property name="cookie" select="concat('LinkedDataHub.id_token=', $id-token, '; path=/; secure')" object="ixsl:page()"/>
+            <!-- reload page to render with authenticated user context -->
+            <xsl:variable name="current-url" select="substring-before(ixsl:get(ixsl:get(ixsl:window(), 'location'), 'href'), '#')" as="xs:string"/>
+            <xsl:sequence select="ixsl:call(ixsl:get(ixsl:window(), 'location'), 'replace', [ $current-url ])[current-date() lt xs:date('2000-01-01')]"/>
+        </xsl:if>
+
         <!-- create a LinkedDataHub namespace -->
         <ixsl:set-property name="LinkedDataHub" select="ldh:new-object()"/>
         <ixsl:set-property name="base" select="$ldt:base" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>

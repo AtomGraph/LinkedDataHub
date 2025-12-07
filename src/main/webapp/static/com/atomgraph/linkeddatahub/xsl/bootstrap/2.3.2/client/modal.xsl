@@ -553,9 +553,15 @@ LIMIT   10
         <tr>
             <td>
                 <a href="{$access-to-class}" target="_blank">
-                    <xsl:value-of>
-                        <xsl:apply-templates select="key('resources', $access-to-class, document(ac:document-uri($access-to-class)))" mode="ac:label"/>
-                    </xsl:value-of>
+                    <xsl:choose>
+                        <xsl:when test="doc-available(ac:document-uri($access-to-class)) and key('resources', $access-to-class, document(ac:document-uri($access-to-class)))">
+                            <xsl:apply-templates select="key('resources', $access-to-class, document(ac:document-uri($access-to-class)))" mode="ac:label"/>
+                        </xsl:when>
+                        <xsl:otherwise>
+                            <!-- fallback to class URI if label not found -->
+                            <xsl:value-of select="$access-to-class"/>
+                        </xsl:otherwise>
+                    </xsl:choose>
                 </a>
                 
                 <input type="hidden" name="sb" value="access-to-class-{generate-id()}"/>

@@ -29,7 +29,6 @@ import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.model.auth.Agent;
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
 import com.atomgraph.linkeddatahub.server.util.AuthorizationParams;
-import com.atomgraph.linkeddatahub.server.util.SetResultSetValues;
 import com.atomgraph.linkeddatahub.vocabulary.ACL;
 import com.atomgraph.linkeddatahub.vocabulary.LACL;
 import com.atomgraph.spinrdf.vocabulary.SPIN;
@@ -125,10 +124,8 @@ public class Access
             {
                 final ParameterizedSparqlString authPss = getACLQuery();
                 authPss.setParams(new AuthorizationParams(getApplication().getAdminApplication().getBase(), accessTo, agent).get());
-                Query authQuery = new SetResultSetValues().apply(authPss.asQuery(), docTypesResult);
-                assert authQuery.toString().contains("VALUES");
 
-                Model authModel = getApplication().getAdminApplication().getService().getSPARQLClient().loadModel(authQuery);
+                Model authModel = getApplication().getAdminApplication().getService().getSPARQLClient().loadModel(authPss.asQuery());
                 // special case where the agent is the owner of the requested document - automatically grant acl:Read/acl:Append/acl:Write access
                 if (isOwner(accessTo, agent))
                 {
