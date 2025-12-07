@@ -224,32 +224,10 @@ public class Dispatcher
     {
         return getProxyClass().orElse(Clear.class);
     }
-    
-    /**
-     * Returns Google OAuth endpoint.
-     * 
-     * @return endpoint resource
-     */
-    @Path("oauth2/authorize/google")
-    public Class getAuthorizeGoogle()
-    {
-        return getProxyClass().orElse(com.atomgraph.linkeddatahub.resource.admin.oauth2.google.Authorize.class);
-    }
 
     /**
-     * Returns OAuth login endpoint.
-     * 
-     * @return endpoint resource
-     */
-    @Path("oauth2/login")
-    public Class getOAuth2Login()
-    {
-        return getProxyClass().orElse(com.atomgraph.linkeddatahub.resource.admin.oauth2.Login.class);
-    }
-    
-    /**
      * Returns the default JAX-RS resource class.
-     * 
+     *
      * @return resource class
      */
     public Class getDocumentClass()

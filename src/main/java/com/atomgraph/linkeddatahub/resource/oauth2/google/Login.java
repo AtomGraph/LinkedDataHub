@@ -14,21 +14,18 @@
  *  limitations under the License.
  *
  */
-package com.atomgraph.linkeddatahub.resource.admin.oauth2;
+package com.atomgraph.linkeddatahub.resource.oauth2.google;
 
-import com.atomgraph.core.MediaTypes;
 import com.atomgraph.core.exception.ConfigurationException;
 import com.atomgraph.linkeddatahub.apps.model.AdminApplication;
+import com.atomgraph.linkeddatahub.apps.model.Application;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import com.atomgraph.linkeddatahub.listener.EMailListener;
 import com.atomgraph.linkeddatahub.model.Service;
 import static com.atomgraph.linkeddatahub.resource.admin.SignUp.AGENT_PATH;
 import static com.atomgraph.linkeddatahub.resource.admin.SignUp.AUTHORIZATION_PATH;
-import com.atomgraph.linkeddatahub.resource.admin.oauth2.google.Authorize;
 import com.atomgraph.linkeddatahub.server.filter.request.auth.IDTokenFilter;
 import com.atomgraph.linkeddatahub.server.filter.response.BackendInvalidationFilter;
-import com.atomgraph.linkeddatahub.server.model.impl.GraphStoreImpl;
-import com.atomgraph.linkeddatahub.server.security.AgentContext;
 import com.atomgraph.linkeddatahub.server.util.MessageBuilder;
 import com.atomgraph.linkeddatahub.server.util.Skolemizer;
 import com.atomgraph.linkeddatahub.vocabulary.ACL;
@@ -46,7 +43,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Base64;
 import java.util.GregorianCalendar;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.regex.Pattern;
 import jakarta.inject.Inject;
@@ -67,10 +63,7 @@ import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.NewCookie;
 import jakarta.ws.rs.core.Request;
 import jakarta.ws.rs.core.Response;
-import jakarta.ws.rs.core.SecurityContext;
 import jakarta.ws.rs.core.UriInfo;
-import jakarta.ws.rs.ext.Providers;
-import org.apache.jena.ontology.Ontology;
 import org.apache.jena.query.ParameterizedSparqlString;
 import org.apache.jena.query.Query;
 import org.apache.jena.rdf.model.Model;
@@ -86,12 +79,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * JAX-RS resource that handles OAuth login.
+ * JAX-RS resource that handles OAuth2 login.
  * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-@Path("oauth2/login")
-public class Login extends GraphStoreImpl
+@Path("oauth2/login/google")
+public class Login
 {
 
     private static final Logger log = LoggerFactory.getLogger(Login.class);
@@ -103,7 +96,10 @@ public class Login extends GraphStoreImpl
     /** Relative path to the user container */
     public static final String ACCOUNT_PATH = "acl/users/";
 
+    private final UriInfo uriInfo;
     private final HttpHeaders httpHeaders;
+    private final com.atomgraph.linkeddatahub.apps.model.Application application;
+    private final com.atomgraph.linkeddatahub.Application system;
     private final String emailSubject;
     private final String emailText;
     private final String clientID, clientSecret;
@@ -113,25 +109,21 @@ public class Login extends GraphStoreImpl
      * 
      * @param request current request
      * @param uriInfo URI information of the current request
-     * @param mediaTypes a registry of readable/writable media types
      * @param httpHeaders HTTP headers
      * @param application current application
-     * @param ontology ontology of the current application
-     * @param service SPARQL service of the current application
-     * @param securityContext JAX-RS security context
-     * @param agentContext authenticated agent's context
-     * @param providers JAX-RS provider registry
      * @param system system application
      * @param servletConfig servlet config
      */
     @Inject
-    public Login(@Context Request request, @Context UriInfo uriInfo, MediaTypes mediaTypes, @Context HttpHeaders httpHeaders,
-            com.atomgraph.linkeddatahub.apps.model.Application application, Optional<Ontology> ontology, Optional<Service> service,
-            @Context SecurityContext securityContext, Optional<AgentContext> agentContext,
-            @Context Providers providers, com.atomgraph.linkeddatahub.Application system, @Context ServletConfig servletConfig)
+    public Login(@Context Request request, @Context UriInfo uriInfo, @Context HttpHeaders httpHeaders,
+            com.atomgraph.linkeddatahub.apps.model.Application application,
+            com.atomgraph.linkeddatahub.Application system, @Context ServletConfig servletConfig)
     {
-        super(request, uriInfo, mediaTypes, application, ontology, service, securityContext, agentContext, providers, system);
+        if (!application.canAs(EndUserApplication.class)) throw new IllegalStateException("The " + getClass() + " endpoint is only available on end-user applications");
+        this.uriInfo = uriInfo;
         this.httpHeaders = httpHeaders;
+        this.application = application;
+        this.system = system;
         
         emailSubject = servletConfig.getServletContext().getInitParameter(LDHC.signUpEMailSubject.getURI());
         if (emailSubject == null) throw new InternalServerErrorException(new ConfigurationException(LDHC.signUpEMailSubject));
@@ -144,7 +136,6 @@ public class Login extends GraphStoreImpl
     }
     
     @GET
-    @Override
     public Response get(@QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUri)
     {
         if (getClientID() == null) throw new ConfigurationException(Google.clientID);
@@ -211,12 +202,11 @@ public class Login extends GraphStoreImpl
                 agentPss.setParam(FOAF.mbox.getLocalName(), mbox);
                 final Model agentModel = getAgentService().getSPARQLClient().loadModel(agentPss.asQuery());
                 
-                final boolean agentExists;
                 // if Agent with this foaf:mbox does not exist (lookup model is empty), create it; otherwise, reuse it
                 if (agentModel.isEmpty()) 
                 {
-                    agentExists = false;
-                    URI agentGraphUri = getUriInfo().getBaseUriBuilder().path(AGENT_PATH).path("{slug}/").build(UUID.randomUUID().toString());
+                    //URI agentGraphUri = getUriInfo().getBaseUriBuilder().path(AGENT_PATH).path("{slug}/").build(UUID.randomUUID().toString());
+                    URI agentGraphUri = getAdminApplication().getUriBuilder().path(AGENT_PATH).path("{slug}/").build(UUID.randomUUID().toString());
 
                     createAgent(agentModel,
                         agentGraphUri,
@@ -229,8 +219,6 @@ public class Login extends GraphStoreImpl
                     // skolemize here because this Model will not go through SkolemizingModelProvider
                     new Skolemizer(agentGraphUri.toString()).apply(agentModel);
                 }
-                else
-                    agentExists = true;
                 
                 // lookup Agent resource after its URI has been skolemized
                 ResIterator it = agentModel.listResourcesWithProperty(FOAF.mbox);
@@ -240,7 +228,10 @@ public class Login extends GraphStoreImpl
                     final Resource agent = it.next();
                 
                     Model accountModel = ModelFactory.createDefaultModel();
-                    URI userAccountGraphUri = getUriInfo().getBaseUriBuilder().path(ACCOUNT_PATH).path("{slug}/").build(UUID.randomUUID().toString());
+                    
+                    //URI userAccountGraphUri = getUriInfo().getBaseUriBuilder().path(ACCOUNT_PATH).path("{slug}/").build(UUID.randomUUID().toString());
+                    URI userAccountGraphUri = getAdminApplication().getUriBuilder().path(ACCOUNT_PATH).path("{slug}/").build(UUID.randomUUID().toString());
+                    
                     Resource userAccount = createUserAccount(accountModel,
                         userAccountGraphUri,
                         accountModel.createResource(getUriInfo().getBaseUri().resolve(ACCOUNT_PATH).toString()),
@@ -251,13 +242,15 @@ public class Login extends GraphStoreImpl
                     userAccount.addProperty(SIOC.ACCOUNT_OF, agent);
                     new Skolemizer(userAccountGraphUri.toString()).apply(accountModel);
                     
-                    Response userAccountResponse = super.put(accountModel, false, userAccountGraphUri);
-                    if (userAccountResponse.getStatus() != Response.Status.CREATED.getStatusCode())
-                    {
-                        if (log.isErrorEnabled()) log.error("Cannot create UserAccount");
-                        throw new InternalServerErrorException("Cannot create UserAccount");
-                    }
-                    if (log.isDebugEnabled()) log.debug("Created UserAccount for user ID: {}", jwt.getSubject());
+//                    Response userAccountResponse = super.put(accountModel, false, userAccountGraphUri);
+//                    if (userAccountResponse.getStatus() != Response.Status.CREATED.getStatusCode())
+//                    {
+//                        if (log.isErrorEnabled()) log.error("Cannot create UserAccount");
+//                        throw new InternalServerErrorException("Cannot create UserAccount");
+//                    }
+//                    if (log.isDebugEnabled()) log.debug("Created UserAccount for user ID: {}", jwt.getSubject());
+
+                    getAgentService().getGraphStoreClient().putModel(userAccountGraphUri.toString(), accountModel);
 
                     // lookup UserAccount resource after its URI has been skolemized
                     userAccount = accountModel.createResource(userAccountGraphUri.toString()).getPropertyResourceValue(FOAF.primaryTopic);
@@ -267,16 +260,20 @@ public class Login extends GraphStoreImpl
                     URI agentUri = URI.create(agent.getURI());
                     // get Agent's document URI by stripping the fragment identifier from the Agent's URI
                     URI agentGraphUri = new URI(agentUri.getScheme(), agentUri.getSchemeSpecificPart(), null).normalize();
-                    Response agentResponse = super.put(agentModel, false, agentGraphUri);
-                    if ((!agentExists && agentResponse.getStatus() != Response.Status.CREATED.getStatusCode()) ||
-                        (agentExists && agentResponse.getStatus() != Response.Status.OK.getStatusCode()))
-                    {
-                        if (log.isErrorEnabled()) log.error("Cannot create Agent or append metadata to it");
-                        throw new InternalServerErrorException("Cannot create Agent or append metadata to it");
-                    }
+                    
+//                    Response agentResponse = super.put(agentModel, false, agentGraphUri);
+//                    if ((!agentExists && agentResponse.getStatus() != Response.Status.CREATED.getStatusCode()) ||
+//                        (agentExists && agentResponse.getStatus() != Response.Status.OK.getStatusCode()))
+//                    {
+//                        if (log.isErrorEnabled()) log.error("Cannot create Agent or append metadata to it");
+//                        throw new InternalServerErrorException("Cannot create Agent or append metadata to it");
+//                    }
+                    getAgentService().getGraphStoreClient().putModel(agentGraphUri.toString(), agentModel);
 
                     Model authModel = ModelFactory.createDefaultModel();
-                    URI authGraphUri = getUriInfo().getBaseUriBuilder().path(AUTHORIZATION_PATH).path("{slug}/").build(UUID.randomUUID().toString());
+                    //URI authGraphUri = getUriInfo().getBaseUriBuilder().path(AUTHORIZATION_PATH).path("{slug}/").build(UUID.randomUUID().toString());
+                    URI authGraphUri = getAdminApplication().getUriBuilder().path(AUTHORIZATION_PATH).path("{slug}/").build(UUID.randomUUID().toString());
+                    
                     // creating authorization for the Agent documents
                     createAuthorization(authModel,
                         authGraphUri,
@@ -285,15 +282,16 @@ public class Login extends GraphStoreImpl
                         userAccountGraphUri);
                     new Skolemizer(authGraphUri.toString()).apply(authModel);
 
-                    Response authResponse = super.put(authModel, false, authGraphUri);
-                    if (authResponse.getStatus() != Response.Status.CREATED.getStatusCode())
-                    {
-                        if (log.isErrorEnabled()) log.error("Cannot create Authorization");
-                        throw new InternalServerErrorException("Cannot create Authorization");
-                    }
+//                    Response authResponse = super.put(authModel, false, authGraphUri);
+//                    if (authResponse.getStatus() != Response.Status.CREATED.getStatusCode())
+//                    {
+//                        if (log.isErrorEnabled()) log.error("Cannot create Authorization");
+//                        throw new InternalServerErrorException("Cannot create Authorization");
+//                    }
+                    getAgentService().getGraphStoreClient().putModel(authGraphUri.toString(), authModel);
 
                     // purge agent lookup from proxy cache
-                    if (getApplication().getService().getBackendProxy() != null) ban(getApplication().getService().getBackendProxy(), jwt.getSubject());
+                    if (getApplication().getService().getBackendProxy() != null) ban(getAdminApplication().getService().getBackendProxy(), jwt.getSubject());
 
                     // remove secretary WebID from cache
                     getSystem().getEventBus().post(new com.atomgraph.linkeddatahub.server.event.SignUp(getSystem().getSecretaryWebIDURI()));
@@ -311,13 +309,11 @@ public class Login extends GraphStoreImpl
                 }
             }
             
-            String path = getApplication().as(AdminApplication.class).getEndUserApplication().getBaseURI().getPath();
-            NewCookie jwtCookie = new NewCookie(IDTokenFilter.COOKIE_NAME, idToken, path, null, NewCookie.DEFAULT_VERSION, null, NewCookie.DEFAULT_MAX_AGE, false);
             URI originalReferer = URI.create(new String(Base64.getDecoder().decode(stateCookie.getValue())).split(Pattern.quote(";"))[1]); // fails if referer param was not specified
-            
-            return Response.seeOther(originalReferer). // redirect to where the user started authentication
-                cookie(jwtCookie).
-                build();
+
+            // Pass ID token in URL fragment for client-side cookie setting (works uniformly across all domains)
+            URI redirectUri = URI.create(originalReferer + "#id_token=" + idToken);
+            return Response.seeOther(redirectUri).build();
         }
     }
     
@@ -499,6 +495,34 @@ public class Login extends GraphStoreImpl
     }
     
     /**
+     * Returns the admin application of the current dataspace.
+     * 
+     * @return admin application resource
+     */
+    public AdminApplication getAdminApplication()
+    {
+        if (getApplication().canAs(AdminApplication.class))
+            return getApplication().as(AdminApplication.class);
+        else
+            return getApplication().as(EndUserApplication.class).getAdminApplication();
+    }
+    
+    public UriInfo getUriInfo()
+    {
+        return uriInfo;
+    }
+    
+    public com.atomgraph.linkeddatahub.Application getSystem()
+    {
+        return system;
+    }
+    
+    public Application getApplication()
+    {
+        return application;
+    }
+    
+    /**
      * Returns HTTP headers of the current request.
      * 
      * @return header info
@@ -515,7 +539,7 @@ public class Login extends GraphStoreImpl
      */
     public Service getAgentService()
     {
-        return getApplication().getService();
+        return getApplication().as(EndUserApplication.class).getAdminApplication().getService();
     }
     
     /**

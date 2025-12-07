@@ -343,8 +343,7 @@ LIMIT   10
         <xsl:param name="id" select="'request-access'" as="xs:string?"/>
         <xsl:param name="button-class" select="'btn btn-primary btn-access-form'" as="xs:string?"/>
         <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
-        <xsl:param name="admin-base-uri" select="xs:anyURI(replace(ldh:origin(ldh:base-uri(.)), '^(https?://)', '$1admin.'))" as="xs:anyURI"/>
-        <xsl:param name="action" select="resolve-uri('access/request', $admin-base-uri)" as="xs:anyURI"/> <!-- TO-DO: handle for admin apps -->
+        <xsl:param name="action" select="resolve-uri('access/request', ldt:base())" as="xs:anyURI"/>
         <xsl:param name="legend-label" select="ac:label(key('resources', 'request-access', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri))))" as="xs:string"/>
         <xsl:param name="agent" as="xs:anyURI"/>
         
@@ -499,7 +498,7 @@ LIMIT   10
                     </xsl:variable>
 
                     <!-- the types of this document that are not already show as $default-classes -->
-                    <xsl:for-each-group select="($this-auth, rdf:Description[acl:accessToClass/@rdf:resource[not(. = $default-classes)]])"
+                    <xsl:for-each-group select="($this-auth, rdf:Description[acl:accessToClass/@rdf:resource])"
                                         group-by="acl:accessToClass/@rdf:resource">
                         <xsl:variable name="granted-access-modes" select="distinct-values(current-group()/acl:mode/@rdf:resource)" as="xs:anyURI*"/>
 
@@ -554,9 +553,15 @@ LIMIT   10
         <tr>
             <td>
                 <a href="{$access-to-class}" target="_blank">
-                    <xsl:value-of>
-                        <xsl:apply-templates select="key('resources', $access-to-class, document(ac:document-uri($access-to-class)))" mode="ac:label"/>
-                    </xsl:value-of>
+                    <xsl:choose>
+                        <xsl:when test="doc-available(ac:document-uri($access-to-class)) and key('resources', $access-to-class, document(ac:document-uri($access-to-class)))">
+                            <xsl:apply-templates select="key('resources', $access-to-class, document(ac:document-uri($access-to-class)))" mode="ac:label"/>
+                        </xsl:when>
+                        <xsl:otherwise>
+                            <!-- fallback to class URI if label not found -->
+                            <xsl:value-of select="$access-to-class"/>
+                        </xsl:otherwise>
+                    </xsl:choose>
                 </a>
                 
                 <input type="hidden" name="sb" value="access-to-class-{generate-id()}"/>
@@ -706,9 +711,8 @@ LIMIT   10
     
     <xsl:template match="button[contains-token(@class, 'btn-access-form')]" mode="ixsl:onclick">
         <!-- TO-DO: fix for admin apps -->
-        <xsl:param name="admin-base-uri" select="xs:anyURI(replace(ldh:origin(ldh:base-uri(.)), '^(https?://)', '$1admin.'))" as="xs:anyURI"/>
         <xsl:param name="this" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/>
-        <xsl:variable name="request-uri" select="ldh:href(ac:build-uri(resolve-uri('access', $admin-base-uri), map{ 'this': $this }))" as="xs:anyURI"/>
+        <xsl:variable name="request-uri" select="ldh:href(ac:build-uri(resolve-uri('access', ldt:base()), map{ 'this': $this }))" as="xs:anyURI"/>
         <xsl:variable name="request" as="item()*">
             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                 <xsl:call-template name="onAccessResponseLoad">

@@ -5,10 +5,14 @@ secrets:
     file: ./secrets/secretary_cert_password.txt
   client_truststore_password:
     file: ./secrets/client_truststore_password.txt
-  #google_client_id:
-  #  file: ./secrets/google_client_id.txt
-  #google_client_secret:
-  #  file: ./secrets/google_client_secret.txt
+  # google_client_id:
+  #   file: ./secrets/google/client_id.txt
+  # google_client_secret:
+  #   file: ./secrets/google/client_secret.txt
+  # orcid_client_id:
+  #   file: ./secrets/orcid/client_id.txt
+  # orcid_client_secret:
+  #   file: ./secrets/orcid/client_secret.txt
 volumes:
   varnish_frontend_cache:
 services:
@@ -76,8 +80,10 @@ services:
       - owner_cert_password
       - secretary_cert_password
       - client_truststore_password
-      #- google_client_id
-      #- google_client_secret
+      # - google_client_id
+      # - google_client_secret
+      # - orcid_client_id
+      # - orcid_client_secret
     volumes:
       - /var/linkeddatahub/oidc
       - ./ssl/server:/var/linkeddatahub/ssl/server:ro
@@ -362,6 +368,15 @@ configs:
       }
 
       sub vcl_backend_response {
+          /* Add Vary: Origin for static files to enable proper CORS caching */
+          if (bereq.url ~ "^/static/") {
+              if (beresp.http.Vary) {
+                  set beresp.http.Vary = beresp.http.Vary + ", Origin";
+              } else {
+                  set beresp.http.Vary = "Origin";
+              }
+          }
+          
           /* purge URLs after updates */
           if ((beresp.status == 200 || beresp.status == 201 || beresp.status == 204) && bereq.method ~ "POST|PUT|DELETE|PATCH") {
               set beresp.http.X-LinkedDataHub = "Banned";

@@ -8,6 +8,7 @@
     <!ENTITY ldht   "https://w3id.org/atomgraph/linkeddatahub/templates#">
     <!ENTITY ldhc   "https://w3id.org/atomgraph/linkeddatahub/config#">
     <!ENTITY google "https://w3id.org/atomgraph/linkeddatahub/services/google#">
+    <!ENTITY orcid  "https://w3id.org/atomgraph/linkeddatahub/services/orcid#">
     <!ENTITY ac     "https://w3id.org/atomgraph/client#">
     <!ENTITY a      "https://w3id.org/atomgraph/core#">
     <!ENTITY rdf    "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
@@ -73,6 +74,7 @@ xmlns:nfo="&nfo;"
 xmlns:geo="&geo;"
 xmlns:srx="&srx;"
 xmlns:google="&google;"
+xmlns:orcid="&orcid;"
 xmlns:schema="&schema;"
 xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
 exclude-result-prefixes="#all">
@@ -114,6 +116,7 @@ exclude-result-prefixes="#all">
     <xsl:param name="ldhc:enableWebIDSignUp" as="xs:boolean"/>
     <xsl:param name="ldh:renderSystemResources" select="false()" as="xs:boolean"/>
     <xsl:param name="google:clientID" as="xs:string?"/>
+    <xsl:param name="orcid:clientID" as="xs:string?"/>
     <xsl:param name="doc-types" select="key('resources', ac:absolute-path(ldh:base-uri(.)))/rdf:type/@rdf:resource[ . = ('&def;Root', '&dh;Container', '&dh;Item')]" as="xs:anyURI*"/>
     <!-- take care not to load unnecessary documents over HTTP when $doc-types is empty -->
     <xsl:param name="template-block-uris" select="if (exists($doc-types)) then (if (doc-available(resolve-uri('ns?query=ASK%20%7B%7D', $ldt:base))) then (ldh:query-result(resolve-uri('ns', $ldt:base), $template-query || ' VALUES $Type { ' || string-join(for $type in $doc-types return '&lt;' || $type || '&gt;', ' ') || ' }')//srx:binding[@name = 'block']/srx:uri/xs:anyURI(.)) else ()) else ()" as="xs:anyURI*"/>
@@ -762,28 +765,54 @@ LIMIT   100
     
     <xsl:template match="rdf:RDF[not($foaf:Agent//@rdf:about)][$lapp:Application//rdf:type/@rdf:resource = '&lapp;EndUserApplication'] | srx:sparql[not($foaf:Agent//@rdf:about)][$lapp:Application//rdf:type/@rdf:resource = '&lapp;EndUserApplication']" mode="bs2:SignUp" priority="1">
         <!-- resolve links against the origin URI of the admin app -->
-        <xsl:param name="google-signup-uri" select="ac:build-uri(resolve-uri('oauth2/authorize/google', $lapp:Application//*[rdf:type/@rdf:resource = '&lapp;AdminApplication']/ldh:origin/@rdf:resource), map{ 'referer': string(ac:absolute-path(ldh:request-uri())) })" as="xs:anyURI"/>
-        <xsl:param name="webid-signup-uri" select="resolve-uri('sign%20up', $lapp:Application//*[rdf:type/@rdf:resource = '&lapp;AdminApplication']/ldh:origin/@rdf:resource)" as="xs:anyURI"/>
         <xsl:param name="google-signup" select="exists($google:clientID)" as="xs:boolean"/>
+        <xsl:param name="orcid-signup" select="exists($orcid:clientID)" as="xs:boolean"/>
         <xsl:param name="webid-signup" select="$ldhc:enableWebIDSignUp" as="xs:boolean"/>
-        
-        <xsl:if test="$google-signup or $webid-signup">
-            <p class="pull-right">
-                <xsl:if test="$google-signup">
-                    <a class="btn btn-primary" href="{$google-signup-uri}">
-                        <xsl:value-of>
-                            <xsl:apply-templates select="key('resources', 'login-google', document('translations.rdf'))" mode="ac:label"/>
-                        </xsl:value-of>
-                    </a>
-                </xsl:if>
-                <xsl:if test="$webid-signup">
-                    <a class="btn btn-primary" href="{if (not(starts-with($ldt:base, $ldh:origin))) then ac:build-uri((), map{ 'uri': string($webid-signup-uri) }) else $webid-signup-uri}">
-                        <xsl:value-of>
-                            <xsl:apply-templates select="key('resources', 'sign-up', document('translations.rdf'))" mode="ac:label"/>
-                        </xsl:value-of>
-                    </a>
-                </xsl:if>
-            </p>
+        <xsl:param name="webid-signup-uri" select="resolve-uri('sign%20up', $lapp:Application//*[rdf:type/@rdf:resource = '&lapp;AdminApplication']/ldh:origin/@rdf:resource)" as="xs:anyURI"/>
+
+        <!-- OAuth providers dropdown -->
+        <xsl:if test="$google-signup or $orcid-signup">
+            <div class="btn-group pull-right">
+                <button type="button" class="btn btn-primary dropdown-toggle">
+                    <xsl:value-of>
+                        <xsl:apply-templates select="key('resources', 'login', document('translations.rdf'))" mode="ac:label"/>
+                    </xsl:value-of>
+                    <xsl:text> </xsl:text>
+                    <span class="caret"></span>
+                </button>
+                <ul class="dropdown-menu pull-right">
+                    <xsl:if test="$google-signup">
+                        <li>
+                            <xsl:variable name="google-signup-uri" select="ac:build-uri(resolve-uri('oauth2/authorize/google', $ac:contextUri), map{ 'referer': string(ac:absolute-path(ldh:request-uri())) })" as="xs:anyURI"/>
+                            <a href="{$google-signup-uri}">
+                                <xsl:value-of>
+                                    <xsl:apply-templates select="key('resources', 'login-google', document('translations.rdf'))" mode="ac:label"/>
+                                </xsl:value-of>
+                            </a>
+                        </li>
+                    </xsl:if>
+                    <xsl:if test="$orcid-signup">
+                        <li>
+                            <xsl:variable name="orcid-signup-uri" select="ac:build-uri(resolve-uri('oauth2/authorize/orcid', $ac:contextUri), map{ 'referer': string(ac:absolute-path(ldh:request-uri())) })" as="xs:anyURI"/>
+                            <a href="{$orcid-signup-uri}">
+                                <xsl:value-of>
+                                    <xsl:apply-templates select="key('resources', 'login-orcid', document('translations.rdf'))" mode="ac:label"/>
+                                </xsl:value-of>
+                            </a>
+                        </li>
+                    </xsl:if>
+                </ul>
+            </div>
+        </xsl:if>
+        <!-- WebID signup - separate button -->
+        <xsl:if test="$webid-signup">
+            <div class="pull-right">
+                <a class="btn btn-primary" href="{if (not(starts-with($ldt:base, $ldh:origin))) then ac:build-uri((), map{ 'uri': string($webid-signup-uri) }) else $webid-signup-uri}">
+                    <xsl:value-of>
+                        <xsl:apply-templates select="key('resources', 'sign-up', document('translations.rdf'))" mode="ac:label"/>
+                    </xsl:value-of>
+                </a>
+            </div>
         </xsl:if>
     </xsl:template>
     

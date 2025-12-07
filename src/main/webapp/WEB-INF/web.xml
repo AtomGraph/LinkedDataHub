@@ -143,7 +143,7 @@ WHERE
                 }
               }
             # only namespace, signup, OAuth2 login and WebID profiles can be public in admin app, nothing else
-            FILTER ( $this IN (uri(concat(str($base), "ns")), uri(concat(str($base), "sign%20up")), uri(concat(str($base), "oauth2/login")), uri(concat(str($base), "oauth2/authorize/google")), uri(concat(str($base), "transform"))) || strstarts(str($this), concat(str($base), "acl/agents/")) || strstarts(str($this), concat(str($base), "acl/public-keys/")))
+            FILTER ( $this IN (uri(concat(str($base), "ns")), uri(concat(str($base), "sign%20up")), uri(concat(str($base), "transform"))) || strstarts(str($this), concat(str($base), "acl/agents/")) || strstarts(str($this), concat(str($base), "acl/public-keys/")))
           }
       }
 
@@ -372,6 +372,22 @@ support@atomgraph.com]]></param-value>
         <servlet-name>com.atomgraph.linkeddatahub.Application</servlet-name>
         <url-pattern>/*</url-pattern>
     </servlet-mapping>
+    <filter>
+        <filter-name>CORS filter</filter-name>
+        <filter-class>org.apache.catalina.filters.CorsFilter</filter-class>
+        <init-param>
+            <param-name>cors.allowed.origins</param-name>
+            <param-value>*</param-value>
+        </init-param>
+        <init-param>
+            <param-name>cors.allowed.methods</param-name>
+            <param-value>GET,HEAD,OPTIONS</param-value>
+        </init-param>
+    </filter>
+    <filter-mapping>
+        <filter-name>CORS filter</filter-name>
+        <url-pattern>/static/*</url-pattern>
+    </filter-mapping>
     <filter>
         <filter-name>HSTS filter</filter-name>
         <filter-class>org.apache.catalina.filters.HttpHeaderSecurityFilter</filter-class>

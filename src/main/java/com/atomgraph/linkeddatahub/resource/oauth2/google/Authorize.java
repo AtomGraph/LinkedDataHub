@@ -14,22 +14,20 @@
  *  limitations under the License.
  *
  */
-package com.atomgraph.linkeddatahub.resource.admin.oauth2.google;
+package com.atomgraph.linkeddatahub.resource.oauth2.google;
 
-import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.core.exception.ConfigurationException;
 import com.atomgraph.linkeddatahub.apps.model.AdminApplication;
 import com.atomgraph.linkeddatahub.apps.model.Application;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
-import com.atomgraph.linkeddatahub.resource.admin.oauth2.Login;
 import com.atomgraph.linkeddatahub.vocabulary.Google;
 import java.math.BigInteger;
 import java.net.URI;
 import java.security.SecureRandom;
 import java.util.Base64;
-import java.util.Optional;
 import java.util.UUID;
 import jakarta.inject.Inject;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.core.Context;
@@ -37,7 +35,6 @@ import jakarta.ws.rs.core.NewCookie;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.UriBuilder;
 import jakarta.ws.rs.core.UriInfo;
-import org.apache.jena.ontology.Ontology;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -61,27 +58,26 @@ public class Authorize
     public static final String REFERER_PARAM_NAME = "referer";
 
     private final UriInfo uriInfo;
+    private final HttpServletRequest httpServletRequest;
     private final Application application;
-    private final Ontology ontology;
     private final String clientID;
     
     /**
      * Constructs resource from current request info.
      * 
      * @param uriInfo URI info
+     * @param httpServletRequest servlet request
      * @param application application
-     * @param ontology application's ontology
-     * @param service application's SPARQL service
      * @param system JAX-RS application
      */
     @Inject
-    public Authorize(@Context UriInfo uriInfo, 
-            Optional<Service> service, com.atomgraph.linkeddatahub.apps.model.Application application, Optional<Ontology> ontology,
-                com.atomgraph.linkeddatahub.Application system)
+    public Authorize(@Context UriInfo uriInfo, @Context HttpServletRequest httpServletRequest,
+            com.atomgraph.linkeddatahub.apps.model.Application application, com.atomgraph.linkeddatahub.Application system)
     {
+        if (!application.canAs(EndUserApplication.class)) throw new IllegalStateException("The " + getClass() + " endpoint is only available on end-user applications");
         this.uriInfo = uriInfo;
+        this.httpServletRequest = httpServletRequest;
         this.application = application;
-        this.ontology = ontology.get();
         if (log.isDebugEnabled()) log.debug("Constructing {}", getClass());
         clientID = (String)system.getProperty(Google.clientID.getURI());
     }
@@ -101,13 +97,15 @@ public class Authorize
         if (getUriInfo().getQueryParameters().containsKey(REFERER_PARAM_NAME)) originUri = getUriInfo().getQueryParameters().getFirst(REFERER_PARAM_NAME);
         else originUri = getEndUserApplication().getBase().getURI();
         
-        URI redirectUri = getUriInfo().getBaseUriBuilder().
+        // the redirect URI must be on the domain, not sub-domains (i.e. on the root dataspace)
+        URI redirectUri = UriBuilder.fromUri(getRootContextURI()).
             path(Login.class).
             build();
 
         String state = new BigInteger(130, new SecureRandom()).toString(32);
         String stateValue = Base64.getEncoder().encodeToString((state + ";" + originUri).getBytes());
-        NewCookie stateCookie = new NewCookie(COOKIE_NAME, stateValue, getEndUserApplication().getBaseURI().getPath(), null, NewCookie.DEFAULT_VERSION, null, NewCookie.DEFAULT_MAX_AGE, false);
+        // Cookie path is "/" to make it accessible across all dataspaces
+        NewCookie stateCookie = new NewCookie(COOKIE_NAME, stateValue, "/", null, NewCookie.DEFAULT_VERSION, null, NewCookie.DEFAULT_MAX_AGE, false);
         
         UriBuilder authUriBuilder = UriBuilder.fromUri(ENDPOINT_URI).
             queryParam("response_type", "code").
@@ -137,6 +135,52 @@ public class Authorize
     }
     
     /**
+     * Returns servlet request.
+     * 
+     * @return servlet request
+     */
+    public HttpServletRequest getHttpServletRequest()
+    {
+        return httpServletRequest;
+    }
+    
+    /**
+     * Returns the base URI of this LinkedDataHub instance.
+     * It equals to the base URI of the root dataspace.
+     * 
+     * @return root base URI
+     */
+    public URI getRootContextURI()
+    {
+        URI requestUri = URI.create(getHttpServletRequest().getRequestURL().toString());
+        String host = requestUri.getHost();
+
+        // Strip all subdomains to get root domain
+        String rootDomain;
+        String[] parts = host.split("\\.");
+
+        if (host.equals("localhost") || host.endsWith(".localhost"))
+        {
+            // Special case: localhost domains
+            rootDomain = "localhost";
+        }
+        else if (parts.length >= 2)
+        {
+            // Regular domains: take last 2 parts (e.g., example.com)
+            rootDomain = parts[parts.length - 2] + "." + parts[parts.length - 1];
+        }
+        else rootDomain = host;
+
+        // Rebuild URI with root domain
+        String scheme = requestUri.getScheme();
+        int port = requestUri.getPort();
+        String contextPath = getHttpServletRequest().getContextPath();
+
+        if (port == -1)  return URI.create(scheme + "://" + rootDomain + contextPath + "/");
+        else return URI.create(scheme + "://" + rootDomain + ":" + port + contextPath + "/");
+    }
+    
+    /**
      * Returns URI information for the current request.
      * 
      * @return URI info
@@ -155,17 +199,7 @@ public class Authorize
     {
         return application;
     }
-    
-    /**
-     * Returns application's ontology.
-     * 
-     * @return ontology resource
-     */
-    public Ontology getOntology()
-    {
-        return ontology;
-    }
-    
+
     /**
      * Returns Google OAuth client ID.
      * 
