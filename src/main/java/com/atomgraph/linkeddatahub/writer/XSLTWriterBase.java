@@ -419,4 +419,41 @@ public abstract class XSLTWriterBase extends com.atomgraph.client.writer.XSLTWri
         return crc.get();
     }
     
+    /**
+     * Returns the base URI of this LinkedDataHub instance.
+     * It equals to the base URI of the root dataspace.
+     * 
+     * @return root context URI
+     */
+    @Override
+    public URI getContextURI()
+    {
+        URI requestUri = URI.create(getHttpServletRequest().getRequestURL().toString());
+        String host = requestUri.getHost();
+
+        // Strip all subdomains to get root domain
+        String rootDomain;
+        String[] parts = host.split("\\.");
+
+        if (host.equals("localhost") || host.endsWith(".localhost"))
+        {
+            // Special case: localhost domains
+            rootDomain = "localhost";
+        }
+        else if (parts.length >= 2)
+        {
+            // Regular domains: take last 2 parts (e.g., example.com)
+            rootDomain = parts[parts.length - 2] + "." + parts[parts.length - 1];
+        }
+        else rootDomain = host;
+
+        // Rebuild URI with root domain
+        String scheme = requestUri.getScheme();
+        int port = requestUri.getPort();
+        String contextPath = getHttpServletRequest().getContextPath();
+
+        if (port == -1)  return URI.create(scheme + "://" + rootDomain + contextPath + "/");
+        else return URI.create(scheme + "://" + rootDomain + ":" + port + contextPath + "/");
+    }
+    
 }

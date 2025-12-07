@@ -21,6 +21,8 @@ import com.atomgraph.linkeddatahub.server.filter.request.AuthenticationFilter;
 import com.atomgraph.linkeddatahub.apps.model.Application;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import com.atomgraph.linkeddatahub.model.auth.Agent;
+import com.atomgraph.linkeddatahub.resource.oauth2.google.Authorize;
+import com.atomgraph.linkeddatahub.resource.oauth2.google.Login;
 import static com.atomgraph.linkeddatahub.resource.oauth2.google.Login.TOKEN_ENDPOINT;
 import com.atomgraph.linkeddatahub.server.security.IDTokenSecurityContext;
 import com.atomgraph.linkeddatahub.vocabulary.FOAF;
@@ -41,6 +43,7 @@ import java.util.concurrent.TimeUnit;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.Priority;
 import jakarta.json.JsonObject;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.ws.rs.InternalServerErrorException;
 import jakarta.ws.rs.NotAuthorizedException;
 import jakarta.ws.rs.Priorities;
@@ -48,12 +51,14 @@ import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.container.PreMatching;
+import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Cookie;
 import jakarta.ws.rs.core.Form;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.NewCookie;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.SecurityContext;
+import jakarta.ws.rs.core.UriBuilder;
 import org.apache.jena.query.ParameterizedSparqlString;
 import org.apache.jena.query.QuerySolutionMap;
 import org.apache.jena.rdf.model.Literal;
@@ -83,6 +88,8 @@ public class IDTokenFilter extends AuthenticationFilter
     /** Name of the cookie that stores the ID token */
     public static final String COOKIE_NAME = "LinkedDataHub.id_token";
     private String clientID, clientSecret;
+    
+    @Context HttpServletRequest httpServletRequest;
     
     private ParameterizedSparqlString userAccountQuery;
 
@@ -284,7 +291,7 @@ public class IDTokenFilter extends AuthenticationFilter
      */
     public URI getLoginURL()
     {
-        return getAdminApplication().getBaseURI().resolve("oauth2/login"); // TO-DO: extract from Login class
+        return UriBuilder.fromUri(getContextURI()).path(Login.class).build();
     }
     
     /**
@@ -295,7 +302,7 @@ public class IDTokenFilter extends AuthenticationFilter
      */
     public URI getAuthorizeGoogleURL()
     {
-        return getAdminApplication().getBaseURI().resolve("oauth2/authorize/google"); // TO-DO: extract from ontology Template
+        return UriBuilder.fromUri(getContextURI()).path(Authorize.class).build();
     }
     
     /**
@@ -309,6 +316,52 @@ public class IDTokenFilter extends AuthenticationFilter
             return getApplication().get().as(EndUserApplication.class).getAdminApplication();
         else
             return getApplication().get().as(AdminApplication.class);
+    }
+    
+    /**
+     * Returns servlet request.
+     * 
+     * @return servlet request
+     */
+    public HttpServletRequest getHttpServletRequest()
+    {
+        return httpServletRequest;
+    }
+    
+    /**
+     * Returns the base URI of this LinkedDataHub instance.
+     * It equals to the base URI of the root dataspace.
+     * 
+     * @return root context URI
+     */
+    public URI getContextURI()
+    {
+        URI requestUri = URI.create(getHttpServletRequest().getRequestURL().toString());
+        String host = requestUri.getHost();
+
+        // Strip all subdomains to get root domain
+        String rootDomain;
+        String[] parts = host.split("\\.");
+
+        if (host.equals("localhost") || host.endsWith(".localhost"))
+        {
+            // Special case: localhost domains
+            rootDomain = "localhost";
+        }
+        else if (parts.length >= 2)
+        {
+            // Regular domains: take last 2 parts (e.g., example.com)
+            rootDomain = parts[parts.length - 2] + "." + parts[parts.length - 1];
+        }
+        else rootDomain = host;
+
+        // Rebuild URI with root domain
+        String scheme = requestUri.getScheme();
+        int port = requestUri.getPort();
+        String contextPath = getHttpServletRequest().getContextPath();
+
+        if (port == -1)  return URI.create(scheme + "://" + rootDomain + contextPath + "/");
+        else return URI.create(scheme + "://" + rootDomain + ":" + port + contextPath + "/");
     }
     
     /**

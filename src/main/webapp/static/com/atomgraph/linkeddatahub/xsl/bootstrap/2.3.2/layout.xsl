@@ -793,7 +793,7 @@ LIMIT   100
                     </xsl:if>
                     <xsl:if test="$orcid-signup">
                         <li>
-                            <xsl:variable name="orcid-signup-uri" select="ac:build-uri(resolve-uri('admin/oauth2/authorize/orcid', $ac:contextUri), map{ 'referer': string(ac:absolute-path(ldh:request-uri())) })" as="xs:anyURI"/>
+                            <xsl:variable name="orcid-signup-uri" select="ac:build-uri(resolve-uri('oauth2/authorize/orcid', $ac:contextUri), map{ 'referer': string(ac:absolute-path(ldh:request-uri())) })" as="xs:anyURI"/>
                             <a href="{$orcid-signup-uri}">
                                 <xsl:value-of>
                                     <xsl:apply-templates select="key('resources', 'login-orcid', document('translations.rdf'))" mode="ac:label"/>

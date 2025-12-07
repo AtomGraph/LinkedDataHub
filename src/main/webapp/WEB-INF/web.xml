@@ -373,6 +373,22 @@ support@atomgraph.com]]></param-value>
         <url-pattern>/*</url-pattern>
     </servlet-mapping>
     <filter>
+        <filter-name>CORS filter</filter-name>
+        <filter-class>org.apache.catalina.filters.CorsFilter</filter-class>
+        <init-param>
+            <param-name>cors.allowed.origins</param-name>
+            <param-value>*</param-value>
+        </init-param>
+        <init-param>
+            <param-name>cors.allowed.methods</param-name>
+            <param-value>GET,HEAD,OPTIONS</param-value>
+        </init-param>
+    </filter>
+    <filter-mapping>
+        <filter-name>CORS filter</filter-name>
+        <url-pattern>/static/*</url-pattern>
+    </filter-mapping>
+    <filter>
         <filter-name>HSTS filter</filter-name>
         <filter-class>org.apache.catalina.filters.HttpHeaderSecurityFilter</filter-class>
         <init-param>
