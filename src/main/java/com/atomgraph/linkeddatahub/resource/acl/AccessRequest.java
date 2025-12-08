@@ -37,10 +37,8 @@ import jakarta.ws.rs.NotAllowedException;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.Context;
-import jakarta.ws.rs.core.Request;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.UriBuilder;
-import jakarta.ws.rs.core.UriInfo;
 import java.net.URI;
 import java.util.GregorianCalendar;
 import java.util.Optional;
@@ -75,16 +73,13 @@ public class AccessRequest
     /**
      * Constructs an AccessRequest resource handler.
      * 
-     * @param request HTTP request context
-     * @param uriInfo URI information context
      * @param application current application
      * @param agentContext optional agent context
      * @param system system application
      * @param servletConfig servlet configuration
      */
     @Inject
-    public AccessRequest(@Context Request request, @Context UriInfo uriInfo,
-            com.atomgraph.linkeddatahub.apps.model.Application application, Optional<AgentContext> agentContext,
+    public AccessRequest(com.atomgraph.linkeddatahub.apps.model.Application application, Optional<AgentContext> agentContext,
             com.atomgraph.linkeddatahub.Application system, @Context ServletConfig servletConfig)
     {
         if (log.isDebugEnabled()) log.debug("Constructing {}", getClass());
@@ -122,7 +117,7 @@ public class AccessRequest
                 Model requestModel = ModelFactory.createDefaultModel();
                 
                 Resource agent = authorization.getPropertyResourceValue(ACL.agent);
-                if (!agent.equals(getAgentContext().get().getAgent())) throw new IllegalStateException("Agent requesting access must be authenticated");
+                if (getAgentContext().isEmpty() || !agent.equals(getAgentContext().get().getAgent())) throw new IllegalStateException("Agent requesting access must be authenticated");
 
                 String humanReadableName = getAgentsHumanReadableName(getAgentContext().get().getAgent());
                 String accessRequestLabel = humanReadableName != null ? "Access request by " + humanReadableName : null; // TO-DO: localize the string

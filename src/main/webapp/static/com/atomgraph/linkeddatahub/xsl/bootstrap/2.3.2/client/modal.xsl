@@ -343,7 +343,8 @@ LIMIT   10
         <xsl:param name="id" select="'request-access'" as="xs:string?"/>
         <xsl:param name="button-class" select="'btn btn-primary btn-access-form'" as="xs:string?"/>
         <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
-        <xsl:param name="action" select="resolve-uri('access/request', ldt:base())" as="xs:anyURI"/>
+        <xsl:param name="this" as="xs:anyURI"/>
+        <xsl:param name="action" select="ldh:href(resolve-uri('access/request', ldh:origin($this)))" as="xs:anyURI"/>
         <xsl:param name="legend-label" select="ac:label(key('resources', 'request-access', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri))))" as="xs:string"/>
         <xsl:param name="agent" as="xs:anyURI"/>
         
@@ -413,6 +414,7 @@ LIMIT   10
         <!-- TO-DO: support agent-group? -->
         <xsl:param name="this" as="xs:anyURI"/>
         <xsl:param name="access-modes" select="(xs:anyURI('&acl;Read'), xs:anyURI('&acl;Append'), xs:anyURI('&acl;Write'))" as="xs:anyURI*"/>
+        <xsl:param name="base" select="ldh:origin($this)" as="xs:anyURI"/>
         
         <fieldset>
             <legend>URL-based access</legend>
@@ -448,7 +450,7 @@ LIMIT   10
                     <!-- append an authorization for the current URL unless such already exists (e.g. lacl:OwnerAuthorization) -->
                     <xsl:variable name="has-access-to-this-auth" select="exists(rdf:Description[acl:accessTo/@rdf:resource = $this])" as="xs:boolean"/>
                     <xsl:for-each-group select="if ($has-access-to-this-auth) then rdf:Description[acl:accessTo/@rdf:resource] else ($this-auth, rdf:Description[acl:accessTo/@rdf:resource])"
-                                        group-by="acl:accessTo/@rdf:resource[starts-with(., ldt:base())]">
+                                        group-by="acl:accessTo/@rdf:resource[starts-with(., $base)]">
                         <xsl:variable name="granted-access-modes" select="distinct-values(current-group()/acl:mode/@rdf:resource)" as="xs:anyURI*"/>
 
                         <!-- applying on the first authorization in the group -->
@@ -712,7 +714,7 @@ LIMIT   10
     <xsl:template match="button[contains-token(@class, 'btn-access-form')]" mode="ixsl:onclick">
         <!-- TO-DO: fix for admin apps -->
         <xsl:param name="this" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/>
-        <xsl:variable name="request-uri" select="ldh:href(ac:build-uri(resolve-uri('access', ldt:base()), map{ 'this': $this }))" as="xs:anyURI"/>
+        <xsl:variable name="request-uri" select="ldh:href(ac:build-uri(resolve-uri('access', ldh:origin($this)), map{ 'this': $this }))" as="xs:anyURI"/>
         <xsl:variable name="request" as="item()*">
             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                 <xsl:call-template name="onAccessResponseLoad">
@@ -1198,6 +1200,7 @@ LIMIT   10
                 <xsl:call-template name="ldh:ShowModalForm">
                     <xsl:with-param name="form" as="element()">
                         <xsl:apply-templates select="$body" mode="ldh:RequestAccessForm">
+                            <xsl:with-param name="this" select="$this"/>
                             <xsl:with-param name="agent" select="$agent"/>
                         </xsl:apply-templates>
                     </xsl:with-param>

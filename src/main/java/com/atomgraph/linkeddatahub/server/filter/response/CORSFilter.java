@@ -49,17 +49,19 @@ public class CORSFilter implements ContainerResponseFilter
     @Override
     public void filter(ContainerRequestContext request, ContainerResponseContext response) throws IOException
     {
-        // Add CORS headers for all responses
-        response.getHeaders().add("Access-Control-Allow-Origin", "*");
-        response.getHeaders().add("Access-Control-Allow-Methods", ALLOWED_METHODS);
-        response.getHeaders().add("Access-Control-Allow-Headers", "Accept, Content-Type, Authorization");
-        response.getHeaders().add("Access-Control-Expose-Headers", "Link, Content-Location, Location");
-
-        // Handle preflight OPTIONS requests
-        if (HttpMethod.OPTIONS.equalsIgnoreCase(request.getMethod()))
+        if (request.getHeaderString("Origin") != null)
         {
-            response.setStatus(Response.Status.NO_CONTENT.getStatusCode());
-            response.getHeaders().add("Access-Control-Max-Age", String.valueOf(getMaxAge()));
+            response.getHeaders().add("Access-Control-Allow-Origin", "*");
+            response.getHeaders().add("Access-Control-Allow-Methods", ALLOWED_METHODS);
+            response.getHeaders().add("Access-Control-Allow-Headers", "Accept, Content-Type, Authorization");
+            response.getHeaders().add("Access-Control-Expose-Headers", "Link, Content-Location, Location");
+
+            // Handle preflight OPTIONS requests
+            if (HttpMethod.OPTIONS.equalsIgnoreCase(request.getMethod()))
+            {
+                response.setStatus(Response.Status.NO_CONTENT.getStatusCode());
+                response.getHeaders().add("Access-Control-Max-Age", String.valueOf(getMaxAge()));
+            }
         }
     }
 
