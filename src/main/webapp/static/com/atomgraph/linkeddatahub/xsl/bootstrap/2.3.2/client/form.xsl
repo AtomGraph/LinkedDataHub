@@ -140,8 +140,11 @@ WHERE
     </xsl:template>
     
     <xsl:template match="textarea[contains-token(@class, 'wymeditor')]" mode="ldh:RenderRowForm" priority="1">
-        <!-- call .wymeditor() on textarea to show WYMEditor -->
-        <xsl:sequence select="ixsl:call(ixsl:call(ixsl:window(), 'jQuery', [ . ]), 'wymeditor', [])[current-date() lt xs:date('2000-01-01')]"/>
+        <!-- call .wymeditor() on textarea to show WYMEditor with current origin's iframe path -->
+        <xsl:variable name="iframe-base-path" select="resolve-uri('static/com/atomgraph/linkeddatahub/js/wymeditor/iframe/default/', ldt:base())" as="xs:anyURI"/>
+        <xsl:variable name="wymeditor-config" select="ldh:new-object()"/>
+        <ixsl:set-property name="iframeBasePath" select="$iframe-base-path" object="$wymeditor-config"/>
+        <xsl:sequence select="ixsl:call(ixsl:call(ixsl:window(), 'jQuery', [ . ]), 'wymeditor', [ $wymeditor-config ])[current-date() lt xs:date('2000-01-01')]"/>
         <xsl:variable name="wymeditor" select="ixsl:call(ixsl:get(ixsl:window(), 'jQuery'), 'getWymeditorByTextarea', [ . ])" as="item()"/>
         <xsl:variable name="char-count" select="sum(.//text()/string-length())" as="xs:integer"/>
         <xsl:variable name="iframe" select="ixsl:get($wymeditor, '_iframe')" as="element()"/>
