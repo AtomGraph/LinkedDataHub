@@ -770,7 +770,7 @@ LIMIT   10
                 <xsl:variable name="method" select="ixsl:get(., 'method')" as="xs:string"/>
                 <xsl:variable name="action" select="ixsl:get(., 'action')" as="xs:anyURI"/>
                 <xsl:variable name="enctype" select="ixsl:get(., 'enctype')" as="xs:string"/>
-                <xsl:variable name="form-data" select="ldh:new('URLSearchParams', [ ldh:new('FormData', [ $form ]) ])"/>
+                <xsl:variable name="form-data" select="ixsl:new('URLSearchParams', [ ixsl:new('FormData', [ $form ]) ])"/>
                 <xsl:variable name="request-uri" select="ldh:href($action, map{})" as="xs:anyURI"/>
 
                 <xsl:variable name="request" as="item()*">
@@ -859,7 +859,7 @@ LIMIT   10
         <xsl:variable name="method" select="ixsl:get(., 'method')" as="xs:string"/>
         <xsl:variable name="action" select="ixsl:get(., 'action')" as="xs:anyURI"/>
         <xsl:variable name="enctype" select="ixsl:get(., 'enctype')" as="xs:string"/>
-        <xsl:variable name="form-data" select="ldh:new('URLSearchParams', [ ldh:new('FormData', [ $form ]) ])"/>
+        <xsl:variable name="form-data" select="ixsl:new('URLSearchParams', [ ixsl:new('FormData', [ $form ]) ])"/>
         <xsl:variable name="request-uri" select="ldh:href($action, map{})" as="xs:anyURI"/>
 
         <xsl:variable name="request" as="item()*">

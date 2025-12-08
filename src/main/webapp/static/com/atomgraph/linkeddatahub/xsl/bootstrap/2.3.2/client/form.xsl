@@ -618,7 +618,7 @@ WHERE
         <xsl:choose>
             <!-- we need to handle multipart requests specially because of Saxon-JS 2 limitations: https://saxonica.plan.io/issues/4732 -->
             <xsl:when test="$enctype = 'multipart/form-data'">
-                <xsl:variable name="form-data" select="ldh:new('FormData', [ $form ])"/> <!-- only for file uploads! XMLLiterals will not be canonicalized -->
+                <xsl:variable name="form-data" select="ixsl:new('FormData', [ $form ])"/> <!-- only for file uploads! XMLLiterals will not be canonicalized -->
                 <xsl:variable name="headers" select="ldh:new-object()"/>
                 <ixsl:set-property name="Accept" select="$accept" object="$headers"/>
                 <ixsl:set-property name="If-Match" select="$etag" object="$headers"/>

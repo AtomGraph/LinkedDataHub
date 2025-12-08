@@ -115,7 +115,7 @@ exclude-result-prefixes="#all"
             </xsl:message>
         </xsl:if>
         
-        <xsl:variable name="chart" select="ldh:new($chart-class, [ id($canvas-id, ixsl:page()) ])"/>
+        <xsl:variable name="chart" select="ixsl:new($chart-class, [ id($canvas-id, ixsl:page()) ])"/>
         <xsl:variable name="options" as="map(xs:string, item())">
             <xsl:map>
                 <xsl:if test="exists($width)">

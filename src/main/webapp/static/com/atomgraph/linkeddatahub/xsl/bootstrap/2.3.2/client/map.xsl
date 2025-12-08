@@ -41,8 +41,8 @@ exclude-result-prefixes="#all"
         <xsl:param name="zoom" as="xs:integer?"/>
 
         <xsl:variable name="tile-options" select="ldh:new-object()"/>
-        <ixsl:set-property name="source" select="ldh:new('ol.source.OSM', [])" object="$tile-options"/>
-        <xsl:variable name="tile" select="ldh:new('ol.layer.Tile', [ $tile-options ])"/>
+        <ixsl:set-property name="source" select="ixsl:new('ol.source.OSM', [])" object="$tile-options"/>
+        <xsl:variable name="tile" select="ixsl:new('ol.layer.Tile', [ $tile-options ])"/>
         <xsl:variable name="layers" select="[ $tile ]" as="array(*)"/>
 
         <xsl:variable name="view-options" select="ldh:new-object()"/>
@@ -53,14 +53,14 @@ exclude-result-prefixes="#all"
         <xsl:if test="exists($zoom)">
             <ixsl:set-property name="zoom" select="$zoom" object="$view-options"/>
         </xsl:if>
-        <xsl:variable name="view" select="ldh:new('ol.View', [ $view-options ])"/>
+        <xsl:variable name="view" select="ixsl:new('ol.View', [ $view-options ])"/>
         
         <xsl:variable name="map-options" select="ldh:new-object()"/>
         <ixsl:set-property name="target" select="$canvas-id" object="$map-options"/>
         <ixsl:set-property name="layers" select="$layers" object="$map-options"/>
         <ixsl:set-property name="view" select="$view" object="$map-options"/>
 
-        <xsl:variable name="map" select="ldh:new('ol.Map', [ $map-options ])"/>
+        <xsl:variable name="map" select="ixsl:new('ol.Map', [ $map-options ])"/>
         <xsl:if test="exists($lat) and exists($lng)">
             <xsl:variable name="lon-lat" select="[ $lng, $lat ]" as="array(*)"/>
             <xsl:variable name="center" select="ixsl:call(ixsl:get(ixsl:window(), 'ol.proj'), 'fromLonLat', [ $lon-lat ])"/>
@@ -215,12 +215,12 @@ exclude-result-prefixes="#all"
                 <!--<ixsl:set-property name="scale" select="0.2" object="$icon-options"/>-->
                 <!-- icon has to have an initial src, otherwise the ol.style.Icon constructor will throw an assertion error -->
                 <ixsl:set-property name="src" select="." object="$icon-options"/>
-                <xsl:variable name="icon" select="ldh:new('ol.style.Icon', [ $icon-options ])"/>
+                <xsl:variable name="icon" select="ixsl:new('ol.style.Icon', [ $icon-options ])"/>
                 <xsl:sequence select="ixsl:call($icon, 'setAnchor', [ [0.5, 30] ])[current-date() lt xs:date('2000-01-01')]"/>
 
                 <xsl:variable name="icon-style-options" select="ldh:new-object()"/>
                 <ixsl:set-property name="image" select="$icon" object="$icon-style-options"/>
-                <xsl:sequence select="ldh:new('ol.style.Style', [ $icon-style-options ])"/>
+                <xsl:sequence select="ixsl:new('ol.style.Style', [ $icon-style-options ])"/>
             </xsl:for-each>
         </xsl:param>
         <xsl:if test="count($icon-styles) = 0">
@@ -234,7 +234,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="geo-json" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'parse', [ $geo-json-string ])"/>
         <xsl:variable name="geo-json-options" select="ldh:new-object()"/>
         <ixsl:set-property name="featureProjection" select="'EPSG:3857'" object="$geo-json-options"/>
-        <xsl:variable name="geo-json-features" select="array{ ixsl:call(ldh:new('ol.format.GeoJSON', []), 'readFeatures', [ $geo-json, $geo-json-options ]) }"/>
+        <xsl:variable name="geo-json-features" select="array{ ixsl:call(ixsl:new('ol.format.GeoJSON', []), 'readFeatures', [ $geo-json, $geo-json-options ]) }"/>
 
         <!-- read WKT features from gs:asWKT properties -->
         <xsl:variable name="wkt-options" select="ldh:new-object()"/>
@@ -249,7 +249,7 @@ exclude-result-prefixes="#all"
                     <xsl:sequence select="$features"/>
                 </xsl:on-completion>
 
-                <xsl:variable name="feature" select="ixsl:call(ldh:new('ol.format.WKT', []), 'readFeature', [ string(gs:asWKT[@rdf:datatype = '&gs;wktLiteral']/text()), $wkt-options ])"/>
+                <xsl:variable name="feature" select="ixsl:call(ixsl:new('ol.format.WKT', []), 'readFeature', [ string(gs:asWKT[@rdf:datatype = '&gs;wktLiteral']/text()), $wkt-options ])"/>
                 <xsl:sequence select="ixsl:call($feature, 'setId', [ string((@rdf:about, @rdf:nodeID)[1]) ])[current-date() lt xs:date('2000-01-01')]"/>
                 <xsl:sequence select="ixsl:call($feature, 'set', [ 'name', ac:label(.) ])[current-date() lt xs:date('2000-01-01')]"/>
                 <xsl:sequence select="ixsl:call($feature, 'set', [ 'types', array{ rdf:type/@rdf:resource/string() } ])[current-date() lt xs:date('2000-01-01')]"/>
@@ -264,11 +264,11 @@ exclude-result-prefixes="#all"
         <ixsl:set-property name="font" select="'12px sans-serif'" object="$text-options"/>
         <ixsl:set-property name="offsetY" select="10" object="$text-options"/>
         <ixsl:set-property name="overflow" select="true()" object="$text-options"/>
-        <xsl:variable name="text" select="ldh:new('ol.style.Text', [ $text-options ])"/>
+        <xsl:variable name="text" select="ixsl:new('ol.style.Text', [ $text-options ])"/>
 
         <xsl:variable name="label-style-options" select="ldh:new-object()"/>
         <ixsl:set-property name="text" select="$text" object="$label-style-options"/>
-        <xsl:variable name="label-style" select="ldh:new('ol.style.Style', [ $label-style-options ])"/>
+        <xsl:variable name="label-style" select="ixsl:new('ol.style.Style', [ $label-style-options ])"/>
 
         <xsl:variable name="js-statement" as="xs:string">
             <![CDATA[
@@ -297,12 +297,12 @@ exclude-result-prefixes="#all"
             ]]>
         </xsl:variable>
         <xsl:variable name="js-function" select="ixsl:eval(normalize-space($js-statement))"/> <!-- need normalize-space() due to Saxon-JS 2.4 bug: https://saxonica.plan.io/issues/5667 -->
-        <xsl:variable name="js-function" select="ixsl:call($js-function, 'bind', [ (), $label-style, $icon-styles, ldh:new('Map', []) ])"/>
+        <xsl:variable name="js-function" select="ixsl:call($js-function, 'bind', [ (), $label-style, $icon-styles, ixsl:new('Map', []) ])"/>
 
         <xsl:variable name="source-options" select="ldh:new-object()"/>
         <!--<ixsl:set-property name="features" select="$geo-json-features" object="$source-options"/>-->
-        <xsl:variable name="geo-json-source" select="ldh:new('ol.source.Vector', [ $source-options ])"/>
-        <xsl:variable name="wkt-source" select="ldh:new('ol.source.Vector', [ $source-options ])"/>
+        <xsl:variable name="geo-json-source" select="ixsl:new('ol.source.Vector', [ $source-options ])"/>
+        <xsl:variable name="wkt-source" select="ixsl:new('ol.source.Vector', [ $source-options ])"/>
         <!--<ixsl:set-property name="loader" select="$loader-function" object="$source-options"/>-->
         <xsl:sequence select="ixsl:call($geo-json-source, 'addFeatures', [ $geo-json-features ])[current-date() lt xs:date('2000-01-01')]"/>
         <xsl:sequence select="ixsl:call($wkt-source, 'addFeatures', [ $wkt-features ])[current-date() lt xs:date('2000-01-01')]"/>
@@ -311,13 +311,13 @@ exclude-result-prefixes="#all"
         <ixsl:set-property name="declutter" select="true()" object="$geo-json-layer-options"/>
         <ixsl:set-property name="source" select="$geo-json-source" object="$geo-json-layer-options"/>
         <ixsl:set-property name="style" select="$js-function" object="$geo-json-layer-options"/>
-        <xsl:variable name="geo-json-layer" select="ldh:new('ol.layer.Vector', [ $geo-json-layer-options ])"/>
+        <xsl:variable name="geo-json-layer" select="ixsl:new('ol.layer.Vector', [ $geo-json-layer-options ])"/>
 
         <xsl:variable name="wkt-layer-options" select="ldh:new-object()"/>
         <!--<ixsl:set-property name="declutter" select="true()" object="$wkt-layer-options"/>-->
         <ixsl:set-property name="source" select="$wkt-source" object="$wkt-layer-options"/>
         <ixsl:set-property name="style" select="$js-function" object="$wkt-layer-options"/>
-        <xsl:variable name="wkt-layer" select="ldh:new('ol.layer.Vector', [ $wkt-layer-options ])"/>
+        <xsl:variable name="wkt-layer" select="ixsl:new('ol.layer.Vector', [ $wkt-layer-options ])"/>
 
         <xsl:sequence select="ixsl:call($map, 'addLayer', [ $geo-json-layer ])[current-date() lt xs:date('2000-01-01')]"/>
         <xsl:sequence select="ixsl:call($map, 'addLayer', [ $wkt-layer ])[current-date() lt xs:date('2000-01-01')]"/>
@@ -426,7 +426,7 @@ exclude-result-prefixes="#all"
                     <ixsl:set-property name="positioning" select="'bottom-center'" object="$overlay-options"/>
                     <!--<ixsl:set-property name="className" select="'ol-overlay-container ol-selectable'" object="$overlay-options"/>-->
                     <!--<ixsl:set-property name="autoPanAnimation" select="" object="$overlay-options"/>-->
-                    <xsl:variable name="overlay" select="ldh:new('ol.Overlay', [ $overlay-options ])"/>
+                    <xsl:variable name="overlay" select="ixsl:new('ol.Overlay', [ $overlay-options ])"/>
                     <xsl:sequence select="ixsl:call($overlay, 'setPosition', [ $coord ])[current-date() lt xs:date('2000-01-01')]"/>
 
                     <xsl:for-each select="$container">

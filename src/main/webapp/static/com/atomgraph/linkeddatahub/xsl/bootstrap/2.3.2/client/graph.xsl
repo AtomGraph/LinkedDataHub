@@ -133,7 +133,7 @@ exclude-result-prefixes="#all"
             <!-- add the mouse offset within the element which was stored in onmousedown -->
             <xsl:variable name="dom-x" select="ixsl:get(ixsl:event(), 'clientX') + $offset-x"/>
             <xsl:variable name="dom-y" select="ixsl:get(ixsl:event(), 'clientY') + $offset-y"/>
-            <xsl:variable name="point" select="ldh:new('DOMPoint', [ $dom-x, $dom-y ])"/>
+            <xsl:variable name="point" select="ixsl:new('DOMPoint', [ $dom-x, $dom-y ])"/>
             <xsl:variable name="ctm" select="ixsl:call(., 'getScreenCTM', [])"/>
             <xsl:variable name="svg-point" select="ixsl:call($point, 'matrixTransform', [ ixsl:call($ctm, 'inverse', []) ])"/>
             <xsl:variable name="svg-x" select="ixsl:get($svg-point, 'x')"/>

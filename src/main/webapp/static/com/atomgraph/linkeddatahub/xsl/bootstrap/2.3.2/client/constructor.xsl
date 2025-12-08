@@ -592,7 +592,7 @@ exclude-result-prefixes="#all"
                 <!-- query NS ontology to retrieve the ontology URI from the $type class' rdfs:isDefinedBy value. Fallback to the assumed $type's namespace URI -->
                 <xsl:variable name="request-uri" select="ac:build-uri(resolve-uri('ns', ldt:base()), map{ 'query': 'DESCRIBE &lt;' || $type || '&gt;', 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
                 <xsl:variable name="ontology-uri" select="(key('resources', $type, document(ac:document-uri($request-uri)))/rdfs:isDefinedBy/@rdf:resource, $namespace)[1]" as="xs:anyURI"/>
-                <xsl:variable name="form-data" select="ldh:new('URLSearchParams', [ ldh:new('FormData', []) ])"/>
+                <xsl:variable name="form-data" select="ixsl:new('URLSearchParams', [ ixsl:new('FormData', []) ])"/>
                 <xsl:sequence select="ixsl:call($form-data, 'append', [ 'uri', $ontology-uri ])[current-date() lt xs:date('2000-01-01')]"/>
 
                 <!-- clear this ontology first, then proceed to clear the namespace ontology -->
@@ -679,7 +679,7 @@ exclude-result-prefixes="#all"
     
     <xsl:template name="ldh:ClearNamespace">
         <xsl:param name="ontology-uri" select="resolve-uri('ns#', ldt:base())" as="xs:anyURI"/>
-        <xsl:variable name="form-data" select="ldh:new('URLSearchParams', [ ldh:new('FormData', []) ])"/>
+        <xsl:variable name="form-data" select="ixsl:new('URLSearchParams', [ ixsl:new('FormData', []) ])"/>
         <xsl:sequence select="ixsl:call($form-data, 'append', [ 'uri', $ontology-uri ])[current-date() lt xs:date('2000-01-01')]"/>
 
         <xsl:variable name="admin-base-uri" select="xs:anyURI(replace(ldt:base(), '^(https?://)', '$1admin.'))" as="xs:anyURI"/>
