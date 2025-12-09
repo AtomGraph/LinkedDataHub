@@ -62,7 +62,7 @@ public class CacheInvalidationFilter implements ContainerResponseFilter
 
         if (req.getMethod().equals(HttpMethod.POST) && resp.getHeaderString(HttpHeaders.LOCATION) != null)
         {
-            URI location = (URI)resp.getHeaders().get(HttpHeaders.LOCATION).get(0);
+            URI location = URI.create(resp.getHeaderString(HttpHeaders.LOCATION));
             URI parentURI = location.resolve("..").normalize();
             URI relativeParentURI = getApplication().get().getBaseURI().relativize(parentURI);
 
