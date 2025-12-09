@@ -27,7 +27,7 @@ encoded_query=$(python -c "import urllib.parse; print(urllib.parse.quote('''$que
 curl -k -f -s \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
   -H "Accept: application/n-triples" \
-  "${END_USER_BASE_URL}sparql?query=$encoded_query" \
+  "${END_USER_BASE_URL}sparql?query=${encoded_query}" \
   > /dev/null
 
 # create container
@@ -47,5 +47,5 @@ container=$(create-container.sh \
 curl -k -f -s \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
   -H "Accept: application/n-triples" \
-  "${END_USER_BASE_URL}sparql?query=$encoded_query" \
+  "${END_USER_BASE_URL}sparql?query=${encoded_query}" \
 | grep -q "<${container}>"
