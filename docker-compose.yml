@@ -285,6 +285,7 @@ configs:
 
       acl local {
           "localhost";
+          "linkeddatahub";
       }
 
       acl remote {

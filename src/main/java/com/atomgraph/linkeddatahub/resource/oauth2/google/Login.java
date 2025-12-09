@@ -25,7 +25,7 @@ import com.atomgraph.linkeddatahub.model.Service;
 import static com.atomgraph.linkeddatahub.resource.admin.SignUp.AGENT_PATH;
 import static com.atomgraph.linkeddatahub.resource.admin.SignUp.AUTHORIZATION_PATH;
 import com.atomgraph.linkeddatahub.server.filter.request.auth.IDTokenFilter;
-import com.atomgraph.linkeddatahub.server.filter.response.BackendInvalidationFilter;
+import com.atomgraph.linkeddatahub.server.filter.response.CacheInvalidationFilter;
 import com.atomgraph.linkeddatahub.server.util.MessageBuilder;
 import com.atomgraph.linkeddatahub.server.util.Skolemizer;
 import com.atomgraph.linkeddatahub.vocabulary.ACL;
@@ -477,7 +477,7 @@ public class Login
         if (url == null) throw new IllegalArgumentException("Resource cannot be null");
         
         return getSystem().getClient().target(proxy.getURI()).request().
-            header(BackendInvalidationFilter.HEADER_NAME, UriComponent.encode(url, UriComponent.Type.UNRESERVED)). // the value has to be URL-encoded in order to match request URLs in Varnish
+            header(CacheInvalidationFilter.HEADER_NAME, UriComponent.encode(url, UriComponent.Type.UNRESERVED)). // the value has to be URL-encoded in order to match request URLs in Varnish
             method("BAN", Response.class);
     }
     

@@ -19,7 +19,7 @@ package com.atomgraph.linkeddatahub.resource.admin;
 import com.atomgraph.linkeddatahub.apps.model.AdminApplication;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import static com.atomgraph.linkeddatahub.server.filter.request.OntologyFilter.addDocumentModel;
-import com.atomgraph.linkeddatahub.server.filter.response.BackendInvalidationFilter;
+import com.atomgraph.linkeddatahub.server.filter.response.CacheInvalidationFilter;
 import com.atomgraph.linkeddatahub.server.util.OntologyModelGetter;
 import java.net.URI;
 import jakarta.inject.Inject;
@@ -131,7 +131,7 @@ public class Clear
         if (url == null) throw new IllegalArgumentException("Resource cannot be null");
         
         return getSystem().getClient().target(proxy.getURI()).request().
-            header(BackendInvalidationFilter.HEADER_NAME, UriComponent.encode(url, UriComponent.Type.UNRESERVED)). // the value has to be URL-encoded in order to match request URLs in Varnish
+            header(CacheInvalidationFilter.HEADER_NAME, UriComponent.encode(url, UriComponent.Type.UNRESERVED)). // the value has to be URL-encoded in order to match request URLs in Varnish
             method("BAN", Response.class);
     }
     

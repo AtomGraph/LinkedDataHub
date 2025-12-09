@@ -32,6 +32,7 @@ import jakarta.ws.rs.container.ContainerResponseFilter;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.Response;
 import java.util.Optional;
+import java.util.Set;
 import org.apache.jena.rdf.model.Resource;
 import org.glassfish.jersey.uri.UriComponent;
 
@@ -42,7 +43,7 @@ import org.glassfish.jersey.uri.UriComponent;
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
 @Priority(Priorities.USER + 400)
-public class BackendInvalidationFilter implements ContainerResponseFilter
+public class CacheInvalidationFilter implements ContainerResponseFilter
 {
     
     /**
@@ -59,58 +60,89 @@ public class BackendInvalidationFilter implements ContainerResponseFilter
         // If no application was matched (e.g., non-existent dataspace), skip cache invalidation
         if (!getApplication().isPresent()) return;
 
-        if (getAdminApplication().getService().getBackendProxy() == null) return;
-        
         if (req.getMethod().equals(HttpMethod.POST) && resp.getHeaderString(HttpHeaders.LOCATION) != null)
         {
             URI location = (URI)resp.getHeaders().get(HttpHeaders.LOCATION).get(0);
             URI parentURI = location.resolve("..").normalize();
+            URI relativeParentURI = getApplication().get().getBaseURI().relativize(parentURI);
 
-            ban(getApplication().get().getService().getBackendProxy(), location.toString()).close();
+            banIfNotNull(getApplication().get().getFrontendProxy(), location.toString());
+            banIfNotNull(getApplication().get().getService().getBackendProxy(), location.toString());
             // ban URI from authorization query results
-            ban(getAdminApplication().getService().getBackendProxy(), location.toString()).close();
+            banIfNotNull(getAdminApplication().getService().getBackendProxy(), location.toString());
+
             // ban parent resource URI in order to avoid stale children data in containers
-            ban(getApplication().get().getService().getBackendProxy(), parentURI.toString()).close();
-            ban(getApplication().get().getService().getBackendProxy(), getApplication().get().getBaseURI().relativize(parentURI).toString()).close(); // URIs can be relative in queries
+            banIfNotNull(getApplication().get().getFrontendProxy(), parentURI.toString());
+            banIfNotNull(getApplication().get().getService().getBackendProxy(), parentURI.toString());
+
+            if (!relativeParentURI.toString().isEmpty()) // URIs can be relative in queries
+            {
+                banIfNotNull(getApplication().get().getFrontendProxy(), relativeParentURI.toString());
+                banIfNotNull(getApplication().get().getService().getBackendProxy(), relativeParentURI.toString());
+            }
+
             // ban all results of queries that use forClass type
             if (req.getUriInfo().getQueryParameters().containsKey(AC.forClass.getLocalName()))
             {
                 String forClass = req.getUriInfo().getQueryParameters().getFirst(AC.forClass.getLocalName());
-                ban(getApplication().get().getService().getBackendProxy(), forClass).close();
+                banIfNotNull(getApplication().get().getFrontendProxy(), forClass);
+                banIfNotNull(getApplication().get().getService().getBackendProxy(), forClass);
             }
         }
         
-        if (req.getMethod().equals(HttpMethod.POST) || req.getMethod().equals(HttpMethod.PUT) || req.getMethod().equals(HttpMethod.DELETE) || req.getMethod().equals(HttpMethod.PATCH))
+        if (Set.of(HttpMethod.POST, HttpMethod.PUT, HttpMethod.DELETE, HttpMethod.PATCH).contains(req.getMethod()))
         {
-            // ban all admin/ entries when the admin dataset is changed - not perfect, but works
+            // ban all admin. entries when the admin dataset is changed - not perfect, but works
             if (!getAdminApplication().getBaseURI().relativize(req.getUriInfo().getAbsolutePath()).isAbsolute()) // URL is relative to the admin app's base URI
             {
-                ban(getAdminApplication().getService().getBackendProxy(), getAdminApplication().getBaseURI().toString()).close();
-                ban(getAdminApplication().getService().getBackendProxy(), "foaf:Agent").close(); // queries use prefixed names instead of absolute URIs
-                ban(getAdminApplication().getService().getBackendProxy(), "acl:AuthenticatedAgent").close();
+                banIfNotNull(getAdminApplication().getService().getBackendProxy(), getAdminApplication().getBaseURI().toString());
+                banIfNotNull(getAdminApplication().getService().getBackendProxy(), "foaf:Agent"); // queries use prefixed names instead of absolute URIs
+                banIfNotNull(getAdminApplication().getService().getBackendProxy(), "acl:AuthenticatedAgent");
             }
-            
+
             if (req.getUriInfo().getAbsolutePath().toString().endsWith("/"))
             {
-                ban(getApplication().get().getService().getBackendProxy(), req.getUriInfo().getAbsolutePath().toString()).close();
+                banIfNotNull(getApplication().get().getFrontendProxy(), req.getUriInfo().getAbsolutePath().toString());
+                banIfNotNull(getApplication().get().getService().getBackendProxy(), req.getUriInfo().getAbsolutePath().toString());
                 // ban URI from authorization query results
-                ban(getAdminApplication().getService().getBackendProxy(), req.getUriInfo().getAbsolutePath().toString()).close();
+                banIfNotNull(getAdminApplication().getService().getBackendProxy(), req.getUriInfo().getAbsolutePath().toString());
 
                 // ban parent document URIs (those that have a trailing slash) in order to avoid stale children data in containers
                 if (!req.getUriInfo().getAbsolutePath().equals(getApplication().get().getBaseURI()))
                 {
                     URI parentURI = req.getUriInfo().getAbsolutePath().resolve("..").normalize();
+                    URI relativeParentURI = getApplication().get().getBaseURI().relativize(parentURI);
 
-                    ban(getApplication().get().getService().getBackendProxy(), parentURI.toString()).close();
-                    ban(getApplication().get().getService().getBackendProxy(), getApplication().get().getBaseURI().relativize(parentURI).toString()).close(); // URIs can be relative in queries
+                    // ban parent resource URI in order to avoid stale children data in containers
+                    banIfNotNull(getApplication().get().getFrontendProxy(), parentURI.toString());
+                    banIfNotNull(getApplication().get().getService().getBackendProxy(), parentURI.toString());
+
+                    if (!relativeParentURI.toString().isEmpty()) // URIs can be relative in queries
+                    {
+                        banIfNotNull(getApplication().get().getFrontendProxy(), relativeParentURI.toString());
+                        banIfNotNull(getApplication().get().getService().getBackendProxy(), relativeParentURI.toString());
+                    }
                 }
             }
         }
     }
     
     /**
+     * Bans URL from proxy cache if proxy is not null.
+     * Null-safe wrapper that handles the common pattern of banning and closing the response.
+     *
+     * @param proxy proxy resource (can be null)
+     * @param url URL to be banned
+     */
+    public void banIfNotNull(Resource proxy, String url)
+    {
+        if (proxy != null)
+            ban(proxy, url).close();
+    }
+
+    /**
      * Bans URL from proxy cache.
-     * 
+     *
      * @param proxy proxy resource
      * @param url URL to be banned
      * @return response from proxy
@@ -119,7 +151,7 @@ public class BackendInvalidationFilter implements ContainerResponseFilter
     {
         if (proxy == null) throw new IllegalArgumentException("Proxy resource cannot be null");
         if (url == null) throw new IllegalArgumentException("Resource cannot be null");
-        
+
         return getClient().target(proxy.getURI()).request().
             header(HEADER_NAME, UriComponent.encode(url, UriComponent.Type.UNRESERVED)). // the value has to be URL-encoded in order to match request URLs in Varnish
             method("BAN", Response.class);

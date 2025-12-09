@@ -106,7 +106,7 @@ import com.atomgraph.linkeddatahub.server.filter.request.auth.ORCIDTokenFilter;
 import com.atomgraph.linkeddatahub.server.filter.request.auth.ProxiedWebIDFilter;
 import com.atomgraph.linkeddatahub.server.filter.response.CORSFilter;
 import com.atomgraph.linkeddatahub.server.filter.response.ResponseHeadersFilter;
-import com.atomgraph.linkeddatahub.server.filter.response.BackendInvalidationFilter;
+import com.atomgraph.linkeddatahub.server.filter.response.CacheInvalidationFilter;
 import com.atomgraph.linkeddatahub.server.filter.response.XsltExecutableFilter;
 import com.atomgraph.linkeddatahub.server.interceptor.RDFPostMediaTypeInterceptor;
 import com.atomgraph.linkeddatahub.server.mapper.auth.oauth2.TokenExpiredExceptionMapper;
@@ -1033,7 +1033,7 @@ public class Application extends ResourceConfig
         register(new CORSFilter());
         register(new ResponseHeadersFilter());
         register(new XsltExecutableFilter());
-        if (isInvalidateCache()) register(new BackendInvalidationFilter());
+        if (isInvalidateCache()) register(new CacheInvalidationFilter());
 //        register(new ProvenanceFilter());
     }
     
