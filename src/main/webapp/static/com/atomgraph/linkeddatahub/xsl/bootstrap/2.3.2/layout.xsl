@@ -533,7 +533,7 @@ LIMIT   100
 
                     <xsl:if test="$ldt:base">
                         <xsl:if test="not($ldt:base = $ac:contextUri)">
-                            <a class="brand context" href="{resolve-uri('..', $ldt:base)}"/>
+                            <a class="brand context" href="{ldh:parent-origin($ldt:base)}"/>
                         </xsl:if>
                     </xsl:if>
                         
