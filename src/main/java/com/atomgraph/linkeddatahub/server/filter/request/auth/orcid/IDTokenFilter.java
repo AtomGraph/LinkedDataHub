@@ -96,7 +96,7 @@ public class IDTokenFilter extends IDTokenFilterBase
     @Override
     protected URI getTokenEndpoint()
     {
-        return URI.create(TOKEN_ENDPOINT);
+        return TOKEN_ENDPOINT;
     }
 
     @Override

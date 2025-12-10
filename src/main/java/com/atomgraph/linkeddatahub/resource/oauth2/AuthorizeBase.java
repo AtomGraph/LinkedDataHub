@@ -65,6 +65,7 @@ public abstract class AuthorizeBase
     {
         if (!application.canAs(EndUserApplication.class))
             throw new IllegalStateException("The " + getClass() + " endpoint is only available on end-user applications");
+        
         this.uriInfo = uriInfo;
         this.httpServletRequest = httpServletRequest;
         this.application = application;
