@@ -177,6 +177,14 @@ public abstract class LoginBase
             String idToken = response.getString("id_token");
             String accessToken = response.getString("access_token");
             DecodedJWT jwt = JWT.decode(idToken);
+
+            // Verify the ID token
+            if (!verify(jwt))
+            {
+                if (log.isErrorEnabled()) log.error("Failed to verify ID token for subject '{}'", jwt.getSubject());
+                throw new InternalServerErrorException("ID token verification failed");
+            }
+
             if (response.containsKey("refresh_token"))
             {
                 String refreshToken = response.getString("refresh_token");
