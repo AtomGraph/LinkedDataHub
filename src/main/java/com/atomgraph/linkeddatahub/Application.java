@@ -100,7 +100,6 @@ import com.atomgraph.linkeddatahub.server.factory.OntologyFactory;
 import com.atomgraph.linkeddatahub.server.factory.ServiceFactory;
 import com.atomgraph.linkeddatahub.server.filter.request.OntologyFilter;
 import com.atomgraph.linkeddatahub.server.filter.request.AuthorizationFilter;
-import com.atomgraph.linkeddatahub.server.filter.request.auth.google.IDTokenFilter;
 import com.atomgraph.linkeddatahub.server.filter.request.ContentLengthLimitFilter;
 import com.atomgraph.linkeddatahub.server.filter.request.auth.ProxiedWebIDFilter;
 import com.atomgraph.linkeddatahub.server.filter.response.CORSFilter;
@@ -1038,8 +1037,16 @@ public class Application extends ResourceConfig
         if (getProperty(com.atomgraph.linkeddatahub.vocabulary.Google.clientID.getURI()) != null &&
             getProperty(com.atomgraph.linkeddatahub.vocabulary.Google.clientSecret.getURI()) != null)
         {
-            register(IDTokenFilter.class);
+            register(com.atomgraph.linkeddatahub.server.filter.request.auth.google.IDTokenFilter.class);
             if (log.isDebugEnabled()) log.debug("Google OAuth filter registered");
+        }
+
+        // Conditionally register ORCID OAuth filter if configured
+        if (getProperty(com.atomgraph.linkeddatahub.vocabulary.ORCID.clientID.getURI()) != null &&
+            getProperty(com.atomgraph.linkeddatahub.vocabulary.ORCID.clientSecret.getURI()) != null)
+        {
+            register(com.atomgraph.linkeddatahub.server.filter.request.auth.orcid.IDTokenFilter.class);
+            if (log.isDebugEnabled()) log.debug("ORCID OAuth filter registered");
         }
     }
 
