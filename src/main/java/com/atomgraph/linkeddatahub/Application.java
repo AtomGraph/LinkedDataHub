@@ -1002,11 +1002,24 @@ public class Application extends ResourceConfig
     protected void registerResourceClasses()
     {
         register(Dispatcher.class);
-        // OAuth endpoints - system-level resources not tied to dataspaces
-        register(com.atomgraph.linkeddatahub.resource.oauth2.google.Authorize.class);
-        register(com.atomgraph.linkeddatahub.resource.oauth2.google.Login.class);
-//        register(com.atomgraph.linkeddatahub.resource.admin.oauth2.orcid.Authorize.class);
-//        register(com.atomgraph.linkeddatahub.resource.admin.oauth2.orcid.Login.class);
+
+        // Conditionally register Google OAuth endpoints if configured
+        if (getProperty(com.atomgraph.linkeddatahub.vocabulary.Google.clientID.getURI()) != null &&
+            getProperty(com.atomgraph.linkeddatahub.vocabulary.Google.clientSecret.getURI()) != null)
+        {
+            register(com.atomgraph.linkeddatahub.resource.oauth2.google.Authorize.class);
+            register(com.atomgraph.linkeddatahub.resource.oauth2.google.Login.class);
+            if (log.isDebugEnabled()) log.debug("Google OAuth endpoints registered");
+        }
+
+        // Conditionally register ORCID OAuth endpoints if configured
+        if (getProperty(com.atomgraph.linkeddatahub.vocabulary.ORCID.clientID.getURI()) != null &&
+            getProperty(com.atomgraph.linkeddatahub.vocabulary.ORCID.clientSecret.getURI()) != null)
+        {
+            register(com.atomgraph.linkeddatahub.resource.oauth2.orcid.Authorize.class);
+            register(com.atomgraph.linkeddatahub.resource.oauth2.orcid.Login.class);
+            if (log.isDebugEnabled()) log.debug("ORCID OAuth endpoints registered");
+        }
     }
     
     /**

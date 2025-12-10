@@ -14,24 +14,23 @@
  *  limitations under the License.
  *
  */
-package com.atomgraph.linkeddatahub.resource.oauth2.google;
+package com.atomgraph.linkeddatahub.resource.oauth2.orcid;
 
 import com.atomgraph.linkeddatahub.resource.oauth2.AuthorizeBase;
-import com.atomgraph.linkeddatahub.vocabulary.Google;
+import com.atomgraph.linkeddatahub.vocabulary.ORCID;
 import java.net.URI;
 import jakarta.inject.Inject;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.core.Context;
-import jakarta.ws.rs.core.UriBuilder;
 import jakarta.ws.rs.core.UriInfo;
 
 /**
- * JAX-RS resource that handles Google authorization requests.
+ * JAX-RS resource that handles ORCID authorization requests.
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-@Path("oauth2/authorize/google")
+@Path("oauth2/authorize/orcid")
 public class Authorize extends AuthorizeBase
 {
     /**
@@ -48,33 +47,25 @@ public class Authorize extends AuthorizeBase
             com.atomgraph.linkeddatahub.Application system)
     {
         super(uriInfo, httpServletRequest, application,
-              (String)system.getProperty(Google.clientID.getURI()));
+              (String)system.getProperty(ORCID.clientID.getURI()));
     }
 
     @Override
     protected URI getAuthorizeEndpoint()
     {
-        return URI.create("https://accounts.google.com/o/oauth2/v2/auth");
+        return URI.create("https://sandbox.orcid.org/oauth/authorize"); // "https://orcid.org/oauth/authorize"
     }
 
     @Override
     protected String getScope()
     {
-        return "openid email profile";
+        return "openid";
     }
 
     @Override
     protected Class<?> getLoginClass()
     {
         return Login.class;
-    }
-
-    @Override
-    public UriBuilder getAuthorizeUriBuilder(URI endpoint, String clientID, String redirectURI, String scope, String stateValue, String nonce)
-    {
-        // Google requires access_type=offline for refresh tokens
-        return super.getAuthorizeUriBuilder(endpoint, clientID, redirectURI, scope, stateValue, nonce).
-            queryParam("access_type", "offline");
     }
 
 }

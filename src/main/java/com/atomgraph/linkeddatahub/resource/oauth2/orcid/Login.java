@@ -14,7 +14,7 @@
  *  limitations under the License.
  *
  */
-package com.atomgraph.linkeddatahub.resource.oauth2.google;
+package com.atomgraph.linkeddatahub.resource.oauth2.orcid;
 
 import com.atomgraph.core.exception.ConfigurationException;
 import com.atomgraph.linkeddatahub.apps.model.AdminApplication;
@@ -30,7 +30,7 @@ import com.atomgraph.linkeddatahub.server.util.Skolemizer;
 import com.atomgraph.linkeddatahub.vocabulary.ACL;
 import com.atomgraph.linkeddatahub.vocabulary.LDHC;
 import com.atomgraph.linkeddatahub.vocabulary.FOAF;
-import com.atomgraph.linkeddatahub.vocabulary.Google;
+import com.atomgraph.linkeddatahub.vocabulary.ORCID;
 import com.atomgraph.linkeddatahub.vocabulary.LACL;
 import com.atomgraph.linkeddatahub.vocabulary.DH;
 import com.atomgraph.linkeddatahub.vocabulary.SIOC;
@@ -77,16 +77,22 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * JAX-RS resource that handles OAuth2 login.
- * 
+ * JAX-RS resource that handles ORCID OAuth2 login.
+ *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-@Path("oauth2/login/google")
+@Path("oauth2/login/orcid")
 public class Login
 {
 
     private static final Logger log = LoggerFactory.getLogger(Login.class);
 
+    /** OAuth token endpoint URL */
+//    public static final String TOKEN_ENDPOINT = "https://orcid.org/oauth/token";
+    public static final String TOKEN_ENDPOINT = "https://sandbox.orcid.org/oauth/token";
+    /** User info endpoint URL */
+//    public static final String USER_INFO_ENDPOINT = "https://orcid.org/oauth/userinfo";
+    public static final String USER_INFO_ENDPOINT = "https://sandbox.orcid.org/oauth/userinfo";
     /** Relative path to the user container */
     public static final String ACCOUNT_PATH = "acl/users/";
 
@@ -97,10 +103,10 @@ public class Login
     private final String emailSubject;
     private final String emailText;
     private final String clientID, clientSecret;
-    
+
     /**
      * Constructs endpoint.
-     * 
+     *
      * @param request current request
      * @param uriInfo URI information of the current request
      * @param httpHeaders HTTP headers
@@ -118,23 +124,23 @@ public class Login
         this.httpHeaders = httpHeaders;
         this.application = application;
         this.system = system;
-        
+
         emailSubject = servletConfig.getServletContext().getInitParameter(LDHC.signUpEMailSubject.getURI());
         if (emailSubject == null) throw new InternalServerErrorException(new ConfigurationException(LDHC.signUpEMailSubject));
 
         emailText = servletConfig.getServletContext().getInitParameter(LDHC.oAuthSignUpEMailText.getURI());
         if (emailText == null) throw new InternalServerErrorException(new ConfigurationException(LDHC.oAuthSignUpEMailText));
-        
-        clientID = (String)system.getProperty(Google.clientID.getURI());
-        clientSecret = (String)system.getProperty(Google.clientSecret.getURI());
+
+        clientID = (String)system.getProperty(ORCID.clientID.getURI());
+        clientSecret = (String)system.getProperty(ORCID.clientSecret.getURI());
     }
-    
+
     @GET
     public Response get(@QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUri)
     {
-        if (getClientID() == null) throw new ConfigurationException(Google.clientID);
-        if (getClientSecret() == null) throw new ConfigurationException(Google.clientSecret);
-        
+        if (getClientID() == null) throw new ConfigurationException(ORCID.clientID);
+        if (getClientSecret() == null) throw new ConfigurationException(ORCID.clientSecret);
+
         String error = getUriInfo().getQueryParameters().getFirst("error");
         if (error != null)
         {
@@ -148,14 +154,14 @@ public class Login
         Cookie stateCookie = getHttpHeaders().getCookies().get(Authorize.COOKIE_NAME);
         if (stateCookie == null) throw new BadRequestException("OAuth '" + Authorize.COOKIE_NAME + "' cookie not set");
         if (!state.equals(stateCookie.getValue())) throw new BadRequestException("OAuth 'state' parameter failed to validate");
-        
+
         Form form = new Form().
             param("grant_type", "authorization_code").
             param("client_id", getClientID()).
             param("redirect_uri", getUriInfo().getAbsolutePath().toString()).
             param("client_secret", getClientSecret()).
             param("code", code);
-                
+
         try (Response cr = getSystem().getClient().target(getTokenEndpoint()).
                 request().post(Entity.form(form)))
         {
@@ -183,91 +189,99 @@ public class Login
             }
 
             ParameterizedSparqlString accountPss = new ParameterizedSparqlString(getUserAccountQuery().toString());
-            accountPss.setLiteral(SIOC.ID.getLocalName(), jwt.getSubject());
+            accountPss.setLiteral(SIOC.ID.getLocalName(), jwt.getSubject()); // ORCID iD is in the 'sub' claim
             accountPss.setLiteral(LACL.issuer.getLocalName(), jwt.getIssuer());
             final boolean accountExists = !getAgentService().getSPARQLClient().loadModel(accountPss.asQuery()).isEmpty();
 
             if (!accountExists) // UserAccount with this ID does not exist yet
             {
-                String email = jwt.getClaim("email").asString();
+                // Get user info from ORCID userinfo endpoint
+                String accessToken = response.getString("access_token");
+                JsonObject userInfo;
+                try (Response userInfoResponse = getSystem().getClient().target(USER_INFO_ENDPOINT).
+                        request().
+                        header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken).
+                        get())
+                {
+                    userInfo = userInfoResponse.readEntity(JsonObject.class);
+                }
+
+                String email = userInfo.containsKey("email") ? userInfo.getString("email") : null;
+                if (email == null)
+                {
+                    if (log.isErrorEnabled()) log.error("ORCID userinfo does not contain email");
+                    throw new InternalServerErrorException("ORCID userinfo does not contain email");
+                }
+
                 Resource mbox = ResourceFactory.createResource("mailto:" + email);
-                
+
                 ParameterizedSparqlString agentPss = new ParameterizedSparqlString(getAgentQuery().toString());
                 agentPss.setParam(FOAF.mbox.getLocalName(), mbox);
                 final Model agentModel = getAgentService().getSPARQLClient().loadModel(agentPss.asQuery());
-                
+
                 // if Agent with this foaf:mbox does not exist (lookup model is empty), create it; otherwise, reuse it
-                if (agentModel.isEmpty()) 
+                if (agentModel.isEmpty())
                 {
                     //URI agentGraphUri = getUriInfo().getBaseUriBuilder().path(AGENT_PATH).path("{slug}/").build(UUID.randomUUID().toString());
                     URI agentGraphUri = getAdminApplication().getUriBuilder().path(AGENT_PATH).path("{slug}/").build(UUID.randomUUID().toString());
 
+                    String givenName = userInfo.containsKey("given_name") ? userInfo.getString("given_name") : null;
+                    String familyName = userInfo.containsKey("family_name") ? userInfo.getString("family_name") : null;
+                    String name = userInfo.containsKey("name") ? userInfo.getString("name") : null;
+
                     createAgent(agentModel,
                         agentGraphUri,
                         agentModel.createResource(getUriInfo().getBaseUri().resolve(AGENT_PATH).toString()),
-                        jwt.getClaim("given_name").asString(),
-                        jwt.getClaim("family_name").asString(),
+                        givenName,
+                        familyName,
                         email,
-                        jwt.getClaim("picture") != null ? jwt.getClaim("picture").asString() : null);
-                    
+                        null); // ORCID doesn't provide picture in userinfo
+
                     // skolemize here because this Model will not go through SkolemizingModelProvider
                     new Skolemizer(agentGraphUri.toString()).apply(agentModel);
                 }
-                
+
                 // lookup Agent resource after its URI has been skolemized
                 ResIterator it = agentModel.listResourcesWithProperty(FOAF.mbox);
                 try
                 {
                     // we need to retrieve resources again because they've changed from bnodes to URIs
                     final Resource agent = it.next();
-                
+
                     Model accountModel = ModelFactory.createDefaultModel();
-                    
+
                     //URI userAccountGraphUri = getUriInfo().getBaseUriBuilder().path(ACCOUNT_PATH).path("{slug}/").build(UUID.randomUUID().toString());
                     URI userAccountGraphUri = getAdminApplication().getUriBuilder().path(ACCOUNT_PATH).path("{slug}/").build(UUID.randomUUID().toString());
-                    
+
+                    String accountName = userInfo.containsKey("name") ? userInfo.getString("name") : jwt.getSubject();
+
                     Resource userAccount = createUserAccount(accountModel,
                         userAccountGraphUri,
                         accountModel.createResource(getUriInfo().getBaseUri().resolve(ACCOUNT_PATH).toString()),
-                        jwt.getSubject(),
+                        jwt.getSubject(), // ORCID iD
                         jwt.getIssuer(),
-                        jwt.getClaim("name").asString(),
+                        accountName,
                         email);
                     userAccount.addProperty(SIOC.ACCOUNT_OF, agent);
                     new Skolemizer(userAccountGraphUri.toString()).apply(accountModel);
-                    
-//                    Response userAccountResponse = super.put(accountModel, false, userAccountGraphUri);
-//                    if (userAccountResponse.getStatus() != Response.Status.CREATED.getStatusCode())
-//                    {
-//                        if (log.isErrorEnabled()) log.error("Cannot create UserAccount");
-//                        throw new InternalServerErrorException("Cannot create UserAccount");
-//                    }
-//                    if (log.isDebugEnabled()) log.debug("Created UserAccount for user ID: {}", jwt.getSubject());
 
                     getAgentService().getGraphStoreClient().putModel(userAccountGraphUri.toString(), accountModel);
 
                     // lookup UserAccount resource after its URI has been skolemized
                     userAccount = accountModel.createResource(userAccountGraphUri.toString()).getPropertyResourceValue(FOAF.primaryTopic);
                     agent.addProperty(FOAF.account, userAccount);
-                    agentModel.add(agentModel.createResource(getSystem().getSecretaryWebIDURI().toString()), ACL.delegates, agent); // make secretary delegate whis agent
+                    agentModel.add(agentModel.createResource(getSystem().getSecretaryWebIDURI().toString()), ACL.delegates, agent); // make secretary delegate this agent
 
                     URI agentUri = URI.create(agent.getURI());
                     // get Agent's document URI by stripping the fragment identifier from the Agent's URI
                     URI agentGraphUri = new URI(agentUri.getScheme(), agentUri.getSchemeSpecificPart(), null).normalize();
-                    
-//                    Response agentResponse = super.put(agentModel, false, agentGraphUri);
-//                    if ((!agentExists && agentResponse.getStatus() != Response.Status.CREATED.getStatusCode()) ||
-//                        (agentExists && agentResponse.getStatus() != Response.Status.OK.getStatusCode()))
-//                    {
-//                        if (log.isErrorEnabled()) log.error("Cannot create Agent or append metadata to it");
-//                        throw new InternalServerErrorException("Cannot create Agent or append metadata to it");
-//                    }
+
                     getAgentService().getGraphStoreClient().putModel(agentGraphUri.toString(), agentModel);
 
                     Model authModel = ModelFactory.createDefaultModel();
                     //URI authGraphUri = getUriInfo().getBaseUriBuilder().path(AUTHORIZATION_PATH).path("{slug}/").build(UUID.randomUUID().toString());
                     URI authGraphUri = getAdminApplication().getUriBuilder().path(AUTHORIZATION_PATH).path("{slug}/").build(UUID.randomUUID().toString());
-                    
+
                     // creating authorization for the Agent documents
                     createAuthorization(authModel,
                         authGraphUri,
@@ -276,12 +290,6 @@ public class Login
                         userAccountGraphUri);
                     new Skolemizer(authGraphUri.toString()).apply(authModel);
 
-//                    Response authResponse = super.put(authModel, false, authGraphUri);
-//                    if (authResponse.getStatus() != Response.Status.CREATED.getStatusCode())
-//                    {
-//                        if (log.isErrorEnabled()) log.error("Cannot create Authorization");
-//                        throw new InternalServerErrorException("Cannot create Authorization");
-//                    }
                     getAgentService().getGraphStoreClient().putModel(authGraphUri.toString(), authModel);
 
                     // purge agent lookup from proxy cache
@@ -290,7 +298,7 @@ public class Login
                     // remove secretary WebID from cache
                     getSystem().getEventBus().post(new com.atomgraph.linkeddatahub.server.event.SignUp(getSystem().getSecretaryWebIDURI()));
 
-                    if (log.isDebugEnabled()) log.debug("Created Agent for user ID: {}", jwt.getSubject());
+                    if (log.isDebugEnabled()) log.debug("Created Agent for ORCID iD: {}", jwt.getSubject());
                     sendEmail(agent);
                 }
                 catch (UnsupportedEncodingException | MessagingException | URISyntaxException | InternalServerErrorException ex)
@@ -302,7 +310,7 @@ public class Login
                     it.close();
                 }
             }
-            
+
             URI originalReferer = URI.create(new String(Base64.getDecoder().decode(stateCookie.getValue())).split(Pattern.quote(";"))[1]); // fails if referer param was not specified
 
             // Pass ID token in URL fragment for client-side cookie setting (works uniformly across all domains)
@@ -310,27 +318,21 @@ public class Login
             return Response.seeOther(redirectUri).build();
         }
     }
-    
+
     /**
      * Verifies decoded JWT token.
-     * 
+     *
      * @param jwt decoded JWT token
      * @return true if verified
      */
     public boolean verify(DecodedJWT jwt)
     {
-//            Algorithm algorithm = Algorithm.RSA256(null);
-//            JWTVerifier verifier = JWT.require(algorithm).
-//                withIssuer("auth0").
-//                build();
-//            DecodedJWT jwt = verifier.verify(idToken);
-        return true; // TO-DO: complete
-        //throw new JWTVerificationException();
+        return true; // TO-DO: complete JWT verification using ORCID's JWKS
     }
-    
+
     /**
      * Creates new agent resource.
-     * 
+     *
      * @param model RDF model
      * @param graphURI graph URI
      * @param container container resource
@@ -346,26 +348,27 @@ public class Login
             addProperty(RDF.type, DH.Item).
             addProperty(SIOC.HAS_CONTAINER, container).
             addLiteral(DH.slug, UUID.randomUUID().toString());
-        
+
         Resource agent = model.createResource().
             addProperty(RDF.type, FOAF.Agent).
-            addLiteral(FOAF.givenName, givenName).
-            addLiteral(FOAF.familyName, familyName).
             addProperty(FOAF.mbox, model.createResource("mailto:" + email));
+
+        if (givenName != null) agent.addLiteral(FOAF.givenName, givenName);
+        if (familyName != null) agent.addLiteral(FOAF.familyName, familyName);
         if (imgUrl != null) agent.addProperty(FOAF.img, model.createResource(imgUrl));
-            
+
         item.addProperty(FOAF.primaryTopic, agent);
-        
+
         return agent;
     }
-    
+
     /**
      * Creates new user account resource.
-     * 
+     *
      * @param model RDF model
      * @param graphURI graph URI
      * @param container container resource
-     * @param id user ID
+     * @param id user ID (ORCID iD)
      * @param issuer OIDC issuer
      * @param name username
      * @param email email address
@@ -377,23 +380,23 @@ public class Login
             addProperty(RDF.type, DH.Item).
             addProperty(SIOC.HAS_CONTAINER, container).
             addLiteral(DH.slug, UUID.randomUUID().toString());
-        
+
         Resource account = model.createResource().
             addLiteral(DCTerms.created, GregorianCalendar.getInstance()).
             addProperty(RDF.type, SIOC.USER_ACCOUNT).
-            addLiteral(SIOC.ID, id).
+            addLiteral(SIOC.ID, id). // ORCID iD
             addLiteral(LACL.issuer, issuer).
             addLiteral(SIOC.NAME, name).
             addProperty(SIOC.EMAIL, model.createResource("mailto:" + email));
-        
+
         item.addProperty(FOAF.primaryTopic, account);
-        
+
         return account;
     }
 
     /**
      * Creates new authorization resource.
-     * 
+     *
      * @param model RDF model
      * @param graphURI graph URI
      * @param container container resource
@@ -407,7 +410,7 @@ public class Login
             addProperty(RDF.type, DH.Item).
             addProperty(SIOC.HAS_CONTAINER, container).
             addLiteral(DH.slug, UUID.randomUUID().toString());
-        
+
         Resource auth = model.createResource().
             addProperty(RDF.type, ACL.Authorization).
             addLiteral(DH.slug, UUID.randomUUID().toString()). // TO-DO: get rid of slug properties!
@@ -415,15 +418,15 @@ public class Login
             addProperty(ACL.mode, ACL.Read).
             addProperty(ACL.agentClass, FOAF.Agent).
             addProperty(ACL.agentClass, ACL.AuthenticatedAgent);
-        
+
         item.addProperty(FOAF.primaryTopic, auth);
-        
+
         return auth;
     }
-    
+
     /**
      * Sends signup notification email message to agent.
-     * 
+     *
      * @param agent agent resource
      * @throws MessagingException thrown if message sending failed
      * @throws UnsupportedEncodingException encoding error
@@ -439,7 +442,7 @@ public class Login
         }
         else
             fullName = agent.getProperty(FOAF.name).getString();
-                    
+
         // we expect foaf:mbox value as mailto: URI (it gets converted from literal in Model provider)
         String mbox = agent.getRequiredProperty(FOAF.mbox).getResource().getURI().substring("mailto:".length());
 
@@ -453,15 +456,15 @@ public class Login
                 getEndUserApplication().getProperty(DCTerms.title).getString(),
                 getEndUserApplication().getBase(),
                 agent.getURI()));
-        
+
         if (getSystem().getNotificationAddress() != null) builder = builder.from(getSystem().getNotificationAddress());
 
         EMailListener.submit(builder.build());
     }
-
-    /** 
+    
+    /**
      * Bans URL from the backend proxy cache.
-     * 
+     *
      * @param proxy proxy server URL
      * @param url banned URL
      * @return proxy server response
@@ -469,20 +472,20 @@ public class Login
     public Response ban(Resource proxy, String url)
     {
         if (url == null) throw new IllegalArgumentException("Resource cannot be null");
-        
+
         return getSystem().getClient().target(proxy.getURI()).request().
             header(CacheInvalidationFilter.HEADER_NAME, UriComponent.encode(url, UriComponent.Type.UNRESERVED)). // the value has to be URL-encoded in order to match request URLs in Varnish
             method("BAN", Response.class);
     }
-    
+
     public URI getTokenEndpoint()
     {
-        return URI.create("https://oauth2.googleapis.com/token");
+        return URI.create("https://sandbox.orcid.org/oauth/token"); // "https://orcid.org/oauth/token";
     }
     
     /**
      * Returns the end-user application of the current dataspace.
-     * 
+     *
      * @return end-user application resource
      */
     public EndUserApplication getEndUserApplication()
@@ -492,10 +495,10 @@ public class Login
         else
             return getApplication().as(AdminApplication.class).getEndUserApplication();
     }
-    
+
     /**
      * Returns the admin application of the current dataspace.
-     * 
+     *
      * @return admin application resource
      */
     public AdminApplication getAdminApplication()
@@ -505,55 +508,55 @@ public class Login
         else
             return getApplication().as(EndUserApplication.class).getAdminApplication();
     }
-    
+
     public UriInfo getUriInfo()
     {
         return uriInfo;
     }
-    
+
     public com.atomgraph.linkeddatahub.Application getSystem()
     {
         return system;
     }
-    
+
     public Application getApplication()
     {
         return application;
     }
-    
+
     /**
      * Returns HTTP headers of the current request.
-     * 
+     *
      * @return header info
      */
     public HttpHeaders getHttpHeaders()
     {
         return httpHeaders;
     }
-    
+
     /**
      * Returns the SPARQL service from which agent data is retrieved.
-     * 
+     *
      * @return SPARQL service
      */
     public Service getAgentService()
     {
         return getApplication().as(EndUserApplication.class).getAdminApplication().getService();
     }
-    
+
     /**
      * Returns login email subject.
-     * 
+     *
      * @return email subject
      */
     public String getEmailSubject()
     {
         return emailSubject;
     }
-    
+
     /**
      * Returns login email text.
-     * 
+     *
      * @return email text
      */
     public String getEmailText()
@@ -563,42 +566,42 @@ public class Login
 
     /**
      * Returns SPARQL query used to load user account by ID.
-     * 
+     *
      * @return SPARQL query
      */
     public Query getUserAccountQuery()
     {
         return getSystem().getUserAccountQuery();
     }
-    
+
     /**
      * Returns SPARQL query used to load agent by mailbox.
-     * 
+     *
      * @return SPARQL query
      */
     public Query getAgentQuery()
     {
         return getSystem().getAgentQuery();
     }
-    
+
     /**
-     * Returns the configured Google client ID for this application.
-     * 
+     * Returns the configured ORCID client ID for this application.
+     *
      * @return client ID
      */
     private String getClientID()
     {
         return clientID;
     }
-    
+
     /**
-     * Returns the configured Google client secret for this application.
-     * 
+     * Returns the configured ORCID client secret for this application.
+     *
      * @return client secret
      */
     private String getClientSecret()
     {
         return clientSecret;
     }
-    
+
 }
