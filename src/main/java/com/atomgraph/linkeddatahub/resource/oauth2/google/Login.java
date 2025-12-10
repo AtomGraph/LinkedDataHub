@@ -87,6 +87,8 @@ public class Login
 
     private static final Logger log = LoggerFactory.getLogger(Login.class);
 
+    /** OAuth token endpoint URL */
+    public static final URI TOKEN_ENDPOINT = URI.create("https://oauth2.googleapis.com/token");
     /** Relative path to the user container */
     public static final String ACCOUNT_PATH = "acl/users/";
 
@@ -477,7 +479,7 @@ public class Login
     
     public URI getTokenEndpoint()
     {
-        return URI.create("https://oauth2.googleapis.com/token");
+        return TOKEN_ENDPOINT;
     }
     
     /**

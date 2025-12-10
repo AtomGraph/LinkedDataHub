@@ -20,7 +20,7 @@ import com.atomgraph.core.MediaTypes;
 import com.atomgraph.linkeddatahub.apps.model.AdminApplication;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import static com.atomgraph.linkeddatahub.resource.oauth2.google.Authorize.REFERER_PARAM_NAME;
-import com.atomgraph.linkeddatahub.server.filter.request.auth.IDTokenFilter;
+import com.atomgraph.linkeddatahub.server.filter.request.auth.google.IDTokenFilter;
 import com.atomgraph.server.mapper.ExceptionMapperBase;
 import com.auth0.jwt.exceptions.TokenExpiredException;
 import java.net.URI;

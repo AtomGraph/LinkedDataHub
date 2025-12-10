@@ -14,7 +14,7 @@
  *  limitations under the License.
  *
  */
-package com.atomgraph.linkeddatahub.server.filter.request.auth;
+package com.atomgraph.linkeddatahub.server.filter.request.auth.google;
 
 import com.atomgraph.linkeddatahub.apps.model.AdminApplication;
 import com.atomgraph.linkeddatahub.server.filter.request.AuthenticationFilter;

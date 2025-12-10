@@ -100,9 +100,8 @@ import com.atomgraph.linkeddatahub.server.factory.OntologyFactory;
 import com.atomgraph.linkeddatahub.server.factory.ServiceFactory;
 import com.atomgraph.linkeddatahub.server.filter.request.OntologyFilter;
 import com.atomgraph.linkeddatahub.server.filter.request.AuthorizationFilter;
-import com.atomgraph.linkeddatahub.server.filter.request.auth.IDTokenFilter;
+import com.atomgraph.linkeddatahub.server.filter.request.auth.google.IDTokenFilter;
 import com.atomgraph.linkeddatahub.server.filter.request.ContentLengthLimitFilter;
-import com.atomgraph.linkeddatahub.server.filter.request.auth.ORCIDTokenFilter;
 import com.atomgraph.linkeddatahub.server.filter.request.auth.ProxiedWebIDFilter;
 import com.atomgraph.linkeddatahub.server.filter.response.CORSFilter;
 import com.atomgraph.linkeddatahub.server.filter.response.ResponseHeadersFilter;
@@ -1031,11 +1030,17 @@ public class Application extends ResourceConfig
         register(ApplicationFilter.class);
         register(OntologyFilter.class);
         register(ProxiedWebIDFilter.class);
-        register(IDTokenFilter.class);
-        register(ORCIDTokenFilter.class);
         register(AuthorizationFilter.class);
         if (getMaxContentLength() != null) register(new ContentLengthLimitFilter(getMaxContentLength()));
         register(new RDFPostMediaTypeInterceptor()); // for application/x-www-form-urlencoded
+        
+        // Conditionally register Google OAuth filter if configured
+        if (getProperty(com.atomgraph.linkeddatahub.vocabulary.Google.clientID.getURI()) != null &&
+            getProperty(com.atomgraph.linkeddatahub.vocabulary.Google.clientSecret.getURI()) != null)
+        {
+            register(IDTokenFilter.class);
+            if (log.isDebugEnabled()) log.debug("Google OAuth filter registered");
+        }
     }
 
     /**
