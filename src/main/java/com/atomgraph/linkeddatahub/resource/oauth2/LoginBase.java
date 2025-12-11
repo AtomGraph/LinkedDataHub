@@ -243,6 +243,10 @@ public abstract class LoginBase
 
                     getAgentService().getGraphStoreClient().putModel(agentGraphUri.toString(), agentModel);
 
+                    // purge agent lookup from proxy cache (if email is present)
+                    if (mbox.isPresent() && getAgentService().getBackendProxy() != null)
+                        ban(getAgentService().getBackendProxy(), mbox.get().getURI());
+
                     Model authModel = ModelFactory.createDefaultModel();
                     URI authGraphUri = getAdminApplication().getUriBuilder().path(AUTHORIZATION_PATH).path("{slug}/").build(UUID.randomUUID().toString());
 
@@ -287,8 +291,11 @@ public abstract class LoginBase
                 
                 userAccount.addProperty(SIOC.ACCOUNT_OF, agent);
                 getAgentService().getGraphStoreClient().putModel(userAccountGraphUri.toString(), accountModel);
+
+                // purge user account lookup from proxy cache
+                if (getAgentService().getBackendProxy() != null) ban(getAgentService().getBackendProxy(), jwt.getSubject());
             }
-            
+
             URI originalReferer = URI.create(new String(Base64.getDecoder().decode(stateCookie.getValue())).split(Pattern.quote(";"))[1]); // fails if referer param was not specified
 
             // Pass ID token in URL fragment for client-side cookie setting (works uniformly across all domains)
