@@ -51,6 +51,12 @@ public class Login extends LoginBase
     /** User info endpoint URL */
     public static final URI USER_INFO_ENDPOINT = URI.create("https://sandbox.orcid.org/oauth/userinfo"); // URI.create("https://orcid.org/oauth/userinfo");
 
+    /** JWKS endpoint URL for JWT signature verification */
+    public static final URI JWKS_ENDPOINT = URI.create("https://sandbox.orcid.org/oauth/jwks"); // URI.create("https://orcid.org/oauth/jwks");
+
+    /** Valid ORCID issuers (supports both production and sandbox) */
+    private static final java.util.List<String> ISSUERS = java.util.Arrays.asList("https://orcid.org", "https://sandbox.orcid.org");
+
     /**
      * Constructs endpoint.
      *
@@ -82,6 +88,28 @@ public class Login extends LoginBase
     }
 
     /**
+     * Returns ORCID's JWKS endpoint URL for fetching public keys.
+     *
+     * @return ORCID JWKS endpoint URI
+     */
+    @Override
+    protected URI getJwksEndpoint()
+    {
+        return JWKS_ENDPOINT;
+    }
+
+    /**
+     * Returns the list of valid ORCID issuers.
+     *
+     * @return list of valid issuer URLs
+     */
+    @Override
+    protected java.util.List<String> getIssuers()
+    {
+        return ISSUERS;
+    }
+
+    /**
      * Retrieves user information from ORCID UserInfo endpoint.
      * ORCID requires a separate API call to the UserInfo endpoint to get user details,
      * as they are not included in the ID token JWT claims.
@@ -101,7 +129,14 @@ public class Login extends LoginBase
         {
             JsonObject json = userInfoResponse.readEntity(JsonObject.class);
             Map<String, String> userInfo = new HashMap<>();
-            json.forEach((key, value) -> userInfo.put(key, json.getString(key)));
+            json.forEach((key, value) -> {
+                switch (value.getValueType())
+                {
+                    case STRING -> userInfo.put(key, json.getString(key));
+                    case NUMBER, TRUE, FALSE -> userInfo.put(key, value.toString());
+                    // Skip NULL, ARRAY, OBJECT
+                }
+            });
 
             return userInfo;
         }

@@ -44,7 +44,13 @@ public class Login extends LoginBase
 
     /** OAuth token endpoint URL */
     public static final URI TOKEN_ENDPOINT = URI.create("https://oauth2.googleapis.com/token");
-    
+
+    /** JWKS endpoint URL for JWT signature verification */
+    public static final URI JWKS_ENDPOINT = URI.create("https://www.googleapis.com/oauth2/v3/certs");
+
+    /** Valid Google issuers */
+    private static final java.util.List<String> ISSUERS = java.util.Arrays.asList("https://accounts.google.com", "accounts.google.com");
+
     /**
      * Constructs endpoint.
      * 
@@ -76,6 +82,28 @@ public class Login extends LoginBase
     }
 
     /**
+     * Returns Google's JWKS endpoint URL for fetching public keys.
+     *
+     * @return Google JWKS endpoint URI
+     */
+    @Override
+    protected URI getJwksEndpoint()
+    {
+        return JWKS_ENDPOINT;
+    }
+
+    /**
+     * Returns the list of valid Google issuers.
+     *
+     * @return list of valid issuer URLs
+     */
+    @Override
+    protected java.util.List<String> getIssuers()
+    {
+        return ISSUERS;
+    }
+
+    /**
      * Retrieves user information from Google ID token JWT claims.
      * Google includes all user data (email, name, given_name, family_name, picture) directly in the ID token,
      * so no additional API call is needed.
@@ -88,8 +116,9 @@ public class Login extends LoginBase
     protected Map<String, String> getUserInfo(DecodedJWT jwt, String accessToken)
     {
         // Google includes all user information in the ID token JWT claims
-        return jwt.getClaims().entrySet().stream()
-            .collect(java.util.stream.Collectors.toMap(
+        return jwt.getClaims().entrySet().stream().
+            filter(e -> e.getValue().asString() != null).
+            collect(java.util.stream.Collectors.toMap(
                 java.util.Map.Entry::getKey,
                 e -> e.getValue().asString()
             ));

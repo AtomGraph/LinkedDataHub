@@ -155,18 +155,12 @@ WHERE
         <param-name>https://w3id.org/atomgraph/linkeddatahub/config#agentQuery</param-name>
         <param-value><![CDATA[
 PREFIX  foaf: <http://xmlns.com/foaf/0.1/>
-PREFIX  sioc: <http://rdfs.org/sioc/ns#>
 
-DESCRIBE ?Agent
+SELECT ?Agent ?agentGraph
 WHERE
-  {   { GRAPH ?agentGraph
+  {
+      { GRAPH ?agentGraph
           { ?Agent  foaf:mbox  $mbox }
-      }
-    UNION
-      { GRAPH ?accountGraph
-          { ?account  sioc:id          $id ;
-                      sioc:account_of  ?Agent
-          }
       }
   }
 ]]></param-value>
@@ -181,7 +175,7 @@ DESCRIBE ?account ?agent
 WHERE
   { GRAPH ?g
       { ?account  sioc:id          $id ;
-                  lacl:issuer      ?issuer ;
+                  lacl:issuer      $issuer ;
                   sioc:account_of  ?agent
       }
   }

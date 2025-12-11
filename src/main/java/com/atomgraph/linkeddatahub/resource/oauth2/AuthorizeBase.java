@@ -26,6 +26,7 @@ import java.util.Base64;
 import java.util.UUID;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.ws.rs.GET;
+import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.NewCookie;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.UriBuilder;
@@ -76,13 +77,12 @@ public abstract class AuthorizeBase
     /**
      * Implements the HTTP <code>GET</code> method.
      *
+     * @param originUri URI to redirect back to
      * @return response object
      */
     @GET
-    public Response get()
+    public Response get(@QueryParam(REFERER_PARAM_NAME) String originUri)
     {
-        final String originUri =  getUriInfo().getQueryParameters().containsKey(REFERER_PARAM_NAME) ? getUriInfo().getQueryParameters().getFirst(REFERER_PARAM_NAME) : getEndUserApplication().getBase().getURI();
-
         // the redirect URI must be on the domain, not sub-domains (i.e. on the root dataspace)
         URI redirectUri = UriBuilder.fromUri(getRootContextURI()).
             path(getLoginClass()).
@@ -91,7 +91,10 @@ public abstract class AuthorizeBase
         String state = new BigInteger(130, new SecureRandom()).toString(32);
         String stateValue = Base64.getEncoder().encodeToString((state + ";" + originUri).getBytes());
         // Cookie path is "/" to make it accessible across all dataspaces
-        NewCookie stateCookie = new NewCookie(COOKIE_NAME, stateValue, "/", null, NewCookie.DEFAULT_VERSION, null, NewCookie.DEFAULT_MAX_AGE, false);
+        NewCookie stateCookie = new NewCookie.Builder(COOKIE_NAME).
+            value(stateValue).
+            path("/").
+            build();
 
         UriBuilder authUriBuilder = getAuthorizeUriBuilder(getAuthorizeEndpoint(), getClientID(), redirectUri.toString(), getScope(), stateValue, UUID.randomUUID().toString());
 
@@ -121,6 +124,18 @@ public abstract class AuthorizeBase
      */
     protected abstract Class<?> getLoginClass();
 
+    /**
+     * Builds a URI for the OAuth 2.0 / OpenID Connect authorization request.
+     * Constructs the authorization endpoint URL with standard OAuth parameters.
+     *
+     * @param endpoint OAuth authorization endpoint URI
+     * @param clientID OAuth client ID
+     * @param redirectURI redirect URI for the authorization response
+     * @param scope OAuth scope string
+     * @param stateValue state parameter for CSRF protection
+     * @param nonce nonce parameter for replay attack prevention
+     * @return URI builder with authorization request parameters
+     */
     public UriBuilder getAuthorizeUriBuilder(URI endpoint, String clientID, String redirectURI, String scope, String stateValue, String nonce)
     {
         return UriBuilder.fromUri(endpoint).
@@ -187,8 +202,8 @@ public abstract class AuthorizeBase
         int port = requestUri.getPort();
         String contextPath = getHttpServletRequest().getContextPath();
 
-        if (port == -1)  return URI.create(scheme + "://" + rootDomain + contextPath + "/");
-        else return URI.create(scheme + "://" + rootDomain + ":" + port + contextPath + "/");
+        if (port == -1)  return URI.create("%s://%s%s/".formatted(scheme, rootDomain, contextPath));
+        else return URI.create("%s://%s:%d%s/".formatted(scheme, rootDomain, port, contextPath));
     }
 
     /**

@@ -177,7 +177,7 @@ public abstract class IDTokenFilterBase extends AuthenticationFilter
             else
             {
                 if (log.isDebugEnabled()) log.debug("ID token for subject '{}' has expired at {}, refresh token not found", jwt.getSubject(), jwt.getExpiresAt());
-                throw new TokenExpiredException("ID token for subject '"  + jwt.getSubject() + "' has expired at " + jwt.getExpiresAt());
+                throw new TokenExpiredException("ID token for subject '%s' has expired at %s".formatted(jwt.getSubject(), jwt.getExpiresAt()));
             }
         }
         if (!verify(jwt)) return null;
@@ -241,9 +241,13 @@ public abstract class IDTokenFilterBase extends AuthenticationFilter
         {
             // Chrome does not seem to store permanent cookies (with Expires) from Domain=localhost
             // https://stackoverflow.com/questions/7346919/chrome-localhost-cookie-not-being-set
-            NewCookie deleteCookie = new NewCookie(cookie.getName(), null,
-                app.getBase().getURI(), null,
-                    NewCookie.DEFAULT_VERSION, null, NewCookie.DEFAULT_MAX_AGE, new Date(0), true, true);
+            NewCookie deleteCookie = new NewCookie.Builder(cookie.getName()).
+                value(null).
+                path(app.getBase().getURI()).
+                expiry(new Date(0)).
+                secure(true).
+                httpOnly(true).
+                build();
 
             Response response = Response.seeOther(request.getUriInfo().getAbsolutePath()).
                 cookie(deleteCookie).
@@ -336,8 +340,8 @@ public abstract class IDTokenFilterBase extends AuthenticationFilter
         int port = requestUri.getPort();
         String contextPath = getHttpServletRequest().getContextPath();
 
-        if (port == -1)  return URI.create(scheme + "://" + rootDomain + contextPath + "/");
-        else return URI.create(scheme + "://" + rootDomain + ":" + port + contextPath + "/");
+        if (port == -1)  return URI.create("%s://%s%s/".formatted(scheme, rootDomain, contextPath));
+        else return URI.create("%s://%s:%d%s/".formatted(scheme, rootDomain, port, contextPath));
     }
 
     /**

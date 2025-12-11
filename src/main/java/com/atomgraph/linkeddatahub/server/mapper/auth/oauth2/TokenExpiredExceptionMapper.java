@@ -71,7 +71,11 @@ public class TokenExpiredExceptionMapper extends ExceptionMapperBase implements 
         }
 
         String path = getApplication().get().getBaseURI().getPath();
-        NewCookie expiredCookie = new NewCookie(IDTokenFilter.COOKIE_NAME, "", path, null, NewCookie.DEFAULT_VERSION, null, 0, false);
+        NewCookie expiredCookie = new NewCookie.Builder(IDTokenFilter.COOKIE_NAME).
+            value("").
+            path(path).
+            maxAge(0).
+            build();
 
         ResponseBuilder builder = getResponseBuilder(toResource(ex, Response.Status.BAD_REQUEST,
                     ResourceFactory.createResource("http://www.w3.org/2011/http-statusCodes#BadRequest")).
