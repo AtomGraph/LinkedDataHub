@@ -284,6 +284,7 @@ public class Application extends ResourceConfig
     private final List<Locale> supportedLanguages;
     private final ExpiringMap<URI, Model> webIDmodelCache = ExpiringMap.builder().expiration(1, TimeUnit.DAYS).build(); // TO-DO: config for the expiration period?
     private final ExpiringMap<String, Model> oidcModelCache = ExpiringMap.builder().variableExpiration().build();
+    private final ExpiringMap<String, jakarta.json.JsonObject> jwksCache = ExpiringMap.builder().expiration(1, TimeUnit.DAYS).build(); // Cache JWKS responses
     private final Map<URI, XsltExecutable> xsltExecutableCache = new ConcurrentHashMap<>();
     private final MessageDigest messageDigest;
     private final boolean enableWebIDSignUp;
@@ -2075,18 +2076,29 @@ public class Application extends ResourceConfig
     /**
      * A map of cached OpenID connect agent graphs.
      * User ID (ID token subject) is the cache key. Entries expire after the configured period of time.
-     * 
+     *
      * @return URI to model map
      */
     public ExpiringMap<String, Model> getOIDCModelCache()
     {
         return oidcModelCache;
     }
-    
+
+    /**
+     * A map of cached JWKS (JSON Web Key Set) responses for JWT verification.
+     * JWKS endpoint URI is the cache key. Entries expire after 1 day.
+     *
+     * @return JWKS endpoint to JsonObject map
+     */
+    public ExpiringMap<String, jakarta.json.JsonObject> getJWKSCache()
+    {
+        return jwksCache;
+    }
+
     /**
      * A map of cached (compiled) XSLT stylesheets.
      * Stylesheet URI is the cache key.
-     * 
+     *
      * @return URI to stylesheet map
      */
     public Map<URI, XsltExecutable> getXsltExecutableCache()

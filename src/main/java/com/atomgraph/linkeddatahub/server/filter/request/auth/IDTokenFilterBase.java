@@ -107,12 +107,30 @@ public abstract class IDTokenFilterBase extends AuthenticationFilter
     protected abstract List<String> getIssuers();
 
     /**
-     * Verifies the validity of the specified JWT ID token.
+     * Returns the JWKS endpoint URI for fetching public keys.
+     *
+     * @return JWKS endpoint URI
+     */
+    protected abstract URI getJWKSEndpoint();
+
+    /**
+     * Verifies the validity of the specified JWT ID token using JWKS-based signature verification.
      *
      * @param idToken ID token
      * @return true if valid
+     * @see com.atomgraph.linkeddatahub.server.util.JWTVerifier#verify
      */
-    protected abstract boolean verify(DecodedJWT idToken);
+    protected boolean verify(DecodedJWT idToken)
+    {
+        return com.atomgraph.linkeddatahub.server.util.JWTVerifier.verify(
+            idToken,
+            getJWKSEndpoint(),
+            getIssuers(),
+            getClientID(),
+            getSystem().getClient(),
+            getSystem().getJWKSCache()
+        );
+    }
 
     /**
      * Returns the OAuth token endpoint URI for token refresh.

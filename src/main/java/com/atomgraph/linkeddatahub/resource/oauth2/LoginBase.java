@@ -52,8 +52,6 @@ import jakarta.ws.rs.core.UriInfo;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
-import java.security.NoSuchAlgorithmException;
-import java.security.spec.InvalidKeySpecException;
 import java.util.Base64;
 import java.util.GregorianCalendar;
 import java.util.Map;
@@ -343,107 +341,21 @@ public abstract class LoginBase
 
     /**
      * Verifies the decoded JWT ID token using JWKS-based signature verification.
-     * Performs the following validations:
-     * 1. Fetches public keys from the JWKS endpoint
-     * 2. Verifies the JWT signature using RSA256 algorithm
-     * 3. Validates the issuer is in the allowed list
-     * 4. Validates the audience matches the client ID
-     * 5. Validates the token has not expired
      *
      * @param jwt decoded JWT ID token to verify
      * @return true if verification succeeds, false otherwise
+     * @see com.atomgraph.linkeddatahub.server.util.JWTVerifier#verify
      */
     protected boolean verify(DecodedJWT jwt)
     {
-        try
-        {
-            // Fetch JWKS from the provider
-            try (Response jwksResponse = getSystem().getClient().target(getJwksEndpoint()).request().get())
-            {
-                if (!jwksResponse.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
-                {
-                    if (log.isErrorEnabled()) log.error("Failed to fetch JWKS from {}", getJwksEndpoint());
-                    return false;
-                }
-
-                JsonObject jwks = jwksResponse.readEntity(JsonObject.class);
-
-                // Find the key that matches the JWT's key ID
-                String kid = jwt.getKeyId();
-                if (kid == null)
-                {
-                    if (log.isErrorEnabled()) log.error("JWT does not contain 'kid' (key ID) header");
-                    return false;
-                }
-
-                jakarta.json.JsonArray keys = jwks.getJsonArray("keys");
-                if (keys == null)
-                {
-                    if (log.isErrorEnabled()) log.error("JWKS does not contain 'keys' array");
-                    return false;
-                }
-
-                // Find matching key
-                JsonObject matchingKey = null;
-                for (int i = 0; i < keys.size(); i++)
-                {
-                    JsonObject key = keys.getJsonObject(i);
-                    if (kid.equals(key.getString("kid", null)))
-                    {
-                        matchingKey = key;
-                        break;
-                    }
-                }
-
-                if (matchingKey == null)
-                {
-                    if (log.isErrorEnabled()) log.error("No matching key found in JWKS for kid: {}", kid);
-                    return false;
-                }
-
-                // Extract RSA public key components
-                String n = matchingKey.getString("n"); // modulus
-                String e = matchingKey.getString("e"); // exponent
-
-                // Create RSA public key
-                java.math.BigInteger modulus = new java.math.BigInteger(1, java.util.Base64.getUrlDecoder().decode(n));
-                java.math.BigInteger exponent = new java.math.BigInteger(1, java.util.Base64.getUrlDecoder().decode(e));
-
-                java.security.spec.RSAPublicKeySpec spec = new java.security.spec.RSAPublicKeySpec(modulus, exponent);
-                java.security.KeyFactory factory = java.security.KeyFactory.getInstance("RSA");
-                java.security.interfaces.RSAPublicKey publicKey = (java.security.interfaces.RSAPublicKey) factory.generatePublic(spec);
-
-                // Verify issuer manually (auth0 JWT library doesn't support multiple issuers easily)
-                if (!getIssuers().contains(jwt.getIssuer()))
-                {
-                    if (log.isErrorEnabled()) log.error("JWT issuer '{}' not in allowed list: {}", jwt.getIssuer(), getIssuers());
-                    return false;
-                }
-
-                // Create algorithm and verifier
-                com.auth0.jwt.algorithms.Algorithm algorithm = com.auth0.jwt.algorithms.Algorithm.RSA256(publicKey, null);
-                com.auth0.jwt.JWTVerifier verifier = JWT.require(algorithm)
-                    .withIssuer(jwt.getIssuer())
-                    .withAudience(getClientID())
-                    .build();
-
-                // Verify the token (this will throw if verification fails)
-                verifier.verify(jwt.getToken());
-
-                if (log.isDebugEnabled()) log.debug("Successfully verified JWT for subject '{}'", jwt.getSubject());
-                return true;
-            }
-        }
-        catch (com.auth0.jwt.exceptions.JWTVerificationException ex)
-        {
-            if (log.isErrorEnabled()) log.error("JWT verification failed: {}", ex.getMessage());
-            return false;
-        }
-        catch (IllegalArgumentException | NoSuchAlgorithmException | InvalidKeySpecException ex)
-        {
-            if (log.isErrorEnabled()) log.error("Error during JWT verification", ex);
-            return false;
-        }
+        return com.atomgraph.linkeddatahub.server.util.JWTVerifier.verify(
+            jwt,
+            getJWKSEndpoint(),
+            getIssuers(),
+            getClientID(),
+            getSystem().getClient(),
+            getSystem().getJWKSCache()
+        );
     }
     
     /**
@@ -613,7 +525,7 @@ public abstract class LoginBase
      *
      * @return JWKS endpoint URI
      */
-    protected abstract URI getJwksEndpoint();
+    protected abstract URI getJWKSEndpoint();
 
     /**
      * Returns the list of valid JWT issuers for this OAuth provider.

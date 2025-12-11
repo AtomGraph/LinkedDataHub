@@ -21,16 +21,12 @@ import com.atomgraph.linkeddatahub.resource.oauth2.google.Login;
 import static com.atomgraph.linkeddatahub.resource.oauth2.google.Login.TOKEN_ENDPOINT;
 import com.atomgraph.linkeddatahub.server.filter.request.auth.IDTokenFilterBase;
 import com.atomgraph.linkeddatahub.vocabulary.Google;
-import com.auth0.jwt.interfaces.DecodedJWT;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
 import jakarta.annotation.Priority;
-import jakarta.json.JsonObject;
 import jakarta.ws.rs.Priorities;
 import jakarta.ws.rs.container.PreMatching;
-import jakarta.ws.rs.core.MediaType;
-import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.UriBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,7 +43,7 @@ public class IDTokenFilter extends IDTokenFilterBase
     private static final Logger log = LoggerFactory.getLogger(IDTokenFilter.class);
 
     /** White-list of OIDC issuers */
-    private static final List<String> ISSUERS = Arrays.asList("https://accounts.google.com");
+    private static final List<String> ISSUERS = Arrays.asList("https://accounts.google.com", "accounts.google.com");
 
     @Override
     protected void initClientCredentials()
@@ -63,29 +59,9 @@ public class IDTokenFilter extends IDTokenFilterBase
     }
 
     @Override
-    protected boolean verify(DecodedJWT idToken)
+    protected URI getJWKSEndpoint()
     {
-        // TO-DO: use keys, this is for debugging purposes only: https://developers.google.com/identity/protocols/oauth2/openid-connect#validatinganidtoken
-        try (Response cr = getSystem().getNoCertClient().
-            target("https://oauth2.googleapis.com/tokeninfo").
-            queryParam("id_token", idToken.getToken()).
-            request(MediaType.APPLICATION_JSON_TYPE).
-            get())
-        {
-            if (!cr.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
-            {
-                if (log.isDebugEnabled()) log.debug("Could not verify JWT token for subject '{}'", idToken.getSubject());
-                return false;
-            }
-
-            JsonObject verifiedIdToken = cr.readEntity(JsonObject.class);
-            if (idToken.getIssuer().equals(verifiedIdToken.getString("iss")) &&
-                idToken.getSubject().equals(verifiedIdToken.getString("sub")) &&
-                idToken.getKeyId().equals(verifiedIdToken.getString("kid")))
-                return true;
-        }
-
-        return false;
+        return Login.JWKS_ENDPOINT;
     }
 
     @Override

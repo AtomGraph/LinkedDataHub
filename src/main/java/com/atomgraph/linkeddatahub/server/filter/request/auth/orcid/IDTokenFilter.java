@@ -21,10 +21,8 @@ import com.atomgraph.linkeddatahub.resource.oauth2.orcid.Login;
 import static com.atomgraph.linkeddatahub.resource.oauth2.orcid.Login.TOKEN_ENDPOINT;
 import com.atomgraph.linkeddatahub.server.filter.request.auth.IDTokenFilterBase;
 import com.atomgraph.linkeddatahub.vocabulary.ORCID;
-import com.auth0.jwt.interfaces.DecodedJWT;
 import java.net.URI;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 import jakarta.annotation.Priority;
 import jakarta.ws.rs.Priorities;
@@ -61,36 +59,9 @@ public class IDTokenFilter extends IDTokenFilterBase
     }
 
     @Override
-    protected boolean verify(DecodedJWT idToken)
+    protected URI getJWKSEndpoint()
     {
-        // TODO: Implement proper JWKS-based JWT verification using ORCID's public keys
-        // ORCID provides JWKS endpoint: https://orcid.org/oauth/jwks (or https://sandbox.orcid.org/oauth/jwks)
-        // For now, perform basic validation only
-
-        // Verify issuer is in whitelist
-        if (!getIssuers().contains(idToken.getIssuer()))
-        {
-            if (log.isDebugEnabled()) log.debug("JWT token issuer '{}' not in whitelist", idToken.getIssuer());
-            return false;
-        }
-
-        // Verify audience contains our client ID
-        if (!idToken.getAudience().contains(getClientID()))
-        {
-            if (log.isDebugEnabled()) log.debug("JWT token audience does not contain client ID '{}'", getClientID());
-            return false;
-        }
-
-        // Verify token has not expired
-        if (idToken.getExpiresAt().before(new Date()))
-        {
-            if (log.isDebugEnabled()) log.debug("JWT token has expired at {}", idToken.getExpiresAt());
-            return false;
-        }
-
-        // Basic validation passed
-        if (log.isDebugEnabled()) log.debug("JWT token for subject '{}' passed basic validation", idToken.getSubject());
-        return true;
+        return Login.JWKS_ENDPOINT;
     }
 
     @Override

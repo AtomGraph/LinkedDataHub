@@ -87,7 +87,7 @@ public class Login extends LoginBase
      * @return Google JWKS endpoint URI
      */
     @Override
-    protected URI getJwksEndpoint()
+    protected URI getJWKSEndpoint()
     {
         return JWKS_ENDPOINT;
     }
