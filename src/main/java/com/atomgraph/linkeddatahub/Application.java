@@ -271,7 +271,7 @@ public class Application extends ResourceConfig
     private final OntModelSpec ontModelSpec;
     private final boolean cacheStylesheet;
     private final boolean resolvingUncached;
-    private final URI baseURI, uploadRoot; // TO-DO: replace baseURI with ServletContext URI?
+    private final URI baseURI, uploadRoot;
     private final boolean invalidateCache;
     private final Integer cookieMaxAge;
     private final boolean enableLinkedDataProxy;
