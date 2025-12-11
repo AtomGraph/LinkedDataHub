@@ -42,7 +42,7 @@ public class Authorize extends AuthorizeBase
     @Inject
     public Authorize(@Context HttpServletRequest httpServletRequest, com.atomgraph.linkeddatahub.apps.model.Application application, com.atomgraph.linkeddatahub.Application system)
     {
-        super(httpServletRequest, application, (String)system.getProperty(ORCID.clientID.getURI()));
+        super(httpServletRequest, application, system, (String)system.getProperty(ORCID.clientID.getURI()));
     }
 
     @Override

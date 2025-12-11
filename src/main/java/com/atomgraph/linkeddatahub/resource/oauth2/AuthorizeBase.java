@@ -49,6 +49,7 @@ public abstract class AuthorizeBase
 
     private final HttpServletRequest httpServletRequest;
     private final Application application;
+    private final com.atomgraph.linkeddatahub.Application system;
     private final String clientID;
 
     /**
@@ -56,15 +57,17 @@ public abstract class AuthorizeBase
      *
      * @param httpServletRequest servlet request
      * @param application application
+     * @param system JAX-RS application
      * @param clientID OAuth client ID
      */
-    public AuthorizeBase(HttpServletRequest httpServletRequest, Application application, String clientID)
+    public AuthorizeBase(HttpServletRequest httpServletRequest, Application application, com.atomgraph.linkeddatahub.Application system, String clientID)
     {
         if (!application.canAs(EndUserApplication.class))
             throw new IllegalStateException("The " + getClass() + " endpoint is only available on end-user applications");
-        
+
         this.httpServletRequest = httpServletRequest;
         this.application = application;
+        this.system = system;
         this.clientID = clientID;
         if (log.isDebugEnabled()) log.debug("Constructing {}", getClass());
     }
@@ -79,7 +82,7 @@ public abstract class AuthorizeBase
     public Response get(@QueryParam(REFERER_PARAM_NAME) String originUri)
     {
         // the redirect URI must be on the domain, not sub-domains (i.e. on the root dataspace)
-        URI redirectUri = UriBuilder.fromUri(getRootContextURI()).
+        URI redirectUri = UriBuilder.fromUri(getSystem().getBaseURI()).
             path(getLoginClass()).
             build();
 
@@ -166,42 +169,6 @@ public abstract class AuthorizeBase
     }
 
     /**
-     * Returns the base URI of this LinkedDataHub instance.
-     * It equals to the base URI of the root dataspace.
-     *
-     * @return root base URI
-     */
-    public URI getRootContextURI()
-    {
-        URI requestUri = URI.create(getHttpServletRequest().getRequestURL().toString());
-        String host = requestUri.getHost();
-
-        // Strip all subdomains to get root domain
-        String rootDomain;
-        String[] parts = host.split("\\.");
-
-        if (host.equals("localhost") || host.endsWith(".localhost"))
-        {
-            // Special case: localhost domains
-            rootDomain = "localhost";
-        }
-        else if (parts.length >= 2)
-        {
-            // Regular domains: take last 2 parts (e.g., example.com)
-            rootDomain = parts[parts.length - 2] + "." + parts[parts.length - 1];
-        }
-        else rootDomain = host;
-
-        // Rebuild URI with root domain
-        String scheme = requestUri.getScheme();
-        int port = requestUri.getPort();
-        String contextPath = getHttpServletRequest().getContextPath();
-
-        if (port == -1)  return URI.create("%s://%s%s/".formatted(scheme, rootDomain, contextPath));
-        else return URI.create("%s://%s:%d%s/".formatted(scheme, rootDomain, port, contextPath));
-    }
-
-    /**
      * Returns matched application.
      *
      * @return application resource
@@ -209,6 +176,16 @@ public abstract class AuthorizeBase
     public Application getApplication()
     {
         return application;
+    }
+
+    /**
+     * Returns system application.
+     *
+     * @return JAX-RS application
+     */
+    public com.atomgraph.linkeddatahub.Application getSystem()
+    {
+        return system;
     }
 
     /**
