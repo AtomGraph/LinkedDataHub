@@ -77,6 +77,7 @@ import static org.apache.jena.datatypes.xsd.XSDDatatype.XSDhexBinary;
 import org.apache.jena.ontology.Ontology;
 import org.apache.jena.query.ParameterizedSparqlString;
 import org.apache.jena.query.Query;
+import org.apache.jena.query.ResultSet;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Property;
@@ -198,10 +199,12 @@ public class SignUp extends GraphStoreImpl
             String password = validateAndRemovePassword(agent);
             // TO-DO: trim values
             Resource mbox = agent.getRequiredProperty(FOAF.mbox).getResource();
-            
+
             ParameterizedSparqlString pss = new ParameterizedSparqlString(getAgentQuery().toString());
             pss.setParam(FOAF.mbox.getLocalName(), mbox);
-            boolean agentExists = !getAgentService().getSPARQLClient().loadModel(pss.asQuery()).isEmpty();
+            ResultSet rs = getAgentService().getSPARQLClient().select(pss.asQuery());
+            boolean agentExists = rs.hasNext();
+            rs.close();
             if (agentExists) throw createSPINConstraintViolationException(agent, FOAF.mbox, "Agent with this mailbox already exists");
             
             String givenName = agent.getRequiredProperty(FOAF.givenName).getString();
