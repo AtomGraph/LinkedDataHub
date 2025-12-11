@@ -279,17 +279,6 @@ WHERE
         <xsl:message>ixsl:query-params()?uri: <xsl:value-of select="ixsl:query-params()?uri"/></xsl:message>
         <xsl:message>UTC offset: <xsl:value-of select="implicit-timezone()"/></xsl:message>
 
-        <!-- handle OAuth ID token from URL fragment -->
-        <xsl:variable name="location-hash" select="ixsl:get(ixsl:get(ixsl:window(), 'location'), 'hash')" as="xs:string?"/>
-        <xsl:if test="$location-hash and starts-with($location-hash, '#id_token=')">
-            <xsl:variable name="id-token" select="substring-after($location-hash, '#id_token=')" as="xs:string"/>
-            <!-- set cookie with id_token -->
-            <ixsl:set-property name="cookie" select="concat('LinkedDataHub.id_token=', $id-token, '; path=/; secure')" object="ixsl:page()"/>
-            <!-- reload page to render with authenticated user context -->
-            <xsl:variable name="current-url" select="substring-before(ixsl:get(ixsl:get(ixsl:window(), 'location'), 'href'), '#')" as="xs:string"/>
-            <xsl:sequence select="ixsl:call(ixsl:get(ixsl:window(), 'location'), 'replace', [ $current-url ])[current-date() lt xs:date('2000-01-01')]"/>
-        </xsl:if>
-
         <!-- create a LinkedDataHub namespace -->
         <ixsl:set-property name="LinkedDataHub" select="ldh:new-object()"/>
         <ixsl:set-property name="base" select="$ldt:base" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
@@ -298,37 +287,66 @@ WHERE
         <ixsl:set-property name="graph" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/> <!-- used by graph.xsl -->
         <ixsl:set-property name="endpoint" select="$sd:endpoint" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
         <ixsl:set-property name="yasqe" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
-        <xsl:apply-templates select="ixsl:page()" mode="ldh:HTMLDocumentLoaded">
-            <xsl:with-param name="endpoint" select="$sd:endpoint"/>
-            <xsl:with-param name="container" select="id($body-id, ixsl:page())"/>
-            <xsl:with-param name="replace-content" select="false()"/>
-        </xsl:apply-templates>
-        <!-- only show first time message for authenticated agents -->
-        <xsl:if test="$acl:agent and not(contains(ixsl:get(ixsl:page(), 'cookie'), 'LinkedDataHub.first-time-message'))">
-            <xsl:for-each select="ixsl:page()//body">
-                <xsl:result-document href="?." method="ixsl:append-content">
-                    <xsl:call-template name="ldh:FirstTimeMessage"/>
-                </xsl:result-document>
-            </xsl:for-each>
-        </xsl:if>
-        <!-- initialize LinkedDataHub.apps (and the search dropdown, if it's shown) -->
-        <ixsl:set-property name="apps" select="$ldh:apps" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
-        <!-- #search-service may be missing (e.g. suppressed by extending stylesheet) -->
-        <xsl:for-each select="id('search-service', ixsl:page())">
-            <xsl:call-template name="ldh:RenderServices">
-                <xsl:with-param name="select" select="."/>
-                <xsl:with-param name="apps" select="$ldh:apps"/>
-            </xsl:call-template>
-        </xsl:for-each>
-        <!-- initialize document tree -->
-        <xsl:for-each select="id('doc-tree', ixsl:page())">
-            <xsl:result-document href="?." method="ixsl:replace-content">
-                <xsl:call-template name="ldh:DocTree"/>
-            </xsl:result-document>
-            <xsl:call-template name="ldh:DocTreeActivateHref">
-                <xsl:with-param name="href" select="base-uri(ixsl:page())"/>
-            </xsl:call-template>
-        </xsl:for-each>
+
+        <!-- handle OAuth ID token from URL fragment -->
+        <xsl:variable name="location-hash" select="ixsl:get(ixsl:get(ixsl:window(), 'location'), 'hash')" as="xs:string?"/>
+        <xsl:choose>
+            <xsl:when test="$location-hash and starts-with($location-hash, '#id_token=')">
+                <xsl:variable name="id-token" select="substring-after($location-hash, '#id_token=')" as="xs:string"/>
+                <xsl:variable name="href" select="xs:anyURI(substring-before(ixsl:get(ixsl:get(ixsl:window(), 'location'), 'href'), '#'))" as="xs:anyURI"/>
+                <!-- set cookie with id_token -->
+                <ixsl:set-property name="cookie" select="concat('LinkedDataHub.id_token=', $id-token, '; path=/; secure')" object="ixsl:page()"/>
+                <!-- reload page to render with authenticated user context -->
+                <xsl:variable name="controller" select="ixsl:abort-controller()"/>
+                <ixsl:set-property name="saxonController" select="$controller" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+                <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $href, 'headers': map{ 'Accept': 'application/xhtml+xml' } }" as="map(*)"/>
+                <xsl:variable name="context" select="
+                  map{
+                    'request': $request,
+                    'href': $href,
+                    'push-state': true()
+                  }" as="map(*)"/>
+                <ixsl:promise select="
+                  ixsl:http-request($context('request'), $controller)
+                    => ixsl:then(ldh:rethread-response($context, ?))
+                    => ixsl:then(ldh:handle-response#1)
+                    => ixsl:then(ldh:xhtml-document-loaded#1)
+                " on-failure="ldh:promise-failure#1"/>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:apply-templates select="ixsl:page()" mode="ldh:HTMLDocumentLoaded">
+                    <xsl:with-param name="endpoint" select="$sd:endpoint"/>
+                    <xsl:with-param name="container" select="id($body-id, ixsl:page())"/>
+                    <xsl:with-param name="replace-content" select="false()"/>
+                </xsl:apply-templates>
+                <!-- only show first time message for authenticated agents -->
+                <xsl:if test="$acl:agent and not(contains(ixsl:get(ixsl:page(), 'cookie'), 'LinkedDataHub.first-time-message'))">
+                    <xsl:for-each select="ixsl:page()//body">
+                        <xsl:result-document href="?." method="ixsl:append-content">
+                            <xsl:call-template name="ldh:FirstTimeMessage"/>
+                        </xsl:result-document>
+                    </xsl:for-each>
+                </xsl:if>
+                <!-- initialize LinkedDataHub.apps (and the search dropdown, if it's shown) -->
+                <ixsl:set-property name="apps" select="$ldh:apps" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+                <!-- #search-service may be missing (e.g. suppressed by extending stylesheet) -->
+                <xsl:for-each select="id('search-service', ixsl:page())">
+                    <xsl:call-template name="ldh:RenderServices">
+                        <xsl:with-param name="select" select="."/>
+                        <xsl:with-param name="apps" select="$ldh:apps"/>
+                    </xsl:call-template>
+                </xsl:for-each>
+                <!-- initialize document tree -->
+                <xsl:for-each select="id('doc-tree', ixsl:page())">
+                    <xsl:result-document href="?." method="ixsl:replace-content">
+                        <xsl:call-template name="ldh:DocTree"/>
+                    </xsl:result-document>
+                    <xsl:call-template name="ldh:DocTreeActivateHref">
+                        <xsl:with-param name="href" select="base-uri(ixsl:page())"/>
+                    </xsl:call-template>
+                </xsl:for-each>
+            </xsl:otherwise>
+        </xsl:choose>
     </xsl:template>
 
     <!-- TEMPLATES -->
