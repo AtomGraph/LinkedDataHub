@@ -24,7 +24,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.UriBuilder;
-import jakarta.ws.rs.core.UriInfo;
 
 /**
  * JAX-RS resource that handles Google authorization requests.
@@ -37,18 +36,14 @@ public class Authorize extends AuthorizeBase
     /**
      * Constructs resource from current request info.
      *
-     * @param uriInfo URI info
      * @param httpServletRequest servlet request
      * @param application application
      * @param system JAX-RS application
      */
     @Inject
-    public Authorize(@Context UriInfo uriInfo, @Context HttpServletRequest httpServletRequest,
-            com.atomgraph.linkeddatahub.apps.model.Application application,
-            com.atomgraph.linkeddatahub.Application system)
+    public Authorize(@Context HttpServletRequest httpServletRequest, com.atomgraph.linkeddatahub.apps.model.Application application, com.atomgraph.linkeddatahub.Application system)
     {
-        super(uriInfo, httpServletRequest, application,
-              (String)system.getProperty(Google.clientID.getURI()));
+        super(httpServletRequest, application, (String)system.getProperty(Google.clientID.getURI()));
     }
 
     @Override

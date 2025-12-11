@@ -30,7 +30,6 @@ import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.NewCookie;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.UriBuilder;
-import jakarta.ws.rs.core.UriInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,7 +47,6 @@ public abstract class AuthorizeBase
     /** URL parameter name */
     public static final String REFERER_PARAM_NAME = "referer";
 
-    private final UriInfo uriInfo;
     private final HttpServletRequest httpServletRequest;
     private final Application application;
     private final String clientID;
@@ -56,18 +54,15 @@ public abstract class AuthorizeBase
     /**
      * Constructs resource from current request info.
      *
-     * @param uriInfo URI info
      * @param httpServletRequest servlet request
      * @param application application
      * @param clientID OAuth client ID
      */
-    public AuthorizeBase(UriInfo uriInfo, HttpServletRequest httpServletRequest,
-            Application application, String clientID)
+    public AuthorizeBase(HttpServletRequest httpServletRequest, Application application, String clientID)
     {
         if (!application.canAs(EndUserApplication.class))
             throw new IllegalStateException("The " + getClass() + " endpoint is only available on end-user applications");
         
-        this.uriInfo = uriInfo;
         this.httpServletRequest = httpServletRequest;
         this.application = application;
         this.clientID = clientID;
@@ -204,16 +199,6 @@ public abstract class AuthorizeBase
 
         if (port == -1)  return URI.create("%s://%s%s/".formatted(scheme, rootDomain, contextPath));
         else return URI.create("%s://%s:%d%s/".formatted(scheme, rootDomain, port, contextPath));
-    }
-
-    /**
-     * Returns URI information for the current request.
-     *
-     * @return URI info
-     */
-    public UriInfo getUriInfo()
-    {
-        return uriInfo;
     }
 
     /**
