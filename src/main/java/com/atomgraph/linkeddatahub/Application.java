@@ -100,9 +100,7 @@ import com.atomgraph.linkeddatahub.server.factory.OntologyFactory;
 import com.atomgraph.linkeddatahub.server.factory.ServiceFactory;
 import com.atomgraph.linkeddatahub.server.filter.request.OntologyFilter;
 import com.atomgraph.linkeddatahub.server.filter.request.AuthorizationFilter;
-import com.atomgraph.linkeddatahub.server.filter.request.auth.IDTokenFilter;
 import com.atomgraph.linkeddatahub.server.filter.request.ContentLengthLimitFilter;
-import com.atomgraph.linkeddatahub.server.filter.request.auth.ORCIDTokenFilter;
 import com.atomgraph.linkeddatahub.server.filter.request.auth.ProxiedWebIDFilter;
 import com.atomgraph.linkeddatahub.server.filter.response.CORSFilter;
 import com.atomgraph.linkeddatahub.server.filter.response.ResponseHeadersFilter;
@@ -286,6 +284,7 @@ public class Application extends ResourceConfig
     private final List<Locale> supportedLanguages;
     private final ExpiringMap<URI, Model> webIDmodelCache = ExpiringMap.builder().expiration(1, TimeUnit.DAYS).build(); // TO-DO: config for the expiration period?
     private final ExpiringMap<String, Model> oidcModelCache = ExpiringMap.builder().variableExpiration().build();
+    private final ExpiringMap<String, jakarta.json.JsonObject> jwksCache = ExpiringMap.builder().expiration(1, TimeUnit.DAYS).build(); // Cache JWKS responses
     private final Map<URI, XsltExecutable> xsltExecutableCache = new ConcurrentHashMap<>();
     private final MessageDigest messageDigest;
     private final boolean enableWebIDSignUp;
@@ -1002,11 +1001,24 @@ public class Application extends ResourceConfig
     protected void registerResourceClasses()
     {
         register(Dispatcher.class);
-        // OAuth endpoints - system-level resources not tied to dataspaces
-        register(com.atomgraph.linkeddatahub.resource.oauth2.google.Authorize.class);
-        register(com.atomgraph.linkeddatahub.resource.oauth2.google.Login.class);
-//        register(com.atomgraph.linkeddatahub.resource.admin.oauth2.orcid.Authorize.class);
-//        register(com.atomgraph.linkeddatahub.resource.admin.oauth2.orcid.Login.class);
+
+        // Conditionally register Google OAuth endpoints if configured
+        if (getProperty(com.atomgraph.linkeddatahub.vocabulary.Google.clientID.getURI()) != null &&
+            getProperty(com.atomgraph.linkeddatahub.vocabulary.Google.clientSecret.getURI()) != null)
+        {
+            register(com.atomgraph.linkeddatahub.resource.oauth2.google.Authorize.class);
+            register(com.atomgraph.linkeddatahub.resource.oauth2.google.Login.class);
+            if (log.isDebugEnabled()) log.debug("Google OAuth endpoints registered");
+        }
+
+        // Conditionally register ORCID OAuth endpoints if configured
+        if (getProperty(com.atomgraph.linkeddatahub.vocabulary.ORCID.clientID.getURI()) != null &&
+            getProperty(com.atomgraph.linkeddatahub.vocabulary.ORCID.clientSecret.getURI()) != null)
+        {
+            register(com.atomgraph.linkeddatahub.resource.oauth2.orcid.Authorize.class);
+            register(com.atomgraph.linkeddatahub.resource.oauth2.orcid.Login.class);
+            if (log.isDebugEnabled()) log.debug("ORCID OAuth endpoints registered");
+        }
     }
     
     /**
@@ -1018,11 +1030,25 @@ public class Application extends ResourceConfig
         register(ApplicationFilter.class);
         register(OntologyFilter.class);
         register(ProxiedWebIDFilter.class);
-        register(IDTokenFilter.class);
-        register(ORCIDTokenFilter.class);
         register(AuthorizationFilter.class);
         if (getMaxContentLength() != null) register(new ContentLengthLimitFilter(getMaxContentLength()));
         register(new RDFPostMediaTypeInterceptor()); // for application/x-www-form-urlencoded
+        
+        // Conditionally register Google OAuth filter if configured
+        if (getProperty(com.atomgraph.linkeddatahub.vocabulary.Google.clientID.getURI()) != null &&
+            getProperty(com.atomgraph.linkeddatahub.vocabulary.Google.clientSecret.getURI()) != null)
+        {
+            register(com.atomgraph.linkeddatahub.server.filter.request.auth.google.IDTokenFilter.class);
+            if (log.isDebugEnabled()) log.debug("Google OAuth filter registered");
+        }
+
+        // Conditionally register ORCID OAuth filter if configured
+        if (getProperty(com.atomgraph.linkeddatahub.vocabulary.ORCID.clientID.getURI()) != null &&
+            getProperty(com.atomgraph.linkeddatahub.vocabulary.ORCID.clientSecret.getURI()) != null)
+        {
+            register(com.atomgraph.linkeddatahub.server.filter.request.auth.orcid.IDTokenFilter.class);
+            if (log.isDebugEnabled()) log.debug("ORCID OAuth filter registered");
+        }
     }
 
     /**
@@ -2050,18 +2076,29 @@ public class Application extends ResourceConfig
     /**
      * A map of cached OpenID connect agent graphs.
      * User ID (ID token subject) is the cache key. Entries expire after the configured period of time.
-     * 
+     *
      * @return URI to model map
      */
     public ExpiringMap<String, Model> getOIDCModelCache()
     {
         return oidcModelCache;
     }
-    
+
+    /**
+     * A map of cached JWKS (JSON Web Key Set) responses for JWT verification.
+     * JWKS endpoint URI is the cache key. Entries expire after 1 day.
+     *
+     * @return JWKS endpoint to JsonObject map
+     */
+    public ExpiringMap<String, jakarta.json.JsonObject> getJWKSCache()
+    {
+        return jwksCache;
+    }
+
     /**
      * A map of cached (compiled) XSLT stylesheets.
      * Stylesheet URI is the cache key.
-     * 
+     *
      * @return URI to stylesheet map
      */
     public Map<URI, XsltExecutable> getXsltExecutableCache()

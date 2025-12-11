@@ -156,10 +156,11 @@ WHERE
         <param-value><![CDATA[
 PREFIX  foaf: <http://xmlns.com/foaf/0.1/>
 
-DESCRIBE ?Agent
+SELECT ?Agent ?agentGraph
 WHERE
-  { GRAPH ?g
-      { ?Agent  foaf:mbox  $mbox
+  {
+      { GRAPH ?agentGraph
+          { ?Agent  foaf:mbox  $mbox }
       }
   }
 ]]></param-value>
@@ -174,7 +175,7 @@ DESCRIBE ?account ?agent
 WHERE
   { GRAPH ?g
       { ?account  sioc:id          $id ;
-                  lacl:issuer      ?issuer ;
+                  lacl:issuer      $issuer ;
                   sioc:account_of  ?agent
       }
   }

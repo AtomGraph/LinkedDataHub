@@ -1,5 +1,5 @@
 /**
- *  Copyright 2019 Martynas Jusevičius <martynas@atomgraph.com>
+ *  Copyright 2025 Martynas Jusevičius <martynas@atomgraph.com>
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -17,16 +17,12 @@
 package com.atomgraph.linkeddatahub.server.filter.request.auth;
 
 import com.atomgraph.linkeddatahub.apps.model.AdminApplication;
-import com.atomgraph.linkeddatahub.server.filter.request.AuthenticationFilter;
 import com.atomgraph.linkeddatahub.apps.model.Application;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import com.atomgraph.linkeddatahub.model.auth.Agent;
-import com.atomgraph.linkeddatahub.resource.oauth2.google.Authorize;
-import com.atomgraph.linkeddatahub.resource.oauth2.google.Login;
-import static com.atomgraph.linkeddatahub.resource.oauth2.google.Login.TOKEN_ENDPOINT;
+import com.atomgraph.linkeddatahub.server.filter.request.AuthenticationFilter;
 import com.atomgraph.linkeddatahub.server.security.IDTokenSecurityContext;
 import com.atomgraph.linkeddatahub.vocabulary.FOAF;
-import com.atomgraph.linkeddatahub.vocabulary.Google;
 import com.atomgraph.linkeddatahub.vocabulary.LACL;
 import com.atomgraph.linkeddatahub.vocabulary.SIOC;
 import com.auth0.jwt.JWT;
@@ -36,7 +32,6 @@ import java.io.IOException;
 import java.net.URI;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -54,11 +49,9 @@ import jakarta.ws.rs.container.PreMatching;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Cookie;
 import jakarta.ws.rs.core.Form;
-import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.NewCookie;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.SecurityContext;
-import jakarta.ws.rs.core.UriBuilder;
 import org.apache.jena.query.ParameterizedSparqlString;
 import org.apache.jena.query.QuerySolutionMap;
 import org.apache.jena.rdf.model.Literal;
@@ -70,27 +63,24 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Authentication filter that matches OIDC JWT tokens against application's user accounts.
- * 
+ * Abstract base class for OAuth 2.0 / OpenID Connect ID token authentication filters.
+ *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
 @PreMatching
 @Priority(Priorities.USER + 10) // has to execute after WebIDFilter
-public class IDTokenFilter extends AuthenticationFilter
+public abstract class IDTokenFilterBase extends AuthenticationFilter
 {
-
-    private static final Logger log = LoggerFactory.getLogger(IDTokenFilter.class);
+    private static final Logger log = LoggerFactory.getLogger(IDTokenFilterBase.class);
 
     /** ID of the JWT authentication scheme */
     public static final String AUTH_SCHEME = "JWT";
-    /** White-list of OIDC issuers */
-    public static final List<String> ISSUERS = Arrays.asList("https://accounts.google.com");
     /** Name of the cookie that stores the ID token */
     public static final String COOKIE_NAME = "LinkedDataHub.id_token";
-    private String clientID, clientSecret;
-    
+
     @Context HttpServletRequest httpServletRequest;
-    
+
+    private String clientID, clientSecret;
     private ParameterizedSparqlString userAccountQuery;
 
     /**
@@ -100,16 +90,75 @@ public class IDTokenFilter extends AuthenticationFilter
     public void init()
     {
         userAccountQuery = new ParameterizedSparqlString(getSystem().getUserAccountQuery().toString());
-        clientID = (String)getSystem().getProperty(Google.clientID.getURI());
-        clientSecret = (String)getSystem().getProperty(Google.clientSecret.getURI());
+        initClientCredentials();
     }
-    
+
+    /**
+     * Initializes provider-specific client credentials.
+     * Subclasses should load their OAuth client ID and secret here.
+     */
+    protected abstract void initClientCredentials();
+
+    /**
+     * Returns the list of trusted OIDC issuers for this provider.
+     *
+     * @return list of issuer URIs
+     */
+    protected abstract List<String> getIssuers();
+
+    /**
+     * Returns the JWKS endpoint URI for fetching public keys.
+     *
+     * @return JWKS endpoint URI
+     */
+    protected abstract URI getJWKSEndpoint();
+
+    /**
+     * Verifies the validity of the specified JWT ID token using JWKS-based signature verification.
+     *
+     * @param idToken ID token
+     * @return true if valid
+     * @see com.atomgraph.linkeddatahub.server.util.JWTVerifier#verify
+     */
+    protected boolean verify(DecodedJWT idToken)
+    {
+        return com.atomgraph.linkeddatahub.server.util.JWTVerifier.verify(
+            idToken,
+            getJWKSEndpoint(),
+            getIssuers(),
+            getClientID(),
+            getSystem().getClient(),
+            getSystem().getJWKSCache()
+        );
+    }
+
+    /**
+     * Returns the OAuth token endpoint URI for token refresh.
+     *
+     * @return token endpoint URI
+     */
+    protected abstract URI getTokenEndpoint();
+
+    /**
+     * Returns the URL of the OAuth login endpoint.
+     *
+     * @return endpoint URI
+     */
+    protected abstract URI getLoginURL();
+
+    /**
+     * Returns the URL of the OAuth authorization endpoint.
+     *
+     * @return endpoint URI
+     */
+    protected abstract URI getAuthorizeURL();
+
     @Override
     public String getScheme()
     {
         return AUTH_SCHEME;
     }
-    
+
     @Override
     public void filter(ContainerRequestContext request) throws IOException
     {
@@ -119,22 +168,22 @@ public class IDTokenFilter extends AuthenticationFilter
 
         // do not verify token for auth endpoints as that will lead to redirect loops
         if (request.getUriInfo().getAbsolutePath().equals(getLoginURL())) return;
-        if (request.getUriInfo().getAbsolutePath().equals(getAuthorizeGoogleURL())) return;
+        if (request.getUriInfo().getAbsolutePath().equals(getAuthorizeURL())) return;
 
         super.filter(request);
     }
-    
+
     @Override
     public SecurityContext authenticate(ContainerRequestContext request)
     {
         ParameterizedSparqlString pss = getUserAccountQuery();
-        
+
         String jwtString = getJWTToken(request);
         if (jwtString == null) return null;
-        
+
         DecodedJWT jwt = JWT.decode(jwtString);
-        if (!jwt.getAudience().contains(getClientID()) || !ISSUERS.contains(jwt.getIssuer())) return null; // in Google's JWT tokens, "aud" is the client ID
-        
+        if (!jwt.getAudience().contains(getClientID()) || !getIssuers().contains(jwt.getIssuer())) return null;
+
         if (jwt.getExpiresAt().before(new Date()))
         {
             String refreshToken = getSystem().getRefreshToken(jwt.getSubject());
@@ -146,11 +195,11 @@ public class IDTokenFilter extends AuthenticationFilter
             else
             {
                 if (log.isDebugEnabled()) log.debug("ID token for subject '{}' has expired at {}, refresh token not found", jwt.getSubject(), jwt.getExpiresAt());
-                throw new TokenExpiredException("ID token for subject '"  + jwt.getSubject() + "' has expired at " + jwt.getExpiresAt());
+                throw new TokenExpiredException("ID token for subject '%s' has expired at %s".formatted(jwt.getSubject(), jwt.getExpiresAt()));
             }
         }
         if (!verify(jwt)) return null;
-        
+
         String cacheKey = jwt.getIssuer() + jwt.getSubject();
         final Model agentModel;
         Literal userId = ResourceFactory.createStringLiteral(jwt.getSubject());
@@ -163,25 +212,25 @@ public class IDTokenFilter extends AuthenticationFilter
 
             agentModel = loadModel(pss, qsm, getAgentService());
         }
-        
+
         Resource account = getResourceByPropertyValue(agentModel, SIOC.ID, userId);
         if (account == null) return null; // UserAccount not found
 
         // we add token value to the UserAccount. This will allow SecurityContext to carry the token as well as DataManager to delegate it.
         Resource agent = account.getRequiredProperty(SIOC.ACCOUNT_OF).getResource();
         if (agent == null) throw new IllegalStateException("UserAccount is not attached to an agent (sioc:account_of property is missing)");
-        
+
         // calculate ID token expiration in seconds and use it in the cache
         long expiration = ChronoUnit.SECONDS.between(Instant.now(), jwt.getExpiresAt().toInstant());
         getSystem().getOIDCModelCache().put(cacheKey, agentModel, expiration, TimeUnit.SECONDS);
-        
+
         // imitate type inference, otherwise we'll get Jena's polymorphism exception
         return new IDTokenSecurityContext(getScheme(), agent.addProperty(RDF.type, FOAF.Agent).as(Agent.class), jwtString);
     }
-    
+
     /**
      * Retrieves JWT token from the request context.
-     * 
+     *
      * @param request request context
      * @return token content
      */
@@ -194,44 +243,11 @@ public class IDTokenFilter extends AuthenticationFilter
 
         return null;
     }
-    
-    /**
-     * Verifies the validity of the specified JWT ID token.
-     * 
-     * @param idToken ID token
-     * @return true if valid
-     */
-    protected boolean verify(DecodedJWT idToken)
-    {
-        // TO-DO: use keys, this is for debugging purposes only: https://developers.google.com/identity/protocols/oauth2/openid-connect#validatinganidtoken
-        try (Response cr = getSystem().getNoCertClient().
-            target("https://oauth2.googleapis.com/tokeninfo").
-            queryParam("id_token", idToken.getToken()).
-            request(MediaType.APPLICATION_JSON_TYPE).
-            get())
-        {
-            if (!cr.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
-            {
-                if (log.isDebugEnabled()) log.debug("Could not verify JWT token for subject '{}'", idToken.getSubject());
-//                throw new JWTVerificationException("Could not verify JWT token for subject '"  + idToken.getSubject() + "'");
-                return false;
-            }
-                
-            JsonObject verifiedIdToken = cr.readEntity(JsonObject.class);
-            if (idToken.getIssuer().equals(verifiedIdToken.getString("iss")) &&
-                idToken.getSubject().equals(verifiedIdToken.getString("sub")) &&
-                idToken.getKeyId().equals(verifiedIdToken.getString("kid")))
-                return true;
-        }
 
-//        throw new JWTVerificationException("Could not verify JWT token for subject '"  + idToken.getSubject() + "'");
-        return false;
-    }
-    
     @Override
     public void login(Application app, ContainerRequestContext request)
     {
-        Response response = Response.seeOther(getAuthorizeGoogleURL()).build();
+        Response response = Response.seeOther(getAuthorizeURL()).build();
         throw new WebApplicationException(response);
     }
 
@@ -243,10 +259,14 @@ public class IDTokenFilter extends AuthenticationFilter
         {
             // Chrome does not seem to store permanent cookies (with Expires) from Domain=localhost
             // https://stackoverflow.com/questions/7346919/chrome-localhost-cookie-not-being-set
-            NewCookie deleteCookie = new NewCookie(cookie.getName(), null,
-                app.getBase().getURI(), null,
-                    NewCookie.DEFAULT_VERSION, null, NewCookie.DEFAULT_MAX_AGE, new Date(0), true, true);
-            
+            NewCookie deleteCookie = new NewCookie.Builder(cookie.getName()).
+                value(null).
+                path(app.getBase().getURI()).
+                expiry(new Date(0)).
+                secure(true).
+                httpOnly(true).
+                build();
+
             Response response = Response.seeOther(request.getUriInfo().getAbsolutePath()).
                 cookie(deleteCookie).
                 build();
@@ -256,7 +276,7 @@ public class IDTokenFilter extends AuthenticationFilter
 
     /**
      * Gets new ID token using a refresh token.
-     * 
+     *
      * @param refreshToken refresh token
      * @return ID token
      */
@@ -267,8 +287,8 @@ public class IDTokenFilter extends AuthenticationFilter
             param("client_id", getClientID()).
             param("client_secret", getClientSecret()).
             param("refresh_token", refreshToken);
-        
-        try (Response cr = getSystem().getClient().target(TOKEN_ENDPOINT).
+
+        try (Response cr = getSystem().getClient().target(getTokenEndpoint()).
                 request().post(Entity.form(form)))
         {
             JsonObject response = cr.readEntity(JsonObject.class);
@@ -282,29 +302,7 @@ public class IDTokenFilter extends AuthenticationFilter
             return JWT.decode(idToken);
         }
     }
-    
-    /**
-     * Returns the URL of the OAuth login endpoint.
-     * 
-     * @return endpoint URI
-     * @see com.atomgraph.linkeddatahub.resource.oauth2.google.Login
-     */
-    public URI getLoginURL()
-    {
-        return UriBuilder.fromUri(getContextURI()).path(Login.class).build();
-    }
-    
-    /**
-     * Returns the URL of the Google authorization endpoint.
-     * 
-     * @return endpoint URI
-     * @see com.atomgraph.linkeddatahub.resource.oauth2.google.Authorize
-     */
-    public URI getAuthorizeGoogleURL()
-    {
-        return UriBuilder.fromUri(getContextURI()).path(Authorize.class).build();
-    }
-    
+
     /**
      * Returns the admin application of the current dataspace.
      *
@@ -317,21 +315,21 @@ public class IDTokenFilter extends AuthenticationFilter
         else
             return getApplication().get().as(AdminApplication.class);
     }
-    
+
     /**
      * Returns servlet request.
-     * 
+     *
      * @return servlet request
      */
     public HttpServletRequest getHttpServletRequest()
     {
         return httpServletRequest;
     }
-    
+
     /**
      * Returns the base URI of this LinkedDataHub instance.
      * It equals to the base URI of the root dataspace.
-     * 
+     *
      * @return root context URI
      */
     public URI getContextURI()
@@ -360,38 +358,58 @@ public class IDTokenFilter extends AuthenticationFilter
         int port = requestUri.getPort();
         String contextPath = getHttpServletRequest().getContextPath();
 
-        if (port == -1)  return URI.create(scheme + "://" + rootDomain + contextPath + "/");
-        else return URI.create(scheme + "://" + rootDomain + ":" + port + contextPath + "/");
+        if (port == -1)  return URI.create("%s://%s%s/".formatted(scheme, rootDomain, contextPath));
+        else return URI.create("%s://%s:%d%s/".formatted(scheme, rootDomain, port, contextPath));
     }
-    
+
     /**
      * Returns the user account lookup query.
-     * 
+     *
      * @return SPARQL string
      */
     public ParameterizedSparqlString getUserAccountQuery()
     {
         return userAccountQuery.copy();
     }
-    
+
     /**
-     * Returns the configured Google client ID for this application.
-     * 
+     * Returns the configured OAuth client ID for this application.
+     *
      * @return client ID
      */
-    private String getClientID()
+    protected String getClientID()
     {
         return clientID;
     }
-    
+
     /**
-     * Returns the configured Google client secret for this application.
-     * 
+     * Sets the OAuth client ID.
+     *
+     * @param clientID client ID
+     */
+    protected void setClientID(String clientID)
+    {
+        this.clientID = clientID;
+    }
+
+    /**
+     * Returns the configured OAuth client secret for this application.
+     *
      * @return client secret
      */
-    private String getClientSecret()
+    protected String getClientSecret()
     {
         return clientSecret;
     }
-    
+
+    /**
+     * Sets the OAuth client secret.
+     *
+     * @param clientSecret client secret
+     */
+    protected void setClientSecret(String clientSecret)
+    {
+        this.clientSecret = clientSecret;
+    }
+
 }
