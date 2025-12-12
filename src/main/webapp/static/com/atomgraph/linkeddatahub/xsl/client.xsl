@@ -296,22 +296,8 @@ WHERE
                 <xsl:variable name="href" select="xs:anyURI(substring-before(ixsl:get(ixsl:get(ixsl:window(), 'location'), 'href'), '#'))" as="xs:anyURI"/>
                 <!-- set cookie with id_token -->
                 <ixsl:set-property name="cookie" select="concat('LinkedDataHub.id_token=', $id-token, '; path=/; secure')" object="ixsl:page()"/>
-                <!-- reload page to render with authenticated user context -->
-                <xsl:variable name="controller" select="ixsl:abort-controller()"/>
-                <ixsl:set-property name="saxonController" select="$controller" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
-                <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $href, 'headers': map{ 'Accept': 'application/xhtml+xml' } }" as="map(*)"/>
-                <xsl:variable name="context" select="
-                  map{
-                    'request': $request,
-                    'href': $href,
-                    'push-state': true()
-                  }" as="map(*)"/>
-                <ixsl:promise select="
-                  ixsl:http-request($context('request'), $controller)
-                    => ixsl:then(ldh:rethread-response($context, ?))
-                    => ixsl:then(ldh:handle-response#1)
-                    => ixsl:then(ldh:xhtml-document-loaded#1)
-                " on-failure="ldh:promise-failure#1"/>
+                <!-- do a full page refresh to reload with authenticated context -->
+                <xsl:sequence select="ixsl:call(ixsl:get(ixsl:window(), 'location'), 'replace', [ $href ])"/>
             </xsl:when>
             <xsl:otherwise>
                 <xsl:apply-templates select="ixsl:page()" mode="ldh:HTMLDocumentLoaded">
