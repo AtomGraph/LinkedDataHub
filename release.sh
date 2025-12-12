@@ -21,6 +21,40 @@ print_error() {
     echo -e "${RED}[ERROR]${NC} $1"
 }
 
+# Track if release completed successfully
+RELEASE_SUCCESSFUL=false
+
+# Trap handler for automatic cleanup on failure
+cleanup_on_failure() {
+    local exit_code=$?
+
+    # Only clean up if release failed (non-zero exit) and wasn't successful
+    if [ $exit_code -ne 0 ] && [ "$RELEASE_SUCCESSFUL" = false ]; then
+        print_error "Release failed! Rolling back changes..."
+
+        # Clean up Maven release artifacts
+        mvn release:clean 2>/dev/null || true
+
+        # Delete release tag if it exists
+        if [ -n "$RELEASE_TAG" ]; then
+            git tag -d "$RELEASE_TAG" 2>/dev/null || true
+        fi
+
+        # Switch back to develop branch
+        git checkout develop 2>/dev/null || true
+
+        # Delete release branch if it exists
+        if [ -n "$RELEASE_BRANCH" ]; then
+            git branch -D "$RELEASE_BRANCH" 2>/dev/null || true
+        fi
+
+        print_status "Rollback complete. You're back on develop branch."
+        exit $exit_code
+    fi
+}
+
+trap cleanup_on_failure EXIT
+
 # Check if we're on develop branch
 CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 if [ "$CURRENT_BRANCH" != "develop" ]; then
@@ -39,6 +73,22 @@ if ! git diff-index --quiet HEAD --; then
     print_error "Working directory is not clean. Please commit or stash changes first."
     exit 1
 fi
+
+# Check if GPG is installed and configured
+if ! command -v gpg &> /dev/null; then
+    print_error "GPG is not installed. Maven release requires GPG to sign artifacts."
+    print_error "Install GPG with: brew install gnupg"
+    exit 1
+fi
+
+# Check if GPG has at least one secret key
+if ! gpg --list-secret-keys --keyid-format=long 2>/dev/null | grep -q "sec"; then
+    print_error "No GPG secret key found. You need a GPG key to sign Maven artifacts."
+    print_error "Generate one with: gpg --gen-key"
+    exit 1
+fi
+
+print_status "GPG check passed"
 
 # Get current version from pom.xml
 CURRENT_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
@@ -122,6 +172,9 @@ if git ls-remote --heads origin "$RELEASE_BRANCH" | grep -q "$RELEASE_BRANCH"; t
         git push origin --delete "$RELEASE_BRANCH"
     fi
 fi
+
+# Mark release as successful to prevent rollback
+RELEASE_SUCCESSFUL=true
 
 print_status "Release $RELEASE_VERSION completed successfully!"
 print_status "- Master branch contains release version $RELEASE_VERSION"
