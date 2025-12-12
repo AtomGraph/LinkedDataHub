@@ -1,7 +1,6 @@
 .DS_Store
 /target
 /.env
-/data
 /uploads
 /nb-configuration.xml
 /node
@@ -13,3 +12,4 @@
 /http-tests/ssl
 /http-tests/datasets
 /http-tests/uploads
+/fuseki

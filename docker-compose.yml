@@ -101,7 +101,7 @@ services:
       - 3030
     volumes:
       - ./config/fuseki/config.ttl:/fuseki/config.ttl:ro
-      - ./data/admin:/fuseki/databases
+      - ./fuseki/admin:/fuseki/databases
     command: [ "--config", "/fuseki/config.ttl" ]
   fuseki-end-user:
     image: atomgraph/fuseki:4.7.0
@@ -110,7 +110,7 @@ services:
       - 3030
     volumes:
       - ./config/fuseki/config.ttl:/fuseki/config.ttl:ro
-      - ./data/end-user:/fuseki/databases
+      - ./fuseki/end-user:/fuseki/databases
     command: [ "--config", "/fuseki/config.ttl" ]
   varnish-frontend:
     image: varnish:7.3.0
