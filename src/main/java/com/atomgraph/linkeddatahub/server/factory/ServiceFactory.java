@@ -54,13 +54,16 @@ public class ServiceFactory implements Factory<Optional<Service>>
     
     /**
      * Retrieves (optional) service from container request context.
-     * 
+     *
      * @return optional service
      */
     public Optional<Service> getService()
     {
-        Application app = (Application)getContainerRequestContext().getProperty(LAPP.Application.getURI());
-        Service service = app.getService();
+        Optional<Application> appOpt = (Optional<Application>)getContainerRequestContext().getProperty(LAPP.Application.getURI());
+
+        if (!appOpt.isPresent()) return Optional.empty();
+
+        Service service = appOpt.get().getService();
 
         return Optional.of(service);
     }

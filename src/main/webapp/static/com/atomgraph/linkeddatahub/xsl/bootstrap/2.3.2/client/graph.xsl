@@ -4,7 +4,6 @@
     <!ENTITY ldh    "https://w3id.org/atomgraph/linkeddatahub#">
     <!ENTITY ac     "https://w3id.org/atomgraph/client#">
     <!ENTITY rdf    "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
-    <!ENTITY ldt    "https://www.w3.org/ns/ldt#">
 ]>
 <xsl:stylesheet version="3.0"
 xmlns="http://www.w3.org/1999/xhtml"
@@ -20,7 +19,6 @@ xmlns:array="http://www.w3.org/2005/xpath-functions/array"
 xmlns:ac="&ac;"
 xmlns:ldh="&ldh;"
 xmlns:rdf="&rdf;"
-xmlns:ldt="&ldt;"
 xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
 extension-element-prefixes="ixsl"
 exclude-result-prefixes="#all"
@@ -50,7 +48,7 @@ exclude-result-prefixes="#all"
     
     <!-- EVENT HANDLERS -->
     
-    <xsl:template match="svg:g[@class = 'subject']" mode="ixsl:onmouseover"> <!-- should be ixsl:onmouseenter but it's not supported by Saxon-JS 2.3 -->
+    <xsl:template match="svg:g/svg:g[@class = 'subject']" mode="ixsl:onmouseover"> <!-- should be ixsl:onmouseenter but it's not supported by Saxon-JS 2.3 -->
         <xsl:variable name="svg" select="ancestor::svg:svg" as="element()"/>
         
         <!-- add highlighted <marker> if it doesn't exist yet -->
@@ -64,33 +62,48 @@ exclude-result-prefixes="#all"
         <ixsl:set-attribute name="stroke" select="$highlight-color" object="svg:circle"/>
 
         <!-- highlight the lines going to/from this node and move to the end of the document (visually, move to front) -->
-        <xsl:for-each select="key('lines-by-start', @id, ixsl:page()) | key('lines-by-end', @id, ixsl:page())">
+        <xsl:for-each select="key('lines-by-start', @id) | key('lines-by-end', @id)">
             <ixsl:set-attribute name="stroke" select="$highlight-color"/>
             <ixsl:set-attribute name="marker-end" select="'url(#' || $highlighted-marker-id || ')'"/>
             <xsl:sequence select="ixsl:call(ancestor::svg:svg, 'appendChild', [ . ])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:for-each>
         
-        <!-- move line end nodes to the end of the document (visually, move to front) -->
-        <xsl:for-each select="id(key('lines-by-start', @id, ixsl:page())/@data-id2, ixsl:page()) | id(key('lines-by-end', @id, ixsl:page())/@data-id1, ixsl:page())">
-            <ixsl:set-attribute name="stroke" select="$highlight-color" object="svg:circle"/>
-            <xsl:sequence select="ixsl:call($svg, 'appendChild', [ . ])[current-date() lt xs:date('2000-01-01')]"/>
-        </xsl:for-each>
-
-        <!-- move start node to the end of the document (visually, move to front) -->
-        <xsl:sequence select="ixsl:call($svg, 'appendChild', [ . ])[current-date() lt xs:date('2000-01-01')]"/>
+        <!-- move line end node groups to the end of the document (visually, move to front) -->
+        <xsl:if test="key('lines-by-start', @id)/@data-id2">
+            <xsl:for-each select="id(key('lines-by-start', @id)/@data-id2)">
+                <ixsl:set-attribute name="stroke" select="$highlight-color" object="svg:circle"/>
+                <xsl:sequence select="ixsl:call($svg, 'appendChild', [ .. ])[current-date() lt xs:date('2000-01-01')]"/>
+            </xsl:for-each>
+        </xsl:if>
+        <xsl:if test="key('lines-by-end', @id)/@data-id1">
+            <xsl:for-each select="id(key('lines-by-end', @id)/@data-id1)">
+                <ixsl:set-attribute name="stroke" select="$highlight-color" object="svg:circle"/>
+                <xsl:sequence select="ixsl:call($svg, 'appendChild', [ .. ])[current-date() lt xs:date('2000-01-01')]"/>
+            </xsl:for-each>
+        </xsl:if>
+        
+        <!-- move the start node group to the end of the document (visually, move to front) -->
+        <xsl:sequence select="ixsl:call($svg, 'appendChild', [ .. ])[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
     
-    <xsl:template match="svg:g[@class = 'subject']" mode="ixsl:onmouseout">
+    <xsl:template match="svg:g/svg:g[@class = 'subject']" mode="ixsl:onmouseout">
         <!-- unhighlight this node -->
         <ixsl:set-attribute name="stroke" select="'gray'" object="svg:circle"/>
 
         <!-- unhighlight end nodes -->
-        <xsl:for-each select="id(key('lines-by-start', @id, ixsl:page())/@data-id2, ixsl:page()) | id(key('lines-by-end', @id, ixsl:page())/@data-id1, ixsl:page())">
-            <ixsl:set-attribute name="stroke" select="'gray'" object="svg:circle"/>
-        </xsl:for-each>
-
+        <xsl:if test="key('lines-by-start', @id)/@data-id2">
+            <xsl:for-each select="id(key('lines-by-start', @id)/@data-id2)">
+                <ixsl:set-attribute name="stroke" select="'gray'" object="svg:circle"/>
+            </xsl:for-each>
+        </xsl:if>
+        <xsl:if test="key('lines-by-end', @id)/@data-id1">
+            <xsl:for-each select="id(key('lines-by-end', @id)/@data-id1)">
+                <ixsl:set-attribute name="stroke" select="'gray'" object="svg:circle"/>
+            </xsl:for-each>
+        </xsl:if>
+        
         <!-- unhighlight the lines going to/from this node -->
-        <xsl:for-each select="key('lines-by-start', @id, ixsl:page()) | key('lines-by-end', @id, ixsl:page())">
+        <xsl:for-each select="key('lines-by-start', @id) | key('lines-by-end', @id)">
             <ixsl:set-attribute name="stroke" select="'gray'"/>
             <ixsl:set-attribute name="marker-end" select="'url(#triangle)'"/>
         </xsl:for-each>
@@ -120,7 +133,7 @@ exclude-result-prefixes="#all"
             <!-- add the mouse offset within the element which was stored in onmousedown -->
             <xsl:variable name="dom-x" select="ixsl:get(ixsl:event(), 'clientX') + $offset-x"/>
             <xsl:variable name="dom-y" select="ixsl:get(ixsl:event(), 'clientY') + $offset-y"/>
-            <xsl:variable name="point" select="ldh:new('DOMPoint', [ $dom-x, $dom-y ])"/>
+            <xsl:variable name="point" select="ixsl:new('DOMPoint', [ $dom-x, $dom-y ])"/>
             <xsl:variable name="ctm" select="ixsl:call(., 'getScreenCTM', [])"/>
             <xsl:variable name="svg-point" select="ixsl:call($point, 'matrixTransform', [ ixsl:call($ctm, 'inverse', []) ])"/>
             <xsl:variable name="svg-x" select="ixsl:get($svg-point, 'x')"/>
@@ -131,11 +144,11 @@ exclude-result-prefixes="#all"
             <xsl:sequence select="ixsl:call($transform, 'setTranslate', [ $svg-x, $svg-y ])"/>
 
             <!-- move line ends together with the target node -->
-            <xsl:for-each select="key('lines-by-start', $selected-node/@id, ixsl:page())">
+            <xsl:for-each select="key('lines-by-start', $selected-node/@id)">
                 <ixsl:set-attribute name="x1" select="string($svg-x)"/>
                 <ixsl:set-attribute name="y1" select="string($svg-y)"/>
             </xsl:for-each>
-            <xsl:for-each select="key('lines-by-end', $selected-node/@id, ixsl:page())">
+            <xsl:for-each select="key('lines-by-end', $selected-node/@id)">
                 <ixsl:set-attribute name="x2" select="string($svg-x)"/>
                 <ixsl:set-attribute name="y2" select="string($svg-y)"/>
             </xsl:for-each>

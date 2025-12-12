@@ -74,6 +74,32 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="$acl:mode"/>
     </xsl:function>
     
+
+    <!-- Strips the leftmost subdomain and returns parent dataspace origin (scheme + host + port) -->
+    <xsl:function name="ldh:parent-origin" as="xs:anyURI?">
+        <xsl:param name="uri" as="xs:anyURI"/>
+
+        <xsl:variable name="scheme" select="replace($uri, '^(https?://).*$', '$1')" as="xs:string"/>
+        <xsl:variable name="host" select="replace($uri, '^https?://([^/:]+).*$', '$1')" as="xs:string"/>
+        <xsl:variable name="port" select="if (matches($uri, ':\d+')) then replace($uri, '^https?://[^:]+:(\d+).*$', '$1') else ''" as="xs:string"/>
+
+        <!-- Split host by dots -->
+        <xsl:variable name="parts" select="tokenize($host, '\.')" as="xs:string+"/>
+
+        <xsl:choose>
+            <!-- If only one part (e.g., "localhost"), return empty - no parent -->
+            <xsl:when test="count($parts) = 1">
+                <xsl:sequence select="()"/>
+            </xsl:when>
+            <!-- Strip leftmost subdomain -->
+            <xsl:otherwise>
+                <xsl:variable name="parent-host" select="string-join(subsequence($parts, 2), '.')" as="xs:string"/>
+                <xsl:variable name="parent-origin" select="$scheme || $parent-host || (if ($port != '') then (':' || $port) else '') || '/'" as="xs:string"/>
+                <xsl:sequence select="xs:anyURI($parent-origin)"/>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:function>
+    
     <xsl:function name="ldh:request-uri" as="xs:anyURI" use-when="system-property('xsl:product-name') = 'SAXON'">
         <xsl:sequence select="$ldh:requestUri"/>
     </xsl:function>

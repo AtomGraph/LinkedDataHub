@@ -5,10 +5,16 @@ secrets:
     file: ./secrets/secretary_cert_password.txt
   client_truststore_password:
     file: ./secrets/client_truststore_password.txt
-  #google_client_id:
-  #  file: ./secrets/google_client_id.txt
-  #google_client_secret:
-  #  file: ./secrets/google_client_secret.txt
+  # google_client_id:
+  #   file: ./secrets/google/client_id.txt
+  # google_client_secret:
+  #   file: ./secrets/google/client_secret.txt
+  # orcid_client_id:
+  #   file: ./secrets/orcid/client_id.txt
+  # orcid_client_secret:
+  #   file: ./secrets/orcid/client_secret.txt
+volumes:
+  varnish_frontend_cache:
 services:
   nginx:
     image: nginx:1.23.3
@@ -56,6 +62,11 @@ services:
       - MAIL_SMTP_HOST=email-server
       - MAIL_SMTP_PORT=25
       - MAIL_USER=linkeddatahub@localhost
+      - REMOTE_IP_VALVE=true
+      - REMOTE_IP_VALVE_PROTOCOL_HEADER=X-Forwarded-Proto
+      - REMOTE_IP_VALVE_PORT_HEADER=X-Forwarded-Port
+      - REMOTE_IP_VALVE_REMOTE_IP_HEADER=X-Forwarded-For
+      - REMOTE_IP_VALVE_HOST_HEADER=X-Forwarded-Host
       - OWNER_MBOX=${OWNER_MBOX}
       #- OWNER_URI=${OWNER_URI}
       - OWNER_GIVEN_NAME=${OWNER_GIVEN_NAME}
@@ -69,8 +80,10 @@ services:
       - owner_cert_password
       - secretary_cert_password
       - client_truststore_password
-      #- google_client_id
-      #- google_client_secret
+      # - google_client_id
+      # - google_client_secret
+      # - orcid_client_id
+      # - orcid_client_secret
     volumes:
       - /var/linkeddatahub/oidc
       - ./ssl/server:/var/linkeddatahub/ssl/server:ro
@@ -88,7 +101,7 @@ services:
       - 3030
     volumes:
       - ./config/fuseki/config.ttl:/fuseki/config.ttl:ro
-      - ./data/admin:/fuseki/databases
+      - ./fuseki/admin:/fuseki/databases
     command: [ "--config", "/fuseki/config.ttl" ]
   fuseki-end-user:
     image: atomgraph/fuseki:4.7.0
@@ -97,7 +110,7 @@ services:
       - 3030
     volumes:
       - ./config/fuseki/config.ttl:/fuseki/config.ttl:ro
-      - ./data/end-user:/fuseki/databases
+      - ./fuseki/end-user:/fuseki/databases
     command: [ "--config", "/fuseki/config.ttl" ]
   varnish-frontend:
     image: varnish:7.3.0
@@ -108,10 +121,10 @@ services:
     depends_on:
       - linkeddatahub
     tmpfs: /var/lib/varnish/varnishd:exec
-    environment:
-      - VARNISH_HTTP_PORT=6060
-      - VARNISH_SIZE=1G
-    command: [ "-t", "86400" ] # time to live
+    volumes:
+      - varnish_frontend_cache:/var/lib/varnish
+    entrypoint: varnishd
+    command: [ "-F", "-f", "/etc/varnish/default.vcl", "-a", "http=:6060,HTTP", "-a", "proxy=:8443,PROXY", "-p", "feature=+http2", "-s", "file,/var/lib/varnish/storage.bin,3G", "-t", "86400" ] # -F: foreground, -f: config, -a: listeners, -p: http2, -s: storage, -t: TTL
   varnish-admin:
     image: varnish:7.3.0
     user: root # otherwise the varnish user does not have permissions to the mounted folder which is owner by root
@@ -121,9 +134,8 @@ services:
     depends_on:
       - linkeddatahub
     tmpfs: /var/lib/varnish/varnishd:exec
-    environment:
-      - VARNISH_SIZE=1G
-    command: [ "-t", "86400", "-p", "timeout_idle=60s" ] # time to live
+    entrypoint: varnishd
+    command: [ "-F", "-f", "/etc/varnish/default.vcl", "-a", "http=:80,HTTP", "-a", "proxy=:8443,PROXY", "-p", "feature=+http2", "-s", "malloc,1G", "-t", "86400", "-p", "timeout_idle=60s" ] # -F: foreground, -f: config, -a: listeners, -p: http2 + idle timeout, -s: storage, -t: TTL
   varnish-end-user:
     image: varnish:7.3.0
     user: root # otherwise varnish user does not have permissions to the mounted folder which is owner by root
@@ -133,9 +145,8 @@ services:
     depends_on:
       - linkeddatahub
     tmpfs: /var/lib/varnish/varnishd:exec
-    environment:
-      - VARNISH_SIZE=1G
-    command: [ "-t", "86400", "-p", "timeout_idle=60s" ] # time to live
+    entrypoint: varnishd
+    command: [ "-F", "-f", "/etc/varnish/default.vcl", "-a", "http=:80,HTTP", "-a", "proxy=:8443,PROXY", "-p", "feature=+http2", "-s", "malloc,1G", "-t", "86400", "-p", "timeout_idle=60s" ] # -F: foreground, -f: config, -a: listeners, -p: http2 + idle timeout, -s: storage, -t: TTL
   email-server:
     image: namshi/smtp
     environment:
@@ -151,11 +162,22 @@ configs:
 
       http {
           upstream linkeddatahub {
-              server varnish-frontend:6060;
+              server ${NGINX_UPSTREAM_SERVER:-varnish-frontend:6060};
           }
 
-          limit_req_zone $$binary_remote_addr zone=linked_data:10m rate=15r/s;
-          limit_req_zone $$binary_remote_addr zone=static_files:10m rate=20r/s;
+          # Exempt internal requests from the linkeddatahub container from rate limiting
+          # Use RFC 1918 private IP ranges (same logic as InetAddress.isSiteLocalAddress())
+          map $$remote_addr $$limit_key {
+              default $$binary_remote_addr;
+              ~^10\.          "";  # RFC 1918: 10.0.0.0/8
+              ~^172\.1[6-9]\. "";  # RFC 1918: 172.16.0.0/12 (172.16-19.x.x)
+              ~^172\.2[0-9]\. "";  # RFC 1918: 172.16.0.0/12 (172.20-29.x.x)
+              ~^172\.3[0-1]\. "";  # RFC 1918: 172.16.0.0/12 (172.30-31.x.x)
+              ~^192\.168\.    "";  # RFC 1918: 192.168.0.0/16
+          }
+
+          limit_req_zone $$limit_key zone=linked_data:10m rate=15r/s;
+          limit_req_zone $$limit_key zone=static_files:10m rate=20r/s;
           limit_req_status 429;
 
           client_max_body_size ${MAX_CONTENT_LENGTH:-2097152};
@@ -163,17 +185,22 @@ configs:
           # server with optional client cert authentication
           server {
               listen 8443 ssl;
-              server_name ${HOST};
+              server_name *.${HOST} ${HOST};
               ssl_certificate /etc/nginx/ssl/server.crt;
               ssl_certificate_key /etc/nginx/ssl/server.key;
               ssl_session_cache shared:SSL:1m;
               ssl_prefer_server_ciphers on;
-              ssl_verify_client optional_no_ca;
+              ssl_verify_client ${NGINX_SSL_VERIFY_CLIENT:-optional_no_ca};
 
               location / {
                   proxy_pass http://linkeddatahub;
                   #proxy_cache backcache;
                   limit_req zone=linked_data burst=30 nodelay;
+
+                  proxy_set_header Host $$host;
+                  proxy_set_header X-Forwarded-Host $$host;
+                  proxy_set_header X-Forwarded-Proto $$scheme;
+                  proxy_set_header X-Forwarded-Port ${HTTPS_PORT};
 
                   proxy_set_header Client-Cert '';
                   proxy_set_header Client-Cert $$ssl_client_escaped_cert;
@@ -184,6 +211,11 @@ configs:
               location ^~ /uploads/ {
                   proxy_pass http://linkeddatahub;
                   limit_req zone=static_files burst=20 nodelay;
+
+                  proxy_set_header Host $$host;
+                  proxy_set_header X-Forwarded-Host $$host;
+                  proxy_set_header X-Forwarded-Proto $$scheme;
+                  proxy_set_header X-Forwarded-Port ${HTTPS_PORT};
 
                   proxy_set_header Client-Cert '';
                   proxy_set_header Client-Cert $$ssl_client_escaped_cert;
@@ -202,7 +234,7 @@ configs:
           # server with client cert authentication on
           server {
               listen 9443 ssl;
-              server_name ${HOST};
+              server_name *.${HOST} ${HOST};
               ssl_certificate /etc/nginx/ssl/server.crt;
               ssl_certificate_key /etc/nginx/ssl/server.key;
               ssl_session_cache shared:SSL:1m;  
@@ -213,6 +245,11 @@ configs:
                   proxy_pass http://linkeddatahub;
                   #proxy_cache backcache;
                   limit_req zone=linked_data burst=30 nodelay;
+
+                  proxy_set_header Host $$host;
+                  proxy_set_header X-Forwarded-Host $$host;
+                  proxy_set_header X-Forwarded-Proto $$scheme;
+                  proxy_set_header X-Forwarded-Port ${HTTPS_PORT};
 
                   proxy_set_header Client-Cert '';
                   proxy_set_header Client-Cert $$ssl_client_escaped_cert;
@@ -226,7 +263,7 @@ configs:
 
           server {
               listen 8080;
-              server_name ${HOST};
+              server_name *.${HOST} ${HOST};
           
               location / {
                   return 301 https://$$server_name:${HTTPS_PORT}$$request_uri;
@@ -241,13 +278,14 @@ configs:
       import std;
 
       backend default {
-          .host = "linkeddatahub";
+          .host = "${VARNISH_FRONTEND_BACKEND_HOST:-linkeddatahub}";
           .port = "7070";
           .first_byte_timeout = 60s;
       }
 
       acl local {
           "localhost";
+          "linkeddatahub";
       }
 
       acl remote {
@@ -289,10 +327,31 @@ configs:
               /* We only deal with GET and HEAD by default */
               return (pass);
           }
+
           if (req.http.Client-Cert) {
-              /* Authenticated requests are not cacheable */
-              return (pass);
+              # Authenticated HTML is user-specific → never cache
+              if (req.http.Accept ~ "text/html" ||
+                  req.http.Accept ~ "application/xhtml+xml") {
+                  return (pass);
+              }
+
+              # Conditional requests must reach backend for validation
+              if (req.http.If-Match || req.http.If-None-Match ||
+                  req.http.If-Modified-Since || req.http.If-Unmodified-Since) {
+                  return (pass);
+              }
+
+              # /access endpoint returns agent-specific group memberships
+              if (req.url ~ "^/access") {
+                  return (pass);
+              }
+
+              # SPARQL referencing /acl/agents/ depends on agent identity → don't cache
+              if (req.url ~ "%2Facl%2Fagents%2F") {
+                  return (pass);
+              }
           }
+
           if (req.http.Cookie) {
               # explicitly allow only cookies required by LDH server-side
               set req.http.Cookie = ";" + req.http.Cookie;
@@ -310,6 +369,15 @@ configs:
       }
 
       sub vcl_backend_response {
+          /* Add Vary: Origin for static files to enable proper CORS caching */
+          if (bereq.url ~ "^/static/") {
+              if (beresp.http.Vary) {
+                  set beresp.http.Vary = beresp.http.Vary + ", Origin";
+              } else {
+                  set beresp.http.Vary = "Origin";
+              }
+          }
+          
           /* purge URLs after updates */
           if ((beresp.status == 200 || beresp.status == 201 || beresp.status == 204) && bereq.method ~ "POST|PUT|DELETE|PATCH") {
               set beresp.http.X-LinkedDataHub = "Banned";
@@ -325,7 +393,7 @@ configs:
       import std;
 
       backend default {
-          .host = "fuseki-admin";
+          .host = "${VARNISH_ADMIN_BACKEND_HOST:-fuseki-admin}";
           .port = "3030";
           .first_byte_timeout = 60s;
       }
@@ -391,7 +459,7 @@ configs:
       import std;
 
       backend default {
-          .host = "fuseki-end-user";
+          .host = "${VARNISH_END_USER_BACKEND_HOST:-fuseki-end-user}";
           .port = "3030";
           .first_byte_timeout = 60s;
       }

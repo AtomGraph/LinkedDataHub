@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -eo pipefail
 
 print_usage()
 {
@@ -45,6 +46,11 @@ do
         ;;
         -b|--base)
         base="$2"
+        shift # past argument
+        shift # past value
+        ;;
+        --proxy)
+        proxy="$2"
         shift # past argument
         shift # past value
         ;;
@@ -116,22 +122,28 @@ else
     group="_:auth" # blank node
 fi
 
+target="${container}${encoded_slug}/"
+
 args+=("-f")
 args+=("$cert_pem_file")
 args+=("-p")
 args+=("$cert_password")
 args+=("-t")
 args+=("text/turtle") # content type
-args+=("${container}${encoded_slug}/")
+args+=("$target")
+if [ -n "$proxy" ]; then
+    args+=("--proxy")
+    args+=("$proxy")
+fi
 
 turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy#> .\n"
 turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"
 turtle+="@prefix foaf:	<http://xmlns.com/foaf/0.1/> .\n"
 turtle+="${group} a foaf:Group .\n"
 turtle+="${group} foaf:name \"${label}\" .\n"
-turtle+="<${container}${encoded_slug}/> a dh:Item .\n"
-turtle+="<${container}${encoded_slug}/> foaf:primaryTopic ${group} .\n"
-turtle+="<${container}${encoded_slug}/> dct:title \"${label}\" .\n"
+turtle+="<${target}> a dh:Item .\n"
+turtle+="<${target}> foaf:primaryTopic ${group} .\n"
+turtle+="<${target}> dct:title \"${label}\" .\n"
 
 if [ -n "$description" ] ; then
     turtle+="${group} dct:description \"${description}\" .\n"
@@ -143,4 +155,4 @@ do
 done
 
 # submit Turtle doc to the server
-echo -e "$turtle" | turtle --base="$base" | put.sh "${args[@]}"
+echo -e "$turtle" | turtle --base="$target" | put.sh "${args[@]}"

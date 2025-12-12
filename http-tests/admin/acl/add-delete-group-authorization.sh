@@ -44,7 +44,27 @@ container=$(create-container.sh \
   --slug "$slug" \
   --parent "$END_USER_BASE_URL")
 
-# create authorization
+# create fake test.localhost authorization (should be filtered out)
+
+create-authorization.sh \
+  -f "$OWNER_CERT_FILE" \
+  -p "$OWNER_CERT_PWD" \
+  -b "https://admin.test.localhost:4443/" \
+  --label "Fake DELETE group authorization from test.localhost" \
+  --agent-group "$group" \
+  --to "$container" \
+  --write
+
+# access is still denied (fake authorization filtered out)
+
+curl -k -w "%{http_code}\n" -o /dev/null -s \
+  -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
+  -H "Accept: application/n-triples" \
+  -X DELETE \
+  "$container" \
+| grep -q "$STATUS_FORBIDDEN"
+
+# create real localhost authorization
 
 create-authorization.sh \
   -f "$OWNER_CERT_FILE" \
@@ -55,7 +75,7 @@ create-authorization.sh \
   --to "$container" \
   --write
 
-# access is allowed after authorization is created
+# access is allowed after real authorization is created
 
 curl -k -w "%{http_code}\n" -o /dev/null -f -s \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \

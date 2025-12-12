@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+initialize_dataset "$END_USER_BASE_URL" "$TMP_END_USER_DATASET" "$END_USER_ENDPOINT_URL"
+initialize_dataset "$ADMIN_BASE_URL" "$TMP_ADMIN_DATASET" "$ADMIN_ENDPOINT_URL"
+purge_cache "$END_USER_VARNISH_SERVICE"
+purge_cache "$ADMIN_VARNISH_SERVICE"
+purge_cache "$FRONTEND_VARNISH_SERVICE"
+
+# add agent to the writers group
+
+add-agent-to-group.sh \
+  -f "$OWNER_CERT_FILE" \
+  -p "$OWNER_CERT_PWD" \
+  --agent "$AGENT_URI" \
+  "${ADMIN_BASE_URL}acl/groups/writers/"
+
+# POST form data to admin clear endpoint via proxy
+
+curl -k -w "%{http_code}\n" -o /dev/null -f -s \
+  -X POST \
+  -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
+  -H 'Content-Type: application/x-www-form-urlencoded' \
+  -H 'Accept: application/rdf+xml' \
+  --url-query "uri=${ADMIN_BASE_URL}clear" \
+  --data-urlencode "uri=${END_USER_BASE_URL}ns#" \
+  "$END_USER_BASE_URL" \
+| grep -q "$STATUS_OK"

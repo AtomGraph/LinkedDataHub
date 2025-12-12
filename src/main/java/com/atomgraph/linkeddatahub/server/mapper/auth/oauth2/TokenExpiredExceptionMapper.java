@@ -19,11 +19,12 @@ package com.atomgraph.linkeddatahub.server.mapper.auth.oauth2;
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.linkeddatahub.apps.model.AdminApplication;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
-import static com.atomgraph.linkeddatahub.resource.admin.oauth2.google.Authorize.REFERER_PARAM_NAME;
-import com.atomgraph.linkeddatahub.server.filter.request.auth.IDTokenFilter;
+import static com.atomgraph.linkeddatahub.resource.oauth2.google.Authorize.REFERER_PARAM_NAME;
+import com.atomgraph.linkeddatahub.server.filter.request.auth.google.IDTokenFilter;
 import com.atomgraph.server.mapper.ExceptionMapperBase;
 import com.auth0.jwt.exceptions.TokenExpiredException;
 import java.net.URI;
+import java.util.Optional;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.NewCookie;
@@ -44,7 +45,7 @@ public class TokenExpiredExceptionMapper extends ExceptionMapperBase implements 
 {
 
     @Context UriInfo uriInfo;
-    @Inject jakarta.inject.Provider<com.atomgraph.linkeddatahub.apps.model.Application> application;
+    @Inject jakarta.inject.Provider<Optional<com.atomgraph.linkeddatahub.apps.model.Application>> application;
 
     /**
      * Constructs mapper from media types.
@@ -60,45 +61,58 @@ public class TokenExpiredExceptionMapper extends ExceptionMapperBase implements 
     @Override
     public Response toResponse(TokenExpiredException ex)
     {
-        String path = getApplication().getBaseURI().getPath();
-        NewCookie expiredCookie = new NewCookie(IDTokenFilter.COOKIE_NAME, "", path, null, NewCookie.DEFAULT_VERSION, null, 0, false);
+        if (!getApplication().isPresent())
+        {
+            // If no application is present, just return a BAD_REQUEST response without redirect
+            return getResponseBuilder(toResource(ex, Response.Status.BAD_REQUEST,
+                        ResourceFactory.createResource("http://www.w3.org/2011/http-statusCodes#BadRequest")).
+                    getModel()).
+                build();
+        }
+
+        String path = getApplication().get().getBaseURI().getPath();
+        NewCookie expiredCookie = new NewCookie.Builder(IDTokenFilter.COOKIE_NAME).
+            value("").
+            path(path).
+            maxAge(0).
+            build();
 
         ResponseBuilder builder = getResponseBuilder(toResource(ex, Response.Status.BAD_REQUEST,
                     ResourceFactory.createResource("http://www.w3.org/2011/http-statusCodes#BadRequest")).
                 getModel()).
             cookie(expiredCookie);
-        
+
         URI redirectUri = UriBuilder.fromUri(getAdminApplication().getBaseURI()).
             path("/oauth2/authorize/google"). // TO-DO: move to config?
             queryParam(REFERER_PARAM_NAME, getUriInfo().getRequestUri()). // we need to retain URL query parameters
             build();
-        
+
         if (!getUriInfo().getAbsolutePath().equals(redirectUri)) // prevent a perpetual redirect loop
             builder.status(Status.SEE_OTHER).
                 location(redirectUri); // TO-DO: extract
-        
+
         return builder.build();
     }
     
     /**
      * Returns admin application of the current dataspace.
-     * 
+     *
      * @return admin application resource
      */
     public AdminApplication getAdminApplication()
     {
-        if (getApplication().canAs(EndUserApplication.class))
-            return getApplication().as(EndUserApplication.class).getAdminApplication();
+        if (getApplication().get().canAs(EndUserApplication.class))
+            return getApplication().get().as(EndUserApplication.class).getAdminApplication();
         else
-            return getApplication().as(AdminApplication.class);
+            return getApplication().get().as(AdminApplication.class);
     }
-    
+
     /**
      * Returns current application.
-     * 
-     * @return application resource
+     *
+     * @return optional application resource
      */
-    public com.atomgraph.linkeddatahub.apps.model.Application getApplication()
+    public Optional<com.atomgraph.linkeddatahub.apps.model.Application> getApplication()
     {
         return application.get();
     }

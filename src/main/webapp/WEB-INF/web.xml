@@ -57,29 +57,39 @@ PREFIX  acl:  <http://www.w3.org/ns/auth/acl#>
 PREFIX  foaf: <http://xmlns.com/foaf/0.1/>
 
 DESCRIBE ?auth
-FROM <urn:x-arq:UnionGraph>
 WHERE
   {
-    { ?auth  acl:agent  $agent }
-   UNION
-     { ?auth   acl:agentGroup  ?Group .
-       ?Group  foaf:member     $agent
-     }
-   UNION
-     { ?auth  acl:agentClass  foaf:Agent }
-   UNION
-     { ?auth  acl:agentClass  $AuthenticatedAgentClass }
+    GRAPH ?g {
+      { ?auth  acl:agent  $agent }
+     UNION
+       { ?auth   acl:agentGroup  ?Group
 
-     ?auth  acl:mode  ?Mode .
-
-     { ?auth  acl:accessTo  $this }
-   UNION
-     {   { ?auth  acl:accessToClass  $Type }
-       UNION
-         { ?auth  acl:accessToClass  ?Class .
-           $Type (rdfs:subClassOf)* ?Class
+         GRAPH ?groupG {
+           ?Group  foaf:member  $agent
          }
-     }
+         FILTER(strstarts(str(?groupG), str($base)))
+
+       }
+     UNION
+       { ?auth  acl:agentClass  foaf:Agent }
+     UNION
+       { ?auth  acl:agentClass  $AuthenticatedAgentClass }
+
+       ?auth  acl:mode  ?Mode .
+
+       { ?auth  acl:accessTo  $this }
+     UNION
+       {   { ?auth  acl:accessToClass  $Type }
+         UNION
+           { ?auth  acl:accessToClass  ?Class .
+             GRAPH <urn:x-arq:UnionGraph> {
+               $Type (rdfs:subClassOf)* ?Class
+             }
+           }
+       }
+    }
+
+    FILTER(strstarts(str(?g), str($base)))
   }
 ]]></param-value>
     </context-param>
@@ -91,41 +101,53 @@ PREFIX  acl:  <http://www.w3.org/ns/auth/acl#>
 PREFIX  foaf: <http://xmlns.com/foaf/0.1/>
 
 DESCRIBE ?auth
-FROM <urn:x-arq:UnionGraph>
 WHERE
-  {   { ?auth  acl:mode           acl:Control .
-          { ?auth  acl:agent  $agent }
+  { GRAPH ?g
+      {   { ?auth  acl:mode           acl:Control .
+              { ?auth  acl:agent  $agent }
+            UNION
+              { ?auth   acl:agentGroup  ?Group
+
+                GRAPH ?groupG {
+                  ?Group  foaf:member  $agent
+                }
+                FILTER(strstarts(str(?groupG), str($base)))
+
+              }
+          }
         UNION
-          { ?auth   acl:agentGroup  ?Group .
-            ?Group  foaf:member     $agent
+          { ?auth  acl:agentClass  $AuthenticatedAgentClass ;
+                   acl:mode        ?Mode
+              { ?auth  acl:accessTo  $this
+              }
+            UNION
+              { ?auth  acl:accessToClass  $Type }
+            UNION
+              { ?auth  acl:accessToClass  ?Class .
+                GRAPH <urn:x-arq:UnionGraph> {
+                  $Type (rdfs:subClassOf)* ?Class
+                }
+              }
+          }
+        UNION
+          { ?auth  acl:agentClass  foaf:Agent ;
+                   acl:mode        acl:Read
+              { ?auth  acl:accessTo  $this
+              }
+            UNION
+              { ?auth  acl:accessToClass  $Type }
+            UNION
+              { ?auth  acl:accessToClass  ?Class .
+                GRAPH <urn:x-arq:UnionGraph> {
+                  $Type (rdfs:subClassOf)* ?Class
+                }
+              }
+            # only namespace, signup, OAuth2 login and WebID profiles can be public in admin app, nothing else
+            FILTER ( $this IN (uri(concat(str($base), "ns")), uri(concat(str($base), "sign%20up")), uri(concat(str($base), "transform"))) || strstarts(str($this), concat(str($base), "acl/agents/")) || strstarts(str($this), concat(str($base), "acl/public-keys/")))
           }
       }
-    UNION
-      { ?auth  acl:agentClass  $AuthenticatedAgentClass ;
-               acl:mode        ?Mode
-          { ?auth  acl:accessTo  $this
-          }
-        UNION
-          { ?auth  acl:accessToClass  $Type }
-        UNION
-          { ?auth  acl:accessToClass  ?Class .
-            $Type (rdfs:subClassOf)* ?Class
-          }
-      }
-    UNION
-      { ?auth  acl:agentClass  foaf:Agent ;
-               acl:mode        acl:Read
-          { ?auth  acl:accessTo  $this
-          }
-        UNION
-          { ?auth  acl:accessToClass  $Type }
-        UNION
-          { ?auth  acl:accessToClass  ?Class .
-            $Type (rdfs:subClassOf)* ?Class
-          }
-        # only namespace, signup, OAuth2 login and WebID profiles can be public in admin app, nothing else
-        FILTER ( $this IN (uri(concat(str($base), "ns")), uri(concat(str($base), "sign%20up")), uri(concat(str($base), "oauth2/login")), uri(concat(str($base), "oauth2/authorize/google")), uri(concat(str($base), "transform"))) || strstarts(str($this), concat(str($base), "acl/agents/")) || strstarts(str($this), concat(str($base), "acl/public-keys/")))
-      }
+
+    FILTER(strstarts(str(?g), str($base)))
   }
 ]]></param-value>
     </context-param>
@@ -134,10 +156,11 @@ WHERE
         <param-value><![CDATA[
 PREFIX  foaf: <http://xmlns.com/foaf/0.1/>
 
-DESCRIBE ?Agent
+SELECT ?Agent ?agentGraph
 WHERE
-  { GRAPH ?g
-      { ?Agent  foaf:mbox  $mbox
+  {
+      { GRAPH ?agentGraph
+          { ?Agent  foaf:mbox  $mbox }
       }
   }
 ]]></param-value>
@@ -152,7 +175,7 @@ DESCRIBE ?account ?agent
 WHERE
   { GRAPH ?g
       { ?account  sioc:id          $id ;
-                  lacl:issuer      ?issuer ;
+                  lacl:issuer      $issuer ;
                   sioc:account_of  ?agent
       }
   }
@@ -350,6 +373,22 @@ support@atomgraph.com]]></param-value>
         <servlet-name>com.atomgraph.linkeddatahub.Application</servlet-name>
         <url-pattern>/*</url-pattern>
     </servlet-mapping>
+    <filter>
+        <filter-name>CORS filter</filter-name>
+        <filter-class>org.apache.catalina.filters.CorsFilter</filter-class>
+        <init-param>
+            <param-name>cors.allowed.origins</param-name>
+            <param-value>*</param-value>
+        </init-param>
+        <init-param>
+            <param-name>cors.allowed.methods</param-name>
+            <param-value>GET,HEAD,OPTIONS</param-value>
+        </init-param>
+    </filter>
+    <filter-mapping>
+        <filter-name>CORS filter</filter-name>
+        <url-pattern>/static/*</url-pattern>
+    </filter-mapping>
     <filter>
         <filter-name>HSTS filter</filter-name>
         <filter-class>org.apache.catalina.filters.HttpHeaderSecurityFilter</filter-class>

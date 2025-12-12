@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -eo pipefail
 
 print_usage()
 {
@@ -80,4 +81,4 @@ sparql+="}\n"
 
 # PATCH SPARQL to the named graph
 
-echo -e "$sparql" | curl -X PATCH --data-binary @- -v -k -E "$cert_pem_file":"$cert_password" "$target" -H "Content-Type: application/sparql-update"
+echo -e "$sparql" | curl -f -X PATCH --data-binary @- -v -k -E "$cert_pem_file":"$cert_password" "$target" -H "Content-Type: application/sparql-update"

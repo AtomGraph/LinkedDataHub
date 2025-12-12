@@ -33,7 +33,7 @@ ntriples=$(curl -k -s -G \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
   -H "Accept: application/n-triples" \
   --data "this=${container}" \
-  "${ADMIN_BASE_URL}access"
+  "${END_USER_BASE_URL}access"
 )
 
 auth1=$(echo "$ntriples" | grep -F "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/atomgraph/linkeddatahub/admin/acl#OwnerAuthorization>" | cut -d' ' -f1)

@@ -1,11 +1,11 @@
 @prefix def:	<https://w3id.org/atomgraph/linkeddatahub/default#> .
 @prefix ldh:	<https://w3id.org/atomgraph/linkeddatahub#> .
-@prefix ac:	<https://w3id.org/atomgraph/client#> .
+@prefix ac:	    <https://w3id.org/atomgraph/client#> .
 @prefix rdf:	<http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix xsd:	<http://www.w3.org/2001/XMLSchema#> .
-@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy#> .
+@prefix dh:	    <https://www.w3.org/ns/ldt/document-hierarchy#> .
 @prefix sd:     <http://www.w3.org/ns/sparql-service-description#> .
-@prefix sp:	<http://spinrdf.org/sp#> .
+@prefix sp:	    <http://spinrdf.org/sp#> .
 @prefix sioc:	<http://rdfs.org/sioc/ns#> .
 @prefix foaf:	<http://xmlns.com/foaf/0.1/> .
 @prefix dct:	<http://purl.org/dc/terms/> .
@@ -55,22 +55,6 @@
 
     <generate> a foaf:Document ;
         dct:title "Generate data endpoint" .
-
-}
-
-<access>
-{
-
-    <access> a foaf:Document ;
-        dct:title "Access endpoint" .
-
-}
-
-<access/request>
-{
-
-    <access/request> a foaf:Document ;
-        dct:title "Access request endpoint" .
 
 }
 
@@ -352,6 +336,56 @@ WHERE
   { GRAPH ?g
       { ?s  a  sd:Service }
   }""" .
+
+}
+
+### END-USER-SPECIFIC
+
+<access>
+{
+
+    <access> a ldh:Access ;
+        dct:title "Access endpoint" .
+
+}
+
+<access/request>
+{
+
+    <access/request> a ldh:AccessRequest ;
+        dct:title "Access request endpoint" .
+
+}
+
+<oauth2/login/google>
+{
+
+    <oauth2/login/google> a ldh:OAuthLogin ;
+        dct:title "OAuth 2.0 login" .
+
+}
+
+<oauth2/authorize/google>
+{
+
+    <oauth2/authorize/google> a ldh:OAuthAuthorize ;
+        dct:title "Google OAuth2.0 authorization" .
+
+}
+
+<oauth2/login/orcid>
+{
+
+    <oauth2/login/orcid> a ldh:OAuthLogin ;
+        dct:title "ORCID OAuth2.0 login" .
+
+}
+
+<oauth2/authorize/orcid>
+{
+
+    <oauth2/authorize/orcid> a ldh:OAuthAuthorize ;
+        dct:title "ORCID OAuth2.0 authorization" .
 
 }
 

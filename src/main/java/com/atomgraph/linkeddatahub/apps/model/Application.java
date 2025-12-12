@@ -17,6 +17,7 @@
 package com.atomgraph.linkeddatahub.apps.model;
 
 import com.atomgraph.linkeddatahub.model.Service;
+import jakarta.ws.rs.core.UriBuilder;
 import java.net.URI;
 import org.apache.jena.rdf.model.Resource;
 
@@ -57,14 +58,35 @@ public interface Application extends Resource, com.atomgraph.core.model.Applicat
     
     /**
      * Returns the application's base URI.
-     * 
+     *
      * @return URI of the base resource
      */
     URI getBaseURI();
+
+    /**
+     * Returns the application's origin resource.
+     *
+     * @return origin resource
+     */
+    Resource getOrigin();
+
+    /**
+     * Returns URI builder initialized with the applications origin URI.
+     * 
+     * @return URI builder
+     */
+    UriBuilder getUriBuilder();
     
     /**
+     * Returns the application's origin URI.
+     *
+     * @return URI of the origin resource
+     */
+    URI getOriginURI();
+
+    /**
      * Returns applications service.
-     * 
+     *
      * @return service resource
      */
     @Override

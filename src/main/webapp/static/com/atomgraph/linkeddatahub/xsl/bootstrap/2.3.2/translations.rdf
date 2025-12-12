@@ -8,9 +8,17 @@
         <rdfs:label xml:lang="en-US">Sign up</rdfs:label>
         <rdfs:label xml:lang="es-ES">Registrarse</rdfs:label>
     </rdf:Description>
+    <rdf:Description rdf:nodeID="login">
+        <rdfs:label xml:lang="en-US">Login</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Entrar</rdfs:label>
+    </rdf:Description>
     <rdf:Description rdf:nodeID="login-google">
         <rdfs:label xml:lang="en-US">Login with Google</rdfs:label>
         <rdfs:label xml:lang="es-ES">Entrar con Google</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="login-orcid">
+        <rdfs:label xml:lang="en-US">Login with ORCID</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Entrar con ORCID</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="root">
         <rdfs:label xml:lang="en-US">Root</rdfs:label>

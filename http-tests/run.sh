@@ -110,7 +110,7 @@ export HTTP_TEST_ROOT="$PWD"
 export END_USER_ENDPOINT_URL="http://localhost:3031/ds/"
 export ADMIN_ENDPOINT_URL="http://localhost:3030/ds/"
 export END_USER_BASE_URL="https://localhost:4443/"
-export ADMIN_BASE_URL="https://localhost:4443/admin/"
+export ADMIN_BASE_URL="https://admin.localhost:4443/"
 export END_USER_VARNISH_SERVICE="varnish-end-user"
 export ADMIN_VARNISH_SERVICE="varnish-admin"
 export FRONTEND_VARNISH_SERVICE="varnish-frontend"
@@ -141,6 +141,8 @@ download_dataset "$ADMIN_ENDPOINT_URL" > "$TMP_ADMIN_DATASET"
 run_tests $(find ./add/ -type f -name '*.sh')
 (( error_count += $? ))
 run_tests $(find ./admin/ -type f -name '*.sh')
+(( error_count += $? ))
+run_tests $(find ./dataspaces/ -type f -name '*.sh')
 (( error_count += $? ))
 run_tests $(find ./access/ -type f -name '*.sh')
 (( error_count += $? ))

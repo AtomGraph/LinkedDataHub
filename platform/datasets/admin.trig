@@ -1,11 +1,11 @@
 @prefix def:	<https://w3id.org/atomgraph/linkeddatahub/default#> .
 @prefix ldh:	<https://w3id.org/atomgraph/linkeddatahub#> .
-@prefix ac:	<https://w3id.org/atomgraph/client#> .
+@prefix ac:	    <https://w3id.org/atomgraph/client#> .
 @prefix rdf:	<http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix xsd:	<http://www.w3.org/2001/XMLSchema#> .
-@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy#> .
+@prefix dh:	    <https://www.w3.org/ns/ldt/document-hierarchy#> .
 @prefix sd:     <http://www.w3.org/ns/sparql-service-description#> .
-@prefix sp:	<http://spinrdf.org/sp#> .
+@prefix sp:	    <http://spinrdf.org/sp#> .
 @prefix sioc:	<http://rdfs.org/sioc/ns#> .
 @prefix foaf:	<http://xmlns.com/foaf/0.1/> .
 @prefix dct:	<http://purl.org/dc/terms/> .
@@ -55,22 +55,6 @@
 
     <generate> a foaf:Document ;
         dct:title "Generate data endpoint" .
-
-}
-
-<access>
-{
-
-    <access> a foaf:Document ;
-        dct:title "Access endpoint" .
-
-}
-
-<access/request>
-{
-
-    <access/request> a foaf:Document ;
-        dct:title "Access request endpoint" .
 
 }
 
@@ -355,43 +339,8 @@ WHERE
 
 }
 
-<services/dbpedia/>
-{
-
-    <services/dbpedia/> a dh:Item ;
-        sioc:has_container <queries/> ;
-        dct:title "DBPedia" ;
-        foaf:primaryTopic <services/dbpedia/#this> .
-
-    <services/dbpedia/#this>
-        a sd:Service ;
-        dct:title "DBPedia" ;
-        dct:description "Public SPARQL endpoint providing access to the DBpedia knowledge base, a crowd-sourced community effort to extract structured information from Wikipedia and make this information available on the Web." ;
-        sd:endpoint <https://dbpedia.org/sparql> ;
-        sd:supportedLanguage sd:SPARQL11Query .
-
-}
-
-<services/wikidata/>
-{
-
-    <services/wikidata/> a dh:Item ;
-        sioc:has_container <queries/> ;
-        dct:title "Wikidata" ;
-        foaf:primaryTopic <services/wikidata/#this> .
-
-    <services/wikidata/#this>
-        a sd:Service ;
-        dct:title "Wikidata" ;
-        dct:description "Public SPARQL endpoint providing access to Wikidata, a free and open knowledge base that acts as central storage for the structured data of Wikimedia projects including Wikipedia, Wikivoyage, Wiktionary, Wikisource, and others." ;
-        sd:endpoint <https://query.wikidata.org/sparql> ;
-        sd:supportedLanguage sd:SPARQL11Query .
-
-}
-
 ### ADMIN-SPECIFIC
 
-@prefix ns:	<../ns#> .
 @prefix lacl:	<https://w3id.org/atomgraph/linkeddatahub/admin/acl#> .
 @prefix adm:	<https://w3id.org/atomgraph/linkeddatahub/admin#> .
 @prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .
@@ -435,22 +384,6 @@ WHERE
 
     <transform> a foaf:Document ;
         dct:title "Transform/import endpoint" .
-
-}
-
-<oauth2/login>
-{
-
-    <oauth2/login> a foaf:Document ;
-        dct:title "OAuth 2.0 login" .
-
-}
-
-<oauth2/authorize/google>
-{
-
-    <oauth2/authorize/google> a foaf:Document ;
-        dct:title "Google OAuth2.0 authorization" .
 
 }
 
@@ -637,44 +570,6 @@ WHERE
 
 }
 
-# public namespace
-
-<acl/authorizations/public-namespace/>
-{
-
-    <acl/authorizations/public-namespace/> a dh:Item ;
-        sioc:has_container <acl/authorizations/> ;
-        dct:title "Public namespace access" ;
-        foaf:primaryTopic <acl/authorizations/public-namespace/#this> .
-
-    <acl/authorizations/public-namespace/#this> a acl:Authorization ;
-        rdfs:label "Public namespace access" ;
-        rdfs:comment "Allows non-authenticated access" ;
-        acl:accessTo <../ns> ; # end-user ontologies are public
-        acl:mode acl:Read, acl:Append ; # allow queries over GET as well as POST
-        acl:agentClass foaf:Agent, acl:AuthenticatedAgent .
-
-}
-
-# SPARQL endpoint
-
-<acl/authorizations/sparql-endpoint/>
-{
-
-    <acl/authorizations/sparql-endpoint/> a dh:Item ;
-        sioc:has_container <acl/authorizations/> ;
-        dct:title "SPARQL endpoint access" ;
-        foaf:primaryTopic <acl/authorizations/sparql-endpoint/#this> .
-
-    <acl/authorizations/sparql-endpoint/#this> a acl:Authorization ;
-        rdfs:label "SPARQL endpoint access" ;
-        rdfs:comment "Allows only authenticated access" ;
-        acl:accessTo <../sparql> ;
-        acl:mode acl:Read, acl:Append ; # allow queries over GET as well as POST
-        acl:agentClass acl:AuthenticatedAgent .
-
-}
-
 # access endpoint
 
 <acl/authorizations/access/>
@@ -688,7 +583,7 @@ WHERE
     <acl/authorizations/access/#this> a acl:Authorization ;
         rdfs:label "Access description access" ;
         rdfs:comment "Allows non-authenticated access" ;
-        acl:accessTo <access> ;
+        acl:accessToClass ldh:Access ;
         acl:mode acl:Read ;
         acl:agentClass foaf:Agent, acl:AuthenticatedAgent .
 
@@ -707,7 +602,7 @@ WHERE
     <acl/authorizations/access-request/#this> a acl:Authorization ;
         rdfs:label "Access request access" ;
         rdfs:comment "Allows non-authenticated access" ;
-        acl:accessTo <access/request> ;
+        acl:accessToClass ldh:AccessRequest ;
         acl:mode acl:Append ;
         acl:agentClass foaf:Agent, acl:AuthenticatedAgent .
 
@@ -746,26 +641,26 @@ WHERE
     <acl/authorizations/oauth2-login/#this> a acl:Authorization ;
         rdfs:label "OAuth2 login access" ;
         rdfs:comment "Required to enable public OAuth2 login" ;
-        acl:accessTo <oauth2/login> ;
+        acl:accessToClass ldh:OAuthLogin ;
         acl:mode acl:Read ;
         acl:agentClass foaf:Agent .
 
 }
 
-# Google authorization
+# OAuth2 authorization
 
-<acl/authorizations/authorize-google/>
+<acl/authorizations/oauth2-authorize/>
 {
 
-    <acl/authorizations/authorize-google/> a dh:Item ;
+    <acl/authorizations/oauth2-authorize/> a dh:Item ;
         sioc:has_container <acl/authorizations/> ;
-        dct:title "Google's OAuth2 authorization" ;
-        foaf:primaryTopic <acl/authorizations/authorize-google/#this> .
+        dct:title "OAuth2 authorization" ;
+        foaf:primaryTopic <acl/authorizations/oauth2-authorize/#this> .
 
-    <acl/authorizations/authorize-google/#this> a acl:Authorization ;
-        rdfs:label "Google's OAuth2 authorization" ;
+    <acl/authorizations/oauth2-authorize/#this> a acl:Authorization ;
+        rdfs:label "OAuth2 authorization" ;
         rdfs:comment "Required to enable public OAuth2 login" ;
-        acl:accessTo <oauth2/authorize/google> ;
+        acl:accessToClass ldh:OAuthAuthorize ;
         acl:mode acl:Read ;
         acl:agentClass foaf:Agent .
 
@@ -804,49 +699,9 @@ WHERE
         rdfs:label "Full control" ;
         rdfs:comment "Allows full read/write access to all application resources" ;
         acl:accessToClass dh:Item, dh:Container, def:Root ;
-        acl:accessTo <../sparql>, <../importer>, <../add>, <../generate>, <../ns>, <clear>, <transform> ;
+        acl:accessTo <clear>, <transform> ;
         acl:mode acl:Read, acl:Append, acl:Write, acl:Control ;
         acl:agentGroup <acl/groups/owners/#this> .
-
-}
-
-# write/append access
-
-<acl/authorizations/write-append/>
-{
-
-    <acl/authorizations/write-append/> a dh:Item ;
-        sioc:has_container <acl/authorizations/> ;
-        dct:title "Write/append access" ;
-        foaf:primaryTopic <acl/authorizations/write-append/#this> .
-
-    <acl/authorizations/write-append/#this> a acl:Authorization ;
-        rdfs:label "Write/append access" ;
-        rdfs:comment "Allows write access to all documents and containers" ;
-        acl:accessToClass dh:Item, dh:Container, def:Root ;
-        acl:accessTo <../sparql>, <../importer>, <../add>, <../generate>, <../ns> ;
-        acl:mode acl:Write, acl:Append ;
-        acl:agentGroup <acl/groups/owners/#this>, <acl/groups/writers/#this> .
-
-}
-
-# read access
-
-<acl/authorizations/read/>
-{
-
-    <acl/authorizations/read/> a dh:Item ;
-        sioc:has_container <acl/authorizations/> ;
-        dct:title "Read access" ;
-        foaf:primaryTopic <acl/authorizations/read/#this> .
-
-    <acl/authorizations/read/#this> a acl:Authorization ;
-        rdfs:label "Read access" ;
-        rdfs:comment "Allows read access to all resources" ;
-        acl:accessToClass dh:Item, dh:Container, def:Root, <http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#FileDataObject> ;
-        acl:accessTo <../sparql> ;
-        acl:mode acl:Read ;
-        acl:agentGroup <acl/groups/owners/#this>, <acl/groups/writers/#this>, <acl/groups/readers/#this> .
 
 }
 
@@ -915,26 +770,5 @@ WHERE
 
     <ontologies/#select-children> a ldh:Object ;
         rdf:value ldh:ChildrenView .
-
-}
-
-# ONTOLOGIES
-
-# namespace
-
-<ontologies/namespace/>
-{
-
-    <ontologies/namespace/> a dh:Item ;
-        sioc:has_container <ontologies/> ;
-        dct:title "Namespace" ;
-        foaf:primaryTopic ns: .
-
-    ns: a owl:Ontology ;
-        rdfs:label "Namespace" ;
-        rdfs:comment "Namespace of the application" ;
-        foaf:isPrimaryTopicOf <../ns> ;
-        owl:imports <https://w3id.org/atomgraph/linkeddatahub/default#> ;
-        owl:versionInfo "1.0-SNAPSHOT" .
 
 }

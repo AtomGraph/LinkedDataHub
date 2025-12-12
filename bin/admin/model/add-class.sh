@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -eo pipefail
 
 print_usage()
 {
@@ -46,6 +47,11 @@ do
         shift # past argument
         shift # past value
         ;;
+        --proxy)
+        proxy="$2"
+        shift # past argument
+        shift # past value
+        ;;
         --label)
         label="$2"
         shift # past argument
@@ -84,6 +90,8 @@ do
 done
 set -- "${args[@]}" # restore args
 
+target="$1"
+
 if [ -z "$cert_pem_file" ] ; then
     print_usage
     exit 1
@@ -118,6 +126,10 @@ args+=("-p")
 args+=("$cert_password")
 args+=("-t")
 args+=("text/turtle") # content type
+if [ -n "$proxy" ]; then
+    args+=("--proxy")
+    args+=("$proxy")
+fi
 
 turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy#> .\n"
 turtle+="@prefix owl:	<http://www.w3.org/2002/07/owl#> .\n"
@@ -146,4 +158,4 @@ do
 done
 
 # submit Turtle doc to the server
-echo -e "$turtle" | turtle --base="$base" | post.sh "${args[@]}"
+echo -e "$turtle" | turtle --base="$target" | post.sh "${args[@]}"

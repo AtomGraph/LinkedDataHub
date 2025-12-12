@@ -20,13 +20,15 @@ import java.io.IOException;
 import java.net.URI;
 import jakarta.ws.rs.client.ClientRequestContext;
 import jakarta.ws.rs.client.ClientRequestFilter;
+import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.UriBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Client request filter that rewrites the target URL using a proxy URL.
- * 
+ * Client request filter that rewrites target URLs matching the configured host to internal proxy URLs.
+ * This improves performance by routing internal requests through the Docker network instead of external network.
+ *
  * @author {@literal Martynas Jusevičius <martynas@atomgraph.com>}
  */
 public class ClientUriRewriteFilter implements ClientRequestFilter
@@ -34,79 +36,85 @@ public class ClientUriRewriteFilter implements ClientRequestFilter
 
     private static final Logger log = LoggerFactory.getLogger(ClientUriRewriteFilter.class);
 
-    private final URI baseURI;
-    private final String scheme, hostname;
-    private final Integer port;
+    private final String host;
+    private final String proxyScheme, proxyHost;
+    private final Integer proxyPort;
 
     /**
      * Constructs filter from URI components.
-     * 
-     * @param baseURI base URI
-     * @param scheme new scheme
-     * @param hostname new hostname
-     * @param port new port number
+     *
+     * @param host external hostname to match, including subdomains (e.g., "localhost", "linkeddatahub.com")
+     * @param proxyScheme proxy scheme to rewrite to (e.g., "http")
+     * @param proxyHost proxy hostname to rewrite to (e.g., "nginx")
+     * @param proxyPort proxy port to rewrite to (e.g., 9443)
      */
-    public ClientUriRewriteFilter(URI baseURI, String scheme, String hostname, Integer port)
+    public ClientUriRewriteFilter(String host, String proxyScheme, String proxyHost, Integer proxyPort)
     {
-        this.baseURI = baseURI;
-        this.scheme = scheme;
-        this.hostname = hostname;
-        this.port = port;
+        this.host = host;
+        this.proxyScheme = proxyScheme;
+        this.proxyHost = proxyHost;
+        this.proxyPort = proxyPort;
     }
     
     @Override
     public void filter(ClientRequestContext cr) throws IOException
     {
-        if (getBaseURI().relativize(cr.getUri()).isAbsolute()) return; // don't rewrite URIs that are not relative to the base URI (e.g. SPARQL Protocol URLs)
+        // Only rewrite requests to our own host (or subdomains), not external URLs
+        if (!cr.getUri().getHost().equals(getHost()) && !cr.getUri().getHost().endsWith("." + getHost())) return;
+
+        // Preserve original host for nginx routing
+        String originalHost = cr.getUri().getHost();
+        if (cr.getUri().getPort() != -1) originalHost += ":" + cr.getUri().getPort();
+        cr.getHeaders().putSingle(HttpHeaders.HOST, originalHost);
 
         String newScheme = cr.getUri().getScheme();
-        if (getScheme() != null) newScheme  = getScheme();
+        if (getProxyScheme() != null) newScheme = getProxyScheme();
 
         // cannot use the URI class because query string with special chars such as '+' gets decoded
-        URI newUri = UriBuilder.fromUri(cr.getUri()).scheme(newScheme).host(getHostname()).port(getPort()).build();
+        URI newUri = UriBuilder.fromUri(cr.getUri()).scheme(newScheme).host(getProxyHost()).port(getProxyPort()).build();
 
         if (log.isDebugEnabled()) log.debug("Rewriting client request URI from '{}' to '{}'", cr.getUri(), newUri);
         cr.setUri(newUri);
     }
-    
+
     /**
-     * Base URI of the application
-     * 
-     * @return base URI
+     * External hostname to match (including subdomains).
+     *
+     * @return hostname string (e.g., "localhost", "linkeddatahub.com")
      */
-    public URI getBaseURI()
+    public String getHost()
     {
-        return baseURI;
-    }
-    
-    /**
-     * Scheme component of the new (rewritten) URI.
-     * 
-     * @return scheme string or null
-     */
-    public String getScheme()
-    {
-        return scheme;
-    }
-    
-    /**
-     * Hostname component of the new (rewritten) URI.
-     * 
-     * @return hostname string
-     */
-    public String getHostname()
-    {
-        return hostname;
+        return host;
     }
 
     /**
-     * Port component of the new (rewritten) URI.
-     * 
-     * @return port number
+     * Proxy scheme to rewrite to.
+     *
+     * @return scheme string or null (e.g., "http")
      */
-    public Integer getPort()
+    public String getProxyScheme()
     {
-        return port;
+        return proxyScheme;
+    }
+
+    /**
+     * Proxy hostname to rewrite to.
+     *
+     * @return hostname string (e.g., "nginx")
+     */
+    public String getProxyHost()
+    {
+        return proxyHost;
+    }
+
+    /**
+     * Proxy port to rewrite to.
+     *
+     * @return port number (e.g., 9443)
+     */
+    public Integer getProxyPort()
+    {
+        return proxyPort;
     }
 
 }

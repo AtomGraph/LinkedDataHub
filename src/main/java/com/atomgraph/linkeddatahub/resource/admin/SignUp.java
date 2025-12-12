@@ -25,6 +25,7 @@ import com.atomgraph.linkeddatahub.apps.model.AdminApplication;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.listener.EMailListener;
+import com.atomgraph.linkeddatahub.server.filter.response.CacheInvalidationFilter;
 import com.atomgraph.linkeddatahub.server.model.impl.GraphStoreImpl;
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
 import com.atomgraph.linkeddatahub.server.util.MessageBuilder;
@@ -77,6 +78,7 @@ import static org.apache.jena.datatypes.xsd.XSDDatatype.XSDhexBinary;
 import org.apache.jena.ontology.Ontology;
 import org.apache.jena.query.ParameterizedSparqlString;
 import org.apache.jena.query.Query;
+import org.apache.jena.query.ResultSet;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Property;
@@ -89,6 +91,7 @@ import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.vocabulary.DCTerms;
 import org.apache.jena.vocabulary.RDF;
 import org.glassfish.jersey.server.internal.process.MappableException;
+import org.glassfish.jersey.uri.UriComponent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -198,10 +201,12 @@ public class SignUp extends GraphStoreImpl
             String password = validateAndRemovePassword(agent);
             // TO-DO: trim values
             Resource mbox = agent.getRequiredProperty(FOAF.mbox).getResource();
-            
+
             ParameterizedSparqlString pss = new ParameterizedSparqlString(getAgentQuery().toString());
             pss.setParam(FOAF.mbox.getLocalName(), mbox);
-            boolean agentExists = !getAgentService().getSPARQLClient().loadModel(pss.asQuery()).isEmpty();
+            ResultSet rs = getAgentService().getSPARQLClient().select(pss.asQuery());
+            boolean agentExists = rs.hasNext();
+            rs.close();
             if (agentExists) throw createSPINConstraintViolationException(agent, FOAF.mbox, "Agent with this mailbox already exists");
             
             String givenName = agent.getRequiredProperty(FOAF.givenName).getString();
@@ -281,6 +286,9 @@ public class SignUp extends GraphStoreImpl
                     if (log.isErrorEnabled()) log.error("Cannot create Authorization");
                     throw new InternalServerErrorException("Cannot create Authorization");
                 }
+
+                // purge agent lookup from proxy cache
+                if (getAgentService().getBackendProxy() != null) ban(getAgentService().getBackendProxy(), mbox.getURI());
 
                 // remove secretary WebID from cache
                 getSystem().getEventBus().post(new com.atomgraph.linkeddatahub.server.event.SignUp(getSystem().getSecretaryWebIDURI()));
@@ -565,5 +573,21 @@ public class SignUp extends GraphStoreImpl
     {
         return getSystem().getAgentQuery();
     }
-    
+
+    /**
+     * Bans URL from the backend proxy cache.
+     *
+     * @param proxy proxy server URL
+     * @param url banned URL
+     * @return proxy server response
+     */
+    public Response ban(Resource proxy, String url)
+    {
+        if (url == null) throw new IllegalArgumentException("Resource cannot be null");
+
+        return getSystem().getClient().target(proxy.getURI()).request().
+            header(CacheInvalidationFilter.HEADER_NAME, UriComponent.encode(url, UriComponent.Type.UNRESERVED)). // the value has to be URL-encoded in order to match request URLs in Varnish
+            method("BAN", Response.class);
+    }
+
 }

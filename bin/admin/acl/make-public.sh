@@ -9,7 +9,7 @@ print_usage()
     printf "Options:\n"
     printf "  -f, --cert-pem-file CERT_FILE        .pem file with the WebID certificate of the agent\n"
     printf "  -p, --cert-password CERT_PASSWORD    Password of the WebID certificate\n"
-    printf "  -b, --base BASE_URI                  Base URI of the admin application\n"
+    printf "  -b, --base BASE_URI                  Base URI of the end-user application\n"
     printf "  --proxy PROXY_URL                    The host this request will be proxied through (optional)\n"
 }
 
@@ -58,12 +58,19 @@ if [ -z "$base" ] ; then
     exit 1
 fi
 
-target="${base}admin/acl/authorizations/public/"
+admin_uri() {
+    local uri="$1"
+    echo "$uri" | sed 's|://|://admin.|'
+}
+
+admin_base=$(admin_uri "$base")
+target="${admin_base}acl/authorizations/public/"
 
 if [ -n "$proxy" ]; then
-    # rewrite target hostname to proxy hostname
+    # rewrite target hostname to proxy hostname (also convert proxy to admin subdomain)
+    admin_proxy=$(admin_uri "$proxy")
     target_host=$(echo "$target" | cut -d '/' -f 1,2,3)
-    proxy_host=$(echo "$proxy" | cut -d '/' -f 1,2,3)
+    proxy_host=$(echo "$admin_proxy" | cut -d '/' -f 1,2,3)
     target="${target/$target_host/$proxy_host}"
 fi
 
@@ -73,7 +80,7 @@ curl -X PATCH \
     -H "Content-Type: application/sparql-update" \
     "$target" \
      --data-binary @- <<EOF
-BASE <${base}admin/>
+BASE <${admin_base}>
 
 PREFIX  acl: <http://www.w3.org/ns/auth/acl#>
 PREFIX  def: <https://w3id.org/atomgraph/linkeddatahub/default#>
@@ -84,10 +91,10 @@ PREFIX  foaf: <http://xmlns.com/foaf/0.1/>
 INSERT
 {
   <acl/authorizations/public/#this> acl:accessToClass def:Root, dh:Container, dh:Item, nfo:FileDataObject ;
-      acl:accessTo <../sparql> .
+      acl:accessTo <${base}sparql> .
 
   <acl/authorizations/public/#sparql-post> a acl:Authorization ;
-      acl:accessTo <../sparql> ;
+      acl:accessTo <${base}sparql> ;
       acl:mode acl:Append ;
       acl:agentClass foaf:Agent, acl:AuthenticatedAgent . # hacky way to allow queries over POST
 }

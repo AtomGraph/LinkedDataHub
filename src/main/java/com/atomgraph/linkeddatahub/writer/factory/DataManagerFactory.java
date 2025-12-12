@@ -28,6 +28,7 @@ import com.atomgraph.linkeddatahub.vocabulary.LAPP;
 import com.atomgraph.linkeddatahub.writer.impl.DataManagerImpl;
 import java.net.URI;
 import java.util.HashMap;
+import java.util.Optional;
 import jakarta.inject.Inject;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.ws.rs.container.ContainerRequestContext;
@@ -53,12 +54,13 @@ public class DataManagerFactory implements Factory<DataManager>
     @Context HttpServletRequest httpServletRequest;
     @Context Providers providers;
     @Context ServiceLocator serviceLocator;
-    
+
     @Inject com.atomgraph.linkeddatahub.Application system;
-    
+
     @Override
     public DataManager provide()
     {
+        // Always return DataManager, falling back to system DataManager if no Application (e.g., for error responses)
         return getDataManager(getApplication());
     }
 
@@ -66,32 +68,32 @@ public class DataManagerFactory implements Factory<DataManager>
     public void dispose(DataManager t)
     {
     }
-    
+
     /**
      * Returns RDF data manager.
-     * 
-     * @param app end-user application
+     *
+     * @param appOpt optional end-user application (if empty, system DataManager is used)
      * @return data manager
      */
-    public DataManager getDataManager(Application app)
+    public DataManager getDataManager(Optional<Application> appOpt)
     {
         final com.atomgraph.core.util.jena.DataManager baseManager;
-        
-        if (app.canAs(EndUserApplication.class))
-            baseManager = (com.atomgraph.core.util.jena.DataManager)getSystem().getOntModelSpec(app.as(EndUserApplication.class)).getDocumentManager().getFileManager();
+
+        if (appOpt.isPresent() && appOpt.get().canAs(EndUserApplication.class))
+            baseManager = (com.atomgraph.core.util.jena.DataManager)getSystem().getOntModelSpec(appOpt.get().as(EndUserApplication.class)).getDocumentManager().getFileManager();
         else
             baseManager = getSystem().getDataManager();
-        
+
         LinkedDataClient ldc = LinkedDataClient.create(getSystem().getClient(), getSystem().getMediaTypes()).
             delegation(getUriInfo().getBaseUri(), getAgentContext());
-        
+
         // copy cached models over from the app's FileManager
         return new DataManagerImpl(LocationMapper.get(), new HashMap<>(baseManager.getModelCache()),
             ldc, true, getSystem().isPreemptiveAuth(), getSystem().isResolvingUncached(),
-            URI.create(getHttpServletRequest().getRequestURL().toString()).resolve(getHttpServletRequest().getContextPath() + "/"),
+            getSystem().getBaseURI(),
                 getAgentContext());
     }
-    
+
     /**
      * Returns system application.
      * 
@@ -155,12 +157,12 @@ public class DataManagerFactory implements Factory<DataManager>
     
     /**
      * Retrieves LDT application from the request context.
-     * 
-     * @return LDT application
+     *
+     * @return optional LDT application
      */
-    public Application getApplication()
+    public Optional<Application> getApplication()
     {
-        return (Application)getContainerRequestContext().getProperty(LAPP.Application.getURI());
+        return (Optional<Application>)getContainerRequestContext().getProperty(LAPP.Application.getURI());
     }
     
 }

@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -eo pipefail
 
 print_usage()
 {
@@ -14,7 +15,7 @@ print_usage()
     printf "\n"
     printf "  --title TITLE                        Title of the chart\n"
     printf "  --description DESCRIPTION            Description of the chart (optional)\n"
-    printf "  --fragment STRING                    String that will be used as URI fragment identifier (optional)\n"
+    printf "  --uri URI                            URI of the chart (optional)\n"
     printf "\n"
     printf "  --query QUERY_URI                    URI of the SELECT query\n"
     printf "  --chart-type TYPE_URI                URI of the chart type\n"
@@ -43,6 +44,11 @@ do
         shift # past argument
         shift # past value
         ;;
+        --proxy)
+        proxy="$2"
+        shift # past argument
+        shift # past value
+        ;;
         --title)
         title="$2"
         shift # past argument
@@ -53,8 +59,8 @@ do
         shift # past argument
         shift # past value
         ;;
-        --fragment)
-        fragment="$2"
+        --uri)
+        uri="$2"
         shift # past argument
         shift # past value
         ;;
@@ -85,6 +91,8 @@ do
     esac
 done
 set -- "${args[@]}" # restore args
+
+target="$1"
 
 if [ -z "$cert_pem_file" ] ; then
     print_usage
@@ -125,10 +133,13 @@ args+=("-p")
 args+=("$cert_password")
 args+=("-t")
 args+=("text/turtle") # content type
+if [ -n "$proxy" ]; then
+    args+=("--proxy")
+    args+=("$proxy")
+fi
 
-if [ -n "$fragment" ] ; then
-    # relative URI that will be resolved against the request URI
-    subject="<#${fragment}>"
+if [ -n "$uri" ] ; then
+    subject="<${uri}>"
 else
     subject="_:subject"
 fi
@@ -148,4 +159,4 @@ if [ -n "$description" ] ; then
 fi
 
 # submit Turtle doc to the server
-echo -e "$turtle" | post.sh "${args[@]}"
+echo -e "$turtle" | turtle --base="$target" | post.sh "${args[@]}"

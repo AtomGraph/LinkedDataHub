@@ -76,7 +76,7 @@ public class Namespace extends com.atomgraph.core.model.impl.SPARQLEndpointImpl
 
     /**
      * Constructs endpoint from the in-memory ontology model.
-     * 
+     *
      * @param request current request
      * @param uriInfo current request's URI info
      * @param application current end-user application
@@ -86,7 +86,7 @@ public class Namespace extends com.atomgraph.core.model.impl.SPARQLEndpointImpl
      * @param system system application
      */
     @Inject
-    public Namespace(@Context Request request, @Context UriInfo uriInfo, 
+    public Namespace(@Context Request request, @Context UriInfo uriInfo,
             Application application, Optional<Ontology> ontology, MediaTypes mediaTypes,
             @Context SecurityContext securityContext, com.atomgraph.linkeddatahub.Application system)
     {
@@ -98,6 +98,22 @@ public class Namespace extends com.atomgraph.core.model.impl.SPARQLEndpointImpl
         this.system = system;
     }
 
+    /**
+     * If SPARQL query is provided, returns its result over the in-memory namespace ontology graph.
+     * If query is not provided
+     * <ul>
+     * <li>returns constructed instance if <samp>forClass</samp> URL param value (ontology class URI) is provided</li>
+     * <li>otherwise, returns the namespace ontology graph (which is standalone, i.e. <em>not</em> the full ontology imports closure)</li>
+     * </ul>
+     * 
+     * @param query SPARQL query string (optional)
+     * @param defaultGraphUris default graph URI (ignored)
+     * @param namedGraphUris named graph URIs (ignored)
+     * 
+     * {@link com.atomgraph.linkeddatahub.server.model.impl.Dispatcher#getNamespace()}
+     * 
+     * @return response
+     */
     @Override
     @GET
     public Response get(@QueryParam(QUERY) Query query,
@@ -122,11 +138,11 @@ public class Namespace extends com.atomgraph.core.model.impl.SPARQLEndpointImpl
             
             if (getApplication().canAs(EndUserApplication.class))
             {
-                String ontologyURI = getURI().toString() + "#"; // TO-DO: hard-coding "#" is not great. Replace with RDF property lookup.
+                // the application ontology MUST use a <ns> URI! This is the URI this ontology endpoint is deployed on by the Dispatcher class
+                String ontologyURI = getApplication().getOntology().getURI();
                 if (log.isDebugEnabled()) log.debug("Returning namespace ontology from OntDocumentManager: {}", ontologyURI);
                 // not returning the injected in-memory ontology because it has inferences applied to it
-                OntologyModelGetter modelGetter = new OntologyModelGetter(getApplication().as(EndUserApplication.class),
-                        getSystem().getOntModelSpec(), getSystem().getOntologyQuery(), getSystem().getClient(), getSystem().getMediaTypes());
+                OntologyModelGetter modelGetter = new OntologyModelGetter(getApplication().as(EndUserApplication.class), getSystem().getOntModelSpec(), getSystem().getOntologyQuery());
                 return getResponseBuilder(modelGetter.getModel(ontologyURI)).build();
             }
             else throw new BadRequestException("SPARQL query string not provided");

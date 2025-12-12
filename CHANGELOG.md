@@ -1,3 +1,67 @@
+## [5.1.0] - 2025-12-12
+### Added
+- ORCID OpenID Connect login support with JWT token verification
+- `CORSFilter` response filter for cross-origin resource sharing on static assets
+- Cache invalidation (BAN requests) for agent and user account lookup queries
+- New `Application::normalizeOrigin` method for origin normalization
+- `ldh:parent-origin` XPath function for parent origin retrieval
+- HTTP tests for CORS functionality, internal IP blocking, and form proxying
+- `ForbiddenExceptionMapper` for handling forbidden exceptions
+- `Content-Security-Policy` header for uploaded files to prevent XSS attacks
+- Sticky left and right navigation panels
+- Support for recursive content blocks
+- Docker volume for Varnish cache file persistence
+
+### Changed
+- **BREAKING**: Admin application moved from `/admin/` path to `admin.` subdomain
+- **BREAKING**: Replaced `ldt:base` with `ldh:origin` in configuration (now uses absolute URIs with full domain names)
+- Refactored OAuth2 authentication with extracted base classes `AuthorizeBase`, `LoginBase`, and `JWTVerifier`
+- Provider-specific implementations for Google and ORCID OAuth flows in separate packages
+- Authorization queries now isolated by dataspace using `FILTER(strstarts(str(?g), str($base)))`
+- Optimized Varnish caching for authenticated requests with proper cache bypass for user-specific content
+- Root domain extraction logic replaced with configured `BASE_URI` from `Application.getBaseURI()`
+- Eliminated unnecessary wrapper methods (`getRootContextURI()`) in favor of direct `getSystem().getBaseURI()` calls
+- Client-side XSLT now uses `ldt:base()` function instead of `$ldt:base` parameter
+- OAuth and access request endpoints moved to end-user dataspace (no longer extend `GraphStoreImpl` or `SPARQLEndpointImpl`)
+- ID tokens now returned via URL fragment instead of query parameters
+- CLI scripts refactored: `--fragment` parameter renamed to `--uri`
+- Nginx configuration now exempts internal requests from rate limiting
+- Parameterized nginx and Varnish configurations for better flexibility
+- Improved `ClientUriRewriteFilter` to use configured host instead of hardcoded localhost
+- Agent metadata and authorizations now managed per-app in entrypoint.sh
+- Separated templates for owner and secretary authorizations
+- Fuseki data directory changed in Docker configuration
+- `$ORIGIN` environment variable now excludes default ports (80/443)
+- WYMEditor cross-origin compatibility fixes
+- Replaced `ldh:new` with `ixsl:new` in client-side code
+
+### Fixed
+- Fixed security vulnerability [LNK-002 (cache poisoning)](https://github.com/AtomGraph/LinkedDataHub/issues/253)
+- Fixed security vulnerability [LNK-004 (path traversal)](https://github.com/AtomGraph/LinkedDataHub/issues/252)
+- Fixed security vulnerability [LNK-009 (SSRF - internal IP address proxying)](https://github.com/AtomGraph/LinkedDataHub/issues/250)
+- Fixed security vulnerability [LNK-011 (XSS via uploaded files)](https://github.com/AtomGraph/LinkedDataHub/issues/254)
+- Fixed Billion Laughs [XML entity expansion exploit](https://github.com/AtomGraph/LinkedDataHub/issues/249) by excluding Xerces dependency
+- Fixed OpenLayers map dragging functionality
+- Fixed graph layout rendering issues
+- Fixed SPARQL update and `application/x-www-form-urlencoded` proxying
+- Fixed access request URL building and modal form display
+- Fixed `ldh:Shape` mode in XSLT
+- Fixed HTML reloading after OAuth login
+- Improved SHACL support in UI with better form controls
+- Fixed performance regression in `ClientUriRewriteFilter` for production deployments
+- Fixed agent and user account duplicate creation via proper cache invalidation
+- Fixed same-site URI resolution for XSLT document loading across subdomains
+- Fixed entrypoint to load datasets for all configured apps
+- Fixed authorization filter to handle non-existent dataspaces (throws `NotFoundException`)
+
+### Removed
+- Removed `RequestAccess` resource from admin package (moved to end-user)
+- Removed `admin/oauth2` package (OAuth moved to end-user dataspace)
+- Removed XOM dependency
+- Removed rate limiting tests from HTTP test suite
+- Removed debug output from entrypoint and test scripts
+- Removed unused namespace declarations
+
 ## [5.0.23] - 2025-09-11
 ### Added
 - Drag handles for content blocks - blocks can now only be dragged by their dedicated drag handles

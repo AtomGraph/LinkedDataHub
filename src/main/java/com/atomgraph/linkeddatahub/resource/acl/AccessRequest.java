@@ -16,13 +16,10 @@
  */
 package com.atomgraph.linkeddatahub.resource.acl;
 
-import com.atomgraph.core.MediaTypes;
 import com.atomgraph.core.exception.ConfigurationException;
-import com.atomgraph.linkeddatahub.apps.model.AdminApplication;
 import static com.atomgraph.linkeddatahub.apps.model.AdminApplication.AUTHORIZATION_REQUEST_PATH;
-import com.atomgraph.linkeddatahub.model.Service;
+import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import com.atomgraph.linkeddatahub.model.auth.Agent;
-import com.atomgraph.linkeddatahub.server.model.impl.GraphStoreImpl;
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
 import com.atomgraph.linkeddatahub.server.util.Skolemizer;
 import com.atomgraph.linkeddatahub.vocabulary.ACL;
@@ -40,17 +37,12 @@ import jakarta.ws.rs.NotAllowedException;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.Context;
-import jakarta.ws.rs.core.Request;
 import jakarta.ws.rs.core.Response;
-import jakarta.ws.rs.core.SecurityContext;
 import jakarta.ws.rs.core.UriBuilder;
-import jakarta.ws.rs.core.UriInfo;
-import jakarta.ws.rs.ext.Providers;
 import java.net.URI;
 import java.util.GregorianCalendar;
 import java.util.Optional;
 import java.util.UUID;
-import org.apache.jena.ontology.Ontology;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.ResIterator;
@@ -67,11 +59,13 @@ import org.slf4j.LoggerFactory;
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-public class AccessRequest extends GraphStoreImpl
+public class AccessRequest
 {
     
     private static final Logger log = LoggerFactory.getLogger(AccessRequest.class);
     
+    private final EndUserApplication application;
+    private final Optional<AgentContext> agentContext;
     private final String emailSubject;
     private final String emailText;
     private final UriBuilder authRequestContainerUriBuilder;
@@ -79,30 +73,21 @@ public class AccessRequest extends GraphStoreImpl
     /**
      * Constructs an AccessRequest resource handler.
      * 
-     * @param request HTTP request context
-     * @param uriInfo URI information context
-     * @param mediaTypes supported media types
      * @param application current application
-     * @param ontology optional application ontology
-     * @param service optional SPARQL service
-     * @param securityContext security context
      * @param agentContext optional agent context
-     * @param providers JAX-RS providers
      * @param system system application
      * @param servletConfig servlet configuration
      */
     @Inject
-    public AccessRequest(@Context Request request, @Context UriInfo uriInfo, MediaTypes mediaTypes,
-            com.atomgraph.linkeddatahub.apps.model.Application application, Optional<Ontology> ontology, Optional<Service> service,
-            @Context SecurityContext securityContext, Optional<AgentContext> agentContext,
-            @Context Providers providers, com.atomgraph.linkeddatahub.Application system, @Context ServletConfig servletConfig)
+    public AccessRequest(com.atomgraph.linkeddatahub.apps.model.Application application, Optional<AgentContext> agentContext,
+            com.atomgraph.linkeddatahub.Application system, @Context ServletConfig servletConfig)
     {
-        super(request, uriInfo, mediaTypes, application, ontology, service, securityContext, agentContext, providers, system);
         if (log.isDebugEnabled()) log.debug("Constructing {}", getClass());
-        if (!application.canAs(AdminApplication.class)) throw new IllegalStateException("The " + getClass() + " endpoint is only available on admin applications");
-        if (securityContext == null || !(securityContext.getUserPrincipal() instanceof Agent)) throw new IllegalStateException("Agent is not authenticated");
-
-        authRequestContainerUriBuilder = UriBuilder.fromUri(URI.create(application.getBase().toString())).path(AUTHORIZATION_REQUEST_PATH);
+        if (!application.canAs(EndUserApplication.class)) throw new IllegalStateException("The " + getClass() + " endpoint is only available on end-user applications");
+        this.application = application.as(EndUserApplication.class);
+        this.agentContext = agentContext;
+        
+        authRequestContainerUriBuilder = this.application.getAdminApplication().getUriBuilder().path(AUTHORIZATION_REQUEST_PATH);
         
         emailSubject = servletConfig.getServletContext().getInitParameter(LDHC.requestAccessEMailSubject.getURI());
         if (emailSubject == null) throw new InternalServerErrorException(new ConfigurationException(LDHC.requestAccessEMailSubject));
@@ -111,16 +96,29 @@ public class AccessRequest extends GraphStoreImpl
         if (emailText == null) throw new InternalServerErrorException(new ConfigurationException(LDHC.requestAccessEMailText));
 
     }
-    
+
+    /**
+     * Implements the HTTP GET method.
+     *
+     * @param defaultGraph default graph flag
+     * @param graphUri graph URI
+     * @return response object
+     */
     @GET
-    @Override
     public Response get(@QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUri)
     {
         throw new NotAllowedException("GET is not allowed on this endpoint");
     }
-    
+
+    /**
+     * Implements the HTTP POST method for submitting access requests.
+     *
+     * @param model RDF model with access request data
+     * @param defaultGraph default graph flag
+     * @param graphUri graph URI
+     * @return response object
+     */
     @POST
-    @Override
     public Response post(Model model, @QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUri)
     {
         ResIterator it = model.listResourcesWithProperty(RDF.type, ACL.Authorization);
@@ -134,7 +132,7 @@ public class AccessRequest extends GraphStoreImpl
                 Model requestModel = ModelFactory.createDefaultModel();
                 
                 Resource agent = authorization.getPropertyResourceValue(ACL.agent);
-                if (!agent.equals(getAgentContext().get().getAgent())) throw new IllegalStateException("Agent requesting access must be authenticated");
+                if (getAgentContext().isEmpty() || !agent.equals(getAgentContext().get().getAgent())) throw new IllegalStateException("Agent requesting access must be authenticated");
 
                 String humanReadableName = getAgentsHumanReadableName(getAgentContext().get().getAgent());
                 String accessRequestLabel = humanReadableName != null ? "Access request by " + humanReadableName : null; // TO-DO: localize the string
@@ -182,11 +180,7 @@ public class AccessRequest extends GraphStoreImpl
 
                 new Skolemizer(graphUri.toString()).apply(requestModel);
                 // store access request in the admin service
-                //getApplication().as(EndUserApplication.class).getAdminApplication().getService().getGraphStoreClient().add(graphUri.toASCIIString(), requestModel);
-                try (Response resp = super.post(requestModel, false, graphUri))
-                {
-                    resp.close();
-                } // don't wrap into try-with-resources because that will close the Response
+                getApplication().getAdminApplication().getService().getGraphStoreClient().add(graphUri.toString(), requestModel);
             }
            
             return Response.ok().build();
@@ -212,6 +206,16 @@ public class AccessRequest extends GraphStoreImpl
         
         return null;
     }
+
+    /**
+     * Returns the current application.
+     *
+     * @return end-user application
+     */
+    public EndUserApplication getApplication()
+    {
+        return application;
+    }
     
     /**
      * Returns the URI builder for authorization requests.
@@ -221,6 +225,16 @@ public class AccessRequest extends GraphStoreImpl
     public UriBuilder getAuthRequestContainerUriBuilder()
     {
         return authRequestContainerUriBuilder.clone();
+    }
+ 
+    /**
+     * Returns the agent context of the current request.
+     * 
+     * @return optional agent context
+     */
+    public Optional<AgentContext> getAgentContext()
+    {
+        return agentContext;
     }
     
 }

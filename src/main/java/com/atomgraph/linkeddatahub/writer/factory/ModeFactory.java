@@ -18,11 +18,13 @@ package com.atomgraph.linkeddatahub.writer.factory;
 
 import com.atomgraph.client.vocabulary.AC;
 import com.atomgraph.linkeddatahub.writer.Mode;
+import java.util.Collections;
 import java.util.List;
 import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.core.Context;
 import org.glassfish.hk2.api.Factory;
 import org.glassfish.hk2.api.ServiceLocator;
+import jakarta.ws.rs.ext.Provider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,6 +33,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author {@literal Martynas Jusevičius <martynas@atomgraph.com>}
  */
+@Provider
 public class ModeFactory implements Factory<List<Mode>>
 {
 

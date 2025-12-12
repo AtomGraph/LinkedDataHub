@@ -91,14 +91,6 @@ exclude-result-prefixes="#all"
     <xsl:function name="sd:endpoint" as="xs:anyURI">
         <xsl:sequence select="xs:anyURI(ixsl:get(ixsl:window(), 'LinkedDataHub.endpoint'))"/>
     </xsl:function>
-
-    <!-- finds the app with the longest matching base URI -->
-    <xsl:function name="ldh:match-app" as="element()?">
-        <xsl:param name="uri" as="xs:anyURI"/>
-        <xsl:param name="apps" as="document-node()"/>
-        
-        <xsl:sequence select="let $max-length := max($apps//rdf:Description[ldt:base/@rdf:resource[starts-with($uri, .)]]/string-length(ldt:base/@rdf:resource)) return ($apps//rdf:Description[ldt:base/@rdf:resource[starts-with($uri, .)]][string-length(ldt:base/@rdf:resource) eq $max-length])[1]"/>
-    </xsl:function>
     
     <xsl:function name="ldh:query-type" as="xs:string?">
         <xsl:param name="query-string" as="xs:string"/>
@@ -113,12 +105,15 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="ixsl:eval(string($js-statement/@statement))"/>
     </xsl:function>
     
+    <!-- Deprecated: use ixsl:new() instead (available in SaxonJS 3.0+) -->
+    <!--
     <xsl:function name="ldh:new" as="item()">
         <xsl:param name="target" as="xs:string"/>
         <xsl:param name="arguments" as="array(*)"/>
 
         <xsl:sequence select="ixsl:call(ixsl:window(), 'Reflect.construct', [ ixsl:get(ixsl:window(), $target), $arguments ] )"/>
     </xsl:function>
+    -->
 
     <!-- format URLs in DataTable as HTML links. !!! Saxon-JS cannot intercept Google Charts events, therefore set a full proxied URL !!! -->
     <xsl:template match="@rdf:about[starts-with(., 'http://')] | @rdf:about[starts-with(., 'https://')] | @rdf:resource[starts-with(., 'http://')] | @rdf:resource[starts-with(., 'https://')] | srx:uri[starts-with(., 'http://')] | srx:uri[starts-with(., 'https://')]" mode="ac:DataTable">
@@ -183,7 +178,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="string" as="xs:string"/>
         <xsl:param name="mime-type" as="xs:string"/>
         
-        <xsl:sequence select="ixsl:call(ldh:new('DOMParser', []), 'parseFromString', [ $string, $mime-type ])"/>
+        <xsl:sequence select="ixsl:call(ixsl:new('DOMParser', []), 'parseFromString', [ $string, $mime-type ])"/>
     </xsl:function>
 
     <!-- parses RDF/POST inputs into a sequence of SPARQL.js triple maps (they need to be wrapped into <array key="triples">) -->

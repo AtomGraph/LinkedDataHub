@@ -23,6 +23,7 @@ import com.atomgraph.linkeddatahub.server.mapper.auth.webid.WebIDLoadingExceptio
 import com.atomgraph.linkeddatahub.server.mapper.auth.webid.InvalidWebIDURIExceptionMapper;
 import com.atomgraph.linkeddatahub.server.mapper.auth.AuthorizationExceptionMapper;
 import com.atomgraph.linkeddatahub.server.mapper.auth.AuthenticationExceptionMapper;
+import com.atomgraph.linkeddatahub.server.mapper.ForbiddenExceptionMapper;
 import com.atomgraph.linkeddatahub.server.mapper.auth.webid.WebIDCertificateExceptionMapper;
 import com.atomgraph.client.MediaTypes;
 import com.atomgraph.client.locator.PrefixMapper;
@@ -99,11 +100,11 @@ import com.atomgraph.linkeddatahub.server.factory.OntologyFactory;
 import com.atomgraph.linkeddatahub.server.factory.ServiceFactory;
 import com.atomgraph.linkeddatahub.server.filter.request.OntologyFilter;
 import com.atomgraph.linkeddatahub.server.filter.request.AuthorizationFilter;
-import com.atomgraph.linkeddatahub.server.filter.request.auth.IDTokenFilter;
 import com.atomgraph.linkeddatahub.server.filter.request.ContentLengthLimitFilter;
 import com.atomgraph.linkeddatahub.server.filter.request.auth.ProxiedWebIDFilter;
+import com.atomgraph.linkeddatahub.server.filter.response.CORSFilter;
 import com.atomgraph.linkeddatahub.server.filter.response.ResponseHeadersFilter;
-import com.atomgraph.linkeddatahub.server.filter.response.BackendInvalidationFilter;
+import com.atomgraph.linkeddatahub.server.filter.response.CacheInvalidationFilter;
 import com.atomgraph.linkeddatahub.server.filter.response.XsltExecutableFilter;
 import com.atomgraph.linkeddatahub.server.interceptor.RDFPostMediaTypeInterceptor;
 import com.atomgraph.linkeddatahub.server.mapper.auth.oauth2.TokenExpiredExceptionMapper;
@@ -116,6 +117,7 @@ import com.atomgraph.linkeddatahub.vocabulary.FOAF;
 import com.atomgraph.linkeddatahub.vocabulary.LDH;
 import com.atomgraph.linkeddatahub.vocabulary.LDHC;
 import com.atomgraph.linkeddatahub.vocabulary.Google;
+import com.atomgraph.linkeddatahub.vocabulary.ORCID;
 import com.atomgraph.linkeddatahub.vocabulary.LAPP;
 import com.atomgraph.linkeddatahub.writer.Mode;
 import com.atomgraph.linkeddatahub.writer.ResultSetXSLTWriter;
@@ -123,7 +125,6 @@ import com.atomgraph.linkeddatahub.writer.XSLTWriterBase;
 import com.atomgraph.linkeddatahub.writer.factory.ModeFactory;
 import com.atomgraph.linkeddatahub.writer.function.DecodeURI;
 import com.atomgraph.server.mapper.NotAcceptableExceptionMapper;
-import com.atomgraph.server.vocabulary.LDT;
 import com.atomgraph.server.mapper.OntologyExceptionMapper;
 import com.atomgraph.server.mapper.jena.DatatypeFormatExceptionMapper;
 import com.atomgraph.server.mapper.jena.QueryParseExceptionMapper;
@@ -194,6 +195,7 @@ import jakarta.ws.rs.client.Client;
 import jakarta.ws.rs.client.ClientBuilder;
 import jakarta.ws.rs.client.ClientRequestFilter;
 import java.util.concurrent.ConcurrentHashMap;
+import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.stream.StreamSource;
 import net.jodah.expiringmap.ExpiringMap;
@@ -204,7 +206,6 @@ import net.sf.saxon.s9api.SaxonApiException;
 import net.sf.saxon.s9api.XdmAtomicValue;
 import net.sf.saxon.s9api.XsltCompiler;
 import net.sf.saxon.s9api.XsltExecutable;
-import nu.xom.XPathException;
 import org.apache.http.HttpClientConnection;
 import org.apache.http.HttpHost;
 import org.apache.http.client.HttpRequestRetryHandler;
@@ -240,6 +241,7 @@ import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.glassfish.jersey.process.internal.RequestScoped;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.server.filter.HttpMethodOverrideFilter;
+import org.xml.sax.SAXException;
 
 /**
  * JAX-RS application subclass.
@@ -269,7 +271,7 @@ public class Application extends ResourceConfig
     private final OntModelSpec ontModelSpec;
     private final boolean cacheStylesheet;
     private final boolean resolvingUncached;
-    private final URI baseURI, uploadRoot; // TO-DO: replace baseURI with ServletContext URI?
+    private final URI baseURI, uploadRoot;
     private final boolean invalidateCache;
     private final Integer cookieMaxAge;
     private final boolean enableLinkedDataProxy;
@@ -282,6 +284,7 @@ public class Application extends ResourceConfig
     private final List<Locale> supportedLanguages;
     private final ExpiringMap<URI, Model> webIDmodelCache = ExpiringMap.builder().expiration(1, TimeUnit.DAYS).build(); // TO-DO: config for the expiration period?
     private final ExpiringMap<String, Model> oidcModelCache = ExpiringMap.builder().variableExpiration().build();
+    private final ExpiringMap<String, jakarta.json.JsonObject> jwksCache = ExpiringMap.builder().expiration(1, TimeUnit.DAYS).build(); // Cache JWKS responses
     private final Map<URI, XsltExecutable> xsltExecutableCache = new ConcurrentHashMap<>();
     private final MessageDigest messageDigest;
     private final boolean enableWebIDSignUp;
@@ -344,7 +347,9 @@ public class Application extends ResourceConfig
             servletConfig.getServletContext().getInitParameter("mail.smtp.host") != null ? servletConfig.getServletContext().getInitParameter("mail.smtp.host") : null,
             servletConfig.getServletContext().getInitParameter("mail.smtp.port") != null ? servletConfig.getServletContext().getInitParameter("mail.smtp.port") : null,
             servletConfig.getServletContext().getInitParameter(Google.clientID.getURI()) != null ? servletConfig.getServletContext().getInitParameter(Google.clientID.getURI()) : null,
-            servletConfig.getServletContext().getInitParameter(Google.clientSecret.getURI()) != null ? servletConfig.getServletContext().getInitParameter(Google.clientSecret.getURI()) : null
+            servletConfig.getServletContext().getInitParameter(Google.clientSecret.getURI()) != null ? servletConfig.getServletContext().getInitParameter(Google.clientSecret.getURI()) : null,
+            servletConfig.getServletContext().getInitParameter(ORCID.clientID.getURI()) != null ? servletConfig.getServletContext().getInitParameter(ORCID.clientID.getURI()) : null,
+            servletConfig.getServletContext().getInitParameter(ORCID.clientSecret.getURI()) != null ? servletConfig.getServletContext().getInitParameter(ORCID.clientSecret.getURI()) : null
         );
 
         URI contextDatasetURI = servletConfig.getServletContext().getInitParameter(LDHC.contextDataset.getURI()) != null ? new URI(servletConfig.getServletContext().getInitParameter(LDHC.contextDataset.getURI())) : null;
@@ -404,6 +409,8 @@ public class Application extends ResourceConfig
      * @param smtpPort port of the SMTP email server
      * @param googleClientID client ID for Google's OAuth
      * @param googleClientSecret client secret for Google's OAuth
+     * @param orcidClientID client ID for ORCID's OAuth
+     * @param orcidClientSecret client secret for ORCID's OAuth
      */
     public Application(final ServletConfig servletConfig, final MediaTypes mediaTypes,
             final Integer maxGetRequestSize, final boolean cacheModelLoads, final boolean preemptiveAuth,
@@ -419,7 +426,8 @@ public class Application extends ResourceConfig
             final Integer maxConnPerRoute, final Integer maxTotalConn, final Integer maxRequestRetries, final Integer maxImportThreads,
             final String notificationAddressString, final String supportedLanguageCodes, final boolean enableWebIDSignUp, final String oidcRefreshTokensPropertiesPath,
             final String mailUser, final String mailPassword, final String smtpHost, final String smtpPort,
-            final String googleClientID, final String googleClientSecret)
+            final String googleClientID, final String googleClientSecret,
+            final String orcidClientID, final String orcidClientSecret)
     {
         if (clientKeyStoreURIString == null)
         {
@@ -544,7 +552,9 @@ public class Application extends ResourceConfig
         this.oidcRefreshTokens = new Properties();
         if (googleClientID != null) this.property(Google.clientID.getURI(), googleClientID);
         if (googleClientSecret != null) this.property(Google.clientSecret.getURI(), googleClientSecret);
-        
+        if (orcidClientID != null) this.property(ORCID.clientID.getURI(), orcidClientID);
+        if (orcidClientSecret != null) this.property(ORCID.clientSecret.getURI(), orcidClientSecret);
+
         try
         {
             this.uploadRoot = new URI(uploadRootString);
@@ -593,6 +603,19 @@ public class Application extends ResourceConfig
             }
         }
         else notificationAddress = null;
+
+        try
+        {
+            javax.xml.parsers.SAXParserFactory factory = javax.xml.parsers.SAXParserFactory.newInstance();
+            javax.xml.parsers.SAXParser parser = factory.newSAXParser();
+            org.xml.sax.XMLReader reader = parser.getXMLReader();
+            if (log.isDebugEnabled()) log.debug("SAXParserFactory class: {}", factory.getClass().getName());
+            if (log.isDebugEnabled()) log.debug("XMLReader class: {}", reader.getClass().getName());
+        }
+        catch (ParserConfigurationException | SAXException e)
+        {
+            if (log.isErrorEnabled()) log.error("Failed to get XML parser info", e);
+        }
 
         // add RDF/POST reader
         RDFLanguages.register(RDFLanguages.RDFPOST);
@@ -664,8 +687,8 @@ public class Application extends ResourceConfig
             
             if (proxyHostname != null)
             {
-                ClientRequestFilter rewriteFilter = new ClientUriRewriteFilter(baseURI, proxyScheme, proxyHostname, proxyPort); // proxyPort can be null
-                
+                ClientRequestFilter rewriteFilter = new ClientUriRewriteFilter(baseURI.getHost(), proxyScheme, proxyHostname, proxyPort); // proxyPort can be null
+
                 client.register(rewriteFilter);
                 externalClient.register(rewriteFilter);
                 importClient.register(rewriteFilter);
@@ -771,7 +794,7 @@ public class Application extends ResourceConfig
                     xsltProc.getUnderlyingConfiguration().getGlobalDocumentPool().add(doc, baseURI.resolve(XSLTWriterBase.TRANSLATIONS_PATH).toString());
                 }
             }
-            catch (XPathException | TransformerException ex)
+            catch (TransformerException ex)
             {
                 if (log.isErrorEnabled()) log.error("Error reading mapped RDF document: {}", ex);
                 throw new IllegalStateException(ex);
@@ -902,7 +925,16 @@ public class Application extends ResourceConfig
             @Override
             protected void configure()
             {
-                bindFactory(ApplicationFactory.class).to(com.atomgraph.linkeddatahub.apps.model.Application.class).
+                bindFactory(ApplicationFactory.class).to(new TypeLiteral<Optional<com.atomgraph.linkeddatahub.apps.model.Application>>() {}).
+                in(RequestScoped.class);
+            }
+        });
+        register(new AbstractBinder()
+        {
+            @Override
+            protected void configure()
+            {
+                bindFactory(com.atomgraph.linkeddatahub.server.factory.UnwrappedApplicationFactory.class).to(com.atomgraph.linkeddatahub.apps.model.Application.class).
                 in(RequestScoped.class);
             }
         });
@@ -969,6 +1001,24 @@ public class Application extends ResourceConfig
     protected void registerResourceClasses()
     {
         register(Dispatcher.class);
+
+        // Conditionally register Google OAuth endpoints if configured
+        if (getProperty(com.atomgraph.linkeddatahub.vocabulary.Google.clientID.getURI()) != null &&
+            getProperty(com.atomgraph.linkeddatahub.vocabulary.Google.clientSecret.getURI()) != null)
+        {
+            register(com.atomgraph.linkeddatahub.resource.oauth2.google.Authorize.class);
+            register(com.atomgraph.linkeddatahub.resource.oauth2.google.Login.class);
+            if (log.isDebugEnabled()) log.debug("Google OAuth endpoints registered");
+        }
+
+        // Conditionally register ORCID OAuth endpoints if configured
+        if (getProperty(com.atomgraph.linkeddatahub.vocabulary.ORCID.clientID.getURI()) != null &&
+            getProperty(com.atomgraph.linkeddatahub.vocabulary.ORCID.clientSecret.getURI()) != null)
+        {
+            register(com.atomgraph.linkeddatahub.resource.oauth2.orcid.Authorize.class);
+            register(com.atomgraph.linkeddatahub.resource.oauth2.orcid.Login.class);
+            if (log.isDebugEnabled()) log.debug("ORCID OAuth endpoints registered");
+        }
     }
     
     /**
@@ -980,10 +1030,25 @@ public class Application extends ResourceConfig
         register(ApplicationFilter.class);
         register(OntologyFilter.class);
         register(ProxiedWebIDFilter.class);
-        register(IDTokenFilter.class);
         register(AuthorizationFilter.class);
         if (getMaxContentLength() != null) register(new ContentLengthLimitFilter(getMaxContentLength()));
         register(new RDFPostMediaTypeInterceptor()); // for application/x-www-form-urlencoded
+        
+        // Conditionally register Google OAuth filter if configured
+        if (getProperty(com.atomgraph.linkeddatahub.vocabulary.Google.clientID.getURI()) != null &&
+            getProperty(com.atomgraph.linkeddatahub.vocabulary.Google.clientSecret.getURI()) != null)
+        {
+            register(com.atomgraph.linkeddatahub.server.filter.request.auth.google.IDTokenFilter.class);
+            if (log.isDebugEnabled()) log.debug("Google OAuth filter registered");
+        }
+
+        // Conditionally register ORCID OAuth filter if configured
+        if (getProperty(com.atomgraph.linkeddatahub.vocabulary.ORCID.clientID.getURI()) != null &&
+            getProperty(com.atomgraph.linkeddatahub.vocabulary.ORCID.clientSecret.getURI()) != null)
+        {
+            register(com.atomgraph.linkeddatahub.server.filter.request.auth.orcid.IDTokenFilter.class);
+            if (log.isDebugEnabled()) log.debug("ORCID OAuth filter registered");
+        }
     }
 
     /**
@@ -991,9 +1056,10 @@ public class Application extends ResourceConfig
      */
     protected void registerContainerResponseFilters()
     {
+        register(new CORSFilter());
         register(new ResponseHeadersFilter());
         register(new XsltExecutableFilter());
-        if (isInvalidateCache()) register(new BackendInvalidationFilter());
+        if (isInvalidateCache()) register(new CacheInvalidationFilter());
 //        register(new ProvenanceFilter());
     }
     
@@ -1026,6 +1092,7 @@ public class Application extends ResourceConfig
         register(ResourceExistsExceptionMapper.class);
         register(QueryParseExceptionMapper.class);
         register(AuthenticationExceptionMapper.class);
+        register(ForbiddenExceptionMapper.class);
         register(AuthorizationExceptionMapper.class);
         register(MessagingExceptionMapper.class);
     }
@@ -1168,27 +1235,12 @@ public class Application extends ResourceConfig
     /**
      * Matches application by type and request URL.
      * 
-     * @param type app type
      * @param absolutePath request URL without the query string
      * @return app resource or null, if none matched
      */
-    public Resource matchApp(Resource type, URI absolutePath)
+    public Resource matchApp(URI absolutePath)
     {
-        return matchApp(getContextModel(), type, absolutePath); // make sure we return an immutable model
-    }
-    
-    /**
-     * Matches application by type and request URL in a given application model.
-     * It finds the apps where request URL is relative to the app base URI, and returns the one with the longest match.
-     * 
-     * @param appModel application model
-     * @param type application type
-     * @param absolutePath request URL without the query string
-     * @return app resource or null, if none matched
-     */
-    public Resource matchApp(Model appModel, Resource type, URI absolutePath)
-    {
-        return getLongestURIResource(getLengthMap(getRelativeBaseApps(appModel, type, absolutePath)));
+        return getAppByOrigin(getContextModel(), LAPP.Application, absolutePath); // make sure we return an immutable model
     }
     
     /**
@@ -1207,35 +1259,63 @@ public class Application extends ResourceConfig
     }
     
     /**
-     * Builds a base URI to application resource map from the application model.
+     * Normalizes a URI origin by adding explicit default ports (80 for HTTP, 443 for HTTPS).
+     * An origin consists of scheme, hostname, and port.
+     * This allows comparing origins with implicit and explicit default ports.
+     *
+     * @param uri the URI to normalize
+     * @return normalized origin string in format "scheme://host:port"
+     * @see <a href="https://developer.mozilla.org/en-US/docs/Glossary/Origin">Origin - MDN Web Docs</a>
+     */
+    public static String normalizeOrigin(URI uri)
+    {
+        if (uri == null) throw new IllegalArgumentException("URI cannot be null");
+
+        String scheme = uri.getScheme();
+        String host = uri.getHost();
+        int port = uri.getPort();
+
+        if (port == -1)
+        {
+            if ("https".equals(scheme)) port = 443;
+            else if ("http".equals(scheme)) port = 80;
+        }
+
+        return scheme + "://" + host + ":" + port;
+    }
+
+    /**
+     * Finds application by origin matching from the application model.
      * Applications are filtered by type first.
-     * 
+     *
      * @param model application model
      * @param type application type
      * @param absolutePath request URL (without the query string)
-     * @return URI to app map
+     * @return app resource or null if no match found
      */
-    public Map<URI, Resource> getRelativeBaseApps(Model model, Resource type, URI absolutePath)
+    public Resource getAppByOrigin(Model model, Resource type, URI absolutePath)
     {
         if (model == null) throw new IllegalArgumentException("Model cannot be null");
         if (type == null) throw new IllegalArgumentException("Resource cannot be null");
         if (absolutePath == null) throw new IllegalArgumentException("URI cannot be null");
 
-        Map<URI, Resource> apps = new HashMap<>();
-        
+        String requestOrigin = normalizeOrigin(absolutePath);
+
         ResIterator it = model.listSubjectsWithProperty(RDF.type, type);
         try
         {
             while (it.hasNext())
             {
                 Resource app = it.next();
-                
-                if (!app.hasProperty(LDT.base))
-                    throw new InternalServerErrorException(new IllegalStateException("Application resource <" + app.getURI() + "> has no ldt:base value"));
-                
-                URI base = URI.create(app.getPropertyResourceValue(LDT.base).getURI());
-                URI relative = base.relativize(absolutePath);
-                if (!relative.isAbsolute()) apps.put(base, app);
+
+                // Use origin-based matching - return immediately on match since origins are unique
+                if (app.hasProperty(LDH.origin))
+                {
+                    URI appOriginURI = URI.create(app.getPropertyResourceValue(LDH.origin).getURI());
+                    String normalizedAppOrigin = normalizeOrigin(appOriginURI);
+
+                    if (requestOrigin.equals(normalizedAppOrigin)) return app;
+                }
             }
         }
         finally
@@ -1243,7 +1323,7 @@ public class Application extends ResourceConfig
             it.close();
         }
 
-        return apps;
+        return null;
     }
     
     /**
@@ -1996,18 +2076,29 @@ public class Application extends ResourceConfig
     /**
      * A map of cached OpenID connect agent graphs.
      * User ID (ID token subject) is the cache key. Entries expire after the configured period of time.
-     * 
+     *
      * @return URI to model map
      */
     public ExpiringMap<String, Model> getOIDCModelCache()
     {
         return oidcModelCache;
     }
-    
+
+    /**
+     * A map of cached JWKS (JSON Web Key Set) responses for JWT verification.
+     * JWKS endpoint URI is the cache key. Entries expire after 1 day.
+     *
+     * @return JWKS endpoint to JsonObject map
+     */
+    public ExpiringMap<String, jakarta.json.JsonObject> getJWKSCache()
+    {
+        return jwksCache;
+    }
+
     /**
      * A map of cached (compiled) XSLT stylesheets.
      * Stylesheet URI is the cache key.
-     * 
+     *
      * @return URI to stylesheet map
      */
     public Map<URI, XsltExecutable> getXsltExecutableCache()

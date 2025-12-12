@@ -90,6 +90,7 @@ extension-element-prefixes="ixsl"
     <xsl:import href="bootstrap/2.3.2/imports/rdfs.xsl"/>
     <xsl:import href="bootstrap/2.3.2/imports/sioc.xsl"/>
     <xsl:import href="bootstrap/2.3.2/imports/sp.xsl"/>
+    <xsl:import href="bootstrap/2.3.2/imports/sh.xsl"/>
     <xsl:import href="bootstrap/2.3.2/resource.xsl"/>
     <xsl:import href="bootstrap/2.3.2/document.xsl"/>
     <xsl:import href="bootstrap/2.3.2/imports/services/youtube.xsl"/>
@@ -136,6 +137,7 @@ extension-element-prefixes="ixsl"
 <![CDATA[
 PREFIX  rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX  skos: <http://www.w3.org/2004/02/skos/core#>
+PREFIX  sh:   <http://www.w3.org/ns/shacl#>
 PREFIX  foaf: <http://xmlns.com/foaf/0.1/>
 PREFIX  sioc: <http://rdfs.org/sioc/ns#>
 PREFIX  dc:   <http://purl.org/dc/elements/1.1/>
@@ -149,14 +151,14 @@ WHERE
     {
     GRAPH ?graph
       { ?resource  a  $Type .
-        ?resource ((((((((rdfs:label|dc:title)|dct:title)|foaf:name)|foaf:givenName)|foaf:familyName)|sioc:name)|skos:prefLabel)|schema1:name)|schema2:name $label
+        ?resource rdfs:label|sh:name|dc:title|dct:title|foaf:name|foaf:givenName|foaf:familyName|sioc:name|skos:prefLabel|schema1:name|schema2:name $label
         FILTER isURI(?resource)
       }
-  }
+    }
     UNION
     {
         ?resource  a  $Type .
-        ?resource ((((((((rdfs:label|dc:title)|dct:title)|foaf:name)|foaf:givenName)|foaf:familyName)|sioc:name)|skos:prefLabel)|schema1:name)|schema2:name $label
+        ?resource rdfs:label|sh:name|dc:title|dct:title|foaf:name|foaf:givenName|foaf:familyName|sioc:name|skos:prefLabel|schema1:name|schema2:name $label
         FILTER isURI(?resource)
     }  
   }
@@ -276,7 +278,7 @@ WHERE
         <xsl:message>$sd:endpoint: <xsl:value-of select="$sd:endpoint"/></xsl:message>
         <xsl:message>ixsl:query-params()?uri: <xsl:value-of select="ixsl:query-params()?uri"/></xsl:message>
         <xsl:message>UTC offset: <xsl:value-of select="implicit-timezone()"/></xsl:message>
-        
+
         <!-- create a LinkedDataHub namespace -->
         <ixsl:set-property name="LinkedDataHub" select="ldh:new-object()"/>
         <ixsl:set-property name="base" select="$ldt:base" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
@@ -285,37 +287,66 @@ WHERE
         <ixsl:set-property name="graph" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/> <!-- used by graph.xsl -->
         <ixsl:set-property name="endpoint" select="$sd:endpoint" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
         <ixsl:set-property name="yasqe" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
-        <xsl:apply-templates select="ixsl:page()" mode="ldh:HTMLDocumentLoaded">
-            <xsl:with-param name="endpoint" select="$sd:endpoint"/>
-            <xsl:with-param name="container" select="id($body-id, ixsl:page())"/>
-            <xsl:with-param name="replace-content" select="false()"/>
-        </xsl:apply-templates>
-        <!-- only show first time message for authenticated agents -->
-        <xsl:if test="$acl:agent and not(contains(ixsl:get(ixsl:page(), 'cookie'), 'LinkedDataHub.first-time-message'))">
-            <xsl:for-each select="ixsl:page()//body">
-                <xsl:result-document href="?." method="ixsl:append-content">
-                    <xsl:call-template name="ldh:FirstTimeMessage"/>
-                </xsl:result-document>
-            </xsl:for-each>
-        </xsl:if>
-        <!-- initialize LinkedDataHub.apps (and the search dropdown, if it's shown) -->
-        <ixsl:set-property name="apps" select="$ldh:apps" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
-        <!-- #search-service may be missing (e.g. suppressed by extending stylesheet) -->
-        <xsl:for-each select="id('search-service', ixsl:page())">
-            <xsl:call-template name="ldh:RenderServices">
-                <xsl:with-param name="select" select="."/>
-                <xsl:with-param name="apps" select="$ldh:apps"/>
-            </xsl:call-template>
-        </xsl:for-each>
-        <!-- initialize document tree -->
-        <xsl:for-each select="id('doc-tree', ixsl:page())">
-            <xsl:result-document href="?." method="ixsl:replace-content">
-                <xsl:call-template name="ldh:DocTree"/>
-            </xsl:result-document>
-            <xsl:call-template name="ldh:DocTreeActivateHref">
-                <xsl:with-param name="href" select="base-uri(ixsl:page())"/>
-            </xsl:call-template>
-        </xsl:for-each>
+
+        <!-- handle OAuth ID token from URL fragment -->
+        <xsl:variable name="location-hash" select="ixsl:get(ixsl:get(ixsl:window(), 'location'), 'hash')" as="xs:string?"/>
+        <xsl:choose>
+            <xsl:when test="$location-hash and starts-with($location-hash, '#id_token=')">
+                <xsl:variable name="id-token" select="substring-after($location-hash, '#id_token=')" as="xs:string"/>
+                <xsl:variable name="href" select="xs:anyURI(substring-before(ixsl:get(ixsl:get(ixsl:window(), 'location'), 'href'), '#'))" as="xs:anyURI"/>
+                <!-- set cookie with id_token -->
+                <ixsl:set-property name="cookie" select="concat('LinkedDataHub.id_token=', $id-token, '; path=/; secure')" object="ixsl:page()"/>
+                <!-- reload page to render with authenticated user context -->
+                <xsl:variable name="controller" select="ixsl:abort-controller()"/>
+                <ixsl:set-property name="saxonController" select="$controller" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+                <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $href, 'headers': map{ 'Accept': 'application/xhtml+xml' } }" as="map(*)"/>
+                <xsl:variable name="context" select="
+                  map{
+                    'request': $request,
+                    'href': $href,
+                    'push-state': true()
+                  }" as="map(*)"/>
+                <ixsl:promise select="
+                  ixsl:http-request($context('request'), $controller)
+                    => ixsl:then(ldh:rethread-response($context, ?))
+                    => ixsl:then(ldh:handle-response#1)
+                    => ixsl:then(ldh:xhtml-document-loaded#1)
+                " on-failure="ldh:promise-failure#1"/>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:apply-templates select="ixsl:page()" mode="ldh:HTMLDocumentLoaded">
+                    <xsl:with-param name="endpoint" select="$sd:endpoint"/>
+                    <xsl:with-param name="container" select="id($body-id, ixsl:page())"/>
+                    <xsl:with-param name="replace-content" select="false()"/>
+                </xsl:apply-templates>
+                <!-- only show first time message for authenticated agents -->
+                <xsl:if test="$acl:agent and not(contains(ixsl:get(ixsl:page(), 'cookie'), 'LinkedDataHub.first-time-message'))">
+                    <xsl:for-each select="ixsl:page()//body">
+                        <xsl:result-document href="?." method="ixsl:append-content">
+                            <xsl:call-template name="ldh:FirstTimeMessage"/>
+                        </xsl:result-document>
+                    </xsl:for-each>
+                </xsl:if>
+                <!-- initialize LinkedDataHub.apps (and the search dropdown, if it's shown) -->
+                <ixsl:set-property name="apps" select="$ldh:apps" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+                <!-- #search-service may be missing (e.g. suppressed by extending stylesheet) -->
+                <xsl:for-each select="id('search-service', ixsl:page())">
+                    <xsl:call-template name="ldh:RenderServices">
+                        <xsl:with-param name="select" select="."/>
+                        <xsl:with-param name="apps" select="$ldh:apps"/>
+                    </xsl:call-template>
+                </xsl:for-each>
+                <!-- initialize document tree -->
+                <xsl:for-each select="id('doc-tree', ixsl:page())">
+                    <xsl:result-document href="?." method="ixsl:replace-content">
+                        <xsl:call-template name="ldh:DocTree"/>
+                    </xsl:result-document>
+                    <xsl:call-template name="ldh:DocTreeActivateHref">
+                        <xsl:with-param name="href" select="base-uri(ixsl:page())"/>
+                    </xsl:call-template>
+                </xsl:for-each>
+            </xsl:otherwise>
+        </xsl:choose>
     </xsl:template>
 
     <!-- TEMPLATES -->
@@ -493,11 +524,11 @@ WHERE
                 <xsl:result-document href="#breadcrumb-nav" method="ixsl:replace-content">
                     <!-- show label if the resource is external -->
                     <xsl:if test="not(starts-with($uri, $ldt:base))">
-                        <xsl:variable name="app" select="ldh:match-app($uri, ixsl:get(ixsl:window(), 'LinkedDataHub.apps'))" as="element()?"/>
+                        <xsl:variable name="app" select="ixsl:get(ixsl:window(), 'LinkedDataHub.apps')//rdf:Description[ldh:origin/@rdf:resource = ldh:origin(ldt:base())]" as="element()?"/>
                         <xsl:choose>
                             <!-- if a known app matches $uri, show link to its ldt:base -->
                             <xsl:when test="$app">
-                                <a href="{$app/ldt:base/@rdf:resource}" class="label label-info pull-left">
+                                <a href="{$app/ldh:origin/@rdf:resource}" class="label label-info pull-left">
                                     <xsl:apply-templates select="$app" mode="ac:label"/>
                                 </a>
                             </xsl:when>
