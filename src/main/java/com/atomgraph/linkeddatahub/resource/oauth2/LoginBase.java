@@ -573,17 +573,32 @@ public abstract class LoginBase
         else
             return getApplication().as(EndUserApplication.class).getAdminApplication();
     }
-    
+
+    /**
+     * Returns URI information for the current request.
+     *
+     * @return URI info
+     */
     public UriInfo getUriInfo()
     {
         return uriInfo;
     }
-    
+
+    /**
+     * Returns the system application.
+     *
+     * @return JAX-RS application
+     */
     public com.atomgraph.linkeddatahub.Application getSystem()
     {
         return system;
     }
-    
+
+    /**
+     * Returns the current application.
+     *
+     * @return application resource
+     */
     public Application getApplication()
     {
         return application;

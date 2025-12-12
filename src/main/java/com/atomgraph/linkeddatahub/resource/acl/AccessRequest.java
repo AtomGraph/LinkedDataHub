@@ -96,13 +96,28 @@ public class AccessRequest
         if (emailText == null) throw new InternalServerErrorException(new ConfigurationException(LDHC.requestAccessEMailText));
 
     }
-    
+
+    /**
+     * Implements the HTTP GET method.
+     *
+     * @param defaultGraph default graph flag
+     * @param graphUri graph URI
+     * @return response object
+     */
     @GET
     public Response get(@QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUri)
     {
         throw new NotAllowedException("GET is not allowed on this endpoint");
     }
-    
+
+    /**
+     * Implements the HTTP POST method for submitting access requests.
+     *
+     * @param model RDF model with access request data
+     * @param defaultGraph default graph flag
+     * @param graphUri graph URI
+     * @return response object
+     */
     @POST
     public Response post(Model model, @QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUri)
     {
@@ -191,7 +206,12 @@ public class AccessRequest
         
         return null;
     }
-    
+
+    /**
+     * Returns the current application.
+     *
+     * @return end-user application
+     */
     public EndUserApplication getApplication()
     {
         return application;

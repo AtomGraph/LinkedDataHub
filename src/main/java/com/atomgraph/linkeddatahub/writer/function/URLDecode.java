@@ -34,7 +34,8 @@ import net.sf.saxon.value.StringValue;
  */
 public class URLDecode extends ExtensionFunctionDefinition
 {
-    
+
+    /** The local name of the XSLT function */
     public static final String LOCAL_NAME = "url-decode";
     
     @Override

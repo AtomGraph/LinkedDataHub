@@ -102,7 +102,15 @@ public class Access
         aclQuery = new ParameterizedSparqlString(system.getACLQuery().toString());
         ownerAclQuery = new ParameterizedSparqlString(system.getOwnerACLQuery().toString());
     }
-    
+
+    /**
+     * Implements the HTTP GET method for retrieving access control information.
+     *
+     * @param unused SPARQL query parameter (unused)
+     * @param defaultGraphUris default graph URIs
+     * @param namedGraphUris named graph URIs
+     * @return response with access control data
+     */
     @GET
     public Response get(@QueryParam(QUERY) Query unused,
             @QueryParam(DEFAULT_GRAPH_URI) List<URI> defaultGraphUris, @QueryParam(NAMED_GRAPH_URI) List<URI> namedGraphUris)
@@ -240,7 +248,12 @@ public class Access
                 new HTMLMediaTypePredicate()).
             getResponseBuilder();
     }
-    
+
+    /**
+     * Returns the current request.
+     *
+     * @return request object
+     */
     public Request getRequest()
     {
         return request;
@@ -265,7 +278,12 @@ public class Access
     {
         return uriInfo;
     }
-    
+
+    /**
+     * Returns media types registry.
+     *
+     * @return media types
+     */
     public MediaTypes getMediaTypes()
     {
         return mediaTypes;

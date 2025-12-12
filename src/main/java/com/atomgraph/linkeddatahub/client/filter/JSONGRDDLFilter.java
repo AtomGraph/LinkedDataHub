@@ -145,7 +145,7 @@ public abstract class JSONGRDDLFilter implements ClientRequestFilter, ClientResp
      * @param requestURI original request URI for context
      * @return RDF/XML as string
      * @throws SaxonApiException if Saxon processing fails
-     * @throws java.io.IOException
+     * @throws java.io.IOException if I/O error occurs
      */
     protected String transformJSONToRDF(String jsonContent, URI requestURI) throws SaxonApiException, IOException
     {
