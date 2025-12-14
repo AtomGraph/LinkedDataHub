@@ -217,6 +217,8 @@ public class ProxyResourceBase extends com.atomgraph.client.model.impl.ProxyReso
     @Override
     public Response getResponse(Response clientResponse)
     {
+        if (clientResponse.getMediaType() == null) return Response.status(clientResponse.getStatus()).build();
+        
         return getResponse(clientResponse, clientResponse.getStatusInfo());
     }
     
@@ -224,7 +226,7 @@ public class ProxyResourceBase extends com.atomgraph.client.model.impl.ProxyReso
     {
         MediaType formatType = new MediaType(clientResponse.getMediaType().getType(), clientResponse.getMediaType().getSubtype()); // discard charset param
         Lang lang = RDFLanguages.contentTypeToLang(formatType.toString());
-        
+
         // check if we got SPARQL results first
         if (lang != null && ResultSetReaderRegistry.isRegistered(lang))
         {

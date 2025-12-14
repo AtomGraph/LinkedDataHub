@@ -19,7 +19,7 @@ add-agent-to-group.sh \
 
 curl -k -w "%{http_code}\n" -o /dev/null -f -s \
   -X POST \
-  -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
+  -E "$OWNER_CERT_FILE":"$OWNER_CERT_PWD" \
   -H 'Content-Type: application/x-www-form-urlencoded' \
   -H 'Accept: application/rdf+xml' \
   --url-query "uri=${ADMIN_BASE_URL}clear" \
