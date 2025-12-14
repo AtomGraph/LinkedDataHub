@@ -18,8 +18,11 @@ package com.atomgraph.linkeddatahub.server.model.impl;
 
 import com.atomgraph.client.MediaTypes;
 import com.atomgraph.client.util.DataManager;
+import com.atomgraph.client.util.HTMLMediaTypePredicate;
 import com.atomgraph.client.vocabulary.AC;
 import com.atomgraph.core.exception.BadGatewayException;
+import com.atomgraph.core.util.ModelUtils;
+import com.atomgraph.core.util.ResultSetUtils;
 import com.atomgraph.linkeddatahub.apps.model.Dataset;
 import com.atomgraph.linkeddatahub.client.LinkedDataClient;
 import com.atomgraph.linkeddatahub.client.filter.auth.IDTokenDelegationFilter;
@@ -52,15 +55,22 @@ import jakarta.ws.rs.client.Invocation;
 import jakarta.ws.rs.client.WebTarget;
 import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.EntityTag;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Request;
 import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response.StatusType;
 import jakarta.ws.rs.core.SecurityContext;
 import jakarta.ws.rs.core.UriInfo;
+import jakarta.ws.rs.core.Variant;
 import jakarta.ws.rs.ext.Providers;
 import org.apache.jena.query.ResultSet;
+import org.apache.jena.query.ResultSetRewindable;
 import org.apache.jena.rdf.model.Model;
+import org.apache.jena.riot.Lang;
+import org.apache.jena.riot.RDFLanguages;
+import org.apache.jena.riot.resultset.ResultSetReaderRegistry;
 import org.apache.jena.util.FileManager;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
 import org.glassfish.jersey.message.internal.MessageBodyProviderNotFoundException;
@@ -207,9 +217,77 @@ public class ProxyResourceBase extends com.atomgraph.client.model.impl.ProxyReso
     @Override
     public Response getResponse(Response clientResponse)
     {
-        if (clientResponse.getMediaType() == null) return Response.status(clientResponse.getStatus()).build();
+        return getResponse(clientResponse, clientResponse.getStatusInfo());
+    }
+    
+    public Response getResponse(Response clientResponse, StatusType statusType)
+    {
+        MediaType formatType = new MediaType(clientResponse.getMediaType().getType(), clientResponse.getMediaType().getSubtype()); // discard charset param
+        Lang lang = RDFLanguages.contentTypeToLang(formatType.toString());
+        
+        // check if we got SPARQL results first
+        if (lang != null && ResultSetReaderRegistry.isRegistered(lang))
+        {
+            ResultSetRewindable results = clientResponse.readEntity(ResultSetRewindable.class);
+            return getResponse(results, statusType);
+        }
+        
+        // fallback to RDF graph
+        Model description = clientResponse.readEntity(Model.class);
+        return getResponse(description, statusType);
+    }
+    
+    /**
+     * Returns response for the given RDF model.
+     * TO-DO: move down to Web-Client
+     * 
+     * @param model RDF model
+     * @param statusType response status
+     * @return response object
+     */
+    public Response getResponse(Model model, StatusType statusType)
+    {
+        List<Variant> variants = com.atomgraph.core.model.impl.Response.getVariants(getWritableMediaTypes(Model.class),
+                getLanguages(),
+                getEncodings());
 
-        return super.getResponse(clientResponse);
+        return new com.atomgraph.core.model.impl.Response(getRequest(),
+                model,
+                null,
+                new EntityTag(Long.toHexString(ModelUtils.hashModel(model))),
+                variants,
+                new HTMLMediaTypePredicate()).
+            getResponseBuilder().
+            status(statusType).
+            build();
+    }
+    
+    /**
+     * Returns response for the given SPARQL results.
+     * TO-DO: move down to Web-Client
+     * 
+     * @param resultSet SPARQL results
+     * @param statusType response status
+     * @return response object
+     */
+    public Response getResponse(ResultSetRewindable resultSet, StatusType statusType)
+    {
+        long hash = ResultSetUtils.hashResultSet(resultSet);
+        resultSet.reset();
+        
+        List<Variant> variants = com.atomgraph.core.model.impl.Response.getVariants(getWritableMediaTypes(ResultSet.class),
+                getLanguages(),
+                getEncodings());
+
+        return new com.atomgraph.core.model.impl.Response(getRequest(),
+                resultSet,
+                null,
+                new EntityTag(Long.toHexString(hash)),
+                variants,
+                new HTMLMediaTypePredicate()).
+            getResponseBuilder().
+            status(statusType).
+            build();
     }
     
     /**

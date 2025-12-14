@@ -187,7 +187,7 @@ The options are described in more detail in the [configuration documentation](ht
 
   If you need to start fresh and wipe the existing setup (e.g. after configuring a new base URI), you can do that using
   ```shell
-  sudo rm -rf data uploads && docker-compose down -v
+  sudo rm -rf fuseki uploads ssl datasets && docker-compose down -v
   ```
 
 _:warning: This will **remove the persisted data and files** as well as Docker volumes._
