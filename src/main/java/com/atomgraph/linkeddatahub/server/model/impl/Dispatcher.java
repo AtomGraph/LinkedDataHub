@@ -21,6 +21,7 @@ import com.atomgraph.linkeddatahub.apps.model.Dataset;
 import com.atomgraph.linkeddatahub.resource.Add;
 import com.atomgraph.linkeddatahub.resource.Generate;
 import com.atomgraph.linkeddatahub.resource.Namespace;
+import com.atomgraph.linkeddatahub.resource.SPARQLUpdateEndpointImpl;
 import com.atomgraph.linkeddatahub.resource.Transform;
 import com.atomgraph.linkeddatahub.resource.admin.Clear;
 import com.atomgraph.linkeddatahub.resource.admin.SignUp;
@@ -105,7 +106,7 @@ public class Dispatcher
     
     /**
      * Returns SPARQL protocol endpoint.
-     * 
+     *
      * @return endpoint resource
      */
     @Path("sparql")
@@ -115,8 +116,19 @@ public class Dispatcher
     }
 
     /**
+     * Returns SPARQL UPDATE endpoint for batched updates.
+     *
+     * @return endpoint resource
+     */
+    @Path("update")
+    public Class getSPARQLUpdate()
+    {
+        return getProxyClass().orElse(SPARQLUpdateEndpointImpl.class);
+    }
+
+    /**
      * Returns SPARQL endpoint for the in-memory ontology model.
-     * 
+     *
      * @return endpoint resource
      */
     @Path("ns")
