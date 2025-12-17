@@ -73,6 +73,25 @@
 
 }
 
+# SPARQL update authorization
+
+<${admin_origin}/acl/authorizations/sparql-update/>
+{
+
+    <${admin_origin}/acl/authorizations/sparql-update/> a dh:Item ;
+        sioc:has_container <${admin_origin}/acl/authorizations/> ;
+        dct:title "SPARQL update access" ;
+        foaf:primaryTopic <${admin_origin}/acl/authorizations/sparql-update/#this> .
+
+    <${admin_origin}/acl/authorizations/sparql-update/#this> a acl:Authorization ;
+        rdfs:label "SPARQL update access" ;
+        rdfs:comment "Allows only authenticated access" ;
+        acl:accessTo <${end_user_origin}/update> ;
+        acl:mode acl:Append ; # allow updates over POST
+        acl:agentClass acl:AuthenticatedAgent .
+
+}
+
 # write/append authorization
 
 <${admin_origin}/acl/authorizations/write-append/>
