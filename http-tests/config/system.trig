@@ -18,7 +18,7 @@
 <urn:linkeddatahub:apps/admin> a lapp:Application, lapp:AdminApplication ;
     dct:title "LinkedDataHub admin" ;
     # ldt:base <https://admin.localhost:4443/> ;
-    ldh:origin <https://admin.localhost:4443> ;
+    lapp:origin <https://admin.localhost:4443> ;
     ldt:ontology <https://w3id.org/atomgraph/linkeddatahub/admin#> ;
     ldt:service <urn:linkeddatahub:services/admin> ;
     ac:stylesheet <static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/admin/layout.xsl> ;
@@ -38,7 +38,7 @@
 <urn:linkeddatahub:apps/end-user> a lapp:Application, lapp:EndUserApplication ;
     dct:title "LinkedDataHub" ;
     # ldt:base <https://localhost:4443/> ;
-    ldh:origin <https://localhost:4443> ;
+    lapp:origin <https://localhost:4443> ;
     ldt:ontology <https://localhost:4443/ns#> ;
     ldt:service <urn:linkeddatahub:services/end-user> ;
     lapp:adminApplication <urn:linkeddatahub:apps/admin> ;
@@ -57,7 +57,7 @@
 
 <urn:linkeddatahub:apps/test/admin> a lapp:Application, lapp:AdminApplication ;
     dct:title "Test admin" ;
-    ldh:origin <https://admin.test.localhost:4443> ;
+    lapp:origin <https://admin.test.localhost:4443> ;
     ldt:ontology <https://w3id.org/atomgraph/linkeddatahub/admin#> ;
     ldt:service <urn:linkeddatahub:services/test/admin> ;
     ac:stylesheet <static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/admin/layout.xsl> ;
@@ -76,7 +76,7 @@
 
 <urn:linkeddatahub:apps/test/end-user> a lapp:Application, lapp:EndUserApplication ;
     dct:title "Test" ;
-    ldh:origin <https://test.localhost:4443> ;
+    lapp:origin <https://test.localhost:4443> ;
     ldt:ontology <https://test.localhost:4443/ns#> ;
     ldt:service <urn:linkeddatahub:services/test/end-user> ;
     lapp:adminApplication <urn:linkeddatahub:apps/test/admin> ;

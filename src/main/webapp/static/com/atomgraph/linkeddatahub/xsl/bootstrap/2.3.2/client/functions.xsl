@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE xsl:stylesheet [
+    <!ENTITY lapp   "https://w3id.org/atomgraph/linkeddatahub/apps#">
     <!ENTITY def    "https://w3id.org/atomgraph/linkeddatahub/default#">
     <!ENTITY ldh    "https://w3id.org/atomgraph/linkeddatahub#">
     <!ENTITY ac     "https://w3id.org/atomgraph/client#">
@@ -22,6 +23,7 @@ xmlns:map="http://www.w3.org/2005/xpath-functions/map"
 xmlns:json="http://www.w3.org/2005/xpath-functions"
 xmlns:array="http://www.w3.org/2005/xpath-functions/array"
 xmlns:fn="http://www.w3.org/2005/xpath-functions"
+xmlns:lapp="&lapp;"
 xmlns:ac="&ac;"
 xmlns:ldh="&ldh;"
 xmlns:rdf="&rdf;"
@@ -53,7 +55,7 @@ exclude-result-prefixes="#all"
         </xsl:choose>
     </xsl:function>
     
-    <xsl:function name="ldh:origin" as="xs:anyURI">
+    <xsl:function name="lapp:origin" as="xs:anyURI">
         <xsl:param name="uri" as="xs:anyURI"/>
 
         <!-- no trailing slash -->
@@ -61,7 +63,7 @@ exclude-result-prefixes="#all"
     </xsl:function>
     
     <xsl:function name="ldt:base" as="xs:anyURI">
-        <xsl:sequence select="xs:anyURI(ldh:origin(xs:anyURI(ixsl:location())) || '/')"/>
+        <xsl:sequence select="xs:anyURI(lapp:origin(xs:anyURI(ixsl:location())) || '/')"/>
     </xsl:function>
 
     <xsl:function name="acl:mode" as="xs:anyURI*">

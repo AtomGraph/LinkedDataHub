@@ -100,7 +100,7 @@ exclude-result-prefixes="#all">
     <xsl:output method="xhtml" encoding="UTF-8" indent="yes" omit-xml-declaration="yes" doctype-system="http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd" doctype-public="-//W3C//DTD XHTML 1.0 Strict//EN" media-type="application/xhtml+xml"/>
 
 <!--    <xsl:param name="ldh:base" as="xs:anyURI" static="yes"/>-->
-    <xsl:param name="ldh:origin" as="xs:anyURI"/>
+    <xsl:param name="lapp:origin" as="xs:anyURI"/>
     <xsl:param name="ldh:requestUri" as="xs:anyURI"/>
     <xsl:param name="ac:endpoint" select="resolve-uri('sparql', $ldt:base)" as="xs:anyURI"/>
     <xsl:param name="sd:endpoint" as="xs:anyURI?"/>
@@ -163,15 +163,13 @@ LIMIT   100
     <!-- the query has to support services that do not belong to any app. Use type URIs because that is what triggers Varnish invalidation. -->
     <xsl:variable name="app-query" as="xs:string">
         <![CDATA[
-            DESCRIBE ?resource
+            DESCRIBE ?app ?service
             WHERE
               { GRAPH ?graph
-                  {   { ?resource  a                    <https://w3id.org/atomgraph/linkeddatahub/apps#Application> ;
-                                  <https://www.w3.org/ns/ldt#base>  ?base
+                  {   { ?app <https://w3id.org/atomgraph/linkeddatahub/apps#origin> ?origin
                       }
                     UNION
-                      { ?resource  a                    <http://www.w3.org/ns/sparql-service-description#Service> ;
-                                  <http://www.w3.org/ns/sparql-service-description#endpoint>  ?endpoint
+                      { ?service <http://www.w3.org/ns/sparql-service-description#endpoint> ?endpoint
                       }
                   }
               }
@@ -272,9 +270,9 @@ LIMIT   100
 
     <xsl:template match="rdf:RDF" mode="xhtml:Title">
         <title>
-            <xsl:if test="$lapp:Application//*[ldh:origin/@rdf:resource = $ldh:origin]">
+            <xsl:if test="$lapp:Application//*[lapp:origin/@rdf:resource = $lapp:origin]">
                 <xsl:value-of>
-                    <xsl:apply-templates select="$lapp:Application//*[ldh:origin/@rdf:resource = $ldh:origin]" mode="ac:label"/>
+                    <xsl:apply-templates select="$lapp:Application//*[lapp:origin/@rdf:resource = $lapp:origin]" mode="ac:label"/>
                 </xsl:value-of>
                 <xsl:text> - </xsl:text>
             </xsl:if>
@@ -331,8 +329,8 @@ LIMIT   100
             </xsl:for-each>
         </xsl:for-each>
 
-        <xsl:if test="$lapp:Application//*[ldh:origin/@rdf:resource = $ldh:origin]">
-            <meta property="og:site_name" content="{ac:label($lapp:Application//*[ldh:origin/@rdf:resource = $ldh:origin])}"/>
+        <xsl:if test="$lapp:Application//*[lapp:origin/@rdf:resource = $lapp:origin]">
+            <meta property="og:site_name" content="{ac:label($lapp:Application//*[lapp:origin/@rdf:resource = $lapp:origin])}"/>
         </xsl:if>
     </xsl:template>
 
@@ -555,12 +553,12 @@ LIMIT   100
 
     <xsl:template match="rdf:RDF | srx:sparql" mode="bs2:Brand">
         <a class="brand" href="{$ldt:base}">
-            <xsl:if test="$lapp:Application//*[ldh:origin/@rdf:resource = $ldh:origin]/rdf:type/@rdf:resource = '&lapp;AdminApplication'">
+            <xsl:if test="$lapp:Application//*[lapp:origin/@rdf:resource = $lapp:origin]/rdf:type/@rdf:resource = '&lapp;AdminApplication'">
                 <xsl:attribute name="class" select="'brand admin'"/>
             </xsl:if>
 
             <xsl:value-of>
-                <xsl:apply-templates select="$lapp:Application//*[ldh:origin/@rdf:resource = $ldh:origin]" mode="ac:label"/>
+                <xsl:apply-templates select="$lapp:Application//*[lapp:origin/@rdf:resource = $lapp:origin]" mode="ac:label"/>
             </xsl:value-of>
         </a>
     </xsl:template>
@@ -719,14 +717,14 @@ LIMIT   100
                             </button>
                             <ul class="dropdown-menu pull-right">
                                 <xsl:variable name="apps" select="document($app-request-uri)" as="document-node()"/>
-                                <xsl:for-each select="$apps//*[ldh:origin/@rdf:resource]">
+                                <xsl:for-each select="$apps//*[lapp:origin/@rdf:resource]">
                                     <xsl:sort select="ac:label(.)" order="ascending" lang="{$ldt:lang}"/>
                                     <li>
 <!--                                        <xsl:if test="$active">
                                             <xsl:attribute name="class" select="'active'"/>
                                         </xsl:if>-->
 
-                                        <a href="{ldh:origin/@rdf:resource}" title="{ldh:origin/@rdf:resource}">
+                                        <a href="{lapp:origin/@rdf:resource}" title="{lapp:origin/@rdf:resource}">
                                             <xsl:apply-templates select="." mode="ac:label"/>
                                         </a>
                                     </li>
@@ -768,7 +766,7 @@ LIMIT   100
         <xsl:param name="google-signup" select="exists($google:clientID)" as="xs:boolean"/>
         <xsl:param name="orcid-signup" select="exists($orcid:clientID)" as="xs:boolean"/>
         <xsl:param name="webid-signup" select="$ldhc:enableWebIDSignUp" as="xs:boolean"/>
-        <xsl:param name="webid-signup-uri" select="resolve-uri('sign%20up', $lapp:Application//*[rdf:type/@rdf:resource = '&lapp;AdminApplication']/ldh:origin/@rdf:resource)" as="xs:anyURI"/>
+        <xsl:param name="webid-signup-uri" select="resolve-uri('sign%20up', $lapp:Application//*[rdf:type/@rdf:resource = '&lapp;AdminApplication']/lapp:origin/@rdf:resource)" as="xs:anyURI"/>
 
         <!-- OAuth providers dropdown -->
         <xsl:if test="$google-signup or $orcid-signup">
@@ -807,7 +805,7 @@ LIMIT   100
         <!-- WebID signup - separate button -->
         <xsl:if test="$webid-signup">
             <div class="pull-right">
-                <a class="btn btn-primary" href="{if (not(starts-with($ldt:base, $ldh:origin))) then ac:build-uri((), map{ 'uri': string($webid-signup-uri) }) else $webid-signup-uri}">
+                <a class="btn btn-primary" href="{if (not(starts-with($ldt:base, $lapp:origin))) then ac:build-uri((), map{ 'uri': string($webid-signup-uri) }) else $webid-signup-uri}">
                     <xsl:value-of>
                         <xsl:apply-templates select="key('resources', 'sign-up', document('translations.rdf'))" mode="ac:label"/>
                     </xsl:value-of>
@@ -818,7 +816,7 @@ LIMIT   100
     
     <xsl:template match="*" mode="bs2:SignUp"/>
     
-    <xsl:template match="*[ldh:origin/@rdf:resource]" mode="bs2:AppListItem">
+    <xsl:template match="*[lapp:origin/@rdf:resource]" mode="bs2:AppListItem">
         <xsl:param name="active" as="xs:boolean?"/>
         
         <li>
@@ -826,7 +824,7 @@ LIMIT   100
                 <xsl:attribute name="class" select="'active'"/>
             </xsl:if>
 
-            <a href="{ldh:origin/@rdf:resource}" title="{ldh:origin/@rdf:resource}">
+            <a href="{lapp:origin/@rdf:resource}" title="{lapp:origin/@rdf:resource}">
                 <xsl:value-of>
                     <xsl:apply-templates select="." mode="ac:label"/>
                 </xsl:value-of>
@@ -1249,10 +1247,10 @@ LIMIT   100
             </button>
 
             <ul class="dropdown-menu">
-                <xsl:if test="$foaf:Agent//@rdf:about and $lapp:Application//*[ldh:origin/@rdf:resource = $ldh:origin]/rdf:type/@rdf:resource = '&lapp;EndUserApplication'">
+                <xsl:if test="$foaf:Agent//@rdf:about and $lapp:Application//*[lapp:origin/@rdf:resource = $lapp:origin]/rdf:type/@rdf:resource = '&lapp;EndUserApplication'">
                     <li>
                         <xsl:for-each select="$lapp:Application">
-                            <a href="{key('resources', //*[ldh:origin/@rdf:resource = $ldh:origin]/lapp:adminApplication/(@rdf:resource, @rdf:nodeID))/ldh:origin/@rdf:resource}" target="_blank">
+                            <a href="{key('resources', //*[lapp:origin/@rdf:resource = $lapp:origin]/lapp:adminApplication/(@rdf:resource, @rdf:nodeID))/lapp:origin/@rdf:resource}" target="_blank">
                                 <xsl:value-of>
                                     <xsl:apply-templates select="key('resources', 'administration', document('translations.rdf'))" mode="ac:label"/>
                                 </xsl:value-of>

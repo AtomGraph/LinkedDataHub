@@ -82,4 +82,7 @@ public class LAPP
     /** Read-only property */
     public static final DatatypeProperty allowRead = m_model.createDatatypeProperty( NS + "allowRead" );
 
+    /** Origin property for subdomain-based application matching */
+    public static final ObjectProperty origin = m_model.createObjectProperty(NS + "origin");
+
 }

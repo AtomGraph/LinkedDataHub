@@ -510,11 +510,11 @@ WHERE
                 <xsl:result-document href="#breadcrumb-nav" method="ixsl:replace-content">
                     <!-- show label if the resource is external -->
                     <xsl:if test="not(starts-with($uri, $ldt:base))">
-                        <xsl:variable name="app" select="ixsl:get(ixsl:window(), 'LinkedDataHub.apps')//rdf:Description[ldh:origin/@rdf:resource = ldh:origin(ldt:base())]" as="element()?"/>
+                        <xsl:variable name="app" select="ixsl:get(ixsl:window(), 'LinkedDataHub.apps')//rdf:Description[lapp:origin/@rdf:resource = lapp:origin(ldt:base())]" as="element()?"/>
                         <xsl:choose>
                             <!-- if a known app matches $uri, show link to its ldt:base -->
                             <xsl:when test="$app">
-                                <a href="{$app/ldh:origin/@rdf:resource}" class="label label-info pull-left">
+                                <a href="{$app/lapp:origin/@rdf:resource}" class="label label-info pull-left">
                                     <xsl:apply-templates select="$app" mode="ac:label"/>
                                 </a>
                             </xsl:when>
@@ -750,7 +750,7 @@ WHERE
                 <xsl:when test="starts-with(?media-type, 'application/xhtml+xml')">
                     <xsl:variable name="endpoint-link" select="tokenize(?headers?link, ',')[contains(., '&sd;endpoint')]" as="xs:string?"/>
                     <xsl:variable name="endpoint" select="if ($endpoint-link) then xs:anyURI(substring-before(substring-after(substring-before($endpoint-link, ';'), '&lt;'), '&gt;')) else ()" as="xs:anyURI?"/>
-                    <xsl:variable name="base" select="ldh:origin($href)" as="xs:anyURI"/>
+                    <xsl:variable name="base" select="lapp:origin($href)" as="xs:anyURI"/>
                     <!-- set new base URI if the current app has changed -->
                     <xsl:if test="not($base = ldt:base())">
                         <xsl:message>Application change. Base URI: <xsl:value-of select="$base"/></xsl:message>

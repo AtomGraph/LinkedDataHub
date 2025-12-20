@@ -1309,9 +1309,9 @@ public class Application extends ResourceConfig
                 Resource app = it.next();
 
                 // Use origin-based matching - return immediately on match since origins are unique
-                if (app.hasProperty(LDH.origin))
+                if (app.hasProperty(LAPP.origin))
                 {
-                    URI appOriginURI = URI.create(app.getPropertyResourceValue(LDH.origin).getURI());
+                    URI appOriginURI = URI.create(app.getPropertyResourceValue(LAPP.origin).getURI());
                     String normalizedAppOrigin = normalizeOrigin(appOriginURI);
 
                     if (requestOrigin.equals(normalizedAppOrigin)) return app;

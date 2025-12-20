@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE xsl:stylesheet [
+    <!ENTITY lapp   "https://w3id.org/atomgraph/linkeddatahub/apps#">
     <!ENTITY lacl   "https://w3id.org/atomgraph/linkeddatahub/admin/acl#">
     <!ENTITY def    "https://w3id.org/atomgraph/linkeddatahub/default#">
     <!ENTITY ldh    "https://w3id.org/atomgraph/linkeddatahub#">
@@ -29,6 +30,7 @@ xmlns:xs="http://www.w3.org/2001/XMLSchema"
 xmlns:map="http://www.w3.org/2005/xpath-functions/map"
 xmlns:json="http://www.w3.org/2005/xpath-functions"
 xmlns:array="http://www.w3.org/2005/xpath-functions/array"
+xmlns:lapp="&lapp;"
 xmlns:ac="&ac;"
 xmlns:ldh="&ldh;"
 xmlns:rdf="&rdf;"
@@ -344,7 +346,7 @@ LIMIT   10
         <xsl:param name="button-class" select="'btn btn-primary btn-access-form'" as="xs:string?"/>
         <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
         <xsl:param name="this" as="xs:anyURI"/>
-        <xsl:param name="action" select="ldh:href(resolve-uri('access/request', ldh:origin($this)))" as="xs:anyURI"/>
+        <xsl:param name="action" select="ldh:href(resolve-uri('access/request', lapp:origin($this)))" as="xs:anyURI"/>
         <xsl:param name="legend-label" select="ac:label(key('resources', 'request-access', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri))))" as="xs:string"/>
         <xsl:param name="agent" as="xs:anyURI"/>
         
@@ -414,7 +416,7 @@ LIMIT   10
         <!-- TO-DO: support agent-group? -->
         <xsl:param name="this" as="xs:anyURI"/>
         <xsl:param name="access-modes" select="(xs:anyURI('&acl;Read'), xs:anyURI('&acl;Append'), xs:anyURI('&acl;Write'))" as="xs:anyURI*"/>
-        <xsl:param name="base" select="ldh:origin($this)" as="xs:anyURI"/>
+        <xsl:param name="base" select="lapp:origin($this)" as="xs:anyURI"/>
         
         <fieldset>
             <legend>URL-based access</legend>
@@ -714,7 +716,7 @@ LIMIT   10
     <xsl:template match="button[contains-token(@class, 'btn-access-form')]" mode="ixsl:onclick">
         <!-- TO-DO: fix for admin apps -->
         <xsl:param name="this" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/>
-        <xsl:variable name="request-uri" select="ldh:href(ac:build-uri(resolve-uri('access', ldh:origin($this)), map{ 'this': $this }))" as="xs:anyURI"/>
+        <xsl:variable name="request-uri" select="ldh:href(ac:build-uri(resolve-uri('access', lapp:origin($this)), map{ 'this': $this }))" as="xs:anyURI"/>
         <xsl:variable name="request" as="item()*">
             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                 <xsl:call-template name="onAccessResponseLoad">
