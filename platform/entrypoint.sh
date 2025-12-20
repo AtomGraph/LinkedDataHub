@@ -846,7 +846,7 @@ CLIENT_TRUSTSTORE_PASSWORD_PARAM="--stringparam ldhc:clientTrustStorePassword '$
 UPLOAD_ROOT_PARAM="--stringparam ldhc:uploadRoot 'file://$UPLOAD_ROOT' "
 SIGN_UP_CERT_VALIDITY_PARAM="--stringparam ldhc:signUpCertValidity '$SIGN_UP_CERT_VALIDITY' "
 CONTEXT_ENDPOINT_PARAM="--stringparam ldhc:contextEndpoint '$CONTEXT_ENDPOINT_URL' "
-MAIL_SMTP_HOST_PARAM="--stringparam ldhc:mail.smtp.host '$MAIL_SMTP_HOST' "
+MAIL_SMTP_HOST_PARAM="--stringparam mail.smtp.host '$MAIL_SMTP_HOST' "
 MAIL_SMTP_PORT_PARAM="--stringparam mail.smtp.port '$MAIL_SMTP_PORT' "
 MAIL_USER_PARAM="--stringparam mail.user '$MAIL_USER' "
 

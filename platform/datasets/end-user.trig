@@ -440,42 +440,42 @@ WHERE
         dct:title "LinkedDataHub" ;
         ldh:origin <https://localhost:4443> ;
         ldt:ontology <https://localhost:4443/ns#> ;
-        ldt:service <services/linkeddatahub/end-user/#this> ;
+        ldt:service <services/root/end-user/#this> ;
         lapp:adminApplication <apps/linkeddatahub/admin/#this> ;
         lapp:frontendProxy <http://varnish-frontend:6060/> ;
         lapp:public true .
 
 }
 
-<apps/linkeddatahub/admin/>
+<apps/root/admin/>
 {
 
-    <apps/linkeddatahub/admin/> a dh:Item ;
+    <apps/root/admin/> a dh:Item ;
         sioc:has_container <apps/> ;
-        dct:title "LinkedDataHub admin" ;
+        dct:title "Root admin" ;
         foaf:primaryTopic <apps/linkeddatahub/admin/#this> .
 
     <apps/linkeddatahub/admin/#this> a lapp:Application, lapp:AdminApplication ;
-        dct:title "LinkedDataHub admin" ;
+        dct:title "Root admin" ;
         ldh:origin <https://admin.localhost:4443> ;
         ldt:ontology <https://w3id.org/atomgraph/linkeddatahub/admin#> ;
-        ldt:service <services/linkeddatahub/admin/#this> ;
+        ldt:service <services/root/admin/#this> ;
         ac:stylesheet <static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/admin/layout.xsl> ;
         lapp:endUserApplication <apps/linkeddatahub/end-user/#this> ;
         lapp:frontendProxy <http://varnish-frontend:6060/> .
 
 }
 
-<services/linkeddatahub/end-user/>
+<services/root/end-user/>
 {
 
-    <services/linkeddatahub/end-user/> a dh:Item ;
+    <services/root/end-user/> a dh:Item ;
         sioc:has_container <services/> ;
-        dct:title "LinkedDataHub service" ;
-        foaf:primaryTopic <services/linkeddatahub/end-user/#this> .
+        dct:title "Root service" ;
+        foaf:primaryTopic <services/root/end-user/#this> .
 
-    <services/linkeddatahub/end-user/#this> a sd:Service ;
-        dct:title "LinkedDataHub service" ;
+    <services/root/end-user/#this> a sd:Service ;
+        dct:title "Root service" ;
         sd:supportedLanguage sd:SPARQL11Query, sd:SPARQL11Update ;
         sd:endpoint <http://fuseki-end-user:3030/ds/> ;
         a:graphStore <http://fuseki-end-user:3030/ds/> ;
@@ -484,15 +484,15 @@ WHERE
 
 }
 
-<services/linkeddatahub/admin/>
+<services/root/admin/>
 {
 
-    <services/linkeddatahub/admin/> a dh:Item ;
+    <services/root/admin/> a dh:Item ;
         sioc:has_container <services/> ;
         dct:title "LinkedDataHub admin service" ;
-        foaf:primaryTopic <services/linkeddatahub/admin/#this> .
+        foaf:primaryTopic <services/root/admin/#this> .
 
-    <services/linkeddatahub/admin/#this> a sd:Service ;
+    <services/root/admin/#this> a sd:Service ;
         dct:title "LinkedDataHub admin service" ;
         sd:supportedLanguage sd:SPARQL11Query, sd:SPARQL11Update ;
         sd:endpoint <http://fuseki-admin:3030/ds/> ;
