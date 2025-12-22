@@ -298,7 +298,7 @@ WHERE
 
     <!-- open a form for document editing -->
     
-    <xsl:template match="div[contains-token(@class, 'navbar')]//div[@id = 'doc-controls']//button[contains-token(@class, 'btn-edit')]" mode="ixsl:onclick">
+    <xsl:template match="div[contains-token(@class, 'action-bar')]//button[contains-token(@class, 'btn-edit')]" mode="ixsl:onclick">
         <xsl:param name="about" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/> <!-- editing the current document resources -->
         <xsl:param name="method" select="'patch'" as="xs:string"/>
         <xsl:param name="form-actions-class" select="'form-actions modal-footer'" as="xs:string?"/>

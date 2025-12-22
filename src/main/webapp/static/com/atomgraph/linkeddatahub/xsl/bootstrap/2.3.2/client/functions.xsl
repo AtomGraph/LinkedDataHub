@@ -76,7 +76,9 @@ exclude-result-prefixes="#all"
     </xsl:function>
     
     <xsl:function name="ac:mode" as="xs:anyURI*">
-        <xsl:variable name="nav-tab-class" select="id('layout-modes', ixsl:page())/li[contains-token(@class, 'active')]/@class" as="xs:string"/>
+        <xsl:variable name="mode-button" select="id('layout-modes', ixsl:page())" as="element()?"/>
+        <xsl:variable name="dropdown-menu" select="$mode-button/following-sibling::ul[contains-token(@class, 'dropdown-menu')]" as="element()?"/>
+        <xsl:variable name="active-item-class" select="$dropdown-menu/li[contains-token(@class, 'active')]/@class" as="xs:string?"/>
         <xsl:variable name="mode-classes" as="map(xs:string, xs:string)">
             <xsl:map>
                 <xsl:map-entry key="'content-mode'" select="'&ldh;ContentMode'"/>
@@ -86,8 +88,8 @@ exclude-result-prefixes="#all"
                 <xsl:map-entry key="'graph-mode'" select="'&ac;GraphMode'"/>
             </xsl:map>
         </xsl:variable>
-        <xsl:variable name="mode-class" select="map:keys($mode-classes)[contains-token($nav-tab-class, .)]" as="xs:string"/>
-        <xsl:sequence select="xs:anyURI(map:get($mode-classes, $mode-class))"/>
+        <xsl:variable name="mode-class" select="map:keys($mode-classes)[contains-token($active-item-class, .)]" as="xs:string?"/>
+        <xsl:sequence select="if ($mode-class) then xs:anyURI(map:get($mode-classes, $mode-class)) else ()"/>
     </xsl:function>
     
     <xsl:function name="sd:endpoint" as="xs:anyURI">

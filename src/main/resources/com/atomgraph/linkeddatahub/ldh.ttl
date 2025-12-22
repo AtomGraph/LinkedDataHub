@@ -522,6 +522,10 @@ ac:Timeline a rdfs:Class, owl:Class ;
 
 # individuals
 
+:ContentMode a ac:Mode ;
+    rdfs:label "Content" ;
+    rdfs:isDefinedBy : .
+
 ac:ChartMode a ac:Mode, ac:ContainerMode ;
     rdfs:label "Chart" ;
     rdfs:isDefinedBy ac: .

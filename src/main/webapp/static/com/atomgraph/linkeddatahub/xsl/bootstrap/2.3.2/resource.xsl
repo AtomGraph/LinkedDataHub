@@ -261,21 +261,33 @@ extension-element-prefixes="ixsl"
         <xsl:attribute name="class" select="concat($class, ' ', 'btn-agent')"/>
     </xsl:template>
 
+    <xsl:template match="*[@rdf:about = '&ldh;ContentMode']" mode="ldh:logo">
+        <xsl:param name="class" as="xs:string?"/>
+
+        <xsl:attribute name="class" select="concat($class, ' ', 'btn-content')"/>
+    </xsl:template>
+
     <xsl:template match="*[@rdf:about = '&ac;ReadMode']" mode="ldh:logo">
         <xsl:param name="class" as="xs:string?"/>
-        
+
         <xsl:attribute name="class" select="concat($class, ' ', 'btn-read')"/>
     </xsl:template>
 
     <xsl:template match="*[@rdf:about = '&ac;MapMode']" mode="ldh:logo">
         <xsl:param name="class" as="xs:string?"/>
-        
+
         <xsl:attribute name="class" select="concat($class, ' ', 'btn-map')"/>
+    </xsl:template>
+
+    <xsl:template match="*[@rdf:about = '&ac;ChartMode']" mode="ldh:logo">
+        <xsl:param name="class" as="xs:string?"/>
+
+        <xsl:attribute name="class" select="concat($class, ' ', 'btn-chart')"/>
     </xsl:template>
 
     <xsl:template match="*[@rdf:about = '&ac;GraphMode']" mode="ldh:logo">
         <xsl:param name="class" as="xs:string?"/>
-        
+
         <xsl:attribute name="class" select="concat($class, ' ', 'btn-graph')"/>
     </xsl:template>
 
@@ -397,9 +409,9 @@ extension-element-prefixes="ixsl"
         </div>
     </xsl:template>
 
-    <!-- MODE TABS -->
-    
-    <xsl:template match="*[@rdf:about]" mode="bs2:ModeTabsItem">
+    <!-- MODE LIST -->
+
+    <xsl:template match="*[@rdf:about]" mode="bs2:ModeListItem">
         <xsl:param name="absolute-path" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI" tunnel="yes"/>
         <xsl:param name="base-uri" as="xs:anyURI?"/>
         <xsl:param name="active" as="xs:boolean"/>
@@ -420,13 +432,14 @@ extension-element-prefixes="ixsl"
             </xsl:if>
 
             <a href="{ldh:href(ac:document-uri($base-uri), ldh:query-params(xs:anyURI(@rdf:about)))}">
+                <xsl:apply-templates select="." mode="ldh:logo"/>
                 <xsl:value-of>
                     <xsl:apply-templates select="." mode="ac:label"/>
                 </xsl:value-of>
             </a>
         </li>
     </xsl:template>
-    
+
     <!-- DEFAULT -->
 
     <!-- embed file content -->

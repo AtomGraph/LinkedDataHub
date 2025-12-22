@@ -835,7 +835,7 @@ WHERE
 
         <xsl:if test="$push-state">
             <xsl:call-template name="ldh:PushState">
-                <xsl:with-param name="href" select="ldh:href($href, map{})"/>
+                <xsl:with-param name="href" select="ldh:href($href, ldh:query-params(ac:mode()))"/>
                 <xsl:with-param name="title" select="/html/head/title"/>
                 <xsl:with-param name="container" select="$container"/>
             </xsl:call-template>

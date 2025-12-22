@@ -64,9 +64,13 @@ li button.btn-edit-constructors, li button.btn-add-data, li button.btn-add-ontol
 .btn.dropdown-toggle.btn-map { text-align: right; font-size: 0; color: transparent; background-image: url('../icons/ic_map_black_24px.svg'); background-position: center center; background-repeat: no-repeat; width: 64px; }
 .btn.dropdown-toggle.btn-graph { text-align: right; font-size: 0; color: transparent; background-image: url('../icons/ic_blur_on_black_24px.svg'); background-position: center center; background-repeat: no-repeat; width: 64px; }
 .btn.dropdown-toggle.btn-query { text-align: right; font-size: 0; color: transparent; background-image: url('../icons/ic_code_black_24px.svg'); background-position: center center; background-repeat: no-repeat; width: 64px; }
+.btn.dropdown-toggle.btn-content { text-align: right; font-size: 0; color: transparent; background-image: url('../icons/view_list_black_24dp.svg'); background-position: center center; background-repeat: no-repeat; width: 64px; }
+.btn.dropdown-toggle.btn-chart { text-align: right; font-size: 0; color: transparent; background-image: url('../icons/ic_show_chart_black_24px.svg'); background-position: center center; background-repeat: no-repeat; width: 64px; }
+.dropdown-menu > li > a.btn-content { background-image: url('../icons/view_list_black_24dp.svg'); background-position: 12px center; background-repeat: no-repeat; padding: 5px 5px 5px 40px; }
 .dropdown-menu > li > a.btn-read { background-image: url('../icons/ic_details_black_24px.svg'); background-position: 12px center; background-repeat: no-repeat; padding: 5px 5px 5px 40px; }
 .dropdown-menu > li > a.btn-edit { background-image: url('../icons/ic_create_black_24px.svg'); background-position: 12px center; background-repeat: no-repeat; padding: 5px 5px 5px 40px; }
 .dropdown-menu > li > a.btn-map { background-image: url('../icons/ic_map_black_24px.svg'); background-position: 12px center; background-repeat: no-repeat; padding: 5px 5px 5px 40px; }
+.dropdown-menu > li > a.btn-chart { background-image: url('../icons/ic_show_chart_black_24px.svg'); background-position: 12px center; background-repeat: no-repeat; padding: 5px 5px 5px 40px; }
 .dropdown-menu > li > a.btn-graph { background-image: url('../icons/ic_blur_on_black_24px.svg'); background-position: 12px center; background-repeat: no-repeat; padding: 5px 5px 5px 40px; }
 .dropdown-menu > li > a.btn-query { background-image: url('../icons/ic_code_black_24px.svg'); background-position: 12px center; background-repeat: no-repeat; padding: 5px 5px 5px 40px; }
 #doc-tree { display: none; width: 15%; position: fixed; left: 0; top: 106px; height: calc(100% - 106px); }

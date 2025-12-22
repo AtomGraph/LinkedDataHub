@@ -59,8 +59,8 @@ exclude-result-prefixes="#all">
 
     <!-- hide "Add data" button which otherwise would be shown because acl:Append is allowed for signup -->
     <xsl:template match="rdf:RDF[ac:absolute-path(ldh:request-uri()) = resolve-uri(encode-for-uri('sign up'), $ldt:base)]" mode="bs2:AddData" priority="2" use-when="system-property('xsl:product-name') = 'SAXON'"/>
-    
-    <xsl:template match="rdf:RDF[ac:absolute-path(ldh:request-uri()) = resolve-uri(encode-for-uri('sign up'), $ldt:base)]" mode="bs2:ModeTabs" priority="2" use-when="system-property('xsl:product-name') = 'SAXON'"/>
+
+    <xsl:template match="rdf:RDF[ac:absolute-path(ldh:request-uri()) = resolve-uri(encode-for-uri('sign up'), $ldt:base)]" mode="bs2:ModeList" priority="2" use-when="system-property('xsl:product-name') = 'SAXON'"/>
 
     <!-- disable the right nav (backlinks etc.) -->
     <xsl:template match="*[*][@rdf:about or @rdf:nodeID][ac:absolute-path(ldh:request-uri()) = resolve-uri(encode-for-uri('sign up'), $ldt:base)]" mode="bs2:Right" use-when="system-property('xsl:product-name') = 'SAXON'"/>

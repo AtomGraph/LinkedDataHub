@@ -647,12 +647,6 @@ LIMIT   100
                 
                 <div id="doc-controls" class="span4">
                     <xsl:apply-templates select="key('resources', ac:absolute-path(ldh:base-uri(.)))" mode="bs2:Timestamp"/>
-
-                    <xsl:if test="$acl:mode = '&acl;Write'">
-                        <button type="button" class="btn btn-edit pull-right">
-                            <xsl:apply-templates select="key('resources', '&ac;EditMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
-                        </button>
-                    </xsl:if>
                 </div>                
             </div>
         </div>
@@ -669,12 +663,18 @@ LIMIT   100
             <xsl:if test="$class">
                 <xsl:attribute name="class" select="$class"/>
             </xsl:if>
-            
+
             <xsl:apply-templates select="." mode="bs2:MediaTypeList">
                 <xsl:with-param name="uri" select="ac:absolute-path(ldh:base-uri(.))"/>
             </xsl:apply-templates>
 
             <xsl:apply-templates select="." mode="bs2:NavBarActions"/>
+            
+            <xsl:apply-templates select="." mode="bs2:ModeList">
+                <xsl:with-param name="has-content" select="$has-content"/>
+                <xsl:with-param name="active-mode" select="$ac:mode"/>
+                <xsl:with-param name="ajax-rendering" select="$ldh:ajaxRendering"/>
+            </xsl:apply-templates>
         </div>
     </xsl:template>
     
@@ -867,12 +867,6 @@ LIMIT   100
             <xsl:if test="exists($typeof)">
                 <xsl:attribute name="typeof" select="string-join($typeof, ' ')"/>
             </xsl:if>
-            
-            <xsl:apply-templates select="." mode="bs2:ModeTabs">
-                <xsl:with-param name="has-content" select="$has-content"/>
-                <xsl:with-param name="active-mode" select="$ac:mode"/>
-                <xsl:with-param name="ajax-rendering" select="$ldh:ajaxRendering"/>
-            </xsl:apply-templates>
 
             <xsl:choose>
                 <!-- error responses always rendered in bs2:Row mode, no matter what $ac:mode specifies -->
@@ -917,9 +911,6 @@ LIMIT   100
             </xsl:choose>
         </div>
     </xsl:template>
-        
-    <!-- don't show document-level tabs if the response returned an error or if we're in EditMode -->
-    <xsl:template match="rdf:RDF[key('resources-by-type', '&http;Response')]" mode="bs2:ModeTabs" priority="1"/>
 
     <xsl:template match="srx:sparql" mode="bs2:ContentBody">
         <xsl:param name="id" select="'content-body'" as="xs:string?"/>
@@ -1211,6 +1202,12 @@ LIMIT   100
                     <xsl:apply-templates select="key('resources', '&acl;Access', document(ac:document-uri('&acl;')))" mode="ac:label"/>
                 </button>
             </div>
+            
+            <xsl:if test="$acl:mode = '&acl;Write'">
+                <button type="button" class="btn btn-edit pull-right">
+                    <xsl:apply-templates select="key('resources', '&ac;EditMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
+                </button>
+            </xsl:if>
         </xsl:if>
     </xsl:template>
     
