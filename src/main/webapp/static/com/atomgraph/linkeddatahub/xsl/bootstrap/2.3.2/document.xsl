@@ -148,38 +148,10 @@ extension-element-prefixes="ixsl"
                     <xsl:attribute name="id" select="$id"/>
                 </xsl:if>
 
-                <xsl:choose>
-                    <xsl:when test="$active-mode = '&ldh;ContentMode'">
-                        <xsl:apply-templates select="key('resources', '&ldh;ContentMode', document(ac:document-uri('&ldh;')))" mode="ldh:logo">
-                            <xsl:with-param name="class" select="'btn dropdown-toggle'"/>
-                        </xsl:apply-templates>
-                    </xsl:when>
-                    <xsl:when test="$active-mode = '&ac;ReadMode'">
-                        <xsl:apply-templates select="key('resources', '&ac;ReadMode', document(ac:document-uri('&ac;')))" mode="ldh:logo">
-                            <xsl:with-param name="class" select="'btn dropdown-toggle'"/>
-                        </xsl:apply-templates>
-                    </xsl:when>
-                    <xsl:when test="$active-mode = '&ac;MapMode'">
-                        <xsl:apply-templates select="key('resources', '&ac;MapMode', document(ac:document-uri('&ac;')))" mode="ldh:logo">
-                            <xsl:with-param name="class" select="'btn dropdown-toggle'"/>
-                        </xsl:apply-templates>
-                    </xsl:when>
-                    <xsl:when test="$active-mode = '&ac;ChartMode'">
-                        <xsl:apply-templates select="key('resources', '&ac;ChartMode', document(ac:document-uri('&ac;')))" mode="ldh:logo">
-                            <xsl:with-param name="class" select="'btn dropdown-toggle'"/>
-                        </xsl:apply-templates>
-                    </xsl:when>
-                    <xsl:when test="$active-mode = '&ac;GraphMode'">
-                        <xsl:apply-templates select="key('resources', '&ac;GraphMode', document(ac:document-uri('&ac;')))" mode="ldh:logo">
-                            <xsl:with-param name="class" select="'btn dropdown-toggle'"/>
-                        </xsl:apply-templates>
-                    </xsl:when>
-                    <xsl:otherwise>
-                        <xsl:apply-templates select="key('resources', '&ac;ReadMode', document(ac:document-uri('&ac;')))" mode="ldh:logo">
-                            <xsl:with-param name="class" select="'btn dropdown-toggle'"/>
-                        </xsl:apply-templates>
-                    </xsl:otherwise>
-                </xsl:choose>
+                <xsl:variable name="effective-mode" select="if ($active-mode) then $active-mode else '&ac;ReadMode'" as="xs:anyURI"/>
+                <xsl:apply-templates select="key('resources', $effective-mode, document(ac:document-uri(string($effective-mode))))" mode="ldh:logo">
+                    <xsl:with-param name="class" select="'btn dropdown-toggle'"/>
+                </xsl:apply-templates>
                 <xsl:text> </xsl:text>
                 <span class="caret"></span>
             </button>
@@ -194,35 +166,15 @@ extension-element-prefixes="ixsl"
                     </a>
                 </li>
 
-                <xsl:for-each select="key('resources', '&ac;ReadMode', document(ac:document-uri('&ac;')))">
-                    <xsl:apply-templates select="." mode="bs2:ModeListItem">
-                        <xsl:with-param name="active" select="@rdf:about = $active-mode or (empty($active-mode) and not($has-content))"/>
-                        <xsl:with-param name="absolute-path" select="$absolute-path" tunnel="yes"/>
-                        <xsl:with-param name="base-uri" select="$base-uri"/>
-                    </xsl:apply-templates>
-                </xsl:for-each>
-                <xsl:for-each select="key('resources', '&ac;MapMode', document(ac:document-uri('&ac;')))">
-                    <xsl:apply-templates select="." mode="bs2:ModeListItem">
-                        <xsl:with-param name="active" select="@rdf:about = $active-mode"/>
-                        <xsl:with-param name="absolute-path" select="$absolute-path" tunnel="yes"/>
-                        <xsl:with-param name="base-uri" select="$base-uri"/>
-                    </xsl:apply-templates>
-                </xsl:for-each>
-                <xsl:if test="$ajax-rendering">
-                    <xsl:for-each select="key('resources', '&ac;ChartMode', document(ac:document-uri('&ac;')))">
+                <xsl:for-each select="('&ac;ReadMode', '&ac;MapMode', if ($ajax-rendering) then '&ac;ChartMode' else (), '&ac;GraphMode')">
+                    <xsl:variable name="mode-uri" select="." as="xs:string"/>
+                    <xsl:for-each select="key('resources', $mode-uri, document(ac:document-uri('&ac;')))">
                         <xsl:apply-templates select="." mode="bs2:ModeListItem">
-                            <xsl:with-param name="active" select="@rdf:about = $active-mode"/>
+                            <xsl:with-param name="active" select="if (@rdf:about = '&ac;ReadMode') then (@rdf:about = $active-mode or (empty($active-mode) and not($has-content))) else @rdf:about = $active-mode"/>
                             <xsl:with-param name="absolute-path" select="$absolute-path" tunnel="yes"/>
                             <xsl:with-param name="base-uri" select="$base-uri"/>
                         </xsl:apply-templates>
                     </xsl:for-each>
-                </xsl:if>
-                <xsl:for-each select="key('resources', '&ac;GraphMode', document(ac:document-uri('&ac;')))">
-                    <xsl:apply-templates select="." mode="bs2:ModeListItem">
-                        <xsl:with-param name="active" select="@rdf:about = $active-mode"/>
-                        <xsl:with-param name="absolute-path" select="$absolute-path" tunnel="yes"/>
-                        <xsl:with-param name="base-uri" select="$base-uri"/>
-                    </xsl:apply-templates>
                 </xsl:for-each>
             </ul>
         </div>
