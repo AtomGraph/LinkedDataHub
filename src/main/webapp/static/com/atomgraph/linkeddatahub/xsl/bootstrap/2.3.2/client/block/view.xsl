@@ -707,9 +707,11 @@ exclude-result-prefixes="#all"
         <!-- first time rendering the view results -->
         <xsl:if test="$initial-load">
             <xsl:result-document href="?." method="ixsl:replace-content">
-                <h2>
-                    <xsl:value-of select="$container/descendant::*[@property = '&dct;title']"/>
-                </h2>
+                <xsl:where-populated>
+                    <h2>
+                        <xsl:value-of select="$container/descendant::*[@property = '&dct;title']"/>
+                    </h2>
+                </xsl:where-populated>
   
                 <xsl:call-template name="bs2:ViewModeList">
                     <xsl:with-param name="active-mode" select="$active-mode"/>
