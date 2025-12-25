@@ -24,7 +24,7 @@ curl -k -f -s -o /dev/null \
   "${END_USER_BASE_URL}static/com/linkeddatahub/packages/skos/layout.xsl"
 
 # verify master stylesheet includes package
-curl -k -s "$END_USER_BASE_URL"static/localhost/layout.xsl \
+curl -k -s "$END_USER_BASE_URL"static/xsl/layout.xsl \
   | grep -q "com/linkeddatahub/packages/skos/layout.xsl"
 
 # uninstall package
@@ -42,5 +42,5 @@ curl -k -w "%{http_code}\n" -o /dev/null -s \
 | grep -q "$STATUS_NOT_FOUND"
 
 # verify master stylesheet no longer includes package
-curl -k -s "$END_USER_BASE_URL"static/localhost/layout.xsl \
+curl -k -s "$END_USER_BASE_URL"static/xsl/layout.xsl \
   | grep -v -q "com/linkeddatahub/packages/skos/layout.xsl"

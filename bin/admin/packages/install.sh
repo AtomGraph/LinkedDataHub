@@ -82,7 +82,7 @@ admin_uri() {
 }
 
 admin_base=$(admin_uri "$base")
-target_url="${admin_base}install-package"
+target_url="${admin_base}packages/install"
 
 if [ -n "$proxy" ]; then
     admin_proxy=$(admin_uri "$proxy")
@@ -94,8 +94,10 @@ else
     final_url="$target_url"
 fi
 
-# POST to install-package endpoint
+# POST to packages/install endpoint
 curl -k -w "%{http_code}\n" -E "${cert_pem_file}":"${cert_password}" \
+    -X POST \
     -H "Accept: text/turtle" \
-    -d "package-uri=${package_uri}" \
+    -H "Content-Type: application/x-www-form-urlencoded" \
+    --data-urlencode "package-uri=${package_uri}" \
     "${final_url}"

@@ -12,7 +12,7 @@
     dct:title "SKOS Package for LinkedDataHub" ;
     dct:description "Provides SKOS (Simple Knowledge Organization System) vocabulary support with custom templates for concept hierarchies, schemes, and collections." ;
     dct:creator <https://atomgraph.com/#company> ;
-    ldt:ontology <https://raw.githubusercontent.com/AtomGraph/LinkedDataHub-Apps/refs/heads/develop/packages/skos/ns.ttl> ;
+    ldt:ontology <https://raw.githubusercontent.com/AtomGraph/LinkedDataHub-Apps/refs/heads/develop/packages/skos/ns.ttl#> ;
     ac:stylesheet <https://raw.githubusercontent.com/AtomGraph/LinkedDataHub-Apps/refs/heads/develop/packages/skos/layout.xsl> .
 
 <https://atomgraph.com/#company> a foaf:Organization ;

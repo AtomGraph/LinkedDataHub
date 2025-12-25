@@ -24,5 +24,5 @@ curl -k -f -s -o /dev/null \
   "$END_USER_BASE_URL"static/com/linkeddatahub/packages/skos/layout.xsl
 
 # verify master stylesheet was regenerated and includes package import
-curl -k -s "${END_USER_BASE_URL}static/localhost/layout.xsl" \
+curl -k -s "${END_USER_BASE_URL}static/xsl/layout.xsl" \
   | grep -q "com/linkeddatahub/packages/skos/layout.xsl"

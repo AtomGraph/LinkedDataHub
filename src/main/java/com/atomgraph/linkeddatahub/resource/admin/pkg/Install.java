@@ -288,9 +288,8 @@ public class Install
             packagePaths.add(newPackagePath);
 
         // Regenerate master stylesheet
-        String hostname = app.getBaseURI().getHost();
         XsltMasterUpdater updater = new XsltMasterUpdater(getServletContext());
-        updater.regenerateMasterStylesheet(hostname, packagePaths);
+        updater.regenerateMasterStylesheet(packagePaths);
     }
 
     /**

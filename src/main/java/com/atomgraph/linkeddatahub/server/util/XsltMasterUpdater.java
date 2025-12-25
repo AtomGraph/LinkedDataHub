@@ -24,6 +24,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import jakarta.servlet.ServletContext;
+import jakarta.ws.rs.InternalServerErrorException;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.transform.OutputKeys;
@@ -37,6 +38,10 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.TransformerException;
+import org.w3c.dom.DOMException;
+import org.xml.sax.SAXException;
 
 /**
  * Updates master XSLT stylesheets with package import chains.
@@ -49,7 +54,6 @@ public class XsltMasterUpdater
     private static final Logger log = LoggerFactory.getLogger(XsltMasterUpdater.class);
 
     private static final String XSL_NS = "http://www.w3.org/1999/XSL/Transform";
-    private static final String XS_NS = "http://www.w3.org/2001/XMLSchema";
 
     private final ServletContext servletContext;
 
@@ -64,28 +68,25 @@ public class XsltMasterUpdater
     }
 
     /**
-     * Regenerates the master stylesheet for an application hostname.
-     * The master stylesheet must exist at /static/<hostname>/layout.xsl.
+     * Regenerates the master stylesheet for the application.
+     * The master stylesheet must exist at /static/xsl/layout.xsl.
      * This method loads it and adds/updates xsl:import elements for packages.
      *
-     * @param hostname the application hostname (e.g., "localhost")
      * @param packagePaths list of package paths to import (e.g., ["com/linkeddatahub/packages/skos"])
      * @throws IOException if file operations fail
      */
-    public void regenerateMasterStylesheet(String hostname, List<String> packagePaths) throws IOException
+    public void regenerateMasterStylesheet(List<String> packagePaths) throws IOException
     {
-        if (hostname == null) throw new IllegalArgumentException("Hostname cannot be null");
-
         try
         {
             Path staticDir = getStaticPath();
-            Path hostnameDir = staticDir.resolve(hostname);
-            Path masterFile = hostnameDir.resolve("layout.xsl");
+            Path xslDir = staticDir.resolve("xsl");
+            Path masterFile = xslDir.resolve("layout.xsl");
 
             // Master stylesheet must exist
             if (!Files.exists(masterFile))
             {
-                throw new jakarta.ws.rs.InternalServerErrorException("Master stylesheet does not exist: " + masterFile);
+                throw new InternalServerErrorException("Master stylesheet does not exist: " + masterFile);
             }
 
             // Load existing master stylesheet
@@ -136,7 +137,7 @@ public class XsltMasterUpdater
             }
 
             // Write to file
-            Files.createDirectories(hostnameDir);
+            Files.createDirectories(xslDir);
             TransformerFactory transformerFactory = TransformerFactory.newInstance();
             Transformer transformer = transformerFactory.newTransformer();
             transformer.setOutputProperty(OutputKeys.INDENT, "yes");
@@ -147,9 +148,9 @@ public class XsltMasterUpdater
             StreamResult result = new StreamResult(masterFile.toFile());
             transformer.transform(source, result);
 
-            if (log.isDebugEnabled()) log.debug("Regenerated master stylesheet for hostname '{}' at: {}", hostname, masterFile);
+            if (log.isDebugEnabled()) log.debug("Regenerated master stylesheet at: {}", masterFile);
         }
-        catch (Exception e)
+        catch (InternalServerErrorException | IOException | IllegalArgumentException | IllegalStateException | ParserConfigurationException | TransformerException | DOMException | SAXException e)
         {
             throw new IOException("Failed to regenerate master stylesheet", e);
         }
@@ -174,7 +175,7 @@ public class XsltMasterUpdater
     }
 
     /**
-     * Removes all xsl:import elements for packages.
+     * Removes all <samp>xsl:import</samp> elements for packages.
      * Identifies package imports by checking if they have a preceding comment containing "Package:".
      */
     private void removePackageImports(Element stylesheet)

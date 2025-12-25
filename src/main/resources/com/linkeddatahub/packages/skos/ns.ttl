@@ -1,24 +1,27 @@
-@prefix :	    <#> .
-@prefix ns:     <ns#> .
+@prefix :	<#> .
 @prefix ldh:	<https://w3id.org/atomgraph/linkeddatahub#> .
 @prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl:    <http://www.w3.org/2002/07/owl#> .
 @prefix sp: 	<http://spinrdf.org/sp#> .
 @prefix spin:	<http://spinrdf.org/spin#> .
 @prefix dct:	<http://purl.org/dc/terms/> .
 @prefix skos:   <http://www.w3.org/2004/02/skos/core#> .
 
+: a owl:Ontology ;
+    rdfs:label "SKOS package ontology".
+
 # Concept
 
 # narrower
 
-skos:Concept ldh:template ns:NarrowerConcepts.
+skos:Concept ldh:template :NarrowerConcepts.
 
-ns:NarrowerConcepts a ldh:View ;
+:NarrowerConcepts a ldh:View ;
     dct:title "Narrower concepts" ;
-    spin:query ns:SelectNarrowerConcepts ;
-    rdfs:isDefinedBy ns: .
+    spin:query :SelectNarrowerConcepts ;
+    rdfs:isDefinedBy : .
 
-ns:SelectNarrowerConcepts a sp:Select ;
+:SelectNarrowerConcepts a sp:Select ;
     rdfs:label "Select narrower concepts" ;
     sp:text """
 PREFIX  skos: <http://www.w3.org/2004/02/skos/core#>
@@ -36,18 +39,18 @@ WHERE
   }
 ORDER BY ?prefLabel
 """ ;
-    rdfs:isDefinedBy ns: .
+    rdfs:isDefinedBy : .
 
 # broader
 
-skos:Concept ldh:template ns:BroaderConcepts.
+skos:Concept ldh:template :BroaderConcepts.
 
-ns:BroaderConcepts a ldh:View ;
+:BroaderConcepts a ldh:View ;
     dct:title "Broader concepts" ;
-    spin:query ns:SelectBroaderConcepts ;
-    rdfs:isDefinedBy ns: .
+    spin:query :SelectBroaderConcepts ;
+    rdfs:isDefinedBy : .
 
-ns:SelectBroaderConcepts a sp:Select ;
+:SelectBroaderConcepts a sp:Select ;
     rdfs:label "Select broader concepts" ;
     sp:text """
 PREFIX  skos: <http://www.w3.org/2004/02/skos/core#>
@@ -65,18 +68,18 @@ WHERE
   }
 ORDER BY ?prefLabel
 """ ;
-    rdfs:isDefinedBy ns: .
+    rdfs:isDefinedBy : .
 
 # Collection
 
-skos:Collection ldh:template ns:CollectionMembers.
+skos:Collection ldh:template :CollectionMembers.
 
-ns:CollectionMembers a ldh:View ;
+:CollectionMembers a ldh:View ;
     dct:title "Collection members" ;
-    spin:query ns:SelectCollectionMembers ;
-    rdfs:isDefinedBy ns: .
+    spin:query :SelectCollectionMembers ;
+    rdfs:isDefinedBy : .
 
-ns:SelectCollectionMembers a sp:Select ;
+:SelectCollectionMembers a sp:Select ;
     rdfs:label "Select collection members" ;
     sp:text """
 PREFIX  skos: <http://www.w3.org/2004/02/skos/core#>
@@ -94,18 +97,18 @@ WHERE
   }
 ORDER BY ?prefLabel
 """ ;
-    rdfs:isDefinedBy ns: .
+    rdfs:isDefinedBy : .
 
 # ConceptScheme
 
-skos:ConceptScheme ldh:template ns:ConceptsInScheme.
+skos:ConceptScheme ldh:template :ConceptsInScheme.
 
-ns:ConceptsInScheme a ldh:View ;
+:ConceptsInScheme a ldh:View ;
     dct:title "Concepts in scheme" ;
-    spin:query ns:SelectConceptsInScheme ;
-    rdfs:isDefinedBy ns: .
+    spin:query :SelectConceptsInScheme ;
+    rdfs:isDefinedBy : .
 
-ns:SelectConceptsInScheme a sp:Select ;
+:SelectConceptsInScheme a sp:Select ;
     rdfs:label "Select concepts in scheme" ;
     sp:text """
 PREFIX  skos: <http://www.w3.org/2004/02/skos/core#>
@@ -120,4 +123,4 @@ WHERE
   }
 ORDER BY ?prefLabel
 """ ;
-    rdfs:isDefinedBy ns: .
+    rdfs:isDefinedBy : .
