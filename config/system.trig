@@ -21,7 +21,7 @@
     lapp:origin <https://admin.localhost:4443> ;
     ldt:ontology <https://w3id.org/atomgraph/linkeddatahub/admin#> ;
     ldt:service <urn:linkeddatahub:services/admin> ;
-    ac:stylesheet <static/xsl/layout.xsl> ;
+    ac:stylesheet <static/xsl/admin/layout.xsl> ;
     lapp:endUserApplication <urn:linkeddatahub:apps/end-user> ;
     lapp:frontendProxy <http://varnish-frontend:6060/> .
 
@@ -41,6 +41,7 @@
     lapp:origin <https://localhost:4443> ;
     ldt:ontology <https://localhost:4443/ns#> ;
     ldt:service <urn:linkeddatahub:services/end-user> ;
+    ac:stylesheet <static/xsl/layout.xsl> ;
     lapp:adminApplication <urn:linkeddatahub:apps/admin> ;
     lapp:frontendProxy <http://varnish-frontend:6060/> ;
     lapp:public true .

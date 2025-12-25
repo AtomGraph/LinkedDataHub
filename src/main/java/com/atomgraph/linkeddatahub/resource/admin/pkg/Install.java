@@ -20,6 +20,8 @@ import com.atomgraph.client.util.DataManager;
 import com.atomgraph.linkeddatahub.apps.model.AdminApplication;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import com.atomgraph.linkeddatahub.client.LinkedDataClient;
+import com.atomgraph.linkeddatahub.resource.admin.Clear;
+import com.atomgraph.linkeddatahub.server.security.AgentContext;
 import com.atomgraph.linkeddatahub.server.util.UriPath;
 import com.atomgraph.linkeddatahub.server.util.XsltMasterUpdater;
 import jakarta.inject.Inject;
@@ -34,21 +36,30 @@ import jakarta.ws.rs.POST;
 import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.client.Client;
 import jakarta.ws.rs.client.WebTarget;
+import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.MultivaluedHashMap;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.UriBuilder;
+import org.apache.commons.codec.binary.Hex;
 import org.apache.jena.rdf.model.Model;
+import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.vocabulary.OWL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import org.apache.jena.util.FileManager;
 
@@ -56,10 +67,11 @@ import org.apache.jena.util.FileManager;
  * JAX-RS resource that installs a LinkedDataHub package.
  * Package installation involves:
  * 1. Fetching package metadata
- * 2. Downloading package ontology (ns.ttl) and posting to namespace graph
- * 3. Downloading package stylesheet (layout.xsl) and saving to /static/packages/
- * 4. Regenerating application master stylesheet
- * 5. Adding ldh:import triple to application
+ * 2. Downloading package ontology and PUTting as new document under model/ontologies/{hash}/
+ * 3. Adding owl:imports of package ontology to namespace ontology
+ * 4. Downloading package stylesheet (layout.xsl) and saving to /static/{package-path}/
+ * 5. Regenerating application master stylesheet
+ * 6. Adding ldh:import triple to application (TODO)
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
@@ -70,8 +82,10 @@ public class Install
     private final com.atomgraph.linkeddatahub.apps.model.Application application;
     private final com.atomgraph.linkeddatahub.Application system;
     private final DataManager dataManager;
+    private final Optional<AgentContext> agentContext;
 
     @Context ServletContext servletContext;
+    @Context ResourceContext resourceContext;
 
     /**
      * Constructs endpoint.
@@ -79,15 +93,18 @@ public class Install
      * @param application matched application (admin app)
      * @param system system application
      * @param dataManager data manager
+     * @param agentContext authenticated agent context
      */
     @Inject
     public Install(com.atomgraph.linkeddatahub.apps.model.Application application,
                    com.atomgraph.linkeddatahub.Application system,
-                   DataManager dataManager)
+                   DataManager dataManager,
+                   Optional<AgentContext> agentContext)
     {
         this.application = application;
         this.system = system;
         this.dataManager = dataManager;
+        this.agentContext = agentContext;
     }
 
     /**
@@ -125,7 +142,7 @@ public class Install
             // 2. Download and install ontology
             if (log.isDebugEnabled()) log.debug("Downloading package ontology from: {}", ontology.getURI());
             Model ontologyModel = downloadOntology(ontology.getURI());
-            installOntology(endUserApp, ontologyModel);
+            installOntology(endUserApp, ontologyModel, ontology.getURI());
 
             // 3. Download and install stylesheet if present
             if (stylesheetURI != null)
@@ -150,7 +167,7 @@ public class Install
         catch (BadRequestException | IOException e)
         {
             log.error("Failed to install package: {}", packageURI, e);
-            throw new InternalServerErrorException("Package installation failed: " + e.getMessage(), e);
+            throw new WebApplicationException("Package installation failed: " + e.getMessage(), e);
         }
     }
 
@@ -242,18 +259,68 @@ public class Install
     }
 
     /**
-     * Installs ontology by POSTing to namespace graph.
+     * Installs ontology by PUTting as a new document and adding owl:imports to namespace ontology.
+     *
+     * @param app the end-user application
+     * @param ontologyModel the package ontology model
+     * @param packageOntologyURI the package ontology URI
+     * @throws IOException if installation fails
      */
-    private void installOntology(EndUserApplication app, Model ontologyModel) throws IOException
+    private void installOntology(EndUserApplication app, Model ontologyModel, String packageOntologyURI) throws IOException
     {
-        if (log.isDebugEnabled()) log.debug("Posting package ontology to namespace graph");
-
-        // POST to admin namespace graph
         AdminApplication adminApp = app.getAdminApplication();
-        String namespaceGraphURI = UriBuilder.fromUri(adminApp.getBaseURI()).path("model/ontologies/namespace").build().toString();
 
-        // Use Graph Store Protocol to add ontology to namespace graph
-        adminApp.getService().getGraphStoreClient().add(namespaceGraphURI, ontologyModel);
+        // 1. Create hash of package URI to use as document slug
+        String hash;
+        try
+        {
+            MessageDigest md = MessageDigest.getInstance("SHA-1");
+            md.update(packageOntologyURI.getBytes(StandardCharsets.UTF_8));
+            hash = Hex.encodeHexString(md.digest());
+            if (log.isDebugEnabled()) log.debug("Package ontology URI '{}' hashed to '{}'", packageOntologyURI, hash);
+        }
+        catch (NoSuchAlgorithmException e)
+        {
+            throw new IOException("Failed to hash package ontology URI", e);
+        }
+
+        // 2. PUT package ontology as a document under model/ontologies/{hash}/ (overwrites if exists)
+        URI ontologyDocumentURI = UriBuilder.fromUri(adminApp.getBaseURI()).path("ontologies/{hash}/").build(hash);
+        if (log.isDebugEnabled()) log.debug("PUTting package ontology to document: {}", ontologyDocumentURI);
+
+        LinkedDataClient ldc = LinkedDataClient.create(getSystem().getClient(), getSystem().getMediaTypes());
+
+        // Delegate agent credentials if authenticated
+        if (getAgentContext().isPresent())
+        {
+            if (log.isDebugEnabled()) log.debug("Delegating agent credentials for PUT request");
+            ldc = ldc.delegation(adminApp.getBaseURI(), getAgentContext().get());
+        }
+
+        try (Response putResponse = ldc.put(ontologyDocumentURI, ontologyModel, new MultivaluedHashMap<>()))
+        {
+            if (!putResponse.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
+            {
+                throw new IOException("Failed to PUT package ontology to " + ontologyDocumentURI + ": " + putResponse.getStatus());
+            }
+            if (log.isDebugEnabled()) log.debug("Package ontology PUT response status: {}", putResponse.getStatus());
+        }
+
+        // 3. Add owl:imports triple to namespace ontology in namespace graph
+        String namespaceOntologyURI = app.getOntology().getURI();
+        String namespaceGraphURI = UriBuilder.fromUri(adminApp.getBaseURI()).path("ontologies/namespace/").build().toString();
+
+        if (log.isDebugEnabled()) log.debug("Adding owl:imports from namespace ontology '{}' to package ontology '{}'", namespaceOntologyURI, packageOntologyURI);
+
+        Model importsModel = ModelFactory.createDefaultModel();
+        Resource nsOntology = importsModel.createResource(namespaceOntologyURI);
+        nsOntology.addProperty(OWL.imports, importsModel.createResource(packageOntologyURI));
+
+        adminApp.getService().getGraphStoreClient().add(namespaceGraphURI, importsModel);
+
+        // 4. Clear and reload namespace ontology from cache
+        if (log.isDebugEnabled()) log.debug("Clearing and reloading namespace ontology '{}'", namespaceOntologyURI);
+        getResourceContext().getResource(Clear.class).post(namespaceOntologyURI, null);
     }
 
     /**
@@ -348,12 +415,32 @@ public class Install
 
     /**
      * Returns RDF data manager.
-     * 
+     *
      * @return RDF data manager
      */
     public DataManager getDataManager()
     {
         return dataManager;
     }
-    
+
+    /**
+     * Returns JAX-RS resource context.
+     *
+     * @return resource context
+     */
+    public ResourceContext getResourceContext()
+    {
+        return resourceContext;
+    }
+
+    /**
+     * Returns the authenticated agent context.
+     *
+     * @return agent context
+     */
+    public Optional<AgentContext> getAgentContext()
+    {
+        return agentContext;
+    }
+
 }
