@@ -521,6 +521,8 @@ LIMIT   100
     
     <xsl:template match="rdf:RDF | srx:sparql" mode="bs2:NavBar">
         <div class="navbar navbar-fixed-top">
+            <xsl:apply-templates select="." mode="bs2:DocumentTabsBar"/>
+
             <div class="navbar-inner">
                 <div class="container-fluid">
                     <button class="btn btn-navbar">

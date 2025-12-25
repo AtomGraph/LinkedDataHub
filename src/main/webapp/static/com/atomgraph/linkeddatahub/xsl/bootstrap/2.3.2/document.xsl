@@ -132,6 +132,42 @@ extension-element-prefixes="ixsl"
         </div>
     </xsl:template>
     
+    <!-- DOCUMENT TABS -->
+    
+    <xsl:template match="rdf:RDF | srx:sparql" mode="bs2:DocumentTabsBar" use-when="system-property('xsl:product-name') = 'SAXON'">
+        <xsl:param name="id" as="xs:string?"/>
+        <xsl:param name="class" select="'navbar-inner tabs-bar'" as="xs:string?"/>
+
+        <div>
+            <xsl:if test="$id">
+                <xsl:attribute name="id" select="$id"/>
+            </xsl:if>
+            <xsl:if test="$class">
+                <xsl:attribute name="class" select="$class"/>
+            </xsl:if>
+
+            <div class="container-fluid">
+                <div class="row-fluid">
+                    <div class="span12">
+                        <ul class="nav nav-tabs">
+                            <li class="active">
+                                <a href="{ac:absolute-path(ldh:base-uri(.))}">
+                                    <xsl:value-of>
+                                        <xsl:apply-templates select="$lapp:Application//*[lapp:origin/@rdf:resource = $lapp:origin]" mode="ac:label"/>
+                                    </xsl:value-of>
+                                    <xsl:text> - </xsl:text>
+                                    <xsl:value-of>
+                                        <xsl:apply-templates select="key('resources', ac:absolute-path(ldh:base-uri(.)))" mode="ac:label"/>
+                                    </xsl:value-of>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </xsl:template>
+    
     <!-- MODE LIST -->
 
     <xsl:template match="rdf:RDF" mode="bs2:ModeList" priority="2" use-when="system-property('xsl:product-name') = 'SAXON'">
