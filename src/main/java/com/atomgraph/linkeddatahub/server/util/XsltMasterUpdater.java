@@ -20,11 +20,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 
 import jakarta.servlet.ServletContext;
-import jakarta.ws.rs.InternalServerErrorException;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.transform.OutputKeys;
@@ -36,12 +33,10 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.List;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
 import org.w3c.dom.DOMException;
-import org.xml.sax.SAXException;
 
 /**
  * Updates master XSLT stylesheets with package import chains.
@@ -54,6 +49,7 @@ public class XSLTMasterUpdater
     private static final Logger log = LoggerFactory.getLogger(XSLTMasterUpdater.class);
 
     private static final String XSL_NS = "http://www.w3.org/1999/XSL/Transform";
+    private static final String SYSTEM_STYLESHEET_HREF = "../com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/layout.xsl";
 
     private final ServletContext servletContext;
 
@@ -69,8 +65,7 @@ public class XSLTMasterUpdater
 
     /**
      * Regenerates the master stylesheet for the application.
-     * The master stylesheet must exist at /static/xsl/layout.xsl.
-     * This method loads it and adds/updates xsl:import elements for packages.
+     * Creates a fresh stylesheet with system import followed by package imports.
      *
      * @param packagePaths list of package paths to import (e.g., ["com/linkeddatahub/packages/skos"])
      * @throws IOException if file operations fail
@@ -83,58 +78,46 @@ public class XSLTMasterUpdater
             Path xslDir = staticDir.resolve("xsl");
             Path masterFile = xslDir.resolve("layout.xsl");
 
-            // Master stylesheet must exist
-            if (!Files.exists(masterFile))
-            {
-                throw new InternalServerErrorException("Master stylesheet does not exist: " + masterFile);
-            }
-
-            // Load existing master stylesheet
+            // Create fresh XML document
             DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
             factory.setNamespaceAware(true);
             DocumentBuilder builder = factory.newDocumentBuilder();
+            Document doc = builder.newDocument();
 
-            if (log.isDebugEnabled()) log.debug("Loading master stylesheet: {}", masterFile);
-            Document doc = builder.parse(masterFile.toFile());
+            // Create stylesheet root element
+            Element stylesheet = doc.createElementNS(XSL_NS, "xsl:stylesheet");
+            stylesheet.setAttribute("version", "3.0");
+            stylesheet.setAttribute("xmlns:xsl", XSL_NS);
+            stylesheet.setAttribute("xmlns:xs", "http://www.w3.org/2001/XMLSchema");
+            stylesheet.setAttribute("exclude-result-prefixes", "xs");
+            doc.appendChild(stylesheet);
 
-            // Get stylesheet root element
-            Element stylesheet = doc.getDocumentElement();
-            if (!stylesheet.getLocalName().equals("stylesheet") || !XSL_NS.equals(stylesheet.getNamespaceURI()))
-            {
-                throw new IllegalStateException("Root element must be xsl:stylesheet");
-            }
+            // Add system stylesheet import (lowest priority)
+            stylesheet.appendChild(doc.createTextNode("\n\n    "));
+            stylesheet.appendChild(doc.createComment("System stylesheet (lowest priority) "));
+            stylesheet.appendChild(doc.createTextNode("\n    "));
+            Element systemImport = doc.createElementNS(XSL_NS, "xsl:import");
+            systemImport.setAttribute("href", SYSTEM_STYLESHEET_HREF);
+            stylesheet.appendChild(systemImport);
 
-            // Remove all existing xsl:import elements for packages
-            removePackageImports(stylesheet);
-
-            // Add xsl:import elements for packages (after system import, before everything else)
-            Element systemImport = findSystemImport(stylesheet);
-            Node insertAfter = systemImport;
-
+            // Add package stylesheet imports
             if (packagePaths != null && !packagePaths.isEmpty())
             {
+                stylesheet.appendChild(doc.createTextNode("\n\n    "));
+                stylesheet.appendChild(doc.createComment(" Package stylesheets "));
+
                 for (String packagePath : packagePaths)
                 {
+                    stylesheet.appendChild(doc.createTextNode("\n    "));
                     Element importElement = doc.createElementNS(XSL_NS, "xsl:import");
                     importElement.setAttribute("href", "../" + packagePath + "/layout.xsl");
-
-                    // Add comment
-                    org.w3c.dom.Comment comment = doc.createComment(" Package: " + packagePath + " ");
-                    if (insertAfter.getNextSibling() != null)
-                    {
-                        stylesheet.insertBefore(comment, insertAfter.getNextSibling());
-                        stylesheet.insertBefore(importElement, insertAfter.getNextSibling());
-                    }
-                    else
-                    {
-                        stylesheet.appendChild(comment);
-                        stylesheet.appendChild(importElement);
-                    }
-                    insertAfter = importElement;
+                    stylesheet.appendChild(importElement);
 
                     if (log.isDebugEnabled()) log.debug("Added xsl:import for package: {}", packagePath);
                 }
             }
+
+            stylesheet.appendChild(doc.createTextNode("\n\n"));
 
             // Write to file
             Files.createDirectories(xslDir);
@@ -142,6 +125,7 @@ public class XSLTMasterUpdater
             Transformer transformer = transformerFactory.newTransformer();
             transformer.setOutputProperty(OutputKeys.INDENT, "yes");
             transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
+            transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "no");
             transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
 
             DOMSource source = new DOMSource(doc);
@@ -150,68 +134,9 @@ public class XSLTMasterUpdater
 
             if (log.isDebugEnabled()) log.debug("Regenerated master stylesheet at: {}", masterFile);
         }
-        catch (InternalServerErrorException | IOException | IllegalArgumentException | IllegalStateException | ParserConfigurationException | TransformerException | DOMException | SAXException e)
+        catch (ParserConfigurationException | TransformerException | DOMException e)
         {
             throw new IOException("Failed to regenerate master stylesheet", e);
-        }
-    }
-
-    /**
-     * Finds the system stylesheet import element.
-     */
-    private Element findSystemImport(Element stylesheet)
-    {
-        NodeList imports = stylesheet.getElementsByTagNameNS(XSL_NS, "import");
-        for (int i = 0; i < imports.getLength(); i++)
-        {
-            Element importElem = (Element) imports.item(i);
-            String href = importElem.getAttribute("href");
-            if (href.contains("/com/atomgraph/linkeddatahub/xsl/bootstrap/"))
-            {
-                return importElem;
-            }
-        }
-        throw new IllegalStateException("System stylesheet import not found");
-    }
-
-    /**
-     * Removes all <samp>xsl:import</samp> elements for packages.
-     * Identifies package imports by their href pattern: relative paths that are not the system stylesheet.
-     */
-    private void removePackageImports(Element stylesheet)
-    {
-        NodeList imports = stylesheet.getElementsByTagNameNS(XSL_NS, "import");
-        List<Element> toRemove = new ArrayList<>();
-
-        for (int i = 0; i < imports.getLength(); i++)
-        {
-            Element importElem = (Element) imports.item(i);
-            String href = importElem.getAttribute("href");
-
-            // Check if this is a package import based on href pattern
-            // Package imports: start with "../", don't contain system path, end with "/layout.xsl"
-            if (href.startsWith("../") &&
-                !href.contains("/com/atomgraph/linkeddatahub/xsl/") &&
-                href.endsWith("/layout.xsl"))
-            {
-                toRemove.add(importElem);
-            }
-        }
-
-        for (Element elem : toRemove)
-        {
-            // Remove preceding comment if it exists
-            Node prev = elem.getPreviousSibling();
-            while (prev != null && prev.getNodeType() == Node.TEXT_NODE)
-            {
-                prev = prev.getPreviousSibling();
-            }
-            if (prev != null && prev.getNodeType() == Node.COMMENT_NODE)
-            {
-                stylesheet.removeChild(prev);
-            }
-
-            stylesheet.removeChild(elem);
         }
     }
 
