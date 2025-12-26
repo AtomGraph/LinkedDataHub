@@ -49,9 +49,9 @@ import org.xml.sax.SAXException;
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-public class XsltMasterUpdater
+public class XSLTMasterUpdater
 {
-    private static final Logger log = LoggerFactory.getLogger(XsltMasterUpdater.class);
+    private static final Logger log = LoggerFactory.getLogger(XSLTMasterUpdater.class);
 
     private static final String XSL_NS = "http://www.w3.org/1999/XSL/Transform";
 
@@ -62,7 +62,7 @@ public class XsltMasterUpdater
      *
      * @param servletContext the servlet context
      */
-    public XsltMasterUpdater(ServletContext servletContext)
+    public XSLTMasterUpdater(ServletContext servletContext)
     {
         this.servletContext = servletContext;
     }
@@ -176,7 +176,7 @@ public class XsltMasterUpdater
 
     /**
      * Removes all <samp>xsl:import</samp> elements for packages.
-     * Identifies package imports by checking if they have a preceding comment containing "Package:".
+     * Identifies package imports by their href pattern: relative paths that are not the system stylesheet.
      */
     private void removePackageImports(Element stylesheet)
     {
@@ -188,29 +188,19 @@ public class XsltMasterUpdater
             Element importElem = (Element) imports.item(i);
             String href = importElem.getAttribute("href");
 
-            // Check if this is a package import by looking for "../" prefix and preceding comment
-            if (href.startsWith("../") && !href.contains("/com/atomgraph/linkeddatahub/xsl/"))
+            // Check if this is a package import based on href pattern
+            // Package imports: start with "../", don't contain system path, end with "/layout.xsl"
+            if (href.startsWith("../") &&
+                !href.contains("/com/atomgraph/linkeddatahub/xsl/") &&
+                href.endsWith("/layout.xsl"))
             {
-                // Verify it has a package comment
-                Node prev = importElem.getPreviousSibling();
-                while (prev != null && prev.getNodeType() == Node.TEXT_NODE)
-                {
-                    prev = prev.getPreviousSibling();
-                }
-                if (prev != null && prev.getNodeType() == Node.COMMENT_NODE)
-                {
-                    String commentText = prev.getNodeValue();
-                    if (commentText.contains("Package:"))
-                    {
-                        toRemove.add(importElem);
-                    }
-                }
+                toRemove.add(importElem);
             }
         }
 
         for (Element elem : toRemove)
         {
-            // Remove preceding comment if it's a package comment
+            // Remove preceding comment if it exists
             Node prev = elem.getPreviousSibling();
             while (prev != null && prev.getNodeType() == Node.TEXT_NODE)
             {
@@ -218,11 +208,7 @@ public class XsltMasterUpdater
             }
             if (prev != null && prev.getNodeType() == Node.COMMENT_NODE)
             {
-                String commentText = prev.getNodeValue();
-                if (commentText.contains("Package:"))
-                {
-                    stylesheet.removeChild(prev);
-                }
+                stylesheet.removeChild(prev);
             }
 
             stylesheet.removeChild(elem);

@@ -23,14 +23,14 @@ import com.atomgraph.linkeddatahub.client.LinkedDataClient;
 import com.atomgraph.linkeddatahub.resource.admin.Clear;
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
 import com.atomgraph.linkeddatahub.server.util.UriPath;
-import com.atomgraph.linkeddatahub.server.util.XsltMasterUpdater;
+import com.atomgraph.linkeddatahub.server.util.XSLTMasterUpdater;
+import static com.atomgraph.server.status.UnprocessableEntityStatus.UNPROCESSABLE_ENTITY;
 import jakarta.inject.Inject;
 import jakarta.servlet.ServletContext;
 import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.FormParam;
 import jakarta.ws.rs.HeaderParam;
-import jakarta.ws.rs.InternalServerErrorException;
 import jakarta.ws.rs.NotFoundException;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.WebApplicationException;
@@ -61,6 +61,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import org.apache.jena.ontology.ConversionException;
 import org.apache.jena.util.FileManager;
 
 /**
@@ -120,40 +121,46 @@ public class Install
     {
         if (packageURI == null) throw new BadRequestException("Package URI not specified");
 
+        EndUserApplication endUserApp = getApplication().as(AdminApplication.class).getEndUserApplication();
+
+        if (log.isInfoEnabled()) log.info("Installing package: {}", packageURI);
+
+        // 1. Fetch package
+        com.atomgraph.linkeddatahub.apps.model.Package pkg = getPackage(packageURI);
+        if (pkg == null)
+            throw new WebApplicationException("Loading package failed", UNPROCESSABLE_ENTITY.getStatusCode()); // 422 Unprocessable Entity
+
+        Resource ontology = pkg.getOntology();
+        Resource stylesheet = pkg.getStylesheet();
+
+        // either ontology or stylesheet need to be specified, or both
+        if (ontology == null && stylesheet == null)
+            throw new WebApplicationException("Package ontology and stylesheet are both unspecified", UNPROCESSABLE_ENTITY.getStatusCode()); // 422 Unprocessable Entity
+
         try
         {
-            EndUserApplication endUserApp = getApplication().as(AdminApplication.class).getEndUserApplication();
-
-            if (log.isInfoEnabled()) log.info("Installing package: {}", packageURI);
-
-            // 1. Fetch package
-            com.atomgraph.linkeddatahub.apps.model.Package pkg = getPackage(packageURI);
-            if (pkg == null) throw new BadRequestException("Package not found: " + packageURI);
-
-            Resource ontology = pkg.getOntology();
-            Resource stylesheet = pkg.getStylesheet();
-
-            if (ontology == null) throw new BadRequestException("Package ontology not found");
-
-            URI stylesheetURI = (stylesheet != null) ? URI.create(stylesheet.getURI()) : null;
-
             String packagePath = UriPath.convert(packageURI);
 
-            // 2. Download and install ontology
-            if (log.isDebugEnabled()) log.debug("Downloading package ontology from: {}", ontology.getURI());
-            Model ontologyModel = downloadOntology(ontology.getURI());
-            installOntology(endUserApp, ontologyModel, ontology.getURI());
+            // 2. Download and install ontology if present
+            if (ontology != null)
+            {
+                if (log.isDebugEnabled()) log.debug("Downloading package ontology from: {}", ontology.getURI());
+                Model ontologyModel = downloadOntology(ontology.getURI());
+                installOntology(endUserApp, ontologyModel, ontology.getURI());
+            }
 
             // 3. Download and install stylesheet if present
-            if (stylesheetURI != null)
+            if (stylesheet != null)
             {
+                URI stylesheetURI = URI.create(stylesheet.getURI());
+
                 if (log.isDebugEnabled()) log.debug("Downloading package stylesheet from: {}", stylesheetURI);
                 String stylesheetContent = downloadStylesheet(stylesheetURI);
                 installStylesheet(packagePath, stylesheetContent);
+                
+                // 4. Regenerate master stylesheet
+                regenerateMasterStylesheet(endUserApp, packagePath);
             }
-
-            // 4. Regenerate master stylesheet
-            regenerateMasterStylesheet(endUserApp, packagePath);
 
             // 5. Add ldh:import triple to application (in system.trig)
             addImportToApplication(endUserApp, packageURI);
@@ -164,7 +171,7 @@ public class Install
             URI redirectURI = (referer != null) ? referer : endUserApp.getBaseURI();
             return Response.seeOther(redirectURI).build();
         }
-        catch (BadRequestException | IOException e)
+        catch (IOException e)
         {
             log.error("Failed to install package: {}", packageURI, e);
             throw new WebApplicationException("Package installation failed: " + e.getMessage(), e);
@@ -178,49 +185,41 @@ public class Install
      * @param packageURI the package URI (e.g., https://packages.linkeddatahub.com/skos/#this)
      * @return Package instance
      * @throws NotFoundException if package cannot be found (404)
-     * @throws InternalServerErrorException if package cannot be loaded for other reasons
      */
     private com.atomgraph.linkeddatahub.apps.model.Package getPackage(String packageURI)
     {
+        if (log.isDebugEnabled()) log.debug("Loading package from: {}", packageURI);
+
+        final Model model;
+
+        // check if we have the model in the cache first and if yes, return it from there instead making an HTTP request
+        if (((FileManager)getDataManager()).hasCachedModel(packageURI) ||
+                (getDataManager().isResolvingMapped() && getDataManager().isMapped(packageURI))) // read mapped URIs (such as system ontologies) from a file
+        {
+            if (log.isDebugEnabled()) log.debug("hasCachedModel({}): {}", packageURI, ((FileManager)getDataManager()).hasCachedModel(packageURI));
+            if (log.isDebugEnabled()) log.debug("isMapped({}): {}", packageURI, getDataManager().isMapped(packageURI));
+            model = getDataManager().loadModel(packageURI);
+        }
+        else
+        {
+            LinkedDataClient ldc = LinkedDataClient.create(getSystem().getClient(), getSystem().getMediaTypes());
+            model = ldc.getModel(packageURI);
+        }
+
         try
         {
-            if (log.isDebugEnabled()) log.debug("Loading package from: {}", packageURI);
-
-            final Model model;
-            
-            // check if we have the model in the cache first and if yes, return it from there instead making an HTTP request
-            if (((FileManager)getDataManager()).hasCachedModel(packageURI) ||
-                    (getDataManager().isResolvingMapped() && getDataManager().isMapped(packageURI))) // read mapped URIs (such as system ontologies) from a file
-            {
-                if (log.isDebugEnabled()) log.debug("hasCachedModel({}): {}", packageURI, ((FileManager)getDataManager()).hasCachedModel(packageURI));
-                if (log.isDebugEnabled()) log.debug("isMapped({}): {}", packageURI, getDataManager().isMapped(packageURI));
-                model = getDataManager().loadModel(packageURI);
-            }
-            else
-            {
-                LinkedDataClient ldc = LinkedDataClient.create(getSystem().getClient(), getSystem().getMediaTypes());
-                model = ldc.getModel(packageURI);
-            }
-
             return model.getResource(packageURI).as(com.atomgraph.linkeddatahub.apps.model.Package.class);
         }
-        catch (WebApplicationException e)
+        catch (ConversionException ex)
         {
-            // Re-throw HTTP client errors from LinkedDataClient as-is (404, 403, etc.)
-            log.error("HTTP error loading package from: {}", packageURI, e);
-            throw e;
-        }
-        catch (Exception e)
-        {
-            log.error("Failed to load package from: {}", packageURI, e);
-            throw new InternalServerErrorException("Failed to load package from: " + packageURI, e);
+            return null;
         }
     }
 
     /**
      * Downloads RDF from a URI using LinkedDataClient.
      */
-    private Model downloadOntology(String uri) throws IOException
+    private Model downloadOntology(String uri)
     {
         if (log.isDebugEnabled()) log.debug("Downloading ontology from: {}", uri);
 
@@ -355,7 +354,7 @@ public class Install
             packagePaths.add(newPackagePath);
 
         // Regenerate master stylesheet
-        XsltMasterUpdater updater = new XsltMasterUpdater(getServletContext());
+        XSLTMasterUpdater updater = new XSLTMasterUpdater(getServletContext());
         updater.regenerateMasterStylesheet(packagePaths);
     }
 

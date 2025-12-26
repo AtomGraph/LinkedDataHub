@@ -16,10 +16,14 @@
  */
 package com.atomgraph.linkeddatahub.resource.admin.pkg;
 
+import com.atomgraph.client.util.DataManager;
 import com.atomgraph.linkeddatahub.apps.model.AdminApplication;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
+import com.atomgraph.linkeddatahub.client.LinkedDataClient;
+import com.atomgraph.linkeddatahub.resource.admin.Clear;
+import com.atomgraph.linkeddatahub.server.security.AgentContext;
 import com.atomgraph.linkeddatahub.server.util.UriPath;
-import com.atomgraph.linkeddatahub.server.util.XsltMasterUpdater;
+import com.atomgraph.linkeddatahub.server.util.XSLTMasterUpdater;
 import jakarta.inject.Inject;
 import jakarta.servlet.ServletContext;
 import jakarta.ws.rs.BadRequestException;
@@ -27,33 +31,42 @@ import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.FormParam;
 import jakarta.ws.rs.HeaderParam;
 import jakarta.ws.rs.POST;
+import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.UriBuilder;
+import org.apache.commons.codec.binary.Hex;
+import org.apache.jena.rdf.model.Model;
+import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.update.UpdateExecutionFactory;
-import org.apache.jena.update.UpdateFactory;
-import org.apache.jena.update.UpdateRequest;
+import org.apache.jena.util.FileManager;
+import org.apache.jena.vocabulary.OWL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 /**
  * JAX-RS resource that uninstalls a LinkedDataHub package.
  * Package uninstallation involves:
- * 1. Removing package ontology triples from namespace graph
- * 2. Deleting package stylesheet from /static/packages/
- * 3. Regenerating application master stylesheet
- * 4. Removing ldh:import triple from application
+ * 1. DELETEing package ontology document from ontologies/{hash}/
+ * 2. Removing owl:imports triple from namespace graph
+ * 3. Clearing and reloading namespace ontology from cache
+ * 4. Deleting package stylesheet from /static/{package-path}/
+ * 5. Regenerating application master stylesheet
+ * 6. Removing ldh:import triple from application (TODO)
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
@@ -62,18 +75,31 @@ public class Uninstall
     private static final Logger log = LoggerFactory.getLogger(Uninstall.class);
 
     private final com.atomgraph.linkeddatahub.apps.model.Application application;
+    private final com.atomgraph.linkeddatahub.Application system;
+    private final DataManager dataManager;
+    private final Optional<AgentContext> agentContext;
 
     @Context ServletContext servletContext;
+    @Context ResourceContext resourceContext;
 
     /**
      * Constructs endpoint.
      *
      * @param application matched application (admin app)
+     * @param system system application
+     * @param dataManager data manager
+     * @param agentContext authenticated agent context
      */
     @Inject
-    public Uninstall(com.atomgraph.linkeddatahub.apps.model.Application application)
+    public Uninstall(com.atomgraph.linkeddatahub.apps.model.Application application,
+                     com.atomgraph.linkeddatahub.Application system,
+                     DataManager dataManager,
+                     Optional<AgentContext> agentContext)
     {
         this.application = application;
+        this.system = system;
+        this.dataManager = dataManager;
+        this.agentContext = agentContext;
     }
 
     /**
@@ -97,8 +123,8 @@ public class Uninstall
 
             String packagePath = UriPath.convert(packageURI);
 
-            // 1. Remove ontology triples from namespace graph
-            uninstallOntology(endUserApp, packagePath);
+            // 1. Remove package ontology and owl:imports from namespace graph
+            uninstallOntology(endUserApp, packageURI);
 
             // 2. Delete stylesheet from /static/<package-path>/
             uninstallStylesheet(packagePath);
@@ -123,18 +149,85 @@ public class Uninstall
     }
 
     /**
-     * Uninstalls ontology by removing triples from namespace graph.
-     * This is a simplified version - a real implementation would track which triples belong to which package.
+     * Uninstalls ontology by deleting the package ontology document and removing owl:imports from namespace graph.
+     *
+     * @param app the end-user application
+     * @param packageURI the package URI
+     * @throws IOException if uninstallation fails
      */
-    private void uninstallOntology(EndUserApplication app, String packagePath) throws IOException
+    private void uninstallOntology(EndUserApplication app, String packageURI) throws IOException
     {
-        if (log.isWarnEnabled())
+        AdminApplication adminApp = app.getAdminApplication();
+
+        // 1. Fetch package to get ontology URI
+        com.atomgraph.linkeddatahub.apps.model.Package pkg = getPackage(packageURI);
+        if (pkg == null)
         {
-            log.warn("TODO: Remove package ontology triples from namespace graph");
-            log.warn("  This requires tracking which triples belong to package: {}", packagePath);
+            if (log.isWarnEnabled()) log.warn("Package not found, skipping ontology uninstallation: {}", packageURI);
+            return;
         }
-        // For now, we don't remove ontology triples as it's complex to track ownership
-        // A future enhancement could use named graphs per package
+
+        Resource ontology = pkg.getOntology();
+        if (ontology == null)
+        {
+            if (log.isWarnEnabled()) log.warn("Package ontology not specified, skipping ontology uninstallation");
+            return;
+        }
+
+        String packageOntologyURI = ontology.getURI();
+
+        // 2. Calculate hash of package ontology URI
+        String hash;
+        try
+        {
+            MessageDigest md = MessageDigest.getInstance("SHA-1");
+            md.update(packageOntologyURI.getBytes(StandardCharsets.UTF_8));
+            hash = Hex.encodeHexString(md.digest());
+            if (log.isDebugEnabled()) log.debug("Package ontology URI '{}' hashed to '{}'", packageOntologyURI, hash);
+        }
+        catch (NoSuchAlgorithmException e)
+        {
+            throw new IOException("Failed to hash package ontology URI", e);
+        }
+
+        // 3. DELETE package ontology document at ontologies/{hash}/
+        URI ontologyDocumentURI = UriBuilder.fromUri(adminApp.getBaseURI()).path("ontologies/{hash}/").build(hash);
+        if (log.isDebugEnabled()) log.debug("DELETEing package ontology document: {}", ontologyDocumentURI);
+
+        LinkedDataClient ldc = LinkedDataClient.create(getSystem().getClient(), getSystem().getMediaTypes());
+
+        // Delegate agent credentials if authenticated
+        if (getAgentContext().isPresent())
+        {
+            if (log.isDebugEnabled()) log.debug("Delegating agent credentials for DELETE request");
+            ldc = ldc.delegation(adminApp.getBaseURI(), getAgentContext().get());
+        }
+
+        try (Response deleteResponse = ldc.delete(ontologyDocumentURI))
+        {
+            if (!deleteResponse.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL) &&
+                deleteResponse.getStatus() != 404) // 404 is OK - document already deleted
+            {
+                throw new IOException("Failed to DELETE package ontology document " + ontologyDocumentURI + ": " + deleteResponse.getStatus());
+            }
+            if (log.isDebugEnabled()) log.debug("Package ontology DELETE response status: {}", deleteResponse.getStatus());
+        }
+
+        // 4. Remove owl:imports triple from namespace ontology in namespace graph
+        String namespaceOntologyURI = app.getOntology().getURI();
+        String namespaceGraphURI = UriBuilder.fromUri(adminApp.getBaseURI()).path("ontologies/namespace/").build().toString();
+
+        if (log.isDebugEnabled()) log.debug("Removing owl:imports from namespace ontology '{}' to package ontology '{}'", namespaceOntologyURI, packageOntologyURI);
+
+        Model importsModel = ModelFactory.createDefaultModel();
+        Resource nsOntology = importsModel.createResource(namespaceOntologyURI);
+        nsOntology.addProperty(OWL.imports, importsModel.createResource(packageOntologyURI));
+
+        adminApp.getService().getGraphStoreClient().deleteModel(namespaceGraphURI);
+
+        // 5. Clear and reload namespace ontology from cache
+        if (log.isDebugEnabled()) log.debug("Clearing and reloading namespace ontology '{}'", namespaceOntologyURI);
+        getResourceContext().getResource(Clear.class).post(namespaceOntologyURI, null);
     }
 
     /**
@@ -184,7 +277,7 @@ public class Uninstall
         }
 
         // Regenerate master stylesheet
-        XsltMasterUpdater updater = new XsltMasterUpdater(getServletContext());
+        XSLTMasterUpdater updater = new XSLTMasterUpdater(getServletContext());
         updater.regenerateMasterStylesheet(packagePaths);
     }
 
@@ -220,6 +313,84 @@ public class Uninstall
     public ServletContext getServletContext()
     {
         return servletContext;
+    }
+
+    /**
+     * Loads package metadata from its URI using LinkedDataClient.
+     * Package metadata is expected to be available as Linked Data.
+     *
+     * @param packageURI the package URI (e.g., https://packages.linkeddatahub.com/skos/#this)
+     * @return Package instance, or null if package cannot be loaded
+     */
+    private com.atomgraph.linkeddatahub.apps.model.Package getPackage(String packageURI)
+    {
+        if (log.isDebugEnabled()) log.debug("Loading package from: {}", packageURI);
+
+        try
+        {
+            final Model model;
+
+            // check if we have the model in the cache first and if yes, return it from there instead making an HTTP request
+            if (((FileManager)getDataManager()).hasCachedModel(packageURI) ||
+                    (getDataManager().isResolvingMapped() && getDataManager().isMapped(packageURI))) // read mapped URIs (such as system ontologies) from a file
+            {
+                if (log.isDebugEnabled()) log.debug("hasCachedModel({}): {}", packageURI, ((FileManager)getDataManager()).hasCachedModel(packageURI));
+                if (log.isDebugEnabled()) log.debug("isMapped({}): {}", packageURI, getDataManager().isMapped(packageURI));
+                model = getDataManager().loadModel(packageURI);
+            }
+            else
+            {
+                LinkedDataClient ldc = LinkedDataClient.create(getSystem().getClient(), getSystem().getMediaTypes());
+                model = ldc.getModel(packageURI);
+            }
+
+            return model.getResource(packageURI).as(com.atomgraph.linkeddatahub.apps.model.Package.class);
+        }
+        catch (Exception e)
+        {
+            if (log.isWarnEnabled()) log.warn("Failed to load package: {}", packageURI, e);
+            return null;
+        }
+    }
+
+    /**
+     * Returns the system application.
+     *
+     * @return system application
+     */
+    public com.atomgraph.linkeddatahub.Application getSystem()
+    {
+        return system;
+    }
+
+    /**
+     * Returns RDF data manager.
+     *
+     * @return RDF data manager
+     */
+    public DataManager getDataManager()
+    {
+        return dataManager;
+    }
+
+    /**
+     * Returns JAX-RS resource context.
+     *
+     * @return resource context
+     */
+    public ResourceContext getResourceContext()
+    {
+        return resourceContext;
+    }
+
+    /**
+     * Returns the authenticated agent context.
+     *
+     * @return agent context
+     */
+    public Optional<AgentContext> getAgentContext()
+    {
+        return agentContext;
     }
 
 }

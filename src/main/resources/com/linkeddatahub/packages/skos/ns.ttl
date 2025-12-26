@@ -14,7 +14,8 @@
 
 # narrower
 
-skos:Concept ldh:template :NarrowerConcepts.
+skos:Concept ldh:template :NarrowerConcepts ;
+    spin:constraint :MissingPrefLabel .
 
 :NarrowerConcepts a ldh:View ;
     dct:title "Narrower concepts" ;
@@ -123,4 +124,11 @@ WHERE
   }
 ORDER BY ?prefLabel
 """ ;
+    rdfs:isDefinedBy : .
+
+# Constraints
+
+:MissingPrefLabel a ldh:MissingPropertyValue ;
+    rdfs:label "Missing skos:prefLabel" ;
+    sp:arg1 skos:prefLabel ;
     rdfs:isDefinedBy : .
