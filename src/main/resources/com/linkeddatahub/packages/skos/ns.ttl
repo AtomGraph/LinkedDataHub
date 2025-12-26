@@ -12,10 +12,29 @@
 
 # Concept
 
-# narrower
+skos:Concept spin:constructor :ConceptConstructor ;
+    spin:constraint :MissingPrefLabel ;
+    ldh:template :NarrowerConcepts .
 
-skos:Concept ldh:template :NarrowerConcepts ;
-    spin:constraint :MissingPrefLabel .
+:ConceptConstructor a ldh:Constructor ;
+    rdfs:label "Concept constructor" ;
+    sp:text """
+        PREFIX skos:    <http://www.w3.org/2004/02/skos/core#>
+        PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>
+
+        CONSTRUCT {
+            $this skos:prefLabel [ a xsd:string ] ;
+                skos:altLabel [ a xsd:string ] ;
+                skos:definition [ a xsd:string ] ;
+                skos:broader [ a skos:Concept ] ;
+                skos:narrower [ a skos:Concept ] ;
+                skos:related [ a skos:Concept ] ;
+                skos:inScheme [ a skos:ConceptScheme ] .
+        }
+        WHERE {}""" ;
+    rdfs:isDefinedBy : .
+
+# narrower
 
 :NarrowerConcepts a ldh:View ;
     dct:title "Narrower concepts" ;
@@ -73,7 +92,23 @@ ORDER BY ?prefLabel
 
 # Collection
 
-skos:Collection ldh:template :CollectionMembers.
+skos:Collection spin:constructor :CollectionConstructor ;
+    spin:constraint :MissingPrefLabel ;
+    ldh:template :CollectionMembers.
+
+:CollectionConstructor a ldh:Constructor ;
+    rdfs:label "Collection constructor" ;
+    sp:text """
+        PREFIX skos:    <http://www.w3.org/2004/02/skos/core#>
+        PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>
+
+        CONSTRUCT {
+            $this skos:prefLabel [ a xsd:string ] ;
+                skos:definition [ a xsd:string ] ;
+                skos:member [ a skos:Concept ] .
+        }
+        WHERE {}""" ;
+    rdfs:isDefinedBy : .
 
 :CollectionMembers a ldh:View ;
     dct:title "Collection members" ;
@@ -102,7 +137,23 @@ ORDER BY ?prefLabel
 
 # ConceptScheme
 
-skos:ConceptScheme ldh:template :ConceptsInScheme.
+skos:ConceptScheme spin:constructor :ConceptSchemeConstructor ;
+    ldh:template :ConceptsInScheme.
+
+:ConceptSchemeConstructor a ldh:Constructor ;
+    rdfs:label "Concept scheme constructor" ;
+    sp:text """
+        PREFIX skos:    <http://www.w3.org/2004/02/skos/core#>
+        PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>
+        PREFIX dct:     <http://purl.org/dc/terms/>
+
+        CONSTRUCT {
+            $this dct:title [ a xsd:string ] ;
+                dct:description [ a xsd:string ] ;
+                skos:hasTopConcept [ a skos:Concept ] .
+        }
+        WHERE {}""" ;
+    rdfs:isDefinedBy : .
 
 :ConceptsInScheme a ldh:View ;
     dct:title "Concepts in scheme" ;
