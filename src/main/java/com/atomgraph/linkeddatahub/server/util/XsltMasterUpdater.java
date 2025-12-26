@@ -222,10 +222,20 @@ public class XSLTMasterUpdater
      */
     private Path getStaticPath()
     {
-        String realPath = servletContext.getRealPath("/static");
+        String realPath = getServletContext().getRealPath("/static");
         if (realPath == null)
             throw new IllegalStateException("Could not resolve real path for /static directory");
         return Paths.get(realPath);
+    }
+
+    /**
+     * Returns servlet context.
+     *
+     * @return servlet context
+     */
+    public ServletContext getServletContext()
+    {
+        return servletContext;
     }
 
 }
