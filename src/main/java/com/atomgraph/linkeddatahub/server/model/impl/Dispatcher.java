@@ -22,9 +22,9 @@ import com.atomgraph.linkeddatahub.resource.Add;
 import com.atomgraph.linkeddatahub.resource.Generate;
 import com.atomgraph.linkeddatahub.resource.Namespace;
 import com.atomgraph.linkeddatahub.resource.Transform;
-import com.atomgraph.linkeddatahub.resource.admin.Clear;
-import com.atomgraph.linkeddatahub.resource.admin.pkg.Install;
-import com.atomgraph.linkeddatahub.resource.admin.pkg.Uninstall;
+import com.atomgraph.linkeddatahub.resource.admin.ClearOntology;
+import com.atomgraph.linkeddatahub.resource.admin.pkg.InstallPackage;
+import com.atomgraph.linkeddatahub.resource.admin.pkg.UninstallPackage;
 import com.atomgraph.linkeddatahub.resource.admin.SignUp;
 import com.atomgraph.linkeddatahub.resource.Graph;
 import com.atomgraph.linkeddatahub.resource.acl.Access;
@@ -224,7 +224,7 @@ public class Dispatcher
     @Path("clear")
     public Class getClearEndpoint()
     {
-        return getProxyClass().orElse(Clear.class);
+        return getProxyClass().orElse(ClearOntology.class);
     }
 
     /**
@@ -235,7 +235,7 @@ public class Dispatcher
     @Path("packages/install")
     public Class getInstallPackageEndpoint()
     {
-        return getProxyClass().orElse(Install.class);
+        return getProxyClass().orElse(InstallPackage.class);
     }
 
     /**
@@ -246,7 +246,7 @@ public class Dispatcher
     @Path("packages/uninstall")
     public Class getUninstallPackageEndpoint()
     {
-        return getProxyClass().orElse(Uninstall.class);
+        return getProxyClass().orElse(UninstallPackage.class);
     }
 
     /**

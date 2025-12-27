@@ -20,7 +20,7 @@ import com.atomgraph.client.util.DataManager;
 import com.atomgraph.linkeddatahub.apps.model.AdminApplication;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import com.atomgraph.linkeddatahub.client.LinkedDataClient;
-import com.atomgraph.linkeddatahub.resource.admin.Clear;
+import com.atomgraph.linkeddatahub.resource.admin.ClearOntology;
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
 import com.atomgraph.linkeddatahub.server.util.UriPath;
 import com.atomgraph.linkeddatahub.server.util.XSLTMasterUpdater;
@@ -30,6 +30,7 @@ import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.FormParam;
 import jakarta.ws.rs.HeaderParam;
+import jakarta.ws.rs.InternalServerErrorException;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.Context;
@@ -70,9 +71,9 @@ import java.util.Set;
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-public class Uninstall
+public class UninstallPackage
 {
-    private static final Logger log = LoggerFactory.getLogger(Uninstall.class);
+    private static final Logger log = LoggerFactory.getLogger(UninstallPackage.class);
 
     private final com.atomgraph.linkeddatahub.apps.model.Application application;
     private final com.atomgraph.linkeddatahub.Application system;
@@ -91,7 +92,7 @@ public class Uninstall
      * @param agentContext authenticated agent context
      */
     @Inject
-    public Uninstall(com.atomgraph.linkeddatahub.apps.model.Application application,
+    public UninstallPackage(com.atomgraph.linkeddatahub.apps.model.Application application,
                      com.atomgraph.linkeddatahub.Application system,
                      DataManager dataManager,
                      Optional<AgentContext> agentContext)
@@ -141,10 +142,10 @@ public class Uninstall
             URI redirectURI = (referer != null) ? referer : endUserApp.getBaseURI();
             return Response.seeOther(redirectURI).build();
         }
-        catch (Exception e)
+        catch (IOException e)
         {
             log.error("Failed to uninstall package: {}", packageURI, e);
-            throw new jakarta.ws.rs.InternalServerErrorException("Package uninstallation failed: " + e.getMessage(), e);
+            throw new InternalServerErrorException("Package uninstallation failed: " + e.getMessage(), e);
         }
     }
 
@@ -227,7 +228,7 @@ public class Uninstall
 
         // 5. Clear and reload namespace ontology from cache
         if (log.isDebugEnabled()) log.debug("Clearing and reloading namespace ontology '{}'", namespaceOntologyURI);
-        getResourceContext().getResource(Clear.class).post(namespaceOntologyURI, null);
+        getResourceContext().getResource(ClearOntology.class).post(namespaceOntologyURI, null);
     }
 
     /**

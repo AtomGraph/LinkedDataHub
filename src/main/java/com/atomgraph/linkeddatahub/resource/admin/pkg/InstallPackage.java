@@ -20,7 +20,7 @@ import com.atomgraph.client.util.DataManager;
 import com.atomgraph.linkeddatahub.apps.model.AdminApplication;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import com.atomgraph.linkeddatahub.client.LinkedDataClient;
-import com.atomgraph.linkeddatahub.resource.admin.Clear;
+import com.atomgraph.linkeddatahub.resource.admin.ClearOntology;
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
 import com.atomgraph.linkeddatahub.server.util.UriPath;
 import com.atomgraph.linkeddatahub.server.util.XSLTMasterUpdater;
@@ -76,9 +76,9 @@ import org.apache.jena.util.FileManager;
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-public class Install
+public class InstallPackage
 {
-    private static final Logger log = LoggerFactory.getLogger(Install.class);
+    private static final Logger log = LoggerFactory.getLogger(InstallPackage.class);
 
     private final com.atomgraph.linkeddatahub.apps.model.Application application;
     private final com.atomgraph.linkeddatahub.Application system;
@@ -97,7 +97,7 @@ public class Install
      * @param agentContext authenticated agent context
      */
     @Inject
-    public Install(com.atomgraph.linkeddatahub.apps.model.Application application,
+    public InstallPackage(com.atomgraph.linkeddatahub.apps.model.Application application,
                    com.atomgraph.linkeddatahub.Application system,
                    DataManager dataManager,
                    Optional<AgentContext> agentContext)
@@ -319,7 +319,7 @@ public class Install
 
         // 4. Clear and reload namespace ontology from cache
         if (log.isDebugEnabled()) log.debug("Clearing and reloading namespace ontology '{}'", namespaceOntologyURI);
-        getResourceContext().getResource(Clear.class).post(namespaceOntologyURI, null);
+        getResourceContext().getResource(ClearOntology.class).post(namespaceOntologyURI, null);
     }
 
     /**

@@ -47,10 +47,10 @@ import org.slf4j.LoggerFactory;
  * @author {@literal Martynas Jusevičius <martynas@atomgraph.com>}
  * @see com.atomgraph.linkeddatahub.server.filter.request.OntologyFilter
  */
-public class Clear
+public class ClearOntology
 {
     
-    private static final Logger log = LoggerFactory.getLogger(Clear.class);
+    private static final Logger log = LoggerFactory.getLogger(ClearOntology.class);
 
     private final com.atomgraph.linkeddatahub.apps.model.Application application;
     private final com.atomgraph.linkeddatahub.Application system;
@@ -62,7 +62,7 @@ public class Clear
      * @param system system application
      */
     @Inject
-    public Clear(com.atomgraph.linkeddatahub.apps.model.Application application, com.atomgraph.linkeddatahub.Application system)
+    public ClearOntology(com.atomgraph.linkeddatahub.apps.model.Application application, com.atomgraph.linkeddatahub.Application system)
     {
         this.application = application;
         this.system = system;
