@@ -310,14 +310,19 @@ public class Graph extends GraphStoreImpl
      * The <code>GRAPH</code> keyword is therefore not allowed in the update string.
      * 
      * @param updateRequest SPARQL update
-     * @param graphUriUnused named graph URI (unused)
      * @return response response object
      */
     @PATCH
-    public Response patch(UpdateRequest updateRequest, @QueryParam("graph") URI graphUriUnused)
+    public Response patch(UpdateRequest updateRequest)
     {
+        return patch(getURI(), updateRequest);
+    }
+    
+    public Response patch(URI graphURI, UpdateRequest updateRequest)
+    {
+        if (graphURI == null) throw new BadRequestException("Graph URI not specified");
         if (updateRequest == null) throw new BadRequestException("SPARQL update not specified");
-        if (log.isDebugEnabled()) log.debug("PATCH request on named graph with URI: {}", getURI());
+        if (log.isDebugEnabled()) log.debug("PATCH request on named graph with URI: {}", graphURI);
         if (log.isDebugEnabled()) log.debug("PATCH update string: {}", updateRequest.toString());
         
         if (updateRequest.getOperations().size() != 1)
@@ -338,8 +343,8 @@ public class Graph extends GraphStoreImpl
         // no need to set WITH <graphUri> since we'll be updating model in memory before persisting it
 
         final Dataset dataset;
-        final Model existingModel = getService().getGraphStoreClient().getModel(getURI().toString());
-        if (existingModel == null) throw new NotFoundException("Named graph with URI <" + getURI() + "> not found");
+        final Model existingModel = getService().getGraphStoreClient().getModel(graphURI.toString());
+        if (existingModel == null) throw new NotFoundException("Named graph with URI <" + graphURI + "> not found");
 
         ResponseBuilder rb = evaluatePreconditions(existingModel);
         if (rb != null) return rb.build(); // preconditions not met
@@ -356,12 +361,12 @@ public class Graph extends GraphStoreImpl
             changedModel.add(existingModel.listStatements(resource, null, (RDFNode) null));
 
         validate(changedModel); // this would normally be done transparently by the ValidatingModelProvider
-        put(dataset.getDefaultModel(), Boolean.FALSE, getURI());
+        put(dataset.getDefaultModel(), Boolean.FALSE, graphURI);
         
         return getInternalResponse(dataset.getDefaultModel(), null).getResponseBuilder(). // entity tag of the updated graph
             status(Response.Status.NO_CONTENT).
             entity(null). // 'Content-Type' header has to be explicitly unset in ResponseHeadersFilter
-            header(HttpHeaders.CONTENT_LOCATION, getURI()).
+            header(HttpHeaders.CONTENT_LOCATION, graphURI).
             tag(getInternalResponse(dataset.getDefaultModel(), null).getVariantEntityTag()). // TO-DO: optimize!
             build();
     }

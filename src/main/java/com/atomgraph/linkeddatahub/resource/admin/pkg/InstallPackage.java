@@ -20,6 +20,7 @@ import com.atomgraph.client.util.DataManager;
 import com.atomgraph.linkeddatahub.apps.model.AdminApplication;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import com.atomgraph.linkeddatahub.client.LinkedDataClient;
+import com.atomgraph.linkeddatahub.resource.Graph;
 import com.atomgraph.linkeddatahub.resource.admin.ClearOntology;
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
 import com.atomgraph.linkeddatahub.server.util.UriPath;
@@ -44,9 +45,7 @@ import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.UriBuilder;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.jena.rdf.model.Model;
-import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.vocabulary.OWL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.io.IOException;
@@ -62,6 +61,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import org.apache.jena.ontology.ConversionException;
+import org.apache.jena.update.UpdateFactory;
+import org.apache.jena.update.UpdateRequest;
 import org.apache.jena.util.FileManager;
 
 /**
@@ -163,7 +164,7 @@ public class InstallPackage
             }
 
             // 5. Add ldh:import triple to application (in system.trig)
-            addImportToApplication(endUserApp, packageURI);
+            //addImportToApplication(endUserApp, packageURI);
 
             if (log.isInfoEnabled()) log.info("Successfully installed package: {}", packageURI);
 
@@ -174,7 +175,7 @@ public class InstallPackage
         catch (IOException e)
         {
             log.error("Failed to install package: {}", packageURI, e);
-            throw new WebApplicationException("Package installation failed: " + e.getMessage(), e);
+            throw new WebApplicationException("Package installation failed", e);
         }
     }
 
@@ -307,15 +308,18 @@ public class InstallPackage
 
         // 3. Add owl:imports triple to namespace ontology in namespace graph
         String namespaceOntologyURI = app.getOntology().getURI();
-        String namespaceGraphURI = UriBuilder.fromUri(adminApp.getBaseURI()).path("ontologies/namespace/").build().toString();
+        URI namespaceGraphURI = UriBuilder.fromUri(adminApp.getBaseURI()).path("ontologies/namespace/").build();
 
         if (log.isDebugEnabled()) log.debug("Adding owl:imports from namespace ontology '{}' to package ontology '{}'", namespaceOntologyURI, packageOntologyURI);
 
-        Model importsModel = ModelFactory.createDefaultModel();
-        Resource nsOntology = importsModel.createResource(namespaceOntologyURI);
-        nsOntology.addProperty(OWL.imports, importsModel.createResource(packageOntologyURI));
+        String updateString = String.format(
+            "PREFIX owl: <http://www.w3.org/2002/07/owl#> " +
+            "INSERT DATA { <%s> owl:imports <%s> }",
+            namespaceOntologyURI, packageOntologyURI
+        );
 
-        adminApp.getService().getGraphStoreClient().add(namespaceGraphURI, importsModel);
+        UpdateRequest updateRequest = UpdateFactory.create(updateString);
+        getResourceContext().getResource(Graph.class).patch(namespaceGraphURI, updateRequest);
 
         // 4. Clear and reload namespace ontology from cache
         if (log.isDebugEnabled()) log.debug("Clearing and reloading namespace ontology '{}'", namespaceOntologyURI);
@@ -361,16 +365,16 @@ public class InstallPackage
     /**
      * Adds ldh:import triple to the end-user application resource.
      */
-    private void addImportToApplication(EndUserApplication app, String packageURI)
-    {
-        // This would need to modify system.trig via SPARQL UPDATE
-        // For now, log a warning that this needs manual configuration
-        if (log.isWarnEnabled())
-        {
-            log.warn("TODO: Add ldh:import triple to application. Manual edit required:");
-            log.warn("  <{}> ldh:import <{}> .", app.getURI(), packageURI);
-        }
-    }
+//    private void addImportToApplication(EndUserApplication app, String packageURI)
+//    {
+//        // This would need to modify system.trig via SPARQL UPDATE
+//        // For now, log a warning that this needs manual configuration
+//        if (log.isWarnEnabled())
+//        {
+//            log.warn("TODO: Add ldh:import triple to application. Manual edit required:");
+//            log.warn("  <{}> ldh:import <{}> .", app.getURI(), packageURI);
+//        }
+//    }
 
     /**
      * Returns the current application.

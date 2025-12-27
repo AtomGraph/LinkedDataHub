@@ -20,6 +20,7 @@ import com.atomgraph.client.util.DataManager;
 import com.atomgraph.linkeddatahub.apps.model.AdminApplication;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import com.atomgraph.linkeddatahub.client.LinkedDataClient;
+import com.atomgraph.linkeddatahub.resource.Graph;
 import com.atomgraph.linkeddatahub.resource.admin.ClearOntology;
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
 import com.atomgraph.linkeddatahub.server.util.UriPath;
@@ -30,8 +31,8 @@ import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.FormParam;
 import jakarta.ws.rs.HeaderParam;
-import jakarta.ws.rs.InternalServerErrorException;
 import jakarta.ws.rs.POST;
+import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
@@ -39,10 +40,10 @@ import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.UriBuilder;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.jena.rdf.model.Model;
-import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.update.UpdateFactory;
+import org.apache.jena.update.UpdateRequest;
 import org.apache.jena.util.FileManager;
-import org.apache.jena.vocabulary.OWL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -134,7 +135,7 @@ public class UninstallPackage
             regenerateMasterStylesheet(endUserApp, packagePath);
 
             // 4. Remove ldh:import triple from application
-            removeImportFromApplication(endUserApp, packageURI);
+            //removeImportFromApplication(endUserApp, packageURI);
 
             if (log.isInfoEnabled()) log.info("Successfully uninstalled package: {}", packageURI);
 
@@ -144,8 +145,8 @@ public class UninstallPackage
         }
         catch (IOException e)
         {
-            log.error("Failed to uninstall package: {}", packageURI, e);
-            throw new InternalServerErrorException("Package uninstallation failed: " + e.getMessage(), e);
+            if (log.isErrorEnabled()) log.error("Failed to uninstall package: {}", packageURI, e);
+            throw new WebApplicationException("Package uninstallation failed", e);
         }
     }
 
@@ -216,15 +217,18 @@ public class UninstallPackage
 
         // 4. Remove owl:imports triple from namespace ontology in namespace graph
         String namespaceOntologyURI = app.getOntology().getURI();
-        String namespaceGraphURI = UriBuilder.fromUri(adminApp.getBaseURI()).path("ontologies/namespace/").build().toString();
+        URI namespaceGraphURI = UriBuilder.fromUri(adminApp.getBaseURI()).path("ontologies/namespace/").build();
 
         if (log.isDebugEnabled()) log.debug("Removing owl:imports from namespace ontology '{}' to package ontology '{}'", namespaceOntologyURI, packageOntologyURI);
 
-        Model importsModel = ModelFactory.createDefaultModel();
-        Resource nsOntology = importsModel.createResource(namespaceOntologyURI);
-        nsOntology.addProperty(OWL.imports, importsModel.createResource(packageOntologyURI));
+        String updateString = String.format(
+            "PREFIX owl: <http://www.w3.org/2002/07/owl#> " +
+            "DELETE WHERE { <%s> owl:imports <%s> }",
+            namespaceOntologyURI, packageOntologyURI
+        );
 
-        adminApp.getService().getGraphStoreClient().deleteModel(namespaceGraphURI);
+        UpdateRequest updateRequest = UpdateFactory.create(updateString);
+        getResourceContext().getResource(Graph.class).patch(namespaceGraphURI, updateRequest);
 
         // 5. Clear and reload namespace ontology from cache
         if (log.isDebugEnabled()) log.debug("Clearing and reloading namespace ontology '{}'", namespaceOntologyURI);
@@ -285,16 +289,16 @@ public class UninstallPackage
     /**
      * Removes ldh:import triple from the end-user application resource.
      */
-    private void removeImportFromApplication(EndUserApplication app, String packageURI)
-    {
-        // This would need to modify system.trig via SPARQL UPDATE
-        // For now, log a warning that this needs manual configuration
-        if (log.isWarnEnabled())
-        {
-            log.warn("TODO: Remove ldh:import triple from application. Manual edit required:");
-            log.warn("  DELETE DATA {{ <{}> ldh:import <{}> }}", app.getURI(), packageURI);
-        }
-    }
+//    private void removeImportFromApplication(EndUserApplication app, String packageURI)
+//    {
+//        // This would need to modify system.trig via SPARQL UPDATE
+//        // For now, log a warning that this needs manual configuration
+//        if (log.isWarnEnabled())
+//        {
+//            log.warn("TODO: Remove ldh:import triple from application. Manual edit required:");
+//            log.warn("  DELETE DATA {{ <{}> ldh:import <{}> }}", app.getURI(), packageURI);
+//        }
+//    }
 
     /**
      * Returns the current application.
