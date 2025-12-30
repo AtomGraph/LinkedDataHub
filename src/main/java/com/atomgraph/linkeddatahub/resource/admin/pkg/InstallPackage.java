@@ -19,7 +19,7 @@ package com.atomgraph.linkeddatahub.resource.admin.pkg;
 import com.atomgraph.client.util.DataManager;
 import com.atomgraph.linkeddatahub.apps.model.AdminApplication;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
-import com.atomgraph.linkeddatahub.client.LinkedDataClient;
+import com.atomgraph.linkeddatahub.client.GraphStoreClient;
 import com.atomgraph.linkeddatahub.resource.Graph;
 import com.atomgraph.linkeddatahub.resource.admin.ClearOntology;
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
@@ -120,7 +120,11 @@ public class InstallPackage
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     public Response post(@FormParam("package-uri") String packageURI, @HeaderParam("Referer") URI referer)
     {
-        if (packageURI == null) throw new BadRequestException("Package URI not specified");
+        if (packageURI == null)
+        {
+            if (log.isErrorEnabled()) log.error("Package URI not specified");
+            throw new BadRequestException("Package URI not specified");
+        }
 
         EndUserApplication endUserApp = getApplication().as(AdminApplication.class).getEndUserApplication();
 
@@ -129,14 +133,20 @@ public class InstallPackage
         // 1. Fetch package
         com.atomgraph.linkeddatahub.apps.model.Package pkg = getPackage(packageURI);
         if (pkg == null)
+        {
+            if (log.isErrorEnabled()) log.error("Loading package failed: {}", packageURI);
             throw new WebApplicationException("Loading package failed", UNPROCESSABLE_ENTITY.getStatusCode()); // 422 Unprocessable Entity
+        }
 
         Resource ontology = pkg.getOntology();
         Resource stylesheet = pkg.getStylesheet();
 
         // either ontology or stylesheet need to be specified, or both
         if (ontology == null && stylesheet == null)
+        {
+            if (log.isErrorEnabled()) log.error("Package ontology and stylesheet are both unspecified for package: {}", packageURI);
             throw new WebApplicationException("Package ontology and stylesheet are both unspecified", UNPROCESSABLE_ENTITY.getStatusCode()); // 422 Unprocessable Entity
+        }
 
         try
         {
@@ -180,7 +190,7 @@ public class InstallPackage
     }
 
     /**
-     * Loads package metadata from its URI using LinkedDataClient.
+     * Loads package metadata from its URI using GraphStoreClient.
      * Package metadata is expected to be available as Linked Data.
      *
      * @param packageURI the package URI (e.g., https://packages.linkeddatahub.com/skos/#this)
@@ -203,8 +213,8 @@ public class InstallPackage
         }
         else
         {
-            LinkedDataClient ldc = LinkedDataClient.create(getSystem().getClient(), getSystem().getMediaTypes());
-            model = ldc.getModel(packageURI);
+            GraphStoreClient gsc = GraphStoreClient.create(getSystem().getClient(), getSystem().getMediaTypes());
+            model = gsc.getModel(packageURI);
         }
 
         try
@@ -218,7 +228,7 @@ public class InstallPackage
     }
 
     /**
-     * Downloads RDF from a URI using LinkedDataClient.
+     * Downloads RDF from a URI using GraphStoreClient.
      */
     private Model downloadOntology(String uri)
     {
@@ -234,8 +244,8 @@ public class InstallPackage
         }
         else
         {
-            LinkedDataClient ldc = LinkedDataClient.create(getSystem().getClient(), getSystem().getMediaTypes());
-            return ldc.getModel(uri);
+            GraphStoreClient gsc = GraphStoreClient.create(getSystem().getClient(), getSystem().getMediaTypes());
+            return gsc.getModel(uri);
         }
     }
 
@@ -252,7 +262,10 @@ public class InstallPackage
         try (Response response = target.request("text/xsl", "text/*;q=0.8").get())
         {
             if (!response.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
+            {
+                if (log.isErrorEnabled()) log.error("Failed to download XSLT from {}: {}", uri, response.getStatus());
                 throw new IOException("Failed to download XSLT from " + uri + ": " + response.getStatus());
+            }
 
             return response.readEntity(String.class);
         }
@@ -281,6 +294,7 @@ public class InstallPackage
         }
         catch (NoSuchAlgorithmException e)
         {
+            if (log.isErrorEnabled()) log.error("Failed to hash package ontology URI: {}", packageOntologyURI, e);
             throw new IOException("Failed to hash package ontology URI", e);
         }
 
@@ -288,19 +302,20 @@ public class InstallPackage
         URI ontologyDocumentURI = UriBuilder.fromUri(adminApp.getBaseURI()).path("ontologies/{hash}/").build(hash);
         if (log.isDebugEnabled()) log.debug("PUTting package ontology to document: {}", ontologyDocumentURI);
 
-        LinkedDataClient ldc = LinkedDataClient.create(getSystem().getClient(), getSystem().getMediaTypes());
+        GraphStoreClient gsc = GraphStoreClient.create(getSystem().getClient(), getSystem().getMediaTypes());
 
         // Delegate agent credentials if authenticated
         if (getAgentContext().isPresent())
         {
             if (log.isDebugEnabled()) log.debug("Delegating agent credentials for PUT request");
-            ldc = ldc.delegation(adminApp.getBaseURI(), getAgentContext().get());
+            gsc = gsc.delegation(adminApp.getBaseURI(), getAgentContext().get());
         }
 
-        try (Response putResponse = ldc.put(ontologyDocumentURI, ontologyModel, new MultivaluedHashMap<>()))
+        try (Response putResponse = gsc.put(ontologyDocumentURI, ontologyModel, new MultivaluedHashMap<>()))
         {
             if (!putResponse.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
             {
+                if (log.isErrorEnabled()) log.error("Failed to PUT package ontology to {}: {}", ontologyDocumentURI, putResponse.getStatus());
                 throw new IOException("Failed to PUT package ontology to " + ontologyDocumentURI + ": " + putResponse.getStatus());
             }
             if (log.isDebugEnabled()) log.debug("Package ontology PUT response status: {}", putResponse.getStatus());
@@ -319,7 +334,16 @@ public class InstallPackage
         );
 
         UpdateRequest updateRequest = UpdateFactory.create(updateString);
-        getResourceContext().getResource(Graph.class).patch(namespaceGraphURI, updateRequest);
+
+        try (Response patchResponse = gsc.patch(namespaceGraphURI, updateRequest))
+        {
+            if (!patchResponse.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
+            {
+                if (log.isErrorEnabled()) log.error("Failed to PATCH namespace graph {}: {}", namespaceGraphURI, patchResponse.getStatus());
+                throw new IOException("Failed to PATCH namespace graph " + namespaceGraphURI + ": " + patchResponse.getStatus());
+            }
+            if (log.isDebugEnabled()) log.debug("Namespace graph PATCH response status: {}", patchResponse.getStatus());
+        }
 
         // 4. Clear and reload namespace ontology from cache
         if (log.isDebugEnabled()) log.debug("Clearing and reloading namespace ontology '{}'", namespaceOntologyURI);

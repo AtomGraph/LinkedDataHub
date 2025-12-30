@@ -16,7 +16,7 @@
  */
 package com.atomgraph.linkeddatahub.imports.stream.csv;
 
-import com.atomgraph.linkeddatahub.client.LinkedDataClient;
+import com.atomgraph.linkeddatahub.client.GraphStoreClient;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.univocity.parsers.csv.CsvParser;
 import com.univocity.parsers.csv.CsvParserSettings;
@@ -46,21 +46,21 @@ public class CSVGraphStoreOutput // extends com.atomgraph.etl.csv.stream.CSVStre
      * 
      * @param service SPARQL service of the application
      * @param adminService SPARQL service of the admin application
-     * @param ldc Linked Data client
+     * @param gsc Graph Store client
      * @param base base URI
      * @param reader CSV reader
      * @param query <code>CONSTRUCT</code> transformation query
      * @param delimiter CSV delimiter
      * @param maxCharsPerColumn max number of characters per column
      */
-    public CSVGraphStoreOutput(Service service, Service adminService, LinkedDataClient ldc, String base, Reader reader, Query query, char delimiter, Integer maxCharsPerColumn)
+    public CSVGraphStoreOutput(Service service, Service adminService, GraphStoreClient gsc, String base, Reader reader, Query query, char delimiter, Integer maxCharsPerColumn)
     {
         this.base = base;
         this.reader = reader;
         this.query = query;
         this.delimiter = delimiter;
         this.maxCharsPerColumn = maxCharsPerColumn;
-        this.processor = new CSVGraphStoreRowProcessor(service, adminService, ldc, base, query);
+        this.processor = new CSVGraphStoreRowProcessor(service, adminService, gsc, base, query);
         
         CsvParserSettings parserSettings = new CsvParserSettings();
         parserSettings.setLineSeparatorDetectionEnabled(true);

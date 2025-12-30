@@ -19,7 +19,7 @@ package com.atomgraph.linkeddatahub.resource.admin.pkg;
 import com.atomgraph.client.util.DataManager;
 import com.atomgraph.linkeddatahub.apps.model.AdminApplication;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
-import com.atomgraph.linkeddatahub.client.LinkedDataClient;
+import com.atomgraph.linkeddatahub.client.GraphStoreClient;
 import com.atomgraph.linkeddatahub.resource.Graph;
 import com.atomgraph.linkeddatahub.resource.admin.ClearOntology;
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
@@ -115,7 +115,11 @@ public class UninstallPackage
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     public Response post(@FormParam("package-uri") String packageURI, @HeaderParam("Referer") URI referer)
     {
-        if (packageURI == null) throw new BadRequestException("Package URI not specified");
+        if (packageURI == null)
+        {
+            if (log.isErrorEnabled()) log.error("Package URI not specified");
+            throw new BadRequestException("Package URI not specified");
+        }
 
         try
         {
@@ -189,6 +193,7 @@ public class UninstallPackage
         }
         catch (NoSuchAlgorithmException e)
         {
+            if (log.isErrorEnabled()) log.error("Failed to hash package ontology URI: {}", packageOntologyURI, e);
             throw new IOException("Failed to hash package ontology URI", e);
         }
 
@@ -196,20 +201,21 @@ public class UninstallPackage
         URI ontologyDocumentURI = UriBuilder.fromUri(adminApp.getBaseURI()).path("ontologies/{hash}/").build(hash);
         if (log.isDebugEnabled()) log.debug("DELETEing package ontology document: {}", ontologyDocumentURI);
 
-        LinkedDataClient ldc = LinkedDataClient.create(getSystem().getClient(), getSystem().getMediaTypes());
+        GraphStoreClient gsc = GraphStoreClient.create(getSystem().getClient(), getSystem().getMediaTypes());
 
         // Delegate agent credentials if authenticated
         if (getAgentContext().isPresent())
         {
             if (log.isDebugEnabled()) log.debug("Delegating agent credentials for DELETE request");
-            ldc = ldc.delegation(adminApp.getBaseURI(), getAgentContext().get());
+            gsc = gsc.delegation(adminApp.getBaseURI(), getAgentContext().get());
         }
 
-        try (Response deleteResponse = ldc.delete(ontologyDocumentURI))
+        try (Response deleteResponse = gsc.delete(ontologyDocumentURI))
         {
             if (!deleteResponse.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL) &&
                 deleteResponse.getStatus() != 404) // 404 is OK - document already deleted
             {
+                if (log.isErrorEnabled()) log.error("Failed to DELETE package ontology document {}: {}", ontologyDocumentURI, deleteResponse.getStatus());
                 throw new IOException("Failed to DELETE package ontology document " + ontologyDocumentURI + ": " + deleteResponse.getStatus());
             }
             if (log.isDebugEnabled()) log.debug("Package ontology DELETE response status: {}", deleteResponse.getStatus());
@@ -228,7 +234,16 @@ public class UninstallPackage
         );
 
         UpdateRequest updateRequest = UpdateFactory.create(updateString);
-        getResourceContext().getResource(Graph.class).patch(namespaceGraphURI, updateRequest);
+
+        try (Response patchResponse = gsc.patch(namespaceGraphURI, updateRequest))
+        {
+            if (!patchResponse.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
+            {
+                if (log.isErrorEnabled()) log.error("Failed to PATCH namespace graph {}: {}", namespaceGraphURI, patchResponse.getStatus());
+                throw new IOException("Failed to PATCH namespace graph " + namespaceGraphURI + ": " + patchResponse.getStatus());
+            }
+            if (log.isDebugEnabled()) log.debug("Namespace graph PATCH response status: {}", patchResponse.getStatus());
+        }
 
         // 5. Clear and reload namespace ontology from cache
         if (log.isDebugEnabled()) log.debug("Clearing and reloading namespace ontology '{}'", namespaceOntologyURI);
@@ -321,7 +336,7 @@ public class UninstallPackage
     }
 
     /**
-     * Loads package metadata from its URI using LinkedDataClient.
+     * Loads package metadata from its URI using GraphStoreClient.
      * Package metadata is expected to be available as Linked Data.
      *
      * @param packageURI the package URI (e.g., https://packages.linkeddatahub.com/skos/#this)
@@ -345,8 +360,8 @@ public class UninstallPackage
             }
             else
             {
-                LinkedDataClient ldc = LinkedDataClient.create(getSystem().getClient(), getSystem().getMediaTypes());
-                model = ldc.getModel(packageURI);
+                GraphStoreClient gsc = GraphStoreClient.create(getSystem().getClient(), getSystem().getMediaTypes());
+                model = gsc.getModel(packageURI);
             }
 
             return model.getResource(packageURI).as(com.atomgraph.linkeddatahub.apps.model.Package.class);

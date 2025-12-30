@@ -19,7 +19,7 @@ package com.atomgraph.linkeddatahub.resource;
 import com.atomgraph.client.util.DataManager;
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.core.vocabulary.SD;
-import com.atomgraph.linkeddatahub.client.LinkedDataClient;
+import com.atomgraph.linkeddatahub.client.GraphStoreClient;
 import com.atomgraph.linkeddatahub.imports.QueryLoader;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.server.io.ValidatingModelProvider;
@@ -120,13 +120,13 @@ public class Transform extends GraphStoreImpl
             validateNotInternalURL(URI.create(queryRes.getURI()));
             validateNotInternalURL(URI.create(source.getURI()));
 
-            LinkedDataClient ldc = LinkedDataClient.create(getSystem().getClient(), getSystem().getMediaTypes()).
+            GraphStoreClient gsc = GraphStoreClient.create(getSystem().getClient(), getSystem().getMediaTypes()).
                 delegation(getUriInfo().getBaseUri(), getAgentContext().orElse(null));
-            QueryLoader queryLoader = new QueryLoader(URI.create(queryRes.getURI()), getApplication().getBase().getURI(), Syntax.syntaxARQ, ldc);
+            QueryLoader queryLoader = new QueryLoader(URI.create(queryRes.getURI()), getApplication().getBase().getURI(), Syntax.syntaxARQ, gsc);
             Query query = queryLoader.get();
             if (!query.isConstructType()) throw new BadRequestException("Transformation query is not of CONSTRUCT type");
 
-            Model importModel = ldc.getModel(source.getURI());
+            Model importModel = gsc.getModel(source.getURI());
             try (QueryExecution qex = QueryExecution.create(query, importModel))
             {
                 Model transformModel = qex.execConstruct();
@@ -211,9 +211,9 @@ public class Transform extends GraphStoreImpl
             // LNK-002: Validate query URI to prevent SSRF attacks
             validateNotInternalURL(URI.create(queryRes.getURI()));
 
-            LinkedDataClient ldc = LinkedDataClient.create(getSystem().getClient(), getSystem().getMediaTypes()).
+            GraphStoreClient gsc = GraphStoreClient.create(getSystem().getClient(), getSystem().getMediaTypes()).
                 delegation(getUriInfo().getBaseUri(), getAgentContext().orElse(null));
-            QueryLoader queryLoader = new QueryLoader(URI.create(queryRes.getURI()), getApplication().getBase().getURI(), Syntax.syntaxARQ, ldc);
+            QueryLoader queryLoader = new QueryLoader(URI.create(queryRes.getURI()), getApplication().getBase().getURI(), Syntax.syntaxARQ, gsc);
             Query query = queryLoader.get();
             if (!query.isConstructType()) throw new BadRequestException("Transformation query is not of CONSTRUCT type");
 
@@ -240,10 +240,10 @@ public class Transform extends GraphStoreImpl
      */
     protected Response forwardPost(Entity entity, String graphURI)
     {
-        LinkedDataClient ldc = LinkedDataClient.create(getSystem().getClient(), getSystem().getMediaTypes()).
+        GraphStoreClient gsc = GraphStoreClient.create(getSystem().getClient(), getSystem().getMediaTypes()).
             delegation(getUriInfo().getBaseUri(), getAgentContext().orElse(null));
         // forward the stream to the named graph document. Buffer the entity first so that the server response is not returned before the client response completes
-        try (Response response = ldc.post(URI.create(graphURI), ldc.getReadableMediaTypes(Model.class), entity))
+        try (Response response = gsc.post(URI.create(graphURI), entity, gsc.getReadableMediaTypes(Model.class)))
         {
             return Response.status(response.getStatus()).
                 entity(response.readEntity(Model.class)).

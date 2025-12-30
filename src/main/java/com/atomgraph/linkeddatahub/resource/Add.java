@@ -18,7 +18,7 @@ package com.atomgraph.linkeddatahub.resource;
 
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.core.vocabulary.SD;
-import com.atomgraph.linkeddatahub.client.LinkedDataClient;
+import com.atomgraph.linkeddatahub.client.GraphStoreClient;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.server.io.ValidatingModelProvider;
 import com.atomgraph.linkeddatahub.server.model.impl.GraphStoreImpl;
@@ -115,8 +115,8 @@ public class Add extends GraphStoreImpl // TO-DO: does not need to extend GraphS
             Resource graph = arg.getPropertyResourceValue(SD.name);
             if (graph == null || !graph.isURIResource()) throw new BadRequestException("Graph URI (sd:name) not provided");
 
-            LinkedDataClient ldc = LinkedDataClient.create(getSystem().getClient(), getMediaTypes()); // TO-DO: inject
-            Model importModel = ldc.getModel(source.getURI());
+            GraphStoreClient gsc = GraphStoreClient.create(getSystem().getClient(), getMediaTypes()); // TO-DO: inject
+            Model importModel = gsc.getModel(source.getURI());
             // forward the stream to the named graph document -- do not directly append triples to graph because the agent might not have access to it
             return forwardPost(Entity.entity(importModel, com.atomgraph.client.MediaType.APPLICATION_NTRIPLES_TYPE), graph.getURI());
         }
@@ -215,10 +215,10 @@ public class Add extends GraphStoreImpl // TO-DO: does not need to extend GraphS
      */
     protected Response forwardPost(Entity entity, String graphURI)
     {
-        LinkedDataClient ldc = LinkedDataClient.create(getSystem().getClient(), getSystem().getMediaTypes()).
+        GraphStoreClient gsc = GraphStoreClient.create(getSystem().getClient(), getSystem().getMediaTypes()).
             delegation(getUriInfo().getBaseUri(), getAgentContext().orElse(null));
         // forward the stream to the named graph document. Buffer the entity first so that the server response is not returned before the client response completes
-        try (Response response = ldc.post(URI.create(graphURI), ldc.getReadableMediaTypes(Model.class), entity))
+        try (Response response = gsc.post(URI.create(graphURI), entity, gsc.getReadableMediaTypes(Model.class)))
         {
             return Response.status(response.getStatus()).
                 entity(response.readEntity(Model.class)).

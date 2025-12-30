@@ -18,7 +18,7 @@ package com.atomgraph.linkeddatahub.writer.impl;
 
 import org.apache.jena.util.LocationMapper;
 import java.net.URI;
-import com.atomgraph.core.client.LinkedDataClient;
+import com.atomgraph.core.client.GraphStoreClient;
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
 import com.google.common.net.InternetDomainName;
 import java.util.Map;
@@ -44,7 +44,7 @@ public class DataManagerImpl extends com.atomgraph.client.util.DataManagerImpl
      * 
      * @param mapper location mapper
      * @param modelCache model cache
-     * @param ldc Linked Data client
+     * @param gsc Graph Store client
      * @param cacheModelLoads true if loaded RDF models are cached
      * @param preemptiveAuth true if HTTP basic auth is sent preemptively
      * @param resolvingUncached true if uncached URLs are resolved
@@ -52,12 +52,12 @@ public class DataManagerImpl extends com.atomgraph.client.util.DataManagerImpl
      * @param agentContext agent context
      */
     public DataManagerImpl(LocationMapper mapper, Map<String, Model> modelCache,
-            LinkedDataClient ldc,
+            GraphStoreClient gsc,
             boolean cacheModelLoads, boolean preemptiveAuth, boolean resolvingUncached,
             URI rootContextURI,
             AgentContext agentContext)
     {
-        super(mapper, modelCache, ldc, cacheModelLoads, preemptiveAuth, resolvingUncached);
+        super(mapper, modelCache, gsc, cacheModelLoads, preemptiveAuth, resolvingUncached);
         this.rootContextURI = rootContextURI;
         this.agentContext = agentContext;
     }

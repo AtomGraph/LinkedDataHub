@@ -16,7 +16,7 @@
  */
 package com.atomgraph.linkeddatahub.imports.stream.csv;
 
-import com.atomgraph.linkeddatahub.client.LinkedDataClient;
+import com.atomgraph.linkeddatahub.client.GraphStoreClient;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.server.exception.ImportException;
 import com.univocity.parsers.common.ParsingContext;
@@ -51,7 +51,7 @@ public class CSVGraphStoreRowProcessor implements RowProcessor // extends com.at
     private static final Logger log = LoggerFactory.getLogger(CSVGraphStoreRowProcessor.class);
 
     private final Service service, adminService;
-    private final LinkedDataClient ldc;
+    private final GraphStoreClient gsc;
     private final String base;
     private final Query query;
     private int subjectCount, tripleCount;
@@ -61,15 +61,15 @@ public class CSVGraphStoreRowProcessor implements RowProcessor // extends com.at
      * 
      * @param service SPARQL service of the application
      * @param adminService SPARQL service of the admin application
-     * @param ldc Linked Data client
+     * @param gsc Graph Store client
      * @param base base URI
      * @param query transformation query
      */
-    public CSVGraphStoreRowProcessor(Service service, Service adminService, LinkedDataClient ldc, String base, Query query)
+    public CSVGraphStoreRowProcessor(Service service, Service adminService, GraphStoreClient gsc, String base, Query query)
     {
         this.service = service;
         this.adminService = adminService;
-        this.ldc = ldc;
+        this.gsc = gsc;
         this.base = base;
         this.query = query;
     }
@@ -121,11 +121,11 @@ public class CSVGraphStoreRowProcessor implements RowProcessor // extends com.at
         MultivaluedMap<String, Object> headers = new MultivaluedHashMap();
         headers.putSingle(HttpHeaders.IF_NONE_MATCH, "*");
 
-        try (Response putResponse = getLinkedDataClient().put(URI.create(graphURI), namedModel, headers))
+        try (Response putResponse = getGraphStoreClient().put(URI.create(graphURI), namedModel, headers))
         {
             if (putResponse.getStatusInfo().equals(Response.Status.PRECONDITION_FAILED))
             {
-                try (Response postResponse = getLinkedDataClient().post(URI.create(graphURI), namedModel))
+                try (Response postResponse = getGraphStoreClient().post(URI.create(graphURI), namedModel))
                 {                                
                     if (!postResponse.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
                     {
@@ -264,13 +264,13 @@ public class CSVGraphStoreRowProcessor implements RowProcessor // extends com.at
     }
     
     /**
-     * Returns the HTTP client.
+     * Returns the Graph Store client.
      * 
      * @return client object
      */
-    public LinkedDataClient getLinkedDataClient()
+    public GraphStoreClient getGraphStoreClient()
     {
-        return ldc;
+        return gsc;
     }
     
 }

@@ -17,7 +17,7 @@
 package com.atomgraph.linkeddatahub.imports.stream;
 
 import com.atomgraph.core.MediaType;
-import com.atomgraph.linkeddatahub.client.LinkedDataClient;
+import com.atomgraph.linkeddatahub.client.GraphStoreClient;
 import com.atomgraph.linkeddatahub.model.Service;
 import java.io.File;
 import java.io.FileInputStream;
@@ -48,7 +48,7 @@ public class StreamRDFOutputWriter implements Function<Response, RDFGraphStoreOu
     private static final Logger log = LoggerFactory.getLogger(StreamRDFOutputWriter.class);
 
     private final Service service, adminService;
-    private final LinkedDataClient ldc;
+    private final GraphStoreClient gsc;
     private final String baseURI, graphURI;
     private final Query query;
 
@@ -57,16 +57,16 @@ public class StreamRDFOutputWriter implements Function<Response, RDFGraphStoreOu
      * 
      * @param service SPARQL service of the application
      * @param adminService SPARQL service of the admin application
-     * @param ldc GSP client
+     * @param gsc GSP client
      * @param baseURI base URI
      * @param query transformation query or null
      * @param graphURI target graph URI
      */
-    public StreamRDFOutputWriter(Service service, Service adminService, LinkedDataClient ldc, String baseURI, Query query, String graphURI)
+    public StreamRDFOutputWriter(Service service, Service adminService, GraphStoreClient gsc, String baseURI, Query query, String graphURI)
     {
         this.service = service;
         this.adminService = adminService;
-        this.ldc = ldc;
+        this.gsc = gsc;
         this.baseURI = baseURI;
         this.query = query;
         this.graphURI = graphURI;
@@ -92,7 +92,7 @@ public class StreamRDFOutputWriter implements Function<Response, RDFGraphStoreOu
                 Lang lang = RDFLanguages.contentTypeToLang(mediaType.toString()); // convert media type to RDF language
                 if (lang == null) throw new BadRequestException("Content type '" + mediaType + "' is not an RDF media type");
 
-                RDFGraphStoreOutput output = new RDFGraphStoreOutput(getService(), getAdminService(), getLinkedDataClient(), fis, getBaseURI(), getQuery(), lang, getGraphURI());
+                RDFGraphStoreOutput output = new RDFGraphStoreOutput(getService(), getAdminService(), getGraphStoreClient(), fis, getBaseURI(), getQuery(), lang, getGraphURI());
                 output.write();
                 return output;
             }
@@ -129,13 +129,13 @@ public class StreamRDFOutputWriter implements Function<Response, RDFGraphStoreOu
     }
     
     /**
-     * Returns the Linked Data client.
+     * Returns the Graph Store client.
      * 
      * @return client object
      */
-    public LinkedDataClient getLinkedDataClient()
+    public GraphStoreClient getGraphStoreClient()
     {
-        return ldc;
+        return gsc;
     }
     
     /**

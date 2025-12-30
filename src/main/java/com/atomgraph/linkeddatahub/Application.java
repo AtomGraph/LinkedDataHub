@@ -67,7 +67,7 @@ import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.writer.factory.xslt.XsltExecutableSupplier;
 import com.atomgraph.linkeddatahub.writer.factory.XsltExecutableSupplierFactory;
 import com.atomgraph.client.util.XsltResolver;
-import com.atomgraph.linkeddatahub.client.LinkedDataClient;
+import com.atomgraph.linkeddatahub.client.GraphStoreClient;
 import com.atomgraph.linkeddatahub.client.filter.ClientUriRewriteFilter;
 import com.atomgraph.linkeddatahub.client.filter.grddl.YouTubeGRDDLFilter;
 import com.atomgraph.linkeddatahub.imports.ImportExecutor;
@@ -732,7 +732,7 @@ public class Application extends ResourceConfig
         
             // TO-DO: config property for cacheModelLoads
             endUserOntModelSpecs = new HashMap<>();
-            dataManager = new DataManagerImpl(locationMapper, new HashMap<>(), LinkedDataClient.create(client, mediaTypes), cacheModelLoads, preemptiveAuth, resolvingUncached);
+            dataManager = new DataManagerImpl(locationMapper, new HashMap<>(), GraphStoreClient.create(client, mediaTypes), cacheModelLoads, preemptiveAuth, resolvingUncached);
             ontModelSpec = OntModelSpec.OWL_MEM_RDFS_INF;
             ontModelSpec.setImportModelGetter(dataManager);
             OntDocumentManager.getInstance().setFileManager((FileManager)dataManager);
@@ -807,7 +807,7 @@ public class Application extends ResourceConfig
             
             xsltComp = xsltProc.newXsltCompiler();
             xsltComp.setParameter(new QName("ldh", LDH.base.getNameSpace(), LDH.base.getLocalName()), new XdmAtomicValue(baseURI));
-            xsltComp.setURIResolver(new XsltResolver(LocationMapper.get(), new HashMap<>(), LinkedDataClient.create(client, mediaTypes), false, false, true)); // default Xerces parser does not support HTTPS
+            xsltComp.setURIResolver(new XsltResolver(LocationMapper.get(), new HashMap<>(), GraphStoreClient.create(client, mediaTypes), false, false, true)); // default Xerces parser does not support HTTPS
             xsltExec = xsltComp.compile(stylesheet);
         }
         catch (FileNotFoundException ex)
@@ -1199,7 +1199,7 @@ public class Application extends ResourceConfig
         {
             Resource agent = auth.getPropertyResourceValue(ACL.agent);
             // make sure the client has WebID delegation enabled, otherwise it will not have authenticated access
-            Model agentModel = event.getLinkedDataClient().getModel(agent.getURI());
+            Model agentModel = event.getGraphStoreClient().getModel(agent.getURI());
             if (!agentModel.containsResource(agent)) throw new IllegalStateException("Could not load agent's <" + agent.getURI() + "> description");
             agent = agentModel.getResource(agent.getURI());
 
@@ -1420,11 +1420,11 @@ public class Application extends ResourceConfig
      * @param service current SPARQL service
      * @param adminService current admin SPARQL service
      * @param baseURI application's base URI
-     * @param ldc Linked Data client
+     * @param gsc Graph Store client
      */
-    public void submitImport(CSVImport csvImport, com.atomgraph.linkeddatahub.apps.model.Application app, Service service, Service adminService, String baseURI, LinkedDataClient ldc)
+    public void submitImport(CSVImport csvImport, com.atomgraph.linkeddatahub.apps.model.Application app, Service service, Service adminService, String baseURI, GraphStoreClient gsc)
     {
-        new ImportExecutor(importThreadPool).start(service, adminService, baseURI, ldc, csvImport);
+        new ImportExecutor(importThreadPool).start(service, adminService, baseURI, gsc, csvImport);
     }
     
     /**
@@ -1435,11 +1435,11 @@ public class Application extends ResourceConfig
      * @param service current SPARQL service
      * @param adminService current admin SPARQL service
      * @param baseURI application's base URI
-     * @param ldc Linked Data client
+     * @param gsc Graph Store client
      */
-    public void submitImport(RDFImport rdfImport, com.atomgraph.linkeddatahub.apps.model.Application app, Service service, Service adminService, String baseURI, LinkedDataClient ldc)
+    public void submitImport(RDFImport rdfImport, com.atomgraph.linkeddatahub.apps.model.Application app, Service service, Service adminService, String baseURI, GraphStoreClient gsc)
     {
-        new ImportExecutor(importThreadPool).start(service, adminService, baseURI, ldc, rdfImport);
+        new ImportExecutor(importThreadPool).start(service, adminService, baseURI, gsc, rdfImport);
     }
     
     /**
@@ -1716,8 +1716,7 @@ public class Application extends ResourceConfig
         {
             OntModelSpec appOntModelSpec = new OntModelSpec(OntModelSpec.OWL_MEM_RDFS_INF);
             appOntModelSpec.setDocumentManager(new OntDocumentManager());
-            appOntModelSpec.getDocumentManager().setFileManager(
-                    new DataManagerImpl(LocationMapper.get(), new HashMap<>(), LinkedDataClient.create(getClient(), getMediaTypes()), true, isPreemptiveAuth(), isResolvingUncached()));
+            appOntModelSpec.getDocumentManager().setFileManager(new DataManagerImpl(LocationMapper.get(), new HashMap<>(), GraphStoreClient.create(getClient(), getMediaTypes()), true, isPreemptiveAuth(), isResolvingUncached()));
             
             getEndUserOntModelSpecs().put(app.getURI(), appOntModelSpec);
         }

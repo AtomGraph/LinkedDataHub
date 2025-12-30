@@ -18,7 +18,7 @@ package com.atomgraph.linkeddatahub.resource;
 
 import com.atomgraph.client.util.DataManager;
 import com.atomgraph.core.MediaTypes;
-import com.atomgraph.linkeddatahub.client.LinkedDataClient;
+import com.atomgraph.linkeddatahub.client.GraphStoreClient;
 import com.atomgraph.linkeddatahub.imports.QueryLoader;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.server.filter.response.CacheInvalidationFilter;
@@ -122,9 +122,9 @@ public class Generate extends GraphStoreImpl
                     Resource queryRes = part.getPropertyResourceValue(SPIN.query);
                     if (queryRes == null) throw new BadRequestException("Container query string (spin:query) not provided");
 
-                    LinkedDataClient ldc = LinkedDataClient.create(getSystem().getClient(), getSystem().getMediaTypes()).
+                    GraphStoreClient gsc = GraphStoreClient.create(getSystem().getClient(), getSystem().getMediaTypes()).
                         delegation(getUriInfo().getBaseUri(), getAgentContext().orElse(null));
-                    QueryLoader queryLoader = new QueryLoader(URI.create(queryRes.getURI()), getApplication().getBase().getURI(), Syntax.syntaxARQ, ldc);
+                    QueryLoader queryLoader = new QueryLoader(URI.create(queryRes.getURI()), getApplication().getBase().getURI(), Syntax.syntaxARQ, gsc);
                     Query query = queryLoader.get();
                     if (!query.isSelectType()) throw new BadRequestException("Container query is not of SELECT type");
                     

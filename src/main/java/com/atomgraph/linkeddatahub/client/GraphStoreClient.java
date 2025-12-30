@@ -26,27 +26,27 @@ import com.atomgraph.linkeddatahub.server.security.WebIDSecurityContext;
 import java.net.URI;
 import jakarta.ws.rs.client.Client;
 import jakarta.ws.rs.client.Entity;
-import static jakarta.ws.rs.client.Entity.entity;
 import jakarta.ws.rs.client.WebTarget;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.MultivaluedMap;
 import jakarta.ws.rs.core.Response;
 import org.apache.jena.rdf.model.Model;
+import org.apache.jena.update.UpdateRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Linked Data client that supports WebID and OIDC delegation.
+ * Graph Store client that supports WebID and OIDC delegation.
  * Sends <code>User-Agent</code> header to impersonate a web browser.
  * Respects <code>Retry-After</code> response headers.
  * 
  * @author {@literal Martynas Jusevičius <martynas@atomgraph.com>}
  */
-public class LinkedDataClient extends com.atomgraph.core.client.LinkedDataClient
+public class GraphStoreClient extends com.atomgraph.core.client.GraphStoreClient
 {
 
-    private static final Logger log = LoggerFactory.getLogger(LinkedDataClient.class);
+    private static final Logger log = LoggerFactory.getLogger(GraphStoreClient.class);
 
     /**
      * <samp>User-Agent</samp> request header value used by this HTTP client.
@@ -57,29 +57,42 @@ public class LinkedDataClient extends com.atomgraph.core.client.LinkedDataClient
     private AgentContext agentContext;
     private long defaultDelayMillis;
     private final int maxRetryCount;
-    
+
     /**
-     * Constructs Linked Data client from HTTP client and media types.
+     * Constructs Graph Store Protocol client.
      * 
      * @param client HTTP client
      * @param mediaTypes registry of supported readable/writable media types
      */
-    protected LinkedDataClient(Client client, MediaTypes mediaTypes)
+    protected GraphStoreClient(Client client, MediaTypes mediaTypes)
     {
-        this(client, mediaTypes, 5000L, 3);
+        this(client, mediaTypes, null);
     }
     
     /**
-     * Constructs Linked Data client from HTTP client and media types.
+     * Constructs Graph Store Protocol client.
      * 
      * @param client HTTP client
      * @param mediaTypes registry of supported readable/writable media types
+     * @param endpoint endpoint URL (optional)
+     */
+    protected GraphStoreClient(Client client, MediaTypes mediaTypes, URI endpoint)
+    {
+        this(client, mediaTypes, endpoint, 5000L, 3);
+    }
+    
+    /**
+     * Constructs Graph Store Protocol client.
+     * 
+     * @param client HTTP client
+     * @param mediaTypes registry of supported readable/writable media types
+     * @param endpoint endpoint URL (optional)
      * @param defaultDelayMillis default period the client waits before retrying the request
      * @param maxRetryCount maximum number of request retries
      */
-    protected LinkedDataClient(Client client, MediaTypes mediaTypes, long defaultDelayMillis, int maxRetryCount)
+    protected GraphStoreClient(Client client, MediaTypes mediaTypes, URI endpoint, long defaultDelayMillis, int maxRetryCount)
     {
-        super(client, mediaTypes);
+        super(client, mediaTypes, endpoint);
         this.defaultDelayMillis = defaultDelayMillis;
         this.maxRetryCount = maxRetryCount;
     }
@@ -89,13 +102,14 @@ public class LinkedDataClient extends com.atomgraph.core.client.LinkedDataClient
      * 
      * @param client HTTP client
      * @param mediaTypes registry of supported readable/writable media types
+     * @param endpoint endpoint URL (optional)
      * @param defaultDelayMillis default period the client waits before retrying the request
      * @param maxRetryCount max request retry count
-     * @return Linked Data client instance
+     * @return Graph Store client instance
      */
-    public static LinkedDataClient create(Client client, MediaTypes mediaTypes, long defaultDelayMillis, int maxRetryCount)
+    public static GraphStoreClient create(Client client, MediaTypes mediaTypes, URI endpoint, long defaultDelayMillis, int maxRetryCount)
     {
-        return new LinkedDataClient(client, mediaTypes, defaultDelayMillis, maxRetryCount);
+        return new GraphStoreClient(client, mediaTypes, endpoint, defaultDelayMillis, maxRetryCount);
     }
    
     /**
@@ -103,11 +117,24 @@ public class LinkedDataClient extends com.atomgraph.core.client.LinkedDataClient
      * 
      * @param client HTTP client
      * @param mediaTypes registry of supported readable/writable media types
-     * @return Linked Data client instance
+     * @param endpoint endpoint URL (optional)
+     * @return Graph Store client instance
      */
-    public static LinkedDataClient create(Client client, MediaTypes mediaTypes)
+    public static GraphStoreClient create(Client client, MediaTypes mediaTypes, URI endpoint)
     {
-        return new LinkedDataClient(client, mediaTypes);
+        return new GraphStoreClient(client, mediaTypes, endpoint);
+    }
+    
+    /**
+     * Factory method that accepts HTTP client and media types.
+     * 
+     * @param client HTTP client
+     * @param mediaTypes registry of supported readable/writable media types
+     * @return Graph Store client instance
+     */
+    public static GraphStoreClient create(Client client, MediaTypes mediaTypes)
+    {
+        return new GraphStoreClient(client, mediaTypes);
     }
     
     /**
@@ -118,7 +145,7 @@ public class LinkedDataClient extends com.atomgraph.core.client.LinkedDataClient
      * @param agentContext agent's auth context
      * @return client instance
      */
-    public LinkedDataClient delegation(URI baseURI, AgentContext agentContext)
+    public GraphStoreClient delegation(URI baseURI, AgentContext agentContext)
     {
         this.baseURI = baseURI;
         this.agentContext = agentContext;
@@ -167,7 +194,7 @@ public class LinkedDataClient extends com.atomgraph.core.client.LinkedDataClient
     }
    
     @Override
-    public Response post(URI uri, MediaType[] acceptedTypes, Entity entity)
+    public Response post(URI uri, Entity entity, MediaType[] acceptedTypes)
     {
         WebTarget webTarget = getWebTarget(uri);
         return new RetryAfterHelper(getDefaultDelayMillis(), getMaxRetryCount()).invokeWithRetry(() ->
@@ -175,7 +202,7 @@ public class LinkedDataClient extends com.atomgraph.core.client.LinkedDataClient
     }
     
     @Override
-    public Response put(URI uri, MediaType[] acceptedTypes, Entity entity)
+    public Response put(URI uri, Entity entity, MediaType[] acceptedTypes)
     {
         WebTarget webTarget = getWebTarget(uri);
         return new RetryAfterHelper(getDefaultDelayMillis(), getMaxRetryCount()).invokeWithRetry(() ->
@@ -206,10 +233,28 @@ public class LinkedDataClient extends com.atomgraph.core.client.LinkedDataClient
         return new RetryAfterHelper(getDefaultDelayMillis(), getMaxRetryCount()).invokeWithRetry(() ->
             webTarget.request().delete());
     }
-    
+
+    /**
+     * Sends a PATCH request with SPARQL UPDATE to the specified graph URI.
+     *
+     * @param uri the target graph URI
+     * @param updateRequest the SPARQL UPDATE request
+     * @return the HTTP response
+     */
+    public Response patch(URI uri, UpdateRequest updateRequest)
+    {
+        if (updateRequest == null) throw new IllegalArgumentException("UpdateRequest cannot be null");
+
+        WebTarget webTarget = getWebTarget(uri);
+        String updateString = updateRequest.toString();
+
+        return new RetryAfterHelper(getDefaultDelayMillis(), getMaxRetryCount()).invokeWithRetry(() ->
+            webTarget.request().method("PATCH", Entity.entity(updateString, "application/sparql-update")));
+    }
+
     /**
      * Returns the application's base URI.
-     * 
+     *
      * @return base URI
      */
     public URI getBaseURI()

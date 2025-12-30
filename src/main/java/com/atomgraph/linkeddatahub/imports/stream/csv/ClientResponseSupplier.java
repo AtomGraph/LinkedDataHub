@@ -16,7 +16,7 @@
  */
 package com.atomgraph.linkeddatahub.imports.stream.csv;
 
-import com.atomgraph.core.client.LinkedDataClient;
+import com.atomgraph.core.client.GraphStoreClient;
 import java.net.URI;
 import java.util.function.Supplier;
 import jakarta.ws.rs.core.Response;
@@ -35,7 +35,7 @@ public class ClientResponseSupplier implements Supplier<Response>
 
     private static final Logger log = LoggerFactory.getLogger(ClientResponseSupplier.class);
    
-    private final LinkedDataClient ldc;
+    private final GraphStoreClient gsc;
     private final jakarta.ws.rs.core.MediaType[] mediaTypes;
     private final URI uri;
 
@@ -44,11 +44,11 @@ public class ClientResponseSupplier implements Supplier<Response>
      * 
      * @param uri request URI
      * @param mediaTypes registry of media types
-     * @param ldc Linked Data client
+     * @param gsc Graph Store client
      */
-    public ClientResponseSupplier(LinkedDataClient ldc, jakarta.ws.rs.core.MediaType[] mediaTypes, URI uri)
+    public ClientResponseSupplier(GraphStoreClient gsc, jakarta.ws.rs.core.MediaType[] mediaTypes, URI uri)
     {
-        this.ldc = ldc;
+        this.gsc = gsc;
         this.mediaTypes = mediaTypes;
         this.uri = uri;
     }
@@ -57,19 +57,19 @@ public class ClientResponseSupplier implements Supplier<Response>
      * Constructs supplier from request URI.
      * 
      * @param uri request URI
-     * @param ldc Linked Data client
+     * @param gsc Graph Store client
      */
-    public ClientResponseSupplier(LinkedDataClient ldc, URI uri)
+    public ClientResponseSupplier(GraphStoreClient gsc, URI uri)
     {
-        this(ldc, null, uri);
+        this(gsc, null, uri);
     }
     
     @Override
     public Response get()
     {
-        if (getMediaTypes() != null) return getLinkedDataClient().get(getURI(), getMediaTypes());
+        if (getMediaTypes() != null) return getGraphStoreClient().get(getURI(), getMediaTypes());
         
-        return getLinkedDataClient().get(getURI());
+        return getGraphStoreClient().get(getURI());
     }
 
     /**
@@ -93,13 +93,13 @@ public class ClientResponseSupplier implements Supplier<Response>
     }
 
     /**
-     * Returns Linked Data client.
+     * Returns Graph Store client.
      * 
      * @return manager instance
      */
-    public LinkedDataClient getLinkedDataClient()
+    public GraphStoreClient getGraphStoreClient()
     {
-        return ldc;
+        return gsc;
     }
     
 }
