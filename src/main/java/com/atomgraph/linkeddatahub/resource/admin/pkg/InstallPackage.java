@@ -20,7 +20,6 @@ import com.atomgraph.client.util.DataManager;
 import com.atomgraph.linkeddatahub.apps.model.AdminApplication;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import com.atomgraph.linkeddatahub.client.GraphStoreClient;
-import com.atomgraph.linkeddatahub.resource.Graph;
 import com.atomgraph.linkeddatahub.resource.admin.ClearOntology;
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
 import com.atomgraph.linkeddatahub.server.util.UriPath;
@@ -40,7 +39,6 @@ import jakarta.ws.rs.client.WebTarget;
 import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
-import jakarta.ws.rs.core.MultivaluedHashMap;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.UriBuilder;
 import org.apache.commons.codec.binary.Hex;
@@ -311,7 +309,7 @@ public class InstallPackage
             gsc = gsc.delegation(adminApp.getBaseURI(), getAgentContext().get());
         }
 
-        try (Response putResponse = gsc.put(ontologyDocumentURI, ontologyModel, new MultivaluedHashMap<>()))
+        try (Response putResponse = gsc.put(ontologyDocumentURI, ontologyModel))
         {
             if (!putResponse.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
             {

@@ -23,15 +23,17 @@ import com.atomgraph.linkeddatahub.client.util.RetryAfterHelper;
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
 import com.atomgraph.linkeddatahub.server.security.IDTokenSecurityContext;
 import com.atomgraph.linkeddatahub.server.security.WebIDSecurityContext;
+import static jakarta.ws.rs.HttpMethod.PATCH;
 import java.net.URI;
 import jakarta.ws.rs.client.Client;
 import jakarta.ws.rs.client.Entity;
+import jakarta.ws.rs.client.Invocation;
 import jakarta.ws.rs.client.WebTarget;
 import jakarta.ws.rs.core.HttpHeaders;
-import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.MultivaluedMap;
 import jakarta.ws.rs.core.Response;
-import org.apache.jena.rdf.model.Model;
+import java.util.List;
+import java.util.Map;
 import org.apache.jena.update.UpdateRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -184,54 +186,42 @@ public class GraphStoreClient extends com.atomgraph.core.client.GraphStoreClient
     }
     
     @Override
-    public Response get(URI uri, jakarta.ws.rs.core.MediaType[] acceptedTypes)
+    protected Invocation.Builder applyHeaders(Invocation.Builder builder, MultivaluedMap<String, Object> headers)
     {
-        WebTarget webTarget = getWebTarget(uri);
+        if (headers != null)
+            for (Map.Entry<String, List<Object>> entry : headers.entrySet())
+                for (Object value : entry.getValue())
+                    builder = builder.header(entry.getKey(), value);
+        
+        return builder.header(HttpHeaders.USER_AGENT, getUserAgentHeaderValue());
+    }
+    
+    @Override
+    public Response get(URI uri, jakarta.ws.rs.core.MediaType[] acceptedTypes, MultivaluedMap<String, Object> headers)
+    {
         return new RetryAfterHelper(getDefaultDelayMillis(), getMaxRetryCount()).invokeWithRetry(() ->
-            webTarget.request(acceptedTypes)
-                     .header(HttpHeaders.USER_AGENT, getUserAgentHeaderValue())
-                     .get());
+            applyHeaders(getWebTarget(uri).request(acceptedTypes), headers).get());
     }
    
     @Override
-    public Response post(URI uri, Entity entity, MediaType[] acceptedTypes)
+    public Response post(URI uri, Entity entity, jakarta.ws.rs.core.MediaType[] acceptedTypes, MultivaluedMap<String, Object> headers)
     {
-        WebTarget webTarget = getWebTarget(uri);
         return new RetryAfterHelper(getDefaultDelayMillis(), getMaxRetryCount()).invokeWithRetry(() ->
-            webTarget.request(acceptedTypes).post(entity));
+            applyHeaders(getWebTarget(uri).request(acceptedTypes), headers).post(entity));
     }
     
     @Override
-    public Response put(URI uri, Entity entity, MediaType[] acceptedTypes)
+    public Response put(URI uri, Entity entity, jakarta.ws.rs.core.MediaType[] acceptedTypes, MultivaluedMap<String, Object> headers)
     {
-        WebTarget webTarget = getWebTarget(uri);
         return new RetryAfterHelper(getDefaultDelayMillis(), getMaxRetryCount()).invokeWithRetry(() ->
-            webTarget.request(acceptedTypes).put(entity));
-    }
-    
-    /**
-     * Sends a PUT request with RDF model data to the specified URI.
-     * 
-     * @param uri the target URI
-     * @param model the RDF model to send
-     * @param headers additional HTTP headers
-     * @return the HTTP response
-     */
-    public Response put(URI uri, Model model, MultivaluedMap<String, Object> headers)
-    {
-        WebTarget webTarget = getWebTarget(uri);
-        return new RetryAfterHelper(getDefaultDelayMillis(), getMaxRetryCount()).invokeWithRetry(() ->
-            webTarget.request(getReadableMediaTypes(Model.class)).
-                headers(headers).
-                put(Entity.entity(model, getDefaultMediaType())));
+            applyHeaders(getWebTarget(uri).request(acceptedTypes), headers).put(entity));
     }
     
     @Override
-    public Response delete(URI uri)
+    public Response delete(URI uri, jakarta.ws.rs.core.MediaType[] acceptedTypes, MultivaluedMap<String, String> params, MultivaluedMap<String, Object> headers)
     {
-        WebTarget webTarget = getWebTarget(uri);
         return new RetryAfterHelper(getDefaultDelayMillis(), getMaxRetryCount()).invokeWithRetry(() ->
-            webTarget.request().delete());
+            applyHeaders(getWebTarget(uri).request(acceptedTypes), headers).delete());
     }
 
     /**
@@ -249,7 +239,7 @@ public class GraphStoreClient extends com.atomgraph.core.client.GraphStoreClient
         String updateString = updateRequest.toString();
 
         return new RetryAfterHelper(getDefaultDelayMillis(), getMaxRetryCount()).invokeWithRetry(() ->
-            webTarget.request().method("PATCH", Entity.entity(updateString, "application/sparql-update")));
+            webTarget.request().method(PATCH, Entity.entity(updateString, com.atomgraph.linkeddatahub.MediaType.APPLICATION_SPARQL_UPDATE_TYPE)));
     }
 
     /**

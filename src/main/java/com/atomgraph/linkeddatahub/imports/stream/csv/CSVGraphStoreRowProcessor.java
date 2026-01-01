@@ -22,6 +22,7 @@ import com.atomgraph.linkeddatahub.server.exception.ImportException;
 import com.univocity.parsers.common.ParsingContext;
 import com.univocity.parsers.common.processor.RowProcessor;
 import jakarta.ws.rs.client.Client;
+import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MultivaluedHashMap;
 import jakarta.ws.rs.core.MultivaluedMap;
@@ -121,7 +122,7 @@ public class CSVGraphStoreRowProcessor implements RowProcessor // extends com.at
         MultivaluedMap<String, Object> headers = new MultivaluedHashMap();
         headers.putSingle(HttpHeaders.IF_NONE_MATCH, "*");
 
-        try (Response putResponse = getGraphStoreClient().put(URI.create(graphURI), namedModel, headers))
+        try (Response putResponse = getGraphStoreClient().put(URI.create(graphURI), Entity.entity(namedModel, getGraphStoreClient().getDefaultMediaType()), new jakarta.ws.rs.core.MediaType[]{}, headers))
         {
             if (putResponse.getStatusInfo().equals(Response.Status.PRECONDITION_FAILED))
             {
