@@ -327,7 +327,7 @@ public class InstallPackage
 
         String updateString = String.format(
             "PREFIX owl: <http://www.w3.org/2002/07/owl#> " +
-            "INSERT DATA { <%s> owl:imports <%s> }",
+            "INSERT { <%s> owl:imports <%s> } WHERE { }",
             namespaceOntologyURI, packageOntologyURI
         );
 

@@ -9,7 +9,7 @@ purge_cache "$FRONTEND_VARNISH_SERVICE"
 
 # test package URI (SKOS package)
 package_uri="https://packages.linkeddatahub.com/skos/#this"
-package_ontology_uri="http://www.w3.org/2004/02/skos/core"
+package_ontology_uri="https://raw.githubusercontent.com/AtomGraph/LinkedDataHub-Apps/refs/heads/develop/packages/skos/ns.ttl#"
 namespace_ontology_uri="${END_USER_BASE_URL}ns#"
 
 # first install the package
