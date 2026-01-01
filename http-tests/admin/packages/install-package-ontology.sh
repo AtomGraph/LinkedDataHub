@@ -29,5 +29,7 @@ curl -k -s \
 
 # verify package ontology document was created (hash of package ontology URI)
 package_ontology_hash=$(echo -n "$package_ontology_uri" | shasum -a 1 | cut -d' ' -f1)
-curl -k -f -s -o /dev/null \
-  "${ADMIN_BASE_URL}ontologies/${package_ontology_hash}/"
+curl -k -w "%{http_code}\n" -o /dev/null -s \
+  -E "$OWNER_CERT_FILE":"$OWNER_CERT_PWD" \
+  "${ADMIN_BASE_URL}ontologies/${package_ontology_hash}/" \
+| grep -qE "^($STATUS_OK|$STATUS_NOT_MODIFIED)$"
