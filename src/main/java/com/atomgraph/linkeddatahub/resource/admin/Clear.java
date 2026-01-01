@@ -91,12 +91,18 @@ public class Clear
             {
                 URI ontologyDocURI = UriBuilder.fromUri(ontologyURI).fragment(null).build(); // skip fragment from the ontology URI to get its graph URI
                 if (log.isDebugEnabled()) log.debug("Purge ontology document with URI '{}' from frontend proxy cache", ontologyDocURI);
-                purge(getApplication().getFrontendProxy(), ontologyDocURI.toString());
+                try (Response response = purge(getApplication().getFrontendProxy(), ontologyDocURI.toString()))
+                {
+                    // Response automatically closed by try-with-resources
+                }
             }
             if (getApplication().getService().getBackendProxy() != null)
             {
                 if (log.isDebugEnabled()) log.debug("Ban ontology with URI '{}' from backend proxy cache", ontologyURI);
-                ban(getApplication().getService().getBackendProxy(), ontologyURI);
+                try (Response response = ban(getApplication().getService().getBackendProxy(), ontologyURI))
+                {
+                    // Response automatically closed by try-with-resources
+                }
             }
             
             // !!! we need to reload the ontology model before returning a response, to make sure the next request already gets the new version !!!
