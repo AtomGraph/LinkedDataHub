@@ -134,10 +134,22 @@ public class RDFGraphStoreOutput
                                     }
                                 }
                             }
-                        
+
                             // purge cache entries that include the graph URI
-                            if (getService().getBackendProxy() != null) ban(getService().getClient(), getService().getBackendProxy(), graphUri).close();
-                            if (getAdminService() != null && getAdminService().getBackendProxy() != null) ban(getAdminService().getClient(), getAdminService().getBackendProxy(), graphUri).close();
+                            if (getService().getBackendProxy() != null)
+                            {
+                                try (Response response = ban(getService().getClient(), getService().getBackendProxy(), graphUri))
+                                {
+                                    // Response automatically closed by try-with-resources
+                                }
+                            }
+                            if (getAdminService() != null && getAdminService().getBackendProxy() != null)
+                            {
+                                try (Response response = ban(getAdminService().getClient(), getAdminService().getBackendProxy(), graphUri))
+                                {
+                                    // Response automatically closed by try-with-resources
+                                }
+                            }
                         }
                     }
                 );
@@ -175,10 +187,22 @@ public class RDFGraphStoreOutput
                     }
                 }
             }
-                
+
             // purge cache entries that include the graph URI
-            if (getService().getBackendProxy() != null) ban(getService().getClient(), getService().getBackendProxy(), getGraphURI()).close();
-            if (getAdminService() != null && getAdminService().getBackendProxy() != null) ban(getAdminService().getClient(), getAdminService().getBackendProxy(), getGraphURI()).close();
+            if (getService().getBackendProxy() != null)
+            {
+                try (Response response = ban(getService().getClient(), getService().getBackendProxy(), getGraphURI()))
+                {
+                    // Response automatically closed by try-with-resources
+                }
+            }
+            if (getAdminService() != null && getAdminService().getBackendProxy() != null)
+            {
+                try (Response response = ban(getAdminService().getClient(), getAdminService().getBackendProxy(), getGraphURI()))
+                {
+                    // Response automatically closed by try-with-resources
+                }
+            }
         }
     }
 

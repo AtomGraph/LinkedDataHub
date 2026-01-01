@@ -35,6 +35,8 @@ import java.util.Optional;
 import java.util.Set;
 import org.apache.jena.rdf.model.Resource;
 import org.glassfish.jersey.uri.UriComponent;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Attempts to make backend (triplestore) proxy cache layer transparent by invalidating cache entries that potentially become stale after a write/update request.
@@ -45,12 +47,14 @@ import org.glassfish.jersey.uri.UriComponent;
 @Priority(Priorities.USER + 400)
 public class CacheInvalidationFilter implements ContainerResponseFilter
 {
-    
+
+    private static final Logger log = LoggerFactory.getLogger(CacheInvalidationFilter.class);
+
     /**
      * Name of the HTTP request header that is used to pass values of URLs for invalidation.
      */
     public static final String HEADER_NAME = "X-Escaped-Request-URI";
-    
+
     @Inject com.atomgraph.linkeddatahub.Application system;
     @Inject jakarta.inject.Provider<Optional<com.atomgraph.linkeddatahub.apps.model.Application>> app;
 
@@ -137,7 +141,17 @@ public class CacheInvalidationFilter implements ContainerResponseFilter
     public void banIfNotNull(Resource proxy, String url)
     {
         if (proxy != null)
-            ban(proxy, url).close();
+        {
+            try (Response response = ban(proxy, url))
+            {
+                // Response is automatically closed by try-with-resources, ensuring connection is released
+            }
+            catch (Exception ex)
+            {
+                // Log and swallow exception to prevent cache invalidation errors from failing user requests
+                if (log.isErrorEnabled()) log.error("Cache invalidation failed for URL: " + url, ex);
+            }
+        }
     }
 
     /**
