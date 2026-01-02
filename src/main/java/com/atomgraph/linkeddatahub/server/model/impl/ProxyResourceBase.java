@@ -24,7 +24,7 @@ import com.atomgraph.core.exception.BadGatewayException;
 import com.atomgraph.core.util.ModelUtils;
 import com.atomgraph.core.util.ResultSetUtils;
 import com.atomgraph.linkeddatahub.apps.model.Dataset;
-import com.atomgraph.linkeddatahub.client.LinkedDataClient;
+import com.atomgraph.linkeddatahub.client.GraphStoreClient;
 import com.atomgraph.linkeddatahub.client.filter.auth.IDTokenDelegationFilter;
 import com.atomgraph.linkeddatahub.client.filter.auth.WebIDDelegationFilter;
 import com.atomgraph.linkeddatahub.model.Service;
@@ -566,7 +566,7 @@ public class ProxyResourceBase extends com.atomgraph.client.model.impl.ProxyReso
      */
     public String getUserAgentHeaderValue()
     {
-        return LinkedDataClient.USER_AGENT;
+        return GraphStoreClient.USER_AGENT;
     }
 
     /**

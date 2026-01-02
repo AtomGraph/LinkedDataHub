@@ -158,18 +158,18 @@ public class ServiceImpl extends ResourceImpl implements Service
     @Override
     public GraphStoreClient getGraphStoreClient()
     {
-        return getGraphStoreClient(getClient().target(getProxiedURI(URI.create(getGraphStore().getURI()))));
+        return getGraphStoreClient(getProxiedURI(URI.create(getGraphStore().getURI())));
     }
     
     /**
-     * Creates Graph Store Protocol client for the specified URI web target.
+     * Creates Graph Store Protocol client for the specified endpoint URI.
      * 
-     * @param webTarget URI web target
+     * @param endpoint endpoint
      * @return GSP client
      */
-    public GraphStoreClient getGraphStoreClient(WebTarget webTarget)
+    public GraphStoreClient getGraphStoreClient(URI endpoint)
     {
-        GraphStoreClient graphStoreClient = GraphStoreClient.create(webTarget);
+        GraphStoreClient graphStoreClient = GraphStoreClient.create(getClient(), getMediaTypes(), endpoint);
         
         if (getAuthUser() != null && getAuthPwd() != null)
         {
@@ -177,7 +177,7 @@ public class ServiceImpl extends ResourceImpl implements Service
                 credentials(getAuthUser(), getAuthPwd()).
                 build();
             
-            graphStoreClient.getEndpoint().register(authFeature);
+            graphStoreClient.register(authFeature);
         }
         
         return graphStoreClient;

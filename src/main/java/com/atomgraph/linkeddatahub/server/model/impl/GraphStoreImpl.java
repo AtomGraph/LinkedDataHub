@@ -18,7 +18,6 @@ package com.atomgraph.linkeddatahub.server.model.impl;
 
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.core.riot.lang.RDFPostReader;
-import static com.atomgraph.linkeddatahub.apps.model.Application.UPLOADS_PATH;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
 import java.net.URI;
@@ -57,6 +56,11 @@ public abstract class GraphStoreImpl extends com.atomgraph.core.model.impl.Graph
 {
     
     private static final Logger log = LoggerFactory.getLogger(GraphStoreImpl.class);
+
+    /**
+     * The relative path of the content-addressed file container.
+     */
+    public static final String UPLOADS_PATH = "uploads";
     
     private final UriInfo uriInfo;
     private final com.atomgraph.linkeddatahub.apps.model.Application application;

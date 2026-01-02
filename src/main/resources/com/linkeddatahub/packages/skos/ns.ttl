@@ -1,0 +1,186 @@
+@prefix :	<#> .
+@prefix ldh:	<https://w3id.org/atomgraph/linkeddatahub#> .
+@prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl:    <http://www.w3.org/2002/07/owl#> .
+@prefix sp: 	<http://spinrdf.org/sp#> .
+@prefix spin:	<http://spinrdf.org/spin#> .
+@prefix dct:	<http://purl.org/dc/terms/> .
+@prefix skos:   <http://www.w3.org/2004/02/skos/core#> .
+
+: a owl:Ontology ;
+    owl:imports <http://www.w3.org/2004/02/skos/core> ;
+    rdfs:label "SKOS package ontology".
+
+# Concept
+
+skos:Concept spin:constructor :ConceptConstructor ;
+    spin:constraint :MissingPrefLabel ;
+    ldh:template :NarrowerConcepts .
+
+:ConceptConstructor a ldh:Constructor ;
+    rdfs:label "Concept constructor" ;
+    sp:text """
+        PREFIX skos:    <http://www.w3.org/2004/02/skos/core#>
+        PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>
+
+        CONSTRUCT {
+            $this skos:prefLabel [ a xsd:string ] ;
+                skos:altLabel [ a xsd:string ] ;
+                skos:definition [ a xsd:string ] ;
+                skos:broader [ a skos:Concept ] ;
+                skos:narrower [ a skos:Concept ] ;
+                skos:related [ a skos:Concept ] ;
+                skos:inScheme [ a skos:ConceptScheme ] .
+        }
+        WHERE {}""" ;
+    rdfs:isDefinedBy : .
+
+# narrower
+
+:NarrowerConcepts a ldh:View ;
+    dct:title "Narrower concepts" ;
+    spin:query :SelectNarrowerConcepts ;
+    rdfs:isDefinedBy : .
+
+:SelectNarrowerConcepts a sp:Select ;
+    rdfs:label "Select narrower concepts" ;
+    sp:text """
+PREFIX  skos: <http://www.w3.org/2004/02/skos/core#>
+
+SELECT DISTINCT  ?narrower
+WHERE
+  { GRAPH ?graph
+      { $about  skos:narrower  ?narrower .
+        GRAPH ?narrowerGraph
+        {
+          ?narrower skos:prefLabel ?prefLabel .
+          FILTER (langMatches(lang(?prefLabel), "en"))
+        }
+      }
+  }
+ORDER BY ?prefLabel
+""" ;
+    rdfs:isDefinedBy : .
+
+# broader
+
+skos:Concept ldh:template :BroaderConcepts.
+
+:BroaderConcepts a ldh:View ;
+    dct:title "Broader concepts" ;
+    spin:query :SelectBroaderConcepts ;
+    rdfs:isDefinedBy : .
+
+:SelectBroaderConcepts a sp:Select ;
+    rdfs:label "Select broader concepts" ;
+    sp:text """
+PREFIX  skos: <http://www.w3.org/2004/02/skos/core#>
+
+SELECT DISTINCT  ?broader
+WHERE
+  { GRAPH ?graph
+      { $about  skos:broader  ?broader .
+        GRAPH ?broaderGraph
+        {
+          ?broader skos:prefLabel ?prefLabel .
+          FILTER (langMatches(lang(?prefLabel), "en"))
+        }
+      }
+  }
+ORDER BY ?prefLabel
+""" ;
+    rdfs:isDefinedBy : .
+
+# Collection
+
+skos:Collection spin:constructor :CollectionConstructor ;
+    spin:constraint :MissingPrefLabel ;
+    ldh:template :CollectionMembers.
+
+:CollectionConstructor a ldh:Constructor ;
+    rdfs:label "Collection constructor" ;
+    sp:text """
+        PREFIX skos:    <http://www.w3.org/2004/02/skos/core#>
+        PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>
+
+        CONSTRUCT {
+            $this skos:prefLabel [ a xsd:string ] ;
+                skos:definition [ a xsd:string ] ;
+                skos:member [ a skos:Concept ] .
+        }
+        WHERE {}""" ;
+    rdfs:isDefinedBy : .
+
+:CollectionMembers a ldh:View ;
+    dct:title "Collection members" ;
+    spin:query :SelectCollectionMembers ;
+    rdfs:isDefinedBy : .
+
+:SelectCollectionMembers a sp:Select ;
+    rdfs:label "Select collection members" ;
+    sp:text """
+PREFIX  skos: <http://www.w3.org/2004/02/skos/core#>
+
+SELECT DISTINCT  ?member
+WHERE
+  { GRAPH ?graph
+      { $about  skos:member  ?member .
+        GRAPH ?memberGraph
+        {
+          ?member skos:prefLabel ?prefLabel .
+          FILTER (langMatches(lang(?prefLabel), "en"))
+        }
+      }
+  }
+ORDER BY ?prefLabel
+""" ;
+    rdfs:isDefinedBy : .
+
+# ConceptScheme
+
+skos:ConceptScheme spin:constructor :ConceptSchemeConstructor ;
+    ldh:template :ConceptsInScheme.
+
+:ConceptSchemeConstructor a ldh:Constructor ;
+    rdfs:label "Concept scheme constructor" ;
+    sp:text """
+        PREFIX skos:    <http://www.w3.org/2004/02/skos/core#>
+        PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>
+        PREFIX dct:     <http://purl.org/dc/terms/>
+
+        CONSTRUCT {
+            $this dct:title [ a xsd:string ] ;
+                dct:description [ a xsd:string ] ;
+                skos:hasTopConcept [ a skos:Concept ] .
+        }
+        WHERE {}""" ;
+    rdfs:isDefinedBy : .
+
+:ConceptsInScheme a ldh:View ;
+    dct:title "Concepts in scheme" ;
+    spin:query :SelectConceptsInScheme ;
+    rdfs:isDefinedBy : .
+
+:SelectConceptsInScheme a sp:Select ;
+    rdfs:label "Select concepts in scheme" ;
+    sp:text """
+PREFIX  skos: <http://www.w3.org/2004/02/skos/core#>
+
+SELECT DISTINCT  ?concept
+WHERE
+  { GRAPH ?graph
+      { ?concept  skos:inScheme  $about ;
+            skos:prefLabel ?prefLabel .
+        FILTER (langMatches(lang(?prefLabel), "en"))
+      }
+  }
+ORDER BY ?prefLabel
+""" ;
+    rdfs:isDefinedBy : .
+
+# Constraints
+
+:MissingPrefLabel a ldh:MissingPropertyValue ;
+    rdfs:label "Missing skos:prefLabel" ;
+    sp:arg1 skos:prefLabel ;
+    rdfs:isDefinedBy : .

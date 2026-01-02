@@ -699,7 +699,7 @@ WHERE
         rdfs:label "Full control" ;
         rdfs:comment "Allows full read/write access to all application resources" ;
         acl:accessToClass dh:Item, dh:Container, def:Root ;
-        acl:accessTo <clear>, <transform> ;
+        acl:accessTo <clear>, <transform>, <packages/install>, <packages/uninstall> ;
         acl:mode acl:Read, acl:Append, acl:Write, acl:Control ;
         acl:agentGroup <acl/groups/owners/#this> .
 
@@ -752,6 +752,42 @@ WHERE
     <acl/groups/readers/#this> a foaf:Group ;
         foaf:name "Readers" ;
         dct:description "Group of agents that have read access" .
+
+}
+
+### PACKAGES ###
+
+# ENDPOINTS
+
+<packages/install>
+{
+
+    <packages/install> a foaf:Document ;
+        dct:title "Install package endpoint" .
+
+}
+
+<packages/uninstall>
+{
+
+    <packages/uninstall> a foaf:Document ;
+        dct:title "Uninstall package endpoint" .
+
+}
+
+# CONTAINERS
+
+<packages/>
+{
+
+    <packages/> a dh:Container ;
+        sioc:has_parent <> ;
+        dct:title "Packages" ;
+        dct:description "Manage installed packages" ;
+        rdf:_1 <packages/#select-children> .
+
+    <packages/#select-children> a ldh:Object ;
+        rdf:value ldh:ChildrenView .
 
 }
 

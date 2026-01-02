@@ -16,11 +16,12 @@
  */
 package com.atomgraph.linkeddatahub.imports.stream;
 
-import com.atomgraph.linkeddatahub.client.LinkedDataClient;
+import com.atomgraph.linkeddatahub.client.GraphStoreClient;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.server.exception.ImportException;
 import java.io.InputStream;
 import jakarta.ws.rs.client.Client;
+import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MultivaluedHashMap;
 import jakarta.ws.rs.core.MultivaluedMap;
@@ -51,7 +52,7 @@ public class RDFGraphStoreOutput
     private static final Logger log = LoggerFactory.getLogger(RDFGraphStoreOutput.class);
 
     private final Service service, adminService;
-    private final LinkedDataClient ldc;
+    private final GraphStoreClient gsc;
     private final String base;
     private final InputStream is;
     private final Query query;
@@ -63,18 +64,18 @@ public class RDFGraphStoreOutput
      * 
      * @param service SPARQL service of the application
      * @param adminService SPARQL service of the admin application
-     * @param ldc Linked Data client for RDF results
+     * @param gsc Graph Store client for RDF results
      * @param is RDF input stream
      * @param base base URI
      * @param query <code>CONSTRUCT</code> transformation query or null
      * @param lang RDF language
      * @param graphURI named graph URI
      */
-    public RDFGraphStoreOutput(Service service, Service adminService, LinkedDataClient ldc, InputStream is, String base, Query query, Lang lang, String graphURI)
+    public RDFGraphStoreOutput(Service service, Service adminService, GraphStoreClient gsc, InputStream is, String base, Query query, Lang lang, String graphURI)
     {
         this.service = service;
         this.adminService = adminService;
-        this.ldc = ldc;
+        this.gsc = gsc;
         this.is = is;
         this.base = base;
         this.query = query;
@@ -111,11 +112,11 @@ public class RDFGraphStoreOutput
                             MultivaluedMap<String, Object> headers = new MultivaluedHashMap();
                             headers.putSingle(HttpHeaders.IF_NONE_MATCH, "*");
                             
-                            try (Response putResponse = getLinkedDataClient().put(URI.create(graphUri), namedModel, headers))
+                            try (Response putResponse = getGraphStoreClient().put(URI.create(graphUri), Entity.entity(namedModel, getGraphStoreClient().getDefaultMediaType()), new jakarta.ws.rs.core.MediaType[]{}, headers))
                             {
                                 if (putResponse.getStatusInfo().equals(Response.Status.PRECONDITION_FAILED))
                                 {
-                                    try (Response postResponse = getLinkedDataClient().post(URI.create(graphUri), namedModel))
+                                    try (Response postResponse = getGraphStoreClient().post(URI.create(graphUri), namedModel))
                                     {                                
                                         if (!postResponse.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
                                         {
@@ -133,10 +134,22 @@ public class RDFGraphStoreOutput
                                     }
                                 }
                             }
-                        
+
                             // purge cache entries that include the graph URI
-                            if (getService().getBackendProxy() != null) ban(getService().getClient(), getService().getBackendProxy(), graphUri).close();
-                            if (getAdminService() != null && getAdminService().getBackendProxy() != null) ban(getAdminService().getClient(), getAdminService().getBackendProxy(), graphUri).close();
+                            if (getService().getBackendProxy() != null)
+                            {
+                                try (Response response = ban(getService().getClient(), getService().getBackendProxy(), graphUri))
+                                {
+                                    // Response automatically closed by try-with-resources
+                                }
+                            }
+                            if (getAdminService() != null && getAdminService().getBackendProxy() != null)
+                            {
+                                try (Response response = ban(getAdminService().getClient(), getAdminService().getBackendProxy(), graphUri))
+                                {
+                                    // Response automatically closed by try-with-resources
+                                }
+                            }
                         }
                     }
                 );
@@ -152,11 +165,11 @@ public class RDFGraphStoreOutput
             MultivaluedMap<String, Object> headers = new MultivaluedHashMap();
             headers.putSingle(HttpHeaders.IF_NONE_MATCH, "*");
 
-            try (Response putResponse = getLinkedDataClient().put(URI.create(getGraphURI()), model, headers))
+            try (Response putResponse = getGraphStoreClient().put(URI.create(getGraphURI()), Entity.entity(model, getGraphStoreClient().getDefaultMediaType()), new jakarta.ws.rs.core.MediaType[]{},  headers))
             {
                 if (putResponse.getStatusInfo().equals(Response.Status.PRECONDITION_FAILED))
                 {
-                    try (Response postResponse = getLinkedDataClient().post(URI.create(getGraphURI()), model))
+                    try (Response postResponse = getGraphStoreClient().post(URI.create(getGraphURI()), model))
                     {
                         if (!postResponse.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
                         {
@@ -174,10 +187,22 @@ public class RDFGraphStoreOutput
                     }
                 }
             }
-                
+
             // purge cache entries that include the graph URI
-            if (getService().getBackendProxy() != null) ban(getService().getClient(), getService().getBackendProxy(), getGraphURI()).close();
-            if (getAdminService() != null && getAdminService().getBackendProxy() != null) ban(getAdminService().getClient(), getAdminService().getBackendProxy(), getGraphURI()).close();
+            if (getService().getBackendProxy() != null)
+            {
+                try (Response response = ban(getService().getClient(), getService().getBackendProxy(), getGraphURI()))
+                {
+                    // Response automatically closed by try-with-resources
+                }
+            }
+            if (getAdminService() != null && getAdminService().getBackendProxy() != null)
+            {
+                try (Response response = ban(getAdminService().getClient(), getAdminService().getBackendProxy(), getGraphURI()))
+                {
+                    // Response automatically closed by try-with-resources
+                }
+            }
         }
     }
 
@@ -222,13 +247,13 @@ public class RDFGraphStoreOutput
     }
     
     /**
-     * Returns Linked Data client.
+     * Returns Graph Store client.
      * 
      * @return client object
      */
-    public LinkedDataClient getLinkedDataClient()
+    public GraphStoreClient getGraphStoreClient()
     {
-        return ldc;
+        return gsc;
     }
     
     /**

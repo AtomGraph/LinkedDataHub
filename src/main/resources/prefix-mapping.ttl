@@ -17,7 +17,6 @@
    [ lm:name "http://www.semanticdesktop.org/ontologies/2007/01/19/nie#" ;       lm:altName "com/atomgraph/linkeddatahub/nie.rdf" ] ,
    [ lm:name "http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#" ;       lm:altName "com/atomgraph/linkeddatahub/nfo.rdf" ] ,
    [ lm:name "http://purl.org/dc/dcmitype/" ;                                    lm:altName "com/atomgraph/linkeddatahub/dcmitype.rdf" ] ,
-   [ lm:name "http://vivoweb.org/ontology/core#" ;                               lm:altName "com/atomgraph/linkeddatahub/vivo.owl" ] ,
    [ lm:name "https://www.w3.org/ns/ldt#" ;                                      lm:altName "com/atomgraph/linkeddatahub/ldt.ttl" ] ,
    [ lm:name "https://www.w3.org/ns/ldt/document-hierarchy#" ;                   lm:altName "com/atomgraph/linkeddatahub/dh.ttl" ] ,
    [ lm:name "http://www.w3.org/2011/http#" ;                                    lm:altName "com/atomgraph/linkeddatahub/http.owl" ] ,
@@ -53,7 +52,6 @@
    [ lm:prefix "http://www.semanticdesktop.org/ontologies/2007/01/19/nie" ;      lm:altName "com/atomgraph/linkeddatahub/nie.rdf" ] ,
    [ lm:prefix "http://www.semanticdesktop.org/ontologies/2007/03/22/nfo" ;      lm:altName "com/atomgraph/linkeddatahub/nfo.rdf" ] ,
    [ lm:prefix "http://purl.org/dc/dcmitype/" ;                                  lm:altName "com/atomgraph/linkeddatahub/dcmitype.rdf" ] ,
-   [ lm:prefix "http://vivoweb.org/ontology/core" ;                              lm:altName "com/atomgraph/linkeddatahub/vivo.owl" ] ,
    [ lm:prefix "https://www.w3.org/ns/ldt" ;                                     lm:altName "com/atomgraph/linkeddatahub/ldt.ttl" ] ,
    [ lm:prefix "https://www.w3.org/ns/ldt/core/domain" ;                         lm:altName "com/atomgraph/linkeddatahub/c.ttl" ] ,
    [ lm:prefix "https://www.w3.org/ns/ldt/document-hierarchy" ;                  lm:altName "com/atomgraph/linkeddatahub/dh.ttl" ] ,
@@ -73,5 +71,7 @@
    [ lm:prefix "http://purl.org/goodrelations/v1" ;                              lm:altName "com/atomgraph/client/goodrelations.owl" ] ,
    [ lm:prefix "http://spinrdf.org/sp" ;                                         lm:altName "etc/sp.ttl" ] ,
    [ lm:prefix "http://spinrdf.org/spin" ;                                       lm:altName "etc/spin.ttl" ] ,
-   [ lm:prefix "http://spinrdf.org/spl" ;                                        lm:altName "etc/spl.spin.ttl" ]
+   [ lm:prefix "http://spinrdf.org/spl" ;                                        lm:altName "etc/spl.spin.ttl" ] ,
+   [ lm:prefix "https://packages.linkeddatahub.com/skos/" ;                      lm:altName "com/linkeddatahub/packages/skos/package.ttl" ] ,
+   [ lm:prefix "https://raw.githubusercontent.com/AtomGraph/LinkedDataHub-Apps/refs/heads/develop/packages/skos/ns.ttl" ; lm:altName "com/linkeddatahub/packages/skos/ns.ttl" ]
 .

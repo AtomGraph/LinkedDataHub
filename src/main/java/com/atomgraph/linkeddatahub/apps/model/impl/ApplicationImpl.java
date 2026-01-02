@@ -21,14 +21,18 @@ import com.atomgraph.linkeddatahub.apps.model.Application;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.vocabulary.FOAF;
 import com.atomgraph.linkeddatahub.vocabulary.LAPP;
+import com.atomgraph.linkeddatahub.vocabulary.LDH;
 import com.atomgraph.server.vocabulary.LDT;
 import jakarta.ws.rs.core.UriBuilder;
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.rdf.model.StmtIterator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.net.URI;
+import java.util.HashSet;
+import java.util.Set;
 import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.rdf.model.impl.ResourceImpl;
 
@@ -117,9 +121,9 @@ public class ApplicationImpl extends ResourceImpl implements Application
     public boolean isReadAllowed()
     {
         Statement stmt = getProperty(LAPP.allowRead);
-        
+
         if (stmt != null) return stmt.getBoolean();
-        
+
         return false;
     }
 
@@ -128,4 +132,26 @@ public class ApplicationImpl extends ResourceImpl implements Application
     {
         return UriBuilder.fromUri(getOriginURI());
     }
+    
+    @Override
+    public Set<Resource> getImportedPackages()
+    {
+        Set<Resource> packages = new HashSet<>();
+        StmtIterator it = listProperties(LDH.importPackage);
+        try
+        {
+            while (it.hasNext())
+            {
+                Statement stmt = it.next();
+                if (stmt.getObject().isResource())
+                    packages.add(stmt.getResource());
+            }
+        }
+        finally
+        {
+            it.close();
+        }
+        return packages;
+    }
+
 }

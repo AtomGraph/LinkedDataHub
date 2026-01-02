@@ -19,7 +19,7 @@ package com.atomgraph.linkeddatahub.imports;
 import com.atomgraph.client.MediaTypes;
 import com.atomgraph.client.vocabulary.LDT;
 import com.atomgraph.core.model.DatasetAccessor;
-import com.atomgraph.linkeddatahub.client.LinkedDataClient;
+import com.atomgraph.linkeddatahub.client.GraphStoreClient;
 import com.atomgraph.linkeddatahub.imports.stream.RDFGraphStoreOutput;
 import com.atomgraph.linkeddatahub.imports.stream.csv.CSVGraphStoreOutput;
 import com.atomgraph.linkeddatahub.imports.stream.csv.CSVGraphStoreOutputWriter;
@@ -100,10 +100,10 @@ public class ImportExecutor
      * @param service application's SPARQL service
      * @param adminService admin application's SPARQL service
      * @param appBaseURI application's base URI
-     * @param ldc Linked Data client
+     * @param gsc Graph Store client
      * @param csvImport CSV import resource
      */
-    public void start(Service service, Service adminService, String appBaseURI, LinkedDataClient ldc, CSVImport csvImport)
+    public void start(Service service, Service adminService, String appBaseURI, GraphStoreClient gsc, CSVImport csvImport)
     {
         if (csvImport == null) throw new IllegalArgumentException("CSVImport cannot be null");
         if (log.isDebugEnabled()) log.debug("Submitting new import to thread pool: {}", csvImport.toString());
@@ -112,15 +112,15 @@ public class ImportExecutor
                 addProperty(PROV.startedAtTime, csvImport.getModel().createTypedLiteral(Calendar.getInstance()));
         
         String queryBaseURI = csvImport.getFile().getURI(); // file URI becomes the query base URI
-        QueryLoader queryLoader = new QueryLoader(URI.create(csvImport.getQuery().getURI()), queryBaseURI, Syntax.syntaxARQ, ldc);
+        QueryLoader queryLoader = new QueryLoader(URI.create(csvImport.getQuery().getURI()), queryBaseURI, Syntax.syntaxARQ, gsc);
         ParameterizedSparqlString pss = new ParameterizedSparqlString(queryLoader.get().toString(), queryBaseURI);
         pss.setIri(LDT.base.getLocalName(), appBaseURI); // app's base URI becomes $base
         final Query query = pss.asQuery();
         
-        Supplier<Response> fileSupplier = new ClientResponseSupplier(ldc, CSV_MEDIA_TYPES, URI.create(csvImport.getFile().getURI()));
+        Supplier<Response> fileSupplier = new ClientResponseSupplier(gsc, CSV_MEDIA_TYPES, URI.create(csvImport.getFile().getURI()));
         // skip validation because it will be done during final POST anyway
         CompletableFuture.supplyAsync(fileSupplier, getExecutorService()).thenApplyAsync(getStreamRDFOutputWriter(service, adminService,
-                ldc, queryBaseURI, query, csvImport), getExecutorService()).
+                gsc, queryBaseURI, query, csvImport), getExecutorService()).
             thenAcceptAsync(success(service, csvImport, provImport), getExecutorService()).
             exceptionally(failure(service, csvImport, provImport));
     }
@@ -131,11 +131,11 @@ public class ImportExecutor
      * @param service application's SPARQL service
      * @param adminService admin application's SPARQL service
      * @param appBaseURI application's base URI
-     * @param ldc Linked Data client
+     * @param gsc Graph Store client
      * @param rdfImport RDF import resource
      */
 
-    public void start(Service service, Service adminService, String appBaseURI, LinkedDataClient ldc, RDFImport rdfImport)
+    public void start(Service service, Service adminService, String appBaseURI, GraphStoreClient gsc, RDFImport rdfImport)
     {
         if (rdfImport == null) throw new IllegalArgumentException("RDFImport cannot be null");
         if (log.isDebugEnabled()) log.debug("Submitting new import to thread pool: {}", rdfImport.toString());
@@ -147,7 +147,7 @@ public class ImportExecutor
         final Query query;
         if (rdfImport.getQuery() != null) // query is optional on RDFImport
         {
-            QueryLoader queryLoader = new QueryLoader(URI.create(rdfImport.getQuery().getURI()), queryBaseURI, Syntax.syntaxARQ, ldc);
+            QueryLoader queryLoader = new QueryLoader(URI.create(rdfImport.getQuery().getURI()), queryBaseURI, Syntax.syntaxARQ, gsc);
             ParameterizedSparqlString pss = new ParameterizedSparqlString(queryLoader.get().toString(), queryBaseURI);
             pss.setIri(LDT.base.getLocalName(), appBaseURI); // app's base URI becomes $base
             query = pss.asQuery();
@@ -155,10 +155,10 @@ public class ImportExecutor
         else
             query = null;
         
-        Supplier<Response> fileSupplier = new ClientResponseSupplier(ldc, RDF_MEDIA_TYPES, URI.create(rdfImport.getFile().getURI()));
+        Supplier<Response> fileSupplier = new ClientResponseSupplier(gsc, RDF_MEDIA_TYPES, URI.create(rdfImport.getFile().getURI()));
         // skip validation because it will be done during final POST anyway
         CompletableFuture.supplyAsync(fileSupplier, getExecutorService()).thenApplyAsync(getStreamRDFOutputWriter(service, adminService,
-                ldc, queryBaseURI, query, rdfImport), getExecutorService()).
+                gsc, queryBaseURI, query, rdfImport), getExecutorService()).
             thenAcceptAsync(success(service, rdfImport, provImport), getExecutorService()).
             exceptionally(failure(service, rdfImport, provImport));
     }
@@ -273,15 +273,15 @@ public class ImportExecutor
      * 
      * @param service SPARQL service of the application
      * @param adminService SPARQL service of the admin application
-     * @param ldc Linked Data client
+     * @param gsc Graph Store client
      * @param baseURI base URI
      * @param query transformation query
      * @param imp import resource
      * @return function
      */
-    protected Function<Response, CSVGraphStoreOutput> getStreamRDFOutputWriter(Service service, Service adminService, LinkedDataClient ldc, String baseURI, Query query, CSVImport imp)
+    protected Function<Response, CSVGraphStoreOutput> getStreamRDFOutputWriter(Service service, Service adminService, GraphStoreClient gsc, String baseURI, Query query, CSVImport imp)
     {
-        return new CSVGraphStoreOutputWriter(service, adminService, ldc, baseURI, query, imp.getDelimiter());
+        return new CSVGraphStoreOutputWriter(service, adminService, gsc, baseURI, query, imp.getDelimiter());
     }
 
     /**
@@ -289,15 +289,15 @@ public class ImportExecutor
      * 
      * @param service SPARQL service of the application
      * @param adminService SPARQL service of the admin application
-     * @param ldc Linked Data client
+     * @param gsc Graph Store client
      * @param baseURI base URI
      * @param query transformation query
      * @param imp import resource
      * @return function
      */
-    protected Function<Response, RDFGraphStoreOutput> getStreamRDFOutputWriter(Service service, Service adminService, LinkedDataClient ldc, String baseURI, Query query, RDFImport imp)
+    protected Function<Response, RDFGraphStoreOutput> getStreamRDFOutputWriter(Service service, Service adminService, GraphStoreClient gsc, String baseURI, Query query, RDFImport imp)
     {
-        return new StreamRDFOutputWriter(service, adminService, ldc, baseURI, query, imp.getGraphName() != null ? imp.getGraphName().getURI() : null);
+        return new StreamRDFOutputWriter(service, adminService, gsc, baseURI, query, imp.getGraphName() != null ? imp.getGraphName().getURI() : null);
     }
 
     
