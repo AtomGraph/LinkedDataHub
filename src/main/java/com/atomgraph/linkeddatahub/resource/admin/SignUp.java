@@ -288,7 +288,13 @@ public class SignUp extends GraphStoreImpl
                 }
 
                 // purge agent lookup from proxy cache
-                if (getAgentService().getBackendProxy() != null) ban(getAgentService().getBackendProxy(), mbox.getURI());
+                if (getAgentService().getBackendProxy() != null)
+                {
+                    try (Response response = ban(getAgentService().getBackendProxy(), mbox.getURI()))
+                    {
+                        // Response automatically closed by try-with-resources
+                    }
+                }
 
                 // remove secretary WebID from cache
                 getSystem().getEventBus().post(new com.atomgraph.linkeddatahub.server.event.SignUp(getSystem().getSecretaryWebIDURI()));

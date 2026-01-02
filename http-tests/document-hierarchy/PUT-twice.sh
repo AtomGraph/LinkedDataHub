@@ -52,9 +52,12 @@ EOF
 
 # check that the old document metadata is gone
 
-curl -k -f -s -G \
+response=$(curl -k -f -s -G \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
   -H "Accept: application/n-triples" \
   "$END_USER_BASE_URL" \
-| tr -d '\n' \
-| grep -v '"old object"' > /dev/null
+| tr -d '\n')
+
+if echo "$response" | grep -q '"old object"'; then
+  exit 1
+fi
