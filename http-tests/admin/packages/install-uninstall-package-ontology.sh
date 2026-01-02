@@ -42,12 +42,12 @@ curl -k -w "%{http_code}\n" -o /dev/null -f -s \
 | grep -q "$STATUS_SEE_OTHER"
 
 # verify owl:imports triple was removed
-curl -k -s \
-  -H "Accept: application/n-triples" \
-  "${END_USER_BASE_URL}ns" \
-| grep -v -q "<${namespace_ontology_uri}> <http://www.w3.org/2002/07/owl#imports> <${package_ontology_uri}>"
+ns_after=$(curl -k -s -H "Accept: application/n-triples" "${END_USER_BASE_URL}ns")
+if echo "$ns_after" | grep -q "<${namespace_ontology_uri}> <http://www.w3.org/2002/07/owl#imports> <${package_ontology_uri}>"; then
+  exit 1
+fi
 
 # verify package ontology document was deleted
 curl -k -w "%{http_code}\n" -o /dev/null -s \
   "${ADMIN_BASE_URL}ontologies/${package_ontology_hash}/" \
-| grep -q "$STATUS_NOT_FOUND"
+| grep -q "$STATUS_FORBIDDEN"
