@@ -81,33 +81,40 @@ public class ClearOntology
     {
         if (ontologyURI == null) throw new BadRequestException("Ontology URI not specified");
 
-        EndUserApplication app = getApplication().as(AdminApplication.class).getEndUserApplication(); // we're assuming the current app is admin
-        OntModelSpec ontModelSpec = new OntModelSpec(getSystem().getOntModelSpec(app));
+        EndUserApplication endUserApp = getApplication().as(AdminApplication.class).getEndUserApplication(); // we're assuming the current app is admin
+        OntModelSpec ontModelSpec = new OntModelSpec(getSystem().getOntModelSpec(endUserApp));
         if (ontModelSpec.getDocumentManager().getFileManager().hasCachedModel(ontologyURI))
         {
             if (log.isDebugEnabled()) log.debug("Clearing ontology with URI '{}' from memory", ontologyURI);
             ontModelSpec.getDocumentManager().getFileManager().removeCacheModel(ontologyURI);
+
+            URI ontologyDocURI = UriBuilder.fromUri(ontologyURI).fragment(null).build(); // skip fragment from the ontology URI to get its graph URI            
+            // purge from admin cache
             if (getApplication().getFrontendProxy() != null)
             {
-                URI ontologyDocURI = UriBuilder.fromUri(ontologyURI).fragment(null).build(); // skip fragment from the ontology URI to get its graph URI
                 if (log.isDebugEnabled()) log.debug("Purge ontology document with URI '{}' from frontend proxy cache", ontologyDocURI);
-                try (Response response = purge(getApplication().getFrontendProxy(), ontologyDocURI.toString()))
-                {
-                    // Response automatically closed by try-with-resources
-                }
+                ban(getApplication().getFrontendProxy(), ontologyDocURI.toString(), false);
             }
             if (getApplication().getService().getBackendProxy() != null)
             {
                 if (log.isDebugEnabled()) log.debug("Ban ontology with URI '{}' from backend proxy cache", ontologyURI);
-                try (Response response = ban(getApplication().getService().getBackendProxy(), ontologyURI))
-                {
-                    // Response automatically closed by try-with-resources
-                }
+                ban(getApplication().getService().getBackendProxy(), ontologyURI);
+            }
+            // purge from end-user cache
+            if (endUserApp.getFrontendProxy() != null)
+            {
+                if (log.isDebugEnabled()) log.debug("Purge ontology document with URI '{}' from frontend proxy cache", ontologyDocURI);
+                ban(endUserApp.getFrontendProxy(), ontologyDocURI.toString(), false);
+            }
+            if (endUserApp.getService().getBackendProxy() != null)
+            {
+                if (log.isDebugEnabled()) log.debug("Ban ontology with URI '{}' from backend proxy cache", ontologyURI);
+                ban(endUserApp.getService().getBackendProxy(), ontologyURI);
             }
             
             // !!! we need to reload the ontology model before returning a response, to make sure the next request already gets the new version !!!
             // same logic as in OntologyFilter. TO-DO: encapsulate?
-            OntologyModelGetter modelGetter = new OntologyModelGetter(app, ontModelSpec, getSystem().getOntologyQuery());
+            OntologyModelGetter modelGetter = new OntologyModelGetter(endUserApp, ontModelSpec, getSystem().getOntologyQuery());
             ontModelSpec.setImportModelGetter(modelGetter);
             if (log.isDebugEnabled()) log.debug("Started loading ontology with URI '{}' from the admin dataset", ontologyURI);
             Model baseModel = modelGetter.getModel(ontologyURI);
@@ -125,36 +132,36 @@ public class ClearOntology
         else return Response.ok().build();
     }
     
+    public void ban(Resource proxy, String url)
+    {
+        ban(proxy, url, true);
+    }
+
     /** 
      * Bans URL from the backend proxy cache.
      * 
      * @param proxy proxy server URL
      * @param url banned URL
-     * @return proxy server response
+     * @param urlEncode if true, the banned URL value will be URL-encoded
      */
-    public Response ban(Resource proxy, String url)
-    {
-        if (url == null) throw new IllegalArgumentException("Resource cannot be null");
-        
-        return getSystem().getClient().target(proxy.getURI()).request().
-            header(CacheInvalidationFilter.HEADER_NAME, UriComponent.encode(url, UriComponent.Type.UNRESERVED)). // the value has to be URL-encoded in order to match request URLs in Varnish
-            method("BAN", Response.class);
-    }
-    
-    /**
-     * Purges URL from proxy cache.
-     * 
-     * @param proxy proxy resource
-     * @param url URL to be banned
-     * @return response from proxy
-     */
-    public Response purge(Resource proxy, String url)
+    public void ban(Resource proxy, String url, boolean urlEncode)
     {
         if (url == null) throw new IllegalArgumentException("Resource cannot be null");
 
-        // create new Client instance, otherwise ApacheHttpClient reuses connection and Varnish ignores BAN request
-        return getSystem().getClient().target(proxy.getURI()).request().
-            method("PURGE", Response.class);
+        // Extract path from URL - Varnish req.url only contains the path, not the full URL
+        URI uri = URI.create(url);
+        String path = uri.getPath();
+        if (uri.getQuery() != null) path += "?" + uri.getQuery();
+
+        final String urlValue = urlEncode ? UriComponent.encode(path, UriComponent.Type.UNRESERVED) : path;
+
+        try (Response cr = getSystem().getClient().target(proxy.getURI()).
+                request().
+                header(CacheInvalidationFilter.HEADER_NAME, urlValue).
+                method("BAN", Response.class))
+        {
+            // Response automatically closed by try-with-resources
+        }
     }
     
     /**

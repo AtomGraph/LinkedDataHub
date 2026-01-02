@@ -330,7 +330,6 @@ public class InstallPackage
             "INSERT { <%s> owl:imports <%s> } WHERE { }",
             namespaceOntologyURI, packageOntologyURI
         );
-
         UpdateRequest updateRequest = UpdateFactory.create(updateString);
 
         try (Response patchResponse = gsc.patch(namespaceGraphURI, updateRequest))

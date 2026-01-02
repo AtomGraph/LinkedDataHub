@@ -211,8 +211,7 @@ public class UninstallPackage
 
         try (Response deleteResponse = gsc.delete(ontologyDocumentURI))
         {
-            if (!deleteResponse.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL) &&
-                deleteResponse.getStatus() != 404) // 404 is OK - document already deleted
+            if (!deleteResponse.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
             {
                 if (log.isErrorEnabled()) log.error("Failed to DELETE package ontology document {}: {}", ontologyDocumentURI, deleteResponse.getStatus());
                 throw new IOException("Failed to DELETE package ontology document " + ontologyDocumentURI + ": " + deleteResponse.getStatus());
@@ -231,7 +230,6 @@ public class UninstallPackage
             "DELETE WHERE { <%s> owl:imports <%s> }",
             namespaceOntologyURI, packageOntologyURI
         );
-
         UpdateRequest updateRequest = UpdateFactory.create(updateString);
 
         try (Response patchResponse = gsc.patch(namespaceGraphURI, updateRequest))
