@@ -16,7 +16,7 @@ curl -k -w "%{http_code}\n" -o /dev/null -f -s \
   -X POST \
   -H "Content-Type: application/x-www-form-urlencoded" \
   --data-urlencode "package-uri=$package_uri" \
-  "$ADMIN_BASE_URL"packages/install \
+  "${ADMIN_BASE_URL}packages/install" \
 | grep -q "$STATUS_SEE_OTHER"
 
 # verify package stylesheet was installed (should return 200)
@@ -33,16 +33,16 @@ curl -k -w "%{http_code}\n" -o /dev/null -f -s \
   -X POST \
   -H "Content-Type: application/x-www-form-urlencoded" \
   --data-urlencode "package-uri=$package_uri" \
-  "$ADMIN_BASE_URL"packages/uninstall \
+  "${ADMIN_BASE_URL}packages/uninstall" \
 | grep -q "$STATUS_SEE_OTHER"
 
-# verify package stylesheet was deleted (should return 404)
+# verify package stylesheet was deleted (should return 403)
 curl -k -w "%{http_code}\n" -o /dev/null -s \
   "${END_USER_BASE_URL}static/com/linkeddatahub/packages/skos/layout.xsl" \
-| grep -q "$STATUS_NOT_FOUND"
+| grep -q "$STATUS_FORBIDDEN"
 
 # verify master stylesheet no longer includes package
-master_xsl=$(curl -k -s "$END_USER_BASE_URL"static/xsl/layout.xsl)
+master_xsl=$(curl -k -s "${END_USER_BASE_URL}static/xsl/layout.xsl")
 if echo "$master_xsl" | grep -q "com/linkeddatahub/packages/skos/layout.xsl"; then
   exit 1
 fi
