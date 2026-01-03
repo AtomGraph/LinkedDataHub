@@ -16,6 +16,7 @@
  */
 package com.atomgraph.linkeddatahub.resource.admin.pkg;
 
+import static com.atomgraph.client.MediaType.TEXT_XSL;
 import com.atomgraph.client.util.DataManager;
 import com.atomgraph.linkeddatahub.apps.model.AdminApplication;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
@@ -127,8 +128,6 @@ public class InstallPackage
         EndUserApplication endUserApp = getApplication().as(AdminApplication.class).getEndUserApplication();
 
         if (log.isInfoEnabled()) log.info("Installing package: {}", packageURI);
-
-        // 1. Fetch package
         com.atomgraph.linkeddatahub.apps.model.Package pkg = getPackage(packageURI);
         if (pkg == null)
         {
@@ -139,7 +138,6 @@ public class InstallPackage
         Resource ontology = pkg.getOntology();
         Resource stylesheet = pkg.getStylesheet();
 
-        // either ontology or stylesheet need to be specified, or both
         if (ontology == null && stylesheet == null)
         {
             if (log.isErrorEnabled()) log.error("Package ontology and stylesheet are both unspecified for package: {}", packageURI);
@@ -150,7 +148,6 @@ public class InstallPackage
         {
             String packagePath = UriPath.convert(packageURI);
 
-            // 2. Download and install ontology if present
             if (ontology != null)
             {
                 if (log.isDebugEnabled()) log.debug("Downloading package ontology from: {}", ontology.getURI());
@@ -158,20 +155,18 @@ public class InstallPackage
                 installOntology(endUserApp, ontologyModel, ontology.getURI());
             }
 
-            // 3. Download and install stylesheet if present
             if (stylesheet != null)
             {
                 URI stylesheetURI = URI.create(stylesheet.getURI());
 
                 if (log.isDebugEnabled()) log.debug("Downloading package stylesheet from: {}", stylesheetURI);
                 String stylesheetContent = downloadStylesheet(stylesheetURI);
-                installStylesheet(packagePath, stylesheetContent);
+                installStylesheet(Paths.get(getServletContext().getRealPath("/static")), packagePath, stylesheetContent);
                 
                 // 4. Regenerate master stylesheet
                 regenerateMasterStylesheet(endUserApp, packagePath);
             }
 
-            // 5. Add ldh:import triple to application (in system.trig)
             //addImportToApplication(endUserApp, packageURI);
 
             if (log.isInfoEnabled()) log.info("Successfully installed package: {}", packageURI);
@@ -257,7 +252,7 @@ public class InstallPackage
 
         WebTarget target = getClient().target(uri);
         // Prioritize text/xsl (q=1.0), then any text/* (q=0.8)
-        try (Response response = target.request("text/xsl", "text/*;q=0.8").get())
+        try (Response response = target.request(TEXT_XSL, "text/*;q=0.8").get())
         {
             if (!response.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
             {
@@ -350,9 +345,8 @@ public class InstallPackage
     /**
      * Installs stylesheet to /static/<package-path>/layout.xsl
      */
-    private void installStylesheet(String packagePath, String stylesheetContent) throws IOException
+    private void installStylesheet(Path staticDir, String packagePath, String stylesheetContent) throws IOException
     {
-        Path staticDir = Paths.get(getServletContext().getRealPath("/static"));
         Path packageDir = staticDir.resolve(packagePath);
         Files.createDirectories(packageDir);
 

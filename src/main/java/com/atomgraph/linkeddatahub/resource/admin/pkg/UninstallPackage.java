@@ -25,6 +25,7 @@ import com.atomgraph.linkeddatahub.server.filter.response.CacheInvalidationFilte
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
 import com.atomgraph.linkeddatahub.server.util.UriPath;
 import com.atomgraph.linkeddatahub.server.util.XSLTMasterUpdater;
+import static com.atomgraph.server.status.UnprocessableEntityStatus.UNPROCESSABLE_ENTITY;
 import jakarta.inject.Inject;
 import jakarta.servlet.ServletContext;
 import jakarta.ws.rs.BadRequestException;
@@ -60,6 +61,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import org.apache.jena.ontology.ConversionException;
 
 /**
  * JAX-RS resource that uninstalls a LinkedDataHub package.
@@ -76,6 +78,8 @@ import java.util.Set;
 public class UninstallPackage
 {
     private static final Logger log = LoggerFactory.getLogger(UninstallPackage.class);
+
+    public final String MASTER_STYLESHEET_URL = "/static/xsl/layout.xsl";
 
     private final com.atomgraph.linkeddatahub.apps.model.Application application;
     private final com.atomgraph.linkeddatahub.Application system;
@@ -128,23 +132,36 @@ public class UninstallPackage
 
             if (log.isInfoEnabled()) log.info("Uninstalling package: {}", packageURI);
 
-            String packagePath = UriPath.convert(packageURI);
+            com.atomgraph.linkeddatahub.apps.model.Package pkg = getPackage(packageURI);
+            if (pkg == null)
+            {
+                if (log.isErrorEnabled()) log.error("Loading package failed: {}", packageURI);
+                throw new WebApplicationException("Loading package failed", UNPROCESSABLE_ENTITY.getStatusCode()); // 422 Unprocessable Entity
+            }
 
-            // 1. Remove package ontology and owl:imports from namespace graph
-            uninstallOntology(endUserApp, packageURI);
+            Resource ontology = pkg.getOntology();
+            Resource stylesheet = pkg.getStylesheet();
 
-            // 2. Delete stylesheet from /static/<package-path>/
-            uninstallStylesheet(packagePath);
+            // either ontology or stylesheet need to be specified, or both
+            if (ontology == null && stylesheet == null)
+            {
+                if (log.isErrorEnabled()) log.error("Package ontology and stylesheet are both unspecified for package: {}", packageURI);
+                throw new WebApplicationException("Package ontology and stylesheet are both unspecified", UNPROCESSABLE_ENTITY.getStatusCode()); // 422 Unprocessable Entity
+            }
+        
+            if (ontology != null) uninstallOntology(endUserApp, ontology.getURI());
 
-            // 3. Regenerate master stylesheet
-            regenerateMasterStylesheet(endUserApp, packagePath);
+            if (stylesheet != null)
+            {
+                String packagePath = UriPath.convert(packageURI);
+                uninstallStylesheet(Paths.get(getServletContext().getRealPath("/static")), packagePath, endUserApp);
+                regenerateMasterStylesheet(endUserApp, packagePath);
+            }
 
-            // 4. Remove ldh:import triple from application
             //removeImportFromApplication(endUserApp, packageURI);
 
             if (log.isInfoEnabled()) log.info("Successfully uninstalled package: {}", packageURI);
 
-            // Redirect back to referer or application base
             URI redirectURI = (referer != null) ? referer : endUserApp.getBaseURI();
             return Response.seeOther(redirectURI).build();
         }
@@ -159,31 +176,13 @@ public class UninstallPackage
      * Uninstalls ontology by deleting the package ontology document and removing owl:imports from namespace graph.
      *
      * @param app the end-user application
-     * @param packageURI the package URI
+     * @param packageOntologyURI the package ONTOLOGY URI
      * @throws IOException if uninstallation fails
      */
-    private void uninstallOntology(EndUserApplication app, String packageURI) throws IOException
+    private void uninstallOntology(EndUserApplication app, String packageOntologyURI) throws IOException
     {
         AdminApplication adminApp = app.getAdminApplication();
 
-        // 1. Fetch package to get ontology URI
-        com.atomgraph.linkeddatahub.apps.model.Package pkg = getPackage(packageURI);
-        if (pkg == null)
-        {
-            if (log.isWarnEnabled()) log.warn("Package not found, skipping ontology uninstallation: {}", packageURI);
-            return;
-        }
-
-        Resource ontology = pkg.getOntology();
-        if (ontology == null)
-        {
-            if (log.isWarnEnabled()) log.warn("Package ontology not specified, skipping ontology uninstallation");
-            return;
-        }
-
-        String packageOntologyURI = ontology.getURI();
-
-        // 2. Calculate hash of package ontology URI
         String hash;
         try
         {
@@ -252,36 +251,28 @@ public class UninstallPackage
     /**
      * Deletes stylesheet from <samp>/static/<package-path>/</samp>
      */
-    private void uninstallStylesheet(String packagePath) throws IOException
+    private void uninstallStylesheet(Path staticDir, String packagePath, EndUserApplication endUserApp) throws IOException
     {
-        EndUserApplication endUserApp = getApplication().as(AdminApplication.class).getEndUserApplication();
-        Path staticDir = Paths.get(getServletContext().getRealPath("/static"));
         Path packageDir = staticDir.resolve(packagePath);
 
-        if (Files.exists(packageDir))
+        // Delete layout.xsl
+        Path stylesheetFile = packageDir.resolve("layout.xsl");
+        Files.delete(stylesheetFile);
+        if (log.isDebugEnabled()) log.debug("Deleted package stylesheet: {}", stylesheetFile);
+
+        // Purge stylesheet from frontend proxy cache
+        String stylesheetURL = "/static/" + packagePath + "/layout.xsl";
+        if (endUserApp.getFrontendProxy() != null)
         {
-            // Delete layout.xsl
-            Path stylesheetFile = packageDir.resolve("layout.xsl");
-            if (Files.exists(stylesheetFile))
-            {
-                Files.delete(stylesheetFile);
-                if (log.isDebugEnabled()) log.debug("Deleted package stylesheet: {}", stylesheetFile);
+            if (log.isDebugEnabled()) log.debug("Purging stylesheet from frontend proxy cache: {}", stylesheetURL);
+            ban(endUserApp.getFrontendProxy(), stylesheetURL, false);
+        }
 
-                // Purge stylesheet from frontend proxy cache
-                String stylesheetURL = "/static/" + packagePath + "/layout.xsl";
-                if (endUserApp.getFrontendProxy() != null)
-                {
-                    if (log.isDebugEnabled()) log.debug("Purging stylesheet from frontend proxy cache: {}", stylesheetURL);
-                    ban(endUserApp.getFrontendProxy(), stylesheetURL, false);
-                }
-            }
-
-            // Delete directory if empty
-            if (Files.list(packageDir).count() == 0)
-            {
-                Files.delete(packageDir);
-                if (log.isDebugEnabled()) log.debug("Deleted package directory: {}", packageDir);
-            }
+        // Delete directory if empty
+        if (Files.list(packageDir).count() == 0)
+        {
+            Files.delete(packageDir);
+            if (log.isDebugEnabled()) log.debug("Deleted package directory: {}", packageDir);
         }
     }
 
@@ -298,10 +289,7 @@ public class UninstallPackage
         {
             String pkgPath = UriPath.convert(pkg.getURI());
             // Exclude the package being removed
-            if (!pkgPath.equals(removedPackagePath))
-            {
-                packagePaths.add(pkgPath);
-            }
+            if (!pkgPath.equals(removedPackagePath)) packagePaths.add(pkgPath);
         }
 
         // Regenerate master stylesheet
@@ -311,9 +299,8 @@ public class UninstallPackage
         // Purge master stylesheet from cache
         if (app.getFrontendProxy() != null)
         {
-            String masterStylesheetURL = "/static/xsl/layout.xsl";
-            if (log.isDebugEnabled()) log.debug("Purging master stylesheet from frontend proxy cache: {}", masterStylesheetURL);
-            ban(app.getFrontendProxy(), masterStylesheetURL, false);
+            if (log.isDebugEnabled()) log.debug("Purging master stylesheet from frontend proxy cache: {}", MASTER_STYLESHEET_URL);
+            ban(app.getFrontendProxy(), MASTER_STYLESHEET_URL, false);
         }
     }
 
@@ -362,35 +349,33 @@ public class UninstallPackage
     {
         if (log.isDebugEnabled()) log.debug("Loading package from: {}", packageURI);
 
+        final Model model;
+
+        // check if we have the model in the cache first and if yes, return it from there instead making an HTTP request
+        if (((FileManager)getDataManager()).hasCachedModel(packageURI) ||
+                (getDataManager().isResolvingMapped() && getDataManager().isMapped(packageURI))) // read mapped URIs (such as system ontologies) from a file
+        {
+            if (log.isDebugEnabled()) log.debug("hasCachedModel({}): {}", packageURI, ((FileManager)getDataManager()).hasCachedModel(packageURI));
+            if (log.isDebugEnabled()) log.debug("isMapped({}): {}", packageURI, getDataManager().isMapped(packageURI));
+            model = getDataManager().loadModel(packageURI);
+        }
+        else
+        {
+            GraphStoreClient gsc = GraphStoreClient.create(getSystem().getClient(), getSystem().getMediaTypes());
+            model = gsc.getModel(packageURI);
+        }
+
         try
         {
-            final Model model;
-
-            // check if we have the model in the cache first and if yes, return it from there instead making an HTTP request
-            if (((FileManager)getDataManager()).hasCachedModel(packageURI) ||
-                    (getDataManager().isResolvingMapped() && getDataManager().isMapped(packageURI))) // read mapped URIs (such as system ontologies) from a file
-            {
-                if (log.isDebugEnabled()) log.debug("hasCachedModel({}): {}", packageURI, ((FileManager)getDataManager()).hasCachedModel(packageURI));
-                if (log.isDebugEnabled()) log.debug("isMapped({}): {}", packageURI, getDataManager().isMapped(packageURI));
-                model = getDataManager().loadModel(packageURI);
-            }
-            else
-            {
-                GraphStoreClient gsc = GraphStoreClient.create(getSystem().getClient(), getSystem().getMediaTypes());
-                model = gsc.getModel(packageURI);
-            }
-
             return model.getResource(packageURI).as(com.atomgraph.linkeddatahub.apps.model.Package.class);
         }
-        catch (Exception e)
+        catch (ConversionException ex)
         {
-            if (log.isWarnEnabled()) log.warn("Failed to load package: {}", packageURI, e);
             return null;
         }
     }
 
-
-    public void ban(Resource proxy, String url)
+    protected void ban(Resource proxy, String url)
     {
         ban(proxy, url, true);
     }
@@ -402,7 +387,7 @@ public class UninstallPackage
      * @param url banned URL
      * @param urlEncode if true, the banned URL value will be URL-encoded
      */
-    public void ban(Resource proxy, String url, boolean urlEncode)
+    protected void ban(Resource proxy, String url, boolean urlEncode)
     {
         if (url == null) throw new IllegalArgumentException("Resource cannot be null");
 
