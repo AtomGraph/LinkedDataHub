@@ -49,7 +49,7 @@ jobs:
         run: ./run.sh "$PWD/ssl/owner/cert.pem" "${{ secrets.HTTP_TEST_OWNER_CERT_PASSWORD }}" "$PWD/ssl/secretary/cert.pem" "${{ secrets.HTTP_TEST_SECRETARY_CERT_PASSWORD }}"
         shell: bash
         working-directory: http-tests
-      - name: Stop Docker containers
-        run: docker compose --env-file ./http-tests/.env down
+      - name: Stop Docker containers and remove volumes
+        run: docker compose --env-file ./http-tests/.env down -v
       - name: Remove Docker containers
         run: docker compose --env-file ./http-tests/.env rm -f
