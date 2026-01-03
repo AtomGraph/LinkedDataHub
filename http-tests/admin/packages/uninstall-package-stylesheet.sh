@@ -32,10 +32,16 @@ curl -k -w "%{http_code}\n" -o /dev/null -f -s \
   "${ADMIN_BASE_URL}packages/uninstall" \
 | grep -q "$STATUS_SEE_OTHER"
 
-# verify package stylesheet was deleted (should return 403)
+# Wait for Tomcat's static resource cache to expire
+# Tomcat caches static files with default cacheTtl=5000ms (5 seconds)
+# See: https://tomcat.apache.org/tomcat-10.1-doc/config/resources.html#Attributes
+default_ttl=5
+sleep $default_ttl
+
+# verify package stylesheet was deleted (should return 404)
 curl -k -w "%{http_code}\n" -o /dev/null -s \
   "${END_USER_BASE_URL}static/com/linkeddatahub/packages/skos/layout.xsl" \
-| grep -q "$STATUS_FORBIDDEN"
+| grep -q "$STATUS_NOT_FOUND"
 
 # verify master stylesheet was regenerated without package import
 master_xsl=$(curl -k -s "${END_USER_BASE_URL}static/xsl/layout.xsl")

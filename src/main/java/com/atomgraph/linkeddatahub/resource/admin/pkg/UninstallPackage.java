@@ -21,6 +21,7 @@ import com.atomgraph.linkeddatahub.apps.model.AdminApplication;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import com.atomgraph.linkeddatahub.client.GraphStoreClient;
 import com.atomgraph.linkeddatahub.resource.admin.ClearOntology;
+import com.atomgraph.linkeddatahub.server.filter.response.CacheInvalidationFilter;
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
 import com.atomgraph.linkeddatahub.server.util.UriPath;
 import com.atomgraph.linkeddatahub.server.util.XSLTMasterUpdater;
@@ -43,6 +44,7 @@ import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.update.UpdateFactory;
 import org.apache.jena.update.UpdateRequest;
 import org.apache.jena.util.FileManager;
+import org.glassfish.jersey.uri.UriComponent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -248,10 +250,11 @@ public class UninstallPackage
     }
 
     /**
-     * Deletes stylesheet from /static/<package-path>/
+     * Deletes stylesheet from <samp>/static/<package-path>/</samp>
      */
     private void uninstallStylesheet(String packagePath) throws IOException
     {
+        EndUserApplication endUserApp = getApplication().as(AdminApplication.class).getEndUserApplication();
         Path staticDir = Paths.get(getServletContext().getRealPath("/static"));
         Path packageDir = staticDir.resolve(packagePath);
 
@@ -263,6 +266,14 @@ public class UninstallPackage
             {
                 Files.delete(stylesheetFile);
                 if (log.isDebugEnabled()) log.debug("Deleted package stylesheet: {}", stylesheetFile);
+
+                // Purge stylesheet from frontend proxy cache
+                String stylesheetURL = "/static/" + packagePath + "/layout.xsl";
+                if (endUserApp.getFrontendProxy() != null)
+                {
+                    if (log.isDebugEnabled()) log.debug("Purging stylesheet from frontend proxy cache: {}", stylesheetURL);
+                    ban(endUserApp.getFrontendProxy(), stylesheetURL, false);
+                }
             }
 
             // Delete directory if empty
@@ -296,10 +307,18 @@ public class UninstallPackage
         // Regenerate master stylesheet
         XSLTMasterUpdater updater = new XSLTMasterUpdater(getServletContext());
         updater.regenerateMasterStylesheet(packagePaths);
+
+        // Purge master stylesheet from cache
+        if (app.getFrontendProxy() != null)
+        {
+            String masterStylesheetURL = "/static/xsl/layout.xsl";
+            if (log.isDebugEnabled()) log.debug("Purging master stylesheet from frontend proxy cache: {}", masterStylesheetURL);
+            ban(app.getFrontendProxy(), masterStylesheetURL, false);
+        }
     }
 
     /**
-     * Removes ldh:import triple from the end-user application resource.
+     * Removes <samp>ldh:import</samp> triple from the end-user application resource.
      */
 //    private void removeImportFromApplication(EndUserApplication app, String packageURI)
 //    {
@@ -370,6 +389,39 @@ public class UninstallPackage
         }
     }
 
+
+    public void ban(Resource proxy, String url)
+    {
+        ban(proxy, url, true);
+    }
+
+    /**
+     * Bans URL from the backend proxy cache.
+     *
+     * @param proxy proxy server URL
+     * @param url banned URL
+     * @param urlEncode if true, the banned URL value will be URL-encoded
+     */
+    public void ban(Resource proxy, String url, boolean urlEncode)
+    {
+        if (url == null) throw new IllegalArgumentException("Resource cannot be null");
+
+        // Extract path from URL - Varnish req.url only contains the path, not the full URL
+        URI uri = URI.create(url);
+        String path = uri.getPath();
+        if (uri.getQuery() != null) path += "?" + uri.getQuery();
+
+        final String urlValue = urlEncode ? UriComponent.encode(path, UriComponent.Type.UNRESERVED) : path;
+
+        try (Response cr = getSystem().getClient().target(proxy.getURI()).
+                request().
+                header(CacheInvalidationFilter.HEADER_NAME, urlValue).
+                method("BAN", Response.class))
+        {
+            // Response automatically closed by try-with-resources
+        }
+    }
+    
     /**
      * Returns the system application.
      *

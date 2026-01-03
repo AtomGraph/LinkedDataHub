@@ -39,7 +39,7 @@ import org.w3c.dom.DOMException;
 
 /**
  * Updates master XSLT stylesheets with package import chains.
- * Writes master stylesheets to the webapp's /static/ directory.
+ * Writes master stylesheets to the webapp's <samp>/static/</samp> directory.
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
@@ -71,9 +71,13 @@ public class XSLTMasterUpdater
      */
     public void regenerateMasterStylesheet(List<String> packagePaths) throws IOException
     {
+        regenerateMasterStylesheet(getStaticPath(), packagePaths);
+    }
+    
+    public void regenerateMasterStylesheet(Path staticDir, List<String> packagePaths) throws IOException
+    {
         try
         {
-            Path staticDir = getStaticPath();
             Path xslDir = staticDir.resolve("xsl");
             Path masterFile = xslDir.resolve("layout.xsl");
 
