@@ -1,6 +1,15 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Helper to get millisecond timestamp
+get_ms() {
+  if [[ "$OSTYPE" == "darwin"* ]]; then
+    python3 -c 'import time; print(int(time.time() * 1000))'
+  else
+    date +%s%3N
+  fi
+}
+
 echo "### STEP 1: Initializing datasets"
 initialize_dataset "$END_USER_BASE_URL" "$TMP_END_USER_DATASET" "$END_USER_ENDPOINT_URL"
 initialize_dataset "$ADMIN_BASE_URL" "$TMP_ADMIN_DATASET" "$ADMIN_ENDPOINT_URL"
@@ -13,26 +22,33 @@ package_uri="https://packages.linkeddatahub.com/skos/#this"
 
 # install package via POST to packages/install endpoint
 echo "### STEP 2: Installing package"
+t1=$(get_ms)
 install_status=$(curl -k -w "%{http_code}\n" -o /dev/null -f -s \
   -E "$OWNER_CERT_FILE":"$OWNER_CERT_PWD" \
   -X POST \
   -H "Content-Type: application/x-www-form-urlencoded" \
   --data-urlencode "package-uri=$package_uri" \
   "${ADMIN_BASE_URL}packages/install")
-echo "Install status: $install_status (expected: $STATUS_SEE_OTHER)"
+t2=$(get_ms)
+echo "Install status: $install_status (expected: $STATUS_SEE_OTHER) [took $((t2-t1))ms]"
 echo "$install_status" | grep -q "$STATUS_SEE_OTHER"
 
 # Verify stylesheet file exists in Tomcat's webapps directory
 # docker compose exec -T linkeddatahub ls -l webapps/ROOT/static/com/linkeddatahub/packages/skos
 
 # Make internal request from nginx to Tomcat to warm up static file cache
-docker compose exec -T nginx curl -s http://linkeddatahub:7070/static/com/linkeddatahub/packages/skos/layout.xsl
+t3=$(get_ms)
+docker compose exec -T nginx curl -s -o /dev/null http://linkeddatahub:7070/static/com/linkeddatahub/packages/skos/layout.xsl
+t4=$(get_ms)
+echo "Internal request took $((t4-t3))ms"
 
 # verify package stylesheet was installed (should return 200)
-echo "### STEP 3: Verifying package stylesheet exists"
+echo "### STEP 3: Verifying package stylesheet exists (delay since install: $((t4-t2))ms)"
+t5=$(get_ms)
 stylesheet_status=$(curl -k -w "%{http_code}\n" -o /dev/null -s \
   "${END_USER_BASE_URL}static/com/linkeddatahub/packages/skos/layout.xsl")
-echo "Stylesheet status: $stylesheet_status (expected: 200)"
+t6=$(get_ms)
+echo "Stylesheet status: $stylesheet_status (expected: 200) [took $((t6-t5))ms]"
 if [ "$stylesheet_status" != "200" ]; then
   echo "ERROR: Expected 200, got $stylesheet_status"
   exit 1
