@@ -23,7 +23,7 @@ echo "Install status: $install_status (expected: $STATUS_SEE_OTHER)"
 echo "$install_status" | grep -q "$STATUS_SEE_OTHER"
 
 echo "### STEP 2.5: Verifying stylesheet file exists"
-docker-compose exec linkeddatahub ls -l webapps/ROOT/static/com/linkeddatahub/packages/skos
+docker compose exec linkeddatahub ls -l webapps/ROOT/static/com/linkeddatahub/packages/skos
 
 # verify package stylesheet was installed (should return 200)
 echo "### STEP 3: Verifying package stylesheet exists"
