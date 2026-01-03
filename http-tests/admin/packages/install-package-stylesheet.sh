@@ -23,7 +23,7 @@ echo "Install status: $install_status (expected: $STATUS_SEE_OTHER)"
 echo "$install_status" | grep -q "$STATUS_SEE_OTHER"
 
 # Verify stylesheet file exists in Tomcat's webapps directory
-docker compose exec -T linkeddatahub ls -l webapps/ROOT/static/com/linkeddatahub/packages/skos
+# docker compose exec -T linkeddatahub ls -l webapps/ROOT/static/com/linkeddatahub/packages/skos
 
 # Make internal request from nginx to Tomcat to warm up static file cache
 docker compose exec -T nginx curl -s http://linkeddatahub:7070/static/com/linkeddatahub/packages/skos/layout.xsl
