@@ -71,16 +71,13 @@ public class XSLTMasterUpdater
      */
     public void regenerateMasterStylesheet(List<String> packagePaths) throws IOException
     {
-        regenerateMasterStylesheet(getStaticPath(), packagePaths);
+        regenerateMasterStylesheet(getStaticPath().resolve("xsl").resolve("layout.xsl"), packagePaths); // TO-DO: move to configuration
     }
     
-    public void regenerateMasterStylesheet(Path staticDir, List<String> packagePaths) throws IOException
+    public void regenerateMasterStylesheet(Path masterFile, List<String> packagePaths) throws IOException
     {
         try
         {
-            Path xslDir = staticDir.resolve("xsl");
-            Path masterFile = xslDir.resolve("layout.xsl");
-
             // Create fresh XML document
             DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
             factory.setNamespaceAware(true);
@@ -123,7 +120,7 @@ public class XSLTMasterUpdater
             stylesheet.appendChild(doc.createTextNode("\n\n"));
 
             // Write to file
-            Files.createDirectories(xslDir);
+            Files.createDirectories(masterFile.getParent());
             TransformerFactory transformerFactory = TransformerFactory.newInstance();
             Transformer transformer = transformerFactory.newTransformer();
             transformer.setOutputProperty(OutputKeys.INDENT, "yes");
