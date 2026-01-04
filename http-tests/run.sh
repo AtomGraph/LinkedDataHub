@@ -140,7 +140,7 @@ download_dataset "$ADMIN_ENDPOINT_URL" > "$TMP_ADMIN_DATASET"
 
 #run_tests $(find ./add/ -type f -name '*.sh')
 #(( error_count += $? ))
-run_tests $(find ./admin/packages -type f -name 'install-package-stylesheet.sh')
+run_tests $(find ./admin/packages -type f -name '*.sh')
 (( error_count += $? ))
 #run_tests $(find ./dataspaces/ -type f -name '*.sh')
 #(( error_count += $? ))
