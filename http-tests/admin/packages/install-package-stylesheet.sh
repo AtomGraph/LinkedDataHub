@@ -19,6 +19,11 @@ curl -k -w "%{http_code}\n" -o /dev/null -f -s \
   "${ADMIN_BASE_URL}packages/install" \
 | grep -q "$STATUS_SEE_OTHER"
 
+# Purge cache after install to clear any cached 404 responses
+purge_cache "$END_USER_VARNISH_SERVICE"
+purge_cache "$ADMIN_VARNISH_SERVICE"
+purge_cache "$FRONTEND_VARNISH_SERVICE"
+
 # Wait for package installation to complete (poll for stylesheet availability)
 elapsed=0
 while [ $(echo "$elapsed < 30" | bc) -eq 1 ]; do
