@@ -20,14 +20,20 @@ curl -k -w "%{http_code}\n" -o /dev/null -f -s \
 | grep -q "$STATUS_SEE_OTHER"
 
 # Wait for package installation to complete (poll for stylesheet availability)
-while true; do
+elapsed=0
+while [ $(echo "$elapsed < 30" | bc) -eq 1 ]; do
   stylesheet_status=$(curl -k -w "%{http_code}\n" -o /dev/null -s \
     "${END_USER_BASE_URL}static/com/linkeddatahub/packages/skos/layout.xsl")
   if [ "$stylesheet_status" = "200" ]; then
     break
   fi
   sleep 0.5
+  elapsed=$(echo "$elapsed + 0.5" | bc)
 done
+
+if [ "$stylesheet_status" != "200" ]; then
+  exit 1
+fi
 
 # verify package stylesheet was installed (should return 200)
 curl -k -f -s -o /dev/null \
