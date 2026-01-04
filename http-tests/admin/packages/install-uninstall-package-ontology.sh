@@ -18,7 +18,7 @@ curl -k -w "%{http_code}\n" -o /dev/null -f -s \
   -X POST \
   -H "Content-Type: application/x-www-form-urlencoded" \
   --data-urlencode "package-uri=$package_uri" \
-  "$ADMIN_BASE_URL"packages/install \
+  "${ADMIN_BASE_URL}packages/install" \
 | grep -q "$STATUS_SEE_OTHER"
 
 # verify owl:imports triple was added
@@ -40,7 +40,7 @@ curl -k -w "%{http_code}\n" -o /dev/null -f -s \
   -X POST \
   -H "Content-Type: application/x-www-form-urlencoded" \
   --data-urlencode "package-uri=$package_uri" \
-  "$ADMIN_BASE_URL"packages/uninstall \
+  "${ADMIN_BASE_URL}packages/uninstall" \
 | grep -q "$STATUS_SEE_OTHER"
 
 # verify owl:imports triple was removed
