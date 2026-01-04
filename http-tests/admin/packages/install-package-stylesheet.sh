@@ -33,6 +33,29 @@ t2=$(get_ms)
 echo "Install status: $install_status (expected: $STATUS_SEE_OTHER) [took $((t2-t1))ms]"
 echo "$install_status" | grep -q "$STATUS_SEE_OTHER"
 
+# Wait for package installation to complete (poll for stylesheet availability)
+echo "### Waiting for package installation to complete"
+max_wait=30  # maximum seconds to wait
+wait_interval=0.5  # check every 0.5 seconds
+elapsed=0
+stylesheet_status=""
+
+while [ $(echo "$elapsed < $max_wait" | bc) -eq 1 ]; do
+  stylesheet_status=$(curl -k -w "%{http_code}\n" -o /dev/null -s \
+    "${END_USER_BASE_URL}static/com/linkeddatahub/packages/skos/layout.xsl")
+  if [ "$stylesheet_status" = "200" ]; then
+    echo "Package stylesheet available after ${elapsed}s (status: $stylesheet_status)"
+    break
+  fi
+  sleep $wait_interval
+  elapsed=$(echo "$elapsed + $wait_interval" | bc)
+done
+
+if [ "$stylesheet_status" != "200" ]; then
+  echo "ERROR: Package stylesheet not available after ${elapsed}s (status: $stylesheet_status)"
+  exit 1
+fi
+
 # Verify stylesheet file exists in Tomcat's webapps directory
 # docker compose exec -T linkeddatahub ls -l webapps/ROOT/static/com/linkeddatahub/packages/skos
 
