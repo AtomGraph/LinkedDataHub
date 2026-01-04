@@ -20,8 +20,6 @@ curl -k -w "%{http_code}\n" -o /dev/null -f -s \
 | grep -q "$STATUS_SEE_OTHER"
 
 # Wait for package installation to complete (poll for stylesheet availability)
-echo "--- Initial logs after install request ---"
-docker compose logs --tail=50 linkeddatahub
 elapsed=0
 while [ $(echo "$elapsed < 30" | bc) -eq 1 ]; do
   stylesheet_status=$(curl -k -w "%{http_code}\n" -o /dev/null -s \
@@ -29,15 +27,15 @@ while [ $(echo "$elapsed < 30" | bc) -eq 1 ]; do
   if [ "$stylesheet_status" = "200" ]; then
     break
   fi
-  echo "--- Waiting for stylesheet (${elapsed}s, status: $stylesheet_status) ---"
-  docker compose logs --tail=50 linkeddatahub
+  echo "--- Waiting for stylesheet (${elapsed}s, HTTP status: $stylesheet_status) ---"
+  docker compose exec -T linkeddatahub ls -l webapps/ROOT/static/com/linkeddatahub/packages/skos || echo "Directory does not exist"
   sleep 0.5
   elapsed=$(echo "$elapsed + 0.5" | bc)
 done
 
 if [ "$stylesheet_status" != "200" ]; then
-  echo "--- Final logs after timeout ---"
-  docker compose logs --tail=50 linkeddatahub
+  echo "--- Final check after timeout ---"
+  docker compose exec -T linkeddatahub ls -l webapps/ROOT/static/com/linkeddatahub/packages/skos || echo "Directory does not exist"
   exit 1
 fi
 
