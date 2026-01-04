@@ -19,6 +19,28 @@ curl -k -w "%{http_code}\n" -o /dev/null -f -s \
   "${ADMIN_BASE_URL}packages/install" \
 | grep -q "$STATUS_SEE_OTHER"
 
+# Wait for package installation to complete (poll for stylesheet availability)
+max_wait=30  # maximum seconds to wait
+wait_interval=0.5  # check every 0.5 seconds
+elapsed=0
+stylesheet_status=""
+
+while [ $(echo "$elapsed < $max_wait" | bc) -eq 1 ]; do
+  stylesheet_status=$(curl -k -w "%{http_code}\n" -o /dev/null -s \
+    "${END_USER_BASE_URL}static/com/linkeddatahub/packages/skos/layout.xsl")
+  if [ "$stylesheet_status" = "200" ]; then
+    echo "Package stylesheet available after ${elapsed}s (status: $stylesheet_status)"
+    break
+  fi
+  sleep $wait_interval
+  elapsed=$(echo "$elapsed + $wait_interval" | bc)
+done
+
+if [ "$stylesheet_status" != "200" ]; then
+  echo "ERROR: Package stylesheet not available after ${elapsed}s (status: $stylesheet_status)"
+  exit 1
+fi
+
 # verify package stylesheet was installed (should return 200)
 curl -k -f -s -o /dev/null \
   "${END_USER_BASE_URL}static/com/linkeddatahub/packages/skos/layout.xsl"
@@ -36,11 +58,27 @@ curl -k -w "%{http_code}\n" -o /dev/null -f -s \
   "${ADMIN_BASE_URL}packages/uninstall" \
 | grep -q "$STATUS_SEE_OTHER"
 
-# Wait for Tomcat's static resource cache to expire
-# Tomcat caches static files with default cacheTtl=5000ms (5 seconds)
-# See: https://tomcat.apache.org/tomcat-10.1-doc/config/resources.html#Attributes
-default_ttl=5
-sleep $default_ttl
+# Wait for package uninstallation to complete (poll for stylesheet removal)
+max_wait=30  # maximum seconds to wait
+wait_interval=0.5  # check every 0.5 seconds
+elapsed=0
+stylesheet_status=""
+
+while [ $(echo "$elapsed < $max_wait" | bc) -eq 1 ]; do
+  stylesheet_status=$(curl -k -w "%{http_code}\n" -o /dev/null -s \
+    "${END_USER_BASE_URL}static/com/linkeddatahub/packages/skos/layout.xsl")
+  if [ "$stylesheet_status" = "404" ]; then
+    echo "Package stylesheet removed after ${elapsed}s (status: $stylesheet_status)"
+    break
+  fi
+  sleep $wait_interval
+  elapsed=$(echo "$elapsed + $wait_interval" | bc)
+done
+
+if [ "$stylesheet_status" != "404" ]; then
+  echo "ERROR: Package stylesheet not removed after ${elapsed}s (status: $stylesheet_status)"
+  exit 1
+fi
 
 # verify package stylesheet was deleted (should return 404)
 curl -k -w "%{http_code}\n" -o /dev/null -s \
