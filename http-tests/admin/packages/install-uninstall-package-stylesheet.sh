@@ -11,12 +11,11 @@ purge_cache "$FRONTEND_VARNISH_SERVICE"
 package_uri="https://packages.linkeddatahub.com/skos/#this"
 
 # install package
-curl -k -w "%{http_code}\n" -o /dev/null -f -s \
-  -E "$OWNER_CERT_FILE":"$OWNER_CERT_PWD" \
-  -X POST \
-  -H "Content-Type: application/x-www-form-urlencoded" \
-  --data-urlencode "package-uri=$package_uri" \
-  "${ADMIN_BASE_URL}packages/install" \
+install-package.sh \
+  -b "$END_USER_BASE_URL" \
+  -f "$OWNER_CERT_FILE" \
+  -p "$OWNER_CERT_PWD" \
+  --package "$package_uri" \
 | grep -q "$STATUS_SEE_OTHER"
 
 # verify package stylesheet was installed (should return 200)
@@ -28,12 +27,11 @@ curl -k -s "${END_USER_BASE_URL}static/xsl/layout.xsl" \
   | grep -q "com/linkeddatahub/packages/skos/layout.xsl"
 
 # uninstall package
-curl -k -w "%{http_code}\n" -o /dev/null -f -s \
-  -E "$OWNER_CERT_FILE":"$OWNER_CERT_PWD" \
-  -X POST \
-  -H "Content-Type: application/x-www-form-urlencoded" \
-  --data-urlencode "package-uri=$package_uri" \
-  "${ADMIN_BASE_URL}packages/uninstall" \
+uninstall-package.sh \
+  -b "$END_USER_BASE_URL" \
+  -f "$OWNER_CERT_FILE" \
+  -p "$OWNER_CERT_PWD" \
+  --package "$package_uri" \
 | grep -q "$STATUS_SEE_OTHER"
 
 # Wait for Tomcat's static resource cache to expire

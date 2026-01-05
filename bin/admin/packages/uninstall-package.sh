@@ -2,7 +2,7 @@
 
 print_usage()
 {
-    printf "Installs a LinkedDataHub package.\n"
+    printf "Uninstalls a LinkedDataHub package.\n"
     printf "\n"
     printf "Usage:  %s options\n" "$0"
     printf "\n"
@@ -11,7 +11,7 @@ print_usage()
     printf "  -f, --cert-pem-file CERT_FILE        .pem file with the WebID certificate of the agent\n"
     printf "  -p, --cert-password CERT_PASSWORD    Password of the WebID certificate\n"
     printf "  --proxy PROXY_URL                    The host this request will be proxied through (optional)\n"
-    printf "  --package PACKAGE_URI                URI of the package to install (e.g., https://packages.linkeddatahub.com/skos/#this)\n"
+    printf "  --package PACKAGE_URI                URI of the package to uninstall (e.g., https://packages.linkeddatahub.com/skos/#this)\n"
     printf "\n"
     printf "Example:\n"
     printf "  %s -b https://localhost:4443/ -f ssl/owner/cert.pem -p Password --package https://packages.linkeddatahub.com/skos/#this\n" "$0"
@@ -82,7 +82,7 @@ admin_uri() {
 }
 
 admin_base=$(admin_uri "$base")
-target_url="${admin_base}packages/install"
+target_url="${admin_base}packages/uninstall"
 
 if [ -n "$proxy" ]; then
     admin_proxy=$(admin_uri "$proxy")
@@ -94,7 +94,7 @@ else
     final_url="$target_url"
 fi
 
-# POST to packages/install endpoint
+# POST to packages/uninstall endpoint
 curl -k -s -w "%{http_code}\n" -E "$cert_pem_file":"$cert_password" \
     -X POST \
     -H "Accept: text/turtle" \

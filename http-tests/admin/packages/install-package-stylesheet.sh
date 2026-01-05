@@ -10,13 +10,12 @@ purge_cache "$FRONTEND_VARNISH_SERVICE"
 # test package URI (SKOS package)
 package_uri="https://packages.linkeddatahub.com/skos/#this"
 
-# install package via POST to packages/install endpoint
-curl -k -w "%{http_code}\n" -o /dev/null -f -s \
-  -E "$OWNER_CERT_FILE":"$OWNER_CERT_PWD" \
-  -X POST \
-  -H "Content-Type: application/x-www-form-urlencoded" \
-  --data-urlencode "package-uri=$package_uri" \
-  "${ADMIN_BASE_URL}packages/install" \
+# install package
+install-package.sh \
+  -b "$END_USER_BASE_URL" \
+  -f "$OWNER_CERT_FILE" \
+  -p "$OWNER_CERT_PWD" \
+  --package "$package_uri" \
 | grep -q "$STATUS_SEE_OTHER"
 
 # the stylesheet is not available via URL right away. If we request it right away, Varnish will cache a 404 Not Found response for it
