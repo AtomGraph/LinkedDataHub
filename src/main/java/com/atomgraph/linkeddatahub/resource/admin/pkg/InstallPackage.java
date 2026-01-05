@@ -160,7 +160,7 @@ public class InstallPackage
                 if (log.isDebugEnabled()) log.debug("Downloading package stylesheet from: {}", stylesheetURI);
                 String stylesheetContent = downloadStylesheet(stylesheetURI);               
        
-                installStylesheet(Paths.get(getServletContext().getRealPath("/static")).resolve(packagePath).resolve("layout.xsl"), packagePath, stylesheetContent, endUserApp);
+                installStylesheet(Paths.get(getServletContext().getRealPath("/static")).resolve(packagePath).resolve("layout.xsl"), stylesheetContent, endUserApp);
 
                 // 4. Regenerate master stylesheet
                 regenerateMasterStylesheet(endUserApp, pkg);
@@ -344,20 +344,12 @@ public class InstallPackage
     /**
      * Installs stylesheet to <samp>/static/<package-path>/layout.xsl</samp>
      */
-    private void installStylesheet(Path stylesheetFile, String packagePath, String stylesheetContent, EndUserApplication endUserApp) throws IOException
+    private void installStylesheet(Path stylesheetFile, String stylesheetContent, EndUserApplication endUserApp) throws IOException
     {
         Files.createDirectories(stylesheetFile.getParent());
         Files.writeString(stylesheetFile, stylesheetContent);
 
         if (log.isDebugEnabled()) log.debug("Installed package stylesheet at: {}", stylesheetFile);
-
-        // Purge stylesheet from frontend proxy cache to clear any cached 404 responses
-//        String stylesheetURL = "/static/" + packagePath + "/layout.xsl";
-//        if (endUserApp.getFrontendProxy() != null)
-//        {
-//            if (log.isDebugEnabled()) log.debug("Purging stylesheet from frontend proxy cache: {}", stylesheetURL);
-//            getSystem().ban(endUserApp.getFrontendProxy(), stylesheetURL, false);
-//        }
     }
 
     /**
@@ -387,13 +379,6 @@ public class InstallPackage
         // Regenerate master stylesheet (XSLTMasterUpdater works with paths)
         XSLTMasterUpdater updater = new XSLTMasterUpdater(getServletContext());
         updater.regenerateMasterStylesheet(packagePaths);
-
-        // Purge master stylesheet from cache
-//        if (app.getFrontendProxy() != null)
-//        {
-//            if (log.isDebugEnabled()) log.debug("Purging master stylesheet from frontend proxy cache: {}", com.atomgraph.linkeddatahub.Application.MASTER_STYLESHEET_PATH);
-//            getSystem().ban(app.getFrontendProxy(), com.atomgraph.linkeddatahub.Application.MASTER_STYLESHEET_PATH, false);
-//        }
     }
 
     /**

@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -eo pipefail
 
 print_usage()
 {
@@ -95,7 +96,7 @@ else
 fi
 
 # POST to packages/uninstall endpoint
-curl -k -s -w "%{http_code}\n" -E "$cert_pem_file":"$cert_password" \
+curl -k -f -s -w "%{http_code}\n" -E "$cert_pem_file":"$cert_password" \
     -X POST \
     -H "Accept: text/turtle" \
     -H "Content-Type: application/x-www-form-urlencoded" \

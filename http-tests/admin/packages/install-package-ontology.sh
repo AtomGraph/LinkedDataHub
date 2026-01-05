@@ -12,13 +12,12 @@ package_uri="https://packages.linkeddatahub.com/skos/#this"
 package_ontology_uri="https://raw.githubusercontent.com/AtomGraph/LinkedDataHub-Apps/refs/heads/develop/packages/skos/ns.ttl#"
 namespace_ontology_uri="${END_USER_BASE_URL}ns#"
 
-# install package via POST to packages/install endpoint
-curl -k -w "%{http_code}\n" -o /dev/null -f -s \
-  -E "$OWNER_CERT_FILE":"$OWNER_CERT_PWD" \
-  -X POST \
-  -H "Content-Type: application/x-www-form-urlencoded" \
-  --data-urlencode "package-uri=$package_uri" \
-  "${ADMIN_BASE_URL}packages/install" \
+# install package
+install-package.sh \
+  -b "$END_USER_BASE_URL" \
+  -f "$OWNER_CERT_FILE" \
+  -p "$OWNER_CERT_PWD" \
+  --package "$package_uri" \
 | grep -q "$STATUS_SEE_OTHER"
 
 # verify owl:imports triple was added to namespace graph

@@ -148,7 +148,10 @@ public class UninstallPackage
             if (stylesheet != null)
             {
                 String packagePath = pkg.getStylesheetPath();
-                uninstallStylesheet(Paths.get(getServletContext().getRealPath("/static")), packagePath, endUserApp);
+                Path packageDir = Paths.get(getServletContext().getRealPath("/static")).resolve(packagePath);
+                Path stylesheetFile = packageDir.resolve("layout.xsl");
+        
+                uninstallStylesheet(stylesheetFile, packagePath, endUserApp);
                 regenerateMasterStylesheet(endUserApp, pkg);
             }
 
@@ -245,12 +248,8 @@ public class UninstallPackage
     /**
      * Deletes stylesheet from <samp>/static/<package-path>/</samp>
      */
-    private void uninstallStylesheet(Path staticDir, String packagePath, EndUserApplication endUserApp) throws IOException
+    private void uninstallStylesheet(Path stylesheetFile, String packagePath, EndUserApplication endUserApp) throws IOException
     {
-        Path packageDir = staticDir.resolve(packagePath);
-
-        // Delete layout.xsl
-        Path stylesheetFile = packageDir.resolve("layout.xsl");
         Files.delete(stylesheetFile);
         if (log.isDebugEnabled()) log.debug("Deleted package stylesheet: {}", stylesheetFile);
 
@@ -263,10 +262,10 @@ public class UninstallPackage
         }
 
         // Delete directory if empty
-        if (Files.list(packageDir).count() == 0)
+        if (Files.list(stylesheetFile.getParent()).count() == 0)
         {
-            Files.delete(packageDir);
-            if (log.isDebugEnabled()) log.debug("Deleted package directory: {}", packageDir);
+            Files.delete(stylesheetFile.getParent());
+            if (log.isDebugEnabled()) log.debug("Deleted package directory: {}", stylesheetFile.getParent());
         }
     }
 
