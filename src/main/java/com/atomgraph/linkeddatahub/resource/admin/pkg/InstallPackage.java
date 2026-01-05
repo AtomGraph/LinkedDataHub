@@ -352,12 +352,12 @@ public class InstallPackage
         if (log.isDebugEnabled()) log.debug("Installed package stylesheet at: {}", stylesheetFile);
 
         // Purge stylesheet from frontend proxy cache to clear any cached 404 responses
-        String stylesheetURL = "/static/" + packagePath + "/layout.xsl";
-        if (endUserApp.getFrontendProxy() != null)
-        {
-            if (log.isDebugEnabled()) log.debug("Purging stylesheet from frontend proxy cache: {}", stylesheetURL);
-            getSystem().ban(endUserApp.getFrontendProxy(), stylesheetURL, false);
-        }
+//        String stylesheetURL = "/static/" + packagePath + "/layout.xsl";
+//        if (endUserApp.getFrontendProxy() != null)
+//        {
+//            if (log.isDebugEnabled()) log.debug("Purging stylesheet from frontend proxy cache: {}", stylesheetURL);
+//            getSystem().ban(endUserApp.getFrontendProxy(), stylesheetURL, false);
+//        }
     }
 
     /**
@@ -389,11 +389,11 @@ public class InstallPackage
         updater.regenerateMasterStylesheet(packagePaths);
 
         // Purge master stylesheet from cache
-        if (app.getFrontendProxy() != null)
-        {
-            if (log.isDebugEnabled()) log.debug("Purging master stylesheet from frontend proxy cache: {}", com.atomgraph.linkeddatahub.Application.MASTER_STYLESHEET_PATH);
-            getSystem().ban(app.getFrontendProxy(), com.atomgraph.linkeddatahub.Application.MASTER_STYLESHEET_PATH, false);
-        }
+//        if (app.getFrontendProxy() != null)
+//        {
+//            if (log.isDebugEnabled()) log.debug("Purging master stylesheet from frontend proxy cache: {}", com.atomgraph.linkeddatahub.Application.MASTER_STYLESHEET_PATH);
+//            getSystem().ban(app.getFrontendProxy(), com.atomgraph.linkeddatahub.Application.MASTER_STYLESHEET_PATH, false);
+//        }
     }
 
     /**
