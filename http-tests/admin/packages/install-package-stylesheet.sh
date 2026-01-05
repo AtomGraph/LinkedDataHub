@@ -21,7 +21,7 @@ curl -k -w "%{http_code}\n" -o /dev/null -f -s \
 
 # the stylesheet is not available via URL right away. If we request it right away, Varnish will cache a 404 Not Found response for it
 # TO-DO: make sure the stylesheet URL is available immediately after installation
-sleep 1
+sleep 2
 
 # verify package stylesheet was installed (should return 200)
 curl -k -f -s -o /dev/null \
