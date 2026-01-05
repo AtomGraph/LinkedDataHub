@@ -23,7 +23,6 @@ import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import com.atomgraph.linkeddatahub.client.GraphStoreClient;
 import com.atomgraph.linkeddatahub.resource.admin.ClearOntology;
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
-import com.atomgraph.linkeddatahub.server.util.UriPath;
 import com.atomgraph.linkeddatahub.server.util.XSLTMasterUpdater;
 import static com.atomgraph.server.status.UnprocessableEntityStatus.UNPROCESSABLE_ENTITY;
 import jakarta.inject.Inject;
@@ -146,8 +145,6 @@ public class InstallPackage
 
         try
         {
-            String packagePath = UriPath.convert(packageURI);
-
             if (ontology != null)
             {
                 if (log.isDebugEnabled()) log.debug("Downloading package ontology from: {}", ontology.getURI());
@@ -158,13 +155,15 @@ public class InstallPackage
             if (stylesheet != null)
             {
                 URI stylesheetURI = URI.create(stylesheet.getURI());
+                String packagePath = pkg.getStylesheetPath();
 
                 if (log.isDebugEnabled()) log.debug("Downloading package stylesheet from: {}", stylesheetURI);
-                String stylesheetContent = downloadStylesheet(stylesheetURI);
-                installStylesheet(Paths.get(getServletContext().getRealPath("/static")), packagePath, stylesheetContent);
-                
+                String stylesheetContent = downloadStylesheet(stylesheetURI);               
+       
+                installStylesheet(Paths.get(getServletContext().getRealPath("/static")).resolve(packagePath).resolve("layout.xsl"), packagePath, stylesheetContent, endUserApp);
+
                 // 4. Regenerate master stylesheet
-                regenerateMasterStylesheet(endUserApp, packagePath);
+                regenerateMasterStylesheet(endUserApp, pkg);
             }
 
             //addImportToApplication(endUserApp, packageURI);
@@ -343,38 +342,58 @@ public class InstallPackage
     }
 
     /**
-     * Installs stylesheet to /static/<package-path>/layout.xsl
+     * Installs stylesheet to <samp>/static/<package-path>/layout.xsl</samp>
      */
-    private void installStylesheet(Path staticDir, String packagePath, String stylesheetContent) throws IOException
+    private void installStylesheet(Path stylesheetFile, String packagePath, String stylesheetContent, EndUserApplication endUserApp) throws IOException
     {
-        Path packageDir = staticDir.resolve(packagePath);
-        Files.createDirectories(packageDir);
-
-        Path stylesheetFile = packageDir.resolve("layout.xsl");
+        Files.createDirectories(stylesheetFile.getParent());
         Files.writeString(stylesheetFile, stylesheetContent);
 
         if (log.isDebugEnabled()) log.debug("Installed package stylesheet at: {}", stylesheetFile);
+
+        // Purge stylesheet from frontend proxy cache to clear any cached 404 responses
+        String stylesheetURL = "/static/" + packagePath + "/layout.xsl";
+        if (endUserApp.getFrontendProxy() != null)
+        {
+            if (log.isDebugEnabled()) log.debug("Purging stylesheet from frontend proxy cache: {}", stylesheetURL);
+            getSystem().ban(endUserApp.getFrontendProxy(), stylesheetURL, false);
+        }
     }
 
     /**
      * Regenerates master stylesheet for the application.
+     *
+     * @param app the application
+     * @param newPackage the package being installed
+     * @throws IOException if regeneration fails
      */
-    private void regenerateMasterStylesheet(EndUserApplication app, String newPackagePath) throws IOException
+    private void regenerateMasterStylesheet(EndUserApplication app, com.atomgraph.linkeddatahub.apps.model.Package newPackage) throws IOException
     {
-        // Get all currently installed packages
-        Set<Resource> packages = app.getImportedPackages();
+        // Get all currently installed packages and convert to stylesheet paths
+        Set<Resource> packageResources = app.getImportedPackages();
         List<String> packagePaths = new ArrayList<>();
 
-        for (Resource pkg : packages)
-            packagePaths.add(UriPath.convert(pkg.getURI()));
+        for (Resource pkgRes : packageResources)
+        {
+            com.atomgraph.linkeddatahub.apps.model.Package pkg = pkgRes.as(com.atomgraph.linkeddatahub.apps.model.Package.class);
+            packagePaths.add(pkg.getStylesheetPath());
+        }
 
-        // Add the new package
-        if (!packagePaths.contains(newPackagePath))
-            packagePaths.add(newPackagePath);
+        // Add the new package path
+        String newPath = newPackage.getStylesheetPath();
+        if (!packagePaths.contains(newPath))
+            packagePaths.add(newPath);
 
-        // Regenerate master stylesheet
+        // Regenerate master stylesheet (XSLTMasterUpdater works with paths)
         XSLTMasterUpdater updater = new XSLTMasterUpdater(getServletContext());
         updater.regenerateMasterStylesheet(packagePaths);
+
+        // Purge master stylesheet from cache
+        if (app.getFrontendProxy() != null)
+        {
+            if (log.isDebugEnabled()) log.debug("Purging master stylesheet from frontend proxy cache: {}", com.atomgraph.linkeddatahub.Application.MASTER_STYLESHEET_PATH);
+            getSystem().ban(app.getFrontendProxy(), com.atomgraph.linkeddatahub.Application.MASTER_STYLESHEET_PATH, false);
+        }
     }
 
     /**

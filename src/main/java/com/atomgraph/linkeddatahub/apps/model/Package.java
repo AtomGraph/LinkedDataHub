@@ -51,4 +51,14 @@ public interface Package extends Resource
      */
     java.util.Set<Resource> getImportedPackages();
 
+    /**
+     * Returns the filesystem resource path for this package.
+     * Converts the package URI to a path by reversing hostname components.
+     * Example: <samp>https://packages.linkeddatahub.com/skos/#this -> com/linkeddatahub/packages/skos</samp>
+     *
+     * @return filesystem path relative to static directory
+     * @throws IllegalArgumentException if package URI is invalid
+     */
+    String getStylesheetPath();
+
 }

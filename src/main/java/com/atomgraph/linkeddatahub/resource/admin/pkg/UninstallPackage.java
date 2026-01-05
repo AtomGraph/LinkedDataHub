@@ -21,9 +21,7 @@ import com.atomgraph.linkeddatahub.apps.model.AdminApplication;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import com.atomgraph.linkeddatahub.client.GraphStoreClient;
 import com.atomgraph.linkeddatahub.resource.admin.ClearOntology;
-import com.atomgraph.linkeddatahub.server.filter.response.CacheInvalidationFilter;
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
-import com.atomgraph.linkeddatahub.server.util.UriPath;
 import com.atomgraph.linkeddatahub.server.util.XSLTMasterUpdater;
 import static com.atomgraph.server.status.UnprocessableEntityStatus.UNPROCESSABLE_ENTITY;
 import jakarta.inject.Inject;
@@ -45,7 +43,6 @@ import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.update.UpdateFactory;
 import org.apache.jena.update.UpdateRequest;
 import org.apache.jena.util.FileManager;
-import org.glassfish.jersey.uri.UriComponent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.io.IOException;
@@ -78,8 +75,6 @@ public class UninstallPackage
 {
     private static final Logger log = LoggerFactory.getLogger(UninstallPackage.class);
 
-    public final String MASTER_STYLESHEET_URL = "/static/xsl/layout.xsl";
-
     private final com.atomgraph.linkeddatahub.apps.model.Application application;
     private final com.atomgraph.linkeddatahub.Application system;
     private final DataManager dataManager;
@@ -111,7 +106,7 @@ public class UninstallPackage
     /**
      * Uninstalls a package from the current dataspace.
      *
-     * @param packageURI the package URI (e.g., https://packages.linkeddatahub.com/skos/#this)
+     * @param packageURI the package URI (e.g., <samp>https://packages.linkeddatahub.com/skos/#this</samp>)
      * @param referer the referring URL
      * @return JAX-RS response
      */
@@ -147,14 +142,14 @@ public class UninstallPackage
                 if (log.isErrorEnabled()) log.error("Package ontology and stylesheet are both unspecified for package: {}", packageURI);
                 throw new WebApplicationException("Package ontology and stylesheet are both unspecified", UNPROCESSABLE_ENTITY.getStatusCode()); // 422 Unprocessable Entity
             }
-        
+
             if (ontology != null) uninstallOntology(endUserApp, ontology.getURI());
 
             if (stylesheet != null)
             {
-                String packagePath = UriPath.convert(packageURI);
+                String packagePath = pkg.getStylesheetPath();
                 uninstallStylesheet(Paths.get(getServletContext().getRealPath("/static")), packagePath, endUserApp);
-                regenerateMasterStylesheet(endUserApp, packagePath);
+                regenerateMasterStylesheet(endUserApp, pkg);
             }
 
             //removeImportFromApplication(endUserApp, packageURI);
@@ -264,7 +259,7 @@ public class UninstallPackage
         if (endUserApp.getFrontendProxy() != null)
         {
             if (log.isDebugEnabled()) log.debug("Purging stylesheet from frontend proxy cache: {}", stylesheetURL);
-            ban(endUserApp.getFrontendProxy(), stylesheetURL, false);
+            getSystem().ban(endUserApp.getFrontendProxy(), stylesheetURL, false);
         }
 
         // Delete directory if empty
@@ -277,29 +272,36 @@ public class UninstallPackage
 
     /**
      * Regenerates master stylesheet for the application without the uninstalled package.
+     *
+     * @param app the application
+     * @param removedPackage the package being uninstalled
+     * @throws IOException if regeneration fails
      */
-    private void regenerateMasterStylesheet(EndUserApplication app, String removedPackagePath) throws IOException
+    private void regenerateMasterStylesheet(EndUserApplication app, com.atomgraph.linkeddatahub.apps.model.Package removedPackage) throws IOException
     {
-        // Get all currently installed packages
-        Set<Resource> packages = app.getImportedPackages();
+        // Get all currently installed packages and convert to stylesheet paths
+        Set<Resource> packageResources = app.getImportedPackages();
         List<String> packagePaths = new ArrayList<>();
 
-        for (Resource pkg : packages)
+        String removedPath = removedPackage.getStylesheetPath();
+        for (Resource pkgRes : packageResources)
         {
-            String pkgPath = UriPath.convert(pkg.getURI());
+            com.atomgraph.linkeddatahub.apps.model.Package pkg = pkgRes.as(com.atomgraph.linkeddatahub.apps.model.Package.class);
+            String pkgPath = pkg.getStylesheetPath();
             // Exclude the package being removed
-            if (!pkgPath.equals(removedPackagePath)) packagePaths.add(pkgPath);
+            if (!pkgPath.equals(removedPath))
+                packagePaths.add(pkgPath);
         }
 
-        // Regenerate master stylesheet
+        // Regenerate master stylesheet (XSLTMasterUpdater works with paths)
         XSLTMasterUpdater updater = new XSLTMasterUpdater(getServletContext());
         updater.regenerateMasterStylesheet(packagePaths);
 
         // Purge master stylesheet from cache
         if (app.getFrontendProxy() != null)
         {
-            if (log.isDebugEnabled()) log.debug("Purging master stylesheet from frontend proxy cache: {}", MASTER_STYLESHEET_URL);
-            ban(app.getFrontendProxy(), MASTER_STYLESHEET_URL, false);
+            if (log.isDebugEnabled()) log.debug("Purging master stylesheet from frontend proxy cache: {}", com.atomgraph.linkeddatahub.Application.MASTER_STYLESHEET_PATH);
+            getSystem().ban(app.getFrontendProxy(), com.atomgraph.linkeddatahub.Application.MASTER_STYLESHEET_PATH, false);
         }
     }
 
@@ -374,38 +376,6 @@ public class UninstallPackage
         }
     }
 
-    protected void ban(Resource proxy, String url)
-    {
-        ban(proxy, url, true);
-    }
-
-    /**
-     * Bans URL from the backend proxy cache.
-     *
-     * @param proxy proxy server URL
-     * @param url banned URL
-     * @param urlEncode if true, the banned URL value will be URL-encoded
-     */
-    protected void ban(Resource proxy, String url, boolean urlEncode)
-    {
-        if (url == null) throw new IllegalArgumentException("Resource cannot be null");
-
-        // Extract path from URL - Varnish req.url only contains the path, not the full URL
-        URI uri = URI.create(url);
-        String path = uri.getPath();
-        if (uri.getQuery() != null) path += "?" + uri.getQuery();
-
-        final String urlValue = urlEncode ? UriComponent.encode(path, UriComponent.Type.UNRESERVED) : path;
-
-        try (Response cr = getSystem().getClient().target(proxy.getURI()).
-                request().
-                header(CacheInvalidationFilter.HEADER_NAME, urlValue).
-                method("BAN", Response.class))
-        {
-            // Response automatically closed by try-with-resources
-        }
-    }
-    
     /**
      * Returns the system application.
      *

@@ -27,6 +27,7 @@ import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.rdf.model.StmtIterator;
 import org.apache.jena.rdf.model.impl.ResourceImpl;
 
+import java.net.URI;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -83,6 +84,46 @@ public class PackageImpl extends ResourceImpl implements Package
         }
 
         return packages;
+    }
+
+    @Override
+    public String getStylesheetPath()
+    {
+        String uri = getURI();
+        if (uri == null)
+            throw new IllegalArgumentException("Package URI cannot be null");
+
+        try
+        {
+            URI uriObj = URI.create(uri);
+            String host = uriObj.getHost();
+            String path = uriObj.getPath();
+
+            if (host == null)
+                throw new IllegalArgumentException("Package URI must have a host: " + uri);
+
+            // Reverse hostname components: packages.linkeddatahub.com -> com/linkeddatahub/packages
+            String[] hostParts = host.split("\\.");
+            StringBuilder reversedHost = new StringBuilder();
+            for (int i = hostParts.length - 1; i >= 0; i--)
+            {
+                reversedHost.append(hostParts[i]);
+                if (i > 0) reversedHost.append("/");
+            }
+
+            // Append path without leading/trailing slashes and fragment
+            if (path != null && !path.isEmpty() && !path.equals("/"))
+            {
+                String cleanPath = path.replaceAll("^/+|/+$", ""); // Remove leading/trailing slashes
+                return reversedHost + "/" + cleanPath;
+            }
+
+            return reversedHost.toString();
+        }
+        catch (IllegalArgumentException e)
+        {
+            throw new IllegalArgumentException("Invalid package URI: " + uri, e);
+        }
     }
 
 }

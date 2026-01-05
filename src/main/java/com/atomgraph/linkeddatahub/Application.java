@@ -194,6 +194,7 @@ import jakarta.ws.rs.InternalServerErrorException;
 import jakarta.ws.rs.client.Client;
 import jakarta.ws.rs.client.ClientBuilder;
 import jakarta.ws.rs.client.ClientRequestFilter;
+import jakarta.ws.rs.core.Response;
 import java.util.concurrent.ConcurrentHashMap;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
@@ -241,6 +242,7 @@ import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.glassfish.jersey.process.internal.RequestScoped;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.server.filter.HttpMethodOverrideFilter;
+import org.glassfish.jersey.uri.UriComponent;
 import org.xml.sax.SAXException;
 
 /**
@@ -252,8 +254,10 @@ import org.xml.sax.SAXException;
  */
 public class Application extends ResourceConfig
 {
-    
+
     private static final Logger log = LoggerFactory.getLogger(Application.class);
+
+    public static final String MASTER_STYLESHEET_PATH = "/static/xsl/layout.xsl";
 
     private final ExecutorService importThreadPool;
     private final ServletConfig servletConfig;
@@ -1747,12 +1751,40 @@ public class Application extends ResourceConfig
     /**
      * Returns the external HTTP client.
      * It is used by the Linked Data browser to avoid sharing the connection pool with the system client.
-     * 
+     *
      * @return client object
      */
     public Client getExternalClient()
     {
         return externalClient;
+    }
+
+    /**
+     * Bans URL from the proxy cache.
+     *
+     * @param proxy proxy server resource
+     * @param url banned URL
+     * @param urlEncode if true, the banned URL value will be URL-encoded
+     * @throws IllegalArgumentException if url is null
+     */
+    public void ban(Resource proxy, String url, boolean urlEncode)
+    {
+        if (url == null) throw new IllegalArgumentException("URL cannot be null");
+
+        // Extract path from URL - Varnish req.url only contains the path, not the full URL
+        URI uri = URI.create(url);
+        String path = uri.getPath();
+        if (uri.getQuery() != null) path += "?" + uri.getQuery();
+
+        final String urlValue = urlEncode ? UriComponent.encode(path, UriComponent.Type.UNRESERVED) : path;
+
+        try (Response cr = getClient().target(proxy.getURI()).
+                request().
+                header(CacheInvalidationFilter.HEADER_NAME, urlValue).
+                method("BAN", Response.class))
+        {
+            // Response automatically closed by try-with-resources
+        }
     }
 
     /**
