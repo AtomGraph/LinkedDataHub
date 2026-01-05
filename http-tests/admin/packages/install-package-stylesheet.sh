@@ -26,12 +26,16 @@ purge_cache "$FRONTEND_VARNISH_SERVICE"
 
 # Wait for package installation to complete (poll for stylesheet availability)
 elapsed=0
+iteration=0
 while [ $(echo "$elapsed < 30" | bc) -eq 1 ]; do
   # Get status and headers via proxy in one request
   proxy_response=$(curl -k -s -I "${END_USER_BASE_URL}static/com/linkeddatahub/packages/skos/layout.xsl")
   stylesheet_status=$(echo "$proxy_response" | head -1 | grep -oE '[0-9]{3}')
 
-  if [ "$stylesheet_status" = "200" ]; then
+  iteration=$((iteration + 1))
+
+  # Only break on success after at least 2 iterations (to see Age > 0)
+  if [ "$stylesheet_status" = "200" ] && [ $iteration -ge 2 ]; then
     break
   fi
 
