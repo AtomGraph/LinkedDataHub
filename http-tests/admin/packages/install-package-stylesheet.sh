@@ -27,13 +27,25 @@ purge_cache "$FRONTEND_VARNISH_SERVICE"
 # Wait for package installation to complete (poll for stylesheet availability)
 elapsed=0
 while [ $(echo "$elapsed < 30" | bc) -eq 1 ]; do
-  stylesheet_status=$(curl -k -w "%{http_code}\n" -o /dev/null -s \
-    "${END_USER_BASE_URL}static/com/linkeddatahub/packages/skos/layout.xsl")
+  # Get status and headers via proxy in one request
+  proxy_response=$(curl -k -s -I "${END_USER_BASE_URL}static/com/linkeddatahub/packages/skos/layout.xsl")
+  stylesheet_status=$(echo "$proxy_response" | head -1 | grep -oE '[0-9]{3}')
+
   if [ "$stylesheet_status" = "200" ]; then
     break
   fi
-  echo "--- Waiting for stylesheet (${elapsed}s, HTTP status: $stylesheet_status) ---"
+
+  echo "--- Waiting for stylesheet (${elapsed}s) ---"
+  echo "Via proxy: HTTP $stylesheet_status"
+  echo "$proxy_response" | grep -E "(Age|X-Cache|X-Varnish)" || echo "(no cache headers)"
+
+  # Check file on disk
   docker compose exec -T linkeddatahub ls -l webapps/ROOT/static/com/linkeddatahub/packages/skos || echo "Directory does not exist"
+
+  # Test direct access to Tomcat (bypasses Varnish/Nginx cache)
+  internal_status=$(docker compose exec -T nginx curl -s -w "%{http_code}\n" -o /dev/null http://linkeddatahub:8080/static/com/linkeddatahub/packages/skos/layout.xsl)
+  echo "Direct Tomcat: HTTP $internal_status"
+
   sleep 0.5
   elapsed=$(echo "$elapsed + 0.5" | bc)
 done
