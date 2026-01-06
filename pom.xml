@@ -126,11 +126,15 @@
                 </exclusion>
             </exclusions>
         </dependency>
-        <!-- TO-DO: replace with AtomGraph Core -->
+        <dependency>
+            <groupId>org.apache.jena</groupId>
+            <artifactId>jena-shacl</artifactId>
+            <version>4.7.0</version>
+        </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
-            <artifactId>server</artifactId>
-            <version>4.1.15-SNAPSHOT</version>
+            <artifactId>twirl</artifactId>
+            <version>1.0.33</version>
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
