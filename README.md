@@ -267,7 +267,6 @@ See the [Web-Algebra repository](https://github.com/AtomGraph/Web-Algebra) for s
 LinkedDataHub includes an HTTP [test suite](https://github.com/AtomGraph/LinkedDataHub/tree/master/http-tests). The server implementation is also covered by the [Processor test suite](https://github.com/AtomGraph/Processor/tree/master/http-tests).
 
 ![HTTP-tests](https://github.com/AtomGraph/LinkedDataHub/actions/workflows/http-tests.yml/badge.svg)
-![HTTP-tests](https://github.com/AtomGraph/LinkedDataHub/actions/workflows/http-tests.yml/badge.svg)
 
 ## Dependencies
 
@@ -287,8 +286,9 @@ LinkedDataHub includes an HTTP [test suite](https://github.com/AtomGraph/LinkedD
 * [java-jwt](https://github.com/auth0/java-jwt)
 * [ExpiringMap](https://github.com/jhalterman/expiringmap)
 * [CSV2RDF](https://github.com/AtomGraph/CSV2RDF)
-* [Processor](https://github.com/AtomGraph/Processor)
 * [Web-Client](https://github.com/AtomGraph/Web-Client)
+* [Twirl](https://github.com/AtomGraph/Twirl)
+* [jena-shacl](https://mvnrepository.com/artifact/org.apache.jena/jena-shacl)
 
 ### Docker
 
