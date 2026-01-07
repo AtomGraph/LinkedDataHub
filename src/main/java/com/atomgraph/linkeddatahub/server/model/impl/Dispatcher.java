@@ -23,6 +23,7 @@ import com.atomgraph.linkeddatahub.resource.Generate;
 import com.atomgraph.linkeddatahub.resource.Namespace;
 import com.atomgraph.linkeddatahub.resource.Transform;
 import com.atomgraph.linkeddatahub.resource.admin.ClearOntology;
+import com.atomgraph.linkeddatahub.resource.admin.Settings;
 import com.atomgraph.linkeddatahub.resource.admin.pkg.InstallPackage;
 import com.atomgraph.linkeddatahub.resource.admin.pkg.UninstallPackage;
 import com.atomgraph.linkeddatahub.resource.admin.SignUp;
@@ -225,6 +226,17 @@ public class Dispatcher
     public Class getClearEndpoint()
     {
         return getProxyClass().orElse(ClearOntology.class);
+    }
+
+    /**
+     * Returns the endpoint for updating dataspace settings.
+     *
+     * @return endpoint resource
+     */
+    @Path("settings")
+    public Class getSettingsEndpoint()
+    {
+        return getProxyClass().orElse(Settings.class);
     }
 
     /**
