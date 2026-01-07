@@ -176,6 +176,8 @@ import com.github.jsonldjava.core.JsonLdOptions;
 import java.io.FileOutputStream;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.util.Arrays;
 import java.util.List;
@@ -294,9 +296,9 @@ public class Application extends ResourceConfig
     private final boolean enableWebIDSignUp;
     private final String oidcRefreshTokensPropertiesPath;
     private final Properties oidcRefreshTokens;
+    private final URI contextDatasetURI;
+    private final Dataset contextDataset;
 
-    private Dataset contextDataset;
-    
     /**
      * Constructs system application and configures it using sevlet config.
      * 
@@ -313,6 +315,7 @@ public class Application extends ResourceConfig
             servletConfig.getServletContext().getInitParameter(A.cacheModelLoads.getURI()) != null ? Boolean.parseBoolean(servletConfig.getServletContext().getInitParameter(A.cacheModelLoads.getURI())) : true,
             servletConfig.getServletContext().getInitParameter(A.preemptiveAuth.getURI()) != null ? Boolean.parseBoolean(servletConfig.getServletContext().getInitParameter(A.preemptiveAuth.getURI())) : false,
             new PrefixMapper(servletConfig.getServletContext().getInitParameter(AC.prefixMapping.getURI()) != null ? servletConfig.getServletContext().getInitParameter(AC.prefixMapping.getURI()) : null),
+            servletConfig.getServletContext().getInitParameter(LDHC.contextDataset.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.contextDataset.getURI()) : null,
             com.atomgraph.client.Application.getSource(servletConfig.getServletContext(), servletConfig.getServletContext().getInitParameter(AC.stylesheet.getURI()) != null ? servletConfig.getServletContext().getInitParameter(AC.stylesheet.getURI()) : null),
             servletConfig.getServletContext().getInitParameter(AC.cacheStylesheet.getURI()) != null ? Boolean.parseBoolean(servletConfig.getServletContext().getInitParameter(AC.cacheStylesheet.getURI())) : false,
             servletConfig.getServletContext().getInitParameter(AC.resolvingUncached.getURI()) != null ? Boolean.parseBoolean(servletConfig.getServletContext().getInitParameter(AC.resolvingUncached.getURI())) : true,
@@ -355,14 +358,6 @@ public class Application extends ResourceConfig
             servletConfig.getServletContext().getInitParameter(ORCID.clientID.getURI()) != null ? servletConfig.getServletContext().getInitParameter(ORCID.clientID.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(ORCID.clientSecret.getURI()) != null ? servletConfig.getServletContext().getInitParameter(ORCID.clientSecret.getURI()) : null
         );
-
-        URI contextDatasetURI = servletConfig.getServletContext().getInitParameter(LDHC.contextDataset.getURI()) != null ? new URI(servletConfig.getServletContext().getInitParameter(LDHC.contextDataset.getURI())) : null;
-        if (contextDatasetURI == null)
-        {
-            if (log.isErrorEnabled()) log.error("Context dataset URI '{}' not configured", LDHC.contextDataset.getURI());
-            throw new ConfigurationException(LDHC.contextDataset);
-        }
-        this.contextDataset = getDataset(servletConfig.getServletContext(), contextDatasetURI);
     }
     
     /**
@@ -374,6 +369,7 @@ public class Application extends ResourceConfig
      * @param cacheModelLoads true if model loads should be cached
      * @param preemptiveAuth true if HTTP Basic auth credentials should be sent preemptively
      * @param locationMapper Jena's <code>LocationMapper</code> instance
+     * @param contextDatasetURIString location of the context dataset
      * @param stylesheet stylesheet URI
      * @param cacheStylesheet true if stylesheet should be cached
      * @param resolvingUncached true if XLST processor should dereference URLs that are not cached
@@ -418,7 +414,8 @@ public class Application extends ResourceConfig
      */
     public Application(final ServletConfig servletConfig, final MediaTypes mediaTypes,
             final Integer maxGetRequestSize, final boolean cacheModelLoads, final boolean preemptiveAuth,
-            final LocationMapper locationMapper, final Source stylesheet, final boolean cacheStylesheet, final boolean resolvingUncached,
+            final LocationMapper locationMapper, final String contextDatasetURIString,
+            final Source stylesheet, final boolean cacheStylesheet, final boolean resolvingUncached,
             final String clientKeyStoreURIString, final String clientKeyStorePassword,
             final String secretaryCertAlias,
             final String clientTrustStoreURIString, final String clientTrustStorePassword,
@@ -433,6 +430,13 @@ public class Application extends ResourceConfig
             final String googleClientID, final String googleClientSecret,
             final String orcidClientID, final String orcidClientSecret)
     {
+        if (contextDatasetURIString == null)
+        {
+            if (log.isErrorEnabled()) log.error("Context dataset URI '{}' not configured", LDHC.contextDataset.getURI());
+            throw new ConfigurationException(LDHC.contextDataset);
+        }
+        this.contextDatasetURI = URI.create(contextDatasetURIString);
+
         if (clientKeyStoreURIString == null)
         {
             if (log.isErrorEnabled()) log.error("Client key store ({}) not configured", LDHC.clientKeyStore.getURI());
@@ -664,6 +668,8 @@ public class Application extends ResourceConfig
         
         try
         {
+            this.contextDataset = getDataset(servletConfig.getServletContext(), contextDatasetURI);
+
             keyStore = KeyStore.getInstance("PKCS12");
             try (FileInputStream keyStoreInputStream = new FileInputStream(new java.io.File(new URI(clientKeyStoreURIString))))
             {
@@ -1974,7 +1980,7 @@ public class Application extends ResourceConfig
     
     /**
      * Returns RDF dataset with LinkedDataHub application descriptions.
-     * 
+     *
      * @return RDF dataset
      */
     protected Dataset getContextDataset()
@@ -1983,18 +1989,68 @@ public class Application extends ResourceConfig
     }
 
     /**
+     * Returns the URI of the context dataset file.
+     *
+     * @return context dataset URI
+     */
+    protected URI getContextDatasetURI()
+    {
+        return contextDatasetURI;
+    }
+
+    /**
      * Returns RDF model with LinkedDataHub application descriptions.
-     * 
-     * @return RDF model
+     * This method returns a union of all named graphs from the context dataset.
+     *
+     * @return RDF model (read-only union of all named graphs)
      */
     public Model getContextModel()
     {
-        return ModelFactory.createModelForGraph(new GraphReadOnly(getContextDataset().getDefaultModel().getGraph()));
+        return ModelFactory.createModelForGraph(new GraphReadOnly(getContextDataset().getUnionModel().getGraph()));
+    }
+
+    /**
+     * Updates a dataspace by replacing its named graph with a new Model.
+     * This is a template method that can be overridden by subclasses to provide alternative implementations
+     * (e.g., HTTP-based updates using GraphStoreClient to a remote triplestore).
+     *
+     * Default implementation uses file-based operations via SystemConfigFileManager.
+     *
+     * @param application the dataspace application to update
+     * @param newModel the new RDF model to replace the existing named graph
+     * @throws IOException if an I/O error occurs
+     */
+    public void updateDataspace(com.atomgraph.linkeddatahub.apps.model.Application application, Model newModel) throws IOException
+    {
+        if (application == null) throw new IllegalArgumentException("Application cannot be null");
+        if (newModel == null) throw new IllegalArgumentException("Model cannot be null");
+
+        synchronized (getContextDataset())
+        {
+            String dataspaceURI = application.getURI();
+
+            // Only support file-based URIs for the default implementation
+            if (!getContextDatasetURI().isAbsolute() || !"file".equals(getContextDatasetURI().getScheme()))
+            {
+                throw new UnsupportedOperationException("Only file-based context dataset URIs are supported for updates in default implementation");
+            }
+
+            Path configFilePath = Paths.get(getContextDatasetURI());
+
+            // Update the named graph in the dataset
+            getContextDataset().removeNamedModel(dataspaceURI).
+                addNamedModel(dataspaceURI, newModel);
+
+            // Write the updated dataset back to file
+            com.atomgraph.linkeddatahub.server.util.SystemConfigFileManager.writeDataset(getContextDataset(), configFilePath);
+
+            if (log.isInfoEnabled()) log.info("Updated dataspace <{}> in file: {}", dataspaceURI, configFilePath);
+        }
     }
 
     /**
      * Returns true if configured to invalidate HTTP proxy cache of triplestore results.
-     * 
+     *
      * @return true if invalidated
      */
     public boolean isInvalidateCache()

@@ -7,31 +7,37 @@ PREFIX foaf:    <http://xmlns.com/foaf/0.1/>
 
 SELECT ?endUserApp ?endUserOrigin ?endUserQuadStore ?endUserEndpoint ?endUserAuthUser ?endUserAuthPwd ?endUserMaker ?adminApp ?adminOrigin ?adminQuadStore ?adminEndpoint ?adminAuthUser ?adminAuthPwd ?adminMaker
 {
-    ?endUserApp lapp:origin ?endUserOrigin ;
-        ldt:service ?endUserService ;
-        lapp:adminApplication ?adminApp .
+    GRAPH ?endUserAppGraph
+    {
+        ?endUserApp lapp:origin ?endUserOrigin ;
+            ldt:service ?endUserService ;
+            lapp:adminApplication ?adminApp .
+        ?endUserService a:quadStore ?endUserQuadStore ;
+            sd:endpoint ?endUserEndpoint .
+        OPTIONAL
+        {
+            ?endUserService a:authUser ?endUserAuthUser ;
+                a:authPwd ?endUserAuthPwd .
+        }
+        OPTIONAL
+        {
+            ?endUserService foaf:maker ?endUserMaker
+        }
+    }
+    GRAPH ?adminAppGraph
+    {
         ?adminApp ldt:service ?adminService ;
             lapp:origin ?adminOrigin .
-    ?endUserService a:quadStore ?endUserQuadStore ;
-        sd:endpoint ?endUserEndpoint .
-    ?adminService a:quadStore ?adminQuadStore ;
-        sd:endpoint ?adminEndpoint .
-    OPTIONAL
-    {
-        ?endUserService a:authUser ?endUserAuthUser ;
-            a:authPwd ?endUserAuthPwd .
-    }
-    OPTIONAL
-    {
-        ?adminService a:authUser ?adminAuthUser ;
-            a:authPwd ?adminAuthPwd .
-    }
-    OPTIONAL
-    {
-        ?endUserService foaf:maker ?endUserMaker
-    }
-    OPTIONAL
-    {
-        ?adminService foaf:maker ?adminMaker
+        ?adminService a:quadStore ?adminQuadStore ;
+            sd:endpoint ?adminEndpoint .
+        OPTIONAL
+        {
+            ?adminService a:authUser ?adminAuthUser ;
+                a:authPwd ?adminAuthPwd .
+        }
+        OPTIONAL
+        {
+            ?adminService foaf:maker ?adminMaker
+        }
     }
 }
