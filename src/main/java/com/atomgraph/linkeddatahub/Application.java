@@ -2010,6 +2010,18 @@ public class Application extends ResourceConfig
     }
 
     /**
+     * Retrieves a dataspace model by application from the context dataset.
+     *
+     * @param application the dataspace application
+     * @return the model for the specified dataspace, or null if not found
+     */
+    public Model getDataspaceModel(com.atomgraph.linkeddatahub.apps.model.Application application)
+    {
+        if (application == null) throw new IllegalArgumentException("Application cannot be null");
+        return getContextDataset().getNamedModel(application.getURI());
+    }
+
+    /**
      * Updates a dataspace by replacing its named graph with a new Model.
      * This is a template method that can be overridden by subclasses to provide alternative implementations
      * (e.g., HTTP-based updates using GraphStoreClient to a remote triplestore).

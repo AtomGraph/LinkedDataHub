@@ -389,6 +389,14 @@ WHERE
 
 }
 
+<settings>
+{
+
+    <settings> a foaf:Document ;
+        dct:title "Settings endpoint" .
+
+}
+
 <services/dbpedia/>
 {
 
