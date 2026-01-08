@@ -673,7 +673,7 @@ LIMIT   10
             </div>
         </div>
     </xsl:template>
-    
+
     <!-- EVENT HANDLERS -->
 
     <!-- close modal first time message -->
@@ -712,7 +712,52 @@ LIMIT   10
             </xsl:with-param>
         </xsl:call-template>
     </xsl:template>
-    
+
+    <xsl:template match="button[contains-token(@class, 'btn-app-settings')]" mode="ixsl:onclick">
+        <xsl:param name="method" select="'patch'" as="xs:string"/>
+        <xsl:variable name="app" select="ixsl:get(ixsl:window(), 'LinkedDataHub.apps')//rdf:Description[lapp:origin/@rdf:resource = lapp:origin(ldt:base())]" as="element()"/>
+        <xsl:variable name="content-body" select="id('content-body', ixsl:page())" as="element()"/>
+
+        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+
+        <xsl:for-each select="$content-body">
+            <xsl:result-document href="?." method="ixsl:append-content">
+                <div class="modal modal-constructor fade in">
+                    <div class="modal-header">
+                        <button type="button" class="close">&#215;</button>
+                        <h3>Application Settings</h3>
+                    </div>
+                    <div class="modal-body">
+                        <!-- to be injected -->
+                    </div>
+                </div>
+            </xsl:result-document>
+        </xsl:for-each>
+
+        <xsl:variable name="modal" select="$content-body/div[contains-token(@class, 'modal')][last()]" as="element()"/>
+        <xsl:variable name="block" select="$modal/div[contains-token(@class, 'modal-body')]" as="element()"/>
+
+        <xsl:variable name="request" select="map{ 'method': 'GET', 'href': resolve-uri('settings', ldt:base()), 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
+        <xsl:variable name="context" as="map(*)" select="
+          map{
+            'request': $request,
+            'block': $block,
+            'about': $app/@rdf:about,
+            'method': $method
+          }"/>
+        <ixsl:promise select="
+          ixsl:http-request($context('request'))
+            => ixsl:then(ldh:rethread-response($context, ?))
+            => ixsl:then(ldh:handle-response#1)
+            => ixsl:then(ldh:load-edited-resource#1)
+            => ixsl:then(ldh:http-request-threaded#1)
+            => ixsl:then(ldh:handle-response#1)
+            => ixsl:then(ldh:set-type-metadata#1)
+            => ixsl:then(ldh:wrap-into-document#1)
+            => ixsl:then(ldh:render-form#1)
+        " on-failure="ldh:promise-failure#1"/>
+    </xsl:template>
+
     <xsl:template match="button[contains-token(@class, 'btn-access-form')]" mode="ixsl:onclick">
         <!-- TO-DO: fix for admin apps -->
         <xsl:param name="this" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/>
@@ -874,7 +919,7 @@ LIMIT   10
         </xsl:variable>
         <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
-    
+
     <xsl:template match="input[contains-token(@class, 'subject-slug')]" mode="ixsl:onkeyup" priority="1">
         <xsl:param name="slug" select="ixsl:get(., 'value')" as="xs:string?"/>
         <xsl:param name="rdf-post-subj-input" select="preceding-sibling::input[@name = 'su']" as="element()"/>
@@ -941,7 +986,7 @@ LIMIT   10
             </xsl:for-each>
         </xsl:if>
     </xsl:template>
-    
+
     <!-- form is submitted. TO-DO: split into multiple callbacks and avoid <xsl:choose>? -->
     
     <xsl:template name="ldh:ModalFormSubmit">

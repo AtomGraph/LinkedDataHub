@@ -1245,6 +1245,13 @@ LIMIT   100
 
             <ul class="dropdown-menu">
                 <xsl:if test="$foaf:Agent//@rdf:about and $lapp:Application//*[lapp:origin/@rdf:resource = $lapp:origin]/rdf:type/@rdf:resource = '&lapp;EndUserApplication'">
+                    <xsl:if test="$acl:mode = '&acl;Control'">
+                        <button class="btn btn-app-settings">
+                            <xsl:value-of>
+                                <xsl:apply-templates select="key('resources', '&lapp;Application', document(ac:document-uri('&lapp;')))" mode="ac:label"/>
+                            </xsl:value-of>
+                        </button>
+                    </xsl:if>
                     <li>
                         <xsl:for-each select="$lapp:Application">
                             <a href="{key('resources', //*[lapp:origin/@rdf:resource = $lapp:origin]/lapp:adminApplication/(@rdf:resource, @rdf:nodeID))/lapp:origin/@rdf:resource}" target="_blank">
