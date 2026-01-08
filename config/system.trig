@@ -27,6 +27,11 @@
         lapp:endUserApplication <urn:linkeddatahub:apps/end-user> ;
         lapp:frontendProxy <http://varnish-frontend:6060/> .
 
+}
+
+<urn:linkeddatahub:services/admin>
+{
+
     <urn:linkeddatahub:services/admin> a sd:Service ;
         dct:title "LinkedDataHub admin service" ;
         sd:supportedLanguage sd:SPARQL11Query, sd:SPARQL11Update ;
@@ -34,6 +39,7 @@
         a:graphStore <http://fuseki-admin:3030/ds/> ;
         a:quadStore <http://fuseki-admin:3030/ds/> ;
         lapp:backendProxy <http://varnish-admin/> .
+
 }
 
 # root end-user
@@ -51,6 +57,11 @@
         lapp:frontendProxy <http://varnish-frontend:6060/> ;
         lapp:public true .
 
+}
+
+<urn:linkeddatahub:services/end-user>
+{
+
     <urn:linkeddatahub:services/end-user> a sd:Service ;
         dct:title "LinkedDataHub service" ;
         sd:supportedLanguage sd:SPARQL11Query, sd:SPARQL11Update ;
@@ -58,4 +69,5 @@
         a:graphStore <http://fuseki-end-user:3030/ds/> ;
         a:quadStore <http://fuseki-end-user:3030/ds/> ;
         lapp:backendProxy <http://varnish-end-user/> .
+
 }

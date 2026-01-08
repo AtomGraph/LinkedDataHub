@@ -12,32 +12,40 @@ SELECT ?endUserApp ?endUserOrigin ?endUserQuadStore ?endUserEndpoint ?endUserAut
         ?endUserApp lapp:origin ?endUserOrigin ;
             ldt:service ?endUserService ;
             lapp:adminApplication ?adminApp .
-        ?endUserService a:quadStore ?endUserQuadStore ;
-            sd:endpoint ?endUserEndpoint .
-        OPTIONAL
+        
+        GRAPH ?endUserServiceGraph
         {
-            ?endUserService a:authUser ?endUserAuthUser ;
-                a:authPwd ?endUserAuthPwd .
-        }
-        OPTIONAL
-        {
-            ?endUserService foaf:maker ?endUserMaker
+            ?endUserService a:quadStore ?endUserQuadStore ;
+                sd:endpoint ?endUserEndpoint .
+            OPTIONAL
+            {
+                ?endUserService a:authUser ?endUserAuthUser ;
+                    a:authPwd ?endUserAuthPwd .
+            }
+            OPTIONAL
+            {
+                ?endUserService foaf:maker ?endUserMaker
+            }
         }
     }
     GRAPH ?adminAppGraph
     {
         ?adminApp ldt:service ?adminService ;
             lapp:origin ?adminOrigin .
-        ?adminService a:quadStore ?adminQuadStore ;
-            sd:endpoint ?adminEndpoint .
-        OPTIONAL
+
+        GRAPH ?adminServiceGraph
         {
-            ?adminService a:authUser ?adminAuthUser ;
-                a:authPwd ?adminAuthPwd .
-        }
-        OPTIONAL
-        {
-            ?adminService foaf:maker ?adminMaker
+            ?adminService a:quadStore ?adminQuadStore ;
+                sd:endpoint ?adminEndpoint .
+            OPTIONAL
+            {
+                ?adminService a:authUser ?adminAuthUser ;
+                    a:authPwd ?adminAuthPwd .
+            }
+            OPTIONAL
+            {
+                ?adminService foaf:maker ?adminMaker
+            }
         }
     }
 }
