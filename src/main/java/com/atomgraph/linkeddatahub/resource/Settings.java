@@ -35,6 +35,7 @@ import java.io.IOException;
 import org.apache.jena.query.Dataset;
 import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.rdf.model.Model;
+import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.update.UpdateAction;
 import org.apache.jena.update.UpdateRequest;
 import org.slf4j.Logger;
@@ -119,22 +120,25 @@ public class Settings
         if (dataspaceModel == null || dataspaceModel.isEmpty())
             throw new NotFoundException("No settings found for dataspace <" + getApplication().getURI() + "> in context dataset");
 
+        // Create a mutable copy since getDataspaceModel() returns a read-only view
+        Model mutableModel = ModelFactory.createDefaultModel().add(dataspaceModel);
+
         // Execute the SPARQL UPDATE on the dataspace model in memory
-        Dataset dataset = DatasetFactory.wrap(dataspaceModel);
+        Dataset dataset = DatasetFactory.wrap(mutableModel);
         UpdateAction.execute(updateRequest, dataset);
 
         // if PATCH results in an empty model, reject it as Bad Request
-        if (dataspaceModel.isEmpty())
+        if (mutableModel.isEmpty())
         {
             if (log.isWarnEnabled()) log.warn("PATCH resulted in empty dataspace model for <{}>", getApplication().getURI());
             throw new BadRequestException("PATCH cannot result in empty dataspace model");
         }
 
         // validate the updated model
-        validate(dataspaceModel);
+        validate(mutableModel);
 
         // Write the updated model back to the context dataset file
-        getSystem().updateDataspace(getApplication(), dataspaceModel);
+        getSystem().updateApp(getApplication(), mutableModel);
 
         if (log.isInfoEnabled()) log.info("Updated settings for dataspace <{}> via PATCH", getApplication().getURI());
 

@@ -176,8 +176,6 @@ import com.github.jsonldjava.core.JsonLdOptions;
 import java.io.FileOutputStream;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.util.Arrays;
 import java.util.List;
@@ -2018,7 +2016,7 @@ public class Application extends ResourceConfig
     public Model getDataspaceModel(com.atomgraph.linkeddatahub.apps.model.Application application)
     {
         if (application == null) throw new IllegalArgumentException("Application cannot be null");
-        return getContextDataset().getNamedModel(application.getURI());
+        return ModelFactory.createModelForGraph(new GraphReadOnly(getContextDataset().getNamedModel(application.getURI()).getGraph()));
     }
 
     /**
@@ -2032,7 +2030,7 @@ public class Application extends ResourceConfig
      * @param newModel the new RDF model to replace the existing named graph
      * @throws IOException if an I/O error occurs
      */
-    public void updateDataspace(com.atomgraph.linkeddatahub.apps.model.Application application, Model newModel) throws IOException
+    public void updateApp(com.atomgraph.linkeddatahub.apps.model.Application application, Model newModel) throws IOException
     {
         if (application == null) throw new IllegalArgumentException("Application cannot be null");
         if (newModel == null) throw new IllegalArgumentException("Model cannot be null");
@@ -2041,22 +2039,22 @@ public class Application extends ResourceConfig
         {
             String dataspaceURI = application.getURI();
 
-            // Only support file-based URIs for the default implementation
-            if (!getContextDatasetURI().isAbsolute() || !"file".equals(getContextDatasetURI().getScheme()))
-            {
-                throw new UnsupportedOperationException("Only file-based context dataset URIs are supported for updates in default implementation");
-            }
-
-            Path configFilePath = Paths.get(getContextDatasetURI());
-
             // Update the named graph in the dataset
             getContextDataset().removeNamedModel(dataspaceURI).
                 addNamedModel(dataspaceURI, newModel);
 
-            // Write the updated dataset back to file
-            com.atomgraph.linkeddatahub.server.util.SystemConfigFileManager.writeDataset(getContextDataset(), configFilePath);
+            // Write the updated dataset back to file using RDFDataMgr
+            // Support both absolute file:// URIs and relative webapp paths (like getDataset does)
+            try (java.io.OutputStream out = (getContextDatasetURI().isAbsolute() ?
+                    new FileOutputStream(new java.io.File(getContextDatasetURI())) :
+                    new FileOutputStream(getServletConfig().getServletContext().getRealPath(getContextDatasetURI().toString()))))
+            {
+                Lang lang = RDFDataMgr.determineLang(getContextDatasetURI().toString(), null, null);
+                if (lang == null) throw new IOException("Could not determine RDF format from dataset URI: " + getContextDatasetURI().toString());
 
-            if (log.isInfoEnabled()) log.info("Updated dataspace <{}> in file: {}", dataspaceURI, configFilePath);
+                RDFDataMgr.write(out, getContextDataset(), lang);
+                if (log.isInfoEnabled()) log.info("Updated dataspace <{}> in context dataset: {}", dataspaceURI, getContextDatasetURI());
+            }
         }
     }
 
