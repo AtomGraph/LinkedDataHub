@@ -315,6 +315,7 @@ public class Graph extends GraphStoreImpl implements Patchable
      * @return response response object
      */
     @PATCH
+    @Override
     public Response patch(UpdateRequest updateRequest, @QueryParam("graph") URI graphUriUnused)
     {
         if (updateRequest == null) throw new BadRequestException("SPARQL update not specified");
@@ -355,6 +356,9 @@ public class Graph extends GraphStoreImpl implements Patchable
         // collect triples of changed resources into a new model which will be validated - no point validating resources that haven't changed
         for (Resource resource : changedResources)
             changedModel.add(existingModel.listStatements(resource, null, (RDFNode) null));
+
+        // if PATCH results in an empty model, treat it as a DELETE request
+        if (changedModel.isEmpty()) return delete(Boolean.FALSE, getURI());
 
         validate(changedModel); // this would normally be done transparently by the ValidatingModelProvider
         put(dataset.getDefaultModel(), Boolean.FALSE, getURI());
