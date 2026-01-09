@@ -16,13 +16,21 @@
  */
 package com.atomgraph.linkeddatahub.resource;
 
+import com.atomgraph.core.util.ModelUtils;
 import com.atomgraph.linkeddatahub.apps.model.Application;
+import com.atomgraph.linkeddatahub.server.io.ValidatingModelProvider;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.GET;
+import jakarta.ws.rs.InternalServerErrorException;
 import jakarta.ws.rs.NotFoundException;
 import jakarta.ws.rs.PATCH;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.EntityTag;
+import jakarta.ws.rs.core.Request;
 import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.ext.MessageBodyReader;
+import jakarta.ws.rs.ext.Providers;
 import java.io.IOException;
 import org.apache.jena.query.Dataset;
 import org.apache.jena.query.DatasetFactory;
@@ -44,18 +52,24 @@ public class Settings
 
     private final Application application;
     private final com.atomgraph.linkeddatahub.Application system;
+    private final Providers providers;
+    private final Request request;
 
     /**
      * Constructs the Settings endpoint.
      *
      * @param application the current dataspace application
      * @param system the system application
+     * @param providers JAX-RS provider registry
+     * @param request JAX-RS request context
      */
     @Inject
-    public Settings(Application application, com.atomgraph.linkeddatahub.Application system)
+    public Settings(Application application, com.atomgraph.linkeddatahub.Application system, @Context Providers providers, @Context Request request)
     {
         this.application = application;
         this.system = system;
+        this.providers = providers;
+        this.request = request;
     }
 
     /**
@@ -76,7 +90,13 @@ public class Settings
 
         if (log.isDebugEnabled()) log.debug("Retrieved settings for dataspace <{}>", getApplication().getURI());
 
-        return Response.ok(dataspaceModel).build();
+        EntityTag entityTag = getEntityTag(dataspaceModel);
+        Response.ResponseBuilder rb = getRequest().evaluatePreconditions(entityTag);
+        if (rb != null) return rb.build();
+
+        return Response.ok(dataspaceModel).
+            tag(entityTag).
+            build();
     }
 
     /**
@@ -102,6 +122,16 @@ public class Settings
         // Execute the SPARQL UPDATE on the dataspace model in memory
         Dataset dataset = DatasetFactory.wrap(dataspaceModel);
         UpdateAction.execute(updateRequest, dataset);
+
+        // if PATCH results in an empty model, reject it as Bad Request
+        if (dataspaceModel.isEmpty())
+        {
+            if (log.isWarnEnabled()) log.warn("PATCH resulted in empty dataspace model for <{}>", getApplication().getURI());
+            throw new BadRequestException("PATCH cannot result in empty dataspace model");
+        }
+
+        // validate the updated model
+        validate(dataspaceModel);
 
         // Write the updated model back to the context dataset file
         getSystem().updateDataspace(getApplication(), dataspaceModel);
@@ -129,6 +159,51 @@ public class Settings
     public com.atomgraph.linkeddatahub.Application getSystem()
     {
         return system;
+    }
+
+    /**
+     * Returns the JAX-RS providers registry.
+     *
+     * @return the providers
+     */
+    public Providers getProviders()
+    {
+        return providers;
+    }
+
+    /**
+     * Validates model against SPIN and SHACL constraints.
+     *
+     * @param model RDF model
+     * @return validated model
+     */
+    public Model validate(Model model)
+    {
+        MessageBodyReader<Model> reader = getProviders().getMessageBodyReader(Model.class, null, null, com.atomgraph.core.MediaType.APPLICATION_NTRIPLES_TYPE);
+        if (reader instanceof ValidatingModelProvider validatingModelProvider) return validatingModelProvider.processRead(model);
+
+        throw new InternalServerErrorException("Could not obtain ValidatingModelProvider instance");
+    }
+
+    /**
+     * Returns the JAX-RS request context.
+     *
+     * @return the request
+     */
+    public Request getRequest()
+    {
+        return request;
+    }
+
+    /**
+     * Generates an ETag for the given model.
+     *
+     * @param model RDF model
+     * @return entity tag
+     */
+    public EntityTag getEntityTag(Model model)
+    {
+        return new EntityTag(Long.toHexString(ModelUtils.hashModel(model)));
     }
 
 }

@@ -745,10 +745,10 @@ LIMIT   10
 
         <xsl:for-each select="$content-body">
             <xsl:result-document href="?." method="ixsl:append-content">
-                <div class="modal modal-constructor fade in">                
+                <div class="modal modal-constructor fade in" about="{$lapp:application}">
                     <div class="modal-header">
                         <button type="button" class="close">&#215;</button>
-                        
+
                         <legend>
                             <xsl:value-of>
                                 <xsl:apply-templates select="key('resources', 'application-settings', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
@@ -770,7 +770,8 @@ LIMIT   10
             'request': $request,
             'block': $block,
             'about': $lapp:application,
-            'method': $method
+            'method': $method,
+            'action': resolve-uri('settings', ldt:base())
           }"/>
         <ixsl:promise select="
           ixsl:http-request($context('request'))
