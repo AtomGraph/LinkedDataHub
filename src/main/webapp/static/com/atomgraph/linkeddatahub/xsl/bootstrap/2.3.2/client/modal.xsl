@@ -362,7 +362,11 @@ LIMIT   10
                     <xsl:value-of select="$legend-label"/>
                 </legend>
                 
-                <p class="text-info">Ask for access to a restricted resource by making a request. It will be reviewed by the application's administrators.</p>
+                <p class="text-info">
+                    <xsl:value-of>
+                        <xsl:apply-templates select="key('resources', 'request-access-description', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                    </xsl:value-of>
+                </p>
             </div>
 
             <div class="modal-body">
@@ -375,10 +379,16 @@ LIMIT   10
             
                     <fieldset>
                         <div>
-                            <label for="request-access-for">Request access for</label>
+                            <label for="request-access-for">
+                                <xsl:value-of>
+                                    <xsl:apply-templates select="key('resources', 'request-access-for', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                                </xsl:value-of>
+                            </label>
                             <select id="request-access-for" class="input-block-level">
                                 <option value="{$agent}">
-                                    <xsl:value-of select="$agent"/> (me)
+                                    <xsl:value-of select="$agent"/> (<xsl:value-of>
+                                        <xsl:apply-templates select="key('resources', 'me', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                                    </xsl:value-of>)
                                 </option>
                             </select>
                         </div>
@@ -391,8 +401,7 @@ LIMIT   10
                     <div class="form-actions modal-footer">
                         <button type="submit" class="{$button-class}">
                             <xsl:value-of>
-                                <!-- <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/> -->
-                                Request
+                                <xsl:apply-templates select="key('resources', 'request', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
                             </xsl:value-of>
                         </button>
                         <button type="button" class="btn btn-close">
@@ -419,7 +428,11 @@ LIMIT   10
         <xsl:param name="base" select="lapp:origin($this)" as="xs:anyURI"/>
         
         <fieldset>
-            <legend>URL-based access</legend>
+            <legend>
+                <xsl:value-of>
+                    <xsl:apply-templates select="key('resources', 'url-based-access', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                </xsl:value-of>
+            </legend>
             <table class="table table-striped">
                 <colgroup>
                     <col style="width: 55%;"/>
@@ -429,7 +442,11 @@ LIMIT   10
                 </colgroup>
                 <thead>
                     <tr>
-                        <th>URL</th>
+                        <th>
+                            <xsl:value-of>
+                                <xsl:apply-templates select="key('resources', 'url', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                            </xsl:value-of>
+                        </th>
                         <xsl:for-each select="$access-modes">
                             <th>
                                 <xsl:value-of>
@@ -468,7 +485,11 @@ LIMIT   10
         </fieldset>
 
         <fieldset>
-            <legend>Class-based access</legend>
+            <legend>
+                <xsl:value-of>
+                    <xsl:apply-templates select="key('resources', 'class-based-access', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                </xsl:value-of>
+            </legend>
             <table class="table table-striped">
                 <colgroup>
                     <col style="width: 55%;"/>
@@ -478,7 +499,11 @@ LIMIT   10
                 </colgroup>
                 <thead>
                     <tr>
-                        <th>Class name</th>
+                        <th>
+                            <xsl:value-of>
+                                <xsl:apply-templates select="key('resources', 'class-name', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                            </xsl:value-of>
+                        </th>
                         <xsl:for-each select="$access-modes">
                             <th>
                                 <xsl:value-of>
@@ -652,10 +677,9 @@ LIMIT   10
 
                         <div class="control-group required">
                             <input type="hidden" name="pu" value="&owl;sameAs"/>
-                            <!-- TO-DO: localize label -->
                             <label class="control-label" for="same-as-resource">
                                 <xsl:value-of>
-                                    Same as
+                                    <xsl:apply-templates select="key('resources', 'same-as', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
                                 </xsl:value-of>
                             </label>
                             <div class="controls">
@@ -673,7 +697,7 @@ LIMIT   10
             </div>
         </div>
     </xsl:template>
-    
+
     <!-- EVENT HANDLERS -->
 
     <!-- close modal first time message -->
@@ -712,7 +736,56 @@ LIMIT   10
             </xsl:with-param>
         </xsl:call-template>
     </xsl:template>
-    
+
+    <xsl:template match="button[contains-token(@class, 'btn-app-settings')]" mode="ixsl:onclick">
+        <xsl:param name="method" select="'patch'" as="xs:string"/>
+        <xsl:variable name="content-body" select="id('content-body', ixsl:page())" as="element()"/>
+
+        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+
+        <xsl:for-each select="$content-body">
+            <xsl:result-document href="?." method="ixsl:append-content">
+                <div class="modal modal-constructor fade in" about="{$lapp:application}">
+                    <div class="modal-header">
+                        <button type="button" class="close">&#215;</button>
+
+                        <legend>
+                            <xsl:value-of>
+                                <xsl:apply-templates select="key('resources', 'application-settings', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                            </xsl:value-of>
+                        </legend>
+                    </div>
+                    <div class="modal-body">
+                        <!-- to be injected -->
+                    </div>
+                </div>
+            </xsl:result-document>
+        </xsl:for-each>
+
+        <xsl:variable name="modal" select="$content-body/div[contains-token(@class, 'modal')][last()]" as="element()"/>
+        <xsl:variable name="block" select="$modal/div[contains-token(@class, 'modal-body')]" as="element()"/>
+        <xsl:variable name="request" select="map{ 'method': 'GET', 'href': resolve-uri('settings', ldt:base()), 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
+        <xsl:variable name="context" as="map(*)" select="
+          map{
+            'request': $request,
+            'block': $block,
+            'about': $lapp:application,
+            'method': $method,
+            'action': resolve-uri('settings', ldt:base())
+          }"/>
+        <ixsl:promise select="
+          ixsl:http-request($context('request'))
+            => ixsl:then(ldh:rethread-response($context, ?))
+            => ixsl:then(ldh:handle-response#1)
+            => ixsl:then(ldh:load-edited-resource#1)
+            => ixsl:then(ldh:http-request-threaded#1)
+            => ixsl:then(ldh:handle-response#1)
+            => ixsl:then(ldh:set-type-metadata#1)
+            => ixsl:then(ldh:wrap-into-document#1)
+            => ixsl:then(ldh:render-form#1)
+        " on-failure="ldh:promise-failure#1"/>
+    </xsl:template>
+
     <xsl:template match="button[contains-token(@class, 'btn-access-form')]" mode="ixsl:onclick">
         <!-- TO-DO: fix for admin apps -->
         <xsl:param name="this" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/>
@@ -874,7 +947,7 @@ LIMIT   10
         </xsl:variable>
         <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
-    
+
     <xsl:template match="input[contains-token(@class, 'subject-slug')]" mode="ixsl:onkeyup" priority="1">
         <xsl:param name="slug" select="ixsl:get(., 'value')" as="xs:string?"/>
         <xsl:param name="rdf-post-subj-input" select="preceding-sibling::input[@name = 'su']" as="element()"/>
@@ -941,7 +1014,7 @@ LIMIT   10
             </xsl:for-each>
         </xsl:if>
     </xsl:template>
-    
+
     <!-- form is submitted. TO-DO: split into multiple callbacks and avoid <xsl:choose>? -->
     
     <xsl:template name="ldh:ModalFormSubmit">
@@ -1081,7 +1154,11 @@ LIMIT   10
         <xsl:for-each select="$container[not(./div[contains-token(@class, 'endpoint-classes')])]">
             <xsl:result-document href="?." method="ixsl:append-content">
                 <div class="control-group required endpoint-classes">
-                    <label class="control-label">Classes</label>
+                    <label class="control-label">
+                        <xsl:value-of>
+                            <xsl:apply-templates select="key('resources', 'classes', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                        </xsl:value-of>
+                    </label>
                     <div class="controls"></div>
                 </div>
             </xsl:result-document>
@@ -1136,7 +1213,11 @@ LIMIT   10
                 <xsl:for-each select="$container//div[contains-token(@class, 'endpoint-classes')]/div">
                     <xsl:result-document href="?." method="ixsl:replace-content">
                         <div class="alert alert-block">
-                            <strong>Error during query execution:</strong>
+                            <strong>
+                                <xsl:value-of>
+                                    <xsl:apply-templates select="key('resources', 'error-during-query', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                                </xsl:value-of>
+                            </strong>
                             <pre>
                                 <xsl:value-of select="$message"/>
                             </pre>

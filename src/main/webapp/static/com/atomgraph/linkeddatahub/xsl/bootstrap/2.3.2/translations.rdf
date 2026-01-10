@@ -419,4 +419,52 @@
     <rdf:Description rdf:nodeID="remove-stmt">
         <rdfs:label xml:lang="en-US">Remove this statement</rdfs:label>
     </rdf:Description>
+    <rdf:Description rdf:nodeID="application-settings">
+        <rdfs:label xml:lang="en-US">Application settings</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Ajustes de aplicación</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="request-access-description">
+        <rdfs:label xml:lang="en-US">Ask for access to a restricted resource by making a request. It will be reviewed by the application's administrators.</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Solicite acceso a un recurso restringido haciendo una solicitud. Será revisada por los administradores de la aplicación.</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="request-access-for">
+        <rdfs:label xml:lang="en-US">Request access for</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Solicitar acceso para</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="me">
+        <rdfs:label xml:lang="en-US">me</rdfs:label>
+        <rdfs:label xml:lang="es-ES">yo</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="request">
+        <rdfs:label xml:lang="en-US">Request</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Solicitar</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="url-based-access">
+        <rdfs:label xml:lang="en-US">URL-based access</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Acceso basado en URL</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="url">
+        <rdfs:label xml:lang="en-US">URL</rdfs:label>
+        <rdfs:label xml:lang="es-ES">URL</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="class-based-access">
+        <rdfs:label xml:lang="en-US">Class-based access</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Acceso basado en clase</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="class-name">
+        <rdfs:label xml:lang="en-US">Class name</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Nombre de clase</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="same-as">
+        <rdfs:label xml:lang="en-US">Same as</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Igual a</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="classes">
+        <rdfs:label xml:lang="en-US">Classes</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Clases</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="error-during-query">
+        <rdfs:label xml:lang="en-US">Error during query execution:</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Error durante la ejecución de la consulta:</rdfs:label>
+    </rdf:Description>
 </rdf:RDF>

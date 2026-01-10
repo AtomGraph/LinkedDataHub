@@ -107,7 +107,7 @@
         rdfs:label "Full control" ;
         rdfs:comment "Allows full read/write access to all application resources" ;
         acl:accessToClass dh:Item, dh:Container, def:Root ;
-        acl:accessTo <${end_user_origin}/sparql>, <${end_user_origin}/importer>, <${end_user_origin}/add>, <${end_user_origin}/generate>, <${end_user_origin}/ns> ;
+        acl:accessTo <${end_user_origin}/sparql>, <${end_user_origin}/importer>, <${end_user_origin}/add>, <${end_user_origin}/generate>, <${end_user_origin}/ns>, <${end_user_origin}/settings> ;
         acl:mode acl:Read, acl:Append, acl:Write, acl:Control ;
         acl:agentGroup <${admin_origin}/acl/groups/owners/#this> .
 

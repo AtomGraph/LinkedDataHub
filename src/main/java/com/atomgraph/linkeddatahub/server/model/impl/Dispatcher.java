@@ -25,6 +25,7 @@ import com.atomgraph.linkeddatahub.resource.Transform;
 import com.atomgraph.linkeddatahub.resource.admin.ClearOntology;
 import com.atomgraph.linkeddatahub.resource.admin.pkg.InstallPackage;
 import com.atomgraph.linkeddatahub.resource.admin.pkg.UninstallPackage;
+import com.atomgraph.linkeddatahub.resource.Settings;
 import com.atomgraph.linkeddatahub.resource.admin.SignUp;
 import com.atomgraph.linkeddatahub.resource.Graph;
 import com.atomgraph.linkeddatahub.resource.acl.Access;
@@ -247,6 +248,17 @@ public class Dispatcher
     public Class getUninstallPackageEndpoint()
     {
         return getProxyClass().orElse(UninstallPackage.class);
+    }
+
+    /**
+     * Returns the endpoint for updating dataspace settings.
+     *
+     * @return endpoint resource
+     */
+    @Path("settings")
+    public Class getSettingsEndpoint()
+    {
+        return getProxyClass().orElse(Settings.class);
     }
 
     /**
