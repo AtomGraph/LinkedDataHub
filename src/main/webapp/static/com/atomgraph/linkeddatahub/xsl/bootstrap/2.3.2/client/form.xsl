@@ -654,6 +654,7 @@ WHERE
     <xsl:template match="div[contains-token(@class, 'modal-constructor')]//form[contains-token(@class, 'form-horizontal')][upper-case(@method) = 'PATCH']" mode="ixsl:onsubmit" priority="2">
         <xsl:param name="block" select="ancestor::div[contains-token(@class, 'modal-constructor')]" as="element()"/>
         <xsl:param name="about" select="$block/@about" as="xs:anyURI"/>
+        <xsl:param name="callback" select="ldh:modal-form-response#1" as="function(map(*)) as item()*"/>
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <xsl:variable name="form" select="." as="element()"/>
         <xsl:variable name="method" select="upper-case(@method)" as="xs:string"/>
@@ -763,7 +764,7 @@ WHERE
           ixsl:http-request($context('request'))
             => ixsl:then(ldh:rethread-response($context, ?))
             => ixsl:then(ldh:handle-response#1)
-            => ixsl:then(ldh:modal-form-response#1)
+            => ixsl:then($callback)
         " on-failure="ldh:promise-failure#1"/>
     </xsl:template>
         

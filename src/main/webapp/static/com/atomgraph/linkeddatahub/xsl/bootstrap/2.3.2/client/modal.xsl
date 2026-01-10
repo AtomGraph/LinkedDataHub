@@ -642,7 +642,7 @@ LIMIT   10
     </xsl:template>
     
     <xsl:template name="ldh:ReconcileForm">
-        <xsl:param name="id" select="'reconcile'" as="xs:string?"/>
+        <xsl:param name="id" select="'form-reconcile'" as="xs:string?"/>
         <xsl:param name="button-class" select="'btn btn-primary btn-save'" as="xs:string?"/>
         <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
         <xsl:param name="action" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/>
@@ -738,6 +738,7 @@ LIMIT   10
     </xsl:template>
 
     <xsl:template match="button[contains-token(@class, 'btn-app-settings')]" mode="ixsl:onclick">
+        <xsl:param name="id" select="'app-settings'" as="xs:string?"/>
         <xsl:param name="method" select="'patch'" as="xs:string"/>
         <xsl:variable name="content-body" select="id('content-body', ixsl:page())" as="element()"/>
 
@@ -746,6 +747,10 @@ LIMIT   10
         <xsl:for-each select="$content-body">
             <xsl:result-document href="?." method="ixsl:append-content">
                 <div class="modal modal-constructor fade in" about="{$lapp:application}">
+                    <xsl:if test="$id">
+                        <xsl:attribute name="id" select="$id"/>
+                    </xsl:if>
+            
                     <div class="modal-header">
                         <button type="button" class="close">&#215;</button>
 
@@ -786,6 +791,14 @@ LIMIT   10
         " on-failure="ldh:promise-failure#1"/>
     </xsl:template>
 
+    <!-- submit application settings modal form using PATCH with custom callback -->
+
+    <xsl:template match="div[@id = 'app-settings']//form[upper-case(@method) = 'PATCH']" mode="ixsl:onsubmit" priority="3">
+        <xsl:next-match>
+            <xsl:with-param name="callback" select="ldh:settings-form-response#1"/>
+        </xsl:next-match>
+    </xsl:template>
+    
     <xsl:template match="button[contains-token(@class, 'btn-access-form')]" mode="ixsl:onclick">
         <!-- TO-DO: fix for admin apps -->
         <xsl:param name="this" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/>
@@ -1303,5 +1316,34 @@ LIMIT   10
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
-    
+
+    <xsl:function name="ldh:settings-form-response" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:variable name="response" select="$context('response')" as="map(*)"/>
+        <xsl:variable name="status" select="$response?status" as="xs:double"/>
+        <xsl:variable name="media-type" select="$response?media-type" as="xs:string?"/>
+        <xsl:variable name="form" select="$context('form')" as="element()?"/>
+
+        <xsl:message>ldh:settings-form-response</xsl:message>
+
+        <xsl:choose>
+            <!-- 200/204: settings saved successfully, close the modal -->
+            <xsl:when test="$status = (200, 204)">
+                <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
+                <!-- close the modal -->
+                <xsl:if test="$form">
+                    <xsl:sequence select="ixsl:call($form/ancestor::div[contains-token(@class, 'modal')], 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
+                </xsl:if>
+            </xsl:when>
+            <!-- validation errors -->
+            <xsl:when test="$status = (400, 422) and starts-with($media-type, 'application/rdf+xml')">
+                <xsl:sequence select="ldh:modal-form-submit-violation($context)"/>
+            </xsl:when>
+            <!-- other errors -->
+            <xsl:otherwise>
+                <xsl:sequence select="ldh:error-response-alert($context)"/>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:function>
+
 </xsl:stylesheet>
