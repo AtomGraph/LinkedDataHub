@@ -1,3 +1,16 @@
+## [5.2.0] - TBD
+### Added
+- Application settings form with modal UI for editing dataspace configuration
+- Settings endpoint (`/settings`) with `GET` and `PATCH` support for dataspace settings
+- HTTP tests for the settings endpoint
+- LinkedDataHub packages system with install/uninstall functionality
+
+### Changed
+- **BREAKING**: Incorporated AtomGraph Server code directly into LinkedDataHub codebase
+- System configuration dataset now uses named graphs instead of default graph
+- Web-Client dependency version bump
+- CLI scripts improved for better parameter handling
+
 ## [5.1.0] - 2025-12-12
 ### Added
 - ORCID OpenID Connect login support with JWT token verification
