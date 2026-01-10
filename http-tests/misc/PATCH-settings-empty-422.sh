@@ -7,7 +7,7 @@ purge_cache "$END_USER_VARNISH_SERVICE"
 purge_cache "$ADMIN_VARNISH_SERVICE"
 purge_cache "$FRONTEND_VARNISH_SERVICE"
 
-# Test: PATCH /settings - Empty result (should fail with 400)
+# Test: PATCH /settings - Empty result (should fail with 422)
 
 curl -k -w "%{http_code}\n" -o /dev/null -s \
   -X PATCH \
@@ -15,4 +15,4 @@ curl -k -w "%{http_code}\n" -o /dev/null -s \
   -H "Content-Type: application/sparql-update" \
   -d "DELETE WHERE { ?s ?p ?o }" \
   "${END_USER_BASE_URL}settings" \
-| grep -q "$STATUS_BAD_REQUEST"
+| grep -q "$STATUS_UNPROCESSABLE_ENTITY"

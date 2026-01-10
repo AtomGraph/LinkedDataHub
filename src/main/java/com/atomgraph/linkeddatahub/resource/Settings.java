@@ -19,12 +19,15 @@ package com.atomgraph.linkeddatahub.resource;
 import com.atomgraph.core.util.ModelUtils;
 import com.atomgraph.linkeddatahub.apps.model.Application;
 import com.atomgraph.linkeddatahub.server.io.ValidatingModelProvider;
+import com.atomgraph.linkeddatahub.vocabulary.LAPP;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.InternalServerErrorException;
 import jakarta.ws.rs.NotFoundException;
 import jakarta.ws.rs.PATCH;
+import jakarta.ws.rs.WebApplicationException;
+import static com.atomgraph.server.status.UnprocessableEntityStatus.UNPROCESSABLE_ENTITY;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.EntityTag;
 import jakarta.ws.rs.core.Request;
@@ -36,8 +39,11 @@ import org.apache.jena.query.Dataset;
 import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
+import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.update.UpdateAction;
 import org.apache.jena.update.UpdateRequest;
+import org.apache.jena.vocabulary.RDF;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -127,11 +133,12 @@ public class Settings
         Dataset dataset = DatasetFactory.wrap(mutableModel);
         UpdateAction.execute(updateRequest, dataset);
 
-        // if PATCH results in an empty model, reject it as Bad Request
-        if (mutableModel.isEmpty())
+        // Verify the application resource still exists with correct type after PATCH
+        Resource appResource = ResourceFactory.createResource(getApplication().getURI());
+        if (!mutableModel.contains(appResource, RDF.type, LAPP.EndUserApplication))
         {
-            if (log.isWarnEnabled()) log.warn("PATCH resulted in empty dataspace model for <{}>", getApplication().getURI());
-            throw new BadRequestException("PATCH cannot result in empty dataspace model");
+            if (log.isWarnEnabled()) log.warn("PATCH removed application resource or its type for <{}>", getApplication().getURI());
+            throw new WebApplicationException("PATCH cannot remove the application resource or its type", UNPROCESSABLE_ENTITY.getStatusCode()); // 422 Unprocessable Entity
         }
 
         // validate the updated model
