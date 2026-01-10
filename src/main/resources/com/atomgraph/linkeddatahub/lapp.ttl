@@ -23,7 +23,21 @@
 
 # PROPERTIES
 
+:origin a owl:ObjectProperty, owl:FunctionalProperty, owl:InverseFunctionalProperty ;
+    rdfs:domain :Application ;
+    rdfs:range rdfs:Resource ;
+    rdfs:label "Origin" ;
+    rdfs:comment "The origin URI of an application, which serves as the base URI for all resources in the application's dataspace" ;
+    rdfs:isDefinedBy : .
+
+:application a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:range :Application ;
+    rdfs:label "Application" ;
+    rdfs:comment "Links a resource to an application" ;
+    rdfs:isDefinedBy : .
+
 :adminApplication a owl:ObjectProperty, owl:FunctionalProperty, owl:InverseFunctionalProperty ;
+    rdfs:subPropertyOf :application ;
     owl:inverseOf :endUserApplication ;
     rdfs:domain :EndUserApplication ;
     rdfs:range :AdminApplication ;
@@ -32,6 +46,7 @@
     rdfs:isDefinedBy : .
 
 :endUserApplication a owl:ObjectProperty, owl:FunctionalProperty, owl:InverseFunctionalProperty ;
+    rdfs:subPropertyOf :application ;
     owl:inverseOf :adminApplication ;
     rdfs:domain :AdminApplication ;
     rdfs:range :EndUserApplication ;

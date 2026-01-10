@@ -625,10 +625,10 @@ for app in "${apps[@]}"; do
     # append ownership metadata to apps if it's not present (apps have to be URI resources!)
 
     if [ -z "$end_user_owner" ]; then
-        echo "<${end_user_app}> <http://xmlns.com/foaf/0.1/maker> <${OWNER_URI}> ." >> "$based_context_dataset"
+        echo "<${end_user_app}> <http://xmlns.com/foaf/0.1/maker> <${OWNER_URI}> <${end_user_app}> ." >> "$based_context_dataset"
     fi
     if [ -z "$admin_owner" ]; then
-        echo "<${admin_app}> <http://xmlns.com/foaf/0.1/maker> <${OWNER_URI}> ." >> "$based_context_dataset"
+        echo "<${admin_app}> <http://xmlns.com/foaf/0.1/maker> <${OWNER_URI}> <${admin_app}> ." >> "$based_context_dataset"
     fi
 
     printf "\n### Quad store URL of the root end-user service: %s\n" "$end_user_quad_store_url"

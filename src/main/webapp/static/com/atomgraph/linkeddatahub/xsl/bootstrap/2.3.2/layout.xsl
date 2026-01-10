@@ -377,6 +377,7 @@ LIMIT   100
               //&lt;![CDATA[
             </xsl:text>
             <![CDATA[
+                var appUri = ]]><xsl:value-of select="'&quot;' || $lapp:Application//*[lapp:origin/@rdf:resource = $lapp:origin]/@rdf:about || '&quot;'" disable-output-escaping="yes"/><![CDATA[;
                 var baseUri = ]]><xsl:value-of select="'&quot;' || $ldt:base || '&quot;'" disable-output-escaping="yes"/><![CDATA[;
                 var absolutePath = ]]><xsl:value-of select="'&quot;' || ac:absolute-path(ldh:base-uri(.)) || '&quot;'" disable-output-escaping="yes"/><![CDATA[;
                 var ontologyUri = ]]><xsl:value-of select="'&quot;' || $ldt:ontology || '&quot;'" disable-output-escaping="yes"/><![CDATA[;
@@ -442,6 +443,7 @@ LIMIT   100
                         const servicesRequestUri = "]]></xsl:text><xsl:value-of select="$app-request-uri"/><xsl:text disable-output-escaping="yes"><![CDATA[";
                         const stylesheetParams = {
                             "Q{https://w3id.org/atomgraph/client#}contextUri": contextUri, // servlet context URI
+                            "Q{https://w3id.org/atomgraph/linkeddatahub/apps#}application": appUri,
                             "Q{https://www.w3.org/ns/ldt#}base": baseUri,
                             "Q{https://www.w3.org/ns/ldt#}ontology": ontologyUri,
                             "Q{http://www.w3.org/ns/sparql-service-description#}endpoint": endpointUri,
@@ -1245,6 +1247,15 @@ LIMIT   100
 
             <ul class="dropdown-menu">
                 <xsl:if test="$foaf:Agent//@rdf:about and $lapp:Application//*[lapp:origin/@rdf:resource = $lapp:origin]/rdf:type/@rdf:resource = '&lapp;EndUserApplication'">
+                    <xsl:if test="$acl:mode = '&acl;Control'">
+                        <li>
+                            <button class="btn btn-app-settings">
+                                <xsl:value-of>
+                                    <xsl:apply-templates select="key('resources', '&lapp;Application', document(ac:document-uri('&lapp;')))" mode="ac:label"/>
+                                </xsl:value-of>
+                            </button>
+                        </li>
+                    </xsl:if>
                     <li>
                         <xsl:for-each select="$lapp:Application">
                             <a href="{key('resources', //*[lapp:origin/@rdf:resource = $lapp:origin]/lapp:adminApplication/(@rdf:resource, @rdf:nodeID))/lapp:origin/@rdf:resource}" target="_blank">

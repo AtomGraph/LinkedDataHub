@@ -457,7 +457,8 @@ WHERE
             </xsl:document>
         </xsl:variable>
         <xsl:sequence select="map:merge(($context, map{
-            'document': $document
+            'document': $document,
+            'action': if (map:contains($context, 'action')) then $context('action') else ldh:href(ac:absolute-path(ldh:base-uri($document)), map{})
         }), map{ 'duplicates': 'use-last' })"/>
     </xsl:function>
     
@@ -514,7 +515,7 @@ WHERE
         <xsl:variable name="shapes" select="$context('shapes')" as="document-node()"/>
         <xsl:variable name="object-metadata" select="$context('object-metadata')" as="document-node()?"/>
         <xsl:variable name="method" select="$context('method')" as="xs:string"/>
-        <xsl:variable name="action" select="ldh:href(ac:absolute-path(ldh:base-uri($document)), map{})" as="xs:anyURI"/>
+        <xsl:variable name="action" select="$context('action')" as="xs:anyURI"/>
         
         <xsl:for-each select="$block">
             <xsl:variable name="form" as="node()*">
@@ -652,13 +653,13 @@ WHERE
     
     <xsl:template match="div[contains-token(@class, 'modal-constructor')]//form[contains-token(@class, 'form-horizontal')][upper-case(@method) = 'PATCH']" mode="ixsl:onsubmit" priority="2">
         <xsl:param name="block" select="ancestor::div[contains-token(@class, 'modal-constructor')]" as="element()"/>
+        <xsl:param name="about" select="$block/@about" as="xs:anyURI"/>
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <xsl:variable name="form" select="." as="element()"/>
         <xsl:variable name="method" select="upper-case(@method)" as="xs:string"/>
         <xsl:variable name="id" select="ixsl:get($form, 'id')" as="xs:string"/>
         <xsl:variable name="action" select="ixsl:get($form, 'action')" as="xs:anyURI"/>
         <xsl:variable name="enctype" select="ixsl:get($form, 'enctype')" as="xs:string"/>
-        <xsl:variable name="about" select="$block/@about" as="xs:anyURI"/>
         <xsl:variable name="etag" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path(ldh:base-uri(.)) || '`'), 'etag')" as="xs:string"/>
 
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
