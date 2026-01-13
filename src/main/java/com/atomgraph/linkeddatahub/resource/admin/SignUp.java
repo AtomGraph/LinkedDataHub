@@ -64,10 +64,7 @@ import java.util.UUID;
 import jakarta.inject.Inject;
 import jakarta.mail.MessagingException;
 import jakarta.servlet.ServletConfig;
-import jakarta.ws.rs.DefaultValue;
-import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
-import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.InternalServerErrorException;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
@@ -180,16 +177,9 @@ public class SignUp extends DirectGraphStoreImpl
         download = uriInfo.getQueryParameters().containsKey("download"); // debug param that allows downloading the certificate
     }
     
-    @GET
-    @Override
-    public Response get(@QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUri)
-    {
-        return super.get(false, getURI());
-    }
-    
     @POST
     @Override
-    public Response post(Model agentModel, @QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUri)
+    public Response post(Model agentModel)
     {
         URI agentGraphUri = getUriInfo().getBaseUriBuilder().path(AGENT_PATH).path("{slug}/").build(UUID.randomUUID().toString());
         new Skolemizer(agentGraphUri.toString()).apply(agentModel);
