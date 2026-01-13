@@ -180,7 +180,7 @@ public class Dispatcher
     @Path("uploads/{sha1sum}")
     public Class getFileItem()
     {
-        return getProxyClass().orElse(com.atomgraph.linkeddatahub.resource.upload.sha1.Item.class);
+        return getProxyClass().orElse(com.atomgraph.linkeddatahub.resource.upload.Item.class);
     }
 
     /**

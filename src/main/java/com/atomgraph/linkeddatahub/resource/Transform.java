@@ -16,12 +16,10 @@
  */
 package com.atomgraph.linkeddatahub.resource;
 
-import com.atomgraph.client.util.DataManager;
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.core.vocabulary.SD;
 import com.atomgraph.linkeddatahub.client.GraphStoreClient;
 import com.atomgraph.linkeddatahub.imports.QueryLoader;
-import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.server.io.ValidatingModelProvider;
 import com.atomgraph.linkeddatahub.server.model.impl.DirectGraphStoreImpl;
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
@@ -36,20 +34,19 @@ import java.util.Optional;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.Consumes;
-import jakarta.ws.rs.DefaultValue;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.NotAllowedException;
 import jakarta.ws.rs.POST;
-import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.client.Entity;
+import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Request;
 import jakarta.ws.rs.core.Response;
-import jakarta.ws.rs.core.SecurityContext;
 import jakarta.ws.rs.core.UriInfo;
 import jakarta.ws.rs.ext.MessageBodyReader;
 import jakarta.ws.rs.ext.Providers;
 import org.apache.jena.atlas.RuntimeIOException;
-import org.apache.jena.ontology.Ontology;
 import org.apache.jena.query.Query;
 import org.apache.jena.query.QueryExecution;
 import org.apache.jena.query.Syntax;
@@ -67,39 +64,69 @@ import org.slf4j.LoggerFactory;
  * 
  * @author {@literal Martynas Jusevičius <martynas@atomgraph.com>}
  */
-public class Transform extends DirectGraphStoreImpl
+public class Transform
 {
 
     private static final Logger log = LoggerFactory.getLogger(Transform.class);
 
+    private final UriInfo uriInfo;
+    private final MediaTypes mediaTypes;
+    private final com.atomgraph.linkeddatahub.apps.model.Application application;
+    private final Optional<AgentContext> agentContext;
+    private final Providers providers;
+    private final com.atomgraph.linkeddatahub.Application system;
+    private final ResourceContext resourceContext;
+    
     /**
      * Constructs endpoint for synchronous RDF data imports.
      * 
      * @param request current request
      * @param uriInfo current URI info
      * @param mediaTypes supported media types
-     * @param application matched application
-     * @param ontology matched application's ontology
-     * @param service matched application's service
+     * @param application current application
      * @param providers JAX-RS providers
      * @param system system application
-     * @param securityContext JAX-RS security context
      * @param agentContext authenticated agent's context
-     * @param dataManager RDF data manager
+     * @param resourceContext resource context
      */
     @Inject
     public Transform(@Context Request request, @Context UriInfo uriInfo, MediaTypes mediaTypes,
-            com.atomgraph.linkeddatahub.apps.model.Application application, Optional<Ontology> ontology, Optional<Service> service,
-            @Context SecurityContext securityContext, Optional<AgentContext> agentContext,
+            com.atomgraph.linkeddatahub.apps.model.Application application, 
+            Optional<AgentContext> agentContext,
             @Context Providers providers, com.atomgraph.linkeddatahub.Application system,
-            DataManager dataManager)
+            @Context ResourceContext resourceContext)
     {
-        super(request, uriInfo, mediaTypes, application, ontology, service, securityContext, agentContext, providers, system);
+        this.uriInfo = uriInfo;
+        this.mediaTypes = mediaTypes;
+        this.application = application;
+        this.agentContext = agentContext;
+        this.providers = providers;
+        this.system = system;
+        this.resourceContext = resourceContext;
     }
     
+    /**
+     * Rejects GET requests on this endpoint.
+     *
+     * @return never returns normally
+     * @throws NotAllowedException always thrown to indicate GET is not supported
+     */
+    @GET
+    public Response get()
+    {
+        throw new NotAllowedException("GET is not allowed on this endpoint");
+    }
+    
+    /**
+     * Transforms RDF data from a remote source using a SPARQL CONSTRUCT query and adds it to a target graph.
+     * Validates URIs to prevent SSRF attacks before processing.
+     *
+     * @param model RDF model containing transformation parameters (dct:source, sd:name, spin:query)
+     * @return HTTP response from forwarding the transformed data to the target graph
+     * @throws BadRequestException if required parameters are missing or invalid
+     */
     @POST
-    @Override
-    public Response post(Model model, @QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUri)
+    public Response post(Model model)
     {
         ResIterator it = model.listSubjectsWithProperty(DCTerms.source);
         try
@@ -145,24 +172,24 @@ public class Transform extends DirectGraphStoreImpl
      * Handles multipart requests with RDF files.
      * 
      * @param multiPart multipart request object
-     * @param defaultGraph true if default graph was specified
-     * @param graphUri graph name
      * @return response
      */
     @POST
     @Consumes(MediaType.MULTIPART_FORM_DATA)
-    public Response postMultipart(FormDataMultiPart multiPart, @QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUri)
+    public Response postMultipart(FormDataMultiPart multiPart)
     {
         if (log.isDebugEnabled()) log.debug("MultiPart fields: {} body parts: {}", multiPart.getFields(), multiPart.getBodyParts());
 
         try
         {
-            Model model = parseModel(multiPart); // do not skolemize because we don't know the graphUri yet
+            DirectGraphStoreImpl graphStore = getResourceContext().getResource(DirectGraphStoreImpl.class);
+            
+            Model model = graphStore.parseModel(multiPart); // do not skolemize because we don't know the graphUri yet
             MessageBodyReader<Model> reader = getProviders().getMessageBodyReader(Model.class, null, null, com.atomgraph.core.MediaType.APPLICATION_NTRIPLES_TYPE);
             if (reader instanceof ValidatingModelProvider validatingModelProvider) model = validatingModelProvider.processRead(model);
             if (log.isDebugEnabled()) log.debug("POSTed Model size: {}", model.size());
 
-            return postFileBodyPart(model, getFileNameBodyPartMap(multiPart)); // do not write the uploaded file -- instead append its triples/quads
+            return postFileBodyPart(model, graphStore.getFileNameBodyPartMap(multiPart)); // do not write the uploaded file -- instead append its triples/quads
         }
         catch (URISyntaxException ex)
         {
@@ -285,6 +312,76 @@ public class Transform extends DirectGraphStoreImpl
             if (log.isWarnEnabled()) log.warn("Could not resolve hostname for SSRF validation: {}", host);
             // Allow request to proceed - will fail later with better error message
         }
+    }
+
+    /**
+     * Returns the supported media types.
+     *
+     * @return media types
+     */
+    public MediaTypes getMediaTypes()
+    {
+        return mediaTypes;
+    }
+
+    /**
+     * Returns the current application.
+     * 
+     * @return application resource
+     */
+    public com.atomgraph.linkeddatahub.apps.model.Application getApplication()
+    {
+        return application;
+    }
+    
+    /**
+     * Returns the current URI info.
+     *
+     * @return URI info
+     */
+    public UriInfo getUriInfo()
+    {
+        return uriInfo;
+    }
+
+    /**
+     * Returns the authenticated agent's context.
+     *
+     * @return optional agent context
+     */
+    public Optional<AgentContext> getAgentContext()
+    {
+        return agentContext;
+    }
+
+    /**
+     * Returns the registry of JAX-RS providers.
+     *
+     * @return JAX-RS providers registry
+     */
+    public Providers getProviders()
+    {
+        return providers;
+    }
+    
+    /**
+     * Returns the system application.
+     *
+     * @return system application
+     */
+    public com.atomgraph.linkeddatahub.Application getSystem()
+    {
+        return system;
+    }
+    
+    /**
+     * Returns the JAX-RS resource context.
+     *
+     * @return resource context
+     */
+    public ResourceContext getResourceContext()
+    {
+        return resourceContext;
     }
 
 }

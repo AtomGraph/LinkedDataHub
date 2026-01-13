@@ -29,9 +29,6 @@ import jakarta.ws.rs.ext.Providers;
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.server.io.FileRangeOutput;
-import com.atomgraph.linkeddatahub.server.model.impl.DirectGraphStoreImpl;
-import com.atomgraph.linkeddatahub.server.security.AgentContext;
-import java.util.Collections;
 import java.util.Date;
 import java.util.Optional;
 import jakarta.annotation.PostConstruct;
@@ -43,13 +40,13 @@ import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.EntityTag;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.Response.Status;
-import jakarta.ws.rs.core.SecurityContext;
 import jakarta.ws.rs.core.UriInfo;
-import org.apache.jena.ontology.Ontology;
+import jakarta.ws.rs.core.Variant.VariantListBuilder;
 import org.apache.jena.query.QueryFactory;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.sparql.vocabulary.FOAF;
 import org.apache.jena.vocabulary.DCTerms;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,8 +56,9 @@ import org.slf4j.LoggerFactory;
  * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-public class Item extends DirectGraphStoreImpl
+public class Item
 {
+    
     private static final Logger log = LoggerFactory.getLogger(Item.class);
     
     private static final String ACCEPT_RANGES = "Accept-Ranges";
@@ -69,7 +67,11 @@ public class Item extends DirectGraphStoreImpl
     private static final String CONTENT_RANGE = "Content-Range";
     private static final int CHUNK_SIZE = 1024 * 1024; // 1MB chunks
 
+    private final Request request;
+    private final UriInfo uriInfo;
+    private final Service service;
     private final Resource resource;
+    private final com.atomgraph.linkeddatahub.Application system;
     private final HttpHeaders httpHeaders;
     
     /**
@@ -78,26 +80,24 @@ public class Item extends DirectGraphStoreImpl
      * @param request current request
      * @param uriInfo URI information of the current request
      * @param mediaTypes a registry of readable/writable media types
-     * @param application current application
-     * @param ontology ontology of the current application
      * @param service SPARQL service of the current application
-     * @param securityContext JAX-RS security context
-     * @param agentContext authenticated agent's context
      * @param providers JAX-RS provider registry
      * @param system system application
      * @param httpHeaders request headers
      */
     @Inject
     public Item(@Context Request request, @Context UriInfo uriInfo, MediaTypes mediaTypes,
-            com.atomgraph.linkeddatahub.apps.model.Application application, Optional<Ontology> ontology, Optional<Service> service,
-            @Context SecurityContext securityContext, Optional<AgentContext> agentContext,
+            Optional<Service> service,
             @Context Providers providers, com.atomgraph.linkeddatahub.Application system,
             @Context HttpHeaders httpHeaders)
     {
-        super(request, uriInfo, mediaTypes, application, ontology, service, securityContext, agentContext, providers, system);
+        this.request = request;
+        this.uriInfo = uriInfo;
+        this.service = service.get();
         this.resource = ModelFactory.createDefaultModel().createResource(uriInfo.getAbsolutePath().toString());
-        if (log.isDebugEnabled()) log.debug("Constructing {}", getClass());
+        this.system = system;
         this.httpHeaders = httpHeaders;
+        if (log.isDebugEnabled()) log.debug("Constructing {}", getClass());
     }
 
     /**
@@ -108,38 +108,52 @@ public class Item extends DirectGraphStoreImpl
     {
         getResource().getModel().add(describe());
     }
-    
+
+    /**
+     * Handles GET requests for uploaded files.
+     * Evaluates HTTP preconditions and serves file content with appropriate Content-Security-Policy headers.
+     *
+     * @return HTTP response with file content or 304 Not Modified
+     */
     @GET
-    @Override
     public Response get()
     {
         return getResponseBuilder(getResource().getModel(), getURI()).build();
     }
-    
-    @Override
+
+    /**
+     * Builds HTTP response for file requests.
+     * Handles content negotiation, HTTP precondition evaluation (ETag-based caching),
+     * byte-range requests, and applies Content-Security-Policy headers.
+     *
+     * @param model RDF model describing the file
+     * @param graphUri the graph URI (not used for binary file responses)
+     * @return response builder configured for file serving
+     */
     public ResponseBuilder getResponseBuilder(Model model, URI graphUri)
     {
         // do not pass language list as languages do not apply to binary files
-        List<Variant> variants = com.atomgraph.core.model.impl.Response.getVariants(getWritableMediaTypes(Model.class), Collections.emptyList(), getEncodings());
+        List<Variant> variants = VariantListBuilder.newInstance().mediaTypes(getMediaType()).build();
         Variant variant = getRequest().selectVariant(variants);
-        if (variant == null)
+        if (variant == null || !getMediaType().isCompatible(variant.getMediaType()))
         {
             if (log.isTraceEnabled()) log.trace("Requested Variant {} is not on the list of acceptable Response Variants: {}", variant, variants);
             throw new NotAcceptableException();
         }
         
-        // respond with file content if Variant is compatible with the File's MediaType. otherwise, send RDF
-        if (getMediaType().isCompatible(variant.getMediaType()))
+        EntityTag entityTag = getEntityTag();
+        ResponseBuilder rb = getRequest().evaluatePreconditions(entityTag);
+        if (rb != null) return rb; // file not modified
+        
+        URI fileURI = getSystem().getUploadRoot().resolve(getUriInfo().getPath());
+        File file = new File(fileURI);
+
+        if (!file.exists()) throw new NotFoundException(new FileNotFoundException("File '" + getUriInfo().getPath() + "' not found"));
+
+        if (getHttpHeaders().getRequestHeaders().containsKey(RANGE))
         {
-            URI fileURI = getSystem().getUploadRoot().resolve(getUriInfo().getPath());
-            File file = new File(fileURI);
+            String range = getHttpHeaders().getHeaderString(RANGE);
 
-            if (!file.exists()) throw new NotFoundException(new FileNotFoundException("File '" + getUriInfo().getPath() + "' not found"));
-
-            if (getHttpHeaders().getRequestHeaders().containsKey(RANGE))
-            {
-                String range = getHttpHeaders().getHeaderString(RANGE);
-                
 //                if (getHttpHeaders().getRequestHeaders().containsKey(IF_RANGE)) {
 //                    String ifRangeHeader = getHttpHeaders().getHeaderString(IF_RANGE);
 //
@@ -155,34 +169,32 @@ public class Item extends DirectGraphStoreImpl
 ////                    }
 //                }
 //                else
-                {
-                    FileRangeOutput rangeOutput = getFileRangeOutput(file, range);
-                    final long to = rangeOutput.getLength() + rangeOutput.getFrom();
-                    String contentRangeValue = String.format("bytes %d-%d/%d", rangeOutput.getFrom(), to - 1, rangeOutput.getFile().length());
-        
-                    return super.getResponseBuilder(model, graphUri).
-                        status(Status.PARTIAL_CONTENT).
-                        entity(rangeOutput).
-                        type(variant.getMediaType()).
-                        lastModified(getLastModified(file)).
-                        header(HttpHeaders.CONTENT_LENGTH, rangeOutput.getLength()). // should override Transfer-Encoding: chunked
-                        header(ACCEPT_RANGES, BYTES_RANGE).
-                        header(CONTENT_RANGE, contentRangeValue).
-                        header("Content-Security-Policy", "default-src 'none'; sandbox"); // LNK-011 fix: prevent XSS in uploaded HTML files
-                }
-            }
+            {
+                FileRangeOutput rangeOutput = getFileRangeOutput(file, range);
+                final long to = rangeOutput.getLength() + rangeOutput.getFrom();
+                String contentRangeValue = String.format("bytes %d-%d/%d", rangeOutput.getFrom(), to - 1, rangeOutput.getFile().length());
 
-            return super.getResponseBuilder(model, graphUri).
-                entity(file).
-                type(variant.getMediaType()).
-                lastModified(getLastModified(file)).
-                header(HttpHeaders.CONTENT_LENGTH, file.length()). // should override Transfer-Encoding: chunked
-                header(ACCEPT_RANGES, BYTES_RANGE).
-                header("Content-Security-Policy", "default-src 'none'; sandbox"); // LNK-011 fix: prevent XSS in uploaded HTML files
-            //header("Content-Disposition", "attachment; filename=\"" + getRequiredProperty(NFO.fileName).getString() + "\"").
+                return Response.status(Status.PARTIAL_CONTENT).
+                    entity(rangeOutput).
+                    type(variant.getMediaType()).
+                    tag(entityTag).
+                    lastModified(getLastModified(file)).
+                    header(HttpHeaders.CONTENT_LENGTH, rangeOutput.getLength()). // should override Transfer-Encoding: chunked
+                    header(ACCEPT_RANGES, BYTES_RANGE).
+                    header(CONTENT_RANGE, contentRangeValue).
+                    header("Content-Security-Policy", "default-src 'none'; sandbox"); // LNK-011 fix: prevent XSS in uploaded HTML files
+            }
         }
-        
-        return super.getResponseBuilder(model, graphUri);
+
+        return Response.ok().
+            entity(file).
+            type(variant.getMediaType()).
+            tag(entityTag).
+            lastModified(getLastModified(file)).
+            header(HttpHeaders.CONTENT_LENGTH, file.length()). // should override Transfer-Encoding: chunked
+            header(ACCEPT_RANGES, BYTES_RANGE).
+            header("Content-Security-Policy", "default-src 'none'; sandbox"); // LNK-011 fix: prevent XSS in uploaded HTML files
+        //header("Content-Disposition", "attachment; filename=\"" + getRequiredProperty(NFO.fileName).getString() + "\"").
     }
 
     /**
@@ -235,11 +247,15 @@ public class Item extends DirectGraphStoreImpl
         final long length = to - from;
         return new FileRangeOutput(file, from, length);
     }
-    
-    @Override
-    public EntityTag getEntityTag(Model model)
+
+    /**
+     * Returns the ETag for HTTP caching based on the file's SHA1 hash.
+     *
+     * @return entity tag for cache validation
+     */
+    public EntityTag getEntityTag()
     {
-        return null; // disable ETag based on Model hash
+        return new EntityTag(getSHA1Hash(getResource()));
     }
     
     /**
@@ -269,8 +285,13 @@ public class Item extends DirectGraphStoreImpl
         
         return com.atomgraph.linkeddatahub.MediaType.valueOf(format);
     }
-    
-    @Override
+
+    /**
+     * Returns the list of media types that can be used to write this file's content.
+     *
+     * @param clazz the class type (not used, file has single media type)
+     * @return list containing the file's media type
+     */
     public List<jakarta.ws.rs.core.MediaType> getWritableMediaTypes(Class clazz)
     {
         return List.of(getMediaType());
@@ -288,6 +309,57 @@ public class Item extends DirectGraphStoreImpl
     }
     
     /**
+     * Returns SHA1 property value of the specified resource.
+     * 
+     * @param resource RDF resource
+     * @return SHA1 hash string
+     */
+    public String getSHA1Hash(Resource resource)
+    {
+        return resource.getRequiredProperty(FOAF.sha1).getString();
+    }
+
+    /**
+     * Returns the absolute URI of this file resource.
+     *
+     * @return the file's URI
+     */
+    public URI getURI()
+    {
+        return getUriInfo().getAbsolutePath();
+    }
+
+    /**
+     * Returns the current JAX-RS request.
+     *
+     * @return request object
+     */
+    public Request getRequest()
+    {
+        return request;
+    }
+
+    /**
+     * Returns the URI information of the current request.
+     *
+     * @return URI info
+     */
+    public UriInfo getUriInfo()
+    {
+        return uriInfo;
+    }
+
+    /**
+     * Returns the SPARQL service of the current application.
+     *
+     * @return SPARQL service
+     */
+    public Service getService()
+    {
+        return service;
+    }
+    
+    /**
      * Returns RDF resource of this file.
      * 
      * @return RDF resource
@@ -296,7 +368,17 @@ public class Item extends DirectGraphStoreImpl
     {
         return resource;
     }
-    
+
+    /**
+     * Returns the system application instance.
+     *
+     * @return system application
+     */
+    public com.atomgraph.linkeddatahub.Application getSystem()
+    {
+        return system;
+    }
+
     /**
      * Returns HTTP headers of the current request.
      * 
