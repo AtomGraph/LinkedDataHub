@@ -27,7 +27,6 @@ import com.atomgraph.linkeddatahub.resource.admin.pkg.InstallPackage;
 import com.atomgraph.linkeddatahub.resource.admin.pkg.UninstallPackage;
 import com.atomgraph.linkeddatahub.resource.Settings;
 import com.atomgraph.linkeddatahub.resource.admin.SignUp;
-import com.atomgraph.linkeddatahub.resource.Graph;
 import com.atomgraph.linkeddatahub.resource.acl.Access;
 import com.atomgraph.linkeddatahub.resource.acl.AccessRequest;
 import java.util.Optional;
@@ -269,7 +268,7 @@ public class Dispatcher
      */
     public Class getDocumentClass()
     {
-        return Graph.class;
+        return DirectGraphStoreImpl.class;
     }
     
     /**

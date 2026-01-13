@@ -29,6 +29,7 @@ import jakarta.ws.rs.ext.Providers;
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.server.io.FileRangeOutput;
+import com.atomgraph.linkeddatahub.server.model.impl.DirectGraphStoreImpl;
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
 import java.util.Collections;
 import java.util.Date;
@@ -58,7 +59,7 @@ import org.slf4j.LoggerFactory;
  * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-public class Item extends com.atomgraph.linkeddatahub.resource.Graph
+public class Item extends DirectGraphStoreImpl
 {
     private static final Logger log = LoggerFactory.getLogger(Item.class);
     

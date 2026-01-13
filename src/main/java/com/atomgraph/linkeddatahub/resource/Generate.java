@@ -20,6 +20,7 @@ import com.atomgraph.core.MediaTypes;
 import com.atomgraph.linkeddatahub.apps.model.Application;
 import com.atomgraph.linkeddatahub.client.GraphStoreClient;
 import com.atomgraph.linkeddatahub.imports.QueryLoader;
+import com.atomgraph.linkeddatahub.server.model.impl.DirectGraphStoreImpl;
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
 import com.atomgraph.linkeddatahub.server.util.Skolemizer;
 import com.atomgraph.linkeddatahub.vocabulary.LDH;
@@ -150,7 +151,7 @@ public class Generate
                     new Skolemizer(containerGraphURI.toString()).apply(containerModel);
 
                     // append triples directly to the graph store without doing an HTTP request (and thus no ACL check)
-                    try (Response containerResponse = getResourceContext().getResource(Graph.class).post(containerModel, false, containerGraphURI))
+                    try (Response containerResponse = getResourceContext().getResource(DirectGraphStoreImpl.class).post(containerModel, false, containerGraphURI))
                     {
                         if (!containerResponse.getStatusInfo().getFamily().equals(Status.Family.SUCCESSFUL))
                         {
