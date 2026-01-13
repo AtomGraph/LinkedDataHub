@@ -18,9 +18,6 @@ package com.atomgraph.linkeddatahub.resource.acl;
 
 import com.atomgraph.client.util.HTMLMediaTypePredicate;
 import com.atomgraph.core.MediaTypes;
-import static com.atomgraph.core.model.SPARQLEndpoint.DEFAULT_GRAPH_URI;
-import static com.atomgraph.core.model.SPARQLEndpoint.NAMED_GRAPH_URI;
-import static com.atomgraph.core.model.SPARQLEndpoint.QUERY;
 import com.atomgraph.core.util.ModelUtils;
 import com.atomgraph.linkeddatahub.apps.model.AdminApplication;
 import com.atomgraph.linkeddatahub.apps.model.Application;
@@ -36,7 +33,6 @@ import com.atomgraph.spinrdf.vocabulary.SPIN;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.GET;
-import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.EntityTag;
 import jakarta.ws.rs.core.Request;
@@ -47,7 +43,6 @@ import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Optional;
 import org.apache.jena.query.ParameterizedSparqlString;
-import org.apache.jena.query.Query;
 import org.apache.jena.query.QuerySolutionMap;
 import org.apache.jena.query.ResultSetRewindable;
 import org.apache.jena.rdf.model.Model;
@@ -106,14 +101,10 @@ public class Access
     /**
      * Implements the HTTP GET method for retrieving access control information.
      *
-     * @param unused SPARQL query parameter (unused)
-     * @param defaultGraphUris default graph URIs
-     * @param namedGraphUris named graph URIs
      * @return response with access control data
      */
     @GET
-    public Response get(@QueryParam(QUERY) Query unused,
-            @QueryParam(DEFAULT_GRAPH_URI) List<URI> defaultGraphUris, @QueryParam(NAMED_GRAPH_URI) List<URI> namedGraphUris)
+    public Response get()
     {
         final Agent agent = getAgentContext().map(AgentContext::getAgent).orElse(null);
    
