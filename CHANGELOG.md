@@ -1,4 +1,4 @@
-## [5.2.0] - TBD
+## [5.2.0] - 2026-01-14
 ### Added
 - Application settings form with modal UI for editing dataspace configuration
 - Settings endpoint (`/settings`) with `GET` and `PATCH` support for dataspace settings
@@ -6,7 +6,8 @@
 - LinkedDataHub packages system with install/uninstall functionality
 
 ### Changed
-- **BREAKING**: Incorporated AtomGraph Server code directly into LinkedDataHub codebase
+- Core library refactored Graph Store Protocol implementation - split into `GraphStoreBase` (common functionality), `DirectGraphStoreImpl` (direct graph identification), and `GraphStoreImpl` (indirect graph identification with query parameters)
+- Incorporated AtomGraph Server code directly into LinkedDataHub codebase
 - System configuration dataset now uses named graphs instead of default graph
 - Web-Client dependency version bump
 - CLI scripts improved for better parameter handling

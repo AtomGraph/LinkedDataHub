@@ -28,13 +28,24 @@ public class WebIDSecurityContext extends AgentSecurityContext
 
     /**
      * Constructs context from authentication scheme and agent instance.
-     * 
+     *
      * @param authScheme auth scheme
      * @param agent authenticated agent
      */
     public WebIDSecurityContext(String authScheme, Agent agent)
     {
         super(authScheme, agent);
+    }
+
+    /**
+     * Returns string representation of this security context.
+     *
+     * @return the agent's URI
+     */
+    @Override
+    public String toString()
+    {
+        return getAgent().getURI();
     }
 
 }
