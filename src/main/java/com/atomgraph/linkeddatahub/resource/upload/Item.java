@@ -30,17 +30,14 @@ import com.atomgraph.core.MediaTypes;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.server.io.FileRangeOutput;
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Optional;
 import jakarta.annotation.PostConstruct;
 import jakarta.inject.Inject;
-import jakarta.ws.rs.DefaultValue;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.NotAcceptableException;
 import jakarta.ws.rs.NotFoundException;
-import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.EntityTag;
 import jakarta.ws.rs.core.HttpHeaders;
@@ -113,9 +110,9 @@ public class Item extends com.atomgraph.linkeddatahub.resource.Graph
     
     @GET
     @Override
-    public Response get(@QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUri)
+    public Response get()
     {
-        return getResponseBuilder(getResource().getModel(), graphUri).build();
+        return getResponseBuilder(getResource().getModel(), getURI()).build();
     }
     
     @Override
@@ -275,10 +272,7 @@ public class Item extends com.atomgraph.linkeddatahub.resource.Graph
     @Override
     public List<jakarta.ws.rs.core.MediaType> getWritableMediaTypes(Class clazz)
     {
-        List<jakarta.ws.rs.core.MediaType> list = new ArrayList<>();
-        list.add(getMediaType());
-
-        return list;
+        return List.of(getMediaType());
     }
     
     /**

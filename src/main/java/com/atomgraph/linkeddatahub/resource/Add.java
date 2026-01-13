@@ -19,7 +19,6 @@ package com.atomgraph.linkeddatahub.resource;
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.core.vocabulary.SD;
 import com.atomgraph.linkeddatahub.client.GraphStoreClient;
-import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -27,18 +26,14 @@ import java.net.URI;
 import java.util.Optional;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.BadRequestException;
-import jakarta.ws.rs.DefaultValue;
 import jakarta.ws.rs.POST;
-import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Request;
 import jakarta.ws.rs.core.Response;
-import jakarta.ws.rs.core.SecurityContext;
 import jakarta.ws.rs.core.StreamingOutput;
 import jakarta.ws.rs.core.UriInfo;
 import jakarta.ws.rs.ext.Providers;
-import org.apache.jena.ontology.Ontology;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ResIterator;
 import org.apache.jena.rdf.model.Resource;
@@ -67,18 +62,13 @@ public class Add
      * @param request current request
      * @param uriInfo current URI info
      * @param mediaTypes supported media types
-     * @param application matched application
-     * @param ontology matched application's ontology
-     * @param service matched application's service
      * @param providers JAX-RS providers
      * @param system system application
-     * @param securityContext JAX-RS security context
      * @param agentContext authenticated agent's context
      */
     @Inject
     public Add(@Context Request request, @Context UriInfo uriInfo, MediaTypes mediaTypes,
-            com.atomgraph.linkeddatahub.apps.model.Application application, Optional<Ontology> ontology, Optional<Service> service,
-            @Context SecurityContext securityContext, Optional<AgentContext> agentContext,
+            Optional<AgentContext> agentContext,
             @Context Providers providers, com.atomgraph.linkeddatahub.Application system)
     {
         this.uriInfo = uriInfo;
@@ -92,12 +82,10 @@ public class Add
      * Expects a model containing a resource with dct:source (source URI) and sd:name (target graph URI) properties.
      *
      * @param model the RDF model containing the import parameters
-     * @param defaultGraph whether to import into the default graph
-     * @param graphUri the target graph URI
      * @return JAX-RS response with the imported data
      */
     @POST
-    public Response post(Model model, @QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUri)
+    public Response post(Model model)
     {
         ResIterator it = model.listSubjectsWithProperty(DCTerms.source);
         try

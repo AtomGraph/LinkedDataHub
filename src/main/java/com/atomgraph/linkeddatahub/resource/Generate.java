@@ -16,12 +16,10 @@
  */
 package com.atomgraph.linkeddatahub.resource;
 
-import com.atomgraph.client.util.DataManager;
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.linkeddatahub.apps.model.Application;
 import com.atomgraph.linkeddatahub.client.GraphStoreClient;
 import com.atomgraph.linkeddatahub.imports.QueryLoader;
-import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
 import com.atomgraph.linkeddatahub.server.util.Skolemizer;
 import com.atomgraph.linkeddatahub.vocabulary.LDH;
@@ -36,20 +34,15 @@ import java.util.Optional;
 import java.util.UUID;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.BadRequestException;
-import jakarta.ws.rs.DefaultValue;
 import jakarta.ws.rs.InternalServerErrorException;
 import jakarta.ws.rs.POST;
-import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Request;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.Response.Status;
-import jakarta.ws.rs.core.SecurityContext;
 import jakarta.ws.rs.core.UriBuilder;
 import jakarta.ws.rs.core.UriInfo;
-import jakarta.ws.rs.ext.Providers;
-import org.apache.jena.ontology.Ontology;
 import org.apache.jena.query.ParameterizedSparqlString;
 import org.apache.jena.query.Query;
 import org.apache.jena.query.Syntax;
@@ -86,21 +79,14 @@ public class Generate
      * @param uriInfo current URI info
      * @param mediaTypes supported media types
      * @param application matched application
-     * @param ontology matched application's ontology
-     * @param service matched application's service
-     * @param providers JAX-RS providers
      * @param system system application
-     * @param securityContext JAX-RS security context
      * @param agentContext authenticated agent's context
-     * @param dataManager RDF data manager
      * @param resourceContext resource context for creating resources
      */
     @Inject
     public Generate(@Context Request request, @Context UriInfo uriInfo, MediaTypes mediaTypes,
-            com.atomgraph.linkeddatahub.apps.model.Application application, Optional<Ontology> ontology, Optional<Service> service,
-            @Context SecurityContext securityContext, Optional<AgentContext> agentContext,
-            @Context Providers providers, com.atomgraph.linkeddatahub.Application system,
-            DataManager dataManager, @Context ResourceContext resourceContext)
+            com.atomgraph.linkeddatahub.apps.model.Application application, Optional<AgentContext> agentContext,
+            com.atomgraph.linkeddatahub.Application system, @Context ResourceContext resourceContext)
     {
         this.uriInfo = uriInfo;
         this.mediaTypes = mediaTypes;
@@ -112,17 +98,15 @@ public class Generate
 
     /**
      * Generates containers for given classes.
-     * Expects a model containing a parent container (sioc:has_parent) and one or more class specifications
-     * with void:class and spin:query properties. Creates a new container for each class with a view based
-     * on the provided SPARQL SELECT query.
+     * Expects a model containing a parent container (<samp>sioc:has_parent</samp>) and one or more class specifications
+     * with <samp>void:class</samp> and <samp>spin:query</samp> properties. Creates a new container for each class with a view based
+     * on the provided SPARQL <samp>SELECT</samp> query.
      *
      * @param model the RDF model containing the generation parameters
-     * @param defaultGraph whether to use the default graph
-     * @param graphUri the target graph URI
      * @return JAX-RS response indicating success or failure
      */
     @POST
-    public Response post(Model model, @QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUri)
+    public Response post(Model model)
     {
         ResIterator it = model.listSubjectsWithProperty(SIOC.HAS_PARENT);
         try
