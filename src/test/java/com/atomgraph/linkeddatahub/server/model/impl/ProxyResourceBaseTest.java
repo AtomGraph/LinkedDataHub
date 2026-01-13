@@ -33,51 +33,51 @@ public class ProxyResourceBaseTest
     @Test(expected = IllegalArgumentException.class)
     public void testNullURI()
     {
-        ProxyResourceBase.validateNotInternalURL(null);
+        ProxiedGraph.validateNotInternalURL(null);
     }
 
     @Test(expected = ForbiddenException.class)
     public void testLinkLocalIPv4Blocked()
     {
-        ProxyResourceBase.validateNotInternalURL(URI.create("http://169.254.1.1:8080/test"));
+        ProxiedGraph.validateNotInternalURL(URI.create("http://169.254.1.1:8080/test"));
     }
 
     @Test(expected = ForbiddenException.class)
     public void testPrivateClass10Blocked()
     {
-        ProxyResourceBase.validateNotInternalURL(URI.create("http://10.0.0.1:8080/test"));
+        ProxiedGraph.validateNotInternalURL(URI.create("http://10.0.0.1:8080/test"));
     }
 
     @Test(expected = ForbiddenException.class)
     public void testPrivateClass172Blocked()
     {
-        ProxyResourceBase.validateNotInternalURL(URI.create("http://172.16.0.0:8080/test"));
+        ProxiedGraph.validateNotInternalURL(URI.create("http://172.16.0.0:8080/test"));
     }
 
     @Test(expected = ForbiddenException.class)
     public void testPrivateClass192Blocked()
     {
-        ProxyResourceBase.validateNotInternalURL(URI.create("http://192.168.1.1:8080/test"));
+        ProxiedGraph.validateNotInternalURL(URI.create("http://192.168.1.1:8080/test"));
     }
 
     @Test
     public void testExternalURLAllowed()
     {
         // Public IPs should be allowed (no exception thrown)
-        ProxyResourceBase.validateNotInternalURL(URI.create("http://8.8.8.8:80/test"));
+        ProxiedGraph.validateNotInternalURL(URI.create("http://8.8.8.8:80/test"));
     }
 
     @Test
     public void testPublicDomainAllowed()
     {
         // Public domains should be allowed (no exception thrown)
-        ProxyResourceBase.validateNotInternalURL(URI.create("http://example.org/test"));
+        ProxiedGraph.validateNotInternalURL(URI.create("http://example.org/test"));
     }
 
     @Test
     public void testHTTPSAllowed()
     {
         // HTTPS to public domain should be allowed (no exception thrown)
-        ProxyResourceBase.validateNotInternalURL(URI.create("https://www.w3.org/ns/ldp"));
+        ProxiedGraph.validateNotInternalURL(URI.create("https://www.w3.org/ns/ldp"));
     }
 }

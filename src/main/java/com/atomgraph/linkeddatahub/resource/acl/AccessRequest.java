@@ -30,12 +30,10 @@ import com.atomgraph.linkeddatahub.vocabulary.LDHC;
 import com.atomgraph.linkeddatahub.vocabulary.SIOC;
 import jakarta.inject.Inject;
 import jakarta.servlet.ServletConfig;
-import jakarta.ws.rs.DefaultValue;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.InternalServerErrorException;
 import jakarta.ws.rs.NotAllowedException;
 import jakarta.ws.rs.POST;
-import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.UriBuilder;
@@ -100,12 +98,10 @@ public class AccessRequest
     /**
      * Implements the HTTP GET method.
      *
-     * @param defaultGraph default graph flag
-     * @param graphUri graph URI
      * @return response object
      */
     @GET
-    public Response get(@QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUri)
+    public Response get()
     {
         throw new NotAllowedException("GET is not allowed on this endpoint");
     }
@@ -114,12 +110,10 @@ public class AccessRequest
      * Implements the HTTP POST method for submitting access requests.
      *
      * @param model RDF model with access request data
-     * @param defaultGraph default graph flag
-     * @param graphUri graph URI
      * @return response object
      */
     @POST
-    public Response post(Model model, @QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUri)
+    public Response post(Model model)
     {
         ResIterator it = model.listResourcesWithProperty(RDF.type, ACL.Authorization);
         try
@@ -128,7 +122,7 @@ public class AccessRequest
             {
                 Resource authorization = it.next();
                 
-                graphUri = getAuthRequestContainerUriBuilder().path(UUID.randomUUID().toString() + "/").build(); // URI of the new access request graph
+                URI graphUri = getAuthRequestContainerUriBuilder().path(UUID.randomUUID().toString() + "/").build(); // URI of the new access request graph
                 Model requestModel = ModelFactory.createDefaultModel();
                 
                 Resource agent = authorization.getPropertyResourceValue(ACL.agent);

@@ -1,5 +1,5 @@
 /**
- *  Copyright 2021 Martynas Jusevičius <martynas@atomgraph.com>
+ *  Copyright 2019 Martynas Jusevičius <martynas@atomgraph.com>
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -14,12 +14,13 @@
  *  limitations under the License.
  *
  */
-package com.atomgraph.linkeddatahub.resource;
+package com.atomgraph.linkeddatahub.server.model.impl;
 
 import com.atomgraph.client.util.HTMLMediaTypePredicate;
 import com.atomgraph.client.vocabulary.AC;
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.core.model.EndpointAccessor;
+import com.atomgraph.core.riot.lang.RDFPostReader;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import com.atomgraph.linkeddatahub.client.GraphStoreClient;
 import com.atomgraph.linkeddatahub.model.CSVImport;
@@ -27,7 +28,6 @@ import com.atomgraph.linkeddatahub.model.RDFImport;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.server.io.ValidatingModelProvider;
 import com.atomgraph.linkeddatahub.server.model.Patchable;
-import com.atomgraph.linkeddatahub.server.model.impl.GraphStoreImpl;
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
 import com.atomgraph.linkeddatahub.server.util.PatchUpdateVisitor;
 import com.atomgraph.linkeddatahub.server.util.Skolemizer;
@@ -38,16 +38,15 @@ import com.atomgraph.linkeddatahub.vocabulary.NFO;
 import com.atomgraph.linkeddatahub.vocabulary.SIOC;
 import static com.atomgraph.server.status.UnprocessableEntityStatus.UNPROCESSABLE_ENTITY;
 import java.net.URI;
-import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
+import java.net.URISyntaxException;
+import java.security.MessageDigest;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
-import jakarta.ws.rs.DefaultValue;
-import jakarta.ws.rs.GET;
 import jakarta.ws.rs.HttpMethod;
 import jakarta.ws.rs.InternalServerErrorException;
 import jakarta.ws.rs.NotFoundException;
@@ -55,16 +54,15 @@ import jakarta.ws.rs.OPTIONS;
 import jakarta.ws.rs.PATCH;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.PUT;
-import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Request;
 import jakarta.ws.rs.core.Response;
-import jakarta.ws.rs.core.Response.ResponseBuilder;
 import static jakarta.ws.rs.core.Response.Status.PERMANENT_REDIRECT;
 import jakarta.ws.rs.core.SecurityContext;
+import jakarta.ws.rs.core.UriBuilder;
 import jakarta.ws.rs.core.UriInfo;
 import jakarta.ws.rs.ext.MessageBodyReader;
 import jakarta.ws.rs.ext.Providers;
@@ -73,15 +71,18 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URISyntaxException;
 import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
+import java.nio.charset.StandardCharsets;
 import java.security.DigestInputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import org.apache.commons.codec.binary.Hex;
@@ -109,45 +110,83 @@ import org.apache.jena.util.ResourceUtils;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.apache.jena.vocabulary.DCTerms;
 import org.apache.jena.vocabulary.RDF;
+import org.glassfish.jersey.media.multipart.BodyPart;
 import org.glassfish.jersey.media.multipart.FormDataBodyPart;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * JAX-RS resource that handles requests to directly-identified named graphs.
- * Direct identification is specified in the Graph Store Protocol.
+ * LinkedDataHub Graph Store implementation.
+ * We need to subclass the Core class because we're injecting a subclass of Service.
  * 
- * @author {@literal Martynas Jusevičius <martynas@atomgraph.com>}
+ * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-public class Graph extends GraphStoreImpl implements Patchable
+public class DirectGraphStoreImpl extends com.atomgraph.core.model.impl.DirectGraphStoreImpl implements Patchable
 {
     
-    private static final Logger log = LoggerFactory.getLogger(Graph.class);
+    private static final Logger log = LoggerFactory.getLogger(DirectGraphStoreImpl.class);
 
-    private final Set<String> allowedMethods;
-    
     /**
-     * Constructs resource.
+     * The relative path of the content-addressed file container.
+     */
+    public static final String UPLOADS_PATH = "uploads";
+    
+    private final com.atomgraph.linkeddatahub.apps.model.Application application;
+    private final Ontology ontology;
+    private final Service service;
+    private final Providers providers;
+    private final com.atomgraph.linkeddatahub.Application system;
+    private final UriBuilder uploadsUriBuilder;
+    private final MessageDigest messageDigest;
+    /** The URIs for owner and secretary documents. */
+    protected final URI ownerDocURI, secretaryDocURI;
+    private final SecurityContext securityContext;
+    private final Optional<AgentContext> agentContext;
+    private final Set<String> allowedMethods;
+
+    /**
+     * Constructs Graph Store.
      * 
      * @param request current request
-     * @param uriInfo URI information of the current request
+     * @param uriInfo URI info of the current request
      * @param mediaTypes a registry of readable/writable media types
      * @param application current application
      * @param ontology ontology of the current application
      * @param service SPARQL service of the current application
      * @param securityContext JAX-RS security context
      * @param agentContext authenticated agent's context
-     * @param providers JAX-RS provider registry
+     * @param providers registry of JAX-RS providers
      * @param system system application
      */
     @Inject
-    public Graph(@Context Request request, @Context UriInfo uriInfo, MediaTypes mediaTypes,
+    public DirectGraphStoreImpl(@Context Request request, @Context UriInfo uriInfo, MediaTypes mediaTypes,
         com.atomgraph.linkeddatahub.apps.model.Application application, Optional<Ontology> ontology, Optional<Service> service,
         @Context SecurityContext securityContext, Optional<AgentContext> agentContext,
         @Context Providers providers, com.atomgraph.linkeddatahub.Application system)
     {
-        super(request, uriInfo, mediaTypes, application, ontology, service, securityContext, agentContext, providers, system);
+        super(request, service.get(), mediaTypes, uriInfo);
+        if (ontology.isEmpty()) throw new InternalServerErrorException("Ontology is not specified");
+        if (service.isEmpty()) throw new InternalServerErrorException("Service is not specified");
+        this.application = application;
+        this.ontology = ontology.get();
+        this.service = service.get();
+        this.securityContext = securityContext;
+        this.agentContext = agentContext;
+        this.providers = providers;
+        this.system = system;
+        this.messageDigest = system.getMessageDigest();
+        uploadsUriBuilder = uriInfo.getBaseUriBuilder().path(UPLOADS_PATH);
+        URI ownerURI = URI.create(application.getMaker().getURI());
+        try
+        {
+            this.ownerDocURI = new URI(ownerURI.getScheme(), ownerURI.getSchemeSpecificPart(), null).normalize();
+            this.secretaryDocURI = new URI(system.getSecretaryWebIDURI().getScheme(), system.getSecretaryWebIDURI().getSchemeSpecificPart(), null).normalize();
+        }
+        catch (URISyntaxException ex)
+        {
+            throw new InternalServerErrorException(ex);
+        }
         
         URI uri = uriInfo.getAbsolutePath();
         allowedMethods = new HashSet<>();
@@ -163,23 +202,23 @@ public class Graph extends GraphStoreImpl implements Patchable
             !secretaryDocURI.equals(uri))
             allowedMethods.add(HttpMethod.DELETE);
     }
-
-    @Override
-    @GET
-    public Response get(@QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUriUnused)
-    {
-        return super.get(false, getURI());
-    }
     
+    /**
+     * Implements <code>POST</code> method of SPARQL Graph Store Protocol.
+     * Adds triples to the existing graph, skolemizes blank nodes, updates modification timestamp, and submits any imports.
+     *
+     * @param model RDF model to add to the graph
+     * @return HTTP response with updated entity tag
+     */
     @Override
     @POST
-    public Response post(Model model, @QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUriUnused)
+    public Response post(Model model)
     {
         if (log.isTraceEnabled()) log.trace("POST Graph Store request with RDF payload: {} payload size(): {}", model, model.size());
 
         final Model existingModel = getService().getGraphStoreClient().getModel(getURI().toString());
         
-        ResponseBuilder rb = evaluatePreconditions(existingModel);
+        Response.ResponseBuilder rb = evaluatePreconditions(existingModel);
         if (rb != null) return rb.build(); // preconditions not met
         
         model.createResource(getURI().toString()).
@@ -203,10 +242,18 @@ public class Graph extends GraphStoreImpl implements Patchable
             build();
     }
     
+    /**
+     * Implements <code>PUT</code> method of SPARQL Graph Store Protocol.
+     * Creates a new graph or updates an existing one. Enforces trailing slash in URIs, skolemizes blank nodes,
+     * establishes parent/container relationships, and manages metadata (created, modified, creator, owner timestamps).
+     *
+     * @param model RDF model to create or update
+     * @return HTTP response with 201 Created for new graphs or 200 OK for updates
+     */
     @Override
     @PUT
     // the AuthorizationFilter only allows creating new child URIs for existing containers (i.e. there has to be a .. container already)
-    public Response put(Model model, @QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUriUnused)
+    public Response put(Model model)
     {
         if (log.isTraceEnabled()) log.trace("PUT Graph Store request with RDF payload: {} payload size(): {}", model, model.size());
 
@@ -239,7 +286,7 @@ public class Graph extends GraphStoreImpl implements Patchable
         {
             existingModel = getService().getGraphStoreClient().getModel(getURI().toString());
             
-            ResponseBuilder rb = evaluatePreconditions(existingModel);
+            Response.ResponseBuilder rb = evaluatePreconditions(existingModel);
             if (rb != null) return rb.build(); // preconditions not met
         }
         catch (NotFoundException ex)
@@ -311,12 +358,11 @@ public class Graph extends GraphStoreImpl implements Patchable
      * The <code>GRAPH</code> keyword is therefore not allowed in the update string.
      * 
      * @param updateRequest SPARQL update
-     * @param graphUriUnused named graph URI (unused)
      * @return response response object
      */
     @PATCH
     @Override
-    public Response patch(UpdateRequest updateRequest, @QueryParam("graph") URI graphUriUnused)
+    public Response patch(UpdateRequest updateRequest)
     {
         if (updateRequest == null) throw new BadRequestException("SPARQL update not specified");
         if (log.isDebugEnabled()) log.debug("PATCH request on named graph with URI: {}", getURI());
@@ -343,7 +389,7 @@ public class Graph extends GraphStoreImpl implements Patchable
         final Model existingModel = getService().getGraphStoreClient().getModel(getURI().toString());
         if (existingModel == null) throw new NotFoundException("Named graph with URI <" + getURI() + "> not found");
 
-        ResponseBuilder rb = evaluatePreconditions(existingModel);
+        Response.ResponseBuilder rb = evaluatePreconditions(existingModel);
         if (rb != null) return rb.build(); // preconditions not met
 
         Model beforeUpdateModel = ModelFactory.createDefaultModel().add(existingModel);
@@ -358,7 +404,7 @@ public class Graph extends GraphStoreImpl implements Patchable
             changedModel.add(existingModel.listStatements(resource, null, (RDFNode) null));
 
         // if PATCH results in an empty model, treat it as a DELETE request
-        if (changedModel.isEmpty()) return delete(Boolean.FALSE, getURI());
+        if (changedModel.isEmpty()) return delete();
 
         validate(changedModel); // this would normally be done transparently by the ValidatingModelProvider
         put(dataset.getDefaultModel(), Boolean.FALSE, getURI());
@@ -369,32 +415,6 @@ public class Graph extends GraphStoreImpl implements Patchable
             header(HttpHeaders.CONTENT_LOCATION, getURI()).
             tag(getInternalResponse(dataset.getDefaultModel(), null).getVariantEntityTag()). // TO-DO: optimize!
             build();
-    }
-    
-    /**
-     * Gets a diff of triples between two models and returns a set of their subject resources.
-     * 
-     * @param beforeUpdateModel model before the update
-     * @param afterUpdateModel model after the update
-     * @return set of changed resources
-     */
-    public Set<Resource> getChangedResources(Model beforeUpdateModel, Model afterUpdateModel)
-    {
-        if (beforeUpdateModel == null) throw new IllegalArgumentException("Model before update cannot be null");
-        if (afterUpdateModel == null) throw new IllegalArgumentException("Model after update cannot be null");
-
-        Model addedTriples = afterUpdateModel.difference(beforeUpdateModel);
-        Model removedTriples = beforeUpdateModel.difference(afterUpdateModel);
-
-        Set<Resource> changedResources = new HashSet<>();
-        addedTriples.listStatements().forEachRemaining(statement -> {
-            changedResources.add(statement.getSubject());
-        });
-        removedTriples.listStatements().forEachRemaining(statement -> {
-            changedResources.add(statement.getSubject());
-        });
-        
-        return changedResources;
     }
     
     /**
@@ -420,13 +440,11 @@ public class Graph extends GraphStoreImpl implements Patchable
      * Files are written to storage before the RDF data is passed to the default <code>POST</code> handler method.
      * 
      * @param multiPart multipart form data
-     * @param defaultGraph true if default graph is requested
-     * @param graphUriUnused named graph URI (unused)
      * @return HTTP response
      */
     @POST
     @Consumes(MediaType.MULTIPART_FORM_DATA)
-    public Response postMultipart(FormDataMultiPart multiPart, @QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUriUnused)
+    public Response postMultipart(FormDataMultiPart multiPart)
     {
         if (log.isDebugEnabled()) log.debug("MultiPart fields: {} body parts: {}", multiPart.getFields(), multiPart.getBodyParts());
 
@@ -464,13 +482,11 @@ public class Graph extends GraphStoreImpl implements Patchable
      * Files are written to storage before the RDF data is passed to the default <code>PUT</code> handler method.
      * 
      * @param multiPart multipart form data
-     * @param defaultGraph true if default graph is requested
-     * @param graphUriUnused named graph URI (unused)
      * @return HTTP response
      */
     @PUT
     @Consumes(MediaType.MULTIPART_FORM_DATA)
-    public Response putMultipart(FormDataMultiPart multiPart, @QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUriUnused)
+    public Response putMultipart(FormDataMultiPart multiPart)
     {
         if (log.isDebugEnabled()) log.debug("MultiPart fields: {} body parts: {}", multiPart.getFields(), multiPart.getBodyParts());
 
@@ -486,7 +502,7 @@ public class Graph extends GraphStoreImpl implements Patchable
             int fileCount = writeFiles(model, getFileNameBodyPartMap(multiPart));
             if (log.isDebugEnabled()) log.debug("# of files uploaded: {} ", fileCount);
             
-            return put(model, defaultGraph, getURI()); // ignore the @QueryParam("graph") value
+            return put(model, false, getURI());
         }
         catch (URISyntaxException ex)
         {
@@ -503,13 +519,11 @@ public class Graph extends GraphStoreImpl implements Patchable
     /**
      * Implements DELETE method of SPARQL Graph Store Protocol.
      * 
-     * @param defaultGraph true if default graph is requested
-     * @param graphUriUnused named graph URI (unused)
      * @return response
      */
     @DELETE
     @Override
-    public Response delete(@QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUriUnused)
+    public Response delete()
     {
         if (!getAllowedMethods().contains(HttpMethod.DELETE))
             throw new WebApplicationException("Cannot delete document", Response.status(Response.Status.METHOD_NOT_ALLOWED).allow(getAllowedMethods()).build());
@@ -518,7 +532,7 @@ public class Graph extends GraphStoreImpl implements Patchable
         {
             Model existingModel = getService().getGraphStoreClient().getModel(getURI().toString());
             
-            ResponseBuilder rb = evaluatePreconditions(existingModel);
+            Response.ResponseBuilder rb = evaluatePreconditions(existingModel);
             if (rb != null) return rb.build(); // preconditions not met
         }
         catch (NotFoundException ex)
@@ -527,6 +541,32 @@ public class Graph extends GraphStoreImpl implements Patchable
         }
             
         return super.delete(false, getURI());
+    }
+    
+    /**
+     * Gets a diff of triples between two models and returns a set of their subject resources.
+     * 
+     * @param beforeUpdateModel model before the update
+     * @param afterUpdateModel model after the update
+     * @return set of changed resources
+     */
+    public Set<Resource> getChangedResources(Model beforeUpdateModel, Model afterUpdateModel)
+    {
+        if (beforeUpdateModel == null) throw new IllegalArgumentException("Model before update cannot be null");
+        if (afterUpdateModel == null) throw new IllegalArgumentException("Model after update cannot be null");
+
+        Model addedTriples = afterUpdateModel.difference(beforeUpdateModel);
+        Model removedTriples = beforeUpdateModel.difference(afterUpdateModel);
+
+        Set<Resource> changedResources = new HashSet<>();
+        addedTriples.listStatements().forEachRemaining(statement -> {
+            changedResources.add(statement.getSubject());
+        });
+        removedTriples.listStatements().forEachRemaining(statement -> {
+            changedResources.add(statement.getSubject());
+        });
+        
+        return changedResources;
     }
     
     /**
@@ -556,20 +596,9 @@ public class Graph extends GraphStoreImpl implements Patchable
      * @return response builder
      */
     @Override
-    public ResponseBuilder getResponseBuilder(Model model, URI graphUri)
+    public Response.ResponseBuilder getResponseBuilder(Model model, URI graphUri)
     {
         return getInternalResponse(model, graphUri).getResponseBuilder();
-    }
-    
-    /**
-     * List allowed HTTP methods for the current graph URI.
-     * Exceptions apply to the application's Root document, owner's WebID document, and secretary's WebID document.
-     * 
-     * @return list of HTTP methods
-     */
-    public Set<String> getAllowedMethods()
-    {
-        return allowedMethods;
     }
     
     /**
@@ -860,19 +889,88 @@ public class Graph extends GraphStoreImpl implements Patchable
      * @param model RDF model
      * @return {@code jakarta.ws.rs.core.Response.ResponseBuilder} instance. <code>null</code> if preconditions are not met.
      */
-    public ResponseBuilder evaluatePreconditions(Model model)
+    public Response.ResponseBuilder evaluatePreconditions(Model model)
     {
         return getInternalResponse(model, getURI()).evaluatePreconditions();
     }
     
     /**
-     * Returns the named graph URI.
+     * Parses multipart RDF/POST request.
      * 
-     * @return graph URI
+     * @param multiPart multipart form data
+     * @return RDF graph
+     * @throws URISyntaxException thrown if there is a syntax error in RDF/POST data
+     * @see <a href="https://atomgraph.github.io/RDF-POST/">RDF/POST Encoding for RDF</a>
      */
-    public URI getURI()
+    public Model parseModel(FormDataMultiPart multiPart) throws URISyntaxException
     {
-        return getUriInfo().getAbsolutePath();
+        if (multiPart == null) throw new IllegalArgumentException("FormDataMultiPart cannot be null");
+        
+        List<String> keys = new ArrayList<>(), values = new ArrayList<>();
+        Iterator<BodyPart> it = multiPart.getBodyParts().iterator(); // not using getFields() to retain ordering
+
+        while (it.hasNext())
+        {
+            FormDataBodyPart bodyPart = (FormDataBodyPart)it.next();
+            if (log.isDebugEnabled()) log.debug("Body part media type: {} headers: {}", bodyPart.getMediaType(), bodyPart.getHeaders());
+
+            // it's a file (if the filename is not empty)
+            if (bodyPart.getContentDisposition().getFileName() != null &&
+                    !bodyPart.getContentDisposition().getFileName().isEmpty())
+            {
+                keys.add(bodyPart.getName());
+                if (log.isDebugEnabled()) log.debug("FormDataBodyPart name: {} value: {}", bodyPart.getName(), bodyPart.getContentDisposition().getFileName());
+                values.add(bodyPart.getContentDisposition().getFileName());
+            }
+            else
+            {
+                if (bodyPart.isSimple() && !bodyPart.getValue().isEmpty())
+                {
+                    keys.add(bodyPart.getName());
+                    if (log.isDebugEnabled()) log.debug("FormDataBodyPart name: {} value: {}", bodyPart.getName(), bodyPart.getValue());
+                    values.add(bodyPart.getValue());
+                }
+            }
+        }
+
+        return RDFPostReader.parse(keys, values);
+    }
+    
+    /**
+     * Gets a map of file parts from multipart form data.
+     * 
+     * @param multiPart multipart form data
+     * @return map of file parts
+     */
+    public Map<String, FormDataBodyPart> getFileNameBodyPartMap(FormDataMultiPart multiPart)
+    {
+        if (multiPart == null) throw new IllegalArgumentException("FormDataMultiPart cannot be null");
+
+        Map<String, FormDataBodyPart> fileNameBodyPartMap = new HashMap<>();
+        Iterator<BodyPart> it = multiPart.getBodyParts().iterator(); // not using getFields() to retain ordering
+        while (it.hasNext())
+        {
+            FormDataBodyPart bodyPart = (FormDataBodyPart)it.next();
+            if (log.isDebugEnabled()) log.debug("Body part media type: {} headers: {}", bodyPart.getMediaType(), bodyPart.getHeaders());
+
+            if (bodyPart.getContentDisposition().getFileName() != null) // it's a file
+            {
+                if (log.isDebugEnabled()) log.debug("FormDataBodyPart name: {} value: {}", bodyPart.getName(), bodyPart.getContentDisposition().getFileName());
+                fileNameBodyPartMap.put(bodyPart.getContentDisposition().getFileName(), bodyPart);
+            }
+        }
+        return fileNameBodyPartMap;
+    }
+    
+    /**
+     * List allowed HTTP methods for the current graph URI.
+     * Exceptions apply to the application's Root document, owner's WebID document, and secretary's WebID document.
+     * 
+     * @return list of HTTP methods
+     */
+    public Set<String> getAllowedMethods()
+    {
+        return allowedMethods;
     }
     
     /**
@@ -883,6 +981,127 @@ public class Graph extends GraphStoreImpl implements Patchable
     public EndpointAccessor getEndpointAccessor()
     {
         return getService().getEndpointAccessor();
+    }
+    
+    /**
+     * Returns a list of supported languages.
+     * 
+     * @return list of languages
+     */
+    @Override
+    public List<Locale> getLanguages()
+    {
+        return getSystem().getSupportedLanguages();
+    }
+    
+    /**
+     * Returns URI builder for uploaded file resources.
+     * 
+     * @return URI builder
+     */
+    public UriBuilder getUploadsUriBuilder()
+    {
+        return uploadsUriBuilder.clone();
+    }
+    
+    /**
+     * Returns message digest used in SHA1 hashing.
+     * 
+     * @return message digest
+     */
+    public MessageDigest getMessageDigest()
+    {
+        return messageDigest;
+    }
+
+    /**
+     * Returns the current application.
+     * 
+     * @return application resource
+     */
+    public com.atomgraph.linkeddatahub.apps.model.Application getApplication()
+    {
+        return application;
+    }
+    
+    /**
+     * Returns the ontology of the current application.
+     * 
+     * @return ontology resource
+     */
+    public Ontology getOntology()
+    {
+        return ontology;
+    }
+
+    /**
+     * Returns the SPARQL service of the current application.
+     * 
+     * @return service resource
+     */
+    public Service getService()
+    {
+        return service;
+    }
+    
+    /**
+     * Get JAX-RS security context
+     * 
+     * @return security context object
+     */
+    public SecurityContext getSecurityContext()
+    {
+        return securityContext;
+    }
+    
+    /**
+     * Gets authenticated agent's context
+     * 
+     * @return optional agent's context
+     */
+    public Optional<AgentContext> getAgentContext()
+    {
+        return agentContext;
+    }
+    
+    /**
+     * Returns a registry of JAX-RS providers.
+     * 
+     * @return provider registry
+     */
+    public Providers getProviders()
+    {
+        return providers;
+    }
+    
+    /**
+     * Returns the system application.
+     * 
+     * @return JAX-RS application
+     */
+    public com.atomgraph.linkeddatahub.Application getSystem()
+    {
+        return system;
+    }
+    
+    /**
+     * Returns URI of the WebID document of the applications owner.
+     * 
+     * @return document URI
+     */
+    public URI getOwnerDocURI()
+    {
+        return ownerDocURI;
+    }
+    
+    /**
+     * Returns URI of the WebID document of the applications secretary.
+     * 
+     * @return document URI
+     */
+    public URI getSecretaryDocURI()
+    {
+        return secretaryDocURI;
     }
     
 }

@@ -27,7 +27,6 @@ import com.atomgraph.linkeddatahub.resource.admin.pkg.InstallPackage;
 import com.atomgraph.linkeddatahub.resource.admin.pkg.UninstallPackage;
 import com.atomgraph.linkeddatahub.resource.Settings;
 import com.atomgraph.linkeddatahub.resource.admin.SignUp;
-import com.atomgraph.linkeddatahub.resource.Graph;
 import com.atomgraph.linkeddatahub.resource.acl.Access;
 import com.atomgraph.linkeddatahub.resource.acl.AccessRequest;
 import java.util.Optional;
@@ -82,12 +81,12 @@ public class Dispatcher
         if (getUriInfo().getQueryParameters().containsKey(AC.uri.getLocalName()))
         {
             if (log.isDebugEnabled()) log.debug("No Application matched request URI <{}>, dispatching to ProxyResourceBase", getUriInfo().getQueryParameters().getFirst(AC.uri.getLocalName()));
-            return Optional.of(ProxyResourceBase.class);
+            return Optional.of(ProxiedGraph.class);
         }
         if (getDataset().isPresent())
         {
             if (log.isDebugEnabled()) log.debug("Serving request URI <{}> from Dataset <{}>, dispatching to ProxyResourceBase", getUriInfo().getAbsolutePath(), getDataset().get());
-            return Optional.of(ProxyResourceBase.class);
+            return Optional.of(ProxiedGraph.class);
         }
         
         return Optional.empty();
@@ -181,7 +180,7 @@ public class Dispatcher
     @Path("uploads/{sha1sum}")
     public Class getFileItem()
     {
-        return getProxyClass().orElse(com.atomgraph.linkeddatahub.resource.upload.sha1.Item.class);
+        return getProxyClass().orElse(com.atomgraph.linkeddatahub.resource.upload.Item.class);
     }
 
     /**
@@ -263,12 +262,13 @@ public class Dispatcher
 
     /**
      * Returns the default JAX-RS resource class.
+     * Only directly identified access to named graphs is allowed (the Graph Store Protocol endpoint is not exposed).
      *
      * @return resource class
      */
     public Class getDocumentClass()
     {
-        return Graph.class;
+        return DirectGraphStoreImpl.class;
     }
     
     /**
