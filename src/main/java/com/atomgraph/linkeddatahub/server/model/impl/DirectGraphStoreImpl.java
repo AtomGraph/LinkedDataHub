@@ -404,7 +404,7 @@ public class DirectGraphStoreImpl extends com.atomgraph.core.model.impl.DirectGr
             changedModel.add(existingModel.listStatements(resource, null, (RDFNode) null));
 
         // if PATCH results in an empty model, treat it as a DELETE request
-        if (changedModel.isEmpty()) return delete(Boolean.FALSE, getURI());
+        if (changedModel.isEmpty()) return delete();
 
         validate(changedModel); // this would normally be done transparently by the ValidatingModelProvider
         put(dataset.getDefaultModel(), Boolean.FALSE, getURI());
