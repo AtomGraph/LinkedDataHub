@@ -23,7 +23,7 @@ import com.atomgraph.linkeddatahub.client.GraphStoreClient;
 import com.atomgraph.linkeddatahub.imports.QueryLoader;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.server.io.ValidatingModelProvider;
-import com.atomgraph.linkeddatahub.server.model.impl.GraphStoreImpl;
+import com.atomgraph.linkeddatahub.server.model.impl.DirectGraphStoreImpl;
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
 import com.atomgraph.linkeddatahub.vocabulary.NFO;
 import com.atomgraph.spinrdf.vocabulary.SPIN;
@@ -67,7 +67,7 @@ import org.slf4j.LoggerFactory;
  * 
  * @author {@literal Martynas Jusevičius <martynas@atomgraph.com>}
  */
-public class Transform extends GraphStoreImpl
+public class Transform extends DirectGraphStoreImpl
 {
 
     private static final Logger log = LoggerFactory.getLogger(Transform.class);

@@ -18,11 +18,10 @@ package com.atomgraph.linkeddatahub.resource;
 
 import com.atomgraph.client.util.DataManager;
 import com.atomgraph.core.MediaTypes;
+import com.atomgraph.linkeddatahub.apps.model.Application;
 import com.atomgraph.linkeddatahub.client.GraphStoreClient;
 import com.atomgraph.linkeddatahub.imports.QueryLoader;
 import com.atomgraph.linkeddatahub.model.Service;
-import com.atomgraph.linkeddatahub.server.filter.response.CacheInvalidationFilter;
-import com.atomgraph.linkeddatahub.server.model.impl.GraphStoreImpl;
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
 import com.atomgraph.linkeddatahub.server.util.Skolemizer;
 import com.atomgraph.linkeddatahub.vocabulary.LDH;
@@ -41,9 +40,11 @@ import jakarta.ws.rs.DefaultValue;
 import jakarta.ws.rs.InternalServerErrorException;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Request;
 import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response.Status;
 import jakarta.ws.rs.core.SecurityContext;
 import jakarta.ws.rs.core.UriBuilder;
 import jakarta.ws.rs.core.UriInfo;
@@ -56,10 +57,8 @@ import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.ResIterator;
 import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.vocabulary.DCTerms;
 import org.apache.jena.vocabulary.RDF;
-import org.glassfish.jersey.uri.UriComponent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -68,14 +67,21 @@ import org.slf4j.LoggerFactory;
  * 
  * @author {@literal Martynas Jusevičius <martynas@atomgraph.com>}
  */
-public class Generate extends GraphStoreImpl
+public class Generate
 {
 
     private static final Logger log = LoggerFactory.getLogger(Generate.class);
+
+    private final UriInfo uriInfo;
+    private final MediaTypes mediaTypes;
+    private final Application application;
+    private final Optional<AgentContext> agentContext;
+    private final com.atomgraph.linkeddatahub.Application system;
+    private final ResourceContext resourceContext;
     
     /**
      * Constructs endpoint for container generation.
-     * 
+     *
      * @param request current request
      * @param uriInfo current URI info
      * @param mediaTypes supported media types
@@ -87,19 +93,35 @@ public class Generate extends GraphStoreImpl
      * @param securityContext JAX-RS security context
      * @param agentContext authenticated agent's context
      * @param dataManager RDF data manager
+     * @param resourceContext resource context for creating resources
      */
     @Inject
     public Generate(@Context Request request, @Context UriInfo uriInfo, MediaTypes mediaTypes,
             com.atomgraph.linkeddatahub.apps.model.Application application, Optional<Ontology> ontology, Optional<Service> service,
             @Context SecurityContext securityContext, Optional<AgentContext> agentContext,
             @Context Providers providers, com.atomgraph.linkeddatahub.Application system,
-            DataManager dataManager)
+            DataManager dataManager, @Context ResourceContext resourceContext)
     {
-        super(request, uriInfo, mediaTypes, application, ontology, service, securityContext, agentContext, providers, system);
+        this.uriInfo = uriInfo;
+        this.mediaTypes = mediaTypes;
+        this.application = application;
+        this.agentContext = agentContext;
+        this.system = system;
+        this.resourceContext = resourceContext;
     }
-    
+
+    /**
+     * Generates containers for given classes.
+     * Expects a model containing a parent container (sioc:has_parent) and one or more class specifications
+     * with void:class and spin:query properties. Creates a new container for each class with a view based
+     * on the provided SPARQL SELECT query.
+     *
+     * @param model the RDF model containing the generation parameters
+     * @param defaultGraph whether to use the default graph
+     * @param graphUri the target graph URI
+     * @return JAX-RS response indicating success or failure
+     */
     @POST
-    @Override
     public Response post(Model model, @QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUri)
     {
         ResIterator it = model.listSubjectsWithProperty(SIOC.HAS_PARENT);
@@ -143,9 +165,10 @@ public class Generate extends GraphStoreImpl
                             service)));
                     new Skolemizer(containerGraphURI.toString()).apply(containerModel);
 
-                    try (Response containerResponse = super.post(containerModel, false, containerGraphURI))
+                    // append triples directly to the graph store without doing an HTTP request (and thus no ACL check)
+                    try (Response containerResponse = getResourceContext().getResource(Graph.class).post(containerModel, false, containerGraphURI))
                     {
-                        if (containerResponse.getStatus() != Response.Status.CREATED.getStatusCode())
+                        if (!containerResponse.getStatusInfo().getFamily().equals(Status.Family.SUCCESSFUL))
                         {
                             if (log.isErrorEnabled()) log.error("Cannot create container");
                             throw new InternalServerErrorException("Cannot create container");
@@ -159,10 +182,7 @@ public class Generate extends GraphStoreImpl
             }
             
             // ban the parent container URI from proxy cache to make sure the next query using it will be fresh (e.g. SELECT that loads children)
-            try (Response response = ban(getApplication().getService().getBackendProxy(), parent.getURI()))
-            {
-                // Response automatically closed by try-with-resources
-            }
+            getSystem().ban(getApplication().getService().getBackendProxy(), parent.getURI(), true);
 
             return Response.ok().build();
         }
@@ -211,7 +231,7 @@ public class Generate extends GraphStoreImpl
             addLiteral(DCTerms.title, title).
             addLiteral(DH.slug, UUID.randomUUID().toString()).
             addLiteral(DCTerms.created, Calendar.getInstance()).
-            addProperty(ResourceFactory.createProperty(RDF.getURI(), "_1"), content);
+            addProperty(model.createProperty(RDF.getURI(), "_1"), content); // TO-DO: make sure we're creating sequence value larger than the existing ones?
     }
     
     /**
@@ -228,20 +248,64 @@ public class Generate extends GraphStoreImpl
             addProperty(SPIN.query, query);
     }
     
-    /** 
-     * Bans URL from the backend proxy cache.
-     * 
-     * @param proxy proxy server URL
-     * @param url banned URL
-     * @return proxy server response
+    /**
+     * Returns the supported media types.
+     *
+     * @return media types
      */
-    public Response ban(Resource proxy, String url)
+    public MediaTypes getMediaTypes()
     {
-        if (url == null) throw new IllegalArgumentException("Resource cannot be null");
-        
-        return getSystem().getClient().target(proxy.getURI()).request().
-            header(CacheInvalidationFilter.HEADER_NAME, UriComponent.encode(url, UriComponent.Type.UNRESERVED)). // the value has to be URL-encoded in order to match request URLs in Varnish
-            method("BAN", Response.class);
+        return mediaTypes;
     }
-    
+
+    /**
+     * Returns the current application.
+     *
+     * @return the application
+     */
+    public Application getApplication()
+    {
+        return application;
+    }
+
+    /**
+     * Returns the current URI info.
+     *
+     * @return URI info
+     */
+    public UriInfo getUriInfo()
+    {
+        return uriInfo;
+    }
+
+    /**
+     * Returns the authenticated agent's context.
+     *
+     * @return optional agent context
+     */
+    public Optional<AgentContext> getAgentContext()
+    {
+        return agentContext;
+    }
+
+    /**
+     * Returns the system application.
+     *
+     * @return system application
+     */
+    public com.atomgraph.linkeddatahub.Application getSystem()
+    {
+        return system;
+    }
+
+    /**
+     * Returns the resource context.
+     *
+     * @return resource context
+     */
+    public ResourceContext getResourceContext()
+    {
+        return resourceContext;
+    }
+
 }

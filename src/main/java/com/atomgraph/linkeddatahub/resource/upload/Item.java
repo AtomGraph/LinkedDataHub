@@ -293,16 +293,6 @@ public class Item extends com.atomgraph.linkeddatahub.resource.Graph
     }
     
     /**
-     * Returns URI of this file.
-     * 
-     * @return file URI
-     */
-    public URI getURI()
-    {
-        return getUriInfo().getAbsolutePath();
-    }
-    
-    /**
      * Returns RDF resource of this file.
      * 
      * @return RDF resource

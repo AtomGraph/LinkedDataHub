@@ -26,7 +26,7 @@ import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.listener.EMailListener;
 import com.atomgraph.linkeddatahub.server.filter.response.CacheInvalidationFilter;
-import com.atomgraph.linkeddatahub.server.model.impl.GraphStoreImpl;
+import com.atomgraph.linkeddatahub.server.model.impl.DirectGraphStoreImpl;
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
 import com.atomgraph.linkeddatahub.server.util.MessageBuilder;
 import com.atomgraph.linkeddatahub.server.util.Skolemizer;
@@ -101,7 +101,7 @@ import org.slf4j.LoggerFactory;
  * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-public class SignUp extends GraphStoreImpl
+public class SignUp extends DirectGraphStoreImpl
 {
     
     private static final Logger log = LoggerFactory.getLogger(SignUp.class);
@@ -518,16 +518,6 @@ public class SignUp extends GraphStoreImpl
     public Service getAgentService()
     {
         return getApplication().getService();
-    }
-    
-    /**
-     * Returns URI of this resource.
-     * 
-     * @return resource URI
-     */
-    public URI getURI()
-    {
-        return getUriInfo().getAbsolutePath();
     }
 
     /**

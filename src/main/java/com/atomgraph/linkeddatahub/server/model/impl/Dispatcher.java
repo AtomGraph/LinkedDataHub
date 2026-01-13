@@ -82,12 +82,12 @@ public class Dispatcher
         if (getUriInfo().getQueryParameters().containsKey(AC.uri.getLocalName()))
         {
             if (log.isDebugEnabled()) log.debug("No Application matched request URI <{}>, dispatching to ProxyResourceBase", getUriInfo().getQueryParameters().getFirst(AC.uri.getLocalName()));
-            return Optional.of(ProxyResourceBase.class);
+            return Optional.of(ProxiedGraph.class);
         }
         if (getDataset().isPresent())
         {
             if (log.isDebugEnabled()) log.debug("Serving request URI <{}> from Dataset <{}>, dispatching to ProxyResourceBase", getUriInfo().getAbsolutePath(), getDataset().get());
-            return Optional.of(ProxyResourceBase.class);
+            return Optional.of(ProxiedGraph.class);
         }
         
         return Optional.empty();
@@ -263,6 +263,7 @@ public class Dispatcher
 
     /**
      * Returns the default JAX-RS resource class.
+     * Only directly identified access to named graphs is allowed (the Graph Store Protocol endpoint is not exposed).
      *
      * @return resource class
      */

@@ -27,7 +27,7 @@ import com.atomgraph.linkeddatahub.model.RDFImport;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.server.io.ValidatingModelProvider;
 import com.atomgraph.linkeddatahub.server.model.Patchable;
-import com.atomgraph.linkeddatahub.server.model.impl.GraphStoreImpl;
+import com.atomgraph.linkeddatahub.server.model.impl.DirectGraphStoreImpl;
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
 import com.atomgraph.linkeddatahub.server.util.PatchUpdateVisitor;
 import com.atomgraph.linkeddatahub.server.util.Skolemizer;
@@ -46,8 +46,6 @@ import jakarta.inject.Inject;
 import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
-import jakarta.ws.rs.DefaultValue;
-import jakarta.ws.rs.GET;
 import jakarta.ws.rs.HttpMethod;
 import jakarta.ws.rs.InternalServerErrorException;
 import jakarta.ws.rs.NotFoundException;
@@ -55,7 +53,6 @@ import jakarta.ws.rs.OPTIONS;
 import jakarta.ws.rs.PATCH;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.PUT;
-import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.HttpHeaders;
@@ -120,7 +117,7 @@ import org.slf4j.LoggerFactory;
  * 
  * @author {@literal Martynas Jusevičius <martynas@atomgraph.com>}
  */
-public class Graph extends GraphStoreImpl implements Patchable
+public class Graph extends DirectGraphStoreImpl implements Patchable
 {
     
     private static final Logger log = LoggerFactory.getLogger(Graph.class);
@@ -163,17 +160,10 @@ public class Graph extends GraphStoreImpl implements Patchable
             !secretaryDocURI.equals(uri))
             allowedMethods.add(HttpMethod.DELETE);
     }
-
-    @Override
-    @GET
-    public Response get(@QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUriUnused)
-    {
-        return super.get(false, getURI());
-    }
     
     @Override
     @POST
-    public Response post(Model model, @QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUriUnused)
+    public Response post(Model model)
     {
         if (log.isTraceEnabled()) log.trace("POST Graph Store request with RDF payload: {} payload size(): {}", model, model.size());
 
@@ -206,7 +196,7 @@ public class Graph extends GraphStoreImpl implements Patchable
     @Override
     @PUT
     // the AuthorizationFilter only allows creating new child URIs for existing containers (i.e. there has to be a .. container already)
-    public Response put(Model model, @QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUriUnused)
+    public Response put(Model model)
     {
         if (log.isTraceEnabled()) log.trace("PUT Graph Store request with RDF payload: {} payload size(): {}", model, model.size());
 
@@ -311,12 +301,11 @@ public class Graph extends GraphStoreImpl implements Patchable
      * The <code>GRAPH</code> keyword is therefore not allowed in the update string.
      * 
      * @param updateRequest SPARQL update
-     * @param graphUriUnused named graph URI (unused)
      * @return response response object
      */
     @PATCH
     @Override
-    public Response patch(UpdateRequest updateRequest, @QueryParam("graph") URI graphUriUnused)
+    public Response patch(UpdateRequest updateRequest)
     {
         if (updateRequest == null) throw new BadRequestException("SPARQL update not specified");
         if (log.isDebugEnabled()) log.debug("PATCH request on named graph with URI: {}", getURI());
@@ -420,13 +409,11 @@ public class Graph extends GraphStoreImpl implements Patchable
      * Files are written to storage before the RDF data is passed to the default <code>POST</code> handler method.
      * 
      * @param multiPart multipart form data
-     * @param defaultGraph true if default graph is requested
-     * @param graphUriUnused named graph URI (unused)
      * @return HTTP response
      */
     @POST
     @Consumes(MediaType.MULTIPART_FORM_DATA)
-    public Response postMultipart(FormDataMultiPart multiPart, @QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUriUnused)
+    public Response postMultipart(FormDataMultiPart multiPart)
     {
         if (log.isDebugEnabled()) log.debug("MultiPart fields: {} body parts: {}", multiPart.getFields(), multiPart.getBodyParts());
 
@@ -464,13 +451,11 @@ public class Graph extends GraphStoreImpl implements Patchable
      * Files are written to storage before the RDF data is passed to the default <code>PUT</code> handler method.
      * 
      * @param multiPart multipart form data
-     * @param defaultGraph true if default graph is requested
-     * @param graphUriUnused named graph URI (unused)
      * @return HTTP response
      */
     @PUT
     @Consumes(MediaType.MULTIPART_FORM_DATA)
-    public Response putMultipart(FormDataMultiPart multiPart, @QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUriUnused)
+    public Response putMultipart(FormDataMultiPart multiPart)
     {
         if (log.isDebugEnabled()) log.debug("MultiPart fields: {} body parts: {}", multiPart.getFields(), multiPart.getBodyParts());
 
@@ -486,7 +471,7 @@ public class Graph extends GraphStoreImpl implements Patchable
             int fileCount = writeFiles(model, getFileNameBodyPartMap(multiPart));
             if (log.isDebugEnabled()) log.debug("# of files uploaded: {} ", fileCount);
             
-            return put(model, defaultGraph, getURI()); // ignore the @QueryParam("graph") value
+            return put(model, false, getURI());
         }
         catch (URISyntaxException ex)
         {
@@ -503,13 +488,11 @@ public class Graph extends GraphStoreImpl implements Patchable
     /**
      * Implements DELETE method of SPARQL Graph Store Protocol.
      * 
-     * @param defaultGraph true if default graph is requested
-     * @param graphUriUnused named graph URI (unused)
      * @return response
      */
     @DELETE
     @Override
-    public Response delete(@QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUriUnused)
+    public Response delete()
     {
         if (!getAllowedMethods().contains(HttpMethod.DELETE))
             throw new WebApplicationException("Cannot delete document", Response.status(Response.Status.METHOD_NOT_ALLOWED).allow(getAllowedMethods()).build());
@@ -863,16 +846,6 @@ public class Graph extends GraphStoreImpl implements Patchable
     public ResponseBuilder evaluatePreconditions(Model model)
     {
         return getInternalResponse(model, getURI()).evaluatePreconditions();
-    }
-    
-    /**
-     * Returns the named graph URI.
-     * 
-     * @return graph URI
-     */
-    public URI getURI()
-    {
-        return getUriInfo().getAbsolutePath();
     }
     
     /**

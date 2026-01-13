@@ -52,17 +52,16 @@ import org.slf4j.LoggerFactory;
  * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-public abstract class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
+public abstract class DirectGraphStoreImpl extends com.atomgraph.core.model.impl.DirectGraphStoreImpl
 {
     
-    private static final Logger log = LoggerFactory.getLogger(GraphStoreImpl.class);
+    private static final Logger log = LoggerFactory.getLogger(DirectGraphStoreImpl.class);
 
     /**
      * The relative path of the content-addressed file container.
      */
     public static final String UPLOADS_PATH = "uploads";
     
-    private final UriInfo uriInfo;
     private final com.atomgraph.linkeddatahub.apps.model.Application application;
     private final Ontology ontology;
     private final Service service;
@@ -90,15 +89,14 @@ public abstract class GraphStoreImpl extends com.atomgraph.core.model.impl.Graph
      * @param system system application
      */
     @Inject
-    public GraphStoreImpl(@Context Request request, @Context UriInfo uriInfo, MediaTypes mediaTypes,
+    public DirectGraphStoreImpl(@Context Request request, @Context UriInfo uriInfo, MediaTypes mediaTypes,
         com.atomgraph.linkeddatahub.apps.model.Application application, Optional<Ontology> ontology, Optional<Service> service,
         @Context SecurityContext securityContext, Optional<AgentContext> agentContext,
         @Context Providers providers, com.atomgraph.linkeddatahub.Application system)
     {
-        super(request, service.get(), mediaTypes);
+        super(request, service.get(), mediaTypes, uriInfo);
         if (ontology.isEmpty()) throw new InternalServerErrorException("Ontology is not specified");
         if (service.isEmpty()) throw new InternalServerErrorException("Service is not specified");
-        this.uriInfo = uriInfo;
         this.application = application;
         this.ontology = ontology.get();
         this.service = service.get();
@@ -217,16 +215,6 @@ public abstract class GraphStoreImpl extends com.atomgraph.core.model.impl.Graph
     public MessageDigest getMessageDigest()
     {
         return messageDigest;
-    }
-    
-    /**
-     * Returns the request URI information.
-     * 
-     * @return URI info
-     */
-    public UriInfo getUriInfo()
-    {
-        return uriInfo;
     }
 
     /**

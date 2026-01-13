@@ -83,10 +83,10 @@ import org.slf4j.LoggerFactory;
  * 
  * @author {@literal Martynas Jusevičius <martynas@atomgraph.com>}
  */
-public class ProxyResourceBase extends com.atomgraph.client.model.impl.ProxyResourceBase
+public class ProxiedGraph extends com.atomgraph.client.model.impl.ProxiedGraph
 {
 
-    private static final Logger log = LoggerFactory.getLogger(ProxyResourceBase.class);
+    private static final Logger log = LoggerFactory.getLogger(ProxiedGraph.class);
 
     private final UriInfo uriInfo;
     private final ContainerRequestContext crc;
@@ -117,7 +117,7 @@ public class ProxyResourceBase extends com.atomgraph.client.model.impl.ProxyReso
      * @param dataset optional dataset
      */
     @Inject
-    public ProxyResourceBase(@Context UriInfo uriInfo, @Context Request request, @Context HttpHeaders httpHeaders, MediaTypes mediaTypes,
+    public ProxiedGraph(@Context UriInfo uriInfo, @Context Request request, @Context HttpHeaders httpHeaders, MediaTypes mediaTypes,
             com.atomgraph.linkeddatahub.apps.model.Application application, Optional<Service> service,
             @Context SecurityContext securityContext, @Context ContainerRequestContext crc,
             com.atomgraph.linkeddatahub.Application system, @Context HttpServletRequest httpServletRequest, DataManager dataManager, Optional<AgentContext> agentContext,
@@ -157,7 +157,7 @@ public class ProxyResourceBase extends com.atomgraph.client.model.impl.ProxyReso
      * @param agentContext authenticated agent's context
      * @param providers registry of JAX-RS providers
      */
-    protected ProxyResourceBase(@Context UriInfo uriInfo, @Context Request request, @Context HttpHeaders httpHeaders, MediaTypes mediaTypes,
+    protected ProxiedGraph(@Context UriInfo uriInfo, @Context Request request, @Context HttpHeaders httpHeaders, MediaTypes mediaTypes,
             com.atomgraph.linkeddatahub.apps.model.Application application, Optional<Service> service,
             @Context SecurityContext securityContext, @Context ContainerRequestContext crc,
             @QueryParam("uri") URI uri, @QueryParam("endpoint") URI endpoint, @QueryParam("query") String query, @QueryParam("accept") MediaType accept, @QueryParam("mode") URI mode,
