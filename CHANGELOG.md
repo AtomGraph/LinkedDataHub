@@ -16,7 +16,7 @@
 ### Added
 - ORCID OpenID Connect login support with JWT token verification
 - `CORSFilter` response filter for cross-origin resource sharing on static assets
-- Cache invalidation (BAN requests) for agent and user account lookup queries
+- Cache invalidation (`BAN` requests) for agent and user account lookup queries
 - New `Application::normalizeOrigin` method for origin normalization
 - `ldh:parent-origin` XPath function for parent origin retrieval
 - HTTP tests for CORS functionality, internal IP blocking, and form proxying

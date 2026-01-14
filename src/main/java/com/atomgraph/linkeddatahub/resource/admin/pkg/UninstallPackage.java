@@ -67,7 +67,6 @@ import org.apache.jena.ontology.ConversionException;
  * 3. Clearing and reloading namespace ontology from cache
  * 4. Deleting package stylesheet from /static/{package-path}/
  * 5. Regenerating application master stylesheet
- * 6. Removing ldh:import triple from application (TODO)
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
@@ -303,20 +302,6 @@ public class UninstallPackage
             getSystem().ban(app.getFrontendProxy(), com.atomgraph.linkeddatahub.Application.MASTER_STYLESHEET_PATH, false);
         }
     }
-
-    /**
-     * Removes <samp>ldh:import</samp> triple from the end-user application resource.
-     */
-//    private void removeImportFromApplication(EndUserApplication app, String packageURI)
-//    {
-//        // This would need to modify system.trig via SPARQL UPDATE
-//        // For now, log a warning that this needs manual configuration
-//        if (log.isWarnEnabled())
-//        {
-//            log.warn("TODO: Remove ldh:import triple from application. Manual edit required:");
-//            log.warn("  DELETE DATA {{ <{}> ldh:import <{}> }}", app.getURI(), packageURI);
-//        }
-//    }
 
     /**
      * Returns the current application.

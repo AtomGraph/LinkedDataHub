@@ -62,16 +62,23 @@ import org.apache.jena.ontology.ConversionException;
 import org.apache.jena.update.UpdateFactory;
 import org.apache.jena.update.UpdateRequest;
 import org.apache.jena.util.FileManager;
+import com.atomgraph.linkeddatahub.vocabulary.DH;
+import com.atomgraph.linkeddatahub.vocabulary.FOAF;
+import com.atomgraph.linkeddatahub.vocabulary.SIOC;
+import com.atomgraph.linkeddatahub.server.util.Skolemizer;
+import org.apache.jena.rdf.model.ModelFactory;
+import org.apache.jena.vocabulary.RDF;
 
 /**
  * JAX-RS resource that installs a LinkedDataHub package.
  * Package installation involves:
  * 1. Fetching package metadata
- * 2. Downloading package ontology and PUTting as new document under model/ontologies/{hash}/
- * 3. Adding owl:imports of package ontology to namespace ontology
- * 4. Downloading package stylesheet (layout.xsl) and saving to /static/{package-path}/
- * 5. Regenerating application master stylesheet
- * 6. Adding ldh:import triple to application (TODO)
+ * 2. Downloading and validating package resources (ontology and stylesheet)
+ * 3. Creating item document under packages/ container with package metadata
+ * 4. PUTting package ontology as new document under ontologies/{hash}/
+ * 5. Adding owl:imports of package ontology to namespace ontology
+ * 6. Saving package stylesheet (layout.xsl) to /static/{package-path}/
+ * 7. Regenerating application master stylesheet
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
@@ -124,8 +131,6 @@ public class InstallPackage
             throw new BadRequestException("Package URI not specified");
         }
 
-        EndUserApplication endUserApp = getApplication().as(AdminApplication.class).getEndUserApplication();
-
         if (log.isInfoEnabled()) log.info("Installing package: {}", packageURI);
         com.atomgraph.linkeddatahub.apps.model.Package pkg = getPackage(packageURI);
         if (pkg == null)
@@ -145,10 +150,14 @@ public class InstallPackage
 
         try
         {
+            EndUserApplication endUserApp = getApplication().as(AdminApplication.class).getEndUserApplication();
+            AdminApplication adminApp = endUserApp.getAdminApplication();
+
             if (ontology != null)
             {
                 if (log.isDebugEnabled()) log.debug("Downloading package ontology from: {}", ontology.getURI());
                 Model ontologyModel = downloadOntology(ontology.getURI());
+
                 installOntology(endUserApp, ontologyModel, ontology.getURI());
             }
 
@@ -158,16 +167,43 @@ public class InstallPackage
                 String packagePath = pkg.getStylesheetPath();
 
                 if (log.isDebugEnabled()) log.debug("Downloading package stylesheet from: {}", stylesheetURI);
-                String stylesheetContent = downloadStylesheet(stylesheetURI);               
-       
-                installStylesheet(Paths.get(getServletContext().getRealPath("/static")).resolve(packagePath).resolve("layout.xsl"), stylesheetContent, endUserApp);
+                String stylesheetContent = downloadStylesheet(stylesheetURI);
 
-                // 4. Regenerate master stylesheet
+                installStylesheet(Paths.get(getServletContext().getRealPath("/static")).resolve(packagePath).resolve("layout.xsl"), stylesheetContent);
+
+                // Purge package stylesheet from frontend proxy cache
+                String stylesheetURL = "/static/" + packagePath + "/layout.xsl";
+                if (endUserApp.getFrontendProxy() != null)
+                {
+                    if (log.isDebugEnabled()) log.debug("Purging package stylesheet from frontend proxy cache: {}", stylesheetURL);
+                    getSystem().ban(endUserApp.getFrontendProxy(), stylesheetURL, false);
+                }
+
                 regenerateMasterStylesheet(endUserApp, pkg);
+
+                // Purge master stylesheet from frontend proxy cache
+                if (endUserApp.getFrontendProxy() != null)
+                {
+                    if (log.isDebugEnabled()) log.debug("Purging master stylesheet from frontend proxy cache: {}", com.atomgraph.linkeddatahub.Application.MASTER_STYLESHEET_PATH);
+                    getSystem().ban(endUserApp.getFrontendProxy(), com.atomgraph.linkeddatahub.Application.MASTER_STYLESHEET_PATH, false);
+                }
             }
 
-            //addImportToApplication(endUserApp, packageURI);
+            GraphStoreClient gsc = GraphStoreClient.create(getSystem().getClient(), getSystem().getMediaTypes());
+            if (getAgentContext().isPresent()) gsc = gsc.delegation(adminApp.getBaseURI(), getAgentContext().get());
 
+            String slug = hashURI(packageURI);
+            URI packageDocumentURI = adminApp.getUriBuilder().
+                path("packages/").
+                path("{slug}/").
+                build(slug);
+            Model packageDocModel = ModelFactory.createDefaultModel();
+            packageDocModel.add(pkg.getModel());
+            Resource container = packageDocModel.createResource(adminApp.getBaseURI().resolve("packages/").toString());
+            createPackageDocument(packageDocModel, packageDocumentURI, container, pkg, slug);
+            new Skolemizer(packageDocumentURI.toString()).apply(packageDocModel);
+            putPackageDocument(gsc, packageDocumentURI, packageDocModel);
+            
             if (log.isInfoEnabled()) log.info("Successfully installed package: {}", packageURI);
 
             // Redirect back to referer or application base
@@ -185,6 +221,7 @@ public class InstallPackage
      * Loads package metadata from its URI using GraphStoreClient.
      * Package metadata is expected to be available as Linked Data.
      *
+     * @param gsc the graph store client
      * @param packageURI the package URI (e.g., https://packages.linkeddatahub.com/skos/#this)
      * @return Package instance
      * @throws NotFoundException if package cannot be found (404)
@@ -264,6 +301,30 @@ public class InstallPackage
     }
 
     /**
+     * Hashes a URI using SHA-1 to create a unique document slug.
+     *
+     * @param uri the URI to hash
+     * @return the SHA-1 hash as a hexadecimal string
+     * @throws IOException if hashing fails
+     */
+    private String hashURI(String uri) throws IOException
+    {
+        try
+        {
+            MessageDigest md = MessageDigest.getInstance("SHA-1");
+            md.update(uri.getBytes(StandardCharsets.UTF_8));
+            String hash = Hex.encodeHexString(md.digest());
+            if (log.isDebugEnabled()) log.debug("URI '{}' hashed to '{}'", uri, hash);
+            return hash;
+        }
+        catch (NoSuchAlgorithmException e)
+        {
+            if (log.isErrorEnabled()) log.error("Failed to hash URI: {}", uri, e);
+            throw new IOException("Failed to hash URI", e);
+        }
+    }
+
+    /**
      * Installs ontology by PUTting as a new document and adding owl:imports to namespace ontology.
      *
      * @param app the end-user application
@@ -275,24 +336,8 @@ public class InstallPackage
     {
         AdminApplication adminApp = app.getAdminApplication();
 
-        // 1. Create hash of package URI to use as document slug
-        String hash;
-        try
-        {
-            MessageDigest md = MessageDigest.getInstance("SHA-1");
-            md.update(packageOntologyURI.getBytes(StandardCharsets.UTF_8));
-            hash = Hex.encodeHexString(md.digest());
-            if (log.isDebugEnabled()) log.debug("Package ontology URI '{}' hashed to '{}'", packageOntologyURI, hash);
-        }
-        catch (NoSuchAlgorithmException e)
-        {
-            if (log.isErrorEnabled()) log.error("Failed to hash package ontology URI: {}", packageOntologyURI, e);
-            throw new IOException("Failed to hash package ontology URI", e);
-        }
-
-        // 2. PUT package ontology as a document under model/ontologies/{hash}/ (overwrites if exists)
-        URI ontologyDocumentURI = UriBuilder.fromUri(adminApp.getBaseURI()).path("ontologies/{hash}/").build(hash);
-        if (log.isDebugEnabled()) log.debug("PUTting package ontology to document: {}", ontologyDocumentURI);
+        // 1. Create hash of package ontology URI to use as document slug
+        String hash = hashURI(packageOntologyURI);
 
         GraphStoreClient gsc = GraphStoreClient.create(getSystem().getClient(), getSystem().getMediaTypes());
 
@@ -302,6 +347,10 @@ public class InstallPackage
             if (log.isDebugEnabled()) log.debug("Delegating agent credentials for PUT request");
             gsc = gsc.delegation(adminApp.getBaseURI(), getAgentContext().get());
         }
+        
+        // 2. PUT package ontology as a document under model/ontologies/{hash}/ (overwrites if exists)
+        URI ontologyDocumentURI = UriBuilder.fromUri(adminApp.getBaseURI()).path("ontologies/{hash}/").build(hash);
+        if (log.isDebugEnabled()) log.debug("PUTting package ontology to document: {}", ontologyDocumentURI);
 
         try (Response putResponse = gsc.put(ontologyDocumentURI, ontologyModel))
         {
@@ -337,14 +386,16 @@ public class InstallPackage
         }
 
         // 4. Clear and reload namespace ontology from cache
-        if (log.isDebugEnabled()) log.debug("Clearing and reloading namespace ontology '{}'", namespaceOntologyURI);
-        getResourceContext().getResource(ClearOntology.class).post(namespaceOntologyURI, null);
+        // TODO: This causes deadlock when OntologyModelGetter makes synchronous HTTP requests back to /ns
+        // Need to either make this async or find alternative way to refresh ontology cache
+        // if (log.isDebugEnabled()) log.debug("Clearing and reloading namespace ontology '{}'", namespaceOntologyURI);
+        // getResourceContext().getResource(ClearOntology.class).post(namespaceOntologyURI, null);
     }
 
     /**
      * Installs stylesheet to <samp>/static/<package-path>/layout.xsl</samp>
      */
-    private void installStylesheet(Path stylesheetFile, String stylesheetContent, EndUserApplication endUserApp) throws IOException
+    private void installStylesheet(Path stylesheetFile, String stylesheetContent) throws IOException
     {
         Files.createDirectories(stylesheetFile.getParent());
         Files.writeString(stylesheetFile, stylesheetContent);
@@ -382,18 +433,54 @@ public class InstallPackage
     }
 
     /**
-     * Adds ldh:import triple to the end-user application resource.
+     * Creates a package document item.
+     *
+     * @param packageDocModel the model to populate
+     * @param packageDocumentURI the document URI
+     * @param container the container resource
+     * @param pkg the package resource
+     * @param slug the document slug
+     * @return the document item resource
      */
-//    private void addImportToApplication(EndUserApplication app, String packageURI)
-//    {
-//        // This would need to modify system.trig via SPARQL UPDATE
-//        // For now, log a warning that this needs manual configuration
-//        if (log.isWarnEnabled())
-//        {
-//            log.warn("TODO: Add ldh:import triple to application. Manual edit required:");
-//            log.warn("  <{}> ldh:import <{}> .", app.getURI(), packageURI);
-//        }
-//    }
+    private Resource createPackageDocument(Model packageDocModel,
+                                          URI packageDocumentURI,
+                                          Resource container,
+                                          com.atomgraph.linkeddatahub.apps.model.Package pkg,
+                                          String slug)
+    {
+        Resource packageDocItem = packageDocModel.createResource(packageDocumentURI.toString()).
+            addProperty(RDF.type, DH.Item).
+            addProperty(SIOC.HAS_CONTAINER, container).
+            addLiteral(DH.slug, slug).
+            addProperty(FOAF.primaryTopic, pkg);
+
+        return packageDocItem;
+    }
+
+    /**
+     * PUTs a package document to the specified URI.
+     *
+     * @param gsc the graph store client
+     * @param packageDocumentURI the document URI
+     * @param packageDocModel the package document model
+     * @throws IOException if PUT fails
+     */
+    private void putPackageDocument(GraphStoreClient gsc, URI packageDocumentURI, Model packageDocModel) throws IOException
+    {
+        if (log.isDebugEnabled()) log.debug("PUTting package document to: {}", packageDocumentURI);
+
+        try (Response putResponse = gsc.put(packageDocumentURI, packageDocModel))
+        {
+            if (!putResponse.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
+            {
+                if (log.isErrorEnabled()) log.error("Failed to PUT package document to {}: {}", packageDocumentURI, putResponse.getStatus());
+                throw new IOException("Failed to PUT package document to " + packageDocumentURI + ": " + putResponse.getStatus());
+            }
+            if (log.isDebugEnabled()) log.debug("Package document PUT response status: {}", putResponse.getStatus());
+        }
+
+        if (log.isInfoEnabled()) log.info("Successfully created package document at: {}", packageDocumentURI);
+    }
 
     /**
      * Returns the current application.

@@ -12,6 +12,12 @@ package_uri="https://packages.linkeddatahub.com/skos/#this"
 package_ontology_uri="https://raw.githubusercontent.com/AtomGraph/LinkedDataHub-Apps/refs/heads/develop/packages/skos/ns.ttl#"
 namespace_ontology_uri="${END_USER_BASE_URL}ns#"
 
+# verify owl:imports triple does NOT exist before install
+if curl -k -s -H "Accept: application/n-triples" -E "$OWNER_CERT_FILE":"$OWNER_CERT_PWD" "${ADMIN_BASE_URL}ontologies/namespace/" \
+| grep -q "<${namespace_ontology_uri}> <http://www.w3.org/2002/07/owl#imports> <${package_ontology_uri}>"; then
+  exit 1
+fi
+
 # install package
 install-package.sh \
   -b "$END_USER_BASE_URL" \
@@ -20,10 +26,11 @@ install-package.sh \
   --package "$package_uri" \
 | grep -q "$STATUS_SEE_OTHER"
 
-# verify owl:imports triple was added
+# verify owl:imports triple was added (check graph store directly, not cached endpoint)
 curl -k -s \
   -H "Accept: application/n-triples" \
-  "${END_USER_BASE_URL}ns" \
+  -E "$OWNER_CERT_FILE":"$OWNER_CERT_PWD" \
+  "${ADMIN_BASE_URL}ontologies/namespace/" \
 | grep -q "<${namespace_ontology_uri}> <http://www.w3.org/2002/07/owl#imports> <${package_ontology_uri}>"
 
 # verify package ontology document exists
@@ -41,8 +48,8 @@ uninstall-package.sh \
   --package "$package_uri" \
 | grep -q "$STATUS_SEE_OTHER"
 
-# verify owl:imports triple was removed
-ns_after=$(curl -k -s -H "Accept: application/n-triples" "${END_USER_BASE_URL}ns")
+# verify owl:imports triple was removed (check graph store directly, not cached endpoint)
+ns_after=$(curl -k -s -H "Accept: application/n-triples" -E "$OWNER_CERT_FILE":"$OWNER_CERT_PWD" "${ADMIN_BASE_URL}ontologies/namespace/")
 if echo "$ns_after" | grep -q "<${namespace_ontology_uri}> <http://www.w3.org/2002/07/owl#imports> <${package_ontology_uri}>"; then
   exit 1
 fi

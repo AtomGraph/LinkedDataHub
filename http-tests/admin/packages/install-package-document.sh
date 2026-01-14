@@ -9,8 +9,6 @@ purge_cache "$FRONTEND_VARNISH_SERVICE"
 
 # test package URI (SKOS package)
 package_uri="https://packages.linkeddatahub.com/skos/#this"
-package_ontology_uri="https://raw.githubusercontent.com/AtomGraph/LinkedDataHub-Apps/refs/heads/develop/packages/skos/ns.ttl#"
-namespace_ontology_uri="${END_USER_BASE_URL}ns#"
 
 # install package
 install-package.sh \
@@ -20,15 +18,23 @@ install-package.sh \
   --package "$package_uri" \
 | grep -q "$STATUS_SEE_OTHER"
 
-# verify owl:imports triple was added to namespace graph
-curl -k -s \
-  -H "Accept: application/n-triples" \
-  "${END_USER_BASE_URL}ns" \
-| grep -q "<${namespace_ontology_uri}> <http://www.w3.org/2002/07/owl#imports> <${package_ontology_uri}>"
-
-# verify package ontology document was created (hash of package ontology URI)
-package_ontology_hash=$(echo -n "$package_ontology_uri" | shasum -a 1 | cut -d' ' -f1)
+# verify package document was created (hash of package URI)
+package_hash=$(echo -n "$package_uri" | shasum -a 1 | cut -d' ' -f1)
 curl -k -w "%{http_code}\n" -o /dev/null -s \
   -E "$OWNER_CERT_FILE":"$OWNER_CERT_PWD" \
-  "${ADMIN_BASE_URL}ontologies/${package_ontology_hash}/" \
+  "${ADMIN_BASE_URL}packages/${package_hash}/" \
 | grep -qE "^($STATUS_OK|$STATUS_NOT_MODIFIED)$"
+
+# uninstall package
+uninstall-package.sh \
+  -b "$END_USER_BASE_URL" \
+  -f "$OWNER_CERT_FILE" \
+  -p "$OWNER_CERT_PWD" \
+  --package "$package_uri" \
+| grep -q "$STATUS_SEE_OTHER"
+
+# verify package document was deleted
+#curl -k -w "%{http_code}\n" -o /dev/null -s \
+#  -E "$OWNER_CERT_FILE":"$OWNER_CERT_PWD" \
+#  "${ADMIN_BASE_URL}packages/${package_hash}/" \
+#| grep -q "$STATUS_FORBIDDEN"
