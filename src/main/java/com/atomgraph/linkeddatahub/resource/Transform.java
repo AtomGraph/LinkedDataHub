@@ -23,12 +23,11 @@ import com.atomgraph.linkeddatahub.imports.QueryLoader;
 import com.atomgraph.linkeddatahub.server.io.ValidatingModelProvider;
 import com.atomgraph.linkeddatahub.server.model.impl.DirectGraphStoreImpl;
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
+import com.atomgraph.linkeddatahub.server.util.URLValidator;
 import com.atomgraph.linkeddatahub.vocabulary.NFO;
 import com.atomgraph.spinrdf.vocabulary.SPIN;
-import java.net.InetAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.UnknownHostException;
 import java.util.Map;
 import java.util.Optional;
 import jakarta.inject.Inject;
@@ -144,8 +143,8 @@ public class Transform
             if (queryRes == null) throw new BadRequestException("Transformation query string (spin:query) not provided");
 
             // LNK-002: Validate URIs to prevent SSRF attacks
-            validateNotInternalURL(URI.create(queryRes.getURI()));
-            validateNotInternalURL(URI.create(source.getURI()));
+            new URLValidator(URI.create(queryRes.getURI())).validate();
+            new URLValidator(URI.create(source.getURI())).validate();
 
             GraphStoreClient gsc = GraphStoreClient.create(getSystem().getClient(), getSystem().getMediaTypes()).
                 delegation(getUriInfo().getBaseUri(), getAgentContext().orElse(null));
@@ -236,7 +235,7 @@ public class Transform
             if (queryRes == null) throw new BadRequestException("Transformation query string (spin:query) not provided");
 
             // LNK-002: Validate query URI to prevent SSRF attacks
-            validateNotInternalURL(URI.create(queryRes.getURI()));
+            new URLValidator(URI.create(queryRes.getURI())).validate();
 
             GraphStoreClient gsc = GraphStoreClient.create(getSystem().getClient(), getSystem().getMediaTypes()).
                 delegation(getUriInfo().getBaseUri(), getAgentContext().orElse(null));
@@ -275,42 +274,6 @@ public class Transform
             return Response.status(response.getStatus()).
                 entity(response.readEntity(Model.class)).
                 build();
-        }
-    }
-
-    /**
-     * Validates that the given URI does not point to an internal/private network address.
-     * Prevents SSRF attacks by blocking access to RFC 1918 private addresses and link-local addresses.
-     *
-     * @param uri the URI to validate
-     * @throws IllegalArgumentException if URI or host is null
-     * @throws BadRequestException if the URI resolves to an internal address
-     * @see <a href="https://github.com/AtomGraph/LinkedDataHub/issues/253">LNK-002: SSRF primitives in admin endpoint</a>
-     */
-    protected static void validateNotInternalURL(URI uri)
-    {
-        if (uri == null) throw new IllegalArgumentException("URI cannot be null");
-
-        String host = uri.getHost();
-        if (host == null) throw new IllegalArgumentException("URI host cannot be null");
-
-        // Resolve hostname to IP and check if it's private/internal
-        try
-        {
-            InetAddress address = InetAddress.getByName(host);
-
-            // Note: We don't block loopback addresses (127.0.0.1, localhost) because transformation queries
-            // and data sources may legitimately reference resources on the same server
-
-            if (address.isLinkLocalAddress())
-                throw new BadRequestException("URI cannot resolve to link-local addresses: " + address.getHostAddress());
-            if (address.isSiteLocalAddress())
-                throw new BadRequestException("URI cannot resolve to private addresses (RFC 1918): " + address.getHostAddress());
-        }
-        catch (UnknownHostException e)
-        {
-            if (log.isWarnEnabled()) log.warn("Could not resolve hostname for SSRF validation: {}", host);
-            // Allow request to proceed - will fail later with better error message
         }
     }
 

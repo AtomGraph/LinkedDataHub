@@ -31,9 +31,8 @@ import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
 import com.atomgraph.linkeddatahub.server.security.IDTokenSecurityContext;
 import com.atomgraph.linkeddatahub.server.security.WebIDSecurityContext;
-import java.net.InetAddress;
+import com.atomgraph.linkeddatahub.server.util.URLValidator;
 import java.net.URI;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -167,7 +166,7 @@ public class ProxiedGraph extends com.atomgraph.client.model.impl.ProxiedGraph
         super(uriInfo, request, httpHeaders, mediaTypes, uri, endpoint, query, accept, mode, system.getExternalClient(), httpServletRequest);
 
         // LNK-009: Validate that proxied URI is not internal/private (SSRF protection)
-        if (uri != null) validateNotInternalURL(uri);
+        if (uri != null) new URLValidator(uri).validate();
 
         this.uriInfo = uriInfo;
         this.application = application;
@@ -567,47 +566,6 @@ public class ProxiedGraph extends com.atomgraph.client.model.impl.ProxiedGraph
     public String getUserAgentHeaderValue()
     {
         return GraphStoreClient.USER_AGENT;
-    }
-
-    /**
-     * Validates that a URI does not point to an internal/private network resource.
-     * This prevents SSRF (Server-Side Request Forgery) attacks by resolving the hostname
-     * and checking if the IP address is in a private/internal range.
-     *
-     * Blocks access to:
-     * - Loopback addresses (127.0.0.0/8, ::1)
-     * - RFC 1918 private addresses (10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16)
-     * - Link-local addresses (169.254.0.0/16, fe80::/10)
-     *
-     * @param uri the URI to validate
-     * @throws IllegalArgumentException if the URI or host is null
-     * @throws ForbiddenException if the URI resolves to an internal IP address
-     */
-    protected static void validateNotInternalURL(URI uri)
-    {
-        if (uri == null) throw new IllegalArgumentException("URI cannot be null");
-
-        String host = uri.getHost();
-        if (host == null) throw new IllegalArgumentException("URI host cannot be null");
-
-        // Resolve hostname to IP and check if it's private/internal
-        try
-        {
-            InetAddress address = InetAddress.getByName(host);
-
-            // Note: We don't block loopback addresses (127.0.0.1, localhost) because the application
-            // legitimately proxies its own endpoints (e.g., /clear, admin operations)
-
-            if (address.isLinkLocalAddress())
-                throw new ForbiddenException("Access to link-local addresses is not allowed: " + address.getHostAddress());
-            if (address.isSiteLocalAddress())
-                throw new ForbiddenException("Access to private addresses (RFC 1918) is not allowed: " + address.getHostAddress());
-        }
-        catch (UnknownHostException e)
-        {
-            if (log.isWarnEnabled()) log.warn("Could not resolve hostname for SSRF validation: {}", host);
-            // Allow request to proceed - will fail later with better error message
-        }
     }
 
 }

@@ -25,13 +25,12 @@ import com.atomgraph.linkeddatahub.server.exception.auth.webid.InvalidWebIDPubli
 import com.atomgraph.linkeddatahub.server.exception.auth.webid.WebIDLoadingException;
 import com.atomgraph.linkeddatahub.server.exception.auth.webid.WebIDDelegationException;
 import com.atomgraph.linkeddatahub.server.security.WebIDSecurityContext;
+import com.atomgraph.linkeddatahub.server.util.URLValidator;
 import com.atomgraph.linkeddatahub.vocabulary.ACL;
 import com.atomgraph.linkeddatahub.vocabulary.Cert;
 import com.atomgraph.linkeddatahub.vocabulary.FOAF;
-import java.net.InetAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.UnknownHostException;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateParsingException;
 import java.security.cert.X509Certificate;
@@ -130,7 +129,7 @@ public class WebIDFilter extends AuthenticationFilter
             }
             if (log.isTraceEnabled()) log.trace("Client WebID: {}", webID);
 
-            validateNotInternalURL(webID); // LNK-004: Prevent SSRF via WebID URI
+            new URLValidator(webID).validate(); // LNK-004: Prevent SSRF via WebID URI
             Resource agent = authenticate(loadWebID(webID), webID, publicKey);
             if (agent == null)
             {
@@ -143,7 +142,7 @@ public class WebIDFilter extends AuthenticationFilter
             if (onBehalfOf != null)
             {
                 URI principalWebID = new URI(onBehalfOf);
-                validateNotInternalURL(principalWebID); // LNK-004: Prevent SSRF via On-Behalf-Of header
+                new URLValidator(principalWebID).validate(); // LNK-004: Prevent SSRF via On-Behalf-Of header
                 Model principalWebIDModel = loadWebID(principalWebID);
                 Resource principal = principalWebIDModel.createResource(onBehalfOf);
                 // if we verify that the current agent is a secretary of the principal, that principal becomes current agent. Else throw error
@@ -301,7 +300,7 @@ public class WebIDFilter extends AuthenticationFilter
                 if (certKeyRes != null && certKeyRes.isURIResource())
                 {
                     URI certKey = URI.create(certKeyRes.getURI());
-                    validateNotInternalURL(certKey); // LNK-004: Prevent SSRF via cert:key reference in WebID document
+                    new URLValidator(certKey).validate(); // LNK-004: Prevent SSRF via cert:key reference in WebID document
                     // remove fragment identifier to get document URI
                     URI certKeyDoc = new URI(certKey.getScheme(), certKey.getSchemeSpecificPart(), null).normalize();
 
@@ -381,42 +380,6 @@ public class WebIDFilter extends AuthenticationFilter
     public void logout(Application app, ContainerRequestContext request)
     {
         throw new UnsupportedOperationException("Not supported yet."); // logout not really possible with HTTP certificates
-    }
-
-    /**
-     * Validates that the given URI does not point to an internal/private network address.
-     * Prevents SSRF attacks by blocking access to RFC 1918 private addresses and link-local addresses.
-     *
-     * @param uri the URI to validate
-     * @throws IllegalArgumentException if URI or host is null
-     * @throws BadRequestException if the URI resolves to an internal address
-     * @see <a href="https://github.com/AtomGraph/LinkedDataHub/issues/252">LNK-004: SSRF primitive via On-Behalf-Of header</a>
-     */
-    protected static void validateNotInternalURL(URI uri)
-    {
-        if (uri == null) throw new IllegalArgumentException("URI cannot be null");
-
-        String host = uri.getHost();
-        if (host == null) throw new IllegalArgumentException("URI host cannot be null");
-
-        // Resolve hostname to IP and check if it's private/internal
-        try
-        {
-            InetAddress address = InetAddress.getByName(host);
-
-            // Note: We don't block loopback addresses (127.0.0.1, localhost) because WebID documents
-            // may legitimately be hosted on the same server during development/testing
-
-            if (address.isLinkLocalAddress())
-                throw new BadRequestException("WebID URI cannot resolve to link-local addresses: " + address.getHostAddress());
-            if (address.isSiteLocalAddress())
-                throw new BadRequestException("WebID URI cannot resolve to private addresses (RFC 1918): " + address.getHostAddress());
-        }
-        catch (UnknownHostException e)
-        {
-            if (log.isWarnEnabled()) log.warn("Could not resolve hostname for SSRF validation: {}", host);
-            // Allow request to proceed - will fail later with better error message
-        }
     }
 
 }

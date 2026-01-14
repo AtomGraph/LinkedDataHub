@@ -18,6 +18,7 @@ package com.atomgraph.linkeddatahub;
 
 import com.atomgraph.linkeddatahub.server.mapper.ResourceExistsExceptionMapper;
 import com.atomgraph.linkeddatahub.server.mapper.HttpHostConnectExceptionMapper;
+import com.atomgraph.linkeddatahub.server.mapper.InternalURLExceptionMapper;
 import com.atomgraph.linkeddatahub.server.mapper.MessagingExceptionMapper;
 import com.atomgraph.linkeddatahub.server.mapper.auth.webid.WebIDLoadingExceptionMapper;
 import com.atomgraph.linkeddatahub.server.mapper.auth.webid.InvalidWebIDURIExceptionMapper;
@@ -1090,6 +1091,7 @@ public class Application extends ResourceConfig
         register(NotAcceptableExceptionMapper.class);
         register(ClientErrorExceptionMapper.class);
         register(HttpHostConnectExceptionMapper.class);
+        register(InternalURLExceptionMapper.class);
         register(BadGatewayExceptionMapper.class);
         register(OntClassNotFoundExceptionMapper.class);
         register(InvalidWebIDPublicKeyExceptionMapper.class);

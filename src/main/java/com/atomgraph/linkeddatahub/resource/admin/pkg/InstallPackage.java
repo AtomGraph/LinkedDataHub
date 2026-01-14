@@ -23,6 +23,7 @@ import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import com.atomgraph.linkeddatahub.client.GraphStoreClient;
 import com.atomgraph.linkeddatahub.resource.admin.ClearOntology;
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
+import com.atomgraph.linkeddatahub.server.util.URLValidator;
 import com.atomgraph.linkeddatahub.server.util.XSLTMasterUpdater;
 import static com.atomgraph.server.status.UnprocessableEntityStatus.UNPROCESSABLE_ENTITY;
 import jakarta.inject.Inject;
@@ -131,6 +132,9 @@ public class InstallPackage
             throw new BadRequestException("Package URI not specified");
         }
 
+        // Validate package URI to prevent SSRF attacks
+        new URLValidator(URI.create(packageURI)).validate();
+
         if (log.isInfoEnabled()) log.info("Installing package: {}", packageURI);
         com.atomgraph.linkeddatahub.apps.model.Package pkg = getPackage(packageURI);
         if (pkg == null)
@@ -155,6 +159,9 @@ public class InstallPackage
 
             if (ontology != null)
             {
+                // Validate ontology URI to prevent SSRF attacks
+                new URLValidator(URI.create(ontology.getURI())).validate();
+
                 if (log.isDebugEnabled()) log.debug("Downloading package ontology from: {}", ontology.getURI());
                 Model ontologyModel = downloadOntology(ontology.getURI());
 
@@ -165,6 +172,9 @@ public class InstallPackage
             {
                 URI stylesheetURI = URI.create(stylesheet.getURI());
                 String packagePath = pkg.getStylesheetPath();
+
+                // Validate stylesheet URI to prevent SSRF attacks
+                new URLValidator(stylesheetURI).validate();
 
                 if (log.isDebugEnabled()) log.debug("Downloading package stylesheet from: {}", stylesheetURI);
                 String stylesheetContent = downloadStylesheet(stylesheetURI);

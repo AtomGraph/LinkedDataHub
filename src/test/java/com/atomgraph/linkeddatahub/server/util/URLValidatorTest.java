@@ -13,71 +13,73 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.atomgraph.linkeddatahub.resource;
+package com.atomgraph.linkeddatahub.server.util;
 
-import jakarta.ws.rs.BadRequestException;
+import com.atomgraph.linkeddatahub.server.exception.InternalURLException;
 import org.junit.Test;
 
 import java.net.URI;
 
 /**
- * Unit tests for Transform SSRF protection.
- * Tests the validateNotInternalURL method to ensure it properly blocks access to internal addresses.
+ * Unit tests for URLValidator SSRF protection.
+ * Tests the URLValidator to ensure it properly blocks access to internal addresses.
  *
+ * @see <a href="https://github.com/AtomGraph/LinkedDataHub/issues/250">LNK-009: SSRF vulnerability</a>
+ * @see <a href="https://github.com/AtomGraph/LinkedDataHub/issues/252">LNK-004: SSRF primitive via On-Behalf-Of header</a>
  * @see <a href="https://github.com/AtomGraph/LinkedDataHub/issues/253">LNK-002: SSRF primitives in admin endpoint</a>
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-public class TransformTest
+public class URLValidatorTest
 {
 
     @Test(expected = IllegalArgumentException.class)
     public void testNullURI()
     {
-        Transform.validateNotInternalURL(null);
+        new URLValidator(null);
     }
 
-    @Test(expected = BadRequestException.class)
+    @Test(expected = InternalURLException.class)
     public void testLinkLocalIPv4Blocked()
     {
-        Transform.validateNotInternalURL(URI.create("http://169.254.1.1:8080/query.rq"));
+        new URLValidator(URI.create("http://169.254.1.1:8080/test")).validate();
     }
 
-    @Test(expected = BadRequestException.class)
+    @Test(expected = InternalURLException.class)
     public void testPrivateClass10Blocked()
     {
-        Transform.validateNotInternalURL(URI.create("http://10.0.0.1:8080/data.ttl"));
+        new URLValidator(URI.create("http://10.0.0.1:8080/test")).validate();
     }
 
-    @Test(expected = BadRequestException.class)
+    @Test(expected = InternalURLException.class)
     public void testPrivateClass172Blocked()
     {
-        Transform.validateNotInternalURL(URI.create("http://172.16.0.0:8080/query.rq"));
+        new URLValidator(URI.create("http://172.16.0.0:8080/test")).validate();
     }
 
-    @Test(expected = BadRequestException.class)
+    @Test(expected = InternalURLException.class)
     public void testPrivateClass192Blocked()
     {
-        Transform.validateNotInternalURL(URI.create("http://192.168.1.1:8080/data.ttl"));
+        new URLValidator(URI.create("http://192.168.1.1:8080/test")).validate();
     }
 
     @Test
     public void testExternalURLAllowed()
     {
         // Public IPs should be allowed (no exception thrown)
-        Transform.validateNotInternalURL(URI.create("http://8.8.8.8:80/query.rq"));
+        new URLValidator(URI.create("http://8.8.8.8:80/test")).validate();
     }
 
     @Test
     public void testPublicDomainAllowed()
     {
         // Public domains should be allowed (no exception thrown)
-        Transform.validateNotInternalURL(URI.create("http://example.org/data.ttl"));
+        new URLValidator(URI.create("http://example.org/test")).validate();
     }
 
     @Test
     public void testHTTPSAllowed()
     {
         // HTTPS to public domain should be allowed (no exception thrown)
-        Transform.validateNotInternalURL(URI.create("https://dbpedia.org/sparql"));
+        new URLValidator(URI.create("https://www.w3.org/ns/ldp")).validate();
     }
 }
