@@ -165,9 +165,6 @@ public class ProxiedGraph extends com.atomgraph.client.model.impl.ProxiedGraph
     {
         super(uriInfo, request, httpHeaders, mediaTypes, uri, endpoint, query, accept, mode, system.getExternalClient(), httpServletRequest);
 
-        // LNK-009: Validate that proxied URI is not internal/private (SSRF protection)
-        if (uri != null) new URLValidator(uri).validate();
-
         this.uriInfo = uriInfo;
         this.application = application;
         this.service = service.get();
@@ -311,6 +308,8 @@ public class ProxiedGraph extends com.atomgraph.client.model.impl.ProxiedGraph
         }
 
         if (!getSystem().isEnableLinkedDataProxy()) throw new NotAllowedException("Linked Data proxy not enabled");
+        // LNK-009: Validate that proxied URI is not internal/private (SSRF protection)
+        new URLValidator(target.getUri()).validate();
 
         return super.get(target, builder);
     }
@@ -326,6 +325,8 @@ public class ProxiedGraph extends com.atomgraph.client.model.impl.ProxiedGraph
     public Response post(String sparqlQuery)
     {
         if (getWebTarget() == null) throw new NotFoundException("Resource URI not supplied");
+        // LNK-009: Validate that proxied URI is not internal/private (SSRF protection)
+        new URLValidator(getWebTarget().getUri()).validate();
 
         if (log.isDebugEnabled()) log.debug("POSTing SPARQL query to URI: {}", getWebTarget().getUri());
 
@@ -358,6 +359,8 @@ public class ProxiedGraph extends com.atomgraph.client.model.impl.ProxiedGraph
     public Response postForm(String formData)
     {
         if (getWebTarget() == null) throw new NotFoundException("Resource URI not supplied");
+        // LNK-009: Validate that proxied URI is not internal/private (SSRF protection)
+        new URLValidator(getWebTarget().getUri()).validate();
 
         if (log.isDebugEnabled()) log.debug("POSTing form data to URI: {}", getWebTarget().getUri());
 
@@ -390,6 +393,8 @@ public class ProxiedGraph extends com.atomgraph.client.model.impl.ProxiedGraph
     public Response patch(String sparqlUpdate)
     {
         if (getWebTarget() == null) throw new NotFoundException("Resource URI not supplied");
+        // LNK-009: Validate that proxied URI is not internal/private (SSRF protection)
+        new URLValidator(getWebTarget().getUri()).validate();
 
         if (log.isDebugEnabled()) log.debug("PATCHing SPARQL update to URI: {}", getWebTarget().getUri());
 
@@ -423,6 +428,8 @@ public class ProxiedGraph extends com.atomgraph.client.model.impl.ProxiedGraph
     {
         if (!getSystem().isEnableLinkedDataProxy()) throw new NotAllowedException("Linked Data proxy not enabled");
         if (getWebTarget() == null) throw new NotFoundException("Resource URI not supplied"); // cannot throw Exception in constructor: https://github.com/eclipse-ee4j/jersey/issues/4436
+        // LNK-009: Validate that proxied URI is not internal/private (SSRF protection)
+        new URLValidator(getWebTarget().getUri()).validate();
         
         try (Response cr = getWebTarget().request().
             accept(getMediaTypes().getReadable(Model.class).toArray(jakarta.ws.rs.core.MediaType[]::new)).
@@ -445,6 +452,8 @@ public class ProxiedGraph extends com.atomgraph.client.model.impl.ProxiedGraph
     {
         if (!getSystem().isEnableLinkedDataProxy()) throw new NotAllowedException("Linked Data proxy not enabled");
         if (getWebTarget() == null) throw new NotFoundException("Resource URI not supplied"); // cannot throw Exception in constructor: https://github.com/eclipse-ee4j/jersey/issues/4436
+        // LNK-009: Validate that proxied URI is not internal/private (SSRF protection)
+        new URLValidator(getWebTarget().getUri()).validate();
         
         try (Response cr = getWebTarget().request().
                 accept(getMediaTypes().getReadable(Model.class).toArray(jakarta.ws.rs.core.MediaType[]::new)).
