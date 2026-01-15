@@ -395,11 +395,8 @@ public class InstallPackage
             if (log.isDebugEnabled()) log.debug("Namespace graph PATCH response status: {}", patchResponse.getStatus());
         }
 
-        // 4. Clear and reload namespace ontology from cache
-        // TODO: This causes deadlock when OntologyModelGetter makes synchronous HTTP requests back to /ns
-        // Need to either make this async or find alternative way to refresh ontology cache
-        // if (log.isDebugEnabled()) log.debug("Clearing and reloading namespace ontology '{}'", namespaceOntologyURI);
-        // getResourceContext().getResource(ClearOntology.class).post(namespaceOntologyURI, null);
+        if (log.isDebugEnabled()) log.debug("Clearing and reloading namespace ontology '{}'", namespaceOntologyURI);
+        getResourceContext().getResource(ClearOntology.class).post(namespaceOntologyURI, null);
     }
 
     /**

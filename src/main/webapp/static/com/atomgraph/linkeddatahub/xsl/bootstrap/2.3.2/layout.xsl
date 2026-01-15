@@ -81,16 +81,17 @@ exclude-result-prefixes="#all">
 
     <xsl:import href="../../../../client/xsl/converters/RDFXML2JSON-LD.xsl"/>
     <xsl:import href="../../../../client/xsl/bootstrap/2.3.2/internal-layout.xsl"/>
+    <xsl:import href="resource.xsl"/>
     <xsl:import href="imports/default.xsl"/>
     <xsl:import href="imports/ac.xsl"/>
     <xsl:import href="imports/dct.xsl"/>
     <xsl:import href="imports/nfo.xsl"/>
     <xsl:import href="imports/rdf.xsl"/>
-    <xsl:import href="imports/rdfs.xsl"/>   
+    <xsl:import href="imports/rdfs.xsl"/>
     <xsl:import href="imports/sioc.xsl"/>
     <xsl:import href="imports/sp.xsl"/>
     <xsl:import href="imports/sh.xsl"/>
-    <xsl:import href="resource.xsl"/>
+    <xsl:import href="imports/lapp.xsl"/>
     <xsl:import href="imports/services/youtube.xsl"/>
     <xsl:import href="document.xsl"/>
     
@@ -1247,15 +1248,13 @@ LIMIT   100
 
             <ul class="dropdown-menu">
                 <xsl:if test="$foaf:Agent//@rdf:about and $lapp:Application//*[lapp:origin/@rdf:resource = $lapp:origin]/rdf:type/@rdf:resource = '&lapp;EndUserApplication'">
-                    <xsl:if test="$acl:mode = '&acl;Control'">
-                        <li>
-                            <button class="btn btn-app-settings">
-                                <xsl:value-of>
-                                    <xsl:apply-templates select="key('resources', '&lapp;Application', document(ac:document-uri('&lapp;')))" mode="ac:label"/>
-                                </xsl:value-of>
-                            </button>
-                        </li>
-                    </xsl:if>
+                    <li>
+                        <button class="btn btn-app-settings">
+                            <xsl:value-of>
+                                <xsl:apply-templates select="key('resources', '&lapp;Application', document(ac:document-uri('&lapp;')))" mode="ac:label"/>
+                            </xsl:value-of>
+                        </button>
+                    </li>
                     <li>
                         <xsl:for-each select="$lapp:Application">
                             <a href="{key('resources', //*[lapp:origin/@rdf:resource = $lapp:origin]/lapp:adminApplication/(@rdf:resource, @rdf:nodeID))/lapp:origin/@rdf:resource}" target="_blank">
@@ -1273,13 +1272,6 @@ LIMIT   100
                         </a>
                     </li>
                 </xsl:if>
-                <li>
-                    <a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/" target="_blank">
-                        <xsl:value-of>
-                            <xsl:apply-templates select="key('resources', 'documentation', document('translations.rdf'))" mode="ac:label"/>
-                        </xsl:value-of>
-                    </a>
-                </li>
             </ul>
         </div>
     </xsl:template>

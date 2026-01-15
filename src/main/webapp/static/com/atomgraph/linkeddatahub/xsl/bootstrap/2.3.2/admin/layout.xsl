@@ -135,19 +135,5 @@ exclude-result-prefixes="#all">
         </xsl:apply-imports>
     </xsl:template>
     
-    <!-- show "Clear" button for ontologies -->
-    <xsl:template match="*[rdf:type/@rdf:resource = '&owl;Ontology'][$foaf:Agent//@rdf:about]" mode="bs2:Actions">
-        <form class="pull-right" action="{resolve-uri('clear', $ldt:base)}" method="post">
-            <input type="hidden" name="uri" value="{@rdf:about}"/>
-            
-            <button class="btn btn-primary" type="submit">
-                <xsl:value-of>
-                    <xsl:apply-templates select="key('resources', 'clear', document('../translations.rdf'))" mode="ac:label"/>
-                </xsl:value-of>
-            </button>
-        </form>
 
-        <xsl:next-match/>
-    </xsl:template>
-    
 </xsl:stylesheet>

@@ -1,6 +1,8 @@
 html { height: 100%; }
 body { height: calc(100% - 120px); padding-top: 120px; padding-bottom: 0; }
 body.embed { padding-top: 0; }
+ul.dropdown-menu { max-height: 26em; overflow-x: hidden; overflow-y: auto; }
+ul.dropdown-menu ul { margin: 0; }
 .label { min-width: unset; min-height: unset; }
 .brand.context { background-image: url('../icons/baseline_arrow_upward_white_18dp.png'); background-repeat: no-repeat; background-position: center center; height: 20px; width: 20px; background-size: 20px 20px; }
 .brand.admin { background-image: url('../icons/ic_settings_white_24px.svg'); background-repeat: no-repeat; background-position: right center; padding-right: 30px; }
@@ -10,6 +12,8 @@ body.embed { padding-top: 0; }
 .btn.dropdown-toggle.btn-settings { background-image: url('../icons/settings_white_24dp.svg'); background-position: center center; background-repeat: no-repeat; width: 34px; height: 34px; }
 .btn.dropdown-toggle.btn-agent { background-image: url('../icons/ic_account_circle_white_24px.svg'); background-position: center center; background-repeat: no-repeat; width: 34px; height: 34px; }
 .dropdown-menu .btn-app-settings { background-color: inherit; display: block; text-align: left; width: 100%; padding-left: 20px; }
+.dropdown-menu li form { margin-bottom: 0; }
+.dropdown-menu li form button { width: 100%; text-align: left; }
 .navbar-form .input-append { margin-top: 10px; }
 .navbar-form .input-append select { margin-top: 0; height: 34px; }
 .navbar-form .btn-search { background-image: url('../icons/ic_search_white_24px.svg'); background-position: center center; background-repeat: no-repeat; width: 34px; height: 34px; }
@@ -27,8 +31,6 @@ body.embed { padding-top: 0; }
 .action-bar #doc-controls .btn-edit { margin-top: -5px; margin-left: 10px; }
 .action-bar p.alert { margin-bottom: 0; }
 .nav-header.btn { color: inherit; }
-ul.dropdown-menu { max-height: 26em; overflow-x: hidden; overflow-y: auto; }
-ul.dropdown-menu ul { margin: 0; }
 .btn.btn-primary.create-action { background-image: url('../icons/ic_note_add_white_24px.svg'); background-position: 12px center; background-repeat: no-repeat; padding-left: 40px; /* height: 30px; */ }
 .btn.create-action, a.create-action { background-image: url('../icons/ic_note_add_black_24px.svg'); background-position: 12px center; background-repeat: no-repeat; padding-left: 40px; /* height: 30px; */ }
 button.btn.create-action { height: 30px; }

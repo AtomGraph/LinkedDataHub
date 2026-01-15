@@ -330,6 +330,22 @@
         <rdfs:label xml:lang="en-US">Clear</rdfs:label>
         <rdfs:label xml:lang="es-ES">Limpiar</rdfs:label>
     </rdf:Description>
+    <rdf:Description rdf:nodeID="install">
+        <rdfs:label xml:lang="en-US">Install</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Instalar</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="uninstall">
+        <rdfs:label xml:lang="en-US">Uninstall</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Desinstalar</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="package">
+        <rdfs:label xml:lang="en-US">Package</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Paquete</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="ontology">
+        <rdfs:label xml:lang="en-US">Ontology</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Ontología</rdfs:label>
+    </rdf:Description>
     <rdf:Description rdf:nodeID="related-results">
         <rdfs:label xml:lang="en-US">Related results</rdfs:label>
         <rdfs:label xml:lang="es-ES">Resultados relacionados</rdfs:label>
