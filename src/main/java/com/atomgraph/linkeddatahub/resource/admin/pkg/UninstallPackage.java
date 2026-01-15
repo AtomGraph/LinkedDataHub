@@ -154,8 +154,6 @@ public class UninstallPackage
                 regenerateMasterStylesheet(endUserApp, pkg);
             }
 
-            //removeImportFromApplication(endUserApp, packageURI);
-
             if (log.isInfoEnabled()) log.info("Successfully uninstalled package: {}", packageURI);
 
             URI redirectURI = (referer != null) ? referer : endUserApp.getBaseURI();
@@ -169,7 +167,7 @@ public class UninstallPackage
     }
 
     /**
-     * Uninstalls ontology by deleting the package ontology document and removing owl:imports from namespace graph.
+     * Uninstalls ontology by deleting the package ontology document.
      *
      * @param app the end-user application
      * @param packageOntologyURI the package ONTOLOGY URI
