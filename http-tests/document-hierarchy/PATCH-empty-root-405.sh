@@ -20,11 +20,11 @@ add-agent-to-group.sh \
 update=$(cat <<EOF
 DELETE
 {
-  <${END_USER_BASE_URL}> ?p ?o
+  ?s ?p ?o
 }
 WHERE
 {
-  <${END_USER_BASE_URL}> ?p ?o
+  ?s ?p ?o
 }
 EOF
 )
