@@ -1,0 +1,496 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html><html xmlns="http://www.w3.org/1999/xhtml">
+   <head>
+      <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+      <title>LinkedDataHub v5 - Packages</title>
+      <meta name="description" content="Package management for LinkedDataHub applications"/>
+      <link rel="up" href="../index.html"/>
+      <link href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/files/css/bootstrap.css" rel="stylesheet" type="text/css"/>
+      <link href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/files/css/bootstrap-responsive.css" rel="stylesheet" type="text/css"/>
+      <link href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/files/css/linkeddatahub-bootstrap.css" rel="stylesheet" type="text/css"/>
+      <style type="text/css">
+                body { padding-top: 60px; }
+                object { width: 100%; min-height: 640px; }
+            </style><script type="text/javascript" src="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/files/js/jquery.min.js"></script><script type="text/javascript" src="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/files/js/bootstrap.min.js"></script><script type="text/javascript">
+                $(document).ready(function()
+                {
+
+                    $("ul.nav-tabs a").on("click", function()
+                    {
+                        $(this).closest("ul").children().toggleClass("active", false); // deactivate other tabs
+                        $(this).closest("li").toggleClass("active", true); // activate this tab
+                        $(this).closest("ul").next().children().toggleClass("active", false); // deactivate other tab panes
+                        $(this).closest("ul").next().children().eq($(this).closest("li").index()).toggleClass("active", true); // activate this tab pane
+                    });
+
+                });
+            </script><script async="async" src="https://www.googletagmanager.com/gtag/js?id=UA-38402002-6"></script><script>
+                
+                    window.dataLayer = window.dataLayer || [];
+                    function gtag(){dataLayer.push(arguments);}
+                    gtag('js', new Date());
+
+                    gtag('config', 'UA-38402002-6');
+                
+            </script></head>
+   <body>
+      <div class="navbar navbar-fixed-top">
+         <div class="navbar-inner">
+            <div class="container-fluid"><a class="brand" href="https://atomgraph.github.io/LinkedDataHub/">LinkedDataHub</a><div class="nav-collapse collapse">
+                  <ul class="nav">
+                     <li class="active">
+                        <div class="btn-group"><a class="btn" href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/">Documentation v5</a><button class="btn dropdown-toggle" data-toggle="dropdown"><span class="caret"></span></button><ul class="dropdown-menu">
+                              <li><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/v3/">Documentation v3</a></li>
+                              <li><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/v2/">Documentation v2</a></li>
+                           </ul>
+                        </div>
+                     </li>
+                     <li><a href="https://github.com/AtomGraph/LinkedDataHub" target="_blank">Code</a></li>
+                  </ul>
+               </div>
+            </div>
+         </div>
+      </div>
+      <div class="container-fluid">
+         <div class="row-fluid">
+            <nav class="span2">
+               <ul class="nav nav-list">
+                  <li><a href="../../../about/index.html" title="An RDF-native Knowledge Graph application platform">About LinkedDataHub</a></li>
+                  <li><a href="../../../get-started/index.html" title="All the basics of LinkedDataHub. From installation to extending the model and user interface.">Get started</a><ul class="nav nav-list">
+                        <li><a href="../../../get-started/get-an-account/index.html" title="How to get login to LinkedDataHub">Get an account</a></li>
+                        <li><a href="../../../get-started/request-access/index.html" title="How to get access to an application">Request access</a></li>
+                        <li><a href="../../../get-started/setup/index.html" title="Setup LinkedDataHub on your local machine or access it in the cloud">Setup</a></li>
+                     </ul>
+                  </li>
+                  <li><a href="../../index.html" title="A list of LinkedDataHub's features and their functions, split into general and administration parts">Reference</a><ul class="nav nav-list">
+                        <li><a href="../index.html" title="Access control and domain model management">Administration</a><ul class="nav nav-list">
+                              <li><a href="../acl/index.html" title="Agents, groups, and authorizations">Access control</a></li>
+                              <li><a href="../ontologies/index.html" title="Ontology classes, constraints, properties etc.">Ontologies</a></li>
+                              <li class="active"><a href="" title="Package management for LinkedDataHub applications">Packages</a></li>
+                           </ul>
+                        </li>
+                        <li><a href="../../command-line-interface/index.html" title="CLI scripts can be used perform all actions available in the UI">Command line interface</a></li>
+                        <li><a href="../../configuration/index.html" title="Overview of configuration options">Configuration</a></li>
+                        <li><a href="../../data-model/index.html" title="Document and content structure as well as actions that can be performed on them">Data model</a><ul class="nav nav-list">
+                              <li><a href="../../data-model/blocks/index.html" title="Content blocks and the basic data content actions">Content blocks</a><ul class="nav nav-list">
+                                    <li><a href="../../data-model/blocks/objects/index.html" title="Blocks that embed/transclude any dereferenceable URI">Object blocks</a></li>
+                                    <li><a href="../../data-model/blocks/xhtml/index.html" title="Blocks that embed XHTML markup as an RDF literal">XHTML blocks</a></li>
+                                 </ul>
+                              </li>
+                              <li><a href="../../data-model/documents/index.html" title="Document hierarchy and the basic data management actions">Documents</a><ul class="nav nav-list">
+                                    <li><a href="../../data-model/documents/containers/index.html" title="Containers are analogous to folders in a filesystem">Containers</a></li>
+                                    <li><a href="../../data-model/documents/items/index.html" title="Items are analogous to files in a filesystem">Items</a></li>
+                                 </ul>
+                              </li>
+                              <li><a href="../../data-model/resources/index.html" title="RDF resources and their management">Resources</a><ul class="nav nav-list">
+                                    <li><a href="../../data-model/resources/charts/index.html" title="Interactive charts based on SPARQL queries">Charts</a></li>
+                                    <li><a href="../../data-model/resources/queries/index.html" title="Interactive SPARQL queries">Queries</a></li>
+                                    <li><a href="../../data-model/resources/views/index.html" title="Paginated views based on SPARQL queries">Views</a></li>
+                                 </ul>
+                              </li>
+                           </ul>
+                        </li>
+                        <li><a href="../../dataspace/index.html" title="LinkedDataHub dataspaces, applications, and services">Dataspace</a></li>
+                        <li><a href="../../http-api/index.html" title="Learn how to access and manage RDF data over generic HTTP API">HTTP API</a></li>
+                        <li><a href="../../imports/index.html" title="Types of data imports supported by LinkedDataHub">Imports</a><ul class="nav nav-list">
+                              <li><a href="../../imports/csv/index.html" title="CSV imports and mapping to RDF using SPARQL CONSTRUCT">CSV imports</a></li>
+                              <li><a href="../../imports/rdf/index.html" title="RDF imports and transforming RDF using SPARQL CONSTRUCT">RDF imports</a></li>
+                           </ul>
+                        </li>
+                        <li><a href="../../dataset/index.html" title="The default RDF dataset structure used by LinkedDataHub">RDF dataset</a></li>
+                        <li><a href="../../stylesheets/index.html" title="Built-in XSLT and CSS stylesheets">Stylesheets</a></li>
+                        <li><a href="../../user-interface/index.html" title="A walk through the main features of application user interface">User interface</a></li>
+                     </ul>
+                  </li>
+                  <li><a href="../../../user-guide/index.html" title="Step-by-step tutorials for everyday tasks with LinkedDataHub">User guide</a><ul class="nav nav-list">
+                        <li><a href="../../../user-guide/add-data/index.html" title="Fork RDF data from Linked Data resources and SPARQL results">Add data</a></li>
+                        <li><a href="../../../user-guide/browse-data/index.html" title="Use LinkedDataHub's built-in Linked Data browser to explore remote datasources">Browse data</a></li>
+                        <li><a href="../../../user-guide/build-apps/index.html" title="Using LinkedDataHub as a low-code platform for Knowledge Graph applications">Build apps</a></li>
+                        <li><a href="../../../user-guide/change-layout/index.html" title="How to customize the layout of an application and the UI of the resources">Change layout</a></li>
+                        <li><a href="../../../user-guide/change-system-base-uri/index.html" title="How to change host, port, or the path LinkedDataHub service runs on">Change system base URI</a></li>
+                        <li><a href="../../../user-guide/change-model/index.html" title="Change the model: create constructors, classes, and constraints">Change the model</a></li>
+                        <li><a href="../../../user-guide/create-data/index.html" title="How to create documents, content, and instances">Create data</a><ul class="nav nav-list">
+                              <li><a href="../../../user-guide/create-data/create-content/index.html" title="Learn how to create data-driven content">Create content</a></li>
+                              <li><a href="../../../user-guide/create-data/create-documents/index.html" title="Learn how to create container and item documents">Create documents</a></li>
+                              <li><a href="../../../user-guide/create-data/create-resources/index.html" title="Learn how to create of built-in and user-defined classes">Create instances</a></li>
+                           </ul>
+                        </li>
+                        <li><a href="../../../user-guide/import-data/index.html" title="How to import data into LinkedDataHub">Import data</a><ul class="nav nav-list">
+                              <li><a href="../../../user-guide/import-data/import-csv-data/index.html" title="Step by step guide to converting CSV data to RDF and importing into end-user application">Import CSV data</a></li>
+                              <li><a href="../../../user-guide/import-data/import-rdf-data/index.html" title="Step by step guide to importing RDF data">Import RDF data</a></li>
+                           </ul>
+                        </li>
+                        <li><a href="../../../user-guide/manage-dataspaces/index.html" title="Create or change a dataspace, configure SPARQL services and XSLT stylesheets">Manage dataspaces</a></li>
+                        <li><a href="../../../user-guide/manage-packages/index.html" title="Step by step guide to installing and uninstalling packages">Manage packages</a></li>
+                        <li><a href="../../../user-guide/navigate-data/index.html" title="Navigate the document hierarchy, related results, and backlinks">Navigate data</a></li>
+                        <li><a href="../../../user-guide/query-data/index.html" title="Learn how to query application data with SPARQL, store queries and charts">Query data</a></li>
+                        <li><a href="../../../user-guide/search-data/index.html" title="Search for resources using text keywords">Search data</a></li>
+                        <li><a href="../../../user-guide/upload-file/index.html" title="Learn how to upload files to LinkedDataHub">Upload file</a></li>
+                     </ul>
+                  </li>
+               </ul>
+            </nav>
+            <main class="span7">
+               <header>
+                  <h1>Packages</h1>
+               </header>
+               <div>
+                  
+                  <p class="lead">Packages are reusable bundles of ontologies and stylesheets that provide vocabulary
+                     support with custom rendering for specific RDF vocabularies.</p>
+                  
+                  <div class="alert alert-info">
+                     
+                     <p><strong>Note:</strong> Packages are <strong>declarative only</strong> (RDF + XSLT). They contain no Java code and integrate at installation-time, not runtime.</p>
+                     </div>
+                  
+                  <div>
+                     
+                     <h2 id="what-are-packages">What are packages?</h2>
+                     
+                     <p>A LinkedDataHub package is a reusable component that bundles together a vocabulary
+                        ontology and XSLT templates into a single installable unit. Packages enable:</p>
+                     
+                     <ul>
+                        
+                        <li>Rapid application setup with pre-configured domain vocabularies</li>
+                        
+                        <li>Sharing and reusing common vocabulary definitions</li>
+                        
+                        <li>Custom rendering for vocabulary-specific resources</li>
+                        
+                        <li>Modular extension of dataspace functionality</li>
+                        </ul>
+                     </div>
+                  
+                  <div>
+                     
+                     <h2 id="package-structure">Package structure</h2>
+                     
+                     <p>Each package consists of two files:</p>
+                     
+                     <dl>
+                        
+                        <dt><code>ns.ttl</code> - Package ontology</dt>
+                        
+                        <dd>An RDF ontology file that imports the external vocabulary using <code>owl:imports</code> and defines template blocks (<code>ldh:template</code>) for custom views. Template blocks are SPARQL-based views attached to RDF types from
+                           the imported vocabulary.</dd>
+                        
+                        <dt><code>layout.xsl</code> - XSLT stylesheet</dt>
+                        
+                        <dd>XSLT transformation file with templates that override default rendering using system
+                           modes like <code>bs2:*</code> (Bootstrap 2.3.2 components) and <code>xhtml:*</code> (XHTML elements). See <a href="../stylesheets/" target="_blank">Stylesheets reference</a> for details on XSLT customization.</dd>
+                        </dl>
+                     
+                     <p>Package files are organized in the LinkedDataHub-Apps repository:</p>
+                     
+                     <pre>packages/
+├── package-name/
+│   ├── ns.ttl         # Ontology with template blocks
+│   └── layout.xsl     # XSLT stylesheet</pre>
+                     
+                     <p>Package metadata is published as Linked Data that resolves from the package URI (e.g.,
+                        <code>https://packages.linkeddatahub.com/skos/#this</code>).</p>
+                     </div>
+                  
+                  <div>
+                     
+                     <h2 id="package-metadata">Package metadata</h2>
+                     
+                     <p>Package metadata is published as Linked Data that resolves from the package URI using
+                        standard LinkedDataHub properties:</p>
+                     
+                     <dl>
+                        
+                        <dt><code>lapp:Package</code></dt>
+                        
+                        <dd>The RDF class for package descriptors</dd>
+                        
+                        <dt><code>rdfs:label</code></dt>
+                        
+                        <dd>Human-readable package name</dd>
+                        
+                        <dt><code>dct:description</code></dt>
+                        
+                        <dd>Package description and purpose</dd>
+                        
+                        <dt><code>ldt:ontology</code></dt>
+                        
+                        <dd>Points to the package ontology URI (from LDT vocabulary)</dd>
+                        
+                        <dt><code>ac:stylesheet</code></dt>
+                        
+                        <dd>Points to the package stylesheet URI (from AtomGraph Client vocabulary)</dd>
+                        </dl>
+                     
+                     <p>Example package metadata:</p>
+                     
+                     <pre>@prefix lapp: &lt;https://w3id.org/atomgraph/linkeddatahub/apps#&gt; .
+@prefix ldt:  &lt;https://www.w3.org/ns/ldt#&gt; .
+@prefix ac:   &lt;https://w3id.org/atomgraph/client#&gt; .
+
+&lt;https://packages.linkeddatahub.com/skos/#this&gt; a lapp:Package ;
+    rdfs:label "SKOS Package" ;
+    dct:description "SKOS vocabulary support with custom templates" ;
+    ldt:ontology &lt;https://raw.githubusercontent.com/AtomGraph/LinkedDataHub-Apps/master/packages/skos/ns.ttl#&gt; ;
+    ac:stylesheet &lt;https://raw.githubusercontent.com/AtomGraph/LinkedDataHub-Apps/master/packages/skos/layout.xsl&gt; .</pre>
+                     </div>
+                  
+                  <div>
+                     
+                     <h2 id="package-ontology">Package ontology</h2>
+                     
+                     <p>The package ontology file contains two layers:</p>
+                     
+                     <h3 id="vocabulary-import">Vocabulary import</h3>
+                     
+                     <p>Imports the external vocabulary using <code>owl:imports</code>. See <a href="../ontologies/" target="_blank">Ontologies reference</a> for ontology management details.</p>
+                     
+                     <pre>&lt;https://raw.githubusercontent.com/AtomGraph/LinkedDataHub-Apps/master/packages/skos/ns.ttl#&gt; a owl:Ontology ;
+    owl:imports &lt;http://www.w3.org/2004/02/skos/core&gt; .</pre>
+                     
+                     <h3 id="template-blocks">Template blocks</h3>
+                     
+                     <p>SPARQL-based views attached to RDF types from the imported vocabulary:</p>
+                     
+                     <pre>skos:Concept ldh:template ns:NarrowerConcepts .
+
+ns:NarrowerConcepts a ldh:View ;
+    dct:title "Narrower concepts" ;
+    spin:query ns:SelectNarrowerConcepts .
+
+ns:SelectNarrowerConcepts a sp:Select ;
+    sp:text """SELECT DISTINCT ?narrower
+    WHERE { GRAPH ?graph { $about skos:narrower ?narrower } }
+    ORDER BY ?narrower""" .</pre>
+                     
+                     <p>Template blocks define custom views that appear in the UI when viewing resources of
+                        the specified type.</p>
+                     </div>
+                  
+                  <div>
+                     
+                     <h2 id="package-stylesheet">Package stylesheet</h2>
+                     
+                     <p>XSLT templates using system modes to override default rendering:</p>
+                     
+                     <pre>&lt;!-- Hide properties from default property list --&gt;
+&lt;xsl:template match="skos:narrower | skos:broader" mode="bs2:PropertyList"/&gt;
+
+&lt;!-- Override XHTML head elements --&gt;
+&lt;xsl:template match="*" mode="xhtml:Style"&gt;
+    &lt;!-- Custom styles --&gt;
+&lt;/xsl:template&gt;</pre>
+                     
+                     <p>Available system modes include:</p>
+                     
+                     <ul>
+                        
+                        <li><code>bs2:*</code> - Bootstrap 2.3.2 components (PropertyList, Form, etc.)</li>
+                        
+                        <li><code>xhtml:*</code> - XHTML elements (Style, Script, etc.)</li>
+                        
+                        <li>Additional modes documented in the <a href="../../stylesheets/" target="_blank">Stylesheets reference</a></li>
+                        </ul>
+                     </div>
+                  
+                  <div>
+                     
+                     <h2 id="installing-packages">Installing packages</h2>
+                     
+                     <p>Installation requires Control access to the administration application. See the <a href="../../../user-guide/manage-packages/" target="_blank">step-by-step installation guide</a> for detailed instructions.</p>
+                     
+                     <p>Installation will fail if these files do not exist.</p>
+                     
+                     <h3 id="installation-process">Installation process</h3>
+                     
+                     <p>When you install a package, the system performs the following steps:</p>
+                     
+                     <ol>
+                        
+                        <li><strong>Fetches package metadata</strong> from the package URI</li>
+                        
+                        <li><strong>Hashes the package ontology URI</strong> using SHA-1 to create a unique document slug</li>
+                        
+                        <li><strong>Downloads package ontology</strong> (<code>ns.ttl</code>) and PUTs it as a document to <code>${admin_base}ontologies/{hash}/</code> where <code>{hash}</code> is the SHA-1 hash of the ontology URI</li>
+                        
+                        <li><strong>Adds owl:imports</strong> from the namespace ontology to the package ontology in the namespace graph (<code>${admin_base}ontologies/namespace/</code>)</li>
+                        
+                        <li><strong>Clears and reloads</strong> the namespace ontology from cache to pick up the new imports</li>
+                        
+                        <li><strong>Downloads package stylesheet</strong> (<code>layout.xsl</code>) and saves it to <code>/static/{package-path}/layout.xsl</code> where <code>{package-path}</code> is derived from the package URI (e.g., <code>com/linkeddatahub/packages/skos/</code> for <code>https://packages.linkeddatahub.com/skos/</code>)</li>
+                        
+                        <li><strong>Updates master stylesheet</strong> at <code>/static/xsl/layout.xsl</code> by adding import:
+                           
+                           <pre>&lt;xsl:import href="../com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/layout.xsl"/&gt;  &lt;!-- System --&gt;
+&lt;xsl:import href="../com/linkeddatahub/packages/skos/layout.xsl"/&gt;  &lt;!-- Package (added) --&gt;</pre>
+                           </li>
+                        </ol>
+                     </div>
+                  
+                  <div>
+                     
+                     <h2 id="uninstalling-packages">Uninstalling packages</h2>
+                     
+                     <p>Packages can be safely uninstalled, which removes:</p>
+                     
+                     <ul>
+                        
+                        <li>Package ontology imports from the application</li>
+                        
+                        <li>Package-specific data and resources</li>
+                        
+                        <li>Associated queries and stylesheets</li>
+                        </ul>
+                     
+                     <div class="alert alert-info">
+                        
+                        <p><strong>Note:</strong> Uninstalling a package does not remove user-created data that uses the package's
+                           vocabulary.</p>
+                        </div>
+                     </div>
+                  
+                  <div>
+                     
+                     <h2 id="architecture">Architecture</h2>
+                     
+                     <h3 id="installation-time-composition">Installation-time vs runtime</h3>
+                     
+                     <p>Packages use <strong>installation-time composition</strong>, NOT runtime composition:</p>
+                     
+                     <ul>
+                        
+                        <li>✅ Package content is integrated during installation (via JAX-RS endpoints)</li>
+                        
+                        <li>✅ Ontology and XSLT are pre-composed before being loaded</li>
+                        
+                        <li>✅ No runtime overhead</li>
+                        
+                        <li>❌ No dynamic package loading at request time</li>
+                        </ul>
+                     
+                     <h3 id="http-endpoints">HTTP endpoints</h3>
+                     
+                     <p>Package installation and uninstallation is performed via <a href="../../http-api/#system-endpoints" target="_blank">system endpoints</a> on the admin application. See <code>packages/install</code> and <code>packages/uninstall</code> in the HTTP API reference.</p>
+                     
+                     <h3 id="file-system-structure">File system structure</h3>
+                     
+                     <p>After installing the SKOS package:</p>
+                     
+                     <pre>webapp/
+├── static/
+│   ├── com/
+│   │   └── linkeddatahub/
+│   │       └── packages/
+│   │           └── skos/
+│   │               └── layout.xsl          # Package stylesheet
+│   └── xsl/
+│       ├── layout.xsl                      # End-user master stylesheet
+│       └── admin/
+│           └── layout.xsl                  # Admin master stylesheet</pre>
+                     </div>
+                  
+                  <div>
+                     
+                     <h2 id="creating-packages">Creating custom packages</h2>
+                     
+                     <p>Developers can create custom packages for their own domain vocabularies. The process
+                        involves:</p>
+                     
+                     <h3 id="write-ontology">Write package ontology</h3>
+                     
+                     <p>Create <code>ns.ttl</code> with vocabulary import and template blocks:</p>
+                     
+                     <pre>&lt;https://raw.githubusercontent.com/you/repo/master/packages/schema.org/ns.ttl#&gt; a owl:Ontology ;
+    owl:imports &lt;http://schema.org/&gt; .
+
+# Attach template block to a vocabulary class
+schema:Person ldh:template :PersonKnows .
+
+:PersonKnows a ldh:View ;
+    dct:title "Knows" ;
+    spin:query :SelectPersonKnows .
+
+:SelectPersonKnows a sp:Select ;
+    sp:text """
+    SELECT DISTINCT ?person
+    WHERE { GRAPH ?graph { $about schema:knows ?person } }
+    ORDER BY ?person
+    """ .</pre>
+                     
+                     <h3 id="write-stylesheet">Write XSLT stylesheet</h3>
+                     
+                     <p>Create <code>layout.xsl</code> with XSLT templates using system modes like <code>bs2:*</code> and <code>xhtml:*</code>. See the <a href="../stylesheets/" target="_blank">Stylesheets reference</a> for template customization patterns.</p>
+                     
+                     <pre>&lt;xsl:template match="schema:knows" mode="bs2:PropertyList"/&gt;</pre>
+                     
+                     <h3 id="publish-metadata">Publish package metadata</h3>
+                     
+                     <p>Publish package metadata as Linked Data at your package URI:</p>
+                     
+                     <pre>&lt;https://packages.linkeddatahub.com/schema.org/#this&gt; a lapp:Package ;
+    rdfs:label "Schema.org Package" ;
+    dct:description "Schema.org vocabulary support" ;
+    ldt:ontology &lt;https://raw.githubusercontent.com/you/repo/master/packages/schema.org/ns.ttl#&gt; ;
+    ac:stylesheet &lt;https://raw.githubusercontent.com/you/repo/master/packages/schema.org/layout.xsl&gt; .</pre>
+                     
+                     <p>Ensure the metadata contains <code>ldt:ontology</code> and <code>ac:stylesheet</code> properties pointing to the package resources.</p>
+                     
+                     <h3 id="test-installation">Test installation</h3>
+                     
+                     <p>Use the CLI to test your package installation:</p>
+                     
+                     <pre>install-package.sh \
+  -b "https://localhost:4443/" \
+  -f ssl/owner/cert.pem \
+  -p "$cert_password" \
+  --package "https://packages.linkeddatahub.com/schema.org/#this"</pre>
+                     </div>
+                  
+                  <div>
+                     
+                     <h2 id="available-packages">Available packages</h2>
+                     
+                     <p>A curated list of available packages can be found in the <a href="https://github.com/AtomGraph/LinkedDataHub-Apps/tree/master/packages" target="_blank">LinkedDataHub-Apps repository</a>. Each package directory contains the package ontology (<code>ns.ttl</code>) and stylesheet (<code>layout.xsl</code>) files.</p>
+                     </div>
+                  </div>
+               <nav></nav>
+            </main>
+         </div>
+      </div>
+      <div class="footer container-fluid">
+         <div class="row-fluid">
+            <div class="offset2 span8">
+               <div class="span3">
+                  <h2 class="nav-header">About</h2>
+                  <ul class="nav nav-list">
+                     <li><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/about/" target="_blank">LinkedDataHub</a></li>
+                     <li><a href="https://atomgraph.com" target="_blank">AtomGraph</a></li>
+                  </ul>
+               </div>
+               <div class="span3">
+                  <h2 class="nav-header">Resources</h2>
+                  <ul class="nav nav-list">
+                     <li><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/" target="_blank">Documentation</a></li>
+                     <li><a href="https://www.youtube.com/channel/UCtrdvnVjM99u9hrjESwfCeg" target="_blank">Screencasts</a></li>
+                  </ul>
+               </div>
+               <div class="span3">
+                  <h2 class="nav-header">Support</h2>
+                  <ul class="nav nav-list">
+                     <li><a href="https://groups.io/g/linkeddatahub" target="_blank">Mailing list</a></li>
+                     <li><a href="https://github.com/AtomGraph/LinkedDataHub/issues" target="_blank">Report issues</a></li>
+                     <li><a href="mailto:support@linkeddatahub.com">Contact support</a></li>
+                  </ul>
+               </div>
+               <div class="span3">
+                  <h2 class="nav-header">Follow us</h2>
+                  <ul class="nav nav-list">
+                     <li><a href="https://twitter.com/atomgraphhq" target="_blank">@atomgraphhq</a></li>
+                     <li><a href="https://github.com/AtomGraph" target="_blank">github.com/AtomGraph</a></li>
+                  </ul>
+               </div>
+            </div>
+         </div>
+      </div>
+   </body>
+</html>
