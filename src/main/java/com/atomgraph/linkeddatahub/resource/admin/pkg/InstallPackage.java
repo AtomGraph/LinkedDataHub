@@ -68,6 +68,7 @@ import com.atomgraph.linkeddatahub.vocabulary.FOAF;
 import com.atomgraph.linkeddatahub.vocabulary.SIOC;
 import com.atomgraph.linkeddatahub.server.util.Skolemizer;
 import org.apache.jena.rdf.model.ModelFactory;
+import org.apache.jena.vocabulary.DCTerms;
 import org.apache.jena.vocabulary.RDF;
 
 /**
@@ -442,26 +443,25 @@ public class InstallPackage
     /**
      * Creates a package document item.
      *
-     * @param packageDocModel the model to populate
+     * @param model the model to populate
      * @param packageDocumentURI the document URI
      * @param container the container resource
      * @param pkg the package resource
      * @param slug the document slug
      * @return the document item resource
      */
-    private Resource createPackageDocument(Model packageDocModel,
+    private Resource createPackageDocument(Model model,
                                           URI packageDocumentURI,
                                           Resource container,
                                           com.atomgraph.linkeddatahub.apps.model.Package pkg,
                                           String slug)
     {
-        Resource packageDocItem = packageDocModel.createResource(packageDocumentURI.toString()).
+        return model.createResource(packageDocumentURI.toString()).
             addProperty(RDF.type, DH.Item).
             addProperty(SIOC.HAS_CONTAINER, container).
             addLiteral(DH.slug, slug).
+            addLiteral(DCTerms.title, pkg.getProperty(DCTerms.title).getString()).
             addProperty(FOAF.primaryTopic, pkg);
-
-        return packageDocItem;
     }
 
     /**
