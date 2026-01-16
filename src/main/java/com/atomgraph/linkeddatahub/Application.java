@@ -258,6 +258,10 @@ public class Application extends ResourceConfig
 
     private static final Logger log = LoggerFactory.getLogger(Application.class);
 
+    /**
+     * Path to the master XSLT stylesheet for server-side transformations.
+     * Package stylesheets are imported into this master stylesheet.
+     */
     public static final String MASTER_STYLESHEET_PATH = "/static/xsl/layout.xsl";
 
     private final ExecutorService importThreadPool;

@@ -109,8 +109,8 @@ abstract public class ExceptionMapperBase
     
     /**
      * Builds a list of acceptable response variants.
-     * 
-     * @param mediaTypes
+     *
+     * @param mediaTypes list of media types to build variants from
      * @return supported variants
      */
     public List<Variant> getVariants(List<MediaType> mediaTypes)

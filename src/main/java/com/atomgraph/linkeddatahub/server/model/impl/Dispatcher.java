@@ -173,9 +173,8 @@ public class Dispatcher
 
     /**
      * Returns content-addressed file item resource.
-     * 
+     *
      * @return resource
-     * @see com.atomgraph.linkeddatahub.apps.model.Application#UPLOADS_PATH
      */
     @Path("uploads/{sha1sum}")
     public Class getFileItem()
