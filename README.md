@@ -105,6 +105,21 @@ The following tools are required for CLI scripts in the `bin/` directory:
   * There might go up to a minute before the web server is available because the nginx server depends on healthy LinkedDataHub and the healthcheck is done every 20s
   * You will likely get a browser warning such as `Your connection is not private` in Chrome or `Warning: Potential Security Risk Ahead` in Firefox due to the self-signed server certificate. Ignore it: click `Advanced` and `Proceed` or `Accept the risk` to proceed.
     * If this option does not appear in Chrome (as observed on some MacOS), you can open `chrome://flags/#allow-insecure-localhost`, switch `Allow invalid certificates for resources loaded from localhost` to `Enabled` and restart Chrome
+  * MacOS: Chrome subdomain support: Chrome on macOS requires the server certificate to be installed to the System keychain to properly load resources from dataspace subdomains (e.g., `admin.localhost:4443`). Firefox is more lenient and will work without this step.
+    1. Open **Keychain Access** (Applications > Utilities > Keychain Access)
+    2. Select **System** keychain in the left sidebar
+    3. **File** → **Import Items** → select `ssl/server/server.crt`
+    4. Enter your admin password when prompted
+    5. Double-click the "localhost" certificate
+    6. Expand the **Trust** section
+    7. Set "When using this certificate:" to **Always Trust**
+    8. Close the window (enter password again)
+    9. Completely quit Chrome (Cmd+Q) and restart
+
+    Alternatively, use the command line:
+    ```shell
+    sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain ssl/server/server.crt
+    ```
   * `.env_sample` and `.env` files might be invisible in MacOS Finder which hides filenames starting with a dot. You should be able to [create it using Terminal](https://stackoverflow.com/questions/5891365/mac-os-x-doesnt-allow-to-name-files-starting-with-a-dot-how-do-i-name-the-hta) however.
   * On Linux your user may need to be a member of the `docker` group. Add it using
   ```shell
