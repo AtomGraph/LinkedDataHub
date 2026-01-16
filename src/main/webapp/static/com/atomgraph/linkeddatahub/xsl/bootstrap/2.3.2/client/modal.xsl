@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE xsl:stylesheet [
+    <!ENTITY lapp   "https://w3id.org/atomgraph/linkeddatahub/apps#">
     <!ENTITY lacl   "https://w3id.org/atomgraph/linkeddatahub/admin/acl#">
     <!ENTITY def    "https://w3id.org/atomgraph/linkeddatahub/default#">
     <!ENTITY ldh    "https://w3id.org/atomgraph/linkeddatahub#">
@@ -29,6 +30,7 @@ xmlns:xs="http://www.w3.org/2001/XMLSchema"
 xmlns:map="http://www.w3.org/2005/xpath-functions/map"
 xmlns:json="http://www.w3.org/2005/xpath-functions"
 xmlns:array="http://www.w3.org/2005/xpath-functions/array"
+xmlns:lapp="&lapp;"
 xmlns:ac="&ac;"
 xmlns:ldh="&ldh;"
 xmlns:rdf="&rdf;"
@@ -344,7 +346,7 @@ LIMIT   10
         <xsl:param name="button-class" select="'btn btn-primary btn-access-form'" as="xs:string?"/>
         <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
         <xsl:param name="this" as="xs:anyURI"/>
-        <xsl:param name="action" select="ldh:href(resolve-uri('access/request', ldh:origin($this)))" as="xs:anyURI"/>
+        <xsl:param name="action" select="ldh:href(resolve-uri('access/request', lapp:origin($this)))" as="xs:anyURI"/>
         <xsl:param name="legend-label" select="ac:label(key('resources', 'request-access', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri))))" as="xs:string"/>
         <xsl:param name="agent" as="xs:anyURI"/>
         
@@ -360,7 +362,11 @@ LIMIT   10
                     <xsl:value-of select="$legend-label"/>
                 </legend>
                 
-                <p class="text-info">Ask for access to a restricted resource by making a request. It will be reviewed by the application's administrators.</p>
+                <p class="text-info">
+                    <xsl:value-of>
+                        <xsl:apply-templates select="key('resources', 'request-access-description', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                    </xsl:value-of>
+                </p>
             </div>
 
             <div class="modal-body">
@@ -373,10 +379,16 @@ LIMIT   10
             
                     <fieldset>
                         <div>
-                            <label for="request-access-for">Request access for</label>
+                            <label for="request-access-for">
+                                <xsl:value-of>
+                                    <xsl:apply-templates select="key('resources', 'request-access-for', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                                </xsl:value-of>
+                            </label>
                             <select id="request-access-for" class="input-block-level">
                                 <option value="{$agent}">
-                                    <xsl:value-of select="$agent"/> (me)
+                                    <xsl:value-of select="$agent"/> (<xsl:value-of>
+                                        <xsl:apply-templates select="key('resources', 'me', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                                    </xsl:value-of>)
                                 </option>
                             </select>
                         </div>
@@ -389,8 +401,7 @@ LIMIT   10
                     <div class="form-actions modal-footer">
                         <button type="submit" class="{$button-class}">
                             <xsl:value-of>
-                                <!-- <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/> -->
-                                Request
+                                <xsl:apply-templates select="key('resources', 'request', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
                             </xsl:value-of>
                         </button>
                         <button type="button" class="btn btn-close">
@@ -414,10 +425,14 @@ LIMIT   10
         <!-- TO-DO: support agent-group? -->
         <xsl:param name="this" as="xs:anyURI"/>
         <xsl:param name="access-modes" select="(xs:anyURI('&acl;Read'), xs:anyURI('&acl;Append'), xs:anyURI('&acl;Write'))" as="xs:anyURI*"/>
-        <xsl:param name="base" select="ldh:origin($this)" as="xs:anyURI"/>
+        <xsl:param name="base" select="lapp:origin($this)" as="xs:anyURI"/>
         
         <fieldset>
-            <legend>URL-based access</legend>
+            <legend>
+                <xsl:value-of>
+                    <xsl:apply-templates select="key('resources', 'url-based-access', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                </xsl:value-of>
+            </legend>
             <table class="table table-striped">
                 <colgroup>
                     <col style="width: 55%;"/>
@@ -427,7 +442,11 @@ LIMIT   10
                 </colgroup>
                 <thead>
                     <tr>
-                        <th>URL</th>
+                        <th>
+                            <xsl:value-of>
+                                <xsl:apply-templates select="key('resources', 'url', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                            </xsl:value-of>
+                        </th>
                         <xsl:for-each select="$access-modes">
                             <th>
                                 <xsl:value-of>
@@ -466,7 +485,11 @@ LIMIT   10
         </fieldset>
 
         <fieldset>
-            <legend>Class-based access</legend>
+            <legend>
+                <xsl:value-of>
+                    <xsl:apply-templates select="key('resources', 'class-based-access', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                </xsl:value-of>
+            </legend>
             <table class="table table-striped">
                 <colgroup>
                     <col style="width: 55%;"/>
@@ -476,7 +499,11 @@ LIMIT   10
                 </colgroup>
                 <thead>
                     <tr>
-                        <th>Class name</th>
+                        <th>
+                            <xsl:value-of>
+                                <xsl:apply-templates select="key('resources', 'class-name', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                            </xsl:value-of>
+                        </th>
                         <xsl:for-each select="$access-modes">
                             <th>
                                 <xsl:value-of>
@@ -615,7 +642,7 @@ LIMIT   10
     </xsl:template>
     
     <xsl:template name="ldh:ReconcileForm">
-        <xsl:param name="id" select="'reconcile'" as="xs:string?"/>
+        <xsl:param name="id" select="'form-reconcile'" as="xs:string?"/>
         <xsl:param name="button-class" select="'btn btn-primary btn-save'" as="xs:string?"/>
         <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
         <xsl:param name="action" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/>
@@ -650,10 +677,9 @@ LIMIT   10
 
                         <div class="control-group required">
                             <input type="hidden" name="pu" value="&owl;sameAs"/>
-                            <!-- TO-DO: localize label -->
                             <label class="control-label" for="same-as-resource">
                                 <xsl:value-of>
-                                    Same as
+                                    <xsl:apply-templates select="key('resources', 'same-as', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
                                 </xsl:value-of>
                             </label>
                             <div class="controls">
@@ -671,7 +697,7 @@ LIMIT   10
             </div>
         </div>
     </xsl:template>
-    
+
     <!-- EVENT HANDLERS -->
 
     <!-- close modal first time message -->
@@ -689,6 +715,264 @@ LIMIT   10
         <xsl:for-each select="ancestor::div[contains-token(@class, 'modal')]">
             <xsl:sequence select="ixsl:call(., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:for-each>
+    </xsl:template>
+    
+    <!-- submit instance creation modal form using PUT -->
+    
+    <xsl:template match="div[contains-token(@class, 'modal-constructor')]//form[contains-token(@class, 'form-horizontal')][upper-case(@method) = 'PUT']" mode="ixsl:onsubmit" priority="2">
+        <xsl:next-match>
+            <xsl:with-param name="callback" select="ldh:modal-form-response#1"/>
+        </xsl:next-match>
+    </xsl:template>
+    
+    <!-- shows new SPIN-constructed document as a modal form -->
+    <xsl:template match="div[contains-token(@class, 'action-bar')]//button[contains-token(@class, 'add-constructor')][@data-for-class]" mode="ixsl:onclick" priority="2">
+        <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])[current-date() lt xs:date('2000-01-01')]"/>
+        <xsl:variable name="content-body" select="id('content-body', ixsl:page())" as="element()"/>
+        <xsl:variable name="forClass" select="@data-for-class" as="xs:anyURI"/>
+        <xsl:variable name="constructed-doc" select="ldh:construct-forClass($forClass)" as="document-node()"/>
+        <xsl:variable name="doc-uri" select="resolve-uri(ac:uuid() || '/', ac:absolute-path(ldh:base-uri(.)))" as="xs:anyURI"/> <!-- build a relative URI for the child document -->
+        <xsl:variable name="this" select="$doc-uri" as="xs:anyURI"/>
+        <xsl:variable name="classes" select="()" as="element()*"/>
+
+        <xsl:for-each select="$content-body">
+            <xsl:variable name="resource" select="key('resources-by-type', $forClass, $constructed-doc)[not(key('predicates-by-object', @rdf:nodeID))]" as="element()"/>
+            <xsl:variable name="form" as="element()*">
+                <!-- TO-DO: refactor to use asynchronous HTTP requests -->
+                <xsl:variable name="types" select="distinct-values($resource/rdf:type/@rdf:resource)" as="xs:anyURI*"/>
+                <xsl:variable name="query-string" select="'DESCRIBE $Type VALUES $Type { ' || string-join(for $type in $types return '&lt;' || $type || '&gt;', ' ') || ' }'" as="xs:string"/>
+                <xsl:variable name="request-uri" select="ac:build-uri(resolve-uri('ns', ldt:base()), map{ 'query': $query-string, 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
+                <xsl:variable name="type-metadata" select="if (exists($types)) then document($request-uri) else ()" as="document-node()?"/>
+
+                <xsl:variable name="property-uris" select="distinct-values($resource/*/concat(namespace-uri(), local-name()))" as="xs:string*"/>
+                <xsl:variable name="query-string" select="'DESCRIBE $Type VALUES $Type { ' || string-join(for $uri in $property-uris return '&lt;' || $uri || '&gt;', ' ') || ' }'" as="xs:string"/>
+                <xsl:variable name="request-uri" select="ac:build-uri(resolve-uri('ns', ldt:base()), map{ 'query': $query-string, 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
+                <xsl:variable name="property-metadata" select="document($request-uri)" as="document-node()"/>
+
+                <xsl:variable name="query-string" select="$constraint-query || ' VALUES $Type { ' || string-join(for $type in $types return '&lt;' || $type || '&gt;', ' ') || ' }'" as="xs:string"/>
+                <xsl:variable name="request-uri" select="ac:build-uri(resolve-uri('ns', ldt:base()), map{ 'query': $query-string, 'accept': 'application/sparql-results+xml' })" as="xs:anyURI"/>
+                <xsl:variable name="constraints" select="if (exists($types)) then document($request-uri) else ()" as="document-node()?"/>
+
+                <xsl:apply-templates select="$constructed-doc" mode="bs2:Form"> <!-- document level template -->
+                    <xsl:with-param name="about" select="()"/> <!-- don't set @about on the container until after the resource is saved -->
+                    <xsl:with-param name="method" select="'put'"/>
+                    <xsl:with-param name="action" select="ldh:href($doc-uri)" as="xs:anyURI" tunnel="yes"/>
+                    <xsl:with-param name="form-actions-class" select="'form-actions modal-footer'" as="xs:string?"/>
+                    <xsl:with-param name="classes" select="$classes"/>
+                    <xsl:with-param name="type-metadata" select="$type-metadata" tunnel="yes"/>
+                    <xsl:with-param name="property-metadata" select="$property-metadata" tunnel="yes"/>
+                    <xsl:with-param name="constructor" select="$constructed-doc" tunnel="yes"/>
+                    <xsl:with-param name="constructors" select="()" tunnel="yes"/> <!-- can be empty because modal form is only used to create Container/Item instances -->
+                    <xsl:with-param name="constraints" select="$constraints" tunnel="yes"/>
+                    <xsl:with-param name="shapes" select="()" tunnel="yes"/> <!-- there will be no shapes as modal form is only used to create Container/Item instances -->
+                    <xsl:with-param name="base-uri" select="ac:absolute-path(ldh:base-uri(.))" tunnel="yes"/> <!-- ac:absolute-path(ldh:base-uri(.)) is empty on constructed documents -->
+                    <!-- <xsl:sort select="ac:label(.)"/> -->
+                </xsl:apply-templates>
+            </xsl:variable>
+
+            <xsl:result-document href="?." method="ixsl:append-content">
+                <div class="modal modal-constructor fade in" typeof="{$forClass}"> <!-- $forClass used by ldh:ResourceUpdated in case of 4xx response -->
+                    <!--
+                    <xsl:if test="$id">
+                        <xsl:attribute name="id" select="$id"/>
+                    </xsl:if>
+                    -->
+
+                    <div class="modal-header">
+                        <button type="button" class="close">&#215;</button>
+
+                        <legend>
+                            <!-- <xsl:value-of select="$legend-label"/> -->
+                        </legend>
+                    </div>
+
+                    <div class="modal-body">
+                        <xsl:copy-of select="$form"/>
+                    </div>
+                </div>
+            </xsl:result-document>
+
+            <xsl:if test="id($form/@id, ixsl:page())">
+                <xsl:apply-templates select="id($form/@id, ixsl:page())" mode="ldh:RenderRowForm"/>
+            </xsl:if>
+        </xsl:for-each>
+
+        <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
+    </xsl:template>
+    
+    <!-- open a form for document editing -->
+    
+    <xsl:template match="div[contains-token(@class, 'action-bar')]//button[contains-token(@class, 'btn-edit')]" mode="ixsl:onclick">
+        <xsl:param name="about" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/> <!-- editing the current document resources -->
+        <xsl:param name="method" select="'patch'" as="xs:string"/>
+        <xsl:param name="form-actions-class" select="'form-actions modal-footer'" as="xs:string?"/>
+        <xsl:param name="button-class" select="'btn btn-primary wymupdate'" as="xs:string?"/>
+        <xsl:variable name="content-body" select="id('content-body', ixsl:page())" as="element()"/>
+
+        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+
+<!--        <xsl:if test="ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path(ldh:base-uri(.)) || '`')">
+            <xsl:variable name="etag" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path(ldh:base-uri(.)) || '`'), 'etag')" as="xs:string"/>
+        </xsl:if>-->
+        <xsl:if test="not(ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $about || '`'))">
+            <ixsl:set-property name="{'`' || $about || '`'}" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.contents')"/>
+        </xsl:if>
+
+        <xsl:variable name="block-id" select="'block-' || generate-id()" as="xs:string"/>
+        <xsl:for-each select="$content-body">
+            <xsl:result-document href="?." method="ixsl:append-content">
+                <div class="modal modal-constructor fade in" about="{$about}">
+                    <div class="modal-header">
+                        <button type="button" class="close">&#215;</button>
+                    </div>
+                    <div class="modal-body" id="{$block-id}">
+                        <!-- to be injected -->
+                    </div>
+                </div>
+            </xsl:result-document>
+        </xsl:for-each>
+        <xsl:variable name="block" select="id($block-id, ixsl:page())" as="element()"/>
+        
+        <!-- if the URI is external, dereference it through the proxy -->
+        <xsl:variable name="request-uri" select="ldh:href($about)" as="xs:anyURI"/>
+        <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
+        <xsl:variable name="context" as="map(*)" select="
+          map{
+            'request': $request,
+            'block': $block,
+            'about': $about,
+            'method': $method
+          }"/>
+        <ixsl:promise select="
+          ixsl:http-request($context('request'))
+            => ixsl:then(ldh:rethread-response($context, ?))
+            => ixsl:then(ldh:handle-response#1)
+            => ixsl:then(ldh:load-edited-resource#1)
+            => ixsl:then(ldh:http-request-threaded#1)
+            => ixsl:then(ldh:handle-response#1)
+            => ixsl:then(ldh:set-type-metadata#1)
+            => ixsl:then(ldh:wrap-into-document#1)
+            => ixsl:then(ldh:render-form#1)
+        " on-failure="ldh:promise-failure#1"/>
+    </xsl:template>
+    
+    <!-- submit document update modal form using PATCH TO-DO: unify!!! -->
+    
+    <xsl:template match="div[contains-token(@class, 'modal-constructor')]//form[contains-token(@class, 'form-horizontal')][upper-case(@method) = 'PATCH']" mode="ixsl:onsubmit" priority="2">
+        <xsl:param name="block" select="ancestor::div[contains-token(@class, 'modal-constructor')]" as="element()"/>
+        <xsl:param name="about" select="$block/@about" as="xs:anyURI"/>
+        <xsl:param name="callback" select="ldh:modal-form-response#1" as="function(map(*)) as item()*"/>
+        <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
+        <xsl:variable name="form" select="." as="element()"/>
+        <xsl:variable name="method" select="upper-case(@method)" as="xs:string"/>
+        <xsl:variable name="id" select="ixsl:get($form, 'id')" as="xs:string"/>
+        <xsl:variable name="action" select="ixsl:get($form, 'action')" as="xs:anyURI"/>
+        <xsl:variable name="enctype" select="ixsl:get($form, 'enctype')" as="xs:string"/>
+        <xsl:variable name="etag" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path(ldh:base-uri(.)) || '`'), 'etag')" as="xs:string"/>
+
+        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+        
+        <!-- pre-process form before submitting it -->
+        <xsl:apply-templates select="." mode="ldh:FormPreSubmit"/>
+
+        <xsl:variable name="elements" select=".//input | .//textarea | .//select" as="element()*"/>
+        <xsl:variable name="triples" select="ldh:parse-rdf-post($elements)" as="element()*"/>        
+        <!-- canonicalize XML in rdf:XMLLiterals -->
+        <xsl:variable name="triples" as="element()*">
+            <xsl:apply-templates select="$triples" mode="ldh:CanonicalizeXML"/>
+        </xsl:variable>
+        <!-- need a customer DELETE/WHERE pattern because the default $about ?p ?o would delete system properties such as dct:created or sioc:has_parent -->
+        <xsl:variable name="where-pattern" as="element()*">
+            <json:map>
+                <json:string key="type">bgp</json:string>
+                <json:array key="triples">
+                    <json:map>
+                        <json:string key="subject"><xsl:value-of select="$about"/></json:string>
+                        <json:string key="predicate">?p</json:string>
+                        <json:string key="object">?o</json:string>
+                    </json:map>
+                </json:array>
+            </json:map>
+            <json:map>
+                <json:string key="type">filter</json:string>
+                <json:map key="expression">
+                    <json:string key="type">operation</json:string>
+                    <json:string key="operator">notin</json:string>
+                    <json:array key="args">
+                        <json:string>?p</json:string>
+                        <json:array>
+                            <json:string>&dct;reated</json:string>
+                            <json:string>&dct;modified</json:string>
+                            <json:string>&sioc;has_parent</json:string>
+                            <json:string>&sioc;has_container</json:string>
+                            <json:string>&dct;creator</json:string>
+                            <json:string>&acl;owner</json:string>
+                        </json:array>
+                    </json:array>
+                </json:map>
+            </json:map>
+            <json:map>
+                <json:string key="type">filter</json:string>
+                <json:map key="expression">
+                    <json:string key="type">operation</json:string>
+                    <json:string key="operator">!</json:string>
+                    <json:array key="args">
+                        <json:map>
+                            <json:string key="type">operation</json:string>
+                            <json:string key="operator">strstarts</json:string>
+                            <json:array key="args">
+                                <json:map>
+                                    <json:string key="type">operation</json:string>
+                                    <json:string key="operator">str</json:string>
+                                    <json:array key="args">
+                                        <json:string>?p</json:string>
+                                    </json:array>
+                                </json:map>
+                                <json:map>
+                                    <json:string key="type">operation</json:string>
+                                    <json:string key="operator">concat</json:string>
+                                    <json:array key="args">
+                                        <json:map>
+                                            <json:string key="type">operation</json:string>
+                                            <json:string key="operator">str</json:string>
+                                            <json:array key="args">
+                                                <json:string>http://www.w3.org/1999/02/22-rdf-syntax-ns#</json:string>
+                                            </json:array>
+                                        </json:map>
+                                        <json:string>"_"</json:string>
+                                    </json:array>
+                                </json:map>
+                            </json:array>
+                        </json:map>
+                    </json:array>
+                </json:map>
+            </json:map>
+        </xsl:variable>
+        <xsl:variable name="update-string" select="ldh:insertdelete-update(ldh:triples-to-bgp(ldh:uri-po-pattern($about)), ldh:triples-to-bgp($triples), $where-pattern)" as="xs:string"/>
+        <xsl:variable name="resources" as="document-node()">
+            <xsl:document>
+                <rdf:RDF>
+                    <xsl:sequence select="ldh:triples-to-descriptions($triples)"/>
+                </rdf:RDF>
+            </xsl:document>
+        </xsl:variable>
+        <xsl:variable name="request-uri" select="ldh:href($action, map{})" as="xs:anyURI"/>
+        <!-- If-Match header checks preconditions, i.e. that the graph has not been modified in the meanwhile -->
+        <xsl:variable name="request" select="map{ 'method': $method, 'href': $request-uri, 'media-type': 'application/sparql-update', 'body': $update-string, 'headers': map{ 'If-Match': $etag, 'Accept': 'application/rdf+xml', 'Cache-Control': 'no-cache' } }" as="map(*)"/>
+        <xsl:variable name="context" as="map(*)" select="
+          map{
+            'request': $request,
+            'doc-uri': ac:absolute-path(ldh:base-uri(.)),
+            'block': $block,
+            'form': $form,
+            'resources': $resources
+          }"/>
+        <ixsl:promise select="
+          ixsl:http-request($context('request'))
+            => ixsl:then(ldh:rethread-response($context, ?))
+            => ixsl:then(ldh:handle-response#1)
+            => ixsl:then($callback)
+        " on-failure="ldh:promise-failure#1"/>
     </xsl:template>
     
     <xsl:template match="button[contains-token(@class, 'btn-add-ontology')]" mode="ixsl:onclick">
@@ -710,11 +994,73 @@ LIMIT   10
             </xsl:with-param>
         </xsl:call-template>
     </xsl:template>
+
+    <xsl:template match="button[contains-token(@class, 'btn-app-settings')]" mode="ixsl:onclick">
+        <xsl:param name="id" select="'app-settings'" as="xs:string?"/>
+        <xsl:param name="method" select="'patch'" as="xs:string"/>
+        <xsl:variable name="content-body" select="id('content-body', ixsl:page())" as="element()"/>
+
+        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+
+        <xsl:for-each select="$content-body">
+            <xsl:result-document href="?." method="ixsl:append-content">
+                <div class="modal modal-constructor fade in" about="{$lapp:application}">
+                    <xsl:if test="$id">
+                        <xsl:attribute name="id" select="$id"/>
+                    </xsl:if>
+            
+                    <div class="modal-header">
+                        <button type="button" class="close">&#215;</button>
+
+                        <legend>
+                            <xsl:value-of>
+                                <xsl:apply-templates select="key('resources', 'application-settings', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                            </xsl:value-of>
+                        </legend>
+                    </div>
+                    <div class="modal-body">
+                        <!-- to be injected -->
+                    </div>
+                </div>
+            </xsl:result-document>
+        </xsl:for-each>
+
+        <xsl:variable name="modal" select="$content-body/div[contains-token(@class, 'modal')][last()]" as="element()"/>
+        <xsl:variable name="block" select="$modal/div[contains-token(@class, 'modal-body')]" as="element()"/>
+        <xsl:variable name="request" select="map{ 'method': 'GET', 'href': resolve-uri('settings', ldt:base()), 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
+        <xsl:variable name="context" as="map(*)" select="
+          map{
+            'request': $request,
+            'block': $block,
+            'about': $lapp:application,
+            'method': $method,
+            'action': resolve-uri('settings', ldt:base())
+          }"/>
+        <ixsl:promise select="
+          ixsl:http-request($context('request'))
+            => ixsl:then(ldh:rethread-response($context, ?))
+            => ixsl:then(ldh:handle-response#1)
+            => ixsl:then(ldh:load-edited-resource#1)
+            => ixsl:then(ldh:http-request-threaded#1)
+            => ixsl:then(ldh:handle-response#1)
+            => ixsl:then(ldh:set-type-metadata#1)
+            => ixsl:then(ldh:wrap-into-document#1)
+            => ixsl:then(ldh:render-form#1)
+        " on-failure="ldh:promise-failure#1"/>
+    </xsl:template>
+
+    <!-- submit application settings modal form using PATCH with custom callback -->
+
+    <xsl:template match="div[@id = 'app-settings']//form[upper-case(@method) = 'PATCH']" mode="ixsl:onsubmit" priority="3">
+        <xsl:next-match>
+            <xsl:with-param name="callback" select="ldh:settings-form-response#1"/>
+        </xsl:next-match>
+    </xsl:template>
     
     <xsl:template match="button[contains-token(@class, 'btn-access-form')]" mode="ixsl:onclick">
         <!-- TO-DO: fix for admin apps -->
         <xsl:param name="this" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/>
-        <xsl:variable name="request-uri" select="ldh:href(ac:build-uri(resolve-uri('access', ldh:origin($this)), map{ 'this': $this }))" as="xs:anyURI"/>
+        <xsl:variable name="request-uri" select="ldh:href(ac:build-uri(resolve-uri('access', lapp:origin($this)), map{ 'this': $this }))" as="xs:anyURI"/>
         <xsl:variable name="request" as="item()*">
             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                 <xsl:call-template name="onAccessResponseLoad">
@@ -743,16 +1089,17 @@ LIMIT   10
     </xsl:template>
     
     <!-- validate form before submitting it and show errors on required control-groups where input values are missing -->
-    <xsl:template match="form[@id = 'form-add-data'] | form[@id = 'form-clone-data'] | form[@id = 'form-generate-containers']" mode="ixsl:onsubmit" priority="1">
+    <xsl:template match="form[@id = 'form-clone-data'] | form[@id = 'form-generate-containers']" mode="ixsl:onsubmit" priority="1">
+        <xsl:param name="callback" as="function(map(*)) as item()*"/>
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <xsl:variable name="control-groups" select="descendant::div[contains-token(@class, 'control-group')]" as="element()*"/>
         <xsl:variable name="required-control-groups" select="$control-groups[contains-token(@class, 'required')]" as="element()*"/>
-        
+
         <!-- clear the errors initially -->
         <xsl:for-each select="$control-groups">
-            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'error', false() ])[current-date() lt xs:date('2000-01-01')]"/>        
+            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'error', false() ])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:for-each>
-        
+
         <xsl:choose>
             <!-- required input values missing, throw an error -->
             <xsl:when test="exists($required-control-groups/descendant::input[@name = ('ol', 'ou')][not(ixsl:get(., 'value'))])">
@@ -772,18 +1119,34 @@ LIMIT   10
                 <xsl:variable name="enctype" select="ixsl:get(., 'enctype')" as="xs:string"/>
                 <xsl:variable name="form-data" select="ixsl:new('URLSearchParams', [ ixsl:new('FormData', [ $form ]) ])"/>
                 <xsl:variable name="request-uri" select="ldh:href($action, map{})" as="xs:anyURI"/>
-
-                <xsl:variable name="request" as="item()*">
-                    <ixsl:schedule-action http-request="map{ 'method': $method, 'href': $request-uri, 'media-type': $enctype, 'body': $form-data, 'headers': map{} }"> <!-- 'Accept': $accept -->
-                        <xsl:call-template name="ldh:ModalFormSubmit">
-                            <xsl:with-param name="action" select="$action"/>
-                            <xsl:with-param name="form" select="$form"/>
-                        </xsl:call-template>
-                    </ixsl:schedule-action>
-                </xsl:variable>
-                <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
+                <xsl:variable name="request" select="map{ 'method': $method, 'href': $request-uri, 'media-type': $enctype, 'body': $form-data, 'headers': map{} }" as="map(*)"/>
+                <xsl:variable name="context" as="map(*)" select="
+                  map{
+                    'request': $request,
+                    'form': $form
+                  }"/>
+                <ixsl:promise select="
+                  ixsl:http-request($context('request'))
+                    => ixsl:then(ldh:rethread-response($context, ?))
+                    => ixsl:then(ldh:handle-response#1)
+                    => ixsl:then($callback)
+                " on-failure="ldh:promise-failure#1"/>
             </xsl:otherwise>
         </xsl:choose>
+    </xsl:template>
+
+    <!-- submit generate containers modal form with custom callback -->
+    <xsl:template match="form[@id = 'form-generate-containers']" mode="ixsl:onsubmit" priority="2">
+        <xsl:next-match>
+            <xsl:with-param name="callback" select="ldh:generate-containers-form-response#1"/>
+        </xsl:next-match>
+    </xsl:template>
+
+    <!-- submit add data / clone data modal forms with custom callback -->
+    <xsl:template match="form[@id = 'form-clone-data']" mode="ixsl:onsubmit" priority="2">
+        <xsl:next-match>
+            <xsl:with-param name="callback" select="ldh:add-data-form-response#1"/>
+        </xsl:next-match>
     </xsl:template>
 
     <xsl:template match="button[contains-token(@class, 'btn-load-endpoint-schema')]" mode="ixsl:onclick">
@@ -844,11 +1207,12 @@ LIMIT   10
 
     <!-- validate form before submitting it and show errors on required control-groups where input values are missing -->
     <xsl:template match="form[@id = 'form-request-access']" mode="ixsl:onsubmit" priority="1">
+        <xsl:param name="callback" select="ldh:request-access-form-response#1" as="function(map(*)) as item()*"/>
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <xsl:variable name="form" select="." as="element()"/>
 
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
-        
+
         <!-- disable hidden inputs on table rows where all acl:mode checkboxes are a) disabled by default b) enabled but left unchecked -->
         <!-- otherwise RDF/POST will generate acl:Authorization instances without acl:mode values which will fail constraint validation -->
         <!-- we don't want to use the values of disabled checkboxes in the request because those authorizations already exist -->
@@ -861,18 +1225,20 @@ LIMIT   10
         <xsl:variable name="enctype" select="ixsl:get(., 'enctype')" as="xs:string"/>
         <xsl:variable name="form-data" select="ixsl:new('URLSearchParams', [ ixsl:new('FormData', [ $form ]) ])"/>
         <xsl:variable name="request-uri" select="ldh:href($action, map{})" as="xs:anyURI"/>
-
-        <xsl:variable name="request" as="item()*">
-            <ixsl:schedule-action http-request="map{ 'method': $method, 'href': $request-uri, 'media-type': $enctype, 'body': $form-data, 'headers': map{} }"> <!-- 'Accept': $accept -->
-                <xsl:call-template name="ldh:ModalFormSubmit">
-                    <xsl:with-param name="action" select="$action"/>
-                    <xsl:with-param name="form" select="$form"/>
-                </xsl:call-template>
-            </ixsl:schedule-action>
-        </xsl:variable>
-        <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
+        <xsl:variable name="request" select="map{ 'method': $method, 'href': $request-uri, 'media-type': $enctype, 'body': $form-data, 'headers': map{} }" as="map(*)"/>
+        <xsl:variable name="context" as="map(*)" select="
+          map{
+            'request': $request,
+            'form': $form
+          }"/>
+        <ixsl:promise select="
+          ixsl:http-request($context('request'))
+            => ixsl:then(ldh:rethread-response($context, ?))
+            => ixsl:then(ldh:handle-response#1)
+            => ixsl:then($callback)
+        " on-failure="ldh:promise-failure#1"/>
     </xsl:template>
-    
+
     <xsl:template match="input[contains-token(@class, 'subject-slug')]" mode="ixsl:onkeyup" priority="1">
         <xsl:param name="slug" select="ixsl:get(., 'value')" as="xs:string?"/>
         <xsl:param name="rdf-post-subj-input" select="preceding-sibling::input[@name = 'su']" as="element()"/>
@@ -887,6 +1253,30 @@ LIMIT   10
     </xsl:template>
     
     <!-- CALLBACKS -->
+    
+    <xsl:function name="ldh:modal-form-response" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:variable name="response" select="$context('response')" as="map(*)"/>
+        <xsl:variable name="status" select="$response?status" as="xs:double"/>
+        <xsl:variable name="media-type" select="$response?media-type" as="xs:string?"/>
+        
+        <xsl:message>ldh:modal-form-response</xsl:message>
+
+        <xsl:choose>
+            <xsl:when test="$status = (200, 204)">
+                <xsl:sequence select="ldh:form-horizontal-submit-success($context)"/>
+            </xsl:when>
+            <xsl:when test="$status = 201 and map:contains($response?headers, 'location')">
+                <xsl:sequence select="ldh:form-submit-created($context)"/>
+            </xsl:when>
+            <xsl:when test="$status = (400, 422) and starts-with($media-type, 'application/rdf+xml')">
+              <xsl:sequence select="ldh:modal-form-submit-violation($context)"/>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:sequence select="ldh:error-response-alert($context)"/>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:function>
     
     <!-- show "Add data"/"Save as" form -->
 
@@ -939,135 +1329,7 @@ LIMIT   10
             </xsl:for-each>
         </xsl:if>
     </xsl:template>
-    
-    <!-- form is submitted. TO-DO: split into multiple callbacks and avoid <xsl:choose>? -->
-    
-    <xsl:template name="ldh:ModalFormSubmit">
-        <xsl:context-item as="map(*)" use="required"/>
-        <xsl:param name="container" select="id('content-body', ixsl:page())" as="element()"/>
-        <xsl:param name="action" as="xs:anyURI"/>
-        <xsl:param name="form" as="element()"/>
-        
-        <xsl:choose>
-            <!-- special case for add/clone data forms: redirect to the container -->
-            <xsl:when test="ixsl:get($form, 'id') = ('form-add-data', 'form-clone-data')">
-                <xsl:variable name="control-group" select="$form/descendant::div[contains-token(@class, 'control-group')][input[@name = 'pu'][@value = '&sd;name']]" as="element()*"/>
-                <xsl:variable name="uri" select="$control-group/descendant::input[@name = 'ou']/ixsl:get(., 'value')" as="xs:anyURI"/>
-                
-                <xsl:choose>
-                    <xsl:when test="?status = (200, 204)">
-                        <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }" as="map(*)"/>
-                        <xsl:variable name="context" select="
-                          map{
-                            'request': $request,
-                            'href': ac:build-uri(ac:absolute-path($uri), map{ 'mode': '&ac;ReadMode'}),
-                            'push-state': true()
-                          }" as="map(*)"/>
-                        <ixsl:promise select="
-                          ixsl:http-request($context('request'))
-                            => ixsl:then(ldh:rethread-response($context, ?))
-                            => ixsl:then(ldh:handle-response#1)
-                            => ixsl:then(ldh:xhtml-document-loaded#1)
-                        " on-failure="ldh:promise-failure#1"/>
 
-                        <!-- remove the modal div -->
-                        <xsl:sequence select="ixsl:call($form/ancestor::div[contains-token(@class, 'modal')], 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
-                    </xsl:when>
-                    <xsl:otherwise>
-                        <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
-                        
-                        <xsl:variable name="status-code" select="xs:integer(?status)" as="xs:integer"/>
-                        <xsl:variable name="message" select="?message" as="xs:string?"/>
-                        <!-- render error message -->
-                        <xsl:for-each select="$form//fieldset">
-                            <xsl:result-document href="?." method="ixsl:append-content">
-                                <div class="alert">
-                                    <p>
-                                        <!-- lookup status message by code because Tomcat does not send any -->
-                                        <xsl:apply-templates select="key('status-by-code', $status-code, document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/http-statusCodes.rdf', $ac:contextUri)))" mode="ac:label"/>
-                                    </p>
-                                    <xsl:if test="$message">
-                                        <p>
-                                            <xsl:value-of select="$message"/>
-                                        </p>
-                                    </xsl:if>
-                                </div>
-                            </xsl:result-document>
-                        </xsl:for-each>
-                    </xsl:otherwise>
-                </xsl:choose>
-            </xsl:when>
-            <!-- special case for generate containers form: redirect to the parent container -->
-            <xsl:when test="ixsl:get($form, 'id') = 'form-generate-containers'">
-                <xsl:variable name="control-group" select="$form/descendant::div[contains-token(@class, 'control-group')][input[@name = 'pu'][@value = '&sioc;has_parent']]" as="element()*"/>
-                <xsl:variable name="uri" select="$control-group/descendant::input[@name = 'ou']/ixsl:get(., 'value')" as="xs:anyURI"/>
-                <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }" as="map(*)"/>
-                <xsl:variable name="context" select="
-                  map{
-                    'request': $request,
-                    'href': ac:absolute-path($uri),
-                    'push-state': true(),
-                    'refresh-content': true()
-                  }" as="map(*)"/>
-                <ixsl:promise select="
-                  ixsl:http-request($context('request'))
-                    => ixsl:then(ldh:rethread-response($context, ?))
-                    => ixsl:then(ldh:handle-response#1)
-                    => ixsl:then(ldh:xhtml-document-loaded#1)
-                " on-failure="ldh:promise-failure#1"/>
-                
-                <!-- remove the modal div -->
-                <xsl:sequence select="ixsl:call($form/ancestor::div[contains-token(@class, 'modal')], 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
-            </xsl:when>
-            <xsl:when test="?status = 200 and ixsl:get($form, 'id') = 'form-request-access'">
-                <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
-
-                <!-- remove the modal div -->
-                <xsl:sequence select="ixsl:call($form/ancestor::div[contains-token(@class, 'modal')], 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
-            </xsl:when>
-            <!-- POST created new resource successfully -->
-            <xsl:when test="?status = 201 and ?headers?location">
-                <xsl:variable name="created-uri" select="?headers?location" as="xs:anyURI"/>
-                <xsl:choose>
-                    <!-- special case for signup form -->
-                    <xsl:when test="ixsl:get($form, 'id') = 'form-signup'">
-                        <xsl:call-template name="bs2:SignUpComplete"/>
-                    </xsl:when>
-                    <!-- if the form submit did not originate from a typeahead (target), load the created resource -->
-                    <xsl:otherwise>
-<!--                        <xsl:variable name="request" as="item()*">
-                            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $created-uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
-                                <xsl:call-template name="ldh:DocumentLoaded">
-                                    <xsl:with-param name="href" select="ac:absolute-path($created-uri)"/>
-                                </xsl:call-template>
-                            </ixsl:schedule-action>
-                        </xsl:variable>
-                        <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>-->
-                        
-                    <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $created-uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }" as="map(*)"/>
-                    <xsl:variable name="context" select="
-                      map{
-                        'request': $request,
-                        'href': ac:absolute-path($created-uri),
-                        'push-state': true(),
-                        'refresh-content': true()
-                      }" as="map(*)"/>
-                    <ixsl:promise select="
-                      ixsl:http-request($context('request'))
-                        => ixsl:then(ldh:rethread-response($context, ?))
-                        => ixsl:then(ldh:handle-response#1)
-                        => ixsl:then(ldh:xhtml-document-loaded#1)
-                    " on-failure="ldh:promise-failure#1"/>
-                    </xsl:otherwise>
-                </xsl:choose>
-            </xsl:when>
-            <xsl:otherwise>
-                <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
-                <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ ?message ])"/>
-            </xsl:otherwise>
-        </xsl:choose>
-    </xsl:template>
-    
     <!-- render schema classes loaded from a SPARQL endpoint -->
     
     <xsl:template name="onEndpointClassesLoad">
@@ -1079,7 +1341,11 @@ LIMIT   10
         <xsl:for-each select="$container[not(./div[contains-token(@class, 'endpoint-classes')])]">
             <xsl:result-document href="?." method="ixsl:append-content">
                 <div class="control-group required endpoint-classes">
-                    <label class="control-label">Classes</label>
+                    <label class="control-label">
+                        <xsl:value-of>
+                            <xsl:apply-templates select="key('resources', 'classes', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                        </xsl:value-of>
+                    </label>
                     <div class="controls"></div>
                 </div>
             </xsl:result-document>
@@ -1134,7 +1400,11 @@ LIMIT   10
                 <xsl:for-each select="$container//div[contains-token(@class, 'endpoint-classes')]/div">
                     <xsl:result-document href="?." method="ixsl:replace-content">
                         <div class="alert alert-block">
-                            <strong>Error during query execution:</strong>
+                            <strong>
+                                <xsl:value-of>
+                                    <xsl:apply-templates select="key('resources', 'error-during-query', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                                </xsl:value-of>
+                            </strong>
                             <pre>
                                 <xsl:value-of select="$message"/>
                             </pre>
@@ -1220,5 +1490,238 @@ LIMIT   10
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
+
+    <xsl:function name="ldh:settings-form-response" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:variable name="response" select="$context('response')" as="map(*)"/>
+        <xsl:variable name="status" select="$response?status" as="xs:double"/>
+        <xsl:variable name="media-type" select="$response?media-type" as="xs:string?"/>
+        <xsl:variable name="form" select="$context('form')" as="element()?"/>
+
+        <xsl:message>ldh:settings-form-response</xsl:message>
+
+        <xsl:choose>
+            <!-- 200/204: settings saved successfully, close the modal -->
+            <xsl:when test="$status = (200, 204)">
+                <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
+                <!-- close the modal -->
+                <xsl:if test="$form">
+                    <xsl:sequence select="ixsl:call($form/ancestor::div[contains-token(@class, 'modal')], 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
+                </xsl:if>
+            </xsl:when>
+            <!-- validation errors -->
+            <xsl:when test="$status = (400, 422) and starts-with($media-type, 'application/rdf+xml')">
+                <xsl:sequence select="ldh:modal-form-submit-violation($context)"/>
+            </xsl:when>
+            <!-- other errors -->
+            <xsl:otherwise>
+                <xsl:sequence select="ldh:error-response-alert($context)"/>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:function>
+
+    <xsl:function name="ldh:request-access-form-response" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:variable name="response" select="$context('response')" as="map(*)"/>
+        <xsl:variable name="status" select="$response?status" as="xs:double"/>
+        <xsl:variable name="form" select="$context('form')" as="element()?"/>
+
+        <xsl:message>ldh:request-access-form-response</xsl:message>
+
+        <xsl:choose>
+            <!-- Success: close the modal -->
+            <xsl:when test="$status = 200">
+                <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
+                <!-- close the modal -->
+                <xsl:if test="$form">
+                    <xsl:sequence select="ixsl:call($form/ancestor::div[contains-token(@class, 'modal')], 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
+                </xsl:if>
+            </xsl:when>
+            <!-- Error -->
+            <xsl:otherwise>
+                <xsl:sequence select="ldh:error-response-alert($context)"/>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:function>
+
+    <xsl:function name="ldh:generate-containers-form-response" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:variable name="response" select="$context('response')" as="map(*)"/>
+        <xsl:variable name="status" select="$response?status" as="xs:double"/>
+        <xsl:variable name="form" select="$context('form')" as="element()?"/>
+
+        <xsl:message>ldh:generate-containers-form-response</xsl:message>
+
+        <xsl:choose>
+            <!-- Success: redirect to parent container with refresh -->
+            <xsl:when test="$status = (200, 201, 204)">
+                <xsl:variable name="control-group" select="$form/descendant::div[contains-token(@class, 'control-group')][input[@name = 'pu'][@value = '&sioc;has_parent']]" as="element()*"/>
+                <xsl:variable name="uri" select="$control-group/descendant::input[@name = 'ou']/ixsl:get(., 'value')" as="xs:anyURI"/>
+                <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }" as="map(*)"/>
+                <xsl:variable name="redirect-context" select="
+                  map{
+                    'request': $request,
+                    'href': ac:absolute-path($uri),
+                    'push-state': true(),
+                    'refresh-content': true()
+                  }" as="map(*)"/>
+                <ixsl:promise select="
+                  ixsl:http-request($redirect-context('request'))
+                    => ixsl:then(ldh:rethread-response($redirect-context, ?))
+                    => ixsl:then(ldh:handle-response#1)
+                    => ixsl:then(ldh:xhtml-document-loaded#1)
+                " on-failure="ldh:promise-failure#1"/>
+
+                <!-- Remove the modal -->
+                <xsl:sequence select="ixsl:call($form/ancestor::div[contains-token(@class, 'modal')], 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
+            </xsl:when>
+            <!-- Error -->
+            <xsl:otherwise>
+                <xsl:sequence select="ldh:error-response-alert($context)"/>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:function>
+
+    <xsl:function name="ldh:add-data-form-response" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:variable name="response" select="$context('response')" as="map(*)"/>
+        <xsl:variable name="status" select="$response?status" as="xs:double"/>
+        <xsl:variable name="form" select="$context('form')" as="element()?"/>
+
+        <xsl:message>ldh:add-data-form-response</xsl:message>
+
+        <xsl:choose>
+            <!-- Success: redirect to target container with ReadMode -->
+            <xsl:when test="$status = (200, 204)">
+                <xsl:variable name="control-group" select="$form/descendant::div[contains-token(@class, 'control-group')][input[@name = 'pu'][@value = '&sd;name']]" as="element()*"/>
+                <xsl:variable name="uri" select="$control-group/descendant::input[@name = 'ou']/ixsl:get(., 'value')" as="xs:anyURI"/>
+                <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }" as="map(*)"/>
+                <xsl:variable name="redirect-context" select="
+                  map{
+                    'request': $request,
+                    'href': ac:build-uri(ac:absolute-path($uri), map{ 'mode': '&ac;ReadMode'}),
+                    'push-state': true()
+                  }" as="map(*)"/>
+                <ixsl:promise select="
+                  ixsl:http-request($redirect-context('request'))
+                    => ixsl:then(ldh:rethread-response($redirect-context, ?))
+                    => ixsl:then(ldh:handle-response#1)
+                    => ixsl:then(ldh:xhtml-document-loaded#1)
+                " on-failure="ldh:promise-failure#1"/>
+
+                <!-- Remove the modal -->
+                <xsl:sequence select="ixsl:call($form/ancestor::div[contains-token(@class, 'modal')], 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
+            </xsl:when>
+            <!-- Error: render error message inline in the form's fieldset -->
+            <xsl:otherwise>
+                <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
+
+                <xsl:variable name="status-code" select="xs:integer($status)" as="xs:integer"/>
+                <xsl:variable name="message" select="$response?message" as="xs:string?"/>
+                <!-- render error message -->
+                <xsl:for-each select="$form//fieldset">
+                    <xsl:result-document href="?." method="ixsl:append-content">
+                        <div class="alert">
+                            <p>
+                                <!-- lookup status message by code because Tomcat does not send any -->
+                                <xsl:apply-templates select="key('status-by-code', $status-code, document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/http-statusCodes.rdf', $ac:contextUri)))" mode="ac:label"/>
+                            </p>
+                            <xsl:if test="$message">
+                                <p>
+                                    <xsl:value-of select="$message"/>
+                                </p>
+                            </xsl:if>
+                        </div>
+                    </xsl:result-document>
+                </xsl:for-each>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:function>
+
+    <xsl:function name="ldh:modal-form-submit-violation" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:variable name="response" select="$context('response')" as="map(*)"/>
+        <xsl:variable name="doc-uri" select="$context('doc-uri')" as="xs:anyURI"/>
+        <xsl:variable name="block" select="$context('block')" as="element()"/>
+        <xsl:variable name="form" select="$context('form')" as="element()?"/>
+        
+        <xsl:message>ldh:modal-form-submit-violation</xsl:message>
+
+        <xsl:for-each select="$response">
+            <xsl:variable name="body" select="?body" as="document-node()"/>
+            <!-- TO-DO: refactor to use asynchronous HTTP requests -->
+            <!-- inverse $types expression compared to ldh:row-form-submit-violation -->
+            <xsl:variable name="types" select="distinct-values($body/rdf:RDF/*[@rdf:about = $doc-uri]/rdf:type/@rdf:resource)" as="xs:anyURI*"/>
+            <xsl:variable name="query-string" select="'DESCRIBE $Type VALUES $Type { ' || string-join(for $type in $types return '&lt;' || $type || '&gt;', ' ') || ' }'" as="xs:string"/>
+            <xsl:variable name="request-uri" select="ac:build-uri(resolve-uri('ns', ldt:base()), map{ 'query': $query-string, 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
+            <xsl:variable name="type-metadata" select="if (exists($types)) then document($request-uri) else ()" as="document-node()?"/>
+
+            <xsl:variable name="property-uris" select="distinct-values($body/rdf:RDF/*[not(@rdf:about = $doc-uri)]/*/concat(namespace-uri(), local-name()))" as="xs:string*"/>
+            <xsl:variable name="query-string" select="'DESCRIBE $Type VALUES $Type { ' || string-join(for $uri in $property-uris return '&lt;' || $uri || '&gt;', ' ') || ' }'" as="xs:string"/>
+            <xsl:variable name="request-uri" select="ac:build-uri(resolve-uri('ns', ldt:base()), map{ 'query': $query-string, 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
+            <xsl:variable name="property-metadata" select="document($request-uri)" as="document-node()"/>
+
+            <xsl:variable name="query-string" select="$constructor-query || ' VALUES $Type { ' || string-join(for $type in $types return '&lt;' || $type || '&gt;', ' ') || ' }'" as="xs:string"/>
+            <xsl:variable name="request-uri" select="ac:build-uri(resolve-uri('ns', ldt:base()), map{ 'query': $query-string, 'accept': 'application/sparql-results+xml' })" as="xs:anyURI"/>
+            <xsl:variable name="constructors" select="if (exists($types)) then document($request-uri) else ()" as="document-node()?"/>
+
+            <xsl:variable name="query-string" select="$constraint-query || ' VALUES $Type { ' || string-join(for $type in $types return '&lt;' || $type || '&gt;', ' ') || ' }'" as="xs:string"/>
+            <xsl:variable name="request-uri" select="ac:build-uri(resolve-uri('ns', ldt:base()), map{ 'query': $query-string, 'accept': 'application/sparql-results+xml' })" as="xs:anyURI"/>
+            <xsl:variable name="constraints" select="if (exists($types)) then document($request-uri) else ()" as="document-node()?"/>
+
+            <xsl:variable name="query-string" select="$shape-query || ' VALUES $Type { ' || string-join(for $type in $types return '&lt;' || $type || '&gt;', ' ') || ' }'" as="xs:string"/>
+            <xsl:variable name="request-uri" select="ac:build-uri(resolve-uri('ns', ldt:base()), map{ 'query': $query-string, 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
+            <xsl:variable name="shapes" select="document($request-uri)" as="document-node()"/>
+
+            <xsl:variable name="object-uris" select="distinct-values($body/rdf:RDF/*/*/@rdf:resource[not(key('resources', .))])" as="xs:string*"/>
+            <xsl:variable name="query-string" select="$object-metadata-query || ' VALUES $this { ' || string-join(for $uri in $object-uris return '&lt;' || $uri || '&gt;', ' ') || ' }'" as="xs:string"/>
+            <xsl:variable name="request-uri" select="ac:build-uri(resolve-uri('sparql', ldt:base()), map{ 'query': $query-string, 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
+            <xsl:variable name="object-metadata" select="if (doc-available($request-uri)) then document($request-uri) else ()" as="document-node()?"/>
+
+            <xsl:variable name="form" as="element()*">
+                <xsl:for-each select="$body">
+                    <xsl:apply-templates select="." mode="bs2:Form"> <!-- document level template -->
+                        <xsl:with-param name="about" select="()"/> <!-- don't set @about on the container until after the resource is saved -->
+                        <xsl:with-param name="method" select="$form/@method"/>
+                        <xsl:with-param name="action" select="$form/@action" as="xs:anyURI" tunnel="yes"/>
+                        <xsl:with-param name="form-actions-class" select="'form-actions modal-footer'" as="xs:string?"/>
+                        <xsl:with-param name="classes" select="()"/>
+                        <xsl:with-param name="type-metadata" select="$type-metadata" tunnel="yes"/>
+                        <xsl:with-param name="property-metadata" select="$property-metadata" tunnel="yes"/>
+                        <xsl:with-param name="constructors" select="()" tunnel="yes"/> <!-- can be empty because modal form is only used to create Container/Item instances -->
+                        <xsl:with-param name="constraints" select="$constraints" tunnel="yes"/>
+                        <xsl:with-param name="shapes" select="()" tunnel="yes"/> <!-- there will be no shapes as modal form is only used to create Container/Item instances -->
+                        <xsl:with-param name="base-uri" select="ac:absolute-path(ldh:base-uri(.))" tunnel="yes"/> <!-- ac:absolute-path(ldh:base-uri(.)) is empty on constructed documents -->
+                        <!-- <xsl:sort select="ac:label(.)"/> -->
+                    </xsl:apply-templates>
+                </xsl:for-each>
+            </xsl:variable>
+
+            <xsl:for-each select="$block">
+                <xsl:result-document href="?." method="ixsl:replace-content">
+                    <div class="modal-header">
+                        <button type="button" class="close">&#215;</button>
+
+                        <legend>
+                            <!-- <xsl:value-of select="$legend-label"/> -->
+                        </legend>
+                    </div>
+
+                    <div class="modal-body">
+                        <xsl:copy-of select="$form"/>
+                    </div>
+                </xsl:result-document>
+            </xsl:for-each>
+
+        <!-- cannot be in $form context because it contains old DOM (pre-ixsl:replace-content) -->
+            <xsl:for-each select="id($form/@id, ixsl:page())">
+                <xsl:apply-templates select="." mode="ldh:RenderRowForm"/>
+            </xsl:for-each>
+
+            <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>            
+        </xsl:for-each>
+        
+        <xsl:sequence select="$context"/>
+    </xsl:function>
     
 </xsl:stylesheet>

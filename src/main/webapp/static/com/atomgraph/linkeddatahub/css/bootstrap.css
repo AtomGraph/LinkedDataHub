@@ -1,6 +1,8 @@
 html { height: 100%; }
 body { height: calc(100% - 120px); padding-top: 120px; padding-bottom: 0; }
 body.embed { padding-top: 0; }
+ul.dropdown-menu { max-height: 26em; overflow-x: hidden; overflow-y: auto; }
+ul.dropdown-menu ul { margin: 0; }
 .label { min-width: unset; min-height: unset; }
 .brand.context { background-image: url('../icons/baseline_arrow_upward_white_18dp.png'); background-repeat: no-repeat; background-position: center center; height: 20px; width: 20px; background-size: 20px 20px; }
 .brand.admin { background-image: url('../icons/ic_settings_white_24px.svg'); background-repeat: no-repeat; background-position: right center; padding-right: 30px; }
@@ -9,6 +11,9 @@ body.embed { padding-top: 0; }
 .btn.dropdown-toggle.btn-apps { background-image: url('../icons/ic_apps_white_24px.svg'); background-position: center center; background-repeat: no-repeat; width: 34px; height: 34px; }
 .btn.dropdown-toggle.btn-settings { background-image: url('../icons/settings_white_24dp.svg'); background-position: center center; background-repeat: no-repeat; width: 34px; height: 34px; }
 .btn.dropdown-toggle.btn-agent { background-image: url('../icons/ic_account_circle_white_24px.svg'); background-position: center center; background-repeat: no-repeat; width: 34px; height: 34px; }
+.dropdown-menu .btn-app-settings { background-color: inherit; display: block; text-align: left; width: 100%; padding-left: 20px; }
+.dropdown-menu li form { margin-bottom: 0; }
+.dropdown-menu li form button { width: 100%; text-align: left; }
 .navbar-form .input-append { margin-top: 10px; }
 .navbar-form .input-append select { margin-top: 0; height: 34px; }
 .navbar-form .btn-search { background-image: url('../icons/ic_search_white_24px.svg'); background-position: center center; background-repeat: no-repeat; width: 34px; height: 34px; }
@@ -26,8 +31,6 @@ body.embed { padding-top: 0; }
 .action-bar #doc-controls .btn-edit { margin-top: -5px; margin-left: 10px; }
 .action-bar p.alert { margin-bottom: 0; }
 .nav-header.btn { color: inherit; }
-ul.dropdown-menu { max-height: 26em; overflow-x: hidden; overflow-y: auto; }
-ul.dropdown-menu ul { margin: 0; }
 .btn.btn-primary.create-action { background-image: url('../icons/ic_note_add_white_24px.svg'); background-position: 12px center; background-repeat: no-repeat; padding-left: 40px; /* height: 30px; */ }
 .btn.create-action, a.create-action { background-image: url('../icons/ic_note_add_black_24px.svg'); background-position: 12px center; background-repeat: no-repeat; padding-left: 40px; /* height: 30px; */ }
 button.btn.create-action { height: 30px; }
@@ -64,11 +67,21 @@ li button.btn-edit-constructors, li button.btn-add-data, li button.btn-add-ontol
 .btn.dropdown-toggle.btn-map { text-align: right; font-size: 0; color: transparent; background-image: url('../icons/ic_map_black_24px.svg'); background-position: center center; background-repeat: no-repeat; width: 64px; }
 .btn.dropdown-toggle.btn-graph { text-align: right; font-size: 0; color: transparent; background-image: url('../icons/ic_blur_on_black_24px.svg'); background-position: center center; background-repeat: no-repeat; width: 64px; }
 .btn.dropdown-toggle.btn-query { text-align: right; font-size: 0; color: transparent; background-image: url('../icons/ic_code_black_24px.svg'); background-position: center center; background-repeat: no-repeat; width: 64px; }
+.btn.dropdown-toggle.btn-content { text-align: right; font-size: 0; color: transparent; background-image: url('../icons/view_list_black_24dp.svg'); background-position: center center; background-repeat: no-repeat; width: 64px; }
+.btn.dropdown-toggle.btn-chart { text-align: right; font-size: 0; color: transparent; background-image: url('../icons/ic_show_chart_black_24px.svg'); background-position: center center; background-repeat: no-repeat; width: 64px; }
+.btn.dropdown-toggle.btn-list { text-align: right; font-size: 0; color: transparent; background-image: url('../icons/view_list_black_24dp.svg'); background-position: center center; background-repeat: no-repeat; width: 64px; }
+.btn.dropdown-toggle.btn-table { text-align: right; font-size: 0; color: transparent; background-image: url('../icons/ic_border_all_black_24px.svg'); background-position: center center; background-repeat: no-repeat; width: 64px; }
+.btn.dropdown-toggle.btn-grid { text-align: right; font-size: 0; color: transparent; background-image: url('../icons/ic_grid_on_black_24px.svg'); background-position: center center; background-repeat: no-repeat; width: 64px; }
+.dropdown-menu > li > a.btn-content { background-image: url('../icons/view_list_black_24dp.svg'); background-position: 12px center; background-repeat: no-repeat; padding: 5px 5px 5px 40px; }
 .dropdown-menu > li > a.btn-read { background-image: url('../icons/ic_details_black_24px.svg'); background-position: 12px center; background-repeat: no-repeat; padding: 5px 5px 5px 40px; }
 .dropdown-menu > li > a.btn-edit { background-image: url('../icons/ic_create_black_24px.svg'); background-position: 12px center; background-repeat: no-repeat; padding: 5px 5px 5px 40px; }
 .dropdown-menu > li > a.btn-map { background-image: url('../icons/ic_map_black_24px.svg'); background-position: 12px center; background-repeat: no-repeat; padding: 5px 5px 5px 40px; }
+.dropdown-menu > li > a.btn-chart { background-image: url('../icons/ic_show_chart_black_24px.svg'); background-position: 12px center; background-repeat: no-repeat; padding: 5px 5px 5px 40px; }
 .dropdown-menu > li > a.btn-graph { background-image: url('../icons/ic_blur_on_black_24px.svg'); background-position: 12px center; background-repeat: no-repeat; padding: 5px 5px 5px 40px; }
 .dropdown-menu > li > a.btn-query { background-image: url('../icons/ic_code_black_24px.svg'); background-position: 12px center; background-repeat: no-repeat; padding: 5px 5px 5px 40px; }
+.dropdown-menu > li > a.btn-list { background-image: url('../icons/view_list_black_24dp.svg'); background-position: 12px center; background-repeat: no-repeat; padding: 5px 5px 5px 40px; }
+.dropdown-menu > li > a.btn-table { background-image: url('../icons/ic_border_all_black_24px.svg'); background-position: 12px center; background-repeat: no-repeat; padding: 5px 5px 5px 40px; }
+.dropdown-menu > li > a.btn-grid { background-image: url('../icons/ic_grid_on_black_24px.svg'); background-position: 12px center; background-repeat: no-repeat; padding: 5px 5px 5px 40px; }
 #doc-tree { display: none; width: 15%; position: fixed; left: 0; top: 106px; height: calc(100% - 106px); }
 @media (max-width: 979px)
 {

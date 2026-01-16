@@ -113,3 +113,25 @@ export PATH="$(find bin -type d -exec realpath {} \; | tr '\n' ':')$PATH"
 - Saxon-JS SEF files are generated during Maven package phase for client-side XSLT
 - WebID certificates are required for authenticated API access
 - The system expects Jena CLI tools to be available (`JENA_HOME` environment variable)
+
+## Debugging Test Failures
+
+When HTTP tests fail:
+1. NEVER speculate about failures - always add debug output first
+2. Add echo statements showing:
+    - The actual values being tested
+    - The expected values
+    - HTTP response codes and bodies where relevant
+3. Run the test to see actual output
+4. Only then diagnose and fix
+
+Example debug pattern:
+```bash
+result=$(curl ...)
+expected="..."
+echo "DEBUG: Expected: $expected"
+echo "DEBUG: Got: $result"
+if [ "$result" != "$expected" ]; then
+echo "DEBUG: Mismatch!"
+exit 1
+fi

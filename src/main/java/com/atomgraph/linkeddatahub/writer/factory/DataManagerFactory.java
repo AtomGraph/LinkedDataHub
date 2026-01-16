@@ -22,7 +22,7 @@ import jakarta.ws.rs.ext.Provider;
 import com.atomgraph.client.util.DataManager;
 import com.atomgraph.linkeddatahub.apps.model.Application;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
-import com.atomgraph.linkeddatahub.client.LinkedDataClient;
+import com.atomgraph.linkeddatahub.client.GraphStoreClient;
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
 import com.atomgraph.linkeddatahub.vocabulary.LAPP;
 import com.atomgraph.linkeddatahub.writer.impl.DataManagerImpl;
@@ -84,12 +84,12 @@ public class DataManagerFactory implements Factory<DataManager>
         else
             baseManager = getSystem().getDataManager();
 
-        LinkedDataClient ldc = LinkedDataClient.create(getSystem().getClient(), getSystem().getMediaTypes()).
+        GraphStoreClient gsc = GraphStoreClient.create(getSystem().getClient(), getSystem().getMediaTypes()).
             delegation(getUriInfo().getBaseUri(), getAgentContext());
 
         // copy cached models over from the app's FileManager
         return new DataManagerImpl(LocationMapper.get(), new HashMap<>(baseManager.getModelCache()),
-            ldc, true, getSystem().isPreemptiveAuth(), getSystem().isResolvingUncached(),
+            gsc, true, getSystem().isPreemptiveAuth(), getSystem().isResolvingUncached(),
             getSystem().getBaseURI(),
                 getAgentContext());
     }

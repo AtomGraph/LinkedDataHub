@@ -18,7 +18,7 @@ package com.atomgraph.linkeddatahub.server.io;
 
 import com.atomgraph.linkeddatahub.apps.model.AdminApplication;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
-import com.atomgraph.linkeddatahub.client.LinkedDataClient;
+import com.atomgraph.linkeddatahub.client.GraphStoreClient;
 import com.atomgraph.linkeddatahub.model.auth.Agent;
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
 import com.atomgraph.linkeddatahub.vocabulary.ACL;
@@ -245,10 +245,10 @@ public class ValidatingModelProvider extends com.atomgraph.server.io.ValidatingM
 
         if (getApplication().isPresent() && resource.hasProperty(RDF.type, ACL.Authorization))
         {
-            LinkedDataClient ldc = LinkedDataClient.create(getSystem().getClient(), getSystem().getMediaTypes()).
+            GraphStoreClient gsc = GraphStoreClient.create(getSystem().getClient(), getSystem().getMediaTypes()).
                 delegation(getUriInfo().getBaseUri(), getAgentContextProvider().get().orElse(null));
             getSystem().getEventBus().post(new com.atomgraph.linkeddatahub.server.event.AuthorizationCreated(getEndUserApplication(),
-                ldc, resource));
+                gsc, resource));
         }
 
         return resource;

@@ -63,7 +63,10 @@ public class LAPP
 
     /** End-user application class */
     public static final OntClass EndUserApplication = m_model.createClass( NS + "EndUserApplication" );
-    
+
+    /** Package class */
+    public static final OntClass Package = m_model.createClass( NS + "Package" );
+
     /** Admin application class */
     public static final ObjectProperty adminApplication = m_model.createObjectProperty( NS + "adminApplication" );
 
@@ -81,5 +84,8 @@ public class LAPP
     
     /** Read-only property */
     public static final DatatypeProperty allowRead = m_model.createDatatypeProperty( NS + "allowRead" );
+
+    /** Origin property for subdomain-based application matching */
+    public static final ObjectProperty origin = m_model.createObjectProperty(NS + "origin");
 
 }

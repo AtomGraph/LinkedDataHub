@@ -26,6 +26,7 @@ exclude-result-prefixes="#all">
 
     <xsl:import href="imports/acl.xsl"/>
     <xsl:import href="imports/cert.xsl"/>
+    <xsl:import href="imports/owl.xsl"/>
 
     <!-- TO-DO: refactor into component templates -->
     <xsl:template match="rdf:RDF" mode="bs2:NavBarNavList">

@@ -31,11 +31,6 @@ public interface Application extends Resource, com.atomgraph.core.model.Applicat
 {
     
     /**
-     * The relative path of the content-addressed file container.
-     */
-    public static final String UPLOADS_PATH = "uploads";
-
-    /**
      * Returns the application's namespace ontology.
      * 
      * @return ontology resource
@@ -108,9 +103,16 @@ public interface Application extends Resource, com.atomgraph.core.model.Applicat
     
     /**
      * Returns frontend proxy's cache URI resource.
-     * 
+     *
      * @return RDF resource
      */
     Resource getFrontendProxy();
-    
+
+    /**
+     * Returns the set of packages imported by this application.
+     *
+     * @return set of package resources
+     */
+    java.util.Set<Resource> getImportedPackages();
+
 }

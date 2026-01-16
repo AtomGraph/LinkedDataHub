@@ -82,6 +82,7 @@ extension-element-prefixes="ixsl"
     <xsl:import href="../../../../com/atomgraph/client/xsl/bootstrap/2.3.2/resource.xsl"/>
     <xsl:import href="../../../../com/atomgraph/client/xsl/bootstrap/2.3.2/document.xsl"/>
     <xsl:import href="../../../../com/atomgraph/client/xsl/bootstrap/2.3.2/container.xsl"/>
+    <xsl:import href="bootstrap/2.3.2/resource.xsl"/>
     <xsl:import href="bootstrap/2.3.2/imports/ac.xsl"/>
     <xsl:import href="bootstrap/2.3.2/imports/ldh.xsl"/>
     <xsl:import href="bootstrap/2.3.2/imports/dct.xsl"/>
@@ -91,7 +92,6 @@ extension-element-prefixes="ixsl"
     <xsl:import href="bootstrap/2.3.2/imports/sioc.xsl"/>
     <xsl:import href="bootstrap/2.3.2/imports/sp.xsl"/>
     <xsl:import href="bootstrap/2.3.2/imports/sh.xsl"/>
-    <xsl:import href="bootstrap/2.3.2/resource.xsl"/>
     <xsl:import href="bootstrap/2.3.2/document.xsl"/>
     <xsl:import href="bootstrap/2.3.2/imports/services/youtube.xsl"/>
     <xsl:import href="converters/RDFXML2DataTable.xsl"/>
@@ -115,6 +115,7 @@ extension-element-prefixes="ixsl"
     <xsl:include href="bootstrap/2.3.2/client/block/query.xsl"/>
 
     <xsl:param name="ac:contextUri" as="xs:anyURI"/>
+    <xsl:param name="lapp:application" as="xs:anyURI"/>
     <xsl:param name="ldt:base" as="xs:anyURI"/>
     <xsl:param name="ldh:requestUri" select="xs:anyURI(ixsl:location())" as="xs:anyURI"/>
     <xsl:param name="ldt:ontology" as="xs:anyURI"/> <!-- used in default.xsl -->
@@ -296,22 +297,8 @@ WHERE
                 <xsl:variable name="href" select="xs:anyURI(substring-before(ixsl:get(ixsl:get(ixsl:window(), 'location'), 'href'), '#'))" as="xs:anyURI"/>
                 <!-- set cookie with id_token -->
                 <ixsl:set-property name="cookie" select="concat('LinkedDataHub.id_token=', $id-token, '; path=/; secure')" object="ixsl:page()"/>
-                <!-- reload page to render with authenticated user context -->
-                <xsl:variable name="controller" select="ixsl:abort-controller()"/>
-                <ixsl:set-property name="saxonController" select="$controller" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
-                <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $href, 'headers': map{ 'Accept': 'application/xhtml+xml' } }" as="map(*)"/>
-                <xsl:variable name="context" select="
-                  map{
-                    'request': $request,
-                    'href': $href,
-                    'push-state': true()
-                  }" as="map(*)"/>
-                <ixsl:promise select="
-                  ixsl:http-request($context('request'), $controller)
-                    => ixsl:then(ldh:rethread-response($context, ?))
-                    => ixsl:then(ldh:handle-response#1)
-                    => ixsl:then(ldh:xhtml-document-loaded#1)
-                " on-failure="ldh:promise-failure#1"/>
+                <!-- do a full page refresh to reload with authenticated context -->
+                <xsl:sequence select="ixsl:call(ixsl:get(ixsl:window(), 'location'), 'replace', [ $href ])"/>
             </xsl:when>
             <xsl:otherwise>
                 <xsl:apply-templates select="ixsl:page()" mode="ldh:HTMLDocumentLoaded">
@@ -524,11 +511,11 @@ WHERE
                 <xsl:result-document href="#breadcrumb-nav" method="ixsl:replace-content">
                     <!-- show label if the resource is external -->
                     <xsl:if test="not(starts-with($uri, $ldt:base))">
-                        <xsl:variable name="app" select="ixsl:get(ixsl:window(), 'LinkedDataHub.apps')//rdf:Description[ldh:origin/@rdf:resource = ldh:origin(ldt:base())]" as="element()?"/>
+                        <xsl:variable name="app" select="ixsl:get(ixsl:window(), 'LinkedDataHub.apps')//rdf:Description[lapp:origin/@rdf:resource = lapp:origin(ldt:base())]" as="element()?"/>
                         <xsl:choose>
                             <!-- if a known app matches $uri, show link to its ldt:base -->
                             <xsl:when test="$app">
-                                <a href="{$app/ldh:origin/@rdf:resource}" class="label label-info pull-left">
+                                <a href="{$app/lapp:origin/@rdf:resource}" class="label label-info pull-left">
                                     <xsl:apply-templates select="$app" mode="ac:label"/>
                                 </a>
                             </xsl:when>
@@ -764,7 +751,7 @@ WHERE
                 <xsl:when test="starts-with(?media-type, 'application/xhtml+xml')">
                     <xsl:variable name="endpoint-link" select="tokenize(?headers?link, ',')[contains(., '&sd;endpoint')]" as="xs:string?"/>
                     <xsl:variable name="endpoint" select="if ($endpoint-link) then xs:anyURI(substring-before(substring-after(substring-before($endpoint-link, ';'), '&lt;'), '&gt;')) else ()" as="xs:anyURI?"/>
-                    <xsl:variable name="base" select="ldh:origin($href)" as="xs:anyURI"/>
+                    <xsl:variable name="base" select="lapp:origin($href)" as="xs:anyURI"/>
                     <!-- set new base URI if the current app has changed -->
                     <xsl:if test="not($base = ldt:base())">
                         <xsl:message>Application change. Base URI: <xsl:value-of select="$base"/></xsl:message>
@@ -849,7 +836,7 @@ WHERE
 
         <xsl:if test="$push-state">
             <xsl:call-template name="ldh:PushState">
-                <xsl:with-param name="href" select="ldh:href($href, map{})"/>
+                <xsl:with-param name="href" select="ldh:href($href, ldh:query-params(ac:mode()))"/>
                 <xsl:with-param name="title" select="/html/head/title"/>
                 <xsl:with-param name="container" select="$container"/>
             </xsl:call-template>

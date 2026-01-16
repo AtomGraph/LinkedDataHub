@@ -26,7 +26,7 @@ import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.listener.EMailListener;
 import com.atomgraph.linkeddatahub.server.filter.response.CacheInvalidationFilter;
-import com.atomgraph.linkeddatahub.server.model.impl.GraphStoreImpl;
+import com.atomgraph.linkeddatahub.server.model.impl.DirectGraphStoreImpl;
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
 import com.atomgraph.linkeddatahub.server.util.MessageBuilder;
 import com.atomgraph.linkeddatahub.server.util.Skolemizer;
@@ -64,10 +64,7 @@ import java.util.UUID;
 import jakarta.inject.Inject;
 import jakarta.mail.MessagingException;
 import jakarta.servlet.ServletConfig;
-import jakarta.ws.rs.DefaultValue;
-import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
-import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.InternalServerErrorException;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
@@ -101,7 +98,7 @@ import org.slf4j.LoggerFactory;
  * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-public class SignUp extends GraphStoreImpl
+public class SignUp extends DirectGraphStoreImpl
 {
     
     private static final Logger log = LoggerFactory.getLogger(SignUp.class);
@@ -180,16 +177,9 @@ public class SignUp extends GraphStoreImpl
         download = uriInfo.getQueryParameters().containsKey("download"); // debug param that allows downloading the certificate
     }
     
-    @GET
-    @Override
-    public Response get(@QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUri)
-    {
-        return super.get(false, getURI());
-    }
-    
     @POST
     @Override
-    public Response post(Model agentModel, @QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUri)
+    public Response post(Model agentModel)
     {
         URI agentGraphUri = getUriInfo().getBaseUriBuilder().path(AGENT_PATH).path("{slug}/").build(UUID.randomUUID().toString());
         new Skolemizer(agentGraphUri.toString()).apply(agentModel);
@@ -288,7 +278,13 @@ public class SignUp extends GraphStoreImpl
                 }
 
                 // purge agent lookup from proxy cache
-                if (getAgentService().getBackendProxy() != null) ban(getAgentService().getBackendProxy(), mbox.getURI());
+                if (getAgentService().getBackendProxy() != null)
+                {
+                    try (Response response = ban(getAgentService().getBackendProxy(), mbox.getURI()))
+                    {
+                        // Response automatically closed by try-with-resources
+                    }
+                }
 
                 // remove secretary WebID from cache
                 getSystem().getEventBus().post(new com.atomgraph.linkeddatahub.server.event.SignUp(getSystem().getSecretaryWebIDURI()));
@@ -512,16 +508,6 @@ public class SignUp extends GraphStoreImpl
     public Service getAgentService()
     {
         return getApplication().getService();
-    }
-    
-    /**
-     * Returns URI of this resource.
-     * 
-     * @return resource URI
-     */
-    public URI getURI()
-    {
-        return getUriInfo().getAbsolutePath();
     }
 
     /**

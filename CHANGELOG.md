@@ -1,8 +1,22 @@
+## [5.2.0] - 2026-01-14
+### Added
+- Application settings form with modal UI for editing dataspace configuration
+- Settings endpoint (`/settings`) with `GET` and `PATCH` support for dataspace settings
+- HTTP tests for the settings endpoint
+- LinkedDataHub packages system with install/uninstall functionality
+
+### Changed
+- Core library refactored Graph Store Protocol implementation - split into `GraphStoreBase` (common functionality), `DirectGraphStoreImpl` (direct graph identification), and `GraphStoreImpl` (indirect graph identification with query parameters)
+- Incorporated AtomGraph Server code directly into LinkedDataHub codebase
+- System configuration dataset now uses named graphs instead of default graph
+- Web-Client dependency version bump
+- CLI scripts improved for better parameter handling
+
 ## [5.1.0] - 2025-12-12
 ### Added
 - ORCID OpenID Connect login support with JWT token verification
 - `CORSFilter` response filter for cross-origin resource sharing on static assets
-- Cache invalidation (BAN requests) for agent and user account lookup queries
+- Cache invalidation (`BAN` requests) for agent and user account lookup queries
 - New `Application::normalizeOrigin` method for origin normalization
 - `ldh:parent-origin` XPath function for parent origin retrieval
 - HTTP tests for CORS functionality, internal IP blocking, and form proxying

@@ -22,9 +22,11 @@ import com.atomgraph.linkeddatahub.resource.Add;
 import com.atomgraph.linkeddatahub.resource.Generate;
 import com.atomgraph.linkeddatahub.resource.Namespace;
 import com.atomgraph.linkeddatahub.resource.Transform;
-import com.atomgraph.linkeddatahub.resource.admin.Clear;
+import com.atomgraph.linkeddatahub.resource.admin.ClearOntology;
+import com.atomgraph.linkeddatahub.resource.admin.pkg.InstallPackage;
+import com.atomgraph.linkeddatahub.resource.admin.pkg.UninstallPackage;
+import com.atomgraph.linkeddatahub.resource.Settings;
 import com.atomgraph.linkeddatahub.resource.admin.SignUp;
-import com.atomgraph.linkeddatahub.resource.Graph;
 import com.atomgraph.linkeddatahub.resource.acl.Access;
 import com.atomgraph.linkeddatahub.resource.acl.AccessRequest;
 import java.util.Optional;
@@ -79,12 +81,12 @@ public class Dispatcher
         if (getUriInfo().getQueryParameters().containsKey(AC.uri.getLocalName()))
         {
             if (log.isDebugEnabled()) log.debug("No Application matched request URI <{}>, dispatching to ProxyResourceBase", getUriInfo().getQueryParameters().getFirst(AC.uri.getLocalName()));
-            return Optional.of(ProxyResourceBase.class);
+            return Optional.of(ProxiedGraph.class);
         }
         if (getDataset().isPresent())
         {
             if (log.isDebugEnabled()) log.debug("Serving request URI <{}> from Dataset <{}>, dispatching to ProxyResourceBase", getUriInfo().getAbsolutePath(), getDataset().get());
-            return Optional.of(ProxyResourceBase.class);
+            return Optional.of(ProxiedGraph.class);
         }
         
         return Optional.empty();
@@ -171,14 +173,13 @@ public class Dispatcher
 
     /**
      * Returns content-addressed file item resource.
-     * 
+     *
      * @return resource
-     * @see com.atomgraph.linkeddatahub.apps.model.Application#UPLOADS_PATH
      */
     @Path("uploads/{sha1sum}")
     public Class getFileItem()
     {
-        return getProxyClass().orElse(com.atomgraph.linkeddatahub.resource.upload.sha1.Item.class);
+        return getProxyClass().orElse(com.atomgraph.linkeddatahub.resource.upload.Item.class);
     }
 
     /**
@@ -216,23 +217,57 @@ public class Dispatcher
     
     /**
      * Returns the endpoint that allows clearing ontologies from cache by URI.
-     * 
+     *
      * @return endpoint resource
      */
     @Path("clear")
     public Class getClearEndpoint()
     {
-        return getProxyClass().orElse(Clear.class);
+        return getProxyClass().orElse(ClearOntology.class);
+    }
+
+    /**
+     * Returns the endpoint for installing LinkedDataHub packages.
+     *
+     * @return endpoint resource
+     */
+    @Path("packages/install")
+    public Class getInstallPackageEndpoint()
+    {
+        return getProxyClass().orElse(InstallPackage.class);
+    }
+
+    /**
+     * Returns the endpoint for uninstalling LinkedDataHub packages.
+     *
+     * @return endpoint resource
+     */
+    @Path("packages/uninstall")
+    public Class getUninstallPackageEndpoint()
+    {
+        return getProxyClass().orElse(UninstallPackage.class);
+    }
+
+    /**
+     * Returns the endpoint for updating dataspace settings.
+     *
+     * @return endpoint resource
+     */
+    @Path("settings")
+    public Class getSettingsEndpoint()
+    {
+        return getProxyClass().orElse(Settings.class);
     }
 
     /**
      * Returns the default JAX-RS resource class.
+     * Only directly identified access to named graphs is allowed (the Graph Store Protocol endpoint is not exposed).
      *
      * @return resource class
      */
     public Class getDocumentClass()
     {
-        return Graph.class;
+        return DirectGraphStoreImpl.class;
     }
     
     /**

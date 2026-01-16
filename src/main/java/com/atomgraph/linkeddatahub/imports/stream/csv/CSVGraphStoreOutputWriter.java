@@ -16,7 +16,7 @@
  */
 package com.atomgraph.linkeddatahub.imports.stream.csv;
 
-import com.atomgraph.linkeddatahub.client.LinkedDataClient;
+import com.atomgraph.linkeddatahub.client.GraphStoreClient;
 import com.atomgraph.linkeddatahub.model.Service;
 import java.io.File;
 import java.io.FileInputStream;
@@ -48,7 +48,7 @@ public class CSVGraphStoreOutputWriter implements Function<Response, CSVGraphSto
     private static final Logger log = LoggerFactory.getLogger(CSVGraphStoreOutputWriter.class);
 
     private final Service service, adminService;
-    private final LinkedDataClient ldc;
+    private final GraphStoreClient gsc;
     private final String baseURI;
     private final Query query;
     private final char delimiter;
@@ -58,16 +58,16 @@ public class CSVGraphStoreOutputWriter implements Function<Response, CSVGraphSto
      * 
      * @param service SPARQL service of the application
      * @param adminService SPARQL service of the admin application
-     * @param ldc Linked Data client
+     * @param gsc Graph Store client
      * @param baseURI base URI
      * @param query transformation query
      * @param delimiter CSV delimiter
      */
-    public CSVGraphStoreOutputWriter(Service service, Service adminService, LinkedDataClient ldc,  String baseURI, Query query, char delimiter)
+    public CSVGraphStoreOutputWriter(Service service, Service adminService, GraphStoreClient gsc,  String baseURI, Query query, char delimiter)
     {
         this.service = service;
         this.adminService = adminService;
-        this.ldc = ldc;
+        this.gsc = gsc;
         this.baseURI = baseURI;
         this.query = query;
         this.delimiter = delimiter;
@@ -89,7 +89,7 @@ public class CSVGraphStoreOutputWriter implements Function<Response, CSVGraphSto
             
             try (InputStream fis = new FileInputStream(tempFile); Reader reader = new InputStreamReader(fis, StandardCharsets.UTF_8))
             {
-                CSVGraphStoreOutput output = new CSVGraphStoreOutput(getService(), getAdminService(), getLinkedDataClient(), getBaseURI(), reader, getQuery(), getDelimiter(), null);
+                CSVGraphStoreOutput output = new CSVGraphStoreOutput(getService(), getAdminService(), getGraphStoreClient(), getBaseURI(), reader, getQuery(), getDelimiter(), null);
                 output.write();
                 return output;
             }
@@ -126,13 +126,13 @@ public class CSVGraphStoreOutputWriter implements Function<Response, CSVGraphSto
     }
     
     /**
-     * Returns the Linked Data client.
+     * Returns the Graph Store client.
      * 
      * @return client object
      */
-    public LinkedDataClient getLinkedDataClient()
+    public GraphStoreClient getGraphStoreClient()
     {
-        return ldc;
+        return gsc;
     }
     
     /**

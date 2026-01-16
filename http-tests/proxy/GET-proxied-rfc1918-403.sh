@@ -25,8 +25,8 @@ http_status=$(curl -k -s -o /dev/null -w "%{http_code}" \
   --data-urlencode "uri=http://10.0.0.1:8080/test" \
   "$END_USER_BASE_URL" || true)
 
-if [ "$http_status" != "403" ]; then
-    echo "Expected HTTP 403 Forbidden for 10.0.0.1 access, got: $http_status"
+if [ "$http_status" != "400" ]; then
+    echo "Expected HTTP 400 Bad Request for 10.0.0.1 access, got: $http_status"
     exit 1
 fi
 
@@ -39,8 +39,8 @@ http_status=$(curl -k -s -o /dev/null -w "%{http_code}" \
   --data-urlencode "uri=http://172.16.0.1:8080/test" \
   "$END_USER_BASE_URL" || true)
 
-if [ "$http_status" != "403" ]; then
-    echo "Expected HTTP 403 Forbidden for 172.16.0.1 access, got: $http_status"
+if [ "$http_status" != "400" ]; then
+    echo "Expected HTTP 400 Bad Request for 172.16.0.1 access, got: $http_status"
     exit 1
 fi
 
@@ -53,7 +53,7 @@ http_status=$(curl -k -s -o /dev/null -w "%{http_code}" \
   --data-urlencode "uri=http://192.168.1.1:8080/test" \
   "$END_USER_BASE_URL" || true)
 
-if [ "$http_status" != "403" ]; then
-    echo "Expected HTTP 403 Forbidden for 192.168.1.1 access, got: $http_status"
+if [ "$http_status" != "400" ]; then
+    echo "Expected HTTP 400 Bad Request for 192.168.1.1 access, got: $http_status"
     exit 1
 fi

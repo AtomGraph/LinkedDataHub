@@ -17,7 +17,7 @@ add-agent-to-group.sh \
 
 # LNK-009: Test that internal Docker services are blocked via SSRF protection
 # Attempt to access the internal fuseki-admin SPARQL endpoint via the proxy
-# This should be blocked and return 403 Forbidden
+# This should be blocked and return 400 Bad Request
 
 http_status=$(curl -k -s -o /dev/null -w "%{http_code}" \
   -G \
@@ -26,8 +26,8 @@ http_status=$(curl -k -s -o /dev/null -w "%{http_code}" \
   --data-urlencode "uri=http://fuseki-admin:3030/ds" \
   "$END_USER_BASE_URL" || true)
 
-# Verify that access was forbidden (403)
-if [ "$http_status" != "403" ]; then
-    echo "Expected HTTP 403 Forbidden for internal service access, got: $http_status"
+# Verify that access was rejected (400)
+if [ "$http_status" != "400" ]; then
+    echo "Expected HTTP 400 Bad Request for internal service access, got: $http_status"
     exit 1
 fi

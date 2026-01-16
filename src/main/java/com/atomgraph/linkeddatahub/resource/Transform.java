@@ -16,40 +16,36 @@
  */
 package com.atomgraph.linkeddatahub.resource;
 
-import com.atomgraph.client.util.DataManager;
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.core.vocabulary.SD;
-import com.atomgraph.linkeddatahub.client.LinkedDataClient;
+import com.atomgraph.linkeddatahub.client.GraphStoreClient;
 import com.atomgraph.linkeddatahub.imports.QueryLoader;
-import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.server.io.ValidatingModelProvider;
-import com.atomgraph.linkeddatahub.server.model.impl.GraphStoreImpl;
+import com.atomgraph.linkeddatahub.server.model.impl.DirectGraphStoreImpl;
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
+import com.atomgraph.linkeddatahub.server.util.URLValidator;
 import com.atomgraph.linkeddatahub.vocabulary.NFO;
 import com.atomgraph.spinrdf.vocabulary.SPIN;
-import java.net.InetAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.UnknownHostException;
 import java.util.Map;
 import java.util.Optional;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.Consumes;
-import jakarta.ws.rs.DefaultValue;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.NotAllowedException;
 import jakarta.ws.rs.POST;
-import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.client.Entity;
+import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Request;
 import jakarta.ws.rs.core.Response;
-import jakarta.ws.rs.core.SecurityContext;
 import jakarta.ws.rs.core.UriInfo;
 import jakarta.ws.rs.ext.MessageBodyReader;
 import jakarta.ws.rs.ext.Providers;
 import org.apache.jena.atlas.RuntimeIOException;
-import org.apache.jena.ontology.Ontology;
 import org.apache.jena.query.Query;
 import org.apache.jena.query.QueryExecution;
 import org.apache.jena.query.Syntax;
@@ -67,39 +63,69 @@ import org.slf4j.LoggerFactory;
  * 
  * @author {@literal Martynas Jusevičius <martynas@atomgraph.com>}
  */
-public class Transform extends GraphStoreImpl
+public class Transform
 {
 
     private static final Logger log = LoggerFactory.getLogger(Transform.class);
 
+    private final UriInfo uriInfo;
+    private final MediaTypes mediaTypes;
+    private final com.atomgraph.linkeddatahub.apps.model.Application application;
+    private final Optional<AgentContext> agentContext;
+    private final Providers providers;
+    private final com.atomgraph.linkeddatahub.Application system;
+    private final ResourceContext resourceContext;
+    
     /**
      * Constructs endpoint for synchronous RDF data imports.
      * 
      * @param request current request
      * @param uriInfo current URI info
      * @param mediaTypes supported media types
-     * @param application matched application
-     * @param ontology matched application's ontology
-     * @param service matched application's service
+     * @param application current application
      * @param providers JAX-RS providers
      * @param system system application
-     * @param securityContext JAX-RS security context
      * @param agentContext authenticated agent's context
-     * @param dataManager RDF data manager
+     * @param resourceContext resource context
      */
     @Inject
     public Transform(@Context Request request, @Context UriInfo uriInfo, MediaTypes mediaTypes,
-            com.atomgraph.linkeddatahub.apps.model.Application application, Optional<Ontology> ontology, Optional<Service> service,
-            @Context SecurityContext securityContext, Optional<AgentContext> agentContext,
+            com.atomgraph.linkeddatahub.apps.model.Application application, 
+            Optional<AgentContext> agentContext,
             @Context Providers providers, com.atomgraph.linkeddatahub.Application system,
-            DataManager dataManager)
+            @Context ResourceContext resourceContext)
     {
-        super(request, uriInfo, mediaTypes, application, ontology, service, securityContext, agentContext, providers, system);
+        this.uriInfo = uriInfo;
+        this.mediaTypes = mediaTypes;
+        this.application = application;
+        this.agentContext = agentContext;
+        this.providers = providers;
+        this.system = system;
+        this.resourceContext = resourceContext;
     }
     
+    /**
+     * Rejects GET requests on this endpoint.
+     *
+     * @return never returns normally
+     * @throws NotAllowedException always thrown to indicate GET is not supported
+     */
+    @GET
+    public Response get()
+    {
+        throw new NotAllowedException("GET is not allowed on this endpoint");
+    }
+    
+    /**
+     * Transforms RDF data from a remote source using a SPARQL CONSTRUCT query and adds it to a target graph.
+     * Validates URIs to prevent SSRF attacks before processing.
+     *
+     * @param model RDF model containing transformation parameters (dct:source, sd:name, spin:query)
+     * @return HTTP response from forwarding the transformed data to the target graph
+     * @throws BadRequestException if required parameters are missing or invalid
+     */
     @POST
-    @Override
-    public Response post(Model model, @QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUri)
+    public Response post(Model model)
     {
         ResIterator it = model.listSubjectsWithProperty(DCTerms.source);
         try
@@ -117,16 +143,16 @@ public class Transform extends GraphStoreImpl
             if (queryRes == null) throw new BadRequestException("Transformation query string (spin:query) not provided");
 
             // LNK-002: Validate URIs to prevent SSRF attacks
-            validateNotInternalURL(URI.create(queryRes.getURI()));
-            validateNotInternalURL(URI.create(source.getURI()));
+            new URLValidator(URI.create(queryRes.getURI())).validate();
+            new URLValidator(URI.create(source.getURI())).validate();
 
-            LinkedDataClient ldc = LinkedDataClient.create(getSystem().getClient(), getSystem().getMediaTypes()).
+            GraphStoreClient gsc = GraphStoreClient.create(getSystem().getClient(), getSystem().getMediaTypes()).
                 delegation(getUriInfo().getBaseUri(), getAgentContext().orElse(null));
-            QueryLoader queryLoader = new QueryLoader(URI.create(queryRes.getURI()), getApplication().getBase().getURI(), Syntax.syntaxARQ, ldc);
+            QueryLoader queryLoader = new QueryLoader(URI.create(queryRes.getURI()), getApplication().getBase().getURI(), Syntax.syntaxARQ, gsc);
             Query query = queryLoader.get();
             if (!query.isConstructType()) throw new BadRequestException("Transformation query is not of CONSTRUCT type");
 
-            Model importModel = ldc.getModel(source.getURI());
+            Model importModel = gsc.getModel(source.getURI());
             try (QueryExecution qex = QueryExecution.create(query, importModel))
             {
                 Model transformModel = qex.execConstruct();
@@ -145,24 +171,24 @@ public class Transform extends GraphStoreImpl
      * Handles multipart requests with RDF files.
      * 
      * @param multiPart multipart request object
-     * @param defaultGraph true if default graph was specified
-     * @param graphUri graph name
      * @return response
      */
     @POST
     @Consumes(MediaType.MULTIPART_FORM_DATA)
-    public Response postMultipart(FormDataMultiPart multiPart, @QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUri)
+    public Response postMultipart(FormDataMultiPart multiPart)
     {
         if (log.isDebugEnabled()) log.debug("MultiPart fields: {} body parts: {}", multiPart.getFields(), multiPart.getBodyParts());
 
         try
         {
-            Model model = parseModel(multiPart); // do not skolemize because we don't know the graphUri yet
+            DirectGraphStoreImpl graphStore = getResourceContext().getResource(DirectGraphStoreImpl.class);
+            
+            Model model = graphStore.parseModel(multiPart); // do not skolemize because we don't know the graphUri yet
             MessageBodyReader<Model> reader = getProviders().getMessageBodyReader(Model.class, null, null, com.atomgraph.core.MediaType.APPLICATION_NTRIPLES_TYPE);
             if (reader instanceof ValidatingModelProvider validatingModelProvider) model = validatingModelProvider.processRead(model);
             if (log.isDebugEnabled()) log.debug("POSTed Model size: {}", model.size());
 
-            return postFileBodyPart(model, getFileNameBodyPartMap(multiPart)); // do not write the uploaded file -- instead append its triples/quads
+            return postFileBodyPart(model, graphStore.getFileNameBodyPartMap(multiPart)); // do not write the uploaded file -- instead append its triples/quads
         }
         catch (URISyntaxException ex)
         {
@@ -209,11 +235,11 @@ public class Transform extends GraphStoreImpl
             if (queryRes == null) throw new BadRequestException("Transformation query string (spin:query) not provided");
 
             // LNK-002: Validate query URI to prevent SSRF attacks
-            validateNotInternalURL(URI.create(queryRes.getURI()));
+            new URLValidator(URI.create(queryRes.getURI())).validate();
 
-            LinkedDataClient ldc = LinkedDataClient.create(getSystem().getClient(), getSystem().getMediaTypes()).
+            GraphStoreClient gsc = GraphStoreClient.create(getSystem().getClient(), getSystem().getMediaTypes()).
                 delegation(getUriInfo().getBaseUri(), getAgentContext().orElse(null));
-            QueryLoader queryLoader = new QueryLoader(URI.create(queryRes.getURI()), getApplication().getBase().getURI(), Syntax.syntaxARQ, ldc);
+            QueryLoader queryLoader = new QueryLoader(URI.create(queryRes.getURI()), getApplication().getBase().getURI(), Syntax.syntaxARQ, gsc);
             Query query = queryLoader.get();
             if (!query.isConstructType()) throw new BadRequestException("Transformation query is not of CONSTRUCT type");
 
@@ -240,10 +266,10 @@ public class Transform extends GraphStoreImpl
      */
     protected Response forwardPost(Entity entity, String graphURI)
     {
-        LinkedDataClient ldc = LinkedDataClient.create(getSystem().getClient(), getSystem().getMediaTypes()).
+        GraphStoreClient gsc = GraphStoreClient.create(getSystem().getClient(), getSystem().getMediaTypes()).
             delegation(getUriInfo().getBaseUri(), getAgentContext().orElse(null));
         // forward the stream to the named graph document. Buffer the entity first so that the server response is not returned before the client response completes
-        try (Response response = ldc.post(URI.create(graphURI), ldc.getReadableMediaTypes(Model.class), entity))
+        try (Response response = gsc.post(URI.create(graphURI), entity, gsc.getReadableMediaTypes(Model.class)))
         {
             return Response.status(response.getStatus()).
                 entity(response.readEntity(Model.class)).
@@ -252,39 +278,73 @@ public class Transform extends GraphStoreImpl
     }
 
     /**
-     * Validates that the given URI does not point to an internal/private network address.
-     * Prevents SSRF attacks by blocking access to RFC 1918 private addresses and link-local addresses.
+     * Returns the supported media types.
      *
-     * @param uri the URI to validate
-     * @throws IllegalArgumentException if URI or host is null
-     * @throws BadRequestException if the URI resolves to an internal address
-     * @see <a href="https://github.com/AtomGraph/LinkedDataHub/issues/253">LNK-002: SSRF primitives in admin endpoint</a>
+     * @return media types
      */
-    protected static void validateNotInternalURL(URI uri)
+    public MediaTypes getMediaTypes()
     {
-        if (uri == null) throw new IllegalArgumentException("URI cannot be null");
+        return mediaTypes;
+    }
 
-        String host = uri.getHost();
-        if (host == null) throw new IllegalArgumentException("URI host cannot be null");
+    /**
+     * Returns the current application.
+     * 
+     * @return application resource
+     */
+    public com.atomgraph.linkeddatahub.apps.model.Application getApplication()
+    {
+        return application;
+    }
+    
+    /**
+     * Returns the current URI info.
+     *
+     * @return URI info
+     */
+    public UriInfo getUriInfo()
+    {
+        return uriInfo;
+    }
 
-        // Resolve hostname to IP and check if it's private/internal
-        try
-        {
-            InetAddress address = InetAddress.getByName(host);
+    /**
+     * Returns the authenticated agent's context.
+     *
+     * @return optional agent context
+     */
+    public Optional<AgentContext> getAgentContext()
+    {
+        return agentContext;
+    }
 
-            // Note: We don't block loopback addresses (127.0.0.1, localhost) because transformation queries
-            // and data sources may legitimately reference resources on the same server
-
-            if (address.isLinkLocalAddress())
-                throw new BadRequestException("URI cannot resolve to link-local addresses: " + address.getHostAddress());
-            if (address.isSiteLocalAddress())
-                throw new BadRequestException("URI cannot resolve to private addresses (RFC 1918): " + address.getHostAddress());
-        }
-        catch (UnknownHostException e)
-        {
-            if (log.isWarnEnabled()) log.warn("Could not resolve hostname for SSRF validation: {}", host);
-            // Allow request to proceed - will fail later with better error message
-        }
+    /**
+     * Returns the registry of JAX-RS providers.
+     *
+     * @return JAX-RS providers registry
+     */
+    public Providers getProviders()
+    {
+        return providers;
+    }
+    
+    /**
+     * Returns the system application.
+     *
+     * @return system application
+     */
+    public com.atomgraph.linkeddatahub.Application getSystem()
+    {
+        return system;
+    }
+    
+    /**
+     * Returns the JAX-RS resource context.
+     *
+     * @return resource context
+     */
+    public ResourceContext getResourceContext()
+    {
+        return resourceContext;
     }
 
 }

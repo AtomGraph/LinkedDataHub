@@ -3,7 +3,7 @@
 
     <groupId>com.atomgraph</groupId>
     <artifactId>linkeddatahub</artifactId>
-    <version>5.1.0</version>
+    <version>5.2.0</version>
     <packaging>${packaging.type}</packaging>
 
     <name>AtomGraph LinkedDataHub</name>
@@ -46,7 +46,7 @@
         <url>https://github.com/AtomGraph/LinkedDataHub</url>
         <connection>scm:git:git://github.com/AtomGraph/LinkedDataHub.git</connection>
         <developerConnection>scm:git:git@github.com:AtomGraph/LinkedDataHub.git</developerConnection>
-        <tag>linkeddatahub-2.1.1</tag>
+        <tag>linkeddatahub-5.2.0</tag>
     </scm>
 
     <repositories>
@@ -126,22 +126,26 @@
                 </exclusion>
             </exclusions>
         </dependency>
-        <!-- TO-DO: replace with AtomGraph Core -->
+        <dependency>
+            <groupId>org.apache.jena</groupId>
+            <artifactId>jena-shacl</artifactId>
+            <version>4.7.0</version>
+        </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
-            <artifactId>server</artifactId>
-            <version>4.1.12</version>
+            <artifactId>twirl</artifactId>
+            <version>1.0.33</version>
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>client</artifactId>
-            <version>4.2.7</version>
+            <version>4.2.11</version>
             <classifier>classes</classifier>
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>client</artifactId>
-            <version>4.2.7</version>
+            <version>4.2.11</version>
             <type>war</type>
         </dependency>
         <!-- required by jsonld-java - version same as Jersey's HTTP Client -->

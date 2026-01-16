@@ -15,78 +15,104 @@
 
 # root admin
 
-<urn:linkeddatahub:apps/admin> a lapp:Application, lapp:AdminApplication ;
-    dct:title "LinkedDataHub admin" ;
-    # ldt:base <https://admin.localhost:4443/> ;
-    ldh:origin <https://admin.localhost:4443> ;
-    ldt:ontology <https://w3id.org/atomgraph/linkeddatahub/admin#> ;
-    ldt:service <urn:linkeddatahub:services/admin> ;
-    ac:stylesheet <static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/admin/layout.xsl> ;
-    lapp:endUserApplication <urn:linkeddatahub:apps/end-user> ;
-    lapp:frontendProxy <http://varnish-frontend:6060/> .
+<urn:linkeddatahub:apps/admin>
+{
+    <urn:linkeddatahub:apps/admin> a lapp:Application, lapp:AdminApplication ;
+        dct:title "LinkedDataHub admin" ;
+        # ldt:base <https://admin.localhost:4443/> ;
+        lapp:origin <https://admin.localhost:4443> ;
+        ldt:ontology <https://w3id.org/atomgraph/linkeddatahub/admin#> ;
+        ldt:service <urn:linkeddatahub:services/admin> ;
+        ac:stylesheet <static/xsl/admin/layout.xsl> ;
+        lapp:endUserApplication <urn:linkeddatahub:apps/end-user> ;
+        lapp:frontendProxy <http://varnish-frontend:6060/> .
+}
 
-<urn:linkeddatahub:services/admin> a sd:Service ;
-    dct:title "LinkedDataHub admin service" ;
-    sd:supportedLanguage sd:SPARQL11Query, sd:SPARQL11Update ;
-    sd:endpoint <http://fuseki-admin:3030/ds/> ;
-    a:graphStore <http://fuseki-admin:3030/ds/> ;
-    a:quadStore <http://fuseki-admin:3030/ds/> ;
-    lapp:backendProxy <http://varnish-admin/> .
+<urn:linkeddatahub:services/admin>
+{
+    <urn:linkeddatahub:services/admin> a sd:Service ;
+        dct:title "LinkedDataHub admin service" ;
+        sd:supportedLanguage sd:SPARQL11Query, sd:SPARQL11Update ;
+        sd:endpoint <http://fuseki-admin:3030/ds/> ;
+        a:graphStore <http://fuseki-admin:3030/ds/> ;
+        a:quadStore <http://fuseki-admin:3030/ds/> ;
+        lapp:backendProxy <http://varnish-admin/> .
+}
 
 # root end-user
 
-<urn:linkeddatahub:apps/end-user> a lapp:Application, lapp:EndUserApplication ;
-    dct:title "LinkedDataHub" ;
-    # ldt:base <https://localhost:4443/> ;
-    ldh:origin <https://localhost:4443> ;
-    ldt:ontology <https://localhost:4443/ns#> ;
-    ldt:service <urn:linkeddatahub:services/end-user> ;
-    lapp:adminApplication <urn:linkeddatahub:apps/admin> ;
-    lapp:frontendProxy <http://varnish-frontend:6060/> ;
-    lapp:public true .
+<urn:linkeddatahub:apps/end-user>
+{
+    <urn:linkeddatahub:apps/end-user> a lapp:Application, lapp:EndUserApplication ;
+        dct:title "LinkedDataHub" ;
+        # ldt:base <https://localhost:4443/> ;
+        lapp:origin <https://localhost:4443> ;
+        ldt:ontology <https://localhost:4443/ns#> ;
+        ldt:service <urn:linkeddatahub:services/end-user> ;
+        ac:stylesheet <static/xsl/layout.xsl> ;
+        lapp:adminApplication <urn:linkeddatahub:apps/admin> ;
+        lapp:frontendProxy <http://varnish-frontend:6060/> ;
+        lapp:public true .
+}
 
-<urn:linkeddatahub:services/end-user> a sd:Service ;
-    dct:title "LinkedDataHub service" ;
-    sd:supportedLanguage sd:SPARQL11Query, sd:SPARQL11Update ;
-    sd:endpoint <http://fuseki-end-user:3030/ds/> ;
-    a:graphStore <http://fuseki-end-user:3030/ds/> ;
-    a:quadStore <http://fuseki-end-user:3030/ds/> ;
-    lapp:backendProxy <http://varnish-end-user/> .
+<urn:linkeddatahub:services/end-user>
+{
+    <urn:linkeddatahub:services/end-user> a sd:Service ;
+        dct:title "LinkedDataHub service" ;
+        sd:supportedLanguage sd:SPARQL11Query, sd:SPARQL11Update ;
+        sd:endpoint <http://fuseki-end-user:3030/ds/> ;
+        a:graphStore <http://fuseki-end-user:3030/ds/> ;
+        a:quadStore <http://fuseki-end-user:3030/ds/> ;
+        lapp:backendProxy <http://varnish-end-user/> .
+}
 
 # test admin
 
-<urn:linkeddatahub:apps/test/admin> a lapp:Application, lapp:AdminApplication ;
-    dct:title "Test admin" ;
-    ldh:origin <https://admin.test.localhost:4443> ;
-    ldt:ontology <https://w3id.org/atomgraph/linkeddatahub/admin#> ;
-    ldt:service <urn:linkeddatahub:services/test/admin> ;
-    ac:stylesheet <static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/admin/layout.xsl> ;
-    lapp:endUserApplication <urn:linkeddatahub:apps/test/end-user> ;
-    lapp:frontendProxy <http://varnish-frontend:6060/> .
+<urn:linkeddatahub:apps/test/admin>
+{
+    <urn:linkeddatahub:apps/test/admin> a lapp:Application, lapp:AdminApplication ;
+        dct:title "Test admin" ;
+        lapp:origin <https://admin.test.localhost:4443> ;
+        ldt:ontology <https://w3id.org/atomgraph/linkeddatahub/admin#> ;
+        ldt:service <urn:linkeddatahub:services/test/admin> ;
+        ac:stylesheet <static/xsl/admin/layout.xsl> ;
+        lapp:endUserApplication <urn:linkeddatahub:apps/test/end-user> ;
+        lapp:frontendProxy <http://varnish-frontend:6060/> .
+}
 
-<urn:linkeddatahub:services/test/admin> a sd:Service ;
-    dct:title "Test admin service" ;
-    sd:supportedLanguage sd:SPARQL11Query, sd:SPARQL11Update ;
-    sd:endpoint <http://fuseki-admin:3030/ds/> ;
-    a:graphStore <http://fuseki-admin:3030/ds/> ;
-    a:quadStore <http://fuseki-admin:3030/ds/> ;
-    lapp:backendProxy <http://varnish-admin/> .
+<urn:linkeddatahub:services/test/admin>
+{
+    <urn:linkeddatahub:services/test/admin> a sd:Service ;
+        dct:title "Test admin service" ;
+        sd:supportedLanguage sd:SPARQL11Query, sd:SPARQL11Update ;
+        sd:endpoint <http://fuseki-admin:3030/ds/> ;
+        a:graphStore <http://fuseki-admin:3030/ds/> ;
+        a:quadStore <http://fuseki-admin:3030/ds/> ;
+        lapp:backendProxy <http://varnish-admin/> .
+}
 
 # test end-user
 
-<urn:linkeddatahub:apps/test/end-user> a lapp:Application, lapp:EndUserApplication ;
-    dct:title "Test" ;
-    ldh:origin <https://test.localhost:4443> ;
-    ldt:ontology <https://test.localhost:4443/ns#> ;
-    ldt:service <urn:linkeddatahub:services/test/end-user> ;
-    lapp:adminApplication <urn:linkeddatahub:apps/test/admin> ;
-    lapp:frontendProxy <http://varnish-frontend:6060/> ;
-    lapp:public true .
+<urn:linkeddatahub:apps/test/end-user>
+{
+    <urn:linkeddatahub:apps/test/end-user> a lapp:Application, lapp:EndUserApplication ;
+        dct:title "Test" ;
+        lapp:origin <https://test.localhost:4443> ;
+        ldt:ontology <https://test.localhost:4443/ns#> ;
+        ldt:service <urn:linkeddatahub:services/test/end-user> ;
+        ac:stylesheet <static/xsl/layout.xsl> ;
+        lapp:adminApplication <urn:linkeddatahub:apps/test/admin> ;
+        lapp:frontendProxy <http://varnish-frontend:6060/> ;
+        lapp:public true .
+}
 
-<urn:linkeddatahub:services/test/end-user> a sd:Service ;
-    dct:title "Test service" ;
-    sd:supportedLanguage sd:SPARQL11Query, sd:SPARQL11Update ;
-    sd:endpoint <http://fuseki-end-user:3030/ds/> ;
-    a:graphStore <http://fuseki-end-user:3030/ds/> ;
-    a:quadStore <http://fuseki-end-user:3030/ds/> ;
-    lapp:backendProxy <http://varnish-end-user/> .
+<urn:linkeddatahub:services/test/end-user>
+{
+    <urn:linkeddatahub:services/test/end-user> a sd:Service ;
+        dct:title "Test service" ;
+        sd:supportedLanguage sd:SPARQL11Query, sd:SPARQL11Update ;
+        sd:endpoint <http://fuseki-end-user:3030/ds/> ;
+        a:graphStore <http://fuseki-end-user:3030/ds/> ;
+        a:quadStore <http://fuseki-end-user:3030/ds/> ;
+        lapp:backendProxy <http://varnish-end-user/> .
+}

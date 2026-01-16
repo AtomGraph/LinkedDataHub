@@ -43,12 +43,23 @@ public class IDTokenSecurityContext extends AgentSecurityContext
     
     /**
      * Returns JWT ID token content.
-     * 
+     *
      * @return ID token content
      */
     public String getJWTToken()
     {
         return jwtToken;
     }
-    
+
+    /**
+     * Returns string representation of this security context.
+     *
+     * @return the agent's URI
+     */
+    @Override
+    public String toString()
+    {
+        return getAgent().getURI();
+    }
+
 }

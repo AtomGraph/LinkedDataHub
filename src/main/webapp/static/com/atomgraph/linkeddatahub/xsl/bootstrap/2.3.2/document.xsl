@@ -132,69 +132,54 @@ extension-element-prefixes="ixsl"
         </div>
     </xsl:template>
     
-    <!-- MODE TABS -->
-    
-    <xsl:template match="rdf:RDF" mode="bs2:ModeTabs" use-when="system-property('xsl:product-name') = 'SAXON'">
+    <!-- MODE LIST -->
+
+    <xsl:template match="rdf:RDF" mode="bs2:ModeList" priority="2" use-when="system-property('xsl:product-name') = 'SAXON'">
         <xsl:param name="has-content" as="xs:boolean"/>
         <xsl:param name="active-mode" as="xs:anyURI?"/>
         <xsl:param name="ajax-rendering" select="true()" as="xs:boolean"/>
-        <xsl:param name="absolute-path" select="ac:absolute-path(ldh:request-uri())" as="xs:anyURI"/> <!-- make sure mode tabs always link to the local document (not the proxy-loaded doc) -->
+        <xsl:param name="absolute-path" select="ac:absolute-path(ldh:request-uri())" as="xs:anyURI"/>
         <xsl:param name="base-uri" select="ldh:base-uri(.)" as="xs:anyURI"/>
         <xsl:param name="id" select="'layout-modes'" as="xs:string?"/>
-        <xsl:param name="class" select="'nav nav-tabs offset2 span7'" as="xs:string?"/>
 
-        <div class="row-fluid">
-            <ul>
+        <div class="btn-group pull-right">
+            <button type="button" title="{ac:label(key('resources', '&ac;Mode', document(ac:document-uri('&ac;'))))}">
                 <xsl:if test="$id">
                     <xsl:attribute name="id" select="$id"/>
                 </xsl:if>
-                <xsl:if test="$class">
-                    <xsl:attribute name="class" select="$class"/>
-                </xsl:if>
-            
+
+                <xsl:variable name="effective-mode" select="if ($active-mode) then $active-mode else '&ac;ReadMode'" as="xs:anyURI"/>
+                <xsl:apply-templates select="key('resources', $effective-mode, document(ac:document-uri(string($effective-mode))))" mode="ldh:logo">
+                    <xsl:with-param name="class" select="'btn dropdown-toggle'"/>
+                </xsl:apply-templates>
+                <xsl:text> </xsl:text>
+                <span class="caret"></span>
+            </button>
+
+            <ul class="dropdown-menu">
                 <li class="content-mode{if ((empty($active-mode) and $has-content) or $active-mode = '&ldh;ContentMode') then ' active' else() }">
-                    <!-- make sure mode tabs always link to the local document (not the proxy-loaded doc) -->
                     <a href="{ldh:href(ac:document-uri(ldh:base-uri(.)), ldh:query-params(xs:anyURI('&ldh;ContentMode')))}">
+                        <xsl:apply-templates select="key('resources', '&ldh;ContentMode', document(ac:document-uri('&ldh;')))" mode="ldh:logo"/>
                         <xsl:value-of>
                             <xsl:apply-templates select="key('resources', 'content', document('translations.rdf'))" mode="ac:label"/>
                         </xsl:value-of>
                     </a>
                 </li>
 
-                <xsl:for-each select="key('resources', '&ac;ReadMode', document(ac:document-uri('&ac;')))">
-                    <xsl:apply-templates select="." mode="bs2:ModeTabsItem">
-                        <xsl:with-param name="active" select="@rdf:about = $active-mode or (empty($active-mode) and not($has-content))"/>
-                        <xsl:with-param name="absolute-path" select="$absolute-path" tunnel="yes"/>
-                        <xsl:with-param name="base-uri" select="$base-uri"/>
-                    </xsl:apply-templates>
-                </xsl:for-each>
-                <xsl:for-each select="key('resources', '&ac;MapMode', document(ac:document-uri('&ac;')))">
-                    <xsl:apply-templates select="." mode="bs2:ModeTabsItem">
-                        <xsl:with-param name="active" select="@rdf:about = $active-mode"/>
-                        <xsl:with-param name="absolute-path" select="$absolute-path" tunnel="yes"/>
-                        <xsl:with-param name="base-uri" select="$base-uri"/>
-                    </xsl:apply-templates>
-                </xsl:for-each>
-                <xsl:if test="$ajax-rendering">
-                    <xsl:for-each select="key('resources', '&ac;ChartMode', document(ac:document-uri('&ac;')))">
-                        <xsl:apply-templates select="." mode="bs2:ModeTabsItem">
-                            <xsl:with-param name="active" select="@rdf:about = $active-mode"/>
+                <xsl:for-each select="('&ac;ReadMode', '&ac;MapMode', if ($ajax-rendering) then '&ac;ChartMode' else (), '&ac;GraphMode')">
+                    <xsl:variable name="mode-uri" select="." as="xs:string"/>
+                    <xsl:for-each select="key('resources', $mode-uri, document(ac:document-uri('&ac;')))">
+                        <xsl:apply-templates select="." mode="bs2:ModeListItem">
+                            <xsl:with-param name="active" select="if (@rdf:about = '&ac;ReadMode') then (@rdf:about = $active-mode or (empty($active-mode) and not($has-content))) else @rdf:about = $active-mode"/>
                             <xsl:with-param name="absolute-path" select="$absolute-path" tunnel="yes"/>
                             <xsl:with-param name="base-uri" select="$base-uri"/>
                         </xsl:apply-templates>
                     </xsl:for-each>
-                </xsl:if>
-                <xsl:for-each select="key('resources', '&ac;GraphMode', document(ac:document-uri('&ac;')))">
-                    <xsl:apply-templates select="." mode="bs2:ModeTabsItem">
-                        <xsl:with-param name="active" select="@rdf:about = $active-mode"/>
-                        <xsl:with-param name="absolute-path" select="$absolute-path" tunnel="yes"/>
-                        <xsl:with-param name="base-uri" select="$base-uri"/>
-                    </xsl:apply-templates>
                 </xsl:for-each>
             </ul>
         </div>
     </xsl:template>
-    
+
     <!-- CONTENT LIST -->
     
     <xsl:template match="rdf:RDF" mode="ldh:ContentList">

@@ -18,6 +18,7 @@ package com.atomgraph.linkeddatahub;
 
 import com.atomgraph.linkeddatahub.server.mapper.ResourceExistsExceptionMapper;
 import com.atomgraph.linkeddatahub.server.mapper.HttpHostConnectExceptionMapper;
+import com.atomgraph.linkeddatahub.server.mapper.InternalURLExceptionMapper;
 import com.atomgraph.linkeddatahub.server.mapper.MessagingExceptionMapper;
 import com.atomgraph.linkeddatahub.server.mapper.auth.webid.WebIDLoadingExceptionMapper;
 import com.atomgraph.linkeddatahub.server.mapper.auth.webid.InvalidWebIDURIExceptionMapper;
@@ -67,7 +68,7 @@ import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.writer.factory.xslt.XsltExecutableSupplier;
 import com.atomgraph.linkeddatahub.writer.factory.XsltExecutableSupplierFactory;
 import com.atomgraph.client.util.XsltResolver;
-import com.atomgraph.linkeddatahub.client.LinkedDataClient;
+import com.atomgraph.linkeddatahub.client.GraphStoreClient;
 import com.atomgraph.linkeddatahub.client.filter.ClientUriRewriteFilter;
 import com.atomgraph.linkeddatahub.client.filter.grddl.YouTubeGRDDLFilter;
 import com.atomgraph.linkeddatahub.imports.ImportExecutor;
@@ -194,6 +195,7 @@ import jakarta.ws.rs.InternalServerErrorException;
 import jakarta.ws.rs.client.Client;
 import jakarta.ws.rs.client.ClientBuilder;
 import jakarta.ws.rs.client.ClientRequestFilter;
+import jakarta.ws.rs.core.Response;
 import java.util.concurrent.ConcurrentHashMap;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
@@ -241,6 +243,7 @@ import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.glassfish.jersey.process.internal.RequestScoped;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.server.filter.HttpMethodOverrideFilter;
+import org.glassfish.jersey.uri.UriComponent;
 import org.xml.sax.SAXException;
 
 /**
@@ -252,8 +255,14 @@ import org.xml.sax.SAXException;
  */
 public class Application extends ResourceConfig
 {
-    
+
     private static final Logger log = LoggerFactory.getLogger(Application.class);
+
+    /**
+     * Path to the master XSLT stylesheet for server-side transformations.
+     * Package stylesheets are imported into this master stylesheet.
+     */
+    public static final String MASTER_STYLESHEET_PATH = "/static/xsl/layout.xsl";
 
     private final ExecutorService importThreadPool;
     private final ServletConfig servletConfig;
@@ -290,9 +299,9 @@ public class Application extends ResourceConfig
     private final boolean enableWebIDSignUp;
     private final String oidcRefreshTokensPropertiesPath;
     private final Properties oidcRefreshTokens;
+    private final URI contextDatasetURI;
+    private final Dataset contextDataset;
 
-    private Dataset contextDataset;
-    
     /**
      * Constructs system application and configures it using sevlet config.
      * 
@@ -309,6 +318,7 @@ public class Application extends ResourceConfig
             servletConfig.getServletContext().getInitParameter(A.cacheModelLoads.getURI()) != null ? Boolean.parseBoolean(servletConfig.getServletContext().getInitParameter(A.cacheModelLoads.getURI())) : true,
             servletConfig.getServletContext().getInitParameter(A.preemptiveAuth.getURI()) != null ? Boolean.parseBoolean(servletConfig.getServletContext().getInitParameter(A.preemptiveAuth.getURI())) : false,
             new PrefixMapper(servletConfig.getServletContext().getInitParameter(AC.prefixMapping.getURI()) != null ? servletConfig.getServletContext().getInitParameter(AC.prefixMapping.getURI()) : null),
+            servletConfig.getServletContext().getInitParameter(LDHC.contextDataset.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.contextDataset.getURI()) : null,
             com.atomgraph.client.Application.getSource(servletConfig.getServletContext(), servletConfig.getServletContext().getInitParameter(AC.stylesheet.getURI()) != null ? servletConfig.getServletContext().getInitParameter(AC.stylesheet.getURI()) : null),
             servletConfig.getServletContext().getInitParameter(AC.cacheStylesheet.getURI()) != null ? Boolean.parseBoolean(servletConfig.getServletContext().getInitParameter(AC.cacheStylesheet.getURI())) : false,
             servletConfig.getServletContext().getInitParameter(AC.resolvingUncached.getURI()) != null ? Boolean.parseBoolean(servletConfig.getServletContext().getInitParameter(AC.resolvingUncached.getURI())) : true,
@@ -351,14 +361,6 @@ public class Application extends ResourceConfig
             servletConfig.getServletContext().getInitParameter(ORCID.clientID.getURI()) != null ? servletConfig.getServletContext().getInitParameter(ORCID.clientID.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(ORCID.clientSecret.getURI()) != null ? servletConfig.getServletContext().getInitParameter(ORCID.clientSecret.getURI()) : null
         );
-
-        URI contextDatasetURI = servletConfig.getServletContext().getInitParameter(LDHC.contextDataset.getURI()) != null ? new URI(servletConfig.getServletContext().getInitParameter(LDHC.contextDataset.getURI())) : null;
-        if (contextDatasetURI == null)
-        {
-            if (log.isErrorEnabled()) log.error("Context dataset URI '{}' not configured", LDHC.contextDataset.getURI());
-            throw new ConfigurationException(LDHC.contextDataset);
-        }
-        this.contextDataset = getDataset(servletConfig.getServletContext(), contextDatasetURI);
     }
     
     /**
@@ -370,6 +372,7 @@ public class Application extends ResourceConfig
      * @param cacheModelLoads true if model loads should be cached
      * @param preemptiveAuth true if HTTP Basic auth credentials should be sent preemptively
      * @param locationMapper Jena's <code>LocationMapper</code> instance
+     * @param contextDatasetURIString location of the context dataset
      * @param stylesheet stylesheet URI
      * @param cacheStylesheet true if stylesheet should be cached
      * @param resolvingUncached true if XLST processor should dereference URLs that are not cached
@@ -414,7 +417,8 @@ public class Application extends ResourceConfig
      */
     public Application(final ServletConfig servletConfig, final MediaTypes mediaTypes,
             final Integer maxGetRequestSize, final boolean cacheModelLoads, final boolean preemptiveAuth,
-            final LocationMapper locationMapper, final Source stylesheet, final boolean cacheStylesheet, final boolean resolvingUncached,
+            final LocationMapper locationMapper, final String contextDatasetURIString,
+            final Source stylesheet, final boolean cacheStylesheet, final boolean resolvingUncached,
             final String clientKeyStoreURIString, final String clientKeyStorePassword,
             final String secretaryCertAlias,
             final String clientTrustStoreURIString, final String clientTrustStorePassword,
@@ -429,6 +433,13 @@ public class Application extends ResourceConfig
             final String googleClientID, final String googleClientSecret,
             final String orcidClientID, final String orcidClientSecret)
     {
+        if (contextDatasetURIString == null)
+        {
+            if (log.isErrorEnabled()) log.error("Context dataset URI '{}' not configured", LDHC.contextDataset.getURI());
+            throw new ConfigurationException(LDHC.contextDataset);
+        }
+        this.contextDatasetURI = URI.create(contextDatasetURIString);
+
         if (clientKeyStoreURIString == null)
         {
             if (log.isErrorEnabled()) log.error("Client key store ({}) not configured", LDHC.clientKeyStore.getURI());
@@ -660,6 +671,8 @@ public class Application extends ResourceConfig
         
         try
         {
+            this.contextDataset = getDataset(servletConfig.getServletContext(), contextDatasetURI);
+
             keyStore = KeyStore.getInstance("PKCS12");
             try (FileInputStream keyStoreInputStream = new FileInputStream(new java.io.File(new URI(clientKeyStoreURIString))))
             {
@@ -723,6 +736,7 @@ public class Application extends ResourceConfig
             BuiltinPersonalities.model.add(EndUserApplication.class, new com.atomgraph.linkeddatahub.apps.model.end_user.impl.ApplicationImplementation());
             BuiltinPersonalities.model.add(com.atomgraph.linkeddatahub.apps.model.Application.class, new com.atomgraph.linkeddatahub.apps.model.impl.ApplicationImplementation());
             BuiltinPersonalities.model.add(com.atomgraph.linkeddatahub.apps.model.Dataset.class, new com.atomgraph.linkeddatahub.apps.model.impl.DatasetImplementation());
+            BuiltinPersonalities.model.add(com.atomgraph.linkeddatahub.apps.model.Package.class, new com.atomgraph.linkeddatahub.apps.model.impl.PackageImplementation());
             BuiltinPersonalities.model.add(Service.class, new com.atomgraph.linkeddatahub.model.impl.ServiceImplementation(noCertClient, mediaTypes, maxGetRequestSize));
             BuiltinPersonalities.model.add(Import.class, ImportImpl.factory);
             BuiltinPersonalities.model.add(RDFImport.class, RDFImportImpl.factory);
@@ -731,7 +745,7 @@ public class Application extends ResourceConfig
         
             // TO-DO: config property for cacheModelLoads
             endUserOntModelSpecs = new HashMap<>();
-            dataManager = new DataManagerImpl(locationMapper, new HashMap<>(), LinkedDataClient.create(client, mediaTypes), cacheModelLoads, preemptiveAuth, resolvingUncached);
+            dataManager = new DataManagerImpl(locationMapper, new HashMap<>(), GraphStoreClient.create(client, mediaTypes), cacheModelLoads, preemptiveAuth, resolvingUncached);
             ontModelSpec = OntModelSpec.OWL_MEM_RDFS_INF;
             ontModelSpec.setImportModelGetter(dataManager);
             OntDocumentManager.getInstance().setFileManager((FileManager)dataManager);
@@ -806,7 +820,7 @@ public class Application extends ResourceConfig
             
             xsltComp = xsltProc.newXsltCompiler();
             xsltComp.setParameter(new QName("ldh", LDH.base.getNameSpace(), LDH.base.getLocalName()), new XdmAtomicValue(baseURI));
-            xsltComp.setURIResolver(new XsltResolver(LocationMapper.get(), new HashMap<>(), LinkedDataClient.create(client, mediaTypes), false, false, true)); // default Xerces parser does not support HTTPS
+            xsltComp.setURIResolver(new XsltResolver(LocationMapper.get(), new HashMap<>(), GraphStoreClient.create(client, mediaTypes), false, false, true)); // default Xerces parser does not support HTTPS
             xsltExec = xsltComp.compile(stylesheet);
         }
         catch (FileNotFoundException ex)
@@ -1081,6 +1095,7 @@ public class Application extends ResourceConfig
         register(NotAcceptableExceptionMapper.class);
         register(ClientErrorExceptionMapper.class);
         register(HttpHostConnectExceptionMapper.class);
+        register(InternalURLExceptionMapper.class);
         register(BadGatewayExceptionMapper.class);
         register(OntClassNotFoundExceptionMapper.class);
         register(InvalidWebIDPublicKeyExceptionMapper.class);
@@ -1198,7 +1213,7 @@ public class Application extends ResourceConfig
         {
             Resource agent = auth.getPropertyResourceValue(ACL.agent);
             // make sure the client has WebID delegation enabled, otherwise it will not have authenticated access
-            Model agentModel = event.getLinkedDataClient().getModel(agent.getURI());
+            Model agentModel = event.getGraphStoreClient().getModel(agent.getURI());
             if (!agentModel.containsResource(agent)) throw new IllegalStateException("Could not load agent's <" + agent.getURI() + "> description");
             agent = agentModel.getResource(agent.getURI());
 
@@ -1309,9 +1324,9 @@ public class Application extends ResourceConfig
                 Resource app = it.next();
 
                 // Use origin-based matching - return immediately on match since origins are unique
-                if (app.hasProperty(LDH.origin))
+                if (app.hasProperty(LAPP.origin))
                 {
-                    URI appOriginURI = URI.create(app.getPropertyResourceValue(LDH.origin).getURI());
+                    URI appOriginURI = URI.create(app.getPropertyResourceValue(LAPP.origin).getURI());
                     String normalizedAppOrigin = normalizeOrigin(appOriginURI);
 
                     if (requestOrigin.equals(normalizedAppOrigin)) return app;
@@ -1419,11 +1434,11 @@ public class Application extends ResourceConfig
      * @param service current SPARQL service
      * @param adminService current admin SPARQL service
      * @param baseURI application's base URI
-     * @param ldc Linked Data client
+     * @param gsc Graph Store client
      */
-    public void submitImport(CSVImport csvImport, com.atomgraph.linkeddatahub.apps.model.Application app, Service service, Service adminService, String baseURI, LinkedDataClient ldc)
+    public void submitImport(CSVImport csvImport, com.atomgraph.linkeddatahub.apps.model.Application app, Service service, Service adminService, String baseURI, GraphStoreClient gsc)
     {
-        new ImportExecutor(importThreadPool).start(service, adminService, baseURI, ldc, csvImport);
+        new ImportExecutor(importThreadPool).start(service, adminService, baseURI, gsc, csvImport);
     }
     
     /**
@@ -1434,11 +1449,11 @@ public class Application extends ResourceConfig
      * @param service current SPARQL service
      * @param adminService current admin SPARQL service
      * @param baseURI application's base URI
-     * @param ldc Linked Data client
+     * @param gsc Graph Store client
      */
-    public void submitImport(RDFImport rdfImport, com.atomgraph.linkeddatahub.apps.model.Application app, Service service, Service adminService, String baseURI, LinkedDataClient ldc)
+    public void submitImport(RDFImport rdfImport, com.atomgraph.linkeddatahub.apps.model.Application app, Service service, Service adminService, String baseURI, GraphStoreClient gsc)
     {
-        new ImportExecutor(importThreadPool).start(service, adminService, baseURI, ldc, rdfImport);
+        new ImportExecutor(importThreadPool).start(service, adminService, baseURI, gsc, rdfImport);
     }
     
     /**
@@ -1715,8 +1730,7 @@ public class Application extends ResourceConfig
         {
             OntModelSpec appOntModelSpec = new OntModelSpec(OntModelSpec.OWL_MEM_RDFS_INF);
             appOntModelSpec.setDocumentManager(new OntDocumentManager());
-            appOntModelSpec.getDocumentManager().setFileManager(
-                    new DataManagerImpl(LocationMapper.get(), new HashMap<>(), LinkedDataClient.create(getClient(), getMediaTypes()), true, isPreemptiveAuth(), isResolvingUncached()));
+            appOntModelSpec.getDocumentManager().setFileManager(new DataManagerImpl(LocationMapper.get(), new HashMap<>(), GraphStoreClient.create(getClient(), getMediaTypes()), true, isPreemptiveAuth(), isResolvingUncached()));
             
             getEndUserOntModelSpecs().put(app.getURI(), appOntModelSpec);
         }
@@ -1747,12 +1761,40 @@ public class Application extends ResourceConfig
     /**
      * Returns the external HTTP client.
      * It is used by the Linked Data browser to avoid sharing the connection pool with the system client.
-     * 
+     *
      * @return client object
      */
     public Client getExternalClient()
     {
         return externalClient;
+    }
+
+    /**
+     * Bans URL from the proxy cache.
+     *
+     * @param proxy proxy server resource
+     * @param url banned URL
+     * @param urlEncode if true, the banned URL value will be URL-encoded
+     * @throws IllegalArgumentException if url is null
+     */
+    public void ban(Resource proxy, String url, boolean urlEncode)
+    {
+        if (url == null) throw new IllegalArgumentException("URL cannot be null");
+
+        // Extract path from URL - Varnish req.url only contains the path, not the full URL
+        URI uri = URI.create(url);
+        String path = uri.getPath();
+        if (uri.getQuery() != null) path += "?" + uri.getQuery();
+
+        final String urlValue = urlEncode ? UriComponent.encode(path, UriComponent.Type.UNRESERVED) : path;
+
+        try (Response cr = getClient().target(proxy.getURI()).
+                request().
+                header(CacheInvalidationFilter.HEADER_NAME, urlValue).
+                method("BAN", Response.class))
+        {
+            // Response automatically closed by try-with-resources
+        }
     }
 
     /**
@@ -1942,7 +1984,7 @@ public class Application extends ResourceConfig
     
     /**
      * Returns RDF dataset with LinkedDataHub application descriptions.
-     * 
+     *
      * @return RDF dataset
      */
     protected Dataset getContextDataset()
@@ -1951,18 +1993,80 @@ public class Application extends ResourceConfig
     }
 
     /**
+     * Returns the URI of the context dataset file.
+     *
+     * @return context dataset URI
+     */
+    protected URI getContextDatasetURI()
+    {
+        return contextDatasetURI;
+    }
+
+    /**
      * Returns RDF model with LinkedDataHub application descriptions.
-     * 
-     * @return RDF model
+     * This method returns a union of all named graphs from the context dataset.
+     *
+     * @return RDF model (read-only union of all named graphs)
      */
     public Model getContextModel()
     {
-        return ModelFactory.createModelForGraph(new GraphReadOnly(getContextDataset().getDefaultModel().getGraph()));
+        return ModelFactory.createModelForGraph(new GraphReadOnly(getContextDataset().getUnionModel().getGraph()));
+    }
+
+    /**
+     * Retrieves a dataspace model by application from the context dataset.
+     *
+     * @param application the dataspace application
+     * @return the model for the specified dataspace, or null if not found
+     */
+    public Model getDataspaceModel(com.atomgraph.linkeddatahub.apps.model.Application application)
+    {
+        if (application == null) throw new IllegalArgumentException("Application cannot be null");
+        return ModelFactory.createModelForGraph(new GraphReadOnly(getContextDataset().getNamedModel(application.getURI()).getGraph()));
+    }
+
+    /**
+     * Updates a dataspace by replacing its named graph with a new Model.
+     * This is a template method that can be overridden by subclasses to provide alternative implementations
+     * (e.g., HTTP-based updates using GraphStoreClient to a remote triplestore).
+     *
+     * Default implementation uses file-based operations via SystemConfigFileManager.
+     *
+     * @param application the dataspace application to update
+     * @param newModel the new RDF model to replace the existing named graph
+     * @throws IOException if an I/O error occurs
+     */
+    public void updateApp(com.atomgraph.linkeddatahub.apps.model.Application application, Model newModel) throws IOException
+    {
+        if (application == null) throw new IllegalArgumentException("Application cannot be null");
+        if (newModel == null) throw new IllegalArgumentException("Model cannot be null");
+
+        synchronized (getContextDataset())
+        {
+            String dataspaceURI = application.getURI();
+
+            // Update the named graph in the dataset
+            getContextDataset().removeNamedModel(dataspaceURI).
+                addNamedModel(dataspaceURI, newModel);
+
+            // Write the updated dataset back to file using RDFDataMgr
+            // Support both absolute file:// URIs and relative webapp paths (like getDataset does)
+            try (java.io.OutputStream out = (getContextDatasetURI().isAbsolute() ?
+                    new FileOutputStream(new java.io.File(getContextDatasetURI())) :
+                    new FileOutputStream(getServletConfig().getServletContext().getRealPath(getContextDatasetURI().toString()))))
+            {
+                Lang lang = RDFDataMgr.determineLang(getContextDatasetURI().toString(), null, null);
+                if (lang == null) throw new IOException("Could not determine RDF format from dataset URI: " + getContextDatasetURI().toString());
+
+                RDFDataMgr.write(out, getContextDataset(), lang);
+                if (log.isInfoEnabled()) log.info("Updated dataspace <{}> in context dataset: {}", dataspaceURI, getContextDatasetURI());
+            }
+        }
     }
 
     /**
      * Returns true if configured to invalidate HTTP proxy cache of triplestore results.
-     * 
+     *
      * @return true if invalidated
      */
     public boolean isInvalidateCache()

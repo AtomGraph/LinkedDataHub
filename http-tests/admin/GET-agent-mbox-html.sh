@@ -14,7 +14,9 @@ html=$(curl -k -f -s -N \
 
 # check that the description does *not* include foaf:mbox property
 
-echo "$html" | grep -v "http://xmlns.com/foaf/0.1/mbox" > /dev/null
+if echo "$html" | grep -q 'http://xmlns.com/foaf/0.1/mbox[^_]'; then
+  exit 1
+fi
 
 # check that the description includes foaf:mbox_sha1sum property
 

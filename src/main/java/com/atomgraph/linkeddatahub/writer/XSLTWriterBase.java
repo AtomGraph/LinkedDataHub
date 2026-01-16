@@ -138,7 +138,7 @@ public abstract class XSLTWriterBase extends com.atomgraph.client.writer.XSLTWri
             com.atomgraph.linkeddatahub.apps.model.Application app = appOpt.get();
             if (log.isDebugEnabled()) log.debug("Passing $lapp:Application to XSLT: <{}>", app);
             params.put(new QName("ldt", LDT.base.getNameSpace(), LDT.base.getLocalName()), new XdmAtomicValue(app.getBaseURI()));
-            params.put(new QName("ldh", LDH.origin.getNameSpace(), LDH.origin.getLocalName()), new XdmAtomicValue(app.getOriginURI()));
+            params.put(new QName("lapp", LAPP.origin.getNameSpace(), LAPP.origin.getLocalName()), new XdmAtomicValue(app.getOriginURI()));
             params.put(new QName("ldt", LDT.ontology.getNameSpace(), LDT.ontology.getLocalName()), new XdmAtomicValue(URI.create(app.getOntology().getURI())));
             params.put(new QName("lapp", LAPP.Application.getNameSpace(), LAPP.Application.getLocalName()),
                 getXsltExecutable().getProcessor().newDocumentBuilder().build(getSource(getAppModel(app, true))));

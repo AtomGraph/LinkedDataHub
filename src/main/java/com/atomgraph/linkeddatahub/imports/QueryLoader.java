@@ -16,7 +16,7 @@
  */
 package com.atomgraph.linkeddatahub.imports;
 
-import com.atomgraph.core.client.LinkedDataClient;
+import com.atomgraph.core.client.GraphStoreClient;
 import com.atomgraph.spinrdf.vocabulary.SP;
 import java.net.URI;
 import java.util.function.Supplier;
@@ -39,18 +39,18 @@ public class QueryLoader implements Supplier<Query>
     private final URI uri;
     private final String baseURI;
     private final Syntax syntax;
-    private final LinkedDataClient ldc;
+    private final GraphStoreClient gsc;
     
     /**
      * Constructs loader from query URI.
      * 
      * @param uri query URI
      * @param baseURI base URI
-     * @param ldc Linked Data client
+     * @param gsc Graph Store client
      */
-    public QueryLoader(URI uri, String baseURI, LinkedDataClient ldc)
+    public QueryLoader(URI uri, String baseURI, GraphStoreClient gsc)
     {
-        this(uri, baseURI, Syntax.syntaxSPARQL_11, ldc);
+        this(uri, baseURI, Syntax.syntaxSPARQL_11, gsc);
     }
     
     /**
@@ -59,20 +59,20 @@ public class QueryLoader implements Supplier<Query>
      * @param uri query URI
      * @param baseURI base URI
      * @param syntax query syntax
-     * @param ldc Linked Data client
+     * @param gsc Graph Store client
      */
-    public QueryLoader(URI uri, String baseURI, Syntax syntax, LinkedDataClient ldc)
+    public QueryLoader(URI uri, String baseURI, Syntax syntax, GraphStoreClient gsc)
     {
         this.uri = uri;
         this.baseURI = baseURI;
         this.syntax = syntax;
-        this.ldc = ldc;
+        this.gsc = gsc;
     }
     
     @Override
     public Query get()
     {
-        try (Response cr = getLinkedDataClient().get(getURI()))
+        try (Response cr = getGraphStoreClient().get(getURI()))
         {
             Resource queryRes = cr.readEntity(Model.class).getResource(getURI().toString());
             return QueryFactory.create(queryRes.getRequiredProperty(SP.text).getString(), getBaseURI(), getSyntax());
@@ -110,13 +110,13 @@ public class QueryLoader implements Supplier<Query>
     }
     
     /**
-     * Returns Linked Data client.
+     * Returns Graph Store client.
      * 
-     * @return Linked Data client
+     * @return Graph Store client
      */
-    public LinkedDataClient getLinkedDataClient()
+    public GraphStoreClient getGraphStoreClient()
     {
-        return ldc;
+        return gsc;
     }
     
 }
