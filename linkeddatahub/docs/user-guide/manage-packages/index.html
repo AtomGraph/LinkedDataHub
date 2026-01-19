@@ -145,6 +145,16 @@
                   
                   <p class="lead"><a href="../../reference/administration/packages/" target="_blank">Read more about how packages work.</a></p>
                   
+                  <div class="alert alert-info">
+                     
+                     <p><strong>Important:</strong> After installing or uninstalling a package, you must restart the Docker service for
+                        XSLT stylesheet changes to take effect:</p>
+                     
+                     <pre>docker-compose restart linkeddatahub</pre>
+                     
+                     <p>Do not use <code>--force-recreate</code> as that would overwrite the stylesheet file changes.</p>
+                     </div>
+                  
                   <div>
                      
                      <h2 id="install-package">Install a package</h2>

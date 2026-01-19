@@ -172,8 +172,7 @@
                         
                         <dt><code>ns.ttl</code> - Package ontology</dt>
                         
-                        <dd>An RDF ontology file that imports the external vocabulary using <code>owl:imports</code> and defines template blocks (<code>ldh:template</code>) for custom views. Template blocks are SPARQL-based views attached to RDF types from
-                           the imported vocabulary.</dd>
+                        <dd>An RDF ontology file that imports the external vocabulary using <code>owl:imports</code> and attaches blocks to properties using <code>ldh:view</code> (forward relationships) or <code>ldh:inverseView</code> (inverse relationships). Blocks are typically <code>ldh:View</code> resources with SPARQL queries that render related data for property values.</dd>
                         
                         <dt><code>layout.xsl</code> - XSLT stylesheet</dt>
                         
@@ -185,7 +184,7 @@
                      
                      <pre>packages/
 ├── package-name/
-│   ├── ns.ttl         # Ontology with template blocks
+│   ├── ns.ttl         # Ontology with views
 │   └── layout.xsl     # XSLT stylesheet</pre>
                      
                      <p>Package metadata is published as Linked Data that resolves from the package URI (e.g.,
@@ -248,11 +247,11 @@
                      <pre>&lt;https://raw.githubusercontent.com/AtomGraph/LinkedDataHub-Apps/master/packages/skos/ns.ttl#&gt; a owl:Ontology ;
     owl:imports &lt;http://www.w3.org/2004/02/skos/core&gt; .</pre>
                      
-                     <h3 id="template-blocks">Template blocks</h3>
+                     <h3 id="property-views">Property views</h3>
                      
-                     <p>SPARQL-based views attached to RDF types from the imported vocabulary:</p>
+                     <p>SPARQL-based views attached to properties from the imported vocabulary:</p>
                      
-                     <pre>skos:Concept ldh:template ns:NarrowerConcepts .
+                     <pre>skos:narrower ldh:view ns:NarrowerConcepts .
 
 ns:NarrowerConcepts a ldh:View ;
     dct:title "Narrower concepts" ;
@@ -263,8 +262,8 @@ ns:SelectNarrowerConcepts a sp:Select ;
     WHERE { GRAPH ?graph { $about skos:narrower ?narrower } }
     ORDER BY ?narrower""" .</pre>
                      
-                     <p>Template blocks define custom views that appear in the UI when viewing resources of
-                        the specified type.</p>
+                     <p>Views are rendered when displaying resources that have the specified property. Use
+                        <code>ldh:view</code> for forward relationships (resource has property) or <code>ldh:inverseView</code> for inverse relationships (other resources point to this resource via property).</p>
                      </div>
                   
                   <div>
@@ -325,6 +324,16 @@ ns:SelectNarrowerConcepts a sp:Select ;
 &lt;xsl:import href="../com/linkeddatahub/packages/skos/layout.xsl"/&gt;  &lt;!-- Package (added) --&gt;</pre>
                            </li>
                         </ol>
+                     
+                     <div class="alert alert-info">
+                        
+                        <p><strong>Important:</strong> After installing or uninstalling a package, you must restart the Docker service for
+                           XSLT stylesheet changes to take effect:</p>
+                        
+                        <pre>docker-compose restart linkeddatahub</pre>
+                        
+                        <p>Do not use <code>--force-recreate</code> as that would overwrite the stylesheet file changes.</p>
+                        </div>
                      </div>
                   
                   <div>
@@ -398,13 +407,13 @@ ns:SelectNarrowerConcepts a sp:Select ;
                      
                      <h3 id="write-ontology">Write package ontology</h3>
                      
-                     <p>Create <code>ns.ttl</code> with vocabulary import and template blocks:</p>
+                     <p>Create <code>ns.ttl</code> with vocabulary import and views:</p>
                      
                      <pre>&lt;https://raw.githubusercontent.com/you/repo/master/packages/schema.org/ns.ttl#&gt; a owl:Ontology ;
     owl:imports &lt;http://schema.org/&gt; .
 
-# Attach template block to a vocabulary class
-schema:Person ldh:template :PersonKnows .
+# Attach view to a property
+schema:knows ldh:view :PersonKnows .
 
 :PersonKnows a ldh:View ;
     dct:title "Knows" ;
