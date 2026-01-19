@@ -68,7 +68,7 @@ owl:Ontology spin:constructor [
     ] .
 #    spin:constraint :MissingRDFSLabel .
 
-rdfs:isDefinedBy ldh:inverseBlock :OntologyClassView .
+rdfs:isDefinedBy ldh:inverseView :OntologyClassView .
 
 :OntologyClassView a ldh:View ;
     dct:title "Ontology classes" ;
@@ -218,7 +218,7 @@ acl:Authorization spin:constructor [
         sp:arg1 acl:mode
     ] .
 
-acl:agent ldh:block :AuthorizationAgentView .
+acl:agent ldh:view :AuthorizationAgentView .
 
 :AuthorizationAgentView a ldh:View ;
     dct:title "Authorization agents" ;

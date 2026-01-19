@@ -175,7 +175,7 @@ LIMIT   100
         ]]>
     </xsl:variable>
     <xsl:variable name="app-request-uri" select="ac:build-uri(resolve-uri('sparql', $ldt:base), map{ 'query': $app-query })" as="xs:anyURI"/>
-    <xsl:variable name="forward-block-query" as="xs:string">
+    <xsl:variable name="forward-view-query" as="xs:string">
         <![CDATA[
             PREFIX  rdfs: <http://www.w3.org/2000/01/rdf-schema#>
             PREFIX  ldh:  <https://w3id.org/atomgraph/linkeddatahub#>
@@ -183,7 +183,7 @@ LIMIT   100
             SELECT DISTINCT ?block
             WHERE
               {
-                ?property  ldh:block  ?block .
+                ?property  ldh:view  ?block .
                   { ?property  rdfs:domain  $domain }
                 UNION
                   { ?property  rdfs:subPropertyOf+/rdfs:domain  $domain }
@@ -191,7 +191,7 @@ LIMIT   100
         ]]>
         <!-- VALUES $domain goes here -->
     </xsl:variable>
-    <xsl:variable name="inverse-block-query" as="xs:string">
+    <xsl:variable name="inverse-view-query" as="xs:string">
         <![CDATA[
             PREFIX  rdfs: <http://www.w3.org/2000/01/rdf-schema#>
             PREFIX  ldh:  <https://w3id.org/atomgraph/linkeddatahub#>
@@ -199,7 +199,7 @@ LIMIT   100
             SELECT DISTINCT ?block
             WHERE
               {
-                ?property  ldh:inverseBlock  ?block .
+                ?property  ldh:inverseView  ?block .
                   { ?property  rdfs:range  $range }
                 UNION
                   { ?property  rdfs:subPropertyOf+/rdfs:range  $range }

@@ -36,7 +36,7 @@ skos:Concept spin:constructor :ConceptConstructor ;
 
 # narrower
 
-skos:narrower ldh:block :NarrowerConcepts .
+skos:narrower ldh:view :NarrowerConcepts .
 
 :NarrowerConcepts a ldh:View ;
     dct:title "Narrower concepts" ;
@@ -65,7 +65,7 @@ ORDER BY ?prefLabel
 
 # broader
 
-skos:broader ldh:block :BroaderConcepts .
+skos:broader ldh:view :BroaderConcepts .
 
 :BroaderConcepts a ldh:View ;
     dct:title "Broader concepts" ;
@@ -111,7 +111,7 @@ skos:Collection spin:constructor :CollectionConstructor ;
         WHERE {}""" ;
     rdfs:isDefinedBy : .
 
-skos:member ldh:block :CollectionMembers .
+skos:member ldh:view :CollectionMembers .
 
 :CollectionMembers a ldh:View ;
     dct:title "Collection members" ;
@@ -157,7 +157,7 @@ skos:ConceptScheme spin:constructor :ConceptSchemeConstructor .
         WHERE {}""" ;
     rdfs:isDefinedBy : .
 
-skos:inScheme ldh:inverseBlock :ConceptsInScheme .
+skos:inScheme ldh:inverseView :ConceptsInScheme .
 
 :ConceptsInScheme a ldh:View ;
     dct:title "Concepts in scheme" ;

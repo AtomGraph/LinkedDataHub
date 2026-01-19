@@ -91,18 +91,18 @@
     rdfs:label "Series variable name" ;
     rdfs:isDefinedBy : .
 
-:block a owl:ObjectProperty ;
+:view a owl:ObjectProperty ;
     rdfs:domain rdf:Property ;
     rdfs:range :View ;
-    rdfs:label "Property block" ;
-    rdfs:comment "Attaches a view block to a property for forward relationships ($about property ?value)" ;
+    rdfs:label "Property view" ;
+    rdfs:comment "Attaches a view to a property for forward relationships ($about property ?value)" ;
     rdfs:isDefinedBy : .
 
-:inverseBlock a owl:ObjectProperty ;
+:inverseView a owl:ObjectProperty ;
     rdfs:domain rdf:Property ;
     rdfs:range :View ;
-    rdfs:label "Inverse property block" ;
-    rdfs:comment "Attaches a view block to a property for inverse relationships (?value property $about)" ;
+    rdfs:label "Inverse property view" ;
+    rdfs:comment "Attaches a view to a property for inverse relationships (?value property $about)" ;
     rdfs:isDefinedBy : .
 
 # CLASSES
