@@ -161,7 +161,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="offset-x-treshold" select="120" as="xs:double"/>
         <xsl:variable name="offset-y-treshold" select="20" as="xs:double"/>
         
-        <!-- there might be multiple .row-block-controls in a block if the main block is followed by blocks rendered from ldh:template -->
+        <!-- there might be multiple .row-block-controls in a block if the main block is followed by blocks rendered from ldh:block -->
         <xsl:variable name="row-block-controls" select="key('elements-by-class', 'row-block-controls', .)[1]" as="element()"/>
         <xsl:variable name="btn-edit" select="key('elements-by-class', 'btn-edit', $row-block-controls)" as="element()"/>
         <!-- check that the mouse is on the top edge and show the block controls if they're not already shown -->
