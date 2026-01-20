@@ -1,3 +1,7 @@
+## [5.2.1] - 2026-01-20
+### Changed
+- Package view rendering refactored to use type-driven discovery with `ldh:view`/`ldh:inverseView` properties matching resource types against `rdfs:domain`/`rdfs:range` constraints
+
 ## [5.2.0] - 2026-01-14
 ### Added
 - Application settings form with modal UI for editing dataspace configuration

@@ -119,11 +119,9 @@ exclude-result-prefixes="#all">
     <xsl:param name="google:clientID" as="xs:string?"/>
     <xsl:param name="orcid:clientID" as="xs:string?"/>
     <xsl:param name="doc-types" select="key('resources', ac:absolute-path(ldh:base-uri(.)))/rdf:type/@rdf:resource[ . = ('&def;Root', '&dh;Container', '&dh;Item')]" as="xs:anyURI*"/>
-    <!-- take care not to load unnecessary documents over HTTP when $doc-types is empty -->
-    <xsl:param name="template-block-uris" select="if (exists($doc-types)) then (if (doc-available(resolve-uri('ns?query=ASK%20%7B%7D', $ldt:base))) then (ldh:query-result(resolve-uri('ns', $ldt:base), $template-query || ' VALUES $Type { ' || string-join(for $type in $doc-types return '&lt;' || $type || '&gt;', ' ') || ' }')//srx:binding[@name = 'block']/srx:uri/xs:anyURI(.)) else ()) else ()" as="xs:anyURI*"/>
     <xsl:param name="block-uris" select="key('resources', ac:absolute-path(ldh:base-uri(.)))/rdf:*[starts-with(local-name(), '_')]/@rdf:resource" as="xs:anyURI*"/>
-    <!-- document has content when there are are content sequence properties or template-declared class-level blocks exist -->
-    <xsl:param name="has-content" select="exists($block-uris) or exists($template-block-uris)" as="xs:boolean"/>
+    <!-- document has content when there are content sequence properties -->
+    <xsl:param name="has-content" select="exists($block-uris)" as="xs:boolean"/>
     <xsl:param name="ac:mode" select="if ($has-content) then xs:anyURI('&ldh;ContentMode') else xs:anyURI('&ac;ReadMode')" as="xs:anyURI*"/>
     <xsl:param name="location-mapping" as="map(xs:anyURI, xs:anyURI)">
         <xsl:map>
@@ -177,17 +175,37 @@ LIMIT   100
         ]]>
     </xsl:variable>
     <xsl:variable name="app-request-uri" select="ac:build-uri(resolve-uri('sparql', $ldt:base), map{ 'query': $app-query })" as="xs:anyURI"/>
-    <xsl:variable name="template-query" as="xs:string">
+    <xsl:variable name="forward-view-query" as="xs:string">
         <![CDATA[
+            PREFIX  rdfs: <http://www.w3.org/2000/01/rdf-schema#>
             PREFIX  ldh:  <https://w3id.org/atomgraph/linkeddatahub#>
 
-            SELECT  *
+            SELECT DISTINCT ?block
             WHERE
               {
-                $Type  ldh:template  ?block
+                ?property  ldh:view  ?block .
+                  { ?property  rdfs:domain  $domain }
+                UNION
+                  { ?property  rdfs:subPropertyOf+/rdfs:domain  $domain }
               }
         ]]>
-        <!-- VALUES $Type goes here -->
+        <!-- VALUES $domain goes here -->
+    </xsl:variable>
+    <xsl:variable name="inverse-view-query" as="xs:string">
+        <![CDATA[
+            PREFIX  rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+            PREFIX  ldh:  <https://w3id.org/atomgraph/linkeddatahub#>
+
+            SELECT DISTINCT ?block
+            WHERE
+              {
+                ?property  ldh:inverseView  ?block .
+                  { ?property  rdfs:range  $range }
+                UNION
+                  { ?property  rdfs:subPropertyOf+/rdfs:range  $range }
+              }
+        ]]>
+        <!-- VALUES $range goes here -->
     </xsl:variable>
     <xsl:variable name="constraint-query" as="xs:string">
         <![CDATA[
@@ -875,17 +893,10 @@ LIMIT   100
                 <!-- error responses always rendered in bs2:Row mode, no matter what $ac:mode specifies -->
                 <xsl:when test="key('resources-by-type', '&http;Response') and not(key('resources-by-type', '&spin;ConstraintViolation')) and not(key('resources-by-type', '&sh;ValidationResult'))">
                     <xsl:apply-templates select="." mode="bs2:Row">
-                        <xsl:with-param name="template-query" select="$template-query" tunnel="yes"/>
                         <xsl:sort select="ac:label(.)"/>
                     </xsl:apply-templates>
                 </xsl:when>
                 <xsl:when test="$ac:mode = '&ldh;ContentMode'">
-                    <xsl:for-each select="$template-block-uris">
-                        <xsl:if test="doc-available(ac:document-uri(.))">
-                            <xsl:apply-templates select="key('resources', ., document(ac:document-uri(.)))" mode="bs2:Row"/>
-                        </xsl:if>
-                    </xsl:for-each>
-
                     <xsl:apply-templates select="." mode="ldh:ContentList"/>
                 </xsl:when>
                 <xsl:when test="$ac:mode = '&ac;MapMode'">

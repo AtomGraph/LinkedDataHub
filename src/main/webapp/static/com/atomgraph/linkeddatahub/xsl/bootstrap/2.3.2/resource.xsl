@@ -609,7 +609,7 @@ extension-element-prefixes="ixsl"
     <!-- hide instances of system classes -->
     <xsl:template match="*[not($ldh:renderSystemResources)][@rdf:about = ac:absolute-path(ldh:base-uri(.)) and rdf:type/@rdf:resource = ('&def;Root', '&dh;Container', '&dh;Item')]" mode="bs2:Row" priority="1" use-when="system-property('xsl:product-name') = 'SAXON'"/>
 
-    <!-- overriding template used to inject ldh:template blocks (server-side only) -->
+    <!-- overriding template used to inject ldh:view blocks (server-side only) -->
     <xsl:template match="*[*][@rdf:about][not(rdf:type/@rdf:resource = '&http;Response')] | *[*][@rdf:nodeID][not(rdf:type/@rdf:resource = '&http;Response')]" mode="bs2:Row" priority="0.7" use-when="system-property('xsl:product-name') = 'SAXON'">
         <!-- TO-DO: use ldh:request-uri() to resolve URIs server-side -->
         <xsl:param name="id" select="if (contains(@rdf:about, ac:absolute-path(ldh:base-uri(.)) || '#')) then substring-after(@rdf:about, ac:absolute-path(ldh:base-uri(.)) || '#') else generate-id()" as="xs:string?"/>
@@ -618,11 +618,15 @@ extension-element-prefixes="ixsl"
         <xsl:param name="typeof" select="rdf:type/@rdf:resource/xs:anyURI(.)" as="xs:anyURI*"/>
         <xsl:param name="mode" as="xs:anyURI?"/>
         <xsl:param name="style" as="xs:string?"/>
-        <!-- take care not to load unnecessary documents over HTTP when $typeof is empty -->
-        <xsl:variable name="block-values" select="if (exists($typeof)) then (if (doc-available(resolve-uri('ns?query=ASK%20%7B%7D', $ldt:base))) then (ldh:query-result(resolve-uri('ns', $ldt:base), $template-query || ' VALUES $Type { ' || string-join(for $type in $typeof return '&lt;' || $type || '&gt;', ' ') || ' }')//srx:binding[@name = 'block']/srx:uri/xs:anyURI(.)) else ()) else ()" as="xs:anyURI*" use-when="system-property('xsl:product-name') = 'SAXON'"/>
+        <!-- query ontology for forward blocks where rdfs:domain matches instance types (check direct domain and inherited via rdfs:subPropertyOf) -->
+        <xsl:variable name="forward-view-values" select="if (exists($typeof) and doc-available(resolve-uri('ns?query=ASK%20%7B%7D', $ldt:base))) then ldh:query-result(resolve-uri('ns', $ldt:base), $forward-view-query || ' VALUES $domain { ' || string-join(for $type in $typeof return '&lt;' || $type || '&gt;', ' ') || ' }')//srx:binding[@name = 'block']/srx:uri/xs:anyURI(.) else ()" as="xs:anyURI*" use-when="system-property('xsl:product-name') = 'SAXON'"/>
+        <!-- query ontology for inverse blocks where rdfs:range matches instance types (check direct range and inherited via rdfs:subPropertyOf) -->
+        <xsl:variable name="inverse-view-values" select="if (exists($typeof) and doc-available(resolve-uri('ns?query=ASK%20%7B%7D', $ldt:base))) then ldh:query-result(resolve-uri('ns', $ldt:base), $inverse-view-query || ' VALUES $range { ' || string-join(for $type in $typeof return '&lt;' || $type || '&gt;', ' ') || ' }')//srx:binding[@name = 'block']/srx:uri/xs:anyURI(.) else ()" as="xs:anyURI*" use-when="system-property('xsl:product-name') = 'SAXON'"/>
+        <!-- combine both forward and inverse blocks -->
+        <xsl:variable name="view-values" select="($forward-view-values, $inverse-view-values)" as="xs:anyURI*" use-when="system-property('xsl:product-name') = 'SAXON'"/>
 
         <xsl:choose>
-            <xsl:when test="exists($block-values)">
+            <xsl:when test="exists($view-values)">
                 <div>
                     <xsl:if test="$id">
                         <xsl:attribute name="id" select="$id"/>
@@ -652,8 +656,8 @@ extension-element-prefixes="ixsl"
                         </xsl:next-match>
 
                         <xsl:variable name="base-uri" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/>
-                        <!-- render contents attached to the types of this resource using ldh:template -->
-                        <xsl:for-each select="$block-values" use-when="system-property('xsl:product-name') = 'SAXON'">
+                        <!-- render blocks applicable to this resource's types (forward blocks via rdfs:domain, inverse blocks via rdfs:range) -->
+                        <xsl:for-each select="$view-values" use-when="system-property('xsl:product-name') = 'SAXON'">
                             <xsl:if test="doc-available(ac:document-uri(.))">
                                 <xsl:variable name="id" select="'id' || ac:uuid()" as="xs:string"/>
                                 <xsl:apply-templates select="key('resources', ., document(ac:document-uri(.)))" mode="bs2:Row">

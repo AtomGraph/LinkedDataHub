@@ -14,8 +14,7 @@
 # Concept
 
 skos:Concept spin:constructor :ConceptConstructor ;
-    spin:constraint :MissingPrefLabel ;
-    ldh:template :NarrowerConcepts .
+    spin:constraint :MissingPrefLabel .
 
 :ConceptConstructor a ldh:Constructor ;
     rdfs:label "Concept constructor" ;
@@ -36,6 +35,8 @@ skos:Concept spin:constructor :ConceptConstructor ;
     rdfs:isDefinedBy : .
 
 # narrower
+
+skos:narrower ldh:view :NarrowerConcepts .
 
 :NarrowerConcepts a ldh:View ;
     dct:title "Narrower concepts" ;
@@ -64,7 +65,7 @@ ORDER BY ?prefLabel
 
 # broader
 
-skos:Concept ldh:template :BroaderConcepts.
+skos:broader ldh:view :BroaderConcepts .
 
 :BroaderConcepts a ldh:View ;
     dct:title "Broader concepts" ;
@@ -94,8 +95,7 @@ ORDER BY ?prefLabel
 # Collection
 
 skos:Collection spin:constructor :CollectionConstructor ;
-    spin:constraint :MissingPrefLabel ;
-    ldh:template :CollectionMembers.
+    spin:constraint :MissingPrefLabel .
 
 :CollectionConstructor a ldh:Constructor ;
     rdfs:label "Collection constructor" ;
@@ -110,6 +110,8 @@ skos:Collection spin:constructor :CollectionConstructor ;
         }
         WHERE {}""" ;
     rdfs:isDefinedBy : .
+
+skos:member ldh:view :CollectionMembers .
 
 :CollectionMembers a ldh:View ;
     dct:title "Collection members" ;
@@ -138,8 +140,7 @@ ORDER BY ?prefLabel
 
 # ConceptScheme
 
-skos:ConceptScheme spin:constructor :ConceptSchemeConstructor ;
-    ldh:template :ConceptsInScheme.
+skos:ConceptScheme spin:constructor :ConceptSchemeConstructor .
 
 :ConceptSchemeConstructor a ldh:Constructor ;
     rdfs:label "Concept scheme constructor" ;
@@ -155,6 +156,8 @@ skos:ConceptScheme spin:constructor :ConceptSchemeConstructor ;
         }
         WHERE {}""" ;
     rdfs:isDefinedBy : .
+
+skos:inScheme ldh:inverseView :ConceptsInScheme .
 
 :ConceptsInScheme a ldh:View ;
     dct:title "Concepts in scheme" ;
