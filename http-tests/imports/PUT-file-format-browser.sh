@@ -51,7 +51,7 @@ initial_format=$(echo "$file_doc_ntriples" | sed -rn "s/<${file_uri//\//\\/}> <h
 
 # re-upload the same file to the same document with explicit media type: text/csv
 # using PUT with RDF/POST multipart format
-# IMPORTANT: Include explicit dct:format in RDF to simulate user editing the format field in the form
+# IMPORTANT: Do NOT include explicit dct:format in RDF - test fallback to bodyPart.getMediaType()
 
 rdf_post=""
 rdf_post+="-F \"rdf=\"\n"
@@ -62,8 +62,6 @@ rdf_post+="-F \"pu=http://purl.org/dc/terms/title\"\n"
 rdf_post+="-F \"ol=Test File for Browser Media Type\"\n"
 rdf_post+="-F \"pu=http://www.w3.org/1999/02/22-rdf-syntax-ns#type\"\n"
 rdf_post+="-F \"ou=http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#FileDataObject\"\n"
-rdf_post+="-F \"pu=http://purl.org/dc/terms/format\"\n"
-rdf_post+="-F \"ou=http://www.sparontologies.net/mediatype/text/csv\"\n"
 rdf_post+="-F \"su=${file_doc}\"\n"
 rdf_post+="-F \"pu=http://purl.org/dc/terms/title\"\n"
 rdf_post+="-F \"ol=Test File for Browser Media Type\"\n"
