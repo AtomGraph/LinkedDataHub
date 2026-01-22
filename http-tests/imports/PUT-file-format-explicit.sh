@@ -24,15 +24,20 @@ echo "test,data,sample" > "$test_file"
 echo "1,2,3" >> "$test_file"
 echo "4,5,6" >> "$test_file"
 
+# generate slug for the file document
+
+slug=$(uuidgen | tr '[:upper:]' '[:lower:]')
+
 # upload file with explicit media type: text/plain
 
 file_doc=$(create-file.sh \
--f "$AGENT_CERT_FILE" \
--p "$AGENT_CERT_PWD" \
--b "$END_USER_BASE_URL" \
---title "Test File for Media Type Update" \
---file "$test_file" \
---file-content-type "text/plain")
+  -f "$AGENT_CERT_FILE" \
+  -p "$AGENT_CERT_PWD" \
+  -b "$END_USER_BASE_URL" \
+  --title "Test File for Media Type Update" \
+  --slug "$slug" \
+  --file "$test_file" \
+  --file-content-type "text/plain")
 
 # get the file resource URI and initial dct:format
 
@@ -56,32 +61,18 @@ if [[ ! "$initial_format" =~ text/plain ]]; then
     exit 1
 fi
 
-# re-upload the same file to the same document with different explicit media type: text/csv
-# using PUT with RDF/POST multipart format
-# IMPORTANT: Include explicit dct:format in RDF to simulate user editing the format field in the form
+# re-upload the same file with same slug but different explicit media type: text/csv
+# this simulates editing the file document through the UI and uploading a new file
 
-rdf_post=""
-rdf_post+="-F \"rdf=\"\n"
-rdf_post+="-F \"sb=file\"\n"
-rdf_post+="-F \"pu=http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#fileName\"\n"
-rdf_post+="-F \"ol=@${test_file};type=text/csv\"\n"
-rdf_post+="-F \"pu=http://purl.org/dc/terms/title\"\n"
-rdf_post+="-F \"ol=Test File for Media Type Update\"\n"
-rdf_post+="-F \"pu=http://www.w3.org/1999/02/22-rdf-syntax-ns#type\"\n"
-rdf_post+="-F \"ou=http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#FileDataObject\"\n"
-rdf_post+="-F \"pu=http://purl.org/dc/terms/format\"\n"
-rdf_post+="-F \"ou=http://www.sparontologies.net/mediatype/text/csv\"\n"
-rdf_post+="-F \"su=${file_doc}\"\n"
-rdf_post+="-F \"pu=http://purl.org/dc/terms/title\"\n"
-rdf_post+="-F \"ol=Test File for Media Type Update\"\n"
-rdf_post+="-F \"pu=http://www.w3.org/1999/02/22-rdf-syntax-ns#type\"\n"
-rdf_post+="-F \"ou=https://www.w3.org/ns/ldt/document-hierarchy#Item\"\n"
-rdf_post+="-F \"pu=http://xmlns.com/foaf/0.1/primaryTopic\"\n"
-rdf_post+="-F \"ob=file\"\n"
-rdf_post+="-F \"pu=http://rdfs.org/sioc/ns#has_container\"\n"
-rdf_post+="-F \"ou=${END_USER_BASE_URL}files/\"\n"
-
-echo -e "$rdf_post" | curl -f -v -s -k -X PUT -H "Accept: text/turtle" -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" -o /dev/null --config - "$file_doc"
+create-file.sh \
+  -f "$AGENT_CERT_FILE" \
+  -p "$AGENT_CERT_PWD" \
+  -b "$END_USER_BASE_URL" \
+  --title "Test File for Media Type Update" \
+  --slug "$slug" \
+  --file "$test_file" \
+  --file-content-type "text/csv" \
+  > /dev/null
 
 # get updated document
 

@@ -24,14 +24,19 @@ echo "test,data,sample" > "$test_file"
 echo "1,2,3" >> "$test_file"
 echo "4,5,6" >> "$test_file"
 
+# generate slug for the file document
+
+slug=$(uuidgen | tr '[:upper:]' '[:lower:]')
+
 # upload file WITHOUT explicit media type (rely on browser detection via `file -b --mime-type`)
 
 file_doc=$(create-file.sh \
--f "$AGENT_CERT_FILE" \
--p "$AGENT_CERT_PWD" \
--b "$END_USER_BASE_URL" \
---title "Test File for Browser Media Type" \
---file "$test_file")
+  -f "$AGENT_CERT_FILE" \
+  -p "$AGENT_CERT_PWD" \
+  -b "$END_USER_BASE_URL" \
+  --title "Test File for Browser Media Type" \
+  --slug "$slug" \
+  --file "$test_file")
 
 # get the file resource URI and initial dct:format
 
@@ -49,30 +54,18 @@ initial_sha1=$(echo "$file_doc_ntriples" | sed -rn "s/<${file_uri//\//\\/}> <htt
 # get initial dct:format (should be browser-detected)
 initial_format=$(echo "$file_doc_ntriples" | sed -rn "s/<${file_uri//\//\\/}> <http:\/\/purl.org\/dc\/terms\/format> <(.*)> \./\1/p")
 
-# re-upload the same file to the same document with explicit media type: text/csv
-# using PUT with RDF/POST multipart format
-# IMPORTANT: Do NOT include explicit dct:format in RDF - test fallback to bodyPart.getMediaType()
+# re-upload the same file with same slug but WITH explicit media type: text/csv
+# this simulates editing and uploading with a corrected format after browser auto-detection was wrong
 
-rdf_post=""
-rdf_post+="-F \"rdf=\"\n"
-rdf_post+="-F \"sb=file\"\n"
-rdf_post+="-F \"pu=http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#fileName\"\n"
-rdf_post+="-F \"ol=@${test_file};type=text/csv\"\n"
-rdf_post+="-F \"pu=http://purl.org/dc/terms/title\"\n"
-rdf_post+="-F \"ol=Test File for Browser Media Type\"\n"
-rdf_post+="-F \"pu=http://www.w3.org/1999/02/22-rdf-syntax-ns#type\"\n"
-rdf_post+="-F \"ou=http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#FileDataObject\"\n"
-rdf_post+="-F \"su=${file_doc}\"\n"
-rdf_post+="-F \"pu=http://purl.org/dc/terms/title\"\n"
-rdf_post+="-F \"ol=Test File for Browser Media Type\"\n"
-rdf_post+="-F \"pu=http://www.w3.org/1999/02/22-rdf-syntax-ns#type\"\n"
-rdf_post+="-F \"ou=https://www.w3.org/ns/ldt/document-hierarchy#Item\"\n"
-rdf_post+="-F \"pu=http://xmlns.com/foaf/0.1/primaryTopic\"\n"
-rdf_post+="-F \"ob=file\"\n"
-rdf_post+="-F \"pu=http://rdfs.org/sioc/ns#has_container\"\n"
-rdf_post+="-F \"ou=${END_USER_BASE_URL}files/\"\n"
-
-echo -e "$rdf_post" | curl -f -v -s -k -X PUT -H "Accept: text/turtle" -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" -o /dev/null --config - "$file_doc"
+create-file.sh \
+  -f "$AGENT_CERT_FILE" \
+  -p "$AGENT_CERT_PWD" \
+  -b "$END_USER_BASE_URL" \
+  --title "Test File for Browser Media Type" \
+  --slug "$slug" \
+  --file "$test_file" \
+  --file-content-type "text/csv" \
+  > /dev/null
 
 # get updated document
 
