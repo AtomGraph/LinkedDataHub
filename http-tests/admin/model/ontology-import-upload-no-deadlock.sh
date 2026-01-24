@@ -86,14 +86,19 @@ echo "Cleared ontology cache to force reload"
 # Use portable timeout implementation (works on both macOS and Linux)
 
 echo "Making request to trigger ontology loading (testing for deadlock)..."
+echo "DEBUG: Target URL: $namespace_doc"
+echo "DEBUG: Using cert: $OWNER_CERT_FILE"
 
 # Portable timeout function - works on both macOS and Linux
+# Use temporary file to capture curl output and status
+temp_output=$(mktemp)
+temp_stderr=$(mktemp)
 request_pid=""
 (
-  curl -k -f -s \
+  curl -k -f -w "\nHTTP_STATUS:%{http_code}\n" \
     -E "$OWNER_CERT_FILE":"$OWNER_CERT_PWD" \
     -H "Accept: application/n-triples" \
-    "$namespace_doc" > /dev/null
+    "$namespace_doc" > "$temp_output" 2> "$temp_stderr"
 ) &
 request_pid=$!
 
@@ -104,6 +109,9 @@ while kill -0 "$request_pid" 2>/dev/null; do
   if [ $elapsed -ge $timeout_seconds ]; then
     kill -9 "$request_pid" 2>/dev/null || true
     echo "ERROR: Request timed out after ${timeout_seconds} seconds - deadlock detected!"
+    echo "DEBUG: Curl stderr output:"
+    cat "$temp_stderr"
+    rm -f "$temp_output" "$temp_stderr"
     exit 1
   fi
   sleep 1
@@ -113,10 +121,25 @@ done
 # Check if curl succeeded
 wait "$request_pid"
 curl_exit_code=$?
+
+echo "DEBUG: Curl exit code: $curl_exit_code"
+echo "DEBUG: Curl stderr:"
+cat "$temp_stderr"
+echo "DEBUG: Response (first 500 chars):"
+head -c 500 "$temp_output"
+echo ""
+
 if [ $curl_exit_code -ne 0 ]; then
   echo "ERROR: Request failed with exit code $curl_exit_code"
+  rm -f "$temp_output" "$temp_stderr"
   exit 1
 fi
+
+# Extract HTTP status code
+http_status=$(grep "HTTP_STATUS:" "$temp_output" | cut -d':' -f2)
+echo "DEBUG: HTTP status code: $http_status"
+
+rm -f "$temp_output" "$temp_stderr"
 
 echo "Request completed successfully in ${elapsed}s (no deadlock)"
 
