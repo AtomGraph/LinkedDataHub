@@ -93,32 +93,42 @@ echo "DEBUG: Using cert: $OWNER_CERT_FILE"
 # Use temporary file to capture curl output and status
 temp_output=$(mktemp)
 temp_stderr=$(mktemp)
+echo "DEBUG: Created temp files: $temp_output, $temp_stderr"
+
 request_pid=""
 (
+  echo "DEBUG: [subprocess] Starting curl request..." >&2
   curl -k -f -w "\nHTTP_STATUS:%{http_code}\n" \
     -E "$OWNER_CERT_FILE":"$OWNER_CERT_PWD" \
     -H "Accept: application/n-triples" \
     "$namespace_doc" > "$temp_output" 2> "$temp_stderr"
+  curl_result=$?
+  echo "DEBUG: [subprocess] Curl finished with exit code: $curl_result" >&2
+  exit $curl_result
 ) &
 request_pid=$!
+echo "DEBUG: Background process PID: $request_pid"
 
 # Wait up to 30 seconds for the request to complete
 timeout_seconds=30
 elapsed=0
+echo "DEBUG: Entering wait loop..."
 while kill -0 "$request_pid" 2>/dev/null; do
   if [ $elapsed -ge $timeout_seconds ]; then
     kill -9 "$request_pid" 2>/dev/null || true
     echo "ERROR: Request timed out after ${timeout_seconds} seconds - deadlock detected!"
     echo "DEBUG: Curl stderr output:"
-    cat "$temp_stderr"
+    cat "$temp_stderr" || echo "(could not read stderr file)"
     rm -f "$temp_output" "$temp_stderr"
     exit 1
   fi
   sleep 1
   ((elapsed++))
 done
+echo "DEBUG: Exited wait loop after ${elapsed}s"
 
 # Check if curl succeeded
+echo "DEBUG: Calling wait on PID $request_pid..."
 wait "$request_pid"
 curl_exit_code=$?
 
