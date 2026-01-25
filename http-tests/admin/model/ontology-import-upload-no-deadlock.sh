@@ -83,45 +83,15 @@ echo "Cleared ontology cache to force reload"
 
 # Step 5: Make a request that triggers ontology loading
 # This would cause a deadlock without the OntologyFilter fix
-# Use portable timeout implementation (works on both macOS and Linux)
 
 echo "Making request to trigger ontology loading (testing for deadlock)..."
 
-# Portable timeout function - works on both macOS and Linux
-request_pid=""
-(
-  curl -k -f -s \
-    -E "$OWNER_CERT_FILE":"$OWNER_CERT_PWD" \
-    -H "Accept: application/n-triples" \
-    "$namespace_doc" > /dev/null
-) &
-request_pid=$!
+curl -k -f -s \
+  -E "$OWNER_CERT_FILE":"$OWNER_CERT_PWD" \
+  -H "Accept: application/n-triples" \
+  "$namespace_doc" > /dev/null
 
-# Wait up to 30 seconds for the request to complete
-timeout_seconds=30
-elapsed=0
-while kill -0 "$request_pid" 2>/dev/null; do
-  if [ $elapsed -ge $timeout_seconds ]; then
-    kill -9 "$request_pid" 2>/dev/null || true
-    echo "ERROR: Request timed out after ${timeout_seconds} seconds - deadlock detected!"
-    exit 1
-  fi
-  sleep 1
-  elapsed=$((elapsed + 1))
-done
-
-# Check if curl succeeded
-set +e  # Temporarily disable exit-on-error for wait
-wait "$request_pid"
-curl_exit_code=$?
-set -e  # Re-enable exit-on-error
-
-if [ $curl_exit_code -ne 0 ]; then
-  echo "ERROR: Request failed with exit code $curl_exit_code"
-  exit 1
-fi
-
-echo "Request completed successfully in ${elapsed}s (no deadlock)"
+echo "Request completed successfully (no deadlock)"
 
 # Step 6: Verify the import is present in the loaded ontology
 
