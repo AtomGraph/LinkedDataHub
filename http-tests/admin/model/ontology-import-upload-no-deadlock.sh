@@ -81,19 +81,8 @@ clear-ontology.sh \
 
 echo "Cleared ontology cache to force reload"
 
-# Step 5: Make a request that triggers ontology loading
-# This would cause a deadlock without the OntologyFilter fix
-
-echo "Making request to trigger ontology loading (testing for deadlock)..."
-
-curl -k -f -s \
-  -E "$OWNER_CERT_FILE":"$OWNER_CERT_PWD" \
-  -H "Accept: application/n-triples" \
-  "$namespace_doc" > /dev/null
-
-echo "Request completed successfully (no deadlock)"
-
-# Step 6: Verify the import is present in the loaded ontology
+# Step 5: Verify the import is present in the loaded ontology
+# This request also triggers ontology loading and would detect deadlock
 
 curl -k -f -s \
   -H "Accept: application/n-triples" \
@@ -102,7 +91,7 @@ curl -k -f -s \
 
 echo "Verified owl:import is present in namespace ontology"
 
-# Step 7: Verify the uploaded file is still accessible after ontology loading
+# Step 6: Verify the uploaded file is still accessible after ontology loading
 
 curl -k -f -s \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
@@ -111,7 +100,7 @@ curl -k -f -s \
 
 echo "Uploaded file is still accessible after ontology import"
 
-# Step 8: Verify that the imported ontology content is accessible via the namespace document
+# Step 7: Verify that the imported ontology content is accessible via the namespace document
 # This confirms the import was actually loaded (not just skipped)
 
 curl -k -f -s \
