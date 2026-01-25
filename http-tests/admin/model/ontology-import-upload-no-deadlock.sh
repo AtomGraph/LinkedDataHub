@@ -47,15 +47,11 @@ file_doc_ntriples=$(get.sh \
 
 upload_uri=$(echo "$file_doc_ntriples" | sed -rn "s/<${file_doc//\//\\/}> <http:\/\/xmlns.com\/foaf\/0.1\/primaryTopic> <(.*)> \./\1/p")
 
-echo "Uploaded file URI: $upload_uri"
-
 # Verify the uploaded file is accessible before we add it as an import
 curl -k -f -s \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
   -H "Accept: ${file_content_type}" \
   "$upload_uri" > /dev/null
-
-echo "Upload file is accessible"
 
 # Step 3: Add the uploaded file as an owl:import to the namespace ontology
 
@@ -69,8 +65,6 @@ add-ontology-import.sh \
   --import "$upload_uri" \
   "$ontology_doc"
 
-echo "Added owl:import of uploaded file to namespace ontology"
-
 # Step 4: Clear the namespace ontology from memory to force reload on next request
 
 clear-ontology.sh \
@@ -78,8 +72,6 @@ clear-ontology.sh \
   -p "$OWNER_CERT_PWD" \
   -b "$ADMIN_BASE_URL" \
   --ontology "$namespace"
-
-echo "Cleared ontology cache to force reload"
 
 # Step 5: Verify the import is present in the loaded ontology
 # This request also triggers ontology loading and would detect deadlock
@@ -89,16 +81,12 @@ curl -k -f -s \
   "$namespace_doc" \
 | grep "<${namespace}> <http://www.w3.org/2002/07/owl#imports> <${upload_uri}>" > /dev/null
 
-echo "Verified owl:import is present in namespace ontology"
-
 # Step 6: Verify the uploaded file is still accessible after ontology loading
 
 curl -k -f -s \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
   -H "Accept: ${file_content_type}" \
   "$upload_uri" > /dev/null
-
-echo "Uploaded file is still accessible after ontology import"
 
 # Step 7: Verify that the imported ontology content is accessible via the namespace document
 # This confirms the import was actually loaded (not just skipped)
@@ -110,7 +98,3 @@ curl -k -f -s \
   --data-urlencode "query=SELECT * { <https://example.org/test#TestClass> ?p ?o }" \
   "$namespace_doc" \
 | grep '<literal>Test Class</literal>' > /dev/null
-
-echo "Verified imported ontology content is accessible via SPARQL"
-
-echo "✓ All tests passed - no deadlock detected when importing uploaded files in ontology"
