@@ -54,12 +54,43 @@ public class OntologyFilter implements ContainerRequestFilter
     
     private static final Logger log = LoggerFactory.getLogger(OntologyFilter.class);
 
+    /**
+     * Paths that should not trigger ontology loading to avoid circular dependencies.
+     *
+     * When an ontology contains owl:imports pointing to URIs within these paths,
+     * loading the ontology would trigger HTTP requests to those URIs. If those requests
+     * are intercepted by this filter, it creates a circular dependency:
+     *
+     * 1. Request arrives for /uploads/xyz
+     * 2. OntologyFilter intercepts it and loads ontology
+     * 3. Ontology has owl:imports for /uploads/xyz
+     * 4. Jena FileManager makes HTTP request to /uploads/xyz
+     * 5. OntologyFilter intercepts it again → infinite loop/deadlock
+     *
+     * Additionally, uploaded files are binary/RDF content that don't require
+     * ontology context for their serving logic.
+     */
+    private static final java.util.Set<String> IGNORED_PATH_PREFIXES = java.util.Set.of(
+        "uploads/"
+    );
+
     @Inject com.atomgraph.linkeddatahub.Application system;
 
     
     @Override
     public void filter(ContainerRequestContext crc) throws IOException
     {
+        String path = crc.getUriInfo().getPath();
+
+        // Skip ontology loading for paths that may be referenced in owl:imports
+        // to prevent circular dependency deadlocks during ontology resolution
+        if (IGNORED_PATH_PREFIXES.stream().anyMatch(path::startsWith))
+        {
+            if (log.isTraceEnabled()) log.trace("Skipping ontology loading for path: {}", path);
+            crc.setProperty(OWL.Ontology.getURI(), Optional.empty());
+            return;
+        }
+
         crc.setProperty(OWL.Ontology.getURI(), getOntology(crc));
     }
     

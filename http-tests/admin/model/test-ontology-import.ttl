@@ -1,0 +1,17 @@
+@prefix : <https://example.org/test#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+: a owl:Ontology ;
+    rdfs:label "Test ontology for upload import" ;
+    rdfs:comment "This ontology is uploaded to test that ontology imports of uploaded files do not cause deadlock" .
+
+:TestClass a owl:Class ;
+    rdfs:label "Test Class" ;
+    rdfs:comment "A test class to verify ontology was loaded" .
+
+:testProperty a owl:DatatypeProperty ;
+    rdfs:label "Test Property" ;
+    rdfs:domain :TestClass ;
+    rdfs:range xsd:string .
