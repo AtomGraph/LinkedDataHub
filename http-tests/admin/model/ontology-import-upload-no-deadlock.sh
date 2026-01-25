@@ -123,14 +123,17 @@ while kill -0 "$request_pid" 2>/dev/null; do
     exit 1
   fi
   sleep 1
-  ((elapsed++))
+  elapsed=$((elapsed + 1))
 done
 echo "DEBUG: Exited wait loop after ${elapsed}s"
 
 # Check if curl succeeded
 echo "DEBUG: Calling wait on PID $request_pid..."
+set +e  # Temporarily disable exit-on-error for wait
 wait "$request_pid"
 curl_exit_code=$?
+set -e  # Re-enable exit-on-error
+echo "DEBUG: wait returned: $curl_exit_code"
 
 echo "DEBUG: Curl exit code: $curl_exit_code"
 echo "DEBUG: Curl stderr:"
