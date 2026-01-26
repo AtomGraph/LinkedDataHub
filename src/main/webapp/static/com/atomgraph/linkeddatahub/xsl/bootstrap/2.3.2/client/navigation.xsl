@@ -32,6 +32,24 @@ extension-element-prefixes="ixsl"
 exclude-result-prefixes="#all"
 >
 
+    <!-- PARAMS -->
+
+    <xsl:param name="class-types-string" as="xs:string">
+<![CDATA[
+SELECT DISTINCT  ?type (COUNT(?s) AS ?count) (SAMPLE(?g) AS ?namedGraph)
+WHERE
+  {   { ?s  a  ?type }
+    UNION
+      { GRAPH ?g
+          { ?s  a  ?type }
+      }
+  }
+GROUP BY ?type
+ORDER BY DESC(COUNT(?s))
+LIMIT   10
+]]>
+    </xsl:param>
+
     <!-- TEMPLATES -->
     
     <xsl:template name="ldh:DocTree">
@@ -96,6 +114,14 @@ exclude-result-prefixes="#all"
                     <xsl:apply-templates select="key('resources', 'latest', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
                 </a>
             </li>
+        </ul>
+
+        <h2 class="nav-header btn">
+            <xsl:apply-templates select="key('resources', 'classes', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+        </h2>
+
+        <ul class="well well-small nav nav-list" id="class-tree">
+            <!-- class list will be loaded dynamically -->
         </ul>
     </xsl:template>
     
@@ -437,5 +463,230 @@ exclude-result-prefixes="#all"
 
         <xsl:sequence select="$context"/>
     </xsl:function>
-    
+
+    <!-- Load classes with instances from the SPARQL endpoint -->
+    <xsl:template name="ldh:ClassTreeLoad">
+        <xsl:param name="container" as="element()"/> <!-- the <ul id="class-tree"> -->
+        <xsl:param name="endpoint" as="xs:anyURI"/>
+
+        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+
+        <xsl:variable name="select-string" select="$class-types-string" as="xs:string"/>
+        <xsl:variable name="select-json" as="item()">
+            <xsl:variable name="select-builder" select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromString', [ $select-string ])"/>
+            <xsl:sequence select="ixsl:call($select-builder, 'build', [])"/>
+        </xsl:variable>
+        <xsl:variable name="select-json-string" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ $select-json ])" as="xs:string"/>
+        <xsl:variable name="select-xml" select="json-to-xml($select-json-string)" as="document-node()"/>
+
+        <!-- wrap SELECT into a DESCRIBE -->
+        <xsl:variable name="query-xml" as="element()">
+            <xsl:apply-templates select="$select-xml" mode="ldh:wrap-describe"/>
+        </xsl:variable>
+        <xsl:variable name="query-json-string" select="xml-to-json($query-xml)" as="xs:string"/>
+        <xsl:variable name="query-json" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'parse', [ $query-json-string ])"/>
+        <xsl:variable name="query-string" select="ixsl:call(ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromQuery', [ $query-json ]), 'toString', [])" as="xs:string"/>
+        <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': $query-string })" as="xs:anyURI"/>
+        <xsl:variable name="request-uri" select="ldh:href($results-uri, map{})" as="xs:anyURI"/>
+        <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
+        <xsl:variable name="context" as="map(*)" select="
+          map{
+            'request': $request,
+            'container': $container
+          }"/>
+        <ixsl:promise select="ixsl:http-request($context('request')) =>
+            ixsl:then(ldh:rethread-response($context, ?)) =>
+            ixsl:then(ldh:handle-response#1) =>
+            ixsl:then(ldh:class-tree-response#1)"
+            on-failure="ldh:promise-failure#1"/>
+    </xsl:template>
+
+    <!-- Handle the response from loading classes -->
+    <xsl:function name="ldh:class-tree-response" as="map(*)" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:variable name="response" select="$context('response')" as="map(*)"/>
+        <xsl:variable name="container" select="$context('container')" as="element()"/>
+
+        <xsl:message>ldh:class-tree-response</xsl:message>
+
+        <xsl:for-each select="$response">
+            <xsl:choose>
+                <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
+                    <xsl:for-each select="?body">
+                        <xsl:variable name="resources" select="rdf:RDF/*[@rdf:about]" as="element()*"/>
+                        <!-- append to the class tree list -->
+                        <xsl:for-each select="$container">
+                            <xsl:result-document href="?." method="ixsl:append-content">
+                                <xsl:apply-templates select="$resources" mode="bs2:ClassTreeListItem">
+                                    <xsl:sort select="ac:label(.)"/>
+                                </xsl:apply-templates>
+                            </xsl:result-document>
+                        </xsl:for-each>
+
+                        <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
+                    </xsl:for-each>
+                </xsl:when>
+                <xsl:otherwise>
+                    <xsl:message>
+                        Error loading class tree
+                    </xsl:message>
+                </xsl:otherwise>
+            </xsl:choose>
+        </xsl:for-each>
+
+        <xsl:sequence select="$context"/>
+    </xsl:function>
+
+    <!-- Render a class as a list item with expand button -->
+    <xsl:template match="*[@rdf:about]" mode="bs2:ClassTreeListItem">
+        <li>
+            <button class="btn btn-small btn-expand-class"></button>
+            <a href="{@rdf:about}" class="btn-logo btn-class">
+                <xsl:apply-templates select="." mode="ac:label"/>
+            </a>
+        </li>
+    </xsl:template>
+
+    <!-- Expands class tree to show instances -->
+    <xsl:template match="button[contains-token(@class, 'btn-expand-class')]" mode="ixsl:onclick">
+        <xsl:variable name="href" select="following-sibling::a/@href" as="xs:anyURI"/>
+        <xsl:variable name="container" select=".." as="element()"/> <!-- the parent <li> -->
+
+        <xsl:choose>
+            <!-- if children list does not exist, create it -->
+            <xsl:when test="not($container/ul)">
+                <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'btn-expand-class', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+                <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'btn-expanded-class', true() ])[current-date() lt xs:date('2000-01-01')]"/>
+
+                <xsl:for-each select="$container">
+                    <xsl:result-document href="?." method="ixsl:append-content">
+                        <ul class="well well-small nav nav-list">
+                            <!-- instance list items will be injected by ldh:ClassInstancesLoad -->
+                        </ul>
+                    </xsl:result-document>
+                </xsl:for-each>
+
+                <xsl:call-template name="ldh:ClassInstancesLoad">
+                    <xsl:with-param name="container" select="$container/ul"/>
+                    <xsl:with-param name="class-uri" select="$href"/>
+                    <xsl:with-param name="endpoint" select="sd:endpoint()"/>
+                </xsl:call-template>
+            </xsl:when>
+            <!-- if the children list is present but hidden, show it -->
+            <xsl:when test="ixsl:style($container/ul)?display = 'none'">
+                <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'btn-expand-class', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+                <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'btn-expanded-class', true() ])[current-date() lt xs:date('2000-01-01')]"/>
+
+                <ixsl:set-style name="display" select="'block'" object="$container/ul"/>
+            </xsl:when>
+        </xsl:choose>
+    </xsl:template>
+
+    <!-- Collapses class tree -->
+    <xsl:template match="button[contains-token(@class, 'btn-expanded-class')]" mode="ixsl:onclick">
+        <xsl:variable name="container" select=".." as="element()"/> <!-- the parent <li> -->
+
+        <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'btn-expand-class', true() ])[current-date() lt xs:date('2000-01-01')]"/>
+        <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'btn-expanded-class', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+
+        <ixsl:set-style name="display" select="'none'" object="$container/ul"/>
+    </xsl:template>
+
+    <!-- Load instances for a specific class -->
+    <xsl:template name="ldh:ClassInstancesLoad">
+        <xsl:param name="container" as="element()"/>
+        <xsl:param name="class-uri" as="xs:anyURI"/>
+        <xsl:param name="endpoint" as="xs:anyURI"/>
+
+        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+
+        <!-- determine which query to use based on whether instances are in named graphs -->
+        <!-- TODO: we need to check if instances are in named graphs - for now use SelectInstancesInGraphs -->
+        <xsl:variable name="query-uri" select="xs:anyURI('&ldh;SelectInstancesInGraphs')" as="xs:anyURI"/>
+        <xsl:variable name="select-string" select="key('resources', $query-uri, document(ac:document-uri('&ldh;')))/sp:text" as="xs:string"/>
+        <!-- inject the class URI into the query by replacing $type -->
+        <xsl:variable name="select-string" select="replace($select-string, '\$type', '&lt;' || $class-uri || '&gt;', 'q')" as="xs:string"/>
+
+        <xsl:variable name="select-json" as="item()">
+            <xsl:variable name="select-builder" select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromString', [ $select-string ])"/>
+            <xsl:sequence select="ixsl:call($select-builder, 'build', [])"/>
+        </xsl:variable>
+        <xsl:variable name="select-json-string" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ $select-json ])" as="xs:string"/>
+        <xsl:variable name="select-xml" as="document-node()">
+            <xsl:document>
+                <xsl:apply-templates select="json-to-xml($select-json-string)" mode="ldh:replace-variables">
+                    <xsl:with-param name="var-names" select="('s')" tunnel="yes"/>
+                </xsl:apply-templates>
+            </xsl:document>
+        </xsl:variable>
+
+        <!-- wrap SELECT into a DESCRIBE -->
+        <xsl:variable name="query-xml" as="element()">
+            <xsl:apply-templates select="$select-xml" mode="ldh:wrap-describe"/>
+        </xsl:variable>
+        <xsl:variable name="query-json-string" select="xml-to-json($query-xml)" as="xs:string"/>
+        <xsl:variable name="query-json" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'parse', [ $query-json-string ])"/>
+        <xsl:variable name="query-string" select="ixsl:call(ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromQuery', [ $query-json ]), 'toString', [])" as="xs:string"/>
+        <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': $query-string })" as="xs:anyURI"/>
+        <xsl:variable name="request-uri" select="ldh:href($results-uri, map{})" as="xs:anyURI"/>
+        <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
+        <xsl:variable name="context" as="map(*)" select="
+          map{
+            'request': $request,
+            'container': $container,
+            'class-uri': $class-uri
+          }"/>
+        <ixsl:promise select="ixsl:http-request($context('request')) =>
+            ixsl:then(ldh:rethread-response($context, ?)) =>
+            ixsl:then(ldh:handle-response#1) =>
+            ixsl:then(ldh:class-instances-response#1)"
+            on-failure="ldh:promise-failure#1"/>
+    </xsl:template>
+
+    <!-- Handle the response from loading class instances -->
+    <xsl:function name="ldh:class-instances-response" as="map(*)" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:variable name="response" select="$context('response')" as="map(*)"/>
+        <xsl:variable name="container" select="$context('container')" as="element()"/>
+        <xsl:variable name="class-uri" select="$context('class-uri')" as="xs:anyURI"/>
+
+        <xsl:message>ldh:class-instances-response</xsl:message>
+
+        <xsl:for-each select="$response">
+            <xsl:choose>
+                <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
+                    <xsl:for-each select="?body">
+                        <xsl:variable name="resources" select="rdf:RDF/*[@rdf:about]" as="element()*"/>
+                        <!-- append to the instance list -->
+                        <xsl:for-each select="$container">
+                            <xsl:result-document href="?." method="ixsl:append-content">
+                                <xsl:apply-templates select="$resources" mode="bs2:ClassInstanceListItem">
+                                    <xsl:sort select="ac:label(.)"/>
+                                </xsl:apply-templates>
+                            </xsl:result-document>
+                        </xsl:for-each>
+
+                        <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
+                    </xsl:for-each>
+                </xsl:when>
+                <xsl:otherwise>
+                    <xsl:message>
+                        Error loading instances for class: <xsl:value-of select="$class-uri"/>
+                    </xsl:message>
+                </xsl:otherwise>
+            </xsl:choose>
+        </xsl:for-each>
+
+        <xsl:sequence select="$context"/>
+    </xsl:function>
+
+    <!-- Render an instance as a list item -->
+    <xsl:template match="*[@rdf:about]" mode="bs2:ClassInstanceListItem">
+        <li>
+            <a href="{@rdf:about}">
+                <xsl:apply-templates select="." mode="ac:label"/>
+            </a>
+        </li>
+    </xsl:template>
+
 </xsl:stylesheet>

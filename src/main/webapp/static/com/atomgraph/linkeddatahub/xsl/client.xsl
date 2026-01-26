@@ -332,6 +332,14 @@ WHERE
                         <xsl:with-param name="href" select="base-uri(ixsl:page())"/>
                     </xsl:call-template>
                 </xsl:for-each>
+
+                <!-- load class tree -->
+                <xsl:for-each select="id('class-tree', ixsl:page())">
+                    <xsl:call-template name="ldh:ClassTreeLoad">
+                        <xsl:with-param name="container" select="."/>
+                        <xsl:with-param name="endpoint" select="sd:endpoint()"/>
+                    </xsl:call-template>
+                </xsl:for-each>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>

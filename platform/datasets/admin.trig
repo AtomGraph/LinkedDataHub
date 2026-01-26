@@ -94,46 +94,6 @@ WHERE
 
 }
 
-<queries/select-instances/>
-{
-
-    <queries/select-instances/> a dh:Item ;
-        sioc:has_container <queries/> ;
-        dct:title "Select instances" ;
-        foaf:primaryTopic <queries/select-instances/#this> .
-
-    <queries/select-instances/#this> a sp:Select ;
-        dct:title "Select instances" ;
-        dct:description "Selects instances of type from the default graph" ;
-        sp:text """SELECT DISTINCT ?s
-WHERE
-  { ?s  a   $type ;
-        ?p  ?o
-  }""" .
-
-}
-
-<queries/select-instances-in-graphs/>
-{
-
-    <queries/select-instances-in-graphs/> a dh:Item ;
-        sioc:has_container <queries/> ;
-        dct:title "Select instances in graphs" ;
-        foaf:primaryTopic <queries/select-instances-in-graphs/#this> .
-
-    <queries/select-instances-in-graphs/#this> a sp:Select ;
-        dct:title "Select instances in graphs" ;
-        dct:description "Selects instances of type from named graphs" ;
-        sp:text """SELECT DISTINCT ?s
-WHERE
-  { GRAPH ?g
-      { ?s  a   $type ;
-            ?p  ?o
-      }
-  }""" .
-
-}
-
 <files/>
 {
 

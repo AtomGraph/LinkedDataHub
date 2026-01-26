@@ -353,6 +353,9 @@
     <rdf:Description rdf:nodeID="document-tree">
         <rdfs:label xml:lang="en-US">Document tree</rdfs:label>
     </rdf:Description>
+    <rdf:Description rdf:nodeID="classes">
+        <rdfs:label xml:lang="en-US">Classes</rdfs:label>
+    </rdf:Description>
     <rdf:Description rdf:nodeID="reconcile-title">
         <rdfs:label xml:lang="en-US">Reconcile this resource against resources in the selected service</rdfs:label>
     </rdf:Description>
