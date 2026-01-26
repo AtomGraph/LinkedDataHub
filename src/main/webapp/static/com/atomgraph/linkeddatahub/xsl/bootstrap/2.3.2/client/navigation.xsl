@@ -5,6 +5,7 @@
     <!ENTITY ac     "https://w3id.org/atomgraph/client#">
     <!ENTITY rdf    "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
     <!ENTITY xsd    "http://www.w3.org/2001/XMLSchema#">
+    <!ENTITY srx    "http://www.w3.org/2005/sparql-results#">
     <!ENTITY ldt    "https://www.w3.org/ns/ldt#">
     <!ENTITY sd     "http://www.w3.org/ns/sparql-service-description#">
     <!ENTITY sp     "http://spinrdf.org/sp#">
@@ -23,6 +24,7 @@ xmlns:array="http://www.w3.org/2005/xpath-functions/array"
 xmlns:ac="&ac;"
 xmlns:ldh="&ldh;"
 xmlns:rdf="&rdf;"
+xmlns:srx="&srx;"
 xmlns:ldt="&ldt;"
 xmlns:sd="&sd;"
 xmlns:sp="&sp;"
@@ -32,11 +34,15 @@ extension-element-prefixes="ixsl"
 exclude-result-prefixes="#all"
 >
 
+    <!-- KEYS -->
+
+    <xsl:key name="type-count" match="srx:result" use="srx:binding[@name = 'type']/srx:uri"/>
+
     <!-- PARAMS -->
 
     <xsl:param name="class-types-string" as="xs:string">
 <![CDATA[
-SELECT DISTINCT  ?type (COUNT(?s) AS ?count) (SAMPLE(?g) AS ?namedGraph)
+SELECT DISTINCT  ?type (COUNT(?s) AS ?count)
 WHERE
   {   { ?s  a  ?type }
     UNION
@@ -478,17 +484,12 @@ LIMIT   10
         </xsl:variable>
         <xsl:variable name="select-json-string" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ $select-json ])" as="xs:string"/>
         <xsl:variable name="select-xml" select="json-to-xml($select-json-string)" as="document-node()"/>
-
-        <!-- wrap SELECT into a DESCRIBE -->
-        <xsl:variable name="query-xml" as="element()">
-            <xsl:apply-templates select="$select-xml" mode="ldh:wrap-describe"/>
-        </xsl:variable>
-        <xsl:variable name="query-json-string" select="xml-to-json($query-xml)" as="xs:string"/>
+        <xsl:variable name="query-json-string" select="xml-to-json($select-xml)" as="xs:string"/>
         <xsl:variable name="query-json" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'parse', [ $query-json-string ])"/>
         <xsl:variable name="query-string" select="ixsl:call(ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromQuery', [ $query-json ]), 'toString', [])" as="xs:string"/>
         <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': $query-string })" as="xs:anyURI"/>
         <xsl:variable name="request-uri" select="ldh:href($results-uri, map{})" as="xs:anyURI"/>
-        <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
+        <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml' } }" as="map(*)"/>
         <xsl:variable name="context" as="map(*)" select="
           map{
             'request': $request,
@@ -501,13 +502,69 @@ LIMIT   10
             on-failure="ldh:promise-failure#1"/>
     </xsl:template>
 
-    <!-- Handle the response from loading classes -->
+    <!-- Handle the response from loading classes - extract type URIs and query ns endpoint -->
     <xsl:function name="ldh:class-tree-response" as="map(*)" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
         <xsl:variable name="response" select="$context('response')" as="map(*)"/>
         <xsl:variable name="container" select="$context('container')" as="element()"/>
 
         <xsl:message>ldh:class-tree-response</xsl:message>
+
+        <xsl:for-each select="$response">
+            <xsl:choose>
+                <xsl:when test="?status = 200 and ?media-type = 'application/sparql-results+xml'">
+                    <xsl:for-each select="?body">
+                        <xsl:variable name="results" select="." as="document-node()"/>
+                        <!-- extract type URIs from SPARQL results -->
+                        <xsl:variable name="type-uris" select="$results/srx:sparql/srx:results/srx:result/srx:binding[@name = 'type']/srx:uri" as="xs:string*"/>
+
+                        <xsl:choose>
+                            <xsl:when test="exists($type-uris)">
+                                <!-- build DESCRIBE query with VALUES clause -->
+                                <xsl:variable name="query-string" select="'DESCRIBE ?type WHERE { VALUES ?type { ' || string-join(for $uri in $type-uris return '&lt;' || $uri || '&gt;', ' ') || ' } }'" as="xs:string"/>
+                                <xsl:variable name="ns-uri" select="resolve-uri('ns', ldt:base())" as="xs:anyURI"/>
+                                <xsl:variable name="results-uri" select="ac:build-uri($ns-uri, map{ 'query': $query-string })" as="xs:anyURI"/>
+                                <xsl:variable name="request-uri" select="ldh:href($results-uri, map{})" as="xs:anyURI"/>
+                                <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
+                                <xsl:variable name="new-context" as="map(*)" select="
+                                  map{
+                                    'request': $request,
+                                    'container': $container,
+                                    'type-results': $results
+                                  }"/>
+                                <ixsl:promise select="ixsl:http-request($new-context('request')) =>
+                                    ixsl:then(ldh:rethread-response($new-context, ?)) =>
+                                    ixsl:then(ldh:handle-response#1) =>
+                                    ixsl:then(ldh:class-tree-describe-response#1)"
+                                    on-failure="ldh:promise-failure#1"/>
+                            </xsl:when>
+                            <xsl:otherwise>
+                                <xsl:message>No class types found</xsl:message>
+                                <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
+                            </xsl:otherwise>
+                        </xsl:choose>
+                    </xsl:for-each>
+                </xsl:when>
+                <xsl:otherwise>
+                    <xsl:message>
+                        Error loading class types from sparql endpoint
+                    </xsl:message>
+                    <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
+                </xsl:otherwise>
+            </xsl:choose>
+        </xsl:for-each>
+
+        <xsl:sequence select="$context"/>
+    </xsl:function>
+
+    <!-- Handle the response from describing class types -->
+    <xsl:function name="ldh:class-tree-describe-response" as="map(*)" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:variable name="response" select="$context('response')" as="map(*)"/>
+        <xsl:variable name="container" select="$context('container')" as="element()"/>
+        <xsl:variable name="type-results" select="$context('type-results')" as="document-node()"/>
+
+        <xsl:message>ldh:class-tree-describe-response</xsl:message>
 
         <xsl:for-each select="$response">
             <xsl:choose>
@@ -518,7 +575,8 @@ LIMIT   10
                         <xsl:for-each select="$container">
                             <xsl:result-document href="?." method="ixsl:append-content">
                                 <xsl:apply-templates select="$resources" mode="bs2:ClassTreeListItem">
-                                    <xsl:sort select="ac:label(.)"/>
+                                    <xsl:with-param name="type-results" select="$type-results" tunnel="yes"/>
+                                    <xsl:sort select="xs:integer(key('type-count', @rdf:about, $type-results)/srx:binding[@name = 'count']/srx:literal)" order="descending"/>
                                 </xsl:apply-templates>
                             </xsl:result-document>
                         </xsl:for-each>
@@ -528,8 +586,9 @@ LIMIT   10
                 </xsl:when>
                 <xsl:otherwise>
                     <xsl:message>
-                        Error loading class tree
+                        Error loading class descriptions from ns endpoint
                     </xsl:message>
+                    <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
                 </xsl:otherwise>
             </xsl:choose>
         </xsl:for-each>
@@ -539,10 +598,19 @@ LIMIT   10
 
     <!-- Render a class as a list item with expand button -->
     <xsl:template match="*[@rdf:about]" mode="bs2:ClassTreeListItem">
+        <xsl:param name="type-results" as="document-node()?" tunnel="yes"/>
+        <xsl:variable name="type-uri" select="@rdf:about" as="xs:anyURI"/>
+        <xsl:variable name="count" select="$type-results/srx:sparql/srx:results/srx:result[srx:binding[@name = 'type']/srx:uri = $type-uri]/srx:binding[@name = 'count']/srx:literal" as="xs:string?"/>
+
         <li>
             <button class="btn btn-small btn-expand-class"></button>
             <a href="{@rdf:about}" class="btn-logo btn-class">
                 <xsl:apply-templates select="." mode="ac:label"/>
+                <xsl:if test="exists($count)">
+                    <xsl:text> (</xsl:text>
+                    <xsl:value-of select="$count"/>
+                    <xsl:text>)</xsl:text>
+                </xsl:if>
             </a>
         </li>
     </xsl:template>
