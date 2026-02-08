@@ -569,20 +569,34 @@ LIMIT   10
         <xsl:for-each select="$response">
             <xsl:choose>
                 <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
-                    <xsl:for-each select="?body">
-                        <xsl:variable name="resources" select="rdf:RDF/*[@rdf:about]" as="element()*"/>
-                        <!-- append to the class tree list -->
-                        <xsl:for-each select="$container">
-                            <xsl:result-document href="?." method="ixsl:append-content">
-                                <xsl:apply-templates select="$resources" mode="bs2:ClassTreeListItem">
-                                    <xsl:with-param name="type-results" select="$type-results" tunnel="yes"/>
-                                    <xsl:sort select="xs:integer(key('type-count', @rdf:about, $type-results)/srx:binding[@name = 'count']/srx:literal)" order="descending"/>
-                                </xsl:apply-templates>
-                            </xsl:result-document>
-                        </xsl:for-each>
+                    <xsl:variable name="class-doc" select="?body" as="document-node()"/>
 
-                        <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
+                    <!-- append to the class tree list -->
+                    <xsl:for-each select="$container">
+                        <xsl:result-document href="?." method="ixsl:append-content">
+                            <xsl:for-each select="$type-results//srx:result">
+                                <xsl:sort select="xs:integer(srx:binding[@name = 'count']/srx:literal)" order="descending"/>
+
+                                <xsl:choose>
+                                    <xsl:when test="key('resources', srx:binding[@name = 'type']/srx:uri, $class-doc)">
+                                        <xsl:apply-templates select="key('resources', srx:binding[@name = 'type']/srx:uri, $class-doc)" mode="bs2:ClassTreeListItem">
+                                            <xsl:with-param name="count" select="xs:integer(srx:binding[@name = 'count']/srx:literal)"/>
+                                        </xsl:apply-templates>
+                                    </xsl:when>
+                                    <xsl:otherwise>
+                                        <xsl:variable name="temp-class" as="element()">
+                                            <rdf:Description rdf:about="{srx:binding[@name = 'type']/srx:uri}"/>
+                                        </xsl:variable>
+                                        <xsl:apply-templates select="$temp-class" mode="bs2:ClassTreeListItem">
+                                            <xsl:with-param name="count" select="xs:integer(srx:binding[@name = 'count']/srx:literal)"/>
+                                        </xsl:apply-templates>
+                                    </xsl:otherwise>
+                                </xsl:choose>
+                            </xsl:for-each>                                
+                        </xsl:result-document>
                     </xsl:for-each>
+
+                    <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
                 </xsl:when>
                 <xsl:otherwise>
                     <xsl:message>
@@ -596,73 +610,64 @@ LIMIT   10
         <xsl:sequence select="$context"/>
     </xsl:function>
 
-    <!-- Render a class as a list item with expand button -->
+    <!-- Render a class as a list item with button -->
     <xsl:template match="*[@rdf:about]" mode="bs2:ClassTreeListItem">
-        <xsl:param name="type-results" as="document-node()?" tunnel="yes"/>
-        <xsl:variable name="type-uri" select="@rdf:about" as="xs:anyURI"/>
-        <xsl:variable name="count" select="$type-results/srx:sparql/srx:results/srx:result[srx:binding[@name = 'type']/srx:uri = $type-uri]/srx:binding[@name = 'count']/srx:literal" as="xs:string?"/>
+        <xsl:param name="count" as="xs:integer"/>
 
         <li>
-            <button class="btn btn-small btn-expand-class"></button>
-            <a href="{@rdf:about}" class="btn-logo btn-class">
+            <button class="btn btn-class" data-class-uri="{@rdf:about}">
                 <xsl:apply-templates select="." mode="ac:label"/>
                 <xsl:if test="exists($count)">
                     <xsl:text> (</xsl:text>
                     <xsl:value-of select="$count"/>
                     <xsl:text>)</xsl:text>
                 </xsl:if>
-            </a>
+            </button>
         </li>
     </xsl:template>
 
-    <!-- Expands class tree to show instances -->
-    <xsl:template match="button[contains-token(@class, 'btn-expand-class')]" mode="ixsl:onclick">
-        <xsl:variable name="href" select="following-sibling::a/@href" as="xs:anyURI"/>
-        <xsl:variable name="container" select=".." as="element()"/> <!-- the parent <li> -->
+    <!-- Opens modal dialog to show instances of a class -->
+    <xsl:template match="button[contains-token(@class, 'btn-class')]" mode="ixsl:onclick">
+        <xsl:variable name="class-uri" select="xs:anyURI(ixsl:get(., 'dataset.classUri'))"/>
+        <xsl:variable name="class-label" select="ixsl:get(., 'textContent')" as="xs:string"/>
+        <xsl:variable name="block-id" select="'class-instances-block'" as="xs:string"/>
 
-        <xsl:choose>
-            <!-- if children list does not exist, create it -->
-            <xsl:when test="not($container/ul)">
-                <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'btn-expand-class', false() ])[current-date() lt xs:date('2000-01-01')]"/>
-                <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'btn-expanded-class', true() ])[current-date() lt xs:date('2000-01-01')]"/>
+        <!-- Create modal structure with a block element -->
+        <xsl:variable name="modal" as="element()">
+            <div class="modal modal-constructor fade in" id="class-instances-modal">
+                <div class="modal-header">
+                    <button type="button" class="close">×</button>
+                    <legend><xsl:value-of select="$class-label"/></legend>
+                </div>
+                <div class="modal-body">
+                    <div id="{$block-id}" class="row-fluid" about="{$block-id}">
+                        <div class="main span12">
+                            <!-- View results will be rendered here -->
+                        </div>
+                    </div>
+                </div>
+                <div class="form-actions modal-footer">
+                    <button type="button" class="btn btn-close">Close</button>
+                </div>
+            </div>
+        </xsl:variable>
 
-                <xsl:for-each select="$container">
-                    <xsl:result-document href="?." method="ixsl:append-content">
-                        <ul class="well well-small nav nav-list">
-                            <!-- instance list items will be injected by ldh:ClassInstancesLoad -->
-                        </ul>
-                    </xsl:result-document>
-                </xsl:for-each>
+        <!-- Show modal -->
+        <xsl:call-template name="ldh:ShowModalForm">
+            <xsl:with-param name="form" select="$modal"/>
+        </xsl:call-template>
 
-                <xsl:call-template name="ldh:ClassInstancesLoad">
-                    <xsl:with-param name="container" select="$container/ul"/>
-                    <xsl:with-param name="class-uri" select="$href"/>
-                    <xsl:with-param name="endpoint" select="sd:endpoint()"/>
-                </xsl:call-template>
-            </xsl:when>
-            <!-- if the children list is present but hidden, show it -->
-            <xsl:when test="ixsl:style($container/ul)?display = 'none'">
-                <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'btn-expand-class', false() ])[current-date() lt xs:date('2000-01-01')]"/>
-                <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'btn-expanded-class', true() ])[current-date() lt xs:date('2000-01-01')]"/>
-
-                <ixsl:set-style name="display" select="'block'" object="$container/ul"/>
-            </xsl:when>
-        </xsl:choose>
-    </xsl:template>
-
-    <!-- Collapses class tree -->
-    <xsl:template match="button[contains-token(@class, 'btn-expanded-class')]" mode="ixsl:onclick">
-        <xsl:variable name="container" select=".." as="element()"/> <!-- the parent <li> -->
-
-        <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'btn-expand-class', true() ])[current-date() lt xs:date('2000-01-01')]"/>
-        <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'btn-expanded-class', false() ])[current-date() lt xs:date('2000-01-01')]"/>
-
-        <ixsl:set-style name="display" select="'none'" object="$container/ul"/>
+        <!-- Load instances into modal -->
+        <xsl:call-template name="ldh:ClassInstancesLoad">
+            <xsl:with-param name="block" select="id($block-id, ixsl:page())"/>
+            <xsl:with-param name="class-uri" select="$class-uri"/>
+            <xsl:with-param name="endpoint" select="sd:endpoint()"/>
+        </xsl:call-template>
     </xsl:template>
 
     <!-- Load instances for a specific class -->
     <xsl:template name="ldh:ClassInstancesLoad">
-        <xsl:param name="container" as="element()"/>
+        <xsl:param name="block" as="element()"/>
         <xsl:param name="class-uri" as="xs:anyURI"/>
         <xsl:param name="endpoint" as="xs:anyURI"/>
 
@@ -672,8 +677,8 @@ LIMIT   10
         <!-- TODO: we need to check if instances are in named graphs - for now use SelectInstancesInGraphs -->
         <xsl:variable name="query-uri" select="xs:anyURI('&ldh;SelectInstancesInGraphs')" as="xs:anyURI"/>
         <xsl:variable name="select-string" select="key('resources', $query-uri, document(ac:document-uri('&ldh;')))/sp:text" as="xs:string"/>
-        <!-- inject the class URI into the query by replacing $type -->
-        <xsl:variable name="select-string" select="replace($select-string, '\$type', '&lt;' || $class-uri || '&gt;', 'q')" as="xs:string"/>
+        <!-- Add VALUES clause to bind $type to the class URI -->
+        <xsl:variable name="select-string" select="$select-string || ' VALUES $type { &lt;' || $class-uri || '&gt; }'" as="xs:string"/>
 
         <xsl:variable name="select-json" as="item()">
             <xsl:variable name="select-builder" select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromString', [ $select-string ])"/>
@@ -698,11 +703,15 @@ LIMIT   10
         <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': $query-string })" as="xs:anyURI"/>
         <xsl:variable name="request-uri" select="ldh:href($results-uri, map{})" as="xs:anyURI"/>
         <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
+        <xsl:variable name="container-id" select="generate-id($block)" as="xs:string"/>
         <xsl:variable name="context" as="map(*)" select="
           map{
             'request': $request,
-            'container': $container,
-            'class-uri': $class-uri
+            'block': $block,
+            'class-uri': $class-uri,
+            'select-xml': $select-xml,
+            'endpoint': $endpoint,
+            'container-id': $container-id
           }"/>
         <ixsl:promise select="ixsl:http-request($context('request')) =>
             ixsl:then(ldh:rethread-response($context, ?)) =>
@@ -715,8 +724,12 @@ LIMIT   10
     <xsl:function name="ldh:class-instances-response" as="map(*)" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
         <xsl:variable name="response" select="$context('response')" as="map(*)"/>
-        <xsl:variable name="container" select="$context('container')" as="element()"/>
+        <xsl:variable name="block" select="$context('block')" as="element()"/>
         <xsl:variable name="class-uri" select="$context('class-uri')" as="xs:anyURI"/>
+        <xsl:variable name="select-xml" select="$context('select-xml')" as="document-node()"/>
+        <xsl:variable name="endpoint" select="$context('endpoint')" as="xs:anyURI"/>
+        <xsl:variable name="container-id" select="$context('container-id')" as="xs:string"/>
+        <xsl:variable name="block-uri" select="$block/@about" as="xs:string"/>
 
         <xsl:message>ldh:class-instances-response</xsl:message>
 
@@ -724,14 +737,33 @@ LIMIT   10
             <xsl:choose>
                 <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
                     <xsl:for-each select="?body">
-                        <xsl:variable name="resources" select="rdf:RDF/*[@rdf:about]" as="element()*"/>
-                        <!-- append to the instance list -->
-                        <xsl:for-each select="$container">
-                            <xsl:result-document href="?." method="ixsl:append-content">
-                                <xsl:apply-templates select="$resources" mode="bs2:ClassInstanceListItem">
-                                    <xsl:sort select="ac:label(.)"/>
-                                </xsl:apply-templates>
-                            </xsl:result-document>
+                        <xsl:variable name="results" select="." as="document-node()"/>
+
+                        <!-- Create window.LinkedDataHub.contents[{$block-uri}] cache entry if not already created -->
+                        <xsl:if test="not(ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`'))">
+                            <ixsl:set-property name="{'`' || $block-uri || '`'}" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.contents')"/>
+                        </xsl:if>
+
+                        <!-- Extract BGP triples map from select-xml -->
+                        <xsl:variable name="bgp-triples-map" select="$select-xml//json:map[json:string[@key = 'type'] = 'bgp']/json:array[@key = 'triples']/json:map[json:string[@key = 'subject'] = '?s'][not(starts-with(json:string[@key = 'predicate'], '?'))][starts-with(json:string[@key = 'object'], '?')]" as="element()*"/>
+
+                        <!-- Render full View UI -->
+                        <xsl:for-each select="$block/div[contains-token(@class, 'main')]">
+                            <xsl:call-template name="ldh:RenderViewResults">
+                                <xsl:with-param name="block" select="$block"/>
+                                <xsl:with-param name="container" select="$block"/>
+                                <xsl:with-param name="results" select="$results"/>
+                                <xsl:with-param name="select-xml" select="$select-xml"/>
+                                <xsl:with-param name="bgp-triples-map" select="$bgp-triples-map"/>
+                                <xsl:with-param name="container-id" select="$container-id"/>
+                                <xsl:with-param name="endpoint" select="$endpoint"/>
+                                <xsl:with-param name="focus-var-name" select="'s'"/>
+                                <xsl:with-param name="desc" select="()"/>
+                                <xsl:with-param name="order-by-predicate" select="()"/>
+                                <xsl:with-param name="result-count-container-id" select="$container-id || '-result-count'"/>
+                                <xsl:with-param name="active-mode" select="xs:anyURI('&ac;ListMode')"/>
+                                <xsl:with-param name="object-metadata" select="()"/>
+                            </xsl:call-template>
                         </xsl:for-each>
 
                         <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
@@ -741,6 +773,7 @@ LIMIT   10
                     <xsl:message>
                         Error loading instances for class: <xsl:value-of select="$class-uri"/>
                     </xsl:message>
+                    <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
                 </xsl:otherwise>
             </xsl:choose>
         </xsl:for-each>
@@ -755,6 +788,18 @@ LIMIT   10
                 <xsl:apply-templates select="." mode="ac:label"/>
             </a>
         </li>
+    </xsl:template>
+
+    <!-- Close class instances modal when a link inside it is clicked -->
+    <xsl:template match="div[@id = 'class-instances-modal']//a[@href]" mode="ixsl:onclick" priority="1">
+        <xsl:variable name="modal" select="ancestor::div[@id = 'class-instances-modal']" as="element()"/>
+
+        <!-- Remove the modal -->
+        <xsl:for-each select="$modal">
+            <xsl:sequence select="ixsl:call(., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
+        </xsl:for-each>
+
+        <xsl:next-match/>
     </xsl:template>
 
 </xsl:stylesheet>

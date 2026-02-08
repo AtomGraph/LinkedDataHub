@@ -93,7 +93,7 @@ exclude-result-prefixes="#all"
     </xsl:function>
     
     <xsl:function name="sd:endpoint" as="xs:anyURI">
-        <xsl:sequence select="xs:anyURI(ixsl:get(ixsl:window(), 'LinkedDataHub.endpoint'))"/>
+        <xsl:sequence select="resolve-uri('sparql', ldt:base())"/>
     </xsl:function>
     
     <xsl:function name="ldh:query-type" as="xs:string?">

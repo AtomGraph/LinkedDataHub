@@ -699,8 +699,10 @@ exclude-result-prefixes="#all"
         <xsl:variable name="container-results-id" select="$container-id || '-container-results'" as="xs:string"/>
         <xsl:variable name="base-uri" select="ldh:base-uri(.)" as="xs:anyURI"/>
 
-        <!-- store sorted results as the current view results -->
-        <ixsl:set-property name="results" select="$results" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block/@about || '`')"/>
+        <xsl:if test="$block/@about">
+            <!-- store sorted results as the current view results -->
+            <ixsl:set-property name="results" select="$results" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block/@about || '`')"/>
+        </xsl:if>
 
         <xsl:variable name="initial-load" select="empty(.//div[@id = $container-results-id])" as="xs:boolean"/>
         <xsl:message>$initial-load: <xsl:value-of select="$initial-load"/></xsl:message>

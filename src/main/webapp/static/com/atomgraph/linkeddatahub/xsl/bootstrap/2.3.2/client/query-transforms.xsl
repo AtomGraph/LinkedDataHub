@@ -107,6 +107,10 @@ extension-element-prefixes="ixsl"
             <json:array key="where">
                 <xsl:sequence select="."/>
             </json:array>
+            <!-- Preserve VALUES clause if present -->
+            <xsl:if test="json:array[@key = 'values']">
+                <xsl:sequence select="json:array[@key = 'values']"/>
+            </xsl:if>
         </json:map>
     </xsl:template>
 

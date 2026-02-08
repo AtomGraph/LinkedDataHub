@@ -16,7 +16,6 @@
  */
 package com.atomgraph.linkeddatahub;
 
-import com.atomgraph.linkeddatahub.server.mapper.ResourceExistsExceptionMapper;
 import com.atomgraph.linkeddatahub.server.mapper.HttpHostConnectExceptionMapper;
 import com.atomgraph.linkeddatahub.server.mapper.InternalURLExceptionMapper;
 import com.atomgraph.linkeddatahub.server.mapper.MessagingExceptionMapper;
@@ -1104,7 +1103,6 @@ public class Application extends ResourceConfig
         register(WebIDDelegationExceptionMapper.class);
         register(WebIDLoadingExceptionMapper.class);
         register(TokenExpiredExceptionMapper.class);
-        register(ResourceExistsExceptionMapper.class);
         register(QueryParseExceptionMapper.class);
         register(AuthenticationExceptionMapper.class);
         register(ForbiddenExceptionMapper.class);
