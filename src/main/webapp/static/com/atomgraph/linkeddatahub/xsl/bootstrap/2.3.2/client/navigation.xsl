@@ -992,6 +992,42 @@ LIMIT   10
         <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'btn-order-by-desc' ])[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
 
+    <!-- Modal view mode handler -->
+    <xsl:template match="div[@id = 'class-instances-modal']//ul[contains-token(@class, 'view-mode-list')]/li[not(contains-token(@class, 'active'))]/a" mode="ixsl:onclick" priority="2">
+        <xsl:message>Modal view mode handler triggered</xsl:message>
+        <xsl:variable name="container" select="id('class-instances-block', ixsl:page())" as="element()"/>
+
+        <!-- Get state from well-known location -->
+        <xsl:variable name="state" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), 'class-instances-modal')" as="map(*)"/>
+
+        <xsl:variable name="active-class" select="../@class" as="xs:string"/>
+        <xsl:variable name="active-mode" select="map:get($class-modes, $active-class)" as="xs:anyURI"/>
+        <xsl:variable name="select-string" select="$state('select-query')" as="xs:string"/>
+        <xsl:variable name="select-xml" select="$state('select-xml')" as="document-node()"/>
+        <xsl:variable name="initial-var-name" select="$state('initial-var-name')" as="xs:string"/>
+        <xsl:variable name="endpoint" select="$state('endpoint')" as="xs:anyURI"/>
+
+        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+
+        <xsl:variable name="context" as="map(*)">
+            <xsl:call-template name="ldh:RenderView">
+                <xsl:with-param name="block" select="$container"/>
+                <xsl:with-param name="container" select="$container"/>
+                <xsl:with-param name="active-mode" select="$active-mode"/>
+                <xsl:with-param name="select-string" select="$select-string"/>
+                <xsl:with-param name="select-xml" select="$select-xml"/>
+                <xsl:with-param name="initial-var-name" select="$initial-var-name"/>
+                <xsl:with-param name="endpoint" select="$endpoint"/>
+            </xsl:call-template>
+        </xsl:variable>
+
+        <ixsl:promise select="
+            ixsl:resolve($context) =>
+                ixsl:then(ldh:view-results-thunk#1)
+            "
+            on-failure="ldh:promise-failure#1"/>
+    </xsl:template>
+
     <!-- Close modal and clean up state -->
     <xsl:template match="div[@id = 'class-instances-modal']//button[contains-token(@class, 'close') or contains-token(@class, 'btn-close')]" mode="ixsl:onclick">
         <xsl:variable name="modal" select="ancestor::div[@id = 'class-instances-modal']" as="element()"/>
