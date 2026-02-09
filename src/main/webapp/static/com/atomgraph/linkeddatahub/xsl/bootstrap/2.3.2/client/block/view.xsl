@@ -1134,6 +1134,15 @@ exclude-result-prefixes="#all"
         <xsl:variable name="container-id" select="generate-id($container)" as="xs:string"/>
         <xsl:variable name="base-uri" select="ldh:base-uri(.)" as="xs:anyURI"/>
 
+        <!-- deactivate other tabs -->
+        <xsl:for-each select="../../li">
+            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'active', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+        </xsl:for-each>
+        <!-- activate this tab -->
+        <xsl:for-each select="..">
+            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'active', true() ])[current-date() lt xs:date('2000-01-01')]"/>
+        </xsl:for-each>
+
         <xsl:variable name="request" select="map{ 'method': 'POST', 'href': ldh:href(sd:endpoint()), 'media-type': 'application/sparql-query', 'body': $query-string, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
         <xsl:variable name="context" as="map(*)">
             <xsl:call-template name="ldh:RenderView">

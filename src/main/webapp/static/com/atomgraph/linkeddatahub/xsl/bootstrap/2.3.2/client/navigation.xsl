@@ -1009,6 +1009,15 @@ LIMIT   10
 
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
+        <!-- deactivate other tabs -->
+        <xsl:for-each select="../../li">
+            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'active', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+        </xsl:for-each>
+        <!-- activate this tab -->
+        <xsl:for-each select="..">
+            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'active', true() ])[current-date() lt xs:date('2000-01-01')]"/>
+        </xsl:for-each>
+
         <xsl:variable name="context" as="map(*)">
             <xsl:call-template name="ldh:RenderView">
                 <xsl:with-param name="block" select="$container"/>
