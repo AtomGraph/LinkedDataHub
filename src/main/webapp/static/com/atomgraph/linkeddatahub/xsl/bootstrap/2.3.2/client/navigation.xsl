@@ -798,7 +798,10 @@ LIMIT   10
 
         <li>
             <button class="btn btn-class" data-class-uri="{@rdf:about}">
-                <xsl:apply-templates select="." mode="ac:label"/>
+                <span>
+                    <xsl:apply-templates select="." mode="ac:label"/>
+                </span>
+                
                 <xsl:if test="exists($count)">
                     <xsl:text> (</xsl:text>
                     <xsl:value-of select="$count"/>
