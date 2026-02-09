@@ -61,68 +61,81 @@ LIMIT   10
     <xsl:template name="ldh:LeftSidebar">
         <xsl:param name="base" select="ldt:base()" as="xs:anyURI"/>
 
-        <h2 class="nav-header btn">
-            <xsl:apply-templates select="key('resources', 'document-tree', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
-        </h2>
+        <!-- Document tree container -->
+        <div id="document-tree">
+            <h2 class="nav-header btn">
+                <xsl:apply-templates select="key('resources', 'document-tree', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+            </h2>
 
-        <ul class="well well-small nav nav-list">
-            <!-- TO-DO: generalize -->
-            <li>
-                <button class="btn btn-small btn-expand-tree"></button>
-                <a href="{$base}" class="btn-logo btn-container">
-                    <xsl:apply-templates select="key('resources', 'root', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
-                </a>
-            </li>
-            <!-- non-expandable containers (not based on ldh:SelectChildren) -->
-            <!--
-            <li>
-                <a href="{$base}geo/" class="btn-logo btn-geo">
-                    <xsl:apply-templates select="key('resources', 'geo', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
-                </a>
-            </li>
-            <li>
-                <a href="{$base}latest/" class="btn-logo btn-latest">
-                    <xsl:apply-templates select="key('resources', 'latest', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
-                </a>
-            </li>
-            -->
-        </ul>
+            <ul class="well well-small nav nav-list">
+                <!-- TO-DO: generalize -->
+                <li>
+                    <button class="btn btn-small btn-expand-tree"></button>
+                    <a href="{$base}" class="btn-logo btn-container">
+                        <xsl:apply-templates select="key('resources', 'root', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                    </a>
+                </li>
+                <!-- non-expandable containers (not based on ldh:SelectChildren) -->
+                <!--
+                <li>
+                    <a href="{$base}geo/" class="btn-logo btn-geo">
+                        <xsl:apply-templates select="key('resources', 'geo', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                    </a>
+                </li>
+                <li>
+                    <a href="{$base}latest/" class="btn-logo btn-latest">
+                        <xsl:apply-templates select="key('resources', 'latest', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                    </a>
+                </li>
+                -->
+            </ul>
+        </div>
 
-        <h2 class="nav-header btn">
-            <xsl:apply-templates select="key('resources', 'classes', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
-        </h2>
+        <!-- Class list container -->
+        <div id="class-list-container">
+            <h2 class="nav-header btn">
+                <xsl:apply-templates select="key('resources', 'classes', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+            </h2>
 
-        <ul class="well well-small nav nav-list" id="class-list">
-            <!-- class list will be loaded dynamically -->
-        </ul>
+            <ul class="well well-small nav nav-list" id="class-list">
+                <!-- class list will be loaded dynamically -->
+            </ul>
+        </div>
     </xsl:template>
     
     <xsl:template name="ldh:DocTreeActivateHref">
         <xsl:context-item as="element()" use="required"/> <!-- document tree container -->
         <xsl:param name="href" as="xs:anyURI"/>
-        
+
+        <!-- Strip query params from href to ensure consistent matching -->
+        <xsl:variable name="target-uri" select="ac:document-uri($href)" as="xs:anyURI"/>
+
         <xsl:message>
-            ldh:DocTreeActivateHref $href: <xsl:value-of select="$href"/>
+            ldh:DocTreeActivateHref $href: <xsl:value-of select="$href"/>, stripped: <xsl:value-of select="$target-uri"/>
         </xsl:message>
 
         <!-- make the previously active list items inactive -->
         <xsl:for-each select=".//li[contains-token(@class, 'active')]">
             <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'active', false() ])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:for-each>
-        <xsl:for-each select=".//li[a/@href = $href]">
+        <!-- Find li elements whose href (without query params) matches target href (without query params) -->
+        <xsl:for-each select=".//li[a[ac:document-uri(xs:anyURI(@href)) = $target-uri]]">
             <!-- mark the new list item as active -->
             <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'active', true() ])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:for-each>
     </xsl:template>
 
-    <!-- Update both left-sidebar and class-list after navigation -->
+    <!-- Update both document-tree and class-list after navigation -->
     <xsl:template name="ldh:NavigationUpdate">
         <xsl:param name="href" as="xs:anyURI"/>
 
         <!-- activate the current URL in the document tree -->
-        <xsl:for-each select="id('left-sidebar', ixsl:page())">
-            <xsl:call-template name="ldh:DocTreeActivateHref">
-                <xsl:with-param name="href" select="$href"/>
+        <xsl:for-each select="id('document-tree', ixsl:page())">
+            <xsl:variable name="href-string" select="string($href)" as="xs:string"/>
+            <xsl:variable name="target" select="xs:anyURI(if (contains($href-string, '?')) then substring-before($href-string, '?') else $href-string)" as="xs:anyURI"/>
+            <xsl:call-template name="ldh:DocTreeExpandPathAndActivate">
+                <xsl:with-param name="container" select="."/>
+                <xsl:with-param name="target" select="$target"/>
             </xsl:call-template>
         </xsl:for-each>
 
@@ -133,6 +146,27 @@ LIMIT   10
                 <xsl:with-param name="endpoint" select="sd:endpoint()"/>
             </xsl:call-template>
         </xsl:for-each>
+    </xsl:template>
+
+    <xsl:template name="ldh:DocTreeExpandPathAndActivate">
+        <xsl:param name="container" as="element()"/> <!-- document-tree element -->
+        <xsl:param name="target" as="xs:anyURI"/> <!-- target document URI (already stripped of query params) -->
+
+        <xsl:message>ldh:DocTreeExpandPathAndActivate - starting descent for target: <xsl:value-of select="$target"/></xsl:message>
+
+        <!-- Find the root <li> element (first top-level li in the tree) -->
+        <xsl:variable name="root-li" select="$container/ul/li[1]" as="element()?"/>
+
+        <xsl:choose>
+            <xsl:when test="$root-li">
+                <xsl:message>ldh:DocTreeExpandPathAndActivate - found root: <xsl:value-of select="$root-li/a/@href"/></xsl:message>
+                <!-- Start recursive descent from root -->
+                <xsl:sequence select="ldh:doctree-descend($root-li, $target, $container)[current-date() lt xs:date('2000-01-01')]"/>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:message>ldh:DocTreeExpandPathAndActivate - no root found in tree</xsl:message>
+            </xsl:otherwise>
+        </xsl:choose>
     </xsl:template>
 
     <xsl:template name="ldh:DocTreeResourceLoad">
@@ -223,15 +257,15 @@ LIMIT   10
         </xsl:if>
     </xsl:template>
     
-    <xsl:template match="div[@id = 'left-sidebar']//li/a[@href]" mode="ixsl:onclick" priority="1">
+    <xsl:template match="div[@id = 'document-tree']//li/a[@href]" mode="ixsl:onclick" priority="1">
         <xsl:variable name="href" select="@href" as="xs:anyURI"/>
-        
-        <xsl:for-each select="ancestor::div[@id = 'left-sidebar']">
+
+        <xsl:for-each select="ancestor::div[@id = 'document-tree']">
             <xsl:call-template name="ldh:DocTreeActivateHref">
                 <xsl:with-param name="href" select="$href"/>
             </xsl:call-template>
         </xsl:for-each>
-        
+
         <xsl:next-match/>
     </xsl:template>
     
@@ -385,6 +419,164 @@ LIMIT   10
         </xsl:for-each>
         
         <xsl:sequence select="$context"/>
+    </xsl:function>
+
+    <!-- Recursive descent function: expands path from current-li down to target-uri -->
+    <xsl:function name="ldh:doctree-descend" as="map(*)" ixsl:updating="yes">
+        <xsl:param name="current-li" as="element()"/> <!-- the <li> element we're currently at -->
+        <xsl:param name="target-uri" as="xs:anyURI"/> <!-- the document URI we want to reach -->
+        <xsl:param name="tree-container" as="element()"/> <!-- the document-tree element -->
+
+        <xsl:variable name="current-href-full" select="xs:anyURI($current-li/a/@href)" as="xs:anyURI"/>
+        <!-- Strip query parameters for comparison -->
+        <xsl:variable name="current-href" select="ac:document-uri($current-href-full)" as="xs:anyURI"/>
+
+        <xsl:message>ldh:doctree-descend - current: <xsl:value-of select="$current-href"/>, target: <xsl:value-of select="$target-uri"/></xsl:message>
+
+        <xsl:choose>
+            <!-- Case 1: We've reached the target - activate it -->
+            <xsl:when test="$current-href = $target-uri">
+                <xsl:message>ldh:doctree-descend - reached target, activating</xsl:message>
+                <xsl:for-each select="$tree-container">
+                    <xsl:call-template name="ldh:DocTreeActivateHref">
+                        <xsl:with-param name="href" select="$target-uri"/>
+                    </xsl:call-template>
+                </xsl:for-each>
+                <xsl:sequence select="map{}"/>
+            </xsl:when>
+
+            <!-- Case 2: Target URI starts with current href - need to descend further -->
+            <xsl:when test="starts-with(string($target-uri), string($current-href))">
+                <xsl:variable name="expand-button" select="$current-li/button[contains-token(@class, 'btn-expand-tree')]" as="element()?"/>
+
+                <xsl:choose>
+                    <!-- Case 2a: Has expand button and not expanded yet - expand and load children -->
+                    <xsl:when test="$expand-button and not($current-li/ul)">
+                        <xsl:message>ldh:doctree-descend - expanding: <xsl:value-of select="$current-href"/></xsl:message>
+
+                        <!-- Create <ul> for children -->
+                        <xsl:for-each select="$current-li">
+                            <xsl:result-document href="?." method="ixsl:append-content">
+                                <ul class="well well-small nav nav-list"></ul>
+                            </xsl:result-document>
+                        </xsl:for-each>
+
+                        <!-- Toggle button class -->
+                        <xsl:for-each select="$expand-button">
+                            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'btn-expand-tree', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+                            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'btn-expanded-tree', true() ])[current-date() lt xs:date('2000-01-01')]"/>
+                        </xsl:for-each>
+
+                        <!-- Load children and continue descent after loading -->
+                        <!-- Build query to load children (inline from ldh:DocTreeResourceLoad) -->
+                        <xsl:variable name="select-string" select="key('resources', '&ldh;SelectChildren', document(ac:document-uri('&ldh;')))/sp:text" as="xs:string"/>
+                        <xsl:variable name="select-string" select="replace($select-string, '$this', '&lt;' || $current-href || '&gt;', 'q')" as="xs:string"/>
+                        <xsl:variable name="select-json" as="item()">
+                            <xsl:variable name="select-builder" select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromString', [ $select-string ])"/>
+                            <xsl:sequence select="ixsl:call($select-builder, 'build', [])"/>
+                        </xsl:variable>
+                        <xsl:variable name="select-json-string" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ $select-json ])" as="xs:string"/>
+                        <xsl:variable name="select-xml" as="document-node()">
+                            <xsl:document>
+                                <xsl:apply-templates select="json-to-xml($select-json-string)" mode="ldh:replace-variables">
+                                    <xsl:with-param name="var-names" select="('child')" tunnel="yes"/>
+                                </xsl:apply-templates>
+                            </xsl:document>
+                        </xsl:variable>
+
+                        <!-- Wrap SELECT into a DESCRIBE -->
+                        <xsl:variable name="query-xml" as="element()">
+                            <xsl:apply-templates select="$select-xml" mode="ldh:wrap-describe"/>
+                        </xsl:variable>
+                        <xsl:variable name="query-json-string" select="xml-to-json($query-xml)" as="xs:string"/>
+                        <xsl:variable name="query-json" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'parse', [ $query-json-string ])"/>
+                        <xsl:variable name="query-string" select="ixsl:call(ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromQuery', [ $query-json ]), 'toString', [])" as="xs:string"/>
+                        <xsl:variable name="results-uri" select="ac:build-uri(sd:endpoint(), map{ 'query': $query-string })" as="xs:anyURI"/>
+                        <xsl:variable name="request-uri" select="ldh:href($results-uri, map{})" as="xs:anyURI"/>
+                        <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
+
+                        <xsl:variable name="load-context" as="map(*)" select="
+                          map{
+                            'request': $request,
+                            'container': $current-li/ul,
+                            'uri': $current-href
+                          }"/>
+
+                        <ixsl:promise select="ixsl:http-request($load-context('request')) =>
+                            ixsl:then(ldh:rethread-response($load-context, ?)) =>
+                            ixsl:then(ldh:handle-response#1) =>
+                            ixsl:then(ldh:left-sidebar-resource-response#1) =>
+                            ixsl:then(ldh:doctree-descend-after-load(?, $current-li, $target-uri, $tree-container))"/>
+                        <xsl:sequence select="map{}"/>
+                    </xsl:when>
+
+                    <!-- Case 2b: Already expanded - find next child to descend into -->
+                    <xsl:when test="$current-li/ul/li">
+                        <xsl:message>ldh:doctree-descend - already expanded, finding next child</xsl:message>
+
+                        <!-- Find which child's href (without query params) is a prefix of target-uri -->
+                        <xsl:variable name="next-li" select="$current-li/ul/li[starts-with(string($target-uri), string(ac:document-uri(xs:anyURI(a/@href))))][1]" as="element()?"/>
+
+                        <xsl:choose>
+                            <xsl:when test="$next-li">
+                                <xsl:message>ldh:doctree-descend - descending to: <xsl:value-of select="$next-li/a/@href"/></xsl:message>
+                                <xsl:sequence select="ldh:doctree-descend($next-li, $target-uri, $tree-container)"/>
+                            </xsl:when>
+                            <xsl:otherwise>
+                                <xsl:message>ldh:doctree-descend - no matching child found, activating target</xsl:message>
+                                <xsl:for-each select="$tree-container">
+                                    <xsl:call-template name="ldh:DocTreeActivateHref">
+                                        <xsl:with-param name="href" select="$target-uri"/>
+                                    </xsl:call-template>
+                                </xsl:for-each>
+                                <xsl:sequence select="map{}"/>
+                            </xsl:otherwise>
+                        </xsl:choose>
+                    </xsl:when>
+
+                    <!-- Case 2c: Has expand button but <ul> exists and is empty (loading in progress) -->
+                    <xsl:otherwise>
+                        <xsl:message>ldh:doctree-descend - waiting for children to load</xsl:message>
+                        <xsl:sequence select="map{}"/>
+                    </xsl:otherwise>
+                </xsl:choose>
+            </xsl:when>
+
+            <!-- Case 3: Target is not under this branch -->
+            <xsl:otherwise>
+                <xsl:message>ldh:doctree-descend - target not under this branch</xsl:message>
+                <xsl:sequence select="map{}"/>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:function>
+
+    <!-- Helper to continue descent after children are loaded -->
+    <xsl:function name="ldh:doctree-descend-after-load" as="map(*)" ixsl:updating="yes">
+        <xsl:param name="load-context" as="map(*)"/> <!-- context from loading -->
+        <xsl:param name="current-li" as="element()"/>
+        <xsl:param name="target-uri" as="xs:anyURI"/>
+        <xsl:param name="tree-container" as="element()"/>
+
+        <xsl:message>ldh:doctree-descend-after-load - children loaded for: <xsl:value-of select="$current-li/a/@href"/></xsl:message>
+
+        <!-- Find which child's href (without query params) is a prefix of target-uri -->
+        <xsl:variable name="next-li" select="$current-li/ul/li[starts-with(string($target-uri), string(ac:document-uri(xs:anyURI(a/@href))))][1]" as="element()?"/>
+
+        <xsl:choose>
+            <xsl:when test="$next-li">
+                <xsl:message>ldh:doctree-descend-after-load - descending to: <xsl:value-of select="$next-li/a/@href"/></xsl:message>
+                <xsl:sequence select="ldh:doctree-descend($next-li, $target-uri, $tree-container)"/>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:message>ldh:doctree-descend-after-load - no matching child, activating target</xsl:message>
+                <xsl:for-each select="$tree-container">
+                    <xsl:call-template name="ldh:DocTreeActivateHref">
+                        <xsl:with-param name="href" select="$target-uri"/>
+                    </xsl:call-template>
+                </xsl:for-each>
+                <xsl:sequence select="$load-context"/>
+            </xsl:otherwise>
+        </xsl:choose>
     </xsl:function>
 
     <xsl:function name="ldh:left-sidebar-resource-response" as="map(*)" ixsl:updating="yes">

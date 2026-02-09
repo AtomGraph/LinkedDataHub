@@ -481,22 +481,6 @@ WHERE
         </a>
     </xsl:template>
     
-    <!-- classes for system container breadcrumbs -->
-    
-    <xsl:template match="*[@rdf:about = map:keys($system-containers)]" mode="bs2:BreadCrumbListItem" priority="1">
-        <xsl:param name="leaf" select="true()" as="xs:boolean"/>
-
-        <li>
-            <a href="{@rdf:about}" class="btn-logo {map:get($system-containers, @rdf:about)?class}">
-                <xsl:apply-templates select="key('resources', map:get($system-containers, @rdf:about)?label-id, document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
-            </a>
-
-            <xsl:if test="not($leaf)">
-                <span class="divider">/</span>
-            </xsl:if>
-        </li>
-    </xsl:template>
-    
     <!-- CALLBACKS -->
     
     <xsl:function name="ldh:rdf-document-response" ixsl:updating="yes">
