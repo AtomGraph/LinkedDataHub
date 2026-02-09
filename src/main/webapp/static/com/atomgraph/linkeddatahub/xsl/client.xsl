@@ -333,9 +333,9 @@ WHERE
                     </xsl:call-template>
                 </xsl:for-each>
 
-                <!-- load class tree -->
-                <xsl:for-each select="id('class-tree', ixsl:page())">
-                    <xsl:call-template name="ldh:ClassTreeLoad">
+                <!-- load class list -->
+                <xsl:for-each select="id('class-list', ixsl:page())">
+                    <xsl:call-template name="ldh:ClassListLoad">
                         <xsl:with-param name="container" select="."/>
                         <xsl:with-param name="endpoint" select="sd:endpoint()"/>
                     </xsl:call-template>
@@ -861,16 +861,14 @@ WHERE
     </xsl:template>
     
     <!-- post-HTML load hook, mainly for navigation updates -->
-    
+
     <xsl:template name="ldh:PostHTMLDocumentLoad">
         <xsl:param name="href" as="xs:anyURI"/> <!-- possibly proxied URL -->
-            
-        <!-- activate the current URL in the document tree -->
-        <xsl:for-each select="id('doc-tree', ixsl:page())">
-            <xsl:call-template name="ldh:DocTreeActivateHref">
-                <xsl:with-param name="href" select="$href"/>
-            </xsl:call-template>
-        </xsl:for-each>
+
+        <!-- update both doc-tree and class-list -->
+        <xsl:call-template name="ldh:NavigationUpdate">
+            <xsl:with-param name="href" select="$href"/>
+        </xsl:call-template>
     </xsl:template>
     
     <xsl:template name="ldt:AppChanged">

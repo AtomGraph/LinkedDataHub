@@ -73,43 +73,8 @@ LIMIT   10
                     <xsl:apply-templates select="key('resources', 'root', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
                 </a>
             </li>
-            <li>
-                <button class="btn btn-small btn-expand-tree"></button>
-                <a href="{$base}apps/" class="btn-logo btn-app">
-                    <xsl:apply-templates select="key('resources', 'applications', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
-                </a>
-            </li>
-            <li>
-                <button class="btn btn-small btn-expand-tree"></button>
-                <a href="{$base}charts/" class="btn-logo btn-chart">
-                    <xsl:apply-templates select="key('resources', 'charts', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
-                </a>
-            </li>
-            <li>
-                <button class="btn btn-small btn-expand-tree"></button>
-                <a href="{$base}files/" class="btn-logo btn-file">
-                    <xsl:apply-templates select="key('resources', 'files', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
-                </a>
-            </li>
-            <li>
-                <button class="btn btn-small btn-expand-tree"></button>
-                <a href="{$base}imports/" class="btn-logo btn-import">
-                    <xsl:apply-templates select="key('resources', 'imports', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
-                </a>
-            </li>
-            <li>
-                <button class="btn btn-small btn-expand-tree"></button>
-                <a href="{$base}queries/" class="btn-logo btn-query">
-                    <xsl:apply-templates select="key('resources', 'queries', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
-                </a>
-            </li>
-            <li>
-                <button class="btn btn-small btn-expand-tree"></button>
-                <a href="{$base}services/" class="btn-logo btn-service">
-                    <xsl:apply-templates select="key('resources', 'services', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
-                </a>
-            </li>
             <!-- non-expandable containers (not based on ldh:SelectChildren) -->
+            <!--
             <li>
                 <a href="{$base}geo/" class="btn-logo btn-geo">
                     <xsl:apply-templates select="key('resources', 'geo', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
@@ -120,13 +85,14 @@ LIMIT   10
                     <xsl:apply-templates select="key('resources', 'latest', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
                 </a>
             </li>
+            -->
         </ul>
 
         <h2 class="nav-header btn">
             <xsl:apply-templates select="key('resources', 'classes', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
         </h2>
 
-        <ul class="well well-small nav nav-list" id="class-tree">
+        <ul class="well well-small nav nav-list" id="class-list">
             <!-- class list will be loaded dynamically -->
         </ul>
     </xsl:template>
@@ -144,7 +110,27 @@ LIMIT   10
             <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'active', true() ])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:for-each>
     </xsl:template>
-    
+
+    <!-- Update both doc-tree and class-list after navigation -->
+    <xsl:template name="ldh:NavigationUpdate">
+        <xsl:param name="href" as="xs:anyURI"/>
+
+        <!-- activate the current URL in the document tree -->
+        <xsl:for-each select="id('doc-tree', ixsl:page())">
+            <xsl:call-template name="ldh:DocTreeActivateHref">
+                <xsl:with-param name="href" select="$href"/>
+            </xsl:call-template>
+        </xsl:for-each>
+
+        <!-- reload the class list -->
+        <xsl:for-each select="id('class-list', ixsl:page())">
+            <xsl:call-template name="ldh:ClassListLoad">
+                <xsl:with-param name="container" select="."/>
+                <xsl:with-param name="endpoint" select="sd:endpoint()"/>
+            </xsl:call-template>
+        </xsl:for-each>
+    </xsl:template>
+
     <xsl:template name="ldh:DocTreeResourceLoad">
         <xsl:param name="container" as="element()"/>
         <xsl:param name="uri" as="xs:anyURI"/>
@@ -471,8 +457,8 @@ LIMIT   10
     </xsl:function>
 
     <!-- Load classes with instances from the SPARQL endpoint -->
-    <xsl:template name="ldh:ClassTreeLoad">
-        <xsl:param name="container" as="element()"/> <!-- the <ul id="class-tree"> -->
+    <xsl:template name="ldh:ClassListLoad">
+        <xsl:param name="container" as="element()"/> <!-- the <ul id="class-list"> -->
         <xsl:param name="endpoint" as="xs:anyURI"/>
 
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
@@ -498,17 +484,17 @@ LIMIT   10
         <ixsl:promise select="ixsl:http-request($context('request')) =>
             ixsl:then(ldh:rethread-response($context, ?)) =>
             ixsl:then(ldh:handle-response#1) =>
-            ixsl:then(ldh:class-tree-response#1)"
+            ixsl:then(ldh:class-list-response#1)"
             on-failure="ldh:promise-failure#1"/>
     </xsl:template>
 
     <!-- Handle the response from loading classes - extract type URIs and query ns endpoint -->
-    <xsl:function name="ldh:class-tree-response" as="map(*)" ixsl:updating="yes">
+    <xsl:function name="ldh:class-list-response" as="map(*)" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
         <xsl:variable name="response" select="$context('response')" as="map(*)"/>
         <xsl:variable name="container" select="$context('container')" as="element()"/>
 
-        <xsl:message>ldh:class-tree-response</xsl:message>
+        <xsl:message>ldh:class-list-response</xsl:message>
 
         <xsl:for-each select="$response">
             <xsl:choose>
@@ -535,7 +521,7 @@ LIMIT   10
                                 <ixsl:promise select="ixsl:http-request($new-context('request')) =>
                                     ixsl:then(ldh:rethread-response($new-context, ?)) =>
                                     ixsl:then(ldh:handle-response#1) =>
-                                    ixsl:then(ldh:class-tree-describe-response#1)"
+                                    ixsl:then(ldh:class-list-describe-response#1)"
                                     on-failure="ldh:promise-failure#1"/>
                             </xsl:when>
                             <xsl:otherwise>
@@ -558,13 +544,13 @@ LIMIT   10
     </xsl:function>
 
     <!-- Handle the response from describing class types -->
-    <xsl:function name="ldh:class-tree-describe-response" as="map(*)" ixsl:updating="yes">
+    <xsl:function name="ldh:class-list-describe-response" as="map(*)" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
         <xsl:variable name="response" select="$context('response')" as="map(*)"/>
         <xsl:variable name="container" select="$context('container')" as="element()"/>
         <xsl:variable name="type-results" select="$context('type-results')" as="document-node()"/>
 
-        <xsl:message>ldh:class-tree-describe-response</xsl:message>
+        <xsl:message>ldh:class-list-describe-response</xsl:message>
 
         <xsl:for-each select="$response">
             <xsl:choose>
@@ -579,7 +565,7 @@ LIMIT   10
 
                                 <xsl:choose>
                                     <xsl:when test="key('resources', srx:binding[@name = 'type']/srx:uri, $class-doc)">
-                                        <xsl:apply-templates select="key('resources', srx:binding[@name = 'type']/srx:uri, $class-doc)" mode="bs2:ClassTreeListItem">
+                                        <xsl:apply-templates select="key('resources', srx:binding[@name = 'type']/srx:uri, $class-doc)" mode="bs2:ClassListItem">
                                             <xsl:with-param name="count" select="xs:integer(srx:binding[@name = 'count']/srx:literal)"/>
                                         </xsl:apply-templates>
                                     </xsl:when>
@@ -587,7 +573,7 @@ LIMIT   10
                                         <xsl:variable name="temp-class" as="element()">
                                             <rdf:Description rdf:about="{srx:binding[@name = 'type']/srx:uri}"/>
                                         </xsl:variable>
-                                        <xsl:apply-templates select="$temp-class" mode="bs2:ClassTreeListItem">
+                                        <xsl:apply-templates select="$temp-class" mode="bs2:ClassListItem">
                                             <xsl:with-param name="count" select="xs:integer(srx:binding[@name = 'count']/srx:literal)"/>
                                         </xsl:apply-templates>
                                     </xsl:otherwise>
@@ -611,7 +597,7 @@ LIMIT   10
     </xsl:function>
 
     <!-- Render a class as a list item with button -->
-    <xsl:template match="*[@rdf:about]" mode="bs2:ClassTreeListItem">
+    <xsl:template match="*[@rdf:about]" mode="bs2:ClassListItem">
         <xsl:param name="count" as="xs:integer"/>
 
         <li>
@@ -629,7 +615,6 @@ LIMIT   10
     <!-- Opens modal dialog to show instances of a class -->
     <xsl:template match="button[contains-token(@class, 'btn-class')]" mode="ixsl:onclick">
         <xsl:variable name="class-uri" select="xs:anyURI(ixsl:get(., 'dataset.classUri'))"/>
-        <xsl:variable name="class-label" select="ixsl:get(., 'textContent')" as="xs:string"/>
         <xsl:variable name="block-id" select="'class-instances-block'" as="xs:string"/>
 
         <!-- Create modal structure with a block element -->
@@ -637,17 +622,26 @@ LIMIT   10
             <div class="modal modal-constructor fade in" id="class-instances-modal">
                 <div class="modal-header">
                     <button type="button" class="close">×</button>
-                    <legend><xsl:value-of select="$class-label"/></legend>
+                    <legend>
+                        <xsl:choose>
+                            <xsl:when test="doc-available(ac:document-uri($class-uri))">
+                                <xsl:apply-templates select="key('resources', $class-uri, document(ac:document-uri($class-uri)))" mode="ac:label"/>
+                            </xsl:when>
+                            <xsl:otherwise>
+                                <xsl:value-of select="$class-uri"/>
+                            </xsl:otherwise>
+                        </xsl:choose>
+                    </legend>
                 </div>
                 <div class="modal-body">
-                    <div id="{$block-id}" class="row-fluid" about="{$block-id}">
+                    <div id="{$block-id}" class="row-fluid">
                         <div class="main span12">
                             <!-- View results will be rendered here -->
                         </div>
                     </div>
                 </div>
                 <div class="form-actions modal-footer">
-                    <button type="button" class="btn btn-close">Close</button>
+                    <button type="button" class="btn btn-primary btn-close">Close</button>
                 </div>
             </div>
         </xsl:variable>
@@ -710,6 +704,7 @@ LIMIT   10
             'block': $block,
             'class-uri': $class-uri,
             'select-xml': $select-xml,
+            'select-string': $select-string,
             'endpoint': $endpoint,
             'container-id': $container-id
           }"/>
@@ -727,9 +722,9 @@ LIMIT   10
         <xsl:variable name="block" select="$context('block')" as="element()"/>
         <xsl:variable name="class-uri" select="$context('class-uri')" as="xs:anyURI"/>
         <xsl:variable name="select-xml" select="$context('select-xml')" as="document-node()"/>
+        <xsl:variable name="select-string" select="$context('select-string')" as="xs:string"/>
         <xsl:variable name="endpoint" select="$context('endpoint')" as="xs:anyURI"/>
         <xsl:variable name="container-id" select="$context('container-id')" as="xs:string"/>
-        <xsl:variable name="block-uri" select="$block/@about" as="xs:string"/>
 
         <xsl:message>ldh:class-instances-response</xsl:message>
 
@@ -738,11 +733,22 @@ LIMIT   10
                 <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
                     <xsl:for-each select="?body">
                         <xsl:variable name="results" select="." as="document-node()"/>
+                        <xsl:variable name="block-id" select="'class-instances-block'" as="xs:string"/>
 
-                        <!-- Create window.LinkedDataHub.contents[{$block-uri}] cache entry if not already created -->
-                        <xsl:if test="not(ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`'))">
-                            <ixsl:set-property name="{'`' || $block-uri || '`'}" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.contents')"/>
+                        <!-- Create cache entry for the block (used by ldh:RenderViewResults to store results) -->
+                        <xsl:if test="not(ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-id || '`'))">
+                            <ixsl:set-property name="{'`' || $block-id || '`'}" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.contents')"/>
                         </xsl:if>
+
+                        <!-- Store modal state in well-known location (used by pagination handlers) -->
+                        <ixsl:set-property name="class-instances-modal"
+                                         select="map{
+                                           'select-xml': $select-xml,
+                                           'select-query': $select-string,
+                                           'initial-var-name': 's',
+                                           'endpoint': $endpoint
+                                         }"
+                                         object="ixsl:get(ixsl:window(), 'LinkedDataHub.contents')"/>
 
                         <!-- Extract BGP triples map from select-xml -->
                         <xsl:variable name="bgp-triples-map" select="$select-xml//json:map[json:string[@key = 'type'] = 'bgp']/json:array[@key = 'triples']/json:map[json:string[@key = 'subject'] = '?s'][not(starts-with(json:string[@key = 'predicate'], '?'))][starts-with(json:string[@key = 'object'], '?')]" as="element()*"/>
@@ -780,6 +786,226 @@ LIMIT   10
 
         <xsl:sequence select="$context"/>
     </xsl:function>
+
+    <!-- Modal pagination - previous page -->
+    <xsl:template match="div[@id = 'class-instances-modal']//ul[@class = 'pager']/li[@class = 'previous']/a[@class = 'active']" mode="ixsl:onclick" priority="2">
+        <xsl:variable name="container" select="id('class-instances-block', ixsl:page())" as="element()"/>
+
+        <!-- Get state from well-known location -->
+        <xsl:variable name="state" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), 'class-instances-modal')" as="map(*)"/>
+
+        <xsl:variable name="active-class" select="tokenize($container//ul[contains-token(@class, 'view-mode-list')]/li[contains-token(@class, 'active')]/@class, ' ')[not(. = 'active')]" as="xs:string"/>
+        <xsl:variable name="active-mode" select="map:get($class-modes, $active-class)" as="xs:anyURI"/>
+        <xsl:variable name="select-string" select="$state('select-query')" as="xs:string"/>
+        <xsl:variable name="select-xml" select="$state('select-xml')" as="document-node()"/>
+        <xsl:variable name="offset" select="if ($select-xml/json:map/json:number[@key = 'offset']) then xs:integer($select-xml/json:map/json:number[@key = 'offset']) else 0" as="xs:integer"/>
+        <xsl:variable name="offset" select="$offset - $page-size" as="xs:integer"/>
+        <xsl:variable name="initial-var-name" select="$state('initial-var-name')" as="xs:string"/>
+        <xsl:variable name="endpoint" select="$state('endpoint')" as="xs:anyURI"/>
+
+        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+
+        <xsl:variable name="select-xml" as="document-node()">
+            <xsl:document>
+                <xsl:apply-templates select="$select-xml" mode="ldh:replace-offset">
+                    <xsl:with-param name="offset" select="$offset" tunnel="yes"/>
+                </xsl:apply-templates>
+            </xsl:document>
+        </xsl:variable>
+
+        <!-- Store updated state -->
+        <ixsl:set-property name="class-instances-modal"
+                         select="map:put($state, 'select-xml', $select-xml)"
+                         object="ixsl:get(ixsl:window(), 'LinkedDataHub.contents')"/>
+
+        <xsl:variable name="context" as="map(*)">
+            <xsl:call-template name="ldh:RenderView">
+                <xsl:with-param name="block" select="$container"/>
+                <xsl:with-param name="container" select="$container"/>
+                <xsl:with-param name="active-mode" select="$active-mode"/>
+                <xsl:with-param name="select-string" select="$select-string"/>
+                <xsl:with-param name="select-xml" select="$select-xml"/>
+                <xsl:with-param name="initial-var-name" select="$initial-var-name"/>
+                <xsl:with-param name="endpoint" select="$endpoint"/>
+            </xsl:call-template>
+        </xsl:variable>
+
+        <ixsl:promise select="
+            ixsl:resolve($context) =>
+                ixsl:then(ldh:view-results-thunk#1)
+            "
+            on-failure="ldh:promise-failure#1"/>
+    </xsl:template>
+
+    <!-- Modal pagination - next page -->
+    <xsl:template match="div[@id = 'class-instances-modal']//ul[@class = 'pager']/li[@class = 'next']/a[@class = 'active']" mode="ixsl:onclick" priority="2">
+        <xsl:variable name="container" select="id('class-instances-block', ixsl:page())" as="element()"/>
+
+        <!-- Get state from well-known location -->
+        <xsl:variable name="state" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), 'class-instances-modal')" as="map(*)"/>
+
+        <xsl:variable name="active-class" select="tokenize($container//ul[contains-token(@class, 'view-mode-list')]/li[contains-token(@class, 'active')]/@class, ' ')[not(. = 'active')]" as="xs:string"/>
+        <xsl:variable name="active-mode" select="map:get($class-modes, $active-class)" as="xs:anyURI"/>
+        <xsl:variable name="select-string" select="$state('select-query')" as="xs:string"/>
+        <xsl:variable name="select-xml" select="$state('select-xml')" as="document-node()"/>
+        <xsl:variable name="offset" select="if ($select-xml/json:map/json:number[@key = 'offset']) then xs:integer($select-xml/json:map/json:number[@key = 'offset']) else 0" as="xs:integer"/>
+        <xsl:variable name="offset" select="$offset + $page-size" as="xs:integer"/>
+        <xsl:variable name="initial-var-name" select="$state('initial-var-name')" as="xs:string"/>
+        <xsl:variable name="endpoint" select="$state('endpoint')" as="xs:anyURI"/>
+
+        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+
+        <xsl:variable name="select-xml" as="document-node()">
+            <xsl:document>
+                <xsl:apply-templates select="$select-xml" mode="ldh:replace-offset">
+                    <xsl:with-param name="offset" select="$offset" tunnel="yes"/>
+                </xsl:apply-templates>
+            </xsl:document>
+        </xsl:variable>
+
+        <!-- Store updated state -->
+        <ixsl:set-property name="class-instances-modal"
+                         select="map:put($state, 'select-xml', $select-xml)"
+                         object="ixsl:get(ixsl:window(), 'LinkedDataHub.contents')"/>
+
+        <xsl:variable name="context" as="map(*)">
+            <xsl:call-template name="ldh:RenderView">
+                <xsl:with-param name="block" select="$container"/>
+                <xsl:with-param name="container" select="$container"/>
+                <xsl:with-param name="active-mode" select="$active-mode"/>
+                <xsl:with-param name="select-string" select="$select-string"/>
+                <xsl:with-param name="select-xml" select="$select-xml"/>
+                <xsl:with-param name="initial-var-name" select="$initial-var-name"/>
+                <xsl:with-param name="endpoint" select="$endpoint"/>
+            </xsl:call-template>
+        </xsl:variable>
+
+        <ixsl:promise select="
+            ixsl:resolve($context) =>
+                ixsl:then(ldh:view-results-thunk#1)
+            "
+            on-failure="ldh:promise-failure#1"/>
+    </xsl:template>
+
+    <!-- Modal container-order handler -->
+    <xsl:template match="div[@id = 'class-instances-modal']//select[contains-token(@class, 'container-order')]" mode="ixsl:onchange" priority="2">
+        <xsl:message>Modal container-order handler triggered</xsl:message>
+        <xsl:variable name="container" select="id('class-instances-block', ixsl:page())" as="element()"/>
+
+        <!-- Get state from well-known location -->
+        <xsl:variable name="state" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), 'class-instances-modal')" as="map(*)"/>
+
+        <xsl:variable name="active-class" select="tokenize($container//ul[contains-token(@class, 'view-mode-list')]/li[contains-token(@class, 'active')]/@class, ' ')[not(. = 'active')]" as="xs:string"/>
+        <xsl:variable name="active-mode" select="map:get($class-modes, $active-class)" as="xs:anyURI"/>
+        <xsl:variable name="predicate" select="ixsl:get(., 'value')" as="xs:anyURI?"/>
+        <xsl:variable name="select-string" select="$state('select-query')" as="xs:string"/>
+        <xsl:variable name="select-xml" select="$state('select-xml')" as="document-node()"/>
+        <xsl:variable name="initial-var-name" select="$state('initial-var-name')" as="xs:string"/>
+        <xsl:variable name="endpoint" select="$state('endpoint')" as="xs:anyURI"/>
+        <xsl:variable name="bgp-triples-map" select="$select-xml//json:map[json:string[@key = 'type'] = 'bgp']/json:array[@key = 'triples']/json:map[json:string[@key = 'subject'] = '?' || $initial-var-name][json:string[@key = 'predicate'] = $predicate][starts-with(json:string[@key = 'object'], '?')]" as="element()*"/>
+        <xsl:variable name="var-name" select="$bgp-triples-map/json:string[@key = 'object'][1]/substring-after(., '?')" as="xs:string?"/>
+
+        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+
+        <xsl:variable name="select-xml" as="document-node()">
+            <xsl:document>
+                <xsl:apply-templates select="$select-xml" mode="ldh:replace-order-by">
+                    <xsl:with-param name="var-name" select="$var-name" tunnel="yes"/>
+                </xsl:apply-templates>
+            </xsl:document>
+        </xsl:variable>
+
+        <!-- Store updated state -->
+        <ixsl:set-property name="class-instances-modal"
+                         select="map:put($state, 'select-xml', $select-xml)"
+                         object="ixsl:get(ixsl:window(), 'LinkedDataHub.contents')"/>
+
+        <xsl:variable name="context" as="map(*)">
+            <xsl:call-template name="ldh:RenderView">
+                <xsl:with-param name="block" select="$container"/>
+                <xsl:with-param name="container" select="$container"/>
+                <xsl:with-param name="active-mode" select="$active-mode"/>
+                <xsl:with-param name="select-string" select="$select-string"/>
+                <xsl:with-param name="select-xml" select="$select-xml"/>
+                <xsl:with-param name="initial-var-name" select="$initial-var-name"/>
+                <xsl:with-param name="endpoint" select="$endpoint"/>
+            </xsl:call-template>
+        </xsl:variable>
+
+        <ixsl:promise select="
+            ixsl:resolve($context) =>
+                ixsl:then(ldh:view-results-thunk#1)
+            "
+            on-failure="ldh:promise-failure#1"/>
+    </xsl:template>
+
+    <!-- Modal order-by button handler -->
+    <xsl:template match="div[@id = 'class-instances-modal']//button[contains-token(@class, 'btn-order-by')]" mode="ixsl:onclick" priority="2">
+        <xsl:message>Modal order-by button handler triggered</xsl:message>
+        <xsl:variable name="container" select="id('class-instances-block', ixsl:page())" as="element()"/>
+
+        <!-- Get state from well-known location -->
+        <xsl:variable name="state" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), 'class-instances-modal')" as="map(*)"/>
+
+        <xsl:variable name="active-class" select="tokenize($container//ul[contains-token(@class, 'view-mode-list')]/li[contains-token(@class, 'active')]/@class, ' ')[not(. = 'active')]" as="xs:string"/>
+        <xsl:variable name="active-mode" select="map:get($class-modes, $active-class)" as="xs:anyURI"/>
+        <xsl:variable name="desc" select="contains(@class, 'btn-order-by-desc')" as="xs:boolean"/>
+        <xsl:variable name="select-string" select="$state('select-query')" as="xs:string"/>
+        <xsl:variable name="select-xml" select="$state('select-xml')" as="document-node()"/>
+        <xsl:variable name="initial-var-name" select="$state('initial-var-name')" as="xs:string"/>
+        <xsl:variable name="endpoint" select="$state('endpoint')" as="xs:anyURI"/>
+
+        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+
+        <xsl:variable name="select-xml" as="document-node()">
+            <xsl:document>
+                <xsl:apply-templates select="$select-xml" mode="ldh:toggle-desc">
+                    <xsl:with-param name="desc" select="not($desc)" tunnel="yes"/>
+                </xsl:apply-templates>
+            </xsl:document>
+        </xsl:variable>
+
+        <!-- Store updated state -->
+        <ixsl:set-property name="class-instances-modal"
+                         select="map:put($state, 'select-xml', $select-xml)"
+                         object="ixsl:get(ixsl:window(), 'LinkedDataHub.contents')"/>
+
+        <xsl:variable name="context" as="map(*)">
+            <xsl:call-template name="ldh:RenderView">
+                <xsl:with-param name="block" select="$container"/>
+                <xsl:with-param name="container" select="$container"/>
+                <xsl:with-param name="active-mode" select="$active-mode"/>
+                <xsl:with-param name="select-string" select="$select-string"/>
+                <xsl:with-param name="select-xml" select="$select-xml"/>
+                <xsl:with-param name="initial-var-name" select="$initial-var-name"/>
+                <xsl:with-param name="endpoint" select="$endpoint"/>
+            </xsl:call-template>
+        </xsl:variable>
+
+        <ixsl:promise select="
+            ixsl:resolve($context) =>
+                ixsl:then(ldh:view-results-thunk#1)
+            "
+            on-failure="ldh:promise-failure#1"/>
+
+        <!-- toggle the arrow direction -->
+        <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'btn-order-by-desc' ])[current-date() lt xs:date('2000-01-01')]"/>
+    </xsl:template>
+
+    <!-- Close modal and clean up state -->
+    <xsl:template match="div[@id = 'class-instances-modal']//button[contains-token(@class, 'close') or contains-token(@class, 'btn-close')]" mode="ixsl:onclick">
+        <xsl:variable name="modal" select="ancestor::div[@id = 'class-instances-modal']" as="element()"/>
+        <xsl:variable name="block-id" select="'class-instances-block'" as="xs:string"/>
+
+        <!-- Clean up both cache entries -->
+        <xsl:sequence select="ixsl:call(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), 'delete', ['class-instances-modal'])[current-date() lt xs:date('2000-01-01')]"/>
+        <xsl:sequence select="ixsl:call(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), 'delete', ['`' || $block-id || '`'])[current-date() lt xs:date('2000-01-01')]"/>
+
+        <!-- Remove modal from DOM -->
+        <xsl:for-each select="$modal">
+            <xsl:sequence select="ixsl:call(., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
+        </xsl:for-each>
+    </xsl:template>
 
     <!-- Render an instance as a list item -->
     <xsl:template match="*[@rdf:about]" mode="bs2:ClassInstanceListItem">
