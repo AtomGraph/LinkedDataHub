@@ -58,7 +58,7 @@ LIMIT   10
 
     <!-- TEMPLATES -->
     
-    <xsl:template name="ldh:DocTree">
+    <xsl:template name="ldh:LeftSidebar">
         <xsl:param name="base" select="ldt:base()" as="xs:anyURI"/>
 
         <h2 class="nav-header btn">
@@ -100,6 +100,10 @@ LIMIT   10
     <xsl:template name="ldh:DocTreeActivateHref">
         <xsl:context-item as="element()" use="required"/> <!-- document tree container -->
         <xsl:param name="href" as="xs:anyURI"/>
+        
+        <xsl:message>
+            ldh:DocTreeActivateHref $href: <xsl:value-of select="$href"/>
+        </xsl:message>
 
         <!-- make the previously active list items inactive -->
         <xsl:for-each select=".//li[contains-token(@class, 'active')]">
@@ -111,12 +115,12 @@ LIMIT   10
         </xsl:for-each>
     </xsl:template>
 
-    <!-- Update both doc-tree and class-list after navigation -->
+    <!-- Update both left-sidebar and class-list after navigation -->
     <xsl:template name="ldh:NavigationUpdate">
         <xsl:param name="href" as="xs:anyURI"/>
 
         <!-- activate the current URL in the document tree -->
-        <xsl:for-each select="id('doc-tree', ixsl:page())">
+        <xsl:for-each select="id('left-sidebar', ixsl:page())">
             <xsl:call-template name="ldh:DocTreeActivateHref">
                 <xsl:with-param name="href" select="$href"/>
             </xsl:call-template>
@@ -175,7 +179,7 @@ LIMIT   10
         <ixsl:promise select="ixsl:http-request($context('request')) =>
             ixsl:then(ldh:rethread-response($context, ?)) =>
             ixsl:then(ldh:handle-response#1) =>
-            ixsl:then(ldh:doc-tree-resource-response#1)"
+            ixsl:then(ldh:left-sidebar-resource-response#1)"
             on-failure="ldh:promise-failure#1"/>
     </xsl:template>
     
@@ -199,18 +203,18 @@ LIMIT   10
     
     <!-- show left-side document tree -->
     
-    <xsl:template match="body[id('doc-tree', ixsl:page())]" mode="ixsl:onmousemove">
+    <xsl:template match="body[id('left-sidebar', ixsl:page())]" mode="ixsl:onmousemove">
         <xsl:variable name="x" select="ixsl:get(ixsl:event(), 'clientX')"/>
         
         <!-- check that the mouse is on the left edge -->
         <xsl:if test="$x = 0">
-            <!-- show #doc-tree -->
-            <ixsl:set-style name="display" select="'block'" object="id('doc-tree', ixsl:page())"/>
+            <!-- show #left-sidebar -->
+            <ixsl:set-style name="display" select="'block'" object="id('left-sidebar', ixsl:page())"/>
         </xsl:if>
     </xsl:template>
     
     <!-- hide the document tree container if its position is fixed (i.e. the layout is not responsive) -->
-    <xsl:template match="div[@id = 'doc-tree'][ixsl:style(.)?position = 'fixed']" mode="ixsl:onmouseout">
+    <xsl:template match="div[@id = 'left-sidebar'][ixsl:style(.)?position = 'fixed']" mode="ixsl:onmouseout">
         <xsl:variable name="related-target" select="ixsl:get(ixsl:event(), 'relatedTarget')" as="element()?"/> <!-- the element mouse entered -->
         
         <!-- only hide if the related target does not have this div as ancestor (is not its child) -->
@@ -219,10 +223,10 @@ LIMIT   10
         </xsl:if>
     </xsl:template>
     
-    <xsl:template match="div[@id = 'doc-tree']//li/a[@href]" mode="ixsl:onclick" priority="1">
+    <xsl:template match="div[@id = 'left-sidebar']//li/a[@href]" mode="ixsl:onclick" priority="1">
         <xsl:variable name="href" select="@href" as="xs:anyURI"/>
         
-        <xsl:for-each select="ancestor::div[@id = 'doc-tree']">
+        <xsl:for-each select="ancestor::div[@id = 'left-sidebar']">
             <xsl:call-template name="ldh:DocTreeActivateHref">
                 <xsl:with-param name="href" select="$href"/>
             </xsl:call-template>
@@ -383,13 +387,13 @@ LIMIT   10
         <xsl:sequence select="$context"/>
     </xsl:function>
 
-    <xsl:function name="ldh:doc-tree-resource-response" as="map(*)" ixsl:updating="yes">
+    <xsl:function name="ldh:left-sidebar-resource-response" as="map(*)" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
         <xsl:variable name="response" select="$context('response')" as="map(*)"/>
         <xsl:variable name="container" select="$context('container')" as="element()"/> <!-- <ul> element -->
         <xsl:variable name="uri" select="$context('uri')" as="xs:anyURI"/>
 
-        <xsl:message>ldh:doc-tree-resource-response</xsl:message>
+        <xsl:message>ldh:left-sidebar-resource-response</xsl:message>
         
         <xsl:for-each select="$response">
             <xsl:choose>

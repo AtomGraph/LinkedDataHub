@@ -323,23 +323,15 @@ WHERE
                         <xsl:with-param name="apps" select="$ldh:apps"/>
                     </xsl:call-template>
                 </xsl:for-each>
-                <!-- initialize document tree -->
-                <xsl:for-each select="id('doc-tree', ixsl:page())">
+                <!-- initialize navigation (e.g. the left sidebar) -->
+                <xsl:for-each select="id('left-sidebar', ixsl:page())">
                     <xsl:result-document href="?." method="ixsl:replace-content">
-                        <xsl:call-template name="ldh:DocTree"/>
+                        <xsl:call-template name="ldh:LeftSidebar"/>
                     </xsl:result-document>
-                    <xsl:call-template name="ldh:DocTreeActivateHref">
-                        <xsl:with-param name="href" select="ldt:base()"/>
-                    </xsl:call-template>
                 </xsl:for-each>
-
-                <!-- load class list -->
-                <xsl:for-each select="id('class-list', ixsl:page())">
-                    <xsl:call-template name="ldh:ClassListLoad">
-                        <xsl:with-param name="container" select="."/>
-                        <xsl:with-param name="endpoint" select="sd:endpoint()"/>
-                    </xsl:call-template>
-                </xsl:for-each>
+                <xsl:call-template name="ldh:NavigationUpdate">
+                    <xsl:with-param name="href" select="base-uri(ixsl:page())"/>
+                </xsl:call-template>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
@@ -759,7 +751,7 @@ WHERE
                 <xsl:when test="starts-with(?media-type, 'application/xhtml+xml')">
                     <xsl:variable name="endpoint-link" select="tokenize(?headers?link, ',')[contains(., '&sd;endpoint')]" as="xs:string?"/>
                     <xsl:variable name="endpoint" select="if ($endpoint-link) then xs:anyURI(substring-before(substring-after(substring-before($endpoint-link, ';'), '&lt;'), '&gt;')) else ()" as="xs:anyURI?"/>
-                    <xsl:variable name="base" select="lapp:origin($href)" as="xs:anyURI"/>
+                    <xsl:variable name="base" select="xs:anyURI(lapp:origin($href) || '/')" as="xs:anyURI"/>
                     <!-- set new base URI if the current app has changed -->
                     <xsl:if test="not($base = ldt:base())">
                         <xsl:message>Application change. Base URI: <xsl:value-of select="$base"/></xsl:message>
@@ -850,7 +842,8 @@ WHERE
             </xsl:call-template>
         </xsl:if>
         
-        <xsl:call-template name="ldh:PostHTMLDocumentLoad">
+        <!-- update the sidebar -->
+        <xsl:call-template name="ldh:NavigationUpdate">
             <xsl:with-param name="href" select="$href"/>
         </xsl:call-template>
         
@@ -862,21 +855,21 @@ WHERE
     
     <!-- post-HTML load hook, mainly for navigation updates -->
 
-    <xsl:template name="ldh:PostHTMLDocumentLoad">
-        <xsl:param name="href" as="xs:anyURI"/> <!-- possibly proxied URL -->
+<!--    <xsl:template name="ldh:PostHTMLDocumentLoad">
+        <xsl:param name="href" as="xs:anyURI"/>  possibly proxied URL 
 
-        <!-- update both doc-tree and class-list -->
+         update the sidebar 
         <xsl:call-template name="ldh:NavigationUpdate">
             <xsl:with-param name="href" select="$href"/>
         </xsl:call-template>
-    </xsl:template>
+    </xsl:template>-->
     
     <xsl:template name="ldt:AppChanged">
         <xsl:param name="base" as="xs:anyURI"/>
 
-        <xsl:for-each select="id('doc-tree', ixsl:page())">
+        <xsl:for-each select="id('left-sidebar', ixsl:page())">
             <xsl:result-document href="?." method="ixsl:replace-content">
-                <xsl:call-template name="ldh:DocTree">
+                <xsl:call-template name="ldh:LeftSidebar">
                     <xsl:with-param name="base" select="$base"/>
                 </xsl:call-template>
             </xsl:result-document>

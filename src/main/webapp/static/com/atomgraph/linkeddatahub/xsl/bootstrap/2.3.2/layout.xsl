@@ -1277,7 +1277,7 @@ exclude-result-prefixes="#all">
     <!-- DOCUMENT TREE -->
     
     <xsl:template match="rdf:RDF | srx:sparql" mode="bs2:DocumentTree">
-        <xsl:param name="id" select="'doc-tree'" as="xs:string?"/>
+        <xsl:param name="id" select="'left-sidebar'" as="xs:string?"/>
         <xsl:param name="class" select="'well well-small sidebar-nav'" as="xs:string?"/>
         
         <div>
@@ -1288,7 +1288,7 @@ exclude-result-prefixes="#all">
                 <xsl:attribute name="class" select="$class"/>
             </xsl:if>
             
-            <!-- placeholder for client-side ldh:DocTree template -->
+            <!-- placeholder for client-side ldh:LeftSidebar template -->
         </div>
     </xsl:template>
     
