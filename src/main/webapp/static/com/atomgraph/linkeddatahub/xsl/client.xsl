@@ -329,7 +329,7 @@ WHERE
                         <xsl:call-template name="ldh:DocTree"/>
                     </xsl:result-document>
                     <xsl:call-template name="ldh:DocTreeActivateHref">
-                        <xsl:with-param name="href" select="base-uri(ixsl:page())"/>
+                        <xsl:with-param name="href" select="ldt:base()"/>
                     </xsl:call-template>
                 </xsl:for-each>
 
