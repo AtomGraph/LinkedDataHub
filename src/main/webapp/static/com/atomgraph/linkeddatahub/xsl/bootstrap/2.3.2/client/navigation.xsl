@@ -1032,32 +1032,27 @@ ORDER BY DESC(?created)
     <!-- modal pagination - previous page -->
     <xsl:template match="div[@id = ('class-instances-container', 'geo-container', 'latest-container')]//ul[@class = 'pager']/li[@class = 'previous']/a[@class = 'active']" mode="ixsl:onclick" priority="2">
         <xsl:variable name="container" select="ancestor::div[@id][@typeof = '&ldh;View'][1]" as="element()"/>
-        <xsl:variable name="active-class" select="tokenize($container//ul[contains-token(@class, 'view-mode-list')]/li[contains-token(@class, 'active')]/@class, ' ')[not(. = 'active')]" as="xs:string"/>
-        <xsl:variable name="active-mode" select="map:get($class-modes, $active-class)" as="xs:anyURI"/>
         <xsl:variable name="cache" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $container/@id)" as="item()"/>
         <xsl:variable name="select-string" select="ixsl:get($cache, 'select-string')" as="xs:string"/>
         <xsl:variable name="select-xml" select="ixsl:get($cache, 'select-xml')" as="document-node()"/>
-        <xsl:variable name="offset" select="if ($select-xml/json:map/json:number[@key = 'offset']) then xs:integer($select-xml/json:map/json:number[@key = 'offset']) else 0" as="xs:integer"/>
-        <xsl:variable name="offset" select="$offset - $page-size" as="xs:integer"/>
         <xsl:variable name="initial-var-name" select="ixsl:get($cache, 'initial-var-name')" as="xs:string"/>
         <xsl:variable name="endpoint" select="ixsl:get($cache, 'endpoint')" as="xs:anyURI"/>
+        <xsl:variable name="active-class" select="tokenize($container//ul[contains-token(@class, 'view-mode-list')]/li[contains-token(@class, 'active')]/@class, ' ')[not(. = 'active')]" as="xs:string"/>
+        <xsl:variable name="active-mode" select="map:get($class-modes, $active-class)" as="xs:anyURI"/>
 
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
         <xsl:variable name="select-xml" as="document-node()">
-            <xsl:document>
-                <xsl:apply-templates select="$select-xml" mode="ldh:replace-offset">
-                    <xsl:with-param name="offset" select="$offset" tunnel="yes"/>
-                </xsl:apply-templates>
-            </xsl:document>
+            <xsl:call-template name="ldh:ViewPage">
+                <xsl:with-param name="select-xml" select="$select-xml"/>
+                <xsl:with-param name="direction" select="'previous'"/>
+            </xsl:call-template>
         </xsl:variable>
 
-        <!-- Store updated state -->
         <ixsl:set-property name="select-xml" select="$select-xml" object="$cache"/>
 
-        <xsl:variable name="context" as="map(*)">
+        <xsl:variable name="view-context" as="map(*)">
             <xsl:call-template name="ldh:RenderView">
-                <xsl:with-param name="block" select="$container"/>
                 <xsl:with-param name="container" select="$container"/>
                 <xsl:with-param name="active-mode" select="$active-mode"/>
                 <xsl:with-param name="select-string" select="$select-string"/>
@@ -1067,6 +1062,7 @@ ORDER BY DESC(?created)
                 <xsl:with-param name="cache" select="$cache"/>
             </xsl:call-template>
         </xsl:variable>
+        <xsl:variable name="context" select="map:merge((map{ 'block': $container }, $view-context))" as="map(*)"/>
 
         <ixsl:promise select="
             ixsl:resolve($context) =>
@@ -1078,32 +1074,27 @@ ORDER BY DESC(?created)
     <!-- modal pagination - next page -->
     <xsl:template match="div[@id = ('class-instances-container', 'geo-container', 'latest-container')]//ul[@class = 'pager']/li[@class = 'next']/a[@class = 'active']" mode="ixsl:onclick" priority="2">
         <xsl:variable name="container" select="ancestor::div[@id][@typeof = '&ldh;View'][1]" as="element()"/>
-        <xsl:variable name="active-class" select="tokenize($container//ul[contains-token(@class, 'view-mode-list')]/li[contains-token(@class, 'active')]/@class, ' ')[not(. = 'active')]" as="xs:string"/>
-        <xsl:variable name="active-mode" select="map:get($class-modes, $active-class)" as="xs:anyURI"/>
         <xsl:variable name="cache" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $container/@id)" as="item()"/>
         <xsl:variable name="select-string" select="ixsl:get($cache, 'select-string')" as="xs:string"/>
         <xsl:variable name="select-xml" select="ixsl:get($cache, 'select-xml')" as="document-node()"/>
-        <xsl:variable name="offset" select="if ($select-xml/json:map/json:number[@key = 'offset']) then xs:integer($select-xml/json:map/json:number[@key = 'offset']) else 0" as="xs:integer"/>
-        <xsl:variable name="offset" select="$offset + $page-size" as="xs:integer"/>
         <xsl:variable name="initial-var-name" select="ixsl:get($cache, 'initial-var-name')" as="xs:string"/>
         <xsl:variable name="endpoint" select="ixsl:get($cache, 'endpoint')" as="xs:anyURI"/>
+        <xsl:variable name="active-class" select="tokenize($container//ul[contains-token(@class, 'view-mode-list')]/li[contains-token(@class, 'active')]/@class, ' ')[not(. = 'active')]" as="xs:string"/>
+        <xsl:variable name="active-mode" select="map:get($class-modes, $active-class)" as="xs:anyURI"/>
 
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
         <xsl:variable name="select-xml" as="document-node()">
-            <xsl:document>
-                <xsl:apply-templates select="$select-xml" mode="ldh:replace-offset">
-                    <xsl:with-param name="offset" select="$offset" tunnel="yes"/>
-                </xsl:apply-templates>
-            </xsl:document>
+            <xsl:call-template name="ldh:ViewPage">
+                <xsl:with-param name="select-xml" select="$select-xml"/>
+                <xsl:with-param name="direction" select="'next'"/>
+            </xsl:call-template>
         </xsl:variable>
 
-        <!-- Store updated state -->
         <ixsl:set-property name="select-xml" select="$select-xml" object="$cache"/>
 
-        <xsl:variable name="context" as="map(*)">
+        <xsl:variable name="view-context" as="map(*)">
             <xsl:call-template name="ldh:RenderView">
-                <xsl:with-param name="block" select="$container"/>
                 <xsl:with-param name="container" select="$container"/>
                 <xsl:with-param name="active-mode" select="$active-mode"/>
                 <xsl:with-param name="select-string" select="$select-string"/>
@@ -1113,6 +1104,7 @@ ORDER BY DESC(?created)
                 <xsl:with-param name="cache" select="$cache"/>
             </xsl:call-template>
         </xsl:variable>
+        <xsl:variable name="context" select="map:merge((map{ 'block': $container }, $view-context))" as="map(*)"/>
 
         <ixsl:promise select="
             ixsl:resolve($context) =>
@@ -1125,33 +1117,29 @@ ORDER BY DESC(?created)
     <xsl:template match="div[@id = ('class-instances-modal', 'geo-modal', 'latest-modal')]//select[contains-token(@class, 'container-order')]" mode="ixsl:onchange" priority="2">
         <xsl:message>Modal container-order handler triggered</xsl:message>
         <xsl:variable name="container" select="ancestor::div[@id][@typeof = '&ldh;View'][1]" as="element()"/>
-        <xsl:variable name="cache" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $container/@id)" as="item()"/>
-        <xsl:variable name="active-class" select="tokenize($container//ul[contains-token(@class, 'view-mode-list')]/li[contains-token(@class, 'active')]/@class, ' ')[not(. = 'active')]" as="xs:string"/>
-        <xsl:variable name="active-mode" select="map:get($class-modes, $active-class)" as="xs:anyURI"/>
         <xsl:variable name="predicate" select="ixsl:get(., 'value')" as="xs:anyURI?"/>
+        <xsl:variable name="cache" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $container/@id)" as="item()"/>
         <xsl:variable name="select-string" select="ixsl:get($cache, 'select-string')" as="xs:string"/>
         <xsl:variable name="select-xml" select="ixsl:get($cache, 'select-xml')" as="document-node()"/>
         <xsl:variable name="initial-var-name" select="ixsl:get($cache, 'initial-var-name')" as="xs:string"/>
         <xsl:variable name="endpoint" select="ixsl:get($cache, 'endpoint')" as="xs:anyURI"/>
-        <xsl:variable name="bgp-triples-map" select="$select-xml//json:map[json:string[@key = 'type'] = 'bgp']/json:array[@key = 'triples']/json:map[json:string[@key = 'subject'] = '?' || $initial-var-name][json:string[@key = 'predicate'] = $predicate][starts-with(json:string[@key = 'object'], '?')]" as="element()*"/>
-        <xsl:variable name="var-name" select="$bgp-triples-map/json:string[@key = 'object'][1]/substring-after(., '?')" as="xs:string?"/>
+        <xsl:variable name="active-class" select="tokenize($container//ul[contains-token(@class, 'view-mode-list')]/li[contains-token(@class, 'active')]/@class, ' ')[not(. = 'active')]" as="xs:string"/>
+        <xsl:variable name="active-mode" select="map:get($class-modes, $active-class)" as="xs:anyURI"/>
 
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
         <xsl:variable name="select-xml" as="document-node()">
-            <xsl:document>
-                <xsl:apply-templates select="$select-xml" mode="ldh:replace-order-by">
-                    <xsl:with-param name="var-name" select="$var-name" tunnel="yes"/>
-                </xsl:apply-templates>
-            </xsl:document>
+            <xsl:call-template name="ldh:ViewOrder">
+                <xsl:with-param name="select-xml" select="$select-xml"/>
+                <xsl:with-param name="initial-var-name" select="$initial-var-name"/>
+                <xsl:with-param name="predicate" select="$predicate"/>
+            </xsl:call-template>
         </xsl:variable>
 
-        <!-- Store updated state -->
         <ixsl:set-property name="select-xml" select="$select-xml" object="$cache"/>
 
-        <xsl:variable name="context" as="map(*)">
+        <xsl:variable name="view-context" as="map(*)">
             <xsl:call-template name="ldh:RenderView">
-                <xsl:with-param name="block" select="$container"/>
                 <xsl:with-param name="container" select="$container"/>
                 <xsl:with-param name="active-mode" select="$active-mode"/>
                 <xsl:with-param name="select-string" select="$select-string"/>
@@ -1161,6 +1149,7 @@ ORDER BY DESC(?created)
                 <xsl:with-param name="cache" select="$cache"/>
             </xsl:call-template>
         </xsl:variable>
+        <xsl:variable name="context" select="map:merge((map{ 'block': $container }, $view-context))" as="map(*)"/>
 
         <ixsl:promise select="
             ixsl:resolve($context) =>
@@ -1172,31 +1161,28 @@ ORDER BY DESC(?created)
     <!-- Modal order-by button handler -->
     <xsl:template match="div[@id = ('class-instances-container', 'geo-container', 'latest-container')]//button[contains-token(@class, 'btn-order-by')]" mode="ixsl:onclick" priority="2">
         <xsl:variable name="container" select="ancestor::div[@id][@typeof = '&ldh;View'][1]" as="element()"/>
-        <xsl:variable name="cache" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $container/@id)" as="item()"/>
-        <xsl:variable name="active-class" select="tokenize($container//ul[contains-token(@class, 'view-mode-list')]/li[contains-token(@class, 'active')]/@class, ' ')[not(. = 'active')]" as="xs:string"/>
-        <xsl:variable name="active-mode" select="map:get($class-modes, $active-class)" as="xs:anyURI"/>
         <xsl:variable name="desc" select="contains(@class, 'btn-order-by-desc')" as="xs:boolean"/>
+        <xsl:variable name="cache" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $container/@id)" as="item()"/>
         <xsl:variable name="select-string" select="ixsl:get($cache, 'select-string')" as="xs:string"/>
         <xsl:variable name="select-xml" select="ixsl:get($cache, 'select-xml')" as="document-node()"/>
         <xsl:variable name="initial-var-name" select="ixsl:get($cache, 'initial-var-name')" as="xs:string"/>
         <xsl:variable name="endpoint" select="ixsl:get($cache, 'endpoint')" as="xs:anyURI"/>
+        <xsl:variable name="active-class" select="tokenize($container//ul[contains-token(@class, 'view-mode-list')]/li[contains-token(@class, 'active')]/@class, ' ')[not(. = 'active')]" as="xs:string"/>
+        <xsl:variable name="active-mode" select="map:get($class-modes, $active-class)" as="xs:anyURI"/>
 
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
         <xsl:variable name="select-xml" as="document-node()">
-            <xsl:document>
-                <xsl:apply-templates select="$select-xml" mode="ldh:toggle-desc">
-                    <xsl:with-param name="desc" select="not($desc)" tunnel="yes"/>
-                </xsl:apply-templates>
-            </xsl:document>
+            <xsl:call-template name="ldh:ViewOrderDirection">
+                <xsl:with-param name="select-xml" select="$select-xml"/>
+                <xsl:with-param name="desc" select="$desc"/>
+            </xsl:call-template>
         </xsl:variable>
 
-        <!-- Store updated state -->
         <ixsl:set-property name="select-xml" select="$select-xml" object="$cache"/>
 
-        <xsl:variable name="context" as="map(*)">
+        <xsl:variable name="view-context" as="map(*)">
             <xsl:call-template name="ldh:RenderView">
-                <xsl:with-param name="block" select="$container"/>
                 <xsl:with-param name="container" select="$container"/>
                 <xsl:with-param name="active-mode" select="$active-mode"/>
                 <xsl:with-param name="select-string" select="$select-string"/>
@@ -1206,6 +1192,7 @@ ORDER BY DESC(?created)
                 <xsl:with-param name="cache" select="$cache"/>
             </xsl:call-template>
         </xsl:variable>
+        <xsl:variable name="context" select="map:merge((map{ 'block': $container }, $view-context))" as="map(*)"/>
 
         <ixsl:promise select="
             ixsl:resolve($context) =>
@@ -1240,9 +1227,8 @@ ORDER BY DESC(?created)
             <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'active', true() ])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:for-each>
 
-        <xsl:variable name="context" as="map(*)">
+        <xsl:variable name="view-context" as="map(*)">
             <xsl:call-template name="ldh:RenderView">
-                <xsl:with-param name="block" select="$container"/>
                 <xsl:with-param name="container" select="$container"/>
                 <xsl:with-param name="active-mode" select="$active-mode"/>
                 <xsl:with-param name="select-string" select="$select-string"/>
@@ -1252,6 +1238,7 @@ ORDER BY DESC(?created)
                 <xsl:with-param name="cache" select="$cache"/>
             </xsl:call-template>
         </xsl:variable>
+        <xsl:variable name="context" select="map:merge((map{ 'block': $container }, $view-context))" as="map(*)"/>
 
         <ixsl:promise select="
             ixsl:resolve($context) =>

@@ -304,6 +304,11 @@ exclude-result-prefixes="#all"
                                 </xsl:document>
                             </xsl:variable>
 
+                            <!-- create the cache object if it doesn't exist -->
+                            <xsl:if test="not(ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block/@about || '`'))">
+                                <ixsl:set-property name="{'`' || $block/@about || '`'}" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.contents')"/>
+                            </xsl:if>
+                            
                             <!-- TO-DO: reuse similar initialization code from client.xsl -->
                             <xsl:if test="$mode = '&ac;MapMode' and key('elements-by-class', 'map-canvas', $block)">
                                 <xsl:for-each select="$resource-doc">

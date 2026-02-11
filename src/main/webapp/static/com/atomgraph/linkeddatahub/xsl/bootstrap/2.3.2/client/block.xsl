@@ -454,7 +454,36 @@ exclude-result-prefixes="#all"
         
         <xsl:sequence select="$context"/>
     </xsl:function>
-    
+
+    <xsl:function name="ldh:update-progress" as="map(*)" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:param name="percent" as="xs:double"/>
+
+        <xsl:message>ldh:update-progress <xsl:value-of select="$percent"/>%</xsl:message>
+
+        <!-- Defensive check: ensure context exists and is a map before checking for keys -->
+        <xsl:if test="exists($context) and $context instance of map(*) and map:contains($context, 'container')">
+            <xsl:variable name="container" select="$context('container')" as="element()"/>
+            <xsl:variable name="progress-container" select="$container/ancestor::div[contains-token(@class, 'span12')][contains-token(@class, 'progress')][contains-token(@class, 'active')][1]" as="element()?"/>
+
+            <xsl:if test="exists($progress-container)">
+                <!-- Update progress bar width -->
+                <xsl:for-each select="$progress-container//div[contains-token(@class, 'bar')]">
+                    <ixsl:set-style name="width" select="$percent || '%'" object="."/>
+                </xsl:for-each>
+
+                <!-- Auto-hide when 100% complete -->
+                <xsl:if test="$percent ge 100">
+                    <xsl:sequence select="ixsl:call(ixsl:get($progress-container, 'classList'), 'toggle', [ 'progress', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+                    <xsl:sequence select="ixsl:call(ixsl:get($progress-container, 'classList'), 'toggle', [ 'progress-striped', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+                    <xsl:sequence select="ixsl:call(ixsl:get($progress-container, 'classList'), 'toggle', [ 'active', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+                </xsl:if>
+            </xsl:if>
+        </xsl:if>
+
+        <xsl:sequence select="$context"/>
+    </xsl:function>
+
     <!-- block delete -->
 
     <xsl:template name="onBlockDelete">

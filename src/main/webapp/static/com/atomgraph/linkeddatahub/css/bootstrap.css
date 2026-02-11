@@ -50,8 +50,6 @@ li button.btn-edit-constructors, li button.btn-add-data, li button.btn-add-ontol
 .btn-import { background-image: url('../icons/ic_transform_black_24px.svg'); }
 .btn-chart { background-image: url('../icons/ic_show_chart_black_24px.svg'); }
 .btn-view { background-image: url('../icons/ic_view_list_black_24px.svg'); }
-.btn-latest { background-image: url('../icons/ic_new_releases_black_24px.svg'); }
-.btn-geo { background-image: url('../icons/ic_location_on_black_24px.svg'); }
 .btn-logo { background-position: left; background-repeat: no-repeat; padding-left: 32px; }
 .dropdown-menu .btn-logo { background-position: 12px center; padding-left: 40px; }
 .btn.btn-toggle-content { font-size: 0; color: transparent; background-image: url('../icons/baseline-expand_less-24px.svg'); background-position: center center; background-repeat: no-repeat; width: 48px; }
@@ -92,9 +90,12 @@ li button.btn-edit-constructors, li button.btn-add-data, li button.btn-add-ontol
     #left-sidebar .nav { max-height: 20em; overflow: auto; }
 }
 #left-sidebar .nav-list > li > a { margin-left: 0; margin-right: 0; }
-#left-sidebar .nav-list > li > a.btn-container, #left-sidebar .nav-list > li > a.btn-app, #left-sidebar .nav-list > li > a.btn-chart, #left-sidebar .nav-list > li > a.btn-file, #left-sidebar .nav-list > li > a.btn-geo, #left-sidebar .nav-list > li > a.btn-import, #left-sidebar .nav-list > li > a.btn-latest, #left-sidebar .nav-list > li > a.btn-query, #left-sidebar .nav-list > li > a.btn-service { padding-left: 24px; }
+#left-sidebar .nav-list > li > a.btn-container
 #left-sidebar li { max-height: 20em; overflow: auto; }
 #left-sidebar li > a { display: inline-block; }
+#left-sidebar .btn-latest { background-image: url('../icons/ic_new_releases_black_24px.svg'); background-color: inherit; }
+#left-sidebar .btn-geo { background-image: url('../icons/ic_location_on_black_24px.svg'); background-color: inherit; }
+
 .btn.btn-expand-tree { height: 24px; width: 24px; background-image: url('../icons/expand_more_black_24dp.svg'); }
 .btn.btn-expand-tree:hover, .btn.btn-expand-tree:focus { background-position: 0 0; }
 .btn.btn-expanded-tree { height: 24px; width: 24px; background-image: url('../icons/chevron_right_black_24dp.svg'); }
