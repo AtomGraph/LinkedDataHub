@@ -104,6 +104,10 @@
         <rdfs:label xml:lang="en-US">Geo</rdfs:label>
         <rdfs:label xml:lang="es-ES">Geo</rdfs:label>
     </rdf:Description>
+    <rdf:Description rdf:nodeID="other">
+        <rdfs:label xml:lang="en-US">Other</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Otro</rdfs:label>
+    </rdf:Description>
     <rdf:Description rdf:nodeID="files">
         <rdfs:label xml:lang="en-US">Files</rdfs:label>
         <rdfs:label xml:lang="es-ES">Archivos</rdfs:label>

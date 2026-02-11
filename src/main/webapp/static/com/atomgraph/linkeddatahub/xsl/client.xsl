@@ -591,9 +591,19 @@ WHERE
 
                 <!-- initialize maps -->
                 <xsl:if test="key('elements-by-class', 'map-canvas', ixsl:page())">
+                    <xsl:variable name="block-uri" select="$uri" as="xs:anyURI"/>
+                    <xsl:variable name="canvas-id" select="key('elements-by-class', 'map-canvas', ixsl:page())/@id" as="xs:string"/>
+                    <xsl:variable name="initial-load" select="not(ixsl:contains(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`'), 'map'))" as="xs:boolean"/>
+                    <xsl:variable name="map" select="if ($initial-load) then ldh:create-map($canvas-id, 0, 0, 4) else ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`'), 'map')" as="item()"/>
+
+                    <xsl:if test="$initial-load">
+                        <ixsl:set-property name="map" select="$map" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`')"/>
+                    </xsl:if>
+                                        
                     <xsl:call-template name="ldh:DrawMap">
-                        <xsl:with-param name="block-uri" select="$uri"/>
-                        <xsl:with-param name="canvas-id" select="key('elements-by-class', 'map-canvas', ixsl:page())/@id"/>
+                        <xsl:with-param name="canvas-id" select="$canvas-id"/>
+                        <xsl:with-param name="initial-load" select="$initial-load"/>
+                        <xsl:with-param name="map" select="$map"/>
                     </xsl:call-template>
                 </xsl:if>
 

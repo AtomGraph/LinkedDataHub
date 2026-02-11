@@ -256,7 +256,9 @@ exclude-result-prefixes="#all"
         <xsl:variable name="mode" select="$context('mode')" as="xs:anyURI?"/>
         <xsl:variable name="show-edit-button" select="$context('show-edit-button')" as="xs:boolean?"/>
 
-        <xsl:message>ldh:block-object-metadata-response</xsl:message>
+        <xsl:message>ldh:block-object-metadata-response $block/@about: <xsl:value-of select="$block/@about"/>
+        
+        </xsl:message>
         
         <xsl:for-each select="$block//div[contains-token(@class, 'bar')]">
             <!-- update progress bar -->
@@ -302,18 +304,24 @@ exclude-result-prefixes="#all"
                                 </xsl:document>
                             </xsl:variable>
 
-                            <xsl:if test="not(ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block/@about || '`'))">
-                                <ixsl:set-property name="{'`' || $block/@about || '`'}" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.contents')"/>
-                            </xsl:if>
-
                             <!-- TO-DO: reuse similar initialization code from client.xsl -->
                             <xsl:if test="$mode = '&ac;MapMode' and key('elements-by-class', 'map-canvas', $block)">
                                 <xsl:for-each select="$resource-doc">
                                     <!-- initialize maps -->
                                     <xsl:if test="key('elements-by-class', 'map-canvas', $block)">
+                                        <xsl:variable name="block-uri" select="$block/@about" as="xs:anyURI"/>
+                                        <xsl:variable name="canvas-id" select="key('elements-by-class', 'map-canvas', $block)/@id" as="xs:string"/>
+                                        <xsl:variable name="initial-load" select="not(ixsl:contains(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`'), 'map'))" as="xs:boolean"/>
+                                        <xsl:variable name="map" select="if ($initial-load) then ldh:create-map($canvas-id, 0, 0, 4) else ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`'), 'map')" as="item()"/>
+
+                                        <xsl:if test="$initial-load">
+                                            <ixsl:set-property name="map" select="$map" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`')"/>
+                                        </xsl:if>
+
                                         <xsl:call-template name="ldh:DrawMap">
-                                            <xsl:with-param name="block-uri" select="$block/@about"/>
-                                            <xsl:with-param name="canvas-id" select="key('elements-by-class', 'map-canvas', $block)/@id"/>
+                                            <xsl:with-param name="canvas-id" select="$canvas-id"/>
+                                            <xsl:with-param name="initial-load" select="$initial-load"/>
+                                            <xsl:with-param name="map" select="$map"/>
                                         </xsl:call-template>
                                     </xsl:if>
                                 </xsl:for-each>
