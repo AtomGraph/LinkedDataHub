@@ -458,44 +458,6 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="$context"/>
     </xsl:function>
 
-    <xsl:function name="ldh:update-progress" as="item()*" ixsl:updating="yes">
-        <xsl:param name="context" as="map(*)"/>
-        <xsl:param name="percent" as="xs:double"/>
-
-        <xsl:message>ldh:update-progress <xsl:value-of select="$percent"/>% at <xsl:value-of select="current-dateTime()"/></xsl:message>
-
-        <!-- Defensive check: ensure context exists and is a map before checking for keys -->
-        <xsl:if test="exists($context) and $context instance of map(*) and map:contains($context, 'container')">
-            <xsl:variable name="container" select="$context('container')" as="element()"/>
-            <xsl:variable name="progress-container" select="$container/ancestor::div[contains-token(@class, 'span12')][contains-token(@class, 'progress')][contains-token(@class, 'active')][1]" as="element()?"/>
-
-            <xsl:if test="exists($progress-container)">
-                <!-- Update progress bar width -->
-                <xsl:for-each select="$progress-container//div[contains-token(@class, 'bar')]">
-                    <ixsl:set-style name="width" select="$percent || '%'" object="."/>
-                </xsl:for-each>
-
-                <!-- Auto-hide when 100% complete -->
-                <xsl:if test="$percent ge 100">
-                    <!-- Remove the parent row-fluid of the bar element -->
-                    <xsl:for-each select="$progress-container//div[contains-token(@class, 'bar')]/parent::div[contains-token(@class, 'row-fluid')]">
-                        <xsl:sequence select="ixsl:call(., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
-                    </xsl:for-each>
-
-                    <xsl:sequence select="ixsl:call(ixsl:get($progress-container, 'classList'), 'toggle', [ 'progress', false() ])[current-date() lt xs:date('2000-01-01')]"/>
-                    <xsl:sequence select="ixsl:call(ixsl:get($progress-container, 'classList'), 'toggle', [ 'progress-striped', false() ])[current-date() lt xs:date('2000-01-01')]"/>
-                    <xsl:sequence select="ixsl:call(ixsl:get($progress-container, 'classList'), 'toggle', [ 'active', false() ])[current-date() lt xs:date('2000-01-01')]"/>
-                </xsl:if>
-            </xsl:if>
-        </xsl:if>
-
-        <!-- Force async boundary to allow browser repaint -->
-        <xsl:sequence select="
-            ixsl:sleep(0) =>
-                ixsl:then(function($ignored) { $context })
-        "/>
-    </xsl:function>
-
     <!-- Progress tracking with dynamic counters -->
 
     <xsl:function name="ldh:update-progress-counter" as="empty-sequence()" ixsl:updating="yes">
