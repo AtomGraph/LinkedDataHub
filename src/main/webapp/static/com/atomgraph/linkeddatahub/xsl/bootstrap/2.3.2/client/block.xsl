@@ -458,11 +458,11 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="$context"/>
     </xsl:function>
 
-    <xsl:function name="ldh:update-progress" as="map(*)" ixsl:updating="yes">
+    <xsl:function name="ldh:update-progress" as="item()*" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
         <xsl:param name="percent" as="xs:double"/>
 
-        <xsl:message>ldh:update-progress <xsl:value-of select="$percent"/>%</xsl:message>
+        <xsl:message>ldh:update-progress <xsl:value-of select="$percent"/>% at <xsl:value-of select="current-dateTime()"/></xsl:message>
 
         <!-- Defensive check: ensure context exists and is a map before checking for keys -->
         <xsl:if test="exists($context) and $context instance of map(*) and map:contains($context, 'container')">
@@ -477,6 +477,11 @@ exclude-result-prefixes="#all"
 
                 <!-- Auto-hide when 100% complete -->
                 <xsl:if test="$percent ge 100">
+                    <!-- Remove the parent row-fluid of the bar element -->
+                    <xsl:for-each select="$progress-container//div[contains-token(@class, 'bar')]/parent::div[contains-token(@class, 'row-fluid')]">
+                        <xsl:sequence select="ixsl:call(., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
+                    </xsl:for-each>
+
                     <xsl:sequence select="ixsl:call(ixsl:get($progress-container, 'classList'), 'toggle', [ 'progress', false() ])[current-date() lt xs:date('2000-01-01')]"/>
                     <xsl:sequence select="ixsl:call(ixsl:get($progress-container, 'classList'), 'toggle', [ 'progress-striped', false() ])[current-date() lt xs:date('2000-01-01')]"/>
                     <xsl:sequence select="ixsl:call(ixsl:get($progress-container, 'classList'), 'toggle', [ 'active', false() ])[current-date() lt xs:date('2000-01-01')]"/>
@@ -484,7 +489,79 @@ exclude-result-prefixes="#all"
             </xsl:if>
         </xsl:if>
 
-        <xsl:sequence select="$context"/>
+        <!-- Force async boundary to allow browser repaint -->
+        <xsl:sequence select="
+            ixsl:sleep(0) =>
+                ixsl:then(function($ignored) { $context })
+        "/>
+    </xsl:function>
+
+    <!-- Progress tracking with dynamic counters -->
+
+    <xsl:function name="ldh:update-progress-counter" as="empty-sequence()" ixsl:updating="yes">
+        <xsl:param name="cache" as="item()"/>
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:param name="action" as="xs:string"/>
+        <xsl:param name="value" as="xs:integer?"/>
+
+        <xsl:choose>
+            <!-- Initialize with total step count -->
+            <xsl:when test="$action = 'init'">
+                <xsl:variable name="total-steps" select="if (exists($value)) then $value else 4" as="xs:integer"/>
+                <xsl:variable name="step-size" select="100 div $total-steps" as="xs:double"/>
+
+                <ixsl:set-property name="current-progress" select="0" object="$cache"/>
+                <ixsl:set-property name="step-size" select="$step-size" object="$cache"/>
+                <ixsl:set-property name="completed-steps" select="0" object="$cache"/>
+                <ixsl:set-property name="total-steps" select="$total-steps" object="$cache"/>
+                <ixsl:set-property name="start-time" select="ixsl:call(ixsl:window(), 'Date.now', [])" object="$cache"/>
+
+                <xsl:message>[0ms] Progress INIT: total-steps=<xsl:value-of select="$total-steps"/> step-size=<xsl:value-of select="format-number($step-size, '0.0')"/>%</xsl:message>
+
+                <!-- Display 0% -->
+                <xsl:sequence select="ldh:display-progress($cache, $context, 0)"/>
+            </xsl:when>
+
+            <!-- Increment progress by one step -->
+            <xsl:when test="$action = 'complete'">
+                <xsl:variable name="step-size" select="ixsl:get($cache, 'step-size')" as="xs:double"/>
+                <xsl:variable name="completed-steps" select="xs:integer(ixsl:get($cache, 'completed-steps')) + 1" as="xs:integer"/>
+                <xsl:variable name="total-steps" select="xs:integer(ixsl:get($cache, 'total-steps'))" as="xs:integer"/>
+                <xsl:variable name="progress" select="min((($completed-steps * $step-size), 100))" as="xs:double"/>
+                <xsl:variable name="elapsed" select="ixsl:call(ixsl:window(), 'Date.now', []) - ixsl:get($cache, 'start-time')" as="xs:double"/>
+
+                <ixsl:set-property name="completed-steps" select="$completed-steps" object="$cache"/>
+                <ixsl:set-property name="current-progress" select="$progress" object="$cache"/>
+
+                <xsl:message>[<xsl:value-of select="format-number($elapsed, '0')"/>ms] Progress STEP <xsl:value-of select="$completed-steps"/>/<xsl:value-of select="$total-steps"/>: <xsl:value-of select="format-number($progress, '0.0')"/>%</xsl:message>
+
+                <xsl:sequence select="ldh:display-progress($cache, $context, $progress)"/>
+            </xsl:when>
+        </xsl:choose>
+    </xsl:function>
+
+    <!-- Helper: Update visual progress bar -->
+    <xsl:function name="ldh:display-progress" as="empty-sequence()" ixsl:updating="yes">
+        <xsl:param name="cache" as="item()"/>
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:param name="percent" as="xs:double"/>
+
+        <xsl:if test="map:contains($context, 'container')">
+            <xsl:variable name="container" select="$context('container')" as="element()"/>
+
+            <xsl:for-each select="$container/ancestor::div[contains-token(@class, 'progress')][contains-token(@class, 'active')][1]">
+                <ixsl:set-style name="width" select="$percent || '%'" object=".//div[contains-token(@class, 'bar')]"/>
+
+                <!-- auto-hide when 100% -->
+                <xsl:if test="$percent ge 100">
+                    <ixsl:set-style name="z-index" select="'-1'" object="./div[contains-token(@class, 'row-block-controls')]"/>
+
+                    <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'progress', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+                    <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'progress-striped', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+                    <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'active', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+                </xsl:if>
+            </xsl:for-each>
+        </xsl:if>
     </xsl:function>
 
     <!-- block delete -->

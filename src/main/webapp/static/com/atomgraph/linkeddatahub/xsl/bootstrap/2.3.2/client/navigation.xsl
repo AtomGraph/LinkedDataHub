@@ -874,7 +874,15 @@ ORDER BY DESC(?created)
                 </div>
                 <div class="modal-body">
                     <div class="row-fluid block">
-                        <div class="span12">
+                        <div class="span12 progress progress-striped active">
+                            <div class="row-fluid row-block-controls" style="position: relative; top: 30px; margin-top: -30px; z-index: 1;">
+                                <div class="span12">
+                                    <div class="row-fluid">
+                                        <div style="width: 0%;" class="span12 bar"></div>
+                                    </div>
+                                </div>
+                            </div>
+
                             <div id="{$container-id}" class="row-fluid" typeof="&ldh;View">
                                 <div class="main span12">
                                     <!-- View results will be rendered here -->
@@ -948,6 +956,9 @@ ORDER BY DESC(?created)
         <ixsl:set-property name="initial-var-name" select="'s'" object="$cache"/> <!-- has to match ldh:SelectInstancesInGraphs -->
         <ixsl:set-property name="endpoint" select="sd:endpoint()" object="$cache"/>
 
+        <!-- Initialize progress counters: 3 steps (metadata, render-view, result-count) -->
+        <xsl:sequence select="ldh:update-progress-counter($cache, map{'container': $container}, 'init', 3)"/>
+
         <xsl:variable name="view-context" as="map(*)">
             <xsl:call-template name="ldh:RenderView">
                 <xsl:with-param name="container" select="$container"/>
@@ -996,7 +1007,15 @@ ORDER BY DESC(?created)
                 </div>
                 <div class="modal-body">
                     <div class="row-fluid block">
-                        <div class="span12">
+                        <div class="span12 progress progress-striped active">
+                            <div class="row-fluid row-block-controls" style="position: relative; top: 30px; margin-top: -30px; z-index: 1;">
+                                <div class="span12">
+                                    <div class="row-fluid">
+                                        <div style="width: 0%;" class="span12 bar"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            
                             <div id="{$container-id}" class="row-fluid" typeof="&ldh;View">
                                 <div class="main span12">
                                     <!-- View results will be rendered here -->
@@ -1063,6 +1082,9 @@ ORDER BY DESC(?created)
         <!-- store the transformed query XML -->
         <ixsl:set-property name="select-xml" select="$select-xml" object="$cache"/>
 
+        <!-- Initialize progress counters: 3 steps (metadata, render-view, result-count) -->
+        <xsl:sequence select="ldh:update-progress-counter($cache, map{'container': $container}, 'init', 3)"/>
+
         <xsl:variable name="view-context" as="map(*)">
             <xsl:call-template name="ldh:RenderView">
                 <xsl:with-param name="container" select="$container"/>
@@ -1099,7 +1121,15 @@ ORDER BY DESC(?created)
                 </div>
                 <div class="modal-body">
                     <div class="row-fluid block">
-                        <div class="span12">
+                        <div class="span12 progress progress-striped active">
+                            <div class="row-fluid row-block-controls" style="position: relative; top: 30px; margin-top: -30px; z-index: 1;">
+                                <div class="span12">
+                                    <div class="row-fluid">
+                                        <div style="width: 0%;" class="span12 bar"></div>
+                                    </div>
+                                </div>
+                            </div>
+
                             <div id="{$container-id}" class="row-fluid" typeof="&ldh;View">
                                 <div class="main span12">
                                     <!-- View results will be rendered here -->
@@ -1131,6 +1161,9 @@ ORDER BY DESC(?created)
         <ixsl:set-property name="select-string" select="$select-string" object="$cache"/>
         <ixsl:set-property name="initial-var-name" select="'dated'" object="$cache"/> <!-- has to match $latest-resources-string -->
         <ixsl:set-property name="endpoint" select="sd:endpoint()" object="$cache"/>
+
+        <!-- Initialize progress counters: 3 steps (metadata, render-view, result-count) -->
+        <xsl:sequence select="ldh:update-progress-counter($cache, map{'container': id($container-id, ixsl:page())}, 'init', 3)"/>
 
         <!-- Load latest resources into modal -->
         <xsl:call-template name="ldh:LatestResourcesLoad">
@@ -1165,6 +1198,9 @@ ORDER BY DESC(?created)
 
         <!-- store the transformed query XML -->
         <ixsl:set-property name="select-xml" select="$select-xml" object="$cache"/>
+
+        <!-- Initialize progress counters: 3 steps (metadata, render-view, result-count) -->
+        <xsl:sequence select="ldh:update-progress-counter($cache, map{'container': $container}, 'init', 3)"/>
 
         <xsl:variable name="view-context" as="map(*)">
             <xsl:call-template name="ldh:RenderView">

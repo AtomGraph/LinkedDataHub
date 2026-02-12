@@ -74,6 +74,10 @@ exclude-result-prefixes="#all"
             <ixsl:set-property name="{'`' || $block/@about || '`'}" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.contents')"/>
         </xsl:if>
 
+        <!-- Initialize progress counters -->
+        <xsl:variable name="cache" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block/@about || '`')"/>
+        <xsl:sequence select="ldh:update-progress-counter($cache, map{'container': $container}, 'init', ())"/>
+
         <xsl:variable name="request-uri" select="ldh:href(ac:document-uri($query-uri), map{})" as="xs:anyURI"/>
         <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
         <!-- $about in the query gets set to the @about of the *parent* block  -->
@@ -89,7 +93,10 @@ exclude-result-prefixes="#all"
             'query-uri': $query-uri,
             'cache': ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block/@about || '`')
           }"/>
-            
+
+        <!-- Track HTTP request start -->
+        <xsl:sequence select="ldh:update-progress-counter($cache, map{'container': $container}, 'start', ())"/>
+
         <xsl:sequence select="
             ldh:load-block#3(
                 $context,
@@ -120,8 +127,7 @@ exclude-result-prefixes="#all"
             ixsl:http-request($context('request')) =>
                 ixsl:then(ldh:rethread-response($context, ?)) =>
                 ixsl:then(ldh:handle-response#1) =>
-                ixsl:then(ldh:view-query-response#1) =>
-                ixsl:then(ldh:update-progress(?, 33))
+                ixsl:then(ldh:view-query-response#1)
         "/>
     </xsl:function>
     
@@ -130,21 +136,18 @@ exclude-result-prefixes="#all"
 
         <xsl:message>ldh:view-results-thunk</xsl:message>
 
+        <!-- Track HTTP request start -->
+        <xsl:sequence select="ldh:update-progress-counter($context('cache'), $context, 'start', ())"/>
+
         <xsl:sequence select="
             ixsl:http-request($context('request')) =>
                 ixsl:then(ldh:rethread-response($context, ?)) =>
                 ixsl:then(ldh:handle-response#1) =>
-                ixsl:then(ldh:update-progress(?, 40)) =>
                 ixsl:then(ldh:load-object-metadata#1) =>
-                ixsl:then(ldh:update-progress(?, 50)) =>
                 ixsl:then(ldh:http-request-threaded#1) =>
                 ixsl:then(ldh:handle-response#1) =>
-                ixsl:then(ldh:update-progress(?, 70)) =>
                 ixsl:then(ldh:set-object-metadata#1) =>
-                ixsl:then(ldh:update-progress(?, 80)) =>
-                ixsl:then(ldh:render-view#1) =>
-                ixsl:then(ldh:update-progress(?, 90)) =>
-                ixsl:then(ldh:update-progress(?, 100))
+                ixsl:then(ldh:render-view#1)
         "/>
     </xsl:function>
 
@@ -164,8 +167,12 @@ exclude-result-prefixes="#all"
                     <xsl:choose>
                         <xsl:when test="$endpoint = sd:endpoint()">
                             <xsl:variable name="object-uris" select="distinct-values($results/rdf:RDF/rdf:Description/*/@rdf:resource[not(key('resources', .))])" as="xs:string*"/>
-                            <xsl:variable name="query-string" select="$object-metadata-query || ' VALUES $this { ' || string-join(for $uri in $object-uris return '&lt;' || $uri || '&gt;', ' ') || ' }'" as="xs:string"/>                    
+                            <xsl:variable name="query-string" select="$object-metadata-query || ' VALUES $this { ' || string-join(for $uri in $object-uris return '&lt;' || $uri || '&gt;', ' ') || ' }'" as="xs:string"/>
                             <xsl:variable name="request" select="map{ 'method': 'POST', 'href': ldh:href($endpoint), 'media-type': 'application/sparql-query', 'body': $query-string, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
+
+                            <!-- Track HTTP request start -->
+                            <xsl:sequence select="ldh:update-progress-counter($context('cache'), $context, 'start', ())"/>
+
                             <xsl:sequence select="map:merge(($context, map{ 'request': $request , 'response': () , 'results': $results }), map{ 'duplicates': 'use-last' })"/>
                         </xsl:when>
                         <xsl:otherwise>
@@ -187,7 +194,7 @@ exclude-result-prefixes="#all"
 
                     <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
 
-                    <xsl:sequence select="ldh:hide-block-progress-bar($context, ())[current-date() lt xs:date('2000-01-01')]"/>
+<!--                    <xsl:sequence select="ldh:hide-block-progress-bar($context, ())[current-date() lt xs:date('2000-01-01')]"/>-->
                     <xsl:sequence select="
                       error(
                         QName('&ldh;', 'ldh:HTTPError'),
@@ -206,6 +213,9 @@ exclude-result-prefixes="#all"
         <xsl:variable name="container" select="$context('container')" as="element()"/>
 
         <xsl:message>ldh:set-object-metadata</xsl:message>
+
+        <!-- Mark metadata response as complete -->
+        <xsl:sequence select="ldh:update-progress-counter($context('cache'), $context, 'complete', ())"/>
 
         <xsl:for-each select="$response">
             <xsl:choose>
@@ -343,6 +353,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="endpoint" as="xs:anyURI"/>
         <xsl:param name="select-xml" as="document-node()"/>
         <xsl:param name="focus-var-name" as="xs:string"/>
+        <xsl:param name="cache" as="item()"/>
         <xsl:variable name="select-xml" as="document-node()">
             <xsl:document>
                 <!-- unset ORDER BY/LIMIT/OFFSET - we want to COUNT all of the container's children; ordering is irrelevant -->
@@ -377,8 +388,13 @@ exclude-result-prefixes="#all"
           map {
             'request': $request,
             'container': .,
-            'count-var-name': $count-var-name
+            'count-var-name': $count-var-name,
+            'cache': $cache
           }"/>
+
+        <!-- Track HTTP request start -->
+        <xsl:sequence select="ldh:update-progress-counter($cache, $context, 'start', ())"/>
+
         <ixsl:promise select="ixsl:http-request($context('request')) =>
             ixsl:then(ldh:rethread-response($context, ?)) =>
             ixsl:then(ldh:handle-response#1) =>
@@ -829,6 +845,7 @@ exclude-result-prefixes="#all"
                     <xsl:with-param name="focus-var-name" select="$focus-var-name"/>
                     <xsl:with-param name="endpoint" select="$endpoint"/>
                     <xsl:with-param name="select-xml" select="$select-xml"/>
+                    <xsl:with-param name="cache" select="$cache"/>
                 </xsl:call-template>
             </xsl:for-each>
              
@@ -845,8 +862,10 @@ exclude-result-prefixes="#all"
                         'container': id($order-by-container-id, ixsl:page()),
                         'id': $id,
                         'predicate': $predicate,
-                        'order-by-predicate': $order-by-predicate
+                        'order-by-predicate': $order-by-predicate,
+                        'cache': $cache
                       }"/>
+
                     <ixsl:promise select="ixsl:http-request($context('request')) =>
                         ixsl:then(ldh:rethread-response($context, ?)) =>
                         ixsl:then(ldh:handle-response#1) =>
@@ -1750,6 +1769,9 @@ exclude-result-prefixes="#all"
                                         <xsl:with-param name="cache" select="$cache"/>
                                     </xsl:call-template>
                                 </xsl:variable>
+                                <!-- Mark query response as complete -->
+                                <xsl:sequence select="ldh:update-progress-counter($cache, $context, 'complete', ())"/>
+
                                 <xsl:sequence select="map:merge((map{ 'block': $block }, $view-context))"/>
                             </xsl:when>
                             <xsl:otherwise>
@@ -1779,7 +1801,7 @@ exclude-result-prefixes="#all"
                         </xsl:result-document>
                     </xsl:for-each>
                     
-                    <xsl:sequence select="ldh:hide-block-progress-bar($context, ())[current-date() lt xs:date('2000-01-01')]"/>
+<!--                    <xsl:sequence select="ldh:hide-block-progress-bar($context, ())[current-date() lt xs:date('2000-01-01')]"/>-->
                     <xsl:sequence select="
                       error(
                         QName('&ldh;', 'ldh:HTTPError'),
@@ -1814,6 +1836,7 @@ exclude-result-prefixes="#all"
         <xsl:for-each select="$results">
             <!-- use the BGPs where the predicate is a URI value and the subject and object are variables -->
             <xsl:variable name="bgp-triples-map" select="$select-xml//json:map[json:string[@key = 'type'] = 'bgp']/json:array[@key = 'triples']/json:map[json:string[@key = 'subject'] = '?' || $initial-var-name][not(starts-with(json:string[@key = 'predicate'], '?'))][starts-with(json:string[@key = 'object'], '?')]" as="element()*"/>
+
             <xsl:variable name="order-by-var-name" select="$select-xml/json:map/json:array[@key = 'order']/json:map[1]/json:string[@key = 'expression']/substring-after(., '?')" as="xs:string?"/>
             <xsl:variable name="order-by-predicate" select="$bgp-triples-map[json:string[@key = 'object'] = '?' || $order-by-var-name][1]/json:string[@key = 'predicate']" as="xs:anyURI?"/>
             <xsl:variable name="desc" select="$select-xml/json:map/json:array[@key = 'order']/json:map[1]/json:boolean[@key = 'descending']" as="xs:boolean?"/>
@@ -1879,6 +1902,9 @@ exclude-result-prefixes="#all"
         <!-- loading is done - restore the default mouse cursor -->
         <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
 
+        <!-- Mark main view query as complete -->
+        <xsl:sequence select="ldh:update-progress-counter($cache, $context, 'complete', ())"/>
+
         <xsl:sequence select="$context"/>
     </xsl:function>
 
@@ -1892,7 +1918,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="object-var-name" select="$context('object-var-name')" as="xs:string"/>
 
         <xsl:message>ldh:facet-filter-response</xsl:message>
-        
+
         <xsl:for-each select="$response">
             <xsl:if test="?status = 200 and ?media-type = 'application/rdf+xml' and ?body">
                 <xsl:variable name="body" select="?body" as="document-node()"/>
@@ -1908,7 +1934,7 @@ exclude-result-prefixes="#all"
             </xsl:if>
             <!-- ignore error response -->
         </xsl:for-each>
-        
+
         <xsl:sequence select="$context"/>
     </xsl:function>
     
@@ -1920,7 +1946,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="results" select="$context('results')" as="document-node()"/>
         
         <xsl:message>ldh:parallax-response</xsl:message>
-        
+
         <xsl:for-each select="$response">
             <xsl:choose>
                 <xsl:when test="?status = 200 and ?media-type = 'application/sparql-results+xml'">
@@ -1976,7 +2002,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="predicate" select="$context('predicate')" as="xs:anyURI"/>
         
         <xsl:message>ldh:parallax-property-response</xsl:message>
-        
+
         <xsl:for-each select="$response">
             <xsl:variable name="results" select="if (?status = 200 and ?media-type = 'application/rdf+xml') then ?body else ()" as="document-node()?"/>
             <xsl:variable name="existing-items" select="$container/li" as="element()*"/>
@@ -2036,7 +2062,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="label-sample-var-name" select="$context('label-sample-var-name')" as="xs:string"/>
 
         <xsl:message>ldh:facet-value-response</xsl:message>
-        
+
         <xsl:for-each select="$response">
             <xsl:variable name="response" select="." as="map(*)"/>
             <xsl:choose>
@@ -2182,6 +2208,9 @@ exclude-result-prefixes="#all"
 
         <xsl:message>ldh:result-count-response</xsl:message>
 
+        <!-- Mark result count response as complete -->
+        <xsl:sequence select="ldh:update-progress-counter($context('cache'), $context, 'complete', ())"/>
+
         <xsl:for-each select="$response">
             <xsl:choose>
                 <xsl:when test="?status = 200 and ?media-type = 'application/sparql-results+xml'">
@@ -2205,7 +2234,7 @@ exclude-result-prefixes="#all"
                 </xsl:otherwise>
             </xsl:choose>
         </xsl:for-each>
-        
+
         <xsl:sequence select="$context"/>
     </xsl:function>
         
@@ -2220,7 +2249,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="order-by-predicate" select="$context('order-by-predicate')" as="xs:anyURI?"/>
 
         <xsl:message>ldh:order-by-response</xsl:message>
-        
+
         <xsl:for-each select="$response">
             <xsl:if test="?status = 200 and ?media-type = 'application/rdf+xml' and ?body">
                 <xsl:variable name="body" select="?body" as="document-node()"/>
@@ -2234,7 +2263,7 @@ exclude-result-prefixes="#all"
             </xsl:if>
             <!-- ignore error response -->
         </xsl:for-each>
-        
+
         <xsl:sequence select="$context"/>
     </xsl:function>
     
