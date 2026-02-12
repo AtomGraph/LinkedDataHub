@@ -1168,60 +1168,84 @@ exclude-result-prefixes="#all"
 
     <!-- view mode dropdown -->
 
-    <xsl:template match="div[@typeof = '&ldh;View']//ul[contains-token(@class, 'view-mode-list')]/li[not(contains-token(@class, 'active'))]/a" mode="ixsl:onclick">
-        <xsl:variable name="block" select="ancestor::div[contains-token(@class, 'block')][1]" as="element()"/>
+    <xsl:template match="div[@about][contains-token(@class, 'block')]//div[@typeof = '&ldh;View']//ul[contains-token(@class, 'view-mode-list')]/li[not(contains-token(@class, 'active'))]/a" mode="ixsl:onclick" priority="1">
+        <xsl:message>BLOCK DELEGATION: view-mode handler triggered</xsl:message>
+        <xsl:variable name="block" select="ancestor::div[@about][contains-token(@class, 'block')][1]" as="element()"/>
         <xsl:variable name="block-uri" select="xs:anyURI($block/@about)" as="xs:anyURI"/>
-        <xsl:variable name="container" select="ancestor::div[@typeof][1]" as="element()"/>
-        <xsl:variable name="results-container" select="$container//div[contains-token(@class, 'container-results')]" as="element()"/> <!-- results in the middle column -->
-        <xsl:variable name="active-class" select="../@class" as="xs:string"/>
-        <xsl:variable name="active-mode" select="map:get($class-modes, $active-class)" as="xs:anyURI"/>
+        <xsl:message>BLOCK DELEGATION: block URI = <xsl:value-of select="$block-uri"/></xsl:message>
         <xsl:variable name="cache" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`')" as="item()"/>
-        <xsl:variable name="select-string" select="ixsl:get($cache, 'select-string')" as="xs:string"/>
-        <xsl:variable name="select-xml" select="ixsl:get($cache, 'select-xml')" as="document-node()"/>
-        <xsl:variable name="initial-var-name" select="ixsl:get($cache, 'initial-var-name')" as="xs:string"/>
-        <xsl:variable name="endpoint" select="ixsl:get($cache, 'endpoint')" as="xs:anyURI"/>
-        <xsl:variable name="results" select="ixsl:get($cache, 'results')" as="document-node()"/>
-        <xsl:variable name="object-uris" select="distinct-values($results/rdf:RDF/rdf:Description/*/@rdf:resource[not(key('resources', .))])" as="xs:string*"/>
-        <xsl:variable name="query-string" select="$object-metadata-query || ' VALUES $this { ' || string-join(for $uri in $object-uris return '&lt;' || $uri || '&gt;', ' ') || ' }'" as="xs:string"/>
-        <xsl:variable name="container-id" select="generate-id($container)" as="xs:string"/>
+        <xsl:message>BLOCK DELEGATION: cache found: <xsl:value-of select="exists($cache)"/></xsl:message>
 
-        <!-- deactivate other tabs -->
-        <xsl:for-each select="../../li">
-            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'active', false() ])[current-date() lt xs:date('2000-01-01')]"/>
-        </xsl:for-each>
-        <!-- activate this tab -->
-        <xsl:for-each select="..">
-            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'active', true() ])[current-date() lt xs:date('2000-01-01')]"/>
-        </xsl:for-each>
-
-        <xsl:variable name="request" select="map{ 'method': 'POST', 'href': ldh:href(sd:endpoint()), 'media-type': 'application/sparql-query', 'body': $query-string, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
-        <xsl:variable name="view-context" as="map(*)">
-            <xsl:call-template name="ldh:RenderView">
-                <xsl:with-param name="container" select="$container"/>
-                <xsl:with-param name="active-mode" select="$active-mode"/>
-                <xsl:with-param name="select-string" select="$select-string"/>
-                <xsl:with-param name="select-xml" select="$select-xml"/>
-                <xsl:with-param name="initial-var-name" select="$initial-var-name"/>
-                <xsl:with-param name="endpoint" select="$endpoint"/>
-                <xsl:with-param name="cache" select="$cache"/>
-            </xsl:call-template>
-        </xsl:variable>
-        <xsl:variable name="context" select="map:merge((map{ 'block': $block }, $view-context))" as="map(*)"/>
-
-        <ixsl:promise select="
-            ixsl:resolve($context) =>
-                ixsl:then(ldh:view-results-thunk#1)
-            "
-            on-failure="ldh:promise-failure#1"/>
+        <xsl:next-match>
+            <xsl:with-param name="cache" select="$cache"/>
+        </xsl:next-match>
     </xsl:template>
 
     <!-- pager prev links -->
 
-    <xsl:template match="div[@typeof = '&ldh;View']//ul[@class = 'pager']/li[@class = 'previous']/a[@class = 'active']" mode="ixsl:onclick">
-        <xsl:variable name="block" select="ancestor::div[contains-token(@class, 'block')][1]" as="element()"/>
-        <xsl:variable name="container" select="ancestor::div[@typeof][1]" as="element()"/>
+    <xsl:template match="div[@about][contains-token(@class, 'block')]//div[@typeof = '&ldh;View']//ul[@class = 'pager']/li[@class = 'previous']/a[@class = 'active']" mode="ixsl:onclick" priority="1">
+        <xsl:message>BLOCK DELEGATION: pager previous triggered</xsl:message>
+        <xsl:variable name="block" select="ancestor::div[@about][contains-token(@class, 'block')][1]" as="element()"/>
         <xsl:variable name="block-uri" select="xs:anyURI($block/@about)" as="xs:anyURI"/>
+        <xsl:message>BLOCK DELEGATION: block URI = <xsl:value-of select="$block-uri"/></xsl:message>
         <xsl:variable name="cache" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`')" as="item()"/>
+        <xsl:message>BLOCK DELEGATION: cache found: <xsl:value-of select="exists($cache)"/></xsl:message>
+
+        <xsl:next-match>
+            <xsl:with-param name="cache" select="$cache"/>
+        </xsl:next-match>
+    </xsl:template>
+
+    <!-- pager next links -->
+
+    <xsl:template match="div[@about][contains-token(@class, 'block')]//div[@typeof = '&ldh;View']//ul[@class = 'pager']/li[@class = 'next']/a[@class = 'active']" mode="ixsl:onclick" priority="1">
+        <xsl:message>BLOCK DELEGATION: pager next triggered</xsl:message>
+        <xsl:variable name="block" select="ancestor::div[@about][contains-token(@class, 'block')][1]" as="element()"/>
+        <xsl:variable name="block-uri" select="xs:anyURI($block/@about)" as="xs:anyURI"/>
+        <xsl:message>BLOCK DELEGATION: block URI = <xsl:value-of select="$block-uri"/></xsl:message>
+        <xsl:variable name="cache" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`')" as="item()"/>
+        <xsl:message>BLOCK DELEGATION: cache found: <xsl:value-of select="exists($cache)"/></xsl:message>
+
+        <xsl:next-match>
+            <xsl:with-param name="cache" select="$cache"/>
+        </xsl:next-match>
+    </xsl:template>
+
+    <!-- order by onchange -->
+
+    <xsl:template match="div[@about][contains-token(@class, 'block')]//div[@typeof = '&ldh;View']//select[contains-token(@class, 'container-order')]" mode="ixsl:onchange" priority="1">
+        <xsl:message>BLOCK DELEGATION: container-order triggered</xsl:message>
+        <xsl:variable name="block" select="ancestor::div[@about][contains-token(@class, 'block')][1]" as="element()"/>
+        <xsl:variable name="block-uri" select="xs:anyURI($block/@about)" as="xs:anyURI"/>
+        <xsl:message>BLOCK DELEGATION: block URI = <xsl:value-of select="$block-uri"/></xsl:message>
+        <xsl:variable name="cache" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`')" as="item()"/>
+        <xsl:message>BLOCK DELEGATION: cache found: <xsl:value-of select="exists($cache)"/></xsl:message>
+
+        <xsl:next-match>
+            <xsl:with-param name="cache" select="$cache"/>
+        </xsl:next-match>
+    </xsl:template>
+
+    <!-- ascending/descending onclick -->
+    
+    <!-- TO-DO: unify with container ORDER BY onchange -->
+    <xsl:template match="div[@about][contains-token(@class, 'block')]//div[@typeof = '&ldh;View']//button[contains-token(@class, 'btn-order-by')]" mode="ixsl:onclick" priority="1">
+        <xsl:message>BLOCK DELEGATION: btn-order-by triggered</xsl:message>
+        <xsl:variable name="block" select="ancestor::div[@about][contains-token(@class, 'block')][1]" as="element()"/>
+        <xsl:variable name="block-uri" select="xs:anyURI($block/@about)" as="xs:anyURI"/>
+        <xsl:message>BLOCK DELEGATION: block URI = <xsl:value-of select="$block-uri"/></xsl:message>
+        <xsl:variable name="cache" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`')" as="item()"/>
+        <xsl:message>BLOCK DELEGATION: cache found: <xsl:value-of select="exists($cache)"/></xsl:message>
+
+        <xsl:next-match>
+            <xsl:with-param name="cache" select="$cache"/>
+        </xsl:next-match>
+    </xsl:template>
+
+    <!-- View pagination - previous page (generic handler for all Views) -->
+    <xsl:template match="div[@typeof = '&ldh;View']//ul[@class = 'pager']/li[@class = 'previous']/a[@class = 'active']" mode="ixsl:onclick">
+        <xsl:param name="container" select="ancestor::div[@typeof = '&ldh;View'][1]" as="element()"/>
+        <xsl:param name="cache" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $container/@id || '`')" as="item()"/>
         <xsl:variable name="select-string" select="ixsl:get($cache, 'select-string')" as="xs:string"/>
         <xsl:variable name="select-xml" select="ixsl:get($cache, 'select-xml')" as="document-node()"/>
         <xsl:variable name="initial-var-name" select="ixsl:get($cache, 'initial-var-name')" as="xs:string"/>
@@ -1251,7 +1275,7 @@ exclude-result-prefixes="#all"
                 <xsl:with-param name="cache" select="$cache"/>
             </xsl:call-template>
         </xsl:variable>
-        <xsl:variable name="context" select="map:merge((map{ 'block': $block }, $view-context))" as="map(*)"/>
+        <xsl:variable name="context" select="map:merge((map{ 'block': $container }, $view-context))" as="map(*)"/>
 
         <ixsl:promise select="
             ixsl:resolve($context) =>
@@ -1260,13 +1284,10 @@ exclude-result-prefixes="#all"
             on-failure="ldh:promise-failure#1"/>
     </xsl:template>
 
-    <!-- pager next links -->
-    
+    <!-- View pagination - next page (generic handler for all Views) -->
     <xsl:template match="div[@typeof = '&ldh;View']//ul[@class = 'pager']/li[@class = 'next']/a[@class = 'active']" mode="ixsl:onclick">
-        <xsl:variable name="block" select="ancestor::div[contains-token(@class, 'block')][1]" as="element()"/>
-        <xsl:variable name="container" select="ancestor::div[@typeof][1]" as="element()"/>
-        <xsl:variable name="block-uri" select="xs:anyURI($block/@about)" as="xs:anyURI"/>
-        <xsl:variable name="cache" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`')" as="item()"/>
+        <xsl:param name="container" select="ancestor::div[@typeof = '&ldh;View'][1]" as="element()"/>
+        <xsl:param name="cache" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $container/@id || '`')" as="item()"/>
         <xsl:variable name="select-string" select="ixsl:get($cache, 'select-string')" as="xs:string"/>
         <xsl:variable name="select-xml" select="ixsl:get($cache, 'select-xml')" as="document-node()"/>
         <xsl:variable name="initial-var-name" select="ixsl:get($cache, 'initial-var-name')" as="xs:string"/>
@@ -1296,7 +1317,7 @@ exclude-result-prefixes="#all"
                 <xsl:with-param name="cache" select="$cache"/>
             </xsl:call-template>
         </xsl:variable>
-        <xsl:variable name="context" select="map:merge((map{ 'block': $block }, $view-context))" as="map(*)"/>
+        <xsl:variable name="context" select="map:merge((map{ 'block': $container }, $view-context))" as="map(*)"/>
 
         <ixsl:promise select="
             ixsl:resolve($context) =>
@@ -1305,14 +1326,11 @@ exclude-result-prefixes="#all"
             on-failure="ldh:promise-failure#1"/>
     </xsl:template>
 
-    <!-- order by onchange -->
-    
+    <!-- View container-order handler (generic handler for all Views) -->
     <xsl:template match="div[@typeof = '&ldh;View']//select[contains-token(@class, 'container-order')]" mode="ixsl:onchange">
-        <xsl:variable name="block" select="ancestor::div[contains-token(@class, 'block')][1]" as="element()"/>
-        <xsl:variable name="container" select="ancestor::div[@typeof][1]" as="element()"/>
-        <xsl:variable name="block-uri" select="xs:anyURI($block/@about)" as="xs:anyURI"/>
+        <xsl:param name="container" select="ancestor::div[@typeof = '&ldh;View'][1]" as="element()"/>
+        <xsl:param name="cache" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $container/@id || '`')" as="item()"/>
         <xsl:variable name="predicate" select="ixsl:get(., 'value')" as="xs:anyURI?"/>
-        <xsl:variable name="cache" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`')" as="item()"/>
         <xsl:variable name="select-string" select="ixsl:get($cache, 'select-string')" as="xs:string"/>
         <xsl:variable name="select-xml" select="ixsl:get($cache, 'select-xml')" as="document-node()"/>
         <xsl:variable name="initial-var-name" select="ixsl:get($cache, 'initial-var-name')" as="xs:string"/>
@@ -1343,7 +1361,7 @@ exclude-result-prefixes="#all"
                 <xsl:with-param name="cache" select="$cache"/>
             </xsl:call-template>
         </xsl:variable>
-        <xsl:variable name="context" select="map:merge((map{ 'block': $block }, $view-context))" as="map(*)"/>
+        <xsl:variable name="context" select="map:merge((map{ 'block': $container }, $view-context))" as="map(*)"/>
 
         <ixsl:promise select="
             ixsl:resolve($context) =>
@@ -1352,15 +1370,11 @@ exclude-result-prefixes="#all"
             on-failure="ldh:promise-failure#1"/>
     </xsl:template>
 
-    <!-- ascending/descending onclick -->
-    
-    <!-- TO-DO: unify with container ORDER BY onchange -->
+    <!-- View order-by button handler (generic handler for all Views) -->
     <xsl:template match="div[@typeof = '&ldh;View']//button[contains-token(@class, 'btn-order-by')]" mode="ixsl:onclick">
-        <xsl:variable name="block" select="ancestor::div[contains-token(@class, 'block')][1]" as="element()"/>
-        <xsl:variable name="container" select="ancestor::div[@typeof][1]" as="element()"/>
-        <xsl:variable name="block-uri" select="xs:anyURI($block/@about)" as="xs:anyURI"/>
+        <xsl:param name="container" select="ancestor::div[@typeof = '&ldh;View'][1]" as="element()"/>
+        <xsl:param name="cache" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $container/@id || '`')" as="item()"/>
         <xsl:variable name="desc" select="contains(@class, 'btn-order-by-desc')" as="xs:boolean"/>
-        <xsl:variable name="cache" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`')" as="item()"/>
         <xsl:variable name="select-string" select="ixsl:get($cache, 'select-string')" as="xs:string"/>
         <xsl:variable name="select-xml" select="ixsl:get($cache, 'select-xml')" as="document-node()"/>
         <xsl:variable name="initial-var-name" select="ixsl:get($cache, 'initial-var-name')" as="xs:string"/>
@@ -1390,7 +1404,7 @@ exclude-result-prefixes="#all"
                 <xsl:with-param name="cache" select="$cache"/>
             </xsl:call-template>
         </xsl:variable>
-        <xsl:variable name="context" select="map:merge((map{ 'block': $block }, $view-context))" as="map(*)"/>
+        <xsl:variable name="context" select="map:merge((map{ 'block': $container }, $view-context))" as="map(*)"/>
 
         <ixsl:promise select="
             ixsl:resolve($context) =>
@@ -1400,6 +1414,48 @@ exclude-result-prefixes="#all"
 
         <!-- toggle the arrow direction -->
         <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'btn-order-by-desc' ])[current-date() lt xs:date('2000-01-01')]"/>
+    </xsl:template>
+
+    <!-- View mode handler (generic handler for all Views) -->
+    <xsl:template match="div[@typeof = '&ldh;View']//ul[contains-token(@class, 'view-mode-list')]/li[not(contains-token(@class, 'active'))]/a" mode="ixsl:onclick">
+        <xsl:param name="container" select="ancestor::div[@typeof = '&ldh;View'][1]" as="element()"/>
+        <xsl:param name="cache" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $container/@id || '`')" as="item()"/>
+        <xsl:variable name="active-class" select="../@class" as="xs:string"/>
+        <xsl:variable name="active-mode" select="map:get($class-modes, $active-class)" as="xs:anyURI"/>
+        <xsl:variable name="select-string" select="ixsl:get($cache, 'select-string')" as="xs:string"/>
+        <xsl:variable name="select-xml" select="ixsl:get($cache, 'select-xml')" as="document-node()"/>
+        <xsl:variable name="initial-var-name" select="ixsl:get($cache, 'initial-var-name')" as="xs:string"/>
+        <xsl:variable name="endpoint" select="ixsl:get($cache, 'endpoint')" as="xs:anyURI"/>
+
+        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+
+        <!-- deactivate other tabs -->
+        <xsl:for-each select="../../li">
+            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'active', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+        </xsl:for-each>
+        <!-- activate this tab -->
+        <xsl:for-each select="..">
+            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'active', true() ])[current-date() lt xs:date('2000-01-01')]"/>
+        </xsl:for-each>
+
+        <xsl:variable name="view-context" as="map(*)">
+            <xsl:call-template name="ldh:RenderView">
+                <xsl:with-param name="container" select="$container"/>
+                <xsl:with-param name="active-mode" select="$active-mode"/>
+                <xsl:with-param name="select-string" select="$select-string"/>
+                <xsl:with-param name="select-xml" select="$select-xml"/>
+                <xsl:with-param name="initial-var-name" select="$initial-var-name"/>
+                <xsl:with-param name="endpoint" select="$endpoint"/>
+                <xsl:with-param name="cache" select="$cache"/>
+            </xsl:call-template>
+        </xsl:variable>
+        <xsl:variable name="context" select="map:merge((map{ 'block': $container }, $view-context))" as="map(*)"/>
+
+        <ixsl:promise select="
+            ixsl:resolve($context) =>
+                ixsl:then(ldh:view-results-thunk#1)
+            "
+            on-failure="ldh:promise-failure#1"/>
     </xsl:template>
 
     <!-- facet header onclick -->
