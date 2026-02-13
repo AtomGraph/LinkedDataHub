@@ -24,20 +24,30 @@ echo "test,data,sample" > "$test_file"
 echo "1,2,3" >> "$test_file"
 echo "4,5,6" >> "$test_file"
 
-# generate slug for the file document
-
 slug=$(uuidgen | tr '[:upper:]' '[:lower:]')
 
-# upload file with explicit media type: text/plain
-
-file_doc=$(create-file.sh \
+# Create an item document to hold the file
+file_doc=$(create-item.sh \
   -f "$AGENT_CERT_FILE" \
   -p "$AGENT_CERT_PWD" \
   -b "$END_USER_BASE_URL" \
   --title "Test File for Media Type Update" \
-  --slug "$slug" \
+  --container "$END_USER_BASE_URL" \
+  --slug "$slug")
+
+# upload file with explicit media type: text/plain
+add-file.sh \
+  -f "$AGENT_CERT_FILE" \
+  -p "$AGENT_CERT_PWD" \
+  -b "$END_USER_BASE_URL" \
+  --title "Test File for Media Type Update" \
   --file "$test_file" \
-  --file-content-type "text/plain")
+  --file-content-type "text/plain" \
+  "$file_doc"
+
+# Calculate file URI from SHA1 hash
+sha1sum=$(shasum -a 1 "$test_file" | awk '{print $1}')
+file_uri="${END_USER_BASE_URL}uploads/${sha1sum}"
 
 # get the file resource URI and initial dct:format
 
@@ -46,8 +56,6 @@ file_doc_ntriples=$(get.sh \
   -p "$AGENT_CERT_PWD" \
   --accept 'application/n-triples' \
   "$file_doc")
-
-file_uri=$(echo "$file_doc_ntriples" | sed -rn "s/<${file_doc//\//\\/}> <http:\/\/xmlns.com\/foaf\/0.1\/primaryTopic> <(.*)> \./\1/p")
 
 # get initial SHA1 hash
 initial_sha1=$(echo "$file_doc_ntriples" | sed -rn "s/<${file_uri//\//\\/}> <http:\/\/xmlns.com\/foaf\/0.1\/sha1> \"(.*)\" \./\1/p")
@@ -61,18 +69,17 @@ if [[ ! "$initial_format" =~ text/plain ]]; then
     exit 1
 fi
 
-# re-upload the same file with same slug but different explicit media type: text/csv
+# re-upload the same file but different explicit media type: text/csv
 # this simulates editing the file document through the UI and uploading a new file
 
-create-file.sh \
+add-file.sh \
   -f "$AGENT_CERT_FILE" \
   -p "$AGENT_CERT_PWD" \
   -b "$END_USER_BASE_URL" \
   --title "Test File for Media Type Update" \
-  --slug "$slug" \
   --file "$test_file" \
   --file-content-type "text/csv" \
-  > /dev/null
+  "$file_doc"
 
 # get updated document
 

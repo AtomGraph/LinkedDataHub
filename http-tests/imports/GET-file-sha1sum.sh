@@ -23,21 +23,36 @@ filename="/tmp/random-file"
 time dd if=/dev/urandom of="$filename" bs=1 count=1024
 file_content_type="application/octet-stream"
 
-file_doc=$(create-file.sh \
--f "$AGENT_CERT_FILE" \
--p "$AGENT_CERT_PWD" \
--b "$END_USER_BASE_URL" \
---title "Random file" \
---file "$filename" \
---file-content-type "${file_content_type}")
-
-file_doc_ntriples=$(get.sh \
+# Create a container for files first
+create-container.sh \
   -f "$AGENT_CERT_FILE" \
   -p "$AGENT_CERT_PWD" \
-  --accept 'application/n-triples' \
-  "$file_doc")
+  -b "$END_USER_BASE_URL" \
+  --title "Files" \
+  --parent "$END_USER_BASE_URL" \
+  --slug "files"
 
-file=$(echo "$file_doc_ntriples" | sed -rn "s/<${file_doc//\//\\/}> <http:\/\/xmlns.com\/foaf\/0.1\/primaryTopic> <(.*)> \./\1/p")
+# Create an item document to hold the file
+file_doc=$(create-item.sh \
+  -f "$AGENT_CERT_FILE" \
+  -p "$AGENT_CERT_PWD" \
+  -b "$END_USER_BASE_URL" \
+  --title "Random file" \
+  --container "${END_USER_BASE_URL}files/")
+
+# Add the file to the document
+add-file.sh \
+  -f "$AGENT_CERT_FILE" \
+  -p "$AGENT_CERT_PWD" \
+  -b "$END_USER_BASE_URL" \
+  --title "Random file" \
+  --file "$filename" \
+  --file-content-type "${file_content_type}" \
+  "$file_doc"
+
+# Calculate file URI from SHA1 hash
+sha1sum=$(shasum -a 1 "$filename" | awk '{print $1}')
+file="${END_USER_BASE_URL}uploads/${sha1sum}"
 
 server_sha1sum=$(echo "$file" | cut -d "/" -f 5) # cut the last URL path segment
 

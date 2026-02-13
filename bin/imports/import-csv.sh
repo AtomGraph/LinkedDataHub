@@ -139,55 +139,72 @@ if [ -z "$proxy" ] ; then
     proxy="$base"
 fi
 
-query_doc=$(create-query.sh \
+# Generate query ID for fragment identifier
+query_id=$(uuidgen | tr '[:upper:]' '[:lower:]')
+
+# Create the imports/ container first (ignore error if it already exists)
+create-container.sh \
+  -b "$base" \
+  -f "$cert_pem_file" \
+  -p "$cert_password" \
+  --proxy "$proxy" \
+  --title "Imports" \
+  --parent "$base" \
+  --slug "imports" 2>/dev/null || true
+
+# Create the import item document
+import_doc=$(create-item.sh \
   -b "$base" \
   -f "$cert_pem_file" \
   -p "$cert_password" \
   --proxy "$proxy" \
   --title "$title" \
-  --slug "$query_doc_slug" \
-  --query-file "$query_file"
+  --container "${base}imports/" \
+  --slug "$query_doc_slug"
 )
 
-query_ntriples=$(get.sh \
-  -f "$cert_pem_file" \
-  -p "$cert_password" \
-  --proxy "$proxy" \
-  --accept 'application/n-triples' \
-  "$query_doc"
-)
-
-query=$(echo "$query_ntriples" | sed -rn "s/<${query_doc//\//\\/}> <http:\/\/xmlns.com\/foaf\/0.1\/primaryTopic> <(.*)> \./\1/p" | head -1)
-
-file_doc=$(create-file.sh \
+# Add the CONSTRUCT query to the item using fragment identifier
+add-construct.sh \
   -b "$base" \
   -f "$cert_pem_file" \
   -p "$cert_password" \
   --proxy "$proxy" \
   --title "$title" \
-  --slug "$file_doc_slug" \
-  --file-slug "$file_slug" \
+  --uri "#${query_id}" \
+  --query-file "$query_file" \
+  "$import_doc"
+
+# The query URI is the document with fragment
+query="${import_doc}#${query_id}"
+
+# Add the file to the import item
+add-file.sh \
+  -b "$base" \
+  -f "$cert_pem_file" \
+  -p "$cert_password" \
+  --proxy "$proxy" \
+  --title "$title" \
   --file "$file" \
-  --file-content-type "text/csv"
-)
+  --file-content-type "text/csv" \
+  "$import_doc"
 
-file_ntriples=$(get.sh \
-  -f "$cert_pem_file" \
-  -p "$cert_password" \
-  --proxy "$proxy" \
-  --accept 'application/n-triples' \
-  "$file_doc")
+# Calculate file URI from SHA1 hash
+sha1sum=$(shasum -a 1 "$file" | awk '{print $1}')
+file_uri="${base}uploads/${sha1sum}"
 
-file=$(echo "$file_ntriples" | sed -rn "s/<${file_doc//\//\\/}> <http:\/\/xmlns.com\/foaf\/0.1\/primaryTopic> <(.*)> \./\1/p" | head -1)
+# Generate import ID for fragment identifier
+import_id=$(uuidgen | tr '[:upper:]' '[:lower:]')
 
-create-csv-import.sh \
+# Add the import metadata to the import item using fragment identifier
+add-csv-import.sh \
   -b "$base" \
   -f "$cert_pem_file" \
   -p "$cert_password" \
   --proxy "$proxy" \
   --title "$title" \
-  --slug "$import_slug" \
+  --uri "#${import_id}" \
   --query "$query" \
-  --file "$file" \
-  --delimiter "$delimiter"
+  --file "$file_uri" \
+  --delimiter "$delimiter" \
+  "$import_doc"
   

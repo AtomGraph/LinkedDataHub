@@ -24,19 +24,29 @@ echo "test,data,sample" > "$test_file"
 echo "1,2,3" >> "$test_file"
 echo "4,5,6" >> "$test_file"
 
-# generate slug for the file document
-
 slug=$(uuidgen | tr '[:upper:]' '[:lower:]')
 
-# upload file WITHOUT explicit media type (rely on browser detection via `file -b --mime-type`)
-
-file_doc=$(create-file.sh \
+# Create an item document to hold the file
+file_doc=$(create-item.sh \
   -f "$AGENT_CERT_FILE" \
   -p "$AGENT_CERT_PWD" \
   -b "$END_USER_BASE_URL" \
   --title "Test File for Browser Media Type" \
-  --slug "$slug" \
-  --file "$test_file")
+  --container "$END_USER_BASE_URL" \
+  --slug "$slug")
+
+# upload file WITHOUT explicit media type (rely on browser detection via `file -b --mime-type`)
+add-file.sh \
+  -f "$AGENT_CERT_FILE" \
+  -p "$AGENT_CERT_PWD" \
+  -b "$END_USER_BASE_URL" \
+  --title "Test File for Browser Media Type" \
+  --file "$test_file" \
+  "$file_doc"
+
+# Calculate file URI from SHA1 hash
+sha1sum=$(shasum -a 1 "$test_file" | awk '{print $1}')
+file_uri="${END_USER_BASE_URL}uploads/${sha1sum}"
 
 # get the file resource URI and initial dct:format
 
@@ -46,25 +56,23 @@ file_doc_ntriples=$(get.sh \
   --accept 'application/n-triples' \
   "$file_doc")
 
-file_uri=$(echo "$file_doc_ntriples" | sed -rn "s/<${file_doc//\//\\/}> <http:\/\/xmlns.com\/foaf\/0.1\/primaryTopic> <(.*)> \./\1/p")
-
 # get initial SHA1 hash
 initial_sha1=$(echo "$file_doc_ntriples" | sed -rn "s/<${file_uri//\//\\/}> <http:\/\/xmlns.com\/foaf\/0.1\/sha1> \"(.*)\" \./\1/p")
 
 # get initial dct:format (should be browser-detected)
 initial_format=$(echo "$file_doc_ntriples" | sed -rn "s/<${file_uri//\//\\/}> <http:\/\/purl.org\/dc\/terms\/format> <(.*)> \./\1/p")
 
-# re-upload the same file with same slug but WITH explicit media type: text/csv
+# re-upload the same file but WITH explicit media type: text/csv
 # this simulates editing and uploading with a corrected format after browser auto-detection was wrong
 
-create-file.sh \
+add-file.sh \
   -f "$AGENT_CERT_FILE" \
   -p "$AGENT_CERT_PWD" \
   -b "$END_USER_BASE_URL" \
   --title "Test File for Browser Media Type" \
-  --slug "$slug" \
   --file "$test_file" \
   --file-content-type "text/csv" \
+  "$file_doc" \
   > /dev/null
 
 # get updated document
