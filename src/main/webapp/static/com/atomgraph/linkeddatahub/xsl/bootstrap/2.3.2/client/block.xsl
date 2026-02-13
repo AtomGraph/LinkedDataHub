@@ -478,8 +478,6 @@ exclude-result-prefixes="#all"
                 <ixsl:set-property name="total-steps" select="$total-steps" object="$cache"/>
                 <ixsl:set-property name="start-time" select="ixsl:call(ixsl:window(), 'Date.now', [])" object="$cache"/>
 
-                <xsl:message>[0ms] Progress INIT: total-steps=<xsl:value-of select="$total-steps"/> step-size=<xsl:value-of select="format-number($step-size, '0.0')"/>%</xsl:message>
-
                 <!-- Display 0% -->
                 <xsl:sequence select="ldh:display-progress($cache, $context, 0)"/>
             </xsl:when>
@@ -494,8 +492,6 @@ exclude-result-prefixes="#all"
 
                 <ixsl:set-property name="completed-steps" select="$completed-steps" object="$cache"/>
                 <ixsl:set-property name="current-progress" select="$progress" object="$cache"/>
-
-                <xsl:message>[<xsl:value-of select="format-number($elapsed, '0')"/>ms] Progress STEP <xsl:value-of select="$completed-steps"/>/<xsl:value-of select="$total-steps"/>: <xsl:value-of select="format-number($progress, '0.0')"/>%</xsl:message>
 
                 <xsl:sequence select="ldh:display-progress($cache, $context, $progress)"/>
             </xsl:when>

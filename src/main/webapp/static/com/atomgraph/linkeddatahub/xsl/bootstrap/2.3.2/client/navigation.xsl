@@ -150,10 +150,6 @@ ORDER BY DESC(?created)
         <!-- Strip query params from href to ensure consistent matching -->
         <xsl:variable name="target-uri" select="ac:document-uri($href)" as="xs:anyURI"/>
 
-        <xsl:message>
-            ldh:DocTreeActivateHref $href: <xsl:value-of select="$href"/>, stripped: <xsl:value-of select="$target-uri"/>
-        </xsl:message>
-
         <!-- make the previously active list items inactive -->
         <xsl:for-each select=".//li[contains-token(@class, 'active')]">
             <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'active', false() ])[current-date() lt xs:date('2000-01-01')]"/>
@@ -192,14 +188,11 @@ ORDER BY DESC(?created)
         <xsl:param name="container" as="element()"/> <!-- document-tree element -->
         <xsl:param name="target" as="xs:anyURI"/> <!-- target document URI (already stripped of query params) -->
 
-        <xsl:message>ldh:DocTreeExpandPathAndActivate - starting descent for target: <xsl:value-of select="$target"/></xsl:message>
-
         <!-- Find the root <li> element (first top-level li in the tree) -->
         <xsl:variable name="root-li" select="$container/ul/li[1]" as="element()?"/>
 
         <xsl:choose>
             <xsl:when test="$root-li">
-                <xsl:message>ldh:DocTreeExpandPathAndActivate - found root: <xsl:value-of select="$root-li/a/@href"/></xsl:message>
                 <!-- Start recursive descent from root -->
                 <xsl:sequence select="ldh:doctree-descend($root-li, $target, $container)[current-date() lt xs:date('2000-01-01')]"/>
             </xsl:when>
@@ -471,12 +464,9 @@ ORDER BY DESC(?created)
         <!-- Strip query parameters for comparison -->
         <xsl:variable name="current-href" select="ac:document-uri($current-href-full)" as="xs:anyURI"/>
 
-        <xsl:message>ldh:doctree-descend - current: <xsl:value-of select="$current-href"/>, target: <xsl:value-of select="$target-uri"/></xsl:message>
-
         <xsl:choose>
             <!-- Case 1: We've reached the target - activate it -->
             <xsl:when test="$current-href = $target-uri">
-                <xsl:message>ldh:doctree-descend - reached target, activating</xsl:message>
                 <xsl:for-each select="$tree-container">
                     <xsl:call-template name="ldh:DocTreeActivateHref">
                         <xsl:with-param name="href" select="$target-uri"/>
@@ -492,8 +482,6 @@ ORDER BY DESC(?created)
                 <xsl:choose>
                     <!-- Case 2a: Has expand button and not expanded yet - expand and load children -->
                     <xsl:when test="$expand-button and not($current-li/ul)">
-                        <xsl:message>ldh:doctree-descend - expanding: <xsl:value-of select="$current-href"/></xsl:message>
-
                         <!-- Create <ul> for children -->
                         <xsl:for-each select="$current-li">
                             <xsl:result-document href="?." method="ixsl:append-content">
@@ -552,18 +540,14 @@ ORDER BY DESC(?created)
 
                     <!-- Case 2b: Already expanded - find next child to descend into -->
                     <xsl:when test="$current-li/ul/li">
-                        <xsl:message>ldh:doctree-descend - already expanded, finding next child</xsl:message>
-
                         <!-- Find which child's href (without query params) is a prefix of target-uri -->
                         <xsl:variable name="next-li" select="$current-li/ul/li[starts-with(string($target-uri), string(ac:document-uri(xs:anyURI(a/@href))))][1]" as="element()?"/>
 
                         <xsl:choose>
                             <xsl:when test="$next-li">
-                                <xsl:message>ldh:doctree-descend - descending to: <xsl:value-of select="$next-li/a/@href"/></xsl:message>
                                 <xsl:sequence select="ldh:doctree-descend($next-li, $target-uri, $tree-container)"/>
                             </xsl:when>
                             <xsl:otherwise>
-                                <xsl:message>ldh:doctree-descend - no matching child found, activating target</xsl:message>
                                 <xsl:for-each select="$tree-container">
                                     <xsl:call-template name="ldh:DocTreeActivateHref">
                                         <xsl:with-param name="href" select="$target-uri"/>
@@ -576,7 +560,6 @@ ORDER BY DESC(?created)
 
                     <!-- Case 2c: Has expand button but <ul> exists and is empty (loading in progress) -->
                     <xsl:otherwise>
-                        <xsl:message>ldh:doctree-descend - waiting for children to load</xsl:message>
                         <xsl:sequence select="map{}"/>
                     </xsl:otherwise>
                 </xsl:choose>
@@ -584,7 +567,6 @@ ORDER BY DESC(?created)
 
             <!-- Case 3: Target is not under this branch -->
             <xsl:otherwise>
-                <xsl:message>ldh:doctree-descend - target not under this branch</xsl:message>
                 <xsl:sequence select="map{}"/>
             </xsl:otherwise>
         </xsl:choose>
@@ -597,18 +579,14 @@ ORDER BY DESC(?created)
         <xsl:param name="target-uri" as="xs:anyURI"/>
         <xsl:param name="tree-container" as="element()"/>
 
-        <xsl:message>ldh:doctree-descend-after-load - children loaded for: <xsl:value-of select="$current-li/a/@href"/></xsl:message>
-
         <!-- Find which child's href (without query params) is a prefix of target-uri -->
         <xsl:variable name="next-li" select="$current-li/ul/li[starts-with(string($target-uri), string(ac:document-uri(xs:anyURI(a/@href))))][1]" as="element()?"/>
 
         <xsl:choose>
             <xsl:when test="$next-li">
-                <xsl:message>ldh:doctree-descend-after-load - descending to: <xsl:value-of select="$next-li/a/@href"/></xsl:message>
                 <xsl:sequence select="ldh:doctree-descend($next-li, $target-uri, $tree-container)"/>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:message>ldh:doctree-descend-after-load - no matching child, activating target</xsl:message>
                 <xsl:for-each select="$tree-container">
                     <xsl:call-template name="ldh:DocTreeActivateHref">
                         <xsl:with-param name="href" select="$target-uri"/>
