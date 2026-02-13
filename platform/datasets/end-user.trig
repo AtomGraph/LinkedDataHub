@@ -33,6 +33,14 @@
 
 }
 
+<update>
+{
+
+    <update> a foaf:Document ;
+        dct:title "SPARQL UPDATE endpoint" .
+
+}
+
 <ns>
 {
 
