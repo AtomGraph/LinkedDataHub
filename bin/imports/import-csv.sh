@@ -164,7 +164,8 @@ import_doc=$(create-item.sh \
 )
 
 # Add the CONSTRUCT query to the item using fragment identifier
-add-construct.sh \
+# TO-DO: fix ambigous add-construct.sh script names
+"$(dirname "$0")/../add-construct.sh" \
   -b "$base" \
   -f "$cert_pem_file" \
   -p "$cert_password" \

@@ -934,8 +934,6 @@ ORDER BY DESC(?created)
         <!-- TODO: we need to check if instances are in named graphs - for now use SelectInstancesInGraphs -->
         <xsl:variable name="query-uri" select="xs:anyURI('&ldh;SelectInstancesInGraphs')" as="xs:anyURI"/>
         <xsl:variable name="select-string" select="key('resources', $query-uri, document(ac:document-uri('&ldh;')))/sp:text" as="xs:string"/>
-        <!-- Add VALUES clause to bind $type to the class URI -->
-        <xsl:variable name="select-string" select="$select-string || ' VALUES $type { &lt;' || $class-uri || '&gt; }'" as="xs:string"/>
 
         <xsl:variable name="select-json" as="item()">
             <xsl:variable name="select-builder" select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromString', [ $select-string ])"/>
@@ -944,8 +942,8 @@ ORDER BY DESC(?created)
         <xsl:variable name="select-json-string" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ $select-json ])" as="xs:string"/>
         <xsl:variable name="select-xml" as="document-node()">
             <xsl:document>
-                <xsl:apply-templates select="json-to-xml($select-json-string)" mode="ldh:replace-variables">
-                    <xsl:with-param name="var-names" select="('s')" tunnel="yes"/>
+                <xsl:apply-templates select="json-to-xml($select-json-string)" mode="ldh:append-values">
+                    <xsl:with-param name="values-map" select="map { '$type': $class-uri }" tunnel="yes"/>
                 </xsl:apply-templates>
             </xsl:document>
         </xsl:variable>

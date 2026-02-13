@@ -812,5 +812,35 @@ extension-element-prefixes="ixsl"
                 </json:map>
             </xsl:copy>
     </xsl:template>
-    
+
+    <!-- Append VALUES block to WHERE clause -->
+
+    <xsl:template match="@* | node()" mode="ldh:append-values">
+        <xsl:copy>
+            <xsl:apply-templates select="@* | node()" mode="#current"/>
+        </xsl:copy>
+    </xsl:template>
+
+    <xsl:template match="json:array[@key = 'where']" mode="ldh:append-values" priority="1">
+        <xsl:param name="values-map" as="map(xs:string, xs:anyAtomicType)" tunnel="yes"/>
+
+        <xsl:copy>
+            <xsl:apply-templates select="@* | node()" mode="#current"/>
+
+            <!-- Append VALUES block -->
+            <json:map>
+                <json:string key="type">values</json:string>
+                <json:array key="values">
+                    <json:map>
+                        <xsl:for-each select="map:keys($values-map)">
+                            <json:string key="{.}">
+                                <xsl:value-of select="map:get($values-map, .)"/>
+                            </json:string>
+                        </xsl:for-each>
+                    </json:map>
+                </json:array>
+            </json:map>
+        </xsl:copy>
+    </xsl:template>
+
 </xsl:stylesheet>
