@@ -194,7 +194,6 @@ exclude-result-prefixes="#all"
 
                     <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
 
-<!--                    <xsl:sequence select="ldh:hide-block-progress-bar($context, ())[current-date() lt xs:date('2000-01-01')]"/>-->
                     <xsl:sequence select="
                       error(
                         QName('&ldh;', 'ldh:HTTPError'),
@@ -1801,7 +1800,6 @@ exclude-result-prefixes="#all"
                         </xsl:result-document>
                     </xsl:for-each>
                     
-<!--                    <xsl:sequence select="ldh:hide-block-progress-bar($context, ())[current-date() lt xs:date('2000-01-01')]"/>-->
                     <xsl:sequence select="
                       error(
                         QName('&ldh;', 'ldh:HTTPError'),
