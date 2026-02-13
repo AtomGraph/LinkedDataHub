@@ -89,6 +89,7 @@ li button.btn-edit-constructors, li button.btn-add-data, li button.btn-add-ontol
     #left-sidebar { display: block; width: auto; position: unset; top: unset; height: auto; }
     #left-sidebar .nav { max-height: 20em; overflow: auto; }
 }
+#left-sidebar .nav-list > li > a.btn-container { padding-left: 24px; }
 #left-sidebar .nav-list > li > a { margin-left: 0; margin-right: 0; }
 #left-sidebar .nav-list > li > a.btn-container
 #left-sidebar li { max-height: 20em; overflow: auto; }
