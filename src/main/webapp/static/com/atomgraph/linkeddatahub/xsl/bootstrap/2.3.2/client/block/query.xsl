@@ -280,6 +280,12 @@ exclude-result-prefixes="#all"
         <xsl:variable name="results-container-class" select="'sparql-query-results'" as="xs:string"/>
         <xsl:variable name="results-container-about" select="xs:anyURI(ac:absolute-path(ldh:base-uri(.)) || '#' || $results-container-id)" as="xs:anyURI"/>
 
+        <!-- create cache object for this block -->
+        <xsl:if test="not(ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`'))">
+            <ixsl:set-property name="{'`' || $block-uri || '`'}" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.contents')"/>
+        </xsl:if>
+        <xsl:variable name="cache" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`')" as="item()"/>
+
         <!-- create results/error container element if it doesn't exist  -->
         <xsl:if test="not(id($results-container-id, ixsl:page()))">
             <!-- TO-DO: find a better solution. $container in ContentMode is the whole .content row but in ReadMode it's .main -->
@@ -325,7 +331,7 @@ exclude-result-prefixes="#all"
                 <xsl:call-template name="onSPARQLResultsLoad">
                     <xsl:with-param name="endpoint" select="$endpoint"/>
                     <xsl:with-param name="results-uri" select="$results-uri"/>
-                    <xsl:with-param name="block-uri" select="$block-uri"/>
+                    <xsl:with-param name="cache" select="$cache"/>
                     <xsl:with-param name="container" select="$container"/>
                     <xsl:with-param name="chart-canvas-id" select="$block-id || '-chart-canvas'"/>
                     <xsl:with-param name="results-container" select="id($results-container-id, ixsl:page())"/>
@@ -536,7 +542,7 @@ exclude-result-prefixes="#all"
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="container" as="element()"/>
         <xsl:param name="results-uri" as="xs:anyURI"/>
-        <xsl:param name="block-uri" as="xs:anyURI"/>
+        <xsl:param name="cache" as="item()"/>
         <xsl:param name="chart-canvas-id" as="xs:string"/>
         <xsl:param name="chart-type" select="xs:anyURI('&ac;Table')" as="xs:anyURI"/>
         <xsl:param name="category" as="xs:string?"/>
@@ -581,11 +587,10 @@ exclude-result-prefixes="#all"
                         </xsl:result-document>
                     </xsl:for-each>
 
-                    <!-- create new cache entry using content URI as key -->
-                    <ixsl:set-property name="{'`' || $block-uri || '`'}" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.contents')"/>
-                    <ixsl:set-property name="results" select="$results" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`')"/>
+                    <!-- store results and data-table in cache -->
+                    <ixsl:set-property name="results" select="$results" object="$cache"/>
                     <xsl:variable name="data-table" select="if ($results/rdf:RDF) then ac:rdf-data-table($results, $category, $series) else ac:sparql-results-data-table($results, $category, $series)"/>
-                    <ixsl:set-property name="data-table" select="$data-table" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`')"/>
+                    <ixsl:set-property name="data-table" select="$data-table" object="$cache"/>
 
                     <xsl:call-template name="ldh:RenderChart">
                         <xsl:with-param name="data-table" select="$data-table"/>

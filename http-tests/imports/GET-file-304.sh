@@ -7,6 +7,7 @@ purge_cache "$END_USER_VARNISH_SERVICE"
 purge_cache "$ADMIN_VARNISH_SERVICE"
 purge_cache "$FRONTEND_VARNISH_SERVICE"
 
+# Run the create-file test and capture the file URI it outputs
 file=$(./create-file.sh)
 
 etag=$(

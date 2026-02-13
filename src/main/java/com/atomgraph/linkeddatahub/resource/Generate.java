@@ -18,8 +18,6 @@ package com.atomgraph.linkeddatahub.resource;
 
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.linkeddatahub.apps.model.Application;
-import com.atomgraph.linkeddatahub.client.GraphStoreClient;
-import com.atomgraph.linkeddatahub.imports.QueryLoader;
 import com.atomgraph.linkeddatahub.server.model.impl.DirectGraphStoreImpl;
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
 import com.atomgraph.linkeddatahub.server.util.Skolemizer;
@@ -44,8 +42,10 @@ import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.Response.Status;
 import jakarta.ws.rs.core.UriBuilder;
 import jakarta.ws.rs.core.UriInfo;
+import org.apache.jena.ontology.Ontology;
 import org.apache.jena.query.ParameterizedSparqlString;
 import org.apache.jena.query.Query;
+import org.apache.jena.query.QueryFactory;
 import org.apache.jena.query.Syntax;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
@@ -69,10 +69,11 @@ public class Generate
     private final UriInfo uriInfo;
     private final MediaTypes mediaTypes;
     private final Application application;
+    private final Ontology ontology;
     private final Optional<AgentContext> agentContext;
     private final com.atomgraph.linkeddatahub.Application system;
     private final ResourceContext resourceContext;
-    
+
     /**
      * Constructs endpoint for container generation.
      *
@@ -80,18 +81,21 @@ public class Generate
      * @param uriInfo current URI info
      * @param mediaTypes supported media types
      * @param application matched application
+     * @param ontology ontology of the current application
      * @param system system application
      * @param agentContext authenticated agent's context
      * @param resourceContext resource context for creating resources
      */
     @Inject
     public Generate(@Context Request request, @Context UriInfo uriInfo, MediaTypes mediaTypes,
-            com.atomgraph.linkeddatahub.apps.model.Application application, Optional<AgentContext> agentContext,
+            com.atomgraph.linkeddatahub.apps.model.Application application, Optional<Ontology> ontology, Optional<AgentContext> agentContext,
             com.atomgraph.linkeddatahub.Application system, @Context ResourceContext resourceContext)
     {
+        if (ontology.isEmpty()) throw new InternalServerErrorException("Ontology is not specified");
         this.uriInfo = uriInfo;
         this.mediaTypes = mediaTypes;
         this.application = application;
+        this.ontology = ontology.get();
         this.agentContext = agentContext;
         this.system = system;
         this.resourceContext = resourceContext;
@@ -129,10 +133,13 @@ public class Generate
                     Resource queryRes = part.getPropertyResourceValue(SPIN.query);
                     if (queryRes == null) throw new BadRequestException("Container query string (spin:query) not provided");
 
-                    GraphStoreClient gsc = GraphStoreClient.create(getSystem().getClient(), getSystem().getMediaTypes()).
-                        delegation(getUriInfo().getBaseUri(), getAgentContext().orElse(null));
-                    QueryLoader queryLoader = new QueryLoader(URI.create(queryRes.getURI()), getApplication().getBase().getURI(), Syntax.syntaxARQ, gsc);
-                    Query query = queryLoader.get();
+                    // Lookup query in ontology
+                    Resource queryResource = getOntology().getOntModel().getResource(queryRes.getURI());
+                    if (queryResource == null || !queryResource.hasProperty(SP.text))
+                        throw new BadRequestException("Query resource not found in ontology: " + queryRes.getURI());
+
+                    String queryString = queryResource.getProperty(SP.text).getString();
+                    Query query = QueryFactory.create(queryString, Syntax.syntaxARQ);
                     if (!query.isSelectType()) throw new BadRequestException("Container query is not of SELECT type");
                     
                     ParameterizedSparqlString pss = new ParameterizedSparqlString(query.toString());
@@ -251,6 +258,16 @@ public class Generate
     public Application getApplication()
     {
         return application;
+    }
+
+    /**
+     * Returns the ontology.
+     *
+     * @return the ontology
+     */
+    public Ontology getOntology()
+    {
+        return ontology;
     }
 
     /**

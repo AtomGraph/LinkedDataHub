@@ -93,7 +93,7 @@ exclude-result-prefixes="#all"
     </xsl:function>
     
     <xsl:function name="sd:endpoint" as="xs:anyURI">
-        <xsl:sequence select="xs:anyURI(ixsl:get(ixsl:window(), 'LinkedDataHub.endpoint'))"/>
+        <xsl:sequence select="resolve-uri('sparql', ldt:base())"/>
     </xsl:function>
     
     <xsl:function name="ldh:query-type" as="xs:string?">
@@ -494,6 +494,8 @@ exclude-result-prefixes="#all"
 
     <xsl:function name="ldh:handle-response" as="item()*" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
+
+        <xsl:message>ldh:handle-response</xsl:message>
 
         <xsl:variable name="request" select="$context('request')" as="map(*)"/>
         <xsl:variable name="response" select="$context('response')" as="map(*)"/>

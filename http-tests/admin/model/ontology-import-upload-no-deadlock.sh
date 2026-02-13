@@ -28,24 +28,32 @@ add-agent-to-group.sh \
 # Step 1: Upload an RDF file
 
 file_content_type="text/turtle"
+slug=$(uuidgen | tr '[:upper:]' '[:lower:]')
 
-file_doc=$(create-file.sh \
+# Create an item document to hold the file
+file_doc=$(create-item.sh \
+  -f "$AGENT_CERT_FILE" \
+  -p "$AGENT_CERT_PWD" \
+  -b "$END_USER_BASE_URL" \
+  --title "Test ontology for upload import" \
+  --container "$END_USER_BASE_URL" \
+  --slug "$slug")
+
+# Add the file to the document
+add-file.sh \
   -f "$AGENT_CERT_FILE" \
   -p "$AGENT_CERT_PWD" \
   -b "$END_USER_BASE_URL" \
   --title "Test ontology for upload import" \
   --file "$pwd/test-ontology-import.ttl" \
-  --file-content-type "${file_content_type}")
+  --file-content-type "${file_content_type}" \
+  "$file_doc"
 
 # Step 2: Extract the uploaded file URI (content-addressed)
 
-file_doc_ntriples=$(get.sh \
-  -f "$AGENT_CERT_FILE" \
-  -p "$AGENT_CERT_PWD" \
-  --accept 'application/n-triples' \
-  "$file_doc")
-
-upload_uri=$(echo "$file_doc_ntriples" | sed -rn "s/<${file_doc//\//\\/}> <http:\/\/xmlns.com\/foaf\/0.1\/primaryTopic> <(.*)> \./\1/p")
+# Calculate file URI from SHA1 hash
+sha1sum=$(shasum -a 1 "$pwd/test-ontology-import.ttl" | awk '{print $1}')
+upload_uri="${END_USER_BASE_URL}uploads/${sha1sum}"
 
 # Verify the uploaded file is accessible before we add it as an import
 curl -k -f -s \

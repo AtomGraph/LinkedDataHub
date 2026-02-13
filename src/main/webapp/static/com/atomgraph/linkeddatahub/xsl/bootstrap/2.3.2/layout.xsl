@@ -145,19 +145,6 @@ exclude-result-prefixes="#all">
             <xsl:map-entry key="resolve-uri(ac:document-uri(xs:anyURI('&nfo;')), $ac:contextUri)" select="ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri(xs:anyURI('&nfo;'))), 'accept': 'application/rdf+xml' })"/>
         </xsl:map>
     </xsl:param>
-    <xsl:param name="explore-service-query" as="xs:string">
-<![CDATA[SELECT DISTINCT  ?type (COUNT(?s) AS ?count) (SAMPLE(?s) AS ?sample)
-WHERE
-  {   { ?s  a  ?type }
-    UNION
-      { GRAPH ?g
-          { ?s  a  ?type }
-      }
-  }
-GROUP BY ?type
-ORDER BY DESC(COUNT(?s))
-LIMIT   100
-]]></xsl:param>
 
     <!-- the query has to support services that do not belong to any app. Use type URIs because that is what triggers Varnish invalidation. -->
     <xsl:variable name="app-query" as="xs:string">
@@ -1290,7 +1277,7 @@ LIMIT   100
     <!-- DOCUMENT TREE -->
     
     <xsl:template match="rdf:RDF | srx:sparql" mode="bs2:DocumentTree">
-        <xsl:param name="id" select="'doc-tree'" as="xs:string?"/>
+        <xsl:param name="id" select="'left-sidebar'" as="xs:string?"/>
         <xsl:param name="class" select="'well well-small sidebar-nav'" as="xs:string?"/>
         
         <div>
@@ -1301,7 +1288,7 @@ LIMIT   100
                 <xsl:attribute name="class" select="$class"/>
             </xsl:if>
             
-            <!-- placeholder for client-side ldh:DocTree template -->
+            <!-- placeholder for client-side ldh:LeftSidebar template -->
         </div>
     </xsl:template>
     

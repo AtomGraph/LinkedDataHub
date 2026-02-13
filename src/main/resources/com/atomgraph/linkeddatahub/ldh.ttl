@@ -493,6 +493,28 @@ ORDER BY ?title
 """ ;
     rdfs:isDefinedBy : .
 
+:SelectInstances a sp:Select ;
+    rdfs:label "Select instances" ;
+    dct:description "Selects instances of type from the default graph" ;
+    sp:text """SELECT DISTINCT ?s
+WHERE
+  { ?s  a   $type ;
+        ?p  ?o
+  }""" ;
+    rdfs:isDefinedBy : .
+
+:SelectInstancesInGraphs a sp:Select ;
+    rdfs:label "Select instances in graphs" ;
+    dct:description "Selects instances of type from named graphs" ;
+    sp:text """SELECT DISTINCT ?s
+WHERE
+  { GRAPH ?g
+      { ?s  a   $type ;
+            ?p  ?o
+      }
+  }""" ;
+    rdfs:isDefinedBy : .
+
 :ChildrenView a :View ;
     rdfs:label "Children view" ;
     spin:query :SelectChildren ;

@@ -59,7 +59,7 @@ ORDER BY DESC(COUNT(?s))
 LIMIT   10
 ]]>
     </xsl:param>
-    
+
     <!-- TEMPLATES -->
     
     <xsl:template name="ldh:FirstTimeMessage">
@@ -1369,16 +1369,16 @@ LIMIT   10
                                         <input type="hidden" name="ob" value="dataset-{position()}"/> <!-- unique bnode ID for each item -->
                                         <input type="hidden" name="sb" value="dataset-{position()}"/> <!-- unique bnode ID for each item -->
                                         <input type="hidden" name="pu" value="&spin;query"/>
-                                        
+
                                         <xsl:choose>
                                             <xsl:when test="srx:binding[@name = 'namedGraph']/srx:uri">
-                                                <input type="hidden" name="ou" value="{resolve-uri('queries/select-instances-in-graphs/#this', ldt:base())}"/>
+                                                <input type="hidden" name="ou" value="&ldh;SelectInstancesInGraphs"/>
                                             </xsl:when>
                                             <xsl:otherwise>
-                                                <input type="hidden" name="ou" value="{resolve-uri('queries/select-instances/#this', ldt:base())}"/>
+                                                <input type="hidden" name="ou" value="&ldh;SelectInstances"/>
                                             </xsl:otherwise>
                                         </xsl:choose>
-                                        
+
                                         <input type="hidden" name="pu" value="&void;class"/>
 
                                         <label class="checkbox">
