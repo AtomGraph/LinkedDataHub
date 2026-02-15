@@ -94,14 +94,13 @@ ORDER BY DESC(?created)
     <xsl:template name="ldh:LeftSidebar">
         <xsl:param name="base" select="ldt:base()" as="xs:anyURI"/>
 
-        <!-- Document tree container -->
+        <!-- document tree container -->
         <div id="document-tree">
             <h2 class="nav-header btn">
                 <xsl:apply-templates select="key('resources', 'document-tree', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
             </h2>
 
             <ul class="well well-small nav nav-list">
-                <!-- TO-DO: generalize -->
                 <li>
                     <button class="btn btn-small btn-expand-tree"></button>
                     <a href="{$base}" class="btn-logo btn-container">
@@ -111,7 +110,7 @@ ORDER BY DESC(?created)
             </ul>
         </div>
 
-        <!-- Class list container -->
+        <!-- class list container -->
         <div>
             <h2 class="nav-header btn">
                 <xsl:apply-templates select="key('resources', 'classes', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
@@ -122,7 +121,7 @@ ORDER BY DESC(?created)
             </ul>
         </div>
 
-        <!-- Other section -->
+        <!-- other section -->
         <div id="other-views">
             <h2 class="nav-header btn">
                 <xsl:apply-templates select="key('resources', 'other', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
@@ -147,21 +146,21 @@ ORDER BY DESC(?created)
         <xsl:context-item as="element()" use="required"/> <!-- document tree container -->
         <xsl:param name="href" as="xs:anyURI"/>
 
-        <!-- Strip query params from href to ensure consistent matching -->
+        <!-- strip query params from href to ensure consistent matching -->
         <xsl:variable name="target-uri" select="ac:document-uri($href)" as="xs:anyURI"/>
 
         <!-- make the previously active list items inactive -->
         <xsl:for-each select=".//li[contains-token(@class, 'active')]">
             <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'active', false() ])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:for-each>
-        <!-- Find li elements whose href (without query params) matches target href (without query params) -->
+        <!-- find li elements whose href (without query params) matches target href (without query params) -->
         <xsl:for-each select=".//li[a[ac:document-uri(xs:anyURI(@href)) = $target-uri]]">
             <!-- mark the new list item as active -->
             <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'active', true() ])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:for-each>
     </xsl:template>
 
-    <!-- Update both document-tree and class-list after navigation -->
+    <!-- update left-sidebar sections -->
     <xsl:template name="ldh:NavigationUpdate">
         <xsl:param name="href" as="xs:anyURI"/>
 
@@ -188,7 +187,7 @@ ORDER BY DESC(?created)
         <xsl:param name="container" as="element()"/> <!-- document-tree element -->
         <xsl:param name="target" as="xs:anyURI"/> <!-- target document URI (already stripped of query params) -->
 
-        <!-- Find the root <li> element (first top-level li in the tree) -->
+        <!-- find the root <li> element (first top-level li in the tree) -->
         <xsl:variable name="root-li" select="$container/ul/li[1]" as="element()?"/>
 
         <xsl:choose>
@@ -670,7 +669,7 @@ ORDER BY DESC(?created)
         <xsl:sequence select="$context"/>
     </xsl:function>
 
-    <!-- Load classes with instances from the SPARQL endpoint -->
+    <!-- load classes with instances from the SPARQL endpoint -->
     <xsl:template name="ldh:ClassListLoad">
         <xsl:param name="container" as="element()"/> <!-- the <ul id="class-list"> -->
         <xsl:param name="endpoint" as="xs:anyURI"/>
@@ -702,7 +701,7 @@ ORDER BY DESC(?created)
             on-failure="ldh:promise-failure#1"/>
     </xsl:template>
 
-    <!-- Handle the response from loading classes - extract type URIs and query ns endpoint -->
+    <!-- handle the response from loading classes - extract type URIs and query ns endpoint -->
     <xsl:function name="ldh:class-list-response" as="map(*)" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
         <xsl:variable name="response" select="$context('response')" as="map(*)"/>
@@ -757,7 +756,7 @@ ORDER BY DESC(?created)
         <xsl:sequence select="$context"/>
     </xsl:function>
 
-    <!-- Handle the response from describing class types -->
+    <!-- handle the response from describing class types -->
     <xsl:function name="ldh:class-list-describe-response" as="map(*)" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
         <xsl:variable name="response" select="$context('response')" as="map(*)"/>
@@ -810,7 +809,7 @@ ORDER BY DESC(?created)
         <xsl:sequence select="$context"/>
     </xsl:function>
 
-    <!-- Render a class as a list item with button -->
+    <!-- render a class as a list item with button -->
     <xsl:template match="*[@rdf:about]" mode="bs2:ClassListItem">
         <xsl:param name="count" as="xs:integer"/>
 
@@ -829,12 +828,11 @@ ORDER BY DESC(?created)
         </li>
     </xsl:template>
 
-    <!-- Opens modal dialog to show instances of a class -->
+    <!-- opens modal dialog to show instances of a class -->
     <xsl:template match="button[contains-token(@class, 'btn-class')]" mode="ixsl:onclick">
         <xsl:variable name="class-uri" select="xs:anyURI(ixsl:get(., 'dataset.classUri'))"/>
         <xsl:variable name="container-id" select="'class-instances-container'" as="xs:string"/>
 
-        <!-- Create modal structure with a block element -->
         <xsl:variable name="modal" as="element()">
             <div class="modal modal-constructor fade in" id="class-instances-modal">
                 <div class="modal-header">
@@ -879,17 +877,14 @@ ORDER BY DESC(?created)
             </div>
         </xsl:variable>
 
-        <!-- Show modal -->
         <xsl:call-template name="ldh:ShowModalForm">
             <xsl:with-param name="form" select="$modal"/>
         </xsl:call-template>
 
-        <!-- Create cache entry for the block -->
         <xsl:if test="not(ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $container-id || '`'))">
             <ixsl:set-property name="{'`' || $container-id || '`'}" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.contents')"/>
         </xsl:if>
 
-        <!-- Load instances into modal -->
         <xsl:call-template name="ldh:ClassInstancesLoad">
             <xsl:with-param name="container" select="id($container-id, ixsl:page())"/>
             <xsl:with-param name="class-uri" select="$class-uri"/>
@@ -898,11 +893,12 @@ ORDER BY DESC(?created)
         </xsl:call-template>
     </xsl:template>
 
-    <!-- Load instances for a specific class -->
+    <!-- load instances for a specific class -->
     <xsl:template name="ldh:ClassInstancesLoad">
         <xsl:param name="container" as="element()"/>
         <xsl:param name="class-uri" as="xs:anyURI"/>
         <xsl:param name="endpoint" as="xs:anyURI"/>
+        <xsl:param name="page-size" select="20" as="xs:integer"/>
         <xsl:param name="cache" as="item()"/>
         <xsl:variable name="container-id" select="$container/@id" as="xs:string"/>
         
@@ -912,6 +908,7 @@ ORDER BY DESC(?created)
         <!-- TODO: we need to check if instances are in named graphs - for now use SelectInstancesInGraphs -->
         <xsl:variable name="query-uri" select="xs:anyURI('&ldh;SelectInstancesInGraphs')" as="xs:anyURI"/>
         <xsl:variable name="select-string" select="key('resources', $query-uri, document(ac:document-uri('&ldh;')))/sp:text" as="xs:string"/>
+        <xsl:variable name="cache" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $container-id || '`')" as="item()"/>
 
         <xsl:variable name="select-json" as="item()">
             <xsl:variable name="select-builder" select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromString', [ $select-string ])"/>
@@ -925,8 +922,14 @@ ORDER BY DESC(?created)
                 </xsl:apply-templates>
             </xsl:document>
         </xsl:variable>
-
-        <xsl:variable name="cache" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $container-id || '`')" as="item()"/>
+        <xsl:variable name="select-xml" as="document-node()">
+            <xsl:document>
+                <xsl:apply-templates select="$select-xml" mode="ldh:replace-limit">
+                    <xsl:with-param name="limit" select="$page-size" tunnel="yes"/>
+                </xsl:apply-templates>
+            </xsl:document>
+        </xsl:variable>
+        
         <ixsl:set-property name="select-xml" select="$select-xml" object="$cache"/>
         <ixsl:set-property name="select-string" select="$select-string" object="$cache"/>
         <ixsl:set-property name="initial-var-name" select="'s'" object="$cache"/> <!-- has to match ldh:SelectInstancesInGraphs -->
@@ -967,12 +970,11 @@ ORDER BY DESC(?created)
         <xsl:next-match/>
     </xsl:template>
 
-    <!-- Opens modal dialog to show geo resources -->
+    <!-- opens modal dialog to show geo resources -->
     <xsl:template match="button[contains-token(@class, 'btn-geo')]" mode="ixsl:onclick">
         <xsl:variable name="container-id" select="'geo-container'" as="xs:string"/>
         <xsl:variable name="select-string" select="$geo-resources-string" as="xs:string"/>
 
-        <!-- Create modal structure with a block element -->
         <xsl:variable name="modal" as="element()">
             <div class="modal modal-constructor fade in" id="geo-modal">
                 <div class="modal-header">
@@ -1010,12 +1012,10 @@ ORDER BY DESC(?created)
             </div>
         </xsl:variable>
 
-        <!-- Show modal -->
         <xsl:call-template name="ldh:ShowModalForm">
             <xsl:with-param name="form" select="$modal"/>
         </xsl:call-template>
 
-        <!-- Create cache entry for the block -->
         <xsl:if test="not(ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $container-id || '`'))">
             <ixsl:set-property name="{'`' || $container-id || '`'}" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.contents')"/>
         </xsl:if>
@@ -1024,7 +1024,6 @@ ORDER BY DESC(?created)
         <ixsl:set-property name="initial-var-name" select="'resource'" object="$cache"/> <!-- has to match $geo-resources-string -->
         <ixsl:set-property name="endpoint" select="sd:endpoint()" object="$cache"/>
 
-        <!-- Load geo resources into modal -->
         <xsl:call-template name="ldh:GeoResourcesLoad">
             <xsl:with-param name="container" select="id($container-id, ixsl:page())"/>
             <xsl:with-param name="endpoint" select="sd:endpoint()"/>
@@ -1050,15 +1049,13 @@ ORDER BY DESC(?created)
         <xsl:variable name="select-xml" as="document-node()">
             <xsl:document>
                 <xsl:apply-templates select="json-to-xml($select-json-string)" mode="ldh:replace-variables">
-                    <xsl:with-param name="var-names" select="('resource')" tunnel="yes"/>
+                    <xsl:with-param name="var-names" select="('resource')" tunnel="yes"/> <!-- has to match the query projection -->
                 </xsl:apply-templates>
             </xsl:document>
         </xsl:variable>
 
-        <!-- store the transformed query XML -->
         <ixsl:set-property name="select-xml" select="$select-xml" object="$cache"/>
 
-        <!-- Initialize progress counters: 3 steps (metadata, render-view, result-count) -->
         <xsl:sequence select="ldh:update-progress-counter($cache, map{'container': $container}, 'init', 3)"/>
 
         <xsl:variable name="view-context" as="map(*)">
@@ -1081,12 +1078,11 @@ ORDER BY DESC(?created)
             on-failure="ldh:promise-failure#1"/>
     </xsl:template>
 
-    <!-- Opens modal dialog to show latest resources -->
+    <!-- opens modal dialog to show latest resources -->
     <xsl:template match="button[contains-token(@class, 'btn-latest')]" mode="ixsl:onclick">
         <xsl:variable name="container-id" select="'latest-container'" as="xs:string"/>
         <xsl:variable name="select-string" select="$latest-resources-string" as="xs:string"/>
 
-        <!-- Create modal structure with a block element -->
         <xsl:variable name="modal" as="element()">
             <div class="modal modal-constructor fade in" id="latest-modal">
                 <div class="modal-header">
@@ -1108,7 +1104,7 @@ ORDER BY DESC(?created)
 
                             <div id="{$container-id}" class="row-fluid" typeof="&ldh;View">
                                 <div class="main span12">
-                                    <!-- View results will be rendered here -->
+                                    <!-- view results will be rendered here -->
                                 </div>
                             </div>
                         </div>
@@ -1124,12 +1120,10 @@ ORDER BY DESC(?created)
             </div>
         </xsl:variable>
 
-        <!-- Show modal -->
         <xsl:call-template name="ldh:ShowModalForm">
             <xsl:with-param name="form" select="$modal"/>
         </xsl:call-template>
 
-        <!-- Create cache entry for the block -->
         <xsl:if test="not(ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $container-id || '`'))">
             <ixsl:set-property name="{'`' || $container-id || '`'}" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.contents')"/>
         </xsl:if>
@@ -1138,10 +1132,8 @@ ORDER BY DESC(?created)
         <ixsl:set-property name="initial-var-name" select="'dated'" object="$cache"/> <!-- has to match $latest-resources-string -->
         <ixsl:set-property name="endpoint" select="sd:endpoint()" object="$cache"/>
 
-        <!-- Initialize progress counters: 3 steps (metadata, render-view, result-count) -->
         <xsl:sequence select="ldh:update-progress-counter($cache, map{'container': id($container-id, ixsl:page())}, 'init', 3)"/>
 
-        <!-- Load latest resources into modal -->
         <xsl:call-template name="ldh:LatestResourcesLoad">
             <xsl:with-param name="container" select="id($container-id, ixsl:page())"/>
             <xsl:with-param name="endpoint" select="sd:endpoint()"/>
@@ -1150,11 +1142,12 @@ ORDER BY DESC(?created)
         </xsl:call-template>
     </xsl:template>
 
-    <!-- Load latest resources -->
+    <!-- load latest resources -->
     <xsl:template name="ldh:LatestResourcesLoad">
         <xsl:param name="container" as="element()"/>
         <xsl:param name="select-string" as="xs:string"/>
         <xsl:param name="endpoint" as="xs:anyURI"/>
+        <xsl:param name="page-size" select="20" as="xs:integer"/>
         <xsl:param name="cache" as="item()"/>
 
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
@@ -1167,15 +1160,20 @@ ORDER BY DESC(?created)
         <xsl:variable name="select-xml" as="document-node()">
             <xsl:document>
                 <xsl:apply-templates select="json-to-xml($select-json-string)" mode="ldh:replace-variables">
-                    <xsl:with-param name="var-names" select="('dated')" tunnel="yes"/>
+                    <xsl:with-param name="var-names" select="('dated')" tunnel="yes"/> <!-- has to match the query projection -->
+                </xsl:apply-templates>
+            </xsl:document>
+        </xsl:variable>
+        <xsl:variable name="select-xml" as="document-node()">
+            <xsl:document>
+                <xsl:apply-templates select="$select-xml" mode="ldh:replace-limit">
+                    <xsl:with-param name="limit" select="$page-size" tunnel="yes"/>
                 </xsl:apply-templates>
             </xsl:document>
         </xsl:variable>
 
-        <!-- store the transformed query XML -->
         <ixsl:set-property name="select-xml" select="$select-xml" object="$cache"/>
 
-        <!-- Initialize progress counters: 3 steps (metadata, render-view, result-count) -->
         <xsl:sequence select="ldh:update-progress-counter($cache, map{'container': $container}, 'init', 3)"/>
 
         <xsl:variable name="view-context" as="map(*)">
