@@ -91,8 +91,7 @@ li button.btn-edit-constructors, li button.btn-add-data, li button.btn-add-ontol
 }
 #left-sidebar .nav-list > li > a.btn-container { padding-left: 24px; }
 #left-sidebar .nav-list > li > a { margin-left: 0; margin-right: 0; }
-#left-sidebar .nav-list > li > a.btn-container
-#left-sidebar li { max-height: 20em; overflow: auto; }
+#left-sidebar ul { max-height: 22em; overflow: auto; }
 #left-sidebar li > a { display: inline-block; }
 #left-sidebar .btn-latest { background-image: url('../icons/ic_new_releases_black_24px.svg'); background-color: inherit; }
 #left-sidebar .btn-geo { background-image: url('../icons/ic_location_on_black_24px.svg'); background-color: inherit; }
