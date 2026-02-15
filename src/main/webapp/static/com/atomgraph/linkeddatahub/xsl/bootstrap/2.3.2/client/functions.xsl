@@ -494,9 +494,7 @@ exclude-result-prefixes="#all"
 
     <xsl:function name="ldh:handle-response" as="item()*" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
-
-        <xsl:message>ldh:handle-response</xsl:message>
-
+        
         <xsl:variable name="request" select="$context('request')" as="map(*)"/>
         <xsl:variable name="response" select="$context('response')" as="map(*)"/>
         <xsl:variable name="default-retry-after" select="1" as="xs:integer"/>
