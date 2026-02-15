@@ -42,7 +42,7 @@ add-file.sh \
   -b "$END_USER_BASE_URL" \
   --title "Test File for Media Type Update" \
   --file "$test_file" \
-  --file-content-type "text/plain" \
+  --content-type "text/plain" \
   "$file_doc"
 
 # Calculate file URI from SHA1 hash
@@ -78,7 +78,7 @@ add-file.sh \
   -b "$END_USER_BASE_URL" \
   --title "Test File for Media Type Update" \
   --file "$test_file" \
-  --file-content-type "text/csv" \
+  --content-type "text/csv" \
   "$file_doc"
 
 # get updated document

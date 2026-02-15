@@ -12,7 +12,7 @@ print_usage()
 {
     printf "Transforms CSV data into RDF using a SPARQL query and imports it.\n"
     printf "\n"
-    printf "Usage:  %s options\n" "$0"
+    printf "Usage:  %s options TARGET_URI\n" "$0"
     printf "\n"
     printf "Options:\n"
     printf "  -f, --cert-pem-file CERT_FILE        .pem file with the WebID certificate of the agent\n"
@@ -25,12 +25,8 @@ print_usage()
     printf "  --slug STRING                        String that will be used as URI path segment (optional)\n"
     printf "\n"
     printf "  --query-file ABS_PATH                Absolute path to the text file with the SPARQL query string\n"
-    printf "  --query-doc-slug STRING              String that will be used as the query's URI path segment (optional)\n"
-    printf "  --file ABS_PATH                      Absolute path to the CSV file\n"
-    printf "  --file-slug STRING                   String that will be used as the file's URI path segment (optional)\n"
-    printf "  --file-doc-slug STRING               String that will be used as the file document's URI path segment (optional)\n"
+    printf "  --csv-file ABS_PATH                  Absolute path to the CSV file\n"
     printf "  --delimiter CHAR                     CSV delimiter char (default: ',')\n"
-    printf "  --import-slug STRING                 String that will be used as the import's URI path segment (optional)\n"
 }
 
 args=()
@@ -69,33 +65,13 @@ do
         shift # past argument
         shift # past value
         ;;
-        --query-doc-slug)
-        query_doc_slug="$2"
-        shift # past argument
-        shift # past value
-        ;;
-        --file)
-        file="$2"
-        shift # past argument
-        shift # past value
-        ;;
-        --file-slug)
-        file_slug="$2"
-        shift # past argument
-        shift # past value
-        ;;
-        --file-doc-slug)
-        file_doc_slug="$2"
+        --csv-file)
+        csv_file="$2"
         shift # past argument
         shift # past value
         ;;
         --delimiter)
         delimiter="$2"
-        shift # past argument
-        shift # past value
-        ;;
-        --import-slug)
-        import_slug="$2"
         shift # past argument
         shift # past value
         ;;
@@ -106,6 +82,8 @@ do
     esac
 done
 set -- "${args[@]}" # restore args
+
+target="$1"
 
 if [ -z "$cert_pem_file" ] ; then
     print_usage
@@ -127,7 +105,7 @@ if [ -z "$query_file" ] ; then
     print_usage
     exit 1
 fi
-if [ -z "$file" ] ; then
+if [ -z "$csv_file" ] ; then
     print_usage
     exit 1
 fi
@@ -142,27 +120,6 @@ fi
 # Generate query ID for fragment identifier
 query_id=$(uuidgen | tr '[:upper:]' '[:lower:]')
 
-# Create the imports/ container first (ignore error if it already exists)
-create-container.sh \
-  -b "$base" \
-  -f "$cert_pem_file" \
-  -p "$cert_password" \
-  --proxy "$proxy" \
-  --title "Imports" \
-  --parent "$base" \
-  --slug "imports" 2>/dev/null || true
-
-# Create the import item document
-import_doc=$(create-item.sh \
-  -b "$base" \
-  -f "$cert_pem_file" \
-  -p "$cert_password" \
-  --proxy "$proxy" \
-  --title "$title" \
-  --container "${base}imports/" \
-  --slug "$query_doc_slug"
-)
-
 # Add the CONSTRUCT query to the item using fragment identifier
 # TO-DO: fix ambigous add-construct.sh script names
 "$(dirname "$0")/../add-construct.sh" \
@@ -173,10 +130,10 @@ import_doc=$(create-item.sh \
   --title "$title" \
   --uri "#${query_id}" \
   --query-file "$query_file" \
-  "$import_doc"
+  "$target"
 
 # The query URI is the document with fragment
-query="${import_doc}#${query_id}"
+query="${target}#${query_id}"
 
 # Add the file to the import item
 add-file.sh \
@@ -185,12 +142,12 @@ add-file.sh \
   -p "$cert_password" \
   --proxy "$proxy" \
   --title "$title" \
-  --file "$file" \
-  --file-content-type "text/csv" \
-  "$import_doc"
+  --file "$csv_file" \
+  --content-type "text/csv" \
+  "$target"
 
 # Calculate file URI from SHA1 hash
-sha1sum=$(shasum -a 1 "$file" | awk '{print $1}')
+sha1sum=$(shasum -a 1 "$csv_file" | awk '{print $1}')
 file_uri="${base}uploads/${sha1sum}"
 
 # Generate import ID for fragment identifier
@@ -207,5 +164,5 @@ add-csv-import.sh \
   --query "$query" \
   --file "$file_uri" \
   --delimiter "$delimiter" \
-  "$import_doc"
+  "$target"
   

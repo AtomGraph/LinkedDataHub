@@ -17,7 +17,16 @@ add-agent-to-group.sh \
   --agent "$AGENT_URI" \
   "${ADMIN_BASE_URL}acl/groups/writers/"
 
-# create container
+# create import item
+
+item=$(create-item.sh \
+  -f "$AGENT_CERT_FILE" \
+  -p "$AGENT_CERT_PWD" \
+  -b "$END_USER_BASE_URL" \
+  --title "RDF import" \
+  --container "$END_USER_BASE_URL")
+
+# create target container
 
 container=$(create-container.sh \
   -f "$AGENT_CERT_FILE" \
@@ -35,7 +44,8 @@ import-csv.sh \
   -b "$END_USER_BASE_URL" \
   --title "Test" \
   --query-file "$pwd/csv-test.rq" \
-  --file "$pwd/test.csv"
+  --csv-file "$pwd/test.csv" \
+  "$item"
 
 csv_id="test-item"
 csv_value="42"

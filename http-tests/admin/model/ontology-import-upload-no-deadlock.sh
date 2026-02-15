@@ -46,7 +46,7 @@ add-file.sh \
   -b "$END_USER_BASE_URL" \
   --title "Test ontology for upload import" \
   --file "$pwd/test-ontology-import.ttl" \
-  --file-content-type "${file_content_type}" \
+  --content-type "${file_content_type}" \
   "$file_doc"
 
 # Step 2: Extract the uploaded file URI (content-addressed)

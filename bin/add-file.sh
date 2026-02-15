@@ -17,7 +17,7 @@ print_usage()
     printf "  --description DESCRIPTION            Description of the file (optional)\n"
     printf "\n"
     printf "  --file ABS_PATH                      Absolute path to the file\n"
-    printf "  --file-content-type MEDIA_TYPE       Media type of the file (optional)\n"
+    printf "  --content-type MEDIA_TYPE            Media type of the file (optional)\n"
 }
 
 hash curl 2>/dev/null || { echo >&2 "curl not on \$PATH. Aborting."; exit 1; }
@@ -63,8 +63,8 @@ do
         shift # past argument
         shift # past value
         ;;
-        --file-content-type)
-        file_content_type="$2"
+        --content-type)
+        content_type="$2"
         shift # past argument
         shift # past value
         ;;
@@ -98,9 +98,9 @@ if [ -z "$file" ] ; then
     print_usage
     exit 1
 fi
-if [ -z "$file_content_type" ] ; then
+if [ -z "$content_type" ] ; then
     # determine content-type if not provided
-    file_content_type=$(file -b --mime-type "$file")
+    content_type=$(file -b --mime-type "$file")
 fi
 
 # https://stackoverflow.com/questions/19116016/what-is-the-right-way-to-post-multipart-form-data-using-curl
@@ -108,7 +108,7 @@ fi
 rdf_post+="-F \"rdf=\"\n"
 rdf_post+="-F \"sb=file\"\n"
 rdf_post+="-F \"pu=http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#fileName\"\n"
-rdf_post+="-F \"ol=@${file};type=${file_content_type}\"\n"
+rdf_post+="-F \"ol=@${file};type=${content_type}\"\n"
 rdf_post+="-F \"pu=http://purl.org/dc/terms/title\"\n"
 rdf_post+="-F \"ol=${title}\"\n"
 rdf_post+="-F \"pu=http://www.w3.org/1999/02/22-rdf-syntax-ns#type\"\n"

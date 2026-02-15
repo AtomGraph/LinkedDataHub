@@ -71,7 +71,7 @@ add-file.sh \
   -b "$END_USER_BASE_URL" \
   --title "Test File for Browser Media Type" \
   --file "$test_file" \
-  --file-content-type "text/csv" \
+  --content-type "text/csv" \
   "$file_doc" \
   > /dev/null
 

@@ -38,7 +38,7 @@ add-file.sh \
   -b "$END_USER_BASE_URL" \
   --title "Test CSV" \
   --file "$pwd/test.csv" \
-  --file-content-type "${file_content_type}" \
+  --content-type "${file_content_type}" \
   "$file_doc"
 
 # Calculate file URI from SHA1 hash
