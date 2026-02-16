@@ -27,7 +27,7 @@
 @prefix owl:	<http://www.w3.org/2002/07/owl#> .
 @prefix acl:	<http://www.w3.org/ns/auth/acl#> .
 @prefix cert:	<http://www.w3.org/ns/auth/cert#> .
-@prefix spin:	<http://spinrdf.org/spin#> .
+@prefix sp:	    <http://spinrdf.org/sp#> .
 
 <sign%20up>
 {
