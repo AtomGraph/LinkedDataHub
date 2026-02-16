@@ -657,7 +657,7 @@ sp:Query spin:constructor [
           PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>
           PREFIX sp:      <http://spinrdf.org/sp#>
           PREFIX sd:      <http://www.w3.org/ns/sparql-service-description#>
-          PREFIX :     <https://w3id.org/atomgraph/linkeddatahub#>
+          PREFIX :        <https://w3id.org/atomgraph/linkeddatahub#>
 
           CONSTRUCT {
               $this rdfs:label [ a xsd:string ] ;

@@ -157,8 +157,6 @@ public class AuthorizationFilter implements ContainerRequestFilter
     public Model authorize(ContainerRequestContext request, Resource agent, Resource accessMode)
     {
         Resource accessTo = ResourceFactory.createResource(request.getUriInfo().getAbsolutePath().toString());
-        QuerySolutionMap thisQsm = new QuerySolutionMap();
-        thisQsm.add(SPIN.THIS_VAR_NAME, accessTo);
         Model authorizations = ModelFactory.createDefaultModel();
 
         // the agent is the owner of the requested document - automatically grant acl:Read/acl:Append/acl:Write access.
@@ -169,46 +167,49 @@ public class AuthorizationFilter implements ContainerRequestFilter
             createOwnerAuthorization(authorizations, accessTo, agent);
         }
 
-        ResultSetRewindable docTypesResult = loadResultSet(getApplication().get().getService(), getDocumentTypeQuery(), thisQsm);
+        // special case for PUT requests to non-existing document: allow if the agent has acl:Write acess to the *parent* URI
+        if (request.getMethod().equals(HttpMethod.PUT) && accessMode.equals(ACL.Write))
+        {
+            URI parentURI = URI.create(accessTo.getURI()).resolve("..");
+            Resource parent = ResourceFactory.createResource(parentURI.toString());
+            log.debug("Requested document <{}> not found, falling back to parent URI <{}>", parent, parentURI);
+
+            QuerySolutionMap parentQsm = new QuerySolutionMap();
+            parentQsm.add(SPIN.THIS_VAR_NAME, parent);
+            ResultSetRewindable docTypesResult = loadResultSet(getApplication().get().getService(), getDocumentTypeQuery(), parentQsm);
+            try
+            {
+                Set<Resource> parentTypes = new HashSet<>();
+                docTypesResult.forEachRemaining(qs -> parentTypes.add(qs.getResource("Type")));
+
+                // only root and containers allow child documents. This needs to be checked before checking ownership
+                if (Collections.disjoint(parentTypes, Set.of(Default.Root, DH.Container))) return null;
+
+                // the agent is the owner of the requested document - automatically grant acl:Read/acl:Append/acl:Write access
+                if (agent != null && isOwner(parent, agent))
+                {
+                    log.debug("Agent <{}> is the owner of <{}>, granting acl:Read/acl:Append/acl:Write access", agent, parent);
+                    createOwnerAuthorization(authorizations, parent, agent);
+                }
+            }
+            finally
+            {
+                docTypesResult.close();
+            }
+        }
+
+        QuerySolutionMap thisQsm = new QuerySolutionMap();
+        thisQsm.add(SPIN.THIS_VAR_NAME, accessTo);
+        ResultSetRewindable docTypesResult = loadResultSet(getApplication().get().getService(), getDocumentTypeQuery(), thisQsm);           
         try
         {
-            if (!docTypesResult.hasNext()) // if the document resource has no types, we assume the document does not exist
-            {
-                // special case for PUT requests to non-existing document: allow if the agent has acl:Write acess to the *parent* URI
-                if (request.getMethod().equals(HttpMethod.PUT) && accessMode.equals(ACL.Write))
-                {
-                    URI parentURI = URI.create(accessTo.getURI()).resolve("..");
-                    log.debug("Requested document <{}> not found, falling back to parent URI <{}>", accessTo, parentURI);
-                    accessTo = ResourceFactory.createResource(parentURI.toString());
-
-                    thisQsm = new QuerySolutionMap();
-                    thisQsm.add(SPIN.THIS_VAR_NAME, accessTo);
-
-                    docTypesResult.close();
-                    docTypesResult = loadResultSet(getApplication().get().getService(), getDocumentTypeQuery(), thisQsm);
-
-                    Set<Resource> parentTypes = new HashSet<>();
-                    docTypesResult.forEachRemaining(qs -> parentTypes.add(qs.getResource("Type")));
-
-                    // only root and containers allow child documents. This needs to be checked before checking ownership
-                    if (Collections.disjoint(parentTypes, Set.of(Default.Root, DH.Container))) return null;
-                    docTypesResult.reset(); // rewind result set to the beginning - it's used again later on
-                    
-                    // the agent is the owner of the requested document - automatically grant acl:Read/acl:Append/acl:Write access
-                    if (agent != null && isOwner(accessTo, agent))
-                    {
-                        log.debug("Agent <{}> is the owner of <{}>, granting acl:Read/acl:Append/acl:Write access", agent, accessTo);
-                        createOwnerAuthorization(authorizations, accessTo, agent);
-                    }
-                }
-                // access to non-existing documents is denied if the request method is not PUT *and* the agent has no Write access
-                else return null;
-            }
-        
             ParameterizedSparqlString pss = getApplication().get().canAs(EndUserApplication.class) ? getACLQuery() : getOwnerACLQuery();
-            Query query = new SetResultSetValues().apply(pss.asQuery(), docTypesResult);
-            pss = new ParameterizedSparqlString(query.toString()); // make sure VALUES are now part of the query string
-            assert pss.toString().contains("VALUES");
+            if (docTypesResult.hasNext())
+            {
+                Query query = new SetResultSetValues().apply(pss.asQuery(), docTypesResult);
+                pss = new ParameterizedSparqlString(query.toString()); // make sure VALUES are now part of the query string
+                assert pss.toString().contains("VALUES");
+            }
 
             // note we're not setting the $mode value on the ACL queries as we want to provide the AuthorizationContext with all of the agent's authorizations
             authorizations.add(loadModel(getAdminService(), pss, new AuthorizationParams(getAdminBase(), accessTo, agent).get()));

@@ -20,10 +20,10 @@
 
 # namespace ontology
 
-<${admin_origin}/ontologies/namespace/>
+<ontologies/namespace/>
 {
-    <${admin_origin}/ontologies/namespace/> a dh:Item ;
-        sioc:has_container <${admin_origin}/ontologies/> ;
+    <ontologies/namespace/> a dh:Item ;
+        sioc:has_container <ontologies/> ;
         dct:title "Namespace" ;
         foaf:primaryTopic <${end_user_origin}/ns#> .
 
@@ -37,15 +37,15 @@
 
 # public namespace authorization
 
-<${admin_origin}/acl/authorizations/public-namespace/>
+<acl/authorizations/public-namespace/>
 {
 
-    <${admin_origin}/acl/authorizations/public-namespace/> a dh:Item ;
-        sioc:has_container <${admin_origin}/acl/authorizations/> ;
+    <acl/authorizations/public-namespace/> a dh:Item ;
+        sioc:has_container <acl/authorizations/> ;
         dct:title "Public namespace access" ;
-        foaf:primaryTopic <${admin_origin}/acl/authorizations/public-namespace/#this> .
+        foaf:primaryTopic <acl/authorizations/public-namespace/#this> .
 
-    <${admin_origin}/acl/authorizations/public-namespace/#this> a acl:Authorization ;
+    <acl/authorizations/public-namespace/#this> a acl:Authorization ;
         rdfs:label "Public namespace access" ;
         rdfs:comment "Allows non-authenticated access" ;
         acl:accessTo <${end_user_origin}/ns> ; # end-user ontologies are public
@@ -56,15 +56,15 @@
 
 # SPARQL endpoint authorization
 
-<${admin_origin}/acl/authorizations/sparql-endpoint/>
+<acl/authorizations/sparql-endpoint/>
 {
 
-    <${admin_origin}/acl/authorizations/sparql-endpoint/> a dh:Item ;
-        sioc:has_container <${admin_origin}/acl/authorizations/> ;
+    <acl/authorizations/sparql-endpoint/> a dh:Item ;
+        sioc:has_container <acl/authorizations/> ;
         dct:title "SPARQL endpoint access" ;
-        foaf:primaryTopic <${admin_origin}/acl/authorizations/sparql-endpoint/#this> .
+        foaf:primaryTopic <acl/authorizations/sparql-endpoint/#this> .
 
-    <${admin_origin}/acl/authorizations/sparql-endpoint/#this> a acl:Authorization ;
+    <acl/authorizations/sparql-endpoint/#this> a acl:Authorization ;
         rdfs:label "SPARQL endpoint access" ;
         rdfs:comment "Allows only authenticated access" ;
         acl:accessTo <${end_user_origin}/sparql> ;
@@ -75,60 +75,98 @@
 
 # write/append authorization
 
-<${admin_origin}/acl/authorizations/write-append/>
+<acl/authorizations/write-append/>
 {
 
-    <${admin_origin}/acl/authorizations/write-append/> a dh:Item ;
-        sioc:has_container <${admin_origin}/acl/authorizations/> ;
+    <acl/authorizations/write-append/> a dh:Item ;
+        sioc:has_container <acl/authorizations/> ;
         dct:title "Write/append access" ;
-        foaf:primaryTopic <${admin_origin}/acl/authorizations/write-append/#this> .
+        foaf:primaryTopic <acl/authorizations/write-append/#this> .
 
-    <${admin_origin}/acl/authorizations/write-append/#this> a acl:Authorization ;
+    <acl/authorizations/write-append/#this> a acl:Authorization ;
         rdfs:label "Write/append access" ;
         rdfs:comment "Allows write access to all documents and containers" ;
         acl:accessToClass dh:Item, dh:Container, def:Root ;
         acl:accessTo <${end_user_origin}/sparql>, <${end_user_origin}/importer>, <${end_user_origin}/add>, <${end_user_origin}/generate>, <${end_user_origin}/ns> ;
         acl:mode acl:Write, acl:Append ;
-        acl:agentGroup <${admin_origin}/acl/groups/owners/#this>, <${admin_origin}/acl/groups/writers/#this> .
+        acl:agentGroup <acl/groups/owners/#this>, <acl/groups/writers/#this> .
 
 }
 
 # full access authorization
 
-<${admin_origin}/acl/authorizations/full-control/>
+<acl/authorizations/full-control/>
 {
 
-    <${admin_origin}/acl/authorizations/full-control/> a dh:Item ;
-        sioc:has_container <${admin_origin}/acl/authorizations/> ;
+    <acl/authorizations/full-control/> a dh:Item ;
+        sioc:has_container <acl/authorizations/> ;
         dct:title "Full control" ;
-        foaf:primaryTopic <${admin_origin}/acl/authorizations/full-control/#this> .
+        foaf:primaryTopic <acl/authorizations/full-control/#this> .
 
-    <${admin_origin}/acl/authorizations/full-control/#this> a acl:Authorization ;
+    <acl/authorizations/full-control/#this> a acl:Authorization ;
         rdfs:label "Full control" ;
         rdfs:comment "Allows full read/write access to all application resources" ;
         acl:accessToClass dh:Item, dh:Container, def:Root ;
         acl:accessTo <${end_user_origin}/sparql>, <${end_user_origin}/importer>, <${end_user_origin}/add>, <${end_user_origin}/generate>, <${end_user_origin}/ns>, <${end_user_origin}/settings> ;
         acl:mode acl:Read, acl:Append, acl:Write, acl:Control ;
-        acl:agentGroup <${admin_origin}/acl/groups/owners/#this> .
+        acl:agentGroup <acl/groups/owners/#this> .
 
 }
 
 # read access
 
-<${admin_origin}/acl/authorizations/read/>
+<acl/authorizations/read/>
 {
 
-    <${admin_origin}/acl/authorizations/read/> a dh:Item ;
-        sioc:has_container <${admin_origin}/acl/authorizations/> ;
+    <acl/authorizations/read/> a dh:Item ;
+        sioc:has_container <acl/authorizations/> ;
         dct:title "Read access" ;
-        foaf:primaryTopic <${admin_origin}/acl/authorizations/read/#this> .
+        foaf:primaryTopic <acl/authorizations/read/#this> .
 
-    <${admin_origin}/acl/authorizations/read/#this> a acl:Authorization ;
+    <acl/authorizations/read/#this> a acl:Authorization ;
         rdfs:label "Read access" ;
         rdfs:comment "Allows read access to all resources" ;
         acl:accessToClass dh:Item, dh:Container, def:Root, <http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#FileDataObject> ;
         acl:accessTo <${end_user_origin}/sparql> ;
         acl:mode acl:Read ;
-        acl:agentGroup <${admin_origin}/acl/groups/owners/#this>, <${admin_origin}/acl/groups/writers/#this>, <${admin_origin}/acl/groups/readers/#this> .
+        acl:agentGroup <acl/groups/owners/#this>, <acl/groups/writers/#this>, <acl/groups/readers/#this> .
+
+}
+
+# access endpoint
+
+<acl/authorizations/access/>
+{
+
+    <acl/authorizations/access/> a dh:Item ;
+        sioc:has_container <acl/authorizations/> ;
+        dct:title "Access description access" ;
+        foaf:primaryTopic <acl/authorizations/access/#this> .
+
+    <acl/authorizations/access/#this> a acl:Authorization ;
+        rdfs:label "Access description access" ;
+        rdfs:comment "Allows non-authenticated access" ;
+        acl:accessTo <${end_user_origin}/access> ;
+        acl:mode acl:Read ;
+        acl:agentClass foaf:Agent, acl:AuthenticatedAgent .
+
+}
+
+# access request endpoint
+
+<acl/authorizations/access-request/>
+{
+
+    <acl/authorizations/access-request/> a dh:Item ;
+        sioc:has_container <acl/authorizations/> ;
+        dct:title "Access request access" ;
+        foaf:primaryTopic <acl/authorizations/access-request/#this> .
+
+    <acl/authorizations/access-request/#this> a acl:Authorization ;
+        rdfs:label "Access request access" ;
+        rdfs:comment "Allows non-authenticated access" ;
+        acl:accessTo <${end_user_origin}/access/request> ;
+        acl:mode acl:Append ;
+        acl:agentClass foaf:Agent, acl:AuthenticatedAgent .
 
 }

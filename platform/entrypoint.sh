@@ -698,7 +698,7 @@ for app in "${apps[@]}"; do
 
         namespace_ontology_dataset_path="/var/linkeddatahub/datasets/${app_folder}/namespace-ontology.trig"
         mkdir -p "$(dirname "$namespace_ontology_dataset_path")"
-        export end_user_origin admin_origin
+        export end_user_origin
         envsubst < namespace-ontology.trig.template > "$namespace_ontology_dataset_path"
 
         trig --base="${admin_origin}/" --output=nq "$namespace_ontology_dataset_path" > "/var/linkeddatahub/based-datasets/${app_folder}/namespace-ontology.nq"
