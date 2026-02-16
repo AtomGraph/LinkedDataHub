@@ -22,6 +22,7 @@
 
 @prefix lacl:	<https://w3id.org/atomgraph/linkeddatahub/admin/acl#> .
 @prefix adm:	<https://w3id.org/atomgraph/linkeddatahub/admin#> .
+@prefix dh:	    <https://www.w3.org/ns/ldt/document-hierarchy#> .
 @prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .
 @prefix owl:	<http://www.w3.org/2002/07/owl#> .
 @prefix acl:	<http://www.w3.org/ns/auth/acl#> .
