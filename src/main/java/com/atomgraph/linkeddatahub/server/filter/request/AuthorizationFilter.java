@@ -43,7 +43,7 @@ import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.container.ContainerRequestFilter;
 import jakarta.ws.rs.container.PreMatching;
 import jakarta.ws.rs.core.Response;
-import java.net.URI;
+import org.apache.jena.irix.IRIx;
 import java.util.HashSet;
 import java.util.Set;
 import org.apache.jena.query.ParameterizedSparqlString;
@@ -170,7 +170,9 @@ public class AuthorizationFilter implements ContainerRequestFilter
         // special case for PUT requests to non-existing document: allow if the agent has acl:Write acess to the *parent* URI
         if (request.getMethod().equals(HttpMethod.PUT) && accessMode.equals(ACL.Write))
         {
-            URI parentURI = URI.create(accessTo.getURI()).resolve("..");
+            // Use Jena's IRIx for RFC 3986-compliant resolution - java.net.URI.resolve("..") is non-compliant
+            // (RFC 3986 section 5.2.4 step 2D requires ".." to be removed, but java.net.URI leaves it literal)
+            IRIx parentURI = IRIx.create(accessTo.getURI()).resolve("..");
             Resource parent = ResourceFactory.createResource(parentURI.toString());
             log.debug("Requested document <{}> not found, falling back to parent URI <{}>", parent, parentURI);
 

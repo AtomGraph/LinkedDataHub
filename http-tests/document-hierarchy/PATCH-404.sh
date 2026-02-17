@@ -37,4 +37,4 @@ curl -k -w "%{http_code}\n" -o /dev/null -s \
   "${END_USER_BASE_URL}non-existing/" \
    --data-binary "$update"
 ) \
-| grep -q "$STATUS_FORBIDDEN"
+| grep -q "$STATUS_NOT_FOUND"
