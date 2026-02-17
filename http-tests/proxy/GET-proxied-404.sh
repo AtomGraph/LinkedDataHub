@@ -17,20 +17,14 @@ add-agent-to-group.sh \
 
 # Test that status codes are correctly proxied through
 # Generate a random UUID for a non-existing resource
-random_uuid=$(cat /proc/sys/kernel/random/uuid 2>/dev/null || uuidgen)
-non_existing_uri="${END_USER_BASE_URL}${random_uuid}/"
+uuid=$(cat /proc/sys/kernel/random/uuid 2>/dev/null || uuidgen)
+non_existing_uri="${END_USER_BASE_URL}${uuid}/"
 
 # Attempt to proxy a non-existing document on the END_USER_BASE_URL
-# This should return 403 Forbidden (not found resources return 403 in LinkedDataHub)
-http_status=$(curl -k -s -o /dev/null -w "%{http_code}" \
+curl -k -s -o /dev/null -w "%{http_code}" \
   -G \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
   -H 'Accept: application/n-triples' \
   --data-urlencode "uri=${non_existing_uri}" \
-  "$END_USER_BASE_URL" || true)
-
-# Verify that the proxied status code matches the backend status code (403)
-if [ "$http_status" != "403" ]; then
-    echo "Expected HTTP 403 Forbidden for non-existing proxied document, got: $http_status"
-    exit 1
-fi
+  "$END_USER_BASE_URL" \
+| grep -q "$STATUS_NOT_FOUND"
