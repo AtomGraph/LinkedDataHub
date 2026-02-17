@@ -58,4 +58,4 @@ fi
 curl -k -w "%{http_code}\n" -o /dev/null -s \
   -E "$OWNER_CERT_FILE":"$OWNER_CERT_PWD" \
   "${ADMIN_BASE_URL}ontologies/${package_ontology_hash}/" \
-| grep -q "$STATUS_FORBIDDEN"
+| grep -q "$STATUS_NOT_FOUND"
