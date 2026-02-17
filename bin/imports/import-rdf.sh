@@ -125,8 +125,7 @@ if [ -n "$query_file" ] ; then
     query_id=$(uuidgen | tr '[:upper:]' '[:lower:]')
 
     # Add the CONSTRUCT query to the item using fragment identifier
-    # TO-DO: fix ambigous add-construct.sh script names
-    "$(dirname "$0")/../add-construct.sh" \
+    add-construct.sh \
       -b "$base" \
       -f "$cert_pem_file" \
       -p "$cert_password" \

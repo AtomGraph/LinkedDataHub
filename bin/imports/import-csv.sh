@@ -121,8 +121,7 @@ fi
 query_id=$(uuidgen | tr '[:upper:]' '[:lower:]')
 
 # Add the CONSTRUCT query to the item using fragment identifier
-# TO-DO: fix ambigous add-construct.sh script names
-"$(dirname "$0")/../add-construct.sh" \
+add-construct.sh \
   -b "$base" \
   -f "$cert_pem_file" \
   -p "$cert_password" \
@@ -148,10 +147,7 @@ add-file.sh \
 
 # Calculate file URI from SHA1 hash
 sha1sum=$(shasum -a 1 "$csv_file" | awk '{print $1}')
-file_uri="${base}uploads/${sha1sum}"
-
-# Generate import ID for fragment identifier
-import_id=$(uuidgen | tr '[:upper:]' '[:lower:]')
+file="${base}uploads/${sha1sum}"
 
 # Add the import metadata to the import item using fragment identifier
 add-csv-import.sh \
@@ -160,9 +156,8 @@ add-csv-import.sh \
   -p "$cert_password" \
   --proxy "$proxy" \
   --title "$title" \
-  --uri "#${import_id}" \
   --query "$query" \
-  --file "$file_uri" \
+  --file "$file" \
   --delimiter "$delimiter" \
   "$target"
   
