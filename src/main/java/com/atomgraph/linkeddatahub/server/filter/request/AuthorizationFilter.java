@@ -167,49 +167,51 @@ public class AuthorizationFilter implements ContainerRequestFilter
             createOwnerAuthorization(authorizations, accessTo, agent);
         }
 
-        // special case for PUT requests to non-existing document: allow if the agent has acl:Write acess to the *parent* URI
-        if (request.getMethod().equals(HttpMethod.PUT) && accessMode.equals(ACL.Write))
-        {
-            // Use Jena's IRIx for RFC 3986-compliant resolution - java.net.URI.resolve("..") is non-compliant
-            // (RFC 3986 section 5.2.4 step 2D requires ".." to be removed, but java.net.URI leaves it literal)
-            IRIx parentURI = IRIx.create(accessTo.getURI()).resolve("..");
-            Resource parent = ResourceFactory.createResource(parentURI.toString());
-            log.debug("Requested document <{}> not found, falling back to parent URI <{}>", parent, parentURI);
-
-            QuerySolutionMap parentQsm = new QuerySolutionMap();
-            parentQsm.add(SPIN.THIS_VAR_NAME, parent);
-            ResultSetRewindable docTypesResult = loadResultSet(getApplication().get().getService(), getDocumentTypeQuery(), parentQsm);
-            try
-            {
-                Set<Resource> parentTypes = new HashSet<>();
-                docTypesResult.forEachRemaining(qs -> parentTypes.add(qs.getResource("Type")));
-
-                // only root and containers allow child documents. This needs to be checked before checking ownership
-                if (Collections.disjoint(parentTypes, Set.of(Default.Root, DH.Container))) return null;
-
-                // the agent is the owner of the requested document - automatically grant acl:Read/acl:Append/acl:Write access
-                if (agent != null && isOwner(parent, agent))
-                {
-                    log.debug("Agent <{}> is the owner of <{}>, granting acl:Read/acl:Append/acl:Write access", agent, parent);
-                    createOwnerAuthorization(authorizations, parent, agent);
-                }
-            }
-            finally
-            {
-                docTypesResult.close();
-            }
-        }
-
         QuerySolutionMap thisQsm = new QuerySolutionMap();
         thisQsm.add(SPIN.THIS_VAR_NAME, accessTo);
-        ResultSetRewindable docTypesResult = loadResultSet(getApplication().get().getService(), getDocumentTypeQuery(), thisQsm);           
+        ResultSetRewindable docTypesResult = loadResultSet(getApplication().get().getService(), getDocumentTypeQuery(), thisQsm);  
         try
         {
+            // special case for PUT requests: if the document does not exist, check acl:Write access on the *parent* URI instead
+            if (!docTypesResult.hasNext() && request.getMethod().equals(HttpMethod.PUT) && accessMode.equals(ACL.Write))
+            {
+                // Use Jena's IRIx for RFC 3986-compliant resolution - java.net.URI.resolve("..") is non-compliant
+                // (RFC 3986 section 5.2.4 step 2D requires ".." to be removed, but java.net.URI leaves it literal)
+                IRIx parentURI = IRIx.create(accessTo.getURI()).resolve("..");
+                Resource parent = ResourceFactory.createResource(parentURI.toString());
+                log.debug("Requested document <{}> not found, falling back to parent URI <{}>", parent, parentURI);
+
+                QuerySolutionMap parentQsm = new QuerySolutionMap();
+                parentQsm.add(SPIN.THIS_VAR_NAME, parent);
+                ResultSetRewindable parentTypesResult = loadResultSet(getApplication().get().getService(), getDocumentTypeQuery(), parentQsm);
+                try
+                {
+                    Set<Resource> parentTypes = new HashSet<>();
+                    parentTypesResult.forEachRemaining(qs -> parentTypes.add(qs.getResource("Type")));
+
+                    // only root and containers allow child documents. This needs to be checked before checking ownership
+                    if (Collections.disjoint(parentTypes, Set.of(Default.Root, DH.Container))) return null;
+
+                    // the agent is the owner of the requested document - automatically grant acl:Read/acl:Append/acl:Write access
+                    if (agent != null && isOwner(parent, agent))
+                    {
+                        log.debug("Agent <{}> is the owner of <{}>, granting acl:Read/acl:Append/acl:Write access", agent, parent);
+                        createOwnerAuthorization(authorizations, parent, agent);
+                    }
+
+                    accessTo = parent; // redirect ACL query to parent URI since the document does not exist yet
+                }
+                finally
+                {
+                    parentTypesResult.close();
+                }
+            }
+         
             ParameterizedSparqlString pss = getApplication().get().canAs(EndUserApplication.class) ? getACLQuery() : getOwnerACLQuery();
             if (docTypesResult.hasNext())
             {
                 Query query = new SetResultSetValues().apply(pss.asQuery(), docTypesResult);
-                pss = new ParameterizedSparqlString(query.toString()); // make sure VALUES are now part of the query string
+                pss = new ParameterizedSparqlString(query.toString()); // make sure type VALUES are now part of the query string
                 assert pss.toString().contains("VALUES");
             }
 

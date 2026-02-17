@@ -15,16 +15,6 @@ add-agent-to-group.sh \
   --agent "$AGENT_URI" \
   "${ADMIN_BASE_URL}acl/groups/writers/"
 
-# create test container
-
-container=$(create-container.sh \
-  -f "$AGENT_CERT_FILE" \
-  -p "$AGENT_CERT_PWD" \
-  -b "$END_USER_BASE_URL" \
-  --title "Test Container" \
-  --slug "test-container" \
-  --parent "$END_USER_BASE_URL")
-
 # add an explicit read/write authorization for the parent since the child document will inherit it
 
 create-authorization.sh \
@@ -33,13 +23,13 @@ create-authorization.sh \
   -p "$OWNER_CERT_PWD" \
   --label "Write base" \
   --agent "$AGENT_URI" \
-  --to "$container" \
+  --to "$END_USER_BASE_URL" \
   --read \
   --write
 
 # check URI without trailing slash gets redirected
 
-invalid_item="${container}no-slash"
+invalid_item="${END_USER_BASE_URL}no-slash"
 
 (
 curl -k -w "%{http_code}\n" -o /dev/null -s \
