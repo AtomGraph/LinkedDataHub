@@ -23,3 +23,12 @@ curl -k -w "%{http_code}\n" -o /dev/null -s -G \
   -H "Accept: application/n-triples" \
   "${END_USER_BASE_URL}non-existing/" \
 | grep -q "$STATUS_NOT_FOUND"
+
+# check that document without parent is not found
+
+curl -k -w "%{http_code}\n" -o /dev/null -s -G \
+  -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
+  -X DELETE \
+  -H "Accept: application/n-triples" \
+  "${END_USER_BASE_URL}parent/non-existing/" \
+| grep -q "$STATUS_NOT_FOUND"

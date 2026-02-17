@@ -32,11 +32,11 @@ item=$(create-item.sh \
 update=$(cat <<EOF
 DELETE
 {
-  <${item}> ?p ?o
+  ?s ?p ?o
 }
 WHERE
 {
-  <${item}> ?p ?o
+  ?s ?p ?o
 }
 EOF
 )

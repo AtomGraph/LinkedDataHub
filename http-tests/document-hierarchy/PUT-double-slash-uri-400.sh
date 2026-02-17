@@ -15,9 +15,20 @@ add-agent-to-group.sh \
   --agent "$AGENT_URI" \
   "${ADMIN_BASE_URL}acl/groups/writers/"
 
+# create a container - IRIx resolves ".." on "new-item//" to "new-item/" (one segment per slash),
+# so the parent container must exist for authorization to pass and reach the // validation in put()
+
+container=$(create-container.sh \
+  -f "$AGENT_CERT_FILE" \
+  -p "$AGENT_CERT_PWD" \
+  -b "$END_USER_BASE_URL" \
+  --title "Test Container" \
+  --slug "new-item" \
+  --parent "$END_USER_BASE_URL")
+
 # creating new document fails because URIs with double slashes are not allowed
 
-item="${END_USER_BASE_URL}new-item//"
+item="${container}/"
 
 (
 curl -k -w "%{http_code}\n" -o /dev/null -s \
