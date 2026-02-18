@@ -15,7 +15,7 @@
 
 <urn:linkeddatahub:apps/admin>
 {
-    <urn:linkeddatahub:apps/admin> a lapp:Application, lapp:AdminApplication ;
+    <urn:linkeddatahub:apps/admin> a lapp:Application ;
         dct:title "LinkedDataHub admin" ;
         lapp:origin <https://admin.localhost:4443> ;
         ldt:ontology <https://w3id.org/atomgraph/linkeddatahub/admin#> ;
@@ -27,7 +27,7 @@
 
 <urn:linkeddatahub:apps/end-user>
 {
-    <urn:linkeddatahub:apps/end-user> a lapp:Application, lapp:EndUserApplication ;
+    <urn:linkeddatahub:apps/end-user> a lapp:Application ;
         dct:title "LinkedDataHub" ;
         lapp:origin <https://localhost:4443> ;
         ldt:ontology <https://localhost:4443/ns#> ;
@@ -40,7 +40,7 @@
 
 <urn:linkeddatahub:apps/northwind-traders/admin>
 {
-    <urn:linkeddatahub:apps/northwind-traders/admin> a lapp:Application, lapp:AdminApplication ;
+    <urn:linkeddatahub:apps/northwind-traders/admin> a lapp:Application ;
         dct:title "Northwind Traders admin" ;
         lapp:origin <https://admin.northwind-traders.demo.localhost:4443> ;
         ldt:ontology <https://w3id.org/atomgraph/linkeddatahub/admin#> ;
@@ -52,7 +52,7 @@
 
 <urn:linkeddatahub:apps/northwind-traders/end-user>
 {
-    <urn:linkeddatahub:apps/northwind-traders/end-user> a lapp:Application, lapp:EndUserApplication ;
+    <urn:linkeddatahub:apps/northwind-traders/end-user> a lapp:Application ;
         dct:title "Northwind Traders" ;
         lapp:origin <https://northwind-traders.demo.localhost:4443> ;
         ldt:ontology <https://northwind-traders.demo.localhost:4443/ns#> ;

@@ -1,3 +1,4 @@
+@prefix lapp:	<https://w3id.org/atomgraph/linkeddatahub/apps#> .
 @prefix a:	    <https://w3id.org/atomgraph/core#> .
 @prefix rdf:	<http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix ldt:	<https://www.w3.org/ns/ldt#> .
@@ -5,13 +6,14 @@
 @prefix dct:	<http://purl.org/dc/terms/> .
 
 ### internal deployment wiring - not for public sharing ###
-### maps apps to their backend SPARQL services ###
+### maps apps to their backend SPARQL services, and assigns admin/end-user roles ###
 
-# root admin - service binding
+# root admin - type + service binding
 
 <urn:linkeddatahub:apps/admin>
 {
-    <urn:linkeddatahub:apps/admin> ldt:service <urn:linkeddatahub:services/admin> .
+    <urn:linkeddatahub:apps/admin> a lapp:AdminApplication ;
+        ldt:service <urn:linkeddatahub:services/admin> .
 }
 
 # root admin - service description
@@ -26,11 +28,12 @@
         a:quadStore <http://fuseki-admin:3030/ds/> .
 }
 
-# root end-user - service binding
+# root end-user - type + service binding
 
 <urn:linkeddatahub:apps/end-user>
 {
-    <urn:linkeddatahub:apps/end-user> ldt:service <urn:linkeddatahub:services/end-user> .
+    <urn:linkeddatahub:apps/end-user> a lapp:EndUserApplication ;
+        ldt:service <urn:linkeddatahub:services/end-user> .
 }
 
 # root end-user - service description
@@ -45,16 +48,18 @@
         a:quadStore <http://fuseki-end-user:3030/ds/> .
 }
 
-# northwind-traders admin - service binding (reuses root admin service)
+# northwind-traders admin - type + service binding (reuses root admin service)
 
 <urn:linkeddatahub:apps/northwind-traders/admin>
 {
-    <urn:linkeddatahub:apps/northwind-traders/admin> ldt:service <urn:linkeddatahub:services/admin> .
+    <urn:linkeddatahub:apps/northwind-traders/admin> a lapp:AdminApplication ;
+        ldt:service <urn:linkeddatahub:services/admin> .
 }
 
-# northwind-traders end-user - service binding (reuses root end-user service)
+# northwind-traders end-user - type + service binding (reuses root end-user service)
 
 <urn:linkeddatahub:apps/northwind-traders/end-user>
 {
-    <urn:linkeddatahub:apps/northwind-traders/end-user> ldt:service <urn:linkeddatahub:services/end-user> .
+    <urn:linkeddatahub:apps/northwind-traders/end-user> a lapp:EndUserApplication ;
+        ldt:service <urn:linkeddatahub:services/end-user> .
 }

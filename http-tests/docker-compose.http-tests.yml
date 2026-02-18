@@ -12,7 +12,7 @@ services:
       - JPDA_ADDRESS=*:8000 # debugger host - performance hit when enabled
     volumes:
       - ./http-tests/config/dataspaces.trig:/var/linkeddatahub/datasets/dataspaces.trig:ro
-      - ./http-tests/config/services.trig:/var/linkeddatahub/datasets/services.trig:ro
+      - ./http-tests/config/system.trig:/var/linkeddatahub/datasets/system.trig:ro
       - ./http-tests/root-owner.trig.template:/var/linkeddatahub/root-owner.trig.template:ro
       - ./datasets/owner:/var/linkeddatahub/datasets/owner
       - ./datasets/secretary:/var/linkeddatahub/datasets/secretary
