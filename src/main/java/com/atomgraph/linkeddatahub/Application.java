@@ -757,41 +757,29 @@ public class Application extends ResourceConfig
             BuiltinPersonalities.model.add(CSVImport.class, CSVImportImpl.factory);
             BuiltinPersonalities.model.add(com.atomgraph.linkeddatahub.model.File.class, FileImpl.factory);
 
-            // Build ServiceContext map: keyed by service URI, associates each service with its client and proxy config.
-            // Admin services get backendProxyAdmin; end-user services get backendProxyEndUser.
+            // Build ServiceContext map: keyed by service URI, proxy derived from the app type that references each service.
+            // Iterating ldt:service statements (app → service) naturally excludes orphan services.
             serviceContextMap = new HashMap<>();
             org.apache.jena.rdf.model.Model ctxUnion = contextDataset.getUnionModel();
-            ResIterator serviceIt = ctxUnion.listSubjectsWithProperty(org.apache.jena.vocabulary.RDF.type,
-                com.atomgraph.core.vocabulary.SD.Service);
+            org.apache.jena.rdf.model.StmtIterator serviceIt = ctxUnion.listStatements(null, LDT.service, (org.apache.jena.rdf.model.RDFNode) null);
             try
             {
                 while (serviceIt.hasNext())
                 {
-                    Resource svcResource = serviceIt.next();
-                    com.atomgraph.linkeddatahub.model.Service svc = svcResource.as(com.atomgraph.linkeddatahub.model.Service.class);
-                    // Determine which proxy applies: check which type of application references this service
-                    org.apache.jena.rdf.model.ResIterator appIt = ctxUnion.listSubjectsWithProperty(
-                        LDT.service, svcResource);
-                    boolean referencedByAdmin = false;
-                    boolean referencedByEndUser = false;
-                    try
-                    {
-                        while (appIt.hasNext())
-                        {
-                            Resource app = appIt.next();
-                            if (app.hasProperty(org.apache.jena.vocabulary.RDF.type, LAPP.AdminApplication))
-                                referencedByAdmin = true;
-                            if (app.hasProperty(org.apache.jena.vocabulary.RDF.type, LAPP.EndUserApplication))
-                                referencedByEndUser = true;
-                        }
-                    }
-                    finally
-                    {
-                        appIt.close();
-                    }
-                    URI proxy = referencedByAdmin ? backendProxyAdmin : (referencedByEndUser ? backendProxyEndUser : null);
+                    org.apache.jena.rdf.model.Statement stmt = serviceIt.nextStatement();
+                    Resource app = stmt.getSubject();
+                    Resource svcResource = stmt.getResource();
+                    URI proxy;
+                    
+                    if (app.hasProperty(RDF.type, LAPP.AdminApplication))
+                        proxy = backendProxyAdmin;
+                    else if (app.hasProperty(RDF.type, LAPP.EndUserApplication))
+                        proxy = backendProxyEndUser;
+                    else
+                        continue;
+                    
                     serviceContextMap.put(svcResource.getURI(),
-                        new com.atomgraph.linkeddatahub.model.ServiceContext(svc, noCertClient, mediaTypes, maxGetRequestSize, proxy));
+                        new com.atomgraph.linkeddatahub.model.ServiceContext(svcResource.as(com.atomgraph.linkeddatahub.model.Service.class), noCertClient, mediaTypes, maxGetRequestSize, proxy));
                 }
             }
             finally

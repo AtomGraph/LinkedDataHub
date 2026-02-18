@@ -1,5 +1,5 @@
 /**
- *  Copyright 2019 Martynas Jusevičius <martynas@atomgraph.com>
+ *  Copyright 2026 Martynas Jusevičius <martynas@atomgraph.com>
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -211,12 +211,12 @@ public class ServiceContext
      */
     public URI getProxiedURI(final URI uri)
     {
-        if (backendProxy != null)
+        if (getBackendProxy() != null)
         {
             return UriBuilder.fromUri(uri).
-                    scheme(backendProxy.getScheme()).
-                    host(backendProxy.getHost()).
-                    port(backendProxy.getPort()).
+                    scheme(getBackendProxy().getScheme()).
+                    host(getBackendProxy().getHost()).
+                    port(getBackendProxy().getPort()).
                     build();
         }
 
