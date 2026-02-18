@@ -2,49 +2,26 @@ PREFIX ldt:     <https://www.w3.org/ns/ldt#>
 PREFIX sd:      <http://www.w3.org/ns/sparql-service-description#>
 PREFIX a:       <https://w3id.org/atomgraph/core#>
 PREFIX lapp:    <https://w3id.org/atomgraph/linkeddatahub/apps#>
-PREFIX ldh:     <https://w3id.org/atomgraph/linkeddatahub#>
 PREFIX foaf:    <http://xmlns.com/foaf/0.1/>
 
-SELECT ?endUserApp ?endUserOrigin ?endUserQuadStore ?endUserEndpoint ?endUserAuthUser ?endUserAuthPwd ?endUserMaker ?adminApp ?adminOrigin ?adminQuadStore ?adminEndpoint ?adminAuthUser ?adminAuthPwd ?adminMaker
+SELECT ?app ?type ?origin ?quadStore ?endpoint ?authUser ?authPwd ?maker
 {
-    GRAPH ?endUserAppGraph
+    GRAPH ?appGraph
     {
-        ?endUserApp lapp:origin ?endUserOrigin ;
-            ldt:service ?endUserService ;
-            lapp:adminApplication ?adminApp .
-        
-        GRAPH ?endUserServiceGraph
-        {
-            ?endUserService a:quadStore ?endUserQuadStore ;
-                sd:endpoint ?endUserEndpoint .
-            OPTIONAL
-            {
-                ?endUserService a:authUser ?endUserAuthUser ;
-                    a:authPwd ?endUserAuthPwd .
-            }
-            OPTIONAL
-            {
-                ?endUserService foaf:maker ?endUserMaker
-            }
-        }
-    }
-    GRAPH ?adminAppGraph
-    {
-        ?adminApp ldt:service ?adminService ;
-            lapp:origin ?adminOrigin .
+        ?app a ?type ;
+            lapp:origin ?origin ;
+            ldt:service ?service .
+        FILTER(?type IN (lapp:EndUserApplication, lapp:AdminApplication))
+        OPTIONAL { ?app foaf:maker ?maker }
 
-        GRAPH ?adminServiceGraph
+        GRAPH ?serviceGraph
         {
-            ?adminService a:quadStore ?adminQuadStore ;
-                sd:endpoint ?adminEndpoint .
+            ?service a:quadStore ?quadStore ;
+                sd:endpoint ?endpoint .
             OPTIONAL
             {
-                ?adminService a:authUser ?adminAuthUser ;
-                    a:authPwd ?adminAuthPwd .
-            }
-            OPTIONAL
-            {
-                ?adminService foaf:maker ?adminMaker
+                ?service a:authUser ?authUser ;
+                    a:authPwd ?authPwd .
             }
         }
     }

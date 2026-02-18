@@ -239,9 +239,26 @@ BASE_URI=$(echo "$BASE_URI" | tr '[:upper:]' '[:lower:]') # make sure it's lower
 ADMIN_BASE_URI=$(echo "$ADMIN_BASE_URI" | tr '[:upper:]' '[:lower:]') # make sure it's lower-case
 ORIGIN=$(echo "$ORIGIN" | tr '[:upper:]' '[:lower:]') # make sure it's lower-case
 
+if [ "$PROTOCOL" = "https" ]; then
+    if [ "$HTTPS_PROXY_PORT" = 443 ]; then
+        export ADMIN_ORIGIN="${PROTOCOL}://admin.${HOST}"
+    else
+        export ADMIN_ORIGIN="${PROTOCOL}://admin.${HOST}:${HTTPS_PROXY_PORT}"
+    fi
+else
+    if [ "$HTTP_PROXY_PORT" = 80 ]; then
+        export ADMIN_ORIGIN="${PROTOCOL}://admin.${HOST}"
+    else
+        export ADMIN_ORIGIN="${PROTOCOL}://admin.${HOST}:${HTTP_PROXY_PORT}"
+    fi
+fi
+
+ADMIN_ORIGIN=$(echo "$ADMIN_ORIGIN" | tr '[:upper:]' '[:lower:]') # make sure it's lower-case
+
 printf "\n### Base URI: %s\n" "$BASE_URI"
 printf "\n### Admin Base URI: %s\n" "$ADMIN_BASE_URI"
 printf "\n### Origin: %s\n" "$ORIGIN"
+printf "\n### Admin Origin: %s\n" "$ADMIN_ORIGIN"
 
 # functions that wait for other services to start
 
@@ -537,105 +554,77 @@ readarray apps < <(xmlstarlet sel -B \
     -N srx="http://www.w3.org/2005/sparql-results#" \
     -T -t -m "/srx:sparql/srx:results/srx:result" \
     -o "\"" \
-    -v "srx:binding[@name = 'endUserApp']" \
+    -v "srx:binding[@name = 'app']" \
     -o "\" \"" \
-    -v "srx:binding[@name = 'endUserOrigin']" \
+    -v "srx:binding[@name = 'type']" \
     -o "\" \"" \
-    -v "srx:binding[@name = 'endUserQuadStore']" \
+    -v "srx:binding[@name = 'origin']" \
     -o "\" \"" \
-    -v "srx:binding[@name = 'endUserEndpoint']" \
+    -v "srx:binding[@name = 'quadStore']" \
     -o "\" \"" \
-    -v "srx:binding[@name = 'endUserAuthUser']" \
+    -v "srx:binding[@name = 'endpoint']" \
     -o "\" \"" \
-    -v "srx:binding[@name = 'endUserAuthPwd']" \
+    -v "srx:binding[@name = 'authUser']" \
     -o "\" \"" \
-    -v "srx:binding[@name = 'endUserMaker']" \
+    -v "srx:binding[@name = 'authPwd']" \
     -o "\" \"" \
-    -v "srx:binding[@name = 'adminApp']" \
-    -o "\" \"" \
-    -v "srx:binding[@name = 'adminOrigin']" \
-    -o "\" \"" \
-    -v "srx:binding[@name = 'adminQuadStore']" \
-    -o "\" \"" \
-    -v "srx:binding[@name = 'adminEndpoint']" \
-    -o "\" \"" \
-    -v "srx:binding[@name = 'adminAuthUser']" \
-    -o "\" \"" \
-    -v "srx:binding[@name = 'adminAuthPwd']" \
-    -o "\" \"" \
-    -v "srx:binding[@name = 'adminMaker']" \
+    -v "srx:binding[@name = 'maker']" \
     -o "\"" \
     -n \
     root_service_metadata.xml)
 
 for app in "${apps[@]}"; do
     app_array=(${app})
-    end_user_app="${app_array[0]//\"/}"
-    end_user_origin="${app_array[1]//\"/}"
-    end_user_quad_store_url="${app_array[2]//\"/}"
-    end_user_endpoint_url="${app_array[3]//\"/}"
-    end_user_service_auth_user="${app_array[4]//\"/}"
-    end_user_service_auth_pwd="${app_array[5]//\"/}"
-    end_user_owner="${app_array[6]//\"/}"
-    admin_app="${app_array[7]//\"/}"
-    admin_origin="${app_array[8]//\"/}"
-    admin_quad_store_url="${app_array[9]//\"/}"
-    admin_endpoint_url="${app_array[10]//\"/}"
-    admin_service_auth_user="${app_array[11]//\"/}"
-    admin_service_auth_pwd="${app_array[12]//\"/}"
-    admin_owner="${app_array[13]//\"/}"
+    app_uri="${app_array[0]//\"/}"
+    app_type="${app_array[1]//\"/}"
+    app_origin="${app_array[2]//\"/}"
+    app_quad_store_url="${app_array[3]//\"/}"
+    app_endpoint_url="${app_array[4]//\"/}"
+    app_service_auth_user="${app_array[5]//\"/}"
+    app_service_auth_pwd="${app_array[6]//\"/}"
+    app_owner="${app_array[7]//\"/}"
 
-    printf "\n### Processing dataspace. End-user app: %s (origin: %s) Admin app: %s (origin: %s)\n" "$end_user_app" "$end_user_origin" "$admin_app" "$admin_origin"
+    printf "\n### Processing app: %s (type: %s, origin: %s)\n" "$app_uri" "$app_type" "$app_origin"
 
-    if [ -z "$end_user_app" ]; then
-        printf "\nEnd-user app URI could not be extracted from %s. Exiting...\n" "$CONTEXT_DATASET"
+    if [ -z "$app_uri" ]; then
+        printf "\nApp URI could not be extracted from %s. Exiting...\n" "$CONTEXT_DATASET"
         exit 1
     fi
-    if [ -z "$end_user_quad_store_url" ]; then
-        printf "\nEnd-user quad store URL could not be extracted for the <%s> app. Exiting...\n" "$end_user_app"
+    if [ -z "$app_quad_store_url" ]; then
+        printf "\nQuad store URL could not be extracted for the <%s> app. Exiting...\n" "$app_uri"
         exit 1
     fi
-    if [ -z "$admin_app" ]; then
-        printf "\nAdmin app URI could not be extracted for the <%s> app. Exiting...\n" "$end_user_app"
-        exit 1
-    fi
-    if [ -z "$admin_origin" ]; then
-        printf "\nAdmin origin could not be extracted for the <%s> app. Exiting...\n" "$end_user_app"
-        exit 1
-    fi
-    if [ -z "$admin_quad_store_url" ]; then
-        printf "\nAdmin quad store URL could not be extracted for the <%s> app. Exiting...\n" "$end_user_app"
+    if [ -z "$app_origin" ]; then
+        printf "\nOrigin could not be extracted for the <%s> app. Exiting...\n" "$app_uri"
         exit 1
     fi
 
-    # check if this app is the root app by comparing origins
-    if [ "$end_user_origin" = "$ORIGIN" ]; then
-        root_end_user_app="$end_user_app"
-        #root_end_user_origin="$end_user_origin"
-        root_end_user_quad_store_url="$end_user_quad_store_url"
-        root_end_user_service_auth_user="$end_user_service_auth_user"
-        root_end_user_service_auth_pwd="$end_user_service_auth_pwd"
-        root_admin_app="$admin_app"
-        #root_admin_origin="$admin_origin"
-        root_admin_quad_store_url="$admin_quad_store_url"
-        root_admin_service_auth_user="$admin_service_auth_user"
-        root_admin_service_auth_pwd="$admin_service_auth_pwd"
+    # check if this is the root end-user or root admin app by comparing origins
+    if [ "$app_type" = "https://w3id.org/atomgraph/linkeddatahub/apps#EndUserApplication" ] && [ "$app_origin" = "$ORIGIN" ]; then
+        root_end_user_app="$app_uri"
+        root_end_user_quad_store_url="$app_quad_store_url"
+        root_end_user_endpoint_url="$app_endpoint_url"
+        root_end_user_service_auth_user="$app_service_auth_user"
+        root_end_user_service_auth_pwd="$app_service_auth_pwd"
+    fi
+    if [ "$app_type" = "https://w3id.org/atomgraph/linkeddatahub/apps#AdminApplication" ] && [ "$app_origin" = "$ADMIN_ORIGIN" ]; then
+        root_admin_app="$app_uri"
+        root_admin_quad_store_url="$app_quad_store_url"
+        root_admin_endpoint_url="$app_endpoint_url"
+        root_admin_service_auth_user="$app_service_auth_user"
+        root_admin_service_auth_pwd="$app_service_auth_pwd"
     fi
 
-    # append ownership metadata to apps if it's not present (apps have to be URI resources!)
+    # append ownership metadata to app if it's not present (apps have to be URI resources!)
 
-    if [ -z "$end_user_owner" ]; then
-        echo "<${end_user_app}> <http://xmlns.com/foaf/0.1/maker> <${OWNER_URI}> <${end_user_app}> ." >> "$based_context_dataset"
-    fi
-    if [ -z "$admin_owner" ]; then
-        echo "<${admin_app}> <http://xmlns.com/foaf/0.1/maker> <${OWNER_URI}> <${admin_app}> ." >> "$based_context_dataset"
+    if [ -z "$app_owner" ]; then
+        echo "<${app_uri}> <http://xmlns.com/foaf/0.1/maker> <${OWNER_URI}> <${app_uri}> ." >> "$based_context_dataset"
     fi
 
-    printf "\n### Quad store URL of the root end-user service: %s\n" "$end_user_quad_store_url"
-    printf "\n### Quad store URL of the root admin service: %s\n" "$admin_quad_store_url"
+    printf "\n### Quad store URL: %s\n" "$app_quad_store_url"
 
-    # Create app-specific subfolder based on end-user origin
-    app_folder=$(echo "$end_user_origin" | sed 's|https://||' | sed 's|http://||' | sed 's|[:/]|-|g')
+    # Create app-specific subfolder based on origin
+    app_folder=$(echo "$app_origin" | sed 's|https://||' | sed 's|http://||' | sed 's|[:/]|-|g')
 
     # Determine whether to load datasets for this app
     load_datasets_for_app="$LOAD_DATASETS"
@@ -649,103 +638,110 @@ for app in "${apps[@]}"; do
 
     # Check if this specific app's datasets should be loaded
     if [ "$load_datasets_for_app" = true ]; then
-        printf "\n### Loading datasets for app: %s\n" "$app_folder"
+        printf "\n### Loading datasets for app: %s\n" "$app_uri"
         mkdir -p "/var/linkeddatahub/based-datasets/${app_folder}"
 
-        # create query file by injecting environmental variables into the template
+        if [ "$app_type" = "https://w3id.org/atomgraph/linkeddatahub/apps#EndUserApplication" ]; then
 
-        case "$END_USER_DATASET_URL" in
-            "file://"*)
-                END_USER_DATASET=$(echo "$END_USER_DATASET_URL" | cut -c 8-) # strip leading file://
+            case "$END_USER_DATASET_URL" in
+                "file://"*)
+                    END_USER_DATASET=$(echo "$END_USER_DATASET_URL" | cut -c 8-) # strip leading file://
 
-                printf "\n### Reading end-user dataset from a local file: %s\n" "$END_USER_DATASET" ;;
-            *)
-                END_USER_DATASET=$(mktemp)
+                    printf "\n### Reading end-user dataset from a local file: %s\n" "$END_USER_DATASET" ;;
+                *)
+                    END_USER_DATASET=$(mktemp)
 
-                printf "\n### Downloading end-user dataset from a URL: %s\n" "$END_USER_DATASET_URL"
+                    printf "\n### Downloading end-user dataset from a URL: %s\n" "$END_USER_DATASET_URL"
 
-                curl "$END_USER_DATASET_URL" > "$END_USER_DATASET" ;;
-        esac
+                    curl "$END_USER_DATASET_URL" > "$END_USER_DATASET" ;;
+            esac
 
-        case "$ADMIN_DATASET_URL" in
-            "file://"*)
-                ADMIN_DATASET=$(echo "$ADMIN_DATASET_URL" | cut -c 8-) # strip leading file://
+            trig --base="${app_origin}/" "$END_USER_DATASET" > "/var/linkeddatahub/based-datasets/${app_folder}/end-user.nq"
 
-                printf "\n### Reading admin dataset from a local file: %s\n" "$ADMIN_DATASET" ;;
-            *)
-                ADMIN_DATASET=$(mktemp)
+            printf "\n### Waiting for %s...\n" "$app_quad_store_url"
+            wait_for_url "$app_quad_store_url" "$app_service_auth_user" "$app_service_auth_pwd" "$TIMEOUT" "application/n-quads"
 
-                printf "\n### Downloading admin dataset from a URL: %s\n" "$ADMIN_DATASET_URL"
+            printf "\n### Loading end-user dataset into the triplestore...\n"
+            append_quads "$app_quad_store_url" "$app_service_auth_user" "$app_service_auth_pwd" "/var/linkeddatahub/based-datasets/${app_folder}/end-user.nq" "application/n-quads"
 
-                curl "$ADMIN_DATASET_URL" > "$ADMIN_DATASET" ;;
-        esac
+        elif [ "$app_type" = "https://w3id.org/atomgraph/linkeddatahub/apps#AdminApplication" ]; then
 
-        trig --base="${end_user_origin}/" "$END_USER_DATASET" > "/var/linkeddatahub/based-datasets/${app_folder}/end-user.nq"
+            case "$ADMIN_DATASET_URL" in
+                "file://"*)
+                    ADMIN_DATASET=$(echo "$ADMIN_DATASET_URL" | cut -c 8-) # strip leading file://
 
-        printf "\n### Waiting for %s...\n" "$end_user_quad_store_url"
-        wait_for_url "$end_user_quad_store_url" "$end_user_service_auth_user" "$end_user_service_auth_pwd" "$TIMEOUT" "application/n-quads"
+                    printf "\n### Reading admin dataset from a local file: %s\n" "$ADMIN_DATASET" ;;
+                *)
+                    ADMIN_DATASET=$(mktemp)
 
-        printf "\n### Loading end-user dataset into the triplestore...\n"
-        append_quads "$end_user_quad_store_url" "$end_user_service_auth_user" "$end_user_service_auth_pwd" "/var/linkeddatahub/based-datasets/${app_folder}/end-user.nq" "application/n-quads"
+                    printf "\n### Downloading admin dataset from a URL: %s\n" "$ADMIN_DATASET_URL"
 
-        trig --base="${admin_origin}/" "$ADMIN_DATASET" > "/var/linkeddatahub/based-datasets/${app_folder}/admin.nq"
+                    curl "$ADMIN_DATASET_URL" > "$ADMIN_DATASET" ;;
+            esac
 
-        printf "\n### Waiting for %s...\n" "$admin_quad_store_url"
-        wait_for_url "$admin_quad_store_url" "$admin_service_auth_user" "$admin_service_auth_pwd" "$TIMEOUT" "application/n-quads"
+            trig --base="${app_origin}/" "$ADMIN_DATASET" > "/var/linkeddatahub/based-datasets/${app_folder}/admin.nq"
 
-        printf "\n### Loading admin dataset into the triplestore...\n"
-        append_quads "$admin_quad_store_url" "$admin_service_auth_user" "$admin_service_auth_pwd" "/var/linkeddatahub/based-datasets/${app_folder}/admin.nq" "application/n-quads"
+            printf "\n### Waiting for %s...\n" "$app_quad_store_url"
+            wait_for_url "$app_quad_store_url" "$app_service_auth_user" "$app_service_auth_pwd" "$TIMEOUT" "application/n-quads"
 
-        namespace_ontology_dataset_path="/var/linkeddatahub/datasets/${app_folder}/namespace-ontology.trig"
-        mkdir -p "$(dirname "$namespace_ontology_dataset_path")"
-        export end_user_origin
-        envsubst < namespace-ontology.trig.template > "$namespace_ontology_dataset_path"
+            printf "\n### Loading admin dataset into the triplestore...\n"
+            append_quads "$app_quad_store_url" "$app_service_auth_user" "$app_service_auth_pwd" "/var/linkeddatahub/based-datasets/${app_folder}/admin.nq" "application/n-quads"
 
-        trig --base="${admin_origin}/" --output=nq "$namespace_ontology_dataset_path" > "/var/linkeddatahub/based-datasets/${app_folder}/namespace-ontology.nq"
+            # derive the corresponding end-user origin by stripping the leading 'admin.' from the hostname
+            end_user_origin=$(echo "$app_origin" | sed 's|://admin\.|://|')
 
-        printf "\n### Loading namespace ontology into the admin triplestore...\n"
-        append_quads "$admin_quad_store_url" "$admin_service_auth_user" "$admin_service_auth_pwd" "/var/linkeddatahub/based-datasets/${app_folder}/namespace-ontology.nq" "application/n-quads"
+            namespace_ontology_dataset_path="/var/linkeddatahub/datasets/${app_folder}/namespace-ontology.trig"
+            mkdir -p "$(dirname "$namespace_ontology_dataset_path")"
+            export end_user_origin
+            envsubst < namespace-ontology.trig.template > "$namespace_ontology_dataset_path"
 
-        # Load full owner/secretary metadata (agent + key) only for root app
-        if [ "$end_user_origin" = "$ORIGIN" ]; then
-            printf "\n### Uploading the metadata of the owner agent...\n\n"
-            append_quads "$admin_quad_store_url" "$admin_service_auth_user" "$admin_service_auth_pwd" /var/linkeddatahub/based-datasets/root-owner.nq "application/n-quads"
+            trig --base="${app_origin}/" --output=nq "$namespace_ontology_dataset_path" > "/var/linkeddatahub/based-datasets/${app_folder}/namespace-ontology.nq"
 
-            printf "\n### Uploading the metadata of the secretary agent...\n\n"
-            append_quads "$admin_quad_store_url" "$admin_service_auth_user" "$admin_service_auth_pwd" /var/linkeddatahub/based-datasets/root-secretary.nq "application/n-quads"
+            printf "\n### Loading namespace ontology into the admin triplestore...\n"
+            append_quads "$app_quad_store_url" "$app_service_auth_user" "$app_service_auth_pwd" "/var/linkeddatahub/based-datasets/${app_folder}/namespace-ontology.nq" "application/n-quads"
+
+            # Load full owner/secretary metadata (agent + key) only for root admin app
+            if [ "$app_origin" = "$ADMIN_ORIGIN" ]; then
+                printf "\n### Uploading the metadata of the owner agent...\n\n"
+                append_quads "$app_quad_store_url" "$app_service_auth_user" "$app_service_auth_pwd" /var/linkeddatahub/based-datasets/root-owner.nq "application/n-quads"
+
+                printf "\n### Uploading the metadata of the secretary agent...\n\n"
+                append_quads "$app_quad_store_url" "$app_service_auth_user" "$app_service_auth_pwd" /var/linkeddatahub/based-datasets/root-secretary.nq "application/n-quads"
+            fi
+
+            # Load owner/secretary authorizations for this app (with app-specific UUIDs)
+            # Note: OWNER_URI and SECRETARY_URI reference the root admin URIs
+            owner_auth_dataset_path="/var/linkeddatahub/datasets/${app_folder}/owner-authorization.trig"
+            mkdir -p "$(dirname "$owner_auth_dataset_path")"
+
+            OWNER_AUTH_UUID=$(uuidgen | tr '[:upper:]' '[:lower:]')
+            OWNER_AUTH_DOC_URI="${app_origin}/acl/authorizations/${OWNER_AUTH_UUID}/"
+            OWNER_AUTH_URI="${OWNER_AUTH_DOC_URI}#auth"
+
+            export OWNER_URI OWNER_DOC_URI OWNER_KEY_DOC_URI OWNER_AUTH_DOC_URI OWNER_AUTH_URI
+            envsubst < root-owner-authorization.trig.template > "$owner_auth_dataset_path"
+
+            trig --base="${app_origin}/" --output=nq "$owner_auth_dataset_path" > "/var/linkeddatahub/based-datasets/${app_folder}/owner-authorization.nq"
+
+            printf "\n### Uploading owner authorizations for this app...\n\n"
+            append_quads "$app_quad_store_url" "$app_service_auth_user" "$app_service_auth_pwd" "/var/linkeddatahub/based-datasets/${app_folder}/owner-authorization.nq" "application/n-quads"
+
+            secretary_auth_dataset_path="/var/linkeddatahub/datasets/${app_folder}/secretary-authorization.trig"
+            mkdir -p "$(dirname "$secretary_auth_dataset_path")"
+
+            SECRETARY_AUTH_UUID=$(uuidgen | tr '[:upper:]' '[:lower:]')
+            SECRETARY_AUTH_DOC_URI="${app_origin}/acl/authorizations/${SECRETARY_AUTH_UUID}/"
+            SECRETARY_AUTH_URI="${SECRETARY_AUTH_DOC_URI}#auth"
+
+            export SECRETARY_URI SECRETARY_DOC_URI SECRETARY_KEY_DOC_URI SECRETARY_AUTH_DOC_URI SECRETARY_AUTH_URI
+            envsubst < root-secretary-authorization.trig.template > "$secretary_auth_dataset_path"
+
+            trig --base="${app_origin}/" --output=nq "$secretary_auth_dataset_path" > "/var/linkeddatahub/based-datasets/${app_folder}/secretary-authorization.nq"
+
+            printf "\n### Uploading secretary authorizations for this app...\n\n"
+            append_quads "$app_quad_store_url" "$app_service_auth_user" "$app_service_auth_pwd" "/var/linkeddatahub/based-datasets/${app_folder}/secretary-authorization.nq" "application/n-quads"
+
         fi
-
-        # Load owner/secretary authorizations for this app (with app-specific UUIDs)
-        # Note: OWNER_URI and SECRETARY_URI reference the root admin URIs
-        owner_auth_dataset_path="/var/linkeddatahub/datasets/${app_folder}/owner-authorization.trig"
-        mkdir -p "$(dirname "$owner_auth_dataset_path")"
-
-        OWNER_AUTH_UUID=$(uuidgen | tr '[:upper:]' '[:lower:]')
-        OWNER_AUTH_DOC_URI="${admin_origin}/acl/authorizations/${OWNER_AUTH_UUID}/"
-        OWNER_AUTH_URI="${OWNER_AUTH_DOC_URI}#auth"
-
-        export OWNER_URI OWNER_DOC_URI OWNER_KEY_DOC_URI OWNER_AUTH_DOC_URI OWNER_AUTH_URI
-        envsubst < root-owner-authorization.trig.template > "$owner_auth_dataset_path"
-
-        trig --base="${admin_origin}/" --output=nq "$owner_auth_dataset_path" > "/var/linkeddatahub/based-datasets/${app_folder}/owner-authorization.nq"
-
-        printf "\n### Uploading owner authorizations for this app...\n\n"
-        append_quads "$admin_quad_store_url" "$admin_service_auth_user" "$admin_service_auth_pwd" "/var/linkeddatahub/based-datasets/${app_folder}/owner-authorization.nq" "application/n-quads"
-
-        secretary_auth_dataset_path="/var/linkeddatahub/datasets/${app_folder}/secretary-authorization.trig"
-        mkdir -p "$(dirname "$secretary_auth_dataset_path")"
-
-        SECRETARY_AUTH_UUID=$(uuidgen | tr '[:upper:]' '[:lower:]')
-        SECRETARY_AUTH_DOC_URI="${admin_origin}/acl/authorizations/${SECRETARY_AUTH_UUID}/"
-        SECRETARY_AUTH_URI="${SECRETARY_AUTH_DOC_URI}#auth"
-
-        export SECRETARY_URI SECRETARY_DOC_URI SECRETARY_KEY_DOC_URI SECRETARY_AUTH_DOC_URI SECRETARY_AUTH_URI
-        envsubst < root-secretary-authorization.trig.template > "$secretary_auth_dataset_path"
-
-        trig --base="${admin_origin}/" --output=nq "$secretary_auth_dataset_path" > "/var/linkeddatahub/based-datasets/${app_folder}/secretary-authorization.nq"
-
-        printf "\n### Uploading secretary authorizations for this app...\n\n"
-        append_quads "$admin_quad_store_url" "$admin_service_auth_user" "$admin_service_auth_pwd" "/var/linkeddatahub/based-datasets/${app_folder}/secretary-authorization.nq" "application/n-quads"
     fi
 done
 
@@ -827,11 +823,12 @@ fi
 # if configured, generate XML sitemap: https://www.sitemaps.org/protocol.html
 
 if [ "$GENERATE_SITEMAP" = true ]; then
+    admin_endpoint_url="$root_admin_endpoint_url"
     export admin_endpoint_url
     envsubst < /var/linkeddatahub/sitemap/sitemap.rq.template > /var/linkeddatahub/sitemap/sitemap.rq
     sitemap_results=$(mktemp)
 
-    curl -k -G -H "Accept: application/sparql-results+xml" "$end_user_endpoint_url" --data-urlencode "query@/var/linkeddatahub/sitemap/sitemap.rq" -o "$sitemap_results"
+    curl -k -G -H "Accept: application/sparql-results+xml" "$root_end_user_endpoint_url" --data-urlencode "query@/var/linkeddatahub/sitemap/sitemap.rq" -o "$sitemap_results"
 
     xsltproc --output "${PWD}/webapps/ROOT/sitemap.xml" /var/linkeddatahub/sitemap/sitemap.xsl "$sitemap_results"
 
