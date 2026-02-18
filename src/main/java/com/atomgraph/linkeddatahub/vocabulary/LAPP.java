@@ -68,10 +68,10 @@ public class LAPP
     public static final OntClass Package = m_model.createClass( NS + "Package" );
 
     /** Admin application class */
-    public static final ObjectProperty adminApplication = m_model.createObjectProperty( NS + "adminApplication" );
-
-    /** End-user application class */
-    public static final ObjectProperty endUserApplication = m_model.createObjectProperty( NS + "endUserApplication" );
+//    public static final ObjectProperty adminApplication = m_model.createObjectProperty( NS + "adminApplication" );
+//
+//    /** End-user application class */
+//    public static final ObjectProperty endUserApplication = m_model.createObjectProperty( NS + "endUserApplication" );
 
     /** Frontend proxy property */
     public static final ObjectProperty frontendProxy = m_model.createObjectProperty( NS + "frontendProxy" );

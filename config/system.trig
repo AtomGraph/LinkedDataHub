@@ -24,7 +24,6 @@
         ldt:ontology <https://w3id.org/atomgraph/linkeddatahub/admin#> ;
         ldt:service <urn:linkeddatahub:services/admin> ;
         ac:stylesheet <static/xsl/admin/layout.xsl> ;
-        lapp:endUserApplication <urn:linkeddatahub:apps/end-user> ;
         lapp:frontendProxy <http://varnish-frontend:6060/> .
 
 }
@@ -53,7 +52,6 @@
         ldt:ontology <https://localhost:4443/ns#> ;
         ldt:service <urn:linkeddatahub:services/end-user> ;
         ac:stylesheet <static/xsl/layout.xsl> ;
-        lapp:adminApplication <urn:linkeddatahub:apps/admin> ;
         lapp:frontendProxy <http://varnish-frontend:6060/> ;
         lapp:public true .
 
@@ -69,5 +67,34 @@
         a:graphStore <http://fuseki-end-user:3030/ds/> ;
         a:quadStore <http://fuseki-end-user:3030/ds/> ;
         lapp:backendProxy <http://varnish-end-user/> .
+
+}
+
+# northwind-traders admin
+
+<urn:linkeddatahub:apps/northwind-traders/admin>
+{
+    <urn:linkeddatahub:apps/northwind-traders/admin> a lapp:Application, lapp:AdminApplication ;
+        dct:title "Northwind Traders admin" ;
+        lapp:origin <https://admin.northwind-traders.demo.localhost:4443> ;
+        ldt:ontology <https://w3id.org/atomgraph/linkeddatahub/admin#> ;
+        ldt:service <urn:linkeddatahub:services/admin> ;
+        ac:stylesheet <static/xsl/admin/layout.xsl> ;
+        lapp:frontendProxy <http://varnish-frontend:6060/> .
+
+}
+
+# northwind-traders end-user
+
+<urn:linkeddatahub:apps/northwind-traders/end-user>
+{
+    <urn:linkeddatahub:apps/northwind-traders/end-user> a lapp:Application, lapp:EndUserApplication ;
+        dct:title "Northwind Traders" ;
+        lapp:origin <https://northwind-traders.demo.localhost:4443> ;
+        ldt:ontology <https://northwind-traders.demo.localhost:4443/ns#> ;
+        ldt:service <urn:linkeddatahub:services/end-user> ;
+        ac:stylesheet <static/xsl/layout.xsl> ;
+        lapp:frontendProxy <http://varnish-frontend:6060/> ;
+        lapp:public true .
 
 }

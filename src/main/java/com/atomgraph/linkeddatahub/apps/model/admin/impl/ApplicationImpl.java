@@ -20,8 +20,10 @@ import com.atomgraph.linkeddatahub.apps.model.AdminApplication;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import com.atomgraph.linkeddatahub.vocabulary.Admin;
 import com.atomgraph.linkeddatahub.vocabulary.LAPP;
+import java.net.URI;
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.graph.Node;
+import org.apache.jena.rdf.model.ResIterator;
 import org.apache.jena.rdf.model.Resource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,9 +52,27 @@ public class ApplicationImpl extends com.atomgraph.linkeddatahub.apps.model.impl
     @Override
     public EndUserApplication getEndUserApplication()
     {
-        Resource app = getPropertyResourceValue(LAPP.endUserApplication);
-        if (app != null) return app.as(EndUserApplication.class);
-        
+        URI originURI = getOriginURI();
+        if (originURI == null) return null;
+
+        // derive end-user origin by stripping the "admin." subdomain from the host
+        String host = originURI.getHost();
+        if (!host.startsWith("admin.")) return null;
+        String endUserHost = host.substring("admin.".length());
+        URI endUserOrigin = URI.create(originURI.getScheme() + "://" + endUserHost +
+            (originURI.getPort() != -1 ? ":" + originURI.getPort() : ""));
+
+        ResIterator it = getModel().listSubjectsWithProperty(LAPP.origin,
+            getModel().createResource(endUserOrigin.toString()));
+        try
+        {
+            if (it.hasNext()) return it.next().as(EndUserApplication.class);
+        }
+        finally
+        {
+            it.close();
+        }
+
         return null;
     }
     

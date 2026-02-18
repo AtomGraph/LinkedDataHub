@@ -18,9 +18,10 @@ package com.atomgraph.linkeddatahub.apps.model.end_user.impl;
 
 import com.atomgraph.linkeddatahub.apps.model.AdminApplication;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
+import java.net.URI;
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.graph.Node;
-import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.rdf.model.ResIterator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.atomgraph.linkeddatahub.vocabulary.LAPP;
@@ -49,9 +50,25 @@ public class ApplicationImpl extends com.atomgraph.linkeddatahub.apps.model.impl
     @Override
     public AdminApplication getAdminApplication()
     {
-        Resource app = getPropertyResourceValue(LAPP.adminApplication);
-        if (app != null) return app.as(AdminApplication.class);
-        
+        URI originURI = getOriginURI();
+        if (originURI == null) return null;
+
+        // derive admin origin by prepending "admin." to the host
+        String adminHost = "admin." + originURI.getHost();
+        URI adminOrigin = URI.create(originURI.getScheme() + "://" + adminHost +
+            (originURI.getPort() != -1 ? ":" + originURI.getPort() : ""));
+
+        ResIterator it = getModel().listSubjectsWithProperty(LAPP.origin,
+            getModel().createResource(adminOrigin.toString()));
+        try
+        {
+            if (it.hasNext()) return it.next().as(AdminApplication.class);
+        }
+        finally
+        {
+            it.close();
+        }
+
         return null;
     }
     
