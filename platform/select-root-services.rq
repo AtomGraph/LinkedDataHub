@@ -4,7 +4,7 @@ PREFIX a:       <https://w3id.org/atomgraph/core#>
 PREFIX lapp:    <https://w3id.org/atomgraph/linkeddatahub/apps#>
 PREFIX foaf:    <http://xmlns.com/foaf/0.1/>
 
-SELECT ?app ?type ?origin ?quadStore ?endpoint ?authUser ?authPwd ?maker
+SELECT ?app ?type ?origin ?quadStore ?graphStore ?endpoint ?authUser ?authPwd ?maker
 {
     GRAPH ?appGraph
     {
@@ -16,8 +16,9 @@ SELECT ?app ?type ?origin ?quadStore ?endpoint ?authUser ?authPwd ?maker
 
         GRAPH ?serviceGraph
         {
-            ?service a:quadStore ?quadStore ;
-                sd:endpoint ?endpoint .
+            ?service sd:endpoint ?endpoint .
+            OPTIONAL { ?service a:quadStore ?quadStore }
+            OPTIONAL { ?service a:graphStore ?graphStore }
             OPTIONAL
             {
                 ?service a:authUser ?authUser ;

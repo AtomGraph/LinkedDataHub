@@ -354,6 +354,71 @@ append_quads()
     fi
 }
 
+gsp_append_quads()
+{
+    local graph_store_url="$1"
+    local auth_user="$2"
+    local auth_pwd="$3"
+    local filename="$4"
+
+    # Create temporary SPARQL query to extract distinct graph URIs
+    local query_file
+    query_file=$(mktemp)
+    cat > "$query_file" << 'EOF'
+SELECT DISTINCT ?g WHERE { GRAPH ?g { ?s ?p ?o }}
+EOF
+
+    # Execute SPARQL query to get graph URIs safely
+    local graph_uris
+    graph_uris=$(sparql --data="$filename" --query="$query_file" --results=CSV | tail -n +2 | cut -d, -f1)
+
+    # Clean up query file
+    rm -f "$query_file"
+
+    # Iterate through each graph URI
+    while IFS= read -r graph_uri; do
+        if [ -n "$graph_uri" ]; then
+            # Remove any trailing newlines/whitespace
+            graph_uri=$(echo "$graph_uri" | tr -d '\n\r')
+            # Create temporary file for this graph's content
+            local temp_file
+            temp_file=$(mktemp)
+
+            # Create SPARQL query to extract triples for specific graph
+            local extract_query
+            extract_query=$(mktemp)
+            cat > "$extract_query" << EOF
+CONSTRUCT { ?s ?p ?o } WHERE { GRAPH <$graph_uri> { ?s ?p ?o } }
+EOF
+
+            # Extract triples for this specific graph as N-Triples
+            sparql --data="$filename" --query="$extract_query" --results=NT > "$temp_file"
+
+            # Send the graph's triples to the graph store using standard GSP
+            if [ -n "$auth_user" ] && [ -n "$auth_pwd" ]; then
+                curl \
+                    -f \
+                    --basic \
+                    --user "$auth_user":"$auth_pwd" \
+                    --url-query "graph=$graph_uri" \
+                    "$graph_store_url" \
+                    -H "Content-Type: application/n-triples" \
+                    --data-binary @"$temp_file"
+            else
+                curl \
+                    -f \
+                    --url-query "graph=$graph_uri" \
+                    "$graph_store_url" \
+                    -H "Content-Type: application/n-triples" \
+                    --data-binary @"$temp_file"
+            fi
+
+            # Clean up temporary files
+            rm -f "$temp_file" "$extract_query"
+        fi
+    done <<< "$graph_uris"
+}
+
 generate_cert()
 {
     local alias="$1"
@@ -580,6 +645,8 @@ readarray apps < <(xmlstarlet sel -B \
     -o "\" \"" \
     -v "srx:binding[@name = 'quadStore']" \
     -o "\" \"" \
+    -v "srx:binding[@name = 'graphStore']" \
+    -o "\" \"" \
     -v "srx:binding[@name = 'endpoint']" \
     -o "\" \"" \
     -v "srx:binding[@name = 'authUser']" \
@@ -597,10 +664,11 @@ for app in "${apps[@]}"; do
     app_type="${app_array[1]//\"/}"
     app_origin="${app_array[2]//\"/}"
     app_quad_store_url="${app_array[3]//\"/}"
-    app_endpoint_url="${app_array[4]//\"/}"
-    app_service_auth_user="${app_array[5]//\"/}"
-    app_service_auth_pwd="${app_array[6]//\"/}"
-    app_owner="${app_array[7]//\"/}"
+    app_graph_store_url="${app_array[4]//\"/}"
+    app_endpoint_url="${app_array[5]//\"/}"
+    app_service_auth_user="${app_array[6]//\"/}"
+    app_service_auth_pwd="${app_array[7]//\"/}"
+    app_owner="${app_array[8]//\"/}"
 
     printf "\n### Processing app: %s (type: %s, origin: %s)\n" "$app_uri" "$app_type" "$app_origin"
 
@@ -608,8 +676,8 @@ for app in "${apps[@]}"; do
         printf "\nApp URI could not be extracted from %s. Exiting...\n" "$CONTEXT_DATASET"
         exit 1
     fi
-    if [ -z "$app_quad_store_url" ]; then
-        printf "\nQuad store URL could not be extracted for the <%s> app. Exiting...\n" "$app_uri"
+    if [ -z "$app_quad_store_url" ] && [ -z "$app_graph_store_url" ]; then
+        printf "\nNeither quad store nor graph store URL could be extracted for the <%s> app. Exiting...\n" "$app_uri"
         exit 1
     fi
     if [ -z "$app_origin" ]; then
@@ -639,7 +707,22 @@ for app in "${apps[@]}"; do
         echo "<${app_uri}> <http://xmlns.com/foaf/0.1/maker> <${OWNER_URI}> <${app_uri}> ." >> "$based_context_dataset"
     fi
 
-    printf "\n### Quad store URL: %s\n" "$app_quad_store_url"
+    if [ -n "$app_quad_store_url" ]; then
+        printf "\n### Quad store URL: %s\n" "$app_quad_store_url"
+    else
+        printf "\n### Graph store URL (GSP fallback): %s\n" "$app_graph_store_url"
+    fi
+
+    # resolve the effective store URL and upload function for this app
+    if [ -n "$app_quad_store_url" ]; then
+        app_store_url="$app_quad_store_url"
+        app_store_content_type="application/n-quads"
+        app_store_fn="append_quads"
+    else
+        app_store_url="$app_graph_store_url"
+        app_store_content_type="application/n-triples"
+        app_store_fn="gsp_append_quads"
+    fi
 
     # Create app-specific subfolder based on origin
     app_folder=$(echo "$app_origin" | sed 's|https://||' | sed 's|http://||' | sed 's|[:/]|-|g')
@@ -676,11 +759,11 @@ for app in "${apps[@]}"; do
 
             trig --base="${app_origin}/" "$END_USER_DATASET" > "/var/linkeddatahub/based-datasets/${app_folder}/end-user.nq"
 
-            printf "\n### Waiting for %s...\n" "$app_quad_store_url"
-            wait_for_url "$app_quad_store_url" "$app_service_auth_user" "$app_service_auth_pwd" "$TIMEOUT" "application/n-quads"
+            printf "\n### Waiting for %s...\n" "$app_store_url"
+            wait_for_url "$app_store_url" "$app_service_auth_user" "$app_service_auth_pwd" "$TIMEOUT" "$app_store_content_type"
 
             printf "\n### Loading end-user dataset into the triplestore...\n"
-            append_quads "$app_quad_store_url" "$app_service_auth_user" "$app_service_auth_pwd" "/var/linkeddatahub/based-datasets/${app_folder}/end-user.nq" "application/n-quads"
+            "$app_store_fn" "$app_store_url" "$app_service_auth_user" "$app_service_auth_pwd" "/var/linkeddatahub/based-datasets/${app_folder}/end-user.nq" "$app_store_content_type"
 
         elif [ "$app_type" = "https://w3id.org/atomgraph/linkeddatahub/apps#AdminApplication" ]; then
 
@@ -699,11 +782,11 @@ for app in "${apps[@]}"; do
 
             trig --base="${app_origin}/" "$ADMIN_DATASET" > "/var/linkeddatahub/based-datasets/${app_folder}/admin.nq"
 
-            printf "\n### Waiting for %s...\n" "$app_quad_store_url"
-            wait_for_url "$app_quad_store_url" "$app_service_auth_user" "$app_service_auth_pwd" "$TIMEOUT" "application/n-quads"
+            printf "\n### Waiting for %s...\n" "$app_store_url"
+            wait_for_url "$app_store_url" "$app_service_auth_user" "$app_service_auth_pwd" "$TIMEOUT" "$app_store_content_type"
 
             printf "\n### Loading admin dataset into the triplestore...\n"
-            append_quads "$app_quad_store_url" "$app_service_auth_user" "$app_service_auth_pwd" "/var/linkeddatahub/based-datasets/${app_folder}/admin.nq" "application/n-quads"
+            "$app_store_fn" "$app_store_url" "$app_service_auth_user" "$app_service_auth_pwd" "/var/linkeddatahub/based-datasets/${app_folder}/admin.nq" "$app_store_content_type"
 
             # derive the corresponding end-user origin by stripping the leading 'admin.' from the hostname
             end_user_origin=$(echo "$app_origin" | sed 's|://admin\.|://|')
@@ -716,15 +799,15 @@ for app in "${apps[@]}"; do
             trig --base="${app_origin}/" --output=nq "$namespace_ontology_dataset_path" > "/var/linkeddatahub/based-datasets/${app_folder}/namespace-ontology.nq"
 
             printf "\n### Loading namespace ontology into the admin triplestore...\n"
-            append_quads "$app_quad_store_url" "$app_service_auth_user" "$app_service_auth_pwd" "/var/linkeddatahub/based-datasets/${app_folder}/namespace-ontology.nq" "application/n-quads"
+            "$app_store_fn" "$app_store_url" "$app_service_auth_user" "$app_service_auth_pwd" "/var/linkeddatahub/based-datasets/${app_folder}/namespace-ontology.nq" "$app_store_content_type"
 
             # Load full owner/secretary metadata (agent + key) only for root admin app
             if [ "$app_origin" = "$ADMIN_ORIGIN" ]; then
                 printf "\n### Uploading the metadata of the owner agent...\n\n"
-                append_quads "$app_quad_store_url" "$app_service_auth_user" "$app_service_auth_pwd" /var/linkeddatahub/based-datasets/root-owner.nq "application/n-quads"
+                "$app_store_fn" "$app_store_url" "$app_service_auth_user" "$app_service_auth_pwd" /var/linkeddatahub/based-datasets/root-owner.nq "$app_store_content_type"
 
                 printf "\n### Uploading the metadata of the secretary agent...\n\n"
-                append_quads "$app_quad_store_url" "$app_service_auth_user" "$app_service_auth_pwd" /var/linkeddatahub/based-datasets/root-secretary.nq "application/n-quads"
+                "$app_store_fn" "$app_store_url" "$app_service_auth_user" "$app_service_auth_pwd" /var/linkeddatahub/based-datasets/root-secretary.nq "$app_store_content_type"
             fi
 
             # Load owner/secretary authorizations for this app (with app-specific UUIDs)
@@ -742,7 +825,7 @@ for app in "${apps[@]}"; do
             trig --base="${app_origin}/" --output=nq "$owner_auth_dataset_path" > "/var/linkeddatahub/based-datasets/${app_folder}/owner-authorization.nq"
 
             printf "\n### Uploading owner authorizations for this app...\n\n"
-            append_quads "$app_quad_store_url" "$app_service_auth_user" "$app_service_auth_pwd" "/var/linkeddatahub/based-datasets/${app_folder}/owner-authorization.nq" "application/n-quads"
+            "$app_store_fn" "$app_store_url" "$app_service_auth_user" "$app_service_auth_pwd" "/var/linkeddatahub/based-datasets/${app_folder}/owner-authorization.nq" "$app_store_content_type"
 
             secretary_auth_dataset_path="/var/linkeddatahub/datasets/${app_folder}/secretary-authorization.trig"
             mkdir -p "$(dirname "$secretary_auth_dataset_path")"
@@ -757,7 +840,7 @@ for app in "${apps[@]}"; do
             trig --base="${app_origin}/" --output=nq "$secretary_auth_dataset_path" > "/var/linkeddatahub/based-datasets/${app_folder}/secretary-authorization.nq"
 
             printf "\n### Uploading secretary authorizations for this app...\n\n"
-            append_quads "$app_quad_store_url" "$app_service_auth_user" "$app_service_auth_pwd" "/var/linkeddatahub/based-datasets/${app_folder}/secretary-authorization.nq" "application/n-quads"
+            "$app_store_fn" "$app_store_url" "$app_service_auth_user" "$app_service_auth_pwd" "/var/linkeddatahub/based-datasets/${app_folder}/secretary-authorization.nq" "$app_store_content_type"
 
         fi
     fi
