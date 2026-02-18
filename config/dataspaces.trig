@@ -1,17 +1,15 @@
 @prefix lapp:	<https://w3id.org/atomgraph/linkeddatahub/apps#> .
 @prefix ldh:	<https://w3id.org/atomgraph/linkeddatahub#> .
-@prefix a:	<https://w3id.org/atomgraph/core#> .
-@prefix ac:	<https://w3id.org/atomgraph/client#> .
+@prefix ac:	    <https://w3id.org/atomgraph/client#> .
 @prefix rdf:	<http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .
 @prefix xsd:	<http://www.w3.org/2001/XMLSchema#> .
 @prefix ldt:	<https://www.w3.org/ns/ldt#> .
-@prefix sd:	<http://www.w3.org/ns/sparql-service-description#> .
 @prefix dct:	<http://purl.org/dc/terms/> .
 @prefix foaf:	<http://xmlns.com/foaf/0.1/> .
 
 ### do not use blank nodes to identify resources! ###
-### urn: URI scheme is used because applications/services are not accessible in their own dataspace (under $BASE_URI) ###
+### urn: URI scheme is used because applications are not accessible in their own dataspace (under $BASE_URI) ###
 
 # root admin
 
@@ -19,23 +17,9 @@
 {
     <urn:linkeddatahub:apps/admin> a lapp:Application, lapp:AdminApplication ;
         dct:title "LinkedDataHub admin" ;
-        # ldt:base <https://admin.localhost:4443/> ;
         lapp:origin <https://admin.localhost:4443> ;
         ldt:ontology <https://w3id.org/atomgraph/linkeddatahub/admin#> ;
-        ldt:service <urn:linkeddatahub:services/admin> ;
         ac:stylesheet <static/xsl/admin/layout.xsl> .
-
-}
-
-<urn:linkeddatahub:services/admin>
-{
-
-    <urn:linkeddatahub:services/admin> a sd:Service ;
-        dct:title "LinkedDataHub admin service" ;
-        sd:supportedLanguage sd:SPARQL11Query, sd:SPARQL11Update ;
-        sd:endpoint <http://fuseki-admin:3030/ds/> ;
-        a:graphStore <http://fuseki-admin:3030/ds/> ;
-        a:quadStore <http://fuseki-admin:3030/ds/> .
 
 }
 
@@ -45,24 +29,10 @@
 {
     <urn:linkeddatahub:apps/end-user> a lapp:Application, lapp:EndUserApplication ;
         dct:title "LinkedDataHub" ;
-        # ldt:base <https://localhost:4443/> ;
         lapp:origin <https://localhost:4443> ;
         ldt:ontology <https://localhost:4443/ns#> ;
-        ldt:service <urn:linkeddatahub:services/end-user> ;
         ac:stylesheet <static/xsl/layout.xsl> ;
         lapp:public true .
-
-}
-
-<urn:linkeddatahub:services/end-user>
-{
-
-    <urn:linkeddatahub:services/end-user> a sd:Service ;
-        dct:title "LinkedDataHub service" ;
-        sd:supportedLanguage sd:SPARQL11Query, sd:SPARQL11Update ;
-        sd:endpoint <http://fuseki-end-user:3030/ds/> ;
-        a:graphStore <http://fuseki-end-user:3030/ds/> ;
-        a:quadStore <http://fuseki-end-user:3030/ds/> .
 
 }
 
@@ -74,7 +44,6 @@
         dct:title "Northwind Traders admin" ;
         lapp:origin <https://admin.northwind-traders.demo.localhost:4443> ;
         ldt:ontology <https://w3id.org/atomgraph/linkeddatahub/admin#> ;
-        ldt:service <urn:linkeddatahub:services/admin> ;
         ac:stylesheet <static/xsl/admin/layout.xsl> .
 
 }
@@ -87,7 +56,6 @@
         dct:title "Northwind Traders" ;
         lapp:origin <https://northwind-traders.demo.localhost:4443> ;
         ldt:ontology <https://northwind-traders.demo.localhost:4443/ns#> ;
-        ldt:service <urn:linkeddatahub:services/end-user> ;
         ac:stylesheet <static/xsl/layout.xsl> ;
         lapp:public true .
 

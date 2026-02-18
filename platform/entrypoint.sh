@@ -186,6 +186,11 @@ if [ -z "$CONTEXT_DATASET_URL" ]; then
     exit 1
 fi
 
+if [ -z "$SERVICES_DATASET_URL" ]; then
+    echo '$SERVICES_DATASET_URL not set'
+    exit 1
+fi
+
 if [ -z "$END_USER_DATASET_URL" ]; then
     echo '$END_USER_DATASET_URL not set'
     exit 1
@@ -536,7 +541,7 @@ case "$CONTEXT_DATASET_URL" in
         CONTEXT_DATASET=$(echo "$CONTEXT_DATASET_URL" | cut -c 8-) # strip leading file://
 
         printf "\n### Reading context dataset from a local file: %s\n" "$CONTEXT_DATASET" ;;
-    *)  
+    *)
         CONTEXT_DATASET=$(mktemp)
 
         printf "\n### Downloading context dataset from a URL: %s\n" "$CONTEXT_DATASET_URL"
@@ -544,7 +549,20 @@ case "$CONTEXT_DATASET_URL" in
         curl "$CONTEXT_DATASET_URL" > "$CONTEXT_DATASET" ;;
 esac
 
-trig --base="$BASE_URI" "$CONTEXT_DATASET" > "$based_context_dataset"
+case "$SERVICES_DATASET_URL" in
+    "file://"*)
+        SERVICES_DATASET=$(echo "$SERVICES_DATASET_URL" | cut -c 8-) # strip leading file://
+
+        printf "\n### Reading services dataset from a local file: %s\n" "$SERVICES_DATASET" ;;
+    *)
+        SERVICES_DATASET=$(mktemp)
+
+        printf "\n### Downloading services dataset from a URL: %s\n" "$SERVICES_DATASET_URL"
+
+        curl "$SERVICES_DATASET_URL" > "$SERVICES_DATASET" ;;
+esac
+
+trig --base="$BASE_URI" "$CONTEXT_DATASET" "$SERVICES_DATASET" > "$based_context_dataset"
 
 sparql --data="$based_context_dataset" --query="select-root-services.rq" --results=XML > root_service_metadata.xml
 

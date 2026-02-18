@@ -356,6 +356,9 @@ public class Application extends ResourceConfig
             servletConfig.getServletContext().getInitParameter(LDHC.supportedLanguages.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.supportedLanguages.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(LDHC.enableWebIDSignUp.getURI()) != null ? Boolean.parseBoolean(servletConfig.getServletContext().getInitParameter(LDHC.enableWebIDSignUp.getURI())) : true,
             servletConfig.getServletContext().getInitParameter(LDHC.oidcRefreshTokens.getURI()),
+            servletConfig.getServletContext().getInitParameter(LDHC.frontendProxy.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.frontendProxy.getURI()) : null,
+            servletConfig.getServletContext().getInitParameter(LDHC.backendProxyAdmin.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.backendProxyAdmin.getURI()) : null,
+            servletConfig.getServletContext().getInitParameter(LDHC.backendProxyEndUser.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.backendProxyEndUser.getURI()) : null,
             servletConfig.getServletContext().getInitParameter("mail.user") != null ? servletConfig.getServletContext().getInitParameter("mail.user") : null,
             servletConfig.getServletContext().getInitParameter("mail.password") != null ? servletConfig.getServletContext().getInitParameter("mail.password") : null,
             servletConfig.getServletContext().getInitParameter("mail.smtp.host") != null ? servletConfig.getServletContext().getInitParameter("mail.smtp.host") : null,
@@ -363,10 +366,7 @@ public class Application extends ResourceConfig
             servletConfig.getServletContext().getInitParameter(Google.clientID.getURI()) != null ? servletConfig.getServletContext().getInitParameter(Google.clientID.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(Google.clientSecret.getURI()) != null ? servletConfig.getServletContext().getInitParameter(Google.clientSecret.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(ORCID.clientID.getURI()) != null ? servletConfig.getServletContext().getInitParameter(ORCID.clientID.getURI()) : null,
-            servletConfig.getServletContext().getInitParameter(ORCID.clientSecret.getURI()) != null ? servletConfig.getServletContext().getInitParameter(ORCID.clientSecret.getURI()) : null,
-            servletConfig.getServletContext().getInitParameter(LDHC.frontendProxy.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.frontendProxy.getURI()) : null,
-            servletConfig.getServletContext().getInitParameter(LDHC.backendProxyAdmin.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.backendProxyAdmin.getURI()) : null,
-            servletConfig.getServletContext().getInitParameter(LDHC.backendProxyEndUser.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.backendProxyEndUser.getURI()) : null
+            servletConfig.getServletContext().getInitParameter(ORCID.clientSecret.getURI()) != null ? servletConfig.getServletContext().getInitParameter(ORCID.clientSecret.getURI()) : null
         );
     }
     
@@ -439,10 +439,10 @@ public class Application extends ResourceConfig
             final Integer cookieMaxAge, final boolean enableLinkedDataProxy, final Integer maxContentLength,
             final Integer maxConnPerRoute, final Integer maxTotalConn, final Integer maxRequestRetries, final Integer maxImportThreads,
             final String notificationAddressString, final String supportedLanguageCodes, final boolean enableWebIDSignUp, final String oidcRefreshTokensPropertiesPath,
+            final String frontendProxyString, final String backendProxyAdminString, final String backendProxyEndUserString,
             final String mailUser, final String mailPassword, final String smtpHost, final String smtpPort,
             final String googleClientID, final String googleClientSecret,
-            final String orcidClientID, final String orcidClientSecret,
-            final String frontendProxyString, final String backendProxyAdminString, final String backendProxyEndUserString)
+            final String orcidClientID, final String orcidClientSecret)
     {
         if (contextDatasetURIString == null)
         {

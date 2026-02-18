@@ -1,0 +1,60 @@
+@prefix a:	    <https://w3id.org/atomgraph/core#> .
+@prefix rdf:	<http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix ldt:	<https://www.w3.org/ns/ldt#> .
+@prefix sd:	    <http://www.w3.org/ns/sparql-service-description#> .
+@prefix dct:	<http://purl.org/dc/terms/> .
+
+### internal deployment wiring - not for public sharing ###
+### maps apps to their backend SPARQL services ###
+
+# root admin - service binding
+
+<urn:linkeddatahub:apps/admin>
+{
+    <urn:linkeddatahub:apps/admin> ldt:service <urn:linkeddatahub:services/admin> .
+}
+
+# root admin - service description
+
+<urn:linkeddatahub:services/admin>
+{
+    <urn:linkeddatahub:services/admin> a sd:Service ;
+        dct:title "LinkedDataHub admin service" ;
+        sd:supportedLanguage sd:SPARQL11Query, sd:SPARQL11Update ;
+        sd:endpoint <http://fuseki-admin:3030/ds/> ;
+        a:graphStore <http://fuseki-admin:3030/ds/> ;
+        a:quadStore <http://fuseki-admin:3030/ds/> .
+}
+
+# root end-user - service binding
+
+<urn:linkeddatahub:apps/end-user>
+{
+    <urn:linkeddatahub:apps/end-user> ldt:service <urn:linkeddatahub:services/end-user> .
+}
+
+# root end-user - service description
+
+<urn:linkeddatahub:services/end-user>
+{
+    <urn:linkeddatahub:services/end-user> a sd:Service ;
+        dct:title "LinkedDataHub service" ;
+        sd:supportedLanguage sd:SPARQL11Query, sd:SPARQL11Update ;
+        sd:endpoint <http://fuseki-end-user:3030/ds/> ;
+        a:graphStore <http://fuseki-end-user:3030/ds/> ;
+        a:quadStore <http://fuseki-end-user:3030/ds/> .
+}
+
+# northwind-traders admin - service binding (reuses root admin service)
+
+<urn:linkeddatahub:apps/northwind-traders/admin>
+{
+    <urn:linkeddatahub:apps/northwind-traders/admin> ldt:service <urn:linkeddatahub:services/admin> .
+}
+
+# northwind-traders end-user - service binding (reuses root end-user service)
+
+<urn:linkeddatahub:apps/northwind-traders/end-user>
+{
+    <urn:linkeddatahub:apps/northwind-traders/end-user> ldt:service <urn:linkeddatahub:services/end-user> .
+}
