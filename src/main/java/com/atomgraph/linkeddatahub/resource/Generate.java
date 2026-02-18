@@ -174,7 +174,7 @@ public class Generate
             }
             
             // ban the parent container URI from proxy cache to make sure the next query using it will be fresh (e.g. SELECT that loads children)
-            getSystem().ban(getApplication().getService().getBackendProxy(), parent.getURI(), true);
+            getSystem().ban(getSystem().getServiceContext(getApplication().getService()).getBackendProxy(), parent.getURI(), true);
 
             return Response.ok().build();
         }

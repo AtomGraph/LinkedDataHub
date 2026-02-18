@@ -23,8 +23,7 @@
         lapp:origin <https://admin.localhost:4443> ;
         ldt:ontology <https://w3id.org/atomgraph/linkeddatahub/admin#> ;
         ldt:service <urn:linkeddatahub:services/admin> ;
-        ac:stylesheet <static/xsl/admin/layout.xsl> ;
-        lapp:frontendProxy <http://varnish-frontend:6060/> .
+        ac:stylesheet <static/xsl/admin/layout.xsl> .
 
 }
 
@@ -36,8 +35,7 @@
         sd:supportedLanguage sd:SPARQL11Query, sd:SPARQL11Update ;
         sd:endpoint <http://fuseki-admin:3030/ds/> ;
         a:graphStore <http://fuseki-admin:3030/ds/> ;
-        a:quadStore <http://fuseki-admin:3030/ds/> ;
-        lapp:backendProxy <http://varnish-admin/> .
+        a:quadStore <http://fuseki-admin:3030/ds/> .
 
 }
 
@@ -52,7 +50,6 @@
         ldt:ontology <https://localhost:4443/ns#> ;
         ldt:service <urn:linkeddatahub:services/end-user> ;
         ac:stylesheet <static/xsl/layout.xsl> ;
-        lapp:frontendProxy <http://varnish-frontend:6060/> ;
         lapp:public true .
 
 }
@@ -65,8 +62,7 @@
         sd:supportedLanguage sd:SPARQL11Query, sd:SPARQL11Update ;
         sd:endpoint <http://fuseki-end-user:3030/ds/> ;
         a:graphStore <http://fuseki-end-user:3030/ds/> ;
-        a:quadStore <http://fuseki-end-user:3030/ds/> ;
-        lapp:backendProxy <http://varnish-end-user/> .
+        a:quadStore <http://fuseki-end-user:3030/ds/> .
 
 }
 
@@ -79,8 +75,7 @@
         lapp:origin <https://admin.northwind-traders.demo.localhost:4443> ;
         ldt:ontology <https://w3id.org/atomgraph/linkeddatahub/admin#> ;
         ldt:service <urn:linkeddatahub:services/admin> ;
-        ac:stylesheet <static/xsl/admin/layout.xsl> ;
-        lapp:frontendProxy <http://varnish-frontend:6060/> .
+        ac:stylesheet <static/xsl/admin/layout.xsl> .
 
 }
 
@@ -94,7 +89,6 @@
         ldt:ontology <https://northwind-traders.demo.localhost:4443/ns#> ;
         ldt:service <urn:linkeddatahub:services/end-user> ;
         ac:stylesheet <static/xsl/layout.xsl> ;
-        lapp:frontendProxy <http://varnish-frontend:6060/> ;
         lapp:public true .
 
 }

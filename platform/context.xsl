@@ -52,6 +52,9 @@ xmlns:orcid="&orcid;"
     <xsl:param name="google:clientSecret"/>
     <xsl:param name="orcid:clientID"/>
     <xsl:param name="orcid:clientSecret"/>
+    <xsl:param name="ldhc:frontendProxy"/>
+    <xsl:param name="ldhc:backendProxyAdmin"/>
+    <xsl:param name="ldhc:backendProxyEndUser"/>
 
     <xsl:template match="@*|node()">
         <xsl:copy>
@@ -167,6 +170,15 @@ xmlns:orcid="&orcid;"
             </xsl:if>
             <xsl:if test="$orcid:clientSecret">
                 <Parameter name="&orcid;clientSecret" value="{$orcid:clientSecret}" override="false"/>
+            </xsl:if>
+            <xsl:if test="$ldhc:frontendProxy">
+                <Parameter name="&ldhc;frontendProxy" value="{$ldhc:frontendProxy}" override="false"/>
+            </xsl:if>
+            <xsl:if test="$ldhc:backendProxyAdmin">
+                <Parameter name="&ldhc;backendProxyAdmin" value="{$ldhc:backendProxyAdmin}" override="false"/>
+            </xsl:if>
+            <xsl:if test="$ldhc:backendProxyEndUser">
+                <Parameter name="&ldhc;backendProxyEndUser" value="{$ldhc:backendProxyEndUser}" override="false"/>
             </xsl:if>
 
             <xsl:apply-templates select="node()"/>

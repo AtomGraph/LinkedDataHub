@@ -950,6 +950,18 @@ if [ -f "/run/secrets/orcid_client_secret" ]; then
     ORCID_CLIENT_SECRET_PARAM="--stringparam orcid:clientSecret '$ORCID_CLIENT_SECRET' "
 fi
 
+if [ -n "$FRONTEND_PROXY" ]; then
+    FRONTEND_PROXY_PARAM="--stringparam 'ldhc:frontendProxy' '$FRONTEND_PROXY' "
+fi
+
+if [ -n "$BACKEND_PROXY_ADMIN" ]; then
+    BACKEND_PROXY_ADMIN_PARAM="--stringparam 'ldhc:backendProxyAdmin' '$BACKEND_PROXY_ADMIN' "
+fi
+
+if [ -n "$BACKEND_PROXY_END_USER" ]; then
+    BACKEND_PROXY_END_USER_PARAM="--stringparam 'ldhc:backendProxyEndUser' '$BACKEND_PROXY_END_USER' "
+fi
+
 transform="xsltproc \
   --output conf/Catalina/localhost/ROOT.xml \
   $CACHE_MODEL_LOADS_PARAM \
@@ -987,6 +999,9 @@ transform="xsltproc \
   $GOOGLE_CLIENT_SECRET_PARAM \
   $ORCID_CLIENT_ID_PARAM \
   $ORCID_CLIENT_SECRET_PARAM \
+  $FRONTEND_PROXY_PARAM \
+  $BACKEND_PROXY_ADMIN_PARAM \
+  $BACKEND_PROXY_END_USER_PARAM \
   /var/linkeddatahub/xsl/context.xsl \
   conf/Catalina/localhost/ROOT.xml"
 

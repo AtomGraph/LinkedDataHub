@@ -88,33 +88,36 @@ public class ClearOntology
             if (log.isDebugEnabled()) log.debug("Clearing ontology with URI '{}' from memory", ontologyURI);
             ontModelSpec.getDocumentManager().getFileManager().removeCacheModel(ontologyURI);
 
-            URI ontologyDocURI = UriBuilder.fromUri(ontologyURI).fragment(null).build(); // skip fragment from the ontology URI to get its graph URI            
+            URI ontologyDocURI = UriBuilder.fromUri(ontologyURI).fragment(null).build(); // skip fragment from the ontology URI to get its graph URI
             // purge from admin cache
-            if (getApplication().getFrontendProxy() != null)
+            URI frontendProxy = getSystem().getFrontendProxy();
+            if (frontendProxy != null)
             {
                 if (log.isDebugEnabled()) log.debug("Purge ontology document with URI '{}' from frontend proxy cache", ontologyDocURI);
-                ban(getApplication().getFrontendProxy(), ontologyDocURI.toString(), false);
+                ban(frontendProxy, ontologyDocURI.toString(), false);
             }
-            if (getApplication().getService().getBackendProxy() != null)
+            URI adminBackendProxy = getSystem().getServiceContext(getApplication().getService()).getBackendProxy();
+            if (adminBackendProxy != null)
             {
                 if (log.isDebugEnabled()) log.debug("Ban ontology with URI '{}' from backend proxy cache", ontologyURI);
-                ban(getApplication().getService().getBackendProxy(), ontologyURI);
+                ban(adminBackendProxy, ontologyURI);
             }
             // purge from end-user cache
-            if (endUserApp.getFrontendProxy() != null)
+            if (frontendProxy != null)
             {
                 if (log.isDebugEnabled()) log.debug("Purge ontology document with URI '{}' from frontend proxy cache", ontologyDocURI);
-                ban(endUserApp.getFrontendProxy(), ontologyDocURI.toString(), false);
+                ban(frontendProxy, ontologyDocURI.toString(), false);
             }
-            if (endUserApp.getService().getBackendProxy() != null)
+            URI endUserBackendProxy = getSystem().getServiceContext(endUserApp.getService()).getBackendProxy();
+            if (endUserBackendProxy != null)
             {
                 if (log.isDebugEnabled()) log.debug("Ban ontology with URI '{}' from backend proxy cache", ontologyURI);
-                ban(endUserApp.getService().getBackendProxy(), ontologyURI);
+                ban(endUserBackendProxy, ontologyURI);
             }
             
             // !!! we need to reload the ontology model before returning a response, to make sure the next request already gets the new version !!!
             // same logic as in OntologyFilter. TO-DO: encapsulate?
-            OntologyModelGetter modelGetter = new OntologyModelGetter(endUserApp, ontModelSpec, getSystem().getOntologyQuery());
+            OntologyModelGetter modelGetter = new OntologyModelGetter(endUserApp, getSystem(), ontModelSpec, getSystem().getOntologyQuery());
             ontModelSpec.setImportModelGetter(modelGetter);
             if (log.isDebugEnabled()) log.debug("Started loading ontology with URI '{}' from the admin dataset", ontologyURI);
             Model baseModel = modelGetter.getModel(ontologyURI);
@@ -132,21 +135,21 @@ public class ClearOntology
         else return Response.ok().build();
     }
     
-    public void ban(Resource proxy, String url)
+    public void ban(URI proxyURI, String url)
     {
-        ban(proxy, url, true);
+        ban(proxyURI, url, true);
     }
 
-    /** 
+    /**
      * Bans URL from the backend proxy cache.
-     * 
-     * @param proxy proxy server URL
+     *
+     * @param proxyURI proxy server URI
      * @param url banned URL
      * @param urlEncode if true, the banned URL value will be URL-encoded
      */
-    public void ban(Resource proxy, String url, boolean urlEncode)
+    public void ban(URI proxyURI, String url, boolean urlEncode)
     {
-        if (url == null) throw new IllegalArgumentException("Resource cannot be null");
+        if (url == null) throw new IllegalArgumentException("URL cannot be null");
 
         // Extract path from URL - Varnish req.url only contains the path, not the full URL
         URI uri = URI.create(url);
@@ -155,7 +158,7 @@ public class ClearOntology
 
         final String urlValue = urlEncode ? UriComponent.encode(path, UriComponent.Type.UNRESERVED) : path;
 
-        try (Response cr = getSystem().getClient().target(proxy.getURI()).
+        try (Response cr = getSystem().getClient().target(proxyURI).
                 request().
                 header(CacheInvalidationFilter.HEADER_NAME, urlValue).
                 method("BAN", Response.class))

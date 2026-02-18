@@ -38,7 +38,7 @@ import org.slf4j.LoggerFactory;
 /**
  * RDF stream writer.
  * A function that converts client response with CSV data to a stream of transformed RDF data.
- * 
+ *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  * @see com.atomgraph.linkeddatahub.listener.ImportListener
  */
@@ -48,31 +48,34 @@ public class CSVGraphStoreOutputWriter implements Function<Response, CSVGraphSto
     private static final Logger log = LoggerFactory.getLogger(CSVGraphStoreOutputWriter.class);
 
     private final Service service, adminService;
+    private final com.atomgraph.linkeddatahub.Application system;
     private final GraphStoreClient gsc;
     private final String baseURI;
     private final Query query;
     private final char delimiter;
-    
+
     /**
      * Constructs output writer.
-     * 
+     *
      * @param service SPARQL service of the application
      * @param adminService SPARQL service of the admin application
+     * @param system system application
      * @param gsc Graph Store client
      * @param baseURI base URI
      * @param query transformation query
      * @param delimiter CSV delimiter
      */
-    public CSVGraphStoreOutputWriter(Service service, Service adminService, GraphStoreClient gsc,  String baseURI, Query query, char delimiter)
+    public CSVGraphStoreOutputWriter(Service service, Service adminService, com.atomgraph.linkeddatahub.Application system, GraphStoreClient gsc, String baseURI, Query query, char delimiter)
     {
         this.service = service;
         this.adminService = adminService;
+        this.system = system;
         this.gsc = gsc;
         this.baseURI = baseURI;
         this.query = query;
         this.delimiter = delimiter;
     }
-    
+
     @Override
     public CSVGraphStoreOutput apply(Response csvInput)
     {
@@ -86,10 +89,10 @@ public class CSVGraphStoreOutputWriter implements Function<Response, CSVGraphSto
             {
                 csvIs.transferTo(output);
             }
-            
+
             try (InputStream fis = new FileInputStream(tempFile); Reader reader = new InputStreamReader(fis, StandardCharsets.UTF_8))
             {
-                CSVGraphStoreOutput output = new CSVGraphStoreOutput(getService(), getAdminService(), getGraphStoreClient(), getBaseURI(), reader, getQuery(), getDelimiter(), null);
+                CSVGraphStoreOutput output = new CSVGraphStoreOutput(getService(), getAdminService(), getSystem(), getGraphStoreClient(), getBaseURI(), reader, getQuery(), getDelimiter(), null);
                 output.write();
                 return output;
             }
@@ -107,62 +110,72 @@ public class CSVGraphStoreOutputWriter implements Function<Response, CSVGraphSto
 
     /**
      * Return application's SPARQL service.
-     * 
+     *
      * @return SPARQL service
      */
     public Service getService()
     {
         return service;
     }
-    
+
     /**
      * Return admin application's SPARQL service.
-     * 
+     *
      * @return SPARQL service
      */
     public Service getAdminService()
     {
         return adminService;
     }
-    
+
+    /**
+     * Return system application.
+     *
+     * @return system application
+     */
+    public com.atomgraph.linkeddatahub.Application getSystem()
+    {
+        return system;
+    }
+
     /**
      * Returns the Graph Store client.
-     * 
+     *
      * @return client object
      */
     public GraphStoreClient getGraphStoreClient()
     {
         return gsc;
     }
-    
+
     /**
      * Returns base URI.
-     * 
+     *
      * @return URI string
      */
     public String getBaseURI()
     {
         return baseURI;
     }
-    
+
     /**
      * Returns the transformation query.
-     * 
+     *
      * @return SPARQL query
      */
     public Query getQuery()
     {
         return query;
     }
-    
+
     /**
      * Returns the CSV delimiter.
-     * 
+     *
      * @return the delimiting character
      */
     public char getDelimiter()
     {
         return delimiter;
     }
-    
+
 }

@@ -170,4 +170,13 @@ public class LDHC
     /** OIDC refresh token properties property */
     public static final DatatypeProperty oidcRefreshTokens = m_model.createDatatypeProperty( NS + "oidcRefreshTokens" );
 
+    /** Frontend proxy URI property (Varnish frontend cache, used for cache invalidation) */
+    public static final ObjectProperty frontendProxy = m_model.createObjectProperty( NS + "frontendProxy" );
+
+    /** Backend proxy URI for the admin SPARQL service (used for cache invalidation and endpoint URI rewriting) */
+    public static final ObjectProperty backendProxyAdmin = m_model.createObjectProperty( NS + "backendProxyAdmin" );
+
+    /** Backend proxy URI for the end-user SPARQL service (used for cache invalidation and endpoint URI rewriting) */
+    public static final ObjectProperty backendProxyEndUser = m_model.createObjectProperty( NS + "backendProxyEndUser" );
+
 }

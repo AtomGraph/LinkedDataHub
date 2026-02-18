@@ -67,6 +67,7 @@ public class AccessRequest
     private final String emailSubject;
     private final String emailText;
     private final UriBuilder authRequestContainerUriBuilder;
+    private final com.atomgraph.linkeddatahub.Application system;
     
     /**
      * Constructs an AccessRequest resource handler.
@@ -84,7 +85,8 @@ public class AccessRequest
         if (!application.canAs(EndUserApplication.class)) throw new IllegalStateException("The " + getClass() + " endpoint is only available on end-user applications");
         this.application = application.as(EndUserApplication.class);
         this.agentContext = agentContext;
-        
+        this.system = system;
+
         authRequestContainerUriBuilder = this.application.getAdminApplication().getUriBuilder().path(AUTHORIZATION_REQUEST_PATH);
         
         emailSubject = servletConfig.getServletContext().getInitParameter(LDHC.requestAccessEMailSubject.getURI());
@@ -174,7 +176,7 @@ public class AccessRequest
 
                 new Skolemizer(graphUri.toString()).apply(requestModel);
                 // store access request in the admin service
-                getApplication().getAdminApplication().getService().getGraphStoreClient().add(graphUri.toString(), requestModel);
+                getSystem().getServiceContext(getApplication().getAdminApplication().getService()).getGraphStoreClient().add(graphUri.toString(), requestModel);
             }
            
             return Response.ok().build();
@@ -223,12 +225,22 @@ public class AccessRequest
  
     /**
      * Returns the agent context of the current request.
-     * 
+     *
      * @return optional agent context
      */
     public Optional<AgentContext> getAgentContext()
     {
         return agentContext;
     }
-    
+
+    /**
+     * Returns the system application.
+     *
+     * @return system application
+     */
+    public com.atomgraph.linkeddatahub.Application getSystem()
+    {
+        return system;
+    }
+
 }

@@ -165,7 +165,7 @@ public class DirectGraphStoreImpl extends com.atomgraph.core.model.impl.DirectGr
         @Context SecurityContext securityContext, Optional<AgentContext> agentContext,
         @Context Providers providers, com.atomgraph.linkeddatahub.Application system)
     {
-        super(request, service.get(), mediaTypes, uriInfo);
+        super(request, system.getServiceContext(service.get()).getGraphStoreClient(), mediaTypes, uriInfo);
         if (ontology.isEmpty()) throw new InternalServerErrorException("Ontology is not specified");
         if (service.isEmpty()) throw new InternalServerErrorException("Service is not specified");
         this.application = application;
@@ -216,7 +216,7 @@ public class DirectGraphStoreImpl extends com.atomgraph.core.model.impl.DirectGr
     {
         if (log.isTraceEnabled()) log.trace("POST Graph Store request with RDF payload: {} payload size(): {}", model, model.size());
 
-        final Model existingModel = getService().getGraphStoreClient().getModel(getURI().toString());
+        final Model existingModel = getSystem().getServiceContext(getService()).getGraphStoreClient().getModel(getURI().toString());
         
         Response.ResponseBuilder rb = evaluatePreconditions(existingModel);
         if (rb != null) return rb.build(); // preconditions not met
@@ -232,7 +232,7 @@ public class DirectGraphStoreImpl extends com.atomgraph.core.model.impl.DirectGr
         if (log.isDebugEnabled()) log.debug("POST Model to named graph with URI: {}", getURI());
         // First remove old dct:modified values from the triplestore, then add new data
         existingModel.createResource(getURI().toString()).removeAll(DCTerms.modified);
-        getService().getGraphStoreClient().putModel(getURI().toString(), existingModel.add(model)); // replace entire graph to avoid accumulating dct:modified
+        getSystem().getServiceContext(getService()).getGraphStoreClient().putModel(getURI().toString(), existingModel.add(model)); // replace entire graph to avoid accumulating dct:modified
         Model updatedModel = existingModel.add(model);
 
         submitImports(model);
@@ -284,7 +284,7 @@ public class DirectGraphStoreImpl extends com.atomgraph.core.model.impl.DirectGr
         Model existingModel = null;
         try
         {
-            existingModel = getService().getGraphStoreClient().getModel(getURI().toString());
+            existingModel = getSystem().getServiceContext(getService()).getGraphStoreClient().getModel(getURI().toString());
             
             Response.ResponseBuilder rb = evaluatePreconditions(existingModel);
             if (rb != null) return rb.build(); // preconditions not met
@@ -317,7 +317,7 @@ public class DirectGraphStoreImpl extends com.atomgraph.core.model.impl.DirectGr
                     addProperty(ACL.owner, getAgentContext().get().getAgent());
 
             if (log.isDebugEnabled()) log.debug("PUT Model into new named graph with URI: {}", getURI());
-            getService().getGraphStoreClient().putModel(getURI().toString(), model); // TO-DO: catch exceptions
+            getSystem().getServiceContext(getService()).getGraphStoreClient().putModel(getURI().toString(), model); // TO-DO: catch exceptions
 
             submitImports(model);
 
@@ -343,7 +343,7 @@ public class DirectGraphStoreImpl extends com.atomgraph.core.model.impl.DirectGr
                 addLiteral(DCTerms.modified, ResourceFactory.createTypedLiteral(GregorianCalendar.getInstance()));
 
             if (log.isDebugEnabled()) log.debug("PUT Model into existing named graph with URI: {}", getURI());
-            getService().getGraphStoreClient().putModel(getURI().toString(), model); // TO-DO: catch exceptions
+            getSystem().getServiceContext(getService()).getGraphStoreClient().putModel(getURI().toString(), model); // TO-DO: catch exceptions
 
             submitImports(model);
 
@@ -386,7 +386,7 @@ public class DirectGraphStoreImpl extends com.atomgraph.core.model.impl.DirectGr
         // no need to set WITH <graphUri> since we'll be updating model in memory before persisting it
 
         final Dataset dataset;
-        final Model existingModel = getService().getGraphStoreClient().getModel(getURI().toString());
+        final Model existingModel = getSystem().getServiceContext(getService()).getGraphStoreClient().getModel(getURI().toString());
         if (existingModel == null) throw new NotFoundException("Named graph with URI <" + getURI() + "> not found");
 
         Response.ResponseBuilder rb = evaluatePreconditions(existingModel);
@@ -454,7 +454,7 @@ public class DirectGraphStoreImpl extends com.atomgraph.core.model.impl.DirectGr
             validate(model);
             if (log.isTraceEnabled()) log.trace("POST Graph Store request with RDF payload: {} payload size(): {}", model, model.size());
 
-            final boolean existingGraph = getService().getGraphStoreClient().containsModel(getURI().toString());
+            final boolean existingGraph = getSystem().getServiceContext(getService()).getGraphStoreClient().containsModel(getURI().toString());
             if (!existingGraph) throw new NotFoundException("Named graph with URI <" + getURI() + "> not found");
 
             new Skolemizer(getURI().toString()).apply(model); // skolemize before writing files (they require absolute URIs)
@@ -530,7 +530,7 @@ public class DirectGraphStoreImpl extends com.atomgraph.core.model.impl.DirectGr
 
         try
         {
-            Model existingModel = getService().getGraphStoreClient().getModel(getURI().toString());
+            Model existingModel = getSystem().getServiceContext(getService()).getGraphStoreClient().getModel(getURI().toString());
             
             Response.ResponseBuilder rb = evaluatePreconditions(existingModel);
             if (rb != null) return rb.build(); // preconditions not met
@@ -980,7 +980,7 @@ public class DirectGraphStoreImpl extends com.atomgraph.core.model.impl.DirectGr
      */
     public EndpointAccessor getEndpointAccessor()
     {
-        return getService().getEndpointAccessor();
+        return getSystem().getServiceContext(getService()).getEndpointAccessor();
     }
     
     /**

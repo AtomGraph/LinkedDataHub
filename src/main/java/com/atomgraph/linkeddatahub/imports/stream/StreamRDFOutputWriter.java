@@ -39,33 +39,36 @@ import org.slf4j.LoggerFactory;
 /**
  * RDF stream writer.
  * A function that converts client response with RDF data to a stream of (optionally transformed) RDF data.
- * 
+ *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
 public class StreamRDFOutputWriter implements Function<Response, RDFGraphStoreOutput>
 {
-    
+
     private static final Logger log = LoggerFactory.getLogger(StreamRDFOutputWriter.class);
 
     private final Service service, adminService;
+    private final com.atomgraph.linkeddatahub.Application system;
     private final GraphStoreClient gsc;
     private final String baseURI, graphURI;
     private final Query query;
 
     /**
      * Constructs output writer.
-     * 
+     *
      * @param service SPARQL service of the application
      * @param adminService SPARQL service of the admin application
+     * @param system system application
      * @param gsc GSP client
      * @param baseURI base URI
      * @param query transformation query or null
      * @param graphURI target graph URI
      */
-    public StreamRDFOutputWriter(Service service, Service adminService, GraphStoreClient gsc, String baseURI, Query query, String graphURI)
+    public StreamRDFOutputWriter(Service service, Service adminService, com.atomgraph.linkeddatahub.Application system, GraphStoreClient gsc, String baseURI, Query query, String graphURI)
     {
         this.service = service;
         this.adminService = adminService;
+        this.system = system;
         this.gsc = gsc;
         this.baseURI = baseURI;
         this.query = query;
@@ -76,7 +79,7 @@ public class StreamRDFOutputWriter implements Function<Response, RDFGraphStoreOu
     public RDFGraphStoreOutput apply(Response rdfInput)
     {
         if (rdfInput == null) throw new IllegalArgumentException("Response cannot be null");
-        
+
         try
         {
             // buffer the RDF in a temp file before transforming it
@@ -92,7 +95,7 @@ public class StreamRDFOutputWriter implements Function<Response, RDFGraphStoreOu
                 Lang lang = RDFLanguages.contentTypeToLang(mediaType.toString()); // convert media type to RDF language
                 if (lang == null) throw new BadRequestException("Content type '" + mediaType + "' is not an RDF media type");
 
-                RDFGraphStoreOutput output = new RDFGraphStoreOutput(getService(), getAdminService(), getGraphStoreClient(), fis, getBaseURI(), getQuery(), lang, getGraphURI());
+                RDFGraphStoreOutput output = new RDFGraphStoreOutput(getService(), getAdminService(), getSystem(), getGraphStoreClient(), fis, getBaseURI(), getQuery(), lang, getGraphURI());
                 output.write();
                 return output;
             }
@@ -110,62 +113,72 @@ public class StreamRDFOutputWriter implements Function<Response, RDFGraphStoreOu
 
     /**
      * Return application's SPARQL service.
-     * 
+     *
      * @return SPARQL service
      */
     public Service getService()
     {
         return service;
     }
-    
+
     /**
      * Return admin application's SPARQL service.
-     * 
+     *
      * @return SPARQL service
      */
     public Service getAdminService()
     {
         return adminService;
     }
-    
+
+    /**
+     * Return system application.
+     *
+     * @return system application
+     */
+    public com.atomgraph.linkeddatahub.Application getSystem()
+    {
+        return system;
+    }
+
     /**
      * Returns the Graph Store client.
-     * 
+     *
      * @return client object
      */
     public GraphStoreClient getGraphStoreClient()
     {
         return gsc;
     }
-    
+
     /**
      * Returns the base URI.
-     * 
+     *
      * @return base URI string
      */
     public String getBaseURI()
     {
         return baseURI;
     }
-    
+
     /**
      * Returns the transformation query.
-     * 
+     *
      * @return SPARQL query or null
      */
     public Query getQuery()
     {
         return query;
     }
-    
+
     /**
      * Returns the target graph URI.
-     * 
+     *
      * @return named graph URI
      */
     public String getGraphURI()
     {
         return graphURI;
     }
-    
+
 }

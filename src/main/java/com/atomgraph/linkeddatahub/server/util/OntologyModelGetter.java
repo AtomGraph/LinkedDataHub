@@ -40,19 +40,22 @@ public class OntologyModelGetter implements org.apache.jena.rdf.model.ModelGette
     private static final Logger log = LoggerFactory.getLogger(OntologyModelGetter.class);
 
     private final EndUserApplication app;
+    private final com.atomgraph.linkeddatahub.Application system;
     private final OntModelSpec ontModelSpec;
     private final Query ontologyQuery;
-    
+
     /**
      * Constructs ontology getter for application.
-     * 
+     *
      * @param app end-user application resource
+     * @param system system application
      * @param ontModelSpec ontology specification
      * @param ontologyQuery SPARQL query that loads ontology terms
      */
-    public OntologyModelGetter(EndUserApplication app, OntModelSpec ontModelSpec, Query ontologyQuery)
+    public OntologyModelGetter(EndUserApplication app, com.atomgraph.linkeddatahub.Application system, OntModelSpec ontModelSpec, Query ontologyQuery)
     {
         this.app = app;
+        this.system = system;
         this.ontModelSpec = ontModelSpec;
         this.ontologyQuery = ontologyQuery;
     }
@@ -63,7 +66,7 @@ public class OntologyModelGetter implements org.apache.jena.rdf.model.ModelGette
         // attempt to load ontology model from the admin endpoint. TO-DO: is that necessary if ontologies terms are now stored in a single graph?
         ParameterizedSparqlString ontologyPss = new ParameterizedSparqlString(getOntologyQuery().toString());
         ontologyPss.setIri(LDT.ontology.getLocalName(), uri);
-        Model model = getApplication().getAdminApplication().getService().getSPARQLClient().loadModel(ontologyPss.asQuery());
+        Model model = getSystem().getServiceContext(getApplication().getAdminApplication().getService()).getSPARQLClient().loadModel(ontologyPss.asQuery());
         
         if (!model.isEmpty()) return model;
 
@@ -87,12 +90,22 @@ public class OntologyModelGetter implements org.apache.jena.rdf.model.ModelGette
 
     /**
      * Returns the application.
-     * 
+     *
      * @return application resource
      */
     public EndUserApplication getApplication()
     {
         return app;
+    }
+
+    /**
+     * Returns the system application.
+     *
+     * @return system application
+     */
+    public com.atomgraph.linkeddatahub.Application getSystem()
+    {
+        return system;
     }
 
     /**

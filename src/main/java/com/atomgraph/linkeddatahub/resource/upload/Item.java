@@ -305,7 +305,7 @@ public class Item
     public Model describe()
     {
         // TO-DO: can we avoid hardcoding the query string here?
-        return getService().getSPARQLClient().loadModel(QueryFactory.create("DESCRIBE <" + getURI() + ">"));
+        return getSystem().getServiceContext(getService()).getSPARQLClient().loadModel(QueryFactory.create("DESCRIBE <" + getURI() + ">"));
     }
     
     /**

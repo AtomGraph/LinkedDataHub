@@ -218,6 +218,7 @@ public abstract class LoginBase
 
                 Resource agent;
                 Optional<QuerySolution> existingAgent = mbox.flatMap(this::findAgentByEmail);
+                URI agentSvcProxy = getSystem().getServiceContext(getAgentService()).getBackendProxy();
 
                 if (existingAgent.isEmpty())
                 {
@@ -241,11 +242,11 @@ public abstract class LoginBase
                     // lookup Agent resource after its URI has been skolemized
                     agent = agentModel.createResource(agentGraphUri.toString()).getPropertyResourceValue(FOAF.primaryTopic);
 
-                    getAgentService().getGraphStoreClient().putModel(agentGraphUri.toString(), agentModel);
+                    getSystem().getServiceContext(getAgentService()).getGraphStoreClient().putModel(agentGraphUri.toString(), agentModel);
 
                     // purge agent lookup from proxy cache (if email is present)
-                    if (mbox.isPresent() && getAgentService().getBackendProxy() != null)
-                        ban(getAgentService().getBackendProxy(), mbox.get().getURI());
+                    if (mbox.isPresent() && agentSvcProxy != null)
+                        ban(agentSvcProxy, mbox.get().getURI());
 
                     Model authModel = ModelFactory.createDefaultModel();
                     URI authGraphUri = getAdminApplication().getUriBuilder().path(AUTHORIZATION_PATH).path("{slug}/").build(UUID.randomUUID().toString());
@@ -258,12 +259,13 @@ public abstract class LoginBase
                         userAccountGraphUri);
                     new Skolemizer(authGraphUri.toString()).apply(authModel);
 
-                    getAgentService().getGraphStoreClient().putModel(authGraphUri.toString(), authModel);
+                    getSystem().getServiceContext(getAgentService()).getGraphStoreClient().putModel(authGraphUri.toString(), authModel);
 
                     try
                     {
                         // purge agent lookup from proxy cache
-                        if (getApplication().getService().getBackendProxy() != null) ban(getAdminApplication().getService().getBackendProxy(), jwt.getSubject());
+                        URI adminSvcProxy = getSystem().getServiceContext(getAdminApplication().getService()).getBackendProxy();
+                        if (adminSvcProxy != null) ban(adminSvcProxy, jwt.getSubject());
 
                         // remove secretary WebID from cache
                         getSystem().getEventBus().post(new com.atomgraph.linkeddatahub.server.event.SignUp(getSystem().getSecretaryWebIDURI()));
@@ -286,14 +288,14 @@ public abstract class LoginBase
                     agent.addProperty(FOAF.account, userAccount);
                     agentModel.add(agentModel.createResource(getSystem().getSecretaryWebIDURI().toString()), ACL.delegates, agent); // make secretary delegate whis agent
 
-                    getAgentService().getGraphStoreClient().add(agentGraph.getURI(), agentModel);
+                    getSystem().getServiceContext(getAgentService()).getGraphStoreClient().add(agentGraph.getURI(), agentModel);
                 }
-                
+
                 userAccount.addProperty(SIOC.ACCOUNT_OF, agent);
-                getAgentService().getGraphStoreClient().putModel(userAccountGraphUri.toString(), accountModel);
+                getSystem().getServiceContext(getAgentService()).getGraphStoreClient().putModel(userAccountGraphUri.toString(), accountModel);
 
                 // purge user account lookup from proxy cache
-                if (getAgentService().getBackendProxy() != null) ban(getAgentService().getBackendProxy(), jwt.getSubject());
+                if (agentSvcProxy != null) ban(agentSvcProxy, jwt.getSubject());
             }
 
             URI originalReferer = URI.create(new String(Base64.getDecoder().decode(stateCookie.getValue())).split(Pattern.quote(";"))[1]); // fails if referer param was not specified
@@ -317,7 +319,7 @@ public abstract class LoginBase
         pss.setLiteral(SIOC.ID.getLocalName(), subjectId);
         pss.setLiteral(LACL.issuer.getLocalName(), issuer);
 
-        return !getAgentService().getSPARQLClient().loadModel(pss.asQuery()).isEmpty();
+        return !getSystem().getServiceContext(getAgentService()).getSPARQLClient().loadModel(pss.asQuery()).isEmpty();
     }
 
     /**
@@ -334,7 +336,7 @@ public abstract class LoginBase
         ParameterizedSparqlString pss = new ParameterizedSparqlString(getAgentQuery().toString());
         pss.setParam(FOAF.mbox.getLocalName(), mbox);
 
-        ResultSet rs = getAgentService().getSPARQLClient().select(pss.asQuery());
+        ResultSet rs = getSystem().getServiceContext(getAgentService()).getSPARQLClient().select(pss.asQuery());
         try
         {
             if (!rs.hasNext()) return Optional.empty();
@@ -507,11 +509,11 @@ public abstract class LoginBase
      * @param url banned URL
      * @return proxy server response
      */
-    public Response ban(Resource proxy, String url)
+    public Response ban(URI proxyURI, String url)
     {
-        if (url == null) throw new IllegalArgumentException("Resource cannot be null");
-        
-        return getSystem().getClient().target(proxy.getURI()).request().
+        if (url == null) throw new IllegalArgumentException("URL cannot be null");
+
+        return getSystem().getClient().target(proxyURI).request().
             header(CacheInvalidationFilter.HEADER_NAME, UriComponent.encode(url, UriComponent.Type.UNRESERVED)). // the value has to be URL-encoded in order to match request URLs in Varnish
             method("BAN", Response.class);
     }

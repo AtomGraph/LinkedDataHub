@@ -45,6 +45,9 @@ services:
       #- CATALINA_OPTS="-Duser.timezone=Europe/Copenhagen"
       - PROXY_HOST=nginx
       - PROXY_PORT=9443
+      - FRONTEND_PROXY=http://varnish-frontend:6060/
+      - BACKEND_PROXY_ADMIN=http://varnish-admin/
+      - BACKEND_PROXY_END_USER=http://varnish-end-user/
       - PROTOCOL=${PROTOCOL}
       - HOST=${HOST}
       - ABS_PATH=${ABS_PATH}
