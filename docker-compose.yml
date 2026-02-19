@@ -13,6 +13,8 @@ secrets:
   #   file: ./secrets/orcid/client_id.txt
   # orcid_client_secret:
   #   file: ./secrets/orcid/client_secret.txt
+  # credentials:
+  #   file: ./secrets/credentials.trig
 volumes:
   varnish_frontend_cache:
 services:
@@ -87,6 +89,7 @@ services:
       # - google_client_secret
       # - orcid_client_id
       # - orcid_client_secret
+      # - credentials
     volumes:
       - /var/linkeddatahub/oidc
       - ./ssl/server:/var/linkeddatahub/ssl/server:ro
@@ -283,7 +286,7 @@ configs:
 
       backend default {
           .host = "${VARNISH_FRONTEND_BACKEND_HOST:-linkeddatahub}";
-          .port = "7070";
+          .port = "${VARNISH_FRONTEND_BACKEND_PORT:-7070}";
           .first_byte_timeout = 60s;
       }
 
@@ -398,7 +401,7 @@ configs:
 
       backend default {
           .host = "${VARNISH_ADMIN_BACKEND_HOST:-fuseki-admin}";
-          .port = "3030";
+          .port = "${VARNISH_ADMIN_BACKEND_PORT:-3030}";
           .first_byte_timeout = 60s;
       }
 
@@ -464,7 +467,7 @@ configs:
 
       backend default {
           .host = "${VARNISH_END_USER_BACKEND_HOST:-fuseki-end-user}";
-          .port = "3030";
+          .port = "${VARNISH_END_USER_BACKEND_PORT:-3030}";
           .first_byte_timeout = 60s;
       }
 
