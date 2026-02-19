@@ -1254,13 +1254,11 @@ exclude-result-prefixes="#all">
                         </button>
                     </li>
                     <li>
-                        <xsl:for-each select="$lapp:Application">
-                            <a href="{key('resources', //*[lapp:origin/@rdf:resource = $lapp:origin]/lapp:adminApplication/(@rdf:resource, @rdf:nodeID))/lapp:origin/@rdf:resource}" target="_blank">
-                                <xsl:value-of>
-                                    <xsl:apply-templates select="key('resources', 'administration', document('translations.rdf'))" mode="ac:label"/>
-                                </xsl:value-of>
-                            </a>
-                        </xsl:for-each>
+                        <a href="{replace(string($lapp:origin), '^(https?://)', '$1admin.')}" target="_blank">
+                            <xsl:value-of>
+                                <xsl:apply-templates select="key('resources', 'administration', document('translations.rdf'))" mode="ac:label"/>
+                            </xsl:value-of>
+                        </a>
                     </li>
                     <li>
                         <a href="{resolve-uri('ns', $ldt:base)}">

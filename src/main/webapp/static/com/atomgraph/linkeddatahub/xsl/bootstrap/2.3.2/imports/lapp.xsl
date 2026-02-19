@@ -23,7 +23,7 @@ exclude-result-prefixes="#all">
 
     <!-- show "Actions" dropdown with Install/Uninstall options for packages -->
     <xsl:template match="*[rdf:type/@rdf:resource = '&lapp;Package']" mode="bs2:Actions">
-        <xsl:variable name="admin-origin" select="(key('resources', $lapp:Application//*[lapp:origin/@rdf:resource = $lapp:origin]/lapp:adminApplication/(@rdf:resource, @rdf:nodeID), $lapp:Application)/lapp:origin/@rdf:resource, $ldt:base)[1]" as="xs:anyURI"/>
+        <xsl:variable name="admin-origin" select="xs:anyURI(replace(string($lapp:origin), '^(https?://)', '$1admin.'))" as="xs:anyURI"/>
 
         <div class="btn-group pull-right">
             <button type="button" class="btn dropdown-toggle">
