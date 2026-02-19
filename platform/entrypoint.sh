@@ -294,10 +294,23 @@ wait_for_url()
     local auth_pwd="$3"
     local counter="$4"
     local accept="$5"
+    local auth_token="$6"
     i=1
 
-    # use HTTP Basic auth if username/password are provided
-    if [ -n "$auth_user" ] && [ -n "$auth_pwd" ]; then
+    if [ -n "$auth_token" ]; then
+        while [ "$i" -le "$counter" ] && ! curl -s -f -X OPTIONS "$url" -H "Authorization: Bearer $auth_token" -H "Accept: ${accept}" >/dev/null 2>&1
+        do
+            sleep 1 ;
+            i=$(( i+1 ))
+        done
+
+        if ! curl -s -f -X OPTIONS "$url" -H "Authorization: Bearer $auth_token" -H "Accept: ${accept}" >/dev/null 2>&1 ; then
+            printf "\n### URL %s not responding after %s retries, exiting...\n" "$url" "$counter"
+            exit 1
+        else
+            printf "\n### URL %s responded\n" "$url"
+        fi
+    elif [ -n "$auth_user" ] && [ -n "$auth_pwd" ]; then
         while [ "$i" -le "$counter" ] && ! curl -s -f -X OPTIONS "$url" --user "$auth_user":"$auth_pwd" -H "Accept: ${accept}" >/dev/null 2>&1
         do
             sleep 1 ;
@@ -335,9 +348,16 @@ append_quads()
     local auth_pwd="$3"
     local filename="$4"
     local content_type="$5"
+    local auth_token="$6"
 
-    # use HTTP Basic auth if username/password are provided
-    if [ -n "$auth_user" ] && [ -n "$auth_pwd" ]; then
+    if [ -n "$auth_token" ]; then
+        curl \
+            -f \
+            "$quad_store_url" \
+            -H "Authorization: Bearer $auth_token" \
+            -H "Content-Type: ${content_type}" \
+            --data-binary @"$filename"
+    elif [ -n "$auth_user" ] && [ -n "$auth_pwd" ]; then
         curl \
             -f \
             --basic \
@@ -360,6 +380,8 @@ gsp_append_quads()
     local auth_user="$2"
     local auth_pwd="$3"
     local filename="$4"
+    # $5 is content_type (ignored; hardcoded to application/n-triples internally)
+    local auth_token="$6"
 
     # Create temporary SPARQL query to extract distinct graph URIs
     local query_file
@@ -395,7 +417,15 @@ EOF
             sparql --data="$filename" --query="$extract_query" --results=NT > "$temp_file"
 
             # Send the graph's triples to the graph store using standard GSP
-            if [ -n "$auth_user" ] && [ -n "$auth_pwd" ]; then
+            if [ -n "$auth_token" ]; then
+                curl \
+                    -f \
+                    --url-query "graph=$graph_uri" \
+                    "$graph_store_url" \
+                    -H "Authorization: Bearer $auth_token" \
+                    -H "Content-Type: application/n-triples" \
+                    --data-binary @"$temp_file"
+            elif [ -n "$auth_user" ] && [ -n "$auth_pwd" ]; then
                 curl \
                     -f \
                     --basic \
@@ -627,7 +657,14 @@ case "$SERVICES_DATASET_URL" in
         curl "$SERVICES_DATASET_URL" > "$SERVICES_DATASET" ;;
 esac
 
-trig --base="$BASE_URI" "$CONTEXT_DATASET" "$SERVICES_DATASET" > "$based_context_dataset"
+CREDENTIALS_DATASET=/run/secrets/credentials
+
+if [ -f "$CREDENTIALS_DATASET" ]; then
+    printf "\n### Loading credentials dataset from: %s\n" "$CREDENTIALS_DATASET"
+    trig --base="$BASE_URI" "$CONTEXT_DATASET" "$SERVICES_DATASET" "$CREDENTIALS_DATASET" > "$based_context_dataset"
+else
+    trig --base="$BASE_URI" "$CONTEXT_DATASET" "$SERVICES_DATASET" > "$based_context_dataset"
+fi
 
 sparql --data="$based_context_dataset" --query="select-root-services.rq" --results=XML > root_service_metadata.xml
 
@@ -653,6 +690,8 @@ readarray apps < <(xmlstarlet sel -B \
     -o "\" \"" \
     -v "srx:binding[@name = 'authPwd']" \
     -o "\" \"" \
+    -v "srx:binding[@name = 'authToken']" \
+    -o "\" \"" \
     -v "srx:binding[@name = 'maker']" \
     -o "\"" \
     -n \
@@ -668,7 +707,8 @@ for app in "${apps[@]}"; do
     app_endpoint_url="${app_array[5]//\"/}"
     app_service_auth_user="${app_array[6]//\"/}"
     app_service_auth_pwd="${app_array[7]//\"/}"
-    app_owner="${app_array[8]//\"/}"
+    app_service_auth_token="${app_array[8]//\"/}"
+    app_owner="${app_array[9]//\"/}"
 
     printf "\n### Processing app: %s (type: %s, origin: %s)\n" "$app_uri" "$app_type" "$app_origin"
 
@@ -707,6 +747,7 @@ for app in "${apps[@]}"; do
         root_end_user_endpoint_url="$app_endpoint_url"
         root_end_user_service_auth_user="$app_service_auth_user"
         root_end_user_service_auth_pwd="$app_service_auth_pwd"
+        root_end_user_service_auth_token="$app_service_auth_token"
     fi
     if [ "$app_type" = "https://w3id.org/atomgraph/linkeddatahub/apps#AdminApplication" ] && [ "$app_origin" = "$ADMIN_ORIGIN" ]; then
         root_admin_app="$app_uri"
@@ -716,6 +757,7 @@ for app in "${apps[@]}"; do
         root_admin_endpoint_url="$app_endpoint_url"
         root_admin_service_auth_user="$app_service_auth_user"
         root_admin_service_auth_pwd="$app_service_auth_pwd"
+        root_admin_service_auth_token="$app_service_auth_token"
     fi
 
     # append ownership metadata to app if it's not present (apps have to be URI resources!)
@@ -760,10 +802,10 @@ for app in "${apps[@]}"; do
             trig --base="${app_origin}/" "$END_USER_DATASET" > "/var/linkeddatahub/based-datasets/${app_folder}/end-user.nq"
 
             printf "\n### Waiting for %s...\n" "$app_store_url"
-            wait_for_url "$app_store_url" "$app_service_auth_user" "$app_service_auth_pwd" "$TIMEOUT" "$app_store_content_type"
+            wait_for_url "$app_store_url" "$app_service_auth_user" "$app_service_auth_pwd" "$TIMEOUT" "$app_store_content_type" "$app_service_auth_token"
 
             printf "\n### Loading end-user dataset into the triplestore...\n"
-            "$app_store_fn" "$app_store_url" "$app_service_auth_user" "$app_service_auth_pwd" "/var/linkeddatahub/based-datasets/${app_folder}/end-user.nq" "$app_store_content_type"
+            "$app_store_fn" "$app_store_url" "$app_service_auth_user" "$app_service_auth_pwd" "/var/linkeddatahub/based-datasets/${app_folder}/end-user.nq" "$app_store_content_type" "$app_service_auth_token"
 
         elif [ "$app_type" = "https://w3id.org/atomgraph/linkeddatahub/apps#AdminApplication" ]; then
 
@@ -783,10 +825,10 @@ for app in "${apps[@]}"; do
             trig --base="${app_origin}/" "$ADMIN_DATASET" > "/var/linkeddatahub/based-datasets/${app_folder}/admin.nq"
 
             printf "\n### Waiting for %s...\n" "$app_store_url"
-            wait_for_url "$app_store_url" "$app_service_auth_user" "$app_service_auth_pwd" "$TIMEOUT" "$app_store_content_type"
+            wait_for_url "$app_store_url" "$app_service_auth_user" "$app_service_auth_pwd" "$TIMEOUT" "$app_store_content_type" "$app_service_auth_token"
 
             printf "\n### Loading admin dataset into the triplestore...\n"
-            "$app_store_fn" "$app_store_url" "$app_service_auth_user" "$app_service_auth_pwd" "/var/linkeddatahub/based-datasets/${app_folder}/admin.nq" "$app_store_content_type"
+            "$app_store_fn" "$app_store_url" "$app_service_auth_user" "$app_service_auth_pwd" "/var/linkeddatahub/based-datasets/${app_folder}/admin.nq" "$app_store_content_type" "$app_service_auth_token"
 
             # derive the corresponding end-user origin by stripping the leading 'admin.' from the hostname
             end_user_origin=$(echo "$app_origin" | sed 's|://admin\.|://|')
@@ -799,15 +841,15 @@ for app in "${apps[@]}"; do
             trig --base="${app_origin}/" --output=nq "$namespace_ontology_dataset_path" > "/var/linkeddatahub/based-datasets/${app_folder}/namespace-ontology.nq"
 
             printf "\n### Loading namespace ontology into the admin triplestore...\n"
-            "$app_store_fn" "$app_store_url" "$app_service_auth_user" "$app_service_auth_pwd" "/var/linkeddatahub/based-datasets/${app_folder}/namespace-ontology.nq" "$app_store_content_type"
+            "$app_store_fn" "$app_store_url" "$app_service_auth_user" "$app_service_auth_pwd" "/var/linkeddatahub/based-datasets/${app_folder}/namespace-ontology.nq" "$app_store_content_type" "$app_service_auth_token"
 
             # Load full owner/secretary metadata (agent + key) only for root admin app
             if [ "$app_origin" = "$ADMIN_ORIGIN" ]; then
                 printf "\n### Uploading the metadata of the owner agent...\n\n"
-                "$app_store_fn" "$app_store_url" "$app_service_auth_user" "$app_service_auth_pwd" /var/linkeddatahub/based-datasets/root-owner.nq "$app_store_content_type"
+                "$app_store_fn" "$app_store_url" "$app_service_auth_user" "$app_service_auth_pwd" /var/linkeddatahub/based-datasets/root-owner.nq "$app_store_content_type" "$app_service_auth_token"
 
                 printf "\n### Uploading the metadata of the secretary agent...\n\n"
-                "$app_store_fn" "$app_store_url" "$app_service_auth_user" "$app_service_auth_pwd" /var/linkeddatahub/based-datasets/root-secretary.nq "$app_store_content_type"
+                "$app_store_fn" "$app_store_url" "$app_service_auth_user" "$app_service_auth_pwd" /var/linkeddatahub/based-datasets/root-secretary.nq "$app_store_content_type" "$app_service_auth_token"
             fi
 
             # Load owner/secretary authorizations for this app (with app-specific UUIDs)
@@ -825,7 +867,7 @@ for app in "${apps[@]}"; do
             trig --base="${app_origin}/" --output=nq "$owner_auth_dataset_path" > "/var/linkeddatahub/based-datasets/${app_folder}/owner-authorization.nq"
 
             printf "\n### Uploading owner authorizations for this app...\n\n"
-            "$app_store_fn" "$app_store_url" "$app_service_auth_user" "$app_service_auth_pwd" "/var/linkeddatahub/based-datasets/${app_folder}/owner-authorization.nq" "$app_store_content_type"
+            "$app_store_fn" "$app_store_url" "$app_service_auth_user" "$app_service_auth_pwd" "/var/linkeddatahub/based-datasets/${app_folder}/owner-authorization.nq" "$app_store_content_type" "$app_service_auth_token"
 
             secretary_auth_dataset_path="/var/linkeddatahub/datasets/${app_folder}/secretary-authorization.trig"
             mkdir -p "$(dirname "$secretary_auth_dataset_path")"
@@ -840,7 +882,7 @@ for app in "${apps[@]}"; do
             trig --base="${app_origin}/" --output=nq "$secretary_auth_dataset_path" > "/var/linkeddatahub/based-datasets/${app_folder}/secretary-authorization.nq"
 
             printf "\n### Uploading secretary authorizations for this app...\n\n"
-            "$app_store_fn" "$app_store_url" "$app_service_auth_user" "$app_service_auth_pwd" "/var/linkeddatahub/based-datasets/${app_folder}/secretary-authorization.nq" "$app_store_content_type"
+            "$app_store_fn" "$app_store_url" "$app_service_auth_user" "$app_service_auth_pwd" "/var/linkeddatahub/based-datasets/${app_folder}/secretary-authorization.nq" "$app_store_content_type" "$app_service_auth_token"
 
         fi
     fi
@@ -1127,13 +1169,13 @@ java -XX:+PrintFlagsFinal -version | grep -iE 'HeapSize|PermSize|ThreadStackSize
 
 printf "\n### Waiting for %s...\n" "$root_end_user_store_url"
 
-wait_for_url "$root_end_user_store_url" "$root_end_user_service_auth_user" "$root_end_user_service_auth_pwd" "$TIMEOUT" "$root_end_user_store_content_type"
+wait_for_url "$root_end_user_store_url" "$root_end_user_service_auth_user" "$root_end_user_service_auth_pwd" "$TIMEOUT" "$root_end_user_store_content_type" "$root_end_user_service_auth_token"
 
 # wait for the admin service
 
 printf "\n### Waiting for %s...\n" "$root_admin_store_url"
 
-wait_for_url "$root_admin_store_url" "$root_admin_service_auth_user" "$root_admin_service_auth_pwd" "$TIMEOUT" "$root_admin_store_content_type"
+wait_for_url "$root_admin_store_url" "$root_admin_service_auth_user" "$root_admin_service_auth_pwd" "$TIMEOUT" "$root_admin_store_content_type" "$root_admin_service_auth_token"
 
 # run Tomcat (in debug mode if $JPDA_ADDRESS is defined)
 
