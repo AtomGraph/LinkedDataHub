@@ -685,10 +685,25 @@ for app in "${apps[@]}"; do
         exit 1
     fi
 
+    # resolve the effective store URL and upload function for this app
+    if [ -n "$app_quad_store_url" ]; then
+        app_store_url="$app_quad_store_url"
+        app_store_content_type="application/n-quads"
+        app_store_fn="append_quads"
+        printf "\n### Quad store URL: %s\n" "$app_quad_store_url"
+    else
+        app_store_url="$app_graph_store_url"
+        app_store_content_type="application/n-triples"
+        app_store_fn="gsp_append_quads"
+        printf "\n### Graph store URL (GSP fallback): %s\n" "$app_graph_store_url"
+    fi
+
     # check if this is the root end-user or root admin app by comparing origins
     if [ "$app_type" = "https://w3id.org/atomgraph/linkeddatahub/apps#EndUserApplication" ] && [ "$app_origin" = "$ORIGIN" ]; then
         root_end_user_app="$app_uri"
         root_end_user_quad_store_url="$app_quad_store_url"
+        root_end_user_store_url="$app_store_url"
+        root_end_user_store_content_type="$app_store_content_type"
         root_end_user_endpoint_url="$app_endpoint_url"
         root_end_user_service_auth_user="$app_service_auth_user"
         root_end_user_service_auth_pwd="$app_service_auth_pwd"
@@ -696,6 +711,8 @@ for app in "${apps[@]}"; do
     if [ "$app_type" = "https://w3id.org/atomgraph/linkeddatahub/apps#AdminApplication" ] && [ "$app_origin" = "$ADMIN_ORIGIN" ]; then
         root_admin_app="$app_uri"
         root_admin_quad_store_url="$app_quad_store_url"
+        root_admin_store_url="$app_store_url"
+        root_admin_store_content_type="$app_store_content_type"
         root_admin_endpoint_url="$app_endpoint_url"
         root_admin_service_auth_user="$app_service_auth_user"
         root_admin_service_auth_pwd="$app_service_auth_pwd"
@@ -705,23 +722,6 @@ for app in "${apps[@]}"; do
 
     if [ -z "$app_owner" ]; then
         echo "<${app_uri}> <http://xmlns.com/foaf/0.1/maker> <${OWNER_URI}> <${app_uri}> ." >> "$based_context_dataset"
-    fi
-
-    if [ -n "$app_quad_store_url" ]; then
-        printf "\n### Quad store URL: %s\n" "$app_quad_store_url"
-    else
-        printf "\n### Graph store URL (GSP fallback): %s\n" "$app_graph_store_url"
-    fi
-
-    # resolve the effective store URL and upload function for this app
-    if [ -n "$app_quad_store_url" ]; then
-        app_store_url="$app_quad_store_url"
-        app_store_content_type="application/n-quads"
-        app_store_fn="append_quads"
-    else
-        app_store_url="$app_graph_store_url"
-        app_store_content_type="application/n-triples"
-        app_store_fn="gsp_append_quads"
     fi
 
     # Create app-specific subfolder based on origin
@@ -1123,17 +1123,17 @@ eval "$transform"
 
 java -XX:+PrintFlagsFinal -version | grep -iE 'HeapSize|PermSize|ThreadStackSize'
 
-# wait for the end-user GSP service
+# wait for the end-user service
 
-printf "\n### Waiting for %s...\n" "$root_end_user_quad_store_url"
+printf "\n### Waiting for %s...\n" "$root_end_user_store_url"
 
-wait_for_url "$root_end_user_quad_store_url" "$root_end_user_service_auth_user" "$root_end_user_service_auth_pwd" "$TIMEOUT" "application/n-quads"
+wait_for_url "$root_end_user_store_url" "$root_end_user_service_auth_user" "$root_end_user_service_auth_pwd" "$TIMEOUT" "$root_end_user_store_content_type"
 
-# wait for the admin GSP service
+# wait for the admin service
 
-printf "\n### Waiting for %s...\n" "$root_admin_quad_store_url"
+printf "\n### Waiting for %s...\n" "$root_admin_store_url"
 
-wait_for_url "$root_admin_quad_store_url" "$root_admin_service_auth_user" "$root_admin_service_auth_pwd" "$TIMEOUT" "application/n-quads"
+wait_for_url "$root_admin_store_url" "$root_admin_service_auth_user" "$root_admin_service_auth_pwd" "$TIMEOUT" "$root_admin_store_content_type"
 
 # run Tomcat (in debug mode if $JPDA_ADDRESS is defined)
 
