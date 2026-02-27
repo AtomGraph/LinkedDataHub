@@ -63,6 +63,7 @@ services:
       - SELF_SIGNED_CERT=true # only on localhost
       - SIGN_UP_CERT_VALIDITY=180
       - MAX_CONTENT_LENGTH=${MAX_CONTENT_LENGTH:-2097152}
+      - ALLOW_INTERNAL_URLS=${ALLOW_INTERNAL_URLS:-}
       - NOTIFICATION_ADDRESS=LinkedDataHub <notifications@localhost>
       - MAIL_SMTP_HOST=email-server
       - MAIL_SMTP_PORT=25

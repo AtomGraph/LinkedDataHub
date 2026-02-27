@@ -25,7 +25,6 @@ import com.atomgraph.linkeddatahub.server.exception.auth.webid.InvalidWebIDPubli
 import com.atomgraph.linkeddatahub.server.exception.auth.webid.WebIDLoadingException;
 import com.atomgraph.linkeddatahub.server.exception.auth.webid.WebIDDelegationException;
 import com.atomgraph.linkeddatahub.server.security.WebIDSecurityContext;
-import com.atomgraph.linkeddatahub.server.util.URLValidator;
 import com.atomgraph.linkeddatahub.vocabulary.ACL;
 import com.atomgraph.linkeddatahub.vocabulary.Cert;
 import com.atomgraph.linkeddatahub.vocabulary.FOAF;
@@ -129,7 +128,7 @@ public class WebIDFilter extends AuthenticationFilter
             }
             if (log.isTraceEnabled()) log.trace("Client WebID: {}", webID);
 
-            new URLValidator(webID).validate(); // LNK-004: Prevent SSRF via WebID URI
+            getSystem().getURLValidator().validate(webID); // LNK-004: Prevent SSRF via WebID URI
             Resource agent = authenticate(loadWebID(webID), webID, publicKey);
             if (agent == null)
             {
@@ -142,7 +141,7 @@ public class WebIDFilter extends AuthenticationFilter
             if (onBehalfOf != null)
             {
                 URI principalWebID = new URI(onBehalfOf);
-                new URLValidator(principalWebID).validate(); // LNK-004: Prevent SSRF via On-Behalf-Of header
+                getSystem().getURLValidator().validate(principalWebID); // LNK-004: Prevent SSRF via On-Behalf-Of header
                 Model principalWebIDModel = loadWebID(principalWebID);
                 Resource principal = principalWebIDModel.createResource(onBehalfOf);
                 // if we verify that the current agent is a secretary of the principal, that principal becomes current agent. Else throw error
@@ -300,7 +299,7 @@ public class WebIDFilter extends AuthenticationFilter
                 if (certKeyRes != null && certKeyRes.isURIResource())
                 {
                     URI certKey = URI.create(certKeyRes.getURI());
-                    new URLValidator(certKey).validate(); // LNK-004: Prevent SSRF via cert:key reference in WebID document
+                    getSystem().getURLValidator().validate(certKey); // LNK-004: Prevent SSRF via cert:key reference in WebID document
                     // remove fragment identifier to get document URI
                     URI certKeyDoc = new URI(certKey.getScheme(), certKey.getSchemeSpecificPart(), null).normalize();
 

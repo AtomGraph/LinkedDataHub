@@ -17,9 +17,6 @@ package com.atomgraph.linkeddatahub.writer;
 
 import com.atomgraph.client.util.DataManager;
 import com.atomgraph.client.vocabulary.AC;
-import com.atomgraph.linkeddatahub.apps.model.AdminApplication;
-import com.atomgraph.linkeddatahub.apps.model.Application;
-import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import com.atomgraph.linkeddatahub.writer.factory.xslt.XsltExecutableSupplier;
 import com.atomgraph.linkeddatahub.model.auth.Agent;
 import com.atomgraph.linkeddatahub.vocabulary.ACL;
@@ -64,8 +61,6 @@ import org.apache.http.HttpHeaders;
 import org.apache.jena.ontology.ObjectProperty;
 import org.apache.jena.ontology.OntModelSpec;
 import org.apache.jena.rdf.model.Model;
-import org.apache.jena.rdf.model.ModelFactory;
-import org.apache.jena.rdf.model.StmtIterator;
 import org.apache.jena.riot.RDFLanguages;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -140,8 +135,8 @@ public abstract class XSLTWriterBase extends com.atomgraph.client.writer.XSLTWri
             params.put(new QName("ldt", LDT.base.getNameSpace(), LDT.base.getLocalName()), new XdmAtomicValue(app.getBaseURI()));
             params.put(new QName("lapp", LAPP.origin.getNameSpace(), LAPP.origin.getLocalName()), new XdmAtomicValue(app.getOriginURI()));
             params.put(new QName("ldt", LDT.ontology.getNameSpace(), LDT.ontology.getLocalName()), new XdmAtomicValue(URI.create(app.getOntology().getURI())));
-            params.put(new QName("lapp", LAPP.Application.getNameSpace(), LAPP.Application.getLocalName()),
-                getXsltExecutable().getProcessor().newDocumentBuilder().build(getSource(getAppModel(app, true))));
+            params.put(new QName("lapp", LAPP.Context.getNameSpace(), LAPP.Context.getLocalName()),
+                getXsltExecutable().getProcessor().newDocumentBuilder().build(getSource(app.getModel())));
             
             URI endpointURI = getLinkURI(headerMap, SD.endpoint);
             if (endpointURI != null) params.put(new QName("sd", SD.endpoint.getNameSpace(), SD.endpoint.getLocalName()), new XdmAtomicValue(endpointURI));
@@ -193,41 +188,6 @@ public abstract class XSLTWriterBase extends com.atomgraph.client.writer.XSLTWri
             if (log.isErrorEnabled()) log.error("Error reading Source stream");
             throw new TransformerException(ex);
         }
-    }
-    /**
-     * Returns RDF model of the specified application.
-     * 
-     * @param app application resource
-     * @param includeEndUserAdmin true if paired app's description should be included as well
-     * @return RDF model
-     */
-    public Model getAppModel(Application app, boolean includeEndUserAdmin)
-    {
-        StmtIterator appStmts = app.listProperties();
-        Model model = ModelFactory.createDefaultModel().add(appStmts);
-        appStmts.close();
-
-        if (includeEndUserAdmin)
-        {
-            // for AdminApplication, add EndUserApplication statements, and the way around
-            if (app.canAs(AdminApplication.class))
-            {
-                AdminApplication adminApp = app.as(AdminApplication.class);
-                StmtIterator endUserAppStmts = adminApp.getEndUserApplication().listProperties();
-                model.add(endUserAppStmts);
-                endUserAppStmts.close();
-            }
-            // for EndUserApplication, add AdminApplication statements
-            if (app.canAs(EndUserApplication.class))
-            {
-                EndUserApplication endUserApp = app.as(EndUserApplication.class);
-                StmtIterator adminApp = endUserApp.getAdminApplication().listProperties();
-                model.add(adminApp);
-                adminApp.close();
-            }
-        }
-        
-        return model;
     }
 
     /**

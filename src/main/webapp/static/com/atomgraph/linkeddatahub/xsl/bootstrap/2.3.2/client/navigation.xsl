@@ -111,12 +111,12 @@ ORDER BY DESC(?created)
         </div>
 
         <!-- class list container -->
-        <div>
+        <div id="class-list">
             <h2 class="nav-header btn">
                 <xsl:apply-templates select="key('resources', 'classes', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
             </h2>
 
-            <ul class="well well-small nav nav-list" id="class-list">
+            <ul class="well well-small nav nav-list">
                 <!-- class list will be loaded dynamically -->
             </ul>
         </div>
@@ -175,7 +175,7 @@ ORDER BY DESC(?created)
         </xsl:for-each>
 
         <!-- reload the class list -->
-        <xsl:for-each select="id('class-list', ixsl:page())">
+        <xsl:for-each select="id('class-list', ixsl:page())/ul">
             <xsl:call-template name="ldh:ClassListLoad">
                 <xsl:with-param name="container" select="."/>
                 <xsl:with-param name="endpoint" select="sd:endpoint()"/>
@@ -671,7 +671,7 @@ ORDER BY DESC(?created)
 
     <!-- load classes with instances from the SPARQL endpoint -->
     <xsl:template name="ldh:ClassListLoad">
-        <xsl:param name="container" as="element()"/> <!-- the <ul id="class-list"> -->
+        <xsl:param name="container" as="element()"/> <!-- the <ul> inside <div id="class-list"> -->
         <xsl:param name="endpoint" as="xs:anyURI"/>
 
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>

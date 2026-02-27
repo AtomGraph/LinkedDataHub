@@ -1034,6 +1034,10 @@ if [ -n "$ENABLE_LINKED_DATA_PROXY" ]; then
     ENABLE_LINKED_DATA_PROXY_PARAM="--stringparam ldhc:enableLinkedDataProxy '$ENABLE_LINKED_DATA_PROXY' "
 fi
 
+if [ -n "$ALLOW_INTERNAL_URLS" ]; then
+    export CATALINA_OPTS="$CATALINA_OPTS -Dcom.atomgraph.linkeddatahub.allowInternalUrls=$ALLOW_INTERNAL_URLS"
+fi
+
 if [ -n "$MAX_CONTENT_LENGTH" ]; then
     MAX_CONTENT_LENGTH_PARAM="--stringparam ldhc:maxContentLength '$MAX_CONTENT_LENGTH' "
 fi

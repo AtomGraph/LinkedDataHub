@@ -52,6 +52,9 @@ public class LAPP
     /** The namespace of the vocabulary as a resource */
     public static final Resource NAMESPACE = m_model.createResource( NS );
 
+    /** Application class */
+    public static final OntClass Context = m_model.createClass( NS + "Context" );
+    
     /** Dataset class */
     public static final OntClass Dataset = m_model.createClass( NS + "Dataset" );
     

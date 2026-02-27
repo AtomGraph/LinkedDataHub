@@ -152,6 +152,12 @@
         <rdfs:label xml:lang="en-US">Applications</rdfs:label>
         <rdfs:label xml:lang="es-ES">Aplicaciones</rdfs:label>
     </rdf:Description>
+    <rdf:Description rdf:nodeID="user-defined-apps">
+        <rdfs:label xml:lang="en-US">User-defined</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="system-apps">
+        <rdfs:label xml:lang="en-US">System</rdfs:label>
+    </rdf:Description>
     <rdf:Description rdf:nodeID="mode-list-title">
         <rdfs:label xml:lang="en-US">Change layout mode</rdfs:label>
         <rdfs:label xml:lang="es-ES">Cambiar modo disposición</rdfs:label>

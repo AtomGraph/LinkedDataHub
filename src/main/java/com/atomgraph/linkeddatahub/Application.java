@@ -113,6 +113,7 @@ import com.atomgraph.linkeddatahub.server.model.impl.Dispatcher;
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
 import com.atomgraph.linkeddatahub.server.security.AuthorizationContext;
 import com.atomgraph.linkeddatahub.server.util.MessageBuilder;
+import com.atomgraph.linkeddatahub.server.util.URLValidator;
 import com.atomgraph.linkeddatahub.vocabulary.ACL;
 import com.atomgraph.linkeddatahub.vocabulary.FOAF;
 import com.atomgraph.linkeddatahub.vocabulary.LDH;
@@ -284,6 +285,8 @@ public class Application extends ResourceConfig
     private final boolean invalidateCache;
     private final Integer cookieMaxAge;
     private final boolean enableLinkedDataProxy;
+    private final boolean allowInternalUrls;
+    private final URLValidator urlValidator;
     private final Integer maxContentLength;
     private final Address notificationAddress;
     private final Authenticator authenticator;
@@ -347,6 +350,8 @@ public class Application extends ResourceConfig
             servletConfig.getServletContext().getInitParameter(LDHC.invalidateCache.getURI()) != null ? Boolean.parseBoolean(servletConfig.getServletContext().getInitParameter(LDHC.invalidateCache.getURI())) : false,
             servletConfig.getServletContext().getInitParameter(LDHC.cookieMaxAge.getURI()) != null ? Integer.valueOf(servletConfig.getServletContext().getInitParameter(LDHC.cookieMaxAge.getURI())) : null,
             servletConfig.getServletContext().getInitParameter(LDHC.enableLinkedDataProxy.getURI()) != null ? Boolean.parseBoolean(servletConfig.getServletContext().getInitParameter(LDHC.enableLinkedDataProxy.getURI())) : true,
+            System.getProperty("com.atomgraph.linkeddatahub.allowInternalUrls") != null ? Boolean.parseBoolean(System.getProperty("com.atomgraph.linkeddatahub.allowInternalUrls")) :
+            servletConfig.getServletContext().getInitParameter(LDHC.allowInternalUrls.getURI()) != null ? Boolean.parseBoolean(servletConfig.getServletContext().getInitParameter(LDHC.allowInternalUrls.getURI())) : false,
             servletConfig.getServletContext().getInitParameter(LDHC.maxContentLength.getURI()) != null ? Integer.valueOf(servletConfig.getServletContext().getInitParameter(LDHC.maxContentLength.getURI())) : null,
             servletConfig.getServletContext().getInitParameter(LDHC.maxConnPerRoute.getURI()) != null ? Integer.valueOf(servletConfig.getServletContext().getInitParameter(LDHC.maxConnPerRoute.getURI())) : null,
             servletConfig.getServletContext().getInitParameter(LDHC.maxTotalConn.getURI()) != null ? Integer.valueOf(servletConfig.getServletContext().getInitParameter(LDHC.maxTotalConn.getURI())) : null,
@@ -404,6 +409,7 @@ public class Application extends ResourceConfig
      * @param invalidateCache true if Varnish proxy cache should be invalidated
      * @param cookieMaxAge max age of auth cookies
      * @param enableLinkedDataProxy true if Linked Data proxy is enabled
+     * @param allowInternalUrls true if internal/private network URLs are allowed (disables SSRF protection)
      * @param maxContentLength maximum size of request entity
      * @param maxConnPerRoute maximum client connections per rout
      * @param maxTotalConn maximum total client connections
@@ -436,7 +442,7 @@ public class Application extends ResourceConfig
             final String webIDQueryString, final String agentQueryString, final String userAccountQueryString, final String ontologyQueryString,
             final String baseURIString, final String proxyScheme, final String proxyHostname, final Integer proxyPort,
             final String uploadRootString, final boolean invalidateCache,
-            final Integer cookieMaxAge, final boolean enableLinkedDataProxy, final Integer maxContentLength,
+            final Integer cookieMaxAge, final boolean enableLinkedDataProxy, final boolean allowInternalUrls, final Integer maxContentLength,
             final Integer maxConnPerRoute, final Integer maxTotalConn, final Integer maxRequestRetries, final Integer maxImportThreads,
             final String notificationAddressString, final String supportedLanguageCodes, final boolean enableWebIDSignUp, final String oidcRefreshTokensPropertiesPath,
             final String frontendProxyString, final String backendProxyAdminString, final String backendProxyEndUserString,
@@ -570,6 +576,8 @@ public class Application extends ResourceConfig
         this.cacheStylesheet = cacheStylesheet;
         this.resolvingUncached = resolvingUncached;
         this.enableLinkedDataProxy = enableLinkedDataProxy;
+        this.allowInternalUrls = allowInternalUrls;
+        this.urlValidator = new URLValidator(allowInternalUrls);
         this.maxContentLength = maxContentLength;
         this.invalidateCache = invalidateCache;
         this.enableWebIDSignUp = enableWebIDSignUp;
@@ -2159,7 +2167,27 @@ public class Application extends ResourceConfig
     {
         return enableLinkedDataProxy;
     }
-    
+
+    /**
+     * Returns true if internal/private network URLs are allowed (SSRF protection disabled).
+     *
+     * @return true if internal URLs are allowed
+     */
+    public boolean isAllowInternalUrls()
+    {
+        return allowInternalUrls;
+    }
+
+    /**
+     * Returns the shared URLValidator instance configured for this application.
+     *
+     * @return the URL validator
+     */
+    public URLValidator getURLValidator()
+    {
+        return urlValidator;
+    }
+
     /**
      * Maximum allowed request body size.
      * 
