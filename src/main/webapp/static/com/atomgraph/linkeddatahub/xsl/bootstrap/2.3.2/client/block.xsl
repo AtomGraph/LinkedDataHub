@@ -445,8 +445,6 @@ exclude-result-prefixes="#all"
         <xsl:param name="ignored" as="item()?"/>
               
         <xsl:variable name="container" select="$context('container')" as="element()"/>
-
-        <xsl:message>ldh:hide-block-progress-bar</xsl:message>
         
         <!-- hide the progress bar -->
         <xsl:for-each select="$container/ancestor::div[contains-token(@class, 'span12')][contains-token(@class, 'progress')][contains-token(@class, 'active')]">

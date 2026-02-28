@@ -273,9 +273,8 @@ exclude-result-prefixes="#all"
         <xsl:variable name="container" select="$block" as="element()"/> <!-- since we're not in content mode -->
         <xsl:variable name="block-id" select="$block/@id" as="xs:string"/>
         <xsl:variable name="block-uri" select="if ($block/@about) then $block/@about else xs:anyURI(ac:absolute-path(ldh:base-uri(.)) || '#' || $block-id)" as="xs:anyURI"/>
-        <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': $query-string })" as="xs:anyURI"/>
-        <xsl:variable name="request-uri" select="ldh:href($results-uri, map{})" as="xs:anyURI"/>
-        <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml,application/rdf+xml;q=0.9' } }" as="map(xs:string, item())"/>
+        <xsl:variable name="request-uri" select="ldh:href($endpoint, map{})" as="xs:anyURI"/>
+        <xsl:variable name="request" select="map{ 'method': 'POST', 'href': $request-uri, 'media-type': 'application/sparql-query', 'body': $query-string, 'headers': map{ 'Accept': 'application/sparql-results+xml,application/rdf+xml;q=0.9' } }" as="map(xs:string, item())"/>
         <xsl:variable name="results-container-id" select="$block-id || '-query-results'" as="xs:string"/>
         <xsl:variable name="results-container-class" select="'sparql-query-results'" as="xs:string"/>
         <xsl:variable name="results-container-about" select="xs:anyURI(ac:absolute-path(ldh:base-uri(.)) || '#' || $results-container-id)" as="xs:anyURI"/>
@@ -330,7 +329,6 @@ exclude-result-prefixes="#all"
             <ixsl:schedule-action http-request="$request">
                 <xsl:call-template name="onSPARQLResultsLoad">
                     <xsl:with-param name="endpoint" select="$endpoint"/>
-                    <xsl:with-param name="results-uri" select="$results-uri"/>
                     <xsl:with-param name="cache" select="$cache"/>
                     <xsl:with-param name="container" select="$container"/>
                     <xsl:with-param name="chart-canvas-id" select="$block-id || '-chart-canvas'"/>
@@ -507,11 +505,10 @@ exclude-result-prefixes="#all"
                 <xsl:message>Can only open DESCRIBE or CONSTRUCT query results</xsl:message>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': $query-string })" as="xs:anyURI"/>
-                <xsl:variable name="href" select="ldh:href($results-uri, map{})" as="xs:anyURI"/>
+                <xsl:variable name="href" select="ldh:href($endpoint, map{})" as="xs:anyURI"/>
 
                 <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
-                
+
                 <xsl:if test="ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub'), 'saxonController')">
                     <xsl:message>Aborting HTTP request that has already been sent</xsl:message>
                     <xsl:sequence select="ixsl:call(ixsl:get(ixsl:window(), 'LinkedDataHub.saxonController'), 'abort', [])"/>
@@ -519,7 +516,7 @@ exclude-result-prefixes="#all"
                 <xsl:variable name="controller" select="ixsl:abort-controller()"/>
                 <ixsl:set-property name="saxonController" select="$controller" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
 
-                <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $href, 'headers': map{ 'Accept': 'application/xhtml+xml' } }" as="map(*)"/>
+                <xsl:variable name="request" select="map{ 'method': 'POST', 'href': $href, 'media-type': 'application/sparql-query', 'body': $query-string, 'headers': map{ 'Accept': 'application/xhtml+xml' } }" as="map(*)"/>
                 <xsl:variable name="context" select="
                   map{
                     'request': $request,
@@ -541,7 +538,6 @@ exclude-result-prefixes="#all"
     <xsl:template name="onSPARQLResultsLoad">
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="container" as="element()"/>
-        <xsl:param name="results-uri" as="xs:anyURI"/>
         <xsl:param name="cache" as="item()"/>
         <xsl:param name="chart-canvas-id" as="xs:string"/>
         <xsl:param name="chart-type" select="xs:anyURI('&ac;Table')" as="xs:anyURI"/>

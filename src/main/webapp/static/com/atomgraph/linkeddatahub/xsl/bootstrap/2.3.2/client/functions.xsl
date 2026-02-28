@@ -153,12 +153,10 @@ exclude-result-prefixes="#all"
             </xsl:value-of>
         </xsl:variable>
         
-        <xsl:variable name="js-statement" as="element()">
-            <root statement="new google.visualization.DataTable(JSON.parse(String.raw`{$json}`))"/>
-        </xsl:variable>
-        <xsl:sequence select="ixsl:eval(string($js-statement/@statement))"/>
+        <xsl:variable name="json-obj" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'parse', [ $json ])"/>
+        <xsl:sequence select="ixsl:new('google.visualization.DataTable', [ $json-obj ])"/>
     </xsl:function>
-    
+
     <xsl:function name="ac:sparql-results-data-table">
         <xsl:param name="results" as="document-node()"/>
         <xsl:param name="category" as="xs:string?"/>
@@ -172,12 +170,10 @@ exclude-result-prefixes="#all"
             </xsl:value-of>
         </xsl:variable>
 
-        <xsl:variable name="js-statement" as="element()">
-            <root statement="new google.visualization.DataTable(JSON.parse(String.raw`{$json}`))"/>
-        </xsl:variable>
-        <xsl:sequence select="ixsl:eval(string($js-statement/@statement))"/>
+        <xsl:variable name="json-obj" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'parse', [ $json ])"/>
+        <xsl:sequence select="ixsl:new('google.visualization.DataTable', [ $json-obj ])"/>
     </xsl:function>
-    
+
     <xsl:function name="ldh:parse-html" as="document-node()">
         <xsl:param name="string" as="xs:string"/>
         <xsl:param name="mime-type" as="xs:string"/>
