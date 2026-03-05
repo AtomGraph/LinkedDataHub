@@ -505,7 +505,7 @@ public abstract class LoginBase
     /** 
      * Bans URL from the backend proxy cache.
      * 
-     * @param proxy proxy server URL
+     * @param proxyURI proxy server URL
      * @param url banned URL
      * @return proxy server response
      */
