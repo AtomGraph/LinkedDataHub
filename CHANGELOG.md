@@ -1,3 +1,31 @@
+## [5.3.0] - 2026-03-05
+### Added
+- Class-based navigation (#270)
+- `VARNISH_*_BACKEND_PORT` env params for configurable Varnish backend ports
+- Bearer auth token support in entrypoint; service credentials moved to `secrets/credentials.trig`
+- `gsp_append_quads` function in the entrypoint
+- New ACL HTTP tests for system endpoints
+- Ignored paths in `OntologyFilter` (#269)
+
+### Changed
+- Renamed `DirectGraphStoreImpl` to `DocumentHierarchyGraphStoreImpl`
+- Dataspace nav list now visible for unauthenticated agents
+- Client-side SPARQL query execution uses `POST` instead of `GET`
+- Full context dataset now passed to XSLT
+- Introduced `ServiceContext` to decouple HTTP infrastructure from `Service`
+- Split dataspace metadata from service metadata in configuration
+- Moved types to `system.trig`; `lapp:endUserApplication`/`lapp:adminApplication` now inferred on the fly
+- Refactored CSV/RDF import scripts
+
+### Fixed
+- UTF-8 charset handling for text-based media types in uploaded files
+- Fixed links to the admin app
+- URI resolution fix in `AuthorizationFilter`
+- Left sidebar CSS fixes
+
+### Removed
+- Removed system endpoint resources from default RDF datasets
+
 ## [5.2.1] - 2026-01-20
 ### Changed
 - Package view rendering refactored to use type-driven discovery with `ldh:view`/`ldh:inverseView` properties matching resource types against `rdfs:domain`/`rdfs:range` constraints

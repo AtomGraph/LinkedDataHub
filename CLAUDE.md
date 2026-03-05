@@ -17,6 +17,8 @@ LinkedDataHub uses Maven as the primary build system with Docker for containeriz
 docker-compose up --build
 ```
 
+Service credentials (used by the entrypoint for Bearer auth) are stored in `secrets/credentials.trig`.
+
 ### Core Build Commands
 ```bash
 # Maven build (Java 17 required)
@@ -73,6 +75,10 @@ find ./document-hierarchy/ -name '*.sh' -exec bash {} \;
 - RESTful resource endpoints for CRUD operations
 - File upload and content-addressed storage
 - Transformation and generation utilities
+
+#### Service Layer
+- `ServiceContext` decouples HTTP infrastructure from `Service`, holding dataspace and service metadata separately
+- Dataspace metadata and service metadata are split in configuration; types for `lapp:endUserApplication`/`lapp:adminApplication` are inferred on the fly from `system.trig`
 
 ### Service Architecture
 The application runs as a multi-container setup:
