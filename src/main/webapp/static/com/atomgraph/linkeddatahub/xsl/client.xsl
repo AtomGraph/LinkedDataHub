@@ -286,7 +286,7 @@ WHERE
         <ixsl:set-property name="contents" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
         <ixsl:set-property name="typeahead" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/> <!-- used by typeahead.xsl -->
         <ixsl:set-property name="graph" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/> <!-- used by graph.xsl -->
-        <ixsl:set-property name="endpoint" select="$sd:endpoint" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+<!--        <ixsl:set-property name="endpoint" select="$sd:endpoint" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>-->
         <ixsl:set-property name="yasqe" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
 
         <!-- handle OAuth ID token from URL fragment -->
@@ -323,15 +323,15 @@ WHERE
                         <xsl:with-param name="apps" select="$ldh:apps"/>
                     </xsl:call-template>
                 </xsl:for-each>
-                <!-- initialize document tree -->
-                <xsl:for-each select="id('doc-tree', ixsl:page())">
+                <!-- initialize navigation (e.g. the left sidebar) -->
+                <xsl:for-each select="id('left-sidebar', ixsl:page())">
                     <xsl:result-document href="?." method="ixsl:replace-content">
-                        <xsl:call-template name="ldh:DocTree"/>
+                        <xsl:call-template name="ldh:LeftSidebar"/>
                     </xsl:result-document>
-                    <xsl:call-template name="ldh:DocTreeActivateHref">
-                        <xsl:with-param name="href" select="base-uri(ixsl:page())"/>
-                    </xsl:call-template>
                 </xsl:for-each>
+                <xsl:call-template name="ldh:NavigationUpdate">
+                    <xsl:with-param name="href" select="base-uri(ixsl:page())"/>
+                </xsl:call-template>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
@@ -481,22 +481,6 @@ WHERE
         </a>
     </xsl:template>
     
-    <!-- classes for system container breadcrumbs -->
-    
-    <xsl:template match="*[@rdf:about = map:keys($system-containers)]" mode="bs2:BreadCrumbListItem" priority="1">
-        <xsl:param name="leaf" select="true()" as="xs:boolean"/>
-
-        <li>
-            <a href="{@rdf:about}" class="btn-logo {map:get($system-containers, @rdf:about)?class}">
-                <xsl:apply-templates select="key('resources', map:get($system-containers, @rdf:about)?label-id, document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
-            </a>
-
-            <xsl:if test="not($leaf)">
-                <span class="divider">/</span>
-            </xsl:if>
-        </li>
-    </xsl:template>
-    
     <!-- CALLBACKS -->
     
     <xsl:function name="ldh:rdf-document-response" ixsl:updating="yes">
@@ -607,9 +591,19 @@ WHERE
 
                 <!-- initialize maps -->
                 <xsl:if test="key('elements-by-class', 'map-canvas', ixsl:page())">
+                    <xsl:variable name="block-uri" select="$uri" as="xs:anyURI"/>
+                    <xsl:variable name="canvas-id" select="key('elements-by-class', 'map-canvas', ixsl:page())/@id" as="xs:string"/>
+                    <xsl:variable name="initial-load" select="not(ixsl:contains(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`'), 'map'))" as="xs:boolean"/>
+                    <xsl:variable name="map" select="if ($initial-load) then ldh:create-map($canvas-id, 0, 0, 4) else ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`'), 'map')" as="item()"/>
+
+                    <xsl:if test="$initial-load">
+                        <ixsl:set-property name="map" select="$map" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`')"/>
+                    </xsl:if>
+                                        
                     <xsl:call-template name="ldh:DrawMap">
-                        <xsl:with-param name="block-uri" select="$uri"/>
-                        <xsl:with-param name="canvas-id" select="key('elements-by-class', 'map-canvas', ixsl:page())/@id"/>
+                        <xsl:with-param name="canvas-id" select="$canvas-id"/>
+                        <xsl:with-param name="initial-load" select="$initial-load"/>
+                        <xsl:with-param name="map" select="$map"/>
                     </xsl:call-template>
                 </xsl:if>
 
@@ -751,7 +745,7 @@ WHERE
                 <xsl:when test="starts-with(?media-type, 'application/xhtml+xml')">
                     <xsl:variable name="endpoint-link" select="tokenize(?headers?link, ',')[contains(., '&sd;endpoint')]" as="xs:string?"/>
                     <xsl:variable name="endpoint" select="if ($endpoint-link) then xs:anyURI(substring-before(substring-after(substring-before($endpoint-link, ';'), '&lt;'), '&gt;')) else ()" as="xs:anyURI?"/>
-                    <xsl:variable name="base" select="lapp:origin($href)" as="xs:anyURI"/>
+                    <xsl:variable name="base" select="xs:anyURI(lapp:origin($href) || '/')" as="xs:anyURI"/>
                     <!-- set new base URI if the current app has changed -->
                     <xsl:if test="not($base = ldt:base())">
                         <xsl:message>Application change. Base URI: <xsl:value-of select="$base"/></xsl:message>
@@ -842,7 +836,8 @@ WHERE
             </xsl:call-template>
         </xsl:if>
         
-        <xsl:call-template name="ldh:PostHTMLDocumentLoad">
+        <!-- update the sidebar -->
+        <xsl:call-template name="ldh:NavigationUpdate">
             <xsl:with-param name="href" select="$href"/>
         </xsl:call-template>
         
@@ -853,24 +848,22 @@ WHERE
     </xsl:template>
     
     <!-- post-HTML load hook, mainly for navigation updates -->
-    
-    <xsl:template name="ldh:PostHTMLDocumentLoad">
-        <xsl:param name="href" as="xs:anyURI"/> <!-- possibly proxied URL -->
-            
-        <!-- activate the current URL in the document tree -->
-        <xsl:for-each select="id('doc-tree', ixsl:page())">
-            <xsl:call-template name="ldh:DocTreeActivateHref">
-                <xsl:with-param name="href" select="$href"/>
-            </xsl:call-template>
-        </xsl:for-each>
-    </xsl:template>
+
+<!--    <xsl:template name="ldh:PostHTMLDocumentLoad">
+        <xsl:param name="href" as="xs:anyURI"/>  possibly proxied URL 
+
+         update the sidebar 
+        <xsl:call-template name="ldh:NavigationUpdate">
+            <xsl:with-param name="href" select="$href"/>
+        </xsl:call-template>
+    </xsl:template>-->
     
     <xsl:template name="ldt:AppChanged">
         <xsl:param name="base" as="xs:anyURI"/>
 
-        <xsl:for-each select="id('doc-tree', ixsl:page())">
+        <xsl:for-each select="id('left-sidebar', ixsl:page())">
             <xsl:result-document href="?." method="ixsl:replace-content">
-                <xsl:call-template name="ldh:DocTree">
+                <xsl:call-template name="ldh:LeftSidebar">
                     <xsl:with-param name="base" select="$base"/>
                 </xsl:call-template>
             </xsl:result-document>

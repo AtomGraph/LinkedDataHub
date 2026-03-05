@@ -70,6 +70,7 @@ public class Access
     private final EndUserApplication application;
     private final Optional<AgentContext> agentContext;
     private final ParameterizedSparqlString documentTypeQuery, documentOwnerQuery, aclQuery, ownerAclQuery;
+    private final com.atomgraph.linkeddatahub.Application system;
     
     /**
      * Constructs endpoint from the in-memory ontology model.
@@ -92,6 +93,7 @@ public class Access
         this.mediaTypes = mediaTypes;
         this.application = application.as(EndUserApplication.class);
         this.agentContext = agentContext;
+        this.system = system;
         documentTypeQuery = new ParameterizedSparqlString(system.getDocumentTypeQuery().toString());
         documentOwnerQuery = new ParameterizedSparqlString(system.getDocumentOwnerQuery().toString());
         aclQuery = new ParameterizedSparqlString(system.getACLQuery().toString());
@@ -120,13 +122,13 @@ public class Access
             ParameterizedSparqlString typePss = getDocumentTypeQuery();
             typePss.setParams(thisQsm);
             
-            ResultSetRewindable docTypesResult = getEndUserService().getEndpointAccessor().select(typePss.asQuery(), List.of(), List.of());
+            ResultSetRewindable docTypesResult = getSystem().getServiceContext(getEndUserService()).getEndpointAccessor().select(typePss.asQuery(), List.of(), List.of());
             try
             {
                 final ParameterizedSparqlString authPss = getACLQuery();
                 authPss.setParams(new AuthorizationParams(getApplication().getAdminApplication().getBase(), accessTo, agent).get());
 
-                Model authModel = getApplication().getAdminApplication().getService().getSPARQLClient().loadModel(authPss.asQuery());
+                Model authModel = getSystem().getServiceContext(getApplication().getAdminApplication().getService()).getSPARQLClient().loadModel(authPss.asQuery());
 
                 // filter out authorizations with acl:accessToClass foaf:Agent - all agents already have that access
                 ResIterator agentClassIter = authModel.listSubjectsWithProperty(ACL.agentClass, FOAF.Agent);
@@ -176,7 +178,7 @@ public class Access
         ParameterizedSparqlString pss = getDocumentOwnerQuery();
         pss.setParams(qsm);
 
-        ResultSetRewindable ownerResult = getEndUserService().getEndpointAccessor().select(pss.asQuery(), List.of(), List.of());
+        ResultSetRewindable ownerResult = getSystem().getServiceContext(getEndUserService()).getEndpointAccessor().select(pss.asQuery(), List.of(), List.of());
         try
         {
             return ownerResult.hasNext() && agent.equals(ownerResult.next().getResource("owner"));
@@ -252,12 +254,22 @@ public class Access
     
     /**
      * Returns the current application.
-     * 
+     *
      * @return application resource
      */
     public EndUserApplication getApplication()
     {
         return application;
+    }
+
+    /**
+     * Returns the system application.
+     *
+     * @return system application
+     */
+    public com.atomgraph.linkeddatahub.Application getSystem()
+    {
+        return system;
     }
 
     /**

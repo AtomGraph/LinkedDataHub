@@ -31,23 +31,25 @@ import org.apache.jena.rdf.model.Model;
 /**
  * LinkedDataHub SPARQL endpoint implementation.
  * We need to subclass the Core class because we're injecting an optional <code>Service</code>.
- * 
+ *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
 public class SPARQLEndpointImpl extends com.atomgraph.core.model.impl.SPARQLEndpointImpl
 {
-    
+
     /**
      * Constructs endpoint.
-     * 
+     *
      * @param request current request
      * @param service SPARQL service
      * @param mediaTypes registry of readable/writable media types
+     * @param system system application
      */
     @Inject
-    public SPARQLEndpointImpl(@Context Request request, Optional<Service> service, MediaTypes mediaTypes)
+    public SPARQLEndpointImpl(@Context Request request, Optional<Service> service, MediaTypes mediaTypes,
+            com.atomgraph.linkeddatahub.Application system)
     {
-        super(request, service.get(), mediaTypes);
+        super(request, system.getServiceContext(service.get()).getEndpointAccessor(), mediaTypes);
     }
     
     /**

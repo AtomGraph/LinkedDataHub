@@ -16,48 +16,51 @@
  */
 package com.atomgraph.linkeddatahub.model;
 
-import com.atomgraph.core.MediaTypes;
-import com.atomgraph.core.model.EndpointAccessor;
-import jakarta.ws.rs.client.Client;
 import org.apache.jena.rdf.model.Resource;
 
 /**
  * Remote SPARQL service.
- * 
+ * Describes the data endpoints of a SPARQL service (what it is), without any infrastructure
+ * (clients, proxies) concerns (how to route to it).
+ *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-public interface Service extends com.atomgraph.core.model.RemoteService, Resource
+public interface Service extends Resource
 {
 
-    @Override
-    EndpointAccessor getEndpointAccessor();
-
     /**
-     * Returns backend proxy's cache URI resource.
-     * 
+     * Returns the SPARQL 1.1 Protocol endpoint resource.
+     *
      * @return RDF resource
      */
-    Resource getBackendProxy();
-    
-    /**
-     * Returns HTTP client.
-     * 
-     * @return HTTP client
-     */
-    Client getClient();
+    Resource getSPARQLEndpoint();
 
     /**
-     * Returns a registry of readable/writable media types.
-     * 
-     * @return media type registry
+     * Returns the Graph Store Protocol endpoint resource.
+     *
+     * @return RDF resource
      */
-    MediaTypes getMediaTypes();
+    Resource getGraphStore();
 
     /**
-     * Returns the maximum size of SPARQL <code>GET</code> requests.
-     * 
-     * @return request size in bytes
+     * Returns the quad store endpoint resource.
+     *
+     * @return RDF resource, or null if not configured
      */
-    Integer getMaxGetRequestSize();
-    
+    Resource getQuadStore();
+
+    /**
+     * Returns the HTTP Basic authentication username, if configured.
+     *
+     * @return username string, or null
+     */
+    String getAuthUser();
+
+    /**
+     * Returns the HTTP Basic authentication password, if configured.
+     *
+     * @return password string, or null
+     */
+    String getAuthPwd();
+
 }

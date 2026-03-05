@@ -7,6 +7,14 @@ purge_cache "$END_USER_VARNISH_SERVICE"
 purge_cache "$ADMIN_VARNISH_SERVICE"
 purge_cache "$FRONTEND_VARNISH_SERVICE"
 
+# add agent to the writers group
+
+add-agent-to-group.sh \
+  -f "$OWNER_CERT_FILE" \
+  -p "$OWNER_CERT_PWD" \
+  --agent "$AGENT_URI" \
+  "${ADMIN_BASE_URL}acl/groups/writers/"
+
 # add an explicit read/write authorization for the parent since the child document will inherit it
 
 create-authorization.sh \
@@ -19,9 +27,9 @@ create-authorization.sh \
   --read \
   --write
 
-invalid_item="${END_USER_BASE_URL}no-slash"
-
 # check URI without trailing slash gets redirected
+
+invalid_item="${END_USER_BASE_URL}no-slash"
 
 (
 curl -k -w "%{http_code}\n" -o /dev/null -s \

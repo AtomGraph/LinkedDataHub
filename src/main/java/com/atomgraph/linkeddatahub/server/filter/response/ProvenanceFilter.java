@@ -51,6 +51,7 @@ public class ProvenanceFilter implements ContainerResponseFilter
     private static final Logger log = LoggerFactory.getLogger(ProvenanceFilter.class);
 
     @Inject jakarta.inject.Provider<Optional<Service>> service;
+    @Inject com.atomgraph.linkeddatahub.Application system;
 
     @Override
     public void filter(ContainerRequestContext request, ContainerResponseContext response)throws IOException
@@ -78,7 +79,7 @@ public class ProvenanceFilter implements ContainerResponseFilter
             }
             
             if (log.isDebugEnabled()) log.debug("PUTting {} triples of provenance metadata", graph.getModel().size());
-            getService().get().getGraphStoreClient().putModel(graphGraphUri, model);
+            system.getServiceContext(getService().get()).getGraphStoreClient().putModel(graphGraphUri, model);
         }
     }
     

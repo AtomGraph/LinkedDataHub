@@ -13,6 +13,8 @@ secrets:
   #   file: ./secrets/orcid/client_id.txt
   # orcid_client_secret:
   #   file: ./secrets/orcid/client_secret.txt
+  # credentials:
+  #   file: ./secrets/credentials.trig
 volumes:
   varnish_frontend_cache:
 services:
@@ -45,6 +47,9 @@ services:
       #- CATALINA_OPTS="-Duser.timezone=Europe/Copenhagen"
       - PROXY_HOST=nginx
       - PROXY_PORT=9443
+      - FRONTEND_PROXY=http://varnish-frontend:6060/
+      - BACKEND_PROXY_ADMIN=http://varnish-admin/
+      - BACKEND_PROXY_END_USER=http://varnish-end-user/
       - PROTOCOL=${PROTOCOL}
       - HOST=${HOST}
       - ABS_PATH=${ABS_PATH}
@@ -58,6 +63,7 @@ services:
       - SELF_SIGNED_CERT=true # only on localhost
       - SIGN_UP_CERT_VALIDITY=180
       - MAX_CONTENT_LENGTH=${MAX_CONTENT_LENGTH:-2097152}
+      - ALLOW_INTERNAL_URLS=${ALLOW_INTERNAL_URLS:-}
       - NOTIFICATION_ADDRESS=LinkedDataHub <notifications@localhost>
       - MAIL_SMTP_HOST=email-server
       - MAIL_SMTP_PORT=25
@@ -84,6 +90,7 @@ services:
       # - google_client_secret
       # - orcid_client_id
       # - orcid_client_secret
+      # - credentials
     volumes:
       - /var/linkeddatahub/oidc
       - ./ssl/server:/var/linkeddatahub/ssl/server:ro
@@ -93,6 +100,7 @@ services:
       - ./datasets/secretary:/var/linkeddatahub/datasets/secretary
       - ./uploads:/var/www/linkeddatahub/uploads
       - ./config/dev.log4j.properties:/usr/local/tomcat/webapps/ROOT/WEB-INF/classes/log4j.properties:ro
+      - ./config/dataspaces.trig:/var/linkeddatahub/datasets/dataspaces.trig
       - ./config/system.trig:/var/linkeddatahub/datasets/system.trig
   fuseki-admin:
     image: atomgraph/fuseki:4.7.0
@@ -279,7 +287,7 @@ configs:
 
       backend default {
           .host = "${VARNISH_FRONTEND_BACKEND_HOST:-linkeddatahub}";
-          .port = "7070";
+          .port = "${VARNISH_FRONTEND_BACKEND_PORT:-7070}";
           .first_byte_timeout = 60s;
       }
 
@@ -394,7 +402,7 @@ configs:
 
       backend default {
           .host = "${VARNISH_ADMIN_BACKEND_HOST:-fuseki-admin}";
-          .port = "3030";
+          .port = "${VARNISH_ADMIN_BACKEND_PORT:-3030}";
           .first_byte_timeout = 60s;
       }
 
@@ -460,7 +468,7 @@ configs:
 
       backend default {
           .host = "${VARNISH_END_USER_BACKEND_HOST:-fuseki-end-user}";
-          .port = "3030";
+          .port = "${VARNISH_END_USER_BACKEND_PORT:-3030}";
           .first_byte_timeout = 60s;
       }
 

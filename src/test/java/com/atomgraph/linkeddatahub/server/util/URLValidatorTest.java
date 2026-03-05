@@ -35,51 +35,65 @@ public class URLValidatorTest
     @Test(expected = IllegalArgumentException.class)
     public void testNullURI()
     {
-        new URLValidator(null);
+        new URLValidator(false).validate(null);
     }
 
     @Test(expected = InternalURLException.class)
     public void testLinkLocalIPv4Blocked()
     {
-        new URLValidator(URI.create("http://169.254.1.1:8080/test")).validate();
+        new URLValidator(false).validate(URI.create("http://169.254.1.1:8080/test"));
     }
 
     @Test(expected = InternalURLException.class)
     public void testPrivateClass10Blocked()
     {
-        new URLValidator(URI.create("http://10.0.0.1:8080/test")).validate();
+        new URLValidator(false).validate(URI.create("http://10.0.0.1:8080/test"));
     }
 
     @Test(expected = InternalURLException.class)
     public void testPrivateClass172Blocked()
     {
-        new URLValidator(URI.create("http://172.16.0.0:8080/test")).validate();
+        new URLValidator(false).validate(URI.create("http://172.16.0.0:8080/test"));
     }
 
     @Test(expected = InternalURLException.class)
     public void testPrivateClass192Blocked()
     {
-        new URLValidator(URI.create("http://192.168.1.1:8080/test")).validate();
+        new URLValidator(false).validate(URI.create("http://192.168.1.1:8080/test"));
     }
 
     @Test
     public void testExternalURLAllowed()
     {
         // Public IPs should be allowed (no exception thrown)
-        new URLValidator(URI.create("http://8.8.8.8:80/test")).validate();
+        new URLValidator(false).validate(URI.create("http://8.8.8.8:80/test"));
     }
 
     @Test
     public void testPublicDomainAllowed()
     {
         // Public domains should be allowed (no exception thrown)
-        new URLValidator(URI.create("http://example.org/test")).validate();
+        new URLValidator(false).validate(URI.create("http://example.org/test"));
     }
 
     @Test
     public void testHTTPSAllowed()
     {
         // HTTPS to public domain should be allowed (no exception thrown)
-        new URLValidator(URI.create("https://www.w3.org/ns/ldp")).validate();
+        new URLValidator(false).validate(URI.create("https://www.w3.org/ns/ldp"));
+    }
+
+    @Test
+    public void testAllowInternalPrivateIPAllowed()
+    {
+        // When allowInternal=true, private IPs should pass through without exception
+        new URLValidator(true).validate(URI.create("http://10.0.0.1:8080/test"));
+    }
+
+    @Test
+    public void testAllowInternalLinkLocalAllowed()
+    {
+        // When allowInternal=true, link-local addresses should pass through without exception
+        new URLValidator(true).validate(URI.create("http://169.254.1.1:8080/test"));
     }
 }

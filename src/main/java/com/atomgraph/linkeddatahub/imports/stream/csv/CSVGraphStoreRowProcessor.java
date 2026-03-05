@@ -52,6 +52,7 @@ public class CSVGraphStoreRowProcessor implements RowProcessor // extends com.at
     private static final Logger log = LoggerFactory.getLogger(CSVGraphStoreRowProcessor.class);
 
     private final Service service, adminService;
+    private final com.atomgraph.linkeddatahub.Application system;
     private final GraphStoreClient gsc;
     private final String base;
     private final Query query;
@@ -59,17 +60,19 @@ public class CSVGraphStoreRowProcessor implements RowProcessor // extends com.at
 
     /**
      * Constructs row processor.
-     * 
+     *
      * @param service SPARQL service of the application
      * @param adminService SPARQL service of the admin application
+     * @param system system application
      * @param gsc Graph Store client
      * @param base base URI
      * @param query transformation query
      */
-    public CSVGraphStoreRowProcessor(Service service, Service adminService, GraphStoreClient gsc, String base, Query query)
+    public CSVGraphStoreRowProcessor(Service service, Service adminService, com.atomgraph.linkeddatahub.Application system, GraphStoreClient gsc, String base, Query query)
     {
         this.service = service;
         this.adminService = adminService;
+        this.system = system;
         this.gsc = gsc;
         this.base = base;
         this.query = query;
@@ -85,28 +88,28 @@ public class CSVGraphStoreRowProcessor implements RowProcessor // extends com.at
     public void rowProcessed(String[] row, ParsingContext context)
     {
         Dataset rowDataset = transformRow(row, context);
-        
+
         // the default graph is ignored!
-        
-        rowDataset.listNames().forEachRemaining(graphUri -> 
+
+        rowDataset.listNames().forEachRemaining(graphUri ->
             {
                 // exceptions get swallowed by the client? TO-DO: wait for completion
                 Model namedModel = rowDataset.getNamedModel(graphUri);
                 if (!namedModel.isEmpty()) add(namedModel, graphUri);
-                
+
                 try
                 {
                     // purge cache entries that include the graph URI
-                    if (getService().getBackendProxy() != null)
+                    if (getSystem().getServiceContext(getService()).getBackendProxy() != null)
                     {
-                        try (Response response = ban(getService().getClient(), getService().getBackendProxy(), graphUri))
+                        try (Response response = ban(getSystem().getServiceContext(getService()).getClient(), getSystem().getServiceContext(getService()).getBackendProxy(), graphUri))
                         {
                             // Response automatically closed by try-with-resources
                         }
                     }
-                    if (getAdminService() != null && getAdminService().getBackendProxy() != null)
+                    if (getAdminService() != null && getSystem().getServiceContext(getAdminService()) != null && getSystem().getServiceContext(getAdminService()).getBackendProxy() != null)
                     {
-                        try (Response response = ban(getAdminService().getClient(), getAdminService().getBackendProxy(), graphUri))
+                        try (Response response = ban(getSystem().getServiceContext(getAdminService()).getClient(), getSystem().getServiceContext(getAdminService()).getBackendProxy(), graphUri))
                         {
                             // Response automatically closed by try-with-resources
                         }
@@ -119,10 +122,10 @@ public class CSVGraphStoreRowProcessor implements RowProcessor // extends com.at
             }
         );
     }
-    
+
     /**
      * Creates a graph using <code>PUT</code> if it doesn't exist, otherwise appends data using <code>POST</code>.
-     * 
+     *
      * @param namedModel model
      * @param graphURI the graph URI
      */
@@ -139,7 +142,7 @@ public class CSVGraphStoreRowProcessor implements RowProcessor // extends com.at
             if (putResponse.getStatusInfo().equals(Response.Status.PRECONDITION_FAILED))
             {
                 try (Response postResponse = getGraphStoreClient().post(URI.create(graphURI), namedModel))
-                {                                
+                {
                     if (!postResponse.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
                     {
                         if (log.isErrorEnabled()) log.error("RDF document with URI <{}> could not be successfully created using PUT. Status code: {}", graphURI, postResponse.getStatus());
@@ -157,12 +160,12 @@ public class CSVGraphStoreRowProcessor implements RowProcessor // extends com.at
             }
         }
     }
-    
+
     /**
      * Transforms CSV row into an an RDF graph.
      * First a generic CSV/RDF graph is constructed. Then the transformation query is applied on it.
      * Extended SPARQL syntax is used to allow the <code>CONSTRUCT GRAPH</code> query form.
-     * 
+     *
      * @param row CSV row
      * @param context parsing context
      * @return RDF result
@@ -172,7 +175,7 @@ public class CSVGraphStoreRowProcessor implements RowProcessor // extends com.at
         Model rowModel = ModelFactory.createDefaultModel();
         Resource subject = rowModel.createResource();
         subjectCount++;
-        
+
         int cellNo = 0;
         for (String cell : row)
         {
@@ -191,7 +194,7 @@ public class CSVGraphStoreRowProcessor implements RowProcessor // extends com.at
             return qex.execConstructDataset();
         }
     }
-    
+
     @Override
     public void processEnded(ParsingContext context)
     {
@@ -199,44 +202,54 @@ public class CSVGraphStoreRowProcessor implements RowProcessor // extends com.at
 
     /**
      * Bans a URL from proxy cache.
-     * 
+     *
      * @param client HTTP client
-     * @param proxy proxy cache endpoint
+     * @param proxyURI proxy cache endpoint URI
      * @param url request URL
      * @return response from cache
      */
-    public Response ban(Client client, Resource proxy, String url)
+    public Response ban(Client client, URI proxyURI, String url)
     {
         if (url == null) throw new IllegalArgumentException("Resource cannot be null");
-        
+
         // create new Client instance, otherwise ApacheHttpClient reuses connection and Varnish ignores BAN request
         return client.
-            target(proxy.getURI()).
+            target(proxyURI).
             request().
             header("X-Escaped-Request-URI", UriComponent.encode(url, UriComponent.Type.UNRESERVED)).
             method("BAN", Response.class);
     }
-    
+
     /**
      * Return application's SPARQL service.
-     * 
+     *
      * @return SPARQL service
      */
     public Service getService()
     {
         return service;
     }
-    
+
     /**
      * Return admin application's SPARQL service.
-     * 
+     *
      * @return SPARQL service
      */
     public Service getAdminService()
     {
         return adminService;
     }
-    
+
+    /**
+     * Return system application.
+     *
+     * @return system application
+     */
+    public com.atomgraph.linkeddatahub.Application getSystem()
+    {
+        return system;
+    }
+
     /**
      * Returns base URI.
      * @return base URI string
@@ -245,45 +258,45 @@ public class CSVGraphStoreRowProcessor implements RowProcessor // extends com.at
     {
         return base;
     }
-    
+
     /**
      * Returns the transformation query.
-     * 
+     *
      * @return SPARQL query
      */
     public Query getQuery()
     {
         return query;
     }
-    
+
     /**
      * Returns the cumulative count of RDF subject resources.
-     * 
+     *
      * @return subject count
      */
     public int getSubjectCount()
     {
         return subjectCount;
     }
-    
+
     /**
      * Returns the cumulative count of RDF triples.
-     * 
+     *
      * @return triple count
      */
     public int getTripleCount()
     {
         return tripleCount;
     }
-    
+
     /**
      * Returns the Graph Store client.
-     * 
+     *
      * @return client object
      */
     public GraphStoreClient getGraphStoreClient()
     {
         return gsc;
     }
-    
+
 }

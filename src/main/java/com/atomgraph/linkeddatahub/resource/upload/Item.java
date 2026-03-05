@@ -19,6 +19,7 @@ package com.atomgraph.linkeddatahub.resource.upload;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Request;
@@ -282,8 +283,16 @@ public class Item
             if (log.isErrorEnabled()) log.error("File '{}' does not have a media type", getResource());
             throw new IllegalStateException("File does not have a media type (dct:format)");
         }
-        
-        return com.atomgraph.linkeddatahub.MediaType.valueOf(format);
+
+        jakarta.ws.rs.core.MediaType mediaType = com.atomgraph.linkeddatahub.MediaType.valueOf(format);
+
+        // Add charset=UTF-8 for text-based media types
+        if (mediaType.getType().equals("text"))
+        {
+            return mediaType.withCharset(StandardCharsets.UTF_8.name());
+        }
+
+        return mediaType;
     }
 
     /**
@@ -305,7 +314,7 @@ public class Item
     public Model describe()
     {
         // TO-DO: can we avoid hardcoding the query string here?
-        return getService().getSPARQLClient().loadModel(QueryFactory.create("DESCRIBE <" + getURI() + ">"));
+        return getSystem().getServiceContext(getService()).getSPARQLClient().loadModel(QueryFactory.create("DESCRIBE <" + getURI() + ">"));
     }
     
     /**

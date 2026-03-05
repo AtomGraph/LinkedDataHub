@@ -20,24 +20,30 @@ add-agent-to-group.sh \
 # create file
 
 file_content_type="text/csv"
+slug=$(uuidgen | tr '[:upper:]' '[:lower:]')
 
-file_doc=$(create-file.sh \
--f "$AGENT_CERT_FILE" \
--p "$AGENT_CERT_PWD" \
--b "$END_USER_BASE_URL" \
---title "Test CSV" \
---file "$pwd/test.csv" \
---file-content-type "${file_content_type}")
-
-file_doc_ntriples=$(get.sh \
+# Create an item document to hold the file
+file_doc=$(create-item.sh \
   -f "$AGENT_CERT_FILE" \
   -p "$AGENT_CERT_PWD" \
-  --accept 'application/n-triples' \
-  "$file_doc")
+  -b "$END_USER_BASE_URL" \
+  --title "Test CSV" \
+  --container "$END_USER_BASE_URL" \
+  --slug "$slug")
 
-# echo "FILE NTRIPLES: $file_doc_ntriples"
+# Add the file to the document
+add-file.sh \
+  -f "$AGENT_CERT_FILE" \
+  -p "$AGENT_CERT_PWD" \
+  -b "$END_USER_BASE_URL" \
+  --title "Test CSV" \
+  --file "$pwd/test.csv" \
+  --content-type "${file_content_type}" \
+  "$file_doc"
 
-file=$(echo "$file_doc_ntriples" | sed -rn "s/<${file_doc//\//\\/}> <http:\/\/xmlns.com\/foaf\/0.1\/primaryTopic> <(.*)> \./\1/p")
+# Calculate file URI from SHA1 hash
+sha1sum=$(shasum -a 1 "$pwd/test.csv" | awk '{print $1}')
+file="${END_USER_BASE_URL}uploads/${sha1sum}"
 
 echo "$file" # file URL used in other tests
 

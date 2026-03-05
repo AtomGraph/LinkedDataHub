@@ -286,11 +286,16 @@ exclude-result-prefixes="#all"
         <xsl:variable name="series" select="descendant::*[@property = '&ldh;seriesProperty']/@resource | descendant::*[@property = '&ldh;seriesVarName']/text()" as="xs:string*"/>
         <xsl:variable name="canvas-id" select="generate-id() || '-chart-canvas'" as="xs:string?"/>
         <xsl:variable name="canvas-class" select="'chart-canvas'" as="xs:string?"/>
-        
-        <xsl:for-each select="$block//div[contains-token(@class, 'bar')]">
-            <ixsl:set-style name="width" select="'66%'" object="."/>
-        </xsl:for-each>
-        
+
+        <!-- Create cache object for this block -->
+        <xsl:if test="not(ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $about || '`'))">
+            <ixsl:set-property name="{'`' || $about || '`'}" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.contents')"/>
+        </xsl:if>
+        <xsl:variable name="cache" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $about || '`')" as="item()"/>
+
+        <!-- Initialize progress counters: 2 steps (query, results) -->
+        <xsl:sequence select="ldh:update-progress-counter($cache, map{'container': $container}, 'init', 2)"/>
+
         <xsl:variable name="request-uri" select="ldh:href($query-uri, map{})" as="xs:anyURI"/>
         <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
         <xsl:variable name="context" as="map(*)" select="
@@ -313,7 +318,8 @@ exclude-result-prefixes="#all"
             'series': $series,
             'canvas-id': $canvas-id,
             'canvas-class': $canvas-class,
-            'form-actions': $form-actions
+            'form-actions': $form-actions,
+            'cache': $cache
           }"/>
         
         <xsl:sequence select="
@@ -770,41 +776,30 @@ exclude-result-prefixes="#all"
                         <xsl:variable name="service-uri" select="xs:anyURI(key('resources', $query-uri)/ldh:service/@rdf:resource)" as="xs:anyURI?"/>
                         <xsl:variable name="service" select="if ($service-uri) then key('resources', $service-uri, document(ac:build-uri(ac:document-uri($service-uri), map{ 'accept': 'application/rdf+xml' }))) else ()" as="element()?"/> <!-- TO-DO: refactor asynchronously -->
                         <xsl:variable name="endpoint" select="($service/sd:endpoint/@rdf:resource/xs:anyURI(.), sd:endpoint())[1]" as="xs:anyURI"/>
-                        <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': $query-string })" as="xs:anyURI"/>
-                        <xsl:variable name="request-uri" select="ldh:href($results-uri, map{})" as="xs:anyURI"/>
+                        <xsl:variable name="request-uri" select="ldh:href($endpoint, map{})" as="xs:anyURI"/>
 
-                        <!-- update progress bar -->
-                        <xsl:for-each select="$block//div[contains-token(@class, 'bar')]">
-                            <ixsl:set-style name="width" select="'83%'" object="."/>
-                        </xsl:for-each>
+                        <!-- Mark query response as complete -->
+                        <xsl:sequence select="ldh:update-progress-counter($context('cache'), $context, 'complete', ())"/>
 
-                        <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml,application/rdf+xml;q=0.9' } }" as="map(*)"/>
+                        <xsl:variable name="request" select="map{ 'method': 'POST', 'href': $request-uri, 'media-type': 'application/sparql-query', 'body': $query-string, 'headers': map{ 'Accept': 'application/sparql-results+xml,application/rdf+xml;q=0.9' } }" as="map(*)"/>
                         <xsl:sequence select="
                           map{
                             'request': $request,
                             'endpoint': $endpoint,
-                            'results-uri': $results-uri,
                             'block': $block,
                             'container': $container,
                             'chart-canvas-id': $canvas-id,
-                            'block-uri': $block/@about,
                             'chart-type': $chart-type,
                             'category': $category,
                             'series': $series,
                             'show-editor': false(),
                             'show-chart-save': false(),
-                            'results-container-id': $container-id || '-query-results'
+                            'results-container-id': $container-id || '-query-results',
+                            'cache': $context('cache')
                           }"/>
                     </xsl:for-each>
                 </xsl:when>
                 <xsl:otherwise>
-                    <!-- hide the progress bar - either of this block (if it contains a progress bar) or of the parent block -->
-                    <xsl:for-each select="($block//div[contains-token(@class, 'span12')][contains-token(@class, 'progress')][contains-token(@class, 'active')], $block/ancestor::div[contains-token(@class, 'block')]//div[contains-token(@class, 'span12')][contains-token(@class, 'progress')][contains-token(@class, 'active')])[1]">
-                        <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'progress', false() ])[current-date() lt xs:date('2000-01-01')]"/>
-                        <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'progress-striped', false() ])[current-date() lt xs:date('2000-01-01')]"/>
-                        <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'active', false() ])[current-date() lt xs:date('2000-01-01')]"/>
-                    </xsl:for-each>
-
                     <!-- error response - could not load query -->
                     <xsl:for-each select="$container">
                         <xsl:result-document href="?." method="ixsl:replace-content">
@@ -816,8 +811,7 @@ exclude-result-prefixes="#all"
                             </div>
                         </xsl:result-document>
                     </xsl:for-each>
-                    
-                    <xsl:sequence select="ldh:hide-block-progress-bar($context, ())[current-date() lt xs:date('2000-01-01')]"/>
+
                     <xsl:sequence select="
                       error(
                         QName('&ldh;', 'ldh:HTTPError'),
@@ -837,8 +831,6 @@ exclude-result-prefixes="#all"
         <xsl:variable name="response" select="$context('response')" as="map(*)"/>
         <xsl:variable name="block" select="$context('block')" as="element()"/>
         <xsl:variable name="container" select="$context('container')" as="element()"/>
-        <xsl:variable name="results-uri" select="$context('results-uri')" as="xs:anyURI"/>
-        <xsl:variable name="block-uri" select="$context('block-uri')" as="xs:anyURI"/>
         <xsl:variable name="chart-canvas-id" select="$context('chart-canvas-id')" as="xs:string"/>
         <xsl:variable name="chart-type" select="$context('chart-type')" as="xs:anyURI"/>
         <xsl:variable name="category" select="$context('category')" as="xs:string?"/>
@@ -867,11 +859,10 @@ exclude-result-prefixes="#all"
                             <xsl:with-param name="series" select="$series"/>
                         </xsl:call-template>
 
-                        <!-- create new cache entry using content URI as key -->
-                        <ixsl:set-property name="{'`' || $block-uri || '`'}" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.contents')"/>
-                        <ixsl:set-property name="results" select="$results" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`')"/>
+                        <!-- Store results in cache -->
+                        <ixsl:set-property name="results" select="$results" object="$context('cache')"/>
                         <xsl:variable name="data-table" select="if ($results/rdf:RDF) then ac:rdf-data-table($results, $category, $series) else ac:sparql-results-data-table($results, $category, $series)"/>
-                        <ixsl:set-property name="data-table" select="$data-table" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`')"/>
+                        <ixsl:set-property name="data-table" select="$data-table" object="$context('cache')"/>
 
                         <xsl:call-template name="ldh:RenderChart">
                             <xsl:with-param name="data-table" select="$data-table"/>
@@ -880,7 +871,10 @@ exclude-result-prefixes="#all"
                             <xsl:with-param name="category" select="$category"/>
                             <xsl:with-param name="series" select="$series"/>
                         </xsl:call-template>
-                        
+
+                        <!-- Mark results response as complete -->
+                        <xsl:sequence select="ldh:update-progress-counter($context('cache'), $context, 'complete', ())"/>
+
                         <xsl:sequence select="$context"/>
                     </xsl:for-each>
                 </xsl:when>
@@ -896,8 +890,7 @@ exclude-result-prefixes="#all"
                             </div>
                         </xsl:result-document>
                     </xsl:for-each>
-                    
-                    <xsl:sequence select="ldh:hide-block-progress-bar($context, ())[current-date() lt xs:date('2000-01-01')]"/>
+
                     <xsl:sequence select="
                       error(
                         QName('&ldh;', 'ldh:HTTPError'),

@@ -31,7 +31,6 @@ import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
 import com.atomgraph.linkeddatahub.server.security.IDTokenSecurityContext;
 import com.atomgraph.linkeddatahub.server.security.WebIDSecurityContext;
-import com.atomgraph.linkeddatahub.server.util.URLValidator;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
@@ -309,7 +308,7 @@ public class ProxiedGraph extends com.atomgraph.client.model.impl.ProxiedGraph
 
         if (!getSystem().isEnableLinkedDataProxy()) throw new NotAllowedException("Linked Data proxy not enabled");
         // LNK-009: Validate that proxied URI is not internal/private (SSRF protection)
-        new URLValidator(target.getUri()).validate();
+        getSystem().getURLValidator().validate(target.getUri());
 
         return super.get(target, builder);
     }
@@ -326,7 +325,7 @@ public class ProxiedGraph extends com.atomgraph.client.model.impl.ProxiedGraph
     {
         if (getWebTarget() == null) throw new NotFoundException("Resource URI not supplied");
         // LNK-009: Validate that proxied URI is not internal/private (SSRF protection)
-        new URLValidator(getWebTarget().getUri()).validate();
+        getSystem().getURLValidator().validate(getWebTarget().getUri());
 
         if (log.isDebugEnabled()) log.debug("POSTing SPARQL query to URI: {}", getWebTarget().getUri());
 
@@ -360,7 +359,7 @@ public class ProxiedGraph extends com.atomgraph.client.model.impl.ProxiedGraph
     {
         if (getWebTarget() == null) throw new NotFoundException("Resource URI not supplied");
         // LNK-009: Validate that proxied URI is not internal/private (SSRF protection)
-        new URLValidator(getWebTarget().getUri()).validate();
+        getSystem().getURLValidator().validate(getWebTarget().getUri());
 
         if (log.isDebugEnabled()) log.debug("POSTing form data to URI: {}", getWebTarget().getUri());
 
@@ -394,7 +393,7 @@ public class ProxiedGraph extends com.atomgraph.client.model.impl.ProxiedGraph
     {
         if (getWebTarget() == null) throw new NotFoundException("Resource URI not supplied");
         // LNK-009: Validate that proxied URI is not internal/private (SSRF protection)
-        new URLValidator(getWebTarget().getUri()).validate();
+        getSystem().getURLValidator().validate(getWebTarget().getUri());
 
         if (log.isDebugEnabled()) log.debug("PATCHing SPARQL update to URI: {}", getWebTarget().getUri());
 
@@ -429,7 +428,7 @@ public class ProxiedGraph extends com.atomgraph.client.model.impl.ProxiedGraph
         if (!getSystem().isEnableLinkedDataProxy()) throw new NotAllowedException("Linked Data proxy not enabled");
         if (getWebTarget() == null) throw new NotFoundException("Resource URI not supplied"); // cannot throw Exception in constructor: https://github.com/eclipse-ee4j/jersey/issues/4436
         // LNK-009: Validate that proxied URI is not internal/private (SSRF protection)
-        new URLValidator(getWebTarget().getUri()).validate();
+        getSystem().getURLValidator().validate(getWebTarget().getUri());
         
         try (Response cr = getWebTarget().request().
             accept(getMediaTypes().getReadable(Model.class).toArray(jakarta.ws.rs.core.MediaType[]::new)).
@@ -453,7 +452,7 @@ public class ProxiedGraph extends com.atomgraph.client.model.impl.ProxiedGraph
         if (!getSystem().isEnableLinkedDataProxy()) throw new NotAllowedException("Linked Data proxy not enabled");
         if (getWebTarget() == null) throw new NotFoundException("Resource URI not supplied"); // cannot throw Exception in constructor: https://github.com/eclipse-ee4j/jersey/issues/4436
         // LNK-009: Validate that proxied URI is not internal/private (SSRF protection)
-        new URLValidator(getWebTarget().getUri()).validate();
+        getSystem().getURLValidator().validate(getWebTarget().getUri());
         
         try (Response cr = getWebTarget().request().
                 accept(getMediaTypes().getReadable(Model.class).toArray(jakarta.ws.rs.core.MediaType[]::new)).

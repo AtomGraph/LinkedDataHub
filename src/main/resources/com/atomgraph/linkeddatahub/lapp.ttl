@@ -36,24 +36,6 @@
     rdfs:comment "Links a resource to an application" ;
     rdfs:isDefinedBy : .
 
-:adminApplication a owl:ObjectProperty, owl:FunctionalProperty, owl:InverseFunctionalProperty ;
-    rdfs:subPropertyOf :application ;
-    owl:inverseOf :endUserApplication ;
-    rdfs:domain :EndUserApplication ;
-    rdfs:range :AdminApplication ;
-    rdfs:label "Admin application" ;
-    rdfs:comment "Links end-user application to its administration application" ;
-    rdfs:isDefinedBy : .
-
-:endUserApplication a owl:ObjectProperty, owl:FunctionalProperty, owl:InverseFunctionalProperty ;
-    rdfs:subPropertyOf :application ;
-    owl:inverseOf :adminApplication ;
-    rdfs:domain :AdminApplication ;
-    rdfs:range :EndUserApplication ;
-    rdfs:label "End-user application" ;
-    rdfs:comment "Links administration application to its end-user application" ;
-    rdfs:isDefinedBy : .
-
 :frontendProxy a owl:ObjectProperty ;
     rdfs:domain :Dataset ;
     rdfs:range rdfs:Resource ;
@@ -123,10 +105,6 @@
 
 :EndUserApplication a rdfs:Class, owl:Class ;
     spin:constructor :EndUserApplicationConstructor ;
-    spin:constraint [ a ldh:MissingPropertyValue ;
-            rdfs:label "Missing admin application" ;
-            sp:arg1 :adminApplication
-        ] ;
     rdfs:label "End-user application" ;
     rdfs:comment "Application with a dynamic access control and sitemap" ;
     rdfs:isDefinedBy : .
@@ -143,7 +121,6 @@
       CONSTRUCT {
           $this dct:title [ a xsd:string ] ;
             dct:description [ a xsd:string ] ;
-            lapp:adminApplication [ a lapp:AdminApplication ] ;
             ac:stylesheet [ a ldh:File ] ;
             lapp:public [ a xsd:boolean ] .
       }
@@ -155,24 +132,18 @@
 
 :AdminApplication a rdfs:Class, owl:Class ;
     spin:constructor :AdminApplicationConstructor ;
-    spin:constraint [ a ldh:MissingPropertyValue ;
-            rdfs:label "Missing end-user application" ;
-            sp:arg1 :endUserApplication
-        ] ;
     rdfs:label "Admin application" ;
     rdfs:comment "Meta-application that manages the access control and sitemap of the main end-user application" ;
     rdfs:isDefinedBy : .
 
 :AdminApplicationConstructor a ldh:Constructor ;
     sp:text """
-      PREFIX lapp:    <https://w3id.org/atomgraph/linkeddatahub/apps#>
       PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>
       PREFIX dct:     <http://purl.org/dc/terms/>
 
       CONSTRUCT {
           $this dct:title [ a xsd:string ] ;
             dct:description [ a xsd:string ] ;
-            lapp:endUserApplication [ a lapp:EndUserApplication ] ;
       }
       WHERE {}""" ;
     rdfs:label "Admin application constructor" ;

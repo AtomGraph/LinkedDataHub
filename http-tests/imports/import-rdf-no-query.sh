@@ -17,9 +17,18 @@ add-agent-to-group.sh \
   --agent "$AGENT_URI" \
   "${ADMIN_BASE_URL}acl/groups/writers/"
 
-# create item
+# create import item
 
 item=$(create-item.sh \
+  -f "$AGENT_CERT_FILE" \
+  -p "$AGENT_CERT_PWD" \
+  -b "$END_USER_BASE_URL" \
+  --title "RDF import" \
+  --container "$END_USER_BASE_URL")
+
+# create target item
+
+graph=$(create-item.sh \
   -f "$AGENT_CERT_FILE" \
   -p "$AGENT_CERT_PWD" \
   -b "$END_USER_BASE_URL" \
@@ -34,9 +43,10 @@ import-rdf.sh \
   -p "$AGENT_CERT_PWD" \
   -b "$END_USER_BASE_URL" \
   --title "Test" \
-  --file "$pwd/test.ttl" \
-  --file-content-type "text/turtle" \
-  --graph "$item"
+  --rdf-file "$pwd/test.ttl" \
+  --content-type "text/turtle" \
+  --graph "$graph" \
+  "$item"
 
 # wait until the imported data appears (since import is executed asynchronously)
 
@@ -51,7 +61,7 @@ do
     test_triples=$(curl -G -k -f -s -N \
       -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
       -H "Accept: application/n-triples" \
-      "$item" \
+      "$graph" \
     | grep "<http://vocabularies.unesco.org/thesaurus/concept7367> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2004/02/skos/core#Concept>" || [[ $? == 1 ]])
 
     sleep 1 ;

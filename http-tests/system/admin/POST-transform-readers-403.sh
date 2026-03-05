@@ -7,18 +7,19 @@ purge_cache "$END_USER_VARNISH_SERVICE"
 purge_cache "$ADMIN_VARNISH_SERVICE"
 purge_cache "$FRONTEND_VARNISH_SERVICE"
 
-# add agent to the writers
+# POST /transform with a reader should return 403
+# /transform is only in the full-control authorization which is restricted to owners
 
 add-agent-to-group.sh \
   -f "$OWNER_CERT_FILE" \
   -p "$OWNER_CERT_PWD" \
   --agent "$AGENT_URI" \
-  "${ADMIN_BASE_URL}acl/groups/writers/"
+  "${ADMIN_BASE_URL}acl/groups/readers/"
 
-# check that access to graph with parent is allowed, but the graph is not found
-
-curl -k -w "%{http_code}\n" -o /dev/null -s -G \
+curl -k -w "%{http_code}\n" -o /dev/null -s \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
-  -H "Accept: application/n-triples" \
-  "${END_USER_BASE_URL}non-existing/" \
+  -X POST \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  --data-urlencode "rdf=" \
+  "${ADMIN_BASE_URL}transform" \
 | grep -q "$STATUS_FORBIDDEN"

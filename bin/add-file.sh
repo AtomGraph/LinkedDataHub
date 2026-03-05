@@ -5,7 +5,7 @@ print_usage()
 {
     printf "Uploads a file.\n"
     printf "\n"
-    printf "Usage:  %s options\n" "$0"
+    printf "Usage:  %s options TARGET_URI\n" "$0"
     printf "\n"
     printf "Options:\n"
     printf "  -f, --cert-pem-file CERT_FILE        .pem file with the WebID certificate of the agent\n"
@@ -14,21 +14,13 @@ print_usage()
     printf "  --proxy PROXY_URL                    The host this request will be proxied through (optional)\n"
     printf "\n"
     printf "  --title TITLE                        Title of the file\n"
-    printf "  --container CONTAINER_URI            URI of the parent container (optional)\n"
     printf "  --description DESCRIPTION            Description of the file (optional)\n"
-    printf "  --slug STRING                        String that will be used as URI path segment (optional)\n"
     printf "\n"
     printf "  --file ABS_PATH                      Absolute path to the file\n"
-    printf "  --file-content-type MEDIA_TYPE       Media type of the file (optional)\n"
-    #printf "  --file-slug STRING                   String that will be used as the file's URI path segment (optional)\n"
+    printf "  --content-type MEDIA_TYPE            Media type of the file (optional)\n"
 }
 
 hash curl 2>/dev/null || { echo >&2 "curl not on \$PATH. Aborting."; exit 1; }
-
-urlencode() {
-  python -c 'import urllib.parse, sys; print(urllib.parse.quote(sys.argv[1], sys.argv[2]))' \
-    "$1" "$urlencode_safe"
-}
 
 args=()
 while [[ $# -gt 0 ]]
@@ -66,28 +58,13 @@ do
         shift # past argument
         shift # past value
         ;;
-        --slug)
-        slug="$2"
-        shift # past argument
-        shift # past value
-        ;;
-        --container)
-        container="$2"
-        shift # past argument
-        shift # past value
-        ;;
         --file)
         file="$2"
         shift # past argument
         shift # past value
         ;;
-        --file-content-type)
-        file_content_type="$2"
-        shift # past argument
-        shift # past value
-        ;;
-        --file-slug)
-        file_slug="$2"
+        --content-type)
+        content_type="$2"
         shift # past argument
         shift # past value
         ;;
@@ -98,6 +75,8 @@ do
     esac
 done
 set -- "${args[@]}" # restore args
+
+target="$1"
 
 if [ -z "$cert_pem_file" ] ; then
     print_usage
@@ -119,50 +98,23 @@ if [ -z "$file" ] ; then
     print_usage
     exit 1
 fi
-if [ -z "$file_content_type" ] ; then
+if [ -z "$content_type" ] ; then
     # determine content-type if not provided
-    file_content_type=$(file -b --mime-type "$file")
+    content_type=$(file -b --mime-type "$file")
 fi
-
-if [ -z "$slug" ] ; then
-    slug=$(uuidgen | tr '[:upper:]' '[:lower:]') # lowercase
-fi
-encoded_slug=$(urlencode "$slug")
-
-# need to create explicit file URI since that is what this script returns (not the graph URI)
-
-#if [ -z "$file_slug" ] ; then
-#    file_slug=$(uuidgen | tr '[:upper:]' '[:lower:]') # lowercase
-#fi
-
-if [ -z "$container" ] ; then
-    container="${base}files/"
-fi
-
-target="${container}${encoded_slug}/"
 
 # https://stackoverflow.com/questions/19116016/what-is-the-right-way-to-post-multipart-form-data-using-curl
 
 rdf_post+="-F \"rdf=\"\n"
 rdf_post+="-F \"sb=file\"\n"
 rdf_post+="-F \"pu=http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#fileName\"\n"
-rdf_post+="-F \"ol=@${file};type=${file_content_type}\"\n"
+rdf_post+="-F \"ol=@${file};type=${content_type}\"\n"
 rdf_post+="-F \"pu=http://purl.org/dc/terms/title\"\n"
 rdf_post+="-F \"ol=${title}\"\n"
 rdf_post+="-F \"pu=http://www.w3.org/1999/02/22-rdf-syntax-ns#type\"\n"
 rdf_post+="-F \"ou=http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#FileDataObject\"\n"
-rdf_post+="-F \"su=${target}\"\n"
-rdf_post+="-F \"pu=http://purl.org/dc/terms/title\"\n"
-rdf_post+="-F \"ol=${title}\"\n"
-rdf_post+="-F \"pu=http://www.w3.org/1999/02/22-rdf-syntax-ns#type\"\n"
-rdf_post+="-F \"ou=https://www.w3.org/ns/ldt/document-hierarchy#Item\"\n"
-rdf_post+="-F \"pu=http://xmlns.com/foaf/0.1/primaryTopic\"\n"
-rdf_post+="-F \"ob=file\"\n"
-rdf_post+="-F \"pu=http://rdfs.org/sioc/ns#has_container\"\n"
-rdf_post+="-F \"ou=${container}\"\n"
 
 if [ -n "$description" ] ; then
-    rdf_post+="-F \"sb=file\"\n"
     rdf_post+="-F \"pu=http://purl.org/dc/terms/description\"\n"
     rdf_post+="-F \"ol=${description}\"\n"
 fi
@@ -176,14 +128,5 @@ if [ -n "$proxy" ]; then
     target="${target/$target_host/$proxy_host}"
 fi
 
-# POST RDF/POST multipart form and capture the effective URL
-effective_url=$(echo -e "$rdf_post" | curl -w '%{url_effective}' -f -v -s -k -X PUT -H "Accept: text/turtle" -E "$cert_pem_file":"$cert_password" -o /dev/null --config - "$target")
-
-# If using proxy, rewrite the effective URL back to original hostname
-if [ -n "$proxy" ]; then
-    # Replace proxy host with original host in the effective URL
-    rewritten_url="${effective_url/$proxy_host/$target_host}"
-    echo "$rewritten_url"
-else
-    echo "$effective_url"
-fi
+# POST RDF/POST multipart form
+echo -e "$rdf_post" | curl -f -v -s -k -X POST -H "Accept: text/turtle" -E "$cert_pem_file":"$cert_password" -o /dev/null --config - "$target"

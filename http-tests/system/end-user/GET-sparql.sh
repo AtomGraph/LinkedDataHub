@@ -7,19 +7,12 @@ purge_cache "$END_USER_VARNISH_SERVICE"
 purge_cache "$ADMIN_VARNISH_SERVICE"
 purge_cache "$FRONTEND_VARNISH_SERVICE"
 
-# add agent to the writers
-
-add-agent-to-group.sh \
-  -f "$OWNER_CERT_FILE" \
-  -p "$OWNER_CERT_PWD" \
-  --agent "$AGENT_URI" \
-  "${ADMIN_BASE_URL}acl/groups/writers/"
-
-# check that graph without parent is forbidden
+# GET /sparql with a signed-up agent (no group) should return 200
+# The sparql-endpoint authorization grants acl:Read to acl:AuthenticatedAgent regardless of group membership
 
 curl -k -w "%{http_code}\n" -o /dev/null -s -G \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
-  -X DELETE \
-  -H "Accept: application/n-triples" \
-  "${END_USER_BASE_URL}parent/non-existing/" \
-| grep -q "$STATUS_FORBIDDEN"
+  -H "Accept: application/sparql-results+xml" \
+  "${END_USER_BASE_URL}sparql" \
+  --data-urlencode "query=SELECT * { ?s ?p ?o } LIMIT 1" \
+| grep -q "$STATUS_OK"

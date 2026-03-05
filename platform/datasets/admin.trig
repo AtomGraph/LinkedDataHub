@@ -1,15 +1,9 @@
 @prefix def:	<https://w3id.org/atomgraph/linkeddatahub/default#> .
 @prefix ldh:	<https://w3id.org/atomgraph/linkeddatahub#> .
-@prefix ac:	    <https://w3id.org/atomgraph/client#> .
 @prefix rdf:	<http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
-@prefix xsd:	<http://www.w3.org/2001/XMLSchema#> .
-@prefix dh:	    <https://www.w3.org/ns/ldt/document-hierarchy#> .
-@prefix sd:     <http://www.w3.org/ns/sparql-service-description#> .
-@prefix sp:	    <http://spinrdf.org/sp#> .
 @prefix sioc:	<http://rdfs.org/sioc/ns#> .
 @prefix foaf:	<http://xmlns.com/foaf/0.1/> .
 @prefix dct:	<http://purl.org/dc/terms/> .
-@prefix spin:	<http://spinrdf.org/spin#> .
 
 <>
 {
@@ -24,335 +18,21 @@
 
 }
 
-# ENDPOINTS
-
-<sparql>
-{
-
-    <sparql> a foaf:Document ;
-        dct:title "SPARQL endpoint" .
-
-}
-
-<ns>
-{
-
-    <ns> a foaf:Document ;
-        dct:title "Namespace endpoint" .
-
-}
-
-<add>
-{
-
-    <add> a foaf:Document ;
-        dct:title "Add data endpoint" .
-
-}
-
-<generate>
-{
-
-    <generate> a foaf:Document ;
-        dct:title "Generate data endpoint" .
-
-}
-
-# CONTAINERS
-
-<queries/>
-{
-
-    <queries/> a dh:Container ;
-        dct:title "Queries" ;
-        dct:description "SPARQL queries" ;
-        rdf:_1 <queries/#select-queries> .
-
-    <queries/#select-queries> a ldh:Object ;
-        rdf:value <queries/#select-queries-view> .
-
-    <queries/#select-queries-view> a ldh:View ;
-        dct:title "Queries" ;
-        spin:query <queries/#select-queries-query> .
-
-    <queries/#select-queries-query> a sp:Select ;
-        dct:title "Select query resources" ;
-        sp:text """PREFIX  sp:  <http://spinrdf.org/sp#>
-
-SELECT DISTINCT  ?s
-WHERE
-  { GRAPH ?g
-      {   { ?s  a  sp:Select }
-        UNION
-          { ?s  a  sp:Construct }
-        UNION
-          { ?s  a  sp:Describe }
-        UNION
-          { ?s  a  sp:Ask }
-      }
-  }""" .
-
-}
-
-<queries/select-instances/>
-{
-
-    <queries/select-instances/> a dh:Item ;
-        sioc:has_container <queries/> ;
-        dct:title "Select instances" ;
-        foaf:primaryTopic <queries/select-instances/#this> .
-
-    <queries/select-instances/#this> a sp:Select ;
-        dct:title "Select instances" ;
-        dct:description "Selects instances of type from the default graph" ;
-        sp:text """SELECT DISTINCT ?s
-WHERE
-  { ?s  a   $type ;
-        ?p  ?o
-  }""" .
-
-}
-
-<queries/select-instances-in-graphs/>
-{
-
-    <queries/select-instances-in-graphs/> a dh:Item ;
-        sioc:has_container <queries/> ;
-        dct:title "Select instances in graphs" ;
-        foaf:primaryTopic <queries/select-instances-in-graphs/#this> .
-
-    <queries/select-instances-in-graphs/#this> a sp:Select ;
-        dct:title "Select instances in graphs" ;
-        dct:description "Selects instances of type from named graphs" ;
-        sp:text """SELECT DISTINCT ?s
-WHERE
-  { GRAPH ?g
-      { ?s  a   $type ;
-            ?p  ?o
-      }
-  }""" .
-
-}
-
-<files/>
-{
-
-    <files/> a dh:Container ;
-        dct:title "Files" ;
-        dct:description "Uploaded files" ;
-        rdf:_1 <files/#select-files> .
-
-    <files/#select-files> a ldh:Object ;
-        rdf:value <files/#select-files-view> .
-
-    <files/#select-files-view> a ldh:View ;
-        dct:title "Files" ;
-        spin:query <files/#select-files-query> .
-
-    <files/#select-files-query> a sp:Select ;
-        dct:title "Select file resources" ;
-        sp:text """PREFIX  nfo:  <http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#>
-
-SELECT DISTINCT  ?s
-WHERE
-  { GRAPH ?g
-      { ?s  a  nfo:FileDataObject }
-  }""" .
-
-}
-
-<imports/>
-{
-
-    <imports/> a dh:Container ;
-        dct:title "Imports" ;
-        dct:description "Data imports" ;
-        rdf:_1 <imports/#select-imports> .
-
-    <imports/#select-imports> a ldh:Object ;
-        rdf:value <imports/#select-imports-view> .
-
-    <imports/#select-imports-view> a ldh:View ;
-        dct:title "Imports" ;
-        spin:query <imports/#select-imports-query> .
-
-    <imports/#select-imports-query> a sp:Select ;
-        dct:title "Select import resources" ;
-        sp:text """PREFIX  ldh:  <https://w3id.org/atomgraph/linkeddatahub#>
-
-SELECT DISTINCT  ?s
-WHERE
-  { GRAPH ?g
-      {   { ?s  a  ldh:CSVImport }
-        UNION
-          { ?s  a  ldh:RDFImport }
-      }
-  }""" .
-
-}
-
-<geo/>
-{
-
-    <geo/> a dh:Item ;
-        dct:title "Geo" ;
-        dct:description "Geolocated resources" ;
-        rdf:_1 <geo/#select-geo> .
-
-    <geo/#select-geo> a ldh:Object ;
-        rdf:value <geo/#select-geo-view> .
-
-    <geo/#select-geo-view> a ldh:View ;
-        dct:title "Geo resources" ;
-        spin:query <geo/#select-geo-query> ;
-        ac:mode ac:MapMode .
-
-    <geo/#select-geo-query> a sp:Select ;
-        dct:title "Select geo resources" ;
-        sp:text """PREFIX  geo:  <http://www.w3.org/2003/01/geo/wgs84_pos#>
-PREFIX  dct:  <http://purl.org/dc/terms/>
-
-SELECT  DISTINCT ?resource
-WHERE
-{ GRAPH ?graph
-  { ?resource  geo:lat  ?lat ;
-              geo:long  ?long
-    OPTIONAL
-      { ?resource  a                    ?type }
-    OPTIONAL
-      { ?resource  dct:title  ?title }
-  }
-}
-ORDER BY ?title""" .
-
-}
-
-<latest/>
-{
-
-    <latest/> a dh:Item ;
-        dct:title "Latest" ;
-        dct:description "Latest resources" ;
-        rdf:_1 <latest/#select-latest> .
-
-    <latest/#select-latest> a ldh:Object ;
-        rdf:value <latest/#select-latest-view> .
-
-    <latest/#select-latest-view> a ldh:View ;
-        dct:title "Latest resources" ;
-        spin:query <latest/#select-latest-query> .
-
-    <latest/#select-latest-query> a sp:Select ;
-        dct:title "Select latest" ;
-        sp:text """PREFIX  dct:  <http://purl.org/dc/terms/>
-
-SELECT DISTINCT  ?dated
-WHERE
-{ GRAPH ?graph
-  { ?dated  dct:created  ?created }
-}
-ORDER BY DESC(?created)""" .
-
-}
-
-<charts/>
-{
-
-    <charts/> a dh:Container ;
-        dct:title "Charts" ;
-        dct:description "Saved charts" ;
-        rdf:_1 <charts/#select-charts> .
-
-    <charts/#select-charts> a ldh:Object ;
-        rdf:value <charts/#select-charts-view> .
-
-    <charts/#select-charts-view> a ldh:View ;
-        dct:title "Charts" ;
-        spin:query <charts/#select-charts-query> .
-
-    <charts/#select-charts-query> a sp:Select ;
-        dct:title "Select chart resources" ;
-        sp:text """PREFIX  ldh:  <https://w3id.org/atomgraph/linkeddatahub#>
-
-SELECT DISTINCT  ?s
-WHERE
-  { GRAPH ?g
-      {   { ?s  a  ldh:GraphChart }
-        UNION
-          { ?s  a  ldh:ResultSetChart }
-      }
-  }""" .
-
-}
-
-<apps/>
-{
-
-    <apps/> a dh:Container ;
-        dct:title "Apps" ;
-        dct:description "Linked Data applications" ;
-        rdf:_1 <apps/#select-apps> .
-
-    <apps/#select-apps> a ldh:Object ;
-        rdf:value <apps/#select-apps-view> .
-
-    <apps/#select-apps-view> a ldh:View ;
-        dct:title "Applications" ;
-        spin:query <apps/#select-apps-query> .
-
-    <apps/#select-apps-query> a sp:Select ;
-        dct:title "Select application resources" ;
-        sp:text """PREFIX  lapp: <https://w3id.org/atomgraph/linkeddatahub/apps#>
-
-SELECT DISTINCT  ?s
-WHERE
-  { GRAPH ?g
-      { ?s  a  lapp:Application }
-  }""" .
-
-}
-
-<services/>
-{
-
-    <services/> a dh:Container ;
-        dct:title "Services" ;
-        dct:description "SPARQL services" ;
-        rdf:_1 <services/#select-services> .
-
-    <services/#select-services> a ldh:Object ;
-        rdf:value <services/#select-services-view> .
-
-    <services/#select-services-view> a ldh:View ;
-        dct:title "Services" ;
-        spin:query <services/#select-services-query> .
-
-    <services/#select-services-query> a sp:Select ;
-        dct:title "Select service resources" ;
-        sp:text """PREFIX  sd:   <http://www.w3.org/ns/sparql-service-description#>
-
-SELECT DISTINCT  ?s
-WHERE
-  { GRAPH ?g
-      { ?s  a  sd:Service }
-  }""" .
-
-}
-
 ### ADMIN-SPECIFIC
 
 @prefix lacl:	<https://w3id.org/atomgraph/linkeddatahub/admin/acl#> .
 @prefix adm:	<https://w3id.org/atomgraph/linkeddatahub/admin#> .
+@prefix dh:	    <https://www.w3.org/ns/ldt/document-hierarchy#> .
 @prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .
 @prefix owl:	<http://www.w3.org/2002/07/owl#> .
 @prefix acl:	<http://www.w3.org/ns/auth/acl#> .
 @prefix cert:	<http://www.w3.org/ns/auth/cert#> .
-@prefix spin:	<http://spinrdf.org/spin#> .
+@prefix sp:	    <http://spinrdf.org/sp#> .
 
 <sign%20up>
 {
 
-    <sign%20up> a adm:SignUp ;
+    <sign%20up> a foaf:Document ;
         dct:title "Sign up" ;
         rdf:_1 <sign%20up#content> .
 
@@ -570,44 +250,6 @@ WHERE
 
 }
 
-# access endpoint
-
-<acl/authorizations/access/>
-{
-
-    <acl/authorizations/access/> a dh:Item ;
-        sioc:has_container <acl/authorizations/> ;
-        dct:title "Access description access" ;
-        foaf:primaryTopic <acl/authorizations/access/#this> .
-
-    <acl/authorizations/access/#this> a acl:Authorization ;
-        rdfs:label "Access description access" ;
-        rdfs:comment "Allows non-authenticated access" ;
-        acl:accessToClass ldh:Access ;
-        acl:mode acl:Read ;
-        acl:agentClass foaf:Agent, acl:AuthenticatedAgent .
-
-}
-
-# access request endpoint
-
-<acl/authorizations/access-request/>
-{
-
-    <acl/authorizations/access-request/> a dh:Item ;
-        sioc:has_container <acl/authorizations/> ;
-        dct:title "Access request access" ;
-        foaf:primaryTopic <acl/authorizations/access-request/#this> .
-
-    <acl/authorizations/access-request/#this> a acl:Authorization ;
-        rdfs:label "Access request access" ;
-        rdfs:comment "Allows non-authenticated access" ;
-        acl:accessToClass ldh:AccessRequest ;
-        acl:mode acl:Append ;
-        acl:agentClass foaf:Agent, acl:AuthenticatedAgent .
-
-}
-
 # sign up
 
 <acl/authorizations/sign-up/>
@@ -621,8 +263,7 @@ WHERE
     <acl/authorizations/sign-up/#this> a acl:Authorization ;
         rdfs:label "Signup access" ;
         rdfs:comment "Required to enable public signup" ;
-        acl:accessTo <ns> ; # TO-DO: only allow <ns> access by the secretary agent?
-        acl:accessToClass adm:SignUp ;
+        acl:accessTo <ns>, <sign%20up> ; # TO-DO: only allow <ns> access by the secretary agent?
         acl:mode acl:Read, acl:Append ;
         acl:agentClass foaf:Agent .
 
@@ -641,7 +282,7 @@ WHERE
     <acl/authorizations/oauth2-login/#this> a acl:Authorization ;
         rdfs:label "OAuth2 login access" ;
         rdfs:comment "Required to enable public OAuth2 login" ;
-        acl:accessToClass ldh:OAuthLogin ;
+        acl:accessToClass <oauth2/login/google>, <oauth2/login/orcid> ;
         acl:mode acl:Read ;
         acl:agentClass foaf:Agent .
 
@@ -660,7 +301,7 @@ WHERE
     <acl/authorizations/oauth2-authorize/#this> a acl:Authorization ;
         rdfs:label "OAuth2 authorization" ;
         rdfs:comment "Required to enable public OAuth2 login" ;
-        acl:accessToClass ldh:OAuthAuthorize ;
+        acl:accessTo <oauth2/authorize/google>, <oauth2/authorize/orcid> ;
         acl:mode acl:Read ;
         acl:agentClass foaf:Agent .
 

@@ -151,28 +151,31 @@ exclude-result-prefixes="#all"
     
     <!-- show block controls -->
     
-    <xsl:template match="div[contains-token(@class, 'block')][key('elements-by-class', 'row-block-controls', .)][acl:mode() = '&acl;Write']" mode="ixsl:onmousemove"> <!-- TO-DO: better selector -->
-        <xsl:variable name="dom-x" select="ixsl:get(ixsl:event(), 'clientX')" as="xs:double"/>
-        <xsl:variable name="dom-y" select="ixsl:get(ixsl:event(), 'clientY')" as="xs:double"/>
-        <xsl:variable name="rect" select="ixsl:call(., 'getBoundingClientRect', [])"/>
-        <xsl:variable name="offset-x" select="$dom-x - ixsl:get($rect, 'x')" as="xs:double"/>
-        <xsl:variable name="offset-y" select="$dom-y - ixsl:get($rect, 'y')" as="xs:double"/>
-        <xsl:variable name="width" select="ixsl:get($rect, 'width')" as="xs:double"/>
-        <xsl:variable name="offset-x-treshold" select="120" as="xs:double"/>
-        <xsl:variable name="offset-y-treshold" select="20" as="xs:double"/>
-        
+    <xsl:template match="div[contains-token(@class, 'block')][key('elements-by-class', 'row-block-controls', .)][acl:mode() = '&acl;Write']" mode="ixsl:onmousemove"> <!-- TO-DO: better selector -->        
         <!-- there might be multiple .row-block-controls in a block if the main block is followed by blocks rendered from ldh:block -->
         <xsl:variable name="row-block-controls" select="key('elements-by-class', 'row-block-controls', .)[1]" as="element()"/>
-        <xsl:variable name="btn-edit" select="key('elements-by-class', 'btn-edit', $row-block-controls)" as="element()"/>
-        <!-- check that the mouse is on the top edge and show the block controls if they're not already shown -->
-        <xsl:if test="$offset-x &gt;= $width - $offset-x-treshold and $offset-y &lt;= $offset-y-treshold and ixsl:style($row-block-controls)?z-index = '-1'">
-            <ixsl:set-style name="z-index" select="'1'" object="$row-block-controls"/>
-            <ixsl:set-style name="display" select="'block'" object="$btn-edit"/>
-        </xsl:if>
-        <!-- check that the mouse is outside the top edge and hide the block controls if they're not already hidden -->
-        <xsl:if test="$offset-x &lt; $width - $offset-x-treshold and $offset-y &gt; $offset-y-treshold and ixsl:style($row-block-controls)?z-index = '1'">
-            <ixsl:set-style name="z-index" select="'-1'" object="$row-block-controls"/>
-            <ixsl:set-style name="display" select="'none'" object="$btn-edit"/>
+        <xsl:variable name="btn-edit" select="key('elements-by-class', 'btn-edit', $row-block-controls)" as="element()?"/>
+        
+        <xsl:if test="$btn-edit">
+            <xsl:variable name="dom-x" select="ixsl:get(ixsl:event(), 'clientX')" as="xs:double"/>
+            <xsl:variable name="dom-y" select="ixsl:get(ixsl:event(), 'clientY')" as="xs:double"/>
+            <xsl:variable name="rect" select="ixsl:call(., 'getBoundingClientRect', [])"/>
+            <xsl:variable name="offset-x" select="$dom-x - ixsl:get($rect, 'x')" as="xs:double"/>
+            <xsl:variable name="offset-y" select="$dom-y - ixsl:get($rect, 'y')" as="xs:double"/>
+            <xsl:variable name="width" select="ixsl:get($rect, 'width')" as="xs:double"/>
+            <xsl:variable name="offset-x-treshold" select="120" as="xs:double"/>
+            <xsl:variable name="offset-y-treshold" select="20" as="xs:double"/>
+
+            <!-- check that the mouse is on the top edge and show the block controls if they're not already shown -->
+            <xsl:if test="$offset-x &gt;= $width - $offset-x-treshold and $offset-y &lt;= $offset-y-treshold and ixsl:style($row-block-controls)?z-index = '-1'">
+                <ixsl:set-style name="z-index" select="'1'" object="$row-block-controls"/>
+                <ixsl:set-style name="display" select="'block'" object="$btn-edit"/>
+            </xsl:if>
+            <!-- check that the mouse is outside the top edge and hide the block controls if they're not already hidden -->
+            <xsl:if test="$offset-x &lt; $width - $offset-x-treshold and $offset-y &gt; $offset-y-treshold and ixsl:style($row-block-controls)?z-index = '1'">
+                <ixsl:set-style name="z-index" select="'-1'" object="$row-block-controls"/>
+                <ixsl:set-style name="display" select="'none'" object="$btn-edit"/>
+            </xsl:if>
         </xsl:if>
     </xsl:template>
 
@@ -442,8 +445,6 @@ exclude-result-prefixes="#all"
         <xsl:param name="ignored" as="item()?"/>
               
         <xsl:variable name="container" select="$context('container')" as="element()"/>
-
-        <xsl:message>ldh:hide-block-progress-bar</xsl:message>
         
         <!-- hide the progress bar -->
         <xsl:for-each select="$container/ancestor::div[contains-token(@class, 'span12')][contains-token(@class, 'progress')][contains-token(@class, 'active')]">
@@ -454,7 +455,71 @@ exclude-result-prefixes="#all"
         
         <xsl:sequence select="$context"/>
     </xsl:function>
-    
+
+    <!-- Progress tracking with dynamic counters -->
+
+    <xsl:function name="ldh:update-progress-counter" as="empty-sequence()" ixsl:updating="yes">
+        <xsl:param name="cache" as="item()"/>
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:param name="action" as="xs:string"/>
+        <xsl:param name="value" as="xs:integer?"/>
+
+        <xsl:choose>
+            <!-- Initialize with total step count -->
+            <xsl:when test="$action = 'init'">
+                <xsl:variable name="total-steps" select="if (exists($value)) then $value else 4" as="xs:integer"/>
+                <xsl:variable name="step-size" select="100 div $total-steps" as="xs:double"/>
+
+                <ixsl:set-property name="current-progress" select="0" object="$cache"/>
+                <ixsl:set-property name="step-size" select="$step-size" object="$cache"/>
+                <ixsl:set-property name="completed-steps" select="0" object="$cache"/>
+                <ixsl:set-property name="total-steps" select="$total-steps" object="$cache"/>
+                <ixsl:set-property name="start-time" select="ixsl:call(ixsl:window(), 'Date.now', [])" object="$cache"/>
+
+                <!-- Display 0% -->
+                <xsl:sequence select="ldh:display-progress($cache, $context, 0)"/>
+            </xsl:when>
+
+            <!-- Increment progress by one step -->
+            <xsl:when test="$action = 'complete'">
+                <xsl:variable name="step-size" select="ixsl:get($cache, 'step-size')" as="xs:double"/>
+                <xsl:variable name="completed-steps" select="xs:integer(ixsl:get($cache, 'completed-steps')) + 1" as="xs:integer"/>
+                <xsl:variable name="total-steps" select="xs:integer(ixsl:get($cache, 'total-steps'))" as="xs:integer"/>
+                <xsl:variable name="progress" select="min((($completed-steps * $step-size), 100))" as="xs:double"/>
+                <xsl:variable name="elapsed" select="ixsl:call(ixsl:window(), 'Date.now', []) - ixsl:get($cache, 'start-time')" as="xs:double"/>
+
+                <ixsl:set-property name="completed-steps" select="$completed-steps" object="$cache"/>
+                <ixsl:set-property name="current-progress" select="$progress" object="$cache"/>
+
+                <xsl:sequence select="ldh:display-progress($cache, $context, $progress)"/>
+            </xsl:when>
+        </xsl:choose>
+    </xsl:function>
+
+    <!-- Helper: Update visual progress bar -->
+    <xsl:function name="ldh:display-progress" as="empty-sequence()" ixsl:updating="yes">
+        <xsl:param name="cache" as="item()"/>
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:param name="percent" as="xs:double"/>
+
+        <xsl:if test="map:contains($context, 'container')">
+            <xsl:variable name="container" select="$context('container')" as="element()"/>
+
+            <xsl:for-each select="$container/ancestor::div[contains-token(@class, 'progress')][contains-token(@class, 'active')][1]">
+                <ixsl:set-style name="width" select="$percent || '%'" object=".//div[contains-token(@class, 'bar')]"/>
+
+                <!-- auto-hide when 100% -->
+                <xsl:if test="$percent ge 100">
+                    <ixsl:set-style name="z-index" select="'-1'" object="./div[contains-token(@class, 'row-block-controls')]"/>
+
+                    <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'progress', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+                    <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'progress-striped', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+                    <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'active', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+                </xsl:if>
+            </xsl:for-each>
+        </xsl:if>
+    </xsl:function>
+
     <!-- block delete -->
 
     <xsl:template name="onBlockDelete">

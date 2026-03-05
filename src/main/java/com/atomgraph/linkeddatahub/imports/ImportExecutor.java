@@ -61,7 +61,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Executor class for CSV and RDF imports.
- * 
+ *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
 public class ImportExecutor
@@ -86,60 +86,61 @@ public class ImportExecutor
 
     /**
      * Construct executor from thread pool.
-     * 
+     *
      * @param execService thread pool service
      */
     public ImportExecutor(ExecutorService execService)
     {
         this.execService = execService;
     }
-    
+
     /**
      * Executes CSV import.
-     * 
+     *
      * @param service application's SPARQL service
      * @param adminService admin application's SPARQL service
+     * @param system system application
      * @param appBaseURI application's base URI
      * @param gsc Graph Store client
      * @param csvImport CSV import resource
      */
-    public void start(Service service, Service adminService, String appBaseURI, GraphStoreClient gsc, CSVImport csvImport)
+    public void start(Service service, Service adminService, com.atomgraph.linkeddatahub.Application system, String appBaseURI, GraphStoreClient gsc, CSVImport csvImport)
     {
         if (csvImport == null) throw new IllegalArgumentException("CSVImport cannot be null");
         if (log.isDebugEnabled()) log.debug("Submitting new import to thread pool: {}", csvImport.toString());
-        
+
         Resource provImport = ModelFactory.createDefaultModel().createResource(csvImport.getURI()).
                 addProperty(PROV.startedAtTime, csvImport.getModel().createTypedLiteral(Calendar.getInstance()));
-        
+
         String queryBaseURI = csvImport.getFile().getURI(); // file URI becomes the query base URI
         QueryLoader queryLoader = new QueryLoader(URI.create(csvImport.getQuery().getURI()), queryBaseURI, Syntax.syntaxARQ, gsc);
         ParameterizedSparqlString pss = new ParameterizedSparqlString(queryLoader.get().toString(), queryBaseURI);
         pss.setIri(LDT.base.getLocalName(), appBaseURI); // app's base URI becomes $base
         final Query query = pss.asQuery();
-        
+
         Supplier<Response> fileSupplier = new ClientResponseSupplier(gsc, CSV_MEDIA_TYPES, URI.create(csvImport.getFile().getURI()));
         // skip validation because it will be done during final POST anyway
-        CompletableFuture.supplyAsync(fileSupplier, getExecutorService()).thenApplyAsync(getStreamRDFOutputWriter(service, adminService,
+        CompletableFuture.supplyAsync(fileSupplier, getExecutorService()).thenApplyAsync(getStreamRDFOutputWriter(service, adminService, system,
                 gsc, queryBaseURI, query, csvImport), getExecutorService()).
-            thenAcceptAsync(success(service, csvImport, provImport), getExecutorService()).
-            exceptionally(failure(service, csvImport, provImport));
+            thenAcceptAsync(success(service, system, csvImport, provImport), getExecutorService()).
+            exceptionally(failure(service, system, csvImport, provImport));
     }
 
     /**
      * Executes RDF import.
-     * 
+     *
      * @param service application's SPARQL service
      * @param adminService admin application's SPARQL service
+     * @param system system application
      * @param appBaseURI application's base URI
      * @param gsc Graph Store client
      * @param rdfImport RDF import resource
      */
-
-    public void start(Service service, Service adminService, String appBaseURI, GraphStoreClient gsc, RDFImport rdfImport)
+    public void start(Service service, Service adminService, com.atomgraph.linkeddatahub.Application system, String appBaseURI, GraphStoreClient gsc, RDFImport rdfImport)
     {
         if (rdfImport == null) throw new IllegalArgumentException("RDFImport cannot be null");
         if (log.isDebugEnabled()) log.debug("Submitting new import to thread pool: {}", rdfImport.toString());
-        
+
         Resource provImport = ModelFactory.createDefaultModel().createResource(rdfImport.getURI()).
                 addProperty(PROV.startedAtTime, rdfImport.getModel().createTypedLiteral(Calendar.getInstance()));
 
@@ -154,24 +155,25 @@ public class ImportExecutor
         }
         else
             query = null;
-        
+
         Supplier<Response> fileSupplier = new ClientResponseSupplier(gsc, RDF_MEDIA_TYPES, URI.create(rdfImport.getFile().getURI()));
         // skip validation because it will be done during final POST anyway
-        CompletableFuture.supplyAsync(fileSupplier, getExecutorService()).thenApplyAsync(getStreamRDFOutputWriter(service, adminService,
+        CompletableFuture.supplyAsync(fileSupplier, getExecutorService()).thenApplyAsync(getStreamRDFOutputWriter(service, adminService, system,
                 gsc, queryBaseURI, query, rdfImport), getExecutorService()).
-            thenAcceptAsync(success(service, rdfImport, provImport), getExecutorService()).
-            exceptionally(failure(service, rdfImport, provImport));
+            thenAcceptAsync(success(service, system, rdfImport, provImport), getExecutorService()).
+            exceptionally(failure(service, system, rdfImport, provImport));
     }
-    
+
     /**
      * Invoked when CSV import completes successfully.
-     * 
+     *
+     * @param service application's SPARQL service
+     * @param system system application
      * @param csvImport import resource
      * @param provImport provenance resource
-     * @param service application's SPARQL service
      * @return consumer of the RDF output
      */
-    protected Consumer<CSVGraphStoreOutput> success(final Service service, final CSVImport csvImport, final Resource provImport)
+    protected Consumer<CSVGraphStoreOutput> success(final Service service, final com.atomgraph.linkeddatahub.Application system, final CSVImport csvImport, final Resource provImport)
     {
         return (CSVGraphStoreOutput output) ->
         {
@@ -181,20 +183,21 @@ public class ImportExecutor
                 addLiteral(VoID.triples, output.getCSVGraphStoreRowProcessor().getTripleCount()).
                 addProperty(PROV.wasGeneratedBy, provImport); // connect Response to dataset
             provImport.addProperty(PROV.endedAtTime, provImport.getModel().createTypedLiteral(Calendar.getInstance()));
-            
-            appendProvGraph(provImport, service.getGraphStoreClient());
+
+            appendProvGraph(provImport, system.getServiceContext(service).getGraphStoreClient());
         };
     }
-    
+
     /**
      * Invoked when RDF import completes successfully.
-     * 
+     *
+     * @param service application's SPARQL service
+     * @param system system application
      * @param rdfImport import resource
      * @param provImport provenance resource
-     * @param service application's SPARQL service
      * @return consumer of the RDF output
      */
-    protected Consumer<RDFGraphStoreOutput> success(final Service service, final RDFImport rdfImport, final Resource provImport)
+    protected Consumer<RDFGraphStoreOutput> success(final Service service, final com.atomgraph.linkeddatahub.Application system, final RDFImport rdfImport, final Resource provImport)
     {
         return (RDFGraphStoreOutput output) ->
         {
@@ -204,24 +207,25 @@ public class ImportExecutor
 //                    addLiteral(VoID.triples, output.getCSVStreamRDFProcessor().getTripleCount()).
                 addProperty(PROV.wasGeneratedBy, provImport); // connect Response to dataset
             provImport.addProperty(PROV.endedAtTime, provImport.getModel().createTypedLiteral(Calendar.getInstance()));
-            
-            appendProvGraph(provImport, service.getGraphStoreClient());
+
+            appendProvGraph(provImport, system.getServiceContext(service).getGraphStoreClient());
         };
     }
 
     /**
      * Invoked when RDF import fails to complete.
-     * 
+     *
+     * @param service application's SPARQL service
+     * @param system system application
      * @param importInst import resource
      * @param provImport provenance resource
-     * @param service application's SPARQL service
      * @return void function
      */
-    protected Function<Throwable, Void> failure(final Service service, final Import importInst, final Resource provImport)
+    protected Function<Throwable, Void> failure(final Service service, final com.atomgraph.linkeddatahub.Application system, final Import importInst, final Resource provImport)
     {
         return (Throwable t) -> {
             if (log.isErrorEnabled()) log.error("Could not write Import: {}", importInst, t);
-            
+
             if (t instanceof CompletionException)
             {
                 // could not parse CSV
@@ -232,8 +236,8 @@ public class ImportExecutor
                             addLiteral(DCTerms.description, tpe.getMessage()).
                             addProperty(PROV.wasGeneratedBy, provImport); // connect Response to exception
                     provImport.addProperty(PROV.endedAtTime, importInst.getModel().createTypedLiteral(Calendar.getInstance()));
-                    
-                    appendProvGraph(provImport, service.getGraphStoreClient());
+
+                    appendProvGraph(provImport, system.getServiceContext(service).getGraphStoreClient());
                 }
                 // could not save RDF
                 if (t.getCause() instanceof ImportException ie)
@@ -242,20 +246,20 @@ public class ImportExecutor
                             addProperty(RDF.type, PROV.Entity).
                             addLiteral(DCTerms.description, ie.getMessage()).
                             addProperty(PROV.wasGeneratedBy, provImport); // connect Response to exception
-                    
+
                     provImport.addProperty(PROV.endedAtTime, importInst.getModel().createTypedLiteral(Calendar.getInstance()));
-                    
-                    appendProvGraph(provImport, service.getGraphStoreClient());
+
+                    appendProvGraph(provImport, system.getServiceContext(service).getGraphStoreClient());
                 }
             }
-            
+
             return null;
         };
     }
 
     /**
      * Appends provenance metadata to the graph of the import.
-     * 
+     *
      * @param provImport import resource
      * @param accessor GSP graph accessor
      */
@@ -263,52 +267,54 @@ public class ImportExecutor
     {
         URI graphURI = UriBuilder.fromUri(provImport.getURI()).fragment(null).build(); // skip fragment from the Import URI to get its graph URI
         if (log.isDebugEnabled()) log.debug("Appending import metadata to graph: {}", graphURI);
-        
+
         new Skolemizer(graphURI.toString()).apply(provImport.getModel()); // make sure we don't store blank nodes
         accessor.add(graphURI.toString(), provImport.getModel());
     }
 
     /**
      * Returns output writer for CSV imports.
-     * 
+     *
      * @param service SPARQL service of the application
      * @param adminService SPARQL service of the admin application
+     * @param system system application
      * @param gsc Graph Store client
      * @param baseURI base URI
      * @param query transformation query
      * @param imp import resource
      * @return function
      */
-    protected Function<Response, CSVGraphStoreOutput> getStreamRDFOutputWriter(Service service, Service adminService, GraphStoreClient gsc, String baseURI, Query query, CSVImport imp)
+    protected Function<Response, CSVGraphStoreOutput> getStreamRDFOutputWriter(Service service, Service adminService, com.atomgraph.linkeddatahub.Application system, GraphStoreClient gsc, String baseURI, Query query, CSVImport imp)
     {
-        return new CSVGraphStoreOutputWriter(service, adminService, gsc, baseURI, query, imp.getDelimiter());
+        return new CSVGraphStoreOutputWriter(service, adminService, system, gsc, baseURI, query, imp.getDelimiter());
     }
 
     /**
      * Returns output writer for RDF imports.
-     * 
+     *
      * @param service SPARQL service of the application
      * @param adminService SPARQL service of the admin application
+     * @param system system application
      * @param gsc Graph Store client
      * @param baseURI base URI
      * @param query transformation query
      * @param imp import resource
      * @return function
      */
-    protected Function<Response, RDFGraphStoreOutput> getStreamRDFOutputWriter(Service service, Service adminService, GraphStoreClient gsc, String baseURI, Query query, RDFImport imp)
+    protected Function<Response, RDFGraphStoreOutput> getStreamRDFOutputWriter(Service service, Service adminService, com.atomgraph.linkeddatahub.Application system, GraphStoreClient gsc, String baseURI, Query query, RDFImport imp)
     {
-        return new StreamRDFOutputWriter(service, adminService, gsc, baseURI, query, imp.getGraphName() != null ? imp.getGraphName().getURI() : null);
+        return new StreamRDFOutputWriter(service, adminService, system, gsc, baseURI, query, imp.getGraphName() != null ? imp.getGraphName().getURI() : null);
     }
 
-    
+
     /**
      * Returns executor service that contains a thread pool.
-     * 
+     *
      * @return service
      */
     protected ExecutorService getExecutorService()
     {
         return execService;
     }
-    
+
 }

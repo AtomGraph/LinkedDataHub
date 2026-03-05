@@ -122,11 +122,11 @@ exclude-result-prefixes="#all"
     <xsl:template name="ldh:LoadGeoResources">
         <xsl:param name="container" as="element()"/>
         <xsl:param name="container-id" as="xs:string"/>
-        <xsl:param name="block-uri" as="xs:anyURI"/>
         <xsl:param name="select-xml" as="document-node()"/>
         <xsl:param name="endpoint" as="xs:anyURI"/>
-        <xsl:param name="base-uri" as="xs:anyURI"/>
-        
+        <xsl:param name="map" as="item()"/> <!-- OpenLayers map object -->
+        <xsl:param name="initial-load" as="xs:boolean"/>
+
         <!-- wrap SELECT into a DESCRIBE -->
         <xsl:variable name="query-xml" as="element()">
             <xsl:apply-templates select="$select-xml" mode="ldh:wrap-describe"/>
@@ -142,7 +142,8 @@ exclude-result-prefixes="#all"
             'request': $request,
             'container': $container,
             'container-id': $container-id,
-            'block-uri': $block-uri
+            'map': $map,
+            'initial-load': $initial-load
           }"/>
         <ixsl:promise select="ixsl:http-request($context('request')) =>
             ixsl:then(ldh:rethread-response($context, ?)) =>
@@ -155,14 +156,12 @@ exclude-result-prefixes="#all"
     
     <xsl:template name="ldh:DrawMap">
         <xsl:context-item as="document-node()" use="required"/>
-        <xsl:param name="block-uri" as="xs:anyURI"/>
         <xsl:param name="canvas-id" as="xs:string"/>
-        <xsl:param name="initial-load" select="not(ixsl:contains(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`'), 'map'))" as="xs:boolean"/>
+        <xsl:param name="initial-load" as="xs:boolean"/>
+        <xsl:param name="map" as="item()"/>
         <xsl:param name="max-zoom" select="16" as="xs:integer"/>
         <xsl:param name="padding" select="(10, 10, 10, 10)" as="xs:integer*"/>
-        <xsl:variable name="zoom" select="if (not($initial-load)) then xs:integer(ixsl:call(ixsl:call(ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`'), 'map'), 'getView', []), 'getZoom', [])) else 4" as="xs:integer"/>
-        <xsl:variable name="map" select="ldh:create-map($canvas-id, 0, 0, $zoom)" as="item()"/>
-        <ixsl:set-property name="map" select="$map" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`')"/>
+        <xsl:param name="zoom" select="xs:integer(ixsl:call(ixsl:call($map, 'getView', []), 'getZoom', []))" as="xs:integer"/>
 
         <xsl:call-template name="ldh:AddMapLayers">
             <xsl:with-param name="map" select="$map"/>
@@ -331,17 +330,21 @@ exclude-result-prefixes="#all"
         <xsl:variable name="response" select="$context('response')" as="map(*)"/>
         <xsl:variable name="container" select="$context('container')" as="element()"/>
         <xsl:variable name="container-id" select="$context('container-id')" as="xs:string"/>
-        <xsl:variable name="block-uri" select="$context('block-uri')" as="xs:anyURI"/>
-        
+        <xsl:variable name="map" select="$context('map')" as="item()"/> <!-- OpenLayers map object -->
+        <xsl:variable name="initial-load" select="$context('initial-load')" as="xs:boolean"/>
+
         <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
         
         <xsl:for-each select="$response">
             <xsl:choose>
                 <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
                     <xsl:for-each select="?body">
+                        <xsl:variable name="canvas-id" select="$container-id || '-map-canvas'" as="xs:string"/>
+                        
                         <xsl:call-template name="ldh:DrawMap">
-                            <xsl:with-param name="block-uri" select="$block-uri"/>
-                            <xsl:with-param name="canvas-id" select="$container-id || '-map-canvas'"/>
+                            <xsl:with-param name="canvas-id" select="$canvas-id"/>
+                            <xsl:with-param name="initial-load" select="$initial-load"/>
+                            <xsl:with-param name="map" select="$map"/>
                         </xsl:call-template>
                     </xsl:for-each>
                 </xsl:when>
@@ -429,6 +432,9 @@ exclude-result-prefixes="#all"
                     <xsl:variable name="overlay" select="ixsl:new('ol.Overlay', [ $overlay-options ])"/>
                     <xsl:sequence select="ixsl:call($overlay, 'setPosition', [ $coord ])[current-date() lt xs:date('2000-01-01')]"/>
 
+                    <!-- reference required for $container -> $overlay lookups (e.g. when closing the info window) -->
+                    <ixsl:set-property name="overlay" select="$overlay" object="$container"/>
+
                     <xsl:for-each select="$container">
                         <xsl:result-document href="?." method="ixsl:replace-content">
                             <div class="modal-header">
@@ -456,10 +462,9 @@ exclude-result-prefixes="#all"
     <!-- close popup overlay (info window) -->
     
     <xsl:template match="div[contains-token(@class, 'ol-overlay-container')]//div[contains-token(@class, 'modal-header')]/button[contains-token(@class, 'close')]" mode="ixsl:onclick">
-        <xsl:variable name="content-uri" select="ancestor::div[@about][1]/@about" as="xs:anyURI"/>
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'ol-overlay-container')]/div" as="element()"/>
-        <xsl:variable name="map" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $content-uri || '`'), 'map')"/>
-        <xsl:variable name="overlay" select="ixsl:call(ixsl:call($map, 'getOverlays', []), 'getArray', [])[ ixsl:call(., 'getElement', []) is $container ]"/>
+        <xsl:variable name="overlay" select="ixsl:get($container, 'overlay')" as="item()"/>
+        <xsl:variable name="map" select="ixsl:call($overlay, 'getMap', [])" as="item()"/>
         <xsl:sequence select="ixsl:call($map, 'removeOverlay', [ $overlay ])[current-date() lt xs:date('2000-01-01')]"/> <!-- remove overlay from map -->
     </xsl:template>
     

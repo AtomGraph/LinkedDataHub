@@ -32,11 +32,11 @@ container=$(create-container.sh \
 update=$(cat <<EOF
 DELETE
 {
-  <${container}> ?p ?o
+  ?s ?p ?o
 }
 WHERE
 {
-  <${container}> ?p ?o
+  ?s ?p ?o
 }
 EOF
 )
@@ -55,4 +55,4 @@ curl -k -w "%{http_code}\n" -o /dev/null -s \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
   -H "Accept: application/n-triples" \
   "$container" \
-| grep -q "$STATUS_FORBIDDEN"
+| grep -q "$STATUS_NOT_FOUND"

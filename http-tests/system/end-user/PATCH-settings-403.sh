@@ -7,7 +7,8 @@ purge_cache "$END_USER_VARNISH_SERVICE"
 purge_cache "$ADMIN_VARNISH_SERVICE"
 purge_cache "$FRONTEND_VARNISH_SERVICE"
 
-# add agent to the writers
+# PATCH /settings with a writer (not owner) should return 403
+# /settings is only in the full-control authorization which is restricted to owners
 
 add-agent-to-group.sh \
   -f "$OWNER_CERT_FILE" \
@@ -15,16 +16,13 @@ add-agent-to-group.sh \
   --agent "$AGENT_URI" \
   "${ADMIN_BASE_URL}acl/groups/writers/"
 
-# check that access to non-existing graph is forbidden
-
-(
 curl -k -w "%{http_code}\n" -o /dev/null -s \
-  -X POST \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
-  -H "Content-Type: application/n-triples" \
-   --data-binary @- \
-  "${END_USER_BASE_URL}non-existing/" <<EOF
-<http://s> <http://p> <http://o> .
-EOF
-) \
+  -X PATCH \
+  -H "Content-Type: application/sparql-update" \
+  -d "PREFIX dct: <http://purl.org/dc/terms/>
+DELETE { ?app dct:title ?title }
+INSERT { ?app dct:title \"Unauthorized\" }
+WHERE { ?app dct:title ?title }" \
+  "${END_USER_BASE_URL}settings" \
 | grep -q "$STATUS_FORBIDDEN"

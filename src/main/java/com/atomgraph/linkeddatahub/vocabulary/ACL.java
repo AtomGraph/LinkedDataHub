@@ -60,6 +60,9 @@ public class ACL
     /** <code>acl:Append</code> access mode */
     public static final OntClass Append = m_model.createClass( NS + "Append" );
 
+    /** <code>acl:Control</code> access mode */
+    public static final OntClass Control = m_model.createClass( NS + "Control" );
+
     /** <code>acl:AuthenticatedAgent</code> class */
     public static final OntClass AuthenticatedAgent = m_model.createClass( NS + "AuthenticatedAgent" );
 

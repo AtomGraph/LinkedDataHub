@@ -16,9 +16,7 @@
  */
 package com.atomgraph.linkeddatahub.model.impl;
 
-import com.atomgraph.core.MediaTypes;
 import com.atomgraph.core.vocabulary.SD;
-import jakarta.ws.rs.client.Client;
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.enhanced.EnhNode;
 import org.apache.jena.enhanced.Implementation;
@@ -27,41 +25,31 @@ import org.apache.jena.ontology.ConversionException;
 import org.apache.jena.vocabulary.RDF;
 
 /**
- * Jena's implementation factory.
- * 
+ * Jena's implementation factory for {@link com.atomgraph.linkeddatahub.model.Service}.
+ * Wraps RDF nodes typed as {@code sd:Service} into {@link ServiceImpl} instances.
+ *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
 public class ServiceImplementation extends Implementation
 {
-    
-    private final Client client;
-    private final MediaTypes mediaTypes;
-    private final Integer maxGetRequestSize;
 
     /**
-     * Constructs factory from HTTP configuration.
-     * 
-     * @param client HTTP client
-     * @param mediaTypes registry of readable/writable media types
-     * @param maxGetRequestSize the maximum size of SPARQL <code>GET</code> requests
+     * Constructs factory.
      */
-    public ServiceImplementation(Client client, MediaTypes mediaTypes, Integer maxGetRequestSize)
+    public ServiceImplementation()
     {
-        this.client = client;
-        this.mediaTypes = mediaTypes;
-        this.maxGetRequestSize = maxGetRequestSize;
     }
-    
+
     @Override
     public EnhNode wrap(Node node, EnhGraph enhGraph)
     {
         if (canWrap(node, enhGraph))
         {
-            return new ServiceImpl(node, enhGraph, getClient(), getMediaTypes(), getMaxGetRequestSize());
+            return new ServiceImpl(node, enhGraph);
         }
         else
         {
-            throw new ConversionException( "Cannot convert node " + node.toString() + " to Service: it does not have rdf:type sd:Service or equivalent");
+            throw new ConversionException("Cannot convert node " + node.toString() + " to Service: it does not have rdf:type sd:Service or equivalent");
         }
     }
 
@@ -72,35 +60,5 @@ public class ServiceImplementation extends Implementation
 
         return eg.asGraph().contains(node, RDF.type.asNode(), SD.Service.asNode());
     }
- 
-    /**
-     * Returns HTTP client.
-     * 
-     * @return HTTP client
-     */
-    public Client getClient()
-    {
-        return client;
-    }
-    
-    /**
-     * Returns a registry of readable/writable media types.
-     * 
-     * @return media type registry
-     */
-    public MediaTypes getMediaTypes()
-    {
-        return mediaTypes;
-    }
-    
-    /**
-     * Returns the maximum size of SPARQL <code>GET</code> requests.
-     * 
-     * @return request size in bytes
-     */
-    public Integer getMaxGetRequestSize()
-    {
-        return maxGetRequestSize;
-    }
-    
+
 }

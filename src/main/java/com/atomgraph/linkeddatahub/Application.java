@@ -16,7 +16,6 @@
  */
 package com.atomgraph.linkeddatahub;
 
-import com.atomgraph.linkeddatahub.server.mapper.ResourceExistsExceptionMapper;
 import com.atomgraph.linkeddatahub.server.mapper.HttpHostConnectExceptionMapper;
 import com.atomgraph.linkeddatahub.server.mapper.InternalURLExceptionMapper;
 import com.atomgraph.linkeddatahub.server.mapper.MessagingExceptionMapper;
@@ -51,6 +50,7 @@ import com.atomgraph.core.io.UpdateRequestProvider;
 import com.atomgraph.core.mapper.BadGatewayExceptionMapper;
 import com.atomgraph.core.provider.QueryParamProvider;
 import com.atomgraph.linkeddatahub.writer.factory.DataManagerFactory;
+import com.atomgraph.server.vocabulary.LDT;
 import com.atomgraph.server.mapper.NotFoundExceptionMapper;
 import com.atomgraph.core.riot.RDFLanguages;
 import com.atomgraph.core.riot.lang.RDFPostReaderFactory;
@@ -113,6 +113,7 @@ import com.atomgraph.linkeddatahub.server.model.impl.Dispatcher;
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
 import com.atomgraph.linkeddatahub.server.security.AuthorizationContext;
 import com.atomgraph.linkeddatahub.server.util.MessageBuilder;
+import com.atomgraph.linkeddatahub.server.util.URLValidator;
 import com.atomgraph.linkeddatahub.vocabulary.ACL;
 import com.atomgraph.linkeddatahub.vocabulary.FOAF;
 import com.atomgraph.linkeddatahub.vocabulary.LDH;
@@ -284,6 +285,8 @@ public class Application extends ResourceConfig
     private final boolean invalidateCache;
     private final Integer cookieMaxAge;
     private final boolean enableLinkedDataProxy;
+    private final boolean allowInternalUrls;
+    private final URLValidator urlValidator;
     private final Integer maxContentLength;
     private final Address notificationAddress;
     private final Authenticator authenticator;
@@ -301,6 +304,10 @@ public class Application extends ResourceConfig
     private final Properties oidcRefreshTokens;
     private final URI contextDatasetURI;
     private final Dataset contextDataset;
+    private final URI frontendProxy;
+    private final URI backendProxyAdmin;
+    private final URI backendProxyEndUser;
+    private Map<String, com.atomgraph.linkeddatahub.model.ServiceContext> serviceContextMap;
 
     /**
      * Constructs system application and configures it using sevlet config.
@@ -343,6 +350,8 @@ public class Application extends ResourceConfig
             servletConfig.getServletContext().getInitParameter(LDHC.invalidateCache.getURI()) != null ? Boolean.parseBoolean(servletConfig.getServletContext().getInitParameter(LDHC.invalidateCache.getURI())) : false,
             servletConfig.getServletContext().getInitParameter(LDHC.cookieMaxAge.getURI()) != null ? Integer.valueOf(servletConfig.getServletContext().getInitParameter(LDHC.cookieMaxAge.getURI())) : null,
             servletConfig.getServletContext().getInitParameter(LDHC.enableLinkedDataProxy.getURI()) != null ? Boolean.parseBoolean(servletConfig.getServletContext().getInitParameter(LDHC.enableLinkedDataProxy.getURI())) : true,
+            System.getProperty("com.atomgraph.linkeddatahub.allowInternalUrls") != null ? Boolean.parseBoolean(System.getProperty("com.atomgraph.linkeddatahub.allowInternalUrls")) :
+            servletConfig.getServletContext().getInitParameter(LDHC.allowInternalUrls.getURI()) != null ? Boolean.parseBoolean(servletConfig.getServletContext().getInitParameter(LDHC.allowInternalUrls.getURI())) : false,
             servletConfig.getServletContext().getInitParameter(LDHC.maxContentLength.getURI()) != null ? Integer.valueOf(servletConfig.getServletContext().getInitParameter(LDHC.maxContentLength.getURI())) : null,
             servletConfig.getServletContext().getInitParameter(LDHC.maxConnPerRoute.getURI()) != null ? Integer.valueOf(servletConfig.getServletContext().getInitParameter(LDHC.maxConnPerRoute.getURI())) : null,
             servletConfig.getServletContext().getInitParameter(LDHC.maxTotalConn.getURI()) != null ? Integer.valueOf(servletConfig.getServletContext().getInitParameter(LDHC.maxTotalConn.getURI())) : null,
@@ -352,6 +361,9 @@ public class Application extends ResourceConfig
             servletConfig.getServletContext().getInitParameter(LDHC.supportedLanguages.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.supportedLanguages.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(LDHC.enableWebIDSignUp.getURI()) != null ? Boolean.parseBoolean(servletConfig.getServletContext().getInitParameter(LDHC.enableWebIDSignUp.getURI())) : true,
             servletConfig.getServletContext().getInitParameter(LDHC.oidcRefreshTokens.getURI()),
+            servletConfig.getServletContext().getInitParameter(LDHC.frontendProxy.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.frontendProxy.getURI()) : null,
+            servletConfig.getServletContext().getInitParameter(LDHC.backendProxyAdmin.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.backendProxyAdmin.getURI()) : null,
+            servletConfig.getServletContext().getInitParameter(LDHC.backendProxyEndUser.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.backendProxyEndUser.getURI()) : null,
             servletConfig.getServletContext().getInitParameter("mail.user") != null ? servletConfig.getServletContext().getInitParameter("mail.user") : null,
             servletConfig.getServletContext().getInitParameter("mail.password") != null ? servletConfig.getServletContext().getInitParameter("mail.password") : null,
             servletConfig.getServletContext().getInitParameter("mail.smtp.host") != null ? servletConfig.getServletContext().getInitParameter("mail.smtp.host") : null,
@@ -397,6 +409,7 @@ public class Application extends ResourceConfig
      * @param invalidateCache true if Varnish proxy cache should be invalidated
      * @param cookieMaxAge max age of auth cookies
      * @param enableLinkedDataProxy true if Linked Data proxy is enabled
+     * @param allowInternalUrls true if internal/private network URLs are allowed (disables SSRF protection)
      * @param maxContentLength maximum size of request entity
      * @param maxConnPerRoute maximum client connections per rout
      * @param maxTotalConn maximum total client connections
@@ -414,6 +427,9 @@ public class Application extends ResourceConfig
      * @param googleClientSecret client secret for Google's OAuth
      * @param orcidClientID client ID for ORCID's OAuth
      * @param orcidClientSecret client secret for ORCID's OAuth
+     * @param frontendProxyString frontend (Varnish) proxy URI used for cache invalidation BAN requests, or null
+     * @param backendProxyAdminString backend proxy URI for the admin SPARQL service (endpoint URI rewriting + cache invalidation), or null
+     * @param backendProxyEndUserString backend proxy URI for the end-user SPARQL service (endpoint URI rewriting + cache invalidation), or null
      */
     public Application(final ServletConfig servletConfig, final MediaTypes mediaTypes,
             final Integer maxGetRequestSize, final boolean cacheModelLoads, final boolean preemptiveAuth,
@@ -426,9 +442,10 @@ public class Application extends ResourceConfig
             final String webIDQueryString, final String agentQueryString, final String userAccountQueryString, final String ontologyQueryString,
             final String baseURIString, final String proxyScheme, final String proxyHostname, final Integer proxyPort,
             final String uploadRootString, final boolean invalidateCache,
-            final Integer cookieMaxAge, final boolean enableLinkedDataProxy, final Integer maxContentLength,
+            final Integer cookieMaxAge, final boolean enableLinkedDataProxy, final boolean allowInternalUrls, final Integer maxContentLength,
             final Integer maxConnPerRoute, final Integer maxTotalConn, final Integer maxRequestRetries, final Integer maxImportThreads,
             final String notificationAddressString, final String supportedLanguageCodes, final boolean enableWebIDSignUp, final String oidcRefreshTokensPropertiesPath,
+            final String frontendProxyString, final String backendProxyAdminString, final String backendProxyEndUserString,
             final String mailUser, final String mailPassword, final String smtpHost, final String smtpPort,
             final String googleClientID, final String googleClientSecret,
             final String orcidClientID, final String orcidClientSecret)
@@ -439,6 +456,9 @@ public class Application extends ResourceConfig
             throw new ConfigurationException(LDHC.contextDataset);
         }
         this.contextDatasetURI = URI.create(contextDatasetURIString);
+        this.frontendProxy = frontendProxyString != null ? URI.create(frontendProxyString) : null;
+        this.backendProxyAdmin = backendProxyAdminString != null ? URI.create(backendProxyAdminString) : null;
+        this.backendProxyEndUser = backendProxyEndUserString != null ? URI.create(backendProxyEndUserString) : null;
 
         if (clientKeyStoreURIString == null)
         {
@@ -556,6 +576,8 @@ public class Application extends ResourceConfig
         this.cacheStylesheet = cacheStylesheet;
         this.resolvingUncached = resolvingUncached;
         this.enableLinkedDataProxy = enableLinkedDataProxy;
+        this.allowInternalUrls = allowInternalUrls;
+        this.urlValidator = new URLValidator(allowInternalUrls);
         this.maxContentLength = maxContentLength;
         this.invalidateCache = invalidateCache;
         this.enableWebIDSignUp = enableWebIDSignUp;
@@ -737,12 +759,42 @@ public class Application extends ResourceConfig
             BuiltinPersonalities.model.add(com.atomgraph.linkeddatahub.apps.model.Application.class, new com.atomgraph.linkeddatahub.apps.model.impl.ApplicationImplementation());
             BuiltinPersonalities.model.add(com.atomgraph.linkeddatahub.apps.model.Dataset.class, new com.atomgraph.linkeddatahub.apps.model.impl.DatasetImplementation());
             BuiltinPersonalities.model.add(com.atomgraph.linkeddatahub.apps.model.Package.class, new com.atomgraph.linkeddatahub.apps.model.impl.PackageImplementation());
-            BuiltinPersonalities.model.add(Service.class, new com.atomgraph.linkeddatahub.model.impl.ServiceImplementation(noCertClient, mediaTypes, maxGetRequestSize));
+            BuiltinPersonalities.model.add(Service.class, new com.atomgraph.linkeddatahub.model.impl.ServiceImplementation());
             BuiltinPersonalities.model.add(Import.class, ImportImpl.factory);
             BuiltinPersonalities.model.add(RDFImport.class, RDFImportImpl.factory);
             BuiltinPersonalities.model.add(CSVImport.class, CSVImportImpl.factory);
             BuiltinPersonalities.model.add(com.atomgraph.linkeddatahub.model.File.class, FileImpl.factory);
-        
+
+            // Build ServiceContext map: keyed by service URI, proxy derived from the app type that references each service.
+            // Iterating ldt:service statements (app → service) naturally excludes orphan services.
+            serviceContextMap = new HashMap<>();
+            org.apache.jena.rdf.model.Model ctxUnion = contextDataset.getUnionModel();
+            org.apache.jena.rdf.model.StmtIterator serviceIt = ctxUnion.listStatements(null, LDT.service, (org.apache.jena.rdf.model.RDFNode) null);
+            try
+            {
+                while (serviceIt.hasNext())
+                {
+                    org.apache.jena.rdf.model.Statement stmt = serviceIt.nextStatement();
+                    Resource app = stmt.getSubject();
+                    Resource svcResource = stmt.getResource();
+                    URI proxy;
+                    
+                    if (app.hasProperty(RDF.type, LAPP.AdminApplication))
+                        proxy = backendProxyAdmin;
+                    else if (app.hasProperty(RDF.type, LAPP.EndUserApplication))
+                        proxy = backendProxyEndUser;
+                    else
+                        continue;
+                    
+                    serviceContextMap.put(svcResource.getURI(),
+                        new com.atomgraph.linkeddatahub.model.ServiceContext(svcResource.as(com.atomgraph.linkeddatahub.model.Service.class), noCertClient, mediaTypes, maxGetRequestSize, proxy));
+                }
+            }
+            finally
+            {
+                serviceIt.close();
+            }
+
             // TO-DO: config property for cacheModelLoads
             endUserOntModelSpecs = new HashMap<>();
             dataManager = new DataManagerImpl(locationMapper, new HashMap<>(), GraphStoreClient.create(client, mediaTypes), cacheModelLoads, preemptiveAuth, resolvingUncached);
@@ -1104,7 +1156,6 @@ public class Application extends ResourceConfig
         register(WebIDDelegationExceptionMapper.class);
         register(WebIDLoadingExceptionMapper.class);
         register(TokenExpiredExceptionMapper.class);
-        register(ResourceExistsExceptionMapper.class);
         register(QueryParseExceptionMapper.class);
         register(AuthenticationExceptionMapper.class);
         register(ForbiddenExceptionMapper.class);
@@ -1438,12 +1489,12 @@ public class Application extends ResourceConfig
      */
     public void submitImport(CSVImport csvImport, com.atomgraph.linkeddatahub.apps.model.Application app, Service service, Service adminService, String baseURI, GraphStoreClient gsc)
     {
-        new ImportExecutor(importThreadPool).start(service, adminService, baseURI, gsc, csvImport);
+        new ImportExecutor(importThreadPool).start(service, adminService, this, baseURI, gsc, csvImport);
     }
-    
+
     /**
      * Submits RDF import for asynchronous execution.
-     * 
+     *
      * @param rdfImport import resource
      * @param app current application
      * @param service current SPARQL service
@@ -1453,7 +1504,7 @@ public class Application extends ResourceConfig
      */
     public void submitImport(RDFImport rdfImport, com.atomgraph.linkeddatahub.apps.model.Application app, Service service, Service adminService, String baseURI, GraphStoreClient gsc)
     {
-        new ImportExecutor(importThreadPool).start(service, adminService, baseURI, gsc, rdfImport);
+        new ImportExecutor(importThreadPool).start(service, adminService, this, baseURI, gsc, rdfImport);
     }
     
     /**
@@ -1770,15 +1821,38 @@ public class Application extends ResourceConfig
     }
 
     /**
-     * Bans URL from the proxy cache.
+     * Returns the service context for the given service (client + proxy configuration).
+     * The context is keyed by the service's URI string.
      *
-     * @param proxy proxy server resource
+     * @param service SPARQL service
+     * @return service context, or {@code null} if the service is not registered
+     */
+    public com.atomgraph.linkeddatahub.model.ServiceContext getServiceContext(com.atomgraph.linkeddatahub.model.Service service)
+    {
+        if (service == null) throw new IllegalArgumentException("Service cannot be null");
+        return serviceContextMap.get(service.getURI());
+    }
+
+    /**
+     * Returns the frontend proxy URI used for cache invalidation BAN requests.
+     *
+     * @return frontend proxy URI, or {@code null} if not configured
+     */
+    public URI getFrontendProxy()
+    {
+        return frontendProxy;
+    }
+
+    /**
+     * Bans URL from the proxy cache using the given proxy URI.
+     *
+     * @param proxyURI proxy URI
      * @param url banned URL
      * @param urlEncode if true, the banned URL value will be URL-encoded
-     * @throws IllegalArgumentException if url is null
      */
-    public void ban(Resource proxy, String url, boolean urlEncode)
+    public void ban(URI proxyURI, String url, boolean urlEncode)
     {
+        if (proxyURI == null) throw new IllegalArgumentException("Proxy URI cannot be null");
         if (url == null) throw new IllegalArgumentException("URL cannot be null");
 
         // Extract path from URL - Varnish req.url only contains the path, not the full URL
@@ -1788,7 +1862,7 @@ public class Application extends ResourceConfig
 
         final String urlValue = urlEncode ? UriComponent.encode(path, UriComponent.Type.UNRESERVED) : path;
 
-        try (Response cr = getClient().target(proxy.getURI()).
+        try (Response cr = getClient().target(proxyURI).
                 request().
                 header(CacheInvalidationFilter.HEADER_NAME, urlValue).
                 method("BAN", Response.class))
@@ -2093,7 +2167,27 @@ public class Application extends ResourceConfig
     {
         return enableLinkedDataProxy;
     }
-    
+
+    /**
+     * Returns true if internal/private network URLs are allowed (SSRF protection disabled).
+     *
+     * @return true if internal URLs are allowed
+     */
+    public boolean isAllowInternalUrls()
+    {
+        return allowInternalUrls;
+    }
+
+    /**
+     * Returns the shared URLValidator instance configured for this application.
+     *
+     * @return the URL validator
+     */
+    public URLValidator getURLValidator()
+    {
+        return urlValidator;
+    }
+
     /**
      * Maximum allowed request body size.
      * 

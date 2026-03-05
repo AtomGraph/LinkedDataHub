@@ -89,7 +89,9 @@ ENV SIGN_UP_CERT_VALIDITY=
 
 ENV LOAD_DATASETS=
 
-ENV CONTEXT_DATASET_URL=file:///var/linkeddatahub/datasets/system.trig
+ENV CONTEXT_DATASET_URL=file:///var/linkeddatahub/datasets/dataspaces.trig
+
+ENV SERVICES_DATASET_URL=file:///var/linkeddatahub/datasets/system.trig
 
 ENV ADMIN_DATASET_URL=file:///var/linkeddatahub/datasets/admin.trig
 

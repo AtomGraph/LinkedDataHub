@@ -37,18 +37,16 @@ public class URLValidator
 {
     private static final Logger log = LoggerFactory.getLogger(URLValidator.class);
 
-    private final URI uri;
+    private final boolean allowInternal;
 
     /**
-     * Constructs URL validator for the given URI.
+     * Constructs URL validator.
      *
-     * @param uri the URI to validate
-     * @throws IllegalArgumentException if the URI is null
+     * @param allowInternal if true, internal/private network addresses are allowed (disables SSRF protection)
      */
-    public URLValidator(URI uri)
+    public URLValidator(boolean allowInternal)
     {
-        if (uri == null) throw new IllegalArgumentException("URI cannot be null");
-        this.uri = uri;
+        this.allowInternal = allowInternal;
     }
 
     /**
@@ -61,44 +59,40 @@ public class URLValidator
      * may legitimately need to access resources on the same server (e.g., transformation queries,
      * WebID documents during development, admin operations).
      *
+     * @param uri the URI to validate
      * @return the validated URI
-     * @throws IllegalArgumentException if the URI host is null
+     * @throws IllegalArgumentException if the URI is null or its host is null
      * @throws InternalURLException if the URI resolves to an internal IP address
      */
-    public URI validate()
+    public URI validate(URI uri)
     {
-        String host = uri.getHost();
-        if (host == null) throw new IllegalArgumentException("URI host cannot be null");
+        if (uri == null) throw new IllegalArgumentException("URI cannot be null");
 
-        // Resolve hostname to IP and check if it's private/internal
-        try
+        if (!allowInternal)
         {
-            InetAddress address = InetAddress.getByName(host);
+            String host = uri.getHost();
+            if (host == null) throw new IllegalArgumentException("URI host cannot be null");
 
-            // Note: We don't block loopback addresses (127.0.0.1, localhost) because the application
-            // legitimately accesses its own endpoints for various operations
+            // Resolve hostname to IP and check if it's private/internal
+            try
+            {
+                InetAddress address = InetAddress.getByName(host);
 
-            if (address.isLinkLocalAddress())
-                throw new InternalURLException(uri, address.getHostAddress());
-            if (address.isSiteLocalAddress())
-                throw new InternalURLException(uri, address.getHostAddress());
+                // Note: We don't block loopback addresses (127.0.0.1, localhost) because the application
+                // legitimately accesses its own endpoints for various operations
+
+                if (address.isLinkLocalAddress())
+                    throw new InternalURLException(uri, address.getHostAddress());
+                if (address.isSiteLocalAddress())
+                    throw new InternalURLException(uri, address.getHostAddress());
+            }
+            catch (UnknownHostException e)
+            {
+                if (log.isWarnEnabled()) log.warn("Could not resolve hostname for SSRF validation: {}", host);
+                // Allow request to proceed - will fail later with better error message
+            }
         }
-        catch (UnknownHostException e)
-        {
-            if (log.isWarnEnabled()) log.warn("Could not resolve hostname for SSRF validation: {}", host);
-            // Allow request to proceed - will fail later with better error message
-        }
 
-        return uri;
-    }
-
-    /**
-     * Returns the URI being validated.
-     *
-     * @return the URI
-     */
-    public URI getURI()
-    {
         return uri;
     }
 

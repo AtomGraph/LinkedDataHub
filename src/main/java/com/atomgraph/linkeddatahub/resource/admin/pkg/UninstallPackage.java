@@ -252,10 +252,10 @@ public class UninstallPackage
 
         // Purge stylesheet from frontend proxy cache
         String stylesheetURL = "/static/" + packagePath + "/layout.xsl";
-        if (endUserApp.getFrontendProxy() != null)
+        if (getSystem().getFrontendProxy() != null)
         {
             if (log.isDebugEnabled()) log.debug("Purging stylesheet from frontend proxy cache: {}", stylesheetURL);
-            getSystem().ban(endUserApp.getFrontendProxy(), stylesheetURL, false);
+            getSystem().ban(getSystem().getFrontendProxy(), stylesheetURL, false);
         }
 
         // Delete directory if empty
@@ -294,10 +294,10 @@ public class UninstallPackage
         updater.regenerateMasterStylesheet(packagePaths);
 
         // Purge master stylesheet from cache
-        if (app.getFrontendProxy() != null)
+        if (getSystem().getFrontendProxy() != null)
         {
             if (log.isDebugEnabled()) log.debug("Purging master stylesheet from frontend proxy cache: {}", com.atomgraph.linkeddatahub.Application.MASTER_STYLESHEET_PATH);
-            getSystem().ban(app.getFrontendProxy(), com.atomgraph.linkeddatahub.Application.MASTER_STYLESHEET_PATH, false);
+            getSystem().ban(getSystem().getFrontendProxy(), com.atomgraph.linkeddatahub.Application.MASTER_STYLESHEET_PATH, false);
         }
     }
 

@@ -26,7 +26,7 @@ import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.listener.EMailListener;
 import com.atomgraph.linkeddatahub.server.filter.response.CacheInvalidationFilter;
-import com.atomgraph.linkeddatahub.server.model.impl.DirectGraphStoreImpl;
+import com.atomgraph.linkeddatahub.server.model.impl.DocumentHierarchyGraphStoreImpl;
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
 import com.atomgraph.linkeddatahub.server.util.MessageBuilder;
 import com.atomgraph.linkeddatahub.server.util.Skolemizer;
@@ -98,7 +98,7 @@ import org.slf4j.LoggerFactory;
  * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-public class SignUp extends DirectGraphStoreImpl
+public class SignUp extends DocumentHierarchyGraphStoreImpl
 {
     
     private static final Logger log = LoggerFactory.getLogger(SignUp.class);
@@ -194,7 +194,7 @@ public class SignUp extends DirectGraphStoreImpl
 
             ParameterizedSparqlString pss = new ParameterizedSparqlString(getAgentQuery().toString());
             pss.setParam(FOAF.mbox.getLocalName(), mbox);
-            ResultSet rs = getAgentService().getSPARQLClient().select(pss.asQuery());
+            ResultSet rs = getSystem().getServiceContext(getAgentService()).getSPARQLClient().select(pss.asQuery());
             boolean agentExists = rs.hasNext();
             rs.close();
             if (agentExists) throw createSPINConstraintViolationException(agent, FOAF.mbox, "Agent with this mailbox already exists");
@@ -278,9 +278,10 @@ public class SignUp extends DirectGraphStoreImpl
                 }
 
                 // purge agent lookup from proxy cache
-                if (getAgentService().getBackendProxy() != null)
+                URI agentServiceBackendProxy = getSystem().getServiceContext(getAgentService()).getBackendProxy();
+                if (agentServiceBackendProxy != null)
                 {
-                    try (Response response = ban(getAgentService().getBackendProxy(), mbox.getURI()))
+                    try (Response response = ban(agentServiceBackendProxy, mbox.getURI()))
                     {
                         // Response automatically closed by try-with-resources
                     }
@@ -563,15 +564,15 @@ public class SignUp extends DirectGraphStoreImpl
     /**
      * Bans URL from the backend proxy cache.
      *
-     * @param proxy proxy server URL
+     * @param proxyURI proxy server URI
      * @param url banned URL
      * @return proxy server response
      */
-    public Response ban(Resource proxy, String url)
+    public Response ban(URI proxyURI, String url)
     {
-        if (url == null) throw new IllegalArgumentException("Resource cannot be null");
+        if (url == null) throw new IllegalArgumentException("URL cannot be null");
 
-        return getSystem().getClient().target(proxy.getURI()).request().
+        return getSystem().getClient().target(proxyURI).request().
             header(CacheInvalidationFilter.HEADER_NAME, UriComponent.encode(url, UriComponent.Type.UNRESERVED)). // the value has to be URL-encoded in order to match request URLs in Varnish
             method("BAN", Response.class);
     }

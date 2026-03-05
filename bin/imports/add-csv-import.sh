@@ -5,7 +5,7 @@ print_usage()
 {
     printf "Transforms CSV data into RDF using a SPARQL query and imports it.\n"
     printf "\n"
-    printf "Usage:  %s options\n" "$0"
+    printf "Usage:  %s options TARGET_URI\n" "$0"
     printf "\n"
     printf "Options:\n"
     printf "  -f, --cert-pem-file CERT_FILE        .pem file with the WebID certificate of the agent\n"
@@ -13,9 +13,9 @@ print_usage()
     printf "  -b, --base BASE_URI                  Base URI of the application\n"
     printf "  --proxy PROXY_URL                    The host this request will be proxied through (optional)\n"
     printf "\n"
-    printf "  --title TITLE                        Title of the container\n"
-    printf "  --description DESCRIPTION            Description of the container (optional)\n"
-    printf "  --slug STRING                        String that will be used as URI path segment (optional)\n"
+    printf "  --title TITLE                        Title of the import\n"
+    printf "  --description DESCRIPTION            Description of the import (optional)\n"
+    printf "  --uri URI                            URI of the import resource (optional)\n"
     printf "\n"
     printf "  --query QUERY_URI                    URI of the CONSTRUCT mapping query\n"
     printf "  --file FILE_URI                      URI of the CSV file\n"
@@ -23,11 +23,6 @@ print_usage()
 }
 
 hash turtle 2>/dev/null || { echo >&2 "turtle not on \$PATH.  Aborting."; exit 1; }
-
-urlencode() {
-  python -c 'import urllib.parse, sys; print(urllib.parse.quote(sys.argv[1], sys.argv[2]))' \
-    "$1" "$urlencode_safe"
-}
 
 args=()
 while [[ $# -gt 0 ]]
@@ -65,8 +60,8 @@ do
         shift # past argument
         shift # past value
         ;;
-        --slug)
-        slug="$2"
+        --uri)
+        uri="$2"
         shift # past argument
         shift # past value
         ;;
@@ -92,6 +87,8 @@ do
     esac
 done
 set -- "${args[@]}" # restore args
+
+target="$1"
 
 if [ -z "$cert_pem_file" ] ; then
     print_usage
@@ -122,14 +119,11 @@ if [ -z "$delimiter" ] ; then
     exit 1
 fi
 
-if [ -z "$slug" ] ; then
-    slug=$(uuidgen | tr '[:upper:]' '[:lower:]') # lowercase
+if [ -n "$uri" ] ; then
+    subject="<${uri}>"
+else
+    subject="_:import"
 fi
-encoded_slug=$(urlencode "$slug")
-
-container="${base}imports/"
-
-target="${container}${encoded_slug}/"
 
 args+=("-f")
 args+=("$cert_pem_file")
@@ -137,29 +131,23 @@ args+=("-p")
 args+=("$cert_password")
 args+=("-t")
 args+=("text/turtle") # content type
-args+=("$target")
 if [ -n "$proxy" ]; then
     args+=("--proxy")
     args+=("$proxy")
 fi
 
 turtle+="@prefix ldh:	<https://w3id.org/atomgraph/linkeddatahub#> .\n"
-turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy#> .\n"
 turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"
-turtle+="@prefix foaf:	<http://xmlns.com/foaf/0.1/> .\n"
 turtle+="@prefix spin:	<http://spinrdf.org/spin#> .\n"
-turtle+="_:import a ldh:CSVImport .\n"
-turtle+="_:import dct:title \"${title}\" .\n"
-turtle+="_:import spin:query <${query}> .\n"
-turtle+="_:import ldh:file <${file}> .\n"
-turtle+="_:import ldh:delimiter \"${delimiter}\" .\n"
-turtle+="<${target}> a dh:Item .\n"
-turtle+="<${target}> foaf:primaryTopic _:import .\n"
-turtle+="<${target}> dct:title \"${title}\" .\n"
+turtle+="${subject} a ldh:CSVImport .\n"
+turtle+="${subject} dct:title \"${title}\" .\n"
+turtle+="${subject} spin:query <${query}> .\n"
+turtle+="${subject} ldh:file <${file}> .\n"
+turtle+="${subject} ldh:delimiter \"${delimiter}\" .\n"
 
 if [ -n "$description" ] ; then
-    turtle+="_:import dct:description \"${description}\" .\n"
+    turtle+="${subject} dct:description \"${description}\" .\n"
 fi
 
 # submit Turtle doc to the server
-echo -e "$turtle" | turtle --base="$target" | put.sh "${args[@]}"
+echo -e "$turtle" | turtle --base="$target" | post.sh "${args[@]}"

@@ -15,26 +15,16 @@ add-agent-to-group.sh \
   --agent "$AGENT_URI" \
   "${ADMIN_BASE_URL}acl/groups/writers/"
 
-# check that write access to non-existing graph is forbidden
-
-update=$(cat <<EOF
-PREFIX  rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-
-INSERT
-{
-  <${END_USER_BASE_URL}> rdf:_2 <${END_USER_BASE_URL}#whateverest>
-}
-WHERE
-{}
-EOF
-)
+# check that non-existing document is not found
 
 (
 curl -k -w "%{http_code}\n" -o /dev/null -s \
+  -X POST \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
-  -X PATCH \
-  -H "Content-Type: application/sparql-update" \
-  "${END_USER_BASE_URL}non-existing/" \
-   --data-binary "$update"
+  -H "Content-Type: application/n-triples" \
+   --data-binary @- \
+  "${END_USER_BASE_URL}non-existing/" <<EOF
+<http://s> <http://p> <http://o> .
+EOF
 ) \
-| grep -q "$STATUS_FORBIDDEN"
+| grep -q "$STATUS_NOT_FOUND"

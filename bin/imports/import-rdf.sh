@@ -10,9 +10,9 @@ function onexit() {
 
 print_usage()
 {
-    printf "Transforms CSV data into RDF using a SPARQL query and imports it.\n"
+    printf "Transforms RDF data using a SPARQL query and imports it.\n"
     printf "\n"
-    printf "Usage:  %s options\n" "$0"
+    printf "Usage:  %s options TARGET_URI\n" "$0"
     printf "\n"
     printf "Options:\n"
     printf "  -f, --cert-pem-file CERT_FILE        .pem file with the WebID certificate of the agent\n"
@@ -25,13 +25,9 @@ print_usage()
     printf "  --slug STRING                        String that will be used as URI path segment (optional)\n"
     printf "\n"
     printf "  --query-file ABS_PATH                Absolute path to the text file with the SPARQL query string (optional)\n"
-    printf "  --query-doc-slug STRING              String that will be used as the query's URI path segment (optional)\n"
     printf "  --graph GRAPH_URI                    URI of the graph (optional)\n"
-    printf "  --file ABS_PATH                      Absolute path to the CSV file (optional)\n"
-    printf "  --file-slug STRING                   String that will be used as the file's URI path segment (optional)\n"
-    printf "  --file-doc-slug STRING               String that will be used as the file document's URI path segment (optional)\n"
-    printf "  --file-content-type MEDIA_TYPE       Media type of the file\n"
-    printf "  --import-slug STRING                 String that will be used as the import's URI path segment (optional)\n"
+    printf "  --rdf-file ABS_PATH                  Absolute path to the RDF file (optional)\n"
+    printf "  --content-type MEDIA_TYPE            Media type of the file\n"
 }
 
 args=()
@@ -75,33 +71,13 @@ do
         shift # past argument
         shift # past value
         ;;
-        --query-doc-slug)
-        query_doc_slug="$2"
+        --rdf-file)
+        rdf_file="$2"
         shift # past argument
         shift # past value
         ;;
-        --file)
-        file="$2"
-        shift # past argument
-        shift # past value
-        ;;
-        --file-slug)
-        file_slug="$2"
-        shift # past argument
-        shift # past value
-        ;;
-        --file-doc-slug)
-        file_doc_slug="$2"
-        shift # past argument
-        shift # past value
-        ;;
-        --file-content-type)
-        file_content_type="$2"
-        shift # past argument
-        shift # past value
-        ;;
-        --import-slug)
-        import_slug="$2"
+        --content-type)
+        content_type="$2"
         shift # past argument
         shift # past value
         ;;
@@ -112,6 +88,8 @@ do
     esac
 done
 set -- "${args[@]}" # restore args
+
+target="$1"
 
 if [ -z "$cert_pem_file" ] ; then
     print_usage
@@ -129,11 +107,11 @@ if [ -z "$title" ] ; then
     print_usage
     exit 1
 fi
-if [ -z "$file" ] ; then
+if [ -z "$rdf_file" ] ; then
     print_usage
     exit 1
 fi
-if [ -z "$file_content_type" ] ; then
+if [ -z "$content_type" ] ; then
     print_usage
     exit 1
 fi
@@ -143,67 +121,63 @@ if [ -z "$proxy" ] ; then
 fi
 
 if [ -n "$query_file" ] ; then
-    query_doc=$(create-query.sh \
+    # Generate query ID for fragment identifier
+    query_id=$(uuidgen | tr '[:upper:]' '[:lower:]')
+
+    # Add the CONSTRUCT query to the item using fragment identifier
+    add-construct.sh \
       -b "$base" \
       -f "$cert_pem_file" \
       -p "$cert_password" \
       --proxy "$proxy" \
       --title "$title" \
-      --slug "$query_doc_slug" \
-      --query-file "$query_file"
-    )
+      --uri "#${query_id}" \
+      --query-file "$query_file" \
+      "$target"
 
-    query_ntriples=$(get.sh \
-      -f "$cert_pem_file" \
-      -p "$cert_password" \
-      --proxy "$proxy" \
-      --accept 'application/n-triples' \
-      "$query_doc"
-    )
-
-    query=$(echo "$query_ntriples" | sed -rn "s/<${query_doc//\//\\/}> <http:\/\/xmlns.com\/foaf\/0.1\/primaryTopic> <(.*)> \./\1/p" | head -1)
+    # The query URI is the document with fragment
+    query="${target}#${query_id}"
 fi
 
-file_doc=$(create-file.sh \
+# Add the file to the import item
+add-file.sh \
   -b "$base" \
   -f "$cert_pem_file" \
   -p "$cert_password" \
   --proxy "$proxy" \
   --title "$title" \
-  --slug "$file_doc_slug" \
-  --file-slug "$file_slug" \
-  --file "$file" \
-  --file-content-type "$file_content_type"
-)
+  --file "$rdf_file" \
+  --content-type "$content_type" \
+  "$target"
 
-file_ntriples=$(get.sh \
-  -f "$cert_pem_file" \
-  -p "$cert_password" \
-  --proxy "$proxy" \
-  --accept 'application/n-triples' \
-  "$file_doc"
-)
+# Calculate file URI from SHA1 hash
+sha1sum=$(shasum -a 1 "$rdf_file" | awk '{print $1}')
+rdf_file_uri="${base}uploads/${sha1sum}"
 
-file=$(echo "$file_ntriples" | sed -rn "s/<${file_doc//\//\\/}> <http:\/\/xmlns.com\/foaf\/0.1\/primaryTopic> <(.*)> \./\1/p" | head -1)
+# Generate import ID for fragment identifier
+import_id=$(uuidgen | tr '[:upper:]' '[:lower:]')
 
+# Add the import metadata to the import item using fragment identifier
 if [ -n "$query" ] ; then
-    create-rdf-import.sh \
+    add-rdf-import.sh \
       -b "$base" \
       -f "$cert_pem_file" \
       -p "$cert_password" \
       --proxy "$proxy" \
       --title "$title" \
-      --slug "$import_slug" \
+      --uri "#${import_id}" \
       --query "$query" \
-      --file "$file"
+      --file "$rdf_file_uri" \
+      "$target"
 else
-    create-rdf-import.sh \
+    add-rdf-import.sh \
       -b "$base" \
       -f "$cert_pem_file" \
       -p "$cert_password" \
       --proxy "$proxy" \
       --title "$title" \
-      --slug "$import_slug" \
+      --uri "#${import_id}" \
       --graph "$graph" \
-      --file "$file"
+      --file "$rdf_file_uri" \
+      "$target"
 fi

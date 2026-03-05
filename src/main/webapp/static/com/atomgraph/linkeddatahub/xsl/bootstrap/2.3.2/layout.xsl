@@ -106,7 +106,7 @@ exclude-result-prefixes="#all">
     <xsl:param name="ac:endpoint" select="resolve-uri('sparql', $ldt:base)" as="xs:anyURI"/>
     <xsl:param name="sd:endpoint" as="xs:anyURI?"/>
     <xsl:param name="acl:agent" as="xs:anyURI?"/>
-    <xsl:param name="lapp:Application" as="document-node()?"/>
+    <xsl:param name="lapp:Context" as="document-node()?"/>
     <xsl:param name="foaf:Agent" select="if ($acl:agent) then document(ac:document-uri($acl:agent)) else ()" as="document-node()?"/>
     <xsl:param name="force-exclude-all-namespaces" select="true()"/>
     <xsl:param name="ac:uri" as="xs:anyURI"/>
@@ -145,19 +145,6 @@ exclude-result-prefixes="#all">
             <xsl:map-entry key="resolve-uri(ac:document-uri(xs:anyURI('&nfo;')), $ac:contextUri)" select="ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri(xs:anyURI('&nfo;'))), 'accept': 'application/rdf+xml' })"/>
         </xsl:map>
     </xsl:param>
-    <xsl:param name="explore-service-query" as="xs:string">
-<![CDATA[SELECT DISTINCT  ?type (COUNT(?s) AS ?count) (SAMPLE(?s) AS ?sample)
-WHERE
-  {   { ?s  a  ?type }
-    UNION
-      { GRAPH ?g
-          { ?s  a  ?type }
-      }
-  }
-GROUP BY ?type
-ORDER BY DESC(COUNT(?s))
-LIMIT   100
-]]></xsl:param>
 
     <!-- the query has to support services that do not belong to any app. Use type URIs because that is what triggers Varnish invalidation. -->
     <xsl:variable name="app-query" as="xs:string">
@@ -281,6 +268,7 @@ LIMIT   100
     <xsl:key name="violations-by-root" match="*[@rdf:about] | *[@rdf:nodeID]" use="spin:violationRoot/@rdf:resource | spin:violationRoot/@rdf:nodeID"/>
     <xsl:key name="violations-by-value" match="*" use="ldh:violationValue/text()"/>
     <xsl:key name="violations-by-focus-node" match="*" use="sh:focusNode/@rdf:resource | sh:focusNode/@rdf:nodeID"/>
+    <xsl:key name="apps-by-origin" match="*" use="lapp:origin/@rdf:resource"/>
 
     <rdf:Description rdf:about="">
     </rdf:Description>
@@ -289,12 +277,12 @@ LIMIT   100
 
     <xsl:template match="rdf:RDF" mode="xhtml:Title">
         <title>
-            <xsl:if test="$lapp:Application//*[lapp:origin/@rdf:resource = $lapp:origin]">
+            <xsl:for-each select="key('apps-by-origin', $lapp:origin, $lapp:Context)">
                 <xsl:value-of>
-                    <xsl:apply-templates select="$lapp:Application//*[lapp:origin/@rdf:resource = $lapp:origin]" mode="ac:label"/>
+                    <xsl:apply-templates select="." mode="ac:label"/>
                 </xsl:value-of>
                 <xsl:text> - </xsl:text>
-            </xsl:if>
+            </xsl:for-each>
 
             <xsl:apply-templates mode="#current"/>
         </title>
@@ -348,8 +336,8 @@ LIMIT   100
             </xsl:for-each>
         </xsl:for-each>
 
-        <xsl:if test="$lapp:Application//*[lapp:origin/@rdf:resource = $lapp:origin]">
-            <meta property="og:site_name" content="{ac:label($lapp:Application//*[lapp:origin/@rdf:resource = $lapp:origin])}"/>
+        <xsl:if test="key('apps-by-origin', $lapp:origin, $lapp:Context)">
+            <meta property="og:site_name" content="{ac:label(key('apps-by-origin', $lapp:origin, $lapp:Context))}"/>
         </xsl:if>
     </xsl:template>
 
@@ -396,7 +384,7 @@ LIMIT   100
               //&lt;![CDATA[
             </xsl:text>
             <![CDATA[
-                var appUri = ]]><xsl:value-of select="'&quot;' || $lapp:Application//*[lapp:origin/@rdf:resource = $lapp:origin]/@rdf:about || '&quot;'" disable-output-escaping="yes"/><![CDATA[;
+                var appUri = ]]><xsl:value-of select="'&quot;' || key('apps-by-origin', $lapp:origin, $lapp:Context)/@rdf:about || '&quot;'" disable-output-escaping="yes"/><![CDATA[;
                 var baseUri = ]]><xsl:value-of select="'&quot;' || $ldt:base || '&quot;'" disable-output-escaping="yes"/><![CDATA[;
                 var absolutePath = ]]><xsl:value-of select="'&quot;' || ac:absolute-path(ldh:base-uri(.)) || '&quot;'" disable-output-escaping="yes"/><![CDATA[;
                 var ontologyUri = ]]><xsl:value-of select="'&quot;' || $ldt:ontology || '&quot;'" disable-output-escaping="yes"/><![CDATA[;
@@ -574,13 +562,15 @@ LIMIT   100
 
     <xsl:template match="rdf:RDF | srx:sparql" mode="bs2:Brand">
         <a class="brand" href="{$ldt:base}">
-            <xsl:if test="$lapp:Application//*[lapp:origin/@rdf:resource = $lapp:origin]/rdf:type/@rdf:resource = '&lapp;AdminApplication'">
-                <xsl:attribute name="class" select="'brand admin'"/>
-            </xsl:if>
+            <xsl:for-each select="key('apps-by-origin', $lapp:origin, $lapp:Context)">
+                <xsl:if test="rdf:type/@rdf:resource = '&lapp;AdminApplication'">
+                    <xsl:attribute name="class" select="'brand admin'"/>
+                </xsl:if>
 
-            <xsl:value-of>
-                <xsl:apply-templates select="$lapp:Application//*[lapp:origin/@rdf:resource = $lapp:origin]" mode="ac:label"/>
-            </xsl:value-of>
+                <xsl:value-of>
+                    <xsl:apply-templates select="." mode="ac:label"/>
+                </xsl:value-of>
+            </xsl:for-each>
         </a>
     </xsl:template>
     
@@ -726,34 +716,60 @@ LIMIT   100
     <xsl:template match="srx:sparql" mode="bs2:BreadCrumbBar"/>
 
     <xsl:template match="rdf:RDF | srx:sparql" mode="bs2:NavBarNavList">
-        <xsl:if test="$foaf:Agent//@rdf:about">
-            <ul class="nav pull-right">
-                <xsl:if test="doc-available($app-request-uri)">
-                    <li>
-                        <div class="btn-group">
-                            <button class="btn dropdown-toggle" title="{ac:label(key('resources', 'application-list-title', document('translations.rdf')))}">
-                                <xsl:apply-templates select="key('resources', 'applications', document('translations.rdf'))" mode="ldh:logo">
-                                    <xsl:with-param name="class" select="'btn dropdown-toggle'"/>
-                                </xsl:apply-templates>
-                            </button>
-                            <ul class="dropdown-menu pull-right">
-                                <xsl:variable name="apps" select="document($app-request-uri)" as="document-node()"/>
-                                <xsl:for-each select="$apps//*[lapp:origin/@rdf:resource]">
+        <xsl:apply-templates select="." mode="bs2:DataspaceNavList"/>
+
+        <xsl:apply-templates select="." mode="bs2:SignUp"/>
+    </xsl:template>
+
+    <xsl:template match="rdf:RDF[key('apps-by-origin', $lapp:origin, $lapp:Context)/rdf:type/@rdf:resource = '&lapp;EndUserApplication'] | srx:sparql[key('apps-by-origin', $lapp:origin, $lapp:Context)/rdf:type/@rdf:resource = '&lapp;EndUserApplication']" mode="bs2:DataspaceNavList" priority="1">
+        <ul class="nav pull-right">
+            <xsl:variable name="user-defined-apps" select="if (doc-available($app-request-uri)) then document($app-request-uri)//*[lapp:origin/@rdf:resource] else ()" as="element()*"/>
+            <xsl:variable name="system-apps" select="$lapp:Context//*[rdf:type/@rdf:resource = '&lapp;EndUserApplication'][lapp:origin/@rdf:resource]" as="element()*"/>
+
+            <xsl:if test="exists($user-defined-apps) or exists($system-apps)">
+                <li>
+                    <div class="btn-group">
+                        <button class="btn dropdown-toggle" title="{ac:label(key('resources', 'application-list-title', document('translations.rdf')))}">
+                            <xsl:apply-templates select="key('resources', 'applications', document('translations.rdf'))" mode="ldh:logo">
+                                <xsl:with-param name="class" select="'btn dropdown-toggle'"/>
+                            </xsl:apply-templates>
+                        </button>
+                        <ul class="dropdown-menu pull-right">
+                            <xsl:if test="exists($user-defined-apps)">
+                                <li class="nav-header">
+                                    <xsl:value-of select="ac:label(key('resources', 'user-defined-apps', document('translations.rdf')))"/>
+                                </li>
+                                <xsl:for-each select="$user-defined-apps">
                                     <xsl:sort select="ac:label(.)" order="ascending" lang="{$ldt:lang}"/>
                                     <li>
-<!--                                        <xsl:if test="$active">
-                                            <xsl:attribute name="class" select="'active'"/>
-                                        </xsl:if>-->
-
-                                        <a href="{lapp:origin/@rdf:resource}" title="{lapp:origin/@rdf:resource}">
+                                        <a href="{lapp:origin/@rdf:resource}/" title="{lapp:origin/@rdf:resource}">
                                             <xsl:apply-templates select="." mode="ac:label"/>
                                         </a>
                                     </li>
                                 </xsl:for-each>
-                            </ul>
-                        </div>
-                    </li>
-                </xsl:if>
+                            </xsl:if>
+                            <xsl:if test="exists($system-apps)">
+                                <xsl:if test="exists($user-defined-apps)">
+                                    <li class="divider"/>
+                                </xsl:if>
+                                <li class="nav-header">
+                                    <xsl:value-of select="ac:label(key('resources', 'system-apps', document('translations.rdf')))"/>
+                                </li>
+                                <xsl:for-each select="$system-apps">
+                                    <xsl:sort select="ac:label(.)" order="ascending" lang="{$ldt:lang}"/>
+                                    <li>
+                                        <a href="{lapp:origin/@rdf:resource}/" title="{lapp:origin/@rdf:resource}">
+                                            <xsl:apply-templates select="." mode="ac:label"/>
+                                        </a>
+                                    </li>
+                                </xsl:for-each>
+                            </xsl:if>
+                        </ul>
+                    </div>
+                </li>
+            </xsl:if>
+            
+            <xsl:if test="$foaf:Agent//*[@rdf:about]">
                 <li>
                     <xsl:apply-templates select="." mode="bs2:Settings"/>
                 </li>
@@ -774,20 +790,19 @@ LIMIT   100
                         </ul>
                     </div>
                 </li>
-            </ul>
-        </xsl:if>
-
-        <xsl:apply-templates select="." mode="bs2:SignUp"/>
+            </xsl:if>
+        </ul>        
     </xsl:template>
-
+    
     <!-- SIGNUP -->
     
-    <xsl:template match="rdf:RDF[not($foaf:Agent//@rdf:about)][$lapp:Application//rdf:type/@rdf:resource = '&lapp;EndUserApplication'] | srx:sparql[not($foaf:Agent//@rdf:about)][$lapp:Application//rdf:type/@rdf:resource = '&lapp;EndUserApplication']" mode="bs2:SignUp" priority="1">
+    <xsl:template match="rdf:RDF[not($foaf:Agent//@rdf:about)][key('apps-by-origin', $lapp:origin, $lapp:Context)/rdf:type/@rdf:resource = '&lapp;EndUserApplication'] | srx:sparql[not($foaf:Agent//@rdf:about)][key('apps-by-origin', $lapp:origin, $lapp:Context)/rdf:type/@rdf:resource = '&lapp;EndUserApplication']" mode="bs2:SignUp" priority="1">
         <!-- resolve links against the origin URI of the admin app -->
         <xsl:param name="google-signup" select="exists($google:clientID)" as="xs:boolean"/>
         <xsl:param name="orcid-signup" select="exists($orcid:clientID)" as="xs:boolean"/>
         <xsl:param name="webid-signup" select="$ldhc:enableWebIDSignUp" as="xs:boolean"/>
-        <xsl:param name="webid-signup-uri" select="resolve-uri('sign%20up', $lapp:Application//*[rdf:type/@rdf:resource = '&lapp;AdminApplication']/lapp:origin/@rdf:resource)" as="xs:anyURI"/>
+        <xsl:param name="admin-origin" select="xs:anyURI(replace(string($ac:contextUri), '^(https?://)', '$1admin.'))" as="xs:anyURI"/>
+        <xsl:param name="webid-signup-uri" select="ac:build-uri(resolve-uri('sign%20up', $admin-origin), map{ 'referer': string(ac:absolute-path(ldh:request-uri())) })" as="xs:anyURI"/>
 
         <!-- OAuth providers dropdown -->
         <xsl:if test="$google-signup or $orcid-signup">
@@ -1258,7 +1273,7 @@ LIMIT   100
             </button>
 
             <ul class="dropdown-menu">
-                <xsl:if test="$foaf:Agent//@rdf:about and $lapp:Application//*[lapp:origin/@rdf:resource = $lapp:origin]/rdf:type/@rdf:resource = '&lapp;EndUserApplication'">
+                <xsl:if test="$foaf:Agent//@rdf:about and key('apps-by-origin', $lapp:origin, $lapp:Context)/rdf:type/@rdf:resource = '&lapp;EndUserApplication'">
                     <li>
                         <button class="btn btn-app-settings">
                             <xsl:value-of>
@@ -1267,13 +1282,11 @@ LIMIT   100
                         </button>
                     </li>
                     <li>
-                        <xsl:for-each select="$lapp:Application">
-                            <a href="{key('resources', //*[lapp:origin/@rdf:resource = $lapp:origin]/lapp:adminApplication/(@rdf:resource, @rdf:nodeID))/lapp:origin/@rdf:resource}" target="_blank">
-                                <xsl:value-of>
-                                    <xsl:apply-templates select="key('resources', 'administration', document('translations.rdf'))" mode="ac:label"/>
-                                </xsl:value-of>
-                            </a>
-                        </xsl:for-each>
+                        <a href="{replace(string($lapp:origin), '^(https?://)', '$1admin.')}" target="_blank">
+                            <xsl:value-of>
+                                <xsl:apply-templates select="key('resources', 'administration', document('translations.rdf'))" mode="ac:label"/>
+                            </xsl:value-of>
+                        </a>
                     </li>
                     <li>
                         <a href="{resolve-uri('ns', $ldt:base)}">
@@ -1290,7 +1303,7 @@ LIMIT   100
     <!-- DOCUMENT TREE -->
     
     <xsl:template match="rdf:RDF | srx:sparql" mode="bs2:DocumentTree">
-        <xsl:param name="id" select="'doc-tree'" as="xs:string?"/>
+        <xsl:param name="id" select="'left-sidebar'" as="xs:string?"/>
         <xsl:param name="class" select="'well well-small sidebar-nav'" as="xs:string?"/>
         
         <div>
@@ -1301,7 +1314,7 @@ LIMIT   100
                 <xsl:attribute name="class" select="$class"/>
             </xsl:if>
             
-            <!-- placeholder for client-side ldh:DocTree template -->
+            <!-- placeholder for client-side ldh:LeftSidebar template -->
         </div>
     </xsl:template>
     

@@ -33,7 +33,6 @@ import org.apache.jena.query.Query;
 import org.apache.jena.query.QueryExecution;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
-import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
 import org.glassfish.jersey.uri.UriComponent;
@@ -43,7 +42,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Reads RDF from input stream and writes it into a named graph.
  * If a transformation query is provided, the input is transformed before writing.
- * 
+ *
  * @author {@literal Martynas Jusevičius <martynas@atomgraph.com>}
  */
 public class RDFGraphStoreOutput
@@ -52,18 +51,20 @@ public class RDFGraphStoreOutput
     private static final Logger log = LoggerFactory.getLogger(RDFGraphStoreOutput.class);
 
     private final Service service, adminService;
+    private final com.atomgraph.linkeddatahub.Application system;
     private final GraphStoreClient gsc;
     private final String base;
     private final InputStream is;
     private final Query query;
     private final Lang lang;
     private final String graphURI;
-    
+
     /**
      * Constructs output writer.
-     * 
+     *
      * @param service SPARQL service of the application
      * @param adminService SPARQL service of the admin application
+     * @param system system application
      * @param gsc Graph Store client for RDF results
      * @param is RDF input stream
      * @param base base URI
@@ -71,10 +72,11 @@ public class RDFGraphStoreOutput
      * @param lang RDF language
      * @param graphURI named graph URI
      */
-    public RDFGraphStoreOutput(Service service, Service adminService, GraphStoreClient gsc, InputStream is, String base, Query query, Lang lang, String graphURI)
+    public RDFGraphStoreOutput(Service service, Service adminService, com.atomgraph.linkeddatahub.Application system, GraphStoreClient gsc, InputStream is, String base, Query query, Lang lang, String graphURI)
     {
         this.service = service;
         this.adminService = adminService;
+        this.system = system;
         this.gsc = gsc;
         this.is = is;
         this.base = base;
@@ -82,7 +84,7 @@ public class RDFGraphStoreOutput
         this.lang = lang;
         this.graphURI = graphURI;
     }
-    
+
     /**
      * Reads RDF and writes (possibly transformed) RDF into a named graph.
      * The input is transformed if the SPARQL transformation query was provided.
@@ -103,7 +105,7 @@ public class RDFGraphStoreOutput
                 dataset.listNames().forEachRemaining(graphUri ->
                     {
                         Model namedModel = dataset.getNamedModel(graphUri);
-                        
+
                         if (!namedModel.isEmpty())
                         {
                             // <code>If-None-Match</code> used with the <code>*</code> value can be used to save a file only if it does not already exist,
@@ -111,13 +113,13 @@ public class RDFGraphStoreOutput
                             // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/If-None-Match
                             MultivaluedMap<String, Object> headers = new MultivaluedHashMap();
                             headers.putSingle(HttpHeaders.IF_NONE_MATCH, "*");
-                            
+
                             try (Response putResponse = getGraphStoreClient().put(URI.create(graphUri), Entity.entity(namedModel, getGraphStoreClient().getDefaultMediaType()), new jakarta.ws.rs.core.MediaType[]{}, headers))
                             {
                                 if (putResponse.getStatusInfo().equals(Response.Status.PRECONDITION_FAILED))
                                 {
                                     try (Response postResponse = getGraphStoreClient().post(URI.create(graphUri), namedModel))
-                                    {                                
+                                    {
                                         if (!postResponse.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
                                         {
                                             if (log.isErrorEnabled()) log.error("RDF document with URI <{}> could not be successfully created using PUT. Status code: {}", graphUri, postResponse.getStatus());
@@ -136,16 +138,16 @@ public class RDFGraphStoreOutput
                             }
 
                             // purge cache entries that include the graph URI
-                            if (getService().getBackendProxy() != null)
+                            if (getSystem().getServiceContext(getService()).getBackendProxy() != null)
                             {
-                                try (Response response = ban(getService().getClient(), getService().getBackendProxy(), graphUri))
+                                try (Response response = ban(getSystem().getServiceContext(getService()).getClient(), getSystem().getServiceContext(getService()).getBackendProxy(), graphUri))
                                 {
                                     // Response automatically closed by try-with-resources
                                 }
                             }
-                            if (getAdminService() != null && getAdminService().getBackendProxy() != null)
+                            if (getAdminService() != null && getSystem().getServiceContext(getAdminService()) != null && getSystem().getServiceContext(getAdminService()).getBackendProxy() != null)
                             {
-                                try (Response response = ban(getAdminService().getClient(), getAdminService().getBackendProxy(), graphUri))
+                                try (Response response = ban(getSystem().getServiceContext(getAdminService()).getClient(), getSystem().getServiceContext(getAdminService()).getBackendProxy(), graphUri))
                                 {
                                     // Response automatically closed by try-with-resources
                                 }
@@ -158,14 +160,14 @@ public class RDFGraphStoreOutput
         else
         {
             if (getGraphURI() == null) throw new IllegalStateException("Neither RDFImport query nor graph name is specified");
-            
+
             // <code>If-None-Match</code> used with the <code>*</code> value can be used to save a file only if it does not already exist,
             // guaranteeing that the upload won't accidentally overwrite another upload and lose the data of the previous <code>PUT</code>
             // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/If-None-Match
             MultivaluedMap<String, Object> headers = new MultivaluedHashMap();
             headers.putSingle(HttpHeaders.IF_NONE_MATCH, "*");
 
-            try (Response putResponse = getGraphStoreClient().put(URI.create(getGraphURI()), Entity.entity(model, getGraphStoreClient().getDefaultMediaType()), new jakarta.ws.rs.core.MediaType[]{},  headers))
+            try (Response putResponse = getGraphStoreClient().put(URI.create(getGraphURI()), Entity.entity(model, getGraphStoreClient().getDefaultMediaType()), new jakarta.ws.rs.core.MediaType[]{}, headers))
             {
                 if (putResponse.getStatusInfo().equals(Response.Status.PRECONDITION_FAILED))
                 {
@@ -189,16 +191,16 @@ public class RDFGraphStoreOutput
             }
 
             // purge cache entries that include the graph URI
-            if (getService().getBackendProxy() != null)
+            if (getSystem().getServiceContext(getService()).getBackendProxy() != null)
             {
-                try (Response response = ban(getService().getClient(), getService().getBackendProxy(), getGraphURI()))
+                try (Response response = ban(getSystem().getServiceContext(getService()).getClient(), getSystem().getServiceContext(getService()).getBackendProxy(), getGraphURI()))
                 {
                     // Response automatically closed by try-with-resources
                 }
             }
-            if (getAdminService() != null && getAdminService().getBackendProxy() != null)
+            if (getAdminService() != null && getSystem().getServiceContext(getAdminService()) != null && getSystem().getServiceContext(getAdminService()).getBackendProxy() != null)
             {
-                try (Response response = ban(getAdminService().getClient(), getAdminService().getBackendProxy(), getGraphURI()))
+                try (Response response = ban(getSystem().getServiceContext(getAdminService()).getClient(), getSystem().getServiceContext(getAdminService()).getBackendProxy(), getGraphURI()))
                 {
                     // Response automatically closed by try-with-resources
                 }
@@ -208,102 +210,112 @@ public class RDFGraphStoreOutput
 
     /**
      * Bans a URL from proxy cache.
-     * 
+     *
      * @param client HTTP client
-     * @param proxy proxy cache endpoint
+     * @param proxyURI proxy cache endpoint URI
      * @param url request URL
      * @return response from cache
      */
-    public Response ban(Client client, Resource proxy, String url)
+    public Response ban(Client client, URI proxyURI, String url)
     {
         if (url == null) throw new IllegalArgumentException("Resource cannot be null");
-        
+
         // create new Client instance, otherwise ApacheHttpClient reuses connection and Varnish ignores BAN request
         return client.
-            target(proxy.getURI()).
+            target(proxyURI).
             request().
             header("X-Escaped-Request-URI", UriComponent.encode(url, UriComponent.Type.UNRESERVED)).
             method("BAN", Response.class);
     }
-    
+
     /**
      * Return application's SPARQL service.
-     * 
+     *
      * @return SPARQL service
      */
     public Service getService()
     {
         return service;
     }
-    
+
     /**
      * Return admin application's SPARQL service.
-     * 
+     *
      * @return SPARQL service
      */
     public Service getAdminService()
     {
         return adminService;
     }
-    
+
+    /**
+     * Return system application.
+     *
+     * @return system application
+     */
+    public com.atomgraph.linkeddatahub.Application getSystem()
+    {
+        return system;
+    }
+
     /**
      * Returns Graph Store client.
-     * 
+     *
      * @return client object
      */
     public GraphStoreClient getGraphStoreClient()
     {
         return gsc;
     }
-    
+
     /**
      * Returns RDF input stream.
-     * 
+     *
      * @return input stream
      */
     public InputStream getInputStream()
     {
         return is;
     }
-    
+
     /**
      * Returns base URI.
-     * 
+     *
      * @return base URI string
      */
     public String getBase()
     {
         return base;
     }
-    
+
     /**
      * Returns the <code>CONSTRUCT</code> transformation query.
-     * 
+     *
      * @return SPARQL query or null
      */
     public Query getQuery()
     {
         return query;
     }
-    
+
     /**
      * Returns RDF language.
-     * 
+     *
      * @return RDF lang
      */
     public Lang getLang()
     {
         return lang;
     }
-    
+
     /**
      * Returns named graph URI.
-     * 
+     *
      * @return graph URI string
      */
     public String getGraphURI()
     {
         return graphURI;
     }
-    
+
 }

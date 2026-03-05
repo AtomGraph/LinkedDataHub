@@ -137,7 +137,8 @@ public abstract class AuthenticationFilter implements ContainerRequestFilter
         if (service == null) throw new IllegalArgumentException("Service cannot be null");
 
         // send query bindings separately from the query if the service supports the Sesame protocol
-        if (service.getSPARQLClient() instanceof SesameProtocolClient sesameProtocolClient)
+        com.atomgraph.linkeddatahub.model.ServiceContext serviceContext = getSystem().getServiceContext(service);
+        if (serviceContext.getSPARQLClient() instanceof SesameProtocolClient sesameProtocolClient)
             try (Response cr = sesameProtocolClient.query(pss.asQuery(), Model.class, qsm)) // register(new CacheControlFilter(CacheControl.valueOf("no-cache"))). // add Cache-Control: no-cache to request
             {
                 return cr.readEntity(Model.class);
@@ -145,7 +146,7 @@ public abstract class AuthenticationFilter implements ContainerRequestFilter
         else
         {
             pss.setParams(qsm);
-            try (Response cr = service.getSPARQLClient(). // register(new CacheControlFilter(CacheControl.valueOf("no-cache"))). // add Cache-Control: no-cache to request
+            try (Response cr = serviceContext.getSPARQLClient(). // register(new CacheControlFilter(CacheControl.valueOf("no-cache"))). // add Cache-Control: no-cache to request
                 query(pss.asQuery(), Model.class))
             {
                 return cr.readEntity(Model.class);

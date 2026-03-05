@@ -21,9 +21,8 @@ import com.atomgraph.core.vocabulary.SD;
 import com.atomgraph.linkeddatahub.client.GraphStoreClient;
 import com.atomgraph.linkeddatahub.imports.QueryLoader;
 import com.atomgraph.linkeddatahub.server.io.ValidatingModelProvider;
-import com.atomgraph.linkeddatahub.server.model.impl.DirectGraphStoreImpl;
+import com.atomgraph.linkeddatahub.server.model.impl.DocumentHierarchyGraphStoreImpl;
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
-import com.atomgraph.linkeddatahub.server.util.URLValidator;
 import com.atomgraph.linkeddatahub.vocabulary.NFO;
 import com.atomgraph.spinrdf.vocabulary.SPIN;
 import java.net.URI;
@@ -143,8 +142,8 @@ public class Transform
             if (queryRes == null) throw new BadRequestException("Transformation query string (spin:query) not provided");
 
             // LNK-002: Validate URIs to prevent SSRF attacks
-            new URLValidator(URI.create(queryRes.getURI())).validate();
-            new URLValidator(URI.create(source.getURI())).validate();
+            getSystem().getURLValidator().validate(URI.create(queryRes.getURI()));
+            getSystem().getURLValidator().validate(URI.create(source.getURI()));
 
             GraphStoreClient gsc = GraphStoreClient.create(getSystem().getClient(), getSystem().getMediaTypes()).
                 delegation(getUriInfo().getBaseUri(), getAgentContext().orElse(null));
@@ -181,7 +180,7 @@ public class Transform
 
         try
         {
-            DirectGraphStoreImpl graphStore = getResourceContext().getResource(DirectGraphStoreImpl.class);
+            DocumentHierarchyGraphStoreImpl graphStore = getResourceContext().getResource(DocumentHierarchyGraphStoreImpl.class);
             
             Model model = graphStore.parseModel(multiPart); // do not skolemize because we don't know the graphUri yet
             MessageBodyReader<Model> reader = getProviders().getMessageBodyReader(Model.class, null, null, com.atomgraph.core.MediaType.APPLICATION_NTRIPLES_TYPE);
@@ -235,7 +234,7 @@ public class Transform
             if (queryRes == null) throw new BadRequestException("Transformation query string (spin:query) not provided");
 
             // LNK-002: Validate query URI to prevent SSRF attacks
-            new URLValidator(URI.create(queryRes.getURI())).validate();
+            getSystem().getURLValidator().validate(URI.create(queryRes.getURI()));
 
             GraphStoreClient gsc = GraphStoreClient.create(getSystem().getClient(), getSystem().getMediaTypes()).
                 delegation(getUriInfo().getBaseUri(), getAgentContext().orElse(null));

@@ -27,7 +27,7 @@ import org.apache.jena.rdf.model.Resource;
  * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-public interface Application extends Resource, com.atomgraph.core.model.Application
+public interface Application extends Resource
 {
     
     /**
@@ -84,7 +84,6 @@ public interface Application extends Resource, com.atomgraph.core.model.Applicat
      *
      * @return service resource
      */
-    @Override
     Service getService();
 
     /**
@@ -101,13 +100,6 @@ public interface Application extends Resource, com.atomgraph.core.model.Applicat
      */
     boolean isReadAllowed();
     
-    /**
-     * Returns frontend proxy's cache URI resource.
-     *
-     * @return RDF resource
-     */
-    Resource getFrontendProxy();
-
     /**
      * Returns the set of packages imported by this application.
      *

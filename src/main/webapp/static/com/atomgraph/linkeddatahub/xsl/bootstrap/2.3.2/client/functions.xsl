@@ -93,7 +93,7 @@ exclude-result-prefixes="#all"
     </xsl:function>
     
     <xsl:function name="sd:endpoint" as="xs:anyURI">
-        <xsl:sequence select="xs:anyURI(ixsl:get(ixsl:window(), 'LinkedDataHub.endpoint'))"/>
+        <xsl:sequence select="resolve-uri('sparql', ldt:base())"/>
     </xsl:function>
     
     <xsl:function name="ldh:query-type" as="xs:string?">
@@ -153,12 +153,10 @@ exclude-result-prefixes="#all"
             </xsl:value-of>
         </xsl:variable>
         
-        <xsl:variable name="js-statement" as="element()">
-            <root statement="new google.visualization.DataTable(JSON.parse(String.raw`{$json}`))"/>
-        </xsl:variable>
-        <xsl:sequence select="ixsl:eval(string($js-statement/@statement))"/>
+        <xsl:variable name="json-obj" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'parse', [ $json ])"/>
+        <xsl:sequence select="ixsl:new('google.visualization.DataTable', [ $json-obj ])"/>
     </xsl:function>
-    
+
     <xsl:function name="ac:sparql-results-data-table">
         <xsl:param name="results" as="document-node()"/>
         <xsl:param name="category" as="xs:string?"/>
@@ -172,12 +170,10 @@ exclude-result-prefixes="#all"
             </xsl:value-of>
         </xsl:variable>
 
-        <xsl:variable name="js-statement" as="element()">
-            <root statement="new google.visualization.DataTable(JSON.parse(String.raw`{$json}`))"/>
-        </xsl:variable>
-        <xsl:sequence select="ixsl:eval(string($js-statement/@statement))"/>
+        <xsl:variable name="json-obj" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'parse', [ $json ])"/>
+        <xsl:sequence select="ixsl:new('google.visualization.DataTable', [ $json-obj ])"/>
     </xsl:function>
-    
+
     <xsl:function name="ldh:parse-html" as="document-node()">
         <xsl:param name="string" as="xs:string"/>
         <xsl:param name="mime-type" as="xs:string"/>
@@ -494,7 +490,7 @@ exclude-result-prefixes="#all"
 
     <xsl:function name="ldh:handle-response" as="item()*" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
-
+        
         <xsl:variable name="request" select="$context('request')" as="map(*)"/>
         <xsl:variable name="response" select="$context('response')" as="map(*)"/>
         <xsl:variable name="default-retry-after" select="1" as="xs:integer"/>
