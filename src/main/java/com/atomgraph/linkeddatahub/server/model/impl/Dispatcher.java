@@ -267,7 +267,7 @@ public class Dispatcher
      */
     public Class getDocumentClass()
     {
-        return DirectGraphStoreImpl.class;
+        return DocumentHierarchyGraphStoreImpl.class;
     }
     
     /**

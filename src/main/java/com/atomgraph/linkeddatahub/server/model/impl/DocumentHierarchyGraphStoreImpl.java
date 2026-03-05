@@ -122,10 +122,10 @@ import org.slf4j.LoggerFactory;
  * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-public class DirectGraphStoreImpl extends com.atomgraph.core.model.impl.DirectGraphStoreImpl implements Patchable
+public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.impl.DirectGraphStoreImpl implements Patchable
 {
     
-    private static final Logger log = LoggerFactory.getLogger(DirectGraphStoreImpl.class);
+    private static final Logger log = LoggerFactory.getLogger(DocumentHierarchyGraphStoreImpl.class);
 
     /**
      * The relative path of the content-addressed file container.
@@ -160,7 +160,7 @@ public class DirectGraphStoreImpl extends com.atomgraph.core.model.impl.DirectGr
      * @param system system application
      */
     @Inject
-    public DirectGraphStoreImpl(@Context Request request, @Context UriInfo uriInfo, MediaTypes mediaTypes,
+    public DocumentHierarchyGraphStoreImpl(@Context Request request, @Context UriInfo uriInfo, MediaTypes mediaTypes,
         com.atomgraph.linkeddatahub.apps.model.Application application, Optional<Ontology> ontology, Optional<Service> service,
         @Context SecurityContext securityContext, Optional<AgentContext> agentContext,
         @Context Providers providers, com.atomgraph.linkeddatahub.Application system)

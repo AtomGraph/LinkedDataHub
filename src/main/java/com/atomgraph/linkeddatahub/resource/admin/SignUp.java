@@ -26,7 +26,7 @@ import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.listener.EMailListener;
 import com.atomgraph.linkeddatahub.server.filter.response.CacheInvalidationFilter;
-import com.atomgraph.linkeddatahub.server.model.impl.DirectGraphStoreImpl;
+import com.atomgraph.linkeddatahub.server.model.impl.DocumentHierarchyGraphStoreImpl;
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
 import com.atomgraph.linkeddatahub.server.util.MessageBuilder;
 import com.atomgraph.linkeddatahub.server.util.Skolemizer;
@@ -98,7 +98,7 @@ import org.slf4j.LoggerFactory;
  * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-public class SignUp extends DirectGraphStoreImpl
+public class SignUp extends DocumentHierarchyGraphStoreImpl
 {
     
     private static final Logger log = LoggerFactory.getLogger(SignUp.class);
