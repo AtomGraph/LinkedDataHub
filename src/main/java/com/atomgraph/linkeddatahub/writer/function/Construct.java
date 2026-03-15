@@ -31,9 +31,16 @@ import net.sf.saxon.s9api.QName;
 import net.sf.saxon.s9api.SaxonApiException;
 import net.sf.saxon.s9api.SequenceType;
 import net.sf.saxon.s9api.XdmValue;
+import org.apache.jena.query.Query;
 import org.apache.jena.query.QueryExecution;
-import org.apache.jena.query.QuerySolutionMap;
+import org.apache.jena.query.QueryFactory;
 import org.apache.jena.rdf.model.Model;
+import org.apache.jena.sparql.core.Var;
+import org.apache.jena.sparql.engine.binding.Binding;
+import org.apache.jena.sparql.engine.binding.BindingFactory;
+import org.apache.jena.sparql.expr.ExprVar;
+import org.apache.jena.sparql.syntax.ElementBind;
+import org.apache.jena.sparql.syntax.ElementGroup;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
@@ -94,13 +101,24 @@ public class Construct implements ExtensionFunction
                 arguments[0].itemAt(0).asMap().forEach((forClass, constructors) ->
                     {
                         Resource instance = model.createResource();
-                        QuerySolutionMap qsm = new QuerySolutionMap();
-                        qsm.add(SPIN.THIS_VAR_NAME, instance);
-
                         instance.addProperty(RDF.type, ResourceFactory.createResource(forClass.getStringValue()));
+
+                        // Inject BIND(?_this_bind AS ?this) into the WHERE clause.
+                        // This keeps ?this as a variable in the CONSTRUCT template (not a written blank node),
+                        // so the template picks up the concrete node value — preserving blank node identity.
+                        // See: https://github.com/apache/jena/issues/3267
+                        Var bindVar = Var.alloc("_this_bind");
+                        Binding binding = BindingFactory.binding(bindVar, instance.asNode());
+
                         constructors.stream().forEach(constructor ->
                         {
-                            try (QueryExecution qex = QueryExecution.model(model).query(constructor.getStringValue()).initialBinding(qsm).build())
+                            Query query = QueryFactory.create(constructor.getStringValue());
+                            ElementGroup group = new ElementGroup();
+                            group.addElement(query.getQueryPattern());
+                            group.addElement(new ElementBind(Var.alloc(SPIN.THIS_VAR_NAME), new ExprVar(bindVar)));
+                            query.setQueryPattern(group);
+
+                            try (QueryExecution qex = QueryExecution.create().query(query).model(model).substitution(binding).build())
                             {
                                 qex.execConstruct(model);
                             }
