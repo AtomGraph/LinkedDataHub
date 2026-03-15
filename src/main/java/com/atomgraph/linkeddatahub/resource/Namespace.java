@@ -46,14 +46,12 @@ import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.Response.Status;
 import jakarta.ws.rs.core.SecurityContext;
 import jakarta.ws.rs.core.UriInfo;
-import org.apache.jena.iri.IRI;
-import org.apache.jena.iri.IRIFactory;
+import org.apache.jena.irix.IRIx;
 import org.apache.jena.ontology.Ontology;
 import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.query.Query;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
-import org.apache.jena.riot.system.Checker;
 import org.apache.jena.update.UpdateRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -177,15 +175,12 @@ public class Namespace extends com.atomgraph.core.model.impl.SPARQLEndpointImpl
      * @param classIRIStr URI string
      * @return IRI
      */
-    public static IRI checkURI(String classIRIStr)
+    public static IRIx checkURI(String classIRIStr)
     {
         if (classIRIStr == null) throw new IllegalArgumentException("URI String cannot be null");
 
-        IRI classIRI = IRIFactory.iriImplementation().create(classIRIStr);
-        // throws Exceptions on bad URIs:
-        Checker.iriViolations(classIRI);
-
-        return classIRI;
+        // IRIx.create() validates and throws IRIException on bad URIs
+        return IRIx.create(classIRIStr);
     }
     
     /**

@@ -173,7 +173,7 @@ public class OntologyFilter implements ContainerRequestFilter
                     URI ontologyURI = URI.create(uri);
                     // remove fragment and normalize
                     URI ontDocURI = new URI(ontologyURI.getScheme(), ontologyURI.getSchemeSpecificPart(), null).normalize();
-                    Model baseModel = fileManager.loadModel(uri, ontDocURI.toString(), null);
+                    Model baseModel = fileManager.loadModel(ontDocURI.toString());
                     OntModel ontModel = ModelFactory.createOntologyModel(ontModelSpec, baseModel);
                     ontModel.getDocumentManager().addModel(uri, ontModel, true);
                 }

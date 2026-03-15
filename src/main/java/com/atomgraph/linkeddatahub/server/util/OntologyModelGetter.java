@@ -34,7 +34,7 @@ import org.slf4j.LoggerFactory;
  * Application's ontology model getter.
  * Loads ontology model using the configured ontology query
  */
-public class OntologyModelGetter implements org.apache.jena.rdf.model.ModelGetter
+public class OntologyModelGetter implements org.apache.jena.ontology.models.ModelGetter
 {
 
     private static final Logger log = LoggerFactory.getLogger(OntologyModelGetter.class);

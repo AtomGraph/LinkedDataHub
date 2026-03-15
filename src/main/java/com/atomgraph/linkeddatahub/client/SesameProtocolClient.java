@@ -123,7 +123,7 @@ public class SesameProtocolClient extends SPARQLClient
         {
             String varName = it.next();
             RDFNode node = qsm.get(varName);
-            params.add("$" + varName, NodeFmtLib.str(node.asNode()));
+            params.add("$" + varName, NodeFmtLib.strNT(node.asNode()));
         }
         
         return params;
