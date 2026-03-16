@@ -26,9 +26,9 @@ import org.apache.jena.query.QueryParseException;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.vocabulary.RDF;
-import org.junit.Before;
-import org.junit.Test;
-import static org.junit.Assert.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Unit tests for the {@link Construct} Saxon extension function.
@@ -48,7 +48,7 @@ public class ConstructTest
     private Processor processor;
     private Construct construct;
 
-    @Before
+    @BeforeEach
     public void setUp()
     {
         processor = new Processor(false);
@@ -108,10 +108,10 @@ public class ConstructTest
         assertTrue(model.isEmpty());
     }
 
-    @Test(expected = QueryParseException.class)
+    @Test
     public void testInvalidSparql() throws Exception
     {
-        construct.call(new XdmValue[] { buildMap(CLASS_URI, "NOT VALID SPARQL") });
+        assertThrows(QueryParseException.class, () -> construct.call(new XdmValue[] { buildMap(CLASS_URI, "NOT VALID SPARQL") }));
     }
 
 }

@@ -3,11 +3,12 @@ package com.atomgraph.core.io;
 import org.apache.jena.rdf.model.*;
 import org.apache.jena.riot.*;
 import org.apache.jena.riot.system.ErrorHandlerFactory;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
 import org.apache.jena.riot.system.StreamRDFLib;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class BillionLaughsTest {
 
@@ -33,22 +34,24 @@ public class BillionLaughsTest {
         </rdf:RDF>
         """;
 
-    @Test(expected = RiotException.class)
+    @Test
     public void testBillionLaughs() {
-        Model m = ModelFactory.createDefaultModel();
+        assertThrows(RiotException.class, () -> {
+            Model m = ModelFactory.createDefaultModel();
 
-        ByteArrayInputStream bais = new ByteArrayInputStream(MALICIOUS.getBytes(StandardCharsets.UTF_8));
+            ByteArrayInputStream bais = new ByteArrayInputStream(MALICIOUS.getBytes(StandardCharsets.UTF_8));
 
-        RDFParser parser = RDFParser.create()
-                .lang(Lang.RDFXML)
-                .errorHandler(ErrorHandlerFactory.errorHandlerStrict)
-                .checking(true)
-                .base("http://example.org/")
-                .source(bais)
-                .build();
+            RDFParser parser = RDFParser.create()
+                    .lang(Lang.RDFXML)
+                    .errorHandler(ErrorHandlerFactory.errorHandlerStrict)
+                    .checking(true)
+                    .base("http://example.org/")
+                    .source(bais)
+                    .build();
 
-        System.out.println("Starting parse...");
-        parser.parse(StreamRDFLib.graph(m.getGraph()));
-        System.out.println("Model size: " + m.size());
+            System.out.println("Starting parse...");
+            parser.parse(StreamRDFLib.graph(m.getGraph()));
+            System.out.println("Model size: " + m.size());
+        });
     }
 }
