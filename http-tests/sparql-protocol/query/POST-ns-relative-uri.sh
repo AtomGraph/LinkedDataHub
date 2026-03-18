@@ -30,7 +30,7 @@ clear-ontology.sh \
   -b "$ADMIN_BASE_URL" \
   --ontology "$namespace"
 
-# query using relative URI - <#NewClass> should resolve to ${namespace_doc}#NewClass
+# query using relative URI - <#NewClass> should resolve to ${namespace}NewClass
 
 curl -k -s -X POST \
   -E "$OWNER_CERT_FILE":"$OWNER_CERT_PWD" \
