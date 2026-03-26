@@ -20,6 +20,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 import jakarta.servlet.ServletContext;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -29,13 +31,12 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.List;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
 import org.w3c.dom.DOMException;
+import org.xml.sax.SAXException;
 
 /**
  * Updates master XSLT stylesheets with package import chains.
@@ -48,7 +49,6 @@ public class XSLTMasterUpdater
     private static final Logger log = LoggerFactory.getLogger(XSLTMasterUpdater.class);
 
     private static final String XSL_NS = "http://www.w3.org/1999/XSL/Transform";
-    private static final String SYSTEM_STYLESHEET_HREF = "../com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/layout.xsl";
 
     private final ServletContext servletContext;
 
@@ -63,81 +63,155 @@ public class XSLTMasterUpdater
     }
 
     /**
-     * Regenerates the master stylesheet for the application.
-     * Creates a fresh stylesheet with system import followed by package imports.
+     * Adds a package import to the master stylesheet, preserving all existing content.
+     * Inserts a new <code>xsl:import</code> after the last existing import element.
      *
-     * @param packagePaths list of package paths to import (e.g., ["com/linkeddatahub/packages/skos"])
+     * @param packagePath the package path (e.g., "com/linkeddatahub/packages/skos")
      * @throws IOException if file operations fail
      */
-    public void regenerateMasterStylesheet(List<String> packagePaths) throws IOException
+    public void addPackageImport(String packagePath) throws IOException
     {
-        regenerateMasterStylesheet(getStaticPath().resolve("xsl").resolve("layout.xsl"), packagePaths); // TO-DO: move to configuration
+        addPackageImport(getStaticPath().resolve("xsl").resolve("layout.xsl"), packagePath);
     }
-    
-    public void regenerateMasterStylesheet(Path masterFile, List<String> packagePaths) throws IOException
+
+    /**
+     * Adds a package import to the specified master stylesheet, preserving all existing content.
+     *
+     * @param masterFile path to the master stylesheet
+     * @param packagePath the package path (e.g., "com/linkeddatahub/packages/skos")
+     * @throws IOException if file operations fail
+     */
+    public void addPackageImport(Path masterFile, String packagePath) throws IOException
     {
         try
         {
-            // Create fresh XML document
-            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-            factory.setNamespaceAware(true);
-            DocumentBuilder builder = factory.newDocumentBuilder();
-            Document doc = builder.newDocument();
+            Document doc = parseDocument(masterFile);
+            Element stylesheet = doc.getDocumentElement();
+            String href = "../" + packagePath + "/layout.xsl";
 
-            // Create stylesheet root element
-            Element stylesheet = doc.createElementNS(XSL_NS, "xsl:stylesheet");
-            stylesheet.setAttribute("version", "3.0");
-            stylesheet.setAttribute("xmlns:xsl", XSL_NS);
-            stylesheet.setAttribute("xmlns:xs", "http://www.w3.org/2001/XMLSchema");
-            stylesheet.setAttribute("exclude-result-prefixes", "xs");
-            doc.appendChild(stylesheet);
-
-            // Add system stylesheet import (lowest priority)
-            stylesheet.appendChild(doc.createTextNode("\n\n    "));
-            stylesheet.appendChild(doc.createComment("System stylesheet (lowest priority) "));
-            stylesheet.appendChild(doc.createTextNode("\n    "));
-            Element systemImport = doc.createElementNS(XSL_NS, "xsl:import");
-            systemImport.setAttribute("href", SYSTEM_STYLESHEET_HREF);
-            stylesheet.appendChild(systemImport);
-
-            // Add package stylesheet imports
-            if (packagePaths != null && !packagePaths.isEmpty())
+            // Find the last xsl:import child element as insertion anchor
+            Node lastImport = null;
+            NodeList children = stylesheet.getChildNodes();
+            for (int i = 0; i < children.getLength(); i++)
             {
-                stylesheet.appendChild(doc.createTextNode("\n\n    "));
-                stylesheet.appendChild(doc.createComment(" Package stylesheets "));
+                Node child = children.item(i);
+                if (child.getNodeType() == Node.ELEMENT_NODE
+                        && XSL_NS.equals(child.getNamespaceURI())
+                        && "import".equals(child.getLocalName()))
+                    lastImport = child;
+            }
 
-                for (String packagePath : packagePaths)
+            Element newImport = doc.createElementNS(XSL_NS, "xsl:import");
+            newImport.setAttribute("href", href);
+
+            if (lastImport != null)
+            {
+                // Insert after the last import (before its next sibling)
+                stylesheet.insertBefore(doc.createTextNode("\n    "), lastImport.getNextSibling());
+                stylesheet.insertBefore(newImport, lastImport.getNextSibling());
+            }
+            else
+            {
+                // No existing imports — prepend at start of stylesheet
+                Node firstChild = stylesheet.getFirstChild();
+                stylesheet.insertBefore(newImport, firstChild);
+                stylesheet.insertBefore(doc.createTextNode("\n    "), newImport.getNextSibling());
+            }
+
+            serializeDocument(doc, masterFile);
+
+            if (log.isDebugEnabled()) log.debug("Added xsl:import href=\"{}\" to master stylesheet: {}", href, masterFile);
+        }
+        catch (ParserConfigurationException | SAXException | TransformerException | DOMException e)
+        {
+            throw new IOException("Failed to add package import to master stylesheet", e);
+        }
+    }
+
+    /**
+     * Removes a package import from the master stylesheet, preserving all other content.
+     *
+     * @param packagePath the package path (e.g., "com/linkeddatahub/packages/skos")
+     * @throws IOException if file operations fail
+     */
+    public void removePackageImport(String packagePath) throws IOException
+    {
+        removePackageImport(getStaticPath().resolve("xsl").resolve("layout.xsl"), packagePath);
+    }
+
+    /**
+     * Removes a package import from the specified master stylesheet, preserving all other content.
+     *
+     * @param masterFile path to the master stylesheet
+     * @param packagePath the package path (e.g., "com/linkeddatahub/packages/skos")
+     * @throws IOException if file operations fail
+     */
+    public void removePackageImport(Path masterFile, String packagePath) throws IOException
+    {
+        try
+        {
+            Document doc = parseDocument(masterFile);
+            Element stylesheet = doc.getDocumentElement();
+            String href = "../" + packagePath + "/layout.xsl";
+
+            // Find and remove the matching xsl:import element
+            Node targetImport = null;
+            NodeList children = stylesheet.getChildNodes();
+            for (int i = 0; i < children.getLength(); i++)
+            {
+                Node child = children.item(i);
+                if (child.getNodeType() == Node.ELEMENT_NODE
+                        && XSL_NS.equals(child.getNamespaceURI())
+                        && "import".equals(child.getLocalName())
+                        && href.equals(((Element) child).getAttribute("href")))
                 {
-                    stylesheet.appendChild(doc.createTextNode("\n    "));
-                    Element importElement = doc.createElementNS(XSL_NS, "xsl:import");
-                    importElement.setAttribute("href", "../" + packagePath + "/layout.xsl");
-                    stylesheet.appendChild(importElement);
-
-                    if (log.isDebugEnabled()) log.debug("Added xsl:import for package: {}", packagePath);
+                    targetImport = child;
+                    break;
                 }
             }
 
-            stylesheet.appendChild(doc.createTextNode("\n\n"));
+            if (targetImport == null)
+            {
+                if (log.isWarnEnabled()) log.warn("xsl:import href=\"{}\" not found in master stylesheet: {}", href, masterFile);
+                return;
+            }
 
-            // Write to file
-            Files.createDirectories(masterFile.getParent());
-            TransformerFactory transformerFactory = TransformerFactory.newInstance();
-            Transformer transformer = transformerFactory.newTransformer();
-            transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-            transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
-            transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "no");
-            transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
+            // Also remove the preceding text node (whitespace/newline) if present
+            Node prev = targetImport.getPreviousSibling();
+            if (prev != null && prev.getNodeType() == Node.TEXT_NODE)
+                stylesheet.removeChild(prev);
 
-            DOMSource source = new DOMSource(doc);
-            StreamResult result = new StreamResult(masterFile.toFile());
-            transformer.transform(source, result);
+            stylesheet.removeChild(targetImport);
 
-            if (log.isDebugEnabled()) log.debug("Regenerated master stylesheet at: {}", masterFile);
+            serializeDocument(doc, masterFile);
+
+            if (log.isDebugEnabled()) log.debug("Removed xsl:import href=\"{}\" from master stylesheet: {}", href, masterFile);
         }
-        catch (ParserConfigurationException | TransformerException | DOMException e)
+        catch (ParserConfigurationException | SAXException | TransformerException | DOMException e)
         {
-            throw new IOException("Failed to regenerate master stylesheet", e);
+            throw new IOException("Failed to remove package import from master stylesheet", e);
         }
+    }
+
+    private Document parseDocument(Path file) throws ParserConfigurationException, SAXException, IOException
+    {
+        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        factory.setNamespaceAware(true);
+        DocumentBuilder builder = factory.newDocumentBuilder();
+        return builder.parse(file.toFile());
+    }
+
+    private void serializeDocument(Document doc, Path file) throws TransformerException
+    {
+        TransformerFactory transformerFactory = TransformerFactory.newInstance();
+        Transformer transformer = transformerFactory.newTransformer();
+        transformer.setOutputProperty(OutputKeys.INDENT, "no");
+        transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
+        transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "no");
+
+        DOMSource source = new DOMSource(doc);
+        StreamResult result = new StreamResult(file.toFile());
+        transformer.transform(source, result);
     }
 
     /**
