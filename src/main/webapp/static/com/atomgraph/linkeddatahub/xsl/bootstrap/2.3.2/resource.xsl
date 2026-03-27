@@ -525,14 +525,11 @@ extension-element-prefixes="ixsl"
     
     <!-- XHTML content overrides -->
     <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&ldh;XHTML'][rdf:value[@rdf:parseType = 'Literal']/xhtml:div]" mode="bs2:Row" priority="1">
-        <!-- TO-DO: use ldh:request-uri() to resolve URIs server-side -->
         <xsl:param name="id" select="if (contains(@rdf:about, ac:absolute-path(ldh:base-uri(.)) || '#')) then substring-after(@rdf:about, ac:absolute-path(ldh:base-uri(.)) || '#') else generate-id()" as="xs:string?"/>
         <xsl:param name="class" select="'row-fluid block'" as="xs:string?"/>
         <xsl:param name="about" select="@rdf:about" as="xs:anyURI?"/>
         <xsl:param name="typeof" select="rdf:type/@rdf:resource/xs:anyURI(.)" as="xs:anyURI*"/>
         <xsl:param name="main-class" select="'main span7'" as="xs:string?"/>
-        <xsl:param name="transclude" select="false()" as="xs:boolean"/>
-        <xsl:param name="base" as="xs:anyURI?"/>
         <xsl:param name="draggable" select="false()" as="xs:boolean?"/>
 
         <xsl:apply-templates select="." mode="bs2:RowContentHeader"/>
@@ -585,10 +582,7 @@ extension-element-prefixes="ixsl"
                             <xsl:attribute name="class" select="$main-class"/>
                         </xsl:if>
 
-                        <xsl:apply-templates select="rdf:value[@rdf:parseType = 'Literal']/xhtml:div" mode="ldh:XHTMLContent">
-                            <xsl:with-param name="transclude" select="$transclude" tunnel="yes"/>
-                            <xsl:with-param name="base" select="$base" tunnel="yes"/>
-                        </xsl:apply-templates>
+                        <xsl:apply-templates select="rdf:value[@rdf:parseType = 'Literal']/xhtml:div" mode="ldh:XHTMLContent"/>
                     </div>
 
                     <xsl:apply-templates select="." mode="bs2:Right"/>
