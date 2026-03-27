@@ -53,10 +53,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import org.apache.jena.ontology.ConversionException;
 
 /**
@@ -275,23 +272,8 @@ public class UninstallPackage
      */
     private void regenerateMasterStylesheet(EndUserApplication app, com.atomgraph.linkeddatahub.apps.model.Package removedPackage) throws IOException
     {
-        // Get all currently installed packages and convert to stylesheet paths
-        Set<Resource> packageResources = app.getImportedPackages();
-        List<String> packagePaths = new ArrayList<>();
-
-        String removedPath = removedPackage.getStylesheetPath();
-        for (Resource pkgRes : packageResources)
-        {
-            com.atomgraph.linkeddatahub.apps.model.Package pkg = pkgRes.as(com.atomgraph.linkeddatahub.apps.model.Package.class);
-            String pkgPath = pkg.getStylesheetPath();
-            // Exclude the package being removed
-            if (!pkgPath.equals(removedPath))
-                packagePaths.add(pkgPath);
-        }
-
-        // Regenerate master stylesheet (XSLTMasterUpdater works with paths)
         XSLTMasterUpdater updater = new XSLTMasterUpdater(getServletContext());
-        updater.regenerateMasterStylesheet(packagePaths);
+        updater.removePackageImport(removedPackage.getStylesheetPath());
 
         // Purge master stylesheet from cache
         if (getSystem().getFrontendProxy() != null)
