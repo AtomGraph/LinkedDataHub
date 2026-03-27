@@ -89,7 +89,7 @@ public class XSLTMasterUpdater
             Element stylesheet = doc.getDocumentElement();
             String href = "../" + packagePath + "/layout.xsl";
 
-            // Find the last xsl:import child element as insertion anchor
+            // Find the last xsl:import child element as insertion anchor, checking for duplicates
             Node lastImport = null;
             NodeList children = stylesheet.getChildNodes();
             for (int i = 0; i < children.getLength(); i++)
@@ -98,7 +98,14 @@ public class XSLTMasterUpdater
                 if (child.getNodeType() == Node.ELEMENT_NODE
                         && XSL_NS.equals(child.getNamespaceURI())
                         && "import".equals(child.getLocalName()))
+                {
+                    if (href.equals(((Element) child).getAttribute("href")))
+                    {
+                        if (log.isWarnEnabled()) log.warn("xsl:import href=\"{}\" already present in master stylesheet, skipping", href);
+                        return;
+                    }
                     lastImport = child;
+                }
             }
 
             Element newImport = doc.createElementNS(XSL_NS, "xsl:import");
@@ -106,16 +113,17 @@ public class XSLTMasterUpdater
 
             if (lastImport != null)
             {
-                // Insert after the last import (before its next sibling)
-                stylesheet.insertBefore(doc.createTextNode("\n    "), lastImport.getNextSibling());
-                stylesheet.insertBefore(newImport, lastImport.getNextSibling());
+                // Capture anchor before any insertion — getNextSibling() shifts after insertBefore
+                Node anchor = lastImport.getNextSibling();
+                stylesheet.insertBefore(newImport, anchor);
+                stylesheet.insertBefore(doc.createTextNode("\n    "), newImport);
             }
             else
             {
                 // No existing imports — prepend at start of stylesheet
                 Node firstChild = stylesheet.getFirstChild();
                 stylesheet.insertBefore(newImport, firstChild);
-                stylesheet.insertBefore(doc.createTextNode("\n    "), newImport.getNextSibling());
+                stylesheet.insertBefore(doc.createTextNode("\n    "), newImport);
             }
 
             serializeDocument(doc, masterFile);
