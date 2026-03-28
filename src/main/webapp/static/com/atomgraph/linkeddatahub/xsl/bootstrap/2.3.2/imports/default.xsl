@@ -1214,33 +1214,14 @@ exclude-result-prefixes="#all"
         </xsl:copy>
     </xsl:template>
     
-    <!-- rewrite @ids so they don't class with the parent document's when transcluded -->
-    <xsl:template match="@id" mode="ldh:XHTMLContent" priority="1">
-        <xsl:param name="transclude" select="false()" as="xs:boolean" tunnel="yes"/>
-        
-        <xsl:choose>
-            <xsl:when test="$transclude">
-                <xsl:attribute name="{name()}" select="generate-id()"/>
-            </xsl:when>
-            <xsl:otherwise>
-                <xsl:copy/>
-            </xsl:otherwise>
-        </xsl:choose>
+    <!-- resolve relative @href URIs against base in proxy mode -->
+    <xsl:template match="@href[not(ac:absolute-path(ldh:base-uri(.)) = ac:absolute-path(ldh:request-uri()))][not(starts-with(., '/')) and not(starts-with(., '#')) and not(contains(., ':'))]" mode="ldh:XHTMLContent" priority="1">
+        <xsl:attribute name="{name()}" select="resolve-uri(., ldh:base-uri(.))"/>
     </xsl:template>
 
-    <!-- resolve relative @href URIs against base when transcluding -->
-    <xsl:template match="@href[starts-with(., '.')]" mode="ldh:XHTMLContent" priority="1">
-        <xsl:param name="transclude" select="false()" as="xs:boolean" tunnel="yes"/>
-        <xsl:param name="base" as="xs:anyURI?" tunnel="yes"/>
-        
-        <xsl:choose>
-            <xsl:when test="$transclude">
-                <xsl:attribute name="{name()}" select="resolve-uri(., $base)"/>
-            </xsl:when>
-            <xsl:otherwise>
-                <xsl:copy/>
-            </xsl:otherwise>
-        </xsl:choose>
+    <!-- resolve relative @src URIs against base in proxy mode -->
+    <xsl:template match="@src[not(ac:absolute-path(ldh:base-uri(.)) = ac:absolute-path(ldh:request-uri()))][not(starts-with(., '/')) and not(starts-with(., '#')) and not(contains(., ':'))]" mode="ldh:XHTMLContent" priority="1">
+        <xsl:attribute name="{name()}" select="resolve-uri(., ldh:base-uri(.))"/>
     </xsl:template>
-    
+
 </xsl:stylesheet>

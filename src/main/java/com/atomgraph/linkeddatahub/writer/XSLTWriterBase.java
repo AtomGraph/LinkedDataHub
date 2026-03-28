@@ -120,8 +120,6 @@ public abstract class XSLTWriterBase extends com.atomgraph.client.writer.XSLTWri
         try
         {
             params.put(new QName("ldh", LDH.requestUri.getNameSpace(), LDH.requestUri.getLocalName()), new XdmAtomicValue(getRequestURI()));
-            if (getURI() != null) params.put(new QName("ac", AC.uri.getNameSpace(), AC.uri.getLocalName()), new XdmAtomicValue(getURI()));
-            else params.put(new QName("ac", AC.uri.getNameSpace(), AC.uri.getLocalName()), new XdmAtomicValue(getRequestURI()));
 
             Optional<com.atomgraph.linkeddatahub.apps.model.Application> appOpt = getApplication().get();
             if (!appOpt.isPresent())
