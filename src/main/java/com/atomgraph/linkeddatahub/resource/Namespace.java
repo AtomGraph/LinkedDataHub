@@ -51,6 +51,7 @@ import org.apache.jena.iri.IRIFactory;
 import org.apache.jena.ontology.Ontology;
 import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.query.Query;
+import org.apache.jena.query.QueryFactory;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.riot.system.Checker;
@@ -148,6 +149,8 @@ public class Namespace extends com.atomgraph.core.model.impl.SPARQLEndpointImpl
             else throw new BadRequestException("SPARQL query string not provided");
         }
         
+        // re-parse query to set explicit fallback base URI
+        query = QueryFactory.create(query.toString(), getUriInfo().getAbsolutePath().toString());
         return super.get(query, defaultGraphUris, namedGraphUris);
     }
     
@@ -160,6 +163,8 @@ public class Namespace extends com.atomgraph.core.model.impl.SPARQLEndpointImpl
     {
         if (updateString != null) throw new WebApplicationException("SPARQL updates are not allowed on the <ns> endpoint", Status.METHOD_NOT_ALLOWED);
 
+        // re-parse query to set explicit fallback base URI
+        queryString = QueryFactory.create(queryString, getUriInfo().getAbsolutePath().toString()).toString();
         return super.post(queryString, updateString, defaultGraphUris, namedGraphUris, usingGraphUris, usingNamedGraphUris);
     }
     

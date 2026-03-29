@@ -54,10 +54,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
-import java.util.Set;
+import jakarta.ws.rs.NotFoundException;
+import jakarta.ws.rs.ProcessingException;
 import org.apache.jena.ontology.ConversionException;
 import org.apache.jena.update.UpdateFactory;
 import org.apache.jena.update.UpdateRequest;
@@ -253,7 +252,18 @@ public class InstallPackage
         else
         {
             GraphStoreClient gsc = GraphStoreClient.create(getSystem().getClient(), getSystem().getMediaTypes());
-            model = gsc.getModel(packageURI);
+            try
+            {
+                model = gsc.getModel(packageURI);
+            }
+            catch (NotFoundException ex) // 404 from the package server
+            {
+                return null;
+            }
+            catch (ProcessingException ex) // connection refused, timeout, etc.
+            {
+                return null;
+            }
         }
 
         try
@@ -419,24 +429,8 @@ public class InstallPackage
      */
     private void regenerateMasterStylesheet(EndUserApplication app, com.atomgraph.linkeddatahub.apps.model.Package newPackage) throws IOException
     {
-        // Get all currently installed packages and convert to stylesheet paths
-        Set<Resource> packageResources = app.getImportedPackages();
-        List<String> packagePaths = new ArrayList<>();
-
-        for (Resource pkgRes : packageResources)
-        {
-            com.atomgraph.linkeddatahub.apps.model.Package pkg = pkgRes.as(com.atomgraph.linkeddatahub.apps.model.Package.class);
-            packagePaths.add(pkg.getStylesheetPath());
-        }
-
-        // Add the new package path
-        String newPath = newPackage.getStylesheetPath();
-        if (!packagePaths.contains(newPath))
-            packagePaths.add(newPath);
-
-        // Regenerate master stylesheet (XSLTMasterUpdater works with paths)
         XSLTMasterUpdater updater = new XSLTMasterUpdater(getServletContext());
-        updater.regenerateMasterStylesheet(packagePaths);
+        updater.addPackageImport(newPackage.getStylesheetPath());
     }
 
     /**

@@ -1,4 +1,4 @@
-.PHONY: sef drop cert release
+.PHONY: sef drop cert release tests
 
 # Generate Saxon-JS SEF files for client-side XSLT transformations
 sef:
@@ -10,8 +10,12 @@ drop:
 
 # Generate server SSL certificate using the .env config
 cert:
-	./bin/server-cert-gen.sh .env nginx ssl
+	server-cert-gen.sh .env nginx ssl
 
 # Run the full Maven release process (prepare, deploy to Sonatype, merge to master/develop)
 release:
 	./release.sh
+
+# Run HTTP tests using owner and secretary certificates with passwords from secrets/
+tests:
+	cd http-tests && ./run.sh ../ssl/owner/cert.pem $$(cat ../secrets/owner_cert_password.txt) ../ssl/secretary/cert.pem $$(cat ../secrets/secretary_cert_password.txt)

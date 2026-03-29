@@ -100,7 +100,6 @@ exclude-result-prefixes="#all">
 
     <xsl:output method="xhtml" encoding="UTF-8" indent="yes" omit-xml-declaration="yes" doctype-system="http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd" doctype-public="-//W3C//DTD XHTML 1.0 Strict//EN" media-type="application/xhtml+xml"/>
 
-<!--    <xsl:param name="ldh:base" as="xs:anyURI" static="yes"/>-->
     <xsl:param name="lapp:origin" as="xs:anyURI"/>
     <xsl:param name="ldh:requestUri" as="xs:anyURI"/>
     <xsl:param name="ac:endpoint" select="resolve-uri('sparql', $ldt:base)" as="xs:anyURI"/>
@@ -109,7 +108,6 @@ exclude-result-prefixes="#all">
     <xsl:param name="lapp:Context" as="document-node()?"/>
     <xsl:param name="foaf:Agent" select="if ($acl:agent) then document(ac:document-uri($acl:agent)) else ()" as="document-node()?"/>
     <xsl:param name="force-exclude-all-namespaces" select="true()"/>
-    <xsl:param name="ac:uri" as="xs:anyURI"/>
     <xsl:param name="ac:httpHeaders" as="xs:string"/> 
     <xsl:param name="ac:method" as="xs:string"/>
     <xsl:param name="acl:mode" as="xs:anyURI*"/>
@@ -589,7 +587,7 @@ exclude-result-prefixes="#all">
                 </select>
                 
                 <input type="text" id="uri" name="uri" class="input-xxlarge typeahead">
-                    <xsl:if test="not(starts-with(ac:absolute-path(ldh:base-uri(.)), $ldt:base))">
+                    <xsl:if test="not(ac:absolute-path(ldh:base-uri(.)) = ac:absolute-path(ldh:request-uri()))">
                         <xsl:attribute name="value" select="ldh:base-uri(.)"/>
                     </xsl:if>
                 </input>

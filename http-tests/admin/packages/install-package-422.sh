@@ -13,6 +13,6 @@ curl -k -w "%{http_code}\n" -o /dev/null -s \
   -E "$OWNER_CERT_FILE":"$OWNER_CERT_PWD" \
   -X POST \
   -H "Content-Type: application/x-www-form-urlencoded" \
-  --data-urlencode "package-uri=https://packages.linkeddatahub.com/nonexistent/#package" \
+  --data-urlencode "package-uri=${END_USER_BASE_URL}static/nonexistent/#package" \
   "${ADMIN_BASE_URL}packages/install" \
 | grep -q "$STATUS_UNPROCESSABLE_ENTITY"

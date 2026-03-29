@@ -70,7 +70,8 @@ import com.atomgraph.linkeddatahub.writer.factory.XsltExecutableSupplierFactory;
 import com.atomgraph.client.util.XsltResolver;
 import com.atomgraph.linkeddatahub.client.GraphStoreClient;
 import com.atomgraph.linkeddatahub.client.filter.ClientUriRewriteFilter;
-import com.atomgraph.linkeddatahub.client.filter.grddl.YouTubeGRDDLFilter;
+import com.atomgraph.linkeddatahub.client.filter.JSONGRDDLFilter;
+import com.atomgraph.linkeddatahub.client.filter.JSONGRDDLFilterProvider;
 import com.atomgraph.linkeddatahub.imports.ImportExecutor;
 import com.atomgraph.linkeddatahub.io.HtmlJsonLDReaderFactory;
 import com.atomgraph.linkeddatahub.io.JsonLDReader;
@@ -153,6 +154,7 @@ import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.HashMap;
+import java.util.ServiceLoader;
 import java.util.Map;
 import java.util.Properties;
 import jakarta.mail.Authenticator;
@@ -1168,17 +1170,19 @@ public class Application extends ResourceConfig
      */
     protected void registerClientFilters()
     {
-        try
+        ServiceLoader.load(JSONGRDDLFilterProvider.class).forEach(provider ->
         {
-            // Register YouTube GRDDL filter
-            YouTubeGRDDLFilter youtubeFilter = new YouTubeGRDDLFilter(xsltComp);
-            client.register(youtubeFilter);
-            externalClient.register(youtubeFilter);
-        }
-        catch (SaxonApiException ex)
-        {
-            if (log.isErrorEnabled()) log.error("Failed to initialize GRDDL client filter");
-        }
+            try
+            {
+                JSONGRDDLFilter filter = provider.getFilter(xsltComp);
+                client.register(filter);
+                externalClient.register(filter);
+            }
+            catch (SaxonApiException ex)
+            {
+                if (log.isErrorEnabled()) log.error("Failed to initialize GRDDL client filter for {}", provider.getClass().getSimpleName());
+            }
+        });
     }
     
     /**
