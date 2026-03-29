@@ -70,9 +70,11 @@ public class ClientUriRewriteFilter implements ClientRequestFilter
         String newScheme = cr.getUri().getScheme();
         if (getProxyScheme() != null) newScheme = getProxyScheme();
 
-        // Preserve subdomain prefix to avoid HTTP client connection pool conflating subdomain and base domain connections
+        // Preserve subdomain prefix only when proxyHost is the same domain as host, to prevent
+        // the HTTP client reusing a connection with a different TLS SNI (which causes 421).
+        // When proxyHost is a distinct internal hostname (e.g. "nginx"), no collision is possible.
         String newHost = getProxyHost();
-        if (cr.getUri().getHost().endsWith("." + getHost()))
+        if (cr.getUri().getHost().endsWith("." + getHost()) && getProxyHost().equals(getHost()))
         {
             String subdomainPrefix = cr.getUri().getHost().substring(0, cr.getUri().getHost().length() - getHost().length()); // e.g. "admin."
             newHost = subdomainPrefix + getProxyHost();

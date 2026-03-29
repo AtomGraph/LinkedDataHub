@@ -135,15 +135,16 @@ public class ClientUriRewriteFilterTest
 
     /**
      * Subdomain match with internal proxy host (Docker Compose setup):
-     * subdomain prefix is prepended to the proxy hostname for nginx virtual-host routing.
+     * subdomain prefix must NOT be prepended to the proxy hostname — the internal
+     * hostname (e.g. "nginx") has no subdomain equivalent. nginx routes via Host header.
      */
     @Test
-    public void testRewriteSubdomainPreservesSubdomainWithInternalProxy() throws IOException
+    public void testRewriteSubdomainWithInternalProxyUsesProxyHostOnly() throws IOException
     {
         ClientUriRewriteFilter filter = new ClientUriRewriteFilter("example.com", "http", "nginx", 9443);
         StubRequestContext ctx = new StubRequestContext(URI.create("https://admin.example.com/path"));
         filter.filter(ctx);
-        assertEquals(URI.create("http://admin.nginx:9443/path"), ctx.getUri());
+        assertEquals(URI.create("http://nginx:9443/path"), ctx.getUri());
         assertEquals("admin.example.com", ctx.getHeaders().getFirst("Host"));
     }
 
