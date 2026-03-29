@@ -70,8 +70,16 @@ public class ClientUriRewriteFilter implements ClientRequestFilter
         String newScheme = cr.getUri().getScheme();
         if (getProxyScheme() != null) newScheme = getProxyScheme();
 
+        // Preserve subdomain prefix to avoid HTTP client connection pool conflating subdomain and base domain connections
+        String newHost = getProxyHost();
+        if (cr.getUri().getHost().endsWith("." + getHost()))
+        {
+            String subdomainPrefix = cr.getUri().getHost().substring(0, cr.getUri().getHost().length() - getHost().length()); // e.g. "admin."
+            newHost = subdomainPrefix + getProxyHost();
+        }
+
         // cannot use the URI class because query string with special chars such as '+' gets decoded
-        URI newUri = UriBuilder.fromUri(cr.getUri()).scheme(newScheme).host(getProxyHost()).port(getProxyPort()).build();
+        URI newUri = UriBuilder.fromUri(cr.getUri()).scheme(newScheme).host(newHost).port(getProxyPort()).build();
 
         if (log.isDebugEnabled()) log.debug("Rewriting client request URI from '{}' to '{}'", cr.getUri(), newUri);
         cr.setUri(newUri);
