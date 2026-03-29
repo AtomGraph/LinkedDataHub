@@ -7,9 +7,9 @@ if [ "$#" -ne 4 ]; then
   exit 1
 fi
 
-export OWNER_CERT_FILE="$1"
+export OWNER_CERT_FILE="$(realpath "$1")"
 export OWNER_CERT_PWD="$2"
-export SECRETARY_CERT_FILE="$3"
+export SECRETARY_CERT_FILE="$(realpath "$3")"
 export SECRETARY_CERT_PWD="$4"
 
 export STATUS_OK=200
