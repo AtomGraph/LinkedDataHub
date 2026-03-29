@@ -1,3 +1,19 @@
+## [5.3.1] - 2026-03-29
+### Added
+- Namespace endpoint handles queries with relative URIs, resolved against the endpoint URL (#276 related)
+- GRDDL filters loaded using `ServiceLoader` for better extensibility
+- HTTP tests for namespace endpoint relative URI queries
+- HTTP test for package stylesheet deduplication
+
+### Changed
+- `XSLTMasterUpdater` refactored: `regenerateMasterStylesheet()` replaced with `addPackageImport()`/`removePackageImport()` methods that preserve existing stylesheet content (#275)
+- Resolving relative URLs in XHTML literals against the document's base URI (#276)
+- Removed unused XSLT params
+- `make tests` command added to Makefile
+
+### Fixed
+- Fixed `XSLTMasterUpdater` to avoid duplicate `xsl:import` statements when installing packages (#275)
+
 ## [5.3.0] - 2026-03-05
 ### Added
 - Class-based navigation (#270)
