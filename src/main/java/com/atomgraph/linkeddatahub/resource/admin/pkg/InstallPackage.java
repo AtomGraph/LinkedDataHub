@@ -55,6 +55,8 @@ import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Optional;
+import jakarta.ws.rs.NotFoundException;
+import jakarta.ws.rs.ProcessingException;
 import org.apache.jena.ontology.ConversionException;
 import org.apache.jena.update.UpdateFactory;
 import org.apache.jena.update.UpdateRequest;
@@ -250,7 +252,18 @@ public class InstallPackage
         else
         {
             GraphStoreClient gsc = GraphStoreClient.create(getSystem().getClient(), getSystem().getMediaTypes());
-            model = gsc.getModel(packageURI);
+            try
+            {
+                model = gsc.getModel(packageURI);
+            }
+            catch (NotFoundException ex) // 404 from the package server
+            {
+                return null;
+            }
+            catch (ProcessingException ex) // connection refused, timeout, etc.
+            {
+                return null;
+            }
         }
 
         try
