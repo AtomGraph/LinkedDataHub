@@ -521,8 +521,6 @@ SECRETARY_URI="${SECRETARY_URI:-${ADMIN_BASE_URI}acl/agents/${SECRETARY_UUID}/#t
 
 OWNER_DATASET_PATH="/var/linkeddatahub/datasets/owner/${OWNER_CERT_ALIAS}.trig"
 
-printf "\n### Owner's WebID URI: %s\n" "$OWNER_URI"
-
 # generate owner's keystore, cert, and public key if the public key does not exist
 # store owner's metadata in an RDF dataset
 if [ ! -f "$OWNER_PUBLIC_KEY" ]; then
@@ -559,8 +557,6 @@ if [ ! -f "$OWNER_PUBLIC_KEY" ]; then
 fi
 
 SECRETARY_DATASET_PATH="/var/linkeddatahub/datasets/secretary/${SECRETARY_CERT_ALIAS}.trig"
-
-printf "\n### Secretary's WebID URI: %s\n" "$SECRETARY_URI"
 
 # generate secretary's keystore,  cert, and public key if the public key does not exist
 # store secretary's metadata in an RDF dataset
@@ -623,6 +619,9 @@ SECRETARY_DOC_URI=$(echo "$secretary_metadata" | xmlstarlet sel -N srx="http://w
 SECRETARY_KEY_URI=$(echo "$secretary_metadata" | xmlstarlet sel -N srx="http://www.w3.org/2005/sparql-results#" -T -t -v "/srx:sparql/srx:results/srx:result/srx:binding[@name='key']/srx:uri")
 SECRETARY_KEY_DOC_URI=$(echo "$SECRETARY_KEY_URI" | sed 's|#this$||')
 SECRETARY_KEY_URI="${SECRETARY_KEY_DOC_URI}#this"
+
+printf "\n### Owner's WebID URI: %s\n" "$OWNER_URI"
+printf "\n### Secretary's WebID URI: %s\n" "$SECRETARY_URI"
 
 # Note: LOAD_DATASETS check is now done per-app inside the loop
 

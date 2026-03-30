@@ -189,7 +189,7 @@ public class XsltExecutableFilter implements ContainerResponseFilter
             try (Response cr = builder.accept(MediaType.TEXT_XSL_TYPE).get())
             {
                 if (!cr.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
-                    throw new IOException("XSLT stylesheet could not be successfully loaded over HTTP");
+                    throw new IOException("XSLT stylesheet could not be successfully loaded over HTTP. URL: " + uri);
 
                 // buffer the stylesheet stream so we can close Response
                 try (InputStream is = cr.readEntity(InputStream.class))
