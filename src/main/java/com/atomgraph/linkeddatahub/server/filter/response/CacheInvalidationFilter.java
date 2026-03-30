@@ -60,8 +60,9 @@ public class CacheInvalidationFilter implements ContainerResponseFilter
     @Override
     public void filter(ContainerRequestContext req, ContainerResponseContext resp) throws IOException
     {
-        // If no application was matched (e.g., non-existent dataspace), skip cache invalidation
-        if (!getApplication().isPresent()) return;
+        // If no application was matched (e.g., non-existent dataspace or request scope unavailable), skip cache invalidation
+        Optional<com.atomgraph.linkeddatahub.apps.model.Application> application = getApplication();
+        if (application == null || !application.isPresent()) return;
 
         if (req.getMethod().equals(HttpMethod.POST) && resp.getHeaderString(HttpHeaders.LOCATION) != null)
         {
