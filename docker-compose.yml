@@ -17,6 +17,7 @@ secrets:
   #   file: ./secrets/credentials.trig
 volumes:
   varnish_frontend_cache:
+  varnish_end_user_cache:
 services:
   nginx:
     image: nginx:1.23.3
@@ -153,8 +154,10 @@ services:
     depends_on:
       - linkeddatahub
     tmpfs: /var/lib/varnish/varnishd:exec
+    volumes:
+      - varnish_end_user_cache:/var/lib/varnish
     entrypoint: varnishd
-    command: [ "-F", "-f", "/etc/varnish/default.vcl", "-a", "http=:80,HTTP", "-a", "proxy=:8443,PROXY", "-p", "feature=+http2", "-s", "malloc,1G", "-t", "86400", "-p", "timeout_idle=60s" ] # -F: foreground, -f: config, -a: listeners, -p: http2 + idle timeout, -s: storage, -t: TTL
+    command: [ "-F", "-f", "/etc/varnish/default.vcl", "-a", "http=:80,HTTP", "-a", "proxy=:8443,PROXY", "-p", "feature=+http2", "-s", "file,/var/lib/varnish/storage.bin,3G", "-t", "86400", "-p", "timeout_idle=60s" ] # -F: foreground, -f: config, -a: listeners, -p: http2 + idle timeout, -s: storage, -t: TTL
   email-server:
     image: namshi/smtp
     environment:
