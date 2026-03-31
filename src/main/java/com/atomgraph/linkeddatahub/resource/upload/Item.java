@@ -108,6 +108,8 @@ public class Item
     public void init()
     {
         getResource().getModel().add(describe());
+        
+        if (getResource().getModel().isEmpty()) throw new NotFoundException("File not found");
     }
 
     /**
