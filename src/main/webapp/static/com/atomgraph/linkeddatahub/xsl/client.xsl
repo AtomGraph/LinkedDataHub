@@ -302,6 +302,7 @@ WHERE
             </xsl:when>
             <xsl:otherwise>
                 <xsl:apply-templates select="ixsl:page()" mode="ldh:HTMLDocumentLoaded">
+                    <xsl:with-param name="href" select="xs:anyURI(ixsl:location())"/>
                     <xsl:with-param name="endpoint" select="$sd:endpoint"/>
                     <xsl:with-param name="container" select="id($body-id, ixsl:page())"/>
                     <xsl:with-param name="replace-content" select="false()"/>
@@ -830,7 +831,7 @@ WHERE
 
         <xsl:if test="$push-state">
             <xsl:call-template name="ldh:PushState">
-                <xsl:with-param name="href" select="ldh:href($href, ldh:query-params(ac:mode()))"/>
+                <xsl:with-param name="href" select="ldh:href($href, ldh:query-params(ac:mode()), $fragment)"/>
                 <xsl:with-param name="title" select="/html/head/title"/>
                 <xsl:with-param name="container" select="$container"/>
             </xsl:call-template>
@@ -846,17 +847,6 @@ WHERE
             <xsl:with-param name="refresh-content" select="$refresh-content"/>
         </xsl:call-template>
     </xsl:template>
-    
-    <!-- post-HTML load hook, mainly for navigation updates -->
-
-<!--    <xsl:template name="ldh:PostHTMLDocumentLoad">
-        <xsl:param name="href" as="xs:anyURI"/>  possibly proxied URL 
-
-         update the sidebar 
-        <xsl:call-template name="ldh:NavigationUpdate">
-            <xsl:with-param name="href" select="$href"/>
-        </xsl:call-template>
-    </xsl:template>-->
     
     <xsl:template name="ldt:AppChanged">
         <xsl:param name="base" as="xs:anyURI"/>
