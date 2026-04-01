@@ -115,10 +115,10 @@ extension-element-prefixes="ixsl"
     <xsl:include href="bootstrap/2.3.2/client/block/query.xsl"/>
 
     <xsl:param name="ac:contextUri" as="xs:anyURI"/>
-    <xsl:param name="lapp:application" as="xs:anyURI"/>
-    <xsl:param name="ldt:base" as="xs:anyURI"/>
     <xsl:param name="ldh:requestUri" select="xs:anyURI(ixsl:location())" as="xs:anyURI"/>
-    <xsl:param name="ldt:ontology" as="xs:anyURI"/> <!-- used in default.xsl -->
+    <xsl:param name="lapp:application" as="xs:anyURI?"/>
+    <xsl:param name="ldt:base" as="xs:anyURI?"/>
+    <xsl:param name="ldt:ontology" as="xs:anyURI?"/> <!-- used in default.xsl -->
     <xsl:param name="acl:agent" as="xs:anyURI?"/>
     <xsl:param name="sd:endpoint" as="xs:anyURI?"/>
     <xsl:param name="app-request-uri" as="xs:anyURI"/>

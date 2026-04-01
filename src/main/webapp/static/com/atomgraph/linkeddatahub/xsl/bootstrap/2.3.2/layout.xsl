@@ -105,7 +105,7 @@ exclude-result-prefixes="#all">
     <xsl:param name="ac:endpoint" select="if ($ldt:base) then resolve-uri('sparql', $ldt:base) else ()" as="xs:anyURI?"/>
     <xsl:param name="sd:endpoint" as="xs:anyURI?"/>
     <xsl:param name="acl:agent" as="xs:anyURI?"/>
-    <xsl:param name="lapp:Context" as="document-node()?"/>
+    <xsl:param name="lapp:Context" as="document-node()"/>
     <xsl:param name="foaf:Agent" select="if ($acl:agent) then document(ac:document-uri($acl:agent)) else ()" as="document-node()?"/>
     <xsl:param name="ac:httpHeaders" as="xs:string"/> 
     <xsl:param name="ac:method" as="xs:string"/>
@@ -380,12 +380,16 @@ exclude-result-prefixes="#all">
             <xsl:text disable-output-escaping="yes">
               //&lt;![CDATA[
             </xsl:text>
+            <xsl:if test="$lapp:origin">
+                <![CDATA[
+                    var appUri = ]]><xsl:value-of select="'&quot;' || key('apps-by-origin', $lapp:origin, $lapp:Context)/@rdf:about || '&quot;'" disable-output-escaping="yes"/><![CDATA[;
+                    var baseUri = ]]><xsl:value-of select="'&quot;' || $ldt:base || '&quot;'" disable-output-escaping="yes"/><![CDATA[;
+                    var ontologyUri = ]]><xsl:value-of select="'&quot;' || $ldt:ontology || '&quot;'" disable-output-escaping="yes"/><![CDATA[;
+                    var endpointUri = ]]><xsl:value-of select="if ($sd:endpoint) then '&quot;' || $sd:endpoint || '&quot;'  else 'null'" disable-output-escaping="yes"/><![CDATA[;
+                ]]>
+            </xsl:if>
             <![CDATA[
-                var appUri = ]]><xsl:value-of select="'&quot;' || key('apps-by-origin', $lapp:origin, $lapp:Context)/@rdf:about || '&quot;'" disable-output-escaping="yes"/><![CDATA[;
-                var baseUri = ]]><xsl:value-of select="'&quot;' || $ldt:base || '&quot;'" disable-output-escaping="yes"/><![CDATA[;
                 var absolutePath = ]]><xsl:value-of select="'&quot;' || ac:absolute-path(ldh:base-uri(.)) || '&quot;'" disable-output-escaping="yes"/><![CDATA[;
-                var ontologyUri = ]]><xsl:value-of select="'&quot;' || $ldt:ontology || '&quot;'" disable-output-escaping="yes"/><![CDATA[;
-                var endpointUri = ]]><xsl:value-of select="if ($sd:endpoint) then '&quot;' || $sd:endpoint || '&quot;'  else 'null'" disable-output-escaping="yes"/><![CDATA[;
                 var contextUri = ]]><xsl:value-of select="if ($ac:contextUri) then '&quot;' || $ac:contextUri || '&quot;'  else 'null'" disable-output-escaping="yes"/><![CDATA[;
                 var agentUri = []]><xsl:value-of select="if ($acl:agent) then '&quot;' || $acl:agent || '&quot;'  else 'null'" disable-output-escaping="yes"/><![CDATA[];
                 var accessModeUri = []]><xsl:value-of select="string-join(for $mode in $acl:mode return '&quot;' || $mode || '&quot;', ', ')" disable-output-escaping="yes"/><![CDATA[];
