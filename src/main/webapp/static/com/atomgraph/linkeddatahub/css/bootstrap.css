@@ -168,7 +168,8 @@ button.add-typeahead { width: 219px; }
 div[typeof="https://w3id.org/atomgraph/linkeddatahub#XHTML"] .main { font-size: larger; line-height: 25px; }
 div[typeof="https://w3id.org/atomgraph/linkeddatahub#XHTML"] .form-horizontal .control-label { display: none; }
 div[typeof="https://w3id.org/atomgraph/linkeddatahub#XHTML"] .form-horizontal .controls { margin-left: 0; }
-.span12.progress > div:first-child { background-color: #e9ecef; }
+.span12.progress .row-block-controls { background-color: #e9ecef; }
+.span12.progress .bar { height: 20px; }
 /* .content .btn.add-typeahead { margin-top: -10px; } */
 object { display: block; margin: auto; max-height: 400px; overflow: hidden; width: 100%; }
 .chart-canvas { width: 100%; height: 400px; }

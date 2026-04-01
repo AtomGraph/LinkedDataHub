@@ -115,10 +115,10 @@ extension-element-prefixes="ixsl"
     <xsl:include href="bootstrap/2.3.2/client/block/query.xsl"/>
 
     <xsl:param name="ac:contextUri" as="xs:anyURI"/>
-    <xsl:param name="lapp:application" as="xs:anyURI"/>
-    <xsl:param name="ldt:base" as="xs:anyURI"/>
     <xsl:param name="ldh:requestUri" select="xs:anyURI(ixsl:location())" as="xs:anyURI"/>
-    <xsl:param name="ldt:ontology" as="xs:anyURI"/> <!-- used in default.xsl -->
+    <xsl:param name="lapp:application" as="xs:anyURI?"/>
+    <xsl:param name="ldt:base" as="xs:anyURI?"/>
+    <xsl:param name="ldt:ontology" as="xs:anyURI?"/> <!-- used in default.xsl -->
     <xsl:param name="acl:agent" as="xs:anyURI?"/>
     <xsl:param name="sd:endpoint" as="xs:anyURI?"/>
     <xsl:param name="app-request-uri" as="xs:anyURI"/>
@@ -302,6 +302,7 @@ WHERE
             </xsl:when>
             <xsl:otherwise>
                 <xsl:apply-templates select="ixsl:page()" mode="ldh:HTMLDocumentLoaded">
+                    <xsl:with-param name="href" select="xs:anyURI(ixsl:location())"/>
                     <xsl:with-param name="endpoint" select="$sd:endpoint"/>
                     <xsl:with-param name="container" select="id($body-id, ixsl:page())"/>
                     <xsl:with-param name="replace-content" select="false()"/>
@@ -830,7 +831,7 @@ WHERE
 
         <xsl:if test="$push-state">
             <xsl:call-template name="ldh:PushState">
-                <xsl:with-param name="href" select="ldh:href($href, ldh:query-params(ac:mode()))"/>
+                <xsl:with-param name="href" select="ldh:href($href, ldh:query-params(ac:mode()), $fragment)"/>
                 <xsl:with-param name="title" select="/html/head/title"/>
                 <xsl:with-param name="container" select="$container"/>
             </xsl:call-template>
@@ -846,17 +847,6 @@ WHERE
             <xsl:with-param name="refresh-content" select="$refresh-content"/>
         </xsl:call-template>
     </xsl:template>
-    
-    <!-- post-HTML load hook, mainly for navigation updates -->
-
-<!--    <xsl:template name="ldh:PostHTMLDocumentLoad">
-        <xsl:param name="href" as="xs:anyURI"/>  possibly proxied URL 
-
-         update the sidebar 
-        <xsl:call-template name="ldh:NavigationUpdate">
-            <xsl:with-param name="href" select="$href"/>
-        </xsl:call-template>
-    </xsl:template>-->
     
     <xsl:template name="ldt:AppChanged">
         <xsl:param name="base" as="xs:anyURI"/>

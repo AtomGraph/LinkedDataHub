@@ -120,21 +120,18 @@ public abstract class XSLTWriterBase extends com.atomgraph.client.writer.XSLTWri
         try
         {
             params.put(new QName("ldh", LDH.requestUri.getNameSpace(), LDH.requestUri.getLocalName()), new XdmAtomicValue(getRequestURI()));
+            params.put(new QName("lapp", LAPP.Context.getNameSpace(), LAPP.Context.getLocalName()),
+                getXsltExecutable().getProcessor().newDocumentBuilder().build(getSource(getSystem().getContextModel())));
 
             Optional<com.atomgraph.linkeddatahub.apps.model.Application> appOpt = getApplication().get();
-            if (!appOpt.isPresent())
+            if (appOpt.isPresent())
             {
-                if (log.isWarnEnabled()) log.warn("Application not present in XSLTWriterBase.getParameters()");
-                return params; // return early if no application
+                com.atomgraph.linkeddatahub.apps.model.Application app = appOpt.get();
+                if (log.isDebugEnabled()) log.debug("Passing $lapp:Application to XSLT: <{}>", app);
+                params.put(new QName("ldt", LDT.base.getNameSpace(), LDT.base.getLocalName()), new XdmAtomicValue(app.getBaseURI()));
+                params.put(new QName("lapp", LAPP.origin.getNameSpace(), LAPP.origin.getLocalName()), new XdmAtomicValue(app.getOriginURI()));
+                params.put(new QName("ldt", LDT.ontology.getNameSpace(), LDT.ontology.getLocalName()), new XdmAtomicValue(URI.create(app.getOntology().getURI())));
             }
-
-            com.atomgraph.linkeddatahub.apps.model.Application app = appOpt.get();
-            if (log.isDebugEnabled()) log.debug("Passing $lapp:Application to XSLT: <{}>", app);
-            params.put(new QName("ldt", LDT.base.getNameSpace(), LDT.base.getLocalName()), new XdmAtomicValue(app.getBaseURI()));
-            params.put(new QName("lapp", LAPP.origin.getNameSpace(), LAPP.origin.getLocalName()), new XdmAtomicValue(app.getOriginURI()));
-            params.put(new QName("ldt", LDT.ontology.getNameSpace(), LDT.ontology.getLocalName()), new XdmAtomicValue(URI.create(app.getOntology().getURI())));
-            params.put(new QName("lapp", LAPP.Context.getNameSpace(), LAPP.Context.getLocalName()),
-                getXsltExecutable().getProcessor().newDocumentBuilder().build(getSource(app.getModel())));
             
             URI endpointURI = getLinkURI(headerMap, SD.endpoint);
             if (endpointURI != null) params.put(new QName("sd", SD.endpoint.getNameSpace(), SD.endpoint.getLocalName()), new XdmAtomicValue(endpointURI));

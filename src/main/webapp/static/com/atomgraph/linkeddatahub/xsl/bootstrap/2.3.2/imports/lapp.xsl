@@ -22,7 +22,7 @@ xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
 exclude-result-prefixes="#all">
 
     <!-- show "Actions" dropdown with Install/Uninstall options for packages -->
-    <xsl:template match="*[rdf:type/@rdf:resource = '&lapp;Package']" mode="bs2:Actions">
+    <xsl:template match="*[rdf:type/@rdf:resource = '&lapp;Package'][$lapp:origin]" mode="bs2:Actions">
         <xsl:variable name="admin-origin" select="xs:anyURI(replace(string($lapp:origin), '^(https?://)', '$1admin.'))" as="xs:anyURI"/>
 
         <div class="btn-group pull-right">

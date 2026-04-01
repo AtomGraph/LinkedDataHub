@@ -179,9 +179,9 @@ exclude-result-prefixes="#all"
         </xsl:if>
     </xsl:template>
 
-    <!-- show drag handle on left edge hover -->
-    
-    <xsl:template match="div[ac:mode() = '&ldh;ContentMode'][contains-token(@class, 'block')][key('elements-by-class', 'drag-handle', .)][acl:mode() = '&acl;Write']" mode="ixsl:onmousemove" priority="2">
+    <!-- show drag handle on left edge hover, but not when left sidebar is active -->
+
+    <xsl:template match="div[ac:mode() = '&ldh;ContentMode'][contains-token(@class, 'block')][key('elements-by-class', 'drag-handle', .)][acl:mode() = '&acl;Write'][not(ixsl:style(id('left-sidebar', ixsl:page()))?display = 'block')]" mode="ixsl:onmousemove" priority="2">
         <xsl:variable name="dom-x" select="ixsl:get(ixsl:event(), 'clientX')" as="xs:double"/>
         <xsl:variable name="rect" select="ixsl:call(., 'getBoundingClientRect', [])"/>
         <xsl:variable name="offset-x" select="$dom-x - ixsl:get($rect, 'x')" as="xs:double"/>

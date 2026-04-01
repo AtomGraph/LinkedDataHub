@@ -76,7 +76,8 @@ exclude-result-prefixes="#all"
 
         <!-- Initialize progress counters -->
         <xsl:variable name="cache" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block/@about || '`')"/>
-        <xsl:sequence select="ldh:update-progress-counter($cache, map{'container': $container}, 'init', ())"/>
+        
+        <xsl:sequence select="ldh:update-progress-counter($cache, map{'container': $container}, 'init', 3)"/>
 
         <xsl:variable name="request-uri" select="ldh:href(ac:document-uri($query-uri), map{})" as="xs:anyURI"/>
         <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
@@ -93,9 +94,6 @@ exclude-result-prefixes="#all"
             'query-uri': $query-uri,
             'cache': ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block/@about || '`')
           }"/>
-
-        <!-- Track HTTP request start -->
-        <xsl:sequence select="ldh:update-progress-counter($cache, map{'container': $container}, 'start', ())"/>
 
         <xsl:sequence select="
             ldh:load-block#3(
@@ -136,9 +134,6 @@ exclude-result-prefixes="#all"
 
         <xsl:message>ldh:view-results-thunk</xsl:message>
 
-        <!-- Track HTTP request start -->
-        <xsl:sequence select="ldh:update-progress-counter($context('cache'), $context, 'start', ())"/>
-
         <xsl:sequence select="
             ixsl:http-request($context('request')) =>
                 ixsl:then(ldh:rethread-response($context, ?)) =>
@@ -169,9 +164,6 @@ exclude-result-prefixes="#all"
                             <xsl:variable name="object-uris" select="distinct-values($results/rdf:RDF/rdf:Description/*/@rdf:resource[not(key('resources', .))])" as="xs:string*"/>
                             <xsl:variable name="query-string" select="$object-metadata-query || ' VALUES $this { ' || string-join(for $uri in $object-uris return '&lt;' || $uri || '&gt;', ' ') || ' }'" as="xs:string"/>
                             <xsl:variable name="request" select="map{ 'method': 'POST', 'href': ldh:href($endpoint), 'media-type': 'application/sparql-query', 'body': $query-string, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
-
-                            <!-- Track HTTP request start -->
-                            <xsl:sequence select="ldh:update-progress-counter($context('cache'), $context, 'start', ())"/>
 
                             <xsl:sequence select="map:merge(($context, map{ 'request': $request , 'response': () , 'results': $results }), map{ 'duplicates': 'use-last' })"/>
                         </xsl:when>
@@ -389,9 +381,6 @@ exclude-result-prefixes="#all"
             'count-var-name': $count-var-name,
             'cache': $cache
           }"/>
-
-        <!-- Track HTTP request start -->
-        <xsl:sequence select="ldh:update-progress-counter($cache, $context, 'start', ())"/>
 
         <ixsl:promise select="ixsl:http-request($context('request')) =>
             ixsl:then(ldh:rethread-response($context, ?)) =>
