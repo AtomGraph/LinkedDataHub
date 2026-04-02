@@ -1,0 +1,9 @@
+html/
+decorate-html.xsl
+docs.trix
+Makefile
+trix-to-html.xsl
+root.ttl
+screenshot-edit-mode.png
+screenshot.png
+node_modules/
