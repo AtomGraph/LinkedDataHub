@@ -1,0 +1,488 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html><html xmlns="http://www.w3.org/1999/xhtml">
+   <head>
+      <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+      <title>LinkedDataHub v5 — Triplestores</title>
+      <meta name="description" content="Requirements and configuration for using alternative SPARQL triplestores with LinkedDataHub"/>
+      <link href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/files/css/bootstrap.css" rel="stylesheet" type="text/css"/>
+      <link href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/files/css/bootstrap-responsive.css" rel="stylesheet" type="text/css"/>
+      <link href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/files/css/linkeddatahub-bootstrap.css" rel="stylesheet" type="text/css"/>
+      <style type="text/css">
+                body { padding-top: 60px; }
+                object { width: 100%; min-height: 640px; }
+            </style><script type="text/javascript" src="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/files/js/jquery.min.js"></script><script type="text/javascript" src="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/files/js/bootstrap.min.js"></script><script type="text/javascript">
+                    $(document).ready(function() {
+                        $("ul.nav-tabs a").on("click", function() {
+                            $(this).closest("ul").children().toggleClass("active", false);
+                            $(this).closest("li").toggleClass("active", true);
+                            $(this).closest("ul").next().children().toggleClass("active", false);
+                            $(this).closest("ul").next().children().eq($(this).closest("li").index()).toggleClass("active", true);
+                        });
+                    });
+                </script><script async="async" src="https://www.googletagmanager.com/gtag/js?id=UA-38402002-6"></script><script>
+                    window.dataLayer = window.dataLayer || [];
+                    function gtag(){dataLayer.push(arguments);}
+                    gtag('js', new Date());
+                    gtag('config', 'UA-38402002-6');
+                </script></head>
+   <body>
+      <div class="navbar navbar-fixed-top">
+         <div class="navbar-inner">
+            <div class="container-fluid"><a class="brand" href="../../">LinkedDataHub</a><div class="nav-collapse collapse">
+                  <ul class="nav">
+                     <li class="active">
+                        <div class="btn-group"><a class="btn" href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/">Documentation v5</a><button class="btn dropdown-toggle" data-toggle="dropdown"><span class="caret"></span></button><ul class="dropdown-menu">
+                              <li><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/v3/">Documentation v3</a></li>
+                              <li><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/v2/">Documentation v2</a></li>
+                           </ul>
+                        </div>
+                     </li>
+                     <li><a href="https://github.com/AtomGraph/LinkedDataHub" target="_blank">Code</a></li>
+                  </ul>
+               </div>
+            </div>
+         </div>
+      </div>
+      <div class="container-fluid">
+         <div class="row-fluid">
+            <nav class="span2">
+               <ul class="nav nav-list">
+                  <li><a href="../../about/">About LinkedDataHub</a></li>
+                  <li><a href="../../get-started/">Get started</a><ul class="nav nav-list">
+                        <li><a href="../../get-started/get-an-account/">Get an account</a></li>
+                        <li><a href="../../get-started/request-access/">Request access</a></li>
+                        <li><a href="../../get-started/setup/">Setup</a></li>
+                     </ul>
+                  </li>
+                  <li><a href="../">Reference</a><ul class="nav nav-list">
+                        <li><a href="../administration/">Administration</a><ul class="nav nav-list">
+                              <li><a href="../administration/acl/">Access control</a></li>
+                              <li><a href="../administration/ontologies/">Ontologies</a></li>
+                              <li><a href="../administration/packages/">Packages</a></li>
+                           </ul>
+                        </li>
+                        <li><a href="../command-line-interface/">Command line interface</a></li>
+                        <li><a href="../configuration/">Configuration</a></li>
+                        <li><a href="../data-model/">Data model</a><ul class="nav nav-list">
+                              <li><a href="../data-model/blocks/">Content blocks</a><ul class="nav nav-list">
+                                    <li><a href="../data-model/blocks/objects/">Object blocks</a></li>
+                                    <li><a href="../data-model/blocks/xhtml/">XHTML blocks</a></li>
+                                 </ul>
+                              </li>
+                              <li><a href="../data-model/documents/">Documents</a><ul class="nav nav-list">
+                                    <li><a href="../data-model/documents/containers/">Containers</a></li>
+                                    <li><a href="../data-model/documents/items/">Items</a></li>
+                                 </ul>
+                              </li>
+                              <li><a href="../data-model/resources/">Resources</a><ul class="nav nav-list">
+                                    <li><a href="../data-model/resources/charts/">Charts</a></li>
+                                    <li><a href="../data-model/resources/queries/">Queries</a></li>
+                                    <li><a href="../data-model/resources/views/">Views</a></li>
+                                 </ul>
+                              </li>
+                           </ul>
+                        </li>
+                        <li><a href="../dataspace/">Dataspace</a></li>
+                        <li><a href="../http-api/">HTTP API</a></li>
+                        <li><a href="../imports/">Imports</a><ul class="nav nav-list">
+                              <li><a href="../imports/csv/">CSV imports</a></li>
+                              <li><a href="../imports/rdf/">RDF imports</a></li>
+                           </ul>
+                        </li>
+                        <li><a href="../dataset/">RDF dataset</a></li>
+                        <li><a href="../stylesheets/">Stylesheets</a></li>
+                        <li class="active"><a href="">Triplestores</a></li>
+                        <li><a href="../user-interface/">User interface</a></li>
+                     </ul>
+                  </li>
+                  <li><a href="../../user-guide/">User guide</a><ul class="nav nav-list">
+                        <li><a href="../../user-guide/add-data/">Add data</a></li>
+                        <li><a href="../../user-guide/browse-data/">Browse data</a></li>
+                        <li><a href="../../user-guide/build-apps/">Build apps</a></li>
+                        <li><a href="../../user-guide/change-layout/">Change layout</a></li>
+                        <li><a href="../../user-guide/change-system-base-uri/">Change system base URI</a></li>
+                        <li><a href="../../user-guide/change-model/">Change the model</a></li>
+                        <li><a href="../../user-guide/create-data/">Create data</a><ul class="nav nav-list">
+                              <li><a href="../../user-guide/create-data/create-content/">Create content</a></li>
+                              <li><a href="../../user-guide/create-data/create-documents/">Create documents</a></li>
+                              <li><a href="../../user-guide/create-data/create-resources/">Create instances</a></li>
+                           </ul>
+                        </li>
+                        <li><a href="../../user-guide/import-data/">Import data</a><ul class="nav nav-list">
+                              <li><a href="../../user-guide/import-data/import-csv-data/">Import CSV data</a></li>
+                              <li><a href="../../user-guide/import-data/import-rdf-data/">Import RDF data</a></li>
+                           </ul>
+                        </li>
+                        <li><a href="../../user-guide/manage-dataspaces/">Manage dataspaces</a></li>
+                        <li><a href="../../user-guide/manage-packages/">Manage packages</a></li>
+                        <li><a href="../../user-guide/navigate-data/">Navigate data</a></li>
+                        <li><a href="../../user-guide/query-data/">Query data</a></li>
+                        <li><a href="../../user-guide/search-data/">Search data</a></li>
+                        <li><a href="../../user-guide/upload-file/">Upload file</a></li>
+                     </ul>
+                  </li>
+               </ul>
+            </nav>
+            <main class="span7">
+               <header>
+                  <h1>Triplestores</h1>
+               </header>
+               <div xmlns:dct="http://purl.org/dc/terms/" xmlns:dh="https://www.w3.org/ns/ldt/document-hierarchy#" xmlns:ldh="https://w3id.org/atomgraph/linkeddatahub#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+                  
+                  <p class="lead">Requirements and configuration for using alternative SPARQL triplestores with LinkedDataHub</p>
+                  
+                  <p>LinkedDataHub is designed to work with any SPARQL 1.1-compatible triplestore that
+                     supports the required protocols. While Apache Jena Fuseki is the default backend,
+                     you can use alternative triplestores by adding them as services in <code>docker-compose.override.yml</code> (without modifying the default <code>docker-compose.yml</code>). Browse available triplestore products at <a href="https://kgdev.net/products/" target="_blank">kgdev.net/products/</a>.</p>
+                  
+                  <div>
+                     
+                     <h2 id="requirements">Requirements</h2>
+                     
+                     <p>For a triplestore to work with LinkedDataHub, it must support the following:</p>
+                     
+                     <table class="table">
+                        
+                        <thead>
+                           
+                           <tr>
+                              
+                              <th>Feature</th>
+                              
+                              <th>Required</th>
+                              
+                              <th>Description</th>
+                              </tr>
+                           </thead>
+                        
+                        <tbody>
+                           
+                           <tr>
+                              
+                              <td><a href="https://www.w3.org/TR/sparql11-query/" target="_blank">SPARQL 1.1 Query</a></td>
+                              
+                              <td>✅ Yes</td>
+                              
+                              <td>The triplestore must implement the SPARQL 1.1 Query specification</td>
+                              </tr>
+                           
+                           <tr>
+                              
+                              <td><a href="https://www.w3.org/TR/sparql11-update/" target="_blank">SPARQL 1.1 Update</a></td>
+                              
+                              <td>✅ Yes</td>
+                              
+                              <td>The triplestore must implement the SPARQL 1.1 Update specification for data modifications</td>
+                              </tr>
+                           
+                           <tr>
+                              
+                              <td><a href="https://www.w3.org/TR/sparql11-http-rdf-update/" target="_blank">Graph Store Protocol (GSP)</a></td>
+                              
+                              <td>✅ Yes</td>
+                              
+                              <td>The triplestore must support the SPARQL 1.1 Graph Store HTTP Protocol for graph-scoped
+                                 operations. </td>
+                              </tr>
+                           
+                           <tr>
+                              
+                              <td>Dataset-level CRUD protocol</td>
+                              
+                              <td>⚪ No</td>
+                              
+                              <td>Support for RDF dataset-scoped CRUD operations, supported by stores such as Apache
+                                 Fuseki. If not available, LinkedDataHub will fall back to graph-scoped GSP operations
+                                 (slower but functional).</td>
+                              </tr>
+                           
+                           <tr>
+                              
+                              <td><a href="#authentication">Authentication</a></td>
+                              
+                              <td>⚪ No</td>
+                              
+                              <td>Either HTTP Basic authentication or Bearer token authentication (or both). See <a href="#authentication">authentication</a> below for configuration details.</td>
+                              </tr>
+                           </tbody>
+                        </table>
+                     </div>
+                  
+                  <div>
+                     
+                     <h2 id="service-configuration">Service configuration</h2>
+                     
+                     <p>Services are configured in <samp>config/system.trig</samp> using three key properties. See the <a href="../dataspace/#services">dataspace reference</a> for the full list of service properties.</p>
+                     
+                     <dl>
+                        
+                        <dt><code>sd:endpoint</code></dt>
+                        
+                        <dd>The SPARQL Protocol endpoint URI (for SPARQL Query and Update operations)</dd>
+                        
+                        <dd>Example: <code>&lt;http://qlever-host:7001/&gt;</code></dd>
+                        
+                        <dt><code>a:graphStore</code></dt>
+                        
+                        <dd>The Graph Store Protocol endpoint URI (for graph-scoped CRUD operations)</dd>
+                        
+                        <dd>Example: <code>&lt;http://qlever-host:7001/&gt;</code></dd>
+                        
+                        <dd>Required for all triplestores</dd>
+                        
+                        <dt><code>a:quadStore</code></dt>
+                        
+                        <dd>The quad store endpoint URI (for dataset-level CRUD operations)</dd>
+                        
+                        <dd>Optional — if omitted, LinkedDataHub will use graph-scoped GSP fallback</dd>
+                        
+                        <dd>Example: <code>&lt;http://fuseki-host:3030/ds/&gt;</code> (Fuseki-specific)</dd>
+                        </dl>
+                     
+                     <div class="alert alert-info">
+                        
+                        <h4>GSP fallback mode</h4>
+                        
+                        <p>When <code>a:quadStore</code> is not provided, LinkedDataHub automatically uses graph-scoped Graph Store Protocol
+                           operations instead. This mode:</p>
+                        
+                        <ul>
+                           
+                           <li>Works with triplestores that don't support dataset-level TriG/N-Quads uploads</li>
+                           
+                           <li>Loads data graph-by-graph rather than as a complete dataset</li>
+                           
+                           <li>Takes longer during bootstrap (more HTTP requests) but is functionally equivalent</li>
+                           
+                           <li>Is required for QLever, Tentris, and other GSP-only triplestores</li>
+                           </ul>
+                        </div>
+                     </div>
+                  
+                  <div>
+                     
+                     <h2 id="authentication">Authentication</h2>
+                     
+                     <p>LinkedDataHub supports two authentication methods for SPARQL services, both configured
+                        in <samp>secrets/credentials.trig</samp>. See the <a href="../configuration/#secrets">configuration reference</a> for the <code>credentials</code> secret entry.</p>
+                     
+                     <div>
+                        
+                        <h3 id="http-basic">HTTP basic authentication</h3>
+                        
+                        <p>Configure username and password using the <code>a:authUser</code> and <code>a:authPwd</code> properties:</p>
+                        
+                        <pre><code>@prefix a: &lt;https://w3id.org/atomgraph/core#&gt; .
+
+&lt;urn:linkeddatahub:services/end-user&gt;
+{
+    &lt;urn:linkeddatahub:services/end-user&gt; a:authUser "username" ;
+        a:authPwd "password" .
+}
+
+&lt;urn:linkeddatahub:services/admin&gt;
+{
+    &lt;urn:linkeddatahub:services/admin&gt; a:authUser "username" ;
+        a:authPwd "password" .
+}</code></pre>
+                        </div>
+                     
+                     <div>
+                        
+                        <h3 id="bearer-token">Bearer token authentication</h3>
+                        
+                        <p>For triplestores that require Bearer token authentication (like QLever), configure
+                           the token using the <code>a:authToken</code> property:</p>
+                        
+                        <pre><code>@prefix a: &lt;https://w3id.org/atomgraph/core#&gt; .
+
+&lt;urn:linkeddatahub:services/end-user&gt;
+{
+    &lt;urn:linkeddatahub:services/end-user&gt; a:authToken "your-bearer-token" .
+}
+
+&lt;urn:linkeddatahub:services/admin&gt;
+{
+    &lt;urn:linkeddatahub:services/admin&gt; a:authToken "your-bearer-token" .
+}</code></pre>
+                        
+                        <p>This file is mounted as a Docker secret and is NOT committed to git (the <samp>/secrets</samp> folder is gitignored).</p>
+                        </div>
+                     </div>
+                  
+                  <div>
+                     
+                     <h2 id="qlever-example">QLever configuration example</h2>
+                     
+                     <p>QLever is a high-performance triplestore optimized for text search. Here's how to
+                        configure LinkedDataHub to use QLever:</p>
+                     
+                     <ol>
+                        
+                        <li>
+                           
+                           <p><strong>Update <samp>config/system.trig</samp></strong> to point to your QLever instance:</p>
+                           
+                           <pre><code>@prefix lapp: &lt;https://w3id.org/atomgraph/linkeddatahub/apps#&gt; .
+@prefix a:    &lt;https://w3id.org/atomgraph/core#&gt; .
+@prefix ldt:  &lt;https://www.w3.org/ns/ldt#&gt; .
+@prefix sd:   &lt;http://www.w3.org/ns/sparql-service-description#&gt; .
+@prefix dct:  &lt;http://purl.org/dc/terms/&gt; .
+
+# Admin app - type + service binding
+
+&lt;urn:linkeddatahub:apps/admin&gt;
+{
+    &lt;urn:linkeddatahub:apps/admin&gt; a lapp:AdminApplication ;
+        ldt:service &lt;urn:linkeddatahub:services/admin&gt; .
+}
+
+# Admin service - QLever
+
+&lt;urn:linkeddatahub:services/admin&gt;
+{
+    &lt;urn:linkeddatahub:services/admin&gt; a sd:Service ;
+        dct:title "LinkedDataHub admin service (QLever)" ;
+        sd:supportedLanguage sd:SPARQL11Query, sd:SPARQL11Update ;
+        sd:endpoint &lt;http://qlever-host:7001/&gt; ;
+        a:graphStore &lt;http://qlever-host:7001/&gt; .
+        # Note: a:quadStore omitted - QLever uses GSP fallback mode
+}
+
+# End-user app - type + service binding
+
+&lt;urn:linkeddatahub:apps/end-user&gt;
+{
+    &lt;urn:linkeddatahub:apps/end-user&gt; a lapp:EndUserApplication ;
+        ldt:service &lt;urn:linkeddatahub:services/end-user&gt; .
+}
+
+# End-user service - QLever
+
+&lt;urn:linkeddatahub:services/end-user&gt;
+{
+    &lt;urn:linkeddatahub:services/end-user&gt; a sd:Service ;
+        dct:title "LinkedDataHub service (QLever)" ;
+        sd:supportedLanguage sd:SPARQL11Query, sd:SPARQL11Update ;
+        sd:endpoint &lt;http://qlever-host:7001/&gt; ;
+        a:graphStore &lt;http://qlever-host:7001/&gt; .
+        # Note: a:quadStore omitted - QLever uses GSP fallback mode
+}</code></pre>
+                           
+                           <p>The <code>a:quadStore</code> property is omitted because QLever does not support dataset-level TriG/N-Quads uploads.
+                              LinkedDataHub will automatically fall back to using graph-scoped Graph Store Protocol
+                              operations (see <a href="#service-configuration">service configuration</a>).</p>
+                           </li>
+                        
+                        <li>
+                           
+                           <p><strong>Configure Bearer token authentication</strong> (QLever requires this for write operations):</p>
+                           
+                           <p>Create <samp>secrets/credentials.trig</samp> with your QLever access token:</p>
+                           
+                           <pre><code>@prefix a: &lt;https://w3id.org/atomgraph/core#&gt; .
+
+&lt;urn:linkeddatahub:services/end-user&gt;
+{
+    &lt;urn:linkeddatahub:services/end-user&gt; a:authToken "your-qlever-bearer-token" .
+}
+
+&lt;urn:linkeddatahub:services/admin&gt;
+{
+    &lt;urn:linkeddatahub:services/admin&gt; a:authToken "your-qlever-bearer-token" .
+}</code></pre>
+                           
+                           <p>See <a href="#bearer-token">bearer token authentication</a> for details.</p>
+                           </li>
+                        
+                        <li>
+                           
+                           <p><strong>Uncomment the credentials secret</strong> in <samp>docker-compose.yml</samp>:</p>
+                           
+                           <pre><code>services:
+  linkeddatahub:
+    secrets:
+      # ... other secrets ...
+      - credentials  # Uncomment this line</code></pre>
+                           </li>
+                        
+                        <li>
+                           
+                           <p><strong>Start LinkedDataHub:</strong></p>
+                           
+                           <pre>docker-compose up --build</pre>
+                           
+                           <p>During bootstrap, LinkedDataHub will load the default datasets using graph-scoped
+                              GSP operations. This takes longer than quad store mode but is functionally equivalent.</p>
+                           </li>
+                        </ol>
+                     </div>
+                  
+                  <div>
+                     
+                     <h2 id="troubleshooting">Troubleshooting</h2>
+                     
+                     <dl>
+                        
+                        <dt>Bootstrap fails with HTTP 400 "application/trig not supported"</dt>
+                        
+                        <dd>Your triplestore doesn't support dataset-level uploads. Remove the <code>a:quadStore</code> property from your service configuration to use GSP fallback mode.</dd>
+                        
+                        <dt>Bootstrap fails with HTTP 401 or 403</dt>
+                        
+                        <dd>Check your authentication configuration. Both Bearer token and HTTP Basic auth are
+                           configured in <samp>secrets/credentials.trig</samp>. See <a href="#authentication">authentication</a> for details.</dd>
+                        
+                        <dt>Queries work but data import fails</dt>
+                        
+                        <dd>Ensure your triplestore supports SPARQL 1.1 Update and Graph Store Protocol, not just
+                           Query. Check the <a href="#requirements">triplestore requirements</a>.</dd>
+                        
+                        <dt>Connection refused errors</dt>
+                        
+                        <dd>Check that the endpoint URLs are reachable from the LinkedDataHub Docker container.
+                           If running QLever in Kubernetes, use port-forwarding or set up proper networking.</dd>
+                        </dl>
+                     
+                     <p>For more details, see <a href="https://github.com/AtomGraph/LinkedDataHub/issues/272" target="_blank">GitHub issue #272</a> which documents the QLever integration process.</p>
+                     </div>
+                  </div>
+            </main>
+         </div>
+      </div>
+      <div class="footer container-fluid">
+         <div class="row-fluid">
+            <div class="offset2 span8">
+               <div class="span3">
+                  <h2 class="nav-header">About</h2>
+                  <ul class="nav nav-list">
+                     <li><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/about/" target="_blank">LinkedDataHub</a></li>
+                     <li><a href="https://atomgraph.com" target="_blank">AtomGraph</a></li>
+                  </ul>
+               </div>
+               <div class="span3">
+                  <h2 class="nav-header">Resources</h2>
+                  <ul class="nav nav-list">
+                     <li><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/" target="_blank">Documentation</a></li>
+                     <li><a href="https://www.youtube.com/channel/UCtrdvnVjM99u9hrjESwfCeg" target="_blank">Screencasts</a></li>
+                  </ul>
+               </div>
+               <div class="span3">
+                  <h2 class="nav-header">Support</h2>
+                  <ul class="nav nav-list">
+                     <li><a href="https://groups.io/g/linkeddatahub" target="_blank">Mailing list</a></li>
+                     <li><a href="https://github.com/AtomGraph/LinkedDataHub/issues" target="_blank">Report issues</a></li>
+                     <li><a href="mailto:support@linkeddatahub.com">Contact support</a></li>
+                  </ul>
+               </div>
+               <div class="span3">
+                  <h2 class="nav-header">Follow us</h2>
+                  <ul class="nav nav-list">
+                     <li><a href="https://twitter.com/atomgraphhq" target="_blank">@atomgraphhq</a></li>
+                     <li><a href="https://github.com/AtomGraph" target="_blank">github.com/AtomGraph</a></li>
+                  </ul>
+               </div>
+            </div>
+         </div>
+      </div>
+   </body>
+</html>

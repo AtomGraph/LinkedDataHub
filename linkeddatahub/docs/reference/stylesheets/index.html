@@ -1,9 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html><html xmlns="http://www.w3.org/1999/xhtml">
    <head>
       <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
-      <title>LinkedDataHub v5 - Stylesheets</title>
+      <title>LinkedDataHub v5 — Stylesheets</title>
       <meta name="description" content="Built-in XSLT and CSS stylesheets"/>
-      <link rel="up" href="../index.html"/>
       <link href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/files/css/bootstrap.css" rel="stylesheet" type="text/css"/>
       <link href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/files/css/bootstrap-responsive.css" rel="stylesheet" type="text/css"/>
       <link href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/files/css/linkeddatahub-bootstrap.css" rel="stylesheet" type="text/css"/>
@@ -11,31 +10,24 @@
                 body { padding-top: 60px; }
                 object { width: 100%; min-height: 640px; }
             </style><script type="text/javascript" src="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/files/js/jquery.min.js"></script><script type="text/javascript" src="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/files/js/bootstrap.min.js"></script><script type="text/javascript">
-                $(document).ready(function()
-                {
-
-                    $("ul.nav-tabs a").on("click", function()
-                    {
-                        $(this).closest("ul").children().toggleClass("active", false); // deactivate other tabs
-                        $(this).closest("li").toggleClass("active", true); // activate this tab
-                        $(this).closest("ul").next().children().toggleClass("active", false); // deactivate other tab panes
-                        $(this).closest("ul").next().children().eq($(this).closest("li").index()).toggleClass("active", true); // activate this tab pane
+                    $(document).ready(function() {
+                        $("ul.nav-tabs a").on("click", function() {
+                            $(this).closest("ul").children().toggleClass("active", false);
+                            $(this).closest("li").toggleClass("active", true);
+                            $(this).closest("ul").next().children().toggleClass("active", false);
+                            $(this).closest("ul").next().children().eq($(this).closest("li").index()).toggleClass("active", true);
+                        });
                     });
-
-                });
-            </script><script async="async" src="https://www.googletagmanager.com/gtag/js?id=UA-38402002-6"></script><script>
-                
+                </script><script async="async" src="https://www.googletagmanager.com/gtag/js?id=UA-38402002-6"></script><script>
                     window.dataLayer = window.dataLayer || [];
                     function gtag(){dataLayer.push(arguments);}
                     gtag('js', new Date());
-
                     gtag('config', 'UA-38402002-6');
-                
-            </script></head>
+                </script></head>
    <body>
       <div class="navbar navbar-fixed-top">
          <div class="navbar-inner">
-            <div class="container-fluid"><a class="brand" href="https://atomgraph.github.io/LinkedDataHub/">LinkedDataHub</a><div class="nav-collapse collapse">
+            <div class="container-fluid"><a class="brand" href="../../">LinkedDataHub</a><div class="nav-collapse collapse">
                   <ul class="nav">
                      <li class="active">
                         <div class="btn-group"><a class="btn" href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/">Documentation v5</a><button class="btn dropdown-toggle" data-toggle="dropdown"><span class="caret"></span></button><ul class="dropdown-menu">
@@ -54,77 +46,78 @@
          <div class="row-fluid">
             <nav class="span2">
                <ul class="nav nav-list">
-                  <li><a href="../../about/index.html" title="An RDF-native Knowledge Graph application platform">About LinkedDataHub</a></li>
-                  <li><a href="../../get-started/index.html" title="All the basics of LinkedDataHub. From installation to extending the model and user interface.">Get started</a><ul class="nav nav-list">
-                        <li><a href="../../get-started/get-an-account/index.html" title="How to get login to LinkedDataHub">Get an account</a></li>
-                        <li><a href="../../get-started/request-access/index.html" title="How to get access to an application">Request access</a></li>
-                        <li><a href="../../get-started/setup/index.html" title="Setup LinkedDataHub on your local machine or access it in the cloud">Setup</a></li>
+                  <li><a href="../../about/">About LinkedDataHub</a></li>
+                  <li><a href="../../get-started/">Get started</a><ul class="nav nav-list">
+                        <li><a href="../../get-started/get-an-account/">Get an account</a></li>
+                        <li><a href="../../get-started/request-access/">Request access</a></li>
+                        <li><a href="../../get-started/setup/">Setup</a></li>
                      </ul>
                   </li>
-                  <li><a href="../index.html" title="A list of LinkedDataHub's features and their functions, split into general and administration parts">Reference</a><ul class="nav nav-list">
-                        <li><a href="../administration/index.html" title="Access control and domain model management">Administration</a><ul class="nav nav-list">
-                              <li><a href="../administration/acl/index.html" title="Agents, groups, and authorizations">Access control</a></li>
-                              <li><a href="../administration/ontologies/index.html" title="Ontology classes, constraints, properties etc.">Ontologies</a></li>
-                              <li><a href="../administration/packages/index.html" title="Package management for LinkedDataHub applications">Packages</a></li>
+                  <li><a href="../">Reference</a><ul class="nav nav-list">
+                        <li><a href="../administration/">Administration</a><ul class="nav nav-list">
+                              <li><a href="../administration/acl/">Access control</a></li>
+                              <li><a href="../administration/ontologies/">Ontologies</a></li>
+                              <li><a href="../administration/packages/">Packages</a></li>
                            </ul>
                         </li>
-                        <li><a href="../command-line-interface/index.html" title="CLI scripts can be used perform all actions available in the UI">Command line interface</a></li>
-                        <li><a href="../configuration/index.html" title="Overview of configuration options">Configuration</a></li>
-                        <li><a href="../data-model/index.html" title="Document and content structure as well as actions that can be performed on them">Data model</a><ul class="nav nav-list">
-                              <li><a href="../data-model/blocks/index.html" title="Content blocks and the basic data content actions">Content blocks</a><ul class="nav nav-list">
-                                    <li><a href="../data-model/blocks/objects/index.html" title="Blocks that embed/transclude any dereferenceable URI">Object blocks</a></li>
-                                    <li><a href="../data-model/blocks/xhtml/index.html" title="Blocks that embed XHTML markup as an RDF literal">XHTML blocks</a></li>
+                        <li><a href="../command-line-interface/">Command line interface</a></li>
+                        <li><a href="../configuration/">Configuration</a></li>
+                        <li><a href="../data-model/">Data model</a><ul class="nav nav-list">
+                              <li><a href="../data-model/blocks/">Content blocks</a><ul class="nav nav-list">
+                                    <li><a href="../data-model/blocks/objects/">Object blocks</a></li>
+                                    <li><a href="../data-model/blocks/xhtml/">XHTML blocks</a></li>
                                  </ul>
                               </li>
-                              <li><a href="../data-model/documents/index.html" title="Document hierarchy and the basic data management actions">Documents</a><ul class="nav nav-list">
-                                    <li><a href="../data-model/documents/containers/index.html" title="Containers are analogous to folders in a filesystem">Containers</a></li>
-                                    <li><a href="../data-model/documents/items/index.html" title="Items are analogous to files in a filesystem">Items</a></li>
+                              <li><a href="../data-model/documents/">Documents</a><ul class="nav nav-list">
+                                    <li><a href="../data-model/documents/containers/">Containers</a></li>
+                                    <li><a href="../data-model/documents/items/">Items</a></li>
                                  </ul>
                               </li>
-                              <li><a href="../data-model/resources/index.html" title="RDF resources and their management">Resources</a><ul class="nav nav-list">
-                                    <li><a href="../data-model/resources/charts/index.html" title="Interactive charts based on SPARQL queries">Charts</a></li>
-                                    <li><a href="../data-model/resources/queries/index.html" title="Interactive SPARQL queries">Queries</a></li>
-                                    <li><a href="../data-model/resources/views/index.html" title="Paginated views based on SPARQL queries">Views</a></li>
+                              <li><a href="../data-model/resources/">Resources</a><ul class="nav nav-list">
+                                    <li><a href="../data-model/resources/charts/">Charts</a></li>
+                                    <li><a href="../data-model/resources/queries/">Queries</a></li>
+                                    <li><a href="../data-model/resources/views/">Views</a></li>
                                  </ul>
                               </li>
                            </ul>
                         </li>
-                        <li><a href="../dataspace/index.html" title="LinkedDataHub dataspaces, applications, and services">Dataspace</a></li>
-                        <li><a href="../http-api/index.html" title="Learn how to access and manage RDF data over generic HTTP API">HTTP API</a></li>
-                        <li><a href="../imports/index.html" title="Types of data imports supported by LinkedDataHub">Imports</a><ul class="nav nav-list">
-                              <li><a href="../imports/csv/index.html" title="CSV imports and mapping to RDF using SPARQL CONSTRUCT">CSV imports</a></li>
-                              <li><a href="../imports/rdf/index.html" title="RDF imports and transforming RDF using SPARQL CONSTRUCT">RDF imports</a></li>
+                        <li><a href="../dataspace/">Dataspace</a></li>
+                        <li><a href="../http-api/">HTTP API</a></li>
+                        <li><a href="../imports/">Imports</a><ul class="nav nav-list">
+                              <li><a href="../imports/csv/">CSV imports</a></li>
+                              <li><a href="../imports/rdf/">RDF imports</a></li>
                            </ul>
                         </li>
-                        <li><a href="../dataset/index.html" title="The default RDF dataset structure used by LinkedDataHub">RDF dataset</a></li>
-                        <li class="active"><a href="" title="Built-in XSLT and CSS stylesheets">Stylesheets</a></li>
-                        <li><a href="../user-interface/index.html" title="A walk through the main features of application user interface">User interface</a></li>
+                        <li><a href="../dataset/">RDF dataset</a></li>
+                        <li class="active"><a href="">Stylesheets</a></li>
+                        <li><a href="../triplestores/">Triplestores</a></li>
+                        <li><a href="../user-interface/">User interface</a></li>
                      </ul>
                   </li>
-                  <li><a href="../../user-guide/index.html" title="Step-by-step tutorials for everyday tasks with LinkedDataHub">User guide</a><ul class="nav nav-list">
-                        <li><a href="../../user-guide/add-data/index.html" title="Fork RDF data from Linked Data resources and SPARQL results">Add data</a></li>
-                        <li><a href="../../user-guide/browse-data/index.html" title="Use LinkedDataHub's built-in Linked Data browser to explore remote datasources">Browse data</a></li>
-                        <li><a href="../../user-guide/build-apps/index.html" title="Using LinkedDataHub as a low-code platform for Knowledge Graph applications">Build apps</a></li>
-                        <li><a href="../../user-guide/change-layout/index.html" title="How to customize the layout of an application and the UI of the resources">Change layout</a></li>
-                        <li><a href="../../user-guide/change-system-base-uri/index.html" title="How to change host, port, or the path LinkedDataHub service runs on">Change system base URI</a></li>
-                        <li><a href="../../user-guide/change-model/index.html" title="Change the model: create constructors, classes, and constraints">Change the model</a></li>
-                        <li><a href="../../user-guide/create-data/index.html" title="How to create documents, content, and instances">Create data</a><ul class="nav nav-list">
-                              <li><a href="../../user-guide/create-data/create-content/index.html" title="Learn how to create data-driven content">Create content</a></li>
-                              <li><a href="../../user-guide/create-data/create-documents/index.html" title="Learn how to create container and item documents">Create documents</a></li>
-                              <li><a href="../../user-guide/create-data/create-resources/index.html" title="Learn how to create of built-in and user-defined classes">Create instances</a></li>
+                  <li><a href="../../user-guide/">User guide</a><ul class="nav nav-list">
+                        <li><a href="../../user-guide/add-data/">Add data</a></li>
+                        <li><a href="../../user-guide/browse-data/">Browse data</a></li>
+                        <li><a href="../../user-guide/build-apps/">Build apps</a></li>
+                        <li><a href="../../user-guide/change-layout/">Change layout</a></li>
+                        <li><a href="../../user-guide/change-system-base-uri/">Change system base URI</a></li>
+                        <li><a href="../../user-guide/change-model/">Change the model</a></li>
+                        <li><a href="../../user-guide/create-data/">Create data</a><ul class="nav nav-list">
+                              <li><a href="../../user-guide/create-data/create-content/">Create content</a></li>
+                              <li><a href="../../user-guide/create-data/create-documents/">Create documents</a></li>
+                              <li><a href="../../user-guide/create-data/create-resources/">Create instances</a></li>
                            </ul>
                         </li>
-                        <li><a href="../../user-guide/import-data/index.html" title="How to import data into LinkedDataHub">Import data</a><ul class="nav nav-list">
-                              <li><a href="../../user-guide/import-data/import-csv-data/index.html" title="Step by step guide to converting CSV data to RDF and importing into end-user application">Import CSV data</a></li>
-                              <li><a href="../../user-guide/import-data/import-rdf-data/index.html" title="Step by step guide to importing RDF data">Import RDF data</a></li>
+                        <li><a href="../../user-guide/import-data/">Import data</a><ul class="nav nav-list">
+                              <li><a href="../../user-guide/import-data/import-csv-data/">Import CSV data</a></li>
+                              <li><a href="../../user-guide/import-data/import-rdf-data/">Import RDF data</a></li>
                            </ul>
                         </li>
-                        <li><a href="../../user-guide/manage-dataspaces/index.html" title="Create or change a dataspace, configure SPARQL services and XSLT stylesheets">Manage dataspaces</a></li>
-                        <li><a href="../../user-guide/manage-packages/index.html" title="Step by step guide to installing and uninstalling packages">Manage packages</a></li>
-                        <li><a href="../../user-guide/navigate-data/index.html" title="Navigate the document hierarchy, related results, and backlinks">Navigate data</a></li>
-                        <li><a href="../../user-guide/query-data/index.html" title="Learn how to query application data with SPARQL, store queries and charts">Query data</a></li>
-                        <li><a href="../../user-guide/search-data/index.html" title="Search for resources using text keywords">Search data</a></li>
-                        <li><a href="../../user-guide/upload-file/index.html" title="Learn how to upload files to LinkedDataHub">Upload file</a></li>
+                        <li><a href="../../user-guide/manage-dataspaces/">Manage dataspaces</a></li>
+                        <li><a href="../../user-guide/manage-packages/">Manage packages</a></li>
+                        <li><a href="../../user-guide/navigate-data/">Navigate data</a></li>
+                        <li><a href="../../user-guide/query-data/">Query data</a></li>
+                        <li><a href="../../user-guide/search-data/">Search data</a></li>
+                        <li><a href="../../user-guide/upload-file/">Upload file</a></li>
                      </ul>
                   </li>
                </ul>
@@ -133,7 +126,7 @@
                <header>
                   <h1>Stylesheets</h1>
                </header>
-               <div>
+               <div xmlns:dct="http://purl.org/dc/terms/" xmlns:dh="https://www.w3.org/ns/ldt/document-hierarchy#" xmlns:ldh="https://w3id.org/atomgraph/linkeddatahub#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
                   
                   <p class="lead">Built-in XSLT and CSS stylesheets</p>
                   
@@ -157,7 +150,7 @@
                            
                            <li><code>/rdf:RDF</code> — represents the RDF graph</li>
                            
-                           <li><code>/rdf:RDF/rdf:Description</code> or <code>/rdf:RDF/*[*][@rdf:about] | /rdf:RDF/*[*][@rdf:nodeID]</code>— resource description which contains properties</li>
+                           <li><code>/rdf:RDF/rdf:Description</code> or <code>/rdf:RDF/*[*][@rdf:about] | /rdf:RDF/*[*][@rdf:nodeID]</code> — resource description which contains properties</li>
                            
                            <li><code>/rdf:RDF/rdf:Description/@rdf:about</code> — subject resource URI</li>
                            
@@ -363,48 +356,303 @@
                         
                         <h3 id="parameters">Parameters</h3>
                         
-                        <p>Both global (i.e. stylesheet-level) and template parameters are declared using <code>&lt;xsl:param&gt;</code>. For example:</p>
+                        <p>Both global (i.e. stylesheet-level) and template parameters are declared using <code>&lt;xsl:param&gt;</code>. LinkedDataHub sets the following global parameters by default (the list is non-exhaustive):</p>
                         
-                        <pre>&lt;xsl:param name="ac:uri" as="xs:anyURI"/&gt;</pre>
+                        <table class="table">
+                           
+                           <thead>
+                              
+                              <tr>
+                                 
+                                 <th>Parameter</th>
+                                 
+                                 <th>Type</th>
+                                 
+                                 <th>Description</th>
+                                 </tr>
+                              </thead>
+                           
+                           <tbody>
+                              
+                              <tr>
+                                 
+                                 <td><code>$ldt:base</code></td>
+                                 
+                                 <td><code>xs:anyURI</code></td>
+                                 
+                                 <td>Base URI of the current application</td>
+                                 </tr>
+                              
+                              <tr>
+                                 
+                                 <td><code>$lapp:Application</code></td>
+                                 
+                                 <td><code>document-node()?</code></td>
+                                 
+                                 <td>RDF/XML metadata of the current application</td>
+                                 </tr>
+                              
+                              <tr>
+                                 
+                                 <td><code>$foaf:Agent</code></td>
+                                 
+                                 <td><code>document-node()?</code></td>
+                                 
+                                 <td>RDF/XML metadata of the authenticated agent (if any)</td>
+                                 </tr>
+                              
+                              <tr>
+                                 
+                                 <td><code>$ldh:requestUri</code></td>
+                                 
+                                 <td><code>xs:anyURI</code></td>
+                                 
+                                 <td>Full request URI including query string</td>
+                                 </tr>
+                              
+                              <tr>
+                                 
+                                 <td><code>$ac:endpoint</code></td>
+                                 
+                                 <td><code>xs:anyURI</code></td>
+                                 
+                                 <td>SPARQL query endpoint URI (defaults to <code>resolve-uri('sparql', $ldt:base)</code>)</td>
+                                 </tr>
+                              
+                              <tr>
+                                 
+                                 <td><code>$sd:endpoint</code></td>
+                                 
+                                 <td><code>xs:anyURI?</code></td>
+                                 
+                                 <td>Service-description endpoint URI, if different from <code>$ac:endpoint</code></td>
+                                 </tr>
+                              
+                              <tr>
+                                 
+                                 <td><code>$acl:agent</code></td>
+                                 
+                                 <td><code>xs:anyURI?</code></td>
+                                 
+                                 <td>URI of the authenticated agent</td>
+                                 </tr>
+                              
+                              <tr>
+                                 
+                                 <td><code>$acl:mode</code></td>
+                                 
+                                 <td><code>xs:anyURI*</code></td>
+                                 
+                                 <td>ACL access modes granted for the current request</td>
+                                 </tr>
+                              
+                              <tr>
+                                 
+                                 <td><code>$ac:mode</code></td>
+                                 
+                                 <td><code>xs:anyURI*</code></td>
+                                 
+                                 <td>Current layout mode (derived: <code>ldh:ContentMode</code> if the document has content blocks, otherwise <code>ac:ReadMode</code>)</td>
+                                 </tr>
+                              
+                              <tr>
+                                 
+                                 <td><code>$lapp:origin</code></td>
+                                 
+                                 <td><code>xs:anyURI</code></td>
+                                 
+                                 <td>Origin URI of the current application</td>
+                                 </tr>
+                              </tbody>
+                           </table>
+                        </div>
+                     
+                     <div>
                         
-                        <p>This parameter can be accessed using <code>$ac:uri</code>. For example:</p>
+                        <h3 id="functions">Functions</h3>
                         
-                        <pre>&lt;xsl:if test="$ac:uri"&gt;
-    &lt;xsl:value-of select="$ac:uri"/&gt;
-&lt;/xsl:if&gt;</pre>
+                        <p>LinkedDataHub and Web-Client provide XSLT functions available to all stylesheets.</p>
                         
-                        <p>LinkedDataHub sets these global parameters by default (the list is not exhaustive):</p>
+                        <h4>URI utility functions</h4>
                         
-                        <dl>
+                        <table class="table">
                            
-                           <dt><code>$ldt:base</code></dt>
+                           <thead>
+                              
+                              <tr>
+                                 
+                                 <th>Function</th>
+                                 
+                                 <th>Returns</th>
+                                 
+                                 <th>Description</th>
+                                 </tr>
+                              </thead>
                            
-                           <dd>Base URI of the current application</dd>
+                           <tbody>
+                              
+                              <tr>
+                                 
+                                 <td><code>ac:absolute-path($href as xs:anyURI)</code></td>
+                                 
+                                 <td><code>xs:anyURI</code></td>
+                                 
+                                 <td>Strips query string and fragment from a URI, returning the path-only form</td>
+                                 </tr>
+                              
+                              <tr>
+                                 
+                                 <td><code>ac:build-uri(<br/>  $path as xs:anyURI?,<br/>  $params as map(xs:string, xs:string*)<br/>)</code></td>
+                                 
+                                 <td><code>xs:anyURI?</code></td>
+                                 
+                                 <td>Appends a percent-encoded query string built from the parameter map to <code>$path</code></td>
+                                 </tr>
+                              
+                              <tr>
+                                 
+                                 <td><code>ac:document-uri($uri)</code></td>
+                                 
+                                 <td><code>xs:anyURI</code></td>
+                                 
+                                 <td>Strips the fragment identifier from a URI, making it suitable for use with <code>document()</code></td>
+                                 </tr>
+                              
+                              <tr>
+                                 
+                                 <td><code>ac:fragment-id($uri as xs:anyURI)</code></td>
+                                 
+                                 <td><code>xs:string?</code></td>
+                                 
+                                 <td>Extracts the fragment identifier (the part after <code>#</code>)</td>
+                                 </tr>
+                              
+                              <tr>
+                                 
+                                 <td><code>ldh:request-uri()</code></td>
+                                 
+                                 <td><code>xs:anyURI</code></td>
+                                 
+                                 <td>Returns the full request URI including query string (server-side only)</td>
+                                 </tr>
+                              
+                              <tr>
+                                 
+                                 <td><code>ldh:base-uri($node as node())</code></td>
+                                 
+                                 <td><code>xs:anyURI</code></td>
+                                 
+                                 <td>Returns the base URI of an XML node; wraps the built-in <code>base-uri()</code></td>
+                                 </tr>
+                              
+                              <tr>
+                                 
+                                 <td><code>ldh:href($uri as xs:anyURI?)</code></td>
+                                 
+                                 <td><code>xs:anyURI</code></td>
+                                 
+                                 <td>Resolves a URI to a local href, proxying external URIs through the LinkedDataHub proxy.
+                                    Overloads accept <code>$query-params as map(xs:string, xs:string*)</code> and <code>$fragment as xs:string?</code></td>
+                                 </tr>
+                              
+                              <tr>
+                                 
+                                 <td><code>ldh:query-params($mode as xs:anyURI*)</code></td>
+                                 
+                                 <td><code>map(xs:string, xs:string*)</code></td>
+                                 
+                                 <td>Builds a query parameter map for the given layout mode(s). Overload also accepts <code>$forClass as xs:anyURI?</code></td>
+                                 </tr>
+                              
+                              <tr>
+                                 
+                                 <td><code>ldh:parse-query-params($query-string as xs:string)</code></td>
+                                 
+                                 <td><code>map(xs:string, xs:string*)</code></td>
+                                 
+                                 <td>Parses a URL query string into a map of key to value(s)</td>
+                                 </tr>
+                              </tbody>
+                           </table>
+                        
+                        <h4>RDF metadata functions</h4>
+                        
+                        <table class="table">
                            
-                           <dt><code>$ldt:ontology</code></dt>
+                           <thead>
+                              
+                              <tr>
+                                 
+                                 <th>Function</th>
+                                 
+                                 <th>Returns</th>
+                                 
+                                 <th>Description</th>
+                                 </tr>
+                              </thead>
                            
-                           <dd>The URI of the ontology of the current application</dd>
+                           <tbody>
+                              
+                              <tr>
+                                 
+                                 <td><code>ac:label($resource as element())</code></td>
+                                 
+                                 <td><code>xs:string?</code></td>
+                                 
+                                 <td>Extracts a human-readable label from an RDF resource description, trying multiple
+                                    vocabulary properties</td>
+                                 </tr>
+                              
+                              <tr>
+                                 
+                                 <td><code>ac:description($resource as element())</code></td>
+                                 
+                                 <td><code>xs:string?</code></td>
+                                 
+                                 <td>Extracts a human-readable description from an RDF resource description</td>
+                                 </tr>
+                              </tbody>
+                           </table>
+                        
+                        <h4>HTTP and SPARQL functions</h4>
+                        
+                        <table class="table">
                            
-                           <dt><code>$ac:uri</code></dt>
+                           <thead>
+                              
+                              <tr>
+                                 
+                                 <th>Function</th>
+                                 
+                                 <th>Returns</th>
+                                 
+                                 <th>Description</th>
+                                 </tr>
+                              </thead>
                            
-                           <dd>The absolute URI of the current document (without query string)</dd>
-                           
-                           <dt><code>$ac:mode</code></dt>
-                           
-                           <dd>The URI of the current layout mode</dd>
-                           
-                           <dt><code>$ac:forClass</code></dt>
-                           
-                           <dd>The URI of the class whose instance is being created.</dd>
-                           
-                           <dt><code>$lapp:Application</code></dt>
-                           
-                           <dd>RDF/XML document with the metadata of the current LinkedDataHub application</dd>
-                           
-                           <dt><code>$foaf:Agent</code></dt>
-                           
-                           <dd>RDF/XML document with the metadata of the currently authenticated agent (if any)</dd>
-                           </dl>
+                           <tbody>
+                              
+                              <tr>
+                                 
+                                 <td><code>ldh:query-result($endpoint as xs:anyURI, $query as xs:string)</code></td>
+                                 
+                                 <td><code>document-node()</code></td>
+                                 
+                                 <td>Executes a SPARQL query against the given endpoint and returns the result document
+                                    (cached)</td>
+                                 </tr>
+                              
+                              <tr>
+                                 
+                                 <td><code>ldh:send-request(<br/>  $href as xs:anyURI,<br/>  $method as xs:string,<br/>  $media-type as xs:string?,<br/>  $body as item()?,<br/>  $headers as map(xs:string, xs:string)<br/>)</code></td>
+                                 
+                                 <td><code>document-node()?</code></td>
+                                 
+                                 <td>Makes an HTTP request and returns the response as a document (server-side extension
+                                    function)</td>
+                                 </tr>
+                              </tbody>
+                           </table>
                         </div>
                      
                      <div>
@@ -479,7 +727,7 @@
                         
                         <p>An example of a template that matches <code>rdf:Description</code>:</p>
                         
-                        <pre>&lt;xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:Block"&gt;
+                        <pre>&lt;xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]"&gt;
     &lt;xsl:param name="id" as="xs:string?"/&gt;
     &lt;xsl:param name="class" as="xs:string?"/&gt;
 
@@ -532,14 +780,14 @@
                         <pre>&lt;xsl:key name="resources" match="*[*][@rdf:about] | *[*][@rdf:nodeID]" use="@rdf:about | @rdf:nodeID"/&gt;
 
 &lt;xsl:template match="*"&gt;
-    &lt;xsl:for-each select="key('resources', $ac:uri)"&gt;
+    &lt;xsl:for-each select="key('resources', ldh:base-uri(.))"&gt;
         &lt;xsl:value-of select="ac:label(.)"/&gt;
     &lt;/xsl:for-each&gt;
 &lt;/xsl:template&gt;</pre>
                         </div>
                      
                      <p>They key definition matches <code>rdf:Description</code> elements and uses their identifiers (URI or blank node ID). The template then looks
-                        up the RDF description of the <em>current resource</em>, i.e. the resource with URI that equals <code>$ac:uri</code> which is the absolute URI of the current request, and outputs its label.</p>
+                        up the RDF description of the <em>current resource</em>, i.e. the resource with URI that equals <code>ldh:base-uri(.)</code> which is the absolute URI of the current document, and outputs its label.</p>
                      
                      <div>
                         
@@ -553,7 +801,7 @@
                         
                         <p>For example, instead of hardcoding the title of this document as <samp>Stylesheets</samp>, we can use the following code to load it and output it on the fly:</p>
                         
-                        <pre>&lt;xsl:value-of select="key('resources', 'https://linkeddatahub.com/linkeddatahub/docs/reference/stylesheet/', document('https://linkeddatahub.com/linkeddatahub/docs/reference/stylesheet/'))"/&gt;</pre>
+                        <pre>&lt;xsl:value-of select="key('resources', 'https://docs.linkeddatahub.com/reference/stylesheet/', document('https://docs.linkeddatahub.com/reference/stylesheet/'))"/&gt;</pre>
                         
                         <p>In case this document changes its title, all such references would automatically render
                            the updated title. On the other hand, it incurs the overhead of making an HTTP request.</p>
@@ -567,7 +815,7 @@
                            is defined as Jena's <a href="https://jena.apache.org/documentation/io/rdf-input.html#configuring-a-locationmapper" target="_blank">location mapping</a> and can be found in
                            <a href="https://github.com/AtomGraph/LinkedDataHub/blob/master/src/main/resources/location-mapping.n3" target="_blank"><samp>location-mapping.n3</samp></a> and <a href="https://github.com/AtomGraph/LinkedDataHub/blob/master/src/main/resources/prefix-mapping.n3" target="_blank"><samp>prefix-mapping.n3</samp></a>.</p>
                         
-                        <p>Client-side stylesheets use <a href="https://www.saxonica.com/saxon-js/documentation/index.html#!ixsl-extension/instructions/schedule-action" target="_blank"><code>ixsl:schedule-action</code></a> to load XML documents asynchronously.</p>
+                        <p>Client-side stylesheets use <a href="https://www.saxonica.com/saxon-js/documentation/index.html#!ixsl-extension/instructions/schedule-action" target="_blank"><code>&lt;ixsl:schedule-action&gt;</code></a> (deprecated) and <a href="https://www.saxonica.com/saxonjs/documentation3/index.html#!ixsl-extension/instructions/promise" target="_blank"><code>&lt;ixsl:promise&gt;</code></a> to load XML documents asynchronously.</p>
                         </div>
                      </div>
                   
@@ -590,7 +838,6 @@
                         client-side XSLT.</p>
                      </div>
                   </div>
-               <nav></nav>
             </main>
          </div>
       </div>

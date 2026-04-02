@@ -1,9 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html><html xmlns="http://www.w3.org/1999/xhtml">
    <head>
       <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
-      <title>LinkedDataHub v5 - Manage dataspaces</title>
+      <title>LinkedDataHub v5 — Manage dataspaces</title>
       <meta name="description" content="Create or change a dataspace, configure SPARQL services and XSLT stylesheets"/>
-      <link rel="up" href="../index.html"/>
       <link href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/files/css/bootstrap.css" rel="stylesheet" type="text/css"/>
       <link href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/files/css/bootstrap-responsive.css" rel="stylesheet" type="text/css"/>
       <link href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/files/css/linkeddatahub-bootstrap.css" rel="stylesheet" type="text/css"/>
@@ -11,31 +10,24 @@
                 body { padding-top: 60px; }
                 object { width: 100%; min-height: 640px; }
             </style><script type="text/javascript" src="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/files/js/jquery.min.js"></script><script type="text/javascript" src="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/files/js/bootstrap.min.js"></script><script type="text/javascript">
-                $(document).ready(function()
-                {
-
-                    $("ul.nav-tabs a").on("click", function()
-                    {
-                        $(this).closest("ul").children().toggleClass("active", false); // deactivate other tabs
-                        $(this).closest("li").toggleClass("active", true); // activate this tab
-                        $(this).closest("ul").next().children().toggleClass("active", false); // deactivate other tab panes
-                        $(this).closest("ul").next().children().eq($(this).closest("li").index()).toggleClass("active", true); // activate this tab pane
+                    $(document).ready(function() {
+                        $("ul.nav-tabs a").on("click", function() {
+                            $(this).closest("ul").children().toggleClass("active", false);
+                            $(this).closest("li").toggleClass("active", true);
+                            $(this).closest("ul").next().children().toggleClass("active", false);
+                            $(this).closest("ul").next().children().eq($(this).closest("li").index()).toggleClass("active", true);
+                        });
                     });
-
-                });
-            </script><script async="async" src="https://www.googletagmanager.com/gtag/js?id=UA-38402002-6"></script><script>
-                
+                </script><script async="async" src="https://www.googletagmanager.com/gtag/js?id=UA-38402002-6"></script><script>
                     window.dataLayer = window.dataLayer || [];
                     function gtag(){dataLayer.push(arguments);}
                     gtag('js', new Date());
-
                     gtag('config', 'UA-38402002-6');
-                
-            </script></head>
+                </script></head>
    <body>
       <div class="navbar navbar-fixed-top">
          <div class="navbar-inner">
-            <div class="container-fluid"><a class="brand" href="https://atomgraph.github.io/LinkedDataHub/">LinkedDataHub</a><div class="nav-collapse collapse">
+            <div class="container-fluid"><a class="brand" href="../../">LinkedDataHub</a><div class="nav-collapse collapse">
                   <ul class="nav">
                      <li class="active">
                         <div class="btn-group"><a class="btn" href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/">Documentation v5</a><button class="btn dropdown-toggle" data-toggle="dropdown"><span class="caret"></span></button><ul class="dropdown-menu">
@@ -54,77 +46,78 @@
          <div class="row-fluid">
             <nav class="span2">
                <ul class="nav nav-list">
-                  <li><a href="../../about/index.html" title="An RDF-native Knowledge Graph application platform">About LinkedDataHub</a></li>
-                  <li><a href="../../get-started/index.html" title="All the basics of LinkedDataHub. From installation to extending the model and user interface.">Get started</a><ul class="nav nav-list">
-                        <li><a href="../../get-started/get-an-account/index.html" title="How to get login to LinkedDataHub">Get an account</a></li>
-                        <li><a href="../../get-started/request-access/index.html" title="How to get access to an application">Request access</a></li>
-                        <li><a href="../../get-started/setup/index.html" title="Setup LinkedDataHub on your local machine or access it in the cloud">Setup</a></li>
+                  <li><a href="../../about/">About LinkedDataHub</a></li>
+                  <li><a href="../../get-started/">Get started</a><ul class="nav nav-list">
+                        <li><a href="../../get-started/get-an-account/">Get an account</a></li>
+                        <li><a href="../../get-started/request-access/">Request access</a></li>
+                        <li><a href="../../get-started/setup/">Setup</a></li>
                      </ul>
                   </li>
-                  <li><a href="../../reference/index.html" title="A list of LinkedDataHub's features and their functions, split into general and administration parts">Reference</a><ul class="nav nav-list">
-                        <li><a href="../../reference/administration/index.html" title="Access control and domain model management">Administration</a><ul class="nav nav-list">
-                              <li><a href="../../reference/administration/acl/index.html" title="Agents, groups, and authorizations">Access control</a></li>
-                              <li><a href="../../reference/administration/ontologies/index.html" title="Ontology classes, constraints, properties etc.">Ontologies</a></li>
-                              <li><a href="../../reference/administration/packages/index.html" title="Package management for LinkedDataHub applications">Packages</a></li>
+                  <li><a href="../../reference/">Reference</a><ul class="nav nav-list">
+                        <li><a href="../../reference/administration/">Administration</a><ul class="nav nav-list">
+                              <li><a href="../../reference/administration/acl/">Access control</a></li>
+                              <li><a href="../../reference/administration/ontologies/">Ontologies</a></li>
+                              <li><a href="../../reference/administration/packages/">Packages</a></li>
                            </ul>
                         </li>
-                        <li><a href="../../reference/command-line-interface/index.html" title="CLI scripts can be used perform all actions available in the UI">Command line interface</a></li>
-                        <li><a href="../../reference/configuration/index.html" title="Overview of configuration options">Configuration</a></li>
-                        <li><a href="../../reference/data-model/index.html" title="Document and content structure as well as actions that can be performed on them">Data model</a><ul class="nav nav-list">
-                              <li><a href="../../reference/data-model/blocks/index.html" title="Content blocks and the basic data content actions">Content blocks</a><ul class="nav nav-list">
-                                    <li><a href="../../reference/data-model/blocks/objects/index.html" title="Blocks that embed/transclude any dereferenceable URI">Object blocks</a></li>
-                                    <li><a href="../../reference/data-model/blocks/xhtml/index.html" title="Blocks that embed XHTML markup as an RDF literal">XHTML blocks</a></li>
+                        <li><a href="../../reference/command-line-interface/">Command line interface</a></li>
+                        <li><a href="../../reference/configuration/">Configuration</a></li>
+                        <li><a href="../../reference/data-model/">Data model</a><ul class="nav nav-list">
+                              <li><a href="../../reference/data-model/blocks/">Content blocks</a><ul class="nav nav-list">
+                                    <li><a href="../../reference/data-model/blocks/objects/">Object blocks</a></li>
+                                    <li><a href="../../reference/data-model/blocks/xhtml/">XHTML blocks</a></li>
                                  </ul>
                               </li>
-                              <li><a href="../../reference/data-model/documents/index.html" title="Document hierarchy and the basic data management actions">Documents</a><ul class="nav nav-list">
-                                    <li><a href="../../reference/data-model/documents/containers/index.html" title="Containers are analogous to folders in a filesystem">Containers</a></li>
-                                    <li><a href="../../reference/data-model/documents/items/index.html" title="Items are analogous to files in a filesystem">Items</a></li>
+                              <li><a href="../../reference/data-model/documents/">Documents</a><ul class="nav nav-list">
+                                    <li><a href="../../reference/data-model/documents/containers/">Containers</a></li>
+                                    <li><a href="../../reference/data-model/documents/items/">Items</a></li>
                                  </ul>
                               </li>
-                              <li><a href="../../reference/data-model/resources/index.html" title="RDF resources and their management">Resources</a><ul class="nav nav-list">
-                                    <li><a href="../../reference/data-model/resources/charts/index.html" title="Interactive charts based on SPARQL queries">Charts</a></li>
-                                    <li><a href="../../reference/data-model/resources/queries/index.html" title="Interactive SPARQL queries">Queries</a></li>
-                                    <li><a href="../../reference/data-model/resources/views/index.html" title="Paginated views based on SPARQL queries">Views</a></li>
+                              <li><a href="../../reference/data-model/resources/">Resources</a><ul class="nav nav-list">
+                                    <li><a href="../../reference/data-model/resources/charts/">Charts</a></li>
+                                    <li><a href="../../reference/data-model/resources/queries/">Queries</a></li>
+                                    <li><a href="../../reference/data-model/resources/views/">Views</a></li>
                                  </ul>
                               </li>
                            </ul>
                         </li>
-                        <li><a href="../../reference/dataspace/index.html" title="LinkedDataHub dataspaces, applications, and services">Dataspace</a></li>
-                        <li><a href="../../reference/http-api/index.html" title="Learn how to access and manage RDF data over generic HTTP API">HTTP API</a></li>
-                        <li><a href="../../reference/imports/index.html" title="Types of data imports supported by LinkedDataHub">Imports</a><ul class="nav nav-list">
-                              <li><a href="../../reference/imports/csv/index.html" title="CSV imports and mapping to RDF using SPARQL CONSTRUCT">CSV imports</a></li>
-                              <li><a href="../../reference/imports/rdf/index.html" title="RDF imports and transforming RDF using SPARQL CONSTRUCT">RDF imports</a></li>
+                        <li><a href="../../reference/dataspace/">Dataspace</a></li>
+                        <li><a href="../../reference/http-api/">HTTP API</a></li>
+                        <li><a href="../../reference/imports/">Imports</a><ul class="nav nav-list">
+                              <li><a href="../../reference/imports/csv/">CSV imports</a></li>
+                              <li><a href="../../reference/imports/rdf/">RDF imports</a></li>
                            </ul>
                         </li>
-                        <li><a href="../../reference/dataset/index.html" title="The default RDF dataset structure used by LinkedDataHub">RDF dataset</a></li>
-                        <li><a href="../../reference/stylesheets/index.html" title="Built-in XSLT and CSS stylesheets">Stylesheets</a></li>
-                        <li><a href="../../reference/user-interface/index.html" title="A walk through the main features of application user interface">User interface</a></li>
+                        <li><a href="../../reference/dataset/">RDF dataset</a></li>
+                        <li><a href="../../reference/stylesheets/">Stylesheets</a></li>
+                        <li><a href="../../reference/triplestores/">Triplestores</a></li>
+                        <li><a href="../../reference/user-interface/">User interface</a></li>
                      </ul>
                   </li>
-                  <li><a href="../index.html" title="Step-by-step tutorials for everyday tasks with LinkedDataHub">User guide</a><ul class="nav nav-list">
-                        <li><a href="../add-data/index.html" title="Fork RDF data from Linked Data resources and SPARQL results">Add data</a></li>
-                        <li><a href="../browse-data/index.html" title="Use LinkedDataHub's built-in Linked Data browser to explore remote datasources">Browse data</a></li>
-                        <li><a href="../build-apps/index.html" title="Using LinkedDataHub as a low-code platform for Knowledge Graph applications">Build apps</a></li>
-                        <li><a href="../change-layout/index.html" title="How to customize the layout of an application and the UI of the resources">Change layout</a></li>
-                        <li><a href="../change-system-base-uri/index.html" title="How to change host, port, or the path LinkedDataHub service runs on">Change system base URI</a></li>
-                        <li><a href="../change-model/index.html" title="Change the model: create constructors, classes, and constraints">Change the model</a></li>
-                        <li><a href="../create-data/index.html" title="How to create documents, content, and instances">Create data</a><ul class="nav nav-list">
-                              <li><a href="../create-data/create-content/index.html" title="Learn how to create data-driven content">Create content</a></li>
-                              <li><a href="../create-data/create-documents/index.html" title="Learn how to create container and item documents">Create documents</a></li>
-                              <li><a href="../create-data/create-resources/index.html" title="Learn how to create of built-in and user-defined classes">Create instances</a></li>
+                  <li><a href="../">User guide</a><ul class="nav nav-list">
+                        <li><a href="../add-data/">Add data</a></li>
+                        <li><a href="../browse-data/">Browse data</a></li>
+                        <li><a href="../build-apps/">Build apps</a></li>
+                        <li><a href="../change-layout/">Change layout</a></li>
+                        <li><a href="../change-system-base-uri/">Change system base URI</a></li>
+                        <li><a href="../change-model/">Change the model</a></li>
+                        <li><a href="../create-data/">Create data</a><ul class="nav nav-list">
+                              <li><a href="../create-data/create-content/">Create content</a></li>
+                              <li><a href="../create-data/create-documents/">Create documents</a></li>
+                              <li><a href="../create-data/create-resources/">Create instances</a></li>
                            </ul>
                         </li>
-                        <li><a href="../import-data/index.html" title="How to import data into LinkedDataHub">Import data</a><ul class="nav nav-list">
-                              <li><a href="../import-data/import-csv-data/index.html" title="Step by step guide to converting CSV data to RDF and importing into end-user application">Import CSV data</a></li>
-                              <li><a href="../import-data/import-rdf-data/index.html" title="Step by step guide to importing RDF data">Import RDF data</a></li>
+                        <li><a href="../import-data/">Import data</a><ul class="nav nav-list">
+                              <li><a href="../import-data/import-csv-data/">Import CSV data</a></li>
+                              <li><a href="../import-data/import-rdf-data/">Import RDF data</a></li>
                            </ul>
                         </li>
-                        <li class="active"><a href="" title="Create or change a dataspace, configure SPARQL services and XSLT stylesheets">Manage dataspaces</a></li>
-                        <li><a href="../manage-packages/index.html" title="Step by step guide to installing and uninstalling packages">Manage packages</a></li>
-                        <li><a href="../navigate-data/index.html" title="Navigate the document hierarchy, related results, and backlinks">Navigate data</a></li>
-                        <li><a href="../query-data/index.html" title="Learn how to query application data with SPARQL, store queries and charts">Query data</a></li>
-                        <li><a href="../search-data/index.html" title="Search for resources using text keywords">Search data</a></li>
-                        <li><a href="../upload-file/index.html" title="Learn how to upload files to LinkedDataHub">Upload file</a></li>
+                        <li class="active"><a href="">Manage dataspaces</a></li>
+                        <li><a href="../manage-packages/">Manage packages</a></li>
+                        <li><a href="../navigate-data/">Navigate data</a></li>
+                        <li><a href="../query-data/">Query data</a></li>
+                        <li><a href="../search-data/">Search data</a></li>
+                        <li><a href="../upload-file/">Upload file</a></li>
                      </ul>
                   </li>
                </ul>
@@ -133,7 +126,7 @@
                <header>
                   <h1>Manage dataspaces</h1>
                </header>
-               <div>
+               <div xmlns:dct="http://purl.org/dc/terms/" xmlns:dh="https://www.w3.org/ns/ldt/document-hierarchy#" xmlns:ldh="https://w3id.org/atomgraph/linkeddatahub#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
                   
                   <p class="lead">Step by step guide to creating a new dataspace backed by SPARQL services</p>
                   
@@ -141,11 +134,22 @@
                      
                      <h2 id="dataspaces">Manage dataspaces</h2>
                      
-                     <p><a href="../../reference/dataspace/" target="_blank">Dataspaces</a> are configured in <a href="https://github.com/AtomGraph/LinkedDataHub/blob/master/config/system.trig" target="_blank"><samp>config/system.trig</samp></a>. <a href="https://www.w3.org/TR/trig/" target="_blank">TriG</a> RDF syntax is used.</p>
+                     <p><a href="../../reference/dataspace/" target="_blank">Dataspaces</a> are configured using RDF configuration files in <a href="https://www.w3.org/TR/trig/" target="_blank">TriG</a> syntax:</p>
+                     
+                     <ul>
+                        
+                        <li><a href="https://github.com/AtomGraph/LinkedDataHub/blob/master/config/dataspaces.trig" target="_blank"><samp>config/dataspaces.trig</samp></a> — Application metadata (base URIs, titles, ontologies, stylesheets)</li>
+                        
+                        <li><a href="https://github.com/AtomGraph/LinkedDataHub/blob/master/config/system.trig" target="_blank"><samp>config/system.trig</samp></a> — Internal service wiring (app-to-service bindings, SPARQL endpoints)</li>
+                        
+                        <li><samp>secrets/credentials.trig</samp> — Service authentication credentials (optional, gitignored). See the <a href="../../reference/triplestores/#authentication" target="_blank">authentication reference</a> for details.</li>
+                        </ul>
                      
                      <p>The configuration uses the <a href="https://w3id.org/atomgraph/linkeddatahub/apps" target="_blank">Application domain ontology</a>. A dataspace is comprised of an end-user
-                        application and an administrative application, both of them are backed by each own
-                        SPARQL service. Each application can also specify its own <a href="../../reference/stylesheets/" target="_blank">XSLT stylesheet</a>.</p>
+                        application and an administrative application, both backed by their own SPARQL service.
+                        Each application can also specify its own <a href="../../reference/stylesheets/" target="_blank">XSLT stylesheet</a>.</p>
+                     
+                     <p>See the <a href="../../reference/configuration/#config-files" target="_blank">configuration reference</a> for more details about these files.</p>
                      
                      <div class="alert alert-info">
                         
@@ -155,25 +159,25 @@
                      
                      <div>
                         
-                        <h3 id="change-base-uri">Change base URI(s)</h3>
-                        
-                        <p>Lets say we want to use <samp>https://ec2-54-235-229-141.compute-1.amazonaws.com/linkeddatahub/</samp> as the new base URI of our dataspaces. The easiest way is to simple replace occurences
-                           of the default <samp>https://localhost:4443/</samp> base URI with the new value. It can be done using the following shell command:</p>
-                        
-                        <pre>sed -i 's/https:\/\/localhost:4443\//https:\/\/ec2-54-235-229-141.compute-1.amazonaws.com\/linkeddatahub\//g' config/system.trig</pre>
-                        
-                        <p>Note that <samp>sed</samp> requires to escape forward slashes <samp>/</samp> with backslashes <samp>\</samp>.</p>
-                        </div>
-                     
-                     <div>
-                        
                         <h3 id="create-dataspace">Create a dataspace</h3>
                         
-                        <p>Add instances of <code>lapp:EndUserApplication</code>, <code>lapp:AdminApplication</code> and their corresponding <code>sd:Service</code>s following the default dataspace in <samp>config/system.trig</samp>.</p>
+                        <p>To create a new dataspace:</p>
+                        
+                        <ol>
+                           
+                           <li>Add instances of <code>lapp:EndUserApplication</code> and <code>lapp:AdminApplication</code> to <samp>config/dataspaces.trig</samp>, following the default dataspace as a template</li>
+                           
+                           <li>Add corresponding <code>sd:Service</code> instances to <samp>config/system.trig</samp> with the SPARQL endpoint connection details</li>
+                           </ol>
+                        
+                        <p>The relationship between end-user and admin applications is automatically inferred
+                           based on naming conventions — you don't need to manually specify
+                           <code>lapp:endUserApplication</code> or <code>lapp:adminApplication</code> properties. Applications with base URIs containing <samp>admin/</samp> are
+                           automatically recognized as administration applications.</p>
                         
                         <div class="alert alert-info">
                            
-                           <p>Use URIs (for example in the <samp>urn:</samp> scheme) to identify apps and services, not blank nodes. Make sure the file's syntax
+                           <p>Use URIs (for example in the <samp>urn:</samp> scheme) to identify apps and services, not blank nodes. Make sure both files' syntax
                               is valid <a href="https://www.w3.org/TR/turtle/" target="_blank">Turtle</a>, otherwise the setup will not work. You can use <a href="http://ttl.summerofcode.be/" target="_blank">Turtle Validator</a> to check the syntax.</p>
                            </div>
                         </div>
@@ -197,9 +201,13 @@
                      <h2 id="manage-services">Manage services</h2>
                      
                      <p>LinkedDataHub service as well as the default SPARQL services <samp>fuseki-end-user</samp> and <samp>fuseki-admin</samp> are defined in <a href="https://github.com/AtomGraph/LinkedDataHub/blob/master/docker-compose.yml" target="_blank"><samp>docker-compose.yml</samp></a> and run as Docker containers.</p>
+                     
+                     <p>While LinkedDataHub uses Apache Jena Fuseki by default, you can configure it to use
+                        other SPARQL 1.1-compatible triplestores such as <a href="https://github.com/ad-freiburg/qlever" target="_blank">QLever</a>, <a href="https://github.com/dice-group/tentris" target="_blank">Tentris</a>, or others.</p>
+                     
+                     <p>See the <a href="../../reference/triplestores/" target="_blank">triplestores reference</a> for step-by-step configuration examples, including QLever setup and troubleshooting.</p>
                      </div>
                   </div>
-               <nav></nav>
             </main>
          </div>
       </div>
