@@ -18,6 +18,7 @@
     <xsl:param name="docs-dir" as="xs:string" select="'/docs'"/>
     <xsl:param name="rdf-dir" as="xs:string" select="'/rdf'"/>
     <xsl:param name="output-folder" as="xs:string" select="'/output'"/>
+    <xsl:param name="site-base-url" as="xs:string" select="'https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/'"/>
 
     <!-- all RDF/XML documents — sidecar for nav and child discovery only -->
     <xsl:variable name="all-docs" select="collection('file://' || $rdf-dir || '?select=*.rdf;recurse=yes;content-type=application/xml')"/>
@@ -28,6 +29,11 @@
     <xsl:key name="file-by-sha1"
         match="json:map/json:array[@key='files']/json:map"
         use="json:string[@key='sha1']"/>
+
+    <!-- doc path → source .ttl modification time -->
+    <xsl:variable name="timestamps-xml" select="document('file://' || $docs-dir || '/timestamps.xml')"/>
+
+    <xsl:key name="timestamp-by-path" match="json:string" use="@key"/>
 
     <!--
         Derive the logical resource URI from a node's document base URI.
@@ -84,6 +90,22 @@
                 </body>
             </html>
         </xsl:result-document>
+
+        <!-- sitemap.xml -->
+        <xsl:result-document href="{$output-folder}/sitemap.xml" method="xml" indent="yes">
+            <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+                <url>
+                    <loc><xsl:value-of select="$site-base-url"/></loc>
+                </url>
+                <xsl:for-each select="$timestamps-xml/json:map/json:string">
+                    <xsl:sort select="@key"/>
+                    <url>
+                        <loc><xsl:value-of select="$site-base-url || substring-after(@key, '/')"/></loc>
+                        <lastmod><xsl:value-of select="."/></lastmod>
+                    </url>
+                </xsl:for-each>
+            </urlset>
+        </xsl:result-document>
     </xsl:template>
 
     <!-- ==================== ONE PAGE PER RDF DOCUMENT ==================== -->
@@ -98,6 +120,7 @@
                 <xsl:call-template name="html-head">
                     <xsl:with-param name="title" select="$resource/dct:title"/>
                     <xsl:with-param name="description" select="$resource/dct:description"/>
+                    <xsl:with-param name="doc-path" select="$base-path"/>
                 </xsl:call-template>
                 <body>
                     <xsl:call-template name="navbar">
@@ -262,10 +285,15 @@
     <xsl:template name="html-head">
         <xsl:param name="title" as="xs:string"/>
         <xsl:param name="description" as="xs:string?"/>
+        <xsl:param name="doc-path" as="xs:string?"/>
         <head>
             <title>LinkedDataHub v5 — <xsl:value-of select="$title"/></title>
             <xsl:if test="$description">
                 <meta name="description" content="{$description}"/>
+            </xsl:if>
+            <xsl:variable name="modified" select="key('timestamp-by-path', $doc-path, $timestamps-xml)"/>
+            <xsl:if test="$modified">
+                <meta name="last-modified" content="{$modified}"/>
             </xsl:if>
             <link href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/files/css/bootstrap.css" rel="stylesheet" type="text/css"/>
             <link href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/files/css/bootstrap-responsive.css" rel="stylesheet" type="text/css"/>
