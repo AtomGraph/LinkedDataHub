@@ -106,11 +106,16 @@ public class AuthorizationFilter implements ContainerRequestFilter
         if (request == null) throw new IllegalArgumentException("ContainerRequestContext cannot be null");
         if (log.isDebugEnabled()) log.debug("Authorizing request URI: {}", request.getUriInfo().getRequestUri());
 
-        // allow proxied URIs that are mapped to local files
-        if (request.getMethod().equals(HttpMethod.GET) && request.getUriInfo().getQueryParameters().containsKey(AC.uri.getLocalName()))
+        // allow proxied URIs - ACL is enforced by the target endpoint
+        // SSRF protection is handled separately in ProxiedGraph via URLValidator
+        // LDH's document-centric ACL (acl:accessTo <document>) is not meaningful for the proxy,
+        // which is a global transport function, not a document. Requiring acl:Write on a local
+        // document just to forward a DELETE to a remote target would be a security anti-pattern.
+        if (request.getUriInfo().getQueryParameters().containsKey(AC.uri.getLocalName()))
         {
             String proxiedURI = request.getUriInfo().getQueryParameters().getFirst(AC.uri.getLocalName());
-            if (getSystem().getDataManager().isMapped(proxiedURI)) return;
+            if (getSystem().getDataManager().isMapped(proxiedURI)) return; // mapped local file
+            return; // external URI — skip ACL, target enforces its own access control
         }
 
         Resource accessMode = ACCESS_MODES.get(request.getMethod());
