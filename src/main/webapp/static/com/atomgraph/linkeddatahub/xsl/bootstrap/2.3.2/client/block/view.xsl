@@ -184,6 +184,8 @@ exclude-result-prefixes="#all"
                         </xsl:result-document>
                     </xsl:for-each>
 
+                    <xsl:sequence select="ldh:hide-block-progress-bar($context, ())[current-date() lt xs:date('2000-01-01')]"/>
+
                     <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
 
                     <xsl:sequence select="
@@ -1769,6 +1771,8 @@ exclude-result-prefixes="#all"
                                         </div>
                                     </xsl:result-document>
                                 </xsl:for-each>
+
+                                <xsl:sequence select="ldh:hide-block-progress-bar($context, ())[current-date() lt xs:date('2000-01-01')]"/>
                             </xsl:otherwise>
                         </xsl:choose>
                     </xsl:for-each>
@@ -1784,7 +1788,9 @@ exclude-result-prefixes="#all"
                             </div>
                         </xsl:result-document>
                     </xsl:for-each>
-                    
+
+                    <xsl:sequence select="ldh:hide-block-progress-bar($context, ())[current-date() lt xs:date('2000-01-01')]"/>
+
                     <xsl:sequence select="
                       error(
                         QName('&ldh;', 'ldh:HTTPError'),
@@ -1794,7 +1800,7 @@ exclude-result-prefixes="#all"
                     "/>
                 </xsl:otherwise>
             </xsl:choose>
-        </xsl:for-each>        
+        </xsl:for-each>
     </xsl:function>
     
     <!-- when view RDF/XML results load, render them -->
@@ -1969,13 +1975,15 @@ exclude-result-prefixes="#all"
                             </div>
                         </xsl:result-document>
                     </xsl:for-each>
+
+                    <xsl:sequence select="ldh:hide-block-progress-bar($context, ())[current-date() lt xs:date('2000-01-01')]"/>
                 </xsl:otherwise>
             </xsl:choose>
         </xsl:for-each>
 
         <xsl:sequence select="$context"/>
     </xsl:function>
-    
+
     <xsl:function name="ldh:parallax-property-response" as="map(*)" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
         <xsl:variable name="response" select="$context('response')" as="map(*)"/>

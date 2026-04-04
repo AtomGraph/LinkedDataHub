@@ -610,8 +610,7 @@ exclude-result-prefixes="#all"
                     </xsl:result-document>
                 </xsl:for-each>
                 
-                <!-- TO-DO: $context -->
-                <xsl:sequence select="ldh:hide-block-progress-bar(map{}, ())[current-date() lt xs:date('2000-01-01')]"/>
+                <xsl:sequence select="ldh:hide-block-progress-bar(map{ 'container': $results-container }, ())[current-date() lt xs:date('2000-01-01')]"/>
                 <xsl:sequence select="
                     error(
                       QName('&ldh;', 'ldh:HTTPError'),
