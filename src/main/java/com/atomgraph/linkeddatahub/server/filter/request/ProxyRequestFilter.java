@@ -180,6 +180,8 @@ public class ProxyRequestFilter implements ContainerRequestFilter
 
             try (clientResponse)
             {
+                // provide the target URI as a base URI hint so ModelProvider / HtmlJsonLDReader can resolve relative references
+                clientResponse.getHeaders().putSingle(com.atomgraph.core.io.ModelProvider.REQUEST_URI_HEADER, targetURI.toString());
                 requestContext.abortWith(getResponse(clientResponse));
             }
         }
