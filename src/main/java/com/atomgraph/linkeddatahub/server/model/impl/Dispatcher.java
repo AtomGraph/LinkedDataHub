@@ -16,8 +16,6 @@
  */
 package com.atomgraph.linkeddatahub.server.model.impl;
 
-import com.atomgraph.client.vocabulary.AC;
-import com.atomgraph.linkeddatahub.apps.model.Dataset;
 import com.atomgraph.linkeddatahub.resource.Add;
 import com.atomgraph.linkeddatahub.resource.Generate;
 import com.atomgraph.linkeddatahub.resource.Namespace;
@@ -29,146 +27,100 @@ import com.atomgraph.linkeddatahub.resource.Settings;
 import com.atomgraph.linkeddatahub.resource.admin.SignUp;
 import com.atomgraph.linkeddatahub.resource.acl.Access;
 import com.atomgraph.linkeddatahub.resource.acl.AccessRequest;
-import java.util.Optional;
-import jakarta.inject.Inject;
 import jakarta.ws.rs.Path;
-import jakarta.ws.rs.core.Context;
-import jakarta.ws.rs.core.UriInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * A catch-all JAX-RS resource that routes requests to sub-resources.
- * 
+ * Proxy requests ({@code ?uri=} and {@code lapp:Dataset}) are handled earlier by
+ * {@link com.atomgraph.linkeddatahub.server.filter.request.ProxyRequestFilter} and never reach this class.
+ *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
 @Path("/")
 public class Dispatcher
 {
-    
+
     private static final Logger log = LoggerFactory.getLogger(Dispatcher.class);
 
-    private final UriInfo uriInfo;
-    private final Optional<Dataset> dataset;
-    private final com.atomgraph.linkeddatahub.Application system;
-    
-    /**
-     * Constructs resource which dispatches requests to sub-resources.
-     * 
-     * @param uriInfo URI info
-     * @param dataset optional dataset
-     * @param system system application
-     */
-    @Inject
-    public Dispatcher(@Context UriInfo uriInfo, Optional<Dataset> dataset, com.atomgraph.linkeddatahub.Application system)
-    {
-        this.uriInfo = uriInfo;
-        this.dataset = dataset;
-        this.system = system;
-    }
-    
-    /**
-     * Returns proxy class that takes precedence over the default JAX-RS path matching.
-     * The request is proxied in two cases:
-     * <ul>
-     *   <li>externally (URI specified by the <code>?uri</code> query param, when <code>?graph</code> query param not set)</li>
-     *   <li>internally if it matches a <code>lapp:Dataset</code> specified in the system app config</li>
-     * </ul>
-     * @return optional class
-     */
-    public Optional<Class> getProxyClass()
-    {
-        if (getUriInfo().getQueryParameters().containsKey(AC.uri.getLocalName()))
-        {
-            if (log.isDebugEnabled()) log.debug("No Application matched request URI <{}>, dispatching to ProxyResourceBase", getUriInfo().getQueryParameters().getFirst(AC.uri.getLocalName()));
-            return Optional.of(ProxiedGraph.class);
-        }
-        if (getDataset().isPresent())
-        {
-            if (log.isDebugEnabled()) log.debug("Serving request URI <{}> from Dataset <{}>, dispatching to ProxyResourceBase", getUriInfo().getAbsolutePath(), getDataset().get());
-            return Optional.of(ProxiedGraph.class);
-        }
-        
-        return Optional.empty();
-    }
-    
     /**
      * Returns JAX-RS resource that will handle this request.
-     * 
+     *
      * @return resource
      */
     @Path("{path: .*}")
     public Class getSubResource()
     {
-        return getProxyClass().orElse(getDocumentClass());
+        return getDocumentClass();
     }
-    
+
     // TO-DO: move @Path annotations onto respective classes?
-    
+
     /**
      * Returns SPARQL protocol endpoint.
-     * 
+     *
      * @return endpoint resource
      */
     @Path("sparql")
     public Class getSPARQLEndpoint()
     {
-        return getProxyClass().orElse(SPARQLEndpointImpl.class);
+        return SPARQLEndpointImpl.class;
     }
 
     /**
      * Returns SPARQL endpoint for the in-memory ontology model.
-     * 
+     *
      * @return endpoint resource
      */
     @Path("ns")
     public Class getNamespace()
     {
-        return getProxyClass().orElse(Namespace.class);
+        return Namespace.class;
     }
 
     /**
      * Returns second-level ontology documents.
-     * 
+     *
      * @return namespace resource
      */
     @Path("ns/{slug}/")
     public Class getSubOntology()
     {
-        return getProxyClass().orElse(Namespace.class);
+        return Namespace.class;
     }
-    
+
     /**
      * Returns signup endpoint.
-     * 
+     *
      * @return endpoint resource
      */
     @Path("sign up")
     public Class getSignUp()
     {
-        return getProxyClass().orElse(SignUp.class);
+        return SignUp.class;
     }
-    
+
     /**
      * Returns the access description endpoint.
-     * 
+     *
      * @return endpoint resource
      */
     @Path("access")
     public Class getAccess()
     {
-        return getProxyClass().orElse(Access.class);
+        return Access.class;
     }
 
     /**
-     * Returns the access description endpoint.
-     * 
+     * Returns the access request endpoint.
+     *
      * @return endpoint resource
      */
     @Path("access/request")
     public Class getAccessRequest()
     {
-        return getProxyClass().orElse(AccessRequest.class);
+        return AccessRequest.class;
     }
 
     /**
@@ -179,31 +131,31 @@ public class Dispatcher
     @Path("uploads/{sha1sum}")
     public Class getFileItem()
     {
-        return getProxyClass().orElse(com.atomgraph.linkeddatahub.resource.upload.Item.class);
+        return com.atomgraph.linkeddatahub.resource.upload.Item.class;
     }
 
     /**
      * Returns the endpoint for synchronous RDF imports.
-     * 
+     *
      * @return endpoint resource
      */
     @Path("add")
     public Class getAddEndpoint()
     {
-        return getProxyClass().orElse(Add.class);
+        return Add.class;
     }
-    
+
     /**
      * Returns the endpoint for synchronous RDF imports with a <code>CONSTRUCT</code> query transformation.
-     * 
+     *
      * @return endpoint resource
      */
     @Path("transform")
     public Class getTransformEndpoint()
     {
-        return getProxyClass().orElse(Transform.class);
+        return Transform.class;
     }
-    
+
     /**
      * Returns the endpoint for container generation.
      *
@@ -212,9 +164,9 @@ public class Dispatcher
     @Path("generate")
     public Class getGenerateEndpoint()
     {
-        return getProxyClass().orElse(Generate.class);
+        return Generate.class;
     }
-    
+
     /**
      * Returns the endpoint that allows clearing ontologies from cache by URI.
      *
@@ -223,7 +175,7 @@ public class Dispatcher
     @Path("clear")
     public Class getClearEndpoint()
     {
-        return getProxyClass().orElse(ClearOntology.class);
+        return ClearOntology.class;
     }
 
     /**
@@ -234,7 +186,7 @@ public class Dispatcher
     @Path("packages/install")
     public Class getInstallPackageEndpoint()
     {
-        return getProxyClass().orElse(InstallPackage.class);
+        return InstallPackage.class;
     }
 
     /**
@@ -245,7 +197,7 @@ public class Dispatcher
     @Path("packages/uninstall")
     public Class getUninstallPackageEndpoint()
     {
-        return getProxyClass().orElse(UninstallPackage.class);
+        return UninstallPackage.class;
     }
 
     /**
@@ -256,7 +208,7 @@ public class Dispatcher
     @Path("settings")
     public Class getSettingsEndpoint()
     {
-        return getProxyClass().orElse(Settings.class);
+        return Settings.class;
     }
 
     /**
@@ -269,35 +221,5 @@ public class Dispatcher
     {
         return DocumentHierarchyGraphStoreImpl.class;
     }
-    
-    /**
-     * Returns request URI information.
-     * 
-     * @return URI info
-     */
-    public UriInfo getUriInfo()
-    {
-        return uriInfo;
-    }
 
-    /**
-     * Returns the matched dataset (optional).
-     * 
-     * @return optional dataset
-     */
-    public Optional<Dataset> getDataset()
-    {
-        return dataset;
-    }
-    
-    /**
-     * Returns the system application.
-     * 
-     * @return JAX-RS application
-     */
-    public com.atomgraph.linkeddatahub.Application getSystem()
-    {
-        return system;
-    }
-    
 }

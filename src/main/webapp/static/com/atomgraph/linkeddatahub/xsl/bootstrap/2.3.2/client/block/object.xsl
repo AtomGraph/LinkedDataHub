@@ -112,6 +112,7 @@ exclude-result-prefixes="#all"
                         </div>
                     </xsl:result-document>
                 </xsl:for-each>
+                <xsl:sequence select="ldh:hide-block-progress-bar($context, ())[current-date() lt xs:date('2000-01-01')]"/>
                 <xsl:sequence select="ixsl:resolve($context)"/>
             </xsl:when>
             <xsl:otherwise>
@@ -354,6 +355,7 @@ exclude-result-prefixes="#all"
                         </xsl:when>
                         <xsl:otherwise>
                             <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ ?message ])[current-date() lt xs:date('2000-01-01')]"/>
+                            <xsl:sequence select="ldh:hide-block-progress-bar($context, ())[current-date() lt xs:date('2000-01-01')]"/>
 
                             <xsl:sequence select="$context"/>
                         </xsl:otherwise>

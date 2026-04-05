@@ -1,3 +1,31 @@
+## [5.3.4] - 2026-04-05
+### Fixed
+- Do not append facet well into left-nav when there are no BGP triples
+- Hide progress bars when errors need to be shown in blocks
+- Exempt proxy requests from local ACL checks in `AuthorizationFilter` (#280)
+
+## [5.3.3] - 2026-04-01
+### Added
+- New HTTP test for non-existing namespaces
+- New HTTP test for not found files
+
+### Changed
+- Removed unused namespaces
+- More XSLT fixes related to optional applications
+- Making application optional in XSLT writer
+- Preserve URL fragment identifier in history `pushState`
+- `varnish_end_user_cache` volume (#279)
+
+### Fixed
+- Progress bar CSS fix
+- Throw 404 when file description is not found
+- Fix NPE in `CacheInvalidationFilter` when request scope is unavailable
+- Fixed WebID URI logging in entrypoint
+
+## [5.3.2] - 2026-03-30
+### Fixed
+- Fix `ClientUriRewriteFilter` host (#277)
+
 ## [5.3.1] - 2026-03-29
 ### Added
 - Namespace endpoint handles queries with relative URIs, resolved against the endpoint URL (#276 related)

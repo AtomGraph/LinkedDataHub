@@ -16,7 +16,6 @@
  */
 package com.atomgraph.linkeddatahub.server.filter.request;
 
-import com.atomgraph.client.vocabulary.AC;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import com.atomgraph.linkeddatahub.client.SesameProtocolClient;
 import com.atomgraph.linkeddatahub.server.exception.auth.AuthorizationException;
@@ -106,13 +105,6 @@ public class AuthorizationFilter implements ContainerRequestFilter
         if (request == null) throw new IllegalArgumentException("ContainerRequestContext cannot be null");
         if (log.isDebugEnabled()) log.debug("Authorizing request URI: {}", request.getUriInfo().getRequestUri());
 
-        // allow proxied URIs that are mapped to local files
-        if (request.getMethod().equals(HttpMethod.GET) && request.getUriInfo().getQueryParameters().containsKey(AC.uri.getLocalName()))
-        {
-            String proxiedURI = request.getUriInfo().getQueryParameters().getFirst(AC.uri.getLocalName());
-            if (getSystem().getDataManager().isMapped(proxiedURI)) return;
-        }
-
         Resource accessMode = ACCESS_MODES.get(request.getMethod());
         if (log.isDebugEnabled()) log.debug("Request method: {} ACL access mode: {}", request.getMethod(), accessMode);
         if (accessMode == null)
@@ -129,8 +121,6 @@ public class AuthorizationFilter implements ContainerRequestFilter
                 return;
             }
         }
-
-        if (getDataset().isPresent()) return; // skip proxied dataspaces
 
         final Agent agent;
         if (request.getSecurityContext().getUserPrincipal() instanceof Agent) agent = ((Agent)(request.getSecurityContext().getUserPrincipal()));
