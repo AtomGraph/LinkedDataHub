@@ -123,7 +123,9 @@ public class ProxyRequestFilter implements ContainerRequestFilter
             return;
         }
 
-        if (!getSystem().isEnableLinkedDataProxy()) throw new NotAllowedException("Linked Data proxy not enabled");
+        boolean isRegisteredApp = getSystem().matchApp(targetURI) != null;
+        if (!isRegisteredApp && !getSystem().isEnableLinkedDataProxy())
+            throw new NotAllowedException("Linked Data proxy not enabled");
         // LNK-009: validate that the target URI is not an internal/private address (SSRF protection)
         getSystem().getURLValidator().validate(targetURI);
 
