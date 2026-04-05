@@ -79,7 +79,6 @@ import org.slf4j.LoggerFactory;
  * </ol>
  * ACL is not checked for proxy requests: the proxy is a global transport function, not a document
  * operation. Access control is enforced by the target endpoint.
- * </p>
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
