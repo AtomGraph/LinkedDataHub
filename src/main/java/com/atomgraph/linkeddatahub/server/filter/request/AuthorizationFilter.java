@@ -16,7 +16,6 @@
  */
 package com.atomgraph.linkeddatahub.server.filter.request;
 
-import com.atomgraph.client.vocabulary.AC;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import com.atomgraph.linkeddatahub.client.SesameProtocolClient;
 import com.atomgraph.linkeddatahub.server.exception.auth.AuthorizationException;
@@ -106,18 +105,6 @@ public class AuthorizationFilter implements ContainerRequestFilter
         if (request == null) throw new IllegalArgumentException("ContainerRequestContext cannot be null");
         if (log.isDebugEnabled()) log.debug("Authorizing request URI: {}", request.getUriInfo().getRequestUri());
 
-        // allow proxied URIs - ACL is enforced by the target endpoint
-        // SSRF protection is handled separately in ProxiedGraph via URLValidator
-        // LDH's document-centric ACL (acl:accessTo <document>) is not meaningful for the proxy,
-        // which is a global transport function, not a document. Requiring acl:Write on a local
-        // document just to forward a DELETE to a remote target would be a security anti-pattern.
-        if (request.getUriInfo().getQueryParameters().containsKey(AC.uri.getLocalName()))
-        {
-            String proxiedURI = request.getUriInfo().getQueryParameters().getFirst(AC.uri.getLocalName());
-            if (getSystem().getDataManager().isMapped(proxiedURI)) return; // mapped local file
-            return; // external URI — skip ACL, target enforces its own access control
-        }
-
         Resource accessMode = ACCESS_MODES.get(request.getMethod());
         if (log.isDebugEnabled()) log.debug("Request method: {} ACL access mode: {}", request.getMethod(), accessMode);
         if (accessMode == null)
@@ -134,8 +121,6 @@ public class AuthorizationFilter implements ContainerRequestFilter
                 return;
             }
         }
-
-        if (getDataset().isPresent()) return; // skip proxied dataspaces
 
         final Agent agent;
         if (request.getSecurityContext().getUserPrincipal() instanceof Agent) agent = ((Agent)(request.getSecurityContext().getUserPrincipal()));

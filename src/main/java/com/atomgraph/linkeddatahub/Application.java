@@ -101,6 +101,7 @@ import com.atomgraph.server.mapper.ConfigurationExceptionMapper;
 import com.atomgraph.linkeddatahub.server.factory.OntologyFactory;
 import com.atomgraph.linkeddatahub.server.factory.ServiceFactory;
 import com.atomgraph.linkeddatahub.server.filter.request.OntologyFilter;
+import com.atomgraph.linkeddatahub.server.filter.request.ProxyRequestFilter;
 import com.atomgraph.linkeddatahub.server.filter.request.AuthorizationFilter;
 import com.atomgraph.linkeddatahub.server.filter.request.ContentLengthLimitFilter;
 import com.atomgraph.linkeddatahub.server.filter.request.auth.ProxiedWebIDFilter;
@@ -1098,6 +1099,7 @@ public class Application extends ResourceConfig
         register(ApplicationFilter.class);
         register(OntologyFilter.class);
         register(ProxiedWebIDFilter.class);
+        register(ProxyRequestFilter.class);
         register(AuthorizationFilter.class);
         if (getMaxContentLength() != null) register(new ContentLengthLimitFilter(getMaxContentLength()));
         register(new RDFPostMediaTypeInterceptor()); // for application/x-www-form-urlencoded
