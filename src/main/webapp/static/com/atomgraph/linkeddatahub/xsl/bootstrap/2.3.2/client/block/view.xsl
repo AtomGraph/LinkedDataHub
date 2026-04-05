@@ -887,17 +887,18 @@ exclude-result-prefixes="#all"
         <!-- use the first SELECT variable as the facet variable name (so that we do not generate facets based on other variables) -->
         <xsl:variable name="initial-var-name" select="$select-xml/json:map/json:array[@key = 'variables']/json:string[1]/substring-after(., '?')" as="xs:string"/>
         
-        <!-- only append facets if they are not already present -->
-        <xsl:if test="not(id($sub-container-id, ixsl:page()))">
+        <!-- use the BGPs where the predicate is a URI value and the subject and object are variables -->
+        <xsl:variable name="bgp-triples-map" select="$select-xml//json:map[json:string[@key = 'type'] = 'bgp']/json:array[@key = 'triples']/json:map[json:string[@key = 'subject'] = '?' || $initial-var-name][not(starts-with(json:string[@key = 'predicate'], '?'))][starts-with(json:string[@key = 'object'], '?')]" as="element()*"/>
+
+        <!-- only append facets if they are not already present and there are BGP triples to facet on -->
+        <xsl:if test="not(id($sub-container-id, ixsl:page())) and exists($bgp-triples-map)">
             <xsl:result-document href="?." method="ixsl:append-content">
                 <xsl:apply-templates select="." mode="ldh:RenderFacets">
                     <xsl:with-param name="id" select="$sub-container-id"/>
                 </xsl:apply-templates>
             </xsl:result-document>
-            
+
             <xsl:variable name="sub-container" select="id($sub-container-id, ixsl:page())" as="element()"/>
-            <!-- use the BGPs where the predicate is a URI value and the subject and object are variables -->
-            <xsl:variable name="bgp-triples-map" select="$select-xml//json:map[json:string[@key = 'type'] = 'bgp']/json:array[@key = 'triples']/json:map[json:string[@key = 'subject'] = '?' || $initial-var-name][not(starts-with(json:string[@key = 'predicate'], '?'))][starts-with(json:string[@key = 'object'], '?')]" as="element()*"/>
 
             <xsl:for-each select="$bgp-triples-map">
                 <!-- only simple properties in the BGP are supported, not property paths etc. -->
@@ -917,7 +918,7 @@ exclude-result-prefixes="#all"
                         'object-var-name': $object-var-name
                       }"/>
                     <ixsl:promise select="ixsl:http-request($context('request')) =>
-                        ixsl:then(ldh:rethread-response($context, ?)) =>        
+                        ixsl:then(ldh:rethread-response($context, ?)) =>
                         ixsl:then(ldh:handle-response#1) =>
                         ixsl:then(ldh:facet-filter-response#1)"
                         on-failure="ldh:promise-failure#1"/>
