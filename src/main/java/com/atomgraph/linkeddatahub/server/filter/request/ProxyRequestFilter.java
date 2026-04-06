@@ -151,9 +151,9 @@ public class ProxyRequestFilter implements ContainerRequestFilter
 
         try
         {
-            Invocation.Builder builder = target.request()
-                .accept(readableMediaTypesArray)
-                .header(HttpHeaders.USER_AGENT, GraphStoreClient.USER_AGENT);
+            Invocation.Builder builder = target.request().
+                accept(readableMediaTypesArray).
+                header(HttpHeaders.USER_AGENT, GraphStoreClient.USER_AGENT);
 
             Response clientResponse = requestContext.hasEntity()
                 ? builder.method(requestContext.getMethod(),
