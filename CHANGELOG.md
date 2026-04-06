@@ -1,3 +1,8 @@
+## [5.3.5] - 2026-04-06
+### Changed
+- `ProxyRequestFilter` now proxies all HTTP methods generically instead of whitelisting GET/POST/PUT/PATCH/DELETE
+- Allow proxying to registered `lapp:Application` endpoints regardless of `ENABLE_LINKED_DATA_PROXY`
+
 ## [5.3.4] - 2026-04-05
 ### Fixed
 - Do not append facet well into left-nav when there are no BGP triples

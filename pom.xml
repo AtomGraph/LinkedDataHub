@@ -3,7 +3,7 @@
 
     <groupId>com.atomgraph</groupId>
     <artifactId>linkeddatahub</artifactId>
-    <version>5.3.4</version>
+    <version>5.3.5</version>
     <packaging>${packaging.type}</packaging>
 
     <name>AtomGraph LinkedDataHub</name>
@@ -46,7 +46,7 @@
         <url>https://github.com/AtomGraph/LinkedDataHub</url>
         <connection>scm:git:git://github.com/AtomGraph/LinkedDataHub.git</connection>
         <developerConnection>scm:git:git@github.com:AtomGraph/LinkedDataHub.git</developerConnection>
-        <tag>linkeddatahub-5.3.4</tag>
+        <tag>linkeddatahub-5.3.5</tag>
     </scm>
 
     <repositories>
@@ -180,6 +180,12 @@
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <version>4.13.2</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <version>5.12.0</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

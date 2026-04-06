@@ -38,12 +38,12 @@ import java.util.List;
 import java.util.Optional;
 import jakarta.annotation.Priority;
 import jakarta.inject.Inject;
-import jakarta.ws.rs.HttpMethod;
 import jakarta.ws.rs.NotAcceptableException;
 import jakarta.ws.rs.NotAllowedException;
 import jakarta.ws.rs.Priorities;
 import jakarta.ws.rs.ProcessingException;
 import jakarta.ws.rs.client.Entity;
+import jakarta.ws.rs.client.Invocation;
 import jakarta.ws.rs.client.WebTarget;
 import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.container.ContainerRequestFilter;
@@ -123,7 +123,9 @@ public class ProxyRequestFilter implements ContainerRequestFilter
             return;
         }
 
-        if (!getSystem().isEnableLinkedDataProxy()) throw new NotAllowedException("Linked Data proxy not enabled");
+        boolean isRegisteredApp = getSystem().matchApp(targetURI) != null;
+        if (!isRegisteredApp && !getSystem().isEnableLinkedDataProxy())
+            throw new NotAllowedException("Linked Data proxy not enabled");
         // LNK-009: validate that the target URI is not an internal/private address (SSRF protection)
         getSystem().getURLValidator().validate(targetURI);
 
@@ -141,41 +143,22 @@ public class ProxyRequestFilter implements ContainerRequestFilter
         }
 
         List<MediaType> readableMediaTypesList = new ArrayList<>();
-        readableMediaTypesList.addAll(mediaTypes.getReadable(Model.class));
-        readableMediaTypesList.addAll(mediaTypes.getReadable(ResultSet.class));
+        readableMediaTypesList.addAll(getMediaTypes().getReadable(Model.class));
+        readableMediaTypesList.addAll(getMediaTypes().getReadable(ResultSet.class));
         MediaType[] readableMediaTypesArray = readableMediaTypesList.toArray(MediaType[]::new);
 
         if (log.isDebugEnabled()) log.debug("Proxying {} {} → {}", requestContext.getMethod(), requestContext.getUriInfo().getRequestUri(), targetURI);
 
         try
         {
-            Response clientResponse = switch (requestContext.getMethod())
-            {
-                case HttpMethod.GET ->
-                    target.request(readableMediaTypesArray)
-                        .header(HttpHeaders.USER_AGENT, GraphStoreClient.USER_AGENT)
-                        .get();
-                case HttpMethod.POST ->
-                    target.request()
-                        .accept(readableMediaTypesArray)
-                        .header(HttpHeaders.USER_AGENT, GraphStoreClient.USER_AGENT)
-                        .post(Entity.entity(requestContext.getEntityStream(), requestContext.getMediaType()));
-                case "PATCH" ->
-                    target.request()
-                        .accept(readableMediaTypesArray)
-                        .header(HttpHeaders.USER_AGENT, GraphStoreClient.USER_AGENT)
-                        .method("PATCH", Entity.entity(requestContext.getEntityStream(), requestContext.getMediaType()));
-                case HttpMethod.PUT ->
-                    target.request()
-                        .accept(readableMediaTypesArray)
-                        .header(HttpHeaders.USER_AGENT, GraphStoreClient.USER_AGENT)
-                        .put(Entity.entity(requestContext.getEntityStream(), requestContext.getMediaType()));
-                case HttpMethod.DELETE ->
-                    target.request()
-                        .header(HttpHeaders.USER_AGENT, GraphStoreClient.USER_AGENT)
-                        .delete();
-                default -> throw new NotAllowedException(requestContext.getMethod());
-            };
+            Invocation.Builder builder = target.request().
+                accept(readableMediaTypesArray).
+                header(HttpHeaders.USER_AGENT, GraphStoreClient.USER_AGENT);
+
+            Response clientResponse = requestContext.hasEntity()
+                ? builder.method(requestContext.getMethod(),
+                    Entity.entity(requestContext.getEntityStream(), requestContext.getMediaType()))
+                : builder.method(requestContext.getMethod());
 
             try (clientResponse)
             {
@@ -276,11 +259,11 @@ public class ProxyRequestFilter implements ContainerRequestFilter
     protected Response getResponse(Model model, Response.StatusType statusType)
     {
         List<Variant> variants = com.atomgraph.core.model.impl.Response.getVariants(
-            mediaTypes.getWritable(Model.class),
+            getMediaTypes().getWritable(Model.class),
             getSystem().getSupportedLanguages(),
             new ArrayList<>());
 
-        return new com.atomgraph.core.model.impl.Response(request,
+        return new com.atomgraph.core.model.impl.Response(getRequest(),
                 model,
                 null,
                 new EntityTag(Long.toHexString(ModelUtils.hashModel(model))),
@@ -304,11 +287,11 @@ public class ProxyRequestFilter implements ContainerRequestFilter
         resultSet.reset();
 
         List<Variant> variants = com.atomgraph.core.model.impl.Response.getVariants(
-            mediaTypes.getWritable(ResultSet.class),
+            getMediaTypes().getWritable(ResultSet.class),
             getSystem().getSupportedLanguages(),
             new ArrayList<>());
 
-        return new com.atomgraph.core.model.impl.Response(request,
+        return new com.atomgraph.core.model.impl.Response(getRequest(),
                 resultSet,
                 null,
                 new EntityTag(Long.toHexString(hash)),
@@ -327,6 +310,26 @@ public class ProxyRequestFilter implements ContainerRequestFilter
     public com.atomgraph.linkeddatahub.Application getSystem()
     {
         return system;
+    }
+
+    /**
+     * Returns the media types registry.
+     *
+     * @return media types
+     */
+    public MediaTypes getMediaTypes()
+    {
+        return mediaTypes;
+    }
+
+    /**
+     * Returns the JAX-RS request.
+     *
+     * @return request
+     */
+    public Request getRequest()
+    {
+        return request;
     }
 
 }
