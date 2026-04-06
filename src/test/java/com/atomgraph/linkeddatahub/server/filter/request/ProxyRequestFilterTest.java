@@ -124,9 +124,10 @@ public class ProxyRequestFilterTest
         when(mediaTypes.getReadable(Model.class)).thenReturn(List.of());
         when(mediaTypes.getReadable(ResultSet.class)).thenReturn(List.of());
         when(externalClient.target(ADMIN_URI)).thenReturn(webTarget);
-        when(webTarget.request(any(MediaType[].class))).thenReturn(invocationBuilder);
+        when(webTarget.request()).thenReturn(invocationBuilder);
+        when(invocationBuilder.accept(any(MediaType[].class))).thenReturn(invocationBuilder);
         when(invocationBuilder.header(anyString(), any())).thenReturn(invocationBuilder);
-        when(invocationBuilder.get()).thenReturn(clientResponse);
+        when(invocationBuilder.method(anyString())).thenReturn(clientResponse);
 
         // null media type triggers the early-return path in getResponse(Response)
         when(clientResponse.getHeaders()).thenReturn(new MultivaluedHashMap<>());
