@@ -143,8 +143,8 @@ public class ProxyRequestFilter implements ContainerRequestFilter
         }
 
         List<MediaType> readableMediaTypesList = new ArrayList<>();
-        readableMediaTypesList.addAll(mediaTypes.getReadable(Model.class));
-        readableMediaTypesList.addAll(mediaTypes.getReadable(ResultSet.class));
+        readableMediaTypesList.addAll(getMediaTypes().getReadable(Model.class));
+        readableMediaTypesList.addAll(getMediaTypes().getReadable(ResultSet.class));
         MediaType[] readableMediaTypesArray = readableMediaTypesList.toArray(MediaType[]::new);
 
         if (log.isDebugEnabled()) log.debug("Proxying {} {} → {}", requestContext.getMethod(), requestContext.getUriInfo().getRequestUri(), targetURI);
@@ -259,11 +259,11 @@ public class ProxyRequestFilter implements ContainerRequestFilter
     protected Response getResponse(Model model, Response.StatusType statusType)
     {
         List<Variant> variants = com.atomgraph.core.model.impl.Response.getVariants(
-            mediaTypes.getWritable(Model.class),
+            getMediaTypes().getWritable(Model.class),
             getSystem().getSupportedLanguages(),
             new ArrayList<>());
 
-        return new com.atomgraph.core.model.impl.Response(request,
+        return new com.atomgraph.core.model.impl.Response(getRequest(),
                 model,
                 null,
                 new EntityTag(Long.toHexString(ModelUtils.hashModel(model))),
@@ -287,11 +287,11 @@ public class ProxyRequestFilter implements ContainerRequestFilter
         resultSet.reset();
 
         List<Variant> variants = com.atomgraph.core.model.impl.Response.getVariants(
-            mediaTypes.getWritable(ResultSet.class),
+            getMediaTypes().getWritable(ResultSet.class),
             getSystem().getSupportedLanguages(),
             new ArrayList<>());
 
-        return new com.atomgraph.core.model.impl.Response(request,
+        return new com.atomgraph.core.model.impl.Response(getRequest(),
                 resultSet,
                 null,
                 new EntityTag(Long.toHexString(hash)),
@@ -310,6 +310,26 @@ public class ProxyRequestFilter implements ContainerRequestFilter
     public com.atomgraph.linkeddatahub.Application getSystem()
     {
         return system;
+    }
+
+    /**
+     * Returns the media types registry.
+     *
+     * @return media types
+     */
+    public MediaTypes getMediaTypes()
+    {
+        return mediaTypes;
+    }
+
+    /**
+     * Returns the JAX-RS request.
+     *
+     * @return request
+     */
+    public Request getRequest()
+    {
+        return request;
     }
 
 }
