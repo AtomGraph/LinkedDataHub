@@ -38,12 +38,12 @@ import java.util.List;
 import java.util.Optional;
 import jakarta.annotation.Priority;
 import jakarta.inject.Inject;
-import jakarta.ws.rs.HttpMethod;
 import jakarta.ws.rs.NotAcceptableException;
 import jakarta.ws.rs.NotAllowedException;
 import jakarta.ws.rs.Priorities;
 import jakarta.ws.rs.ProcessingException;
 import jakarta.ws.rs.client.Entity;
+import jakarta.ws.rs.client.Invocation;
 import jakarta.ws.rs.client.WebTarget;
 import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.container.ContainerRequestFilter;
@@ -151,33 +151,14 @@ public class ProxyRequestFilter implements ContainerRequestFilter
 
         try
         {
-            Response clientResponse = switch (requestContext.getMethod())
-            {
-                case HttpMethod.GET ->
-                    target.request(readableMediaTypesArray)
-                        .header(HttpHeaders.USER_AGENT, GraphStoreClient.USER_AGENT)
-                        .get();
-                case HttpMethod.POST ->
-                    target.request()
-                        .accept(readableMediaTypesArray)
-                        .header(HttpHeaders.USER_AGENT, GraphStoreClient.USER_AGENT)
-                        .post(Entity.entity(requestContext.getEntityStream(), requestContext.getMediaType()));
-                case "PATCH" ->
-                    target.request()
-                        .accept(readableMediaTypesArray)
-                        .header(HttpHeaders.USER_AGENT, GraphStoreClient.USER_AGENT)
-                        .method("PATCH", Entity.entity(requestContext.getEntityStream(), requestContext.getMediaType()));
-                case HttpMethod.PUT ->
-                    target.request()
-                        .accept(readableMediaTypesArray)
-                        .header(HttpHeaders.USER_AGENT, GraphStoreClient.USER_AGENT)
-                        .put(Entity.entity(requestContext.getEntityStream(), requestContext.getMediaType()));
-                case HttpMethod.DELETE ->
-                    target.request()
-                        .header(HttpHeaders.USER_AGENT, GraphStoreClient.USER_AGENT)
-                        .delete();
-                default -> throw new NotAllowedException(requestContext.getMethod());
-            };
+            Invocation.Builder builder = target.request()
+                .accept(readableMediaTypesArray)
+                .header(HttpHeaders.USER_AGENT, GraphStoreClient.USER_AGENT);
+
+            Response clientResponse = requestContext.hasEntity()
+                ? builder.method(requestContext.getMethod(),
+                    Entity.entity(requestContext.getEntityStream(), requestContext.getMediaType()))
+                : builder.method(requestContext.getMethod());
 
             try (clientResponse)
             {
