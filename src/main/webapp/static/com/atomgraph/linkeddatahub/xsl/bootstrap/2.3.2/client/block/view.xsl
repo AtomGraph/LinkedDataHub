@@ -1910,19 +1910,28 @@ exclude-result-prefixes="#all"
         <xsl:message>ldh:facet-filter-response</xsl:message>
 
         <xsl:for-each select="$response">
-            <xsl:if test="?status = 200 and ?media-type = 'application/rdf+xml' and ?body">
-                <xsl:variable name="body" select="?body" as="document-node()"/>
+            <xsl:variable name="predicate-desc" as="element()">
+                <xsl:choose>
+                    <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml' and ?body">
+                        <xsl:sequence select="key('resources', $predicate, ?body)"/>
+                    </xsl:when>
+                    <xsl:otherwise>
+                        <!-- fallback when proxy is unavailable: synthesize a description using the predicate's local name as label -->
+                        <rdf:Description rdf:about="{$predicate}">
+                            <rdfs:label><xsl:value-of select="tokenize($predicate, '[/#]')[last()]"/></rdfs:label>
+                        </rdf:Description>
+                    </xsl:otherwise>
+                </xsl:choose>
+            </xsl:variable>
 
-                <xsl:for-each select="$container">
-                    <xsl:result-document href="?." method="ixsl:append-content">
-                        <xsl:apply-templates select="key('resources', $predicate, $body)" mode="bs2:FilterIn">
-                            <xsl:with-param name="subject-var-name" select="$subject-var-name"/>
-                            <xsl:with-param name="object-var-name" select="$object-var-name"/>
-                        </xsl:apply-templates>
-                    </xsl:result-document>
-                </xsl:for-each>
-            </xsl:if>
-            <!-- ignore error response -->
+            <xsl:for-each select="$container">
+                <xsl:result-document href="?." method="ixsl:append-content">
+                    <xsl:apply-templates select="$predicate-desc" mode="bs2:FilterIn">
+                        <xsl:with-param name="subject-var-name" select="$subject-var-name"/>
+                        <xsl:with-param name="object-var-name" select="$object-var-name"/>
+                    </xsl:apply-templates>
+                </xsl:result-document>
+            </xsl:for-each>
         </xsl:for-each>
 
         <xsl:sequence select="$context"/>
