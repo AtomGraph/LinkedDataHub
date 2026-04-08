@@ -23,6 +23,7 @@ import com.atomgraph.core.exception.BadGatewayException;
 import com.atomgraph.core.util.ModelUtils;
 import com.atomgraph.core.util.ResultSetUtils;
 import com.atomgraph.linkeddatahub.apps.model.Dataset;
+import org.apache.jena.ontology.Ontology;
 import com.atomgraph.linkeddatahub.client.GraphStoreClient;
 import com.atomgraph.linkeddatahub.client.filter.auth.IDTokenDelegationFilter;
 import com.atomgraph.linkeddatahub.client.filter.auth.WebIDDelegationFilter;
@@ -36,6 +37,8 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import org.apache.jena.query.QueryExecution;
+import org.apache.jena.query.QueryFactory;
 import jakarta.annotation.Priority;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.NotAcceptableException;
@@ -91,6 +94,7 @@ public class ProxyRequestFilter implements ContainerRequestFilter
 
     @Inject com.atomgraph.linkeddatahub.Application system;
     @Inject MediaTypes mediaTypes;
+    @Inject Optional<Ontology> ontology;
     @Context Request request;
 
     @Override
@@ -121,6 +125,26 @@ public class ProxyRequestFilter implements ContainerRequestFilter
             Model model = getSystem().getDataManager().loadModel(targetURI.toString());
             requestContext.abortWith(getResponse(model, Response.Status.OK));
             return;
+        }
+
+        // serve terms from the app's in-memory namespace ontology (full imports closure) via DESCRIBE.
+        // covers both slash-based term URIs (e.g. schema:category) and hash-based namespaces
+        // (e.g. sioc:UserAccount → ac:document-uri strips to sioc:ns, so we also describe all
+        // ?term where STR(?term) starts with "<targetURI>#")
+        if (getOntology().isPresent())
+        {
+            String describeQueryStr = "DESCRIBE <" + targetURI + "> ?term " +
+                "WHERE { ?term ?p ?o FILTER(STRSTARTS(STR(?term), CONCAT(STR(<" + targetURI + ">), \"#\"))) }";
+            try (QueryExecution qe = QueryExecution.create(QueryFactory.create(describeQueryStr), getOntology().get().getOntModel()))
+            {
+                Model description = qe.execDescribe();
+                if (!description.isEmpty())
+                {
+                    if (log.isDebugEnabled()) log.debug("Serving URI from namespace ontology: {}", targetURI);
+                    requestContext.abortWith(getResponse(description, Response.Status.OK));
+                    return;
+                }
+            }
         }
 
         boolean isRegisteredApp = getSystem().matchApp(targetURI) != null;
@@ -310,6 +334,16 @@ public class ProxyRequestFilter implements ContainerRequestFilter
     public com.atomgraph.linkeddatahub.Application getSystem()
     {
         return system;
+    }
+
+    /**
+     * Returns the current application's namespace ontology, if available.
+     *
+     * @return optional ontology
+     */
+    public Optional<Ontology> getOntology()
+    {
+        return ontology;
     }
 
     /**
