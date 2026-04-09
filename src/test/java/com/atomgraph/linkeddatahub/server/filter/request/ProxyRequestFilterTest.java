@@ -19,6 +19,7 @@ package com.atomgraph.linkeddatahub.server.filter.request;
 import com.atomgraph.client.MediaTypes;
 import com.atomgraph.client.util.DataManager;
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
+import org.apache.jena.ontology.Ontology;
 import com.atomgraph.linkeddatahub.server.util.URLValidator;
 import com.atomgraph.linkeddatahub.vocabulary.LAPP;
 import jakarta.ws.rs.NotAllowedException;
@@ -34,6 +35,7 @@ import jakarta.ws.rs.core.UriInfo;
 import java.io.IOException;
 import java.net.URI;
 import java.util.List;
+import java.util.Optional;
 import org.apache.jena.query.ResultSet;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Resource;
@@ -60,6 +62,7 @@ public class ProxyRequestFilterTest
     @Mock com.atomgraph.linkeddatahub.Application system;
     @Mock MediaTypes mediaTypes;
     @Mock Request request;
+    @Mock Ontology ontology;
 
     @InjectMocks ProxyRequestFilter filter;
 
@@ -85,6 +88,7 @@ public class ProxyRequestFilterTest
         when(system.getDataManager()).thenReturn(dataManager);
         when(dataManager.isMapped(anyString())).thenReturn(false);
         when(system.isEnableLinkedDataProxy()).thenReturn(false);
+        filter.ontology = Optional.empty();
     }
 
     /**
