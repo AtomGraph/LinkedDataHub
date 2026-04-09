@@ -94,7 +94,7 @@ public class ProxyRequestFilter implements ContainerRequestFilter
 
     @Inject com.atomgraph.linkeddatahub.Application system;
     @Inject MediaTypes mediaTypes;
-    @Inject Optional<Ontology> ontology;
+    @Inject jakarta.inject.Provider<Optional<Ontology>> ontology;
     @Context Request request;
 
     @Override
@@ -343,7 +343,7 @@ public class ProxyRequestFilter implements ContainerRequestFilter
      */
     public Optional<Ontology> getOntology()
     {
-        return ontology;
+        return ontology.get();
     }
 
     /**

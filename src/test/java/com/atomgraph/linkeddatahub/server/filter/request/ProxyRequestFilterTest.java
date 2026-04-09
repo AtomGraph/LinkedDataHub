@@ -88,7 +88,7 @@ public class ProxyRequestFilterTest
         when(system.getDataManager()).thenReturn(dataManager);
         when(dataManager.isMapped(anyString())).thenReturn(false);
         when(system.isEnableLinkedDataProxy()).thenReturn(false);
-        filter.ontology = Optional.empty();
+        filter.ontology = () -> Optional.empty();
     }
 
     /**
