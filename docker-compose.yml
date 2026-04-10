@@ -250,6 +250,7 @@ configs:
                   proxy_pass http://linkeddatahub;
                   limit_req zone=static_files burst=50 nodelay;
 
+                  add_header Access-Control-Allow-Origin "*" always;
                   add_header Cache-Control "public, max-age=604800, immutable";
               }
           }
@@ -295,6 +296,8 @@ configs:
               location ^~ /static/ {
                   proxy_pass http://linkeddatahub;
                   limit_req zone=static_files burst=50 nodelay;
+
+                  add_header Access-Control-Allow-Origin "*" always;
               }
           }
 
