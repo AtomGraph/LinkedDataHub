@@ -3,7 +3,7 @@ set -euo pipefail
 
 # Test that nginx gzip compression is active for static JSON (SEF file)
 
-response=$(curl -i -k -s \
+response=$(curl -k -s -D - -o /dev/null \
   -H "Accept-Encoding: gzip" \
   "${END_USER_BASE_URL}static/com/atomgraph/linkeddatahub/xsl/client.xsl.sef.json")
 

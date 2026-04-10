@@ -9,9 +9,10 @@ purge_cache "$FRONTEND_VARNISH_SERVICE"
 
 # Test that nginx gzip compression is active for RDF/XML dynamic content
 
-response=$(curl -i -k -s \
+response=$(curl -k -s -D - -o /dev/null \
   -H "Accept-Encoding: gzip" \
   -H "Accept: application/rdf+xml" \
+  --cert "$OWNER_CERT_FILE:$OWNER_CERT_PWD" \
   "$END_USER_BASE_URL")
 
 if ! echo "$response" | grep -qi "Content-Encoding: gzip"; then
