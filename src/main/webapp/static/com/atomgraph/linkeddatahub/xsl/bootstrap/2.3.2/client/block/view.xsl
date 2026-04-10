@@ -666,6 +666,58 @@ exclude-result-prefixes="#all"
                 <xsl:with-param name="series" select="$series"/>
             </xsl:call-template>
         </xsl:if>
+        <!-- after we've created the graph canvas element, initialize the ForceGraph3D instance -->
+        <xsl:if test="$active-mode = '&ac;GraphMode'">
+            <xsl:variable name="canvas-id" select="$container-id || '-graph-canvas'" as="xs:string"/>
+            <xsl:variable name="canvas" select="id($canvas-id, ixsl:page())" as="element()"/>
+            <xsl:variable name="graphs" select="ixsl:get(ixsl:window(), 'LinkedDataHub.graphs')"/>
+            <xsl:variable name="initial-load" select="not(ixsl:contains($graphs, $canvas-id))" as="xs:boolean"/>
+            <xsl:message>ldh:RenderViewMode GraphMode: initial-load=<xsl:value-of select="$initial-load"/> rdf:Description count=<xsl:value-of select="count($results/rdf:RDF/rdf:Description)"/> rdf:RDF=<xsl:value-of select="exists($results/rdf:RDF)"/></xsl:message>
+
+            <xsl:if test="$initial-load">
+                <!-- ldh:ForceGraph3D-init returns a graph-state object with .instance already set -->
+                <xsl:variable name="graph-state" as="item()">
+                    <xsl:call-template name="ldh:ForceGraph3D-init">
+                        <xsl:with-param name="graph-id" select="$canvas-id"/>
+                        <xsl:with-param name="container" select="$canvas"/>
+                        <xsl:with-param name="builder" select="ixsl:apply(ixsl:get(ixsl:window(), 'ForceGraph3D'), [])"/>
+                        <xsl:with-param name="graph-width" select="xs:double(ixsl:get($container, 'offsetWidth'))"/>
+                        <xsl:with-param name="graph-height" select="xs:double(600)"/>
+                        <xsl:with-param name="node-rel-size" select="xs:double(4)"/>
+                        <xsl:with-param name="link-width" select="xs:double(1.5)"/>
+                        <xsl:with-param name="node-label-color" select="'white'"/>
+                        <xsl:with-param name="node-label-text-height" select="xs:double(5)"/>
+                        <xsl:with-param name="node-label-position-y" select="xs:double(10)"/>
+                        <xsl:with-param name="link-label-color" select="'lightgrey'"/>
+                        <xsl:with-param name="link-label-text-height" select="xs:double(4)"/>
+                        <xsl:with-param name="link-force-distance" select="xs:double(100)"/>
+                        <xsl:with-param name="charge-force-strength" select="xs:double(-200)"/>
+                        <xsl:with-param name="node-click-event-name" select="'ForceGraph3DNodeClick'"/>
+                        <xsl:with-param name="node-dblclick-event-name" select="'ForceGraph3DNodeDblClick'"/>
+                        <xsl:with-param name="node-rightclick-event-name" select="'ForceGraph3DNodeRightClick'"/>
+                        <xsl:with-param name="node-hover-on-event-name" select="'ForceGraph3DNodeHoverOn'"/>
+                        <xsl:with-param name="node-hover-off-event-name" select="'ForceGraph3DNodeHoverOff'"/>
+                        <xsl:with-param name="link-click-event-name" select="'ForceGraph3DLinkClick'"/>
+                        <xsl:with-param name="background-click-event-name" select="'ForceGraph3DBackgroundClick'"/>
+                    </xsl:call-template>
+                </xsl:variable>
+                <!-- augment with LDH-specific state -->
+                <ixsl:set-property name="document" select="$results" object="$graph-state"/>
+                <ixsl:set-property name="loaded-uris" select="ixsl:new('Array', [])" object="$graph-state"/>
+                <ixsl:set-property name="{$canvas-id}" select="$graph-state" object="$graphs"/>
+            </xsl:if>
+
+            <!-- Convert RDF to graph data and render (initial or re-render) -->
+            <xsl:variable name="graph-instance" select="ixsl:get(ixsl:get($graphs, $canvas-id), 'instance')"/>
+            <xsl:variable name="graph-data" as="item()">
+                <xsl:apply-templates select="$results" mode="ldh:ForceGraph3D-convert-data">
+                    <xsl:with-param name="show-stubs" select="true()" tunnel="yes"/>
+                    <xsl:with-param name="show-literals" select="false()" tunnel="yes"/>
+                </xsl:apply-templates>
+            </xsl:variable>
+            <xsl:message>ldh:RenderViewMode GraphMode: calling graphData(), nodes=<xsl:value-of select="ixsl:get(ixsl:get($graph-data, 'nodes', map{'convert-result': false()}), 'length')"/> links=<xsl:value-of select="ixsl:get(ixsl:get($graph-data, 'links', map{'convert-result': false()}), 'length')"/></xsl:message>
+            <xsl:sequence select="ixsl:call($graph-instance, 'graphData', [$graph-data], map{'convert-args': false()})[current-date() lt xs:date('2000-01-01')]"/>
+        </xsl:if>
     </xsl:template>
     
     <xsl:template name="render-container-error">
@@ -729,6 +781,7 @@ exclude-result-prefixes="#all"
             </xsl:when>
             <xsl:when test="$active-mode = '&ac;GraphMode'">
                 <xsl:apply-templates select="$results" mode="bs2:Graph">
+                    <xsl:with-param name="canvas-id" select="$container-id || '-graph-canvas'"/>
                     <xsl:with-param name="endpoint" select="if (not($endpoint = sd:endpoint())) then $endpoint else ()" tunnel="yes"/>
                 </xsl:apply-templates>
             </xsl:when>
@@ -1075,29 +1128,12 @@ exclude-result-prefixes="#all"
     <!-- graph -->
 
     <xsl:template match="rdf:RDF" mode="bs2:Graph">
-        <xsl:param name="id" as="xs:string?"/>
-        <xsl:param name="class" as="xs:string?"/>
-        <xsl:param name="draggable" select="true()" as="xs:boolean?"/> <!-- counter-intuitive but needed in order to trigger "ixsl:ondragstart" on the map and then cancel it -->
+        <xsl:param name="canvas-id" as="xs:string"/>
 
-        <div>
-            <xsl:if test="$id">
-                <xsl:attribute name="id" select="$id"/>
-            </xsl:if>
-            <xsl:if test="$class">
-                <xsl:attribute name="class" select="$class"/>
-            </xsl:if>
-            <xsl:if test="$draggable = true()">
-                <xsl:attribute name="draggable" select="'true'"/>
-            </xsl:if>
-            <xsl:if test="$draggable = false()">
-                <xsl:attribute name="draggable" select="'false'"/>
-            </xsl:if>
-            
-            <xsl:apply-templates select="." mode="ac:SVG">
-                <xsl:with-param name="width" select="'100%'"/>
-                <xsl:with-param name="step-count" select="5"/>
-                <xsl:with-param name="spring-length" select="100" tunnel="yes"/>
-            </xsl:apply-templates>
+        <div id="{$canvas-id}" class="graph-3d-canvas">
+        </div>
+        <div id="tooltip-{$canvas-id}" class="graph-3d-tooltip"
+             style="display:none;position:absolute;background:rgba(0,0,0,0.75);color:#fff;padding:4px 8px;border-radius:4px;pointer-events:none;font-size:12px;z-index:10;">
         </div>
     </xsl:template>
     
