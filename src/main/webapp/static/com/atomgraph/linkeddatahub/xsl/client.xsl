@@ -625,6 +625,18 @@ WHERE
                         <xsl:with-param name="series" select="$series"/>
                     </xsl:call-template>
                 </xsl:for-each>
+
+                <!-- initialize 3D force graphs -->
+                <xsl:for-each select="key('elements-by-class', 'graph-3d-canvas', ixsl:page())">
+                    <xsl:variable name="canvas-id" select="@id" as="xs:string"/>
+                    <xsl:if test="not(ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub.graphs'), $canvas-id))">
+                        <xsl:call-template name="ldh:InitDocumentGraph3D">
+                            <xsl:with-param name="canvas" select="."/>
+                            <xsl:with-param name="canvas-id" select="$canvas-id"/>
+                            <xsl:with-param name="rdf-doc" select="$results"/>
+                        </xsl:call-template>
+                    </xsl:if>
+                </xsl:for-each>
             </xsl:for-each>
         </xsl:for-each>
     </xsl:function>

@@ -935,9 +935,10 @@ exclude-result-prefixes="#all">
                     </xsl:apply-templates>
                 </xsl:when>
                 <xsl:when test="$ac:mode = '&ac;GraphMode'">
-                    <xsl:apply-templates select="." mode="bs2:Graph">
-                        <xsl:sort select="ac:label(.)"/>
-                    </xsl:apply-templates>
+                    <xsl:variable name="canvas-id" select="generate-id() || '-graph-canvas'" as="xs:string"/>
+                    <div id="{$canvas-id}" class="graph-3d-canvas"/>
+                    <div id="tooltip-{$canvas-id}" class="graph-3d-tooltip"
+                         style="display:none;position:absolute;background:rgba(0,0,0,0.75);color:#fff;padding:4px 8px;border-radius:4px;pointer-events:none;font-size:12px;z-index:10;"/>
                 </xsl:when>
                 <xsl:otherwise>
                     <xsl:apply-templates select="." mode="bs2:Row">

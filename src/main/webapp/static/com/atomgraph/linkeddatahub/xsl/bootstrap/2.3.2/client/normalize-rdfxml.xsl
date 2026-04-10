@@ -45,7 +45,32 @@
 
         <xsl:message>Third pass (resolve URIs) complete</xsl:message>
 
-        <xsl:sequence select="$resolved-rdf"/>
+        <!-- Fourth pass: prefix all blank node IDs with a document-unique prefix to prevent conflicts when merging multiple documents -->
+        <xsl:variable name="bnode-prefix" select="generate-id(.) || '_'" as="xs:string"/>
+        <xsl:variable name="prefixed-rdf" as="document-node()">
+            <xsl:document>
+                <xsl:apply-templates select="$resolved-rdf/rdf:RDF" mode="ldh:prefix-bnodes">
+                    <xsl:with-param name="prefix" select="$bnode-prefix" tunnel="yes"/>
+                </xsl:apply-templates>
+            </xsl:document>
+        </xsl:variable>
+
+        <xsl:sequence select="$prefixed-rdf"/>
+    </xsl:template>
+
+    <!-- ========================================
+         PASS 4: PREFIX BLANK NODE IDs
+         ======================================== -->
+
+    <xsl:template match="@* | node()" mode="ldh:prefix-bnodes">
+        <xsl:copy>
+            <xsl:apply-templates select="@* | node()" mode="#current"/>
+        </xsl:copy>
+    </xsl:template>
+
+    <xsl:template match="@rdf:nodeID" mode="ldh:prefix-bnodes">
+        <xsl:param name="prefix" as="xs:string" tunnel="yes"/>
+        <xsl:attribute name="rdf:nodeID" select="$prefix || ."/>
     </xsl:template>
 
     <!-- ========================================

@@ -255,4 +255,51 @@ exclude-result-prefixes="#all"
         <span><xsl:value-of select="$node-label"/></span>
     </xsl:template>
 
+    <!-- DOCUMENT-MODE GRAPH INIT (called from ldh:rdf-document-response) -->
+
+    <xsl:template name="ldh:InitDocumentGraph3D">
+        <xsl:param name="canvas" as="element()"/>
+        <xsl:param name="canvas-id" as="xs:string"/>
+        <xsl:param name="rdf-doc" as="document-node()"/>
+
+        <xsl:variable name="graphs" select="ixsl:get(ixsl:window(), 'LinkedDataHub.graphs')"/>
+        <xsl:variable name="graph-state" as="item()">
+            <xsl:call-template name="ldh:ForceGraph3D-init">
+                <xsl:with-param name="graph-id" select="$canvas-id"/>
+                <xsl:with-param name="container" select="$canvas"/>
+                <xsl:with-param name="builder" select="ixsl:apply(ixsl:get(ixsl:window(), 'ForceGraph3D'), [])"/>
+                <xsl:with-param name="graph-width" select="xs:double(ixsl:get($canvas, 'offsetWidth'))"/>
+                <xsl:with-param name="graph-height" select="xs:double(600)"/>
+                <xsl:with-param name="node-rel-size" select="xs:double(4)"/>
+                <xsl:with-param name="link-width" select="xs:double(1.5)"/>
+                <xsl:with-param name="node-label-color" select="'white'"/>
+                <xsl:with-param name="node-label-text-height" select="xs:double(5)"/>
+                <xsl:with-param name="node-label-position-y" select="xs:double(10)"/>
+                <xsl:with-param name="link-label-color" select="'lightgrey'"/>
+                <xsl:with-param name="link-label-text-height" select="xs:double(4)"/>
+                <xsl:with-param name="link-force-distance" select="xs:double(100)"/>
+                <xsl:with-param name="charge-force-strength" select="xs:double(-200)"/>
+                <xsl:with-param name="node-click-event-name" select="'ForceGraph3DNodeClick'"/>
+                <xsl:with-param name="node-dblclick-event-name" select="'ForceGraph3DNodeDblClick'"/>
+                <xsl:with-param name="node-rightclick-event-name" select="'ForceGraph3DNodeRightClick'"/>
+                <xsl:with-param name="node-hover-on-event-name" select="'ForceGraph3DNodeHoverOn'"/>
+                <xsl:with-param name="node-hover-off-event-name" select="'ForceGraph3DNodeHoverOff'"/>
+                <xsl:with-param name="link-click-event-name" select="'ForceGraph3DLinkClick'"/>
+                <xsl:with-param name="background-click-event-name" select="'ForceGraph3DBackgroundClick'"/>
+            </xsl:call-template>
+        </xsl:variable>
+        <ixsl:set-property name="document" select="$rdf-doc" object="$graph-state"/>
+        <ixsl:set-property name="loaded-uris" select="ixsl:new('Array', [])" object="$graph-state"/>
+        <ixsl:set-property name="{$canvas-id}" select="$graph-state" object="$graphs"/>
+
+        <xsl:variable name="graph-instance" select="ixsl:get($graph-state, 'instance')"/>
+        <xsl:variable name="graph-data" as="item()">
+            <xsl:apply-templates select="$rdf-doc" mode="ldh:ForceGraph3D-convert-data">
+                <xsl:with-param name="show-stubs" select="true()" tunnel="yes"/>
+                <xsl:with-param name="show-literals" select="false()" tunnel="yes"/>
+            </xsl:apply-templates>
+        </xsl:variable>
+        <xsl:sequence select="ixsl:call($graph-instance, 'graphData', [$graph-data], map{'convert-args': false()})[current-date() lt xs:date('2000-01-01')]"/>
+    </xsl:template>
+
 </xsl:stylesheet>
