@@ -105,7 +105,6 @@ import com.atomgraph.linkeddatahub.server.filter.request.ProxyRequestFilter;
 import com.atomgraph.linkeddatahub.server.filter.request.AuthorizationFilter;
 import com.atomgraph.linkeddatahub.server.filter.request.ContentLengthLimitFilter;
 import com.atomgraph.linkeddatahub.server.filter.request.auth.ProxiedWebIDFilter;
-import com.atomgraph.linkeddatahub.server.filter.response.CORSFilter;
 import com.atomgraph.linkeddatahub.server.filter.response.ResponseHeadersFilter;
 import com.atomgraph.linkeddatahub.server.filter.response.CacheInvalidationFilter;
 import com.atomgraph.linkeddatahub.server.filter.response.XsltExecutableFilter;
@@ -1126,7 +1125,6 @@ public class Application extends ResourceConfig
      */
     protected void registerContainerResponseFilters()
     {
-        register(new CORSFilter());
         register(new ResponseHeadersFilter());
         register(new XsltExecutableFilter());
         if (isInvalidateCache()) register(new CacheInvalidationFilter());

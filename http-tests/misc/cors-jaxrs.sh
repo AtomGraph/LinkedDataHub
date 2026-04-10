@@ -7,7 +7,7 @@ purge_cache "$END_USER_VARNISH_SERVICE"
 purge_cache "$ADMIN_VARNISH_SERVICE"
 purge_cache "$FRONTEND_VARNISH_SERVICE"
 
-# Test JAX-RS CORSFilter on dynamic content (GET request)
+# Test nginx CORS headers on dynamic content (GET request)
 
 response=$(curl -i -k -s \
   -H "Origin: https://example.com" \

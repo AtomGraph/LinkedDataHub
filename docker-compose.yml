@@ -204,6 +204,20 @@ configs:
               ssl_verify_client ${NGINX_SSL_VERIFY_CLIENT:-optional_no_ca};
 
               location / {
+                  add_header Access-Control-Allow-Origin "*" always;
+                  add_header Access-Control-Allow-Methods "GET, POST, PUT, DELETE, PATCH, HEAD, OPTIONS" always;
+                  add_header Access-Control-Allow-Headers "Accept, Content-Type, Authorization" always;
+                  add_header Access-Control-Expose-Headers "Link, Content-Location, Location" always;
+
+                  if ($$request_method = OPTIONS) {
+                      add_header Access-Control-Allow-Origin "*";
+                      add_header Access-Control-Allow-Methods "GET, POST, PUT, DELETE, PATCH, HEAD, OPTIONS";
+                      add_header Access-Control-Allow-Headers "Accept, Content-Type, Authorization";
+                      add_header Access-Control-Expose-Headers "Link, Content-Location, Location";
+                      add_header Access-Control-Max-Age "1728000";
+                      return 204;
+                  }
+
                   proxy_pass http://linkeddatahub;
                   #proxy_cache backcache;
                   limit_req zone=linked_data burst=30 nodelay;
@@ -215,8 +229,6 @@ configs:
 
                   proxy_set_header Client-Cert '';
                   proxy_set_header Client-Cert $$ssl_client_escaped_cert;
-
-                  # add_header Cache-Control "public, max-age=86400";
               }
 
               location ^~ /uploads/ {
@@ -238,6 +250,7 @@ configs:
                   proxy_pass http://linkeddatahub;
                   limit_req zone=static_files burst=50 nodelay;
 
+                  add_header Access-Control-Allow-Origin "*" always;
                   add_header Cache-Control "public, max-age=604800, immutable";
               }
           }
@@ -253,6 +266,20 @@ configs:
               ssl_verify_client optional_no_ca;
 
               location / {
+                  add_header Access-Control-Allow-Origin "*" always;
+                  add_header Access-Control-Allow-Methods "GET, POST, PUT, DELETE, PATCH, HEAD, OPTIONS" always;
+                  add_header Access-Control-Allow-Headers "Accept, Content-Type, Authorization" always;
+                  add_header Access-Control-Expose-Headers "Link, Content-Location, Location" always;
+
+                  if ($$request_method = OPTIONS) {
+                      add_header Access-Control-Allow-Origin "*";
+                      add_header Access-Control-Allow-Methods "GET, POST, PUT, DELETE, PATCH, HEAD, OPTIONS";
+                      add_header Access-Control-Allow-Headers "Accept, Content-Type, Authorization";
+                      add_header Access-Control-Expose-Headers "Link, Content-Location, Location";
+                      add_header Access-Control-Max-Age "1728000";
+                      return 204;
+                  }
+
                   proxy_pass http://linkeddatahub;
                   #proxy_cache backcache;
                   limit_req zone=linked_data burst=30 nodelay;
@@ -269,6 +296,8 @@ configs:
               location ^~ /static/ {
                   proxy_pass http://linkeddatahub;
                   limit_req zone=static_files burst=50 nodelay;
+
+                  add_header Access-Control-Allow-Origin "*" always;
               }
           }
 
