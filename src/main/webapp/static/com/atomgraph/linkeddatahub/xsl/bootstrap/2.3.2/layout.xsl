@@ -936,19 +936,7 @@ exclude-result-prefixes="#all">
                 </xsl:when>
                 <xsl:when test="$ac:mode = '&ac;GraphMode'">
                     <xsl:variable name="canvas-id" select="generate-id() || '-graph-canvas'" as="xs:string"/>
-                    <div id="{$canvas-id}" class="graph-3d-canvas">
-                        <div id="tooltip-{$canvas-id}" class="graph-3d-tooltip"/>
-                        <div id="info-panel-{$canvas-id}" class="graph-3d-info-panel">
-                            <div id="info-content-{$canvas-id}">Click a node to see details</div>
-                        </div>
-                        <div id="show-panel-{$canvas-id}" class="graph-3d-show-panel">
-                            <label><input type="checkbox" id="show-stubs-{$canvas-id}" data-canvas-id="{$canvas-id}" class="graph-3d-filter" checked="checked"/> Resources without descriptions</label>
-                            <label><input type="checkbox" id="show-literals-{$canvas-id}" data-canvas-id="{$canvas-id}" class="graph-3d-filter"/> Literals
-                                <label class="sub-option"><input type="checkbox" id="show-locale-literals-{$canvas-id}" data-canvas-id="{$canvas-id}" class="graph-3d-filter" disabled="disabled"/> Matching locale only</label>
-                            </label>
-                        </div>
-                        <button data-canvas-id="{$canvas-id}" class="graph-3d-zoom btn btn-small">Zoom to fit</button>
-                    </div>
+                    <div id="{$canvas-id}" class="graph-3d-canvas"/>
                 </xsl:when>
                 <xsl:otherwise>
                     <xsl:apply-templates select="." mode="bs2:Row">

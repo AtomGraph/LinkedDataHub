@@ -333,6 +333,29 @@ exclude-result-prefixes="#all"
         </dl>
     </xsl:template>
 
+    <!-- PANEL INJECTION (called after ldh:ForceGraph3D-init, which clears the container) -->
+
+    <xsl:template name="ldh:AppendGraph3DPanels">
+        <xsl:param name="canvas" as="element()"/>
+        <xsl:param name="canvas-id" as="xs:string"/>
+
+        <xsl:for-each select="$canvas">
+            <xsl:result-document href="?." method="ixsl:append-content">
+                <div id="tooltip-{$canvas-id}" class="graph-3d-tooltip"/>
+                <div id="info-panel-{$canvas-id}" class="graph-3d-info-panel">
+                    <div id="info-content-{$canvas-id}">Click a node to see details</div>
+                </div>
+                <div id="show-panel-{$canvas-id}" class="graph-3d-show-panel">
+                    <label><input type="checkbox" id="show-stubs-{$canvas-id}" data-canvas-id="{$canvas-id}" class="graph-3d-filter" checked="checked"/> Resources without descriptions</label>
+                    <label><input type="checkbox" id="show-literals-{$canvas-id}" data-canvas-id="{$canvas-id}" class="graph-3d-filter"/> Literals
+                        <label class="sub-option"><input type="checkbox" id="show-locale-literals-{$canvas-id}" data-canvas-id="{$canvas-id}" class="graph-3d-filter" disabled="disabled"/> Matching locale only</label>
+                    </label>
+                </div>
+                <button data-canvas-id="{$canvas-id}" class="graph-3d-zoom btn btn-small">Zoom to fit</button>
+            </xsl:result-document>
+        </xsl:for-each>
+    </xsl:template>
+
     <!-- DOCUMENT-MODE GRAPH INIT (called from ldh:rdf-document-response) -->
 
     <xsl:template name="ldh:InitDocumentGraph3D">
@@ -369,6 +392,11 @@ exclude-result-prefixes="#all"
         <ixsl:set-property name="document" select="$rdf-doc" object="$graph-state"/>
         <ixsl:set-property name="loaded-uris" select="ixsl:new('Array', [])" object="$graph-state"/>
         <ixsl:set-property name="{$canvas-id}" select="$graph-state" object="$graphs"/>
+
+        <xsl:call-template name="ldh:AppendGraph3DPanels">
+            <xsl:with-param name="canvas" select="$canvas"/>
+            <xsl:with-param name="canvas-id" select="$canvas-id"/>
+        </xsl:call-template>
 
         <xsl:variable name="graph-instance" select="ixsl:get($graph-state, 'instance')"/>
         <xsl:call-template name="ldh:redisplay-graph">

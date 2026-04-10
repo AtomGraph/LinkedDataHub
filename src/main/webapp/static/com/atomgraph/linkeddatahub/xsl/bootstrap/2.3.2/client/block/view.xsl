@@ -705,18 +705,21 @@ exclude-result-prefixes="#all"
                 <ixsl:set-property name="document" select="$results" object="$graph-state"/>
                 <ixsl:set-property name="loaded-uris" select="ixsl:new('Array', [])" object="$graph-state"/>
                 <ixsl:set-property name="{$canvas-id}" select="$graph-state" object="$graphs"/>
+
+                <xsl:call-template name="ldh:AppendGraph3DPanels">
+                    <xsl:with-param name="canvas" select="$canvas"/>
+                    <xsl:with-param name="canvas-id" select="$canvas-id"/>
+                </xsl:call-template>
             </xsl:if>
 
             <!-- Convert RDF to graph data and render (initial or re-render) -->
-            <xsl:variable name="graph-instance" select="ixsl:get(ixsl:get($graphs, $canvas-id), 'instance')"/>
-            <xsl:variable name="graph-data" as="item()">
-                <xsl:apply-templates select="$results" mode="ldh:ForceGraph3D-convert-data">
-                    <xsl:with-param name="show-stubs" select="true()" tunnel="yes"/>
-                    <xsl:with-param name="show-literals" select="false()" tunnel="yes"/>
-                </xsl:apply-templates>
-            </xsl:variable>
-            <xsl:message>ldh:RenderViewMode GraphMode: calling graphData(), nodes=<xsl:value-of select="ixsl:get(ixsl:get($graph-data, 'nodes', map{'convert-result': false()}), 'length')"/> links=<xsl:value-of select="ixsl:get(ixsl:get($graph-data, 'links', map{'convert-result': false()}), 'length')"/></xsl:message>
-            <xsl:sequence select="ixsl:call($graph-instance, 'graphData', [$graph-data], map{'convert-args': false()})[current-date() lt xs:date('2000-01-01')]"/>
+            <xsl:variable name="graph-state" select="ixsl:get($graphs, $canvas-id)"/>
+            <xsl:variable name="graph-instance" select="ixsl:get($graph-state, 'instance')"/>
+            <xsl:call-template name="ldh:redisplay-graph">
+                <xsl:with-param name="canvas-id" select="$canvas-id"/>
+                <xsl:with-param name="graph-state" select="$graph-state"/>
+                <xsl:with-param name="graph-instance" select="$graph-instance"/>
+            </xsl:call-template>
         </xsl:if>
     </xsl:template>
     
@@ -1130,19 +1133,7 @@ exclude-result-prefixes="#all"
     <xsl:template match="rdf:RDF" mode="bs2:Graph">
         <xsl:param name="canvas-id" as="xs:string"/>
 
-        <div id="{$canvas-id}" class="graph-3d-canvas">
-            <div id="tooltip-{$canvas-id}" class="graph-3d-tooltip"/>
-            <div id="info-panel-{$canvas-id}" class="graph-3d-info-panel">
-                <div id="info-content-{$canvas-id}">Click a node to see details</div>
-            </div>
-            <div id="show-panel-{$canvas-id}" class="graph-3d-show-panel">
-                <label><input type="checkbox" id="show-stubs-{$canvas-id}" data-canvas-id="{$canvas-id}" class="graph-3d-filter" checked="checked"/> Resources without descriptions</label>
-                <label><input type="checkbox" id="show-literals-{$canvas-id}" data-canvas-id="{$canvas-id}" class="graph-3d-filter"/> Literals
-                    <label class="sub-option"><input type="checkbox" id="show-locale-literals-{$canvas-id}" data-canvas-id="{$canvas-id}" class="graph-3d-filter" disabled="disabled"/> Matching locale only</label>
-                </label>
-            </div>
-            <button data-canvas-id="{$canvas-id}" class="graph-3d-zoom btn btn-small">Zoom to fit</button>
-        </div>
+        <div id="{$canvas-id}" class="graph-3d-canvas"/>
     </xsl:template>
     
     <!-- parallax -->
