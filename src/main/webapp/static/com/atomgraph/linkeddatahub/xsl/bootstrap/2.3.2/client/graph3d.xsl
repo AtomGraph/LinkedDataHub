@@ -37,9 +37,8 @@ exclude-result-prefixes="#all"
         <xsl:variable name="rdf-doc" select="ixsl:get($graph-state, 'document')" as="document-node()"/>
         <xsl:variable name="description" select="key('resources', $node-id, $rdf-doc)"/>
 
-        <xsl:variable name="tooltip-id" select="'tooltip-' || $canvas-id" as="xs:string"/>
-        <xsl:for-each select="id($tooltip-id, ixsl:page())">
-            <ixsl:set-style name="display" select="'block'"/>
+        <xsl:variable name="info-content-id" select="'info-content-' || $canvas-id" as="xs:string"/>
+        <xsl:for-each select="id($info-content-id, ixsl:page())">
             <xsl:result-document href="?." method="ixsl:replace-content">
                 <xsl:apply-templates select="if (exists($description)) then $description else $node-label" mode="ldh:graph3d-info">
                     <xsl:with-param name="node-id" select="$node-id"/>
@@ -85,6 +84,7 @@ exclude-result-prefixes="#all"
                             <xsl:with-param name="current-doc" select="$current-doc"/>
                             <xsl:with-param name="graph-instance" select="$graph-instance"/>
                             <xsl:with-param name="graph-state" select="$graph-state"/>
+                            <xsl:with-param name="canvas-id" select="$canvas-id"/>
                         </xsl:call-template>
                     </xsl:if>
                 </xsl:when>
@@ -158,6 +158,73 @@ exclude-result-prefixes="#all"
         </xsl:for-each>
     </xsl:template>
 
+    <!-- ZOOM TO FIT -->
+
+    <xsl:template name="ldh:zoom-to-fit">
+        <xsl:param name="graph-state" as="item()"/>
+        <xsl:param name="zoom-transition-duration" select="1000" as="xs:integer"/>
+        <xsl:param name="zoom-padding" select="20" as="xs:integer"/>
+
+        <xsl:variable name="graph-instance" select="ixsl:get($graph-state, 'instance')"/>
+        <xsl:sequence select="ixsl:call($graph-instance, 'zoomToFit', [ $zoom-transition-duration, $zoom-padding ])[current-date() lt xs:date('2000-01-01')]"/>
+    </xsl:template>
+
+    <xsl:template match="button[contains-token(@class, 'graph-3d-zoom')]" mode="ixsl:onclick">
+        <xsl:variable name="canvas-id" select="@data-canvas-id" as="xs:string"/>
+        <xsl:variable name="graph-state" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.graphs'), $canvas-id)"/>
+        <xsl:call-template name="ldh:zoom-to-fit">
+            <xsl:with-param name="graph-state" select="$graph-state"/>
+        </xsl:call-template>
+    </xsl:template>
+
+    <!-- FILTER PANEL -->
+
+    <!-- Re-render graph data using the current show-panel filter state -->
+    <xsl:template name="ldh:redisplay-graph">
+        <xsl:param name="canvas-id" as="xs:string"/>
+        <xsl:param name="graph-state" as="item()"/>
+        <xsl:param name="graph-instance" as="item()"/>
+
+        <xsl:variable name="show-stubs-cb" select="id('show-stubs-' || $canvas-id, ixsl:page())"/>
+        <xsl:variable name="show-stubs" select="if (exists($show-stubs-cb)) then xs:boolean(ixsl:get($show-stubs-cb, 'checked')) else true()" as="xs:boolean"/>
+
+        <xsl:variable name="show-literals-cb" select="id('show-literals-' || $canvas-id, ixsl:page())"/>
+        <xsl:variable name="show-literals" select="if (exists($show-literals-cb)) then xs:boolean(ixsl:get($show-literals-cb, 'checked')) else false()" as="xs:boolean"/>
+
+        <xsl:variable name="locale-cb" select="id('show-locale-literals-' || $canvas-id, ixsl:page())"/>
+        <xsl:variable name="locale-filter" select="if ($show-literals and exists($locale-cb) and xs:boolean(ixsl:get($locale-cb, 'checked'))) then tokenize($ac:lang, '-')[1] else ()" as="xs:string?"/>
+
+        <xsl:variable name="rdf-doc" select="ixsl:get($graph-state, 'document')" as="document-node()"/>
+        <xsl:variable name="graph-data" as="item()">
+            <xsl:apply-templates select="$rdf-doc" mode="ldh:ForceGraph3D-convert-data">
+                <xsl:with-param name="show-stubs" select="$show-stubs" tunnel="yes"/>
+                <xsl:with-param name="show-literals" select="$show-literals" tunnel="yes"/>
+                <xsl:with-param name="locale-filter" select="$locale-filter" tunnel="yes"/>
+            </xsl:apply-templates>
+        </xsl:variable>
+        <xsl:sequence select="ixsl:call($graph-instance, 'graphData', [$graph-data], map{'convert-args': false()})[current-date() lt xs:date('2000-01-01')]"/>
+    </xsl:template>
+
+    <xsl:template match="input[contains-token(@class, 'graph-3d-filter')]" mode="ixsl:onchange">
+        <xsl:variable name="canvas-id" select="@data-canvas-id" as="xs:string"/>
+
+        <!-- when literals is unchecked, disable the locale sub-option -->
+        <xsl:if test="@id = 'show-literals-' || $canvas-id">
+            <xsl:variable name="locale-cb" select="id('show-locale-literals-' || $canvas-id, ixsl:page())"/>
+            <xsl:if test="exists($locale-cb)">
+                <ixsl:set-property name="disabled" select="not(ixsl:get(., 'checked'))" object="$locale-cb"/>
+            </xsl:if>
+        </xsl:if>
+
+        <xsl:variable name="graph-state" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.graphs'), $canvas-id)"/>
+        <xsl:variable name="graph-instance" select="ixsl:get($graph-state, 'instance')"/>
+        <xsl:call-template name="ldh:redisplay-graph">
+            <xsl:with-param name="canvas-id" select="$canvas-id"/>
+            <xsl:with-param name="graph-state" select="$graph-state"/>
+            <xsl:with-param name="graph-instance" select="$graph-instance"/>
+        </xsl:call-template>
+    </xsl:template>
+
     <!-- UPDATE -->
 
     <xsl:template name="ldh:UpdateForceGraph3D">
@@ -165,6 +232,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="current-doc" as="document-node()"/>
         <xsl:param name="graph-instance" as="item()"/>
         <xsl:param name="graph-state" as="item()"/>
+        <xsl:param name="canvas-id" as="xs:string"/>
 
         <xsl:variable name="merged-doc" as="document-node()">
             <xsl:document>
@@ -176,13 +244,11 @@ exclude-result-prefixes="#all"
 
         <ixsl:set-property name="document" select="$merged-doc" object="$graph-state"/>
 
-        <xsl:variable name="graph-data" as="item()">
-            <xsl:apply-templates select="$merged-doc" mode="ldh:ForceGraph3D-convert-data">
-                <xsl:with-param name="show-stubs" select="true()" tunnel="yes"/>
-                <xsl:with-param name="show-literals" select="false()" tunnel="yes"/>
-            </xsl:apply-templates>
-        </xsl:variable>
-        <xsl:sequence select="ixsl:call($graph-instance, 'graphData', [$graph-data], map{'convert-args': false()})[current-date() lt xs:date('2000-01-01')]"/>
+        <xsl:call-template name="ldh:redisplay-graph">
+            <xsl:with-param name="canvas-id" select="$canvas-id"/>
+            <xsl:with-param name="graph-state" select="$graph-state"/>
+            <xsl:with-param name="graph-instance" select="$graph-instance"/>
+        </xsl:call-template>
     </xsl:template>
 
     <!-- HTTP RESPONSE HANDLER -->
@@ -213,6 +279,7 @@ exclude-result-prefixes="#all"
                 <xsl:with-param name="current-doc" select="$current-doc"/>
                 <xsl:with-param name="graph-instance" select="$graph-instance"/>
                 <xsl:with-param name="graph-state" select="$graph-state"/>
+                <xsl:with-param name="canvas-id" select="$canvas-id"/>
             </xsl:call-template>
         </xsl:for-each>
     </xsl:function>
@@ -238,21 +305,32 @@ exclude-result-prefixes="#all"
     <xsl:template match="rdf:Description" mode="ldh:graph3d-info">
         <xsl:param name="node-id" as="xs:string"/>
         <xsl:param name="node-label" as="xs:string"/>
-        <strong><xsl:value-of select="$node-label"/></strong>
-        <xsl:if test="starts-with($node-id, 'http://') or starts-with($node-id, 'https://')">
-            <br/>
-            <a href="{$node-id}" target="_blank"><xsl:value-of select="$node-id"/></a>
-        </xsl:if>
-        <xsl:if test="rdf:type/@rdf:resource">
-            <br/>
-            <xsl:value-of select="tokenize(rdf:type[1]/@rdf:resource, '[/#]')[last()]"/>
-        </xsl:if>
+        <h4><xsl:value-of select="$node-label"/></h4>
+        <dl>
+            <dt>ID</dt>
+            <dd>
+                <xsl:choose>
+                    <xsl:when test="starts-with($node-id, 'http://') or starts-with($node-id, 'https://')">
+                        <a href="{$node-id}" target="_blank"><xsl:value-of select="$node-id"/></a>
+                    </xsl:when>
+                    <xsl:otherwise><xsl:value-of select="$node-id"/></xsl:otherwise>
+                </xsl:choose>
+            </dd>
+            <xsl:if test="rdf:type">
+                <dt>Types</dt>
+                <dd><xsl:value-of select="distinct-values(rdf:type/tokenize(@rdf:resource, '[/#]')[last()])" separator=", "/></dd>
+            </xsl:if>
+        </dl>
     </xsl:template>
 
     <xsl:template match="xs:string" mode="ldh:graph3d-info">
         <xsl:param name="node-id" as="xs:string"/>
         <xsl:param name="node-label" as="xs:string"/>
-        <span><xsl:value-of select="$node-label"/></span>
+        <h4><xsl:value-of select="."/></h4>
+        <dl>
+            <dt>ID</dt>
+            <dd><xsl:value-of select="$node-id"/></dd>
+        </dl>
     </xsl:template>
 
     <!-- DOCUMENT-MODE GRAPH INIT (called from ldh:rdf-document-response) -->
@@ -293,13 +371,11 @@ exclude-result-prefixes="#all"
         <ixsl:set-property name="{$canvas-id}" select="$graph-state" object="$graphs"/>
 
         <xsl:variable name="graph-instance" select="ixsl:get($graph-state, 'instance')"/>
-        <xsl:variable name="graph-data" as="item()">
-            <xsl:apply-templates select="$rdf-doc" mode="ldh:ForceGraph3D-convert-data">
-                <xsl:with-param name="show-stubs" select="true()" tunnel="yes"/>
-                <xsl:with-param name="show-literals" select="false()" tunnel="yes"/>
-            </xsl:apply-templates>
-        </xsl:variable>
-        <xsl:sequence select="ixsl:call($graph-instance, 'graphData', [$graph-data], map{'convert-args': false()})[current-date() lt xs:date('2000-01-01')]"/>
+        <xsl:call-template name="ldh:redisplay-graph">
+            <xsl:with-param name="canvas-id" select="$canvas-id"/>
+            <xsl:with-param name="graph-state" select="$graph-state"/>
+            <xsl:with-param name="graph-instance" select="$graph-instance"/>
+        </xsl:call-template>
     </xsl:template>
 
 </xsl:stylesheet>
