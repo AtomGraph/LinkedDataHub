@@ -918,30 +918,38 @@ exclude-result-prefixes="#all">
                         <xsl:sort select="ac:label(.)"/>
                     </xsl:apply-templates>
                 </xsl:when>
-                <xsl:when test="$ac:mode = '&ldh;ContentMode'">
-                    <xsl:apply-templates select="." mode="ldh:ContentList"/>
-                </xsl:when>
-                <xsl:when test="$ac:mode = '&ac;MapMode'">
-                    <xsl:apply-templates select="." mode="bs2:Map">
-                        <xsl:with-param name="id" select="generate-id() || '-map-canvas'"/>
-                        <xsl:sort select="ac:label(.)"/>
-                    </xsl:apply-templates>
-                </xsl:when>
-                <xsl:when test="$ac:mode = '&ac;ChartMode'">
-                    <xsl:apply-templates select="." mode="bs2:Chart">
-                        <xsl:with-param name="canvas-id" select="generate-id() || '-chart-canvas'"/>
-                        <xsl:with-param name="show-save" select="false()"/>
-                        <xsl:sort select="ac:label(.)"/>
-                    </xsl:apply-templates>
-                </xsl:when>
-                <xsl:when test="$ac:mode = '&ac;GraphMode'">
-                    <xsl:variable name="canvas-id" select="generate-id() || '-graph-canvas'" as="xs:string"/>
-                    <div id="{$canvas-id}" class="graph-3d-canvas"/>
+                <!-- the request is proxied using ?uri, render it client-side in client.xsl -->
+                <xsl:when test="not(ldh:base-uri(.) = $ldh:requestUri)">
+                    <!-- no output TO-DO: progress bar? -->
                 </xsl:when>
                 <xsl:otherwise>
-                    <xsl:apply-templates select="." mode="bs2:Row">
-                        <xsl:sort select="ac:label(.)"/>
-                    </xsl:apply-templates>
+                    <xsl:choose>
+                        <xsl:when test="$ac:mode = '&ldh;ContentMode'">
+                            <xsl:apply-templates select="." mode="ldh:ContentList"/>
+                        </xsl:when>
+                        <xsl:when test="$ac:mode = '&ac;MapMode'">
+                            <xsl:apply-templates select="." mode="bs2:Map">
+                                <xsl:with-param name="id" select="generate-id() || '-map-canvas'"/>
+                                <xsl:sort select="ac:label(.)"/>
+                            </xsl:apply-templates>
+                        </xsl:when>
+                        <xsl:when test="$ac:mode = '&ac;ChartMode'">
+                            <xsl:apply-templates select="." mode="bs2:Chart">
+                                <xsl:with-param name="canvas-id" select="generate-id() || '-chart-canvas'"/>
+                                <xsl:with-param name="show-save" select="false()"/>
+                                <xsl:sort select="ac:label(.)"/>
+                            </xsl:apply-templates>
+                        </xsl:when>
+                        <xsl:when test="$ac:mode = '&ac;GraphMode'">
+                            <xsl:variable name="canvas-id" select="generate-id() || '-graph-canvas'" as="xs:string"/>
+                            <div id="{$canvas-id}" class="graph-3d-canvas"/>
+                        </xsl:when>
+                        <xsl:otherwise>
+                            <xsl:apply-templates select="." mode="bs2:Row">
+                                <xsl:sort select="ac:label(.)"/>
+                            </xsl:apply-templates>
+                        </xsl:otherwise>
+                    </xsl:choose>
                 </xsl:otherwise>
             </xsl:choose>
         </div>
