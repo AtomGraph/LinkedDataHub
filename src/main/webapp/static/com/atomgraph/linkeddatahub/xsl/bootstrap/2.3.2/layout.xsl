@@ -367,6 +367,7 @@ exclude-result-prefixes="#all">
         <xsl:param name="load-sparql-map" select="not($ac:mode = ('&ac;ModalMode', '&ldht;InfoWindowMode'))" as="xs:boolean"/>
         <xsl:param name="load-google-charts" select="not($ac:mode = ('&ac;ModalMode', '&ldht;InfoWindowMode'))" as="xs:boolean"/>
         <xsl:param name="load-xml-c14n" select="not($ac:mode = ('&ac;ModalMode', '&ldht;InfoWindowMode'))" as="xs:boolean"/>
+        <xsl:param name="load-graph3d" select="not($ac:mode = ('&ac;ModalMode', '&ldht;InfoWindowMode'))" as="xs:boolean"/>
         <xsl:param name="output-schema-org" select="true()" as="xs:boolean"/>
         <xsl:param name="location-mapping" select="$location-mapping" as="map(xs:anyURI, xs:anyURI)"/>
 
@@ -403,6 +404,11 @@ exclude-result-prefixes="#all">
         </xsl:if>
         <xsl:if test="$load-yasqe">
             <script src="{resolve-uri('static/js/yasqe.js', $ac:contextUri)}" type="text/javascript"></script>
+        </xsl:if>
+        <xsl:if test="$load-graph3d">
+            <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/three.min.js', $ac:contextUri)}"></script>
+            <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/three-spritetext.min.js', $ac:contextUri)}"></script>
+            <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/3d-force-graph.min.js', $ac:contextUri)}"></script>
         </xsl:if>
         <xsl:if test="$load-saxon-js">
             <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/resource-resolver.js', $ac:contextUri)}"></script>
@@ -929,9 +935,8 @@ exclude-result-prefixes="#all">
                     </xsl:apply-templates>
                 </xsl:when>
                 <xsl:when test="$ac:mode = '&ac;GraphMode'">
-                    <xsl:apply-templates select="." mode="bs2:Graph">
-                        <xsl:sort select="ac:label(.)"/>
-                    </xsl:apply-templates>
+                    <xsl:variable name="canvas-id" select="generate-id() || '-graph-canvas'" as="xs:string"/>
+                    <div id="{$canvas-id}" class="graph-3d-canvas"/>
                 </xsl:when>
                 <xsl:otherwise>
                     <xsl:apply-templates select="." mode="bs2:Row">

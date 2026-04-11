@@ -174,6 +174,18 @@ div[typeof="https://w3id.org/atomgraph/linkeddatahub#XHTML"] .form-horizontal .c
 object { display: block; margin: auto; max-height: 400px; overflow: hidden; width: 100%; }
 .chart-canvas { width: 100%; height: 400px; }
 .chart-canvas .google-visualization-table { width: 100%; }
+.graph-3d-canvas { width: 100%; height: 600px; overflow: hidden; background: #141414; position: relative; }
+.graph-3d-tooltip { display: none; position: absolute; background: rgba(0,0,0,0.75); color: #fff; padding: 4px 8px; border-radius: 4px; pointer-events: none; font-size: 12px; z-index: 10; }
+.graph-3d-info-panel { position: absolute; top: 10px; right: 10px; z-index: 10; background: rgba(0,0,0,0.7); color: #fff; padding: 8px 12px; border-radius: 4px; max-width: 280px; font-size: 12px; }
+.graph-3d-info-panel h4 { margin: 0 0 4px; font-size: 13px; }
+.graph-3d-info-panel dl { margin: 0; }
+.graph-3d-info-panel dt { font-weight: bold; margin-top: 4px; }
+.graph-3d-info-panel dd { margin: 0; word-break: break-all; }
+.graph-3d-info-panel a { color: #8cf; }
+.graph-3d-show-panel { position: absolute; bottom: 30px; left: 10px; z-index: 10; background: rgba(0,0,0,0.7); color: #fff; padding: 8px 12px; border-radius: 4px; font-size: 12px; }
+.graph-3d-show-panel label { display: block; cursor: pointer; }
+.graph-3d-show-panel label.sub-option { margin-left: 16px; }
+.graph-3d-zoom { position: absolute; top: 10px; left: 10px; z-index: 10; }
 .table { display: table; }
 .row { display: table-row ; }
 .cell { display: table-cell ; }

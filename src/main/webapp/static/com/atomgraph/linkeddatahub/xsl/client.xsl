@@ -72,7 +72,6 @@ exclude-result-prefixes="#all"
 extension-element-prefixes="ixsl"
 >
 
-    <xsl:import href="../../../../com/atomgraph/client/xsl/converters/RDFXML2SVG.xsl"/>
     <xsl:import href="../../../../com/atomgraph/client/xsl/functions.xsl"/>
     <xsl:import href="../../../../com/atomgraph/client/xsl/imports/default.xsl"/>
     <xsl:import href="../../../../com/atomgraph/client/xsl/imports/rdf.xsl"/>
@@ -107,7 +106,7 @@ extension-element-prefixes="ixsl"
     <xsl:include href="bootstrap/2.3.2/client/modal.xsl"/>
     <xsl:include href="bootstrap/2.3.2/client/form.xsl"/>
     <xsl:include href="bootstrap/2.3.2/client/map.xsl"/> <!-- include in view.xsl and object.xsl instead? -->
-    <xsl:include href="bootstrap/2.3.2/client/graph.xsl"/>
+    <xsl:include href="bootstrap/2.3.2/client/graph3d.xsl"/>
     <xsl:include href="bootstrap/2.3.2/client/constructor.xsl"/>
     <xsl:include href="bootstrap/2.3.2/client/block/object.xsl"/>
     <xsl:include href="bootstrap/2.3.2/client/block/view.xsl"/>
@@ -285,7 +284,7 @@ WHERE
         <ixsl:set-property name="base" select="$ldt:base" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
         <ixsl:set-property name="contents" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
         <ixsl:set-property name="typeahead" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/> <!-- used by typeahead.xsl -->
-        <ixsl:set-property name="graph" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/> <!-- used by graph.xsl -->
+        <ixsl:set-property name="graphs" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/> <!-- used by graph3d.xsl -->
 <!--        <ixsl:set-property name="endpoint" select="$sd:endpoint" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>-->
         <ixsl:set-property name="yasqe" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
 
@@ -625,6 +624,18 @@ WHERE
                         <xsl:with-param name="category" select="$category"/>
                         <xsl:with-param name="series" select="$series"/>
                     </xsl:call-template>
+                </xsl:for-each>
+
+                <!-- initialize 3D force graphs -->
+                <xsl:for-each select="key('elements-by-class', 'graph-3d-canvas', ixsl:page())">
+                    <xsl:variable name="canvas-id" select="@id" as="xs:string"/>
+                    <xsl:if test="not(ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub.graphs'), $canvas-id))">
+                        <xsl:call-template name="ldh:InitDocumentGraph3D">
+                            <xsl:with-param name="canvas" select="."/>
+                            <xsl:with-param name="canvas-id" select="$canvas-id"/>
+                            <xsl:with-param name="rdf-doc" select="$results"/>
+                        </xsl:call-template>
+                    </xsl:if>
                 </xsl:for-each>
             </xsl:for-each>
         </xsl:for-each>
