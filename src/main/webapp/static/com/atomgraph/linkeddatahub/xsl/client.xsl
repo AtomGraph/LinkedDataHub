@@ -559,25 +559,41 @@ WHERE
                 <!-- store ETag header value under window.LinkedDataHub.contents[$uri].etag -->
                 <ixsl:set-property name="etag" select="$etag" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $uri || '`')"/>
 
-                <!-- this has to go after <xsl:result-document href="#{$container-id}"> because otherwise new elements will be injected and the lookup will not work anymore -->
-                <!-- load top-level content blocks -->
-                <xsl:for-each select="id('content-body', ixsl:page())/div">
-                    <!-- container could be hidden server-side -->
-                    <ixsl:set-style name="display" select="'block'"/>
+                <xsl:choose>
+                    <xsl:when test="not(starts-with($uri, $ldt:base))">
+                        <!-- external ?uri= resource: replace home page content-body with resource description;
+                             Saxon-JS fetches the RDF data client-side (ldh:RDFDocumentLoad) and renders it here -->
+                        <xsl:for-each select="id('content-body', ixsl:page())">
+                            <xsl:result-document href="?." method="ixsl:replace-content">
+                                <xsl:apply-templates select="$results/rdf:RDF" mode="bs2:Row">
+                                    <xsl:with-param name="create-resource" select="false()"/>
+                                    <xsl:with-param name="classes" select="()"/>
+                                </xsl:apply-templates>
+                            </xsl:result-document>
+                        </xsl:for-each>
+                    </xsl:when>
+                    <xsl:otherwise>
+                        <!-- this has to go after <xsl:result-document href="#{$container-id}"> because otherwise new elements will be injected and the lookup will not work anymore -->
+                        <!-- load top-level content blocks -->
+                        <xsl:for-each select="id('content-body', ixsl:page())/div">
+                            <!-- container could be hidden server-side -->
+                            <ixsl:set-style name="display" select="'block'"/>
 
-                    <!-- one top-level <div> can contain multiple blocks that need to be rendered via factory -->   
-                    <xsl:variable name="factories" as="(function(item()?) as item()*)*">
-                        <xsl:apply-templates select="." mode="ldh:RenderRow">
-                            <xsl:with-param name="refresh-content" select="$refresh-content"/>
-                        </xsl:apply-templates>
-                    </xsl:variable>
+                            <!-- one top-level <div> can contain multiple blocks that need to be rendered via factory -->
+                            <xsl:variable name="factories" as="(function(item()?) as item()*)*">
+                                <xsl:apply-templates select="." mode="ldh:RenderRow">
+                                    <xsl:with-param name="refresh-content" select="$refresh-content"/>
+                                </xsl:apply-templates>
+                            </xsl:variable>
 
-                    <xsl:for-each select="$factories">
-                        <xsl:variable name="factory" select="."/>
-                        <!-- fire the promise chain once, passing a dummy start value -->
-                        <ixsl:promise select="$factory(())" on-failure="ldh:promise-failure#1"/>
-                    </xsl:for-each>
-                </xsl:for-each>
+                            <xsl:for-each select="$factories">
+                                <xsl:variable name="factory" select="."/>
+                                <!-- fire the promise chain once, passing a dummy start value -->
+                                <ixsl:promise select="$factory(())" on-failure="ldh:promise-failure#1"/>
+                            </xsl:for-each>
+                        </xsl:for-each>
+                    </xsl:otherwise>
+                </xsl:choose>
 
                 <!-- is a new instance of Service was created, reload the LinkedDataHub.apps data and re-render the service dropdown -->
                 <xsl:if test="//ldt:base or //sd:endpoint">

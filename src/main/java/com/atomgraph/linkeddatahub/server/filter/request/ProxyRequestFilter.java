@@ -16,7 +16,7 @@
  */
 package com.atomgraph.linkeddatahub.server.filter.request;
 
-import com.atomgraph.client.MediaTypes;
+import com.atomgraph.core.MediaTypes;
 import com.atomgraph.client.util.HTMLMediaTypePredicate;
 import com.atomgraph.client.vocabulary.AC;
 import com.atomgraph.core.exception.BadGatewayException;
@@ -104,6 +104,18 @@ public class ProxyRequestFilter implements ContainerRequestFilter
         if (targetOpt.isEmpty()) return; // not a proxy request
 
         URI targetURI = targetOpt.get();
+
+        // do not proxy (X)HTML requests - let the downstream handler serve the standard app shell page;
+        // Saxon-JS will fetch the target RDF client-side and complete the rendering.
+        // Use proper content negotiation (same as getResponse()) so that a browser Accept header like
+        // "text/html, application/xml;q=0.9, */*;q=0.8" correctly resolves to text/html.
+        List<Variant> variants = com.atomgraph.core.model.impl.Response.getVariants(
+            getMediaTypes().getWritable(Model.class),
+            getSystem().getSupportedLanguages(),
+            new ArrayList<>());
+        Variant selectedVariant = getRequest().selectVariant(variants);
+        if (selectedVariant != null && new HTMLMediaTypePredicate().test(selectedVariant.getMediaType()))
+            return;
 
         // strip #fragment (servers do not receive fragment identifiers)
         if (targetURI.getFragment() != null)

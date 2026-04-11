@@ -214,6 +214,7 @@ import net.sf.saxon.s9api.XsltExecutable;
 import org.apache.http.HttpClientConnection;
 import org.apache.http.HttpHost;
 import org.apache.http.client.HttpRequestRetryHandler;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.config.Registry;
 import org.apache.http.config.RegistryBuilder;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
@@ -1592,7 +1593,10 @@ public class Application extends ResourceConfig
         config.property(ClientProperties.FOLLOW_REDIRECTS, true);
         config.property(ClientProperties.REQUEST_ENTITY_PROCESSING, RequestEntityProcessing.BUFFERED); // https://stackoverflow.com/questions/42139436/jersey-client-throws-cannot-retry-request-with-a-non-repeatable-request-entity
         config.property(ApacheClientProperties.CONNECTION_MANAGER, conman);
-        
+        config.property(ApacheClientProperties.REQUEST_CONFIG, RequestConfig.custom().
+            setConnectionRequestTimeout(30000).
+            build());
+
         if (maxRequestRetries != null)
             config.property(ApacheClientProperties.RETRY_HANDLER, (HttpRequestRetryHandler) (IOException ex, int executionCount, HttpContext context) ->
             {
@@ -1688,7 +1692,10 @@ public class Application extends ResourceConfig
             config.property(ClientProperties.FOLLOW_REDIRECTS, true);
             config.property(ClientProperties.REQUEST_ENTITY_PROCESSING, RequestEntityProcessing.BUFFERED); // https://stackoverflow.com/questions/42139436/jersey-client-throws-cannot-retry-request-with-a-non-repeatable-request-entity
             config.property(ApacheClientProperties.CONNECTION_MANAGER, conman);
-            
+            config.property(ApacheClientProperties.REQUEST_CONFIG, RequestConfig.custom().
+                setConnectionRequestTimeout(30000).
+                build());
+
             if (maxRequestRetries != null)
                 config.property(ApacheClientProperties.RETRY_HANDLER, (HttpRequestRetryHandler) (IOException ex, int executionCount, HttpContext context) ->
                 {
@@ -1708,7 +1715,7 @@ public class Application extends ResourceConfig
                     }
                     return false;
                 });
-        
+
             return ClientBuilder.newBuilder().
                 withConfig(config).
                 sslContext(ctx).
