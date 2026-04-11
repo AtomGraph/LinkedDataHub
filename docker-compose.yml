@@ -223,6 +223,8 @@ configs:
               ssl_verify_client ${NGINX_SSL_VERIFY_CLIENT:-optional_no_ca};
 
               location / {
+                  gzip off; # disable gzip for dynamic content to preserve strong ETags for If-Match
+
                   add_header Access-Control-Allow-Origin "*" always;
                   add_header Access-Control-Allow-Methods "GET, POST, PUT, DELETE, PATCH, HEAD, OPTIONS" always;
                   add_header Access-Control-Allow-Headers "Accept, Content-Type, Authorization" always;
@@ -285,6 +287,8 @@ configs:
               ssl_verify_client optional_no_ca;
 
               location / {
+                  gzip off; # disable gzip for dynamic content to preserve strong ETags for If-Match
+
                   add_header Access-Control-Allow-Origin "*" always;
                   add_header Access-Control-Allow-Methods "GET, POST, PUT, DELETE, PATCH, HEAD, OPTIONS" always;
                   add_header Access-Control-Allow-Headers "Accept, Content-Type, Authorization" always;
