@@ -920,7 +920,11 @@ exclude-result-prefixes="#all">
                 </xsl:when>
                 <!-- the request is proxied using ?uri, render it client-side in client.xsl -->
                 <xsl:when test="not(ldh:base-uri(.) = $ldh:requestUri)">
-                    <!-- no output TO-DO: progress bar? -->
+                    <div class="row-fluid">
+                        <div class="span12 progress progress-striped active">
+                            <div style="width: 33%;" class="bar"></div>
+                        </div>
+                    </div>
                 </xsl:when>
                 <xsl:otherwise>
                     <xsl:choose>
