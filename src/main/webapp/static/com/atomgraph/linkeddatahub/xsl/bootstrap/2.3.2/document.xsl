@@ -180,8 +180,80 @@ extension-element-prefixes="ixsl"
         </div>
     </xsl:template>
 
+    <!-- CONTENT BODY -->
+
+    <xsl:template match="rdf:RDF" mode="bs2:ContentBody">
+        <xsl:param name="id" select="'content-body'" as="xs:string?"/>
+        <xsl:param name="class" select="'container-fluid'" as="xs:string?"/>
+        <xsl:param name="about" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI?"/>
+        <xsl:param name="typeof" select="key('resources', ac:absolute-path(ldh:base-uri(.)))/rdf:type/@rdf:resource/xs:anyURI(.)" as="xs:anyURI*"/>
+        <xsl:param name="mode" as="xs:anyURI"/>
+        <xsl:param name="ldh:requestUri" select="$ldh:requestUri" as="xs:anyURI?"/>
+
+        <div>
+            <xsl:if test="$id">
+                <xsl:attribute name="id" select="$id"/>
+            </xsl:if>
+            <xsl:if test="$class">
+                <xsl:attribute name="class" select="$class"/>
+            </xsl:if>
+            <xsl:if test="$about">
+                <xsl:attribute name="about" select="$about"/>
+            </xsl:if>
+            <xsl:if test="exists($typeof)">
+                <xsl:attribute name="typeof" select="string-join($typeof, ' ')"/>
+            </xsl:if>
+
+            <xsl:choose>
+                <!-- error responses always rendered in bs2:Row mode, no matter what $mode specifies -->
+                <xsl:when test="exists($ldh:requestUri) and key('resources-by-type', '&http;Response') and not(key('resources-by-type', '&spin;ConstraintViolation')) and not(key('resources-by-type', '&sh;ValidationResult'))">
+                    <xsl:apply-templates select="." mode="bs2:Row">
+                        <xsl:sort select="ac:label(.)"/>
+                    </xsl:apply-templates>
+                </xsl:when>
+                <!-- the request is proxied using ?uri, render it client-side in client.xsl -->
+                <xsl:when test="exists($ldh:requestUri) and not(ldh:base-uri(.) = $ldh:requestUri)">
+                    <div class="row-fluid">
+                        <div class="span12 progress progress-striped active">
+                            <div style="width: 33%;" class="bar"></div>
+                        </div>
+                    </div>
+                </xsl:when>
+                <xsl:otherwise>
+                    <xsl:choose>
+                        <xsl:when test="$mode = '&ldh;ContentMode'">
+                            <xsl:apply-templates select="." mode="ldh:ContentList"/>
+                        </xsl:when>
+                        <xsl:when test="$mode = '&ac;MapMode'">
+                            <xsl:apply-templates select="." mode="bs2:Map">
+                                <xsl:with-param name="id" select="generate-id() || '-map-canvas'"/>
+                                <xsl:sort select="ac:label(.)"/>
+                            </xsl:apply-templates>
+                        </xsl:when>
+                        <xsl:when test="$mode = '&ac;ChartMode'">
+                            <xsl:apply-templates select="." mode="bs2:Chart">
+                                <xsl:with-param name="canvas-id" select="generate-id() || '-chart-canvas'"/>
+                                <xsl:with-param name="show-save" select="false()"/>
+                                <xsl:sort select="ac:label(.)"/>
+                            </xsl:apply-templates>
+                        </xsl:when>
+                        <xsl:when test="$mode = '&ac;GraphMode'">
+                            <xsl:variable name="canvas-id" select="generate-id() || '-graph-canvas'" as="xs:string"/>
+                            <div id="{$canvas-id}" class="graph-3d-canvas"/>
+                        </xsl:when>
+                        <xsl:otherwise>
+                            <xsl:apply-templates select="." mode="bs2:Row">
+                                <xsl:sort select="ac:label(.)"/>
+                            </xsl:apply-templates>
+                        </xsl:otherwise>
+                    </xsl:choose>
+                </xsl:otherwise>
+            </xsl:choose>
+        </div>
+    </xsl:template>
+
     <!-- CONTENT LIST -->
-    
+
     <xsl:template match="rdf:RDF" mode="ldh:ContentList">
         <xsl:apply-templates select="key('resources', ac:absolute-path(ldh:base-uri(.)))" mode="#current"/>
         

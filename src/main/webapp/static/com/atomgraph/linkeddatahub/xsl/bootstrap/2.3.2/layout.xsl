@@ -128,6 +128,7 @@ exclude-result-prefixes="#all">
             <xsl:map-entry key="resolve-uri(ac:document-uri(xs:anyURI('&ac;')), $ac:contextUri)" select="ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri(xs:anyURI('&ac;'))), 'accept': 'application/rdf+xml' })"/>
             <xsl:map-entry key="resolve-uri(ac:document-uri(xs:anyURI('&adm;')), $ac:contextUri)" select="ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri(xs:anyURI('&adm;'))), 'accept': 'application/rdf+xml' })"/>
             <xsl:map-entry key="resolve-uri(ac:document-uri(xs:anyURI('&lacl;')), $ac:contextUri)" select="ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri(xs:anyURI('&lacl;'))), 'accept': 'application/rdf+xml' })"/>
+            <xsl:map-entry key="resolve-uri(ac:document-uri(xs:anyURI('&lapp;')), $ac:contextUri)" select="ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri(xs:anyURI('&lapp;'))), 'accept': 'application/rdf+xml' })"/>
             <xsl:map-entry key="resolve-uri(ac:document-uri(xs:anyURI('&ldh;')), $ac:contextUri)" select="ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri(xs:anyURI('&ldh;'))), 'accept': 'application/rdf+xml' })"/>
             <xsl:map-entry key="resolve-uri(ac:document-uri(xs:anyURI('&def;')), $ac:contextUri)" select="ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri(xs:anyURI('&def;'))), 'accept': 'application/rdf+xml' })"/>
             <xsl:map-entry key="resolve-uri(ac:document-uri(xs:anyURI('&dh;')), $ac:contextUri)" select="ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri(xs:anyURI('&dh;'))), 'accept': 'application/rdf+xml' })"/>
@@ -882,7 +883,9 @@ exclude-result-prefixes="#all">
             <div id="visible-body">
                 <xsl:apply-templates select="." mode="bs2:NavBar"/>
 
-                <xsl:apply-templates select="." mode="bs2:ContentBody"/>
+                <xsl:apply-templates select="." mode="bs2:ContentBody">
+                    <xsl:with-param name="mode" select="$ac:mode"/>
+                </xsl:apply-templates>
 
                 <xsl:apply-templates select="." mode="bs2:Footer"/>
             </div>
@@ -891,74 +894,6 @@ exclude-result-prefixes="#all">
         </body>
     </xsl:template>
     
-    <xsl:template match="rdf:RDF" mode="bs2:ContentBody">
-        <xsl:param name="id" select="'content-body'" as="xs:string?"/>
-        <xsl:param name="class" select="'container-fluid'" as="xs:string?"/>
-        <xsl:param name="about" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI?"/>
-        <xsl:param name="typeof" select="key('resources', ac:absolute-path(ldh:base-uri(.)))/rdf:type/@rdf:resource/xs:anyURI(.)" as="xs:anyURI*"/>
-
-        <div>
-            <xsl:if test="$id">
-                <xsl:attribute name="id" select="$id"/>
-            </xsl:if>
-            <xsl:if test="$class">
-                <xsl:attribute name="class" select="$class"/>
-            </xsl:if>
-            <xsl:if test="$about">
-                <xsl:attribute name="about" select="$about"/>
-            </xsl:if>
-            <xsl:if test="exists($typeof)">
-                <xsl:attribute name="typeof" select="string-join($typeof, ' ')"/>
-            </xsl:if>
-
-            <xsl:choose>
-                <!-- error responses always rendered in bs2:Row mode, no matter what $ac:mode specifies -->
-                <xsl:when test="key('resources-by-type', '&http;Response') and not(key('resources-by-type', '&spin;ConstraintViolation')) and not(key('resources-by-type', '&sh;ValidationResult'))">
-                    <xsl:apply-templates select="." mode="bs2:Row">
-                        <xsl:sort select="ac:label(.)"/>
-                    </xsl:apply-templates>
-                </xsl:when>
-                <!-- the request is proxied using ?uri, render it client-side in client.xsl -->
-                <xsl:when test="not(ldh:base-uri(.) = $ldh:requestUri)">
-                    <div class="row-fluid">
-                        <div class="span12 progress progress-striped active">
-                            <div style="width: 33%;" class="bar"></div>
-                        </div>
-                    </div>
-                </xsl:when>
-                <xsl:otherwise>
-                    <xsl:choose>
-                        <xsl:when test="$ac:mode = '&ldh;ContentMode'">
-                            <xsl:apply-templates select="." mode="ldh:ContentList"/>
-                        </xsl:when>
-                        <xsl:when test="$ac:mode = '&ac;MapMode'">
-                            <xsl:apply-templates select="." mode="bs2:Map">
-                                <xsl:with-param name="id" select="generate-id() || '-map-canvas'"/>
-                                <xsl:sort select="ac:label(.)"/>
-                            </xsl:apply-templates>
-                        </xsl:when>
-                        <xsl:when test="$ac:mode = '&ac;ChartMode'">
-                            <xsl:apply-templates select="." mode="bs2:Chart">
-                                <xsl:with-param name="canvas-id" select="generate-id() || '-chart-canvas'"/>
-                                <xsl:with-param name="show-save" select="false()"/>
-                                <xsl:sort select="ac:label(.)"/>
-                            </xsl:apply-templates>
-                        </xsl:when>
-                        <xsl:when test="$ac:mode = '&ac;GraphMode'">
-                            <xsl:variable name="canvas-id" select="generate-id() || '-graph-canvas'" as="xs:string"/>
-                            <div id="{$canvas-id}" class="graph-3d-canvas"/>
-                        </xsl:when>
-                        <xsl:otherwise>
-                            <xsl:apply-templates select="." mode="bs2:Row">
-                                <xsl:sort select="ac:label(.)"/>
-                            </xsl:apply-templates>
-                        </xsl:otherwise>
-                    </xsl:choose>
-                </xsl:otherwise>
-            </xsl:choose>
-        </div>
-    </xsl:template>
-
     <xsl:template match="srx:sparql" mode="bs2:ContentBody">
         <xsl:param name="id" select="'content-body'" as="xs:string?"/>
         <xsl:param name="class" select="'container-fluid'" as="xs:string?"/>

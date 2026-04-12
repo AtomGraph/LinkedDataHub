@@ -65,6 +65,7 @@ import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFLanguages;
 import org.apache.jena.riot.resultset.ResultSetReaderRegistry;
 import org.glassfish.jersey.message.internal.MessageBodyProviderNotFoundException;
+import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -102,6 +103,7 @@ public class ProxyRequestFilter implements ContainerRequestFilter
 
     private static final Logger log = LoggerFactory.getLogger(ProxyRequestFilter.class);
     private static final MediaTypes MEDIA_TYPES = new MediaTypes();
+    private static final Pattern LINK_SPLITTER = Pattern.compile(",(?=\\s*<)");
 
     @Inject com.atomgraph.linkeddatahub.Application system;
     @Inject jakarta.inject.Provider<Optional<Ontology>> ontology;
@@ -296,14 +298,31 @@ public class ProxyRequestFilter implements ContainerRequestFilter
         MediaType formatType = new MediaType(clientResponse.getMediaType().getType(), clientResponse.getMediaType().getSubtype()); // discard charset param
 
         Lang lang = RDFLanguages.contentTypeToLang(formatType.toString());
+        Response response;
         if (lang != null && ResultSetReaderRegistry.isRegistered(lang))
         {
             ResultSetRewindable results = clientResponse.readEntity(ResultSetRewindable.class);
-            return getResponse(results, statusType, selectedVariant);
+            response = getResponse(results, statusType, selectedVariant);
+        }
+        else
+        {
+            Model model = clientResponse.readEntity(Model.class);
+            response = getResponse(model, statusType, selectedVariant);
         }
 
-        Model model = clientResponse.readEntity(Model.class);
-        return getResponse(model, statusType, selectedVariant);
+        // forward all Link headers from the external response so the client receives remote hypermedia
+        // (e.g. sd:endpoint pointing to the remote SPARQL endpoint);
+        // ResponseHeadersFilter will see sd:endpoint already present and skip injecting the local one
+        String linkHeader = clientResponse.getHeaderString(HttpHeaders.LINK);
+        if (linkHeader != null)
+        {
+            Response.ResponseBuilder builder = Response.fromResponse(response);
+            for (String part : LINK_SPLITTER.split(linkHeader))
+                builder.header(HttpHeaders.LINK, part.trim());
+            response = builder.build();
+        }
+
+        return response;
     }
 
     /**

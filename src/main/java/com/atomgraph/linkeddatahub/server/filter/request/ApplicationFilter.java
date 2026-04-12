@@ -107,7 +107,11 @@ public class ApplicationFilter implements ContainerRequestFilter
                         
                     requestURI = builder.build();
                 }
-                else requestURI = request.getUriInfo().getRequestUri();
+                else
+                {
+                    request.setProperty(AC.uri.getURI(), graphURI); // authoritative external proxy marker
+                    requestURI = request.getUriInfo().getRequestUri();
+                }
             }
             catch (URISyntaxException ex)
             {
