@@ -83,15 +83,15 @@ import org.slf4j.LoggerFactory;
  * ACL is not checked for proxy requests: the proxy is a global transport function, not a document
  * operation. Access control is enforced by the target endpoint.
  * <p>
- * This filter intentionally does <em>not</em> proxy (X)HTML responses. Rendering arbitrary external
- * URIs as (X)HTML through the full server-side pipeline (SPARQL DESCRIBE + XSLT) for every
- * browser-originated proxy request would cause unbounded resource exhaustion — a connection-pool and
- * CPU amplification attack vector. Instead, HTML-only requests fall through to the downstream handler,
- * which serves the LDH application shell; the client-side Saxon-JS layer then issues a second,
- * RDF-typed request that <em>does</em> hit this filter and is handled cheaply. The bypass is
- * implemented by building the candidate variant list from Core's {@link MediaTypes} (RDF/SPARQL types
- * only, no HTML) and treating a {@code null} result from {@link Request#selectVariant} as the signal
- * to skip proxying.
+ * This filter intentionally does <em>not</em> proxy requests from clients that explicitly accept
+ * (X)HTML. Rendering arbitrary external URIs as (X)HTML through the full server-side pipeline
+ * (SPARQL DESCRIBE + XSLT) for every browser-originated proxy request would cause unbounded resource
+ * exhaustion — a connection-pool and CPU amplification attack vector. Instead, requests whose
+ * {@code Accept} header contains a non-wildcard {@code text/html} or {@code application/xhtml+xml}
+ * type fall through to the downstream handler, which serves the LDH application shell; the
+ * client-side Saxon-JS layer then issues a second, RDF-typed request that <em>does</em> hit this
+ * filter and is handled cheaply. Pure API clients that send only {@code *}{@code /*} (e.g. curl)
+ * reach the proxy because they do not list an explicit HTML type.
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
@@ -115,8 +115,18 @@ public class ProxyRequestFilter implements ContainerRequestFilter
 
         URI targetURI = targetOpt.get();
 
-        // do not proxy requests that don't accept any RDF/SPARQL type — let the downstream handler serve the response.
-        // Core MediaTypes contains only RDF/SPARQL types so selectVariant returns null for HTML-only Accept headers.
+        // do not proxy requests from clients that explicitly accept (X)HTML — they expect the app shell,
+        // which the downstream handler serves. Browsers list text/html as a non-wildcard type; pure API
+        // clients (curl etc.) send only */* and must reach the proxy.
+        // Defending against resource exhaustion: proxying + full server-side XSLT rendering for arbitrary
+        // external URIs on every browser request would amplify CPU and connection-pool load unboundedly.
+        boolean clientAcceptsHtml = requestContext.getAcceptableMediaTypes().stream()
+            .anyMatch(mt -> !mt.isWildcardType() && !mt.isWildcardSubtype() &&
+                      (mt.isCompatible(MediaType.TEXT_HTML_TYPE) ||
+                       mt.isCompatible(MediaType.APPLICATION_XHTML_XML_TYPE)));
+        if (clientAcceptsHtml) return;
+
+        // negotiate the response format from RDF/SPARQL writable types
         List<MediaType> writableTypes = new ArrayList<>(getMediaTypes().getWritable(Model.class));
         writableTypes.addAll(getMediaTypes().getWritable(ResultSet.class));
         List<Variant> variants = com.atomgraph.core.model.impl.Response.getVariants(

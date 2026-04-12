@@ -49,6 +49,8 @@ import org.mockito.junit.MockitoJUnitRunner;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.when;
 
 /**
@@ -92,6 +94,23 @@ public class ProxyRequestFilterTest
         when(system.isEnableLinkedDataProxy()).thenReturn(false);
         when(request.selectVariant(any())).thenReturn(selectedVariant);
         filter.ontology = () -> Optional.empty();
+    }
+
+    /**
+     * When the client explicitly accepts (X)HTML, the filter must bypass proxying entirely and let
+     * the downstream handler serve the app shell — regardless of the target URI.
+     */
+    @Test
+    public void testHtmlAcceptBypassesProxy() throws IOException
+    {
+        MultivaluedHashMap<String, String> params = new MultivaluedHashMap<>();
+        params.putSingle("uri", EXTERNAL_URI.toString());
+        when(uriInfo.getQueryParameters()).thenReturn(params);
+        when(requestContext.getAcceptableMediaTypes()).thenReturn(List.of(MediaType.TEXT_HTML_TYPE));
+
+        filter.filter(requestContext);
+
+        verify(requestContext, never()).abortWith(any(Response.class));
     }
 
     /**
