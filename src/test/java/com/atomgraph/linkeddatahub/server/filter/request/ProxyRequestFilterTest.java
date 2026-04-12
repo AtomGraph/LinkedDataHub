@@ -32,6 +32,7 @@ import jakarta.ws.rs.core.MultivaluedHashMap;
 import jakarta.ws.rs.core.Request;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.UriInfo;
+import jakarta.ws.rs.core.Variant;
 import java.io.IOException;
 import java.net.URI;
 import java.util.List;
@@ -62,6 +63,7 @@ public class ProxyRequestFilterTest
     @Mock com.atomgraph.linkeddatahub.Application system;
     @Mock MediaTypes mediaTypes;
     @Mock Request request;
+    @Mock Variant selectedVariant;
     @Mock Ontology ontology;
 
     @InjectMocks ProxyRequestFilter filter;
@@ -88,6 +90,7 @@ public class ProxyRequestFilterTest
         when(system.getDataManager()).thenReturn(dataManager);
         when(dataManager.isMapped(anyString())).thenReturn(false);
         when(system.isEnableLinkedDataProxy()).thenReturn(false);
+        when(request.selectVariant(any())).thenReturn(selectedVariant);
         filter.ontology = () -> Optional.empty();
     }
 

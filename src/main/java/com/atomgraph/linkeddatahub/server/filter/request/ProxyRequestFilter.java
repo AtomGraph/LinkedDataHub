@@ -93,7 +93,6 @@ public class ProxyRequestFilter implements ContainerRequestFilter
     private static final Logger log = LoggerFactory.getLogger(ProxyRequestFilter.class);
 
     @Inject com.atomgraph.linkeddatahub.Application system;
-    @Inject MediaTypes mediaTypes;
     @Inject jakarta.inject.Provider<Optional<Ontology>> ontology;
     @Context Request request;
 
@@ -105,17 +104,16 @@ public class ProxyRequestFilter implements ContainerRequestFilter
 
         URI targetURI = targetOpt.get();
 
-        // do not proxy (X)HTML requests - let the downstream handler serve the standard app shell page;
-        // Saxon-JS will fetch the target RDF client-side and complete the rendering.
-        // Use proper content negotiation (same as getResponse()) so that a browser Accept header like
-        // "text/html, application/xml;q=0.9, */*;q=0.8" correctly resolves to text/html.
+        // do not proxy requests that don't accept any RDF/SPARQL type — let the downstream handler serve the response.
+        // Core MediaTypes contains only RDF/SPARQL types so selectVariant returns null for HTML-only Accept headers.
+        List<MediaType> writableTypes = new ArrayList<>(getMediaTypes().getWritable(Model.class));
+        writableTypes.addAll(getMediaTypes().getWritable(ResultSet.class));
         List<Variant> variants = com.atomgraph.core.model.impl.Response.getVariants(
-            getMediaTypes().getWritable(Model.class),
+            writableTypes,
             getSystem().getSupportedLanguages(),
             new ArrayList<>());
         Variant selectedVariant = getRequest().selectVariant(variants);
-        if (selectedVariant != null && new HTMLMediaTypePredicate().test(selectedVariant.getMediaType()))
-            return;
+        if (selectedVariant == null) return; // client accepts no RDF/SPARQL type
 
         // strip #fragment (servers do not receive fragment identifiers)
         if (targetURI.getFragment() != null)
@@ -135,7 +133,7 @@ public class ProxyRequestFilter implements ContainerRequestFilter
         {
             if (log.isDebugEnabled()) log.debug("Serving mapped URI from DataManager cache: {}", targetURI);
             Model model = getSystem().getDataManager().loadModel(targetURI.toString());
-            requestContext.abortWith(getResponse(model, Response.Status.OK));
+            requestContext.abortWith(getResponse(model, Response.Status.OK, selectedVariant));
             return;
         }
 
@@ -153,7 +151,7 @@ public class ProxyRequestFilter implements ContainerRequestFilter
                 if (!description.isEmpty())
                 {
                     if (log.isDebugEnabled()) log.debug("Serving URI from namespace ontology: {}", targetURI);
-                    requestContext.abortWith(getResponse(description, Response.Status.OK));
+                    requestContext.abortWith(getResponse(description, Response.Status.OK, selectedVariant));
                     return;
                 }
             }
@@ -200,7 +198,7 @@ public class ProxyRequestFilter implements ContainerRequestFilter
             {
                 // provide the target URI as a base URI hint so ModelProvider / HtmlJsonLDReader can resolve relative references
                 clientResponse.getHeaders().putSingle(com.atomgraph.core.io.ModelProvider.REQUEST_URI_HEADER, targetURI.toString());
-                requestContext.abortWith(getResponse(clientResponse));
+                requestContext.abortWith(getResponse(clientResponse, selectedVariant));
             }
         }
         catch (MessageBodyProviderNotFoundException ex)
@@ -255,12 +253,13 @@ public class ProxyRequestFilter implements ContainerRequestFilter
      * Converts a client response from the proxy target into a JAX-RS response.
      *
      * @param clientResponse response from the proxy target
+     * @param selectedVariant pre-computed variant from content negotiation
      * @return JAX-RS response to return to the original caller
      */
-    protected Response getResponse(Response clientResponse)
+    protected Response getResponse(Response clientResponse, Variant selectedVariant)
     {
         if (clientResponse.getMediaType() == null) return Response.status(clientResponse.getStatus()).build();
-        return getResponse(clientResponse, clientResponse.getStatusInfo());
+        return getResponse(clientResponse, clientResponse.getStatusInfo(), selectedVariant);
     }
 
     /**
@@ -268,9 +267,10 @@ public class ProxyRequestFilter implements ContainerRequestFilter
      *
      * @param clientResponse response from the proxy target
      * @param statusType status to use in the returned response
+     * @param selectedVariant pre-computed variant from content negotiation
      * @return JAX-RS response
      */
-    protected Response getResponse(Response clientResponse, Response.StatusType statusType)
+    protected Response getResponse(Response clientResponse, Response.StatusType statusType, Variant selectedVariant)
     {
         MediaType formatType = new MediaType(clientResponse.getMediaType().getType(), clientResponse.getMediaType().getSubtype()); // discard charset param
 
@@ -278,32 +278,28 @@ public class ProxyRequestFilter implements ContainerRequestFilter
         if (lang != null && ResultSetReaderRegistry.isRegistered(lang))
         {
             ResultSetRewindable results = clientResponse.readEntity(ResultSetRewindable.class);
-            return getResponse(results, statusType);
+            return getResponse(results, statusType, selectedVariant);
         }
 
         Model model = clientResponse.readEntity(Model.class);
-        return getResponse(model, statusType);
+        return getResponse(model, statusType, selectedVariant);
     }
 
     /**
-     * Builds a content-negotiated response for the given RDF model.
+     * Builds a response for the given RDF model using a pre-computed variant.
      *
      * @param model RDF model
      * @param statusType response status
+     * @param selectedVariant pre-computed variant from content negotiation
      * @return JAX-RS response
      */
-    protected Response getResponse(Model model, Response.StatusType statusType)
+    protected Response getResponse(Model model, Response.StatusType statusType, Variant selectedVariant)
     {
-        List<Variant> variants = com.atomgraph.core.model.impl.Response.getVariants(
-            getMediaTypes().getWritable(Model.class),
-            getSystem().getSupportedLanguages(),
-            new ArrayList<>());
-
         return new com.atomgraph.core.model.impl.Response(getRequest(),
                 model,
                 null,
                 new EntityTag(Long.toHexString(ModelUtils.hashModel(model))),
-                variants,
+                selectedVariant,
                 new HTMLMediaTypePredicate()).
             getResponseBuilder().
             status(statusType).
@@ -311,27 +307,23 @@ public class ProxyRequestFilter implements ContainerRequestFilter
     }
 
     /**
-     * Builds a content-negotiated response for the given SPARQL result set.
+     * Builds a response for the given SPARQL result set using a pre-computed variant.
      *
      * @param resultSet SPARQL result set
      * @param statusType response status
+     * @param selectedVariant pre-computed variant from content negotiation
      * @return JAX-RS response
      */
-    protected Response getResponse(ResultSetRewindable resultSet, Response.StatusType statusType)
+    protected Response getResponse(ResultSetRewindable resultSet, Response.StatusType statusType, Variant selectedVariant)
     {
         long hash = ResultSetUtils.hashResultSet(resultSet);
         resultSet.reset();
-
-        List<Variant> variants = com.atomgraph.core.model.impl.Response.getVariants(
-            getMediaTypes().getWritable(ResultSet.class),
-            getSystem().getSupportedLanguages(),
-            new ArrayList<>());
 
         return new com.atomgraph.core.model.impl.Response(getRequest(),
                 resultSet,
                 null,
                 new EntityTag(Long.toHexString(hash)),
-                variants,
+                selectedVariant,
                 new HTMLMediaTypePredicate()).
             getResponseBuilder().
             status(statusType).
@@ -360,12 +352,13 @@ public class ProxyRequestFilter implements ContainerRequestFilter
 
     /**
      * Returns the media types registry.
+     * Core MediaTypes do not include (X)HTML types, which is what we want here.
      *
      * @return media types
      */
     public MediaTypes getMediaTypes()
     {
-        return mediaTypes;
+        return new MediaTypes();
     }
 
     /**

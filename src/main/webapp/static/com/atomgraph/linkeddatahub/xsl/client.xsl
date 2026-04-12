@@ -559,41 +559,65 @@ WHERE
                 <!-- store ETag header value under window.LinkedDataHub.contents[$uri].etag -->
                 <ixsl:set-property name="etag" select="$etag" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $uri || '`')"/>
 
-                <xsl:choose>
-                    <xsl:when test="not(starts-with($uri, $ldt:base))">
-                        <!-- external ?uri= resource: replace home page content-body with resource description;
-                             Saxon-JS fetches the RDF data client-side (ldh:RDFDocumentLoad) and renders it here -->
-                        <xsl:for-each select="id('content-body', ixsl:page())">
+                <xsl:for-each select="id('content-body', ixsl:page())">
+                    <xsl:choose>
+                        <xsl:when test="not(starts-with($uri, $ldt:base))">
+                            <!-- external ?uri= resource: replace home page content-body with resource description;
+                                 Saxon-JS fetches the RDF data client-side (ldh:RDFDocumentLoad) and renders it here -->
                             <xsl:result-document href="?." method="ixsl:replace-content">
-                                <xsl:apply-templates select="$results/rdf:RDF" mode="bs2:Row">
-                                    <xsl:with-param name="create-resource" select="false()"/>
-                                    <xsl:with-param name="classes" select="()"/>
-                                </xsl:apply-templates>
+                                <xsl:choose>
+                                    <xsl:when test="ac:mode() = '&ldh;ContentMode'">
+                                        <xsl:apply-templates select="$results/rdf:RDF" mode="ldh:ContentList"/>
+                                    </xsl:when>
+                                    <xsl:when test="ac:mode() = '&ac;MapMode'">
+                                        <xsl:apply-templates select="$results/rdf:RDF" mode="bs2:Map">
+                                            <xsl:with-param name="id" select="generate-id() || '-map-canvas'"/>
+                                            <xsl:sort select="ac:label(.)"/>
+                                        </xsl:apply-templates>
+                                    </xsl:when>
+                                    <xsl:when test="ac:mode() = '&ac;ChartMode'">
+                                        <xsl:apply-templates select="$results/rdf:RDF" mode="bs2:Chart">
+                                            <xsl:with-param name="canvas-id" select="generate-id() || '-chart-canvas'"/>
+                                            <xsl:with-param name="show-save" select="false()"/>
+                                            <xsl:sort select="ac:label(.)"/>
+                                        </xsl:apply-templates>
+                                    </xsl:when>
+                                    <xsl:when test="ac:mode() = '&ac;GraphMode'">
+                                        <xsl:variable name="canvas-id" select="generate-id() || '-graph-canvas'" as="xs:string"/>
+                                        <div id="{$canvas-id}" class="graph-3d-canvas"/>
+                                    </xsl:when>
+                                    <xsl:otherwise>
+                                        <xsl:apply-templates select="$results/rdf:RDF" mode="bs2:Row">
+                                            <xsl:with-param name="create-resource" select="false()"/>
+                                            <xsl:with-param name="classes" select="()"/>
+                                        </xsl:apply-templates>
+                                    </xsl:otherwise>
+                                </xsl:choose>
                             </xsl:result-document>
-                        </xsl:for-each>
-                    </xsl:when>
-                    <xsl:otherwise>
-                        <!-- this has to go after <xsl:result-document href="#{$container-id}"> because otherwise new elements will be injected and the lookup will not work anymore -->
-                        <!-- load top-level content blocks -->
-                        <xsl:for-each select="id('content-body', ixsl:page())/div">
-                            <!-- container could be hidden server-side -->
-                            <ixsl:set-style name="display" select="'block'"/>
+                        </xsl:when>
+                        <xsl:otherwise>
+                            <!-- this has to go after <xsl:result-document href="#{$container-id}"> because otherwise new elements will be injected and the lookup will not work anymore -->
+                            <!-- load top-level content blocks -->
+                            <xsl:for-each select="div">
+                                <!-- container could be hidden server-side -->
+                                <ixsl:set-style name="display" select="'block'"/>
 
-                            <!-- one top-level <div> can contain multiple blocks that need to be rendered via factory -->
-                            <xsl:variable name="factories" as="(function(item()?) as item()*)*">
-                                <xsl:apply-templates select="." mode="ldh:RenderRow">
-                                    <xsl:with-param name="refresh-content" select="$refresh-content"/>
-                                </xsl:apply-templates>
-                            </xsl:variable>
+                                <!-- one top-level <div> can contain multiple blocks that need to be rendered via factory -->
+                                <xsl:variable name="factories" as="(function(item()?) as item()*)*">
+                                    <xsl:apply-templates select="." mode="ldh:RenderRow">
+                                        <xsl:with-param name="refresh-content" select="$refresh-content"/>
+                                    </xsl:apply-templates>
+                                </xsl:variable>
 
-                            <xsl:for-each select="$factories">
-                                <xsl:variable name="factory" select="."/>
-                                <!-- fire the promise chain once, passing a dummy start value -->
-                                <ixsl:promise select="$factory(())" on-failure="ldh:promise-failure#1"/>
+                                <xsl:for-each select="$factories">
+                                    <xsl:variable name="factory" select="."/>
+                                    <!-- fire the promise chain once, passing a dummy start value -->
+                                    <ixsl:promise select="$factory(())" on-failure="ldh:promise-failure#1"/>
+                                </xsl:for-each>
                             </xsl:for-each>
-                        </xsl:for-each>
-                    </xsl:otherwise>
-                </xsl:choose>
+                        </xsl:otherwise>
+                    </xsl:choose>
+                </xsl:for-each>
 
                 <!-- is a new instance of Service was created, reload the LinkedDataHub.apps data and re-render the service dropdown -->
                 <xsl:if test="//ldt:base or //sd:endpoint">
@@ -978,19 +1002,39 @@ WHERE
             <xsl:variable name="controller" select="ixsl:abort-controller()"/>
             <ixsl:set-property name="saxonController" select="$controller" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
 
-            <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $href, 'headers': map{ 'Accept': 'application/xhtml+xml' } }" as="map(*)"/>
-            <xsl:variable name="context" select="
-              map{
-                'request': $request,
-                'href': $href,
-                'push-state': true()
-              }" as="map(*)"/>
-            <ixsl:promise select="
-              ixsl:http-request($context('request'), $controller)
-                => ixsl:then(ldh:rethread-response($context, ?))
-                => ixsl:then(ldh:handle-response#1)
-                => ixsl:then(ldh:xhtml-document-loaded#1)
-            " on-failure="ldh:promise-failure#1"/>
+            <xsl:choose>
+                <!-- external URI: LDH no longer proxies HTML requests (ProxyRequestFilter), so fetching XHTML
+                     would just return the same app shell already loaded. Skip that round-trip and load RDF directly. -->
+                <xsl:when test="not(starts-with($uri, $ldt:base))">
+                    <xsl:call-template name="ldh:PushState">
+                        <xsl:with-param name="href" select="$href"/>
+                        <xsl:with-param name="title" select="()"/>
+                        <xsl:with-param name="container" select="id($body-id, ixsl:page())"/>
+                    </xsl:call-template>
+                    <xsl:for-each select="id('content-body', ixsl:page())//div[contains-token(@class, 'bar')]">
+                        <ixsl:set-style name="width" select="'66%'"/>
+                    </xsl:for-each>
+                    <xsl:call-template name="ldh:RDFDocumentLoad">
+                        <xsl:with-param name="uri" select="$uri"/>
+                    </xsl:call-template>
+                </xsl:when>
+                <!-- internal URI: fetch updated page shell and replace content -->
+                <xsl:otherwise>
+                    <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $href, 'headers': map{ 'Accept': 'application/xhtml+xml' } }" as="map(*)"/>
+                    <xsl:variable name="context" select="
+                      map{
+                        'request': $request,
+                        'href': $href,
+                        'push-state': true()
+                      }" as="map(*)"/>
+                    <ixsl:promise select="
+                      ixsl:http-request($context('request'), $controller)
+                        => ixsl:then(ldh:rethread-response($context, ?))
+                        => ixsl:then(ldh:handle-response#1)
+                        => ixsl:then(ldh:xhtml-document-loaded#1)
+                    " on-failure="ldh:promise-failure#1"/>
+                </xsl:otherwise>
+            </xsl:choose>
         </xsl:if>
     </xsl:template>
     
