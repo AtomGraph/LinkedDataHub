@@ -193,25 +193,6 @@ configs:
 
           client_max_body_size ${MAX_CONTENT_LENGTH:-2097152};
 
-          gzip on;
-          gzip_proxied any;
-          gzip_types
-              application/json
-              application/ld+json
-              application/rdf+xml
-              application/sparql-results+json
-              application/sparql-results+xml
-              application/trig
-              application/n-quads
-              application/n-triples
-              application/xml
-              text/turtle
-              text/css
-              text/javascript
-              application/javascript
-              image/svg+xml;
-          gzip_min_length 1024;
-
           # server with optional client cert authentication
           server {
               listen 8443 ssl;
@@ -223,8 +204,6 @@ configs:
               ssl_verify_client ${NGINX_SSL_VERIFY_CLIENT:-optional_no_ca};
 
               location / {
-                  gzip off; # disable gzip for dynamic content to preserve strong ETags for If-Match
-
                   add_header Access-Control-Allow-Origin "*" always;
                   add_header Access-Control-Allow-Methods "GET, POST, PUT, DELETE, PATCH, HEAD, OPTIONS" always;
                   add_header Access-Control-Allow-Headers "Accept, Content-Type, Authorization" always;
@@ -253,6 +232,11 @@ configs:
               }
 
               location ^~ /uploads/ {
+                  gzip on;
+                  gzip_proxied any;
+                  gzip_types *;
+                  gzip_min_length 1024;
+
                   proxy_pass http://linkeddatahub;
                   limit_req zone=static_files burst=20 nodelay;
 
@@ -268,6 +252,11 @@ configs:
               }
 
               location ^~ /static/ {
+                  gzip on;
+                  gzip_proxied any;
+                  gzip_types *;
+                  gzip_min_length 1024;
+
                   proxy_pass http://linkeddatahub;
                   limit_req zone=static_files burst=50 nodelay;
 
@@ -287,8 +276,6 @@ configs:
               ssl_verify_client optional_no_ca;
 
               location / {
-                  gzip off; # disable gzip for dynamic content to preserve strong ETags for If-Match
-
                   add_header Access-Control-Allow-Origin "*" always;
                   add_header Access-Control-Allow-Methods "GET, POST, PUT, DELETE, PATCH, HEAD, OPTIONS" always;
                   add_header Access-Control-Allow-Headers "Accept, Content-Type, Authorization" always;
@@ -317,6 +304,11 @@ configs:
               }
 
               location ^~ /static/ {
+                  gzip on;
+                  gzip_proxied any;
+                  gzip_types *;
+                  gzip_min_length 1024;
+
                   proxy_pass http://linkeddatahub;
                   limit_req zone=static_files burst=50 nodelay;
 
