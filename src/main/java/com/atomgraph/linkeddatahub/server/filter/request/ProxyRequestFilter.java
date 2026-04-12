@@ -83,13 +83,15 @@ import org.slf4j.LoggerFactory;
  * ACL is not checked for proxy requests: the proxy is a global transport function, not a document
  * operation. Access control is enforced by the target endpoint.
  * <p>
- * This filter intentionally does <em>not</em> proxy (X)HTML responses. When the client accepts only
- * (X)HTML (e.g. a browser navigating directly), it would receive the same LDH application shell it
- * already has — an unnecessary round-trip with no benefit. Instead those requests fall through to the
- * downstream handler, which serves the shell; the client-side Saxon-JS layer then fetches RDF via a
- * second request that <em>does</em> hit this filter.  The bypass is implemented by building the
- * candidate variant list from Core's {@link MediaTypes} (RDF/SPARQL types only, no HTML) and treating
- * a {@code null} result from {@link Request#selectVariant} as the bypass signal.
+ * This filter intentionally does <em>not</em> proxy (X)HTML responses. Rendering arbitrary external
+ * URIs as (X)HTML through the full server-side pipeline (SPARQL DESCRIBE + XSLT) for every
+ * browser-originated proxy request would cause unbounded resource exhaustion — a connection-pool and
+ * CPU amplification attack vector. Instead, HTML-only requests fall through to the downstream handler,
+ * which serves the LDH application shell; the client-side Saxon-JS layer then issues a second,
+ * RDF-typed request that <em>does</em> hit this filter and is handled cheaply. The bypass is
+ * implemented by building the candidate variant list from Core's {@link MediaTypes} (RDF/SPARQL types
+ * only, no HTML) and treating a {@code null} result from {@link Request#selectVariant} as the signal
+ * to skip proxying.
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
