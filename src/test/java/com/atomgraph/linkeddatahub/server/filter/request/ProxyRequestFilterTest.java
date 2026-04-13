@@ -18,6 +18,7 @@ package com.atomgraph.linkeddatahub.server.filter.request;
 
 import com.atomgraph.client.MediaTypes;
 import com.atomgraph.client.util.DataManager;
+import com.atomgraph.client.vocabulary.AC;
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
 import org.apache.jena.ontology.Ontology;
 import com.atomgraph.linkeddatahub.server.util.URLValidator;
@@ -103,9 +104,7 @@ public class ProxyRequestFilterTest
     @Test
     public void testHtmlAcceptBypassesProxy() throws IOException
     {
-        MultivaluedHashMap<String, String> params = new MultivaluedHashMap<>();
-        params.putSingle("uri", EXTERNAL_URI.toString());
-        when(uriInfo.getQueryParameters()).thenReturn(params);
+        when(requestContext.getProperty(AC.uri.getURI())).thenReturn(EXTERNAL_URI);
         when(requestContext.getAcceptableMediaTypes()).thenReturn(List.of(MediaType.TEXT_HTML_TYPE));
 
         filter.filter(requestContext);
@@ -119,9 +118,7 @@ public class ProxyRequestFilterTest
     @Test(expected = NotAllowedException.class)
     public void testUnregisteredUriBlockedWhenProxyDisabled() throws IOException
     {
-        MultivaluedHashMap<String, String> params = new MultivaluedHashMap<>();
-        params.putSingle("uri", EXTERNAL_URI.toString());
-        when(uriInfo.getQueryParameters()).thenReturn(params);
+        when(requestContext.getProperty(AC.uri.getURI())).thenReturn(EXTERNAL_URI);
 
         filter.filter(requestContext);
     }
@@ -133,9 +130,7 @@ public class ProxyRequestFilterTest
     @Test
     public void testRegisteredAppAllowedWhenProxyDisabled() throws IOException
     {
-        MultivaluedHashMap<String, String> params = new MultivaluedHashMap<>();
-        params.putSingle("uri", ADMIN_URI.toString());
-        when(uriInfo.getQueryParameters()).thenReturn(params);
+        when(requestContext.getProperty(AC.uri.getURI())).thenReturn(ADMIN_URI);
 
         // matchApp() returns a non-null Resource for the admin app (registered lapp:Application)
         when(system.matchApp(ADMIN_URI)).thenReturn(registeredApp);

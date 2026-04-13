@@ -245,19 +245,9 @@ public class ProxyRequestFilter implements ContainerRequestFilter
      */
     protected Optional<URI> resolveTargetURI(ContainerRequestContext requestContext)
     {
-        // Case 1: explicit ?uri= query parameter
-        String uriParam = requestContext.getUriInfo().getQueryParameters().getFirst(AC.uri.getLocalName());
-        if (uriParam != null)
-        {
-            URI targetURI = URI.create(uriParam);
-            @SuppressWarnings("unchecked")
-            Optional<com.atomgraph.linkeddatahub.apps.model.Application> appOpt =
-                (Optional<com.atomgraph.linkeddatahub.apps.model.Application>) requestContext.getProperty(LAPP.Application.getURI());
-            // ApplicationFilter rewrites ?uri= values that are relative to the app base URI; skip those
-            if (appOpt != null && appOpt.isPresent() && !appOpt.get().getBaseURI().relativize(targetURI).isAbsolute())
-                return Optional.empty();
-            return Optional.of(targetURI);
-        }
+        // Case 1: external ?uri= — ApplicationFilter strips it from UriInfo and stores it here
+        URI proxyTarget = (URI) requestContext.getProperty(AC.uri.getURI());
+        if (proxyTarget != null) return Optional.of(proxyTarget);
 
         // Case 2: lapp:Dataset proxy
         @SuppressWarnings("unchecked")

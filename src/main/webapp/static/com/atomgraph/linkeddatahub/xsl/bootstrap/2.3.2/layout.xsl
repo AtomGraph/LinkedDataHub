@@ -102,6 +102,7 @@ exclude-result-prefixes="#all">
 
     <xsl:param name="lapp:origin" as="xs:anyURI?"/>
     <xsl:param name="ldh:requestUri" as="xs:anyURI"/>
+    <xsl:param name="ac:uri" as="xs:anyURI?"/>
     <xsl:param name="ac:endpoint" select="if ($ldt:base) then resolve-uri('sparql', $ldt:base) else ()" as="xs:anyURI?"/>
     <xsl:param name="sd:endpoint" as="xs:anyURI?"/>
     <xsl:param name="acl:agent" as="xs:anyURI?"/>
@@ -597,7 +598,7 @@ exclude-result-prefixes="#all">
                 </select>
                 
                 <input type="text" id="uri" name="uri" class="input-xxlarge typeahead">
-                    <xsl:if test="not(ac:absolute-path(ldh:base-uri(.)) = ac:absolute-path(ldh:request-uri()))">
+                    <xsl:if test="$ac:uri">
                         <xsl:attribute name="value" select="ldh:base-uri(.)"/>
                     </xsl:if>
                 </input>
@@ -883,9 +884,24 @@ exclude-result-prefixes="#all">
             <div id="visible-body">
                 <xsl:apply-templates select="." mode="bs2:NavBar"/>
 
-                <xsl:apply-templates select="." mode="bs2:ContentBody">
-                    <xsl:with-param name="mode" select="$ac:mode"/>
-                </xsl:apply-templates>
+                <xsl:choose>
+                    <!-- the request is proxied using ?uri, render it client-side in client.xsl -->
+                    <!-- ldh:rdf-document-response bypasses this branch by passing ac:uri=() as a local override -->
+                    <xsl:when test="$ac:uri">
+                        <div id="content-body" class="container-fluid">
+                            <div class="row-fluid">
+                                <div class="span12 progress progress-striped active">
+                                    <div style="width: 33%;" class="bar"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </xsl:when>
+                    <xsl:otherwise>
+                        <xsl:apply-templates select="." mode="bs2:ContentBody">
+                            <xsl:with-param name="mode" select="$ac:mode"/>
+                        </xsl:apply-templates>
+                    </xsl:otherwise>
+                </xsl:choose>
 
                 <xsl:apply-templates select="." mode="bs2:Footer"/>
             </div>
@@ -1075,15 +1091,15 @@ exclude-result-prefixes="#all">
             </button>
             <ul class="dropdown-menu">
                 <li>
-                    <xsl:variable name="href" select="ac:build-uri(ac:absolute-path(ldh:request-uri()), let $params := map{ 'accept': 'application/rdf+xml' } return if (not(starts-with(ac:absolute-path(ldh:base-uri(.)), $ldt:base))) then map:merge(($params, map{ 'uri': string($uri) })) else $params)" as="xs:anyURI"/>
+                    <xsl:variable name="href" select="ac:build-uri(ac:absolute-path(ldh:request-uri()), let $params := map{ 'accept': 'application/rdf+xml' } return if ($ac:uri) then map:merge(($params, map{ 'uri': string($uri) })) else $params)" as="xs:anyURI"/>
                     <a href="{$href}" title="application/rdf+xml" target="_blank">RDF/XML</a>
                 </li>
                 <li>
-                    <xsl:variable name="href" select="ac:build-uri(ac:absolute-path(ldh:request-uri()), let $params := map{ 'accept': 'text/turtle' } return if (not(starts-with(ac:absolute-path(ldh:base-uri(.)), $ldt:base))) then map:merge(($params, map{ 'uri': string($uri) })) else $params)" as="xs:anyURI"/>
+                    <xsl:variable name="href" select="ac:build-uri(ac:absolute-path(ldh:request-uri()), let $params := map{ 'accept': 'text/turtle' } return if ($ac:uri) then map:merge(($params, map{ 'uri': string($uri) })) else $params)" as="xs:anyURI"/>
                     <a href="{$href}" title="text/turtle" target="_blank">Turtle</a>
                 </li>
                 <li>
-                    <xsl:variable name="href" select="ac:build-uri(ac:absolute-path(ldh:request-uri()), let $params := map{ 'accept': 'application/ld+json' } return if (not(starts-with(ac:absolute-path(ldh:base-uri(.)), $ldt:base))) then map:merge(($params, map{ 'uri': string($uri) })) else $params)" as="xs:anyURI"/>
+                    <xsl:variable name="href" select="ac:build-uri(ac:absolute-path(ldh:request-uri()), let $params := map{ 'accept': 'application/ld+json' } return if ($ac:uri) then map:merge(($params, map{ 'uri': string($uri) })) else $params)" as="xs:anyURI"/>
                     <a href="{$href}" title="application/ld+json" target="_blank">JSON-LD</a>
                 </li>
             </ul>

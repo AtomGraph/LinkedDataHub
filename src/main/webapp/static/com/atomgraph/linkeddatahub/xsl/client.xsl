@@ -276,7 +276,7 @@ WHERE
         <xsl:message>count($ldh:apps//*[rdf:type/@rdf:resource = '&sd;Service']): <xsl:value-of select="count($ldh:apps//*[rdf:type/@rdf:resource = '&sd;Service'])"/></xsl:message>
         <xsl:message>$ac:lang: <xsl:value-of select="$ac:lang"/></xsl:message>
         <xsl:message>$sd:endpoint: <xsl:value-of select="$sd:endpoint"/></xsl:message>
-        <xsl:message>ixsl:query-params()?uri: <xsl:value-of select="ixsl:query-params()?uri"/></xsl:message>
+        <xsl:message>ac:uri(): <xsl:value-of select="ac:uri()"/></xsl:message>
         <xsl:message>UTC offset: <xsl:value-of select="implicit-timezone()"/></xsl:message>
 
         <!-- create a LinkedDataHub namespace -->
@@ -576,13 +576,12 @@ WHERE
                                     <xsl:variable name="block-uris" select="$results/rdf:RDF/*[@rdf:about = $uri]/rdf:*[starts-with(local-name(), '_')]/@rdf:resource" as="xs:anyURI*"/>
                                     <!-- explicit UI mode (ac:mode()) takes priority over ContentMode detection -->
                                     <xsl:variable name="mode" select="(ac:mode(), if (exists($block-uris)) then xs:anyURI('&ldh;ContentMode') else xs:anyURI('&ac;ReadMode'))[1]" as="xs:anyURI"/>
-                                    <!-- replace the content-body element entirely; pass ldh:requestUri=() to bypass the server-side proxied-resource branch -->
+                                    <!-- replace the content-body element entirely; pass ac:uri=() to bypass the proxy-rendering branch in bs2:ContentBody -->
                                     <xsl:result-document href="?." method="ixsl:replace-element">
                                         <xsl:apply-templates select="$results/rdf:RDF" mode="bs2:ContentBody">
                                             <xsl:with-param name="about" select="$uri"/>
                                             <xsl:with-param name="typeof" select="$results/rdf:RDF/*[@rdf:about = $uri]/rdf:type/@rdf:resource/xs:anyURI(.)"/>
                                             <xsl:with-param name="mode" select="$mode"/>
-                                            <xsl:with-param name="ldh:requestUri" select="()"/>
                                         </xsl:apply-templates>
                                     </xsl:result-document>
                                     <!-- load top-level content blocks in the new content-body -->
@@ -849,8 +848,6 @@ WHERE
         <xsl:param name="endpoint" as="xs:anyURI?"/>
         <xsl:param name="replace-content" select="true()" as="xs:boolean"/>
         <xsl:param name="refresh-content" as="xs:boolean?"/>
-        <!-- decode raw document URL (without fragment) from the ?uri query param, if it's present -->
-        <xsl:variable name="uri" select="if (exists(ixsl:query-params()?uri)) then xs:anyURI(ixsl:query-params()?uri) else ac:absolute-path($href)" as="xs:anyURI"/>
         <xsl:variable name="fragment" select="if (contains($href, '#')) then substring-after($href, '#') else ()" as="xs:string?"/>
         
         <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
@@ -900,11 +897,11 @@ WHERE
         </xsl:call-template>
         
         <xsl:call-template name="ldh:RDFDocumentLoad">
-            <xsl:with-param name="uri" select="$uri"/>
+            <xsl:with-param name="uri" select="ldh:base-uri(.)"/>
             <xsl:with-param name="refresh-content" select="$refresh-content"/>
         </xsl:call-template>
     </xsl:template>
-    
+
     <xsl:template name="ldt:AppChanged">
         <xsl:param name="base" as="xs:anyURI"/>
 
@@ -1285,7 +1282,7 @@ WHERE
         <xsl:variable name="results-uri" select="if ($query) then ac:build-uri($endpoint, map{ 'query': $query }) else ()" as="xs:anyURI?"/>
         
         <!-- if SPARQL editor is shown, use the SPARQL protocol URI; otherwise use the Linked Data resource URI -->
-        <xsl:variable name="uri" select="if ($results-uri) then $results-uri else xs:anyURI(ixsl:query-params()?uri)" as="xs:anyURI"/>
+        <xsl:variable name="uri" select="if ($results-uri) then $results-uri else ldh:base-uri(.)" as="xs:anyURI"/>
 
         <xsl:call-template name="ldh:ShowAddDataForm">
             <xsl:with-param name="form" as="element()">

@@ -110,7 +110,19 @@ public class ApplicationFilter implements ContainerRequestFilter
                 else
                 {
                     request.setProperty(AC.uri.getURI(), graphURI); // authoritative external proxy marker
-                    requestURI = request.getUriInfo().getRequestUri();
+
+                    // strip ?uri= from the effective request URI — server-side sees only the path;
+                    // the ContainerRequestContext property is the sole indicator of proxy mode
+                    MultivaluedMap<String, String> externalQueryParams = new MultivaluedHashMap();
+                    externalQueryParams.putAll(request.getUriInfo().getQueryParameters());
+                    externalQueryParams.remove(AC.uri.getLocalName());
+
+                    UriBuilder externalBuilder = UriBuilder.fromUri(request.getUriInfo().getAbsolutePath());
+                    for (Entry<String, List<String>> params : externalQueryParams.entrySet())
+                        for (String value : params.getValue())
+                            externalBuilder.queryParam(params.getKey(), value);
+
+                    requestURI = externalBuilder.build();
                 }
             }
             catch (URISyntaxException ex)
