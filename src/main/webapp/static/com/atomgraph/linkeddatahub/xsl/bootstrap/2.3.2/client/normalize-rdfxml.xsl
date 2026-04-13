@@ -11,9 +11,6 @@
     <xsl:template match="/">
         <xsl:param name="base-uri" select="base-uri(.)" as="xs:anyURI"/>
 
-        <xsl:message>Starting RDF/XML normalization...</xsl:message>
-        <xsl:message>Base URI: <xsl:value-of select="$base-uri"/></xsl:message>
-
         <!-- First pass: normalize RDF/XML to canonical form -->
         <xsl:variable name="normalized-rdf" as="document-node()">
             <xsl:document>
@@ -21,18 +18,12 @@
             </xsl:document>
         </xsl:variable>
 
-        <xsl:message>First pass (normalize) complete</xsl:message>
-        <xsl:message>Normalized RDF has <xsl:value-of select="count($normalized-rdf/rdf:RDF/*)"/> top-level elements</xsl:message>
-
         <!-- Second pass: flatten all nested rdf:Description to top level -->
         <xsl:variable name="flattened-rdf" as="document-node()">
             <xsl:document>
                 <xsl:apply-templates select="$normalized-rdf/rdf:RDF" mode="ldh:flatten-RDF"/>
             </xsl:document>
         </xsl:variable>
-
-        <xsl:message>Second pass (flatten) complete</xsl:message>
-        <xsl:message>Flattened RDF has <xsl:value-of select="count($flattened-rdf/rdf:RDF/rdf:Description)"/> rdf:Description elements</xsl:message>
 
         <!-- Third pass: resolve relative URIs to absolute URIs -->
         <xsl:variable name="resolved-rdf" as="document-node()">
@@ -42,8 +33,6 @@
                 </xsl:apply-templates>
             </xsl:document>
         </xsl:variable>
-
-        <xsl:message>Third pass (resolve URIs) complete</xsl:message>
 
         <!-- Fourth pass: prefix all blank node IDs with a document-unique prefix to prevent conflicts when merging multiple documents -->
         <xsl:variable name="bnode-prefix" select="generate-id(.) || '_'" as="xs:string"/>

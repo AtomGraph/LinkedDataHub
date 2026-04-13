@@ -352,7 +352,6 @@
     <!-- Convert RDF/XML to Force Graph data structure -->
     <xsl:template match="/" mode="ldh:ForceGraph3D-convert-data" as="item()">
         <!-- Expects pre-normalized RDF/XML (all nested structures flattened, URIs resolved) -->
-        <xsl:message>ldh:ForceGraph3D-convert-data: rdf:RDF=<xsl:value-of select="exists(rdf:RDF)"/> rdf:Description count=<xsl:value-of select="count(rdf:RDF/rdf:Description)"/> root element=<xsl:value-of select="name(*)"/></xsl:message>
         <!-- Process RDF to get nodes and links -->
         <xsl:variable name="nodes" as="item()*">
             <xsl:apply-templates select="rdf:RDF" mode="ldh:ForceGraph3D-nodes"/>
@@ -360,7 +359,6 @@
         <xsl:variable name="links" as="item()*">
             <xsl:apply-templates select="rdf:RDF" mode="ldh:ForceGraph3D-links"/>
         </xsl:variable>
-        <xsl:message>ldh:ForceGraph3D-convert-data: nodes=<xsl:value-of select="count($nodes)"/> links=<xsl:value-of select="count($links)"/></xsl:message>
         <!-- Create graph data object with empty arrays -->
         <xsl:variable name="graph-data" select="ixsl:eval('({ nodes: [], links: [] })')"/>
 
