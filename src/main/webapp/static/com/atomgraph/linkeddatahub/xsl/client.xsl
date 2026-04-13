@@ -113,6 +113,7 @@ extension-element-prefixes="ixsl"
     <xsl:include href="bootstrap/2.3.2/client/block/chart.xsl"/>
     <xsl:include href="bootstrap/2.3.2/client/block/query.xsl"/>
 
+    <xsl:param name="ldh:ajaxRendering" select="true()" as="xs:boolean"/>
     <xsl:param name="ac:contextUri" as="xs:anyURI"/>
     <xsl:param name="ldh:requestUri" select="xs:anyURI(ixsl:location())" as="xs:anyURI"/>
     <xsl:param name="lapp:application" as="xs:anyURI?"/>
@@ -574,8 +575,8 @@ WHERE
                                     <!-- detect ContentMode from rdf:_* sequence properties, same as layout.xsl does server-side;
                                          explicit UI mode (ac:mode()) takes priority -->
                                     <xsl:variable name="block-uris" select="$results/rdf:RDF/*[@rdf:about = $uri]/rdf:*[starts-with(local-name(), '_')]/@rdf:resource" as="xs:anyURI*"/>
-                                    <!-- explicit UI mode (ac:mode()) takes priority over ContentMode detection -->
-                                    <xsl:variable name="mode" select="(ac:mode(), if (exists($block-uris)) then xs:anyURI('&ldh;ContentMode') else xs:anyURI('&ac;ReadMode'))[1]" as="xs:anyURI"/>
+                                    <!-- explicit URL mode takes priority over ContentMode detection -->
+                                    <xsl:variable name="mode" select="(if (ixsl:query-params()?mode) then xs:anyURI(ixsl:query-params()?mode) else (), if (exists($block-uris)) then xs:anyURI('&ldh;ContentMode') else xs:anyURI('&ac;ReadMode'))[1]" as="xs:anyURI"/>
                                     <!-- replace the content-body element entirely; pass ac:uri=() to bypass the proxy-rendering branch in bs2:ContentBody -->
                                     <xsl:result-document href="?." method="ixsl:replace-element">
                                         <xsl:apply-templates select="$results/rdf:RDF" mode="bs2:ContentBody">

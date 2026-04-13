@@ -73,7 +73,11 @@ exclude-result-prefixes="#all"
     <xsl:function name="acl:mode" as="xs:anyURI*" use-when="system-property('xsl:product-name') = 'SAXON'">
         <xsl:sequence select="$acl:mode"/>
     </xsl:function>
-    
+
+    <xsl:function name="ac:uri" as="xs:anyURI?" use-when="system-property('xsl:product-name') = 'SAXON'">
+        <xsl:sequence select="$ac:uri"/>
+    </xsl:function>
+
 
     <!-- Strips the leftmost subdomain and returns parent dataspace origin (scheme + host + port) -->
     <xsl:function name="ldh:parent-origin" as="xs:anyURI?">

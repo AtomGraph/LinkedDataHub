@@ -132,13 +132,124 @@ extension-element-prefixes="ixsl"
         </div>
     </xsl:template>
     
+    <!-- ACTION BAR -->
+    
+    <xsl:template match="rdf:RDF" mode="bs2:ActionBarLeft">
+        <xsl:param name="id" as="xs:string?"/>
+        <xsl:param name="class" select="'span2'" as="xs:string?"/>
+        
+        <div>
+            <xsl:if test="$id">
+                <xsl:attribute name="id" select="$id"/>
+            </xsl:if>
+            <xsl:if test="$class">
+                <xsl:attribute name="class" select="$class"/>
+            </xsl:if>
+
+            <xsl:if test="acl:mode() = '&acl;Write' and not(key('resources-by-type', '&http;Response'))">
+                <!-- child documents can be created only if the current document is the Root or a container -->
+                <xsl:if test="key('resources', ac:absolute-path(ldh:base-uri(.)))/rdf:type/@rdf:resource = ('&def;Root', '&dh;Container')">
+                    <xsl:variable name="document-classes" select="key('resources', ('&dh;Container', '&dh;Item'), document(ac:document-uri('&def;')))" as="element()*"/>
+                    <xsl:apply-templates select="." mode="bs2:Create">
+                        <xsl:with-param name="class" select="'btn-group pull-left'"/>
+                        <xsl:with-param name="classes" select="$document-classes"/>
+                        <xsl:with-param name="create-graph" select="true()"/>
+                        <xsl:with-param name="show-instance" select="false()"/>
+                    </xsl:apply-templates>
+                </xsl:if>
+            </xsl:if>
+            
+            <xsl:if test="$ldh:ajaxRendering">
+                <xsl:apply-templates select="." mode="bs2:AddData"/>
+            </xsl:if>
+        </div>
+    </xsl:template>
+    
+    <xsl:template match="rdf:RDF | srx:sparql" mode="bs2:ActionBarMain">
+        <xsl:param name="id" as="xs:string?"/>
+        <xsl:param name="class" select="'span7'" as="xs:string?"/>
+
+        <div>
+            <xsl:if test="$id">
+                <xsl:attribute name="id" select="$id"/>
+            </xsl:if>
+            <xsl:if test="$class">
+                <xsl:attribute name="class" select="$class"/>
+            </xsl:if>
+            
+            <div class="row-fluid">
+                <xsl:apply-templates select="." mode="bs2:BreadCrumbBar">
+                    <xsl:with-param name="id" select="'breadcrumb-nav'"/>
+                    <xsl:with-param name="uri" select="ac:absolute-path(ldh:base-uri(.))"/>
+                </xsl:apply-templates>
+                
+                <div id="doc-controls" class="span4">
+                    <xsl:apply-templates select="key('resources', ac:absolute-path(ldh:base-uri(.)))" mode="bs2:Timestamp"/>
+                </div>                
+            </div>
+        </div>
+    </xsl:template>
+    
+    <xsl:template match="rdf:RDF | srx:sparql" mode="bs2:ActionBarRight">
+        <xsl:param name="id" as="xs:string?"/>
+        <xsl:param name="class" select="'span3'" as="xs:string?"/>
+        <xsl:param name="active-mode" as="xs:anyURI"/>
+
+        <div>
+            <xsl:if test="$id">
+                <xsl:attribute name="id" select="$id"/>
+            </xsl:if>
+            <xsl:if test="$class">
+                <xsl:attribute name="class" select="$class"/>
+            </xsl:if>
+
+            <xsl:apply-templates select="." mode="bs2:MediaTypeList">
+                <xsl:with-param name="uri" select="ac:absolute-path(ldh:base-uri(.))"/>
+            </xsl:apply-templates>
+
+            <xsl:apply-templates select="." mode="bs2:NavBarActions"/>
+            
+            <xsl:apply-templates select="." mode="bs2:ModeList">
+                <xsl:with-param name="active-mode" select="$active-mode"/>
+                <xsl:with-param name="ajax-rendering" select="$ldh:ajaxRendering"/>
+            </xsl:apply-templates>
+        </div>
+    </xsl:template>
+    
+    <xsl:template match="rdf:RDF" mode="bs2:BreadCrumbBar">
+        <xsl:param name="id" as="xs:string?"/>
+        <xsl:param name="class" select="'span8'" as="xs:string?"/>
+        <xsl:param name="uri" as="xs:string?"/>
+
+        <div>
+            <xsl:if test="$id">
+                <xsl:attribute name="id" select="$id"/>
+            </xsl:if>
+            <xsl:if test="$class">
+                <xsl:attribute name="class" select="$class"/>
+            </xsl:if>
+            
+            <!-- placeholder for client.xsl callbacks -->
+
+            <xsl:if test="not($ldh:ajaxRendering)">
+                <ul class="breadcrumb pull-left">
+                    <!-- render breadcrumbs server-side -->
+                    <xsl:apply-templates select="key('resources', $uri)" mode="bs2:BreadCrumbListItem"/>
+                </ul>
+            </xsl:if>
+        </div>
+    </xsl:template>
+
+    <xsl:template match="srx:sparql" mode="bs2:BreadCrumbBar"/>
+    
     <!-- MODE LIST -->
 
+    <xsl:template match="rdf:RDF[key('resources-by-type', '&http;Response')][not(key('resources-by-type', '&spin;ConstraintViolation'))] | rdf:RDF[key('resources-by-type', '&http;Response')][not(key('resources-by-type', '&sh;ValidationResult'))]" mode="bs2:ModeList" priority="1"/>
+
     <xsl:template match="rdf:RDF" mode="bs2:ModeList" priority="2" use-when="system-property('xsl:product-name') = 'SAXON'">
-        <xsl:param name="has-content" as="xs:boolean"/>
-        <xsl:param name="active-mode" as="xs:anyURI?"/>
+        <xsl:param name="active-mode" as="xs:anyURI"/>
         <xsl:param name="ajax-rendering" select="true()" as="xs:boolean"/>
-        <xsl:param name="absolute-path" select="ac:absolute-path(ldh:request-uri())" as="xs:anyURI"/>
+        <xsl:param name="absolute-path" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/>
         <xsl:param name="base-uri" select="ldh:base-uri(.)" as="xs:anyURI"/>
         <xsl:param name="id" select="'layout-modes'" as="xs:string?"/>
 
@@ -148,8 +259,7 @@ extension-element-prefixes="ixsl"
                     <xsl:attribute name="id" select="$id"/>
                 </xsl:if>
 
-                <xsl:variable name="effective-mode" select="if ($active-mode) then $active-mode else '&ac;ReadMode'" as="xs:anyURI"/>
-                <xsl:apply-templates select="key('resources', $effective-mode, document(ac:document-uri(string($effective-mode))))" mode="ldh:logo">
+                <xsl:apply-templates select="key('resources', $active-mode, document(ac:document-uri(string($active-mode))))" mode="ldh:logo">
                     <xsl:with-param name="class" select="'btn dropdown-toggle'"/>
                 </xsl:apply-templates>
                 <xsl:text> </xsl:text>
@@ -157,7 +267,7 @@ extension-element-prefixes="ixsl"
             </button>
 
             <ul class="dropdown-menu">
-                <li class="content-mode{if ((empty($active-mode) and $has-content) or $active-mode = '&ldh;ContentMode') then ' active' else() }">
+                <li class="content-mode{if ($active-mode = '&ldh;ContentMode') then ' active' else() }">
                     <a href="{ldh:href(ac:document-uri(ldh:base-uri(.)), ldh:query-params(xs:anyURI('&ldh;ContentMode')))}">
                         <xsl:apply-templates select="key('resources', '&ldh;ContentMode', document(ac:document-uri('&ldh;')))" mode="ldh:logo"/>
                         <xsl:value-of>
@@ -166,11 +276,11 @@ extension-element-prefixes="ixsl"
                     </a>
                 </li>
 
-                <xsl:for-each select="('&ac;ReadMode', '&ac;MapMode', if ($ajax-rendering) then '&ac;ChartMode' else (), '&ac;GraphMode')">
+                <xsl:for-each select="('&ac;ReadMode', '&ac;MapMode', if ($ajax-rendering) then ('&ac;ChartMode', '&ac;GraphMode') else ())">
                     <xsl:variable name="mode-uri" select="." as="xs:string"/>
                     <xsl:for-each select="key('resources', $mode-uri, document(ac:document-uri('&ac;')))">
                         <xsl:apply-templates select="." mode="bs2:ModeListItem">
-                            <xsl:with-param name="active" select="if (@rdf:about = '&ac;ReadMode') then (@rdf:about = $active-mode or (empty($active-mode) and not($has-content))) else @rdf:about = $active-mode"/>
+                            <xsl:with-param name="active" select="@rdf:about = $active-mode"/>
                             <xsl:with-param name="absolute-path" select="$absolute-path" tunnel="yes"/>
                             <xsl:with-param name="base-uri" select="$base-uri"/>
                         </xsl:apply-templates>
@@ -178,8 +288,40 @@ extension-element-prefixes="ixsl"
                 </xsl:for-each>
             </ul>
         </div>
-    </xsl:template>
+    </xsl:template>       
 
+    <!-- MEDIA TYPE LIST  -->
+        
+    <xsl:template match="rdf:RDF | srx:sparql" mode="bs2:MediaTypeList" priority="1">
+        <xsl:param name="uri" as="xs:anyURI"/>
+        
+        <div class="btn-group pull-right">
+            <button type="button" id="export-rdf" title="{ac:label(key('resources', 'nav-bar-action-export-rdf-title', document('translations.rdf')))}">
+                <xsl:apply-templates select="key('resources', '&ac;Export', document(ac:document-uri('&ac;')))" mode="ldh:logo">
+                    <xsl:with-param name="class" select="'btn dropdown-toggle'"/>
+                </xsl:apply-templates>
+                
+                <xsl:apply-templates select="key('resources', '&ac;Export', document(ac:document-uri('&ac;')))" mode="ac:label"/>
+                
+                <span class="caret"></span>
+            </button>
+            <ul class="dropdown-menu">
+                <li>
+                    <xsl:variable name="href" select="ac:build-uri(ac:absolute-path(ldh:request-uri()), let $params := map{ 'accept': 'application/rdf+xml' } return if (ac:uri()) then map:merge(($params, map{ 'uri': string($uri) })) else $params)" as="xs:anyURI"/>
+                    <a href="{$href}" title="application/rdf+xml" target="_blank">RDF/XML</a>
+                </li>
+                <li>
+                    <xsl:variable name="href" select="ac:build-uri(ac:absolute-path(ldh:request-uri()), let $params := map{ 'accept': 'text/turtle' } return if (ac:uri()) then map:merge(($params, map{ 'uri': string($uri) })) else $params)" as="xs:anyURI"/>
+                    <a href="{$href}" title="text/turtle" target="_blank">Turtle</a>
+                </li>
+                <li>
+                    <xsl:variable name="href" select="ac:build-uri(ac:absolute-path(ldh:request-uri()), let $params := map{ 'accept': 'application/ld+json' } return if (ac:uri()) then map:merge(($params, map{ 'uri': string($uri) })) else $params)" as="xs:anyURI"/>
+                    <a href="{$href}" title="application/ld+json" target="_blank">JSON-LD</a>
+                </li>
+            </ul>
+        </div>
+    </xsl:template>
+    
     <!-- CONTENT BODY -->
 
     <xsl:template match="rdf:RDF[exists($ldh:requestUri) and key('resources-by-type', '&http;Response') and not(key('resources-by-type', '&spin;ConstraintViolation')) and not(key('resources-by-type', '&sh;ValidationResult'))]" mode="bs2:ContentBody" priority="1">
