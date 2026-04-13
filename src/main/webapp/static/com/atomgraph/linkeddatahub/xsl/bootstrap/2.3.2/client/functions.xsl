@@ -41,12 +41,16 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="xs:anyURI(ixsl:location())"/>
     </xsl:function>
 
+    <xsl:function name="ac:uri" as="xs:anyURI?">
+        <xsl:sequence select="if (ixsl:query-params()?uri) then xs:anyURI(ixsl:query-params()?uri) else ()"/>
+    </xsl:function>
+
     <xsl:function name="ldh:base-uri" as="xs:anyURI">
         <xsl:param name="arg" as="node()"/> <!-- ignored -->
 
         <xsl:choose>
-            <xsl:when test="ixsl:query-params()?uri">
-                <xsl:sequence select="ac:document-uri(ixsl:query-params()?uri)"/>
+            <xsl:when test="ac:uri()">
+                <xsl:sequence select="ac:document-uri(ac:uri())"/>
             </xsl:when>
             <xsl:otherwise>
                 <!-- ignore query params such as ?mode -->
@@ -93,7 +97,9 @@ exclude-result-prefixes="#all"
     </xsl:function>
     
     <xsl:function name="sd:endpoint" as="xs:anyURI">
-        <xsl:sequence select="resolve-uri('sparql', ldt:base())"/>
+        <xsl:sequence select="if (ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub'), 'endpoint'))
+            then xs:anyURI(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), 'endpoint'))
+            else resolve-uri('sparql', ldt:base())"/>
     </xsl:function>
     
     <xsl:function name="ldh:query-type" as="xs:string?">

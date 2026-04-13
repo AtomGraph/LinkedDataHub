@@ -18,6 +18,7 @@ package com.atomgraph.linkeddatahub.server.filter.request;
 
 import com.atomgraph.client.MediaTypes;
 import com.atomgraph.client.util.DataManager;
+import com.atomgraph.client.vocabulary.AC;
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
 import org.apache.jena.ontology.Ontology;
 import com.atomgraph.linkeddatahub.server.util.URLValidator;
@@ -32,6 +33,7 @@ import jakarta.ws.rs.core.MultivaluedHashMap;
 import jakarta.ws.rs.core.Request;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.UriInfo;
+import jakarta.ws.rs.core.Variant;
 import java.io.IOException;
 import java.net.URI;
 import java.util.List;
@@ -48,6 +50,8 @@ import org.mockito.junit.MockitoJUnitRunner;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.when;
 
 /**
@@ -62,6 +66,7 @@ public class ProxyRequestFilterTest
     @Mock com.atomgraph.linkeddatahub.Application system;
     @Mock MediaTypes mediaTypes;
     @Mock Request request;
+    @Mock Variant selectedVariant;
     @Mock Ontology ontology;
 
     @InjectMocks ProxyRequestFilter filter;
@@ -88,7 +93,23 @@ public class ProxyRequestFilterTest
         when(system.getDataManager()).thenReturn(dataManager);
         when(dataManager.isMapped(anyString())).thenReturn(false);
         when(system.isEnableLinkedDataProxy()).thenReturn(false);
+        when(request.selectVariant(any())).thenReturn(selectedVariant);
         filter.ontology = () -> Optional.empty();
+    }
+
+    /**
+     * When the client explicitly accepts (X)HTML, the filter must bypass proxying entirely and let
+     * the downstream handler serve the app shell — regardless of the target URI.
+     */
+    @Test
+    public void testHtmlAcceptBypassesProxy() throws IOException
+    {
+        when(requestContext.getProperty(AC.uri.getURI())).thenReturn(EXTERNAL_URI);
+        when(requestContext.getAcceptableMediaTypes()).thenReturn(List.of(MediaType.TEXT_HTML_TYPE));
+
+        filter.filter(requestContext);
+
+        verify(requestContext, never()).abortWith(any(Response.class));
     }
 
     /**
@@ -97,9 +118,7 @@ public class ProxyRequestFilterTest
     @Test(expected = NotAllowedException.class)
     public void testUnregisteredUriBlockedWhenProxyDisabled() throws IOException
     {
-        MultivaluedHashMap<String, String> params = new MultivaluedHashMap<>();
-        params.putSingle("uri", EXTERNAL_URI.toString());
-        when(uriInfo.getQueryParameters()).thenReturn(params);
+        when(requestContext.getProperty(AC.uri.getURI())).thenReturn(EXTERNAL_URI);
 
         filter.filter(requestContext);
     }
@@ -111,9 +130,7 @@ public class ProxyRequestFilterTest
     @Test
     public void testRegisteredAppAllowedWhenProxyDisabled() throws IOException
     {
-        MultivaluedHashMap<String, String> params = new MultivaluedHashMap<>();
-        params.putSingle("uri", ADMIN_URI.toString());
-        when(uriInfo.getQueryParameters()).thenReturn(params);
+        when(requestContext.getProperty(AC.uri.getURI())).thenReturn(ADMIN_URI);
 
         // matchApp() returns a non-null Resource for the admin app (registered lapp:Application)
         when(system.matchApp(ADMIN_URI)).thenReturn(registeredApp);

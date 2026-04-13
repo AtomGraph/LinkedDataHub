@@ -214,6 +214,7 @@ import net.sf.saxon.s9api.XsltExecutable;
 import org.apache.http.HttpClientConnection;
 import org.apache.http.HttpHost;
 import org.apache.http.client.HttpRequestRetryHandler;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.config.Registry;
 import org.apache.http.config.RegistryBuilder;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
@@ -358,6 +359,8 @@ public class Application extends ResourceConfig
             servletConfig.getServletContext().getInitParameter(LDHC.maxConnPerRoute.getURI()) != null ? Integer.valueOf(servletConfig.getServletContext().getInitParameter(LDHC.maxConnPerRoute.getURI())) : null,
             servletConfig.getServletContext().getInitParameter(LDHC.maxTotalConn.getURI()) != null ? Integer.valueOf(servletConfig.getServletContext().getInitParameter(LDHC.maxTotalConn.getURI())) : null,
             servletConfig.getServletContext().getInitParameter(LDHC.maxRequestRetries.getURI()) != null ? Integer.valueOf(servletConfig.getServletContext().getInitParameter(LDHC.maxRequestRetries.getURI())) : null,
+            System.getProperty("com.atomgraph.linkeddatahub.connectionRequestTimeout") != null ? Integer.valueOf(System.getProperty("com.atomgraph.linkeddatahub.connectionRequestTimeout")) :
+            servletConfig.getServletContext().getInitParameter(LDHC.connectionRequestTimeout.getURI()) != null ? Integer.valueOf(servletConfig.getServletContext().getInitParameter(LDHC.connectionRequestTimeout.getURI())) : null,
             servletConfig.getServletContext().getInitParameter(LDHC.maxImportThreads.getURI()) != null ? Integer.valueOf(servletConfig.getServletContext().getInitParameter(LDHC.maxImportThreads.getURI())) : null,
             servletConfig.getServletContext().getInitParameter(LDHC.notificationAddress.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.notificationAddress.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(LDHC.supportedLanguages.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.supportedLanguages.getURI()) : null,
@@ -445,7 +448,7 @@ public class Application extends ResourceConfig
             final String baseURIString, final String proxyScheme, final String proxyHostname, final Integer proxyPort,
             final String uploadRootString, final boolean invalidateCache,
             final Integer cookieMaxAge, final boolean enableLinkedDataProxy, final boolean allowInternalUrls, final Integer maxContentLength,
-            final Integer maxConnPerRoute, final Integer maxTotalConn, final Integer maxRequestRetries, final Integer maxImportThreads,
+            final Integer maxConnPerRoute, final Integer maxTotalConn, final Integer maxRequestRetries, final Integer connectionRequestTimeout, final Integer maxImportThreads,
             final String notificationAddressString, final String supportedLanguageCodes, final boolean enableWebIDSignUp, final String oidcRefreshTokensPropertiesPath,
             final String frontendProxyString, final String backendProxyAdminString, final String backendProxyEndUserString,
             final String mailUser, final String mailPassword, final String smtpHost, final String smtpPort,
@@ -709,10 +712,10 @@ public class Application extends ResourceConfig
                 trustStore.load(trustStoreInputStream, clientTrustStorePassword.toCharArray());
             }
             
-            client = getClient(keyStore, clientKeyStorePassword, trustStore, maxConnPerRoute, maxTotalConn, null, false);
-            externalClient = getClient(keyStore, clientKeyStorePassword, trustStore, maxConnPerRoute, maxTotalConn, null, false);
-            importClient = getClient(keyStore, clientKeyStorePassword, trustStore, maxConnPerRoute, maxTotalConn, maxRequestRetries, true);
-            noCertClient = getNoCertClient(trustStore, maxConnPerRoute, maxTotalConn, maxRequestRetries);
+            client = getClient(keyStore, clientKeyStorePassword, trustStore, maxConnPerRoute, maxTotalConn, null, false, connectionRequestTimeout);
+            externalClient = getClient(keyStore, clientKeyStorePassword, trustStore, maxConnPerRoute, maxTotalConn, null, false, connectionRequestTimeout);
+            importClient = getClient(keyStore, clientKeyStorePassword, trustStore, maxConnPerRoute, maxTotalConn, maxRequestRetries, true, connectionRequestTimeout);
+            noCertClient = getNoCertClient(trustStore, maxConnPerRoute, maxTotalConn, maxRequestRetries, connectionRequestTimeout);
             
             if (maxContentLength != null)
             {
@@ -1527,7 +1530,7 @@ public class Application extends ResourceConfig
      * @throws UnrecoverableKeyException key loading error
      * @throws KeyManagementException key loading error
      */
-    public static Client getClient(KeyStore keyStore, String keyStorePassword, KeyStore trustStore, Integer maxConnPerRoute, Integer maxTotalConn, Integer maxRequestRetries, boolean buffered) throws NoSuchAlgorithmException, KeyStoreException, UnrecoverableKeyException, KeyManagementException
+    public static Client getClient(KeyStore keyStore, String keyStorePassword, KeyStore trustStore, Integer maxConnPerRoute, Integer maxTotalConn, Integer maxRequestRetries, boolean buffered, Integer connectionRequestTimeout) throws NoSuchAlgorithmException, KeyStoreException, UnrecoverableKeyException, KeyManagementException
     {
         if (keyStore == null) throw new IllegalArgumentException("KeyStore cannot be null");
         if (keyStorePassword == null) throw new IllegalArgumentException("KeyStore password string cannot be null");
@@ -1592,7 +1595,11 @@ public class Application extends ResourceConfig
         config.property(ClientProperties.FOLLOW_REDIRECTS, true);
         config.property(ClientProperties.REQUEST_ENTITY_PROCESSING, RequestEntityProcessing.BUFFERED); // https://stackoverflow.com/questions/42139436/jersey-client-throws-cannot-retry-request-with-a-non-repeatable-request-entity
         config.property(ApacheClientProperties.CONNECTION_MANAGER, conman);
-        
+        if (connectionRequestTimeout != null)
+            config.property(ApacheClientProperties.REQUEST_CONFIG, RequestConfig.custom().
+                setConnectionRequestTimeout(connectionRequestTimeout).
+                build());
+
         if (maxRequestRetries != null)
             config.property(ApacheClientProperties.RETRY_HANDLER, (HttpRequestRetryHandler) (IOException ex, int executionCount, HttpContext context) ->
             {
@@ -1629,7 +1636,7 @@ public class Application extends ResourceConfig
      * @param maxRequestRetries maximum number of times that the HTTP client will retry a request
      * @return client instance
      */
-    public static Client getNoCertClient(KeyStore trustStore, Integer maxConnPerRoute, Integer maxTotalConn, Integer maxRequestRetries)
+    public static Client getNoCertClient(KeyStore trustStore, Integer maxConnPerRoute, Integer maxTotalConn, Integer maxRequestRetries, Integer connectionRequestTimeout)
     {
         try
         {
@@ -1688,7 +1695,11 @@ public class Application extends ResourceConfig
             config.property(ClientProperties.FOLLOW_REDIRECTS, true);
             config.property(ClientProperties.REQUEST_ENTITY_PROCESSING, RequestEntityProcessing.BUFFERED); // https://stackoverflow.com/questions/42139436/jersey-client-throws-cannot-retry-request-with-a-non-repeatable-request-entity
             config.property(ApacheClientProperties.CONNECTION_MANAGER, conman);
-            
+            if (connectionRequestTimeout != null)
+                config.property(ApacheClientProperties.REQUEST_CONFIG, RequestConfig.custom().
+                    setConnectionRequestTimeout(connectionRequestTimeout).
+                    build());
+
             if (maxRequestRetries != null)
                 config.property(ApacheClientProperties.RETRY_HANDLER, (HttpRequestRetryHandler) (IOException ex, int executionCount, HttpContext context) ->
                 {
@@ -1708,7 +1719,7 @@ public class Application extends ResourceConfig
                     }
                     return false;
                 });
-        
+
             return ClientBuilder.newBuilder().
                 withConfig(config).
                 sslContext(ctx).

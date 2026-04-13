@@ -1037,6 +1037,10 @@ if [ -n "$ALLOW_INTERNAL_URLS" ]; then
     export CATALINA_OPTS="$CATALINA_OPTS -Dcom.atomgraph.linkeddatahub.allowInternalUrls=$ALLOW_INTERNAL_URLS"
 fi
 
+if [ -n "$CONNECTION_REQUEST_TIMEOUT" ]; then
+    export CATALINA_OPTS="$CATALINA_OPTS -Dcom.atomgraph.linkeddatahub.connectionRequestTimeout=$CONNECTION_REQUEST_TIMEOUT"
+fi
+
 if [ -n "$MAX_CONTENT_LENGTH" ]; then
     MAX_CONTENT_LENGTH_PARAM="--stringparam ldhc:maxContentLength '$MAX_CONTENT_LENGTH' "
 fi

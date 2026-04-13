@@ -76,8 +76,6 @@ public abstract class XSLTWriterBase extends com.atomgraph.client.writer.XSLTWri
     private static final Set<String> NAMESPACES;
     /** The relative URL of the RDF file with localized labels */
     public static final String TRANSLATIONS_PATH = "static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf";
-    /** System property name for the XSLT system ID. */
-    public static final String SYSTEM_ID_PROPERTY = "com.atomgraph.linkeddatahub.writer.XSLTWriterBase.systemId";
     
     static
     {
@@ -135,7 +133,10 @@ public abstract class XSLTWriterBase extends com.atomgraph.client.writer.XSLTWri
             
             URI endpointURI = getLinkURI(headerMap, SD.endpoint);
             if (endpointURI != null) params.put(new QName("sd", SD.endpoint.getNameSpace(), SD.endpoint.getLocalName()), new XdmAtomicValue(endpointURI));
-            
+
+            URI proxyTargetURI = (URI) getContainerRequestContext().getProperty(AC.uri.getURI());
+            if (proxyTargetURI != null) params.put(new QName("ac", AC.uri.getNameSpace(), AC.uri.getLocalName()), new XdmAtomicValue(proxyTargetURI));
+
             String forShapeURI = getUriInfo().getQueryParameters().getFirst(LDH.forShape.getLocalName());
             if (forShapeURI != null) params.put(new QName("ldh", LDH.forShape.getNameSpace(), LDH.forShape.getLocalName()), new XdmAtomicValue(URI.create(forShapeURI)));
 
@@ -249,10 +250,11 @@ public abstract class XSLTWriterBase extends com.atomgraph.client.writer.XSLTWri
     @Override
     public String getSystemId()
     {
-        if (getContainerRequestContext().hasProperty(SYSTEM_ID_PROPERTY))
-            return getContainerRequestContext().getProperty(SYSTEM_ID_PROPERTY).toString();
-        
-        return null;
+        // for proxy requests, use the external URI as the XSLT document base URI
+        URI proxyTarget = (URI) getContainerRequestContext().getProperty(AC.uri.getURI());
+        if (proxyTarget != null) return proxyTarget.toString();
+
+        return getContainerRequestContext().getUriInfo().getRequestUri().toString();
     }
     
     /**
