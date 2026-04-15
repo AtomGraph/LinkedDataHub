@@ -90,7 +90,6 @@ public abstract class XSLTWriterBase extends com.atomgraph.client.writer.XSLTWri
     @Inject jakarta.inject.Provider<Optional<com.atomgraph.linkeddatahub.apps.model.Application>> application;
     @Inject jakarta.inject.Provider<DataManager> dataManager;
     @Inject jakarta.inject.Provider<XsltExecutableSupplier> xsltExecSupplier;
-    @Inject jakarta.inject.Provider<List<Mode>> modes;
     @Inject jakarta.inject.Provider<ContainerRequestContext> crc;
     @Inject jakarta.inject.Provider<Optional<AuthorizationContext>> authorizationContext;
 
@@ -312,22 +311,6 @@ public abstract class XSLTWriterBase extends com.atomgraph.client.writer.XSLTWri
     public XsltExecutable getXsltExecutable()
     {
         return xsltExecSupplier.get().get();
-    }
-    
-    @Override
-    public List<URI> getModes(Set<String> namespaces)
-    {
-        return getModes().stream().map(Mode::get).collect(Collectors.toList());
-    }
-
-    /**
-     * Returns a list of enabled layout modes.
-     * 
-     * @return list of modes
-     */
-    public List<Mode> getModes()
-    {
-        return modes.get();
     }
     
     @Override

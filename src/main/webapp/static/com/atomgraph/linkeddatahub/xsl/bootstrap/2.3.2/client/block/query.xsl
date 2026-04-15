@@ -449,7 +449,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="service-uri" select="ancestor::form/descendant::select[contains-token(@class, 'input-query-service')]/ixsl:get(., 'value')" as="xs:anyURI?"/>
         <xsl:variable name="query-type" select="ldh:query-type($query-string)" as="xs:string?"/>
         <!-- not using ldh:base-uri(.) because it goes stale when DOM is replaced -->
-        <xsl:variable name="doc" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path(xs:anyURI(ixsl:location())) || '`'), 'results')" as="document-node()"/>
+        <xsl:variable name="doc" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path(ldh:request-uri()) || '`'), 'results')" as="document-node()"/>
         <!-- TO-DO: this breaks if the query resource has not yet been loaded as part of the $doc (e.g. freshly saved) -->
         <xsl:variable name="query" select="key('resources', $about, $doc)" as="element()"/>
        

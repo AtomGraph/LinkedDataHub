@@ -164,6 +164,30 @@ extension-element-prefixes="ixsl"
             </xsl:if>
         </div>
     </xsl:template>
+        
+    <xsl:template match="rdf:RDF[acl:mode() = '&acl;Append']" mode="bs2:AddData" priority="1">
+        <div class="btn-group pull-left">
+            <button type="button" class="btn btn-primary dropdown-toggle" title="{ac:label(key('resources', 'add', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri))))}">
+                <xsl:value-of>
+                    <xsl:apply-templates select="key('resources', 'add', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                </xsl:value-of>
+                <xsl:text> </xsl:text>
+                <span class="caret"></span>
+            </button>
+            
+            <ul class="dropdown-menu">
+                <li>
+                    <button type="button" title="{ac:label(key('resources', 'generate-containers-title', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri))))}" class="btn btn-generate-containers">
+                        <xsl:value-of>
+                            <xsl:apply-templates select="key('resources', 'generate-containers', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                        </xsl:value-of>
+                    </button>
+                </li>
+            </ul>
+        </div>
+    </xsl:template>
+    
+    <xsl:template match="*" mode="bs2:AddData"/>
     
     <xsl:template match="rdf:RDF | srx:sparql" mode="bs2:ActionBarMain">
         <xsl:param name="id" as="xs:string?"/>
@@ -179,7 +203,7 @@ extension-element-prefixes="ixsl"
             
             <div class="row-fluid">
                 <xsl:apply-templates select="." mode="bs2:BreadCrumbBar">
-                    <xsl:with-param name="id" select="'breadcrumb-nav'"/>
+                    <xsl:with-param name="class" select="'breadcrumb-nav span8'"/>
                     <xsl:with-param name="uri" select="ac:absolute-path(ldh:base-uri(.))"/>
                 </xsl:apply-templates>
                 
@@ -242,19 +266,76 @@ extension-element-prefixes="ixsl"
 
     <xsl:template match="srx:sparql" mode="bs2:BreadCrumbBar"/>
     
+    <!-- NAVBAR ACTIONS -->
+
+    <xsl:template match="srx:sparql" mode="bs2:NavBarActions" priority="1">
+        <xsl:next-match>
+            <xsl:with-param name="save-as-disabled" select="true()"/>
+        </xsl:next-match>
+    </xsl:template>
+
+    <xsl:template match="rdf:RDF" mode="bs2:NavBarActions">
+        <xsl:param name="base-uri" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/>
+        <xsl:param name="delete-disabled" select="not(acl:mode() = '&acl;Write')" as="xs:boolean"/>
+        <xsl:param name="save-as-disabled" select="false()" as="xs:boolean"/>
+        <xsl:param name="edit-disabled" select="not(acl:mode() = '&acl;Write')" as="xs:boolean"/>
+        
+        <xsl:if test="$foaf:Agent//@rdf:about">
+            <div class="pull-right">
+                <button type="button" title="{ac:label(key('resources', 'nav-bar-action-delete-title', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri))))}">
+                    <xsl:apply-templates select="key('resources', '&ac;Delete', document(ac:document-uri('&ac;')))" mode="ldh:logo">
+                        <xsl:with-param name="class" select="'btn' || (if ($delete-disabled) then ' disabled' else ())"/>
+                    </xsl:apply-templates>
+                    
+                    <xsl:apply-templates select="key('resources', '&ac;Delete', document(ac:document-uri('&ac;')))" mode="ac:label"/>
+                </button>
+            </div>
+            
+            <xsl:if test="$ldh:ajaxRendering">
+                <div class="pull-right">
+                    <button type="button" title="{ac:label(key('resources', 'save-as-title', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri))))}">
+                        <xsl:apply-templates select="key('resources', 'save-as', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ldh:logo">
+                            <xsl:with-param name="class" select="'btn' || (if ($save-as-disabled) then ' disabled' else ())"/>
+                        </xsl:apply-templates>
+
+                        <xsl:value-of>
+                            <xsl:apply-templates select="key('resources', 'save-as', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                            <xsl:text>...</xsl:text>
+                        </xsl:value-of>
+                    </button>
+                </div>
+            </xsl:if>
+            
+            <div class="pull-right">
+                <button type="button" title="{ac:label(key('resources', 'acl-list-title', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri))))}">
+                    <xsl:apply-templates select="key('resources', '&acl;Access', document(ac:document-uri('&acl;')))" mode="ldh:logo">
+                        <xsl:with-param name="class" select="'btn'"/>
+                    </xsl:apply-templates>
+                    <xsl:apply-templates select="key('resources', '&acl;Access', document(ac:document-uri('&acl;')))" mode="ac:label"/>
+                </button>
+            </div>
+
+            <button type="button" class="btn btn-edit pull-right">
+                <xsl:apply-templates select="key('resources', '&ac;EditMode', document(ac:document-uri('&ac;')))" mode="ac:label">
+                    <xsl:with-param name="class" select="'btn' || (if ($edit-disabled) then ' disabled' else ())"/>
+                </xsl:apply-templates>
+            </button>
+        </xsl:if>
+    </xsl:template>
+    
     <!-- MODE LIST -->
 
     <xsl:template match="rdf:RDF[key('resources-by-type', '&http;Response')][not(key('resources-by-type', '&spin;ConstraintViolation'))] | rdf:RDF[key('resources-by-type', '&http;Response')][not(key('resources-by-type', '&sh;ValidationResult'))]" mode="bs2:ModeList" priority="1"/>
 
-    <xsl:template match="rdf:RDF" mode="bs2:ModeList" priority="2" use-when="system-property('xsl:product-name') = 'SAXON'">
+    <xsl:template match="rdf:RDF" mode="bs2:ModeList" priority="2">
         <xsl:param name="active-mode" as="xs:anyURI"/>
         <xsl:param name="ajax-rendering" select="true()" as="xs:boolean"/>
         <xsl:param name="absolute-path" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/>
         <xsl:param name="base-uri" select="ldh:base-uri(.)" as="xs:anyURI"/>
-        <xsl:param name="id" select="'layout-modes'" as="xs:string?"/>
+        <xsl:param name="id" select="()" as="xs:string?"/>
 
         <div class="btn-group pull-right">
-            <button type="button" title="{ac:label(key('resources', '&ac;Mode', document(ac:document-uri('&ac;'))))}">
+            <button type="button" class="layout-modes" title="{ac:label(key('resources', '&ac;Mode', document(ac:document-uri('&ac;'))))}">
                 <xsl:if test="$id">
                     <xsl:attribute name="id" select="$id"/>
                 </xsl:if>
@@ -268,10 +349,10 @@ extension-element-prefixes="ixsl"
 
             <ul class="dropdown-menu">
                 <li class="content-mode{if ($active-mode = '&ldh;ContentMode') then ' active' else() }">
-                    <a href="{ldh:href(ac:document-uri(ldh:base-uri(.)), ldh:query-params(xs:anyURI('&ldh;ContentMode')))}">
+                    <a href="{ldh:href(ac:document-uri(ldh:base-uri(.)), ldh:build-query(xs:anyURI('&ldh;ContentMode')))}">
                         <xsl:apply-templates select="key('resources', '&ldh;ContentMode', document(ac:document-uri('&ldh;')))" mode="ldh:logo"/>
                         <xsl:value-of>
-                            <xsl:apply-templates select="key('resources', 'content', document('translations.rdf'))" mode="ac:label"/>
+                            <xsl:apply-templates select="key('resources', 'content', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
                         </xsl:value-of>
                     </a>
                 </li>
@@ -296,7 +377,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="uri" as="xs:anyURI"/>
         
         <div class="btn-group pull-right">
-            <button type="button" id="export-rdf" title="{ac:label(key('resources', 'nav-bar-action-export-rdf-title', document('translations.rdf')))}">
+            <button type="button" id="export-rdf" title="{ac:label(key('resources', 'nav-bar-action-export-rdf-title', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri))))}">
                 <xsl:apply-templates select="key('resources', '&ac;Export', document(ac:document-uri('&ac;')))" mode="ldh:logo">
                     <xsl:with-param name="class" select="'btn dropdown-toggle'"/>
                 </xsl:apply-templates>
@@ -319,6 +400,39 @@ extension-element-prefixes="ixsl"
                     <a href="{$href}" title="application/ld+json" target="_blank">JSON-LD</a>
                 </li>
             </ul>
+        </div>
+    </xsl:template>
+    
+    <!-- TAB BODY -->
+    
+    <xsl:template match="rdf:RDF" mode="bs2:TabBody">
+        <xsl:param name="id" select="'content-body'" as="xs:string?"/>
+        <xsl:param name="about" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI?"/>
+        <xsl:param name="typeof" select="key('resources', ac:absolute-path(ldh:base-uri(.)))/rdf:type/@rdf:resource/xs:anyURI(.)" as="xs:anyURI*"/>
+        <xsl:param name="mode" as="xs:anyURI"/>
+
+        <div class="tab-pane active content-body">
+            <xsl:if test="$id">
+                <xsl:attribute name="id" select="$id"/>
+            </xsl:if>
+            <xsl:if test="$about">
+                <xsl:attribute name="about" select="$about"/>
+            </xsl:if>
+            <xsl:if test="exists($typeof)">
+                <xsl:attribute name="typeof" select="string-join($typeof, ' ')"/>
+            </xsl:if>
+
+            <xsl:apply-templates select="." mode="bs2:ActionBar">
+                <xsl:with-param name="active-mode" select="$mode"/>
+            </xsl:apply-templates>
+
+            <xsl:apply-templates select="." mode="bs2:ContentBody">
+                <xsl:with-param name="id" select="()"/>
+                <xsl:with-param name="class" select="'container-fluid'"/>
+                <xsl:with-param name="about" select="$about"/>
+                <xsl:with-param name="typeof" select="$typeof"/>
+                <xsl:with-param name="mode" select="$mode"/>
+            </xsl:apply-templates>
         </div>
     </xsl:template>
     
@@ -394,13 +508,41 @@ extension-element-prefixes="ixsl"
         </div>
     </xsl:template>
 
+    <!-- ACTION BAR -->
+    
+    <xsl:template match="rdf:RDF | srx:sparql" mode="bs2:ActionBar">
+        <xsl:param name="id" as="xs:string?"/>
+        <xsl:param name="class" select="'navbar-inner action-bar'" as="xs:string?"/>
+
+        <div>
+            <xsl:if test="$id">
+                <xsl:attribute name="id" select="$id"/>
+            </xsl:if>
+            <xsl:if test="$class">
+                <xsl:attribute name="class" select="$class"/>
+            </xsl:if>
+
+            <div class="container-fluid">
+                <div class="row-fluid">
+                    <xsl:apply-templates select="." mode="bs2:ActionBarLeft"/>
+
+                    <xsl:apply-templates select="." mode="bs2:ActionBarMain"/>
+                    
+                    <xsl:apply-templates select="." mode="bs2:ActionBarRight">
+                        <xsl:with-param name="active-mode" select="ac:mode(root())"/>
+                    </xsl:apply-templates>
+                </div>
+            </div>
+        </div>
+    </xsl:template>
+
     <!-- CONTENT LIST -->
 
     <xsl:template match="rdf:RDF" mode="ldh:ContentList">
         <xsl:apply-templates select="key('resources', ac:absolute-path(ldh:base-uri(.)))" mode="#current"/>
         
         <!-- only show buttons to agents who have sufficient access to modify them -->
-        <xsl:if test="$acl:mode = '&acl;Append'">
+        <xsl:if test="acl:mode() = '&acl;Append'">
             <div class="create-resource row-fluid">
                 <div class="main offset2 span7">
                     <p>
@@ -429,7 +571,7 @@ extension-element-prefixes="ixsl"
             <xsl:sort select="ac:label(.)"/>
         </xsl:apply-templates>
         
-        <xsl:if test="$create-resource and $acl:mode = '&acl;Append' and not(key('resources-by-type', '&http;Response'))">
+        <xsl:if test="$create-resource and acl:mode() = '&acl;Append' and not(key('resources-by-type', '&http;Response'))">
             <div class="create-resource row-fluid">
                 <div class="main offset2 span7">
                     <xsl:apply-templates select="." mode="bs2:Create">

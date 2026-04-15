@@ -74,10 +74,9 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="$acl:mode"/>
     </xsl:function>
 
-    <xsl:function name="ac:uri" as="xs:anyURI?" use-when="system-property('xsl:product-name') = 'SAXON'">
-        <xsl:sequence select="$ac:uri"/>
+    <xsl:function name="ac:uri" as="xs:anyURI?">
+        <xsl:sequence select="if (ldh:query-params()?uri) then xs:anyURI(ldh:query-params()?uri) else ()"/>
     </xsl:function>
-
 
     <!-- Strips the leftmost subdomain and returns parent dataspace origin (scheme + host + port) -->
     <xsl:function name="ldh:parent-origin" as="xs:anyURI?">
@@ -106,6 +105,10 @@ exclude-result-prefixes="#all"
     
     <xsl:function name="ldh:request-uri" as="xs:anyURI" use-when="system-property('xsl:product-name') = 'SAXON'">
         <xsl:sequence select="$ldh:requestUri"/>
+    </xsl:function>
+    
+    <xsl:function name="ldh:query-params" as="map(xs:string, xs:string*)">
+        <xsl:sequence select="ldh:parse-query-params(substring-after(ldh:request-uri(), '?'))"/>
     </xsl:function>
     
     <xsl:function name="ldh:base-uri" as="xs:anyURI" use-when="system-property('xsl:product-name') = 'SAXON'">
@@ -145,13 +148,13 @@ exclude-result-prefixes="#all"
         </xsl:choose>
     </xsl:function>
     
-    <xsl:function name="ldh:query-params" as="map(xs:string, xs:string*)">
+    <xsl:function name="ldh:build-query" as="map(xs:string, xs:string*)">
         <xsl:param name="mode" as="xs:anyURI*"/>
         
-        <xsl:sequence select="ldh:query-params($mode, ())"/>
+        <xsl:sequence select="ldh:build-query($mode, ())"/>
     </xsl:function>
 
-    <xsl:function name="ldh:query-params" as="map(xs:string, xs:string*)">
+    <xsl:function name="ldh:build-query" as="map(xs:string, xs:string*)">
         <xsl:param name="mode" as="xs:anyURI*"/>
         <xsl:param name="forClass" as="xs:anyURI?"/>
         
@@ -167,6 +170,24 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="document($request-uri)"/>
     </xsl:function>
 
+    <xsl:function name="ac:mode" as="xs:anyURI">
+        <xsl:param name="doc" as="document-node()"/>
+        <xsl:variable name="block-uris" select="key('resources', ac:absolute-path(ldh:base-uri($doc)), $doc)/rdf:*[starts-with(local-name(), '_')]/@rdf:resource" as="xs:anyURI*"/>
+        <xsl:variable name="has-content" select="exists($block-uris)" as="xs:boolean"/>
+        
+        <xsl:choose>
+            <xsl:when test="ldh:query-params()?mode">
+                <xsl:sequence select="xs:anyURI(ldh:query-params()?mode)"/>
+            </xsl:when>
+            <xsl:when test="$has-content">
+                <xsl:sequence select="xs:anyURI('&ldh;ContentMode')"/>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:sequence select="xs:anyURI('&ac;ReadMode')"/>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:function>
+    
     <!-- function stub so that Saxon-EE doesn't complain when compiling SEF -->
     <xsl:function name="ldh:construct" as="document-node()" override-extension-function="no" cache="yes">
         <xsl:param name="class-constructors" as="map(xs:anyURI, xs:string*)"/>

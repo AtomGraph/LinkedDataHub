@@ -584,7 +584,7 @@ exclude-result-prefixes="#all"
     
     <!-- create chart onclick (appends a new chart block after this, with query and category/series fields filled out) -->
     
-    <xsl:template match="div[@about][@typeof]//button[contains-token(@class, 'btn-create-chart')]" mode="ixsl:onclick">
+    <xsl:template match="div[contains-token(@class, 'block')][@about][@typeof]//button[contains-token(@class, 'btn-create-chart')]" mode="ixsl:onclick">
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
         <xsl:variable name="block" select="ancestor::div[contains-token(@class, 'block')][1]" as="element()"/>
         <xsl:variable name="textarea-id" select="$block//textarea[@name = 'query']/ixsl:get(., 'id')" as="xs:string"/>

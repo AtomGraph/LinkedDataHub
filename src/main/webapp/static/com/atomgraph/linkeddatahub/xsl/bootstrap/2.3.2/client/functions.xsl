@@ -41,8 +41,8 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="xs:anyURI(ixsl:location())"/>
     </xsl:function>
 
-    <xsl:function name="ac:uri" as="xs:anyURI?">
-        <xsl:sequence select="if (ixsl:query-params()?uri) then xs:anyURI(ixsl:query-params()?uri) else ()"/>
+    <xsl:function name="ldh:query-params" as="map(xs:string, xs:string*)">
+        <xsl:sequence select="ixsl:query-params()"/>
     </xsl:function>
 
     <xsl:function name="ldh:base-uri" as="xs:anyURI">
@@ -54,7 +54,7 @@ exclude-result-prefixes="#all"
             </xsl:when>
             <xsl:otherwise>
                 <!-- ignore query params such as ?mode -->
-                <xsl:sequence select="ac:absolute-path(xs:anyURI(ixsl:location()))"/>
+                <xsl:sequence select="ac:absolute-path(ldh:request-uri())"/>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:function>
@@ -67,7 +67,7 @@ exclude-result-prefixes="#all"
     </xsl:function>
     
     <xsl:function name="ldt:base" as="xs:anyURI">
-        <xsl:sequence select="xs:anyURI(lapp:origin(xs:anyURI(ixsl:location())) || '/')"/>
+        <xsl:sequence select="xs:anyURI(lapp:origin(ldh:request-uri()) || '/')"/>
     </xsl:function>
 
     <xsl:function name="acl:mode" as="xs:anyURI*">
@@ -79,27 +79,24 @@ exclude-result-prefixes="#all"
         )"/>
     </xsl:function>
     
-    <xsl:function name="ac:mode" as="xs:anyURI*">
-        <xsl:variable name="mode-button" select="id('layout-modes', ixsl:page())" as="element()?"/>
-        <xsl:variable name="dropdown-menu" select="$mode-button/following-sibling::ul[contains-token(@class, 'dropdown-menu')]" as="element()?"/>
-        <xsl:variable name="active-item-class" select="$dropdown-menu/li[contains-token(@class, 'active')]/@class" as="xs:string?"/>
-        <xsl:variable name="mode-classes" as="map(xs:string, xs:string)">
-            <xsl:map>
-                <xsl:map-entry key="'content-mode'" select="'&ldh;ContentMode'"/>
-                <xsl:map-entry key="'read-mode'" select="'&ac;ReadMode'"/>
-                <xsl:map-entry key="'map-mode'" select="'&ac;MapMode'"/>
-                <xsl:map-entry key="'chart-mode'" select="'&ac;ChartMode'"/>
-                <xsl:map-entry key="'graph-mode'" select="'&ac;GraphMode'"/>
-            </xsl:map>
-        </xsl:variable>
-        <xsl:variable name="mode-class" select="map:keys($mode-classes)[contains-token($active-item-class, .)]" as="xs:string?"/>
-        <xsl:sequence select="if ($mode-class) then xs:anyURI(map:get($mode-classes, $mode-class)) else ()"/>
-    </xsl:function>
-    
     <xsl:function name="sd:endpoint" as="xs:anyURI">
-        <xsl:sequence select="if (ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub'), 'endpoint'))
-            then xs:anyURI(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), 'endpoint'))
-            else resolve-uri('sparql', ldt:base())"/>
+        <!-- check for an active tab with a known endpoint; data-uri is on the <li> -->
+        <xsl:variable name="active-tab-li" select="id('tab-bar-list', ixsl:page())/li[contains-token(@class, 'active')]" as="element()?"/>
+        <xsl:variable name="active-tab-uri" select="if ($active-tab-li) then ixsl:get($active-tab-li, 'dataset.uri') else ()" as="xs:string?"/>
+        <xsl:variable name="tab-endpoint" select="
+            if ($active-tab-uri
+                and ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub.tabs'), '`' || $active-tab-uri || '`')
+                and ixsl:contains(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.tabs'), '`' || $active-tab-uri || '`'), 'endpoint'))
+            then xs:anyURI(ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.tabs'), '`' || $active-tab-uri || '`'), 'endpoint'))
+            else ()" as="xs:anyURI?"/>
+        <!-- priority: active tab endpoint > global LinkedDataHub.endpoint > local SPARQL -->
+        <xsl:sequence select="(
+            $tab-endpoint,
+            if (ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub'), 'endpoint'))
+                then xs:anyURI(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), 'endpoint'))
+                else (),
+            resolve-uri('sparql', ldt:base())
+        )[1]"/>
     </xsl:function>
     
     <xsl:function name="ldh:query-type" as="xs:string?">

@@ -62,8 +62,6 @@ exclude-result-prefixes="#all"
 extension-element-prefixes="ixsl"
 >
     
-    <xsl:param name="foaf:Agent" as="document-node()?"/>
-
     <xsl:key name="shapes-by-target-class" match="*[@rdf:about] | *[@rdf:nodeID]" use="sh:targetClass/@rdf:resource | sh:targetClass/@rdf:resource"/>
 
     <!-- LABEL -->
@@ -403,7 +401,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="absolute-path" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI" tunnel="yes"/>
         <xsl:param name="base-uri" as="xs:anyURI?"/>
         <xsl:param name="active" as="xs:boolean"/>
-        <xsl:param name="href" select="ldh:href(ac:document-uri($base-uri), ldh:query-params(xs:anyURI(@rdf:about)))" as="xs:anyURI?"/>
+        <xsl:param name="href" select="ldh:href(ac:document-uri($base-uri), ldh:build-query(xs:anyURI(@rdf:about)))" as="xs:anyURI?"/>
         <xsl:param name="mode-classes" as="map(xs:string, xs:string)">
             <xsl:map>
                 <xsl:map-entry key="'&ldh;ContentMode'" select="'content-mode'"/>
