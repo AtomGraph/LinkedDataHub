@@ -304,22 +304,26 @@ extension-element-prefixes="ixsl"
                         </xsl:value-of>
                     </button>
                 </div>
-            </xsl:if>
             
-            <div class="pull-right">
-                <button type="button" title="{ac:label(key('resources', 'acl-list-title', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri))))}">
-                    <xsl:apply-templates select="key('resources', '&acl;Access', document(ac:document-uri('&acl;')))" mode="ldh:logo">
-                        <xsl:with-param name="class" select="'btn'"/>
-                    </xsl:apply-templates>
-                    <xsl:apply-templates select="key('resources', '&acl;Access', document(ac:document-uri('&acl;')))" mode="ac:label"/>
-                </button>
-            </div>
+                <div class="pull-right">
+                    <button type="button" title="{ac:label(key('resources', 'acl-list-title', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri))))}">
+                        <xsl:apply-templates select="key('resources', '&acl;Access', document(ac:document-uri('&acl;')))" mode="ldh:logo">
+                            <xsl:with-param name="class" select="'btn'"/>
+                        </xsl:apply-templates>
+                        <xsl:apply-templates select="key('resources', '&acl;Access', document(ac:document-uri('&acl;')))" mode="ac:label"/>
+                    </button>
+                </div>
 
-            <button type="button" class="btn btn-edit pull-right">
-                <xsl:apply-templates select="key('resources', '&ac;EditMode', document(ac:document-uri('&ac;')))" mode="ac:label">
-                    <xsl:with-param name="class" select="'btn' || (if ($edit-disabled) then ' disabled' else ())"/>
-                </xsl:apply-templates>
-            </button>
+                <div class="pull-right">
+                    <button type="button" class="btn btn-edit pull-right" title="{ac:label(key('resources', '&ac;EditMode', document(ac:document-uri('&ac;'))))}">
+                        <xsl:apply-templates select="key('resources', '&ac;EditMode', document(ac:document-uri('&ac;')))" mode="ldh:logo">
+                            <xsl:with-param name="class" select="'btn' || (if ($edit-disabled) then ' disabled' else ())"/>
+                        </xsl:apply-templates>
+
+                        <xsl:apply-templates select="key('resources', '&ac;EditMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
+                    </button>
+                </div>
+            </xsl:if>
         </xsl:if>
     </xsl:template>
     
