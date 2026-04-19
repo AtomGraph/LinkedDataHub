@@ -133,9 +133,6 @@ public abstract class XSLTWriterBase extends com.atomgraph.client.writer.XSLTWri
             URI endpointURI = getLinkURI(headerMap, SD.endpoint);
             if (endpointURI != null) params.put(new QName("sd", SD.endpoint.getNameSpace(), SD.endpoint.getLocalName()), new XdmAtomicValue(endpointURI));
 
-            URI proxyTargetURI = (URI) getContainerRequestContext().getProperty(AC.uri.getURI());
-            if (proxyTargetURI != null) params.put(new QName("ac", AC.uri.getNameSpace(), AC.uri.getLocalName()), new XdmAtomicValue(proxyTargetURI));
-
             String forShapeURI = getUriInfo().getQueryParameters().getFirst(LDH.forShape.getLocalName());
             if (forShapeURI != null) params.put(new QName("ldh", LDH.forShape.getNameSpace(), LDH.forShape.getLocalName()), new XdmAtomicValue(URI.create(forShapeURI)));
 
@@ -158,11 +155,6 @@ public abstract class XSLTWriterBase extends com.atomgraph.client.writer.XSLTWri
                 params.put(new QName("acl", ACL.mode.getNameSpace(), ACL.mode.getLocalName()),
                     XdmValue.makeSequence(getAuthorizationContext().get().get().getModeURIs()));
 
-            // TO-DO: move to client-side?
-            if (getUriInfo().getQueryParameters().containsKey(LDH.access_to.getLocalName()))
-                params.put(new QName("ldh", LDH.access_to.getNameSpace(), LDH.access_to.getLocalName()),
-                    new XdmAtomicValue(URI.create(getUriInfo().getQueryParameters().getFirst(LDH.access_to.getLocalName()))));
-            
             if (getHttpHeaders().getRequestHeader(HttpHeaders.REFERER) != null)
             {
                 URI referer = URI.create(getHttpHeaders().getRequestHeader(HttpHeaders.REFERER).get(0));
@@ -249,11 +241,7 @@ public abstract class XSLTWriterBase extends com.atomgraph.client.writer.XSLTWri
     @Override
     public String getSystemId()
     {
-        // for proxy requests, use the external URI as the XSLT document base URI
-        URI proxyTarget = (URI) getContainerRequestContext().getProperty(AC.uri.getURI());
-        if (proxyTarget != null) return proxyTarget.toString();
-
-        return getContainerRequestContext().getUriInfo().getRequestUri().toString();
+        return getUriInfo().getRequestUri().toString();
     }
     
     /**

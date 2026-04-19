@@ -102,7 +102,6 @@ exclude-result-prefixes="#all">
 
     <xsl:param name="lapp:origin" as="xs:anyURI?"/>
     <xsl:param name="ldh:requestUri" as="xs:anyURI"/>
-    <xsl:param name="ac:uri" as="xs:anyURI?"/> <!-- cannot be parsed from URL because ?uri param is removed server-side by ApplicationFilter -->
     <xsl:param name="ac:endpoint" select="if ($ldt:base) then resolve-uri('sparql', $ldt:base) else ()" as="xs:anyURI?"/>
     <xsl:param name="sd:endpoint" as="xs:anyURI?"/>
     <xsl:param name="acl:agent" as="xs:anyURI?"/>
@@ -594,11 +593,7 @@ exclude-result-prefixes="#all">
                     </option>
                 </select>
                 
-                <input type="text" id="uri" name="uri" class="input-xxlarge typeahead">
-                    <xsl:if test="$ac:uri">
-                        <xsl:attribute name="value" select="ldh:base-uri(.)"/>
-                    </xsl:if>
-                </input>
+                <input type="text" id="uri" name="uri" class="input-xxlarge typeahead"/>
                 <!-- placeholder used by the client-side typeahead -->
                  <ul id="ul-{generate-id()}" class="search-typeahead typeahead dropdown-menu" style="display: none"/> 
 
@@ -775,36 +770,19 @@ exclude-result-prefixes="#all">
 
                 <div id="tab-body">
                     <!-- tab bar — sticky, hidden until first external tab is opened -->
-                    <div id="tab-bar" class="navbar" style="display: none">
-                        <div class="navbar-inner">
-                            <div class="container-fluid">
-                                <div class="row-fluid">
-                                    <ul class="nav nav-tabs span12" id="tab-bar-list"/>
-                                </div>
+                    <div id="tab-bar" class="navbar-inner" style="display: none">
+                        <div class="container-fluid">
+                            <div class="row-fluid">
+                                <ul class="nav nav-tabs span12" id="tab-bar-list"/>
                             </div>
                         </div>
                     </div>
 
                     <!-- document content panes using Bootstrap 2.3.2 tab-content/tab-pane classes -->
                     <div id="tab-content" class="tab-content">
-                        <xsl:choose>
-                            <!-- the request is proxied using ?uri, render it client-side in client.xsl -->
-                            <!-- ldh:rdf-document-response bypasses this branch by passing ac:uri=() as a local override -->
-                            <xsl:when test="$ac:uri">
-                                <div id="content-body" class="tab-pane active content-body container-fluid">
-                                    <div class="row-fluid">
-                                        <div class="span12 progress progress-striped active">
-                                            <div style="width: 33%;" class="bar"></div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </xsl:when>
-                            <xsl:otherwise>
-                                <xsl:apply-templates select="." mode="bs2:TabBody">
-                                    <xsl:with-param name="mode" select="ac:mode(root())"/>
-                                </xsl:apply-templates>
-                            </xsl:otherwise>
-                        </xsl:choose>
+                        <xsl:apply-templates select="." mode="bs2:TabBody">
+                            <xsl:with-param name="mode" select="ac:mode(root())"/>
+                        </xsl:apply-templates>
                     </div>
                 </div>
 
@@ -813,26 +791,6 @@ exclude-result-prefixes="#all">
 
             <xsl:apply-templates select="." mode="bs2:DocumentTree"/>
         </body>
-    </xsl:template>
-    
-    <xsl:template match="srx:sparql" mode="bs2:ContentBody">
-        <xsl:param name="id" select="'content-body'" as="xs:string?"/>
-        <xsl:param name="class" select="'container-fluid'" as="xs:string?"/>
-        <xsl:param name="about" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI?"/>
-
-        <div>
-            <xsl:if test="$id">
-                <xsl:attribute name="id" select="$id"/>
-            </xsl:if>
-            <xsl:if test="$class">
-                <xsl:attribute name="class" select="$class"/>
-            </xsl:if>
-            <xsl:if test="$about">
-                <xsl:attribute name="about" select="$about"/>
-            </xsl:if>
-
-            <xsl:apply-templates select="." mode="xhtml:Table"/>
-        </div>
     </xsl:template>
     
     <!-- only lookup resource locally using DESCRIBE if it's external (not relative to the app's base URI) and the agent is authenticated -->

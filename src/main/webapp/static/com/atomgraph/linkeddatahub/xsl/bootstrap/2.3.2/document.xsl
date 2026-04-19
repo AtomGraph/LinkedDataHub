@@ -410,41 +410,31 @@ extension-element-prefixes="ixsl"
     <!-- TAB BODY -->
     
     <xsl:template match="rdf:RDF" mode="bs2:TabBody">
-        <xsl:param name="id" select="'content-body'" as="xs:string?"/>
-        <xsl:param name="about" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI?"/>
-        <xsl:param name="typeof" select="key('resources', ac:absolute-path(ldh:base-uri(.)))/rdf:type/@rdf:resource/xs:anyURI(.)" as="xs:anyURI*"/>
+        <xsl:param name="id" select="'tab-pane-' || ac:uuid()" as="xs:string?"/>
+        <xsl:param name="class" select="'tab-pane active'" as="xs:string?"/>
         <xsl:param name="mode" as="xs:anyURI"/>
 
-        <div class="tab-pane active content-body">
+        <div class="">
             <xsl:if test="$id">
                 <xsl:attribute name="id" select="$id"/>
             </xsl:if>
-            <xsl:if test="$about">
-                <xsl:attribute name="about" select="$about"/>
-            </xsl:if>
-            <xsl:if test="exists($typeof)">
-                <xsl:attribute name="typeof" select="string-join($typeof, ' ')"/>
+            <xsl:if test="$class">
+                <xsl:attribute name="class" select="$class"/>
             </xsl:if>
 
             <xsl:apply-templates select="." mode="bs2:ActionBar">
                 <xsl:with-param name="active-mode" select="$mode"/>
             </xsl:apply-templates>
 
-            <xsl:apply-templates select="." mode="bs2:ContentBody">
-                <xsl:with-param name="id" select="()"/>
-                <xsl:with-param name="class" select="'container-fluid'"/>
-                <xsl:with-param name="about" select="$about"/>
-                <xsl:with-param name="typeof" select="$typeof"/>
-                <xsl:with-param name="mode" select="$mode"/>
-            </xsl:apply-templates>
+            <xsl:apply-templates select="." mode="bs2:ContentBody"/>
         </div>
     </xsl:template>
     
     <!-- CONTENT BODY -->
 
     <xsl:template match="rdf:RDF[exists($ldh:requestUri) and key('resources-by-type', '&http;Response') and not(key('resources-by-type', '&spin;ConstraintViolation')) and not(key('resources-by-type', '&sh;ValidationResult'))]" mode="bs2:ContentBody" priority="1">
-        <xsl:param name="id" select="'content-body'" as="xs:string?"/>
-        <xsl:param name="class" select="'container-fluid'" as="xs:string?"/>
+        <xsl:param name="id" as="xs:string?"/>
+        <xsl:param name="class" select="'container-fluid content-body'" as="xs:string?"/>
 
         <div>
             <xsl:if test="$id">
@@ -461,12 +451,32 @@ extension-element-prefixes="ixsl"
         </div>
     </xsl:template>
     
+    <xsl:template match="srx:sparql" mode="bs2:ContentBody">
+        <xsl:param name="id" as="xs:string?"/>
+        <xsl:param name="class" select="'container-fluid content-body'" as="xs:string?"/>
+        <xsl:param name="about" as="xs:anyURI?"/>
+
+        <div>
+            <xsl:if test="$id">
+                <xsl:attribute name="id" select="$id"/>
+            </xsl:if>
+            <xsl:if test="$class">
+                <xsl:attribute name="class" select="$class"/>
+            </xsl:if>
+            <xsl:if test="$about">
+                <xsl:attribute name="about" select="$about"/>
+            </xsl:if>
+
+            <xsl:apply-templates select="." mode="xhtml:Table"/>
+        </div>
+    </xsl:template>
+    
     <xsl:template match="rdf:RDF" mode="bs2:ContentBody">
-        <xsl:param name="id" select="'content-body'" as="xs:string?"/>
-        <xsl:param name="class" select="'container-fluid'" as="xs:string?"/>
+        <xsl:param name="id" as="xs:string?"/>
+        <xsl:param name="class" select="'container-fluid content-body'" as="xs:string?"/>
         <xsl:param name="about" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI?"/>
-        <xsl:param name="typeof" select="key('resources', ac:absolute-path(ldh:base-uri(.)))/rdf:type/@rdf:resource/xs:anyURI(.)" as="xs:anyURI*"/>
-        <xsl:param name="mode" as="xs:anyURI"/>
+        <xsl:param name="typeof" select="key('resources', $about)/rdf:type/@rdf:resource/xs:anyURI(.)" as="xs:anyURI*"/>
+        <xsl:param name="mode" select="ac:mode(root())" as="xs:anyURI"/>
 
         <div>
             <xsl:if test="$id">

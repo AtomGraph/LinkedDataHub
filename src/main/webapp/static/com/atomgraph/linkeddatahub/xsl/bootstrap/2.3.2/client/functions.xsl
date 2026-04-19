@@ -80,14 +80,11 @@ exclude-result-prefixes="#all"
     </xsl:function>
     
     <xsl:function name="sd:endpoint" as="xs:anyURI">
-        <!-- check for an active tab with a known endpoint; data-uri is on the <li> -->
+        <!-- check for an active tab with a known endpoint; data-endpoint is on the <li> -->
         <xsl:variable name="active-tab-li" select="id('tab-bar-list', ixsl:page())/li[contains-token(@class, 'active')]" as="element()?"/>
-        <xsl:variable name="active-tab-uri" select="if ($active-tab-li) then ixsl:get($active-tab-li, 'dataset.uri') else ()" as="xs:string?"/>
         <xsl:variable name="tab-endpoint" select="
-            if ($active-tab-uri
-                and ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub.tabs'), '`' || $active-tab-uri || '`')
-                and ixsl:contains(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.tabs'), '`' || $active-tab-uri || '`'), 'endpoint'))
-            then xs:anyURI(ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.tabs'), '`' || $active-tab-uri || '`'), 'endpoint'))
+            if ($active-tab-li and ixsl:contains($active-tab-li, 'dataset.endpoint'))
+            then xs:anyURI(ixsl:get($active-tab-li, 'dataset.endpoint'))
             else ()" as="xs:anyURI?"/>
         <!-- priority: active tab endpoint > global LinkedDataHub.endpoint > local SPARQL -->
         <xsl:sequence select="(

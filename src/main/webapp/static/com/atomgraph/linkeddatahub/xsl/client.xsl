@@ -287,11 +287,7 @@ WHERE
         <ixsl:set-property name="contents" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
         <ixsl:set-property name="typeahead" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/> <!-- used by typeahead.xsl -->
         <ixsl:set-property name="graphs" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/> <!-- used by graph3d.xsl -->
-<!--        <ixsl:set-property name="endpoint" select="$sd:endpoint" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>-->
         <ixsl:set-property name="yasqe" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
-        <!-- tab state: tabs maps URI -> { tabIndex, endpoint }; tab-counter is monotonically increasing -->
-        <ixsl:set-property name="tabs" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
-        <ixsl:set-property name="tab-counter" select="0" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
 
         <!-- handle OAuth ID token from URL fragment -->
         <xsl:variable name="location-hash" select="ixsl:get(ixsl:get(ixsl:window(), 'location'), 'hash')" as="xs:string?"/>
@@ -337,6 +333,12 @@ WHERE
                 <xsl:call-template name="ldh:NavigationUpdate">
                     <xsl:with-param name="href" select="base-uri(ixsl:page())"/>
                 </xsl:call-template>
+                <!-- if the URI is external, set it in the address bar -->
+                <xsl:if test="ac:uri()">
+                    <xsl:for-each select="id('uri', ixsl:page())">
+                        <ixsl:set-property name="value" select="ac:uri()" object="."/>
+                    </xsl:for-each>
+                </xsl:if>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
@@ -513,16 +515,9 @@ WHERE
         <xsl:variable name="refresh-content" select="$context('refresh-content')" as="xs:boolean?"/>
 
         <xsl:for-each select="$response">
-            <!-- load breadcrumbs for local documents only; external tab panes are handled by ldh:RenderTabPane -->
-            <xsl:variable name="local-breadcrumb-nav" select="(id('content-body', ixsl:page())//*[contains-token(@class, 'breadcrumb-nav')])[1]" as="element()?"/>
-            <xsl:if test="starts-with($uri, $ldt:base) and $local-breadcrumb-nav">
-                <xsl:call-template name="ldh:PopulateBreadcrumbNav">
-                    <xsl:with-param name="container" select="$local-breadcrumb-nav"/>
-                    <xsl:with-param name="response" select="$response"/>
-                    <xsl:with-param name="uri" select="$uri"/>
-                </xsl:call-template>
-            </xsl:if>
-        
+            <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
+            
+            <xsl:message>ldh:rdf-document-response uri: <xsl:value-of select="$uri"/> status: <xsl:value-of select="?status"/></xsl:message>
             <!-- checking acl:mode here because this template is called after every document load (also the initial load) and has access to ?headers -->
             <!-- set LinkedDataHub.acl-modes objects which are later used by the acl:mode function -->
             <!-- doing it here because this template is called after every document load (also the initial load) and has access to ?headers -->
@@ -543,7 +538,6 @@ WHERE
             </xsl:if>
 
             <xsl:variable name="etag" select="?headers?etag" as="xs:string?"/>
-            <xsl:message>ETag: <xsl:value-of select="$etag"/></xsl:message>
 
             <xsl:choose>
                 <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
@@ -562,107 +556,69 @@ WHERE
                         <!-- store ETag header value under window.LinkedDataHub.contents[$uri].etag -->
                         <ixsl:set-property name="etag" select="$etag" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $uri || '`')"/>
 
-                        <!-- currently active tab pane (used for in-pane navigation) -->
-                        <xsl:variable name="active-pane" select="id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane') and contains-token(@class, 'active')]" as="element()?"/>
-                        <!-- shared variables used in multiple branches -->
-<!--                        <xsl:variable name="block-uris" select="$results/rdf:RDF/*[@rdf:about = $uri]/rdf:*[starts-with(local-name(), '_')]/@rdf:resource" as="xs:anyURI*"/>-->
+                        <xsl:variable name="tab-pane" select="id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')][./div[contains-token(@class, 'content-body')]/@about = $uri]" as="element()?"/>
+                        <xsl:message>$tab-pane? <xsl:value-of select="exists($tab-pane)"/></xsl:message>
+
+                        <xsl:message>
+                            A <xsl:value-of select="exists(id('tab-content', ixsl:page()))"/>
+                            B <xsl:value-of select="exists(id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')])"/>
+                            C <xsl:value-of select="exists(id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')][./div[contains-token(@class, 'content-body')]])"/>
+                            D <xsl:value-of select="exists(id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')][./div[contains-token(@class, 'content-body')]/@about = $uri])"/>
+                        </xsl:message>
+                        
+                        <xsl:variable name="tab-pane" select="id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')][./div[contains-token(@class, 'content-body')]/@about = $uri]" as="element()?"/>
+                        <xsl:message>
+                            tab-pane/@id: <xsl:value-of select="$tab-pane/@id"/>
+                        </xsl:message>
                         <xsl:variable name="mode" select="ac:mode($results)" as="xs:anyURI"/>
-                        <xsl:variable name="label" select="(key('resources', $uri, $results)/rdfs:label[1]/string(), key('resources', $uri, $results)/dct:title[1]/string(), tokenize(substring-after($uri, '://'), '/')[last()][normalize-space()], string($uri))[1]" as="xs:string"/>
+                        <xsl:message>ac:mode uri: <xsl:value-of select="$uri"/></xsl:message>
+                        
+                        <xsl:variable name="tab-body" as="element()">
+                            <xsl:apply-templates select="$results/rdf:RDF" mode="bs2:TabBody">
+                                <xsl:with-param name="mode" select="$mode"/>
+                            </xsl:apply-templates>
+                        </xsl:variable>
 
                         <xsl:choose>
-                            <!-- external URI -->
-                            <xsl:when test="not(starts-with($uri, $ldt:base))">
-                                <xsl:choose>
-                                    <!-- link click within an active external tab → navigate within that pane -->
-                                    <xsl:when test="$active-pane and not($active-pane/@id = 'content-body')">
-                                        <xsl:variable name="active-tab-li" select="id('tab-bar-list', ixsl:page())/li[contains-token(@class, 'active') and not(@id = 'tab-local')]" as="element()?"/>
-                                        <xsl:variable name="old-uri" select="if ($active-tab-li) then ixsl:get($active-tab-li, 'dataset.uri') else ()" as="xs:string?"/>
+                            <!-- no tab yet: create tab for the external document -->
+                            <xsl:when test="not(starts-with($uri, $ldt:base)) and not($tab-pane)">
+                                <xsl:message>ldh:AddTabNavBarListItem</xsl:message>
 
-                                        <!-- update tabs registry: remove old key, register new URI with same tabIndex -->
-                                        <xsl:if test="$old-uri">
-                                            <xsl:variable name="tab-index" select="xs:integer(ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.tabs'), '`' || $old-uri || '`'), 'tabIndex'))" as="xs:integer"/>
-                                            <ixsl:remove-property name="{'`' || $old-uri || '`'}" object="ixsl:get(ixsl:window(), 'LinkedDataHub.tabs')"/>
-                                            <ixsl:set-property name="{'`' || $uri || '`'}" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.tabs')"/>
-                                            <ixsl:set-property name="tabIndex" select="$tab-index" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.tabs'), '`' || $uri || '`')"/>
-                                            <xsl:if test="$endpoint">
-                                                <ixsl:set-property name="endpoint" select="$endpoint" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.tabs'), '`' || $uri || '`')"/>
-                                            </xsl:if>
-                                            <!-- update data-uri, label, and title on the <li>/<a> -->
-                                            <ixsl:set-property name="uri" select="string($uri)" object="ixsl:get($active-tab-li, 'dataset')"/>
-                                            <xsl:for-each select="$active-tab-li/a">
-                                                <ixsl:set-attribute name="title" select="string($uri)"/>
-                                                <xsl:result-document href="?." method="ixsl:replace-content">
-                                                    <xsl:value-of select="$label"/>
-                                                </xsl:result-document>
-                                            </xsl:for-each>
-                                        </xsl:if>
-
-                                        <xsl:apply-templates select="$results/rdf:RDF" mode="ldh:RenderTabPane">
-                                            <xsl:with-param name="uri" select="$uri"/>
-                                            <xsl:with-param name="mode" select="$mode"/>
-                                        </xsl:apply-templates>
-                                    </xsl:when>
-                                    <!-- address-bar, page reload, bookmark → create/activate tab -->
-                                    <xsl:otherwise>
-                                        <xsl:variable name="existing-tab" select="id('tab-bar-list', ixsl:page())/li[ixsl:contains(., 'dataset.uri')][ixsl:get(., 'dataset.uri') = $uri]" as="element()?"/>
-                                        <xsl:choose>
-                                            <xsl:when test="$existing-tab">
-                                                <!-- activate tab (re-renders from updated cache) -->
-                                                <xsl:apply-templates select="$existing-tab" mode="ldh:ActivateTab"/>
-                                            </xsl:when>
-                                            <xsl:otherwise>
-                                                <!-- new external URI: create a tab -->
-                                                <xsl:call-template name="ldh:CreateTab">
-                                                    <xsl:with-param name="uri" select="$uri"/>
-                                                    <xsl:with-param name="label" select="$label"/>
-                                                    <xsl:with-param name="endpoint" select="$endpoint"/>
-                                                    <xsl:with-param name="mode" select="$mode"/>
-                                                </xsl:call-template>
-                                            </xsl:otherwise>
-                                        </xsl:choose>
-                                    </xsl:otherwise>
-                                </xsl:choose>
+                                <xsl:call-template name="ldh:AddTabNavBarListItem">
+                                    <xsl:with-param name="uri" select="$uri"/>
+                                    <xsl:with-param name="label" select="ac:label(key('resources', $uri, $results))"/>
+                                    <xsl:with-param name="endpoint" select="$endpoint"/>
+                                </xsl:call-template>
+                            
+                                <xsl:variable name="local-tab-pane" select="id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')][./div[contains-token(@class, 'content-body')]/@about = ac:absolute-path(ldh:request-uri())]" as="element()"/>
+                                <ixsl:set-style name="display" select="'none'" object="$local-tab-pane"/>
+                                
+                                <xsl:message>CREATE EXTERNAL TAB PANE</xsl:message>
+                                <!-- create external pane for this URI if it doesn't exist yet (scales to N panes, one per URI) -->
+                                <xsl:result-document href="#tab-content" method="ixsl:append-content">
+                                    <xsl:sequence select="$tab-body"/>
+                                </xsl:result-document>
                             </xsl:when>
-                            <!-- local URI → render into #content-body -->
                             <xsl:otherwise>
-                                <!-- if the tab bar is visible, switch to the local tab -->
-                                <xsl:if test="id('tab-local', ixsl:page())">
-                                    <xsl:for-each select="id('tab-bar-list', ixsl:page())/li">
-                                        <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'remove', ['active'])[current-date() lt xs:date('2000-01-01')]"/>
-                                    </xsl:for-each>
-                                    <xsl:for-each select="id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')]">
-                                        <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'remove', ['active'])[current-date() lt xs:date('2000-01-01')]"/>
-                                    </xsl:for-each>
-                                    <xsl:sequence select="ixsl:call(ixsl:get(id('tab-local', ixsl:page()), 'classList'), 'add', ['active'])[current-date() lt xs:date('2000-01-01')]"/>
-                                    <xsl:for-each select="id('content-body', ixsl:page())">
-                                        <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'add', ['active'])[current-date() lt xs:date('2000-01-01')]"/>
-                                    </xsl:for-each>
-                                </xsl:if>
+                                <xsl:message>RE-RENDER CURRENT TAB PANE</xsl:message>
 
-                                <!-- render into #content-body as before -->
-                                <xsl:for-each select="id('content-body', ixsl:page())">
-                                    <!-- this has to go after <xsl:result-document href="#{$container-id}"> because otherwise new elements will be injected and the lookup will not work anymore -->
-                                    <!-- load top-level content blocks -->
-                                    <xsl:for-each select="div">
-                                        <!-- container could be hidden server-side -->
-                                        <ixsl:set-style name="display" select="'block'"/>
-
-                                        <!-- one top-level <div> can contain multiple blocks that need to be rendered via factory -->
-                                        <xsl:variable name="factories" as="(function(item()?) as item()*)*">
-                                            <xsl:apply-templates select="." mode="ldh:RenderRow">
-                                                <xsl:with-param name="refresh-content" select="$refresh-content"/>
-                                            </xsl:apply-templates>
-                                        </xsl:variable>
-
-                                        <xsl:for-each select="$factories">
-                                            <xsl:variable name="factory" select="."/>
-                                            <!-- fire the promise chain once, passing a dummy start value -->
-                                            <ixsl:promise select="$factory(())" on-failure="ldh:promise-failure#1"/>
-                                        </xsl:for-each>
-                                    </xsl:for-each>
+                                <!-- re-render current tab pane -->
+                                <xsl:for-each select="$tab-pane">
+                                    <xsl:result-document href="?." method="ixsl:replace-content">
+                                        <xsl:sequence select="$tab-body/*"/>
+                                    </xsl:result-document>
                                 </xsl:for-each>
                             </xsl:otherwise>
                         </xsl:choose>
+        
+                        <xsl:message>ldh:RenderTab uri: <xsl:value-of select="$uri"/></xsl:message>
+                        <xsl:call-template name="ldh:RenderTab">
+                            <xsl:with-param name="tab-pane-id" select="if ($tab-pane) then $tab-pane/@id else $tab-body/@id"/>
+                            <xsl:with-param name="uri" select="$uri"/>
+                            <xsl:with-param name="mode" select="$mode"/>
+                            <xsl:with-param name="response" select="$response"/>
+                            <xsl:with-param name="refresh-content" select="$refresh-content"/>
+                        </xsl:call-template>
 
                         <!-- is a new instance of Service was created, reload the LinkedDataHub.apps data and re-render the service dropdown -->
                         <xsl:if test="//ldt:base or //sd:endpoint">
@@ -734,67 +690,54 @@ WHERE
     <!-- TAB MANAGEMENT TEMPLATES -->
 
     <!-- Create a new tab for an external URI and render its content into #external-pane -->
-    <xsl:template name="ldh:CreateTab">
+    <xsl:template name="ldh:AddTabNavBarListItem">
         <xsl:param name="uri" as="xs:anyURI"/>
         <xsl:param name="label" as="xs:string"/>
         <xsl:param name="endpoint" as="xs:anyURI?"/>
-        <xsl:param name="mode" as="xs:anyURI"/>
 
+        <xsl:message>ldh:AddTabNavBarListItem $uri: <xsl:value-of select="$uri"/></xsl:message>
+        
         <!-- on the very first external tab, prepend a permanent local-document tab (no close button) -->
         <xsl:if test="empty(id('tab-bar-list', ixsl:page())/li)">
+            <xsl:message>PREPEND LOCAL DOCUMENT TAB</xsl:message>
+
             <xsl:result-document href="#tab-bar-list" method="ixsl:append-content">
-                <li id="tab-local">
-                    <a href="#content-body">
+                <li data-uri="{ac:absolute-path(ldh:request-uri())}">
+                    <xsl:if test="$endpoint">
+                        <xsl:attribute name="data-endpoint" select="$endpoint"/>
+                    </xsl:if>
+                    
+                    <a href="{ac:absolute-path(ldh:request-uri())}">
                         <xsl:value-of select="ixsl:get(ixsl:page(), 'title')"/>
                     </a>
                 </li>
             </xsl:result-document>
         </xsl:if>
 
-        <!-- increment counter -->
-        <ixsl:set-property name="tab-counter" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), 'tab-counter') + 1" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
-        <xsl:variable name="tab-index" select="xs:integer(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), 'tab-counter'))" as="xs:integer"/>
-
-        <!-- register in tabs registry (tabIndex, mode, endpoint) -->
-        <ixsl:set-property name="{'`' || $uri || '`'}" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.tabs')"/>
-        <ixsl:set-property name="tabIndex" select="$tab-index" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.tabs'), '`' || $uri || '`')"/>
-        <ixsl:set-property name="mode" select="string($mode)" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.tabs'), '`' || $uri || '`')"/>
-        <xsl:if test="$endpoint">
-            <ixsl:set-property name="endpoint" select="$endpoint" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.tabs'), '`' || $uri || '`')"/>
-        </xsl:if>
-
         <!-- append the new tab <li> to the tab bar -->
         <xsl:result-document href="#tab-bar-list" method="ixsl:append-content">
-            <li id="tab-{$tab-index}" data-uri="{$uri}">
-                <a href="#" title="{$uri}">
+            <xsl:message>APPEND NEW TAB TO TAB BAR</xsl:message>
+            <li data-uri="{$uri}">
+                <xsl:if test="$endpoint">
+                    <xsl:attribute name="data-endpoint" select="$endpoint"/>
+                </xsl:if>
+                <a href="{ldh:href($uri)}" title="{$uri}">
                     <xsl:value-of select="$label"/>
                 </a>
-                <span class="tab-close">&#xd7;</span>
+<!--                <span class="tab-close">&#xd7;</span>-->
             </li>
         </xsl:result-document>
-
-        <!-- create the shared external pane if it doesn't exist yet -->
-        <xsl:if test="empty(id('tab-content', ixsl:page())/div[contains-token(@class, 'content-body') and not(@id)])">
-            <xsl:result-document href="#tab-content" method="ixsl:append-content">
-                <div class="tab-pane content-body"/>
-            </xsl:result-document>
-        </xsl:if>
 
         <!-- show the tab bar -->
         <ixsl:set-style name="display" select="'block'" object="id('tab-bar', ixsl:page())"/>
         <xsl:sequence select="ixsl:call(ixsl:get(ixsl:page(), 'documentElement.style'), 'setProperty', ['--action-bar-top', '99px'])[current-date() lt xs:date('2000-01-01')]"/>
-
-        <!-- delegate deactivate #content-body + render to ldh:ActivateTab -->
-        <xsl:apply-templates select="id('tab-' || $tab-index, ixsl:page())" mode="ldh:ActivateTab"/>
     </xsl:template>
 
-    <!-- Activate an existing tab and re-render #external-pane from cached results -->
+    <!-- activate an existing tab -->
     <xsl:template match="ul[@id = 'tab-bar-list']/li" mode="ldh:ActivateTab">
-        <xsl:variable name="uri" select="ixsl:get(., 'dataset.uri')" as="xs:string"/>
-        <xsl:variable name="tab-entry" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.tabs'), '`' || $uri || '`')"/>
-        <xsl:variable name="results" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $uri || '`'), 'results')" as="document-node()"/>
-        <xsl:variable name="mode" select="xs:anyURI(ixsl:get($tab-entry, 'mode'))" as="xs:anyURI"/>
-        <xsl:variable name="endpoint" select="if (ixsl:contains($tab-entry, 'endpoint')) then xs:anyURI(ixsl:get($tab-entry, 'endpoint')) else ()" as="xs:anyURI?"/>
+        <xsl:param name="uri" select="xs:anyURI(ixsl:get(., 'dataset.uri'))" as="xs:anyURI"/>
+        <xsl:param name="endpoint" select="xs:anyURI(ixsl:get(., 'dataset.endpoint'))" as="xs:anyURI"/>
+        <xsl:message>ldh:ActivateTab id: <xsl:value-of select="@id"/> dataset.uri: <xsl:value-of select="ixsl:get(., 'dataset.uri')"/> endpoint: <xsl:value-of select="$endpoint"/></xsl:message>
 
         <!-- deactivate all tab <li>s -->
         <xsl:for-each select="id('tab-bar-list', ixsl:page())/li">
@@ -803,63 +746,60 @@ WHERE
         <!-- activate this tab <li> -->
         <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'add', ['active'])[current-date() lt xs:date('2000-01-01')]"/>
 
-        <!-- restore external endpoint for this tab -->
-        <xsl:if test="$endpoint">
-            <ixsl:set-property name="endpoint" select="$endpoint" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
-        </xsl:if>
-
-        <!-- deactivate #content-body -->
-        <xsl:for-each select="id('content-body', ixsl:page())">
-            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'remove', ['active'])[current-date() lt xs:date('2000-01-01')]"/>
+        <!-- deactivate all tab panes -->
+        <xsl:for-each select="id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')]">
+            <ixsl:set-style name="display" select="'none'" object="."/>
+        </xsl:for-each>        
+        <!-- activate tab pane -->
+        <xsl:for-each select="id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')][./div[contains-token(@class, 'content-body')]/@about = $uri]">
+            <ixsl:set-style name="display" select="'block'" object="."/>
         </xsl:for-each>
-
-        <!-- re-render external pane from cached results (bs2:TabBody adds class="tab-pane active content-body") -->
-        <xsl:apply-templates select="$results/rdf:RDF" mode="ldh:RenderTabPane">
-            <xsl:with-param name="uri" select="xs:anyURI($uri)"/>
-            <xsl:with-param name="mode" select="$mode"/>
-        </xsl:apply-templates>
     </xsl:template>
 
-    <!-- Render RDF results into the external tab pane (the .content-body div without an id) -->
-    <xsl:template match="rdf:RDF" mode="ldh:RenderTabPane">
+    <!-- render RDF results into a tab pane identified by @about = $uri -->
+    <!-- works for both local (#content-body) and external panes -->
+    <xsl:template name="ldh:RenderTab">
+        <xsl:param name="tab-pane-id" as="xs:string"/>
         <xsl:param name="uri" as="xs:anyURI"/>
+        <xsl:param name="tab-list-item" select="id('tab-bar-list', ixsl:page())/li[ixsl:contains(., 'dataset.uri')][ixsl:get(., 'dataset.uri') = $uri]" as="element()?"/>
         <xsl:param name="mode" as="xs:anyURI"/>
+        <xsl:param name="response" as="map(*)"/>
+        <xsl:param name="refresh-content" select="()" as="xs:boolean?"/>
+        <xsl:variable name="rdf" select="$response?body" as="document-node()"/>
 
-        <xsl:variable name="rdf" select="." as="element()"/>
+        <!-- activate tab list item -->
+        <xsl:apply-templates select="$tab-list-item" mode="ldh:ActivateTab"/>
 
-        <!-- replace the pane element with rendered bs2:TabBody (adds class="tab-pane active content-body", no id) -->
-        <xsl:for-each select="id('tab-content', ixsl:page())/div[contains-token(@class, 'content-body') and not(@id)]">
-            <xsl:result-document href="?." method="ixsl:replace-element">
-                <xsl:apply-templates select="$rdf" mode="bs2:TabBody">
-                    <xsl:with-param name="id" select="()"/>
-                    <xsl:with-param name="about" select="$uri"/>
-                    <xsl:with-param name="typeof" select="$rdf/*[@rdf:about = $uri]/rdf:type/@rdf:resource/xs:anyURI(.)"/>
-                    <xsl:with-param name="mode" select="$mode"/>
+        <xsl:message>
+            $tab-pane-id: <xsl:value-of select="$tab-pane-id"/>
+            111 id($tab-pane-id): <xsl:value-of select="exists(id($tab-pane-id, ixsl:page()))"/>
+            222 exists(id($tab-pane-id, ixsl:page())): <xsl:value-of select="exists(id($tab-pane-id, ixsl:page())/div[contains-token(@class, 'content-body')])"/>
+            333 exists(id($tab-pane-id, ixsl:page())/div[contains-token(@class, 'content-body')]/div): <xsl:value-of select="exists(id($tab-pane-id, ixsl:page())/div[contains-token(@class, 'content-body')]/div)"/>
+        </xsl:message>
+        
+        <!-- fire factories for top-level content blocks in the rendered pane -->
+        <xsl:for-each select="id($tab-pane-id, ixsl:page())/div[contains-token(@class, 'content-body')]/div">
+            <xsl:message>BLOCKS!!!</xsl:message>
+            <xsl:variable name="factories" as="(function(item()?) as item()*)*">
+                <xsl:apply-templates select="." mode="ldh:RenderRow">
+                    <xsl:with-param name="refresh-content" select="$refresh-content"/>
                 </xsl:apply-templates>
-            </xsl:result-document>
-
-            <!-- populate breadcrumb-nav in the newly rendered external tab pane -->
-            <xsl:variable name="new-pane" select="id('tab-content', ixsl:page())/div[contains-token(@class, 'content-body') and not(@id)]" as="element()?"/>
-            <xsl:variable name="external-breadcrumb-nav" select="($new-pane//*[contains-token(@class, 'breadcrumb-nav')])[1]" as="element()?"/>
-            <xsl:if test="$external-breadcrumb-nav">
-                <xsl:call-template name="ldh:PopulateBreadcrumbNav">
-                    <xsl:with-param name="container" select="$external-breadcrumb-nav"/>
-                    <xsl:with-param name="response" select="map{'status': 200, 'media-type': 'application/rdf+xml', 'body': root($rdf)}"/>
-                    <xsl:with-param name="uri" select="$uri"/>
-                </xsl:call-template>
-            </xsl:if>
-
-            <!-- load top-level content blocks in the rendered pane -->
-            <xsl:for-each select="id('tab-content', ixsl:page())/div[contains-token(@class, 'content-body') and not(@id)]/div">
-                <xsl:variable name="factories" as="(function(item()?) as item()*)*">
-                    <xsl:apply-templates select="." mode="ldh:RenderRow"/>
-                </xsl:variable>
-                <xsl:for-each select="$factories">
-                    <xsl:variable name="factory" select="."/>
-                    <ixsl:promise select="$factory(())" on-failure="ldh:promise-failure#1"/>
-                </xsl:for-each>
+            </xsl:variable>
+            <xsl:for-each select="$factories">
+                <xsl:variable name="factory" select="."/>
+                <ixsl:promise select="$factory(())" on-failure="ldh:promise-failure#1"/>
             </xsl:for-each>
         </xsl:for-each>
+            
+        <!-- bs2:ActionBar always renders breadcrumb-nav inside bs2:ActionBarMain -->
+        <xsl:variable name="pane-breadcrumb-nav" select="id($tab-pane-id, ixsl:page())//*[contains-token(@class, 'breadcrumb-nav')]" as="element()?"/>
+        <xsl:if test="$pane-breadcrumb-nav">
+            <xsl:call-template name="ldh:PopulateBreadcrumbNav">
+                <xsl:with-param name="container" select="$pane-breadcrumb-nav"/>
+                <xsl:with-param name="response" select="$response"/>
+                <xsl:with-param name="uri" select="$uri"/>
+            </xsl:call-template>
+        </xsl:if>
     </xsl:template>
 
     <xsl:template name="onServiceLoad">
@@ -909,6 +849,7 @@ WHERE
         <!-- add a bogus query parameter to give the RDF/XML document a different URL in the browser cache, otherwise it will clash with the HTML representation -->
         <!-- this is due to broken browser behavior re. Vary and conditional requests: https://stackoverflow.com/questions/60799116/firefox-if-none-match-headers-ignore-content-type-and-vary/60802443 -->
         <xsl:variable name="request-uri" select="ldh:href(ac:document-uri($uri), map{}, ())" as="xs:anyURI"/>
+        <xsl:message>ldh:RDFDocumentLoad uri: <xsl:value-of select="$uri"/> request-uri: <xsl:value-of select="$request-uri"/></xsl:message>
         <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
         <xsl:variable name="context" as="map(*)" select="
           map{
@@ -960,15 +901,15 @@ WHERE
 
         <xsl:variable name="href" select="$context('href')" as="xs:anyURI?"/> <!-- absolute URI! -->
         <xsl:variable name="service-uri" select="if (id('search-service', ixsl:page())) then xs:anyURI(ixsl:get(id('search-service', ixsl:page()), 'value')) else ()" as="xs:anyURI?"/>
-        <xsl:variable name="service" select="if ($service-uri) then key('resources', $service-uri, document(ac:build-uri(ac:document-uri($service-uri), map{ 'accept': 'application/rdf+xml' }))) else ()" as="element()?"/> <!-- TO-DO: refactor asynchronously -->
+        <xsl:variable name="service" select="if ($service-uri) then key('resources', $service-uri, document(ldh:href(ac:document-uri($service-uri), map{ 'accept': 'application/rdf+xml' }, ()))) else ()" as="element()?"/> <!-- TO-DO: refactor asynchronously -->
         <xsl:variable name="push-state" select="$context('push-state')" as="xs:boolean"/>
         <xsl:variable name="refresh-content" as="xs:boolean?"/>
         <xsl:variable name="response" select="$context('response')" as="map(*)"/>
 
         <!-- set #uri value -->
-        <xsl:for-each select="id('uri', ixsl:page())">
+<!--        <xsl:for-each select="id('uri', ixsl:page())">
             <ixsl:set-property name="value" select="if (not(starts-with($href, $ldt:base))) then $href else ()" object="."/>
-        </xsl:for-each>
+        </xsl:for-each>-->
         
         <xsl:for-each select="$response">
             <xsl:choose>
@@ -1186,11 +1127,19 @@ WHERE
                 <!-- external URI: LDH no longer proxies HTML requests (ProxyRequestFilter), so fetching XHTML
                      would just return the same app shell already loaded. Skip that round-trip and load RDF directly. -->
                 <xsl:when test="not(starts-with($uri, $ldt:base))">
+                    <!-- if the URI is external, set it in the address bar -->
+                    <xsl:if test="ac:uri()">
+                        <xsl:for-each select="id('uri', ixsl:page())">
+                            <ixsl:set-property name="value" select="ac:uri()" object="."/>
+                        </xsl:for-each>
+                    </xsl:if>
+                    
                     <xsl:call-template name="ldh:PushState">
                         <xsl:with-param name="href" select="$href"/>
                         <xsl:with-param name="title" select="()"/>
                         <xsl:with-param name="container" select="id($body-id, ixsl:page())"/>
                     </xsl:call-template>
+                    
                     <xsl:call-template name="ldh:RDFDocumentLoad">
                         <xsl:with-param name="uri" select="$uri"/>
                     </xsl:call-template>
@@ -1348,7 +1297,7 @@ WHERE
                 <xsl:variable name="query-json" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'parse', [ $query-json-string ])"/>
                 <xsl:variable name="query-string" select="ixsl:call(ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromQuery', [ $query-json ]), 'toString', [])" as="xs:string"/>
                 <xsl:variable name="service-uri" select="xs:anyURI(ixsl:get(id('search-service'), 'value'))" as="xs:anyURI?"/>
-                <xsl:variable name="service" select="if ($service-uri) then key('resources', $service-uri, document(ac:build-uri(ac:document-uri($service-uri), map{ 'accept': 'application/rdf+xml' }))) else ()" as="element()?"/> <!-- TO-DO: refactor asynchronously -->
+                <xsl:variable name="service" select="if ($service-uri) then key('resources', $service-uri, document(ldh:href(ac:document-uri($service-uri), map{ 'accept': 'application/rdf+xml' }, ()))) else ()" as="element()?"/> <!-- TO-DO: refactor asynchronously -->
                 <xsl:variable name="endpoint" select="($service/sd:endpoint/@rdf:resource/xs:anyURI(.), resolve-uri('sparql', $ldt:base))[1]" as="xs:anyURI"/>
                 <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': string($query-string) })" as="xs:anyURI"/>
                 <xsl:variable name="request-uri" select="ldh:href($results-uri, map{})" as="xs:anyURI"/>
@@ -1451,7 +1400,7 @@ WHERE
         <xsl:variable name="textarea-id" select="'query-string'" as="xs:string"/>
         <xsl:variable name="query" select="if (id($textarea-id, ixsl:page())) then ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.yasqe'), $textarea-id), 'getValue', []) else ()" as="xs:string?"/>
         <xsl:variable name="service-uri" select="if (id('query-service', ixsl:page())) then xs:anyURI(ixsl:get(id('query-service'), 'value')) else ()" as="xs:anyURI?"/>
-        <xsl:variable name="service" select="if ($service-uri) then key('resources', $service-uri, document(ac:build-uri(ac:document-uri($service-uri), map{ 'accept': 'application/rdf+xml' }))) else ()" as="element()?"/> <!-- TO-DO: refactor asynchronously -->
+        <xsl:variable name="service" select="if ($service-uri) then key('resources', $service-uri, document(ldh:href(ac:document-uri($service-uri), map{ 'accept': 'application/rdf+xml' }, ()))) else ()" as="element()?"/> <!-- TO-DO: refactor asynchronously -->
         <xsl:variable name="endpoint" select="($service/sd:endpoint/@rdf:resource/xs:anyURI(.), resolve-uri('sparql', $ldt:base))[1]" as="xs:anyURI"/>
         <xsl:variable name="results-uri" select="if ($query) then ac:build-uri($endpoint, map{ 'query': $query }) else ()" as="xs:anyURI?"/>
         
@@ -1468,33 +1417,58 @@ WHERE
     </xsl:template>
     
     <!-- tab bar: click on a tab link to activate it -->
-    <xsl:template match="ul[@id = 'tab-bar-list']/li/a" mode="ixsl:onclick">
+    <xsl:template match="ul[@id = 'tab-bar-list']/li[not(contains-token(@class, 'active'))]/a" mode="ixsl:onclick">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
-        <!-- .. is the <li> which carries data-uri -->
+        <xsl:variable name="uri" select="xs:anyURI(ixsl:get(.., 'dataset.uri'))" as="xs:anyURI"/>
+        <xsl:message>tab click uri: <xsl:value-of select="$uri"/> href: <xsl:value-of select="ldh:href($uri)"/></xsl:message>
+        
         <xsl:apply-templates select=".." mode="ldh:ActivateTab"/>
+        
+        <xsl:call-template name="ldh:PushState">
+            <xsl:with-param name="href" select="ldh:href($uri)"/>
+            <xsl:with-param name="title" select="()"/>
+            <xsl:with-param name="container" select=".."/>
+        </xsl:call-template>
+        <xsl:call-template name="ldh:RDFDocumentLoad">
+            <xsl:with-param name="uri" select="$uri"/>
+        </xsl:call-template>
     </xsl:template>
 
     <!-- tab bar: click the × close button to remove a tab -->
     <!-- clicking the permanent local-document tab switches to #content-body -->
-    <xsl:template match="li[@id = 'tab-local']/a" mode="ixsl:onclick">
+<!--    <xsl:template match="ul[@id = 'tab-bar-list']/li[not(contains-token(@class, 'active'))]/a" mode="ixsl:onclick">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
-        <!-- deactivate all tab <li>s -->
+        <xsl:message>local tab click</xsl:message>
+         deactivate all tab <li>s 
         <xsl:for-each select="id('tab-bar-list', ixsl:page())/li">
             <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'remove', ['active'])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:for-each>
-        <!-- activate local tab <li> -->
+         activate local tab <li> 
         <xsl:sequence select="ixsl:call(ixsl:get(id('tab-local', ixsl:page()), 'classList'), 'add', ['active'])[current-date() lt xs:date('2000-01-01')]"/>
-        <!-- deactivate the external pane -->
+         deactivate the external pane 
         <xsl:for-each select="id('tab-content', ixsl:page())/div[contains-token(@class, 'content-body') and not(@id)]">
             <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'remove', ['active'])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:for-each>
-        <!-- activate #content-body -->
+         activate #content-body 
         <xsl:for-each select="id('content-body', ixsl:page())">
             <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'add', ['active'])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:for-each>
-        <!-- reset endpoint so sd:endpoint() falls back to local -->
+         reset endpoint so sd:endpoint() falls back to local 
         <ixsl:remove-property name="endpoint" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
-    </xsl:template>
+         push state: strip ?uri= from URL so ldh:base-uri() returns the local URI during rendering 
+        <xsl:variable name="local-uri" select="ac:absolute-path(ldh:request-uri())" as="xs:anyURI"/>
+        <xsl:call-template name="ldh:PushState">
+            <xsl:with-param name="href" select="ldh:href($local-uri)"/>
+            <xsl:with-param name="title" select="()"/>
+            <xsl:with-param name="container" select="id('content-body', ixsl:page())"/>
+        </xsl:call-template>
+         load local document RDF if not yet cached (happens when page was loaded with ?uri=) 
+        <xsl:if test="not(ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $local-uri || '`'))">
+            <xsl:call-template name="ldh:RDFDocumentLoad">
+                <xsl:with-param name="uri" select="$local-uri"/>
+            </xsl:call-template>
+        </xsl:if>
+    </xsl:template>-->
 
     <xsl:template match="ul[@id = 'tab-bar-list']/li/span[contains-token(@class, 'tab-close')]" mode="ixsl:onclick">
         <xsl:variable name="tab-li" select=".." as="element()"/>
@@ -1503,8 +1477,6 @@ WHERE
 
         <!-- remove the tab <li> from the DOM -->
         <xsl:sequence select="ixsl:call($tab-li, 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
-        <!-- remove from tabs registry -->
-        <ixsl:remove-property name="{'`' || $uri || '`'}" object="ixsl:get(ixsl:window(), 'LinkedDataHub.tabs')"/>
 
         <!-- remaining external tabs only (excludes the permanent local tab) -->
         <xsl:variable name="remaining-external" select="id('tab-bar-list', ixsl:page())/li[not(@id = 'tab-local')]" as="element()*"/>
@@ -1526,8 +1498,11 @@ WHERE
                 <ixsl:remove-property name="endpoint" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
             </xsl:when>
             <xsl:when test="$was-active">
-                <!-- closed tab was active: re-render #external-pane for the last remaining external tab -->
                 <xsl:apply-templates select="$remaining-external[last()]" mode="ldh:ActivateTab"/>
+                
+                <xsl:call-template name="ldh:RDFDocumentLoad">
+                    <xsl:with-param name="uri" select="xs:anyURI(ixsl:get($remaining-external[last()], 'dataset.uri'))"/>
+                </xsl:call-template>
             </xsl:when>
         </xsl:choose>
     </xsl:template>
