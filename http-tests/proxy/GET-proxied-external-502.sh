@@ -19,6 +19,7 @@ add-agent-to-group.sh \
 
 curl -k -w "%{http_code}\n" -o /dev/null -s \
   -G \
+  -H "Accept: application/n-triples" \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
   --data-urlencode "uri=http://f1d2d4cf-90bb-4f5b-ae4b-921e584b6edd.org" \
   "$END_USER_BASE_URL" \

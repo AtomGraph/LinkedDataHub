@@ -84,15 +84,13 @@ import org.slf4j.LoggerFactory;
  * ACL is not checked for proxy requests: the proxy is a global transport function, not a document
  * operation. Access control is enforced by the target endpoint.
  * <p>
- * This filter intentionally does <em>not</em> proxy requests from clients that explicitly accept
- * (X)HTML. Rendering arbitrary external URIs as (X)HTML through the full server-side pipeline
- * (SPARQL DESCRIBE + XSLT) for every browser-originated proxy request would cause unbounded resource
- * exhaustion — a connection-pool and CPU amplification attack vector. Instead, requests whose
- * {@code Accept} header contains a non-wildcard {@code text/html} or {@code application/xhtml+xml}
- * type fall through to the downstream handler, which serves the LDH application shell; the
- * client-side Saxon-JS layer then issues a second, RDF-typed request that <em>does</em> hit this
- * filter and is handled cheaply. Pure API clients that send only {@code *}{@code /*} (e.g. curl)
- * reach the proxy because they do not list an explicit HTML type.
+ * This filter rejects with {@link jakarta.ws.rs.NotAcceptableException} any request for which
+ * content negotiation selects an (X)HTML variant. Rendering arbitrary external URIs as (X)HTML
+ * through the full server-side pipeline (SPARQL DESCRIBE + XSLT) for every browser-originated
+ * proxy request would cause unbounded resource exhaustion — a connection-pool and CPU amplification
+ * attack vector. Browsers receive the LDH application shell from the downstream handler instead;
+ * the client-side Saxon-JS layer then issues a second, RDF-typed request that hits this filter and
+ * is proxied cheaply.
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
@@ -118,7 +116,6 @@ public class ProxyRequestFilter implements ContainerRequestFilter
         URI targetURI = targetOpt.get();
 
         // negotiate the response format from RDF/SPARQL writable types
-        // skip filter if (X)HTML is the selected variant - we don't offer it for proxied responses
         List<MediaType> writableTypes = new ArrayList<>(getMediaTypes().getWritable(Model.class));
         writableTypes.addAll(getMediaTypes().getWritable(ResultSet.class));
         List<Variant> variants = com.atomgraph.core.model.impl.Response.getVariants(
@@ -127,14 +124,15 @@ public class ProxyRequestFilter implements ContainerRequestFilter
             new ArrayList<>());
         
         Variant variant = getRequest().selectVariant(variants);
-        if (variant == null)
+        // (X)HTML is not offered for proxied documents — rendering external RDF as HTML server-side
+        // (SPARQL DESCRIBE + XSLT) is expensive and creates a resource-exhaustion attack vector
+        if (variant == null ||
+            variant.getMediaType().isCompatible(MediaType.TEXT_HTML_TYPE) ||
+            variant.getMediaType().isCompatible(MediaType.APPLICATION_XHTML_XML_TYPE))
         {
             if (log.isTraceEnabled()) log.trace("Requested Variant {} is not on the list of acceptable Response Variants: {}", variant, variants);
             throw new NotAcceptableException();
         }
-
-        if (variant.getMediaType().isCompatible(MediaType.TEXT_HTML_TYPE) ||
-            variant.getMediaType().isCompatible(MediaType.APPLICATION_XHTML_XML_TYPE)) return;
 
         // strip #fragment (servers do not receive fragment identifiers)
         if (targetURI.getFragment() != null)
@@ -379,8 +377,7 @@ public class ProxyRequestFilter implements ContainerRequestFilter
     }
 
     /**
-     * Returns the media types registry.
-     * Core MediaTypes do not include (X)HTML types, which is what we want here.
+     * Returns the media types registry used for content negotiation and outbound {@code Accept} headers.
      *
      * @return media types
      */
