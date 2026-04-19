@@ -557,61 +557,33 @@ WHERE
                         <ixsl:set-property name="etag" select="$etag" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $uri || '`')"/>
 
                         <xsl:variable name="tab-pane" select="id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')][./div[contains-token(@class, 'content-body')]/@about = $uri]" as="element()?"/>
-                        <xsl:message>$tab-pane? <xsl:value-of select="exists($tab-pane)"/></xsl:message>
-
-                        <xsl:message>
-                            A <xsl:value-of select="exists(id('tab-content', ixsl:page()))"/>
-                            B <xsl:value-of select="exists(id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')])"/>
-                            C <xsl:value-of select="exists(id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')][./div[contains-token(@class, 'content-body')]])"/>
-                            D <xsl:value-of select="exists(id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')][./div[contains-token(@class, 'content-body')]/@about = $uri])"/>
-                        </xsl:message>
-                        
-                        <xsl:variable name="tab-pane" select="id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')][./div[contains-token(@class, 'content-body')]/@about = $uri]" as="element()?"/>
-                        <xsl:message>
-                            tab-pane/@id: <xsl:value-of select="$tab-pane/@id"/>
-                        </xsl:message>
-                        <xsl:variable name="mode" select="ac:mode($results)" as="xs:anyURI"/>
-                        <xsl:message>ac:mode uri: <xsl:value-of select="$uri"/></xsl:message>
-                        
+                        <xsl:variable name="mode" select="ac:mode($results)" as="xs:anyURI"/>                        
                         <xsl:variable name="tab-body" as="element()">
                             <xsl:apply-templates select="$results/rdf:RDF" mode="bs2:TabBody">
                                 <xsl:with-param name="mode" select="$mode"/>
                             </xsl:apply-templates>
                         </xsl:variable>
 
-                        <xsl:choose>
-                            <!-- no tab yet: create tab for the external document -->
-                            <xsl:when test="not(starts-with($uri, $ldt:base)) and not($tab-pane)">
-                                <xsl:message>ldh:AddTabNavBarListItem</xsl:message>
+                        <!-- no tab yet: create tab for the external document -->
+                        <xsl:if test="not(starts-with($uri, $ldt:base)) and not($tab-pane)">
+                            <xsl:message>ldh:AddTabNavBarListItem</xsl:message>
 
-                                <xsl:call-template name="ldh:AddTabNavBarListItem">
-                                    <xsl:with-param name="uri" select="$uri"/>
-                                    <xsl:with-param name="label" select="ac:label(key('resources', $uri, $results))"/>
-                                    <xsl:with-param name="endpoint" select="$endpoint"/>
-                                </xsl:call-template>
-                            
-                                <xsl:variable name="local-tab-pane" select="id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')][./div[contains-token(@class, 'content-body')]/@about = ac:absolute-path(ldh:request-uri())]" as="element()"/>
-                                <ixsl:set-style name="display" select="'none'" object="$local-tab-pane"/>
-                                
-                                <xsl:message>CREATE EXTERNAL TAB PANE</xsl:message>
-                                <!-- create external pane for this URI if it doesn't exist yet (scales to N panes, one per URI) -->
-                                <xsl:result-document href="#tab-content" method="ixsl:append-content">
-                                    <xsl:sequence select="$tab-body"/>
-                                </xsl:result-document>
-                            </xsl:when>
-                            <xsl:otherwise>
-                                <xsl:message>RE-RENDER CURRENT TAB PANE</xsl:message>
+                            <xsl:call-template name="ldh:AddTabNavBarListItem">
+                                <xsl:with-param name="uri" select="$uri"/>
+                                <xsl:with-param name="label" select="ac:label(key('resources', $uri, $results))"/>
+                                <xsl:with-param name="endpoint" select="$endpoint"/>
+                            </xsl:call-template>
 
-                                <!-- re-render current tab pane -->
-                                <xsl:for-each select="$tab-pane">
-                                    <xsl:result-document href="?." method="ixsl:replace-content">
-                                        <xsl:sequence select="$tab-body/*"/>
-                                    </xsl:result-document>
-                                </xsl:for-each>
-                            </xsl:otherwise>
-                        </xsl:choose>
+                            <xsl:variable name="local-tab-pane" select="id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')][./div[contains-token(@class, 'content-body')]/@about = ac:absolute-path(ldh:request-uri())]" as="element()"/>
+                            <ixsl:set-style name="display" select="'none'" object="$local-tab-pane"/>
+
+                            <xsl:message>CREATE EXTERNAL TAB PANE</xsl:message>
+                            <!-- create external pane for this URI if it doesn't exist yet (scales to N panes, one per URI) -->
+                            <xsl:result-document href="#tab-content" method="ixsl:append-content">
+                                <xsl:sequence select="$tab-body"/>
+                            </xsl:result-document>
+                        </xsl:if>
         
-                        <xsl:message>ldh:RenderTab uri: <xsl:value-of select="$uri"/></xsl:message>
                         <xsl:call-template name="ldh:RenderTab">
                             <xsl:with-param name="tab-pane-id" select="if ($tab-pane) then $tab-pane/@id else $tab-body/@id"/>
                             <xsl:with-param name="uri" select="$uri"/>
