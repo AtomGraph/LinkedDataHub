@@ -1004,7 +1004,7 @@ LIMIT   10
 
         <xsl:for-each select="$content-body">
             <xsl:result-document href="?." method="ixsl:append-content">
-                <div class="modal modal-constructor fade in" about="{$lapp:application}">
+                <div class="modal modal-constructor fade in" about="{lapp:application()}">
                     <xsl:if test="$id">
                         <xsl:attribute name="id" select="$id"/>
                     </xsl:if>
@@ -1032,7 +1032,7 @@ LIMIT   10
           map{
             'request': $request,
             'block': $block,
-            'about': $lapp:application,
+            'about': lapp:application(),
             'method': $method,
             'action': resolve-uri('settings', ldt:base())
           }"/>

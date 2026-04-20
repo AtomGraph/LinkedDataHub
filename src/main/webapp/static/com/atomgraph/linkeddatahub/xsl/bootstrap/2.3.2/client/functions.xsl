@@ -80,26 +80,19 @@ exclude-result-prefixes="#all"
     </xsl:function>
     
     <xsl:function name="sd:endpoint" as="xs:anyURI">
-        <!-- check for an active tab with a known endpoint; data-endpoint is on the <li> -->
         <xsl:variable name="active-tab-li" select="id('tab-bar-list', ixsl:page())/li[contains-token(@class, 'active')]" as="element()?"/>
-        <xsl:variable name="tab-endpoint" select="
-            if ($active-tab-li and ixsl:contains($active-tab-li, 'dataset.endpoint'))
-            then xs:anyURI(ixsl:get($active-tab-li, 'dataset.endpoint'))
-            else ()" as="xs:anyURI?"/>
-        <!-- priority: active tab endpoint > global LinkedDataHub.endpoint > local SPARQL -->
-        <xsl:sequence select="(
-            $tab-endpoint,
-            if (ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub'), 'endpoint'))
-                then xs:anyURI(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), 'endpoint'))
-                else (),
-            resolve-uri('sparql', ldt:base())
-        )[1]"/>
+        <xsl:sequence select="if ($active-tab-li) then xs:anyURI(ixsl:get($active-tab-li, 'dataset.endpoint')) else resolve-uri('sparql', ldt:base())"/>
+    </xsl:function>
+
+    <xsl:function name="lapp:application" as="xs:anyURI?">
+        <xsl:variable name="active-tab-li" select="id('tab-bar-list', ixsl:page())/li[contains-token(@class, 'active')]" as="element()?"/>
+        <xsl:sequence select="if ($active-tab-li) then xs:anyURI(ixsl:get($active-tab-li, 'dataset.application')) else ()"/>
     </xsl:function>
     
     <xsl:function name="ldh:query-type" as="xs:string?">
         <xsl:param name="query-string" as="xs:string"/>
         
-        <xsl:sequence xmlns:fn="http://www.w3.org/2005/xpath-functions" select="analyze-string($query-string, '[^a-zA-Z]?(SELECT|ASK|DESCRIBE|CONSTRUCT)[^a-zA-Z]', 'i')/fn:match[1]/fn:group[@nr = '1']/string() => upper-case()"/>
+        <xsl:sequence select="analyze-string($query-string, '[^a-zA-Z]?(SELECT|ASK|DESCRIBE|CONSTRUCT)[^a-zA-Z]', 'i')/fn:match[1]/fn:group[@nr = '1']/string() => upper-case()"/>
     </xsl:function>
 
     <xsl:function name="ldh:new-object">

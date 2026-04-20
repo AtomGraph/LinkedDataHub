@@ -13,6 +13,7 @@
     <!ENTITY srx    "http://www.w3.org/2005/sparql-results#">
     <!ENTITY http   "http://www.w3.org/2011/http#">
     <!ENTITY acl    "http://www.w3.org/ns/auth/acl#">
+    <!ENTITY sd     "http://www.w3.org/ns/sparql-service-description#">
     <!ENTITY ldt    "https://www.w3.org/ns/ldt#">
     <!ENTITY dh     "https://www.w3.org/ns/ldt/document-hierarchy#">
     <!ENTITY sh     "http://www.w3.org/ns/shacl#">
@@ -39,6 +40,7 @@ xmlns:xsd="&xsd;"
 xmlns:srx="&srx;"
 xmlns:http="&http;"
 xmlns:acl="&acl;"
+xmlns:sd="&sd;"
 xmlns:ldt="&ldt;"
 xmlns:sh="&sh;"
 xmlns:sp="&sp;"
@@ -117,6 +119,14 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="base-uri($arg)"/>
     </xsl:function>
       
+    <xsl:function name="ldt:base" as="xs:anyURI">
+        <xsl:sequence select="$ldt:base"/>
+    </xsl:function>
+
+    <xsl:function name="sd:endpoint" as="xs:anyURI">
+        <xsl:sequence select="resolve-uri('sparql', ldt:base())"/>
+    </xsl:function>    
+    
     <xsl:function name="ldh:href" as="xs:anyURI">
         <xsl:param name="uri" as="xs:anyURI?"/>
         
@@ -137,7 +147,7 @@ exclude-result-prefixes="#all"
         
         <xsl:choose>
             <!-- proxy URI - internal ones (relative to application's base URI) will be rewritten as absolute path in ApplicationFilter -->
-            <xsl:when test="$uri and not(starts-with($uri, $ldt:base))">
+            <xsl:when test="$uri and not(starts-with($uri, ldt:base()))">
                 <xsl:sequence select="xs:anyURI(ac:build-uri(ac:absolute-path(ldh:request-uri()), map:merge((map{ 'uri': string($uri) }, $query-params))) || (if ($fragment) then ('#' || $fragment) else ()))"/>
             </xsl:when>
             <!-- local URI -->
@@ -199,7 +209,7 @@ exclude-result-prefixes="#all"
     
     <xsl:function name="ldh:construct-forClass" as="document-node()" cache="yes">
         <xsl:param name="forClass" as="xs:anyURI+"/>
-        <xsl:variable name="results-uri" select="ac:build-uri(resolve-uri('ns', $ldt:base), map{ 'forClass': for $class in $forClass return string($class), 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
+        <xsl:variable name="results-uri" select="ac:build-uri(resolve-uri('ns', ldt:base()), map{ 'forClass': for $class in $forClass return string($class), 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
         <xsl:variable name="request-uri" select="ldh:href($results-uri, map{})" as="xs:anyURI"/>
             
         <xsl:sequence select="document($request-uri)"/>
@@ -524,7 +534,7 @@ exclude-result-prefixes="#all"
     <!-- subject resource -->
     <xsl:template match="@rdf:about" mode="xhtml:Anchor">
 <!--        <xsl:param name="graph" as="xs:anyURI?" tunnel="yes"/>-->
-        <xsl:param name="fragment" select="if (starts-with(., $ldt:base)) then (if (contains(., '#')) then substring-after(., '#') else ()) else encode-for-uri(.)" as="xs:string?"/>
+        <xsl:param name="fragment" select="if (starts-with(., ldt:base())) then (if (contains(., '#')) then substring-after(., '#') else ()) else encode-for-uri(.)" as="xs:string?"/>
         <xsl:param name="href" select="ldh:href(xs:anyURI(.), map{}, $fragment)" as="xs:anyURI"/>
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="title" select="." as="xs:string?"/>
@@ -535,13 +545,13 @@ exclude-result-prefixes="#all"
             <xsl:with-param name="href" select="$href"/>
             <xsl:with-param name="id" select="$id"/>
             <xsl:with-param name="title" select="$title"/>
-            <xsl:with-param name="class" select="$class || (if (not(starts-with(., $ldt:base))) then ' external' else())"/>
+            <xsl:with-param name="class" select="$class || (if (not(starts-with(., ldt:base()))) then ' external' else())"/>
             <xsl:with-param name="target" select="$target"/>
         </xsl:next-match>
     </xsl:template>
     
     <xsl:template match="@rdf:about | @rdf:resource" mode="svg:Anchor">
-        <xsl:param name="fragment" select="if (starts-with(., $ldt:base)) then (if (contains(., '#')) then substring-after(., '#') else ()) else encode-for-uri(.)" as="xs:string?"/>
+        <xsl:param name="fragment" select="if (starts-with(., ldt:base())) then (if (contains(., '#')) then substring-after(., '#') else ()) else encode-for-uri(.)" as="xs:string?"/>
         <xsl:param name="href" select="ldh:href(xs:anyURI(.), map{}, $fragment)" as="xs:anyURI"/>
         <xsl:param name="id" select="$fragment" as="xs:string?"/>
         <xsl:param name="label" select="if (parent::rdf:Description) then ac:svg-label(..) else ac:svg-object-label(.)" as="xs:string"/>
@@ -554,7 +564,7 @@ exclude-result-prefixes="#all"
             <xsl:with-param name="id" select="$id"/>
             <xsl:with-param name="label" select="$label"/>
             <xsl:with-param name="title" select="$title"/>
-            <xsl:with-param name="class" select="$class || (if (not(starts-with(., $ldt:base))) then ' external' else())"/>
+            <xsl:with-param name="class" select="$class || (if (not(starts-with(., ldt:base()))) then ' external' else())"/>
             <xsl:with-param name="target" select="$target"/>
         </xsl:next-match>
     </xsl:template>
@@ -563,7 +573,7 @@ exclude-result-prefixes="#all"
 
     <!-- proxy link URIs if they are external -->
     <xsl:template match="@rdf:resource | srx:uri" priority="2">
-        <xsl:param name="fragment" select="if (starts-with(., $ldt:base)) then (if (contains(., '#')) then substring-after(., '#') else ()) else encode-for-uri(.)" as="xs:string?"/>
+        <xsl:param name="fragment" select="if (starts-with(., ldt:base())) then (if (contains(., '#')) then substring-after(., '#') else ()) else encode-for-uri(.)" as="xs:string?"/>
         <xsl:param name="href" select="ldh:href(xs:anyURI(.), map{}, $fragment)" as="xs:anyURI"/>
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="title" select="." as="xs:string?"/>
@@ -574,7 +584,7 @@ exclude-result-prefixes="#all"
             <xsl:with-param name="href" select="$href"/>
             <xsl:with-param name="id" select="$id"/>
             <xsl:with-param name="title" select="$title"/>
-            <xsl:with-param name="class" select="$class || (if (not(starts-with(., $ldt:base))) then ' external' else())"/>
+            <xsl:with-param name="class" select="$class || (if (not(starts-with(., ldt:base()))) then ' external' else())"/>
             <xsl:with-param name="target" select="$target"/>
         </xsl:next-match>
     </xsl:template>
