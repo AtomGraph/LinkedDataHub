@@ -84,13 +84,14 @@ import org.slf4j.LoggerFactory;
  * ACL is not checked for proxy requests: the proxy is a global transport function, not a document
  * operation. Access control is enforced by the target endpoint.
  * <p>
- * This filter rejects with {@link jakarta.ws.rs.NotAcceptableException} any request for which
- * content negotiation selects an (X)HTML variant. Rendering arbitrary external URIs as (X)HTML
- * through the full server-side pipeline (SPARQL DESCRIBE + XSLT) for every browser-originated
- * proxy request would cause unbounded resource exhaustion — a connection-pool and CPU amplification
- * attack vector. Browsers receive the LDH application shell from the downstream handler instead;
- * the client-side Saxon-JS layer then issues a second, RDF-typed request that hits this filter and
- * is proxied cheaply.
+ * This filter does <em>not</em> proxy requests from clients that explicitly accept (X)HTML.
+ * Rendering arbitrary external URIs as (X)HTML through the full server-side pipeline
+ * (SPARQL DESCRIBE + XSLT) is expensive and creates a resource-exhaustion attack vector.
+ * When the {@code Accept} header contains a non-wildcard {@code text/html} or
+ * {@code application/xhtml+xml} type, the filter returns immediately so the downstream handler
+ * serves the LDH application shell; the client-side Saxon-JS layer then issues a second, RDF-typed
+ * request that hits this filter and is proxied cheaply. Pure API clients that send only
+ * {@code *}{@code /*} (e.g. curl) reach the proxy because they do not list an explicit HTML type.
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
@@ -115,20 +116,30 @@ public class ProxyRequestFilter implements ContainerRequestFilter
 
         URI targetURI = targetOpt.get();
 
-        // negotiate the response format from RDF/SPARQL writable types
+        // do not proxy requests from clients that explicitly accept (X)HTML — they expect the app
+        // shell, which the downstream handler serves. Browsers list text/html as a non-wildcard type;
+        // pure API clients (curl etc.) send only */* and must reach the proxy.
+        // (X)HTML is not offered for proxied documents — rendering external RDF as HTML server-side
+        // (SPARQL DESCRIBE + XSLT) is expensive and creates a resource-exhaustion attack vector
+        boolean clientAcceptsHtml = requestContext.getAcceptableMediaTypes().stream()
+            .anyMatch(mt -> !mt.isWildcardType() && !mt.isWildcardSubtype() &&
+                      (mt.isCompatible(MediaType.TEXT_HTML_TYPE) ||
+                       mt.isCompatible(MediaType.APPLICATION_XHTML_XML_TYPE)));
+        if (clientAcceptsHtml) return;
+
+        // negotiate the response format from RDF/SPARQL writable types only
+        // (client.MediaTypes prepends HTML/XHTML; strip them so selectVariant cannot pick them)
         List<MediaType> writableTypes = new ArrayList<>(getMediaTypes().getWritable(Model.class));
         writableTypes.addAll(getMediaTypes().getWritable(ResultSet.class));
+        writableTypes.removeIf(mt -> mt.isCompatible(MediaType.TEXT_HTML_TYPE) ||
+            mt.isCompatible(MediaType.APPLICATION_XHTML_XML_TYPE));
         List<Variant> variants = com.atomgraph.core.model.impl.Response.getVariants(
             writableTypes,
             getSystem().getSupportedLanguages(),
             new ArrayList<>());
-        
+
         Variant variant = getRequest().selectVariant(variants);
-        // (X)HTML is not offered for proxied documents — rendering external RDF as HTML server-side
-        // (SPARQL DESCRIBE + XSLT) is expensive and creates a resource-exhaustion attack vector
-        if (variant == null ||
-            variant.getMediaType().isCompatible(MediaType.TEXT_HTML_TYPE) ||
-            variant.getMediaType().isCompatible(MediaType.APPLICATION_XHTML_XML_TYPE))
+        if (variant == null)
         {
             if (log.isTraceEnabled()) log.trace("Requested Variant {} is not on the list of acceptable Response Variants: {}", variant, variants);
             throw new NotAcceptableException();
