@@ -118,7 +118,7 @@ li button.btn-edit-constructors, li button.btn-add-data, li button.btn-add-ontol
 .caret.caret-reversed { border-bottom: 4px solid #000000; border-top-width: 0; }
 .faceted-nav input[type=checkbox]:checked + span { font-weight: bold; }
 .parallax-nav a { cursor: pointer; }
-.content-body { min-height: calc(100% - 14em); }
+.content-body { min-height: calc(100% - 14em); margin-top: 14px; }
 .content-body > [about].row-fluid.block { overflow-x: auto; margin-bottom: 20px; }
 .content-body > [about].row-fluid.block, .constructor-triple.row-fluid { border-bottom: 2px solid rgb(223, 223, 223); }
 .content-body > [about].row-fluid.block.drag-over { border-bottom: 4px dotted #0f82f5; }
