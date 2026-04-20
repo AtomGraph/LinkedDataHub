@@ -80,9 +80,18 @@ find ./document-hierarchy/ -name '*.sh' -exec bash {} \;
 - `ServiceContext` decouples HTTP infrastructure from `Service`, holding dataspace and service metadata separately
 - Dataspace metadata and service metadata are split in configuration; types for `lapp:endUserApplication`/`lapp:adminApplication` are inferred on the fly from `system.trig`
 
+### Dataspaces
+Since v5.1.0, a single LDH instance supports multiple **dataspaces**, each identified by a distinct subdomain (origin). Each dataspace is a pair of applications: an end-user app (`<subdomain>`) and an admin app (`admin.<subdomain>`), routed by nginx via wildcard subdomain matching.
+
+Configuration is split across two files:
+- `config/dataspaces.trig` — public metadata: origins (`lapp:origin`), ontologies (`ldt:ontology`), stylesheets (`ac:stylesheet`)
+- `config/system.trig` — internal wiring: maps apps to SPARQL services (`ldt:service`) and assigns types (`lapp:AdminApplication`/`lapp:EndUserApplication`)
+
+Multiple dataspaces can share the same backend SPARQL service.
+
 ### Service Architecture
 The application runs as a multi-container setup:
-- **nginx**: Reverse proxy and SSL termination
+- **nginx**: Reverse proxy and SSL termination (wildcard subdomain routing for dataspaces)
 - **linkeddatahub**: Main Java application (Tomcat)
 - **fuseki-admin/fuseki-end-user**: Separate SPARQL stores
 - **varnish-frontend/varnish-admin/varnish-end-user**: Caching layers

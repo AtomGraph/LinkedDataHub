@@ -153,7 +153,13 @@ The following tools are required for CLI scripts in the `bin/` directory:
 
   ### Dataspaces
 
-  Dataspaces are configured in [`config/system.trig`](https://github.com/AtomGraph/LinkedDataHub/blob/master/config/system.trig). Relative URIs will be resolved against the base URI configured in the `.env` file.
+  Since version 5.1.0, a single LinkedDataHub instance supports multiple **dataspaces**, each identified by a distinct subdomain (origin). Each dataspace consists of a pair of applications: an end-user app (e.g. `https://northwind-traders.demo.localhost:4443`) and an admin app on the `admin.` subdomain (e.g. `https://admin.northwind-traders.demo.localhost:4443`).
+
+  Dataspace configuration is split across two files:
+  - [`config/dataspaces.trig`](https://github.com/AtomGraph/LinkedDataHub/blob/master/config/dataspaces.trig) — public metadata: origins (`lapp:origin`), ontologies, stylesheets
+  - [`config/system.trig`](https://github.com/AtomGraph/LinkedDataHub/blob/master/config/system.trig) — internal wiring: SPARQL service bindings and application types (`lapp:AdminApplication`/`lapp:EndUserApplication`)
+
+  To add a new dataspace, add corresponding entries to both files. Relative URIs will be resolved against the base URI configured in the `.env` file.
 
 _:warning: Do not use blank nodes to identify applications or services. We recommend using the `urn:` URI scheme, since LinkedDataHub application resources are not accessible under their own dataspace._
 
