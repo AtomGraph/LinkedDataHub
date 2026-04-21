@@ -444,23 +444,13 @@ exclude-result-prefixes="#all">
                                 SaxonJS.getResource({text: content, type: "xml"})
                             )
                         );
-                        const servicesRequestUri = "]]></xsl:text><xsl:value-of select="$app-request-uri"/><xsl:text disable-output-escaping="yes"><![CDATA[";
                         const stylesheetParams = {
                             "Q{https://w3id.org/atomgraph/client#}contextUri": contextUri, // servlet context URI
-                            "Q{http://www.w3.org/ns/auth/acl#}agent": agentUri,
-                            "Q{}app-request-uri": servicesRequestUri
+                            "Q{http://www.w3.org/ns/auth/acl#}agent": agentUri
                             };
                         
                         SaxonJS.setConfigurationProperty("nativeGetElementById", true);
-                        getResourceWithRetry(servicesRequestUri, { "Accept": "application/rdf+xml" }).then(content => 
-                            SaxonJS.getResource({text: content, type: "xml"})
-                        ).
-                            then(resource => {
-                                stylesheetParams["Q{https://w3id.org/atomgraph/linkeddatahub#}apps"] = resource;
-                                return Promise.all(docPromises);
-                            }, error => {
-                                return Promise.all(docPromises);
-                            }).
+                        Promise.all(docPromises).
                             then(resources => {
                                 const cache = {};
                                 for (var i = 0; i < resources.length; i++) {
@@ -529,23 +519,61 @@ exclude-result-prefixes="#all">
                         <span class="icon-bar"></span>
                     </button>
 
-                    <xsl:if test="$ldt:base">
-                        <xsl:if test="not($ldt:base = $ac:contextUri)">
-                            <a class="brand context" href="{ldh:parent-origin($ldt:base)}"/>
-                        </xsl:if>
-                    </xsl:if>
+                    <div id="collapsing-top-navbar" class="nav-collapse collapse">
+                        <div class="row-fluid">
+                            <xsl:apply-templates select="." mode="bs2:NavBarLeft"/>
 
-                    <xsl:apply-templates select="." mode="bs2:Brand"/>
+                            <xsl:apply-templates select="." mode="bs2:NavBarMain"/>
 
-                    <div id="collapsing-top-navbar" class="nav-collapse collapse" style="margin-left: 17%;">
-                        <xsl:if test="$ldh:ajaxRendering">
-                            <xsl:apply-templates select="." mode="bs2:SearchBar"/>
-                        </xsl:if>
-
-                        <xsl:apply-templates select="." mode="bs2:NavBarNavList"/>
+                            <xsl:apply-templates select="." mode="bs2:NavBarRight"/>
+                        </div>
                     </div>
                 </div>
             </div>
+        </div>
+    </xsl:template>
+
+    <xsl:template match="rdf:RDF | srx:sparql" mode="bs2:NavBarLeft">
+        <xsl:param name="class" select="'span2'" as="xs:string?"/>
+
+        <div>
+            <xsl:if test="$class">
+                <xsl:attribute name="class" select="$class"/>
+            </xsl:if>
+
+            <xsl:if test="$ldt:base">
+                <xsl:if test="not($ldt:base = $ac:contextUri)">
+                    <a class="brand context" href="{ldh:parent-origin($ldt:base)}"/>
+                </xsl:if>
+            </xsl:if>
+
+            <xsl:apply-templates select="." mode="bs2:Brand"/>
+        </div>
+    </xsl:template>
+
+    <xsl:template match="rdf:RDF | srx:sparql" mode="bs2:NavBarMain">
+        <xsl:param name="class" select="'span7'" as="xs:string?"/>
+
+        <div>
+            <xsl:if test="$class">
+                <xsl:attribute name="class" select="$class"/>
+            </xsl:if>
+
+            <xsl:if test="$ldh:ajaxRendering">
+                <xsl:apply-templates select="." mode="bs2:SearchBar"/>
+            </xsl:if>
+        </div>
+    </xsl:template>
+
+    <xsl:template match="rdf:RDF | srx:sparql" mode="bs2:NavBarRight">
+        <xsl:param name="class" select="'span3'" as="xs:string?"/>
+
+        <div>
+            <xsl:if test="$class">
+                <xsl:attribute name="class" select="$class"/>
+            </xsl:if>
+
+            <xsl:apply-templates select="." mode="bs2:NavBarNavList"/>
         </div>
     </xsl:template>
 
@@ -565,18 +593,8 @@ exclude-result-prefixes="#all">
     
     <!-- check if agent has access to the user endpoint by executing a dummy query ASK {} -->
     <xsl:template match="rdf:RDF[doc-available(resolve-uri('sparql?query=ASK%20%7B%7D', $ldt:base))] | srx:sparql[doc-available(resolve-uri('sparql?query=ASK%20%7B%7D', $ldt:base))]" mode="bs2:SearchBar" priority="1">
-        <form action="{ac:absolute-path(ldh:request-uri())}" method="get" class="navbar-form pull-left" accept-charset="UTF-8" title="{ac:label(key('resources', 'search-title', document('translations.rdf')))}">
-            <div class="input-append">
-                <select id="search-service" name="service">
-                    <option value="">
-                        <xsl:value-of>
-                            <xsl:text>[</xsl:text>
-                            <xsl:apply-templates select="key('resources', 'sparql-service', document('translations.rdf'))" mode="ac:label"/>
-                            <xsl:text>]</xsl:text>
-                        </xsl:value-of>
-                    </option>
-                </select>
-                
+        <form action="{ac:absolute-path(ldh:request-uri())}" method="get" class="navbar-form" accept-charset="UTF-8" title="{ac:label(key('resources', 'search-title', document('translations.rdf')))}">
+            <div>
                 <input type="text" id="uri" name="uri" class="input-xxlarge typeahead"/>
                 <!-- placeholder used by the client-side typeahead -->
                  <ul id="ul-{generate-id()}" class="search-typeahead typeahead dropdown-menu" style="display: none"/> 
