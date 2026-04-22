@@ -512,7 +512,7 @@ WHERE
 
                         <!-- no tab yet: create tab for the external document -->
                         <xsl:if test="not(starts-with($uri, ldt:base())) and not($tab-pane)">
-                            <xsl:message>ldh:AddTabNavBarListItem</xsl:message>
+                            <xsl:message>ldh:AddTabNavBarListItem $application: <xsl:value-of select="$application"/></xsl:message>
 
                             <xsl:call-template name="ldh:AddTabNavBarListItem">
                                 <xsl:with-param name="uri" select="$uri"/>
@@ -650,17 +650,19 @@ WHERE
 
         <!-- deactivate all tab <li>s -->
         <xsl:for-each select="id('tab-bar-list', ixsl:page())/li">
-            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'remove', ['active'])[current-date() lt xs:date('2000-01-01')]"/>
+            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'remove', [ 'active' ])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:for-each>
         <!-- activate this tab <li> -->
-        <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'add', ['active'])[current-date() lt xs:date('2000-01-01')]"/>
+        <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'add', [ 'active' ])[current-date() lt xs:date('2000-01-01')]"/>
 
-        <!-- deactivate all tab panes -->
+        <!-- deactivate and hide all tab panes -->
         <xsl:for-each select="id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')]">
+            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'remove', [ 'active' ])[current-date() lt xs:date('2000-01-01')]"/>
             <ixsl:set-style name="display" select="'none'" object="."/>
         </xsl:for-each>        
-        <!-- activate tab pane -->
+        <!-- activate and show tab pane -->
         <xsl:for-each select="id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')][./div[contains-token(@class, 'content-body')]/@about = $uri]">
+            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'add', [ 'active' ])[current-date() lt xs:date('2000-01-01')]"/>
             <ixsl:set-style name="display" select="'block'" object="."/>
         </xsl:for-each>
     </xsl:template>
@@ -1275,42 +1277,6 @@ WHERE
         </xsl:call-template>
     </xsl:template>
 
-    <!-- tab bar: click the × close button to remove a tab -->
-    <!-- clicking the permanent local-document tab switches to #content-body -->
-<!--    <xsl:template match="ul[@id = 'tab-bar-list']/li[not(contains-token(@class, 'active'))]/a" mode="ixsl:onclick">
-        <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
-        <xsl:message>local tab click</xsl:message>
-         deactivate all tab <li>s 
-        <xsl:for-each select="id('tab-bar-list', ixsl:page())/li">
-            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'remove', ['active'])[current-date() lt xs:date('2000-01-01')]"/>
-        </xsl:for-each>
-         activate local tab <li> 
-        <xsl:sequence select="ixsl:call(ixsl:get(id('tab-local', ixsl:page()), 'classList'), 'add', ['active'])[current-date() lt xs:date('2000-01-01')]"/>
-         deactivate the external pane 
-        <xsl:for-each select="id('tab-content', ixsl:page())/div[contains-token(@class, 'content-body') and not(@id)]">
-            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'remove', ['active'])[current-date() lt xs:date('2000-01-01')]"/>
-        </xsl:for-each>
-         activate #content-body 
-        <xsl:for-each select="id('content-body', ixsl:page())">
-            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'add', ['active'])[current-date() lt xs:date('2000-01-01')]"/>
-        </xsl:for-each>
-         reset endpoint so sd:endpoint() falls back to local 
-        <ixsl:remove-property name="endpoint" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
-         push state: strip ?uri= from URL so ldh:base-uri() returns the local URI during rendering 
-        <xsl:variable name="local-uri" select="ac:absolute-path(ldh:request-uri())" as="xs:anyURI"/>
-        <xsl:call-template name="ldh:PushState">
-            <xsl:with-param name="href" select="ldh:href($local-uri)"/>
-            <xsl:with-param name="title" select="()"/>
-            <xsl:with-param name="container" select="id('content-body', ixsl:page())"/>
-        </xsl:call-template>
-         load local document RDF if not yet cached (happens when page was loaded with ?uri=) 
-        <xsl:if test="not(ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $local-uri || '`'))">
-            <xsl:call-template name="ldh:RDFDocumentLoad">
-                <xsl:with-param name="uri" select="$local-uri"/>
-            </xsl:call-template>
-        </xsl:if>
-    </xsl:template>-->
-
     <xsl:template match="ul[@id = 'tab-bar-list']/li/span[contains-token(@class, 'tab-close')]" mode="ixsl:onclick">
         <xsl:variable name="tab-li" select=".." as="element()"/>
         <xsl:variable name="uri" select="ixsl:get($tab-li, 'dataset.uri')" as="xs:string"/>
@@ -1319,33 +1285,7 @@ WHERE
         <!-- remove the tab <li> from the DOM -->
         <xsl:sequence select="ixsl:call($tab-li, 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
 
-        <!-- remaining external tabs only (excludes the permanent local tab) -->
-        <xsl:variable name="remaining-external" select="id('tab-bar-list', ixsl:page())/li[not(@id = 'tab-local')]" as="element()*"/>
-        <xsl:choose>
-            <xsl:when test="empty($remaining-external)">
-                <!-- no external tabs left: remove external pane, local tab, hide tab bar -->
-                <xsl:for-each select="id('tab-content', ixsl:page())/div[contains-token(@class, 'content-body') and not(@id)]">
-                    <xsl:sequence select="ixsl:call(., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
-                </xsl:for-each>
-                <xsl:for-each select="id('tab-local', ixsl:page())">
-                    <xsl:sequence select="ixsl:call(., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
-                </xsl:for-each>
-                <ixsl:set-style name="display" select="'none'" object="id('tab-bar', ixsl:page())"/>
-                <xsl:sequence select="ixsl:call(ixsl:get(ixsl:page(), 'documentElement.style'), 'setProperty', ['--action-bar-top', '55px'])[current-date() lt xs:date('2000-01-01')]"/>
-                <!-- activate #content-body and reset endpoint -->
-                <xsl:for-each select="id('content-body', ixsl:page())">
-                    <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'add', ['active'])[current-date() lt xs:date('2000-01-01')]"/>
-                </xsl:for-each>
-                <ixsl:remove-property name="endpoint" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
-            </xsl:when>
-            <xsl:when test="$was-active">
-                <xsl:apply-templates select="$remaining-external[last()]" mode="ldh:ActivateTab"/>
-                
-                <xsl:call-template name="ldh:RDFDocumentLoad">
-                    <xsl:with-param name="uri" select="xs:anyURI(ixsl:get($remaining-external[last()], 'dataset.uri'))"/>
-                </xsl:call-template>
-            </xsl:when>
-        </xsl:choose>
+        <!-- TBD -->
     </xsl:template>
 
     <!-- file drop -->
