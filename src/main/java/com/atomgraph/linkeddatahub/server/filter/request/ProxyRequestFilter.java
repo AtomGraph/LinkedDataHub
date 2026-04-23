@@ -16,7 +16,7 @@
  */
 package com.atomgraph.linkeddatahub.server.filter.request;
 
-import com.atomgraph.core.MediaTypes;
+import com.atomgraph.client.MediaTypes;
 import com.atomgraph.client.util.HTMLMediaTypePredicate;
 import com.atomgraph.client.vocabulary.AC;
 import com.atomgraph.core.exception.BadGatewayException;
@@ -84,15 +84,14 @@ import org.slf4j.LoggerFactory;
  * ACL is not checked for proxy requests: the proxy is a global transport function, not a document
  * operation. Access control is enforced by the target endpoint.
  * <p>
- * This filter intentionally does <em>not</em> proxy requests from clients that explicitly accept
- * (X)HTML. Rendering arbitrary external URIs as (X)HTML through the full server-side pipeline
- * (SPARQL DESCRIBE + XSLT) for every browser-originated proxy request would cause unbounded resource
- * exhaustion — a connection-pool and CPU amplification attack vector. Instead, requests whose
- * {@code Accept} header contains a non-wildcard {@code text/html} or {@code application/xhtml+xml}
- * type fall through to the downstream handler, which serves the LDH application shell; the
- * client-side Saxon-JS layer then issues a second, RDF-typed request that <em>does</em> hit this
- * filter and is handled cheaply. Pure API clients that send only {@code *}{@code /*} (e.g. curl)
- * reach the proxy because they do not list an explicit HTML type.
+ * This filter does <em>not</em> proxy requests from clients that explicitly accept (X)HTML.
+ * Rendering arbitrary external URIs as (X)HTML through the full server-side pipeline
+ * (SPARQL DESCRIBE + XSLT) is expensive and creates a resource-exhaustion attack vector.
+ * When the {@code Accept} header contains a non-wildcard {@code text/html} or
+ * {@code application/xhtml+xml} type, the filter returns immediately so the downstream handler
+ * serves the LDH application shell; the client-side Saxon-JS layer then issues a second, RDF-typed
+ * request that hits this filter and is proxied cheaply. Pure API clients that send only
+ * {@code *}{@code /*} (e.g. curl) reach the proxy because they do not list an explicit HTML type.
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
@@ -102,11 +101,11 @@ public class ProxyRequestFilter implements ContainerRequestFilter
 {
 
     private static final Logger log = LoggerFactory.getLogger(ProxyRequestFilter.class);
-    private static final MediaTypes MEDIA_TYPES = new MediaTypes();
     private static final Pattern LINK_SPLITTER = Pattern.compile(",(?=\\s*<)");
 
     @Inject com.atomgraph.linkeddatahub.Application system;
     @Inject jakarta.inject.Provider<Optional<Ontology>> ontology;
+    @Inject MediaTypes mediaTypes;
     @Context Request request;
 
     @Override
@@ -117,26 +116,34 @@ public class ProxyRequestFilter implements ContainerRequestFilter
 
         URI targetURI = targetOpt.get();
 
-        // do not proxy requests from clients that explicitly accept (X)HTML — they expect the app shell,
-        // which the downstream handler serves. Browsers list text/html as a non-wildcard type; pure API
-        // clients (curl etc.) send only */* and must reach the proxy.
-        // Defending against resource exhaustion: proxying + full server-side XSLT rendering for arbitrary
-        // external URIs on every browser request would amplify CPU and connection-pool load unboundedly.
+        // do not proxy requests from clients that explicitly accept (X)HTML — they expect the app
+        // shell, which the downstream handler serves. Browsers list text/html as a non-wildcard type;
+        // pure API clients (curl etc.) send only */* and must reach the proxy.
+        // (X)HTML is not offered for proxied documents — rendering external RDF as HTML server-side
+        // (SPARQL DESCRIBE + XSLT) is expensive and creates a resource-exhaustion attack vector
         boolean clientAcceptsHtml = requestContext.getAcceptableMediaTypes().stream()
             .anyMatch(mt -> !mt.isWildcardType() && !mt.isWildcardSubtype() &&
                       (mt.isCompatible(MediaType.TEXT_HTML_TYPE) ||
                        mt.isCompatible(MediaType.APPLICATION_XHTML_XML_TYPE)));
         if (clientAcceptsHtml) return;
 
-        // negotiate the response format from RDF/SPARQL writable types
+        // negotiate the response format from RDF/SPARQL writable types only
+        // (client.MediaTypes prepends HTML/XHTML; strip them so selectVariant cannot pick them)
         List<MediaType> writableTypes = new ArrayList<>(getMediaTypes().getWritable(Model.class));
         writableTypes.addAll(getMediaTypes().getWritable(ResultSet.class));
+        writableTypes.removeIf(mt -> mt.isCompatible(MediaType.TEXT_HTML_TYPE) ||
+            mt.isCompatible(MediaType.APPLICATION_XHTML_XML_TYPE));
         List<Variant> variants = com.atomgraph.core.model.impl.Response.getVariants(
             writableTypes,
             getSystem().getSupportedLanguages(),
             new ArrayList<>());
-        Variant selectedVariant = getRequest().selectVariant(variants);
-        if (selectedVariant == null) return; // client accepts no RDF/SPARQL type
+
+        Variant variant = getRequest().selectVariant(variants);
+        if (variant == null)
+        {
+            if (log.isTraceEnabled()) log.trace("Requested Variant {} is not on the list of acceptable Response Variants: {}", variant, variants);
+            throw new NotAcceptableException();
+        }
 
         // strip #fragment (servers do not receive fragment identifiers)
         if (targetURI.getFragment() != null)
@@ -156,7 +163,7 @@ public class ProxyRequestFilter implements ContainerRequestFilter
         {
             if (log.isDebugEnabled()) log.debug("Serving mapped URI from DataManager cache: {}", targetURI);
             Model model = getSystem().getDataManager().loadModel(targetURI.toString());
-            requestContext.abortWith(getResponse(model, Response.Status.OK, selectedVariant));
+            requestContext.abortWith(getResponse(model, Response.Status.OK, variant));
             return;
         }
 
@@ -174,7 +181,7 @@ public class ProxyRequestFilter implements ContainerRequestFilter
                 if (!description.isEmpty())
                 {
                     if (log.isDebugEnabled()) log.debug("Serving URI from namespace ontology: {}", targetURI);
-                    requestContext.abortWith(getResponse(description, Response.Status.OK, selectedVariant));
+                    requestContext.abortWith(getResponse(description, Response.Status.OK, variant));
                     return;
                 }
             }
@@ -221,7 +228,7 @@ public class ProxyRequestFilter implements ContainerRequestFilter
             {
                 // provide the target URI as a base URI hint so ModelProvider / HtmlJsonLDReader can resolve relative references
                 clientResponse.getHeaders().putSingle(com.atomgraph.core.io.ModelProvider.REQUEST_URI_HEADER, targetURI.toString());
-                requestContext.abortWith(getResponse(clientResponse, selectedVariant));
+                requestContext.abortWith(getResponse(clientResponse, variant));
             }
         }
         catch (MessageBodyProviderNotFoundException ex)
@@ -381,14 +388,13 @@ public class ProxyRequestFilter implements ContainerRequestFilter
     }
 
     /**
-     * Returns the media types registry.
-     * Core MediaTypes do not include (X)HTML types, which is what we want here.
+     * Returns the media types registry used for content negotiation and outbound {@code Accept} headers.
      *
      * @return media types
      */
     public MediaTypes getMediaTypes()
     {
-        return MEDIA_TYPES;
+        return mediaTypes;
     }
 
     /**

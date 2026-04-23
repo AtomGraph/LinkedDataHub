@@ -47,7 +47,7 @@ xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
 exclude-result-prefixes="#all">
 
     <xsl:template match="rdf:RDF[ac:absolute-path(ldh:request-uri()) = resolve-uri(encode-for-uri('sign up'), $ldt:base)]" mode="bs2:ContentBody" priority="2" use-when="system-property('xsl:product-name') = 'SAXON'">
-        <div about="{ac:absolute-path(base-uri($main-doc))}" id="content-body" class="container-fluid">
+        <div about="{ac:absolute-path(base-uri($main-doc))}" class="container-fluid content-body">
             <xsl:apply-templates select="key('resources', ac:absolute-path(base-uri($main-doc)))" mode="ldh:ContentList"/>
 
             <xsl:apply-templates select="." mode="bs2:Row"/>

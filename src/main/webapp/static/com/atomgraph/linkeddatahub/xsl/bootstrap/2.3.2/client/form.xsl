@@ -233,36 +233,11 @@ WHERE
         </xsl:for-each>
     </xsl:template>
     
-<!--    <xsl:template name="bs2:AccessRequestComplete">
-        <xsl:context-item as="map(*)" use="required"/>
-        <xsl:param name="created-uri" select="?headers?location" as="xs:anyURI"/>
-
-        <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
-        
-        <xsl:for-each select="id('content-body', ixsl:page())">
-            <xsl:result-document href="?." method="ixsl:replace-content">
-                <div class="row-fluid">
-                    <div class="offset2 span7">
-                        <div class="alert alert-success row-fluid ">
-                            <div class="span1">
-                                <img src="{resolve-uri('static/com/atomgraph/linkeddatahub/icons/baseline_done_white_48dp.png', $ac:contextUri)}" alt="Request created"/>
-                            </div>
-                            <div class="span11">
-                                <p>Your access request has been created.</p>
-                                <p>You will be notified when the administrator approves or rejects it.</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </xsl:result-document>
-        </xsl:for-each>
-    </xsl:template>-->
-    
     <!-- EVENT HANDLERS -->
     
     <!-- enable inline editing form (do nothing if the button is disabled) -->
     
-    <xsl:template match="div[@about]//button[contains-token(@class, 'btn-edit')][not(contains-token(@class, 'disabled'))]" mode="ixsl:onclick">
+    <xsl:template match="div[contains-token(@class, 'block')][@about]//button[contains-token(@class, 'btn-edit')][not(contains-token(@class, 'disabled'))]" mode="ixsl:onclick">
         <xsl:param name="block" select="ancestor::div[contains-token(@class, 'block')][1]" as="element()"/>
         <xsl:param name="about" select="$block/@about" as="xs:anyURI"/>
 
@@ -907,7 +882,6 @@ WHERE
         <xsl:param name="method" select="'post'" as="xs:string"/>
         <xsl:param name="container" select="ancestor::div[contains-token(@class, 'row-fluid')][1]" as="element()"/>
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])[current-date() lt xs:date('2000-01-01')]"/>
-        <xsl:variable name="content-body" select="id('content-body', ixsl:page())" as="element()"/>
         <xsl:variable name="forClass" select="@data-for-class" as="xs:anyURI"/>
         <xsl:variable name="constructed-doc" select="ldh:construct-forClass($forClass)" as="document-node()"/>
         <xsl:variable name="doc-uri" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/>

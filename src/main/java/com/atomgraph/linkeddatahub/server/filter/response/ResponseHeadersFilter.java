@@ -26,6 +26,7 @@ import com.atomgraph.linkeddatahub.model.auth.Agent;
 import com.atomgraph.linkeddatahub.server.model.impl.Dispatcher;
 import com.atomgraph.linkeddatahub.server.security.AuthorizationContext;
 import com.atomgraph.linkeddatahub.vocabulary.ACL;
+import com.atomgraph.linkeddatahub.vocabulary.LAPP;
 import java.io.IOException;
 import java.net.URI;
 import java.util.Optional;
@@ -80,6 +81,8 @@ public class ResponseHeadersFilter implements ContainerResponseFilter
         if (!isProxyRequest && getApplication().isPresent())
         {
             Application application = getApplication().get();
+            // add Link rel=lapp:application
+            response.getHeaders().add(HttpHeaders.LINK, new Link(URI.create(application.getURI()), LAPP.application.getURI(), null));
             // add Link rel=ldt:ontology, if the ontology URI is specified
             if (application.getOntology() != null)
                 response.getHeaders().add(HttpHeaders.LINK, new Link(URI.create(application.getOntology().getURI()), LDT.ontology.getURI(), null));

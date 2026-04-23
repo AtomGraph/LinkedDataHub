@@ -154,14 +154,14 @@ LIMIT   10
                                     <button type="button" class="btn dropdown-toggle create-action"></button>
                                     <ul class="dropdown-menu">
                                         <li>
-                                            <button data-for-class="&dh;Container" href="{ldh:href(ac:absolute-path(ldh:base-uri(.)), ldh:query-params(xs:anyURI('&ac;ModalMode'), xs:anyURI('&dh;Container')))}" class="btn add-constructor" title="&dh;Container" id="{generate-id()}-remote-rdf-container">
+                                            <button data-for-class="&dh;Container" href="{ldh:href(ac:absolute-path(ldh:base-uri(.)), ldh:build-query(xs:anyURI('&ac;ModalMode'), xs:anyURI('&dh;Container')))}" class="btn add-constructor" title="&dh;Container" id="{generate-id()}-remote-rdf-container">
                                                 <xsl:value-of>
                                                     <xsl:apply-templates select="key('resources', '&dh;Container', document(ac:document-uri('&dh;')))" mode="ac:label"/>
                                                 </xsl:value-of>
                                             </button>
                                         </li>
                                         <li>
-                                            <button data-for-class="&dh;Item" href="{ldh:href(ac:absolute-path(ldh:base-uri(.)), ldh:query-params(xs:anyURI('&ac;ModalMode'), xs:anyURI('&dh;Item')))}" type="button" class="btn add-constructor" title="&dh;Item" id="{generate-id()}-remote-rdf-item">
+                                            <button data-for-class="&dh;Item" href="{ldh:href(ac:absolute-path(ldh:base-uri(.)), ldh:build-query(xs:anyURI('&ac;ModalMode'), xs:anyURI('&dh;Item')))}" type="button" class="btn add-constructor" title="&dh;Item" id="{generate-id()}-remote-rdf-item">
                                                 <xsl:value-of>
                                                     <xsl:apply-templates select="key('resources', '&dh;Item', document(ac:document-uri('&dh;')))" mode="ac:label"/>
                                                 </xsl:value-of>
@@ -728,7 +728,7 @@ LIMIT   10
     <!-- shows new SPIN-constructed document as a modal form -->
     <xsl:template match="div[contains-token(@class, 'action-bar')]//button[contains-token(@class, 'add-constructor')][@data-for-class]" mode="ixsl:onclick" priority="2">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])[current-date() lt xs:date('2000-01-01')]"/>
-        <xsl:variable name="content-body" select="id('content-body', ixsl:page())" as="element()"/>
+        <xsl:variable name="content-body" select="ancestor::div[contains-token(@class, 'content-body')][1]" as="element()"/>
         <xsl:variable name="forClass" select="@data-for-class" as="xs:anyURI"/>
         <xsl:variable name="constructed-doc" select="ldh:construct-forClass($forClass)" as="document-node()"/>
         <xsl:variable name="doc-uri" select="resolve-uri(ac:uuid() || '/', ac:absolute-path(ldh:base-uri(.)))" as="xs:anyURI"/> <!-- build a relative URI for the child document -->
@@ -802,12 +802,12 @@ LIMIT   10
     
     <!-- open a form for document editing -->
     
-    <xsl:template match="div[contains-token(@class, 'action-bar')]//button[contains-token(@class, 'btn-edit')]" mode="ixsl:onclick">
+    <xsl:template match="div[contains-token(@class, 'action-bar')]//button[contains-token(@class, 'btn-edit')][not(contains-token(@class, 'disabled'))]" mode="ixsl:onclick">
         <xsl:param name="about" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/> <!-- editing the current document resources -->
         <xsl:param name="method" select="'patch'" as="xs:string"/>
         <xsl:param name="form-actions-class" select="'form-actions modal-footer'" as="xs:string?"/>
         <xsl:param name="button-class" select="'btn btn-primary wymupdate'" as="xs:string?"/>
-        <xsl:variable name="content-body" select="id('content-body', ixsl:page())" as="element()"/>
+        <xsl:variable name="content-body" select="ancestor::div[contains-token(@class, 'content-body')][1]" as="element()"/>
 
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
@@ -998,13 +998,13 @@ LIMIT   10
     <xsl:template match="button[contains-token(@class, 'btn-app-settings')]" mode="ixsl:onclick">
         <xsl:param name="id" select="'app-settings'" as="xs:string?"/>
         <xsl:param name="method" select="'patch'" as="xs:string"/>
-        <xsl:variable name="content-body" select="id('content-body', ixsl:page())" as="element()"/>
+        <xsl:variable name="content-body" select="id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')][contains-token(@class, 'active')]/div[contains-token(@class, 'content-body')]" as="element()"/>
 
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
         <xsl:for-each select="$content-body">
             <xsl:result-document href="?." method="ixsl:append-content">
-                <div class="modal modal-constructor fade in" about="{$lapp:application}">
+                <div class="modal modal-constructor fade in" about="{lapp:application()}">
                     <xsl:if test="$id">
                         <xsl:attribute name="id" select="$id"/>
                     </xsl:if>
@@ -1032,7 +1032,7 @@ LIMIT   10
           map{
             'request': $request,
             'block': $block,
-            'about': $lapp:application,
+            'about': lapp:application(),
             'method': $method,
             'action': resolve-uri('settings', ldt:base())
           }"/>

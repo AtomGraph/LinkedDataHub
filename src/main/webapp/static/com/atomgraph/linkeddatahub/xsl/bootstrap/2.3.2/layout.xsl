@@ -102,9 +102,8 @@ exclude-result-prefixes="#all">
 
     <xsl:param name="lapp:origin" as="xs:anyURI?"/>
     <xsl:param name="ldh:requestUri" as="xs:anyURI"/>
-    <xsl:param name="ac:uri" as="xs:anyURI?"/>
-    <xsl:param name="ac:endpoint" select="if ($ldt:base) then resolve-uri('sparql', $ldt:base) else ()" as="xs:anyURI?"/>
-    <xsl:param name="sd:endpoint" as="xs:anyURI?"/>
+<!--    <xsl:param name="ac:endpoint" select="if ($ldt:base) then resolve-uri('sparql', $ldt:base) else ()" as="xs:anyURI?"/>
+    <xsl:param name="sd:endpoint" as="xs:anyURI?"/>-->
     <xsl:param name="acl:agent" as="xs:anyURI?"/>
     <xsl:param name="lapp:Context" as="document-node()"/>
     <xsl:param name="foaf:Agent" select="if ($acl:agent) then document(ac:document-uri($acl:agent)) else ()" as="document-node()?"/>
@@ -117,10 +116,6 @@ exclude-result-prefixes="#all">
     <xsl:param name="google:clientID" as="xs:string?"/>
     <xsl:param name="orcid:clientID" as="xs:string?"/>
     <xsl:param name="doc-types" select="key('resources', ac:absolute-path(ldh:base-uri(.)))/rdf:type/@rdf:resource[ . = ('&def;Root', '&dh;Container', '&dh;Item')]" as="xs:anyURI*"/>
-    <xsl:param name="block-uris" select="key('resources', ac:absolute-path(ldh:base-uri(.)))/rdf:*[starts-with(local-name(), '_')]/@rdf:resource" as="xs:anyURI*"/>
-    <!-- document has content when there are content sequence properties -->
-    <xsl:param name="has-content" select="exists($block-uris)" as="xs:boolean"/>
-    <xsl:param name="ac:mode" select="if ($has-content) then xs:anyURI('&ldh;ContentMode') else xs:anyURI('&ac;ReadMode')" as="xs:anyURI*"/>
     <xsl:param name="location-mapping" as="map(xs:anyURI, xs:anyURI)">
         <xsl:map>
             <xsl:map-entry key="resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)" select="resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)"/>
@@ -142,6 +137,9 @@ exclude-result-prefixes="#all">
             <xsl:map-entry key="resolve-uri(ac:document-uri(xs:anyURI('&sd;')), $ac:contextUri)" select="ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri(xs:anyURI('&sd;'))), 'accept': 'application/rdf+xml' })"/>
             <xsl:map-entry key="resolve-uri(ac:document-uri(xs:anyURI('&sh;')), $ac:contextUri)" select="ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri(xs:anyURI('&sh;'))), 'accept': 'application/rdf+xml' })"/>
             <xsl:map-entry key="resolve-uri(ac:document-uri(xs:anyURI('&nfo;')), $ac:contextUri)" select="ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri(xs:anyURI('&nfo;'))), 'accept': 'application/rdf+xml' })"/>
+            <xsl:if test="$acl:agent">
+                <xsl:map-entry key="ac:document-uri($acl:agent)" select="ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri($acl:agent)), 'accept': 'application/rdf+xml' })"/>
+            </xsl:if>
         </xsl:map>
     </xsl:param>
 
@@ -160,7 +158,7 @@ exclude-result-prefixes="#all">
               }
         ]]>
     </xsl:variable>
-    <xsl:variable name="app-request-uri" select="ac:build-uri(resolve-uri('sparql', $ldt:base), map{ 'query': $app-query })" as="xs:anyURI"/>
+    <xsl:variable name="app-request-uri" select="ac:build-uri(sd:endpoint(), map{ 'query': $app-query })" as="xs:anyURI"/>
     <xsl:variable name="forward-view-query" as="xs:string">
         <![CDATA[
             PREFIX  rdfs: <http://www.w3.org/2000/01/rdf-schema#>
@@ -362,14 +360,14 @@ exclude-result-prefixes="#all">
     <xsl:template match="rdf:RDF | srx:sparql" mode="xhtml:Script">
         <xsl:param name="client-stylesheet" select="resolve-uri('static/com/atomgraph/linkeddatahub/xsl/client.xsl.sef.json', $ac:contextUri)" as="xs:anyURI"/>
         <xsl:param name="saxon-js-log-level" select="10" as="xs:integer"/>
-        <xsl:param name="load-wymeditor" select="not($ac:mode = ('&ac;ModalMode', '&ldht;InfoWindowMode'))" as="xs:boolean"/>
-        <xsl:param name="load-yasqe" select="not($ac:mode = ('&ac;ModalMode', '&ldht;InfoWindowMode'))" as="xs:boolean"/>
-        <xsl:param name="load-saxon-js" select="$ldh:ajaxRendering and not($ac:mode = ('&ac;ModalMode', '&ldht;InfoWindowMode'))" as="xs:boolean"/>
-        <xsl:param name="load-sparql-builder" select="not($ac:mode = ('&ac;ModalMode', '&ldht;InfoWindowMode'))" as="xs:boolean"/>
-        <xsl:param name="load-sparql-map" select="not($ac:mode = ('&ac;ModalMode', '&ldht;InfoWindowMode'))" as="xs:boolean"/>
-        <xsl:param name="load-google-charts" select="not($ac:mode = ('&ac;ModalMode', '&ldht;InfoWindowMode'))" as="xs:boolean"/>
-        <xsl:param name="load-xml-c14n" select="not($ac:mode = ('&ac;ModalMode', '&ldht;InfoWindowMode'))" as="xs:boolean"/>
-        <xsl:param name="load-graph3d" select="not($ac:mode = ('&ac;ModalMode', '&ldht;InfoWindowMode'))" as="xs:boolean"/>
+        <xsl:param name="load-wymeditor" select="not(ac:mode(root()) = ('&ac;ModalMode', '&ldht;InfoWindowMode'))" as="xs:boolean"/>
+        <xsl:param name="load-yasqe" select="not(ac:mode(root()) = ('&ac;ModalMode', '&ldht;InfoWindowMode'))" as="xs:boolean"/>
+        <xsl:param name="load-saxon-js" select="$ldh:ajaxRendering and not(ac:mode(root()) = ('&ac;ModalMode', '&ldht;InfoWindowMode'))" as="xs:boolean"/>
+        <xsl:param name="load-sparql-builder" select="not(ac:mode(root()) = ('&ac;ModalMode', '&ldht;InfoWindowMode'))" as="xs:boolean"/>
+        <xsl:param name="load-sparql-map" select="not(ac:mode(root()) = ('&ac;ModalMode', '&ldht;InfoWindowMode'))" as="xs:boolean"/>
+        <xsl:param name="load-google-charts" select="not(ac:mode(root()) = ('&ac;ModalMode', '&ldht;InfoWindowMode'))" as="xs:boolean"/>
+        <xsl:param name="load-xml-c14n" select="not(ac:mode(root()) = ('&ac;ModalMode', '&ldht;InfoWindowMode'))" as="xs:boolean"/>
+        <xsl:param name="load-graph3d" select="not(ac:mode(root()) = ('&ac;ModalMode', '&ldht;InfoWindowMode'))" as="xs:boolean"/>
         <xsl:param name="output-schema-org" select="true()" as="xs:boolean"/>
         <xsl:param name="location-mapping" select="$location-mapping" as="map(xs:anyURI, xs:anyURI)"/>
 
@@ -383,19 +381,9 @@ exclude-result-prefixes="#all">
             <xsl:text disable-output-escaping="yes">
               //&lt;![CDATA[
             </xsl:text>
-            <xsl:if test="$lapp:origin">
-                <![CDATA[
-                    var appUri = ]]><xsl:value-of select="'&quot;' || key('apps-by-origin', $lapp:origin, $lapp:Context)/@rdf:about || '&quot;'" disable-output-escaping="yes"/><![CDATA[;
-                    var baseUri = ]]><xsl:value-of select="'&quot;' || $ldt:base || '&quot;'" disable-output-escaping="yes"/><![CDATA[;
-                    var ontologyUri = ]]><xsl:value-of select="'&quot;' || $ldt:ontology || '&quot;'" disable-output-escaping="yes"/><![CDATA[;
-                    var endpointUri = ]]><xsl:value-of select="if ($sd:endpoint) then '&quot;' || $sd:endpoint || '&quot;'  else 'null'" disable-output-escaping="yes"/><![CDATA[;
-                ]]>
-            </xsl:if>
             <![CDATA[
-                var absolutePath = ]]><xsl:value-of select="'&quot;' || ac:absolute-path(ldh:base-uri(.)) || '&quot;'" disable-output-escaping="yes"/><![CDATA[;
                 var contextUri = ]]><xsl:value-of select="if ($ac:contextUri) then '&quot;' || $ac:contextUri || '&quot;'  else 'null'" disable-output-escaping="yes"/><![CDATA[;
                 var agentUri = []]><xsl:value-of select="if ($acl:agent) then '&quot;' || $acl:agent || '&quot;'  else 'null'" disable-output-escaping="yes"/><![CDATA[];
-                var accessModeUri = []]><xsl:value-of select="string-join(for $mode in $acl:mode return '&quot;' || $mode || '&quot;', ', ')" disable-output-escaping="yes"/><![CDATA[];
             ]]>
             <xsl:text disable-output-escaping="yes">
               //]]&gt;
@@ -456,29 +444,13 @@ exclude-result-prefixes="#all">
                                 SaxonJS.getResource({text: content, type: "xml"})
                             )
                         );
-                        const servicesRequestUri = "]]></xsl:text><xsl:value-of select="$app-request-uri"/><xsl:text disable-output-escaping="yes"><![CDATA[";
                         const stylesheetParams = {
                             "Q{https://w3id.org/atomgraph/client#}contextUri": contextUri, // servlet context URI
-                            "Q{https://w3id.org/atomgraph/linkeddatahub/apps#}application": appUri,
-                            "Q{https://www.w3.org/ns/ldt#}base": baseUri,
-                            "Q{https://www.w3.org/ns/ldt#}ontology": ontologyUri,
-                            "Q{http://www.w3.org/ns/sparql-service-description#}endpoint": endpointUri,
-                            "Q{https://w3id.org/atomgraph/linkeddatahub#}absolutePath": absolutePath,
-                            "Q{http://www.w3.org/ns/auth/acl#}agent": agentUri,
-                            "Q{http://www.w3.org/ns/auth/acl#}mode": accessModeUri,
-                            "Q{}app-request-uri": servicesRequestUri
+                            "Q{http://www.w3.org/ns/auth/acl#}agent": agentUri
                             };
                         
                         SaxonJS.setConfigurationProperty("nativeGetElementById", true);
-                        getResourceWithRetry(servicesRequestUri, { "Accept": "application/rdf+xml" }).then(content => 
-                            SaxonJS.getResource({text: content, type: "xml"})
-                        ).
-                            then(resource => {
-                                stylesheetParams["Q{https://w3id.org/atomgraph/linkeddatahub#}apps"] = resource;
-                                return Promise.all(docPromises);
-                            }, error => {
-                                return Promise.all(docPromises);
-                            }).
+                        Promise.all(docPromises).
                             then(resources => {
                                 const cache = {};
                                 for (var i = 0; i < resources.length; i++) {
@@ -547,27 +519,61 @@ exclude-result-prefixes="#all">
                         <span class="icon-bar"></span>
                     </button>
 
-                    <xsl:if test="$ldt:base">
-                        <xsl:if test="not($ldt:base = $ac:contextUri)">
-                            <a class="brand context" href="{ldh:parent-origin($ldt:base)}"/>
-                        </xsl:if>
-                    </xsl:if>
-                        
-                    <xsl:apply-templates select="." mode="bs2:Brand"/>
+                    <div id="collapsing-top-navbar" class="nav-collapse collapse">
+                        <div class="row-fluid">
+                            <xsl:apply-templates select="." mode="bs2:NavBarLeft"/>
 
-                    <div id="collapsing-top-navbar" class="nav-collapse collapse" style="margin-left: 17%;">
-                        <xsl:if test="$ldh:ajaxRendering">
-                            <xsl:apply-templates select="." mode="bs2:SearchBar"/>
-                        </xsl:if>
+                            <xsl:apply-templates select="." mode="bs2:NavBarMain"/>
 
-                        <xsl:apply-templates select="." mode="bs2:NavBarNavList"/>
+                            <xsl:apply-templates select="." mode="bs2:NavBarRight"/>
+                        </div>
                     </div>
                 </div>
             </div>
+        </div>
+    </xsl:template>
 
-            <xsl:apply-templates select="." mode="bs2:ActionBar">
-                <xsl:with-param name="id" select="'action-bar'"/>
-            </xsl:apply-templates>
+    <xsl:template match="rdf:RDF | srx:sparql" mode="bs2:NavBarLeft">
+        <xsl:param name="class" select="'span2'" as="xs:string?"/>
+
+        <div>
+            <xsl:if test="$class">
+                <xsl:attribute name="class" select="$class"/>
+            </xsl:if>
+
+            <xsl:if test="$ldt:base">
+                <xsl:if test="not($ldt:base = $ac:contextUri)">
+                    <a class="brand context" href="{ldh:parent-origin($ldt:base)}"/>
+                </xsl:if>
+            </xsl:if>
+
+            <xsl:apply-templates select="." mode="bs2:Brand"/>
+        </div>
+    </xsl:template>
+
+    <xsl:template match="rdf:RDF | srx:sparql" mode="bs2:NavBarMain">
+        <xsl:param name="class" select="'span7'" as="xs:string?"/>
+
+        <div>
+            <xsl:if test="$class">
+                <xsl:attribute name="class" select="$class"/>
+            </xsl:if>
+
+            <xsl:if test="$ldh:ajaxRendering">
+                <xsl:apply-templates select="." mode="bs2:SearchBar"/>
+            </xsl:if>
+        </div>
+    </xsl:template>
+
+    <xsl:template match="rdf:RDF | srx:sparql" mode="bs2:NavBarRight">
+        <xsl:param name="class" select="'span3'" as="xs:string?"/>
+
+        <div>
+            <xsl:if test="$class">
+                <xsl:attribute name="class" select="$class"/>
+            </xsl:if>
+
+            <xsl:apply-templates select="." mode="bs2:NavBarNavList"/>
         </div>
     </xsl:template>
 
@@ -587,23 +593,9 @@ exclude-result-prefixes="#all">
     
     <!-- check if agent has access to the user endpoint by executing a dummy query ASK {} -->
     <xsl:template match="rdf:RDF[doc-available(resolve-uri('sparql?query=ASK%20%7B%7D', $ldt:base))] | srx:sparql[doc-available(resolve-uri('sparql?query=ASK%20%7B%7D', $ldt:base))]" mode="bs2:SearchBar" priority="1">
-        <form action="{ac:absolute-path(ldh:request-uri())}" method="get" class="navbar-form pull-left" accept-charset="UTF-8" title="{ac:label(key('resources', 'search-title', document('translations.rdf')))}">
-            <div class="input-append">
-                <select id="search-service" name="service">
-                    <option value="">
-                        <xsl:value-of>
-                            <xsl:text>[</xsl:text>
-                            <xsl:apply-templates select="key('resources', 'sparql-service', document('translations.rdf'))" mode="ac:label"/>
-                            <xsl:text>]</xsl:text>
-                        </xsl:value-of>
-                    </option>
-                </select>
-                
-                <input type="text" id="uri" name="uri" class="input-xxlarge typeahead">
-                    <xsl:if test="$ac:uri">
-                        <xsl:attribute name="value" select="ldh:base-uri(.)"/>
-                    </xsl:if>
-                </input>
+        <form action="{ac:absolute-path(ldh:request-uri())}" method="get" class="navbar-form" accept-charset="UTF-8" title="{ac:label(key('resources', 'search-title', document('translations.rdf')))}">
+            <div>
+                <input type="text" id="uri" name="uri" class="input-xxlarge typeahead"/>
                 <!-- placeholder used by the client-side typeahead -->
                  <ul id="ul-{generate-id()}" class="search-typeahead typeahead dropdown-menu" style="display: none"/> 
 
@@ -778,55 +770,34 @@ exclude-result-prefixes="#all">
             <div id="visible-body">
                 <xsl:apply-templates select="." mode="bs2:NavBar"/>
 
-                <xsl:choose>
-                    <!-- the request is proxied using ?uri, render it client-side in client.xsl -->
-                    <!-- ldh:rdf-document-response bypasses this branch by passing ac:uri=() as a local override -->
-                    <xsl:when test="$ac:uri">
-                        <div id="content-body" class="container-fluid">
+                <div id="tab-body">
+                    <!-- tab bar — sticky, hidden until first external tab is opened -->
+                    <div id="tab-bar" class="navbar-inner" style="display: none">
+                        <div class="container-fluid">
                             <div class="row-fluid">
-                                <div class="span12 progress progress-striped active">
-                                    <div style="width: 33%;" class="bar"></div>
-                                </div>
+                                <ul class="nav nav-tabs span12" id="tab-bar-list"/>
                             </div>
                         </div>
-                    </xsl:when>
-                    <xsl:otherwise>
-                        <xsl:apply-templates select="." mode="bs2:ContentBody">
-                            <xsl:with-param name="mode" select="$ac:mode"/>
+                    </div>
+
+                    <!-- document content panes using Bootstrap 2.3.2 tab-content/tab-pane classes -->
+                    <div id="tab-content" class="tab-content">
+                        <xsl:apply-templates select="." mode="bs2:TabBody">
+                            <xsl:with-param name="mode" select="ac:mode(root())"/>
                         </xsl:apply-templates>
-                    </xsl:otherwise>
-                </xsl:choose>
+                    </div>
+                </div>
 
                 <xsl:apply-templates select="." mode="bs2:Footer"/>
             </div>
-            
+
             <xsl:apply-templates select="." mode="bs2:DocumentTree"/>
         </body>
     </xsl:template>
     
-    <xsl:template match="srx:sparql" mode="bs2:ContentBody">
-        <xsl:param name="id" select="'content-body'" as="xs:string?"/>
-        <xsl:param name="class" select="'container-fluid'" as="xs:string?"/>
-        <xsl:param name="about" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI?"/>
-
-        <div>
-            <xsl:if test="$id">
-                <xsl:attribute name="id" select="$id"/>
-            </xsl:if>
-            <xsl:if test="$class">
-                <xsl:attribute name="class" select="$class"/>
-            </xsl:if>
-            <xsl:if test="$about">
-                <xsl:attribute name="about" select="$about"/>
-            </xsl:if>
-
-            <xsl:apply-templates select="." mode="xhtml:Table"/>
-        </div>
-    </xsl:template>
-    
     <!-- only lookup resource locally using DESCRIBE if it's external (not relative to the app's base URI) and the agent is authenticated -->
     <xsl:template match="*[*][@rdf:about = ac:absolute-path(ldh:base-uri(.))][not(starts-with(@rdf:about, $ldt:base))][$foaf:Agent//@rdf:about]" mode="bs2:PropertyList">
-        <xsl:param name="endpoint" select="($sd:endpoint, $ac:endpoint)[1]" as="xs:anyURI"/>
+        <xsl:param name="endpoint" select="sd:endpoint()" as="xs:anyURI"/>
         <xsl:param name="property-uris" select="distinct-values(*/concat(namespace-uri(), local-name()))" as="xs:anyURI*"/>
         <xsl:param name="property-metadata" select="ldh:send-request(resolve-uri('ns', $ldt:base), 'POST', 'application/sparql-query', 'DESCRIBE ' || string-join(for $uri in distinct-values(/rdf:RDF/*/*/concat(namespace-uri(), local-name())) return '&lt;' || $uri || '&gt;', ' '), map{ 'Accept': 'application/rdf+xml' })" as="document-node()"/>
         <xsl:variable name="local-doc" select="ldh:query-result($endpoint, 'DESCRIBE &lt;' || @rdf:about || '&gt;')" as="document-node()"/>
@@ -937,32 +908,6 @@ exclude-result-prefixes="#all">
             </div>
         </xsl:if>
     </xsl:template>
-    
-    <!-- ADD DATA -->
-    
-    <xsl:template match="rdf:RDF[$acl:mode = '&acl;Append']" mode="bs2:AddData" priority="1">
-        <div class="btn-group pull-left">
-            <button type="button" class="btn btn-primary dropdown-toggle" title="{ac:label(key('resources', 'add', document('translations.rdf')))}">
-                <xsl:value-of>
-                    <xsl:apply-templates select="key('resources', 'add', document('translations.rdf'))" mode="ac:label"/>
-                </xsl:value-of>
-                <xsl:text> </xsl:text>
-                <span class="caret"></span>
-            </button>
-            
-            <ul class="dropdown-menu">
-                <li>
-                    <button type="button" title="{ac:label(key('resources', 'generate-containers-title', document('translations.rdf')))}" class="btn btn-generate-containers">
-                        <xsl:value-of>
-                            <xsl:apply-templates select="key('resources', 'generate-containers', document('translations.rdf'))" mode="ac:label"/>
-                        </xsl:value-of>
-                    </button>
-                </li>
-            </ul>
-        </div>
-    </xsl:template>
-    
-    <xsl:template match="*" mode="bs2:AddData"/>
    
     <!-- HEADER  -->
 
@@ -1018,83 +963,7 @@ exclude-result-prefixes="#all">
     <!-- hide the header of def:SelectChildren content -->
     <xsl:template match="*[*][$ldh:ajaxRendering][rdf:value/@rdf:resource = '&ldh;SelectChildren']" mode="bs2:RowContentHeader"/>
     
-    <!-- ACTION BAR -->
-    
-    <xsl:template match="rdf:RDF | srx:sparql" mode="bs2:ActionBar">
-        <xsl:param name="id" as="xs:string?"/>
-        <xsl:param name="class" select="'navbar-inner action-bar'" as="xs:string?"/>
-        <xsl:param name="has-content" select="exists(key('resources', ac:absolute-path(ldh:base-uri(.)))/rdf:*[starts-with(local-name(), '_')]/@rdf:resource)" as="xs:boolean"/>
-
-        <div>
-            <xsl:if test="$id">
-                <xsl:attribute name="id" select="$id"/>
-            </xsl:if>
-            <xsl:if test="$class">
-                <xsl:attribute name="class" select="$class"/>
-            </xsl:if>
-
-            <div class="container-fluid">
-                <div class="row-fluid">
-                    <xsl:apply-templates select="." mode="bs2:ActionBarLeft"/>
-
-                    <xsl:apply-templates select="." mode="bs2:ActionBarMain"/>
-                    
-                    <xsl:apply-templates select="." mode="bs2:ActionBarRight">
-                        <xsl:with-param name="active-mode" select="($ac:mode, xs:anyURI(if ($has-content) then '&ldh;ContentMode' else '&ac;ReadMode'))[1]"/>
-                    </xsl:apply-templates>
-                </div>
-            </div>
-        </div>
-    </xsl:template>
-    
-    <!-- NAVBAR ACTIONS -->
-
-    <xsl:template match="rdf:RDF" mode="bs2:NavBarActions" priority="1">
-        <xsl:param name="base-uri" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/>
-        
-        <xsl:if test="$foaf:Agent//@rdf:about">
-            <div class="pull-right">
-                <button type="button" title="{ac:label(key('resources', 'nav-bar-action-delete-title', document('translations.rdf')))}">
-                    <xsl:apply-templates select="key('resources', '&ac;Delete', document(ac:document-uri('&ac;')))" mode="ldh:logo">
-                        <xsl:with-param name="class" select="'btn' || (if (not($acl:mode = '&acl;Write')) then ' disabled' else ())"/>
-                    </xsl:apply-templates>
-                    
-                    <xsl:apply-templates select="key('resources', '&ac;Delete', document(ac:document-uri('&ac;')))" mode="ac:label"/>
-                </button>
-            </div>
-            
-            <xsl:if test="$ldh:ajaxRendering">
-                <div class="pull-right">
-                    <button type="button" title="{ac:label(key('resources', 'save-as-title', document('translations.rdf')))}">
-                        <xsl:apply-templates select="key('resources', 'save-as', document('translations.rdf'))" mode="ldh:logo">
-                            <!-- disable button if external document is not being browsed or the agent has no acl:Write access -->
-                            <xsl:with-param name="class" select="'btn' || (if ((ac:absolute-path(ldh:base-uri(.)) = ac:absolute-path(ldh:request-uri())) or not($acl:mode = '&acl;Write')) then ' disabled' else ())"/>
-                        </xsl:apply-templates>
-
-                        <xsl:value-of>
-                            <xsl:apply-templates select="key('resources', 'save-as', document('translations.rdf'))" mode="ac:label"/>
-                            <xsl:text>...</xsl:text>
-                        </xsl:value-of>
-                    </button>
-                </div>
-            </xsl:if>
-            
-            <div class="btn-group pull-right">
-                <button type="button" title="{ac:label(key('resources', 'acl-list-title', document('translations.rdf')))}">
-                    <xsl:apply-templates select="key('resources', '&acl;Access', document(ac:document-uri('&acl;')))" mode="ldh:logo">
-                        <xsl:with-param name="class" select="'btn'"/>
-                    </xsl:apply-templates>
-                    <xsl:apply-templates select="key('resources', '&acl;Access', document(ac:document-uri('&acl;')))" mode="ac:label"/>
-                </button>
-            </div>
-            
-            <xsl:if test="$acl:mode = '&acl;Write'">
-                <button type="button" class="btn btn-edit pull-right">
-                    <xsl:apply-templates select="key('resources', '&ac;EditMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
-                </button>
-            </xsl:if>
-        </xsl:if>
-    </xsl:template>
+    <!-- ACCESS LIST ITEM -->
     
     <xsl:template match="*[@rdf:about]" mode="bs2:AccessListItem" priority="1">
         <xsl:param name="enabled" as="xs:anyURI*"/>
