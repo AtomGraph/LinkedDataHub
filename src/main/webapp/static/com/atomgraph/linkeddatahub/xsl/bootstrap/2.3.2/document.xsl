@@ -413,6 +413,9 @@ extension-element-prefixes="ixsl"
         <xsl:param name="id" select="'tab-pane-' || ac:uuid()" as="xs:string?"/>
         <xsl:param name="class" select="'tab-pane active'" as="xs:string?"/>
         <xsl:param name="mode" as="xs:anyURI"/>
+        <xsl:param name="base" as="xs:anyURI?"/>
+        <xsl:param name="endpoint" as="xs:anyURI?"/>
+        <xsl:param name="application" as="xs:anyURI?"/>
 
         <div class="">
             <xsl:if test="$id">
@@ -421,12 +424,43 @@ extension-element-prefixes="ixsl"
             <xsl:if test="$class">
                 <xsl:attribute name="class" select="$class"/>
             </xsl:if>
+            <xsl:if test="$base">
+                <xsl:attribute name="data-base" select="$base"/>
+            </xsl:if>
+            <xsl:if test="$endpoint">
+                <xsl:attribute name="data-endpoint" select="$endpoint"/>
+            </xsl:if>
+            <xsl:if test="$application">
+                <xsl:attribute name="data-application" select="$application"/>
+            </xsl:if>
+
+            <xsl:if test="$base">
+                <xsl:apply-templates select="." mode="bs2:DocumentTree"/>
+            </xsl:if>
 
             <xsl:apply-templates select="." mode="bs2:ActionBar">
                 <xsl:with-param name="active-mode" select="$mode"/>
             </xsl:apply-templates>
 
             <xsl:apply-templates select="." mode="bs2:ContentBody"/>
+        </div>
+    </xsl:template>
+    
+    <!-- DOCUMENT TREE -->
+    
+    <xsl:template match="rdf:RDF | srx:sparql" mode="bs2:DocumentTree">
+        <xsl:param name="id" as="xs:string?"/>
+        <xsl:param name="class" select="'left-sidebar well well-small sidebar-nav'" as="xs:string?"/>
+        
+        <div>
+            <xsl:if test="$id">
+                <xsl:attribute name="id" select="$id"/>
+            </xsl:if>
+            <xsl:if test="$class">
+                <xsl:attribute name="class" select="$class"/>
+            </xsl:if>
+            
+            <!-- placeholder for client-side ldh:LeftSidebar template -->
         </div>
     </xsl:template>
     

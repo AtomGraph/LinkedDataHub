@@ -95,7 +95,7 @@ ORDER BY DESC(?created)
         <xsl:param name="base" select="ldt:base()" as="xs:anyURI"/>
 
         <!-- document tree container -->
-        <div id="document-tree">
+        <div class="document-tree">
             <h2 class="nav-header btn">
                 <xsl:apply-templates select="key('resources', 'document-tree', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
             </h2>
@@ -111,7 +111,7 @@ ORDER BY DESC(?created)
         </div>
 
         <!-- class list container -->
-        <div id="class-list">
+        <div class="class-list">
             <h2 class="nav-header btn">
                 <xsl:apply-templates select="key('resources', 'classes', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
             </h2>
@@ -122,7 +122,7 @@ ORDER BY DESC(?created)
         </div>
 
         <!-- other section -->
-        <div id="other-views">
+        <div class="other-views">
             <h2 class="nav-header btn">
                 <xsl:apply-templates select="key('resources', 'other', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
             </h2>
@@ -163,24 +163,27 @@ ORDER BY DESC(?created)
     <!-- update left-sidebar sections -->
     <xsl:template name="ldh:NavigationUpdate">
         <xsl:param name="href" as="xs:anyURI"/>
+        <xsl:variable name="active-sidebar" select="id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')][contains-token(@class, 'active')]/div[contains-token(@class, 'left-sidebar')]" as="element()?"/>
 
-        <!-- activate the current URL in the document tree -->
-        <xsl:for-each select="id('document-tree', ixsl:page())">
-            <xsl:variable name="href-string" select="string($href)" as="xs:string"/>
-            <xsl:variable name="target" select="xs:anyURI(if (contains($href-string, '?')) then substring-before($href-string, '?') else $href-string)" as="xs:anyURI"/>
-            <xsl:call-template name="ldh:DocTreeExpandPathAndActivate">
-                <xsl:with-param name="container" select="."/>
-                <xsl:with-param name="target" select="$target"/>
-            </xsl:call-template>
-        </xsl:for-each>
+        <xsl:if test="$active-sidebar">
+            <!-- activate the current URL in the document tree -->
+            <xsl:for-each select="$active-sidebar/div[contains-token(@class, 'document-tree')]">
+                <xsl:variable name="href-string" select="string($href)" as="xs:string"/>
+                <xsl:variable name="target" select="xs:anyURI(if (contains($href-string, '?')) then substring-before($href-string, '?') else $href-string)" as="xs:anyURI"/>
+                <xsl:call-template name="ldh:DocTreeExpandPathAndActivate">
+                    <xsl:with-param name="container" select="."/>
+                    <xsl:with-param name="target" select="$target"/>
+                </xsl:call-template>
+            </xsl:for-each>
 
-        <!-- reload the class list -->
-        <xsl:for-each select="id('class-list', ixsl:page())/ul">
-            <xsl:call-template name="ldh:ClassListLoad">
-                <xsl:with-param name="container" select="."/>
-                <xsl:with-param name="endpoint" select="sd:endpoint()"/>
-            </xsl:call-template>
-        </xsl:for-each>
+            <!-- reload the class list -->
+            <xsl:for-each select="$active-sidebar/div[contains-token(@class, 'class-list')]/ul">
+                <xsl:call-template name="ldh:ClassListLoad">
+                    <xsl:with-param name="container" select="."/>
+                    <xsl:with-param name="endpoint" select="sd:endpoint()"/>
+                </xsl:call-template>
+            </xsl:for-each>
+        </xsl:if>
     </xsl:template>
 
     <xsl:template name="ldh:DocTreeExpandPathAndActivate">
@@ -268,31 +271,33 @@ ORDER BY DESC(?created)
     <!-- EVENT HANDLERS -->
     
     <!-- show left-side document tree -->
-    
-    <xsl:template match="body[id('left-sidebar', ixsl:page())]" mode="ixsl:onmousemove">
+
+    <xsl:template match="body" mode="ixsl:onmousemove">
         <xsl:variable name="x" select="ixsl:get(ixsl:event(), 'clientX')"/>
-        
+
         <!-- check that the mouse is on the left edge -->
         <xsl:if test="$x = 0">
-            <!-- show #left-sidebar -->
-            <ixsl:set-style name="display" select="'block'" object="id('left-sidebar', ixsl:page())"/>
+            <xsl:variable name="active-sidebar" select="id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')][contains-token(@class, 'active')]/div[contains-token(@class, 'left-sidebar')]" as="element()?"/>
+            <xsl:if test="$active-sidebar">
+                <ixsl:set-style name="display" select="'block'" object="$active-sidebar"/>
+            </xsl:if>
         </xsl:if>
     </xsl:template>
-    
+
     <!-- hide the document tree container if its position is fixed (i.e. the layout is not responsive) -->
-    <xsl:template match="div[@id = 'left-sidebar'][ixsl:style(.)?position = 'fixed']" mode="ixsl:onmouseout">
+    <xsl:template match="div[contains-token(@class, 'left-sidebar')][ixsl:style(.)?position = 'fixed']" mode="ixsl:onmouseout">
         <xsl:variable name="related-target" select="ixsl:get(ixsl:event(), 'relatedTarget')" as="element()?"/> <!-- the element mouse entered -->
-        
+
         <!-- only hide if the related target does not have this div as ancestor (is not its child) -->
         <xsl:if test="not($related-target/ancestor-or-self::div[. is current()])">
             <ixsl:set-style name="display" select="'none'"/>
         </xsl:if>
     </xsl:template>
-    
-    <xsl:template match="div[@id = 'document-tree']//li/a[@href]" mode="ixsl:onclick" priority="1">
+
+    <xsl:template match="div[contains-token(@class, 'document-tree')]//li/a[@href]" mode="ixsl:onclick" priority="1">
         <xsl:variable name="href" select="@href" as="xs:anyURI"/>
 
-        <xsl:for-each select="ancestor::div[@id = 'document-tree']">
+        <xsl:for-each select="ancestor::div[contains-token(@class, 'document-tree')]">
             <xsl:call-template name="ldh:DocTreeActivateHref">
                 <xsl:with-param name="href" select="$href"/>
             </xsl:call-template>
@@ -671,7 +676,7 @@ ORDER BY DESC(?created)
 
     <!-- load classes with instances from the SPARQL endpoint -->
     <xsl:template name="ldh:ClassListLoad">
-        <xsl:param name="container" as="element()"/> <!-- the <ul> inside <div id="class-list"> -->
+        <xsl:param name="container" as="element()"/> <!-- the <ul> inside <div class="class-list"> -->
         <xsl:param name="endpoint" as="xs:anyURI"/>
 
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>

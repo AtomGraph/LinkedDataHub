@@ -269,7 +269,7 @@ WHERE
                     </xsl:for-each>
                 </xsl:if>
                 <!-- initialize navigation (e.g. the left sidebar) -->
-                <xsl:for-each select="id('left-sidebar', ixsl:page())">
+                <xsl:for-each select="id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')][contains-token(@class, 'active')]/div[contains-token(@class, 'left-sidebar')]">
                     <xsl:result-document href="?." method="ixsl:replace-content">
                         <xsl:call-template name="ldh:LeftSidebar"/>
                     </xsl:result-document>
@@ -504,10 +504,14 @@ WHERE
                         <ixsl:set-property name="etag" select="$etag" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $uri || '`')"/>
 
                         <xsl:variable name="tab-pane" select="id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')][./div[contains-token(@class, 'content-body')]/@about = $uri]" as="element()?"/>
-                        <xsl:variable name="mode" select="ac:mode($results)" as="xs:anyURI"/>                        
+                        <xsl:variable name="mode" select="ac:mode($results)" as="xs:anyURI"/>
+                        <xsl:variable name="external-base" select="if ($application) then resolve-uri('/', lapp:origin($uri)) else ()" as="xs:anyURI?"/>
                         <xsl:variable name="tab-body" as="element()">
                             <xsl:apply-templates select="$results/rdf:RDF" mode="bs2:TabBody">
                                 <xsl:with-param name="mode" select="$mode"/>
+                                <xsl:with-param name="base" select="$external-base"/>
+                                <xsl:with-param name="endpoint" select="$endpoint"/>
+                                <xsl:with-param name="application" select="$application"/>
                             </xsl:apply-templates>
                         </xsl:variable>
 
@@ -518,8 +522,6 @@ WHERE
                             <xsl:call-template name="ldh:AddTabNavBarListItem">
                                 <xsl:with-param name="uri" select="$uri"/>
                                 <xsl:with-param name="label" select="if (exists(key('resources', $uri, $results))) then ac:label(key('resources', $uri, $results)) else $uri"/>
-                                <xsl:with-param name="endpoint" select="$endpoint"/>
-                                <xsl:with-param name="application" select="$application"/>
                             </xsl:call-template>
 
                             <xsl:variable name="local-tab-pane" select="id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')][./div[contains-token(@class, 'content-body')]/@about = ac:absolute-path(ldh:request-uri())]" as="element()"/>
@@ -529,6 +531,17 @@ WHERE
                             <xsl:result-document href="#tab-content" method="ixsl:append-content">
                                 <xsl:sequence select="$tab-body"/>
                             </xsl:result-document>
+
+                            <!-- populate the new tab's sidebar if it belongs to an LDH dataspace -->
+                            <xsl:if test="$application and $external-base">
+                                <xsl:for-each select="id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')][last()]/div[contains-token(@class, 'left-sidebar')]">
+                                    <xsl:result-document href="?." method="ixsl:replace-content">
+                                        <xsl:call-template name="ldh:LeftSidebar">
+                                            <xsl:with-param name="base" select="$external-base"/>
+                                        </xsl:call-template>
+                                    </xsl:result-document>
+                                </xsl:for-each>
+                            </xsl:if>
                         </xsl:if>
         
                         <xsl:call-template name="ldh:RenderTab">
@@ -602,21 +615,15 @@ WHERE
     <xsl:template name="ldh:AddTabNavBarListItem">
         <xsl:param name="uri" as="xs:anyURI"/>
         <xsl:param name="label" as="xs:string"/>
-        <xsl:param name="endpoint" as="xs:anyURI?"/>
-        <xsl:param name="application" as="xs:anyURI?"/>
 
         <xsl:message>ldh:AddTabNavBarListItem $uri: <xsl:value-of select="$uri"/></xsl:message>
-        
+
         <!-- on the very first external tab, prepend a permanent local-document tab (no close button) -->
         <xsl:if test="empty(id('tab-bar-list', ixsl:page())/li)">
             <xsl:message>PREPEND LOCAL DOCUMENT TAB</xsl:message>
 
             <xsl:result-document href="#tab-bar-list" method="ixsl:append-content">
-                <li data-uri="{ac:absolute-path(ldh:request-uri())}" data-endpoint="{resolve-uri('sparql', ldt:base())}">
-                    <xsl:if test="$application">
-                        <xsl:attribute name="data-application" select="$application"/>
-                    </xsl:if>
-
+                <li data-uri="{ac:absolute-path(ldh:request-uri())}">
                     <a href="{ac:absolute-path(ldh:request-uri())}">
                         <xsl:value-of select="ixsl:get(ixsl:page(), 'title')"/>
                     </a>
@@ -627,12 +634,6 @@ WHERE
         <!-- append the new tab <li> to the tab bar -->
         <xsl:result-document href="#tab-bar-list" method="ixsl:append-content">
             <li data-uri="{$uri}">
-                <xsl:if test="$endpoint">
-                    <xsl:attribute name="data-endpoint" select="$endpoint"/>
-                </xsl:if>
-                <xsl:if test="$application">
-                    <xsl:attribute name="data-application" select="$application"/>
-                </xsl:if>
                 <a href="{ldh:href($uri)}" title="{$uri}">
                     <xsl:value-of select="$label"/>
                 </a>
@@ -642,7 +643,7 @@ WHERE
 
         <!-- show the tab bar -->
         <ixsl:set-style name="display" select="'block'" object="id('tab-bar', ixsl:page())"/>
-        <xsl:sequence select="ixsl:call(ixsl:get(ixsl:page(), 'documentElement.style'), 'setProperty', ['--action-bar-top', '99px'])[current-date() lt xs:date('2000-01-01')]"/>
+        <xsl:sequence select="ixsl:call(ixsl:get(ixsl:page(), 'documentElement.style'), 'setProperty', ['--action-bar-top', '98px'])[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
 
     <!-- activate an existing tab -->
@@ -777,12 +778,12 @@ WHERE
                     <xsl:variable name="endpoint" select="if ($endpoint-link) then xs:anyURI(substring-before(substring-after(substring-before($endpoint-link, ';'), '&lt;'), '&gt;')) else ()" as="xs:anyURI?"/>
                     <xsl:variable name="base" select="xs:anyURI(lapp:origin($href) || '/')" as="xs:anyURI"/>
                     <!-- set new base URI if the current app has changed -->
-                    <xsl:if test="not($base = ldt:base())">
+<!--                    <xsl:if test="not($base = ldt:base())">
                         <xsl:message>Application change. Base URI: <xsl:value-of select="$base"/></xsl:message>
                         <xsl:call-template name="ldt:AppChanged">
                             <xsl:with-param name="base" select="$base"/>
                         </xsl:call-template>
-                    </xsl:if>
+                    </xsl:if>-->
 
                     <xsl:apply-templates select="?body" mode="ldh:HTMLDocumentLoaded">
                         <xsl:with-param name="href" select="$href"/>
@@ -876,17 +877,17 @@ WHERE
         </xsl:call-template>
     </xsl:template>
 
-    <xsl:template name="ldt:AppChanged">
+<!--    <xsl:template name="ldt:AppChanged">
         <xsl:param name="base" as="xs:anyURI"/>
 
-        <xsl:for-each select="id('left-sidebar', ixsl:page())">
+        <xsl:for-each select="id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')][contains-token(@class, 'active')]/div[contains-token(@class, 'left-sidebar')]">
             <xsl:result-document href="?." method="ixsl:replace-content">
                 <xsl:call-template name="ldh:LeftSidebar">
                     <xsl:with-param name="base" select="$base"/>
                 </xsl:call-template>
             </xsl:result-document>
         </xsl:for-each>
-    </xsl:template>
+    </xsl:template>-->
 
     <!-- EVENT LISTENERS -->
 

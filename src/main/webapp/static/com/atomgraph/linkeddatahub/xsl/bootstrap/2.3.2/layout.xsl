@@ -784,6 +784,8 @@ exclude-result-prefixes="#all">
                     <div id="tab-content" class="tab-content">
                         <xsl:apply-templates select="." mode="bs2:TabBody">
                             <xsl:with-param name="mode" select="ac:mode(root())"/>
+                            <xsl:with-param name="base" select="ldt:base()"/>
+                            <xsl:with-param name="endpoint" select="sd:endpoint()"/>
                         </xsl:apply-templates>
                     </div>
                 </div>
@@ -791,7 +793,6 @@ exclude-result-prefixes="#all">
                 <xsl:apply-templates select="." mode="bs2:Footer"/>
             </div>
 
-            <xsl:apply-templates select="." mode="bs2:DocumentTree"/>
         </body>
     </xsl:template>
     
@@ -1022,24 +1023,6 @@ exclude-result-prefixes="#all">
                     </li>
                 </xsl:if>
             </ul>
-        </div>
-    </xsl:template>
-    
-    <!-- DOCUMENT TREE -->
-    
-    <xsl:template match="rdf:RDF | srx:sparql" mode="bs2:DocumentTree">
-        <xsl:param name="id" select="'left-sidebar'" as="xs:string?"/>
-        <xsl:param name="class" select="'well well-small sidebar-nav'" as="xs:string?"/>
-        
-        <div>
-            <xsl:if test="$id">
-                <xsl:attribute name="id" select="$id"/>
-            </xsl:if>
-            <xsl:if test="$class">
-                <xsl:attribute name="class" select="$class"/>
-            </xsl:if>
-            
-            <!-- placeholder for client-side ldh:LeftSidebar template -->
         </div>
     </xsl:template>
     
