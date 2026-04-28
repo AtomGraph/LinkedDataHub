@@ -728,7 +728,7 @@ LIMIT   10
     <!-- shows new SPIN-constructed document as a modal form -->
     <xsl:template match="div[contains-token(@class, 'action-bar')]//button[contains-token(@class, 'add-constructor')][@data-for-class]" mode="ixsl:onclick" priority="2">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])[current-date() lt xs:date('2000-01-01')]"/>
-        <xsl:variable name="content-body" select="ancestor::div[contains-token(@class, 'content-body')][1]" as="element()"/>
+        <xsl:variable name="content-body" select="ancestor::div[contains-token(@class, 'document-body')]/div[contains-token(@class, 'content-body')]" as="element()"/>
         <xsl:variable name="forClass" select="@data-for-class" as="xs:anyURI"/>
         <xsl:variable name="constructed-doc" select="ldh:construct-forClass($forClass)" as="document-node()"/>
         <xsl:variable name="doc-uri" select="resolve-uri(ac:uuid() || '/', ac:absolute-path(ldh:base-uri(.)))" as="xs:anyURI"/> <!-- build a relative URI for the child document -->
@@ -807,7 +807,7 @@ LIMIT   10
         <xsl:param name="method" select="'patch'" as="xs:string"/>
         <xsl:param name="form-actions-class" select="'form-actions modal-footer'" as="xs:string?"/>
         <xsl:param name="button-class" select="'btn btn-primary wymupdate'" as="xs:string?"/>
-        <xsl:variable name="content-body" select="ancestor::div[contains-token(@class, 'content-body')][1]" as="element()"/>
+        <xsl:variable name="content-body" select="ancestor::div[contains-token(@class, 'tab-pane')]/div[contains-token(@class, 'document-body')]/div[contains-token(@class, 'content-body')]" as="element()"/>
 
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
@@ -998,7 +998,7 @@ LIMIT   10
     <xsl:template match="button[contains-token(@class, 'btn-app-settings')]" mode="ixsl:onclick">
         <xsl:param name="id" select="'app-settings'" as="xs:string?"/>
         <xsl:param name="method" select="'patch'" as="xs:string"/>
-        <xsl:variable name="content-body" select="id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')][contains-token(@class, 'active')]/div[contains-token(@class, 'content-body')]" as="element()"/>
+        <xsl:variable name="content-body" select="id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')][contains-token(@class, 'active')]/div[contains-token(@class, 'document-body')]/div[contains-token(@class, 'content-body')]" as="element()"/>
 
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
@@ -1557,23 +1557,12 @@ LIMIT   10
             <xsl:when test="$status = (200, 201, 204)">
                 <xsl:variable name="control-group" select="$form/descendant::div[contains-token(@class, 'control-group')][input[@name = 'pu'][@value = '&sioc;has_parent']]" as="element()*"/>
                 <xsl:variable name="uri" select="$control-group/descendant::input[@name = 'ou']/ixsl:get(., 'value')" as="xs:anyURI"/>
-                <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }" as="map(*)"/>
-                <xsl:variable name="redirect-context" select="
-                  map{
-                    'request': $request,
-                    'href': ac:absolute-path($uri),
-                    'push-state': true(),
-                    'refresh-content': true()
-                  }" as="map(*)"/>
-                <ixsl:promise select="
-                  ixsl:http-request($redirect-context('request'))
-                    => ixsl:then(ldh:rethread-response($redirect-context, ?))
-                    => ixsl:then(ldh:handle-response#1)
-                    => ixsl:then(ldh:xhtml-document-loaded#1)
-                " on-failure="ldh:promise-failure#1"/>
-
                 <!-- Remove the modal -->
                 <xsl:sequence select="ixsl:call($form/ancestor::div[contains-token(@class, 'modal')], 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
+
+                <xsl:call-template name="ldh:DocumentNavigate">
+                    <xsl:with-param name="uri" select="ac:absolute-path($uri)"/>
+                </xsl:call-template>
             </xsl:when>
             <!-- Error -->
             <xsl:otherwise>
@@ -1595,22 +1584,12 @@ LIMIT   10
             <xsl:when test="$status = (200, 204)">
                 <xsl:variable name="control-group" select="$form/descendant::div[contains-token(@class, 'control-group')][input[@name = 'pu'][@value = '&sd;name']]" as="element()*"/>
                 <xsl:variable name="uri" select="$control-group/descendant::input[@name = 'ou']/ixsl:get(., 'value')" as="xs:anyURI"/>
-                <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }" as="map(*)"/>
-                <xsl:variable name="redirect-context" select="
-                  map{
-                    'request': $request,
-                    'href': ac:build-uri(ac:absolute-path($uri), map{ 'mode': '&ac;ReadMode'}),
-                    'push-state': true()
-                  }" as="map(*)"/>
-                <ixsl:promise select="
-                  ixsl:http-request($redirect-context('request'))
-                    => ixsl:then(ldh:rethread-response($redirect-context, ?))
-                    => ixsl:then(ldh:handle-response#1)
-                    => ixsl:then(ldh:xhtml-document-loaded#1)
-                " on-failure="ldh:promise-failure#1"/>
-
                 <!-- Remove the modal -->
                 <xsl:sequence select="ixsl:call($form/ancestor::div[contains-token(@class, 'modal')], 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
+
+                <xsl:call-template name="ldh:DocumentNavigate">
+                    <xsl:with-param name="uri" select="ac:absolute-path($uri)"/>
+                </xsl:call-template>
             </xsl:when>
             <!-- Error: render error message inline in the form's fieldset -->
             <xsl:otherwise>

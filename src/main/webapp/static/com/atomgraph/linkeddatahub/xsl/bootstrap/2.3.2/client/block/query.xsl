@@ -516,18 +516,17 @@ exclude-result-prefixes="#all"
                 <xsl:variable name="controller" select="ixsl:abort-controller()"/>
                 <ixsl:set-property name="saxonController" select="$controller" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
 
-                <xsl:variable name="request" select="map{ 'method': 'POST', 'href': $href, 'media-type': 'application/sparql-query', 'body': $query-string, 'headers': map{ 'Accept': 'application/xhtml+xml' } }" as="map(*)"/>
+                <xsl:variable name="request" select="map{ 'method': 'POST', 'href': $href, 'media-type': 'application/sparql-query', 'body': $query-string, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
                 <xsl:variable name="context" select="
                   map{
                     'request': $request,
-                    'href': $href,
-                    'push-state': true()
+                    'uri': $href
                   }" as="map(*)"/>
                 <ixsl:promise select="
                   ixsl:http-request($context('request'), $controller)
                     => ixsl:then(ldh:rethread-response($context, ?))
                     => ixsl:then(ldh:handle-response#1)
-                    => ixsl:then(ldh:xhtml-document-loaded#1)
+                    => ixsl:then(ldh:rdf-document-response#1)
                 " on-failure="ldh:promise-failure#1"/>
             </xsl:otherwise>
         </xsl:choose>

@@ -775,7 +775,13 @@ exclude-result-prefixes="#all">
                     <div id="tab-bar" class="navbar-inner" style="display: none">
                         <div class="container-fluid">
                             <div class="row-fluid">
-                                <ul class="nav nav-tabs span12" id="tab-bar-list"/>
+                                <ul class="nav nav-tabs span12" id="tab-bar-list">
+                                    <li data-uri="{ac:absolute-path(ldh:base-uri(.))}">
+                                        <a href="{ac:absolute-path(ldh:base-uri(.))}">
+                                            <xsl:apply-templates select="key('resources', ac:absolute-path(ldh:base-uri(.)))" mode="ac:label"/>
+                                        </a>
+                                    </li>
+                                </ul>
                             </div>
                         </div>
                     </div>

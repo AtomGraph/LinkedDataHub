@@ -761,19 +761,10 @@ WHERE
 
         <xsl:for-each select="$response">
             <xsl:variable name="href" select="?headers?location" as="xs:anyURI"/>
-            <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $href, 'headers': map{ 'Accept': 'application/xhtml+xml' } }" as="map(*)"/>
-            <xsl:variable name="context" as="map(*)" select="
-              map{
-                'request': $request,
-                'href': $href,
-                'push-state': true()
-              }"/>
-            <ixsl:promise select="
-              ixsl:http-request($context('request'))
-                => ixsl:then(ldh:rethread-response($context, ?))
-                => ixsl:then(ldh:handle-response#1)
-                => ixsl:then(ldh:xhtml-document-loaded#1)
-            " on-failure="ldh:promise-failure#1"/>
+
+            <xsl:call-template name="ldh:DocumentNavigate">
+                <xsl:with-param name="uri" select="$href"/>
+            </xsl:call-template>
         </xsl:for-each>        
     </xsl:function>
     

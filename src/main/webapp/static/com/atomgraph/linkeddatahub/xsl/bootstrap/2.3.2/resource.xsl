@@ -996,7 +996,7 @@ extension-element-prefixes="ixsl"
     
     <!-- CONSTRUCTOR -->
 
-    <xsl:template match="*[*][@rdf:about]" mode="bs2:ConstructorListItem" use-when="system-property('xsl:product-name') = 'SAXON'">
+    <xsl:template match="*[*][@rdf:about]" mode="bs2:ConstructorListItem">
         <xsl:param name="with-label" select="true()" as="xs:boolean"/>
         <xsl:param name="create-graph" select="false()" as="xs:boolean"/>
 
@@ -1012,7 +1012,7 @@ extension-element-prefixes="ixsl"
         </xsl:if>
     </xsl:template>
     
-    <xsl:template match="*[*][@rdf:about]" mode="bs2:Constructor" use-when="system-property('xsl:product-name') = 'SAXON'">
+    <xsl:template match="*[*][@rdf:about]" mode="bs2:Constructor">
         <xsl:param name="id" select="concat('constructor-', generate-id())" as="xs:string?"/>
         <xsl:param name="subclasses" as="attribute()*"/>
         <xsl:param name="with-label" select="false()" as="xs:boolean"/>
