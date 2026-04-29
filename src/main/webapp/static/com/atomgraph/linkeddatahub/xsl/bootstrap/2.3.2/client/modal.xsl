@@ -1264,7 +1264,12 @@ LIMIT   10
 
         <xsl:choose>
             <xsl:when test="$status = (200, 204)">
-                <xsl:sequence select="ldh:form-horizontal-submit-success($context)"/>
+                <xsl:variable name="doc-uri" select="$context('doc-uri')" as="xs:anyURI"/>
+                <xsl:variable name="form" select="$context('form')" as="element()?"/>
+                <xsl:sequence select="ixsl:call($form/ancestor::div[contains-token(@class, 'modal')], 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
+                <xsl:call-template name="ldh:DocumentNavigate">
+                    <xsl:with-param name="uri" select="$doc-uri"/>
+                </xsl:call-template>
             </xsl:when>
             <xsl:when test="$status = 201 and map:contains($response?headers, 'location')">
                 <xsl:sequence select="ldh:form-submit-created($context)"/>
