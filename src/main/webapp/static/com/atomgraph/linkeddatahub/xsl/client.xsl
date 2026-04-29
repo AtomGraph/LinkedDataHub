@@ -757,11 +757,31 @@ WHERE
         <xsl:param name="push-state" select="true()" as="xs:boolean"/>
         <xsl:param name="container" as="element()" select="id($body-id, ixsl:page())"/>
 
+        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+        <xsl:if test="ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub'), 'saxonController')">
+            <xsl:message>Aborting HTTP request that has already been sent</xsl:message>
+            <xsl:sequence select="ixsl:call(ixsl:get(ixsl:window(), 'LinkedDataHub.saxonController'), 'abort', [])[current-date() lt xs:date('2000-01-01')]"/>
+        </xsl:if>
+        <xsl:variable name="controller" select="ixsl:abort-controller()"/>
+        <ixsl:set-property name="saxonController" select="$controller" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+
         <xsl:variable name="href" select="ldh:href($uri)" as="xs:anyURI"/>
 
         <xsl:call-template name="ldh:NavigationUpdate">
             <xsl:with-param name="href" select="$href"/>
         </xsl:call-template>
+
+        <!-- update address bar input: show external URI, clear for local docs -->
+        <xsl:for-each select="id('uri', ixsl:page())">
+            <xsl:choose>
+                <xsl:when test="not(starts-with($uri, ldt:base()))">
+                    <ixsl:set-property name="value" select="string($uri)" object="."/>
+                </xsl:when>
+                <xsl:otherwise>
+                    <ixsl:set-property name="value" select="''" object="."/>
+                </xsl:otherwise>
+            </xsl:choose>
+        </xsl:for-each>
 
         <!-- hide local tab pane for external URIs -->
         <xsl:if test="not(starts-with($uri, ldt:base()))">
@@ -781,6 +801,7 @@ WHERE
 
         <xsl:call-template name="ldh:RDFDocumentLoad">
             <xsl:with-param name="uri" select="$uri"/>
+            <xsl:with-param name="controller" select="$controller"/>
         </xsl:call-template>
     </xsl:template>
 
@@ -789,6 +810,7 @@ WHERE
     <xsl:template name="ldh:RDFDocumentLoad">
         <xsl:param name="uri" as="xs:anyURI"/>
         <xsl:param name="refresh-content" as="xs:boolean?"/>
+        <xsl:param name="controller" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), 'saxonController')"/>
         <!-- if the URI is external, dereference it through the proxy -->
         <!-- add a bogus query parameter to give the RDF/XML document a different URL in the browser cache, otherwise it will clash with the HTML representation -->
         <!-- this is due to broken browser behavior re. Vary and conditional requests: https://stackoverflow.com/questions/60799116/firefox-if-none-match-headers-ignore-content-type-and-vary/60802443 -->
@@ -801,7 +823,7 @@ WHERE
             'uri': $uri,
             'refresh-content': $refresh-content
           }"/>
-        <ixsl:promise select="ixsl:http-request($context('request')) =>
+        <ixsl:promise select="ixsl:http-request($context('request'), $controller) =>
             ixsl:then(ldh:rethread-response($context, ?)) =>
             ixsl:then(ldh:handle-response#1) =>
             ixsl:then(ldh:rdf-document-response#1)"
@@ -829,18 +851,9 @@ WHERE
         <xsl:if test="not(empty($state))">
             <xsl:variable name="href" select="map:get($state, 'href')" as="xs:anyURI?"/>
 
-            <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
-
             <!-- decode URI from the ?uri query param if the URI was proxied -->
             <xsl:variable name="query-params" select="ldh:parse-query-params(substring-after($href, '?'))" as="map(xs:string, xs:string*)"/>
             <xsl:variable name="uri" select="if (map:contains($query-params, 'uri')) then xs:anyURI(map:get($query-params, 'uri')) else $href" as="xs:anyURI"/>
-
-            <xsl:if test="ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub'), 'saxonController')">
-                <xsl:message>Aborting HTTP request that has already been sent</xsl:message>
-                <xsl:sequence select="ixsl:call(ixsl:get(ixsl:window(), 'LinkedDataHub.saxonController'), 'abort', [])"/>
-            </xsl:if>
-            <xsl:variable name="controller" select="ixsl:abort-controller()"/>
-            <ixsl:set-property name="saxonController" select="$controller" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
 
             <xsl:call-template name="ldh:DocumentNavigate">
                 <xsl:with-param name="uri" select="$uri"/>
@@ -860,20 +873,11 @@ WHERE
         <xsl:variable name="query-params" select="ldh:parse-query-params(substring-after($href, '?'))" as="map(xs:string, xs:string*)"/>
         <xsl:variable name="uri" select="if (map:contains($query-params, 'uri')) then xs:anyURI(map:get($query-params, 'uri')) else $href" as="xs:anyURI"/>
 
-        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
-
-        <xsl:if test="ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub'), 'saxonController')">
-            <xsl:message>Aborting HTTP request that has already been sent</xsl:message>
-            <xsl:sequence select="ixsl:call(ixsl:get(ixsl:window(), 'LinkedDataHub.saxonController'), 'abort', [])"/>
-        </xsl:if>
-        <xsl:variable name="controller" select="ixsl:abort-controller()"/>
-        <ixsl:set-property name="saxonController" select="$controller" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
-
         <xsl:call-template name="ldh:DocumentNavigate">
             <xsl:with-param name="uri" select="$uri"/>
         </xsl:call-template>
     </xsl:template>
-    
+
     <xsl:template match="form[contains-token(@class, 'navbar-form')]" mode="ixsl:onsubmit">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <xsl:variable name="uri-string" select=".//input[@name = 'uri']/ixsl:get(., 'value')" as="xs:string?"/>
@@ -881,14 +885,6 @@ WHERE
         <!-- ignore form submission if the input value is not a valid http(s):// URI -->
         <xsl:if test="$uri-string castable as xs:anyURI and (starts-with($uri-string, 'http://') or starts-with($uri-string, 'https://'))">
             <xsl:variable name="uri" select="xs:anyURI($uri-string)" as="xs:anyURI"/>
-            <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
-
-            <xsl:if test="ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub'), 'saxonController')">
-                <xsl:message>Aborting HTTP request that has already been sent</xsl:message>
-                <xsl:sequence select="ixsl:call(ixsl:get(ixsl:window(), 'LinkedDataHub.saxonController'), 'abort', [])"/>
-            </xsl:if>
-            <xsl:variable name="controller" select="ixsl:abort-controller()"/>
-            <ixsl:set-property name="saxonController" select="$controller" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
 
             <xsl:call-template name="ldh:DocumentNavigate">
                 <xsl:with-param name="uri" select="$uri"/>
@@ -903,15 +899,6 @@ WHERE
         <xsl:choose>
             <xsl:when test="?status = 204"> <!-- No Content -->
                 <xsl:variable name="uri" select="resolve-uri('..', $doc-uri)" as="xs:anyURI"/>
-
-                <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
-
-                <xsl:if test="ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub'), 'saxonController')">
-                    <xsl:message>Aborting HTTP request that has already been sent</xsl:message>
-                    <xsl:sequence select="ixsl:call(ixsl:get(ixsl:window(), 'LinkedDataHub.saxonController'), 'abort', [])"/>
-                </xsl:if>
-                <xsl:variable name="controller" select="ixsl:abort-controller()"/>
-                <ixsl:set-property name="saxonController" select="$controller" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
 
                 <xsl:call-template name="ldh:DocumentNavigate">
                     <xsl:with-param name="uri" select="$uri"/>
@@ -951,15 +938,6 @@ WHERE
             <xsl:when test="$key-code = 'Enter'">
                 <xsl:if test="$menu/li[contains-token(@class, 'active')]">
                     <xsl:variable name="uri" select="$menu/li[contains-token(@class, 'active')]/input[@name = 'ou']/ixsl:get(., 'value')" as="xs:anyURI"/>
-
-                    <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
-
-                    <xsl:if test="ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub'), 'saxonController')">
-                        <xsl:message>Aborting HTTP request that has already been sent</xsl:message>
-                        <xsl:sequence select="ixsl:call(ixsl:get(ixsl:window(), 'LinkedDataHub.saxonController'), 'abort', [])"/>
-                    </xsl:if>
-                    <xsl:variable name="controller" select="ixsl:abort-controller()"/>
-                    <ixsl:set-property name="saxonController" select="$controller" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
 
                     <xsl:call-template name="ldh:DocumentNavigate">
                         <xsl:with-param name="uri" select="$uri"/>
@@ -1028,15 +1006,6 @@ WHERE
     
     <xsl:template match="form[contains-token(@class, 'navbar-form')]//ul[contains-token(@class, 'dropdown-menu')][contains-token(@class, 'typeahead')]/li" mode="ixsl:onmousedown" priority="1">
         <xsl:variable name="uri" select="input[@name = 'ou']/ixsl:get(., 'value')" as="xs:anyURI"/>
-
-        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
-
-        <xsl:if test="ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub'), 'saxonController')">
-            <xsl:message>Aborting HTTP request that has already been sent</xsl:message>
-            <xsl:sequence select="ixsl:call(ixsl:get(ixsl:window(), 'LinkedDataHub.saxonController'), 'abort', [])"/>
-        </xsl:if>
-        <xsl:variable name="controller" select="ixsl:abort-controller()"/>
-        <ixsl:set-property name="saxonController" select="$controller" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
 
         <xsl:call-template name="ldh:DocumentNavigate">
             <xsl:with-param name="uri" select="$uri"/>
@@ -1196,13 +1165,6 @@ WHERE
         
         <xsl:choose>
             <xsl:when test="$status = (200, 204)">
-                <xsl:if test="ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub'), 'saxonController')">
-                    <xsl:message>Aborting HTTP request that has already been sent</xsl:message>
-                    <xsl:sequence select="ixsl:call(ixsl:get(ixsl:window(), 'LinkedDataHub.saxonController'), 'abort', [])"/>
-                </xsl:if>
-                <xsl:variable name="controller" select="ixsl:abort-controller()"/>
-                <ixsl:set-property name="saxonController" select="$controller" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
-
                 <xsl:call-template name="ldh:DocumentNavigate">
                     <xsl:with-param name="uri" select="ldh:base-uri(.)"/>
                 </xsl:call-template>
