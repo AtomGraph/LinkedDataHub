@@ -515,34 +515,32 @@ WHERE
                             <xsl:with-param name="container" select="id($body-id, ixsl:page())"/>
                         </xsl:call-template>
 
-                        <!-- reuse exact-match pane, or same-dataspace pane (avoids accumulating local panes) -->
-                        <xsl:variable name="reuse-pane" select="($tab-pane, if ($tab-base) then id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')][./div[contains-token(@class, 'document-body')][starts-with(@about, $tab-base)]] else ())[1]" as="element()?"/>
+                        <!-- reuse exact-match pane, or same-origin pane (avoids accumulating panes for the same dataspace) -->
+                        <xsl:variable name="reuse-pane" select="($tab-pane, id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')][./div[contains-token(@class, 'document-body')][starts-with(@about, lapp:origin($uri))]])[1]" as="element()?"/>
                         <xsl:variable name="effective-pane-id" select="if ($reuse-pane) then $reuse-pane/@id else $tab-body-id" as="xs:string"/>
 
-                        <!-- external-only: add tab bar item and hide local pane -->
-                        <xsl:if test="not(starts-with($uri, ldt:base())) and not($tab-pane)">
+                        <!-- external-only, new pane only: add tab bar item and hide local pane -->
+                        <xsl:if test="not(starts-with($uri, lapp:origin(ldh:request-uri()))) and not($reuse-pane)">
                             <xsl:call-template name="ldh:AddTabNavBarListItem">
                                 <xsl:with-param name="uri" select="$uri"/>
                                 <xsl:with-param name="label" select="$label"/>
                             </xsl:call-template>
 
-                            <xsl:variable name="local-tab-pane" select="if (ldt:base()) then id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')][./div[contains-token(@class, 'document-body')][starts-with(@about, ldt:base())]] else ()" as="element()?"/>
-                            <xsl:if test="$local-tab-pane">
-                                <ixsl:set-style name="display" select="'none'" object="$local-tab-pane"/>
-                            </xsl:if>
+                            <xsl:for-each select="id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')][./div[contains-token(@class, 'document-body')][starts-with(@about, lapp:origin(ldh:request-uri()) || '/')]]">
+                                <ixsl:set-style name="display" select="'none'" object="."/>
+                            </xsl:for-each>
                         </xsl:if>
 
                         <xsl:choose>
                             <!-- pane exists: replace document-body content, leave sidebar intact -->
                             <xsl:when test="$reuse-pane">
                                 <xsl:for-each select="$reuse-pane/div[contains-token(@class, 'document-body')]">
-                                    <xsl:result-document href="?." method="ixsl:replace-content">
-                                        <xsl:apply-templates select="$results/rdf:RDF" mode="bs2:ActionBar">
-                                            <xsl:with-param name="active-mode" select="$mode"/>
+                                    <xsl:result-document href="?." method="ixsl:replace-element">
+                                        <xsl:apply-templates select="$results/rdf:RDF" mode="bs2:DocumentBody">
+                                            <xsl:with-param name="mode" select="$mode"/>
                                         </xsl:apply-templates>
-
-                                        <xsl:apply-templates select="$results/rdf:RDF" mode="bs2:ContentBody"/>
                                     </xsl:result-document>
+                                    
                                     <!-- update @about to new URI -->
                                     <ixsl:set-attribute name="about" select="$uri" object="."/>
                                 </xsl:for-each>
@@ -635,7 +633,21 @@ WHERE
                     </xsl:for-each>
                 </xsl:when>
                 <xsl:otherwise>
-                    <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ ?message ])[current-date() lt xs:date('2000-01-01')]"/>
+                    <xsl:variable name="error-pane" select="id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')][./div[contains-token(@class, 'document-body')]/@about = $uri]" as="element()?"/>
+                    <xsl:choose>
+                        <xsl:when test="$error-pane">
+                            <xsl:for-each select="$error-pane/div[contains-token(@class, 'document-body')]">
+                                <xsl:result-document href="?." method="ixsl:replace-content">
+                                    <div class="alert alert-error">
+                                        <p>Could not load <a href="{$uri}" target="_blank"><xsl:value-of select="$uri"/></a> as linked data (HTTP <xsl:value-of select="?status"/>).</p>
+                                    </div>
+                                </xsl:result-document>
+                            </xsl:for-each>
+                        </xsl:when>
+                        <xsl:otherwise>
+                            <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [concat('Could not load ', $uri, ' as linked data (HTTP ', ?status, ')')])[current-date() lt xs:date('2000-01-01')]"/>
+                        </xsl:otherwise>
+                    </xsl:choose>
                 </xsl:otherwise>
             </xsl:choose>
         </xsl:for-each>
@@ -699,8 +711,22 @@ WHERE
         <xsl:param name="refresh-content" select="()" as="xs:boolean?"/>
         <xsl:variable name="rdf" select="$response?body" as="document-node()"/>
 
-        <!-- activate tab list item -->
-        <xsl:apply-templates select="$tab-list-item" mode="ldh:ActivateTab"/>
+        <!-- activate tab list item, or show pane directly for local docs (no tab bar item) -->
+        <xsl:choose>
+            <xsl:when test="$tab-list-item">
+                <xsl:apply-templates select="$tab-list-item" mode="ldh:ActivateTab"/>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:for-each select="id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')]">
+                    <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'remove', ['active'])[current-date() lt xs:date('2000-01-01')]"/>
+                    <ixsl:set-style name="display" select="'none'" object="."/>
+                </xsl:for-each>
+                <xsl:for-each select="id($tab-pane-id, ixsl:page())">
+                    <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'add', ['active'])[current-date() lt xs:date('2000-01-01')]"/>
+                    <ixsl:set-style name="display" select="'block'" object="."/>
+                </xsl:for-each>
+            </xsl:otherwise>
+        </xsl:choose>
         
         <!-- fire factories for top-level content blocks in the rendered pane -->
         <xsl:for-each select="id($tab-pane-id, ixsl:page())/div[contains-token(@class, 'document-body')]/div[contains-token(@class, 'content-body')]/div">
@@ -783,12 +809,11 @@ WHERE
             </xsl:choose>
         </xsl:for-each>
 
-        <!-- hide local tab pane for external URIs -->
-        <xsl:if test="not(starts-with($uri, ldt:base()))">
-            <xsl:variable name="local-tab-pane" select="id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')][./div[contains-token(@class, 'document-body')]/@about = ac:absolute-path(ldh:request-uri())]" as="element()?"/>
-            <xsl:if test="$local-tab-pane">
-                <ixsl:set-style name="display" select="'none'" object="$local-tab-pane"/>
-            </xsl:if>
+        <!-- hide local tab pane for external URIs; use browser origin (not ldt:base()) so the check is correct even when an external tab is active -->
+        <xsl:if test="not(starts-with($uri, lapp:origin(ldh:request-uri()) || '/'))">
+            <xsl:for-each select="id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')][./div[contains-token(@class, 'document-body')]/@about = ac:absolute-path(ldh:request-uri())]">
+                <ixsl:set-style name="display" select="'none'" object="."/>
+            </xsl:for-each>
         </xsl:if>
 
         <xsl:if test="$push-state">
@@ -829,18 +854,6 @@ WHERE
             ixsl:then(ldh:rdf-document-response#1)"
             on-failure="ldh:promise-failure#1"/>
     </xsl:template>
-    
-<!--    <xsl:template name="ldt:AppChanged">
-        <xsl:param name="base" as="xs:anyURI"/>
-
-        <xsl:for-each select="id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')][contains-token(@class, 'active')]/div[contains-token(@class, 'left-sidebar')]">
-            <xsl:result-document href="?." method="ixsl:replace-content">
-                <xsl:call-template name="ldh:LeftSidebar">
-                    <xsl:with-param name="base" select="$base"/>
-                </xsl:call-template>
-            </xsl:result-document>
-        </xsl:for-each>
-    </xsl:template>-->
 
     <!-- EVENT LISTENERS -->
 

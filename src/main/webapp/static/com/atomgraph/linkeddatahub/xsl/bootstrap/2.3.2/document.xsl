@@ -417,7 +417,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="endpoint" as="xs:anyURI?"/>
         <xsl:param name="application" as="xs:anyURI?"/>
 
-        <div class="">
+        <div>
             <xsl:if test="$id">
                 <xsl:attribute name="id" select="$id"/>
             </xsl:if>
@@ -438,13 +438,38 @@ extension-element-prefixes="ixsl"
                 <xsl:apply-templates select="." mode="bs2:DocumentTree"/>
             </xsl:if>
 
-            <div class="document-body" about="{ac:absolute-path(ldh:base-uri(.))}">
-                <xsl:apply-templates select="." mode="bs2:ActionBar">
-                    <xsl:with-param name="active-mode" select="$mode"/>
-                </xsl:apply-templates>
+            <xsl:apply-templates select="." mode="bs2:DocumentBody">
+                <xsl:with-param name="mode" select="$mode"/>
+            </xsl:apply-templates>
+        </div>
+    </xsl:template>
+    
+    <!-- DOCUMENT BODY -->
+    
+     <xsl:template match="rdf:RDF" mode="bs2:DocumentBody">
+        <xsl:param name="id" as="xs:string?"/>
+        <xsl:param name="class" select="'document-body'" as="xs:string?"/>
+        <xsl:param name="mode" as="xs:anyURI"/>
+        <xsl:param name="about" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/>
 
-                <xsl:apply-templates select="." mode="bs2:ContentBody"/>
-            </div>
+        <div>
+            <xsl:if test="$id">
+                <xsl:attribute name="id" select="$id"/>
+            </xsl:if>
+            <xsl:if test="$class">
+                <xsl:attribute name="class" select="$class"/>
+            </xsl:if>
+            <xsl:if test="$about">
+                <xsl:attribute name="about" select="$about"/>
+            </xsl:if>
+
+            <xsl:apply-templates select="." mode="bs2:ActionBar">
+                <xsl:with-param name="active-mode" select="$mode"/>
+            </xsl:apply-templates>
+
+            <xsl:apply-templates select="." mode="bs2:ContentBody">
+                <xsl:with-param name="mode" select="$mode"/>
+            </xsl:apply-templates>
         </div>
     </xsl:template>
     
