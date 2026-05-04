@@ -267,7 +267,7 @@ exclude-result-prefixes="#all">
 
     <xsl:template match="*[@rdf:about = '&foaf;mbox'][ac:absolute-path(ldh:request-uri()) = resolve-uri(encode-for-uri('sign up'), ldt:base())]" mode="ac:label" priority="1">
         <xsl:value-of>
-            <xsl:apply-templates select="key('resources', 'email', document('../translations.rdf'))" mode="ac:label"/>
+            <xsl:apply-templates select="key('resources', 'email', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
         </xsl:value-of>
     </xsl:template>
 
