@@ -8,7 +8,9 @@ body { height: calc(100% - 51px); padding-top: 51px; padding-bottom: 0; }
 #tab-bar-list.nav-tabs { margin-bottom: 0; border-bottom: none; }
 #tab-bar-list.nav-tabs > li > a { color: #007fff; padding: 8px 12px; text-shadow: none; border-color: #aaa #aaa transparent; }
 #tab-bar-list.nav-tabs > li.active > a, #tab-bar .nav-tabs > li.active > a:hover { color: #555555; background: rgb(223, 223, 223); border-color: #aaa #aaa transparent; }
-#tab-bar-list .tab-close { margin-left: 4px; font-size: 10px; color: #888; cursor: pointer; vertical-align: middle; }
+#tab-bar-list > li { position: relative; }
+#tab-bar-list.nav-tabs > li > a { padding-right: 22px; }
+#tab-bar-list .tab-close { position: absolute; top: 6px; right: 6px; line-height: 1; font-size: 11px; color: #888; cursor: pointer; padding: 1px 3px; }
 #tab-bar-list .tab-close:hover { color: #333; }
 body.embed { padding-top: 0; }
 ul.dropdown-menu { max-height: 26em; overflow-x: hidden; overflow-y: auto; }

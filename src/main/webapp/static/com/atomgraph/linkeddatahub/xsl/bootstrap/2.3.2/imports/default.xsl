@@ -198,15 +198,6 @@ exclude-result-prefixes="#all"
         </xsl:choose>
     </xsl:function>
     
-    <!-- function stub so that Saxon-EE doesn't complain when compiling SEF -->
-    <xsl:function name="ldh:construct" as="document-node()" override-extension-function="no" cache="yes">
-        <xsl:param name="class-constructors" as="map(xs:anyURI, xs:string*)"/>
-            
-        <xsl:message use-when="system-property('xsl:product-name') = 'SAXON'" terminate="yes">
-            Not implemented -- com.atomgraph.linkeddatahub.writer.function.Construct needs to be registered as an extension function
-        </xsl:message>
-    </xsl:function>
-    
     <xsl:function name="ldh:construct-forClass" as="document-node()" cache="yes">
         <xsl:param name="forClass" as="xs:anyURI+"/>
         <xsl:variable name="results-uri" select="ac:build-uri(resolve-uri('ns', ldt:base()), map{ 'forClass': for $class in $forClass return string($class), 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>

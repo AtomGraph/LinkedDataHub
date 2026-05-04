@@ -97,7 +97,7 @@ extension-element-prefixes="ixsl"
     <xsl:import href="converters/SPARQLXMLResults2DataTable.xsl"/>
     <xsl:import href="converters/RDFXML2GeoJSON.xsl"/>
     
-<!--    <xsl:include href="bootstrap/2.3.2/admin/signup.xsl"/>-->
+    <xsl:include href="bootstrap/2.3.2/admin/signup.xsl"/>
     <xsl:include href="bootstrap/2.3.2/client/query-transforms.xsl"/>
     <xsl:include href="bootstrap/2.3.2/client/typeahead.xsl"/>
     <xsl:include href="bootstrap/2.3.2/client/functions.xsl"/>
@@ -632,23 +632,6 @@ WHERE
                         </xsl:for-each>
                     </xsl:for-each>
                 </xsl:when>
-                <xsl:otherwise>
-                    <xsl:variable name="error-pane" select="id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')][./div[contains-token(@class, 'document-body')]/@about = $uri]" as="element()?"/>
-                    <xsl:choose>
-                        <xsl:when test="$error-pane">
-                            <xsl:for-each select="$error-pane/div[contains-token(@class, 'document-body')]">
-                                <xsl:result-document href="?." method="ixsl:replace-content">
-                                    <div class="alert alert-error">
-                                        <p>Could not load <a href="{$uri}" target="_blank"><xsl:value-of select="$uri"/></a> as linked data (HTTP <xsl:value-of select="?status"/>).</p>
-                                    </div>
-                                </xsl:result-document>
-                            </xsl:for-each>
-                        </xsl:when>
-                        <xsl:otherwise>
-                            <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [concat('Could not load ', $uri, ' as linked data (HTTP ', ?status, ')')])[current-date() lt xs:date('2000-01-01')]"/>
-                        </xsl:otherwise>
-                    </xsl:choose>
-                </xsl:otherwise>
             </xsl:choose>
         </xsl:for-each>
     </xsl:function>
@@ -668,7 +651,7 @@ WHERE
                 <a href="{ldh:href($uri)}" title="{$uri}">
                     <xsl:value-of select="$label"/>
                 </a>
-<!--                <span class="tab-close">&#xd7;</span>-->
+                <span class="tab-close">&#xd7;</span>
             </li>
         </xsl:result-document>
 
@@ -1097,13 +1080,33 @@ WHERE
 
     <xsl:template match="ul[@id = 'tab-bar-list']/li/span[contains-token(@class, 'tab-close')]" mode="ixsl:onclick">
         <xsl:variable name="tab-li" select=".." as="element()"/>
-        <xsl:variable name="uri" select="ixsl:get($tab-li, 'dataset.uri')" as="xs:string"/>
+        <xsl:variable name="uri" select="xs:anyURI(ixsl:get($tab-li, 'dataset.uri'))" as="xs:anyURI"/>
         <xsl:variable name="was-active" select="contains-token($tab-li/@class, 'active')" as="xs:boolean"/>
+
+        <!-- pick fallback BEFORE removing this li; prefer previous sibling, fall back to next -->
+        <xsl:variable name="fallback-li" select="($tab-li/preceding-sibling::li[1], $tab-li/following-sibling::li[1])[1]" as="element()?"/>
+
+        <!-- remove the associated tab pane (matched by document-body/@about = $uri) -->
+        <xsl:for-each select="id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')][./div[contains-token(@class, 'document-body')]/@about = $uri]">
+            <xsl:sequence select="ixsl:call(., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
+        </xsl:for-each>
 
         <!-- remove the tab <li> from the DOM -->
         <xsl:sequence select="ixsl:call($tab-li, 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
 
-        <!-- TBD -->
+        <!-- if the closed tab was active, activate the fallback and navigate to its URI -->
+        <xsl:if test="$was-active and $fallback-li">
+            <xsl:apply-templates select="$fallback-li" mode="ldh:ActivateTab"/>
+            <xsl:call-template name="ldh:DocumentNavigate">
+                <xsl:with-param name="uri" select="xs:anyURI(ixsl:get($fallback-li, 'dataset.uri'))"/>
+            </xsl:call-template>
+        </xsl:if>
+
+        <!-- if only the base-uri tab is left, hide the whole tab-bar (mirror of ldh:AddTabNavBarListItem) -->
+        <xsl:if test="count(id('tab-bar-list', ixsl:page())/li) le 1">
+            <ixsl:set-style name="display" select="'none'" object="id('tab-bar', ixsl:page())"/>
+            <xsl:sequence select="ixsl:call(ixsl:get(ixsl:page(), 'documentElement.style'), 'removeProperty', ['--action-bar-top'])[current-date() lt xs:date('2000-01-01')]"/>
+        </xsl:if>
     </xsl:template>
 
     <!-- file drop -->
