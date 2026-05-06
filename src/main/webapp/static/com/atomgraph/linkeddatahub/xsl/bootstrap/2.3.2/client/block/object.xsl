@@ -166,8 +166,8 @@ exclude-result-prefixes="#all"
         <xsl:variable name="mode" select="$context('mode')" as="xs:anyURI?"/>
         <xsl:variable name="show-edit-button" select="$context('show-edit-button')" as="xs:boolean?"/>
 
-        <xsl:message>ldh:block-object-value-response</xsl:message>
-        
+        <xsl:message>ldh:block-object-value-response status=<xsl:value-of select="$response?status"/> media-type=<xsl:value-of select="$response?media-type"/> resource-uri=<xsl:value-of select="$resource-uri"/> block/@about=<xsl:value-of select="$block/@about"/></xsl:message>
+
         <xsl:for-each select="$response">
             <xsl:choose>
                 <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
@@ -183,8 +183,9 @@ exclude-result-prefixes="#all"
                             <xsl:when test="$resource">
                                 <!-- <xsl:message>ldh:block-object-value-response $resource-uri: <xsl:value-of select="$resource-uri"/></xsl:message> -->
                                 <xsl:variable name="object-uris" select="distinct-values($resource/*/@rdf:resource[starts-with(., ldt:base())][not(key('resources', ., root($resource)))])" as="xs:string*"/>
-                                <xsl:variable name="query-string" select="$object-metadata-query || ' VALUES $this { ' || string-join(for $uri in $object-uris return '&lt;' || $uri || '&gt;', ' ') || ' }'" as="xs:string"/>                    
+                                <xsl:variable name="query-string" select="$object-metadata-query || ' VALUES $this { ' || string-join(for $uri in $object-uris return '&lt;' || $uri || '&gt;', ' ') || ' }'" as="xs:string"/>
                                 <xsl:variable name="request" select="map{ 'method': 'POST', 'href': ldh:href(sd:endpoint()), 'media-type': 'application/sparql-query', 'body': $query-string, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
+                                <xsl:message>ldh:block-object-value-response building metadata POST href=<xsl:value-of select="$request?href"/> sd:endpoint()=<xsl:value-of select="sd:endpoint()"/> object-uris-count=<xsl:value-of select="count($object-uris)"/> body=<xsl:value-of select="$query-string"/></xsl:message>
                                 <xsl:sequence select="
                                   map{
                                     'request': $request,
@@ -223,6 +224,7 @@ exclude-result-prefixes="#all"
                     <xsl:sequence select="$context"/>
                 </xsl:when>
                 <xsl:otherwise>
+                    <xsl:message>HTTPError FROM block-object-value-response otherwise: status=<xsl:value-of select="?status"/> message=<xsl:value-of select="?message"/> resource-uri=<xsl:value-of select="$resource-uri"/></xsl:message>
                     <xsl:for-each select="$container">
                         <xsl:result-document href="?." method="ixsl:replace-content">
                             <div class="alert alert-block">
@@ -230,7 +232,7 @@ exclude-result-prefixes="#all"
                             </div>
                         </xsl:result-document>
                     </xsl:for-each>
-                    
+
                     <xsl:sequence select="ldh:hide-block-progress-bar($context, ())[current-date() lt xs:date('2000-01-01')]"/>
                     <xsl:sequence select="
                         error(
@@ -240,7 +242,7 @@ exclude-result-prefixes="#all"
                         )
                     "/>
 
-                    <xsl:sequence select="$context"/>                    
+                    <xsl:sequence select="$context"/>
                 </xsl:otherwise>
             </xsl:choose>
         </xsl:for-each>        
@@ -257,9 +259,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="mode" select="$context('mode')" as="xs:anyURI?"/>
         <xsl:variable name="show-edit-button" select="$context('show-edit-button')" as="xs:boolean?"/>
 
-        <xsl:message>ldh:block-object-metadata-response $block/@about: <xsl:value-of select="$block/@about"/>
-        
-        </xsl:message>
+        <xsl:message>ldh:block-object-metadata-response status=<xsl:value-of select="$response?status"/> media-type=<xsl:value-of select="$response?media-type"/> message=<xsl:value-of select="$response?message"/> $block/@about=<xsl:value-of select="$block/@about"/></xsl:message>
         
         <xsl:for-each select="$block//div[contains-token(@class, 'bar')]">
             <!-- update progress bar -->
@@ -354,6 +354,7 @@ exclude-result-prefixes="#all"
                             </xsl:if>
                         </xsl:when>
                         <xsl:otherwise>
+                            <xsl:message>ALERT FROM block-object-metadata-response otherwise: status=<xsl:value-of select="?status"/> message=<xsl:value-of select="?message"/> $block/@about=<xsl:value-of select="$block/@about"/></xsl:message>
                             <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ ?message ])[current-date() lt xs:date('2000-01-01')]"/>
                             <xsl:sequence select="ldh:hide-block-progress-bar($context, ())[current-date() lt xs:date('2000-01-01')]"/>
 

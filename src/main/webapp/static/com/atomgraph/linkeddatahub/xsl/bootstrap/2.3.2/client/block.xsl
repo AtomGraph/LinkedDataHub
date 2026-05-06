@@ -182,7 +182,7 @@ exclude-result-prefixes="#all"
     <!-- show drag handle on left edge hover, but not when left sidebar is active -->
 
     <xsl:template match="div[contains-token(@class, 'block')][key('elements-by-class', 'drag-handle', .)][acl:mode() = '&acl;Write'][not(ixsl:style(ancestor::div[contains-token(@class, 'tab-pane')]/div[contains-token(@class, 'left-sidebar')])?display = 'block')]" mode="ixsl:onmousemove" priority="2">
-        <xsl:variable name="uri" select="ac:absolute-path(ldh:request-uri())" as="xs:anyURI"/>
+        <xsl:variable name="uri" select="xs:anyURI(ancestor::div[contains-token(@class, 'document-body')]/@about)" as="xs:anyURI"/>
         <xsl:variable name="results" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $uri || '`'), 'results')" as="document-node()"/>
         <xsl:variable name="mode" select="ac:mode($results)" as="xs:anyURI"/>
  
@@ -357,7 +357,7 @@ exclude-result-prefixes="#all"
     <!-- only handle if drag originated from drag-handle (has text/uri-list item) --> 
 
     <xsl:template match="div[contains-token(@class, 'content-body')]/div[@about]/div[@about][contains-token(@class, 'block')][acl:mode() = '&acl;Write']" mode="ixsl:ondragover">
-        <xsl:variable name="uri" select="ac:absolute-path(ldh:request-uri())" as="xs:anyURI"/>
+        <xsl:variable name="uri" select="xs:anyURI(ancestor::div[contains-token(@class, 'document-body')]/@about)" as="xs:anyURI"/>
         <xsl:variable name="results" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $uri || '`'), 'results')" as="document-node()"/>
         <xsl:variable name="mode" select="ac:mode($results)" as="xs:anyURI"/>
 
@@ -375,7 +375,7 @@ exclude-result-prefixes="#all"
     <!-- only handle if drag originated from drag-handle (has text/uri-list item) -->
 
     <xsl:template match="div[contains-token(@class, 'content-body')]/div[@about]/div[@about][contains-token(@class, 'block')][acl:mode() = '&acl;Write']" mode="ixsl:ondragenter">
-        <xsl:variable name="uri" select="ac:absolute-path(ldh:request-uri())" as="xs:anyURI"/>
+        <xsl:variable name="uri" select="xs:anyURI(ancestor::div[contains-token(@class, 'document-body')]/@about)" as="xs:anyURI"/>
         <xsl:variable name="results" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $uri || '`'), 'results')" as="document-node()"/>
         <xsl:variable name="mode" select="ac:mode($results)" as="xs:anyURI"/>
 
@@ -391,7 +391,7 @@ exclude-result-prefixes="#all"
     <!-- only handle if drag originated from drag-handle (has text/uri-list item) -->
 
     <xsl:template match="div[contains-token(@class, 'content-body')]/div[@about]/div[@about][contains-token(@class, 'block')][acl:mode() = '&acl;Write']" mode="ixsl:ondragleave">
-        <xsl:variable name="uri" select="ac:absolute-path(ldh:request-uri())" as="xs:anyURI"/>
+        <xsl:variable name="uri" select="xs:anyURI(ancestor::div[contains-token(@class, 'document-body')]/@about)" as="xs:anyURI"/>
         <xsl:variable name="results" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $uri || '`'), 'results')" as="document-node()"/>
         <xsl:variable name="mode" select="ac:mode($results)" as="xs:anyURI"/>
 
@@ -413,7 +413,7 @@ exclude-result-prefixes="#all"
     <!-- only handle if drag originated from drag-handle (has text/uri-list item) -->
 
     <xsl:template match="div[contains-token(@class, 'content-body')]/div[@about]/div[@about][contains-token(@class, 'block')][acl:mode() = '&acl;Write']" mode="ixsl:ondrop">
-        <xsl:variable name="uri" select="ac:absolute-path(ldh:request-uri())" as="xs:anyURI"/>
+        <xsl:variable name="uri" select="xs:anyURI(ancestor::div[contains-token(@class, 'document-body')]/@about)" as="xs:anyURI"/>
         <xsl:variable name="results" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $uri || '`'), 'results')" as="document-node()"/>
         <xsl:variable name="mode" select="ac:mode($results)" as="xs:anyURI"/>
 

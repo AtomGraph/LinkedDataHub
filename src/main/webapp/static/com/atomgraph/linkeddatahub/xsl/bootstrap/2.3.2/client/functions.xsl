@@ -59,13 +59,6 @@ exclude-result-prefixes="#all"
         </xsl:choose>
     </xsl:function>
     
-    <xsl:function name="lapp:origin" as="xs:anyURI">
-        <xsl:param name="uri" as="xs:anyURI"/>
-
-        <!-- no trailing slash -->
-        <xsl:sequence select="xs:anyURI(replace($uri, '^(https?://[^/]+).*$', '$1'))"/>
-    </xsl:function>
-    
     <xsl:function name="ldt:base" as="xs:anyURI">
         <xsl:variable name="active-pane" select="id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')][contains-token(@class, 'active')]" as="element()?"/>
         <xsl:sequence select="if ($active-pane and ixsl:contains($active-pane, 'dataset.base')) then xs:anyURI(ixsl:get($active-pane, 'dataset.base')) else xs:anyURI(lapp:origin(ldh:request-uri()) || '/')"/>
@@ -540,17 +533,20 @@ exclude-result-prefixes="#all"
         <xsl:param name="error" as="map(*)"/>
 
         <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
-        
+
+        <xsl:message>ldh:promise-failure code=<xsl:value-of select="$error?code"/> message=<xsl:value-of select="$error?message"/></xsl:message>
         <xsl:if test="$error?code ne 'Q{&ldh;}HTTPError'">
+            <xsl:message>ALERT FROM ldh:promise-failure: <xsl:value-of select="$error?message"/></xsl:message>
             <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ $error?message ])"/>
         </xsl:if>
     </xsl:function>
-    
+
     <xsl:function name="ldh:error-response-alert" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
         <xsl:variable name="response" select="$context('response')" as="map(*)?"/>
 
         <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
+        <xsl:message>ALERT FROM ldh:error-response-alert: <xsl:value-of select="$response?message"/></xsl:message>
         <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ $response?message ])"/>
     </xsl:function>
     

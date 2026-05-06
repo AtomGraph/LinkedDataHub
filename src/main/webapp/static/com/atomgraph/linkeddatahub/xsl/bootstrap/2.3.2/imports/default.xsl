@@ -125,11 +125,17 @@ exclude-result-prefixes="#all"
 
     <xsl:function name="sd:endpoint" as="xs:anyURI">
         <xsl:sequence select="resolve-uri('sparql', ldt:base())"/>
-    </xsl:function>    
-    
+    </xsl:function>
+
+    <xsl:function name="lapp:origin" as="xs:anyURI">
+        <xsl:param name="uri" as="xs:anyURI"/>
+        <!-- no trailing slash -->
+        <xsl:sequence select="xs:anyURI(replace($uri, '^(https?://[^/]+).*$', '$1'))"/>
+    </xsl:function>
+
     <xsl:function name="ldh:href" as="xs:anyURI">
         <xsl:param name="uri" as="xs:anyURI?"/>
-        
+
         <xsl:sequence select="ldh:href($uri, map{}, ())"/>
     </xsl:function>
 
@@ -146,8 +152,8 @@ exclude-result-prefixes="#all"
         <xsl:param name="fragment" as="xs:string?"/>
         
         <xsl:choose>
-            <!-- proxy URI - internal ones (relative to application's base URI) will be rewritten as absolute path in ApplicationFilter -->
-            <xsl:when test="$uri and not(starts-with($uri, ldt:base()))">
+            <!-- cross-origin URI - wrap in ?uri= on the page origin so the request stays same-origin (carries credentials, then ProxyRequestFilter forwards) -->
+            <xsl:when test="$uri and not(starts-with($uri, lapp:origin(ldh:request-uri()) || '/'))">
                 <xsl:sequence select="xs:anyURI(ac:build-uri(ac:absolute-path(ldh:request-uri()), map:merge((map{ 'uri': string($uri) }, $query-params))) || (if ($fragment) then ('#' || $fragment) else ()))"/>
             </xsl:when>
             <!-- local URI -->

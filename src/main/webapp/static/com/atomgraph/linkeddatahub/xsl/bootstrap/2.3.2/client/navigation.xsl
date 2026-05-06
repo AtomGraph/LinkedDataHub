@@ -163,11 +163,10 @@ ORDER BY DESC(?created)
     <!-- update left-sidebar sections -->
     <xsl:template name="ldh:NavigationUpdate">
         <xsl:param name="href" as="xs:anyURI"/>
-        <xsl:variable name="active-sidebar" select="id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')][contains-token(@class, 'active')]/div[contains-token(@class, 'left-sidebar')]" as="element()?"/>
 
-        <xsl:if test="$active-sidebar">
+        <xsl:for-each select="id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')][contains-token(@class, 'active')]/div[contains-token(@class, 'left-sidebar')]">
             <!-- activate the current URL in the document tree -->
-            <xsl:for-each select="$active-sidebar/div[contains-token(@class, 'document-tree')]">
+            <xsl:for-each select="./div[contains-token(@class, 'document-tree')]">
                 <xsl:variable name="href-string" select="string($href)" as="xs:string"/>
                 <xsl:variable name="target" select="xs:anyURI(if (contains($href-string, '?')) then substring-before($href-string, '?') else $href-string)" as="xs:anyURI"/>
                 <xsl:call-template name="ldh:DocTreeExpandPathAndActivate">
@@ -177,13 +176,13 @@ ORDER BY DESC(?created)
             </xsl:for-each>
 
             <!-- reload the class list -->
-            <xsl:for-each select="$active-sidebar/div[contains-token(@class, 'class-list')]/ul">
+            <xsl:for-each select="./div[contains-token(@class, 'class-list')]/ul">
                 <xsl:call-template name="ldh:ClassListLoad">
                     <xsl:with-param name="container" select="."/>
                     <xsl:with-param name="endpoint" select="sd:endpoint()"/>
                 </xsl:call-template>
             </xsl:for-each>
-        </xsl:if>
+        </xsl:for-each>
     </xsl:template>
 
     <xsl:template name="ldh:DocTreeExpandPathAndActivate">

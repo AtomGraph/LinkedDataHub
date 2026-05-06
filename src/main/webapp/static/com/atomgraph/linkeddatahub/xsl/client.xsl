@@ -710,7 +710,12 @@ WHERE
                 </xsl:for-each>
             </xsl:otherwise>
         </xsl:choose>
-        
+
+        <!-- update sidebar against the now-active pane (sd:endpoint() reads its data-endpoint) -->
+        <xsl:call-template name="ldh:NavigationUpdate">
+            <xsl:with-param name="href" select="ldh:href($uri, ldh:build-query($mode))"/>
+        </xsl:call-template>
+
         <!-- fire factories for top-level content blocks in the rendered pane -->
         <xsl:for-each select="id($tab-pane-id, ixsl:page())/div[contains-token(@class, 'document-body')]/div[contains-token(@class, 'content-body')]/div">
             <xsl:variable name="factories" as="(function(item()?) as item()*)*">
@@ -775,10 +780,6 @@ WHERE
         <ixsl:set-property name="saxonController" select="$controller" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
 
         <xsl:variable name="href" select="ldh:href($uri)" as="xs:anyURI"/>
-
-        <xsl:call-template name="ldh:NavigationUpdate">
-            <xsl:with-param name="href" select="$href"/>
-        </xsl:call-template>
 
         <!-- update address bar input: show external URI, clear for local docs -->
         <xsl:for-each select="id('uri', ixsl:page())">
