@@ -187,17 +187,14 @@ public class ProxyRequestFilter implements ContainerRequestFilter
                     idTokenSecurityContext.getJWTToken(), requestContext.getUriInfo().getBaseUri().getPath(), null));
         }
 
-        List<MediaType> readableMediaTypesList = new ArrayList<>();
-        readableMediaTypesList.addAll(getMediaTypes().getReadable(Model.class));
-        readableMediaTypesList.addAll(getMediaTypes().getReadable(org.apache.jena.query.ResultSet.class));
-        MediaType[] readableMediaTypesArray = readableMediaTypesList.toArray(MediaType[]::new);
+        MediaType[] clientAcceptTypes = requestContext.getAcceptableMediaTypes().toArray(MediaType[]::new);
 
         if (log.isDebugEnabled()) log.debug("Proxying {} {} → {}", requestContext.getMethod(), requestContext.getUriInfo().getRequestUri(), targetURI);
 
         try
         {
             Invocation.Builder builder = target.request().
-                accept(readableMediaTypesArray).
+                accept(clientAcceptTypes).
                 header(HttpHeaders.USER_AGENT, GraphStoreClient.USER_AGENT);
 
             Response clientResponse = requestContext.hasEntity()
