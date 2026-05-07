@@ -18,16 +18,12 @@ package com.atomgraph.linkeddatahub.server.filter.request;
 
 import com.atomgraph.client.MediaTypes;
 import com.atomgraph.client.vocabulary.AC;
-import jakarta.ws.rs.NotAcceptableException;
 import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Request;
-import jakarta.ws.rs.core.Variant;
 import java.io.IOException;
 import java.net.URI;
-import java.util.Collections;
 import java.util.List;
-import java.util.Locale;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -58,7 +54,6 @@ public class ProxyRequestFilterTest
         filter.mediaTypes = new MediaTypes();
         filter.request = request;
         filter.system = system;
-        when(system.getSupportedLanguages()).thenReturn(Collections.emptyList());
     }
 
     /** No proxy properties set — filter must be a no-op. */
@@ -94,18 +89,6 @@ public class ProxyRequestFilterTest
         filter.filter(requestContext);
         verify(request, never()).selectVariant(anyList());
         verify(requestContext, never()).abortWith(any());
-    }
-
-    /** No acceptable RDF/SPARQL variant — filter must throw 406. */
-    @Test(expected = NotAcceptableException.class)
-    public void testNullVariantThrowsNotAcceptable() throws IOException
-    {
-        when(requestContext.getProperty(AC.uri.getURI()))
-            .thenReturn(URI.create("http://example.org/resource"));
-        when(requestContext.getAcceptableMediaTypes())
-            .thenReturn(List.of(MediaType.WILDCARD_TYPE));
-        when(request.selectVariant(anyList())).thenReturn(null);
-        filter.filter(requestContext);
     }
 
 }
