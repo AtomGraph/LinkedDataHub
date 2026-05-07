@@ -88,8 +88,9 @@ exclude-result-prefixes="#all"
 
         <xsl:variable name="query-string" select="$constructor-query || ' VALUES $Type { &lt;' || $type || '&gt; }'" as="xs:string"/>
         <xsl:variable name="results-uri" select="ac:build-uri(resolve-uri('ns', ldt:base()), map{ 'query': $query-string })" as="xs:anyURI"/>
+        <xsl:variable name="request-uri" select="ldh:href($results-uri, map{})" as="xs:anyURI"/>
         <xsl:variable name="request" as="item()*">
-            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml' } }">
+            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml' } }">
                 <xsl:call-template name="ldh:ConstructorMode">
                     <xsl:with-param name="container" select="$container"/>
                     <xsl:with-param name="type" select="$type"/>
@@ -492,7 +493,7 @@ exclude-result-prefixes="#all"
         <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
 
         <xsl:variable name="request" as="item()*">
-            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml' } }">
+            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml' } }">
                 <xsl:call-template name="onTypeGraphLoad">
                     <xsl:with-param name="container" select="$container"/>
                     <xsl:with-param name="type" select="$type"/>

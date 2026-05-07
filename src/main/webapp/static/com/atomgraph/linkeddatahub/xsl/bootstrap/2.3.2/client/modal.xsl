@@ -1027,14 +1027,16 @@ LIMIT   10
 
         <xsl:variable name="modal" select="$content-body/div[contains-token(@class, 'modal')][last()]" as="element()"/>
         <xsl:variable name="block" select="$modal/div[contains-token(@class, 'modal-body')]" as="element()"/>
-        <xsl:variable name="request" select="map{ 'method': 'GET', 'href': resolve-uri('settings', ldt:base()), 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
+        <!-- settings UI is a single global button, not per-tab; target the local app's settings, not the active tab's dataspace -->
+        <xsl:variable name="settings-uri" select="resolve-uri('settings', xs:anyURI(lapp:origin(ldh:request-uri()) || '/'))" as="xs:anyURI"/>
+        <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $settings-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
         <xsl:variable name="context" as="map(*)" select="
           map{
             'request': $request,
             'block': $block,
             'about': lapp:application(),
             'method': $method,
-            'action': resolve-uri('settings', ldt:base())
+            'action': $settings-uri
           }"/>
         <ixsl:promise select="
           ixsl:http-request($context('request'))

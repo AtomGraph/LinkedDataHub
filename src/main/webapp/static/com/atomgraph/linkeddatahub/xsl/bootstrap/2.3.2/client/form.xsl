@@ -292,7 +292,8 @@ WHERE
                         <xsl:variable name="resource" select="key('resources', $about)" as="element()"/> <!-- TO-DO: handle error -->
                         <xsl:variable name="types" select="distinct-values($resource/rdf:type/@rdf:resource)" as="xs:anyURI*"/>
                         <xsl:variable name="query-string" select="'DESCRIBE $Type VALUES $Type { ' || string-join(for $type in $types return '&lt;' || $type || '&gt;', ' ') || ' }'" as="xs:string"/>
-                        <xsl:variable name="request-uri" select="ac:build-uri(resolve-uri('ns', ldt:base()), map{ 'query': $query-string, 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
+                        <xsl:variable name="results-uri" select="ac:build-uri(resolve-uri('ns', ldt:base()), map{ 'query': $query-string, 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
+                        <xsl:variable name="request-uri" select="ldh:href($results-uri, map{})" as="xs:anyURI"/>
                         <xsl:variable name="http-request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
                         <xsl:sequence select="map:merge(($context, map{
                           'request': $http-request,
@@ -1059,7 +1060,7 @@ WHERE
                     <xsl:call-template name="typeahead:load-xml">
                         <xsl:with-param name="element" select="."/>
                         <xsl:with-param name="query" select="ixsl:get(., 'value')"/>
-                        <xsl:with-param name="uri" select="$results-uri"/>
+                        <xsl:with-param name="uri" select="$request-uri"/>
                         <!-- we don't want to use rdfs:Resource as a type because a filter in typeahead:process would not select any resources with this type -->
                         <xsl:with-param name="resource-types" select="$forClass[not(. = '&rdfs;Resource')]"/>
                     </xsl:call-template>
