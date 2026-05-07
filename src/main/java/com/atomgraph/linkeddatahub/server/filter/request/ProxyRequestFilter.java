@@ -21,7 +21,6 @@ import com.atomgraph.client.util.HTMLMediaTypePredicate;
 import com.atomgraph.client.vocabulary.AC;
 import com.atomgraph.core.exception.BadGatewayException;
 import com.atomgraph.core.util.ModelUtils;
-import com.atomgraph.core.util.ResultSetUtils;
 import com.atomgraph.linkeddatahub.apps.model.Dataset;
 import org.apache.jena.ontology.Ontology;
 import com.atomgraph.linkeddatahub.client.GraphStoreClient;
@@ -32,6 +31,7 @@ import com.atomgraph.linkeddatahub.server.security.IDTokenSecurityContext;
 import com.atomgraph.linkeddatahub.server.security.WebIDSecurityContext;
 import com.atomgraph.linkeddatahub.vocabulary.LAPP;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -41,7 +41,6 @@ import org.apache.jena.query.QueryExecution;
 import org.apache.jena.query.QueryFactory;
 import jakarta.annotation.Priority;
 import jakarta.inject.Inject;
-import jakarta.ws.rs.NotAcceptableException;
 import jakarta.ws.rs.NotAllowedException;
 import jakarta.ws.rs.Priorities;
 import jakarta.ws.rs.ProcessingException;
@@ -57,15 +56,10 @@ import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Request;
 import jakarta.ws.rs.core.Response;
-import jakarta.ws.rs.core.Variant;
-import org.apache.jena.query.ResultSet;
-import org.apache.jena.query.ResultSetRewindable;
 import org.apache.jena.rdf.model.Model;
-import org.apache.jena.riot.Lang;
-import org.apache.jena.riot.RDFLanguages;
-import org.apache.jena.riot.resultset.ResultSetReaderRegistry;
 import org.glassfish.jersey.message.internal.MessageBodyProviderNotFoundException;
 import java.util.regex.Pattern;
+import jakarta.ws.rs.NotAcceptableException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -92,6 +86,11 @@ import org.slf4j.LoggerFactory;
  * serves the LDH application shell; the client-side Saxon-JS layer then issues a second, RDF-typed
  * request that hits this filter and is proxied cheaply. Pure API clients that send only
  * {@code *}{@code /*} (e.g. curl) reach the proxy because they do not list an explicit HTML type.
+ * <p>
+ * External HTTP responses are piped through as raw {@link InputStream} — the filter does not
+ * parse or re-serialize the body. The upstream already negotiates content type via the forwarded
+ * {@code Accept} header. Local responses (DataManager cache, namespace ontology DESCRIBE) are
+ * the only paths that still build a typed {@link Model} response with full content negotiation.
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
@@ -127,24 +126,6 @@ public class ProxyRequestFilter implements ContainerRequestFilter
                        mt.isCompatible(MediaType.APPLICATION_XHTML_XML_TYPE)));
         if (clientAcceptsHtml) return;
 
-        // negotiate the response format from RDF/SPARQL writable types only
-        // (client.MediaTypes prepends HTML/XHTML; strip them so selectVariant cannot pick them)
-        List<MediaType> writableTypes = new ArrayList<>(getMediaTypes().getWritable(Model.class));
-        writableTypes.addAll(getMediaTypes().getWritable(ResultSet.class));
-        writableTypes.removeIf(mt -> mt.isCompatible(MediaType.TEXT_HTML_TYPE) ||
-            mt.isCompatible(MediaType.APPLICATION_XHTML_XML_TYPE));
-        List<Variant> variants = com.atomgraph.core.model.impl.Response.getVariants(
-            writableTypes,
-            getSystem().getSupportedLanguages(),
-            new ArrayList<>());
-
-        Variant variant = getRequest().selectVariant(variants);
-        if (variant == null)
-        {
-            if (log.isTraceEnabled()) log.trace("Requested Variant {} is not on the list of acceptable Response Variants: {}", variant, variants);
-            throw new NotAcceptableException();
-        }
-
         // strip #fragment (servers do not receive fragment identifiers)
         if (targetURI.getFragment() != null)
         {
@@ -163,7 +144,7 @@ public class ProxyRequestFilter implements ContainerRequestFilter
         {
             if (log.isDebugEnabled()) log.debug("Serving mapped URI from DataManager cache: {}", targetURI);
             Model model = getSystem().getDataManager().loadModel(targetURI.toString());
-            requestContext.abortWith(getResponse(model, Response.Status.OK, variant));
+            requestContext.abortWith(getResponse(model, Response.Status.OK));
             return;
         }
 
@@ -181,7 +162,7 @@ public class ProxyRequestFilter implements ContainerRequestFilter
                 if (!description.isEmpty())
                 {
                     if (log.isDebugEnabled()) log.debug("Serving URI from namespace ontology: {}", targetURI);
-                    requestContext.abortWith(getResponse(description, Response.Status.OK, variant));
+                    requestContext.abortWith(getResponse(description, Response.Status.OK));
                     return;
                 }
             }
@@ -208,7 +189,7 @@ public class ProxyRequestFilter implements ContainerRequestFilter
 
         List<MediaType> readableMediaTypesList = new ArrayList<>();
         readableMediaTypesList.addAll(getMediaTypes().getReadable(Model.class));
-        readableMediaTypesList.addAll(getMediaTypes().getReadable(ResultSet.class));
+        readableMediaTypesList.addAll(getMediaTypes().getReadable(org.apache.jena.query.ResultSet.class));
         MediaType[] readableMediaTypesArray = readableMediaTypesList.toArray(MediaType[]::new);
 
         if (log.isDebugEnabled()) log.debug("Proxying {} {} → {}", requestContext.getMethod(), requestContext.getUriInfo().getRequestUri(), targetURI);
@@ -226,9 +207,7 @@ public class ProxyRequestFilter implements ContainerRequestFilter
 
             try (clientResponse)
             {
-                // provide the target URI as a base URI hint so ModelProvider / HtmlJsonLDReader can resolve relative references
-                clientResponse.getHeaders().putSingle(com.atomgraph.core.io.ModelProvider.REQUEST_URI_HEADER, targetURI.toString());
-                requestContext.abortWith(getResponse(clientResponse, variant));
+                requestContext.abortWith(getResponse(clientResponse));
             }
         }
         catch (MessageBodyProviderNotFoundException ex)
@@ -270,97 +249,59 @@ public class ProxyRequestFilter implements ContainerRequestFilter
     }
 
     /**
-     * Converts a client response from the proxy target into a JAX-RS response.
+     * Pipes the proxy target's HTTP response through as a raw byte stream.
+     * No body parsing or re-serialization is performed; the upstream's {@code Content-Type}
+     * and status code are forwarded verbatim. {@code Link} headers from the external response
+     * are also forwarded so the client receives remote hypermedia (e.g. {@code sd:endpoint}).
      *
      * @param clientResponse response from the proxy target
-     * @param selectedVariant pre-computed variant from content negotiation
      * @return JAX-RS response to return to the original caller
      */
-    protected Response getResponse(Response clientResponse, Variant selectedVariant)
+    protected Response getResponse(Response clientResponse)
     {
-        if (clientResponse.getMediaType() == null) return Response.status(clientResponse.getStatus()).build();
-        return getResponse(clientResponse, clientResponse.getStatusInfo(), selectedVariant);
-    }
+        if (clientResponse.getMediaType() == null)
+            return Response.status(clientResponse.getStatus()).build();
 
-    /**
-     * Converts a client response from the proxy target into a JAX-RS response with the given status.
-     *
-     * @param clientResponse response from the proxy target
-     * @param statusType status to use in the returned response
-     * @param selectedVariant pre-computed variant from content negotiation
-     * @return JAX-RS response
-     */
-    protected Response getResponse(Response clientResponse, Response.StatusType statusType, Variant selectedVariant)
-    {
-        MediaType formatType = new MediaType(clientResponse.getMediaType().getType(), clientResponse.getMediaType().getSubtype()); // discard charset param
+        // buffer so the stream remains readable after try-with-resources closes the client response
+        clientResponse.bufferEntity();
+        InputStream entity = clientResponse.readEntity(InputStream.class);
 
-        Lang lang = RDFLanguages.contentTypeToLang(formatType.toString());
-        Response response;
-        if (lang != null && ResultSetReaderRegistry.isRegistered(lang))
-        {
-            ResultSetRewindable results = clientResponse.readEntity(ResultSetRewindable.class);
-            response = getResponse(results, statusType, selectedVariant);
-        }
-        else
-        {
-            Model model = clientResponse.readEntity(Model.class);
-            response = getResponse(model, statusType, selectedVariant);
-        }
+        Response.ResponseBuilder rb = Response.status(clientResponse.getStatus())
+            .type(clientResponse.getMediaType())
+            .entity(entity);
 
         // forward all Link headers from the external response so the client receives remote hypermedia
         // (e.g. sd:endpoint pointing to the remote SPARQL endpoint);
         // ResponseHeadersFilter will see sd:endpoint already present and skip injecting the local one
         String linkHeader = clientResponse.getHeaderString(HttpHeaders.LINK);
         if (linkHeader != null)
-        {
-            Response.ResponseBuilder builder = Response.fromResponse(response);
             for (String part : LINK_SPLITTER.split(linkHeader))
-                builder.header(HttpHeaders.LINK, part.trim());
-            response = builder.build();
-        }
+                rb.header(HttpHeaders.LINK, part.trim());
 
-        return response;
+        return rb.build();
     }
 
     /**
-     * Builds a response for the given RDF model using a pre-computed variant.
+     * Builds a response for the given RDF model with type-appropriate content negotiation.
+     * Used for locally-served responses (DataManager cache, namespace ontology DESCRIBE).
      *
      * @param model RDF model
      * @param statusType response status
-     * @param selectedVariant pre-computed variant from content negotiation
      * @return JAX-RS response
      */
-    protected Response getResponse(Model model, Response.StatusType statusType, Variant selectedVariant)
+    protected Response getResponse(Model model, Response.StatusType statusType)
     {
+        List<MediaType> writableTypes = new ArrayList<>(getMediaTypes().getWritable(Model.class));
+        writableTypes.removeIf(mt -> mt.isCompatible(MediaType.TEXT_HTML_TYPE) ||
+            mt.isCompatible(MediaType.APPLICATION_XHTML_XML_TYPE));
+
         return new com.atomgraph.core.model.impl.Response(getRequest(),
                 model,
                 null,
                 new EntityTag(Long.toHexString(ModelUtils.hashModel(model))),
-                selectedVariant,
-                new HTMLMediaTypePredicate()).
-            getResponseBuilder().
-            status(statusType).
-            build();
-    }
-
-    /**
-     * Builds a response for the given SPARQL result set using a pre-computed variant.
-     *
-     * @param resultSet SPARQL result set
-     * @param statusType response status
-     * @param selectedVariant pre-computed variant from content negotiation
-     * @return JAX-RS response
-     */
-    protected Response getResponse(ResultSetRewindable resultSet, Response.StatusType statusType, Variant selectedVariant)
-    {
-        long hash = ResultSetUtils.hashResultSet(resultSet);
-        resultSet.reset();
-
-        return new com.atomgraph.core.model.impl.Response(getRequest(),
-                resultSet,
-                null,
-                new EntityTag(Long.toHexString(hash)),
-                selectedVariant,
+                writableTypes,
+                getSystem().getSupportedLanguages(),
+                new ArrayList<>(),
                 new HTMLMediaTypePredicate()).
             getResponseBuilder().
             status(statusType).
