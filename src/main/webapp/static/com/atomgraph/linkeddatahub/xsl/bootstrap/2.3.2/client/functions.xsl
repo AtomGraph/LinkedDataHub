@@ -534,9 +534,7 @@ exclude-result-prefixes="#all"
 
         <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
 
-        <xsl:message>ldh:promise-failure code=<xsl:value-of select="$error?code"/> message=<xsl:value-of select="$error?message"/></xsl:message>
         <xsl:if test="$error?code ne 'Q{&ldh;}HTTPError'">
-            <xsl:message>ALERT FROM ldh:promise-failure: <xsl:value-of select="$error?message"/></xsl:message>
             <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ $error?message ])"/>
         </xsl:if>
     </xsl:function>
@@ -546,7 +544,6 @@ exclude-result-prefixes="#all"
         <xsl:variable name="response" select="$context('response')" as="map(*)?"/>
 
         <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
-        <xsl:message>ALERT FROM ldh:error-response-alert: <xsl:value-of select="$response?message"/></xsl:message>
         <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ $response?message ])"/>
     </xsl:function>
     

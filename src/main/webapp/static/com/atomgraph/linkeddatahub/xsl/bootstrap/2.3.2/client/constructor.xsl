@@ -118,7 +118,7 @@ exclude-result-prefixes="#all"
                                     <button type="button" class="close">&#215;</button>
 
                                     <h3>
-                                        <xsl:variable name="request-uri" select="ac:build-uri(resolve-uri('ns', ldt:base()), map{ 'query': 'DESCRIBE &lt;' || $type || '&gt;', 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
+                                        <xsl:variable name="request-uri" select="ldh:href(ac:build-uri(resolve-uri('ns', ldt:base()), map{ 'query': 'DESCRIBE &lt;' || $type || '&gt;', 'accept': 'application/rdf+xml' }), map{})" as="xs:anyURI"/>
 
                                         <xsl:apply-templates select="key('resources', $type, document(ac:document-uri($request-uri)))" mode="ac:label"/>
                                     </h3>
@@ -196,7 +196,7 @@ exclude-result-prefixes="#all"
         <label class="control-label">
             <xsl:choose>
                 <xsl:when test="$predicate">
-                    <xsl:variable name="request-uri" select="ac:build-uri(resolve-uri('ns', ldt:base()), map{ 'query': 'DESCRIBE &lt;' || $predicate || '&gt;', 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
+                    <xsl:variable name="request-uri" select="ldh:href(ac:build-uri(resolve-uri('ns', ldt:base()), map{ 'query': 'DESCRIBE &lt;' || $predicate || '&gt;', 'accept': 'application/rdf+xml' }), map{})" as="xs:anyURI"/>
 
                     <xsl:apply-templates select="key('resources', $predicate, document($request-uri))" mode="ldh:Typeahead">
                         <xsl:with-param name="class" select="'btn add-typeahead add-property-typeahead'"/>
@@ -276,7 +276,7 @@ exclude-result-prefixes="#all"
         <fieldset about="{$constructor-uri}">
             <legend>
                 <a href="{$constructor-uri}" title="{$constructor-uri}" target="_blank">
-                    <xsl:variable name="request-uri" select="ac:build-uri(resolve-uri('ns', ldt:base()), map{ 'query': 'DESCRIBE &lt;' || $constructor-uri || '&gt;', 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
+                    <xsl:variable name="request-uri" select="ldh:href(ac:build-uri(resolve-uri('ns', ldt:base()), map{ 'query': 'DESCRIBE &lt;' || $constructor-uri || '&gt;', 'accept': 'application/rdf+xml' }), map{})" as="xs:anyURI"/>
                     <xsl:apply-templates select="key('resources', $constructor-uri, document($request-uri))" mode="ac:label"/>
                 </a>
             </legend>
@@ -366,7 +366,7 @@ exclude-result-prefixes="#all"
 
         <xsl:choose>
             <xsl:when test="$object-type">
-                <xsl:variable name="request-uri" select="ac:build-uri(resolve-uri('ns', ldt:base()), map{ 'query': 'DESCRIBE &lt;' || $object-type || '&gt;', 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
+                <xsl:variable name="request-uri" select="ldh:href(ac:build-uri(resolve-uri('ns', ldt:base()), map{ 'query': 'DESCRIBE &lt;' || $object-type || '&gt;', 'accept': 'application/rdf+xml' }), map{})" as="xs:anyURI"/>
 
                 <xsl:apply-templates select="key('resources', $object-type, document($request-uri))" mode="ldh:Typeahead">
                     <xsl:with-param name="class" select="'btn add-typeahead add-class-typeahead'"/>
@@ -591,7 +591,7 @@ exclude-result-prefixes="#all"
                 <!-- TO-DO: make sure we're in the end-user application -->
                 <xsl:variable name="namespace" select="xs:anyURI(if (contains($type, '#')) then substring-before($type, '#') || '#' else string-join(tokenize($type, '/')[not(position() = last())], '/') || '/')" as="xs:anyURI"/>
                 <!-- query NS ontology to retrieve the ontology URI from the $type class' rdfs:isDefinedBy value. Fallback to the assumed $type's namespace URI -->
-                <xsl:variable name="request-uri" select="ac:build-uri(resolve-uri('ns', ldt:base()), map{ 'query': 'DESCRIBE &lt;' || $type || '&gt;', 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
+                <xsl:variable name="request-uri" select="ldh:href(ac:build-uri(resolve-uri('ns', ldt:base()), map{ 'query': 'DESCRIBE &lt;' || $type || '&gt;', 'accept': 'application/rdf+xml' }), map{})" as="xs:anyURI"/>
                 <xsl:variable name="ontology-uri" select="(key('resources', $type, document(ac:document-uri($request-uri)))/rdfs:isDefinedBy/@rdf:resource, $namespace)[1]" as="xs:anyURI"/>
                 <xsl:variable name="form-data" select="ixsl:new('URLSearchParams', [ ixsl:new('FormData', []) ])"/>
                 <xsl:sequence select="ixsl:call($form-data, 'append', [ 'uri', $ontology-uri ])[current-date() lt xs:date('2000-01-01')]"/>

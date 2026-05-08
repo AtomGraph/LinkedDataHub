@@ -1261,7 +1261,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="base-uri" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI" tunnel="yes"/>
         <xsl:param name="show-subject" select="not(starts-with(@rdf:about, $base-uri) or @rdf:nodeID)" as="xs:boolean" tunnel="yes"/>
         <xsl:param name="required" select="rdf:type/@rdf:resource = ('&dh;Container', '&dh;Item')" as="xs:boolean"/> <!-- Container/Item instances cannot be removed -->
-        
+
         <fieldset>
             <xsl:if test="$id">
                 <xsl:attribute name="id" select="$id"/>

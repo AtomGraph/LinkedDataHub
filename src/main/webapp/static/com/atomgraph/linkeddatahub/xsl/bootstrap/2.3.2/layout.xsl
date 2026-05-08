@@ -541,12 +541,6 @@ exclude-result-prefixes="#all">
                 <xsl:attribute name="class" select="$class"/>
             </xsl:if>
 
-            <xsl:if test="$ldt:base">
-                <xsl:if test="not($ldt:base = $ac:contextUri)">
-                    <a class="brand context" href="{ldh:parent-origin($ldt:base)}"/>
-                </xsl:if>
-            </xsl:if>
-
             <xsl:apply-templates select="." mode="bs2:Brand"/>
         </div>
     </xsl:template>

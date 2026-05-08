@@ -756,7 +756,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="id" select="generate-id()" as="xs:string"/>
         <xsl:param name="for" select="generate-id((node() | @rdf:resource | @rdf:nodeID)[1])" as="xs:string"/>
         <xsl:param name="class" select="concat('control-group', if ($error) then ' error' else (), if ($required) then ' required' else ())" as="xs:string?"/>
-        
+
         <div>
             <xsl:if test="$class">
                 <xsl:attribute name="class" select="$class"/>

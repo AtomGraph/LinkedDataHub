@@ -81,7 +81,7 @@ LIMIT   10
         <xsl:param name="id" select="'add-data'" as="xs:string?"/>
         <xsl:param name="button-class" select="'btn btn-primary btn-save'" as="xs:string?"/>
         <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
-        <xsl:param name="action" select="resolve-uri('add', ldt:base())" as="xs:anyURI"/>
+        <xsl:param name="action" select="ldh:href(resolve-uri('add', ldt:base()), map{})" as="xs:anyURI"/>
         <xsl:param name="source" as="xs:anyURI?"/>
         <xsl:param name="query" as="xs:anyURI?"/>
         <xsl:param name="legend-label" select="ac:label(key('resources', 'add-rdf-data', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri))))" as="xs:string"/>
@@ -209,7 +209,7 @@ LIMIT   10
         <xsl:param name="id" select="'generate-containers'" as="xs:string?"/>
         <xsl:param name="button-class" select="'btn btn-primary btn-save'" as="xs:string?"/>
         <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
-        <xsl:param name="action" select="resolve-uri('generate', ldt:base())" as="xs:anyURI"/>
+        <xsl:param name="action" select="ldh:href(resolve-uri('generate', ldt:base()), map{})" as="xs:anyURI"/>
         <xsl:param name="legend-label" select="ac:label(key('resources', 'generate-containers', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri))))" as="xs:string"/>
         <xsl:param name="arg-bnode-id" select="'generate'" as="xs:string"/>
         <xsl:param name="default-limit" select="10" as="xs:integer"/>
@@ -705,8 +705,10 @@ LIMIT   10
     <xsl:template match="div[contains-token(@class, 'modal-first-time-message')]//button[contains-token(@class, 'close')]" mode="ixsl:onclick" priority="1">
         <xsl:next-match/>
         
-        <!-- set a cookie to never show it again -->
-        <ixsl:set-property name="cookie" select="concat('LinkedDataHub.first-time-message=true; path=/', substring-after(ldt:base(), $ac:contextUri), '; expires=Fri, 31 Dec 9999 23:59:59 GMT')" object="ixsl:page()"/>
+        <!-- set a cookie to never show it again. path=/ is scoped to the page origin (cookies are
+             always scoped to the page origin anyway); using ldt:base() here previously broke in proxy
+             mode where ldt:base() is the proxied app's base, not the page's. -->
+        <ixsl:set-property name="cookie" select="'LinkedDataHub.first-time-message=true; path=/; expires=Fri, 31 Dec 9999 23:59:59 GMT'" object="ixsl:page()"/>
     </xsl:template>
 
     <!-- close modal dialog -->
@@ -741,16 +743,16 @@ LIMIT   10
                 <!-- TO-DO: refactor to use asynchronous HTTP requests -->
                 <xsl:variable name="types" select="distinct-values($resource/rdf:type/@rdf:resource)" as="xs:anyURI*"/>
                 <xsl:variable name="query-string" select="'DESCRIBE $Type VALUES $Type { ' || string-join(for $type in $types return '&lt;' || $type || '&gt;', ' ') || ' }'" as="xs:string"/>
-                <xsl:variable name="request-uri" select="ac:build-uri(resolve-uri('ns', ldt:base()), map{ 'query': $query-string, 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
+                <xsl:variable name="request-uri" select="ldh:href(ac:build-uri(resolve-uri('ns', ldt:base()), map{ 'query': $query-string, 'accept': 'application/rdf+xml' }), map{})" as="xs:anyURI"/>
                 <xsl:variable name="type-metadata" select="if (exists($types)) then document($request-uri) else ()" as="document-node()?"/>
 
                 <xsl:variable name="property-uris" select="distinct-values($resource/*/concat(namespace-uri(), local-name()))" as="xs:string*"/>
                 <xsl:variable name="query-string" select="'DESCRIBE $Type VALUES $Type { ' || string-join(for $uri in $property-uris return '&lt;' || $uri || '&gt;', ' ') || ' }'" as="xs:string"/>
-                <xsl:variable name="request-uri" select="ac:build-uri(resolve-uri('ns', ldt:base()), map{ 'query': $query-string, 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
+                <xsl:variable name="request-uri" select="ldh:href(ac:build-uri(resolve-uri('ns', ldt:base()), map{ 'query': $query-string, 'accept': 'application/rdf+xml' }), map{})" as="xs:anyURI"/>
                 <xsl:variable name="property-metadata" select="document($request-uri)" as="document-node()"/>
 
                 <xsl:variable name="query-string" select="$constraint-query || ' VALUES $Type { ' || string-join(for $type in $types return '&lt;' || $type || '&gt;', ' ') || ' }'" as="xs:string"/>
-                <xsl:variable name="request-uri" select="ac:build-uri(resolve-uri('ns', ldt:base()), map{ 'query': $query-string, 'accept': 'application/sparql-results+xml' })" as="xs:anyURI"/>
+                <xsl:variable name="request-uri" select="ldh:href(ac:build-uri(resolve-uri('ns', ldt:base()), map{ 'query': $query-string, 'accept': 'application/sparql-results+xml' }), map{})" as="xs:anyURI"/>
                 <xsl:variable name="constraints" select="if (exists($types)) then document($request-uri) else ()" as="document-node()?"/>
 
                 <xsl:apply-templates select="$constructed-doc" mode="bs2:Form"> <!-- document level template -->
@@ -979,7 +981,7 @@ LIMIT   10
         <xsl:call-template name="ldh:ShowAddDataForm">
             <xsl:with-param name="form" as="element()">
                 <xsl:call-template name="ldh:AddDataForm">
-                    <xsl:with-param name="action" select="resolve-uri('transform', ldt:base())"/>
+                    <xsl:with-param name="action" select="ldh:href(resolve-uri('transform', ldt:base()), map{})"/>
                     <xsl:with-param name="query" select="resolve-uri('queries/construct-constructors/#this', ldt:base())"/>
                     <xsl:with-param name="legend-label" select="ac:label(key('resources', 'import-ontology', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri))))"/>
                 </xsl:call-template>
@@ -1186,7 +1188,7 @@ LIMIT   10
             <xsl:choose>
                 <xsl:when test="$service-uri">
                     <!-- TO-DO: asynchronous request -->
-                    <xsl:variable name="service-doc" select="document(ac:build-uri(ldt:base(), map{ 'uri': ac:document-uri($service-uri), 'accept': 'application/rdf+xml' }))" as="document-node()"/> <!-- TO-DO: replace with <ixsl:schedule-action> -->
+                    <xsl:variable name="service-doc" select="document(ldh:href(ac:build-uri(ldt:base(), map{ 'uri': ac:document-uri($service-uri), 'accept': 'application/rdf+xml' }), map{}))" as="document-node()"/> <!-- TO-DO: replace with <ixsl:schedule-action> -->
                     <xsl:sequence select="key('resources', $service-uri, $service-doc)/sd:endpoint/@rdf:resource"/>
                  </xsl:when>
                  <xsl:otherwise>
@@ -1289,8 +1291,8 @@ LIMIT   10
 
     <xsl:template name="ldh:ShowAddDataForm">
         <xsl:param name="form" as="element()"/>
-        <xsl:param name="graph" select="ac:absolute-path(ldh:request-uri())" as="xs:anyURI?"/>
-        
+        <xsl:param name="graph" select="ldh:base-uri(.)" as="xs:anyURI?"/>
+
         <!-- don't append the div if it's already there -->
         <xsl:if test="not(id($form/@id, ixsl:page()))">
             <xsl:for-each select="ixsl:page()//body">
@@ -1298,12 +1300,13 @@ LIMIT   10
                 <xsl:result-document href="?." method="ixsl:append-content">
                     <xsl:sequence select="$form"/>
                 </xsl:result-document>
-                
+
                 <xsl:if test="$graph">
+                    <xsl:variable name="request-uri" select="ldh:href($graph, map{})" as="xs:anyURI"/>
                     <!-- fill the container typeahead values for both #upload-rdf-doc and #remote-rdf-doc -->
                     <xsl:for-each select="(id('upload-rdf-doc', ixsl:page())/.., id('remote-rdf-doc', ixsl:page())/..)">
                         <xsl:variable name="request" as="item()*">
-                            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $graph, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
+                            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                                 <xsl:call-template name="onTypeaheadResourceLoad">
                                     <xsl:with-param name="resource-uri" select="$graph"/>
                                     <xsl:with-param name="typeahead-span" select="."/>
@@ -1639,29 +1642,29 @@ LIMIT   10
             <!-- inverse $types expression compared to ldh:row-form-submit-violation -->
             <xsl:variable name="types" select="distinct-values($body/rdf:RDF/*[@rdf:about = $doc-uri]/rdf:type/@rdf:resource)" as="xs:anyURI*"/>
             <xsl:variable name="query-string" select="'DESCRIBE $Type VALUES $Type { ' || string-join(for $type in $types return '&lt;' || $type || '&gt;', ' ') || ' }'" as="xs:string"/>
-            <xsl:variable name="request-uri" select="ac:build-uri(resolve-uri('ns', ldt:base()), map{ 'query': $query-string, 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
+            <xsl:variable name="request-uri" select="ldh:href(ac:build-uri(resolve-uri('ns', ldt:base()), map{ 'query': $query-string, 'accept': 'application/rdf+xml' }), map{})" as="xs:anyURI"/>
             <xsl:variable name="type-metadata" select="if (exists($types)) then document($request-uri) else ()" as="document-node()?"/>
 
             <xsl:variable name="property-uris" select="distinct-values($body/rdf:RDF/*[not(@rdf:about = $doc-uri)]/*/concat(namespace-uri(), local-name()))" as="xs:string*"/>
             <xsl:variable name="query-string" select="'DESCRIBE $Type VALUES $Type { ' || string-join(for $uri in $property-uris return '&lt;' || $uri || '&gt;', ' ') || ' }'" as="xs:string"/>
-            <xsl:variable name="request-uri" select="ac:build-uri(resolve-uri('ns', ldt:base()), map{ 'query': $query-string, 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
+            <xsl:variable name="request-uri" select="ldh:href(ac:build-uri(resolve-uri('ns', ldt:base()), map{ 'query': $query-string, 'accept': 'application/rdf+xml' }), map{})" as="xs:anyURI"/>
             <xsl:variable name="property-metadata" select="document($request-uri)" as="document-node()"/>
 
             <xsl:variable name="query-string" select="$constructor-query || ' VALUES $Type { ' || string-join(for $type in $types return '&lt;' || $type || '&gt;', ' ') || ' }'" as="xs:string"/>
-            <xsl:variable name="request-uri" select="ac:build-uri(resolve-uri('ns', ldt:base()), map{ 'query': $query-string, 'accept': 'application/sparql-results+xml' })" as="xs:anyURI"/>
+            <xsl:variable name="request-uri" select="ldh:href(ac:build-uri(resolve-uri('ns', ldt:base()), map{ 'query': $query-string, 'accept': 'application/sparql-results+xml' }), map{})" as="xs:anyURI"/>
             <xsl:variable name="constructors" select="if (exists($types)) then document($request-uri) else ()" as="document-node()?"/>
 
             <xsl:variable name="query-string" select="$constraint-query || ' VALUES $Type { ' || string-join(for $type in $types return '&lt;' || $type || '&gt;', ' ') || ' }'" as="xs:string"/>
-            <xsl:variable name="request-uri" select="ac:build-uri(resolve-uri('ns', ldt:base()), map{ 'query': $query-string, 'accept': 'application/sparql-results+xml' })" as="xs:anyURI"/>
+            <xsl:variable name="request-uri" select="ldh:href(ac:build-uri(resolve-uri('ns', ldt:base()), map{ 'query': $query-string, 'accept': 'application/sparql-results+xml' }), map{})" as="xs:anyURI"/>
             <xsl:variable name="constraints" select="if (exists($types)) then document($request-uri) else ()" as="document-node()?"/>
 
             <xsl:variable name="query-string" select="$shape-query || ' VALUES $Type { ' || string-join(for $type in $types return '&lt;' || $type || '&gt;', ' ') || ' }'" as="xs:string"/>
-            <xsl:variable name="request-uri" select="ac:build-uri(resolve-uri('ns', ldt:base()), map{ 'query': $query-string, 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
+            <xsl:variable name="request-uri" select="ldh:href(ac:build-uri(resolve-uri('ns', ldt:base()), map{ 'query': $query-string, 'accept': 'application/rdf+xml' }), map{})" as="xs:anyURI"/>
             <xsl:variable name="shapes" select="document($request-uri)" as="document-node()"/>
 
             <xsl:variable name="object-uris" select="distinct-values($body/rdf:RDF/*/*/@rdf:resource[not(key('resources', .))])" as="xs:string*"/>
             <xsl:variable name="query-string" select="$object-metadata-query || ' VALUES $this { ' || string-join(for $uri in $object-uris return '&lt;' || $uri || '&gt;', ' ') || ' }'" as="xs:string"/>
-            <xsl:variable name="request-uri" select="ac:build-uri(resolve-uri('sparql', ldt:base()), map{ 'query': $query-string, 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
+            <xsl:variable name="request-uri" select="ldh:href(ac:build-uri(resolve-uri('sparql', ldt:base()), map{ 'query': $query-string, 'accept': 'application/rdf+xml' }), map{})" as="xs:anyURI"/>
             <xsl:variable name="object-metadata" select="if (doc-available($request-uri)) then document($request-uri) else ()" as="document-node()?"/>
 
             <xsl:variable name="form" as="element()*">
