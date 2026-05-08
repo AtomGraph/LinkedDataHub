@@ -133,15 +133,21 @@ public class ProxyRequestFilter implements ContainerRequestFilter
 
         URI targetURI = targetOpt.get();
 
-        // do not proxy requests from clients that explicitly accept (X)HTML — they expect the app
-        // shell, which the downstream handler serves. Browsers list text/html as a non-wildcard type;
-        // pure API clients (curl etc.) send only */* and must reach the proxy.
+        // do not proxy requests from clients whose top-ranked acceptable type is (X)HTML — they
+        // expect the app shell, which the downstream handler serves. Browsers list text/html (or
+        // application/xhtml+xml) at q=1.0; API clients that happen to also accept (X)HTML at a
+        // lower q (e.g. SaxonJS document() sends application/xml q=1.0, application/xhtml+xml q=0.8)
+        // must still reach the proxy.
         // (X)HTML is not offered for proxied documents — rendering external RDF as HTML server-side
         // (SPARQL DESCRIBE + XSLT) is expensive and creates a resource-exhaustion attack vector
-        boolean clientAcceptsHtml = requestContext.getAcceptableMediaTypes().stream()
-            .anyMatch(mt -> !mt.isWildcardType() && !mt.isWildcardSubtype() &&
-                      (mt.isCompatible(MediaType.TEXT_HTML_TYPE) ||
-                       mt.isCompatible(MediaType.APPLICATION_XHTML_XML_TYPE)));
+        List<MediaType> nonWildcardAccepts = requestContext.getAcceptableMediaTypes().stream()
+            .filter(mt -> !mt.isWildcardType() && !mt.isWildcardSubtype())
+            .toList();
+        double topQ = nonWildcardAccepts.stream().mapToDouble(ProxyRequestFilter::quality).max().orElse(-1.0);
+        boolean clientAcceptsHtml = nonWildcardAccepts.stream()
+            .filter(mt -> quality(mt) == topQ)
+            .anyMatch(mt -> mt.isCompatible(MediaType.TEXT_HTML_TYPE) ||
+                            mt.isCompatible(MediaType.APPLICATION_XHTML_XML_TYPE));
         if (clientAcceptsHtml) return;
 
         // strip #fragment (servers do not receive fragment identifiers)
@@ -369,6 +375,19 @@ public class ProxyRequestFilter implements ContainerRequestFilter
     public Request getRequest()
     {
         return request;
+    }
+
+    /**
+     * Returns the q-value of a media type. Defaults to 1.0 if absent or unparseable.
+     *
+     * @param mt media type
+     * @return quality value in the range [0.0, 1.0]
+     */
+    private static double quality(MediaType mt)
+    {
+        String q = mt.getParameters().get("q");
+        if (q == null) return 1.0;
+        try { return Double.parseDouble(q); } catch (NumberFormatException e) { return 1.0; }
     }
 
 }
