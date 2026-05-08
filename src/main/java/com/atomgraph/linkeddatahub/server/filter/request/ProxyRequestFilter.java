@@ -37,6 +37,7 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import org.apache.jena.query.QueryExecution;
 import org.apache.jena.query.QueryFactory;
 import jakarta.annotation.Priority;
@@ -101,6 +102,23 @@ public class ProxyRequestFilter implements ContainerRequestFilter
 
     private static final Logger log = LoggerFactory.getLogger(ProxyRequestFilter.class);
     private static final Pattern LINK_SPLITTER = Pattern.compile(",(?=\\s*<)");
+    /**
+     * End-to-end response headers forwarded verbatim from the upstream. Excludes hop-by-hop headers
+     * (RFC 7230 §6.1), framing headers re-emitted by the container, origin-bound security headers
+     * (CSP, HSTS, CORS), cookies, and {@code Content-Type}/{@code Link} which are set explicitly.
+     */
+    private static final Set<String> FORWARDED_RESPONSE_HEADERS = Set.of(
+        HttpHeaders.ETAG,
+        HttpHeaders.LAST_MODIFIED,
+        HttpHeaders.CACHE_CONTROL,
+        HttpHeaders.VARY,
+        HttpHeaders.EXPIRES,
+        HttpHeaders.CONTENT_LANGUAGE,
+        HttpHeaders.CONTENT_DISPOSITION,
+        HttpHeaders.CONTENT_LOCATION,
+        HttpHeaders.LOCATION,
+        HttpHeaders.RETRY_AFTER,
+        "Age");
 
     @Inject com.atomgraph.linkeddatahub.Application system;
     @Inject jakarta.inject.Provider<Optional<Ontology>> ontology;
@@ -274,6 +292,14 @@ public class ProxyRequestFilter implements ContainerRequestFilter
         if (linkHeader != null)
             for (String part : LINK_SPLITTER.split(linkHeader))
                 rb.header(HttpHeaders.LINK, part.trim());
+
+        // forward end-to-end content/cache headers so the client can do conditional requests,
+        // caching, redirects, and download negotiation against the upstream
+        for (String name : FORWARDED_RESPONSE_HEADERS)
+        {
+            String value = clientResponse.getHeaderString(name);
+            if (value != null) rb.header(name, value);
+        }
 
         return rb.build();
     }
