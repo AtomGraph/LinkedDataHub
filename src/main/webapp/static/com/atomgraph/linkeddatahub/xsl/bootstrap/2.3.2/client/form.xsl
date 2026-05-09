@@ -200,39 +200,6 @@ WHERE
         <ixsl:set-property name="value" select="$timezoned-value" object="."/>
     </xsl:template>
     
-    <xsl:template name="bs2:SignUpComplete">
-        <xsl:context-item as="map(*)" use="required"/>
-        <xsl:param name="created-uri" select="?headers?location" as="xs:anyURI"/>
-
-        <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
-        
-        <xsl:for-each select="id('content-body', ixsl:page())">
-            <xsl:result-document href="?." method="ixsl:replace-content">
-                <div class="row-fluid">
-                    <div class="main offset2 span7">
-                        <div class="alert alert-success row-fluid">
-                            <div class="span1">
-                                <img src="{resolve-uri('static/com/atomgraph/linkeddatahub/icons/baseline_done_white_48dp.png', $ac:contextUri)}" alt="Signup complete"/>
-                            </div>
-                            <div class="span11">
-                                <p>Congratulations! Your WebID profile has been created. You can see its data below.</p>
-                                <p>
-                                    <strong>Authentication details have been sent to your email address.</strong>
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- proxy $created-uri to make sure we get RDF/XML. TO-DO: load asynchronously? -->
-                <xsl:variable name="request-uri" select="ldh:href(ac:build-uri($created-uri, map{ 'accept': 'application/rdf+xml' }), map{})" as="xs:anyURI"/>
-                <xsl:for-each select="document($request-uri)">
-                    <xsl:apply-templates select="key('resources-by-type', '&foaf;Person')[@rdf:about]" mode="bs2:Row"/>
-                </xsl:for-each>
-            </xsl:result-document>
-        </xsl:for-each>
-    </xsl:template>
-    
     <!-- EVENT HANDLERS -->
     
     <!-- enable inline editing form (do nothing if the button is disabled) -->
