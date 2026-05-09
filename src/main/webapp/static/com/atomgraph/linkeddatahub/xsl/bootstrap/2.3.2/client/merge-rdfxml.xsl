@@ -21,7 +21,7 @@
         <xsl:copy>
             <xsl:apply-templates select="@* | node()" mode="#current"/>
 
-            <xsl:variable name="existing-rdf" select="root(.)" as="document-node()"/>
+            <xsl:variable name="existing-rdf" select="root()" as="document-node()"/>
             <!-- Add new descriptions (URI-identified or blank nodes) that don't exist in the existing document -->
             <!-- Blank node IDs are prefixed per-document during normalization, so no conflicts -->
             <xsl:for-each select="$new-rdf/rdf:RDF/*[@rdf:about or @rdf:nodeID]">

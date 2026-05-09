@@ -27,7 +27,6 @@ import com.atomgraph.linkeddatahub.vocabulary.ORCID;
 import com.atomgraph.linkeddatahub.vocabulary.LAPP;
 import com.atomgraph.client.vocabulary.LDT;
 import com.atomgraph.core.util.Link;
-import com.atomgraph.core.vocabulary.SD;
 import com.atomgraph.linkeddatahub.server.security.AuthorizationContext;
 import com.atomgraph.linkeddatahub.vocabulary.FOAF;
 import com.atomgraph.linkeddatahub.vocabulary.LDHC;
@@ -90,7 +89,6 @@ public abstract class XSLTWriterBase extends com.atomgraph.client.writer.XSLTWri
     @Inject jakarta.inject.Provider<Optional<com.atomgraph.linkeddatahub.apps.model.Application>> application;
     @Inject jakarta.inject.Provider<DataManager> dataManager;
     @Inject jakarta.inject.Provider<XsltExecutableSupplier> xsltExecSupplier;
-    @Inject jakarta.inject.Provider<List<Mode>> modes;
     @Inject jakarta.inject.Provider<ContainerRequestContext> crc;
     @Inject jakarta.inject.Provider<Optional<AuthorizationContext>> authorizationContext;
 
@@ -131,15 +129,6 @@ public abstract class XSLTWriterBase extends com.atomgraph.client.writer.XSLTWri
                 params.put(new QName("ldt", LDT.ontology.getNameSpace(), LDT.ontology.getLocalName()), new XdmAtomicValue(URI.create(app.getOntology().getURI())));
             }
             
-            URI endpointURI = getLinkURI(headerMap, SD.endpoint);
-            if (endpointURI != null) params.put(new QName("sd", SD.endpoint.getNameSpace(), SD.endpoint.getLocalName()), new XdmAtomicValue(endpointURI));
-
-            URI proxyTargetURI = (URI) getContainerRequestContext().getProperty(AC.uri.getURI());
-            if (proxyTargetURI != null) params.put(new QName("ac", AC.uri.getNameSpace(), AC.uri.getLocalName()), new XdmAtomicValue(proxyTargetURI));
-
-            String forShapeURI = getUriInfo().getQueryParameters().getFirst(LDH.forShape.getLocalName());
-            if (forShapeURI != null) params.put(new QName("ldh", LDH.forShape.getNameSpace(), LDH.forShape.getLocalName()), new XdmAtomicValue(URI.create(forShapeURI)));
-
             if (getSecurityContext() != null && getSecurityContext().getUserPrincipal() instanceof Agent)
             {
                 Agent agent = (Agent)getSecurityContext().getUserPrincipal();
@@ -159,11 +148,6 @@ public abstract class XSLTWriterBase extends com.atomgraph.client.writer.XSLTWri
                 params.put(new QName("acl", ACL.mode.getNameSpace(), ACL.mode.getLocalName()),
                     XdmValue.makeSequence(getAuthorizationContext().get().get().getModeURIs()));
 
-            // TO-DO: move to client-side?
-            if (getUriInfo().getQueryParameters().containsKey(LDH.access_to.getLocalName()))
-                params.put(new QName("ldh", LDH.access_to.getNameSpace(), LDH.access_to.getLocalName()),
-                    new XdmAtomicValue(URI.create(getUriInfo().getQueryParameters().getFirst(LDH.access_to.getLocalName()))));
-            
             if (getHttpHeaders().getRequestHeader(HttpHeaders.REFERER) != null)
             {
                 URI referer = URI.create(getHttpHeaders().getRequestHeader(HttpHeaders.REFERER).get(0));
@@ -250,11 +234,7 @@ public abstract class XSLTWriterBase extends com.atomgraph.client.writer.XSLTWri
     @Override
     public String getSystemId()
     {
-        // for proxy requests, use the external URI as the XSLT document base URI
-        URI proxyTarget = (URI) getContainerRequestContext().getProperty(AC.uri.getURI());
-        if (proxyTarget != null) return proxyTarget.toString();
-
-        return getContainerRequestContext().getUriInfo().getRequestUri().toString();
+        return getUriInfo().getRequestUri().toString();
     }
     
     /**
@@ -312,22 +292,6 @@ public abstract class XSLTWriterBase extends com.atomgraph.client.writer.XSLTWri
     public XsltExecutable getXsltExecutable()
     {
         return xsltExecSupplier.get().get();
-    }
-    
-    @Override
-    public List<URI> getModes(Set<String> namespaces)
-    {
-        return getModes().stream().map(Mode::get).collect(Collectors.toList());
-    }
-
-    /**
-     * Returns a list of enabled layout modes.
-     * 
-     * @return list of modes
-     */
-    public List<Mode> getModes()
-    {
-        return modes.get();
     }
     
     @Override

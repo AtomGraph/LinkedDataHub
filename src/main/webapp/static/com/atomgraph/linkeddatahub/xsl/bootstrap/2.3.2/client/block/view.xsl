@@ -898,7 +898,7 @@ exclude-result-prefixes="#all"
                 <xsl:if test="json:string[@key = 'predicate']">
                     <xsl:variable name="id" select="generate-id()" as="xs:string"/>
                     <xsl:variable name="predicate" select="json:string[@key = 'predicate']" as="xs:anyURI"/>
-                    <xsl:variable name="request-uri" select="ac:build-uri(ldt:base(), map{ 'uri': ac:document-uri($predicate), 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
+                    <xsl:variable name="request-uri" select="ldh:href(ac:build-uri(ldt:base(), map{ 'uri': ac:document-uri($predicate), 'accept': 'application/rdf+xml' }), map{})" as="xs:anyURI"/>
                     <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
                     <xsl:variable name="context" as="map(*)" select="
                       map{
@@ -963,7 +963,7 @@ exclude-result-prefixes="#all"
                     <xsl:variable name="subject-var-name" select="json:string[@key = 'subject']/substring-after(., '?')" as="xs:string"/>
                     <xsl:variable name="predicate" select="json:string[@key = 'predicate']" as="xs:anyURI"/>
                     <xsl:variable name="object-var-name" select="json:string[@key = 'object']/substring-after(., '?')" as="xs:string"/>
-                    <xsl:variable name="request-uri" select="ac:build-uri(ldt:base(), map{ 'uri': ac:document-uri($predicate), 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
+                    <xsl:variable name="request-uri" select="ldh:href(ac:build-uri(ldt:base(), map{ 'uri': ac:document-uri($predicate), 'accept': 'application/rdf+xml' }), map{})" as="xs:anyURI"/>
                     <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
                     <xsl:variable name="context" as="map(*)" select="
                       map{
@@ -1741,7 +1741,7 @@ exclude-result-prefixes="#all"
                         <xsl:variable name="initial-var-name" select="$select-xml/json:map/json:array[@key = 'variables']/json:string[1]/substring-after(., '?')" as="xs:string"/>
                         <xsl:variable name="focus-var-name" select="$initial-var-name" as="xs:string"/>
                         <!-- service can be explicitly specified on content using ldh:service -->
-                        <xsl:variable name="service" select="if ($service-uri) then key('resources', $service-uri, document(ac:build-uri(ac:document-uri($service-uri), map{ 'accept': 'application/rdf+xml' }))) else ()" as="element()?"/> <!-- TO-DO: refactor asynchronously -->
+                        <xsl:variable name="service" select="if ($service-uri) then key('resources', $service-uri, document(ldh:href(ac:document-uri($service-uri), map{ 'accept': 'application/rdf+xml' }, ()))) else ()" as="element()?"/> <!-- TO-DO: refactor asynchronously -->
                         <xsl:variable name="endpoint" select="($service/sd:endpoint/@rdf:resource/xs:anyURI(.), sd:endpoint())[1]" as="xs:anyURI"/>
 
                         <xsl:choose>
@@ -1989,7 +1989,7 @@ exclude-result-prefixes="#all"
 
                         <xsl:for-each-group select="$results/rdf:RDF/*[@rdf:about = $var-name-resources]/*[@rdf:resource or @rdf:nodeID]" group-by="concat(namespace-uri(), local-name())">
                             <xsl:variable name="predicate" select="xs:anyURI(namespace-uri() || local-name())" as="xs:anyURI"/>
-                            <xsl:variable name="request-uri" select="ac:build-uri(ldt:base(), map{ 'uri': ac:document-uri($predicate), 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
+                            <xsl:variable name="request-uri" select="ldh:href(ac:build-uri(ldt:base(), map{ 'uri': ac:document-uri($predicate), 'accept': 'application/rdf+xml' }), map{})" as="xs:anyURI"/>
                             <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
                             <xsl:variable name="context" select="map:merge((
                               $context,
@@ -2118,7 +2118,7 @@ exclude-result-prefixes="#all"
                                     <xsl:for-each select="$results//srx:result[srx:binding[@name = $object-var-name]]">
                                         <xsl:variable name="object-type" select="srx:binding[@name = $object-var-name]/srx:uri" as="xs:anyURI"/>
                                         <xsl:variable name="value-result" select="." as="element()"/>
-                                        <xsl:variable name="request-uri" select="ac:build-uri(ldt:base(), map{ 'uri': ac:document-uri($object-type), 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
+                                        <xsl:variable name="request-uri" select="ldh:href(ac:build-uri(ldt:base(), map{ 'uri': ac:document-uri($object-type), 'accept': 'application/rdf+xml' }), map{})" as="xs:anyURI"/>
                                         <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
                                         <xsl:variable name="context" as="map(*)" select="
                                           map{

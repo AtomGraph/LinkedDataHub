@@ -92,9 +92,6 @@ public class LDH
     /** Violation value property */
     public static final DatatypeProperty violationValue = m_model.createDatatypeProperty( NS + "violationValue" );
     
-    /** Access to property */
-    public static final ObjectProperty access_to = m_model.createObjectProperty(NS + "access-to"); // TO-DO: move to client-side?
-
     /** Request URI property */
     public static final ObjectProperty requestUri = m_model.createObjectProperty(NS + "requestUri");
     

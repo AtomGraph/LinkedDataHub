@@ -40,7 +40,6 @@ xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
 exclude-result-prefixes="#all">
 
     <xsl:import href="../layout.xsl"/>
-    <xsl:include href="signup.xsl"/>
     <xsl:include href="acl/layout.xsl"/>
     
     <xsl:template match="rdf:RDF[$foaf:Agent]" mode="bs2:Create" priority="1">

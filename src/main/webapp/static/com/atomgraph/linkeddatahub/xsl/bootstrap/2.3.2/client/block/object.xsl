@@ -167,7 +167,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="show-edit-button" select="$context('show-edit-button')" as="xs:boolean?"/>
 
         <xsl:message>ldh:block-object-value-response</xsl:message>
-        
+
         <xsl:for-each select="$response">
             <xsl:choose>
                 <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
@@ -183,7 +183,7 @@ exclude-result-prefixes="#all"
                             <xsl:when test="$resource">
                                 <!-- <xsl:message>ldh:block-object-value-response $resource-uri: <xsl:value-of select="$resource-uri"/></xsl:message> -->
                                 <xsl:variable name="object-uris" select="distinct-values($resource/*/@rdf:resource[starts-with(., ldt:base())][not(key('resources', ., root($resource)))])" as="xs:string*"/>
-                                <xsl:variable name="query-string" select="$object-metadata-query || ' VALUES $this { ' || string-join(for $uri in $object-uris return '&lt;' || $uri || '&gt;', ' ') || ' }'" as="xs:string"/>                    
+                                <xsl:variable name="query-string" select="$object-metadata-query || ' VALUES $this { ' || string-join(for $uri in $object-uris return '&lt;' || $uri || '&gt;', ' ') || ' }'" as="xs:string"/>
                                 <xsl:variable name="request" select="map{ 'method': 'POST', 'href': ldh:href(sd:endpoint()), 'media-type': 'application/sparql-query', 'body': $query-string, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
                                 <xsl:sequence select="
                                   map{
@@ -230,7 +230,7 @@ exclude-result-prefixes="#all"
                             </div>
                         </xsl:result-document>
                     </xsl:for-each>
-                    
+
                     <xsl:sequence select="ldh:hide-block-progress-bar($context, ())[current-date() lt xs:date('2000-01-01')]"/>
                     <xsl:sequence select="
                         error(
@@ -240,7 +240,7 @@ exclude-result-prefixes="#all"
                         )
                     "/>
 
-                    <xsl:sequence select="$context"/>                    
+                    <xsl:sequence select="$context"/>
                 </xsl:otherwise>
             </xsl:choose>
         </xsl:for-each>        
@@ -258,7 +258,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="show-edit-button" select="$context('show-edit-button')" as="xs:boolean?"/>
 
         <xsl:message>ldh:block-object-metadata-response $block/@about: <xsl:value-of select="$block/@about"/>
-        
+
         </xsl:message>
         
         <xsl:for-each select="$block//div[contains-token(@class, 'bar')]">
