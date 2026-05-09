@@ -456,8 +456,7 @@ WHERE
 
         <xsl:for-each select="$response">
             <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
-            
-            <xsl:message>ldh:rdf-document-response uri: <xsl:value-of select="$uri"/> status: <xsl:value-of select="?status"/></xsl:message>
+
             <!-- checking acl:mode here because this template is called after every document load (also the initial load) and has access to ?headers -->
             <!-- set LinkedDataHub.acl-modes objects which are later used by the acl:mode function -->
             <!-- doing it here because this template is called after every document load (also the initial load) and has access to ?headers -->
@@ -643,8 +642,6 @@ WHERE
         <xsl:param name="uri" as="xs:anyURI"/>
         <xsl:param name="label" as="xs:string"/>
 
-        <xsl:message>ldh:AddTabNavBarListItem $uri: <xsl:value-of select="$uri"/></xsl:message>
-
         <!-- append the new tab <li> to the tab bar -->
         <xsl:result-document href="#tab-bar-list" method="ixsl:append-content">
             <li data-uri="{$uri}">
@@ -824,7 +821,6 @@ WHERE
         <!-- add a bogus query parameter to give the RDF/XML document a different URL in the browser cache, otherwise it will clash with the HTML representation -->
         <!-- this is due to broken browser behavior re. Vary and conditional requests: https://stackoverflow.com/questions/60799116/firefox-if-none-match-headers-ignore-content-type-and-vary/60802443 -->
         <xsl:variable name="request-uri" select="ldh:href(ac:document-uri($uri), map{}, ())" as="xs:anyURI"/>
-        <xsl:message>ldh:RDFDocumentLoad uri: <xsl:value-of select="$uri"/> request-uri: <xsl:value-of select="$request-uri"/></xsl:message>
         <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
         <xsl:variable name="context" as="map(*)" select="
           map{
@@ -1069,7 +1065,6 @@ WHERE
     <xsl:template match="ul[@id = 'tab-bar-list']/li[not(contains-token(@class, 'active'))]/a" mode="ixsl:onclick">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <xsl:variable name="uri" select="xs:anyURI(ixsl:get(.., 'dataset.uri'))" as="xs:anyURI"/>
-        <xsl:message>tab click uri: <xsl:value-of select="$uri"/> href: <xsl:value-of select="ldh:href($uri)"/></xsl:message>
 
         <xsl:apply-templates select=".." mode="ldh:ActivateTab"/>
 
