@@ -139,16 +139,15 @@ public class ProxyRequestFilter implements ContainerRequestFilter
         // lower q (e.g. SaxonJS document() sends application/xml q=1.0, application/xhtml+xml q=0.8)
         // must still reach the proxy.
         // (X)HTML is not offered for proxied documents — rendering external RDF as HTML server-side
-        // (SPARQL DESCRIBE + XSLT) is expensive and creates a resource-exhaustion attack vector
-        List<MediaType> nonWildcardAccepts = requestContext.getAcceptableMediaTypes().stream()
-            .filter(mt -> !mt.isWildcardType() && !mt.isWildcardSubtype())
-            .toList();
-        double topQ = nonWildcardAccepts.stream().mapToDouble(ProxyRequestFilter::quality).max().orElse(-1.0);
-        boolean clientAcceptsHtml = nonWildcardAccepts.stream()
-            .filter(mt -> quality(mt) == topQ)
-            .anyMatch(mt -> mt.isCompatible(MediaType.TEXT_HTML_TYPE) ||
-                            mt.isCompatible(MediaType.APPLICATION_XHTML_XML_TYPE));
-        if (clientAcceptsHtml) return;
+        // (SPARQL DESCRIBE + XSLT) is expensive and creates a resource-exhaustion attack vector.
+        // Per the JAX-RS spec, getAcceptableMediaTypes() is sorted by q descending, so the first
+        // non-wildcard type is the top-ranked one.
+        for (MediaType mt : requestContext.getAcceptableMediaTypes())
+        {
+            if (mt.isWildcardType() || mt.isWildcardSubtype()) continue;
+            if (mt.isCompatible(MediaType.TEXT_HTML_TYPE) || mt.isCompatible(MediaType.APPLICATION_XHTML_XML_TYPE)) return;
+            break; // first non-wildcard wasn't (X)HTML — proceed with proxy
+        }
 
         // strip #fragment (servers do not receive fragment identifiers)
         if (targetURI.getFragment() != null)
@@ -212,7 +211,6 @@ public class ProxyRequestFilter implements ContainerRequestFilter
         }
 
         MediaType[] clientAcceptTypes = requestContext.getAcceptableMediaTypes().toArray(MediaType[]::new);
-
         if (log.isDebugEnabled()) log.debug("Proxying {} {} → {}", requestContext.getMethod(), requestContext.getUriInfo().getRequestUri(), targetURI);
 
         try
@@ -287,9 +285,9 @@ public class ProxyRequestFilter implements ContainerRequestFilter
         clientResponse.bufferEntity();
         InputStream entity = clientResponse.readEntity(InputStream.class);
 
-        Response.ResponseBuilder rb = Response.status(clientResponse.getStatus())
-            .type(clientResponse.getMediaType())
-            .entity(entity);
+        Response.ResponseBuilder rb = Response.status(clientResponse.getStatus()).
+            type(clientResponse.getMediaType()).
+            entity(entity);
 
         // forward all Link headers from the external response so the client receives remote hypermedia
         // (e.g. sd:endpoint pointing to the remote SPARQL endpoint);
@@ -375,19 +373,6 @@ public class ProxyRequestFilter implements ContainerRequestFilter
     public Request getRequest()
     {
         return request;
-    }
-
-    /**
-     * Returns the q-value of a media type. Defaults to 1.0 if absent or unparseable.
-     *
-     * @param mt media type
-     * @return quality value in the range [0.0, 1.0]
-     */
-    private static double quality(MediaType mt)
-    {
-        String q = mt.getParameters().get("q");
-        if (q == null) return 1.0;
-        try { return Double.parseDouble(q); } catch (NumberFormatException e) { return 1.0; }
     }
 
 }

@@ -38,15 +38,5 @@ proxied_etag=$(curl -G --head -k -f -s \
   "$ADMIN_BASE_URL" \
 | extract_etag)
 
-if [ -z "$proxied_etag" ]; then
-    echo "DEBUG: Expected ETag header on proxied response, got none"
-    echo "DEBUG: Direct ETag: $direct_etag"
-    exit 1
-fi
-
-if [ "$proxied_etag" != "$direct_etag" ]; then
-    echo "DEBUG: Proxied ETag does not match direct ETag"
-    echo "DEBUG: Direct:   $direct_etag"
-    echo "DEBUG: Proxied:  $proxied_etag"
-    exit 1
-fi
+[ -n "$proxied_etag" ] || exit 1
+[ "$proxied_etag" = "$direct_etag" ] || exit 1
