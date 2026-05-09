@@ -203,10 +203,11 @@ WHERE
     <xsl:template name="bs2:SignUpComplete">
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="created-uri" select="?headers?location" as="xs:anyURI"/>
+        <xsl:param name="content-body" select="id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')][contains-token(@class, 'active')]/div[contains-token(@class, 'document-body')]/div[contains-token(@class, 'content-body')]" as="element()"/>
 
         <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
-        
-        <xsl:for-each select="id('content-body', ixsl:page())">
+
+        <xsl:for-each select="$content-body">
             <xsl:result-document href="?." method="ixsl:replace-content">
                 <div class="row-fluid">
                     <div class="main offset2 span7">
