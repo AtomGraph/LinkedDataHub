@@ -13,6 +13,7 @@
     <!ENTITY sd     "http://www.w3.org/ns/sparql-service-description#">
     <!ENTITY sioc   "http://rdfs.org/sioc/ns#">
     <!ENTITY sp     "http://spinrdf.org/sp#">
+    <!ENTITY srx    "http://www.w3.org/2005/sparql-results#">
     <!ENTITY spin   "http://spinrdf.org/spin#">
     <!ENTITY dct    "http://purl.org/dc/terms/">
     <!ENTITY nfo    "http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#">
@@ -37,6 +38,7 @@ xmlns:ldt="&ldt;"
 xmlns:sioc="&sioc;"
 xmlns:sd="&sd;"
 xmlns:sp="&sp;"
+xmlns:srx="&srx;"
 xmlns:spin="&spin;"
 xmlns:dct="&dct;"
 xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
@@ -111,6 +113,32 @@ exclude-result-prefixes="#all"
         ]]>
     </xsl:variable>
     
+    <!-- combined forward + inverse view-block lookup; substitutes VALUES ?type { ... } from the resource's rdf:types -->
+    <xsl:variable name="view-query" as="xs:string">
+        <![CDATA[
+            PREFIX  rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+            PREFIX  ldh:  <https://w3id.org/atomgraph/linkeddatahub#>
+
+            SELECT DISTINCT ?block
+            WHERE {
+              {
+                ?property  ldh:view  ?block .
+                  { ?property  rdfs:domain  ?type }
+                UNION
+                  { ?property  rdfs:subPropertyOf+/rdfs:domain  ?type }
+              }
+              UNION
+              {
+                ?property  ldh:inverseView  ?block .
+                  { ?property  rdfs:range  ?type }
+                UNION
+                  { ?property  rdfs:subPropertyOf+/rdfs:range  ?type }
+              }
+            }
+        ]]>
+        <!-- VALUES ?type goes here -->
+    </xsl:variable>
+
     <xsl:key name="element-by-about" match="*[@about]" use="@about"/>
 
     <!-- TEMPLATES -->
@@ -124,9 +152,34 @@ exclude-result-prefixes="#all"
     </xsl:template>
     
     <!-- render row -->
-    
+
     <xsl:template match="*" mode="ldh:RenderRow" as="(function(item()?) as map(*))*">
         <xsl:apply-templates mode="#current"/>
+
+        <!--
+            inject ontology-driven view blocks for any Saxon-JS wrapper produced by resource.xsl:
+            outer div.block[@about] whose div.span12 child contains the inner typed resource block
+            (class='row-fluid block').
+
+            Typed-block wrappers (Object/View/Query/Chart from resource.xsl:463) are excluded
+            automatically: the wrapper template no longer matches those types, and even if
+            RenderRow visits their resource.xsl:463-produced wrapper, the inner
+            [contains-token(@class, 'block')] predicate excludes their inner (class='row-fluid'
+            from resource.xsl:518).
+        -->
+        <xsl:for-each select="self::div[contains-token(@class, 'block')][@about]/div[contains-token(@class, 'span12')]/div[contains-token(@class, 'block')][@typeof]">
+            <xsl:variable name="typeof-uris" select="tokenize(@typeof, ' ') ! xs:anyURI(.)" as="xs:anyURI*"/>
+            <xsl:variable name="values-clause" select="' VALUES ?type { ' || string-join(for $t in $typeof-uris return '&lt;' || $t || '&gt;', ' ') || ' }'" as="xs:string"/>
+            <xsl:variable name="request-uri" select="ldh:href(ac:build-uri(resolve-uri('ns', ldt:base()), map{ 'query': $view-query || $values-clause }), map{})" as="xs:anyURI"/>
+            <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml' } }" as="map(*)"/>
+            <xsl:variable name="context" as="map(*)" select="
+                map{
+                    'request': $request,
+                    'container': ../..,
+                    'base-uri': ac:absolute-path(ldh:base-uri(.))
+                }"/>
+            <xsl:sequence select="ldh:load-block#3($context, ldh:view-blocks-self-thunk#1, ?)"/>
+        </xsl:for-each>
     </xsl:template>
 
     <xsl:template match="text()" mode="ldh:RenderRow" as="(function(item()?) as map(*))*"/>
@@ -470,7 +523,107 @@ exclude-result-prefixes="#all"
                     )
           "/>
     </xsl:function>
-    
+
+    <!-- view-block injection: ontology query → per-URI RDF fetch → render via bs2:Row → insert + hydrate -->
+
+    <xsl:function name="ldh:view-blocks-self-thunk" as="item()*" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+
+        <xsl:message>ldh:view-blocks-self-thunk</xsl:message>
+
+        <xsl:sequence select="
+            ixsl:resolve($context) =>
+                ixsl:then(ldh:view-blocks-query-thunk#1)
+        "/>
+    </xsl:function>
+
+    <xsl:function name="ldh:view-blocks-query-thunk" as="item()*" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+
+        <xsl:message>ldh:view-blocks-query-thunk</xsl:message>
+
+        <xsl:sequence select="
+            ixsl:http-request($context('request')) =>
+                ixsl:then(ldh:rethread-response($context, ?)) =>
+                ixsl:then(ldh:handle-response#1) =>
+                ixsl:then(ldh:view-blocks-fetch-thunk#1)
+        "/>
+    </xsl:function>
+
+    <!-- handle SPARQL XML response: fan out one HTTP fetch per view URI -->
+    <xsl:function name="ldh:view-blocks-fetch-thunk" as="map(*)" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:variable name="response" select="$context('response')" as="map(*)"/>
+
+        <xsl:message>ldh:view-blocks-fetch-thunk</xsl:message>
+
+        <xsl:if test="$response?status = 200 and $response?media-type = 'application/sparql-results+xml'">
+            <xsl:variable name="results" select="$response?body" as="document-node()"/>
+            <xsl:variable name="view-uris" select="distinct-values($results/srx:sparql/srx:results/srx:result/srx:binding[@name = 'block']/srx:uri/xs:anyURI(.))" as="xs:anyURI*"/>
+
+            <xsl:for-each select="$view-uris">
+                <xsl:variable name="view-uri" select="xs:anyURI(.)" as="xs:anyURI"/>
+                <xsl:variable name="view-request-uri" select="ldh:href(ac:document-uri($view-uri), map{})" as="xs:anyURI"/>
+                <xsl:variable name="view-request" select="map{ 'method': 'GET', 'href': $view-request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
+                <xsl:variable name="view-context" as="map(*)" select="map:merge(($context, map{ 'request': $view-request, 'view-uri': $view-uri }))"/>
+
+                <ixsl:promise select="
+                    ixsl:http-request($view-request) =>
+                        ixsl:then(ldh:rethread-response($view-context, ?)) =>
+                        ixsl:then(ldh:handle-response#1) =>
+                        ixsl:then(ldh:view-blocks-render-thunk#1)
+                    "
+                    on-failure="ldh:promise-failure#1"/>
+            </xsl:for-each>
+        </xsl:if>
+
+        <xsl:sequence select="$context"/>
+    </xsl:function>
+
+    <!-- render one view block from its loaded RDF, append into the wrapper's .span12 alongside the typed resource block, hydrate via existing ldh:RenderRow chain -->
+    <xsl:function name="ldh:view-blocks-render-thunk" as="map(*)" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:variable name="response" select="$context('response')" as="map(*)"/>
+        <xsl:variable name="container" select="$context('container')" as="element()"/>
+        <xsl:variable name="span12" select="$container/div[contains-token(@class, 'span12')]" as="element()"/>
+        <xsl:variable name="view-uri" select="$context('view-uri')" as="xs:anyURI"/>
+        <xsl:variable name="base-uri" select="$context('base-uri')" as="xs:anyURI"/>
+
+        <xsl:message>ldh:view-blocks-render-thunk</xsl:message>
+
+        <xsl:if test="$response?status = 200 and $response?media-type = 'application/rdf+xml'">
+            <xsl:variable name="view-rdf" select="$response?body" as="document-node()"/>
+            <xsl:variable name="view-resource" select="key('resources', $view-uri, $view-rdf)" as="element()?"/>
+
+            <xsl:if test="$view-resource">
+                <xsl:variable name="id" select="'id' || ac:uuid()" as="xs:string"/>
+                <xsl:variable name="view-block-html" as="element()">
+                    <xsl:apply-templates select="$view-resource" mode="bs2:Row">
+                        <xsl:with-param name="about" select="xs:anyURI($base-uri || $id)"/>
+                        <xsl:with-param name="id" select="$id"/>
+                    </xsl:apply-templates>
+                </xsl:variable>
+
+                <!-- append into the wrapper's .span12 so the new block's ancestor::*[@about][1] is the outer #this with @about ending in #this -->
+                <xsl:sequence select="ixsl:call($span12, 'append', [ $view-block-html ])[current-date() lt xs:date('2000-01-01')]"/>
+
+                <!-- hydrate the freshly-injected wrapper via the existing view.xsl:62 RenderRow handler -->
+                <xsl:variable name="injected" select="$span12/*[last()]" as="element()?"/>
+                <xsl:if test="$injected">
+                    <xsl:variable name="factories" as="(function(item()?) as item()*)*">
+                        <xsl:apply-templates select="$injected" mode="ldh:RenderRow"/>
+                    </xsl:variable>
+                    <xsl:for-each select="$factories">
+                        <xsl:variable name="factory" select="."/>
+                        <ixsl:promise select="$factory(())" on-failure="ldh:promise-failure#1"/>
+                    </xsl:for-each>
+                </xsl:if>
+            </xsl:if>
+        </xsl:if>
+
+        <xsl:sequence select="$context"/>
+    </xsl:function>
+
     <xsl:function name="ldh:hide-block-progress-bar" as="map(*)" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
         <xsl:param name="ignored" as="item()?"/>
