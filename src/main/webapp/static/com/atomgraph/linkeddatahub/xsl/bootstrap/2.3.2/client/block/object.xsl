@@ -142,12 +142,12 @@ exclude-result-prefixes="#all"
         <xsl:param name="context" as="map(*)"/>
         <xsl:message>ldh:object-metadata-thunk</xsl:message>
         <xsl:sequence select="
-            ixsl:http-request($context('request')) =>
-                ixsl:then(ldh:rethread-response($context, ?)) =>
-                ixsl:then(ldh:handle-response#1) =>
+            ixsl:http-request($context('object-metadata-request')) =>
+                ixsl:then(ldh:rethread-response($context, ?, 'object-metadata-response')) =>
+                ixsl:then(ldh:handle-response(?, 'object-metadata-response')) =>
                 ixsl:then(ldh:block-object-metadata-response#1) =>
                 ixsl:then(ldh:block-object-apply#1) =>
-                ixsl:then(ldh:invoke-factory#1)                
+                ixsl:then(ldh:invoke-factory#1)
         "/>
     </xsl:function>
     
@@ -185,15 +185,10 @@ exclude-result-prefixes="#all"
                                 <xsl:variable name="object-uris" select="distinct-values($resource/*/@rdf:resource[starts-with(., ldt:base())][not(key('resources', ., root($resource)))])" as="xs:string*"/>
                                 <xsl:variable name="query-string" select="$object-metadata-query || ' VALUES $this { ' || string-join(for $uri in $object-uris return '&lt;' || $uri || '&gt;', ' ') || ' }'" as="xs:string"/>
                                 <xsl:variable name="request" select="map{ 'method': 'POST', 'href': ldh:href(sd:endpoint()), 'media-type': 'application/sparql-query', 'body': $query-string, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
-                                <xsl:sequence select="
-                                  map{
-                                    'request': $request,
-                                    'block': $block,
-                                    'container': $container,
-                                    'resource': $resource,
-                                    'mode': $mode,
-                                    'show-edit-button': $show-edit-button
-                                  }"/>
+                                <xsl:sequence select="map:merge(($context, map{
+                                    'object-metadata-request': $request,
+                                    'resource': $resource
+                                }))"/>
                             </xsl:when>
                             <xsl:otherwise>
                                 <xsl:for-each select="$container">
@@ -250,7 +245,7 @@ exclude-result-prefixes="#all"
     
     <xsl:function name="ldh:block-object-metadata-response" as="map(*)" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
-        <xsl:variable name="response" select="$context('response')" as="map(*)"/>
+        <xsl:variable name="response" select="$context('object-metadata-response')" as="map(*)"/>
         <xsl:variable name="block" select="$context('block')" as="element()"/>
         <xsl:variable name="container" select="$context('container')" as="element()"/>
         <xsl:variable name="resource" select="$context('resource')" as="element()?"/>

@@ -359,9 +359,9 @@ exclude-result-prefixes="#all"
         <xsl:param name="context" as="map(*)"/>
         <xsl:message>ldh:chart-results-thunk</xsl:message>
         <xsl:sequence select="
-            ixsl:http-request($context('request')) =>
-                ixsl:then(ldh:rethread-response($context, ?)) =>
-                ixsl:then(ldh:handle-response#1) =>
+            ixsl:http-request($context('chart-results-request')) =>
+                ixsl:then(ldh:rethread-response($context, ?, 'chart-results-response')) =>
+                ixsl:then(ldh:handle-response(?, 'chart-results-response')) =>
                 ixsl:then(ldh:chart-results-response#1)
         "/>
     </xsl:function>
@@ -782,21 +782,14 @@ exclude-result-prefixes="#all"
                         <xsl:sequence select="ldh:update-progress-counter($context('cache'), $context, 'complete', ())"/>
 
                         <xsl:variable name="request" select="map{ 'method': 'POST', 'href': $request-uri, 'media-type': 'application/sparql-query', 'body': $query-string, 'headers': map{ 'Accept': 'application/sparql-results+xml,application/rdf+xml;q=0.9' } }" as="map(*)"/>
-                        <xsl:sequence select="
-                          map{
-                            'request': $request,
+                        <xsl:sequence select="map:merge(($context, map{
+                            'chart-results-request': $request,
                             'endpoint': $endpoint,
-                            'block': $block,
-                            'container': $container,
                             'chart-canvas-id': $canvas-id,
-                            'chart-type': $chart-type,
-                            'category': $category,
-                            'series': $series,
                             'show-editor': false(),
                             'show-chart-save': false(),
-                            'results-container-id': $container-id || '-query-results',
-                            'cache': $context('cache')
-                          }"/>
+                            'results-container-id': $container-id || '-query-results'
+                        }))"/>
                     </xsl:for-each>
                 </xsl:when>
                 <xsl:otherwise>
@@ -830,7 +823,7 @@ exclude-result-prefixes="#all"
 
     <xsl:function name="ldh:chart-results-response" as="map(*)" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
-        <xsl:variable name="response" select="$context('response')" as="map(*)"/>
+        <xsl:variable name="response" select="$context('chart-results-response')" as="map(*)"/>
         <xsl:variable name="block" select="$context('block')" as="element()"/>
         <xsl:variable name="container" select="$context('container')" as="element()"/>
         <xsl:variable name="chart-canvas-id" select="$context('chart-canvas-id')" as="xs:string"/>

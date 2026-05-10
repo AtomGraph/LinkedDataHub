@@ -477,21 +477,27 @@ exclude-result-prefixes="#all"
 
     <xsl:function name="ldh:handle-response" as="item()*" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
-        
-        <xsl:variable name="request" select="$context('request')" as="map(*)"/>
-        <xsl:variable name="response" select="$context('response')" as="map(*)"/>
+
+        <xsl:sequence select="ldh:handle-response($context, 'response')"/>
+    </xsl:function>
+
+    <xsl:function name="ldh:handle-response" as="item()*" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:param name="response-key" as="xs:string"/>
+
+        <xsl:variable name="response" select="$context($response-key)" as="map(*)"/>
         <xsl:variable name="default-retry-after" select="1" as="xs:integer"/>
 
         <xsl:choose>
             <xsl:when test="$response?status = 429">
                 <xsl:variable name="retry-after" select="
-                  if (map:contains($response?headers, 'Retry-After')) 
-                  then xs:integer($response?headers('Retry-After')) 
+                  if (map:contains($response?headers, 'Retry-After'))
+                  then xs:integer($response?headers('Retry-After'))
                   else $default-retry-after"/>
 
                 <xsl:sequence select="
                   ixsl:sleep($retry-after * 1000)
-                      => ixsl:then(ldh:retry-request($context, ?))
+                      => ixsl:then(ldh:retry-request($context, ?, $response-key))
                 "/>
             </xsl:when>
             <xsl:otherwise>
@@ -504,28 +510,52 @@ exclude-result-prefixes="#all"
         <xsl:param name="context" as="map(*)"/>
         <xsl:param name="sleep-result" as="item()?"/>
 
+        <xsl:sequence select="ldh:retry-request($context, $sleep-result, 'response')"/>
+    </xsl:function>
+
+    <xsl:function name="ldh:retry-request" as="item()*" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:param name="sleep-result" as="item()?"/>
+        <xsl:param name="response-key" as="xs:string"/>
+
         <xsl:variable name="request" select="$context('request')"/>
 
         <xsl:sequence select="
           ixsl:http-request($request)
-            => ixsl:then(ldh:rethread-response($context, ?))
-            => ixsl:then(ldh:handle-response#1)
+            => ixsl:then(ldh:rethread-response($context, ?, $response-key))
+            => ixsl:then(ldh:handle-response(?, $response-key))
         "/>
     </xsl:function>
-    
+
     <xsl:function name="ldh:rethread-response" as="map(*)" ixsl:updating="no">
         <xsl:param name="context" as="map(*)"/>
         <xsl:param name="response" as="map(*)"/>
 
-        <xsl:sequence select="map:merge(($context, map{ 'response': $response }), map{ 'duplicates': 'use-last' })"/>
+        <xsl:sequence select="ldh:rethread-response($context, $response, 'response')"/>
+    </xsl:function>
+
+    <xsl:function name="ldh:rethread-response" as="map(*)" ixsl:updating="no">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:param name="response" as="map(*)"/>
+        <xsl:param name="response-key" as="xs:string"/>
+
+        <xsl:sequence select="map:merge(($context, map{ $response-key: $response }), map{ 'duplicates': 'use-last' })"/>
     </xsl:function>
 
     <xsl:function name="ldh:http-request-threaded" as="map(*)" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
 
+        <xsl:sequence select="ldh:http-request-threaded($context, 'request', 'response')"/>
+    </xsl:function>
+
+    <xsl:function name="ldh:http-request-threaded" as="map(*)" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:param name="request-key" as="xs:string"/>
+        <xsl:param name="response-key" as="xs:string"/>
+
         <xsl:sequence select="
-          ixsl:http-request($context('request'))
-            => ixsl:then(ldh:rethread-response($context, ?))
+          ixsl:http-request($context($request-key))
+            => ixsl:then(ldh:rethread-response($context, ?, $response-key))
         "/>
     </xsl:function>
     

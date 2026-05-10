@@ -136,11 +136,11 @@ exclude-result-prefixes="#all"
 
         <xsl:sequence select="
             ixsl:http-request($context('request')) =>
-                ixsl:then(ldh:rethread-response($context, ?)) =>
-                ixsl:then(ldh:handle-response#1) =>
+                ixsl:then(ldh:rethread-response($context, ?, 'view-results-response')) =>
+                ixsl:then(ldh:handle-response(?, 'view-results-response')) =>
                 ixsl:then(ldh:load-object-metadata#1) =>
-                ixsl:then(ldh:http-request-threaded#1) =>
-                ixsl:then(ldh:handle-response#1) =>
+                ixsl:then(ldh:http-request-threaded(?, 'metadata-request', 'metadata-response')) =>
+                ixsl:then(ldh:handle-response(?, 'metadata-response')) =>
                 ixsl:then(ldh:set-object-metadata#1) =>
                 ixsl:then(ldh:render-view#1)
         "/>
@@ -148,7 +148,7 @@ exclude-result-prefixes="#all"
 
     <xsl:function name="ldh:load-object-metadata" as="map(*)" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
-        <xsl:variable name="response" select="$context('response')" as="map(*)"/>
+        <xsl:variable name="response" select="$context('view-results-response')" as="map(*)"/>
         <xsl:variable name="container" select="$context('container')" as="element()"/>
         <xsl:variable name="endpoint" select="$context('endpoint')" as="xs:anyURI"/>
 
@@ -165,10 +165,10 @@ exclude-result-prefixes="#all"
                             <xsl:variable name="query-string" select="$object-metadata-query || ' VALUES $this { ' || string-join(for $uri in $object-uris return '&lt;' || $uri || '&gt;', ' ') || ' }'" as="xs:string"/>
                             <xsl:variable name="request" select="map{ 'method': 'POST', 'href': ldh:href($endpoint), 'media-type': 'application/sparql-query', 'body': $query-string, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
 
-                            <xsl:sequence select="map:merge(($context, map{ 'request': $request , 'response': () , 'results': $results }), map{ 'duplicates': 'use-last' })"/>
+                            <xsl:sequence select="map:merge(($context, map{ 'metadata-request': $request }))"/>
                         </xsl:when>
                         <xsl:otherwise>
-                            <xsl:sequence select="map:merge(($context, map{ 'results': $results }))"/>
+                            <xsl:sequence select="$context"/>
                         </xsl:otherwise>
                     </xsl:choose>
                 </xsl:when>
@@ -202,7 +202,7 @@ exclude-result-prefixes="#all"
 
     <xsl:function name="ldh:set-object-metadata" as="map(*)" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
-        <xsl:variable name="response" select="$context('response')" as="map(*)"/>
+        <xsl:variable name="response" select="$context('metadata-response')" as="map(*)"/>
         <xsl:variable name="container" select="$context('container')" as="element()"/>
 
         <xsl:message>ldh:set-object-metadata</xsl:message>
@@ -1842,7 +1842,7 @@ exclude-result-prefixes="#all"
     <!-- when view RDF/XML results load, render them -->
     <xsl:function name="ldh:render-view" as="item()*" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
-        <xsl:variable name="results" select="$context('results')" as="document-node()"/>
+        <xsl:variable name="results" select="$context('view-results-response')?body" as="document-node()"/>
         <xsl:variable name="block" select="$context('block')" as="element()"/>
         <xsl:variable name="container" select="$context('container')" as="element()"/>
         <xsl:variable name="container-id" select="$context('container-id')" as="xs:string"/>
