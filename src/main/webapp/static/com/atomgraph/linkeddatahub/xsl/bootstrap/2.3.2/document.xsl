@@ -274,6 +274,8 @@ extension-element-prefixes="ixsl"
         </xsl:next-match>
     </xsl:template>
 
+    <xsl:template match="rdf:RDF[key('resources-by-type', '&http;Response')]" mode="bs2:NavBarActions" priority="1"/>
+
     <xsl:template match="rdf:RDF" mode="bs2:NavBarActions">
         <xsl:param name="base-uri" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/>
         <xsl:param name="delete-disabled" select="not(acl:mode() = '&acl;Write')" as="xs:boolean"/>
@@ -331,7 +333,7 @@ extension-element-prefixes="ixsl"
 
     <xsl:template match="rdf:RDF[key('resources-by-type', '&http;Response')][not(key('resources-by-type', '&spin;ConstraintViolation'))] | rdf:RDF[key('resources-by-type', '&http;Response')][not(key('resources-by-type', '&sh;ValidationResult'))]" mode="bs2:ModeList" priority="1"/>
 
-    <xsl:template match="rdf:RDF" mode="bs2:ModeList" priority="2">
+    <xsl:template match="rdf:RDF" mode="bs2:ModeList">
         <xsl:param name="active-mode" as="xs:anyURI"/>
         <xsl:param name="ajax-rendering" select="true()" as="xs:boolean"/>
         <xsl:param name="absolute-path" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/>

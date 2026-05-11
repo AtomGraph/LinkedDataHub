@@ -609,6 +609,38 @@ WHERE
                         </xsl:for-each>
                     </xsl:for-each>
                 </xsl:when>
+                <xsl:otherwise>
+                    <xsl:if test="?media-type = 'application/rdf+xml'">
+                        <xsl:for-each select="?body">
+                            <xsl:variable name="results" select="." as="document-node()"/>
+                            <xsl:variable name="tab-pane" select="id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')][./div[contains-token(@class, 'document-body')]/@about = $uri]" as="element()?"/>
+                            <xsl:choose>
+                                <xsl:when test="$tab-pane">
+                                    <xsl:for-each select="$tab-pane/div[contains-token(@class, 'document-body')]">
+                                        <xsl:result-document href="?." method="ixsl:replace-element">
+                                            <xsl:apply-templates select="$results/rdf:RDF" mode="bs2:DocumentBody">
+                                                <xsl:with-param name="mode" select="xs:anyURI('&ac;ReadMode')"/>
+                                            </xsl:apply-templates>
+                                        </xsl:result-document>
+                                        <ixsl:set-attribute name="about" select="$uri" object="."/>
+                                    </xsl:for-each>
+                                </xsl:when>
+                                <xsl:otherwise>
+                                    <xsl:variable name="tab-body-id" select="'tab-pane-' || ac:uuid()" as="xs:string"/>
+                                    <xsl:variable name="tab-body" as="element()">
+                                        <xsl:apply-templates select="$results/rdf:RDF" mode="bs2:TabBody">
+                                            <xsl:with-param name="id" select="$tab-body-id"/>
+                                            <xsl:with-param name="mode" select="xs:anyURI('&ac;ReadMode')"/>
+                                        </xsl:apply-templates>
+                                    </xsl:variable>
+                                    <xsl:result-document href="#tab-content" method="ixsl:append-content">
+                                        <xsl:sequence select="$tab-body"/>
+                                    </xsl:result-document>
+                                </xsl:otherwise>
+                            </xsl:choose>
+                        </xsl:for-each>
+                    </xsl:if>
+                </xsl:otherwise>
             </xsl:choose>
         </xsl:for-each>
     </xsl:function>

@@ -540,7 +540,7 @@ exclude-result-prefixes="#all">
         </div>
     </xsl:template>
 
-    <xsl:template match="rdf:RDF | srx:sparql" mode="bs2:Brand">
+    <xsl:template match="rdf:RDF[key('apps-by-origin', $lapp:origin, $lapp:Context)] | srx:sparql[key('apps-by-origin', $lapp:origin, $lapp:Context)]" mode="bs2:Brand" priority="1">
         <a class="brand" href="{$ldt:base}">
             <xsl:for-each select="key('apps-by-origin', $lapp:origin, $lapp:Context)">
                 <xsl:if test="rdf:type/@rdf:resource = '&lapp;AdminApplication'">
@@ -554,6 +554,8 @@ exclude-result-prefixes="#all">
         </a>
     </xsl:template>
     
+    <xsl:template match="*" mode="bs2:Brand"/>
+
     <!-- check if agent has access to the user endpoint by executing a dummy query ASK {} -->
     <xsl:template match="rdf:RDF[doc-available(resolve-uri('sparql?query=ASK%20%7B%7D', $ldt:base))] | srx:sparql[doc-available(resolve-uri('sparql?query=ASK%20%7B%7D', $ldt:base))]" mode="bs2:SearchBar" priority="1">
         <form action="{ac:absolute-path(ldh:request-uri())}" method="get" class="navbar-form" accept-charset="UTF-8" title="{ac:label(key('resources', 'search-title', document('translations.rdf')))}">
@@ -580,7 +582,17 @@ exclude-result-prefixes="#all">
     </xsl:template>
 
     <xsl:template match="rdf:RDF[$lapp:origin][key('apps-by-origin', $lapp:origin, $lapp:Context)/rdf:type/@rdf:resource = '&lapp;EndUserApplication'] | srx:sparql[$lapp:origin][key('apps-by-origin', $lapp:origin, $lapp:Context)/rdf:type/@rdf:resource = '&lapp;EndUserApplication']" mode="bs2:DataspaceNavList" priority="1">
-        <ul class="nav pull-right">
+        <xsl:param name="id"  as="xs:string?"/>
+        <xsl:param name="class" select="'nav pull-right'" as="xs:string?"/>
+
+        <ul>
+            <xsl:if test="$id">
+                <xsl:attribute name="id" select="$id"/>
+            </xsl:if>
+            <xsl:if test="$class">
+                <xsl:attribute name="class" select="$class"/>
+            </xsl:if>
+
             <xsl:variable name="user-defined-apps" select="if (doc-available($app-request-uri)) then document($app-request-uri)//*[lapp:origin/@rdf:resource] else ()" as="element()*"/>
             <xsl:variable name="system-apps" select="$lapp:Context//*[rdf:type/@rdf:resource = '&lapp;EndUserApplication'][lapp:origin/@rdf:resource]" as="element()*"/>
 
@@ -652,6 +664,8 @@ exclude-result-prefixes="#all">
         </ul>        
     </xsl:template>
     
+    <xsl:template match="*" mode="bs2:DataspaceNavList"/>
+
     <!-- SIGNUP -->
     
     <xsl:template match="rdf:RDF[$lapp:origin][not($foaf:Agent//@rdf:about)][key('apps-by-origin', $lapp:origin, $lapp:Context)/rdf:type/@rdf:resource = '&lapp;EndUserApplication'] | srx:sparql[$lapp:origin][not($foaf:Agent//@rdf:about)][key('apps-by-origin', $lapp:origin, $lapp:Context)/rdf:type/@rdf:resource = '&lapp;EndUserApplication']" mode="bs2:SignUp" priority="1">
@@ -709,22 +723,6 @@ exclude-result-prefixes="#all">
     </xsl:template>
     
     <xsl:template match="*" mode="bs2:SignUp"/>
-    
-    <xsl:template match="*[lapp:origin/@rdf:resource]" mode="bs2:AppListItem">
-        <xsl:param name="active" as="xs:boolean?"/>
-        
-        <li>
-            <xsl:if test="$active">
-                <xsl:attribute name="class" select="'active'"/>
-            </xsl:if>
-
-            <a href="{lapp:origin/@rdf:resource}" title="{lapp:origin/@rdf:resource}">
-                <xsl:value-of>
-                    <xsl:apply-templates select="." mode="ac:label"/>
-                </xsl:value-of>
-            </a>
-        </li>
-    </xsl:template>
     
     <!-- BODY -->
 
