@@ -68,6 +68,10 @@ public class ApplicationFilter implements ContainerRequestFilter
         }
         else request.setProperty(AC.mode.getURI(), Collections.emptyList());
 
+        // set early so content negotiation works even if app matching fails
+        if (request.getUriInfo().getQueryParameters().containsKey(AC.accept.getLocalName()))
+            request.getHeaders().putSingle(HttpHeaders.ACCEPT, request.getUriInfo().getQueryParameters().getFirst(AC.accept.getLocalName()));
+
         // there always have to be an app
         Resource appResource = getSystem().matchApp(request.getUriInfo().getAbsolutePath());
         if (appResource == null)
@@ -132,11 +136,6 @@ public class ApplicationFilter implements ContainerRequestFilter
             }
         else requestURI = request.getUriInfo().getRequestUri();
         request.setRequestUri(app.getBaseURI(), requestURI); // there's always ldt:base
-
-        // override "Accept" header using then ?accept= param value. TO-DO: move to a separate ContainerRequestFilter?
-        // has to go before ?uri logic because that will change the UriInfo
-        if (request.getUriInfo().getQueryParameters().containsKey(AC.accept.getLocalName()))
-            request.getHeaders().putSingle(HttpHeaders.ACCEPT, request.getUriInfo().getQueryParameters().getFirst(AC.accept.getLocalName()));
 
         // TO-DO: move Dataset logic to a separate ContainerRequestFilter?
         Resource datasetResource = getSystem().matchDataset(LAPP.Dataset, request.getUriInfo().getAbsolutePath());
