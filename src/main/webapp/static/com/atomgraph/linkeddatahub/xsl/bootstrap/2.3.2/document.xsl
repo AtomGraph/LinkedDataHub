@@ -627,11 +627,22 @@ extension-element-prefixes="ixsl"
         <xsl:param name="create-resource" select="true()" as="xs:boolean"/>
         <xsl:param name="class-uris" select="(xs:anyURI('&lapp;Application'), xs:anyURI('&sd;Service'), xs:anyURI('&nfo;FileDataObject'), xs:anyURI('&sp;Construct'), xs:anyURI('&sp;Describe'), xs:anyURI('&sp;Select'), xs:anyURI('&sp;Ask'), xs:anyURI('&ldh;RDFImport'), xs:anyURI('&ldh;CSVImport'), xs:anyURI('&ldh;GraphChart'), xs:anyURI('&ldh;ResultSetChart'), xs:anyURI('&ldh;View'))" as="xs:anyURI*"/>
         <xsl:param name="classes" select="for $class-uri in $class-uris return key('resources', $class-uri, document(ac:document-uri($class-uri)))" as="element()*"/>
+        
+        <!-- bring the current document resource as well as its primary topic resource (if any) to the top of the page -->
+        <xsl:variable name="doc" select="key('resources', ac:absolute-path(ldh:base-uri(.)))" as="element()?"/>
+        <xsl:variable name="topic" select="key('resources', $doc/foaf:primaryTopic/@rdf:*)" as="element()?"/>
 
-        <!-- select elements explicitly, because Saxon-JS chokes on text nodes here -->
-        <!-- hide the content resources - cannot suppress them in the resource-level bs2:Block because its being reused ldh:ContentList/bs2:Row modes -->
-        <xsl:apply-templates select="*[not(rdf:type/@rdf:resource = ('&ldh;XHTML', '&ldh;Object'))]" mode="#current">
+        <xsl:apply-templates select="$doc" mode="#current">
             <xsl:sort select="ac:label(.)"/>
+        </xsl:apply-templates>
+        <xsl:apply-templates select="$topic" mode="#current">
+            <xsl:sort select="ac:label(.)"/>
+        </xsl:apply-templates>
+        
+        <!-- render the rest of the resources -->
+        <!-- hide the content resources - cannot suppress them in the resource-level bs2:Block because its being reused ldh:ContentList/bs2:Row modes -->
+        <xsl:apply-templates select="*[not(rdf:type/@rdf:resource = ('&ldh;XHTML', '&ldh;Object'))] except ($doc | $topic)" mode="#current">                                     
+            <xsl:sort select="ac:label(.)"/>                                                                                                                                     
         </xsl:apply-templates>
         
         <xsl:if test="$create-resource and acl:mode() = '&acl;Append' and not(key('resources-by-type', '&http;Response'))">
@@ -644,7 +655,7 @@ extension-element-prefixes="ixsl"
             </div>
         </xsl:if>
     </xsl:template>
-
+    
     <!-- TABLE MODE -->
 
     <xsl:template match="rdf:RDF" mode="xhtml:Table">

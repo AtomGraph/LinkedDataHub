@@ -999,7 +999,7 @@ exclude-result-prefixes="#all"
         
     <!-- DEFAULT  -->
     
-    <!-- TO-DO: move to Web-Client -->
+    <!-- TO-DO: align with SSR rdf:RDF mode -->
     <xsl:template match="rdf:RDF">
         <xsl:apply-templates>
             <xsl:sort select="ac:label(.)"/>
