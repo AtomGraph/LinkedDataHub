@@ -416,6 +416,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="base" as="xs:anyURI?"/>
         <xsl:param name="endpoint" as="xs:anyURI?"/>
         <xsl:param name="application" as="xs:anyURI?"/>
+        <xsl:param name="object-metadata" as="document-node()?" tunnel="yes"/>
 
         <div>
             <xsl:if test="$id">
@@ -451,6 +452,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="class" select="'document-body'" as="xs:string?"/>
         <xsl:param name="mode" as="xs:anyURI"/>
         <xsl:param name="about" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/>
+        <xsl:param name="object-metadata" as="document-node()?" tunnel="yes"/>
 
         <div>
             <xsl:if test="$id">

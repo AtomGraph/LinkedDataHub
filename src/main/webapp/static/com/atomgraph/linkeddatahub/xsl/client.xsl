@@ -392,30 +392,6 @@ WHERE
         </xsl:choose>
     </xsl:template>
     
-    <xsl:template match="@rdf:resource | @rdf:nodeID | srx:uri" mode="ac:object-label" priority="1">
-        <xsl:param name="object-metadata" as="document-node()?" tunnel="yes"/>
-        <xsl:variable name="this" select="." as="xs:anyURI"/>
-
-        <xsl:choose>
-            <xsl:when test="key('resources', .)">
-                <xsl:apply-templates select="key('resources', .)" mode="ac:label"/>
-            </xsl:when>
-            <xsl:when test="$object-metadata!key('resources', $this, .)">
-                <!-- <xsl:message>ac:object-label(<xsl:value-of select="."/>) $object-metadata: <xsl:value-of select="serialize($object-metadata)"/></xsl:message> -->
-                <xsl:apply-templates select="$object-metadata!key('resources', $this, .)" mode="ac:label"/>
-            </xsl:when>
-            <xsl:when test="contains(., '#') and not(ends-with(., '#'))">
-                <xsl:sequence select="substring-after(., '#')"/>
-            </xsl:when>
-            <xsl:when test="string-length(tokenize(., '/')[last()]) &gt; 0">
-                <xsl:sequence select="translate(tokenize(., '/')[last()], '_', ' ')"/>
-            </xsl:when>
-            <xsl:otherwise>
-                <xsl:sequence select="."/>
-            </xsl:otherwise>
-        </xsl:choose>
-    </xsl:template>
-    
     <xsl:template match="foaf:img/@rdf:resource | foaf:logo/@rdf:resource | foaf:depiction/@rdf:resource | schema1:image/@rdf:resource | schema2:image/@rdf:resource | schema1:logo/@rdf:resource | schema2:logo/@rdf:resource | schema1:thumbnailUrl/@rdf:resource | schema2:thumbnailUrl/@rdf:resource | dbpo:thumbnail/@rdf:resource">
         <a href="{.}">
             <img src="{.}">
@@ -537,9 +513,10 @@ WHERE
                                     <xsl:result-document href="?." method="ixsl:replace-element">
                                         <xsl:apply-templates select="$results/rdf:RDF" mode="bs2:DocumentBody">
                                             <xsl:with-param name="mode" select="$mode"/>
+                                            <xsl:with-param name="object-metadata" select="$context('object-metadata')" tunnel="yes"/>
                                         </xsl:apply-templates>
                                     </xsl:result-document>
-                                    
+
                                     <!-- update @about to new URI -->
                                     <ixsl:set-attribute name="about" select="$uri" object="."/>
                                 </xsl:for-each>
@@ -553,6 +530,7 @@ WHERE
                                         <xsl:with-param name="base" select="$tab-base"/>
                                         <xsl:with-param name="endpoint" select="$endpoint"/>
                                         <xsl:with-param name="application" select="$application"/>
+                                        <xsl:with-param name="object-metadata" select="$context('object-metadata')" tunnel="yes"/>
                                     </xsl:apply-templates>
                                 </xsl:variable>
 
@@ -826,11 +804,16 @@ WHERE
           map{
             'request': $request,
             'uri': $uri,
-            'refresh-content': $refresh-content
+            'refresh-content': $refresh-content,
+            'endpoint': sd:endpoint()
           }"/>
         <ixsl:promise select="ixsl:http-request($context('request'), $controller) =>
             ixsl:then(ldh:rethread-response($context, ?)) =>
             ixsl:then(ldh:handle-response#1) =>
+            ixsl:then(ldh:load-object-metadata#1) =>
+            ixsl:then(ldh:http-request-threaded(?, 'metadata-request', 'metadata-response')) =>
+            ixsl:then(ldh:handle-response(?, 'metadata-response')) =>
+            ixsl:then(ldh:set-object-metadata#1) =>
             ixsl:then(ldh:rdf-document-response#1)"
             on-failure="ldh:promise-failure#1"/>
     </xsl:template>
