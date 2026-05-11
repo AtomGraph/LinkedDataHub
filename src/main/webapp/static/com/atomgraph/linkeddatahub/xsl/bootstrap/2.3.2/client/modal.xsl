@@ -850,14 +850,14 @@ LIMIT   10
             => ixsl:then(ldh:rethread-response($context, ?))
             => ixsl:then(ldh:handle-response#1)
             => ixsl:then(ldh:load-edited-resource#1)
-            => ixsl:then(ldh:http-request-threaded#1)
-            => ixsl:then(ldh:handle-response#1)
+            => ixsl:then(ldh:http-request-threaded(?, 'type-metadata-request', 'type-metadata-response'))
+            => ixsl:then(ldh:handle-response(?, 'type-metadata-response'))
             => ixsl:then(ldh:set-type-metadata#1)
             => ixsl:then(ldh:wrap-into-document#1)
             => ixsl:then(ldh:render-form#1)
         " on-failure="ldh:promise-failure#1"/>
     </xsl:template>
-    
+
     <!-- submit document update modal form using PATCH TO-DO: unify!!! -->
     
     <xsl:template match="div[contains-token(@class, 'modal-constructor')]//form[contains-token(@class, 'form-horizontal')][upper-case(@method) = 'PATCH']" mode="ixsl:onsubmit" priority="2">
@@ -1045,8 +1045,8 @@ LIMIT   10
             => ixsl:then(ldh:rethread-response($context, ?))
             => ixsl:then(ldh:handle-response#1)
             => ixsl:then(ldh:load-edited-resource#1)
-            => ixsl:then(ldh:http-request-threaded#1)
-            => ixsl:then(ldh:handle-response#1)
+            => ixsl:then(ldh:http-request-threaded(?, 'type-metadata-request', 'type-metadata-response'))
+            => ixsl:then(ldh:handle-response(?, 'type-metadata-response'))
             => ixsl:then(ldh:set-type-metadata#1)
             => ixsl:then(ldh:wrap-into-document#1)
             => ixsl:then(ldh:render-form#1)

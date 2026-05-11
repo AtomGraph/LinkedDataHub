@@ -265,8 +265,8 @@ WHERE
             => ixsl:then(ldh:rethread-response($context, ?))
             => ixsl:then(ldh:handle-response#1)
             => ixsl:then(ldh:load-edited-resource#1)
-            => ixsl:then(ldh:http-request-threaded#1)
-            => ixsl:then(ldh:handle-response#1)
+            => ixsl:then(ldh:http-request-threaded(?, 'type-metadata-request', 'type-metadata-response'))
+            => ixsl:then(ldh:handle-response(?, 'type-metadata-response'))
             => ixsl:then(ldh:set-type-metadata#1)
             => ixsl:then(ldh:render-row-form#1)
         " on-failure="ldh:promise-failure#1"/>
@@ -297,12 +297,10 @@ WHERE
                         <xsl:variable name="request-uri" select="ldh:href($results-uri, map{})" as="xs:anyURI"/>
                         <xsl:variable name="http-request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
                         <xsl:sequence select="map:merge(($context, map{
-                          'request': $http-request,
-                          'block': $block,
+                          'type-metadata-request': $http-request,
                           'resource': $resource,
-                          'types': $types,
-                          'response': () (: clear old response :)
-                        }), map{ 'duplicates': 'use-last' })"/>
+                          'types': $types
+                        }))"/>
                     </xsl:for-each>
                 </xsl:when>
                 <!-- error response -->
@@ -315,7 +313,7 @@ WHERE
     
     <xsl:function name="ldh:set-type-metadata" as="map(*)" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
-        <xsl:variable name="response" select="$context('response')" as="map(*)"/>
+        <xsl:variable name="response" select="$context('type-metadata-response')" as="map(*)"/>
         <xsl:variable name="block" select="$context('block')" as="element()"/>
         <xsl:variable name="resource" select="$context('resource')" as="element()"/>
         <xsl:variable name="types" select="$context('types')" as="xs:anyURI*"/>
@@ -349,14 +347,13 @@ WHERE
                     <xsl:variable name="object-metadata" select="if (doc-available($request-uri)) then document($request-uri) else ()" as="document-node()?"/>
 
                     <xsl:sequence select="map:merge(($context, map{
-                        'response': (),
                         'type-metadata': $type-metadata,
                         'property-metadata': $property-metadata,
                         'constructors': $constructors,
                         'constraints': $constraints,
                         'shapes': $shapes,
                         'object-metadata': $object-metadata
-                    }), map{ 'duplicates': 'use-last' })"/>
+                    }))"/>
                 </xsl:when>
                 <!-- error response -->
                 <xsl:otherwise>

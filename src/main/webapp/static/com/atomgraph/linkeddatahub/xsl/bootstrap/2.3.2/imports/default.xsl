@@ -72,6 +72,30 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="upper-case(substring($labels[1], 1, 1)) || substring($labels[1], 2)"/>
     </xsl:function>
     
+    <xsl:template match="@rdf:resource | @rdf:nodeID | srx:uri" mode="ac:object-label" priority="1">
+        <xsl:param name="object-metadata" as="document-node()?" tunnel="yes"/>
+        <xsl:variable name="this" select="." as="xs:anyURI"/>
+
+        <xsl:choose>
+            <xsl:when test="key('resources', .)">
+                <xsl:apply-templates select="key('resources', .)" mode="ac:label"/>
+            </xsl:when>
+            <xsl:when test="$object-metadata!key('resources', $this, .)">
+                <!-- <xsl:message>ac:object-label(<xsl:value-of select="."/>) $object-metadata: <xsl:value-of select="serialize($object-metadata)"/></xsl:message> -->
+                <xsl:apply-templates select="$object-metadata!key('resources', $this, .)" mode="ac:label"/>
+            </xsl:when>
+            <xsl:when test="contains(., '#') and not(ends-with(., '#'))">
+                <xsl:sequence select="substring-after(., '#')"/>
+            </xsl:when>
+            <xsl:when test="string-length(tokenize(., '/')[last()]) &gt; 0">
+                <xsl:sequence select="translate(tokenize(., '/')[last()], '_', ' ')"/>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:sequence select="."/>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:template>
+    
     <xsl:function name="acl:mode" as="xs:anyURI*" use-when="system-property('xsl:product-name') = 'SAXON'">
         <xsl:sequence select="$acl:mode"/>
     </xsl:function>

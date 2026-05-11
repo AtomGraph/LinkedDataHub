@@ -624,6 +624,57 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="$context"/>
     </xsl:function>
 
+    <!-- object-metadata fetch helpers: shared between view.xsl's view-results chain and client.xsl's document-load chain. Build a metadata-request from the cross-doc object URIs in the response RDF (read from $response-key in context); the chain then fires it via ldh:http-request-threaded(?, 'metadata-request', 'metadata-response') and ldh:set-object-metadata stores the result body under 'object-metadata' for the $object-metadata tunnel consumed by ac:object-label. -->
+
+    <xsl:function name="ldh:load-object-metadata" as="map(*)" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+
+        <xsl:sequence select="ldh:load-object-metadata($context, 'response')"/>
+    </xsl:function>
+
+    <xsl:function name="ldh:load-object-metadata" as="map(*)" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:param name="response-key" as="xs:string"/>
+        <xsl:variable name="response" select="$context($response-key)" as="map(*)"/>
+        <xsl:variable name="endpoint" select="$context('endpoint')" as="xs:anyURI"/>
+        <xsl:variable name="object-uris" as="xs:string*" select="
+            if ($response?status = 200 and $response?media-type = 'application/rdf+xml')
+            then distinct-values($response?body/rdf:RDF/rdf:Description/*/@rdf:resource[not(key('resources', .))])
+            else ()"/>
+        <xsl:variable name="query-string" select="$object-metadata-query || ' VALUES $this { ' || string-join(for $uri in $object-uris return '&lt;' || $uri || '&gt;', ' ') || ' }'" as="xs:string"/>
+        <xsl:variable name="request" select="map{ 'method': 'POST', 'href': ldh:href($endpoint), 'media-type': 'application/sparql-query', 'body': $query-string, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
+
+        <xsl:message>ldh:load-object-metadata</xsl:message>
+
+        <!-- always emit a metadata-request so the downstream http-request-threaded step has a key to read; empty VALUES results in an empty response which set-object-metadata stores as an empty object-metadata document and ac:object-label falls through to its fragment fallback -->
+        <xsl:sequence select="map:merge(($context, map{ 'metadata-request': $request }))"/>
+    </xsl:function>
+
+    <xsl:function name="ldh:set-object-metadata" as="map(*)" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:variable name="response" select="$context('metadata-response')" as="map(*)"/>
+
+        <xsl:message>ldh:set-object-metadata</xsl:message>
+
+        <!-- view-block chain tracks progress; document-load chain doesn't -->
+        <xsl:if test="map:contains($context, 'cache')">
+            <xsl:sequence select="ldh:update-progress-counter($context('cache'), $context, 'complete', ())"/>
+        </xsl:if>
+
+        <xsl:for-each select="$response">
+            <xsl:choose>
+                <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
+                    <xsl:variable name="object-metadata" select="?body" as="document-node()?"/>
+                    <xsl:sequence select="map:merge(($context, map{ 'object-metadata': $object-metadata }))"/>
+                </xsl:when>
+                <xsl:otherwise>
+                    <!-- ignore object metadata loading errors - treat as empty metadata -->
+                    <xsl:sequence select="$context"/>
+                </xsl:otherwise>
+            </xsl:choose>
+        </xsl:for-each>
+    </xsl:function>
+
     <xsl:function name="ldh:hide-block-progress-bar" as="map(*)" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
         <xsl:param name="ignored" as="item()?"/>

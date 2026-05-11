@@ -136,41 +136,28 @@ exclude-result-prefixes="#all"
 
         <xsl:sequence select="
             ixsl:http-request($context('request')) =>
-                ixsl:then(ldh:rethread-response($context, ?)) =>
-                ixsl:then(ldh:handle-response#1) =>
-                ixsl:then(ldh:load-object-metadata#1) =>
-                ixsl:then(ldh:http-request-threaded#1) =>
-                ixsl:then(ldh:handle-response#1) =>
+                ixsl:then(ldh:rethread-response($context, ?, 'view-results-response')) =>
+                ixsl:then(ldh:handle-response(?, 'view-results-response')) =>
+                ixsl:then(ldh:view-results-error-handler#1) =>
+                ixsl:then(ldh:load-object-metadata(?, 'view-results-response')) =>
+                ixsl:then(ldh:http-request-threaded(?, 'metadata-request', 'metadata-response')) =>
+                ixsl:then(ldh:handle-response(?, 'metadata-response')) =>
                 ixsl:then(ldh:set-object-metadata#1) =>
                 ixsl:then(ldh:render-view#1)
         "/>
     </xsl:function>
 
-    <xsl:function name="ldh:load-object-metadata" as="map(*)" ixsl:updating="yes">
+    <!-- view-results-specific HTTP error UI: renders an alert into $container, hides the block progress bar, raises ldh:HTTPError; the generic ldh:load-object-metadata in client/block.xsl has no error UI of its own -->
+    <xsl:function name="ldh:view-results-error-handler" as="item()*" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
-        <xsl:variable name="response" select="$context('response')" as="map(*)"/>
+        <xsl:variable name="response" select="$context('view-results-response')" as="map(*)"/>
         <xsl:variable name="container" select="$context('container')" as="element()"/>
         <xsl:variable name="endpoint" select="$context('endpoint')" as="xs:anyURI"/>
-
-        <xsl:message>ldh:load-object-metadata</xsl:message>
 
         <xsl:for-each select="$response">
             <xsl:choose>
                 <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
-                    <xsl:variable name="results" select="?body" as="document-node()"/>
-
-                    <xsl:choose>
-                        <xsl:when test="$endpoint = sd:endpoint()">
-                            <xsl:variable name="object-uris" select="distinct-values($results/rdf:RDF/rdf:Description/*/@rdf:resource[not(key('resources', .))])" as="xs:string*"/>
-                            <xsl:variable name="query-string" select="$object-metadata-query || ' VALUES $this { ' || string-join(for $uri in $object-uris return '&lt;' || $uri || '&gt;', ' ') || ' }'" as="xs:string"/>
-                            <xsl:variable name="request" select="map{ 'method': 'POST', 'href': ldh:href($endpoint), 'media-type': 'application/sparql-query', 'body': $query-string, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
-
-                            <xsl:sequence select="map:merge(($context, map{ 'request': $request , 'response': () , 'results': $results }), map{ 'duplicates': 'use-last' })"/>
-                        </xsl:when>
-                        <xsl:otherwise>
-                            <xsl:sequence select="map:merge(($context, map{ 'results': $results }))"/>
-                        </xsl:otherwise>
-                    </xsl:choose>
+                    <xsl:sequence select="$context"/>
                 </xsl:when>
                 <xsl:otherwise>
                     <xsl:for-each select="$container">
@@ -195,30 +182,6 @@ exclude-result-prefixes="#all"
                         $response
                       )
                     "/>
-                </xsl:otherwise>
-            </xsl:choose>
-        </xsl:for-each>
-    </xsl:function>
-
-    <xsl:function name="ldh:set-object-metadata" as="map(*)" ixsl:updating="yes">
-        <xsl:param name="context" as="map(*)"/>
-        <xsl:variable name="response" select="$context('response')" as="map(*)"/>
-        <xsl:variable name="container" select="$context('container')" as="element()"/>
-
-        <xsl:message>ldh:set-object-metadata</xsl:message>
-
-        <!-- Mark metadata response as complete -->
-        <xsl:sequence select="ldh:update-progress-counter($context('cache'), $context, 'complete', ())"/>
-
-        <xsl:for-each select="$response">
-            <xsl:choose>
-                <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
-                    <xsl:variable name="object-metadata" select="?body" as="document-node()?"/>
-                    <xsl:sequence select="map:merge(($context, map{ 'object-metadata': $object-metadata }))"/>
-                </xsl:when>
-                <xsl:otherwise>
-                    <!-- ignore object metadata loading errors - treat as empty metadata -->
-                    <xsl:sequence select="$context"/>
                 </xsl:otherwise>
             </xsl:choose>
         </xsl:for-each>
@@ -1842,7 +1805,7 @@ exclude-result-prefixes="#all"
     <!-- when view RDF/XML results load, render them -->
     <xsl:function name="ldh:render-view" as="item()*" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
-        <xsl:variable name="results" select="$context('results')" as="document-node()"/>
+        <xsl:variable name="results" select="$context('view-results-response')?body" as="document-node()"/>
         <xsl:variable name="block" select="$context('block')" as="element()"/>
         <xsl:variable name="container" select="$context('container')" as="element()"/>
         <xsl:variable name="container-id" select="$context('container-id')" as="xs:string"/>
