@@ -752,11 +752,18 @@ exclude-result-prefixes="#all">
                     <!-- document content panes using Bootstrap 2.3.2 tab-content/tab-pane classes -->
                     <div id="tab-content" class="tab-content">
                         <xsl:variable name="object-uris" select="rdf:Description/*/@rdf:resource[not(key('resources', .))]" as="xs:anyURI*"/>
+                        <xsl:variable name="object-metadata" as="document-node()?">
+                            <xsl:if test="exists($object-uris)">
+                                <xsl:try select="ldh:send-request(sd:endpoint(), 'POST', 'application/sparql-query', $object-metadata-query || ' VALUES $this { ' || string-join(for $uri in $object-uris return '&lt;' || $uri || '&gt;', ' ') || ' }', map{ 'Accept': 'application/rdf+xml' })">
+                                    <xsl:catch/>
+                                </xsl:try>
+                            </xsl:if>
+                        </xsl:variable>
                         <xsl:apply-templates select="." mode="bs2:TabBody">
                             <xsl:with-param name="mode" select="ac:mode(root())"/>
                             <xsl:with-param name="base" select="ldt:base()"/>
                             <xsl:with-param name="endpoint" select="sd:endpoint()"/>
-                            <xsl:with-param name="object-metadata" select="if (exists($object-uris)) then ldh:send-request(sd:endpoint(), 'POST', 'application/sparql-query', $object-metadata-query || ' VALUES $this { ' || string-join(for $uri in $object-uris return '&lt;' || $uri || '&gt;', ' ') || ' }', map{ 'Accept': 'application/rdf+xml' }) else ()" tunnel="yes"/>
+                            <xsl:with-param name="object-metadata" select="$object-metadata" tunnel="yes"/>
                         </xsl:apply-templates>
                     </div>
                 </div>
