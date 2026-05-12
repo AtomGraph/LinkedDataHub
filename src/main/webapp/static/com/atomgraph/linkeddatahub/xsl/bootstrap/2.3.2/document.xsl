@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE xsl:stylesheet [
     <!ENTITY lapp   "https://w3id.org/atomgraph/linkeddatahub/apps#">
+    <!ENTITY lacl   "https://w3id.org/atomgraph/linkeddatahub/admin/acl#">
     <!ENTITY def    "https://w3id.org/atomgraph/linkeddatahub/default#">
     <!ENTITY ldh    "https://w3id.org/atomgraph/linkeddatahub#">
     <!ENTITY ac     "https://w3id.org/atomgraph/client#">
@@ -35,6 +36,7 @@ xmlns:xs="http://www.w3.org/2001/XMLSchema"
 xmlns:map="http://www.w3.org/2005/xpath-functions/map"
 xmlns:json="http://www.w3.org/2005/xpath-functions"
 xmlns:lapp="&lapp;"
+xmlns:lacl="&lacl;"
 xmlns:ldh="&ldh;"
 xmlns:ac="&ac;"
 xmlns:a="&a;"
@@ -1234,11 +1236,59 @@ extension-element-prefixes="ixsl"
     </xsl:template>
 
     <xsl:template match="*" mode="bs2:Create"/>
-    
+
     <!-- OBJECT -->
-    
+
     <xsl:template match="rdf:RDF" mode="bs2:Object">
         <xsl:apply-templates mode="#current"/>
     </xsl:template>
-    
+
+    <!-- HEADER -->
+
+    <xsl:template match="*[rdf:type/@rdf:resource = '&http;Response'][lacl:requestAccess/@rdf:resource][$foaf:Agent]" mode="bs2:Header" priority="2">
+        <xsl:param name="id" as="xs:string?"/>
+        <xsl:param name="class" select="'alert alert-info well'" as="xs:string?"/>
+
+        <div>
+            <xsl:if test="$id">
+                <xsl:attribute name="id" select="$id"/>
+            </xsl:if>
+            <xsl:if test="$class">
+                <xsl:attribute name="class" select="$class"/>
+            </xsl:if>
+
+            <h2>
+                <xsl:apply-templates select="." mode="ldh:logo"/>
+
+                <xsl:apply-templates select="." mode="ac:label"/>
+
+                <button type="button" class="btn btn-primary btn-access-form pull-right">
+                    <xsl:value-of>
+                        <xsl:apply-templates select="key('resources', 'request-access', document('translations.rdf'))" mode="ac:label"/>
+                    </xsl:value-of>
+                </button>
+            </h2>
+        </div>
+    </xsl:template>
+
+    <xsl:template match="*[rdf:type/@rdf:resource = '&http;Response']" mode="bs2:Header" priority="1">
+        <xsl:param name="id" as="xs:string?"/>
+        <xsl:param name="class" select="'alert alert-error well'" as="xs:string?"/>
+
+        <div>
+            <xsl:if test="$id">
+                <xsl:attribute name="id" select="$id"/>
+            </xsl:if>
+            <xsl:if test="$class">
+                <xsl:attribute name="class" select="$class"/>
+            </xsl:if>
+
+            <h2>
+                <xsl:value-of>
+                    <xsl:apply-templates select="." mode="ac:label"/>
+                </xsl:value-of>
+            </h2>
+        </div>
+    </xsl:template>
+
 </xsl:stylesheet>
