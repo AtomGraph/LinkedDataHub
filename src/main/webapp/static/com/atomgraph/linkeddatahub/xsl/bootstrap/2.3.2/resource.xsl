@@ -286,7 +286,7 @@ extension-element-prefixes="ixsl"
     <xsl:template match="*[@rdf:about = '&acl;Access']" mode="ldh:logo">
         <xsl:param name="class" as="xs:string?"/>
         
-        <xsl:attribute name="class" select="concat($class, ' ', 'btn-access-form')"/>
+        <xsl:attribute name="class" select="concat($class, ' ', 'btn-acl btn-access-form')"/>
     </xsl:template>
 
     <xsl:template match="*[rdf:type/@rdf:resource = '&http;Response'][lacl:requestAccess/@rdf:resource]" mode="ldh:logo">
@@ -744,9 +744,29 @@ extension-element-prefixes="ixsl"
     </xsl:template>
 
     <!-- PROPERTY LIST -->
-    
+
     <!-- suppress types in property list - we show them in the bs2:Header instead -->
     <xsl:template match="rdf:type[@rdf:resource]" mode="bs2:PropertyList"/>
+
+    <!-- override outer bs2:PropertyList so sort keys consume tunneled $property-metadata and $object-metadata
+         (tunnel params don't cross xsl:function boundaries, so 1-arg ac:property-label/ac:object-label can't see them) -->
+    <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:PropertyList">
+        <xsl:param name="property-metadata" as="document-node()?" tunnel="yes"/>
+        <xsl:param name="object-metadata" as="document-node()?" tunnel="yes"/>
+
+        <xsl:variable name="definitions" as="document-node()">
+            <xsl:document>
+                <dl class="dl-horizontal">
+                    <xsl:apply-templates select="*" mode="#current">
+                        <xsl:sort select="if ($property-metadata) then ac:property-label(., $property-metadata) else ac:property-label(.)" order="ascending" lang="{$ldt:lang}"/>
+                        <xsl:sort select="if (exists((text(), @rdf:resource, @rdf:nodeID))) then (if ($object-metadata) then ac:object-label((text(), @rdf:resource, @rdf:nodeID)[1], $object-metadata) else ac:object-label((text(), @rdf:resource, @rdf:nodeID)[1])) else ()" order="ascending" lang="{$ldt:lang}"/>
+                    </xsl:apply-templates>
+                </dl>
+            </xsl:document>
+        </xsl:variable>
+
+        <xsl:apply-templates select="$definitions" mode="bs2:PropertyListIdentity"/>
+    </xsl:template>
 
     <!-- IMAGE -->
     

@@ -675,6 +675,50 @@ exclude-result-prefixes="#all"
         </xsl:for-each>
     </xsl:function>
 
+    <!-- property-metadata fetch helpers: mirror the object-metadata pair above, but DESCRIBE the property URIs (rdfs:label / skos:prefLabel etc. resolved via the application's /ns ontology store) so that ac:property-label can resolve vocabulary labels client-side. Chain wiring: ldh:http-request-threaded(?, 'property-metadata-request', 'property-metadata-response') then ldh:set-property-metadata stores the body under 'property-metadata' for the tunnel consumed by ac:property-label. -->
+
+    <xsl:function name="ldh:load-property-metadata" as="map(*)" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+
+        <xsl:sequence select="ldh:load-property-metadata($context, 'response')"/>
+    </xsl:function>
+
+    <xsl:function name="ldh:load-property-metadata" as="map(*)" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:param name="response-key" as="xs:string"/>
+        <xsl:variable name="response" select="$context($response-key)" as="map(*)"/>
+        <xsl:variable name="property-uris" as="xs:string*" select="
+            if ($response?status = 200 and $response?media-type = 'application/rdf+xml')
+            then distinct-values($response?body/rdf:RDF/rdf:Description/*/concat(namespace-uri(), local-name()))
+            else ()"/>
+        <xsl:variable name="query-string" select="$property-metadata-query || ' VALUES $Type { ' || string-join(for $uri in $property-uris return '&lt;' || $uri || '&gt;', ' ') || ' }'" as="xs:string"/>
+        <xsl:variable name="request" select="map{ 'method': 'POST', 'href': ldh:href(resolve-uri('ns', ldt:base())), 'media-type': 'application/sparql-query', 'body': $query-string, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
+
+        <xsl:message>ldh:load-property-metadata</xsl:message>
+
+        <xsl:sequence select="map:merge(($context, map{ 'property-metadata-request': $request }))"/>
+    </xsl:function>
+
+    <xsl:function name="ldh:set-property-metadata" as="map(*)" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:variable name="response" select="$context('property-metadata-response')" as="map(*)"/>
+
+        <xsl:message>ldh:set-property-metadata</xsl:message>
+
+        <xsl:for-each select="$response">
+            <xsl:choose>
+                <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
+                    <xsl:variable name="property-metadata" select="?body" as="document-node()?"/>
+                    <xsl:sequence select="map:merge(($context, map{ 'property-metadata': $property-metadata }))"/>
+                </xsl:when>
+                <xsl:otherwise>
+                    <!-- ignore property metadata loading errors - treat as empty metadata -->
+                    <xsl:sequence select="$context"/>
+                </xsl:otherwise>
+            </xsl:choose>
+        </xsl:for-each>
+    </xsl:function>
+
     <xsl:function name="ldh:hide-block-progress-bar" as="map(*)" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
         <xsl:param name="ignored" as="item()?"/>
