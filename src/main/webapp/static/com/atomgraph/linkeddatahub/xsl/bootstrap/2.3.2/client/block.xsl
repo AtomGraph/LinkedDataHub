@@ -114,7 +114,7 @@ exclude-result-prefixes="#all"
     </xsl:variable>
     
     <!-- combined forward + inverse view-block lookup; substitutes VALUES ?type { ... } from the resource's rdf:types -->
-    <xsl:variable name="view-query" as="xs:string">
+    <xsl:variable name="ontology-view-query" as="xs:string">
         <![CDATA[
             PREFIX  rdfs: <http://www.w3.org/2000/01/rdf-schema#>
             PREFIX  ldh:  <https://w3id.org/atomgraph/linkeddatahub#>
@@ -170,15 +170,16 @@ exclude-result-prefixes="#all"
         <xsl:for-each select="self::div[contains-token(@class, 'block')][@about]/div[contains-token(@class, 'span12')]/div[contains-token(@class, 'block')][@typeof]">
             <xsl:variable name="typeof-uris" select="tokenize(@typeof, ' ') ! xs:anyURI(.)" as="xs:anyURI*"/>
             <xsl:variable name="values-clause" select="' VALUES ?type { ' || string-join(for $t in $typeof-uris return '&lt;' || $t || '&gt;', ' ') || ' }'" as="xs:string"/>
-            <xsl:variable name="request-uri" select="ldh:href(ac:build-uri(resolve-uri('ns', ldt:base()), map{ 'query': $view-query || $values-clause }), map{})" as="xs:anyURI"/>
+            <xsl:variable name="request-uri" select="ldh:href(ac:build-uri(resolve-uri('ns', ldt:base()), map{ 'query': $ontology-view-query || $values-clause }), map{})" as="xs:anyURI"/>
             <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml' } }" as="map(*)"/>
             <xsl:variable name="context" as="map(*)" select="
                 map{
                     'request': $request,
                     'container': ../..,
-                    'base-uri': ac:absolute-path(ldh:base-uri(.))
+                    'base-uri': ac:absolute-path(ldh:base-uri(.)),
+                    'endpoint': sd:endpoint()
                 }"/>
-            <xsl:sequence select="ldh:load-block#3($context, ldh:view-blocks-self-thunk#1, ?)"/>
+            <xsl:sequence select="ldh:load-block#3($context, ldh:ontology-view-self-thunk#1, ?)"/>
         </xsl:for-each>
     </xsl:template>
 
@@ -524,38 +525,38 @@ exclude-result-prefixes="#all"
           "/>
     </xsl:function>
 
-    <!-- view-block injection: ontology query → per-URI RDF fetch → render via bs2:Row → insert + hydrate -->
+    <!-- ontology-view block injection: ontology query (?property ldh:view ?block) → per-URI RDF fetch → render via bs2:Row → insert + hydrate -->
 
-    <xsl:function name="ldh:view-blocks-self-thunk" as="item()*" ixsl:updating="yes">
+    <xsl:function name="ldh:ontology-view-self-thunk" as="item()*" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
 
-        <xsl:message>ldh:view-blocks-self-thunk</xsl:message>
+        <xsl:message>ldh:ontology-view-self-thunk</xsl:message>
 
         <xsl:sequence select="
             ixsl:resolve($context) =>
-                ixsl:then(ldh:view-blocks-query-thunk#1)
+                ixsl:then(ldh:ontology-view-query-thunk#1)
         "/>
     </xsl:function>
 
-    <xsl:function name="ldh:view-blocks-query-thunk" as="item()*" ixsl:updating="yes">
+    <xsl:function name="ldh:ontology-view-query-thunk" as="item()*" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
 
-        <xsl:message>ldh:view-blocks-query-thunk</xsl:message>
+        <xsl:message>ldh:ontology-view-query-thunk</xsl:message>
 
         <xsl:sequence select="
             ixsl:http-request($context('request')) =>
                 ixsl:then(ldh:rethread-response($context, ?)) =>
                 ixsl:then(ldh:handle-response#1) =>
-                ixsl:then(ldh:view-blocks-fetch-thunk#1)
+                ixsl:then(ldh:ontology-view-fetch-thunk#1)
         "/>
     </xsl:function>
 
     <!-- handle SPARQL XML response: fan out one HTTP fetch per view URI -->
-    <xsl:function name="ldh:view-blocks-fetch-thunk" as="map(*)" ixsl:updating="yes">
+    <xsl:function name="ldh:ontology-view-fetch-thunk" as="map(*)" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
         <xsl:variable name="response" select="$context('response')" as="map(*)"/>
 
-        <xsl:message>ldh:view-blocks-fetch-thunk</xsl:message>
+        <xsl:message>ldh:ontology-view-fetch-thunk</xsl:message>
 
         <xsl:if test="$response?status = 200 and $response?media-type = 'application/sparql-results+xml'">
             <xsl:variable name="results" select="$response?body" as="document-node()"/>
@@ -571,7 +572,15 @@ exclude-result-prefixes="#all"
                     ixsl:http-request($view-request) =>
                         ixsl:then(ldh:rethread-response($view-context, ?)) =>
                         ixsl:then(ldh:handle-response#1) =>
-                        ixsl:then(ldh:view-blocks-render-thunk#1)
+                        ixsl:then(ldh:load-object-metadata#1) =>
+                        ixsl:then(ldh:http-request-threaded(?, 'metadata-request', 'metadata-response')) =>
+                        ixsl:then(ldh:handle-response(?, 'metadata-response')) =>
+                        ixsl:then(ldh:set-object-metadata#1) =>
+                        ixsl:then(ldh:load-property-metadata#1) =>
+                        ixsl:then(ldh:http-request-threaded(?, 'property-metadata-request', 'property-metadata-response')) =>
+                        ixsl:then(ldh:handle-response(?, 'property-metadata-response')) =>
+                        ixsl:then(ldh:set-property-metadata#1) =>
+                        ixsl:then(ldh:ontology-view-render-thunk#1)
                     "
                     on-failure="ldh:promise-failure#1"/>
             </xsl:for-each>
@@ -581,7 +590,7 @@ exclude-result-prefixes="#all"
     </xsl:function>
 
     <!-- render one view block from its loaded RDF, append into the wrapper's .span12 alongside the typed resource block, hydrate via existing ldh:RenderRow chain -->
-    <xsl:function name="ldh:view-blocks-render-thunk" as="map(*)" ixsl:updating="yes">
+    <xsl:function name="ldh:ontology-view-render-thunk" as="map(*)" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
         <xsl:variable name="response" select="$context('response')" as="map(*)"/>
         <xsl:variable name="container" select="$context('container')" as="element()"/>
@@ -589,7 +598,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="view-uri" select="$context('view-uri')" as="xs:anyURI"/>
         <xsl:variable name="base-uri" select="$context('base-uri')" as="xs:anyURI"/>
 
-        <xsl:message>ldh:view-blocks-render-thunk</xsl:message>
+        <xsl:message>ldh:ontology-view-render-thunk</xsl:message>
 
         <xsl:if test="$response?status = 200 and $response?media-type = 'application/rdf+xml'">
             <xsl:variable name="view-rdf" select="$response?body" as="document-node()"/>
@@ -601,6 +610,8 @@ exclude-result-prefixes="#all"
                     <xsl:apply-templates select="$view-resource" mode="bs2:Row">
                         <xsl:with-param name="about" select="xs:anyURI($base-uri || $id)"/>
                         <xsl:with-param name="id" select="$id"/>
+                        <xsl:with-param name="property-metadata" select="$context('property-metadata')" tunnel="yes"/>
+                        <xsl:with-param name="object-metadata" select="$context('object-metadata')" tunnel="yes"/>
                     </xsl:apply-templates>
                 </xsl:variable>
 
