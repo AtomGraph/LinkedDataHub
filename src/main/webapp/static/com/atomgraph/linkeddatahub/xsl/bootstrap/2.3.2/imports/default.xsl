@@ -416,17 +416,12 @@ exclude-result-prefixes="#all"
                 <xsl:apply-templates select="key('resources', $this)" mode="ac:label"/>
             </xsl:when>
             <xsl:when test="$property-metadata/key('resources', $this, .)">
-               <xsl:message>ac:property-label mode B $this: <xsl:value-of select="$this"/></xsl:message>
-
                 <xsl:apply-templates select="$property-metadata/key('resources', $this, .)" mode="ac:label"/>
             </xsl:when>
-            <xsl:when test="doc-available(namespace-uri()) and key('resources', $this, document(namespace-uri()))">
-                <xsl:message>ac:property-label mode C $this: <xsl:value-of select="$this"/></xsl:message>
-                <xsl:apply-templates select="key('resources', $this, document(namespace-uri()))" mode="ac:label"/>
+            <xsl:when test="doc-available(ac:document-uri(namespace-uri())) and key('resources', $this, document(ac:document-uri(namespace-uri())))">
+                <xsl:apply-templates select="key('resources', $this, document(ac:document-uri(namespace-uri())))" mode="ac:label"/>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:message>ac:property-label mode D $this: <xsl:value-of select="$this"/></xsl:message>
-    
                 <xsl:sequence select="local-name()"/>
             </xsl:otherwise>
         </xsl:choose>
