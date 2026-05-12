@@ -203,8 +203,8 @@ WHERE
             PREFIX  sioc: <http://rdfs.org/sioc/ns#>
             PREFIX  dc:   <http://purl.org/dc/elements/1.1/>
 
-            CONSTRUCT 
-              { 
+            CONSTRUCT
+              {
                 $this ?p ?literal .
               }
             WHERE
@@ -216,6 +216,12 @@ WHERE
               }
         ]]>
         <!-- VALUES $this goes here -->
+    </xsl:param>
+    <xsl:param name="property-metadata-query" as="xs:string">
+        <![CDATA[
+            DESCRIBE $Type
+        ]]>
+        <!-- VALUES $Type goes here -->
     </xsl:param>
     <xsl:param name="body-id" select="'visible-body'" as="xs:string"/>
     
@@ -514,6 +520,7 @@ WHERE
                                         <xsl:apply-templates select="$results/rdf:RDF" mode="bs2:DocumentBody">
                                             <xsl:with-param name="mode" select="$mode"/>
                                             <xsl:with-param name="object-metadata" select="$context('object-metadata')" tunnel="yes"/>
+                                            <xsl:with-param name="property-metadata" select="$context('property-metadata')" tunnel="yes"/>
                                         </xsl:apply-templates>
                                     </xsl:result-document>
 
@@ -531,6 +538,7 @@ WHERE
                                         <xsl:with-param name="endpoint" select="$endpoint"/>
                                         <xsl:with-param name="application" select="$application"/>
                                         <xsl:with-param name="object-metadata" select="$context('object-metadata')" tunnel="yes"/>
+                                        <xsl:with-param name="property-metadata" select="$context('property-metadata')" tunnel="yes"/>
                                     </xsl:apply-templates>
                                 </xsl:variable>
 
@@ -846,6 +854,10 @@ WHERE
             ixsl:then(ldh:http-request-threaded(?, 'metadata-request', 'metadata-response')) =>
             ixsl:then(ldh:handle-response(?, 'metadata-response')) =>
             ixsl:then(ldh:set-object-metadata#1) =>
+            ixsl:then(ldh:load-property-metadata#1) =>
+            ixsl:then(ldh:http-request-threaded(?, 'property-metadata-request', 'property-metadata-response')) =>
+            ixsl:then(ldh:handle-response(?, 'property-metadata-response')) =>
+            ixsl:then(ldh:set-property-metadata#1) =>
             ixsl:then(ldh:rdf-document-response#1)"
             on-failure="ldh:promise-failure#1"/>
     </xsl:template>

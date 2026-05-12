@@ -71,7 +71,19 @@ exclude-result-prefixes="#all"
         </xsl:variable>
         <xsl:sequence select="upper-case(substring($labels[1], 1, 1)) || substring($labels[1], 2)"/>
     </xsl:function>
-    
+
+    <xsl:function name="ac:object-label" as="xs:string?">
+        <xsl:param name="object" as="node()"/>
+        <xsl:param name="object-metadata" as="document-node()"/>
+
+        <xsl:variable name="labels" as="xs:string*">
+            <xsl:apply-templates select="$object" mode="ac:object-label">
+                <xsl:with-param name="object-metadata" select="$object-metadata" tunnel="yes"/>
+            </xsl:apply-templates>
+        </xsl:variable>
+        <xsl:sequence select="$labels[1]"/>
+    </xsl:function>
+
     <xsl:template match="@rdf:resource | @rdf:nodeID | srx:uri" mode="ac:object-label" priority="1">
         <xsl:param name="object-metadata" as="document-node()?" tunnel="yes"/>
         <xsl:variable name="this" select="." as="xs:anyURI"/>
@@ -404,12 +416,17 @@ exclude-result-prefixes="#all"
                 <xsl:apply-templates select="key('resources', $this)" mode="ac:label"/>
             </xsl:when>
             <xsl:when test="$property-metadata/key('resources', $this, .)">
+               <xsl:message>ac:property-label mode B $this: <xsl:value-of select="$this"/></xsl:message>
+
                 <xsl:apply-templates select="$property-metadata/key('resources', $this, .)" mode="ac:label"/>
             </xsl:when>
-            <xsl:when test="doc-available(namespace-uri()) and key('resources', $this, document(namespace-uri()))" use-when="system-property('xsl:product-name') = 'SAXON'">
+            <xsl:when test="doc-available(namespace-uri()) and key('resources', $this, document(namespace-uri()))">
+                <xsl:message>ac:property-label mode C $this: <xsl:value-of select="$this"/></xsl:message>
                 <xsl:apply-templates select="key('resources', $this, document(namespace-uri()))" mode="ac:label"/>
             </xsl:when>
             <xsl:otherwise>
+                <xsl:message>ac:property-label mode D $this: <xsl:value-of select="$this"/></xsl:message>
+    
                 <xsl:sequence select="local-name()"/>
             </xsl:otherwise>
         </xsl:choose>
