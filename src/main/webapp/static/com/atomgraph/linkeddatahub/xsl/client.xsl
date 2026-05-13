@@ -783,6 +783,7 @@ WHERE
 
     <xsl:template name="ldh:DocumentNavigate">
         <xsl:param name="uri" as="xs:anyURI"/>
+        <xsl:param name="query-params" select="map{}" as="map(xs:string, xs:string*)"/>
         <xsl:param name="push-state" select="true()" as="xs:boolean"/>
         <xsl:param name="container" as="element()" select="id($body-id, ixsl:page())"/>
 
@@ -794,7 +795,7 @@ WHERE
         <xsl:variable name="controller" select="ixsl:abort-controller()"/>
         <ixsl:set-property name="saxonController" select="$controller" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
 
-        <xsl:variable name="href" select="ldh:href($uri)" as="xs:anyURI"/>
+        <xsl:variable name="href" select="ldh:href($uri, $query-params)" as="xs:anyURI"/>
 
         <!-- update address bar input: show external URI, clear for local docs -->
         <xsl:for-each select="id('uri', ixsl:page())">
@@ -877,11 +878,12 @@ WHERE
 
             <xsl:call-template name="ldh:DocumentNavigate">
                 <xsl:with-param name="uri" select="$uri"/>
+                <xsl:with-param name="query-params" select="map:remove($query-params, 'uri')"/>
                 <xsl:with-param name="push-state" select="false()"/>
             </xsl:call-template>
         </xsl:if>
     </xsl:template>
-    
+
     <!-- do not intercept RDF download links -->
     <xsl:template match="button[@id = 'export-rdf']/following-sibling::ul//a" mode="ixsl:onclick" priority="1"/>
     
@@ -895,6 +897,7 @@ WHERE
 
         <xsl:call-template name="ldh:DocumentNavigate">
             <xsl:with-param name="uri" select="$uri"/>
+            <xsl:with-param name="query-params" select="map:remove($query-params, 'uri')"/>
         </xsl:call-template>
     </xsl:template>
 
