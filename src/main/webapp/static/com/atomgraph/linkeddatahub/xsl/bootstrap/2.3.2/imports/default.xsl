@@ -116,8 +116,16 @@ exclude-result-prefixes="#all"
     </xsl:template>
     
     <xsl:function name="acl:mode" as="xs:anyURI*" use-when="system-property('xsl:product-name') = 'SAXON'">
-        <xsl:variable name="entries" select="for $line in $ldh:httpHeaders('Link') return tokenize($line, ',\s*(?=&lt;)')" as="xs:string*"/>
-        <xsl:sequence select="for $entry in $entries return if (matches($entry, '^&lt;[^&gt;]+&gt;\s*;.*\brel\s*=\s*&quot;?[^&quot;\s,;]*acl#mode&quot;?')) then xs:anyURI(replace($entry, '^&lt;([^&gt;]+)&gt;.*$', '$1')) else ()"/>
+        <xsl:variable name="entries" as="xs:string*">
+            <xsl:for-each select="$ldh:httpHeaders('Link')">
+                <xsl:analyze-string select="." regex="&lt;[^&gt;]+&gt;[^&lt;]*">
+                    <xsl:matching-substring>
+                        <xsl:sequence select="."/>
+                    </xsl:matching-substring>
+                </xsl:analyze-string>
+            </xsl:for-each>
+        </xsl:variable>
+        <xsl:sequence select="for $entry in $entries return if (matches($entry, '^&lt;[^&gt;]+&gt;\s*;.*[;\s]rel\s*=\s*&quot;?[^&quot;\s,;]*acl#mode&quot;?')) then xs:anyURI(replace($entry, '^&lt;([^&gt;]+)&gt;.*$', '$1')) else ()"/>
     </xsl:function>
 
     <xsl:function name="ac:uri" as="xs:anyURI?">
