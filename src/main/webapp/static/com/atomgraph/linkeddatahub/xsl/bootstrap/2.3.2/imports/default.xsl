@@ -96,6 +96,13 @@ exclude-result-prefixes="#all"
                 <!-- <xsl:message>ac:object-label(<xsl:value-of select="."/>) $object-metadata: <xsl:value-of select="serialize($object-metadata)"/></xsl:message> -->
                 <xsl:apply-templates select="$object-metadata!key('resources', $this, .)" mode="ac:label"/>
             </xsl:when>
+            <xsl:when test="ixsl:doc-fetched(ac:document-uri(.)) and key('resources', ., document(ac:document-uri(.)))" use-when="system-property('xsl:product-name') eq 'SaxonJS'">
+                <xsl:message select="'ac:object-label doc-fetched HIT: ' || ac:document-uri(.) || ' for ' || ."/>
+                <xsl:apply-templates select="key('resources', ., document(ac:document-uri(.)))" mode="ac:label"/>
+            </xsl:when>
+            <xsl:when test="doc-available(ac:document-uri(.)) and key('resources', ., document(ac:document-uri(.)))" use-when="system-property('xsl:product-name') = 'SAXON'">
+                <xsl:apply-templates select="key('resources', ., document(ac:document-uri(.)))" mode="ac:label"/>
+            </xsl:when>
             <xsl:when test="contains(., '#') and not(ends-with(., '#'))">
                 <xsl:sequence select="substring-after(., '#')"/>
             </xsl:when>
@@ -418,7 +425,11 @@ exclude-result-prefixes="#all"
             <xsl:when test="$property-metadata/key('resources', $this, .)">
                 <xsl:apply-templates select="$property-metadata/key('resources', $this, .)" mode="ac:label"/>
             </xsl:when>
-            <xsl:when test="doc-available(ac:document-uri(namespace-uri())) and key('resources', $this, document(ac:document-uri(namespace-uri())))">
+            <xsl:when test="ixsl:doc-fetched(ac:document-uri(namespace-uri())) and key('resources', $this, document(ac:document-uri(namespace-uri())))" use-when="system-property('xsl:product-name') eq 'SaxonJS'">
+                <xsl:message select="'ac:property-label doc-fetched HIT: ' || ac:document-uri(namespace-uri()) || ' for ' || $this"/>
+                <xsl:apply-templates select="key('resources', $this, document(ac:document-uri(namespace-uri())))" mode="ac:label"/>
+            </xsl:when>
+            <xsl:when test="doc-available(ac:document-uri(namespace-uri())) and key('resources', $this, document(ac:document-uri(namespace-uri())))" use-when="system-property('xsl:product-name') = 'SAXON'">
                 <xsl:apply-templates select="key('resources', $this, document(ac:document-uri(namespace-uri())))" mode="ac:label"/>
             </xsl:when>
             <xsl:otherwise>

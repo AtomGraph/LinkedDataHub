@@ -22,6 +22,7 @@
 <xsl:stylesheet version="3.0"
 xmlns="http://www.w3.org/1999/xhtml"
 xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+xmlns:ixsl="http://saxonica.com/ns/interactiveXSLT"
 xmlns:xhtml="http://www.w3.org/1999/xhtml"
 xmlns:xs="http://www.w3.org/2001/XMLSchema"
 xmlns:lapp="&lapp;"
@@ -72,7 +73,11 @@ exclude-result-prefixes="#all">
                     </xsl:call-template>
 
                     <label class="control-label" for="{$for}" title="{$this}">
-                        <xsl:value-of select="ac:label(key('resources', $this, document(ac:document-uri(namespace-uri()))))"/>
+                        <xsl:value-of select="ac:label(key('resources', $this, document(ac:document-uri(namespace-uri()))))" use-when="system-property('xsl:product-name') = 'SAXON'"/>
+                        <xsl:if test="ixsl:doc-fetched(ac:document-uri(namespace-uri()))" use-when="system-property('xsl:product-name') eq 'SaxonJS'">
+                            <xsl:message select="'rdf.xsl bs2:TypeControl doc-fetched HIT: ' || ac:document-uri(namespace-uri()) || ' for ' || $this"/>
+                        </xsl:if>
+                        <xsl:value-of select="ac:label(key('resources', $this, if (ixsl:doc-fetched(ac:document-uri(namespace-uri()))) then document(ac:document-uri(namespace-uri())) else ()))" use-when="system-property('xsl:product-name') eq 'SaxonJS'"/>
                     </label>
 
                     <div class="controls">
