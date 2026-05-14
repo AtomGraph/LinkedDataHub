@@ -107,7 +107,7 @@ exclude-result-prefixes="#all">
     <xsl:param name="foaf:Agent" select="if ($acl:agent) then document(ac:document-uri($acl:agent)) else ()" as="document-node()?"/>
     <xsl:param name="ac:httpHeaders" as="xs:string"/>
     <xsl:param name="ac:method" as="xs:string"/>
-    <xsl:param name="ldh:httpHeaders" as="map(xs:string, xs:string*)" select="map{}"/>
+    <xsl:param name="ldh:httpHeaders" select="map{}" as="map(xs:string, xs:string*)"/>
     <xsl:param name="ldh:ajaxRendering" select="true()" as="xs:boolean"/>
     <xsl:param name="ldhc:enableWebIDSignUp" as="xs:boolean"/>
     <xsl:param name="ldh:renderSystemResources" select="false()" as="xs:boolean"/>
@@ -409,20 +409,6 @@ exclude-result-prefixes="#all">
                                     <xsl:text>,&#xa;</xsl:text>
                                 </xsl:if>
                             </xsl:for-each>
-                            <!--<xsl:variable name="ontology-imports" select="for $value in distinct-values(ldh:ontologyImports($ldt:ontology)) return xs:anyURI($value)" as="xs:anyURI*"/>
-                            <xsl:if test="exists($ontology-imports)">
-                                <xsl:text>,</xsl:text>
-                                <xsl:for-each select="$ontology-imports">
-                                    <xsl:text>{ name: "</xsl:text>
-                                    <xsl:value-of select="ac:document-uri(.)"/>
-                                    <xsl:text>", altName: baseUri + "?uri=" + encodeURIComponent("</xsl:text>
-                                    <xsl:value-of select="ac:document-uri(.)"/>
-                                    <xsl:text>") + "&amp;accept=" + encodeURIComponent("application/rdf+xml") }</xsl:text>
-                                    <xsl:if test="position() != last()">
-                                        <xsl:text>,&#xa;</xsl:text>
-                                    </xsl:if>
-                                </xsl:for-each>
-                            </xsl:if> -->
                             <xsl:text disable-output-escaping="yes">
                             <![CDATA[
                         ];

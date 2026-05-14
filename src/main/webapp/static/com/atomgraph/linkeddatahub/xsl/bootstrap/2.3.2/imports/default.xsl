@@ -292,31 +292,6 @@ exclude-result-prefixes="#all"
         </xsl:copy>
     </xsl:template>
 
-    <xsl:function name="ldh:ontologyImports" as="attribute()*" cache="yes">
-        <xsl:param name="ontology" as="xs:anyURI"/>
-        
-        <xsl:sequence select="ldh:ontologyImports($ontology, false())"/>
-    </xsl:function>
-    
-    <xsl:function name="ldh:ontologyImports" as="attribute()*" cache="yes">
-        <xsl:param name="ontology" as="xs:anyURI"/>
-        <xsl:param name="direct" as="xs:boolean"/>
-
-        <xsl:if test="doc-available(ac:document-uri($ontology))">
-            <xsl:variable name="document" select="document(ac:document-uri($ontology))" as="document-node()"/>
-            <xsl:for-each select="$document">
-                <xsl:variable name="imports" select="key('resources', $ontology)/owl:imports/@rdf:resource[not(. = $ontology)]" as="attribute()*"/>
-                <xsl:sequence select="$imports"/>
-                
-                <xsl:if test="not($direct)">
-                    <xsl:for-each select="$imports">
-                        <xsl:sequence select="ldh:ontologyImports(., $direct)"/>
-                    </xsl:for-each>
-                </xsl:if>
-            </xsl:for-each>
-        </xsl:if>
-    </xsl:function>
-
     <xsl:function name="ac:value-intersect" as="xs:anyAtomicType*">
         <xsl:param name="arg1" as="xs:anyAtomicType*"/>
         <xsl:param name="arg2" as="xs:anyAtomicType*"/>
