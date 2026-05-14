@@ -94,6 +94,9 @@ public class LDH
     
     /** Request URI property */
     public static final ObjectProperty requestUri = m_model.createObjectProperty(NS + "requestUri");
+
+    /** HTTP headers property */
+    public static final ObjectProperty httpHeaders = m_model.createObjectProperty(NS + "httpHeaders");
     
     /** Service property */
     public static final ObjectProperty service = m_model.createObjectProperty( NS + "service" );
