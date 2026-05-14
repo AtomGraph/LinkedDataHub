@@ -71,7 +71,7 @@ exclude-result-prefixes="#all">
     
     <!-- ADD DATA -->
     
-    <xsl:template match="rdf:RDF[$acl:mode = '&acl;Append']" mode="bs2:AddData" priority="1">
+    <xsl:template match="rdf:RDF[acl:mode() = '&acl;Append']" mode="bs2:AddData" priority="1">
         <div class="btn-group pull-left">
             <button type="button" class="btn btn-primary dropdown-toggle" title="{ac:label(key('resources', 'add', document('../translations.rdf')))}">
                 <xsl:value-of>

@@ -116,7 +116,8 @@ exclude-result-prefixes="#all"
     </xsl:template>
     
     <xsl:function name="acl:mode" as="xs:anyURI*" use-when="system-property('xsl:product-name') = 'SAXON'">
-        <xsl:sequence select="$acl:mode"/>
+        <xsl:variable name="entries" select="for $line in $ldh:httpHeaders('Link') return tokenize($line, ',\s*(?=&lt;)')" as="xs:string*"/>
+        <xsl:sequence select="for $entry in $entries return if (matches($entry, '^&lt;[^&gt;]+&gt;\s*;.*\brel\s*=\s*&quot;?[^&quot;\s,;]*acl#mode&quot;?')) then xs:anyURI(replace($entry, '^&lt;([^&gt;]+)&gt;.*$', '$1')) else ()"/>
     </xsl:function>
 
     <xsl:function name="ac:uri" as="xs:anyURI?">
@@ -290,33 +291,7 @@ exclude-result-prefixes="#all"
             <xsl:apply-templates select="@* | node()" mode="#current"/>
         </xsl:copy>
     </xsl:template>
-    
-    <xsl:function name="ldh:listSuperClasses" as="attribute()*" cache="yes">
-        <xsl:param name="class" as="xs:anyURI"/>
-        
-        <xsl:sequence select="ldh:listSuperClasses($class, false())"/>
-    </xsl:function>
-    
-    <xsl:function name="ldh:listSuperClasses" as="attribute()*" cache="yes">
-        <xsl:param name="class" as="xs:anyURI"/>
-        <xsl:param name="direct" as="xs:boolean"/>
-        
-        <xsl:if test="doc-available(ac:document-uri($class))">
-            <xsl:variable name="document" select="document(ac:document-uri($class))" as="document-node()"/>
 
-            <xsl:for-each select="$document">
-                <xsl:variable name="superclasses" select="key('resources', $class)/rdfs:subClassOf/@rdf:resource[not(. = $class)]" as="attribute()*"/>
-                <xsl:sequence select="$superclasses"/>
-
-                <xsl:if test="not($direct)">
-                    <xsl:for-each select="$superclasses">
-                        <xsl:sequence select="ldh:listSuperClasses(., $direct)"/>
-                    </xsl:for-each>
-                </xsl:if>
-            </xsl:for-each>
-        </xsl:if>
-    </xsl:function>
-    
     <xsl:function name="ldh:ontologyImports" as="attribute()*" cache="yes">
         <xsl:param name="ontology" as="xs:anyURI"/>
         

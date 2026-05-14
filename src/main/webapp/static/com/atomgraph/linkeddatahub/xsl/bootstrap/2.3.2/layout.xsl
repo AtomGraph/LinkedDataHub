@@ -105,9 +105,9 @@ exclude-result-prefixes="#all">
     <xsl:param name="acl:agent" as="xs:anyURI?"/>
     <xsl:param name="lapp:Context" as="document-node()"/>
     <xsl:param name="foaf:Agent" select="if ($acl:agent) then document(ac:document-uri($acl:agent)) else ()" as="document-node()?"/>
-    <xsl:param name="ac:httpHeaders" as="xs:string"/> 
+    <xsl:param name="ac:httpHeaders" as="xs:string"/>
     <xsl:param name="ac:method" as="xs:string"/>
-    <xsl:param name="acl:mode" as="xs:anyURI*"/>
+    <xsl:param name="ldh:httpHeaders" as="map(xs:string, xs:string*)" select="map{}"/>
     <xsl:param name="ldh:ajaxRendering" select="true()" as="xs:boolean"/>
     <xsl:param name="ldhc:enableWebIDSignUp" as="xs:boolean"/>
     <xsl:param name="ldh:renderSystemResources" select="false()" as="xs:boolean"/>

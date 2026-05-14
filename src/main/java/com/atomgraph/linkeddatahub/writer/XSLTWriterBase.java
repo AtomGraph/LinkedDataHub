@@ -54,6 +54,7 @@ import javax.xml.transform.stream.StreamSource;
 import net.sf.saxon.s9api.QName;
 import net.sf.saxon.s9api.SaxonApiException;
 import net.sf.saxon.s9api.XdmAtomicValue;
+import net.sf.saxon.s9api.XdmMap;
 import net.sf.saxon.s9api.XdmValue;
 import net.sf.saxon.s9api.XsltExecutable;
 import org.apache.http.HttpHeaders;
@@ -144,9 +145,15 @@ public abstract class XSLTWriterBase extends com.atomgraph.client.writer.XSLTWri
                 params.put(new QName("foaf", FOAF.Agent.getNameSpace(), FOAF.Agent.getLocalName()),
                     getXsltExecutable().getProcessor().newDocumentBuilder().build(source));
             }
-            if (getAuthorizationContext().get().isPresent())
-                params.put(new QName("acl", ACL.mode.getNameSpace(), ACL.mode.getLocalName()),
-                    XdmValue.makeSequence(getAuthorizationContext().get().get().getModeURIs()));
+            XdmMap responseHeaders = new XdmMap();
+            for (Map.Entry<String, List<Object>> entry : headerMap.entrySet())
+            {
+                List<XdmAtomicValue> values = entry.getValue().stream().
+                    map(v -> new XdmAtomicValue(v.toString())).
+                    collect(Collectors.toList());
+                responseHeaders = responseHeaders.put(new XdmAtomicValue(entry.getKey()), XdmValue.makeSequence(values));
+            }
+            params.put(new QName("ldh", LDH.httpHeaders.getNameSpace(), LDH.httpHeaders.getLocalName()), responseHeaders);
 
             if (getHttpHeaders().getRequestHeader(HttpHeaders.REFERER) != null)
             {
