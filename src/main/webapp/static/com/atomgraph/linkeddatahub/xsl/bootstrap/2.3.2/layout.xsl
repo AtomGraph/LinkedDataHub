@@ -563,17 +563,9 @@ exclude-result-prefixes="#all">
 
     <!-- check if agent has access to the user endpoint by executing a dummy query ASK {} -->
     <xsl:template match="rdf:RDF[doc-available(resolve-uri('sparql?query=ASK%20%7B%7D', $ldt:base))] | srx:sparql[doc-available(resolve-uri('sparql?query=ASK%20%7B%7D', $ldt:base))]" mode="bs2:SearchBar" priority="1">
-        <form action="{ac:absolute-path(ldh:request-uri())}" method="get" class="navbar-form" accept-charset="UTF-8" title="{ac:label(key('resources', 'search-title', document('translations.rdf')))}">
+        <form action="{ac:absolute-path(ldh:request-uri())}" method="get" class="navbar-form" accept-charset="UTF-8" title="{ac:label(key('resources', 'address-bar-title', document('translations.rdf')))}">
             <div>
-                <input type="text" id="uri" name="uri" class="input-xxlarge typeahead"/>
-                <!-- placeholder used by the client-side typeahead -->
-                 <ul id="ul-{generate-id()}" class="search-typeahead typeahead dropdown-menu" style="display: none"/> 
-
-                <button type="submit">
-                    <xsl:apply-templates select="key('resources', 'search', document('translations.rdf'))" mode="ldh:logo">
-                        <xsl:with-param name="class" select="'btn btn-primary'"/>
-                    </xsl:apply-templates>
-                </button>
+                <input type="text" id="uri" name="uri" class="input-xxlarge"/>
             </div>
         </form>
     </xsl:template>

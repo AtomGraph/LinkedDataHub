@@ -94,6 +94,18 @@ ORDER BY DESC(?created)
     <xsl:template name="ldh:LeftSidebar">
         <xsl:param name="base" select="ldt:base()" as="xs:anyURI"/>
 
+        <!-- dataspace-scoped search form -->
+        <form class="form-search search-form" accept-charset="UTF-8" title="{ac:label(key('resources', 'search-title', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri))))}">
+            <div class="input-append">
+                <input type="text" name="q" class="search-query" placeholder="{ac:label(key('resources', 'search-placeholder', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri))))}"/>
+                <button type="submit">
+                    <xsl:apply-templates select="key('resources', 'search', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ldh:logo">
+                        <xsl:with-param name="class" select="'btn btn-primary'"/>
+                    </xsl:apply-templates>
+                </button>
+            </div>
+        </form>
+
         <!-- document tree container -->
         <div class="document-tree">
             <h2 class="nav-header btn">
@@ -963,7 +975,7 @@ ORDER BY DESC(?created)
     </xsl:template>
 
     <!-- close modals when a link inside them is clicked -->
-    <xsl:template match="div[@id = ('class-instances-modal', 'geo-modal', 'latest-modal')]//a[@href]" mode="ixsl:onclick" priority="1">
+    <xsl:template match="div[@id = ('class-instances-modal', 'geo-modal', 'latest-modal', 'search-modal')]//a[@href]" mode="ixsl:onclick" priority="1">
         <xsl:variable name="modal" select="ancestor::div[contains-token(@class, 'modal')][@id][1]" as="element()"/>
 
         <!-- remove the modal -->
@@ -1187,6 +1199,216 @@ ORDER BY DESC(?created)
                 <xsl:with-param name="select-string" select="$select-string"/>
                 <xsl:with-param name="select-xml" select="$select-xml"/>
                 <xsl:with-param name="initial-var-name" select="'dated'"/>
+                <xsl:with-param name="endpoint" select="$endpoint"/>
+                <xsl:with-param name="cache" select="$cache"/>
+            </xsl:call-template>
+        </xsl:variable>
+        <xsl:variable name="context" select="map:merge((map{ 'block': $container }, $view-context))" as="map(*)"/>
+
+        <ixsl:promise select="
+            ixsl:resolve($context) =>
+                ixsl:then(ldh:view-results-thunk#1)
+            "
+            on-failure="ldh:promise-failure#1"/>
+    </xsl:template>
+
+    <!-- sidebar search form: open modal pre-populated with the typed value and run the search -->
+    <xsl:template match="form[contains-token(@class, 'search-form')]" mode="ixsl:onsubmit">
+        <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
+        <xsl:variable name="text" select=".//input[@name = 'q']/ixsl:get(., 'value')" as="xs:string?"/>
+        <xsl:variable name="container-id" select="'search-results-container'" as="xs:string"/>
+
+        <xsl:variable name="modal" as="element()">
+            <div class="modal modal-constructor fade in" id="search-modal">
+                <div class="modal-header">
+                    <button type="button" class="close">×</button>
+                    <legend>
+                        <xsl:apply-templates select="key('resources', 'search', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                    </legend>
+                    <form class="form-search search-form-modal" accept-charset="UTF-8">
+                        <div class="input-append">
+                            <input type="text" name="q" class="search-query" value="{$text}" placeholder="{ac:label(key('resources', 'search-placeholder', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri))))}"/>
+                            <button type="submit">
+                                <xsl:apply-templates select="key('resources', 'search', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ldh:logo">
+                                    <xsl:with-param name="class" select="'btn btn-primary'"/>
+                                </xsl:apply-templates>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-body">
+                    <div class="row-fluid block">
+                        <div class="span12 progress progress-striped active">
+                            <div class="row-fluid row-block-controls" style="position: relative; top: 30px; margin-top: -30px; z-index: 1;">
+                                <div class="span12">
+                                    <div class="row-fluid">
+                                        <div style="width: 0%;" class="span12 bar"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div id="{$container-id}" class="row-fluid" typeof="&ldh;View">
+                                <div class="main span12">
+                                    <!-- view results will be rendered here -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-actions modal-footer">
+                    <button type="button" class="btn btn-primary btn-close">
+                        <xsl:value-of>
+                            <xsl:apply-templates select="key('resources', 'close', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                        </xsl:value-of>
+                    </button>
+                </div>
+            </div>
+        </xsl:variable>
+
+        <xsl:call-template name="ldh:ShowModalForm">
+            <xsl:with-param name="form" select="$modal"/>
+        </xsl:call-template>
+
+        <xsl:if test="not(ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $container-id || '`'))">
+            <ixsl:set-property name="{'`' || $container-id || '`'}" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.contents')"/>
+        </xsl:if>
+        <xsl:variable name="cache" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $container-id || '`')" as="item()"/>
+        <ixsl:set-property name="select-string" select="$select-labelled-string" object="$cache"/>
+        <ixsl:set-property name="initial-var-name" select="'resource'" object="$cache"/>
+        <ixsl:set-property name="endpoint" select="sd:endpoint()" object="$cache"/>
+
+        <xsl:if test="string-length($text) gt 0">
+            <xsl:call-template name="ldh:SearchLoad">
+                <xsl:with-param name="container" select="id($container-id, ixsl:page())"/>
+                <xsl:with-param name="text" select="$text"/>
+                <xsl:with-param name="endpoint" select="sd:endpoint()"/>
+                <xsl:with-param name="cache" select="$cache"/>
+            </xsl:call-template>
+        </xsl:if>
+
+        <xsl:for-each select="id('search-modal', ixsl:page())//input[@name = 'q']">
+            <xsl:sequence select="ixsl:call(., 'focus', [])[current-date() lt xs:date('2000-01-01')]"/>
+        </xsl:for-each>
+    </xsl:template>
+
+    <!-- in-modal search form: re-run search immediately on Enter (no debounce) -->
+    <xsl:template match="form[contains-token(@class, 'search-form-modal')]" mode="ixsl:onsubmit">
+        <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
+        <xsl:variable name="text" select=".//input[@name = 'q']/ixsl:get(., 'value')" as="xs:string?"/>
+        <xsl:variable name="container-id" select="'search-results-container'" as="xs:string"/>
+        <xsl:variable name="cache" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $container-id || '`')" as="item()"/>
+
+        <xsl:choose>
+            <xsl:when test="string-length($text) gt 0">
+                <xsl:call-template name="ldh:SearchLoad">
+                    <xsl:with-param name="container" select="id($container-id, ixsl:page())"/>
+                    <xsl:with-param name="text" select="$text"/>
+                    <xsl:with-param name="endpoint" select="sd:endpoint()"/>
+                    <xsl:with-param name="cache" select="$cache"/>
+                </xsl:call-template>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:for-each select="id($container-id, ixsl:page())/div[contains-token(@class, 'main')]">
+                    <xsl:result-document href="?." method="ixsl:replace-content"/>
+                </xsl:for-each>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:template>
+
+    <!-- in-modal search input: debounced live search (form-submit handles Enter) -->
+    <xsl:template match="div[@id = 'search-modal']//input[@name = 'q']" mode="ixsl:onkeyup">
+        <xsl:param name="delay" select="400" as="xs:integer"/>
+        <xsl:variable name="key-code" select="ixsl:get(ixsl:event(), 'code')" as="xs:string"/>
+        <xsl:variable name="text" select="ixsl:get(., 'value')" as="xs:string?"/>
+        <xsl:variable name="container-id" select="'search-results-container'" as="xs:string"/>
+        <xsl:variable name="cache" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $container-id || '`')" as="item()"/>
+
+        <xsl:choose>
+            <xsl:when test="$key-code = 'Enter'"/> <!-- handled by form-submit -->
+            <xsl:when test="string-length($text) gt 0">
+                <ixsl:schedule-action wait="$delay" document="ixsl:page()">
+                    <xsl:call-template name="ldh:SearchLoadDeferred">
+                        <xsl:with-param name="input" select="."/>
+                        <xsl:with-param name="text" select="$text"/>
+                        <xsl:with-param name="container-id" select="$container-id"/>
+                        <xsl:with-param name="cache" select="$cache"/>
+                    </xsl:call-template>
+                </ixsl:schedule-action>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:for-each select="id($container-id, ixsl:page())/div[contains-token(@class, 'main')]">
+                    <xsl:result-document href="?." method="ixsl:replace-content"/>
+                </xsl:for-each>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:template>
+
+    <!-- deferred dispatch: only run the search if the input value still matches the captured text
+         (drops stale debounce hits when the user keeps typing) -->
+    <xsl:template name="ldh:SearchLoadDeferred">
+        <xsl:param name="input" as="element()"/>
+        <xsl:param name="text" as="xs:string"/>
+        <xsl:param name="container-id" as="xs:string"/>
+        <xsl:param name="cache" as="item()"/>
+
+        <xsl:if test="ixsl:get($input, 'value') = $text">
+            <xsl:call-template name="ldh:SearchLoad">
+                <xsl:with-param name="container" select="id($container-id, ixsl:page())"/>
+                <xsl:with-param name="text" select="$text"/>
+                <xsl:with-param name="endpoint" select="sd:endpoint()"/>
+                <xsl:with-param name="cache" select="$cache"/>
+            </xsl:call-template>
+        </xsl:if>
+    </xsl:template>
+
+    <!-- run a labelled-resource search filtered by $text and render results into $container -->
+    <xsl:template name="ldh:SearchLoad">
+        <xsl:param name="container" as="element()"/>
+        <xsl:param name="text" as="xs:string"/>
+        <xsl:param name="endpoint" as="xs:anyURI"/>
+        <xsl:param name="page-size" select="20" as="xs:integer"/>
+        <xsl:param name="cache" as="item()"/>
+        <xsl:param name="select-string" select="$select-labelled-string" as="xs:string"/>
+        <xsl:param name="label-var-name" select="'label'" as="xs:string"/>
+
+        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+
+        <xsl:variable name="select-json" as="item()">
+            <xsl:variable name="select-builder" select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromString', [ $select-string ])"/>
+            <xsl:sequence select="ixsl:call($select-builder, 'build', [])"/>
+        </xsl:variable>
+        <xsl:variable name="select-json-string" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ $select-json ])" as="xs:string"/>
+        <xsl:variable name="select-xml" select="json-to-xml($select-json-string)" as="document-node()"/>
+        <!-- append FILTER(regex(?label, $text, 'iq')) to the WHERE clause -->
+        <xsl:variable name="select-xml" as="document-node()">
+            <xsl:document>
+                <xsl:apply-templates select="$select-xml" mode="ldh:add-regex-filter">
+                    <xsl:with-param name="var-name" select="$label-var-name" tunnel="yes"/>
+                    <xsl:with-param name="pattern" select="$text" tunnel="yes"/>
+                    <xsl:with-param name="flags" select="'iq'" tunnel="yes"/>
+                </xsl:apply-templates>
+            </xsl:document>
+        </xsl:variable>
+        <!-- LIMIT $page-size -->
+        <xsl:variable name="select-xml" as="document-node()">
+            <xsl:document>
+                <xsl:apply-templates select="$select-xml" mode="ldh:replace-limit">
+                    <xsl:with-param name="limit" select="$page-size" tunnel="yes"/>
+                </xsl:apply-templates>
+            </xsl:document>
+        </xsl:variable>
+
+        <ixsl:set-property name="select-xml" select="$select-xml" object="$cache"/>
+
+        <xsl:sequence select="ldh:update-progress-counter($cache, map{'container': $container}, 'init', 3)"/>
+
+        <xsl:variable name="view-context" as="map(*)">
+            <xsl:call-template name="ldh:RenderView">
+                <xsl:with-param name="container" select="$container"/>
+                <xsl:with-param name="active-mode" select="xs:anyURI('&ac;ListMode')"/>
+                <xsl:with-param name="select-string" select="$select-string"/>
+                <xsl:with-param name="select-xml" select="$select-xml"/>
+                <xsl:with-param name="initial-var-name" select="'resource'"/>
                 <xsl:with-param name="endpoint" select="$endpoint"/>
                 <xsl:with-param name="cache" select="$cache"/>
             </xsl:call-template>
