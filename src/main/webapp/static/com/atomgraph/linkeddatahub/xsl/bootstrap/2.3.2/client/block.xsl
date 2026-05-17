@@ -237,10 +237,14 @@ exclude-result-prefixes="#all"
 
     <xsl:template match="div[contains-token(@class, 'block')][key('elements-by-class', 'drag-handle', .)][acl:mode() = '&acl;Write'][not(ixsl:style(ancestor::div[contains-token(@class, 'tab-pane')]/div[contains-token(@class, 'left-sidebar')])?display = 'block')]" mode="ixsl:onmousemove" priority="2">
         <xsl:variable name="uri" select="xs:anyURI(ancestor::div[contains-token(@class, 'document-body')]/@about)" as="xs:anyURI"/>
-        <xsl:variable name="results" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $uri || '`'), 'results')" as="document-node()"/>
-        <xsl:variable name="mode" select="ac:mode($results)" as="xs:anyURI"/>
- 
-        <xsl:if test="$mode = xs:anyURI('&ldh;ContentMode')">
+        <xsl:variable name="contents" select="ixsl:get(ixsl:window(), 'LinkedDataHub.contents')"/>
+        <xsl:variable name="cache-key" select="'`' || $uri || '`'" as="xs:string"/>
+        <!-- cache may not have an entry for the hovered block's document URI (e.g. inactive tab); skip silently to avoid an ixsl:get warning on every mousemove -->
+        <xsl:if test="ixsl:contains($contents, $cache-key) and ixsl:contains(ixsl:get($contents, $cache-key), 'results')">
+            <xsl:variable name="results" select="ixsl:get(ixsl:get($contents, $cache-key), 'results')" as="document-node()"/>
+            <xsl:variable name="mode" select="ac:mode($results)" as="xs:anyURI"/>
+
+            <xsl:if test="$mode = xs:anyURI('&ldh;ContentMode')">
             <xsl:variable name="dom-x" select="ixsl:get(ixsl:event(), 'clientX')" as="xs:double"/>
             <xsl:variable name="rect" select="ixsl:call(., 'getBoundingClientRect', [])"/>
             <xsl:variable name="offset-x" select="$dom-x - ixsl:get($rect, 'x')" as="xs:double"/>
@@ -286,10 +290,11 @@ exclude-result-prefixes="#all"
             </xsl:choose>
 
             <!-- call the next matching template to preserve existing block controls functionality -->
-            <xsl:next-match/>
+                <xsl:next-match/>
+            </xsl:if>
         </xsl:if>
     </xsl:template>
-    
+
     <!-- hide drag handle when mouse leaves block -->
     
     <xsl:template match="div[contains-token(@class, 'block')][key('elements-by-class', 'drag-handle', .)][acl:mode() = '&acl;Write']" mode="ixsl:onmouseout">

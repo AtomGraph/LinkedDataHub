@@ -120,7 +120,7 @@ extension-element-prefixes="ixsl"
     <xsl:param name="ldt:ontology" as="xs:anyURI?"/> <!-- used in Web-Client TO-DO: remove -->
     <xsl:param name="acl:agent" as="xs:anyURI?"/>
     <xsl:param name="foaf:Agent" select="if ($acl:agent) then document(ac:document-uri($acl:agent)) else ()" as="document-node()?"/> <!-- should be in SaxonJS documentPool -->
-    <xsl:param name="ac:lang" select="ixsl:get(ixsl:get(ixsl:page(), 'documentElement'), 'lang')" as="xs:string"/>
+    <xsl:param name="ac:lang" select="tokenize(ixsl:get(ixsl:get(ixsl:window(), 'navigator'), 'language'), '-')[1]" as="xs:string"/>
     <xsl:param name="ac:forClass" as="xs:anyURI?"/> <!-- used by Web-Client -->
     <xsl:param name="ac:query" select="ixsl:query-params()?query" as="xs:string?"/>
     <xsl:param name="ac:googleMapsKey" select="''" as="xs:string"/>  <!-- cannot remove yet as it's used by container.xsl in Web-Client -->
@@ -154,8 +154,9 @@ WHERE
         ?resource  a  $Type .
         ?resource rdfs:label|sh:name|dc:title|dct:title|foaf:name|foaf:givenName|foaf:familyName|sioc:name|skos:prefLabel|schema1:name|schema2:name $label
         FILTER isURI(?resource)
-    }  
+    }
   }
+ORDER BY ?label
 ]]>
     </xsl:param>
     <xsl:param name="backlinks-string" as="xs:string">
@@ -237,6 +238,7 @@ WHERE
         <xsl:message>xsl:product-name: <xsl:value-of select="system-property('xsl:product-name')"/></xsl:message>
         <xsl:message>saxon:platform: <xsl:value-of select="system-property('saxon:platform')"/></xsl:message>
         <xsl:message>$ac:contextUri: <xsl:value-of select="$ac:contextUri"/></xsl:message>
+        <xsl:message>$ac:lang: <xsl:value-of select="$ac:lang"/></xsl:message>
         <xsl:message>$acl:agent: <xsl:value-of select="$acl:agent"/></xsl:message>
         <xsl:message>ac:uri(): <xsl:value-of select="ac:uri()"/></xsl:message>
         <xsl:message>UTC offset: <xsl:value-of select="implicit-timezone()"/></xsl:message>
@@ -880,9 +882,9 @@ WHERE
         <xsl:if test="not(empty($state))">
             <xsl:variable name="href" select="map:get($state, 'href')" as="xs:anyURI?"/>
 
-            <!-- decode URI from the ?uri query param if the URI was proxied -->
+            <!-- decode URI from the ?uri query param if the URI was proxied; otherwise strip the query string so the cache key matches document-body/@about -->
             <xsl:variable name="query-params" select="ldh:parse-query-params(substring-after($href, '?'))" as="map(xs:string, xs:string*)"/>
-            <xsl:variable name="uri" select="if (map:contains($query-params, 'uri')) then xs:anyURI(map:get($query-params, 'uri')) else $href" as="xs:anyURI"/>
+            <xsl:variable name="uri" select="if (map:contains($query-params, 'uri')) then xs:anyURI(map:get($query-params, 'uri')) else ac:absolute-path($href)" as="xs:anyURI"/>
 
             <xsl:call-template name="ldh:DocumentNavigate">
                 <xsl:with-param name="uri" select="$uri"/>
@@ -901,7 +903,8 @@ WHERE
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <xsl:variable name="href" select="xs:anyURI(ac:document-uri(resolve-uri(@href, ldh:base-uri(.))))" as="xs:anyURI"/>
         <xsl:variable name="query-params" select="ldh:parse-query-params(substring-after($href, '?'))" as="map(xs:string, xs:string*)"/>
-        <xsl:variable name="uri" select="if (map:contains($query-params, 'uri')) then xs:anyURI(map:get($query-params, 'uri')) else $href" as="xs:anyURI"/>
+        <!-- proxied link: $uri is the external target (?uri=…); local link: $uri is the bare document URI without query so the cache key matches document-body/@about -->
+        <xsl:variable name="uri" select="if (map:contains($query-params, 'uri')) then xs:anyURI(map:get($query-params, 'uri')) else ac:absolute-path($href)" as="xs:anyURI"/>
 
         <xsl:call-template name="ldh:DocumentNavigate">
             <xsl:with-param name="uri" select="$uri"/>
@@ -947,102 +950,7 @@ WHERE
     <xsl:template match="*[contains-token(@class, 'btn-group')][*[contains-token(@class, 'dropdown-toggle')]]" mode="ixsl:onclick">
         <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'open' ])[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
-    
-    <!-- trigger typeahead in the search bar -->
-    
-    <xsl:template match="input[@id = 'uri']" mode="ixsl:onkeyup" priority="1">
-        <xsl:param name="text" select="ixsl:get(., 'value')" as="xs:string?"/>
-        <xsl:param name="menu" select="following-sibling::ul" as="element()"/>
-        <xsl:param name="delay" select="400" as="xs:integer"/>
-        <xsl:param name="resource-types" as="xs:anyURI?"/>
-        <xsl:param name="select-string" select="$select-labelled-string" as="xs:string"/>
-        <xsl:param name="limit" select="100" as="xs:integer"/>
-        <xsl:param name="label-var-name" select="'label'" as="xs:string"/>
-        <xsl:variable name="key-code" select="ixsl:get(ixsl:event(), 'code')" as="xs:string"/>
 
-        <xsl:choose>
-            <xsl:when test="$key-code = 'Escape'">
-                <xsl:call-template name="typeahead:hide">
-                    <xsl:with-param name="menu" select="$menu"/>
-                </xsl:call-template>
-            </xsl:when>
-            <xsl:when test="$key-code = 'Enter'">
-                <xsl:if test="$menu/li[contains-token(@class, 'active')]">
-                    <xsl:variable name="uri" select="$menu/li[contains-token(@class, 'active')]/input[@name = 'ou']/ixsl:get(., 'value')" as="xs:anyURI"/>
-
-                    <xsl:call-template name="ldh:DocumentNavigate">
-                        <xsl:with-param name="uri" select="$uri"/>
-                    </xsl:call-template>
-                </xsl:if>
-            </xsl:when>
-            <xsl:when test="$key-code = 'ArrowUp'">
-                <xsl:call-template name="typeahead:selection-up">
-                    <xsl:with-param name="menu" select="$menu"/>
-                </xsl:call-template>
-            </xsl:when>
-            <xsl:when test="$key-code = 'ArrowDown'">
-                <xsl:call-template name="typeahead:selection-down">
-                    <xsl:with-param name="menu" select="$menu"/>
-                </xsl:call-template>
-            </xsl:when>
-            <!-- if the input is not a URI, execute a keyword search with SPARQL regex() -->
-            <xsl:when test="not(starts-with(ixsl:get(., 'value'), 'http://')) and not(starts-with(ixsl:get(., 'value'), 'https://'))">
-                <xsl:variable name="select-builder" select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromString', [ $select-string ])"/>
-                <xsl:variable name="select-json-string" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ ixsl:call($select-builder, 'build', []) ])" as="xs:string"/>
-                <xsl:variable name="select-xml" select="json-to-xml($select-json-string)" as="document-node()"/>
-                <!-- append FILTER(regex()) -->
-                <xsl:variable name="select-xml" as="document-node()">
-                    <xsl:document>
-                        <xsl:apply-templates select="$select-xml" mode="ldh:add-regex-filter">
-                            <xsl:with-param name="var-name" select="$label-var-name" tunnel="yes"/>
-                            <xsl:with-param name="pattern" select="$text" tunnel="yes"/>
-                            <xsl:with-param name="flags" select="'iq'" tunnel="yes"/> <!-- case insensitive, ignore meta-characters: https://www.w3.org/TR/xpath-functions-31/#flags -->
-                        </xsl:apply-templates>
-                    </xsl:document>
-                </xsl:variable>
-                <!-- set LIMIT -->
-                <xsl:variable name="select-xml" as="document-node()">
-                    <xsl:document>
-                        <xsl:apply-templates select="$select-xml" mode="ldh:replace-limit"/>
-                    </xsl:document>
-                </xsl:variable>
-                <!-- wrap SELECT into a DESCRIBE -->
-                <xsl:variable name="query-xml" as="element()">
-                    <xsl:apply-templates select="$select-xml" mode="ldh:wrap-describe"/>
-                </xsl:variable>
-                <xsl:variable name="query-json-string" select="xml-to-json($query-xml)" as="xs:string"/>
-                <xsl:variable name="query-json" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'parse', [ $query-json-string ])"/>
-                <xsl:variable name="query-string" select="ixsl:call(ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromQuery', [ $query-json ]), 'toString', [])" as="xs:string"/>
-                <xsl:variable name="endpoint" select="sd:endpoint()" as="xs:anyURI"/>
-                <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': string($query-string) })" as="xs:anyURI"/>
-                <xsl:variable name="request-uri" select="ldh:href($results-uri, map{})" as="xs:anyURI"/>
-                
-                <ixsl:schedule-action wait="$delay">
-                    <xsl:call-template name="typeahead:load-xml">
-                        <xsl:with-param name="element" select="."/>
-                        <xsl:with-param name="query" select="$text"/>
-                        <xsl:with-param name="uri" select="$request-uri"/>
-                    </xsl:call-template>
-                </ixsl:schedule-action>
-            </xsl:when>
-            <xsl:otherwise>
-                <xsl:call-template name="typeahead:hide">
-                    <xsl:with-param name="menu" select="$menu"/>
-                </xsl:call-template>
-            </xsl:otherwise>
-        </xsl:choose>
-    </xsl:template>
-    
-    <!-- navbar search typeahead item selected -->
-    
-    <xsl:template match="form[contains-token(@class, 'navbar-form')]//ul[contains-token(@class, 'dropdown-menu')][contains-token(@class, 'typeahead')]/li" mode="ixsl:onmousedown" priority="1">
-        <xsl:variable name="uri" select="input[@name = 'ou']/ixsl:get(., 'value')" as="xs:anyURI"/>
-
-        <xsl:call-template name="ldh:DocumentNavigate">
-            <xsl:with-param name="uri" select="$uri"/>
-        </xsl:call-template>
-    </xsl:template>
-    
     <xsl:template match="button[contains-token(@class, 'btn-delete')][not(contains-token(@class, 'disabled'))]" mode="ixsl:onclick">
         <xsl:variable name="request-uri" select="ldh:href(ac:absolute-path(ldh:base-uri(.)), map{})" as="xs:anyURI"/>
 
@@ -1104,7 +1012,8 @@ WHERE
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <xsl:variable name="href" select="xs:anyURI(resolve-uri(@href, ldh:base-uri(.)))" as="xs:anyURI"/>
         <xsl:variable name="query-params" select="ldh:parse-query-params(substring-after($href, '?'))" as="map(xs:string, xs:string*)"/>
-        <xsl:variable name="uri" select="if (map:contains($query-params, 'uri')) then xs:anyURI(map:get($query-params, 'uri')) else $href" as="xs:anyURI"/>
+        <!-- proxied tab: $uri is the external target (?uri=…); local tab: $uri is the bare document URI (no query string) - matches data-uri / document-body/@about, so the cache key downstream stays consistent -->
+        <xsl:variable name="uri" select="if (map:contains($query-params, 'uri')) then xs:anyURI(map:get($query-params, 'uri')) else ac:absolute-path($href)" as="xs:anyURI"/>
 
         <xsl:apply-templates select=".." mode="ldh:ActivateTab"/>
 
@@ -1137,7 +1046,7 @@ WHERE
 
             <xsl:variable name="fallback-href" select="xs:anyURI(resolve-uri($fallback-li/a/@href, ldh:base-uri(.)))" as="xs:anyURI"/>
             <xsl:variable name="fallback-query-params" select="ldh:parse-query-params(substring-after($fallback-href, '?'))" as="map(xs:string, xs:string*)"/>
-            <xsl:variable name="fallback-uri" select="if (map:contains($fallback-query-params, 'uri')) then xs:anyURI(map:get($fallback-query-params, 'uri')) else $fallback-href" as="xs:anyURI"/>
+            <xsl:variable name="fallback-uri" select="if (map:contains($fallback-query-params, 'uri')) then xs:anyURI(map:get($fallback-query-params, 'uri')) else ac:absolute-path($fallback-href)" as="xs:anyURI"/>
 
             <xsl:call-template name="ldh:DocumentNavigate">
                 <xsl:with-param name="uri" select="$fallback-uri"/>
