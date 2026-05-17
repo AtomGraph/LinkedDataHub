@@ -518,6 +518,8 @@ WHERE
                         <xsl:choose>
                             <!-- pane exists: replace document-body content, leave sidebar intact -->
                             <xsl:when test="$reuse-pane">
+                                <xsl:variable name="old-about" select="string($reuse-pane/div[contains-token(@class, 'document-body')]/@about)" as="xs:string"/>
+
                                 <xsl:for-each select="$reuse-pane/div[contains-token(@class, 'document-body')]">
                                     <xsl:result-document href="?." method="ixsl:replace-element">
                                         <xsl:apply-templates select="$results/rdf:RDF" mode="bs2:DocumentBody">
@@ -530,6 +532,20 @@ WHERE
                                     <!-- update @about to new URI -->
                                     <ixsl:set-attribute name="about" select="$uri" object="."/>
                                 </xsl:for-each>
+
+                                <!-- sync the corresponding tab <li> to the new URI: data-uri keys downstream tab-activation and href-sync lookups -->
+                                <xsl:if test="string($uri) ne $old-about">
+                                    <xsl:for-each select="id('tab-bar-list', ixsl:page())/li[ixsl:get(., 'dataset.uri') = $old-about]">
+                                        <ixsl:set-attribute name="data-uri" select="string($uri)" object="."/>
+                                        <xsl:for-each select="a">
+                                            <ixsl:set-attribute name="href" select="string(ldh:href($uri, ldh:build-query($mode)))" object="."/>
+                                            <ixsl:set-attribute name="title" select="string($uri)" object="."/>
+                                            <xsl:result-document href="?." method="ixsl:replace-content">
+                                                <xsl:value-of select="$label"/>
+                                            </xsl:result-document>
+                                        </xsl:for-each>
+                                    </xsl:for-each>
+                                </xsl:if>
                             </xsl:when>
                             <!-- no pane: create one with sidebar -->
                             <xsl:otherwise>
@@ -802,9 +818,10 @@ WHERE
         <xsl:variable name="href" select="ldh:href($uri, $query-params)" as="xs:anyURI"/>
 
         <!-- update address bar input: show external URI, clear for local docs -->
+        <!-- use browser origin (not ldt:base()) so the check is correct even when an external tab is active: ldt:base() reads the active pane's data-base, which would mis-classify same-origin proxy URIs as "local" and cross-dataspace URIs as "external" mid-switch -->
         <xsl:for-each select="id('uri', ixsl:page())">
             <xsl:choose>
-                <xsl:when test="not(starts-with($uri, ldt:base()))">
+                <xsl:when test="not(starts-with($uri, lapp:origin(ldh:request-uri()) || '/'))">
                     <ixsl:set-property name="value" select="string($uri)" object="."/>
                 </xsl:when>
                 <xsl:otherwise>
@@ -813,7 +830,7 @@ WHERE
             </xsl:choose>
         </xsl:for-each>
 
-        <!-- hide local tab pane for external URIs; use browser origin (not ldt:base()) so the check is correct even when an external tab is active -->
+        <!-- hide local tab pane for external URIs -->
         <xsl:if test="not(starts-with($uri, lapp:origin(ldh:request-uri()) || '/'))">
             <xsl:for-each select="id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')][./div[contains-token(@class, 'document-body')]/@about = ac:absolute-path(ldh:request-uri())]">
                 <ixsl:set-style name="display" select="'none'" object="."/>
