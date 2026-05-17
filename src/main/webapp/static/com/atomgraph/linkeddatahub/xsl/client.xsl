@@ -1015,8 +1015,6 @@ WHERE
         <!-- proxied tab: $uri is the external target (?uri=…); local tab: $uri is the bare document URI (no query string) - matches data-uri / document-body/@about, so the cache key downstream stays consistent -->
         <xsl:variable name="uri" select="if (map:contains($query-params, 'uri')) then xs:anyURI(map:get($query-params, 'uri')) else ac:absolute-path($href)" as="xs:anyURI"/>
 
-        <xsl:apply-templates select=".." mode="ldh:ActivateTab"/>
-
         <xsl:call-template name="ldh:DocumentNavigate">
             <xsl:with-param name="uri" select="$uri"/>
             <xsl:with-param name="query-params" select="map:remove($query-params, 'uri')"/>
@@ -1040,10 +1038,8 @@ WHERE
         <!-- remove the tab <li> from the DOM -->
         <xsl:sequence select="ixsl:call($tab-li, 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
 
-        <!-- if the closed tab was active, activate the fallback and navigate to its URI -->
+        <!-- if the closed tab was active, navigate to the fallback's URI (ldh:RenderTab will activate after fetch) -->
         <xsl:if test="$was-active and $fallback-li">
-            <xsl:apply-templates select="$fallback-li" mode="ldh:ActivateTab"/>
-
             <xsl:variable name="fallback-href" select="xs:anyURI(resolve-uri($fallback-li/a/@href, ldh:base-uri(.)))" as="xs:anyURI"/>
             <xsl:variable name="fallback-query-params" select="ldh:parse-query-params(substring-after($fallback-href, '?'))" as="map(xs:string, xs:string*)"/>
             <xsl:variable name="fallback-uri" select="if (map:contains($fallback-query-params, 'uri')) then xs:anyURI(map:get($fallback-query-params, 'uri')) else ac:absolute-path($fallback-href)" as="xs:anyURI"/>
