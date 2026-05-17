@@ -15,32 +15,31 @@ add-agent-to-group.sh \
   --agent "$AGENT_URI" \
   "${ADMIN_BASE_URL}acl/groups/writers/"
 
-# patch document
+# PATCH the root with an rdf:_N pointing at a block explicitly typed as sp:Construct
+# (neither ldh:Object nor ldh:XHTML). Expected: rejected by ldh:InvalidContentBlockType with 422.
+# Use rdf:_99 to avoid colliding with existing rdf:_1..rdf:_8 in the test dataset.
 
 update=$(cat <<EOF
 PREFIX  rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX  sp:   <http://spinrdf.org/sp#>
+PREFIX  dct:  <http://purl.org/dc/terms/>
 
 INSERT
 {
-  <${END_USER_BASE_URL}> rdf:_2 <${END_USER_BASE_URL}#whateverest>
+  <${END_USER_BASE_URL}> rdf:_99 <${END_USER_BASE_URL}#bad-block> .
+  <${END_USER_BASE_URL}#bad-block> a sp:Construct ;
+    dct:title "Not a valid content block" ;
+    sp:text "CONSTRUCT WHERE {}"
 }
 WHERE
 {}
 EOF
 )
 
-curl -k -w "%{http_code}\n" -o /dev/null -f -s \
+curl -k -w "%{http_code}\n" -o /dev/null -s \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
   -X PATCH \
   -H "Content-Type: application/sparql-update" \
   "$END_USER_BASE_URL" \
    --data-binary "$update" \
-| grep -q "$STATUS_NO_CONTENT"
-
-# check that the graph is changed
-
-curl -k -f -s -G \
-  -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
-  -H "Accept: application/n-triples" \
-"$END_USER_BASE_URL" \
-| grep "<${END_USER_BASE_URL}#whateverest>" > /dev/null
+| grep -q "$STATUS_UNPROCESSABLE_ENTITY"
