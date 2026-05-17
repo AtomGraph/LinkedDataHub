@@ -279,7 +279,15 @@ public class ProxyRequestFilter implements ContainerRequestFilter
     protected Response getResponse(Response clientResponse)
     {
         if (clientResponse.getMediaType() == null)
-            return Response.status(clientResponse.getStatus()).build();
+        {
+            Response.ResponseBuilder rb = Response.status(clientResponse.getStatus());
+            for (String name : FORWARDED_RESPONSE_HEADERS)
+            {
+                String value = clientResponse.getHeaderString(name);
+                if (value != null) rb.header(name, value);
+            }
+            return rb.build();
+        }
 
         // buffer so the stream remains readable after try-with-resources closes the client response
         clientResponse.bufferEntity();
