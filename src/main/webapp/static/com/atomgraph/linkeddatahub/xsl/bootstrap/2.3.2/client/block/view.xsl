@@ -711,7 +711,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="results" as="document-node()"/>
         <xsl:param name="object-metadata" as="document-node()?"/>
         <xsl:param name="active-mode" as="xs:anyURI"/>
-        
+
         <xsl:choose>
             <xsl:when test="$active-mode = '&ac;ListMode'">
                 <xsl:apply-templates select="$results" mode="bs2:ContainerBlockList">
@@ -959,16 +959,7 @@ exclude-result-prefixes="#all"
             </xsl:if>
         </div>
     </xsl:template>
-        
-    <!-- DEFAULT  -->
-    
-    <!-- TO-DO: align with SSR rdf:RDF mode -->
-    <xsl:template match="rdf:RDF">
-        <xsl:apply-templates>
-            <xsl:sort select="ac:label(.)"/>
-        </xsl:apply-templates>
-    </xsl:template>
-    
+
     <!-- block list -->
 
     <xsl:template match="rdf:RDF" mode="bs2:ContainerBlockList" use-when="system-property('xsl:product-name') eq 'SaxonJS'">

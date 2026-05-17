@@ -8,20 +8,20 @@
     version="3.0">
 
     <!-- Main template - apply three-pass normalization -->
-    <xsl:template match="/">
+    <xsl:template match="/" mode="ldh:normalize-rdfxml">
         <xsl:param name="base-uri" select="base-uri(.)" as="xs:anyURI"/>
 
         <!-- First pass: normalize RDF/XML to canonical form -->
         <xsl:variable name="normalized-rdf" as="document-node()">
             <xsl:document>
-                <xsl:apply-templates select="rdf:RDF" mode="ldh:normalize-RDF"/>
+                <xsl:apply-templates select="rdf:RDF" mode="#current"/>
             </xsl:document>
         </xsl:variable>
 
         <!-- Second pass: flatten all nested rdf:Description to top level -->
         <xsl:variable name="flattened-rdf" as="document-node()">
             <xsl:document>
-                <xsl:apply-templates select="$normalized-rdf/rdf:RDF" mode="ldh:flatten-RDF"/>
+                <xsl:apply-templates select="$normalized-rdf/rdf:RDF" mode="ldh:flatten-rdfxml"/>
             </xsl:document>
         </xsl:variable>
 
@@ -67,7 +67,7 @@
          ======================================== -->
 
     <!-- Copy rdf:RDF root element -->
-    <xsl:template match="rdf:RDF" mode="ldh:normalize-RDF">
+    <xsl:template match="rdf:RDF" mode="ldh:normalize-rdfxml">
         <xsl:copy>
             <xsl:copy-of select="@*"/>
             <xsl:apply-templates mode="#current"/>
@@ -76,7 +76,7 @@
 
     <!-- Normalize typed nodes (e.g., <foaf:Person>) to rdf:Description with explicit rdf:type -->
     <!-- Also handles rdf:ID attribute -->
-    <xsl:template match="rdf:RDF/*[@rdf:about or @rdf:nodeID or @rdf:ID][not(self::rdf:Description)]" mode="ldh:normalize-RDF">
+    <xsl:template match="rdf:RDF/*[@rdf:about or @rdf:nodeID or @rdf:ID][not(self::rdf:Description)]" mode="ldh:normalize-rdfxml">
         <rdf:Description>
             <!-- Convert rdf:ID to rdf:about with fragment -->
             <xsl:choose>
@@ -103,7 +103,7 @@
 
     <!-- Already-normalized rdf:Description nodes - expand property attributes -->
     <!-- Also handles rdf:ID attribute -->
-    <xsl:template match="rdf:Description[@rdf:about or @rdf:nodeID or @rdf:ID]" mode="ldh:normalize-RDF">
+    <xsl:template match="rdf:Description[@rdf:about or @rdf:nodeID or @rdf:ID]" mode="ldh:normalize-rdfxml">
         <xsl:copy>
             <!-- Convert rdf:ID to rdf:about with fragment -->
             <xsl:choose>
@@ -127,7 +127,7 @@
     </xsl:template>
 
     <!-- Normalize rdf:parseType="Literal" - keep as-is since it's already canonical -->
-    <xsl:template match="*[@rdf:parseType = 'Literal']" mode="ldh:normalize-RDF">
+    <xsl:template match="*[@rdf:parseType = 'Literal']" mode="ldh:normalize-rdfxml">
         <xsl:copy>
             <xsl:copy-of select="@rdf:parseType"/>
             <!-- Copy the XML content as-is -->
@@ -136,7 +136,7 @@
     </xsl:template>
 
     <!-- Normalize rdf:parseType="Collection" - create RDF list structure -->
-    <xsl:template match="*[@rdf:parseType = 'Collection']" mode="ldh:normalize-RDF">
+    <xsl:template match="*[@rdf:parseType = 'Collection']" mode="ldh:normalize-rdfxml">
         <xsl:choose>
             <!-- Empty collection -->
             <xsl:when test="not(*)">
@@ -222,7 +222,7 @@
     </xsl:template>
 
     <!-- Normalize rdf:parseType="Resource" - create nested blank node that will be flattened later -->
-    <xsl:template match="*[@rdf:parseType = 'Resource']" mode="ldh:normalize-RDF">
+    <xsl:template match="*[@rdf:parseType = 'Resource']" mode="ldh:normalize-rdfxml">
         <xsl:variable name="blank-node-id" select="concat('b', generate-id())"/>
 
         <!-- Create property element with nested blank node rdf:Description -->
@@ -234,14 +234,14 @@
     </xsl:template>
 
     <!-- Copy property elements that have rdf:resource or rdf:nodeID (object references) -->
-    <xsl:template match="rdf:Description/*[@rdf:resource or @rdf:nodeID]" mode="ldh:normalize-RDF">
+    <xsl:template match="rdf:Description/*[@rdf:resource or @rdf:nodeID]" mode="ldh:normalize-rdfxml">
         <xsl:copy>
             <xsl:copy-of select="@rdf:resource | @rdf:nodeID"/>
         </xsl:copy>
     </xsl:template>
 
     <!-- Handle RDF containers (Bag, Seq, Alt) -->
-    <xsl:template match="rdf:Bag | rdf:Seq | rdf:Alt" mode="ldh:normalize-RDF" priority="1">
+    <xsl:template match="rdf:Bag | rdf:Seq | rdf:Alt" mode="ldh:normalize-rdfxml" priority="1">
         <rdf:Description>
             <xsl:copy-of select="@rdf:about | @rdf:nodeID"/>
             <xsl:if test="not(@rdf:about or @rdf:nodeID)">
@@ -253,7 +253,7 @@
     </xsl:template>
 
     <!-- Suppress default text node copying for containers -->
-    <xsl:template match="rdf:Bag/text() | rdf:Seq/text() | rdf:Alt/text()" mode="ldh:normalize-RDF">
+    <xsl:template match="rdf:Bag/text() | rdf:Seq/text() | rdf:Alt/text()" mode="ldh:normalize-rdfxml">
         <!-- Ignore whitespace text nodes in containers -->
         <xsl:if test="normalize-space(.) != ''">
             <xsl:value-of select="."/>
@@ -261,7 +261,7 @@
     </xsl:template>
 
     <!-- Expand rdf:li to rdf:_N based on position -->
-    <xsl:template match="rdf:li" mode="ldh:normalize-RDF">
+    <xsl:template match="rdf:li" mode="ldh:normalize-rdfxml">
         <xsl:variable name="position" select="count(preceding-sibling::rdf:li) + 1" as="xs:integer"/>
         <xsl:element name="rdf:_{$position}" namespace="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
             <xsl:copy-of select="@rdf:resource | @rdf:nodeID | @rdf:datatype | @xml:lang"/>
@@ -277,7 +277,7 @@
     <!-- Copy property elements with literal values or datatype -->
     <!-- Preserve xml:lang attribute -->
     <!-- Only match properties with text content, not element children -->
-    <xsl:template match="rdf:Description/*[not(@rdf:resource) and not(@rdf:nodeID) and not(@rdf:parseType) and not(*)]" mode="ldh:normalize-RDF">
+    <xsl:template match="rdf:Description/*[not(@rdf:resource) and not(@rdf:nodeID) and not(@rdf:parseType) and not(*)]" mode="ldh:normalize-rdfxml">
         <xsl:copy>
             <xsl:copy-of select="@rdf:datatype | @xml:lang"/>
             <xsl:value-of select="."/>
@@ -286,7 +286,7 @@
 
     <!-- Generic template to handle any property element that doesn't match more specific templates -->
     <!-- This catches property elements from rdf:parseType="Resource" content and rdf:li -->
-    <xsl:template match="*[not(self::rdf:RDF) and not(self::rdf:Description) and not(self::rdf:li) and not(self::rdf:Bag) and not(self::rdf:Seq) and not(self::rdf:Alt)]" mode="ldh:normalize-RDF" priority="-1">
+    <xsl:template match="*[not(self::rdf:RDF) and not(self::rdf:Description) and not(self::rdf:li) and not(self::rdf:Bag) and not(self::rdf:Seq) and not(self::rdf:Alt)]" mode="ldh:normalize-rdfxml" priority="-1">
         <xsl:choose>
             <!-- Property with rdf:resource or rdf:nodeID -->
             <xsl:when test="@rdf:resource or @rdf:nodeID">
@@ -347,7 +347,7 @@
          ======================================== -->
 
     <!-- Collect all rdf:Description elements at any level and make them direct children of rdf:RDF -->
-    <xsl:template match="rdf:RDF" mode="ldh:flatten-RDF">
+    <xsl:template match="rdf:RDF" mode="ldh:flatten-rdfxml">
         <xsl:copy>
             <xsl:copy-of select="@*"/>
             <!-- Process all rdf:Description elements (top-level and nested) -->

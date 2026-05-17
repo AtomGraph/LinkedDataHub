@@ -267,7 +267,7 @@ exclude-result-prefixes="#all"
         <xsl:for-each select="$response?body">
             <xsl:variable name="base-uri" select="if (contains($document-uri, '#')) then xs:anyURI(substring-before($document-uri, '#')) else $document-uri" as="xs:anyURI"/>
             <xsl:variable name="normalized-rdf" as="document-node()">
-                <xsl:apply-templates select=".">
+                <xsl:apply-templates select="." mode="ldh:normalize-rdfxml">
                     <xsl:with-param name="base-uri" select="$base-uri"/>
                 </xsl:apply-templates>
             </xsl:variable>
