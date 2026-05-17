@@ -97,7 +97,6 @@ exclude-result-prefixes="#all"
                 <xsl:apply-templates select="$object-metadata!key('resources', $this, .)" mode="ac:label"/>
             </xsl:when>
             <xsl:when test="ixsl:doc-fetched(ac:document-uri(.)) and key('resources', ., document(ac:document-uri(.)))" use-when="system-property('xsl:product-name') eq 'SaxonJS'">
-                <xsl:message select="'ac:object-label doc-fetched HIT: ' || ac:document-uri(.) || ' for ' || ."/>
                 <xsl:apply-templates select="key('resources', ., document(ac:document-uri(.)))" mode="ac:label"/>
             </xsl:when>
             <xsl:when test="doc-available(ac:document-uri(.)) and key('resources', ., document(ac:document-uri(.)))" use-when="system-property('xsl:product-name') = 'SAXON'">
@@ -384,7 +383,6 @@ exclude-result-prefixes="#all"
                 <xsl:apply-templates select="$property-metadata/key('resources', $this, .)" mode="ac:label"/>
             </xsl:when>
             <xsl:when test="ixsl:doc-fetched(ac:document-uri(namespace-uri())) and key('resources', $this, document(ac:document-uri(namespace-uri())))" use-when="system-property('xsl:product-name') eq 'SaxonJS'">
-                <xsl:message select="'ac:property-label doc-fetched HIT: ' || ac:document-uri(namespace-uri()) || ' for ' || $this"/>
                 <xsl:apply-templates select="key('resources', $this, document(ac:document-uri(namespace-uri())))" mode="ac:label"/>
             </xsl:when>
             <xsl:when test="doc-available(ac:document-uri(namespace-uri())) and key('resources', $this, document(ac:document-uri(namespace-uri())))" use-when="system-property('xsl:product-name') = 'SAXON'">
