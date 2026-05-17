@@ -46,5 +46,5 @@ curl -k -w "%{http_code}\n" -o /dev/null -f -s \
 <${item}#obj> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/atomgraph/linkeddatahub#Object> .
 <${item}#obj> <http://www.w3.org/1999/02/22-rdf-syntax-ns#value> <${END_USER_BASE_URL}> .
 <${item}#xhtml> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/atomgraph/linkeddatahub#XHTML> .
-<${item}#xhtml> <http://www.w3.org/1999/02/22-rdf-syntax-ns#value> "<div xmlns=\"http://www.w3.org/1999/xhtml\"/>"^^<http://www.w3.org/1999/02/22-rdf-syntax-ns#XMLLiteral> .
+<${item}#xhtml> <http://www.w3.org/1999/02/22-rdf-syntax-ns#value> "<div xmlns=\"http://www.w3.org/1999/xhtml\"></div>"^^<http://www.w3.org/1999/02/22-rdf-syntax-ns#XMLLiteral> .
 EOF
