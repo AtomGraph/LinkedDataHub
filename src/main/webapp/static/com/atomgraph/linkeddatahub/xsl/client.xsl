@@ -799,6 +799,49 @@ WHERE
         <xsl:sequence select="ixsl:call(ixsl:window(), 'history.pushState', [ $state-obj, $title, $href ])[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
     
+    <!-- switch to a tab whose pane DOM and LinkedDataHub.contents[$uri] are already populated: no fetch, no re-render -->
+    <xsl:template name="ldh:TabSwitch">
+        <xsl:param name="uri" as="xs:anyURI"/>
+        <xsl:param name="href" as="xs:anyURI"/>
+        <xsl:param name="tab-li" as="element()"/>
+        <xsl:param name="push-state" select="true()" as="xs:boolean"/>
+        <xsl:param name="container" as="element()" select="id($body-id, ixsl:page())"/>
+
+        <!-- the user has switched intent; cancel any in-flight DocumentNavigate fetch so its response doesn't reactivate the previous tab -->
+        <xsl:if test="ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub'), 'saxonController')">
+            <xsl:sequence select="ixsl:call(ixsl:get(ixsl:window(), 'LinkedDataHub.saxonController'), 'abort', [])[current-date() lt xs:date('2000-01-01')]"/>
+        </xsl:if>
+        <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
+
+        <!-- mirror ldh:DocumentNavigate: show external URI, clear for local -->
+        <xsl:for-each select="id('uri', ixsl:page())">
+            <xsl:choose>
+                <xsl:when test="not(starts-with($uri, lapp:origin(ldh:request-uri()) || '/'))">
+                    <ixsl:set-property name="value" select="string($uri)" object="."/>
+                </xsl:when>
+                <xsl:otherwise>
+                    <ixsl:set-property name="value" select="''" object="."/>
+                </xsl:otherwise>
+            </xsl:choose>
+        </xsl:for-each>
+
+        <xsl:if test="$push-state">
+            <xsl:call-template name="ldh:PushState">
+                <xsl:with-param name="href" select="$href"/>
+                <xsl:with-param name="title" select="()"/>
+                <xsl:with-param name="container" select="$container"/>
+            </xsl:call-template>
+        </xsl:if>
+
+        <xsl:apply-templates select="$tab-li" mode="ldh:ActivateTab"/>
+
+        <xsl:call-template name="ldh:NavigationUpdate">
+            <xsl:with-param name="href" select="$href"/>
+        </xsl:call-template>
+
+        <xsl:sequence select="ixsl:call(ixsl:window(), 'scrollTo', [ 0, 0 ])[current-date() lt xs:date('2000-01-01')]"/>
+    </xsl:template>
+
     <!-- document navigation: handles local/external branching -->
 
     <xsl:template name="ldh:DocumentNavigate">
@@ -902,12 +945,25 @@ WHERE
             <!-- decode URI from the ?uri query param if the URI was proxied; otherwise strip the query string so the cache key matches document-body/@about -->
             <xsl:variable name="query-params" select="ldh:parse-query-params(substring-after($href, '?'))" as="map(xs:string, xs:string*)"/>
             <xsl:variable name="uri" select="if (map:contains($query-params, 'uri')) then xs:anyURI(map:get($query-params, 'uri')) else ac:absolute-path($href)" as="xs:anyURI"/>
+            <xsl:variable name="tab-li" select="id('tab-bar-list', ixsl:page())/li[ixsl:get(., 'dataset.uri') = string($uri)]" as="element()?"/>
 
-            <xsl:call-template name="ldh:DocumentNavigate">
-                <xsl:with-param name="uri" select="$uri"/>
-                <xsl:with-param name="query-params" select="map:remove($query-params, 'uri')"/>
-                <xsl:with-param name="push-state" select="false()"/>
-            </xsl:call-template>
+            <xsl:choose>
+                <xsl:when test="exists($tab-li) and ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $uri || '`')">
+                    <xsl:call-template name="ldh:TabSwitch">
+                        <xsl:with-param name="uri" select="$uri"/>
+                        <xsl:with-param name="href" select="$href"/>
+                        <xsl:with-param name="tab-li" select="$tab-li"/>
+                        <xsl:with-param name="push-state" select="false()"/>
+                    </xsl:call-template>
+                </xsl:when>
+                <xsl:otherwise>
+                    <xsl:call-template name="ldh:DocumentNavigate">
+                        <xsl:with-param name="uri" select="$uri"/>
+                        <xsl:with-param name="query-params" select="map:remove($query-params, 'uri')"/>
+                        <xsl:with-param name="push-state" select="false()"/>
+                    </xsl:call-template>
+                </xsl:otherwise>
+            </xsl:choose>
         </xsl:if>
     </xsl:template>
 
@@ -1032,11 +1088,24 @@ WHERE
         <!-- proxied tab: $uri is the external target (?uri=…); local tab: $uri is the bare document URI (no query string) - matches data-uri / document-body/@about, so the cache key downstream stays consistent -->
         <xsl:variable name="uri" select="if (map:contains($query-params, 'uri')) then xs:anyURI(map:get($query-params, 'uri')) else ac:absolute-path($href)" as="xs:anyURI"/>
 
-        <xsl:call-template name="ldh:DocumentNavigate">
-            <xsl:with-param name="uri" select="$uri"/>
-            <xsl:with-param name="query-params" select="map:remove($query-params, 'uri')"/>
-            <xsl:with-param name="container" select=".."/>
-        </xsl:call-template>
+        <xsl:choose>
+            <!-- pane already rendered for $uri and cache populated: pure CSS toggle, no fetch -->
+            <xsl:when test="ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $uri || '`')">
+                <xsl:call-template name="ldh:TabSwitch">
+                    <xsl:with-param name="uri" select="$uri"/>
+                    <xsl:with-param name="href" select="$href"/>
+                    <xsl:with-param name="tab-li" select=".."/>
+                    <xsl:with-param name="container" select=".."/>
+                </xsl:call-template>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:call-template name="ldh:DocumentNavigate">
+                    <xsl:with-param name="uri" select="$uri"/>
+                    <xsl:with-param name="query-params" select="map:remove($query-params, 'uri')"/>
+                    <xsl:with-param name="container" select=".."/>
+                </xsl:call-template>
+            </xsl:otherwise>
+        </xsl:choose>
     </xsl:template>
 
     <xsl:template match="ul[@id = 'tab-bar-list']/li/span[contains-token(@class, 'tab-close')]" mode="ixsl:onclick">
@@ -1055,16 +1124,27 @@ WHERE
         <!-- remove the tab <li> from the DOM -->
         <xsl:sequence select="ixsl:call($tab-li, 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
 
-        <!-- if the closed tab was active, navigate to the fallback's URI (ldh:RenderTab will activate after fetch) -->
+        <!-- if the closed tab was active, switch to the fallback's URI (ldh:TabSwitch if cached, otherwise ldh:DocumentNavigate -> RenderTab will activate after fetch) -->
         <xsl:if test="$was-active and $fallback-li">
             <xsl:variable name="fallback-href" select="xs:anyURI(resolve-uri($fallback-li/a/@href, ldh:base-uri(.)))" as="xs:anyURI"/>
             <xsl:variable name="fallback-query-params" select="ldh:parse-query-params(substring-after($fallback-href, '?'))" as="map(xs:string, xs:string*)"/>
             <xsl:variable name="fallback-uri" select="if (map:contains($fallback-query-params, 'uri')) then xs:anyURI(map:get($fallback-query-params, 'uri')) else ac:absolute-path($fallback-href)" as="xs:anyURI"/>
 
-            <xsl:call-template name="ldh:DocumentNavigate">
-                <xsl:with-param name="uri" select="$fallback-uri"/>
-                <xsl:with-param name="query-params" select="map:remove($fallback-query-params, 'uri')"/>
-            </xsl:call-template>
+            <xsl:choose>
+                <xsl:when test="ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $fallback-uri || '`')">
+                    <xsl:call-template name="ldh:TabSwitch">
+                        <xsl:with-param name="uri" select="$fallback-uri"/>
+                        <xsl:with-param name="href" select="$fallback-href"/>
+                        <xsl:with-param name="tab-li" select="$fallback-li"/>
+                    </xsl:call-template>
+                </xsl:when>
+                <xsl:otherwise>
+                    <xsl:call-template name="ldh:DocumentNavigate">
+                        <xsl:with-param name="uri" select="$fallback-uri"/>
+                        <xsl:with-param name="query-params" select="map:remove($fallback-query-params, 'uri')"/>
+                    </xsl:call-template>
+                </xsl:otherwise>
+            </xsl:choose>
         </xsl:if>
 
         <!-- if only the base-uri tab is left, hide the whole tab-bar (mirror of ldh:AddTabNavBarListItem) -->
