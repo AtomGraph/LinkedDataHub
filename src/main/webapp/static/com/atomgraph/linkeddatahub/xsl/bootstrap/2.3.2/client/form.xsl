@@ -762,9 +762,10 @@ WHERE
             <xsl:variable name="href" select="?headers?location" as="xs:anyURI"/>
 
             <xsl:call-template name="ldh:DocumentNavigate">
-                <xsl:with-param name="uri" select="$href"/>
+                <xsl:with-param name="doc-uri" select="ac:absolute-path($href)"/>
+                <xsl:with-param name="fragment" select="ac:fragment-id($href)"/>
             </xsl:call-template>
-        </xsl:for-each>        
+        </xsl:for-each>
     </xsl:function>
     
     <xsl:function name="ldh:row-form-submit-violation" ixsl:updating="yes">

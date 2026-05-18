@@ -161,7 +161,8 @@ exclude-result-prefixes="#all"
     </xsl:function>
     
     <xsl:function name="ldh:query-params" as="map(xs:string, xs:string*)">
-        <xsl:sequence select="ldh:parse-query-params(substring-after(ldh:request-uri(), '?'))"/>
+        <!-- ac:document-uri strips the URL's #fragment so it doesn't get glued onto the last query value -->
+        <xsl:sequence select="ldh:parse-query-params(substring-after(ac:document-uri(ldh:request-uri()), '?'))"/>
     </xsl:function>
     
     <xsl:function name="ldh:base-uri" as="xs:anyURI" use-when="system-property('xsl:product-name') = 'SAXON'">
@@ -329,7 +330,7 @@ exclude-result-prefixes="#all"
 
     <xsl:function name="ldh:parse-query-params" as="map(xs:string, xs:string*)">
         <xsl:param name="query-string" as="xs:string"/>
-        
+
         <xsl:sequence select="map:merge(
             tokenize($query-string, '&amp;')[normalize-space()]
             !
@@ -534,8 +535,8 @@ exclude-result-prefixes="#all"
     <!-- subject resource -->
     <xsl:template match="@rdf:about" mode="xhtml:Anchor">
 <!--        <xsl:param name="graph" as="xs:anyURI?" tunnel="yes"/>-->
-        <xsl:param name="fragment" select="if (starts-with(., ldt:base())) then (if (contains(., '#')) then substring-after(., '#') else ()) else encode-for-uri(.)" as="xs:string?"/>
-        <xsl:param name="href" select="ldh:href(xs:anyURI(.), map{}, $fragment)" as="xs:anyURI"/>
+        <xsl:param name="fragment" select="ac:fragment-id(.)" as="xs:string?"/>
+        <xsl:param name="href" select="ldh:href(ac:document-uri(xs:anyURI(.)), map{}, $fragment)" as="xs:anyURI"/>
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="title" select="." as="xs:string?"/>
         <xsl:param name="class" as="xs:string?"/>
@@ -551,8 +552,8 @@ exclude-result-prefixes="#all"
     </xsl:template>
     
     <xsl:template match="@rdf:about | @rdf:resource" mode="svg:Anchor">
-        <xsl:param name="fragment" select="if (starts-with(., ldt:base())) then (if (contains(., '#')) then substring-after(., '#') else ()) else encode-for-uri(.)" as="xs:string?"/>
-        <xsl:param name="href" select="ldh:href(xs:anyURI(.), map{}, $fragment)" as="xs:anyURI"/>
+        <xsl:param name="fragment" select="ac:fragment-id(.)" as="xs:string?"/>
+        <xsl:param name="href" select="ldh:href(ac:document-uri(xs:anyURI(.)), map{}, $fragment)" as="xs:anyURI"/>
         <xsl:param name="id" select="$fragment" as="xs:string?"/>
         <xsl:param name="label" select="if (parent::rdf:Description) then ac:svg-label(..) else ac:svg-object-label(.)" as="xs:string"/>
         <xsl:param name="title" select="$label" as="xs:string"/>
@@ -573,8 +574,8 @@ exclude-result-prefixes="#all"
 
     <!-- proxy link URIs if they are external -->
     <xsl:template match="@rdf:resource | srx:uri" priority="2">
-        <xsl:param name="fragment" select="if (starts-with(., ldt:base())) then (if (contains(., '#')) then substring-after(., '#') else ()) else encode-for-uri(.)" as="xs:string?"/>
-        <xsl:param name="href" select="ldh:href(xs:anyURI(.), map{}, $fragment)" as="xs:anyURI"/>
+        <xsl:param name="fragment" select="ac:fragment-id(.)" as="xs:string?"/>
+        <xsl:param name="href" select="ldh:href(ac:document-uri(xs:anyURI(.)), map{}, $fragment)" as="xs:anyURI"/>
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="title" select="." as="xs:string?"/>
         <xsl:param name="class" as="xs:string?"/>

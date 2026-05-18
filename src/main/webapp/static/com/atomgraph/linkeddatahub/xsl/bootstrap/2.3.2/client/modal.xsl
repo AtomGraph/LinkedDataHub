@@ -1272,7 +1272,8 @@ LIMIT   10
                 <xsl:variable name="form" select="$context('form')" as="element()?"/>
                 <xsl:sequence select="ixsl:call($form/ancestor::div[contains-token(@class, 'modal')], 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
                 <xsl:call-template name="ldh:DocumentNavigate">
-                    <xsl:with-param name="uri" select="$doc-uri"/>
+                    <xsl:with-param name="doc-uri" select="$doc-uri"/>
+                    <xsl:with-param name="fragment" select="()"/>
                 </xsl:call-template>
             </xsl:when>
             <xsl:when test="$status = 201 and map:contains($response?headers, 'location')">
@@ -1571,7 +1572,8 @@ LIMIT   10
                 <xsl:sequence select="ixsl:call($form/ancestor::div[contains-token(@class, 'modal')], 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
 
                 <xsl:call-template name="ldh:DocumentNavigate">
-                    <xsl:with-param name="uri" select="ac:absolute-path($uri)"/>
+                    <xsl:with-param name="doc-uri" select="ac:absolute-path($uri)"/>
+                    <xsl:with-param name="fragment" select="ac:fragment-id($uri)"/>
                 </xsl:call-template>
             </xsl:when>
             <!-- Error -->
@@ -1598,7 +1600,8 @@ LIMIT   10
                 <xsl:sequence select="ixsl:call($form/ancestor::div[contains-token(@class, 'modal')], 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
 
                 <xsl:call-template name="ldh:DocumentNavigate">
-                    <xsl:with-param name="uri" select="ac:absolute-path($uri)"/>
+                    <xsl:with-param name="doc-uri" select="ac:absolute-path($uri)"/>
+                    <xsl:with-param name="fragment" select="ac:fragment-id($uri)"/>
                 </xsl:call-template>
             </xsl:when>
             <!-- Error: render error message inline in the form's fieldset -->
