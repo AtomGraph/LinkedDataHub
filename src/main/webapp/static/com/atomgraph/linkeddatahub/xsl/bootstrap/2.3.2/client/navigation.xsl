@@ -847,10 +847,13 @@ ORDER BY DESC(?created)
     <!-- opens modal dialog to show instances of a class -->
     <xsl:template match="button[contains-token(@class, 'btn-class')]" mode="ixsl:onclick">
         <xsl:variable name="class-uri" select="xs:anyURI(ixsl:get(., 'dataset.classUri'))"/>
-        <xsl:variable name="container-id" select="'class-instances-container'" as="xs:string"/>
+        <xsl:variable name="target" select="id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')][contains-token(@class, 'active')]/div[contains-token(@class, 'document-body')]/div[contains-token(@class, 'content-body')]" as="element()"/>
+        <xsl:variable name="pane-id" select="$target/ancestor::div[contains-token(@class, 'tab-pane')]/@id" as="xs:string"/>
+        <xsl:variable name="modal-id" select="'class-instances-modal-' || $pane-id" as="xs:string"/>
+        <xsl:variable name="container-id" select="'class-instances-container-' || $pane-id" as="xs:string"/>
 
         <xsl:variable name="modal" as="element()">
-            <div class="modal modal-constructor fade in" id="class-instances-modal">
+            <div class="modal modal-constructor modal-class-instances fade in" id="{$modal-id}" data-container-id="{$container-id}">
                 <div class="modal-header">
                     <button type="button" class="close">×</button>
                     <legend>
@@ -895,6 +898,7 @@ ORDER BY DESC(?created)
 
         <xsl:call-template name="ldh:ShowModalForm">
             <xsl:with-param name="form" select="$modal"/>
+            <xsl:with-param name="target" select="$target"/>
         </xsl:call-template>
 
         <xsl:if test="not(ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $container-id || '`'))">
@@ -975,7 +979,7 @@ ORDER BY DESC(?created)
     </xsl:template>
 
     <!-- close modals when a link inside them is clicked -->
-    <xsl:template match="div[@id = ('class-instances-modal', 'geo-modal', 'latest-modal', 'search-modal')]//a[@href]" mode="ixsl:onclick" priority="1">
+    <xsl:template match="div[contains-token(@class, 'modal-class-instances') or contains-token(@class, 'modal-geo') or contains-token(@class, 'modal-latest') or contains-token(@class, 'modal-search')]//a[@href]" mode="ixsl:onclick" priority="1">
         <xsl:variable name="modal" select="ancestor::div[contains-token(@class, 'modal')][@id][1]" as="element()"/>
 
         <!-- remove the modal -->
@@ -988,11 +992,14 @@ ORDER BY DESC(?created)
 
     <!-- opens modal dialog to show geo resources -->
     <xsl:template match="button[contains-token(@class, 'btn-geo')]" mode="ixsl:onclick">
-        <xsl:variable name="container-id" select="'geo-container'" as="xs:string"/>
+        <xsl:variable name="target" select="id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')][contains-token(@class, 'active')]/div[contains-token(@class, 'document-body')]/div[contains-token(@class, 'content-body')]" as="element()"/>
+        <xsl:variable name="pane-id" select="$target/ancestor::div[contains-token(@class, 'tab-pane')]/@id" as="xs:string"/>
+        <xsl:variable name="modal-id" select="'geo-modal-' || $pane-id" as="xs:string"/>
+        <xsl:variable name="container-id" select="'geo-container-' || $pane-id" as="xs:string"/>
         <xsl:variable name="select-string" select="$geo-resources-string" as="xs:string"/>
 
         <xsl:variable name="modal" as="element()">
-            <div class="modal modal-constructor fade in" id="geo-modal">
+            <div class="modal modal-constructor modal-geo fade in" id="{$modal-id}" data-container-id="{$container-id}">
                 <div class="modal-header">
                     <button type="button" class="close">×</button>
                     <legend>
@@ -1009,7 +1016,7 @@ ORDER BY DESC(?created)
                                     </div>
                                 </div>
                             </div>
-                            
+
                             <div id="{$container-id}" class="row-fluid" typeof="&ldh;View">
                                 <div class="main span12">
                                     <!-- View results will be rendered here -->
@@ -1030,6 +1037,7 @@ ORDER BY DESC(?created)
 
         <xsl:call-template name="ldh:ShowModalForm">
             <xsl:with-param name="form" select="$modal"/>
+            <xsl:with-param name="target" select="$target"/>
         </xsl:call-template>
 
         <xsl:if test="not(ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $container-id || '`'))">
@@ -1096,11 +1104,14 @@ ORDER BY DESC(?created)
 
     <!-- opens modal dialog to show latest resources -->
     <xsl:template match="button[contains-token(@class, 'btn-latest')]" mode="ixsl:onclick">
-        <xsl:variable name="container-id" select="'latest-container'" as="xs:string"/>
+        <xsl:variable name="target" select="id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')][contains-token(@class, 'active')]/div[contains-token(@class, 'document-body')]/div[contains-token(@class, 'content-body')]" as="element()"/>
+        <xsl:variable name="pane-id" select="$target/ancestor::div[contains-token(@class, 'tab-pane')]/@id" as="xs:string"/>
+        <xsl:variable name="modal-id" select="'latest-modal-' || $pane-id" as="xs:string"/>
+        <xsl:variable name="container-id" select="'latest-container-' || $pane-id" as="xs:string"/>
         <xsl:variable name="select-string" select="$latest-resources-string" as="xs:string"/>
 
         <xsl:variable name="modal" as="element()">
-            <div class="modal modal-constructor fade in" id="latest-modal">
+            <div class="modal modal-constructor modal-latest fade in" id="{$modal-id}" data-container-id="{$container-id}">
                 <div class="modal-header">
                     <button type="button" class="close">×</button>
                     <legend>
@@ -1138,6 +1149,7 @@ ORDER BY DESC(?created)
 
         <xsl:call-template name="ldh:ShowModalForm">
             <xsl:with-param name="form" select="$modal"/>
+            <xsl:with-param name="target" select="$target"/>
         </xsl:call-template>
 
         <xsl:if test="not(ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $container-id || '`'))">
@@ -1216,10 +1228,13 @@ ORDER BY DESC(?created)
     <xsl:template match="form[contains-token(@class, 'search-form')]" mode="ixsl:onsubmit">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <xsl:variable name="text" select=".//input[@name = 'q']/ixsl:get(., 'value')" as="xs:string?"/>
-        <xsl:variable name="container-id" select="'search-results-container'" as="xs:string"/>
+        <xsl:variable name="target" select="id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')][contains-token(@class, 'active')]/div[contains-token(@class, 'document-body')]/div[contains-token(@class, 'content-body')]" as="element()"/>
+        <xsl:variable name="pane-id" select="$target/ancestor::div[contains-token(@class, 'tab-pane')]/@id" as="xs:string"/>
+        <xsl:variable name="modal-id" select="'search-modal-' || $pane-id" as="xs:string"/>
+        <xsl:variable name="container-id" select="'search-results-container-' || $pane-id" as="xs:string"/>
 
         <xsl:variable name="modal" as="element()">
-            <div class="modal modal-constructor fade in" id="search-modal">
+            <div class="modal modal-constructor modal-search fade in" id="{$modal-id}" data-container-id="{$container-id}">
                 <div class="modal-header">
                     <button type="button" class="close">×</button>
                     <legend>
@@ -1267,6 +1282,7 @@ ORDER BY DESC(?created)
 
         <xsl:call-template name="ldh:ShowModalForm">
             <xsl:with-param name="form" select="$modal"/>
+            <xsl:with-param name="target" select="$target"/>
         </xsl:call-template>
 
         <xsl:if test="not(ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $container-id || '`'))">
@@ -1286,7 +1302,7 @@ ORDER BY DESC(?created)
             </xsl:call-template>
         </xsl:if>
 
-        <xsl:for-each select="id('search-modal', ixsl:page())//input[@name = 'q']">
+        <xsl:for-each select="id($modal-id, ixsl:page())//input[@name = 'q']">
             <xsl:sequence select="ixsl:call(., 'focus', [])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:for-each>
     </xsl:template>
@@ -1295,7 +1311,7 @@ ORDER BY DESC(?created)
     <xsl:template match="form[contains-token(@class, 'search-form-modal')]" mode="ixsl:onsubmit">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <xsl:variable name="text" select=".//input[@name = 'q']/ixsl:get(., 'value')" as="xs:string?"/>
-        <xsl:variable name="container-id" select="'search-results-container'" as="xs:string"/>
+        <xsl:variable name="container-id" select="ancestor::div[contains-token(@class, 'modal')][@data-container-id][1]/@data-container-id" as="xs:string"/>
         <xsl:variable name="cache" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $container-id || '`')" as="item()"/>
 
         <xsl:choose>
@@ -1316,11 +1332,11 @@ ORDER BY DESC(?created)
     </xsl:template>
 
     <!-- in-modal search input: debounced live search (form-submit handles Enter) -->
-    <xsl:template match="div[@id = 'search-modal']//input[@name = 'q']" mode="ixsl:onkeyup">
+    <xsl:template match="div[contains-token(@class, 'modal-search')]//input[@name = 'q']" mode="ixsl:onkeyup">
         <xsl:param name="delay" select="400" as="xs:integer"/>
         <xsl:variable name="key-code" select="ixsl:get(ixsl:event(), 'code')" as="xs:string"/>
         <xsl:variable name="text" select="ixsl:get(., 'value')" as="xs:string?"/>
-        <xsl:variable name="container-id" select="'search-results-container'" as="xs:string"/>
+        <xsl:variable name="container-id" select="ancestor::div[contains-token(@class, 'modal')][@data-container-id][1]/@data-container-id" as="xs:string"/>
         <xsl:variable name="cache" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $container-id || '`')" as="item()"/>
 
         <xsl:choose>

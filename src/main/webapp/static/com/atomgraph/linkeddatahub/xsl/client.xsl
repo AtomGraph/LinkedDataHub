@@ -1132,12 +1132,21 @@ WHERE
     <!-- open a form to save RDF document (do nothing if the button is disabled) -->
     
     <xsl:template match="button[contains-token(@class, 'btn-save-as')][not(contains-token(@class, 'disabled'))]" mode="ixsl:onclick">
-       <xsl:call-template name="ldh:ShowAddDataForm">
+        <xsl:variable name="target" select="id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')][contains-token(@class, 'active')]/div[contains-token(@class, 'document-body')]/div[contains-token(@class, 'content-body')]" as="element()"/>
+        <xsl:variable name="graph" select="ldh:base-uri(.)" as="xs:anyURI"/>
+
+        <xsl:call-template name="ldh:ShowModalForm">
             <xsl:with-param name="form" as="element()">
                 <xsl:call-template name="ldh:AddDataForm">
-                    <xsl:with-param name="source" select="ldh:base-uri(.)"/> <!-- the arg should really be the RDF/XML document-node() -->
+                    <xsl:with-param name="source" select="$graph"/> <!-- the arg should really be the RDF/XML document-node() -->
                 </xsl:call-template>
             </xsl:with-param>
+            <xsl:with-param name="target" select="$target"/>
+        </xsl:call-template>
+
+        <xsl:call-template name="ldh:LoadTypeaheads">
+            <xsl:with-param name="typeahead-spans" select="(id('upload-rdf-doc', ixsl:page())/.., id('remote-rdf-doc', ixsl:page())/..)"/>
+            <xsl:with-param name="graph" select="$graph"/>
         </xsl:call-template>
     </xsl:template>
     
