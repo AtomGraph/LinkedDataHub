@@ -391,7 +391,7 @@ exclude-result-prefixes="#all"
     <xsl:template match="button[contains-token(@class, 'btn-edit-constructors')]" mode="ixsl:onclick">"
         <xsl:variable name="type" select="ixsl:get(., 'dataset.resourceType')" as="xs:anyURI"/>
 
-        <xsl:for-each select="ixsl:page()//body">
+        <xsl:for-each select="id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')][contains-token(@class, 'active')]/div[contains-token(@class, 'document-body')]/div[contains-token(@class, 'content-body')]">
             <xsl:call-template name="ldh:LoadConstructors">
                 <xsl:with-param name="type" select="$type"/>
             </xsl:call-template>

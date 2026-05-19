@@ -144,7 +144,7 @@ LIMIT   10
                                 </xsl:value-of>
                             </label>
                             <div class="controls">
-                                <span>
+                                <span data-for-class="&dh;Container &dh;Item">
                                     <input type="text" name="ou" id="remote-rdf-doc" class="resource-typeahead typeahead"/>
                                     <ul class="resource-typeahead typeahead dropdown-menu" id="ul-upload-rdf-doc" style="display: none;"></ul>
                                 </span>
@@ -395,7 +395,7 @@ LIMIT   10
                     </fieldset>
 
                     <div id="request-access-matrix">
-                        <!-- content replaced by the onAccessResponseLoad callback -->
+                        <!-- content replaced by the ldh:access-response callback -->
                     </div>
                    
                     <div class="form-actions modal-footer">
@@ -978,7 +978,10 @@ LIMIT   10
     </xsl:template>
     
     <xsl:template match="button[contains-token(@class, 'btn-add-ontology')]" mode="ixsl:onclick">
-        <xsl:call-template name="ldh:ShowAddDataForm">
+        <xsl:variable name="target" select="id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')][contains-token(@class, 'active')]/div[contains-token(@class, 'document-body')]/div[contains-token(@class, 'content-body')]" as="element()"/>
+        <xsl:variable name="graph" select="ldh:base-uri(.)" as="xs:anyURI"/>
+
+        <xsl:call-template name="ldh:ShowModalForm">
             <xsl:with-param name="form" as="element()">
                 <xsl:call-template name="ldh:AddDataForm">
                     <xsl:with-param name="action" select="ldh:href(resolve-uri('transform', ldt:base()), map{})"/>
@@ -986,14 +989,23 @@ LIMIT   10
                     <xsl:with-param name="legend-label" select="ac:label(key('resources', 'import-ontology', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri))))"/>
                 </xsl:call-template>
             </xsl:with-param>
+            <xsl:with-param name="target" select="$target"/>
+        </xsl:call-template>
+
+        <xsl:call-template name="ldh:LoadTypeaheads">
+            <xsl:with-param name="typeahead-spans" select="(id('upload-rdf-doc', ixsl:page())/.., id('remote-rdf-doc', ixsl:page())/..)"/>
+            <xsl:with-param name="graph" select="$graph"/>
         </xsl:call-template>
     </xsl:template>
 
     <xsl:template match="button[contains-token(@class, 'btn-generate-containers')]" mode="ixsl:onclick">
-        <xsl:call-template name="ldh:ShowAddDataForm">
+        <xsl:variable name="target" select="id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')][contains-token(@class, 'active')]/div[contains-token(@class, 'document-body')]/div[contains-token(@class, 'content-body')]" as="element()"/>
+
+        <xsl:call-template name="ldh:ShowModalForm">
             <xsl:with-param name="form" as="element()">
                 <xsl:call-template name="ldh:GenerateContainersForm"/>
             </xsl:with-param>
+            <xsl:with-param name="target" select="$target"/>
         </xsl:call-template>
     </xsl:template>
 
@@ -1065,22 +1077,28 @@ LIMIT   10
         <!-- TO-DO: fix for admin apps -->
         <xsl:param name="this" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/>
         <xsl:variable name="request-uri" select="ldh:href(ac:build-uri(resolve-uri('access', lapp:origin($this)), map{ 'this': $this }))" as="xs:anyURI"/>
-        <xsl:variable name="request" as="item()*">
-            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
-                <xsl:call-template name="onAccessResponseLoad">
-                    <xsl:with-param name="agent" select="$acl:agent"/>
-                    <xsl:with-param name="this" select="$this"/>
-                </xsl:call-template>
-            </ixsl:schedule-action>
-        </xsl:variable>
-        <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
+        <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
+        <xsl:variable name="context" as="map(*)" select="
+          map{
+            'request': $request,
+            'agent': $acl:agent,
+            'this': $this
+          }"/>
+
+        <ixsl:promise select="
+          ixsl:http-request($context('request'))
+            => ixsl:then(ldh:rethread-response($context, ?))
+            => ixsl:then(ldh:handle-response#1)
+            => ixsl:then(ldh:access-response#1)
+        " on-failure="ldh:promise-failure#1"/>
     </xsl:template>
     
     <xsl:template match="button[contains-token(@class, 'btn-reconcile')]" mode="ixsl:onclick">
         <xsl:variable name="resource" select="input[@name = 'resource']/@value" as="xs:anyURI"/>
         <xsl:variable name="label" select="input[@name = 'label']/@value" as="xs:string"/>
         <xsl:variable name="service" select="input[@name = 'service']/@value" as="xs:anyURI"/>
-        
+        <xsl:variable name="target" select="id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')][contains-token(@class, 'active')]/div[contains-token(@class, 'document-body')]/div[contains-token(@class, 'content-body')]" as="element()"/>
+
         <xsl:call-template name="ldh:ShowModalForm">
             <xsl:with-param name="form" as="element()">
                 <xsl:call-template name="ldh:ReconcileForm">
@@ -1089,6 +1107,7 @@ LIMIT   10
                     <xsl:with-param name="service" select="$service"/>
                 </xsl:call-template>
             </xsl:with-param>
+            <xsl:with-param name="target" select="$target"/>
         </xsl:call-template>
     </xsl:template>
     
@@ -1198,15 +1217,19 @@ LIMIT   10
         </xsl:variable>    
         <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': $query-string })" as="xs:anyURI"/>
         <xsl:variable name="request-uri" select="ldh:href($results-uri)" as="xs:anyURI"/>
+        <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml' } }" as="map(*)"/>
+        <xsl:variable name="context" as="map(*)" select="
+          map{
+            'request': $request,
+            'container': $fieldset
+          }"/>
 
-        <xsl:variable name="request" as="item()*">
-            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml' } }" wait="$timeout">
-                <xsl:call-template name="onEndpointClassesLoad">
-                    <xsl:with-param name="container" select="$fieldset"/>
-                </xsl:call-template>
-            </ixsl:schedule-action>
-        </xsl:variable>
-        <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
+        <ixsl:promise select="
+          ixsl:http-request($context('request'))
+            => ixsl:then(ldh:rethread-response($context, ?))
+            => ixsl:then(ldh:handle-response#1)
+            => ixsl:then(ldh:endpoint-classes-response#1)
+        " on-failure="ldh:promise-failure#1"/>
     </xsl:template>
 
     <!-- validate form before submitting it and show errors on required control-groups where input values are missing -->
@@ -1272,7 +1295,8 @@ LIMIT   10
                 <xsl:variable name="form" select="$context('form')" as="element()?"/>
                 <xsl:sequence select="ixsl:call($form/ancestor::div[contains-token(@class, 'modal')], 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
                 <xsl:call-template name="ldh:DocumentNavigate">
-                    <xsl:with-param name="uri" select="$doc-uri"/>
+                    <xsl:with-param name="doc-uri" select="$doc-uri"/>
+                    <xsl:with-param name="fragment" select="()"/>
                 </xsl:call-template>
             </xsl:when>
             <xsl:when test="$status = 201 and map:contains($response?headers, 'location')">
@@ -1287,65 +1311,60 @@ LIMIT   10
         </xsl:choose>
     </xsl:function>
     
-    <!-- show "Add data"/"Save as" form -->
 
-    <xsl:template name="ldh:ShowAddDataForm">
+    <!-- show modal form -->
+
+    <xsl:template name="ldh:ShowModalForm">
         <xsl:param name="form" as="element()"/>
-        <xsl:param name="graph" select="ldh:base-uri(.)" as="xs:anyURI?"/>
+        <xsl:param name="target" as="element()"/>
 
-        <!-- don't append the div if it's already there -->
+        <!-- per-pane modal ids guarantee uniqueness, so the page-wide existence check suffices -->
         <xsl:if test="not(id($form/@id, ixsl:page()))">
-            <xsl:for-each select="ixsl:page()//body">
-                <!-- append modal div to body -->
+            <xsl:for-each select="$target">
                 <xsl:result-document href="?." method="ixsl:append-content">
                     <xsl:sequence select="$form"/>
                 </xsl:result-document>
-
-                <xsl:if test="$graph">
-                    <xsl:variable name="request-uri" select="ldh:href($graph, map{})" as="xs:anyURI"/>
-                    <!-- fill the container typeahead values for both #upload-rdf-doc and #remote-rdf-doc -->
-                    <xsl:for-each select="(id('upload-rdf-doc', ixsl:page())/.., id('remote-rdf-doc', ixsl:page())/..)">
-                        <xsl:variable name="request" as="item()*">
-                            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
-                                <xsl:call-template name="onTypeaheadResourceLoad">
-                                    <xsl:with-param name="resource-uri" select="$graph"/>
-                                    <xsl:with-param name="typeahead-span" select="."/>
-                                </xsl:call-template>
-                            </ixsl:schedule-action>
-                        </xsl:variable>
-                        <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
-                    </xsl:for-each>
-                </xsl:if>
 
                 <ixsl:set-style name="cursor" select="'default'"/>
             </xsl:for-each>
         </xsl:if>
     </xsl:template>
 
-    <!-- show modal form -->
-    
-    <xsl:template name="ldh:ShowModalForm">
-        <xsl:param name="form" as="element()"/>
-        
-        <!-- don't append the div if it's already there -->
-        <xsl:if test="not(id($form/@id, ixsl:page()))">
-            <xsl:for-each select="ixsl:page()//body">
-                <!-- append modal div to body -->
-                <xsl:result-document href="?." method="ixsl:append-content">
-                    <xsl:sequence select="$form"/>
-                </xsl:result-document>
+    <!-- populate typeahead spans inside a freshly-appended form modal with values from $graph -->
 
-                <ixsl:set-style name="cursor" select="'default'"/>
-            </xsl:for-each>
-        </xsl:if>
+    <xsl:template name="ldh:LoadTypeaheads">
+        <xsl:param name="typeahead-spans" as="element()*"/>
+        <xsl:param name="graph" as="xs:anyURI"/>
+
+        <xsl:variable name="request-uri" select="ldh:href($graph, map{})" as="xs:anyURI"/>
+        <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
+        <xsl:for-each select="$typeahead-spans">
+            <xsl:variable name="context" as="map(*)" select="
+              map{
+                'request': $request,
+                'resource-uri': $graph,
+                'typeahead-span': .
+              }"/>
+            <ixsl:promise select="
+              ixsl:http-request($context('request'))
+                => ixsl:then(ldh:rethread-response($context, ?))
+                => ixsl:then(ldh:handle-response#1)
+                => ixsl:then(ldh:typeahead-resource-response#1)
+            " on-failure="ldh:promise-failure#1"/>
+        </xsl:for-each>
     </xsl:template>
 
     <!-- render schema classes loaded from a SPARQL endpoint -->
-    
-    <xsl:template name="onEndpointClassesLoad">
-        <xsl:context-item as="map(*)" use="required"/>
-        <xsl:param name="container" as="element()"/>
-        <xsl:param name="arg-bnode-id" select="'generate'" as="xs:string"/>
+
+    <xsl:function name="ldh:endpoint-classes-response" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:variable name="response" select="$context('response')" as="map(*)"/>
+        <xsl:variable name="status" select="$response?status" as="xs:double"/>
+        <xsl:variable name="media-type" select="$response?media-type" as="xs:string?"/>
+        <xsl:variable name="container" select="$context('container')" as="element()"/>
+        <xsl:variable name="arg-bnode-id" select="if (map:contains($context, 'arg-bnode-id')) then $context('arg-bnode-id') else 'generate'" as="xs:string"/>
+
+        <xsl:message>ldh:endpoint-classes-response</xsl:message>
 
         <!-- append the controls for the class list if they don't exist -->
         <xsl:for-each select="$container[not(./div[contains-token(@class, 'endpoint-classes')])]">
@@ -1364,8 +1383,8 @@ LIMIT   10
         <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
 
         <xsl:choose>
-            <xsl:when test="?status = 200 and ?media-type = 'application/sparql-results+xml'">
-                <xsl:for-each select="?body">
+            <xsl:when test="$status = 200 and $media-type = 'application/sparql-results+xml'">
+                <xsl:for-each select="$response?body">
                     <xsl:variable name="results" select="." as="document-node()"/>
 
                     <!-- populate the class list within div.controls -->
@@ -1405,8 +1424,8 @@ LIMIT   10
                 </xsl:for-each>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:variable name="message" select="?message" as="xs:string?"/>
-                
+                <xsl:variable name="message" select="$response?message" as="xs:string?"/>
+
                 <xsl:for-each select="$container//div[contains-token(@class, 'endpoint-classes')]/div">
                     <xsl:result-document href="?." method="ixsl:replace-content">
                         <div class="alert alert-block">
@@ -1423,16 +1442,21 @@ LIMIT   10
                 </xsl:for-each>
             </xsl:otherwise>
         </xsl:choose>
-    </xsl:template>
+    </xsl:function>
     
-    <xsl:template name="onTypeaheadResourceLoad">
-        <xsl:context-item as="map(*)" use="required"/>
-        <xsl:param name="resource-uri" as="xs:anyURI"/>
-        <xsl:param name="typeahead-span" as="element()"/>
+    <xsl:function name="ldh:typeahead-resource-response" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:variable name="response" select="$context('response')" as="map(*)"/>
+        <xsl:variable name="status" select="$response?status" as="xs:double"/>
+        <xsl:variable name="media-type" select="$response?media-type" as="xs:string?"/>
+        <xsl:variable name="resource-uri" select="$context('resource-uri')" as="xs:anyURI"/>
+        <xsl:variable name="typeahead-span" select="$context('typeahead-span')" as="element()"/>
+
+        <xsl:message>ldh:typeahead-resource-response</xsl:message>
 
         <xsl:choose>
-            <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
-                <xsl:for-each select="?body">
+            <xsl:when test="$status = 200 and $media-type = 'application/rdf+xml'">
+                <xsl:for-each select="$response?body">
                     <xsl:variable name="resource" select="key('resources', $resource-uri)" as="element()?"/>
 
                     <xsl:choose>
@@ -1461,22 +1485,28 @@ LIMIT   10
                 </xsl:for-each>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ ?message ])"/>
+                <xsl:sequence select="ldh:error-response-alert($context)"/>
             </xsl:otherwise>
         </xsl:choose>
-        
+
         <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
-    </xsl:template>
+    </xsl:function>
     
-    <xsl:template name="onAccessResponseLoad">
-        <xsl:context-item as="map(*)" use="required"/>
-        <xsl:param name="agent" as="xs:anyURI"/>
-        <xsl:param name="this" as="xs:anyURI"/>
+    <xsl:function name="ldh:access-response" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:variable name="response" select="$context('response')" as="map(*)"/>
+        <xsl:variable name="status" select="$response?status" as="xs:double"/>
+        <xsl:variable name="media-type" select="$response?media-type" as="xs:string?"/>
+        <xsl:variable name="agent" select="$context('agent')" as="xs:anyURI"/>
+        <xsl:variable name="this" select="$context('this')" as="xs:anyURI"/>
+
+        <xsl:message>ldh:access-response</xsl:message>
 
         <xsl:choose>
-            <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
-                <xsl:variable name="body" select="?body" as="document-node()"/>
-                
+            <xsl:when test="$status = 200 and $media-type = 'application/rdf+xml'">
+                <xsl:variable name="body" select="$response?body" as="document-node()"/>
+                <xsl:variable name="target" select="id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')][contains-token(@class, 'active')]/div[contains-token(@class, 'document-body')]/div[contains-token(@class, 'content-body')]" as="element()"/>
+
                 <xsl:call-template name="ldh:ShowModalForm">
                     <xsl:with-param name="form" as="element()">
                         <xsl:apply-templates select="$body" mode="ldh:RequestAccessForm">
@@ -1484,8 +1514,9 @@ LIMIT   10
                             <xsl:with-param name="agent" select="$agent"/>
                         </xsl:apply-templates>
                     </xsl:with-param>
+                    <xsl:with-param name="target" select="$target"/>
                 </xsl:call-template>
-                
+
                 <xsl:for-each select="id('request-access-matrix', ixsl:page())">
                     <xsl:result-document href="?." method="ixsl:replace-content">
                         <xsl:apply-templates select="$body/rdf:RDF" mode="request-access-matrix">
@@ -1496,10 +1527,10 @@ LIMIT   10
                 </xsl:for-each>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ ?message ])"/>
+                <xsl:sequence select="ldh:error-response-alert($context)"/>
             </xsl:otherwise>
         </xsl:choose>
-    </xsl:template>
+    </xsl:function>
 
     <xsl:function name="ldh:settings-form-response" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
@@ -1571,7 +1602,8 @@ LIMIT   10
                 <xsl:sequence select="ixsl:call($form/ancestor::div[contains-token(@class, 'modal')], 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
 
                 <xsl:call-template name="ldh:DocumentNavigate">
-                    <xsl:with-param name="uri" select="ac:absolute-path($uri)"/>
+                    <xsl:with-param name="doc-uri" select="ac:absolute-path($uri)"/>
+                    <xsl:with-param name="fragment" select="ac:fragment-id($uri)"/>
                 </xsl:call-template>
             </xsl:when>
             <!-- Error -->
@@ -1598,7 +1630,8 @@ LIMIT   10
                 <xsl:sequence select="ixsl:call($form/ancestor::div[contains-token(@class, 'modal')], 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
 
                 <xsl:call-template name="ldh:DocumentNavigate">
-                    <xsl:with-param name="uri" select="ac:absolute-path($uri)"/>
+                    <xsl:with-param name="doc-uri" select="ac:absolute-path($uri)"/>
+                    <xsl:with-param name="fragment" select="ac:fragment-id($uri)"/>
                 </xsl:call-template>
             </xsl:when>
             <!-- Error: render error message inline in the form's fieldset -->

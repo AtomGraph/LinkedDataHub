@@ -419,6 +419,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="base" as="xs:anyURI?"/>
         <xsl:param name="endpoint" as="xs:anyURI?"/>
         <xsl:param name="application" as="xs:anyURI?"/>
+        <xsl:param name="about" as="xs:anyURI"/>
         <xsl:param name="object-metadata" as="document-node()?" tunnel="yes"/>
 
         <div>
@@ -444,6 +445,7 @@ extension-element-prefixes="ixsl"
 
             <xsl:apply-templates select="." mode="bs2:DocumentBody">
                 <xsl:with-param name="mode" select="$mode"/>
+                <xsl:with-param name="about" select="$about"/>
             </xsl:apply-templates>
         </div>
     </xsl:template>
@@ -454,7 +456,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="class" select="'document-body'" as="xs:string?"/>
         <xsl:param name="mode" as="xs:anyURI"/>
-        <xsl:param name="about" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/>
+        <xsl:param name="about" as="xs:anyURI"/>
         <xsl:param name="object-metadata" as="document-node()?" tunnel="yes"/>
 
         <div>
@@ -464,9 +466,7 @@ extension-element-prefixes="ixsl"
             <xsl:if test="$class">
                 <xsl:attribute name="class" select="$class"/>
             </xsl:if>
-            <xsl:if test="$about">
-                <xsl:attribute name="about" select="$about"/>
-            </xsl:if>
+            <xsl:attribute name="about" select="$about"/>
 
             <xsl:apply-templates select="." mode="bs2:ActionBar">
                 <xsl:with-param name="active-mode" select="$mode"/>
