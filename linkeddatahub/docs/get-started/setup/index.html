@@ -3,7 +3,7 @@
       <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
       <title>LinkedDataHub v5 — Setup</title>
       <meta name="description" content="Setup LinkedDataHub on your local machine or access it in the cloud"/>
-      <meta name="last-modified" content="2026-04-03T07:22:02Z"/>
+      <meta name="last-modified" content="2026-05-20T18:11:31Z"/>
       <link href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/files/css/bootstrap.css" rel="stylesheet" type="text/css"/>
       <link href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/files/css/bootstrap-responsive.css" rel="stylesheet" type="text/css"/>
       <link href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/files/css/linkeddatahub-bootstrap.css" rel="stylesheet" type="text/css"/>
@@ -137,36 +137,34 @@
                   
                   <div>
                      
-                     <div>
+                     <h3 id="start-linkeddatahub">Start LinkedDataHub</h3>
+                     
+                     <p>This section assumes you will be running on your local machine, i.e. <samp>localhost</samp>. If you intend to run it on a different host, <a href="../../user-guide/change-system-base-uri/#base-uri">change the system base URI</a>.</p>
+                     
+                     <p>Prerequisites:</p>
+                     
+                     <ul>
                         
-                        <h3 id="start-linkeddatahub">Start LinkedDataHub</h3>
+                        <li>bash shell. It should be included by default on Linux. On Windows you can install
+                           the <a href="https://docs.microsoft.com/en-us/windows/wsl/install-win10" target="_blank">Windows Subsystem for Linux</a>.</li>
                         
-                        <p>This section assumes you will be running on your local machine, i.e. <samp>localhost</samp>. If you intend to run it on a different host, <a href="../../user-guide/change-system-base-uri/#base-uri">change the system base URI</a>.</p>
+                        <li><a href="https://www.openssl.org/" target="_blank">openssl</a> available on <code>$PATH</code>.</li>
                         
-                        <p>Prerequisites:</p>
+                        <li><a href="https://docs.docker.com/install/" target="_blank">Docker</a> installed</li>
                         
-                        <ul>
-                           
-                           <li>bash shell. It should be included by default on Linux. On Windows you can install
-                              the <a href="https://docs.microsoft.com/en-us/windows/wsl/install-win10" target="_blank">Windows Subsystem for Linux</a>.</li>
-                           
-                           <li><a href="https://www.openssl.org/" target="_blank">openssl</a> available on <code>$PATH</code>.</li>
-                           
-                           <li><a href="https://docs.docker.com/install/" target="_blank">Docker</a> installed</li>
-                           
-                           <li><a href="https://docs.docker.com/compose/install/" target="_blank">Docker Compose</a> installed</li>
-                           </ul>
+                        <li><a href="https://docs.docker.com/compose/install/" target="_blank">Docker Compose</a> installed</li>
+                        </ul>
+                     
+                     <p>Steps:</p>
+                     
+                     <ol>
                         
-                        <p>Steps:</p>
+                        <li><a href="https://guides.github.com/activities/forking/" target="_blank">Fork</a> the <a href="https://github.com/AtomGraph/LinkedDataHub" target="_blank">LinkedDataHub</a> repository
+                           and clone the fork into a folder</li>
                         
-                        <ol>
+                        <li>In the folder, create an <samp>.env</samp> file and fill out the missing values (you can use <a href="https://github.com/AtomGraph/LinkedDataHub/blob/master/.env_sample" target="_blank"><samp>.env_sample</samp></a> as a template). For example:
                            
-                           <li><a href="https://guides.github.com/activities/forking/" target="_blank">Fork</a> the <a href="https://github.com/AtomGraph/LinkedDataHub" target="_blank">LinkedDataHub</a> repository
-                              and clone the fork into a folder</li>
-                           
-                           <li>In the folder, create an <samp>.env</samp> file and fill out the missing values (you can use <a href="https://github.com/AtomGraph/LinkedDataHub/blob/master/.env_sample" target="_blank"><samp>.env_sample</samp></a> as a template). For example:
-                              
-                              <pre>COMPOSE_CONVERT_WINDOWS_PATHS=1
+                           <pre>COMPOSE_CONVERT_WINDOWS_PATHS=1
 COMPOSE_PROJECT_NAME=linkeddatahub
 
 PROTOCOL=https
@@ -183,71 +181,72 @@ OWNER_ORGANIZATION=My org
 OWNER_LOCALITY=Copenhagen
 OWNER_STATE_OR_PROVINCE=Denmark
 OWNER_COUNTRY_NAME=DK</pre>
-                              </li>
+                           </li>
+                        
+                        <li>Setup the server's SSL certificates by running this from command line:
                            
-                           <li>Setup the server's SSL certificates by running this from command line:
+                           <pre>./bin/server-cert-gen.sh .env nginx ssl</pre>
+                           The script will create an <samp>ssl/server</samp> sub-folder where the SSL certificate will be stored.
+                           </li>
+                        
+                        <li>Create the following secrets with certificate/truststore passwords:
+                           
+                           <ul>
                               
-                              <pre>./bin/server-cert-gen.sh .env nginx ssl</pre>
-                              The script will create an <samp>ssl/server</samp> sub-folder where the SSL certificate will be stored.
-                              </li>
-                           
-                           <li>Create the following secrets with certificate/truststore passwords:
+                              <li><samp>secrets/client_truststore_password.txt</samp></li>
                               
-                              <ul>
-                                 
-                                 <li><samp>secrets/client_truststore_password.txt</samp></li>
-                                 
-                                 <li><samp>secrets/owner_cert_password.txt</samp></li>
-                                 
-                                 <li><samp>secrets/secretary_cert_password.txt</samp></li>
-                                 </ul>
-                              The one you will need to remember in order to authenticate with LinkedDataHub <a href="../get-an-account/#install-cert">using WebID client certificate</a> is <samp>owner_cert_password</samp>.
-                              </li>
-                           
-                           <li>(Optional) If you need to configure Bearer token authentication for SPARQL services,
-                              create <samp>secrets/credentials.trig</samp> with your service credentials. See the <a href="../../reference/configuration/#secrets">configuration reference</a> for details.</li>
-                           
-                           <li>Run this from command line:
+                              <li><samp>secrets/owner_cert_password.txt</samp></li>
                               
-                              <pre>docker-compose up --build</pre>
-                              LinkedDataHub will start and mount the following sub-folders:
-                              
-                              <ol>
-                                 
-                                 <li><samp>data</samp> where the backend triplestores will persist RDF data</li>
-                                 
-                                 <li><samp>datasets</samp> where the owner and secretary agent metadata is persisted</li>
-                                 
-                                 <li><samp>ssl/owner</samp> and <samp>ssl/secretary</samp> where the owner and secretary SSL certificates and WebID public keys are persisted</li>
-                                 
-                                 <li><samp>uploads</samp> where LinkedDataHub stores content-hashed file uploads</li>
-                                 
-                                 <li><samp>config</samp> where <a href="../../reference/dataspace/">dataspace and service configurations</a> are stored</li>
-                                 </ol>
-                              </li>
-                           </ol>
+                              <li><samp>secrets/secretary_cert_password.txt</samp></li>
+                              </ul>
+                           The one you will need to remember in order to authenticate with LinkedDataHub <a href="../get-an-account/#install-cert">using WebID client certificate</a> is <samp>owner_cert_password</samp>.
+                           </li>
                         
-                        <p>You are now the owner of this LinkedDataHub instance; <samp>ssl/owner/keystore.p12</samp> is your WebID certificate. Password is the <samp>owner_cert_password</samp> secret value.</p>
+                        <li>(Optional) If you need to configure Bearer token authentication for SPARQL services,
+                           create <samp>secrets/credentials.trig</samp> with your service credentials. See the <a href="../../reference/configuration/#secrets">configuration reference</a> for details.</li>
                         
-                        <p>After a successful startup you should see periodic healthcheck requests being made
-                           to the <samp>https://localhost:4443/ns</samp> URL.</p>
-                        </div>
-                     <div>
-                        
-                        <h2 id="reset">Reset</h2>
-                        
-                        <p>If you need to start fresh and wipe the existing setup, you can do that using:</p>
-                        
-                        <pre>sudo rm -rf data datasets uploads ssl &amp;&amp; docker-compose down -v</pre>
-                        
-                        <div class="alert alert-info">
+                        <li>Run this from command line:
                            
-                           <p>This will remove persisted RDF data, SSL keys, and uploaded files as well as the Docker
-                              volumes.</p>
-                           </div>
-                        </div>
-                     <p class="lead">Is LinkedDataHub running? Proceed to <a href="../get-an-account/">get an account</a>.</p>
+                           <pre>docker-compose up --build</pre>
+                           LinkedDataHub will start and mount the following sub-folders:
+                           
+                           <ol>
+                              
+                              <li><samp>data</samp> where the backend triplestores will persist RDF data</li>
+                              
+                              <li><samp>datasets</samp> where the owner and secretary agent metadata is persisted</li>
+                              
+                              <li><samp>ssl/owner</samp> and <samp>ssl/secretary</samp> where the owner and secretary SSL certificates and WebID public keys are persisted</li>
+                              
+                              <li><samp>uploads</samp> where LinkedDataHub stores content-hashed file uploads</li>
+                              
+                              <li><samp>config</samp> where <a href="../../reference/dataspace/">dataspace and service configurations</a> are stored</li>
+                              </ol>
+                           </li>
+                        </ol>
+                     
+                     <p>You are now the owner of this LinkedDataHub instance; <samp>ssl/owner/keystore.p12</samp> is your WebID certificate. Password is the <samp>owner_cert_password</samp> secret value.</p>
+                     
+                     <p>After a successful startup you should see periodic healthcheck requests being made
+                        to the <samp>https://localhost:4443/ns</samp> URL.</p>
                      </div>
+                  
+                  <div>
+                     
+                     <h2 id="reset">Reset</h2>
+                     
+                     <p>If you need to start fresh and wipe the existing setup, you can do that using:</p>
+                     
+                     <pre>sudo rm -rf data datasets uploads ssl &amp;&amp; docker-compose down -v</pre>
+                     
+                     <div class="alert alert-info">
+                        
+                        <p>This will remove persisted RDF data, SSL keys, and uploaded files as well as the Docker
+                           volumes.</p>
+                        </div>
+                     </div>
+                  
+                  <p class="lead">Is LinkedDataHub running? Proceed to <a href="../get-an-account/">get an account</a>.</p>
                   </div>
             </main>
          </div>
