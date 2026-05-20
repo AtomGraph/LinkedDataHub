@@ -28,7 +28,7 @@ exclude-result-prefixes="#all">
         <div class="btn-group pull-right">
             <button type="button" class="btn dropdown-toggle">
                 <xsl:value-of>
-                    <xsl:apply-templates select="key('resources', 'actions', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                    <xsl:apply-templates select="key('resources', 'actions', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
                 </xsl:value-of>
                 <xsl:text> </xsl:text>
                 <span class="caret"></span>
@@ -39,7 +39,7 @@ exclude-result-prefixes="#all">
                         <input type="hidden" name="package-uri" value="{@rdf:about}"/>
                         <button class="btn btn-primary" type="submit">
                             <xsl:value-of>
-                                <xsl:apply-templates select="key('resources', 'install', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                                <xsl:apply-templates select="key('resources', 'install', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
                             </xsl:value-of>
                         </button>
                     </form>
@@ -49,7 +49,7 @@ exclude-result-prefixes="#all">
                         <input type="hidden" name="package-uri" value="{@rdf:about}"/>
                         <button class="btn btn-danger" type="submit">
                             <xsl:value-of>
-                                <xsl:apply-templates select="key('resources', 'uninstall', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                                <xsl:apply-templates select="key('resources', 'uninstall', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
                             </xsl:value-of>
                         </button>
                     </form>

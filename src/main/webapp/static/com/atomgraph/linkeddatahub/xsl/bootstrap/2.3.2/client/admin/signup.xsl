@@ -139,7 +139,7 @@ exclude-result-prefixes="#all">
             </xsl:if>
             
             <xsl:variable name="selected" select="." as="xs:anyURI"/>
-            <xsl:for-each select="document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/admin/countries.rdf', $ac:contextUri))/rdf:RDF/*[@rdf:about]">
+            <xsl:for-each select="document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/admin/countries.rdf', $lapp:origin))/rdf:RDF/*[@rdf:about]">
                 <xsl:sort select="ac:label(.)" lang="{$ldt:lang}"/>
                 <xsl:apply-templates select="." mode="xhtml:Option">
                     <xsl:with-param name="selected" select="@rdf:about = $selected"/>
@@ -294,7 +294,7 @@ exclude-result-prefixes="#all">
 
     <xsl:template match="*[@rdf:about = '&foaf;mbox'][ac:absolute-path(ldh:request-uri()) = resolve-uri(encode-for-uri('sign up'), ldt:base())]" mode="ac:label" priority="1">
         <xsl:value-of>
-            <xsl:apply-templates select="key('resources', 'email', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+            <xsl:apply-templates select="key('resources', 'email', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
         </xsl:value-of>
     </xsl:template>
 

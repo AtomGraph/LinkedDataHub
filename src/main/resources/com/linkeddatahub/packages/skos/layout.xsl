@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE xsl:stylesheet [
     <!ENTITY ldh    "https://w3id.org/atomgraph/linkeddatahub#">
+    <!ENTITY lapp   "https://w3id.org/atomgraph/linkeddatahub/apps#">
     <!ENTITY ac     "https://w3id.org/atomgraph/client#">
     <!ENTITY rdf    "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
     <!ENTITY rdfs   "http://www.w3.org/2000/01/rdf-schema#">
@@ -15,6 +16,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
 xmlns:xhtml="http://www.w3.org/1999/xhtml"
 xmlns:xs="http://www.w3.org/2001/XMLSchema"
 xmlns:ldh="&ldh;"
+xmlns:lapp="&lapp;"
 xmlns:ac="&ac;"
 xmlns:rdf="&rdf;"
 xmlns:rdfs="&rdfs;"
@@ -31,29 +33,29 @@ exclude-result-prefixes="#all">
 
     <xsl:param name="foaf:Agent" as="document-node()?"/>
 
-    <xsl:template match="rdf:RDF | srx:sparql" mode="xhtml:Style">
+    <xsl:template match="rdf:RDF[$lapp:origin] | srx:sparql[$lapp:origin]" mode="xhtml:Style">
         <xsl:param name="load-wymeditor" select="exists($foaf:Agent//@rdf:about)" as="xs:boolean"/>
         <xsl:param name="load-yasqe" select="true()" as="xs:boolean"/>
 
         <xsl:apply-imports/>
 
         <!-- inject custom Bootstrap theme that overrides the default one -->
-        <link href="{resolve-uri('static/com/linkeddatahub/demo/skos/css/bootstrap.css', $ac:contextUri)}" rel="stylesheet" type="text/css"/>
+        <link href="{resolve-uri('static/com/linkeddatahub/demo/skos/css/bootstrap.css', $lapp:origin)}" rel="stylesheet" type="text/css"/>
         <!-- re-apply LinkedDataHub's Bootstrap customizations -->
-        <link href="{resolve-uri('static/com/atomgraph/linkeddatahub/css/bootstrap.css', $ac:contextUri)}" rel="stylesheet" type="text/css"/>
+        <link href="{resolve-uri('static/com/atomgraph/linkeddatahub/css/bootstrap.css', $lapp:origin)}" rel="stylesheet" type="text/css"/>
 
         <xsl:if test="$load-wymeditor">
-            <link href="{resolve-uri('static/com/atomgraph/linkeddatahub/js/wymeditor/skins/default/skin.css', $ac:contextUri)}" rel="stylesheet" type="text/css"/>
+            <link href="{resolve-uri('static/com/atomgraph/linkeddatahub/js/wymeditor/skins/default/skin.css', $lapp:origin)}" rel="stylesheet" type="text/css"/>
         </xsl:if>
         <xsl:if test="$load-yasqe">
-            <link href="{resolve-uri('static/css/yasqe.css', $ac:contextUri)}" rel="stylesheet" type="text/css"/>
+            <link href="{resolve-uri('static/css/yasqe.css', $lapp:origin)}" rel="stylesheet" type="text/css"/>
         </xsl:if>
     </xsl:template>
 
-    <xsl:template match="rdf:RDF" mode="xhtml:Style">
+    <xsl:template match="rdf:RDF[$lapp:origin]" mode="xhtml:Style">
         <xsl:next-match/>
 
-        <link href="{resolve-uri('static/com/linkeddatahub/demo/skos/css/bootstrap.css', $ac:contextUri)}" rel="stylesheet" type="text/css"/>
+        <link href="{resolve-uri('static/com/linkeddatahub/demo/skos/css/bootstrap.css', $lapp:origin)}" rel="stylesheet" type="text/css"/>
     </xsl:template>
 
     <xsl:template match="skos:narrower | skos:broader | skos:related | skos:member" mode="bs2:PropertyList"/>

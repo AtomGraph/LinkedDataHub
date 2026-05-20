@@ -224,7 +224,7 @@ exclude-result-prefixes="#all"
         <xsl:choose>
             <xsl:when test="@name = $count-var-name">
                 <strong>
-                    <xsl:apply-templates select="key('resources', 'total-results', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                    <xsl:apply-templates select="key('resources', 'total-results', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
                     <xsl:text> </xsl:text>
                     <span class="badge badge-inverse">
                         <xsl:value-of select="srx:literal"/>
@@ -796,7 +796,7 @@ exclude-result-prefixes="#all"
                                     <option>
                                         <xsl:value-of>
                                             <xsl:text>[</xsl:text>
-                                            <xsl:apply-templates select="key('resources', 'none', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                                            <xsl:apply-templates select="key('resources', 'none', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
                                             <xsl:text>]</xsl:text>
                                         </xsl:value-of>
                                     </option>
@@ -820,14 +820,14 @@ exclude-result-prefixes="#all"
                                 <xsl:when test="not($desc)">
                                     <button type="button" class="btn btn-order-by">
                                         <xsl:value-of>
-                                            <xsl:apply-templates select="key('resources', 'ascending', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                                            <xsl:apply-templates select="key('resources', 'ascending', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
                                         </xsl:value-of>
                                     </button>
                                 </xsl:when>
                                 <xsl:otherwise>
                                     <button type="button" class="btn btn-order-by btn-order-by-desc">
                                         <xsl:value-of>
-                                            <xsl:apply-templates select="key('resources', 'descending', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                                            <xsl:apply-templates select="key('resources', 'descending', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
                                         </xsl:value-of>
                                     </button>
                                 </xsl:otherwise>
@@ -1148,7 +1148,7 @@ exclude-result-prefixes="#all"
             </xsl:if>
             
             <h2 class="nav-header btn">
-                <xsl:apply-templates select="key('resources', 'related-results', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                <xsl:apply-templates select="key('resources', 'related-results', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
             </h2>
 
             <ul id="{$properties-container-id}" class="well well-small nav nav-list">
