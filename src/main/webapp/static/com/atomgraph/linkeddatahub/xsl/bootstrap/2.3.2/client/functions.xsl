@@ -81,6 +81,10 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="if ($active-pane and ixsl:contains($active-pane, 'dataset.application')) then xs:anyURI(ixsl:get($active-pane, 'dataset.application')) else ()"/>
     </xsl:function>
 
+    <xsl:function name="lapp:origin" as="xs:anyURI">
+        <xsl:sequence select="lapp:origin(ldt:base())"/>
+    </xsl:function>
+
     <xsl:function name="ldh:query-type" as="xs:string?">
         <xsl:param name="query-string" as="xs:string"/>
         

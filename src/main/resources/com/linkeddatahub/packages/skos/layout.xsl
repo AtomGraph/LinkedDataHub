@@ -33,29 +33,29 @@ exclude-result-prefixes="#all">
 
     <xsl:param name="foaf:Agent" as="document-node()?"/>
 
-    <xsl:template match="rdf:RDF[$lapp:origin] | srx:sparql[$lapp:origin]" mode="xhtml:Style">
+    <xsl:template match="rdf:RDF[lapp:origin()] | srx:sparql[lapp:origin()]" mode="xhtml:Style">
         <xsl:param name="load-wymeditor" select="exists($foaf:Agent//@rdf:about)" as="xs:boolean"/>
         <xsl:param name="load-yasqe" select="true()" as="xs:boolean"/>
 
         <xsl:apply-imports/>
 
         <!-- inject custom Bootstrap theme that overrides the default one -->
-        <link href="{resolve-uri('static/com/linkeddatahub/demo/skos/css/bootstrap.css', $lapp:origin)}" rel="stylesheet" type="text/css"/>
+        <link href="{resolve-uri('static/com/linkeddatahub/demo/skos/css/bootstrap.css', lapp:origin())}" rel="stylesheet" type="text/css"/>
         <!-- re-apply LinkedDataHub's Bootstrap customizations -->
-        <link href="{resolve-uri('static/com/atomgraph/linkeddatahub/css/bootstrap.css', $lapp:origin)}" rel="stylesheet" type="text/css"/>
+        <link href="{resolve-uri('static/com/atomgraph/linkeddatahub/css/bootstrap.css', lapp:origin())}" rel="stylesheet" type="text/css"/>
 
         <xsl:if test="$load-wymeditor">
-            <link href="{resolve-uri('static/com/atomgraph/linkeddatahub/js/wymeditor/skins/default/skin.css', $lapp:origin)}" rel="stylesheet" type="text/css"/>
+            <link href="{resolve-uri('static/com/atomgraph/linkeddatahub/js/wymeditor/skins/default/skin.css', lapp:origin())}" rel="stylesheet" type="text/css"/>
         </xsl:if>
         <xsl:if test="$load-yasqe">
-            <link href="{resolve-uri('static/css/yasqe.css', $lapp:origin)}" rel="stylesheet" type="text/css"/>
+            <link href="{resolve-uri('static/css/yasqe.css', lapp:origin())}" rel="stylesheet" type="text/css"/>
         </xsl:if>
     </xsl:template>
 
-    <xsl:template match="rdf:RDF[$lapp:origin]" mode="xhtml:Style">
+    <xsl:template match="rdf:RDF[lapp:origin()]" mode="xhtml:Style">
         <xsl:next-match/>
 
-        <link href="{resolve-uri('static/com/linkeddatahub/demo/skos/css/bootstrap.css', $lapp:origin)}" rel="stylesheet" type="text/css"/>
+        <link href="{resolve-uri('static/com/linkeddatahub/demo/skos/css/bootstrap.css', lapp:origin())}" rel="stylesheet" type="text/css"/>
     </xsl:template>
 
     <xsl:template match="skos:narrower | skos:broader | skos:related | skos:member" mode="bs2:PropertyList"/>

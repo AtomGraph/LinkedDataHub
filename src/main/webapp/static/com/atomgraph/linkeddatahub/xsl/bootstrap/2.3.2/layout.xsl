@@ -116,10 +116,10 @@ exclude-result-prefixes="#all">
     <xsl:param name="doc-types" select="key('resources', ac:absolute-path(ldh:base-uri(.)))/rdf:type/@rdf:resource[ . = ('&def;Root', '&dh;Container', '&dh;Item')]" as="xs:anyURI*"/>
     <xsl:param name="location-mapping" as="map(xs:anyURI, xs:anyURI)">
         <xsl:map>
-            <xsl:if test="$lapp:origin">
-                <xsl:map-entry key="resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)" select="resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)"/>
-                <xsl:map-entry key="resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/http-statusCodes.rdf', $lapp:origin)" select="resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/http-statusCodes.rdf', $lapp:origin)"/>
-                <xsl:map-entry key="resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/admin/countries.rdf', $lapp:origin)" select="resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/admin/countries.rdf', $lapp:origin)"/>                
+            <xsl:if test="lapp:origin()">
+                <xsl:map-entry key="resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', lapp:origin())" select="resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', lapp:origin())"/>
+                <xsl:map-entry key="resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/http-statusCodes.rdf', lapp:origin())" select="resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/http-statusCodes.rdf', lapp:origin())"/>
+                <xsl:map-entry key="resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/admin/countries.rdf', lapp:origin())" select="resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/admin/countries.rdf', lapp:origin())"/>                
             </xsl:if>
 
             <xsl:map-entry key="xs:anyURI(ac:document-uri(xs:anyURI('&ac;')))" select="ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri(xs:anyURI('&ac;'))), 'accept': 'application/rdf+xml' })"/>
@@ -262,7 +262,7 @@ exclude-result-prefixes="#all">
 
     <xsl:template match="rdf:RDF" mode="xhtml:Title">
         <title>
-            <xsl:for-each select="key('apps-by-origin', $lapp:origin, $lapp:Context)">
+            <xsl:for-each select="key('apps-by-origin', lapp:origin(), $lapp:Context)">
                 <xsl:value-of>
                     <xsl:apply-templates select="." mode="ac:label"/>
                 </xsl:value-of>
@@ -321,33 +321,33 @@ exclude-result-prefixes="#all">
             </xsl:for-each>
         </xsl:for-each>
 
-        <xsl:for-each select="key('apps-by-origin', $lapp:origin, $lapp:Context)">
+        <xsl:for-each select="key('apps-by-origin', lapp:origin(), $lapp:Context)">
             <meta property="og:site_name" content="{ac:label(.)}"/>
         </xsl:for-each>
     </xsl:template>
 
     <!-- STYLE -->
     
-    <xsl:template match="rdf:RDF[$lapp:origin] | srx:sparql[$lapp:origin]" mode="xhtml:Style">
+    <xsl:template match="rdf:RDF[lapp:origin()] | srx:sparql[lapp:origin()]" mode="xhtml:Style">
         <xsl:param name="load-wymeditor" select="exists($foaf:Agent//@rdf:about)" as="xs:boolean"/>
         <xsl:param name="load-yasqe" select="true()" as="xs:boolean"/>
 
-        <link href="{resolve-uri('static/css/bootstrap.css', $lapp:origin)}" rel="stylesheet" type="text/css"/>
-        <link href="{resolve-uri('static/css/bootstrap-responsive.css', $lapp:origin)}" rel="stylesheet" type="text/css"/>
-        <link href="{resolve-uri('static/com/atomgraph/client/css/bootstrap.css', $lapp:origin)}" rel="stylesheet" type="text/css"/>
-        <link href="{resolve-uri('static/com/atomgraph/linkeddatahub/css/bootstrap.css', $lapp:origin)}" rel="stylesheet" type="text/css"/>
+        <link href="{resolve-uri('static/css/bootstrap.css', lapp:origin())}" rel="stylesheet" type="text/css"/>
+        <link href="{resolve-uri('static/css/bootstrap-responsive.css', lapp:origin())}" rel="stylesheet" type="text/css"/>
+        <link href="{resolve-uri('static/com/atomgraph/client/css/bootstrap.css', lapp:origin())}" rel="stylesheet" type="text/css"/>
+        <link href="{resolve-uri('static/com/atomgraph/linkeddatahub/css/bootstrap.css', lapp:origin())}" rel="stylesheet" type="text/css"/>
         <xsl:if test="$load-wymeditor">
-            <link href="{resolve-uri('static/com/atomgraph/linkeddatahub/js/wymeditor/skins/default/skin.css', $lapp:origin)}" rel="stylesheet" type="text/css"/>
+            <link href="{resolve-uri('static/com/atomgraph/linkeddatahub/js/wymeditor/skins/default/skin.css', lapp:origin())}" rel="stylesheet" type="text/css"/>
         </xsl:if>
         <xsl:if test="$load-yasqe">
-            <link href="{resolve-uri('static/css/yasqe.css', $lapp:origin)}" rel="stylesheet" type="text/css"/>
+            <link href="{resolve-uri('static/css/yasqe.css', lapp:origin())}" rel="stylesheet" type="text/css"/>
         </xsl:if>
     </xsl:template>
 
     <!-- SCRIPT -->
 
-    <xsl:template match="rdf:RDF[$lapp:origin] | srx:sparql[$lapp:origin]" mode="xhtml:Script">
-        <xsl:param name="client-stylesheet" select="resolve-uri('static/com/atomgraph/linkeddatahub/xsl/client.xsl.sef.json', $lapp:origin)" as="xs:anyURI"/>
+    <xsl:template match="rdf:RDF[lapp:origin()] | srx:sparql[lapp:origin()]" mode="xhtml:Script">
+        <xsl:param name="client-stylesheet" select="resolve-uri('static/com/atomgraph/linkeddatahub/xsl/client.xsl.sef.json', lapp:origin())" as="xs:anyURI"/>
         <xsl:param name="saxon-js-log-level" select="10" as="xs:integer"/>
         <xsl:param name="load-wymeditor" select="not(ac:mode(root()) = ('&ac;ModalMode', '&ldht;InfoWindowMode'))" as="xs:boolean"/>
         <xsl:param name="load-yasqe" select="not(ac:mode(root()) = ('&ac;ModalMode', '&ldht;InfoWindowMode'))" as="xs:boolean"/>
@@ -361,17 +361,17 @@ exclude-result-prefixes="#all">
         <xsl:param name="location-mapping" select="$location-mapping" as="map(xs:anyURI, xs:anyURI)"/>
 
         <!-- Web-Client scripts -->
-        <script type="text/javascript" src="{resolve-uri('static/js/jquery.min.js', $lapp:origin)}" defer="defer"></script>
-        <script type="text/javascript" src="{resolve-uri('static/js/bootstrap.js', $lapp:origin)}" defer="defer"></script>
-        <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/client/js/UUID.js', $lapp:origin)}" defer="defer"></script>
+        <script type="text/javascript" src="{resolve-uri('static/js/jquery.min.js', lapp:origin())}" defer="defer"></script>
+        <script type="text/javascript" src="{resolve-uri('static/js/bootstrap.js', lapp:origin())}" defer="defer"></script>
+        <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/client/js/UUID.js', lapp:origin())}" defer="defer"></script>
         <!-- LinkedDataHub scripts -->
-        <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/jquery.js', $lapp:origin)}" defer="defer"></script>
+        <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/jquery.js', lapp:origin())}" defer="defer"></script>
         <script type="text/javascript">
             <xsl:text disable-output-escaping="yes">
               //&lt;![CDATA[
             </xsl:text>
             <![CDATA[
-                var contextUri = ]]><xsl:value-of select="if ($lapp:origin) then '&quot;' || $lapp:origin || '&quot;'  else 'null'" disable-output-escaping="yes"/><![CDATA[;
+                var contextUri = ]]><xsl:value-of select="if (lapp:origin()) then '&quot;' || lapp:origin() || '&quot;'  else 'null'" disable-output-escaping="yes"/><![CDATA[;
                 var agentUri = []]><xsl:value-of select="if ($acl:agent) then '&quot;' || $acl:agent || '&quot;'  else 'null'" disable-output-escaping="yes"/><![CDATA[];
             ]]>
             <xsl:text disable-output-escaping="yes">
@@ -379,19 +379,19 @@ exclude-result-prefixes="#all">
             </xsl:text>
         </script>
         <xsl:if test="$load-wymeditor">
-            <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/wymeditor/jquery.wymeditor.js', $lapp:origin)}" defer="defer"></script>
+            <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/wymeditor/jquery.wymeditor.js', lapp:origin())}" defer="defer"></script>
         </xsl:if>
         <xsl:if test="$load-yasqe">
-            <script src="{resolve-uri('static/js/yasqe.js', $lapp:origin)}" type="text/javascript"></script>
+            <script src="{resolve-uri('static/js/yasqe.js', lapp:origin())}" type="text/javascript"></script>
         </xsl:if>
         <xsl:if test="$load-graph3d">
-            <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/three.min.js', $lapp:origin)}"></script>
-            <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/three-spritetext.min.js', $lapp:origin)}"></script>
-            <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/3d-force-graph.min.js', $lapp:origin)}"></script>
+            <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/three.min.js', lapp:origin())}"></script>
+            <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/three-spritetext.min.js', lapp:origin())}"></script>
+            <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/3d-force-graph.min.js', lapp:origin())}"></script>
         </xsl:if>
         <xsl:if test="$load-saxon-js">
-            <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/resource-resolver.js', $lapp:origin)}"></script>
-            <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/saxon-js/SaxonJS3.rt.js', $lapp:origin)}" defer="defer"></script>
+            <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/resource-resolver.js', lapp:origin())}"></script>
+            <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/saxon-js/SaxonJS3.rt.js', lapp:origin())}" defer="defer"></script>
             <script type="text/javascript">
                 <xsl:text disable-output-escaping="yes">
                   //&lt;![CDATA[
@@ -448,12 +448,12 @@ exclude-result-prefixes="#all">
             </script>
         </xsl:if>
         <xsl:if test="$load-sparql-builder">
-            <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/SPARQLBuilder.js', $lapp:origin)}" defer="defer"></script>
-            <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/SPARQL.js', $lapp:origin)}" defer="defer"></script>
+            <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/SPARQLBuilder.js', lapp:origin())}" defer="defer"></script>
+            <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/SPARQL.js', lapp:origin())}" defer="defer"></script>
         </xsl:if>
         <xsl:if test="$load-sparql-map">
-            <link href="{resolve-uri('static/com/atomgraph/linkeddatahub/css/ol.css', $lapp:origin)}" rel="stylesheet" type="text/css"></link>
-            <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/ol.js', $lapp:origin)}"></script>
+            <link href="{resolve-uri('static/com/atomgraph/linkeddatahub/css/ol.css', lapp:origin())}" rel="stylesheet" type="text/css"></link>
+            <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/ol.js', lapp:origin())}"></script>
         </xsl:if>
         <xsl:if test="$load-google-charts">
             <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
@@ -464,7 +464,7 @@ exclude-result-prefixes="#all">
             </script>
         </xsl:if>
         <xsl:if test="$load-xml-c14n">
-            <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/xml-c14n-sync.js', $lapp:origin)}" defer="defer"></script>
+            <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/xml-c14n-sync.js', lapp:origin())}" defer="defer"></script>
         </xsl:if>
         <xsl:if test="$output-schema-org">
             <xsl:variable name="rdf" as="element()?">
@@ -546,9 +546,9 @@ exclude-result-prefixes="#all">
         </div>
     </xsl:template>
 
-    <xsl:template match="rdf:RDF[key('apps-by-origin', $lapp:origin, $lapp:Context)] | srx:sparql[key('apps-by-origin', $lapp:origin, $lapp:Context)]" mode="bs2:Brand" priority="1">
+    <xsl:template match="rdf:RDF[key('apps-by-origin', lapp:origin(), $lapp:Context)] | srx:sparql[key('apps-by-origin', lapp:origin(), $lapp:Context)]" mode="bs2:Brand" priority="1">
         <a class="brand" href="{$ldt:base}">
-            <xsl:for-each select="key('apps-by-origin', $lapp:origin, $lapp:Context)">
+            <xsl:for-each select="key('apps-by-origin', lapp:origin(), $lapp:Context)">
                 <xsl:if test="rdf:type/@rdf:resource = '&lapp;AdminApplication'">
                     <xsl:attribute name="class" select="'brand admin'"/>
                 </xsl:if>
@@ -579,7 +579,7 @@ exclude-result-prefixes="#all">
         <xsl:apply-templates select="." mode="bs2:SignUp"/>
     </xsl:template>
 
-    <xsl:template match="rdf:RDF[$lapp:origin][key('apps-by-origin', $lapp:origin, $lapp:Context)/rdf:type/@rdf:resource = '&lapp;EndUserApplication'] | srx:sparql[$lapp:origin][key('apps-by-origin', $lapp:origin, $lapp:Context)/rdf:type/@rdf:resource = '&lapp;EndUserApplication']" mode="bs2:DataspaceNavList" priority="1">
+    <xsl:template match="rdf:RDF[lapp:origin()][key('apps-by-origin', lapp:origin(), $lapp:Context)/rdf:type/@rdf:resource = '&lapp;EndUserApplication'] | srx:sparql[lapp:origin()][key('apps-by-origin', lapp:origin(), $lapp:Context)/rdf:type/@rdf:resource = '&lapp;EndUserApplication']" mode="bs2:DataspaceNavList" priority="1">
         <xsl:param name="id"  as="xs:string?"/>
         <xsl:param name="class" select="'nav pull-right'" as="xs:string?"/>
 
@@ -666,7 +666,7 @@ exclude-result-prefixes="#all">
 
     <!-- SIGNUP -->
     
-    <xsl:template match="rdf:RDF[$lapp:origin][not($foaf:Agent//@rdf:about)][key('apps-by-origin', $lapp:origin, $lapp:Context)/rdf:type/@rdf:resource = '&lapp;EndUserApplication'] | srx:sparql[$lapp:origin][not($foaf:Agent//@rdf:about)][key('apps-by-origin', $lapp:origin, $lapp:Context)/rdf:type/@rdf:resource = '&lapp;EndUserApplication']" mode="bs2:SignUp" priority="1">
+    <xsl:template match="rdf:RDF[lapp:origin()][not($foaf:Agent//@rdf:about)][key('apps-by-origin', lapp:origin(), $lapp:Context)/rdf:type/@rdf:resource = '&lapp;EndUserApplication'] | srx:sparql[lapp:origin()][not($foaf:Agent//@rdf:about)][key('apps-by-origin', lapp:origin(), $lapp:Context)/rdf:type/@rdf:resource = '&lapp;EndUserApplication']" mode="bs2:SignUp" priority="1">
         <!-- resolve links against the origin URI of the admin app -->
         <xsl:param name="google-signup" select="exists($google:clientID)" as="xs:boolean"/>
         <xsl:param name="orcid-signup" select="exists($orcid:clientID)" as="xs:boolean"/>
@@ -711,7 +711,7 @@ exclude-result-prefixes="#all">
         <!-- WebID signup - separate button -->
         <xsl:if test="$webid-signup">
             <div class="pull-right">
-                <a class="btn btn-primary" href="{if (not(starts-with($ldt:base, $lapp:origin))) then ac:build-uri((), map{ 'uri': string($webid-signup-uri) }) else $webid-signup-uri}">
+                <a class="btn btn-primary" href="{if (not(starts-with($ldt:base, lapp:origin()))) then ac:build-uri((), map{ 'uri': string($webid-signup-uri) }) else $webid-signup-uri}">
                     <xsl:value-of>
                         <xsl:apply-templates select="key('resources', 'sign-up', document('translations.rdf'))" mode="ac:label"/>
                     </xsl:value-of>
@@ -917,7 +917,7 @@ exclude-result-prefixes="#all">
         
     <!-- SETTINGS -->
     
-    <xsl:template match="rdf:RDF[$lapp:origin] | srx:sparql[$lapp:origin]" mode="bs2:Settings" priority="1">
+    <xsl:template match="rdf:RDF[lapp:origin()] | srx:sparql[lapp:origin()]" mode="bs2:Settings" priority="1">
         <div class="btn-group pull-right">
             <button type="button" title="{ac:label(key('resources', 'nav-bar-action-settings-title', document('translations.rdf')))}">
                 <xsl:apply-templates select="key('resources', 'settings', document('translations.rdf'))" mode="ldh:logo">
@@ -926,7 +926,7 @@ exclude-result-prefixes="#all">
             </button>
 
             <ul class="dropdown-menu">
-                <xsl:if test="$foaf:Agent//@rdf:about and key('apps-by-origin', $lapp:origin, $lapp:Context)/rdf:type/@rdf:resource = '&lapp;EndUserApplication'">
+                <xsl:if test="$foaf:Agent//@rdf:about and key('apps-by-origin', lapp:origin(), $lapp:Context)/rdf:type/@rdf:resource = '&lapp;EndUserApplication'">
                     <li>
                         <button class="btn btn-app-settings">
                             <xsl:value-of>
@@ -935,7 +935,7 @@ exclude-result-prefixes="#all">
                         </button>
                     </li>
                     <li>
-                        <a href="{replace(string($lapp:origin), '^(https?://)', '$1admin.')}" target="_blank">
+                        <a href="{replace(string(lapp:origin()), '^(https?://)', '$1admin.')}" target="_blank">
                             <xsl:value-of>
                                 <xsl:apply-templates select="key('resources', 'administration', document('translations.rdf'))" mode="ac:label"/>
                             </xsl:value-of>

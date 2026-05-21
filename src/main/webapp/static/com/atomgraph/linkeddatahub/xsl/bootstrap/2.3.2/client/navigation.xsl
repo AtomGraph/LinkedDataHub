@@ -97,11 +97,11 @@ ORDER BY DESC(?created)
         <xsl:param name="base" select="ldt:base()" as="xs:anyURI"/>
 
         <!-- dataspace-scoped search form -->
-        <form class="form-search search-form" accept-charset="UTF-8" title="{ac:label(key('resources', 'search-title', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin))))}">
+        <form class="form-search search-form" accept-charset="UTF-8" title="{ac:label(key('resources', 'search-title', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', lapp:origin()))))}">
             <div class="input-append">
-                <input type="text" name="q" class="search-query" placeholder="{ac:label(key('resources', 'search-placeholder', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin))))}"/>
+                <input type="text" name="q" class="search-query" placeholder="{ac:label(key('resources', 'search-placeholder', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', lapp:origin()))))}"/>
                 <button type="submit">
-                    <xsl:apply-templates select="key('resources', 'search', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ldh:logo">
+                    <xsl:apply-templates select="key('resources', 'search', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', lapp:origin())))" mode="ldh:logo">
                         <xsl:with-param name="class" select="'btn btn-primary'"/>
                     </xsl:apply-templates>
                 </button>
@@ -111,14 +111,14 @@ ORDER BY DESC(?created)
         <!-- document tree container -->
         <div class="document-tree">
             <h2 class="nav-header btn">
-                <xsl:apply-templates select="key('resources', 'document-tree', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                <xsl:apply-templates select="key('resources', 'document-tree', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', lapp:origin())))" mode="ac:label"/>
             </h2>
 
             <ul class="well well-small nav nav-list">
                 <li>
                     <button class="btn btn-small btn-expand-tree"></button>
                     <a href="{$base}" class="btn-logo btn-container">
-                        <xsl:apply-templates select="key('resources', 'root', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                        <xsl:apply-templates select="key('resources', 'root', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', lapp:origin())))" mode="ac:label"/>
                     </a>
                 </li>
             </ul>
@@ -127,7 +127,7 @@ ORDER BY DESC(?created)
         <!-- class list container -->
         <div class="class-list">
             <h2 class="nav-header btn">
-                <xsl:apply-templates select="key('resources', 'classes', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                <xsl:apply-templates select="key('resources', 'classes', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', lapp:origin())))" mode="ac:label"/>
             </h2>
 
             <ul class="well well-small nav nav-list">
@@ -138,18 +138,18 @@ ORDER BY DESC(?created)
         <!-- other section -->
         <div class="other-views">
             <h2 class="nav-header btn">
-                <xsl:apply-templates select="key('resources', 'other', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                <xsl:apply-templates select="key('resources', 'other', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', lapp:origin())))" mode="ac:label"/>
             </h2>
 
             <ul class="well well-small nav nav-list">
                 <li>
                     <button type="button" class="btn btn-logo btn-geo">
-                        <xsl:apply-templates select="key('resources', 'geo', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                        <xsl:apply-templates select="key('resources', 'geo', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', lapp:origin())))" mode="ac:label"/>
                     </button>
                 </li>
                 <li>
                     <button type="button" class="btn btn-logo btn-latest">
-                        <xsl:apply-templates select="key('resources', 'latest', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                        <xsl:apply-templates select="key('resources', 'latest', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', lapp:origin())))" mode="ac:label"/>
                     </button>
                 </li>
             </ul>
@@ -891,7 +891,7 @@ ORDER BY DESC(?created)
                 <div class="form-actions modal-footer">
                     <button type="button" class="btn btn-primary btn-close">
                         <xsl:value-of>
-                            <xsl:apply-templates select="key('resources', 'close', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                            <xsl:apply-templates select="key('resources', 'close', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', lapp:origin())))" mode="ac:label"/>
                         </xsl:value-of>
                     </button>
                 </div>
@@ -1005,7 +1005,7 @@ ORDER BY DESC(?created)
                 <div class="modal-header">
                     <button type="button" class="close">×</button>
                     <legend>
-                        <xsl:apply-templates select="key('resources', 'geo', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                        <xsl:apply-templates select="key('resources', 'geo', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', lapp:origin())))" mode="ac:label"/>
                     </legend>
                 </div>
                 <div class="modal-body">
@@ -1030,7 +1030,7 @@ ORDER BY DESC(?created)
                 <div class="form-actions modal-footer">
                     <button type="button" class="btn btn-primary btn-close">
                         <xsl:value-of>
-                            <xsl:apply-templates select="key('resources', 'close', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                            <xsl:apply-templates select="key('resources', 'close', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', lapp:origin())))" mode="ac:label"/>
                         </xsl:value-of>
                     </button>
                 </div>
@@ -1117,7 +1117,7 @@ ORDER BY DESC(?created)
                 <div class="modal-header">
                     <button type="button" class="close">×</button>
                     <legend>
-                        <xsl:apply-templates select="key('resources', 'latest', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                        <xsl:apply-templates select="key('resources', 'latest', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', lapp:origin())))" mode="ac:label"/>
                     </legend>
                 </div>
                 <div class="modal-body">
@@ -1142,7 +1142,7 @@ ORDER BY DESC(?created)
                 <div class="form-actions modal-footer">
                     <button type="button" class="btn btn-primary btn-close">
                         <xsl:value-of>
-                            <xsl:apply-templates select="key('resources', 'close', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                            <xsl:apply-templates select="key('resources', 'close', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', lapp:origin())))" mode="ac:label"/>
                         </xsl:value-of>
                     </button>
                 </div>
@@ -1240,13 +1240,13 @@ ORDER BY DESC(?created)
                 <div class="modal-header">
                     <button type="button" class="close">×</button>
                     <legend>
-                        <xsl:apply-templates select="key('resources', 'search', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                        <xsl:apply-templates select="key('resources', 'search', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', lapp:origin())))" mode="ac:label"/>
                     </legend>
                     <form class="form-search search-form-modal" accept-charset="UTF-8">
                         <div class="input-append">
-                            <input type="text" name="q" class="search-query" value="{$text}" placeholder="{ac:label(key('resources', 'search-placeholder', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin))))}"/>
+                            <input type="text" name="q" class="search-query" value="{$text}" placeholder="{ac:label(key('resources', 'search-placeholder', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', lapp:origin()))))}"/>
                             <button type="submit">
-                                <xsl:apply-templates select="key('resources', 'search', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ldh:logo">
+                                <xsl:apply-templates select="key('resources', 'search', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', lapp:origin())))" mode="ldh:logo">
                                     <xsl:with-param name="class" select="'btn btn-primary'"/>
                                 </xsl:apply-templates>
                             </button>
@@ -1275,7 +1275,7 @@ ORDER BY DESC(?created)
                 <div class="form-actions modal-footer">
                     <button type="button" class="btn btn-primary btn-close">
                         <xsl:value-of>
-                            <xsl:apply-templates select="key('resources', 'close', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                            <xsl:apply-templates select="key('resources', 'close', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', lapp:origin())))" mode="ac:label"/>
                         </xsl:value-of>
                     </button>
                 </div>

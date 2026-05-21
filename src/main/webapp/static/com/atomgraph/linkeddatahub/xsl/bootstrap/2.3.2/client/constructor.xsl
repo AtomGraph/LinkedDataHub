@@ -146,7 +146,7 @@ exclude-result-prefixes="#all"
                                     <p>
                                         <button type="button" class="btn btn-primary create-action add-constructor">
                                             <xsl:value-of>
-                                                <xsl:apply-templates select="key('resources', 'constructor', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                                                <xsl:apply-templates select="key('resources', 'constructor', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', lapp:origin())))" mode="ac:label"/>
                                             </xsl:value-of>
                                         </button>
                                     </p>
@@ -154,12 +154,12 @@ exclude-result-prefixes="#all"
                                 <div class="form-actions modal-footer">
                                     <button type="button" class="btn btn-primary btn-save">
                                         <xsl:value-of>
-                                            <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                                            <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', lapp:origin())))" mode="ac:label"/>
                                         </xsl:value-of>
                                     </button>
                                     <button type="button" class="btn btn-close">
                                         <xsl:value-of>
-                                            <xsl:apply-templates select="key('resources', 'cancel', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                                            <xsl:apply-templates select="key('resources', 'cancel', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', lapp:origin())))" mode="ac:label"/>
                                         </xsl:value-of>
                                     </button>
                                 </div>
@@ -227,7 +227,7 @@ exclude-result-prefixes="#all"
                 <button type="button" class="btn btn-small pull-right btn-remove-property" tabindex="-1">
                     <xsl:attribute name="title">
                         <xsl:value-of>
-                            <xsl:apply-templates select="key('resources', 'remove-stmt', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                            <xsl:apply-templates select="key('resources', 'remove-stmt', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', lapp:origin())))" mode="ac:label"/>
                         </xsl:value-of>
                     </xsl:attribute>
                 </button>
@@ -240,7 +240,7 @@ exclude-result-prefixes="#all"
                     </xsl:if>
                 </input>
                 <xsl:value-of>
-                    <xsl:apply-templates select="key('resources', 'resource', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                    <xsl:apply-templates select="key('resources', 'resource', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', lapp:origin())))" mode="ac:label"/>
                 </xsl:value-of>
             </label>
             <label class="radio">
@@ -250,7 +250,7 @@ exclude-result-prefixes="#all"
                     </xsl:if>
                 </input>
                 <xsl:value-of>
-                    <xsl:apply-templates select="key('resources', 'literal', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                    <xsl:apply-templates select="key('resources', 'literal', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', lapp:origin())))" mode="ac:label"/>
                 </xsl:value-of>
             </label>
 
