@@ -642,37 +642,95 @@ WHERE
                     </xsl:for-each>
                 </xsl:when>
                 <xsl:otherwise>
-                    <xsl:if test="?media-type = 'application/rdf+xml'">
-                        <xsl:for-each select="?body">
-                            <xsl:variable name="results" select="." as="document-node()"/>
-                            <xsl:variable name="tab-pane" select="id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')][./div[contains-token(@class, 'document-body')]/@about = $doc-uri]" as="element()?"/>
-                            <xsl:choose>
-                                <xsl:when test="$tab-pane">
-                                    <xsl:for-each select="$tab-pane/div[contains-token(@class, 'document-body')]">
-                                        <xsl:result-document href="?." method="ixsl:replace-element">
-                                            <xsl:apply-templates select="$results/rdf:RDF" mode="bs2:DocumentBody">
-                                                <xsl:with-param name="mode" select="xs:anyURI('&ac;ReadMode')"/>
-                                                <xsl:with-param name="about" select="$doc-uri"/>
-                                            </xsl:apply-templates>
-                                        </xsl:result-document>
-                                    </xsl:for-each>
-                                </xsl:when>
-                                <xsl:otherwise>
-                                    <xsl:variable name="tab-body-id" select="'tab-pane-' || ac:uuid()" as="xs:string"/>
-                                    <xsl:variable name="tab-body" as="element()">
-                                        <xsl:apply-templates select="$results/rdf:RDF" mode="bs2:TabBody">
-                                            <xsl:with-param name="id" select="$tab-body-id"/>
-                                            <xsl:with-param name="mode" select="xs:anyURI('&ac;ReadMode')"/>
-                                            <xsl:with-param name="about" select="$doc-uri"/>
-                                        </xsl:apply-templates>
-                                    </xsl:variable>
-                                    <xsl:result-document href="#tab-content" method="ixsl:append-content">
-                                        <xsl:sequence select="$tab-body"/>
-                                    </xsl:result-document>
-                                </xsl:otherwise>
-                            </xsl:choose>
+                    <!-- LDH error responses arrive as http:Response RDF; non-LDH errors (e.g. 401 JSON from an external API) carry no RDF body, so synthesize a matching http:Response so the same render path can show the error -->
+                    <xsl:variable name="results" as="document-node()">
+                        <xsl:choose>
+                            <xsl:when test="?media-type = 'application/rdf+xml' and exists(?body)">
+                                <xsl:sequence select="?body"/>
+                            </xsl:when>
+                            <xsl:otherwise>
+                                <xsl:variable name="status-resource" select="key('status-by-code', xs:integer(?status), document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/http-statusCodes.rdf', lapp:origin())))" as="element()?"/>
+                                <xsl:document>
+                                    <rdf:RDF>
+                                        <rdf:Description rdf:nodeID="error">
+                                            <rdf:type rdf:resource="&http;Response"/>
+                                            <http:statusCodeValue rdf:datatype="&xsd;int"><xsl:value-of select="?status"/></http:statusCodeValue>
+                                            <xsl:if test="?message">
+                                                <http:reasonPhrase><xsl:value-of select="?message"/></http:reasonPhrase>
+                                                <dct:title><xsl:value-of select="?message"/></dct:title>
+                                            </xsl:if>
+                                            <xsl:if test="$status-resource">
+                                                <http:sc rdf:resource="{resolve-uri($status-resource/@rdf:about, base-uri($status-resource))}"/>
+                                            </xsl:if>
+                                        </rdf:Description>
+                                    </rdf:RDF>
+                                </xsl:document>
+                            </xsl:otherwise>
+                        </xsl:choose>
+                    </xsl:variable>
+
+                    <xsl:variable name="mode" select="xs:anyURI('&ac;ReadMode')" as="xs:anyURI"/>
+                    <xsl:variable name="tab-pane" select="id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')][./div[contains-token(@class, 'document-body')]/@about = $doc-uri]" as="element()?"/>
+                    <xsl:variable name="tab-body-id" select="'tab-pane-' || ac:uuid()" as="xs:string"/>
+                    <xsl:variable name="effective-pane-id" select="if ($tab-pane) then $tab-pane/@id else $tab-body-id" as="xs:string"/>
+                    <xsl:variable name="label" select="concat('HTTP ', ?status, if (?message) then ' ' || ?message else '')" as="xs:string"/>
+
+                    <ixsl:set-property name="title" select="$label" object="ixsl:page()"/>
+
+                    <xsl:call-template name="ldh:PushState">
+                        <xsl:with-param name="href" select="ldh:href($doc-uri, ldh:build-query($mode), $fragment)"/>
+                        <xsl:with-param name="title" select="$label"/>
+                        <xsl:with-param name="container" select="id($body-id, ixsl:page())"/>
+                    </xsl:call-template>
+
+                    <!-- external-only, new pane only: add tab bar item and hide local panes (mirrors the 200/RDF success path) -->
+                    <xsl:if test="not(starts-with($doc-uri, lapp:origin(ldh:request-uri()))) and not($tab-pane)">
+                        <xsl:call-template name="ldh:AddTabNavBarListItem">
+                            <xsl:with-param name="doc-uri" select="$doc-uri"/>
+                            <xsl:with-param name="fragment" select="$fragment"/>
+                            <xsl:with-param name="label" select="$label"/>
+                            <xsl:with-param name="mode" select="$mode"/>
+                            <xsl:with-param name="error" select="true()"/>
+                        </xsl:call-template>
+
+                        <xsl:for-each select="id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')][./div[contains-token(@class, 'document-body')][starts-with(@about, lapp:origin(ldh:request-uri()) || '/')]]">
+                            <ixsl:set-style name="display" select="'none'" object="."/>
                         </xsl:for-each>
                     </xsl:if>
+
+                    <xsl:choose>
+                        <xsl:when test="$tab-pane">
+                            <xsl:for-each select="$tab-pane/div[contains-token(@class, 'document-body')]">
+                                <xsl:result-document href="?." method="ixsl:replace-element">
+                                    <xsl:apply-templates select="$results/rdf:RDF" mode="bs2:DocumentBody">
+                                        <xsl:with-param name="mode" select="$mode"/>
+                                        <xsl:with-param name="about" select="$doc-uri"/>
+                                    </xsl:apply-templates>
+                                </xsl:result-document>
+                            </xsl:for-each>
+                        </xsl:when>
+                        <xsl:otherwise>
+                            <xsl:variable name="tab-body" as="element()">
+                                <xsl:apply-templates select="$results/rdf:RDF" mode="bs2:TabBody">
+                                    <xsl:with-param name="id" select="$tab-body-id"/>
+                                    <xsl:with-param name="mode" select="$mode"/>
+                                    <xsl:with-param name="about" select="$doc-uri"/>
+                                </xsl:apply-templates>
+                            </xsl:variable>
+                            <xsl:result-document href="#tab-content" method="ixsl:append-content">
+                                <xsl:sequence select="$tab-body"/>
+                            </xsl:result-document>
+                        </xsl:otherwise>
+                    </xsl:choose>
+
+                    <xsl:call-template name="ldh:RenderTab">
+                        <xsl:with-param name="tab-pane-id" select="$effective-pane-id"/>
+                        <xsl:with-param name="doc-uri" select="$doc-uri"/>
+                        <xsl:with-param name="fragment" select="$fragment"/>
+                        <xsl:with-param name="mode" select="$mode"/>
+                        <xsl:with-param name="response" select="$response"/>
+                        <xsl:with-param name="refresh-content" select="$refresh-content"/>
+                    </xsl:call-template>
                 </xsl:otherwise>
             </xsl:choose>
         </xsl:for-each>
@@ -686,11 +744,16 @@ WHERE
         <xsl:param name="fragment" as="xs:string?"/>
         <xsl:param name="label" as="xs:string"/>
         <xsl:param name="mode" as="xs:anyURI"/>
+        <xsl:param name="error" select="false()" as="xs:boolean"/>
 
         <!-- append the new tab <li> to the tab bar; data-uri keys lookups (document scope), @href round-trips the fragment for the user -->
         <xsl:result-document href="#tab-bar-list" method="ixsl:append-content">
             <li data-uri="{$doc-uri}">
                 <a href="{ldh:href($doc-uri, ldh:build-query($mode), $fragment)}" title="{$doc-uri}{if ($fragment) then '#' || $fragment else ''}">
+                    <xsl:if test="$error">
+                        <i class="icon-warning-sign"/>
+                        <xsl:text> </xsl:text>
+                    </xsl:if>
                     <xsl:value-of select="$label"/>
                 </a>
                 <span class="tab-close">&#xd7;</span>
