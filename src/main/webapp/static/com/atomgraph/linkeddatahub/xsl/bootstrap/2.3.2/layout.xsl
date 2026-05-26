@@ -483,7 +483,7 @@ exclude-result-prefixes="#all">
     
     <!-- NAVBAR -->
     
-    <xsl:template match="rdf:RDF[$lapp:origin] | srx:sparql[$lapp:origin]" mode="bs2:NavBar" priority="1">
+    <xsl:template match="rdf:RDF | srx:sparql" mode="bs2:NavBar">
         <div class="navbar navbar-fixed-top">
             <div class="navbar-inner">
                 <div class="container-fluid">
@@ -506,8 +506,6 @@ exclude-result-prefixes="#all">
             </div>
         </div>
     </xsl:template>
-
-    <xsl:template match="*" mode="bs2:NavBar"/>
 
     <xsl:template match="rdf:RDF | srx:sparql" mode="bs2:NavBarLeft">
         <xsl:param name="class" select="'span2'" as="xs:string?"/>
@@ -725,7 +723,7 @@ exclude-result-prefixes="#all">
     
     <!-- BODY -->
 
-    <xsl:template match="rdf:RDF[$lapp:origin] | srx:sparql[$lapp:origin]" mode="xhtml:Body" priority="1">
+    <xsl:template match="rdf:RDF | srx:sparql" mode="xhtml:Body">
         <body>
             <div id="visible-body">
                 <xsl:apply-templates select="." mode="bs2:NavBar"/>
