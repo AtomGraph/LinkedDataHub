@@ -2,6 +2,7 @@
 <!DOCTYPE xsl:stylesheet [
     <!ENTITY def        "https://w3id.org/atomgraph/linkeddatahub/default#">
     <!ENTITY ldh        "https://w3id.org/atomgraph/linkeddatahub#">
+    <!ENTITY lapp       "https://w3id.org/atomgraph/linkeddatahub/apps#">
     <!ENTITY ac         "https://w3id.org/atomgraph/client#">
     <!ENTITY typeahead  "http://graphity.org/typeahead#">
     <!ENTITY rdf        "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
@@ -34,6 +35,7 @@ xmlns:json="http://www.w3.org/2005/xpath-functions"
 xmlns:array="http://www.w3.org/2005/xpath-functions/array"
 xmlns:ac="&ac;"
 xmlns:ldh="&ldh;"
+xmlns:lapp="&lapp;"
 xmlns:rdf="&rdf;"
 xmlns:rdfs="&rdfs;"
 xmlns:dct="&dct;"
@@ -213,7 +215,7 @@ WHERE
                     <div class="main offset2 span7">
                         <div class="alert alert-success row-fluid">
                             <div class="span1">
-                                <img src="{resolve-uri('static/com/atomgraph/linkeddatahub/icons/baseline_done_white_48dp.png', $ac:contextUri)}" alt="Signup complete"/>
+                                <img src="{resolve-uri('static/com/atomgraph/linkeddatahub/icons/baseline_done_white_48dp.png', lapp:origin())}" alt="Signup complete"/>
                             </div>
                             <div class="span11">
                                 <p>Congratulations! Your WebID profile has been created. You can see its data below.</p>
@@ -1243,7 +1245,7 @@ WHERE
             <!-- delete existing content -->
             <xsl:when test="$about">
                 <!-- show a confirmation prompt -->
-                <xsl:if test="ixsl:call(ixsl:window(), 'confirm', [ ac:label(key('resources', 'are-you-sure', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))) ])">
+                <xsl:if test="ixsl:call(ixsl:window(), 'confirm', [ ac:label(key('resources', 'are-you-sure', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', lapp:origin())))) ])">
                     <xsl:sequence select="ixsl:call(ancestor::div[contains-token(@class, 'row-fluid')][1], 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
 
                     <xsl:variable name="where-pattern" as="element()">

@@ -2,6 +2,7 @@
 <!DOCTYPE xsl:stylesheet [
     <!ENTITY lacl   "https://w3id.org/atomgraph/linkeddatahub/admin/acl#">
     <!ENTITY ldh    "https://w3id.org/atomgraph/linkeddatahub#">
+    <!ENTITY lapp   "https://w3id.org/atomgraph/linkeddatahub/apps#">
     <!ENTITY ac     "https://w3id.org/atomgraph/client#">
     <!ENTITY rdf    "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
     <!ENTITY acl    "http://www.w3.org/ns/auth/acl#">
@@ -15,6 +16,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
 xmlns:xhtml="http://www.w3.org/1999/xhtml"
 xmlns:xs="http://www.w3.org/2001/XMLSchema"
 xmlns:ldh="&ldh;"
+xmlns:lapp="&lapp;"
 xmlns:ac="&ac;"
 xmlns:rdf="&rdf;"
 xmlns:acl="&acl;"
@@ -71,8 +73,8 @@ WHERE
                     <xsl:if test="$notifications/rdf:RDF/*[@rdf:about]">
                         <li>
                             <div class="btn-group">
-                                <button title="{ac:label(key('resources', 'notifications', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri))))}">
-                                    <xsl:apply-templates select="key('resources', 'notifications', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ldh:logo">
+                                <button title="{ac:label(key('resources', 'notifications', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', lapp:origin()))))}">
+                                    <xsl:apply-templates select="key('resources', 'notifications', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', lapp:origin())))" mode="ldh:logo">
                                         <xsl:with-param name="class" select="'btn btn-primary dropdown-toggle'"/>
                                     </xsl:apply-templates>
                                 </button>

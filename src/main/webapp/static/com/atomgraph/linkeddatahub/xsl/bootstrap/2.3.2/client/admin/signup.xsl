@@ -3,6 +3,7 @@
     <!ENTITY lacl   "https://w3id.org/atomgraph/linkeddatahub/admin/acl#">
     <!ENTITY adm    "https://w3id.org/atomgraph/linkeddatahub/admin#">
     <!ENTITY ldh    "https://w3id.org/atomgraph/linkeddatahub#">
+    <!ENTITY lapp   "https://w3id.org/atomgraph/linkeddatahub/apps#">
     <!ENTITY ac     "https://w3id.org/atomgraph/client#">
     <!ENTITY a      "https://w3id.org/atomgraph/core#">
     <!ENTITY rdf    "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
@@ -30,6 +31,7 @@ xmlns:ac="&ac;"
 xmlns:a="&a;"
 xmlns:lacl="&lacl;"
 xmlns:ldh="&ldh;"
+xmlns:lapp="&lapp;"
 xmlns:rdf="&rdf;"
 xmlns:rdfs="&rdfs;"
 xmlns:srx="&srx;"
@@ -139,7 +141,7 @@ exclude-result-prefixes="#all">
             </xsl:if>
             
             <xsl:variable name="selected" select="." as="xs:anyURI"/>
-            <xsl:for-each select="document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/admin/countries.rdf', $ac:contextUri))/rdf:RDF/*[@rdf:about]">
+            <xsl:for-each select="document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/admin/countries.rdf', lapp:origin()))/rdf:RDF/*[@rdf:about]">
                 <xsl:sort select="ac:label(.)" lang="{$ldt:lang}"/>
                 <xsl:apply-templates select="." mode="xhtml:Option">
                     <xsl:with-param name="selected" select="@rdf:about = $selected"/>
@@ -294,7 +296,7 @@ exclude-result-prefixes="#all">
 
     <xsl:template match="*[@rdf:about = '&foaf;mbox'][ac:absolute-path(ldh:request-uri()) = resolve-uri(encode-for-uri('sign up'), ldt:base())]" mode="ac:label" priority="1">
         <xsl:value-of>
-            <xsl:apply-templates select="key('resources', 'email', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+            <xsl:apply-templates select="key('resources', 'email', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', lapp:origin())))" mode="ac:label"/>
         </xsl:value-of>
     </xsl:template>
 

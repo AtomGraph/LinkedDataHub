@@ -116,47 +116,47 @@ exclude-result-prefixes="#all">
     <xsl:param name="doc-types" select="key('resources', ac:absolute-path(ldh:base-uri(.)))/rdf:type/@rdf:resource[ . = ('&def;Root', '&dh;Container', '&dh;Item')]" as="xs:anyURI*"/>
     <xsl:param name="location-mapping" as="map(xs:anyURI, xs:anyURI)">
         <xsl:map>
-            <xsl:if test="$lapp:origin">
-                <xsl:map-entry key="resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)" select="resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)"/>
-                <xsl:map-entry key="resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/http-statusCodes.rdf', $ac:contextUri)" select="resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/http-statusCodes.rdf', $lapp:origin)"/>
-                <xsl:map-entry key="resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/admin/countries.rdf', $ac:contextUri)" select="resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/admin/countries.rdf', $lapp:origin)"/>                
+            <xsl:if test="lapp:origin()">
+                <xsl:map-entry key="resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', lapp:origin())" select="resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', lapp:origin())"/>
+                <xsl:map-entry key="resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/http-statusCodes.rdf', lapp:origin())" select="resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/http-statusCodes.rdf', lapp:origin())"/>
+                <xsl:map-entry key="resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/admin/countries.rdf', lapp:origin())" select="resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/admin/countries.rdf', lapp:origin())"/>                
             </xsl:if>
 
-            <xsl:map-entry key="resolve-uri(ac:document-uri(xs:anyURI('&ac;')), $ac:contextUri)" select="ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri(xs:anyURI('&ac;'))), 'accept': 'application/rdf+xml' })"/>
-            <xsl:map-entry key="resolve-uri(ac:document-uri(xs:anyURI('&adm;')), $ac:contextUri)" select="ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri(xs:anyURI('&adm;'))), 'accept': 'application/rdf+xml' })"/>
-            <xsl:map-entry key="resolve-uri(ac:document-uri(xs:anyURI('&lacl;')), $ac:contextUri)" select="ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri(xs:anyURI('&lacl;'))), 'accept': 'application/rdf+xml' })"/>
-            <xsl:map-entry key="resolve-uri(ac:document-uri(xs:anyURI('&lapp;')), $ac:contextUri)" select="ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri(xs:anyURI('&lapp;'))), 'accept': 'application/rdf+xml' })"/>
-            <xsl:map-entry key="resolve-uri(ac:document-uri(xs:anyURI('&ldh;')), $ac:contextUri)" select="ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri(xs:anyURI('&ldh;'))), 'accept': 'application/rdf+xml' })"/>
-            <xsl:map-entry key="resolve-uri(ac:document-uri(xs:anyURI('&def;')), $ac:contextUri)" select="ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri(xs:anyURI('&def;'))), 'accept': 'application/rdf+xml' })"/>
-            <xsl:map-entry key="resolve-uri(ac:document-uri(xs:anyURI('&dh;')), $ac:contextUri)" select="ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri(xs:anyURI('&dh;'))), 'accept': 'application/rdf+xml' })"/>
-            <xsl:map-entry key="resolve-uri(ac:document-uri(xs:anyURI('&sp;')), $ac:contextUri)" select="ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri(xs:anyURI('&sp;'))), 'accept': 'application/rdf+xml' })"/>
-            <xsl:map-entry key="resolve-uri(ac:document-uri(xs:anyURI('&spin;')), $ac:contextUri)" select="ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri(xs:anyURI('&spin;'))), 'accept': 'application/rdf+xml' })"/>
-            <xsl:map-entry key="resolve-uri(ac:document-uri(xs:anyURI('&rdf;')), $ac:contextUri)" select="ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri(xs:anyURI('&rdf;'))), 'accept': 'application/rdf+xml' })"/>
-            <xsl:map-entry key="resolve-uri(ac:document-uri(xs:anyURI('&rdfs;')), $ac:contextUri)" select="ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri(xs:anyURI('&rdfs;'))), 'accept': 'application/rdf+xml' })"/>
-            <xsl:map-entry key="resolve-uri(ac:document-uri(xs:anyURI('&owl;')), $ac:contextUri)" select="ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri(xs:anyURI('&owl;'))), 'accept': 'application/rdf+xml' })"/>
-            <xsl:map-entry key="resolve-uri(ac:document-uri(xs:anyURI('&acl;')), $ac:contextUri)" select="ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri(xs:anyURI('&acl;'))), 'accept': 'application/rdf+xml' })"/>
-            <xsl:map-entry key="resolve-uri(ac:document-uri(xs:anyURI('&sd;')), $ac:contextUri)" select="ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri(xs:anyURI('&sd;'))), 'accept': 'application/rdf+xml' })"/>
-            <xsl:map-entry key="resolve-uri(ac:document-uri(xs:anyURI('&sh;')), $ac:contextUri)" select="ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri(xs:anyURI('&sh;'))), 'accept': 'application/rdf+xml' })"/>
-            <xsl:map-entry key="resolve-uri(ac:document-uri(xs:anyURI('&nfo;')), $ac:contextUri)" select="ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri(xs:anyURI('&nfo;'))), 'accept': 'application/rdf+xml' })"/>
-            <xsl:map-entry key="resolve-uri(ac:document-uri(xs:anyURI('http://www.semanticdesktop.org/ontologies/2007/01/19/nie#')), $ac:contextUri)" select="ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri(xs:anyURI('http://www.semanticdesktop.org/ontologies/2007/01/19/nie#'))), 'accept': 'application/rdf+xml' })"/>
-            <xsl:map-entry key="resolve-uri(ac:document-uri(xs:anyURI('&http;')), $ac:contextUri)" select="ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri(xs:anyURI('&http;'))), 'accept': 'application/rdf+xml' })"/>
-            <xsl:map-entry key="resolve-uri(ac:document-uri(xs:anyURI('&sc;')), $ac:contextUri)" select="ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri(xs:anyURI('&sc;'))), 'accept': 'application/rdf+xml' })"/>
-            <xsl:map-entry key="resolve-uri(ac:document-uri(xs:anyURI('&ldt;')), $ac:contextUri)" select="ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri(xs:anyURI('&ldt;'))), 'accept': 'application/rdf+xml' })"/>
-            <xsl:map-entry key="resolve-uri(ac:document-uri(xs:anyURI('&c;')), $ac:contextUri)" select="ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri(xs:anyURI('&c;'))), 'accept': 'application/rdf+xml' })"/>
-            <xsl:map-entry key="resolve-uri(ac:document-uri(xs:anyURI('&sioc;')), $ac:contextUri)" select="ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri(xs:anyURI('&sioc;'))), 'accept': 'application/rdf+xml' })"/>
-            <xsl:map-entry key="resolve-uri(ac:document-uri(xs:anyURI('&void;')), $ac:contextUri)" select="ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri(xs:anyURI('&void;'))), 'accept': 'application/rdf+xml' })"/>
-            <xsl:map-entry key="resolve-uri(ac:document-uri(xs:anyURI('&foaf;')), $ac:contextUri)" select="ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri(xs:anyURI('&foaf;'))), 'accept': 'application/rdf+xml' })"/>
-            <xsl:map-entry key="resolve-uri(ac:document-uri(xs:anyURI('&spl;')), $ac:contextUri)" select="ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri(xs:anyURI('&spl;'))), 'accept': 'application/rdf+xml' })"/>
-            <xsl:map-entry key="resolve-uri(ac:document-uri(xs:anyURI('&cert;')), $ac:contextUri)" select="ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri(xs:anyURI('&cert;'))), 'accept': 'application/rdf+xml' })"/>
-            <xsl:map-entry key="resolve-uri(ac:document-uri(xs:anyURI('http://www.w3.org/ns/prov#')), $ac:contextUri)" select="ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri(xs:anyURI('http://www.w3.org/ns/prov#'))), 'accept': 'application/rdf+xml' })"/>
-            <xsl:map-entry key="resolve-uri(ac:document-uri(xs:anyURI('&geo;')), $ac:contextUri)" select="ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri(xs:anyURI('&geo;'))), 'accept': 'application/rdf+xml' })"/>
-            <xsl:map-entry key="resolve-uri(ac:document-uri(xs:anyURI('http://www.w3.org/2004/02/skos/core#')), $ac:contextUri)" select="ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri(xs:anyURI('http://www.w3.org/2004/02/skos/core#'))), 'accept': 'application/rdf+xml' })"/>
-            <xsl:map-entry key="resolve-uri(ac:document-uri(xs:anyURI('http://www.w3.org/2006/time#')), $ac:contextUri)" select="ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri(xs:anyURI('http://www.w3.org/2006/time#'))), 'accept': 'application/rdf+xml' })"/>
-            <xsl:map-entry key="resolve-uri(ac:document-uri(xs:anyURI('http://purl.org/dc/elements/1.1/')), $ac:contextUri)" select="ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri(xs:anyURI('http://purl.org/dc/elements/1.1/'))), 'accept': 'application/rdf+xml' })"/>
-            <xsl:map-entry key="resolve-uri(ac:document-uri(xs:anyURI('&dct;')), $ac:contextUri)" select="ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri(xs:anyURI('&dct;'))), 'accept': 'application/rdf+xml' })"/>
-            <xsl:map-entry key="resolve-uri(ac:document-uri(xs:anyURI('http://purl.org/dc/dcmitype/')), $ac:contextUri)" select="ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri(xs:anyURI('http://purl.org/dc/dcmitype/'))), 'accept': 'application/rdf+xml' })"/>
-            <xsl:map-entry key="resolve-uri(ac:document-uri(xs:anyURI('http://purl.org/goodrelations/v1#')), $ac:contextUri)" select="ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri(xs:anyURI('http://purl.org/goodrelations/v1#'))), 'accept': 'application/rdf+xml' })"/>
-            <xsl:map-entry key="resolve-uri(ac:document-uri(xs:anyURI('http://usefulinc.com/ns/doap#')), $ac:contextUri)" select="ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri(xs:anyURI('http://usefulinc.com/ns/doap#'))), 'accept': 'application/rdf+xml' })"/>
+            <xsl:map-entry key="xs:anyURI(ac:document-uri(xs:anyURI('&ac;')))" select="ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri(xs:anyURI('&ac;'))), 'accept': 'application/rdf+xml' })"/>
+            <xsl:map-entry key="xs:anyURI(ac:document-uri(xs:anyURI('&adm;')))" select="ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri(xs:anyURI('&adm;'))), 'accept': 'application/rdf+xml' })"/>
+            <xsl:map-entry key="xs:anyURI(ac:document-uri(xs:anyURI('&lacl;')))" select="ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri(xs:anyURI('&lacl;'))), 'accept': 'application/rdf+xml' })"/>
+            <xsl:map-entry key="xs:anyURI(ac:document-uri(xs:anyURI('&lapp;')))" select="ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri(xs:anyURI('&lapp;'))), 'accept': 'application/rdf+xml' })"/>
+            <xsl:map-entry key="xs:anyURI(ac:document-uri(xs:anyURI('&ldh;')))" select="ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri(xs:anyURI('&ldh;'))), 'accept': 'application/rdf+xml' })"/>
+            <xsl:map-entry key="xs:anyURI(ac:document-uri(xs:anyURI('&def;')))" select="ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri(xs:anyURI('&def;'))), 'accept': 'application/rdf+xml' })"/>
+            <xsl:map-entry key="xs:anyURI(ac:document-uri(xs:anyURI('&dh;')))" select="ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri(xs:anyURI('&dh;'))), 'accept': 'application/rdf+xml' })"/>
+            <xsl:map-entry key="xs:anyURI(ac:document-uri(xs:anyURI('&sp;')))" select="ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri(xs:anyURI('&sp;'))), 'accept': 'application/rdf+xml' })"/>
+            <xsl:map-entry key="xs:anyURI(ac:document-uri(xs:anyURI('&spin;')))" select="ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri(xs:anyURI('&spin;'))), 'accept': 'application/rdf+xml' })"/>
+            <xsl:map-entry key="xs:anyURI(ac:document-uri(xs:anyURI('&rdf;')))" select="ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri(xs:anyURI('&rdf;'))), 'accept': 'application/rdf+xml' })"/>
+            <xsl:map-entry key="xs:anyURI(ac:document-uri(xs:anyURI('&rdfs;')))" select="ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri(xs:anyURI('&rdfs;'))), 'accept': 'application/rdf+xml' })"/>
+            <xsl:map-entry key="xs:anyURI(ac:document-uri(xs:anyURI('&owl;')))" select="ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri(xs:anyURI('&owl;'))), 'accept': 'application/rdf+xml' })"/>
+            <xsl:map-entry key="xs:anyURI(ac:document-uri(xs:anyURI('&acl;')))" select="ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri(xs:anyURI('&acl;'))), 'accept': 'application/rdf+xml' })"/>
+            <xsl:map-entry key="xs:anyURI(ac:document-uri(xs:anyURI('&sd;')))" select="ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri(xs:anyURI('&sd;'))), 'accept': 'application/rdf+xml' })"/>
+            <xsl:map-entry key="xs:anyURI(ac:document-uri(xs:anyURI('&sh;')))" select="ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri(xs:anyURI('&sh;'))), 'accept': 'application/rdf+xml' })"/>
+            <xsl:map-entry key="xs:anyURI(ac:document-uri(xs:anyURI('&nfo;')))" select="ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri(xs:anyURI('&nfo;'))), 'accept': 'application/rdf+xml' })"/>
+            <xsl:map-entry key="xs:anyURI(ac:document-uri(xs:anyURI('http://www.semanticdesktop.org/ontologies/2007/01/19/nie#')))" select="ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri(xs:anyURI('http://www.semanticdesktop.org/ontologies/2007/01/19/nie#'))), 'accept': 'application/rdf+xml' })"/>
+            <xsl:map-entry key="xs:anyURI(ac:document-uri(xs:anyURI('&http;')))" select="ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri(xs:anyURI('&http;'))), 'accept': 'application/rdf+xml' })"/>
+            <xsl:map-entry key="xs:anyURI(ac:document-uri(xs:anyURI('&sc;')))" select="ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri(xs:anyURI('&sc;'))), 'accept': 'application/rdf+xml' })"/>
+            <xsl:map-entry key="xs:anyURI(ac:document-uri(xs:anyURI('&ldt;')))" select="ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri(xs:anyURI('&ldt;'))), 'accept': 'application/rdf+xml' })"/>
+            <xsl:map-entry key="xs:anyURI(ac:document-uri(xs:anyURI('&c;')))" select="ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri(xs:anyURI('&c;'))), 'accept': 'application/rdf+xml' })"/>
+            <xsl:map-entry key="xs:anyURI(ac:document-uri(xs:anyURI('&sioc;')))" select="ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri(xs:anyURI('&sioc;'))), 'accept': 'application/rdf+xml' })"/>
+            <xsl:map-entry key="xs:anyURI(ac:document-uri(xs:anyURI('&void;')))" select="ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri(xs:anyURI('&void;'))), 'accept': 'application/rdf+xml' })"/>
+            <xsl:map-entry key="xs:anyURI(ac:document-uri(xs:anyURI('&foaf;')))" select="ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri(xs:anyURI('&foaf;'))), 'accept': 'application/rdf+xml' })"/>
+            <xsl:map-entry key="xs:anyURI(ac:document-uri(xs:anyURI('&spl;')))" select="ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri(xs:anyURI('&spl;'))), 'accept': 'application/rdf+xml' })"/>
+            <xsl:map-entry key="xs:anyURI(ac:document-uri(xs:anyURI('&cert;')))" select="ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri(xs:anyURI('&cert;'))), 'accept': 'application/rdf+xml' })"/>
+            <xsl:map-entry key="xs:anyURI(ac:document-uri(xs:anyURI('http://www.w3.org/ns/prov#')))" select="ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri(xs:anyURI('http://www.w3.org/ns/prov#'))), 'accept': 'application/rdf+xml' })"/>
+            <xsl:map-entry key="xs:anyURI(ac:document-uri(xs:anyURI('&geo;')))" select="ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri(xs:anyURI('&geo;'))), 'accept': 'application/rdf+xml' })"/>
+            <xsl:map-entry key="xs:anyURI(ac:document-uri(xs:anyURI('http://www.w3.org/2004/02/skos/core#')))" select="ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri(xs:anyURI('http://www.w3.org/2004/02/skos/core#'))), 'accept': 'application/rdf+xml' })"/>
+            <xsl:map-entry key="xs:anyURI(ac:document-uri(xs:anyURI('http://www.w3.org/2006/time#')))" select="ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri(xs:anyURI('http://www.w3.org/2006/time#'))), 'accept': 'application/rdf+xml' })"/>
+            <xsl:map-entry key="xs:anyURI(ac:document-uri(xs:anyURI('http://purl.org/dc/elements/1.1/')))" select="ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri(xs:anyURI('http://purl.org/dc/elements/1.1/'))), 'accept': 'application/rdf+xml' })"/>
+            <xsl:map-entry key="xs:anyURI(ac:document-uri(xs:anyURI('&dct;')))" select="ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri(xs:anyURI('&dct;'))), 'accept': 'application/rdf+xml' })"/>
+            <xsl:map-entry key="xs:anyURI(ac:document-uri(xs:anyURI('http://purl.org/dc/dcmitype/')))" select="ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri(xs:anyURI('http://purl.org/dc/dcmitype/'))), 'accept': 'application/rdf+xml' })"/>
+            <xsl:map-entry key="xs:anyURI(ac:document-uri(xs:anyURI('http://purl.org/goodrelations/v1#')))" select="ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri(xs:anyURI('http://purl.org/goodrelations/v1#'))), 'accept': 'application/rdf+xml' })"/>
+            <xsl:map-entry key="xs:anyURI(ac:document-uri(xs:anyURI('http://usefulinc.com/ns/doap#')))" select="ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri(xs:anyURI('http://usefulinc.com/ns/doap#'))), 'accept': 'application/rdf+xml' })"/>
             <xsl:if test="$acl:agent">
                 <xsl:map-entry key="ac:document-uri($acl:agent)" select="ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri($acl:agent)), 'accept': 'application/rdf+xml' })"/>
             </xsl:if>
@@ -262,7 +262,7 @@ exclude-result-prefixes="#all">
 
     <xsl:template match="rdf:RDF" mode="xhtml:Title">
         <title>
-            <xsl:for-each select="key('apps-by-origin', $lapp:origin, $lapp:Context)">
+            <xsl:for-each select="key('apps-by-origin', lapp:origin(), $lapp:Context)">
                 <xsl:value-of>
                     <xsl:apply-templates select="." mode="ac:label"/>
                 </xsl:value-of>
@@ -321,32 +321,33 @@ exclude-result-prefixes="#all">
             </xsl:for-each>
         </xsl:for-each>
 
-        <xsl:for-each select="key('apps-by-origin', $lapp:origin, $lapp:Context)">
+        <xsl:for-each select="key('apps-by-origin', lapp:origin(), $lapp:Context)">
             <meta property="og:site_name" content="{ac:label(.)}"/>
         </xsl:for-each>
     </xsl:template>
 
     <!-- STYLE -->
     
-    <xsl:template match="rdf:RDF | srx:sparql" mode="xhtml:Style">
+    <xsl:template match="rdf:RDF[lapp:origin()] | srx:sparql[lapp:origin()]" mode="xhtml:Style">
         <xsl:param name="load-wymeditor" select="exists($foaf:Agent//@rdf:about)" as="xs:boolean"/>
         <xsl:param name="load-yasqe" select="true()" as="xs:boolean"/>
 
-        <xsl:apply-imports/>
-
-        <link href="{resolve-uri('static/com/atomgraph/linkeddatahub/css/bootstrap.css', $ac:contextUri)}" rel="stylesheet" type="text/css"/>
+        <link href="{resolve-uri('static/css/bootstrap.css', lapp:origin())}" rel="stylesheet" type="text/css"/>
+        <link href="{resolve-uri('static/css/bootstrap-responsive.css', lapp:origin())}" rel="stylesheet" type="text/css"/>
+        <link href="{resolve-uri('static/com/atomgraph/client/css/bootstrap.css', lapp:origin())}" rel="stylesheet" type="text/css"/>
+        <link href="{resolve-uri('static/com/atomgraph/linkeddatahub/css/bootstrap.css', lapp:origin())}" rel="stylesheet" type="text/css"/>
         <xsl:if test="$load-wymeditor">
-            <link href="{resolve-uri('static/com/atomgraph/linkeddatahub/js/wymeditor/skins/default/skin.css', $ac:contextUri)}" rel="stylesheet" type="text/css"/>
+            <link href="{resolve-uri('static/com/atomgraph/linkeddatahub/js/wymeditor/skins/default/skin.css', lapp:origin())}" rel="stylesheet" type="text/css"/>
         </xsl:if>
         <xsl:if test="$load-yasqe">
-            <link href="{resolve-uri('static/css/yasqe.css', $ac:contextUri)}" rel="stylesheet" type="text/css"/>
+            <link href="{resolve-uri('static/css/yasqe.css', lapp:origin())}" rel="stylesheet" type="text/css"/>
         </xsl:if>
     </xsl:template>
 
     <!-- SCRIPT -->
 
-    <xsl:template match="rdf:RDF[$lapp:origin] | srx:sparql[$lapp:origin]" mode="xhtml:Script">
-        <xsl:param name="client-stylesheet" select="resolve-uri('static/com/atomgraph/linkeddatahub/xsl/client.xsl.sef.json', $lapp:origin)" as="xs:anyURI"/>
+    <xsl:template match="rdf:RDF[lapp:origin()] | srx:sparql[lapp:origin()]" mode="xhtml:Script">
+        <xsl:param name="client-stylesheet" select="resolve-uri('static/com/atomgraph/linkeddatahub/xsl/client.xsl.sef.json', lapp:origin())" as="xs:anyURI"/>
         <xsl:param name="saxon-js-log-level" select="10" as="xs:integer"/>
         <xsl:param name="load-wymeditor" select="not(ac:mode(root()) = ('&ac;ModalMode', '&ldht;InfoWindowMode'))" as="xs:boolean"/>
         <xsl:param name="load-yasqe" select="not(ac:mode(root()) = ('&ac;ModalMode', '&ldht;InfoWindowMode'))" as="xs:boolean"/>
@@ -360,17 +361,17 @@ exclude-result-prefixes="#all">
         <xsl:param name="location-mapping" select="$location-mapping" as="map(xs:anyURI, xs:anyURI)"/>
 
         <!-- Web-Client scripts -->
-        <script type="text/javascript" src="{resolve-uri('static/js/jquery.min.js', $lapp:origin)}" defer="defer"></script>
-        <script type="text/javascript" src="{resolve-uri('static/js/bootstrap.js', $lapp:origin)}" defer="defer"></script>
-        <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/client/js/UUID.js', $lapp:origin)}" defer="defer"></script>
+        <script type="text/javascript" src="{resolve-uri('static/js/jquery.min.js', lapp:origin())}" defer="defer"></script>
+        <script type="text/javascript" src="{resolve-uri('static/js/bootstrap.js', lapp:origin())}" defer="defer"></script>
+        <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/client/js/UUID.js', lapp:origin())}" defer="defer"></script>
         <!-- LinkedDataHub scripts -->
-        <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/jquery.js', $lapp:origin)}" defer="defer"></script>
+        <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/jquery.js', lapp:origin())}" defer="defer"></script>
         <script type="text/javascript">
             <xsl:text disable-output-escaping="yes">
               //&lt;![CDATA[
             </xsl:text>
             <![CDATA[
-                var contextUri = ]]><xsl:value-of select="if ($lapp:origin) then '&quot;' || $lapp:origin || '&quot;'  else 'null'" disable-output-escaping="yes"/><![CDATA[;
+                var contextUri = ]]><xsl:value-of select="if (lapp:origin()) then '&quot;' || lapp:origin() || '&quot;'  else 'null'" disable-output-escaping="yes"/><![CDATA[;
                 var agentUri = []]><xsl:value-of select="if ($acl:agent) then '&quot;' || $acl:agent || '&quot;'  else 'null'" disable-output-escaping="yes"/><![CDATA[];
             ]]>
             <xsl:text disable-output-escaping="yes">
@@ -378,19 +379,19 @@ exclude-result-prefixes="#all">
             </xsl:text>
         </script>
         <xsl:if test="$load-wymeditor">
-            <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/wymeditor/jquery.wymeditor.js', $lapp:origin)}" defer="defer"></script>
+            <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/wymeditor/jquery.wymeditor.js', lapp:origin())}" defer="defer"></script>
         </xsl:if>
         <xsl:if test="$load-yasqe">
-            <script src="{resolve-uri('static/js/yasqe.js', $lapp:origin)}" type="text/javascript"></script>
+            <script src="{resolve-uri('static/js/yasqe.js', lapp:origin())}" type="text/javascript"></script>
         </xsl:if>
         <xsl:if test="$load-graph3d">
-            <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/three.min.js', $lapp:origin)}"></script>
-            <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/three-spritetext.min.js', $lapp:origin)}"></script>
-            <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/3d-force-graph.min.js', $lapp:origin)}"></script>
+            <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/three.min.js', lapp:origin())}"></script>
+            <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/three-spritetext.min.js', lapp:origin())}"></script>
+            <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/3d-force-graph.min.js', lapp:origin())}"></script>
         </xsl:if>
         <xsl:if test="$load-saxon-js">
-            <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/resource-resolver.js', $lapp:origin)}"></script>
-            <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/saxon-js/SaxonJS3.rt.js', $lapp:origin)}" defer="defer"></script>
+            <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/resource-resolver.js', lapp:origin())}"></script>
+            <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/saxon-js/SaxonJS3.rt.js', lapp:origin())}" defer="defer"></script>
             <script type="text/javascript">
                 <xsl:text disable-output-escaping="yes">
                   //&lt;![CDATA[
@@ -447,12 +448,12 @@ exclude-result-prefixes="#all">
             </script>
         </xsl:if>
         <xsl:if test="$load-sparql-builder">
-            <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/SPARQLBuilder.js', $lapp:origin)}" defer="defer"></script>
-            <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/SPARQL.js', $lapp:origin)}" defer="defer"></script>
+            <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/SPARQLBuilder.js', lapp:origin())}" defer="defer"></script>
+            <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/SPARQL.js', lapp:origin())}" defer="defer"></script>
         </xsl:if>
         <xsl:if test="$load-sparql-map">
-            <link href="{resolve-uri('static/com/atomgraph/linkeddatahub/css/ol.css', $lapp:origin)}" rel="stylesheet" type="text/css"></link>
-            <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/ol.js', $lapp:origin)}"></script>
+            <link href="{resolve-uri('static/com/atomgraph/linkeddatahub/css/ol.css', lapp:origin())}" rel="stylesheet" type="text/css"></link>
+            <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/ol.js', lapp:origin())}"></script>
         </xsl:if>
         <xsl:if test="$load-google-charts">
             <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
@@ -463,7 +464,7 @@ exclude-result-prefixes="#all">
             </script>
         </xsl:if>
         <xsl:if test="$load-xml-c14n">
-            <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/xml-c14n-sync.js', $lapp:origin)}" defer="defer"></script>
+            <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/xml-c14n-sync.js', lapp:origin())}" defer="defer"></script>
         </xsl:if>
         <xsl:if test="$output-schema-org">
             <xsl:variable name="rdf" as="element()?">
@@ -483,7 +484,7 @@ exclude-result-prefixes="#all">
     
     <!-- NAVBAR -->
     
-    <xsl:template match="rdf:RDF | srx:sparql" mode="bs2:NavBar">
+    <xsl:template match="rdf:RDF[$lapp:origin] | srx:sparql[$lapp:origin]" mode="bs2:NavBar" priority="1">
         <div class="navbar navbar-fixed-top">
             <div class="navbar-inner">
                 <div class="container-fluid">
@@ -506,6 +507,8 @@ exclude-result-prefixes="#all">
             </div>
         </div>
     </xsl:template>
+
+    <xsl:template match="*" mode="bs2:NavBar"/>
 
     <xsl:template match="rdf:RDF | srx:sparql" mode="bs2:NavBarLeft">
         <xsl:param name="class" select="'span2'" as="xs:string?"/>
@@ -545,9 +548,9 @@ exclude-result-prefixes="#all">
         </div>
     </xsl:template>
 
-    <xsl:template match="rdf:RDF[key('apps-by-origin', $lapp:origin, $lapp:Context)] | srx:sparql[key('apps-by-origin', $lapp:origin, $lapp:Context)]" mode="bs2:Brand" priority="1">
+    <xsl:template match="rdf:RDF[key('apps-by-origin', lapp:origin(), $lapp:Context)] | srx:sparql[key('apps-by-origin', lapp:origin(), $lapp:Context)]" mode="bs2:Brand" priority="1">
         <a class="brand" href="{$ldt:base}">
-            <xsl:for-each select="key('apps-by-origin', $lapp:origin, $lapp:Context)">
+            <xsl:for-each select="key('apps-by-origin', lapp:origin(), $lapp:Context)">
                 <xsl:if test="rdf:type/@rdf:resource = '&lapp;AdminApplication'">
                     <xsl:attribute name="class" select="'brand admin'"/>
                 </xsl:if>
@@ -578,7 +581,7 @@ exclude-result-prefixes="#all">
         <xsl:apply-templates select="." mode="bs2:SignUp"/>
     </xsl:template>
 
-    <xsl:template match="rdf:RDF[$lapp:origin][key('apps-by-origin', $lapp:origin, $lapp:Context)/rdf:type/@rdf:resource = '&lapp;EndUserApplication'] | srx:sparql[$lapp:origin][key('apps-by-origin', $lapp:origin, $lapp:Context)/rdf:type/@rdf:resource = '&lapp;EndUserApplication']" mode="bs2:DataspaceNavList" priority="1">
+    <xsl:template match="rdf:RDF[lapp:origin()][key('apps-by-origin', lapp:origin(), $lapp:Context)/rdf:type/@rdf:resource = '&lapp;EndUserApplication'] | srx:sparql[lapp:origin()][key('apps-by-origin', lapp:origin(), $lapp:Context)/rdf:type/@rdf:resource = '&lapp;EndUserApplication']" mode="bs2:DataspaceNavList" priority="1">
         <xsl:param name="id"  as="xs:string?"/>
         <xsl:param name="class" select="'nav pull-right'" as="xs:string?"/>
 
@@ -665,7 +668,7 @@ exclude-result-prefixes="#all">
 
     <!-- SIGNUP -->
     
-    <xsl:template match="rdf:RDF[$lapp:origin][not($foaf:Agent//@rdf:about)][key('apps-by-origin', $lapp:origin, $lapp:Context)/rdf:type/@rdf:resource = '&lapp;EndUserApplication'] | srx:sparql[$lapp:origin][not($foaf:Agent//@rdf:about)][key('apps-by-origin', $lapp:origin, $lapp:Context)/rdf:type/@rdf:resource = '&lapp;EndUserApplication']" mode="bs2:SignUp" priority="1">
+    <xsl:template match="rdf:RDF[lapp:origin()][not($foaf:Agent//@rdf:about)][key('apps-by-origin', lapp:origin(), $lapp:Context)/rdf:type/@rdf:resource = '&lapp;EndUserApplication'] | srx:sparql[lapp:origin()][not($foaf:Agent//@rdf:about)][key('apps-by-origin', lapp:origin(), $lapp:Context)/rdf:type/@rdf:resource = '&lapp;EndUserApplication']" mode="bs2:SignUp" priority="1">
         <!-- resolve links against the origin URI of the admin app -->
         <xsl:param name="google-signup" select="exists($google:clientID)" as="xs:boolean"/>
         <xsl:param name="orcid-signup" select="exists($orcid:clientID)" as="xs:boolean"/>
@@ -710,7 +713,7 @@ exclude-result-prefixes="#all">
         <!-- WebID signup - separate button -->
         <xsl:if test="$webid-signup">
             <div class="pull-right">
-                <a class="btn btn-primary" href="{if (not(starts-with($ldt:base, $lapp:origin))) then ac:build-uri((), map{ 'uri': string($webid-signup-uri) }) else $webid-signup-uri}">
+                <a class="btn btn-primary" href="{if (not(starts-with($ldt:base, lapp:origin()))) then ac:build-uri((), map{ 'uri': string($webid-signup-uri) }) else $webid-signup-uri}">
                     <xsl:value-of>
                         <xsl:apply-templates select="key('resources', 'sign-up', document('translations.rdf'))" mode="ac:label"/>
                     </xsl:value-of>
@@ -723,7 +726,7 @@ exclude-result-prefixes="#all">
     
     <!-- BODY -->
 
-    <xsl:template match="rdf:RDF | srx:sparql" mode="xhtml:Body">
+    <xsl:template match="rdf:RDF[$lapp:origin] | srx:sparql[$lapp:origin]" mode="xhtml:Body" priority="1">
         <body>
             <div id="visible-body">
                 <xsl:apply-templates select="." mode="bs2:NavBar"/>
@@ -916,7 +919,7 @@ exclude-result-prefixes="#all">
         
     <!-- SETTINGS -->
     
-    <xsl:template match="rdf:RDF[$lapp:origin] | srx:sparql[$lapp:origin]" mode="bs2:Settings" priority="1">
+    <xsl:template match="rdf:RDF[lapp:origin()] | srx:sparql[lapp:origin()]" mode="bs2:Settings" priority="1">
         <div class="btn-group pull-right">
             <button type="button" title="{ac:label(key('resources', 'nav-bar-action-settings-title', document('translations.rdf')))}">
                 <xsl:apply-templates select="key('resources', 'settings', document('translations.rdf'))" mode="ldh:logo">
@@ -925,7 +928,7 @@ exclude-result-prefixes="#all">
             </button>
 
             <ul class="dropdown-menu">
-                <xsl:if test="$foaf:Agent//@rdf:about and key('apps-by-origin', $lapp:origin, $lapp:Context)/rdf:type/@rdf:resource = '&lapp;EndUserApplication'">
+                <xsl:if test="$foaf:Agent//@rdf:about and key('apps-by-origin', lapp:origin(), $lapp:Context)/rdf:type/@rdf:resource = '&lapp;EndUserApplication'">
                     <li>
                         <button class="btn btn-app-settings">
                             <xsl:value-of>
@@ -934,7 +937,7 @@ exclude-result-prefixes="#all">
                         </button>
                     </li>
                     <li>
-                        <a href="{replace(string($lapp:origin), '^(https?://)', '$1admin.')}" target="_blank">
+                        <a href="{replace(string(lapp:origin()), '^(https?://)', '$1admin.')}" target="_blank">
                             <xsl:value-of>
                                 <xsl:apply-templates select="key('resources', 'administration', document('translations.rdf'))" mode="ac:label"/>
                             </xsl:value-of>
