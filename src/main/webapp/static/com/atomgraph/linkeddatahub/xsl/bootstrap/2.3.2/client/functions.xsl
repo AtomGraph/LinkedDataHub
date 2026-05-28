@@ -41,6 +41,10 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="xs:anyURI(ixsl:location())"/>
     </xsl:function>
 
+    <xsl:function name="ac:uri" as="xs:anyURI?">
+        <xsl:sequence select="if (ldh:query-params()?uri) then xs:anyURI(ldh:query-params()?uri) else ()"/>
+    </xsl:function>
+
     <!-- ldh:query-params is defined once in imports/default.xsl and works in both contexts via ldh:request-uri -->
 
     <xsl:function name="ldh:base-uri" as="xs:anyURI">

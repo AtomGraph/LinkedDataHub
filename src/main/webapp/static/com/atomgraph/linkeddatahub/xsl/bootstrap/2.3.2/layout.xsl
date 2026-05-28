@@ -102,6 +102,7 @@ exclude-result-prefixes="#all">
 
     <xsl:param name="lapp:origin" as="xs:anyURI?"/>
     <xsl:param name="ldh:requestUri" as="xs:anyURI"/>
+    <xsl:param name="ac:uri" as="xs:anyURI?"/>
     <xsl:param name="acl:agent" as="xs:anyURI?"/>
     <xsl:param name="lapp:Context" as="document-node()"/>
     <xsl:param name="foaf:Agent" select="if ($acl:agent) then document(ac:document-uri($acl:agent)) else ()" as="document-node()?"/>
@@ -757,13 +758,24 @@ exclude-result-prefixes="#all">
                                 </xsl:try>
                             </xsl:if>
                         </xsl:variable>
-                        <xsl:apply-templates select="." mode="bs2:TabBody">
-                            <xsl:with-param name="mode" select="ac:mode(root())"/>
-                            <xsl:with-param name="base" select="ldt:base()"/>
-                            <xsl:with-param name="endpoint" select="sd:endpoint()"/>
-                            <xsl:with-param name="about" select="ac:absolute-path(ldh:base-uri(.))"/>
-                            <xsl:with-param name="object-metadata" select="$object-metadata" tunnel="yes"/>
-                        </xsl:apply-templates>
+                        <xsl:variable name="local-pane" as="element()">
+                            <xsl:apply-templates select="." mode="bs2:TabBody">
+                                <xsl:with-param name="mode" select="ac:mode(root())"/>
+                                <xsl:with-param name="base" select="ldt:base()"/>
+                                <xsl:with-param name="endpoint" select="sd:endpoint()"/>
+                                <xsl:with-param name="about" select="ac:absolute-path(ldh:base-uri(.))"/>
+                                <xsl:with-param name="object-metadata" select="$object-metadata" tunnel="yes"/>
+                            </xsl:apply-templates>
+                        </xsl:variable>
+                        <xsl:for-each select="$local-pane">
+                            <xsl:copy>
+                                <xsl:copy-of select="@*"/>
+                                <xsl:if test="ac:uri()">
+                                    <xsl:attribute name="style" select="'display: none'"/>
+                                </xsl:if>
+                                <xsl:sequence select="node()"/>
+                            </xsl:copy>
+                        </xsl:for-each>
                     </div>
                 </div>
 

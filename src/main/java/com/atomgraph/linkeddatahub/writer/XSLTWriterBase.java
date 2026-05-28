@@ -117,6 +117,9 @@ public abstract class XSLTWriterBase extends com.atomgraph.client.writer.XSLTWri
         try
         {
             params.put(new QName("ldh", LDH.requestUri.getNameSpace(), LDH.requestUri.getLocalName()), new XdmAtomicValue(getRequestURI()));
+
+            URI proxyTargetURI = (URI) getContainerRequestContext().getProperty(AC.uri.getURI());
+            if (proxyTargetURI != null) params.put(new QName("ac", AC.uri.getNameSpace(), AC.uri.getLocalName()), new XdmAtomicValue(proxyTargetURI));
             params.put(new QName("lapp", LAPP.Context.getNameSpace(), LAPP.Context.getLocalName()),
                 getXsltExecutable().getProcessor().newDocumentBuilder().build(getSource(getSystem().getContextModel())));
 

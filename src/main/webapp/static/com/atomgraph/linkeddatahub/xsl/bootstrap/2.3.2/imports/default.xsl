@@ -127,8 +127,8 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="for $entry in $entries return if (matches($entry, '^&lt;[^&gt;]+&gt;\s*;.*[;\s]rel\s*=\s*&quot;?[^&quot;\s,;]*acl#mode&quot;?')) then xs:anyURI(replace($entry, '^&lt;([^&gt;]+)&gt;.*$', '$1')) else ()"/>
     </xsl:function>
 
-    <xsl:function name="ac:uri" as="xs:anyURI?">
-        <xsl:sequence select="if (ldh:query-params()?uri) then xs:anyURI(ldh:query-params()?uri) else ()"/>
+    <xsl:function name="ac:uri" as="xs:anyURI?" use-when="system-property('xsl:product-name') = 'SAXON'">
+        <xsl:sequence select="$ac:uri"/>
     </xsl:function>
 
     <!-- Strips the leftmost subdomain and returns parent dataspace origin (scheme + host + port) -->
