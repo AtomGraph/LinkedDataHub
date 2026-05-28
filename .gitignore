@@ -13,3 +13,4 @@
 /http-tests/datasets
 /http-tests/uploads
 /fuseki
+.claude/scheduled_tasks.lock
