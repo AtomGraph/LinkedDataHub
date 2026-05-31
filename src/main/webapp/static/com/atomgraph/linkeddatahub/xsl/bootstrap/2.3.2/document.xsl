@@ -175,7 +175,7 @@ extension-element-prefixes="ixsl"
                 <xsl:text> </xsl:text>
                 <span class="caret"></span>
             </button>
-            
+
             <ul class="dropdown-menu">
                 <li>
                     <button type="button" title="{ac:label(key('resources', 'generate-containers-title', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', lapp:origin()))))}" class="btn btn-generate-containers">
@@ -187,7 +187,31 @@ extension-element-prefixes="ixsl"
             </ul>
         </div>
     </xsl:template>
-    
+
+    <!-- Admin app override: replace the default "Generate containers" with "Import ontology".
+         Admin apps are identified by the 'admin.' subdomain prefix on lapp:origin() (nginx wildcard routing convention). -->
+    <xsl:template match="rdf:RDF[acl:mode() = '&acl;Append'][starts-with(replace(lapp:origin(), '^https?://', ''), 'admin.')]" mode="bs2:AddData" priority="2">
+        <div class="btn-group pull-left">
+            <button type="button" class="btn btn-primary dropdown-toggle" title="{ac:label(key('resources', 'add', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', lapp:origin()))))}">
+                <xsl:value-of>
+                    <xsl:apply-templates select="key('resources', 'add', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', lapp:origin())))" mode="ac:label"/>
+                </xsl:value-of>
+                <xsl:text> </xsl:text>
+                <span class="caret"></span>
+            </button>
+
+            <ul class="dropdown-menu">
+                <li>
+                    <button type="button" title="{ac:label(key('resources', 'import-ontology-title', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', lapp:origin()))))}" class="btn btn-add-ontology">
+                        <xsl:value-of>
+                            <xsl:apply-templates select="key('resources', 'import-ontology', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', lapp:origin())))" mode="ac:label"/>
+                        </xsl:value-of>
+                    </button>
+                </li>
+            </ul>
+        </div>
+    </xsl:template>
+
     <xsl:template match="*" mode="bs2:AddData"/>
     
     <xsl:template match="rdf:RDF | srx:sparql" mode="bs2:ActionBarMain">
