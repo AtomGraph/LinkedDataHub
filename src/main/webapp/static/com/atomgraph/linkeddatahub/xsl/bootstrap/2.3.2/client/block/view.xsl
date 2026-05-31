@@ -653,6 +653,7 @@ exclude-result-prefixes="#all"
                 <!-- augment with LDH-specific state -->
                 <ixsl:set-property name="document" select="$results" object="$graph-state"/>
                 <ixsl:set-property name="loaded-uris" select="ixsl:new('Array', [])" object="$graph-state"/>
+                <ixsl:set-property name="loaded-backlink-uris" select="ixsl:new('Array', [])" object="$graph-state"/>
                 <ixsl:set-property name="{$canvas-id}" select="$graph-state" object="$graphs"/>
 
                 <xsl:call-template name="ldh:AppendGraph3DPanels">
