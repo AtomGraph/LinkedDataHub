@@ -162,8 +162,11 @@ public class ProxyRequestFilter implements ContainerRequestFilter
             }
         }
 
+        boolean isSafeMethod = "GET".equalsIgnoreCase(requestContext.getMethod())
+            || "HEAD".equalsIgnoreCase(requestContext.getMethod());
+
         // serve mapped URIs (e.g. system ontologies) directly from the DataManager cache
-        if (getSystem().getDataManager().isMapped(targetURI.toString()))
+        if (isSafeMethod && getSystem().getDataManager().isMapped(targetURI.toString()))
         {
             if (log.isDebugEnabled()) log.debug("Serving mapped URI from DataManager cache: {}", targetURI);
             Model model = getSystem().getDataManager().loadModel(targetURI.toString());
@@ -175,7 +178,7 @@ public class ProxyRequestFilter implements ContainerRequestFilter
         // covers both slash-based term URIs (e.g. schema:category) and hash-based namespaces
         // (e.g. sioc:UserAccount → ac:document-uri strips to sioc:ns, so we also describe all
         // ?term where STR(?term) starts with "<targetURI>#")
-        if (getOntology().isPresent())
+        if (isSafeMethod && getOntology().isPresent())
         {
             String describeQueryStr = "DESCRIBE <" + targetURI + "> ?term " +
                 "WHERE { ?term ?p ?o FILTER(STRSTARTS(STR(?term), CONCAT(STR(<" + targetURI + ">), \"#\"))) }";
