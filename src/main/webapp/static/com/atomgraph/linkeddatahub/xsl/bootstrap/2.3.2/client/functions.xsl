@@ -41,29 +41,29 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="xs:anyURI(ixsl:location())"/>
     </xsl:function>
 
+    <xsl:function name="ac:uri" as="xs:anyURI?">
+        <xsl:sequence select="if (ldh:query-params()?uri) then xs:anyURI(ldh:query-params()?uri) else ()"/>
+    </xsl:function>
+
+    <!-- ldh:query-params is defined once in imports/default.xsl and works in both contexts via ldh:request-uri -->
+
     <xsl:function name="ldh:base-uri" as="xs:anyURI">
         <xsl:param name="arg" as="node()"/> <!-- ignored -->
 
         <xsl:choose>
-            <xsl:when test="ixsl:query-params()?uri">
-                <xsl:sequence select="ac:document-uri(ixsl:query-params()?uri)"/>
+            <xsl:when test="ac:uri()">
+                <xsl:sequence select="ac:document-uri(ac:uri())"/>
             </xsl:when>
             <xsl:otherwise>
                 <!-- ignore query params such as ?mode -->
-                <xsl:sequence select="ac:absolute-path(xs:anyURI(ixsl:location()))"/>
+                <xsl:sequence select="ac:absolute-path(ldh:request-uri())"/>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:function>
     
-    <xsl:function name="lapp:origin" as="xs:anyURI">
-        <xsl:param name="uri" as="xs:anyURI"/>
-
-        <!-- no trailing slash -->
-        <xsl:sequence select="xs:anyURI(replace($uri, '^(https?://[^/]+).*$', '$1'))"/>
-    </xsl:function>
-    
     <xsl:function name="ldt:base" as="xs:anyURI">
-        <xsl:sequence select="xs:anyURI(lapp:origin(xs:anyURI(ixsl:location())) || '/')"/>
+        <xsl:variable name="active-pane" select="id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')][contains-token(@class, 'active')]" as="element()?"/>
+        <xsl:sequence select="if ($active-pane and ixsl:contains($active-pane, 'dataset.base')) then xs:anyURI(ixsl:get($active-pane, 'dataset.base')) else xs:anyURI(lapp:origin(ldh:request-uri()) || '/')"/>
     </xsl:function>
 
     <xsl:function name="acl:mode" as="xs:anyURI*">
@@ -74,32 +74,25 @@ exclude-result-prefixes="#all"
             if (ixsl:contains(ixsl:window(), 'LinkedDataHub.acl-modes.control')) then xs:anyURI('&acl;Control') else ()
         )"/>
     </xsl:function>
-    
-    <xsl:function name="ac:mode" as="xs:anyURI*">
-        <xsl:variable name="mode-button" select="id('layout-modes', ixsl:page())" as="element()?"/>
-        <xsl:variable name="dropdown-menu" select="$mode-button/following-sibling::ul[contains-token(@class, 'dropdown-menu')]" as="element()?"/>
-        <xsl:variable name="active-item-class" select="$dropdown-menu/li[contains-token(@class, 'active')]/@class" as="xs:string?"/>
-        <xsl:variable name="mode-classes" as="map(xs:string, xs:string)">
-            <xsl:map>
-                <xsl:map-entry key="'content-mode'" select="'&ldh;ContentMode'"/>
-                <xsl:map-entry key="'read-mode'" select="'&ac;ReadMode'"/>
-                <xsl:map-entry key="'map-mode'" select="'&ac;MapMode'"/>
-                <xsl:map-entry key="'chart-mode'" select="'&ac;ChartMode'"/>
-                <xsl:map-entry key="'graph-mode'" select="'&ac;GraphMode'"/>
-            </xsl:map>
-        </xsl:variable>
-        <xsl:variable name="mode-class" select="map:keys($mode-classes)[contains-token($active-item-class, .)]" as="xs:string?"/>
-        <xsl:sequence select="if ($mode-class) then xs:anyURI(map:get($mode-classes, $mode-class)) else ()"/>
-    </xsl:function>
-    
+
     <xsl:function name="sd:endpoint" as="xs:anyURI">
-        <xsl:sequence select="resolve-uri('sparql', ldt:base())"/>
+        <xsl:variable name="active-pane" select="id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')][contains-token(@class, 'active')]" as="element()?"/>
+        <xsl:sequence select="if ($active-pane and ixsl:contains($active-pane, 'dataset.endpoint')) then xs:anyURI(ixsl:get($active-pane, 'dataset.endpoint')) else resolve-uri('sparql', ldt:base())"/>
     </xsl:function>
-    
+
+    <xsl:function name="lapp:application" as="xs:anyURI?">
+        <xsl:variable name="active-pane" select="id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')][contains-token(@class, 'active')]" as="element()?"/>
+        <xsl:sequence select="if ($active-pane and ixsl:contains($active-pane, 'dataset.application')) then xs:anyURI(ixsl:get($active-pane, 'dataset.application')) else ()"/>
+    </xsl:function>
+
+    <xsl:function name="lapp:origin" as="xs:anyURI">
+        <xsl:sequence select="lapp:origin(ldt:base())"/>
+    </xsl:function>
+
     <xsl:function name="ldh:query-type" as="xs:string?">
         <xsl:param name="query-string" as="xs:string"/>
         
-        <xsl:sequence xmlns:fn="http://www.w3.org/2005/xpath-functions" select="analyze-string($query-string, '[^a-zA-Z]?(SELECT|ASK|DESCRIBE|CONSTRUCT)[^a-zA-Z]', 'i')/fn:match[1]/fn:group[@nr = '1']/string() => upper-case()"/>
+        <xsl:sequence select="analyze-string($query-string, '[^a-zA-Z]?(SELECT|ASK|DESCRIBE|CONSTRUCT)[^a-zA-Z]', 'i')/fn:match[1]/fn:group[@nr = '1']/string() => upper-case()"/>
     </xsl:function>
 
     <xsl:function name="ldh:new-object">
@@ -490,21 +483,27 @@ exclude-result-prefixes="#all"
 
     <xsl:function name="ldh:handle-response" as="item()*" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
-        
-        <xsl:variable name="request" select="$context('request')" as="map(*)"/>
-        <xsl:variable name="response" select="$context('response')" as="map(*)"/>
+
+        <xsl:sequence select="ldh:handle-response($context, 'response')"/>
+    </xsl:function>
+
+    <xsl:function name="ldh:handle-response" as="item()*" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:param name="response-key" as="xs:string"/>
+
+        <xsl:variable name="response" select="$context($response-key)" as="map(*)"/>
         <xsl:variable name="default-retry-after" select="1" as="xs:integer"/>
 
         <xsl:choose>
             <xsl:when test="$response?status = 429">
                 <xsl:variable name="retry-after" select="
-                  if (map:contains($response?headers, 'Retry-After')) 
-                  then xs:integer($response?headers('Retry-After')) 
+                  if (map:contains($response?headers, 'Retry-After'))
+                  then xs:integer($response?headers('Retry-After'))
                   else $default-retry-after"/>
 
                 <xsl:sequence select="
                   ixsl:sleep($retry-after * 1000)
-                      => ixsl:then(ldh:retry-request($context, ?))
+                      => ixsl:then(ldh:retry-request($context, ?, $response-key))
                 "/>
             </xsl:when>
             <xsl:otherwise>
@@ -517,28 +516,52 @@ exclude-result-prefixes="#all"
         <xsl:param name="context" as="map(*)"/>
         <xsl:param name="sleep-result" as="item()?"/>
 
+        <xsl:sequence select="ldh:retry-request($context, $sleep-result, 'response')"/>
+    </xsl:function>
+
+    <xsl:function name="ldh:retry-request" as="item()*" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:param name="sleep-result" as="item()?"/>
+        <xsl:param name="response-key" as="xs:string"/>
+
         <xsl:variable name="request" select="$context('request')"/>
 
         <xsl:sequence select="
           ixsl:http-request($request)
-            => ixsl:then(ldh:rethread-response($context, ?))
-            => ixsl:then(ldh:handle-response#1)
+            => ixsl:then(ldh:rethread-response($context, ?, $response-key))
+            => ixsl:then(ldh:handle-response(?, $response-key))
         "/>
     </xsl:function>
-    
+
     <xsl:function name="ldh:rethread-response" as="map(*)" ixsl:updating="no">
         <xsl:param name="context" as="map(*)"/>
         <xsl:param name="response" as="map(*)"/>
 
-        <xsl:sequence select="map:merge(($context, map{ 'response': $response }), map{ 'duplicates': 'use-last' })"/>
+        <xsl:sequence select="ldh:rethread-response($context, $response, 'response')"/>
+    </xsl:function>
+
+    <xsl:function name="ldh:rethread-response" as="map(*)" ixsl:updating="no">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:param name="response" as="map(*)"/>
+        <xsl:param name="response-key" as="xs:string"/>
+
+        <xsl:sequence select="map:merge(($context, map{ $response-key: $response }), map{ 'duplicates': 'use-last' })"/>
     </xsl:function>
 
     <xsl:function name="ldh:http-request-threaded" as="map(*)" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
 
+        <xsl:sequence select="ldh:http-request-threaded($context, 'request', 'response')"/>
+    </xsl:function>
+
+    <xsl:function name="ldh:http-request-threaded" as="map(*)" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:param name="request-key" as="xs:string"/>
+        <xsl:param name="response-key" as="xs:string"/>
+
         <xsl:sequence select="
-          ixsl:http-request($context('request'))
-            => ixsl:then(ldh:rethread-response($context, ?))
+          ixsl:http-request($context($request-key))
+            => ixsl:then(ldh:rethread-response($context, ?, $response-key))
         "/>
     </xsl:function>
     
@@ -546,12 +569,12 @@ exclude-result-prefixes="#all"
         <xsl:param name="error" as="map(*)"/>
 
         <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
-        
+
         <xsl:if test="$error?code ne 'Q{&ldh;}HTTPError'">
             <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ $error?message ])"/>
         </xsl:if>
     </xsl:function>
-    
+
     <xsl:function name="ldh:error-response-alert" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
         <xsl:variable name="response" select="$context('response')" as="map(*)?"/>

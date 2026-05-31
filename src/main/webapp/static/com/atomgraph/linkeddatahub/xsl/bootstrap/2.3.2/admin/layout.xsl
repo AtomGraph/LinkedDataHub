@@ -40,7 +40,6 @@ xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
 exclude-result-prefixes="#all">
 
     <xsl:import href="../layout.xsl"/>
-    <xsl:include href="signup.xsl"/>
     <xsl:include href="acl/layout.xsl"/>
     
     <xsl:template match="rdf:RDF[$foaf:Agent]" mode="bs2:Create" priority="1">
@@ -69,32 +68,6 @@ exclude-result-prefixes="#all">
             </ul>
         </div>
     </xsl:template>
-    
-    <!-- ADD DATA -->
-    
-    <xsl:template match="rdf:RDF[$acl:mode = '&acl;Append']" mode="bs2:AddData" priority="1">
-        <div class="btn-group pull-left">
-            <button type="button" class="btn btn-primary dropdown-toggle" title="{ac:label(key('resources', 'add', document('../translations.rdf')))}">
-                <xsl:value-of>
-                    <xsl:apply-templates select="key('resources', 'add', document('../translations.rdf'))" mode="ac:label"/>
-                </xsl:value-of>
-                <xsl:text> </xsl:text>
-                <span class="caret"></span>
-            </button>
-            
-            <ul class="dropdown-menu">
-                <li>
-                    <button type="button" title="{ac:label(key('resources', 'import-ontology-title', document('../translations.rdf')))}" class="btn btn-add-ontology">
-                        <xsl:value-of>
-                            <xsl:apply-templates select="key('resources', 'import-ontology', document('../translations.rdf'))" mode="ac:label"/>
-                        </xsl:value-of>
-                    </button>
-                </li>
-            </ul>
-        </div>
-    </xsl:template>
-    
-    <xsl:template match="*" mode="bs2:AddData"/>
     
     <!-- ROW FORM - we need the overriding templates as well -->
     

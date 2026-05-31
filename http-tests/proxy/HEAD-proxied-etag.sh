@@ -15,12 +15,28 @@ add-agent-to-group.sh \
   --agent "$AGENT_URI" \
   "${ADMIN_BASE_URL}acl/groups/readers/"
 
-# check for Bad Gateway exception if the external URL does not dereference
+extract_etag() {
+    grep -i '^etag:' \
+    | tr -d '\r' \
+    | sed 's/^[Ee][Tt][Aa][Gg]:[[:space:]]*//'
+}
 
-curl -k -w "%{http_code}\n" -o /dev/null -s \
-  -G \
-  -H "Accept: application/n-triples" \
+# fetch the end-user root directly to capture its ETag
+
+direct_etag=$(curl --head -k -f -s \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
-  --data-urlencode "uri=http://f1d2d4cf-90bb-4f5b-ae4b-921e584b6edd.org" \
+  -H 'Accept: application/n-triples' \
   "$END_USER_BASE_URL" \
-| grep -q "$STATUS_BAD_GATEWAY"
+| extract_etag)
+
+# fetch the same document via the admin proxy
+
+proxied_etag=$(curl -G --head -k -f -s \
+  -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
+  -H 'Accept: application/n-triples' \
+  --data-urlencode "uri=${END_USER_BASE_URL}" \
+  "$ADMIN_BASE_URL" \
+| extract_etag)
+
+[ -n "$proxied_etag" ] || exit 1
+[ "$proxied_etag" = "$direct_etag" ] || exit 1

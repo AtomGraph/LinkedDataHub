@@ -22,13 +22,13 @@ xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
 exclude-result-prefixes="#all">
 
     <!-- show "Actions" dropdown with Install/Uninstall options for packages -->
-    <xsl:template match="*[rdf:type/@rdf:resource = '&lapp;Package'][$lapp:origin]" mode="bs2:Actions">
-        <xsl:variable name="admin-origin" select="xs:anyURI(replace(string($lapp:origin), '^(https?://)', '$1admin.'))" as="xs:anyURI"/>
+    <xsl:template match="*[rdf:type/@rdf:resource = '&lapp;Package'][lapp:origin()]" mode="bs2:Actions">
+        <xsl:variable name="admin-origin" select="xs:anyURI(replace(string(lapp:origin()), '^(https?://)', '$1admin.'))" as="xs:anyURI"/>
 
         <div class="btn-group pull-right">
             <button type="button" class="btn dropdown-toggle">
                 <xsl:value-of>
-                    <xsl:apply-templates select="key('resources', 'actions', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                    <xsl:apply-templates select="key('resources', 'actions', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', lapp:origin())))" mode="ac:label"/>
                 </xsl:value-of>
                 <xsl:text> </xsl:text>
                 <span class="caret"></span>
@@ -39,7 +39,7 @@ exclude-result-prefixes="#all">
                         <input type="hidden" name="package-uri" value="{@rdf:about}"/>
                         <button class="btn btn-primary" type="submit">
                             <xsl:value-of>
-                                <xsl:apply-templates select="key('resources', 'install', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                                <xsl:apply-templates select="key('resources', 'install', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', lapp:origin())))" mode="ac:label"/>
                             </xsl:value-of>
                         </button>
                     </form>
@@ -49,7 +49,7 @@ exclude-result-prefixes="#all">
                         <input type="hidden" name="package-uri" value="{@rdf:about}"/>
                         <button class="btn btn-danger" type="submit">
                             <xsl:value-of>
-                                <xsl:apply-templates select="key('resources', 'uninstall', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                                <xsl:apply-templates select="key('resources', 'uninstall', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', lapp:origin())))" mode="ac:label"/>
                             </xsl:value-of>
                         </button>
                     </form>

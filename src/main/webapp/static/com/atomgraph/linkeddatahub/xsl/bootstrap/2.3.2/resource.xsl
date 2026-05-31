@@ -36,6 +36,7 @@ xmlns:xs="http://www.w3.org/2001/XMLSchema"
 xmlns:map="http://www.w3.org/2005/xpath-functions/map"
 xmlns:json="http://www.w3.org/2005/xpath-functions"
 xmlns:lacl="&lacl;"
+xmlns:lapp="&lapp;"
 xmlns:ldh="&ldh;"
 xmlns:ac="&ac;"
 xmlns:rdf="&rdf;"
@@ -62,15 +63,12 @@ exclude-result-prefixes="#all"
 extension-element-prefixes="ixsl"
 >
     
-    <xsl:param name="foaf:Agent" as="document-node()?"/>
-
     <xsl:key name="shapes-by-target-class" match="*[@rdf:about] | *[@rdf:nodeID]" use="sh:targetClass/@rdf:resource | sh:targetClass/@rdf:resource"/>
 
     <!-- LABEL -->
 
-    <!-- TO-DO: move to owl.xsl -->
     <xsl:template match="*[@rdf:about = '&owl;NamedIndividual']" mode="ac:label">
-        <xsl:apply-templates select="key('resources', 'instance', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+        <xsl:apply-templates select="key('resources', 'instance', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', lapp:origin())))" mode="ac:label"/>
     </xsl:template>
     
     <!-- LOGO -->
@@ -386,7 +384,7 @@ extension-element-prefixes="ixsl"
                 <div class="well well-small sidebar-nav backlinks-nav">
                     <h2 class="nav-header btn">
                         <xsl:value-of>
-                            <xsl:apply-templates select="key('resources', 'backlinks', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                            <xsl:apply-templates select="key('resources', 'backlinks', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', lapp:origin())))" mode="ac:label"/>
                         </xsl:value-of>
 
                         <span class="caret caret-reversed pull-right"></span>
@@ -403,7 +401,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="absolute-path" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI" tunnel="yes"/>
         <xsl:param name="base-uri" as="xs:anyURI?"/>
         <xsl:param name="active" as="xs:boolean"/>
-        <xsl:param name="href" select="ldh:href(ac:document-uri($base-uri), ldh:query-params(xs:anyURI(@rdf:about)))" as="xs:anyURI?"/>
+        <xsl:param name="href" select="ldh:href(ac:document-uri($base-uri), ldh:build-query(xs:anyURI(@rdf:about)))" as="xs:anyURI?"/>
         <xsl:param name="mode-classes" as="map(xs:string, xs:string)">
             <xsl:map>
                 <xsl:map-entry key="'&ldh;ContentMode'" select="'content-mode'"/>
@@ -601,79 +599,40 @@ extension-element-prefixes="ixsl"
     </xsl:template>
     
     <!-- hide instances of system classes -->
-    <xsl:template match="*[not($ldh:renderSystemResources)][@rdf:about = ac:absolute-path(ldh:base-uri(.)) and rdf:type/@rdf:resource = ('&def;Root', '&dh;Container', '&dh;Item')]" mode="bs2:Row" priority="1" use-when="system-property('xsl:product-name') = 'SAXON'"/>
+    <xsl:template match="*[not($ldh:renderSystemResources)][@rdf:about = ac:absolute-path(ldh:base-uri(.)) and rdf:type/@rdf:resource = ('&def;Root', '&dh;Container', '&dh;Item')]" mode="bs2:Row" priority="1"/>
 
-    <!-- overriding template used to inject ldh:view blocks (server-side only) -->
-    <xsl:template match="*[*][@rdf:about][not(rdf:type/@rdf:resource = '&http;Response')] | *[*][@rdf:nodeID][not(rdf:type/@rdf:resource = '&http;Response')]" mode="bs2:Row" priority="0.7" use-when="system-property('xsl:product-name') = 'SAXON'">
-        <!-- TO-DO: use ldh:request-uri() to resolve URIs server-side -->
+    <!-- Saxon-JS bs2:Row wrapper: outer div + inner div.span12 around next-match output, mirroring the deleted SAXON-only wrapper at resource.xsl:605 minus the synchronous view-block injection (which now happens client-side in client/block.xsl). Excludes the typed block types handled by resource.xsl:463 since those have their own wrapper structure (progress bar etc.) and the unconditional wrapping here would inject two spurious div levels into their next-match chain. -->
+    <!-- TO-DO: replace with fully client-side wrapper in ldh:RenderRow in block.xsl -->
+    <xsl:template match="*[*][@rdf:about][not(rdf:type/@rdf:resource = ('&http;Response', '&ldh;Object', '&ldh;View', '&ldh;GraphChart', '&ldh;ResultSetChart', '&sp;Describe', '&sp;Construct', '&sp;Ask', '&sp;Select'))] | *[*][@rdf:nodeID][not(rdf:type/@rdf:resource = ('&http;Response', '&ldh;Object', '&ldh;View', '&ldh;GraphChart', '&ldh;ResultSetChart', '&sp;Describe', '&sp;Construct', '&sp;Ask', '&sp;Select'))]" mode="bs2:Row" priority="0.7" use-when="system-property('xsl:product-name') eq 'SaxonJS'">
         <xsl:param name="id" select="if (contains(@rdf:about, ac:absolute-path(ldh:base-uri(.)) || '#')) then substring-after(@rdf:about, ac:absolute-path(ldh:base-uri(.)) || '#') else generate-id()" as="xs:string?"/>
         <xsl:param name="class" select="'row-fluid block'" as="xs:string?"/>
         <xsl:param name="about" select="@rdf:about" as="xs:anyURI?"/>
         <xsl:param name="typeof" select="rdf:type/@rdf:resource/xs:anyURI(.)" as="xs:anyURI*"/>
         <xsl:param name="mode" as="xs:anyURI?"/>
         <xsl:param name="style" as="xs:string?"/>
-        <!-- query ontology for forward blocks where rdfs:domain matches instance types (check direct domain and inherited via rdfs:subPropertyOf) -->
-        <xsl:variable name="forward-view-values" select="if (exists($typeof) and doc-available(resolve-uri('ns?query=ASK%20%7B%7D', $ldt:base))) then ldh:query-result(resolve-uri('ns', $ldt:base), $forward-view-query || ' VALUES $domain { ' || string-join(for $type in $typeof return '&lt;' || $type || '&gt;', ' ') || ' }')//srx:binding[@name = 'block']/srx:uri/xs:anyURI(.) else ()" as="xs:anyURI*" use-when="system-property('xsl:product-name') = 'SAXON'"/>
-        <!-- query ontology for inverse blocks where rdfs:range matches instance types (check direct range and inherited via rdfs:subPropertyOf) -->
-        <xsl:variable name="inverse-view-values" select="if (exists($typeof) and doc-available(resolve-uri('ns?query=ASK%20%7B%7D', $ldt:base))) then ldh:query-result(resolve-uri('ns', $ldt:base), $inverse-view-query || ' VALUES $range { ' || string-join(for $type in $typeof return '&lt;' || $type || '&gt;', ' ') || ' }')//srx:binding[@name = 'block']/srx:uri/xs:anyURI(.) else ()" as="xs:anyURI*" use-when="system-property('xsl:product-name') = 'SAXON'"/>
-        <!-- combine both forward and inverse blocks -->
-        <xsl:variable name="view-values" select="($forward-view-values, $inverse-view-values)" as="xs:anyURI*" use-when="system-property('xsl:product-name') = 'SAXON'"/>
 
-        <xsl:choose>
-            <xsl:when test="exists($view-values)">
-                <div>
-                    <xsl:if test="$id">
-                        <xsl:attribute name="id" select="$id"/>
-                    </xsl:if>
-                    <xsl:if test="$class">
-                        <xsl:attribute name="class" select="$class"/>
-                    </xsl:if>
-                    <xsl:if test="$about">
-                        <xsl:attribute name="about" select="$about"/>
-                    </xsl:if>
-        <!--            <xsl:if test="exists($typeof)">
-                        <xsl:attribute name="typeof" select="string-join($typeof, ' ')"/>
-                    </xsl:if>-->
-<!--                    <xsl:if test="$draggable = true()">
-                        <xsl:attribute name="draggable" select="'true'"/>
-                    </xsl:if>
--->
-            
-                    <div class="span12">
-                        <xsl:next-match>
-                            <xsl:with-param name="id" select="()"/> <!-- unset @id -->
-                            <xsl:with-param name="class" select="$class"/>
-                            <xsl:with-param name="about" select="$about"/>
-                            <xsl:with-param name="typeof" select="$typeof"/>
-                            <xsl:with-param name="mode" select="$mode"/>
-                            <xsl:with-param name="style" select="$style"/>
-                        </xsl:next-match>
+        <div>
+            <xsl:if test="$id">
+                <xsl:attribute name="id" select="$id"/>
+            </xsl:if>
+            <xsl:if test="$class">
+                <xsl:attribute name="class" select="$class"/>
+            </xsl:if>
+            <xsl:if test="$about">
+                <xsl:attribute name="about" select="$about"/>
+            </xsl:if>
 
-                        <xsl:variable name="base-uri" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/>
-                        <!-- render blocks applicable to this resource's types (forward blocks via rdfs:domain, inverse blocks via rdfs:range) -->
-                        <xsl:for-each select="$view-values" use-when="system-property('xsl:product-name') = 'SAXON'">
-                            <xsl:if test="doc-available(ac:document-uri(.))">
-                                <xsl:variable name="id" select="'id' || ac:uuid()" as="xs:string"/>
-                                <xsl:apply-templates select="key('resources', ., document(ac:document-uri(.)))" mode="bs2:Row">
-                                    <xsl:with-param name="about" select="xs:anyURI($base-uri || $id)"/> <!-- set a unique @about -->
-                                    <xsl:with-param name="id" select="$id"/>
-                                </xsl:apply-templates>
-                            </xsl:if>
-                        </xsl:for-each>
-                    </div>
-                </div>
-            </xsl:when>
-            <xsl:otherwise>
+            <div class="span12">
                 <xsl:next-match>
-                    <xsl:with-param name="id" select="$id"/>
+                    <xsl:with-param name="id" select="()"/> <!-- only the wrapper carries @id -->
                     <xsl:with-param name="class" select="$class"/>
                     <xsl:with-param name="about" select="$about"/>
                     <xsl:with-param name="typeof" select="$typeof"/>
                     <xsl:with-param name="mode" select="$mode"/>
                     <xsl:with-param name="style" select="$style"/>
                 </xsl:next-match>
-            </xsl:otherwise>
-        </xsl:choose>
+            </div>
+        </div>
     </xsl:template>
 
     <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:Row">
@@ -785,9 +744,29 @@ extension-element-prefixes="ixsl"
     </xsl:template>
 
     <!-- PROPERTY LIST -->
-    
+
     <!-- suppress types in property list - we show them in the bs2:Header instead -->
     <xsl:template match="rdf:type[@rdf:resource]" mode="bs2:PropertyList"/>
+
+    <!-- override outer bs2:PropertyList so sort keys consume tunneled $property-metadata and $object-metadata
+         (tunnel params don't cross xsl:function boundaries, so 1-arg ac:property-label/ac:object-label can't see them) -->
+    <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:PropertyList">
+        <xsl:param name="property-metadata" as="document-node()?" tunnel="yes"/>
+        <xsl:param name="object-metadata" as="document-node()?" tunnel="yes"/>
+
+        <xsl:variable name="definitions" as="document-node()">
+            <xsl:document>
+                <dl class="dl-horizontal">
+                    <xsl:apply-templates select="*" mode="#current">
+                        <xsl:sort select="if ($property-metadata) then ac:property-label(., $property-metadata) else ac:property-label(.)" order="ascending" lang="{$ldt:lang}"/>
+                        <xsl:sort select="if (exists((text(), @rdf:resource, @rdf:nodeID))) then (if ($object-metadata) then ac:object-label((text(), @rdf:resource, @rdf:nodeID)[1], $object-metadata) else ac:object-label((text(), @rdf:resource, @rdf:nodeID)[1])) else ()" order="ascending" lang="{$ldt:lang}"/>
+                    </xsl:apply-templates>
+                </dl>
+            </xsl:document>
+        </xsl:variable>
+
+        <xsl:apply-templates select="$definitions" mode="bs2:PropertyListIdentity"/>
+    </xsl:template>
 
     <!-- IMAGE -->
     
@@ -844,10 +823,10 @@ extension-element-prefixes="ixsl"
                     <div class="btn-group pull-left">
                         <button type="button" class="btn dropdown-toggle">
                             <xsl:attribute name="title">
-                                <xsl:apply-templates select="key('resources', 'reconcile-title', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                                <xsl:apply-templates select="key('resources', 'reconcile-title', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', lapp:origin())))" mode="ac:label"/>
                             </xsl:attribute>
 
-                            <xsl:apply-templates select="key('resources', 'reconcile', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                            <xsl:apply-templates select="key('resources', 'reconcile', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', lapp:origin())))" mode="ac:label"/>
                             <xsl:text> </xsl:text>
                             <span class="caret"></span>
                         </button>
@@ -873,15 +852,15 @@ extension-element-prefixes="ixsl"
             
             <button type="button">
                 <xsl:attribute name="title">
-                    <xsl:apply-templates select="key('resources', 'copy-uri', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                    <xsl:apply-templates select="key('resources', 'copy-uri', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', lapp:origin())))" mode="ac:label"/>
                 </xsl:attribute>
                 
-                <xsl:apply-templates select="key('resources', 'copy-uri', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ldh:logo">
+                <xsl:apply-templates select="key('resources', 'copy-uri', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', lapp:origin())))" mode="ldh:logo">
                     <xsl:with-param name="class" select="'btn'"/>
                 </xsl:apply-templates>
                 
                 <xsl:value-of>
-                    <xsl:apply-templates select="key('resources', 'copy-uri', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                    <xsl:apply-templates select="key('resources', 'copy-uri', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', lapp:origin())))" mode="ac:label"/>
                 </xsl:value-of>
             </button>
             
@@ -998,7 +977,7 @@ extension-element-prefixes="ixsl"
     
     <!-- CONSTRUCTOR -->
 
-    <xsl:template match="*[*][@rdf:about]" mode="bs2:ConstructorListItem" use-when="system-property('xsl:product-name') = 'SAXON'">
+    <xsl:template match="*[*][@rdf:about]" mode="bs2:ConstructorListItem">
         <xsl:param name="with-label" select="true()" as="xs:boolean"/>
         <xsl:param name="create-graph" select="false()" as="xs:boolean"/>
 
@@ -1014,7 +993,7 @@ extension-element-prefixes="ixsl"
         </xsl:if>
     </xsl:template>
     
-    <xsl:template match="*[*][@rdf:about]" mode="bs2:Constructor" use-when="system-property('xsl:product-name') = 'SAXON'">
+    <xsl:template match="*[*][@rdf:about]" mode="bs2:Constructor">
         <xsl:param name="id" select="concat('constructor-', generate-id())" as="xs:string?"/>
         <xsl:param name="subclasses" as="attribute()*"/>
         <xsl:param name="with-label" select="false()" as="xs:boolean"/>
@@ -1162,25 +1141,25 @@ extension-element-prefixes="ixsl"
 
                     <div class="form-actions">
                         <button type="submit" class="btn-primary">
-                            <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ldh:logo">
+                            <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', lapp:origin())))" mode="ldh:logo">
                                 <xsl:with-param name="class" select="$button-class"/>
                             </xsl:apply-templates>
 
-                            <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                            <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', lapp:origin())))" mode="ac:label"/>
                         </button>
 
                         <button type="reset" class="btn">
-                            <xsl:apply-templates select="key('resources', 'reset', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ldh:logo">
+                            <xsl:apply-templates select="key('resources', 'reset', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', lapp:origin())))" mode="ldh:logo">
                                 <xsl:with-param name="class" select="'btn'"/>
                             </xsl:apply-templates>
 
-                            <xsl:apply-templates select="key('resources', 'reset', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                            <xsl:apply-templates select="key('resources', 'reset', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', lapp:origin())))" mode="ac:label"/>
                         </button>
 
                         <xsl:if test="$show-cancel-button">
                             <button type="button" class="btn btn-cancel">
                                 <xsl:value-of>
-                                    <xsl:apply-templates select="key('resources', 'cancel', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                                    <xsl:apply-templates select="key('resources', 'cancel', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', lapp:origin())))" mode="ac:label"/>
                                 </xsl:value-of>
                             </button>
                         </xsl:if>
@@ -1263,7 +1242,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="base-uri" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI" tunnel="yes"/>
         <xsl:param name="show-subject" select="not(starts-with(@rdf:about, $base-uri) or @rdf:nodeID)" as="xs:boolean" tunnel="yes"/>
         <xsl:param name="required" select="rdf:type/@rdf:resource = ('&dh;Container', '&dh;Item')" as="xs:boolean"/> <!-- Container/Item instances cannot be removed -->
-        
+
         <fieldset>
             <xsl:if test="$id">
                 <xsl:attribute name="id" select="$id"/>
@@ -1295,7 +1274,7 @@ extension-element-prefixes="ixsl"
                                         </xsl:if>
 
                                         <xsl:value-of>
-                                            <xsl:apply-templates select="key('resources', 'actions', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                                            <xsl:apply-templates select="key('resources', 'actions', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', lapp:origin())))" mode="ac:label"/>
                                         </xsl:value-of>
                                         <span class="caret"></span>
                                     </button>
@@ -1304,14 +1283,14 @@ extension-element-prefixes="ixsl"
                                             <li>
                                                 <button type="button" class="btn btn-edit-constructors" data-resource-type="{.}">
                                                     <xsl:value-of>
-                                                        <xsl:apply-templates select="key('resources', 'edit', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                                                        <xsl:apply-templates select="key('resources', 'edit', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', lapp:origin())))" mode="ac:label"/>
                                                     </xsl:value-of>
                                                     <xsl:text> </xsl:text>
                                                     <!-- query class description from the namespace ontology (because it might not be available as Linked Data) -->
                                                     <xsl:apply-templates select="key('resources', ., $type-metadata)" mode="ac:label"/>
                                                     <xsl:text> </xsl:text>
                                                     <xsl:value-of>
-                                                        <xsl:apply-templates select="key('resources', 'constructors', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                                                        <xsl:apply-templates select="key('resources', 'constructors', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', lapp:origin())))" mode="ac:label"/>
                                                     </xsl:value-of>
                                                 </button>
                                             </li>
@@ -1327,15 +1306,15 @@ extension-element-prefixes="ixsl"
                         <!-- "Copy URI" button -->
                         <button type="button">
                             <xsl:attribute name="title">
-                                <xsl:apply-templates select="key('resources', 'copy-uri', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                                <xsl:apply-templates select="key('resources', 'copy-uri', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', lapp:origin())))" mode="ac:label"/>
                             </xsl:attribute>
 
-                            <xsl:apply-templates select="key('resources', 'copy-uri', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ldh:logo">
+                            <xsl:apply-templates select="key('resources', 'copy-uri', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', lapp:origin())))" mode="ldh:logo">
                                 <xsl:with-param name="class" select="'btn'"/>
                             </xsl:apply-templates>
 
                             <xsl:value-of>
-                                <xsl:apply-templates select="key('resources', 'copy-uri', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                                <xsl:apply-templates select="key('resources', 'copy-uri', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', lapp:origin())))" mode="ac:label"/>
                             </xsl:value-of>
                         </button>
                         
@@ -1464,7 +1443,7 @@ extension-element-prefixes="ixsl"
 
             <div class="controls">
                 <button type="button" id="button-{generate-id()}" class="btn add-value">
-                    <xsl:apply-templates select="key('resources', 'add', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ldh:logo">
+                    <xsl:apply-templates select="key('resources', 'add', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', lapp:origin())))" mode="ldh:logo">
                         <xsl:with-param name="class" select="'btn add-value'"/>
                     </xsl:apply-templates>
                 </button>

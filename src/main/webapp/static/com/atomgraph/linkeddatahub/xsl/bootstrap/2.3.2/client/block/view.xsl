@@ -2,6 +2,7 @@
 <!DOCTYPE xsl:stylesheet [
     <!ENTITY def    "https://w3id.org/atomgraph/linkeddatahub/default#">
     <!ENTITY ldh    "https://w3id.org/atomgraph/linkeddatahub#">
+    <!ENTITY lapp   "https://w3id.org/atomgraph/linkeddatahub/apps#">
     <!ENTITY ac     "https://w3id.org/atomgraph/client#">
     <!ENTITY rdf    "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
     <!ENTITY rdfs   "http://www.w3.org/2000/01/rdf-schema#">
@@ -27,6 +28,7 @@ xmlns:json="http://www.w3.org/2005/xpath-functions"
 xmlns:array="http://www.w3.org/2005/xpath-functions/array"
 xmlns:ac="&ac;"
 xmlns:ldh="&ldh;"
+xmlns:lapp="&lapp;"
 xmlns:rdf="&rdf;"
 xmlns:rdfs="&rdfs;"
 xmlns:srx="&srx;"
@@ -104,6 +106,19 @@ exclude-result-prefixes="#all"
         "/>
     </xsl:template>
     
+    <!-- flatten a SPARQL.js predicate node to its candidate URIs: simple URI (json:string) returns one; alt-path (pathType '|') recurses through items; sequence/inverse/variable predicates return empty -->
+    <xsl:function name="ldh:alt-path-uris" as="xs:anyURI*">
+        <xsl:param name="node" as="element()"/>
+        <xsl:choose>
+            <xsl:when test="$node/self::json:string[not(starts-with(., '?'))]">
+                <xsl:sequence select="xs:anyURI($node)"/>
+            </xsl:when>
+            <xsl:when test="$node/self::json:map[json:string[@key = 'type'] = 'path'][json:string[@key = 'pathType'] = '|']">
+                <xsl:sequence select="for $item in $node/json:array[@key = 'items']/* return ldh:alt-path-uris($item)"/>
+            </xsl:when>
+        </xsl:choose>
+    </xsl:function>
+
     <xsl:function name="ldh:view-self-thunk" as="item()*" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
 
@@ -136,41 +151,28 @@ exclude-result-prefixes="#all"
 
         <xsl:sequence select="
             ixsl:http-request($context('request')) =>
-                ixsl:then(ldh:rethread-response($context, ?)) =>
-                ixsl:then(ldh:handle-response#1) =>
-                ixsl:then(ldh:load-object-metadata#1) =>
-                ixsl:then(ldh:http-request-threaded#1) =>
-                ixsl:then(ldh:handle-response#1) =>
+                ixsl:then(ldh:rethread-response($context, ?, 'view-results-response')) =>
+                ixsl:then(ldh:handle-response(?, 'view-results-response')) =>
+                ixsl:then(ldh:view-results-error-handler#1) =>
+                ixsl:then(ldh:load-object-metadata(?, 'view-results-response')) =>
+                ixsl:then(ldh:http-request-threaded(?, 'metadata-request', 'metadata-response')) =>
+                ixsl:then(ldh:handle-response(?, 'metadata-response')) =>
                 ixsl:then(ldh:set-object-metadata#1) =>
                 ixsl:then(ldh:render-view#1)
         "/>
     </xsl:function>
 
-    <xsl:function name="ldh:load-object-metadata" as="map(*)" ixsl:updating="yes">
+    <!-- view-results-specific HTTP error UI: renders an alert into $container, hides the block progress bar, raises ldh:HTTPError; the generic ldh:load-object-metadata in client/block.xsl has no error UI of its own -->
+    <xsl:function name="ldh:view-results-error-handler" as="item()*" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
-        <xsl:variable name="response" select="$context('response')" as="map(*)"/>
+        <xsl:variable name="response" select="$context('view-results-response')" as="map(*)"/>
         <xsl:variable name="container" select="$context('container')" as="element()"/>
         <xsl:variable name="endpoint" select="$context('endpoint')" as="xs:anyURI"/>
-
-        <xsl:message>ldh:load-object-metadata</xsl:message>
 
         <xsl:for-each select="$response">
             <xsl:choose>
                 <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
-                    <xsl:variable name="results" select="?body" as="document-node()"/>
-
-                    <xsl:choose>
-                        <xsl:when test="$endpoint = sd:endpoint()">
-                            <xsl:variable name="object-uris" select="distinct-values($results/rdf:RDF/rdf:Description/*/@rdf:resource[not(key('resources', .))])" as="xs:string*"/>
-                            <xsl:variable name="query-string" select="$object-metadata-query || ' VALUES $this { ' || string-join(for $uri in $object-uris return '&lt;' || $uri || '&gt;', ' ') || ' }'" as="xs:string"/>
-                            <xsl:variable name="request" select="map{ 'method': 'POST', 'href': ldh:href($endpoint), 'media-type': 'application/sparql-query', 'body': $query-string, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
-
-                            <xsl:sequence select="map:merge(($context, map{ 'request': $request , 'response': () , 'results': $results }), map{ 'duplicates': 'use-last' })"/>
-                        </xsl:when>
-                        <xsl:otherwise>
-                            <xsl:sequence select="map:merge(($context, map{ 'results': $results }))"/>
-                        </xsl:otherwise>
-                    </xsl:choose>
+                    <xsl:sequence select="$context"/>
                 </xsl:when>
                 <xsl:otherwise>
                     <xsl:for-each select="$container">
@@ -200,30 +202,6 @@ exclude-result-prefixes="#all"
         </xsl:for-each>
     </xsl:function>
 
-    <xsl:function name="ldh:set-object-metadata" as="map(*)" ixsl:updating="yes">
-        <xsl:param name="context" as="map(*)"/>
-        <xsl:variable name="response" select="$context('response')" as="map(*)"/>
-        <xsl:variable name="container" select="$context('container')" as="element()"/>
-
-        <xsl:message>ldh:set-object-metadata</xsl:message>
-
-        <!-- Mark metadata response as complete -->
-        <xsl:sequence select="ldh:update-progress-counter($context('cache'), $context, 'complete', ())"/>
-
-        <xsl:for-each select="$response">
-            <xsl:choose>
-                <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
-                    <xsl:variable name="object-metadata" select="?body" as="document-node()?"/>
-                    <xsl:sequence select="map:merge(($context, map{ 'object-metadata': $object-metadata }))"/>
-                </xsl:when>
-                <xsl:otherwise>
-                    <!-- ignore object metadata loading errors - treat as empty metadata -->
-                    <xsl:sequence select="$context"/>
-                </xsl:otherwise>
-            </xsl:choose>
-        </xsl:for-each>
-    </xsl:function>
-
     <!-- hide type control -->
     <xsl:template match="*[rdf:type/@rdf:resource = '&ldh;View']" mode="bs2:TypeControl" priority="1">
         <xsl:next-match>
@@ -248,7 +226,7 @@ exclude-result-prefixes="#all"
         <xsl:choose>
             <xsl:when test="@name = $count-var-name">
                 <strong>
-                    <xsl:apply-templates select="key('resources', 'total-results', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                    <xsl:apply-templates select="key('resources', 'total-results', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', lapp:origin())))" mode="ac:label"/>
                     <xsl:text> </xsl:text>
                     <span class="badge badge-inverse">
                         <xsl:value-of select="srx:literal"/>
@@ -389,31 +367,6 @@ exclude-result-prefixes="#all"
             ixsl:then(ldh:handle-response#1) =>
             ixsl:then(ldh:result-count-response#1)"
             on-failure="ldh:promise-failure#1"/>
-    </xsl:template>
-    
-    <!-- order by -->
-    
-    <xsl:template match="*[@rdf:about]" mode="bs2:OrderBy">
-        <xsl:param name="id" as="xs:string?"/>
-        <xsl:param name="class" as="xs:string?"/>
-        <xsl:param name="order-by-predicate" as="xs:anyURI?"/>
-
-        <!-- TO-DO: order options -->
-        <option value="{@rdf:about}">
-            <xsl:if test="$id">
-                <xsl:attribute name="id" select="$id"/>
-            </xsl:if>
-            <xsl:if test="$class">
-                <xsl:attribute name="class" select="$class"/>
-            </xsl:if>
-            <xsl:if test="@rdf:about = $order-by-predicate">
-                <xsl:attribute name="selected" select="'selected'"/>
-            </xsl:if>
-            
-            <xsl:value-of>
-                <xsl:apply-templates select="." mode="ac:label"/>
-            </xsl:value-of>
-        </option>
     </xsl:template>
     
     <!-- pager -->
@@ -562,11 +515,7 @@ exclude-result-prefixes="#all"
 
     <xsl:template name="ldh:ViewOrder">
         <xsl:param name="select-xml" as="document-node()"/>
-        <xsl:param name="initial-var-name" as="xs:string"/>
-        <xsl:param name="predicate" as="xs:anyURI"/>
-
-        <xsl:variable name="bgp-triples-map" select="$select-xml//json:map[json:string[@key = 'type'] = 'bgp']/json:array[@key = 'triples']/json:map[json:string[@key = 'subject'] = '?' || $initial-var-name][json:string[@key = 'predicate'] = $predicate][starts-with(json:string[@key = 'object'], '?')]" as="element()*"/>
-        <xsl:variable name="var-name" select="$bgp-triples-map/json:string[@key = 'object'][1]/substring-after(., '?')" as="xs:string?"/>
+        <xsl:param name="var-name" as="xs:string?"/>
 
         <xsl:document>
             <xsl:apply-templates select="$select-xml" mode="ldh:replace-order-by">
@@ -666,6 +615,62 @@ exclude-result-prefixes="#all"
                 <xsl:with-param name="series" select="$series"/>
             </xsl:call-template>
         </xsl:if>
+        <!-- after we've created the graph canvas element, initialize the ForceGraph3D instance -->
+        <xsl:if test="$active-mode = '&ac;GraphMode'">
+            <xsl:variable name="canvas-id" select="$container-id || '-graph-canvas'" as="xs:string"/>
+            <xsl:variable name="canvas" select="id($canvas-id, ixsl:page())" as="element()"/>
+            <xsl:variable name="graphs" select="ixsl:get(ixsl:window(), 'LinkedDataHub.graphs')"/>
+            <xsl:variable name="initial-load" select="not(ixsl:contains($graphs, $canvas-id))" as="xs:boolean"/>
+            <xsl:message>ldh:RenderViewMode GraphMode: initial-load=<xsl:value-of select="$initial-load"/> rdf:Description count=<xsl:value-of select="count($results/rdf:RDF/rdf:Description)"/> rdf:RDF=<xsl:value-of select="exists($results/rdf:RDF)"/></xsl:message>
+
+            <xsl:if test="$initial-load">
+                <!-- ldh:ForceGraph3D-init returns a graph-state object with .instance already set -->
+                <xsl:variable name="graph-state" as="item()">
+                    <xsl:call-template name="ldh:ForceGraph3D-init">
+                        <xsl:with-param name="graph-id" select="$canvas-id"/>
+                        <xsl:with-param name="container" select="$canvas"/>
+                        <xsl:with-param name="builder" select="ixsl:apply(ixsl:get(ixsl:window(), 'ForceGraph3D'), [])"/>
+                        <xsl:with-param name="graph-width" select="xs:double(ixsl:get($container, 'offsetWidth'))"/>
+                        <xsl:with-param name="graph-height" select="xs:double(600)"/>
+                        <xsl:with-param name="node-rel-size" select="xs:double(4)"/>
+                        <xsl:with-param name="link-width" select="xs:double(1.5)"/>
+                        <xsl:with-param name="node-label-color" select="'white'"/>
+                        <xsl:with-param name="node-label-text-height" select="xs:double(5)"/>
+                        <xsl:with-param name="node-label-position-y" select="xs:double(10)"/>
+                        <xsl:with-param name="link-label-color" select="'lightgrey'"/>
+                        <xsl:with-param name="link-label-text-height" select="xs:double(4)"/>
+                        <xsl:with-param name="link-force-distance" select="xs:double(100)"/>
+                        <xsl:with-param name="charge-force-strength" select="xs:double(-200)"/>
+                        <xsl:with-param name="node-click-event-name" select="'ForceGraph3DNodeClick'"/>
+                        <xsl:with-param name="node-dblclick-event-name" select="'ForceGraph3DNodeDblClick'"/>
+                        <xsl:with-param name="node-rightclick-event-name" select="'ForceGraph3DNodeRightClick'"/>
+                        <xsl:with-param name="node-hover-on-event-name" select="'ForceGraph3DNodeHoverOn'"/>
+                        <xsl:with-param name="node-hover-off-event-name" select="'ForceGraph3DNodeHoverOff'"/>
+                        <xsl:with-param name="link-click-event-name" select="'ForceGraph3DLinkClick'"/>
+                        <xsl:with-param name="background-click-event-name" select="'ForceGraph3DBackgroundClick'"/>
+                    </xsl:call-template>
+                </xsl:variable>
+                <!-- augment with LDH-specific state -->
+                <ixsl:set-property name="document" select="$results" object="$graph-state"/>
+                <ixsl:set-property name="loaded-uris" select="ixsl:new('Array', [])" object="$graph-state"/>
+                <ixsl:set-property name="loaded-backlink-uris" select="ixsl:new('Array', [])" object="$graph-state"/>
+                <ixsl:set-property name="{$canvas-id}" select="$graph-state" object="$graphs"/>
+
+                <xsl:call-template name="ldh:AppendGraph3DPanels">
+                    <xsl:with-param name="canvas" select="$canvas"/>
+                    <xsl:with-param name="canvas-id" select="$canvas-id"/>
+                </xsl:call-template>
+            </xsl:if>
+
+            <!-- Convert RDF to graph data and render (initial or re-render) -->
+            <xsl:variable name="graph-state" select="ixsl:get($graphs, $canvas-id)"/>
+            <xsl:variable name="graph-instance" select="ixsl:get($graph-state, 'instance')"/>
+            <xsl:call-template name="ldh:redisplay-graph">
+                <xsl:with-param name="canvas-id" select="$canvas-id"/>
+                <xsl:with-param name="graph-state" select="$graph-state"/>
+                <xsl:with-param name="graph-instance" select="$graph-instance"/>
+            </xsl:call-template>
+        </xsl:if>
     </xsl:template>
     
     <xsl:template name="render-container-error">
@@ -693,7 +698,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="results" as="document-node()"/>
         <xsl:param name="object-metadata" as="document-node()?"/>
         <xsl:param name="active-mode" as="xs:anyURI"/>
-        
+
         <xsl:choose>
             <xsl:when test="$active-mode = '&ac;ListMode'">
                 <xsl:apply-templates select="$results" mode="bs2:ContainerBlockList">
@@ -729,6 +734,7 @@ exclude-result-prefixes="#all"
             </xsl:when>
             <xsl:when test="$active-mode = '&ac;GraphMode'">
                 <xsl:apply-templates select="$results" mode="bs2:Graph">
+                    <xsl:with-param name="canvas-id" select="$container-id || '-graph-canvas'"/>
                     <xsl:with-param name="endpoint" select="if (not($endpoint = sd:endpoint())) then $endpoint else ()" tunnel="yes"/>
                 </xsl:apply-templates>
             </xsl:when>
@@ -749,9 +755,9 @@ exclude-result-prefixes="#all"
         <xsl:param name="container" as="element()"/>
         <xsl:param name="results" as="document-node()"/>
         <xsl:param name="select-xml" as="document-node()"/>
-        <xsl:param name="bgp-triples-map" as="element()*"/>
+        <xsl:param name="var-predicates" as="map(xs:string, xs:anyURI*)"/>
         <xsl:param name="desc" as="xs:boolean?"/>
-        <xsl:param name="order-by-predicate" as="xs:anyURI?"/>
+        <xsl:param name="order-by-var-name" as="xs:string?"/>
         <xsl:param name="container-id" as="xs:string"/>
         <xsl:param name="focus-var-name" as="xs:string"/>
         <xsl:param name="endpoint" as="xs:anyURI"/>
@@ -793,25 +799,38 @@ exclude-result-prefixes="#all"
                                     <option>
                                         <xsl:value-of>
                                             <xsl:text>[</xsl:text>
-                                            <xsl:apply-templates select="key('resources', 'none', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                                            <xsl:apply-templates select="key('resources', 'none', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', lapp:origin())))" mode="ac:label"/>
                                             <xsl:text>]</xsl:text>
                                         </xsl:value-of>
                                     </option>
                                 </xsl:if>
+                                <!-- alt-path-bound vars: emit options synchronously with var-name as label (no single canonical predicate URI to fetch ac:label for). Single-predicate vars are appended asynchronously below, with ac:label fetched from the predicate's vocab document. -->
+                                <xsl:for-each select="map:keys($var-predicates)">
+                                    <xsl:sort select="."/>
+                                    <xsl:variable name="var-name" select="." as="xs:string"/>
+                                    <xsl:if test="count($var-predicates(.)) gt 1">
+                                        <option value="{$var-name}">
+                                            <xsl:if test="$var-name = $order-by-var-name">
+                                                <xsl:attribute name="selected">selected</xsl:attribute>
+                                            </xsl:if>
+                                            <xsl:value-of select="$var-name"/>
+                                        </option>
+                                    </xsl:if>
+                                </xsl:for-each>
                             </select>
 
                             <xsl:choose>
                                 <xsl:when test="not($desc)">
                                     <button type="button" class="btn btn-order-by">
                                         <xsl:value-of>
-                                            <xsl:apply-templates select="key('resources', 'ascending', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                                            <xsl:apply-templates select="key('resources', 'ascending', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', lapp:origin())))" mode="ac:label"/>
                                         </xsl:value-of>
                                     </button>
                                 </xsl:when>
                                 <xsl:otherwise>
                                     <button type="button" class="btn btn-order-by btn-order-by-desc">
                                         <xsl:value-of>
-                                            <xsl:apply-templates select="key('resources', 'descending', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                                            <xsl:apply-templates select="key('resources', 'descending', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', lapp:origin())))" mode="ac:label"/>
                                         </xsl:value-of>
                                     </button>
                                 </xsl:otherwise>
@@ -836,24 +855,24 @@ exclude-result-prefixes="#all"
                     <xsl:with-param name="cache" select="$cache"/>
                 </xsl:call-template>
             </xsl:for-each>
-             
-            <xsl:for-each select="$bgp-triples-map">
-                <!-- only simple properties in the BGP are supported, not property paths etc. -->
-                <xsl:if test="json:string[@key = 'predicate']">
-                    <xsl:variable name="id" select="generate-id()" as="xs:string"/>
-                    <xsl:variable name="predicate" select="json:string[@key = 'predicate']" as="xs:anyURI"/>
-                    <xsl:variable name="request-uri" select="ac:build-uri(ldt:base(), map{ 'uri': ac:document-uri($predicate), 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
+
+            <!-- single-predicate vars: fetch the predicate's vocab document and append the option with ac:label as visible text. Alt-path-bound vars are already rendered inline above. -->
+            <xsl:for-each select="map:keys($var-predicates)">
+                <xsl:variable name="var-name" select="." as="xs:string"/>
+                <xsl:variable name="predicates" select="$var-predicates(.)" as="xs:anyURI*"/>
+                <xsl:if test="count($predicates) eq 1">
+                    <xsl:variable name="predicate" select="$predicates[1]" as="xs:anyURI"/>
+                    <xsl:variable name="request-uri" select="ldh:href(ac:build-uri(ldt:base(), map{ 'uri': ac:document-uri($predicate), 'accept': 'application/rdf+xml' }), map{})" as="xs:anyURI"/>
                     <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
                     <xsl:variable name="context" as="map(*)" select="
                       map{
                         'request': $request,
                         'container': id($order-by-container-id, ixsl:page()),
-                        'id': $id,
                         'predicate': $predicate,
-                        'order-by-predicate': $order-by-predicate,
+                        'var-name': $var-name,
+                        'order-by-var-name': $order-by-var-name,
                         'cache': $cache
                       }"/>
-
                     <ixsl:promise select="ixsl:http-request($context('request')) =>
                         ixsl:then(ldh:rethread-response($context, ?)) =>
                         ixsl:then(ldh:handle-response#1) =>
@@ -907,7 +926,7 @@ exclude-result-prefixes="#all"
                     <xsl:variable name="subject-var-name" select="json:string[@key = 'subject']/substring-after(., '?')" as="xs:string"/>
                     <xsl:variable name="predicate" select="json:string[@key = 'predicate']" as="xs:anyURI"/>
                     <xsl:variable name="object-var-name" select="json:string[@key = 'object']/substring-after(., '?')" as="xs:string"/>
-                    <xsl:variable name="request-uri" select="ac:build-uri(ldt:base(), map{ 'uri': ac:document-uri($predicate), 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
+                    <xsl:variable name="request-uri" select="ldh:href(ac:build-uri(ldt:base(), map{ 'uri': ac:document-uri($predicate), 'accept': 'application/rdf+xml' }), map{})" as="xs:anyURI"/>
                     <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
                     <xsl:variable name="context" as="map(*)" select="
                       map{
@@ -940,16 +959,7 @@ exclude-result-prefixes="#all"
             </xsl:if>
         </div>
     </xsl:template>
-        
-    <!-- DEFAULT  -->
-    
-    <!-- TO-DO: move to Web-Client -->
-    <xsl:template match="rdf:RDF">
-        <xsl:apply-templates>
-            <xsl:sort select="ac:label(.)"/>
-        </xsl:apply-templates>
-    </xsl:template>
-    
+
     <!-- block list -->
 
     <xsl:template match="rdf:RDF" mode="bs2:ContainerBlockList" use-when="system-property('xsl:product-name') eq 'SaxonJS'">
@@ -1075,30 +1085,9 @@ exclude-result-prefixes="#all"
     <!-- graph -->
 
     <xsl:template match="rdf:RDF" mode="bs2:Graph">
-        <xsl:param name="id" as="xs:string?"/>
-        <xsl:param name="class" as="xs:string?"/>
-        <xsl:param name="draggable" select="true()" as="xs:boolean?"/> <!-- counter-intuitive but needed in order to trigger "ixsl:ondragstart" on the map and then cancel it -->
+        <xsl:param name="canvas-id" as="xs:string"/>
 
-        <div>
-            <xsl:if test="$id">
-                <xsl:attribute name="id" select="$id"/>
-            </xsl:if>
-            <xsl:if test="$class">
-                <xsl:attribute name="class" select="$class"/>
-            </xsl:if>
-            <xsl:if test="$draggable = true()">
-                <xsl:attribute name="draggable" select="'true'"/>
-            </xsl:if>
-            <xsl:if test="$draggable = false()">
-                <xsl:attribute name="draggable" select="'false'"/>
-            </xsl:if>
-            
-            <xsl:apply-templates select="." mode="ac:SVG">
-                <xsl:with-param name="width" select="'100%'"/>
-                <xsl:with-param name="step-count" select="5"/>
-                <xsl:with-param name="spring-length" select="100" tunnel="yes"/>
-            </xsl:apply-templates>
-        </div>
+        <div id="{$canvas-id}" class="graph-3d-canvas"/>
     </xsl:template>
     
     <!-- parallax -->
@@ -1162,7 +1151,7 @@ exclude-result-prefixes="#all"
             </xsl:if>
             
             <h2 class="nav-header btn">
-                <xsl:apply-templates select="key('resources', 'related-results', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                <xsl:apply-templates select="key('resources', 'related-results', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', lapp:origin())))" mode="ac:label"/>
             </h2>
 
             <ul id="{$properties-container-id}" class="well well-small nav nav-list">
@@ -1337,7 +1326,7 @@ exclude-result-prefixes="#all"
     <xsl:template match="div[@typeof = '&ldh;View']//select[contains-token(@class, 'container-order')]" mode="ixsl:onchange">
         <xsl:param name="container" select="ancestor::div[@typeof = '&ldh;View'][1]" as="element()"/>
         <xsl:param name="cache" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $container/@id || '`')" as="item()"/>
-        <xsl:variable name="predicate" select="ixsl:get(., 'value')" as="xs:anyURI?"/>
+        <xsl:variable name="var-name" select="ixsl:get(., 'value')" as="xs:string?"/>
         <xsl:variable name="select-string" select="ixsl:get($cache, 'select-string')" as="xs:string"/>
         <xsl:variable name="select-xml" select="ixsl:get($cache, 'select-xml')" as="document-node()"/>
         <xsl:variable name="initial-var-name" select="ixsl:get($cache, 'initial-var-name')" as="xs:string"/>
@@ -1350,8 +1339,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="select-xml" as="document-node()">
             <xsl:call-template name="ldh:ViewOrder">
                 <xsl:with-param name="select-xml" select="$select-xml"/>
-                <xsl:with-param name="initial-var-name" select="$initial-var-name"/>
-                <xsl:with-param name="predicate" select="$predicate"/>
+                <xsl:with-param name="var-name" select="$var-name"/>
             </xsl:call-template>
         </xsl:variable>
 
@@ -1706,7 +1694,7 @@ exclude-result-prefixes="#all"
                         <xsl:variable name="initial-var-name" select="$select-xml/json:map/json:array[@key = 'variables']/json:string[1]/substring-after(., '?')" as="xs:string"/>
                         <xsl:variable name="focus-var-name" select="$initial-var-name" as="xs:string"/>
                         <!-- service can be explicitly specified on content using ldh:service -->
-                        <xsl:variable name="service" select="if ($service-uri) then key('resources', $service-uri, document(ac:build-uri(ac:document-uri($service-uri), map{ 'accept': 'application/rdf+xml' }))) else ()" as="element()?"/> <!-- TO-DO: refactor asynchronously -->
+                        <xsl:variable name="service" select="if ($service-uri) then key('resources', $service-uri, document(ldh:href(ac:document-uri($service-uri), map{ 'accept': 'application/rdf+xml' }, ()))) else ()" as="element()?"/> <!-- TO-DO: refactor asynchronously -->
                         <xsl:variable name="endpoint" select="($service/sd:endpoint/@rdf:resource/xs:anyURI(.), sd:endpoint())[1]" as="xs:anyURI"/>
 
                         <xsl:choose>
@@ -1807,7 +1795,7 @@ exclude-result-prefixes="#all"
     <!-- when view RDF/XML results load, render them -->
     <xsl:function name="ldh:render-view" as="item()*" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
-        <xsl:variable name="results" select="$context('results')" as="document-node()"/>
+        <xsl:variable name="results" select="$context('view-results-response')?body" as="document-node()"/>
         <xsl:variable name="block" select="$context('block')" as="element()"/>
         <xsl:variable name="container" select="$context('container')" as="element()"/>
         <xsl:variable name="container-id" select="$context('container-id')" as="xs:string"/>
@@ -1824,24 +1812,53 @@ exclude-result-prefixes="#all"
         <xsl:message>ldh:render-view</xsl:message>
 
         <xsl:for-each select="$results">
-            <!-- use the BGPs where the predicate is a URI value and the subject and object are variables -->
-            <xsl:variable name="bgp-triples-map" select="$select-xml//json:map[json:string[@key = 'type'] = 'bgp']/json:array[@key = 'triples']/json:map[json:string[@key = 'subject'] = '?' || $initial-var-name][not(starts-with(json:string[@key = 'predicate'], '?'))][starts-with(json:string[@key = 'object'], '?')]" as="element()*"/>
+            <!-- map { object-var-name -> candidate predicate URIs } from BGP triples whose subject is the focus variable; deduped per var. SPARQL ORDER BY uses variables, but the wrapped DESCRIBE returns an unordered RDF graph, so the view sorts by predicates client-side - this map bridges the two. -->
+            <xsl:variable name="var-predicates" as="map(xs:string, xs:anyURI*)">
+                <xsl:map>
+                    <xsl:for-each-group select="$select-xml//json:map[json:string[@key = 'type'] = 'bgp']/json:array[@key = 'triples']/json:map[json:string[@key = 'subject'] = '?' || $initial-var-name][starts-with(json:string[@key = 'object'], '?')]" group-by="substring-after(json:string[@key = 'object'], '?')">
+                        <xsl:variable name="predicates" as="xs:anyURI*">
+                            <xsl:for-each select="current-group()">
+                                <xsl:sequence select="ldh:alt-path-uris((json:string[@key = 'predicate'], json:map[@key = 'predicate'])[1])"/>
+                            </xsl:for-each>
+                        </xsl:variable>
+                        <xsl:if test="exists($predicates)">
+                            <xsl:map-entry key="current-grouping-key()" select="distinct-values($predicates) ! xs:anyURI(.)"/>
+                        </xsl:if>
+                    </xsl:for-each-group>
+                </xsl:map>
+            </xsl:variable>
 
             <xsl:variable name="order-by-var-name" select="$select-xml/json:map/json:array[@key = 'order']/json:map[1]/json:string[@key = 'expression']/substring-after(., '?')" as="xs:string?"/>
-            <xsl:variable name="order-by-predicate" select="$bgp-triples-map[json:string[@key = 'object'] = '?' || $order-by-var-name][1]/json:string[@key = 'predicate']" as="xs:anyURI?"/>
+            <xsl:variable name="order-by-predicates" select="if ($order-by-var-name and map:contains($var-predicates, $order-by-var-name)) then $var-predicates($order-by-var-name) else ()" as="xs:anyURI*"/>
             <xsl:variable name="desc" select="$select-xml/json:map/json:array[@key = 'order']/json:map[1]/json:boolean[@key = 'descending']" as="xs:boolean?"/>
             <xsl:variable name="default-order-by-var-name" select="$select-xml/json:map/json:array[@key = 'order']/json:map[2]/json:string[@key = 'expression']/substring-after(., '?')" as="xs:string?"/>
-            <xsl:variable name="default-order-by-predicate" select="$bgp-triples-map[json:string[@key = 'object'] = '?' || $default-order-by-var-name][1]/json:string[@key = 'predicate']" as="xs:anyURI?"/>
+            <xsl:variable name="default-order-by-predicates" select="if ($default-order-by-var-name and map:contains($var-predicates, $default-order-by-var-name)) then $var-predicates($default-order-by-var-name) else ()" as="xs:anyURI*"/>
             <xsl:variable name="default-desc" select="$select-xml/json:map/json:array[@key = 'order']/json:map[2]/json:boolean[@key = 'descending']" as="xs:boolean?"/>
             <xsl:variable name="sorted-results" as="document-node()">
                 <xsl:document>
                     <xsl:for-each select="/rdf:RDF">
                         <xsl:copy>
                             <xsl:perform-sort select="*">
-                                <!-- sort by $order-by-predicate if it is set (multiple properties might match) -->
-                                <xsl:sort select="if ($order-by-predicate) then *[concat(namespace-uri(), local-name()) = $order-by-predicate][1]/(text(), @rdf:resource, @rdf:nodeID)[1]/string() else ()" order="{if ($desc) then 'descending' else 'ascending'}"/>
-                                <!-- sort by $default-order-by-predicate if it is set and not equal to $order-by-predicate (multiple properties might match) -->
-                                <xsl:sort select="if ($default-order-by-predicate and not($order-by-predicate = $default-order-by-predicate)) then *[concat(namespace-uri(), local-name()) = $default-order-by-predicate][1]/(text(), @rdf:resource, @rdf:nodeID)[1]/string() else ()" order="{if ($default-desc) then 'descending' else 'ascending'}"/>
+                                <!-- sort key COALESCEs across $order-by-predicates in path order, preferring values whose @xml:lang primary subtag matches $ac:lang. Inlined rather than calling ldh:sort-key() because SaxonJS xsl:sort doesn't appear to thread the user-function return value back into the comparison even though the function executes. -->
+                                <xsl:sort select="
+                                    (let $children := for $p in $order-by-predicates return *[concat(namespace-uri(), local-name()) = $p]
+                                     return (
+                                       ($children[tokenize(@xml:lang, '-')[1] = tokenize($ac:lang, '-')[1]]/string(text()))[1],
+                                       ($children[not(@xml:lang)]/string(text()))[1],
+                                       ($children/string((text(), @rdf:resource, @rdf:nodeID)[1]))[1]
+                                     )[. ne ''][1])
+                                " order="{if ($desc) then 'descending' else 'ascending'}"/>
+                                <!-- secondary sort by $default-order-by-predicates if distinct from the primary -->
+                                <xsl:sort select="
+                                    if (exists($default-order-by-predicates) and not(deep-equal($order-by-predicates, $default-order-by-predicates))) then
+                                        (let $children := for $p in $default-order-by-predicates return *[concat(namespace-uri(), local-name()) = $p]
+                                         return (
+                                           ($children[tokenize(@xml:lang, '-')[1] = tokenize($ac:lang, '-')[1]]/string(text()))[1],
+                                           ($children[not(@xml:lang)]/string(text()))[1],
+                                           ($children/string((text(), @rdf:resource, @rdf:nodeID)[1]))[1]
+                                         )[. ne ''][1])
+                                    else ()
+                                " order="{if ($default-desc) then 'descending' else 'ascending'}"/>
                                 <!-- soft by URI/bnode ID otherwise -->
                                 <xsl:sort select="if (@rdf:about) then @rdf:about else @rdf:nodeID" order="{if ($default-desc) then 'descending' else 'ascending'}"/>
                             </xsl:perform-sort>
@@ -1855,12 +1872,12 @@ exclude-result-prefixes="#all"
                     <xsl:with-param name="container" select="$container"/>
                     <xsl:with-param name="results" select="$sorted-results"/>
                     <xsl:with-param name="select-xml" select="$select-xml"/>
-                    <xsl:with-param name="bgp-triples-map" select="$bgp-triples-map"/>
+                    <xsl:with-param name="var-predicates" select="$var-predicates"/>
                     <xsl:with-param name="container-id" select="$container-id"/>
                     <xsl:with-param name="endpoint" select="$endpoint"/>
                     <xsl:with-param name="focus-var-name" select="$focus-var-name"/>
                     <xsl:with-param name="desc" select="$desc"/>
-                    <xsl:with-param name="order-by-predicate" select="$order-by-predicate"/>
+                    <xsl:with-param name="order-by-var-name" select="$order-by-var-name"/>
                     <xsl:with-param name="result-count-container-id" select="$result-count-container-id"/>
                     <xsl:with-param name="active-mode" select="$active-mode"/>
                     <xsl:with-param name="object-metadata" select="$object-metadata"/>
@@ -1910,19 +1927,28 @@ exclude-result-prefixes="#all"
         <xsl:message>ldh:facet-filter-response</xsl:message>
 
         <xsl:for-each select="$response">
-            <xsl:if test="?status = 200 and ?media-type = 'application/rdf+xml' and ?body">
-                <xsl:variable name="body" select="?body" as="document-node()"/>
+            <xsl:variable name="predicate-desc" as="element()">
+                <xsl:choose>
+                    <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml' and ?body">
+                        <xsl:sequence select="key('resources', $predicate, ?body)"/>
+                    </xsl:when>
+                    <xsl:otherwise>
+                        <!-- fallback when proxy is unavailable: synthesize a description using the predicate's local name as label -->
+                        <rdf:Description rdf:about="{$predicate}">
+                            <rdfs:label><xsl:value-of select="tokenize($predicate, '[/#]')[last()]"/></rdfs:label>
+                        </rdf:Description>
+                    </xsl:otherwise>
+                </xsl:choose>
+            </xsl:variable>
 
-                <xsl:for-each select="$container">
-                    <xsl:result-document href="?." method="ixsl:append-content">
-                        <xsl:apply-templates select="key('resources', $predicate, $body)" mode="bs2:FilterIn">
-                            <xsl:with-param name="subject-var-name" select="$subject-var-name"/>
-                            <xsl:with-param name="object-var-name" select="$object-var-name"/>
-                        </xsl:apply-templates>
-                    </xsl:result-document>
-                </xsl:for-each>
-            </xsl:if>
-            <!-- ignore error response -->
+            <xsl:for-each select="$container">
+                <xsl:result-document href="?." method="ixsl:append-content">
+                    <xsl:apply-templates select="$predicate-desc" mode="bs2:FilterIn">
+                        <xsl:with-param name="subject-var-name" select="$subject-var-name"/>
+                        <xsl:with-param name="object-var-name" select="$object-var-name"/>
+                    </xsl:apply-templates>
+                </xsl:result-document>
+            </xsl:for-each>
         </xsl:for-each>
 
         <xsl:sequence select="$context"/>
@@ -1945,7 +1971,7 @@ exclude-result-prefixes="#all"
 
                         <xsl:for-each-group select="$results/rdf:RDF/*[@rdf:about = $var-name-resources]/*[@rdf:resource or @rdf:nodeID]" group-by="concat(namespace-uri(), local-name())">
                             <xsl:variable name="predicate" select="xs:anyURI(namespace-uri() || local-name())" as="xs:anyURI"/>
-                            <xsl:variable name="request-uri" select="ac:build-uri(ldt:base(), map{ 'uri': ac:document-uri($predicate), 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
+                            <xsl:variable name="request-uri" select="ldh:href(ac:build-uri(ldt:base(), map{ 'uri': ac:document-uri($predicate), 'accept': 'application/rdf+xml' }), map{})" as="xs:anyURI"/>
                             <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
                             <xsl:variable name="context" select="map:merge((
                               $context,
@@ -2074,7 +2100,7 @@ exclude-result-prefixes="#all"
                                     <xsl:for-each select="$results//srx:result[srx:binding[@name = $object-var-name]]">
                                         <xsl:variable name="object-type" select="srx:binding[@name = $object-var-name]/srx:uri" as="xs:anyURI"/>
                                         <xsl:variable name="value-result" select="." as="element()"/>
-                                        <xsl:variable name="request-uri" select="ac:build-uri(ldt:base(), map{ 'uri': ac:document-uri($object-type), 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
+                                        <xsl:variable name="request-uri" select="ldh:href(ac:build-uri(ldt:base(), map{ 'uri': ac:document-uri($object-type), 'accept': 'application/rdf+xml' }), map{})" as="xs:anyURI"/>
                                         <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
                                         <xsl:variable name="context" as="map(*)" select="
                                           map{
@@ -2229,27 +2255,29 @@ exclude-result-prefixes="#all"
 
         <xsl:sequence select="$context"/>
     </xsl:function>
-        
-    <!-- order by -->
-    
+
+    <!-- order by: append a single-predicate var's option using ac:label of the predicate's description (fetched from the proxied predicate URI's vocab document) -->
     <xsl:function name="ldh:order-by-response" as="map(*)" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
         <xsl:variable name="response" select="$context('response')" as="map(*)"/>
         <xsl:variable name="container" select="$context('container')" as="element()"/>
-        <xsl:variable name="id" select="$context('id')" as="xs:string?"/>
         <xsl:variable name="predicate" select="$context('predicate')" as="xs:anyURI"/>
-        <xsl:variable name="order-by-predicate" select="$context('order-by-predicate')" as="xs:anyURI?"/>
-
-        <xsl:message>ldh:order-by-response</xsl:message>
+        <xsl:variable name="var-name" select="$context('var-name')" as="xs:string"/>
+        <xsl:variable name="order-by-var-name" select="$context('order-by-var-name')" as="xs:string?"/>
 
         <xsl:for-each select="$response">
             <xsl:if test="?status = 200 and ?media-type = 'application/rdf+xml' and ?body">
                 <xsl:variable name="body" select="?body" as="document-node()"/>
                 <xsl:for-each select="$container">
                     <xsl:result-document href="?." method="ixsl:append-content">
-                        <xsl:apply-templates select="key('resources', $predicate, $body)" mode="bs2:OrderBy">
-                            <xsl:with-param name="order-by-predicate" select="$order-by-predicate"/>
-                        </xsl:apply-templates>
+                        <option value="{$var-name}">
+                            <xsl:if test="$var-name = $order-by-var-name">
+                                <xsl:attribute name="selected" select="'selected'"/>
+                            </xsl:if>
+                            <xsl:value-of>
+                                <xsl:apply-templates select="key('resources', $predicate, $body)" mode="ac:label"/>
+                            </xsl:value-of>
+                        </option>
                     </xsl:result-document>
                 </xsl:for-each>
             </xsl:if>
@@ -2258,5 +2286,5 @@ exclude-result-prefixes="#all"
 
         <xsl:sequence select="$context"/>
     </xsl:function>
-    
+
 </xsl:stylesheet>

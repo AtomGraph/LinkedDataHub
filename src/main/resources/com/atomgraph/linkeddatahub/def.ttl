@@ -24,7 +24,7 @@
 :Root a owl:Class ;
     rdfs:subClassOf sioc:Space, sioc:Container ;
     spin:constructor ldh:TitleConstructor, ldh:DescriptionConstructor, ldh:PrimaryTopicConstructor, ldh:BlockConstructor ;
-    spin:constraint :MissingTitle ; # roots do not have parents, therefore no ldh:MissingParent
+    spin:constraint :MissingTitle, ldh:InvalidContentBlockType ; # roots do not have parents, therefore no ldh:MissingParent
     rdfs:label "Root" ;
     rdfs:isDefinedBy : .
 
@@ -36,9 +36,9 @@
 
 ### EXTERNAL ASSERTIONS
 
-dh:Container spin:constraint :MissingTitle .
+dh:Container spin:constraint :MissingTitle, ldh:InvalidContentBlockType .
 
-dh:Item  spin:constraint :MissingTitle .
+dh:Item  spin:constraint :MissingTitle, ldh:InvalidContentBlockType .
 
 # http://spinrdf.org/sp
 

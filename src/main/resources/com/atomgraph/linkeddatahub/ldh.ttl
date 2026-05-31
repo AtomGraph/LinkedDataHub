@@ -364,8 +364,8 @@ WHERE {
 :ConstructPropertyCardinality a sp:Construct ;
       sp:text """PREFIX  spin: <http://spinrdf.org/spin#>
 
-CONSTRUCT 
-  { 
+CONSTRUCT
+  {
     _:c0 a spin:ConstraintViolation .
     _:c0 spin:violationRoot ?this .
     _:c0 spin:violationPath ?arg1 .
@@ -378,6 +378,29 @@ WHERE
     HAVING ( COUNT(DISTINCT ?o) > ?arg2 )
   }""" ;
     rdfs:label "Construct property cardinality" ;
+    rdfs:isDefinedBy : .
+
+# match rdf:_N by URI shape (RDFS inference is not enabled in the validation pipeline,
+# so ?p a rdfs:ContainerMembershipProperty would never match)
+:InvalidContentBlockType a sp:Construct ;
+    sp:text """PREFIX rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX spin: <http://spinrdf.org/spin#>
+PREFIX ldh:  <https://w3id.org/atomgraph/linkeddatahub#>
+
+CONSTRUCT {
+    _:cv a spin:ConstraintViolation .
+    _:cv spin:violationRoot ?this .
+    _:cv spin:violationPath ?p .
+    _:cv spin:violationValue ?block .
+}
+WHERE {
+    ?this ?p ?block .
+    FILTER (REGEX(STR(?p), \"^http://www\\\\.w3\\\\.org/1999/02/22-rdf-syntax-ns#_[0-9]+$\"))
+    ?block a [] . # only fire when the block is typed in this model; PATCH validation only sees triples of changed resources
+    FILTER NOT EXISTS { ?block a ldh:Object }
+    FILTER NOT EXISTS { ?block a ldh:XHTML }
+}""" ;
+    rdfs:label "Invalid content block type" ;
     rdfs:isDefinedBy : .
 
 # SPIN TEMPLATES

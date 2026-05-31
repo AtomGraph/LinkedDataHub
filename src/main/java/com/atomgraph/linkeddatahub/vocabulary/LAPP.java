@@ -91,4 +91,7 @@ public class LAPP
     /** Origin property for subdomain-based application matching */
     public static final ObjectProperty origin = m_model.createObjectProperty(NS + "origin");
 
+    /** Application property (for Link header rel) */
+    public static final ObjectProperty application = m_model.createObjectProperty( NS + "application" );
+
 }

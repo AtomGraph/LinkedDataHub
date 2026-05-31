@@ -22,6 +22,7 @@
 <xsl:stylesheet version="3.0"
 xmlns="http://www.w3.org/1999/xhtml"
 xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+xmlns:ixsl="http://saxonica.com/ns/interactiveXSLT"
 xmlns:xhtml="http://www.w3.org/1999/xhtml"
 xmlns:xs="http://www.w3.org/2001/XMLSchema"
 xmlns:lapp="&lapp;"
@@ -72,7 +73,8 @@ exclude-result-prefixes="#all">
                     </xsl:call-template>
 
                     <label class="control-label" for="{$for}" title="{$this}">
-                        <xsl:value-of select="ac:label(key('resources', $this, document(ac:document-uri(namespace-uri()))))"/>
+                        <xsl:value-of select="ac:label(key('resources', $this, document(ac:document-uri(namespace-uri()))))" use-when="system-property('xsl:product-name') = 'SAXON'"/>
+                        <xsl:value-of select="ac:label(key('resources', $this, if (ixsl:doc-fetched(ac:document-uri(namespace-uri()))) then document(ac:document-uri(namespace-uri())) else ()))" use-when="system-property('xsl:product-name') eq 'SaxonJS'"/>
                     </label>
 
                     <div class="controls">
@@ -81,11 +83,11 @@ exclude-result-prefixes="#all">
                                 <button type="button" tabindex="-1">
                                     <xsl:attribute name="title">
                                         <xsl:value-of>
-                                            <xsl:apply-templates select="key('resources', 'remove-stmt', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                                            <xsl:apply-templates select="key('resources', 'remove-stmt', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', lapp:origin())))" mode="ac:label"/>
                                         </xsl:value-of>
                                     </xsl:attribute>
 
-                                    <xsl:apply-templates select="key('resources', 'remove', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ldh:logo">
+                                    <xsl:apply-templates select="key('resources', 'remove', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', lapp:origin())))" mode="ldh:logo">
                                         <xsl:with-param name="class" select="'btn btn-small pull-right'"/>
                                     </xsl:apply-templates>
                                 </button>
@@ -104,7 +106,7 @@ exclude-result-prefixes="#all">
         <xsl:param name="id" select="generate-id()" as="xs:string"/>
         <xsl:param name="class" select="'subject input-xxlarge'" as="xs:string?"/>
         <xsl:param name="disabled" select="false()" as="xs:boolean"/>
-        <xsl:param name="auto" select="local-name() = 'nodeID' or starts-with(., $ldt:base)" as="xs:boolean"/>
+        <xsl:param name="auto" select="local-name() = 'nodeID' or starts-with(., ldt:base())" as="xs:boolean"/>
         <xsl:param name="type-metadata" as="document-node()?" tunnel="yes"/>
         <xsl:param name="lookup-class" select="'type-typeahead typeahead'" as="xs:string"/>
         <xsl:param name="lookup-list-class" select="'type-typeahead typeahead dropdown-menu'" as="xs:string"/>

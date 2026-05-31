@@ -72,7 +72,6 @@ exclude-result-prefixes="#all"
 extension-element-prefixes="ixsl"
 >
 
-    <xsl:import href="../../../../com/atomgraph/client/xsl/converters/RDFXML2SVG.xsl"/>
     <xsl:import href="../../../../com/atomgraph/client/xsl/functions.xsl"/>
     <xsl:import href="../../../../com/atomgraph/client/xsl/imports/default.xsl"/>
     <xsl:import href="../../../../com/atomgraph/client/xsl/imports/rdf.xsl"/>
@@ -98,7 +97,7 @@ extension-element-prefixes="ixsl"
     <xsl:import href="converters/SPARQLXMLResults2DataTable.xsl"/>
     <xsl:import href="converters/RDFXML2GeoJSON.xsl"/>
     
-    <xsl:include href="bootstrap/2.3.2/admin/signup.xsl"/>
+    <xsl:include href="bootstrap/2.3.2/client/admin/signup.xsl"/>
     <xsl:include href="bootstrap/2.3.2/client/query-transforms.xsl"/>
     <xsl:include href="bootstrap/2.3.2/client/typeahead.xsl"/>
     <xsl:include href="bootstrap/2.3.2/client/functions.xsl"/>
@@ -107,29 +106,23 @@ extension-element-prefixes="ixsl"
     <xsl:include href="bootstrap/2.3.2/client/modal.xsl"/>
     <xsl:include href="bootstrap/2.3.2/client/form.xsl"/>
     <xsl:include href="bootstrap/2.3.2/client/map.xsl"/> <!-- include in view.xsl and object.xsl instead? -->
-    <xsl:include href="bootstrap/2.3.2/client/graph.xsl"/>
+    <xsl:include href="bootstrap/2.3.2/client/graph3d.xsl"/>
     <xsl:include href="bootstrap/2.3.2/client/constructor.xsl"/>
     <xsl:include href="bootstrap/2.3.2/client/block/object.xsl"/>
     <xsl:include href="bootstrap/2.3.2/client/block/view.xsl"/>
     <xsl:include href="bootstrap/2.3.2/client/block/chart.xsl"/>
     <xsl:include href="bootstrap/2.3.2/client/block/query.xsl"/>
 
+    <xsl:param name="ldh:ajaxRendering" select="true()" as="xs:boolean"/>
+    <xsl:param name="ldh:renderSystemResources" select="false()" as="xs:boolean"/>
     <xsl:param name="ac:contextUri" as="xs:anyURI"/>
-    <xsl:param name="ldh:requestUri" select="xs:anyURI(ixsl:location())" as="xs:anyURI"/>
-    <xsl:param name="lapp:application" as="xs:anyURI?"/>
-    <xsl:param name="ldt:base" as="xs:anyURI?"/>
-    <xsl:param name="ldt:ontology" as="xs:anyURI?"/> <!-- used in default.xsl -->
+    <xsl:param name="ldt:base" as="xs:anyURI?"/> <!-- used in Web-Client TO-DO: remove -->
+    <xsl:param name="ldt:ontology" as="xs:anyURI?"/> <!-- used in Web-Client TO-DO: remove -->
     <xsl:param name="acl:agent" as="xs:anyURI?"/>
-    <xsl:param name="sd:endpoint" as="xs:anyURI?"/>
-    <xsl:param name="app-request-uri" as="xs:anyURI"/>
-    <xsl:param name="ldh:apps" as="document-node()">
-        <xsl:document>
-            <rdf:RDF></rdf:RDF>
-        </xsl:document>
-    </xsl:param>
-    <xsl:param name="ac:lang" select="ixsl:get(ixsl:get(ixsl:page(), 'documentElement'), 'lang')" as="xs:string"/>
+    <xsl:param name="foaf:Agent" select="if ($acl:agent) then document(ac:document-uri($acl:agent)) else ()" as="document-node()?"/> <!-- should be in SaxonJS documentPool -->
+    <xsl:param name="ac:lang" select="tokenize(ixsl:get(ixsl:get(ixsl:window(), 'navigator'), 'language'), '-')[1]" as="xs:string"/>
     <xsl:param name="ac:forClass" as="xs:anyURI?"/> <!-- used by Web-Client -->
-    <xsl:param name="ac:query" select="ixsl:query-params()?query" as="xs:string?"/>
+    <xsl:param name="ac:query" select="ldh:query-params()?query" as="xs:string?"/>
     <xsl:param name="ac:googleMapsKey" select="''" as="xs:string"/>  <!-- cannot remove yet as it's used by container.xsl in Web-Client -->
     <xsl:param name="sparql-parser" select="ixsl:call(ixsl:window(), 'Reflect.construct', [ ixsl:get(ixsl:get(ixsl:window(), '`' || 'SPARQL.js' || '`'), 'Parser'), [] ] )"/>
     <xsl:param name="sparql-generator" select="ixsl:call(ixsl:window(), 'Reflect.construct', [ ixsl:get(ixsl:get(ixsl:window(), '`' || 'SPARQL.js' || '`'), 'Generator'), [] ] )"/>
@@ -161,8 +154,9 @@ WHERE
         ?resource  a  $Type .
         ?resource rdfs:label|sh:name|dc:title|dct:title|foaf:name|foaf:givenName|foaf:familyName|sioc:name|skos:prefLabel|schema1:name|schema2:name $label
         FILTER isURI(?resource)
-    }  
+    }
   }
+ORDER BY ?label
 ]]>
     </xsl:param>
     <xsl:param name="backlinks-string" as="xs:string">
@@ -210,8 +204,8 @@ WHERE
             PREFIX  sioc: <http://rdfs.org/sioc/ns#>
             PREFIX  dc:   <http://purl.org/dc/elements/1.1/>
 
-            CONSTRUCT 
-              { 
+            CONSTRUCT
+              {
                 $this ?p ?literal .
               }
             WHERE
@@ -224,39 +218,11 @@ WHERE
         ]]>
         <!-- VALUES $this goes here -->
     </xsl:param>
-    <xsl:param name="system-containers" as="map(xs:anyURI, map(xs:string, xs:string))">
-        <xsl:map>
-            <xsl:map-entry key="resolve-uri('apps/', $ldt:base)">
-                <xsl:map>
-                    <xsl:map-entry key="'class'" select="'btn-app'"/>
-                    <xsl:map-entry key="'label-id'" select="'applications'"/>
-                </xsl:map>
-            </xsl:map-entry>
-            <xsl:map-entry key="resolve-uri('geo/', $ldt:base)">
-                <xsl:map>
-                    <xsl:map-entry key="'class'" select="'btn-geo'"/>
-                    <xsl:map-entry key="'label-id'" select="'geo'"/>
-                </xsl:map>
-            </xsl:map-entry>
-            <xsl:map-entry key="resolve-uri('imports/', $ldt:base)">
-                <xsl:map>
-                    <xsl:map-entry key="'class'" select="'btn-import'"/>
-                    <xsl:map-entry key="'label-id'" select="'imports'"/>
-                </xsl:map>
-            </xsl:map-entry>
-            <xsl:map-entry key="resolve-uri('latest/', $ldt:base)">
-                <xsl:map>
-                    <xsl:map-entry key="'class'" select="'btn-latest'"/>
-                    <xsl:map-entry key="'label-id'" select="'latest'"/>
-                </xsl:map>
-            </xsl:map-entry>
-            <xsl:map-entry key="resolve-uri('services/', $ldt:base)">
-                <xsl:map>
-                    <xsl:map-entry key="'class'" select="'btn-service'"/>
-                    <xsl:map-entry key="'label-id'" select="'services'"/>
-                </xsl:map>
-            </xsl:map-entry>
-        </xsl:map>
+    <xsl:param name="property-metadata-query" as="xs:string">
+        <![CDATA[
+            DESCRIBE $Type
+        ]]>
+        <!-- VALUES $Type goes here -->
     </xsl:param>
     <xsl:param name="body-id" select="'visible-body'" as="xs:string"/>
     
@@ -272,21 +238,16 @@ WHERE
         <xsl:message>xsl:product-name: <xsl:value-of select="system-property('xsl:product-name')"/></xsl:message>
         <xsl:message>saxon:platform: <xsl:value-of select="system-property('saxon:platform')"/></xsl:message>
         <xsl:message>$ac:contextUri: <xsl:value-of select="$ac:contextUri"/></xsl:message>
-        <xsl:message>$ldt:base: <xsl:value-of select="$ldt:base"/></xsl:message>
-        <xsl:message>$acl:agent: <xsl:value-of select="$acl:agent"/></xsl:message>
-        <xsl:message>count($ldh:apps//*[rdf:type/@rdf:resource = '&sd;Service']): <xsl:value-of select="count($ldh:apps//*[rdf:type/@rdf:resource = '&sd;Service'])"/></xsl:message>
         <xsl:message>$ac:lang: <xsl:value-of select="$ac:lang"/></xsl:message>
-        <xsl:message>$sd:endpoint: <xsl:value-of select="$sd:endpoint"/></xsl:message>
-        <xsl:message>ixsl:query-params()?uri: <xsl:value-of select="ixsl:query-params()?uri"/></xsl:message>
+        <xsl:message>$acl:agent: <xsl:value-of select="$acl:agent"/></xsl:message>
+        <xsl:message>ac:uri(): <xsl:value-of select="ac:uri()"/></xsl:message>
         <xsl:message>UTC offset: <xsl:value-of select="implicit-timezone()"/></xsl:message>
 
         <!-- create a LinkedDataHub namespace -->
         <ixsl:set-property name="LinkedDataHub" select="ldh:new-object()"/>
-        <ixsl:set-property name="base" select="$ldt:base" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
         <ixsl:set-property name="contents" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
         <ixsl:set-property name="typeahead" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/> <!-- used by typeahead.xsl -->
-        <ixsl:set-property name="graph" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/> <!-- used by graph.xsl -->
-<!--        <ixsl:set-property name="endpoint" select="$sd:endpoint" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>-->
+        <ixsl:set-property name="graphs" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/> <!-- used by graph3d.xsl -->
         <ixsl:set-property name="yasqe" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
 
         <!-- handle OAuth ID token from URL fragment -->
@@ -301,12 +262,6 @@ WHERE
                 <xsl:sequence select="ixsl:call(ixsl:get(ixsl:window(), 'location'), 'replace', [ $href ])"/>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:apply-templates select="ixsl:page()" mode="ldh:HTMLDocumentLoaded">
-                    <xsl:with-param name="href" select="xs:anyURI(ixsl:location())"/>
-                    <xsl:with-param name="endpoint" select="$sd:endpoint"/>
-                    <xsl:with-param name="container" select="id($body-id, ixsl:page())"/>
-                    <xsl:with-param name="replace-content" select="false()"/>
-                </xsl:apply-templates>
                 <!-- only show first time message for authenticated agents -->
                 <xsl:if test="$acl:agent and not(contains(ixsl:get(ixsl:page(), 'cookie'), 'LinkedDataHub.first-time-message'))">
                     <xsl:for-each select="ixsl:page()//body">
@@ -315,23 +270,25 @@ WHERE
                         </xsl:result-document>
                     </xsl:for-each>
                 </xsl:if>
-                <!-- initialize LinkedDataHub.apps (and the search dropdown, if it's shown) -->
-                <ixsl:set-property name="apps" select="$ldh:apps" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
-                <!-- #search-service may be missing (e.g. suppressed by extending stylesheet) -->
-                <xsl:for-each select="id('search-service', ixsl:page())">
-                    <xsl:call-template name="ldh:RenderServices">
-                        <xsl:with-param name="select" select="."/>
-                        <xsl:with-param name="apps" select="$ldh:apps"/>
-                    </xsl:call-template>
-                </xsl:for-each>
                 <!-- initialize navigation (e.g. the left sidebar) -->
-                <xsl:for-each select="id('left-sidebar', ixsl:page())">
+                <xsl:for-each select="id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')][contains-token(@class, 'active')]/div[contains-token(@class, 'left-sidebar')]">
                     <xsl:result-document href="?." method="ixsl:replace-content">
                         <xsl:call-template name="ldh:LeftSidebar"/>
                     </xsl:result-document>
                 </xsl:for-each>
-                <xsl:call-template name="ldh:NavigationUpdate">
-                    <xsl:with-param name="href" select="base-uri(ixsl:page())"/>
+                <!-- if the URI is external, set it in the address bar -->
+                <xsl:if test="ac:uri()">
+                    <xsl:for-each select="id('uri', ixsl:page())">
+                        <ixsl:set-property name="value" select="ac:uri()" object="."/>
+                    </xsl:for-each>
+                </xsl:if>
+
+                <!-- doc URI: proxied target if ?uri= set, else local request URI; both via ac:absolute-path to drop ?query and #fragment.
+                     fragment: always from the OUTER URL (ldh:request-uri()) per RFC 3986 — LDH-built URLs put the fragment outside ?uri= -->
+                <xsl:call-template name="ldh:DocumentNavigate">
+                    <xsl:with-param name="doc-uri" select="if (ac:uri()) then ac:absolute-path(ac:uri()) else ac:absolute-path(ldh:request-uri())"/>
+                    <xsl:with-param name="fragment" select="ac:fragment-id(ldh:request-uri())"/>
+                    <xsl:with-param name="push-state" select="false()"/>
                 </xsl:call-template>
             </xsl:otherwise>
         </xsl:choose>
@@ -446,30 +403,6 @@ WHERE
         </xsl:choose>
     </xsl:template>
     
-    <xsl:template match="@rdf:resource | @rdf:nodeID | srx:uri" mode="ac:object-label" priority="1">
-        <xsl:param name="object-metadata" as="document-node()?" tunnel="yes"/>
-        <xsl:variable name="this" select="." as="xs:anyURI"/>
-
-        <xsl:choose>
-            <xsl:when test="key('resources', .)">
-                <xsl:apply-templates select="key('resources', .)" mode="ac:label"/>
-            </xsl:when>
-            <xsl:when test="$object-metadata!key('resources', $this, .)">
-                <!-- <xsl:message>ac:object-label(<xsl:value-of select="."/>) $object-metadata: <xsl:value-of select="serialize($object-metadata)"/></xsl:message> -->
-                <xsl:apply-templates select="$object-metadata!key('resources', $this, .)" mode="ac:label"/>
-            </xsl:when>
-            <xsl:when test="contains(., '#') and not(ends-with(., '#'))">
-                <xsl:sequence select="substring-after(., '#')"/>
-            </xsl:when>
-            <xsl:when test="string-length(tokenize(., '/')[last()]) &gt; 0">
-                <xsl:sequence select="translate(tokenize(., '/')[last()], '_', ' ')"/>
-            </xsl:when>
-            <xsl:otherwise>
-                <xsl:sequence select="."/>
-            </xsl:otherwise>
-        </xsl:choose>
-    </xsl:template>
-    
     <xsl:template match="foaf:img/@rdf:resource | foaf:logo/@rdf:resource | foaf:depiction/@rdf:resource | schema1:image/@rdf:resource | schema2:image/@rdf:resource | schema1:logo/@rdf:resource | schema2:logo/@rdf:resource | schema1:thumbnailUrl/@rdf:resource | schema2:thumbnailUrl/@rdf:resource | dbpo:thumbnail/@rdf:resource">
         <a href="{.}">
             <img src="{.}">
@@ -483,52 +416,35 @@ WHERE
     </xsl:template>
     
     <!-- CALLBACKS -->
-    
+
+    <xsl:template name="ldh:PopulateBreadcrumbNav">
+        <xsl:param name="container" as="element()"/>
+        <xsl:param name="response" as="map(*)"/>
+        <xsl:param name="uri" as="xs:anyURI"/>
+
+        <xsl:for-each select="$container">
+            <xsl:result-document href="?." method="ixsl:replace-content">
+                <ul class="breadcrumb pull-left"/>
+            </xsl:result-document>
+        </xsl:for-each>
+        <xsl:sequence select="ldh:breadcrumb-resource-response(map{
+            'response': $response,
+            'container': $container,
+            'uri': $uri,
+            'leaf': true()
+        })"/>
+    </xsl:template>
+
     <xsl:function name="ldh:rdf-document-response" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
         <xsl:variable name="response" select="$context('response')" as="map(*)"/>
-        <xsl:variable name="uri" select="$context('uri')" as="xs:anyURI"/>
+        <xsl:variable name="doc-uri" select="$context('doc-uri')" as="xs:anyURI"/>
+        <xsl:variable name="fragment" select="$context('fragment')" as="xs:string?"/>
         <xsl:variable name="refresh-content" select="$context('refresh-content')" as="xs:boolean?"/>
 
         <xsl:for-each select="$response">
-            <!-- load breadcrumbs -->
-            <xsl:if test="id('breadcrumb-nav', ixsl:page())">
-                <xsl:result-document href="#breadcrumb-nav" method="ixsl:replace-content">
-                    <!-- show label if the resource is external -->
-                    <xsl:if test="not(starts-with($uri, $ldt:base))">
-                        <xsl:variable name="app" select="ixsl:get(ixsl:window(), 'LinkedDataHub.apps')//rdf:Description[lapp:origin/@rdf:resource = lapp:origin(ldt:base())]" as="element()?"/>
-                        <xsl:choose>
-                            <!-- if a known app matches $uri, show link to its ldt:base -->
-                            <xsl:when test="$app">
-                                <a href="{$app/lapp:origin/@rdf:resource}" class="label label-info pull-left">
-                                    <xsl:apply-templates select="$app" mode="ac:label"/>
-                                </a>
-                            </xsl:when>
-                            <!-- otherwise show just a label with the hostname -->
-                            <xsl:otherwise>
-                                <xsl:variable name="hostname" select="tokenize(substring-after($uri, '://'), '/')[1]" as="xs:string"/>
-                                <span class="label label-info pull-left">
-                                    <xsl:value-of select="$hostname"/>
-                                </span>
-                            </xsl:otherwise>
-                        </xsl:choose>
-                    </xsl:if>
-                    
-                    <ul class="breadcrumb pull-left">
-                        <!-- list items will be injected by ldh:breadcrumb-resource-response -->
-                    </ul>
-                </xsl:result-document>
+            <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
 
-                <xsl:variable name="context" as="map(*)" select="
-                  map{
-                    'response': $response,
-                    'container': id('breadcrumb-nav', ixsl:page()),
-                    'uri': $uri,
-                    'leaf': true()
-                  }"/>
-                <xsl:sequence select="ldh:breadcrumb-resource-response($context)"/>
-            </xsl:if>
-        
             <!-- checking acl:mode here because this template is called after every document load (also the initial load) and has access to ?headers -->
             <!-- set LinkedDataHub.acl-modes objects which are later used by the acl:mode function -->
             <!-- doing it here because this template is called after every document load (also the initial load) and has access to ?headers -->
@@ -549,104 +465,399 @@ WHERE
             </xsl:if>
 
             <xsl:variable name="etag" select="?headers?etag" as="xs:string?"/>
-            <xsl:message>ETag: <xsl:value-of select="$etag"/></xsl:message>
 
-            <xsl:for-each select="?body">
-                <xsl:variable name="results" select="." as="document-node()"/>
-                <ixsl:set-property name="{'`' || $uri || '`'}" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.contents')"/>
-                <!-- store document under window.LinkedDataHub.contents[$uri].results -->
-                <!-- should be possible to cache the document using SaxonJS when this issue is resolved: https://saxonica.plan.io/issues/6355 -->
-                <ixsl:set-property name="results" select="." object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $uri || '`')"/>
-                <!-- store ETag header value under window.LinkedDataHub.contents[$uri].etag -->
-                <ixsl:set-property name="etag" select="$etag" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $uri || '`')"/>
-
-                <!-- this has to go after <xsl:result-document href="#{$container-id}"> because otherwise new elements will be injected and the lookup will not work anymore -->
-                <!-- load top-level content blocks -->
-                <xsl:for-each select="id('content-body', ixsl:page())/div">
-                    <!-- container could be hidden server-side -->
-                    <ixsl:set-style name="display" select="'block'"/>
-
-                    <!-- one top-level <div> can contain multiple blocks that need to be rendered via factory -->   
-                    <xsl:variable name="factories" as="(function(item()?) as item()*)*">
-                        <xsl:apply-templates select="." mode="ldh:RenderRow">
-                            <xsl:with-param name="refresh-content" select="$refresh-content"/>
-                        </xsl:apply-templates>
-                    </xsl:variable>
-
-                    <xsl:for-each select="$factories">
-                        <xsl:variable name="factory" select="."/>
-                        <!-- fire the promise chain once, passing a dummy start value -->
-                        <ixsl:promise select="$factory(())" on-failure="ldh:promise-failure#1"/>
-                    </xsl:for-each>
-                </xsl:for-each>
-
-                <!-- is a new instance of Service was created, reload the LinkedDataHub.apps data and re-render the service dropdown -->
-                <xsl:if test="//ldt:base or //sd:endpoint">
-                    <xsl:variable name="request" as="item()*">
-                        <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $app-request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
-                            <xsl:call-template name="onServiceLoad"/>
-                        </ixsl:schedule-action>
-                    </xsl:variable>
-                    <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
-                </xsl:if>
-
-                <!-- initialize maps -->
-                <xsl:if test="key('elements-by-class', 'map-canvas', ixsl:page())">
-                    <xsl:variable name="block-uri" select="$uri" as="xs:anyURI"/>
-                    <xsl:variable name="canvas-id" select="key('elements-by-class', 'map-canvas', ixsl:page())/@id" as="xs:string"/>
-                    <xsl:variable name="initial-load" select="not(ixsl:contains(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`'), 'map'))" as="xs:boolean"/>
-                    <xsl:variable name="map" select="if ($initial-load) then ldh:create-map($canvas-id, 0, 0, 4) else ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`'), 'map')" as="item()"/>
-
-                    <xsl:if test="$initial-load">
-                        <ixsl:set-property name="map" select="$map" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`')"/>
+            <xsl:choose>
+                <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
+                    <!-- store external SPARQL endpoint from Link header, same pattern as acl:mode above -->
+                    <xsl:variable name="endpoint-link" select="tokenize(?headers?link, ',')[contains(., '&sd;endpoint')]" as="xs:string?"/>
+                    <xsl:variable name="endpoint" select="if ($endpoint-link) then xs:anyURI(substring-before(substring-after(substring-before($endpoint-link, ';'), '&lt;'), '&gt;')) else ()" as="xs:anyURI?"/>
+                    <xsl:if test="$endpoint">
+                        <ixsl:set-property name="endpoint" select="$endpoint" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
                     </xsl:if>
-                                        
-                    <xsl:call-template name="ldh:DrawMap">
-                        <xsl:with-param name="canvas-id" select="$canvas-id"/>
-                        <xsl:with-param name="initial-load" select="$initial-load"/>
-                        <xsl:with-param name="map" select="$map"/>
+                    <!-- store application URI from Link header -->
+                    <xsl:variable name="application-link" select="tokenize(?headers?link, ',')[contains(., '&lapp;application')]" as="xs:string?"/>
+                    <xsl:variable name="application" select="if ($application-link) then xs:anyURI(substring-before(substring-after(substring-before($application-link, ';'), '&lt;'), '&gt;')) else ()" as="xs:anyURI?"/>
+                    <xsl:for-each select="?body">
+                        <xsl:variable name="results" select="." as="document-node()"/>
+                        <ixsl:set-property name="{'`' || $doc-uri || '`'}" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.contents')"/>
+                        <!-- store document under window.LinkedDataHub.contents[$doc-uri].results -->
+                        <!-- should be possible to cache the document using SaxonJS when this issue is resolved: https://saxonica.plan.io/issues/6355 -->
+                        <ixsl:set-property name="results" select="." object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $doc-uri || '`')"/>
+                        <!-- store ETag header value under window.LinkedDataHub.contents[$doc-uri].etag -->
+                        <ixsl:set-property name="etag" select="$etag" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $doc-uri || '`')"/>
+
+                        <xsl:variable name="tab-pane" select="id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')][./div[contains-token(@class, 'document-body')]/@about = $doc-uri]" as="element()?"/>
+                        <xsl:variable name="mode" select="ac:mode($results)" as="xs:anyURI"/>
+                        <xsl:variable name="tab-body-id" select="'tab-pane-' || ac:uuid()" as="xs:string"/>
+                        <xsl:variable name="tab-base" select="if ($application) then resolve-uri('/', lapp:origin($doc-uri)) else ()" as="xs:anyURI?"/>
+
+                        <!-- set document title from RDF; look up by the resource URI (with fragment) since SKOS Concepts etc. live at doc/#frag -->
+                        <xsl:variable name="resource-uri" select="xs:anyURI($doc-uri || (if ($fragment) then '#' || $fragment else ''))" as="xs:anyURI"/>
+                        <xsl:variable name="label" select="if (exists(key('resources', $resource-uri, $results))) then ac:label(key('resources', $resource-uri, $results)) else string($resource-uri)" as="xs:string"/>
+                        <ixsl:set-property name="title" select="$label" object="ixsl:page()"/>
+
+                        <!-- align URL with the mode detected from the RDF document -->
+                        <xsl:call-template name="ldh:PushState">
+                            <xsl:with-param name="href" select="ldh:href($doc-uri, ldh:build-query($mode), $fragment)"/>
+                            <xsl:with-param name="title" select="$label"/>
+                            <xsl:with-param name="container" select="id($body-id, ixsl:page())"/>
+                        </xsl:call-template>
+
+                        <!-- reuse exact-match pane, or same-origin pane (avoids accumulating panes for the same dataspace) -->
+                        <xsl:variable name="reuse-pane" select="($tab-pane, id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')][./div[contains-token(@class, 'document-body')][starts-with(@about, lapp:origin($doc-uri))]])[1]" as="element()?"/>
+                        <xsl:variable name="effective-pane-id" select="if ($reuse-pane) then $reuse-pane/@id else $tab-body-id" as="xs:string"/>
+
+                        <!-- external-only, new pane only: add tab bar item and hide local pane -->
+                        <xsl:if test="not(starts-with($doc-uri, lapp:origin(ldh:request-uri()))) and not($reuse-pane)">
+                            <xsl:call-template name="ldh:AddTabNavBarListItem">
+                                <xsl:with-param name="doc-uri" select="$doc-uri"/>
+                                <xsl:with-param name="fragment" select="$fragment"/>
+                                <xsl:with-param name="label" select="$label"/>
+                                <xsl:with-param name="mode" select="$mode"/>
+                            </xsl:call-template>
+
+                            <xsl:for-each select="id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')][./div[contains-token(@class, 'document-body')][starts-with(@about, lapp:origin(ldh:request-uri()) || '/')]]">
+                                <ixsl:set-style name="display" select="'none'" object="."/>
+                            </xsl:for-each>
+                        </xsl:if>
+
+                        <xsl:choose>
+                            <!-- pane exists: replace document-body content, leave sidebar intact -->
+                            <xsl:when test="$reuse-pane">
+                                <xsl:variable name="old-about" select="string($reuse-pane/div[contains-token(@class, 'document-body')]/@about)" as="xs:string"/>
+
+                                <xsl:for-each select="$reuse-pane/div[contains-token(@class, 'document-body')]">
+                                    <xsl:result-document href="?." method="ixsl:replace-element">
+                                        <xsl:apply-templates select="$results/rdf:RDF" mode="bs2:DocumentBody">
+                                            <xsl:with-param name="mode" select="$mode"/>
+                                            <xsl:with-param name="about" select="$doc-uri"/>
+                                            <xsl:with-param name="object-metadata" select="$context('object-metadata')" tunnel="yes"/>
+                                            <xsl:with-param name="property-metadata" select="$context('property-metadata')" tunnel="yes"/>
+                                        </xsl:apply-templates>
+                                    </xsl:result-document>
+                                </xsl:for-each>
+
+                                <!-- sync the corresponding tab <li> to the new doc URI; data-uri keys downstream lookups -->
+                                <xsl:if test="string($doc-uri) ne $old-about">
+                                    <xsl:for-each select="id('tab-bar-list', ixsl:page())/li[ixsl:get(., 'dataset.uri') = $old-about]">
+                                        <ixsl:set-attribute name="data-uri" select="string($doc-uri)" object="."/>
+                                        <xsl:for-each select="a">
+                                            <ixsl:set-attribute name="href" select="string(ldh:href($doc-uri, ldh:build-query($mode), $fragment))" object="."/>
+                                            <ixsl:set-attribute name="title" select="string($resource-uri)" object="."/>
+                                            <xsl:result-document href="?." method="ixsl:replace-content">
+                                                <xsl:value-of select="$label"/>
+                                            </xsl:result-document>
+                                        </xsl:for-each>
+                                    </xsl:for-each>
+                                </xsl:if>
+                            </xsl:when>
+                            <!-- no pane: create one with sidebar -->
+                            <xsl:otherwise>
+                                <xsl:variable name="tab-body" as="element()">
+                                    <xsl:apply-templates select="$results/rdf:RDF" mode="bs2:TabBody">
+                                        <xsl:with-param name="id" select="$tab-body-id"/>
+                                        <xsl:with-param name="mode" select="$mode"/>
+                                        <xsl:with-param name="base" select="$tab-base"/>
+                                        <xsl:with-param name="endpoint" select="$endpoint"/>
+                                        <xsl:with-param name="application" select="$application"/>
+                                        <xsl:with-param name="about" select="$doc-uri"/>
+                                        <xsl:with-param name="object-metadata" select="$context('object-metadata')" tunnel="yes"/>
+                                        <xsl:with-param name="property-metadata" select="$context('property-metadata')" tunnel="yes"/>
+                                    </xsl:apply-templates>
+                                </xsl:variable>
+
+                                <xsl:result-document href="#tab-content" method="ixsl:append-content">
+                                    <xsl:sequence select="$tab-body"/>
+                                </xsl:result-document>
+
+                                <!-- populate sidebar for newly created pane -->
+                                <xsl:if test="$tab-base">
+                                    <xsl:for-each select="id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')][last()]/div[contains-token(@class, 'left-sidebar')]">
+                                        <xsl:result-document href="?." method="ixsl:replace-content">
+                                            <xsl:call-template name="ldh:LeftSidebar">
+                                                <xsl:with-param name="base" select="$tab-base"/>
+                                            </xsl:call-template>
+                                        </xsl:result-document>
+                                    </xsl:for-each>
+                                </xsl:if>
+                            </xsl:otherwise>
+                        </xsl:choose>
+
+                        <xsl:call-template name="ldh:RenderTab">
+                            <xsl:with-param name="tab-pane-id" select="$effective-pane-id"/>
+                            <xsl:with-param name="doc-uri" select="$doc-uri"/>
+                            <xsl:with-param name="fragment" select="$fragment"/>
+                            <xsl:with-param name="mode" select="$mode"/>
+                            <xsl:with-param name="response" select="$response"/>
+                            <xsl:with-param name="refresh-content" select="$refresh-content"/>
+                        </xsl:call-template>
+
+                        <!-- initialize maps -->
+                        <xsl:if test="key('elements-by-class', 'map-canvas', ixsl:page())">
+                            <xsl:variable name="canvas-id" select="key('elements-by-class', 'map-canvas', ixsl:page())/@id" as="xs:string"/>
+                            <xsl:variable name="initial-load" select="not(ixsl:contains(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $doc-uri || '`'), 'map'))" as="xs:boolean"/>
+                            <xsl:variable name="map" select="if ($initial-load) then ldh:create-map($canvas-id, 0, 0, 4) else ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $doc-uri || '`'), 'map')" as="item()"/>
+
+                            <xsl:if test="$initial-load">
+                                <ixsl:set-property name="map" select="$map" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $doc-uri || '`')"/>
+                            </xsl:if>
+
+                            <xsl:call-template name="ldh:DrawMap">
+                                <xsl:with-param name="canvas-id" select="$canvas-id"/>
+                                <xsl:with-param name="initial-load" select="$initial-load"/>
+                                <xsl:with-param name="map" select="$map"/>
+                            </xsl:call-template>
+                        </xsl:if>
+
+                        <!-- initialize charts -->
+                        <xsl:for-each select="key('elements-by-class', 'chart-canvas', ixsl:page())">
+                            <xsl:variable name="canvas-id" select="@id" as="xs:string"/>
+                            <xsl:variable name="chart-type" select="xs:anyURI('&ac;Table')" as="xs:anyURI"/>
+                            <xsl:variable name="category" as="xs:string?"/>
+                            <xsl:variable name="series" select="distinct-values($results/*/*/concat(namespace-uri(), local-name()))" as="xs:string*"/>
+                            <xsl:variable name="data-table" select="ac:rdf-data-table($results, $category, $series)"/>
+
+                            <ixsl:set-property name="data-table" select="$data-table" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+
+                            <xsl:call-template name="ldh:RenderChart">
+                                <xsl:with-param name="data-table" select="$data-table"/>
+                                <xsl:with-param name="canvas-id" select="$canvas-id"/>
+                                <xsl:with-param name="chart-type" select="$chart-type"/>
+                                <xsl:with-param name="category" select="$category"/>
+                                <xsl:with-param name="series" select="$series"/>
+                            </xsl:call-template>
+                        </xsl:for-each>
+
+                        <!-- initialize 3D force graphs -->
+                        <xsl:for-each select="key('elements-by-class', 'graph-3d-canvas', ixsl:page())">
+                            <xsl:variable name="canvas-id" select="@id" as="xs:string"/>
+                            <xsl:if test="not(ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub.graphs'), $canvas-id))">
+                                <xsl:call-template name="ldh:InitDocumentGraph3D">
+                                    <xsl:with-param name="canvas" select="."/>
+                                    <xsl:with-param name="canvas-id" select="$canvas-id"/>
+                                    <xsl:with-param name="rdf-doc" select="$results"/>
+                                </xsl:call-template>
+                            </xsl:if>
+                        </xsl:for-each>
+                    </xsl:for-each>
+                </xsl:when>
+                <xsl:otherwise>
+                    <!-- LDH error responses arrive as http:Response RDF; non-LDH errors (e.g. 401 JSON from an external API) carry no RDF body, so synthesize a matching http:Response so the same render path can show the error -->
+                    <xsl:variable name="results" as="document-node()">
+                        <xsl:choose>
+                            <xsl:when test="?media-type = 'application/rdf+xml' and exists(?body)">
+                                <xsl:sequence select="?body"/>
+                            </xsl:when>
+                            <xsl:otherwise>
+                                <xsl:variable name="status-resource" select="key('status-by-code', xs:integer(?status), document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/http-statusCodes.rdf', lapp:origin())))" as="element()?"/>
+                                <xsl:document>
+                                    <rdf:RDF>
+                                        <rdf:Description rdf:nodeID="error">
+                                            <rdf:type rdf:resource="&http;Response"/>
+                                            <http:statusCodeValue rdf:datatype="&xsd;int"><xsl:value-of select="?status"/></http:statusCodeValue>
+                                            <xsl:if test="?message">
+                                                <http:reasonPhrase><xsl:value-of select="?message"/></http:reasonPhrase>
+                                                <dct:title><xsl:value-of select="?message"/></dct:title>
+                                            </xsl:if>
+                                            <xsl:if test="$status-resource">
+                                                <http:sc rdf:resource="{resolve-uri($status-resource/@rdf:about, base-uri($status-resource))}"/>
+                                            </xsl:if>
+                                        </rdf:Description>
+                                    </rdf:RDF>
+                                </xsl:document>
+                            </xsl:otherwise>
+                        </xsl:choose>
+                    </xsl:variable>
+
+                    <xsl:variable name="mode" select="xs:anyURI('&ac;ReadMode')" as="xs:anyURI"/>
+                    <xsl:variable name="tab-pane" select="id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')][./div[contains-token(@class, 'document-body')]/@about = $doc-uri]" as="element()?"/>
+                    <xsl:variable name="tab-body-id" select="'tab-pane-' || ac:uuid()" as="xs:string"/>
+                    <xsl:variable name="effective-pane-id" select="if ($tab-pane) then $tab-pane/@id else $tab-body-id" as="xs:string"/>
+                    <xsl:variable name="label" select="concat('HTTP ', ?status, if (?message) then ' ' || ?message else '')" as="xs:string"/>
+
+                    <ixsl:set-property name="title" select="$label" object="ixsl:page()"/>
+
+                    <xsl:call-template name="ldh:PushState">
+                        <xsl:with-param name="href" select="ldh:href($doc-uri, ldh:build-query($mode), $fragment)"/>
+                        <xsl:with-param name="title" select="$label"/>
+                        <xsl:with-param name="container" select="id($body-id, ixsl:page())"/>
                     </xsl:call-template>
-                </xsl:if>
 
-                <!-- initialize charts -->
-                <xsl:for-each select="key('elements-by-class', 'chart-canvas', ixsl:page())">
-                    <xsl:variable name="canvas-id" select="@id" as="xs:string"/>
-                    <xsl:variable name="chart-type" select="xs:anyURI('&ac;Table')" as="xs:anyURI"/>
-                    <xsl:variable name="category" as="xs:string?"/>
-                    <xsl:variable name="series" select="distinct-values($results/*/*/concat(namespace-uri(), local-name()))" as="xs:string*"/>
-                    <xsl:variable name="data-table" select="ac:rdf-data-table($results, $category, $series)"/>
+                    <!-- external-only, new pane only: add tab bar item and hide local panes (mirrors the 200/RDF success path) -->
+                    <xsl:if test="not(starts-with($doc-uri, lapp:origin(ldh:request-uri()))) and not($tab-pane)">
+                        <xsl:call-template name="ldh:AddTabNavBarListItem">
+                            <xsl:with-param name="doc-uri" select="$doc-uri"/>
+                            <xsl:with-param name="fragment" select="$fragment"/>
+                            <xsl:with-param name="label" select="$label"/>
+                            <xsl:with-param name="mode" select="$mode"/>
+                            <xsl:with-param name="error" select="true()"/>
+                        </xsl:call-template>
 
-                    <ixsl:set-property name="data-table" select="$data-table" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+                        <xsl:for-each select="id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')][./div[contains-token(@class, 'document-body')][starts-with(@about, lapp:origin(ldh:request-uri()) || '/')]]">
+                            <ixsl:set-style name="display" select="'none'" object="."/>
+                        </xsl:for-each>
+                    </xsl:if>
 
-                    <xsl:call-template name="ldh:RenderChart">
-                        <xsl:with-param name="data-table" select="$data-table"/>
-                        <xsl:with-param name="canvas-id" select="$canvas-id"/>
-                        <xsl:with-param name="chart-type" select="$chart-type"/>
-                        <xsl:with-param name="category" select="$category"/>
-                        <xsl:with-param name="series" select="$series"/>
+                    <xsl:choose>
+                        <xsl:when test="$tab-pane">
+                            <xsl:for-each select="$tab-pane/div[contains-token(@class, 'document-body')]">
+                                <xsl:result-document href="?." method="ixsl:replace-element">
+                                    <xsl:apply-templates select="$results/rdf:RDF" mode="bs2:DocumentBody">
+                                        <xsl:with-param name="mode" select="$mode"/>
+                                        <xsl:with-param name="about" select="$doc-uri"/>
+                                    </xsl:apply-templates>
+                                </xsl:result-document>
+                            </xsl:for-each>
+                        </xsl:when>
+                        <xsl:otherwise>
+                            <xsl:variable name="tab-body" as="element()">
+                                <xsl:apply-templates select="$results/rdf:RDF" mode="bs2:TabBody">
+                                    <xsl:with-param name="id" select="$tab-body-id"/>
+                                    <xsl:with-param name="mode" select="$mode"/>
+                                    <xsl:with-param name="about" select="$doc-uri"/>
+                                </xsl:apply-templates>
+                            </xsl:variable>
+                            <xsl:result-document href="#tab-content" method="ixsl:append-content">
+                                <xsl:sequence select="$tab-body"/>
+                            </xsl:result-document>
+                        </xsl:otherwise>
+                    </xsl:choose>
+
+                    <xsl:call-template name="ldh:RenderTab">
+                        <xsl:with-param name="tab-pane-id" select="$effective-pane-id"/>
+                        <xsl:with-param name="doc-uri" select="$doc-uri"/>
+                        <xsl:with-param name="fragment" select="$fragment"/>
+                        <xsl:with-param name="mode" select="$mode"/>
+                        <xsl:with-param name="response" select="$response"/>
+                        <xsl:with-param name="refresh-content" select="$refresh-content"/>
                     </xsl:call-template>
-                </xsl:for-each>
-            </xsl:for-each>
+                </xsl:otherwise>
+            </xsl:choose>
         </xsl:for-each>
     </xsl:function>
-    
-    <xsl:template name="onServiceLoad">
-        <xsl:context-item as="map(*)" use="required"/>
 
-        <xsl:if test="?status = 200 and ?media-type = 'application/rdf+xml'">
-            <xsl:for-each select="?body">
-                <ixsl:set-property name="apps" select="." object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
-                
-                <xsl:variable name="service-uri" select="if (id('search-service', ixsl:page())) then xs:anyURI(ixsl:get(id('search-service', ixsl:page()), 'value')) else ()" as="xs:anyURI?"/>
-                <xsl:call-template name="ldh:RenderServices">
-                    <xsl:with-param name="select" select="id('search-service', ixsl:page())"/>
-                    <xsl:with-param name="apps" select="."/>
-                    <xsl:with-param name="selected-service" select="$service-uri"/>
-                </xsl:call-template>
-            </xsl:for-each>
-        </xsl:if>
+    <!-- TAB MANAGEMENT TEMPLATES -->
+
+    <!-- Create a new tab for an external URI and render its content into #external-pane -->
+    <xsl:template name="ldh:AddTabNavBarListItem">
+        <xsl:param name="doc-uri" as="xs:anyURI"/>
+        <xsl:param name="fragment" as="xs:string?"/>
+        <xsl:param name="label" as="xs:string"/>
+        <xsl:param name="mode" as="xs:anyURI"/>
+        <xsl:param name="error" select="false()" as="xs:boolean"/>
+
+        <!-- append the new tab <li> to the tab bar; data-uri keys lookups (document scope), @href round-trips the fragment for the user -->
+        <xsl:result-document href="#tab-bar-list" method="ixsl:append-content">
+            <li data-uri="{$doc-uri}">
+                <a href="{ldh:href($doc-uri, ldh:build-query($mode), $fragment)}" title="{$doc-uri}{if ($fragment) then '#' || $fragment else ''}">
+                    <xsl:if test="$error">
+                        <i class="icon-warning-sign"/>
+                        <xsl:text> </xsl:text>
+                    </xsl:if>
+                    <xsl:value-of select="$label"/>
+                </a>
+                <span class="tab-close">&#xd7;</span>
+            </li>
+        </xsl:result-document>
+
+        <!-- show the tab bar -->
+        <ixsl:set-style name="display" select="'block'" object="id('tab-bar', ixsl:page())"/>
+        <xsl:sequence select="ixsl:call(ixsl:get(ixsl:page(), 'documentElement.style'), 'setProperty', ['--action-bar-top', '98px'])[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
-    
+
+    <!-- activate an existing tab; matches pane by @about = $doc-uri (document scope, no fragment) -->
+    <xsl:template match="ul[@id = 'tab-bar-list']/li" mode="ldh:ActivateTab">
+        <xsl:param name="doc-uri" select="xs:anyURI(ixsl:get(., 'dataset.uri'))" as="xs:anyURI"/>
+
+        <!-- deactivate all tab <li>s -->
+        <xsl:for-each select="id('tab-bar-list', ixsl:page())/li">
+            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'remove', [ 'active' ])[current-date() lt xs:date('2000-01-01')]"/>
+        </xsl:for-each>
+        <!-- activate this tab <li> -->
+        <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'add', [ 'active' ])[current-date() lt xs:date('2000-01-01')]"/>
+
+        <!-- deactivate and hide all tab panes -->
+        <xsl:for-each select="id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')]">
+            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'remove', [ 'active' ])[current-date() lt xs:date('2000-01-01')]"/>
+            <ixsl:set-style name="display" select="'none'" object="."/>
+        </xsl:for-each>
+        <!-- activate and show tab pane -->
+        <xsl:for-each select="id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')][./div[contains-token(@class, 'document-body')]/@about = $doc-uri]">
+            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'add', [ 'active' ])[current-date() lt xs:date('2000-01-01')]"/>
+            <ixsl:set-style name="display" select="'block'" object="."/>
+        </xsl:for-each>
+    </xsl:template>
+
+    <!-- render RDF results into a tab pane identified by @about = $doc-uri -->
+    <!-- works for both local (#content-body) and external panes -->
+    <xsl:template name="ldh:RenderTab">
+        <xsl:param name="tab-pane-id" as="xs:string"/>
+        <xsl:param name="doc-uri" as="xs:anyURI"/>
+        <xsl:param name="fragment" as="xs:string?"/>
+        <xsl:param name="tab-list-item" select="id('tab-bar-list', ixsl:page())/li[ixsl:get(., 'dataset.uri') = $doc-uri]" as="element()?"/>
+        <xsl:param name="mode" as="xs:anyURI"/>
+        <xsl:param name="response" as="map(*)"/>
+        <xsl:param name="refresh-content" select="()" as="xs:boolean?"/>
+
+        <!-- activate tab list item, or show pane directly for local docs (no tab bar item) -->
+        <xsl:choose>
+            <xsl:when test="$tab-list-item">
+                <xsl:apply-templates select="$tab-list-item" mode="ldh:ActivateTab"/>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:for-each select="id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')]">
+                    <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'remove', ['active'])[current-date() lt xs:date('2000-01-01')]"/>
+                    <ixsl:set-style name="display" select="'none'" object="."/>
+                </xsl:for-each>
+                <xsl:for-each select="id($tab-pane-id, ixsl:page())">
+                    <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'add', ['active'])[current-date() lt xs:date('2000-01-01')]"/>
+                    <ixsl:set-style name="display" select="'block'" object="."/>
+                </xsl:for-each>
+            </xsl:otherwise>
+        </xsl:choose>
+
+        <!-- update sidebar against the now-active pane (sd:endpoint() reads its data-endpoint) -->
+        <xsl:call-template name="ldh:NavigationUpdate">
+            <xsl:with-param name="href" select="ldh:href($doc-uri, ldh:build-query($mode), $fragment)"/>
+        </xsl:call-template>
+
+        <!-- fire factories for top-level content blocks in the rendered pane -->
+        <xsl:for-each select="id($tab-pane-id, ixsl:page())/div[contains-token(@class, 'document-body')]/div[contains-token(@class, 'content-body')]/div">
+            <xsl:variable name="factories" as="(function(item()?) as item()*)*">
+                <xsl:apply-templates select="." mode="ldh:RenderRow">
+                    <xsl:with-param name="refresh-content" select="$refresh-content"/>
+                </xsl:apply-templates>
+            </xsl:variable>
+            <xsl:for-each select="$factories">
+                <xsl:variable name="factory" select="."/>
+                <ixsl:promise select="$factory(())" on-failure="ldh:promise-failure#1"/>
+            </xsl:for-each>
+        </xsl:for-each>
+
+        <!-- bs2:ActionBar always renders breadcrumb-nav inside bs2:ActionBarMain -->
+        <xsl:variable name="pane-breadcrumb-nav" select="id($tab-pane-id, ixsl:page())//*[contains-token(@class, 'breadcrumb-nav')]" as="element()?"/>
+        <xsl:if test="$pane-breadcrumb-nav">
+            <xsl:call-template name="ldh:PopulateBreadcrumbNav">
+                <xsl:with-param name="container" select="$pane-breadcrumb-nav"/>
+                <xsl:with-param name="response" select="$response"/>
+                <xsl:with-param name="uri" select="$doc-uri"/>
+            </xsl:call-template>
+        </xsl:if>
+
+        <!-- scroll to the fragment-targeted element if present, otherwise to top -->
+        <!-- look up the rendered RDFa resource container in the active pane via @about; sidesteps the multi-pane @id uniqueness constraint (two panes may both render a resource at the same fragment) -->
+        <xsl:variable name="resource-uri" select="xs:anyURI($doc-uri || (if ($fragment) then '#' || $fragment else ''))" as="xs:anyURI"/>
+        <xsl:variable name="scroll-target" as="element()?" select="if ($fragment) then (id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')][contains-token(@class, 'active')]//*[@about = $resource-uri])[1] else ()"/>
+        <xsl:choose>
+            <xsl:when test="exists($scroll-target)">
+                <xsl:sequence select="ixsl:call($scroll-target, 'scrollIntoView', [])[current-date() lt xs:date('2000-01-01')]"/>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:sequence select="ixsl:call(ixsl:window(), 'scrollTo', [ 0, 0 ])[current-date() lt xs:date('2000-01-01')]"/>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:template>
+
     <!-- push state -->
 
     <xsl:template name="ldh:PushState">
@@ -668,196 +879,156 @@ WHERE
         <xsl:sequence select="ixsl:call(ixsl:window(), 'history.pushState', [ $state-obj, $title, $href ])[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
     
-    <!-- load RDF document -->
-    
-    <xsl:template name="ldh:RDFDocumentLoad">
-        <xsl:param name="uri" as="xs:anyURI"/>
-        <xsl:param name="refresh-content" as="xs:boolean?"/>
-        <!-- if the URI is external, dereference it through the proxy -->
-        <!-- add a bogus query parameter to give the RDF/XML document a different URL in the browser cache, otherwise it will clash with the HTML representation -->
-        <!-- this is due to broken browser behavior re. Vary and conditional requests: https://stackoverflow.com/questions/60799116/firefox-if-none-match-headers-ignore-content-type-and-vary/60802443 -->
-        <xsl:variable name="request-uri" select="ldh:href(ac:document-uri($uri), map{}, ())" as="xs:anyURI"/>
-        <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
-        <xsl:variable name="context" as="map(*)" select="
-          map{
-            'request': $request,
-            'uri': $uri,
-            'refresh-content': $refresh-content
-          }"/>
-        <ixsl:promise select="ixsl:http-request($context('request')) =>
-            ixsl:then(ldh:rethread-response($context, ?)) =>
-            ixsl:then(ldh:handle-response#1) =>
-            ixsl:then(ldh:rdf-document-response#1)"
-            on-failure="ldh:promise-failure#1"/>
-    </xsl:template>
-
-    <!-- service select -->
-    
-    <xsl:template name="ldh:RenderServices">
-        <xsl:param name="select" as="element()"/>
-        <xsl:param name="apps" as="document-node()"/>
-        <xsl:param name="selected-service" as="xs:anyURI?"/>
-        
-        <xsl:for-each select="$select">
-            <xsl:result-document href="?." method="ixsl:replace-content">
-                <option value="">
-                    <xsl:value-of>
-                        <xsl:text>[</xsl:text>
-                        <xsl:apply-templates select="key('resources', 'sparql-service', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
-                        <xsl:text>]</xsl:text>
-                    </xsl:value-of>
-                </option>
-                
-                <xsl:for-each select="$apps//*[rdf:type/@rdf:resource = '&sd;Service']">
-                    <xsl:sort select="ac:label(.)"/>
-
-                    <xsl:apply-templates select="." mode="xhtml:Option">
-                        <xsl:with-param name="value" select="@rdf:about"/>
-                        <xsl:with-param name="selected" select="@rdf:about = $selected-service"/>
-                    </xsl:apply-templates>
-                </xsl:for-each>
-            </xsl:result-document>
-        </xsl:for-each>
-    </xsl:template>
-    
-    <!-- Linked Data browser -->
-    
-    <xsl:function name="ldh:xhtml-document-loaded" as="map(*)" ixsl:updating="yes">
-        <xsl:param name="context" as="map(*)"/>
-        <xsl:message>ldh:xhtml-document-loaded</xsl:message>
-
-        <xsl:variable name="href" select="$context('href')" as="xs:anyURI?"/> <!-- absolute URI! -->
-        <xsl:variable name="service-uri" select="if (id('search-service', ixsl:page())) then xs:anyURI(ixsl:get(id('search-service', ixsl:page()), 'value')) else ()" as="xs:anyURI?"/>
-        <xsl:variable name="service" select="if ($service-uri) then key('resources', $service-uri, document(ac:build-uri(ac:document-uri($service-uri), map{ 'accept': 'application/rdf+xml' }))) else ()" as="element()?"/> <!-- TO-DO: refactor asynchronously -->
-        <xsl:variable name="push-state" select="$context('push-state')" as="xs:boolean"/>
-        <xsl:variable name="refresh-content" as="xs:boolean?"/>
-        <xsl:variable name="response" select="$context('response')" as="map(*)"/>
-
-        <!-- set #uri value -->
-        <xsl:for-each select="id('uri', ixsl:page())">
-            <ixsl:set-property name="value" select="if (not(starts-with($href, $ldt:base))) then $href else ()" object="."/>
-        </xsl:for-each>
-        
-        <xsl:for-each select="$response">
-            <xsl:choose>
-                <xsl:when test="?status = 0">
-                    <!-- HTTP request was terminated - do nothing -->
-                </xsl:when>
-                <xsl:when test="starts-with(?media-type, 'application/xhtml+xml')">
-                    <xsl:variable name="endpoint-link" select="tokenize(?headers?link, ',')[contains(., '&sd;endpoint')]" as="xs:string?"/>
-                    <xsl:variable name="endpoint" select="if ($endpoint-link) then xs:anyURI(substring-before(substring-after(substring-before($endpoint-link, ';'), '&lt;'), '&gt;')) else ()" as="xs:anyURI?"/>
-                    <xsl:variable name="base" select="xs:anyURI(lapp:origin($href) || '/')" as="xs:anyURI"/>
-                    <!-- set new base URI if the current app has changed -->
-                    <xsl:if test="not($base = ldt:base())">
-                        <xsl:message>Application change. Base URI: <xsl:value-of select="$base"/></xsl:message>
-                        <xsl:call-template name="ldt:AppChanged">
-                            <xsl:with-param name="base" select="$base"/>
-                        </xsl:call-template>
-                    </xsl:if>
-
-                    <xsl:apply-templates select="?body" mode="ldh:HTMLDocumentLoaded">
-                        <xsl:with-param name="href" select="$href"/>
-                        <xsl:with-param name="endpoint" select="$endpoint"/>
-                        <xsl:with-param name="container" select="id($body-id, ixsl:page())"/>
-                        <xsl:with-param name="push-state" select="$push-state"/>
-                        <xsl:with-param name="refresh-content" select="$refresh-content"/>
-                    </xsl:apply-templates>
-                </xsl:when>
-                <xsl:otherwise>
-                    <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
-
-                    <!-- error response - could not load document -->
-                    <xsl:result-document href="#content-body" method="ixsl:replace-content">
-                        <div class="alert alert-block">
-                            <strong>Error loading XHTML document</strong>
-                            <xsl:if test="$response?message">
-                                <pre>
-                                    <xsl:value-of select="$response?message"/>
-                                </pre>
-                            </xsl:if>
-                        </div>
-                    </xsl:result-document>
-                </xsl:otherwise>
-            </xsl:choose>
-        </xsl:for-each>
-        
-        <xsl:sequence select="$context"/>
-    </xsl:function>
-    
-    <!-- cannot be a named template because overriding templates need to be able to call xsl:next-match (cannot use xsl:origin with Saxon-JS because of XSLT 3.0 packages) -->
-    <xsl:template match="/" mode="ldh:HTMLDocumentLoaded">
-        <xsl:param name="href" select="ldh:base-uri(.)" as="xs:anyURI"/> <!-- possibly proxied URL -->
-        <xsl:param name="container" as="element()"/>
+    <!-- switch to a tab whose pane DOM and LinkedDataHub.contents[$doc-uri] are already populated: no fetch, no re-render -->
+    <xsl:template name="ldh:TabSwitch">
+        <xsl:param name="doc-uri" as="xs:anyURI"/>
+        <xsl:param name="fragment" as="xs:string?"/>
+        <xsl:param name="query-params" select="map{}" as="map(xs:string, xs:string*)"/>
+        <xsl:param name="tab-li" as="element()"/>
         <xsl:param name="push-state" select="true()" as="xs:boolean"/>
-        <xsl:param name="endpoint" as="xs:anyURI?"/>
-        <xsl:param name="replace-content" select="true()" as="xs:boolean"/>
-        <xsl:param name="refresh-content" as="xs:boolean?"/>
-        <!-- decode raw document URL (without fragment) from the ?uri query param, if it's present -->
-        <xsl:variable name="uri" select="if (exists(ixsl:query-params()?uri)) then xs:anyURI(ixsl:query-params()?uri) else ac:absolute-path($href)" as="xs:anyURI"/>
-        <xsl:variable name="fragment" select="if (contains($href, '#')) then substring-after($href, '#') else ()" as="xs:string?"/>
-        
+        <xsl:param name="container" as="element()" select="id($body-id, ixsl:page())"/>
+
+        <!-- the user has switched intent; cancel any in-flight DocumentNavigate fetch so its response doesn't reactivate the previous tab -->
+        <xsl:if test="ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub'), 'saxonController')">
+            <xsl:sequence select="ixsl:call(ixsl:get(ixsl:window(), 'LinkedDataHub.saxonController'), 'abort', [])[current-date() lt xs:date('2000-01-01')]"/>
+        </xsl:if>
         <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
 
-        <xsl:if test="$endpoint">
-            <ixsl:set-property name="endpoint" select="$endpoint" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
-        </xsl:if>
-        
-        <xsl:if test="$replace-content">
-            <!-- set document.title which history.pushState() does not do -->
-            <ixsl:set-property name="title" select="string(/html/head/title)" object="ixsl:page()"/>
+        <xsl:variable name="href" select="ldh:href($doc-uri, $query-params, $fragment)" as="xs:anyURI"/>
 
-            <xsl:variable name="results" select="." as="document-node()"/>
-            
-            <!-- replace HTML body with the loaded XHTML body -->
-            <xsl:for-each select="$container">
-                <xsl:result-document href="?." method="ixsl:replace-content">
-                    <xsl:copy-of select="id($container/@id, $results)/node()"/>
-                </xsl:result-document>
-            </xsl:for-each>
-
+        <!-- address bar shows the resource URI (with fragment) for external, blank for local -->
+        <xsl:for-each select="id('uri', ixsl:page())">
             <xsl:choose>
-                <!-- scroll fragment-identified element into view if fragment is provided-->
-                <xsl:when test="$fragment">
-                    <xsl:for-each select="id($fragment, ixsl:page())">
-                        <xsl:sequence select="ixsl:call(., 'scrollIntoView', [])[current-date() lt xs:date('2000-01-01')]"/>
-                    </xsl:for-each>
+                <xsl:when test="not(starts-with($doc-uri, lapp:origin(ldh:request-uri()) || '/'))">
+                    <ixsl:set-property name="value" select="$doc-uri || (if ($fragment) then '#' || $fragment else '')" object="."/>
                 </xsl:when>
-                <!-- otherwise, scroll to the top of the window -->
                 <xsl:otherwise>
-                    <xsl:sequence select="ixsl:call(ixsl:window(), 'scrollTo', [ 0, 0 ])[current-date() lt xs:date('2000-01-01')]"/>
+                    <ixsl:set-property name="value" select="''" object="."/>
                 </xsl:otherwise>
             </xsl:choose>
+        </xsl:for-each>
+
+        <xsl:if test="$push-state">
+            <xsl:call-template name="ldh:PushState">
+                <xsl:with-param name="href" select="$href"/>
+                <xsl:with-param name="title" select="()"/>
+                <xsl:with-param name="container" select="$container"/>
+            </xsl:call-template>
+        </xsl:if>
+
+        <xsl:apply-templates select="$tab-li" mode="ldh:ActivateTab">
+            <xsl:with-param name="doc-uri" select="$doc-uri"/>
+        </xsl:apply-templates>
+
+        <xsl:call-template name="ldh:NavigationUpdate">
+            <xsl:with-param name="href" select="$href"/>
+        </xsl:call-template>
+
+        <!-- scroll to the fragment-targeted element if present, otherwise to top -->
+        <!-- look up the rendered RDFa resource container in the active pane via @about; sidesteps the multi-pane @id uniqueness constraint (two panes may both render a resource at the same fragment) -->
+        <xsl:variable name="resource-uri" select="xs:anyURI($doc-uri || (if ($fragment) then '#' || $fragment else ''))" as="xs:anyURI"/>
+        <xsl:variable name="scroll-target" as="element()?" select="if ($fragment) then (id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')][contains-token(@class, 'active')]//*[@about = $resource-uri])[1] else ()"/>
+        <xsl:choose>
+            <xsl:when test="exists($scroll-target)">
+                <xsl:sequence select="ixsl:call($scroll-target, 'scrollIntoView', [])[current-date() lt xs:date('2000-01-01')]"/>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:sequence select="ixsl:call(ixsl:window(), 'scrollTo', [ 0, 0 ])[current-date() lt xs:date('2000-01-01')]"/>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:template>
+
+    <!-- document navigation: handles local/external branching -->
+
+    <xsl:template name="ldh:DocumentNavigate">
+        <xsl:param name="doc-uri" as="xs:anyURI"/>
+        <xsl:param name="fragment" as="xs:string?"/>
+        <xsl:param name="query-params" select="map{}" as="map(xs:string, xs:string*)"/>
+        <xsl:param name="push-state" select="true()" as="xs:boolean"/>
+        <xsl:param name="container" as="element()" select="id($body-id, ixsl:page())"/>
+
+        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+        <xsl:if test="ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub'), 'saxonController')">
+            <xsl:message>Aborting HTTP request that has already been sent</xsl:message>
+            <xsl:sequence select="ixsl:call(ixsl:get(ixsl:window(), 'LinkedDataHub.saxonController'), 'abort', [])[current-date() lt xs:date('2000-01-01')]"/>
+        </xsl:if>
+        <xsl:variable name="controller" select="ixsl:abort-controller()"/>
+        <ixsl:set-property name="saxonController" select="$controller" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+
+        <xsl:variable name="href" select="ldh:href($doc-uri, $query-params, $fragment)" as="xs:anyURI"/>
+
+        <!-- update address bar input: show resource URI (with fragment) for external, clear for local docs -->
+        <!-- use browser origin (not ldt:base()) so the check is correct even when an external tab is active: ldt:base() reads the active pane's data-base, which would mis-classify same-origin proxy URIs as "local" and cross-dataspace URIs as "external" mid-switch -->
+        <xsl:for-each select="id('uri', ixsl:page())">
+            <xsl:choose>
+                <xsl:when test="not(starts-with($doc-uri, lapp:origin(ldh:request-uri()) || '/'))">
+                    <ixsl:set-property name="value" select="$doc-uri || (if ($fragment) then '#' || $fragment else '')" object="."/>
+                </xsl:when>
+                <xsl:otherwise>
+                    <ixsl:set-property name="value" select="''" object="."/>
+                </xsl:otherwise>
+            </xsl:choose>
+        </xsl:for-each>
+
+        <!-- hide local tab pane for external URIs -->
+        <xsl:if test="not(starts-with($doc-uri, lapp:origin(ldh:request-uri()) || '/'))">
+            <xsl:for-each select="id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')][./div[contains-token(@class, 'document-body')]/@about = ac:absolute-path(ldh:request-uri())]">
+                <ixsl:set-style name="display" select="'none'" object="."/>
+            </xsl:for-each>
         </xsl:if>
 
         <xsl:if test="$push-state">
             <xsl:call-template name="ldh:PushState">
-                <xsl:with-param name="href" select="ldh:href($href, ldh:query-params(ac:mode()), $fragment)"/>
-                <xsl:with-param name="title" select="/html/head/title"/>
+                <xsl:with-param name="href" select="$href"/>
+                <xsl:with-param name="title" select="()"/>
                 <xsl:with-param name="container" select="$container"/>
             </xsl:call-template>
+
+            <!-- keep the matching tab's @href in lockstep with the address bar; data-uri is the document URI -->
+            <xsl:for-each select="id('tab-bar-list', ixsl:page())/li[ixsl:get(., 'dataset.uri') = string($doc-uri)]/a">
+                <ixsl:set-attribute name="href" select="string($href)" object="."/>
+            </xsl:for-each>
         </xsl:if>
-        
-        <!-- update the sidebar -->
-        <xsl:call-template name="ldh:NavigationUpdate">
-            <xsl:with-param name="href" select="$href"/>
-        </xsl:call-template>
-        
+
         <xsl:call-template name="ldh:RDFDocumentLoad">
-            <xsl:with-param name="uri" select="$uri"/>
-            <xsl:with-param name="refresh-content" select="$refresh-content"/>
+            <xsl:with-param name="doc-uri" select="$doc-uri"/>
+            <xsl:with-param name="fragment" select="$fragment"/>
+            <xsl:with-param name="controller" select="$controller"/>
         </xsl:call-template>
     </xsl:template>
-    
-    <xsl:template name="ldt:AppChanged">
-        <xsl:param name="base" as="xs:anyURI"/>
 
-        <xsl:for-each select="id('left-sidebar', ixsl:page())">
-            <xsl:result-document href="?." method="ixsl:replace-content">
-                <xsl:call-template name="ldh:LeftSidebar">
-                    <xsl:with-param name="base" select="$base"/>
-                </xsl:call-template>
-            </xsl:result-document>
-        </xsl:for-each>
+    <!-- load RDF document -->
+
+    <xsl:template name="ldh:RDFDocumentLoad">
+        <xsl:param name="doc-uri" as="xs:anyURI"/>
+        <xsl:param name="fragment" as="xs:string?"/>
+        <xsl:param name="refresh-content" as="xs:boolean?"/>
+        <xsl:param name="controller" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), 'saxonController')"/>
+        <!-- if the URI is external, dereference it through the proxy -->
+        <!-- HTTP requests carry no fragment (protocol-level) -->
+        <xsl:variable name="request-uri" select="ldh:href($doc-uri, map{}, ())" as="xs:anyURI"/>
+        <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
+        <xsl:variable name="context" as="map(*)" select="
+          map{
+            'request': $request,
+            'doc-uri': $doc-uri,
+            'fragment': $fragment,
+            'refresh-content': $refresh-content,
+            'endpoint': sd:endpoint()
+          }"/>
+        <ixsl:promise select="ixsl:http-request($context('request'), $controller) =>
+            ixsl:then(ldh:rethread-response($context, ?)) =>
+            ixsl:then(ldh:handle-response#1) =>
+            ixsl:then(ldh:load-object-metadata#1) =>
+            ixsl:then(ldh:http-request-threaded(?, 'metadata-request', 'metadata-response')) =>
+            ixsl:then(ldh:handle-response(?, 'metadata-response')) =>
+            ixsl:then(ldh:set-object-metadata#1) =>
+            ixsl:then(ldh:load-property-metadata#1) =>
+            ixsl:then(ldh:http-request-threaded(?, 'property-metadata-request', 'property-metadata-response')) =>
+            ixsl:then(ldh:handle-response(?, 'property-metadata-response')) =>
+            ixsl:then(ldh:set-property-metadata#1) =>
+            ixsl:then(ldh:rdf-document-response#1)"
+            on-failure="ldh:promise-failure#1"/>
     </xsl:template>
 
     <!-- EVENT LISTENERS -->
@@ -868,136 +1039,101 @@ WHERE
         <xsl:variable name="state" select="ixsl:get(ixsl:event(), 'state')"/>
         <xsl:if test="not(empty($state))">
             <xsl:variable name="href" select="map:get($state, 'href')" as="xs:anyURI?"/>
-            <xsl:variable name="container-id" select="if (map:contains($state, 'container-id')) then map:get($state, 'container-id') else ()" as="xs:anyURI?"/>
-            <xsl:variable name="endpoint" select="map:get($state, 'endpoint')" as="xs:anyURI?"/>
 
-            <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+            <!-- strip URL fragment before parsing query so it doesn't get glued onto the last query value -->
+            <xsl:variable name="query-params" select="ldh:parse-query-params(substring-after(ac:document-uri($href), '?'))" as="map(xs:string, xs:string*)"/>
+            <xsl:variable name="doc-uri" select="ac:absolute-path(if (map:contains($query-params, 'uri')) then xs:anyURI(map:get($query-params, 'uri')) else $href)" as="xs:anyURI"/>
+            <!-- fragment lives on the OUTER URL per RFC 3986 -->
+            <xsl:variable name="fragment" select="ac:fragment-id($href)" as="xs:string?"/>
+            <xsl:variable name="tab-li" select="id('tab-bar-list', ixsl:page())/li[ixsl:get(., 'dataset.uri') = string($doc-uri)]" as="element()?"/>
 
-            <!-- decode URI from the ?uri query param if the URI was proxied -->
-            <xsl:variable name="query-params" select="ldh:parse-query-params(substring-after($href, '?'))" as="map(xs:string, xs:string*)"/>
-            <xsl:variable name="uri" select="if (map:contains($query-params, 'uri')) then xs:anyURI(map:get($query-params, 'uri')) else $href" as="xs:anyURI"/>
-
-            <xsl:if test="ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub'), 'saxonController')">
-                <xsl:message>Aborting HTTP request that has already been sent</xsl:message>
-                <xsl:sequence select="ixsl:call(ixsl:get(ixsl:window(), 'LinkedDataHub.saxonController'), 'abort', [])"/>
-            </xsl:if>
-            <xsl:variable name="controller" select="ixsl:abort-controller()"/>
-            <ixsl:set-property name="saxonController" select="$controller" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
-
-            <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $href, 'headers': map{ 'Accept': 'application/xhtml+xml' } }" as="map(*)"/>
-            <xsl:variable name="context" select="
-              map{
-                'request': $request,
-                'href': $href,
-                'push-state': false()
-              }" as="map(*)"/>
-            <ixsl:promise select="
-              ixsl:http-request($context('request'), $controller)
-                => ixsl:then(ldh:rethread-response($context, ?))
-                => ixsl:then(ldh:handle-response#1)
-                => ixsl:then(ldh:xhtml-document-loaded#1)
-            " on-failure="ldh:promise-failure#1"/>
+            <xsl:choose>
+                <xsl:when test="exists($tab-li) and ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $doc-uri || '`') and deep-equal(map:remove($query-params, 'uri'), map:remove(ldh:query-params(), 'uri'))">
+                    <xsl:call-template name="ldh:TabSwitch">
+                        <xsl:with-param name="doc-uri" select="$doc-uri"/>
+                        <xsl:with-param name="fragment" select="$fragment"/>
+                        <xsl:with-param name="query-params" select="map:remove($query-params, 'uri')"/>
+                        <xsl:with-param name="tab-li" select="$tab-li"/>
+                        <xsl:with-param name="push-state" select="false()"/>
+                    </xsl:call-template>
+                </xsl:when>
+                <xsl:otherwise>
+                    <xsl:call-template name="ldh:DocumentNavigate">
+                        <xsl:with-param name="doc-uri" select="$doc-uri"/>
+                        <xsl:with-param name="fragment" select="$fragment"/>
+                        <xsl:with-param name="query-params" select="map:remove($query-params, 'uri')"/>
+                        <xsl:with-param name="push-state" select="false()"/>
+                    </xsl:call-template>
+                </xsl:otherwise>
+            </xsl:choose>
         </xsl:if>
     </xsl:template>
-    
+
     <!-- do not intercept RDF download links -->
     <xsl:template match="button[@id = 'export-rdf']/following-sibling::ul//a" mode="ixsl:onclick" priority="1"/>
     
     <!-- intercept all HTML and SVG link clicks except to /uploads/ and those in the navbar (except breadcrumb bar, .brand and app list) and the footer -->
     <!-- resolve URLs against the current document URL because they can be relative -->
-    <xsl:template match="a[not(@target)][starts-with(resolve-uri(@href, ldh:base-uri(.)), 'http://') or starts-with(resolve-uri(@href, ldh:base-uri(.)), 'https://')][not(starts-with(resolve-uri(@href, ldh:base-uri(.)), resolve-uri('uploads/', $ldt:base)))][ancestor::div[@id = 'breadcrumb-nav'] or not(ancestor::div[tokenize(@class, ' ') = ('navbar', 'footer')])] | a[contains-token(@class, 'brand')] | div[button[contains-token(@class, 'btn-apps')]]/ul//a | svg:a[not(@target)][starts-with(resolve-uri(@href, ldh:base-uri(.)), 'http://') or starts-with(resolve-uri(@href, ldh:base-uri(.)), 'https://')][not(starts-with(resolve-uri(@href, ldh:base-uri(.)), resolve-uri('uploads/', $ldt:base)))]" mode="ixsl:onclick">
+    <xsl:template match="a[not(@target)][starts-with(resolve-uri(@href, ldh:base-uri(.)), 'http://') or starts-with(resolve-uri(@href, ldh:base-uri(.)), 'https://')][not(starts-with(resolve-uri(@href, ldh:base-uri(.)), resolve-uri('uploads/', ldt:base())))][ancestor::div[contains-token(@class, 'breadcrumb-nav')] or not(ancestor::div[tokenize(@class, ' ') = ('navbar', 'footer')])] | a[contains-token(@class, 'brand')] | div[button[contains-token(@class, 'btn-apps')]]/ul//a | svg:a[not(@target)][starts-with(resolve-uri(@href, ldh:base-uri(.)), 'http://') or starts-with(resolve-uri(@href, ldh:base-uri(.)), 'https://')][not(starts-with(resolve-uri(@href, ldh:base-uri(.)), resolve-uri('uploads/', ldt:base())))]" mode="ixsl:onclick">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
-        <xsl:variable name="href" select="resolve-uri(@href, ldh:base-uri(.))" as="xs:anyURI"/> <!-- resolve relative URIs -->
-        
-        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
-        
-        <xsl:if test="ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub'), 'saxonController')">
-            <xsl:message>Aborting HTTP request that has already been sent</xsl:message>
-            <xsl:sequence select="ixsl:call(ixsl:get(ixsl:window(), 'LinkedDataHub.saxonController'), 'abort', [])"/>
-        </xsl:if>
-        <xsl:variable name="controller" select="ixsl:abort-controller()"/>
-        <ixsl:set-property name="saxonController" select="$controller" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
-        
-        <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $href, 'headers': map{ 'Accept': 'application/xhtml+xml' } }" as="map(*)"/>
-        <xsl:variable name="context" select="
-          map{
-            'request': $request,
-            'href': $href,
-            'push-state': true()
-          }" as="map(*)"/>
-        <ixsl:promise select="
-          ixsl:http-request($context('request'), $controller)
-            => ixsl:then(ldh:rethread-response($context, ?))
-            => ixsl:then(ldh:handle-response#1)
-            => ixsl:then(ldh:xhtml-document-loaded#1)
-        " on-failure="ldh:promise-failure#1"/>
+        <!-- resolve link href against base; ac:document-uri strips the URL's fragment so it doesn't corrupt query parsing -->
+        <xsl:variable name="href" select="xs:anyURI(resolve-uri(@href, ldh:base-uri(.)))" as="xs:anyURI"/>
+        <xsl:variable name="query-params" select="ldh:parse-query-params(substring-after(ac:document-uri($href), '?'))" as="map(xs:string, xs:string*)"/>
+        <!-- proxied link: doc URI is the ?uri= value; local link: doc URI is $href without query/fragment -->
+        <xsl:variable name="doc-uri" select="ac:absolute-path(if (map:contains($query-params, 'uri')) then xs:anyURI(map:get($query-params, 'uri')) else $href)" as="xs:anyURI"/>
+        <!-- fragment lives on the OUTER URL per RFC 3986 / ldh:href convention -->
+        <xsl:variable name="fragment" select="ac:fragment-id($href)" as="xs:string?"/>
+
+        <xsl:variable name="tab-li" select="id('tab-bar-list', ixsl:page())/li[ixsl:get(., 'dataset.uri') = string($doc-uri)]" as="element()?"/>
+
+        <xsl:choose>
+            <!-- same-doc cached AND non-uri query params unchanged: switch (no fetch, no re-render), just scroll to the new fragment if any -->
+            <xsl:when test="ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $doc-uri || '`') and exists($tab-li) and deep-equal(map:remove($query-params, 'uri'), map:remove(ldh:query-params(), 'uri'))">
+                <xsl:call-template name="ldh:TabSwitch">
+                    <xsl:with-param name="doc-uri" select="$doc-uri"/>
+                    <xsl:with-param name="fragment" select="$fragment"/>
+                    <xsl:with-param name="query-params" select="map:remove($query-params, 'uri')"/>
+                    <xsl:with-param name="tab-li" select="$tab-li"/>
+                </xsl:call-template>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:call-template name="ldh:DocumentNavigate">
+                    <xsl:with-param name="doc-uri" select="$doc-uri"/>
+                    <xsl:with-param name="fragment" select="$fragment"/>
+                    <xsl:with-param name="query-params" select="map:remove($query-params, 'uri')"/>
+                </xsl:call-template>
+            </xsl:otherwise>
+        </xsl:choose>
     </xsl:template>
-    
+
     <xsl:template match="form[contains-token(@class, 'navbar-form')]" mode="ixsl:onsubmit">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <xsl:variable name="uri-string" select=".//input[@name = 'uri']/ixsl:get(., 'value')" as="xs:string?"/>
-        
+
         <!-- ignore form submission if the input value is not a valid http(s):// URI -->
         <xsl:if test="$uri-string castable as xs:anyURI and (starts-with($uri-string, 'http://') or starts-with($uri-string, 'https://'))">
-            <xsl:variable name="uri" select="xs:anyURI($uri-string)" as="xs:anyURI"/>
-            <!-- dereferenced external resources through a proxy -->
-            <xsl:variable name="href" select="ldh:href($uri)" as="xs:anyURI"/>
-            <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+            <xsl:variable name="resource-uri" select="xs:anyURI($uri-string)" as="xs:anyURI"/>
 
-            <xsl:if test="ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub'), 'saxonController')">
-                <xsl:message>Aborting HTTP request that has already been sent</xsl:message>
-                <xsl:sequence select="ixsl:call(ixsl:get(ixsl:window(), 'LinkedDataHub.saxonController'), 'abort', [])"/>
-            </xsl:if>
-            <xsl:variable name="controller" select="ixsl:abort-controller()"/>
-            <ixsl:set-property name="saxonController" select="$controller" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
-
-            <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $href, 'headers': map{ 'Accept': 'application/xhtml+xml' } }" as="map(*)"/>
-            <xsl:variable name="context" select="
-              map{
-                'request': $request,
-                'href': $href,
-                'push-state': true()
-              }" as="map(*)"/>
-            <ixsl:promise select="
-              ixsl:http-request($context('request'), $controller)
-                => ixsl:then(ldh:rethread-response($context, ?))
-                => ixsl:then(ldh:handle-response#1)
-                => ixsl:then(ldh:xhtml-document-loaded#1)
-            " on-failure="ldh:promise-failure#1"/>
+            <xsl:call-template name="ldh:DocumentNavigate">
+                <xsl:with-param name="doc-uri" select="ac:absolute-path($resource-uri)"/>
+                <xsl:with-param name="fragment" select="ac:fragment-id($resource-uri)"/>
+            </xsl:call-template>
         </xsl:if>
     </xsl:template>
     
     <xsl:template name="onDelete">
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="doc-uri" as="xs:anyURI"/>
-        
+
         <xsl:choose>
             <xsl:when test="?status = 204"> <!-- No Content -->
-                <xsl:variable name="href" select="resolve-uri('..', $doc-uri)" as="xs:anyURI"/>
-                <xsl:variable name="request-uri" select="ldh:href($href)" as="xs:anyURI"/>
+                <!-- parent directory; no fragment relevant here -->
+                <xsl:variable name="parent-doc-uri" select="resolve-uri('..', $doc-uri)" as="xs:anyURI"/>
 
-                <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
-
-                <xsl:if test="ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub'), 'saxonController')">
-                    <xsl:message>Aborting HTTP request that has already been sent</xsl:message>
-                    <xsl:sequence select="ixsl:call(ixsl:get(ixsl:window(), 'LinkedDataHub.saxonController'), 'abort', [])"/>
-                </xsl:if>
-                <xsl:variable name="controller" select="ixsl:abort-controller()"/>
-                <ixsl:set-property name="saxonController" select="$controller" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
-
-                <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }" as="map(*)"/>
-                <xsl:variable name="context" select="
-                  map{
-                    'request': $request,
-                    'href': $href,
-                    'push-state': true()
-                  }" as="map(*)"/>
-                <ixsl:promise select="
-                  ixsl:http-request($context('request'), $controller)
-                    => ixsl:then(ldh:rethread-response($context, ?))
-                    => ixsl:then(ldh:handle-response#1)
-                    => ixsl:then(ldh:xhtml-document-loaded#1)
-                " on-failure="ldh:promise-failure#1"/>
+                <xsl:call-template name="ldh:DocumentNavigate">
+                    <xsl:with-param name="doc-uri" select="$parent-doc-uri"/>
+                    <xsl:with-param name="fragment" select="()"/>
+                </xsl:call-template>
             </xsl:when>
             <xsl:otherwise>
                 <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
@@ -1011,152 +1147,11 @@ WHERE
     <xsl:template match="*[contains-token(@class, 'btn-group')][*[contains-token(@class, 'dropdown-toggle')]]" mode="ixsl:onclick">
         <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'open' ])[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
-    
-    <!-- trigger typeahead in the search bar -->
-    
-    <xsl:template match="input[@id = 'uri']" mode="ixsl:onkeyup" priority="1">
-        <xsl:param name="text" select="ixsl:get(., 'value')" as="xs:string?"/>
-        <xsl:param name="menu" select="following-sibling::ul" as="element()"/>
-        <xsl:param name="delay" select="400" as="xs:integer"/>
-        <xsl:param name="resource-types" as="xs:anyURI?"/>
-        <xsl:param name="select-string" select="$select-labelled-string" as="xs:string"/>
-        <xsl:param name="limit" select="100" as="xs:integer"/>
-        <xsl:param name="label-var-name" select="'label'" as="xs:string"/>
-        <xsl:variable name="key-code" select="ixsl:get(ixsl:event(), 'code')" as="xs:string"/>
 
-        <xsl:choose>
-            <xsl:when test="$key-code = 'Escape'">
-                <xsl:call-template name="typeahead:hide">
-                    <xsl:with-param name="menu" select="$menu"/>
-                </xsl:call-template>
-            </xsl:when>
-            <xsl:when test="$key-code = 'Enter'">
-                <xsl:if test="$menu/li[contains-token(@class, 'active')]">
-                    <!-- resource URI selected in the typeahead -->
-                    <xsl:variable name="uri" select="$menu/li[contains-token(@class, 'active')]/input[@name = 'ou']/ixsl:get(., 'value')" as="xs:anyURI"/>
-                    <!-- dereference external resources through a proxy -->
-                    <xsl:variable name="request-uri" select="ldh:href($uri)" as="xs:anyURI"/>
-                    
-                    <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
-
-                    <xsl:if test="ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub'), 'saxonController')">
-                        <xsl:message>Aborting HTTP request that has already been sent</xsl:message>
-                        <xsl:sequence select="ixsl:call(ixsl:get(ixsl:window(), 'LinkedDataHub.saxonController'), 'abort', [])"/>
-                    </xsl:if>
-                    <xsl:variable name="controller" select="ixsl:abort-controller()"/>
-                    <ixsl:set-property name="saxonController" select="$controller" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
-                    
-                    <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }" as="map(*)"/>
-                    <xsl:variable name="context" select="
-                      map{
-                        'request': $request,
-                        'href': $uri,
-                        'push-state': true()
-                      }" as="map(*)"/>
-                    <ixsl:promise select="
-                      ixsl:http-request($context('request'), $controller)
-                        => ixsl:then(ldh:rethread-response($context, ?))
-                        => ixsl:then(ldh:handle-response#1)
-                        => ixsl:then(ldh:xhtml-document-loaded#1)
-                    " on-failure="ldh:promise-failure#1"/>
-                </xsl:if>
-            </xsl:when>
-            <xsl:when test="$key-code = 'ArrowUp'">
-                <xsl:call-template name="typeahead:selection-up">
-                    <xsl:with-param name="menu" select="$menu"/>
-                </xsl:call-template>
-            </xsl:when>
-            <xsl:when test="$key-code = 'ArrowDown'">
-                <xsl:call-template name="typeahead:selection-down">
-                    <xsl:with-param name="menu" select="$menu"/>
-                </xsl:call-template>
-            </xsl:when>
-            <!-- if the input is not a URI, execute a keyword search with SPARQL regex() -->
-            <xsl:when test="not(starts-with(ixsl:get(., 'value'), 'http://')) and not(starts-with(ixsl:get(., 'value'), 'https://'))">
-                <xsl:variable name="select-builder" select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromString', [ $select-string ])"/>
-                <xsl:variable name="select-json-string" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ ixsl:call($select-builder, 'build', []) ])" as="xs:string"/>
-                <xsl:variable name="select-xml" select="json-to-xml($select-json-string)" as="document-node()"/>
-                <!-- append FILTER(regex()) -->
-                <xsl:variable name="select-xml" as="document-node()">
-                    <xsl:document>
-                        <xsl:apply-templates select="$select-xml" mode="ldh:add-regex-filter">
-                            <xsl:with-param name="var-name" select="$label-var-name" tunnel="yes"/>
-                            <xsl:with-param name="pattern" select="$text" tunnel="yes"/>
-                            <xsl:with-param name="flags" select="'iq'" tunnel="yes"/> <!-- case insensitive, ignore meta-characters: https://www.w3.org/TR/xpath-functions-31/#flags -->
-                        </xsl:apply-templates>
-                    </xsl:document>
-                </xsl:variable>
-                <!-- set LIMIT -->
-                <xsl:variable name="select-xml" as="document-node()">
-                    <xsl:document>
-                        <xsl:apply-templates select="$select-xml" mode="ldh:replace-limit"/>
-                    </xsl:document>
-                </xsl:variable>
-                <!-- wrap SELECT into a DESCRIBE -->
-                <xsl:variable name="query-xml" as="element()">
-                    <xsl:apply-templates select="$select-xml" mode="ldh:wrap-describe"/>
-                </xsl:variable>
-                <xsl:variable name="query-json-string" select="xml-to-json($query-xml)" as="xs:string"/>
-                <xsl:variable name="query-json" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'parse', [ $query-json-string ])"/>
-                <xsl:variable name="query-string" select="ixsl:call(ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromQuery', [ $query-json ]), 'toString', [])" as="xs:string"/>
-                <xsl:variable name="service-uri" select="xs:anyURI(ixsl:get(id('search-service'), 'value'))" as="xs:anyURI?"/>
-                <xsl:variable name="service" select="if ($service-uri) then key('resources', $service-uri, document(ac:build-uri(ac:document-uri($service-uri), map{ 'accept': 'application/rdf+xml' }))) else ()" as="element()?"/> <!-- TO-DO: refactor asynchronously -->
-                <xsl:variable name="endpoint" select="($service/sd:endpoint/@rdf:resource/xs:anyURI(.), resolve-uri('sparql', $ldt:base))[1]" as="xs:anyURI"/>
-                <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': string($query-string) })" as="xs:anyURI"/>
-                <xsl:variable name="request-uri" select="ldh:href($results-uri, map{})" as="xs:anyURI"/>
-                
-                <ixsl:schedule-action wait="$delay">
-                    <xsl:call-template name="typeahead:load-xml">
-                        <xsl:with-param name="element" select="."/>
-                        <xsl:with-param name="query" select="$text"/>
-                        <xsl:with-param name="uri" select="$request-uri"/>
-                    </xsl:call-template>
-                </ixsl:schedule-action>
-            </xsl:when>
-            <xsl:otherwise>
-                <xsl:call-template name="typeahead:hide">
-                    <xsl:with-param name="menu" select="$menu"/>
-                </xsl:call-template>
-            </xsl:otherwise>
-        </xsl:choose>
-    </xsl:template>
-    
-    <!-- navbar search typeahead item selected -->
-    
-    <xsl:template match="form[contains-token(@class, 'navbar-form')]//ul[contains-token(@class, 'dropdown-menu')][contains-token(@class, 'typeahead')]/li" mode="ixsl:onmousedown" priority="1">
-        <!-- redirect to the resource URI selected in the typeahead -->
-        <xsl:variable name="uri" select="input[@name = 'ou']/ixsl:get(., 'value')" as="xs:anyURI"/>
-        <!-- dereference external resources through a proxy -->
-        <xsl:variable name="request-uri" select="ldh:href($uri)" as="xs:anyURI"/>
-        
-        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
-        
-        <xsl:if test="ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub'), 'saxonController')">
-            <xsl:message>Aborting HTTP request that has already been sent</xsl:message>
-            <xsl:sequence select="ixsl:call(ixsl:get(ixsl:window(), 'LinkedDataHub.saxonController'), 'abort', [])"/>
-        </xsl:if>
-        <xsl:variable name="controller" select="ixsl:abort-controller()"/>
-        <ixsl:set-property name="saxonController" select="$controller" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
-        
-        <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }" as="map(*)"/>
-        <xsl:variable name="context" select="
-          map{
-            'request': $request,
-            'href': $uri,
-            'push-state': true()
-          }" as="map(*)"/>
-        <ixsl:promise select="
-          ixsl:http-request($context('request'), $controller)
-            => ixsl:then(ldh:rethread-response($context, ?))
-            => ixsl:then(ldh:handle-response#1)
-            => ixsl:then(ldh:xhtml-document-loaded#1)
-        " on-failure="ldh:promise-failure#1"/>
-    </xsl:template>
-    
     <xsl:template match="button[contains-token(@class, 'btn-delete')][not(contains-token(@class, 'disabled'))]" mode="ixsl:onclick">
         <xsl:variable name="request-uri" select="ldh:href(ac:absolute-path(ldh:base-uri(.)), map{})" as="xs:anyURI"/>
 
-        <xsl:if test="ixsl:call(ixsl:window(), 'confirm', [ ac:label(key('resources', 'are-you-sure', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))) ])">
+        <xsl:if test="ixsl:call(ixsl:window(), 'confirm', [ ac:label(key('resources', 'are-you-sure', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', lapp:origin())))) ])">
             <xsl:variable name="request" as="item()*">
                 <ixsl:schedule-action http-request="map{ 'method': 'DELETE', 'href': $request-uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
                     <xsl:call-template name="onDelete">
@@ -1200,108 +1195,166 @@ WHERE
     <!-- open a form to save RDF document (do nothing if the button is disabled) -->
     
     <xsl:template match="button[contains-token(@class, 'btn-save-as')][not(contains-token(@class, 'disabled'))]" mode="ixsl:onclick">
-        <xsl:variable name="textarea-id" select="'query-string'" as="xs:string"/>
-        <xsl:variable name="query" select="if (id($textarea-id, ixsl:page())) then ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.yasqe'), $textarea-id), 'getValue', []) else ()" as="xs:string?"/>
-        <xsl:variable name="service-uri" select="if (id('query-service', ixsl:page())) then xs:anyURI(ixsl:get(id('query-service'), 'value')) else ()" as="xs:anyURI?"/>
-        <xsl:variable name="service" select="if ($service-uri) then key('resources', $service-uri, document(ac:build-uri(ac:document-uri($service-uri), map{ 'accept': 'application/rdf+xml' }))) else ()" as="element()?"/> <!-- TO-DO: refactor asynchronously -->
-        <xsl:variable name="endpoint" select="($service/sd:endpoint/@rdf:resource/xs:anyURI(.), resolve-uri('sparql', $ldt:base))[1]" as="xs:anyURI"/>
-        <xsl:variable name="results-uri" select="if ($query) then ac:build-uri($endpoint, map{ 'query': $query }) else ()" as="xs:anyURI?"/>
-        
-        <!-- if SPARQL editor is shown, use the SPARQL protocol URI; otherwise use the Linked Data resource URI -->
-        <xsl:variable name="uri" select="if ($results-uri) then $results-uri else xs:anyURI(ixsl:query-params()?uri)" as="xs:anyURI"/>
+        <xsl:variable name="target" select="id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')][contains-token(@class, 'active')]/div[contains-token(@class, 'document-body')]/div[contains-token(@class, 'content-body')]" as="element()"/>
+        <xsl:variable name="graph" select="ldh:base-uri(.)" as="xs:anyURI"/>
 
-        <xsl:call-template name="ldh:ShowAddDataForm">
+        <xsl:call-template name="ldh:ShowModalForm">
             <xsl:with-param name="form" as="element()">
                 <xsl:call-template name="ldh:AddDataForm">
-                    <xsl:with-param name="source" select="$uri"/>
+                    <xsl:with-param name="source" select="$graph"/> <!-- the arg should really be the RDF/XML document-node() -->
                 </xsl:call-template>
             </xsl:with-param>
+            <xsl:with-param name="target" select="$target"/>
+        </xsl:call-template>
+
+        <xsl:call-template name="ldh:LoadTypeaheads">
+            <xsl:with-param name="typeahead-spans" select="(id('upload-rdf-doc', ixsl:page())/.., id('remote-rdf-doc', ixsl:page())/..)"/>
+            <xsl:with-param name="graph" select="$graph"/>
         </xsl:call-template>
     </xsl:template>
     
-    <!-- document mode tabs -->
-    
-    <xsl:template match="div[@id = 'content-body']/div/ul[contains-token(@class, 'nav-tabs')]/li[not(contains-token(@class, 'active'))]/a" mode="ixsl:onclick">
+    <!-- tab bar: click on a tab link to activate it -->
+    <xsl:template match="ul[@id = 'tab-bar-list']/li[not(contains-token(@class, 'active'))]/a" mode="ixsl:onclick">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
-        <xsl:variable name="active-class" select="tokenize(../@class, ' ')[not(. = 'active')]" as="xs:string"/>
-        <xsl:variable name="href" select="@href" as="xs:anyURI"/>
+        <xsl:variable name="href" select="xs:anyURI(resolve-uri(@href, ldh:base-uri(.)))" as="xs:anyURI"/>
+        <!-- ac:document-uri strips the URL's fragment so it doesn't get glued onto the last query value -->
+        <xsl:variable name="query-params" select="ldh:parse-query-params(substring-after(ac:document-uri($href), '?'))" as="map(xs:string, xs:string*)"/>
+        <!-- proxied tab: doc URI is the ?uri= value; local tab: doc URI is $href without query/fragment -->
+        <xsl:variable name="doc-uri" select="ac:absolute-path(if (map:contains($query-params, 'uri')) then xs:anyURI(map:get($query-params, 'uri')) else $href)" as="xs:anyURI"/>
+        <!-- fragment lives on the OUTER URL per RFC 3986 / ldh:href convention -->
+        <xsl:variable name="fragment" select="ac:fragment-id($href)" as="xs:string?"/>
 
-        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
-        <!-- make other tabs inactive -->
-        <xsl:sequence select="../../li[not(contains-token(@class, $active-class))]/ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'active', false() ])[current-date() lt xs:date('2000-01-01')]"/>
-        <!-- make this tab active -->
-        <xsl:sequence select="../ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'active', true() ])[current-date() lt xs:date('2000-01-01')]"/>
+        <xsl:choose>
+            <!-- cache populated AND non-uri query params unchanged: pure CSS toggle + scroll, no fetch, no re-render -->
+            <xsl:when test="ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $doc-uri || '`') and deep-equal(map:remove($query-params, 'uri'), map:remove(ldh:query-params(), 'uri'))">
+                <xsl:call-template name="ldh:TabSwitch">
+                    <xsl:with-param name="doc-uri" select="$doc-uri"/>
+                    <xsl:with-param name="fragment" select="$fragment"/>
+                    <xsl:with-param name="query-params" select="map:remove($query-params, 'uri')"/>
+                    <xsl:with-param name="tab-li" select=".."/>
+                    <xsl:with-param name="container" select=".."/>
+                </xsl:call-template>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:call-template name="ldh:DocumentNavigate">
+                    <xsl:with-param name="doc-uri" select="$doc-uri"/>
+                    <xsl:with-param name="fragment" select="$fragment"/>
+                    <xsl:with-param name="query-params" select="map:remove($query-params, 'uri')"/>
+                    <xsl:with-param name="container" select=".."/>
+                </xsl:call-template>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:template>
 
-        <xsl:if test="ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub'), 'saxonController')">
-            <xsl:message>Aborting HTTP request that has already been sent</xsl:message>
-            <xsl:sequence select="ixsl:call(ixsl:get(ixsl:window(), 'LinkedDataHub.saxonController'), 'abort', [])"/>
+    <xsl:template match="ul[@id = 'tab-bar-list']/li/span[contains-token(@class, 'tab-close')]" mode="ixsl:onclick">
+        <xsl:variable name="tab-li" select=".." as="element()"/>
+        <xsl:variable name="doc-uri" select="xs:anyURI(ixsl:get($tab-li, 'dataset.uri'))" as="xs:anyURI"/>
+        <xsl:variable name="was-active" select="contains-token($tab-li/@class, 'active')" as="xs:boolean"/>
+
+        <!-- pick fallback BEFORE removing this li; prefer previous sibling, fall back to next -->
+        <xsl:variable name="fallback-li" select="($tab-li/preceding-sibling::li[1], $tab-li/following-sibling::li[1])[1]" as="element()?"/>
+
+        <!-- remove the associated tab pane (matched by document-body/@about = $doc-uri) -->
+        <xsl:for-each select="id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')][./div[contains-token(@class, 'document-body')]/@about = $doc-uri]">
+            <xsl:sequence select="ixsl:call(., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
+        </xsl:for-each>
+
+        <!-- remove the tab <li> from the DOM -->
+        <xsl:sequence select="ixsl:call($tab-li, 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
+
+        <!-- if the closed tab was active, switch to the fallback (TabSwitch if cached; otherwise DocumentNavigate → RenderTab will activate after fetch) -->
+        <xsl:if test="$was-active and $fallback-li">
+            <xsl:variable name="fallback-href" select="xs:anyURI(resolve-uri($fallback-li/a/@href, ldh:base-uri(.)))" as="xs:anyURI"/>
+            <xsl:variable name="fallback-query-params" select="ldh:parse-query-params(substring-after(ac:document-uri($fallback-href), '?'))" as="map(xs:string, xs:string*)"/>
+            <xsl:variable name="fallback-doc-uri" select="ac:absolute-path(if (map:contains($fallback-query-params, 'uri')) then xs:anyURI(map:get($fallback-query-params, 'uri')) else $fallback-href)" as="xs:anyURI"/>
+            <xsl:variable name="fallback-fragment" select="ac:fragment-id($fallback-href)" as="xs:string?"/>
+
+            <xsl:choose>
+                <xsl:when test="ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $fallback-doc-uri || '`') and deep-equal(map:remove($fallback-query-params, 'uri'), map:remove(ldh:query-params(), 'uri'))">
+                    <xsl:call-template name="ldh:TabSwitch">
+                        <xsl:with-param name="doc-uri" select="$fallback-doc-uri"/>
+                        <xsl:with-param name="fragment" select="$fallback-fragment"/>
+                        <xsl:with-param name="query-params" select="map:remove($fallback-query-params, 'uri')"/>
+                        <xsl:with-param name="tab-li" select="$fallback-li"/>
+                    </xsl:call-template>
+                </xsl:when>
+                <xsl:otherwise>
+                    <xsl:call-template name="ldh:DocumentNavigate">
+                        <xsl:with-param name="doc-uri" select="$fallback-doc-uri"/>
+                        <xsl:with-param name="fragment" select="$fallback-fragment"/>
+                        <xsl:with-param name="query-params" select="map:remove($fallback-query-params, 'uri')"/>
+                    </xsl:call-template>
+                </xsl:otherwise>
+            </xsl:choose>
         </xsl:if>
-        <xsl:variable name="controller" select="ixsl:abort-controller()"/>
-        <ixsl:set-property name="saxonController" select="$controller" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
-        
-        <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $href, 'headers': map{ 'Accept': 'application/xhtml+xml' } }" as="map(*)"/>
-        <xsl:variable name="context" select="
-          map{
-            'request': $request,
-            'href': $href,
-            'push-state': true()
-          }" as="map(*)"/>
-        <ixsl:promise select="
-          ixsl:http-request($context('request'), $controller)
-            => ixsl:then(ldh:rethread-response($context, ?))
-            => ixsl:then(ldh:handle-response#1)
-            => ixsl:then(ldh:xhtml-document-loaded#1)
-        " on-failure="ldh:promise-failure#1"/>
+
+        <!-- if only the base-uri tab is left, hide the whole tab-bar (mirror of ldh:AddTabNavBarListItem) -->
+        <xsl:if test="count(id('tab-bar-list', ixsl:page())/li) le 1">
+            <ixsl:set-style name="display" select="'none'" object="id('tab-bar', ixsl:page())"/>
+            <xsl:sequence select="ixsl:call(ixsl:get(ixsl:page(), 'documentElement.style'), 'removeProperty', ['--action-bar-top'])[current-date() lt xs:date('2000-01-01')]"/>
+        </xsl:if>
     </xsl:template>
 
     <!-- file drop -->
 
-    <xsl:template match="div[ac:mode() = '&ac;ReadMode'][acl:mode() = '&acl;Write']" mode="ixsl:ondragover">
-        <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
+    <xsl:template match="div[acl:mode() = '&acl;Write']" mode="ixsl:ondragover">
+        <xsl:variable name="uri" select="ac:absolute-path(ldh:request-uri())" as="xs:anyURI"/>
+        <xsl:variable name="results" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $uri || '`'), 'results')" as="document-node()"/>
+        <xsl:variable name="mode" select="ac:mode($results)" as="xs:anyURI"/>
+        
+        <xsl:if test="$mode = xs:anyURI('&ac;ReadMode')">
+            <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
+        </xsl:if>
     </xsl:template>
 
-    <xsl:template match="div[ac:mode() = '&ac;ReadMode'][acl:mode() = '&acl;Write']" mode="ixsl:ondrop">
-        <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
-        <xsl:variable name="base-uri" select="ldh:base-uri(.)" as="xs:anyURI"/>
-        <xsl:variable name="rdf-media-types" as="map(xs:string, xs:string)">
-            <xsl:map>
-                <xsl:map-entry key="'nt'" select="'application/n-triples'"/>
-                <xsl:map-entry key="'ttl'" select="'text/turtle'"/>
-                <xsl:map-entry key="'rdf'" select="'application/rdf+xml'"/>
-                <xsl:map-entry key="'owl'" select="'application/rdf+xml'"/>
-                <xsl:map-entry key="'jsonld'" select="'application/ld+json'"/>
-            </xsl:map>
-        </xsl:variable>
+    <xsl:template match="div[acl:mode() = '&acl;Write']" mode="ixsl:ondrop">
+        <xsl:variable name="uri" select="ac:absolute-path(ldh:request-uri())" as="xs:anyURI"/>
+        <xsl:variable name="results" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $uri || '`'), 'results')" as="document-node()"/>
+        <xsl:variable name="mode" select="ac:mode($results)" as="xs:anyURI"/>
         
-        <xsl:if test="ixsl:get(ixsl:get(ixsl:event(), 'dataTransfer'), 'files.length') gt 0">
-            <xsl:message>
-                <xsl:variable name="files" select="ixsl:get(ixsl:get(ixsl:event(), 'dataTransfer'), 'files')"/>
-                <xsl:for-each select="0 to xs:integer(ixsl:get($files, 'length')) - 1">
-                    <xsl:variable name="file" select="map:get($files, .)"/>
-                    <xsl:variable name="file-ext" select="replace(ixsl:get($file, 'name'), '.*\.', '')" as="xs:string?"/>
-                    <xsl:variable name="file-type" select="if (ixsl:contains($file, 'type')) then ixsl:get($file, 'type') else ()" as="xs:string?"/>
+        <xsl:if test="$mode = xs:anyURI('&ac;ReadMode')">
+            <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
+            <xsl:variable name="base-uri" select="ldh:base-uri(.)" as="xs:anyURI"/>
+            <xsl:variable name="rdf-media-types" as="map(xs:string, xs:string)">
+                <xsl:map>
+                    <xsl:map-entry key="'nt'" select="'application/n-triples'"/>
+                    <xsl:map-entry key="'ttl'" select="'text/turtle'"/>
+                    <xsl:map-entry key="'rdf'" select="'application/rdf+xml'"/>
+                    <xsl:map-entry key="'owl'" select="'application/rdf+xml'"/>
+                    <xsl:map-entry key="'jsonld'" select="'application/ld+json'"/>
+                </xsl:map>
+            </xsl:variable>
 
-                    <xsl:choose>
-                        <!-- file extension is a map key or media type is a map value -->
-                        <xsl:when test="map:contains($rdf-media-types, $file-ext) or $file-type = $rdf-media-types?*">
-                            <!-- attempt to infer RDF media type from file extension first, fallback to file type -->
-                            <xsl:variable name="media-type" select="if (map:contains($rdf-media-types, $file-ext)) then map:get($rdf-media-types, $file-ext) else $file-type" as="xs:string"/>
-                            <xsl:message>Importing RDF file. Name: '<xsl:value-of select="ixsl:get($file, 'name')"/>' Media type: '<xsl:value-of select="$media-type"/>'</xsl:message>
-                            
-                            <xsl:variable name="headers" select="ldh:new-object()"/>
-                            <ixsl:set-property name="Content-Type" select="$media-type" object="$headers"/>
-                            <ixsl:set-property name="Accept" select="'application/rdf+xml'" object="$headers"/>
+            <xsl:if test="ixsl:get(ixsl:get(ixsl:event(), 'dataTransfer'), 'files.length') gt 0">
+                <xsl:message>
+                    <xsl:variable name="files" select="ixsl:get(ixsl:get(ixsl:event(), 'dataTransfer'), 'files')"/>
+                    <xsl:for-each select="0 to xs:integer(ixsl:get($files, 'length')) - 1">
+                        <xsl:variable name="file" select="map:get($files, .)"/>
+                        <xsl:variable name="file-ext" select="replace(ixsl:get($file, 'name'), '.*\.', '')" as="xs:string?"/>
+                        <xsl:variable name="file-type" select="if (ixsl:contains($file, 'type')) then ixsl:get($file, 'type') else ()" as="xs:string?"/>
 
-                            <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+                        <xsl:choose>
+                            <!-- file extension is a map key or media type is a map value -->
+                            <xsl:when test="map:contains($rdf-media-types, $file-ext) or $file-type = $rdf-media-types?*">
+                                <!-- attempt to infer RDF media type from file extension first, fallback to file type -->
+                                <xsl:variable name="media-type" select="if (map:contains($rdf-media-types, $file-ext)) then map:get($rdf-media-types, $file-ext) else $file-type" as="xs:string"/>
+                                <xsl:message>Importing RDF file. Name: '<xsl:value-of select="ixsl:get($file, 'name')"/>' Media type: '<xsl:value-of select="$media-type"/>'</xsl:message>
 
-                            <xsl:sequence select="js:fetchDispatchXML($base-uri, 'POST', $headers, $file, ., (), (), (), 'RDFFileUpload')[current-date() lt xs:date('2000-01-01')]"/>
-                        </xsl:when>
-                        <xsl:otherwise>
-                            <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ 'The file extension or media type is not a supported RDF triple syntax' ])[current-date() lt xs:date('2000-01-01')]"/>
-                        </xsl:otherwise>
-                    </xsl:choose>
-                </xsl:for-each>
-            </xsl:message>
+                                <xsl:variable name="headers" select="ldh:new-object()"/>
+                                <ixsl:set-property name="Content-Type" select="$media-type" object="$headers"/>
+                                <ixsl:set-property name="Accept" select="'application/rdf+xml'" object="$headers"/>
+
+                                <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+
+                                <xsl:sequence select="js:fetchDispatchXML($base-uri, 'POST', $headers, $file, ., (), (), (), 'RDFFileUpload')[current-date() lt xs:date('2000-01-01')]"/>
+                            </xsl:when>
+                            <xsl:otherwise>
+                                <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ 'The file extension or media type is not a supported RDF triple syntax' ])[current-date() lt xs:date('2000-01-01')]"/>
+                            </xsl:otherwise>
+                        </xsl:choose>
+                    </xsl:for-each>
+                </xsl:message>
+            </xsl:if>
         </xsl:if>
     </xsl:template>
 
@@ -1314,28 +1367,11 @@ WHERE
         
         <xsl:choose>
             <xsl:when test="$status = (200, 204)">
-                <xsl:if test="ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub'), 'saxonController')">
-                    <xsl:message>Aborting HTTP request that has already been sent</xsl:message>
-                    <xsl:sequence select="ixsl:call(ixsl:get(ixsl:window(), 'LinkedDataHub.saxonController'), 'abort', [])"/>
-                </xsl:if>
-                <xsl:variable name="controller" select="ixsl:abort-controller()"/>
-                <ixsl:set-property name="saxonController" select="$controller" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
-                
-                <!-- retain the current layout mode (which should be ac:ReadMode -->
-                <xsl:variable name="href" select="ldh:href(ldh:base-uri(.), ldh:query-params(ac:mode()))" as="xs:anyURI"/>
-                <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $href, 'headers': map{ 'Accept': 'application/xhtml+xml' } }" as="map(*)"/>
-                <xsl:variable name="context" select="
-                  map{
-                    'request': $request,
-                    'href': $href,
-                    'push-state': true()
-                  }" as="map(*)"/>
-                <ixsl:promise select="
-                  ixsl:http-request($context('request'), $controller)
-                    => ixsl:then(ldh:rethread-response($context, ?))
-                    => ixsl:then(ldh:handle-response#1)
-                    => ixsl:then(ldh:xhtml-document-loaded#1)
-                " on-failure="ldh:promise-failure#1"/>
+                <!-- post-upload reload of the current document; ldh:base-uri already strips fragment -->
+                <xsl:call-template name="ldh:DocumentNavigate">
+                    <xsl:with-param name="doc-uri" select="ldh:base-uri(.)"/>
+                    <xsl:with-param name="fragment" select="()"/>
+                </xsl:call-template>
             </xsl:when>
             <xsl:otherwise>
                 <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>

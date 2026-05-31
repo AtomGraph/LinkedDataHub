@@ -68,6 +68,10 @@ public class ApplicationFilter implements ContainerRequestFilter
         }
         else request.setProperty(AC.mode.getURI(), Collections.emptyList());
 
+        // set early so content negotiation works even if app matching fails
+        if (request.getUriInfo().getQueryParameters().containsKey(AC.accept.getLocalName()))
+            request.getHeaders().putSingle(HttpHeaders.ACCEPT, request.getUriInfo().getQueryParameters().getFirst(AC.accept.getLocalName()));
+
         // there always have to be an app
         Resource appResource = getSystem().matchApp(request.getUriInfo().getAbsolutePath());
         if (appResource == null)
@@ -107,7 +111,23 @@ public class ApplicationFilter implements ContainerRequestFilter
                         
                     requestURI = builder.build();
                 }
-                else requestURI = request.getUriInfo().getRequestUri();
+                else
+                {
+                    request.setProperty(AC.uri.getURI(), graphURI); // authoritative external proxy marker
+
+                    // strip ?uri= from the effective request URI — server-side sees only the path;
+                    // the ContainerRequestContext property is the sole indicator of proxy mode
+                    MultivaluedMap<String, String> externalQueryParams = new MultivaluedHashMap();
+                    externalQueryParams.putAll(request.getUriInfo().getQueryParameters());
+                    externalQueryParams.remove(AC.uri.getLocalName());
+
+                    UriBuilder externalBuilder = UriBuilder.fromUri(request.getUriInfo().getAbsolutePath());
+                    for (Entry<String, List<String>> params : externalQueryParams.entrySet())
+                        for (String value : params.getValue())
+                            externalBuilder.queryParam(params.getKey(), value);
+
+                    requestURI = externalBuilder.build();
+                }
             }
             catch (URISyntaxException ex)
             {
@@ -116,11 +136,6 @@ public class ApplicationFilter implements ContainerRequestFilter
             }
         else requestURI = request.getUriInfo().getRequestUri();
         request.setRequestUri(app.getBaseURI(), requestURI); // there's always ldt:base
-
-        // override "Accept" header using then ?accept= param value. TO-DO: move to a separate ContainerRequestFilter?
-        // has to go before ?uri logic because that will change the UriInfo
-        if (request.getUriInfo().getQueryParameters().containsKey(AC.accept.getLocalName()))
-            request.getHeaders().putSingle(HttpHeaders.ACCEPT, request.getUriInfo().getQueryParameters().getFirst(AC.accept.getLocalName()));
 
         // TO-DO: move Dataset logic to a separate ContainerRequestFilter?
         Resource datasetResource = getSystem().matchDataset(LAPP.Dataset, request.getUriInfo().getAbsolutePath());

@@ -152,6 +152,9 @@ public class LDHC
     /** HTTP client request retry count */
     public static final DatatypeProperty maxRequestRetries = m_model.createDatatypeProperty( NS + "maxRequestRetries" );
 
+    /** Timeout in milliseconds waiting for a connection from the HTTP client pool */
+    public static final DatatypeProperty connectionRequestTimeout = m_model.createDatatypeProperty( NS + "connectionRequestTimeout" );
+
     /** Max content length property */
     public static final DatatypeProperty maxContentLength = m_model.createDatatypeProperty( NS + "maxContentLength" );
 

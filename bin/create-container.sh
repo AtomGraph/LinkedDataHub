@@ -133,12 +133,12 @@ turtle+="<${target}> dct:title \"${title}\" .\n"
 if [ -n "$block" ] ; then
     turtle+="<${target}> rdf:_1 <${block}> .\n"
 else
-    block_triples="a ldh:View ; spin:query ldh:SelectChildren"
     if [ -n "$mode" ] ; then
-        block_triples+="; ac:mode <${mode}> "
+        turtle+="@prefix ac:	<https://w3id.org/atomgraph/client#> .\n"
+        turtle+="<${target}> rdf:_1 [ a ldh:Object ; rdf:value [ a ldh:View ; spin:query ldh:SelectChildren ; ac:mode <${mode}> ] ] .\n"
+    else
+        turtle+="<${target}> rdf:_1 [ a ldh:Object ; rdf:value ldh:ChildrenView ] .\n"
     fi
-    turtle+="@prefix ac:	<https://w3id.org/atomgraph/client#> .\n"
-    turtle+="<${target}> rdf:_1 [ ${block_triples} ] .\n"
 fi
 
 if [ -n "$description" ] ; then

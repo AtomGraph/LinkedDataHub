@@ -13,6 +13,7 @@
     <!ENTITY srx    "http://www.w3.org/2005/sparql-results#">
     <!ENTITY http   "http://www.w3.org/2011/http#">
     <!ENTITY acl    "http://www.w3.org/ns/auth/acl#">
+    <!ENTITY sd     "http://www.w3.org/ns/sparql-service-description#">
     <!ENTITY ldt    "https://www.w3.org/ns/ldt#">
     <!ENTITY dh     "https://www.w3.org/ns/ldt/document-hierarchy#">
     <!ENTITY sh     "http://www.w3.org/ns/shacl#">
@@ -39,6 +40,7 @@ xmlns:xsd="&xsd;"
 xmlns:srx="&srx;"
 xmlns:http="&http;"
 xmlns:acl="&acl;"
+xmlns:sd="&sd;"
 xmlns:ldt="&ldt;"
 xmlns:sh="&sh;"
 xmlns:sp="&sp;"
@@ -69,11 +71,65 @@ exclude-result-prefixes="#all"
         </xsl:variable>
         <xsl:sequence select="upper-case(substring($labels[1], 1, 1)) || substring($labels[1], 2)"/>
     </xsl:function>
+
+    <xsl:function name="ac:object-label" as="xs:string?">
+        <xsl:param name="object" as="node()"/>
+        <xsl:param name="object-metadata" as="document-node()"/>
+
+        <xsl:variable name="labels" as="xs:string*">
+            <xsl:apply-templates select="$object" mode="ac:object-label">
+                <xsl:with-param name="object-metadata" select="$object-metadata" tunnel="yes"/>
+            </xsl:apply-templates>
+        </xsl:variable>
+        <xsl:sequence select="$labels[1]"/>
+    </xsl:function>
+
+    <xsl:template match="@rdf:resource | @rdf:nodeID | srx:uri" mode="ac:object-label" priority="1">
+        <xsl:param name="object-metadata" as="document-node()?" tunnel="yes"/>
+        <xsl:variable name="this" select="." as="xs:anyURI"/>
+
+        <xsl:choose>
+            <xsl:when test="key('resources', .)">
+                <xsl:apply-templates select="key('resources', .)" mode="ac:label"/>
+            </xsl:when>
+            <xsl:when test="$object-metadata!key('resources', $this, .)">
+                <!-- <xsl:message>ac:object-label(<xsl:value-of select="."/>) $object-metadata: <xsl:value-of select="serialize($object-metadata)"/></xsl:message> -->
+                <xsl:apply-templates select="$object-metadata!key('resources', $this, .)" mode="ac:label"/>
+            </xsl:when>
+            <xsl:when test="ixsl:doc-fetched(ac:document-uri(.)) and key('resources', ., document(ac:document-uri(.)))" use-when="system-property('xsl:product-name') eq 'SaxonJS'">
+                <xsl:apply-templates select="key('resources', ., document(ac:document-uri(.)))" mode="ac:label"/>
+            </xsl:when>
+            <xsl:when test="doc-available(ac:document-uri(.)) and key('resources', ., document(ac:document-uri(.)))" use-when="system-property('xsl:product-name') = 'SAXON'">
+                <xsl:apply-templates select="key('resources', ., document(ac:document-uri(.)))" mode="ac:label"/>
+            </xsl:when>
+            <xsl:when test="contains(., '#') and not(ends-with(., '#'))">
+                <xsl:sequence select="substring-after(., '#')"/>
+            </xsl:when>
+            <xsl:when test="string-length(tokenize(., '/')[last()]) &gt; 0">
+                <xsl:sequence select="translate(tokenize(., '/')[last()], '_', ' ')"/>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:sequence select="."/>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:template>
     
     <xsl:function name="acl:mode" as="xs:anyURI*" use-when="system-property('xsl:product-name') = 'SAXON'">
-        <xsl:sequence select="$acl:mode"/>
+        <xsl:variable name="entries" as="xs:string*">
+            <xsl:for-each select="$ldh:httpHeaders('Link')">
+                <xsl:analyze-string select="." regex="&lt;[^&gt;]+&gt;[^&lt;]*">
+                    <xsl:matching-substring>
+                        <xsl:sequence select="."/>
+                    </xsl:matching-substring>
+                </xsl:analyze-string>
+            </xsl:for-each>
+        </xsl:variable>
+        <xsl:sequence select="for $entry in $entries return if (matches($entry, '^&lt;[^&gt;]+&gt;\s*;.*[;\s]rel\s*=\s*&quot;?[^&quot;\s,;]*acl#mode&quot;?')) then xs:anyURI(replace($entry, '^&lt;([^&gt;]+)&gt;.*$', '$1')) else ()"/>
     </xsl:function>
-    
+
+    <xsl:function name="ac:uri" as="xs:anyURI?" use-when="system-property('xsl:product-name') = 'SAXON'">
+        <xsl:sequence select="$ac:uri"/>
+    </xsl:function>
 
     <!-- Strips the leftmost subdomain and returns parent dataspace origin (scheme + host + port) -->
     <xsl:function name="ldh:parent-origin" as="xs:anyURI?">
@@ -104,15 +160,38 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="$ldh:requestUri"/>
     </xsl:function>
     
+    <xsl:function name="ldh:query-params" as="map(xs:string, xs:string*)">
+        <!-- ac:document-uri strips the URL's #fragment so it doesn't get glued onto the last query value -->
+        <xsl:sequence select="ldh:parse-query-params(substring-after(ac:document-uri(ldh:request-uri()), '?'))"/>
+    </xsl:function>
+    
     <xsl:function name="ldh:base-uri" as="xs:anyURI" use-when="system-property('xsl:product-name') = 'SAXON'">
         <xsl:param name="arg" as="node()"/>
         
         <xsl:sequence select="base-uri($arg)"/>
     </xsl:function>
       
+    <xsl:function name="ldt:base" as="xs:anyURI">
+        <xsl:sequence select="$ldt:base"/>
+    </xsl:function>
+
+    <xsl:function name="sd:endpoint" as="xs:anyURI">
+        <xsl:sequence select="resolve-uri('sparql', ldt:base())"/>
+    </xsl:function>
+
+    <xsl:function name="lapp:origin" as="xs:anyURI">
+        <xsl:param name="uri" as="xs:anyURI"/>
+        <!-- no trailing slash -->
+        <xsl:sequence select="xs:anyURI(replace($uri, '^(https?://[^/]+).*$', '$1'))"/>
+    </xsl:function>
+
+    <xsl:function name="lapp:origin" as="xs:anyURI?" use-when="system-property('xsl:product-name') = 'SAXON'">
+        <xsl:sequence select="$lapp:origin"/>
+    </xsl:function>
+
     <xsl:function name="ldh:href" as="xs:anyURI">
         <xsl:param name="uri" as="xs:anyURI?"/>
-        
+
         <xsl:sequence select="ldh:href($uri, map{}, ())"/>
     </xsl:function>
 
@@ -129,8 +208,8 @@ exclude-result-prefixes="#all"
         <xsl:param name="fragment" as="xs:string?"/>
         
         <xsl:choose>
-            <!-- proxy URI - internal ones (relative to application's base URI) will be rewritten as absolute path in ApplicationFilter -->
-            <xsl:when test="$uri and not(starts-with($uri, $ldt:base))">
+            <!-- cross-origin URI - wrap in ?uri= on the page origin so the request stays same-origin (carries credentials, then ProxyRequestFilter forwards) -->
+            <xsl:when test="$uri and not(starts-with($uri, lapp:origin(ldh:request-uri()) || '/'))">
                 <xsl:sequence select="xs:anyURI(ac:build-uri(ac:absolute-path(ldh:request-uri()), map:merge((map{ 'uri': string($uri) }, $query-params))) || (if ($fragment) then ('#' || $fragment) else ()))"/>
             </xsl:when>
             <!-- local URI -->
@@ -141,13 +220,13 @@ exclude-result-prefixes="#all"
         </xsl:choose>
     </xsl:function>
     
-    <xsl:function name="ldh:query-params" as="map(xs:string, xs:string*)">
+    <xsl:function name="ldh:build-query" as="map(xs:string, xs:string*)">
         <xsl:param name="mode" as="xs:anyURI*"/>
         
-        <xsl:sequence select="ldh:query-params($mode, ())"/>
+        <xsl:sequence select="ldh:build-query($mode, ())"/>
     </xsl:function>
 
-    <xsl:function name="ldh:query-params" as="map(xs:string, xs:string*)">
+    <xsl:function name="ldh:build-query" as="map(xs:string, xs:string*)">
         <xsl:param name="mode" as="xs:anyURI*"/>
         <xsl:param name="forClass" as="xs:anyURI?"/>
         
@@ -163,18 +242,27 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="document($request-uri)"/>
     </xsl:function>
 
-    <!-- function stub so that Saxon-EE doesn't complain when compiling SEF -->
-    <xsl:function name="ldh:construct" as="document-node()" override-extension-function="no" cache="yes">
-        <xsl:param name="class-constructors" as="map(xs:anyURI, xs:string*)"/>
-            
-        <xsl:message use-when="system-property('xsl:product-name') = 'SAXON'" terminate="yes">
-            Not implemented -- com.atomgraph.linkeddatahub.writer.function.Construct needs to be registered as an extension function
-        </xsl:message>
+    <xsl:function name="ac:mode" as="xs:anyURI">
+        <xsl:param name="doc" as="document-node()"/>
+        <xsl:variable name="block-uris" select="key('resources', ac:absolute-path(ldh:base-uri($doc)), $doc)/rdf:*[starts-with(local-name(), '_')]/@rdf:resource" as="xs:anyURI*"/>
+        <xsl:variable name="has-content" select="exists($block-uris)" as="xs:boolean"/>
+        
+        <xsl:choose>
+            <xsl:when test="ldh:query-params()?mode">
+                <xsl:sequence select="xs:anyURI(ldh:query-params()?mode)"/>
+            </xsl:when>
+            <xsl:when test="$has-content">
+                <xsl:sequence select="xs:anyURI('&ldh;ContentMode')"/>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:sequence select="xs:anyURI('&ac;ReadMode')"/>
+            </xsl:otherwise>
+        </xsl:choose>
     </xsl:function>
     
     <xsl:function name="ldh:construct-forClass" as="document-node()" cache="yes">
         <xsl:param name="forClass" as="xs:anyURI+"/>
-        <xsl:variable name="results-uri" select="ac:build-uri(resolve-uri('ns', $ldt:base), map{ 'forClass': for $class in $forClass return string($class), 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
+        <xsl:variable name="results-uri" select="ac:build-uri(resolve-uri('ns', ldt:base()), map{ 'forClass': for $class in $forClass return string($class), 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
         <xsl:variable name="request-uri" select="ldh:href($results-uri, map{})" as="xs:anyURI"/>
             
         <xsl:sequence select="document($request-uri)"/>
@@ -215,57 +303,6 @@ exclude-result-prefixes="#all"
             <xsl:apply-templates select="@* | node()" mode="#current"/>
         </xsl:copy>
     </xsl:template>
-    
-    <xsl:function name="ldh:listSuperClasses" as="attribute()*" cache="yes">
-        <xsl:param name="class" as="xs:anyURI"/>
-        
-        <xsl:sequence select="ldh:listSuperClasses($class, false())"/>
-    </xsl:function>
-    
-    <xsl:function name="ldh:listSuperClasses" as="attribute()*" cache="yes">
-        <xsl:param name="class" as="xs:anyURI"/>
-        <xsl:param name="direct" as="xs:boolean"/>
-        
-        <xsl:if test="doc-available(ac:document-uri($class))">
-            <xsl:variable name="document" select="document(ac:document-uri($class))" as="document-node()"/>
-
-            <xsl:for-each select="$document">
-                <xsl:variable name="superclasses" select="key('resources', $class)/rdfs:subClassOf/@rdf:resource[not(. = $class)]" as="attribute()*"/>
-                <xsl:sequence select="$superclasses"/>
-
-                <xsl:if test="not($direct)">
-                    <xsl:for-each select="$superclasses">
-                        <xsl:sequence select="ldh:listSuperClasses(., $direct)"/>
-                    </xsl:for-each>
-                </xsl:if>
-            </xsl:for-each>
-        </xsl:if>
-    </xsl:function>
-    
-    <xsl:function name="ldh:ontologyImports" as="attribute()*" cache="yes">
-        <xsl:param name="ontology" as="xs:anyURI"/>
-        
-        <xsl:sequence select="ldh:ontologyImports($ontology, false())"/>
-    </xsl:function>
-    
-    <xsl:function name="ldh:ontologyImports" as="attribute()*" cache="yes">
-        <xsl:param name="ontology" as="xs:anyURI"/>
-        <xsl:param name="direct" as="xs:boolean"/>
-
-        <xsl:if test="doc-available(ac:document-uri($ontology))">
-            <xsl:variable name="document" select="document(ac:document-uri($ontology))" as="document-node()"/>
-            <xsl:for-each select="$document">
-                <xsl:variable name="imports" select="key('resources', $ontology)/owl:imports/@rdf:resource[not(. = $ontology)]" as="attribute()*"/>
-                <xsl:sequence select="$imports"/>
-                
-                <xsl:if test="not($direct)">
-                    <xsl:for-each select="$imports">
-                        <xsl:sequence select="ldh:ontologyImports(., $direct)"/>
-                    </xsl:for-each>
-                </xsl:if>
-            </xsl:for-each>
-        </xsl:if>
-    </xsl:function>
 
     <xsl:function name="ac:value-intersect" as="xs:anyAtomicType*">
         <xsl:param name="arg1" as="xs:anyAtomicType*"/>
@@ -297,7 +334,7 @@ exclude-result-prefixes="#all"
 
     <xsl:function name="ldh:parse-query-params" as="map(xs:string, xs:string*)">
         <xsl:param name="query-string" as="xs:string"/>
-        
+
         <xsl:sequence select="map:merge(
             tokenize($query-string, '&amp;')[normalize-space()]
             !
@@ -350,8 +387,11 @@ exclude-result-prefixes="#all"
             <xsl:when test="$property-metadata/key('resources', $this, .)">
                 <xsl:apply-templates select="$property-metadata/key('resources', $this, .)" mode="ac:label"/>
             </xsl:when>
-            <xsl:when test="doc-available(namespace-uri()) and key('resources', $this, document(namespace-uri()))" use-when="system-property('xsl:product-name') = 'SAXON'">
-                <xsl:apply-templates select="key('resources', $this, document(namespace-uri()))" mode="ac:label"/>
+            <xsl:when test="ixsl:doc-fetched(ac:document-uri(namespace-uri())) and key('resources', $this, document(ac:document-uri(namespace-uri())))" use-when="system-property('xsl:product-name') eq 'SaxonJS'">
+                <xsl:apply-templates select="key('resources', $this, document(ac:document-uri(namespace-uri())))" mode="ac:label"/>
+            </xsl:when>
+            <xsl:when test="doc-available(ac:document-uri(namespace-uri())) and key('resources', $this, document(ac:document-uri(namespace-uri())))" use-when="system-property('xsl:product-name') = 'SAXON'">
+                <xsl:apply-templates select="key('resources', $this, document(ac:document-uri(namespace-uri())))" mode="ac:label"/>
             </xsl:when>
             <xsl:otherwise>
                 <xsl:sequence select="local-name()"/>
@@ -499,8 +539,8 @@ exclude-result-prefixes="#all"
     <!-- subject resource -->
     <xsl:template match="@rdf:about" mode="xhtml:Anchor">
 <!--        <xsl:param name="graph" as="xs:anyURI?" tunnel="yes"/>-->
-        <xsl:param name="fragment" select="if (starts-with(., $ldt:base)) then (if (contains(., '#')) then substring-after(., '#') else ()) else encode-for-uri(.)" as="xs:string?"/>
-        <xsl:param name="href" select="ldh:href(xs:anyURI(.), map{}, $fragment)" as="xs:anyURI"/>
+        <xsl:param name="fragment" select="ac:fragment-id(.)" as="xs:string?"/>
+        <xsl:param name="href" select="ldh:href(ac:document-uri(xs:anyURI(.)), map{}, $fragment)" as="xs:anyURI"/>
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="title" select="." as="xs:string?"/>
         <xsl:param name="class" as="xs:string?"/>
@@ -510,14 +550,14 @@ exclude-result-prefixes="#all"
             <xsl:with-param name="href" select="$href"/>
             <xsl:with-param name="id" select="$id"/>
             <xsl:with-param name="title" select="$title"/>
-            <xsl:with-param name="class" select="$class || (if (not(starts-with(., $ldt:base))) then ' external' else())"/>
+            <xsl:with-param name="class" select="$class || (if (not(starts-with(., ldt:base()))) then ' external' else())"/>
             <xsl:with-param name="target" select="$target"/>
         </xsl:next-match>
     </xsl:template>
     
     <xsl:template match="@rdf:about | @rdf:resource" mode="svg:Anchor">
-        <xsl:param name="fragment" select="if (starts-with(., $ldt:base)) then (if (contains(., '#')) then substring-after(., '#') else ()) else encode-for-uri(.)" as="xs:string?"/>
-        <xsl:param name="href" select="ldh:href(xs:anyURI(.), map{}, $fragment)" as="xs:anyURI"/>
+        <xsl:param name="fragment" select="ac:fragment-id(.)" as="xs:string?"/>
+        <xsl:param name="href" select="ldh:href(ac:document-uri(xs:anyURI(.)), map{}, $fragment)" as="xs:anyURI"/>
         <xsl:param name="id" select="$fragment" as="xs:string?"/>
         <xsl:param name="label" select="if (parent::rdf:Description) then ac:svg-label(..) else ac:svg-object-label(.)" as="xs:string"/>
         <xsl:param name="title" select="$label" as="xs:string"/>
@@ -529,7 +569,7 @@ exclude-result-prefixes="#all"
             <xsl:with-param name="id" select="$id"/>
             <xsl:with-param name="label" select="$label"/>
             <xsl:with-param name="title" select="$title"/>
-            <xsl:with-param name="class" select="$class || (if (not(starts-with(., $ldt:base))) then ' external' else())"/>
+            <xsl:with-param name="class" select="$class || (if (not(starts-with(., ldt:base()))) then ' external' else())"/>
             <xsl:with-param name="target" select="$target"/>
         </xsl:next-match>
     </xsl:template>
@@ -538,8 +578,8 @@ exclude-result-prefixes="#all"
 
     <!-- proxy link URIs if they are external -->
     <xsl:template match="@rdf:resource | srx:uri" priority="2">
-        <xsl:param name="fragment" select="if (starts-with(., $ldt:base)) then (if (contains(., '#')) then substring-after(., '#') else ()) else encode-for-uri(.)" as="xs:string?"/>
-        <xsl:param name="href" select="ldh:href(xs:anyURI(.), map{}, $fragment)" as="xs:anyURI"/>
+        <xsl:param name="fragment" select="ac:fragment-id(.)" as="xs:string?"/>
+        <xsl:param name="href" select="ldh:href(ac:document-uri(xs:anyURI(.)), map{}, $fragment)" as="xs:anyURI"/>
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="title" select="." as="xs:string?"/>
         <xsl:param name="class" as="xs:string?"/>
@@ -549,7 +589,7 @@ exclude-result-prefixes="#all"
             <xsl:with-param name="href" select="$href"/>
             <xsl:with-param name="id" select="$id"/>
             <xsl:with-param name="title" select="$title"/>
-            <xsl:with-param name="class" select="$class || (if (not(starts-with(., $ldt:base))) then ' external' else())"/>
+            <xsl:with-param name="class" select="$class || (if (not(starts-with(., ldt:base()))) then ' external' else())"/>
             <xsl:with-param name="target" select="$target"/>
         </xsl:next-match>
     </xsl:template>
@@ -724,7 +764,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="id" select="generate-id()" as="xs:string"/>
         <xsl:param name="for" select="generate-id((node() | @rdf:resource | @rdf:nodeID)[1])" as="xs:string"/>
         <xsl:param name="class" select="concat('control-group', if ($error) then ' error' else (), if ($required) then ' required' else ())" as="xs:string?"/>
-        
+
         <div>
             <xsl:if test="$class">
                 <xsl:attribute name="class" select="$class"/>
@@ -757,11 +797,11 @@ exclude-result-prefixes="#all"
                         <button type="button" tabindex="-1">
                             <xsl:attribute name="title">
                                 <xsl:value-of>
-                                    <xsl:apply-templates select="key('resources', 'remove-stmt', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                                    <xsl:apply-templates select="key('resources', 'remove-stmt', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', lapp:origin())))" mode="ac:label"/>
                                 </xsl:value-of>
                             </xsl:attribute>
                             
-                            <xsl:apply-templates select="key('resources', 'remove', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ldh:logo">
+                            <xsl:apply-templates select="key('resources', 'remove', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', lapp:origin())))" mode="ldh:logo">
                                 <xsl:with-param name="class" select="'btn btn-small pull-right'"/>
                             </xsl:apply-templates>
                         </button>

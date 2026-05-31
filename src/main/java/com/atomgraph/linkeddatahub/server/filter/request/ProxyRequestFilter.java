@@ -21,8 +21,8 @@ import com.atomgraph.client.util.HTMLMediaTypePredicate;
 import com.atomgraph.client.vocabulary.AC;
 import com.atomgraph.core.exception.BadGatewayException;
 import com.atomgraph.core.util.ModelUtils;
-import com.atomgraph.core.util.ResultSetUtils;
 import com.atomgraph.linkeddatahub.apps.model.Dataset;
+import org.apache.jena.ontology.Ontology;
 import com.atomgraph.linkeddatahub.client.GraphStoreClient;
 import com.atomgraph.linkeddatahub.client.filter.auth.IDTokenDelegationFilter;
 import com.atomgraph.linkeddatahub.client.filter.auth.WebIDDelegationFilter;
@@ -31,14 +31,17 @@ import com.atomgraph.linkeddatahub.server.security.IDTokenSecurityContext;
 import com.atomgraph.linkeddatahub.server.security.WebIDSecurityContext;
 import com.atomgraph.linkeddatahub.vocabulary.LAPP;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import org.apache.jena.query.QueryExecution;
+import org.apache.jena.query.QueryFactory;
 import jakarta.annotation.Priority;
 import jakarta.inject.Inject;
-import jakarta.ws.rs.NotAcceptableException;
 import jakarta.ws.rs.NotAllowedException;
 import jakarta.ws.rs.Priorities;
 import jakarta.ws.rs.ProcessingException;
@@ -54,14 +57,10 @@ import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Request;
 import jakarta.ws.rs.core.Response;
-import jakarta.ws.rs.core.Variant;
-import org.apache.jena.query.ResultSet;
-import org.apache.jena.query.ResultSetRewindable;
 import org.apache.jena.rdf.model.Model;
-import org.apache.jena.riot.Lang;
-import org.apache.jena.riot.RDFLanguages;
-import org.apache.jena.riot.resultset.ResultSetReaderRegistry;
 import org.glassfish.jersey.message.internal.MessageBodyProviderNotFoundException;
+import java.util.regex.Pattern;
+import jakarta.ws.rs.NotAcceptableException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -79,6 +78,20 @@ import org.slf4j.LoggerFactory;
  * </ol>
  * ACL is not checked for proxy requests: the proxy is a global transport function, not a document
  * operation. Access control is enforced by the target endpoint.
+ * <p>
+ * This filter does <em>not</em> proxy requests from clients that explicitly accept (X)HTML.
+ * Rendering arbitrary external URIs as (X)HTML through the full server-side pipeline
+ * (SPARQL DESCRIBE + XSLT) is expensive and creates a resource-exhaustion attack vector.
+ * When the {@code Accept} header contains a non-wildcard {@code text/html} or
+ * {@code application/xhtml+xml} type, the filter returns immediately so the downstream handler
+ * serves the LDH application shell; the client-side Saxon-JS layer then issues a second, RDF-typed
+ * request that hits this filter and is proxied cheaply. Pure API clients that send only
+ * {@code *}{@code /*} (e.g. curl) reach the proxy because they do not list an explicit HTML type.
+ * <p>
+ * External HTTP responses are piped through as raw {@link InputStream} — the filter does not
+ * parse or re-serialize the body. The upstream already negotiates content type via the forwarded
+ * {@code Accept} header. Local responses (DataManager cache, namespace ontology DESCRIBE) are
+ * the only paths that still build a typed {@link Model} response with full content negotiation.
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
@@ -88,8 +101,27 @@ public class ProxyRequestFilter implements ContainerRequestFilter
 {
 
     private static final Logger log = LoggerFactory.getLogger(ProxyRequestFilter.class);
+    private static final Pattern LINK_SPLITTER = Pattern.compile(",(?=\\s*<)");
+    /**
+     * End-to-end response headers forwarded verbatim from the upstream. Excludes hop-by-hop headers
+     * (RFC 7230 §6.1), framing headers re-emitted by the container, origin-bound security headers
+     * (CSP, HSTS, CORS), cookies, and {@code Content-Type}/{@code Link} which are set explicitly.
+     */
+    private static final Set<String> FORWARDED_RESPONSE_HEADERS = Set.of(
+        HttpHeaders.ETAG,
+        HttpHeaders.LAST_MODIFIED,
+        HttpHeaders.CACHE_CONTROL,
+        HttpHeaders.VARY,
+        HttpHeaders.EXPIRES,
+        HttpHeaders.CONTENT_LANGUAGE,
+        HttpHeaders.CONTENT_DISPOSITION,
+        HttpHeaders.CONTENT_LOCATION,
+        HttpHeaders.LOCATION,
+        HttpHeaders.RETRY_AFTER,
+        "Age");
 
     @Inject com.atomgraph.linkeddatahub.Application system;
+    @Inject jakarta.inject.Provider<Optional<Ontology>> ontology;
     @Inject MediaTypes mediaTypes;
     @Context Request request;
 
@@ -100,6 +132,22 @@ public class ProxyRequestFilter implements ContainerRequestFilter
         if (targetOpt.isEmpty()) return; // not a proxy request
 
         URI targetURI = targetOpt.get();
+
+        // do not proxy requests from clients whose top-ranked acceptable type is (X)HTML — they
+        // expect the app shell, which the downstream handler serves. Browsers list text/html (or
+        // application/xhtml+xml) at q=1.0; API clients that happen to also accept (X)HTML at a
+        // lower q (e.g. SaxonJS document() sends application/xml q=1.0, application/xhtml+xml q=0.8)
+        // must still reach the proxy.
+        // (X)HTML is not offered for proxied documents — rendering external RDF as HTML server-side
+        // (SPARQL DESCRIBE + XSLT) is expensive and creates a resource-exhaustion attack vector.
+        // Per the JAX-RS spec, getAcceptableMediaTypes() is sorted by q descending, so the first
+        // non-wildcard type is the top-ranked one.
+        for (MediaType mt : requestContext.getAcceptableMediaTypes())
+        {
+            if (mt.isWildcardType() || mt.isWildcardSubtype()) continue;
+            if (mt.isCompatible(MediaType.TEXT_HTML_TYPE) || mt.isCompatible(MediaType.APPLICATION_XHTML_XML_TYPE)) return;
+            break; // first non-wildcard wasn't (X)HTML — proceed with proxy
+        }
 
         // strip #fragment (servers do not receive fragment identifiers)
         if (targetURI.getFragment() != null)
@@ -114,13 +162,36 @@ public class ProxyRequestFilter implements ContainerRequestFilter
             }
         }
 
+        boolean isSafeMethod = "GET".equalsIgnoreCase(requestContext.getMethod())
+            || "HEAD".equalsIgnoreCase(requestContext.getMethod());
+
         // serve mapped URIs (e.g. system ontologies) directly from the DataManager cache
-        if (getSystem().getDataManager().isMapped(targetURI.toString()))
+        if (isSafeMethod && getSystem().getDataManager().isMapped(targetURI.toString()))
         {
             if (log.isDebugEnabled()) log.debug("Serving mapped URI from DataManager cache: {}", targetURI);
             Model model = getSystem().getDataManager().loadModel(targetURI.toString());
             requestContext.abortWith(getResponse(model, Response.Status.OK));
             return;
+        }
+
+        // serve terms from the app's in-memory namespace ontology (full imports closure) via DESCRIBE.
+        // covers both slash-based term URIs (e.g. schema:category) and hash-based namespaces
+        // (e.g. sioc:UserAccount → ac:document-uri strips to sioc:ns, so we also describe all
+        // ?term where STR(?term) starts with "<targetURI>#")
+        if (isSafeMethod && getOntology().isPresent())
+        {
+            String describeQueryStr = "DESCRIBE <" + targetURI + "> ?term " +
+                "WHERE { ?term ?p ?o FILTER(STRSTARTS(STR(?term), CONCAT(STR(<" + targetURI + ">), \"#\"))) }";
+            try (QueryExecution qe = QueryExecution.create(QueryFactory.create(describeQueryStr), getOntology().get().getOntModel()))
+            {
+                Model description = qe.execDescribe();
+                if (!description.isEmpty())
+                {
+                    if (log.isDebugEnabled()) log.debug("Serving URI from namespace ontology: {}", targetURI);
+                    requestContext.abortWith(getResponse(description, Response.Status.OK));
+                    return;
+                }
+            }
         }
 
         boolean isRegisteredApp = getSystem().matchApp(targetURI) != null;
@@ -142,17 +213,13 @@ public class ProxyRequestFilter implements ContainerRequestFilter
                     idTokenSecurityContext.getJWTToken(), requestContext.getUriInfo().getBaseUri().getPath(), null));
         }
 
-        List<MediaType> readableMediaTypesList = new ArrayList<>();
-        readableMediaTypesList.addAll(getMediaTypes().getReadable(Model.class));
-        readableMediaTypesList.addAll(getMediaTypes().getReadable(ResultSet.class));
-        MediaType[] readableMediaTypesArray = readableMediaTypesList.toArray(MediaType[]::new);
-
+        MediaType[] clientAcceptTypes = requestContext.getAcceptableMediaTypes().toArray(MediaType[]::new);
         if (log.isDebugEnabled()) log.debug("Proxying {} {} → {}", requestContext.getMethod(), requestContext.getUriInfo().getRequestUri(), targetURI);
 
         try
         {
             Invocation.Builder builder = target.request().
-                accept(readableMediaTypesArray).
+                accept(clientAcceptTypes).
                 header(HttpHeaders.USER_AGENT, GraphStoreClient.USER_AGENT);
 
             Response clientResponse = requestContext.hasEntity()
@@ -162,8 +229,6 @@ public class ProxyRequestFilter implements ContainerRequestFilter
 
             try (clientResponse)
             {
-                // provide the target URI as a base URI hint so ModelProvider / HtmlJsonLDReader can resolve relative references
-                clientResponse.getHeaders().putSingle(com.atomgraph.core.io.ModelProvider.REQUEST_URI_HEADER, targetURI.toString());
                 requestContext.abortWith(getResponse(clientResponse));
             }
         }
@@ -188,19 +253,9 @@ public class ProxyRequestFilter implements ContainerRequestFilter
      */
     protected Optional<URI> resolveTargetURI(ContainerRequestContext requestContext)
     {
-        // Case 1: explicit ?uri= query parameter
-        String uriParam = requestContext.getUriInfo().getQueryParameters().getFirst(AC.uri.getLocalName());
-        if (uriParam != null)
-        {
-            URI targetURI = URI.create(uriParam);
-            @SuppressWarnings("unchecked")
-            Optional<com.atomgraph.linkeddatahub.apps.model.Application> appOpt =
-                (Optional<com.atomgraph.linkeddatahub.apps.model.Application>) requestContext.getProperty(LAPP.Application.getURI());
-            // ApplicationFilter rewrites ?uri= values that are relative to the app base URI; skip those
-            if (appOpt != null && appOpt.isPresent() && !appOpt.get().getBaseURI().relativize(targetURI).isAbsolute())
-                return Optional.empty();
-            return Optional.of(targetURI);
-        }
+        // Case 1: external ?uri= — ApplicationFilter strips it from UriInfo and stores it here
+        URI proxyTarget = (URI) requestContext.getProperty(AC.uri.getURI());
+        if (proxyTarget != null) return Optional.of(proxyTarget);
 
         // Case 2: lapp:Dataset proxy
         @SuppressWarnings("unchecked")
@@ -216,41 +271,57 @@ public class ProxyRequestFilter implements ContainerRequestFilter
     }
 
     /**
-     * Converts a client response from the proxy target into a JAX-RS response.
+     * Pipes the proxy target's HTTP response through as a raw byte stream.
+     * No body parsing or re-serialization is performed; the upstream's {@code Content-Type}
+     * and status code are forwarded verbatim. {@code Link} headers from the external response
+     * are also forwarded so the client receives remote hypermedia (e.g. {@code sd:endpoint}).
      *
      * @param clientResponse response from the proxy target
      * @return JAX-RS response to return to the original caller
      */
     protected Response getResponse(Response clientResponse)
     {
-        if (clientResponse.getMediaType() == null) return Response.status(clientResponse.getStatus()).build();
-        return getResponse(clientResponse, clientResponse.getStatusInfo());
-    }
-
-    /**
-     * Converts a client response from the proxy target into a JAX-RS response with the given status.
-     *
-     * @param clientResponse response from the proxy target
-     * @param statusType status to use in the returned response
-     * @return JAX-RS response
-     */
-    protected Response getResponse(Response clientResponse, Response.StatusType statusType)
-    {
-        MediaType formatType = new MediaType(clientResponse.getMediaType().getType(), clientResponse.getMediaType().getSubtype()); // discard charset param
-
-        Lang lang = RDFLanguages.contentTypeToLang(formatType.toString());
-        if (lang != null && ResultSetReaderRegistry.isRegistered(lang))
+        if (clientResponse.getMediaType() == null)
         {
-            ResultSetRewindable results = clientResponse.readEntity(ResultSetRewindable.class);
-            return getResponse(results, statusType);
+            Response.ResponseBuilder rb = Response.status(clientResponse.getStatus());
+            for (String name : FORWARDED_RESPONSE_HEADERS)
+            {
+                String value = clientResponse.getHeaderString(name);
+                if (value != null) rb.header(name, value);
+            }
+            return rb.build();
         }
 
-        Model model = clientResponse.readEntity(Model.class);
-        return getResponse(model, statusType);
+        // buffer so the stream remains readable after try-with-resources closes the client response
+        clientResponse.bufferEntity();
+        InputStream entity = clientResponse.readEntity(InputStream.class);
+
+        Response.ResponseBuilder rb = Response.status(clientResponse.getStatus()).
+            type(clientResponse.getMediaType()).
+            entity(entity);
+
+        // forward all Link headers from the external response so the client receives remote hypermedia
+        // (e.g. sd:endpoint pointing to the remote SPARQL endpoint);
+        // ResponseHeadersFilter will see sd:endpoint already present and skip injecting the local one
+        String linkHeader = clientResponse.getHeaderString(HttpHeaders.LINK);
+        if (linkHeader != null)
+            for (String part : LINK_SPLITTER.split(linkHeader))
+                rb.header(HttpHeaders.LINK, part.trim());
+
+        // forward end-to-end content/cache headers so the client can do conditional requests,
+        // caching, redirects, and download negotiation against the upstream
+        for (String name : FORWARDED_RESPONSE_HEADERS)
+        {
+            String value = clientResponse.getHeaderString(name);
+            if (value != null) rb.header(name, value);
+        }
+
+        return rb.build();
     }
 
     /**
-     * Builds a content-negotiated response for the given RDF model.
+     * Builds a response for the given RDF model with type-appropriate content negotiation.
+     * Used for locally-served responses (DataManager cache, namespace ontology DESCRIBE).
      *
      * @param model RDF model
      * @param statusType response status
@@ -258,44 +329,17 @@ public class ProxyRequestFilter implements ContainerRequestFilter
      */
     protected Response getResponse(Model model, Response.StatusType statusType)
     {
-        List<Variant> variants = com.atomgraph.core.model.impl.Response.getVariants(
-            getMediaTypes().getWritable(Model.class),
-            getSystem().getSupportedLanguages(),
-            new ArrayList<>());
+        List<MediaType> writableTypes = new ArrayList<>(getMediaTypes().getWritable(Model.class));
+        writableTypes.removeIf(mt -> mt.isCompatible(MediaType.TEXT_HTML_TYPE) ||
+            mt.isCompatible(MediaType.APPLICATION_XHTML_XML_TYPE));
 
         return new com.atomgraph.core.model.impl.Response(getRequest(),
                 model,
                 null,
                 new EntityTag(Long.toHexString(ModelUtils.hashModel(model))),
-                variants,
-                new HTMLMediaTypePredicate()).
-            getResponseBuilder().
-            status(statusType).
-            build();
-    }
-
-    /**
-     * Builds a content-negotiated response for the given SPARQL result set.
-     *
-     * @param resultSet SPARQL result set
-     * @param statusType response status
-     * @return JAX-RS response
-     */
-    protected Response getResponse(ResultSetRewindable resultSet, Response.StatusType statusType)
-    {
-        long hash = ResultSetUtils.hashResultSet(resultSet);
-        resultSet.reset();
-
-        List<Variant> variants = com.atomgraph.core.model.impl.Response.getVariants(
-            getMediaTypes().getWritable(ResultSet.class),
-            getSystem().getSupportedLanguages(),
-            new ArrayList<>());
-
-        return new com.atomgraph.core.model.impl.Response(getRequest(),
-                resultSet,
-                null,
-                new EntityTag(Long.toHexString(hash)),
-                variants,
+                writableTypes,
+                getSystem().getSupportedLanguages(),
+                new ArrayList<>(),
                 new HTMLMediaTypePredicate()).
             getResponseBuilder().
             status(statusType).
@@ -313,7 +357,17 @@ public class ProxyRequestFilter implements ContainerRequestFilter
     }
 
     /**
-     * Returns the media types registry.
+     * Returns the current application's namespace ontology, if available.
+     *
+     * @return optional ontology
+     */
+    public Optional<Ontology> getOntology()
+    {
+        return ontology.get();
+    }
+
+    /**
+     * Returns the media types registry used for content negotiation and outbound {@code Accept} headers.
      *
      * @return media types
      */
