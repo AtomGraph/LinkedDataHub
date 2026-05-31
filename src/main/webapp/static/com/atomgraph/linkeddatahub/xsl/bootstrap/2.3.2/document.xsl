@@ -213,7 +213,21 @@ extension-element-prefixes="ixsl"
     </xsl:template>
 
     <xsl:template match="*" mode="bs2:AddData"/>
-    
+
+    <xsl:template match="*[rdf:type/@rdf:resource = '&owl;Ontology'][$foaf:Agent//@rdf:about]" mode="bs2:Actions">
+        <form class="pull-right" action="{resolve-uri('clear', ldt:base())}" method="post">
+            <input type="hidden" name="uri" value="{@rdf:about}"/>
+
+            <button class="btn btn-primary" type="submit">
+                <xsl:value-of>
+                    <xsl:apply-templates select="key('resources', 'clear', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', lapp:origin())))" mode="ac:label"/>
+                </xsl:value-of>
+            </button>
+        </form>
+
+        <xsl:next-match/>
+    </xsl:template>
+
     <xsl:template match="rdf:RDF | srx:sparql" mode="bs2:ActionBarMain">
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="class" select="'span7'" as="xs:string?"/>

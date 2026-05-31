@@ -67,7 +67,6 @@ extension-element-prefixes="ixsl"
 
     <!-- LABEL -->
 
-    <!-- TO-DO: move to owl.xsl -->
     <xsl:template match="*[@rdf:about = '&owl;NamedIndividual']" mode="ac:label">
         <xsl:apply-templates select="key('resources', 'instance', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', lapp:origin())))" mode="ac:label"/>
     </xsl:template>
