@@ -14,6 +14,7 @@ xmlns:xs="http://www.w3.org/2001/XMLSchema"
 xmlns:map="http://www.w3.org/2005/xpath-functions/map"
 xmlns:rdf="&rdf;"
 xmlns:rdfs="&rdfs;"
+xmlns:sd="http://www.w3.org/ns/sparql-service-description#"
 xmlns:ac="&ac;"
 xmlns:ldh="&ldh;"
 xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
@@ -24,6 +25,23 @@ exclude-result-prefixes="#all"
     <xsl:include href="3d-force-graph.xsl"/>
     <xsl:include href="normalize-rdfxml.xsl"/>
     <xsl:include href="merge-rdfxml.xsl"/>
+
+    <xsl:param name="backlinks-graph-string" as="xs:string">
+<![CDATA[
+DESCRIBE ?subject
+WHERE
+  { SELECT DISTINCT  ?subject
+    WHERE
+      {   { ?subject  ?p  $this }
+        UNION
+          { GRAPH ?g
+              { ?subject  ?p  $this }
+          }
+        FILTER isURI(?subject)
+      }
+    LIMIT   100
+  }
+]]></xsl:param>
 
     <!-- EVENT HANDLERS -->
 
@@ -110,6 +128,43 @@ exclude-result-prefixes="#all"
                     " on-failure="ldh:promise-failure#1"/>
                 </xsl:otherwise>
             </xsl:choose>
+        </xsl:if>
+    </xsl:template>
+
+    <xsl:template match="." mode="ixsl:onForceGraph3DNodeRightClick">
+        <xsl:variable name="event-detail" select="ixsl:get(ixsl:event(), 'detail')"/>
+        <xsl:variable name="canvas-id" select="ixsl:get($event-detail, 'canvasId')" as="xs:string"/>
+        <xsl:variable name="node-id" select="ixsl:get($event-detail, 'nodeId')" as="xs:string"/>
+
+        <xsl:if test="starts-with($node-id, 'http://') or starts-with($node-id, 'https://')">
+            <xsl:variable name="graph-state" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.graphs'), $canvas-id)"/>
+            <xsl:variable name="loaded-backlink-uris" select="ixsl:get($graph-state, 'loaded-backlink-uris', map{ 'convert-result': false() })"/>
+
+            <xsl:if test="not(ixsl:call($loaded-backlink-uris, 'includes', [ $node-id ]))">
+                <xsl:variable name="query-string" select="replace($backlinks-graph-string, '$this', '&lt;' || $node-id || '&gt;', 'q')" as="xs:string"/>
+                <xsl:variable name="service-uri" select="if (ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $node-id || '`')) then (if (ixsl:contains(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $node-id || '`'), 'service-uri')) then ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $node-id || '`'), 'service-uri') else ()) else ()" as="xs:anyURI?"/>
+                <xsl:variable name="service" select="if ($service-uri) then key('resources', $service-uri, document(ldh:href(ac:document-uri($service-uri), map{ 'accept': 'application/rdf+xml' }, ()))) else ()" as="element()?"/>
+                <xsl:variable name="endpoint" select="($service/sd:endpoint/@rdf:resource/xs:anyURI(.), sd:endpoint())[1]" as="xs:anyURI"/>
+                <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': string($query-string) })" as="xs:anyURI"/>
+                <xsl:variable name="request-uri" select="ldh:href($results-uri, map{})" as="xs:anyURI"/>
+
+                <xsl:variable name="request" select="map{
+                    'method': 'GET',
+                    'href': $request-uri,
+                    'headers': map{ 'Accept': 'application/rdf+xml' },
+                    'pool': 'xml'
+                }" as="map(*)"/>
+                <xsl:variable name="context" select="map{
+                    'canvas-id': $canvas-id,
+                    'document-uri': xs:anyURI($node-id),
+                    'graph-state': $graph-state
+                }" as="map(*)"/>
+
+                <ixsl:promise select="
+                    ixsl:http-request($request)
+                        => ixsl:then(ldh:handle-graph3d-backlinks-response($context, ?))
+                " on-failure="ldh:promise-failure#1"/>
+            </xsl:if>
         </xsl:if>
     </xsl:template>
 
@@ -284,6 +339,37 @@ exclude-result-prefixes="#all"
         </xsl:for-each>
     </xsl:function>
 
+    <xsl:function name="ldh:handle-graph3d-backlinks-response" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:param name="response" as="map(*)"/>
+
+        <xsl:variable name="canvas-id" select="$context('canvas-id')" as="xs:string"/>
+        <xsl:variable name="document-uri" select="$context('document-uri')" as="xs:anyURI"/>
+        <xsl:variable name="graph-state" select="$context('graph-state')"/>
+        <xsl:variable name="loaded-backlink-uris" select="ixsl:get($graph-state, 'loaded-backlink-uris', map{ 'convert-result': false() })"/>
+        <xsl:variable name="current-doc" select="ixsl:get($graph-state, 'document')" as="document-node()"/>
+        <xsl:variable name="graph-instance" select="ixsl:get($graph-state, 'instance')"/>
+
+        <xsl:for-each select="$response?body">
+            <xsl:variable name="base-uri" select="if (contains($document-uri, '#')) then xs:anyURI(substring-before($document-uri, '#')) else $document-uri" as="xs:anyURI"/>
+            <xsl:variable name="normalized-rdf" as="document-node()">
+                <xsl:apply-templates select="." mode="ldh:normalize-rdfxml">
+                    <xsl:with-param name="base-uri" select="$base-uri"/>
+                </xsl:apply-templates>
+            </xsl:variable>
+
+            <xsl:sequence select="ixsl:call($loaded-backlink-uris, 'push', [ string($document-uri) ])[current-date() lt xs:date('2000-01-01')]"/>
+
+            <xsl:call-template name="ldh:UpdateForceGraph3D">
+                <xsl:with-param name="new-descriptions" select="$normalized-rdf"/>
+                <xsl:with-param name="current-doc" select="$current-doc"/>
+                <xsl:with-param name="graph-instance" select="$graph-instance"/>
+                <xsl:with-param name="graph-state" select="$graph-state"/>
+                <xsl:with-param name="canvas-id" select="$canvas-id"/>
+            </xsl:call-template>
+        </xsl:for-each>
+    </xsl:function>
+
     <!-- TOOLTIP RENDERING -->
 
     <xsl:template match="rdf:Description" mode="ldh:graph3d-tooltip">
@@ -391,6 +477,7 @@ exclude-result-prefixes="#all"
         </xsl:variable>
         <ixsl:set-property name="document" select="$rdf-doc" object="$graph-state"/>
         <ixsl:set-property name="loaded-uris" select="ixsl:new('Array', [])" object="$graph-state"/>
+        <ixsl:set-property name="loaded-backlink-uris" select="ixsl:new('Array', [])" object="$graph-state"/>
         <ixsl:set-property name="{$canvas-id}" select="$graph-state" object="$graphs"/>
 
         <xsl:call-template name="ldh:AppendGraph3DPanels">
