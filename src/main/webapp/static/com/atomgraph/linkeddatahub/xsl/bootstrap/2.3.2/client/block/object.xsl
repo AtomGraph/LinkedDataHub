@@ -138,17 +138,25 @@ exclude-result-prefixes="#all"
         "/>
     </xsl:function>
 
+    <!-- absence of 'object-metadata-request' is the contract signal from ldh:block-object-value-response that this block's content was already rendered (404/406/200-without-resource) and no metadata fetch is needed; resolve through so the outer ldh:load-block chain still completes -->
     <xsl:function name="ldh:object-metadata-thunk" as="item()*" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
         <xsl:message>ldh:object-metadata-thunk</xsl:message>
-        <xsl:sequence select="
-            ixsl:http-request($context('object-metadata-request')) =>
-                ixsl:then(ldh:rethread-response($context, ?, 'object-metadata-response')) =>
-                ixsl:then(ldh:handle-response(?, 'object-metadata-response')) =>
-                ixsl:then(ldh:block-object-metadata-response#1) =>
-                ixsl:then(ldh:block-object-apply#1) =>
-                ixsl:then(ldh:invoke-factory#1)
-        "/>
+        <xsl:choose>
+            <xsl:when test="map:contains($context, 'object-metadata-request')">
+                <xsl:sequence select="
+                    ixsl:http-request($context('object-metadata-request')) =>
+                        ixsl:then(ldh:rethread-response($context, ?, 'object-metadata-response')) =>
+                        ixsl:then(ldh:handle-response(?, 'object-metadata-response')) =>
+                        ixsl:then(ldh:block-object-metadata-response#1) =>
+                        ixsl:then(ldh:block-object-apply#1) =>
+                        ixsl:then(ldh:invoke-factory#1)
+                "/>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:sequence select="ixsl:resolve($context)"/>
+            </xsl:otherwise>
+        </xsl:choose>
     </xsl:function>
     
     <xsl:function name="ldh:invoke-factory" as="item()*" ixsl:updating="yes">
@@ -181,7 +189,6 @@ exclude-result-prefixes="#all"
                         <xsl:choose>
                             <!-- only attempt to load object metadata for local resources -->
                             <xsl:when test="$resource">
-                                <!-- <xsl:message>ldh:block-object-value-response $resource-uri: <xsl:value-of select="$resource-uri"/></xsl:message> -->
                                 <xsl:variable name="object-uris" select="distinct-values($resource/*/@rdf:resource[starts-with(., ldt:base())][not(key('resources', ., root($resource)))])" as="xs:string*"/>
                                 <xsl:variable name="query-string" select="$object-metadata-query || ' VALUES $this { ' || string-join(for $uri in $object-uris return '&lt;' || $uri || '&gt;', ' ') || ' }'" as="xs:string"/>
                                 <xsl:variable name="request" select="map{ 'method': 'POST', 'href': ldh:href(sd:endpoint()), 'media-type': 'application/sparql-query', 'body': $query-string, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
@@ -198,7 +205,7 @@ exclude-result-prefixes="#all"
                                         </div>
                                     </xsl:result-document>
                                 </xsl:for-each>
-                                
+
                                 <xsl:sequence select="ldh:hide-block-progress-bar($context, ())[current-date() lt xs:date('2000-01-01')]"/>
                                 <xsl:sequence select="$context"/>
                             </xsl:otherwise>
@@ -213,7 +220,7 @@ exclude-result-prefixes="#all"
                             </div>
                         </xsl:result-document>
                     </xsl:for-each>
-                    
+
                     <xsl:sequence select="ldh:hide-block-progress-bar($context, ())[current-date() lt xs:date('2000-01-01')]"/>
                     <xsl:sequence select="$context"/>
                 </xsl:when>
