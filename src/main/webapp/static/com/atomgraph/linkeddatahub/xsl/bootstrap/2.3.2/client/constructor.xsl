@@ -89,7 +89,7 @@ exclude-result-prefixes="#all"
         <ixsl:set-style name="cursor" select="'progress'" object="."/>
 
         <xsl:variable name="query-string" select="$constructor-query || ' VALUES $Type { &lt;' || $type || '&gt; }'" as="xs:string"/>
-        <xsl:variable name="results-uri" select="ac:build-uri(resolve-uri('ns', ldt:base()), map{ 'query': $query-string })" as="xs:anyURI"/>
+        <xsl:variable name="results-uri" select="ac:build-uri(resolve-uri('ns', ldt:base()), map{ 'query': $query-string, '_nc': string(current-dateTime()) })" as="xs:anyURI"/>
         <xsl:variable name="request-uri" select="ldh:href($results-uri, map{})" as="xs:anyURI"/>
         <xsl:variable name="request" as="item()*">
             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml' } }">
@@ -172,8 +172,8 @@ exclude-result-prefixes="#all"
                 <xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ 'Could not load constructors for class &quot;' || $type || '&quot;' ])[current-date() lt xs:date('2000-01-01')]"/>
             </xsl:otherwise>
         </xsl:choose>
-        
-        <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
+
+        <ixsl:set-style name="cursor" select="'default'" object="$container"/>
     </xsl:template>
 
     <xsl:template match="json:array[@key = 'template']/json:map[json:string[@key = 'subject'] = '?this']" mode="bs2:ConstructorTripleForm" priority="1">
