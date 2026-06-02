@@ -89,30 +89,30 @@ public class ClearOntology
             ontModelSpec.getDocumentManager().getFileManager().removeCacheModel(ontologyURI);
 
             URI ontologyDocURI = UriBuilder.fromUri(ontologyURI).fragment(null).build(); // skip fragment from the ontology URI to get its graph URI
-            // purge from admin cache
+            // frontend proxy still uses URL-pattern BAN for direct document GETs (until Stage 3 brings xkey tagging to varnish-frontend).
+            // xkey purge covers proxied SPARQL CONSTRUCT/SELECT responses tagged by their backend (varnish-admin / varnish-end-user).
             URI frontendProxy = getSystem().getFrontendProxy();
             if (frontendProxy != null)
             {
                 if (log.isDebugEnabled()) log.debug("Purge ontology document with URI '{}' from frontend proxy cache", ontologyDocURI);
                 ban(frontendProxy, ontologyDocURI.toString(), false);
+                xkeyPurge(frontendProxy, ontologyURI);
             }
             URI adminBackendProxy = getSystem().getServiceContext(getApplication().getService()).getBackendProxy();
             if (adminBackendProxy != null)
             {
-                if (log.isDebugEnabled()) log.debug("Ban ontology with URI '{}' from backend proxy cache", ontologyURI);
-                ban(adminBackendProxy, ontologyURI);
-            }
-            // purge from end-user cache
-            if (frontendProxy != null)
-            {
-                if (log.isDebugEnabled()) log.debug("Purge ontology document with URI '{}' from frontend proxy cache", ontologyDocURI);
-                ban(frontendProxy, ontologyDocURI.toString(), false);
+                // URL-pattern BAN of the ontology URI is a no-op on the SPARQL proxy (its req.url namespace is /ds/?query=...,
+                // never containing the ontology URI as path), which is exactly why ontology reloads were getting stale CONSTRUCTs.
+                // xkey-purge of the same tag set by OntologyModelGetter's X-Xkey-Promote is what actually invalidates here.
+                if (log.isDebugEnabled()) log.debug("XKEY-PURGE ontology with URI '{}' from admin backend proxy cache", ontologyURI);
+                xkeyPurge(adminBackendProxy, ontologyURI);
             }
             URI endUserBackendProxy = getSystem().getServiceContext(endUserApp.getService()).getBackendProxy();
             if (endUserBackendProxy != null)
             {
-                if (log.isDebugEnabled()) log.debug("Ban ontology with URI '{}' from backend proxy cache", ontologyURI);
-                ban(endUserBackendProxy, ontologyURI);
+                // same reasoning as adminBackendProxy above. End-user proxy xkey-purge is no-op until Stage 2 lights up its VCL.
+                if (log.isDebugEnabled()) log.debug("XKEY-PURGE ontology with URI '{}' from end-user backend proxy cache", ontologyURI);
+                xkeyPurge(endUserBackendProxy, ontologyURI);
             }
             
             // !!! we need to reload the ontology model before returning a response, to make sure the next request already gets the new version !!!
@@ -164,6 +164,31 @@ public class ClearOntology
                 method("BAN", Response.class))
         {
             // Response automatically closed by try-with-resources
+        }
+    }
+
+    /**
+     * Surrogate-key purge: surgically evicts every cached object the proxy indexed with the given xkey tag.
+     * No URL parsing — xkey matches the tag byte-for-byte against {@code beresp.http.xkey} set in VCL.
+     *
+     * @param proxyURI proxy server URI
+     * @param tag xkey tag to purge (typically an absolute resource/graph URI)
+     */
+    public void xkeyPurge(URI proxyURI, String tag)
+    {
+        if (proxyURI == null) throw new IllegalArgumentException("Proxy URI cannot be null");
+        if (tag == null) throw new IllegalArgumentException("Tag cannot be null");
+
+        try (Response cr = getSystem().getClient().target(proxyURI).
+                request().
+                header("xkey-purge", tag).
+                method("XKEY-PURGE", Response.class))
+        {
+            if (log.isDebugEnabled()) log.debug("XKEY-PURGE on {} for tag '{}' returned status {}", proxyURI, tag, cr.getStatus());
+        }
+        catch (Exception ex)
+        {
+            if (log.isErrorEnabled()) log.error("XKEY-PURGE failed for tag: " + tag, ex);
         }
     }
     
