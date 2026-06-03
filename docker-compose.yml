@@ -440,6 +440,14 @@ configs:
               ban("req.url == " + bereq.url + " && req.http.host == " + bereq.http.host);
           }
 
+          /* NS (ontology) SPARQL queries from authenticated clients are cache-busted per-request with _nc;
+             skip caching only for them (otherwise we'd both waste Varnish storage on one-shot entries
+             and open a DDoS vector for anonymous traffic crafting unique URLs) */
+          if (bereq.url ~ "^/ns\?" && bereq.http.Client-Cert) {
+              set beresp.uncacheable = true;
+              set beresp.ttl = 0s;
+          }
+
           return (deliver);
       }
   varnish-admin_vcl:
@@ -447,6 +455,7 @@ configs:
       vcl 4.0;
 
       import std;
+      import xkey;
 
       backend default {
           .host = "${VARNISH_ADMIN_BACKEND_HOST:-fuseki-admin}";
@@ -479,6 +488,18 @@ configs:
               return (synth(200, "Banned"));
           }
 
+          if (req.method == "XKEY-PURGE") {
+              if (!client.ip ~ local) {
+                  return (synth(403, "Unknown IP address '" + client.ip + "'. Access denied."));
+              }
+              # hard purge, not softpurge: ClearOntology and CacheInvalidationFilter need strong
+              # consistency, not stale-while-revalidate. Softpurge would serve the just-purged
+              # object during beresp.grace (default 10s) and OntologyModelGetter's immediate reload
+              # would repopulate OntDocumentManager with stale data.
+              set req.http.n-purged = xkey.purge(req.http.xkey-purge);
+              return (synth(200, "Purged " + req.http.n-purged + " objects for key " + req.http.xkey-purge));
+          }
+
           if (req.method != "GET" &&
             req.method != "HEAD" &&
             req.method != "PUT" &&
@@ -504,6 +525,11 @@ configs:
           if ((beresp.status == 200 || beresp.status == 201 || beresp.status == 204) && bereq.method ~ "POST|PUT|DELETE|PATCH") {
               set beresp.http.X-LinkedDataHub = "Banned";
               ban("req.url == " + bereq.url + " && req.http.host == " + bereq.http.host);
+          }
+
+          /* promote outbound surrogate-key hint from LDH into the indexed xkey header on the cached response */
+          if (bereq.http.X-Xkey-Promote) {
+              set beresp.http.xkey = bereq.http.X-Xkey-Promote;
           }
 
           return (deliver);
@@ -570,6 +596,8 @@ configs:
           if ((beresp.status == 200 || beresp.status == 201 || beresp.status == 204) && bereq.method ~ "POST|PUT|DELETE|PATCH") {
               set beresp.http.X-LinkedDataHub = "Banned";
               ban("req.url == " + bereq.url + " && req.http.host == " + bereq.http.host);
+              /* SPARQL query results depend on dataset state — any write invalidates every cached query. */
+              ban("req.url ~ \?(query|default-graph-uri|named-graph-uri)=");
           }
 
           return (deliver);

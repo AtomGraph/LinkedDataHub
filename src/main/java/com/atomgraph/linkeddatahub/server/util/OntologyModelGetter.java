@@ -19,6 +19,9 @@ package com.atomgraph.linkeddatahub.server.util;
 import com.atomgraph.client.vocabulary.LDT;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import com.atomgraph.server.exception.OntologyException;
+import jakarta.ws.rs.core.MultivaluedHashMap;
+import jakarta.ws.rs.core.MultivaluedMap;
+import jakarta.ws.rs.core.Response;
 import org.apache.jena.ontology.OntModelSpec;
 import org.apache.jena.query.ParameterizedSparqlString;
 import org.apache.jena.query.Query;
@@ -66,8 +69,19 @@ public class OntologyModelGetter implements org.apache.jena.rdf.model.ModelGette
         // attempt to load ontology model from the admin endpoint. TO-DO: is that necessary if ontologies terms are now stored in a single graph?
         ParameterizedSparqlString ontologyPss = new ParameterizedSparqlString(getOntologyQuery().toString());
         ontologyPss.setIri(LDT.ontology.getLocalName(), uri);
-        Model model = getSystem().getServiceContext(getApplication().getAdminApplication().getService()).getSPARQLClient().loadModel(ontologyPss.asQuery());
-        
+
+        // surrogate-key hint: tag the cached CONSTRUCT response in varnish-admin with the ontology graph URI
+        // so that ClearOntology's XKEY-PURGE for the same URI surgically evicts it
+        MultivaluedMap<String, Object> headers = new MultivaluedHashMap<>();
+        headers.putSingle("X-Xkey-Promote", uri);
+
+        Model model;
+        try (Response cr = getSystem().getServiceContext(getApplication().getAdminApplication().getService()).getSPARQLClient().
+                query(ontologyPss.asQuery(), Model.class, new MultivaluedHashMap<>(), headers))
+        {
+            model = cr.readEntity(Model.class);
+        }
+
         if (!model.isEmpty()) return model;
 
         // if SPARQL result model is empty, fallback to using FileManager
