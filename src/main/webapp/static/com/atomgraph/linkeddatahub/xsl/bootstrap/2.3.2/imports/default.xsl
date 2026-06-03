@@ -260,30 +260,10 @@ exclude-result-prefixes="#all"
         </xsl:choose>
     </xsl:function>
     
-    <!-- Non-deterministic cache buster for client-side document() / ixsl:schedule-action URIs.
-         SaxonJS 3 treats the entire interactive page session as a single transformation, which makes
-         current-dateTime() (and any other deterministic XPath function) a constant for that session.
-         Concatenating it into a URL therefore produces the same URL on every call, the SaxonJS
-         document() pool returns the cached parse, and no fresh network fetch fires.
-         ixsl:call to JS Date.now() is non-deterministic by spec and produces a fresh millisecond
-         timestamp on every invocation. -->
-    <xsl:function name="ldh:nc" as="xs:string" use-when="system-property('xsl:product-name') = 'SaxonJS'">
-        <xsl:sequence select="string(ixsl:call(ixsl:get(ixsl:window(), 'Date'), 'now', []))"/>
-    </xsl:function>
-
-    <!-- SSR fallback: each server-side transformation is fresh, so current-dateTime() varies between
-         requests; no document-pool persistence to defeat. -->
-    <xsl:function name="ldh:nc" as="xs:string" use-when="system-property('xsl:product-name') = 'SAXON'">
-        <xsl:sequence select="string(current-dateTime())"/>
-    </xsl:function>
-
     <xsl:function name="ldh:construct-forClass" as="document-node()">
         <xsl:param name="forClass" as="xs:anyURI+"/>
-        <!-- _nc makes each invocation a unique URI to defeat the SaxonJS document() pool, which would
-             otherwise return the parsed constructor doc cached at first call for the rest of the page session,
-             even after the constructor itself was edited and the in-memory ontology reloaded.
-             DEPRECATED: prefer ldh:load-constructed-doc / ldh:set-constructed-doc in a promise chain. -->
-        <xsl:variable name="results-uri" select="ac:build-uri(resolve-uri('ns', ldt:base()), map{ 'forClass': for $class in $forClass return string($class), 'accept': 'application/rdf+xml', '_nc': ldh:nc() })" as="xs:anyURI"/>
+        <!-- DEPRECATED: prefer ldh:load-constructed-doc / ldh:set-constructed-doc in a promise chain. -->
+        <xsl:variable name="results-uri" select="ac:build-uri(resolve-uri('ns', ldt:base()), map{ 'forClass': for $class in $forClass return string($class), 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
         <xsl:variable name="request-uri" select="ldh:href($results-uri, map{})" as="xs:anyURI"/>
 
         <xsl:sequence select="document($request-uri)"/>
