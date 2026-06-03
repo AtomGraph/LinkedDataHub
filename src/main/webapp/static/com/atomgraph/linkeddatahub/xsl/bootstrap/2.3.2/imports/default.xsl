@@ -281,13 +281,39 @@ exclude-result-prefixes="#all"
         <xsl:param name="forClass" as="xs:anyURI+"/>
         <!-- _nc makes each invocation a unique URI to defeat the SaxonJS document() pool, which would
              otherwise return the parsed constructor doc cached at first call for the rest of the page session,
-             even after the constructor itself was edited and the in-memory ontology reloaded. -->
+             even after the constructor itself was edited and the in-memory ontology reloaded.
+             DEPRECATED: prefer ldh:load-constructed-doc / ldh:set-constructed-doc in a promise chain. -->
         <xsl:variable name="results-uri" select="ac:build-uri(resolve-uri('ns', ldt:base()), map{ 'forClass': for $class in $forClass return string($class), 'accept': 'application/rdf+xml', '_nc': ldh:nc() })" as="xs:anyURI"/>
         <xsl:variable name="request-uri" select="ldh:href($results-uri, map{})" as="xs:anyURI"/>
 
         <xsl:sequence select="document($request-uri)"/>
     </xsl:function>
-    
+
+    <!-- Async load/set pair for /ns?forClass=… — builds the request from context('forClass'); store result at context('constructed-doc'). -->
+    <xsl:function name="ldh:load-constructed-doc" as="map(*)" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:variable name="forClass" select="$context('forClass')" as="xs:anyURI+"/>
+        <xsl:variable name="results-uri" select="ac:build-uri(resolve-uri('ns', ldt:base()), map{ 'forClass': for $class in $forClass return string($class), 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
+        <xsl:variable name="request-uri" select="ldh:href($results-uri, map{})" as="xs:anyURI"/>
+        <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
+        <xsl:sequence select="map:merge(($context, map{ 'constructed-doc-request': $request }))"/>
+    </xsl:function>
+
+    <xsl:function name="ldh:set-constructed-doc" as="map(*)" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:variable name="response" select="$context('constructed-doc-response')" as="map(*)"/>
+        <xsl:for-each select="$response">
+            <xsl:choose>
+                <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
+                    <xsl:sequence select="map:merge(($context, map{ 'constructed-doc': ?body }))"/>
+                </xsl:when>
+                <xsl:otherwise>
+                    <xsl:sequence select="$context"/>
+                </xsl:otherwise>
+            </xsl:choose>
+        </xsl:for-each>
+    </xsl:function>
+
     <!-- reserialize RDF/XML document by moving nested rdf:Descriptions to top-level following Jena's "plain" RDF/XML structure  -->
     <xsl:function name="ldh:reserialize" as="document-node()">
         <xsl:param name="doc" as="document-node()"/>
