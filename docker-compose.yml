@@ -492,7 +492,11 @@ configs:
               if (!client.ip ~ local) {
                   return (synth(403, "Unknown IP address '" + client.ip + "'. Access denied."));
               }
-              set req.http.n-purged = xkey.softpurge(req.http.xkey-purge);
+              # hard purge, not softpurge: ClearOntology and CacheInvalidationFilter need strong
+              # consistency, not stale-while-revalidate. Softpurge would serve the just-purged
+              # object during beresp.grace (default 10s) and OntologyModelGetter's immediate reload
+              # would repopulate OntDocumentManager with stale data.
+              set req.http.n-purged = xkey.purge(req.http.xkey-purge);
               return (synth(200, "Purged " + req.http.n-purged + " objects for key " + req.http.xkey-purge));
           }
 
