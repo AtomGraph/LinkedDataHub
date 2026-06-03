@@ -85,33 +85,36 @@ exclude-result-prefixes="#all"
         <xsl:context-item as="element()" use="required"/> <!-- container element -->
         <xsl:param name="type" as="xs:anyURI"/> <!-- the URI of the class that constructors are attached to -->
         <xsl:variable name="container" select="." as="element()"/>
-        
+
         <ixsl:set-style name="cursor" select="'progress'" object="."/>
 
-        <xsl:variable name="query-string" select="$constructor-query || ' VALUES $Type { &lt;' || $type || '&gt; }'" as="xs:string"/>
-        <xsl:variable name="results-uri" select="ac:build-uri(resolve-uri('ns', ldt:base()), map{ 'query': $query-string, '_nc': ldh:nc() })" as="xs:anyURI"/>
-        <xsl:variable name="request-uri" select="ldh:href($results-uri, map{})" as="xs:anyURI"/>
-        <xsl:variable name="request" as="item()*">
-            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml' } }">
-                <xsl:call-template name="ldh:ConstructorMode">
-                    <xsl:with-param name="container" select="$container"/>
-                    <xsl:with-param name="type" select="$type"/>
-                </xsl:call-template>
-            </ixsl:schedule-action>
-        </xsl:variable>
-        <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
+        <xsl:variable name="context" as="map(*)" select="map{
+            'container': $container,
+            'type': $type,
+            'types': ($type)
+        }"/>
+
+        <ixsl:promise select="ixsl:resolve($context) =>
+            ixsl:then(ldh:load-constructors#1) =>
+            ixsl:then(ldh:http-request-threaded(?, 'constructors-request', 'constructors-response')) =>
+            ixsl:then(ldh:handle-response(?, 'constructors-response')) =>
+            ixsl:then(ldh:set-constructors#1) =>
+            ixsl:then(ldh:render-constructor-mode#1)"
+            on-failure="ldh:promise-failure#1"/>
     </xsl:template>
-    
-    <!-- render constructor template -->
-    <xsl:template name="ldh:ConstructorMode">
-        <xsl:context-item as="map(*)" use="required"/>
-        <xsl:param name="container" as="element()"/>
-        <xsl:param name="type" as="xs:anyURI"/> <!-- the URI of the class that constructors are attached to -->
+
+    <!-- Terminal callback for the LoadConstructors promise chain. Renders the constructor-edit modal
+         from context('constructors'); falls back to an alert when the fetch returned a non-success status
+         (ldh:set-constructors leaves the 'constructors' key absent in that case). -->
+    <xsl:function name="ldh:render-constructor-mode" as="item()*" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:variable name="container" select="$context('container')" as="element()"/>
+        <xsl:variable name="type" select="$context('type')" as="xs:anyURI"/>
 
         <xsl:choose>
-            <xsl:when test="?status = 200 and ?media-type = 'application/sparql-results+xml'">
-                <xsl:variable name="constructors" select="?body" as="document-node()"/>
-                
+            <xsl:when test="map:contains($context, 'constructors') and exists($context('constructors'))">
+                <xsl:variable name="constructors" select="$context('constructors')" as="document-node()"/>
+
                 <xsl:for-each select="$container">
                     <xsl:result-document href="?." method="ixsl:append-content">
                         <div class="modal modal-constructor fade in">
@@ -129,7 +132,6 @@ exclude-result-prefixes="#all"
                                     <xsl:for-each select="$constructors//srx:result">
                                         <xsl:variable name="constructor-uri" select="srx:binding[@name = 'constructor']/srx:uri" as="xs:anyURI"/>
                                         <xsl:variable name="construct-string" select="srx:binding[@name = 'construct']/srx:literal" as="xs:string"/>
-                                        <!--<xsl:message>$construct-string: <xsl:value-of select="serialize($construct-string)"/></xsl:message>-->
                                         <xsl:variable name="construct-json" as="item()">
                                             <xsl:variable name="construct-builder" select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'fromString', [ $construct-string ])"/>
                                             <xsl:sequence select="ixsl:call($construct-builder, 'build', [])"/>
@@ -142,7 +144,7 @@ exclude-result-prefixes="#all"
                                             <xsl:with-param name="construct-xml" select="$construct-xml"/>
                                         </xsl:call-template>
                                     </xsl:for-each>
-                                    
+
                                     <p>
                                         <button type="button" class="btn btn-primary create-action add-constructor">
                                             <xsl:value-of>
@@ -166,15 +168,15 @@ exclude-result-prefixes="#all"
                             </form>
                         </div>
                     </xsl:result-document>
-                 </xsl:for-each>
+                </xsl:for-each>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ 'Could not load constructors for class &quot;' || $type || '&quot;' ])[current-date() lt xs:date('2000-01-01')]"/>
+                <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ 'Could not load constructors for class &quot;' || $type || '&quot;' ])[current-date() lt xs:date('2000-01-01')]"/>
             </xsl:otherwise>
         </xsl:choose>
 
         <ixsl:set-style name="cursor" select="'default'" object="$container"/>
-    </xsl:template>
+    </xsl:function>
 
     <xsl:template match="json:array[@key = 'template']/json:map[json:string[@key = 'subject'] = '?this']" mode="bs2:ConstructorTripleForm" priority="1">
         <xsl:param name="class" select="'control-group constructor-triple'" as="xs:string?"/>
