@@ -95,15 +95,46 @@ exclude-result-prefixes="#all">
     <xsl:template match="*[*][@rdf:about or @rdf:nodeID][ac:absolute-path(ldh:request-uri()) = resolve-uri(encode-for-uri('sign up'), ldt:base())]" mode="bs2:Right"/>
 
     <xsl:template match="rdf:RDF[ac:absolute-path(ldh:request-uri()) = resolve-uri(encode-for-uri('sign up'), ldt:base())]" mode="bs2:Row" priority="2">
-        <xsl:apply-templates select="ldh:construct-forClass(xs:anyURI('&foaf;Person'))" mode="bs2:RowForm">
-            <xsl:with-param name="form-id" select="'form-signup'"/>
-            <xsl:with-param name="method" select="'post'"/> <!-- don't use PATCH which is the default -->
-            <xsl:with-param name="action" select="ac:absolute-path(ldh:base-uri(.))" tunnel="yes"/>
-            <xsl:with-param name="enctype" select="()"/> <!-- don't use 'multipart/form-data' which is the default -->
-            <xsl:with-param name="create-resource" select="false()"/>
-            <xsl:with-param name="base-uri" select="ac:absolute-path(ldh:base-uri(.))" tunnel="yes"/> <!-- base-uri() is empty on constructed documents -->
-        </xsl:apply-templates>
+        <xsl:variable name="placeholder-id" select="'signup-form-placeholder'" as="xs:string"/>
+
+        <div id="{$placeholder-id}"/>
+
+        <xsl:variable name="context" as="map(*)" select="map{
+            'forClass': xs:anyURI('&foaf;Person'),
+            'placeholder-id': $placeholder-id,
+            'action': ac:absolute-path(ldh:base-uri(.))
+        }"/>
+
+        <ixsl:promise select="ixsl:resolve($context) =>
+            ixsl:then(ldh:load-constructed-doc#1) =>
+            ixsl:then(ldh:http-request-threaded(?, 'constructed-doc-request', 'constructed-doc-response')) =>
+            ixsl:then(ldh:handle-response(?, 'constructed-doc-response')) =>
+            ixsl:then(ldh:set-constructed-doc#1) =>
+            ixsl:then(ldh:render-signup-form#1)"
+            on-failure="ldh:promise-failure#1"/>
     </xsl:template>
+
+    <xsl:function name="ldh:render-signup-form" as="item()*" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:variable name="placeholder-id" select="$context('placeholder-id')" as="xs:string"/>
+        <xsl:variable name="action" select="$context('action')" as="xs:anyURI"/>
+        <xsl:variable name="constructed-doc" select="$context('constructed-doc')" as="document-node()"/>
+        <xsl:variable name="placeholder" select="id($placeholder-id, ixsl:page())" as="element()?"/>
+
+        <xsl:for-each select="$placeholder">
+            <xsl:result-document href="?." method="ixsl:replace-content">
+                <!-- select element children of rdf:RDF only — ?body is not strip-space'd, so unguarded apply-templates would copy whitespace text nodes -->
+                <xsl:apply-templates select="$constructed-doc/rdf:RDF/*" mode="bs2:RowForm">
+                    <xsl:with-param name="form-id" select="'form-signup'"/>
+                    <xsl:with-param name="method" select="'post'"/> <!-- don't use PATCH which is the default -->
+                    <xsl:with-param name="action" select="$action" tunnel="yes"/>
+                    <xsl:with-param name="enctype" select="()"/> <!-- don't use 'multipart/form-data' which is the default -->
+                    <xsl:with-param name="create-resource" select="false()"/>
+                    <xsl:with-param name="base-uri" select="$action" tunnel="yes"/> <!-- base-uri() is empty on constructed documents -->
+                </xsl:apply-templates>
+            </xsl:result-document>
+        </xsl:for-each>
+    </xsl:function>
 
     <!-- hide resources from constructed models -->
     <xsl:template match="rdf:Description[not(rdf:type/@rdf:resource = ('&foaf;Person', '&adm;SignUp'))][ac:absolute-path(ldh:request-uri()) = resolve-uri(encode-for-uri('sign up'), ldt:base())]" mode="bs2:RowForm" priority="3"/>
