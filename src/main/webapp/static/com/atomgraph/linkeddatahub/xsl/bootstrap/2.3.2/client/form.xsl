@@ -270,6 +270,14 @@ WHERE
             => ixsl:then(ldh:http-request-threaded(?, 'type-metadata-request', 'type-metadata-response'))
             => ixsl:then(ldh:handle-response(?, 'type-metadata-response'))
             => ixsl:then(ldh:set-type-metadata#1)
+            => ixsl:then(ldh:load-constructors#1)
+            => ixsl:then(ldh:http-request-threaded(?, 'constructors-request', 'constructors-response'))
+            => ixsl:then(ldh:handle-response(?, 'constructors-response'))
+            => ixsl:then(ldh:set-constructors#1)
+            => ixsl:then(ldh:load-shapes#1)
+            => ixsl:then(ldh:http-request-threaded(?, 'shapes-request', 'shapes-response'))
+            => ixsl:then(ldh:handle-response(?, 'shapes-response'))
+            => ixsl:then(ldh:set-shapes#1)
             => ixsl:then(ldh:render-row-form#1)
         " on-failure="ldh:promise-failure#1"/>
     </xsl:template>
@@ -325,23 +333,18 @@ WHERE
                 <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
                     <xsl:variable name="type-metadata" select="?body" as="document-node()?"/>
 
-                    <!-- TO-DO: refactor to use asynchronous HTTP requests -->
+                    <!-- TO-DO: refactor remaining synchronous document() calls (property-metadata, constraints, object-metadata) into load/set pairs.
+                         The constructors SELECT and the SHACL shapes DESCRIBE were previously done here synchronously — they're
+                         now async ldh:load-constructors / ldh:set-constructors and ldh:load-shapes / ldh:set-shapes steps in the
+                         calling promise chain. -->
                     <xsl:variable name="property-uris" select="distinct-values($resource/*/concat(namespace-uri(), local-name()))" as="xs:string*"/>
                     <xsl:variable name="query-string" select="'DESCRIBE $Type VALUES $Type { ' || string-join(for $uri in $property-uris return '&lt;' || $uri || '&gt;', ' ') || ' }'" as="xs:string"/>
                     <xsl:variable name="request-uri" select="ldh:href(ac:build-uri(resolve-uri('ns', ldt:base()), map{ 'query': $query-string, 'accept': 'application/rdf+xml' }), map{})" as="xs:anyURI"/>
                     <xsl:variable name="property-metadata" select="document($request-uri)" as="document-node()"/>
 
-                    <xsl:variable name="query-string" select="$constructor-query || ' VALUES $Type { ' || string-join(for $type in $types return '&lt;' || $type || '&gt;', ' ') || ' }'" as="xs:string"/>
-                    <xsl:variable name="request-uri" select="ldh:href(ac:build-uri(resolve-uri('ns', ldt:base()), map{ 'query': $query-string, 'accept': 'application/sparql-results+xml', '_nc': ldh:nc() }), map{})" as="xs:anyURI"/>
-                    <xsl:variable name="constructors" select="if (exists($types)) then document($request-uri) else ()" as="document-node()?"/>
-
                     <xsl:variable name="query-string" select="$constraint-query || ' VALUES $Type { ' || string-join(for $type in $types return '&lt;' || $type || '&gt;', ' ') || ' }'" as="xs:string"/>
                     <xsl:variable name="request-uri" select="ldh:href(ac:build-uri(resolve-uri('ns', ldt:base()), map{ 'query': $query-string, 'accept': 'application/sparql-results+xml' }), map{})" as="xs:anyURI"/>
                     <xsl:variable name="constraints" select="if (exists($types)) then document($request-uri) else ()" as="document-node()?"/>
-
-                    <xsl:variable name="query-string" select="$shape-query || ' VALUES $Type { ' || string-join(for $type in $types return '&lt;' || $type || '&gt;', ' ') || ' }'" as="xs:string"/>
-                    <xsl:variable name="request-uri" select="ldh:href(ac:build-uri(resolve-uri('ns', ldt:base()), map{ 'query': $query-string, 'accept': 'application/rdf+xml' }), map{})" as="xs:anyURI"/>
-                    <xsl:variable name="shapes" select="document($request-uri)" as="document-node()"/>
 
                     <xsl:variable name="object-uris" select="distinct-values($resource/*/@rdf:resource[not(key('resources', .))])" as="xs:string*"/>
                     <xsl:variable name="query-string" select="$object-metadata-query || ' VALUES $this { ' || string-join(for $uri in $object-uris return '&lt;' || $uri || '&gt;', ' ') || ' }'" as="xs:string"/>
@@ -351,9 +354,7 @@ WHERE
                     <xsl:sequence select="map:merge(($context, map{
                         'type-metadata': $type-metadata,
                         'property-metadata': $property-metadata,
-                        'constructors': $constructors,
                         'constraints': $constraints,
-                        'shapes': $shapes,
                         'object-metadata': $object-metadata
                     }))"/>
                 </xsl:when>
@@ -380,6 +381,140 @@ WHERE
             'document': $document,
             'action': if (map:contains($context, 'action')) then $context('action') else ldh:href(ac:absolute-path(ldh:base-uri($document)), map{})
         }), map{ 'duplicates': 'use-last' })"/>
+    </xsl:function>
+
+    <!-- Async constructor-fetch pair (the SPARQL SELECT against /ns?query= for ?Type spin:constructor ?constructor).
+         Reads context('types'), stores parsed sparql-results at context('constructors'). -->
+    <xsl:function name="ldh:load-constructors" as="map(*)" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:variable name="types" select="$context('types')" as="xs:anyURI*"/>
+        <xsl:variable name="query-string" select="$constructor-query || ' VALUES $Type { ' || string-join(for $type in $types return '&lt;' || $type || '&gt;', ' ') || ' }'" as="xs:string"/>
+        <xsl:variable name="request" select="map{ 'method': 'POST', 'href': ldh:href(resolve-uri('ns', ldt:base())), 'media-type': 'application/sparql-query', 'body': $query-string, 'headers': map{ 'Accept': 'application/sparql-results+xml' } }" as="map(*)"/>
+        <xsl:sequence select="map:merge(($context, map{ 'constructors-request': $request }))"/>
+    </xsl:function>
+
+    <xsl:function name="ldh:set-constructors" as="map(*)" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:variable name="response" select="$context('constructors-response')" as="map(*)"/>
+        <xsl:for-each select="$response">
+            <xsl:choose>
+                <xsl:when test="?status = 200 and ?media-type = 'application/sparql-results+xml'">
+                    <xsl:sequence select="map:merge(($context, map{ 'constructors': ?body }))"/>
+                </xsl:when>
+                <xsl:otherwise>
+                    <xsl:sequence select="$context"/>
+                </xsl:otherwise>
+            </xsl:choose>
+        </xsl:for-each>
+    </xsl:function>
+
+    <!-- Async SHACL-shape-fetch pair (same shape as load-constructors). Reads context('types'),
+         stores parsed RDF/XML at context('shapes'). -->
+    <xsl:function name="ldh:load-shapes" as="map(*)" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:variable name="types" select="$context('types')" as="xs:anyURI*"/>
+        <xsl:variable name="query-string" select="$shape-query || ' VALUES $Type { ' || string-join(for $type in $types return '&lt;' || $type || '&gt;', ' ') || ' }'" as="xs:string"/>
+        <xsl:variable name="request" select="map{ 'method': 'POST', 'href': ldh:href(resolve-uri('ns', ldt:base())), 'media-type': 'application/sparql-query', 'body': $query-string, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
+        <xsl:sequence select="map:merge(($context, map{ 'shapes-request': $request }))"/>
+    </xsl:function>
+
+    <xsl:function name="ldh:set-shapes" as="map(*)" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:variable name="response" select="$context('shapes-response')" as="map(*)"/>
+        <xsl:for-each select="$response">
+            <xsl:choose>
+                <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
+                    <xsl:sequence select="map:merge(($context, map{ 'shapes': ?body }))"/>
+                </xsl:when>
+                <xsl:otherwise>
+                    <xsl:sequence select="$context"/>
+                </xsl:otherwise>
+            </xsl:choose>
+        </xsl:for-each>
+    </xsl:function>
+
+    <!-- Fold step for the create-new-instance chain: applies ldh:SetResourceID to the constructed doc
+         (replacing blank-node IDs with a real URI), then extracts the row-form resource and its types.
+         Reads context('constructed-doc'), context('forClass'), context('this'); writes back updated
+         context('constructed-doc'), context('resource'), context('types'). -->
+    <xsl:function name="ldh:set-row-form-resource" as="map(*)" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:variable name="constructed-doc" select="$context('constructed-doc')" as="document-node()"/>
+        <xsl:variable name="forClass" select="$context('forClass')" as="xs:anyURI"/>
+        <xsl:variable name="this" select="$context('this')" as="xs:anyURI"/>
+
+        <xsl:variable name="constructed-doc-with-id" as="document-node()">
+            <xsl:document>
+                <xsl:apply-templates select="$constructed-doc" mode="ldh:SetResourceID">
+                    <xsl:with-param name="forClass" select="$forClass" tunnel="yes"/>
+                    <xsl:with-param name="about" select="$this" tunnel="yes"/>
+                </xsl:apply-templates>
+            </xsl:document>
+        </xsl:variable>
+
+        <xsl:variable name="resource" select="key('resources-by-type', $forClass, $constructed-doc-with-id)[rdf:type/@rdf:resource = '&owl;NamedIndividual' or (not(key('predicates-by-object', @rdf:nodeID)) and exists(* except rdf:type))]" as="element()"/>
+        <xsl:variable name="types" select="for $t in distinct-values($resource/rdf:type/@rdf:resource) return xs:anyURI($t)" as="xs:anyURI*"/>
+
+        <xsl:sequence select="map:merge(($context, map{
+            'constructed-doc': $constructed-doc-with-id,
+            'resource': $resource,
+            'types': $types
+        }), map{ 'duplicates': 'use-last' })"/>
+    </xsl:function>
+
+    <!-- Terminal callback for the create-new-instance chain (row-fluid add-constructor onclick).
+         Reads context('constructed-doc'/'resource'/'types'/'constructors'/'shapes'/'method'/'container'/'doc-uri'),
+         does the remaining (still-sync) type-metadata/property-metadata/constraints fetches inline,
+         and inserts the rendered row-form before context('container'). -->
+    <xsl:function name="ldh:render-add-row-form" as="item()*" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:variable name="method" select="$context('method')" as="xs:string"/>
+        <xsl:variable name="container" select="$context('container')" as="element()"/>
+        <xsl:variable name="doc-uri" select="$context('doc-uri')" as="xs:anyURI"/>
+        <xsl:variable name="base-uri" select="$context('base-uri')" as="xs:anyURI"/>
+        <xsl:variable name="constructed-doc" select="$context('constructed-doc')" as="document-node()"/>
+        <xsl:variable name="resource" select="$context('resource')" as="element()"/>
+        <xsl:variable name="types" select="$context('types')" as="xs:anyURI*"/>
+        <xsl:variable name="constructors" select="$context('constructors')" as="document-node()?"/>
+        <xsl:variable name="shapes" select="$context('shapes')" as="document-node()?"/>
+
+        <xsl:variable name="row-form" as="element()">
+            <!-- TO-DO: refactor remaining synchronous document() calls (type-metadata, property-metadata, constraints) into load/set pairs -->
+            <xsl:variable name="query-string" select="'DESCRIBE $Type VALUES $Type { ' || string-join(for $type in $types return '&lt;' || $type || '&gt;', ' ') || ' }'" as="xs:string"/>
+            <xsl:variable name="request-uri" select="ldh:href(ac:build-uri(resolve-uri('ns', ldt:base()), map{ 'query': $query-string, 'accept': 'application/rdf+xml' }), map{})" as="xs:anyURI"/>
+            <xsl:variable name="type-metadata" select="if (exists($types)) then document($request-uri) else ()" as="document-node()?"/>
+
+            <xsl:variable name="property-uris" select="distinct-values($resource/*/concat(namespace-uri(), local-name()))" as="xs:string*"/>
+            <xsl:variable name="query-string" select="'DESCRIBE $Type VALUES $Type { ' || string-join(for $uri in $property-uris return '&lt;' || $uri || '&gt;', ' ') || ' }'" as="xs:string"/>
+            <xsl:variable name="request-uri" select="ldh:href(ac:build-uri(resolve-uri('ns', ldt:base()), map{ 'query': $query-string, 'accept': 'application/rdf+xml' }), map{})" as="xs:anyURI"/>
+            <xsl:variable name="property-metadata" select="document($request-uri)" as="document-node()"/>
+
+            <xsl:variable name="query-string" select="$constraint-query || ' VALUES $Type { ' || string-join(for $type in $types return '&lt;' || $type || '&gt;', ' ') || ' }'" as="xs:string"/>
+            <xsl:variable name="request-uri" select="ldh:href(ac:build-uri(resolve-uri('ns', ldt:base()), map{ 'query': $query-string, 'accept': 'application/sparql-results+xml' }), map{})" as="xs:anyURI"/>
+            <xsl:variable name="constraints" select="if (exists($types)) then document($request-uri) else ()" as="document-node()?"/>
+
+            <xsl:apply-templates select="$resource" mode="bs2:RowForm">
+                <xsl:with-param name="about" select="()"/>
+                <xsl:with-param name="method" select="$method"/>
+                <xsl:with-param name="action" select="ldh:href($doc-uri)" as="xs:anyURI" tunnel="yes"/>
+                <xsl:with-param name="type-metadata" select="$type-metadata" tunnel="yes"/>
+                <xsl:with-param name="property-metadata" select="$property-metadata" tunnel="yes"/>
+                <xsl:with-param name="constructor" select="$constructed-doc" tunnel="yes"/>
+                <xsl:with-param name="constructors" select="$constructors" tunnel="yes"/>
+                <xsl:with-param name="constraints" select="$constraints" tunnel="yes"/>
+                <xsl:with-param name="shapes" select="$shapes" tunnel="yes"/>
+                <xsl:with-param name="base-uri" select="$base-uri" tunnel="yes"/>
+                <xsl:with-param name="show-cancel-button" select="false()"/>
+            </xsl:apply-templates>
+        </xsl:variable>
+
+        <!-- insert $row-form before the .add-constructor container TO-DO: replace with <xsl:result-document href="?." method="ixsl:insert-after"> when SaxonJS 3 is available https://saxonica.plan.io/issues/5543 -->
+        <xsl:sequence select="ixsl:call($container, 'before', [ $row-form ])[current-date() lt xs:date('2000-01-01')]"/>
+
+        <!-- apply client-side templates on the appended row form (now preceding sibling of the $container) -->
+        <xsl:apply-templates select="$container/preceding-sibling::*[1]" mode="ldh:RenderRowForm"/>
+
+        <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
     </xsl:function>
     
     <xsl:function name="ldh:render-row-form" as="item()*" ixsl:updating="yes">
@@ -615,17 +750,16 @@ WHERE
     
     <!-- add new property to form -->
     
-    <xsl:template match="div[@typeof]//form//button[contains-token(@class, 'add-value')]" mode="ixsl:onclick">
-        <xsl:variable name="form" select="ancestor::form" as="element()?"/>
-        <xsl:variable name="property-control-group" select="../.." as="element()"/>
-        <xsl:variable name="fieldset" select="$property-control-group/.." as="element()"/>
-        <xsl:variable name="property-uri" select="../preceding-sibling::*/select/option[ixsl:get(., 'selected') = true()]/ixsl:get(., 'value')" as="xs:anyURI"/>
-        <xsl:variable name="seq-property" select="starts-with($property-uri, '&rdf;_')" as="xs:boolean"/>
-        <xsl:variable name="forClass" select="ancestor::div[@typeof][contains-token(@class, 'row-fluid')]/@typeof" as="xs:anyURI*"/>
+    <!-- Terminal callback for the add-value onclick promise chain. Reads context('constructed-doc')
+         and uses the matched property to render either a bs2:TypeControl or bs2:FormControl into the fieldset. -->
+    <xsl:function name="ldh:render-add-value" as="item()*" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:variable name="property-control-group" select="$context('property-control-group')" as="element()"/>
+        <xsl:variable name="fieldset" select="$context('fieldset')" as="element()"/>
+        <xsl:variable name="property-uri" select="$context('property-uri')" as="xs:anyURI"/>
+        <xsl:variable name="forClass" select="$context('forClass')" as="xs:anyURI*"/>
+        <xsl:variable name="constructed-doc" select="$context('constructed-doc')" as="document-node()"/>
 
-        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
-
-        <xsl:variable name="constructed-doc" select="ldh:construct-forClass($forClass)" as="document-node()"/> <!-- TO-DO: asynchronous request -->
         <xsl:variable name="resource" as="element()">
             <xsl:choose>
                 <!-- $forClass constructor found -->
@@ -641,7 +775,7 @@ WHERE
             </xsl:choose>
         </xsl:variable>
         <xsl:variable name="property" select="$resource/*[concat(namespace-uri(), local-name()) = $property-uri]" as="element()"/>
-        
+
         <!-- remove the current property control group from the current position -->
         <xsl:sequence select="ixsl:call($property-control-group, 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
 
@@ -663,16 +797,40 @@ WHERE
                         </xsl:apply-templates>
                     </xsl:otherwise>
                 </xsl:choose>
-                
+
                 <!-- append the property control group at the end of the fieldset -->
                 <xsl:copy-of select="$property-control-group"/>
             </xsl:result-document>
-            
+
             <!-- initialize the last property control group after it's appended -->
             <xsl:apply-templates select="(./div[contains-token(@class, 'control-group')][input/@name = 'pu'])[last()]" mode="ldh:RenderRowForm"/>
         </xsl:for-each>
-        
+
         <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
+    </xsl:function>
+
+    <xsl:template match="div[@typeof]//form//button[contains-token(@class, 'add-value')]" mode="ixsl:onclick">
+        <xsl:variable name="property-control-group" select="../.." as="element()"/>
+        <xsl:variable name="fieldset" select="$property-control-group/.." as="element()"/>
+        <xsl:variable name="property-uri" select="../preceding-sibling::*/select/option[ixsl:get(., 'selected') = true()]/ixsl:get(., 'value')" as="xs:anyURI"/>
+        <xsl:variable name="forClass" select="ancestor::div[@typeof][contains-token(@class, 'row-fluid')]/@typeof" as="xs:anyURI*"/>
+
+        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+
+        <xsl:variable name="context" as="map(*)" select="map{
+            'property-control-group': $property-control-group,
+            'fieldset': $fieldset,
+            'property-uri': $property-uri,
+            'forClass': $forClass
+        }"/>
+
+        <ixsl:promise select="ixsl:resolve($context) =>
+            ixsl:then(ldh:load-constructed-doc#1) =>
+            ixsl:then(ldh:http-request-threaded(?, 'constructed-doc-request', 'constructed-doc-response')) =>
+            ixsl:then(ldh:handle-response(?, 'constructed-doc-response')) =>
+            ixsl:then(ldh:set-constructed-doc#1) =>
+            ixsl:then(ldh:render-add-value#1)"
+            on-failure="ldh:promise-failure#1"/>
     </xsl:template>
 
     <xsl:function name="ldh:row-form-response" ixsl:updating="yes">
@@ -774,68 +932,92 @@ WHERE
         <xsl:param name="context" as="map(*)"/>
         <xsl:variable name="response" select="$context('response')" as="map(*)"/>
         <xsl:variable name="doc-uri" select="$context('doc-uri')" as="xs:anyURI"/>
-        <xsl:variable name="block" select="$context('block')" as="element()"/>
-        <xsl:variable name="form" select="$context('form')" as="element()?"/>
-        
+
         <xsl:message>ldh:row-form-submit-violation</xsl:message>
 
-        <xsl:for-each select="$response">
-            <xsl:variable name="body" select="?body" as="document-node()"/>
-            <!-- TO-DO: refactor to use asynchronous HTTP requests -->
-            <xsl:variable name="types" select="distinct-values($body/rdf:RDF/*[not(@rdf:about = $doc-uri)]/rdf:type/@rdf:resource)" as="xs:anyURI*"/>
-            <xsl:variable name="query-string" select="'DESCRIBE $Type VALUES $Type { ' || string-join(for $type in $types return '&lt;' || $type || '&gt;', ' ') || ' }'" as="xs:string"/>
-            <xsl:variable name="request-uri" select="ldh:href(ac:build-uri(resolve-uri('ns', ldt:base()), map{ 'query': $query-string, 'accept': 'application/rdf+xml' }), map{})" as="xs:anyURI"/>
-            <xsl:variable name="type-metadata" select="if (exists($types)) then document($request-uri) else ()" as="document-node()?"/>
+        <xsl:variable name="body" select="$response?body" as="document-node()"/>
+        <xsl:variable name="types" select="for $t in distinct-values($body/rdf:RDF/*[not(@rdf:about = $doc-uri)]/rdf:type/@rdf:resource) return xs:anyURI($t)" as="xs:anyURI*"/>
 
-            <xsl:variable name="property-uris" select="distinct-values($body/rdf:RDF/*[not(@rdf:about = $doc-uri)]/*/concat(namespace-uri(), local-name()))" as="xs:string*"/>
-            <xsl:variable name="query-string" select="'DESCRIBE $Type VALUES $Type { ' || string-join(for $uri in $property-uris return '&lt;' || $uri || '&gt;', ' ') || ' }'" as="xs:string"/>
-            <xsl:variable name="request-uri" select="ldh:href(ac:build-uri(resolve-uri('ns', ldt:base()), map{ 'query': $query-string, 'accept': 'application/rdf+xml' }), map{})" as="xs:anyURI"/>
-            <xsl:variable name="property-metadata" select="document($request-uri)" as="document-node()"/>
+        <xsl:variable name="new-context" as="map(*)" select="map:merge((
+            $context,
+            map{
+                'body': $body,
+                'types': $types
+            }
+        ), map{ 'duplicates': 'use-last' })"/>
 
-            <xsl:variable name="query-string" select="$constructor-query || ' VALUES $Type { ' || string-join(for $type in $types return '&lt;' || $type || '&gt;', ' ') || ' }'" as="xs:string"/>
-            <xsl:variable name="request-uri" select="ldh:href(ac:build-uri(resolve-uri('ns', ldt:base()), map{ 'query': $query-string, 'accept': 'application/sparql-results+xml', '_nc': ldh:nc() }), map{})" as="xs:anyURI"/>
-            <xsl:variable name="constructors" select="if (exists($types)) then document($request-uri) else ()" as="document-node()?"/>
+        <ixsl:promise select="ixsl:resolve($new-context) =>
+            ixsl:then(ldh:load-constructors#1) =>
+            ixsl:then(ldh:http-request-threaded(?, 'constructors-request', 'constructors-response')) =>
+            ixsl:then(ldh:handle-response(?, 'constructors-response')) =>
+            ixsl:then(ldh:set-constructors#1) =>
+            ixsl:then(ldh:load-shapes#1) =>
+            ixsl:then(ldh:http-request-threaded(?, 'shapes-request', 'shapes-response')) =>
+            ixsl:then(ldh:handle-response(?, 'shapes-response')) =>
+            ixsl:then(ldh:set-shapes#1) =>
+            ixsl:then(ldh:render-row-form-violation#1)"
+            on-failure="ldh:promise-failure#1"/>
+    </xsl:function>
 
-            <xsl:variable name="query-string" select="$constraint-query || ' VALUES $Type { ' || string-join(for $type in $types return '&lt;' || $type || '&gt;', ' ') || ' }'" as="xs:string"/>
-            <xsl:variable name="request-uri" select="ldh:href(ac:build-uri(resolve-uri('ns', ldt:base()), map{ 'query': $query-string, 'accept': 'application/sparql-results+xml' }), map{})" as="xs:anyURI"/>
-            <xsl:variable name="constraints" select="if (exists($types)) then document($request-uri) else ()" as="document-node()?"/>
+    <!-- Terminal callback for the row-form-submit-violation promise chain. Renders the form with
+         violation feedback by applying bs2:RowForm to the response body and replacing block content.
+         Reads context('shapes') and context('constructors') (async-fetched upstream); the remaining
+         sync fetches (type-metadata, property-metadata, constraints, object-metadata) are scope for a
+         follow-up phase. -->
+    <xsl:function name="ldh:render-row-form-violation" as="item()*" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:variable name="doc-uri" select="$context('doc-uri')" as="xs:anyURI"/>
+        <xsl:variable name="block" select="$context('block')" as="element()"/>
+        <xsl:variable name="form" select="$context('form')" as="element()?"/>
+        <xsl:variable name="body" select="$context('body')" as="document-node()"/>
+        <xsl:variable name="types" select="$context('types')" as="xs:anyURI*"/>
+        <xsl:variable name="constructors" select="$context('constructors')" as="document-node()?"/>
+        <xsl:variable name="shapes" select="$context('shapes')" as="document-node()?"/>
 
-            <xsl:variable name="query-string" select="$shape-query || ' VALUES $Type { ' || string-join(for $type in $types return '&lt;' || $type || '&gt;', ' ') || ' }'" as="xs:string"/>
-            <xsl:variable name="request-uri" select="ldh:href(ac:build-uri(resolve-uri('ns', ldt:base()), map{ 'query': $query-string, 'accept': 'application/rdf+xml' }), map{})" as="xs:anyURI"/>
-            <xsl:variable name="shapes" select="document($request-uri)" as="document-node()"/>
+        <!-- TO-DO: refactor remaining synchronous document() calls (type-metadata, property-metadata, constraints, object-metadata) into load/set pairs -->
+        <xsl:variable name="query-string" select="'DESCRIBE $Type VALUES $Type { ' || string-join(for $type in $types return '&lt;' || $type || '&gt;', ' ') || ' }'" as="xs:string"/>
+        <xsl:variable name="request-uri" select="ldh:href(ac:build-uri(resolve-uri('ns', ldt:base()), map{ 'query': $query-string, 'accept': 'application/rdf+xml' }), map{})" as="xs:anyURI"/>
+        <xsl:variable name="type-metadata" select="if (exists($types)) then document($request-uri) else ()" as="document-node()?"/>
 
-            <xsl:variable name="object-uris" select="distinct-values($body/rdf:RDF/*/*/@rdf:resource[not(key('resources', .))])" as="xs:string*"/>
-            <xsl:variable name="query-string" select="$object-metadata-query || ' VALUES $this { ' || string-join(for $uri in $object-uris return '&lt;' || $uri || '&gt;', ' ') || ' }'" as="xs:string"/>
-            <xsl:variable name="request-uri" select="ldh:href(ac:build-uri(resolve-uri('sparql', ldt:base()), map{ 'query': $query-string, 'accept': 'application/rdf+xml' }), map{})" as="xs:anyURI"/>
-            <xsl:variable name="object-metadata" select="if (doc-available($request-uri)) then document($request-uri) else ()" as="document-node()?"/>
-            <xsl:variable name="row-form" as="node()*">
-                <!-- filter out the current document which might be in the constraint violation response attached by an rdf:_N property to a block resource -->
-                <xsl:apply-templates select="$body/rdf:RDF/*[not(@rdf:about = $doc-uri)]" mode="bs2:RowForm">
-                    <xsl:with-param name="method" select="$form/@method"/>
-                    <xsl:with-param name="type-metadata" select="$type-metadata" tunnel="yes"/>
-                    <xsl:with-param name="property-metadata" select="$property-metadata" tunnel="yes"/>
-                    <xsl:with-param name="constructors" select="$constructors" tunnel="yes"/>
-                    <xsl:with-param name="constraints" select="$constraints" tunnel="yes"/>
-                    <xsl:with-param name="shapes" select="$shapes" tunnel="yes"/>
-                    <xsl:with-param name="object-metadata" select="$object-metadata" tunnel="yes"/>
-                </xsl:apply-templates>
-            </xsl:variable>
+        <xsl:variable name="property-uris" select="distinct-values($body/rdf:RDF/*[not(@rdf:about = $doc-uri)]/*/concat(namespace-uri(), local-name()))" as="xs:string*"/>
+        <xsl:variable name="query-string" select="'DESCRIBE $Type VALUES $Type { ' || string-join(for $uri in $property-uris return '&lt;' || $uri || '&gt;', ' ') || ' }'" as="xs:string"/>
+        <xsl:variable name="request-uri" select="ldh:href(ac:build-uri(resolve-uri('ns', ldt:base()), map{ 'query': $query-string, 'accept': 'application/rdf+xml' }), map{})" as="xs:anyURI"/>
+        <xsl:variable name="property-metadata" select="document($request-uri)" as="document-node()"/>
 
-            <xsl:for-each select="$block">
-                <xsl:result-document href="?." method="ixsl:replace-content">
-                    <xsl:copy-of select="$row-form/*"/>
-                </xsl:result-document>
-            </xsl:for-each>
+        <xsl:variable name="query-string" select="$constraint-query || ' VALUES $Type { ' || string-join(for $type in $types return '&lt;' || $type || '&gt;', ' ') || ' }'" as="xs:string"/>
+        <xsl:variable name="request-uri" select="ldh:href(ac:build-uri(resolve-uri('ns', ldt:base()), map{ 'query': $query-string, 'accept': 'application/sparql-results+xml' }), map{})" as="xs:anyURI"/>
+        <xsl:variable name="constraints" select="if (exists($types)) then document($request-uri) else ()" as="document-node()?"/>
 
-            <!-- cannot be in $block context because it contains old DOM (pre-ixsl:replace-content) -->
-            <xsl:for-each select="id($block/@id, ixsl:page())">
-                <xsl:apply-templates select="." mode="ldh:RenderRowForm"/>
-            </xsl:for-each>
+        <xsl:variable name="object-uris" select="distinct-values($body/rdf:RDF/*/*/@rdf:resource[not(key('resources', .))])" as="xs:string*"/>
+        <xsl:variable name="query-string" select="$object-metadata-query || ' VALUES $this { ' || string-join(for $uri in $object-uris return '&lt;' || $uri || '&gt;', ' ') || ' }'" as="xs:string"/>
+        <xsl:variable name="request-uri" select="ldh:href(ac:build-uri(resolve-uri('sparql', ldt:base()), map{ 'query': $query-string, 'accept': 'application/rdf+xml' }), map{})" as="xs:anyURI"/>
+        <xsl:variable name="object-metadata" select="if (doc-available($request-uri)) then document($request-uri) else ()" as="document-node()?"/>
 
-            <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>            
+        <xsl:variable name="row-form" as="node()*">
+            <!-- filter out the current document which might be in the constraint violation response attached by an rdf:_N property to a block resource -->
+            <xsl:apply-templates select="$body/rdf:RDF/*[not(@rdf:about = $doc-uri)]" mode="bs2:RowForm">
+                <xsl:with-param name="method" select="$form/@method"/>
+                <xsl:with-param name="type-metadata" select="$type-metadata" tunnel="yes"/>
+                <xsl:with-param name="property-metadata" select="$property-metadata" tunnel="yes"/>
+                <xsl:with-param name="constructors" select="$constructors" tunnel="yes"/>
+                <xsl:with-param name="constraints" select="$constraints" tunnel="yes"/>
+                <xsl:with-param name="shapes" select="$shapes" tunnel="yes"/>
+                <xsl:with-param name="object-metadata" select="$object-metadata" tunnel="yes"/>
+            </xsl:apply-templates>
+        </xsl:variable>
+
+        <xsl:for-each select="$block">
+            <xsl:result-document href="?." method="ixsl:replace-content">
+                <xsl:copy-of select="$row-form/*"/>
+            </xsl:result-document>
         </xsl:for-each>
-        
-        <xsl:sequence select="$context"/>
+
+        <!-- cannot be in $block context because it contains old DOM (pre-ixsl:replace-content) -->
+        <xsl:for-each select="id($block/@id, ixsl:page())">
+            <xsl:apply-templates select="." mode="ldh:RenderRowForm"/>
+        </xsl:for-each>
+
+        <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
     </xsl:function>
 
     <xsl:function name="ldh:replace-content" as="map(*)" ixsl:updating="yes">
@@ -875,71 +1057,38 @@ WHERE
         <xsl:param name="method" select="'post'" as="xs:string"/>
         <xsl:param name="container" select="ancestor::div[contains-token(@class, 'row-fluid')][1]" as="element()"/>
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])[current-date() lt xs:date('2000-01-01')]"/>
-        <xsl:variable name="forClass" select="@data-for-class" as="xs:anyURI"/>
-        <xsl:variable name="constructed-doc" select="ldh:construct-forClass($forClass)" as="document-node()"/>
+        <xsl:variable name="forClass" select="xs:anyURI(@data-for-class)" as="xs:anyURI"/>
         <xsl:variable name="doc-uri" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/>
         <xsl:variable name="id" select="'id' || ac:uuid()" as="xs:string"/>
         <xsl:variable name="this" select="xs:anyURI($doc-uri || '#' || $id)" as="xs:anyURI"/>
-        <!-- set document URI instead of blank node -->
-        <xsl:variable name="constructed-doc" as="document-node()">
-            <xsl:document>
-                <xsl:apply-templates select="$constructed-doc" mode="ldh:SetResourceID">
-                    <xsl:with-param name="forClass" select="$forClass" tunnel="yes"/>
-                    <xsl:with-param name="about" select="$this" tunnel="yes"/>
-                </xsl:apply-templates>
-            </xsl:document>
-        </xsl:variable>
-        <xsl:variable name="classes" select="()" as="element()*"/>
 
-        <!-- object blank nodes that are either owl:NamedIndividual or only have a single rdf:type property from constructed models -->
-        <xsl:variable name="resource" select="key('resources-by-type', $forClass, $constructed-doc)[rdf:type/@rdf:resource = '&owl;NamedIndividual' or (not(key('predicates-by-object', @rdf:nodeID)) and exists(* except rdf:type))]" as="element()"/>
-        
-        <xsl:variable name="row-form" as="element()">
-            <!-- TO-DO: refactor to use asynchronous HTTP requests -->
-            <xsl:variable name="types" select="distinct-values($resource/rdf:type/@rdf:resource)" as="xs:anyURI*"/>
-            <xsl:variable name="query-string" select="'DESCRIBE $Type VALUES $Type { ' || string-join(for $type in $types return '&lt;' || $type || '&gt;', ' ') || ' }'" as="xs:string"/>
-            <xsl:variable name="request-uri" select="ldh:href(ac:build-uri(resolve-uri('ns', ldt:base()), map{ 'query': $query-string, 'accept': 'application/rdf+xml' }), map{})" as="xs:anyURI"/>
-            <xsl:variable name="type-metadata" select="if (exists($types)) then document($request-uri) else ()" as="document-node()?"/>
+        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
-            <xsl:variable name="property-uris" select="distinct-values($resource/*/concat(namespace-uri(), local-name()))" as="xs:string*"/>
-            <xsl:variable name="query-string" select="'DESCRIBE $Type VALUES $Type { ' || string-join(for $uri in $property-uris return '&lt;' || $uri || '&gt;', ' ') || ' }'" as="xs:string"/>
-            <xsl:variable name="request-uri" select="ldh:href(ac:build-uri(resolve-uri('ns', ldt:base()), map{ 'query': $query-string, 'accept': 'application/rdf+xml' }), map{})" as="xs:anyURI"/>
-            <xsl:variable name="property-metadata" select="document($request-uri)" as="document-node()"/>
+        <xsl:variable name="context" as="map(*)" select="map{
+            'method': $method,
+            'container': $container,
+            'forClass': $forClass,
+            'doc-uri': $doc-uri,
+            'base-uri': $doc-uri,
+            'this': $this
+        }"/>
 
-            <xsl:variable name="query-string" select="$constructor-query || ' VALUES $Type { ' || string-join(for $type in $types return '&lt;' || $type || '&gt;', ' ') || ' }'" as="xs:string"/>
-            <xsl:variable name="request-uri" select="ldh:href(ac:build-uri(resolve-uri('ns', ldt:base()), map{ 'query': $query-string, 'accept': 'application/sparql-results+xml', '_nc': ldh:nc() }), map{})" as="xs:anyURI"/>
-            <xsl:variable name="constructors" select="if (exists($types)) then document($request-uri) else ()" as="document-node()?"/>
-
-            <xsl:variable name="query-string" select="$constraint-query || ' VALUES $Type { ' || string-join(for $type in $types return '&lt;' || $type || '&gt;', ' ') || ' }'" as="xs:string"/>
-            <xsl:variable name="request-uri" select="ldh:href(ac:build-uri(resolve-uri('ns', ldt:base()), map{ 'query': $query-string, 'accept': 'application/sparql-results+xml' }), map{})" as="xs:anyURI"/>
-            <xsl:variable name="constraints" select="if (exists($types)) then document($request-uri) else ()" as="document-node()?"/>
-
-            <xsl:variable name="query-string" select="$shape-query || ' VALUES $Type { ' || string-join(for $type in $types return '&lt;' || $type || '&gt;', ' ') || ' }'" as="xs:string"/>
-            <xsl:variable name="request-uri" select="ldh:href(ac:build-uri(resolve-uri('ns', ldt:base()), map{ 'query': $query-string, 'accept': 'application/rdf+xml' }), map{})" as="xs:anyURI"/>
-            <xsl:variable name="shapes" select="document($request-uri)" as="document-node()"/>
-
-            <xsl:apply-templates select="$constructed-doc" mode="bs2:RowForm">
-                <xsl:with-param name="about" select="()"/> <!-- don't set @about on the container until after the resource is saved -->
-                <xsl:with-param name="method" select="$method"/>
-                <xsl:with-param name="action" select="ldh:href($doc-uri)" as="xs:anyURI" tunnel="yes"/>
-                <xsl:with-param name="type-metadata" select="$type-metadata" tunnel="yes"/>
-                <xsl:with-param name="property-metadata" select="$property-metadata" tunnel="yes"/>
-                <xsl:with-param name="constructor" select="$constructed-doc" tunnel="yes"/>
-                <xsl:with-param name="constructors" select="$constructors" tunnel="yes"/>
-                <xsl:with-param name="constraints" select="$constraints" tunnel="yes"/>
-                <xsl:with-param name="shapes" select="$shapes" tunnel="yes"/>
-                <xsl:with-param name="base-uri" select="ac:absolute-path(ldh:base-uri(.))" tunnel="yes"/> <!-- ac:absolute-path(ldh:base-uri(.)) is empty on constructed documents -->
-                <xsl:with-param name="show-cancel-button" select="false()"/>
-            </xsl:apply-templates>
-        </xsl:variable>
-
-        <!-- insert $row-form before the .add-constructor container TO-DO: replace with <xsl:result-document href="?." method="ixsl:insert-after"> when SaxonJS 3 is available https://saxonica.plan.io/issues/5543 -->
-        <xsl:sequence select="ixsl:call($container, 'before', [ $row-form ])[current-date() lt xs:date('2000-01-01')]"/>
-
-        <!-- apply client-side templates on the appended row form (now preceding sibling of the $container) -->
-        <xsl:apply-templates select="$container/preceding-sibling::*[1]" mode="ldh:RenderRowForm"/>
-
-        <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
+        <ixsl:promise select="ixsl:resolve($context) =>
+            ixsl:then(ldh:load-constructed-doc#1) =>
+            ixsl:then(ldh:http-request-threaded(?, 'constructed-doc-request', 'constructed-doc-response')) =>
+            ixsl:then(ldh:handle-response(?, 'constructed-doc-response')) =>
+            ixsl:then(ldh:set-constructed-doc#1) =>
+            ixsl:then(ldh:set-row-form-resource#1) =>
+            ixsl:then(ldh:load-constructors#1) =>
+            ixsl:then(ldh:http-request-threaded(?, 'constructors-request', 'constructors-response')) =>
+            ixsl:then(ldh:handle-response(?, 'constructors-response')) =>
+            ixsl:then(ldh:set-constructors#1) =>
+            ixsl:then(ldh:load-shapes#1) =>
+            ixsl:then(ldh:http-request-threaded(?, 'shapes-request', 'shapes-response')) =>
+            ixsl:then(ldh:handle-response(?, 'shapes-response')) =>
+            ixsl:then(ldh:set-shapes#1) =>
+            ixsl:then(ldh:render-add-row-form#1)"
+            on-failure="ldh:promise-failure#1"/>
     </xsl:template>
     
     <!-- types (classes with constructors) are looked up in the <ns> endpoint -->
@@ -1085,37 +1234,17 @@ WHERE
 
     <!-- select .type-typeahead item (priority over plain .typeahead) -->
     
-    <xsl:template match="ul[contains-token(@class, 'dropdown-menu')][contains-token(@class, 'type-typeahead')]/li" mode="ixsl:onmousedown" priority="1">
-        <xsl:param name="typeahead-class" select="'btn add-typeahead add-type-typeahead'" as="xs:string"/>
-        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
-        <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'row-fluid')][1]" as="element()"/>
-        <xsl:variable name="fieldset" select="ancestor::fieldset" as="element()"/>
-        <xsl:variable name="doc-uri" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/>
-        <xsl:variable name="resource-id" select="input[@name = ('ou', 'ob')]/ixsl:get(., 'value')" as="xs:string"/> <!-- can be URI resource or blank node ID -->
-        <xsl:variable name="typeahead-doc" select="ixsl:get(ixsl:window(), 'LinkedDataHub.typeahead.rdfXml')" as="document-node()"/>
-        <xsl:variable name="resource" select="key('resources', $resource-id, $typeahead-doc)" as="element()"/>
-        <xsl:variable name="control-group" select="ancestor::div[contains-token(@class, 'control-group')]" as="element()"/>
-        <xsl:variable name="forClass" select="../../ixsl:get(., 'dataset.forClass') ! tokenize(.) ! xs:anyURI(.)" as="xs:anyURI*"/>
+    <!-- Fold step for the type-typeahead chain: reads pre-fetched SHACL shapes from context,
+         builds the shape-instance doc, applies ldh:SetResourceID to both shape-instance and the
+         async-fetched SPIN constructed-doc, merges them, and derives the row-form resource + types.
+         Requires context('shapes') populated by an upstream ldh:load-shapes / ldh:set-shapes pair. -->
+    <xsl:function name="ldh:set-typeahead-form-resource" as="map(*)" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:variable name="constructed-doc" select="$context('constructed-doc')" as="document-node()"/>
+        <xsl:variable name="forClass" select="$context('forClass')" as="xs:anyURI"/>
+        <xsl:variable name="this" select="$context('this')" as="xs:anyURI"/>
+        <xsl:variable name="shapes" select="$context('shapes')" as="document-node()?"/>
 
-        <xsl:for-each select="../..">
-            <xsl:variable name="typeahead" as="element()">
-                <xsl:apply-templates select="$resource" mode="ldh:Typeahead">
-                    <xsl:with-param name="class" select="$typeahead-class"/>
-                    <xsl:with-param name="forClass" select="$forClass"/>
-                </xsl:apply-templates>
-            </xsl:variable>
-            
-            <xsl:result-document href="?." method="ixsl:replace-content">
-                <xsl:sequence select="$typeahead/*"/>
-            </xsl:result-document>
-        </xsl:for-each>
-
-        <xsl:variable name="forClass" select="$resource/@rdf:about" as="xs:anyURI"/>
-        <xsl:variable name="doc-uri" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/>
-        <xsl:variable name="this" select="xs:anyURI($doc-uri || '#id' || ac:uuid())" as="xs:anyURI"/>
-        <!-- TO-DO: refactor to use asynchronous HTTP requests -->
-        <xsl:variable name="request-uri" select="ldh:href(ac:build-uri(resolve-uri('ns', ldt:base()), map{ 'query': replace($shape-query, '$Type', concat('&lt;', $forClass, '&gt;'), 'q'), 'accept': 'application/rdf+xml' }), map{})" as="xs:anyURI"/>
-        <xsl:variable name="shapes" select="document($request-uri)" as="document-node()"/>
         <xsl:variable name="shape-instance-doc" as="document-node()">
             <xsl:apply-templates select="$shapes" mode="ldh:Shape"/>
         </xsl:variable>
@@ -1128,8 +1257,8 @@ WHERE
                 </xsl:apply-templates>
             </xsl:document>
         </xsl:variable>
-        <xsl:variable name="constructed-doc" select="ldh:construct-forClass($forClass)" as="document-node()"/>
-        <xsl:variable name="constructed-doc" as="document-node()">
+
+        <xsl:variable name="constructed-doc-with-id" as="document-node()">
             <xsl:document>
                 <xsl:apply-templates select="$constructed-doc" mode="ldh:SetResourceID">
                     <xsl:with-param name="forClass" select="$forClass" tunnel="yes"/>
@@ -1137,11 +1266,12 @@ WHERE
                 </xsl:apply-templates>
             </xsl:document>
         </xsl:variable>
+
         <!-- merge SHACL-based constructor with SPIN-based constructor -->
-        <xsl:variable name="constructed-doc" as="document-node()">
+        <xsl:variable name="merged-doc" as="document-node()">
             <xsl:document>
                 <rdf:RDF>
-                    <xsl:for-each-group select="$shape-instance-doc/rdf:RDF/rdf:Description, $constructed-doc/rdf:RDF/rdf:Description" group-by="@rdf:about, @rdf:nodeID">
+                    <xsl:for-each-group select="$shape-instance-doc/rdf:RDF/rdf:Description, $constructed-doc-with-id/rdf:RDF/rdf:Description" group-by="@rdf:about, @rdf:nodeID">
                         <xsl:copy>
                             <xsl:copy-of select="@*"/>
                             <xsl:for-each-group select="current-group()/*" group-by="@rdf:resource, @rdf:nodeID, node(), @rdf:datatype, @xml:lang">
@@ -1151,18 +1281,37 @@ WHERE
                     </xsl:for-each-group>
                 </rdf:RDF>
             </xsl:document>
-        </xsl:variable>        
+        </xsl:variable>
+
+        <xsl:variable name="resource" select="key('resources-by-type', $forClass, $merged-doc)[not(key('predicates-by-object', @rdf:nodeID))]" as="element()"/>
+        <xsl:variable name="types" select="for $t in distinct-values($resource/rdf:type/@rdf:resource) return xs:anyURI($t)" as="xs:anyURI*"/>
+
+        <xsl:sequence select="map:merge(($context, map{
+            'constructed-doc': $merged-doc,
+            'shapes': $shapes,
+            'resource': $resource,
+            'types': $types
+        }), map{ 'duplicates': 'use-last' })"/>
+    </xsl:function>
+
+    <!-- Terminal callback for the type-typeahead chain. Reads context (including async-fetched shapes
+         and constructors), does the remaining (still-sync) type-metadata/property-metadata/constraints fetches,
+         applies bs2:Form to render the new fieldset, replaces the existing fieldset content, and re-runs
+         ldh:RenderRowForm to wire up event listeners. -->
+    <xsl:function name="ldh:render-typeahead-row-form" as="item()*" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:variable name="fieldset" select="$context('fieldset')" as="element()"/>
+        <xsl:variable name="doc-uri" select="$context('doc-uri')" as="xs:anyURI"/>
+        <xsl:variable name="constructed-doc" select="$context('constructed-doc')" as="document-node()"/>
+        <xsl:variable name="resource" select="$context('resource')" as="element()"/>
+        <xsl:variable name="types" select="$context('types')" as="xs:anyURI*"/>
+        <xsl:variable name="constructors" select="$context('constructors')" as="document-node()?"/>
+        <xsl:variable name="shapes" select="$context('shapes')" as="document-node()?"/>
         <xsl:variable name="classes" select="()" as="element()*"/>
 
-        <!-- update @typeof value -->
-        <ixsl:set-attribute name="typeof" select="$forClass" object="$container"/>
-
         <xsl:for-each select="$fieldset">
-            <!-- TO-DO: unify with .btn-edit onclick -->
-            <xsl:variable name="resource" select="key('resources-by-type', $forClass, $constructed-doc)[not(key('predicates-by-object', @rdf:nodeID))]" as="element()"/>
             <xsl:variable name="new-fieldset" as="element()*">
-                <!-- TO-DO: refactor to use asynchronous HTTP requests -->
-                <xsl:variable name="types" select="distinct-values($resource/rdf:type/@rdf:resource)" as="xs:anyURI*"/>
+                <!-- TO-DO: refactor remaining synchronous document() calls (type-metadata, property-metadata, constraints) into load/set pairs -->
                 <xsl:variable name="query-string" select="'DESCRIBE $Type VALUES $Type { ' || string-join(for $type in $types return '&lt;' || $type || '&gt;', ' ') || ' }'" as="xs:string"/>
                 <xsl:variable name="request-uri" select="ldh:href(ac:build-uri(resolve-uri('ns', ldt:base()), map{ 'query': $query-string, 'accept': 'application/rdf+xml' }), map{})" as="xs:anyURI"/>
                 <xsl:variable name="type-metadata" select="if (exists($types)) then document($request-uri) else ()" as="document-node()?"/>
@@ -1171,10 +1320,6 @@ WHERE
                 <xsl:variable name="query-string" select="'DESCRIBE $Type VALUES $Type { ' || string-join(for $uri in $property-uris return '&lt;' || $uri || '&gt;', ' ') || ' }'" as="xs:string"/>
                 <xsl:variable name="request-uri" select="ldh:href(ac:build-uri(resolve-uri('ns', ldt:base()), map{ 'query': $query-string, 'accept': 'application/rdf+xml' }), map{})" as="xs:anyURI"/>
                 <xsl:variable name="property-metadata" select="document($request-uri)" as="document-node()"/>
-
-                <xsl:variable name="query-string" select="$constructor-query || ' VALUES $Type { ' || string-join(for $type in $types return '&lt;' || $type || '&gt;', ' ') || ' }'" as="xs:string"/>
-                <xsl:variable name="request-uri" select="ldh:href(ac:build-uri(resolve-uri('ns', ldt:base()), map{ 'query': $query-string, 'accept': 'application/sparql-results+xml', '_nc': ldh:nc() }), map{})" as="xs:anyURI"/>
-                <xsl:variable name="constructors" select="if (exists($types)) then document($request-uri) else ()" as="document-node()?"/>
 
                 <xsl:variable name="query-string" select="$constraint-query || ' VALUES $Type { ' || string-join(for $type in $types return '&lt;' || $type || '&gt;', ' ') || ' }'" as="xs:string"/>
                 <xsl:variable name="request-uri" select="ldh:href(ac:build-uri(resolve-uri('ns', ldt:base()), map{ 'query': $query-string, 'accept': 'application/sparql-results+xml' }), map{})" as="xs:anyURI"/>
@@ -1190,7 +1335,7 @@ WHERE
                     <xsl:with-param name="constructors" select="$constructors" tunnel="yes"/>
                     <xsl:with-param name="constraints" select="$constraints" tunnel="yes"/>
                     <xsl:with-param name="shapes" select="$shapes" tunnel="yes"/>
-                    <xsl:with-param name="base-uri" select="ac:absolute-path(ldh:base-uri(.))" tunnel="yes"/> <!-- ac:absolute-path(ldh:base-uri(.)) is empty on constructed documents -->
+                    <xsl:with-param name="base-uri" select="$doc-uri" tunnel="yes"/>
                     <xsl:with-param name="show-cancel-button" select="false()"/>
                 </xsl:apply-templates>
             </xsl:variable>
@@ -1200,7 +1345,7 @@ WHERE
                     <xsl:copy-of select="$new-fieldset/*"/>
                 </xsl:result-document>
             </xsl:for-each>
-            
+
             <!-- add event listeners to the descendants of the fieldset TO-DO: replace with XSLT -->
             <xsl:if test="id(@id, ixsl:page())">
                 <xsl:apply-templates select="id(@id, ixsl:page())" mode="ldh:RenderRowForm"/>
@@ -1208,6 +1353,68 @@ WHERE
         </xsl:for-each>
 
         <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
+    </xsl:function>
+
+    <xsl:template match="ul[contains-token(@class, 'dropdown-menu')][contains-token(@class, 'type-typeahead')]/li" mode="ixsl:onmousedown" priority="1">
+        <xsl:param name="typeahead-class" select="'btn add-typeahead add-type-typeahead'" as="xs:string"/>
+        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+        <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'row-fluid')][1]" as="element()"/>
+        <xsl:variable name="fieldset" select="ancestor::fieldset" as="element()"/>
+        <xsl:variable name="doc-uri" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/>
+        <xsl:variable name="resource-id" select="input[@name = ('ou', 'ob')]/ixsl:get(., 'value')" as="xs:string"/> <!-- can be URI resource or blank node ID -->
+        <xsl:variable name="typeahead-doc" select="ixsl:get(ixsl:window(), 'LinkedDataHub.typeahead.rdfXml')" as="document-node()"/>
+        <xsl:variable name="resource" select="key('resources', $resource-id, $typeahead-doc)" as="element()"/>
+        <xsl:variable name="initial-forClass" select="../../ixsl:get(., 'dataset.forClass') ! tokenize(.) ! xs:anyURI(.)" as="xs:anyURI*"/>
+
+        <!-- render the typeahead button replacing the dropdown (synchronous DOM mutation, runs before the promise) -->
+        <xsl:for-each select="../..">
+            <xsl:variable name="typeahead" as="element()">
+                <xsl:apply-templates select="$resource" mode="ldh:Typeahead">
+                    <xsl:with-param name="class" select="$typeahead-class"/>
+                    <xsl:with-param name="forClass" select="$initial-forClass"/>
+                </xsl:apply-templates>
+            </xsl:variable>
+
+            <xsl:result-document href="?." method="ixsl:replace-content">
+                <xsl:sequence select="$typeahead/*"/>
+            </xsl:result-document>
+        </xsl:for-each>
+
+        <xsl:variable name="forClass" select="xs:anyURI($resource/@rdf:about)" as="xs:anyURI"/>
+        <xsl:variable name="this" select="xs:anyURI($doc-uri || '#id' || ac:uuid())" as="xs:anyURI"/>
+
+        <!-- update @typeof value on container (synchronous DOM mutation, runs before the promise) -->
+        <ixsl:set-attribute name="typeof" select="$forClass" object="$container"/>
+
+        <!-- 'types' is initially set to ($forClass) so the shape fetch (which runs before
+             ldh:set-typeahead-form-resource and feeds the SHACL+SPIN merge) targets the right class.
+             After ldh:set-typeahead-form-resource runs the merge and extracts the real types from the
+             merged document, it overwrites 'types' to the actual derived value used by load-constructors. -->
+        <xsl:variable name="context" as="map(*)" select="map{
+            'container': $container,
+            'fieldset': $fieldset,
+            'doc-uri': $doc-uri,
+            'forClass': $forClass,
+            'types': ($forClass),
+            'this': $this
+        }"/>
+
+        <ixsl:promise select="ixsl:resolve($context) =>
+            ixsl:then(ldh:load-constructed-doc#1) =>
+            ixsl:then(ldh:http-request-threaded(?, 'constructed-doc-request', 'constructed-doc-response')) =>
+            ixsl:then(ldh:handle-response(?, 'constructed-doc-response')) =>
+            ixsl:then(ldh:set-constructed-doc#1) =>
+            ixsl:then(ldh:load-shapes#1) =>
+            ixsl:then(ldh:http-request-threaded(?, 'shapes-request', 'shapes-response')) =>
+            ixsl:then(ldh:handle-response(?, 'shapes-response')) =>
+            ixsl:then(ldh:set-shapes#1) =>
+            ixsl:then(ldh:set-typeahead-form-resource#1) =>
+            ixsl:then(ldh:load-constructors#1) =>
+            ixsl:then(ldh:http-request-threaded(?, 'constructors-request', 'constructors-response')) =>
+            ixsl:then(ldh:handle-response(?, 'constructors-response')) =>
+            ixsl:then(ldh:set-constructors#1) =>
+            ixsl:then(ldh:render-typeahead-row-form#1)"
+            on-failure="ldh:promise-failure#1"/>
     </xsl:template>
     
     <!-- select typeahead item -->
