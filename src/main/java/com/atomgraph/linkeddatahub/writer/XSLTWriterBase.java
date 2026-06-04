@@ -27,7 +27,6 @@ import com.atomgraph.linkeddatahub.vocabulary.ORCID;
 import com.atomgraph.linkeddatahub.vocabulary.LAPP;
 import com.atomgraph.client.vocabulary.LDT;
 import com.atomgraph.core.util.Link;
-import com.atomgraph.core.vocabulary.SD;
 import com.atomgraph.linkeddatahub.server.security.AuthorizationContext;
 import com.atomgraph.linkeddatahub.vocabulary.FOAF;
 import com.atomgraph.linkeddatahub.vocabulary.LDHC;
@@ -55,6 +54,7 @@ import javax.xml.transform.stream.StreamSource;
 import net.sf.saxon.s9api.QName;
 import net.sf.saxon.s9api.SaxonApiException;
 import net.sf.saxon.s9api.XdmAtomicValue;
+import net.sf.saxon.s9api.XdmMap;
 import net.sf.saxon.s9api.XdmValue;
 import net.sf.saxon.s9api.XsltExecutable;
 import org.apache.http.HttpHeaders;
@@ -76,8 +76,6 @@ public abstract class XSLTWriterBase extends com.atomgraph.client.writer.XSLTWri
     private static final Set<String> NAMESPACES;
     /** The relative URL of the RDF file with localized labels */
     public static final String TRANSLATIONS_PATH = "static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf";
-    /** System property name for the XSLT system ID. */
-    public static final String SYSTEM_ID_PROPERTY = "com.atomgraph.linkeddatahub.writer.XSLTWriterBase.systemId";
     
     static
     {
@@ -92,7 +90,6 @@ public abstract class XSLTWriterBase extends com.atomgraph.client.writer.XSLTWri
     @Inject jakarta.inject.Provider<Optional<com.atomgraph.linkeddatahub.apps.model.Application>> application;
     @Inject jakarta.inject.Provider<DataManager> dataManager;
     @Inject jakarta.inject.Provider<XsltExecutableSupplier> xsltExecSupplier;
-    @Inject jakarta.inject.Provider<List<Mode>> modes;
     @Inject jakarta.inject.Provider<ContainerRequestContext> crc;
     @Inject jakarta.inject.Provider<Optional<AuthorizationContext>> authorizationContext;
 
@@ -120,6 +117,9 @@ public abstract class XSLTWriterBase extends com.atomgraph.client.writer.XSLTWri
         try
         {
             params.put(new QName("ldh", LDH.requestUri.getNameSpace(), LDH.requestUri.getLocalName()), new XdmAtomicValue(getRequestURI()));
+
+            URI proxyTargetURI = (URI) getContainerRequestContext().getProperty(AC.uri.getURI());
+            if (proxyTargetURI != null) params.put(new QName("ac", AC.uri.getNameSpace(), AC.uri.getLocalName()), new XdmAtomicValue(proxyTargetURI));
             params.put(new QName("lapp", LAPP.Context.getNameSpace(), LAPP.Context.getLocalName()),
                 getXsltExecutable().getProcessor().newDocumentBuilder().build(getSource(getSystem().getContextModel())));
 
@@ -133,12 +133,6 @@ public abstract class XSLTWriterBase extends com.atomgraph.client.writer.XSLTWri
                 params.put(new QName("ldt", LDT.ontology.getNameSpace(), LDT.ontology.getLocalName()), new XdmAtomicValue(URI.create(app.getOntology().getURI())));
             }
             
-            URI endpointURI = getLinkURI(headerMap, SD.endpoint);
-            if (endpointURI != null) params.put(new QName("sd", SD.endpoint.getNameSpace(), SD.endpoint.getLocalName()), new XdmAtomicValue(endpointURI));
-            
-            String forShapeURI = getUriInfo().getQueryParameters().getFirst(LDH.forShape.getLocalName());
-            if (forShapeURI != null) params.put(new QName("ldh", LDH.forShape.getNameSpace(), LDH.forShape.getLocalName()), new XdmAtomicValue(URI.create(forShapeURI)));
-
             if (getSecurityContext() != null && getSecurityContext().getUserPrincipal() instanceof Agent)
             {
                 Agent agent = (Agent)getSecurityContext().getUserPrincipal();
@@ -154,15 +148,16 @@ public abstract class XSLTWriterBase extends com.atomgraph.client.writer.XSLTWri
                 params.put(new QName("foaf", FOAF.Agent.getNameSpace(), FOAF.Agent.getLocalName()),
                     getXsltExecutable().getProcessor().newDocumentBuilder().build(source));
             }
-            if (getAuthorizationContext().get().isPresent())
-                params.put(new QName("acl", ACL.mode.getNameSpace(), ACL.mode.getLocalName()),
-                    XdmValue.makeSequence(getAuthorizationContext().get().get().getModeURIs()));
+            XdmMap responseHeaders = new XdmMap();
+            for (Map.Entry<String, List<Object>> entry : headerMap.entrySet())
+            {
+                List<XdmAtomicValue> values = entry.getValue().stream().
+                    map(v -> new XdmAtomicValue(v.toString())).
+                    collect(Collectors.toList());
+                responseHeaders = responseHeaders.put(new XdmAtomicValue(entry.getKey()), XdmValue.makeSequence(values));
+            }
+            params.put(new QName("ldh", LDH.httpHeaders.getNameSpace(), LDH.httpHeaders.getLocalName()), responseHeaders);
 
-            // TO-DO: move to client-side?
-            if (getUriInfo().getQueryParameters().containsKey(LDH.access_to.getLocalName()))
-                params.put(new QName("ldh", LDH.access_to.getNameSpace(), LDH.access_to.getLocalName()),
-                    new XdmAtomicValue(URI.create(getUriInfo().getQueryParameters().getFirst(LDH.access_to.getLocalName()))));
-            
             if (getHttpHeaders().getRequestHeader(HttpHeaders.REFERER) != null)
             {
                 URI referer = URI.create(getHttpHeaders().getRequestHeader(HttpHeaders.REFERER).get(0));
@@ -249,10 +244,7 @@ public abstract class XSLTWriterBase extends com.atomgraph.client.writer.XSLTWri
     @Override
     public String getSystemId()
     {
-        if (getContainerRequestContext().hasProperty(SYSTEM_ID_PROPERTY))
-            return getContainerRequestContext().getProperty(SYSTEM_ID_PROPERTY).toString();
-        
-        return null;
+        return getUriInfo().getRequestUri().toString();
     }
     
     /**
@@ -310,22 +302,6 @@ public abstract class XSLTWriterBase extends com.atomgraph.client.writer.XSLTWri
     public XsltExecutable getXsltExecutable()
     {
         return xsltExecSupplier.get().get();
-    }
-    
-    @Override
-    public List<URI> getModes(Set<String> namespaces)
-    {
-        return getModes().stream().map(Mode::get).collect(Collectors.toList());
-    }
-
-    /**
-     * Returns a list of enabled layout modes.
-     * 
-     * @return list of modes
-     */
-    public List<Mode> getModes()
-    {
-        return modes.get();
     }
     
     @Override

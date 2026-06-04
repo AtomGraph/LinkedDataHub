@@ -148,6 +148,18 @@
         <rdfs:label xml:lang="en-US">Search for resources by title, label, content etc.</rdfs:label>
         <rdfs:label xml:lang="es-ES">Buscar recursos por título, etiqueta, contenido, etc.</rdfs:label>
     </rdf:Description>
+    <rdf:Description rdf:nodeID="address-bar">
+        <rdfs:label xml:lang="en-US">Go</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Ir</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="address-bar-title">
+        <rdfs:label xml:lang="en-US">Enter an http(s):// URI to navigate to</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Introduzca una URI http(s):// para navegar</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="search-placeholder">
+        <rdfs:label xml:lang="en-US">Search…</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Buscar…</rdfs:label>
+    </rdf:Description>
     <rdf:Description rdf:nodeID="application-list-title">
         <rdfs:label xml:lang="en-US">Applications</rdfs:label>
         <rdfs:label xml:lang="es-ES">Aplicaciones</rdfs:label>

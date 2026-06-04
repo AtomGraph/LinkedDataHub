@@ -80,9 +80,18 @@ find ./document-hierarchy/ -name '*.sh' -exec bash {} \;
 - `ServiceContext` decouples HTTP infrastructure from `Service`, holding dataspace and service metadata separately
 - Dataspace metadata and service metadata are split in configuration; types for `lapp:endUserApplication`/`lapp:adminApplication` are inferred on the fly from `system.trig`
 
+### Dataspaces
+Since v5.1.0, a single LDH instance supports multiple **dataspaces**, each identified by a distinct subdomain (origin). Each dataspace is a pair of applications: an end-user app (`<subdomain>`) and an admin app (`admin.<subdomain>`), routed by nginx via wildcard subdomain matching.
+
+Configuration is split across two files:
+- `config/dataspaces.trig` — public metadata: origins (`lapp:origin`), ontologies (`ldt:ontology`), stylesheets (`ac:stylesheet`)
+- `config/system.trig` — internal wiring: maps apps to SPARQL services (`ldt:service`) and assigns types (`lapp:AdminApplication`/`lapp:EndUserApplication`)
+
+Multiple dataspaces can share the same backend SPARQL service.
+
 ### Service Architecture
 The application runs as a multi-container setup:
-- **nginx**: Reverse proxy and SSL termination
+- **nginx**: Reverse proxy and SSL termination (wildcard subdomain routing for dataspaces)
 - **linkeddatahub**: Main Java application (Tomcat)
 - **fuseki-admin/fuseki-end-user**: Separate SPARQL stores
 - **varnish-frontend/varnish-admin/varnish-end-user**: Caching layers
@@ -91,8 +100,28 @@ The application runs as a multi-container setup:
 1. Requests come through nginx proxy
 2. Varnish provides caching layer
 3. LinkedDataHub application handles business logic
-4. Data persisted to appropriate Fuseki triplestore
-5. XSLT transforms data for client presentation
+4. RDF data is read/written via the **Graph Store Protocol** — each document in the hierarchy corresponds to a named graph in the triplestore; the document URI is the graph name
+5. Data persisted to appropriate Fuseki triplestore
+6. XSLT transforms data for client presentation
+
+### Linked Data Proxy and Client-Side Rendering
+
+LDH includes a Linked Data proxy that dereferences external URIs on behalf of the browser. The original design rendered proxied resources identically to local ones — server-side RDF fetch + XSLT. This created a DDoS/resource-exhaustion vector: scraper bots routing arbitrary external URIs through the proxy would trigger a full server-side pipeline (HTTP fetch → XSLT rendering) per request, exhausting HTTP connection pools and CPU.
+
+The current design splits rendering by request origin:
+
+- **Browser requests** (`Accept: text/html`): `ProxyRequestFilter` bypasses the proxy entirely. The server returns the local application shell. Saxon-JS then issues a second, RDF-typed request (`Accept: application/rdf+xml`) from the browser.
+- **RDF requests** (API clients, Saxon-JS second pass): `ProxyRequestFilter` fetches the external RDF, parses it, and returns it to the caller. No XSLT happens server-side.
+- **Client-side rendering**: Saxon-JS receives the raw RDF and applies the same XSLT 3 templates used server-side (shared stylesheet), so proxied resources look almost identical to local ones.
+
+Key implementation files:
+- `ProxyRequestFilter.java` — intercepts `?uri=` and `lapp:Dataset` proxy requests; HTML bypass; forwards external `Link` headers
+- `ApplicationFilter.java` — registers external proxy target URI in request context (`AC.uri` property) as authoritative proxy marker
+- `ResponseHeadersFilter.java` — skips local-only hypermedia links (`sd:endpoint`, `ldt:ontology`, `ac:stylesheet`) for proxy requests; external ones are forwarded by `ProxyRequestFilter`
+- `client.xsl` (`ldh:rdf-document-response`) — receives the RDF proxy response client-side; extracts `sd:endpoint` from `Link` header; stores it in `LinkedDataHub.endpoint`
+- `functions.xsl` (`sd:endpoint()`) — returns `LinkedDataHub.endpoint` when set (external proxy), otherwise falls back to the local SPARQL endpoint
+
+The SPARQL endpoint forwarding chain ensures ContentMode blocks (charts, maps) query the **remote** app's SPARQL endpoint, not the local one. `LinkedDataHub.endpoint` is reset to the local endpoint by `ldh:HTMLDocumentLoaded` on every HTML page navigation, so there is no stale state when navigating back to local documents.
 
 ### Key Extension Points
 - **Vocabulary definitions** in `com.atomgraph.linkeddatahub.vocabulary`

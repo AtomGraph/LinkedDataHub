@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE xsl:stylesheet [
     <!ENTITY ldh    "https://w3id.org/atomgraph/linkeddatahub#">
+    <!ENTITY lapp   "https://w3id.org/atomgraph/linkeddatahub/apps#">
     <!ENTITY ac     "https://w3id.org/atomgraph/client#">
     <!ENTITY rdf    "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
     <!ENTITY rdfs   "http://www.w3.org/2000/01/rdf-schema#">
@@ -22,6 +23,7 @@ xmlns:json="http://www.w3.org/2005/xpath-functions"
 xmlns:array="http://www.w3.org/2005/xpath-functions/array"
 xmlns:ac="&ac;"
 xmlns:ldh="&ldh;"
+xmlns:lapp="&lapp;"
 xmlns:rdf="&rdf;"
 xmlns:rdfs="&rdfs;"
 xmlns:srx="&srx;"
@@ -83,32 +85,36 @@ exclude-result-prefixes="#all"
         <xsl:context-item as="element()" use="required"/> <!-- container element -->
         <xsl:param name="type" as="xs:anyURI"/> <!-- the URI of the class that constructors are attached to -->
         <xsl:variable name="container" select="." as="element()"/>
-        
+
         <ixsl:set-style name="cursor" select="'progress'" object="."/>
 
-        <xsl:variable name="query-string" select="$constructor-query || ' VALUES $Type { &lt;' || $type || '&gt; }'" as="xs:string"/>
-        <xsl:variable name="results-uri" select="ac:build-uri(resolve-uri('ns', ldt:base()), map{ 'query': $query-string })" as="xs:anyURI"/>
-        <xsl:variable name="request" as="item()*">
-            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml' } }">
-                <xsl:call-template name="ldh:ConstructorMode">
-                    <xsl:with-param name="container" select="$container"/>
-                    <xsl:with-param name="type" select="$type"/>
-                </xsl:call-template>
-            </ixsl:schedule-action>
-        </xsl:variable>
-        <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
+        <xsl:variable name="context" as="map(*)" select="map{
+            'container': $container,
+            'type': $type,
+            'types': ($type)
+        }"/>
+
+        <ixsl:promise select="ixsl:resolve($context) =>
+            ixsl:then(ldh:load-constructors#1) =>
+            ixsl:then(ldh:http-request-threaded(?, 'constructors-request', 'constructors-response')) =>
+            ixsl:then(ldh:handle-response(?, 'constructors-response')) =>
+            ixsl:then(ldh:set-constructors#1) =>
+            ixsl:then(ldh:render-constructor-mode#1)"
+            on-failure="ldh:promise-failure#1"/>
     </xsl:template>
-    
-    <!-- render constructor template -->
-    <xsl:template name="ldh:ConstructorMode">
-        <xsl:context-item as="map(*)" use="required"/>
-        <xsl:param name="container" as="element()"/>
-        <xsl:param name="type" as="xs:anyURI"/> <!-- the URI of the class that constructors are attached to -->
+
+    <!-- Terminal callback for the LoadConstructors promise chain. Renders the constructor-edit modal
+         from context('constructors'); falls back to an alert when the fetch returned a non-success status
+         (ldh:set-constructors leaves the 'constructors' key absent in that case). -->
+    <xsl:function name="ldh:render-constructor-mode" as="item()*" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:variable name="container" select="$context('container')" as="element()"/>
+        <xsl:variable name="type" select="$context('type')" as="xs:anyURI"/>
 
         <xsl:choose>
-            <xsl:when test="?status = 200 and ?media-type = 'application/sparql-results+xml'">
-                <xsl:variable name="constructors" select="?body" as="document-node()"/>
-                
+            <xsl:when test="map:contains($context, 'constructors') and exists($context('constructors'))">
+                <xsl:variable name="constructors" select="$context('constructors')" as="document-node()"/>
+
                 <xsl:for-each select="$container">
                     <xsl:result-document href="?." method="ixsl:append-content">
                         <div class="modal modal-constructor fade in">
@@ -117,7 +123,7 @@ exclude-result-prefixes="#all"
                                     <button type="button" class="close">&#215;</button>
 
                                     <h3>
-                                        <xsl:variable name="request-uri" select="ac:build-uri(resolve-uri('ns', ldt:base()), map{ 'query': 'DESCRIBE &lt;' || $type || '&gt;', 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
+                                        <xsl:variable name="request-uri" select="ldh:href(ac:build-uri(resolve-uri('ns', ldt:base()), map{ 'query': 'DESCRIBE &lt;' || $type || '&gt;', 'accept': 'application/rdf+xml' }), map{})" as="xs:anyURI"/>
 
                                         <xsl:apply-templates select="key('resources', $type, document(ac:document-uri($request-uri)))" mode="ac:label"/>
                                     </h3>
@@ -126,7 +132,6 @@ exclude-result-prefixes="#all"
                                     <xsl:for-each select="$constructors//srx:result">
                                         <xsl:variable name="constructor-uri" select="srx:binding[@name = 'constructor']/srx:uri" as="xs:anyURI"/>
                                         <xsl:variable name="construct-string" select="srx:binding[@name = 'construct']/srx:literal" as="xs:string"/>
-                                        <!--<xsl:message>$construct-string: <xsl:value-of select="serialize($construct-string)"/></xsl:message>-->
                                         <xsl:variable name="construct-json" as="item()">
                                             <xsl:variable name="construct-builder" select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'fromString', [ $construct-string ])"/>
                                             <xsl:sequence select="ixsl:call($construct-builder, 'build', [])"/>
@@ -139,11 +144,11 @@ exclude-result-prefixes="#all"
                                             <xsl:with-param name="construct-xml" select="$construct-xml"/>
                                         </xsl:call-template>
                                     </xsl:for-each>
-                                    
+
                                     <p>
                                         <button type="button" class="btn btn-primary create-action add-constructor">
                                             <xsl:value-of>
-                                                <xsl:apply-templates select="key('resources', 'constructor', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                                                <xsl:apply-templates select="key('resources', 'constructor', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', lapp:origin())))" mode="ac:label"/>
                                             </xsl:value-of>
                                         </button>
                                     </p>
@@ -151,27 +156,27 @@ exclude-result-prefixes="#all"
                                 <div class="form-actions modal-footer">
                                     <button type="button" class="btn btn-primary btn-save">
                                         <xsl:value-of>
-                                            <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                                            <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', lapp:origin())))" mode="ac:label"/>
                                         </xsl:value-of>
                                     </button>
                                     <button type="button" class="btn btn-close">
                                         <xsl:value-of>
-                                            <xsl:apply-templates select="key('resources', 'cancel', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                                            <xsl:apply-templates select="key('resources', 'cancel', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', lapp:origin())))" mode="ac:label"/>
                                         </xsl:value-of>
                                     </button>
                                 </div>
                             </form>
                         </div>
                     </xsl:result-document>
-                 </xsl:for-each>
+                </xsl:for-each>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ 'Could not load constructors for class &quot;' || $type || '&quot;' ])[current-date() lt xs:date('2000-01-01')]"/>
+                <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ 'Could not load constructors for class &quot;' || $type || '&quot;' ])[current-date() lt xs:date('2000-01-01')]"/>
             </xsl:otherwise>
         </xsl:choose>
-        
-        <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
-    </xsl:template>
+
+        <ixsl:set-style name="cursor" select="'default'" object="$container"/>
+    </xsl:function>
 
     <xsl:template match="json:array[@key = 'template']/json:map[json:string[@key = 'subject'] = '?this']" mode="bs2:ConstructorTripleForm" priority="1">
         <xsl:param name="class" select="'control-group constructor-triple'" as="xs:string?"/>
@@ -195,11 +200,37 @@ exclude-result-prefixes="#all"
         <label class="control-label">
             <xsl:choose>
                 <xsl:when test="$predicate">
-                    <xsl:variable name="request-uri" select="ac:build-uri(resolve-uri('ns', ldt:base()), map{ 'query': 'DESCRIBE &lt;' || $predicate || '&gt;', 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
+                    <xsl:variable name="request-uri" select="ldh:href(ac:build-uri(resolve-uri('ns', ldt:base()), map{ 'query': 'DESCRIBE &lt;' || $predicate || '&gt;', 'accept': 'application/rdf+xml' }), map{})" as="xs:anyURI"/>
+                    <xsl:variable name="ontology-doc-uri" select="ac:document-uri($predicate)" as="xs:anyURI"/>
+                    <!-- /ns DESCRIBE resolves predicates from the app's ontology import closure (typically user-defined classes);
+                         ixsl:doc-fetched picks up predicates whose ontology doc the page already pulled into the SaxonJS pool (typically system vocabularies) -->
+                    <xsl:variable name="resource" select="(
+                        key('resources', $predicate, document($request-uri))[*][@rdf:about or @rdf:nodeID],
+                        if (ixsl:doc-fetched($ontology-doc-uri)) then key('resources', $predicate, document($ontology-doc-uri))[*][@rdf:about or @rdf:nodeID] else ()
+                    )[1]" as="element()?"/>
 
-                    <xsl:apply-templates select="key('resources', $predicate, document($request-uri))" mode="ldh:Typeahead">
-                        <xsl:with-param name="class" select="'btn add-typeahead add-property-typeahead'"/>
-                    </xsl:apply-templates>
+                    <xsl:choose>
+                        <xsl:when test="exists($resource)">
+                            <xsl:apply-templates select="$resource" mode="ldh:Typeahead">
+                                <xsl:with-param name="class" select="'btn add-typeahead add-property-typeahead'"/>
+                            </xsl:apply-templates>
+                        </xsl:when>
+                        <xsl:otherwise>
+                            <!-- no metadata available for $predicate: synthesize a minimal rdf:Description so ldh:Typeahead matches and ac:label falls back to the URI tail -->
+                            <xsl:variable name="synthetic" as="document-node()">
+                                <xsl:document>
+                                    <rdf:RDF>
+                                        <rdf:Description rdf:about="{$predicate}">
+                                            <rdf:type rdf:resource="&rdf;Property"/>
+                                        </rdf:Description>
+                                    </rdf:RDF>
+                                </xsl:document>
+                            </xsl:variable>
+                            <xsl:apply-templates select="$synthetic/rdf:RDF/rdf:Description" mode="ldh:Typeahead">
+                                <xsl:with-param name="class" select="'btn add-typeahead add-property-typeahead'"/>
+                            </xsl:apply-templates>
+                        </xsl:otherwise>
+                    </xsl:choose>
                 </xsl:when>
                 <xsl:otherwise>
                     <xsl:variable name="uuid" select="ixsl:call(ixsl:window(), 'generateUUID', [])" as="xs:string"/>
@@ -224,7 +255,7 @@ exclude-result-prefixes="#all"
                 <button type="button" class="btn btn-small pull-right btn-remove-property" tabindex="-1">
                     <xsl:attribute name="title">
                         <xsl:value-of>
-                            <xsl:apply-templates select="key('resources', 'remove-stmt', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                            <xsl:apply-templates select="key('resources', 'remove-stmt', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', lapp:origin())))" mode="ac:label"/>
                         </xsl:value-of>
                     </xsl:attribute>
                 </button>
@@ -237,7 +268,7 @@ exclude-result-prefixes="#all"
                     </xsl:if>
                 </input>
                 <xsl:value-of>
-                    <xsl:apply-templates select="key('resources', 'resource', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                    <xsl:apply-templates select="key('resources', 'resource', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', lapp:origin())))" mode="ac:label"/>
                 </xsl:value-of>
             </label>
             <label class="radio">
@@ -247,7 +278,7 @@ exclude-result-prefixes="#all"
                     </xsl:if>
                 </input>
                 <xsl:value-of>
-                    <xsl:apply-templates select="key('resources', 'literal', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                    <xsl:apply-templates select="key('resources', 'literal', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', lapp:origin())))" mode="ac:label"/>
                 </xsl:value-of>
             </label>
 
@@ -275,7 +306,7 @@ exclude-result-prefixes="#all"
         <fieldset about="{$constructor-uri}">
             <legend>
                 <a href="{$constructor-uri}" title="{$constructor-uri}" target="_blank">
-                    <xsl:variable name="request-uri" select="ac:build-uri(resolve-uri('ns', ldt:base()), map{ 'query': 'DESCRIBE &lt;' || $constructor-uri || '&gt;', 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
+                    <xsl:variable name="request-uri" select="ldh:href(ac:build-uri(resolve-uri('ns', ldt:base()), map{ 'query': 'DESCRIBE &lt;' || $constructor-uri || '&gt;', 'accept': 'application/rdf+xml' }), map{})" as="xs:anyURI"/>
                     <xsl:apply-templates select="key('resources', $constructor-uri, document($request-uri))" mode="ac:label"/>
                 </a>
             </legend>
@@ -365,7 +396,7 @@ exclude-result-prefixes="#all"
 
         <xsl:choose>
             <xsl:when test="$object-type">
-                <xsl:variable name="request-uri" select="ac:build-uri(resolve-uri('ns', ldt:base()), map{ 'query': 'DESCRIBE &lt;' || $object-type || '&gt;', 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
+                <xsl:variable name="request-uri" select="ldh:href(ac:build-uri(resolve-uri('ns', ldt:base()), map{ 'query': 'DESCRIBE &lt;' || $object-type || '&gt;', 'accept': 'application/rdf+xml' }), map{})" as="xs:anyURI"/>
 
                 <xsl:apply-templates select="key('resources', $object-type, document($request-uri))" mode="ldh:Typeahead">
                     <xsl:with-param name="class" select="'btn add-typeahead add-class-typeahead'"/>
@@ -390,7 +421,7 @@ exclude-result-prefixes="#all"
     <xsl:template match="button[contains-token(@class, 'btn-edit-constructors')]" mode="ixsl:onclick">"
         <xsl:variable name="type" select="ixsl:get(., 'dataset.resourceType')" as="xs:anyURI"/>
 
-        <xsl:for-each select="ixsl:page()//body">
+        <xsl:for-each select="id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')][contains-token(@class, 'active')]/div[contains-token(@class, 'document-body')]/div[contains-token(@class, 'content-body')]">
             <xsl:call-template name="ldh:LoadConstructors">
                 <xsl:with-param name="type" select="$type"/>
             </xsl:call-template>
@@ -492,7 +523,7 @@ exclude-result-prefixes="#all"
         <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
 
         <xsl:variable name="request" as="item()*">
-            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml' } }">
+            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml' } }">
                 <xsl:call-template name="onTypeGraphLoad">
                     <xsl:with-param name="container" select="$container"/>
                     <xsl:with-param name="type" select="$type"/>
@@ -590,7 +621,7 @@ exclude-result-prefixes="#all"
                 <!-- TO-DO: make sure we're in the end-user application -->
                 <xsl:variable name="namespace" select="xs:anyURI(if (contains($type, '#')) then substring-before($type, '#') || '#' else string-join(tokenize($type, '/')[not(position() = last())], '/') || '/')" as="xs:anyURI"/>
                 <!-- query NS ontology to retrieve the ontology URI from the $type class' rdfs:isDefinedBy value. Fallback to the assumed $type's namespace URI -->
-                <xsl:variable name="request-uri" select="ac:build-uri(resolve-uri('ns', ldt:base()), map{ 'query': 'DESCRIBE &lt;' || $type || '&gt;', 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
+                <xsl:variable name="request-uri" select="ldh:href(ac:build-uri(resolve-uri('ns', ldt:base()), map{ 'query': 'DESCRIBE &lt;' || $type || '&gt;', 'accept': 'application/rdf+xml' }), map{})" as="xs:anyURI"/>
                 <xsl:variable name="ontology-uri" select="(key('resources', $type, document(ac:document-uri($request-uri)))/rdfs:isDefinedBy/@rdf:resource, $namespace)[1]" as="xs:anyURI"/>
                 <xsl:variable name="form-data" select="ixsl:new('URLSearchParams', [ ixsl:new('FormData', []) ])"/>
                 <xsl:sequence select="ixsl:call($form-data, 'append', [ 'uri', $ontology-uri ])[current-date() lt xs:date('2000-01-01')]"/>
