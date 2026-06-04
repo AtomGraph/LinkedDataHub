@@ -693,7 +693,9 @@ extension-element-prefixes="ixsl"
                         <xsl:apply-templates select=".." mode="bs2:Graph"/>
                     </xsl:when>
                     <xsl:when test="$mode = '&ac;EditMode'">
-                        <xsl:apply-templates select="." mode="bs2:Form"/>
+                        <xsl:apply-templates select="." mode="bs2:Form">
+                            <xsl:with-param name="required" select="rdf:type/@rdf:resource = ('&dh;Container', '&dh;Item')" tunnel="yes"/>
+                        </xsl:apply-templates>
                     </xsl:when>
                     <xsl:otherwise>
                         <xsl:apply-templates select="."/>
@@ -1137,6 +1139,7 @@ extension-element-prefixes="ixsl"
                     <xsl:apply-templates select="." mode="bs2:Form">
                         <xsl:with-param name="method" select="$method"/>
                         <xsl:with-param name="action" select="$action" tunnel="yes"/>
+                        <xsl:with-param name="required" select="rdf:type/@rdf:resource = ('&dh;Container', '&dh;Item')" tunnel="yes"/>
                     </xsl:apply-templates>
 
                     <div class="form-actions">
@@ -1177,8 +1180,10 @@ extension-element-prefixes="ixsl"
     <xsl:template match="*[@rdf:nodeID][key('predicates-by-object', @rdf:nodeID)][not(* except rdf:type or rdf:type/@rdf:resource = '&owl;NamedIndividual')]" mode="bs2:Form" priority="2"/>
 
     <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:Form">
+        <xsl:param name="required" select="false()" as="xs:boolean" tunnel="yes"/>
         <xsl:apply-templates select="." mode="bs2:FormControl">
             <xsl:with-param name="inline" select="false()" tunnel="yes"/>
+            <xsl:with-param name="required" select="$required"/>
         </xsl:apply-templates>
     </xsl:template>
     
@@ -1241,7 +1246,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="traversed-ids" select="@rdf:*" as="xs:string*" tunnel="yes"/>
         <xsl:param name="base-uri" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI" tunnel="yes"/>
         <xsl:param name="show-subject" select="not(starts-with(@rdf:about, $base-uri) or @rdf:nodeID)" as="xs:boolean" tunnel="yes"/>
-        <xsl:param name="required" select="rdf:type/@rdf:resource = ('&dh;Container', '&dh;Item')" as="xs:boolean"/> <!-- Container/Item instances cannot be removed -->
+        <xsl:param name="required" select="false()" as="xs:boolean"/>
 
         <fieldset>
             <xsl:if test="$id">

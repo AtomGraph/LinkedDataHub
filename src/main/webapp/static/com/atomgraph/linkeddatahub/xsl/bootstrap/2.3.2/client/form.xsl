@@ -571,7 +571,7 @@ WHERE
         <xsl:variable name="object-metadata" select="$context('object-metadata')" as="document-node()?"/>
         <xsl:variable name="method" select="$context('method')" as="xs:string"/>
         <xsl:variable name="action" select="$context('action')" as="xs:anyURI"/>
-        
+
         <xsl:for-each select="$block">
             <xsl:variable name="form" as="node()*">
                 <xsl:apply-templates select="$document" mode="bs2:Form"> <!-- document level template -->
@@ -1337,6 +1337,7 @@ WHERE
                     <xsl:with-param name="shapes" select="$shapes" tunnel="yes"/>
                     <xsl:with-param name="base-uri" select="$doc-uri" tunnel="yes"/>
                     <xsl:with-param name="show-cancel-button" select="false()"/>
+                    <xsl:with-param name="required" select="$types = ('&dh;Container', '&dh;Item')" tunnel="yes"/>
                 </xsl:apply-templates>
             </xsl:variable>
 
