@@ -49,6 +49,9 @@ jobs:
         run: ./run.sh "$PWD/ssl/owner/cert.pem" "${{ secrets.HTTP_TEST_OWNER_CERT_PASSWORD }}" "$PWD/ssl/secretary/cert.pem" "${{ secrets.HTTP_TEST_SECRETARY_CERT_PASSWORD }}"
         shell: bash
         working-directory: http-tests
+      - name: Dump container logs on failure
+        if: failure()
+        run: docker compose --env-file ./http-tests/.env logs --no-color
       - name: Stop Docker containers and remove volumes
         run: docker compose --env-file ./http-tests/.env down -v
       - name: Remove Docker containers
