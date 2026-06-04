@@ -449,6 +449,36 @@ EOF
     done <<< "$graph_uris"
 }
 
+# Mirrors what DocumentHierarchyGraphStoreImpl.put() sets on newly-created documents, so install fixtures
+# carry the same dct:created/dct:creator/acl:owner metadata that user-created docs get from put().
+# In the LDH data model every named graph IS a document, so we enrich each distinct graph URI.
+enrich_document_metadata()
+{
+    local nq_file="$1"
+    local owner_uri="$2"
+
+    [ -f "$nq_file" ] || return 0
+
+    local now
+    now=$(date -u +"%Y-%m-%dT%H:%M:%S.000Z")
+
+    local graphs
+    graphs=$(awk '{print $(NF-1)}' "$nq_file" | sort -u)
+    local graph_count
+    graph_count=$(printf '%s\n' "$graphs" | grep -c '^.')
+
+    printf "\n### Enriching %s document(s) in %s with dct:created=%s, dct:creator=acl:owner=<%s>\n" "$graph_count" "$nq_file" "$now" "$owner_uri"
+
+    printf '%s\n' "$graphs" | while IFS= read -r g; do
+        [ -z "$g" ] && continue
+        cat >> "$nq_file" <<EOQ
+$g <http://purl.org/dc/terms/created> "${now}"^^<http://www.w3.org/2001/XMLSchema#dateTime> $g .
+$g <http://purl.org/dc/terms/creator> <${owner_uri}> $g .
+$g <http://www.w3.org/ns/auth/acl#owner> <${owner_uri}> $g .
+EOQ
+    done
+}
+
 generate_cert()
 {
     local alias="$1"
@@ -622,6 +652,10 @@ SECRETARY_KEY_URI="${SECRETARY_KEY_DOC_URI}#this"
 
 printf "\n### Owner's WebID URI: %s\n" "$OWNER_URI"
 printf "\n### Secretary's WebID URI: %s\n" "$SECRETARY_URI"
+
+# Enrich the owner and secretary nq datasets in-place with dct:created/creator + acl:owner
+enrich_document_metadata /var/linkeddatahub/based-datasets/root-owner.nq "$OWNER_URI"
+enrich_document_metadata /var/linkeddatahub/based-datasets/root-secretary.nq "$OWNER_URI"
 
 # Note: LOAD_DATASETS check is now done per-app inside the loop
 
@@ -799,6 +833,7 @@ for app in "${apps[@]}"; do
             esac
 
             trig --base="${app_origin}/" "$END_USER_DATASET" > "/var/linkeddatahub/based-datasets/${app_folder}/end-user.nq"
+            enrich_document_metadata "/var/linkeddatahub/based-datasets/${app_folder}/end-user.nq" "$OWNER_URI"
 
             printf "\n### Waiting for %s...\n" "$app_store_url"
             wait_for_url "$app_store_url" "$app_service_auth_user" "$app_service_auth_pwd" "$TIMEOUT" "$app_store_content_type" "$app_service_auth_token"
@@ -822,6 +857,7 @@ for app in "${apps[@]}"; do
             esac
 
             trig --base="${app_origin}/" "$ADMIN_DATASET" > "/var/linkeddatahub/based-datasets/${app_folder}/admin.nq"
+            enrich_document_metadata "/var/linkeddatahub/based-datasets/${app_folder}/admin.nq" "$OWNER_URI"
 
             printf "\n### Waiting for %s...\n" "$app_store_url"
             wait_for_url "$app_store_url" "$app_service_auth_user" "$app_service_auth_pwd" "$TIMEOUT" "$app_store_content_type" "$app_service_auth_token"
@@ -838,6 +874,7 @@ for app in "${apps[@]}"; do
             envsubst < namespace-ontology.trig.template > "$namespace_ontology_dataset_path"
 
             trig --base="${app_origin}/" --output=nq "$namespace_ontology_dataset_path" > "/var/linkeddatahub/based-datasets/${app_folder}/namespace-ontology.nq"
+            enrich_document_metadata "/var/linkeddatahub/based-datasets/${app_folder}/namespace-ontology.nq" "$OWNER_URI"
 
             printf "\n### Loading namespace ontology into the admin triplestore...\n"
             "$app_store_fn" "$app_store_url" "$app_service_auth_user" "$app_service_auth_pwd" "/var/linkeddatahub/based-datasets/${app_folder}/namespace-ontology.nq" "$app_store_content_type" "$app_service_auth_token"
@@ -864,6 +901,7 @@ for app in "${apps[@]}"; do
             envsubst < root-owner-authorization.trig.template > "$owner_auth_dataset_path"
 
             trig --base="${app_origin}/" --output=nq "$owner_auth_dataset_path" > "/var/linkeddatahub/based-datasets/${app_folder}/owner-authorization.nq"
+            enrich_document_metadata "/var/linkeddatahub/based-datasets/${app_folder}/owner-authorization.nq" "$OWNER_URI"
 
             printf "\n### Uploading owner authorizations for this app...\n\n"
             "$app_store_fn" "$app_store_url" "$app_service_auth_user" "$app_service_auth_pwd" "/var/linkeddatahub/based-datasets/${app_folder}/owner-authorization.nq" "$app_store_content_type" "$app_service_auth_token"
@@ -879,6 +917,7 @@ for app in "${apps[@]}"; do
             envsubst < root-secretary-authorization.trig.template > "$secretary_auth_dataset_path"
 
             trig --base="${app_origin}/" --output=nq "$secretary_auth_dataset_path" > "/var/linkeddatahub/based-datasets/${app_folder}/secretary-authorization.nq"
+            enrich_document_metadata "/var/linkeddatahub/based-datasets/${app_folder}/secretary-authorization.nq" "$OWNER_URI"
 
             printf "\n### Uploading secretary authorizations for this app...\n\n"
             "$app_store_fn" "$app_store_url" "$app_service_auth_user" "$app_service_auth_pwd" "/var/linkeddatahub/based-datasets/${app_folder}/secretary-authorization.nq" "$app_store_content_type" "$app_service_auth_token"
