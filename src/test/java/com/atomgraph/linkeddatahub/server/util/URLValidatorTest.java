@@ -16,9 +16,10 @@
 package com.atomgraph.linkeddatahub.server.util;
 
 import com.atomgraph.linkeddatahub.server.exception.InternalURLException;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.net.URI;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * Unit tests for URLValidator SSRF protection.
@@ -32,34 +33,34 @@ import java.net.URI;
 public class URLValidatorTest
 {
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void testNullURI()
     {
-        new URLValidator(false).validate(null);
+        assertThrows(IllegalArgumentException.class, () -> new URLValidator(false).validate(null));
     }
 
-    @Test(expected = InternalURLException.class)
+    @Test
     public void testLinkLocalIPv4Blocked()
     {
-        new URLValidator(false).validate(URI.create("http://169.254.1.1:8080/test"));
+        assertThrows(InternalURLException.class, () -> new URLValidator(false).validate(URI.create("http://169.254.1.1:8080/test")));
     }
 
-    @Test(expected = InternalURLException.class)
+    @Test
     public void testPrivateClass10Blocked()
     {
-        new URLValidator(false).validate(URI.create("http://10.0.0.1:8080/test"));
+        assertThrows(InternalURLException.class, () -> new URLValidator(false).validate(URI.create("http://10.0.0.1:8080/test")));
     }
 
-    @Test(expected = InternalURLException.class)
+    @Test
     public void testPrivateClass172Blocked()
     {
-        new URLValidator(false).validate(URI.create("http://172.16.0.0:8080/test"));
+        assertThrows(InternalURLException.class, () -> new URLValidator(false).validate(URI.create("http://172.16.0.0:8080/test")));
     }
 
-    @Test(expected = InternalURLException.class)
+    @Test
     public void testPrivateClass192Blocked()
     {
-        new URLValidator(false).validate(URI.create("http://192.168.1.1:8080/test"));
+        assertThrows(InternalURLException.class, () -> new URLValidator(false).validate(URI.create("http://192.168.1.1:8080/test")));
     }
 
     @Test
