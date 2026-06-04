@@ -201,10 +201,36 @@ exclude-result-prefixes="#all"
             <xsl:choose>
                 <xsl:when test="$predicate">
                     <xsl:variable name="request-uri" select="ldh:href(ac:build-uri(resolve-uri('ns', ldt:base()), map{ 'query': 'DESCRIBE &lt;' || $predicate || '&gt;', 'accept': 'application/rdf+xml' }), map{})" as="xs:anyURI"/>
+                    <xsl:variable name="ontology-doc-uri" select="ac:document-uri($predicate)" as="xs:anyURI"/>
+                    <!-- /ns DESCRIBE resolves predicates from the app's ontology import closure (typically user-defined classes);
+                         ixsl:doc-fetched picks up predicates whose ontology doc the page already pulled into the SaxonJS pool (typically system vocabularies) -->
+                    <xsl:variable name="resource" select="(
+                        key('resources', $predicate, document($request-uri))[*][@rdf:about or @rdf:nodeID],
+                        if (ixsl:doc-fetched($ontology-doc-uri)) then key('resources', $predicate, document($ontology-doc-uri))[*][@rdf:about or @rdf:nodeID] else ()
+                    )[1]" as="element()?"/>
 
-                    <xsl:apply-templates select="key('resources', $predicate, document($request-uri))" mode="ldh:Typeahead">
-                        <xsl:with-param name="class" select="'btn add-typeahead add-property-typeahead'"/>
-                    </xsl:apply-templates>
+                    <xsl:choose>
+                        <xsl:when test="exists($resource)">
+                            <xsl:apply-templates select="$resource" mode="ldh:Typeahead">
+                                <xsl:with-param name="class" select="'btn add-typeahead add-property-typeahead'"/>
+                            </xsl:apply-templates>
+                        </xsl:when>
+                        <xsl:otherwise>
+                            <!-- no metadata available for $predicate: synthesize a minimal rdf:Description so ldh:Typeahead matches and ac:label falls back to the URI tail -->
+                            <xsl:variable name="synthetic" as="document-node()">
+                                <xsl:document>
+                                    <rdf:RDF>
+                                        <rdf:Description rdf:about="{$predicate}">
+                                            <rdf:type rdf:resource="&rdf;Property"/>
+                                        </rdf:Description>
+                                    </rdf:RDF>
+                                </xsl:document>
+                            </xsl:variable>
+                            <xsl:apply-templates select="$synthetic/rdf:RDF/rdf:Description" mode="ldh:Typeahead">
+                                <xsl:with-param name="class" select="'btn add-typeahead add-property-typeahead'"/>
+                            </xsl:apply-templates>
+                        </xsl:otherwise>
+                    </xsl:choose>
                 </xsl:when>
                 <xsl:otherwise>
                     <xsl:variable name="uuid" select="ixsl:call(ixsl:window(), 'generateUUID', [])" as="xs:string"/>
