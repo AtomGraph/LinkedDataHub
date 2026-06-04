@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       ASF_ARCHIVE: https://archive.apache.org/dist/
-      JENA_VERSION: 4.7.0
+      JENA_VERSION: 6.1.0
       BASE_URI: https://localhost:4443/
     steps:
       - name: Install Linux packages
