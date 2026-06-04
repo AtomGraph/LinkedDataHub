@@ -1,3 +1,49 @@
+## [5.4.0] - 2026-06-04
+### Added
+- Multi-tab document navigation (`Document tabs`) with per-pane modal scoping and cached tab switching (#294, #302)
+- 3D Linked Data browser graph mode (#288); right-click loads backlinks on URI nodes (#305)
+- Client-side property and object metadata loading, generalised loader, ontology-view render chain (#297, #298)
+- `ldh:view` block injection moved client-side under Saxon-JS (#295)
+- gzip compression in nginx for RDF and JSON content types, scoped to static locations (#290)
+- SPIN constraint enforcing `ldh:ContentMode` block-type restriction (only `ldh:Object` and `ldh:XHTML` allowed)
+- Static resource URLs built from dataspace origin (#303)
+- Linked Data proxy for URIs in the namespace ontology (#285)
+- Constructor predicate typeahead rendered when `/ns` has no metadata
+- Fallback to synthesized predicate description when proxy unavailable
+- HTTP test for `?accept` param on non-existent dataspaces
+
+### Changed
+- Server-side `acl:mode()` derived from `Link` response headers (#299)
+- Constructor and shape `document()` calls refactored to `ixsl:promise` for async loading (#306, #307)
+- Proxied RDF responses rendered in tab panes; navbar templates tidied for unknown dataspaces
+- `?accept` override applied before app matching so 404 on unknown dataspace respects requested format
+- `bs2:Actions`, `bs2:AddData`, and `http:Response`/`bs2:Header` overrides moved from `layout.xsl` to `document.xsl` for CSR compatibility
+- Document-type checks factored out of `bs2:Form`/`bs2:FormControl` widgets
+- `normalize-rdfxml` mode-isolated to stop intercepting default-mode dispatches
+- Client-side `rdf:RDF` rendering surfaces document and primary topic first
+- Auto-generated container block wrapped in `ldh:Object`
+- Mode query param preserved when navigating from links on proxied pages; tab href kept in sync with address-bar mode
+- Path-aware view ordering for modal search (#301)
+- Server tolerates SPARQL failures when loading object metadata
+- Object-metadata fetch skipped when `block-object-value-response` renders inline
+
+### Fixed
+- Reject PATCH that strips `rdf:type`; validate full post-PATCH model (#308)
+- Connection pool exhaustion from proxy requests (#292)
+- `acl:mode()` regex — XPath F&O doesn't support lookahead or `\b` (#300)
+- CORS response headers (#286)
+- `ProxyRequestFilter` swallowing PATCH to ontology-namespace URIs
+- Constructor-form staleness via xkey purge + async XSLT refactor (#306)
+- Client-side vocab-doc lookups now gated on `ixsl:doc-fetched()`
+- Forward response headers from proxy when upstream has no `Content-Type`
+- Local tab pane hidden on SSR for proxy requests by restoring `$ac:uri`
+- Proxy and LDH error responses rendered with visible tab pane
+- Tab activation deferred until `rdf-document-response` populates the cache
+- Reused-pane tab metadata synced; address-bar local check fixed
+- `ac:property-label` cache lookup aligned with `documentPool` key shape
+- `XMLLiteral` in `PUT-content-blocks.sh`
+- Cursor style
+
 ## [5.3.5] - 2026-04-06
 ### Changed
 - `ProxyRequestFilter` now proxies all HTTP methods generically instead of whitelisting GET/POST/PUT/PATCH/DELETE
