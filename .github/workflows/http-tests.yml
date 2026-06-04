@@ -52,6 +52,9 @@ jobs:
       - name: Dump container logs on failure
         if: failure()
         run: docker compose --env-file ./http-tests/.env logs --no-color
+      - name: Dump Tomcat logs from linkeddatahub container on failure
+        if: failure()
+        run: docker compose --env-file ./http-tests/.env exec -T linkeddatahub sh -c 'for f in /usr/local/tomcat/logs/*; do echo "=== $f ==="; cat "$f"; done' || true
       - name: Stop Docker containers and remove volumes
         run: docker compose --env-file ./http-tests/.env down -v
       - name: Remove Docker containers
