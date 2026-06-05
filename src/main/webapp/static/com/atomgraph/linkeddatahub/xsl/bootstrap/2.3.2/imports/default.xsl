@@ -639,8 +639,8 @@ exclude-result-prefixes="#all"
 
     <!-- FORM CONTROL -->
     
-    <!-- change constructed blank node input to URI input -->
-    <xsl:template match="*[rdf:type/@rdf:resource = ('&dh;Container', '&dh;Item')]/@rdf:nodeID" mode="bs2:FormControl" priority="1">
+    <!-- Container/Item subject input: slug-style UI (base URI + editable slug + trailing /). Matches both @rdf:nodeID (initial SPIN-constructed creation: resource is a blank node) and @rdf:about (constraint-violation re-render: response body carries the submitted URI). Same body works for both because $action carries the resource URL in either case. -->
+    <xsl:template match="*[rdf:type/@rdf:resource = ('&dh;Container', '&dh;Item')]/@rdf:about | *[rdf:type/@rdf:resource = ('&dh;Container', '&dh;Item')]/@rdf:nodeID" mode="bs2:FormControl" priority="1">
         <xsl:param name="type" select="'text'" as="xs:string"/>
         <xsl:param name="id" select="generate-id()" as="xs:string"/>
         <xsl:param name="class" select="'subject-slug input-xxlarge'" as="xs:string?"/>

@@ -1360,6 +1360,7 @@ LIMIT   10
         <xsl:param name="slug" select="ixsl:get(., 'value')" as="xs:string?"/>
         <xsl:param name="rdf-post-subj-input" select="preceding-sibling::input[@name = 'su']" as="element()"/>
         <xsl:param name="form" select="ancestor::form" as="element()?"/>
+        <xsl:param name="modal" select="ancestor::div[contains-token(@class, 'modal-constructor')]" as="element()?"/>
         <!-- URL-encode the slug value, resolve it against base URI and add trailing slash -->
         <xsl:param name="new-uri" select="ac:absolute-path(ldh:base-uri(.)) || encode-for-uri($slug) || '/'" as="xs:string"/>
 
@@ -1367,6 +1368,10 @@ LIMIT   10
         <ixsl:set-attribute name="value" select="$new-uri" object="$rdf-post-subj-input"/>
         <!-- also set it as the new form action value -->
         <ixsl:set-attribute name="action" select="$new-uri" object="$form"/>
+        <!-- keep the modal wrapper @about in sync so the submit handler's $block/@about discriminator matches the resource the form will PUT to -->
+        <xsl:if test="exists($modal)">
+            <ixsl:set-attribute name="about" select="$new-uri" object="$modal"/>
+        </xsl:if>
     </xsl:template>
     
     <!-- CALLBACKS -->
