@@ -20,7 +20,7 @@ volumes:
   varnish_end_user_cache:
 services:
   nginx:
-    image: nginx:1.23.3
+    image: nginx:1.31.1
     mem_limit: 128m
     configs:
       - source: nginx_conf
@@ -105,7 +105,7 @@ services:
       - ./config/dataspaces.trig:/var/linkeddatahub/datasets/dataspaces.trig
       - ./config/system.trig:/var/linkeddatahub/datasets/system.trig
   fuseki-admin:
-    image: atomgraph/fuseki:4.7.0
+    image: atomgraph/fuseki:6.1.0
     user: root # otherwise fuseki user does not have permissions to the mounted folder which is owner by root
     expose:
       - 3030
@@ -114,7 +114,7 @@ services:
       - ./fuseki/admin:/fuseki/databases
     command: [ "--config", "/fuseki/config.ttl" ]
   fuseki-end-user:
-    image: atomgraph/fuseki:4.7.0
+    image: atomgraph/fuseki:6.1.0
     user: root # otherwise the fuseki user does not have permissions to the mounted folder which is owner by root
     expose:
       - 3030
@@ -123,7 +123,7 @@ services:
       - ./fuseki/end-user:/fuseki/databases
     command: [ "--config", "/fuseki/config.ttl" ]
   varnish-frontend:
-    image: varnish:7.3.0
+    image: varnish:7.7.3
     user: root # otherwise varnish user does not have permissions to the mounted folder which is owner by root
     configs:
       - source: varnish-frontend_vcl
@@ -136,7 +136,7 @@ services:
     entrypoint: varnishd
     command: [ "-F", "-f", "/etc/varnish/default.vcl", "-a", "http=:6060,HTTP", "-a", "proxy=:8443,PROXY", "-p", "feature=+http2", "-s", "file,/var/lib/varnish/storage.bin,3G", "-t", "86400" ] # -F: foreground, -f: config, -a: listeners, -p: http2, -s: storage, -t: TTL
   varnish-admin:
-    image: varnish:7.3.0
+    image: varnish:7.7.3
     user: root # otherwise the varnish user does not have permissions to the mounted folder which is owner by root
     configs:
       - source: varnish-admin_vcl
@@ -147,7 +147,7 @@ services:
     entrypoint: varnishd
     command: [ "-F", "-f", "/etc/varnish/default.vcl", "-a", "http=:80,HTTP", "-a", "proxy=:8443,PROXY", "-p", "feature=+http2", "-s", "malloc,1G", "-t", "86400", "-p", "timeout_idle=60s" ] # -F: foreground, -f: config, -a: listeners, -p: http2 + idle timeout, -s: storage, -t: TTL
   varnish-end-user:
-    image: varnish:7.3.0
+    image: varnish:7.7.3
     user: root # otherwise varnish user does not have permissions to the mounted folder which is owner by root
     configs:
       - source: varnish-end-user_vcl
