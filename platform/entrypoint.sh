@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
 set -e
-set -x  # DEBUG: trace every command (revert before merge)
-exec 2>&1  # DEBUG: merge stderr into stdout so the trace lands in docker logs
 
 # set timezone
 
