@@ -81,8 +81,7 @@ exclude-result-prefixes="#all"
     </xsl:function>
 
     <xsl:function name="lapp:application" as="xs:anyURI?">
-        <xsl:variable name="active-pane" select="id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')][contains-token(@class, 'active')]" as="element()?"/>
-        <xsl:sequence select="if ($active-pane and ixsl:contains($active-pane, 'dataset.application')) then xs:anyURI(ixsl:get($active-pane, 'dataset.application')) else ()"/>
+        <xsl:sequence select="if (ixsl:contains(ixsl:window(), 'LinkedDataHub.application')) then xs:anyURI(ixsl:get(ixsl:window(), 'LinkedDataHub.application')) else ()"/>
     </xsl:function>
 
     <xsl:function name="lapp:origin" as="xs:anyURI">
@@ -564,7 +563,32 @@ exclude-result-prefixes="#all"
             => ixsl:then(ldh:rethread-response($context, ?, $response-key))
         "/>
     </xsl:function>
-    
+
+    <!-- Async load/set pair for /ns?forClass=… — builds the request from context('forClass'); store result at context('constructed-doc'). -->
+    <xsl:function name="ldh:load-constructed-doc" as="map(*)" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:variable name="forClass" select="$context('forClass')" as="xs:anyURI+"/>
+        <xsl:variable name="results-uri" select="ac:build-uri(resolve-uri('ns', ldt:base()), map{ 'forClass': for $class in $forClass return string($class), 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
+        <xsl:variable name="request-uri" select="ldh:href($results-uri, map{})" as="xs:anyURI"/>
+        <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
+        <xsl:sequence select="map:merge(($context, map{ 'constructed-doc-request': $request }))"/>
+    </xsl:function>
+
+    <xsl:function name="ldh:set-constructed-doc" as="map(*)" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:variable name="response" select="$context('constructed-doc-response')" as="map(*)"/>
+        <xsl:for-each select="$response">
+            <xsl:choose>
+                <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
+                    <xsl:sequence select="map:merge(($context, map{ 'constructed-doc': ?body }))"/>
+                </xsl:when>
+                <xsl:otherwise>
+                    <xsl:sequence select="$context"/>
+                </xsl:otherwise>
+            </xsl:choose>
+        </xsl:for-each>
+    </xsl:function>
+
     <xsl:function name="ldh:promise-failure" ixsl:updating="yes">
         <xsl:param name="error" as="map(*)"/>
 

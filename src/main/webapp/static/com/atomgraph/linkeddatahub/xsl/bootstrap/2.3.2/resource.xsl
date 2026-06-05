@@ -1347,8 +1347,17 @@ extension-element-prefixes="ixsl"
                 </div>
             </xsl:if>
             
-            <!-- create inputs for both resource description and constructor template properties -->
-            <xsl:apply-templates select="* | $template/*[not(concat(namespace-uri(), local-name()) = current()/*/concat(namespace-uri(), local-name()))][not(self::rdf:type)]" mode="#current">
+            <!-- create inputs for both resource description and constructor template properties; dedupe constructor properties by predicate URI (multiple matching spin:constructors can produce duplicate placeholders). $resource-predicates is captured before entering xsl:for-each-group because current() shifts to the group's first item inside it -->
+            <xsl:variable name="resource-predicates" select="*/concat(namespace-uri(), local-name())" as="xs:string*"/>
+            <xsl:variable name="merged-properties" as="element()*">
+                <xsl:sequence select="*"/>
+                <xsl:for-each-group select="$template/*[not(self::rdf:type)]" group-by="concat(namespace-uri(), local-name())">
+                    <xsl:if test="not(current-grouping-key() = $resource-predicates)">
+                        <xsl:sequence select="."/>
+                    </xsl:if>
+                </xsl:for-each-group>
+            </xsl:variable>
+            <xsl:apply-templates select="$merged-properties" mode="#current">
                 <!-- move required properties up -->
                 <xsl:sort select="exists($type-constraints//srx:binding[@name = 'property'][srx:uri = current()/concat(namespace-uri(), local-name())])" order="descending"/>
                 <xsl:sort select="if ($property-metadata) then ac:property-label(., $property-metadata) else ac:property-label(.)"/>

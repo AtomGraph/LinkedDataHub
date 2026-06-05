@@ -39,6 +39,7 @@ xmlns:srx="&srx;"
 xmlns:ldt="&ldt;"
 xmlns:sd="&sd;"
 xmlns:sioc="&sioc;"
+xmlns:dct="&dct;"
 xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
 extension-element-prefixes="ixsl"
 exclude-result-prefixes="#all"
@@ -1095,7 +1096,30 @@ LIMIT   10
             <xsl:with-param name="callback" select="ldh:settings-form-response#1"/>
         </xsl:next-match>
     </xsl:template>
-    
+
+    <!-- restrict the application settings form UI to dct:title / dct:description; render every other app property as hidden inputs so the PATCH still carries them and they're preserved server-side -->
+    <xsl:template match="*[rdf:type/@rdf:resource = '&lapp;Application']/*[not(self::dct:title or self::dct:description or self::rdf:type)]" mode="bs2:FormControl" priority="1">
+        <xsl:apply-templates select="." mode="xhtml:Input">
+            <xsl:with-param name="type" select="'hidden'"/>
+        </xsl:apply-templates>
+        <xsl:apply-templates select="node() | @rdf:resource | @rdf:nodeID" mode="#current">
+            <xsl:with-param name="type" select="'hidden'"/>
+        </xsl:apply-templates>
+        <xsl:apply-templates select="@xml:lang | @rdf:datatype" mode="#current">
+            <xsl:with-param name="type" select="'hidden'"/>
+        </xsl:apply-templates>
+    </xsl:template>
+
+    <!-- hide the type control rows; bs2:TypeControl ($hidden=true) renders each rdf:type as hidden inputs so they still submit -->
+    <xsl:template match="*[rdf:type/@rdf:resource = '&lapp;Application']" mode="bs2:TypeControl" priority="1">
+        <xsl:next-match>
+            <xsl:with-param name="hidden" select="true()"/>
+        </xsl:next-match>
+    </xsl:template>
+
+    <!-- suppress the add-new-property selector for app settings (same shape as the &ldh;XHTML/&ldh;Object precedent in resource.xsl:1389) -->
+    <xsl:template match="*[rdf:type/@rdf:resource = '&lapp;Application']" mode="bs2:PropertyControl" priority="1"/>
+
     <xsl:template match="button[contains-token(@class, 'btn-access-form')]" mode="ixsl:onclick">
         <!-- TO-DO: fix for admin apps -->
         <xsl:param name="this" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/>
