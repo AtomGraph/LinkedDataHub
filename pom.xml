@@ -117,7 +117,7 @@
         <dependency>
             <groupId>com.atomgraph.etl.csv</groupId>
             <artifactId>csv2rdf</artifactId>
-            <version>2.2.0-SNAPSHOT</version>
+            <version>2.2.0</version>
             <exclusions>
                 <!-- exclude SL4J from CSV2RDF - we already got another coming from Core. Otherwise we get https://www.slf4j.org/codes.html#multiple_bindings -->
                 <exclusion>
@@ -144,18 +144,18 @@
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>twirl</artifactId>
-            <version>1.1.0-SNAPSHOT</version>
+            <version>1.1.0</version>
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>client</artifactId>
-            <version>4.3.0-SNAPSHOT</version>
+            <version>4.3.0</version>
             <classifier>classes</classifier>
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>client</artifactId>
-            <version>4.3.0-SNAPSHOT</version>
+            <version>4.3.0</version>
             <type>war</type>
         </dependency>
         <!-- required by jsonld-java - version same as Jersey's HTTP Client -->
