@@ -1144,6 +1144,8 @@ extension-element-prefixes="ixsl"
         <xsl:param name="method" select="'post'" as="xs:string"/>
         <xsl:param name="base-uri" select="ldh:base-uri(.)" as="xs:anyURI" tunnel="yes"/>
         <xsl:param name="action" select="ldh:href(ac:absolute-path($base-uri))" as="xs:anyURI" tunnel="yes"/>
+        <!-- predicate decides whether a given child resource is "required" (i.e. its fieldset hides the .btn-remove-resource); default treats no resource as required, callers opt in -->
+        <xsl:param name="required" select="function($r as element()) as xs:boolean { false() }" as="function(element()) as xs:boolean" tunnel="yes"/>
         <xsl:param name="id" select="concat('form-', generate-id())" as="xs:string?"/>
         <xsl:param name="class" select="'form-horizontal'" as="xs:string?"/>
         <xsl:param name="form-actions-class" select="'form-actions'" as="xs:string?"/>
@@ -1208,7 +1210,7 @@ extension-element-prefixes="ixsl"
                     <xsl:with-param name="type-metadata" select="$type-metadata" tunnel="yes"/>
                     <xsl:with-param name="property-metadata" select="$property-metadata" tunnel="yes"/>
                     <xsl:with-param name="object-metadata" select="$object-metadata" tunnel="yes"/>
-                    <xsl:with-param name="required" select="rdf:type/@rdf:resource = ('&dh;Container', '&dh;Item')" tunnel="yes"/>
+                    <xsl:with-param name="required" select="$required(.)" tunnel="yes"/>
                 </xsl:apply-templates>
             </xsl:for-each>
 

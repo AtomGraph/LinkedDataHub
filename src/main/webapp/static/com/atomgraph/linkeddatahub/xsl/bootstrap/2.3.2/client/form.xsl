@@ -571,6 +571,7 @@ WHERE
         <xsl:variable name="object-metadata" select="$context('object-metadata')" as="document-node()?"/>
         <xsl:variable name="method" select="$context('method')" as="xs:string"/>
         <xsl:variable name="action" select="$context('action')" as="xs:anyURI"/>
+        <xsl:variable name="required" select="$context('required')" as="function(element()) as xs:boolean"/>
 
         <xsl:for-each select="$block">
             <xsl:variable name="form" as="node()*">
@@ -587,6 +588,7 @@ WHERE
                     <xsl:with-param name="constraints" select="$constraints" tunnel="yes"/>
                     <xsl:with-param name="shapes" select="()" tunnel="yes"/> <!-- there will be no shapes as modal form is only used to create Container/Item instances -->
                     <xsl:with-param name="base-uri" select="ac:absolute-path(ldh:base-uri(.))" tunnel="yes"/> <!-- ac:absolute-path(ldh:base-uri(.)) is empty on constructed documents -->
+                    <xsl:with-param name="required" select="$required" tunnel="yes"/>
                     <!-- <xsl:sort select="ac:label(.)"/> -->
                 </xsl:apply-templates>
             </xsl:variable>

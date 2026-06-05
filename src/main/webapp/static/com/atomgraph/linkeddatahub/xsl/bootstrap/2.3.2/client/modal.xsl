@@ -772,6 +772,7 @@ LIMIT   10
                     <xsl:with-param name="constraints" select="$constraints" tunnel="yes"/>
                     <xsl:with-param name="shapes" select="()" tunnel="yes"/> <!-- there will be no shapes as modal form is only used to create Container/Item instances -->
                     <xsl:with-param name="base-uri" select="$base-uri" tunnel="yes"/>
+                    <xsl:with-param name="required" select="function($r as element()) as xs:boolean { $r/rdf:type/@rdf:resource = ('&dh;Container', '&dh;Item') }" tunnel="yes"/>
                 </xsl:apply-templates>
             </xsl:variable>
 
@@ -867,7 +868,8 @@ LIMIT   10
             'request': $request,
             'block': $block,
             'about': $about,
-            'method': $method
+            'method': $method,
+            'required': function($r as element()) as xs:boolean { $r/rdf:type/@rdf:resource = ('&dh;Container', '&dh;Item') }
           }"/>
         <ixsl:promise select="
           ixsl:http-request($context('request'))
@@ -1074,7 +1076,8 @@ LIMIT   10
             'block': $block,
             'about': lapp:application(),
             'method': $method,
-            'action': $settings-uri
+            'action': $settings-uri,
+            'required': function($r as element()) as xs:boolean { true() }
           }"/>
         <ixsl:promise select="
           ixsl:http-request($context('request'))
@@ -1757,6 +1760,7 @@ LIMIT   10
                         <xsl:with-param name="constraints" select="$constraints" tunnel="yes"/>
                         <xsl:with-param name="shapes" select="()" tunnel="yes"/> <!-- there will be no shapes as modal form is only used to create Container/Item instances -->
                         <xsl:with-param name="base-uri" select="ac:absolute-path(ldh:base-uri(.))" tunnel="yes"/> <!-- ac:absolute-path(ldh:base-uri(.)) is empty on constructed documents -->
+                        <xsl:with-param name="required" select="function($r as element()) as xs:boolean { $r/rdf:type/@rdf:resource = ('&dh;Container', '&dh;Item') }" tunnel="yes"/>
                         <!-- <xsl:sort select="ac:label(.)"/> -->
                     </xsl:apply-templates>
                 </xsl:for-each>
