@@ -269,31 +269,6 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="document($request-uri)"/>
     </xsl:function>
 
-    <!-- Async load/set pair for /ns?forClass=… — builds the request from context('forClass'); store result at context('constructed-doc'). -->
-    <xsl:function name="ldh:load-constructed-doc" as="map(*)" ixsl:updating="yes">
-        <xsl:param name="context" as="map(*)"/>
-        <xsl:variable name="forClass" select="$context('forClass')" as="xs:anyURI+"/>
-        <xsl:variable name="results-uri" select="ac:build-uri(resolve-uri('ns', ldt:base()), map{ 'forClass': for $class in $forClass return string($class), 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
-        <xsl:variable name="request-uri" select="ldh:href($results-uri, map{})" as="xs:anyURI"/>
-        <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
-        <xsl:sequence select="map:merge(($context, map{ 'constructed-doc-request': $request }))"/>
-    </xsl:function>
-
-    <xsl:function name="ldh:set-constructed-doc" as="map(*)" ixsl:updating="yes">
-        <xsl:param name="context" as="map(*)"/>
-        <xsl:variable name="response" select="$context('constructed-doc-response')" as="map(*)"/>
-        <xsl:for-each select="$response">
-            <xsl:choose>
-                <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
-                    <xsl:sequence select="map:merge(($context, map{ 'constructed-doc': ?body }))"/>
-                </xsl:when>
-                <xsl:otherwise>
-                    <xsl:sequence select="$context"/>
-                </xsl:otherwise>
-            </xsl:choose>
-        </xsl:for-each>
-    </xsl:function>
-
     <!-- reserialize RDF/XML document by moving nested rdf:Descriptions to top-level following Jena's "plain" RDF/XML structure  -->
     <xsl:function name="ldh:reserialize" as="document-node()">
         <xsl:param name="doc" as="document-node()"/>
@@ -1271,7 +1246,105 @@ exclude-result-prefixes="#all"
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
-        
+
+    <!-- booleans -->
+
+    <xsl:template match="text()[../@rdf:datatype = '&xsd;boolean']" mode="bs2:FormControl" priority="1">
+        <xsl:param name="type" select="'text'" as="xs:string"/>
+        <xsl:param name="id" select="generate-id()" as="xs:string"/>
+        <xsl:param name="class" as="xs:string?"/>
+        <xsl:param name="disabled" select="false()" as="xs:boolean"/>
+        <xsl:param name="type-label" select="true()" as="xs:boolean"/>
+
+        <xsl:choose>
+            <xsl:when test="$type = 'hidden'">
+                <xsl:call-template name="xhtml:Input">
+                    <xsl:with-param name="name" select="'ol'"/>
+                    <xsl:with-param name="type" select="'hidden'"/>
+                    <xsl:with-param name="id" select="$id"/>
+                    <xsl:with-param name="value" select="."/>
+                </xsl:call-template>
+            </xsl:when>
+            <xsl:otherwise>
+                <select name="ol">
+                    <xsl:if test="$id"><xsl:attribute name="id" select="$id"/></xsl:if>
+                    <xsl:if test="$class"><xsl:attribute name="class" select="$class"/></xsl:if>
+                    <xsl:if test="$disabled"><xsl:attribute name="disabled" select="'disabled'"/></xsl:if>
+                    <option value="true">
+                        <xsl:if test=". = 'true'"><xsl:attribute name="selected" select="'selected'"/></xsl:if>
+                        <xsl:text>true</xsl:text>
+                    </option>
+                    <option value="false">
+                        <xsl:if test=". = 'false'"><xsl:attribute name="selected" select="'selected'"/></xsl:if>
+                        <xsl:text>false</xsl:text>
+                    </option>
+                </select>
+            </xsl:otherwise>
+        </xsl:choose>
+
+        <xsl:call-template name="xhtml:Input">
+            <xsl:with-param name="type" select="'hidden'"/>
+            <xsl:with-param name="name" select="'lt'"/>
+            <xsl:with-param name="value" select="../@rdf:datatype"/>
+        </xsl:call-template>
+
+        <xsl:if test="$type-label and not($type = 'hidden')">
+            <xsl:apply-templates select="." mode="bs2:FormControlTypeLabel">
+                <xsl:with-param name="type" select="$type"/>
+            </xsl:apply-templates>
+        </xsl:if>
+    </xsl:template>
+
+    <!-- boolean placeholder via constructor's blank-node form: property → bnode whose only child is rdf:type xsd:boolean -->
+    <xsl:template match="*[@rdf:about or @rdf:nodeID]/*/@rdf:nodeID[key('resources', .)[not(* except rdf:type[@rdf:resource = '&xsd;boolean'])]]" mode="bs2:FormControl" priority="3">
+        <xsl:param name="type" select="'text'" as="xs:string"/>
+        <xsl:param name="id" select="generate-id()" as="xs:string"/>
+        <xsl:param name="class" as="xs:string?"/>
+        <xsl:param name="disabled" select="false()" as="xs:boolean"/>
+        <xsl:param name="type-label" select="true()" as="xs:boolean"/>
+
+        <xsl:choose>
+            <xsl:when test="$type = 'hidden'">
+                <xsl:call-template name="xhtml:Input">
+                    <xsl:with-param name="name" select="'ol'"/>
+                    <xsl:with-param name="type" select="'hidden'"/>
+                    <xsl:with-param name="id" select="$id"/>
+                </xsl:call-template>
+            </xsl:when>
+            <xsl:otherwise>
+                <select name="ol">
+                    <xsl:if test="$id"><xsl:attribute name="id" select="$id"/></xsl:if>
+                    <xsl:if test="$class"><xsl:attribute name="class" select="$class"/></xsl:if>
+                    <xsl:if test="$disabled"><xsl:attribute name="disabled" select="'disabled'"/></xsl:if>
+                    <option value="true">true</option>
+                    <option value="false">false</option>
+                </select>
+            </xsl:otherwise>
+        </xsl:choose>
+
+        <xsl:call-template name="xhtml:Input">
+            <xsl:with-param name="name" select="'lt'"/>
+            <xsl:with-param name="type" select="'hidden'"/>
+            <xsl:with-param name="value" select="key('resources', .)/rdf:type/@rdf:resource"/>
+        </xsl:call-template>
+
+        <xsl:if test="$type-label and not($type = 'hidden')">
+            <xsl:variable name="datatype" as="document-node()">
+                <xsl:document>
+                    <rdf:Description>
+                        <xsl:element name="{../name()}" namespace="{../namespace-uri()}">
+                            <xsl:attribute name="rdf:datatype" select="key('resources', .)/rdf:type/@rdf:resource"/>
+                        </xsl:element>
+                    </rdf:Description>
+                </xsl:document>
+            </xsl:variable>
+
+            <xsl:apply-templates select="$datatype//@rdf:datatype">
+                <xsl:with-param name="type" select="$type"/>
+            </xsl:apply-templates>
+        </xsl:if>
+    </xsl:template>
+
     <!-- XHTML CONTENT IDENTITY TRANSFORM -->
 
     <xsl:template match="@* | node()" mode="ldh:XHTMLContent">
