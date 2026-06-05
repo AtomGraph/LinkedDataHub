@@ -1366,8 +1366,6 @@ WHERE
                 <xsl:apply-templates select="id(@id, ixsl:page())" mode="ldh:RenderRowForm"/>
             </xsl:if>
         </xsl:for-each>
-
-        <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
     </xsl:function>
 
     <xsl:template match="ul[contains-token(@class, 'dropdown-menu')][contains-token(@class, 'type-typeahead')]/li" mode="ixsl:onmousedown" priority="1">
@@ -1415,32 +1413,19 @@ WHERE
         }"/>
 
         <ixsl:promise select="ixsl:resolve($context) =>
-            ixsl:then(ldh:load-constructed-doc#1) =>
-            ixsl:then(ldh:http-request-threaded(?, 'constructed-doc-request', 'constructed-doc-response')) =>
-            ixsl:then(ldh:handle-response(?, 'constructed-doc-response')) =>
-            ixsl:then(ldh:set-constructed-doc#1) =>
-            ixsl:then(ldh:load-shapes#1) =>
-            ixsl:then(ldh:http-request-threaded(?, 'shapes-request', 'shapes-response')) =>
-            ixsl:then(ldh:handle-response(?, 'shapes-response')) =>
-            ixsl:then(ldh:set-shapes#1) =>
+            ixsl:then(ldh:fire-load-set-parallel(?, [
+              [ ldh:load-constructed-doc#1, 'constructed-doc-request', 'constructed-doc-response', ldh:set-constructed-doc#1 ],
+              [ ldh:load-shapes#1,          'shapes-request',          'shapes-response',          ldh:set-shapes#1 ]
+            ])) =>
             ixsl:then(ldh:set-typeahead-form-resource#1) =>
-            ixsl:then(ldh:load-constructors#1) =>
-            ixsl:then(ldh:http-request-threaded(?, 'constructors-request', 'constructors-response')) =>
-            ixsl:then(ldh:handle-response(?, 'constructors-response')) =>
-            ixsl:then(ldh:set-constructors#1) =>
-            ixsl:then(ldh:load-type-metadata#1) =>
-            ixsl:then(ldh:http-request-threaded(?, 'type-metadata-request', 'type-metadata-response')) =>
-            ixsl:then(ldh:handle-response(?, 'type-metadata-response')) =>
-            ixsl:then(ldh:set-type-metadata#1) =>
-            ixsl:then(ldh:load-property-metadata#1) =>
-            ixsl:then(ldh:http-request-threaded(?, 'property-metadata-request', 'property-metadata-response')) =>
-            ixsl:then(ldh:handle-response(?, 'property-metadata-response')) =>
-            ixsl:then(ldh:set-property-metadata#1) =>
-            ixsl:then(ldh:load-constraints#1) =>
-            ixsl:then(ldh:http-request-threaded(?, 'constraints-request', 'constraints-response')) =>
-            ixsl:then(ldh:handle-response(?, 'constraints-response')) =>
-            ixsl:then(ldh:set-constraints#1) =>
-            ixsl:then(ldh:render-typeahead-row-form#1)"
+            ixsl:then(ldh:fire-load-set-parallel(?, [
+              [ ldh:load-constructors#1,      'constructors-request',      'constructors-response',      ldh:set-constructors#1 ],
+              [ ldh:load-type-metadata#1,     'type-metadata-request',     'type-metadata-response',     ldh:set-type-metadata#1 ],
+              [ ldh:load-property-metadata#1, 'property-metadata-request', 'property-metadata-response', ldh:set-property-metadata#1 ],
+              [ ldh:load-constraints#1,       'constraints-request',       'constraints-response',       ldh:set-constraints#1 ]
+            ])) =>
+            ixsl:then(ldh:render-typeahead-row-form#1) =>
+            ixsl:finally(ldh:reset-cursor#0)"
             on-failure="ldh:promise-failure#1"/>
     </xsl:template>
     

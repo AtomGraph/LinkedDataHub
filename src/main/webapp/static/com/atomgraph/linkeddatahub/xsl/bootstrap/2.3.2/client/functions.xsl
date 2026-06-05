@@ -589,6 +589,40 @@ exclude-result-prefixes="#all"
         </xsl:for-each>
     </xsl:function>
 
+    <!-- Parallel load/set pair runner. $pairs is a single array whose members are 4-element arrays [load-fn, request-key, response-key, set-fn]; load-fn is a pure context-transformer that populates context($request-key). The helper folds every load-fn over $context (collecting all request specs), fans out one http-request → rethread → handle → set per pair via ixsl:all, then merges all per-branch contexts back into one. ixsl:all is fail-fast — first rejected branch propagates through on-failure of the enclosing chain. -->
+    <xsl:function name="ldh:fire-load-set-parallel" as="item()*" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:param name="pairs" as="array(*)"/>
+
+        <xsl:variable name="ctx-with-requests" as="map(*)" select="
+          array:fold-left($pairs, $context, function($ctx as item()*, $pair as item()*) as item()* { $pair?1($ctx) })
+        "/>
+
+        <xsl:variable name="promises" as="array(*)" select="
+          array {
+            for $pair in $pairs?* return
+              ixsl:http-request($ctx-with-requests($pair?2))
+                => ixsl:then(ldh:rethread-response($ctx-with-requests, ?, $pair?3))
+                => ixsl:then(ldh:handle-response(?, $pair?3))
+                => ixsl:then($pair?4)
+          }
+        "/>
+
+        <xsl:sequence select="
+          ixsl:all($promises)
+            => ixsl:then(function($results as item()*) as item()* {
+                 array:fold-left($results, $ctx-with-requests, function($acc as item()*, $r as item()*) as item()* {
+                   map:merge(($acc, $r), map{ 'duplicates': 'use-last' })
+                 })
+               })
+        "/>
+    </xsl:function>
+
+    <!-- Promise-chain cleanup callback for ixsl:finally — resets the body cursor. ixsl:finally requires a 0-arg handler and ignores its return value (the original promise outcome flows through to on-failure / on-completion). Idempotent with ldh:promise-failure's own cursor reset, so chains that use both don't conflict. -->
+    <xsl:function name="ldh:reset-cursor" ixsl:updating="yes">
+        <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
+    </xsl:function>
+
     <xsl:function name="ldh:promise-failure" ixsl:updating="yes">
         <xsl:param name="error" as="map(*)"/>
 

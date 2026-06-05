@@ -796,8 +796,6 @@ LIMIT   10
                 <xsl:apply-templates select="id($form/@id, ixsl:page())" mode="ldh:RenderRowForm"/>
             </xsl:if>
         </xsl:for-each>
-
-        <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
     </xsl:function>
 
     <!-- shows new SPIN-constructed document as a modal form -->
@@ -820,24 +818,17 @@ LIMIT   10
         }"/>
 
         <ixsl:promise select="ixsl:resolve($context) =>
-            ixsl:then(ldh:load-constructed-doc#1) =>
-            ixsl:then(ldh:http-request-threaded(?, 'constructed-doc-request', 'constructed-doc-response')) =>
-            ixsl:then(ldh:handle-response(?, 'constructed-doc-response')) =>
-            ixsl:then(ldh:set-constructed-doc#1) =>
+            ixsl:then(ldh:fire-load-set-parallel(?, [
+              [ ldh:load-constructed-doc#1, 'constructed-doc-request', 'constructed-doc-response', ldh:set-constructed-doc#1 ]
+            ])) =>
             ixsl:then(ldh:set-add-modal-form-resource#1) =>
-            ixsl:then(ldh:load-type-metadata#1) =>
-            ixsl:then(ldh:http-request-threaded(?, 'type-metadata-request', 'type-metadata-response')) =>
-            ixsl:then(ldh:handle-response(?, 'type-metadata-response')) =>
-            ixsl:then(ldh:set-type-metadata#1) =>
-            ixsl:then(ldh:load-property-metadata#1) =>
-            ixsl:then(ldh:http-request-threaded(?, 'property-metadata-request', 'property-metadata-response')) =>
-            ixsl:then(ldh:handle-response(?, 'property-metadata-response')) =>
-            ixsl:then(ldh:set-property-metadata#1) =>
-            ixsl:then(ldh:load-constraints#1) =>
-            ixsl:then(ldh:http-request-threaded(?, 'constraints-request', 'constraints-response')) =>
-            ixsl:then(ldh:handle-response(?, 'constraints-response')) =>
-            ixsl:then(ldh:set-constraints#1) =>
-            ixsl:then(ldh:render-add-modal-form#1)"
+            ixsl:then(ldh:fire-load-set-parallel(?, [
+              [ ldh:load-type-metadata#1,     'type-metadata-request',     'type-metadata-response',     ldh:set-type-metadata#1 ],
+              [ ldh:load-property-metadata#1, 'property-metadata-request', 'property-metadata-response', ldh:set-property-metadata#1 ],
+              [ ldh:load-constraints#1,       'constraints-request',       'constraints-response',       ldh:set-constraints#1 ]
+            ])) =>
+            ixsl:then(ldh:render-add-modal-form#1) =>
+            ixsl:finally(ldh:reset-cursor#0)"
             on-failure="ldh:promise-failure#1"/>
     </xsl:template>
     
@@ -1108,27 +1099,20 @@ LIMIT   10
             'endpoint': sd:endpoint(),
             'required': function($r as element()) as xs:boolean { true() }
           }"/>
+        <!-- seed phase: load-edited-resource bakes a GET-style type-metadata-request directly, so the type-metadata pair below uses an identity load-fn rather than ldh:load-type-metadata (which would build a different POST-style request). ldh:render-form has its own cursor reset; ixsl:finally here is for the failure-on-parallel path before the render gets to run. -->
         <ixsl:promise select="
           ixsl:http-request($context('request'))
             => ixsl:then(ldh:rethread-response($context, ?))
             => ixsl:then(ldh:handle-response#1)
             => ixsl:then(ldh:load-edited-resource#1)
-            => ixsl:then(ldh:http-request-threaded(?, 'type-metadata-request', 'type-metadata-response'))
-            => ixsl:then(ldh:handle-response(?, 'type-metadata-response'))
-            => ixsl:then(ldh:set-type-metadata#1)
-            => ixsl:then(ldh:load-property-metadata#1)
-            => ixsl:then(ldh:http-request-threaded(?, 'property-metadata-request', 'property-metadata-response'))
-            => ixsl:then(ldh:handle-response(?, 'property-metadata-response'))
-            => ixsl:then(ldh:set-property-metadata#1)
-            => ixsl:then(ldh:load-constraints#1)
-            => ixsl:then(ldh:http-request-threaded(?, 'constraints-request', 'constraints-response'))
-            => ixsl:then(ldh:handle-response(?, 'constraints-response'))
-            => ixsl:then(ldh:set-constraints#1)
-            => ixsl:then(ldh:load-object-metadata#1)
-            => ixsl:then(ldh:http-request-threaded(?, 'metadata-request', 'metadata-response'))
-            => ixsl:then(ldh:handle-response(?, 'metadata-response'))
-            => ixsl:then(ldh:set-object-metadata#1)
+            => ixsl:then(ldh:fire-load-set-parallel(?, [
+                 [ function($ctx as map(*)) as map(*) { $ctx }, 'type-metadata-request',     'type-metadata-response',     ldh:set-type-metadata#1 ],
+                 [ ldh:load-property-metadata#1,                'property-metadata-request', 'property-metadata-response', ldh:set-property-metadata#1 ],
+                 [ ldh:load-constraints#1,                      'constraints-request',       'constraints-response',       ldh:set-constraints#1 ],
+                 [ ldh:load-object-metadata#1,                  'metadata-request',          'metadata-response',          ldh:set-object-metadata#1 ]
+               ]))
             => ixsl:then(ldh:render-form#1)
+            => ixsl:finally(ldh:reset-cursor#0)
         " on-failure="ldh:promise-failure#1"/>
     </xsl:template>
 
