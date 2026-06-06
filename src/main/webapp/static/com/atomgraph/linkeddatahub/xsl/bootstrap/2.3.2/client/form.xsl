@@ -186,11 +186,6 @@ WHERE
         <ixsl:set-attribute name="value" select="normalize-space(ixsl:get(., 'value'))"/>
     </xsl:template>
 
-    <!-- remove names of RDF/POST inputs with empty values -->
-    <xsl:template match="input[@name = ('ob', 'ou', 'ol')][not(ixsl:get(., 'value'))]" mode="ldh:FormPreSubmit" priority="2">
-        <ixsl:remove-attribute name="name"/>
-    </xsl:template>
-
     <!-- append timezone to the datetime-local values -->
     <xsl:template match="input[@type = 'datetime-local'][ixsl:get(., 'value')]" mode="ldh:FormPreSubmit" priority="1">
         <!-- set the input type back to 'text' because 'datetime-local' does not accept the timezoned value -->
