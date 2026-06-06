@@ -201,6 +201,8 @@ object { display: block; margin: auto; max-height: 400px; overflow: hidden; widt
 .graph-3d-show-panel label { display: block; cursor: pointer; }
 .graph-3d-show-panel label.sub-option { margin-left: 16px; }
 .graph-3d-zoom { position: absolute; top: 10px; left: 10px; z-index: 10; }
+.graph-3d-fullscreen { position: absolute; bottom: 10px; right: 10px; z-index: 10; }
+.graph-3d-canvas.graph-3d-maximized { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 1000; }
 .table { display: table; }
 .row { display: table-row ; }
 .cell { display: table-cell ; }
