@@ -202,13 +202,6 @@ exclude-result-prefixes="#all"
         </xsl:for-each>
     </xsl:function>
 
-    <!-- hide type control -->
-    <xsl:template match="*[rdf:type/@rdf:resource = '&ldh;View']" mode="bs2:TypeControl" priority="1">
-        <xsl:next-match>
-            <xsl:with-param name="hidden" select="true()"/>
-        </xsl:next-match>
-    </xsl:template>
-    
     <!-- provide a property label which otherwise would default to local-name() client-side (since $property-metadata is not loaded) -->
     <xsl:template match="*[rdf:type/@rdf:resource = '&ldh;View']/rdfs:label | *[rdf:type/@rdf:resource = '&ldh;View']/ac:mode" mode="bs2:FormControl">
         <xsl:next-match>
