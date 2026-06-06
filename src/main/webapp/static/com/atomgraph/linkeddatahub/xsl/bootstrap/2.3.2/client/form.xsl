@@ -1470,10 +1470,12 @@ WHERE
         </xsl:for-each>
     </xsl:template>
     
-    <!-- remove the whole div.row-fluid containing the form -->
+    <!-- remove the whole div.row-fluid.block containing the form (outermost .block[@about] wrapper, since renderers may double-wrap with the same @about) -->
     <xsl:template match="div[ancestor::div[contains-token(@class, 'block')]]//form//button[contains-token(@class, 'btn-remove-resource')]" mode="ixsl:onclick" priority="2">
-        <xsl:variable name="block" select="ancestor::div[contains-token(@class, 'block')][1]" as="element()"/>
-        <xsl:variable name="about" select="$block/@about" as="xs:anyURI?"/>
+        <xsl:variable name="inner-block" select="ancestor::div[contains-token(@class, 'block')][1]" as="element()"/>
+        <xsl:variable name="about" select="$inner-block/@about" as="xs:anyURI?"/>
+        <xsl:variable name="outer-block" select="$inner-block/ancestor::div[contains-token(@class, 'block')][@about = $about][1]" as="element()?"/>
+        <xsl:variable name="block" select="($outer-block, $inner-block)[1]" as="element()"/>
         <xsl:variable name="form" select="ancestor::form" as="element()"/>
         <xsl:variable name="action" select="ixsl:get($form, 'action')" as="xs:anyURI"/>
         <xsl:variable name="etag" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path($action) || '`'), 'etag')" as="xs:string"/>
@@ -1483,7 +1485,7 @@ WHERE
             <xsl:when test="$about">
                 <!-- show a confirmation prompt -->
                 <xsl:if test="ixsl:call(ixsl:window(), 'confirm', [ ac:label(key('resources', 'are-you-sure', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', lapp:origin())))) ])">
-                    <xsl:sequence select="ixsl:call(ancestor::div[contains-token(@class, 'row-fluid')][1], 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
+                    <xsl:sequence select="ixsl:call($block, 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
 
                     <xsl:variable name="where-pattern" as="element()">
                         <json:map>
