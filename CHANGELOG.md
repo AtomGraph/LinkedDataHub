@@ -1,3 +1,17 @@
+## [5.5.0] - 2026-06-06
+### Changed
+- Jena upgraded to 6.1.0 (#309)
+- Modal-form metadata fetches converted to async load/set pairs (#310)
+- `bs2:Form` `$required` lifted to a predicate at `rdf:RDF` level
+- CSR-only helpers moved out of `layout.xsl`; `bs2:FormControl` boolean overrides relocated
+- `lapp:Application` form restrictions scoped to the app-settings flow
+- `rdf:type` editable on `ldh:View` instance forms
+- Removed bash trace debug from entrypoint
+
+### Fixed
+- Drop just-added block on empty-graph submit
+- `btn-remove-resource` removes the outermost duplicate `.block` wrapper when renderers double-wrap
+
 ## [5.4.0] - 2026-06-04
 ### Added
 - Multi-tab document navigation (`Document tabs`) with per-pane modal scoping and cached tab switching (#294, #302)
