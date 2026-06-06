@@ -262,9 +262,12 @@ WHERE
           ixsl:resolve($context)
             => ixsl:then(ldh:fetch-and-load-edited-resource#1)
             => ixsl:then(ldh:fire-load-set-parallel(?, [
-                 [ function($ctx as map(*)) as map(*) { $ctx }, 'type-metadata-request', 'type-metadata-response', ldh:set-type-metadata#1 ],
-                 [ ldh:load-constructors#1,                     'constructors-request',  'constructors-response',  ldh:set-constructors#1 ],
-                 [ ldh:load-shapes#1,                           'shapes-request',        'shapes-response',        ldh:set-shapes#1 ]
+                 [ function($ctx as map(*)) as map(*) { $ctx }, 'type-metadata-request',     'type-metadata-response',     ldh:set-type-metadata#1 ],
+                 [ ldh:load-constructors#1,                     'constructors-request',      'constructors-response',      ldh:set-constructors#1 ],
+                 [ ldh:load-shapes#1,                           'shapes-request',            'shapes-response',            ldh:set-shapes#1 ],
+                 [ ldh:load-property-metadata#1,                'property-metadata-request', 'property-metadata-response', ldh:set-property-metadata#1 ],
+                 [ ldh:load-constraints#1,                      'constraints-request',       'constraints-response',       ldh:set-constraints#1 ],
+                 [ ldh:load-object-metadata#1,                  'metadata-request',          'metadata-response',          ldh:set-object-metadata#1 ]
                ]))
             => ixsl:then(ldh:render-row-form#1)
             => ixsl:finally(ldh:reset-cursor#0)
