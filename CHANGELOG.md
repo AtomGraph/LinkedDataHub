@@ -7,11 +7,16 @@
 - CSR-only helpers moved out of `layout.xsl`; `bs2:FormControl` boolean overrides relocated
 - `lapp:Application` form restrictions scoped to the app-settings flow
 - `rdf:type` editable on `ldh:View` instance forms
+- GraphMode canvas persisted across view re-renders via a `{container-id}-graph-host` host; WebGL context and force-simulation state survive search/filter re-runs
+- GraphMode renders dangling `@rdf:nodeID` targets as stub bnodes and anonymous nested `rdf:Description` as synthetic bnodes (via `generate-id`); node click/right-click handlers skip bnodes
+- View mode preserved across re-runs of the same search container instead of defaulting to `ListMode`
+- Container result count short-circuits the COUNT request when the full result set fits one page
 - Removed bash trace debug from entrypoint
 
 ### Fixed
 - Drop just-added block on empty-graph submit
 - `btn-remove-resource` removes the outermost duplicate `.block` wrapper when renderers double-wrap
+- Relative `document('../translations.rdf')` and `document('translations.rdf')` calls in `imports/{nfo,sioc,sp}.xsl`, `admin/layout.xsl`, and `document.xsl` resolved against the SEF root under SaxonJS 3, producing 404s; switched to the absolute `resolve-uri(..., lapp:origin())` pattern
 
 ## [5.4.0] - 2026-06-04
 ### Added
