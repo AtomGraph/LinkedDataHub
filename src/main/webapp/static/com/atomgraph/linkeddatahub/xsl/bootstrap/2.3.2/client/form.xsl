@@ -922,40 +922,48 @@ WHERE
                 <ixsl:set-property name="etag" select="$etag" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $doc-uri || '`')"/>
             </xsl:if>
 
-            <xsl:variable name="classes" select="()" as="element()*"/>
-            <xsl:variable name="new-block" as="element()">
-                <xsl:apply-templates select="$resources/rdf:RDF/*" mode="bs2:Row">
-                    <xsl:with-param name="classes" select="$classes"/>
-                    <xsl:with-param name="style" select="()"/> <!-- TO-DO: remove? -->
-                    <xsl:with-param name="type-content" select="false()"/>
-                    <xsl:sort select="ac:label(.)"/>
-                </xsl:apply-templates>
-            </xsl:variable>
+            <xsl:choose>
+                <!-- empty submitted graph (user stripped rdf:type and left other inputs blank): nothing was created/modified server-side, so drop the just-added block rather than re-rendering it from zero descriptions (which would violate the cardinality=1 assertion on $new-block) -->
+                <xsl:when test="empty($resources/rdf:RDF/*)">
+                    <xsl:sequence select="ixsl:call($block, 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
+                </xsl:when>
+                <xsl:otherwise>
+                    <xsl:variable name="classes" select="()" as="element()*"/>
+                    <xsl:variable name="new-block" as="element()">
+                        <xsl:apply-templates select="$resources/rdf:RDF/*" mode="bs2:Row">
+                            <xsl:with-param name="classes" select="$classes"/>
+                            <xsl:with-param name="style" select="()"/> <!-- TO-DO: remove? -->
+                            <xsl:with-param name="type-content" select="false()"/>
+                            <xsl:sort select="ac:label(.)"/>
+                        </xsl:apply-templates>
+                    </xsl:variable>
 
-            <xsl:for-each select="$block">
-                <!-- replace block element attributes TO-DO: shouldn't be necessary in SaxonJS 3 using method="ixsl:replace-element": https://saxonica.plan.io/issues/6303#note-2 -->
-                <xsl:for-each select="@*">
-                    <ixsl:remove-attribute object="$block" name="{name()}"/>
-                </xsl:for-each>
-                <xsl:for-each select="$new-block/@*">
-                    <ixsl:set-attribute object="$block" name="{name()}" select="."/>
-                </xsl:for-each>
+                    <xsl:for-each select="$block">
+                        <!-- replace block element attributes TO-DO: shouldn't be necessary in SaxonJS 3 using method="ixsl:replace-element": https://saxonica.plan.io/issues/6303#note-2 -->
+                        <xsl:for-each select="@*">
+                            <ixsl:remove-attribute object="$block" name="{name()}"/>
+                        </xsl:for-each>
+                        <xsl:for-each select="$new-block/@*">
+                            <ixsl:set-attribute object="$block" name="{name()}" select="."/>
+                        </xsl:for-each>
 
-                <xsl:result-document href="?." method="ixsl:replace-content">
-                    <xsl:copy-of select="$new-block/*"/>
-                </xsl:result-document>
-            </xsl:for-each>
+                        <xsl:result-document href="?." method="ixsl:replace-content">
+                            <xsl:copy-of select="$new-block/*"/>
+                        </xsl:result-document>
+                    </xsl:for-each>
 
-            <!-- cannot be in $block context because it contains old DOM (pre-ixsl:replace-content) -->
-            <xsl:variable name="factory" as="function(item()?) as item()*?">
-                <xsl:apply-templates select="id($block/@id, ixsl:page())" mode="ldh:RenderRow"/>
-            </xsl:variable>
+                    <!-- cannot be in $block context because it contains old DOM (pre-ixsl:replace-content) -->
+                    <xsl:variable name="factory" as="function(item()?) as item()*?">
+                        <xsl:apply-templates select="id($block/@id, ixsl:page())" mode="ldh:RenderRow"/>
+                    </xsl:variable>
 
-            <xsl:if test="exists($factory)">
-                <!-- invoke the factory -->
-                <xsl:sequence select="$factory(())"/>
-            </xsl:if>
-            
+                    <xsl:if test="exists($factory)">
+                        <!-- invoke the factory -->
+                        <xsl:sequence select="$factory(())"/>
+                    </xsl:if>
+                </xsl:otherwise>
+            </xsl:choose>
+
             <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
         </xsl:for-each>
     </xsl:function>
