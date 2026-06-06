@@ -255,7 +255,8 @@ WHERE
           map{
             'request': $request,
             'block': $block,
-            'about': $about
+            'about': $about,
+            'endpoint': sd:endpoint()
           }"/>
         <!-- ldh:fetch-and-load-edited-resource bakes a GET-style type-metadata-request directly, so the type-metadata pair uses an identity load-fn rather than ldh:load-type-metadata (which would build a different POST-style request). -->
         <ixsl:promise select="
