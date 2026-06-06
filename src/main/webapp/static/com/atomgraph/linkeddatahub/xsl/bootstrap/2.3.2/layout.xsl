@@ -949,7 +949,7 @@ exclude-result-prefixes="#all">
                         </button>
                     </li>
                     <li>
-                        <a href="{replace(string(lapp:origin()), '^(https?://)', '$1admin.')}" target="_blank">
+                        <a href="{replace(string(lapp:origin()), '^(https?://)', '$1admin.')}" class="external" target="_blank">
                             <xsl:value-of>
                                 <xsl:apply-templates select="key('resources', 'administration', document('translations.rdf'))" mode="ac:label"/>
                             </xsl:value-of>

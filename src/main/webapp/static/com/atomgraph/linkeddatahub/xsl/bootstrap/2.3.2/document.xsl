@@ -1140,7 +1140,7 @@ extension-element-prefixes="ixsl"
     
     <!-- ROW FORM -->
     
-    <xsl:template match="rdf:RDF" mode="bs2:Form">
+    <xsl:template match="rdf:RDF" mode="bs2:Form" name="bs2:Form">
         <xsl:param name="method" select="'post'" as="xs:string"/>
         <xsl:param name="base-uri" select="ldh:base-uri(.)" as="xs:anyURI" tunnel="yes"/>
         <xsl:param name="action" select="ldh:href(ac:absolute-path($base-uri))" as="xs:anyURI" tunnel="yes"/>
@@ -1164,27 +1164,8 @@ extension-element-prefixes="ixsl"
         <xsl:param name="property-metadata" select="if (exists($property-uris)) then ldh:send-request(resolve-uri('ns', ldt:base()), 'POST', 'application/sparql-query', 'DESCRIBE $Type' || ' VALUES $Type { ' || string-join(for $uri in $property-uris return '&lt;' || $uri || '&gt;', ' ') || ' }', map{ 'Accept': 'application/rdf+xml' }) else ()" as="document-node()?" tunnel="yes"/>
         <xsl:param name="object-uris" select="rdf:Description/*/@rdf:resource[not(key('resources', .))]" as="xs:anyURI*"/>
         <xsl:param name="object-metadata" select="if (exists($object-uris)) then ldh:send-request(resolve-uri('ns', ldt:base()), 'POST', 'application/sparql-query', $object-metadata-query || ' VALUES $this { ' || string-join(for $uri in $object-uris return '&lt;' || $uri || '&gt;', ' ') || ' }', map{ 'Accept': 'application/rdf+xml' }) else ()" as="document-node()?" tunnel="yes"/>
-
-        <form method="{$method}" action="{$action}">
-            <xsl:if test="$id">
-                <xsl:attribute name="id" select="$id"/>
-            </xsl:if>
-            <xsl:if test="$class">
-                <xsl:attribute name="class" select="$class"/>
-            </xsl:if>
-            <xsl:if test="$accept-charset">
-                <xsl:attribute name="accept-charset" select="$accept-charset"/>
-            </xsl:if>
-            <xsl:if test="$enctype">
-                <xsl:attribute name="enctype" select="$enctype"/>
-            </xsl:if>
-
-            <xsl:comment>This form uses RDF/POST encoding: https://atomgraph.github.io/RDF-POST/</xsl:comment>
-            <xsl:call-template name="xhtml:Input">
-                <xsl:with-param name="name" select="'rdf'"/>
-                <xsl:with-param name="type" select="'hidden'"/>
-            </xsl:call-template>
-            
+        <!-- inner form content; default is the exception alerts + primary/non-primary Description iteration. Override via xsl:with-param name="body" to substitute a different body (e.g. ldh:DocumentForm mode for declarative suppression) while reusing the form shell. -->
+        <xsl:param name="body" as="node()*">
             <xsl:apply-templates mode="bs2:Exception"/>
 
             <xsl:variable name="abs-base-uri" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/>
@@ -1213,6 +1194,29 @@ extension-element-prefixes="ixsl"
                     <xsl:with-param name="required" select="$required(.)" tunnel="yes"/>
                 </xsl:apply-templates>
             </xsl:for-each>
+        </xsl:param>
+
+        <form method="{$method}" action="{$action}">
+            <xsl:if test="$id">
+                <xsl:attribute name="id" select="$id"/>
+            </xsl:if>
+            <xsl:if test="$class">
+                <xsl:attribute name="class" select="$class"/>
+            </xsl:if>
+            <xsl:if test="$accept-charset">
+                <xsl:attribute name="accept-charset" select="$accept-charset"/>
+            </xsl:if>
+            <xsl:if test="$enctype">
+                <xsl:attribute name="enctype" select="$enctype"/>
+            </xsl:if>
+
+            <xsl:comment>This form uses RDF/POST encoding: https://atomgraph.github.io/RDF-POST/</xsl:comment>
+            <xsl:call-template name="xhtml:Input">
+                <xsl:with-param name="name" select="'rdf'"/>
+                <xsl:with-param name="type" select="'hidden'"/>
+            </xsl:call-template>
+
+            <xsl:sequence select="$body"/>
 
             <div class="{$form-actions-class}">
                 <button type="submit" class="btn btn-primary'">
