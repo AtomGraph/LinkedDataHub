@@ -580,8 +580,8 @@ WHERE
         </xsl:call-template>
     </xsl:template>
 
-    <!-- per-Description dispatch: keep the editable subject, suppress every other Description in the response graph. The discriminator $about is a tunnel param because XSLT 3.0 patterns cannot reference template-local params; the keep-or-suppress test lives in the body via xsl:if. -->
-    <xsl:template match="*" mode="ldh:DocumentForm">
+    <!-- per-Description dispatch: keep the editable subject, suppress every other Description in the response graph. The discriminator $about is a tunnel param because XSLT 3.0 patterns cannot reference template-local params; the keep-or-suppress test lives in the body via xsl:if. Dispatches to bs2:Form mode so the bs2:Form mode template at resource.xsl:1182 handles the bs2:FormControl entry with the right $inline / $required params and the shell's default merged-properties iteration (resource props + constructor template props, sorted by constraints, with the violations/constructor/type-constraints/type-shapes with-params required by per-property templates). -->
+    <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="ldh:DocumentForm">
         <xsl:param name="about" as="xs:anyURI" tunnel="yes"/>
         <xsl:if test="@rdf:about = $about">
             <xsl:apply-templates select="." mode="bs2:Form">
@@ -595,6 +595,45 @@ WHERE
         <xsl:param name="body" as="document-node()"/>
         <xsl:param name="ctx"  as="map(*)"/>
         <xsl:apply-templates select="$body" mode="ldh:DocumentForm">
+            <xsl:with-param name="about"             select="$ctx('about')"             tunnel="yes"/>
+            <xsl:with-param name="method"            select="$ctx('method')"/>
+            <xsl:with-param name="action"            select="$ctx('action')"            tunnel="yes"/>
+            <xsl:with-param name="base-uri"          select="if (map:contains($ctx, 'base-uri')) then $ctx('base-uri') else $ctx('about')" tunnel="yes"/>
+            <xsl:with-param name="type-metadata"     select="$ctx('type-metadata')"     tunnel="yes"/>
+            <xsl:with-param name="property-metadata" select="$ctx('property-metadata')" tunnel="yes"/>
+            <xsl:with-param name="constructors"      select="$ctx('constructors')"      tunnel="yes"/>
+            <xsl:with-param name="constraints"       select="$ctx('constraints')"       tunnel="yes"/>
+            <xsl:with-param name="shapes"            select="$ctx('shapes')"            tunnel="yes"/>
+            <xsl:with-param name="object-metadata"   select="$ctx('object-metadata')"   tunnel="yes"/>
+            <xsl:with-param name="required"          select="$ctx('required')"          tunnel="yes"/>
+        </xsl:apply-templates>
+    </xsl:function>
+
+    <!-- promise-chain entry parallel to ldh:render-form#1, but dispatches in mode="ldh:AppSettingsForm" so the app-settings UI restrictions (in modal.xsl) only fire on this flow. -->
+    <xsl:function name="ldh:render-app-settings-form" as="item()*" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:variable name="block" select="$context('block')" as="element()"/>
+        <xsl:variable name="document" select="$context('document')" as="document-node()"/>
+
+        <xsl:for-each select="$block">
+            <xsl:variable name="form" select="ldh:render-app-settings-form($document, $context)" as="element()*"/>
+
+            <xsl:result-document href="?." method="ixsl:replace-content">
+                <xsl:copy-of select="$form"/>
+            </xsl:result-document>
+        </xsl:for-each>
+
+        <!-- initialize event listeners -->
+        <xsl:apply-templates select="$block" mode="ldh:RenderRowForm"/>
+
+        <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
+    </xsl:function>
+
+    <!-- thin dispatcher parallel to ldh:render-document-form#2, but mode="ldh:AppSettingsForm". Same tunnel-param set so violation re-renders work identically. -->
+    <xsl:function name="ldh:render-app-settings-form" as="element()*">
+        <xsl:param name="body" as="document-node()"/>
+        <xsl:param name="ctx"  as="map(*)"/>
+        <xsl:apply-templates select="$body" mode="ldh:AppSettingsForm">
             <xsl:with-param name="about"             select="$ctx('about')"             tunnel="yes"/>
             <xsl:with-param name="method"            select="$ctx('method')"/>
             <xsl:with-param name="action"            select="$ctx('action')"            tunnel="yes"/>

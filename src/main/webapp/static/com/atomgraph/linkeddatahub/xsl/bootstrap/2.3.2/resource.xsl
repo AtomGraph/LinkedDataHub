@@ -1209,7 +1209,7 @@ extension-element-prefixes="ixsl"
     
     <!-- FORM CONTROL -->
     
-    <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:FormControl">
+    <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:FormControl" name="bs2:FormControl">
         <xsl:param name="id" select="concat('fieldset-', generate-id())" as="xs:string?"/>
         <xsl:param name="class" as="xs:string?"/>
         <xsl:param name="legend" select="true()" as="xs:boolean"/>
@@ -1247,6 +1247,31 @@ extension-element-prefixes="ixsl"
         <xsl:param name="base-uri" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI" tunnel="yes"/>
         <xsl:param name="show-subject" select="not(starts-with(@rdf:about, $base-uri) or @rdf:nodeID)" as="xs:boolean" tunnel="yes"/>
         <xsl:param name="required" select="false()" as="xs:boolean"/>
+        <xsl:param name="type-hidden" select="false()" as="xs:boolean"/>
+        <xsl:param name="show-property-control" select="true()" as="xs:boolean"/>
+        <!-- inner fieldset content; default is the merged-properties iteration (resource description merged with deduped constructor template properties). Override via xsl:with-param name="body" to substitute a different iteration (e.g. mode="#current" so the caller's mode templates fire per property) while reusing the fieldset shell. -->
+        <xsl:param name="body" as="node()*">
+            <xsl:variable name="resource-predicates" select="*/concat(namespace-uri(), local-name())" as="xs:string*"/>
+            <xsl:variable name="merged-properties" as="element()*">
+                <xsl:sequence select="*"/>
+                <xsl:for-each-group select="$template/*[not(self::rdf:type)]" group-by="concat(namespace-uri(), local-name())">
+                    <xsl:if test="not(current-grouping-key() = $resource-predicates)">
+                        <xsl:sequence select="."/>
+                    </xsl:if>
+                </xsl:for-each-group>
+            </xsl:variable>
+            <xsl:apply-templates select="$merged-properties" mode="#current">
+                <!-- move required properties up -->
+                <xsl:sort select="exists($type-constraints//srx:binding[@name = 'property'][srx:uri = current()/concat(namespace-uri(), local-name())])" order="descending"/>
+                <xsl:sort select="if ($property-metadata) then ac:property-label(., $property-metadata) else ac:property-label(.)"/>
+                <xsl:with-param name="violations" select="$violations"/>
+                <xsl:with-param name="constructor" select="$constructor"/>
+                <xsl:with-param name="type-constraints" select="$type-constraints"/>
+                <xsl:with-param name="type-shapes" select="$type-shapes"/>
+                <xsl:with-param name="traversed-ids" select="$traversed-ids" tunnel="yes"/>
+                <xsl:with-param name="property-metadata" select="$property-metadata" tunnel="yes"/>
+            </xsl:apply-templates>
+        </xsl:param>
 
         <fieldset>
             <xsl:if test="$id">
@@ -1333,12 +1358,14 @@ extension-element-prefixes="ixsl"
                 </xsl:when>
             </xsl:choose>
 
-            <xsl:apply-templates select="@rdf:about | @rdf:nodeID" mode="#current">
+            <!-- @rdf:about / @rdf:nodeID rendering is shell behavior, not per-flow customizable; dispatch in bs2:FormControl mode explicitly so it works regardless of whether the shell was entered via the match template (mode=bs2:FormControl) or the named template (e.g. from ldh:DocumentForm / ldh:AppSettingsForm wrapper modes) -->
+            <xsl:apply-templates select="@rdf:about | @rdf:nodeID" mode="bs2:FormControl">
                 <xsl:with-param name="type" select="if ($show-subject) then 'text' else 'hidden'"/>
             </xsl:apply-templates>
     
             <xsl:apply-templates select="." mode="bs2:TypeControl">
                 <xsl:with-param name="type-metadata" select="$type-metadata" tunnel="yes"/>
+                <xsl:with-param name="hidden" select="$type-hidden"/>
             </xsl:apply-templates>
 
             <xsl:if test="exists($violations)">
@@ -1346,35 +1373,17 @@ extension-element-prefixes="ixsl"
                     <xsl:apply-templates select="$violations" mode="bs2:Violation"/>
                 </div>
             </xsl:if>
-            
-            <!-- create inputs for both resource description and constructor template properties; dedupe constructor properties by predicate URI (multiple matching spin:constructors can produce duplicate placeholders). $resource-predicates is captured before entering xsl:for-each-group because current() shifts to the group's first item inside it -->
-            <xsl:variable name="resource-predicates" select="*/concat(namespace-uri(), local-name())" as="xs:string*"/>
-            <xsl:variable name="merged-properties" as="element()*">
-                <xsl:sequence select="*"/>
-                <xsl:for-each-group select="$template/*[not(self::rdf:type)]" group-by="concat(namespace-uri(), local-name())">
-                    <xsl:if test="not(current-grouping-key() = $resource-predicates)">
-                        <xsl:sequence select="."/>
-                    </xsl:if>
-                </xsl:for-each-group>
-            </xsl:variable>
-            <xsl:apply-templates select="$merged-properties" mode="#current">
-                <!-- move required properties up -->
-                <xsl:sort select="exists($type-constraints//srx:binding[@name = 'property'][srx:uri = current()/concat(namespace-uri(), local-name())])" order="descending"/>
-                <xsl:sort select="if ($property-metadata) then ac:property-label(., $property-metadata) else ac:property-label(.)"/>
-                <xsl:with-param name="violations" select="$violations"/>
-                <xsl:with-param name="constructor" select="$constructor"/>
-                <xsl:with-param name="type-constraints" select="$type-constraints"/>
-                <xsl:with-param name="type-shapes" select="$type-shapes"/>
-                <xsl:with-param name="traversed-ids" select="$traversed-ids" tunnel="yes"/>
-                <xsl:with-param name="property-metadata" select="$property-metadata" tunnel="yes"/>
-            </xsl:apply-templates>
 
-            <xsl:apply-templates select="." mode="bs2:PropertyControl">
-                <xsl:with-param name="template" select="$template"/>
-                <xsl:with-param name="forClass" select="$forClass"/>
-                <xsl:with-param name="required" select="true()"/>
-                <xsl:with-param name="property-metadata" select="$property-metadata"/>
-            </xsl:apply-templates>
+            <xsl:sequence select="$body"/>
+
+            <xsl:if test="$show-property-control">
+                <xsl:apply-templates select="." mode="bs2:PropertyControl">
+                    <xsl:with-param name="template" select="$template"/>
+                    <xsl:with-param name="forClass" select="$forClass"/>
+                    <xsl:with-param name="required" select="true()"/>
+                    <xsl:with-param name="property-metadata" select="$property-metadata"/>
+                </xsl:apply-templates>
+            </xsl:if>
         </fieldset>
     </xsl:template>
     

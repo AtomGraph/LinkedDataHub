@@ -1090,7 +1090,7 @@ LIMIT   10
             'endpoint': sd:endpoint(),
             'required': function($r as element()) as xs:boolean { true() }
           }"/>
-        <!-- ldh:fetch-and-load-edited-resource bakes a GET-style type-metadata-request into context, so the type-metadata pair uses an identity load-fn rather than ldh:load-type-metadata (which would build a different POST-style request). ldh:render-form has its own cursor reset (shared with btn-edit modal); the finally here is the backstop for the failure-on-parallel path. -->
+        <!-- ldh:fetch-and-load-edited-resource bakes a GET-style type-metadata-request into context, so the type-metadata pair uses an identity load-fn rather than ldh:load-type-metadata (which would build a different POST-style request). ldh:render-app-settings-form has its own cursor reset (shared with btn-edit modal); the finally here is the backstop for the failure-on-parallel path. -->
         <ixsl:promise select="
           ixsl:resolve($context)
             => ixsl:then(ldh:fetch-and-load-edited-resource#1)
@@ -1100,7 +1100,7 @@ LIMIT   10
                  [ ldh:load-constraints#1,                      'constraints-request',       'constraints-response',       ldh:set-constraints#1 ],
                  [ ldh:load-object-metadata#1,                  'metadata-request',          'metadata-response',          ldh:set-object-metadata#1 ]
                ]))
-            => ixsl:then(ldh:render-form#1)
+            => ixsl:then(ldh:render-app-settings-form#1)
             => ixsl:finally(ldh:reset-cursor#0)
         " on-failure="ldh:promise-failure#1"/>
     </xsl:template>
@@ -1113,28 +1113,62 @@ LIMIT   10
         </xsl:next-match>
     </xsl:template>
 
-    <!-- restrict the application settings form UI to dct:title / dct:description; render every other app property as hidden inputs so the PATCH still carries them and they're preserved server-side -->
-    <xsl:template match="*[rdf:type/@rdf:resource = '&lapp;Application']/*[not(self::dct:title or self::dct:description or self::rdf:type)]" mode="bs2:FormControl" priority="1">
+    <!-- form-flavor wrapper mode parallel to ldh:DocumentForm; scopes the app-settings UI restrictions (dct:title / dct:description visible, everything else hidden) to this flow. The mode itself is the discriminator — instances of lapp:Application created via the generic Create button continue to render through ldh:DocumentForm → bs2:FormControl unaffected. -->
+    <xsl:template match="rdf:RDF" mode="ldh:AppSettingsForm">
+        <xsl:param name="method" select="'patch'" as="xs:string"/>
+        <xsl:param name="form-actions-class" select="'form-actions modal-footer'" as="xs:string?"/>
+        <xsl:call-template name="bs2:Form">
+            <xsl:with-param name="method" select="$method"/>
+            <xsl:with-param name="form-actions-class" select="$form-actions-class"/>
+            <xsl:with-param name="body" as="node()*">
+                <xsl:apply-templates mode="bs2:Exception"/>
+                <xsl:apply-templates mode="#current"/>
+            </xsl:with-param>
+        </xsl:call-template>
+    </xsl:template>
+
+    <!-- per-Description for the editable lapp:Application: reuse the bs2:FormControl shell with type-hidden / no PropertyControl. Do NOT override $body: the shell's default body merges resource properties with the constructor template, sorts by constraints, and passes violations/constructor/type-constraints/type-shapes as with-params to per-property templates. Default body's mode="#current" = ldh:AppSettingsForm here (call-template doesn't change current mode), so the suppression / delegate templates below fire correctly. -->
+    <xsl:template match="*[rdf:type/@rdf:resource = '&lapp;Application']" mode="ldh:AppSettingsForm">
+        <xsl:param name="about" as="xs:anyURI" tunnel="yes"/>
+        <xsl:if test="@rdf:about = $about">
+            <xsl:call-template name="bs2:FormControl">
+                <xsl:with-param name="inline" select="false()" tunnel="yes"/>
+                <xsl:with-param name="required" select="true()"/>
+                <xsl:with-param name="type-hidden" select="true()"/>
+                <xsl:with-param name="show-property-control" select="false()"/>
+            </xsl:call-template>
+        </xsl:if>
+    </xsl:template>
+
+    <!-- suppress unrelated Descriptions in the response graph (mirrors ldh:DocumentForm's @rdf:about = $about filter) -->
+    <xsl:template match="*" mode="ldh:AppSettingsForm"/>
+
+    <!-- restrict the application settings form UI to dct:title / dct:description; render every other app property as hidden inputs so the PATCH still carries them and they're preserved server-side. The value-bearing children (text / @rdf:resource / @rdf:nodeID / @xml:lang / @rdf:datatype) are dispatched in mode="bs2:FormControl" — that's where the per-type hidden-input renderers live (imports/default.xsl @rdf:resource, @rdf:datatype, text() templates). Using mode="#current" would dispatch them in ldh:AppSettingsForm mode where they have no template and XSLT defaults emit raw text. -->
+    <xsl:template match="*[rdf:type/@rdf:resource = '&lapp;Application']/*[not(self::dct:title or self::dct:description or self::rdf:type)]" mode="ldh:AppSettingsForm" priority="1">
         <xsl:apply-templates select="." mode="xhtml:Input">
             <xsl:with-param name="type" select="'hidden'"/>
         </xsl:apply-templates>
-        <xsl:apply-templates select="node() | @rdf:resource | @rdf:nodeID" mode="#current">
+        <xsl:apply-templates select="node() | @rdf:resource | @rdf:nodeID" mode="bs2:FormControl">
             <xsl:with-param name="type" select="'hidden'"/>
         </xsl:apply-templates>
-        <xsl:apply-templates select="@xml:lang | @rdf:datatype" mode="#current">
+        <xsl:apply-templates select="@xml:lang | @rdf:datatype" mode="bs2:FormControl">
             <xsl:with-param name="type" select="'hidden'"/>
         </xsl:apply-templates>
     </xsl:template>
 
-    <!-- hide the type control rows; bs2:TypeControl ($hidden=true) renders each rdf:type as hidden inputs so they still submit -->
-    <xsl:template match="*[rdf:type/@rdf:resource = '&lapp;Application']" mode="bs2:TypeControl" priority="1">
-        <xsl:next-match>
-            <xsl:with-param name="hidden" select="true()"/>
-        </xsl:next-match>
+    <!-- dct:title / dct:description / rdf:type fall through to the generic bs2:FormControl rendering. Forward the with-params from the shell's default body iteration (violations / constructor / type-constraints / type-shapes) so the per-property template at imports/default.xsl:744 can compute $required correctly (required-class bolding) and render constraint violations. -->
+    <xsl:template match="*[rdf:type/@rdf:resource = '&lapp;Application']/*" mode="ldh:AppSettingsForm">
+        <xsl:param name="violations" as="element()*"/>
+        <xsl:param name="constructor" as="document-node()?"/>
+        <xsl:param name="type-constraints" as="element()*"/>
+        <xsl:param name="type-shapes" as="element()*"/>
+        <xsl:apply-templates select="." mode="bs2:FormControl">
+            <xsl:with-param name="violations" select="$violations"/>
+            <xsl:with-param name="constructor" select="$constructor"/>
+            <xsl:with-param name="type-constraints" select="$type-constraints"/>
+            <xsl:with-param name="type-shapes" select="$type-shapes"/>
+        </xsl:apply-templates>
     </xsl:template>
-
-    <!-- suppress the add-new-property selector for app settings (same shape as the &ldh;XHTML/&ldh;Object precedent in resource.xsl:1389) -->
-    <xsl:template match="*[rdf:type/@rdf:resource = '&lapp;Application']" mode="bs2:PropertyControl" priority="1"/>
 
     <xsl:template match="button[contains-token(@class, 'btn-access-form')]" mode="ixsl:onclick">
         <!-- TO-DO: fix for admin apps -->
@@ -1618,9 +1652,9 @@ LIMIT   10
                     <xsl:sequence select="ixsl:call($form/ancestor::div[contains-token(@class, 'modal')], 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
                 </xsl:if>
             </xsl:when>
-            <!-- validation errors -->
+            <!-- validation errors: inject render-fn so the violation re-render uses ldh:AppSettingsForm mode (the modal-form-submit-violation chain is shared with the Container/Item flow which renders via ldh:DocumentForm) -->
             <xsl:when test="$status = (400, 422) and starts-with($media-type, 'application/rdf+xml')">
-                <xsl:sequence select="ldh:modal-form-submit-violation($context)"/>
+                <xsl:sequence select="ldh:modal-form-submit-violation(map:put($context, 'render-fn', ldh:render-app-settings-form#2))"/>
             </xsl:when>
             <!-- other errors -->
             <xsl:otherwise>
@@ -1764,7 +1798,7 @@ LIMIT   10
             on-failure="ldh:promise-failure#1"/>
     </xsl:function>
 
-    <!-- Terminal callback for the modal-form-submit-violation chain. All metadata is in $context from the upstream chain steps. constructors and shapes stay () because the modal form is only used for Container/Item instances. -->
+    <!-- Terminal callback for the modal-form-submit-violation chain. All metadata is in $context from the upstream chain steps. constructors and shapes stay () because the modal form is only used for Container/Item instances. $context('render-fn') selects the per-flow renderer (ldh:render-app-settings-form#2 for app-settings, default ldh:render-document-form#2 for Container/Item edit) so the violation re-render uses the same mode as the initial render. -->
     <xsl:function name="ldh:render-modal-form-violation" as="item()*" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
         <xsl:variable name="body" select="$context('body')" as="document-node()"/>
@@ -1779,7 +1813,8 @@ LIMIT   10
             'shapes':            (),
             'required':          function($r as element()) as xs:boolean { $r/rdf:type/@rdf:resource = ('&dh;Container', '&dh;Item') }
         }), map{ 'duplicates': 'use-last' })"/>
-        <xsl:variable name="rendered" select="ldh:render-document-form($body, $render-ctx)" as="element()*"/>
+        <xsl:variable name="render-fn" select="if (map:contains($context, 'render-fn')) then $context('render-fn') else ldh:render-document-form#2" as="function(document-node(), map(*)) as element()*"/>
+        <xsl:variable name="rendered" select="$render-fn($body, $render-ctx)" as="element()*"/>
 
         <xsl:for-each select="$block">
             <xsl:result-document href="?." method="ixsl:replace-content">
