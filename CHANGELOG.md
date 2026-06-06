@@ -1,4 +1,8 @@
 ## [5.5.0] - 2026-06-06
+### Added
+- GraphMode 3D canvas: bottom-right "Fullscreen" button toggles a CSS-based maximize (viewport-sized, browser address bar stays visible); Esc exits maximize
+- Esc key closes the topmost open modal
+
 ### Changed
 - Jena upgraded to 6.1.0 (#309)
 - Modal-form metadata fetches converted to async load/set pairs (#310)
