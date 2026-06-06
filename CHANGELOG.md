@@ -2,6 +2,7 @@
 ### Changed
 - Jena upgraded to 6.1.0 (#309)
 - Modal-form metadata fetches converted to async load/set pairs (#310)
+- Row-form metadata loading extended with property-metadata, constraints, and object-metadata; `sd:endpoint()` propagated via context map
 - `bs2:Form` `$required` lifted to a predicate at `rdf:RDF` level
 - CSR-only helpers moved out of `layout.xsl`; `bs2:FormControl` boolean overrides relocated
 - `lapp:Application` form restrictions scoped to the app-settings flow
