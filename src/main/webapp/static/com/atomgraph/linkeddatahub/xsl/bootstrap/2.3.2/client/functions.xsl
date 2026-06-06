@@ -623,6 +623,18 @@ exclude-result-prefixes="#all"
         <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
     </xsl:function>
 
+    <!-- Composes the seed shape shared by chains whose initial GET is against the edited resource: http-request → rethread → handle → load-edited-resource. After this resolves, context has types/property-uris/object-uris populated and a GET-style type-metadata-request pre-baked, so downstream parallel pairs should use an identity load-fn for type-metadata (otherwise ldh:load-type-metadata would overwrite the request with its POST variant). -->
+    <xsl:function name="ldh:fetch-and-load-edited-resource" as="item()*" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+
+        <xsl:sequence select="
+          ixsl:http-request($context('request'))
+            => ixsl:then(ldh:rethread-response($context, ?))
+            => ixsl:then(ldh:handle-response#1)
+            => ixsl:then(ldh:load-edited-resource#1)
+        "/>
+    </xsl:function>
+
     <xsl:function name="ldh:promise-failure" ixsl:updating="yes">
         <xsl:param name="error" as="map(*)"/>
 

@@ -185,12 +185,12 @@ WHERE
     <xsl:template match="input[@name = ('ob', 'ou')][ixsl:get(., 'value')]" mode="ldh:FormPreSubmit" priority="1">
         <ixsl:set-attribute name="value" select="normalize-space(ixsl:get(., 'value'))"/>
     </xsl:template>
-    
+
     <!-- remove names of RDF/POST inputs with empty values -->
     <xsl:template match="input[@name = ('ob', 'ou', 'ol')][not(ixsl:get(., 'value'))]" mode="ldh:FormPreSubmit" priority="2">
         <ixsl:remove-attribute name="name"/>
     </xsl:template>
-    
+
     <!-- append timezone to the datetime-local values -->
     <xsl:template match="input[@type = 'datetime-local'][ixsl:get(., 'value')]" mode="ldh:FormPreSubmit" priority="1">
         <!-- set the input type back to 'text' because 'datetime-local' does not accept the timezoned value -->
@@ -262,23 +262,17 @@ WHERE
             'block': $block,
             'about': $about
           }"/>
+        <!-- ldh:fetch-and-load-edited-resource bakes a GET-style type-metadata-request directly, so the type-metadata pair uses an identity load-fn rather than ldh:load-type-metadata (which would build a different POST-style request). -->
         <ixsl:promise select="
-          ixsl:http-request($context('request'))
-            => ixsl:then(ldh:rethread-response($context, ?))
-            => ixsl:then(ldh:handle-response#1)
-            => ixsl:then(ldh:load-edited-resource#1)
-            => ixsl:then(ldh:http-request-threaded(?, 'type-metadata-request', 'type-metadata-response'))
-            => ixsl:then(ldh:handle-response(?, 'type-metadata-response'))
-            => ixsl:then(ldh:set-type-metadata#1)
-            => ixsl:then(ldh:load-constructors#1)
-            => ixsl:then(ldh:http-request-threaded(?, 'constructors-request', 'constructors-response'))
-            => ixsl:then(ldh:handle-response(?, 'constructors-response'))
-            => ixsl:then(ldh:set-constructors#1)
-            => ixsl:then(ldh:load-shapes#1)
-            => ixsl:then(ldh:http-request-threaded(?, 'shapes-request', 'shapes-response'))
-            => ixsl:then(ldh:handle-response(?, 'shapes-response'))
-            => ixsl:then(ldh:set-shapes#1)
+          ixsl:resolve($context)
+            => ixsl:then(ldh:fetch-and-load-edited-resource#1)
+            => ixsl:then(ldh:fire-load-set-parallel(?, [
+                 [ function($ctx as map(*)) as map(*) { $ctx }, 'type-metadata-request', 'type-metadata-response', ldh:set-type-metadata#1 ],
+                 [ ldh:load-constructors#1,                     'constructors-request',  'constructors-response',  ldh:set-constructors#1 ],
+                 [ ldh:load-shapes#1,                           'shapes-request',        'shapes-response',        ldh:set-shapes#1 ]
+               ]))
             => ixsl:then(ldh:render-row-form#1)
+            => ixsl:finally(ldh:reset-cursor#0)
         " on-failure="ldh:promise-failure#1"/>
     </xsl:template>
 
@@ -553,10 +547,8 @@ WHERE
 
         <!-- initialize event listeners -->
         <xsl:apply-templates select="$block" mode="ldh:RenderRowForm"/>
-
-        <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
     </xsl:function>
-    
+
     <xsl:function name="ldh:render-form" as="item()*" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
         <xsl:variable name="block" select="$context('block')" as="element()"/>
@@ -719,7 +711,7 @@ WHERE
     </xsl:template>
 
     <!-- submit instance update row-form using PATCH -->
-    
+
     <xsl:template match="div[contains-token(@class, 'block')]//form[contains-token(@class, 'form-horizontal')][upper-case(@method) = 'PATCH']" mode="ixsl:onsubmit" priority="1">
         <xsl:param name="block" select="ancestor::div[contains-token(@class, 'block')][1]" as="element()"/>
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
@@ -737,7 +729,7 @@ WHERE
         <xsl:apply-templates select="." mode="ldh:FormPreSubmit"/>
 
         <xsl:variable name="elements" select=".//input | .//textarea | .//select" as="element()*"/>
-        <xsl:variable name="triples" select="ldh:parse-rdf-post($elements)" as="element()*"/>        
+        <xsl:variable name="triples" select="ldh:parse-rdf-post($elements)" as="element()*"/>
         <!-- canonicalize XML in rdf:XMLLiterals -->
         <xsl:variable name="triples" as="element()*">
             <xsl:apply-templates select="$triples" mode="ldh:CanonicalizeXML"/>
@@ -971,32 +963,18 @@ WHERE
             }
         ), map{ 'duplicates': 'use-last' })"/>
 
+        <!-- $new-context is built synchronously above; types/property-uris/object-uris populated from the violation response body. No pre-baked type-metadata-request here, so the type-metadata pair uses the normal ldh:load-type-metadata. -->
         <ixsl:promise select="ixsl:resolve($new-context) =>
-            ixsl:then(ldh:load-constructors#1) =>
-            ixsl:then(ldh:http-request-threaded(?, 'constructors-request', 'constructors-response')) =>
-            ixsl:then(ldh:handle-response(?, 'constructors-response')) =>
-            ixsl:then(ldh:set-constructors#1) =>
-            ixsl:then(ldh:load-shapes#1) =>
-            ixsl:then(ldh:http-request-threaded(?, 'shapes-request', 'shapes-response')) =>
-            ixsl:then(ldh:handle-response(?, 'shapes-response')) =>
-            ixsl:then(ldh:set-shapes#1) =>
-            ixsl:then(ldh:load-type-metadata#1) =>
-            ixsl:then(ldh:http-request-threaded(?, 'type-metadata-request', 'type-metadata-response')) =>
-            ixsl:then(ldh:handle-response(?, 'type-metadata-response')) =>
-            ixsl:then(ldh:set-type-metadata#1) =>
-            ixsl:then(ldh:load-property-metadata#1) =>
-            ixsl:then(ldh:http-request-threaded(?, 'property-metadata-request', 'property-metadata-response')) =>
-            ixsl:then(ldh:handle-response(?, 'property-metadata-response')) =>
-            ixsl:then(ldh:set-property-metadata#1) =>
-            ixsl:then(ldh:load-constraints#1) =>
-            ixsl:then(ldh:http-request-threaded(?, 'constraints-request', 'constraints-response')) =>
-            ixsl:then(ldh:handle-response(?, 'constraints-response')) =>
-            ixsl:then(ldh:set-constraints#1) =>
-            ixsl:then(ldh:load-object-metadata#1) =>
-            ixsl:then(ldh:http-request-threaded(?, 'metadata-request', 'metadata-response')) =>
-            ixsl:then(ldh:handle-response(?, 'metadata-response')) =>
-            ixsl:then(ldh:set-object-metadata#1) =>
-            ixsl:then(ldh:render-row-form-violation#1)"
+            ixsl:then(ldh:fire-load-set-parallel(?, [
+              [ ldh:load-constructors#1,      'constructors-request',      'constructors-response',      ldh:set-constructors#1 ],
+              [ ldh:load-shapes#1,            'shapes-request',            'shapes-response',            ldh:set-shapes#1 ],
+              [ ldh:load-type-metadata#1,     'type-metadata-request',     'type-metadata-response',     ldh:set-type-metadata#1 ],
+              [ ldh:load-property-metadata#1, 'property-metadata-request', 'property-metadata-response', ldh:set-property-metadata#1 ],
+              [ ldh:load-constraints#1,       'constraints-request',       'constraints-response',       ldh:set-constraints#1 ],
+              [ ldh:load-object-metadata#1,   'metadata-request',          'metadata-response',          ldh:set-object-metadata#1 ]
+            ])) =>
+            ixsl:then(ldh:render-row-form-violation#1) =>
+            ixsl:finally(ldh:reset-cursor#0)"
             on-failure="ldh:promise-failure#1"/>
     </xsl:function>
 
@@ -1040,8 +1018,6 @@ WHERE
         <xsl:for-each select="id($block/@id, ixsl:page())">
             <xsl:apply-templates select="." mode="ldh:RenderRowForm"/>
         </xsl:for-each>
-
-        <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
     </xsl:function>
 
     <xsl:function name="ldh:replace-content" as="map(*)" ixsl:updating="yes">
