@@ -719,6 +719,14 @@ LIMIT   10
             <xsl:sequence select="ixsl:call(., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:for-each>
     </xsl:template>
+
+    <!-- Esc closes the topmost modal; predicate guard keeps Esc available to other widgets when no modal is open. priority="1" wins over graph3d.xsl's body keydown if both happen to match. -->
+    <xsl:template match="body[descendant::div[contains-token(@class, 'modal')]]" mode="ixsl:onkeydown" priority="1">
+        <xsl:if test="ixsl:get(ixsl:event(), 'key') = 'Escape'">
+            <xsl:variable name="modal" select="(.//div[contains-token(@class, 'modal')])[last()]" as="element()"/>
+            <xsl:sequence select="ixsl:call($modal, 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
+        </xsl:if>
+    </xsl:template>
     
     <!-- submit instance creation modal form using PUT -->
     
