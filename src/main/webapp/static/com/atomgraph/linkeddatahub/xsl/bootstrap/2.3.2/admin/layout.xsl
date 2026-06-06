@@ -48,7 +48,7 @@ exclude-result-prefixes="#all">
         <xsl:param name="base-uri" select="ldh:base-uri(.)" as="xs:anyURI"/>
 
         <div class="btn-group pull-left">
-            <button type="button" title="{ac:label(key('resources', 'create-instance-title', document('../translations.rdf')))}">
+            <button type="button" title="{ac:label(key('resources', 'create-instance-title', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', lapp:origin()))))}">
                 <xsl:apply-templates select="key('resources', '&ac;ConstructMode', document(ac:document-uri('&ac;')))" mode="ldh:logo">
                     <xsl:with-param name="class" select="'btn btn-primary dropdown-toggle'"/>
                 </xsl:apply-templates>

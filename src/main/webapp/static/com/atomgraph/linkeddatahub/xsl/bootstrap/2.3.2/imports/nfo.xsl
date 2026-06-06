@@ -2,6 +2,7 @@
 <!DOCTYPE xsl:stylesheet [
     <!ENTITY ac     "https://w3id.org/atomgraph/client#">
     <!ENTITY ldh    "https://w3id.org/atomgraph/linkeddatahub#">
+    <!ENTITY lapp   "https://w3id.org/atomgraph/linkeddatahub/apps#">
     <!ENTITY rdf    "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
     <!ENTITY xsd    "http://www.w3.org/2001/XMLSchema#">
     <!ENTITY ldt    "https://www.w3.org/ns/ldt#">
@@ -14,6 +15,7 @@ xmlns:xhtml="http://www.w3.org/1999/xhtml"
 xmlns:xs="http://www.w3.org/2001/XMLSchema"
 xmlns:ac="&ac;"
 xmlns:ldh="&ldh;"
+xmlns:lapp="&lapp;"
 xmlns:rdf="&rdf;"
 xmlns:ldt="&ldt;"
 xmlns:nfo="&nfo;"
@@ -23,7 +25,7 @@ exclude-result-prefixes="#all">
     <xsl:preserve-space elements="nfo:fileName"/>
     
     <xsl:template match="*[@rdf:about = '&nfo;FileDataObject']" mode="ac:label">
-        <xsl:apply-templates select="key('resources', 'file', document('../translations.rdf'))" mode="#current"/>
+        <xsl:apply-templates select="key('resources', 'file', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', lapp:origin())))" mode="#current"/>
     </xsl:template>
 
     <xsl:template match="nfo:fileName/@rdf:nodeID[key('resources', .)[not(* except rdf:type[@rdf:resource = '&xsd;string'])]]" mode="bs2:FormControl">

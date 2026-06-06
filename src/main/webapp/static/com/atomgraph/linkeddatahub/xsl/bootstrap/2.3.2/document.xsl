@@ -1312,7 +1312,7 @@ extension-element-prefixes="ixsl"
 
                 <button type="button" class="btn btn-primary btn-access-form pull-right">
                     <xsl:value-of>
-                        <xsl:apply-templates select="key('resources', 'request-access', document('translations.rdf'))" mode="ac:label"/>
+                        <xsl:apply-templates select="key('resources', 'request-access', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', lapp:origin())))" mode="ac:label"/>
                     </xsl:value-of>
                 </button>
             </h2>
