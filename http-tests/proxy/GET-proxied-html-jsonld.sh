@@ -34,10 +34,7 @@ content_type=$(curl -k -f -s -G -w "%{content_type}" -o /tmp/proxy-html-jsonld.b
 
 case "$content_type" in
     text/turtle*) ;;
-    *)
-        echo "DEBUG: Expected Content-Type: text/turtle*, got: $content_type" >&2
-        exit 1
-        ;;
+    *) exit 1 ;;
 esac
 
 # 2. The body must parse as turtle and contain at least one triple with
@@ -47,12 +44,6 @@ esac
 triple_count=$(rapper -q --input turtle --output ntriples /tmp/proxy-html-jsonld.body - \
   | grep -c "^<${target_uri}>" || true)
 
-if [ "$triple_count" -lt 1 ]; then
-    echo "DEBUG: Expected at least one triple with <${target_uri}> as subject, got: $triple_count" >&2
-    echo "DEBUG: Body preview:" >&2
-    head -c 500 /tmp/proxy-html-jsonld.body >&2
-    echo >&2
-    exit 1
-fi
-
 rm -f /tmp/proxy-html-jsonld.body
+
+if [ "$triple_count" -lt 1 ]; then exit 1; fi
