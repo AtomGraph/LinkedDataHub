@@ -5,7 +5,7 @@
     exclude-result-prefixes="xs">
 
     <!-- System admin stylesheet (lowest priority) -->
-    <xsl:import href="../../com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/admin/layout.xsl"/>
+    <xsl:import href="../../com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/layout.xsl"/>
 
     <!-- Package stylesheets will be added here by InstallPackage endpoint -->
 

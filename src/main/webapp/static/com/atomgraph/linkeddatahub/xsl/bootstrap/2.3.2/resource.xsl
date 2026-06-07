@@ -1386,7 +1386,20 @@ extension-element-prefixes="ixsl"
             </xsl:if>
         </fieldset>
     </xsl:template>
-    
+
+    <!-- Admin app override: allow subject editing for non-hierarchy resources by flipping the $show-subject default. -->
+    <xsl:template match="*[*][@rdf:about or @rdf:nodeID][starts-with(replace(lapp:origin(), '^https?://', ''), 'admin.')]" mode="bs2:FormControl" priority="1">
+        <xsl:param name="legend" select="true()" as="xs:boolean"/>
+        <xsl:param name="show-subject" select="not(rdf:type/@rdf:resource = ('&dh;Item', '&dh;Container'))" as="xs:boolean" tunnel="yes"/>
+        <xsl:param name="required" select="false()" as="xs:boolean"/>
+
+        <xsl:next-match>
+            <xsl:with-param name="legend" select="$legend"/>
+            <xsl:with-param name="show-subject" select="$show-subject" tunnel="yes"/>
+            <xsl:with-param name="required" select="$required"/>
+        </xsl:next-match>
+    </xsl:template>
+
     <!-- TYPE CONTROL -->
 
     <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:TypeControl">

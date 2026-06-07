@@ -15,6 +15,7 @@
     <!ENTITY http   "http://www.w3.org/2011/http#">
     <!ENTITY sc     "http://www.w3.org/2011/http-statusCodes#">
     <!ENTITY acl    "http://www.w3.org/ns/auth/acl#">
+    <!ENTITY cert   "http://www.w3.org/ns/auth/cert#">
     <!ENTITY sh     "http://www.w3.org/ns/shacl#">
     <!ENTITY sd     "http://www.w3.org/ns/sparql-service-description#">
     <!ENTITY ldt    "https://www.w3.org/ns/ldt#">
@@ -698,7 +699,32 @@ extension-element-prefixes="ixsl"
             </div>
         </xsl:if>
     </xsl:template>
-    
+
+    <!-- Admin app override: ontology/SHACL/ACL/foaf class list instead of the end-user default.
+         Admin apps are identified by the 'admin.' subdomain prefix on lapp:origin() (nginx wildcard routing convention). -->
+    <xsl:template match="rdf:RDF[starts-with(replace(lapp:origin(), '^https?://', ''), 'admin.')]" mode="bs2:Row">
+        <xsl:param name="id" select="concat('form-', generate-id())" as="xs:string?"/>
+        <xsl:param name="class" select="'row-fluid'" as="xs:string?"/>
+        <xsl:param name="method" select="'patch'" as="xs:string"/>
+        <xsl:param name="action" select="ldh:href(ac:build-uri(ac:absolute-path(ldh:base-uri(.)), map{ '_method': 'PUT' }))" as="xs:anyURI" tunnel="yes"/>
+        <xsl:param name="enctype" select="'multipart/form-data'" as="xs:string?"/>
+        <xsl:param name="create-resource" select="true()" as="xs:boolean"/>
+        <!-- TO-DO: generate ontology classes from the OWL vocabulary -->
+        <xsl:param name="class-uris" select="(xs:anyURI('&owl;Ontology'), xs:anyURI('&owl;Class'), xs:anyURI('&owl;DatatypeProperty'), xs:anyURI('&owl;ObjectProperty'), xs:anyURI('&owl;Restriction'), xs:anyURI('&ldh;Constructor'), xs:anyURI('&sh;NodeShape'), xs:anyURI('&sh;PropertyShape'), xs:anyURI('&acl;Authorization'), xs:anyURI('&foaf;Person'), xs:anyURI('&cert;PublicKey'), xs:anyURI('&sioc;UserAccount'), xs:anyURI('&foaf;Group'))" as="xs:anyURI*"/>
+        <!-- foaf is a slash-vocab so ac:document-uri() leaves the term URI intact; fetch the namespace doc explicitly to hit the location-mapping proxy -->
+        <xsl:param name="classes" select="for $class-uri in $class-uris return key('resources', $class-uri, document(if (starts-with($class-uri, '&foaf;')) then ac:document-uri(xs:anyURI('&foaf;')) else ac:document-uri($class-uri)))" as="element()*"/>
+
+        <xsl:next-match>
+            <xsl:with-param name="id" select="$id"/>
+            <xsl:with-param name="class" select="$class"/>
+            <xsl:with-param name="method" select="$method"/>
+            <xsl:with-param name="action" select="$action" tunnel="yes"/>
+            <xsl:with-param name="enctype" select="$enctype"/>
+            <xsl:with-param name="create-resource" select="$create-resource"/>
+            <xsl:with-param name="classes" select="$classes"/>
+        </xsl:next-match>
+    </xsl:template>
+
     <!-- TABLE MODE -->
 
     <xsl:template match="rdf:RDF" mode="xhtml:Table">
@@ -1284,6 +1310,34 @@ extension-element-prefixes="ixsl"
     </xsl:template>
 
     <xsl:template match="*" mode="bs2:Create"/>
+
+    <!-- Admin app override: hide hardcoded NamedIndividual+divider so the dropdown only shows the admin $class-uris from bs2:Row. -->
+    <xsl:template match="rdf:RDF[$foaf:Agent][starts-with(replace(lapp:origin(), '^https?://', ''), 'admin.')]" mode="bs2:Create" priority="2">
+        <xsl:param name="classes" as="element()*"/>
+        <xsl:param name="create-graph" select="false()" as="xs:boolean"/>
+        <xsl:param name="base-uri" select="ldh:base-uri(.)" as="xs:anyURI"/>
+
+        <div class="btn-group pull-left">
+            <button type="button" title="{ac:label(key('resources', 'create-instance-title', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', lapp:origin()))))}">
+                <xsl:apply-templates select="key('resources', '&ac;ConstructMode', document(ac:document-uri('&ac;')))" mode="ldh:logo">
+                    <xsl:with-param name="class" select="'btn btn-primary dropdown-toggle'"/>
+                </xsl:apply-templates>
+                <xsl:value-of>
+                    <xsl:apply-templates select="key('resources', '&ac;ConstructMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
+                </xsl:value-of>
+                <xsl:text> </xsl:text>
+                <span class="caret"></span>
+            </button>
+
+            <ul class="dropdown-menu">
+                <xsl:apply-templates select="$classes" mode="bs2:ConstructorListItem">
+                    <xsl:with-param name="base-uri" select="$base-uri" tunnel="yes"/>
+                    <xsl:with-param name="create-graph" select="$create-graph"/>
+                    <xsl:sort select="ac:label(.)"/>
+                </xsl:apply-templates>
+            </ul>
+        </div>
+    </xsl:template>
 
     <!-- OBJECT -->
 
