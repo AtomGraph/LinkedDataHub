@@ -9,6 +9,7 @@
 - Row-form metadata loading extended with property-metadata, constraints, and object-metadata; `sd:endpoint()` propagated via context map
 - `bs2:Form` `$required` lifted to a predicate at `rdf:RDF` level
 - CSR-only helpers moved out of `layout.xsl`; `bs2:FormControl` boolean overrides relocated
+- Admin XSLT overrides (`bs2:Row`, `bs2:Create`, `bs2:FormControl`, `bs2:NavBarNavList`) and ACL/cert vocab templates moved out of the SSR-only `admin/` chain into shared `document.xsl`/`resource.xsl`/`layout.xsl` and new `imports/{acl,cert}.xsl`; admin variants gated by an `admin.`-subdomain predicate on `lapp:origin()`. `admin/layout.xsl`, `admin/acl/layout.xsl`, and `admin/acl/imports/*` deleted; `static/xsl/admin/layout.xsl` imports the base layout directly
 - `lapp:Application` form restrictions scoped to the app-settings flow
 - `rdf:type` editable on `ldh:View` instance forms
 - GraphMode canvas persisted across view re-renders via a `{container-id}-graph-host` host; WebGL context and force-simulation state survive search/filter re-runs
@@ -21,6 +22,8 @@
 - Drop just-added block on empty-graph submit
 - `btn-remove-resource` removes the outermost duplicate `.block` wrapper when renderers double-wrap
 - Relative `document('../translations.rdf')` and `document('translations.rdf')` calls in `imports/{nfo,sioc,sp}.xsl`, `admin/layout.xsl`, and `document.xsl` resolved against the SEF root under SaxonJS 3, producing 404s; switched to the absolute `resolve-uri(..., lapp:origin())` pattern
+- Admin app dropdowns, form-control defaults, and navbar reverted to end-user variants after CSR navigation because admin overrides only lived in the SSR-only `admin/` chain
+- Admin `bs2:Row` `foaf:Person`/`foaf:Group` lookup failed under SaxonJS XHR ("Get failure http://xmlns.com/foaf/0.1/Person") because `ac:document-uri` leaves slash-vocab term URIs intact; override now fetches the `foaf:` namespace doc, hitting the `documentPool` cache
 
 ## [5.4.0] - 2026-06-04
 ### Added
