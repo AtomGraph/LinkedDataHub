@@ -1,8 +1,10 @@
 ## [5.5.0] - 2026-06-07
 ### Added
+- HTML+JSON-LD reader: extracts every `<script type="application/ld+json">` from HTML responses and parses each payload through Jena's `Lang.JSONLD11`, so embedded schema.org markup parses as RDF. Bundled schema.org JSON-LD `@context` served locally by `SchemaOrgDocumentLoader` (no network fetch). Replaces the old `JsonLDReader` and drops the `jsonld-java` + `httpclient-cache` dependencies (#312)
 - GraphMode 3D canvas Fullscreen toggle (CSS maximize, Esc exits)
 - Esc closes topmost modal
 - HTTP test for orphan bnode object skolemization
+- HTTP test for HTML+JSON-LD ingestion through the document hierarchy
 
 ### Changed
 - Jena upgraded to 6.1.0 (#309)
