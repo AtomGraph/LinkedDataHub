@@ -17,7 +17,7 @@
 package com.atomgraph.linkeddatahub.io;
 
 import com.atomgraph.core.MediaType;
-import com.github.jsonldjava.core.JsonLdOptions;
+import com.apicatalog.jsonld.JsonLdOptions;
 import org.apache.jena.atlas.lib.InternalErrorException;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.LangBuilder;
@@ -27,13 +27,12 @@ import org.apache.jena.riot.system.ParserProfile;
 
 /**
  * JAX-RS factory for the JSON-LD-in-HTML reader.
- * 
+ *
  * @author {@literal Martynas Jusevičius <martynas@atomgraph.com>}
  */
 public class HtmlJsonLDReaderFactory implements ReaderRIOTFactory
 {
-    
-    private final JsonLDReader jsonLDReader;
+
     private final JsonLdOptions options;
 
     /** HTML as RDF language */
@@ -41,56 +40,42 @@ public class HtmlJsonLDReaderFactory implements ReaderRIOTFactory
     public static final Lang HTML = LangBuilder.create("HTML", MediaType.TEXT_HTML).
             addFileExtensions("html").
             build();
-    
+
     /**
-     * Constructs JSON-LD-in-RDF reader.
-     * 
-     * @param jsonLDReader JSON-LD reader
+     * Constructs the factory without options.
      */
-    public HtmlJsonLDReaderFactory(JsonLDReader jsonLDReader)
+    public HtmlJsonLDReaderFactory()
     {
-        this(jsonLDReader, null);
-    }
-    
-    /**
-     * Constructs JSON-LD-in-RDF reader with options.
-     * 
-     * @param jsonLDReader JSON-LD reader
-     * @param options JSON-LD reader options
-     */
-    public HtmlJsonLDReaderFactory(JsonLDReader jsonLDReader, JsonLdOptions options)
-    {
-        this.jsonLDReader = jsonLDReader;
-        this.options = options;
-    }
-    
-    @Override
-    public ReaderRIOT create(Lang lang, ParserProfile profile) 
-    {
-        if ( !HTML.equals(lang) )
-            throw new InternalErrorException("Attempt to parse " + lang + " as HTML");
-        
-        return new HtmlJsonLDReader(getJsonLDReader(), getJsonLdOptions());
+        this(null);
     }
 
     /**
-     * Returns JSON-LD reader.
-     * 
-     * @return reader
+     * Constructs the factory with JSON-LD options.
+     *
+     * @param options Titanium JSON-LD options
      */
-    public JsonLDReader getJsonLDReader()
+    public HtmlJsonLDReaderFactory(JsonLdOptions options)
     {
-        return jsonLDReader;
+        this.options = options;
     }
-    
+
+    @Override
+    public ReaderRIOT create(Lang lang, ParserProfile profile)
+    {
+        if ( !HTML.equals(lang) )
+            throw new InternalErrorException("Attempt to parse " + lang + " as HTML");
+
+        return new HtmlJsonLDReader(getJsonLdOptions());
+    }
+
     /**
      * Returns JSON-LD reader options.
-     * 
+     *
      * @return reader options
      */
     public JsonLdOptions getJsonLdOptions()
     {
         return options;
     }
-    
+
 }

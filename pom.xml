@@ -137,11 +137,6 @@
             <version>6.1.0</version>
         </dependency>
         <dependency>
-            <groupId>com.github.jsonld-java</groupId>
-            <artifactId>jsonld-java</artifactId>
-            <version>0.13.4</version>
-        </dependency>
-        <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>twirl</artifactId>
             <version>1.1.0</version>
@@ -157,12 +152,6 @@
             <artifactId>client</artifactId>
             <version>4.3.0</version>
             <type>war</type>
-        </dependency>
-        <!-- required by jsonld-java - version same as Jersey's HTTP Client -->
-        <dependency>
-            <groupId>org.apache.httpcomponents</groupId>
-            <artifactId>httpclient-cache</artifactId>
-            <version>4.5.14</version>
         </dependency>
         <dependency>
             <groupId>com.auth0</groupId>
