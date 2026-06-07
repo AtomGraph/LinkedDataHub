@@ -74,7 +74,7 @@ import com.atomgraph.linkeddatahub.client.filter.JSONGRDDLFilter;
 import com.atomgraph.linkeddatahub.client.filter.JSONGRDDLFilterProvider;
 import com.atomgraph.linkeddatahub.imports.ImportExecutor;
 import com.atomgraph.linkeddatahub.io.HtmlJsonLDReaderFactory;
-import com.atomgraph.linkeddatahub.io.JsonLDReader;
+import com.atomgraph.linkeddatahub.io.SchemaOrgDocumentLoader;
 import com.atomgraph.linkeddatahub.listener.EMailListener;
 import com.atomgraph.linkeddatahub.writer.ModelXSLTWriter;
 import com.atomgraph.linkeddatahub.model.Import;
@@ -175,8 +175,8 @@ import org.slf4j.LoggerFactory;
 import com.atomgraph.server.mapper.SHACLConstraintViolationExceptionMapper;
 import com.atomgraph.server.mapper.SPINConstraintViolationExceptionMapper;
 import com.atomgraph.spinrdf.vocabulary.SP;
-import com.github.jsonldjava.core.DocumentLoader;
-import com.github.jsonldjava.core.JsonLdOptions;
+import com.apicatalog.jsonld.JsonLdError;
+import com.apicatalog.jsonld.JsonLdOptions;
 import java.io.FileOutputStream;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
@@ -229,9 +229,6 @@ import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.ResIterator;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.riot.resultset.ResultSetLang;
-import org.apache.jena.riot.system.ErrorHandlerFactory;
-import org.apache.jena.riot.system.ParserProfile;
-import org.apache.jena.riot.system.RiotLib;
 import org.apache.jena.sparql.graph.GraphReadOnly;
 import org.apache.jena.vocabulary.DCTerms;
 import org.apache.jena.vocabulary.LocationMappingVocab;
@@ -670,23 +667,18 @@ public class Application extends ResourceConfig
         RDFLanguages.register(ResultSetLang.RS_None);
         
         // add HTML/JSON-LD reader
-        DocumentLoader documentLoader = new DocumentLoader();
-        JsonLdOptions jsonLdOptions = new JsonLdOptions();
         try (InputStream contextStream = servletConfig.getServletContext().getResourceAsStream("/WEB-INF/classes/com/atomgraph/linkeddatahub/schema.org.jsonldcontext.json"))
         {
             String jsonContext = new String(contextStream.readAllBytes(), StandardCharsets.UTF_8);
-            documentLoader.addInjectedDoc("http://schema.org", jsonContext);
-            documentLoader.addInjectedDoc("https://schema.org", jsonContext);
-            jsonLdOptions.setDocumentLoader(documentLoader);
+            JsonLdOptions jsonLdOptions = new JsonLdOptions();
+            jsonLdOptions.setDocumentLoader(new SchemaOrgDocumentLoader(jsonContext));
 
-            ParserProfile profile = RiotLib.profile(HtmlJsonLDReaderFactory.HTML, null, ErrorHandlerFactory.getDefaultErrorHandler());
             RDFLanguages.register(HtmlJsonLDReaderFactory.HTML);
-            RDFParserRegistry.registerLangTriples(HtmlJsonLDReaderFactory.HTML,
-                new HtmlJsonLDReaderFactory(new JsonLDReader(Lang.JSONLD, profile, profile.getErrorHandler()), jsonLdOptions));
+            RDFParserRegistry.registerLangTriples(HtmlJsonLDReaderFactory.HTML, new HtmlJsonLDReaderFactory(jsonLdOptions));
         }
-        catch (IOException ex)
+        catch (IOException | JsonLdError ex)
         {
-            if (log.isErrorEnabled()) log.error("schema.org @context not found", ex);
+            if (log.isErrorEnabled()) log.error("schema.org @context not found or invalid", ex);
         }
 
         // register plain RDF/XML writer as default

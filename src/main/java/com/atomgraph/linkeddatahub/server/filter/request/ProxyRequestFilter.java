@@ -57,12 +57,20 @@ import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Request;
 import jakarta.ws.rs.core.Response;
+import org.apache.jena.query.ResultSet;
+import org.apache.jena.query.ResultSetRewindable;
 import org.apache.jena.rdf.model.Model;
+import org.apache.jena.riot.Lang;
+import org.apache.jena.riot.RDFLanguages;
+import org.apache.jena.riot.RiotException;
+import org.apache.jena.riot.resultset.ResultSetReaderRegistry;
 import org.glassfish.jersey.message.internal.MessageBodyProviderNotFoundException;
 import java.util.regex.Pattern;
 import jakarta.ws.rs.NotAcceptableException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import com.atomgraph.core.io.ModelProvider;
+import com.atomgraph.core.util.ResultSetUtils;
 
 /**
  * JAX-RS request filter that intercepts proxy requests and short-circuits the pipeline
@@ -88,10 +96,13 @@ import org.slf4j.LoggerFactory;
  * request that hits this filter and is proxied cheaply. Pure API clients that send only
  * {@code *}{@code /*} (e.g. curl) reach the proxy because they do not list an explicit HTML type.
  * <p>
- * External HTTP responses are piped through as raw {@link InputStream} — the filter does not
- * parse or re-serialize the body. The upstream already negotiates content type via the forwarded
- * {@code Accept} header. Local responses (DataManager cache, namespace ontology DESCRIBE) are
- * the only paths that still build a typed {@link Model} response with full content negotiation.
+ * External HTTP responses are dispatched on upstream {@code Content-Type} via Jena's live
+ * RIOT registry (the same predicate {@code ModelProvider.isReadable} consults): RDF langs route
+ * to {@link Model} (including HTML with embedded JSON-LD via {@code HtmlJsonLDReader} and
+ * RDF/POST), SPARQL results langs route to {@link ResultSet}, and both branches are re-served
+ * through the same content-negotiating builders used by local responses so the client gets the
+ * format it asked for via {@code Accept}. Bodies in non-RDF types (binary, octet-stream, etc.)
+ * are piped through as raw {@link InputStream}.
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
@@ -229,13 +240,18 @@ public class ProxyRequestFilter implements ContainerRequestFilter
 
             try (clientResponse)
             {
-                requestContext.abortWith(getResponse(clientResponse));
+                requestContext.abortWith(getResponse(clientResponse, targetURI));
             }
         }
         catch (MessageBodyProviderNotFoundException ex)
         {
             if (log.isWarnEnabled()) log.warn("Proxied URI {} returned non-RDF media type", targetURI);
             throw new NotAcceptableException(ex);
+        }
+        catch (RiotException ex)
+        {
+            if (log.isWarnEnabled()) log.warn("Proxied URI {} returned body typed as RDF but unparseable", targetURI);
+            throw new BadGatewayException(ex);
         }
         catch (ProcessingException ex)
         {
@@ -271,15 +287,42 @@ public class ProxyRequestFilter implements ContainerRequestFilter
     }
 
     /**
-     * Pipes the proxy target's HTTP response through as a raw byte stream.
-     * No body parsing or re-serialization is performed; the upstream's {@code Content-Type}
-     * and status code are forwarded verbatim. {@code Link} headers from the external response
-     * are also forwarded so the client receives remote hypermedia (e.g. {@code sd:endpoint}).
+     * Converts the proxy target's HTTP response into a JAX-RS response for the original caller.
+     * Dispatches on upstream {@code Content-Type} via Jena's live RIOT registry:
+     * <ul>
+     *   <li>{@link RDFLanguages#contentTypeToLang} + {@link ResultSetReaderRegistry#isRegistered}
+     *       → parse as {@code ResultSetRewindable}, re-serialize through
+     *       {@link #getResponse(ResultSetRewindable, Response.StatusType)};</li>
+     *   <li>{@link RDFLanguages#contentTypeToLang} only → parse as {@code Model}, re-serialize
+     *       through {@link #getResponse(Model, Response.StatusType)} so the client gets the
+     *       format it asked for via {@code Accept};</li>
+     *   <li>anything else → pipe raw bytes with upstream {@code Content-Type} verbatim.</li>
+     * </ul>
+     * Why the live RIOT registry and not {@code MediaTypes.getReadable(...)}: the latter is a
+     * static-initializer snapshot built the first time {@code client.MediaTypes} loads, which
+     * happens during {@code Application}'s constructor argument evaluation — before the
+     * constructor body registers the late langs (HTML, RDFPOST). Those langs are present in the
+     * live RIOT registry by request time (which is why {@code ModelProvider.isReadable} also
+     * queries it directly), but they are permanently absent from the {@code MediaTypes} snapshot.
+     * <p>
+     * Selecting the entity class up-front from the upstream {@code Content-Type} guarantees the
+     * later {@code selectVariant} call inside the typed builders runs over a single-class writable
+     * list (Model-only or ResultSet-only), so the cross-class mismatch fixed by commit
+     * {@code 56f7730cf} (pre-selecting a variant from a combined {@code Model+ResultSet} list
+     * before knowing the entity type, then writing a {@code Model} body to a sparql-results
+     * variant → 500) is structurally unreachable: by the time {@code selectVariant} runs, the
+     * entity class is known.
+     * <p>
+     * {@code Link} headers and end-to-end cache/content headers from upstream are overlaid on top
+     * of all three branches; {@code ETag}/{@code Last-Modified} are skipped on the typed branches
+     * because the Model/ResultSet builders stamp their own validators that describe the
+     * re-serialized representation, not the upstream bytes.
      *
      * @param clientResponse response from the proxy target
+     * @param targetURI upstream URI (used as the parse base URI hint for {@code ModelProvider})
      * @return JAX-RS response to return to the original caller
      */
-    protected Response getResponse(Response clientResponse)
+    protected Response getResponse(Response clientResponse, URI targetURI)
     {
         if (clientResponse.getMediaType() == null)
         {
@@ -292,13 +335,56 @@ public class ProxyRequestFilter implements ContainerRequestFilter
             return rb.build();
         }
 
+        // dispatch on the live Jena RIOT registry — same predicate ModelProvider.isReadable uses,
+        // so any RDF lang Jersey can read into a Model (including HTML via HtmlJsonLDReader and
+        // RDFPOST) routes to the Model branch. We can't use MediaTypes.getReadable(Model.class)
+        // here: that list is captured by a static initializer in client.MediaTypes the first time
+        // its class is loaded — earlier than Application's constructor body registers the late
+        // langs (HTML, RDFPOST), so they're permanently absent from the static snapshot.
+        MediaType upstreamCT = clientResponse.getMediaType();
+        MediaType formatType = new MediaType(upstreamCT.getType(), upstreamCT.getSubtype()); // strip charset
+        Lang lang = RDFLanguages.contentTypeToLang(formatType.toString());
+
+        if (lang != null && ResultSetReaderRegistry.isRegistered(lang))
+        {
+            ResultSetRewindable results = clientResponse.readEntity(ResultSetRewindable.class);
+            return overlayHeaders(getResponse(results, clientResponse.getStatusInfo()), clientResponse, false);
+        }
+
+        if (lang != null)
+        {
+            // base URI hint so ModelProvider (and HtmlJsonLDReader through it) resolve relative IRIs against the upstream URI
+            clientResponse.getHeaders().putSingle(ModelProvider.REQUEST_URI_HEADER, targetURI.toString());
+            Model model = clientResponse.readEntity(Model.class);
+            return overlayHeaders(getResponse(model, clientResponse.getStatusInfo()), clientResponse, false);
+        }
+
+        // upstream is neither RDF nor SPARQL results — pipe raw bytes
         // buffer so the stream remains readable after try-with-resources closes the client response
         clientResponse.bufferEntity();
         InputStream entity = clientResponse.readEntity(InputStream.class);
 
         Response.ResponseBuilder rb = Response.status(clientResponse.getStatus()).
-            type(clientResponse.getMediaType()).
+            type(upstreamCT).
             entity(entity);
+
+        return overlayHeaders(rb.build(), clientResponse, true);
+    }
+
+    /**
+     * Copies the upstream {@code Link} and end-to-end cache/content headers onto the given
+     * built response. {@code ETag}/{@code Last-Modified} are skipped when {@code copyValidators}
+     * is {@code false} (typed branches), because the Model/ResultSet builders stamp their own
+     * validators that describe the re-serialized representation rather than the upstream bytes.
+     *
+     * @param response the response built by the typed or raw branch
+     * @param clientResponse upstream response to copy headers from
+     * @param copyValidators whether to forward {@code ETag} and {@code Last-Modified}
+     * @return response with overlaid upstream headers
+     */
+    private Response overlayHeaders(Response response, Response clientResponse, boolean copyValidators)
+    {
+        Response.ResponseBuilder rb = Response.fromResponse(response);
 
         // forward all Link headers from the external response so the client receives remote hypermedia
         // (e.g. sd:endpoint pointing to the remote SPARQL endpoint);
@@ -308,10 +394,9 @@ public class ProxyRequestFilter implements ContainerRequestFilter
             for (String part : LINK_SPLITTER.split(linkHeader))
                 rb.header(HttpHeaders.LINK, part.trim());
 
-        // forward end-to-end content/cache headers so the client can do conditional requests,
-        // caching, redirects, and download negotiation against the upstream
         for (String name : FORWARDED_RESPONSE_HEADERS)
         {
+            if (!copyValidators && (HttpHeaders.ETAG.equalsIgnoreCase(name) || HttpHeaders.LAST_MODIFIED.equalsIgnoreCase(name))) continue;
             String value = clientResponse.getHeaderString(name);
             if (value != null) rb.header(name, value);
         }
@@ -321,7 +406,8 @@ public class ProxyRequestFilter implements ContainerRequestFilter
 
     /**
      * Builds a response for the given RDF model with type-appropriate content negotiation.
-     * Used for locally-served responses (DataManager cache, namespace ontology DESCRIBE).
+     * Used for locally-served responses (DataManager cache, namespace ontology DESCRIBE) and for
+     * the proxy's Model branch.
      *
      * @param model RDF model
      * @param statusType response status
@@ -338,6 +424,32 @@ public class ProxyRequestFilter implements ContainerRequestFilter
                 null,
                 new EntityTag(Long.toHexString(ModelUtils.hashModel(model))),
                 writableTypes,
+                getSystem().getSupportedLanguages(),
+                new ArrayList<>(),
+                new HTMLMediaTypePredicate()).
+            getResponseBuilder().
+            status(statusType).
+            build();
+    }
+
+    /**
+     * Builds a response for the given SPARQL result set with type-appropriate content negotiation.
+     * Used by the proxy's ResultSet branch when an upstream returns SPARQL results.
+     *
+     * @param resultSet SPARQL result set (rewindable so we can hash without consuming)
+     * @param statusType response status
+     * @return JAX-RS response
+     */
+    protected Response getResponse(ResultSetRewindable resultSet, Response.StatusType statusType)
+    {
+        long hash = ResultSetUtils.hashResultSet(resultSet);
+        resultSet.reset();
+
+        return new com.atomgraph.core.model.impl.Response(getRequest(),
+                resultSet,
+                null,
+                new EntityTag(Long.toHexString(hash)),
+                getMediaTypes().getWritable(ResultSet.class),
                 getSystem().getSupportedLanguages(),
                 new ArrayList<>(),
                 new HTMLMediaTypePredicate()).
