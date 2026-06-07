@@ -1,3 +1,33 @@
+## [5.5.0] - 2026-06-07
+### Added
+- GraphMode 3D canvas Fullscreen toggle (CSS maximize, Esc exits)
+- Esc closes topmost modal
+- HTTP test for orphan bnode object skolemization
+
+### Changed
+- Jena upgraded to 6.1.0 (#309)
+- Modal- and row-form metadata fetches converted to async load/set pairs; row-form chain extended with property-metadata, constraints, object-metadata; `sd:endpoint()` carried in context (#310)
+- `bs2:Form` `$required` lifted to a predicate at `rdf:RDF` level
+- CSR-only helpers moved out of `layout.xsl`; `bs2:FormControl` boolean overrides relocated
+- Admin XSLT overrides (`bs2:Row`, `bs2:Create`, `bs2:FormControl`, `bs2:NavBarNavList`) and ACL/cert vocab templates moved from the SSR-only `admin/` chain into shared `document.xsl`/`resource.xsl`/`layout.xsl` and new `imports/{acl,cert}.xsl`; gated by `admin.`-subdomain on `lapp:origin()`
+- `lapp:Application` form restrictions scoped to the app-settings flow
+- `rdf:type` editable on `ldh:View` instance forms
+- GraphMode canvas persisted across view re-renders via a `{container-id}-graph-host`; WebGL context and force-simulation state survive search/filter re-runs; dangling `@rdf:nodeID` and anonymous nested `rdf:Description` rendered as bnodes; click handlers skip bnodes
+- View mode preserved across re-runs of the same search container
+- Container result count short-circuits COUNT when the result set fits one page
+- Removed bash trace debug from entrypoint
+- Modal-form per-flow `render-fn` stamping unified via `ldh:constructor-form-response` / `ldh:edit-form-response` (parallel to `ldh:settings-form-response`); new `ldh:render-constructor-form#2` routes Container/Item creation violation re-render through `mode="bs2:Form"`, leaving `mode="ldh:DocumentForm"` for the edit flow
+
+### Fixed
+- Drop just-added block on empty-graph submit
+- `btn-remove-resource` removes outermost duplicate `.block` wrapper
+- Relative `document('translations.rdf')` calls in `imports/{nfo,sioc,sp}.xsl`, `admin/layout.xsl`, `document.xsl` 404'd against the SEF root under SaxonJS 3; switched to absolute `resolve-uri(..., lapp:origin())`
+- Admin dropdowns, form-control defaults, and navbar reverted to end-user variants after CSR navigation (overrides only lived in the SSR `admin/` chain)
+- Admin `bs2:Row` `foaf:Person`/`foaf:Group` lookup failed under SaxonJS XHR because `ac:document-uri` leaves slash-vocab term URIs intact; override now fetches the namespace doc
+- `Skolemizer` covers blank nodes in object position; orphan bnode references (e.g. `<container> rdf:_1 [ ]`) rewritten to skolem URIs
+- Container/Item modal violation re-render preserves co-shipped peer Descriptions (default `ldh:ChildrenView` content block was lost)
+- EDIT and violation re-render were missing the SPIN-constructor merge that CREATE performs; `bs2:FormControl`'s SHACL branch silently dropped SPIN-defined property templates for classes with both (e.g. `skos:Concept`); merge extracted into shared `ldh:build-merged-constructor` and wired into both flows via the `constructor` tunnel
+
 ## [5.4.0] - 2026-06-04
 ### Added
 - Multi-tab document navigation (`Document tabs`) with per-pane modal scoping and cached tab switching (#294, #302)

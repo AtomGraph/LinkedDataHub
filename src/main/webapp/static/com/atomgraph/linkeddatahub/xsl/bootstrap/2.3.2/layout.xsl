@@ -84,6 +84,8 @@ exclude-result-prefixes="#all">
     <xsl:import href="resource.xsl"/>
     <xsl:import href="imports/default.xsl"/>
     <xsl:import href="imports/ac.xsl"/>
+    <xsl:import href="imports/acl.xsl"/>
+    <xsl:import href="imports/cert.xsl"/>
     <xsl:import href="imports/dct.xsl"/>
     <xsl:import href="imports/nfo.xsl"/>
     <xsl:import href="imports/rdf.xsl"/>
@@ -582,6 +584,90 @@ exclude-result-prefixes="#all">
         <xsl:apply-templates select="." mode="bs2:SignUp"/>
     </xsl:template>
 
+    <!-- Admin app override: notification dropdown for pending AuthorizationRequests + agent dropdown.
+         Admin apps are identified by the 'admin.' subdomain prefix on lapp:origin() (nginx wildcard routing convention).
+         TO-DO: refactor into component templates -->
+    <xsl:template match="rdf:RDF[starts-with(replace(lapp:origin(), '^https?://', ''), 'admin.')]" mode="bs2:NavBarNavList" priority="1">
+        <xsl:if test="$foaf:Agent//@rdf:about">
+            <ul class="nav pull-right">
+                <xsl:variable name="notification-query" as="xs:string">
+                    <![CDATA[
+PREFIX  rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX  dct:  <http://purl.org/dc/terms/>
+PREFIX  prov: <http://www.w3.org/ns/prov#>
+PREFIX  foaf: <http://xmlns.com/foaf/0.1/>
+PREFIX  sioc: <http://rdfs.org/sioc/ns#>
+
+CONSTRUCT
+{
+    ?authRequest a $type .
+    ?authRequest rdfs:label ?label .
+    ?authRequest dct:created ?created .
+}
+WHERE
+{ GRAPH ?authRequestGraph
+  { ?authRequest  a                 $type ;
+              rdfs:label            ?label .
+    ?authRequestItem
+              foaf:primaryTopic  ?authRequest ;
+              sioc:has_container    $container
+    FILTER NOT EXISTS { GRAPH ?authGraph
+                          { ?auth  prov:wasDerivedFrom  ?authRequest }
+                      }
+    OPTIONAL
+      { ?authRequest  dct:created  ?created }
+  }
+}
+                    ]]>
+                </xsl:variable>
+                <xsl:variable name="notification-query" select="replace($notification-query, '$type', '&lt;&lacl;AuthorizationRequest&gt;', 'q')" as="xs:string"/>
+                <xsl:variable name="notification-query" select="replace($notification-query, '$container', '&lt;' || resolve-uri('acl/authorization-requests/', $ldt:base) || '&gt;', 'q')" as="xs:string"/>
+
+                <xsl:if test="doc-available(ac:build-uri(resolve-uri('sparql', $ldt:base), map{ 'query': $notification-query }))">
+                    <xsl:variable name="notifications" select="document(ac:build-uri(resolve-uri('sparql', $ldt:base), map{ 'query': $notification-query }))" as="document-node()"/>
+
+                    <xsl:if test="$notifications/rdf:RDF/*[@rdf:about]">
+                        <li>
+                            <div class="btn-group">
+                                <button title="{ac:label(key('resources', 'notifications', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', lapp:origin()))))}">
+                                    <xsl:apply-templates select="key('resources', 'notifications', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', lapp:origin())))" mode="ldh:logo">
+                                        <xsl:with-param name="class" select="'btn btn-primary dropdown-toggle'"/>
+                                    </xsl:apply-templates>
+                                </button>
+                                <ul class="dropdown-menu pull-right">
+                                    <xsl:for-each select="$notifications/rdf:RDF/*[@rdf:about]">
+                                        <xsl:sort select="dct:created[1]/xs:dateTime(.)" order="descending"/>
+
+                                        <xsl:apply-templates select="." mode="xhtml:ListItem"/>
+                                    </xsl:for-each>
+                                </ul>
+                            </div>
+                        </li>
+                    </xsl:if>
+                </xsl:if>
+
+                <li>
+                    <div class="btn-group">
+                        <button type="button" title="{ac:label($foaf:Agent//*[@rdf:about][1])}">
+                            <xsl:apply-templates select="key('resources', '&foaf;Agent', document(ac:document-uri('&foaf;')))" mode="ldh:logo">
+                                <xsl:with-param name="class" select="'btn dropdown-toggle'"/>
+                            </xsl:apply-templates>
+                        </button>
+                        <ul class="dropdown-menu pull-right">
+                            <li>
+                                <xsl:for-each select="key('resources-by-type', '&foaf;Agent', $foaf:Agent)">
+                                    <xsl:apply-templates select="@rdf:about" mode="xhtml:Anchor"/>
+                                </xsl:for-each>
+                            </li>
+                        </ul>
+                    </div>
+                </li>
+            </ul>
+        </xsl:if>
+
+        <xsl:apply-templates select="." mode="bs2:SignUp"/>
+    </xsl:template>
+
     <xsl:template match="rdf:RDF[lapp:origin()][key('apps-by-origin', lapp:origin(), $lapp:Context)/rdf:type/@rdf:resource = '&lapp;EndUserApplication'] | srx:sparql[lapp:origin()][key('apps-by-origin', lapp:origin(), $lapp:Context)/rdf:type/@rdf:resource = '&lapp;EndUserApplication']" mode="bs2:DataspaceNavList" priority="1">
         <xsl:param name="id"  as="xs:string?"/>
         <xsl:param name="class" select="'nav pull-right'" as="xs:string?"/>
@@ -949,7 +1035,7 @@ exclude-result-prefixes="#all">
                         </button>
                     </li>
                     <li>
-                        <a href="{replace(string(lapp:origin()), '^(https?://)', '$1admin.')}" target="_blank">
+                        <a href="{replace(string(lapp:origin()), '^(https?://)', '$1admin.')}" class="external" target="_blank">
                             <xsl:value-of>
                                 <xsl:apply-templates select="key('resources', 'administration', document('translations.rdf'))" mode="ac:label"/>
                             </xsl:value-of>

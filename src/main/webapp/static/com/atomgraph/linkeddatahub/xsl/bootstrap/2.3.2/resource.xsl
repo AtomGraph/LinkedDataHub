@@ -925,7 +925,9 @@ extension-element-prefixes="ixsl"
     <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&ldh;Object']" mode="bs2:RowContentHeader" priority="1">
         <xsl:variable name="anchor" as="node()*">
             <xsl:for-each select="@rdf:about">
-                <xsl:apply-templates select="key('resources', ., document(ac:document-uri(.)))" mode="xhtml:Anchor">
+                <xsl:variable name="request-uri" select="ldh:href(ac:document-uri(.), map{ 'accept': 'application/rdf+xml' }, ())" as="xs:anyURI" use-when="system-property('xsl:product-name') = 'SaxonJS'"/>
+                <xsl:variable name="request-uri" select="ac:document-uri(.)" as="xs:anyURI" use-when="system-property('xsl:product-name') = 'SAXON'"/>
+                <xsl:apply-templates select="key('resources', ., document($request-uri))" mode="xhtml:Anchor">
                     <xsl:with-param name="class" as="xs:string?">
                         <xsl:apply-templates select="." mode="ldh:logo"/>
                     </xsl:with-param>
@@ -982,14 +984,17 @@ extension-element-prefixes="ixsl"
     <xsl:template match="*[*][@rdf:about]" mode="bs2:ConstructorListItem">
         <xsl:param name="with-label" select="true()" as="xs:boolean"/>
         <xsl:param name="create-graph" select="false()" as="xs:boolean"/>
+        <!-- on SaxonJS proxy via ldh:href (no browser catalog, cross-origin term URIs would otherwise hit mixed-content); on SAXON keep the raw URI so Jena's location-mapping resolves it locally -->
+        <xsl:param name="request-uri" select="ldh:href(ac:document-uri(@rdf:about), map{ 'accept': 'application/rdf+xml' }, ())" as="xs:anyURI" use-when="system-property('xsl:product-name') = 'SaxonJS'"/>
+        <xsl:param name="request-uri" select="ac:document-uri(@rdf:about)" as="xs:anyURI" use-when="system-property('xsl:product-name') = 'SAXON'"/>
 
-        <!-- the class document has to be available -->
-        <xsl:if test="doc-available(ac:document-uri(@rdf:about))">
+        <xsl:if test="doc-available($request-uri)">
             <li>
                 <xsl:apply-templates select="." mode="bs2:Constructor">
                     <xsl:with-param name="id" select="()"/>
                     <xsl:with-param name="with-label" select="$with-label"/>
                     <xsl:with-param name="create-graph" select="$create-graph"/>
+                    <xsl:with-param name="request-uri" select="$request-uri"/>
                 </xsl:apply-templates>
             </li>
         </xsl:if>
@@ -1000,8 +1005,10 @@ extension-element-prefixes="ixsl"
         <xsl:param name="subclasses" as="attribute()*"/>
         <xsl:param name="with-label" select="false()" as="xs:boolean"/>
         <xsl:param name="base-uri" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI" tunnel="yes"/>
+        <xsl:param name="request-uri" select="ldh:href(ac:document-uri(@rdf:about), map{ 'accept': 'application/rdf+xml' }, ())" as="xs:anyURI" use-when="system-property('xsl:product-name') = 'SaxonJS'"/>
+        <xsl:param name="request-uri" select="ac:document-uri(@rdf:about)" as="xs:anyURI" use-when="system-property('xsl:product-name') = 'SAXON'"/>
 
-        <xsl:if test="doc-available(ac:document-uri(@rdf:about))">
+        <xsl:if test="doc-available($request-uri)">
             <!-- if subclasses exist, render a dropdown with multiple constructor choices. Otherwise, only render a single constructor button -->
             <xsl:choose>
                 <xsl:when test="exists($subclasses)">
@@ -1025,7 +1032,7 @@ extension-element-prefixes="ixsl"
                             </xsl:choose>
                         </button>
                         <ul class="dropdown-menu">
-                            <xsl:variable name="self-and-subclasses" select="key('resources', @rdf:about, document(ac:document-uri(@rdf:about))), $subclasses/.." as="element()*"/>
+                            <xsl:variable name="self-and-subclasses" select="key('resources', @rdf:about, document($request-uri)), $subclasses/.." as="element()*"/>
 
                             <!-- apply on the "deepest" subclass and its subclasses -->
                             <!-- eliminate matches where a class is a subclass of itself (happens in inferenced ontology models) -->
@@ -1209,7 +1216,7 @@ extension-element-prefixes="ixsl"
     
     <!-- FORM CONTROL -->
     
-    <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:FormControl">
+    <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:FormControl" name="bs2:FormControl">
         <xsl:param name="id" select="concat('fieldset-', generate-id())" as="xs:string?"/>
         <xsl:param name="class" as="xs:string?"/>
         <xsl:param name="legend" select="true()" as="xs:boolean"/>
@@ -1247,6 +1254,31 @@ extension-element-prefixes="ixsl"
         <xsl:param name="base-uri" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI" tunnel="yes"/>
         <xsl:param name="show-subject" select="not(starts-with(@rdf:about, $base-uri) or @rdf:nodeID)" as="xs:boolean" tunnel="yes"/>
         <xsl:param name="required" select="false()" as="xs:boolean"/>
+        <xsl:param name="type-hidden" select="false()" as="xs:boolean"/>
+        <xsl:param name="show-property-control" select="true()" as="xs:boolean"/>
+        <!-- inner fieldset content; default is the merged-properties iteration (resource description merged with deduped constructor template properties). Override via xsl:with-param name="body" to substitute a different iteration (e.g. mode="#current" so the caller's mode templates fire per property) while reusing the fieldset shell. -->
+        <xsl:param name="body" as="node()*">
+            <xsl:variable name="resource-predicates" select="*/concat(namespace-uri(), local-name())" as="xs:string*"/>
+            <xsl:variable name="merged-properties" as="element()*">
+                <xsl:sequence select="*"/>
+                <xsl:for-each-group select="$template/*[not(self::rdf:type)]" group-by="concat(namespace-uri(), local-name())">
+                    <xsl:if test="not(current-grouping-key() = $resource-predicates)">
+                        <xsl:sequence select="."/>
+                    </xsl:if>
+                </xsl:for-each-group>
+            </xsl:variable>
+            <xsl:apply-templates select="$merged-properties" mode="#current">
+                <!-- move required properties up -->
+                <xsl:sort select="exists($type-constraints//srx:binding[@name = 'property'][srx:uri = current()/concat(namespace-uri(), local-name())])" order="descending"/>
+                <xsl:sort select="if ($property-metadata) then ac:property-label(., $property-metadata) else ac:property-label(.)"/>
+                <xsl:with-param name="violations" select="$violations"/>
+                <xsl:with-param name="constructor" select="$constructor"/>
+                <xsl:with-param name="type-constraints" select="$type-constraints"/>
+                <xsl:with-param name="type-shapes" select="$type-shapes"/>
+                <xsl:with-param name="traversed-ids" select="$traversed-ids" tunnel="yes"/>
+                <xsl:with-param name="property-metadata" select="$property-metadata" tunnel="yes"/>
+            </xsl:apply-templates>
+        </xsl:param>
 
         <fieldset>
             <xsl:if test="$id">
@@ -1333,12 +1365,14 @@ extension-element-prefixes="ixsl"
                 </xsl:when>
             </xsl:choose>
 
-            <xsl:apply-templates select="@rdf:about | @rdf:nodeID" mode="#current">
+            <!-- @rdf:about / @rdf:nodeID rendering is shell behavior, not per-flow customizable; dispatch in bs2:FormControl mode explicitly so it works regardless of whether the shell was entered via the match template (mode=bs2:FormControl) or the named template (e.g. from ldh:DocumentForm / ldh:AppSettingsForm wrapper modes) -->
+            <xsl:apply-templates select="@rdf:about | @rdf:nodeID" mode="bs2:FormControl">
                 <xsl:with-param name="type" select="if ($show-subject) then 'text' else 'hidden'"/>
             </xsl:apply-templates>
     
             <xsl:apply-templates select="." mode="bs2:TypeControl">
                 <xsl:with-param name="type-metadata" select="$type-metadata" tunnel="yes"/>
+                <xsl:with-param name="hidden" select="$type-hidden"/>
             </xsl:apply-templates>
 
             <xsl:if test="exists($violations)">
@@ -1346,29 +1380,33 @@ extension-element-prefixes="ixsl"
                     <xsl:apply-templates select="$violations" mode="bs2:Violation"/>
                 </div>
             </xsl:if>
-            
-            <!-- create inputs for both resource description and constructor template properties -->
-            <xsl:apply-templates select="* | $template/*[not(concat(namespace-uri(), local-name()) = current()/*/concat(namespace-uri(), local-name()))][not(self::rdf:type)]" mode="#current">
-                <!-- move required properties up -->
-                <xsl:sort select="exists($type-constraints//srx:binding[@name = 'property'][srx:uri = current()/concat(namespace-uri(), local-name())])" order="descending"/>
-                <xsl:sort select="if ($property-metadata) then ac:property-label(., $property-metadata) else ac:property-label(.)"/>
-                <xsl:with-param name="violations" select="$violations"/>
-                <xsl:with-param name="constructor" select="$constructor"/>
-                <xsl:with-param name="type-constraints" select="$type-constraints"/>
-                <xsl:with-param name="type-shapes" select="$type-shapes"/>
-                <xsl:with-param name="traversed-ids" select="$traversed-ids" tunnel="yes"/>
-                <xsl:with-param name="property-metadata" select="$property-metadata" tunnel="yes"/>
-            </xsl:apply-templates>
 
-            <xsl:apply-templates select="." mode="bs2:PropertyControl">
-                <xsl:with-param name="template" select="$template"/>
-                <xsl:with-param name="forClass" select="$forClass"/>
-                <xsl:with-param name="required" select="true()"/>
-                <xsl:with-param name="property-metadata" select="$property-metadata"/>
-            </xsl:apply-templates>
+            <xsl:sequence select="$body"/>
+
+            <xsl:if test="$show-property-control">
+                <xsl:apply-templates select="." mode="bs2:PropertyControl">
+                    <xsl:with-param name="template" select="$template"/>
+                    <xsl:with-param name="forClass" select="$forClass"/>
+                    <xsl:with-param name="required" select="true()"/>
+                    <xsl:with-param name="property-metadata" select="$property-metadata"/>
+                </xsl:apply-templates>
+            </xsl:if>
         </fieldset>
     </xsl:template>
-    
+
+    <!-- Admin app override: allow subject editing for non-hierarchy resources by flipping the $show-subject default. -->
+    <xsl:template match="*[*][@rdf:about or @rdf:nodeID][starts-with(replace(lapp:origin(), '^https?://', ''), 'admin.')]" mode="bs2:FormControl" priority="1">
+        <xsl:param name="legend" select="true()" as="xs:boolean"/>
+        <xsl:param name="show-subject" select="not(rdf:type/@rdf:resource = ('&dh;Item', '&dh;Container'))" as="xs:boolean" tunnel="yes"/>
+        <xsl:param name="required" select="false()" as="xs:boolean"/>
+
+        <xsl:next-match>
+            <xsl:with-param name="legend" select="$legend"/>
+            <xsl:with-param name="show-subject" select="$show-subject" tunnel="yes"/>
+            <xsl:with-param name="required" select="$required"/>
+        </xsl:next-match>
+    </xsl:template>
+
     <!-- TYPE CONTROL -->
 
     <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:TypeControl">
@@ -1477,13 +1515,15 @@ extension-element-prefixes="ixsl"
     <!-- take constraint labels from sitemap instead of response, if possible -->
     <xsl:template match="*[rdf:type/@rdf:resource = '&spin;ConstraintViolation']" mode="bs2:Violation">
         <xsl:param name="class" select="'alert alert-error'" as="xs:string?"/>
+        <xsl:param name="request-uri" select="ldh:href(ac:document-uri(rdf:type/@rdf:resource), map{ 'accept': 'application/rdf+xml' }, ())" as="xs:anyURI" use-when="system-property('xsl:product-name') = 'SaxonJS'"/>
+        <xsl:param name="request-uri" select="ac:document-uri(rdf:type/@rdf:resource)" as="xs:anyURI" use-when="system-property('xsl:product-name') = 'SAXON'"/>
 
         <div>
             <xsl:if test="$class">
                 <xsl:attribute name="class" select="$class"/>
             </xsl:if>
 
-            <xsl:apply-templates select="key('resources', rdf:type/@rdf:resource, document(ac:document-uri(rdf:type/@rdf:resource)))" mode="ldh:logo">
+            <xsl:apply-templates select="key('resources', rdf:type/@rdf:resource, document($request-uri))" mode="ldh:logo">
                 <xsl:with-param name="class" select="$class"/>
             </xsl:apply-templates>
             <xsl:text> </xsl:text>
@@ -1495,13 +1535,15 @@ extension-element-prefixes="ixsl"
     
     <xsl:template match="*[rdf:type/@rdf:resource = '&sh;ValidationResult']" mode="bs2:Violation">
         <xsl:param name="class" select="'alert alert-error'" as="xs:string?"/>
+        <xsl:param name="request-uri" select="ldh:href(ac:document-uri(rdf:type/@rdf:resource), map{ 'accept': 'application/rdf+xml' }, ())" as="xs:anyURI" use-when="system-property('xsl:product-name') = 'SaxonJS'"/>
+        <xsl:param name="request-uri" select="ac:document-uri(rdf:type/@rdf:resource)" as="xs:anyURI" use-when="system-property('xsl:product-name') = 'SAXON'"/>
 
         <div>
             <xsl:if test="$class">
                 <xsl:attribute name="class" select="$class"/>
             </xsl:if>
 
-            <xsl:apply-templates select="key('resources', rdf:type/@rdf:resource, document(ac:document-uri(rdf:type/@rdf:resource)))" mode="ldh:logo">
+            <xsl:apply-templates select="key('resources', rdf:type/@rdf:resource, document($request-uri))" mode="ldh:logo">
                 <xsl:with-param name="class" select="$class"/>
             </xsl:apply-templates>
             <xsl:text> </xsl:text>

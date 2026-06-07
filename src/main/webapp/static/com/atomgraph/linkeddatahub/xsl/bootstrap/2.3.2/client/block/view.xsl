@@ -202,13 +202,6 @@ exclude-result-prefixes="#all"
         </xsl:for-each>
     </xsl:function>
 
-    <!-- hide type control -->
-    <xsl:template match="*[rdf:type/@rdf:resource = '&ldh;View']" mode="bs2:TypeControl" priority="1">
-        <xsl:next-match>
-            <xsl:with-param name="hidden" select="true()"/>
-        </xsl:next-match>
-    </xsl:template>
-    
     <!-- provide a property label which otherwise would default to local-name() client-side (since $property-metadata is not loaded) -->
     <xsl:template match="*[rdf:type/@rdf:resource = '&ldh;View']/rdfs:label | *[rdf:type/@rdf:resource = '&ldh;View']/ac:mode" mode="bs2:FormControl">
         <xsl:next-match>
@@ -546,18 +539,36 @@ exclude-result-prefixes="#all"
         <xsl:param name="select-xml" as="document-node()"/>
         <xsl:param name="cache" as="item()"/>
 
-        <xsl:for-each select="$container">
-            <xsl:result-document href="?." method="ixsl:replace-content">
-                <xsl:call-template name="ldh:ViewModeChoice">
-                    <xsl:with-param name="container-id" select="$container-id"/>
-                    <xsl:with-param name="select-xml" select="$select-xml"/>
-                    <xsl:with-param name="endpoint" select="$endpoint"/>
-                    <xsl:with-param name="results" select="$results"/>
-                    <xsl:with-param name="active-mode" select="$active-mode"/>
-                    <xsl:with-param name="object-metadata" select="$object-metadata"/>
-                </xsl:call-template>
-            </xsl:result-document>
-        </xsl:for-each>
+        <!-- Skip ViewModeChoice replace-content for GraphMode: its canvas lives in the persistent graph-host (sibling of $container), not in container-results, so re-rendering this area would only churn unused DOM. -->
+        <xsl:if test="not($active-mode = '&ac;GraphMode')">
+            <xsl:for-each select="$container">
+                <xsl:result-document href="?." method="ixsl:replace-content">
+                    <xsl:call-template name="ldh:ViewModeChoice">
+                        <xsl:with-param name="container-id" select="$container-id"/>
+                        <xsl:with-param name="select-xml" select="$select-xml"/>
+                        <xsl:with-param name="endpoint" select="$endpoint"/>
+                        <xsl:with-param name="results" select="$results"/>
+                        <xsl:with-param name="active-mode" select="$active-mode"/>
+                        <xsl:with-param name="object-metadata" select="$object-metadata"/>
+                    </xsl:call-template>
+                </xsl:result-document>
+            </xsl:for-each>
+        </xsl:if>
+
+        <!-- toggle visibility between persistent graph-host (GraphMode) and ephemeral container-results (everything else) -->
+        <xsl:variable name="graph-host" select="id($container-id || '-graph-host', ixsl:page())" as="element()?"/>
+        <xsl:if test="exists($graph-host)">
+            <xsl:choose>
+                <xsl:when test="$active-mode = '&ac;GraphMode'">
+                    <ixsl:set-style name="display" select="'none'" object="$container"/>
+                    <ixsl:set-style name="display" select="'block'" object="$graph-host"/>
+                </xsl:when>
+                <xsl:otherwise>
+                    <ixsl:set-style name="display" select="'block'" object="$container"/>
+                    <ixsl:set-style name="display" select="'none'" object="$graph-host"/>
+                </xsl:otherwise>
+            </xsl:choose>
+        </xsl:if>
 
         <!-- after we've created the map container element, create the JS objects using it -->
         <xsl:if test="$active-mode = '&ac;MapMode'">
@@ -615,22 +626,27 @@ exclude-result-prefixes="#all"
                 <xsl:with-param name="series" select="$series"/>
             </xsl:call-template>
         </xsl:if>
-        <!-- after we've created the graph canvas element, initialize the ForceGraph3D instance -->
+        <!-- GraphMode: the persistent canvas lives in graph-host (visible since the toggle above). Lazily emit the canvas div + init ForceGraph3D on first activation; subsequent re-renders just feed new $results via redisplay-graph. -->
         <xsl:if test="$active-mode = '&ac;GraphMode'">
             <xsl:variable name="canvas-id" select="$container-id || '-graph-canvas'" as="xs:string"/>
-            <xsl:variable name="canvas" select="id($canvas-id, ixsl:page())" as="element()"/>
+            <xsl:variable name="graph-host" select="id($container-id || '-graph-host', ixsl:page())" as="element()"/>
             <xsl:variable name="graphs" select="ixsl:get(ixsl:window(), 'LinkedDataHub.graphs')"/>
-            <xsl:variable name="initial-load" select="not(ixsl:contains($graphs, $canvas-id))" as="xs:boolean"/>
-            <xsl:message>ldh:RenderViewMode GraphMode: initial-load=<xsl:value-of select="$initial-load"/> rdf:Description count=<xsl:value-of select="count($results/rdf:RDF/rdf:Description)"/> rdf:RDF=<xsl:value-of select="exists($results/rdf:RDF)"/></xsl:message>
+            <xsl:variable name="needs-init" select="not(ixsl:contains($graphs, $canvas-id))" as="xs:boolean"/>
 
-            <xsl:if test="$initial-load">
-                <!-- ldh:ForceGraph3D-init returns a graph-state object with .instance already set -->
+            <xsl:if test="$needs-init">
+                <xsl:for-each select="$graph-host">
+                    <xsl:result-document href="?." method="ixsl:append-content">
+                        <div id="{$canvas-id}" class="graph-3d-canvas"/>
+                    </xsl:result-document>
+                </xsl:for-each>
+
+                <xsl:variable name="canvas" select="id($canvas-id, ixsl:page())" as="element()"/>
                 <xsl:variable name="graph-state" as="item()">
                     <xsl:call-template name="ldh:ForceGraph3D-init">
                         <xsl:with-param name="graph-id" select="$canvas-id"/>
                         <xsl:with-param name="container" select="$canvas"/>
                         <xsl:with-param name="builder" select="ixsl:apply(ixsl:get(ixsl:window(), 'ForceGraph3D'), [])"/>
-                        <xsl:with-param name="graph-width" select="xs:double(ixsl:get($container, 'offsetWidth'))"/>
+                        <xsl:with-param name="graph-width" select="xs:double(ixsl:get($graph-host, 'offsetWidth'))"/>
                         <xsl:with-param name="graph-height" select="xs:double(600)"/>
                         <xsl:with-param name="node-rel-size" select="xs:double(4)"/>
                         <xsl:with-param name="link-width" select="xs:double(1.5)"/>
@@ -650,7 +666,6 @@ exclude-result-prefixes="#all"
                         <xsl:with-param name="background-click-event-name" select="'ForceGraph3DBackgroundClick'"/>
                     </xsl:call-template>
                 </xsl:variable>
-                <!-- augment with LDH-specific state -->
                 <ixsl:set-property name="document" select="$results" object="$graph-state"/>
                 <ixsl:set-property name="loaded-uris" select="ixsl:new('Array', [])" object="$graph-state"/>
                 <ixsl:set-property name="loaded-backlink-uris" select="ixsl:new('Array', [])" object="$graph-state"/>
@@ -662,8 +677,10 @@ exclude-result-prefixes="#all"
                 </xsl:call-template>
             </xsl:if>
 
-            <!-- Convert RDF to graph data and render (initial or re-render) -->
             <xsl:variable name="graph-state" select="ixsl:get($graphs, $canvas-id)"/>
+            <xsl:if test="not($needs-init)">
+                <ixsl:set-property name="document" select="$results" object="$graph-state"/>
+            </xsl:if>
             <xsl:variable name="graph-instance" select="ixsl:get($graph-state, 'instance')"/>
             <xsl:call-template name="ldh:redisplay-graph">
                 <xsl:with-param name="canvas-id" select="$canvas-id"/>
@@ -842,19 +859,11 @@ exclude-result-prefixes="#all"
                 <div>
                     <p id="{$result-count-container-id}" class="result-count"/>
 
+                    <!-- persistent host for the 3d-force-graph canvas; lives for the lifetime of this view block so the WebGL context + simulation state survive re-renders. Hidden when active-mode is not GraphMode. -->
+                    <div id="{$container-id}-graph-host" class="graph-3d-host" style="display: none;"></div>
                     <div id="{$container-results-id}" class="container-results"></div>
                 </div>
             </xsl:result-document>
-
-            <!-- result count -->
-            <xsl:for-each select="id($result-count-container-id, ixsl:page())">
-                <xsl:call-template name="ldh:ResultCount">
-                    <xsl:with-param name="focus-var-name" select="$focus-var-name"/>
-                    <xsl:with-param name="endpoint" select="$endpoint"/>
-                    <xsl:with-param name="select-xml" select="$select-xml"/>
-                    <xsl:with-param name="cache" select="$cache"/>
-                </xsl:call-template>
-            </xsl:for-each>
 
             <!-- single-predicate vars: fetch the predicate's vocab document and append the option with ac:label as visible text. Alt-path-bound vars are already rendered inline above. -->
             <xsl:for-each select="map:keys($var-predicates)">
@@ -881,7 +890,36 @@ exclude-result-prefixes="#all"
                 </xsl:if>
             </xsl:for-each>
         </xsl:if>
-                
+
+        <!-- result count: stays in sync with re-queried results (e.g. modal search keyword changes). Short-circuit the COUNT HTTP request when the entire result set fits in one page — typical for narrowed search queries. -->
+        <xsl:variable name="limit" select="if ($select-xml/json:map/json:number[@key = 'limit']) then xs:integer($select-xml/json:map/json:number[@key = 'limit']) else 0" as="xs:integer"/>
+        <xsl:variable name="offset" select="if ($select-xml/json:map/json:number[@key = 'offset']) then xs:integer($select-xml/json:map/json:number[@key = 'offset']) else 0" as="xs:integer"/>
+        <xsl:variable name="exact-count" select="count($results/rdf:RDF/rdf:Description)" as="xs:integer"/>
+        <xsl:choose>
+            <xsl:when test="$offset = 0 and ($limit = 0 or $exact-count lt $limit)">
+                <xsl:for-each select="id($result-count-container-id, ixsl:page())">
+                    <xsl:result-document href="?." method="ixsl:replace-content">
+                        <strong>
+                            <xsl:apply-templates select="key('resources', 'total-results', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', lapp:origin())))" mode="ac:label"/>
+                            <xsl:text> </xsl:text>
+                            <span class="badge badge-inverse"><xsl:value-of select="$exact-count"/></span>
+                        </strong>
+                    </xsl:result-document>
+                </xsl:for-each>
+                <xsl:sequence select="ldh:update-progress-counter($cache, map{ 'container': $container }, 'complete', ())"/>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:for-each select="id($result-count-container-id, ixsl:page())">
+                    <xsl:call-template name="ldh:ResultCount">
+                        <xsl:with-param name="focus-var-name" select="$focus-var-name"/>
+                        <xsl:with-param name="endpoint" select="$endpoint"/>
+                        <xsl:with-param name="select-xml" select="$select-xml"/>
+                        <xsl:with-param name="cache" select="$cache"/>
+                    </xsl:call-template>
+                </xsl:for-each>
+            </xsl:otherwise>
+        </xsl:choose>
+
         <xsl:call-template name="ldh:RenderViewMode">
             <xsl:with-param name="container" select=".//div[contains-token(@class, 'container-results')]"/>
             <xsl:with-param name="container-id" select="$container-id"/>

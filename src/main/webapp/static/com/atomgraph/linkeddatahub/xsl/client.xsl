@@ -83,6 +83,8 @@ extension-element-prefixes="ixsl"
     <xsl:import href="../../../../com/atomgraph/client/xsl/bootstrap/2.3.2/container.xsl"/>
     <xsl:import href="bootstrap/2.3.2/resource.xsl"/>
     <xsl:import href="bootstrap/2.3.2/imports/ac.xsl"/>
+    <xsl:import href="bootstrap/2.3.2/imports/acl.xsl"/>
+    <xsl:import href="bootstrap/2.3.2/imports/cert.xsl"/>
     <xsl:import href="bootstrap/2.3.2/imports/ldh.xsl"/>
     <xsl:import href="bootstrap/2.3.2/imports/dct.xsl"/>
     <xsl:import href="bootstrap/2.3.2/imports/nfo.xsl"/>
@@ -477,6 +479,9 @@ WHERE
                     <!-- store application URI from Link header -->
                     <xsl:variable name="application-link" select="tokenize(?headers?link, ',')[contains(., '&lapp;application')]" as="xs:string?"/>
                     <xsl:variable name="application" select="if ($application-link) then xs:anyURI(substring-before(substring-after(substring-before($application-link, ';'), '&lt;'), '&gt;')) else ()" as="xs:anyURI?"/>
+                    <xsl:if test="$application">
+                        <ixsl:set-property name="application" select="$application" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+                    </xsl:if>
                     <xsl:for-each select="?body">
                         <xsl:variable name="results" select="." as="document-node()"/>
                         <ixsl:set-property name="{'`' || $doc-uri || '`'}" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.contents')"/>

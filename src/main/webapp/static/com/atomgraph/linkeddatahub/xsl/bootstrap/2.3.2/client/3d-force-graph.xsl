@@ -157,6 +157,7 @@
         <xsl:param name="onNodeClick-fn" as="item()?"> <!-- function: node click handler -->
             <xsl:variable name="js-statement" as="element()">
                 <root statement="node => {{
+                    if (node.bnode) return;
                     var graphState = window.LinkedDataHub.graphs['{$graph-id}'];
                     var now = new Date().getTime();
                     var lastClick = graphState.lastNodeClickTime || 0;
@@ -188,6 +189,7 @@
         <xsl:param name="onNodeRightClick-fn" as="item()?"> <!-- function: node right-click handler -->
             <xsl:variable name="js-statement" as="element()">
                 <root statement="node => {{
+                    if (node.bnode) return;
                     let event = new CustomEvent('{$node-rightclick-event-name}', {{
                         detail: {{
                             canvasId: '{$graph-id}',
@@ -359,6 +361,7 @@
         <xsl:variable name="links" as="item()*">
             <xsl:apply-templates select="rdf:RDF" mode="ldh:ForceGraph3D-links"/>
         </xsl:variable>
+
         <!-- Create graph data object with empty arrays -->
         <xsl:variable name="graph-data" select="ixsl:eval('({ nodes: [], links: [] })')"/>
 
@@ -399,6 +402,19 @@
                 </xsl:for-each>
                 <xsl:sequence select="$node"/>
             </xsl:for-each>
+            <!-- One stub blank node per unique unresolved @rdf:nodeID (referenced via rdf:_N etc. without a matching rdf:Description) -->
+            <xsl:for-each select="distinct-values(rdf:Description/*/@rdf:nodeID[not(key('resources', .))])">
+                <xsl:variable name="nodeID" select="string(.)" as="xs:string"/>
+                <xsl:variable name="node" select="ixsl:eval('{}')"/>
+                <xsl:for-each select="$node">
+                    <ixsl:set-property name="id" select="$nodeID" object="."/>
+                    <ixsl:set-property name="label" select="$nodeID" object="."/>
+                    <ixsl:set-property name="nodeType" select="'bnode'" object="."/>
+                    <ixsl:set-property name="bnode" select="true()" object="."/>
+                    <ixsl:set-property name="color" select="'#7f8c8d'" object="."/>
+                </xsl:for-each>
+                <xsl:sequence select="$node"/>
+            </xsl:for-each>
         </xsl:if>
     </xsl:template>
 
@@ -409,6 +425,8 @@
         <xsl:param name="type-local" select="if ($type-uri) then tokenize($type-uri, '[/#]')[last()] else 'Resource'" as="xs:string"/> <!-- string: local name of type -->
         <xsl:param name="color" select="ldh:force-graph-3d-node-color(.)" as="xs:string"/> <!-- string: CSS color for node -->
         <xsl:variable name="id" select="xs:anyURI((@rdf:about, @rdf:nodeID)[1])" as="xs:anyURI"/>
+        <!-- captured here because inside the for-each below the context item is the JS node object, not this rdf:Description, so attribute axes would fail -->
+        <xsl:variable name="is-bnode" select="exists(@rdf:nodeID)" as="xs:boolean"/>
 
         <xsl:variable name="node" select="ixsl:eval('{}')"/>
         <xsl:for-each select="$node">
@@ -417,6 +435,10 @@
             <ixsl:set-property name="type" select="$type-local" object="."/>
             <ixsl:set-property name="color" select="$color" object="."/>
             <ixsl:set-property name="nodeType" select="'resource'" object="."/>
+            <!-- mark described blank nodes so the click handler skips them (a bnode has no dereferenceable URI to navigate to). Its closure auto-unfurls via the apply-templates below. -->
+            <xsl:if test="$is-bnode">
+                <ixsl:set-property name="bnode" select="true()" object="."/>
+            </xsl:if>
         </xsl:for-each>
         <xsl:sequence select="$node"/>
 
@@ -435,7 +457,7 @@
     <!-- Level 4a: @rdf:resource already described → suppress (node already emitted at level 2) -->
     <xsl:template match="@rdf:resource" mode="ldh:ForceGraph3D-nodes"/>
 
-    <!-- Level 4b: @rdf:nodeID → blank node already described → suppress -->
+    <!-- Level 4b: @rdf:nodeID → suppress; described blank nodes are emitted at level 2, dangling ones get stub nodes at level 1 (rdf:RDF) with deduplication -->
     <xsl:template match="@rdf:nodeID" mode="ldh:ForceGraph3D-nodes"/>
 
     <!-- Level 4c: non-empty text node → literal node -->
@@ -479,6 +501,21 @@
             </xsl:for-each>
             <xsl:sequence select="$node"/>
         </xsl:if>
+    </xsl:template>
+
+    <!-- Level 4e: anonymous nested rdf:Description (no @rdf:about, no @rdf:nodeID): synthesize a bnode + recurse into its properties. Identified nested descriptions (@rdf:about/@rdf:nodeID) are already handled by level 2 (which wins over level 4d by priority). -->
+    <xsl:template match="rdf:Description/*/rdf:Description[not(@rdf:about) and not(@rdf:nodeID)]" mode="ldh:ForceGraph3D-nodes" as="item()*" priority="1">
+        <xsl:variable name="id" select="generate-id(.)" as="xs:string"/>
+        <xsl:variable name="node" select="ixsl:eval('{}')"/>
+        <xsl:for-each select="$node">
+            <ixsl:set-property name="id" select="$id" object="."/>
+            <ixsl:set-property name="label" select="$id" object="."/>
+            <ixsl:set-property name="nodeType" select="'bnode'" object="."/>
+            <ixsl:set-property name="bnode" select="true()" object="."/>
+            <ixsl:set-property name="color" select="'#7f8c8d'" object="."/>
+        </xsl:for-each>
+        <xsl:sequence select="$node"/>
+        <xsl:apply-templates mode="#current"/>
     </xsl:template>
 
     <!-- Suppress whitespace-only text nodes in nodes mode -->
@@ -528,19 +565,22 @@
         </xsl:if>
     </xsl:template>
 
-    <!-- Level 4b: @rdf:nodeID → link to blank node -->
-    <xsl:template match="@rdf:nodeID" mode="ldh:ForceGraph3D-links" as="item()">
+    <!-- Level 4b: @rdf:nodeID → link to blank node (described or dangling stub) -->
+    <xsl:template match="@rdf:nodeID" mode="ldh:ForceGraph3D-links" as="item()?">
         <xsl:param name="source-id" as="xs:anyURI"/>
         <xsl:param name="link-label" as="xs:string"/>
-        <xsl:variable name="target-id" select="string(.)" as="xs:string"/>
-
-        <xsl:variable name="link" select="ixsl:eval('{}')"/>
-        <xsl:for-each select="$link">
-            <ixsl:set-property name="source" select="$source-id" object="."/>
-            <ixsl:set-property name="target" select="$target-id" object="."/>
-            <ixsl:set-property name="label" select="$link-label" object="."/>
-        </xsl:for-each>
-        <xsl:sequence select="$link"/>
+        <xsl:param name="show-stubs" select="true()" tunnel="yes" as="xs:boolean"/>
+        <!-- Suppress link if target is a stub blank node and stubs are hidden (symmetry with @rdf:resource) -->
+        <xsl:if test="$show-stubs or exists(key('resources', .))">
+            <xsl:variable name="target-id" select="string(.)" as="xs:string"/>
+            <xsl:variable name="link" select="ixsl:eval('{}')"/>
+            <xsl:for-each select="$link">
+                <ixsl:set-property name="source" select="$source-id" object="."/>
+                <ixsl:set-property name="target" select="$target-id" object="."/>
+                <ixsl:set-property name="label" select="$link-label" object="."/>
+            </xsl:for-each>
+            <xsl:sequence select="$link"/>
+        </xsl:if>
     </xsl:template>
 
     <!-- Level 4c: non-empty text → literal link -->
@@ -576,6 +616,28 @@
             </xsl:for-each>
             <xsl:sequence select="$link"/>
         </xsl:if>
+    </xsl:template>
+
+    <!-- Level 4e: nested rdf:Description as a property's element child — emit link from enclosing source to this nested resource (identified by @rdf:about/@rdf:nodeID, or synthetic via generate-id), then recurse into its properties with the nested resource's id as the new source. Wins over level 2 (priority 0.5) so the parent→nested edge isn't lost; level-2's own match never fires here. -->
+    <xsl:template match="rdf:Description/*/rdf:Description" mode="ldh:ForceGraph3D-links" as="item()*" priority="1">
+        <xsl:param name="source-id" as="xs:anyURI"/>
+        <xsl:param name="link-label" as="xs:string"/>
+        <xsl:variable name="target-id" as="xs:string" select="
+            if (@rdf:about) then string(@rdf:about)
+            else if (@rdf:nodeID) then string(@rdf:nodeID)
+            else generate-id(.)"/>
+
+        <xsl:variable name="link" select="ixsl:eval('{}')"/>
+        <xsl:for-each select="$link">
+            <ixsl:set-property name="source" select="$source-id" object="."/>
+            <ixsl:set-property name="target" select="$target-id" object="."/>
+            <ixsl:set-property name="label" select="$link-label" object="."/>
+        </xsl:for-each>
+        <xsl:sequence select="$link"/>
+
+        <xsl:apply-templates select="*" mode="#current">
+            <xsl:with-param name="source-id" select="xs:anyURI($target-id)"/>
+        </xsl:apply-templates>
     </xsl:template>
 
     <!-- Suppress whitespace-only text nodes in links mode -->

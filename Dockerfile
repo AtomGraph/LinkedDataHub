@@ -1,8 +1,8 @@
-FROM maven:3.8.4-openjdk-17 AS maven
+FROM maven:3.9-eclipse-temurin-21 AS maven
 
 # download and extract Jena
 
-ARG JENA_VERSION=4.7.0
+ARG JENA_VERSION=6.1.0
 
 ARG JENA_TAR_URL="https://archive.apache.org/dist/jena/binaries/apache-jena-${JENA_VERSION}.tar.gz"
 
@@ -22,7 +22,7 @@ RUN mvn -Pstandalone clean install
 
 # ==============================
 
-FROM atomgraph/letsencrypt-tomcat:10.1.46
+FROM atomgraph/letsencrypt-tomcat:10.1.52
 
 LABEL maintainer="martynas@atomgraph.com"
 

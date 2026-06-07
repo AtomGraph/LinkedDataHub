@@ -1,19 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE xsl:stylesheet [
-    <!ENTITY adm    "https://w3id.org/atomgraph/linkeddatahub/admin#">
+    <!ENTITY lapp   "https://w3id.org/atomgraph/linkeddatahub/apps#">
     <!ENTITY ldh    "https://w3id.org/atomgraph/linkeddatahub#">
     <!ENTITY ac     "https://w3id.org/atomgraph/client#">
-    <!ENTITY a      "https://w3id.org/atomgraph/core#">
     <!ENTITY lacl   "https://w3id.org/atomgraph/linkeddatahub/admin/acl#">
     <!ENTITY rdf    "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
     <!ENTITY rdfs   "http://www.w3.org/2000/01/rdf-schema#">
-    <!ENTITY owl    "http://www.w3.org/2002/07/owl#">
     <!ENTITY acl    "http://www.w3.org/ns/auth/acl#">
     <!ENTITY ldt    "https://www.w3.org/ns/ldt#">
     <!ENTITY dh     "https://www.w3.org/ns/ldt/document-hierarchy#">
     <!ENTITY prov   "http://www.w3.org/ns/prov#">
     <!ENTITY foaf   "http://xmlns.com/foaf/0.1/">
-    <!ENTITY sioc   "http://rdfs.org/sioc/ns#">
     <!ENTITY dct    "http://purl.org/dc/terms/">
 ]>
 <xsl:stylesheet version="3.0"
@@ -21,25 +18,23 @@ xmlns="http://www.w3.org/1999/xhtml"
 xmlns:xhtml="http://www.w3.org/1999/xhtml"
 xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
 xmlns:xs="http://www.w3.org/2001/XMLSchema"
+xmlns:lapp="&lapp;"
 xmlns:ldh="&ldh;"
 xmlns:ac="&ac;"
-xmlns:a="&a;"
 xmlns:lacl="&lacl;"
 xmlns:rdf="&rdf;"
 xmlns:rdfs="&rdfs;"
-xmlns:owl="&owl;"
 xmlns:acl="&acl;"
 xmlns:ldt="&ldt;"
 xmlns:dh="&dh;"
 xmlns:foaf="&foaf;"
-xmlns:sioc="&sioc;"
 xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
 exclude-result-prefixes="#all">
 
     <xsl:template match="*[@rdf:about = '&acl;Authorization']" mode="ac:label">
-        <xsl:apply-templates select="key('resources', 'authorization', document('../../../translations.rdf'))" mode="#current"/>
+        <xsl:apply-templates select="key('resources', 'authorization', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', lapp:origin())))" mode="#current"/>
     </xsl:template>
-    
+
     <xsl:template match="acl:mode/@rdf:resource | acl:mode/@rdf:nodeID" mode="bs2:FormControl" priority="1">
         <xsl:param name="type-label" select="true()" as="xs:boolean"/>
         <xsl:variable name="this" select="../concat(namespace-uri(), local-name())" as="xs:string"/>
@@ -65,14 +60,14 @@ exclude-result-prefixes="#all">
     <xsl:template match="*[rdf:type/@rdf:resource = '&lacl;AuthorizationRequest']" priority="1">
         <xsl:param name="method" select="'post'" as="xs:string"/>
         <!-- we're not using the form's default action so we're not tunneling the param here -->
-        <xsl:param name="action" select="ldh:href(resolve-uri(ac:uuid() || '/', resolve-uri('acl/authorizations/', $ldt:base)), map{ '_method': 'PUT' })" as="xs:anyURI"/> <!-- create new authorization document -->
+        <xsl:param name="action" select="ldh:href(resolve-uri(ac:uuid() || '/', resolve-uri('acl/authorizations/', ldt:base())), map{ '_method': 'PUT' })" as="xs:anyURI"/> <!-- create new authorization document -->
         <xsl:param name="id" select="concat('form-', generate-id())" as="xs:string?"/>
         <xsl:param name="class" select="'form-horizontal'" as="xs:string?"/>
         <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
         <xsl:param name="enctype" as="xs:string?"/> <!-- TO-DO: override with "multipart/form-data" for File instances -->
 
         <xsl:next-match/>
-        
+
         <xsl:if test="lacl:requestMode/@rdf:resource = '&acl;Control'">
             <div class="alert">
                 <p>
@@ -80,7 +75,7 @@ exclude-result-prefixes="#all">
                 </p>
             </div>
         </xsl:if>
-        
+
         <!-- .form-horizontal is required so that client.xsl can match this form and intercept its onsubmit event -->
         <form method="{$method}" action="{$action}">
             <xsl:if test="$id">
@@ -95,13 +90,13 @@ exclude-result-prefixes="#all">
             <xsl:if test="$enctype">
                 <xsl:attribute name="enctype" select="$enctype"/>
             </xsl:if>
-            
+
             <xsl:comment>This form uses RDF/POST encoding: https://atomgraph.github.io/RDF-POST/</xsl:comment>
             <xsl:call-template name="xhtml:Input">
                 <xsl:with-param name="name" select="'rdf'"/>
                 <xsl:with-param name="type" select="'hidden'"/>
             </xsl:call-template>
-            
+
             <!-- acl:Authorization instance -->
             <xsl:call-template name="xhtml:Input">
                 <xsl:with-param name="name" select="'sb'"/>
@@ -229,5 +224,5 @@ exclude-result-prefixes="#all">
             </div>
         </form>
     </xsl:template>
-    
+
 </xsl:stylesheet>

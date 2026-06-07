@@ -653,12 +653,15 @@ exclude-result-prefixes="#all"
     <xsl:function name="ldh:load-object-metadata" as="map(*)" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
         <xsl:param name="response-key" as="xs:string"/>
-        <xsl:variable name="response" select="$context($response-key)" as="map(*)"/>
         <xsl:variable name="endpoint" select="$context('endpoint')" as="xs:anyURI"/>
+        <!-- prefer caller-supplied object-uris in context (form flows compute these from $resource or $body upstream); fall back to extracting from the named response (block flows) -->
         <xsl:variable name="object-uris" as="xs:string*" select="
-            if ($response?status = 200 and $response?media-type = 'application/rdf+xml')
-            then distinct-values($response?body/rdf:RDF/rdf:Description/*/@rdf:resource[not(key('resources', .))])
-            else ()"/>
+            if (map:contains($context, 'object-uris')) then $context('object-uris')
+            else
+                let $response := $context($response-key)
+                return if ($response?status = 200 and $response?media-type = 'application/rdf+xml')
+                       then distinct-values($response?body/rdf:RDF/rdf:Description/*/@rdf:resource[not(key('resources', .))])
+                       else ()"/>
         <xsl:variable name="query-string" select="$object-metadata-query || ' VALUES $this { ' || string-join(for $uri in $object-uris return '&lt;' || $uri || '&gt;', ' ') || ' }'" as="xs:string"/>
         <xsl:variable name="request" select="map{ 'method': 'POST', 'href': ldh:href($endpoint), 'media-type': 'application/sparql-query', 'body': $query-string, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
 
@@ -704,11 +707,14 @@ exclude-result-prefixes="#all"
     <xsl:function name="ldh:load-property-metadata" as="map(*)" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
         <xsl:param name="response-key" as="xs:string"/>
-        <xsl:variable name="response" select="$context($response-key)" as="map(*)"/>
+        <!-- prefer caller-supplied property-uris in context (form flows compute these from $resource or $body upstream); fall back to extracting from the named response (block flows) -->
         <xsl:variable name="property-uris" as="xs:string*" select="
-            if ($response?status = 200 and $response?media-type = 'application/rdf+xml')
-            then distinct-values($response?body/rdf:RDF/rdf:Description/*/concat(namespace-uri(), local-name()))
-            else ()"/>
+            if (map:contains($context, 'property-uris')) then $context('property-uris')
+            else
+                let $response := $context($response-key)
+                return if ($response?status = 200 and $response?media-type = 'application/rdf+xml')
+                       then distinct-values($response?body/rdf:RDF/rdf:Description/*/concat(namespace-uri(), local-name()))
+                       else ()"/>
         <xsl:variable name="query-string" select="$property-metadata-query || ' VALUES $Type { ' || string-join(for $uri in $property-uris return '&lt;' || $uri || '&gt;', ' ') || ' }'" as="xs:string"/>
         <xsl:variable name="request" select="map{ 'method': 'POST', 'href': ldh:href(resolve-uri('ns', ldt:base())), 'media-type': 'application/sparql-query', 'body': $query-string, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
 

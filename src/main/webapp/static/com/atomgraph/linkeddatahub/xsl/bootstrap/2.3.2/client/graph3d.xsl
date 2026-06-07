@@ -232,6 +232,37 @@ WHERE
         </xsl:call-template>
     </xsl:template>
 
+    <!-- FULLSCREEN TOGGLE -->
+
+    <xsl:template match="button[contains-token(@class, 'graph-3d-fullscreen')]" mode="ixsl:onclick">
+        <xsl:variable name="canvas-id" select="@data-canvas-id" as="xs:string"/>
+        <xsl:variable name="canvas" select="id($canvas-id, ixsl:page())"/>
+        <xsl:variable name="class-list" select="ixsl:get($canvas, 'classList')"/>
+        <xsl:sequence select="ixsl:call($class-list, 'toggle', [ 'graph-3d-maximized' ])[current-date() lt xs:date('2000-01-01')]"/>
+
+        <!-- resize the WebGL renderer / camera to match the new container size -->
+        <xsl:variable name="graph-state" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.graphs'), $canvas-id)"/>
+        <xsl:variable name="graph-instance" select="ixsl:get($graph-state, 'instance')"/>
+        <xsl:sequence select="ixsl:call($graph-instance, 'width', [ xs:double(ixsl:get($canvas, 'clientWidth')) ])[current-date() lt xs:date('2000-01-01')]"/>
+        <xsl:sequence select="ixsl:call($graph-instance, 'height', [ xs:double(ixsl:get($canvas, 'clientHeight')) ])[current-date() lt xs:date('2000-01-01')]"/>
+    </xsl:template>
+
+    <!-- Esc exits fullscreen on any maximized 3D canvas; no-op otherwise so it doesn't swallow Esc from other widgets -->
+    <xsl:template match="body[descendant::div[contains-token(@class, 'graph-3d-maximized')]]" mode="ixsl:onkeydown">
+        <xsl:if test="ixsl:get(ixsl:event(), 'key') = 'Escape'">
+            <xsl:for-each select=".//div[contains-token(@class, 'graph-3d-maximized')]">
+                <xsl:variable name="canvas" select="." as="element()"/>
+                <xsl:variable name="class-list" select="ixsl:get($canvas, 'classList')"/>
+                <xsl:sequence select="ixsl:call($class-list, 'remove', [ 'graph-3d-maximized' ])[current-date() lt xs:date('2000-01-01')]"/>
+
+                <xsl:variable name="graph-state" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.graphs'), string(@id))"/>
+                <xsl:variable name="graph-instance" select="ixsl:get($graph-state, 'instance')"/>
+                <xsl:sequence select="ixsl:call($graph-instance, 'width', [ xs:double(ixsl:get($canvas, 'clientWidth')) ])[current-date() lt xs:date('2000-01-01')]"/>
+                <xsl:sequence select="ixsl:call($graph-instance, 'height', [ xs:double(ixsl:get($canvas, 'clientHeight')) ])[current-date() lt xs:date('2000-01-01')]"/>
+            </xsl:for-each>
+        </xsl:if>
+    </xsl:template>
+
     <!-- FILTER PANEL -->
 
     <!-- Re-render graph data using the current show-panel filter state -->
@@ -438,6 +469,7 @@ WHERE
                     </label>
                 </div>
                 <button data-canvas-id="{$canvas-id}" class="graph-3d-zoom btn btn-small">Zoom to fit</button>
+                <button data-canvas-id="{$canvas-id}" class="graph-3d-fullscreen btn btn-small">Fullscreen</button>
             </xsl:result-document>
         </xsl:for-each>
     </xsl:template>

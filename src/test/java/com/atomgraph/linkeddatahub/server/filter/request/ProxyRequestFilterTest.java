@@ -24,11 +24,11 @@ import jakarta.ws.rs.core.Request;
 import java.io.IOException;
 import java.net.URI;
 import java.util.List;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.*;
 
@@ -37,7 +37,7 @@ import static org.mockito.Mockito.*;
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class ProxyRequestFilterTest
 {
 
@@ -47,7 +47,7 @@ public class ProxyRequestFilterTest
 
     private ProxyRequestFilter filter;
 
-    @Before
+    @BeforeEach
     public void setUp()
     {
         filter = new ProxyRequestFilter();

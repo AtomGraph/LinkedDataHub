@@ -81,8 +81,7 @@ exclude-result-prefixes="#all"
     </xsl:function>
 
     <xsl:function name="lapp:application" as="xs:anyURI?">
-        <xsl:variable name="active-pane" select="id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')][contains-token(@class, 'active')]" as="element()?"/>
-        <xsl:sequence select="if ($active-pane and ixsl:contains($active-pane, 'dataset.application')) then xs:anyURI(ixsl:get($active-pane, 'dataset.application')) else ()"/>
+        <xsl:sequence select="if (ixsl:contains(ixsl:window(), 'LinkedDataHub.application')) then xs:anyURI(ixsl:get(ixsl:window(), 'LinkedDataHub.application')) else ()"/>
     </xsl:function>
 
     <xsl:function name="lapp:origin" as="xs:anyURI">
@@ -564,7 +563,78 @@ exclude-result-prefixes="#all"
             => ixsl:then(ldh:rethread-response($context, ?, $response-key))
         "/>
     </xsl:function>
-    
+
+    <!-- Async load/set pair for /ns?forClass=… — builds the request from context('forClass'); store result at context('constructed-doc'). forClass is relaxed to xs:anyURI* so EDIT chains (which derive forClass from the resource's rdf:types and may legitimately have zero) can include this step unconditionally — an empty forClass sends no ?forClass= query parameter and the server responds with an empty graph, which downstream merge/instantiate handle as a no-op. -->
+    <xsl:function name="ldh:load-constructed-doc" as="map(*)" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:variable name="forClass" select="$context('forClass')" as="xs:anyURI*"/>
+        <xsl:variable name="results-uri" select="ac:build-uri(resolve-uri('ns', ldt:base()), map{ 'forClass': for $class in $forClass return string($class), 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
+        <xsl:variable name="request-uri" select="ldh:href($results-uri, map{})" as="xs:anyURI"/>
+        <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
+        <xsl:sequence select="map:merge(($context, map{ 'constructed-doc-request': $request }))"/>
+    </xsl:function>
+
+    <xsl:function name="ldh:set-constructed-doc" as="map(*)" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:variable name="response" select="$context('constructed-doc-response')" as="map(*)"/>
+        <xsl:for-each select="$response">
+            <xsl:choose>
+                <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
+                    <xsl:sequence select="map:merge(($context, map{ 'constructed-doc': ?body }))"/>
+                </xsl:when>
+                <xsl:otherwise>
+                    <xsl:sequence select="$context"/>
+                </xsl:otherwise>
+            </xsl:choose>
+        </xsl:for-each>
+    </xsl:function>
+
+    <!-- Parallel load/set pair runner. $pairs is a single array whose members are 4-element arrays [load-fn, request-key, response-key, set-fn]; load-fn is a pure context-transformer that populates context($request-key). The helper folds every load-fn over $context (collecting all request specs), fans out one http-request → rethread → handle → set per pair via ixsl:all, then merges all per-branch contexts back into one. ixsl:all is fail-fast — first rejected branch propagates through on-failure of the enclosing chain. -->
+    <xsl:function name="ldh:fire-load-set-parallel" as="item()*" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:param name="pairs" as="array(*)"/>
+
+        <xsl:variable name="ctx-with-requests" as="map(*)" select="
+          array:fold-left($pairs, $context, function($ctx as item()*, $pair as item()*) as item()* { $pair?1($ctx) })
+        "/>
+
+        <xsl:variable name="promises" as="array(*)" select="
+          array {
+            for $pair in $pairs?* return
+              ixsl:http-request($ctx-with-requests($pair?2))
+                => ixsl:then(ldh:rethread-response($ctx-with-requests, ?, $pair?3))
+                => ixsl:then(ldh:handle-response(?, $pair?3))
+                => ixsl:then($pair?4)
+          }
+        "/>
+
+        <xsl:sequence select="
+          ixsl:all($promises)
+            => ixsl:then(function($results as item()*) as item()* {
+                 array:fold-left($results, $ctx-with-requests, function($acc as item()*, $r as item()*) as item()* {
+                   map:merge(($acc, $r), map{ 'duplicates': 'use-last' })
+                 })
+               })
+        "/>
+    </xsl:function>
+
+    <!-- Promise-chain cleanup callback for ixsl:finally — resets the body cursor. ixsl:finally requires a 0-arg handler and ignores its return value (the original promise outcome flows through to on-failure / on-completion). Idempotent with ldh:promise-failure's own cursor reset, so chains that use both don't conflict. -->
+    <xsl:function name="ldh:reset-cursor" ixsl:updating="yes">
+        <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
+    </xsl:function>
+
+    <!-- Composes the seed shape shared by chains whose initial GET is against the edited resource: http-request → rethread → handle → load-edited-resource. After this resolves, context has types/property-uris/object-uris populated and a GET-style type-metadata-request pre-baked, so downstream parallel pairs should use an identity load-fn for type-metadata (otherwise ldh:load-type-metadata would overwrite the request with its POST variant). -->
+    <xsl:function name="ldh:fetch-and-load-edited-resource" as="item()*" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+
+        <xsl:sequence select="
+          ixsl:http-request($context('request'))
+            => ixsl:then(ldh:rethread-response($context, ?))
+            => ixsl:then(ldh:handle-response#1)
+            => ixsl:then(ldh:load-edited-resource#1)
+        "/>
+    </xsl:function>
+
     <xsl:function name="ldh:promise-failure" ixsl:updating="yes">
         <xsl:param name="error" as="map(*)"/>
 

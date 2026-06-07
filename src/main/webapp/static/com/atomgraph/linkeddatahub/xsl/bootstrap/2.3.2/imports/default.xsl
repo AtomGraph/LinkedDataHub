@@ -269,29 +269,113 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="document($request-uri)"/>
     </xsl:function>
 
-    <!-- Async load/set pair for /ns?forClass=… — builds the request from context('forClass'); store result at context('constructed-doc'). -->
-    <xsl:function name="ldh:load-constructed-doc" as="map(*)" ixsl:updating="yes">
-        <xsl:param name="context" as="map(*)"/>
-        <xsl:variable name="forClass" select="$context('forClass')" as="xs:anyURI+"/>
-        <xsl:variable name="results-uri" select="ac:build-uri(resolve-uri('ns', ldt:base()), map{ 'forClass': for $class in $forClass return string($class), 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
-        <xsl:variable name="request-uri" select="ldh:href($results-uri, map{})" as="xs:anyURI"/>
-        <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
-        <xsl:sequence select="map:merge(($context, map{ 'constructed-doc-request': $request }))"/>
+    <!-- Pure derivation: produces an instance document from a class-keyed, bnode-prototyped constructor by re-keying the prototype Description (the one whose rdf:type matches $forClass) under the given identity. The input constructor is not modified. Pass $about to mint a URI-identified instance (the document-creation case and the fragment-instance case) or $nodeID to mint a bnode-identified instance with a deterministic label. Implementation reuses the existing mode="ldh:SetResourceID" pass — it's the same identity-rewrite, just exposed as a function so call sites can keep the constructor pure and derive the instance separately. -->
+    <xsl:function name="ldh:instantiate-constructor" as="document-node()">
+        <xsl:param name="constructor" as="document-node()"/>
+        <xsl:param name="forClass" as="xs:anyURI"/>
+        <xsl:param name="about" as="xs:anyURI?"/>
+        <xsl:param name="nodeID" as="xs:string?"/>
+
+        <xsl:document>
+            <xsl:apply-templates select="$constructor" mode="ldh:SetResourceID">
+                <xsl:with-param name="forClass" select="$forClass" tunnel="yes"/>
+                <xsl:with-param name="about" select="$about" tunnel="yes"/>
+                <xsl:with-param name="nodeID" select="$nodeID" tunnel="yes"/>
+            </xsl:apply-templates>
+        </xsl:document>
     </xsl:function>
 
-    <xsl:function name="ldh:set-constructed-doc" as="map(*)" ixsl:updating="yes">
-        <xsl:param name="context" as="map(*)"/>
-        <xsl:variable name="response" select="$context('constructed-doc-response')" as="map(*)"/>
-        <xsl:for-each select="$response">
-            <xsl:choose>
-                <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
-                    <xsl:sequence select="map:merge(($context, map{ 'constructed-doc': ?body }))"/>
-                </xsl:when>
-                <xsl:otherwise>
-                    <xsl:sequence select="$context"/>
-                </xsl:otherwise>
-            </xsl:choose>
-        </xsl:for-each>
+    <!-- Pure derivation: folds a SHACL-derived constructor and a SPIN-derived constructor into one bnode-prototyped constructor for $forClass. Aligns the SPIN side's prototype bnode label to the SHACL side's (via mode="ldh:RenameBnode"), then groups Descriptions by identity so the two prototypes collapse into one with combined children. Value-range siblings on each side keep their own bnode labels and stay as distinct Descriptions in the merged doc. When the SHACL side has no prototype Description for $forClass (e.g. no NodeShape targets that class), returns the SPIN side unchanged. -->
+    <xsl:function name="ldh:merge-constructors" as="document-node()">
+        <xsl:param name="shape-constructor" as="document-node()?"/>
+        <xsl:param name="spin-constructor" as="document-node()"/>
+        <xsl:param name="forClass" as="xs:anyURI"/>
+
+        <!-- Prototype = the Description that (a) carries $forClass as a type and (b) has property assertions beyond rdf:type. The [* except rdf:type] guard excludes pure-typing Descriptions (e.g. <rdf:Description rdf:nodeID="A1"><rdf:type rdf:resource="…/Class"/></rdf:Description> emitted as a range marker on a property). The [1] tiebreaker handles constructors that legitimately ship multiple instances of $forClass (content-block co-shipping, nested templates); the merge keys off whichever prototype we name here, others stay as distinct siblings. -->
+        <xsl:variable name="shape-proto-id" select="($shape-constructor/rdf:RDF/*[rdf:type/@rdf:resource = $forClass][* except rdf:type]/@rdf:nodeID/string())[1]" as="xs:string?"/>
+        <xsl:variable name="spin-proto-id" select="($spin-constructor/rdf:RDF/*[rdf:type/@rdf:resource = $forClass][* except rdf:type]/@rdf:nodeID/string())[1]" as="xs:string?"/>
+
+        <xsl:choose>
+            <xsl:when test="empty($shape-proto-id)">
+                <xsl:sequence select="$spin-constructor"/>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:variable name="spin-aligned" as="document-node()">
+                    <xsl:choose>
+                        <xsl:when test="exists($spin-proto-id) and $spin-proto-id != $shape-proto-id">
+                            <xsl:document>
+                                <xsl:apply-templates select="$spin-constructor" mode="ldh:RenameBnode">
+                                    <xsl:with-param name="from" select="$spin-proto-id" tunnel="yes"/>
+                                    <xsl:with-param name="to" select="$shape-proto-id" tunnel="yes"/>
+                                </xsl:apply-templates>
+                            </xsl:document>
+                        </xsl:when>
+                        <xsl:otherwise>
+                            <xsl:sequence select="$spin-constructor"/>
+                        </xsl:otherwise>
+                    </xsl:choose>
+                </xsl:variable>
+
+                <xsl:document>
+                    <rdf:RDF>
+                        <xsl:for-each-group select="$shape-constructor/rdf:RDF/*, $spin-aligned/rdf:RDF/*" group-by="(@rdf:about, @rdf:nodeID)[1]">
+                            <xsl:copy>
+                                <xsl:copy-of select="@*"/>
+                                <xsl:for-each-group select="current-group()/*" group-by="(@rdf:resource, @rdf:nodeID, node(), @rdf:datatype, @xml:lang)[1]">
+                                    <xsl:sequence select="."/>
+                                </xsl:for-each-group>
+                            </xsl:copy>
+                        </xsl:for-each-group>
+                    </rdf:RDF>
+                </xsl:document>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:function>
+
+    <!-- Alpha-renames every @rdf:nodeID equal to $from (in scope as a tunnel param) to $to, identity-copies everything else. Covers both the Description's own @rdf:nodeID (prototype identity) and back-references on property elements (e.g. <foaf:knows rdf:nodeID="X"/>) so RDF graph references stay intact across the rename. -->
+    <xsl:template match="@rdf:nodeID" mode="ldh:RenameBnode" priority="1">
+        <xsl:param name="from" as="xs:string" tunnel="yes"/>
+        <xsl:param name="to" as="xs:string" tunnel="yes"/>
+
+        <xsl:choose>
+            <xsl:when test=". = $from">
+                <xsl:attribute name="rdf:nodeID" select="$to"/>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:copy/>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:template>
+
+    <xsl:template match="@* | node()" mode="ldh:RenameBnode">
+        <xsl:copy>
+            <xsl:apply-templates select="@* | node()" mode="#current"/>
+        </xsl:copy>
+    </xsl:template>
+
+    <!-- Builds the pure, bnode-prototyped constructor consumed by bs2:FormControl from the two raw inputs the promise chain has fetched: $shapes (SHACL NodeShape RDF) and $constructed-doc (SPIN constructor RDF from /ns?forClass=…). Shared by every flow that ends in bs2:FormControl (ldh:render-row-form for EDIT, ldh:render-row-form-violation for violation re-render, and the Phase 4 modal/app-settings/signup renderers to come) so the merge logic lives in exactly one place. Returns the SPIN side unchanged when shapes are absent (typical for system classes like sp:Describe), returns the merged doc when both sides exist (user-defined classes like skos:Concept with both SPIN defaults and SHACL constraints), or empty if neither side provides input. -->
+    <xsl:function name="ldh:build-merged-constructor" as="document-node()?">
+        <xsl:param name="shapes" as="document-node()?"/>
+        <xsl:param name="constructed-doc" as="document-node()?"/>
+        <xsl:param name="forClass" as="xs:anyURI?"/>
+
+        <xsl:variable name="shape-instance-doc" as="document-node()?">
+            <xsl:if test="exists($shapes)">
+                <xsl:variable name="raw" as="document-node()">
+                    <xsl:apply-templates select="$shapes" mode="ldh:Shape"/>
+                </xsl:variable>
+                <xsl:sequence select="ldh:reserialize($raw)"/>
+            </xsl:if>
+        </xsl:variable>
+
+        <xsl:choose>
+            <xsl:when test="exists($constructed-doc) and exists($forClass)">
+                <xsl:sequence select="ldh:merge-constructors($shape-instance-doc, $constructed-doc, $forClass)"/>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:sequence select="$constructed-doc"/>
+            </xsl:otherwise>
+        </xsl:choose>
     </xsl:function>
 
     <!-- reserialize RDF/XML document by moving nested rdf:Descriptions to top-level following Jena's "plain" RDF/XML structure  -->
@@ -664,8 +748,8 @@ exclude-result-prefixes="#all"
 
     <!-- FORM CONTROL -->
     
-    <!-- change constructed blank node input to URI input -->
-    <xsl:template match="*[rdf:type/@rdf:resource = ('&dh;Container', '&dh;Item')]/@rdf:nodeID" mode="bs2:FormControl" priority="1">
+    <!-- Container/Item subject input: slug-style UI (base URI + editable slug + trailing /). Matches both @rdf:nodeID (initial SPIN-constructed creation: resource is a blank node) and @rdf:about (constraint-violation re-render: response body carries the submitted URI). Same body works for both because $action carries the resource URL in either case. -->
+    <xsl:template match="*[rdf:type/@rdf:resource = ('&dh;Container', '&dh;Item')]/@rdf:about | *[rdf:type/@rdf:resource = ('&dh;Container', '&dh;Item')]/@rdf:nodeID" mode="bs2:FormControl" priority="1">
         <xsl:param name="type" select="'text'" as="xs:string"/>
         <xsl:param name="id" select="generate-id()" as="xs:string"/>
         <xsl:param name="class" select="'subject-slug input-xxlarge'" as="xs:string?"/>
@@ -934,14 +1018,17 @@ exclude-result-prefixes="#all"
         <xsl:if test="not($type = 'hidden')">
             <xsl:choose>
                 <xsl:when test="$forClass">
+                    <!-- SAXON checks the catalog; SaxonJS only inspects the documentPool to avoid cross-origin fetches that would trigger mixed-content for slash-vocab term URIs (e.g. foaf) -->
+                    <xsl:variable name="doc-loaded" select="doc-available(ac:document-uri($forClass))" as="xs:boolean" use-when="system-property('xsl:product-name') = 'SAXON'"/>
+                    <xsl:variable name="doc-loaded" select="ixsl:doc-fetched(ac:document-uri($forClass))" as="xs:boolean" use-when="system-property('xsl:product-name') eq 'SaxonJS'"/>
                     <span class="help-inline">
                         <xsl:choose>
-                            <xsl:when test="doc-available(ac:document-uri($forClass)) and key('resources', $forClass, document(ac:document-uri($forClass)))"> <!-- server-side Saxon has access to the sitemap ontology -->
+                            <xsl:when test="$doc-loaded and key('resources', $forClass, document(ac:document-uri($forClass)))">
                                 <xsl:value-of>
                                     <xsl:apply-templates select="key('resources', $forClass, document(ac:document-uri($forClass)))" mode="ac:label"/>
                                 </xsl:value-of>
                             </xsl:when>
-                            <xsl:otherwise> <!-- client-side Saxon-JS does not have access to the sitemap ontology -->
+                            <xsl:otherwise>
                                 <xsl:value-of select="$forClass"/>
                             </xsl:otherwise>
                         </xsl:choose>
@@ -1157,8 +1244,11 @@ exclude-result-prefixes="#all"
                 <xsl:when test="exists($forClass)">
                     <span class="help-inline">
                         <xsl:for-each select="$forClass">
+                            <!-- SAXON checks the catalog; SaxonJS only inspects the documentPool to avoid cross-origin fetches that would trigger mixed-content for slash-vocab term URIs -->
+                            <xsl:variable name="doc-loaded" select="doc-available(ac:document-uri(.))" as="xs:boolean" use-when="system-property('xsl:product-name') = 'SAXON'"/>
+                            <xsl:variable name="doc-loaded" select="ixsl:doc-fetched(ac:document-uri(.))" as="xs:boolean" use-when="system-property('xsl:product-name') eq 'SaxonJS'"/>
                             <xsl:choose>
-                                <xsl:when test="doc-available(ac:document-uri(.))">
+                                <xsl:when test="$doc-loaded">
                                     <xsl:choose>
                                         <xsl:when test=". = '&rdfs;Resource'">Resource</xsl:when>
                                         <xsl:when test="key('resources', ., document(ac:document-uri(.)))">
@@ -1271,7 +1361,105 @@ exclude-result-prefixes="#all"
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
-        
+
+    <!-- booleans -->
+
+    <xsl:template match="text()[../@rdf:datatype = '&xsd;boolean']" mode="bs2:FormControl" priority="1">
+        <xsl:param name="type" select="'text'" as="xs:string"/>
+        <xsl:param name="id" select="generate-id()" as="xs:string"/>
+        <xsl:param name="class" as="xs:string?"/>
+        <xsl:param name="disabled" select="false()" as="xs:boolean"/>
+        <xsl:param name="type-label" select="true()" as="xs:boolean"/>
+
+        <xsl:choose>
+            <xsl:when test="$type = 'hidden'">
+                <xsl:call-template name="xhtml:Input">
+                    <xsl:with-param name="name" select="'ol'"/>
+                    <xsl:with-param name="type" select="'hidden'"/>
+                    <xsl:with-param name="id" select="$id"/>
+                    <xsl:with-param name="value" select="."/>
+                </xsl:call-template>
+            </xsl:when>
+            <xsl:otherwise>
+                <select name="ol">
+                    <xsl:if test="$id"><xsl:attribute name="id" select="$id"/></xsl:if>
+                    <xsl:if test="$class"><xsl:attribute name="class" select="$class"/></xsl:if>
+                    <xsl:if test="$disabled"><xsl:attribute name="disabled" select="'disabled'"/></xsl:if>
+                    <option value="true">
+                        <xsl:if test=". = 'true'"><xsl:attribute name="selected" select="'selected'"/></xsl:if>
+                        <xsl:text>true</xsl:text>
+                    </option>
+                    <option value="false">
+                        <xsl:if test=". = 'false'"><xsl:attribute name="selected" select="'selected'"/></xsl:if>
+                        <xsl:text>false</xsl:text>
+                    </option>
+                </select>
+            </xsl:otherwise>
+        </xsl:choose>
+
+        <xsl:call-template name="xhtml:Input">
+            <xsl:with-param name="type" select="'hidden'"/>
+            <xsl:with-param name="name" select="'lt'"/>
+            <xsl:with-param name="value" select="../@rdf:datatype"/>
+        </xsl:call-template>
+
+        <xsl:if test="$type-label and not($type = 'hidden')">
+            <xsl:apply-templates select="." mode="bs2:FormControlTypeLabel">
+                <xsl:with-param name="type" select="$type"/>
+            </xsl:apply-templates>
+        </xsl:if>
+    </xsl:template>
+
+    <!-- boolean placeholder via constructor's blank-node form: property → bnode whose only child is rdf:type xsd:boolean -->
+    <xsl:template match="*[@rdf:about or @rdf:nodeID]/*/@rdf:nodeID[key('resources', .)[not(* except rdf:type[@rdf:resource = '&xsd;boolean'])]]" mode="bs2:FormControl" priority="3">
+        <xsl:param name="type" select="'text'" as="xs:string"/>
+        <xsl:param name="id" select="generate-id()" as="xs:string"/>
+        <xsl:param name="class" as="xs:string?"/>
+        <xsl:param name="disabled" select="false()" as="xs:boolean"/>
+        <xsl:param name="type-label" select="true()" as="xs:boolean"/>
+
+        <xsl:choose>
+            <xsl:when test="$type = 'hidden'">
+                <xsl:call-template name="xhtml:Input">
+                    <xsl:with-param name="name" select="'ol'"/>
+                    <xsl:with-param name="type" select="'hidden'"/>
+                    <xsl:with-param name="id" select="$id"/>
+                </xsl:call-template>
+            </xsl:when>
+            <xsl:otherwise>
+                <select name="ol">
+                    <xsl:if test="$id"><xsl:attribute name="id" select="$id"/></xsl:if>
+                    <xsl:if test="$class"><xsl:attribute name="class" select="$class"/></xsl:if>
+                    <xsl:if test="$disabled"><xsl:attribute name="disabled" select="'disabled'"/></xsl:if>
+                    <option value="true">true</option>
+                    <option value="false">false</option>
+                </select>
+            </xsl:otherwise>
+        </xsl:choose>
+
+        <xsl:call-template name="xhtml:Input">
+            <xsl:with-param name="name" select="'lt'"/>
+            <xsl:with-param name="type" select="'hidden'"/>
+            <xsl:with-param name="value" select="key('resources', .)/rdf:type/@rdf:resource"/>
+        </xsl:call-template>
+
+        <xsl:if test="$type-label and not($type = 'hidden')">
+            <xsl:variable name="datatype" as="document-node()">
+                <xsl:document>
+                    <rdf:Description>
+                        <xsl:element name="{../name()}" namespace="{../namespace-uri()}">
+                            <xsl:attribute name="rdf:datatype" select="key('resources', .)/rdf:type/@rdf:resource"/>
+                        </xsl:element>
+                    </rdf:Description>
+                </xsl:document>
+            </xsl:variable>
+
+            <xsl:apply-templates select="$datatype//@rdf:datatype">
+                <xsl:with-param name="type" select="$type"/>
+            </xsl:apply-templates>
+        </xsl:if>
+    </xsl:template>
+
     <!-- XHTML CONTENT IDENTITY TRANSFORM -->
 
     <xsl:template match="@* | node()" mode="ldh:XHTMLContent">

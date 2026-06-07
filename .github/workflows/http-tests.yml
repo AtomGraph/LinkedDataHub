@@ -8,11 +8,16 @@ jobs:
     runs-on: ubuntu-latest
     env:
       ASF_ARCHIVE: https://archive.apache.org/dist/
-      JENA_VERSION: 4.7.0
+      JENA_VERSION: 6.1.0
       BASE_URI: https://localhost:4443/
     steps:
       - name: Install Linux packages
         run: sudo apt-get update && sudo apt-get install -qq raptor2-utils && sudo apt-get install curl
+      - name: Set up Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
       - name: Download Jena
         run: curl -sS --fail "${{ env.ASF_ARCHIVE }}jena/binaries/apache-jena-${{ env.JENA_VERSION }}.tar.gz" -o "${{ runner.temp }}/jena.tar.gz"
       - name: Unpack Jena
@@ -49,6 +54,12 @@ jobs:
         run: ./run.sh "$PWD/ssl/owner/cert.pem" "${{ secrets.HTTP_TEST_OWNER_CERT_PASSWORD }}" "$PWD/ssl/secretary/cert.pem" "${{ secrets.HTTP_TEST_SECRETARY_CERT_PASSWORD }}"
         shell: bash
         working-directory: http-tests
+      - name: Dump container logs on failure
+        if: failure()
+        run: docker compose --env-file ./http-tests/.env logs --no-color
+      - name: Dump Tomcat logs from linkeddatahub container on failure
+        if: failure()
+        run: docker compose --env-file ./http-tests/.env exec -T linkeddatahub sh -c 'for f in /usr/local/tomcat/logs/*; do echo "=== $f ==="; cat "$f"; done' || true
       - name: Stop Docker containers and remove volumes
         run: docker compose --env-file ./http-tests/.env down -v
       - name: Remove Docker containers
