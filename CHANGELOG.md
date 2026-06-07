@@ -1,34 +1,32 @@
 ## [5.5.0] - 2026-06-07
 ### Added
-- GraphMode 3D canvas: bottom-right "Fullscreen" button toggles a CSS-based maximize (viewport-sized, browser address bar stays visible); Esc exits maximize
-- Esc key closes the topmost open modal
-- HTTP test for orphan bnode object skolemization (`PUT-orphan-bnode-object-skolemized.sh`)
+- GraphMode 3D canvas Fullscreen toggle (CSS maximize, Esc exits)
+- Esc closes topmost modal
+- HTTP test for orphan bnode object skolemization
 
 ### Changed
 - Jena upgraded to 6.1.0 (#309)
-- Modal-form metadata fetches converted to async load/set pairs (#310)
-- Row-form metadata loading extended with property-metadata, constraints, and object-metadata; `sd:endpoint()` propagated via context map
+- Modal- and row-form metadata fetches converted to async load/set pairs; row-form chain extended with property-metadata, constraints, object-metadata; `sd:endpoint()` carried in context (#310)
 - `bs2:Form` `$required` lifted to a predicate at `rdf:RDF` level
 - CSR-only helpers moved out of `layout.xsl`; `bs2:FormControl` boolean overrides relocated
-- Admin XSLT overrides (`bs2:Row`, `bs2:Create`, `bs2:FormControl`, `bs2:NavBarNavList`) and ACL/cert vocab templates moved out of the SSR-only `admin/` chain into shared `document.xsl`/`resource.xsl`/`layout.xsl` and new `imports/{acl,cert}.xsl`; admin variants gated by an `admin.`-subdomain predicate on `lapp:origin()`. `admin/layout.xsl`, `admin/acl/layout.xsl`, and `admin/acl/imports/*` deleted; `static/xsl/admin/layout.xsl` imports the base layout directly
+- Admin XSLT overrides (`bs2:Row`, `bs2:Create`, `bs2:FormControl`, `bs2:NavBarNavList`) and ACL/cert vocab templates moved from the SSR-only `admin/` chain into shared `document.xsl`/`resource.xsl`/`layout.xsl` and new `imports/{acl,cert}.xsl`; gated by `admin.`-subdomain on `lapp:origin()`
 - `lapp:Application` form restrictions scoped to the app-settings flow
 - `rdf:type` editable on `ldh:View` instance forms
-- GraphMode canvas persisted across view re-renders via a `{container-id}-graph-host` host; WebGL context and force-simulation state survive search/filter re-runs
-- GraphMode renders dangling `@rdf:nodeID` targets as stub bnodes and anonymous nested `rdf:Description` as synthetic bnodes (via `generate-id`); node click/right-click handlers skip bnodes
-- View mode preserved across re-runs of the same search container instead of defaulting to `ListMode`
-- Container result count short-circuits the COUNT request when the full result set fits one page
+- GraphMode canvas persisted across view re-renders via a `{container-id}-graph-host`; WebGL context and force-simulation state survive search/filter re-runs; dangling `@rdf:nodeID` and anonymous nested `rdf:Description` rendered as bnodes; click handlers skip bnodes
+- View mode preserved across re-runs of the same search container
+- Container result count short-circuits COUNT when the result set fits one page
 - Removed bash trace debug from entrypoint
-- Modal-form per-flow `render-fn` stamping unified via named updating wrappers `ldh:constructor-form-response` and `ldh:edit-form-response` (parallel to existing `ldh:settings-form-response`); fallback removed from `ldh:render-modal-form-violation`
-- New `ldh:render-constructor-form#2` dispatcher routes the Container/Item creation violation re-render through `mode="bs2:Form"`; `mode="ldh:DocumentForm"` reserved for the edit flow's narrow `@rdf:about=$about` filter
+- Modal-form per-flow `render-fn` stamping unified via `ldh:constructor-form-response` / `ldh:edit-form-response` (parallel to `ldh:settings-form-response`); new `ldh:render-constructor-form#2` routes Container/Item creation violation re-render through `mode="bs2:Form"`, leaving `mode="ldh:DocumentForm"` for the edit flow
 
 ### Fixed
 - Drop just-added block on empty-graph submit
-- `btn-remove-resource` removes the outermost duplicate `.block` wrapper when renderers double-wrap
-- Relative `document('../translations.rdf')` and `document('translations.rdf')` calls in `imports/{nfo,sioc,sp}.xsl`, `admin/layout.xsl`, and `document.xsl` resolved against the SEF root under SaxonJS 3, producing 404s; switched to the absolute `resolve-uri(..., lapp:origin())` pattern
-- Admin app dropdowns, form-control defaults, and navbar reverted to end-user variants after CSR navigation because admin overrides only lived in the SSR-only `admin/` chain
-- Admin `bs2:Row` `foaf:Person`/`foaf:Group` lookup failed under SaxonJS XHR ("Get failure http://xmlns.com/foaf/0.1/Person") because `ac:document-uri` leaves slash-vocab term URIs intact; override now fetches the `foaf:` namespace doc, hitting the `documentPool` cache
-- `Skolemizer` now covers blank nodes in object position; orphan bnode references (e.g. `<container> rdf:_1 [ ]` with no further triples) are rewritten to skolem URIs instead of surviving into the graph store as bnode labels
-- Container/Item creation modal violation re-render preserves co-shipped peer Descriptions (content blocks); previously the SPIN-violation form lost the default `ldh:ChildrenView` content block referenced by `rdf:_1`
+- `btn-remove-resource` removes outermost duplicate `.block` wrapper
+- Relative `document('translations.rdf')` calls in `imports/{nfo,sioc,sp}.xsl`, `admin/layout.xsl`, `document.xsl` 404'd against the SEF root under SaxonJS 3; switched to absolute `resolve-uri(..., lapp:origin())`
+- Admin dropdowns, form-control defaults, and navbar reverted to end-user variants after CSR navigation (overrides only lived in the SSR `admin/` chain)
+- Admin `bs2:Row` `foaf:Person`/`foaf:Group` lookup failed under SaxonJS XHR because `ac:document-uri` leaves slash-vocab term URIs intact; override now fetches the namespace doc
+- `Skolemizer` covers blank nodes in object position; orphan bnode references (e.g. `<container> rdf:_1 [ ]`) rewritten to skolem URIs
+- Container/Item modal violation re-render preserves co-shipped peer Descriptions (default `ldh:ChildrenView` content block was lost)
+- EDIT and violation re-render were missing the SPIN-constructor merge that CREATE performs; `bs2:FormControl`'s SHACL branch silently dropped SPIN-defined property templates for classes with both (e.g. `skos:Concept`); merge extracted into shared `ldh:build-merged-constructor` and wired into both flows via the `constructor` tunnel
 
 ## [5.4.0] - 2026-06-04
 ### Added
