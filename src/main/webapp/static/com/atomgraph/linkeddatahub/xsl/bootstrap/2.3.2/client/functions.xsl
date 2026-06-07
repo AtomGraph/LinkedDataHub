@@ -564,10 +564,10 @@ exclude-result-prefixes="#all"
         "/>
     </xsl:function>
 
-    <!-- Async load/set pair for /ns?forClass=… — builds the request from context('forClass'); store result at context('constructed-doc'). -->
+    <!-- Async load/set pair for /ns?forClass=… — builds the request from context('forClass'); store result at context('constructed-doc'). forClass is relaxed to xs:anyURI* so EDIT chains (which derive forClass from the resource's rdf:types and may legitimately have zero) can include this step unconditionally — an empty forClass sends no ?forClass= query parameter and the server responds with an empty graph, which downstream merge/instantiate handle as a no-op. -->
     <xsl:function name="ldh:load-constructed-doc" as="map(*)" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
-        <xsl:variable name="forClass" select="$context('forClass')" as="xs:anyURI+"/>
+        <xsl:variable name="forClass" select="$context('forClass')" as="xs:anyURI*"/>
         <xsl:variable name="results-uri" select="ac:build-uri(resolve-uri('ns', ldt:base()), map{ 'forClass': for $class in $forClass return string($class), 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
         <xsl:variable name="request-uri" select="ldh:href($results-uri, map{})" as="xs:anyURI"/>
         <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>

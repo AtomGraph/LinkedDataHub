@@ -258,12 +258,13 @@ WHERE
             'about': $about,
             'endpoint': sd:endpoint()
           }"/>
-        <!-- ldh:fetch-and-load-edited-resource bakes a GET-style type-metadata-request directly, so the type-metadata pair uses an identity load-fn rather than ldh:load-type-metadata (which would build a different POST-style request). -->
+        <!-- ldh:fetch-and-load-edited-resource bakes a GET-style type-metadata-request directly, so the type-metadata pair uses an identity load-fn rather than ldh:load-type-metadata (which would build a different POST-style request). The ldh:load-constructed-doc pair fetches the SPIN-side constructor in parallel; ldh:render-row-form folds it with $shapes via ldh:merge-constructors to produce the pure constructor passed as the bs2:FormControl 'constructor' tunnel — same input shape as the CREATE flows. -->
         <ixsl:promise select="
           ixsl:resolve($context)
             => ixsl:then(ldh:fetch-and-load-edited-resource#1)
             => ixsl:then(ldh:fire-load-set-parallel(?, [
                  [ function($ctx as map(*)) as map(*) { $ctx }, 'type-metadata-request',     'type-metadata-response',     ldh:set-type-metadata#1 ],
+                 [ ldh:load-constructed-doc#1,                  'constructed-doc-request',   'constructed-doc-response',   ldh:set-constructed-doc#1 ],
                  [ ldh:load-constructors#1,                     'constructors-request',      'constructors-response',      ldh:set-constructors#1 ],
                  [ ldh:load-shapes#1,                           'shapes-request',            'shapes-response',            ldh:set-shapes#1 ],
                  [ ldh:load-property-metadata#1,                'property-metadata-request', 'property-metadata-response', ldh:set-property-metadata#1 ],
@@ -335,11 +336,12 @@ WHERE
                         <xsl:variable name="results-uri" select="ac:build-uri(resolve-uri('ns', ldt:base()), map{ 'query': $query-string, 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
                         <xsl:variable name="request-uri" select="ldh:href($results-uri, map{})" as="xs:anyURI"/>
                         <xsl:variable name="http-request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
-                        <!-- 'document' = raw response body; the renderer handles per-Description suppression via ldh:DocumentForm match templates. 'action' defaults to the response document's URL if the caller didn't set it. property-uris/object-uris seed the downstream ldh:load-property-metadata / ldh:load-object-metadata steps. -->
+                        <!-- 'document' = raw response body; the renderer handles per-Description suppression via ldh:DocumentForm match templates. 'action' defaults to the response document's URL if the caller didn't set it. property-uris/object-uris seed the downstream ldh:load-property-metadata / ldh:load-object-metadata steps. 'forClass' seeds ldh:load-constructed-doc / ldh:load-shapes / ldh:load-constructors / ldh:load-constraints — same shape as the CREATE chains, so the EDIT promise chain can include the constructor fetch and produce the same pure-constructor input to bs2:FormControl as CREATE. -->
                         <xsl:sequence select="map:merge(($context, map{
                           'type-metadata-request': $http-request,
                           'resource': $resource,
                           'types': $types,
+                          'forClass': $types,
                           'property-uris': distinct-values($resource/*/concat(namespace-uri(), local-name())),
                           'object-uris': distinct-values($resource/*/@rdf:resource[not(key('resources', .))]),
                           'document': .,
@@ -424,30 +426,20 @@ WHERE
         </xsl:for-each>
     </xsl:function>
 
-    <!-- Fold step for the create-new-instance chain: applies ldh:SetResourceID to the constructed doc
-         (replacing blank-node IDs with a real URI), then extracts the row-form resource and its types.
-         Reads context('constructed-doc'), context('forClass'), context('this'); writes back updated
-         context('constructed-doc'), context('resource'), context('types'). -->
+    <!-- Fold step for the create-new-instance chain. Instantiates the (pure, bnode-prototyped) constructor under the minted URI and extracts the row-form resource + its types. Reads context('constructed-doc'), context('forClass'), context('this'); writes context('instance-doc'), context('resource'), context('types'). context('constructed-doc') stays the pure constructor — bs2:FormControl reads it via the 'constructor' tunnel to derive $template / the property dropdown. -->
     <xsl:function name="ldh:set-row-form-resource" as="map(*)" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
         <xsl:variable name="constructed-doc" select="$context('constructed-doc')" as="document-node()"/>
         <xsl:variable name="forClass" select="$context('forClass')" as="xs:anyURI"/>
         <xsl:variable name="this" select="$context('this')" as="xs:anyURI"/>
 
-        <xsl:variable name="constructed-doc-with-id" as="document-node()">
-            <xsl:document>
-                <xsl:apply-templates select="$constructed-doc" mode="ldh:SetResourceID">
-                    <xsl:with-param name="forClass" select="$forClass" tunnel="yes"/>
-                    <xsl:with-param name="about" select="$this" tunnel="yes"/>
-                </xsl:apply-templates>
-            </xsl:document>
-        </xsl:variable>
+        <xsl:variable name="instance-doc" select="ldh:instantiate-constructor($constructed-doc, $forClass, $this, ())" as="document-node()"/>
 
-        <xsl:variable name="resource" select="key('resources-by-type', $forClass, $constructed-doc-with-id)[rdf:type/@rdf:resource = '&owl;NamedIndividual' or (not(key('predicates-by-object', @rdf:nodeID)) and exists(* except rdf:type))]" as="element()"/>
+        <xsl:variable name="resource" select="key('resources-by-type', $forClass, $instance-doc)[rdf:type/@rdf:resource = '&owl;NamedIndividual' or (not(key('predicates-by-object', @rdf:nodeID)) and exists(* except rdf:type))]" as="element()"/>
         <xsl:variable name="types" select="for $t in distinct-values($resource/rdf:type/@rdf:resource) return xs:anyURI($t)" as="xs:anyURI*"/>
 
         <xsl:sequence select="map:merge(($context, map{
-            'constructed-doc': $constructed-doc-with-id,
+            'instance-doc': $instance-doc,
             'resource': $resource,
             'types': $types
         }), map{ 'duplicates': 'use-last' })"/>
@@ -512,18 +504,24 @@ WHERE
         <xsl:param name="context" as="map(*)"/>
         <xsl:variable name="block" select="$context('block')" as="element()"/>
         <xsl:variable name="resource" select="$context('resource')" as="element()"/>
+        <xsl:variable name="types" select="$context('types')" as="xs:anyURI*"/>
         <xsl:variable name="type-metadata" select="$context('type-metadata')" as="document-node()?"/>
         <xsl:variable name="property-metadata" select="$context('property-metadata')" as="document-node()?"/>
         <xsl:variable name="constructors" select="$context('constructors')" as="document-node()?"/>
         <xsl:variable name="constraints" select="$context('constraints')" as="document-node()?"/>
         <xsl:variable name="shapes" select="$context('shapes')" as="document-node()"/>
+        <xsl:variable name="constructed-doc" select="$context('constructed-doc')" as="document-node()?"/>
         <xsl:variable name="object-metadata" select="$context('object-metadata')" as="document-node()?"/>
-                
+
+        <!-- Fold SHACL shape-instance and SPIN constructed-doc into the pure, bnode-prototyped constructor consumed by bs2:FormControl. Skips instantiation — EDIT already has $resource with its real URI from the server fetch, so nothing to mint. forClass is the resource's primary rdf:type. Shared helper with ldh:render-row-form-violation so the merge lives in one place. -->
+        <xsl:variable name="constructor" select="ldh:build-merged-constructor($shapes, $constructed-doc, $types[1])" as="document-node()?"/>
+
         <xsl:for-each select="$block">
             <xsl:variable name="row" as="node()*">
                 <xsl:apply-templates select="$resource" mode="bs2:RowForm">
                     <xsl:with-param name="type-metadata" select="$type-metadata" tunnel="yes"/>
                     <xsl:with-param name="property-metadata" select="$property-metadata" tunnel="yes"/>
+                    <xsl:with-param name="constructor" select="$constructor" tunnel="yes"/>
                     <xsl:with-param name="constructors" select="$constructors" tunnel="yes"/>
                     <xsl:with-param name="constraints" select="$constraints" tunnel="yes"/>
                     <xsl:with-param name="shapes" select="$shapes" tunnel="yes"/>
@@ -1022,15 +1020,17 @@ WHERE
             map{
                 'body': $body,
                 'types': $types,
+                'forClass': $types,
                 'endpoint': sd:endpoint(),
                 'property-uris': distinct-values($body/rdf:RDF/*[not(@rdf:about = $doc-uri)]/*/concat(namespace-uri(), local-name())),
                 'object-uris': distinct-values($body/rdf:RDF/*/*/@rdf:resource[not(key('resources', .))])
             }
         ), map{ 'duplicates': 'use-last' })"/>
 
-        <!-- $new-context is built synchronously above; types/property-uris/object-uris populated from the violation response body. No pre-baked type-metadata-request here, so the type-metadata pair uses the normal ldh:load-type-metadata. -->
+        <!-- $new-context is built synchronously above; types/forClass/property-uris/object-uris populated from the violation response body. No pre-baked type-metadata-request here, so the type-metadata pair uses the normal ldh:load-type-metadata. The ldh:load-constructed-doc pair fetches the SPIN constructor so ldh:render-row-form-violation can merge it with $shapes via ldh:build-merged-constructor — same input shape as the initial CREATE / EDIT renders. -->
         <ixsl:promise select="ixsl:resolve($new-context) =>
             ixsl:then(ldh:fire-load-set-parallel(?, [
+              [ ldh:load-constructed-doc#1,   'constructed-doc-request',   'constructed-doc-response',   ldh:set-constructed-doc#1 ],
               [ ldh:load-constructors#1,      'constructors-request',      'constructors-response',      ldh:set-constructors#1 ],
               [ ldh:load-shapes#1,            'shapes-request',            'shapes-response',            ldh:set-shapes#1 ],
               [ ldh:load-type-metadata#1,     'type-metadata-request',     'type-metadata-response',     ldh:set-type-metadata#1 ],
@@ -1043,9 +1043,7 @@ WHERE
             on-failure="ldh:promise-failure#1"/>
     </xsl:function>
 
-    <!-- Terminal callback for the row-form-submit-violation promise chain. Renders the form with
-         violation feedback by applying bs2:RowForm to the response body and replacing block content.
-         All metadata is fetched async by the upstream chain steps; this function just reads from context. -->
+    <!-- Terminal callback for the row-form-submit-violation promise chain. Renders the form with violation feedback by applying bs2:RowForm to the response body and replacing block content. All metadata is fetched async by the upstream chain steps; this function reads from context and folds $shapes + $constructed-doc into the pure merged constructor passed as the bs2:FormControl 'constructor' tunnel. Without this fold, bs2:FormControl's param default fires and its SHACL branch silently drops the SPIN-defined property templates for any class that has both SHACL shapes and SPIN constructor properties (e.g. skos:Concept). -->
     <xsl:function name="ldh:render-row-form-violation" as="item()*" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
         <xsl:variable name="doc-uri" select="$context('doc-uri')" as="xs:anyURI"/>
@@ -1055,10 +1053,13 @@ WHERE
         <xsl:variable name="types" select="$context('types')" as="xs:anyURI*"/>
         <xsl:variable name="constructors" select="$context('constructors')" as="document-node()?"/>
         <xsl:variable name="shapes" select="$context('shapes')" as="document-node()?"/>
+        <xsl:variable name="constructed-doc" select="$context('constructed-doc')" as="document-node()?"/>
         <xsl:variable name="type-metadata" select="$context('type-metadata')" as="document-node()?"/>
         <xsl:variable name="property-metadata" select="$context('property-metadata')" as="document-node()?"/>
         <xsl:variable name="constraints" select="$context('constraints')" as="document-node()?"/>
         <xsl:variable name="object-metadata" select="$context('object-metadata')" as="document-node()?"/>
+
+        <xsl:variable name="constructor" select="ldh:build-merged-constructor($shapes, $constructed-doc, $types[1])" as="document-node()?"/>
 
         <xsl:variable name="row-form" as="node()*">
             <!-- filter out the current document which might be in the constraint violation response attached by an rdf:_N property to a block resource -->
@@ -1066,6 +1067,7 @@ WHERE
                 <xsl:with-param name="method" select="$form/@method"/>
                 <xsl:with-param name="type-metadata" select="$type-metadata" tunnel="yes"/>
                 <xsl:with-param name="property-metadata" select="$property-metadata" tunnel="yes"/>
+                <xsl:with-param name="constructor" select="$constructor" tunnel="yes"/>
                 <xsl:with-param name="constructors" select="$constructors" tunnel="yes"/>
                 <xsl:with-param name="constraints" select="$constraints" tunnel="yes"/>
                 <xsl:with-param name="shapes" select="$shapes" tunnel="yes"/>
@@ -1299,10 +1301,7 @@ WHERE
 
     <!-- select .type-typeahead item (priority over plain .typeahead) -->
     
-    <!-- Fold step for the type-typeahead chain: reads pre-fetched SHACL shapes from context,
-         builds the shape-instance doc, applies ldh:SetResourceID to both shape-instance and the
-         async-fetched SPIN constructed-doc, merges them, and derives the row-form resource + types.
-         Requires context('shapes') populated by an upstream ldh:load-shapes / ldh:set-shapes pair. -->
+    <!-- Fold step for the type-typeahead chain. Builds the SHACL shape-instance doc (bnode-prototyped, no identity rewrite), folds it with the async-fetched SPIN constructed-doc via ldh:merge-constructors (alpha-rename + group-by, both halves stay bnode-keyed), instantiates the merged constructor under $this, and extracts the row-form resource. Requires context('shapes') populated by an upstream ldh:load-shapes / ldh:set-shapes pair. Writes context('constructed-doc') as the pure merged constructor (bs2:FormControl reads it via the 'constructor' tunnel to derive $template); context('instance-doc') as the instantiated copy used to find $resource. -->
     <xsl:function name="ldh:set-typeahead-form-resource" as="map(*)" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
         <xsl:variable name="constructed-doc" select="$context('constructed-doc')" as="document-node()"/>
@@ -1314,45 +1313,16 @@ WHERE
             <xsl:apply-templates select="$shapes" mode="ldh:Shape"/>
         </xsl:variable>
         <xsl:variable name="shape-instance-doc" select="ldh:reserialize($shape-instance-doc)" as="document-node()"/>
-        <xsl:variable name="shape-instance-doc" as="document-node()">
-            <xsl:document>
-                <xsl:apply-templates select="$shape-instance-doc" mode="ldh:SetResourceID">
-                    <xsl:with-param name="forClass" select="$forClass" tunnel="yes"/>
-                    <xsl:with-param name="about" select="$this" tunnel="yes"/>
-                </xsl:apply-templates>
-            </xsl:document>
-        </xsl:variable>
 
-        <xsl:variable name="constructed-doc-with-id" as="document-node()">
-            <xsl:document>
-                <xsl:apply-templates select="$constructed-doc" mode="ldh:SetResourceID">
-                    <xsl:with-param name="forClass" select="$forClass" tunnel="yes"/>
-                    <xsl:with-param name="about" select="$this" tunnel="yes"/>
-                </xsl:apply-templates>
-            </xsl:document>
-        </xsl:variable>
+        <xsl:variable name="merged-constructor" select="ldh:merge-constructors($shape-instance-doc, $constructed-doc, $forClass)" as="document-node()"/>
+        <xsl:variable name="instance-doc" select="ldh:instantiate-constructor($merged-constructor, $forClass, $this, ())" as="document-node()"/>
 
-        <!-- merge SHACL-based constructor with SPIN-based constructor -->
-        <xsl:variable name="merged-doc" as="document-node()">
-            <xsl:document>
-                <rdf:RDF>
-                    <xsl:for-each-group select="$shape-instance-doc/rdf:RDF/rdf:Description, $constructed-doc-with-id/rdf:RDF/rdf:Description" group-by="@rdf:about, @rdf:nodeID">
-                        <xsl:copy>
-                            <xsl:copy-of select="@*"/>
-                            <xsl:for-each-group select="current-group()/*" group-by="@rdf:resource, @rdf:nodeID, node(), @rdf:datatype, @xml:lang">
-                                <xsl:sequence select="."/>
-                            </xsl:for-each-group>
-                        </xsl:copy>
-                    </xsl:for-each-group>
-                </rdf:RDF>
-            </xsl:document>
-        </xsl:variable>
-
-        <xsl:variable name="resource" select="key('resources-by-type', $forClass, $merged-doc)[not(key('predicates-by-object', @rdf:nodeID))]" as="element()"/>
+        <xsl:variable name="resource" select="key('resources-by-type', $forClass, $instance-doc)[not(key('predicates-by-object', @rdf:nodeID))]" as="element()"/>
         <xsl:variable name="types" select="for $t in distinct-values($resource/rdf:type/@rdf:resource) return xs:anyURI($t)" as="xs:anyURI*"/>
 
         <xsl:sequence select="map:merge(($context, map{
-            'constructed-doc': $merged-doc,
+            'constructed-doc': $merged-constructor,
+            'instance-doc': $instance-doc,
             'shapes': $shapes,
             'resource': $resource,
             'types': $types,

@@ -269,6 +269,115 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="document($request-uri)"/>
     </xsl:function>
 
+    <!-- Pure derivation: produces an instance document from a class-keyed, bnode-prototyped constructor by re-keying the prototype Description (the one whose rdf:type matches $forClass) under the given identity. The input constructor is not modified. Pass $about to mint a URI-identified instance (the document-creation case and the fragment-instance case) or $nodeID to mint a bnode-identified instance with a deterministic label. Implementation reuses the existing mode="ldh:SetResourceID" pass — it's the same identity-rewrite, just exposed as a function so call sites can keep the constructor pure and derive the instance separately. -->
+    <xsl:function name="ldh:instantiate-constructor" as="document-node()">
+        <xsl:param name="constructor" as="document-node()"/>
+        <xsl:param name="forClass" as="xs:anyURI"/>
+        <xsl:param name="about" as="xs:anyURI?"/>
+        <xsl:param name="nodeID" as="xs:string?"/>
+
+        <xsl:document>
+            <xsl:apply-templates select="$constructor" mode="ldh:SetResourceID">
+                <xsl:with-param name="forClass" select="$forClass" tunnel="yes"/>
+                <xsl:with-param name="about" select="$about" tunnel="yes"/>
+                <xsl:with-param name="nodeID" select="$nodeID" tunnel="yes"/>
+            </xsl:apply-templates>
+        </xsl:document>
+    </xsl:function>
+
+    <!-- Pure derivation: folds a SHACL-derived constructor and a SPIN-derived constructor into one bnode-prototyped constructor for $forClass. Aligns the SPIN side's prototype bnode label to the SHACL side's (via mode="ldh:RenameBnode"), then groups Descriptions by identity so the two prototypes collapse into one with combined children. Value-range siblings on each side keep their own bnode labels and stay as distinct Descriptions in the merged doc. When the SHACL side has no prototype Description for $forClass (e.g. no NodeShape targets that class), returns the SPIN side unchanged. -->
+    <xsl:function name="ldh:merge-constructors" as="document-node()">
+        <xsl:param name="shape-constructor" as="document-node()?"/>
+        <xsl:param name="spin-constructor" as="document-node()"/>
+        <xsl:param name="forClass" as="xs:anyURI"/>
+
+        <!-- Prototype = the Description that (a) carries $forClass as a type and (b) has property assertions beyond rdf:type. The [* except rdf:type] guard excludes pure-typing Descriptions (e.g. <rdf:Description rdf:nodeID="A1"><rdf:type rdf:resource="…/Class"/></rdf:Description> emitted as a range marker on a property). The [1] tiebreaker handles constructors that legitimately ship multiple instances of $forClass (content-block co-shipping, nested templates); the merge keys off whichever prototype we name here, others stay as distinct siblings. -->
+        <xsl:variable name="shape-proto-id" select="($shape-constructor/rdf:RDF/*[rdf:type/@rdf:resource = $forClass][* except rdf:type]/@rdf:nodeID/string())[1]" as="xs:string?"/>
+        <xsl:variable name="spin-proto-id" select="($spin-constructor/rdf:RDF/*[rdf:type/@rdf:resource = $forClass][* except rdf:type]/@rdf:nodeID/string())[1]" as="xs:string?"/>
+
+        <xsl:choose>
+            <xsl:when test="empty($shape-proto-id)">
+                <xsl:sequence select="$spin-constructor"/>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:variable name="spin-aligned" as="document-node()">
+                    <xsl:choose>
+                        <xsl:when test="exists($spin-proto-id) and $spin-proto-id != $shape-proto-id">
+                            <xsl:document>
+                                <xsl:apply-templates select="$spin-constructor" mode="ldh:RenameBnode">
+                                    <xsl:with-param name="from" select="$spin-proto-id" tunnel="yes"/>
+                                    <xsl:with-param name="to" select="$shape-proto-id" tunnel="yes"/>
+                                </xsl:apply-templates>
+                            </xsl:document>
+                        </xsl:when>
+                        <xsl:otherwise>
+                            <xsl:sequence select="$spin-constructor"/>
+                        </xsl:otherwise>
+                    </xsl:choose>
+                </xsl:variable>
+
+                <xsl:document>
+                    <rdf:RDF>
+                        <xsl:for-each-group select="$shape-constructor/rdf:RDF/*, $spin-aligned/rdf:RDF/*" group-by="(@rdf:about, @rdf:nodeID)[1]">
+                            <xsl:copy>
+                                <xsl:copy-of select="@*"/>
+                                <xsl:for-each-group select="current-group()/*" group-by="(@rdf:resource, @rdf:nodeID, node(), @rdf:datatype, @xml:lang)[1]">
+                                    <xsl:sequence select="."/>
+                                </xsl:for-each-group>
+                            </xsl:copy>
+                        </xsl:for-each-group>
+                    </rdf:RDF>
+                </xsl:document>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:function>
+
+    <!-- Alpha-renames every @rdf:nodeID equal to $from (in scope as a tunnel param) to $to, identity-copies everything else. Covers both the Description's own @rdf:nodeID (prototype identity) and back-references on property elements (e.g. <foaf:knows rdf:nodeID="X"/>) so RDF graph references stay intact across the rename. -->
+    <xsl:template match="@rdf:nodeID" mode="ldh:RenameBnode" priority="1">
+        <xsl:param name="from" as="xs:string" tunnel="yes"/>
+        <xsl:param name="to" as="xs:string" tunnel="yes"/>
+
+        <xsl:choose>
+            <xsl:when test=". = $from">
+                <xsl:attribute name="rdf:nodeID" select="$to"/>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:copy/>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:template>
+
+    <xsl:template match="@* | node()" mode="ldh:RenameBnode">
+        <xsl:copy>
+            <xsl:apply-templates select="@* | node()" mode="#current"/>
+        </xsl:copy>
+    </xsl:template>
+
+    <!-- Builds the pure, bnode-prototyped constructor consumed by bs2:FormControl from the two raw inputs the promise chain has fetched: $shapes (SHACL NodeShape RDF) and $constructed-doc (SPIN constructor RDF from /ns?forClass=…). Shared by every flow that ends in bs2:FormControl (ldh:render-row-form for EDIT, ldh:render-row-form-violation for violation re-render, and the Phase 4 modal/app-settings/signup renderers to come) so the merge logic lives in exactly one place. Returns the SPIN side unchanged when shapes are absent (typical for system classes like sp:Describe), returns the merged doc when both sides exist (user-defined classes like skos:Concept with both SPIN defaults and SHACL constraints), or empty if neither side provides input. -->
+    <xsl:function name="ldh:build-merged-constructor" as="document-node()?">
+        <xsl:param name="shapes" as="document-node()?"/>
+        <xsl:param name="constructed-doc" as="document-node()?"/>
+        <xsl:param name="forClass" as="xs:anyURI?"/>
+
+        <xsl:variable name="shape-instance-doc" as="document-node()?">
+            <xsl:if test="exists($shapes)">
+                <xsl:variable name="raw" as="document-node()">
+                    <xsl:apply-templates select="$shapes" mode="ldh:Shape"/>
+                </xsl:variable>
+                <xsl:sequence select="ldh:reserialize($raw)"/>
+            </xsl:if>
+        </xsl:variable>
+
+        <xsl:choose>
+            <xsl:when test="exists($constructed-doc) and exists($forClass)">
+                <xsl:sequence select="ldh:merge-constructors($shape-instance-doc, $constructed-doc, $forClass)"/>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:sequence select="$constructed-doc"/>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:function>
+
     <!-- reserialize RDF/XML document by moving nested rdf:Descriptions to top-level following Jena's "plain" RDF/XML structure  -->
     <xsl:function name="ldh:reserialize" as="document-node()">
         <xsl:param name="doc" as="document-node()"/>
