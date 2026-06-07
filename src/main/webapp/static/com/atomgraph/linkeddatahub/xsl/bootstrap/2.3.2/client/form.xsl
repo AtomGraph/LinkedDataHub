@@ -613,6 +613,25 @@ WHERE
         </xsl:apply-templates>
     </xsl:function>
 
+    <!-- thin dispatcher for the Container/Item creation flow (the SPIN-constructor-driven "add" form). Mirrors ldh:render-document-form#2 but dispatches in mode="bs2:Form" instead of mode="ldh:DocumentForm". bs2:Form's rdf:RDF shell at document.xsl:1170 iterates all Descriptions (primary at @rdf:about=$base-uri + non-primary sorted by label) — exactly what the constructor flow needs to keep co-shipped content blocks visible across the initial render and the constraint-violation re-render. http:Response and spin:ConstraintViolation Descriptions are suppressed by the existing priority=3 empty templates at form.xsl:106/109. -->
+    <xsl:function name="ldh:render-constructor-form" as="element()*">
+        <xsl:param name="body" as="document-node()"/>
+        <xsl:param name="ctx"  as="map(*)"/>
+        <xsl:apply-templates select="$body" mode="bs2:Form">
+            <xsl:with-param name="method"            select="$ctx('method')"/>
+            <xsl:with-param name="action"            select="$ctx('action')"            tunnel="yes"/>
+            <xsl:with-param name="base-uri"          select="if (map:contains($ctx, 'base-uri')) then $ctx('base-uri') else $ctx('about')" tunnel="yes"/>
+            <xsl:with-param name="type-metadata"     select="$ctx('type-metadata')"     tunnel="yes"/>
+            <xsl:with-param name="property-metadata" select="$ctx('property-metadata')" tunnel="yes"/>
+            <xsl:with-param name="constructors"      select="$ctx('constructors')"      tunnel="yes"/>
+            <xsl:with-param name="constraints"       select="$ctx('constraints')"       tunnel="yes"/>
+            <xsl:with-param name="shapes"            select="$ctx('shapes')"            tunnel="yes"/>
+            <xsl:with-param name="object-metadata"   select="$ctx('object-metadata')"   tunnel="yes"/>
+            <xsl:with-param name="required"          select="$ctx('required')"          tunnel="yes"/>
+            <xsl:with-param name="form-actions-class" select="'form-actions modal-footer'" as="xs:string?"/>
+        </xsl:apply-templates>
+    </xsl:function>
+
     <!-- promise-chain entry parallel to ldh:render-form#1, but dispatches in mode="ldh:AppSettingsForm" so the app-settings UI restrictions (in modal.xsl) only fire on this flow. -->
     <xsl:function name="ldh:render-app-settings-form" as="item()*" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>

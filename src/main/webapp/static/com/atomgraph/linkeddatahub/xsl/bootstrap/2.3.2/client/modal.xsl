@@ -729,10 +729,11 @@ LIMIT   10
     </xsl:template>
     
     <!-- submit instance creation modal form using PUT -->
-    
+
     <xsl:template match="div[contains-token(@class, 'modal-constructor')]//form[contains-token(@class, 'form-horizontal')][upper-case(@method) = 'PUT']" mode="ixsl:onsubmit" priority="2">
         <xsl:next-match>
-            <xsl:with-param name="callback" select="ldh:modal-form-response#1"/>
+            <!-- ldh:constructor-form-response stamps render-fn=ldh:render-constructor-form#2 (mode="bs2:Form") so the violation re-render keeps co-shipped peer Descriptions (content blocks) visible. -->
+            <xsl:with-param name="callback" select="ldh:constructor-form-response#1"/>
         </xsl:next-match>
     </xsl:template>
     
@@ -905,7 +906,8 @@ LIMIT   10
     <xsl:template match="div[contains-token(@class, 'modal-constructor')]//form[contains-token(@class, 'form-horizontal')][upper-case(@method) = 'PATCH']" mode="ixsl:onsubmit" priority="2">
         <xsl:param name="block" select="ancestor::div[contains-token(@class, 'modal-constructor')]" as="element()"/>
         <xsl:param name="about" select="$block/@about" as="xs:anyURI"/>
-        <xsl:param name="callback" select="ldh:modal-form-response#1" as="function(map(*)) as item()*"/>
+        <!-- ldh:edit-form-response stamps render-fn=ldh:render-document-form#2 (mode="ldh:DocumentForm", narrow @rdf:about=$about filter) so the violation re-render stays focused on the edited resource. -->
+        <xsl:param name="callback" select="ldh:edit-form-response#1" as="function(map(*)) as item()*"/>
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <xsl:variable name="form" select="." as="element()"/>
         <xsl:variable name="method" select="upper-case(@method)" as="xs:string"/>
@@ -1390,7 +1392,18 @@ LIMIT   10
     </xsl:template>
     
     <!-- CALLBACKS -->
-    
+
+    <!-- Per-flow wrappers that stamp 'render-fn' before delegating to the shared ldh:modal-form-response. ixsl:updating="yes" is required because ldh:modal-form-response writes to result documents (via ldh:DocumentNavigate / ldh:form-submit-created); an inline function literal can't carry that attribute, hence these named wrappers. -->
+    <xsl:function name="ldh:constructor-form-response" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:sequence select="ldh:modal-form-response(map:put($context, 'render-fn', ldh:render-constructor-form#2))"/>
+    </xsl:function>
+
+    <xsl:function name="ldh:edit-form-response" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:sequence select="ldh:modal-form-response(map:put($context, 'render-fn', ldh:render-document-form#2))"/>
+    </xsl:function>
+
     <xsl:function name="ldh:modal-form-response" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
         <xsl:variable name="response" select="$context('response')" as="map(*)"/>
@@ -1806,7 +1819,7 @@ LIMIT   10
             on-failure="ldh:promise-failure#1"/>
     </xsl:function>
 
-    <!-- Terminal callback for the modal-form-submit-violation chain. All metadata is in $context from the upstream chain steps. constructors and shapes stay () because the modal form is only used for Container/Item instances. $context('render-fn') selects the per-flow renderer (ldh:render-app-settings-form#2 for app-settings, default ldh:render-document-form#2 for Container/Item edit) so the violation re-render uses the same mode as the initial render. -->
+    <!-- Terminal callback for the modal-form-submit-violation chain. All metadata is in $context from the upstream chain steps. constructors and shapes stay () because the modal form is only used for Container/Item instances. $context('render-fn') is uniformly populated by each flow's response handler — ldh:constructor-form-response stamps ldh:render-constructor-form#2 (mode="bs2:Form") for Container/Item creation (PUT), ldh:edit-form-response stamps ldh:render-document-form#2 (mode="ldh:DocumentForm") for Container/Item edit (PATCH), ldh:settings-form-response stamps ldh:render-app-settings-form#2 for app-settings — so the violation re-render uses the same mode as the initial render. The mode-per-flow split keeps the edit form's narrow @rdf:about=$about filter while letting the creation flow surface co-shipped peer Descriptions (content blocks). -->
     <xsl:function name="ldh:render-modal-form-violation" as="item()*" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
         <xsl:variable name="body" select="$context('body')" as="document-node()"/>
@@ -1821,7 +1834,7 @@ LIMIT   10
             'shapes':            (),
             'required':          function($r as element()) as xs:boolean { $r/rdf:type/@rdf:resource = ('&dh;Container', '&dh;Item') }
         }), map{ 'duplicates': 'use-last' })"/>
-        <xsl:variable name="render-fn" select="if (map:contains($context, 'render-fn')) then $context('render-fn') else ldh:render-document-form#2" as="function(document-node(), map(*)) as element()*"/>
+        <xsl:variable name="render-fn" select="$context('render-fn')" as="function(document-node(), map(*)) as element()*"/>
         <xsl:variable name="rendered" select="$render-fn($body, $render-ctx)" as="element()*"/>
 
         <xsl:for-each select="$block">

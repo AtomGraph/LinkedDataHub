@@ -23,8 +23,9 @@ import java.util.function.Function;
 import jakarta.ws.rs.core.UriBuilder;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.rdf.model.Statement;
+import org.apache.jena.rdf.model.StmtIterator;
 import org.apache.jena.util.ResourceUtils;
-import org.apache.jena.util.iterator.ExtendedIterator;
 
 /**
  * Skolemizes blank node resources into URI resources.
@@ -57,22 +58,22 @@ public class Skolemizer implements Function<Model, Model>
     {
         Map<Resource, String> bnodes = new HashMap<>();
 
-        ExtendedIterator<Resource> it = model.listSubjects().
-            filterKeep((Resource res) -> (res.isAnon()));
+        // Cover bnodes in both subject and object position. Subject-only iteration leaks
+        // orphan bnode object references (e.g. `<container> rdf:_1 [] .` with no triples
+        // about the bnode) into the graph store, since their bnode label survives PUT.
+        StmtIterator stmts = model.listStatements();
         try
         {
-            while (it.hasNext())
+            while (stmts.hasNext())
             {
-                Resource bnode = it.next();
-
-                final String fragment = "id" + UUID.randomUUID().toString(); // UUID can start with a number which is not legal for a fragment ID
-                
-                bnodes.put(bnode, fragment);
+                Statement stmt = stmts.next();
+                if (stmt.getSubject().isAnon()) bnodes.computeIfAbsent(stmt.getSubject(), b -> "id" + UUID.randomUUID());
+                if (stmt.getObject().isAnon()) bnodes.computeIfAbsent(stmt.getObject().asResource(), b -> "id" + UUID.randomUUID());
             }
         }
         finally
         {
-            it.close();
+            stmts.close();
         }
 
         bnodes.entrySet().forEach(entry ->

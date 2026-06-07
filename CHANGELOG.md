@@ -1,7 +1,8 @@
-## [5.5.0] - 2026-06-06
+## [5.5.0] - 2026-06-07
 ### Added
 - GraphMode 3D canvas: bottom-right "Fullscreen" button toggles a CSS-based maximize (viewport-sized, browser address bar stays visible); Esc exits maximize
 - Esc key closes the topmost open modal
+- HTTP test for orphan bnode object skolemization (`PUT-orphan-bnode-object-skolemized.sh`)
 
 ### Changed
 - Jena upgraded to 6.1.0 (#309)
@@ -17,6 +18,8 @@
 - View mode preserved across re-runs of the same search container instead of defaulting to `ListMode`
 - Container result count short-circuits the COUNT request when the full result set fits one page
 - Removed bash trace debug from entrypoint
+- Modal-form per-flow `render-fn` stamping unified via named updating wrappers `ldh:constructor-form-response` and `ldh:edit-form-response` (parallel to existing `ldh:settings-form-response`); fallback removed from `ldh:render-modal-form-violation`
+- New `ldh:render-constructor-form#2` dispatcher routes the Container/Item creation violation re-render through `mode="bs2:Form"`; `mode="ldh:DocumentForm"` reserved for the edit flow's narrow `@rdf:about=$about` filter
 
 ### Fixed
 - Drop just-added block on empty-graph submit
@@ -24,6 +27,8 @@
 - Relative `document('../translations.rdf')` and `document('translations.rdf')` calls in `imports/{nfo,sioc,sp}.xsl`, `admin/layout.xsl`, and `document.xsl` resolved against the SEF root under SaxonJS 3, producing 404s; switched to the absolute `resolve-uri(..., lapp:origin())` pattern
 - Admin app dropdowns, form-control defaults, and navbar reverted to end-user variants after CSR navigation because admin overrides only lived in the SSR-only `admin/` chain
 - Admin `bs2:Row` `foaf:Person`/`foaf:Group` lookup failed under SaxonJS XHR ("Get failure http://xmlns.com/foaf/0.1/Person") because `ac:document-uri` leaves slash-vocab term URIs intact; override now fetches the `foaf:` namespace doc, hitting the `documentPool` cache
+- `Skolemizer` now covers blank nodes in object position; orphan bnode references (e.g. `<container> rdf:_1 [ ]` with no further triples) are rewritten to skolem URIs instead of surviving into the graph store as bnode labels
+- Container/Item creation modal violation re-render preserves co-shipped peer Descriptions (content blocks); previously the SPIN-violation form lost the default `ldh:ChildrenView` content block referenced by `rdf:_1`
 
 ## [5.4.0] - 2026-06-04
 ### Added
