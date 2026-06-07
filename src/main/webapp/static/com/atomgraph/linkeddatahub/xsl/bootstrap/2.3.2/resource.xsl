@@ -925,7 +925,9 @@ extension-element-prefixes="ixsl"
     <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&ldh;Object']" mode="bs2:RowContentHeader" priority="1">
         <xsl:variable name="anchor" as="node()*">
             <xsl:for-each select="@rdf:about">
-                <xsl:apply-templates select="key('resources', ., document(ac:document-uri(.)))" mode="xhtml:Anchor">
+                <xsl:variable name="request-uri" select="ldh:href(ac:document-uri(.), map{ 'accept': 'application/rdf+xml' }, ())" as="xs:anyURI" use-when="system-property('xsl:product-name') = 'SaxonJS'"/>
+                <xsl:variable name="request-uri" select="ac:document-uri(.)" as="xs:anyURI" use-when="system-property('xsl:product-name') = 'SAXON'"/>
+                <xsl:apply-templates select="key('resources', ., document($request-uri))" mode="xhtml:Anchor">
                     <xsl:with-param name="class" as="xs:string?">
                         <xsl:apply-templates select="." mode="ldh:logo"/>
                     </xsl:with-param>
@@ -982,14 +984,17 @@ extension-element-prefixes="ixsl"
     <xsl:template match="*[*][@rdf:about]" mode="bs2:ConstructorListItem">
         <xsl:param name="with-label" select="true()" as="xs:boolean"/>
         <xsl:param name="create-graph" select="false()" as="xs:boolean"/>
+        <!-- on SaxonJS proxy via ldh:href (no browser catalog, cross-origin term URIs would otherwise hit mixed-content); on SAXON keep the raw URI so Jena's location-mapping resolves it locally -->
+        <xsl:param name="request-uri" select="ldh:href(ac:document-uri(@rdf:about), map{ 'accept': 'application/rdf+xml' }, ())" as="xs:anyURI" use-when="system-property('xsl:product-name') = 'SaxonJS'"/>
+        <xsl:param name="request-uri" select="ac:document-uri(@rdf:about)" as="xs:anyURI" use-when="system-property('xsl:product-name') = 'SAXON'"/>
 
-        <!-- the class document has to be available -->
-        <xsl:if test="doc-available(ac:document-uri(@rdf:about))">
+        <xsl:if test="doc-available($request-uri)">
             <li>
                 <xsl:apply-templates select="." mode="bs2:Constructor">
                     <xsl:with-param name="id" select="()"/>
                     <xsl:with-param name="with-label" select="$with-label"/>
                     <xsl:with-param name="create-graph" select="$create-graph"/>
+                    <xsl:with-param name="request-uri" select="$request-uri"/>
                 </xsl:apply-templates>
             </li>
         </xsl:if>
@@ -1000,8 +1005,10 @@ extension-element-prefixes="ixsl"
         <xsl:param name="subclasses" as="attribute()*"/>
         <xsl:param name="with-label" select="false()" as="xs:boolean"/>
         <xsl:param name="base-uri" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI" tunnel="yes"/>
+        <xsl:param name="request-uri" select="ldh:href(ac:document-uri(@rdf:about), map{ 'accept': 'application/rdf+xml' }, ())" as="xs:anyURI" use-when="system-property('xsl:product-name') = 'SaxonJS'"/>
+        <xsl:param name="request-uri" select="ac:document-uri(@rdf:about)" as="xs:anyURI" use-when="system-property('xsl:product-name') = 'SAXON'"/>
 
-        <xsl:if test="doc-available(ac:document-uri(@rdf:about))">
+        <xsl:if test="doc-available($request-uri)">
             <!-- if subclasses exist, render a dropdown with multiple constructor choices. Otherwise, only render a single constructor button -->
             <xsl:choose>
                 <xsl:when test="exists($subclasses)">
@@ -1025,7 +1032,7 @@ extension-element-prefixes="ixsl"
                             </xsl:choose>
                         </button>
                         <ul class="dropdown-menu">
-                            <xsl:variable name="self-and-subclasses" select="key('resources', @rdf:about, document(ac:document-uri(@rdf:about))), $subclasses/.." as="element()*"/>
+                            <xsl:variable name="self-and-subclasses" select="key('resources', @rdf:about, document($request-uri)), $subclasses/.." as="element()*"/>
 
                             <!-- apply on the "deepest" subclass and its subclasses -->
                             <!-- eliminate matches where a class is a subclass of itself (happens in inferenced ontology models) -->
@@ -1508,13 +1515,15 @@ extension-element-prefixes="ixsl"
     <!-- take constraint labels from sitemap instead of response, if possible -->
     <xsl:template match="*[rdf:type/@rdf:resource = '&spin;ConstraintViolation']" mode="bs2:Violation">
         <xsl:param name="class" select="'alert alert-error'" as="xs:string?"/>
+        <xsl:param name="request-uri" select="ldh:href(ac:document-uri(rdf:type/@rdf:resource), map{ 'accept': 'application/rdf+xml' }, ())" as="xs:anyURI" use-when="system-property('xsl:product-name') = 'SaxonJS'"/>
+        <xsl:param name="request-uri" select="ac:document-uri(rdf:type/@rdf:resource)" as="xs:anyURI" use-when="system-property('xsl:product-name') = 'SAXON'"/>
 
         <div>
             <xsl:if test="$class">
                 <xsl:attribute name="class" select="$class"/>
             </xsl:if>
 
-            <xsl:apply-templates select="key('resources', rdf:type/@rdf:resource, document(ac:document-uri(rdf:type/@rdf:resource)))" mode="ldh:logo">
+            <xsl:apply-templates select="key('resources', rdf:type/@rdf:resource, document($request-uri))" mode="ldh:logo">
                 <xsl:with-param name="class" select="$class"/>
             </xsl:apply-templates>
             <xsl:text> </xsl:text>
@@ -1526,13 +1535,15 @@ extension-element-prefixes="ixsl"
     
     <xsl:template match="*[rdf:type/@rdf:resource = '&sh;ValidationResult']" mode="bs2:Violation">
         <xsl:param name="class" select="'alert alert-error'" as="xs:string?"/>
+        <xsl:param name="request-uri" select="ldh:href(ac:document-uri(rdf:type/@rdf:resource), map{ 'accept': 'application/rdf+xml' }, ())" as="xs:anyURI" use-when="system-property('xsl:product-name') = 'SaxonJS'"/>
+        <xsl:param name="request-uri" select="ac:document-uri(rdf:type/@rdf:resource)" as="xs:anyURI" use-when="system-property('xsl:product-name') = 'SAXON'"/>
 
         <div>
             <xsl:if test="$class">
                 <xsl:attribute name="class" select="$class"/>
             </xsl:if>
 
-            <xsl:apply-templates select="key('resources', rdf:type/@rdf:resource, document(ac:document-uri(rdf:type/@rdf:resource)))" mode="ldh:logo">
+            <xsl:apply-templates select="key('resources', rdf:type/@rdf:resource, document($request-uri))" mode="ldh:logo">
                 <xsl:with-param name="class" select="$class"/>
             </xsl:apply-templates>
             <xsl:text> </xsl:text>

@@ -909,14 +909,17 @@ exclude-result-prefixes="#all"
         <xsl:if test="not($type = 'hidden')">
             <xsl:choose>
                 <xsl:when test="$forClass">
+                    <!-- SAXON checks the catalog; SaxonJS only inspects the documentPool to avoid cross-origin fetches that would trigger mixed-content for slash-vocab term URIs (e.g. foaf) -->
+                    <xsl:variable name="doc-loaded" select="doc-available(ac:document-uri($forClass))" as="xs:boolean" use-when="system-property('xsl:product-name') = 'SAXON'"/>
+                    <xsl:variable name="doc-loaded" select="ixsl:doc-fetched(ac:document-uri($forClass))" as="xs:boolean" use-when="system-property('xsl:product-name') eq 'SaxonJS'"/>
                     <span class="help-inline">
                         <xsl:choose>
-                            <xsl:when test="doc-available(ac:document-uri($forClass)) and key('resources', $forClass, document(ac:document-uri($forClass)))"> <!-- server-side Saxon has access to the sitemap ontology -->
+                            <xsl:when test="$doc-loaded and key('resources', $forClass, document(ac:document-uri($forClass)))">
                                 <xsl:value-of>
                                     <xsl:apply-templates select="key('resources', $forClass, document(ac:document-uri($forClass)))" mode="ac:label"/>
                                 </xsl:value-of>
                             </xsl:when>
-                            <xsl:otherwise> <!-- client-side Saxon-JS does not have access to the sitemap ontology -->
+                            <xsl:otherwise>
                                 <xsl:value-of select="$forClass"/>
                             </xsl:otherwise>
                         </xsl:choose>
@@ -1132,8 +1135,11 @@ exclude-result-prefixes="#all"
                 <xsl:when test="exists($forClass)">
                     <span class="help-inline">
                         <xsl:for-each select="$forClass">
+                            <!-- SAXON checks the catalog; SaxonJS only inspects the documentPool to avoid cross-origin fetches that would trigger mixed-content for slash-vocab term URIs -->
+                            <xsl:variable name="doc-loaded" select="doc-available(ac:document-uri(.))" as="xs:boolean" use-when="system-property('xsl:product-name') = 'SAXON'"/>
+                            <xsl:variable name="doc-loaded" select="ixsl:doc-fetched(ac:document-uri(.))" as="xs:boolean" use-when="system-property('xsl:product-name') eq 'SaxonJS'"/>
                             <xsl:choose>
-                                <xsl:when test="doc-available(ac:document-uri(.))">
+                                <xsl:when test="$doc-loaded">
                                     <xsl:choose>
                                         <xsl:when test=". = '&rdfs;Resource'">Resource</xsl:when>
                                         <xsl:when test="key('resources', ., document(ac:document-uri(.)))">

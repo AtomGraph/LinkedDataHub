@@ -711,8 +711,9 @@ extension-element-prefixes="ixsl"
         <xsl:param name="create-resource" select="true()" as="xs:boolean"/>
         <!-- TO-DO: generate ontology classes from the OWL vocabulary -->
         <xsl:param name="class-uris" select="(xs:anyURI('&owl;Ontology'), xs:anyURI('&owl;Class'), xs:anyURI('&owl;DatatypeProperty'), xs:anyURI('&owl;ObjectProperty'), xs:anyURI('&owl;Restriction'), xs:anyURI('&ldh;Constructor'), xs:anyURI('&sh;NodeShape'), xs:anyURI('&sh;PropertyShape'), xs:anyURI('&acl;Authorization'), xs:anyURI('&foaf;Person'), xs:anyURI('&cert;PublicKey'), xs:anyURI('&sioc;UserAccount'), xs:anyURI('&foaf;Group'))" as="xs:anyURI*"/>
-        <!-- foaf is a slash-vocab so ac:document-uri() leaves the term URI intact; fetch the namespace doc explicitly to hit the location-mapping proxy -->
-        <xsl:param name="classes" select="for $class-uri in $class-uris return key('resources', $class-uri, document(if (starts-with($class-uri, '&foaf;')) then ac:document-uri(xs:anyURI('&foaf;')) else ac:document-uri($class-uri)))" as="element()*"/>
+        <!-- on SaxonJS proxy via ldh:href (no browser catalog, cross-origin term URIs would otherwise hit mixed-content); on SAXON keep the raw URI so Jena's location-mapping resolves it locally -->
+        <xsl:param name="classes" select="for $class-uri in $class-uris return key('resources', $class-uri, document(ldh:href(ac:document-uri($class-uri), map{ 'accept': 'application/rdf+xml' }, ())))" as="element()*" use-when="system-property('xsl:product-name') = 'SaxonJS'"/>
+        <xsl:param name="classes" select="for $class-uri in $class-uris return key('resources', $class-uri, document(ac:document-uri($class-uri)))" as="element()*" use-when="system-property('xsl:product-name') = 'SAXON'"/>
 
         <xsl:next-match>
             <xsl:with-param name="id" select="$id"/>
