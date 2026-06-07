@@ -65,7 +65,7 @@ import org.apache.jena.sparql.util.Symbol;
  * It is also possible to define the different options supported
  * by JSONLD-java using the {@link #JSONLD_OPTIONS} Symbol
  *
- * The {@link JsonLDReadContext} is a convenience class that extends Context and
+ * The {@code JsonLDReadContext} is a convenience class that extends Context and
  * provides methods to set the values of these different Symbols that are used in controlling the writing of JSON-LD.
  * Note: it is possible to override jsonld's "@context" value by providing one,
  * using a {@link org.apache.jena.sparql.util.Context}, and setting the {@link JsonLDReader#JSONLD_CONTEXT} Symbol's value
