@@ -1,3 +1,7 @@
+## [5.5.2] - 2026-06-09
+### Changed
+- Left sidebar moved to CSR: `ldh:LeftSidebar` emits its own `left-sidebar` wrapper and is injected via `ixsl:append-content`; SSR `bs2:DocumentTree` placeholder dropped
+
 ## [5.5.1] - 2026-06-08
 ### Changed
 - Consolidated href parsing into `ldh:parse-href#1` (inverse of `ldh:href#3`), shared by all navigation handlers

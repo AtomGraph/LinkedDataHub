@@ -273,8 +273,8 @@ WHERE
                     </xsl:for-each>
                 </xsl:if>
                 <!-- initialize navigation (e.g. the left sidebar) -->
-                <xsl:for-each select="id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')][contains-token(@class, 'active')]/div[contains-token(@class, 'left-sidebar')]">
-                    <xsl:result-document href="?." method="ixsl:replace-content">
+                <xsl:for-each select="id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')][contains-token(@class, 'active')][@data-base]">
+                    <xsl:result-document href="?." method="ixsl:append-content">
                         <xsl:call-template name="ldh:LeftSidebar"/>
                     </xsl:result-document>
                 </xsl:for-each>
@@ -577,8 +577,8 @@ WHERE
 
                                 <!-- populate sidebar for newly created pane -->
                                 <xsl:if test="$tab-base">
-                                    <xsl:for-each select="id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')][last()]/div[contains-token(@class, 'left-sidebar')]">
-                                        <xsl:result-document href="?." method="ixsl:replace-content">
+                                    <xsl:for-each select="id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')][last()]">
+                                        <xsl:result-document href="?." method="ixsl:append-content">
                                             <xsl:call-template name="ldh:LeftSidebar">
                                                 <xsl:with-param name="base" select="$tab-base"/>
                                             </xsl:call-template>
