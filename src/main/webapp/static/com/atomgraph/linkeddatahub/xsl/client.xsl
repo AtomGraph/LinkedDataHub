@@ -285,10 +285,10 @@ WHERE
                     </xsl:for-each>
                 </xsl:if>
 
-                <!-- doc URI: proxied target if ?uri= set, else local request URI; both via ac:absolute-path to drop ?query and #fragment.
+                <!-- doc URI: proxied target if ?uri= set (keep its query — part of the resource identity), else local request URI (strip display params).
                      fragment: always from the OUTER URL (ldh:request-uri()) per RFC 3986 — LDH-built URLs put the fragment outside ?uri= -->
                 <xsl:call-template name="ldh:DocumentNavigate">
-                    <xsl:with-param name="doc-uri" select="if (ac:uri()) then ac:absolute-path(ac:uri()) else ac:absolute-path(ldh:request-uri())"/>
+                    <xsl:with-param name="doc-uri" select="if (ac:uri()) then ac:document-uri(ac:uri()) else ac:absolute-path(ldh:request-uri())"/>
                     <xsl:with-param name="fragment" select="ac:fragment-id(ldh:request-uri())"/>
                     <xsl:with-param name="push-state" select="false()"/>
                 </xsl:call-template>
@@ -1233,8 +1233,8 @@ WHERE
         <xsl:variable name="href" select="xs:anyURI(resolve-uri(@href, ldh:base-uri(.)))" as="xs:anyURI"/>
         <!-- ac:document-uri strips the URL's fragment so it doesn't get glued onto the last query value -->
         <xsl:variable name="query-params" select="ldh:parse-query-params(substring-after(ac:document-uri($href), '?'))" as="map(xs:string, xs:string*)"/>
-        <!-- proxied tab: doc URI is the ?uri= value; local tab: doc URI is $href without query/fragment -->
-        <xsl:variable name="doc-uri" select="ac:absolute-path(if (map:contains($query-params, 'uri')) then xs:anyURI(map:get($query-params, 'uri')) else $href)" as="xs:anyURI"/>
+        <!-- proxied tab: unwrap the inner URI (keeping its query, since the target's query is part of its identity); local tab: doc URI is $href without query/fragment -->
+        <xsl:variable name="doc-uri" as="xs:anyURI" select="if (map:contains($query-params, 'uri')) then ac:document-uri(xs:anyURI(map:get($query-params, 'uri'))) else ac:absolute-path($href)"/>
         <!-- fragment lives on the OUTER URL per RFC 3986 / ldh:href convention -->
         <xsl:variable name="fragment" select="ac:fragment-id($href)" as="xs:string?"/>
 
@@ -1280,7 +1280,8 @@ WHERE
         <xsl:if test="$was-active and $fallback-li">
             <xsl:variable name="fallback-href" select="xs:anyURI(resolve-uri($fallback-li/a/@href, ldh:base-uri(.)))" as="xs:anyURI"/>
             <xsl:variable name="fallback-query-params" select="ldh:parse-query-params(substring-after(ac:document-uri($fallback-href), '?'))" as="map(xs:string, xs:string*)"/>
-            <xsl:variable name="fallback-doc-uri" select="ac:absolute-path(if (map:contains($fallback-query-params, 'uri')) then xs:anyURI(map:get($fallback-query-params, 'uri')) else $fallback-href)" as="xs:anyURI"/>
+            <!-- proxied: unwrap the inner URI (keeping its query, since the target's query is part of its identity); local: strip query/fragment off $fallback-href -->
+            <xsl:variable name="fallback-doc-uri" as="xs:anyURI" select="if (map:contains($fallback-query-params, 'uri')) then ac:document-uri(xs:anyURI(map:get($fallback-query-params, 'uri'))) else ac:absolute-path($fallback-href)"/>
             <xsl:variable name="fallback-fragment" select="ac:fragment-id($fallback-href)" as="xs:string?"/>
 
             <xsl:choose>
