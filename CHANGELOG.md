@@ -1,3 +1,11 @@
+## [5.5.1] - 2026-06-08
+### Changed
+- Consolidated href parsing into `ldh:parse-href#1` (inverse of `ldh:href#3`), shared by all navigation handlers
+
+### Fixed
+- Cross-origin URL query strings stripped on navigation (e.g. `youtube.com/watch?v=...`)
+- ContentMode block drag-drop reordering broken after the tab/`document-body` DOM flatten
+
 ## [5.5.0] - 2026-06-07
 ### Added
 - HTML+JSON-LD reader: extracts every `<script type="application/ld+json">` from HTML responses and parses each payload through Jena's `Lang.JSONLD11`, so embedded schema.org markup parses as RDF. Bundled schema.org JSON-LD `@context` served locally by `SchemaOrgDocumentLoader` (no network fetch). Replaces the old `JsonLDReader` and drops the `jsonld-java` + `httpclient-cache` dependencies (#312)

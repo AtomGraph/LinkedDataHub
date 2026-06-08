@@ -392,7 +392,7 @@ exclude-result-prefixes="#all"
     
     <xsl:template match="div[contains-token(@class, 'drag-handle')]" mode="ixsl:ondragstart">
         <!-- find the parent block to drag -->
-        <xsl:variable name="block" select="ancestor::div[contains-token(@class, 'block')][parent::div[@about][parent::div[contains-token(@class, 'content-body')]]][1]" as="element()?"/>
+        <xsl:variable name="block" select="ancestor::div[contains-token(@class, 'block')][parent::div[contains-token(@class, 'content-body')]][1]" as="element()?"/>
         <xsl:for-each select="$block">
             <ixsl:set-property name="dataTransfer.effectAllowed" select="'move'" object="ixsl:event()"/>
             <xsl:variable name="block-uri" select="@about" as="xs:anyURI"/>
@@ -417,8 +417,9 @@ exclude-result-prefixes="#all"
     <!-- dragging block over other block -->
     <!-- only handle if drag originated from drag-handle (has text/uri-list item) --> 
 
-    <xsl:template match="div[contains-token(@class, 'content-body')]/div[@about]/div[@about][contains-token(@class, 'block')][acl:mode() = '&acl;Write']" mode="ixsl:ondragover">
-        <xsl:variable name="uri" select="xs:anyURI(ancestor::div[contains-token(@class, 'document-body')]/@about)" as="xs:anyURI"/>
+    <xsl:template match="*[ancestor-or-self::div[contains-token(@class, 'block')][parent::div[contains-token(@class, 'content-body')]][acl:mode() = '&acl;Write']]" mode="ixsl:ondragover" priority="1">
+        <xsl:variable name="block" select="ancestor-or-self::div[contains-token(@class, 'block')][parent::div[contains-token(@class, 'content-body')]][1]" as="element()"/>
+        <xsl:variable name="uri" select="xs:anyURI($block/parent::div/parent::div[contains-token(@class, 'document-body')]/@about)" as="xs:anyURI"/>
         <xsl:variable name="results" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $uri || '`'), 'results')" as="document-node()"/>
         <xsl:variable name="mode" select="ac:mode($results)" as="xs:anyURI"/>
 
@@ -435,8 +436,9 @@ exclude-result-prefixes="#all"
     <!-- change the style of blocks when block is dragged over them -->
     <!-- only handle if drag originated from drag-handle (has text/uri-list item) -->
 
-    <xsl:template match="div[contains-token(@class, 'content-body')]/div[@about]/div[@about][contains-token(@class, 'block')][acl:mode() = '&acl;Write']" mode="ixsl:ondragenter">
-        <xsl:variable name="uri" select="xs:anyURI(ancestor::div[contains-token(@class, 'document-body')]/@about)" as="xs:anyURI"/>
+    <xsl:template match="*[ancestor-or-self::div[contains-token(@class, 'block')][parent::div[contains-token(@class, 'content-body')]][acl:mode() = '&acl;Write']]" mode="ixsl:ondragenter" priority="1">
+        <xsl:variable name="block" select="ancestor-or-self::div[contains-token(@class, 'block')][parent::div[contains-token(@class, 'content-body')]][1]" as="element()"/>
+        <xsl:variable name="uri" select="xs:anyURI($block/parent::div/parent::div[contains-token(@class, 'document-body')]/@about)" as="xs:anyURI"/>
         <xsl:variable name="results" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $uri || '`'), 'results')" as="document-node()"/>
         <xsl:variable name="mode" select="ac:mode($results)" as="xs:anyURI"/>
 
@@ -444,15 +446,16 @@ exclude-result-prefixes="#all"
             <xsl:variable name="items" select="ixsl:get(ixsl:get(ixsl:event(), 'dataTransfer'), 'items')"/>
             <xsl:variable name="has-uri-item" select="if (ixsl:get($items, 'length') > 0) then ixsl:get(ixsl:get($items, '0'), 'type') = 'text/uri-list' else false()" as="xs:boolean"/>
             <xsl:if test="$has-uri-item">
-                <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'drag-over', true() ])[current-date() lt xs:date('2000-01-01')]"/>
+                <xsl:sequence select="ixsl:call(ixsl:get($block, 'classList'), 'toggle', [ 'drag-over', true() ])[current-date() lt xs:date('2000-01-01')]"/>
             </xsl:if>
         </xsl:if>
     </xsl:template>
 
     <!-- only handle if drag originated from drag-handle (has text/uri-list item) -->
 
-    <xsl:template match="div[contains-token(@class, 'content-body')]/div[@about]/div[@about][contains-token(@class, 'block')][acl:mode() = '&acl;Write']" mode="ixsl:ondragleave">
-        <xsl:variable name="uri" select="xs:anyURI(ancestor::div[contains-token(@class, 'document-body')]/@about)" as="xs:anyURI"/>
+    <xsl:template match="*[ancestor-or-self::div[contains-token(@class, 'block')][parent::div[contains-token(@class, 'content-body')]][acl:mode() = '&acl;Write']]" mode="ixsl:ondragleave" priority="1">
+        <xsl:variable name="block" select="ancestor-or-self::div[contains-token(@class, 'block')][parent::div[contains-token(@class, 'content-body')]][1]" as="element()"/>
+        <xsl:variable name="uri" select="xs:anyURI($block/parent::div/parent::div[contains-token(@class, 'document-body')]/@about)" as="xs:anyURI"/>
         <xsl:variable name="results" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $uri || '`'), 'results')" as="document-node()"/>
         <xsl:variable name="mode" select="ac:mode($results)" as="xs:anyURI"/>
 
@@ -462,9 +465,9 @@ exclude-result-prefixes="#all"
             <xsl:if test="$has-uri-item">
                 <xsl:variable name="related-target" select="ixsl:get(ixsl:event(), 'relatedTarget')" as="element()?"/> <!-- the element drag entered (optional) -->
 
-                <!-- only remove class if the related target does not have this div as ancestor (is not its child) -->
-                <xsl:if test="not($related-target/ancestor-or-self::div[. is current()])">
-                    <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'drag-over', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+                <!-- only remove class if the related target does not have the block as ancestor (i.e. drag actually left the block) -->
+                <xsl:if test="not($related-target/ancestor-or-self::div[. is $block])">
+                    <xsl:sequence select="ixsl:call(ixsl:get($block, 'classList'), 'toggle', [ 'drag-over', false() ])[current-date() lt xs:date('2000-01-01')]"/>
                 </xsl:if>
             </xsl:if>
         </xsl:if>
@@ -473,8 +476,9 @@ exclude-result-prefixes="#all"
     <!-- dropping block over other top-level block -->
     <!-- only handle if drag originated from drag-handle (has text/uri-list item) -->
 
-    <xsl:template match="div[contains-token(@class, 'content-body')]/div[@about]/div[@about][contains-token(@class, 'block')][acl:mode() = '&acl;Write']" mode="ixsl:ondrop">
-        <xsl:variable name="uri" select="xs:anyURI(ancestor::div[contains-token(@class, 'document-body')]/@about)" as="xs:anyURI"/>
+    <xsl:template match="*[ancestor-or-self::div[contains-token(@class, 'block')][parent::div[contains-token(@class, 'content-body')]][acl:mode() = '&acl;Write']]" mode="ixsl:ondrop" priority="1">
+        <xsl:variable name="block" select="ancestor-or-self::div[contains-token(@class, 'block')][parent::div[contains-token(@class, 'content-body')]][1]" as="element()"/>
+        <xsl:variable name="uri" select="xs:anyURI($block/parent::div/parent::div[contains-token(@class, 'document-body')]/@about)" as="xs:anyURI"/>
         <xsl:variable name="results" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $uri || '`'), 'results')" as="document-node()"/>
         <xsl:variable name="mode" select="ac:mode($results)" as="xs:anyURI"/>
 
@@ -483,10 +487,10 @@ exclude-result-prefixes="#all"
             <xsl:variable name="has-uri-item" select="if (ixsl:get($items, 'length') > 0) then ixsl:get(ixsl:get($items, '0'), 'type') = 'text/uri-list' else false()" as="xs:boolean"/>
             <xsl:if test="$has-uri-item">
                 <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
-                <xsl:variable name="block-uri" select="@about" as="xs:anyURI?"/>
+                <xsl:variable name="block-uri" select="$block/@about" as="xs:anyURI?"/>
                 <xsl:variable name="drop-block-uri" select="ixsl:call(ixsl:get(ixsl:event(), 'dataTransfer'), 'getData', [ 'text/uri-list' ])" as="xs:anyURI"/>
 
-                <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'drag-over', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+                <xsl:sequence select="ixsl:call(ixsl:get($block, 'classList'), 'toggle', [ 'drag-over', false() ])[current-date() lt xs:date('2000-01-01')]"/>
 
                 <!-- only persist the change if the block is already saved and has an @about -->
                 <xsl:if test="$block-uri">
@@ -496,7 +500,7 @@ exclude-result-prefixes="#all"
 
                         <!-- TO-DO: sketchy workaround to select block-level elements only because we might have duplicate @about values -->
                         <xsl:variable name="drop-block" select="key('element-by-about', $drop-block-uri)[contains-token(@class, 'block')]" as="element()"/>
-                        <xsl:sequence select="ixsl:call(., 'after', [ $drop-block ])"/>
+                        <xsl:sequence select="ixsl:call($block, 'after', [ $drop-block ])"/>
                         <!-- TO-DO: use a VALUES block instead -->
                         <xsl:variable name="update-string" select="replace($block-swap-string, '$this', '&lt;' || ac:absolute-path(ldh:base-uri(.)) || '&gt;', 'q')" as="xs:string"/>
                         <xsl:variable name="update-string" select="replace($update-string, '$targetBlock', '&lt;' || $block-uri || '&gt;', 'q')" as="xs:string"/>
