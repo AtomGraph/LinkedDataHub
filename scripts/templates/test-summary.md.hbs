@@ -1,0 +1,30 @@
+## HTTP-tests summary
+
+{{#if has_failures}}❌ **{{failed}} failed**, {{passed}} passed{{/if}}{{^if has_failures}}✅ **All {{passed}} tests passed**{{/if}} — {{tests}} total in {{duration_human}}
+
+| Suites | Tests | ✅ Passed | ❌ Failed | ⚠️ Skipped |
+| --- | --- | --- | --- | --- |
+| {{suites}} | {{tests}} | {{passed}} | {{failed}} | {{skipped}} |
+
+{{#each suites_list}}
+### {{status_icon}} {{name}} — {{passed}}/{{tests}} passed ({{duration_human}})
+
+| Test | Status | Duration |
+| --- | --- | --- |
+{{#each tests_list}}
+| `{{name}}` | {{status_icon}} {{status}} | {{duration_human}} |
+{{/each}}
+
+{{#if has_failures}}
+{{#each failed_tests}}
+<details><summary>❌ <code>{{name}}</code></summary>
+
+```
+{{message}}
+```
+
+</details>
+
+{{/each}}
+{{/if}}
+{{/each}}
