@@ -1,10 +1,10 @@
 ## [5.5.1] - 2026-06-08
 ### Changed
-- `href → (doc-uri, query-params, fragment)` parsing consolidated into a new `ldh:parse-href#1` function in `default.xsl` (inverse of `ldh:href#3`); five client-side navigation handlers (popstate, link `onclick`, address-bar submit, tab `onclick`, tab-close fallback) replaced their hand-rolled if/else with a single helper call, eliminating the source of the query-stripping drift below
+- Consolidated href parsing into `ldh:parse-href#1` (inverse of `ldh:href#3`), shared by all navigation handlers
 
 ### Fixed
-- All six navigation entry points (initial page load, address-bar submit, link `onclick`, `onpopstate`, tab `onclick`, tab-close fallback) stripped query strings from cross-origin URLs (e.g. `https://www.youtube.com/watch?v=...` lost `?v=...`); `ac:absolute-path` swapped for `ac:document-uri` on the cross-origin and `?uri=`-proxied branches so the target's own query — part of its resource identity — is preserved, while plain local URLs still strip display params (`?mode=...`) into `query-params`
-- ContentMode block drag-drop reordering broke after the tab/`document-body` refactor flattened the DOM under `.content-body`: `block.xsl`'s `ondragstart` block lookup and the four drop-target match patterns (`ondragover`/`ondragenter`/`ondragleave`/`ondrop`) still required an obsolete intermediate `div[@about]` wrapper between `.content-body` and the block, so the drop-target highlight and the PATCH never fired; match patterns collapsed to direct-child, broadened to descendant targets via `ancestor-or-self::div[.block]…` so events firing on inner `.span12`/`.left-nav` children still hit, and bumped to `priority="1"` so they outrank the generic file-drop `div[acl:mode()='Write']` template in `client.xsl`
+- Cross-origin URL query strings stripped on navigation (e.g. `youtube.com/watch?v=...`)
+- ContentMode block drag-drop reordering broken after the tab/`document-body` DOM flatten
 
 ## [5.5.0] - 2026-06-07
 ### Added
