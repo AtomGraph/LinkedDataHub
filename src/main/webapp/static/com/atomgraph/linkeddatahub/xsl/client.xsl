@@ -1047,7 +1047,8 @@ WHERE
 
             <!-- strip URL fragment before parsing query so it doesn't get glued onto the last query value -->
             <xsl:variable name="query-params" select="ldh:parse-query-params(substring-after(ac:document-uri($href), '?'))" as="map(xs:string, xs:string*)"/>
-            <xsl:variable name="doc-uri" select="ac:absolute-path(if (map:contains($query-params, 'uri')) then xs:anyURI(map:get($query-params, 'uri')) else $href)" as="xs:anyURI"/>
+            <!-- proxied (?uri=...): unwrap the inner URI (keeping its query, since the target's query is part of its identity); local: strip query/fragment off $href -->
+            <xsl:variable name="doc-uri" as="xs:anyURI" select="if (map:contains($query-params, 'uri')) then ac:document-uri(xs:anyURI(map:get($query-params, 'uri'))) else ac:absolute-path($href)"/>
             <!-- fragment lives on the OUTER URL per RFC 3986 -->
             <xsl:variable name="fragment" select="ac:fragment-id($href)" as="xs:string?"/>
             <xsl:variable name="tab-li" select="id('tab-bar-list', ixsl:page())/li[ixsl:get(., 'dataset.uri') = string($doc-uri)]" as="element()?"/>
@@ -1083,9 +1084,11 @@ WHERE
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <!-- resolve link href against base; ac:document-uri strips the URL's fragment so it doesn't corrupt query parsing -->
         <xsl:variable name="href" select="xs:anyURI(resolve-uri(@href, ldh:base-uri(.)))" as="xs:anyURI"/>
+        <xsl:variable name="is-local" select="starts-with($href, lapp:origin(ldh:request-uri()) || '/')" as="xs:boolean"/>
         <xsl:variable name="query-params" select="ldh:parse-query-params(substring-after(ac:document-uri($href), '?'))" as="map(xs:string, xs:string*)"/>
-        <!-- proxied link: doc URI is the ?uri= value; local link: doc URI is $href without query/fragment -->
-        <xsl:variable name="doc-uri" select="ac:absolute-path(if (map:contains($query-params, 'uri')) then xs:anyURI(map:get($query-params, 'uri')) else $href)" as="xs:anyURI"/>
+        <!-- cross-origin: target's own query is part of its identity, keep it on $doc-uri; local proxied (?uri=...): unwrap the inner URI (keeping its query); local: strip display params off $doc-uri into $query-params -->
+        <xsl:variable name="doc-uri" as="xs:anyURI" select="if (not($is-local)) then ac:document-uri($href) else if (map:contains($query-params, 'uri')) then ac:document-uri(xs:anyURI(map:get($query-params, 'uri'))) else ac:absolute-path($href)"/>
+        <xsl:variable name="navigate-query-params" as="map(xs:string, xs:string*)" select="if (not($is-local)) then map{} else map:remove($query-params, 'uri')"/>
         <!-- fragment lives on the OUTER URL per RFC 3986 / ldh:href convention -->
         <xsl:variable name="fragment" select="ac:fragment-id($href)" as="xs:string?"/>
 
@@ -1093,11 +1096,11 @@ WHERE
 
         <xsl:choose>
             <!-- same-doc cached AND non-uri query params unchanged: switch (no fetch, no re-render), just scroll to the new fragment if any -->
-            <xsl:when test="ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $doc-uri || '`') and exists($tab-li) and deep-equal(map:remove($query-params, 'uri'), map:remove(ldh:query-params(), 'uri'))">
+            <xsl:when test="ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $doc-uri || '`') and exists($tab-li) and deep-equal($navigate-query-params, map:remove(ldh:query-params(), 'uri'))">
                 <xsl:call-template name="ldh:TabSwitch">
                     <xsl:with-param name="doc-uri" select="$doc-uri"/>
                     <xsl:with-param name="fragment" select="$fragment"/>
-                    <xsl:with-param name="query-params" select="map:remove($query-params, 'uri')"/>
+                    <xsl:with-param name="query-params" select="$navigate-query-params"/>
                     <xsl:with-param name="tab-li" select="$tab-li"/>
                 </xsl:call-template>
             </xsl:when>
@@ -1105,7 +1108,7 @@ WHERE
                 <xsl:call-template name="ldh:DocumentNavigate">
                     <xsl:with-param name="doc-uri" select="$doc-uri"/>
                     <xsl:with-param name="fragment" select="$fragment"/>
-                    <xsl:with-param name="query-params" select="map:remove($query-params, 'uri')"/>
+                    <xsl:with-param name="query-params" select="$navigate-query-params"/>
                 </xsl:call-template>
             </xsl:otherwise>
         </xsl:choose>
@@ -1117,11 +1120,17 @@ WHERE
 
         <!-- ignore form submission if the input value is not a valid http(s):// URI -->
         <xsl:if test="$uri-string castable as xs:anyURI and (starts-with($uri-string, 'http://') or starts-with($uri-string, 'https://'))">
-            <xsl:variable name="resource-uri" select="xs:anyURI($uri-string)" as="xs:anyURI"/>
+            <xsl:variable name="href" select="xs:anyURI($uri-string)" as="xs:anyURI"/>
+            <xsl:variable name="is-local" select="starts-with($href, lapp:origin(ldh:request-uri()) || '/')" as="xs:boolean"/>
+            <xsl:variable name="query-params" select="ldh:parse-query-params(substring-after(ac:document-uri($href), '?'))" as="map(xs:string, xs:string*)"/>
+            <!-- cross-origin: target's own query is part of its identity, keep it on $doc-uri; local proxied (?uri=...): unwrap the inner URI (keeping its query); local: strip display params off $doc-uri into $query-params -->
+            <xsl:variable name="doc-uri" as="xs:anyURI" select="if (not($is-local)) then ac:document-uri($href) else if (map:contains($query-params, 'uri')) then ac:document-uri(xs:anyURI(map:get($query-params, 'uri'))) else ac:absolute-path($href)"/>
+            <xsl:variable name="navigate-query-params" as="map(xs:string, xs:string*)" select="if (not($is-local)) then map{} else map:remove($query-params, 'uri')"/>
 
             <xsl:call-template name="ldh:DocumentNavigate">
-                <xsl:with-param name="doc-uri" select="ac:absolute-path($resource-uri)"/>
-                <xsl:with-param name="fragment" select="ac:fragment-id($resource-uri)"/>
+                <xsl:with-param name="doc-uri" select="$doc-uri"/>
+                <xsl:with-param name="fragment" select="ac:fragment-id($href)"/>
+                <xsl:with-param name="query-params" select="$navigate-query-params"/>
             </xsl:call-template>
         </xsl:if>
     </xsl:template>

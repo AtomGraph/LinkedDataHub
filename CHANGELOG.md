@@ -1,3 +1,7 @@
+## [5.5.1] - 2026-06-08
+### Fixed
+- Address-bar, link `onclick`, and `onpopstate` handlers stripped query strings from cross-origin URLs (e.g. `https://www.youtube.com/watch?v=...` lost `?v=...`); `ac:absolute-path` swapped for `ac:document-uri` on the cross-origin and `?uri=`-proxied branches so the target's own query — part of its resource identity — is preserved, while plain local URLs still strip display params (`?mode=...`) into `query-params`
+
 ## [5.5.0] - 2026-06-07
 ### Added
 - HTML+JSON-LD reader: extracts every `<script type="application/ld+json">` from HTML responses and parses each payload through Jena's `Lang.JSONLD11`, so embedded schema.org markup parses as RDF. Bundled schema.org JSON-LD `@context` served locally by `SchemaOrgDocumentLoader` (no network fetch). Replaces the old `JsonLDReader` and drops the `jsonld-java` + `httpclient-cache` dependencies (#312)
