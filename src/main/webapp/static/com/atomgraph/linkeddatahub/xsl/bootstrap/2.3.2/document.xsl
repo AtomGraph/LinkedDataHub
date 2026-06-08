@@ -478,10 +478,6 @@ extension-element-prefixes="ixsl"
                 <xsl:attribute name="data-application" select="$application"/>
             </xsl:if>
 
-            <xsl:if test="$base">
-                <xsl:apply-templates select="." mode="bs2:DocumentTree"/>
-            </xsl:if>
-
             <xsl:apply-templates select="." mode="bs2:DocumentBody">
                 <xsl:with-param name="mode" select="$mode"/>
                 <xsl:with-param name="about" select="$about"/>
@@ -514,24 +510,6 @@ extension-element-prefixes="ixsl"
             <xsl:apply-templates select="." mode="bs2:ContentBody">
                 <xsl:with-param name="mode" select="$mode"/>
             </xsl:apply-templates>
-        </div>
-    </xsl:template>
-    
-    <!-- DOCUMENT TREE -->
-    
-    <xsl:template match="rdf:RDF | srx:sparql" mode="bs2:DocumentTree">
-        <xsl:param name="id" as="xs:string?"/>
-        <xsl:param name="class" select="'left-sidebar well well-small sidebar-nav'" as="xs:string?"/>
-        
-        <div>
-            <xsl:if test="$id">
-                <xsl:attribute name="id" select="$id"/>
-            </xsl:if>
-            <xsl:if test="$class">
-                <xsl:attribute name="class" select="$class"/>
-            </xsl:if>
-            
-            <!-- placeholder for client-side ldh:LeftSidebar template -->
         </div>
     </xsl:template>
     
