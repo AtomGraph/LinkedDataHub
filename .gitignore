@@ -12,5 +12,6 @@
 /http-tests/ssl
 /http-tests/datasets
 /http-tests/uploads
+/http-tests/out
 /fuseki
 .claude/scheduled_tasks.lock

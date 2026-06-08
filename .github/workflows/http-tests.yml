@@ -54,6 +54,19 @@ jobs:
         run: ./run.sh "$PWD/ssl/owner/cert.pem" "${{ secrets.HTTP_TEST_OWNER_CERT_PASSWORD }}" "$PWD/ssl/secretary/cert.pem" "${{ secrets.HTTP_TEST_SECRETARY_CERT_PASSWORD }}"
         shell: bash
         working-directory: http-tests
+      - name: Generate test summary
+        if: always()
+        run: python3 scripts/generate_test_summary.py http-tests/out http-tests/out/report.md
+      - name: Write job summary
+        if: always() && hashFiles('http-tests/out/report.md') != ''
+        run: cat http-tests/out/report.md >> "$GITHUB_STEP_SUMMARY"
+      - name: Upload test results
+        if: always() && hashFiles('http-tests/out/**') != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: http-tests/out/
+          if-no-files-found: ignore
       - name: Dump container logs on failure
         if: failure()
         run: docker compose --env-file ./http-tests/.env logs --no-color
