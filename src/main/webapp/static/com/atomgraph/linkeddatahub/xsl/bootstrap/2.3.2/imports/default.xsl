@@ -206,7 +206,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="uri" as="xs:anyURI?"/>
         <xsl:param name="query-params" as="map(xs:string, xs:string*)"/>
         <xsl:param name="fragment" as="xs:string?"/>
-        
+
         <xsl:choose>
             <!-- cross-origin URI - wrap in ?uri= on the page origin so the request stays same-origin (carries credentials, then ProxyRequestFilter forwards) -->
             <xsl:when test="$uri and not(starts-with($uri, lapp:origin(ldh:request-uri()) || '/'))">
@@ -214,12 +214,36 @@ exclude-result-prefixes="#all"
             </xsl:when>
             <!-- local URI -->
             <xsl:otherwise>
-                <xsl:variable name="parsed-query-params" select="ldh:parse-query-params(substring-after(ac:document-uri($uri), '?'))" as="map(xs:string, xs:string*)"/>               
+                <xsl:variable name="parsed-query-params" select="ldh:parse-query-params(substring-after(ac:document-uri($uri), '?'))" as="map(xs:string, xs:string*)"/>
                 <xsl:sequence select="xs:anyURI(ac:build-uri(ac:absolute-path($uri), map:merge(($parsed-query-params, $query-params), map{ 'duplicates': 'use-last' } )) || (if ($fragment) then ('#' || $fragment) else ()))"/>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:function>
-    
+
+    <!-- inverse of ldh:href: given a navigable href, return { doc-uri, query-params, fragment }.
+         cross-origin direct: href IS the doc URI (its query is part of the resource identity, no LDH display params).
+         local proxied (?uri=...): unwrap the inner URI (keeping its query); outer query minus 'uri' is LDH display params.
+         pure local: strip query/fragment off path; outer query is LDH display params. -->
+    <xsl:function name="ldh:parse-href" as="map(xs:string, item()?)">
+        <xsl:param name="href" as="xs:anyURI"/>
+
+        <xsl:variable name="is-local" select="starts-with($href, lapp:origin(ldh:request-uri()) || '/')" as="xs:boolean"/>
+        <xsl:variable name="query-params" select="ldh:parse-query-params(substring-after(ac:document-uri($href), '?'))" as="map(xs:string, xs:string*)"/>
+        <xsl:variable name="fragment" select="ac:fragment-id($href)" as="xs:string?"/>
+
+        <xsl:choose>
+            <xsl:when test="not($is-local)">
+                <xsl:sequence select="map{ 'doc-uri': ac:document-uri($href), 'query-params': map{}, 'fragment': $fragment }"/>
+            </xsl:when>
+            <xsl:when test="map:contains($query-params, 'uri')">
+                <xsl:sequence select="map{ 'doc-uri': ac:document-uri(xs:anyURI(map:get($query-params, 'uri'))), 'query-params': map:remove($query-params, 'uri'), 'fragment': $fragment }"/>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:sequence select="map{ 'doc-uri': ac:absolute-path($href), 'query-params': $query-params, 'fragment': $fragment }"/>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:function>
+
     <xsl:function name="ldh:build-query" as="map(xs:string, xs:string*)">
         <xsl:param name="mode" as="xs:anyURI*"/>
         
