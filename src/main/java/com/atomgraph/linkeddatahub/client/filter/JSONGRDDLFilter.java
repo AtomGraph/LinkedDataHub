@@ -76,41 +76,45 @@ public abstract class JSONGRDDLFilter implements ClientRequestFilter, ClientResp
         if (log.isDebugEnabled()) log.debug("Compiled GRDDL stylesheet from {} for {}", stylesheetPath, getClass().getSimpleName());
     }
     
-    private static final String ORIGINAL_URI_PROPERTY = "com.atomgraph.linkeddatahub.originalRequestURI";
-    
+    private final String originalURIProperty = "com.atomgraph.linkeddatahub.originalRequestURI." + getClass().getName();
+
     @Override
     public void filter(ClientRequestContext requestContext) throws IOException
     {
         URI requestURI = requestContext.getUri();
-        
+
         // Check if this request should be processed by the GRDDL filter
         if (!isApplicable(requestURI))
             return;
-            
+
         // Get the JSON API endpoint URL
         URI jsonURI = getJSONURI(requestURI);
         if (jsonURI == null)
             return;
-            
+
         // Store original URI in request context for thread-safe response processing
-        requestContext.setProperty(ORIGINAL_URI_PROPERTY, requestURI);
-        
+        requestContext.setProperty(originalURIProperty, requestURI);
+
         // Redirect request to JSON API endpoint
         requestContext.setUri(jsonURI);
-        
+
         if (log.isDebugEnabled()) log.debug("Redirecting request from {} to {}", requestURI, jsonURI);
     }
-    
+
     @Override
     public void filter(ClientRequestContext requestContext, ClientResponseContext responseContext) throws IOException
     {
         // Get the original URI from request context
-        URI originalRequestURI = (URI) requestContext.getProperty(ORIGINAL_URI_PROPERTY);
-        
+        URI originalRequestURI = (URI) requestContext.getProperty(originalURIProperty);
+
         // Only process responses if we redirected the original request
         if (originalRequestURI == null)
             return;
-            
+
+        // Defensive re-check: same subclass registered twice, or future subclass with shared key
+        if (!isApplicable(originalRequestURI))
+            return;
+
         // Check if response is JSON
         MediaType contentType = responseContext.getMediaType();
         if (contentType == null || !MediaType.APPLICATION_JSON_TYPE.isCompatible(contentType))
