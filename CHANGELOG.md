@@ -1,3 +1,10 @@
+## [5.5.3] - 2026-06-09
+### Changed
+- Dependency hygiene: exclude duplicate `jakarta.json` from `jena-arq`, align `slf4j-reload4j` to 2.0.17, drop unused `tomcat-coyote`
+
+### Fixed
+- `JSONGRDDLFilter` response-side gate scoped per subclass (instance-level property key) with defensive `isApplicable` re-check; prevents cross-fire when multiple subclasses share the client filter chain
+
 ## [5.5.2] - 2026-06-09
 ### Changed
 - Left sidebar moved to CSR: `ldh:LeftSidebar` emits its own `left-sidebar` wrapper and is injected via `ixsl:append-content`; SSR `bs2:DocumentTree` placeholder dropped
