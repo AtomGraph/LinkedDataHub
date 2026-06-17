@@ -384,6 +384,15 @@ configs:
               return (pass);
           }
 
+          # Delegated requests carry user identity in the On-Behalf-Of header.
+          # The backend response echoes that identity in the Link header
+          # (acl#agent). The cache key does not include the asserted identity,
+          # so caching would let a later anonymous request to the same
+          # URL+Accept read back the previous agent's WebID and ACL grant.
+          if (req.http.On-Behalf-Of) {
+              return (pass);
+          }
+
           if (req.http.Client-Cert) {
               # Authenticated HTML is user-specific → never cache
               if (req.http.Accept ~ "text/html" ||
