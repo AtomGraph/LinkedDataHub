@@ -122,6 +122,8 @@ WHERE
                         'graph-state': $graph-state
                     }" as="map(*)"/>
 
+                    <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+
                     <ixsl:promise select="
                         ixsl:http-request($request)
                             => ixsl:then(ldh:handle-graph3d-rdf-response($context, ?))
@@ -159,6 +161,8 @@ WHERE
                     'document-uri': xs:anyURI($node-id),
                     'graph-state': $graph-state
                 }" as="map(*)"/>
+
+                <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
                 <ixsl:promise select="
                     ixsl:http-request($request)
@@ -350,6 +354,8 @@ WHERE
         <xsl:variable name="current-doc" select="ixsl:get($graph-state, 'document')" as="document-node()"/>
         <xsl:variable name="graph-instance" select="ixsl:get($graph-state, 'instance')"/>
 
+        <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
+
         <xsl:for-each select="$response?body">
             <xsl:variable name="base-uri" select="if (contains($document-uri, '#')) then xs:anyURI(substring-before($document-uri, '#')) else $document-uri" as="xs:anyURI"/>
             <xsl:variable name="normalized-rdf" as="document-node()">
@@ -380,6 +386,8 @@ WHERE
         <xsl:variable name="loaded-backlink-uris" select="ixsl:get($graph-state, 'loaded-backlink-uris', map{ 'convert-result': false() })"/>
         <xsl:variable name="current-doc" select="ixsl:get($graph-state, 'document')" as="document-node()"/>
         <xsl:variable name="graph-instance" select="ixsl:get($graph-state, 'instance')"/>
+
+        <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
 
         <xsl:for-each select="$response?body">
             <xsl:variable name="base-uri" select="if (contains($document-uri, '#')) then xs:anyURI(substring-before($document-uri, '#')) else $document-uri" as="xs:anyURI"/>
