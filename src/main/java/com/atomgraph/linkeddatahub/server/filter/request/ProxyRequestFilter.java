@@ -38,8 +38,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import org.apache.jena.query.ParameterizedSparqlString;
 import org.apache.jena.query.QueryExecution;
-import org.apache.jena.query.QueryFactory;
 import jakarta.annotation.Priority;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.NotAllowedException;
@@ -192,9 +192,10 @@ public class ProxyRequestFilter implements ContainerRequestFilter
         // ?term where STR(?term) starts with "<targetURI>#")
         if (isSafeMethod && getOntology().isPresent())
         {
-            String describeQueryStr = "DESCRIBE <" + targetURI + "> ?term " +
-                "WHERE { ?term ?p ?o FILTER(STRSTARTS(STR(?term), CONCAT(STR(<" + targetURI + ">), \"#\"))) }";
-            try (QueryExecution qe = QueryExecution.create(QueryFactory.create(describeQueryStr), getOntology().get().getOntModel()))
+            ParameterizedSparqlString pss = new ParameterizedSparqlString(
+                "DESCRIBE ?doc ?term WHERE { ?term ?p ?o FILTER(STRSTARTS(STR(?term), CONCAT(STR(?doc), \"#\"))) }");
+            pss.setIri("doc", targetURI.toString());
+            try (QueryExecution qe = QueryExecution.create(pss.asQuery(), getOntology().get().getOntModel()))
             {
                 Model description = qe.execDescribe();
                 if (!description.isEmpty())
