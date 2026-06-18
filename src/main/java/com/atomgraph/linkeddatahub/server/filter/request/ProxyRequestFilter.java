@@ -275,9 +275,7 @@ public class ProxyRequestFilter implements ContainerRequestFilter
         if (proxyTarget != null) return Optional.of(proxyTarget);
 
         // Case 2: lapp:Dataset proxy
-        @SuppressWarnings("unchecked")
-        Optional<Dataset> datasetOpt =
-            (Optional<Dataset>) requestContext.getProperty(LAPP.Dataset.getURI());
+        Optional<Dataset> datasetOpt = (Optional<Dataset>) requestContext.getProperty(LAPP.Dataset.getURI());
         if (datasetOpt != null && datasetOpt.isPresent())
         {
             URI proxied = datasetOpt.get().getProxied(requestContext.getUriInfo().getAbsolutePath());
@@ -321,6 +319,7 @@ public class ProxyRequestFilter implements ContainerRequestFilter
      *
      * @param clientResponse response from the proxy target
      * @param targetURI upstream URI (used as the parse base URI hint for {@code ModelProvider})
+     * @param method HTTP method
      * @return JAX-RS response to return to the original caller
      */
     protected Response getResponse(Response clientResponse, URI targetURI, String method)
