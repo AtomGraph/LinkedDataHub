@@ -393,28 +393,15 @@ configs:
               return (pass);
           }
 
-          if (req.http.Client-Cert) {
-              # Authenticated HTML is user-specific → never cache
-              if (req.http.Accept ~ "text/html" ||
-                  req.http.Accept ~ "application/xhtml+xml") {
-                  return (pass);
-              }
-
-              # Conditional requests must reach backend for validation
-              if (req.http.If-Match || req.http.If-None-Match ||
-                  req.http.If-Modified-Since || req.http.If-Unmodified-Since) {
-                  return (pass);
-              }
-
-              # /access endpoint returns agent-specific group memberships
-              if (req.url ~ "^/access") {
-                  return (pass);
-              }
-
-              # SPARQL referencing /acl/agents/ depends on agent identity → don't cache
-              if (req.url ~ "%2Facl%2Fagents%2F") {
-                  return (pass);
-              }
+          # Authenticated responses get acl#agent stamped into the Link header by
+          # the backend, regardless of representation (HTML, RDF/XML, Turtle,
+          # JSON-LD, SPARQL results, …). The URL-keyed cache slot ignores the
+          # asserting identity, so any such response would leak to anonymous
+          # readers of the same URL. /static/* is the only safely-shared path —
+          # it's served by Tomcat's default servlet (web.xml:365-371), bypasses
+          # Jersey, and carries no identity-bearing headers.
+          if (req.http.Client-Cert && req.url !~ "^/static/") {
+              return (pass);
           }
 
           if (req.http.Cookie) {
