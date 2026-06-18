@@ -30,11 +30,6 @@ import jakarta.ws.rs.POST;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.UriBuilder;
-import org.apache.jena.ontapi.OntModelFactory;
-import org.apache.jena.ontapi.OntSpecification;
-import org.apache.jena.ontapi.model.OntModel;
-import org.apache.jena.graph.Graph;
-import java.util.HashSet;
 import com.atomgraph.linkeddatahub.server.filter.request.OntologyFilter;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
@@ -119,17 +114,7 @@ public class ClearOntology
             }
             
             // !!! we need to reload the ontology model before returning a response, to make sure the next request already gets the new version !!!
-            // same logic as in OntologyFilter. TO-DO: encapsulate?
-            if (log.isDebugEnabled()) log.debug("Started loading ontology with URI '{}' from the admin dataset", ontologyURI);
-            Graph baseGraph = repository.get(ontologyURI);
-            OntModel inferred = OntModelFactory.createModel(baseGraph, OntSpecification.OWL2_DL_MEM_RDFS_INF, repository);
-            // materialize inferences to avoid invoking the rules engine on every request
-            OntModel materialized = OntModelFactory.createModel(OntSpecification.OWL2_DL_MEM);
-            materialized.add(inferred);
-            repository.put(ontologyURI, materialized.getGraph());
-            // cache imported graphs under their document URIs too
-            OntologyFilter.importClosure(inferred, new HashSet<>()).forEach(importURI -> OntologyFilter.addDocumentModel(repository, importURI));
-            if (log.isDebugEnabled()) log.debug("Finished loading ontology with URI '{}' from the admin dataset", ontologyURI);
+            OntologyFilter.loadOntology(repository, ontologyURI);
         }
         
         if (referer != null) return Response.seeOther(referer).build();

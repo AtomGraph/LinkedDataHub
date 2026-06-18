@@ -16,9 +16,7 @@
  */
 package com.atomgraph.linkeddatahub.server.filter.request;
 
-import org.apache.jena.ontology.OntDocumentManager;
-import org.apache.jena.ontology.OntModel;
-import org.apache.jena.ontology.OntModelSpec;
+import com.atomgraph.core.util.jena.PrefixGraphRepository;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Resource;
@@ -30,13 +28,9 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Oracle for the ontology-load mechanism used by {@link OntologyFilter}: build an
- * OWL_MEM_RDFS_INF model over a base ontology that owl:imports another, then materialize
- * the inferences into a plain OWL_MEM model that is cached.
- *
- * Pins (a) the owl:imports transitive closure, (b) RDFS inference, and (c) that the
- * materialized model retains inferred triples but carries no reasoner — the three
- * behaviors the {@code GraphRepository}/{@code OntSpecification} migration must reproduce.
+ * Pins {@link OntologyFilter#loadOntology}: it flattens the owl:imports closure into one graph,
+ * applies RDFS inference, and materializes the inferences into the repository cache — without ontapi
+ * managing a union-graph hierarchy over the shared repository (which collides on duplicate ontology IDs).
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
@@ -48,49 +42,37 @@ public class OntologyImportsCharacterizationTest
     private static final String NS = "http://example.org/ns#";
 
     @Test
-    public void testImportClosureRdfsInferenceAndMaterialization()
+    public void testLoadOntologyFlattensClosureWithMaterializedRDFSInference()
     {
-        OntModelSpec spec = new OntModelSpec(OntModelSpec.OWL_MEM_RDFS_INF);
-        OntDocumentManager odm = new OntDocumentManager();
-        spec.setDocumentManager(odm);
+        PrefixGraphRepository repository = new PrefixGraphRepository(null);
 
-        // imported ontology: B rdfs:subClassOf A; individual x a B
         Resource a = ResourceFactory.createResource(NS + "A");
         Resource b = ResourceFactory.createResource(NS + "B");
         Resource x = ResourceFactory.createResource(NS + "x");
+
+        // imported ontology: B rdfs:subClassOf A; individual x a B
         Model imported = ModelFactory.createDefaultModel();
         imported.add(imported.createResource(IMPORT_URI), RDF.type, OWL.Ontology);
         imported.add(b, RDFS.subClassOf, a);
         imported.add(x, RDF.type, b);
-        odm.addModel(IMPORT_URI, imported);
+        repository.put(IMPORT_URI, imported.getGraph());
 
         // base ontology owl:imports the imported one
         Model base = ModelFactory.createDefaultModel();
-        base.add(base.createResource(BASE_URI), RDF.type, OWL.Ontology);
-        base.add(base.createResource(BASE_URI), OWL.imports, base.createResource(IMPORT_URI));
+        Resource baseOnt = base.createResource(BASE_URI);
+        base.add(baseOnt, RDF.type, OWL.Ontology);
+        base.add(baseOnt, OWL.imports, base.createResource(IMPORT_URI));
+        repository.put(BASE_URI, base.getGraph());
 
-        OntModel ontModel = ModelFactory.createOntologyModel(spec, base);
+        OntologyFilter.loadOntology(repository, BASE_URI);
 
-        // (a) transitive import closure includes the imported ontology
-        assertTrue(ontModel.listImportedOntologyURIs(true).contains(IMPORT_URI), "import closure should contain the imported ontology URI");
-        // imported asserted triple is visible through the union
-        assertTrue(ontModel.contains(b, RDFS.subClassOf, a), "imported terms should be visible");
-        // (b) RDFS inference: x a A is entailed from (x a B) + (B subClassOf A)
-        assertTrue(ontModel.contains(x, RDF.type, a), "RDFS reasoner should infer x a A");
-
-        // (c) materialize into a plain OWL_MEM model (no inference)
-        OntModel materialized = ModelFactory.createOntologyModel(OntModelSpec.OWL_MEM);
-        materialized.add(ontModel);
-        // inferred triple is now asserted in the materialized copy
-        assertTrue(materialized.contains(x, RDF.type, a), "materialized model retains the inferred triple");
-        // and the materialized model carries no reasoner
-        assertNull(materialized.getSpecification().getReasonerFactory(), "OWL_MEM materialized model must have no reasoner factory");
-        // proof it is plain: a fresh entailment is NOT auto-derived
-        Resource c = ResourceFactory.createResource(NS + "C");
-        Resource y = ResourceFactory.createResource(NS + "y");
-        materialized.add(c, RDFS.subClassOf, b);
-        materialized.add(y, RDF.type, c);
-        assertFalse(materialized.contains(y, RDF.type, a), "no reasoner: y a A must not be inferred");
+        Model result = ModelFactory.createModelForGraph(repository.get(BASE_URI));
+        // (a) imported terms flattened into the cached graph
+        assertTrue(result.contains(b, RDFS.subClassOf, a), "imported terms should be flattened in");
+        // (b) RDFS inference materialized as a concrete triple: x a A
+        assertTrue(result.contains(x, RDF.type, a), "RDFS-inferred 'x a A' should be materialized in the cached graph");
+        // (c) the import is also cached under its (fragment-stripped) document URI
+        assertTrue(repository.isCached(IMPORT_URI), "import should remain cached");
     }
 
 }

@@ -32,11 +32,11 @@ import jakarta.inject.Inject;
 import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.container.ContainerRequestFilter;
 import jakarta.ws.rs.container.PreMatching;
-import org.apache.jena.graph.Graph;
 import org.apache.jena.ontapi.OntModelFactory;
 import org.apache.jena.ontapi.OntSpecification;
-import org.apache.jena.ontapi.model.OntID;
 import org.apache.jena.ontapi.model.OntModel;
+import org.apache.jena.rdf.model.Model;
+import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.vocabulary.OWL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -144,38 +144,54 @@ public class OntologyFilter implements ContainerRequestFilter
         final PrefixGraphRepository repository = app.canAs(EndUserApplication.class) ?
             getSystem().getRepository(app.as(EndUserApplication.class)) : getSystem().getRepository();
 
-        // only build the inferred model if the ontology is not already cached
-        if (!repository.isCached(uri))
-        {
-            if (log.isDebugEnabled()) log.debug("Started loading ontology with URI '{}'", uri);
-            Graph baseGraph = repository.get(uri); // end-user: SPARQL-first; otherwise bundled mapping / HTTP
-            OntModel inferred = OntModelFactory.createModel(baseGraph, OntSpecification.OWL2_DL_MEM_RDFS_INF, repository);
-            // materialize inferences to avoid invoking the rules engine on every request
-            OntModel materialized = OntModelFactory.createModel(OntSpecification.OWL2_DL_MEM);
-            materialized.add(inferred);
-            repository.put(uri, materialized.getGraph());
-            // cache imported graphs under their (fragment-stripped) document URIs too
-            importClosure(inferred, new HashSet<>()).forEach(importURI -> addDocumentModel(repository, importURI));
-            if (log.isDebugEnabled()) log.debug("Finished loading ontology with URI '{}'", uri);
-        }
+        // only build the materialized model if the ontology is not already cached
+        if (!repository.isCached(uri)) loadOntology(repository, uri);
 
-        return OntModelFactory.createModel(repository.get(uri), OntSpecification.OWL2_DL_MEM, repository);
+        return OntModelFactory.createModel(repository.get(uri), OntSpecification.OWL2_DL_MEM);
     }
 
     /**
-     * Collects the transitive owl:imports closure URIs of the given ontology model.
+     * Builds and caches the materialized ontology model. Assembles the owl:imports closure into a single
+     * graph (so ontapi never manages a union-graph hierarchy over the shared repository), applies RDFS
+     * inference over the flattened closure, and materializes the inferences into the repository cache so
+     * the rules engine is not invoked on every request.
      *
-     * @param model ontology model
-     * @param seen accumulator of already-visited import URIs
-     * @return the import closure URIs
+     * @param repository graph repository
+     * @param uri ontology URI
      */
-    public static Set<String> importClosure(OntModel model, Set<String> seen)
+    public static void loadOntology(PrefixGraphRepository repository, String uri)
     {
-        model.imports().forEach(imp -> imp.id().map(OntID::getURI).ifPresent(importURI ->
+        if (log.isDebugEnabled()) log.debug("Started loading ontology with URI '{}'", uri);
+        Model union = ModelFactory.createDefaultModel();
+        Set<String> closure = new HashSet<>();
+        loadClosure(repository, uri, union, closure);
+        OntModel inferred = OntModelFactory.createModel(union.getGraph(), OntSpecification.OWL2_DL_MEM_RDFS_INF);
+        OntModel materialized = OntModelFactory.createModel(OntSpecification.OWL2_DL_MEM);
+        materialized.add(inferred);
+        repository.put(uri, materialized.getGraph());
+        // cache imported graphs under their fragment-stripped document URIs too
+        closure.stream().filter(closureURI -> !closureURI.equals(uri)).forEach(importURI -> addDocumentModel(repository, importURI));
+        if (log.isDebugEnabled()) log.debug("Finished loading ontology with URI '{}'", uri);
+    }
+
+    /**
+     * Recursively loads the transitive owl:imports closure of an ontology into a single union model,
+     * fetching each graph via the repository (SPARQL-first / bundled mappings).
+     *
+     * @param repository graph repository
+     * @param uri ontology URI
+     * @param union accumulator model
+     * @param seen accumulator of visited URIs (prevents cycles)
+     */
+    public static void loadClosure(PrefixGraphRepository repository, String uri, Model union, Set<String> seen)
+    {
+        if (!seen.add(uri)) return;
+        Model model = ModelFactory.createModelForGraph(repository.get(uri));
+        union.add(model);
+        model.listObjectsOfProperty(OWL.imports).toList().forEach(imp ->
         {
-            if (seen.add(importURI)) importClosure(imp, seen);
-        }));
-        return seen;
+            if (imp.isURIResource()) loadClosure(repository, imp.asResource().getURI(), union, seen);
+        });
     }
 
     /**
