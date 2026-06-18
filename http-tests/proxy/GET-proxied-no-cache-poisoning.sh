@@ -36,14 +36,12 @@ status=$(printf '%s\n' "$response" | awk 'NR==1{print $2}' | tr -d '\r')
 link_leak=$(printf '%s\n' "$response" | tr -d '\r' | grep -i '^link:' | grep -c 'acl#agent' || true)
 
 if [ "$status" != "$STATUS_FORBIDDEN" ]; then
-    echo "Expected $STATUS_FORBIDDEN anonymous, got: $status"
-    printf '%s\n' "$response" | head -40
+    echo "Step B: expected $STATUS_FORBIDDEN, got $status"
     exit 1
 fi
 
 if [ "$link_leak" != "0" ]; then
-    echo "Anonymous response leaks acl#agent in Link header (cache poisoning):"
-    printf '%s\n' "$response" | grep -i '^link:'
+    echo "Step B: anonymous response leaks acl#agent (cache poisoning)"
     exit 1
 fi
 
@@ -70,13 +68,11 @@ status=$(printf '%s\n' "$response" | awk 'NR==1{print $2}' | tr -d '\r')
 link_leak=$(printf '%s\n' "$response" | tr -d '\r' | grep -i '^link:' | grep -c 'acl#agent' || true)
 
 if [ "$status" != "$STATUS_FORBIDDEN" ]; then
-    echo "[Client-Cert path] Expected $STATUS_FORBIDDEN anonymous, got: $status"
-    printf '%s\n' "$response" | head -40
+    echo "Step D: expected $STATUS_FORBIDDEN, got $status"
     exit 1
 fi
 
 if [ "$link_leak" != "0" ]; then
-    echo "[Client-Cert path] Anonymous response leaks acl#agent in Link header (cache poisoning):"
-    printf '%s\n' "$response" | grep -i '^link:'
+    echo "Step D: anonymous response leaks acl#agent (cache poisoning)"
     exit 1
 fi
