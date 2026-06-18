@@ -46,3 +46,37 @@ if [ "$link_leak" != "0" ]; then
     printf '%s\n' "$response" | grep -i '^link:'
     exit 1
 fi
+
+# Step C: authenticated owner fetches the admin URL directly with cert at TLS,
+# Accept: application/rdf+xml. The Client-Cert header reaches varnish-frontend
+# (nginx-forwarded). The backend stamps acl#agent into the Link header for the
+# authenticated 200. varnish-frontend must NOT cache this response — its hash
+# key ignores identity, so a subsequent anonymous request would replay the 200.
+
+purge_cache "$FRONTEND_VARNISH_SERVICE"
+
+curl -k -f -s -o /dev/null \
+  -E "$OWNER_CERT_FILE":"$OWNER_CERT_PWD" \
+  -H 'Accept: application/rdf+xml' \
+  "${ADMIN_BASE_URL}"
+
+# Step D: anonymous direct fetch of the same URL. With the fix in place
+# (Client-Cert + non-/static/ path → pass in vcl_recv), Step C didn't store
+# anything, so this reaches the backend anonymously and gets 403.
+
+response=$(curl -k -s -i -H 'Accept: application/rdf+xml' "${ADMIN_BASE_URL}")
+
+status=$(printf '%s\n' "$response" | awk 'NR==1{print $2}' | tr -d '\r')
+link_leak=$(printf '%s\n' "$response" | tr -d '\r' | grep -i '^link:' | grep -c 'acl#agent' || true)
+
+if [ "$status" != "$STATUS_FORBIDDEN" ]; then
+    echo "[Client-Cert path] Expected $STATUS_FORBIDDEN anonymous, got: $status"
+    printf '%s\n' "$response" | head -40
+    exit 1
+fi
+
+if [ "$link_leak" != "0" ]; then
+    echo "[Client-Cert path] Anonymous response leaks acl#agent in Link header (cache poisoning):"
+    printf '%s\n' "$response" | grep -i '^link:'
+    exit 1
+fi
