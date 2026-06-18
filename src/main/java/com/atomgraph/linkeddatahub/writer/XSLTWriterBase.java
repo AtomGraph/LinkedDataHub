@@ -15,7 +15,7 @@
  */
 package com.atomgraph.linkeddatahub.writer;
 
-import com.atomgraph.client.util.DataManager;
+import com.atomgraph.client.util.RDFSourceResolver;
 import com.atomgraph.client.vocabulary.AC;
 import com.atomgraph.linkeddatahub.writer.factory.xslt.XsltExecutableSupplier;
 import com.atomgraph.linkeddatahub.model.auth.Agent;
@@ -58,8 +58,7 @@ import net.sf.saxon.s9api.XdmMap;
 import net.sf.saxon.s9api.XdmValue;
 import net.sf.saxon.s9api.XsltExecutable;
 import org.apache.http.HttpHeaders;
-import org.apache.jena.ontology.ObjectProperty;
-import org.apache.jena.ontology.OntModelSpec;
+import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.riot.RDFLanguages;
 import org.slf4j.Logger;
@@ -88,7 +87,7 @@ public abstract class XSLTWriterBase extends com.atomgraph.client.writer.XSLTWri
 
     @Inject com.atomgraph.linkeddatahub.Application system;
     @Inject jakarta.inject.Provider<Optional<com.atomgraph.linkeddatahub.apps.model.Application>> application;
-    @Inject jakarta.inject.Provider<DataManager> dataManager;
+    @Inject jakarta.inject.Provider<RDFSourceResolver> resolver;
     @Inject jakarta.inject.Provider<XsltExecutableSupplier> xsltExecSupplier;
     @Inject jakarta.inject.Provider<ContainerRequestContext> crc;
     @Inject jakarta.inject.Provider<Optional<AuthorizationContext>> authorizationContext;
@@ -97,15 +96,14 @@ public abstract class XSLTWriterBase extends com.atomgraph.client.writer.XSLTWri
     
     /**
      * Constructs XSLT writer.
-     * 
+     *
      * @param xsltExec compiled XSLT stylesheet
-     * @param ontModelSpec ontology specification
-     * @param dataManager RDF data manager
+     * @param resolver XSLT source resolver
      * @param messageDigest message digest
      */
-    public XSLTWriterBase(XsltExecutable xsltExec, OntModelSpec ontModelSpec, DataManager dataManager, MessageDigest messageDigest)
+    public XSLTWriterBase(XsltExecutable xsltExec, RDFSourceResolver resolver, MessageDigest messageDigest)
     {
-        super(xsltExec, ontModelSpec, dataManager); // this DataManager will be unused as we override getDataManager() with the injected (subclassed) one
+        super(xsltExec, resolver); // this resolver is unused as we override getResolver() with the injected (request-scoped) one
         this.messageDigest = messageDigest;
     }
 
@@ -189,7 +187,7 @@ public abstract class XSLTWriterBase extends com.atomgraph.client.writer.XSLTWri
      * @see com.atomgraph.linkeddatahub.server.filter.response.ResponseHeadersFilter
      */
     @Override
-    public URI getLinkURI(MultivaluedMap<String, Object> headerMap, ObjectProperty property)
+    public URI getLinkURI(MultivaluedMap<String, Object> headerMap, Property property)
     {
         if (headerMap.get(jakarta.ws.rs.core.HttpHeaders.LINK) == null) return null;
         
@@ -257,36 +255,30 @@ public abstract class XSLTWriterBase extends com.atomgraph.client.writer.XSLTWri
         return system;
     }
     
-    @Override
-    public OntModelSpec getOntModelSpec()
-    {
-        return getSystem().getOntModelSpec();
-    }
-    
     /**
      * Returns JAX-RS security context.
-     * 
+     *
      * @return security context
      */
     public SecurityContext getSecurityContext()
     {
         return securityContext;
     }
-    
+
     @Override
-    public DataManager getDataManager()
+    public RDFSourceResolver getResolver()
     {
-        return getDataManagerProvider().get();
+        return getResolverProvider().get();
     }
 
     /**
-     * Returns a JAX-RS provider for the RDF data manager.
+     * Returns a JAX-RS provider for the request-scoped source resolver.
      *
      * @return provider
      */
-    public jakarta.inject.Provider<DataManager> getDataManagerProvider()
+    public jakarta.inject.Provider<RDFSourceResolver> getResolverProvider()
     {
-        return dataManager;
+        return resolver;
     }
 
     @Override

@@ -20,7 +20,7 @@ import java.util.Optional;
 import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.ext.Provider;
-import org.apache.jena.ontology.Ontology;
+import org.apache.jena.ontapi.model.OntModel;
 import org.apache.jena.vocabulary.OWL;
 import org.glassfish.hk2.api.Factory;
 import org.glassfish.hk2.api.ServiceLocator;
@@ -31,19 +31,19 @@ import org.glassfish.hk2.api.ServiceLocator;
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
 @Provider
-public class OntologyFactory implements Factory<Optional<Ontology>>
+public class OntologyFactory implements Factory<Optional<OntModel>>
 {
 
     @Context private ServiceLocator serviceLocator;
 
     @Override
-    public Optional<Ontology> provide()
+    public Optional<OntModel> provide()
     {
         return getOntology();
     }
 
     @Override
-    public void dispose(Optional<Ontology> t)
+    public void dispose(Optional<OntModel> t)
     {
     }
     
@@ -52,9 +52,9 @@ public class OntologyFactory implements Factory<Optional<Ontology>>
      * 
      * @return ontology
      */
-    public Optional<Ontology> getOntology()
+    public Optional<OntModel> getOntology()
     {
-        return (Optional<Ontology>)getContainerRequestContext().getProperty(OWL.Ontology.getURI());
+        return (Optional<OntModel>)getContainerRequestContext().getProperty(OWL.Ontology.getURI());
     }
     
     /**

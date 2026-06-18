@@ -17,7 +17,6 @@
 package com.atomgraph.linkeddatahub.resource.admin.pkg;
 
 import static com.atomgraph.client.MediaType.TEXT_XSL;
-import com.atomgraph.client.util.DataManager;
 import com.atomgraph.linkeddatahub.apps.model.AdminApplication;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import com.atomgraph.linkeddatahub.client.GraphStoreClient;
@@ -60,7 +59,6 @@ import jakarta.ws.rs.ProcessingException;
 import org.apache.jena.ontology.ConversionException;
 import org.apache.jena.update.UpdateFactory;
 import org.apache.jena.update.UpdateRequest;
-import org.apache.jena.util.FileManager;
 import com.atomgraph.linkeddatahub.vocabulary.DH;
 import com.atomgraph.linkeddatahub.vocabulary.FOAF;
 import com.atomgraph.linkeddatahub.vocabulary.SIOC;
@@ -88,7 +86,6 @@ public class InstallPackage
 
     private final com.atomgraph.linkeddatahub.apps.model.Application application;
     private final com.atomgraph.linkeddatahub.Application system;
-    private final DataManager dataManager;
     private final Optional<AgentContext> agentContext;
 
     @Context ServletContext servletContext;
@@ -105,12 +102,10 @@ public class InstallPackage
     @Inject
     public InstallPackage(com.atomgraph.linkeddatahub.apps.model.Application application,
                    com.atomgraph.linkeddatahub.Application system,
-                   DataManager dataManager,
                    Optional<AgentContext> agentContext)
     {
         this.application = application;
         this.system = system;
-        this.dataManager = dataManager;
         this.agentContext = agentContext;
     }
 
@@ -242,12 +237,12 @@ public class InstallPackage
         final Model model;
 
         // check if we have the model in the cache first and if yes, return it from there instead making an HTTP request
-        if (((FileManager)getDataManager()).hasCachedModel(packageURI) ||
-                (getDataManager().isResolvingMapped() && getDataManager().isMapped(packageURI))) // read mapped URIs (such as system ontologies) from a file
+        if (getSystem().getRepository().isCached(packageURI) ||
+                (getSystem().getRepository().isMapped(packageURI))) // read mapped URIs (such as system ontologies) from a file
         {
-            if (log.isDebugEnabled()) log.debug("hasCachedModel({}): {}", packageURI, ((FileManager)getDataManager()).hasCachedModel(packageURI));
-            if (log.isDebugEnabled()) log.debug("isMapped({}): {}", packageURI, getDataManager().isMapped(packageURI));
-            model = getDataManager().loadModel(packageURI);
+            if (log.isDebugEnabled()) log.debug("hasCachedModel({}): {}", packageURI, getSystem().getRepository().isCached(packageURI));
+            if (log.isDebugEnabled()) log.debug("isMapped({}): {}", packageURI, getSystem().getRepository().isMapped(packageURI));
+            model = ModelFactory.createModelForGraph(getSystem().getRepository().get(packageURI));
         }
         else
         {
@@ -284,12 +279,12 @@ public class InstallPackage
         if (log.isDebugEnabled()) log.debug("Downloading ontology from: {}", uri);
 
         // check if we have the model in the cache first and if yes, return it from there instead making an HTTP request
-        if (((FileManager)getDataManager()).hasCachedModel(uri) ||
-                (getDataManager().isResolvingMapped() && getDataManager().isMapped(uri))) // read mapped URIs (such as system ontologies) from a file
+        if (getSystem().getRepository().isCached(uri) ||
+                (getSystem().getRepository().isMapped(uri))) // read mapped URIs (such as system ontologies) from a file
         {
-            if (log.isDebugEnabled()) log.debug("hasCachedModel({}): {}", uri, ((FileManager)getDataManager()).hasCachedModel(uri));
-            if (log.isDebugEnabled()) log.debug("isMapped({}): {}", uri, getDataManager().isMapped(uri));
-            return getDataManager().loadModel(uri);
+            if (log.isDebugEnabled()) log.debug("hasCachedModel({}): {}", uri, getSystem().getRepository().isCached(uri));
+            if (log.isDebugEnabled()) log.debug("isMapped({}): {}", uri, getSystem().getRepository().isMapped(uri));
+            return ModelFactory.createModelForGraph(getSystem().getRepository().get(uri));
         }
         else
         {
@@ -522,15 +517,6 @@ public class InstallPackage
         return servletContext;
     }
 
-    /**
-     * Returns RDF data manager.
-     *
-     * @return RDF data manager
-     */
-    public DataManager getDataManager()
-    {
-        return dataManager;
-    }
 
     /**
      * Returns JAX-RS resource context.

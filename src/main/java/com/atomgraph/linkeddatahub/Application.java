@@ -16,6 +16,14 @@
  */
 package com.atomgraph.linkeddatahub;
 
+import com.atomgraph.core.util.jena.PrefixGraphRepository;
+import com.atomgraph.client.util.RDFSourceResolver;
+import com.atomgraph.client.util.StylesheetResolver;
+import com.atomgraph.linkeddatahub.writer.impl.SameSiteSourceResolver;
+import com.atomgraph.linkeddatahub.server.util.OntologyRepository;
+import org.apache.jena.riot.RDFParser;
+import org.apache.jena.rdf.model.Model;
+import org.apache.jena.rdf.model.ModelFactory;
 import com.atomgraph.linkeddatahub.server.mapper.HttpHostConnectExceptionMapper;
 import com.atomgraph.linkeddatahub.server.mapper.InternalURLExceptionMapper;
 import com.atomgraph.linkeddatahub.server.mapper.MessagingExceptionMapper;
@@ -27,9 +35,6 @@ import com.atomgraph.linkeddatahub.server.mapper.ForbiddenExceptionMapper;
 import com.atomgraph.linkeddatahub.server.mapper.auth.webid.WebIDCertificateExceptionMapper;
 import com.atomgraph.client.MediaTypes;
 import com.atomgraph.client.locator.PrefixMapper;
-import org.apache.jena.ontology.OntDocumentManager;
-import org.apache.jena.util.FileManager;
-import org.apache.jena.util.LocationMapper;
 import jakarta.annotation.PostConstruct;
 import jakarta.servlet.ServletConfig;
 import jakarta.ws.rs.core.Context;
@@ -37,8 +42,6 @@ import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFFormat;
 import org.apache.jena.riot.RDFWriterRegistry;
 import com.atomgraph.client.mapper.ClientErrorExceptionMapper;
-import com.atomgraph.client.util.DataManager;
-import com.atomgraph.client.util.DataManagerImpl;
 import com.atomgraph.client.vocabulary.AC;
 import com.atomgraph.client.writer.function.UUID;
 import com.atomgraph.core.exception.ConfigurationException;
@@ -49,7 +52,7 @@ import com.atomgraph.core.io.ResultSetProvider;
 import com.atomgraph.core.io.UpdateRequestProvider;
 import com.atomgraph.core.mapper.BadGatewayExceptionMapper;
 import com.atomgraph.core.provider.QueryParamProvider;
-import com.atomgraph.linkeddatahub.writer.factory.DataManagerFactory;
+import com.atomgraph.linkeddatahub.writer.factory.SourceResolverFactory;
 import com.atomgraph.server.vocabulary.LDT;
 import com.atomgraph.server.mapper.NotFoundExceptionMapper;
 import com.atomgraph.core.riot.RDFLanguages;
@@ -67,7 +70,6 @@ import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.writer.factory.xslt.XsltExecutableSupplier;
 import com.atomgraph.linkeddatahub.writer.factory.XsltExecutableSupplierFactory;
-import com.atomgraph.client.util.XsltResolver;
 import com.atomgraph.linkeddatahub.client.GraphStoreClient;
 import com.atomgraph.linkeddatahub.client.filter.ClientUriRewriteFilter;
 import com.atomgraph.linkeddatahub.client.filter.JSONGRDDLFilter;
@@ -135,7 +137,6 @@ import com.atomgraph.server.mapper.jena.RiotExceptionMapper;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import org.apache.jena.enhanced.BuiltinPersonalities;
-import org.apache.jena.ontology.OntModelSpec;
 import org.apache.jena.riot.RDFParserRegistry;
 import org.slf4j.Logger;
 import java.net.URI;
@@ -164,7 +165,7 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManagerFactory;
 import jakarta.servlet.ServletContext;
 import javax.xml.transform.Source;
-import org.apache.jena.ontology.Ontology;
+import org.apache.jena.ontapi.model.OntModel;
 import org.apache.jena.query.Dataset;
 import org.apache.jena.query.Query;
 import org.apache.jena.query.QueryExecution;
@@ -268,8 +269,9 @@ public class Application extends ResourceConfig
     private final ExecutorService importThreadPool;
     private final ServletConfig servletConfig;
     private final EventBus eventBus = new EventBus();
-    private final DataManager dataManager;
-    private final Map<String, OntModelSpec> endUserOntModelSpecs;
+    private final PrefixGraphRepository repository;
+    private final SameSiteSourceResolver resolver;
+    private final Map<String, OntologyRepository> endUserRepositories;
     private final MediaTypes mediaTypes;
     private final Client client, externalClient, importClient, noCertClient;
     private final Query documentTypeQuery, documentOwnerQuery, aclQuery, ownerAclQuery, webIDQuery, agentQuery, userAccountQuery, ontologyQuery; // no relative URIs
@@ -278,7 +280,6 @@ public class Application extends ResourceConfig
     private final Processor xsltProc = new Processor(false);
     private final XsltCompiler xsltComp;
     private final XsltExecutable xsltExec;
-    private final OntModelSpec ontModelSpec;
     private final boolean cacheStylesheet;
     private final boolean resolvingUncached;
     private final URI baseURI, uploadRoot;
@@ -324,7 +325,7 @@ public class Application extends ResourceConfig
             servletConfig.getServletContext().getInitParameter(A.maxGetRequestSize.getURI()) != null ? Integer.valueOf(servletConfig.getServletContext().getInitParameter(A.maxGetRequestSize.getURI())) : null,
             servletConfig.getServletContext().getInitParameter(A.cacheModelLoads.getURI()) != null ? Boolean.parseBoolean(servletConfig.getServletContext().getInitParameter(A.cacheModelLoads.getURI())) : true,
             servletConfig.getServletContext().getInitParameter(A.preemptiveAuth.getURI()) != null ? Boolean.parseBoolean(servletConfig.getServletContext().getInitParameter(A.preemptiveAuth.getURI())) : false,
-            new PrefixMapper(servletConfig.getServletContext().getInitParameter(AC.prefixMapping.getURI()) != null ? servletConfig.getServletContext().getInitParameter(AC.prefixMapping.getURI()) : null),
+            servletConfig.getServletContext().getInitParameter(AC.prefixMapping.getURI()),
             servletConfig.getServletContext().getInitParameter(LDHC.contextDataset.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.contextDataset.getURI()) : null,
             com.atomgraph.client.Application.getSource(servletConfig.getServletContext(), servletConfig.getServletContext().getInitParameter(AC.stylesheet.getURI()) != null ? servletConfig.getServletContext().getInitParameter(AC.stylesheet.getURI()) : null),
             servletConfig.getServletContext().getInitParameter(AC.cacheStylesheet.getURI()) != null ? Boolean.parseBoolean(servletConfig.getServletContext().getInitParameter(AC.cacheStylesheet.getURI())) : false,
@@ -435,7 +436,7 @@ public class Application extends ResourceConfig
      */
     public Application(final ServletConfig servletConfig, final MediaTypes mediaTypes,
             final Integer maxGetRequestSize, final boolean cacheModelLoads, final boolean preemptiveAuth,
-            final LocationMapper locationMapper, final String contextDatasetURIString,
+            final String prefixMappingConfig, final String contextDatasetURIString,
             final Source stylesheet, final boolean cacheStylesheet, final boolean resolvingUncached,
             final String clientKeyStoreURIString, final String clientKeyStorePassword,
             final String secretaryCertAlias,
@@ -682,12 +683,8 @@ public class Application extends ResourceConfig
         }
 
         // register plain RDF/XML writer as default
-        RDFWriterRegistry.register(Lang.RDFXML, RDFFormat.RDFXML_PLAIN); 
+        RDFWriterRegistry.register(Lang.RDFXML, RDFFormat.RDFXML_PLAIN);
 
-        // initialize mapping for locally stored vocabularies
-        LocationMapper.setGlobalLocationMapper(locationMapper);
-        if (log.isTraceEnabled()) log.trace("LocationMapper.get(): {}", locationMapper);
-        
         try
         {
             this.contextDataset = getDataset(servletConfig.getServletContext(), contextDatasetURI);
@@ -792,14 +789,16 @@ public class Application extends ResourceConfig
                 serviceIt.close();
             }
 
-            // TO-DO: config property for cacheModelLoads
-            endUserOntModelSpecs = new HashMap<>();
-            dataManager = new DataManagerImpl(locationMapper, new HashMap<>(), GraphStoreClient.create(client, mediaTypes), cacheModelLoads, preemptiveAuth, resolvingUncached);
-            ontModelSpec = OntModelSpec.OWL_MEM_RDFS_INF;
-            ontModelSpec.setImportModelGetter(dataManager);
-            OntDocumentManager.getInstance().setFileManager((FileManager)dataManager);
-            OntDocumentManager.getInstance().setCacheModels(true); // need to re-set after changing FileManager
-            ontModelSpec.setDocumentManager(OntDocumentManager.getInstance());
+            endUserRepositories = new HashMap<>();
+            // global graph repository: bundled vocabularies/ontologies mapped from the prefix-mapping config
+            repository = new PrefixGraphRepository(GraphStoreClient.create(client, mediaTypes));
+            if (prefixMappingConfig != null)
+            {
+                Model prefixMappingModel = ModelFactory.createDefaultModel();
+                RDFParser.create().source(prefixMappingConfig).streamManager(repository.getStreamManager()).build().parse(prefixMappingModel);
+                repository.processConfig(prefixMappingModel);
+            }
+            resolver = new SameSiteSourceResolver(repository, GraphStoreClient.create(client, mediaTypes), resolvingUncached, baseURI);
 
             if (mailUser != null && mailPassword !=  null) // enable SMTP authentication
             {
@@ -836,19 +835,15 @@ public class Application extends ResourceConfig
             xsltProc.registerExtensionFunction(new com.atomgraph.linkeddatahub.writer.function.URLDecode());
             xsltProc.registerExtensionFunction(new com.atomgraph.linkeddatahub.writer.function.SendHTTPRequest(xsltProc, client));
             
-            Model mappingModel = locationMapper.toModel();
-            ResIterator prefixedMappings = mappingModel.listResourcesWithProperty(LocationMappingVocab.prefix);
             try
             {
-                while (prefixedMappings.hasNext())
+                for (String prefix : getRepository().getPrefixMappings().keySet())
                 {
-                    Resource prefixMapping = prefixedMappings.next();
-                    String prefix = prefixMapping.getRequiredProperty(LocationMappingVocab.prefix).getString();
                     // register mapped RDF documents in the XSLT processor so that document() returns them cached, throughout multiple transformations
-                    TreeInfo doc = xsltProc.getUnderlyingConfiguration().buildDocumentTree(dataManager.resolve("", prefix));
+                    TreeInfo doc = xsltProc.getUnderlyingConfiguration().buildDocumentTree(getResolver().resolve("", prefix));
                     xsltProc.getUnderlyingConfiguration().getGlobalDocumentPool().add(doc, prefix);
                 }
-                
+
                 // register HTTPS URL of translations.rdf so it doesn't have to be requested repeatedly
                 try (InputStream translations = servletConfig.getServletContext().getResourceAsStream(XSLTWriterBase.TRANSLATIONS_PATH))
                 {
@@ -861,14 +856,10 @@ public class Application extends ResourceConfig
                 if (log.isErrorEnabled()) log.error("Error reading mapped RDF document: {}", ex);
                 throw new IllegalStateException(ex);
             }
-            finally
-            {
-                prefixedMappings.close();
-            }
             
             xsltComp = xsltProc.newXsltCompiler();
             xsltComp.setParameter(new QName("ldh", LDH.base.getNameSpace(), LDH.base.getLocalName()), new XdmAtomicValue(baseURI));
-            xsltComp.setURIResolver(new XsltResolver(LocationMapper.get(), new HashMap<>(), GraphStoreClient.create(client, mediaTypes), false, false, true)); // default Xerces parser does not support HTTPS
+            xsltComp.setURIResolver(new StylesheetResolver(getRepository(), GraphStoreClient.create(client, mediaTypes))); // resolves xsl:import to raw stylesheet sources
             xsltExec = xsltComp.compile(stylesheet);
         }
         catch (FileNotFoundException ex)
@@ -935,8 +926,8 @@ public class Application extends ResourceConfig
         register(new QueryProvider());
         register(new QueryParamProvider());
         register(new UpdateRequestProvider());
-        register(new ModelXSLTWriter(getXsltExecutable(), getOntModelSpec(), getDataManager(), getMessageDigest())); // writes (X)HTML responses
-        register(new ResultSetXSLTWriter(getXsltExecutable(), getOntModelSpec(), getDataManager(), getMessageDigest())); // writes (X)HTML responses
+        register(new ModelXSLTWriter(getXsltExecutable(), getResolver(), getMessageDigest())); // writes (X)HTML responses
+        register(new ResultSetXSLTWriter(getXsltExecutable(), getResolver(), getMessageDigest())); // writes (X)HTML responses
 
         final com.atomgraph.linkeddatahub.Application system = this;
         register(new AbstractBinder()
@@ -1014,7 +1005,7 @@ public class Application extends ResourceConfig
             @Override
             protected void configure()
             {
-                bindFactory(OntologyFactory.class).to(new TypeLiteral<Optional<Ontology>>() {}).
+                bindFactory(OntologyFactory.class).to(new TypeLiteral<Optional<OntModel>>() {}).
                 in(RequestScoped.class);
             }
         });
@@ -1023,15 +1014,7 @@ public class Application extends ResourceConfig
             @Override
             protected void configure()
             {
-                bindFactory(new com.atomgraph.core.factory.DataManagerFactory(getDataManager())).to(com.atomgraph.core.util.jena.DataManager.class);
-            }
-        });
-        register(new AbstractBinder()
-        {
-            @Override
-            protected void configure()
-            {
-                bindFactory(DataManagerFactory.class).to(com.atomgraph.client.util.DataManager.class).
+                bindFactory(SourceResolverFactory.class).to(com.atomgraph.client.util.RDFSourceResolver.class).
                 in(RequestScoped.class);
             }
         });
@@ -1756,43 +1739,54 @@ public class Application extends ResourceConfig
     }
     
     /**
-     * Gets Jena's <code>DataManager</code> implementation.
-     * 
-     * @return data manager instance
+     * Returns the global graph repository (bundled vocabularies/ontologies + URI mapping + cache).
+     *
+     * @return graph repository
      */
-    public DataManager getDataManager()
+    public PrefixGraphRepository getRepository()
     {
-        return dataManager;
-    }
- 
-    /**
-     * Returns a map of application URIs to ontology specifications.
-     * 
-     * @return URI to ontology specification map
-     */
-    protected Map<String, OntModelSpec> getEndUserOntModelSpecs()
-    {
-        return endUserOntModelSpecs;
+        return repository;
     }
 
     /**
-     * Returns ontology specification for the specified end-user application.
-     * 
-     * @param app end-user application resource
-     * @return ontology specification 
+     * Returns the global XSLT source resolver.
+     *
+     * @return source resolver
      */
-    public OntModelSpec getOntModelSpec(EndUserApplication app)
+    public SameSiteSourceResolver getResolver()
     {
-        if (!getEndUserOntModelSpecs().containsKey(app.getURI()))
+        return resolver;
+    }
+
+    /**
+     * Returns a map of application URIs to ontology repositories.
+     *
+     * @return URI to ontology repository map
+     */
+    protected Map<String, OntologyRepository> getEndUserRepositories()
+    {
+        return endUserRepositories;
+    }
+
+    /**
+     * Returns the SPARQL-first ontology repository for the specified end-user application.
+     *
+     * @param app end-user application resource
+     * @return ontology repository
+     */
+    public OntologyRepository getRepository(EndUserApplication app)
+    {
+        if (!getEndUserRepositories().containsKey(app.getURI()))
         {
-            OntModelSpec appOntModelSpec = new OntModelSpec(OntModelSpec.OWL_MEM_RDFS_INF);
-            appOntModelSpec.setDocumentManager(new OntDocumentManager());
-            appOntModelSpec.getDocumentManager().setFileManager(new DataManagerImpl(LocationMapper.get(), new HashMap<>(), GraphStoreClient.create(getClient(), getMediaTypes()), true, isPreemptiveAuth(), isResolvingUncached()));
-            
-            getEndUserOntModelSpecs().put(app.getURI(), appOntModelSpec);
+            OntologyRepository appRepository = new OntologyRepository(app, this, GraphStoreClient.create(getClient(), getMediaTypes()), getOntologyQuery());
+            // seed bundled vocabulary/ontology mappings from the global repository
+            getRepository().getLocationMappings().forEach(appRepository::addLocationMapping);
+            getRepository().getPrefixMappings().forEach(appRepository::addPrefixMapping);
+
+            getEndUserRepositories().put(app.getURI(), appRepository);
         }
-        
-        return getEndUserOntModelSpecs().get(app.getURI());
+
+        return getEndUserRepositories().get(app.getURI());
     }
     
     /**
@@ -2000,16 +1994,6 @@ public class Application extends ResourceConfig
     public boolean isPreemptiveAuth()
     {
         return preemptiveAuth;
-    }
-    
-    /**
-     * The default specification of ontology models.
-     * 
-     * @return spec object
-     */
-    public OntModelSpec getOntModelSpec()
-    {
-        return ontModelSpec;
     }
     
     /**

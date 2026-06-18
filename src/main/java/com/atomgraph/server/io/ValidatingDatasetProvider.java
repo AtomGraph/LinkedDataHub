@@ -30,7 +30,7 @@ import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.MultivaluedMap;
 import jakarta.ws.rs.ext.Providers;
-import org.apache.jena.ontology.Ontology;
+import org.apache.jena.ontapi.model.OntModel;
 import org.apache.jena.query.Dataset;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,7 +52,7 @@ public class ValidatingDatasetProvider extends DatasetProvider
     
     @Context private Providers providers;
     
-    @Inject jakarta.inject.Provider<Optional<Ontology>> ontology;
+    @Inject jakarta.inject.Provider<Optional<OntModel>> ontology;
 
     @Override
     public Dataset readFrom(Class<Dataset> type, Type genericType, Annotation[] annotations, MediaType mediaType, MultivaluedMap<String, String> httpHeaders, InputStream entityStream) throws IOException
@@ -70,7 +70,7 @@ public class ValidatingDatasetProvider extends DatasetProvider
         if (getOntology().isPresent())
         {
             // SPIN validation
-            Validator validator = new Validator(getOntology().get().getOntModel());
+            Validator validator = new Validator(getOntology().get());
             List<ConstraintViolation> cvs = validator.validate(dataset.getDefaultModel());
             if (!cvs.isEmpty())
             {
@@ -79,7 +79,7 @@ public class ValidatingDatasetProvider extends DatasetProvider
             }
 
             // SHACL validation
-            Shapes shapes = Shapes.parse(getOntology().get().getOntModel().getGraph());
+            Shapes shapes = Shapes.parse(getOntology().get().getGraph());
             ValidationReport report = ShaclValidator.get().validate(shapes, dataset.getDefaultModel().getGraph());
             if (!report.conforms())
             {
@@ -113,7 +113,7 @@ public class ValidatingDatasetProvider extends DatasetProvider
         return dataset;
     }
         
-    public Optional<Ontology> getOntology()
+    public Optional<OntModel> getOntology()
     {
         return ontology.get();
     }

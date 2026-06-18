@@ -16,18 +16,16 @@
  */
 package com.atomgraph.linkeddatahub.server.filter.request;
 
-import org.apache.jena.ontology.OntDocumentManager;
-import org.apache.jena.rdf.model.Model;
+import com.atomgraph.core.util.jena.PrefixGraphRepository;
+import org.apache.jena.graph.Graph;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Characterization tests for {@link OntologyFilter#addDocumentModel}, which caches an
- * imported ontology model under a SECONDARY key: the fragment-stripped document URI.
- *
- * This pins the current dual-key caching behavior so the migration to the new ontology
- * API ({@code GraphRepository}) can be proven to retain it.
+ * Characterization tests for {@link OntologyFilter#addDocumentModel}, which caches an imported graph
+ * under a SECONDARY key: the fragment-stripped document URI. Pins the dual-key caching behavior
+ * retained from the legacy implementation.
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
@@ -38,42 +36,33 @@ public class OntologyFilterTest
     @Test
     public void testAddDocumentModelCachesUnderStrippedDocumentURI()
     {
-        OntDocumentManager odm = new OntDocumentManager();
+        PrefixGraphRepository repository = new PrefixGraphRepository(null);
         String importURI = "http://example.org/onto#";
         String docURI = "http://example.org/onto";
 
-        Model imported = ModelFactory.createDefaultModel();
-        imported.createResource(importURI + "Thing");
-        odm.addModel(importURI, imported, true);
+        Graph imported = ModelFactory.createDefaultModel().getGraph();
+        repository.put(importURI, imported);
 
-        // precondition: only the ontology (fragment) URI is known
-        assertNotNull(odm.getModel(importURI));
+        OntologyFilter.addDocumentModel(repository, importURI);
 
-        OntologyFilter.addDocumentModel(odm, importURI);
-
-        // the same model is now retrievable under the fragment-stripped document URI
-        assertNotNull(odm.getModel(docURI), "import model should be cached under the document URI");
-        assertSame(imported, odm.getModel(docURI));
+        assertTrue(repository.isCached(docURI), "import graph should be cached under the document URI");
+        assertSame(imported, repository.get(docURI));
     }
 
-    /** If the document URI is mapped (mapURI != docURI), the secondary cache write is skipped. */
+    /** If the document URI is mapped to a different location, the secondary cache write is skipped. */
     @Test
     public void testAddDocumentModelSkipsWhenDocumentURIMapped()
     {
-        OntDocumentManager odm = new OntDocumentManager();
+        PrefixGraphRepository repository = new PrefixGraphRepository(null);
         String importURI = "http://example.org/mapped#";
         String docURI = "http://example.org/mapped";
 
-        // map the document URI to a different location -> guard mappedURI.equals(docURI) is false
-        odm.getFileManager().getLocationMapper().addAltEntry(docURI, "file:elsewhere.ttl");
+        repository.addLocationMapping(docURI, "file:elsewhere.ttl"); // resolve(docURI) != docURI -> skip
+        repository.put(importURI, ModelFactory.createDefaultModel().getGraph());
 
-        Model imported = ModelFactory.createDefaultModel();
-        odm.addModel(importURI, imported, true);
+        OntologyFilter.addDocumentModel(repository, importURI);
 
-        OntologyFilter.addDocumentModel(odm, importURI);
-
-        // no secondary cache entry created under the document URI
-        assertNull(odm.getModel(docURI), "mapped document URI should not be cached as a secondary key");
+        assertFalse(repository.isCached(docURI), "mapped document URI should not be cached as a secondary key");
     }
 
 }

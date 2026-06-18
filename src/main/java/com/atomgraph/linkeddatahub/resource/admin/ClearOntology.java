@@ -18,9 +18,8 @@ package com.atomgraph.linkeddatahub.resource.admin;
 
 import com.atomgraph.linkeddatahub.apps.model.AdminApplication;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
-import static com.atomgraph.linkeddatahub.server.filter.request.OntologyFilter.addDocumentModel;
 import com.atomgraph.linkeddatahub.server.filter.response.CacheInvalidationFilter;
-import com.atomgraph.linkeddatahub.server.util.OntologyModelGetter;
+import com.atomgraph.linkeddatahub.server.util.OntologyRepository;
 import java.net.URI;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.BadRequestException;
@@ -31,8 +30,12 @@ import jakarta.ws.rs.POST;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.UriBuilder;
-import org.apache.jena.ontology.OntModel;
-import org.apache.jena.ontology.OntModelSpec;
+import org.apache.jena.ontapi.OntModelFactory;
+import org.apache.jena.ontapi.OntSpecification;
+import org.apache.jena.ontapi.model.OntModel;
+import org.apache.jena.graph.Graph;
+import java.util.HashSet;
+import com.atomgraph.linkeddatahub.server.filter.request.OntologyFilter;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Resource;
@@ -82,11 +85,11 @@ public class ClearOntology
         if (ontologyURI == null) throw new BadRequestException("Ontology URI not specified");
 
         EndUserApplication endUserApp = getApplication().as(AdminApplication.class).getEndUserApplication(); // we're assuming the current app is admin
-        OntModelSpec ontModelSpec = new OntModelSpec(getSystem().getOntModelSpec(endUserApp));
-        if (ontModelSpec.getDocumentManager().getFileManager().hasCachedModel(ontologyURI))
+        OntologyRepository repository = getSystem().getRepository(endUserApp);
+        if (repository.isCached(ontologyURI))
         {
             if (log.isDebugEnabled()) log.debug("Clearing ontology with URI '{}' from memory", ontologyURI);
-            ontModelSpec.getDocumentManager().getFileManager().removeCacheModel(ontologyURI);
+            repository.remove(ontologyURI);
 
             URI ontologyDocURI = UriBuilder.fromUri(ontologyURI).fragment(null).build(); // skip fragment from the ontology URI to get its graph URI
             // frontend proxy still uses URL-pattern BAN for direct document GETs (until Stage 3 brings xkey tagging to varnish-frontend).
@@ -117,17 +120,15 @@ public class ClearOntology
             
             // !!! we need to reload the ontology model before returning a response, to make sure the next request already gets the new version !!!
             // same logic as in OntologyFilter. TO-DO: encapsulate?
-            OntologyModelGetter modelGetter = new OntologyModelGetter(endUserApp, getSystem(), ontModelSpec, getSystem().getOntologyQuery());
-            ontModelSpec.setImportModelGetter(modelGetter);
             if (log.isDebugEnabled()) log.debug("Started loading ontology with URI '{}' from the admin dataset", ontologyURI);
-            Model baseModel = modelGetter.getModel(ontologyURI);
-            OntModel ontModel = ModelFactory.createOntologyModel(ontModelSpec, baseModel);
-            // materialize OntModel inferences to avoid invoking rules engine on every request
-            OntModel materializedModel = ModelFactory.createOntologyModel(OntModelSpec.OWL_MEM); // no inference
-            materializedModel.add(ontModel);
-            ontModel.getDocumentManager().addModel(ontologyURI, materializedModel, true); // make immutable and add as OntModel so that imports do not need to be reloaded during retrieval
-            // make sure to cache imported models not only by ontology URI but also by document URI
-            ontModel.listImportedOntologyURIs(true).forEach((String importURI) -> addDocumentModel(ontModel.getDocumentManager(), importURI));
+            Graph baseGraph = repository.get(ontologyURI);
+            OntModel inferred = OntModelFactory.createModel(baseGraph, OntSpecification.OWL2_DL_MEM_RDFS_INF, repository);
+            // materialize inferences to avoid invoking the rules engine on every request
+            OntModel materialized = OntModelFactory.createModel(OntSpecification.OWL2_DL_MEM);
+            materialized.add(inferred);
+            repository.put(ontologyURI, materialized.getGraph());
+            // cache imported graphs under their document URIs too
+            OntologyFilter.importClosure(inferred, new HashSet<>()).forEach(importURI -> OntologyFilter.addDocumentModel(repository, importURI));
             if (log.isDebugEnabled()) log.debug("Finished loading ontology with URI '{}' from the admin dataset", ontologyURI);
         }
         

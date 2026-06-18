@@ -16,7 +16,7 @@
 
 package com.atomgraph.server.io;
 
-import org.apache.jena.ontology.Ontology;
+import org.apache.jena.ontapi.model.OntModel;
 import org.apache.jena.rdf.model.Model;
 import java.io.IOException;
 import java.io.InputStream;
@@ -51,7 +51,7 @@ public class ValidatingModelProvider extends BasedModelProvider
     
     @Context private Providers providers;
     
-    @Inject jakarta.inject.Provider<Optional<Ontology>> ontology;
+    @Inject jakarta.inject.Provider<Optional<OntModel>> ontology;
 
     @Override
     public Model readFrom(Class<Model> type, Type genericType, Annotation[] annotations, MediaType mediaType, MultivaluedMap<String, String> httpHeaders, InputStream entityStream) throws IOException
@@ -69,7 +69,7 @@ public class ValidatingModelProvider extends BasedModelProvider
         if (getOntology().isPresent())
         {
             // SPIN validation
-            List<ConstraintViolation> cvs = new Validator(getOntology().get().getOntModel()).validate(model);
+            List<ConstraintViolation> cvs = new Validator(getOntology().get()).validate(model);
             if (!cvs.isEmpty())
             {
                 if (log.isDebugEnabled()) log.debug("SPIN constraint violations: {}", cvs);
@@ -77,7 +77,7 @@ public class ValidatingModelProvider extends BasedModelProvider
             }
 
             // SHACL validation
-            Shapes shapes = Shapes.parse(getOntology().get().getOntModel().getGraph());
+            Shapes shapes = Shapes.parse(getOntology().get().getGraph());
             ValidationReport report = ShaclValidator.get().validate(shapes, model.getGraph());
             if (!report.conforms())
             {
@@ -100,7 +100,7 @@ public class ValidatingModelProvider extends BasedModelProvider
         return model;
     }
     
-    public Optional<Ontology> getOntology()
+    public Optional<OntModel> getOntology()
     {
         return ontology.get();
     }

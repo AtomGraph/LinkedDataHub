@@ -18,26 +18,25 @@ package com.atomgraph.linkeddatahub.server.filter.request;
 
 import com.atomgraph.linkeddatahub.apps.model.Application;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
+import com.atomgraph.core.util.jena.PrefixGraphRepository;
 import com.atomgraph.linkeddatahub.vocabulary.LAPP;
 import com.atomgraph.server.exception.OntologyException;
-import com.atomgraph.linkeddatahub.server.util.OntologyModelGetter;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.HashSet;
 import java.util.Optional;
+import java.util.Set;
 import jakarta.annotation.Priority;
 import jakarta.inject.Inject;
-import jakarta.ws.rs.InternalServerErrorException;
 import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.container.ContainerRequestFilter;
 import jakarta.ws.rs.container.PreMatching;
-import org.apache.jena.ontology.OntDocumentManager;
-import org.apache.jena.ontology.OntModel;
-import org.apache.jena.ontology.OntModelSpec;
-import org.apache.jena.ontology.Ontology;
-import org.apache.jena.rdf.model.Model;
-import org.apache.jena.rdf.model.ModelFactory;
-import org.apache.jena.util.FileManager;
+import org.apache.jena.graph.Graph;
+import org.apache.jena.ontapi.OntModelFactory;
+import org.apache.jena.ontapi.OntSpecification;
+import org.apache.jena.ontapi.model.OntID;
+import org.apache.jena.ontapi.model.OntModel;
 import org.apache.jena.vocabulary.OWL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -100,7 +99,7 @@ public class OntologyFilter implements ContainerRequestFilter
      * @param crc request context
      * @return optional ontology
      */
-    public Optional<Ontology> getOntology(ContainerRequestContext crc)
+    public Optional<OntModel> getOntology(ContainerRequestContext crc)
     {
         Optional<Application> appOpt = getApplication(crc);
 
@@ -115,99 +114,86 @@ public class OntologyFilter implements ContainerRequestFilter
             return Optional.empty();
         }
     }
-    
+
     /**
      * Gets ontology of the specified application.
-     * 
+     *
      * @param app application resource
-     * @return ontology resource
+     * @return ontology model
      */
-    public Ontology getOntology(Application app)
+    public OntModel getOntology(Application app)
     {
         if (app.getOntology() == null) return null;
 
         return getOntology(app, app.getOntology().getURI());
     }
-    
+
     /**
-     * Loads ontology using the specified ontology URI.
-     * 
+     * Loads the ontology model for the specified ontology URI, building its owl:imports closure with
+     * RDFS inference and materializing the inferences into the repository cache.
+     *
      * @param app application resource
      * @param uri ontology URI
-     * @return ontology resource
+     * @return ontology model
      */
-    public Ontology getOntology(Application app, String uri)
+    public OntModel getOntology(Application app, String uri)
     {
-        if (app == null) throw new IllegalArgumentException("Application string cannot be null");
-        if (uri == null) throw new IllegalArgumentException("Ontology URI string cannot be null");
+        if (app == null) throw new IllegalArgumentException("Application cannot be null");
+        if (uri == null) throw new IllegalArgumentException("Ontology URI cannot be null");
 
-        final OntModelSpec ontModelSpec;
-        if (app.canAs(EndUserApplication.class))
+        final PrefixGraphRepository repository = app.canAs(EndUserApplication.class) ?
+            getSystem().getRepository(app.as(EndUserApplication.class)) : getSystem().getRepository();
+
+        // only build the inferred model if the ontology is not already cached
+        if (!repository.isCached(uri))
         {
-            ontModelSpec = new OntModelSpec(getSystem().getOntModelSpec(app.as(EndUserApplication.class)));
-            // only create InfModel if ontology is not already cached
-            if (!ontModelSpec.getDocumentManager().getFileManager().hasCachedModel(uri))
-            {
-                OntologyModelGetter modelGetter = new OntologyModelGetter(app.as(EndUserApplication.class), getSystem(), ontModelSpec, getSystem().getOntologyQuery());
-                ontModelSpec.setImportModelGetter(modelGetter);
-                if (log.isDebugEnabled()) log.debug("Started loading ontology with URI '{}' from the admin dataset", uri);
-                Model baseModel = modelGetter.getModel(uri);
-                OntModel ontModel = ModelFactory.createOntologyModel(ontModelSpec, baseModel);
-                // materialize OntModel inferences to avoid invoking rules engine on every request
-                OntModel materializedModel = ModelFactory.createOntologyModel(OntModelSpec.OWL_MEM); // no inference
-                materializedModel.add(ontModel);
-                ontModel.getDocumentManager().addModel(uri, materializedModel, true); // make immutable and add as OntModel so that imports do not need to be reloaded during retrieval
-                // make sure to cache imported models not only by ontology URI but also by document URI
-                ontModel.listImportedOntologyURIs(true).forEach((String importURI) -> addDocumentModel(ontModel.getDocumentManager(), importURI));
-                if (log.isDebugEnabled()) log.debug("Finished loading ontology with URI '{}' from the admin dataset", uri);
-            }
+            if (log.isDebugEnabled()) log.debug("Started loading ontology with URI '{}'", uri);
+            Graph baseGraph = repository.get(uri); // end-user: SPARQL-first; otherwise bundled mapping / HTTP
+            OntModel inferred = OntModelFactory.createModel(baseGraph, OntSpecification.OWL2_DL_MEM_RDFS_INF, repository);
+            // materialize inferences to avoid invoking the rules engine on every request
+            OntModel materialized = OntModelFactory.createModel(OntSpecification.OWL2_DL_MEM);
+            materialized.add(inferred);
+            repository.put(uri, materialized.getGraph());
+            // cache imported graphs under their (fragment-stripped) document URIs too
+            importClosure(inferred, new HashSet<>()).forEach(importURI -> addDocumentModel(repository, importURI));
+            if (log.isDebugEnabled()) log.debug("Finished loading ontology with URI '{}'", uri);
         }
-        else
-        {
-            ontModelSpec = new OntModelSpec(getSystem().getOntModelSpec());
-            FileManager fileManager = ontModelSpec.getDocumentManager().getFileManager();
-            if (!fileManager.hasCachedModel(uri))
-            {
-                try
-                {
-                    URI ontologyURI = URI.create(uri);
-                    // remove fragment and normalize
-                    URI ontDocURI = new URI(ontologyURI.getScheme(), ontologyURI.getSchemeSpecificPart(), null).normalize();
-                    Model baseModel = fileManager.loadModel(ontDocURI.toString());
-                    OntModel ontModel = ModelFactory.createOntologyModel(ontModelSpec, baseModel);
-                    ontModel.getDocumentManager().addModel(uri, ontModel, true);
-                }
-                catch (URISyntaxException ex)
-                {
-                    if (log.isErrorEnabled()) log.error("Ontology URI syntax error: {}", ex.getInput());
-                    throw new InternalServerErrorException(ex);
-                }
-            }
-        }
-        return ontModelSpec.getDocumentManager().getOntology(uri, ontModelSpec).getOntology(uri); // reloads the imports using ModelGetter. TO-DO: optimize?
+
+        return OntModelFactory.createModel(repository.get(uri), OntSpecification.OWL2_DL_MEM, repository);
     }
 
     /**
-     * Extracts document URI from ontology import URI and uses it as a secondary cache key.
-     * 
-     * @param odm document manager
+     * Collects the transitive owl:imports closure URIs of the given ontology model.
+     *
+     * @param model ontology model
+     * @param seen accumulator of already-visited import URIs
+     * @return the import closure URIs
+     */
+    public static Set<String> importClosure(OntModel model, Set<String> seen)
+    {
+        model.imports().forEach(imp -> imp.id().map(OntID::getURI).ifPresent(importURI ->
+        {
+            if (seen.add(importURI)) importClosure(imp, seen);
+        }));
+        return seen;
+    }
+
+    /**
+     * Caches an imported graph under its fragment-stripped document URI as a secondary cache key.
+     *
+     * @param repository graph repository
      * @param importURI ontology URI
      */
-    public static void addDocumentModel(OntDocumentManager odm, String importURI)
+    public static void addDocumentModel(PrefixGraphRepository repository, String importURI)
     {
         try
         {
             URI ontologyURI = URI.create(importURI);
             // remove fragment and normalize
             URI docURI = new URI(ontologyURI.getScheme(), ontologyURI.getSchemeSpecificPart(), null).normalize();
-            String mappedURI = odm.getFileManager().mapURI(docURI.toString());
-             // only cache import document URI if it's not already cached or mapped
-            if (!odm.getFileManager().hasCachedModel(docURI.toString()) && mappedURI.equals(docURI.toString()))
-            {
-                Model importModel = odm.getModel(importURI);
-                if (importModel == null) throw new IllegalArgumentException("Import model is not cached");
-                odm.addModel(docURI.toString(), importModel, true);
-            }
+            // only cache the document URI if it is not already cached or mapped to a different location
+            if (!repository.isCached(docURI.toString()) && repository.resolve(docURI.toString()).equals(docURI.toString()))
+                repository.put(docURI.toString(), repository.get(importURI));
         }
         catch (URISyntaxException ex)
         {

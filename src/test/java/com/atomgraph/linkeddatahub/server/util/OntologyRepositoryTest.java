@@ -16,19 +16,22 @@
  */
 package com.atomgraph.linkeddatahub.server.util;
 
-import com.atomgraph.core.client.SPARQLClient;
+import com.atomgraph.core.client.GraphStoreClient;
 import com.atomgraph.linkeddatahub.apps.model.AdminApplication;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.model.ServiceContext;
 import jakarta.ws.rs.core.MultivaluedMap;
 import jakarta.ws.rs.core.Response;
-import org.apache.jena.ontology.OntModelSpec;
+import org.apache.jena.graph.Graph;
+import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.query.Query;
 import org.apache.jena.query.QueryFactory;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
-import org.apache.jena.util.FileManager;
+import org.apache.jena.vocabulary.OWL;
+import org.apache.jena.vocabulary.RDF;
+import org.apache.jena.vocabulary.RDFS;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -41,17 +44,14 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
- * Characterization tests for {@link OntologyModelGetter}, which resolves an ontology model
- * SPARQL-first (admin endpoint CONSTRUCT) and falls back to the FileManager only when the
- * SPARQL result is empty.
- *
- * Pins the current resolution order so the migration to a {@code GraphRepository.get(uri)}
- * can be proven to retain it.
+ * Characterization tests for {@link OntologyRepository}, which resolves an ontology graph
+ * SPARQL-first (admin endpoint CONSTRUCT) and falls back to the superclass (bundled mapping / HTTP)
+ * only when the SPARQL result is empty.
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
 @ExtendWith(MockitoExtension.class)
-public class OntologyModelGetterTest
+public class OntologyRepositoryTest
 {
 
     private static final String ONTOLOGY_URI = "http://example.org/ontology#";
@@ -62,8 +62,9 @@ public class OntologyModelGetterTest
     @Mock AdminApplication adminApp;
     @Mock Service service;
     @Mock ServiceContext serviceContext;
-    @Mock SPARQLClient sparqlClient;
+    @Mock com.atomgraph.core.client.SPARQLClient sparqlClient;
     @Mock Response response;
+    @Mock GraphStoreClient gsc;
 
     private void stubSPARQLChain(Model sparqlResult)
     {
@@ -75,43 +76,36 @@ public class OntologyModelGetterTest
         when(response.readEntity(Model.class)).thenReturn(sparqlResult);
     }
 
-    /** A non-empty admin SPARQL CONSTRUCT result is returned directly; the FileManager is not consulted. */
+    /** A non-empty admin SPARQL CONSTRUCT result is returned directly; the HTTP fallback is not used. */
     @Test
     public void testSPARQLResultUsedWhenNonEmpty()
     {
         Model sparqlResult = ModelFactory.createDefaultModel();
-        sparqlResult.createResource(ONTOLOGY_URI).addProperty(org.apache.jena.vocabulary.RDF.type, org.apache.jena.vocabulary.OWL.Ontology);
+        sparqlResult.createResource(ONTOLOGY_URI).addProperty(RDF.type, OWL.Ontology);
         stubSPARQLChain(sparqlResult);
 
-        OntModelSpec spec = new OntModelSpec(OntModelSpec.OWL_MEM);
-        FileManager fileManager = org.mockito.Mockito.mock(FileManager.class);
-        spec.getDocumentManager().setFileManager(fileManager);
+        OntologyRepository repository = new OntologyRepository(app, system, gsc, ONTOLOGY_QUERY);
+        Graph result = repository.get(ONTOLOGY_URI);
 
-        OntologyModelGetter getter = new OntologyModelGetter(app, system, spec, ONTOLOGY_QUERY);
-        Model result = getter.getModel(ONTOLOGY_URI);
-
-        assertSame(sparqlResult, result);
-        verify(fileManager, never()).loadModel(any());
+        assertTrue(result.contains(NodeFactory.createURI(ONTOLOGY_URI), RDF.type.asNode(), OWL.Ontology.asNode()));
+        verify(gsc, never()).getModel(any());
     }
 
-    /** An empty SPARQL result falls back to FileManager.loadModel(uri). */
+    /** An empty SPARQL result falls back to the Graph Store client (HTTP) load. */
     @Test
-    public void testFallsBackToFileManagerWhenSPARQLEmpty()
+    public void testFallsBackToHttpWhenSPARQLEmpty()
     {
         Model empty = ModelFactory.createDefaultModel();
         stubSPARQLChain(empty);
 
-        OntModelSpec spec = new OntModelSpec(OntModelSpec.OWL_MEM);
-        FileManager fileManager = org.mockito.Mockito.mock(FileManager.class);
-        spec.getDocumentManager().setFileManager(fileManager);
         Model fallback = ModelFactory.createDefaultModel();
-        fallback.createResource(ONTOLOGY_URI);
-        when(fileManager.loadModel(ONTOLOGY_URI)).thenReturn(fallback);
+        fallback.createResource(ONTOLOGY_URI).addProperty(RDFS.label, "fallback");
+        when(gsc.getModel(ONTOLOGY_URI)).thenReturn(fallback);
 
-        OntologyModelGetter getter = new OntologyModelGetter(app, system, spec, ONTOLOGY_QUERY);
-        Model result = getter.getModel(ONTOLOGY_URI);
+        OntologyRepository repository = new OntologyRepository(app, system, gsc, ONTOLOGY_QUERY);
+        Graph result = repository.get(ONTOLOGY_URI);
 
-        assertSame(fallback, result);
+        assertTrue(result.contains(NodeFactory.createURI(ONTOLOGY_URI), RDFS.label.asNode(), NodeFactory.createLiteralString("fallback")));
     }
 
 }

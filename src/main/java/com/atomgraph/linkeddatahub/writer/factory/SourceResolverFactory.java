@@ -16,18 +16,16 @@
  */
 package com.atomgraph.linkeddatahub.writer.factory;
 
-import org.apache.jena.util.LocationMapper;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.ext.Provider;
-import com.atomgraph.client.util.DataManager;
+import com.atomgraph.client.util.RDFSourceResolver;
+import com.atomgraph.core.util.jena.PrefixGraphRepository;
 import com.atomgraph.linkeddatahub.apps.model.Application;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import com.atomgraph.linkeddatahub.client.GraphStoreClient;
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
 import com.atomgraph.linkeddatahub.vocabulary.LAPP;
-import com.atomgraph.linkeddatahub.writer.impl.DataManagerImpl;
-import java.net.URI;
-import java.util.HashMap;
+import com.atomgraph.linkeddatahub.writer.impl.SameSiteSourceResolver;
 import java.util.Optional;
 import jakarta.inject.Inject;
 import jakarta.servlet.http.HttpServletRequest;
@@ -40,15 +38,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * JAX-RS provider for <code>DataManager</code>.
- * 
+ * JAX-RS provider for the request-scoped XSLT source resolver.
+ *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
- * @see com.atomgraph.client.util.DataManager
+ * @see com.atomgraph.client.util.RDFSourceResolver
  */
 @Provider
-public class DataManagerFactory implements Factory<DataManager>
+public class SourceResolverFactory implements Factory<RDFSourceResolver>
 {
-    private static final Logger log = LoggerFactory.getLogger(DataManagerFactory.class);
+    private static final Logger log = LoggerFactory.getLogger(SourceResolverFactory.class);
 
     @Context UriInfo uriInfo;
     @Context HttpServletRequest httpServletRequest;
@@ -58,40 +56,37 @@ public class DataManagerFactory implements Factory<DataManager>
     @Inject com.atomgraph.linkeddatahub.Application system;
 
     @Override
-    public DataManager provide()
+    public RDFSourceResolver provide()
     {
-        // Always return DataManager, falling back to system DataManager if no Application (e.g., for error responses)
-        return getDataManager(getApplication());
+        // falls back to the global repository if there is no application (e.g. for error responses)
+        return getResolver(getApplication());
     }
 
     @Override
-    public void dispose(DataManager t)
+    public void dispose(RDFSourceResolver t)
     {
     }
 
     /**
-     * Returns RDF data manager.
+     * Returns the request-scoped source resolver, backed by the application's ontology repository
+     * (or the global repository) and a delegating Graph Store client.
      *
-     * @param appOpt optional end-user application (if empty, system DataManager is used)
-     * @return data manager
+     * @param appOpt optional end-user application (if empty, the global repository is used)
+     * @return source resolver
      */
-    public DataManager getDataManager(Optional<Application> appOpt)
+    public RDFSourceResolver getResolver(Optional<Application> appOpt)
     {
-        final com.atomgraph.core.util.jena.DataManager baseManager;
+        final PrefixGraphRepository repository;
 
         if (appOpt.isPresent() && appOpt.get().canAs(EndUserApplication.class))
-            baseManager = (com.atomgraph.core.util.jena.DataManager)getSystem().getOntModelSpec(appOpt.get().as(EndUserApplication.class)).getDocumentManager().getFileManager();
+            repository = getSystem().getRepository(appOpt.get().as(EndUserApplication.class));
         else
-            baseManager = getSystem().getDataManager();
+            repository = getSystem().getRepository();
 
         GraphStoreClient gsc = GraphStoreClient.create(getSystem().getClient(), getSystem().getMediaTypes()).
             delegation(getUriInfo().getBaseUri(), getAgentContext());
 
-        // copy cached models over from the app's FileManager
-        return new DataManagerImpl(LocationMapper.get(), new HashMap<>(baseManager.getModelCache()),
-            gsc, true, getSystem().isPreemptiveAuth(), getSystem().isResolvingUncached(),
-            getSystem().getBaseURI(),
-                getAgentContext());
+        return new SameSiteSourceResolver(repository, gsc, getSystem().isResolvingUncached(), getSystem().getBaseURI());
     }
 
     /**
