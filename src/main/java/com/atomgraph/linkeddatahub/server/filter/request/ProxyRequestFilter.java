@@ -50,6 +50,7 @@ import jakarta.ws.rs.client.Invocation;
 import jakarta.ws.rs.client.WebTarget;
 import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.container.ContainerRequestFilter;
+import jakarta.ws.rs.HttpMethod;
 import jakarta.ws.rs.container.PreMatching;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.EntityTag;
@@ -240,7 +241,7 @@ public class ProxyRequestFilter implements ContainerRequestFilter
 
             try (clientResponse)
             {
-                requestContext.abortWith(getResponse(clientResponse, targetURI));
+                requestContext.abortWith(getResponse(clientResponse, targetURI, requestContext.getMethod()));
             }
         }
         catch (MessageBodyProviderNotFoundException ex)
@@ -322,8 +323,20 @@ public class ProxyRequestFilter implements ContainerRequestFilter
      * @param targetURI upstream URI (used as the parse base URI hint for {@code ModelProvider})
      * @return JAX-RS response to return to the original caller
      */
-    protected Response getResponse(Response clientResponse, URI targetURI)
+    protected Response getResponse(Response clientResponse, URI targetURI, String method)
     {
+        // HEAD responses have no body by HTTP semantics. Routing them through
+        // the typed branches below would parse an empty entity into an empty
+        // Model/ResultSet, then re-stamp ETag/Last-Modified off that empty
+        // value — producing validators that disagree with the upstream GET.
+        // Forward the upstream headers (including ETag) verbatim instead.
+        if (HttpMethod.HEAD.equalsIgnoreCase(method))
+        {
+            Response.ResponseBuilder rb = Response.status(clientResponse.getStatus());
+            if (clientResponse.getMediaType() != null) rb.type(clientResponse.getMediaType());
+            return overlayHeaders(rb.build(), clientResponse, true);
+        }
+
         if (clientResponse.getMediaType() == null)
         {
             Response.ResponseBuilder rb = Response.status(clientResponse.getStatus());
