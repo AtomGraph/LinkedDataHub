@@ -16,12 +16,11 @@
  */
 package com.atomgraph.linkeddatahub.vocabulary;
 
-import org.apache.jena.ontology.DatatypeProperty;
-import org.apache.jena.ontology.ObjectProperty;
-import org.apache.jena.ontology.OntClass;
-import org.apache.jena.ontology.OntModel;
-import org.apache.jena.ontology.OntModelSpec;
-import org.apache.jena.rdf.model.ModelFactory;
+import org.apache.jena.ontapi.OntModelFactory;
+import org.apache.jena.ontapi.OntSpecification;
+import org.apache.jena.ontapi.model.OntModel;
+import org.apache.jena.rdf.model.Property;
+
 import org.apache.jena.rdf.model.Resource;
 
 /**
@@ -30,9 +29,14 @@ import org.apache.jena.rdf.model.Resource;
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
 public class VoID {
+
+    static
+    {
+        org.apache.jena.sys.JenaSystem.init(); // ensure Jena (RDFS vocab) is initialized before ontapi touches it
+    }
     
     /** The RDF model that holds the vocabulary terms */
-    private static OntModel m_model = ModelFactory.createOntologyModel(OntModelSpec.OWL_MEM, null);
+    private static OntModel m_model = OntModelFactory.createModel(OntSpecification.OWL2_DL_MEM);
     
     /** The namespace of the vocabulary as a string */
     public static final String NS = "http://rdfs.org/ns/void#";
@@ -52,18 +56,18 @@ public class VoID {
     public static final Resource NAMESPACE = m_model.createResource( NS );
     
     /** Dataset class */
-    public static final OntClass Dataset = m_model.createClass( NS + "Dataset" );
+    public static final Resource Dataset = m_model.createOntClass( NS + "Dataset" );
 
     /** Triples property */
-    public static final DatatypeProperty triples = m_model.createDatatypeProperty( NS + "triples" );
+    public static final Property triples = m_model.createDataProperty( NS + "triples" );
     
     /** Distinct subject property */
-    public static final DatatypeProperty distinctSubjects = m_model.createDatatypeProperty( NS + "distinctSubjects" );
+    public static final Property distinctSubjects = m_model.createDataProperty( NS + "distinctSubjects" );
 
     /** In dataset property */
-    public static final ObjectProperty inDataset = m_model.createObjectProperty( NS + "inDataset" );
+    public static final Property inDataset = m_model.createObjectProperty( NS + "inDataset" );
 
     /** Class property */
-    public static final ObjectProperty _class = m_model.createObjectProperty( NS + "class" );
+    public static final Property _class = m_model.createObjectProperty( NS + "class" );
 
 }

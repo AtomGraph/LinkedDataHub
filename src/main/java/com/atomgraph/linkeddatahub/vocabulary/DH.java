@@ -15,12 +15,11 @@
  */
 package com.atomgraph.linkeddatahub.vocabulary;
 
-import org.apache.jena.ontology.DatatypeProperty;
-import org.apache.jena.ontology.ObjectProperty;
-import org.apache.jena.ontology.OntClass;
-import org.apache.jena.ontology.OntModel;
-import org.apache.jena.ontology.OntModelSpec;
-import org.apache.jena.rdf.model.ModelFactory;
+import org.apache.jena.ontapi.OntModelFactory;
+import org.apache.jena.ontapi.OntSpecification;
+import org.apache.jena.ontapi.model.OntModel;
+import org.apache.jena.rdf.model.Property;
+
 import org.apache.jena.rdf.model.Resource;
 
 /**
@@ -31,8 +30,13 @@ import org.apache.jena.rdf.model.Resource;
 public class DH
 {
 
+    static
+    {
+        org.apache.jena.sys.JenaSystem.init(); // ensure Jena (RDFS vocab) is initialized before ontapi touches it
+    }
+
     /** <p>The RDF model that holds the vocabulary terms</p> */
-    private static OntModel m_model = ModelFactory.createOntologyModel(OntModelSpec.OWL_MEM, null);
+    private static OntModel m_model = OntModelFactory.createModel(OntSpecification.OWL2_DL_MEM);
     
     /** <p>The namespace of the vocabulary as a string</p> */
     public static final String NS = "https://www.w3.org/ns/ldt/document-hierarchy#";
@@ -49,15 +53,15 @@ public class DH
     public static final Resource NAMESPACE = m_model.createResource( NS );
 
     /** Document class */
-    public static final OntClass Document = m_model.createClass( NS + "Document" );
+    public static final Resource Document = m_model.createOntClass( NS + "Document" );
     
     /** Container class */
-    public static final OntClass Container = m_model.createClass( NS + "Container" );
+    public static final Resource Container = m_model.createOntClass( NS + "Container" );
     
     /** Item class */
-    public static final OntClass Item = m_model.createClass( NS + "Item" );
+    public static final Resource Item = m_model.createOntClass( NS + "Item" );
     
     /** Slug property */
-    public static final DatatypeProperty slug = m_model.createDatatypeProperty( NS + "slug" );
+    public static final Property slug = m_model.createDataProperty( NS + "slug" );
 
 }

@@ -16,12 +16,11 @@
  */
 package com.atomgraph.linkeddatahub.vocabulary;
 
-import org.apache.jena.ontology.DatatypeProperty;
-import org.apache.jena.ontology.ObjectProperty;
-import org.apache.jena.ontology.OntClass;
-import org.apache.jena.ontology.OntModel;
-import org.apache.jena.ontology.OntModelSpec;
-import org.apache.jena.rdf.model.ModelFactory;
+import org.apache.jena.ontapi.OntModelFactory;
+import org.apache.jena.ontapi.OntSpecification;
+import org.apache.jena.ontapi.model.OntModel;
+import org.apache.jena.rdf.model.Property;
+
 import org.apache.jena.rdf.model.Resource;
 
 /**
@@ -31,8 +30,13 @@ import org.apache.jena.rdf.model.Resource;
  */
 public class LACL
 {
+
+    static
+    {
+        org.apache.jena.sys.JenaSystem.init(); // ensure Jena (RDFS vocab) is initialized before ontapi touches it
+    }
     /** The RDF model that holds the vocabulary terms */
-    private static OntModel m_model = ModelFactory.createOntologyModel(OntModelSpec.OWL_MEM, null);
+    private static OntModel m_model = OntModelFactory.createModel(OntSpecification.OWL2_DL_MEM);
     
     /** The namespace of the vocabulary as a string */
     public static final String NS = "https://w3id.org/atomgraph/linkeddatahub/admin/acl#";
@@ -52,33 +56,33 @@ public class LACL
     public static final Resource NAMESPACE = m_model.createResource( NS );
 
     /** Authorization request class */
-    public static final OntClass AuthorizationRequest = m_model.createClass( NS + "AuthorizationRequest" );
+    public static final Resource AuthorizationRequest = m_model.createOntClass( NS + "AuthorizationRequest" );
     
     /** Authorization request class */
-    public static final OntClass OwnerAuthorization = m_model.createClass( NS + "OwnerAuthorization" );
+    public static final Resource OwnerAuthorization = m_model.createOntClass( NS + "OwnerAuthorization" );
 
     /** Password property */
-    public static final DatatypeProperty password = m_model.createDatatypeProperty( NS + "password" );
+    public static final Property password = m_model.createDataProperty( NS + "password" );
     
     /** Issuer property */
-    public static final DatatypeProperty issuer = m_model.createDatatypeProperty( NS + "issuer" );
+    public static final Property issuer = m_model.createDataProperty( NS + "issuer" );
 
         /** Request agent property **/
-    public static final ObjectProperty requestMode = m_model.createObjectProperty( NS + "requestMode" );
+    public static final Property requestMode = m_model.createObjectProperty( NS + "requestMode" );
 
     /** Request agent property **/
-    public static final ObjectProperty requestAgent = m_model.createObjectProperty( NS + "requestAgent" );
+    public static final Property requestAgent = m_model.createObjectProperty( NS + "requestAgent" );
 
     /** Request agent group property **/
-    public static final ObjectProperty requestAgentGroup = m_model.createObjectProperty( NS + "requestAgentGroup" );
+    public static final Property requestAgentGroup = m_model.createObjectProperty( NS + "requestAgentGroup" );
 
     /** Request access to property */
-    public static final ObjectProperty requestAccessTo = m_model.createObjectProperty( NS + "requestAccessTo" );
+    public static final Property requestAccessTo = m_model.createObjectProperty( NS + "requestAccessTo" );
 
         /** Request access to class property */
-    public static final ObjectProperty requestAccessToClass = m_model.createObjectProperty( NS + "requestAccessToClass" );
+    public static final Property requestAccessToClass = m_model.createObjectProperty( NS + "requestAccessToClass" );
     
     /** Request access property */
-    public static final ObjectProperty requestAccess = m_model.createObjectProperty( NS + "requestAccess" );
+    public static final Property requestAccess = m_model.createObjectProperty( NS + "requestAccess" );
 
 }

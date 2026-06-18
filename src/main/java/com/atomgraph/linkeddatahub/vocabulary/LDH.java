@@ -16,12 +16,11 @@
  */
 package com.atomgraph.linkeddatahub.vocabulary;
 
-import org.apache.jena.ontology.DatatypeProperty;
-import org.apache.jena.ontology.ObjectProperty;
-import org.apache.jena.ontology.OntClass;
-import org.apache.jena.ontology.OntModel;
-import org.apache.jena.ontology.OntModelSpec;
-import org.apache.jena.rdf.model.ModelFactory;
+import org.apache.jena.ontapi.OntModelFactory;
+import org.apache.jena.ontapi.OntSpecification;
+import org.apache.jena.ontapi.model.OntModel;
+import org.apache.jena.rdf.model.Property;
+
 import org.apache.jena.rdf.model.Resource;
 
 /**
@@ -31,8 +30,13 @@ import org.apache.jena.rdf.model.Resource;
  */
 public class LDH
 {
+
+    static
+    {
+        org.apache.jena.sys.JenaSystem.init(); // ensure Jena (RDFS vocab) is initialized before ontapi touches it
+    }
     /** The RDF model that holds the vocabulary terms */
-    private static OntModel m_model = ModelFactory.createOntologyModel(OntModelSpec.OWL_MEM, null);
+    private static OntModel m_model = OntModelFactory.createModel(OntSpecification.OWL2_DL_MEM);
     
     /** The namespace of the vocabulary as a string */
     public static final String NS = "https://w3id.org/atomgraph/linkeddatahub#";
@@ -51,62 +55,62 @@ public class LDH
     public static final Resource NAMESPACE = m_model.createResource( NS );
 
     /** Dataset class */
-    public static final OntClass Dataset = m_model.createClass(NS + "Dataset");
+    public static final Resource Dataset = m_model.createOntClass(NS + "Dataset");
 
     /** Generic service class */
-    public static final OntClass GenericService = m_model.createClass(NS + "GenericService");
+    public static final Resource GenericService = m_model.createOntClass(NS + "GenericService");
     
     /** Import class */
-    public static final OntClass Import = m_model.createClass(NS + "Import");
+    public static final Resource Import = m_model.createOntClass(NS + "Import");
 
     /** CSV import class */
-    public static final OntClass CSVImport = m_model.createClass(NS + "CSVImport");
+    public static final Resource CSVImport = m_model.createOntClass(NS + "CSVImport");
 
     /** RDF import class */
-    public static final OntClass RDFImport = m_model.createClass(NS + "RDFImport");
+    public static final Resource RDFImport = m_model.createOntClass(NS + "RDFImport");
 
     /** File class */
-    public static final OntClass File = m_model.createClass(NS + "File");
+    public static final Resource File = m_model.createOntClass(NS + "File");
     
     /** Object class */
-    public static final OntClass Object = m_model.createClass(NS + "Object");
+    public static final Resource Object = m_model.createOntClass(NS + "Object");
 
     /** View class */
-    public static final OntClass View = m_model.createClass(NS + "View");
+    public static final Resource View = m_model.createOntClass(NS + "View");
 
     /** URI syntax violation class */
-    public static final OntClass URISyntaxViolation = m_model.createClass(NS + "URISyntaxViolation");
+    public static final Resource URISyntaxViolation = m_model.createOntClass(NS + "URISyntaxViolation");
     
     /** Base property */
-    public static final ObjectProperty base = m_model.createObjectProperty( NS + "base" );
+    public static final Property base = m_model.createObjectProperty( NS + "base" );
     
     /** File property */
-    public static final ObjectProperty file = m_model.createObjectProperty( NS + "file" );
+    public static final Property file = m_model.createObjectProperty( NS + "file" );
     
     /** Action property */
-    public static final ObjectProperty action = m_model.createObjectProperty( NS + "action" );
+    public static final Property action = m_model.createObjectProperty( NS + "action" );
 
     /** Delimiter property */
-    public static final DatatypeProperty delimiter = m_model.createDatatypeProperty( NS + "delimiter" );
+    public static final Property delimiter = m_model.createDataProperty( NS + "delimiter" );
 
     /** Violation value property */
-    public static final DatatypeProperty violationValue = m_model.createDatatypeProperty( NS + "violationValue" );
+    public static final Property violationValue = m_model.createDataProperty( NS + "violationValue" );
     
     /** Request URI property */
-    public static final ObjectProperty requestUri = m_model.createObjectProperty(NS + "requestUri");
+    public static final Property requestUri = m_model.createObjectProperty(NS + "requestUri");
 
     /** HTTP headers property */
-    public static final ObjectProperty httpHeaders = m_model.createObjectProperty(NS + "httpHeaders");
+    public static final Property httpHeaders = m_model.createObjectProperty(NS + "httpHeaders");
     
     /** Service property */
-    public static final ObjectProperty service = m_model.createObjectProperty( NS + "service" );
+    public static final Property service = m_model.createObjectProperty( NS + "service" );
 
     /**
      * For shape property */
-    public static final ObjectProperty forShape = m_model.createObjectProperty( NS + "forShape" );
+    public static final Property forShape = m_model.createObjectProperty( NS + "forShape" );
 
     /**
      * Import property - used to import packages into an application */
-    public static final ObjectProperty importPackage = m_model.createObjectProperty( NS + "import" );
+    public static final Property importPackage = m_model.createObjectProperty( NS + "import" );
 
 }

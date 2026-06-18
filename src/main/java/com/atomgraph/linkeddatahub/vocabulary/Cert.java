@@ -16,12 +16,11 @@
  */
 package com.atomgraph.linkeddatahub.vocabulary;
 
-import org.apache.jena.ontology.DatatypeProperty;
-import org.apache.jena.ontology.ObjectProperty;
-import org.apache.jena.ontology.OntClass;
-import org.apache.jena.ontology.OntModel;
-import org.apache.jena.ontology.OntModelSpec;
-import org.apache.jena.rdf.model.ModelFactory;
+import org.apache.jena.ontapi.OntModelFactory;
+import org.apache.jena.ontapi.OntSpecification;
+import org.apache.jena.ontapi.model.OntModel;
+import org.apache.jena.rdf.model.Property;
+
 import org.apache.jena.rdf.model.Resource;
 
 /**
@@ -32,8 +31,13 @@ import org.apache.jena.rdf.model.Resource;
 
 public class Cert
 {
+
+    static
+    {
+        org.apache.jena.sys.JenaSystem.init(); // ensure Jena (RDFS vocab) is initialized before ontapi touches it
+    }
     /** The RDF model that holds the vocabulary terms */
-    private static OntModel m_model = ModelFactory.createOntologyModel(OntModelSpec.OWL_MEM, null);
+    private static OntModel m_model = OntModelFactory.createModel(OntSpecification.OWL2_DL_MEM);
     
     /** The namespace of the vocabulary as a string */
     public static final String NS = "http://www.w3.org/ns/auth/cert#";
@@ -50,18 +54,18 @@ public class Cert
     public static final Resource NAMESPACE = m_model.createResource( NS );
 
     /** Public key class */
-    public static final OntClass PublicKey = m_model.createClass(NS + "PublicKey");
+    public static final Resource PublicKey = m_model.createOntClass(NS + "PublicKey");
 
     /** RSA public key class */
-    public static final OntClass RSAPublicKey = m_model.createClass(NS + "RSAPublicKey");
+    public static final Resource RSAPublicKey = m_model.createOntClass(NS + "RSAPublicKey");
 
     /** Key property */
-    public static final ObjectProperty key = m_model.createObjectProperty( NS + "key" );
+    public static final Property key = m_model.createObjectProperty( NS + "key" );
 
     /** Modulus property */
-    public static final DatatypeProperty modulus = m_model.createDatatypeProperty( NS + "modulus" );
+    public static final Property modulus = m_model.createDataProperty( NS + "modulus" );
     
     /** Exponent property */
-    public static final DatatypeProperty exponent = m_model.createDatatypeProperty( NS + "exponent" );
+    public static final Property exponent = m_model.createDataProperty( NS + "exponent" );
 
 }
