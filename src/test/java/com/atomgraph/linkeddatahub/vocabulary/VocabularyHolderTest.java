@@ -28,7 +28,7 @@ import static org.junit.jupiter.api.Assertions.*;
  * All ~19 vocabulary classes follow the identical pattern — a static OntModel built with
  * {@code ModelFactory.createOntologyModel(OntModelSpec.OWL_MEM, null)} on which
  * {@code createClass} / {@code createDatatypeProperty} mint typed terms. Phase A swaps the
- * factory to {@code OntModelFactory.createModel(OntSpecification.OWL2_DL_MEM)} and renames
+ * factory to {@code OntModelFactory.createModel(OntSpecification.OWL1_FULL_MEM)} and renames
  * {@code createClass}→{@code createOntClass}, {@code createDatatypeProperty}→{@code createDataProperty}.
  *
  * Asserted via the migration-stable {@link Resource} interface: the term URIs and the

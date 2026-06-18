@@ -147,7 +147,7 @@ public class OntologyFilter implements ContainerRequestFilter
         // only build the materialized model if the ontology is not already cached
         if (!repository.isCached(uri)) loadOntology(repository, uri);
 
-        return OntModelFactory.createModel(repository.get(uri), OntSpecification.OWL2_DL_MEM);
+        return OntModelFactory.createModel(repository.get(uri), OntSpecification.OWL1_FULL_MEM);
     }
 
     /**
@@ -165,8 +165,8 @@ public class OntologyFilter implements ContainerRequestFilter
         Model union = ModelFactory.createDefaultModel();
         Set<String> closure = new HashSet<>();
         loadClosure(repository, uri, union, closure);
-        OntModel inferred = OntModelFactory.createModel(union.getGraph(), OntSpecification.OWL2_DL_MEM_RDFS_INF);
-        OntModel materialized = OntModelFactory.createModel(OntSpecification.OWL2_DL_MEM);
+        OntModel inferred = OntModelFactory.createModel(union.getGraph(), OntSpecification.OWL1_FULL_MEM_RDFS_INF);
+        OntModel materialized = OntModelFactory.createModel(OntSpecification.OWL1_FULL_MEM);
         materialized.add(inferred);
         repository.put(uri, materialized.getGraph());
         // cache imported graphs under their fragment-stripped document URIs too
