@@ -175,7 +175,6 @@ import org.apache.jena.riot.RDFDataMgr;
 import org.slf4j.LoggerFactory;
 import com.atomgraph.server.mapper.SHACLConstraintViolationExceptionMapper;
 import com.atomgraph.server.mapper.SPINConstraintViolationExceptionMapper;
-import com.atomgraph.spinrdf.vocabulary.SP;
 import com.apicatalog.jsonld.JsonLdError;
 import com.apicatalog.jsonld.JsonLdOptions;
 import java.io.FileOutputStream;
@@ -744,7 +743,6 @@ public class Application extends ResourceConfig
                 throw new IllegalStateException(new CertificateException("Secretary certificate with alias " + secretaryCertAlias + " not a valid WebID sertificate (SNA URI is missing)"));
             }
             
-            SP.init(BuiltinPersonalities.model);
             BuiltinPersonalities.model.add(Authorization.class, AuthorizationImpl.factory);
             BuiltinPersonalities.model.add(Agent.class, AgentImpl.factory);
             BuiltinPersonalities.model.add(UserAccount.class, UserAccountImpl.factory);
