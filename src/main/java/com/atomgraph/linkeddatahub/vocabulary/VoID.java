@@ -36,7 +36,7 @@ public class VoID {
     }
     
     /** The RDF model that holds the vocabulary terms */
-    private static OntModel m_model = OntModelFactory.createModel(OntSpecification.OWL1_FULL_MEM);
+    private static OntModel m_model = OntModelFactory.createModel(OntSpecification.OWL2_FULL_MEM);
     
     /** The namespace of the vocabulary as a string */
     public static final String NS = "http://rdfs.org/ns/void#";

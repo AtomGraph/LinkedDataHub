@@ -34,7 +34,6 @@ import com.atomgraph.linkeddatahub.server.mapper.auth.AuthenticationExceptionMap
 import com.atomgraph.linkeddatahub.server.mapper.ForbiddenExceptionMapper;
 import com.atomgraph.linkeddatahub.server.mapper.auth.webid.WebIDCertificateExceptionMapper;
 import com.atomgraph.client.MediaTypes;
-import com.atomgraph.client.locator.PrefixMapper;
 import jakarta.annotation.PostConstruct;
 import jakarta.servlet.ServletConfig;
 import jakarta.ws.rs.core.Context;

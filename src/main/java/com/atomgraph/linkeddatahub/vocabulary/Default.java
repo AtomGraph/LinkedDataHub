@@ -35,7 +35,7 @@ public class Default
         org.apache.jena.sys.JenaSystem.init(); // ensure Jena (RDFS vocab) is initialized before ontapi touches it
     }
     /** The RDF model that holds the vocabulary terms */
-    private static OntModel m_model = OntModelFactory.createModel(OntSpecification.OWL1_FULL_MEM);
+    private static OntModel m_model = OntModelFactory.createModel(OntSpecification.OWL2_FULL_MEM);
     
     /** The namespace of the vocabulary as a string */
     public static final String NS = "https://w3id.org/atomgraph/linkeddatahub/default#";

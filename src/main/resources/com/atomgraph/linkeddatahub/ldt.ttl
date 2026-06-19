@@ -155,29 +155,29 @@
 
 # CLASSES
 
-:InheritedProperty a rdfs:Class ;
+:InheritedProperty a rdfs:Class, owl:Class ;
     rdfs:subClassOf owl:AnnotationProperty ;
     rdfs:label "Inherited property" ;
     rdfs:comment "Values of this property are inherited by subclasses that do not have this property" ;
     rdfs:isDefinedBy : .
 
-:Application a rdfs:Class ;
+:Application a rdfs:Class, owl:Class ;
     rdfs:label "Application" ;
     rdfs:comment "Declarative Linked Data application which structure is defined by its ontology and data is access via its SPARQL service" ;
     rdfs:isDefinedBy : .
 
-:Ontology a rdfs:Class ;
+:Ontology a rdfs:Class, owl:Class ;
     rdfs:subClassOf owl:Ontology ;
     rdfs:label "Ontology" ;
     rdfs:comment "Ontology annotated with Linked Data Templates" ;
     rdfs:isDefinedBy : .
 
-:Template a rdfs:Class ;
+:Template a rdfs:Class, owl:Class ;
     rdfs:label "Resource template" ;
     rdfs:comment "A class of RDF resources that share the same URI template and SPARQL query template" ;
     rdfs:isDefinedBy : .
 
-:Query a rdfs:Class ;
+:Query a rdfs:Class, owl:Class ;
     rdfs:subClassOf sp:Query, [ a owl:Class ;
         owl:unionOf (sp:Describe sp:Construct) ;
         rdfs:label "Graph query forms"
@@ -185,12 +185,12 @@
     rdfs:label "Query" ;
     rdfs:isDefinedBy : .
 
-:Update a rdfs:Class ;
+:Update a rdfs:Class, owl:Class ;
     rdfs:subClassOf sp:Update ;
     rdfs:label "Update" ;
     rdfs:isDefinedBy : .
 
-:Parameter a rdfs:Class ;
+:Parameter a rdfs:Class, owl:Class ;
     rdfs:subClassOf spl:Argument ;
     rdfs:label "Parameter" ;
     rdfs:comment "Represents a query parameter that has predicate, value type, default value etc." ;

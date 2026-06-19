@@ -63,9 +63,9 @@ public class SPINConstraintValidationTest
             "com/atomgraph/linkeddatahub/ldh.ttl" })
             RDFDataMgr.read(closure, classpath);
 
-        // mirror OntologyFilter.loadOntology: RDFS-infer then materialize into a plain OWL1_FULL_MEM graph
-        OntModel inferred = OntModelFactory.createModel(closure.getGraph(), OntSpecification.OWL1_FULL_MEM_RDFS_INF);
-        OntModel materialized = OntModelFactory.createModel(OntSpecification.OWL1_FULL_MEM);
+        // mirror OntologyFilter.loadOntology: RDFS-infer then materialize into a plain OWL2_FULL_MEM graph
+        OntModel inferred = OntModelFactory.createModel(closure.getGraph(), OntSpecification.OWL2_FULL_MEM_RDFS_INF);
+        OntModel materialized = OntModelFactory.createModel(OntSpecification.OWL2_FULL_MEM);
         materialized.add(inferred);
         return materialized;
     }
