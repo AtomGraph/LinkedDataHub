@@ -22,7 +22,6 @@ add-property-constraint.sh \
   --label "New constraint" \
   --property "http://rdfs.org/sioc/ns#content" \
   "$ontology_doc"
-echo "DEBUG: add-property-constraint.sh done"
 
 # create a class with the constraint
 
@@ -35,28 +34,21 @@ add-class.sh \
   --constraint "$constraint" \
   --sub-class-of "https://www.w3.org/ns/ldt/document-hierarchy#Item" \
   "$ontology_doc"
-echo "DEBUG: add-class.sh done"
 
 # clear ontology from memory
 
-clear_output=$(clear-ontology.sh \
+clear-ontology.sh \
   -f "$OWNER_CERT_FILE" \
   -p "$OWNER_CERT_PWD" \
   -b "$ADMIN_BASE_URL" \
-  --ontology "$namespace" 2>&1) && clear_exit=0 || clear_exit=$?
-echo "DEBUG: clear-ontology.sh exit=$clear_exit output=$clear_output"
-[ "$clear_exit" -eq 0 ] || exit "$clear_exit"
+  --ontology "$namespace"
 
 # check that the constraint is present in the ontology
 
-ns_body=$(curl -k -f -s -N \
+curl -k -f -s -N \
   -H "Accept: application/n-triples" \
-  "$namespace_doc" 2>&1) && ns_exit=0 || ns_exit=$?
-echo "DEBUG: namespace GET exit=$ns_exit"
-echo "DEBUG: namespace body (first 500 chars): ${ns_body:0:500}"
-[ "$ns_exit" -eq 0 ] || exit "$ns_exit"
-echo "$ns_body" | grep "$constraint" > /dev/null
-echo "DEBUG: constraint found in namespace doc"
+  "$namespace_doc" \
+| grep "$constraint" > /dev/null
 
 # check that creating an instance of the class without sioc:content returns 422 Unprocessable Entity due to missing sioc:content
 
@@ -79,6 +71,5 @@ response=$(echo -e "$turtle" \
   "$END_USER_BASE_URL" \
 2>&1) # redirect output from stderr to stdout
 
-echo "DEBUG: PUT response (last 200 chars): ${response: -200}"
 echo "$response" \
 | grep "HTTP/1.1 422" > /dev/null

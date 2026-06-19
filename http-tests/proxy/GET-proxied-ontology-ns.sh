@@ -42,13 +42,11 @@ add-class.sh \
 
 # clear the in-memory ontology so the new classes are present on next request
 
-clear_out=$(clear-ontology.sh \
+clear-ontology.sh \
   -f "$OWNER_CERT_FILE" \
   -p "$OWNER_CERT_PWD" \
   -b "$ADMIN_BASE_URL" \
-  --ontology "$namespace" 2>&1) && clear_exit=0 || clear_exit=$?
-echo "DEBUG: clear-ontology.sh exit=$clear_exit output=$clear_out"
-[ "$clear_exit" -eq 0 ] || exit "$clear_exit"
+  --ontology "$namespace"
 
 # request the namespace document URI (without fragment) via ?uri= proxy.
 # the namespace document is not DataManager-mapped and not a registered app,
@@ -60,12 +58,9 @@ response=$(curl -k -f -s \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
   -H "Accept: application/n-triples" \
   --data-urlencode "uri=${namespace_uri}" \
-  "$END_USER_BASE_URL" 2>&1) && proxy_exit=0 || proxy_exit=$?
-echo "DEBUG: proxy GET exit=$proxy_exit"
-echo "DEBUG: proxy response (first 500 chars): ${response:0:500}"
-[ "$proxy_exit" -eq 0 ] || exit "$proxy_exit"
+  "$END_USER_BASE_URL")
 
 # verify both class descriptions are present in the response
 
-echo "$response" | grep -q "$class1" && echo "DEBUG: class1 found" || { echo "DEBUG: class1 NOT found"; exit 1; }
-echo "$response" | grep -q "$class2" && echo "DEBUG: class2 found" || { echo "DEBUG: class2 NOT found"; exit 1; }
+echo "$response" | grep -q "$class1"
+echo "$response" | grep -q "$class2"
