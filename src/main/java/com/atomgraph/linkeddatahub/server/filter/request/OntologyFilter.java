@@ -38,6 +38,8 @@ import org.apache.jena.ontapi.model.OntModel;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.vocabulary.OWL;
+import org.apache.jena.vocabulary.RDF;
+import org.apache.jena.vocabulary.RDFS;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -168,6 +170,8 @@ public class OntologyFilter implements ContainerRequestFilter
         OntModel inferred = OntModelFactory.createModel(union.getGraph(), OntSpecification.OWL2_FULL_MEM_RDFS_INF);
         OntModel materialized = OntModelFactory.createModel(OntSpecification.OWL2_FULL_MEM);
         materialized.add(inferred);
+        // promote rdfs:Class to owl:Class so OWL2 profiles recognise third-party vocab terms (e.g. sp:Describe in sp.ttl)
+        inferred.listSubjectsWithProperty(RDF.type, RDFS.Class).forEach(r -> materialized.add(r, RDF.type, OWL.Class));
         repository.put(uri, materialized.getGraph());
         // cache imported graphs under their fragment-stripped document URIs too
         closure.stream().filter(closureURI -> !closureURI.equals(uri)).forEach(importURI -> addDocumentModel(repository, importURI));
