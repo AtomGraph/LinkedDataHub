@@ -3,7 +3,7 @@
       <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
       <title>LinkedDataHub v5 — Manage dataspaces</title>
       <meta name="description" content="Create or change a dataspace, configure SPARQL services and XSLT stylesheets"/>
-      <meta name="last-modified" content="2026-06-18T20:43:59Z"/>
+      <meta name="last-modified" content="2026-06-19T06:24:50Z"/>
       <link href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/files/css/bootstrap.css" rel="stylesheet" type="text/css"/>
       <link href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/files/css/bootstrap-responsive.css" rel="stylesheet" type="text/css"/>
       <link href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/files/css/linkeddatahub-bootstrap.css" rel="stylesheet" type="text/css"/>
@@ -173,8 +173,9 @@
                         
                         <p>The relationship between end-user and admin applications is automatically inferred
                            based on naming conventions — you don't need to manually specify
-                           <code>lapp:endUserApplication</code> or <code>lapp:adminApplication</code> properties. Applications with base URIs containing <samp>admin/</samp> are
-                           automatically recognized as administration applications.</p>
+                           <code>lapp:endUserApplication</code> or <code>lapp:adminApplication</code> properties. Applications whose origin (<code>lapp:origin</code>) uses the
+                           <samp>admin.</samp> subdomain are automatically recognized as administration applications, and paired
+                           with the end-user application on the corresponding bare host.</p>
                         
                         <div class="alert alert-info">
                            

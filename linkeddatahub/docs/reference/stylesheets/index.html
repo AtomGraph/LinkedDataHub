@@ -3,7 +3,7 @@
       <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
       <title>LinkedDataHub v5 — Stylesheets</title>
       <meta name="description" content="Built-in XSLT and CSS stylesheets"/>
-      <meta name="last-modified" content="2026-06-18T20:43:59Z"/>
+      <meta name="last-modified" content="2026-06-19T06:24:49Z"/>
       <link href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/files/css/bootstrap.css" rel="stylesheet" type="text/css"/>
       <link href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/files/css/bootstrap-responsive.css" rel="stylesheet" type="text/css"/>
       <link href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/files/css/linkeddatahub-bootstrap.css" rel="stylesheet" type="text/css"/>
@@ -210,10 +210,17 @@
                         
                         <p>Note that LinkedDataHub itself imports stylesheets from <a href="https://github.com/AtomGraph/Web-Client" target="_blank">Web-Client</a>, which uses the same template modes but produces a much simpler layout.</p>
                         
-                        <p>There is also a special <a href="https://github.com/AtomGraph/LinkedDataHub/blob/master/src/main/webapp/static/com/atomgraph/linkeddatahub/xsl/client.xsl" target="_blank">client-side stylesheet</a> which is not used to render a full layout, but only manipulate DOM elements in the
-                           browser in response to user or system events. It is processed using <a href="http://www.saxonica.com/saxon-js/index.xml" target="_blank">Saxon-JS</a> which provides IXSL (<a href="https://www.saxonica.com/saxon-js/documentation/index.html#!ixsl-extension" target="_blank">client-side extensions for XSLT</a>). It imports and reuses some of the same sub-stylesheets as the server-side system
-                           stylesheet does, but avoids loading per-vocabulary stylesheets in order to improve
-                           page load time. Templates of the client-side stylesheet can also be overridden.</p>
+                        <p>The same XSLT 3.0 stylesheets run in two environments. On the server they are executed
+                           by Saxon-HE to produce the initial HTML response. In the browser they are executed
+                           by <a href="https://www.saxonica.com/saxon-js/index.xml" target="_blank">Saxon-JS 3</a>, which provides IXSL (<a href="https://www.saxonica.com/saxonjs/documentation3/index.html#!ixsl-extension" target="_blank">Interactive XSLT extensions</a>) for reading and manipulating the browser DOM.</p>
+                        
+                        <p>There is a dedicated <a href="https://github.com/AtomGraph/LinkedDataHub/blob/master/src/main/webapp/static/com/atomgraph/linkeddatahub/xsl/client.xsl" target="_blank">client-side stylesheet <samp>client.xsl</samp></a> that drives the browser. After the server-rendered page loads, its <code>main</code> template renders the layout client-side — the left sidebar, navigation, document
+                           and tab panes, content blocks, forms and modal dialogs are injected into the DOM using
+                           IXSL (e.g. <code>ixsl:append-content</code>). It also handles all subsequent navigation, so following links and switching documents
+                           re-renders in place without a full page reload. It imports and reuses the same document-,
+                           resource- and property-level templates as the server-side system stylesheet, but avoids
+                           loading per-vocabulary stylesheets in order to improve page load time. Templates of
+                           the client-side stylesheet can also be overridden.</p>
                         </div>
                      
                      <div>
@@ -377,15 +384,6 @@
                               
                               <tr>
                                  
-                                 <td><code>$ldt:base</code></td>
-                                 
-                                 <td><code>xs:anyURI</code></td>
-                                 
-                                 <td>Base URI of the current application</td>
-                                 </tr>
-                              
-                              <tr>
-                                 
                                  <td><code>$lapp:Application</code></td>
                                  
                                  <td><code>document-node()?</code></td>
@@ -417,7 +415,7 @@
                                  
                                  <td><code>xs:anyURI</code></td>
                                  
-                                 <td>SPARQL query endpoint URI (defaults to <code>resolve-uri('sparql', $ldt:base)</code>)</td>
+                                 <td>SPARQL query endpoint URI (defaults to <code>resolve-uri('sparql', ldt:base())</code>)</td>
                                  </tr>
                               
                               <tr>
@@ -454,15 +452,6 @@
                                  <td><code>xs:anyURI*</code></td>
                                  
                                  <td>Current layout mode (derived: <code>ldh:ContentMode</code> if the document has content blocks, otherwise <code>ac:ReadMode</code>)</td>
-                                 </tr>
-                              
-                              <tr>
-                                 
-                                 <td><code>$lapp:origin</code></td>
-                                 
-                                 <td><code>xs:anyURI</code></td>
-                                 
-                                 <td>Origin URI of the current application</td>
                                  </tr>
                               </tbody>
                            </table>
@@ -530,6 +519,24 @@
                               
                               <tr>
                                  
+                                 <td><code>lapp:origin()</code></td>
+                                 
+                                 <td><code>xs:anyURI</code></td>
+                                 
+                                 <td>Returns the origin (scheme, host and port) of the current application, e.g. <code>https://localhost:4443/</code>. Used to build absolute URIs for static resources and same-site requests</td>
+                                 </tr>
+                              
+                              <tr>
+                                 
+                                 <td><code>ldt:base()</code></td>
+                                 
+                                 <td><code>xs:anyURI</code></td>
+                                 
+                                 <td>Returns the base URI of the current application. Replaces the former <code>$ldt:base</code> parameter</td>
+                                 </tr>
+                              
+                              <tr>
+                                 
                                  <td><code>ldh:request-uri()</code></td>
                                  
                                  <td><code>xs:anyURI</code></td>
@@ -554,6 +561,16 @@
                                  
                                  <td>Resolves a URI to a local href, proxying external URIs through the LinkedDataHub proxy.
                                     Overloads accept <code>$query-params as map(xs:string, xs:string*)</code> and <code>$fragment as xs:string?</code></td>
+                                 </tr>
+                              
+                              <tr>
+                                 
+                                 <td><code>ldh:parse-href($href as xs:anyURI)</code></td>
+                                 
+                                 <td><code>map(xs:string, item()?)</code></td>
+                                 
+                                 <td>Inverse of <code>ldh:href()</code> — parses a local href back into its target URI, query parameters and fragment. Shared
+                                    by the client-side navigation handlers</td>
                                  </tr>
                               
                               <tr>
@@ -816,7 +833,10 @@
                            is defined as Jena's <a href="https://jena.apache.org/documentation/io/rdf-input.html#configuring-a-locationmapper" target="_blank">location mapping</a> and can be found in
                            <a href="https://github.com/AtomGraph/LinkedDataHub/blob/master/src/main/resources/location-mapping.n3" target="_blank"><samp>location-mapping.n3</samp></a> and <a href="https://github.com/AtomGraph/LinkedDataHub/blob/master/src/main/resources/prefix-mapping.n3" target="_blank"><samp>prefix-mapping.n3</samp></a>.</p>
                         
-                        <p>Client-side stylesheets use <a href="https://www.saxonica.com/saxon-js/documentation/index.html#!ixsl-extension/instructions/schedule-action" target="_blank"><code>&lt;ixsl:schedule-action&gt;</code></a> (deprecated) and <a href="https://www.saxonica.com/saxonjs/documentation3/index.html#!ixsl-extension/instructions/promise" target="_blank"><code>&lt;ixsl:promise&gt;</code></a> to load XML documents asynchronously.</p>
+                        <p>Client-side stylesheets use <a href="https://www.saxonica.com/saxonjs/documentation3/index.html#!ixsl-extension/instructions/schedule-action" target="_blank"><code>&lt;ixsl:schedule-action&gt;</code></a> (deprecated) and <a href="https://www.saxonica.com/saxonjs/documentation3/index.html#!ixsl-extension/instructions/promise" target="_blank"><code>&lt;ixsl:promise&gt;</code></a> to load XML documents asynchronously. The metadata required to render forms — constructors,
+                           SHACL shapes, and property and object descriptions — is loaded client-side through
+                           chains of <code>&lt;ixsl:promise&gt;</code>, so the browser fetches it on demand rather than the server fetching everything up
+                           front.</p>
                         </div>
                      </div>
                   

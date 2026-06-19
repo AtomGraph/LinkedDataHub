@@ -3,7 +3,7 @@
       <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
       <title>LinkedDataHub v5 — HTTP API</title>
       <meta name="description" content="Learn how to access and manage RDF data over generic HTTP API"/>
-      <meta name="last-modified" content="2026-06-18T20:43:59Z"/>
+      <meta name="last-modified" content="2026-06-19T06:24:49Z"/>
       <link href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/files/css/bootstrap.css" rel="stylesheet" type="text/css"/>
       <link href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/files/css/bootstrap-responsive.css" rel="stylesheet" type="text/css"/>
       <link href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/files/css/linkeddatahub-bootstrap.css" rel="stylesheet" type="text/css"/>
@@ -522,6 +522,11 @@ Content-Type: text/turtle</code></pre>
                      <p>If the URL dereferences successfully as RDF, LinkedDataHub forwards its response body
                         (re-serializing it to enable content negotiation).
                         During a write request, the request body is forwarded to the provided URL.</p>
+                     
+                     <p>If the URL returns an HTML document, LinkedDataHub extracts every embedded <a href="https://json-ld.org/" target="_blank">JSON-LD</a> script
+                        (<code>&lt;script type="application/ld+json"&gt;</code>) and parses it as RDF using JSON-LD 1.1, so pages annotated with <a href="https://schema.org/" target="_blank">schema.org</a> markup
+                        can be browsed as Linked Data. The schema.org JSON-LD context is bundled with LinkedDataHub
+                        and served locally, so no external network request is made to resolve it.</p>
                      
                      <p>The proxy only accepts external (non-relative to the current application's base URI)
                         URLs; local URLs have to be dereferenced directly.</p>

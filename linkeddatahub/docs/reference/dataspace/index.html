@@ -3,7 +3,7 @@
       <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
       <title>LinkedDataHub v5 — Dataspace</title>
       <meta name="description" content="LinkedDataHub dataspaces, applications, and services"/>
-      <meta name="last-modified" content="2026-06-18T20:43:59Z"/>
+      <meta name="last-modified" content="2026-06-19T06:24:49Z"/>
       <link href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/files/css/bootstrap.css" rel="stylesheet" type="text/css"/>
       <link href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/files/css/bootstrap-responsive.css" rel="stylesheet" type="text/css"/>
       <link href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/files/css/linkeddatahub-bootstrap.css" rel="stylesheet" type="text/css"/>
@@ -139,7 +139,8 @@
                         <a href="#end-user-apps">end-user</a> and <a href="#admin-apps">administration</a>.</p>
                      
                      <p>The end-user app will be available on the given base URI; the admin app will be available
-                        at that base URI with <code>admin/</code> appended. The <a href="../administration/acl/#agents">agent</a> that installed the admin dataset will be the application <dfn>owner</dfn>.</p>
+                        on the corresponding
+                        <code>admin.</code> subdomain (e.g. the admin app of <samp>https://example.com/</samp> is served at <samp>https://admin.example.com/</samp>). The <a href="../administration/acl/#agents">agent</a> that installed the admin dataset will be the application <dfn>owner</dfn>.</p>
                      
                      <p>The <dfn>secretary</dfn> is a special agent which represents the software application itself. It is distinct
                         from the owner agent and is used to delegate the owner's access.</p>
@@ -234,11 +235,16 @@
                         
                         <p>Every administration application is related to one <a href="#end-user-apps">end-user application</a>. It cannot exist standalone.</p>
                         
-                        <p>The base URI(s) of an administration application is the base URI(s) of its end-user
-                           application with <code>admin/</code> appended
-                           to it. Note that any URIs in the end-user application that are equal or relative to
-                           the admin application base URI <em>will not
-                              be accessible</em>.</p>
+                        <p>The base URI of an administration application is the base URI of its end-user application
+                           with the <code>admin.</code> subdomain
+                           prefixed to the host (e.g. <samp>https://example.com/</samp> → <samp>https://admin.example.com/</samp>). Because the admin application lives on
+                           its own subdomain (origin), it no longer occupies a path within the end-user application.</p>
+                        
+                        <div class="alert alert-info">
+                           
+                           <p>Since LinkedDataHub 5.1.0 the administration application is served on the <code>admin.</code> subdomain rather than under an
+                              <code>admin/</code> path. The subdomain must resolve in DNS and be covered by the server's TLS certificate.</p>
+                           </div>
                         
                         <p>Administration application provides means to control the <a href="../administration/ontologies/">domain model</a> and the
                            <a href="../administration/acl/">access control</a> of its end-user application. Only dataspace owners have access to its

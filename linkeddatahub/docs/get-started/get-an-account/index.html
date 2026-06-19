@@ -3,7 +3,7 @@
       <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
       <title>LinkedDataHub v5 — Get an account</title>
       <meta name="description" content="How to get login to LinkedDataHub"/>
-      <meta name="last-modified" content="2026-06-18T20:43:59Z"/>
+      <meta name="last-modified" content="2026-06-19T06:24:49Z"/>
       <link href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/files/css/bootstrap.css" rel="stylesheet" type="text/css"/>
       <link href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/files/css/bootstrap-responsive.css" rel="stylesheet" type="text/css"/>
       <link href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/files/css/linkeddatahub-bootstrap.css" rel="stylesheet" type="text/css"/>
@@ -145,6 +145,8 @@
                            <li class="active"><a>Get WebID</a></li>
                            
                            <li><a>Login with Google</a></li>
+                           
+                           <li><a>Login with ORCID</a></li>
                            </ul>
                         
                         <div class="tab-content">
@@ -278,7 +280,20 @@
                               
                               <div class="alert alert-info">
                                  
-                                 <p>Login with Google is only enabled if LinkedDataHub was <a href="../../reference/configuration/#social-login">configured with social login</a>.</p>
+                                 <p>Login with Google is only enabled if LinkedDataHub was <a href="../../reference/configuration/#secrets">configured with social login</a>.</p>
+                                 </div>
+                              </div>
+                           
+                           <div class="tab-pane">
+                              
+                              <p>Click the <span class="btn btn-primary">Login with ORCID</span> button in the navbar to authenticate with your <a href="https://orcid.org" target="_blank">ORCID</a> account using OpenID Connect.</p>
+                              
+                              <p>If the email address of your ORCID account matches the dataspace owner's email address
+                                 that was specified during <a href="../setup/">setup</a>, you will be authenticated as the owner with <a href="../../reference/administration/acl/">full control</a> access rights.</p>
+                              
+                              <div class="alert alert-info">
+                                 
+                                 <p>Login with ORCID is only enabled if LinkedDataHub was <a href="../../reference/configuration/#secrets">configured with social login</a>.</p>
                                  </div>
                               </div>
                            </div>

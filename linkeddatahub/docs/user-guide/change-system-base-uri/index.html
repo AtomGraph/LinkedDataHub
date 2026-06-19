@@ -3,7 +3,7 @@
       <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
       <title>LinkedDataHub v5 — Change system base URI</title>
       <meta name="description" content="How to change host, port, or the path LinkedDataHub service runs on"/>
-      <meta name="last-modified" content="2026-06-18T20:43:59Z"/>
+      <meta name="last-modified" content="2026-06-19T06:24:50Z"/>
       <link href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/files/css/bootstrap.css" rel="stylesheet" type="text/css"/>
       <link href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/files/css/bootstrap-responsive.css" rel="stylesheet" type="text/css"/>
       <link href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/files/css/linkeddatahub-bootstrap.css" rel="stylesheet" type="text/css"/>
@@ -146,6 +146,13 @@ HTTP_PORT=80
 HTTPS_PORT=443
 HOST=ec2-54-235-229-141.compute-1.amazonaws.com
 ABS_PATH=/linkeddatahub/</pre>
+                     
+                     <div class="alert alert-info">
+                        
+                        <p>The <a href="../../reference/dataspace/#admin-apps">administration application</a> of each dataspace is served on the <code>admin.</code> subdomain
+                           of its end-user host (e.g. <samp>admin.ec2-54-235-229-141.compute-1.amazonaws.com</samp>). The subdomain must resolve in DNS and be covered by the
+                           server's TLS certificate, otherwise the admin application will not be reachable.</p>
+                        </div>
                      </div>
                   
                   <p><a href="../manage-dataspaces/">Dataspace URIs</a> need to relative to the system base URI in order to be reachable.</p>

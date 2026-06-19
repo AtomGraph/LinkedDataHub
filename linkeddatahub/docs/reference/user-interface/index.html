@@ -3,7 +3,7 @@
       <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
       <title>LinkedDataHub v5 — User interface</title>
       <meta name="description" content="A walk through the main features of application user interface"/>
-      <meta name="last-modified" content="2026-06-18T20:43:59Z"/>
+      <meta name="last-modified" content="2026-06-19T06:24:49Z"/>
       <link href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/files/css/bootstrap.css" rel="stylesheet" type="text/css"/>
       <link href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/files/css/bootstrap-responsive.css" rel="stylesheet" type="text/css"/>
       <link href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/files/css/linkeddatahub-bootstrap.css" rel="stylesheet" type="text/css"/>
@@ -302,9 +302,27 @@
                         
                         <dt>Graph</dt>
                         
-                        <dd>Renders <a href="../data-model/resources/">resources</a> in the current document graphically as nodes in a network using
-                           force-directed layout.</dd>
+                        <dd>Renders <a href="../data-model/resources/">resources</a> in the current document graphically as nodes in an interactive 3D network using a
+                           force-directed layout. Clicking a node shows its details, double-clicking loads the
+                           resource, and right-clicking a URI node loads its backlinks (resources pointing at
+                           it).
+                           The canvas can be toggled to fullscreen (press <kbd>Esc</kbd> to exit), and the graph state is preserved across search and filter re-renders.</dd>
                         </dl>
+                     </div>
+                  
+                  <div>
+                     
+                     <h2 id="document-tabs">Document tabs</h2>
+                     
+                     <p>LinkedDataHub navigates within a single page. When you follow a link to an external
+                        document (for example a resource fetched through the
+                        <a href="../http-api/#linked-data-proxy">Linked Data proxy</a>), it opens in its own tab so that several documents can be kept open side by side.
+                        A sticky tab bar appears at the top of the page once the first external tab is opened.</p>
+                     
+                     <p>Each tab keeps its own content pane, and modal dialogs (such as creation and edit
+                        forms) are scoped to the active tab pane. Switching between tabs is cached, so
+                        returning to a previously opened tab does not re-fetch it. Closing a tab removes its
+                        pane and falls back to the base document's tab.</p>
                      </div>
                   
                   <div>
