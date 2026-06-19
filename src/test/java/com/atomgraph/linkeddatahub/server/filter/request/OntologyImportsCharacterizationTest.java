@@ -53,11 +53,12 @@ public class OntologyImportsCharacterizationTest
         Resource b = ResourceFactory.createResource(NS + "B");
         Resource x = ResourceFactory.createResource(NS + "x");
 
-        // imported ontology: A, B declared as owl:Class (as in dh.ttl since the OWL2 normalization); B rdfs:subClassOf A; individual x a B
+        // imported ontology: A declared as owl:Class only; B declared as rdfs:Class only (mimicking third-party vocabs like sp.ttl);
+        // B rdfs:subClassOf A; individual x a B
         Model imported = ModelFactory.createDefaultModel();
         imported.add(imported.createResource(IMPORT_URI), RDF.type, OWL.Ontology);
         imported.add(a, RDF.type, OWL.Class);
-        imported.add(b, RDF.type, OWL.Class);
+        imported.add(b, RDF.type, RDFS.Class);
         imported.add(b, RDFS.subClassOf, a);
         imported.add(x, RDF.type, b);
         repository.put(IMPORT_URI, imported.getGraph());
@@ -78,11 +79,13 @@ public class OntologyImportsCharacterizationTest
         assertTrue(result.contains(x, RDF.type, a), "RDFS-inferred 'x a A' should be materialized in the cached graph");
         // (c) the import is also cached under its (fragment-stripped) document URI
         assertTrue(repository.isCached(IMPORT_URI), "import should remain cached");
-        // (d) REGRESSION GUARD: an owl:Class must be recognized as an OntClass by the model the pipeline returns, so
-        // GET /ns?forClass=...#Item resolves the class and runs its SPIN constructor. The ontologies are normalized to
-        // owl:Class so OWL2_FULL_MEM recognizes them (bare rdfs:Class is NOT recognized by any OWL2 profile).
+        // (d) REGRESSION GUARD: both owl:Class and rdfs:Class-only terms must be recognized as OntClasses by the returned
+        // model, so GET /ns?forClass=<URI> resolves the class and runs its SPIN constructor.
+        // OntologyFilter promotes all rdfs:Class subjects to owl:Class so OWL2 profiles (which do not recognize bare
+        // rdfs:Class) can find third-party vocab terms like sp:Describe.
         OntModel ontology = OntModelFactory.createModel(repository.get(BASE_URI), OntSpecification.OWL2_FULL_MEM);
-        assertNotNull(ontology.getOntClass(NS + "B"), "owl:Class must be recognized as an OntClass under OWL2_FULL_MEM");
+        assertNotNull(ontology.getOntClass(NS + "A"), "owl:Class term must be recognized as an OntClass under OWL2_FULL_MEM");
+        assertNotNull(ontology.getOntClass(NS + "B"), "rdfs:Class-only term must be recognized as an OntClass after promotion");
     }
 
 }
