@@ -16,7 +16,7 @@
  */
 package com.atomgraph.linkeddatahub.server.filter.request;
 
-import com.atomgraph.core.util.jena.PrefixGraphRepository;
+import com.atomgraph.client.util.jena.PrefixGraphRepository;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.junit.jupiter.api.Test;

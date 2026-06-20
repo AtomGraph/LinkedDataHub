@@ -16,7 +16,7 @@
  */
 package com.atomgraph.linkeddatahub;
 
-import com.atomgraph.core.util.jena.PrefixGraphRepository;
+import com.atomgraph.client.util.jena.PrefixGraphRepository;
 import com.atomgraph.client.util.RDFSourceResolver;
 import com.atomgraph.client.util.StylesheetResolver;
 import com.atomgraph.linkeddatahub.writer.impl.SameSiteSourceResolver;

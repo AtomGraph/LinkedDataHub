@@ -18,7 +18,7 @@ package com.atomgraph.linkeddatahub.server.util;
 
 import com.atomgraph.client.vocabulary.LDT;
 import com.atomgraph.core.client.GraphStoreClient;
-import com.atomgraph.core.util.jena.PrefixGraphRepository;
+import com.atomgraph.client.util.jena.PrefixGraphRepository;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import jakarta.ws.rs.core.MultivaluedHashMap;
 import jakarta.ws.rs.core.MultivaluedMap;

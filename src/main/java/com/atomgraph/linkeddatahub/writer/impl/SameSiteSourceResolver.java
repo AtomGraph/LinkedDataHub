@@ -18,7 +18,7 @@ package com.atomgraph.linkeddatahub.writer.impl;
 
 import com.atomgraph.client.util.RDFSourceResolver;
 import com.atomgraph.core.client.GraphStoreClient;
-import com.atomgraph.core.util.jena.PrefixGraphRepository;
+import com.atomgraph.client.util.jena.PrefixGraphRepository;
 import com.google.common.net.InternetDomainName;
 import java.net.URI;
 import org.slf4j.Logger;

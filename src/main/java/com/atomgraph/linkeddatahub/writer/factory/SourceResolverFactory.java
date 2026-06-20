@@ -19,7 +19,7 @@ package com.atomgraph.linkeddatahub.writer.factory;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.ext.Provider;
 import com.atomgraph.client.util.RDFSourceResolver;
-import com.atomgraph.core.util.jena.PrefixGraphRepository;
+import com.atomgraph.client.util.jena.PrefixGraphRepository;
 import com.atomgraph.linkeddatahub.apps.model.Application;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import com.atomgraph.linkeddatahub.client.GraphStoreClient;

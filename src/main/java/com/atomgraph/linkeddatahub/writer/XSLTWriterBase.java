@@ -60,7 +60,8 @@ import net.sf.saxon.s9api.XsltExecutable;
 import org.apache.http.HttpHeaders;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Model;
-import org.apache.jena.riot.RDFLanguages;
+import org.apache.jena.riot.RDFFormat;
+import org.apache.jena.riot.RDFWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -229,7 +230,10 @@ public abstract class XSLTWriterBase extends com.atomgraph.client.writer.XSLTWri
 
         try (ByteArrayOutputStream stream = new ByteArrayOutputStream())
         {
-            model.write(stream, RDFLanguages.RDFXML.getName(), null);
+            RDFWriter.create().
+                format(RDFFormat.RDFXML_PLAIN).
+                source(model).
+                output(stream);
             return new StreamSource(new ByteArrayInputStream(stream.toByteArray()));
         }
     }
