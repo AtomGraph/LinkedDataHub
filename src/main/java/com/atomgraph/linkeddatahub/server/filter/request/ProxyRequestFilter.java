@@ -22,7 +22,7 @@ import com.atomgraph.client.vocabulary.AC;
 import com.atomgraph.core.exception.BadGatewayException;
 import com.atomgraph.core.util.ModelUtils;
 import com.atomgraph.linkeddatahub.apps.model.Dataset;
-import org.apache.jena.ontology.Ontology;
+import org.apache.jena.ontapi.model.OntModel;
 import com.atomgraph.linkeddatahub.client.GraphStoreClient;
 import com.atomgraph.linkeddatahub.client.filter.auth.IDTokenDelegationFilter;
 import com.atomgraph.linkeddatahub.client.filter.auth.WebIDDelegationFilter;
@@ -133,7 +133,7 @@ public class ProxyRequestFilter implements ContainerRequestFilter
         "Age");
 
     @Inject com.atomgraph.linkeddatahub.Application system;
-    @Inject jakarta.inject.Provider<Optional<Ontology>> ontology;
+    @Inject jakarta.inject.Provider<Optional<OntModel>> ontology;
     @Inject MediaTypes mediaTypes;
     @Context Request request;
 
@@ -178,10 +178,10 @@ public class ProxyRequestFilter implements ContainerRequestFilter
             || "HEAD".equalsIgnoreCase(requestContext.getMethod());
 
         // serve mapped URIs (e.g. system ontologies) directly from the DataManager cache
-        if (isSafeMethod && getSystem().getDataManager().isMapped(targetURI.toString()))
+        if (isSafeMethod && getSystem().getRepository().isMapped(targetURI.toString()))
         {
             if (log.isDebugEnabled()) log.debug("Serving mapped URI from DataManager cache: {}", targetURI);
-            Model model = getSystem().getDataManager().loadModel(targetURI.toString());
+            Model model = org.apache.jena.rdf.model.ModelFactory.createModelForGraph(getSystem().getRepository().get(targetURI.toString()));
             requestContext.abortWith(getResponse(model, Response.Status.OK));
             return;
         }
@@ -195,7 +195,7 @@ public class ProxyRequestFilter implements ContainerRequestFilter
             ParameterizedSparqlString pss = new ParameterizedSparqlString(
                 "DESCRIBE ?doc ?term WHERE { ?term ?p ?o FILTER(STRSTARTS(STR(?term), CONCAT(STR(?doc), \"#\"))) }");
             pss.setIri("doc", targetURI.toString());
-            try (QueryExecution qe = QueryExecution.create(pss.asQuery(), getOntology().get().getOntModel()))
+            try (QueryExecution qe = QueryExecution.create(pss.asQuery(), getOntology().get()))
             {
                 Model description = qe.execDescribe();
                 if (!description.isEmpty())
@@ -486,7 +486,7 @@ public class ProxyRequestFilter implements ContainerRequestFilter
      *
      * @return optional ontology
      */
-    public Optional<Ontology> getOntology()
+    public Optional<OntModel> getOntology()
     {
         return ontology.get();
     }

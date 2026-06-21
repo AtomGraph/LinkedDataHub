@@ -16,7 +16,6 @@
  */
 package com.atomgraph.linkeddatahub.server.event;
 
-import com.atomgraph.core.util.jena.DataManager;
 import com.atomgraph.linkeddatahub.apps.model.Application;
 import com.atomgraph.linkeddatahub.client.GraphStoreClient;
 import org.apache.jena.rdf.model.Resource;

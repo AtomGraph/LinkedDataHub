@@ -16,67 +16,57 @@
  */
 package com.atomgraph.linkeddatahub.writer.impl;
 
-import org.apache.jena.util.LocationMapper;
-import java.net.URI;
+import com.atomgraph.client.util.RDFSourceResolver;
 import com.atomgraph.core.client.GraphStoreClient;
-import com.atomgraph.linkeddatahub.server.security.AgentContext;
+import com.atomgraph.client.util.jena.PrefixGraphRepository;
 import com.google.common.net.InternetDomainName;
-import java.util.Map;
-import org.apache.jena.rdf.model.Model;
+import java.net.URI;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Manager for remote RDF dataset access.
- * Documents can be mapped to local copies.
- * 
+ * XSLT source resolver that restricts dereferencing of uncached URIs to the same site as the
+ * application. Mapped (bundled) and same-site URIs resolve; arbitrary external URIs do not.
+ * Backed by a {@link PrefixGraphRepository}; authenticated delegation is handled by the supplied
+ * {@link GraphStoreClient}.
+ *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-public class DataManagerImpl extends com.atomgraph.client.util.DataManagerImpl
+public class SameSiteSourceResolver extends RDFSourceResolver
 {
-    private static final Logger log = LoggerFactory.getLogger(DataManagerImpl.class);
-    
+    private static final Logger log = LoggerFactory.getLogger(SameSiteSourceResolver.class);
+
     private final URI rootContextURI;
-    private final AgentContext agentContext;
 
     /**
-     * Constructs RDF data manager.
-     * 
-     * @param mapper location mapper
-     * @param modelCache model cache
-     * @param gsc Graph Store client
-     * @param cacheModelLoads true if loaded RDF models are cached
-     * @param preemptiveAuth true if HTTP basic auth is sent preemptively
+     * Constructs the resolver.
+     *
+     * @param repository graph repository (bundled/cached graphs + URI→location mapping)
+     * @param gsc Graph Store client (with delegation)
      * @param resolvingUncached true if uncached URLs are resolved
      * @param rootContextURI the root URI of the JAX-RS application
-     * @param agentContext agent context
      */
-    public DataManagerImpl(LocationMapper mapper, Map<String, Model> modelCache,
-            GraphStoreClient gsc,
-            boolean cacheModelLoads, boolean preemptiveAuth, boolean resolvingUncached,
-            URI rootContextURI,
-            AgentContext agentContext)
+    public SameSiteSourceResolver(PrefixGraphRepository repository, GraphStoreClient gsc, boolean resolvingUncached, URI rootContextURI)
     {
-        super(mapper, modelCache, gsc, cacheModelLoads, preemptiveAuth, resolvingUncached);
+        super(repository, gsc, resolvingUncached);
         this.rootContextURI = rootContextURI;
-        this.agentContext = agentContext;
     }
-    
+
     @Override
-    public boolean resolvingUncached(String filenameOrURI)
+    protected boolean resolvingUncached(String filenameOrURI)
     {
-        if (super.resolvingUncached(filenameOrURI) && !isMapped(filenameOrURI))
+        if (super.resolvingUncached(filenameOrURI) && !getRepository().isMapped(filenameOrURI))
         {
             // Allow resolving URIs from the same site (e.g., localhost:4443/static/..., admin.localhost:4443/ns)
             return isSameSite(getRootContextURI(), URI.create(filenameOrURI));
         }
 
-        return false; // super.resolvingUncached(filenameOrURI); // configured in web.xml
+        return false;
     }
 
     /**
      * Checks if two URIs are from the same site (schemeful same-site).
-     * This allows subdomains like admin.localhost and localhost to be considered part of the same LinkedDataHub instance.
+     * Allows subdomains like admin.localhost and localhost to be considered part of the same instance.
      * Ports are ignored per the same-site definition.
      *
      * @param uri1 first URI
@@ -99,12 +89,9 @@ public class DataManagerImpl extends com.atomgraph.client.util.DataManagerImpl
             InternetDomainName domain1 = InternetDomainName.from(host1);
             InternetDomainName domain2 = InternetDomainName.from(host2);
 
-            // For localhost domains, compare the full host (localhost == localhost, admin.localhost != localhost at domain level)
-            // But we want to treat them as same root domain, so just check if both end with "localhost"
             if (host1.equals("localhost") || host1.endsWith(".localhost"))
                 return host2.equals("localhost") || host2.endsWith(".localhost");
 
-            // For regular domains, compare top private domains
             if (domain1.isTopPrivateDomain() && domain2.isTopPrivateDomain())
                 return domain1.equals(domain2);
             if (domain1.hasPublicSuffix() && domain2.hasPublicSuffix())
@@ -114,7 +101,6 @@ public class DataManagerImpl extends com.atomgraph.client.util.DataManagerImpl
         }
         catch (IllegalArgumentException ex)
         {
-            // Invalid domain name, fall back to simple equality check
             if (log.isDebugEnabled()) log.debug("Could not parse domain names for comparison: {} and {}", host1, host2);
             return false;
         }
@@ -122,7 +108,7 @@ public class DataManagerImpl extends com.atomgraph.client.util.DataManagerImpl
 
     /**
      * Returns the root URI of the JAX-RS application.
-     * 
+     *
      * @return root URI
      */
     public URI getRootContextURI()
@@ -130,14 +116,4 @@ public class DataManagerImpl extends com.atomgraph.client.util.DataManagerImpl
         return rootContextURI;
     }
 
-    /**
-     * Returns the agent context.
-     * 
-     * @return agent context or null
-     */
-    public AgentContext getAgentContext()
-    {
-        return agentContext;
-    }
-    
 }

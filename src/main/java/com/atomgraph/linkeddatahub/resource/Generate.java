@@ -42,7 +42,7 @@ import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.Response.Status;
 import jakarta.ws.rs.core.UriBuilder;
 import jakarta.ws.rs.core.UriInfo;
-import org.apache.jena.ontology.Ontology;
+import org.apache.jena.ontapi.model.OntModel;
 import org.apache.jena.query.ParameterizedSparqlString;
 import org.apache.jena.query.Query;
 import org.apache.jena.query.QueryFactory;
@@ -69,7 +69,7 @@ public class Generate
     private final UriInfo uriInfo;
     private final MediaTypes mediaTypes;
     private final Application application;
-    private final Ontology ontology;
+    private final OntModel ontology;
     private final Optional<AgentContext> agentContext;
     private final com.atomgraph.linkeddatahub.Application system;
     private final ResourceContext resourceContext;
@@ -88,7 +88,7 @@ public class Generate
      */
     @Inject
     public Generate(@Context Request request, @Context UriInfo uriInfo, MediaTypes mediaTypes,
-            com.atomgraph.linkeddatahub.apps.model.Application application, Optional<Ontology> ontology, Optional<AgentContext> agentContext,
+            com.atomgraph.linkeddatahub.apps.model.Application application, Optional<OntModel> ontology, Optional<AgentContext> agentContext,
             com.atomgraph.linkeddatahub.Application system, @Context ResourceContext resourceContext)
     {
         if (ontology.isEmpty()) throw new InternalServerErrorException("Ontology is not specified");
@@ -134,7 +134,7 @@ public class Generate
                     if (queryRes == null) throw new BadRequestException("Container query string (spin:query) not provided");
 
                     // Lookup query in ontology
-                    Resource queryResource = getOntology().getOntModel().getResource(queryRes.getURI());
+                    Resource queryResource = getOntology().getResource(queryRes.getURI());
                     if (queryResource == null || !queryResource.hasProperty(SP.text))
                         throw new BadRequestException("Query resource not found in ontology: " + queryRes.getURI());
 
@@ -265,7 +265,7 @@ public class Generate
      *
      * @return the ontology
      */
-    public Ontology getOntology()
+    public OntModel getOntology()
     {
         return ontology;
     }

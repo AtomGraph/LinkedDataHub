@@ -16,12 +16,11 @@
 
 package com.atomgraph.server.vocabulary;
 
-import org.apache.jena.ontology.DatatypeProperty;
-import org.apache.jena.ontology.ObjectProperty;
-import org.apache.jena.ontology.OntClass;
-import org.apache.jena.ontology.OntModel;
-import org.apache.jena.ontology.OntModelSpec;
-import org.apache.jena.rdf.model.ModelFactory;
+import org.apache.jena.ontapi.OntModelFactory;
+import org.apache.jena.ontapi.OntSpecification;
+import org.apache.jena.ontapi.model.OntModel;
+import org.apache.jena.rdf.model.Property;
+
 import org.apache.jena.rdf.model.Resource;
 
 /**
@@ -33,8 +32,13 @@ import org.apache.jena.rdf.model.Resource;
 public class HTTP
 {
 
+    static
+    {
+        org.apache.jena.sys.JenaSystem.init(); // ensure Jena (RDFS vocab) is initialized before ontapi touches it
+    }
+
     /** <p>The RDF model that holds the vocabulary terms</p> */
-    private static OntModel m_model = ModelFactory.createOntologyModel(OntModelSpec.OWL_MEM, null);
+    private static OntModel m_model = OntModelFactory.createModel(OntSpecification.OWL2_FULL_MEM);
     
     /** <p>The namespace of the vocabulary as a string</p> */
     public static final String NS = "http://www.w3.org/2011/http#";
@@ -49,16 +53,16 @@ public class HTTP
     /** <p>The namespace of the vocabulary as a resource</p> */
     public static final Resource NAMESPACE = m_model.createResource( NS );
 
-    public static final OntClass Response = m_model.createClass( NS + "Response" );
+    public static final Resource Response = m_model.createOntClass( NS + "Response" );
     
-    public static final ObjectProperty sc = m_model.createObjectProperty( NS + "sc" );
+    public static final Property sc = m_model.createObjectProperty( NS + "sc" );
 
-    public static final DatatypeProperty statusCodeValue = m_model.createDatatypeProperty( NS + "statusCodeValue" );
+    public static final Property statusCodeValue = m_model.createDataProperty( NS + "statusCodeValue" );
 
-    public static final DatatypeProperty reasonPhrase = m_model.createDatatypeProperty( NS + "reasonPhrase" );
+    public static final Property reasonPhrase = m_model.createDataProperty( NS + "reasonPhrase" );
     
-    public static final DatatypeProperty absoluteURI = m_model.createDatatypeProperty( NS + "absoluteURI" );
+    public static final Property absoluteURI = m_model.createDataProperty( NS + "absoluteURI" );
 
-    public static final DatatypeProperty absolutePath = m_model.createDatatypeProperty( NS + "absolutePath" );
+    public static final Property absolutePath = m_model.createDataProperty( NS + "absolutePath" );
 
 }
