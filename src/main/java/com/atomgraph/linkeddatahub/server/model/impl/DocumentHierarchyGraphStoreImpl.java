@@ -394,6 +394,7 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
         Model beforeUpdateModel = ModelFactory.createDefaultModel().add(existingModel);
         dataset = DatasetFactory.wrap(existingModel);
         UpdateAction.execute(updateRequest, dataset); // update model in memory
+        new Skolemizer(getURI().toString()).apply(existingModel); // skolemize blank nodes introduced by INSERT
 
         // if PATCH results in an empty graph, treat it as a DELETE request
         if (existingModel.isEmpty()) return delete();
