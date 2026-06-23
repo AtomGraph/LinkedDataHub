@@ -94,7 +94,6 @@ public class ClearOntology
             {
                 if (log.isDebugEnabled()) log.debug("Purge ontology document with URI '{}' from frontend proxy cache", ontologyDocURI);
                 ban(frontendProxy, ontologyDocURI.toString(), false);
-                xkeyPurge(frontendProxy, ontologyURI);
             }
             URI adminBackendProxy = getSystem().getServiceContext(getApplication().getService()).getBackendProxy();
             if (adminBackendProxy != null)
