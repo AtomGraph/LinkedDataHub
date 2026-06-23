@@ -107,6 +107,10 @@ services:
   fuseki-admin:
     image: atomgraph/fuseki:6.1.0
     user: root # otherwise fuseki user does not have permissions to the mounted folder which is owner by root
+    mem_limit: 1536m # leave headroom above heap for TDB mmap/native memory
+    restart: on-failure
+    environment:
+      - JAVA_OPTIONS=-Xmx768m -Xms768m
     expose:
       - 3030
     volumes:
@@ -116,6 +120,10 @@ services:
   fuseki-end-user:
     image: atomgraph/fuseki:6.1.0
     user: root # otherwise the fuseki user does not have permissions to the mounted folder which is owner by root
+    mem_limit: 3072m # leave headroom above heap for TDB mmap/native memory
+    restart: on-failure
+    environment:
+      - JAVA_OPTIONS=-Xmx1536m -Xms1536m
     expose:
       - 3030
     volumes:
