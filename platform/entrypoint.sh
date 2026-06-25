@@ -1080,6 +1080,22 @@ if [ -n "$CONNECTION_REQUEST_TIMEOUT" ]; then
     export CATALINA_OPTS="$CATALINA_OPTS -Dcom.atomgraph.linkeddatahub.connectionRequestTimeout=$CONNECTION_REQUEST_TIMEOUT"
 fi
 
+if [ -n "$CLIENT_SOCKET_TIMEOUT" ]; then
+    export CATALINA_OPTS="$CATALINA_OPTS -Dcom.atomgraph.linkeddatahub.socketTimeout=$CLIENT_SOCKET_TIMEOUT"
+fi
+
+if [ -n "$CLIENT_CONNECT_TIMEOUT" ]; then
+    export CATALINA_OPTS="$CATALINA_OPTS -Dcom.atomgraph.linkeddatahub.connectTimeout=$CLIENT_CONNECT_TIMEOUT"
+fi
+
+if [ -n "$CLIENT_CONNECTION_TIME_TO_LIVE" ]; then
+    export CATALINA_OPTS="$CATALINA_OPTS -Dcom.atomgraph.linkeddatahub.connectionTimeToLive=$CLIENT_CONNECTION_TIME_TO_LIVE"
+fi
+
+if [ -n "$CLIENT_VALIDATE_AFTER_INACTIVITY" ]; then
+    export CATALINA_OPTS="$CATALINA_OPTS -Dcom.atomgraph.linkeddatahub.validateAfterInactivity=$CLIENT_VALIDATE_AFTER_INACTIVITY"
+fi
+
 if [ -n "$MAX_CONTENT_LENGTH" ]; then
     MAX_CONTENT_LENGTH_PARAM="--stringparam ldhc:maxContentLength '$MAX_CONTENT_LENGTH' "
 fi
