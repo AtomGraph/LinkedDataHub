@@ -1,3 +1,8 @@
+## [5.5.4] - 2026-06-29
+### Fixed
+- HTTP client connection-pool exhaustion: the pooled clients had no socket/read timeout (Apache default `SO_TIMEOUT` = 0 = infinite), so a stalled backend read held its leased connection forever and the route eventually pinned at max, wedging the listener. Added socket timeout, connect timeout, connection time-to-live and validate-after-inactivity to the pooled clients, configurable via the `CLIENT_SOCKET_TIMEOUT`, `CLIENT_CONNECT_TIMEOUT`, `CLIENT_CONNECTION_TIME_TO_LIVE` and `CLIENT_VALIDATE_AFTER_INACTIVITY` env vars (`CATALINA_OPTS` system properties), with image defaults in the `Dockerfile`
+- `SignUp`: PublicKey/Agent/Authorization client `Response`s are now closed on all code paths (connection leak on the signup path)
+
 ## [5.5.3] - 2026-06-09
 ### Changed
 - Dependency hygiene: exclude duplicate `jakarta.json` from `jena-arq`, align `slf4j-reload4j` to 2.0.17, drop unused `tomcat-coyote`
