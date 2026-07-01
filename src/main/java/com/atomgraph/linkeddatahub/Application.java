@@ -17,13 +17,10 @@
 package com.atomgraph.linkeddatahub;
 
 import com.atomgraph.client.util.jena.PrefixGraphRepository;
-import com.atomgraph.client.util.RDFSourceResolver;
 import com.atomgraph.client.util.StylesheetResolver;
 import com.atomgraph.linkeddatahub.writer.impl.SameSiteSourceResolver;
 import com.atomgraph.linkeddatahub.server.util.OntologyRepository;
 import org.apache.jena.riot.RDFParser;
-import org.apache.jena.rdf.model.Model;
-import org.apache.jena.rdf.model.ModelFactory;
 import com.atomgraph.linkeddatahub.server.mapper.HttpHostConnectExceptionMapper;
 import com.atomgraph.linkeddatahub.server.mapper.InternalURLExceptionMapper;
 import com.atomgraph.linkeddatahub.server.mapper.MessagingExceptionMapper;
@@ -230,7 +227,6 @@ import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.riot.resultset.ResultSetLang;
 import org.apache.jena.sparql.graph.GraphReadOnly;
 import org.apache.jena.vocabulary.DCTerms;
-import org.apache.jena.vocabulary.LocationMappingVocab;
 import org.apache.jena.vocabulary.RDF;
 import org.glassfish.hk2.api.TypeLiteral;
 import org.glassfish.hk2.utilities.binding.AbstractBinder;

@@ -39,7 +39,6 @@ import java.util.List;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.Priority;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.Priorities;
 import jakarta.ws.rs.ProcessingException;
 import jakarta.ws.rs.client.Client;

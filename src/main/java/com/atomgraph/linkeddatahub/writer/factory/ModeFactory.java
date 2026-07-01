@@ -18,7 +18,6 @@ package com.atomgraph.linkeddatahub.writer.factory;
 
 import com.atomgraph.client.vocabulary.AC;
 import com.atomgraph.linkeddatahub.writer.Mode;
-import java.util.Collections;
 import java.util.List;
 import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.core.Context;
