@@ -242,11 +242,13 @@ public class SignUp extends DocumentHierarchyGraphStoreImpl
                     certPublicKey);
                 new Skolemizer(publicKeyGraphUri.toString()).apply(publicKeyModel);
                 
-                Response publicKeyResponse = super.put(publicKeyModel, false, publicKeyGraphUri);
-                if (publicKeyResponse.getStatus() != Response.Status.CREATED.getStatusCode())
+                try (Response publicKeyResponse = super.put(publicKeyModel, false, publicKeyGraphUri))
                 {
-                    if (log.isErrorEnabled()) log.error("Cannot create PublicKey");
-                    throw new InternalServerErrorException("Cannot create PublicKey");
+                    if (publicKeyResponse.getStatus() != Response.Status.CREATED.getStatusCode())
+                    {
+                        if (log.isErrorEnabled()) log.error("Cannot create PublicKey");
+                        throw new InternalServerErrorException("Cannot create PublicKey");
+                    }
                 }
 
                 Resource publicKey = publicKeyModel.createResource(publicKeyGraphUri.toString()).getPropertyResourceValue(FOAF.primaryTopic);
@@ -254,55 +256,66 @@ public class SignUp extends DocumentHierarchyGraphStoreImpl
                 agentModel.add(agentModel.createResource(getSystem().getSecretaryWebIDURI().toString()), ACL.delegates, agent); // make secretary delegate whis agent
 
                 Response agentResponse = super.put(agentModel, false, agentGraphUri);
-                if (agentResponse.getStatus() != Response.Status.CREATED.getStatusCode())
+                boolean returnAgentResponse = false;
+                try
                 {
-                    if (log.isErrorEnabled()) log.error("Cannot create Agent");
-                    throw new InternalServerErrorException("Cannot create Agent");
-                }
-
-                URI authGraphUri = getUriInfo().getBaseUriBuilder().path(AUTHORIZATION_PATH).path("{slug}/").build(UUID.randomUUID().toString());
-                Model authModel = ModelFactory.createDefaultModel();
-                // creating authorizations for the Agent and PublicKey documents
-                createAuthorization(authModel,
-                    authGraphUri,
-                    authModel.createResource(getUriInfo().getBaseUri().resolve(AUTHORIZATION_PATH).toString()),
-                    agentGraphUri,
-                    publicKeyGraphUri);
-                new Skolemizer(authGraphUri.toString()).apply(authModel);
-
-                Response authResponse = super.put(authModel, false, authGraphUri);
-                if (authResponse.getStatus() != Response.Status.CREATED.getStatusCode())
-                {
-                    if (log.isErrorEnabled()) log.error("Cannot create Authorization");
-                    throw new InternalServerErrorException("Cannot create Authorization");
-                }
-
-                // purge agent lookup from proxy cache
-                URI agentServiceBackendProxy = getSystem().getServiceContext(getAgentService()).getBackendProxy();
-                if (agentServiceBackendProxy != null)
-                {
-                    try (Response response = ban(agentServiceBackendProxy, mbox.getURI()))
+                    if (agentResponse.getStatus() != Response.Status.CREATED.getStatusCode())
                     {
-                        // Response automatically closed by try-with-resources
+                        if (log.isErrorEnabled()) log.error("Cannot create Agent");
+                        throw new InternalServerErrorException("Cannot create Agent");
+                    }
+
+                    URI authGraphUri = getUriInfo().getBaseUriBuilder().path(AUTHORIZATION_PATH).path("{slug}/").build(UUID.randomUUID().toString());
+                    Model authModel = ModelFactory.createDefaultModel();
+                    // creating authorizations for the Agent and PublicKey documents
+                    createAuthorization(authModel,
+                        authGraphUri,
+                        authModel.createResource(getUriInfo().getBaseUri().resolve(AUTHORIZATION_PATH).toString()),
+                        agentGraphUri,
+                        publicKeyGraphUri);
+                    new Skolemizer(authGraphUri.toString()).apply(authModel);
+
+                    try (Response authResponse = super.put(authModel, false, authGraphUri))
+                    {
+                        if (authResponse.getStatus() != Response.Status.CREATED.getStatusCode())
+                        {
+                            if (log.isErrorEnabled()) log.error("Cannot create Authorization");
+                            throw new InternalServerErrorException("Cannot create Authorization");
+                        }
+                    }
+
+                    // purge agent lookup from proxy cache
+                    URI agentServiceBackendProxy = getSystem().getServiceContext(getAgentService()).getBackendProxy();
+                    if (agentServiceBackendProxy != null)
+                    {
+                        try (Response response = ban(agentServiceBackendProxy, mbox.getURI()))
+                        {
+                            // Response automatically closed by try-with-resources
+                        }
+                    }
+
+                    // remove secretary WebID from cache
+                    getSystem().getEventBus().post(new com.atomgraph.linkeddatahub.server.event.SignUp(getSystem().getSecretaryWebIDURI()));
+
+                    if (download)
+                    {
+                        return Response.ok(keyStoreBytes).
+                            type(PKCS12_MEDIA_TYPE).
+                            header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=cert.p12").
+                            build();
+                    }
+                    else
+                    {
+                        LocalDate certExpires = LocalDate.now().plusDays(getValidityDays()); // ((X509Certificate)cert).getNotAfter();
+                        sendEmail(agent, certExpires, keyStoreBytes, keyStoreFileName);
+
+                        returnAgentResponse = true;
+                        return agentResponse; // 201 Created - ownership passes to the JAX-RS runtime
                     }
                 }
-
-                // remove secretary WebID from cache
-                getSystem().getEventBus().post(new com.atomgraph.linkeddatahub.server.event.SignUp(getSystem().getSecretaryWebIDURI()));
-
-                if (download)
+                finally
                 {
-                    return Response.ok(keyStoreBytes).
-                        type(PKCS12_MEDIA_TYPE).
-                        header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=cert.p12").
-                        build();
-                }
-                else
-                {
-                    LocalDate certExpires = LocalDate.now().plusDays(getValidityDays()); // ((X509Certificate)cert).getNotAfter(); 
-                    sendEmail(agent, certExpires, keyStoreBytes, keyStoreFileName);
-
-                    return agentResponse; // 201 Created
+                    if (!returnAgentResponse) agentResponse.close();
                 }
             }
         }

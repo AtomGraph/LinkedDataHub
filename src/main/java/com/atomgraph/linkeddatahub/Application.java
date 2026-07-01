@@ -357,6 +357,10 @@ public class Application extends ResourceConfig
             servletConfig.getServletContext().getInitParameter(LDHC.maxRequestRetries.getURI()) != null ? Integer.valueOf(servletConfig.getServletContext().getInitParameter(LDHC.maxRequestRetries.getURI())) : null,
             System.getProperty("com.atomgraph.linkeddatahub.connectionRequestTimeout") != null ? Integer.valueOf(System.getProperty("com.atomgraph.linkeddatahub.connectionRequestTimeout")) :
             servletConfig.getServletContext().getInitParameter(LDHC.connectionRequestTimeout.getURI()) != null ? Integer.valueOf(servletConfig.getServletContext().getInitParameter(LDHC.connectionRequestTimeout.getURI())) : null,
+            System.getProperty("com.atomgraph.linkeddatahub.socketTimeout") != null ? Integer.valueOf(System.getProperty("com.atomgraph.linkeddatahub.socketTimeout")) : null,
+            System.getProperty("com.atomgraph.linkeddatahub.connectTimeout") != null ? Integer.valueOf(System.getProperty("com.atomgraph.linkeddatahub.connectTimeout")) : null,
+            System.getProperty("com.atomgraph.linkeddatahub.connectionTimeToLive") != null ? Long.valueOf(System.getProperty("com.atomgraph.linkeddatahub.connectionTimeToLive")) : null,
+            System.getProperty("com.atomgraph.linkeddatahub.validateAfterInactivity") != null ? Integer.valueOf(System.getProperty("com.atomgraph.linkeddatahub.validateAfterInactivity")) : null,
             servletConfig.getServletContext().getInitParameter(LDHC.maxImportThreads.getURI()) != null ? Integer.valueOf(servletConfig.getServletContext().getInitParameter(LDHC.maxImportThreads.getURI())) : null,
             servletConfig.getServletContext().getInitParameter(LDHC.notificationAddress.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.notificationAddress.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(LDHC.supportedLanguages.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.supportedLanguages.getURI()) : null,
@@ -444,7 +448,8 @@ public class Application extends ResourceConfig
             final String baseURIString, final String proxyScheme, final String proxyHostname, final Integer proxyPort,
             final String uploadRootString, final boolean invalidateCache,
             final Integer cookieMaxAge, final boolean enableLinkedDataProxy, final boolean allowInternalUrls, final Integer maxContentLength,
-            final Integer maxConnPerRoute, final Integer maxTotalConn, final Integer maxRequestRetries, final Integer connectionRequestTimeout, final Integer maxImportThreads,
+            final Integer maxConnPerRoute, final Integer maxTotalConn, final Integer maxRequestRetries, final Integer connectionRequestTimeout,
+            final Integer socketTimeout, final Integer connectTimeout, final Long connectionTimeToLive, final Integer validateAfterInactivity, final Integer maxImportThreads,
             final String notificationAddressString, final String supportedLanguageCodes, final boolean enableWebIDSignUp, final String oidcRefreshTokensPropertiesPath,
             final String frontendProxyString, final String backendProxyAdminString, final String backendProxyEndUserString,
             final String mailUser, final String mailPassword, final String smtpHost, final String smtpPort,
@@ -699,10 +704,10 @@ public class Application extends ResourceConfig
                 trustStore.load(trustStoreInputStream, clientTrustStorePassword.toCharArray());
             }
             
-            client = getClient(keyStore, clientKeyStorePassword, trustStore, maxConnPerRoute, maxTotalConn, null, false, connectionRequestTimeout);
-            externalClient = getClient(keyStore, clientKeyStorePassword, trustStore, maxConnPerRoute, maxTotalConn, null, false, connectionRequestTimeout);
-            importClient = getClient(keyStore, clientKeyStorePassword, trustStore, maxConnPerRoute, maxTotalConn, maxRequestRetries, true, connectionRequestTimeout);
-            noCertClient = getNoCertClient(trustStore, maxConnPerRoute, maxTotalConn, maxRequestRetries, connectionRequestTimeout);
+            client = getClient(keyStore, clientKeyStorePassword, trustStore, maxConnPerRoute, maxTotalConn, null, false, connectionRequestTimeout, socketTimeout, connectTimeout, connectionTimeToLive, validateAfterInactivity);
+            externalClient = getClient(keyStore, clientKeyStorePassword, trustStore, maxConnPerRoute, maxTotalConn, null, false, connectionRequestTimeout, socketTimeout, connectTimeout, connectionTimeToLive, validateAfterInactivity);
+            importClient = getClient(keyStore, clientKeyStorePassword, trustStore, maxConnPerRoute, maxTotalConn, maxRequestRetries, true, connectionRequestTimeout, socketTimeout, connectTimeout, connectionTimeToLive, validateAfterInactivity);
+            noCertClient = getNoCertClient(trustStore, maxConnPerRoute, maxTotalConn, maxRequestRetries, connectionRequestTimeout, socketTimeout, connectTimeout, connectionTimeToLive, validateAfterInactivity);
             
             if (maxContentLength != null)
             {
@@ -1487,7 +1492,7 @@ public class Application extends ResourceConfig
     
     /**
      * Builds JAX-RS client instance from given configuration.
-     * 
+     *
      * @param keyStore keystore
      * @param keyStorePassword keystore password
      * @param trustStore truststore
@@ -1495,13 +1500,18 @@ public class Application extends ResourceConfig
      * @param maxTotalConn max total connections
      * @param maxRequestRetries maximum number of times that the HTTP client will retry a request
      * @param buffered true if request entity should be buffered
+     * @param connectionRequestTimeout timeout in milliseconds to wait for a connection lease from the pool (null to leave unset)
+     * @param socketTimeout socket (read) timeout in milliseconds (null to leave unset)
+     * @param connectTimeout connection (connect) timeout in milliseconds (null to leave unset)
+     * @param connectionTimeToLive time-to-live in milliseconds after which pooled connections are discarded (null to leave unset)
+     * @param validateAfterInactivity period of inactivity in milliseconds after which a pooled connection is revalidated before reuse (null to leave unset)
      * @return client instance
      * @throws NoSuchAlgorithmException SSL algorithm error
      * @throws KeyStoreException keystore loading error
      * @throws UnrecoverableKeyException key loading error
      * @throws KeyManagementException key loading error
      */
-    public static Client getClient(KeyStore keyStore, String keyStorePassword, KeyStore trustStore, Integer maxConnPerRoute, Integer maxTotalConn, Integer maxRequestRetries, boolean buffered, Integer connectionRequestTimeout) throws NoSuchAlgorithmException, KeyStoreException, UnrecoverableKeyException, KeyManagementException
+    public static Client getClient(KeyStore keyStore, String keyStorePassword, KeyStore trustStore, Integer maxConnPerRoute, Integer maxTotalConn, Integer maxRequestRetries, boolean buffered, Integer connectionRequestTimeout, Integer socketTimeout, Integer connectTimeout, Long connectionTimeToLive, Integer validateAfterInactivity) throws NoSuchAlgorithmException, KeyStoreException, UnrecoverableKeyException, KeyManagementException
     {
         if (keyStore == null) throw new IllegalArgumentException("KeyStore cannot be null");
         if (keyStorePassword == null) throw new IllegalArgumentException("KeyStore password string cannot be null");
@@ -1523,7 +1533,7 @@ public class Application extends ResourceConfig
             register("http", new PlainConnectionSocketFactory()).
             build();
 
-        PoolingHttpClientConnectionManager conman = new PoolingHttpClientConnectionManager(socketFactoryRegistry)
+        PoolingHttpClientConnectionManager conman = new PoolingHttpClientConnectionManager(socketFactoryRegistry, null, null, null, connectionTimeToLive != null ? connectionTimeToLive : -1L, TimeUnit.MILLISECONDS)
         {
 
             // https://github.com/eclipse-ee4j/jersey/issues/4449
@@ -1554,7 +1564,8 @@ public class Application extends ResourceConfig
         };
         if (maxConnPerRoute != null) conman.setDefaultMaxPerRoute(maxConnPerRoute);
         if (maxTotalConn != null) conman.setMaxTotal(maxTotalConn);
-        
+        if (validateAfterInactivity != null) conman.setValidateAfterInactivity(validateAfterInactivity);
+
         ClientConfig config = new ClientConfig();
         config.connectorProvider(new ApacheConnectorProvider());
         config.register(MultiPartFeature.class);
@@ -1566,10 +1577,11 @@ public class Application extends ResourceConfig
         config.property(ClientProperties.FOLLOW_REDIRECTS, true);
         config.property(ClientProperties.REQUEST_ENTITY_PROCESSING, RequestEntityProcessing.BUFFERED); // https://stackoverflow.com/questions/42139436/jersey-client-throws-cannot-retry-request-with-a-non-repeatable-request-entity
         config.property(ApacheClientProperties.CONNECTION_MANAGER, conman);
-        if (connectionRequestTimeout != null)
-            config.property(ApacheClientProperties.REQUEST_CONFIG, RequestConfig.custom().
-                setConnectionRequestTimeout(connectionRequestTimeout).
-                build());
+        RequestConfig.Builder requestConfig = RequestConfig.custom();
+        if (connectionRequestTimeout != null) requestConfig.setConnectionRequestTimeout(connectionRequestTimeout);
+        if (socketTimeout != null) requestConfig.setSocketTimeout(socketTimeout);
+        if (connectTimeout != null) requestConfig.setConnectTimeout(connectTimeout);
+        config.property(ApacheClientProperties.REQUEST_CONFIG, requestConfig.build());
 
         if (maxRequestRetries != null)
             config.property(ApacheClientProperties.RETRY_HANDLER, (HttpRequestRetryHandler) (IOException ex, int executionCount, HttpContext context) ->
@@ -1605,9 +1617,14 @@ public class Application extends ResourceConfig
      * @param maxConnPerRoute max connections per route
      * @param maxTotalConn max total connections
      * @param maxRequestRetries maximum number of times that the HTTP client will retry a request
+     * @param connectionRequestTimeout timeout in milliseconds to wait for a connection lease from the pool (null to leave unset)
+     * @param socketTimeout socket (read) timeout in milliseconds (null to leave unset)
+     * @param connectTimeout connection (connect) timeout in milliseconds (null to leave unset)
+     * @param connectionTimeToLive time-to-live in milliseconds after which pooled connections are discarded (null to leave unset)
+     * @param validateAfterInactivity period of inactivity in milliseconds after which a pooled connection is revalidated before reuse (null to leave unset)
      * @return client instance
      */
-    public static Client getNoCertClient(KeyStore trustStore, Integer maxConnPerRoute, Integer maxTotalConn, Integer maxRequestRetries, Integer connectionRequestTimeout)
+    public static Client getNoCertClient(KeyStore trustStore, Integer maxConnPerRoute, Integer maxTotalConn, Integer maxRequestRetries, Integer connectionRequestTimeout, Integer socketTimeout, Integer connectTimeout, Long connectionTimeToLive, Integer validateAfterInactivity)
     {
         try
         {
@@ -1623,11 +1640,11 @@ public class Application extends ResourceConfig
                 register("http", new PlainConnectionSocketFactory()).
                 build();
         
-            PoolingHttpClientConnectionManager conman = new PoolingHttpClientConnectionManager(socketFactoryRegistry)
+            PoolingHttpClientConnectionManager conman = new PoolingHttpClientConnectionManager(socketFactoryRegistry, null, null, null, connectionTimeToLive != null ? connectionTimeToLive : -1L, TimeUnit.MILLISECONDS)
             {
 
                 // https://github.com/eclipse-ee4j/jersey/issues/4449
-                
+
                 @Override
                 public void close()
                 {
@@ -1654,6 +1671,7 @@ public class Application extends ResourceConfig
             };
             if (maxConnPerRoute != null) conman.setDefaultMaxPerRoute(maxConnPerRoute);
             if (maxTotalConn != null) conman.setMaxTotal(maxTotalConn);
+            if (validateAfterInactivity != null) conman.setValidateAfterInactivity(validateAfterInactivity);
 
             ClientConfig config = new ClientConfig();
             config.connectorProvider(new ApacheConnectorProvider());
@@ -1666,10 +1684,11 @@ public class Application extends ResourceConfig
             config.property(ClientProperties.FOLLOW_REDIRECTS, true);
             config.property(ClientProperties.REQUEST_ENTITY_PROCESSING, RequestEntityProcessing.BUFFERED); // https://stackoverflow.com/questions/42139436/jersey-client-throws-cannot-retry-request-with-a-non-repeatable-request-entity
             config.property(ApacheClientProperties.CONNECTION_MANAGER, conman);
-            if (connectionRequestTimeout != null)
-                config.property(ApacheClientProperties.REQUEST_CONFIG, RequestConfig.custom().
-                    setConnectionRequestTimeout(connectionRequestTimeout).
-                    build());
+            RequestConfig.Builder requestConfig = RequestConfig.custom();
+            if (connectionRequestTimeout != null) requestConfig.setConnectionRequestTimeout(connectionRequestTimeout);
+            if (socketTimeout != null) requestConfig.setSocketTimeout(socketTimeout);
+            if (connectTimeout != null) requestConfig.setConnectTimeout(connectTimeout);
+            config.property(ApacheClientProperties.REQUEST_CONFIG, requestConfig.build());
 
             if (maxRequestRetries != null)
                 config.property(ApacheClientProperties.RETRY_HANDLER, (HttpRequestRetryHandler) (IOException ex, int executionCount, HttpContext context) ->
