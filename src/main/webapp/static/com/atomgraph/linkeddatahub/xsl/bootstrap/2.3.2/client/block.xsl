@@ -237,7 +237,7 @@ exclude-result-prefixes="#all"
 
     <!-- show drag handle on left edge hover, but not when left sidebar is active -->
 
-    <xsl:template match="div[contains-token(@class, 'block')][key('elements-by-class', 'drag-handle', .)][acl:mode() = '&acl;Write'][not(ixsl:style(ancestor::div[contains-token(@class, 'tab-pane')]/div[contains-token(@class, 'left-sidebar')])?display = 'block')]" mode="ixsl:onmousemove" priority="2">
+    <xsl:template match="div[contains-token(@class, 'block')][key('elements-by-class', 'drag-handle', .)][acl:mode() = '&acl;Write'][not(ancestor::div[contains-token(@class, 'tab-pane')][1]/div[contains-token(@class, 'left-sidebar')]/@aria-expanded = 'true')]" mode="ixsl:onmousemove" priority="2">
         <xsl:variable name="uri" select="xs:anyURI(ancestor::div[contains-token(@class, 'document-body')]/@about)" as="xs:anyURI"/>
         <xsl:variable name="contents" select="ixsl:get(ixsl:window(), 'LinkedDataHub.contents')"/>
         <xsl:variable name="cache-key" select="'`' || $uri || '`'" as="xs:string"/>
@@ -258,7 +258,7 @@ exclude-result-prefixes="#all"
             <xsl:choose>
                 <xsl:when test="$offset-x &lt;= $left-edge-threshold and ixsl:style($drag-handle)?display = 'none'">
                     <!-- get both block and span12 rectangles to calculate intersection -->
-                    <xsl:variable name="span12" select="$drag-handle/parent::*[contains-token(@class, 'span12')]" as="element()"/>
+                    <xsl:variable name="span12" select="$drag-handle/ancestor::*[contains-token(@class, 'span12')][1]" as="element()"/>
                     <xsl:variable name="block-rect" select="$rect"/> <!-- block's getBoundingClientRect -->
                     <xsl:variable name="span12-rect" select="ixsl:call($span12, 'getBoundingClientRect', [])"/>
 
@@ -311,7 +311,7 @@ exclude-result-prefixes="#all"
 
     <!-- override inline editing form for block types (do nothing if the button is disabled) - prioritize over form.xsl -->
     
-    <xsl:template match="div[following-sibling::div[@typeof = ('&ldh;XHTML', '&ldh;Object')]]//button[contains-token(@class, 'btn-edit')][not(contains-token(@class, 'disabled'))]" mode="ixsl:onclick" priority="1">
+    <xsl:template match="button[contains-token(@class, 'btn-edit')][not(contains-token(@class, 'disabled'))][ancestor::*[@typeof = ('&ldh;XHTML', '&ldh;Object')][1]]" mode="ixsl:onclick" priority="1">
         <xsl:param name="block" select="ancestor::div[contains-token(@class, 'block')][1]" as="element()"/>
         <!-- for block types, button.btn-edit is placed in its own div.row-fluid, therefore the next row is the actual container -->
         <xsl:param name="container" select="$block/descendant::div[@typeof][1]" as="element()"/> <!-- other resources can be nested within object -->
@@ -419,7 +419,7 @@ exclude-result-prefixes="#all"
 
     <xsl:template match="*[ancestor-or-self::div[contains-token(@class, 'block')][parent::div[contains-token(@class, 'content-body')]][acl:mode() = '&acl;Write']]" mode="ixsl:ondragover" priority="1">
         <xsl:variable name="block" select="ancestor-or-self::div[contains-token(@class, 'block')][parent::div[contains-token(@class, 'content-body')]][1]" as="element()"/>
-        <xsl:variable name="uri" select="xs:anyURI($block/parent::div/parent::div[contains-token(@class, 'document-body')]/@about)" as="xs:anyURI"/>
+        <xsl:variable name="uri" select="xs:anyURI($block/ancestor::*[contains-token(@class, 'document-body')][1]/@about)" as="xs:anyURI"/>
         <xsl:variable name="results" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $uri || '`'), 'results')" as="document-node()"/>
         <xsl:variable name="mode" select="ac:mode($results)" as="xs:anyURI"/>
 
@@ -438,7 +438,7 @@ exclude-result-prefixes="#all"
 
     <xsl:template match="*[ancestor-or-self::div[contains-token(@class, 'block')][parent::div[contains-token(@class, 'content-body')]][acl:mode() = '&acl;Write']]" mode="ixsl:ondragenter" priority="1">
         <xsl:variable name="block" select="ancestor-or-self::div[contains-token(@class, 'block')][parent::div[contains-token(@class, 'content-body')]][1]" as="element()"/>
-        <xsl:variable name="uri" select="xs:anyURI($block/parent::div/parent::div[contains-token(@class, 'document-body')]/@about)" as="xs:anyURI"/>
+        <xsl:variable name="uri" select="xs:anyURI($block/ancestor::*[contains-token(@class, 'document-body')][1]/@about)" as="xs:anyURI"/>
         <xsl:variable name="results" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $uri || '`'), 'results')" as="document-node()"/>
         <xsl:variable name="mode" select="ac:mode($results)" as="xs:anyURI"/>
 
@@ -455,7 +455,7 @@ exclude-result-prefixes="#all"
 
     <xsl:template match="*[ancestor-or-self::div[contains-token(@class, 'block')][parent::div[contains-token(@class, 'content-body')]][acl:mode() = '&acl;Write']]" mode="ixsl:ondragleave" priority="1">
         <xsl:variable name="block" select="ancestor-or-self::div[contains-token(@class, 'block')][parent::div[contains-token(@class, 'content-body')]][1]" as="element()"/>
-        <xsl:variable name="uri" select="xs:anyURI($block/parent::div/parent::div[contains-token(@class, 'document-body')]/@about)" as="xs:anyURI"/>
+        <xsl:variable name="uri" select="xs:anyURI($block/ancestor::*[contains-token(@class, 'document-body')][1]/@about)" as="xs:anyURI"/>
         <xsl:variable name="results" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $uri || '`'), 'results')" as="document-node()"/>
         <xsl:variable name="mode" select="ac:mode($results)" as="xs:anyURI"/>
 
@@ -478,7 +478,7 @@ exclude-result-prefixes="#all"
 
     <xsl:template match="*[ancestor-or-self::div[contains-token(@class, 'block')][parent::div[contains-token(@class, 'content-body')]][acl:mode() = '&acl;Write']]" mode="ixsl:ondrop" priority="1">
         <xsl:variable name="block" select="ancestor-or-self::div[contains-token(@class, 'block')][parent::div[contains-token(@class, 'content-body')]][1]" as="element()"/>
-        <xsl:variable name="uri" select="xs:anyURI($block/parent::div/parent::div[contains-token(@class, 'document-body')]/@about)" as="xs:anyURI"/>
+        <xsl:variable name="uri" select="xs:anyURI($block/ancestor::*[contains-token(@class, 'document-body')][1]/@about)" as="xs:anyURI"/>
         <xsl:variable name="results" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $uri || '`'), 'results')" as="document-node()"/>
         <xsl:variable name="mode" select="ac:mode($results)" as="xs:anyURI"/>
 

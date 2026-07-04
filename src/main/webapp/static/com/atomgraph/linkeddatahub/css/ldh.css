@@ -1,0 +1,73 @@
+/* LinkedDataHub design layer — loaded on top of the Bootstrap stack.
+ * Selectors key on RDFa (@typeof, @about) and ARIA, never on Bootstrap grid classes.
+ * Bootstrap grid classes (span2, span7, row-fluid, etc.) intentionally absent here.
+ */
+
+/* ─── Document layout ────────────────────────────────────────── */
+
+.ldh-document {
+    display: grid;
+    grid-template-rows: auto 1fr;
+}
+
+/* ─── Content area: stacked blocks ───────────────────────────── */
+
+.ldh-content {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1rem;
+}
+
+/* ─── Generic resource block ──────────────────────────────────── */
+
+.ldh-block {
+    display: flex;
+    gap: 1rem;
+}
+
+.ldh-block-body {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.ldh-block-nav {
+    flex: 0 0 200px;
+}
+
+/* ─── Resource header ─────────────────────────────────────────── */
+
+.ldh-header {
+    padding: 0.75rem 0;
+    border-bottom: 1px solid #e0e0e0;
+    margin-bottom: 0.75rem;
+}
+
+/* ─── RDFa typeof selectors (examples; extend per vocabulary) ─── */
+
+/* Containers get a subtle left border */
+[typeof~="https://www.w3.org/ns/ldt/document-hierarchy#Container"] > .ldh-block-body {
+    border-left: 3px solid #5b9bd5;
+    padding-left: 0.75rem;
+}
+
+/* XHTML content blocks — full width, no nav sidebar */
+[typeof~="https://w3id.org/atomgraph/linkeddatahub#XHTML"] {
+    flex-direction: column;
+}
+
+[typeof~="https://w3id.org/atomgraph/linkeddatahub#XHTML"] > .ldh-block-nav {
+    display: none;
+}
+
+/* ─── ARIA state selectors ────────────────────────────────────── */
+
+/* Active mode link */
+a[aria-current="page"] {
+    font-weight: bold;
+}
+
+/* Collapsed left sidebar */
+.left-sidebar[aria-expanded="false"] {
+    display: none;
+}
