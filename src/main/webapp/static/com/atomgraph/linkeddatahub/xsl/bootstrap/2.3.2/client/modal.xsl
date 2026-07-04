@@ -1222,7 +1222,7 @@ LIMIT   10
     <xsl:template match="form[@id = 'form-clone-data'] | form[@id = 'form-generate-containers']" mode="ixsl:onsubmit" priority="1">
         <xsl:param name="callback" as="function(map(*)) as item()*"/>
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
-        <xsl:variable name="control-groups" select="descendant::div[contains-token(@class, 'control-group')]" as="element()*"/>
+        <xsl:variable name="control-groups" select="descendant::div[@property]" as="element()*"/>
         <xsl:variable name="required-control-groups" select="$control-groups[contains-token(@class, 'required')]" as="element()*"/>
 
         <!-- clear the errors initially -->
@@ -1283,12 +1283,12 @@ LIMIT   10
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
         <xsl:variable name="fieldset" select="ancestor::form/fieldset" as="element()"/>
-        <xsl:variable name="control-groups" select="descendant::div[contains-token(@class, 'control-group')]" as="element()*"/>
+        <xsl:variable name="control-groups" select="descendant::div[@property]" as="element()*"/>
         <xsl:variable name="required-control-groups" select="$control-groups[contains-token(@class, 'required')]" as="element()*"/>
         <xsl:variable name="timeout" select="30000" as="xs:integer"/> <!-- schema load query timeout in milliseconds -->
-        <xsl:variable name="service-control-group" select="$fieldset/descendant::div[contains-token(@class, 'control-group')][input[@name = 'pu'][@value = '&ldh;service']]" as="element()"/>
+        <xsl:variable name="service-control-group" select="$fieldset/descendant::div[@property = '&ldh;service']" as="element()"/>
         <xsl:variable name="service-uri" select="$service-control-group/descendant::input[@name = 'ou']/ixsl:get(., 'value')" as="xs:anyURI?"/>
-        <xsl:variable name="limit-control-group" select="$fieldset/descendant::div[contains-token(@class, 'control-group')][input[@name = 'pu'][@value = '&sp;limit']]" as="element()"/>
+        <xsl:variable name="limit-control-group" select="$fieldset/descendant::div[@property = '&sp;limit']" as="element()"/>
         <xsl:variable name="limit-string" select="$limit-control-group/descendant::input[@name = 'ol']/ixsl:get(., 'value')" as="xs:string"/>
         <xsl:variable name="limit" select="xs:integer($limit-string)" as="xs:integer"/>
         <xsl:variable name="select-string" select="$endpoint-classes-string" as="xs:string"/>
@@ -1719,7 +1719,7 @@ LIMIT   10
         <xsl:choose>
             <!-- Success: redirect to parent container with refresh -->
             <xsl:when test="$status = (200, 201, 204)">
-                <xsl:variable name="control-group" select="$form/descendant::div[contains-token(@class, 'control-group')][input[@name = 'pu'][@value = '&sioc;has_parent']]" as="element()*"/>
+                <xsl:variable name="control-group" select="$form/descendant::div[@property = '&sioc;has_parent']" as="element()*"/>
                 <xsl:variable name="uri" select="$control-group/descendant::input[@name = 'ou']/ixsl:get(., 'value')" as="xs:anyURI"/>
                 <!-- Remove the modal -->
                 <xsl:sequence select="ixsl:call($form/ancestor::div[contains-token(@class, 'modal')], 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
@@ -1747,7 +1747,7 @@ LIMIT   10
         <xsl:choose>
             <!-- Success: redirect to target container with ReadMode -->
             <xsl:when test="$status = (200, 204)">
-                <xsl:variable name="control-group" select="$form/descendant::div[contains-token(@class, 'control-group')][input[@name = 'pu'][@value = '&sd;name']]" as="element()*"/>
+                <xsl:variable name="control-group" select="$form/descendant::div[@property = '&sd;name']" as="element()*"/>
                 <xsl:variable name="uri" select="$control-group/descendant::input[@name = 'ou']/ixsl:get(., 'value')" as="xs:anyURI"/>
                 <!-- Remove the modal -->
                 <xsl:sequence select="ixsl:call($form/ancestor::div[contains-token(@class, 'modal')], 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>

@@ -620,7 +620,7 @@ exclude-result-prefixes="#all"
     <xsl:template match="text()[../@xml:lang]" mode="xhtml:DefinitionDescription">
         <xsl:variable name="property-uri" select="../concat(namespace-uri(), local-name())" as="xs:string"/>
 
-        <dd property="{$property-uri}">
+        <dd property="{$property-uri}" xml:lang="{../@xml:lang}">
             <span class="label label-info pull-right">
                 <xsl:value-of select="../@xml:lang"/>
             </span>
@@ -628,10 +628,18 @@ exclude-result-prefixes="#all"
             <xsl:apply-templates select="."/>
         </dd>
     </xsl:template>
-    
+
+    <xsl:template match="text()[../@rdf:datatype]" mode="xhtml:DefinitionDescription">
+        <xsl:variable name="property-uri" select="../concat(namespace-uri(), local-name())" as="xs:string"/>
+
+        <dd property="{$property-uri}" datatype="{../@rdf:datatype}">
+            <xsl:apply-templates select="."/>
+        </dd>
+    </xsl:template>
+
     <xsl:template match="node()" mode="xhtml:DefinitionDescription">
         <xsl:variable name="property-uri" select="../concat(namespace-uri(), local-name())" as="xs:string"/>
-        
+
         <dd property="{$property-uri}">
             <xsl:apply-templates select="."/>
         </dd>
@@ -782,11 +790,11 @@ exclude-result-prefixes="#all"
         <!-- cut slug segment from form action URL -->
         <xsl:param name="slug" select="substring-before(substring-after($action, ac:absolute-path(ldh:base-uri(.))), '/')" as="xs:string"/>
 
-        <div class="control-group">
+        <div class="control-group" data-role="subject">
             <xsl:if test="$type = 'hidden'">
-                <xsl:attribute name="style" select="'display: none'"/>
+                <xsl:attribute name="hidden" select="'hidden'"/>
             </xsl:if>
-            
+
             <span class="control-label">
                 <select class="subject-type input-medium" disabled="disabled">
                     <option value="su" selected="selected">URI</option>
@@ -825,11 +833,11 @@ exclude-result-prefixes="#all"
         <xsl:param name="document-uri" as="xs:anyURI?" tunnel="yes"/>
         <xsl:param name="about" select="xs:anyURI(ac:absolute-path(ldh:base-uri(.)) || '#id' || ac:uuid())" as="xs:anyURI?"/>
 
-        <div class="control-group">
+        <div class="control-group" data-role="subject">
             <xsl:if test="$type = 'hidden'">
-                <xsl:attribute name="style" select="'display: none'"/>
+                <xsl:attribute name="hidden" select="'hidden'"/>
             </xsl:if>
-            
+
             <span class="control-label">
                 <input type="hidden" class="old subject-type" value="{if (local-name() = 'about') then 'su' else if (local-name() = 'nodeID') then 'sb' else ()}"/>
                 <select class="subject-type input-medium">
@@ -903,6 +911,7 @@ exclude-result-prefixes="#all"
             <xsl:if test="$class">
                 <xsl:attribute name="class" select="$class"/>
             </xsl:if>
+            <xsl:attribute name="property" select="$this"/>
 
             <xsl:apply-templates select="." mode="xhtml:Input">
                 <xsl:with-param name="type" select="'hidden'"/>

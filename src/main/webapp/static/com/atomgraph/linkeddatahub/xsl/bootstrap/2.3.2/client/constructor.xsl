@@ -481,8 +481,8 @@ exclude-result-prefixes="#all"
     </xsl:template>
     
     <!-- appends new triple template -->
-    <xsl:template match="div[contains-token(@class, 'control-group')]//button[contains-token(@class, 'create-action')][contains-token(@class, 'add-triple-template')]" mode="ixsl:onclick">
-        <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'control-group')]" as="element()"/>
+    <xsl:template match="button[contains-token(@class, 'create-action')][contains-token(@class, 'add-triple-template')][ancestor::*[@property][1]]" mode="ixsl:onclick">
+        <xsl:variable name="container" select="ancestor::*[@property][1]" as="element()"/>
         <xsl:variable name="controls" as="node()*">
             <xsl:call-template name="ldh:ConstructorPredicate">
                 <xsl:with-param name="predicate" select="()"/>
@@ -538,7 +538,7 @@ exclude-result-prefixes="#all"
     <xsl:template match="form[contains-token(@class, 'constructor-template')]//div[contains-token(@class, 'form-actions')]/button[contains-token(@class, 'btn-save')]" mode="ixsl:onclick">
         <xsl:variable name="form" select="ancestor::form" as="element()"/>
         <xsl:variable name="type" select="$form/@about" as="xs:anyURI"/> <!-- the URI of the class that constructors are attached to -->
-        <xsl:variable name="control-groups" select="$form/descendant::div[contains-token(@class, 'control-group')]" as="element()*"/>
+        <xsl:variable name="control-groups" select="$form/descendant::div[@property]" as="element()*"/>
 
         <xsl:choose>
             <!-- input values missing, throw an error -->
@@ -554,7 +554,7 @@ exclude-result-prefixes="#all"
                     <xsl:variable name="constructor-uri" select="@about" as="xs:anyURI"/>
                     <xsl:variable name="construct-xml" as="document-node()">
                         <!-- not all controls might have value, filter to those that have -->
-                        <xsl:iterate select="./div[contains-token(@class, 'control-group')][label//input[@name = 'ou']/@value][./div[contains-token(@class, 'controls')]//input[@name = 'ou']/@value or ./div[contains-token(@class, 'controls')]//select[@name = 'ou']]">
+                        <xsl:iterate select="./div[@property][label//input[@name = 'ou']/@value][./div[contains-token(@class, 'controls')]//input[@name = 'ou']/@value or ./div[contains-token(@class, 'controls')]//select[@name = 'ou']]">
                             <xsl:param name="construct-xml" as="document-node()">
                                 <xsl:document>
                                     <json:map>

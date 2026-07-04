@@ -872,7 +872,7 @@ WHERE
             </xsl:result-document>
 
             <!-- initialize the last property control group after it's appended -->
-            <xsl:apply-templates select="(./div[contains-token(@class, 'control-group')][input/@name = 'pu'])[last()]" mode="ldh:RenderRowForm"/>
+            <xsl:apply-templates select="(./div[@property][input/@name = 'pu'])[last()]" mode="ldh:RenderRowForm"/>
         </xsl:for-each>
 
         <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
@@ -882,7 +882,7 @@ WHERE
         <xsl:variable name="property-control-group" select="../.." as="element()"/>
         <xsl:variable name="fieldset" select="$property-control-group/.." as="element()"/>
         <xsl:variable name="property-uri" select="../preceding-sibling::*/select/option[ixsl:get(., 'selected') = true()]/ixsl:get(., 'value')" as="xs:anyURI"/>
-        <xsl:variable name="forClass" select="ancestor::div[@typeof][contains-token(@class, 'row-fluid')]/@typeof" as="xs:anyURI*"/>
+        <xsl:variable name="forClass" select="ancestor::*[@typeof][1]/@typeof" as="xs:anyURI*"/>
 
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
@@ -1100,29 +1100,28 @@ WHERE
         <xsl:sequence select="$context"/>
     </xsl:function>
 
-    <!-- toggles the .control-group for subject URI/bnode ID editing -->
+    <!-- toggles the subject URI/bnode ID editing row -->
     <xsl:template match="button[contains-token(@class, 'btn-edit-subj')]" mode="ixsl:onclick">
-        <!-- subject .control group is the first one after <legend> -->
-        <xsl:variable name="subj-control-group" select="ancestor::legend/following-sibling::div[1][contains-token(@class, 'control-group')]" as="element()"/>
-        
+        <xsl:variable name="subj-control-group" select="ancestor::fieldset/div[@data-role = 'subject']" as="element()"/>
+
         <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'open' ])[current-date() lt xs:date('2000-01-01')]"/>
-        
+
         <xsl:for-each select="$subj-control-group">
             <xsl:choose>
-                <xsl:when test="ixsl:style(.)?display = 'none'">
-                    <ixsl:set-style name="display" select="'block'"/>
+                <xsl:when test="@hidden">
+                    <ixsl:remove-attribute name="hidden"/>
                 </xsl:when>
                 <xsl:otherwise>
-                    <ixsl:set-style name="display" select="'none'"/>
+                    <ixsl:set-attribute name="hidden" select="'hidden'"/>
                 </xsl:otherwise>
             </xsl:choose>
         </xsl:for-each>
     </xsl:template>
     
     <!-- appends new SPIN-constructed instance to the page -->
-    <xsl:template match="div[contains-token(@class, 'row-fluid')]//button[contains-token(@class, 'add-constructor')][@data-for-class]" mode="ixsl:onclick" priority="1">
+    <xsl:template match="button[contains-token(@class, 'add-constructor')][@data-for-class][ancestor::*[@typeof][1]]" mode="ixsl:onclick" priority="1">
         <xsl:param name="method" select="'post'" as="xs:string"/>
-        <xsl:param name="container" select="ancestor::div[contains-token(@class, 'row-fluid')][1]" as="element()"/>
+        <xsl:param name="container" select="ancestor::*[@typeof][1]" as="element()"/>
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])[current-date() lt xs:date('2000-01-01')]"/>
         <xsl:variable name="forClass" select="xs:anyURI(@data-for-class)" as="xs:anyURI"/>
         <xsl:variable name="doc-uri" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/>
@@ -1382,7 +1381,7 @@ WHERE
     <xsl:template match="ul[contains-token(@class, 'dropdown-menu')][contains-token(@class, 'type-typeahead')]/li" mode="ixsl:onmousedown" priority="1">
         <xsl:param name="typeahead-class" select="'btn add-typeahead add-type-typeahead'" as="xs:string"/>
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
-        <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'row-fluid')][1]" as="element()"/>
+        <xsl:variable name="container" select="ancestor::*[@typeof][1]" as="element()"/>
         <xsl:variable name="fieldset" select="ancestor::fieldset" as="element()"/>
         <xsl:variable name="doc-uri" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/>
         <xsl:variable name="resource-id" select="input[@name = ('ou', 'ob')]/ixsl:get(., 'value')" as="xs:string"/> <!-- can be URI resource or blank node ID -->
@@ -1669,7 +1668,7 @@ WHERE
             </xsl:when>
             <!-- append new tooltip -->
             <xsl:otherwise>
-                <xsl:variable name="description-span" select="ancestor::*[contains-token(@class, 'control-group')]//*[contains-token(@class, 'description')]" as="element()?"/>
+                <xsl:variable name="description-span" select="ancestor::*[@property]//*[contains-token(@class, 'description')]" as="element()?"/>
                 <xsl:if test="$description-span">
                     <xsl:variable name="input-offset-width" select="ixsl:get(., 'offsetWidth')" as="xs:integer"/>
                     <xsl:variable name="input-offset-height" select="ixsl:get(., 'offsetHeight')" as="xs:integer"/>
