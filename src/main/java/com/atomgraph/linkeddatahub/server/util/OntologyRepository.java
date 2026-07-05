@@ -88,7 +88,9 @@ public class OntologyRepository extends PrefixGraphRepository
     @Override
     public Graph get(String uri)
     {
-        if (isCached(uri)) return super.get(uri);
+        // bundled system vocabularies (mapped to shipped files) and already-materialized ontologies bypass the
+        // admin SPARQL query — the bundled file is authoritative, and querying it would be a wasted round-trip
+        if (isMapped(uri) || isCached(uri)) return super.get(uri);
 
         // attempt to load the ontology from the admin endpoint
         ParameterizedSparqlString ontologyPss = new ParameterizedSparqlString(getOntologyQuery().toString());
