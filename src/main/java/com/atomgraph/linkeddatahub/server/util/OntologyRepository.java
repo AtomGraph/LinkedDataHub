@@ -23,6 +23,10 @@ import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import jakarta.ws.rs.core.MultivaluedHashMap;
 import jakarta.ws.rs.core.MultivaluedMap;
 import jakarta.ws.rs.core.Response;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
+import net.jodah.expiringmap.ExpirationPolicy;
+import net.jodah.expiringmap.ExpiringMap;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.query.ParameterizedSparqlString;
 import org.apache.jena.query.Query;
@@ -60,6 +64,25 @@ public class OntologyRepository extends PrefixGraphRepository
         this.app = app;
         this.system = system;
         this.ontologyQuery = ontologyQuery;
+    }
+
+    /**
+     * Backs the dynamically loaded graphs (materialized ontologies and their imports) with a bounded,
+     * idle-expiring map instead of an unbounded one. Evicted entries are transparently reloaded — the
+     * imports closure is re-materialized by {@code OntologyFilter} on the next cache miss — so this is a
+     * memory backstop, not a correctness dependency. Must not reference instance state (called during
+     * construction).
+     *
+     * @return evicting dynamic-graph store
+     */
+    @Override
+    protected Map<String, Graph> createStore()
+    {
+        return ExpiringMap.builder().
+            maxSize(1000).
+            expirationPolicy(ExpirationPolicy.ACCESSED). // idle-based: keep actively-used ontologies warm
+            expiration(1, TimeUnit.HOURS).
+            build();
     }
 
     @Override
