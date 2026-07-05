@@ -93,6 +93,19 @@
             <groupId>org.glassfish.jersey.connectors</groupId>
             <artifactId>jersey-apache-connector</artifactId>
             <version>3.1.11</version>
+            <exclusions>
+                <!-- exclude commons-logging (via httpclient) - jcl-over-slf4j from Jena provides the JCL API. Otherwise duplicate org.apache.commons.logging classes on the classpath -->
+                <exclusion>
+                    <groupId>commons-logging</groupId>
+                    <artifactId>commons-logging</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <!-- pin to the version jena-base 6.1.0 declares; nearest-wins would otherwise downgrade it to 1.18.0 via jersey-apache-connector -->
+            <groupId>commons-codec</groupId>
+            <artifactId>commons-codec</artifactId>
+            <version>1.22.0</version>
         </dependency>
         <dependency>
             <groupId>org.glassfish.jersey.media</groupId>
@@ -112,7 +125,7 @@
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
-            <version>31.1-jre</version>
+            <version>33.6.0-jre</version>
         </dependency>
         <dependency>
             <groupId>com.atomgraph.etl.csv</groupId>
@@ -146,14 +159,7 @@
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>twirl</artifactId>
-            <version>1.2.0-SNAPSHOT</version>
-            <exclusions>
-                <!-- exclude slf4j-reload4j 1.7.x binding; replaced below with 2.0.x matching slf4j-api from Jena -->
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>slf4j-reload4j</artifactId>
-                </exclusion>
-            </exclusions>
+            <version>2.0.0</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
@@ -163,13 +169,13 @@
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>client</artifactId>
-            <version>4.4.0-SNAPSHOT</version>
+            <version>5.0.1</version>
             <classifier>classes</classifier>
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>client</artifactId>
-            <version>4.4.0-SNAPSHOT</version>
+            <version>5.0.1</version>
             <type>war</type>
         </dependency>
         <dependency>
@@ -185,24 +191,24 @@
         <dependency>
             <groupId>org.jsoup</groupId>
             <artifactId>jsoup</artifactId>
-            <version>1.22.1</version>
+            <version>1.22.2</version>
         </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
-            <version>5.11.4</version>
+            <version>6.1.0</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
-            <version>5.12.0</version>
+            <version>5.18.0</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-junit-jupiter</artifactId>
-            <version>5.12.0</version>
+            <version>5.18.0</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
