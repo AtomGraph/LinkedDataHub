@@ -1782,15 +1782,25 @@ public class Application extends ResourceConfig
      */
     public OntologyRepository getRepository(EndUserApplication app)
     {
-        return getEndUserRepositories().computeIfAbsent(app.getURI(), uri ->
-        {
-            OntologyRepository appRepository = new OntologyRepository(app, this, GraphStoreClient.create(getClient(), getMediaTypes()), getOntologyQuery());
-            // seed bundled vocabulary/ontology mappings from the global repository
-            getRepository().getLocationMappings().forEach(appRepository::addLocationMapping);
-            getRepository().getPrefixMappings().forEach(appRepository::addPrefixMapping);
+        return getEndUserRepositories().computeIfAbsent(app.getURI(), uri -> createRepository(app));
+    }
 
-            return appRepository;
-        });
+    /**
+     * Creates a fresh ontology repository for an application, seeded with the bundled
+     * vocabulary/ontology mappings from the global repository so that mapped URIs resolve to shipped
+     * files rather than being dereferenced over HTTP.
+     *
+     * @param app end-user application resource
+     * @return ontology repository
+     */
+    public OntologyRepository createRepository(EndUserApplication app)
+    {
+        OntologyRepository appRepository = new OntologyRepository(app, this, GraphStoreClient.create(getClient(), getMediaTypes()), getOntologyQuery());
+        // seed bundled vocabulary/ontology mappings from the global repository
+        getRepository().getLocationMappings().forEach(appRepository::addLocationMapping);
+        getRepository().getPrefixMappings().forEach(appRepository::addPrefixMapping);
+
+        return appRepository;
     }
     
     /**
