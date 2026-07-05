@@ -17,7 +17,6 @@ xmlns:orcid="&orcid;"
   
     <xsl:output method="xml" indent="yes"/>
   
-    <xsl:param name="a:cacheModelLoads"/>
     <xsl:param name="ac:stylesheet"/>
     <xsl:param name="ac:cacheStylesheet"/>
     <xsl:param name="ac:resolvingUncached"/>
@@ -66,9 +65,6 @@ xmlns:orcid="&orcid;"
         <xsl:copy>
             <xsl:apply-templates select="@*"/>
 
-            <xsl:if test="$a:cacheModelLoads">
-                <Parameter name="&a;cacheModelLoads" value="{$a:cacheModelLoads}" override="false"/>
-            </xsl:if>
             <xsl:if test="$ac:stylesheet">
                 <Parameter name="&ac;stylesheet" value="{$ac:stylesheet}" override="false"/>
             </xsl:if>

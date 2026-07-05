@@ -270,7 +270,6 @@ public class Application extends ResourceConfig
     private final Client client, externalClient, importClient, noCertClient;
     private final Query documentTypeQuery, documentOwnerQuery, aclQuery, ownerAclQuery, webIDQuery, agentQuery, userAccountQuery, ontologyQuery; // no relative URIs
     private final Integer maxGetRequestSize;
-    private final boolean preemptiveAuth;
     private final Processor xsltProc = new Processor(false);
     private final XsltCompiler xsltComp;
     private final XsltExecutable xsltExec;
@@ -317,8 +316,6 @@ public class Application extends ResourceConfig
         this(servletConfig,
             new MediaTypes(),
             servletConfig.getServletContext().getInitParameter(A.maxGetRequestSize.getURI()) != null ? Integer.valueOf(servletConfig.getServletContext().getInitParameter(A.maxGetRequestSize.getURI())) : null,
-            servletConfig.getServletContext().getInitParameter(A.cacheModelLoads.getURI()) != null ? Boolean.parseBoolean(servletConfig.getServletContext().getInitParameter(A.cacheModelLoads.getURI())) : true,
-            servletConfig.getServletContext().getInitParameter(A.preemptiveAuth.getURI()) != null ? Boolean.parseBoolean(servletConfig.getServletContext().getInitParameter(A.preemptiveAuth.getURI())) : false,
             servletConfig.getServletContext().getInitParameter(AC.prefixMapping.getURI()),
             servletConfig.getServletContext().getInitParameter(LDHC.contextDataset.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.contextDataset.getURI()) : null,
             com.atomgraph.client.Application.getSource(servletConfig.getServletContext(), servletConfig.getServletContext().getInitParameter(AC.stylesheet.getURI()) != null ? servletConfig.getServletContext().getInitParameter(AC.stylesheet.getURI()) : null),
@@ -382,9 +379,7 @@ public class Application extends ResourceConfig
      * @param servletConfig servlet config
      * @param mediaTypes supported media types
      * @param maxGetRequestSize maximum <code>GET</code> request size
-     * @param cacheModelLoads true if model loads should be cached
-     * @param preemptiveAuth true if HTTP Basic auth credentials should be sent preemptively
-     * @param locationMapper Jena's <code>LocationMapper</code> instance
+     * @param prefixMappingConfig location-mapping configuration source
      * @param contextDatasetURIString location of the context dataset
      * @param stylesheet stylesheet URI
      * @param cacheStylesheet true if stylesheet should be cached
@@ -433,7 +428,7 @@ public class Application extends ResourceConfig
      * @param backendProxyEndUserString backend proxy URI for the end-user SPARQL service (endpoint URI rewriting + cache invalidation), or null
      */
     public Application(final ServletConfig servletConfig, final MediaTypes mediaTypes,
-            final Integer maxGetRequestSize, final boolean cacheModelLoads, final boolean preemptiveAuth,
+            final Integer maxGetRequestSize,
             final String prefixMappingConfig, final String contextDatasetURIString,
             final Source stylesheet, final boolean cacheStylesheet, final boolean resolvingUncached,
             final String clientKeyStoreURIString, final String clientKeyStorePassword,
@@ -574,7 +569,6 @@ public class Application extends ResourceConfig
         this.servletConfig = servletConfig;
         this.mediaTypes = mediaTypes;
         this.maxGetRequestSize = maxGetRequestSize;
-        this.preemptiveAuth = preemptiveAuth;
         this.cacheStylesheet = cacheStylesheet;
         this.resolvingUncached = resolvingUncached;
         this.enableLinkedDataProxy = enableLinkedDataProxy;
@@ -1996,16 +1990,6 @@ public class Application extends ResourceConfig
         return maxGetRequestSize;
     }
 
-    /**
-     * Returns true if HTTP Basic auth credentials should be sent preemptively.
-     * 
-     * @return true if preemptively
-     */
-    public boolean isPreemptiveAuth()
-    {
-        return preemptiveAuth;
-    }
-    
     /**
      * Returns Saxon's XSLT compiler.
      * 
