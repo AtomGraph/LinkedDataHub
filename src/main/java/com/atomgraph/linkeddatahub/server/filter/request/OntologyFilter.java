@@ -146,8 +146,16 @@ public class OntologyFilter implements ContainerRequestFilter
         final PrefixGraphRepository repository = app.canAs(EndUserApplication.class) ?
             getSystem().getRepository(app.as(EndUserApplication.class)) : getSystem().getRepository();
 
-        // only build the materialized model if the ontology is not already cached
-        if (!repository.isCached(uri)) loadOntology(repository, uri);
+        // only build the materialized model if the ontology is not already cached; the double check under the
+        // repository lock ensures a single thread materializes it (loadOntology is a compound load + inference +
+        // put, not atomic), so concurrent cold requests don't duplicate the work or race each other's writes
+        if (!repository.isCached(uri))
+        {
+            synchronized (repository)
+            {
+                if (!repository.isCached(uri)) loadOntology(repository, uri);
+            }
+        }
 
         return OntModelFactory.createModel(repository.get(uri), OntSpecification.OWL2_FULL_MEM);
     }
