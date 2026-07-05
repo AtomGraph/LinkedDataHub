@@ -787,7 +787,7 @@ public class Application extends ResourceConfig
                 serviceIt.close();
             }
 
-            endUserRepositories = new HashMap<>();
+            endUserRepositories = new ConcurrentHashMap<>();
             // global graph repository: bundled vocabularies/ontologies mapped from the prefix-mapping config
             repository = new PrefixGraphRepository(GraphStoreClient.create(client, mediaTypes));
             if (prefixMappingConfig != null)
@@ -1788,17 +1788,15 @@ public class Application extends ResourceConfig
      */
     public OntologyRepository getRepository(EndUserApplication app)
     {
-        if (!getEndUserRepositories().containsKey(app.getURI()))
+        return getEndUserRepositories().computeIfAbsent(app.getURI(), uri ->
         {
             OntologyRepository appRepository = new OntologyRepository(app, this, GraphStoreClient.create(getClient(), getMediaTypes()), getOntologyQuery());
             // seed bundled vocabulary/ontology mappings from the global repository
             getRepository().getLocationMappings().forEach(appRepository::addLocationMapping);
             getRepository().getPrefixMappings().forEach(appRepository::addPrefixMapping);
 
-            getEndUserRepositories().put(app.getURI(), appRepository);
-        }
-
-        return getEndUserRepositories().get(app.getURI());
+            return appRepository;
+        });
     }
     
     /**
