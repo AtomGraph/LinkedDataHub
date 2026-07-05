@@ -857,7 +857,7 @@ public class Application extends ResourceConfig
             
             xsltComp = xsltProc.newXsltCompiler();
             xsltComp.setParameter(new QName("ldh", LDH.base.getNameSpace(), LDH.base.getLocalName()), new XdmAtomicValue(baseURI));
-            xsltComp.setURIResolver(new StylesheetResolver(getRepository(), GraphStoreClient.create(client, mediaTypes))); // resolves xsl:import to raw stylesheet sources
+            xsltComp.setURIResolver(new StylesheetResolver(client)); // resolves xsl:import to raw stylesheet sources
             xsltExec = xsltComp.compile(stylesheet);
         }
         catch (FileNotFoundException ex)
