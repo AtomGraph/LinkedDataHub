@@ -96,7 +96,6 @@ public class InstallPackage
      *
      * @param application matched application (admin app)
      * @param system system application
-     * @param dataManager data manager
      * @param agentContext authenticated agent context
      */
     @Inject

@@ -60,8 +60,7 @@ public class ResultSetXSLTWriter extends XSLTWriterBase implements MessageBodyWr
      * Constructs XSLT writer.
      * 
      * @param xsltExec compiled XSLT stylesheet
-     * @param ontModelSpec ontology specification
-     * @param dataManager RDF data manager
+     * @param resolver RDF source resolver
      * @param messageDigest message digest
      */
     public ResultSetXSLTWriter(XsltExecutable xsltExec, RDFSourceResolver resolver, MessageDigest messageDigest)
