@@ -1043,10 +1043,6 @@ if [ -n "$PROXY_PORT" ]; then
     PROXY_PORT_PARAM="--stringparam ldhc:proxyPort '$PROXY_PORT' "
 fi
 
-if [ -n "$CACHE_MODEL_LOADS" ]; then
-    CACHE_MODEL_LOADS_PARAM="--stringparam a:cacheModelLoads '$CACHE_MODEL_LOADS' "
-fi
-
 # stylesheet URL must be relative to the base context URL
 if [ -n "$STYLESHEET" ]; then
     STYLESHEET_PARAM="--stringparam ac:stylesheet '$STYLESHEET' "
@@ -1166,7 +1162,6 @@ fi
 
 transform="xsltproc \
   --output conf/Catalina/localhost/ROOT.xml \
-  $CACHE_MODEL_LOADS_PARAM \
   $STYLESHEET_PARAM \
   $CACHE_STYLESHEET_PARAM \
   $RESOLVING_UNCACHED_PARAM \

@@ -72,7 +72,7 @@ import jakarta.ws.rs.core.SecurityContext;
 import jakarta.ws.rs.core.UriInfo;
 import jakarta.ws.rs.ext.Providers;
 import static org.apache.jena.datatypes.xsd.XSDDatatype.XSDhexBinary;
-import org.apache.jena.ontology.Ontology;
+import org.apache.jena.ontapi.model.OntModel;
 import org.apache.jena.query.ParameterizedSparqlString;
 import org.apache.jena.query.Query;
 import org.apache.jena.query.ResultSet;
@@ -144,7 +144,7 @@ public class SignUp extends DocumentHierarchyGraphStoreImpl
     // TO-DO: move to AuthenticationExceptionMapper and handle as state instead of URI resource?
     @Inject
     public SignUp(@Context Request request, @Context UriInfo uriInfo, MediaTypes mediaTypes,
-            com.atomgraph.linkeddatahub.apps.model.Application application, Optional<Ontology> ontology, Optional<Service> service,
+            com.atomgraph.linkeddatahub.apps.model.Application application, Optional<OntModel> ontology, Optional<Service> service,
             @Context SecurityContext securityContext, Optional<AgentContext> agentContext,
             @Context Providers providers, com.atomgraph.linkeddatahub.Application system, @Context ServletConfig servletConfig)
     {

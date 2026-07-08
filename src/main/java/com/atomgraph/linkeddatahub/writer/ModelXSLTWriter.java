@@ -15,7 +15,7 @@
  */
 package com.atomgraph.linkeddatahub.writer;
 
-import com.atomgraph.client.util.DataManager;
+import com.atomgraph.client.util.RDFSourceResolver;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import com.atomgraph.linkeddatahub.model.auth.Agent;
 import com.atomgraph.linkeddatahub.server.io.ValidatingModelProvider;
@@ -41,7 +41,6 @@ import javax.xml.transform.TransformerException;
 import net.sf.saxon.s9api.SaxonApiException;
 import net.sf.saxon.s9api.XsltExecutable;
 import org.apache.http.HttpHeaders;
-import org.apache.jena.ontology.OntModelSpec;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.riot.RDFFormat;
 import org.apache.jena.riot.RDFWriter;
@@ -66,13 +65,12 @@ public class ModelXSLTWriter extends XSLTWriterBase implements MessageBodyWriter
      * Constructs XSLT writer.
      * 
      * @param xsltExec compiled XSLT stylesheet
-     * @param ontModelSpec ontology specification
-     * @param dataManager RDF data manager
+     * @param resolver RDF source resolver
      * @param messageDigest message digest
      */
-    public ModelXSLTWriter(XsltExecutable xsltExec, OntModelSpec ontModelSpec, DataManager dataManager, MessageDigest messageDigest)
+    public ModelXSLTWriter(XsltExecutable xsltExec, RDFSourceResolver resolver, MessageDigest messageDigest)
     {
-        super(xsltExec, ontModelSpec, dataManager, messageDigest);
+        super(xsltExec, resolver, messageDigest);
     }
 
     @Override

@@ -16,12 +16,11 @@
  */
 package com.atomgraph.linkeddatahub.vocabulary;
 
-import org.apache.jena.ontology.DatatypeProperty;
-import org.apache.jena.ontology.ObjectProperty;
-import org.apache.jena.ontology.OntClass;
-import org.apache.jena.ontology.OntModel;
-import org.apache.jena.ontology.OntModelSpec;
-import org.apache.jena.rdf.model.ModelFactory;
+import org.apache.jena.ontapi.OntModelFactory;
+import org.apache.jena.ontapi.OntSpecification;
+import org.apache.jena.ontapi.model.OntModel;
+import org.apache.jena.rdf.model.Property;
+
 import org.apache.jena.rdf.model.Resource;
 
 /**
@@ -32,8 +31,13 @@ import org.apache.jena.rdf.model.Resource;
 public class LAPP
 {
 
+    static
+    {
+        org.apache.jena.sys.JenaSystem.init(); // ensure Jena (RDFS vocab) is initialized before ontapi touches it
+    }
+
     /** The RDF model that holds the vocabulary terms */
-    private static OntModel m_model = ModelFactory.createOntologyModel(OntModelSpec.OWL_MEM, null);
+    private static OntModel m_model = OntModelFactory.createModel(OntSpecification.OWL2_FULL_MEM);
     
     /** The namespace of the vocabulary as a string */
     public static final String NS = "https://w3id.org/atomgraph/linkeddatahub/apps#";
@@ -53,45 +57,45 @@ public class LAPP
     public static final Resource NAMESPACE = m_model.createResource( NS );
 
     /** Application class */
-    public static final OntClass Context = m_model.createClass( NS + "Context" );
+    public static final Resource Context = m_model.createOntClass( NS + "Context" );
     
     /** Dataset class */
-    public static final OntClass Dataset = m_model.createClass( NS + "Dataset" );
+    public static final Resource Dataset = m_model.createOntClass( NS + "Dataset" );
     
     /** Application class */
-    public static final OntClass Application = m_model.createClass( NS + "Application" );
+    public static final Resource Application = m_model.createOntClass( NS + "Application" );
 
     /** Admin application class */
-    public static final OntClass AdminApplication = m_model.createClass( NS + "AdminApplication" );
+    public static final Resource AdminApplication = m_model.createOntClass( NS + "AdminApplication" );
 
     /** End-user application class */
-    public static final OntClass EndUserApplication = m_model.createClass( NS + "EndUserApplication" );
+    public static final Resource EndUserApplication = m_model.createOntClass( NS + "EndUserApplication" );
 
     /** Package class */
-    public static final OntClass Package = m_model.createClass( NS + "Package" );
+    public static final Resource Package = m_model.createOntClass( NS + "Package" );
 
     /** Admin application class */
-//    public static final ObjectProperty adminApplication = m_model.createObjectProperty( NS + "adminApplication" );
+//    public static final Property adminApplication = m_model.createObjectProperty( NS + "adminApplication" );
 //
 //    /** End-user application class */
-//    public static final ObjectProperty endUserApplication = m_model.createObjectProperty( NS + "endUserApplication" );
+//    public static final Property endUserApplication = m_model.createObjectProperty( NS + "endUserApplication" );
 
     /** Frontend proxy property */
-    public static final ObjectProperty frontendProxy = m_model.createObjectProperty( NS + "frontendProxy" );
+    public static final Property frontendProxy = m_model.createObjectProperty( NS + "frontendProxy" );
 
     /** Backend proxy property */
-    public static final ObjectProperty backendProxy = m_model.createObjectProperty( NS + "backendProxy" );
+    public static final Property backendProxy = m_model.createObjectProperty( NS + "backendProxy" );
 
     /** Prefix property */
-    public static final ObjectProperty prefix = m_model.createObjectProperty( NS + "prefix" );
+    public static final Property prefix = m_model.createObjectProperty( NS + "prefix" );
     
     /** Read-only property */
-    public static final DatatypeProperty allowRead = m_model.createDatatypeProperty( NS + "allowRead" );
+    public static final Property allowRead = m_model.createDataProperty( NS + "allowRead" );
 
     /** Origin property for subdomain-based application matching */
-    public static final ObjectProperty origin = m_model.createObjectProperty(NS + "origin");
+    public static final Property origin = m_model.createObjectProperty(NS + "origin");
 
     /** Application property (for Link header rel) */
-    public static final ObjectProperty application = m_model.createObjectProperty( NS + "application" );
+    public static final Property application = m_model.createObjectProperty( NS + "application" );
 
 }

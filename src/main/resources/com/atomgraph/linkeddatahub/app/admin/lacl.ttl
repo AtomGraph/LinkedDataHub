@@ -69,7 +69,7 @@
 
 # authorization requests
 
-:AuthorizationRequest a rdfs:Class ;
+:AuthorizationRequest a rdfs:Class, owl:Class ;
     spin:constructor :AuthorizationRequestConstructor ;
     spin:constraint :MissingRequestMode, :MissingRequestAgent, :MissingRequestAccessTo ;
     rdfs:label "Authorization request" ;
@@ -108,7 +108,7 @@
         WHERE {}""" ;
     rdfs:isDefinedBy : .
 
-:CreatorAuthorization a rdfs:Class ;
+:CreatorAuthorization a rdfs:Class, owl:Class ;
     rdfs:subClassOf acl:Authorization ;
     rdfs:label "Creator access" ;
     rdfs:comment "Creators have full control of their created resources" ;

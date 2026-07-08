@@ -323,10 +323,6 @@ support@atomgraph.com]]></param-value>
         <param-value>true</param-value>
     </context-param>
     <context-param>
-        <param-name>https://w3id.org/atomgraph/core#preemptiveAuth</param-name>
-        <param-value>true</param-value>
-    </context-param>
-    <context-param>
         <param-name>https://w3id.org/atomgraph/linkeddatahub/config#invalidateCache</param-name>
         <param-value>true</param-value>
     </context-param>

@@ -559,8 +559,10 @@ WHERE
                             <!-- no pane: create one with sidebar -->
                             <xsl:otherwise>
                                 <xsl:variable name="tab-body" as="element()">
+                                    <!-- inert class: ldh:ActivateTab (called from ldh:RenderTab below) is the single source of truth for the 'active' token. Defaulting to 'tab-pane active' here would briefly leave two panes active (this one + the currently-active local one) and crash ldt:base()/sd:endpoint() in any code that runs between append and ActivateTab (e.g. ldh:LeftSidebar). -->
                                     <xsl:apply-templates select="$results/rdf:RDF" mode="bs2:TabBody">
                                         <xsl:with-param name="id" select="$tab-body-id"/>
+                                        <xsl:with-param name="class" select="'tab-pane'"/>
                                         <xsl:with-param name="mode" select="$mode"/>
                                         <xsl:with-param name="base" select="$tab-base"/>
                                         <xsl:with-param name="endpoint" select="$endpoint"/>
@@ -718,6 +720,7 @@ WHERE
                             <xsl:variable name="tab-body" as="element()">
                                 <xsl:apply-templates select="$results/rdf:RDF" mode="bs2:TabBody">
                                     <xsl:with-param name="id" select="$tab-body-id"/>
+                                    <xsl:with-param name="class" select="'tab-pane'"/>
                                     <xsl:with-param name="mode" select="$mode"/>
                                     <xsl:with-param name="about" select="$doc-uri"/>
                                 </xsl:apply-templates>

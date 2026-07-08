@@ -17,56 +17,82 @@
 package com.atomgraph.linkeddatahub.server.util;
 
 import com.atomgraph.client.vocabulary.LDT;
+import com.atomgraph.core.client.GraphStoreClient;
+import com.atomgraph.client.util.jena.PrefixGraphRepository;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
-import com.atomgraph.server.exception.OntologyException;
 import jakarta.ws.rs.core.MultivaluedHashMap;
 import jakarta.ws.rs.core.MultivaluedMap;
 import jakarta.ws.rs.core.Response;
-import org.apache.jena.ontology.OntModelSpec;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
+import net.jodah.expiringmap.ExpirationPolicy;
+import net.jodah.expiringmap.ExpiringMap;
+import org.apache.jena.graph.Graph;
 import org.apache.jena.query.ParameterizedSparqlString;
 import org.apache.jena.query.Query;
 import org.apache.jena.rdf.model.Model;
-import org.apache.jena.rdf.model.ModelFactory;
-import org.apache.jena.rdf.model.ModelReader;
-import org.apache.jena.util.FileManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
 /**
- * Application's ontology model getter.
- * Loads ontology model using the configured ontology query
+ * Ontology graph repository that resolves graphs SPARQL-first: it runs the configured ontology query
+ * against the admin endpoint and, only if that returns nothing, falls back to the bundled mappings /
+ * HTTP loading of the superclass. Replaces the legacy {@code ModelGetter} plugged into {@code OntModelSpec}.
+ *
+ * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-public class OntologyModelGetter implements org.apache.jena.ontology.models.ModelGetter
+public class OntologyRepository extends PrefixGraphRepository
 {
 
-    private static final Logger log = LoggerFactory.getLogger(OntologyModelGetter.class);
+    private static final Logger log = LoggerFactory.getLogger(OntologyRepository.class);
 
     private final EndUserApplication app;
     private final com.atomgraph.linkeddatahub.Application system;
-    private final OntModelSpec ontModelSpec;
     private final Query ontologyQuery;
 
     /**
-     * Constructs ontology getter for application.
+     * Constructs the repository for an application.
      *
      * @param app end-user application resource
      * @param system system application
-     * @param ontModelSpec ontology specification
+     * @param gsc Graph Store client for HTTP fallback loading
      * @param ontologyQuery SPARQL query that loads ontology terms
      */
-    public OntologyModelGetter(EndUserApplication app, com.atomgraph.linkeddatahub.Application system, OntModelSpec ontModelSpec, Query ontologyQuery)
+    public OntologyRepository(EndUserApplication app, com.atomgraph.linkeddatahub.Application system, GraphStoreClient gsc, Query ontologyQuery)
     {
+        super(gsc);
         this.app = app;
         this.system = system;
-        this.ontModelSpec = ontModelSpec;
         this.ontologyQuery = ontologyQuery;
     }
 
+    /**
+     * Backs the dynamically loaded graphs (materialized ontologies and their imports) with a bounded,
+     * idle-expiring map instead of an unbounded one. Evicted entries are transparently reloaded — the
+     * imports closure is re-materialized by {@code OntologyFilter} on the next cache miss — so this is a
+     * memory backstop, not a correctness dependency. Must not reference instance state (called during
+     * construction).
+     *
+     * @return evicting dynamic-graph store
+     */
     @Override
-    public Model getModel(String uri)
+    protected Map<String, Graph> createStore()
     {
-        // attempt to load ontology model from the admin endpoint. TO-DO: is that necessary if ontologies terms are now stored in a single graph?
+        return ExpiringMap.builder().
+            maxSize(1000).
+            expirationPolicy(ExpirationPolicy.ACCESSED). // idle-based: keep actively-used ontologies warm
+            expiration(1, TimeUnit.HOURS).
+            build();
+    }
+
+    @Override
+    public Graph get(String uri)
+    {
+        // bundled system vocabularies (mapped to shipped files) and already-materialized ontologies bypass the
+        // admin SPARQL query — the bundled file is authoritative, and querying it would be a wasted round-trip
+        if (isMapped(uri) || isCached(uri)) return super.get(uri);
+
+        // attempt to load the ontology from the admin endpoint
         ParameterizedSparqlString ontologyPss = new ParameterizedSparqlString(getOntologyQuery().toString());
         ontologyPss.setIri(LDT.ontology.getLocalName(), uri);
 
@@ -82,24 +108,15 @@ public class OntologyModelGetter implements org.apache.jena.ontology.models.Mode
             model = cr.readEntity(Model.class);
         }
 
-        if (!model.isEmpty()) return model;
-
-        // if SPARQL result model is empty, fallback to using FileManager
-        FileManager fileManager = getOntModelSpec().getDocumentManager().getFileManager();
-        return fileManager.loadModel(uri);
-    }
-
-    @Override
-    public Model getModel(String uri, ModelReader loadIfAbsent) 
-    {
-        try
+        if (!model.isEmpty())
         {
-            return getModel(uri);
+            Graph graph = model.getGraph();
+            put(uri, graph);
+            return graph;
         }
-        catch (OntologyException ex)
-        {
-            return loadIfAbsent.readModel(ModelFactory.createDefaultModel(), uri);
-        }
+
+        // if the SPARQL result is empty, fall back to bundled mappings / HTTP loading
+        return super.get(uri);
     }
 
     /**
@@ -123,23 +140,13 @@ public class OntologyModelGetter implements org.apache.jena.ontology.models.Mode
     }
 
     /**
-     * Returns ontology specification.
-     * 
-     * @return ontology specification
-     */
-    public OntModelSpec getOntModelSpec()
-    {
-        return ontModelSpec;
-    }
-
-    /**
      * Returns the SPARQL query used to load ontology terms.
-     * 
+     *
      * @return SPARQL query
      */
     public Query getOntologyQuery()
     {
         return ontologyQuery;
     }
-    
+
 }

@@ -89,7 +89,7 @@ import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.jena.atlas.RuntimeIOException;
 import org.apache.jena.datatypes.xsd.XSDDateTime;
-import org.apache.jena.ontology.Ontology;
+import org.apache.jena.ontapi.model.OntModel;
 import org.apache.jena.query.Dataset;
 import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.rdf.model.Model;
@@ -132,7 +132,7 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
     public static final String UPLOADS_PATH = "uploads";
     
     private final com.atomgraph.linkeddatahub.apps.model.Application application;
-    private final Ontology ontology;
+    private final OntModel ontology;
     private final Service service;
     private final Providers providers;
     private final com.atomgraph.linkeddatahub.Application system;
@@ -160,7 +160,7 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
      */
     @Inject
     public DocumentHierarchyGraphStoreImpl(@Context Request request, @Context UriInfo uriInfo, MediaTypes mediaTypes,
-        com.atomgraph.linkeddatahub.apps.model.Application application, Optional<Ontology> ontology, Optional<Service> service,
+        com.atomgraph.linkeddatahub.apps.model.Application application, Optional<OntModel> ontology, Optional<Service> service,
         @Context SecurityContext securityContext, Optional<AgentContext> agentContext,
         @Context Providers providers, com.atomgraph.linkeddatahub.Application system)
     {
@@ -394,6 +394,7 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
         Model beforeUpdateModel = ModelFactory.createDefaultModel().add(existingModel);
         dataset = DatasetFactory.wrap(existingModel);
         UpdateAction.execute(updateRequest, dataset); // update model in memory
+        new Skolemizer(getURI().toString()).apply(existingModel); // skolemize blank nodes introduced by INSERT
 
         // if PATCH results in an empty graph, treat it as a DELETE request
         if (existingModel.isEmpty()) return delete();
@@ -1030,7 +1031,7 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
      * 
      * @return ontology resource
      */
-    public Ontology getOntology()
+    public OntModel getOntology()
     {
         return ontology;
     }

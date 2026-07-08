@@ -16,12 +16,11 @@
  */
 package com.atomgraph.server.vocabulary;
 
-import org.apache.jena.ontology.DatatypeProperty;
-import org.apache.jena.ontology.ObjectProperty;
-import org.apache.jena.ontology.OntClass;
-import org.apache.jena.ontology.OntModel;
-import org.apache.jena.ontology.OntModelSpec;
-import org.apache.jena.rdf.model.ModelFactory;
+import org.apache.jena.ontapi.OntModelFactory;
+import org.apache.jena.ontapi.OntSpecification;
+import org.apache.jena.ontapi.model.OntModel;
+import org.apache.jena.rdf.model.Property;
+
 import org.apache.jena.rdf.model.Resource;
 
 /**
@@ -31,8 +30,13 @@ import org.apache.jena.rdf.model.Resource;
  */
 public final class LDT
 {
+
+    static
+    {
+        org.apache.jena.sys.JenaSystem.init(); // ensure Jena (RDFS vocab) is initialized before ontapi touches it
+    }
     /** <p>The RDF model that holds the vocabulary terms</p> */
-    private static OntModel m_model = ModelFactory.createOntologyModel(OntModelSpec.OWL_MEM, null);
+    private static OntModel m_model = OntModelFactory.createModel(OntSpecification.OWL2_FULL_MEM);
     
     /** <p>The namespace of the vocabulary as a string</p> */
     public static final String NS = "https://www.w3.org/ns/ldt#";
@@ -47,51 +51,51 @@ public final class LDT
     /** <p>The namespace of the vocabulary as a resource</p> */
     public static final Resource NAMESPACE = m_model.createResource( NS );
 
-    public static final OntClass Application = m_model.createClass( NS + "Application" );
+    public static final Resource Application = m_model.createOntClass( NS + "Application" );
 
-    public static final OntClass Ontology = m_model.createClass( NS + "Ontology" );
+    public static final Resource Ontology = m_model.createOntClass( NS + "Ontology" );
 
-    public static final OntClass Template = m_model.createClass( NS + "Template" );
+    public static final Resource Template = m_model.createOntClass( NS + "Template" );
 
-    public static final OntClass Parameter = m_model.createClass( NS + "Parameter" );
+    public static final Resource Parameter = m_model.createOntClass( NS + "Parameter" );
 
-    public static final OntClass TemplateCall = m_model.createClass( NS + "TemplateCall" );
+    public static final Resource TemplateCall = m_model.createOntClass( NS + "TemplateCall" );
 
-    public static final OntClass Argument = m_model.createClass( NS + "Argument" );
+    public static final Resource Argument = m_model.createOntClass( NS + "Argument" );
 
-    public static final ObjectProperty base = m_model.createObjectProperty( NS + "base" );
+    public static final Property base = m_model.createObjectProperty( NS + "base" );
 
-    public static final ObjectProperty ontology = m_model.createObjectProperty( NS + "ontology" );
+    public static final Property ontology = m_model.createObjectProperty( NS + "ontology" );
 
-    public static final ObjectProperty service = m_model.createObjectProperty( NS + "service" );
+    public static final Property service = m_model.createObjectProperty( NS + "service" );
 
-    public static final ObjectProperty arg = m_model.createObjectProperty( NS + "arg" );
+    public static final Property arg = m_model.createObjectProperty( NS + "arg" );
     
-    public static final DatatypeProperty paramName = m_model.createDatatypeProperty( NS + "paramName" );    
+    public static final Property paramName = m_model.createDataProperty( NS + "paramName" );    
 
     // "extends" is a reserved keyword in Java, obviously
-    public static final ObjectProperty extends_ = m_model.createObjectProperty( NS + "extends" );
+    public static final Property extends_ = m_model.createObjectProperty( NS + "extends" );
 
-    public static final DatatypeProperty path = m_model.createDatatypeProperty( NS + "path" );
+    public static final Property path = m_model.createDataProperty( NS + "path" );
     
-    public static final ObjectProperty query = m_model.createObjectProperty( NS + "query" );
+    public static final Property query = m_model.createObjectProperty( NS + "query" );
 
-    public static final ObjectProperty update = m_model.createObjectProperty( NS + "update" );
+    public static final Property update = m_model.createObjectProperty( NS + "update" );
 
-    public static final DatatypeProperty match = m_model.createDatatypeProperty( NS + "match" );
+    public static final Property match = m_model.createDataProperty( NS + "match" );
 
-    public static final DatatypeProperty priority = m_model.createDatatypeProperty( NS + "priority" );
+    public static final Property priority = m_model.createDataProperty( NS + "priority" );
 
-    public static final DatatypeProperty fragment = m_model.createDatatypeProperty( NS + "fragment" );
+    public static final Property fragment = m_model.createDataProperty( NS + "fragment" );
 
-    public static final ObjectProperty param = m_model.createObjectProperty( NS + "param" );
+    public static final Property param = m_model.createObjectProperty( NS + "param" );
     
-    public static final ObjectProperty loadClass = m_model.createObjectProperty( NS + "loadClass" );
+    public static final Property loadClass = m_model.createObjectProperty( NS + "loadClass" );
 
-    public static final DatatypeProperty cacheControl = m_model.createDatatypeProperty( NS + "cacheControl" );
+    public static final Property cacheControl = m_model.createDataProperty( NS + "cacheControl" );
     
-    public static final ObjectProperty lang = m_model.createObjectProperty( NS + "lang" );
+    public static final Property lang = m_model.createObjectProperty( NS + "lang" );
 
-    public static final ObjectProperty template = m_model.createObjectProperty( NS + "template" );
+    public static final Property template = m_model.createObjectProperty( NS + "template" );
 
 }

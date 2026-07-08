@@ -16,7 +16,6 @@
  */
 package com.atomgraph.linkeddatahub.resource.admin.pkg;
 
-import com.atomgraph.client.util.DataManager;
 import com.atomgraph.linkeddatahub.apps.model.AdminApplication;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import com.atomgraph.linkeddatahub.client.GraphStoreClient;
@@ -39,10 +38,10 @@ import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.UriBuilder;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.jena.rdf.model.Model;
+import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.update.UpdateFactory;
 import org.apache.jena.update.UpdateRequest;
-import org.apache.jena.util.FileManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.io.IOException;
@@ -73,7 +72,6 @@ public class UninstallPackage
 
     private final com.atomgraph.linkeddatahub.apps.model.Application application;
     private final com.atomgraph.linkeddatahub.Application system;
-    private final DataManager dataManager;
     private final Optional<AgentContext> agentContext;
 
     @Context ServletContext servletContext;
@@ -84,18 +82,15 @@ public class UninstallPackage
      *
      * @param application matched application (admin app)
      * @param system system application
-     * @param dataManager data manager
      * @param agentContext authenticated agent context
      */
     @Inject
     public UninstallPackage(com.atomgraph.linkeddatahub.apps.model.Application application,
                      com.atomgraph.linkeddatahub.Application system,
-                     DataManager dataManager,
                      Optional<AgentContext> agentContext)
     {
         this.application = application;
         this.system = system;
-        this.dataManager = dataManager;
         this.agentContext = agentContext;
     }
 
@@ -317,12 +312,12 @@ public class UninstallPackage
         final Model model;
 
         // check if we have the model in the cache first and if yes, return it from there instead making an HTTP request
-        if (((FileManager)getDataManager()).hasCachedModel(packageURI) ||
-                (getDataManager().isResolvingMapped() && getDataManager().isMapped(packageURI))) // read mapped URIs (such as system ontologies) from a file
+        if (getSystem().getRepository().isCached(packageURI) ||
+                (getSystem().getRepository().isMapped(packageURI))) // read mapped URIs (such as system ontologies) from a file
         {
-            if (log.isDebugEnabled()) log.debug("hasCachedModel({}): {}", packageURI, ((FileManager)getDataManager()).hasCachedModel(packageURI));
-            if (log.isDebugEnabled()) log.debug("isMapped({}): {}", packageURI, getDataManager().isMapped(packageURI));
-            model = getDataManager().loadModel(packageURI);
+            if (log.isDebugEnabled()) log.debug("hasCachedModel({}): {}", packageURI, getSystem().getRepository().isCached(packageURI));
+            if (log.isDebugEnabled()) log.debug("isMapped({}): {}", packageURI, getSystem().getRepository().isMapped(packageURI));
+            model = ModelFactory.createModelForGraph(getSystem().getRepository().get(packageURI));
         }
         else
         {
@@ -350,15 +345,6 @@ public class UninstallPackage
         return system;
     }
 
-    /**
-     * Returns RDF data manager.
-     *
-     * @return RDF data manager
-     */
-    public DataManager getDataManager()
-    {
-        return dataManager;
-    }
 
     /**
      * Returns JAX-RS resource context.

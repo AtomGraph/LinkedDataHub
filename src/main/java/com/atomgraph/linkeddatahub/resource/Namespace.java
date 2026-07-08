@@ -31,7 +31,7 @@ import static com.atomgraph.core.model.SPARQLEndpoint.USING_NAMED_GRAPH_URI;
 import com.atomgraph.core.model.impl.dataset.ServiceImpl;
 import com.atomgraph.linkeddatahub.apps.model.Application;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
-import com.atomgraph.linkeddatahub.server.util.OntologyModelGetter;
+import com.atomgraph.linkeddatahub.server.util.OntologyRepository;
 import java.net.URI;
 import java.util.List;
 import java.util.Optional;
@@ -47,7 +47,7 @@ import jakarta.ws.rs.core.Response.Status;
 import jakarta.ws.rs.core.SecurityContext;
 import jakarta.ws.rs.core.UriInfo;
 import org.apache.jena.irix.IRIx;
-import org.apache.jena.ontology.Ontology;
+import org.apache.jena.ontapi.model.OntModel;
 import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.query.Query;
 import org.apache.jena.query.QueryFactory;
@@ -70,7 +70,7 @@ public class Namespace extends com.atomgraph.core.model.impl.SPARQLEndpointImpl
     private final URI uri;
     private final UriInfo uriInfo;
     private final Application application;
-    private final Ontology ontology;
+    private final OntModel ontology;
     private final com.atomgraph.linkeddatahub.Application system;
 
     /**
@@ -86,10 +86,10 @@ public class Namespace extends com.atomgraph.core.model.impl.SPARQLEndpointImpl
      */
     @Inject
     public Namespace(@Context Request request, @Context UriInfo uriInfo,
-            Application application, Optional<Ontology> ontology, MediaTypes mediaTypes,
+            Application application, Optional<OntModel> ontology, MediaTypes mediaTypes,
             @Context SecurityContext securityContext, com.atomgraph.linkeddatahub.Application system)
     {
-        super(request, new ServiceImpl(DatasetFactory.create(ontology.get().getOntModel()), mediaTypes), mediaTypes);
+        super(request, new ServiceImpl(DatasetFactory.create(ontology.get()), mediaTypes), mediaTypes);
         this.uri = uriInfo.getAbsolutePath();
         this.uriInfo = uriInfo;
         this.application = application;
@@ -128,7 +128,7 @@ public class Namespace extends com.atomgraph.core.model.impl.SPARQLEndpointImpl
                 Model instances = ModelFactory.createDefaultModel();
                 
                 forClasses.stream().
-                    map(forClass -> Optional.ofNullable(getOntology().getOntModel().getOntClass(checkURI(forClass).toString()))).
+                    map(forClass -> Optional.ofNullable(getOntology().getOntClass(checkURI(forClass).toString()))).
                     flatMap(Optional::stream).
                     forEach(forClass -> new Constructor().construct(forClass, instances, getApplication().getBase().getURI()));
                 
@@ -139,10 +139,11 @@ public class Namespace extends com.atomgraph.core.model.impl.SPARQLEndpointImpl
             {
                 // the application ontology MUST use a <ns> URI! This is the URI this ontology endpoint is deployed on by the Dispatcher class
                 String ontologyURI = getApplication().getOntology().getURI();
-                if (log.isDebugEnabled()) log.debug("Returning namespace ontology from OntDocumentManager: {}", ontologyURI);
-                // not returning the injected in-memory ontology because it has inferences applied to it
-                OntologyModelGetter modelGetter = new OntologyModelGetter(getApplication().as(EndUserApplication.class), getSystem(), getSystem().getOntModelSpec(), getSystem().getOntologyQuery());
-                return getResponseBuilder(modelGetter.getModel(ontologyURI)).build();
+                if (log.isDebugEnabled()) log.debug("Returning raw namespace ontology: {}", ontologyURI);
+                // not returning the injected in-memory ontology because it has inferences applied to it;
+                // a fresh, mapping-seeded repository serves the raw SPARQL-loaded ontology
+                OntologyRepository repository = getSystem().createRepository(getApplication().as(EndUserApplication.class));
+                return getResponseBuilder(org.apache.jena.rdf.model.ModelFactory.createModelForGraph(repository.get(ontologyURI))).build();
             }
             else throw new BadRequestException("SPARQL query string not provided");
         }
@@ -223,7 +224,7 @@ public class Namespace extends com.atomgraph.core.model.impl.SPARQLEndpointImpl
      * 
      * @return application ontology
      */
-    public Ontology getOntology()
+    public OntModel getOntology()
     {
         return ontology;
     }

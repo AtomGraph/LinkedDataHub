@@ -34,21 +34,21 @@
 
 # CLASSES
 
-:Document a rdfs:Class ;
+:Document a rdfs:Class, owl:Class ;
     rdfs:subClassOf foaf:Document ;
     # ldt:path "{slug}/" ;
     rdfs:label "Document" ;
     # spin:constructor :DocumentConstructor ;
     rdfs:isDefinedBy : .
 
-:Container a rdfs:Class ;
+:Container a rdfs:Class, owl:Class ;
     rdfs:subClassOf :Document, sioc:Container ;
     # spin:constructor :ContainerConstructor ;
     rdfs:label "Container" ;
     rdfs:comment "An area in which content Items are contained" ;
     rdfs:isDefinedBy : .
 
-:Item a rdfs:Class ;
+:Item a rdfs:Class, owl:Class ;
     rdfs:subClassOf :Document, sioc:Item ;
     # spin:constructor :ItemConstructor ;
     rdfs:label "Item" ;

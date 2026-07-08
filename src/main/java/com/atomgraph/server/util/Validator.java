@@ -16,7 +16,7 @@
 
 package com.atomgraph.server.util;
 
-import org.apache.jena.ontology.OntModel;
+import org.apache.jena.ontapi.model.OntModel;
 import org.apache.jena.rdf.model.Model;
 import java.util.List;
 import org.slf4j.Logger;
