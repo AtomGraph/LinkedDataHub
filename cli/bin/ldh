@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+
+# Launcher for the LinkedDataHub CLI.
+# Uses the jar built by `mvn package` unless LDH_JAR points elsewhere.
+
+dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+exec java -jar "${LDH_JAR:-$dir/../target/ldh.jar}" "$@"
