@@ -1,3 +1,27 @@
+## [5.6.0] - 2026-07-08
+### Added
+- `OntologyRepository` (renamed from `OntologyModelGetter`): a bounded, evicting ontology cache that serves bundled vocabularies without querying SPARQL; per-app creation is thread-safe and each ontology is materialized once under a lock (`owl:imports` closure flattened manually, then RDFS-inferred and materialized). Seeded ad-hoc in `Namespace`
+- Blank nodes skolemized after `PATCH` (+ HTTP test)
+- Unit tests for the graph store, RDF import streaming, and proxied WebID auth
+- Regression tests for Varnish cache poisoning (On-Behalf-Of delegation, and the Client-Cert + RDF path)
+- HTTP test for `?forClass` namespace requests against `rdfs:Class`
+
+### Changed
+- Migrated 19 vocabularies off the deprecated-for-removal `org.apache.jena.ontology` API to `org.apache.jena.ontapi` (Jena 6 ont-api), using the `OWL2_FULL_MEM` profile; document/LDT/ACL classes normalized to `owl:Class`; SPIN constraints run against twirl's SPIN personality so LDH no longer registers SPIN globally (#316)
+- Dependency upgrades: Guava 33.6.0, twirl 2.0.0, Web-Client 5.0.1, jsoup 1.22.2, JUnit 6.1.0, Mockito 5.18.0; adapt to the `StylesheetResolver(Client)` constructor
+- Proxy namespace `DESCRIBE` query built with `ParameterizedSparqlString`
+- Forward upstream validators for `HEAD` proxy responses
+- `active` token deferred on new tab panes to `ldh:ActivateTab`
+- Progress cursor shown while 3D graph requests are in flight
+- Fuseki memory limits, heap, and restart policy set in `docker-compose.yml`
+
+### Fixed
+- Varnish cache poisoning: bypass the `varnish-frontend` cache for any Client-Cert request outside `/static/` and for On-Behalf-Of requests
+
+### Removed
+- Dead `CACHE_MODEL_LOADS` (`cacheModelLoads`) and `preemptiveAuth` config flags; `ENV CACHE_MODEL_LOADS` dropped from the `Dockerfile`
+- Unnecessary frontend cache purge; unused imports
+
 ## [5.5.4] - 2026-06-29
 ### Fixed
 - HTTP client connection-pool exhaustion: the pooled clients had no socket/read timeout (Apache default `SO_TIMEOUT` = 0 = infinite), so a stalled backend read held its leased connection forever and the route eventually pinned at max, wedging the listener. Added socket timeout, connect timeout, connection time-to-live and validate-after-inactivity to the pooled clients, configurable via the `CLIENT_SOCKET_TIMEOUT`, `CLIENT_CONNECT_TIMEOUT`, `CLIENT_CONNECTION_TIME_TO_LIVE` and `CLIENT_VALIDATE_AFTER_INACTIVITY` env vars (`CATALINA_OPTS` system properties), with image defaults in the `Dockerfile`
