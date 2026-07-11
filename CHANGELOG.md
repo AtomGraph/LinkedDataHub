@@ -1,3 +1,13 @@
+## [Unreleased]
+### Security
+- SSRF: `URLValidator` now blocks loopback (127.0.0.0/8, ::1) and wildcard (0.0.0.0, ::) addresses in addition to link-local and private ranges, and checks every address the host resolves to (narrowing the DNS-rebinding window). Closes the residual proxy-to-internal-service path; `ALLOW_INTERNAL_URLS` remains the development escape hatch (LNK-003/LNK-009)
+- XXE: added `SecureXML` hardened parser factories — `XSLTMasterUpdater` parses with DTDs and external entities disabled, and the external responses parsed by `ldh:send-request` use secure processing (entity-expansion capped) with external entities disabled (LNK-005 residual)
+- Upgraded `java-jwt` 3.19.4 → 4.5.2 on the OAuth2/OIDC verification path
+- Documented the pinned-truststore invariant behind the disabled hostname verification on internal HTTP clients
+
+### Added
+- Loopback/wildcard `URLValidator` tests; JWKS-based `JWTVerifier` tests (valid, wrong issuer, wrong audience, expired, missing `kid`, bad signature)
+
 ## [5.6.0] - 2026-07-08
 ### Added
 - `OntologyRepository` (renamed from `OntologyModelGetter`): a bounded, evicting ontology cache that serves bundled vocabularies without querying SPARQL; per-app creation is thread-safe and each ontology is materialized once under a lock (`owl:imports` closure flattened manually, then RDFS-inferred and materialized). Seeded ad-hoc in `Namespace`
