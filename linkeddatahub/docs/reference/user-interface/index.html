@@ -3,7 +3,7 @@
       <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
       <title>LinkedDataHub v5 — User interface</title>
       <meta name="description" content="A walk through the main features of application user interface"/>
-      <meta name="last-modified" content="2026-06-19T06:48:21Z"/>
+      <meta name="last-modified" content="2026-07-12T20:56:11Z"/>
       <link href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/files/css/bootstrap.css" rel="stylesheet" type="text/css"/>
       <link href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/files/css/bootstrap-responsive.css" rel="stylesheet" type="text/css"/>
       <link href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/files/css/linkeddatahub-bootstrap.css" rel="stylesheet" type="text/css"/>
@@ -142,8 +142,8 @@
                   <div class="alert alert-info">
                      
                      <p><em>Note that user interface features are subject to <a href="../administration/acl/">access control</a>. For example,
-                           the search box will not be visible if the user is not authorized to access the search
-                           container.</em></p>
+                           actions such as creating or editing documents are only available to users with the
+                           corresponding write access.</em></p>
                      </div>
                   
                   <p>
@@ -161,8 +161,11 @@
                      <p>The application title or logo in the top-left always links to the root container of
                         the current application.</p>
                      
-                     <p><dfn>Search box</dfn> lets users search for resources within the current application that have the specified
-                        keyword in their titles, descriptions etc. Results are shown in a dropdown list.</p>
+                     <p>The <dfn>address bar</dfn> in the middle accepts the URI of a resource to navigate to. Entering an external
+                        <code>http://</code> or <code>https://</code> URL loads it through the <a href="../http-api/#linked-data-proxy">Linked Data proxy</a> so that it can be browsed within LinkedDataHub.</p>
+                     
+                     <p>On the right, dropdown menus provide access to the list of applications and to your
+                        user account.</p>
                      
                      <div class="alert alert-info">
                         
@@ -205,10 +208,12 @@
                   
                   <div>
                      
-                     <h2 id="document-tree">Document tree</h2>
+                     <h2 id="document-tree">Left sidebar</h2>
                      
-                     <p>The left sidebar provides two complementary ways to navigate your data: by document
-                        hierarchy and by class.</p>
+                     <p>The left sidebar is the main way to navigate your data. At the top, the <dfn>search box</dfn> finds resources within the current application that have the specified keyword in
+                        their titles, descriptions etc.; results are shown in a dropdown list. Below the search
+                        box, the sidebar offers complementary ways to browse the dataspace — by document hierarchy,
+                        by class, and through a few other data-driven views.</p>
                      
                      <h3 id="document-hierarchy">Document hierarchy navigation</h3>
                      
@@ -221,9 +226,9 @@
                      <h3 id="class-navigation">Class-based navigation</h3>
                      
                      <p>In addition to browsing by document hierarchy, you can navigate your data by class.
-                        The class tree displays all classes defined in your
-                        application's ontology, organized by their <code>rdfs:subClassOf</code> relationships. Clicking on a class in the tree shows all instances
-                        of that class in your dataspace.</p>
+                        The <dfn>Classes</dfn> list shows the classes (<code>rdf:type</code> values) that actually occur in the dataspace, each labelled with the number of its
+                        instances and ordered with the most-used classes first. Clicking a class opens a dialog
+                        listing all instances of that class across the dataspace.</p>
                      
                      <p>Class-based navigation is particularly useful when:</p>
                      
@@ -232,43 +237,50 @@
                         <li>You want to see all instances of a particular type across your entire dataspace</li>
                         
                         <li>You need to browse data organized by domain concepts rather than container structure</li>
-                        
-                        <li>You're working with data that has rich class hierarchies</li>
                         </ul>
                      
-                     <p>The class tree respects your <a href="../administration/acl/">access control</a> settings — you'll only see classes and instances you're authorized to access.</p>
+                     <p>Because the list is derived from the data itself, it reflects whatever types are present
+                        — you do not need to define an ontology or class hierarchy. It also respects your
+                        <a href="../administration/acl/">access control</a> settings: you only see classes and instances you are authorized to access.</p>
                      
-                     <h3 id="system-containers">System containers</h3>
+                     <h3 id="other-views">Other views</h3>
                      
-                     <p>The document tree also provides shortcuts to <a href="../data-model/documents/#hierarchy">system containers</a>:</p>
+                     <p>Below the classes, the sidebar provides a couple of additional data-driven views of
+                        the dataspace:</p>
                      
                      <dl>
                         
-                        <dt>Latest</dt>
-                        
-                        <dd>A container with the latest resources in the application's dataset by creation/modification
-                           date</dd>
-                        
-                        <dt>Files</dt>
-                        
-                        <dd>A container for <a href="../../user-guide/upload-file/">file uploads</a></dd>
-                        
-                        <dt>Imports</dt>
-                        
-                        <dd>A container for <a href="../imports/">data imports</a></dd>
-                        
-                        <dt>Queries</dt>
-                        
-                        <dd>A container for end-user SPARQL queries (including <a href="../imports/csv/#vocabulary-conversion">vocabulary
-                              mappings</a>)</dd>
-                        
                         <dt>Geo</dt>
                         
-                        <dd>A container with all resources in the application's dataset that have geographic coordinates</dd>
+                        <dd>Opens a dialog listing all resources in the dataspace that have geographic coordinates.</dd>
                         
-                        <dt>Charts</dt>
+                        <dt>Latest</dt>
                         
-                        <dd>A container with charts that visualize SPARQL query results</dd>
+                        <dd>Opens a dialog listing the most recently created resources in the dataspace, newest
+                           first.</dd>
+                        </dl>
+                     </div>
+                  
+                  <div>
+                     
+                     <h2 id="right-nav">Right sidebar</h2>
+                     
+                     <p>A right sidebar appears alongside the main view to show navigation into and out of
+                        the current data:</p>
+                     
+                     <dl>
+                        
+                        <dt>Backlinks</dt>
+                        
+                        <dd>In <a href="#layout-modes">properties mode</a>, lists resources that link <em>to</em> a resource in the current document — that is, resources that have a property whose
+                           value is the current resource. This complements the outgoing properties shown in the
+                           main view.</dd>
+                        
+                        <dt>Related results</dt>
+                        
+                        <dd>For <a href="../data-model/resources/views/#parallax">view</a> result sets, <dfn>parallax</dfn> navigation lets you jump from the current results to a related set by following a
+                           selected property (for example, from a set of products to the companies that supply
+                           them). It works together with the view's faceted search.</dd>
                         </dl>
                      </div>
                   

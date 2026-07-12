@@ -3,7 +3,7 @@
       <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
       <title>LinkedDataHub v5 — Navigate data</title>
       <meta name="description" content="Navigate the document hierarchy, related results, and backlinks"/>
-      <meta name="last-modified" content="2026-06-19T06:48:21Z"/>
+      <meta name="last-modified" content="2026-07-12T20:56:11Z"/>
       <link href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/files/css/bootstrap.css" rel="stylesheet" type="text/css"/>
       <link href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/files/css/bootstrap-responsive.css" rel="stylesheet" type="text/css"/>
       <link href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/files/css/linkeddatahub-bootstrap.css" rel="stylesheet" type="text/css"/>
@@ -152,27 +152,22 @@
                   
                   <div>
                      
-                     <h2 id="class-tree">Class tree</h2>
+                     <h2 id="class-tree">Class-based navigation</h2>
                      
-                     <p>In addition to navigating by document hierarchy, LinkedDataHub provides class-based
-                        navigation through the class tree widget.
-                        The class tree displays all classes from your application's ontology, organized by
-                        their inheritance relationships (<code>rdfs:subClassOf</code>).</p>
+                     <p>In addition to navigating by document hierarchy, LinkedDataHub lets you navigate by
+                        class. The <dfn>Classes</dfn> list in the left sidebar shows the classes (<code>rdf:type</code> values) that occur in your data, each labelled with the number of its instances and
+                        ordered with the most-used classes first.</p>
                      
                      <h3>Using class-based navigation</h3>
                      
                      <ol>
                         
-                        <li>Open the left sidebar (slide mouse to left edge on desktop, or it's always visible
-                           on responsive layouts)</li>
+                        <li>Open the left sidebar (slide the mouse to the left edge on desktop, or it is always
+                           visible on responsive layouts)</li>
                         
-                        <li>Switch to the class tree view (if not already showing)</li>
+                        <li>Find the <dfn>Classes</dfn> list</li>
                         
-                        <li>Browse the class hierarchy — classes are organized by their subclass relationships</li>
-                        
-                        <li>Click on any class to view all instances of that class in your dataspace</li>
-                        
-                        <li>Expand parent classes to see their subclasses</li>
+                        <li>Click on any class to open a dialog listing all instances of that class in your dataspace</li>
                         </ol>
                      
                      <h3>When to use class navigation</h3>
@@ -187,13 +182,12 @@
                         <li><strong>Exploring domain concepts:</strong> Browse your data organized by business concepts (e.g., all Customers, all Orders)
                            rather than by container structure</li>
                         
-                        <li><strong>Working with rich ontologies:</strong> Navigate through complex class hierarchies to understand and access your data model</li>
-                        
                         <li><strong>Cross-container queries:</strong> View instances that span multiple containers in a single unified view</li>
                         </ul>
                      
-                     <p>The class tree respects your access control settings — you'll only see classes you're
-                        authorized to view, and only instances you have permission to access.</p>
+                     <p>The classes list is derived from the data itself, so it reflects whatever types are
+                        present — no ontology needs to be defined. It respects your access control settings
+                        — you'll only see classes and instances you're authorized to access.</p>
                      </div>
                   
                   <div>

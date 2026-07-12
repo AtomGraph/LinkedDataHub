@@ -3,7 +3,7 @@
       <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
       <title>LinkedDataHub v5 — Configuration</title>
       <meta name="description" content="Overview of configuration options"/>
-      <meta name="last-modified" content="2026-06-19T06:48:21Z"/>
+      <meta name="last-modified" content="2026-07-12T20:56:11Z"/>
       <link href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/files/css/bootstrap.css" rel="stylesheet" type="text/css"/>
       <link href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/files/css/bootstrap-responsive.css" rel="stylesheet" type="text/css"/>
       <link href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/files/css/linkeddatahub-bootstrap.css" rel="stylesheet" type="text/css"/>
@@ -368,6 +368,35 @@
                            <dd>Backend proxy URL for SPARQL service access (optional)</dd>
                            
                            <dd>Configures a proxy server for accessing SPARQL services and backend endpoints</dd>
+                           </dl>
+                        </div>
+                     
+                     <div>
+                        
+                        <h3 id="http-client">HTTP client timeouts</h3>
+                        
+                        <p>Timeouts and connection lifetimes for LinkedDataHub's pooled HTTP clients, used for
+                           the <a href="../http-api/#ld-proxy">Linked Data proxy</a> and for accessing SPARQL services. All values are in milliseconds and are passed
+                           as <samp>CATALINA_OPTS</samp> system properties.</p>
+                        
+                        <dl>
+                           
+                           <dt><samp>CLIENT_SOCKET_TIMEOUT</samp></dt>
+                           
+                           <dd>Socket (read) timeout — how long to wait for data on an established connection. By
+                              default <samp>120000</samp>.</dd>
+                           
+                           <dt><samp>CLIENT_CONNECT_TIMEOUT</samp></dt>
+                           
+                           <dd>Connection timeout — how long to wait to establish a connection. By default <samp>10000</samp>.</dd>
+                           
+                           <dt><samp>CLIENT_CONNECTION_TIME_TO_LIVE</samp></dt>
+                           
+                           <dd>Maximum lifetime of a pooled connection before it is closed. By default <samp>300000</samp>.</dd>
+                           
+                           <dt><samp>CLIENT_VALIDATE_AFTER_INACTIVITY</samp></dt>
+                           
+                           <dd>Idle time after which a pooled connection is validated before reuse. By default <samp>10000</samp>.</dd>
                            </dl>
                         </div>
                      
