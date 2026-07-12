@@ -849,6 +849,7 @@ WHERE
                                 <xsl:with-param name="mode" select="ac:mode(root())"/>
                                 <xsl:with-param name="base" select="ldt:base()"/>
                                 <xsl:with-param name="endpoint" select="sd:endpoint()"/>
+                                <xsl:with-param name="acl-modes" select="acl:mode()"/>
                                 <xsl:with-param name="about" select="ac:absolute-path(ldh:base-uri(.))"/>
                                 <xsl:with-param name="object-metadata" select="$object-metadata" tunnel="yes"/>
                             </xsl:apply-templates>

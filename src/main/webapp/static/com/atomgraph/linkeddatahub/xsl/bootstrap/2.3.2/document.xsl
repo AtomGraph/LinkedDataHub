@@ -458,6 +458,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="base" as="xs:anyURI?"/>
         <xsl:param name="endpoint" as="xs:anyURI?"/>
         <xsl:param name="application" as="xs:anyURI?"/>
+        <xsl:param name="acl-modes" as="xs:anyURI*"/>
         <xsl:param name="about" as="xs:anyURI"/>
         <xsl:param name="object-metadata" as="document-node()?" tunnel="yes"/>
 
@@ -476,6 +477,9 @@ extension-element-prefixes="ixsl"
             </xsl:if>
             <xsl:if test="$application">
                 <xsl:attribute name="data-application" select="$application"/>
+            </xsl:if>
+            <xsl:if test="exists($acl-modes)">
+                <xsl:attribute name="data-acl-modes" select="string-join($acl-modes, ' ')"/>
             </xsl:if>
 
             <xsl:apply-templates select="." mode="bs2:DocumentBody">

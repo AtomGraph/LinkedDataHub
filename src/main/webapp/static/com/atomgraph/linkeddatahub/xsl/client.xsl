@@ -447,24 +447,14 @@ WHERE
         <xsl:for-each select="$response">
             <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
 
-            <!-- checking acl:mode here because this template is called after every document load (also the initial load) and has access to ?headers -->
-            <!-- set LinkedDataHub.acl-modes objects which are later used by the acl:mode function -->
-            <!-- doing it here because this template is called after every document load (also the initial load) and has access to ?headers -->
+            <!-- extract acl:mode from the response Link headers here because this template is called after every document load (also the initial load) and has access to ?headers -->
+            <!-- for proxied documents these are the *remote* node's modes, forwarded by ProxyRequestFilter -->
             <xsl:variable name="acl-mode-links" select="tokenize(?headers?link, ',')[contains(., '&acl;mode')]" as="xs:string*"/>
             <xsl:variable name="acl-modes" select="for $mode-link in $acl-mode-links return xs:anyURI(substring-before(substring-after(substring-before($mode-link, ';'), '&lt;'), '&gt;'))" as="xs:anyURI*"/>
-            <ixsl:set-property name="acl-modes" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
-            <xsl:if test="$acl-modes = '&acl;Read'">
-                <ixsl:set-property name="read" select="true()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.acl-modes')"/>
-            </xsl:if>
-            <xsl:if test="$acl-modes = '&acl;Append'">
-                <ixsl:set-property name="append" select="true()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.acl-modes')"/>
-            </xsl:if>
-            <xsl:if test="$acl-modes = '&acl;Write'">
-                <ixsl:set-property name="write" select="true()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.acl-modes')"/>
-            </xsl:if>
-            <xsl:if test="$acl-modes = '&acl;Control'">
-                <ixsl:set-property name="control" select="true()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.acl-modes')"/>
-            </xsl:if>
+            <!-- set LinkedDataHub.acl-modes flags which are later used by the acl:mode function; re-synced per pane by ldh:ActivateTab -->
+            <xsl:call-template name="ldh:SetAclModes">
+                <xsl:with-param name="acl-modes" select="$acl-modes"/>
+            </xsl:call-template>
 
             <xsl:variable name="etag" select="?headers?etag" as="xs:string?"/>
 
@@ -542,6 +532,11 @@ WHERE
                                     </xsl:result-document>
                                 </xsl:for-each>
 
+                                <!-- re-stamp the pane's modes: acl:mode is per-document, and the reused pane now shows a different document -->
+                                <xsl:for-each select="$reuse-pane">
+                                    <ixsl:set-attribute name="data-acl-modes" select="string-join($acl-modes, ' ')" object="."/>
+                                </xsl:for-each>
+
                                 <!-- sync the corresponding tab <li> to the new doc URI; data-uri keys downstream lookups -->
                                 <xsl:if test="string($doc-uri) ne $old-about">
                                     <xsl:for-each select="id('tab-bar-list', ixsl:page())/li[ixsl:get(., 'dataset.uri') = $old-about]">
@@ -567,6 +562,7 @@ WHERE
                                         <xsl:with-param name="base" select="$tab-base"/>
                                         <xsl:with-param name="endpoint" select="$endpoint"/>
                                         <xsl:with-param name="application" select="$application"/>
+                                        <xsl:with-param name="acl-modes" select="$acl-modes"/>
                                         <xsl:with-param name="about" select="$doc-uri"/>
                                         <xsl:with-param name="object-metadata" select="$context('object-metadata')" tunnel="yes"/>
                                         <xsl:with-param name="property-metadata" select="$context('property-metadata')" tunnel="yes"/>
@@ -793,7 +789,31 @@ WHERE
         <xsl:for-each select="id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')][./div[contains-token(@class, 'document-body')]/@about = $doc-uri]">
             <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'add', [ 'active' ])[current-date() lt xs:date('2000-01-01')]"/>
             <ixsl:set-style name="display" select="'block'" object="."/>
+
+            <!-- sync acl:mode() to this pane's data-acl-modes (stamped from its document's Link header); the window flags otherwise go stale on fetch-less tab switches between panes -->
+            <xsl:call-template name="ldh:SetAclModes">
+                <xsl:with-param name="acl-modes" select="if (ixsl:contains(., 'dataset.aclModes')) then (for $mode in tokenize(ixsl:get(., 'dataset.aclModes'), ' ')[.] return xs:anyURI($mode)) else ()"/>
+            </xsl:call-template>
         </xsl:for-each>
+    </xsl:template>
+
+    <!-- set the LinkedDataHub.acl-modes flags read by acl:mode(); called on document load (from the response Link headers) and on tab activation (from the pane's data-acl-modes) -->
+    <xsl:template name="ldh:SetAclModes">
+        <xsl:param name="acl-modes" as="xs:anyURI*"/>
+
+        <ixsl:set-property name="acl-modes" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+        <xsl:if test="$acl-modes = '&acl;Read'">
+            <ixsl:set-property name="read" select="true()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.acl-modes')"/>
+        </xsl:if>
+        <xsl:if test="$acl-modes = '&acl;Append'">
+            <ixsl:set-property name="append" select="true()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.acl-modes')"/>
+        </xsl:if>
+        <xsl:if test="$acl-modes = '&acl;Write'">
+            <ixsl:set-property name="write" select="true()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.acl-modes')"/>
+        </xsl:if>
+        <xsl:if test="$acl-modes = '&acl;Control'">
+            <ixsl:set-property name="control" select="true()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.acl-modes')"/>
+        </xsl:if>
     </xsl:template>
 
     <!-- render RDF results into a tab pane identified by @about = $doc-uri -->
