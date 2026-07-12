@@ -52,15 +52,17 @@ public class URLValidator
     /**
      * Validates that the URI does not point to an internal/private network address.
      * Prevents SSRF attacks by blocking access to:
-     * - Loopback addresses (127.0.0.0/8, ::1) — reaches services co-located with the application (e.g. Fuseki, Varnish)
      * - Wildcard/any-local addresses (0.0.0.0, ::)
      * - RFC 1918 private addresses (10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16, fec0::/10)
      * - Link-local addresses (169.254.0.0/16, fe80::/10)
      *
      * All addresses the host resolves to are checked (not just the first), narrowing the DNS-rebinding
-     * window where a host publishes both a public and an internal address. Legitimate access to internal
-     * addresses (e.g. localhost WebID documents in development) is enabled via the {@code ALLOW_INTERNAL_URLS}
-     * escape hatch, which sets {@code allowInternal}.
+     * window where a host publishes both a public and an internal address.
+     *
+     * Loopback addresses (127.0.0.0/8, ::1) are intentionally NOT blocked: LinkedDataHub dereferences
+     * its own documents and WebIDs on the same origin (which is loopback in local/test deployments), while
+     * the backend triplestore is reached over a private/site-local address (blocked above), not loopback.
+     * The {@code ALLOW_INTERNAL_URLS} escape hatch disables all checks for fully-internal deployments.
      *
      * @param uri the URI to validate
      * @return the validated URI
@@ -76,13 +78,11 @@ public class URLValidator
             String host = uri.getHost();
             if (host == null) throw new IllegalArgumentException("URI host cannot be null");
 
-            // Resolve hostname to all IPs and reject if any is loopback/wildcard/private/internal
+            // Resolve hostname to all IPs and reject if any is wildcard/private/internal (loopback intentionally allowed)
             try
             {
                 for (InetAddress address : InetAddress.getAllByName(host))
                 {
-                    if (address.isLoopbackAddress())
-                        throw new InternalURLException(uri, address.getHostAddress());
                     if (address.isAnyLocalAddress())
                         throw new InternalURLException(uri, address.getHostAddress());
                     if (address.isLinkLocalAddress())

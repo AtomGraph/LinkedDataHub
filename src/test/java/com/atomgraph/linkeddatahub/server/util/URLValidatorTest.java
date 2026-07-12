@@ -40,15 +40,12 @@ public class URLValidatorTest
     }
 
     @Test
-    public void testLoopbackIPv4Blocked()
+    public void testLoopbackAllowedForSelfDereferencing()
     {
-        assertThrows(InternalURLException.class, () -> new URLValidator(false).validate(URI.create("http://127.0.0.1:3030/ds")));
-    }
-
-    @Test
-    public void testLoopbackHostnameBlocked()
-    {
-        assertThrows(InternalURLException.class, () -> new URLValidator(false).validate(URI.create("http://localhost:3030/ds")));
+        // loopback is intentionally allowed even with SSRF protection on: LDH dereferences its own
+        // documents/WebIDs on the same origin (loopback in local/test deployments); the backend is site-local (blocked)
+        new URLValidator(false).validate(URI.create("http://127.0.0.1:3030/ds"));
+        new URLValidator(false).validate(URI.create("http://localhost:3030/ds"));
     }
 
     @Test
