@@ -1,3 +1,7 @@
+## [Unreleased]
+### Changed
+- Cache TTLs configurable: the WebID model cache and the JWKS cache now read their expiration (seconds) from `WEBID_CACHE_EXPIRATION` / `JWKS_CACHE_EXPIRATION` (default 86400 = 1 day), via `CATALINA_OPTS` system properties like the `CLIENT_*` timeouts. Lowering `WEBID_CACHE_EXPIRATION` bounds how long a revoked WebID stays authenticated
+
 ## [5.6.0] - 2026-07-08
 ### Added
 - `OntologyRepository` (renamed from `OntologyModelGetter`): a bounded, evicting ontology cache that serves bundled vocabularies without querying SPARQL; per-app creation is thread-safe and each ontology is materialized once under a lock (`owl:imports` closure flattened manually, then RDFS-inferred and materialized). Seeded ad-hoc in `Namespace`
