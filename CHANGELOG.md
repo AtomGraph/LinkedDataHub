@@ -1,5 +1,6 @@
 ## [Unreleased]
 ### Added
+- `AGENTS.md`: an agent-facing guide to driving a running instance's HTTP API — data model, WebID auth, read/write discipline (writes via `POST`/`PUT`/`PATCH` on document URLs; read-only SPARQL), content model, dataspaces, tooling
 - Dependabot config (`.github/dependabot.yml`) for Maven, the Docker base image, and GitHub Actions updates; routine Maven minor/patch bumps grouped into one PR
 
 ### Changed
