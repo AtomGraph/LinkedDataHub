@@ -1,4 +1,7 @@
 ## [Unreleased]
+### Added
+- Dependabot config (`.github/dependabot.yml`) for Maven, the Docker base image, and GitHub Actions updates; routine Maven minor/patch bumps grouped into one PR
+
 ### Changed
 - Cache TTLs configurable: the WebID model cache and the JWKS cache now read their expiration (seconds) from `WEBID_CACHE_EXPIRATION` / `JWKS_CACHE_EXPIRATION` (default 86400 = 1 day), via `CATALINA_OPTS` system properties like the `CLIENT_*` timeouts. Lowering `WEBID_CACHE_EXPIRATION` bounds how long a revoked WebID stays authenticated
 
