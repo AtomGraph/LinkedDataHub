@@ -6,7 +6,13 @@
 - Documented the pinned-truststore invariant behind the disabled hostname verification on internal HTTP clients
 
 ### Added
+- Unit tests for `AuthorizationFilter`: the HTTP-method → ACL access-mode contract (`GET`/`HEAD`→Read, `POST`→Append, `PUT`/`DELETE`/`PATCH`→Write), mode lookup, and the owner Read/Write/Append grant
 - Loopback/wildcard `URLValidator` tests; JWKS-based `JWTVerifier` tests (valid, wrong issuer, wrong audience, expired, missing `kid`, bad signature)
+- `AGENTS.md`: an agent-facing guide to driving a running instance's HTTP API — data model, WebID auth, read/write discipline (writes via `POST`/`PUT`/`PATCH` on document URLs; read-only SPARQL), content model, dataspaces, tooling
+- Dependabot config (`.github/dependabot.yml`) for Maven, the Docker base image, and GitHub Actions updates; routine Maven minor/patch bumps grouped into one PR
+
+### Changed
+- Cache TTLs configurable: the WebID model cache and the JWKS cache now read their expiration (seconds) from `WEBID_CACHE_EXPIRATION` / `JWKS_CACHE_EXPIRATION` (default 86400 = 1 day), via `CATALINA_OPTS` system properties like the `CLIENT_*` timeouts. Lowering `WEBID_CACHE_EXPIRATION` bounds how long a revoked WebID stays authenticated
 
 ## [5.6.0] - 2026-07-08
 ### Added
