@@ -1355,7 +1355,7 @@ ORDER BY DESC(?created)
         <xsl:choose>
             <xsl:when test="$key-code = 'Enter'"/> <!-- handled by form-submit -->
             <xsl:when test="string-length($text) gt 0">
-                <ixsl:schedule-action wait="$delay" document="ixsl:page()">
+                <ixsl:schedule-action wait="$delay">
                     <xsl:call-template name="ldh:SearchLoadDeferred">
                         <xsl:with-param name="input" select="."/>
                         <xsl:with-param name="text" select="$text"/>

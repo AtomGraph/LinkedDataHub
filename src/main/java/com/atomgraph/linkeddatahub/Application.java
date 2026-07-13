@@ -1519,6 +1519,7 @@ public class Application extends ResourceConfig
         ctx.init(kmf.getKeyManagers(), tmf.getTrustManagers(), null);
 
         Registry<ConnectionSocketFactory> socketFactoryRegistry = RegistryBuilder.<ConnectionSocketFactory>create().
+            // hostname verification is safely disabled because ctx trusts only the pinned truststore; revisit if that truststore ever widens to public CAs
             register("https", new SSLConnectionSocketFactory(ctx, NoopHostnameVerifier.INSTANCE)).
             register("http", new PlainConnectionSocketFactory()).
             build();
@@ -1626,6 +1627,7 @@ public class Application extends ResourceConfig
             ctx.init(null, tmf.getTrustManagers(), null);
 
             Registry<ConnectionSocketFactory> socketFactoryRegistry = RegistryBuilder.<ConnectionSocketFactory>create().
+                // hostname verification is safely disabled because ctx trusts only the pinned truststore; revisit if that truststore ever widens to public CAs
                 register("https", new SSLConnectionSocketFactory(ctx, NoopHostnameVerifier.INSTANCE)).
                 register("http", new PlainConnectionSocketFactory()).
                 build();
