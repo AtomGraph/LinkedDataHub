@@ -105,6 +105,7 @@ ORDER BY DESC(?created)
             <xsl:if test="$class">
                 <xsl:attribute name="class" select="$class"/>
             </xsl:if>
+            <xsl:attribute name="aria-expanded" select="'false'"/>
 
             <!-- dataspace-scoped search form -->
             <form class="form-search search-form" accept-charset="UTF-8" title="{ac:label(key('resources', 'search-title', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', lapp:origin()))))}">
@@ -304,6 +305,7 @@ ORDER BY DESC(?created)
             <xsl:variable name="active-sidebar" select="id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')][contains-token(@class, 'active')]/div[contains-token(@class, 'left-sidebar')]" as="element()?"/>
             <xsl:if test="$active-sidebar">
                 <ixsl:set-style name="display" select="'block'" object="$active-sidebar"/>
+                <ixsl:set-attribute name="aria-expanded" select="'true'" object="$active-sidebar"/>
             </xsl:if>
         </xsl:if>
     </xsl:template>
@@ -315,6 +317,7 @@ ORDER BY DESC(?created)
         <!-- only hide if the related target does not have this div as ancestor (is not its child) -->
         <xsl:if test="not($related-target/ancestor-or-self::div[. is current()])">
             <ixsl:set-style name="display" select="'none'"/>
+            <ixsl:set-attribute name="aria-expanded" select="'false'"/>
         </xsl:if>
     </xsl:template>
 

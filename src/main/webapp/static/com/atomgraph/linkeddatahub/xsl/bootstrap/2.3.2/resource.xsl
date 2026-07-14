@@ -425,6 +425,9 @@ extension-element-prefixes="ixsl"
                 <xsl:if test="$href">
                     <xsl:attribute name="href" select="$href"/>
                 </xsl:if>
+                <xsl:if test="$active">
+                    <xsl:attribute name="aria-current" select="'page'"/>
+                </xsl:if>
                 <xsl:apply-templates select="." mode="ldh:logo"/>
                 <xsl:value-of>
                     <xsl:apply-templates select="." mode="ac:label"/>
@@ -481,9 +484,9 @@ extension-element-prefixes="ixsl"
             <xsl:if test="$about">
                 <xsl:attribute name="about" select="$about"/>
             </xsl:if>
-<!--            <xsl:if test="exists($typeof)">
+            <xsl:if test="exists($typeof)">
                 <xsl:attribute name="typeof" select="string-join($typeof, ' ')"/>
-            </xsl:if>-->
+            </xsl:if>
             <xsl:if test="$draggable = true()">
                 <xsl:attribute name="draggable" select="'true'"/>
             </xsl:if>
@@ -542,13 +545,13 @@ extension-element-prefixes="ixsl"
             <xsl:if test="$about">
                 <xsl:attribute name="about" select="$about"/>
             </xsl:if>
-<!--            <xsl:if test="exists($typeof)">
+            <xsl:if test="exists($typeof)">
                 <xsl:attribute name="typeof" select="string-join($typeof, ' ')"/>
-            </xsl:if>-->
+            </xsl:if>
             <xsl:if test="$draggable = true()">
                 <xsl:attribute name="draggable" select="'true'"/>
             </xsl:if>
-            
+
             <div class="span12">
                 <div class="drag-handle">
                     <xsl:if test="acl:mode() = '&acl;Write'">
@@ -620,6 +623,9 @@ extension-element-prefixes="ixsl"
             </xsl:if>
             <xsl:if test="$about">
                 <xsl:attribute name="about" select="$about"/>
+            </xsl:if>
+            <xsl:if test="exists($typeof)">
+                <xsl:attribute name="typeof" select="string-join($typeof, ' ')"/>
             </xsl:if>
 
             <div class="span12">
