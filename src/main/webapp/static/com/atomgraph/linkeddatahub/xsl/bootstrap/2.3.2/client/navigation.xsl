@@ -679,7 +679,7 @@ ORDER BY DESC(?created)
                         <xsl:result-document href="?." method="ixsl:append-content">
                             <ul class="well well-small nav nav-list">
                                 <xsl:apply-templates select="$results/rdf:RDF/rdf:Description[not(@rdf:about = $doc-uri)]" mode="xhtml:ListItem">
-                                    <xsl:sort select="ac:label(.)" order="ascending" lang="{$ldt:lang}"/>
+                                    <xsl:sort select="ac:label(.)" order="ascending" lang="{$ac:lang}"/>
                                     <xsl:with-param name="mode" select="ldh:query-params()?mode[1]" tunnel="yes"/> <!-- TO-DO: support multiple modes -->
                                     <xsl:with-param name="render-id" select="false()" tunnel="yes"/>
                                 </xsl:apply-templates>

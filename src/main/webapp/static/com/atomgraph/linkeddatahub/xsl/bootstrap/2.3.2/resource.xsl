@@ -760,8 +760,8 @@ extension-element-prefixes="ixsl"
             <xsl:document>
                 <dl class="dl-horizontal">
                     <xsl:apply-templates select="*" mode="#current">
-                        <xsl:sort select="if ($property-metadata) then ac:property-label(., $property-metadata) else ac:property-label(.)" order="ascending" lang="{$ldt:lang}"/>
-                        <xsl:sort select="if (exists((text(), @rdf:resource, @rdf:nodeID))) then (if ($object-metadata) then ac:object-label((text(), @rdf:resource, @rdf:nodeID)[1], $object-metadata) else ac:object-label((text(), @rdf:resource, @rdf:nodeID)[1])) else ()" order="ascending" lang="{$ldt:lang}"/>
+                        <xsl:sort select="if ($property-metadata) then ac:property-label(., $property-metadata) else ac:property-label(.)" order="ascending" lang="{$ac:lang}"/>
+                        <xsl:sort select="if (exists((text(), @rdf:resource, @rdf:nodeID))) then (if ($object-metadata) then ac:object-label((text(), @rdf:resource, @rdf:nodeID)[1], $object-metadata) else ac:object-label((text(), @rdf:resource, @rdf:nodeID)[1])) else ()" order="ascending" lang="{$ac:lang}"/>
                     </xsl:apply-templates>
                 </dl>
             </xsl:document>
@@ -834,7 +834,7 @@ extension-element-prefixes="ixsl"
                         </button>
                         <ul class="dropdown-menu">
                             <xsl:for-each select="$apps//*[@rdf:about][sd:endpoint/@rdf:resource]">
-                                <xsl:sort select="ac:label(.)" order="ascending" lang="{$ldt:lang}"/>
+                                <xsl:sort select="ac:label(.)" order="ascending" lang="{$ac:lang}"/>
                                 
                                 <li>
                                     <button class="btn btn-reconcile">
@@ -894,8 +894,7 @@ extension-element-prefixes="ixsl"
     <xsl:template match="*[@rdf:about or @rdf:nodeID][rdf:type/@rdf:resource]" mode="bs2:TypeList">
         <ul class="inline">
             <xsl:for-each select="rdf:type/@rdf:resource">
-                <xsl:sort select="ac:object-label(.)" order="ascending" lang="{$ldt:lang}" use-when="system-property('xsl:product-name') = 'SAXON'"/>
-                <xsl:sort select="ac:object-label(.)" order="ascending" use-when="system-property('xsl:product-name') eq 'SaxonJS'"/>
+                <xsl:sort select="ac:object-label(.)" order="ascending" lang="{$ac:lang}"/>
 
                 <!-- TO-DO: find a way to use only cached documents, otherwise this will execute a synchronous HTTP request which slows down the UI -->
                 <li>
@@ -1037,7 +1036,7 @@ extension-element-prefixes="ixsl"
                             <!-- apply on the "deepest" subclass and its subclasses -->
                             <!-- eliminate matches where a class is a subclass of itself (happens in inferenced ontology models) -->
                             <xsl:for-each-group select="$self-and-subclasses[let $about := @rdf:about return not($about = $self-and-subclasses[not(@rdf:about = $about)]/rdfs:subClassOf/@rdf:resource)]" group-by="@rdf:about">
-                                <xsl:sort select="ac:label(.)" order="ascending" lang="{$ldt:lang}"/>
+                                <xsl:sort select="ac:label(.)" order="ascending" lang="{$ac:lang}"/>
 
                                 <!-- won't traverse blank nodes, only URI resources -->
                                 <li>

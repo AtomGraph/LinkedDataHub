@@ -717,8 +717,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="property-metadata" select="if (exists($property-uris)) then ldh:send-request(resolve-uri('ns', ldt:base()), 'POST', 'application/sparql-query', 'DESCRIBE $Type' || ' VALUES $Type { ' || string-join(for $uri in $property-uris return '&lt;' || $uri || '&gt;', ' ') || ' }', map{ 'Accept': 'application/rdf+xml' }) else ()" as="document-node()?" tunnel="yes"/>
         <xsl:param name="predicates" as="element()*">
             <xsl:for-each-group select="*/*" group-by="concat(namespace-uri(), local-name())">
-                <xsl:sort select="if ($property-metadata) then ac:property-label(., $property-metadata) else ac:property-label(.)" order="ascending" lang="{$ldt:lang}" use-when="system-property('xsl:product-name') = 'SAXON'"/>
-                <xsl:sort select="if ($property-metadata) then ac:property-label(., $property-metadata) else ac:property-label(.)" order="ascending" use-when="system-property('xsl:product-name') eq 'SaxonJS'"/>
+                <xsl:sort select="if ($property-metadata) then ac:property-label(., $property-metadata) else ac:property-label(.)" order="ascending" lang="{$ac:lang}"/>
 
                 <xsl:sequence select="current-group()[1]"/>
             </xsl:for-each-group>
@@ -877,8 +876,7 @@ extension-element-prefixes="ixsl"
                                 </option>
 
                                 <xsl:for-each-group select="*/*" group-by="concat(namespace-uri(), local-name())">
-                                    <xsl:sort select="ac:property-label(.)" order="ascending" lang="{$ldt:lang}" use-when="system-property('xsl:product-name') = 'SAXON'"/>
-                                    <xsl:sort select="ac:property-label(.)" order="ascending" use-when="system-property('xsl:product-name') eq 'SaxonJS'"/>
+                                    <xsl:sort select="ac:property-label(.)" order="ascending" lang="{$ac:lang}"/>
 
                                     <option value="{current-grouping-key()}">
                                         <xsl:if test="$category = current-grouping-key()">
@@ -896,8 +894,7 @@ extension-element-prefixes="ixsl"
                             <label for="{$series-id}">Series</label>
                             <select id="{$series-id}" name="ou" multiple="multiple" class="input-large chart-series">
                                 <xsl:for-each-group select="*/*" group-by="concat(namespace-uri(), local-name())">
-                                    <xsl:sort select="ac:property-label(.)" order="ascending" lang="{$ldt:lang}" use-when="system-property('xsl:product-name') = 'SAXON'"/>
-                                    <xsl:sort select="ac:property-label(.)" order="ascending" use-when="system-property('xsl:product-name') eq 'SaxonJS'"/>
+                                    <xsl:sort select="ac:property-label(.)" order="ascending" lang="{$ac:lang}"/>
 
                                     <option value="{current-grouping-key()}">
                                         <xsl:if test="$series = current-grouping-key()">

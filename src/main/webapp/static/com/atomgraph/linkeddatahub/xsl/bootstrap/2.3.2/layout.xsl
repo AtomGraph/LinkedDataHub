@@ -697,7 +697,7 @@ WHERE
                                     <xsl:value-of select="ac:label(key('resources', 'user-defined-apps', document('translations.rdf')))"/>
                                 </li>
                                 <xsl:for-each select="$user-defined-apps">
-                                    <xsl:sort select="ac:label(.)" order="ascending" lang="{$ldt:lang}"/>
+                                    <xsl:sort select="ac:label(.)" order="ascending" lang="{$ac:lang}"/>
                                     <li>
                                         <a href="{lapp:origin/@rdf:resource}/" title="{lapp:origin/@rdf:resource}">
                                             <xsl:apply-templates select="." mode="ac:label"/>
@@ -713,7 +713,7 @@ WHERE
                                     <xsl:value-of select="ac:label(key('resources', 'system-apps', document('translations.rdf')))"/>
                                 </li>
                                 <xsl:for-each select="$system-apps">
-                                    <xsl:sort select="ac:label(.)" order="ascending" lang="{$ldt:lang}"/>
+                                    <xsl:sort select="ac:label(.)" order="ascending" lang="{$ac:lang}"/>
                                     <li>
                                         <a href="{lapp:origin/@rdf:resource}/" title="{lapp:origin/@rdf:resource}">
                                             <xsl:apply-templates select="." mode="ac:label"/>
@@ -924,8 +924,8 @@ WHERE
                     <xsl:document>
                         <dl class="dl-horizontal">
                             <xsl:apply-templates select="$properties-original" mode="#current">
-                                <xsl:sort select="ac:property-label(., $property-metadata)" order="ascending" lang="{$ldt:lang}"/>
-                                <xsl:sort select="if (exists((text(), @rdf:resource, @rdf:nodeID))) then (if ($object-metadata) then ac:object-label((text(), @rdf:resource, @rdf:nodeID)[1], $object-metadata) else ac:object-label((text(), @rdf:resource, @rdf:nodeID)[1])) else ()" order="ascending" lang="{$ldt:lang}"/>
+                                <xsl:sort select="ac:property-label(., $property-metadata)" order="ascending" lang="{$ac:lang}"/>
+                                <xsl:sort select="if (exists((text(), @rdf:resource, @rdf:nodeID))) then (if ($object-metadata) then ac:object-label((text(), @rdf:resource, @rdf:nodeID)[1], $object-metadata) else ac:object-label((text(), @rdf:resource, @rdf:nodeID)[1])) else ()" order="ascending" lang="{$ac:lang}"/>
                                 <xsl:with-param name="property-metadata" select="$property-metadata" tunnel="yes"/>
                             </xsl:apply-templates>
                         </dl>
@@ -949,8 +949,8 @@ WHERE
                     <xsl:document>
                         <dl class="dl-horizontal">
                             <xsl:apply-templates select="$properties-local" mode="#current">
-                                <xsl:sort select="ac:property-label(., $property-metadata)" order="ascending" lang="{$ldt:lang}"/>
-                                <xsl:sort select="if (exists((text(), @rdf:resource, @rdf:nodeID))) then (if ($object-metadata) then ac:object-label((text(), @rdf:resource, @rdf:nodeID)[1], $object-metadata) else ac:object-label((text(), @rdf:resource, @rdf:nodeID)[1])) else ()" order="ascending" lang="{$ldt:lang}"/>
+                                <xsl:sort select="ac:property-label(., $property-metadata)" order="ascending" lang="{$ac:lang}"/>
+                                <xsl:sort select="if (exists((text(), @rdf:resource, @rdf:nodeID))) then (if ($object-metadata) then ac:object-label((text(), @rdf:resource, @rdf:nodeID)[1], $object-metadata) else ac:object-label((text(), @rdf:resource, @rdf:nodeID)[1])) else ()" order="ascending" lang="{$ac:lang}"/>
                                 <xsl:with-param name="property-metadata" select="$property-metadata" tunnel="yes"/>
                             </xsl:apply-templates>
                         </dl>
@@ -974,8 +974,8 @@ WHERE
                     <xsl:document>
                         <dl class="dl-horizontal">
                             <xsl:apply-templates select="$properties-common" mode="#current">
-                                <xsl:sort select="ac:property-label(., $property-metadata)" order="ascending" lang="{$ldt:lang}"/>
-                                <xsl:sort select="if (exists((text(), @rdf:resource, @rdf:nodeID))) then (if ($object-metadata) then ac:object-label((text(), @rdf:resource, @rdf:nodeID)[1], $object-metadata) else ac:object-label((text(), @rdf:resource, @rdf:nodeID)[1])) else ()" order="ascending" lang="{$ldt:lang}"/>
+                                <xsl:sort select="ac:property-label(., $property-metadata)" order="ascending" lang="{$ac:lang}"/>
+                                <xsl:sort select="if (exists((text(), @rdf:resource, @rdf:nodeID))) then (if ($object-metadata) then ac:object-label((text(), @rdf:resource, @rdf:nodeID)[1], $object-metadata) else ac:object-label((text(), @rdf:resource, @rdf:nodeID)[1])) else ()" order="ascending" lang="{$ac:lang}"/>
                                 <xsl:with-param name="property-metadata" select="$property-metadata" tunnel="yes"/>
                             </xsl:apply-templates>
                         </dl>

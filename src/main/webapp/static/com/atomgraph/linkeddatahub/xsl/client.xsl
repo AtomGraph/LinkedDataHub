@@ -74,7 +74,15 @@ extension-element-prefixes="ixsl"
 
     <xsl:import href="../../../../com/atomgraph/client/xsl/functions.xsl"/>
     <xsl:import href="../../../../com/atomgraph/client/xsl/imports/default.xsl"/>
+    <xsl:import href="../../../../com/atomgraph/client/xsl/imports/dc.xsl"/>
+    <xsl:import href="../../../../com/atomgraph/client/xsl/imports/dct.xsl"/>
+    <xsl:import href="../../../../com/atomgraph/client/xsl/imports/doap.xsl"/>
+    <xsl:import href="../../../../com/atomgraph/client/xsl/imports/foaf.xsl"/>
     <xsl:import href="../../../../com/atomgraph/client/xsl/imports/rdf.xsl"/>
+    <xsl:import href="../../../../com/atomgraph/client/xsl/imports/rdfs.xsl"/>
+    <xsl:import href="../../../../com/atomgraph/client/xsl/imports/schema.xsl"/>
+    <xsl:import href="../../../../com/atomgraph/client/xsl/imports/sioc.xsl"/>
+    <xsl:import href="../../../../com/atomgraph/client/xsl/imports/skos.xsl"/>
     <xsl:import href="../../../../com/atomgraph/client/xsl/imports/sp.xsl"/>
     <xsl:import href="../../../../com/atomgraph/client/xsl/bootstrap/2.3.2/imports/default.xsl"/>
     <xsl:import href="bootstrap/2.3.2/imports/default.xsl"/>
@@ -122,7 +130,6 @@ extension-element-prefixes="ixsl"
     <xsl:param name="ldt:ontology" as="xs:anyURI?"/> <!-- used in Web-Client TO-DO: remove -->
     <xsl:param name="acl:agent" as="xs:anyURI?"/>
     <xsl:param name="foaf:Agent" select="if ($acl:agent) then document(ac:document-uri($acl:agent)) else ()" as="document-node()?"/> <!-- should be in SaxonJS documentPool -->
-    <xsl:param name="ac:lang" select="tokenize(ixsl:get(ixsl:get(ixsl:window(), 'navigator'), 'language'), '-')[1]" as="xs:string"/>
     <xsl:param name="ac:forClass" as="xs:anyURI?"/> <!-- used by Web-Client -->
     <xsl:param name="ac:query" select="ldh:query-params()?query" as="xs:string?"/>
     <xsl:param name="ac:googleMapsKey" select="''" as="xs:string"/>  <!-- cannot remove yet as it's used by container.xsl in Web-Client -->
@@ -240,7 +247,7 @@ WHERE
         <xsl:message>xsl:product-name: <xsl:value-of select="system-property('xsl:product-name')"/></xsl:message>
         <xsl:message>saxon:platform: <xsl:value-of select="system-property('saxon:platform')"/></xsl:message>
         <xsl:message>$ac:contextUri: <xsl:value-of select="$ac:contextUri"/></xsl:message>
-        <xsl:message>$ac:lang: <xsl:value-of select="$ac:lang"/></xsl:message>
+        <xsl:message>$ac:langs: <xsl:value-of select="$ac:langs" separator=" "/></xsl:message>
         <xsl:message>$acl:agent: <xsl:value-of select="$acl:agent"/></xsl:message>
         <xsl:message>ac:uri(): <xsl:value-of select="ac:uri()"/></xsl:message>
         <xsl:message>UTC offset: <xsl:value-of select="implicit-timezone()"/></xsl:message>
@@ -297,78 +304,6 @@ WHERE
     </xsl:template>
 
     <!-- TEMPLATES -->
-  
-    <!-- we don't want to include per-vocabulary stylesheets -->
-    
-    <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="ac:label">
-        <xsl:choose>
-            <xsl:when test="skos:prefLabel[lang($ac:lang)]">
-                <xsl:sequence select="skos:prefLabel[lang($ac:lang)]/text()"/>
-            </xsl:when>
-            <xsl:when test="rdfs:label[lang($ac:lang)]">
-                <xsl:sequence select="rdfs:label[lang($ac:lang)]/text()"/>
-            </xsl:when>
-            <xsl:when test="dct:title[lang($ac:lang)]">
-                <xsl:sequence select="dct:title[lang($ac:lang)]/text()"/>
-            </xsl:when>
-            <xsl:when test="skos:prefLabel">
-                <xsl:sequence select="skos:prefLabel/text()"/>
-            </xsl:when>
-            <xsl:when test="rdfs:label">
-                <xsl:sequence select="rdfs:label/text()"/>
-            </xsl:when>
-            <xsl:when test="dct:title">
-                <xsl:sequence select="dct:title/text()"/>
-            </xsl:when>
-            <xsl:when test="foaf:name">
-                <xsl:sequence select="foaf:name/text()"/>
-            </xsl:when>
-            <xsl:when test="foaf:givenName and foaf:familyName">
-                <xsl:sequence select="concat(foaf:givenName, ' ', foaf:familyName)"/>
-            </xsl:when>
-            <xsl:when test="foaf:familyName">
-                <xsl:sequence select="foaf:familyName/text()"/>
-            </xsl:when>
-            <xsl:when test="foaf:nick">
-                <xsl:sequence select="foaf:nick/text()"/>
-            </xsl:when>
-            <xsl:when test="sioc:name">
-                <xsl:sequence select="sioc:name/text()"/>
-            </xsl:when>
-            <xsl:when test="schema1:name">
-                <xsl:sequence select="schema1:name/text()"/>
-            </xsl:when>
-            <xsl:when test="schema2:name">
-                <xsl:sequence select="schema2:name/text()"/>
-            </xsl:when>
-            <xsl:otherwise>
-                <xsl:next-match/>
-            </xsl:otherwise>
-        </xsl:choose>
-    </xsl:template>
-
-    <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="ac:description">
-        <xsl:choose>
-            <xsl:when test="rdfs:comment[lang($ac:lang)]">
-                <xsl:sequence select="rdfs:comment[lang($ac:lang)]/text()"/>
-            </xsl:when>
-            <xsl:when test="dct:description[lang($ac:lang)]">
-                <xsl:sequence select="dct:description[lang($ac:lang)]/text()"/>
-            </xsl:when>
-            <xsl:when test="rdfs:comment">
-                <xsl:sequence select="rdfs:comment/text()"/>
-            </xsl:when>
-            <xsl:when test="dct:description">
-                <xsl:sequence select="dct:description/text()"/>
-            </xsl:when>
-            <xsl:when test="schema1:description">
-                <xsl:sequence select="schema1:description/text()"/>
-            </xsl:when>
-            <xsl:when test="schema2:description">
-                <xsl:sequence select="schema2:description/text()"/>
-            </xsl:when>
-        </xsl:choose>
-    </xsl:template>
 
     <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="ac:image">
         <xsl:choose>
