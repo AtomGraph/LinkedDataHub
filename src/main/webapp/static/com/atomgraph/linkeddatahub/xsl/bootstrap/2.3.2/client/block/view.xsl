@@ -796,7 +796,8 @@ exclude-result-prefixes="#all"
             <xsl:result-document href="?." method="ixsl:replace-content">
                 <xsl:where-populated>
                     <h2>
-                        <xsl:value-of select="$container/descendant::*[@property = '&dct;title']"/>
+                        <!-- select the value text() only: a lang-tagged dct:title renders as <dd> with a leading language-badge <span> (xhtml:DefinitionDescription), and value-of over the whole element would prepend the badge (e.g. "enCurrent members"). [1] guards against multiple language values. -->
+                        <xsl:value-of select="($container/descendant::*[@property = '&dct;title']/text())[1]"/>
                     </h2>
                 </xsl:where-populated>
   
