@@ -96,7 +96,7 @@ li button.btn-edit-constructors, li button.btn-add-data, li button.btn-add-ontol
 .dropdown-menu > li > a.btn-list { background-image: url('../icons/view_list_black_24dp.svg'); background-position: 12px center; background-repeat: no-repeat; padding: 5px 5px 5px 40px; }
 .dropdown-menu > li > a.btn-table { background-image: url('../icons/ic_border_all_black_24px.svg'); background-position: 12px center; background-repeat: no-repeat; padding: 5px 5px 5px 40px; }
 .dropdown-menu > li > a.btn-grid { background-image: url('../icons/ic_grid_on_black_24px.svg'); background-position: 12px center; background-repeat: no-repeat; padding: 5px 5px 5px 40px; }
-.left-sidebar { display: none; width: 15%; position: fixed; left: 0; top: var(--action-bar-top, 51px); height: calc(100% - var(--action-bar-top, 51px)); z-index: 1001; }
+.left-sidebar { display: none; width: 15%; position: fixed; left: 0; top: var(--action-bar-top, 51px); height: calc(100% - var(--action-bar-top, 51px)); overflow-y: auto; z-index: 1001; }
 @media (max-width: 979px)
 {
     body { padding-top: 0; }
