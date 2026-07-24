@@ -1,0 +1,26 @@
+version: 2
+updates:
+  # Maven dependencies (pom.xml)
+  - package-ecosystem: "maven"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+    groups:
+      # collapse routine minor/patch bumps into a single PR to cut noise; majors stay separate
+      minor-and-patch:
+        update-types:
+          - "minor"
+          - "patch"
+
+  # Base image in the Dockerfile
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+
+  # GitHub Actions used by the workflows
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"

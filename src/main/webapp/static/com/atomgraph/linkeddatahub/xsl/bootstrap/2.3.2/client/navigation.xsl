@@ -679,7 +679,7 @@ ORDER BY DESC(?created)
                         <xsl:result-document href="?." method="ixsl:append-content">
                             <ul class="well well-small nav nav-list">
                                 <xsl:apply-templates select="$results/rdf:RDF/rdf:Description[not(@rdf:about = $doc-uri)]" mode="xhtml:ListItem">
-                                    <xsl:sort select="ac:label(.)" order="ascending" lang="{$ldt:lang}"/>
+                                    <xsl:sort select="ac:label(.)" order="ascending" lang="{$ac:lang}"/>
                                     <xsl:with-param name="mode" select="ldh:query-params()?mode[1]" tunnel="yes"/> <!-- TO-DO: support multiple modes -->
                                     <xsl:with-param name="render-id" select="false()" tunnel="yes"/>
                                 </xsl:apply-templates>
@@ -1355,7 +1355,7 @@ ORDER BY DESC(?created)
         <xsl:choose>
             <xsl:when test="$key-code = 'Enter'"/> <!-- handled by form-submit -->
             <xsl:when test="string-length($text) gt 0">
-                <ixsl:schedule-action wait="$delay" document="ixsl:page()">
+                <ixsl:schedule-action wait="$delay">
                     <xsl:call-template name="ldh:SearchLoadDeferred">
                         <xsl:with-param name="input" select="."/>
                         <xsl:with-param name="text" select="$text"/>

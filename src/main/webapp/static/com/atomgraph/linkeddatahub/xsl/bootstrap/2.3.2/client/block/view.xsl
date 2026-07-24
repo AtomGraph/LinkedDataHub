@@ -796,7 +796,8 @@ exclude-result-prefixes="#all"
             <xsl:result-document href="?." method="ixsl:replace-content">
                 <xsl:where-populated>
                     <h2>
-                        <xsl:value-of select="$container/descendant::*[@property = '&dct;title']"/>
+                        <!-- select the value text() only: a lang-tagged dct:title renders as <dd> with a leading language-badge <span> (xhtml:DefinitionDescription), and value-of over the whole element would prepend the badge (e.g. "enCurrent members"). [1] guards against multiple language values. -->
+                        <xsl:value-of select="($container/descendant::*[@property = '&dct;title']/text())[1]"/>
                     </h2>
                 </xsl:where-populated>
   
@@ -2094,7 +2095,7 @@ exclude-result-prefixes="#all"
                 <!-- sort the existing <li> items together with the new item -->
                 <xsl:perform-sort select="($existing-items, $new-item)">
                     <!-- sort by the link text content (property label) -->
-                    <xsl:sort select="a/text()" lang="{$ldt:lang}"/>
+                    <xsl:sort select="a/text()" lang="{$ac:lang}"/>
                 </xsl:perform-sort>
             </xsl:variable>
 
@@ -2242,7 +2243,7 @@ exclude-result-prefixes="#all"
                     <!-- sort by count in a hidden input first -->
                     <xsl:sort select="xs:integer(input[@name = 'count']/@value)" order="descending"/>
                     <!-- sort by the link text content (value label) -->
-                    <xsl:sort select="a/text()" lang="{$ldt:lang}"/>
+                    <xsl:sort select="a/text()" lang="{$ac:lang}"/>
                 </xsl:perform-sort>
             </xsl:variable>
 

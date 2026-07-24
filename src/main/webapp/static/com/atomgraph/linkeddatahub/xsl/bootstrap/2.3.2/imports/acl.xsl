@@ -43,7 +43,7 @@ exclude-result-prefixes="#all">
         <xsl:variable name="modes" select="key('resources-by-subclass', '&acl;Access', document(ac:document-uri('&acl;')))" as="element()*"/>
         <select name="ou" id="{generate-id()}" multiple="multiple" size="{count($modes)}">
             <xsl:for-each select="$modes">
-                <xsl:sort select="ac:label(.)" lang="{$ldt:lang}"/>
+                <xsl:sort select="ac:label(.)" lang="{$ac:lang}"/>
                 <xsl:apply-templates select="." mode="xhtml:Option">
                     <xsl:with-param name="selected" select="@rdf:about = $properties/@rdf:resource"/>
                 </xsl:apply-templates>

@@ -1,3 +1,19 @@
+## [Unreleased]
+### Security
+- SSRF: `URLValidator` now blocks wildcard/any-local (0.0.0.0, ::) addresses in addition to link-local and private ranges, and checks every address the host resolves to (narrowing the DNS-rebinding window). Loopback stays reachable for same-origin document/WebID dereferencing; the backend triplestore is site-local (already blocked). `ALLOW_INTERNAL_URLS` remains the development escape hatch (LNK-003/LNK-009)
+- XXE: added `SecureXML` hardened parser factories — `XSLTMasterUpdater` parses with DTDs and external entities disabled, and the external responses parsed by `ldh:send-request` use secure processing (entity-expansion capped) with external entities disabled (LNK-005 residual)
+- Upgraded `java-jwt` 3.19.4 → 4.5.2 on the OAuth2/OIDC verification path
+- Documented the pinned-truststore invariant behind the disabled hostname verification on internal HTTP clients
+
+### Added
+- Unit tests for `AuthorizationFilter`: the HTTP-method → ACL access-mode contract (`GET`/`HEAD`→Read, `POST`→Append, `PUT`/`DELETE`/`PATCH`→Write), mode lookup, and the owner Read/Write/Append grant
+- Loopback/wildcard `URLValidator` tests; JWKS-based `JWTVerifier` tests (valid, wrong issuer, wrong audience, expired, missing `kid`, bad signature)
+- `AGENTS.md`: an agent-facing guide to driving a running instance's HTTP API — data model, WebID auth, read/write discipline (writes via `POST`/`PUT`/`PATCH` on document URLs; read-only SPARQL), content model, dataspaces, tooling
+- Dependabot config (`.github/dependabot.yml`) for Maven, the Docker base image, and GitHub Actions updates; routine Maven minor/patch bumps grouped into one PR
+
+### Changed
+- Cache TTLs configurable: the WebID model cache and the JWKS cache now read their expiration (seconds) from `WEBID_CACHE_EXPIRATION` / `JWKS_CACHE_EXPIRATION` (default 86400 = 1 day), via `CATALINA_OPTS` system properties like the `CLIENT_*` timeouts. Lowering `WEBID_CACHE_EXPIRATION` bounds how long a revoked WebID stays authenticated
+
 ## [5.6.0] - 2026-07-08
 ### Added
 - `OntologyRepository` (renamed from `OntologyModelGetter`): a bounded, evicting ontology cache that serves bundled vocabularies without querying SPARQL; per-app creation is thread-safe and each ontology is materialized once under a lock (`owl:imports` closure flattened manually, then RDFS-inferred and materialized). Seeded ad-hoc in `Namespace`

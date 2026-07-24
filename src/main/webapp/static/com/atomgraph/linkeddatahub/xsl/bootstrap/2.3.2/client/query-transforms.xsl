@@ -104,11 +104,27 @@ extension-element-prefixes="ixsl"
             <json:array key="variables">
                 <json:string>*</json:string>
             </json:array>
+            <!-- Hoist the dataset (FROM / FROM NAMED) clause up to the wrapping DESCRIBE.
+                 A dataset clause is only legal on the outermost query, so it cannot remain
+                 on the SELECT once that becomes a subquery (otherwise: SPARQL parse error).
+                 No-op for queries without a dataset clause, so fully backwards-compatible. -->
+            <xsl:copy-of select="json:map[@key = 'from']"/>
             <json:array key="where">
-                <xsl:sequence select="."/>
+                <xsl:apply-templates select="." mode="ldh:strip-from"/>
             </json:array>
         </json:map>
     </xsl:template>
+
+    <!-- strip the (now hoisted) top-level dataset clause off the nested subquery -->
+
+    <!-- identity transform -->
+    <xsl:template match="@* | node()" mode="ldh:strip-from">
+        <xsl:copy>
+            <xsl:apply-templates select="@* | node()" mode="#current"/>
+        </xsl:copy>
+    </xsl:template>
+
+    <xsl:template match="/json:map/json:map[@key = 'from']" mode="ldh:strip-from" priority="1"/>
 
     <!-- add parallax step -->
     

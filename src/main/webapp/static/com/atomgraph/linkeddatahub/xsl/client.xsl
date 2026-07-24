@@ -74,7 +74,15 @@ extension-element-prefixes="ixsl"
 
     <xsl:import href="../../../../com/atomgraph/client/xsl/functions.xsl"/>
     <xsl:import href="../../../../com/atomgraph/client/xsl/imports/default.xsl"/>
+    <xsl:import href="../../../../com/atomgraph/client/xsl/imports/dc.xsl"/>
+    <xsl:import href="../../../../com/atomgraph/client/xsl/imports/dct.xsl"/>
+    <xsl:import href="../../../../com/atomgraph/client/xsl/imports/doap.xsl"/>
+    <xsl:import href="../../../../com/atomgraph/client/xsl/imports/foaf.xsl"/>
     <xsl:import href="../../../../com/atomgraph/client/xsl/imports/rdf.xsl"/>
+    <xsl:import href="../../../../com/atomgraph/client/xsl/imports/rdfs.xsl"/>
+    <xsl:import href="../../../../com/atomgraph/client/xsl/imports/schema.xsl"/>
+    <xsl:import href="../../../../com/atomgraph/client/xsl/imports/sioc.xsl"/>
+    <xsl:import href="../../../../com/atomgraph/client/xsl/imports/skos.xsl"/>
     <xsl:import href="../../../../com/atomgraph/client/xsl/imports/sp.xsl"/>
     <xsl:import href="../../../../com/atomgraph/client/xsl/bootstrap/2.3.2/imports/default.xsl"/>
     <xsl:import href="bootstrap/2.3.2/imports/default.xsl"/>
@@ -122,7 +130,7 @@ extension-element-prefixes="ixsl"
     <xsl:param name="ldt:ontology" as="xs:anyURI?"/> <!-- used in Web-Client TO-DO: remove -->
     <xsl:param name="acl:agent" as="xs:anyURI?"/>
     <xsl:param name="foaf:Agent" select="if ($acl:agent) then document(ac:document-uri($acl:agent)) else ()" as="document-node()?"/> <!-- should be in SaxonJS documentPool -->
-    <xsl:param name="ac:lang" select="tokenize(ixsl:get(ixsl:get(ixsl:window(), 'navigator'), 'language'), '-')[1]" as="xs:string"/>
+    <xsl:param name="ac:langs" select="for $lang in ixsl:get(ixsl:window(), 'navigator.languages') return tokenize($lang, '-')[1]" as="xs:string*"/> <!-- overrides the Web-Client default with the browser's ordered preference list -->
     <xsl:param name="ac:forClass" as="xs:anyURI?"/> <!-- used by Web-Client -->
     <xsl:param name="ac:query" select="ldh:query-params()?query" as="xs:string?"/>
     <xsl:param name="ac:googleMapsKey" select="''" as="xs:string"/>  <!-- cannot remove yet as it's used by container.xsl in Web-Client -->
@@ -240,7 +248,7 @@ WHERE
         <xsl:message>xsl:product-name: <xsl:value-of select="system-property('xsl:product-name')"/></xsl:message>
         <xsl:message>saxon:platform: <xsl:value-of select="system-property('saxon:platform')"/></xsl:message>
         <xsl:message>$ac:contextUri: <xsl:value-of select="$ac:contextUri"/></xsl:message>
-        <xsl:message>$ac:lang: <xsl:value-of select="$ac:lang"/></xsl:message>
+        <xsl:message>$ac:langs: <xsl:value-of select="$ac:langs" separator=" "/></xsl:message>
         <xsl:message>$acl:agent: <xsl:value-of select="$acl:agent"/></xsl:message>
         <xsl:message>ac:uri(): <xsl:value-of select="ac:uri()"/></xsl:message>
         <xsl:message>UTC offset: <xsl:value-of select="implicit-timezone()"/></xsl:message>
@@ -297,78 +305,6 @@ WHERE
     </xsl:template>
 
     <!-- TEMPLATES -->
-  
-    <!-- we don't want to include per-vocabulary stylesheets -->
-    
-    <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="ac:label">
-        <xsl:choose>
-            <xsl:when test="skos:prefLabel[lang($ac:lang)]">
-                <xsl:sequence select="skos:prefLabel[lang($ac:lang)]/text()"/>
-            </xsl:when>
-            <xsl:when test="rdfs:label[lang($ac:lang)]">
-                <xsl:sequence select="rdfs:label[lang($ac:lang)]/text()"/>
-            </xsl:when>
-            <xsl:when test="dct:title[lang($ac:lang)]">
-                <xsl:sequence select="dct:title[lang($ac:lang)]/text()"/>
-            </xsl:when>
-            <xsl:when test="skos:prefLabel">
-                <xsl:sequence select="skos:prefLabel/text()"/>
-            </xsl:when>
-            <xsl:when test="rdfs:label">
-                <xsl:sequence select="rdfs:label/text()"/>
-            </xsl:when>
-            <xsl:when test="dct:title">
-                <xsl:sequence select="dct:title/text()"/>
-            </xsl:when>
-            <xsl:when test="foaf:name">
-                <xsl:sequence select="foaf:name/text()"/>
-            </xsl:when>
-            <xsl:when test="foaf:givenName and foaf:familyName">
-                <xsl:sequence select="concat(foaf:givenName, ' ', foaf:familyName)"/>
-            </xsl:when>
-            <xsl:when test="foaf:familyName">
-                <xsl:sequence select="foaf:familyName/text()"/>
-            </xsl:when>
-            <xsl:when test="foaf:nick">
-                <xsl:sequence select="foaf:nick/text()"/>
-            </xsl:when>
-            <xsl:when test="sioc:name">
-                <xsl:sequence select="sioc:name/text()"/>
-            </xsl:when>
-            <xsl:when test="schema1:name">
-                <xsl:sequence select="schema1:name/text()"/>
-            </xsl:when>
-            <xsl:when test="schema2:name">
-                <xsl:sequence select="schema2:name/text()"/>
-            </xsl:when>
-            <xsl:otherwise>
-                <xsl:next-match/>
-            </xsl:otherwise>
-        </xsl:choose>
-    </xsl:template>
-
-    <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="ac:description">
-        <xsl:choose>
-            <xsl:when test="rdfs:comment[lang($ac:lang)]">
-                <xsl:sequence select="rdfs:comment[lang($ac:lang)]/text()"/>
-            </xsl:when>
-            <xsl:when test="dct:description[lang($ac:lang)]">
-                <xsl:sequence select="dct:description[lang($ac:lang)]/text()"/>
-            </xsl:when>
-            <xsl:when test="rdfs:comment">
-                <xsl:sequence select="rdfs:comment/text()"/>
-            </xsl:when>
-            <xsl:when test="dct:description">
-                <xsl:sequence select="dct:description/text()"/>
-            </xsl:when>
-            <xsl:when test="schema1:description">
-                <xsl:sequence select="schema1:description/text()"/>
-            </xsl:when>
-            <xsl:when test="schema2:description">
-                <xsl:sequence select="schema2:description/text()"/>
-            </xsl:when>
-        </xsl:choose>
-    </xsl:template>
 
     <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="ac:image">
         <xsl:choose>
@@ -447,24 +383,14 @@ WHERE
         <xsl:for-each select="$response">
             <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
 
-            <!-- checking acl:mode here because this template is called after every document load (also the initial load) and has access to ?headers -->
-            <!-- set LinkedDataHub.acl-modes objects which are later used by the acl:mode function -->
-            <!-- doing it here because this template is called after every document load (also the initial load) and has access to ?headers -->
+            <!-- extract acl:mode from the response Link headers here because this template is called after every document load (also the initial load) and has access to ?headers -->
+            <!-- for proxied documents these are the *remote* node's modes, forwarded by ProxyRequestFilter -->
             <xsl:variable name="acl-mode-links" select="tokenize(?headers?link, ',')[contains(., '&acl;mode')]" as="xs:string*"/>
             <xsl:variable name="acl-modes" select="for $mode-link in $acl-mode-links return xs:anyURI(substring-before(substring-after(substring-before($mode-link, ';'), '&lt;'), '&gt;'))" as="xs:anyURI*"/>
-            <ixsl:set-property name="acl-modes" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
-            <xsl:if test="$acl-modes = '&acl;Read'">
-                <ixsl:set-property name="read" select="true()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.acl-modes')"/>
-            </xsl:if>
-            <xsl:if test="$acl-modes = '&acl;Append'">
-                <ixsl:set-property name="append" select="true()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.acl-modes')"/>
-            </xsl:if>
-            <xsl:if test="$acl-modes = '&acl;Write'">
-                <ixsl:set-property name="write" select="true()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.acl-modes')"/>
-            </xsl:if>
-            <xsl:if test="$acl-modes = '&acl;Control'">
-                <ixsl:set-property name="control" select="true()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.acl-modes')"/>
-            </xsl:if>
+            <!-- set LinkedDataHub.acl-modes flags which are later used by the acl:mode function; re-synced per pane by ldh:ActivateTab -->
+            <xsl:call-template name="ldh:SetAclModes">
+                <xsl:with-param name="acl-modes" select="$acl-modes"/>
+            </xsl:call-template>
 
             <xsl:variable name="etag" select="?headers?etag" as="xs:string?"/>
 
@@ -542,6 +468,11 @@ WHERE
                                     </xsl:result-document>
                                 </xsl:for-each>
 
+                                <!-- re-stamp the pane's modes: acl:mode is per-document, and the reused pane now shows a different document -->
+                                <xsl:for-each select="$reuse-pane">
+                                    <ixsl:set-attribute name="data-acl-modes" select="string-join($acl-modes, ' ')" object="."/>
+                                </xsl:for-each>
+
                                 <!-- sync the corresponding tab <li> to the new doc URI; data-uri keys downstream lookups -->
                                 <xsl:if test="string($doc-uri) ne $old-about">
                                     <xsl:for-each select="id('tab-bar-list', ixsl:page())/li[ixsl:get(., 'dataset.uri') = $old-about]">
@@ -567,6 +498,7 @@ WHERE
                                         <xsl:with-param name="base" select="$tab-base"/>
                                         <xsl:with-param name="endpoint" select="$endpoint"/>
                                         <xsl:with-param name="application" select="$application"/>
+                                        <xsl:with-param name="acl-modes" select="$acl-modes"/>
                                         <xsl:with-param name="about" select="$doc-uri"/>
                                         <xsl:with-param name="object-metadata" select="$context('object-metadata')" tunnel="yes"/>
                                         <xsl:with-param name="property-metadata" select="$context('property-metadata')" tunnel="yes"/>
@@ -793,7 +725,31 @@ WHERE
         <xsl:for-each select="id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')][./div[contains-token(@class, 'document-body')]/@about = $doc-uri]">
             <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'add', [ 'active' ])[current-date() lt xs:date('2000-01-01')]"/>
             <ixsl:set-style name="display" select="'block'" object="."/>
+
+            <!-- sync acl:mode() to this pane's data-acl-modes (stamped from its document's Link header); the window flags otherwise go stale on fetch-less tab switches between panes -->
+            <xsl:call-template name="ldh:SetAclModes">
+                <xsl:with-param name="acl-modes" select="if (ixsl:contains(., 'dataset.aclModes')) then (for $mode in tokenize(ixsl:get(., 'dataset.aclModes'), ' ')[.] return xs:anyURI($mode)) else ()"/>
+            </xsl:call-template>
         </xsl:for-each>
+    </xsl:template>
+
+    <!-- set the LinkedDataHub.acl-modes flags read by acl:mode(); called on document load (from the response Link headers) and on tab activation (from the pane's data-acl-modes) -->
+    <xsl:template name="ldh:SetAclModes">
+        <xsl:param name="acl-modes" as="xs:anyURI*"/>
+
+        <ixsl:set-property name="acl-modes" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+        <xsl:if test="$acl-modes = '&acl;Read'">
+            <ixsl:set-property name="read" select="true()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.acl-modes')"/>
+        </xsl:if>
+        <xsl:if test="$acl-modes = '&acl;Append'">
+            <ixsl:set-property name="append" select="true()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.acl-modes')"/>
+        </xsl:if>
+        <xsl:if test="$acl-modes = '&acl;Write'">
+            <ixsl:set-property name="write" select="true()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.acl-modes')"/>
+        </xsl:if>
+        <xsl:if test="$acl-modes = '&acl;Control'">
+            <ixsl:set-property name="control" select="true()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.acl-modes')"/>
+        </xsl:if>
     </xsl:template>
 
     <!-- render RDF results into a tab pane identified by @about = $doc-uri -->

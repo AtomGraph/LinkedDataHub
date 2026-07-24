@@ -3,7 +3,7 @@
 
     <groupId>com.atomgraph</groupId>
     <artifactId>linkeddatahub</artifactId>
-    <version>5.6.0</version>
+    <version>5.6.1-SNAPSHOT</version>
     <packaging>${packaging.type}</packaging>
 
     <name>AtomGraph LinkedDataHub</name>
@@ -46,7 +46,7 @@
         <url>https://github.com/AtomGraph/LinkedDataHub</url>
         <connection>scm:git:git://github.com/AtomGraph/LinkedDataHub.git</connection>
         <developerConnection>scm:git:git@github.com:AtomGraph/LinkedDataHub.git</developerConnection>
-        <tag>linkeddatahub-5.6.0</tag>
+        <tag>linkeddatahub-5.5.4</tag>
     </scm>
 
     <repositories>
@@ -169,19 +169,19 @@
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>client</artifactId>
-            <version>5.0.2</version>
+            <version>5.0.3-SNAPSHOT</version>
             <classifier>classes</classifier>
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>client</artifactId>
-            <version>5.0.2</version>
+            <version>5.0.3-SNAPSHOT</version>
             <type>war</type>
         </dependency>
         <dependency>
             <groupId>com.auth0</groupId>
             <artifactId>java-jwt</artifactId>
-            <version>3.19.4</version>
+            <version>4.5.2</version>
         </dependency>
         <dependency>
             <groupId>net.jodah</groupId>
