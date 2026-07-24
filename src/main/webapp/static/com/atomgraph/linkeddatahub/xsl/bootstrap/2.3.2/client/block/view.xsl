@@ -2095,7 +2095,7 @@ exclude-result-prefixes="#all"
                 <!-- sort the existing <li> items together with the new item -->
                 <xsl:perform-sort select="($existing-items, $new-item)">
                     <!-- sort by the link text content (property label) -->
-                    <xsl:sort select="a/text()" lang="{$ldt:lang}"/>
+                    <xsl:sort select="a/text()" lang="{$ac:lang}"/>
                 </xsl:perform-sort>
             </xsl:variable>
 
@@ -2243,7 +2243,7 @@ exclude-result-prefixes="#all"
                     <!-- sort by count in a hidden input first -->
                     <xsl:sort select="xs:integer(input[@name = 'count']/@value)" order="descending"/>
                     <!-- sort by the link text content (value label) -->
-                    <xsl:sort select="a/text()" lang="{$ldt:lang}"/>
+                    <xsl:sort select="a/text()" lang="{$ac:lang}"/>
                 </xsl:perform-sort>
             </xsl:variable>
 
