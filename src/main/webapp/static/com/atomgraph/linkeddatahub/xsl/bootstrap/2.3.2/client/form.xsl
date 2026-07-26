@@ -47,6 +47,7 @@ xmlns:sh="&sh;"
 xmlns:sioc="&sioc;"
 xmlns:spin="&spin;"
 xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
+xmlns:local="urn:rdfa-editor:functions"
 extension-element-prefixes="ixsl"
 exclude-result-prefixes="#all"
 >
@@ -141,22 +142,25 @@ WHERE
         <xsl:sequence select="ixsl:call(., 'addEventListener', [ 'change', ixsl:get(ixsl:window(), 'onSubjectTypeChange') ])[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
     
-    <xsl:template match="textarea[contains-token(@class, 'wymeditor')]" mode="ldh:RenderRowForm" priority="1">
-        <!-- call .wymeditor() on textarea to show WYMEditor with current origin's iframe path -->
-        <xsl:variable name="iframe-base-path" select="resolve-uri('static/com/atomgraph/linkeddatahub/js/wymeditor/iframe/default/', ldt:base())" as="xs:anyURI"/>
-        <xsl:variable name="wymeditor-config" select="ldh:new-object()"/>
-        <ixsl:set-property name="iframeBasePath" select="$iframe-base-path" object="$wymeditor-config"/>
-        <xsl:sequence select="ixsl:call(ixsl:call(ixsl:window(), 'jQuery', [ . ]), 'wymeditor', [ $wymeditor-config ])[current-date() lt xs:date('2000-01-01')]"/>
-        <xsl:variable name="wymeditor" select="ixsl:call(ixsl:get(ixsl:window(), 'jQuery'), 'getWymeditorByTextarea', [ . ])" as="item()"/>
-        <xsl:variable name="char-count" select="sum(.//text()/string-length())" as="xs:integer"/>
-        <xsl:variable name="iframe" select="ixsl:get($wymeditor, '_iframe')" as="element()"/>
-        
-        <!-- attempt to infer WYMEditor height from the length of textarea's content (though min 30em and max 100em) -->
-        <xsl:for-each select="$iframe">
-            <xsl:variable name="height-in-em" select="$char-count idiv 16" as="xs:integer"/>
-            <xsl:variable name="height-in-em" select="if ($height-in-em &lt; 30) then 30 else if ($height-in-em &gt; 100) then 100 else $height-in-em" as="xs:integer"/>
-            <ixsl:set-style name="height" select="string($height-in-em) || 'em'" object="."/>
+    <!-- the RDFa editor toolbar mounts in the active document's editor-bar, below the action bar (LDH pages have no nav element) -->
+    <xsl:function name="local:toolbar-host" as="element()*">
+        <xsl:sequence select="(id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')][contains-token(@class, 'active')]//div[contains-token(@class, 'editor-bar')]/div[contains-token(@class, 'container-fluid')])[1]"/>
+    </xsl:function>
+
+    <!-- first editable region on the page: full editor bring-up (chrome, dialogs, drawers, all regions) -->
+    <xsl:template match="div[contains-token(@class, 'rdfa-editor-content')][empty(id('edit-toolbar', ixsl:page()))]" mode="ldh:RenderRowForm" priority="2">
+        <xsl:call-template name="local:init-editor"/>
+    </xsl:template>
+
+    <!-- additional region: editor chrome already in the DOM; init only this region's blocks -->
+    <xsl:template match="div[contains-token(@class, 'rdfa-editor-content')]" mode="ldh:RenderRowForm" priority="1">
+        <!-- adopt the singleton toolbar into this document's editor-bar (it may have initialized in another tab) -->
+        <xsl:for-each select="local:toolbar-host()[not(descendant::*[@id = 'edit-toolbar'])]">
+            <xsl:sequence select="ixsl:call(., 'appendChild', [ id('edit-toolbar', ixsl:page()) ])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:for-each>
+        <xsl:call-template name="local:init-region">
+            <xsl:with-param name="region" select="."/>
+        </xsl:call-template>
     </xsl:template>
 
     <!-- TO-DO: phase out as regular ixsl: event templates -->
@@ -181,6 +185,17 @@ WHERE
     
     <xsl:template match="text()" mode="ldh:FormPreSubmit"/>
     
+    <!-- serialize canonicalized editor content into the hidden ol input before form submission -->
+    <xsl:template match="div[contains-token(@class, 'rdfa-editor-content')]" mode="ldh:FormPreSubmit" priority="1">
+        <xsl:variable name="canonical" as="node()*">
+            <xsl:apply-templates select="node()" mode="canonical"/>
+        </xsl:variable>
+        <xsl:variable name="value" select="serialize($canonical, map{ 'method': 'xml' })" as="xs:string"/>
+        <xsl:for-each select="following-sibling::input[@name = 'ol'][1]">
+            <ixsl:set-property name="value" select="$value" object="."/>
+        </xsl:for-each>
+    </xsl:template>
+
     <!-- trim whitespace in bnode/URI values -->
     <xsl:template match="input[@name = ('ob', 'ou')][ixsl:get(., 'value')]" mode="ldh:FormPreSubmit" priority="1">
         <ixsl:set-attribute name="value" select="normalize-space(ixsl:get(., 'value'))"/>
@@ -702,15 +717,7 @@ WHERE
         <xsl:param name="method" select="upper-case(@method)" as="xs:string"/>
         <xsl:param name="callback" select="ldh:row-form-response#1" as="function(map(*)) as item()*"/>
         <xsl:param name="elements" select=".//input | .//textarea | .//select" as="element()*"/>
-        <xsl:param name="triples" select="ldh:parse-rdf-post($elements)" as="element()*"/>
-        <xsl:param name="resources" as="document-node()">
-            <xsl:document>
-                <rdf:RDF>
-                    <xsl:sequence select="ldh:triples-to-descriptions($triples)"/>
-                </rdf:RDF>
-            </xsl:document>
-        </xsl:param>
-        <xsl:param name="request-body" select="$resources" as="document-node()"/>
+        <xsl:param name="request-body" as="document-node()?"/> <!-- no default: built below from the parsed triples, which must follow the ldh:FormPreSubmit pass -->
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <xsl:variable name="id" select="ixsl:get($form, 'id')" as="xs:string"/>
         <xsl:variable name="action" select="ixsl:get($form, 'action')" as="xs:anyURI"/>
@@ -720,16 +727,28 @@ WHERE
 
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
+        <!-- pre-process form before submitting it: syncs input values, so it must precede ldh:parse-rdf-post.
+             A wrapping handler that supplied $request-body has already run the pass -->
+        <xsl:if test="empty($request-body)">
+            <xsl:apply-templates select="." mode="ldh:FormPreSubmit"/>
+        </xsl:if>
+
+        <xsl:variable name="triples" select="ldh:parse-rdf-post($elements)" as="element()*"/>
         <!-- canonicalize XML in rdf:XMLLiterals -->
         <xsl:variable name="triples" as="element()*">
             <xsl:apply-templates select="$triples" mode="ldh:CanonicalizeXML"/>
         </xsl:variable>
+        <xsl:variable name="resources" as="document-node()">
+            <xsl:document>
+                <rdf:RDF>
+                    <xsl:sequence select="ldh:triples-to-descriptions($triples)"/>
+                </rdf:RDF>
+            </xsl:document>
+        </xsl:variable>
+        <xsl:variable name="request-body" select="($request-body, $resources)[1]" as="document-node()"/>
         <xsl:variable name="doc-uri" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/>
         <xsl:variable name="request-uri" select="ldh:href($action, map{})" as="xs:anyURI"/>
 
-        <!-- pre-process form before submitting it -->
-        <xsl:apply-templates select="." mode="ldh:FormPreSubmit"/>
-            
         <xsl:choose>
             <!-- we need to handle multipart requests specially because of Saxon-JS 2 limitations: https://saxonica.plan.io/issues/4732 -->
             <xsl:when test="$enctype = 'multipart/form-data'">

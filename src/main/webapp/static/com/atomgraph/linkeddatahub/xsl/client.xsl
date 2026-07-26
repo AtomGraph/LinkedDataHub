@@ -68,6 +68,7 @@ xmlns:schema1="&schema1;"
 xmlns:schema2="&schema2;"
 xmlns:dbpo="&dbpo;"
 xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
+xmlns:local="urn:rdfa-editor:functions"
 exclude-result-prefixes="#all"
 extension-element-prefixes="ixsl"
 >
@@ -106,7 +107,8 @@ extension-element-prefixes="ixsl"
     <xsl:import href="converters/RDFXML2DataTable.xsl"/>
     <xsl:import href="converters/SPARQLXMLResults2DataTable.xsl"/>
     <xsl:import href="converters/RDFXML2GeoJSON.xsl"/>
-    
+    <xsl:import href="rdfa-editor/index.xsl"/>
+
     <xsl:include href="bootstrap/2.3.2/client/admin/signup.xsl"/>
     <xsl:include href="bootstrap/2.3.2/client/query-transforms.xsl"/>
     <xsl:include href="bootstrap/2.3.2/client/typeahead.xsl"/>
@@ -259,6 +261,8 @@ WHERE
         <ixsl:set-property name="typeahead" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/> <!-- used by typeahead.xsl -->
         <ixsl:set-property name="graphs" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/> <!-- used by graph3d.xsl -->
         <ixsl:set-property name="yasqe" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+        <!-- create the RDFa editor state container (editor chrome initializes lazily, on the first editable region) -->
+        <xsl:call-template name="local:init-state"/>
 
         <!-- handle OAuth ID token from URL fragment -->
         <xsl:variable name="location-hash" select="ixsl:get(ixsl:get(ixsl:window(), 'location'), 'hash')" as="xs:string?"/>

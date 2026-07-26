@@ -211,3 +211,6 @@ object { display: block; margin: auto; max-height: 400px; overflow: hidden; widt
 .ol-overlay-container img { max-width: 100%; }
 /* SVG graph specific */
 circle { cursor: move; }
+/* RDFa editor specific */
+.editor-bar { position: sticky; top: calc(var(--action-bar-top, 51px) + 50px); z-index: 998; background: #dfdfdf; padding: 0; box-shadow: none; border-top: 1px solid #aaa; }
+.editor-bar:not(:has(#edit-toolbar)), body:not(:has(.rdfa-editor-content)) .editor-bar, body:not(:has(.rdfa-editor-content)) #rdfa-editor-breadcrumb { display: none; }
