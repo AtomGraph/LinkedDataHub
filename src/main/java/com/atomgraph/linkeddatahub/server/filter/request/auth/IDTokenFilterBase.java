@@ -195,7 +195,7 @@ public abstract class IDTokenFilterBase extends AuthenticationFilter
             else
             {
                 if (log.isDebugEnabled()) log.debug("ID token for subject '{}' has expired at {}, refresh token not found", jwt.getSubject(), jwt.getExpiresAt());
-                throw new TokenExpiredException("ID token for subject '%s' has expired at %s".formatted(jwt.getSubject(), jwt.getExpiresAt()));
+                throw new TokenExpiredException("ID token for subject '%s' has expired at %s".formatted(jwt.getSubject(), jwt.getExpiresAt()), jwt.getExpiresAt().toInstant());
             }
         }
         if (!verify(jwt)) return null;

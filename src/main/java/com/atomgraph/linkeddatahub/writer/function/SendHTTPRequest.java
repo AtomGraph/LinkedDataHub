@@ -16,6 +16,7 @@
  */
 package com.atomgraph.linkeddatahub.writer.function;
 
+import com.atomgraph.linkeddatahub.server.util.SecureXML;
 import com.atomgraph.linkeddatahub.vocabulary.LDH;
 import java.io.IOException;
 import java.io.InputStream;
@@ -25,7 +26,8 @@ import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.MultivaluedHashMap;
 import jakarta.ws.rs.core.MultivaluedMap;
 import jakarta.ws.rs.core.Response;
-import javax.xml.transform.stream.StreamSource;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.sax.SAXSource;
 import net.sf.saxon.s9api.ExtensionFunction;
 import net.sf.saxon.s9api.ItemType;
 import net.sf.saxon.s9api.ItemTypeFactory;
@@ -38,6 +40,8 @@ import net.sf.saxon.s9api.XdmEmptySequence;
 import net.sf.saxon.s9api.XdmValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
 
 /**
  * Executes an HTTP request.
@@ -117,7 +121,7 @@ public class SendHTTPRequest implements ExtensionFunction
                     if (cr.hasEntity())
                         try (InputStream is = cr.readEntity(InputStream.class))
                         {
-                            return getProcessor().newDocumentBuilder().build(new StreamSource(is));
+                            return getProcessor().newDocumentBuilder().build(new SAXSource(SecureXML.newXMLReader(), new InputSource(is)));
                         }
                 }
             else
@@ -135,14 +139,14 @@ public class SendHTTPRequest implements ExtensionFunction
                     if (cr.hasEntity())
                         try (InputStream is = cr.readEntity(InputStream.class))
                         {
-                            return getProcessor().newDocumentBuilder().build(new StreamSource(is));
+                            return getProcessor().newDocumentBuilder().build(new SAXSource(SecureXML.newXMLReader(), new InputSource(is)));
                         }
                 }
             }
-            
+
             return XdmEmptySequence.getInstance();
         }
-        catch (IOException ex)
+        catch (IOException | ParserConfigurationException | SAXException ex)
         {
             throw new SaxonApiException(ex);
         }

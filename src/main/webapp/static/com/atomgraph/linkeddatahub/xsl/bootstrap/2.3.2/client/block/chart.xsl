@@ -183,8 +183,7 @@ exclude-result-prefixes="#all"
                     </option>
 
                     <xsl:for-each-group select="$results/rdf:RDF/*/*" group-by="concat(namespace-uri(), local-name())">
-                        <xsl:sort select="ac:property-label(.)" order="ascending" lang="{$ldt:lang}" use-when="system-property('xsl:product-name') = 'SAXON'"/>
-                        <xsl:sort select="ac:property-label(.)" order="ascending" use-when="system-property('xsl:product-name') eq 'SaxonJS'"/>
+                        <xsl:sort select="ac:property-label(.)" order="ascending" lang="{$ac:lang}"/>
 
                         <option value="{current-grouping-key()}">
                             <xsl:if test="$category = current-grouping-key()">
@@ -202,8 +201,7 @@ exclude-result-prefixes="#all"
             <xsl:for-each select="$container//select[contains-token(@class, 'chart-series')]">
                 <xsl:result-document href="?." method="ixsl:replace-content">
                     <xsl:for-each-group select="$results/rdf:RDF/*/*" group-by="concat(namespace-uri(), local-name())">
-                        <xsl:sort select="ac:property-label(.)" order="ascending" lang="{$ldt:lang}" use-when="system-property('xsl:product-name') = 'SAXON'"/>
-                        <xsl:sort select="ac:property-label(.)" order="ascending" use-when="system-property('xsl:product-name') eq 'SaxonJS'"/>
+                        <xsl:sort select="ac:property-label(.)" order="ascending" lang="{$ac:lang}"/>
 
                         <option value="{current-grouping-key()}">
                             <xsl:if test="$series = current-grouping-key()">

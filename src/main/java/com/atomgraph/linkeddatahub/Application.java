@@ -288,9 +288,9 @@ public class Application extends ResourceConfig
     private final KeyStore keyStore, trustStore;
     private final URI secretaryWebIDURI;
     private final List<Locale> supportedLanguages;
-    private final ExpiringMap<URI, Model> webIDmodelCache = ExpiringMap.builder().expiration(1, TimeUnit.DAYS).build(); // TO-DO: config for the expiration period?
+    private final ExpiringMap<URI, Model> webIDmodelCache = ExpiringMap.builder().expiration(Long.parseLong(System.getProperty("com.atomgraph.linkeddatahub.webIDCacheExpiration", "86400")), TimeUnit.SECONDS).build(); // TTL (seconds) configurable via WEBID_CACHE_EXPIRATION; a lower value bounds how long a revoked WebID stays cached
     private final ExpiringMap<String, Model> oidcModelCache = ExpiringMap.builder().variableExpiration().build();
-    private final ExpiringMap<String, jakarta.json.JsonObject> jwksCache = ExpiringMap.builder().expiration(1, TimeUnit.DAYS).build(); // Cache JWKS responses
+    private final ExpiringMap<String, jakarta.json.JsonObject> jwksCache = ExpiringMap.builder().expiration(Long.parseLong(System.getProperty("com.atomgraph.linkeddatahub.jwksCacheExpiration", "86400")), TimeUnit.SECONDS).build(); // Cache JWKS responses; TTL (seconds) configurable via JWKS_CACHE_EXPIRATION
     private final Map<URI, XsltExecutable> xsltExecutableCache = new ConcurrentHashMap<>();
     private final MessageDigest messageDigest;
     private final boolean enableWebIDSignUp;
@@ -1519,6 +1519,7 @@ public class Application extends ResourceConfig
         ctx.init(kmf.getKeyManagers(), tmf.getTrustManagers(), null);
 
         Registry<ConnectionSocketFactory> socketFactoryRegistry = RegistryBuilder.<ConnectionSocketFactory>create().
+            // hostname verification is safely disabled because ctx trusts only the pinned truststore; revisit if that truststore ever widens to public CAs
             register("https", new SSLConnectionSocketFactory(ctx, NoopHostnameVerifier.INSTANCE)).
             register("http", new PlainConnectionSocketFactory()).
             build();
@@ -1626,6 +1627,7 @@ public class Application extends ResourceConfig
             ctx.init(null, tmf.getTrustManagers(), null);
 
             Registry<ConnectionSocketFactory> socketFactoryRegistry = RegistryBuilder.<ConnectionSocketFactory>create().
+                // hostname verification is safely disabled because ctx trusts only the pinned truststore; revisit if that truststore ever widens to public CAs
                 register("https", new SSLConnectionSocketFactory(ctx, NoopHostnameVerifier.INSTANCE)).
                 register("http", new PlainConnectionSocketFactory()).
                 build();

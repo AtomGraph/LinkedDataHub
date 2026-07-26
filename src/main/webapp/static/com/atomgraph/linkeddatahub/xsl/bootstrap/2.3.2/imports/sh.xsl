@@ -18,7 +18,6 @@ limitations under the License.
     <!ENTITY ac     "https://w3id.org/atomgraph/client#">
     <!ENTITY rdf    "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
     <!ENTITY sh     "http://www.w3.org/ns/shacl#">
-    <!ENTITY ldt    "https://www.w3.org/ns/ldt#">
 ]>
 <xsl:stylesheet version="3.0"
 xmlns="http://www.w3.org/1999/xhtml"
@@ -27,25 +26,22 @@ xmlns:xs="http://www.w3.org/2001/XMLSchema"
 xmlns:ac="&ac;"
 xmlns:rdf="&rdf;"
 xmlns:sh="&sh;"
-xmlns:ldt="&ldt;"
 exclude-result-prefixes="#all">
 
-    <xsl:param name="ldt:lang" select="'en'" as="xs:string"/>
-
-    <xsl:template match="*[$ldt:lang][sh:name[lang($ldt:lang)]/text()]" mode="ac:label" priority="1">
-        <xsl:sequence select="sh:name[lang($ldt:lang)]/text()"/>
-    </xsl:template>
-    
-    <xsl:template match="*[sh:name[not(@xml:lang)]/text()]" mode="ac:label">
-        <xsl:sequence select="sh:name[not(@xml:lang)]/text()"/>
+    <xsl:template match="*[sh:name[some $lang in $ac:langs satisfies lang($lang)]/text()]" mode="ac:label" priority="1">
+        <xsl:sequence select="(for $lang in $ac:langs return sh:name[lang($lang)])[1]/text()"/>
     </xsl:template>
 
-    <xsl:template match="*[$ldt:lang][sh:description[lang($ldt:lang)]/text()]" mode="ac:description" priority="1">
-        <xsl:sequence select="sh:description[lang($ldt:lang)]/text()"/>
+    <xsl:template match="*[sh:name/text()]" mode="ac:label">
+        <xsl:sequence select="(sh:name[not(@xml:lang)], sh:name)[1]/text()"/>
     </xsl:template>
-    
-    <xsl:template match="*[sh:description[not(@xml:lang)]/text()]" mode="ac:description">
-        <xsl:sequence select="sh:description[not(@xml:lang)]/text()"/>
+
+    <xsl:template match="*[sh:description[some $lang in $ac:langs satisfies lang($lang)]/text()]" mode="ac:description" priority="1">
+        <xsl:sequence select="(for $lang in $ac:langs return sh:description[lang($lang)])[1]/text()"/>
+    </xsl:template>
+
+    <xsl:template match="*[sh:description/text()]" mode="ac:description">
+        <xsl:sequence select="(sh:description[not(@xml:lang)], sh:description)[1]/text()"/>
     </xsl:template>
     
 </xsl:stylesheet>

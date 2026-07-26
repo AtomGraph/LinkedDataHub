@@ -767,8 +767,11 @@ exclude-result-prefixes="#all"
 
     <!-- PROPERTY LIST -->
 
-    <!-- suppress properties in a language other than $ldt:lang. TO-DO: move to Web-Client? -->
-    <xsl:template match="*[@rdf:about or @rdf:nodeID]/*[@xml:lang and not(lang($ldt:lang))]" mode="bs2:PropertyList"/>
+    <!-- suppress values in a language the user doesn't accept. TO-DO: move to Web-Client? -->
+    <xsl:template match="*[@rdf:about or @rdf:nodeID]/*[@xml:lang and not(some $lang in $ac:langs satisfies lang($lang))]" mode="bs2:PropertyList"/>
+
+    <!-- suppress values outranked by a more preferred language on the same property -->
+    <xsl:template match="*[@rdf:about or @rdf:nodeID]/*[@xml:lang][let $rank := (for $i in 1 to count($ac:langs) return $i[lang($ac:langs[$i])])[1] return exists(../*[node-name() = node-name(current())][some $i in 1 to $rank - 1 satisfies lang($ac:langs[$i])])]" mode="bs2:PropertyList"/>
 
     <!-- FORM CONTROL -->
     

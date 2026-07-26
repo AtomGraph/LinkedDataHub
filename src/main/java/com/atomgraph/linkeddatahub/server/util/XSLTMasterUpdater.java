@@ -23,8 +23,8 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import jakarta.servlet.ServletContext;
+import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
@@ -203,15 +203,14 @@ public class XSLTMasterUpdater
 
     private Document parseDocument(Path file) throws ParserConfigurationException, SAXException, IOException
     {
-        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-        factory.setNamespaceAware(true);
-        DocumentBuilder builder = factory.newDocumentBuilder();
+        DocumentBuilder builder = SecureXML.newDocumentBuilderFactory().newDocumentBuilder();
         return builder.parse(file.toFile());
     }
 
     private void serializeDocument(Document doc, Path file) throws TransformerException
     {
         TransformerFactory transformerFactory = TransformerFactory.newInstance();
+        transformerFactory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
         Transformer transformer = transformerFactory.newTransformer();
         transformer.setOutputProperty(OutputKeys.INDENT, "no");
         transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");

@@ -43,7 +43,7 @@ exclude-result-prefixes="#all">
             </option>
             
             <xsl:for-each select="$modes[not(@rdf:about = '&ac;EditMode')]"> <!-- don't show EditMode -->
-                <xsl:sort select="ac:label(.)" lang="{$ldt:lang}"/>
+                <xsl:sort select="ac:label(.)" lang="{$ac:lang}"/>
                 <xsl:apply-templates select="." mode="xhtml:Option">
                     <xsl:with-param name="selected" select="@rdf:about = $value"/>
                 </xsl:apply-templates>

@@ -173,7 +173,7 @@ exclude-result-prefixes="#all">
             
             <xsl:variable name="selected" select="." as="xs:anyURI"/>
             <xsl:for-each select="document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/admin/countries.rdf', lapp:origin()))/rdf:RDF/*[@rdf:about]">
-                <xsl:sort select="ac:label(.)" lang="{$ldt:lang}"/>
+                <xsl:sort select="ac:label(.)" lang="{$ac:lang}"/>
                 <xsl:apply-templates select="." mode="xhtml:Option">
                     <xsl:with-param name="selected" select="@rdf:about = $selected"/>
                 </xsl:apply-templates>

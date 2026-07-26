@@ -45,6 +45,11 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="if (ldh:query-params()?uri) then xs:anyURI(ldh:query-params()?uri) else ()"/>
     </xsl:function>
 
+    <!-- overrides the Web-Client stub; server-side ac:uuid() is the com.atomgraph.client.writer.function.UUID extension function -->
+    <xsl:function name="ac:uuid" as="xs:string">
+        <xsl:value-of select="ixsl:call(ixsl:window(), 'generateUUID', [])"/>
+    </xsl:function>
+
     <!-- ldh:query-params is defined once in imports/default.xsl and works in both contexts via ldh:request-uri -->
 
     <xsl:function name="ldh:base-uri" as="xs:anyURI">

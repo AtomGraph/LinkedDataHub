@@ -40,6 +40,21 @@ public class URLValidatorTest
     }
 
     @Test
+    public void testLoopbackAllowedForSelfDereferencing()
+    {
+        // loopback is intentionally allowed even with SSRF protection on: LDH dereferences its own
+        // documents/WebIDs on the same origin (loopback in local/test deployments); the backend is site-local (blocked)
+        new URLValidator(false).validate(URI.create("http://127.0.0.1:3030/ds"));
+        new URLValidator(false).validate(URI.create("http://localhost:3030/ds"));
+    }
+
+    @Test
+    public void testAnyLocalBlocked()
+    {
+        assertThrows(InternalURLException.class, () -> new URLValidator(false).validate(URI.create("http://0.0.0.0:8080/test")));
+    }
+
+    @Test
     public void testLinkLocalIPv4Blocked()
     {
         assertThrows(InternalURLException.class, () -> new URLValidator(false).validate(URI.create("http://169.254.1.1:8080/test")));
@@ -96,5 +111,12 @@ public class URLValidatorTest
     {
         // When allowInternal=true, link-local addresses should pass through without exception
         new URLValidator(true).validate(URI.create("http://169.254.1.1:8080/test"));
+    }
+
+    @Test
+    public void testAllowInternalLoopbackAllowed()
+    {
+        // When allowInternal=true, loopback addresses should pass through without exception (dev escape hatch)
+        new URLValidator(true).validate(URI.create("http://127.0.0.1:3030/ds"));
     }
 }

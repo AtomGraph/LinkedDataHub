@@ -31,7 +31,7 @@ exclude-result-prefixes="#all">
         <xsl:variable name="chart-types" select="key('resources-by-subclass', '&ac;Chart', document(ac:document-uri('&ldh;')))" as="element()*"/>
         <select name="ou" id="{generate-id()}">
             <xsl:for-each select="$chart-types">
-                <xsl:sort select="ac:label(.)" lang="{$ldt:lang}"/>
+                <xsl:sort select="ac:label(.)" lang="{$ac:lang}"/>
                 <xsl:apply-templates select="." mode="xhtml:Option">
                     <xsl:with-param name="selected" select="@rdf:about = $value"/>
                 </xsl:apply-templates>

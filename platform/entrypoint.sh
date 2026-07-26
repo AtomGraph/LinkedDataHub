@@ -1092,6 +1092,14 @@ if [ -n "$CLIENT_VALIDATE_AFTER_INACTIVITY" ]; then
     export CATALINA_OPTS="$CATALINA_OPTS -Dcom.atomgraph.linkeddatahub.validateAfterInactivity=$CLIENT_VALIDATE_AFTER_INACTIVITY"
 fi
 
+if [ -n "$WEBID_CACHE_EXPIRATION" ]; then
+    export CATALINA_OPTS="$CATALINA_OPTS -Dcom.atomgraph.linkeddatahub.webIDCacheExpiration=$WEBID_CACHE_EXPIRATION"
+fi
+
+if [ -n "$JWKS_CACHE_EXPIRATION" ]; then
+    export CATALINA_OPTS="$CATALINA_OPTS -Dcom.atomgraph.linkeddatahub.jwksCacheExpiration=$JWKS_CACHE_EXPIRATION"
+fi
+
 if [ -n "$MAX_CONTENT_LENGTH" ]; then
     MAX_CONTENT_LENGTH_PARAM="--stringparam ldhc:maxContentLength '$MAX_CONTENT_LENGTH' "
 fi
