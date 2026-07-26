@@ -339,7 +339,7 @@
                 <executions>
                     <execution>
                         <id>inline-xml-entities</id>
-                        <phase>package</phase>
+                        <phase>pre-integration-test</phase>
                         <goals>
                             <goal>iterator</goal>
                         </goals>
@@ -377,14 +377,14 @@
                         <goals>
                             <goal>install-node-and-npm</goal>
                         </goals>
-                        <phase>package</phase>
+                        <phase>pre-integration-test</phase>
                     </execution>
                     <execution>
                         <id>generate-sef</id>
                         <goals>
                             <goal>npx</goal>
                         </goals>
-                        <phase>package</phase>
+                        <phase>pre-integration-test</phase>
                         <configuration>
                             <arguments>xslt3-he -t -xsl:${project.build.directory}/${build.warName}${saxon-js.stylesheet} -export:${project.build.directory}/${build.warName}${saxon-js.stylesheet}.sef.json -nogo -ns:##html5 -relocate:on</arguments>
                         </configuration>
