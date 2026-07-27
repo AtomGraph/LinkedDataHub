@@ -309,8 +309,33 @@ exclude-result-prefixes="#all"
         </xsl:if>
     </xsl:template>
 
+    <!-- click anywhere on XHTML content to enter edit mode (skip if text is selected) -->
+
+    <xsl:template match="div[@typeof = '&ldh;XHTML'][not(descendant::form)][acl:mode() = '&acl;Write']//div[contains-token(@class, 'main')]" mode="ixsl:onclick">
+        <xsl:if test="ixsl:call(ixsl:call(ixsl:window(), 'getSelection', []), 'toString', []) = ''">
+            <xsl:variable name="block" select="ancestor::div[contains-token(@class, 'block')][1]" as="element()"/>
+            <xsl:variable name="btn-edit" select="($block//button[contains-token(@class, 'btn-edit')][not(contains-token(@class, 'disabled'))])[1]" as="element()?"/>
+            <xsl:if test="$btn-edit">
+                <xsl:sequence select="ixsl:call($btn-edit, 'click', [])"/>
+            </xsl:if>
+        </xsl:if>
+    </xsl:template>
+
+    <!-- autosave XMLLiteral when focus leaves the editor region (but not to the toolbar or other editor UI) -->
+
+    <xsl:template match="div[contains-token(@class, 'rdfa-editor-content')]" mode="ixsl:onfocusout">
+        <xsl:variable name="self" select="." as="element()"/>
+        <xsl:variable name="related" select="ixsl:get(ixsl:event(), 'relatedTarget')" as="item()?"/>
+        <xsl:if test="empty($related) or empty($related/ancestor-or-self::*[. is $self or @id = ('edit-toolbar', 'rdfa-editor-breadcrumb') or contains-token(@class, 'rdfa-editor-ui')])">
+            <xsl:variable name="form" select="ancestor::form[contains-token(@class, 'form-horizontal')][1]" as="element()?"/>
+            <xsl:if test="$form">
+                <xsl:sequence select="ixsl:call($form, 'requestSubmit', [])"/>
+            </xsl:if>
+        </xsl:if>
+    </xsl:template>
+
     <!-- override inline editing form for block types (do nothing if the button is disabled) - prioritize over form.xsl -->
-    
+
     <xsl:template match="div[following-sibling::div[@typeof = ('&ldh;XHTML', '&ldh;Object')]]//button[contains-token(@class, 'btn-edit')][not(contains-token(@class, 'disabled'))]" mode="ixsl:onclick" priority="1">
         <xsl:param name="block" select="ancestor::div[contains-token(@class, 'block')][1]" as="element()"/>
         <!-- for block types, button.btn-edit is placed in its own div.row-fluid, therefore the next row is the actual container -->

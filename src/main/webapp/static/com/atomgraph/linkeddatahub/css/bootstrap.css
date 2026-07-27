@@ -181,6 +181,8 @@ button.add-typeahead { width: 219px; }
 .description { display: none; }
 .content .dl-horizontal { max-height: 35em; overflow: auto; }
 div[typeof="https://w3id.org/atomgraph/linkeddatahub#XHTML"] .main { font-size: larger; line-height: 25px; }
+div[typeof="https://w3id.org/atomgraph/linkeddatahub#XHTML"]:not(:has(form)) .main { cursor: pointer; }
+div[typeof="https://w3id.org/atomgraph/linkeddatahub#XHTML"] .btn-edit { display: none; }
 div[typeof="https://w3id.org/atomgraph/linkeddatahub#XHTML"] .form-horizontal .control-label { display: none; }
 div[typeof="https://w3id.org/atomgraph/linkeddatahub#XHTML"] .form-horizontal .controls { margin-left: 0; }
 .span12.progress .row-block-controls { background-color: #e9ecef; }
