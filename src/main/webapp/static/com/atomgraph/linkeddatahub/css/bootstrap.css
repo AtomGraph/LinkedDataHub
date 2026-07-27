@@ -44,6 +44,7 @@ ul.dropdown-menu ul { margin: 0; }
 .action-bar #doc-controls { text-align: right; padding-top: 5px; }
 .action-bar #doc-controls .btn-edit { margin-top: -5px; margin-left: 10px; }
 .action-bar p.alert { margin-bottom: 0; }
+body:has(#edit-toolbar) .action-bar { border-bottom: 1px solid #aaa; }
 .nav-header.btn { color: inherit; }
 .btn.btn-primary.create-action { background-image: url('../icons/ic_note_add_white_24px.svg'); background-position: 12px center; background-repeat: no-repeat; padding-left: 40px; /* height: 30px; */ }
 .btn.create-action, a.create-action { background-image: url('../icons/ic_note_add_black_24px.svg'); background-position: 12px center; background-repeat: no-repeat; padding-left: 40px; /* height: 30px; */ }
@@ -212,5 +213,6 @@ object { display: block; margin: auto; max-height: 400px; overflow: hidden; widt
 /* SVG graph specific */
 circle { cursor: move; }
 /* RDFa editor specific */
-.editor-bar { position: sticky; top: calc(var(--action-bar-top, 51px) + 50px); z-index: 998; background: #dfdfdf; padding: 0; box-shadow: none; border-top: 1px solid #aaa; }
+.editor-bar { position: sticky; top: calc(var(--action-bar-top, 51px) + 50px); z-index: 998; background: #dfdfdf; padding: 0; box-shadow: none; display: flex; align-items: center; }
+#edit-toolbar select { margin-top: auto; margin-bottom: auto; }
 .editor-bar:not(:has(#edit-toolbar)), body:not(:has(.rdfa-editor-content)) .editor-bar, body:not(:has(.rdfa-editor-content)) #rdfa-editor-breadcrumb { display: none; }
