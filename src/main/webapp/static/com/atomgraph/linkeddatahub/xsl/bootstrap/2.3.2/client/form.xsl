@@ -163,6 +163,138 @@ WHERE
         </xsl:call-template>
     </xsl:template>
 
+    <!-- override RDFa editor annotation typeahead: use LDH's /ns-querying bs2:Lookup instead of doc()-on-vocabs -->
+    <xsl:function name="local:typeahead-field" as="element()">
+        <xsl:param name="field" as="xs:string"/>
+        <xsl:variable name="for-class" as="xs:anyURI" select="if ($field = 'typeof') then xs:anyURI('&owl;Class') else xs:anyURI('&rdf;Property')"/>
+        <span data-field="{$field}" class="typeahead-field rdfa-editor-ui">
+            <xsl:call-template name="bs2:Lookup">
+                <xsl:with-param name="class" select="'property-typeahead typeahead'"/>
+                <xsl:with-param name="id" select="'annotation-' || $field"/>
+                <xsl:with-param name="list-class" select="'property-typeahead typeahead dropdown-menu'"/>
+                <xsl:with-param name="forClass" select="$for-class"/>
+            </xsl:call-template>
+        </span>
+    </xsl:function>
+
+    <!-- rebuild the typeahead field and pre-populate with IRI; clears any prior committed button state -->
+    <xsl:template name="local:typeahead-set-value">
+        <xsl:param name="form" as="element()"/>
+        <xsl:param name="field" as="xs:string"/>
+        <xsl:param name="iri" as="xs:string"/>
+        <xsl:variable name="for-class" as="xs:anyURI" select="if ($field = 'typeof') then xs:anyURI('&owl;Class') else xs:anyURI('&rdf;Property')"/>
+        <xsl:for-each select="($form//span[@data-field = $field])[1]">
+            <xsl:result-document href="?." method="ixsl:replace-content">
+                <xsl:call-template name="bs2:Lookup">
+                    <xsl:with-param name="class" select="'property-typeahead typeahead'"/>
+                    <xsl:with-param name="id" select="'annotation-' || $field"/>
+                    <xsl:with-param name="list-class" select="'property-typeahead typeahead dropdown-menu'"/>
+                    <xsl:with-param name="forClass" select="$for-class"/>
+                    <xsl:with-param name="value" select="if ($iri ne '') then $iri else ()"/>
+                </xsl:call-template>
+            </xsl:result-document>
+        </xsl:for-each>
+    </xsl:template>
+
+    <!-- read back the IRI from span[@data-field]: committed (hidden input) or typed (property-typeahead text) -->
+    <xsl:function name="local:typeahead-value" as="xs:string?">
+        <xsl:param name="form" as="element()"/>
+        <xsl:param name="field" as="xs:string"/>
+        <xsl:variable name="wrapper" as="element()?" select="($form//span[@data-field = $field])[1]"/>
+        <xsl:variable name="hidden" as="element()?" select="($wrapper//input[@type = 'hidden'])[1]"/>
+        <xsl:choose>
+            <xsl:when test="exists($hidden)">
+                <xsl:sequence select="string(ixsl:get($hidden, 'value'))[. ne '']"/>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:variable name="input" as="element()?" select="($wrapper//input[contains-token(@class, 'property-typeahead')])[1]"/>
+                <xsl:variable name="text" as="xs:string" select="normalize-space(string(ixsl:get($input, 'value')))"/>
+                <xsl:sequence select="if (local:is-absolute-iri($text)) then $text else ()"/>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:function>
+
+    <!-- Bootstrap-styled annotation overlay (replaces rdfa-editor's custom HTML structure) -->
+    <xsl:template name="local:render-overlay">
+        <div id="overlay" class="rdfa-editor-ui well" role="dialog" aria-modal="true" aria-label="RDFa annotation" style="display: none;">
+            <div class="modal-header">
+                <h3>RDFa Annotation</h3>
+            </div>
+            <form id="annotation-form" class="form-horizontal">
+                <div class="control-group">
+                    <label class="control-label">Subject</label>
+                    <div class="controls">
+                        <div id="stmt-subject" class="uneditable-input"/>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label">Property</label>
+                    <div class="controls">
+                        <xsl:sequence select="local:typeahead-field('property')"/>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label">Value</label>
+                    <div class="controls">
+                        <input type="text" name="value" class="input-xlarge" placeholder="Literal value"/>
+                        <span class="help-block">The selected text; change to emit a machine-readable content value</span>
+                    </div>
+                </div>
+                <details id="advanced-fields">
+                    <summary>Type, subject &amp; object</summary>
+                    <div class="control-group">
+                        <label class="control-label">Type (typeof)</label>
+                        <div class="controls">
+                            <xsl:sequence select="local:typeahead-field('typeof')"/>
+                            <span class="help-block">Types the annotated resource; without a subject the typed resource becomes the object of the property (chaining)</span>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">Subject (about)</label>
+                        <div class="controls">
+                            <input type="text" name="subject" class="input-xlarge" placeholder="Overrides the subject in scope"/>
+                            <span class="help-block">IRI or _:blank-node identifier</span>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">Object (resource)</label>
+                        <div class="controls">
+                            <input type="text" name="object" class="input-xlarge" placeholder="Object IRI"/>
+                            <span class="help-block">Makes the object a resource instead of the literal value</span>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">Datatype</label>
+                        <div class="controls">
+                            <select name="datatype">
+                                <option value="">(plain literal)</option>
+                                <xsl:variable name="xsd" as="xs:string" select="'http://www.w3.org/2001/XMLSchema#'"/>
+                                <xsl:for-each select="'string', 'date', 'dateTime', 'time', 'integer', 'decimal', 'double', 'float', 'boolean', 'anyURI'">
+                                    <option value="{$xsd || .}">xsd:<xsl:value-of select="."/></option>
+                                </xsl:for-each>
+                                <option value="{$local:custom}">-- Custom datatype --</option>
+                            </select>
+                            <input type="text" name="custom-datatype" class="input-xlarge" placeholder="Datatype IRI" style="display: none;"/>
+                            <span class="help-block">Types the literal; mutually exclusive with a language tag</span>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">Language</label>
+                        <div class="controls">
+                            <input type="text" name="lang" class="input-small" placeholder="e.g. en, fr-CA"/>
+                            <span class="help-block">Language tag for the literal; ignored when a datatype is set</span>
+                        </div>
+                    </div>
+                </details>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-danger remove-action" style="display: none;">Remove</button>
+                    <button type="button" class="btn btn-primary spo-action">Annotate</button>
+                    <button type="button" class="btn cancel-action">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </xsl:template>
+
     <!-- TO-DO: phase out as regular ixsl: event templates -->
     <xsl:template match="fieldset//input" mode="ldh:RenderRowForm" priority="1">
         <!-- subject value change -->
