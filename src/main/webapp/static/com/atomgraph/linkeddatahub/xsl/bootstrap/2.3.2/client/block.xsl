@@ -203,6 +203,13 @@ exclude-result-prefixes="#all"
 
     <xsl:template match="*[rdf:type/@rdf:resource = '&ldh;XHTML']/rdf:value/xhtml:*" mode="bs2:FormControlTypeLabel" priority="1"/>
 
+    <!-- autosave via ixsl:onfocusout replaces the Save button; suppress form-actions for XHTML blocks -->
+    <xsl:template match="*[rdf:type/@rdf:resource = '&ldh;XHTML']" mode="bs2:RowForm" priority="1">
+        <xsl:next-match>
+            <xsl:with-param name="show-form-actions" select="false()"/>
+        </xsl:next-match>
+    </xsl:template>
+
     <!-- EVENT LISTENERS -->
     
     <!-- show block controls -->
@@ -306,6 +313,20 @@ exclude-result-prefixes="#all"
         <!-- only hide if the related target does not have this div as ancestor (is not its child) -->
         <xsl:if test="not($related-target/ancestor-or-self::div[. is current()])">
             <ixsl:set-style name="display" select="'none'" object="$drag-handle"/>
+        </xsl:if>
+    </xsl:template>
+
+    <!-- click outside the editor canvas (left/right columns) while in edit mode exits edit mode -->
+
+    <xsl:template match="div[@typeof = '&ldh;XHTML'][descendant::form]" mode="ixsl:onclick">
+        <xsl:variable name="target" select="ixsl:get(ixsl:event(), 'target')" as="element()?"/>
+        <xsl:variable name="canvas" select="(descendant::div[contains-token(@class, 'rdfa-editor-content')])[1]" as="element()?"/>
+        <!-- skip if target is within the canvas or is an interactive element (interactive elements steal focus, triggering focusout + autosave) -->
+        <xsl:if test="exists($target) and empty($target/ancestor-or-self::*[. is $canvas or self::button or self::input or self::select or self::a])">
+            <xsl:variable name="form" select="(descendant::form[contains-token(@class, 'form-horizontal')])[1]" as="element()?"/>
+            <xsl:if test="$form">
+                <xsl:sequence select="ixsl:call($form, 'requestSubmit', [])"/>
+            </xsl:if>
         </xsl:if>
     </xsl:template>
 
