@@ -298,6 +298,112 @@ WHERE
         </div>
     </xsl:template>
 
+    <!-- Bootstrap-styled toolbar dialogs (replace rdfa-editor's custom HTML) -->
+
+    <xsl:template name="local:render-table-dialog">
+        <div id="table-dialog" class="rdfa-editor-ui edit-dialog" role="dialog" aria-modal="true" aria-label="Insert table" style="display: none;">
+            <label for="table-rows">Body rows</label>
+            <input type="number" id="table-rows" name="rows" value="3" min="1" max="50"/>
+            <label for="table-cols">Columns</label>
+            <input type="number" id="table-cols" name="cols" value="3" min="1" max="20"/>
+            <label class="checkbox"><input type="checkbox" name="header-row" checked="checked"/> Header row</label>
+            <label for="table-caption">Caption</label>
+            <input type="text" id="table-caption" name="caption"/>
+            <div class="action-buttons">
+                <button type="button" class="btn btn-primary table-save">Insert</button>
+                <button type="button" class="btn table-cancel">Cancel</button>
+            </div>
+        </div>
+    </xsl:template>
+
+    <xsl:template name="local:render-link-dialog">
+        <div id="link-dialog" class="rdfa-editor-ui edit-dialog" role="dialog" aria-modal="true" aria-label="Link" style="display: none;">
+            <label for="link-href">Link target (href)</label>
+            <input type="text" id="link-href" name="href" placeholder="https://..."/>
+            <div class="action-buttons">
+                <button type="button" class="btn btn-danger link-remove" style="display: none;">Remove link</button>
+                <button type="button" class="btn btn-primary link-save">Save</button>
+                <button type="button" class="btn link-cancel">Cancel</button>
+            </div>
+        </div>
+    </xsl:template>
+
+    <xsl:template name="local:render-figure-dialog">
+        <div id="figure-dialog" class="rdfa-editor-ui edit-dialog" role="dialog" aria-modal="true" aria-label="Insert figure" style="display: none;">
+            <label for="figure-src">Image URL (src)</label>
+            <input type="text" id="figure-src" name="src" placeholder="https://... or relative path"/>
+            <label for="figure-alt">Alternate text (alt)</label>
+            <input type="text" id="figure-alt" name="alt"/>
+            <label for="figure-caption">Caption</label>
+            <input type="text" id="figure-caption" name="caption"/>
+            <div class="action-buttons">
+                <button type="button" class="btn btn-primary figure-save">Insert</button>
+                <button type="button" class="btn figure-cancel">Cancel</button>
+            </div>
+        </div>
+    </xsl:template>
+
+    <xsl:template name="local:render-find-dialog">
+        <div id="find-dialog" class="rdfa-editor-ui edit-dialog" role="dialog" aria-modal="true" aria-label="Find and replace" style="display: none;">
+            <label for="find-text">Find</label>
+            <input type="text" id="find-text" name="find"/>
+            <label for="find-replace">Replace with</label>
+            <input type="text" id="find-replace" name="replace"/>
+            <label class="checkbox"><input type="checkbox" name="match-case"/> Match case</label>
+            <div class="action-buttons">
+                <button type="button" class="btn btn-primary find-next">Find next</button>
+                <button type="button" class="btn replace-current">Replace</button>
+                <button type="button" class="btn replace-all">Replace all</button>
+                <button type="button" class="btn find-close">Close</button>
+            </div>
+            <span id="find-status" class="help-block"/>
+        </div>
+    </xsl:template>
+
+    <xsl:template name="local:render-extra-dialogs">
+        <div id="ldh-block-dialog" class="rdfa-editor-ui edit-dialog" role="dialog" aria-modal="true" aria-label="Insert block" style="display: none;">
+            <label for="ldh-block-type">Block type</label>
+            <select id="ldh-block-type" name="block-type-iri">
+                <option value="urn:rdfa-editor:reference">Resource</option>
+                <option value="&ldh;View">View</option>
+                <option value="&ldh;ResultSetChart">Result set chart</option>
+            </select>
+            <div class="ldh-fields ldh-fields-reference">
+                <label for="ldh-reference-uri">Resource URI</label>
+                <input type="text" id="ldh-reference-uri" name="reference-uri" placeholder="http://dbpedia.org/resource/Ada_Lovelace"/>
+            </div>
+            <div class="ldh-fields ldh-fields-frag" style="display: none;">
+                <label for="ldh-about">Fragment id</label>
+                <input type="text" id="ldh-about" name="about" placeholder="#chart-1"/>
+            </div>
+            <div class="ldh-fields ldh-fields-view" style="display: none;">
+                <label for="ldh-view-query">Query URI</label>
+                <input type="text" id="ldh-view-query" name="view-query"/>
+                <label for="ldh-view-mode">Mode URI (optional)</label>
+                <input type="text" id="ldh-view-mode" name="view-mode"/>
+            </div>
+            <div class="ldh-fields ldh-fields-chart" style="display: none;">
+                <label for="ldh-chart-query">Query URI</label>
+                <input type="text" id="ldh-chart-query" name="chart-query"/>
+                <label for="ldh-chart-type">Chart type</label>
+                <select id="ldh-chart-type" name="chart-type">
+                    <option value="&ac;Table">Table</option>
+                    <option value="&ac;BarChart">Bar chart</option>
+                    <option value="&ac;LineChart">Line chart</option>
+                    <option value="&ac;ScatterChart">Scatter chart</option>
+                </select>
+                <label for="ldh-chart-category">Category variable</label>
+                <input type="text" id="ldh-chart-category" name="chart-category"/>
+                <label for="ldh-chart-series">Series variable</label>
+                <input type="text" id="ldh-chart-series" name="chart-series"/>
+            </div>
+            <div class="action-buttons">
+                <button type="button" class="btn btn-primary ldh-block-save">Insert</button>
+                <button type="button" class="btn ldh-block-cancel">Cancel</button>
+            </div>
+        </div>
+    </xsl:template>
+
     <!-- TO-DO: phase out as regular ixsl: event templates -->
     <xsl:template match="fieldset//input" mode="ldh:RenderRowForm" priority="1">
         <!-- subject value change -->
