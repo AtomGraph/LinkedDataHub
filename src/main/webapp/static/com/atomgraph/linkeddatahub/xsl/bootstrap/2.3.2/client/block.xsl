@@ -203,9 +203,16 @@ exclude-result-prefixes="#all"
 
     <xsl:template match="*[rdf:type/@rdf:resource = '&ldh;XHTML']/rdf:value/xhtml:*" mode="bs2:FormControlTypeLabel" priority="1"/>
 
-    <!-- autosave via ixsl:onfocusout replaces the Save button; suppress form-actions for XHTML blocks -->
+    <!-- autosave via ixsl:onfocusout replaces the Save button; suppress form-actions for XHTML blocks.
+        Non-tunnel params do not survive xsl:next-match, so the caller-passed ones (method='post' from the ADD flow etc.) are re-declared and forwarded — otherwise the ADD form falls back to the default method='patch', whose DELETE/INSERT/WHERE update is a no-op for a resource with no triples yet -->
     <xsl:template match="*[rdf:type/@rdf:resource = '&ldh;XHTML']" mode="bs2:RowForm" priority="1">
+        <xsl:param name="about" select="@rdf:about" as="xs:anyURI?"/>
+        <xsl:param name="method" select="'patch'" as="xs:string"/>
+        <xsl:param name="show-cancel-button" select="true()" as="xs:boolean"/>
         <xsl:next-match>
+            <xsl:with-param name="about" select="$about"/>
+            <xsl:with-param name="method" select="$method"/>
+            <xsl:with-param name="show-cancel-button" select="$show-cancel-button"/>
             <xsl:with-param name="show-form-actions" select="false()"/>
         </xsl:next-match>
     </xsl:template>
