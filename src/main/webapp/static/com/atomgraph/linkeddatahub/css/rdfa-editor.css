@@ -228,37 +228,6 @@
                 box-shadow: inset 0 0 0 2px #2196f3;
             }
 
-/* Link / figure dialogs */
-            .edit-dialog {
-                background: white;
-                border: 2px solid #2196f3;
-                border-radius: 8px;
-                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-                padding: 16px;
-                min-width: 320px;
-                z-index: 10000;
-            }
-
-.edit-dialog label {
-                display: block;
-                font-size: 13px;
-                font-weight: 500;
-                color: #424242;
-                margin: 8px 0 4px 0;
-            }
-
-.edit-dialog input[type="text"] {
-                width: 100%;
-                padding: 8px 10px;
-                border: 1px solid #ccc;
-                border-radius: 4px;
-                font-size: 14px;
-                box-sizing: border-box;
-            }
-
-.edit-dialog .rdfa-editor-ui .action-buttons {
-                margin-top: 14px;
-            }
 
 /* Slash menu (/ to insert a block) */
             #slash-menu {
@@ -533,14 +502,6 @@
             .rdfa-editor-content .rdfa-invalid {
                 text-decoration: underline wavy #f44336;
                 text-decoration-skip-ink: none;
-            }
-
-.edit-dialog .rdfa-editor-ui .checkbox-label {
-                display: inline-flex;
-                gap: 6px;
-                align-items: center;
-                font-weight: 400;
-                margin-top: 8px;
             }
 
 /* Modal Dialog */

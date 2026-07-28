@@ -227,4 +227,7 @@ circle { cursor: move; }
 #edit-toolbar .tb-group { display: flex; gap: 6px; align-items: center; }
 #edit-toolbar .tb-group + .tb-group { border-left: 1px solid #e0e0e0; padding-left: 6px; }
 #edit-toolbar .tb-group.table-ops.active { background: #e3f0ff; border-radius: 4px; }
+.edit-dialog { background: white; border: 1px solid #ccc; border-radius: 4px; box-shadow: 0 2px 8px rgba(0,0,0,.2); padding: 12px; min-width: 280px; z-index: 10000; }
+.edit-dialog .rdfa-editor-ui .action-buttons { margin-top: 10px; }
+.edit-dialog .rdfa-editor-ui .checkbox-label { display: inline-flex; gap: 6px; align-items: center; font-weight: 400; margin-top: 8px; }
 .editor-bar:not(:has(#edit-toolbar)), body:not(:has(.rdfa-editor-content)) .editor-bar, body:not(:has(.rdfa-editor-content)) #rdfa-editor-breadcrumb { display: none; }
