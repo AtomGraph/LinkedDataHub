@@ -216,82 +216,85 @@ WHERE
 
     <!-- Bootstrap-styled annotation overlay (replaces rdfa-editor's custom HTML structure) -->
     <xsl:template name="local:render-overlay">
-        <div id="overlay" class="rdfa-editor-ui well" role="dialog" aria-modal="true" aria-label="RDFa annotation" style="display: none;">
+        <div id="{$local:overlay-id}" class="modal rdfa-editor-ui" role="dialog" aria-modal="true" aria-label="RDFa annotation" style="display: none;">
             <div class="modal-header">
-                <h3>RDFa Annotation</h3>
+                <button type="button" class="close cancel-action">&#215;</button>
+                <legend>RDFa Annotation</legend>
             </div>
-            <form id="annotation-form" class="form-horizontal">
-                <div class="control-group">
-                    <label class="control-label">Subject</label>
-                    <div class="controls">
-                        <div id="stmt-subject" class="uneditable-input"/>
-                    </div>
-                </div>
-                <div class="control-group">
-                    <label class="control-label">Property</label>
-                    <div class="controls">
-                        <xsl:sequence select="local:typeahead-field('property')"/>
-                    </div>
-                </div>
-                <div class="control-group">
-                    <label class="control-label">Value</label>
-                    <div class="controls">
-                        <input type="text" name="value" class="input-xlarge" placeholder="Literal value"/>
-                        <span class="help-block">The selected text; change to emit a machine-readable content value</span>
-                    </div>
-                </div>
-                <details id="advanced-fields">
-                    <summary>Type, subject &amp; object</summary>
+            <div class="modal-body">
+                <form id="annotation-form" class="form-horizontal">
                     <div class="control-group">
-                        <label class="control-label">Type (typeof)</label>
+                        <label class="control-label" for="stmt-subject">Subject</label>
                         <div class="controls">
-                            <xsl:sequence select="local:typeahead-field('typeof')"/>
-                            <span class="help-block">Types the annotated resource; without a subject the typed resource becomes the object of the property (chaining)</span>
+                            <div id="stmt-subject" class="uneditable-input"/>
                         </div>
                     </div>
                     <div class="control-group">
-                        <label class="control-label">Subject (about)</label>
+                        <label class="control-label" for="annotation-property">Property</label>
                         <div class="controls">
-                            <input type="text" name="subject" class="input-xlarge" placeholder="Overrides the subject in scope"/>
-                            <span class="help-block">IRI or _:blank-node identifier</span>
+                            <xsl:sequence select="local:typeahead-field('property')"/>
                         </div>
                     </div>
                     <div class="control-group">
-                        <label class="control-label">Object (resource)</label>
+                        <label class="control-label" for="annotation-value">Value</label>
                         <div class="controls">
-                            <input type="text" name="object" class="input-xlarge" placeholder="Object IRI"/>
-                            <span class="help-block">Makes the object a resource instead of the literal value</span>
+                            <input type="text" id="annotation-value" name="value" class="input-xlarge" placeholder="Literal value"/>
+                            <span class="help-block">The selected text; change to emit a machine-readable content value</span>
                         </div>
                     </div>
-                    <div class="control-group">
-                        <label class="control-label">Datatype</label>
-                        <div class="controls">
-                            <select name="datatype">
-                                <option value="">(plain literal)</option>
-                                <xsl:variable name="xsd" as="xs:string" select="'http://www.w3.org/2001/XMLSchema#'"/>
-                                <xsl:for-each select="'string', 'date', 'dateTime', 'time', 'integer', 'decimal', 'double', 'float', 'boolean', 'anyURI'">
-                                    <option value="{$xsd || .}">xsd:<xsl:value-of select="."/></option>
-                                </xsl:for-each>
-                                <option value="{$local:custom}">-- Custom datatype --</option>
-                            </select>
-                            <input type="text" name="custom-datatype" class="input-xlarge" placeholder="Datatype IRI" style="display: none;"/>
-                            <span class="help-block">Types the literal; mutually exclusive with a language tag</span>
+                    <details id="advanced-fields">
+                        <summary>Type, subject &amp; object</summary>
+                        <div class="control-group">
+                            <label class="control-label" for="annotation-typeof">Type (typeof)</label>
+                            <div class="controls">
+                                <xsl:sequence select="local:typeahead-field('typeof')"/>
+                                <span class="help-block">Types the annotated resource; without a subject the typed resource becomes the object of the property (chaining)</span>
+                            </div>
                         </div>
-                    </div>
-                    <div class="control-group">
-                        <label class="control-label">Language</label>
-                        <div class="controls">
-                            <input type="text" name="lang" class="input-small" placeholder="e.g. en, fr-CA"/>
-                            <span class="help-block">Language tag for the literal; ignored when a datatype is set</span>
+                        <div class="control-group">
+                            <label class="control-label" for="annotation-subject">Subject (about)</label>
+                            <div class="controls">
+                                <input type="text" id="annotation-subject" name="subject" class="input-xlarge" placeholder="Overrides the subject in scope"/>
+                                <span class="help-block">IRI or _:blank-node identifier</span>
+                            </div>
                         </div>
+                        <div class="control-group">
+                            <label class="control-label" for="annotation-object">Object (resource)</label>
+                            <div class="controls">
+                                <input type="text" id="annotation-object" name="object" class="input-xlarge" placeholder="Object IRI"/>
+                                <span class="help-block">Makes the object a resource instead of the literal value</span>
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label class="control-label" for="annotation-datatype">Datatype</label>
+                            <div class="controls">
+                                <select id="annotation-datatype" name="datatype">
+                                    <option value="">(plain literal)</option>
+                                    <xsl:variable name="xsd" as="xs:string" select="'http://www.w3.org/2001/XMLSchema#'"/>
+                                    <xsl:for-each select="'string', 'date', 'dateTime', 'time', 'integer', 'decimal', 'double', 'float', 'boolean', 'anyURI'">
+                                        <option value="{$xsd || .}">xsd:<xsl:value-of select="."/></option>
+                                    </xsl:for-each>
+                                    <option value="{$local:custom}">-- Custom datatype --</option>
+                                </select>
+                                <input type="text" name="custom-datatype" class="input-xlarge" placeholder="Datatype IRI" style="display: none;"/>
+                                <span class="help-block">Types the literal; mutually exclusive with a language tag</span>
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label class="control-label" for="annotation-lang">Language</label>
+                            <div class="controls">
+                                <input type="text" id="annotation-lang" name="lang" class="input-small" placeholder="e.g. en, fr-CA"/>
+                                <span class="help-block">Language tag for the literal; ignored when a datatype is set</span>
+                            </div>
+                        </div>
+                    </details>
+                    <div class="form-actions modal-footer">
+                        <button type="button" class="btn btn-danger remove-action" style="display: none;">Remove</button>
+                        <button type="button" class="btn btn-primary spo-action">Annotate</button>
+                        <button type="button" class="btn cancel-action">Cancel</button>
                     </div>
-                </details>
-                <div class="form-actions">
-                    <button type="button" class="btn btn-danger remove-action" style="display: none;">Remove</button>
-                    <button type="button" class="btn btn-primary spo-action">Annotate</button>
-                    <button type="button" class="btn cancel-action">Cancel</button>
-                </div>
-            </form>
+                </form>
+            </div>
         </div>
     </xsl:template>
 

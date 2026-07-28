@@ -11,6 +11,8 @@ version="3.0">
 
     <!-- select value marking the free-text custom-IRI state ('' means none/unset) -->
     <xsl:variable name="local:custom" as="xs:string" select="'urn:rdfa-editor:custom'"/>
+    <!-- id of the annotation overlay element; host UIs may shadow this variable -->
+    <xsl:variable name="local:overlay-id" as="xs:string" select="'rdfa-editor-overlay'"/>
 
 <!--
     The annotation overlay: rendered once at startup (hidden), then only populated,
@@ -30,7 +32,7 @@ version="3.0">
     </xsl:template>
 
     <xsl:template name="local:render-overlay">
-        <div id="overlay" class="rdfa-editor-ui" role="dialog" aria-modal="true" aria-label="RDFa annotation" style="display: none;">
+        <div id="{$local:overlay-id}" class="rdfa-editor-ui" role="dialog" aria-modal="true" aria-label="RDFa annotation" style="display: none;">
             <div class="overlay-header">
                 <h3>RDFa Annotation</h3>
             </div>
@@ -256,7 +258,7 @@ version="3.0">
         <xsl:param name="in-scope-subject" as="xs:string?" select="()"/>
 
         <xsl:call-template name="local:show-at">
-            <xsl:with-param name="element" select="id('overlay', ixsl:page())"/>
+            <xsl:with-param name="element" select="id($local:overlay-id, ixsl:page())"/>
             <xsl:with-param name="event" select="$event"/>
         </xsl:call-template>
 
@@ -297,7 +299,7 @@ version="3.0">
     <!-- single teardown point: hiding the overlay always clears the interaction state -->
     <xsl:template name="local:hide-overlay">
         <xsl:call-template name="local:hide-selection-hint"/>
-        <xsl:for-each select="id('overlay', ixsl:page())">
+        <xsl:for-each select="id($local:overlay-id, ixsl:page())">
             <ixsl:set-style name="display" select="'none'"/>
         </xsl:for-each>
         <ixsl:set-property name="editingSpan" select="()" object="local:editor-state()"/>
@@ -310,7 +312,7 @@ version="3.0">
         </xsl:for-each>
     </xsl:template>
 
-    <xsl:template match="div[@id = 'overlay']" mode="ixsl:onkeydown">
+    <xsl:template match="div[@id = $local:overlay-id]" mode="ixsl:onkeydown">
         <xsl:if test="string(ixsl:get(ixsl:event(), 'key')) = 'Escape'">
             <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])[current-date() lt xs:date('2000-01-01')]"/>
             <xsl:call-template name="local:hide-overlay"/>
