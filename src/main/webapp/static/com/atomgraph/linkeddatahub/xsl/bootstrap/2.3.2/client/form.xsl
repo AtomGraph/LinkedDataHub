@@ -150,6 +150,9 @@ WHERE
     <!-- first editable region on the page: full editor bring-up (chrome, dialogs, drawers, all regions) -->
     <xsl:template match="div[contains-token(@class, 'rdfa-editor-content')][empty(id('edit-toolbar', ixsl:page()))]" mode="ldh:RenderRowForm" priority="2">
         <xsl:call-template name="local:init-editor"/>
+        <xsl:for-each select="(.//*[@contenteditable = 'true'])[1]">
+            <xsl:sequence select="ixsl:call(., 'focus', [])[current-date() lt xs:date('2000-01-01')]"/>
+        </xsl:for-each>
     </xsl:template>
 
     <!-- additional region: editor chrome already in the DOM; init only this region's blocks -->
@@ -161,6 +164,9 @@ WHERE
         <xsl:call-template name="local:init-region">
             <xsl:with-param name="region" select="."/>
         </xsl:call-template>
+        <xsl:for-each select="(.//*[@contenteditable = 'true'])[1]">
+            <xsl:sequence select="ixsl:call(., 'focus', [])[current-date() lt xs:date('2000-01-01')]"/>
+        </xsl:for-each>
     </xsl:template>
 
     <!-- override RDFa editor annotation typeahead: use LDH's /ns-querying bs2:Lookup instead of doc()-on-vocabs -->
