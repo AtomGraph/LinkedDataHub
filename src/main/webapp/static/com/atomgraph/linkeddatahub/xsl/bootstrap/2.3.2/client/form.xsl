@@ -586,7 +586,21 @@ WHERE
                         <!-- store ETag header value under window.LinkedDataHub.contents[$base-uri].etag -->
                         <ixsl:set-property name="etag" select="$etag" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path(ldh:base-uri(.)) || '`')"/>
 
-                        <xsl:variable name="resource" select="key('resources', $about)" as="element()"/> <!-- TO-DO: handle error -->
+                        <xsl:variable name="resource" as="element()">
+                            <xsl:choose>
+                                <xsl:when test="key('resources', $about)">
+                                    <xsl:sequence select="key('resources', $about)"/>
+                                </xsl:when>
+                                <xsl:otherwise>
+                                    <!-- block exists in the container but has no own triples; synthesise from @typeof rendered in HTML -->
+                                    <rdf:Description rdf:about="{$about}">
+                                        <xsl:for-each select="tokenize($block/@typeof, '\s+')[normalize-space()]">
+                                            <rdf:type rdf:resource="{.}"/>
+                                        </xsl:for-each>
+                                    </rdf:Description>
+                                </xsl:otherwise>
+                            </xsl:choose>
+                        </xsl:variable>
                         <xsl:variable name="types" select="distinct-values($resource/rdf:type/@rdf:resource)" as="xs:anyURI*"/>
                         <xsl:variable name="query-string" select="'DESCRIBE $Type VALUES $Type { ' || string-join(for $type in $types return '&lt;' || $type || '&gt;', ' ') || ' }'" as="xs:string"/>
                         <xsl:variable name="results-uri" select="ac:build-uri(resolve-uri('ns', ldt:base()), map{ 'query': $query-string, 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
