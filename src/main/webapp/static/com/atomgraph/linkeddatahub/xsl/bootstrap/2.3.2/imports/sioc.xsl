@@ -29,7 +29,7 @@ xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
 exclude-result-prefixes="#all">
     
     <xsl:template match="*[@rdf:about = '&sioc;UserAccount']" mode="ac:label">
-        <xsl:apply-templates select="key('resources', 'user-account', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', lapp:origin())))" mode="#current"/>
+        <xsl:apply-templates select="key('resources', 'user-account', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="#current"/>
     </xsl:template>
 
     <xsl:template match="sioc:email/@rdf:*"  mode="bs2:FormControl">
