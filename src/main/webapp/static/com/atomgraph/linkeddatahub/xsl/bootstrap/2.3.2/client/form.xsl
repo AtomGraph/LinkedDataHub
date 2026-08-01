@@ -248,15 +248,8 @@ WHERE
                             <span class="help-block">The selected text; change to emit a machine-readable content value</span>
                         </div>
                     </div>
-                    <details id="advanced-fields">
-                        <summary>Type, subject &amp; object</summary>
-                        <div class="control-group">
-                            <label class="control-label" for="annotation-typeof">Type (typeof)</label>
-                            <div class="controls">
-                                <xsl:sequence select="rdfae:typeahead-field('typeof')"/>
-                                <span class="help-block">Types the annotated resource; without a subject the typed resource becomes the object of the property (chaining)</span>
-                            </div>
-                        </div>
+                    <fieldset>
+                        <legend>Subject</legend>
                         <div class="control-group">
                             <label class="control-label" for="annotation-subject">Subject (about)</label>
                             <div class="controls">
@@ -264,6 +257,16 @@ WHERE
                                 <span class="help-block">IRI or _:blank-node identifier</span>
                             </div>
                         </div>
+                        <div class="control-group">
+                            <label class="control-label" for="annotation-typeof">Type (typeof)</label>
+                            <div class="controls">
+                                <xsl:sequence select="rdfae:typeahead-field('typeof')"/>
+                                <span class="help-block">Types the annotated resource; without a subject the typed resource becomes the object of the property (chaining)</span>
+                            </div>
+                        </div>
+                    </fieldset>
+                    <fieldset>
+                        <legend>Object</legend>
                         <div class="control-group">
                             <label class="control-label" for="annotation-object">Object (resource)</label>
                             <div class="controls">
@@ -293,7 +296,7 @@ WHERE
                                 <span class="help-block">Language tag for the literal; ignored when a datatype is set</span>
                             </div>
                         </div>
-                    </details>
+                    </fieldset>
                     <div class="form-actions modal-footer">
                         <button type="button" class="btn btn-danger remove-action" style="display: none;">Remove</button>
                         <button type="button" class="btn btn-primary spo-action">Annotate</button>
