@@ -332,15 +332,15 @@ exclude-result-prefixes="#all">
     <!-- STYLE -->
     
     <xsl:template match="rdf:RDF[lapp:origin()] | srx:sparql[lapp:origin()]" mode="xhtml:Style">
-        <xsl:param name="load-wymeditor" select="exists($foaf:Agent//@rdf:about)" as="xs:boolean"/>
+        <xsl:param name="load-rdfa-editor" select="exists($foaf:Agent//@rdf:about)" as="xs:boolean"/>
         <xsl:param name="load-yasqe" select="true()" as="xs:boolean"/>
 
         <link href="{resolve-uri('static/css/bootstrap.css', lapp:origin())}" rel="stylesheet" type="text/css"/>
         <link href="{resolve-uri('static/css/bootstrap-responsive.css', lapp:origin())}" rel="stylesheet" type="text/css"/>
         <link href="{resolve-uri('static/com/atomgraph/client/css/bootstrap.css', lapp:origin())}" rel="stylesheet" type="text/css"/>
         <link href="{resolve-uri('static/com/atomgraph/linkeddatahub/css/bootstrap.css', lapp:origin())}" rel="stylesheet" type="text/css"/>
-        <xsl:if test="$load-wymeditor">
-            <link href="{resolve-uri('static/com/atomgraph/linkeddatahub/js/wymeditor/skins/default/skin.css', lapp:origin())}" rel="stylesheet" type="text/css"/>
+        <xsl:if test="$load-rdfa-editor">
+            <link href="{resolve-uri('static/com/atomgraph/linkeddatahub/css/rdfa-editor.css', lapp:origin())}" rel="stylesheet" type="text/css"/>
         </xsl:if>
         <xsl:if test="$load-yasqe">
             <link href="{resolve-uri('static/css/yasqe.css', lapp:origin())}" rel="stylesheet" type="text/css"/>
@@ -352,7 +352,6 @@ exclude-result-prefixes="#all">
     <xsl:template match="rdf:RDF[lapp:origin()] | srx:sparql[lapp:origin()]" mode="xhtml:Script">
         <xsl:param name="client-stylesheet" select="resolve-uri('static/com/atomgraph/linkeddatahub/xsl/client.xsl.sef.json', lapp:origin())" as="xs:anyURI"/>
         <xsl:param name="saxon-js-log-level" select="10" as="xs:integer"/>
-        <xsl:param name="load-wymeditor" select="not(ac:mode(root()) = ('&ac;ModalMode', '&ldht;InfoWindowMode'))" as="xs:boolean"/>
         <xsl:param name="load-yasqe" select="not(ac:mode(root()) = ('&ac;ModalMode', '&ldht;InfoWindowMode'))" as="xs:boolean"/>
         <xsl:param name="load-saxon-js" select="$ldh:ajaxRendering and not(ac:mode(root()) = ('&ac;ModalMode', '&ldht;InfoWindowMode'))" as="xs:boolean"/>
         <xsl:param name="load-sparql-builder" select="not(ac:mode(root()) = ('&ac;ModalMode', '&ldht;InfoWindowMode'))" as="xs:boolean"/>
@@ -381,9 +380,6 @@ exclude-result-prefixes="#all">
               //]]&gt;
             </xsl:text>
         </script>
-        <xsl:if test="$load-wymeditor">
-            <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/wymeditor/jquery.wymeditor.js', lapp:origin())}" defer="defer"></script>
-        </xsl:if>
         <xsl:if test="$load-yasqe">
             <script src="{resolve-uri('static/js/yasqe.js', lapp:origin())}" type="text/javascript"></script>
         </xsl:if>

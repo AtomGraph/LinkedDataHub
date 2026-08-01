@@ -306,6 +306,9 @@ ORDER BY DESC(?created)
                 <ixsl:set-style name="display" select="'block'" object="$active-sidebar"/>
             </xsl:if>
         </xsl:if>
+
+        <!-- chain to the RDFa editor's sweep-selection tracker (lower import precedence) -->
+        <xsl:next-match/>
     </xsl:template>
 
     <!-- hide the document tree container if its position is fixed (i.e. the layout is not responsive) -->

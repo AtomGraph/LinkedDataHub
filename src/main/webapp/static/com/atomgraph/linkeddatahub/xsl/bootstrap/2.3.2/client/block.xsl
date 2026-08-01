@@ -203,6 +203,20 @@ exclude-result-prefixes="#all"
 
     <xsl:template match="*[rdf:type/@rdf:resource = '&ldh;XHTML']/rdf:value/xhtml:*" mode="bs2:FormControlTypeLabel" priority="1"/>
 
+    <!-- autosave via ixsl:onfocusout replaces the Save button; suppress form-actions for XHTML blocks.
+        Non-tunnel params do not survive xsl:next-match, so the caller-passed ones (method='post' from the ADD flow etc.) are re-declared and forwarded — otherwise the ADD form falls back to the default method='patch', whose DELETE/INSERT/WHERE update is a no-op for a resource with no triples yet -->
+    <xsl:template match="*[rdf:type/@rdf:resource = '&ldh;XHTML']" mode="bs2:RowForm" priority="1">
+        <xsl:param name="about" select="@rdf:about" as="xs:anyURI?"/>
+        <xsl:param name="method" select="'patch'" as="xs:string"/>
+        <xsl:param name="show-cancel-button" select="true()" as="xs:boolean"/>
+        <xsl:next-match>
+            <xsl:with-param name="about" select="$about"/>
+            <xsl:with-param name="method" select="$method"/>
+            <xsl:with-param name="show-cancel-button" select="$show-cancel-button"/>
+            <xsl:with-param name="show-form-actions" select="false()"/>
+        </xsl:next-match>
+    </xsl:template>
+
     <!-- EVENT LISTENERS -->
     
     <!-- show block controls -->
@@ -309,8 +323,47 @@ exclude-result-prefixes="#all"
         </xsl:if>
     </xsl:template>
 
+    <!-- click outside the editor canvas (left/right columns) while in edit mode exits edit mode -->
+
+    <xsl:template match="div[@typeof = '&ldh;XHTML'][descendant::form]" mode="ixsl:onclick">
+        <xsl:variable name="target" select="ixsl:get(ixsl:event(), 'target')" as="element()?"/>
+        <xsl:variable name="canvas" select="(descendant::div[contains-token(@class, 'rdfa-editor-content')])[1]" as="element()?"/>
+        <!-- skip if target is within the canvas or is an interactive element (interactive elements steal focus, triggering focusout + autosave) -->
+        <xsl:if test="exists($target) and empty($target/ancestor-or-self::*[. is $canvas or self::button or self::input or self::select or self::a])">
+            <xsl:variable name="form" select="(descendant::form[contains-token(@class, 'form-horizontal')])[1]" as="element()?"/>
+            <xsl:if test="$form">
+                <xsl:sequence select="ixsl:call($form, 'requestSubmit', [])"/>
+            </xsl:if>
+        </xsl:if>
+    </xsl:template>
+
+    <!-- click anywhere on XHTML content to enter edit mode (skip if text is selected) -->
+
+    <xsl:template match="div[@typeof = '&ldh;XHTML'][not(descendant::form)][acl:mode() = '&acl;Write']//div[contains-token(@class, 'main')]" mode="ixsl:onclick">
+        <xsl:if test="ixsl:call(ixsl:call(ixsl:window(), 'getSelection', []), 'toString', []) = ''">
+            <xsl:variable name="block" select="ancestor::div[contains-token(@class, 'block')][1]" as="element()"/>
+            <xsl:variable name="btn-edit" select="($block//button[contains-token(@class, 'btn-edit')][not(contains-token(@class, 'disabled'))])[1]" as="element()?"/>
+            <xsl:if test="$btn-edit">
+                <xsl:sequence select="ixsl:call($btn-edit, 'click', [])"/>
+            </xsl:if>
+        </xsl:if>
+    </xsl:template>
+
+    <!-- autosave XMLLiteral when focus leaves the editor region (but not to the toolbar or other editor UI) -->
+
+    <xsl:template match="div[contains-token(@class, 'rdfa-editor-content')]" mode="ixsl:onfocusout">
+        <xsl:variable name="self" select="." as="element()"/>
+        <xsl:variable name="related" select="ixsl:get(ixsl:event(), 'relatedTarget')" as="item()?"/>
+        <xsl:if test="empty($related) or empty($related/ancestor-or-self::*[. is $self or @id = ('edit-toolbar', 'rdfa-editor-breadcrumb') or contains-token(@class, 'rdfa-editor-ui')])">
+            <xsl:variable name="form" select="ancestor::form[contains-token(@class, 'form-horizontal')][1]" as="element()?"/>
+            <xsl:if test="$form">
+                <xsl:sequence select="ixsl:call($form, 'requestSubmit', [])"/>
+            </xsl:if>
+        </xsl:if>
+    </xsl:template>
+
     <!-- override inline editing form for block types (do nothing if the button is disabled) - prioritize over form.xsl -->
-    
+
     <xsl:template match="div[following-sibling::div[@typeof = ('&ldh;XHTML', '&ldh;Object')]]//button[contains-token(@class, 'btn-edit')][not(contains-token(@class, 'disabled'))]" mode="ixsl:onclick" priority="1">
         <xsl:param name="block" select="ancestor::div[contains-token(@class, 'block')][1]" as="element()"/>
         <!-- for block types, button.btn-edit is placed in its own div.row-fluid, therefore the next row is the actual container -->
@@ -325,8 +378,14 @@ exclude-result-prefixes="#all"
     
     <xsl:template match="div[@typeof = ('&ldh;XHTML', '&ldh;Object')]//form[contains-token(@class, 'form-horizontal')][upper-case(@method) = 'POST']" mode="ixsl:onsubmit" priority="2"> <!-- prioritize over form.xsl -->
         <xsl:param name="elements" select=".//input | .//textarea | .//select" as="element()*"/>
-        <xsl:param name="triples" select="ldh:parse-rdf-post($elements)" as="element()*"/>
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
+        <!-- pre-process form before submitting it: syncs input values, so it must precede ldh:parse-rdf-post -->
+        <xsl:apply-templates select="." mode="ldh:FormPreSubmit"/>
+        <xsl:variable name="triples" select="ldh:parse-rdf-post($elements)" as="element()*"/>
+        <!-- canonicalize XML in rdf:XMLLiterals -->
+        <xsl:variable name="triples" as="element()*">
+            <xsl:apply-templates select="$triples" mode="ldh:CanonicalizeXML"/>
+        </xsl:variable>
         <xsl:variable name="container" select="ancestor::div[@typeof][1]" as="element()"/>
         <xsl:variable name="block" select="ancestor::div[contains-token(@class, 'block')][1]" as="element()"/>
         <xsl:variable name="block-uri" select="xs:anyURI(.//input[@name = 'su'] => ixsl:get('value'))" as="xs:anyURI"/>

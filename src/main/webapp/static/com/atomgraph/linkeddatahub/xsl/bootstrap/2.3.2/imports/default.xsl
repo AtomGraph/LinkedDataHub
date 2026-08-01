@@ -1234,19 +1234,21 @@ exclude-result-prefixes="#all"
         </xsl:if>
     </xsl:template>
     
-    <!-- WYSIWYG editor for XMLLiteral objects -->
+    <!-- RDFa editor for XMLLiteral objects -->
 
     <xsl:template match="*[@rdf:parseType = 'Literal']/xhtml:*" mode="bs2:FormControl">
         <xsl:param name="id" select="generate-id()" as="xs:string"/>
         <xsl:param name="type" select="'textarea'" as="xs:string?"/> <!-- 'textarea' is not a valid <input> type -->
         <xsl:param name="type-label" select="true()" as="xs:boolean"/>
 
-        <textarea name="ol" id="{$id}" class="wymeditor">
-            <xsl:variable name="xhtml" as="element()*">
-                <xsl:copy-of select="xhtml:*" copy-namespaces="no"/>
-            </xsl:variable>
-            <xsl:value-of select="serialize($xhtml)"/>
-        </textarea>
+        <div class="rdfa-editor-content">
+            <xsl:copy-of select="node()" copy-namespaces="no"/>
+        </div>
+        <xsl:call-template name="xhtml:Input">
+            <xsl:with-param name="type" select="'hidden'"/>
+            <xsl:with-param name="name" select="'ol'"/>
+            <xsl:with-param name="id" select="$id"/>
+        </xsl:call-template>
         <xsl:call-template name="xhtml:Input">
             <xsl:with-param name="type" select="'hidden'"/>
             <xsl:with-param name="name" select="'lt'"/>

@@ -1,0 +1,601 @@
+/*
+ * rdfa-editor.css - the RDFa editor's UI contract: annotation overlay, edit
+ * dialogs, toolbar, block chrome and drag-and-drop marks, ToC drawer,
+ * breadcrumb bar, lint markers, RDFa highlighting and the output modal.
+ *
+ * Host page requirements: include this stylesheet and give the editable
+ * container (.rdfa-editor-content) enough left padding (>= 2.5em) for the block drag
+ * handles, which render in the gutter outside each block's box.
+ */
+
+/* RDFa Visual Styling - Subtle dashed borders */
+            .rdfa-editor-content *[property] {
+                border: 1px dashed #4caf50;
+                padding: 1px 2px;
+                cursor: pointer;
+                transition: background-color 0.2s, border-color 0.2s;
+            }
+
+.rdfa-editor-content *[property]:hover {
+                background-color: rgba(76, 175, 80, 0.1);
+                border-color: #2e7d32;
+            }
+
+.rdfa-editor-content *[typeof] {
+                border: 1px dashed #9c27b0;
+                padding: 1px 2px;
+                cursor: pointer;
+                transition: background-color 0.2s, border-color 0.2s;
+            }
+
+.rdfa-editor-content *[typeof]:hover {
+                background-color: rgba(156, 39, 176, 0.1);
+                border-color: #7b1fa2;
+            }
+
+.rdfa-editor-content *[about] {
+                border: 1px dashed #2196f3;
+                padding: 1px 2px;
+                cursor: pointer;
+                transition: background-color 0.2s, border-color 0.2s;
+            }
+
+.rdfa-editor-content *[about]:hover {
+                background-color: rgba(33, 150, 243, 0.1);
+                border-color: #1976d2;
+            }
+
+.rdfa-editor-content *[resource] {
+                border: 1px dashed #ff9800;
+                padding: 1px 2px;
+                cursor: pointer;
+                transition: background-color 0.2s, border-color 0.2s;
+            }
+
+.rdfa-editor-content *[resource]:hover {
+                background-color: rgba(255, 152, 0, 0.1);
+                border-color: #f57c00;
+            }
+
+/* Invalid selection flash animation */
+            @keyframes selection-flash {
+                0% { background-color: transparent; }
+                25% { background-color: rgba(244, 67, 54, 0.4); }
+                50% { background-color: rgba(244, 67, 54, 0.6); }
+                75% { background-color: rgba(244, 67, 54, 0.4); }
+                100% { background-color: transparent; }
+            }
+
+.invalid-selection-flash {
+                animation: selection-flash 0.6s ease-in-out 2;
+            }
+
+.rdfa-editor-content > * {
+                position: relative;
+            }
+
+/* nested draggable blocks position their own handle (chrome is their first
+   child); handles stack per nesting level, each at its block's own indent */
+            .rdfa-editor-content *:has(> [data-role="chrome"]) {
+                position: relative;
+            }
+
+/* invisible gutter strip: keeps the block hovered while the pointer
+               travels to the drag handle, which sits outside the block box */
+            .rdfa-editor-content > *::before {
+                content: '';
+                position: absolute;
+                left: -2.25em;
+                top: 0;
+                bottom: 0;
+                width: 2.25em;
+            }
+
+/* nested blocks get a narrower gutter, inside the parent's indentation */
+            .rdfa-editor-content > * *:has(> [data-role="chrome"])::before {
+                content: '';
+                position: absolute;
+                left: -1.5em;
+                top: 0;
+                bottom: 0;
+                width: 1.5em;
+            }
+
+/* a blockquote has no intrinsic child indentation, so its handle and its first
+   block's handle would coincide; the editing view indents quote content to give
+   each nesting level its own gutter column (lists and cells indent natively).
+   The quote bar (Markdown/Bootstrap convention) makes the container visible -
+   a normalized blockquote > p would otherwise read as a plain paragraph */
+            .rdfa-editor-content blockquote {
+                padding-left: 2em;
+                border-left: 4px solid #e0e0e0;
+                color: #616161;
+            }
+
+/* the editing-DOM run wrapper (mixed flow content, e.g. <li>text<ul>...) renders
+   like the bare inline run it stands for; unwrapped again at canonicalization */
+            .rdfa-editor-content p.rdfa-editor-run {
+                margin: 0;
+            }
+
+.rdfa-editor-content figure {
+                margin: 16px 0;
+            }
+
+.rdfa-editor-content figure img {
+                display: block;
+                max-width: 400px;
+            }
+
+/* Table blocks: cell borders make empty cells clickable while editing.
+   Class-free, so canonical output (stored content) keeps host-page styling */
+            .rdfa-editor-content table {
+                border-collapse: collapse;
+                margin: 16px 0;
+            }
+
+.rdfa-editor-content th,
+            .rdfa-editor-content td {
+                border: 1px solid #e0e0e0;
+                padding: 4px 8px;
+                min-width: 2em;
+                vertical-align: top;
+            }
+
+.rdfa-editor-content th {
+                background: #fafafa;
+            }
+
+.rdfa-editor-content caption {
+                caption-side: top;
+                text-align: left;
+                padding: 4px 0;
+                color: #757575;
+            }
+
+.rdfa-editor-content [contenteditable="true"]:focus {
+                outline: 2px solid rgba(33, 150, 243, 0.35);
+                outline-offset: 2px;
+            }
+
+/* A block image can't hold a caret; when focused it is the selected navigation
+   target, so it gets a stronger outline than the (caret-bearing) editable hosts */
+            .rdfa-editor-content img:focus {
+                outline: 2px solid rgba(33, 150, 243, 0.7);
+                outline-offset: 2px;
+            }
+
+/* Object blocks (RDF-defined islands): the placeholder div renders as a card;
+   its RDFa definition spans are invisible - only the injected rendering shows.
+   Focused = selected navigation target, mirroring the image island */
+            .rdfa-editor-content .rdfa-editor-island {
+                border: 1px solid #e0e0e0;
+                border-radius: 4px;
+                background: #fafafa;
+                padding: 8px 12px;
+                margin: 16px 0;
+            }
+
+.rdfa-editor-content .rdfa-editor-island > span[property] {
+                display: none;
+            }
+
+.rdfa-editor-content .rdfa-editor-island:focus {
+                outline: 2px solid rgba(33, 150, 243, 0.7);
+                outline-offset: 2px;
+            }
+
+.rdfa-editor-content .rdfa-editor-island.rdfa-editor-loading {
+                opacity: 0.5;
+            }
+
+.rdfa-editor-content .rdfa-editor-island [data-role="rendering"] table {
+                margin: 8px 0;
+            }
+
+/* Block chrome (drag handle) - ephemeral, data-role stripped on serialization */
+            [data-role="chrome"] {
+                visibility: hidden;
+                position: absolute;
+                top: 2px;
+                left: -1.5em;
+                color: #9e9e9e;
+                font-size: 14px;
+                cursor: grab;
+                user-select: none;
+                border: none;
+            }
+
+.rdfa-editor-content *:hover > [data-role="chrome"] {
+                visibility: visible;
+            }
+
+/* Drag-and-drop feedback (v6 conventions) - any nesting depth */
+            .rdfa-editor-content .dragging {
+                opacity: 0.4;
+            }
+
+.rdfa-editor-content .drop-before {
+                box-shadow: 0 -3px 0 0 #2196f3;
+            }
+
+.rdfa-editor-content .drop-after {
+                box-shadow: 0 3px 0 0 #2196f3;
+            }
+
+/* dropping INTO a cell highlights the cell itself, not an edge */
+            .rdfa-editor-content .drop-into {
+                box-shadow: inset 0 0 0 2px #2196f3;
+            }
+
+
+/* Slash menu (/ to insert a block) */
+            #slash-menu {
+                background: white;
+                border: 1px solid #e0e0e0;
+                border-radius: 8px;
+                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+                padding: 6px;
+                min-width: 220px;
+                max-height: 320px;
+                overflow-y: auto;
+                z-index: 10000;
+            }
+
+.rdfa-editor-ui .slash-filter {
+                width: 100%;
+                padding: 7px 9px;
+                border: 1px solid #ccc;
+                border-radius: 4px;
+                font-size: 14px;
+                box-sizing: border-box;
+                margin-bottom: 6px;
+            }
+
+.rdfa-editor-ui .slash-items {
+                list-style: none;
+                margin: 0;
+                padding: 0;
+            }
+
+.rdfa-editor-ui .slash-item {
+                padding: 7px 10px;
+                border-radius: 4px;
+                font-size: 14px;
+                color: #212121;
+                cursor: pointer;
+            }
+
+.rdfa-editor-ui .slash-item:hover,
+            .rdfa-editor-ui .slash-item[aria-selected="true"] {
+                background: #e3f2fd;
+                color: #0d47a1;
+            }
+
+/* ToC jumps land below the fixed navbar */
+            .rdfa-editor-content > * {
+                scroll-margin-top: 76px;
+                scroll-margin-bottom: 48px;
+            }
+
+/* ToC drawer (Fonto-style outline view) */
+            #toc-drawer {
+                position: fixed;
+                top: 64px;
+                left: 0;
+                bottom: 44px;
+                width: 260px;
+                overflow-y: auto;
+                background: white;
+                border-right: 1px solid #e0e0e0;
+                box-shadow: 2px 0 4px rgba(0, 0, 0, 0.05);
+                padding: 12px 16px;
+                z-index: 900;
+            }
+
+#toc-drawer h2 {
+                font-size: 14px;
+                color: #555;
+                margin: 0 0 8px 0;
+                padding-right: 20px;
+            }
+
+#toc-drawer .toc-close {
+                position: absolute;
+                right: 8px;
+                top: 6px;
+                background: none;
+                border: none;
+                padding: 0 4px;
+                font-size: 22px;
+                line-height: 1;
+                color: #999;
+                cursor: pointer;
+            }
+
+#toc-drawer .toc-close:hover {
+                color: #333;
+            }
+
+#toc-drawer ul {
+                list-style: none;
+                padding-left: 0;
+                margin: 4px 0;
+            }
+
+#toc-drawer ul ul {
+                padding-left: 14px;
+            }
+
+.rdfa-editor-ui .toc-item {
+                padding: 2px 0;
+            }
+
+.rdfa-editor-ui .toc-label {
+                cursor: pointer;
+                display: block;
+                padding: 2px 6px;
+                border-radius: 4px;
+                font-size: 13px;
+            }
+
+.rdfa-editor-ui .toc-label:hover {
+                background: #e3f2fd;
+            }
+
+#toc-drawer .drop-before {
+                box-shadow: 0 -3px 0 0 #2196f3;
+            }
+
+#toc-drawer .drop-after {
+                box-shadow: 0 3px 0 0 #2196f3;
+            }
+
+#toc-drawer .dragging {
+                opacity: 0.4;
+            }
+
+/* Subject inspector drawer (read-only RDFa property sheet) */
+            #inspector-drawer {
+                position: fixed;
+                top: 64px;
+                right: 0;
+                bottom: 44px;
+                width: 300px;
+                overflow-y: auto;
+                background: white;
+                border-left: 1px solid #e0e0e0;
+                box-shadow: -2px 0 4px rgba(0, 0, 0, 0.05);
+                padding: 12px 16px;
+                z-index: 900;
+            }
+
+#inspector-drawer h2 {
+                font-size: 14px;
+                color: #555;
+                margin: 0 0 8px 0;
+                padding-right: 20px;
+            }
+
+#inspector-drawer .inspector-close {
+                position: absolute;
+                right: 8px;
+                top: 6px;
+                background: none;
+                border: none;
+                padding: 0 4px;
+                font-size: 22px;
+                line-height: 1;
+                color: #999;
+                cursor: pointer;
+            }
+
+#inspector-drawer .inspector-close:hover {
+                color: #333;
+            }
+
+#inspector-subject {
+                margin-bottom: 12px;
+                padding-bottom: 8px;
+                border-bottom: 1px solid #e0e0e0;
+            }
+
+.rdfa-editor-ui .inspector-subject-iri {
+                display: block;
+                font-family: 'Courier New', monospace;
+                font-size: 13px;
+                color: #1565c0;
+                word-break: break-all;
+                margin-bottom: 6px;
+            }
+
+.rdfa-editor-ui .inspector-type {
+                display: inline-block;
+                background: #f3e5f5;
+                color: #7b1fa2;
+                border-radius: 10px;
+                padding: 1px 8px;
+                font-size: 11px;
+                margin-right: 4px;
+            }
+
+.rdfa-editor-ui .inspector-row {
+                padding: 5px 0;
+                border-bottom: 1px solid #f0f0f0;
+                font-size: 13px;
+            }
+
+.rdfa-editor-ui .inspector-pred {
+                display: block;
+                font-family: 'Courier New', monospace;
+                color: #2e7d32;
+            }
+
+.rdfa-editor-ui .inspector-obj {
+                display: block;
+                color: #333;
+                margin-top: 2px;
+                word-break: break-word;
+            }
+
+.rdfa-editor-ui .inspector-obj-iri {
+                font-family: 'Courier New', monospace;
+                color: #1976d2;
+            }
+
+.rdfa-editor-ui .inspector-obj-dt,
+            .rdfa-editor-ui .inspector-obj-lang {
+                color: #9e9e9e;
+                font-size: 11px;
+                margin-left: 6px;
+            }
+
+/* Breadcrumb bar (Fonto-style element path + RDFa subject) */
+            #rdfa-editor-breadcrumb {
+                position: fixed;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: white;
+                border-top: 1px solid #e0e0e0;
+                padding: 8px 20px;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                font-size: 13px;
+                z-index: 1000;
+            }
+
+.rdfa-editor-ui .crumb {
+                cursor: pointer;
+                color: #1976d2;
+            }
+
+.rdfa-editor-ui .crumb:hover {
+                text-decoration: underline;
+            }
+
+.rdfa-editor-ui .crumb-sep {
+                color: #9e9e9e;
+                margin: 0 4px;
+            }
+
+#rdfa-editor-breadcrumb-subject {
+                font-family: 'Courier New', monospace;
+                font-size: 12px;
+                color: #1565c0;
+            }
+
+.lint-badge {
+                border: none;
+                font-family: "Roboto", sans-serif;
+                background: #f44336;
+                color: white;
+                border-radius: 10px;
+                padding: 2px 10px;
+                font-size: 12px;
+                cursor: pointer;
+                margin-left: 12px;
+            }
+
+/* RDFa validation markers (class only - stripped by canonicalization) */
+            .rdfa-editor-content .rdfa-invalid {
+                text-decoration: underline wavy #f44336;
+                text-decoration-skip-ink: none;
+            }
+
+/* Modal Dialog */
+#output-modal {
+                position: fixed;
+                z-index: 10001;
+                left: 0;
+                top: 0;
+                width: 100%;
+                height: 100%;
+                background-color: rgba(0, 0, 0, 0.5);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+.rdfa-editor-ui .modal-content {
+                background-color: white;
+                padding: 30px;
+                border-radius: 8px;
+                width: 90%;
+                max-width: 900px;
+                max-height: 80vh;
+                overflow-y: auto;
+                position: relative;
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            }
+
+.rdfa-editor-ui .modal-close {
+                position: absolute;
+                right: 20px;
+                top: 15px;
+                font-size: 32px;
+                font-weight: bold;
+                color: #999;
+                cursor: pointer;
+                line-height: 1;
+                transition: color 0.2s;
+            }
+
+.rdfa-editor-ui .modal-close:hover {
+                color: #333;
+            }
+
+.rdfa-editor-ui #output-download {
+                position: absolute;
+                right: 60px;
+                top: 22px;
+                padding: 5px 14px;
+                border: 1px solid #2196f3;
+                border-radius: 4px;
+                background: white;
+                color: #2196f3;
+                font-size: 13px;
+                font-weight: 500;
+                font-family: inherit;
+                cursor: pointer;
+                transition: background-color 0.2s, color 0.2s;
+            }
+
+.rdfa-editor-ui #output-download:hover {
+                background: #2196f3;
+                color: white;
+            }
+
+.rdfa-editor-ui .modal-content h3 {
+                margin-top: 0;
+                color: #333;
+                padding-right: 40px;
+            }
+
+.rdfa-editor-ui .modal-content pre {
+                margin: 15px 0 0 0;
+                padding: 15px;
+                background-color: #f5f5f5;
+                border: 1px solid #e0e0e0;
+                border-radius: 4px;
+                font-family: 'Courier New', monospace;
+                font-size: 12px;
+                white-space: pre-wrap;
+                word-wrap: break-word;
+                overflow-x: auto;
+            }
+
+/* links are editable text: a plain click places the caret (I-beam, not a pointer that
+   would falsely promise navigation); Ctrl/Cmd+Click opens the href */
+.rdfa-editor-content a[href] {
+    cursor: text;
+}
+
+/* the annotated selection stays visible while the overlay form has focus */
+.rdfa-editor-selection-hint {
+    position: absolute;
+    background: rgba(11, 87, 208, 0.22);
+    pointer-events: none;
+    z-index: 999;
+}

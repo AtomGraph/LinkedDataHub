@@ -15,6 +15,8 @@ We are building LinkedDataHub primarily for:
 
 What makes LinkedDataHub unique is its completely _data-driven architecture_: applications and documents are defined as data, managed using a single generic HTTP API and presented using declarative technologies. The default application structure and user interface are provided, but they can be completely overridden and customized. Unless a custom server-side processing is required, no imperative code such as Java or JavaScript needs to be involved at all.
 
+XHTML documents can be edited in-place using a built-in RDFa-aware rich text editor — annotations link selected text directly to Knowledge Graph terms, embedding machine-readable RDF statements in the markup without leaving the page.
+
 **Follow the [Get started](https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/get-started/) guide to LinkedDataHub.** The setup and basic configuration sections are provided below and should get you running.
 
 **LinkedDataHub is also available as a free AWS Marketplace product!** <a href="https://aws.amazon.com/marketplace/pp/prodview-vqbeztc3f2nni" target="_blank"><img src="https://github.com/AtomGraph/LinkedDataHub/raw/master/AWS%20Marketplace.svg" width="160" alt="AWS Marketplace"/></a>  
