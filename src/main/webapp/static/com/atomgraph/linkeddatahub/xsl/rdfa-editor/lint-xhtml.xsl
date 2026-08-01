@@ -2,8 +2,8 @@
 <xsl:stylesheet
     xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
     xmlns:xs="http://www.w3.org/2001/XMLSchema"
-    xmlns:cm="urn:rdfa-editor:content-model"
-    xmlns:lint="urn:rdfa-editor:lint"
+    xmlns:cm="https://w3id.org/atomgraph/rdfa-editor/content-model#"
+    xmlns:lint="https://w3id.org/atomgraph/rdfa-editor/lint#"
     xpath-default-namespace="http://www.w3.org/1999/xhtml"
     exclude-result-prefixes="xs cm"
     version="3.0">

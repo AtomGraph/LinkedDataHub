@@ -18,8 +18,8 @@ limitations under the License.
 xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
 xmlns:xs="http://www.w3.org/2001/XMLSchema"
 xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
-xmlns:local="urn:rdfa-editor:functions"
-exclude-result-prefixes="xsl xs local"
+xmlns:rdfae="https://w3id.org/atomgraph/rdfa-editor#"
+exclude-result-prefixes="xsl xs rdfae"
 version="3.0">
 
     <!--
@@ -31,7 +31,7 @@ version="3.0">
         xsl:strip-space here, since this module is xsl:included into the editor
         stylesheet and must not impose global serialization or whitespace handling.
     -->
-    <xsl:function name="local:group-triples" as="element(rdf:RDF)">
+    <xsl:function name="rdfae:group-triples" as="element(rdf:RDF)">
         <xsl:param name="rdf" as="element(rdf:RDF)"/>
 
         <rdf:RDF>

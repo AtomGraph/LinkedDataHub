@@ -4,8 +4,8 @@ xmlns="http://www.w3.org/1999/xhtml"
 xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
 xmlns:ixsl="http://saxonica.com/ns/interactiveXSLT"
 xmlns:xs="http://www.w3.org/2001/XMLSchema"
-xmlns:local="urn:rdfa-editor:functions"
-xmlns:cm="urn:rdfa-editor:content-model"
+xmlns:rdfae="https://w3id.org/atomgraph/rdfa-editor#"
+xmlns:cm="https://w3id.org/atomgraph/rdfa-editor/content-model#"
 extension-element-prefixes="ixsl"
 xpath-default-namespace="http://www.w3.org/1999/xhtml"
 version="3.0">
@@ -32,17 +32,17 @@ version="3.0">
 
     <!-- show a popup below the caret; a collapsed caret in an empty block yields a
          degenerate (all-zero) client rect, so fall back to the host's own box -->
-    <xsl:template name="local:show-at-caret">
+    <xsl:template name="rdfae:show-at-caret">
         <xsl:param name="element" as="element()"/>
-        <xsl:param name="anchor" as="element()?" select="local:current-host()"/>
-        <xsl:variable name="range" select="local:caret-range()"/>
+        <xsl:param name="anchor" as="element()?" select="rdfae:current-host()"/>
+        <xsl:variable name="range" select="rdfae:caret-range()"/>
         <xsl:variable name="caret" select="$range ! ixsl:call(., 'getBoundingClientRect', [])"/>
         <xsl:variable name="degenerate" as="xs:boolean" select="empty($caret)
             or (ixsl:get($caret, 'width') = 0 and ixsl:get($caret, 'height') = 0
                 and ixsl:get($caret, 'left') = 0 and ixsl:get($caret, 'top') = 0)"/>
         <xsl:variable name="rect" select="if ($degenerate and exists($anchor))
             then ixsl:call($anchor, 'getBoundingClientRect', []) else $caret"/>
-        <xsl:call-template name="local:show-at-point">
+        <xsl:call-template name="rdfae:show-at-point">
             <xsl:with-param name="element" select="$element"/>
             <xsl:with-param name="x" select="ixsl:get($rect, 'left')"/>
             <xsl:with-param name="y" select="ixsl:get($rect, 'bottom')"/>
@@ -50,11 +50,11 @@ version="3.0">
     </xsl:template>
 
     <!-- show a popup below an anchor element's box (no live caret needed) -->
-    <xsl:template name="local:show-at-element">
+    <xsl:template name="rdfae:show-at-element">
         <xsl:param name="element" as="element()"/>
         <xsl:param name="anchor" as="element()"/>
         <xsl:variable name="rect" select="ixsl:call($anchor, 'getBoundingClientRect', [])"/>
-        <xsl:call-template name="local:show-at-point">
+        <xsl:call-template name="rdfae:show-at-point">
             <xsl:with-param name="element" select="$element"/>
             <xsl:with-param name="x" select="ixsl:get($rect, 'left')"/>
             <xsl:with-param name="y" select="ixsl:get($rect, 'bottom')"/>
@@ -70,22 +70,22 @@ version="3.0">
         <xsl:variable name="event" select="ixsl:event()"/>
         <xsl:variable name="type" as="xs:string" select="string(ixsl:get($event, 'inputType'))"/>
         <xsl:variable name="data" as="xs:string" select="string((ixsl:get($event, 'data'), '')[1])"/>
-        <xsl:variable name="range" select="local:caret-range()"/>
+        <xsl:variable name="range" select="rdfae:caret-range()"/>
         <xsl:variable name="kind" as="xs:string" select="if ($type = 'insertText'
-                and exists(local:block-of(.)) and exists($range)
+                and exists(rdfae:block-of(.)) and exists($range)
                 and not(ixsl:get($event, 'isComposing')))
-            then local:trigger-kind(., $data) else ''"/>
+            then rdfae:trigger-kind(., $data) else ''"/>
         <xsl:choose>
             <xsl:when test="$kind ne ''">
                 <xsl:sequence select="ixsl:call($event, 'preventDefault', [])[current-date() lt xs:date('2000-01-01')]"/>
                 <xsl:choose>
                     <xsl:when test="$kind = 'slash'">
-                        <xsl:call-template name="local:open-slash">
+                        <xsl:call-template name="rdfae:open-slash">
                             <xsl:with-param name="host" select="."/>
                         </xsl:call-template>
                     </xsl:when>
                     <xsl:otherwise>
-                        <xsl:call-template name="local:apply-markdown">
+                        <xsl:call-template name="rdfae:apply-markdown">
                             <xsl:with-param name="host" select="."/>
                             <xsl:with-param name="kind" select="$kind"/>
                         </xsl:call-template>
@@ -101,11 +101,11 @@ version="3.0">
     <!-- classify a would-be-inserted character: 'slash' (/ in an empty host), a
          markdown shorthand 'md:*' completed in a paragraph host, or '' for none.
          A shorthand whose result the content model would reject stays literal -->
-    <xsl:function name="local:trigger-kind" as="xs:string">
+    <xsl:function name="rdfae:trigger-kind" as="xs:string">
         <xsl:param name="host" as="element()"/>
         <xsl:param name="data" as="xs:string"/>
 
-        <xsl:variable name="text" as="xs:string" select="local:block-text($host)"/>
+        <xsl:variable name="text" as="xs:string" select="rdfae:block-text($host)"/>
         <xsl:variable name="paragraph" as="xs:boolean" select="exists($host/self::p)"/>
         <xsl:variable name="kind" as="xs:string" select="
             if ($data = '/' and $text = '') then 'slash'
@@ -121,19 +121,19 @@ version="3.0">
              which would send '' into the content-model gate - branch explicitly -->
         <xsl:variable name="target" as="xs:string?"
             select="if (starts-with($kind, 'md:')) then substring-after($kind, 'md:') else ()"/>
-        <xsl:sequence select="if (exists($target) and not(local:parent-admits($host, $target)))
+        <xsl:sequence select="if (exists($target) and not(rdfae:parent-admits($host, $target)))
             then '' else $kind"/>
     </xsl:function>
 
     <!-- the region admits any block by contract; elsewhere the content model rules -->
-    <xsl:function name="local:parent-admits" as="xs:boolean">
+    <xsl:function name="rdfae:parent-admits" as="xs:boolean">
         <xsl:param name="host" as="element()"/>
         <xsl:param name="name" as="xs:string"/>
         <xsl:sequence select="exists($host/parent::*[contains-token(@class, 'rdfa-editor-content')])
             or cm:allows-child(local-name($host/parent::*), $name)"/>
     </xsl:function>
 
-    <xsl:template name="local:apply-markdown">
+    <xsl:template name="rdfae:apply-markdown">
         <xsl:param name="host" as="element()"/>
         <xsl:param name="kind" as="xs:string"/>
 
@@ -142,37 +142,37 @@ version="3.0">
                  invalid bare text): the wrap pushes the pre-strip state, so undo
                  restores the literal '>' -->
             <xsl:when test="$kind = 'md:blockquote'">
-                <xsl:call-template name="local:wrap-in-blockquote">
+                <xsl:call-template name="rdfae:wrap-in-blockquote">
                     <xsl:with-param name="block" select="$host"/>
                 </xsl:call-template>
-                <xsl:call-template name="local:strip-marker">
+                <xsl:call-template name="rdfae:strip-marker">
                     <xsl:with-param name="host" select="$host"/>
                 </xsl:call-template>
-                <xsl:call-template name="local:after-mutation"/>
+                <xsl:call-template name="rdfae:after-mutation"/>
             </xsl:when>
             <xsl:otherwise>
                 <!-- capture the pre-strip state; the conversion pushes it as ONE
                      undo entry (mirrors the wrap-range capture-then-push pattern) -->
-                <xsl:variable name="snapshot-root" as="element()?" select="local:root-of($host)"/>
+                <xsl:variable name="snapshot-root" as="element()?" select="rdfae:root-of($host)"/>
                 <xsl:variable name="snapshot" as="xs:string?"
                     select="$snapshot-root ! string(ixsl:get(., 'innerHTML'))"/>
-                <xsl:call-template name="local:strip-marker">
+                <xsl:call-template name="rdfae:strip-marker">
                     <xsl:with-param name="host" select="$host"/>
                 </xsl:call-template>
                 <xsl:choose>
                     <xsl:when test="$kind = ('md:ul', 'md:ol')">
-                        <xsl:call-template name="local:push-undo">
+                        <xsl:call-template name="rdfae:push-undo">
                             <xsl:with-param name="root" select="$snapshot-root"/>
                             <xsl:with-param name="snapshot" select="$snapshot"/>
                         </xsl:call-template>
-                        <xsl:call-template name="local:replace-with-list">
+                        <xsl:call-template name="rdfae:replace-with-list">
                             <xsl:with-param name="block" select="$host"/>
                             <xsl:with-param name="kind" select="substring-after($kind, 'md:')"/>
                         </xsl:call-template>
-                        <xsl:call-template name="local:after-mutation"/>
+                        <xsl:call-template name="rdfae:after-mutation"/>
                     </xsl:when>
                     <xsl:otherwise>
-                        <xsl:call-template name="local:convert-block">
+                        <xsl:call-template name="rdfae:convert-block">
                             <xsl:with-param name="block" select="$host"/>
                             <xsl:with-param name="name" select="substring-after($kind, 'md:')"/>
                             <xsl:with-param name="snapshot-root" select="$snapshot-root"/>
@@ -185,35 +185,35 @@ version="3.0">
     </xsl:template>
 
     <!-- drop the typed shorthand marker, keeping chrome and the caret placeholder -->
-    <xsl:template name="local:strip-marker">
+    <xsl:template name="rdfae:strip-marker">
         <xsl:param name="host" as="element()"/>
         <xsl:for-each select="$host/node()[not(self::*[@data-role])]">
             <xsl:sequence select="ixsl:call(., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:for-each>
-        <xsl:call-template name="local:ensure-placeholder">
+        <xsl:call-template name="rdfae:ensure-placeholder">
             <xsl:with-param name="host" select="$host"/>
         </xsl:call-template>
     </xsl:template>
 
     <!-- swap a block for a fresh single-item list of the given kind, caret in the
          item; a run wrapper swaps like any host (a structural gesture promotes it) -->
-    <xsl:template name="local:replace-with-list">
+    <xsl:template name="rdfae:replace-with-list">
         <xsl:param name="block" as="element()"/>
         <xsl:param name="kind" as="xs:string"/>
 
-        <xsl:variable name="list" as="element()" select="local:element($kind)"/>
-        <xsl:variable name="li" as="element()" select="local:element('li')"/>
+        <xsl:variable name="list" as="element()" select="rdfae:element($kind)"/>
+        <xsl:variable name="li" as="element()" select="rdfae:element('li')"/>
         <ixsl:set-attribute name="contenteditable" select="'true'" object="$li"/>
-        <xsl:sequence select="ixsl:call($li, 'appendChild', [ local:element('br') ])[current-date() lt xs:date('2000-01-01')],
+        <xsl:sequence select="ixsl:call($li, 'appendChild', [ rdfae:element('br') ])[current-date() lt xs:date('2000-01-01')],
             ixsl:call($list, 'appendChild', [ $li ])[current-date() lt xs:date('2000-01-01')],
             ixsl:call($block, 'replaceWith', [ $list ])[current-date() lt xs:date('2000-01-01')]"/>
         <xsl:if test="$list/parent::*[contains-token(@class, 'rdfa-editor-content')]">
-            <xsl:call-template name="local:inject-chrome">
+            <xsl:call-template name="rdfae:inject-chrome">
                 <xsl:with-param name="block" select="$list"/>
             </xsl:call-template>
         </xsl:if>
-        <ixsl:set-property name="activeBlock" select="()" object="local:editor-state()"/>
-        <xsl:call-template name="local:focus-caret">
+        <ixsl:set-property name="activeBlock" select="()" object="rdfae:editor-state()"/>
+        <xsl:call-template name="rdfae:focus-caret">
             <xsl:with-param name="node" select="$li"/>
             <xsl:with-param name="offset" select="0"/>
         </xsl:call-template>
@@ -221,7 +221,7 @@ version="3.0">
 
     <!-- ................................ slash menu ................................ -->
 
-    <xsl:template name="local:render-slash-menu">
+    <xsl:template name="rdfae:render-slash-menu">
         <div id="slash-menu" class="rdfa-editor-ui" role="listbox" aria-label="Insert block" style="display: none;">
             <input type="text" class="slash-filter" placeholder="Filter blocks..." aria-label="Filter blocks"/>
             <ul class="slash-items">
@@ -235,9 +235,9 @@ version="3.0">
                 <li class="slash-item" data-command="ol" role="option">Numbered list</li>
                 <li class="slash-item" data-command="figure" role="option">Figure&#x2026;</li>
                 <li class="slash-item" data-command="table" role="option">Table&#x2026;</li>
-                <!-- extension items (dispatched via local:run-extra-slash-command;
+                <!-- extension items (dispatched via rdfae:run-extra-slash-command;
                      the generic filter/arrow/Enter machinery applies untouched) -->
-                <xsl:call-template name="local:render-extra-slash-items"/>
+                <xsl:call-template name="rdfae:render-extra-slash-items"/>
             </ul>
         </div>
     </xsl:template>
@@ -246,16 +246,16 @@ version="3.0">
          text-block hosts (per the block-type select), Quote where the wrap is
          legal and not already inside one, lists where the model places one,
          figure/table always (they insert after the top-level block) -->
-    <xsl:template name="local:open-slash">
+    <xsl:template name="rdfae:open-slash">
         <xsl:param name="host" as="element()"/>
 
-        <ixsl:set-property name="slashHost" select="$host" object="local:editor-state()"/>
+        <ixsl:set-property name="slashHost" select="$host" object="rdfae:editor-state()"/>
         <xsl:variable name="menu" as="element()" select="id('slash-menu', ixsl:page())"/>
         <xsl:variable name="convertible" as="xs:boolean"
             select="exists($host/(self::p | self::h1 | self::h2 | self::h3 | self::pre))"/>
         <xsl:variable name="quotable" as="xs:boolean" select="cm:block(local-name($host))
-            and local:parent-admits($host, 'blockquote')
-            and empty($host/ancestor::blockquote[exists(local:block-of(.))])"/>
+            and rdfae:parent-admits($host, 'blockquote')
+            and empty($host/ancestor::blockquote[exists(rdfae:block-of(.))])"/>
         <xsl:for-each select="$menu//input[contains-token(@class, 'slash-filter')]">
             <ixsl:set-property name="value" select="''" object="."/>
         </xsl:for-each>
@@ -264,10 +264,10 @@ version="3.0">
             <xsl:variable name="command" as="xs:string" select="string(@data-command)"/>
             <xsl:variable name="applies" as="xs:boolean" select="
                 if ($command = ('p', 'h1', 'h2', 'h3', 'pre'))
-                    then ($convertible and local:parent-admits($host, $command))
+                    then ($convertible and rdfae:parent-admits($host, $command))
                 else if ($command = 'blockquote') then $quotable
                 else if ($command = ('ul', 'ol'))
-                    then (exists($host/self::p) and local:parent-admits($host, $command))
+                    then (exists($host/self::p) and rdfae:parent-admits($host, $command))
                 else true()"/>
             <xsl:choose>
                 <xsl:when test="$applies">
@@ -284,7 +284,7 @@ version="3.0">
         <xsl:for-each select="($items[empty(@data-disabled)])[1]">
             <ixsl:set-attribute name="aria-selected" select="'true'"/>
         </xsl:for-each>
-        <xsl:call-template name="local:show-at-caret">
+        <xsl:call-template name="rdfae:show-at-caret">
             <xsl:with-param name="element" select="$menu"/>
             <xsl:with-param name="anchor" select="$host"/>
         </xsl:call-template>
@@ -293,46 +293,46 @@ version="3.0">
         </xsl:for-each>
     </xsl:template>
 
-    <xsl:template name="local:run-slash-command">
+    <xsl:template name="rdfae:run-slash-command">
         <xsl:param name="command" as="xs:string"/>
         <xsl:variable name="host" as="element()?"
-            select="ixsl:get(local:editor-state(), 'slashHost')[exists(local:block-of(.))]"/>
+            select="ixsl:get(rdfae:editor-state(), 'slashHost')[exists(rdfae:block-of(.))]"/>
         <!-- teardown first: it clears slashHost and insertHost, so the
              figure/table branches re-arm them after -->
-        <xsl:call-template name="local:hide-dialogs"/>
+        <xsl:call-template name="rdfae:hide-dialogs"/>
         <xsl:for-each select="$host">
             <xsl:choose>
                 <xsl:when test="$command = ('p', 'h1', 'h2', 'h3', 'pre')">
                     <xsl:for-each select="$host[self::p or self::h1 or self::h2 or self::h3
                             or self::pre][local-name() ne $command]">
-                        <xsl:call-template name="local:convert-block">
+                        <xsl:call-template name="rdfae:convert-block">
                             <xsl:with-param name="block" select="."/>
                             <xsl:with-param name="name" select="$command"/>
                         </xsl:call-template>
                     </xsl:for-each>
                 </xsl:when>
                 <xsl:when test="$command = 'blockquote'">
-                    <xsl:call-template name="local:wrap-in-blockquote">
+                    <xsl:call-template name="rdfae:wrap-in-blockquote">
                         <xsl:with-param name="block" select="$host"/>
                     </xsl:call-template>
                 </xsl:when>
                 <xsl:when test="$command = ('ul', 'ol')">
-                    <xsl:call-template name="local:push-undo">
+                    <xsl:call-template name="rdfae:push-undo">
                         <xsl:with-param name="host" select="$host"/>
                     </xsl:call-template>
-                    <xsl:call-template name="local:replace-with-list">
+                    <xsl:call-template name="rdfae:replace-with-list">
                         <xsl:with-param name="block" select="$host"/>
                         <xsl:with-param name="kind" select="$command"/>
                     </xsl:call-template>
-                    <xsl:call-template name="local:after-mutation"/>
+                    <xsl:call-template name="rdfae:after-mutation"/>
                 </xsl:when>
                 <xsl:when test="$command = 'figure'">
-                    <ixsl:set-property name="insertHost" select="$host" object="local:editor-state()"/>
+                    <ixsl:set-property name="insertHost" select="$host" object="rdfae:editor-state()"/>
                     <xsl:variable name="dialog" as="element()" select="id('figure-dialog', ixsl:page())"/>
                     <xsl:for-each select="$dialog//input">
                         <ixsl:set-property name="value" select="''" object="."/>
                     </xsl:for-each>
-                    <xsl:call-template name="local:show-at-element">
+                    <xsl:call-template name="rdfae:show-at-element">
                         <xsl:with-param name="element" select="$dialog"/>
                         <xsl:with-param name="anchor" select="$host"/>
                     </xsl:call-template>
@@ -341,7 +341,7 @@ version="3.0">
                     </xsl:for-each>
                 </xsl:when>
                 <xsl:when test="$command = 'table'">
-                    <ixsl:set-property name="insertHost" select="$host" object="local:editor-state()"/>
+                    <ixsl:set-property name="insertHost" select="$host" object="rdfae:editor-state()"/>
                     <xsl:variable name="dialog" as="element()" select="id('table-dialog', ixsl:page())"/>
                     <!-- same defaults as the toolbar opener -->
                     <xsl:for-each select="($dialog//input[@name = 'rows'])[1], ($dialog//input[@name = 'cols'])[1]">
@@ -353,7 +353,7 @@ version="3.0">
                     <xsl:for-each select="($dialog//input[@name = 'header-row'])[1]">
                         <ixsl:set-property name="checked" select="true()" object="."/>
                     </xsl:for-each>
-                    <xsl:call-template name="local:show-at-element">
+                    <xsl:call-template name="rdfae:show-at-element">
                         <xsl:with-param name="element" select="$dialog"/>
                         <xsl:with-param name="anchor" select="$host"/>
                     </xsl:call-template>
@@ -364,7 +364,7 @@ version="3.0">
                 <!-- extension commands (mirror the figure/table branches: teardown
                      already ran, the extension re-arms insertHost itself) -->
                 <xsl:otherwise>
-                    <xsl:call-template name="local:run-extra-slash-command">
+                    <xsl:call-template name="rdfae:run-extra-slash-command">
                         <xsl:with-param name="command" select="$command"/>
                         <xsl:with-param name="host" select="$host"/>
                     </xsl:call-template>
@@ -398,12 +398,12 @@ version="3.0">
         <xsl:choose>
             <xsl:when test="$key = 'Escape'">
                 <xsl:sequence select="ixsl:call($event, 'preventDefault', [])[current-date() lt xs:date('2000-01-01')]"/>
-                <xsl:call-template name="local:hide-dialogs"/>
+                <xsl:call-template name="rdfae:hide-dialogs"/>
             </xsl:when>
             <xsl:when test="$key = 'Enter'">
                 <xsl:sequence select="ixsl:call($event, 'preventDefault', [])[current-date() lt xs:date('2000-01-01')]"/>
                 <xsl:for-each select="($current, $items[1])[1]">
-                    <xsl:call-template name="local:run-slash-command">
+                    <xsl:call-template name="rdfae:run-slash-command">
                         <xsl:with-param name="command" select="string(@data-command)"/>
                     </xsl:call-template>
                 </xsl:for-each>
@@ -426,7 +426,7 @@ version="3.0">
     </xsl:template>
 
     <xsl:template match="li[contains-token(@class, 'slash-item')]" mode="ixsl:onclick">
-        <xsl:call-template name="local:run-slash-command">
+        <xsl:call-template name="rdfae:run-slash-command">
             <xsl:with-param name="command" select="string(@data-command)"/>
         </xsl:call-template>
     </xsl:template>

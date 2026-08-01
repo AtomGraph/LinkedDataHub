@@ -511,7 +511,7 @@ extension-element-prefixes="ixsl"
                 <xsl:with-param name="active-mode" select="$mode"/>
             </xsl:apply-templates>
 
-            <!-- host for the RDFa editor toolbar (appended by local:init-editing); empty until an editable region initializes -->
+            <!-- host for the RDFa editor toolbar (appended by rdfae:init-editing); empty until an editable region initializes -->
             <div class="navbar-inner editor-bar">
                 <div class="container-fluid"></div>
             </div>

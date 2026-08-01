@@ -4,15 +4,15 @@ xmlns="http://www.w3.org/1999/xhtml"
 xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
 xmlns:ixsl="http://saxonica.com/ns/interactiveXSLT"
 xmlns:xs="http://www.w3.org/2001/XMLSchema"
-xmlns:local="urn:rdfa-editor:functions"
+xmlns:rdfae="https://w3id.org/atomgraph/rdfa-editor#"
 extension-element-prefixes="ixsl"
 xpath-default-namespace="http://www.w3.org/1999/xhtml"
 version="3.0">
 
     <!-- select value marking the free-text custom-IRI state ('' means none/unset) -->
-    <xsl:variable name="local:custom" as="xs:string" select="'urn:rdfa-editor:custom'"/>
+    <xsl:variable name="rdfae:custom" as="xs:string" select="'https://w3id.org/atomgraph/rdfa-editor#custom'"/>
     <!-- id of the annotation overlay element; host UIs may shadow this variable -->
-    <xsl:variable name="local:overlay-id" as="xs:string" select="'rdfa-editor-overlay'"/>
+    <xsl:variable name="rdfae:overlay-id" as="xs:string" select="'rdfa-editor-overlay'"/>
 
 <!--
     The annotation overlay: rendered once at startup (hidden), then only populated,
@@ -23,16 +23,16 @@ version="3.0">
     (checked/value/disabled/open) - attributes never reflect user input.
 -->
 
-    <xsl:template name="local:init-overlay">
+    <xsl:template name="rdfae:init-overlay">
         <xsl:for-each select="ixsl:page()//body">
             <xsl:result-document href="?." method="ixsl:append-content">
-                <xsl:call-template name="local:render-overlay"/>
+                <xsl:call-template name="rdfae:render-overlay"/>
             </xsl:result-document>
         </xsl:for-each>
     </xsl:template>
 
-    <xsl:template name="local:render-overlay">
-        <div id="{$local:overlay-id}" class="rdfa-editor-ui" role="dialog" aria-modal="true" aria-label="RDFa annotation" style="display: none;">
+    <xsl:template name="rdfae:render-overlay">
+        <div id="{$rdfae:overlay-id}" class="rdfa-editor-ui" role="dialog" aria-modal="true" aria-label="RDFa annotation" style="display: none;">
             <div class="overlay-header">
                 <h3>RDFa Annotation</h3>
             </div>
@@ -42,7 +42,7 @@ version="3.0">
                     <div id="stmt-subject" class="stmt-value"/>
                     <span class="stmt-role" title="Predicate">P</span>
                     <div class="stmt-control">
-                        <xsl:sequence select="local:typeahead-field('property')"/>
+                        <xsl:sequence select="rdfae:typeahead-field('property')"/>
                     </div>
                     <span class="stmt-role" title="Object">O</span>
                     <div class="stmt-control">
@@ -55,7 +55,7 @@ version="3.0">
                     <summary>Type, subject &amp; object</summary>
                     <fieldset>
                         <label>Entity type (typeof)</label>
-                        <xsl:sequence select="local:typeahead-field('typeof')"/>
+                        <xsl:sequence select="rdfae:typeahead-field('typeof')"/>
                         <span class="helper-text">Types the annotated resource; without a subject the typed
                             resource becomes the object of the property (chaining)</span>
                     </fieldset>
@@ -78,7 +78,7 @@ version="3.0">
                                     'decimal', 'double', 'float', 'boolean', 'anyURI'">
                                 <option value="{$xsd || .}">xsd:<xsl:value-of select="."/></option>
                             </xsl:for-each>
-                            <option value="{$local:custom}">-- Custom datatype --</option>
+                            <option value="{$rdfae:custom}">-- Custom datatype --</option>
                         </select>
                         <input type="text" name="custom-datatype" placeholder="Datatype IRI" style="display: none;"/>
                         <span class="helper-text">Types the literal (e.g. xsd:date, xsd:integer);
@@ -101,36 +101,36 @@ version="3.0">
     </xsl:template>
 
     <!-- all form reads via live properties: the checked/value attributes never change on user input -->
-    <xsl:function name="local:form-values" as="map(xs:string, xs:string?)">
+    <xsl:function name="rdfae:form-values" as="map(xs:string, xs:string?)">
         <xsl:param name="form" as="element()"/>
 
         <xsl:map>
-            <xsl:map-entry key="'property'" select="local:typeahead-value($form, 'property')"/>
-            <xsl:map-entry key="'typeof'" select="local:typeahead-value($form, 'typeof')"/>
-            <xsl:map-entry key="'subject'" select="local:input-value($form, 'subject')[. ne '']"/>
-            <xsl:map-entry key="'object'" select="local:input-value($form, 'object')[. ne '']"/>
-            <xsl:map-entry key="'value'" select="local:input-value($form, 'value')[. ne '']"/>
-            <xsl:map-entry key="'datatype'" select="local:select-or-custom($form, 'datatype', 'custom-datatype')"/>
-            <xsl:map-entry key="'lang'" select="local:input-value($form, 'lang')[. ne '']"/>
+            <xsl:map-entry key="'property'" select="rdfae:typeahead-value($form, 'property')"/>
+            <xsl:map-entry key="'typeof'" select="rdfae:typeahead-value($form, 'typeof')"/>
+            <xsl:map-entry key="'subject'" select="rdfae:input-value($form, 'subject')[. ne '']"/>
+            <xsl:map-entry key="'object'" select="rdfae:input-value($form, 'object')[. ne '']"/>
+            <xsl:map-entry key="'value'" select="rdfae:input-value($form, 'value')[. ne '']"/>
+            <xsl:map-entry key="'datatype'" select="rdfae:select-or-custom($form, 'datatype', 'custom-datatype')"/>
+            <xsl:map-entry key="'lang'" select="rdfae:input-value($form, 'lang')[. ne '']"/>
         </xsl:map>
     </xsl:function>
 
     <!-- a select whose empty value defers to its free-text custom input -->
-    <xsl:function name="local:select-or-custom" as="xs:string?">
+    <xsl:function name="rdfae:select-or-custom" as="xs:string?">
         <xsl:param name="form" as="element()"/>
         <xsl:param name="select-name" as="xs:string"/>
         <xsl:param name="custom-name" as="xs:string"/>
 
         <xsl:variable name="value" as="xs:string"
             select="string(ixsl:get(($form//select[@name = $select-name])[1], 'value'))"/>
-        <xsl:sequence select="if ($value eq $local:custom)
-            then local:input-value($form, $custom-name)[. ne '']
+        <xsl:sequence select="if ($value eq $rdfae:custom)
+            then rdfae:input-value($form, $custom-name)[. ne '']
             else $value[. ne '']"/>
     </xsl:function>
 
     <!-- reset the form; when editing, pre-fill it from the annotated element.
          $value prefills the object row: the selected text, or @content/text when editing -->
-    <xsl:template name="local:populate-form">
+    <xsl:template name="rdfae:populate-form">
         <xsl:param name="span" as="element()?" select="()"/>
         <xsl:param name="value" as="xs:string?" select="()"/>
 
@@ -143,12 +143,12 @@ version="3.0">
             <!-- the typeahead widgets are not native controls, so form.reset() leaves
                  them as they were: reset both explicitly (empty in create mode, the
                  committed button in edit mode) -->
-            <xsl:call-template name="local:typeahead-set-value">
+            <xsl:call-template name="rdfae:typeahead-set-value">
                 <xsl:with-param name="form" select="$form"/>
                 <xsl:with-param name="field" select="'property'"/>
                 <xsl:with-param name="iri" select="string($span/@property)"/>
             </xsl:call-template>
-            <xsl:call-template name="local:typeahead-set-value">
+            <xsl:call-template name="rdfae:typeahead-set-value">
                 <xsl:with-param name="form" select="$form"/>
                 <xsl:with-param name="field" select="'typeof'"/>
                 <xsl:with-param name="iri" select="string($span/@typeof)"/>
@@ -178,7 +178,7 @@ version="3.0">
                     <ixsl:set-property name="value" select="string($span/@resource)" object="."/>
                 </xsl:for-each>
                 <xsl:for-each select="@datatype">
-                    <xsl:call-template name="local:set-select-or-custom">
+                    <xsl:call-template name="rdfae:set-select-or-custom">
                         <xsl:with-param name="form" select="$form"/>
                         <xsl:with-param name="select-name" select="'datatype'"/>
                         <xsl:with-param name="custom-name" select="'custom-datatype'"/>
@@ -194,7 +194,7 @@ version="3.0">
 
     <!-- set a select's value via the live property; an IRI absent from the options
          leaves the select empty, so route it to the custom input instead -->
-    <xsl:template name="local:set-select-or-custom">
+    <xsl:template name="rdfae:set-select-or-custom">
         <xsl:param name="form" as="element()"/>
         <xsl:param name="select-name" as="xs:string"/>
         <xsl:param name="custom-name" as="xs:string"/>
@@ -203,7 +203,7 @@ version="3.0">
         <xsl:for-each select="($form//select[@name = $select-name])[1]">
             <ixsl:set-property name="value" select="$value" object="."/>
             <xsl:if test="string(ixsl:get(., 'value')) ne $value">
-                <ixsl:set-property name="value" select="$local:custom" object="."/>
+                <ixsl:set-property name="value" select="$rdfae:custom" object="."/>
                 <xsl:for-each select="($form//input[@name = $custom-name])[1]">
                     <ixsl:set-property name="value" select="$value" object="."/>
                     <ixsl:set-style name="display" select="'block'"/>
@@ -215,20 +215,20 @@ version="3.0">
     <!-- show an element at the event position, clamped to the viewport with 10px
          padding. Positioned absolutely in page coordinates (client + scroll offset)
          so it scrolls with the content -->
-    <xsl:template name="local:show-at">
+    <xsl:template name="rdfae:show-at">
         <xsl:param name="element" as="element()"/>
         <xsl:param name="event"/>
 
-        <xsl:call-template name="local:show-at-point">
+        <xsl:call-template name="rdfae:show-at-point">
             <xsl:with-param name="element" select="$element"/>
             <xsl:with-param name="x" select="ixsl:get($event, 'clientX')"/>
             <xsl:with-param name="y" select="ixsl:get($event, 'clientY')"/>
         </xsl:call-template>
     </xsl:template>
 
-    <!-- the positioning core: shared by mouse-driven dialogs (local:show-at) and the
+    <!-- the positioning core: shared by mouse-driven dialogs (rdfae:show-at) and the
          caret-anchored popups (slash menu) which have no mouse event -->
-    <xsl:template name="local:show-at-point">
+    <xsl:template name="rdfae:show-at-point">
         <xsl:param name="element" as="element()"/>
         <xsl:param name="x" as="xs:double"/>
         <xsl:param name="y" as="xs:double"/>
@@ -253,12 +253,12 @@ version="3.0">
         </xsl:for-each>
     </xsl:template>
 
-    <xsl:template name="local:show-overlay">
+    <xsl:template name="rdfae:show-overlay">
         <xsl:param name="event"/>
         <xsl:param name="in-scope-subject" as="xs:string?" select="()"/>
 
-        <xsl:call-template name="local:show-at">
-            <xsl:with-param name="element" select="id($local:overlay-id, ixsl:page())"/>
+        <xsl:call-template name="rdfae:show-at">
+            <xsl:with-param name="element" select="id($rdfae:overlay-id, ixsl:page())"/>
             <xsl:with-param name="event" select="$event"/>
         </xsl:call-template>
 
@@ -271,7 +271,7 @@ version="3.0">
     <!-- the browser drops the visible selection once focus moves into the overlay
          form: paint the stored range's client rects as pointer-transparent hint
          boxes (no content mutation), cleared on hide -->
-    <xsl:template name="local:show-selection-hint">
+    <xsl:template name="rdfae:show-selection-hint">
         <xsl:param name="range"/>
 
         <xsl:variable name="scroll-x" as="xs:double" select="ixsl:get(ixsl:window(), 'scrollX')"/>
@@ -290,32 +290,32 @@ version="3.0">
         </xsl:for-each>
     </xsl:template>
 
-    <xsl:template name="local:hide-selection-hint">
+    <xsl:template name="rdfae:hide-selection-hint">
         <xsl:for-each select="ixsl:page()//body/div[contains-token(@class, 'rdfa-editor-selection-hint')]">
             <xsl:sequence select="ixsl:call(., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:for-each>
     </xsl:template>
 
     <!-- single teardown point: hiding the overlay always clears the interaction state -->
-    <xsl:template name="local:hide-overlay">
-        <xsl:call-template name="local:hide-selection-hint"/>
-        <xsl:for-each select="id($local:overlay-id, ixsl:page())">
+    <xsl:template name="rdfae:hide-overlay">
+        <xsl:call-template name="rdfae:hide-selection-hint"/>
+        <xsl:for-each select="id($rdfae:overlay-id, ixsl:page())">
             <ixsl:set-style name="display" select="'none'"/>
         </xsl:for-each>
-        <ixsl:set-property name="editingSpan" select="()" object="local:editor-state()"/>
-        <ixsl:set-property name="range" select="()" object="local:editor-state()"/>
+        <ixsl:set-property name="editingSpan" select="()" object="rdfae:editor-state()"/>
+        <ixsl:set-property name="range" select="()" object="rdfae:editor-state()"/>
         <!-- return focus to the content -->
-        <xsl:for-each select="ixsl:get(local:editor-state(), 'activeBlock')[exists(local:block-of(.))]">
-            <xsl:call-template name="local:focus">
+        <xsl:for-each select="ixsl:get(rdfae:editor-state(), 'activeBlock')[exists(rdfae:block-of(.))]">
+            <xsl:call-template name="rdfae:focus">
                 <xsl:with-param name="element" select="."/>
             </xsl:call-template>
         </xsl:for-each>
     </xsl:template>
 
-    <xsl:template match="div[@id = $local:overlay-id]" mode="ixsl:onkeydown">
+    <xsl:template match="div[@id = $rdfae:overlay-id]" mode="ixsl:onkeydown">
         <xsl:if test="string(ixsl:get(ixsl:event(), 'key')) = 'Escape'">
             <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])[current-date() lt xs:date('2000-01-01')]"/>
-            <xsl:call-template name="local:hide-overlay"/>
+            <xsl:call-template name="rdfae:hide-overlay"/>
         </xsl:if>
     </xsl:template>
 
@@ -332,7 +332,7 @@ version="3.0">
          a chosen datatype wins over language, disabling the language input -->
     <xsl:template match="select[@name = 'datatype']" mode="ixsl:onchange">
         <xsl:variable name="value" as="xs:string" select="string(ixsl:get(., 'value'))"/>
-        <xsl:variable name="custom" as="xs:boolean" select="$value eq $local:custom"/>
+        <xsl:variable name="custom" as="xs:boolean" select="$value eq $rdfae:custom"/>
         <xsl:for-each select="ancestor::form//input[@name = 'custom-datatype']">
             <ixsl:set-style name="display" select="if ($custom) then 'block' else 'none'"/>
             <xsl:if test="$custom">

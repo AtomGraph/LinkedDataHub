@@ -4,8 +4,8 @@ xmlns="http://www.w3.org/1999/xhtml"
 xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
 xmlns:ixsl="http://saxonica.com/ns/interactiveXSLT"
 xmlns:xs="http://www.w3.org/2001/XMLSchema"
-xmlns:local="urn:rdfa-editor:functions"
-xmlns:rdfa="urn:rdfa:functions"
+xmlns:rdfae="https://w3id.org/atomgraph/rdfa-editor#"
+xmlns:rdfax="https://w3id.org/atomgraph/rdfa-editor/rdfa#"
 xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
 extension-element-prefixes="ixsl"
 xpath-default-namespace="http://www.w3.org/1999/xhtml"
@@ -33,43 +33,43 @@ version="3.0">
         <xsl:choose>
             <!-- edit mode -->
             <xsl:when test="exists($annotation)">
-                <ixsl:set-property name="editingSpan" select="$annotation" object="local:editor-state()"/>
-                <xsl:call-template name="local:populate-form">
+                <ixsl:set-property name="editingSpan" select="$annotation" object="rdfae:editor-state()"/>
+                <xsl:call-template name="rdfae:populate-form">
                     <xsl:with-param name="span" select="$annotation"/>
-                    <!-- rdfa:literal-value, not string(): a block annotation contains a
+                    <!-- rdfax:literal-value, not string(): a block annotation contains a
                          chrome span whose ⠿ text would otherwise leak into the value -->
                     <xsl:with-param name="value" select="if (exists($annotation/@content))
-                        then string($annotation/@content) else rdfa:literal-value($annotation)"/>
+                        then string($annotation/@content) else rdfax:literal-value($annotation)"/>
                 </xsl:call-template>
-                <xsl:call-template name="local:show-overlay">
+                <xsl:call-template name="rdfae:show-overlay">
                     <xsl:with-param name="event" select="$event"/>
                     <xsl:with-param name="in-scope-subject"
                         select="($annotation/@about ! string(.),
-                            $annotation/parent::* ! rdfa:in-scope-subject(., local:document-uri()))[1]"/>
+                            $annotation/parent::* ! rdfax:in-scope-subject(., rdfae:document-uri()))[1]"/>
                 </xsl:call-template>
             </xsl:when>
             <!-- create mode -->
             <xsl:otherwise>
-                <xsl:variable name="selection" select="local:selection()"/>
+                <xsl:variable name="selection" select="rdfae:selection()"/>
                 <xsl:if test="ixsl:get($selection, 'rangeCount') ge 1 and not(ixsl:get($selection, 'isCollapsed'))">
-                    <xsl:variable name="range" select="local:caret-range()"/>
+                    <xsl:variable name="range" select="rdfae:caret-range()"/>
                     <xsl:choose>
-                        <xsl:when test="local:selection-valid($range)">
-                            <ixsl:set-property name="range" select="$range" object="local:editor-state()"/>
-                            <ixsl:set-property name="editingSpan" select="()" object="local:editor-state()"/>
-                            <xsl:call-template name="local:show-selection-hint">
+                        <xsl:when test="rdfae:selection-valid($range)">
+                            <ixsl:set-property name="range" select="$range" object="rdfae:editor-state()"/>
+                            <ixsl:set-property name="editingSpan" select="()" object="rdfae:editor-state()"/>
+                            <xsl:call-template name="rdfae:show-selection-hint">
                                 <xsl:with-param name="range" select="$range"/>
                             </xsl:call-template>
-                            <xsl:call-template name="local:populate-form">
+                            <xsl:call-template name="rdfae:populate-form">
                                 <xsl:with-param name="value" select="string(ixsl:call($selection, 'toString', []))"/>
                             </xsl:call-template>
-                            <xsl:call-template name="local:show-overlay">
+                            <xsl:call-template name="rdfae:show-overlay">
                                 <xsl:with-param name="event" select="$event"/>
-                                <xsl:with-param name="in-scope-subject" select="rdfa:in-scope-subject(., local:document-uri())"/>
+                                <xsl:with-param name="in-scope-subject" select="rdfax:in-scope-subject(., rdfae:document-uri())"/>
                             </xsl:call-template>
                         </xsl:when>
                         <xsl:otherwise>
-                            <xsl:call-template name="local:show-flash">
+                            <xsl:call-template name="rdfae:show-flash">
                                 <xsl:with-param name="range" select="$range"/>
                             </xsl:call-template>
                         </xsl:otherwise>
@@ -82,7 +82,7 @@ version="3.0">
     <!-- surroundContents() succeeds when the range starts and ends in the same
          container, or in sibling text nodes; xsl:try in the Annotate handler backstops
          the partial-selection cases this misses -->
-    <xsl:function name="local:selection-valid" as="xs:boolean">
+    <xsl:function name="rdfae:selection-valid" as="xs:boolean">
         <xsl:param name="range"/>
 
         <xsl:variable name="start" select="ixsl:get($range, 'startContainer')"/>
@@ -96,7 +96,7 @@ version="3.0">
          the attributes follow from the filled fields. A value differing from the display
          text becomes @content - unless @resource is the object (RDFa step 11: @content
          would take precedence and orphan the resource) -->
-    <xsl:template name="local:apply-annotation">
+    <xsl:template name="rdfae:apply-annotation">
         <xsl:param name="target" as="element()"/>
         <xsl:param name="values" as="map(xs:string, xs:string?)"/>
         <xsl:param name="reference-text" as="xs:string"/>
@@ -138,53 +138,53 @@ version="3.0">
     </xsl:template>
 
     <xsl:template match="button[tokenize(@class) = 'spo-action']" mode="ixsl:onclick">
-        <xsl:variable name="values" as="map(xs:string, xs:string?)" select="local:form-values(ancestor::form)"/>
-        <xsl:variable name="editing" select="ixsl:get(local:editor-state(), 'editingSpan')"/>
+        <xsl:variable name="values" as="map(xs:string, xs:string?)" select="rdfae:form-values(ancestor::form)"/>
+        <xsl:variable name="editing" select="ixsl:get(rdfae:editor-state(), 'editingSpan')"/>
 
         <xsl:choose>
             <xsl:when test="exists($editing)">
-                <xsl:call-template name="local:push-undo"/>
-                <xsl:call-template name="local:apply-annotation">
+                <xsl:call-template name="rdfae:push-undo"/>
+                <xsl:call-template name="rdfae:apply-annotation">
                     <xsl:with-param name="target" select="$editing"/>
                     <xsl:with-param name="values" select="$values"/>
                     <!-- chrome-excluded, so an unchanged block value doesn't spuriously emit @content -->
-                    <xsl:with-param name="reference-text" select="rdfa:literal-value($editing)"/>
+                    <xsl:with-param name="reference-text" select="rdfax:literal-value($editing)"/>
                 </xsl:call-template>
-                <xsl:call-template name="local:after-mutation"/>
-                <xsl:call-template name="local:hide-overlay"/>
+                <xsl:call-template name="rdfae:after-mutation"/>
+                <xsl:call-template name="rdfae:hide-overlay"/>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:variable name="range" select="ixsl:get(local:editor-state(), 'range')"/>
+                <xsl:variable name="range" select="ixsl:get(rdfae:editor-state(), 'range')"/>
                 <xsl:variable name="reference-text" as="xs:string" select="string(ixsl:call($range, 'toString', []))"/>
                 <!-- capture pre-wrap state; push only when the wrap succeeded -->
-                <xsl:variable name="snapshot-root" as="element()?" select="local:active-root()"/>
+                <xsl:variable name="snapshot-root" as="element()?" select="rdfae:active-root()"/>
                 <xsl:variable name="snapshot" as="xs:string?"
                     select="$snapshot-root ! string(ixsl:get(., 'innerHTML'))"/>
                 <xsl:variable name="span" as="element()?">
-                    <xsl:call-template name="local:wrap-range">
+                    <xsl:call-template name="rdfae:wrap-range">
                         <xsl:with-param name="range" select="$range"/>
                         <xsl:with-param name="name" select="'span'"/>
                     </xsl:call-template>
                 </xsl:variable>
                 <xsl:for-each select="$span">
-                    <xsl:call-template name="local:push-undo">
+                    <xsl:call-template name="rdfae:push-undo">
                         <xsl:with-param name="root" select="$snapshot-root"/>
                         <xsl:with-param name="snapshot" select="$snapshot"/>
                     </xsl:call-template>
-                    <xsl:call-template name="local:apply-annotation">
+                    <xsl:call-template name="rdfae:apply-annotation">
                         <xsl:with-param name="target" select="."/>
                         <xsl:with-param name="values" select="$values"/>
                         <xsl:with-param name="reference-text" select="$reference-text"/>
                     </xsl:call-template>
-                    <xsl:call-template name="local:after-mutation"/>
+                    <xsl:call-template name="rdfae:after-mutation"/>
                 </xsl:for-each>
-                <xsl:call-template name="local:hide-overlay"/>
+                <xsl:call-template name="rdfae:hide-overlay"/>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
 
     <!-- unwrap an element: move its children up, drop it, merge text nodes -->
-    <xsl:template name="local:unwrap-element">
+    <xsl:template name="rdfae:unwrap-element">
         <xsl:param name="element" as="element()"/>
 
         <xsl:variable name="parent" select="ixsl:get($element, 'parentNode')"/>
@@ -196,7 +196,7 @@ version="3.0">
     </xsl:template>
 
     <!-- wrap a range in a fresh element; on boundary-crossing selections flash and return nothing -->
-    <xsl:template name="local:wrap-range" as="element()?">
+    <xsl:template name="rdfae:wrap-range" as="element()?">
         <xsl:param name="range"/>
         <xsl:param name="name" as="xs:string"/>
 
@@ -205,11 +205,11 @@ version="3.0">
             <xsl:sequence select="ixsl:call($range, 'surroundContents', [ $element ])[current-date() lt xs:date('2000-01-01')]"/>
             <!-- surroundContents leaves the selection undefined; re-select the wrapped
                  contents so subsequent toggles resolve their target -->
-            <xsl:sequence select="ixsl:call(local:selection(), 'selectAllChildren',
+            <xsl:sequence select="ixsl:call(rdfae:selection(), 'selectAllChildren',
                 [ $element ])[current-date() lt xs:date('2000-01-01')]"/>
             <xsl:sequence select="$element"/>
             <xsl:catch errors="*">
-                <xsl:call-template name="local:show-flash">
+                <xsl:call-template name="rdfae:show-flash">
                     <xsl:with-param name="range" select="$range"/>
                 </xsl:call-template>
             </xsl:catch>
@@ -217,12 +217,12 @@ version="3.0">
     </xsl:template>
 
     <xsl:template match="button[tokenize(@class) = 'remove-action']" mode="ixsl:onclick">
-        <xsl:for-each select="ixsl:get(local:editor-state(), 'editingSpan')">
-            <xsl:call-template name="local:push-undo"/>
+        <xsl:for-each select="ixsl:get(rdfae:editor-state(), 'editingSpan')">
+            <xsl:call-template name="rdfae:push-undo"/>
             <xsl:choose>
                 <!-- a block carries its annotation on itself: strip the RDFa attributes
                      but keep the block (unwrapping would dissolve the heading/paragraph) -->
-                <xsl:when test="local:block-of(.) is .">
+                <xsl:when test="rdfae:block-of(.) is .">
                     <xsl:variable name="element" select="."/>
                     <xsl:for-each select="'about', 'typeof', 'property', 'resource', 'content', 'datatype', 'lang', 'xml:lang'">
                         <ixsl:remove-attribute name="{.}" object="$element"/>
@@ -230,22 +230,22 @@ version="3.0">
                 </xsl:when>
                 <!-- an inline annotation is a wrapper element: unwrap it -->
                 <xsl:otherwise>
-                    <xsl:call-template name="local:unwrap-element">
+                    <xsl:call-template name="rdfae:unwrap-element">
                         <xsl:with-param name="element" select="."/>
                     </xsl:call-template>
                 </xsl:otherwise>
             </xsl:choose>
-            <xsl:call-template name="local:after-mutation"/>
+            <xsl:call-template name="rdfae:after-mutation"/>
         </xsl:for-each>
-        <xsl:call-template name="local:hide-overlay"/>
+        <xsl:call-template name="rdfae:hide-overlay"/>
     </xsl:template>
 
     <xsl:template match="button[tokenize(@class) = 'cancel-action']" mode="ixsl:onclick">
-        <xsl:call-template name="local:hide-overlay"/>
+        <xsl:call-template name="rdfae:hide-overlay"/>
     </xsl:template>
 
     <!-- brief red flash over an invalid selection, in page coordinates so it scrolls with the text -->
-    <xsl:template name="local:show-flash">
+    <xsl:template name="rdfae:show-flash">
         <xsl:param name="range"/>
 
         <xsl:variable name="rect" select="ixsl:call($range, 'getBoundingClientRect', [])"/>
@@ -257,10 +257,10 @@ version="3.0">
                     style="position: absolute; pointer-events: none; z-index: 9999; left: {ixsl:get($rect, 'left') + $scroll-x}px; top: {ixsl:get($rect, 'top') + $scroll-y}px; width: {ixsl:get($rect, 'width')}px; height: {ixsl:get($rect, 'height')}px;"/>
             </xsl:result-document>
         </xsl:for-each>
-        <ixsl:promise select="ixsl:sleep(1200) => ixsl:then(local:hide-flash#1)"/>
+        <ixsl:promise select="ixsl:sleep(1200) => ixsl:then(rdfae:hide-flash#1)"/>
     </xsl:template>
 
-    <xsl:function name="local:hide-flash" as="empty-sequence()" ixsl:updating="yes">
+    <xsl:function name="rdfae:hide-flash" as="empty-sequence()" ixsl:updating="yes">
         <xsl:param name="ignored" as="item()?"/>
 
         <xsl:for-each select="id('selection-flash', ixsl:page())">
@@ -269,7 +269,7 @@ version="3.0">
     </xsl:function>
 
     <!-- the editor renders its own output modal (host pages provide only content regions) -->
-    <xsl:template name="local:init-annotate">
+    <xsl:template name="rdfae:init-annotate">
         <xsl:for-each select="ixsl:page()//body">
             <xsl:result-document href="?." method="ixsl:append-content">
                 <div id="output-modal" class="rdfa-editor-ui" style="display: none;">
@@ -286,7 +286,7 @@ version="3.0">
 
     <!-- shared output modal (Extract RDF / View source / lint issues); callers
          passing $filename get a Download button (hidden otherwise) -->
-    <xsl:template name="local:show-output">
+    <xsl:template name="rdfae:show-output">
         <xsl:param name="title" as="xs:string"/>
         <xsl:param name="text" as="xs:string"/>
         <xsl:param name="filename" as="xs:string?"/>
@@ -326,18 +326,18 @@ version="3.0">
     </xsl:template>
 
     <!-- extract RDF/XML from the page and display it in the modal, grouped one
-         rdf:Description per subject (via local:group-triples) for readability -->
+         rdf:Description per subject (via rdfae:group-triples) for readability -->
     <xsl:template match="button[@id = 'parse-rdf']" mode="ixsl:onclick">
         <xsl:variable name="rdf" as="element(rdf:RDF)">
             <xsl:call-template name="extract-rdfa">
                 <xsl:with-param name="doc" select="ixsl:page()"/>
-                <xsl:with-param name="base" select="local:document-uri()"/>
+                <xsl:with-param name="base" select="rdfae:document-uri()"/>
             </xsl:call-template>
         </xsl:variable>
 
-        <xsl:call-template name="local:show-output">
+        <xsl:call-template name="rdfae:show-output">
             <xsl:with-param name="title" select="'Extracted RDF/XML'"/>
-            <xsl:with-param name="text" select="serialize(local:group-triples($rdf), map{ 'method': 'xml', 'indent': true() })"/>
+            <xsl:with-param name="text" select="serialize(rdfae:group-triples($rdf), map{ 'method': 'xml', 'indent': true() })"/>
             <xsl:with-param name="filename" select="'content.rdf'"/>
             <xsl:with-param name="media-type" select="'application/rdf+xml'"/>
         </xsl:call-template>

@@ -3,7 +3,7 @@
 xmlns="http://www.w3.org/1999/xhtml"
 xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
 xmlns:xs="http://www.w3.org/2001/XMLSchema"
-xmlns:cm="urn:rdfa-editor:content-model"
+xmlns:cm="https://w3id.org/atomgraph/rdfa-editor/content-model#"
 xpath-default-namespace="http://www.w3.org/1999/xhtml"
 exclude-result-prefixes="#all"
 version="3.0">
@@ -30,7 +30,7 @@ version="3.0">
 -->
 
     <!-- serialization is the caller's job (view-source runs exclusive XML c14n via
-         local:canonicalize-xml in edit.xsl, tests use -o output); no xsl:output
+         rdfae:canonicalize-xml in edit.xsl, tests use -o output); no xsl:output
          here - it would conflict with the including stylesheet's -->
     <xsl:mode name="canonical" on-no-match="shallow-copy"/>
     <xsl:mode name="cm-normalize" on-no-match="shallow-copy"/>

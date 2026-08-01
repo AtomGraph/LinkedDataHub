@@ -47,7 +47,7 @@ xmlns:sh="&sh;"
 xmlns:sioc="&sioc;"
 xmlns:spin="&spin;"
 xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
-xmlns:local="urn:rdfa-editor:functions"
+xmlns:rdfae="https://w3id.org/atomgraph/rdfa-editor#"
 extension-element-prefixes="ixsl"
 exclude-result-prefixes="#all"
 >
@@ -143,13 +143,13 @@ WHERE
     </xsl:template>
     
     <!-- the RDFa editor toolbar mounts in the active document's editor-bar, below the action bar (LDH pages have no nav element) -->
-    <xsl:function name="local:toolbar-host" as="element()*">
+    <xsl:function name="rdfae:toolbar-host" as="element()*">
         <xsl:sequence select="(id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')][contains-token(@class, 'active')]//div[contains-token(@class, 'editor-bar')]/div[contains-token(@class, 'container-fluid')])[1]"/>
     </xsl:function>
 
     <!-- first editable region on the page: full editor bring-up (chrome, dialogs, drawers, all regions) -->
     <xsl:template match="div[contains-token(@class, 'rdfa-editor-content')][empty(id('edit-toolbar', ixsl:page()))]" mode="ldh:RenderRowForm" priority="2">
-        <xsl:call-template name="local:init-editor"/>
+        <xsl:call-template name="rdfae:init-editor"/>
         <xsl:for-each select="(.//*[@contenteditable = 'true'])[1]">
             <xsl:sequence select="ixsl:call(., 'focus', [])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:for-each>
@@ -158,10 +158,10 @@ WHERE
     <!-- additional region: editor chrome already in the DOM; init only this region's blocks -->
     <xsl:template match="div[contains-token(@class, 'rdfa-editor-content')]" mode="ldh:RenderRowForm" priority="1">
         <!-- adopt the singleton toolbar into this document's editor-bar (it may have initialized in another tab) -->
-        <xsl:for-each select="local:toolbar-host()[not(descendant::*[@id = 'edit-toolbar'])]">
+        <xsl:for-each select="rdfae:toolbar-host()[not(descendant::*[@id = 'edit-toolbar'])]">
             <xsl:sequence select="ixsl:call(., 'appendChild', [ id('edit-toolbar', ixsl:page()) ])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:for-each>
-        <xsl:call-template name="local:init-region">
+        <xsl:call-template name="rdfae:init-region">
             <xsl:with-param name="region" select="."/>
         </xsl:call-template>
         <xsl:for-each select="(.//*[@contenteditable = 'true'])[1]">
@@ -170,7 +170,7 @@ WHERE
     </xsl:template>
 
     <!-- override RDFa editor annotation typeahead: use LDH's /ns-querying bs2:Lookup instead of doc()-on-vocabs -->
-    <xsl:function name="local:typeahead-field" as="element()">
+    <xsl:function name="rdfae:typeahead-field" as="element()">
         <xsl:param name="field" as="xs:string"/>
         <xsl:variable name="for-class" as="xs:anyURI" select="if ($field = 'typeof') then xs:anyURI('&owl;Class') else xs:anyURI('&rdf;Property')"/>
         <span data-field="{$field}" class="typeahead-field rdfa-editor-ui">
@@ -184,7 +184,7 @@ WHERE
     </xsl:function>
 
     <!-- rebuild the typeahead field and pre-populate with IRI; clears any prior committed button state -->
-    <xsl:template name="local:typeahead-set-value">
+    <xsl:template name="rdfae:typeahead-set-value">
         <xsl:param name="form" as="element()"/>
         <xsl:param name="field" as="xs:string"/>
         <xsl:param name="iri" as="xs:string"/>
@@ -203,7 +203,7 @@ WHERE
     </xsl:template>
 
     <!-- read back the IRI from span[@data-field]: committed (hidden input) or typed (property-typeahead text) -->
-    <xsl:function name="local:typeahead-value" as="xs:string?">
+    <xsl:function name="rdfae:typeahead-value" as="xs:string?">
         <xsl:param name="form" as="element()"/>
         <xsl:param name="field" as="xs:string"/>
         <xsl:variable name="wrapper" as="element()?" select="($form//span[@data-field = $field])[1]"/>
@@ -215,14 +215,14 @@ WHERE
             <xsl:otherwise>
                 <xsl:variable name="input" as="element()?" select="($wrapper//input[contains-token(@class, 'property-typeahead')])[1]"/>
                 <xsl:variable name="text" as="xs:string" select="normalize-space(string(ixsl:get($input, 'value')))"/>
-                <xsl:sequence select="if (local:is-absolute-iri($text)) then $text else ()"/>
+                <xsl:sequence select="if (rdfae:is-absolute-iri($text)) then $text else ()"/>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:function>
 
     <!-- Bootstrap-styled annotation overlay (replaces rdfa-editor's custom HTML structure) -->
-    <xsl:template name="local:render-overlay">
-        <div id="{$local:overlay-id}" class="modal rdfa-editor-ui" role="dialog" aria-modal="true" aria-label="RDFa annotation" style="display: none;">
+    <xsl:template name="rdfae:render-overlay">
+        <div id="{$rdfae:overlay-id}" class="modal rdfa-editor-ui" role="dialog" aria-modal="true" aria-label="RDFa annotation" style="display: none;">
             <div class="modal-header">
                 <button type="button" class="close cancel-action">&#215;</button>
                 <legend>RDFa Annotation</legend>
@@ -238,7 +238,7 @@ WHERE
                     <div class="control-group">
                         <label class="control-label" for="annotation-property">Property</label>
                         <div class="controls">
-                            <xsl:sequence select="local:typeahead-field('property')"/>
+                            <xsl:sequence select="rdfae:typeahead-field('property')"/>
                         </div>
                     </div>
                     <div class="control-group">
@@ -253,7 +253,7 @@ WHERE
                         <div class="control-group">
                             <label class="control-label" for="annotation-typeof">Type (typeof)</label>
                             <div class="controls">
-                                <xsl:sequence select="local:typeahead-field('typeof')"/>
+                                <xsl:sequence select="rdfae:typeahead-field('typeof')"/>
                                 <span class="help-block">Types the annotated resource; without a subject the typed resource becomes the object of the property (chaining)</span>
                             </div>
                         </div>
@@ -280,7 +280,7 @@ WHERE
                                     <xsl:for-each select="'string', 'date', 'dateTime', 'time', 'integer', 'decimal', 'double', 'float', 'boolean', 'anyURI'">
                                         <option value="{$xsd || .}">xsd:<xsl:value-of select="."/></option>
                                     </xsl:for-each>
-                                    <option value="{$local:custom}">-- Custom datatype --</option>
+                                    <option value="{$rdfae:custom}">-- Custom datatype --</option>
                                 </select>
                                 <input type="text" name="custom-datatype" class="input-xlarge" placeholder="Datatype IRI" style="display: none;"/>
                                 <span class="help-block">Types the literal; mutually exclusive with a language tag</span>
@@ -306,7 +306,7 @@ WHERE
 
     <!-- Bootstrap-styled toolbar dialogs (replace rdfa-editor's custom HTML) -->
 
-    <xsl:template name="local:render-table-dialog">
+    <xsl:template name="rdfae:render-table-dialog">
         <div id="table-dialog" class="rdfa-editor-ui edit-dialog" role="dialog" aria-modal="true" aria-label="Insert table" style="display: none;">
             <label for="table-rows">Body rows</label>
             <input type="number" id="table-rows" name="rows" value="3" min="1" max="50"/>
@@ -322,7 +322,7 @@ WHERE
         </div>
     </xsl:template>
 
-    <xsl:template name="local:render-link-dialog">
+    <xsl:template name="rdfae:render-link-dialog">
         <div id="link-dialog" class="rdfa-editor-ui edit-dialog" role="dialog" aria-modal="true" aria-label="Link" style="display: none;">
             <label for="link-href">Link target (href)</label>
             <input type="text" id="link-href" name="href" placeholder="https://..."/>
@@ -334,7 +334,7 @@ WHERE
         </div>
     </xsl:template>
 
-    <xsl:template name="local:render-figure-dialog">
+    <xsl:template name="rdfae:render-figure-dialog">
         <div id="figure-dialog" class="rdfa-editor-ui edit-dialog" role="dialog" aria-modal="true" aria-label="Insert figure" style="display: none;">
             <label for="figure-src">Image URL (src)</label>
             <input type="text" id="figure-src" name="src" placeholder="https://... or relative path"/>
@@ -349,7 +349,7 @@ WHERE
         </div>
     </xsl:template>
 
-    <xsl:template name="local:render-find-dialog">
+    <xsl:template name="rdfae:render-find-dialog">
         <div id="find-dialog" class="rdfa-editor-ui edit-dialog" role="dialog" aria-modal="true" aria-label="Find and replace" style="display: none;">
             <label for="find-text">Find</label>
             <input type="text" id="find-text" name="find"/>
@@ -366,11 +366,11 @@ WHERE
         </div>
     </xsl:template>
 
-    <xsl:template name="local:render-extra-dialogs">
+    <xsl:template name="rdfae:render-extra-dialogs">
         <div id="ldh-block-dialog" class="rdfa-editor-ui edit-dialog" role="dialog" aria-modal="true" aria-label="Insert block" style="display: none;">
             <label for="ldh-block-type">Block type</label>
             <select id="ldh-block-type" name="block-type-iri">
-                <option value="urn:rdfa-editor:reference">Resource</option>
+                <option value="https://w3id.org/atomgraph/rdfa-editor#reference">Resource</option>
                 <option value="&ldh;View">View</option>
                 <option value="&ldh;ResultSetChart">Result set chart</option>
             </select>

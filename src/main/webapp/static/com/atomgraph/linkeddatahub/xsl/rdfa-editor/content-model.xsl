@@ -3,7 +3,7 @@
 xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
 xmlns:xs="http://www.w3.org/2001/XMLSchema"
 xmlns:map="http://www.w3.org/2005/xpath-functions/map"
-xmlns:cm="urn:rdfa-editor:content-model"
+xmlns:cm="https://w3id.org/atomgraph/rdfa-editor/content-model#"
 exclude-result-prefixes="#all"
 version="3.0">
 

@@ -4,7 +4,7 @@ xmlns="http://www.w3.org/1999/xhtml"
 xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
 xmlns:ixsl="http://saxonica.com/ns/interactiveXSLT"
 xmlns:xs="http://www.w3.org/2001/XMLSchema"
-xmlns:local="urn:rdfa-editor:functions"
+xmlns:rdfae="https://w3id.org/atomgraph/rdfa-editor#"
 extension-element-prefixes="ixsl"
 xpath-default-namespace="http://www.w3.org/1999/xhtml"
 version="3.0">
@@ -52,14 +52,14 @@ version="3.0">
          documents into the SaxonJS document pool (SaxonJS.getResource +
          documentPool), keyed by page-relative URI -->
     <xsl:template name="main">
-        <xsl:call-template name="local:init-state"/>
-        <xsl:call-template name="local:init-editor"/>
+        <xsl:call-template name="rdfae:init-state"/>
+        <xsl:call-template name="rdfae:init-editor"/>
     </xsl:template>
 
     <!-- all editor state lives on a single window.rdfaEditor container (mirrors
-         LinkedDataHub's window.LinkedDataHub); reached everywhere via local:editor-state().
+         LinkedDataHub's window.LinkedDataHub); reached everywhere via rdfae:editor-state().
          Hosts with their own initial template call this from there instead of main -->
-    <xsl:template name="local:init-state">
+    <xsl:template name="rdfae:init-state">
         <xsl:variable name="state" select="ixsl:call(ixsl:window(), 'Object', [])"/>
         <ixsl:set-property name="rdfaEditor" select="$state" object="ixsl:window()"/>
         <xsl:for-each select="('editingSpan', 'range', 'activeBlock', 'draggedBlock',
@@ -76,17 +76,17 @@ version="3.0">
     <!-- the full editor bring-up: page chrome (undo stash, overlay, output modal,
          toolbar, dialogs, drawers) plus block init of every editable region. Hosts
          that render regions lazily call this once, when the first region appears -->
-    <xsl:template name="local:init-editor">
-        <xsl:call-template name="local:init-undo"/>
-        <xsl:call-template name="local:init-overlay"/>
-        <xsl:call-template name="local:init-annotate"/>
-        <xsl:call-template name="local:init-editing"/>
-        <xsl:call-template name="local:init-navigate"/>
+    <xsl:template name="rdfae:init-editor">
+        <xsl:call-template name="rdfae:init-undo"/>
+        <xsl:call-template name="rdfae:init-overlay"/>
+        <xsl:call-template name="rdfae:init-annotate"/>
+        <xsl:call-template name="rdfae:init-editing"/>
+        <xsl:call-template name="rdfae:init-navigate"/>
     </xsl:template>
 
     <!-- the single window.rdfaEditor container that holds all mutable editor state;
          every read/write of that state goes through this accessor -->
-    <xsl:function name="local:editor-state">
+    <xsl:function name="rdfae:editor-state">
         <xsl:sequence select="ixsl:get(ixsl:window(), 'rdfaEditor')"/>
     </xsl:function>
 

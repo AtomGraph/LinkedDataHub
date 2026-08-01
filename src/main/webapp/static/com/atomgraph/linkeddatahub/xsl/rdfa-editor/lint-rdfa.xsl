@@ -3,17 +3,17 @@
     xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
     xmlns:xs="http://www.w3.org/2001/XMLSchema"
     xmlns:map="http://www.w3.org/2005/xpath-functions/map"
-    xmlns:rdfa="urn:rdfa:functions"
-    xmlns:lint="urn:rdfa-editor:lint"
+    xmlns:rdfax="https://w3id.org/atomgraph/rdfa-editor/rdfa#"
+    xmlns:lint="https://w3id.org/atomgraph/rdfa-editor/lint#"
     xpath-default-namespace="http://www.w3.org/1999/xhtml"
-    exclude-result-prefixes="xs map rdfa"
+    exclude-result-prefixes="xs map rdfax"
     version="3.0">
 
 <!--
     RDFa lint: flags markup that extracts to something almost certainly unintended.
     Pure XSLT 3.0 - no ixsl: - tested headless via tests/lint-driver.xsl. Reuses the
-    extractor's resolution functions (rdfa:resolve-term-or-curie, rdfa:literal-value,
-    rdfa:bnode-label, $rdfa:default-prefixes), so lint verdicts and extraction
+    extractor's resolution functions (rdfax:resolve-term-or-curie, rdfax:literal-value,
+    rdfax:bnode-label, $rdfax:default-prefixes), so lint verdicts and extraction
     semantics cannot drift apart. Not standalone-compilable: include/import it
     alongside RDFa2RDFXML-v3.xsl.
 
@@ -38,8 +38,8 @@
     <!-- nearest-wins prefix map, mirroring the extractor's top-down merge -->
     <xsl:function name="lint:in-scope-prefixes" as="map(xs:string, xs:string)">
         <xsl:param name="element" as="element()"/>
-        <xsl:sequence select="map:merge(($rdfa:default-prefixes,
-            $element/ancestor-or-self::* ! (rdfa:in-scope-namespaces(.), rdfa:parse-prefix-attr(@prefix))),
+        <xsl:sequence select="map:merge(($rdfax:default-prefixes,
+            $element/ancestor-or-self::* ! (rdfax:in-scope-namespaces(.), rdfax:parse-prefix-attr(@prefix))),
             map{ 'duplicates': 'use-last' })"/>
     </xsl:function>
 
@@ -52,7 +52,7 @@
     <!-- deterministic element path, shared with the extractor's bnode labelling -->
     <xsl:function name="lint:path" as="xs:string">
         <xsl:param name="element" as="element()"/>
-        <xsl:sequence select="rdfa:bnode-label($element)"/>
+        <xsl:sequence select="rdfax:bnode-label($element)"/>
     </xsl:function>
 
     <xsl:function name="lint:element-issues" as="element(lint:issue)*">
@@ -64,7 +64,7 @@
         <!-- term-unresolvable -->
         <xsl:for-each select="$element/(@property, @typeof, @datatype)">
             <xsl:variable name="attribute" as="xs:string" select="name(.)"/>
-            <xsl:for-each select="tokenize(.)[empty(rdfa:resolve-term-or-curie(., $prefixes, $vocab))]">
+            <xsl:for-each select="tokenize(.)[empty(rdfax:resolve-term-or-curie(., $prefixes, $vocab))]">
                 <lint:issue code="term-unresolvable" path="{lint:path($element)}">@<xsl:value-of
                     select="$attribute"/> term '<xsl:value-of select="."/>' resolves to no IRI (no in-scope vocab or prefix)</lint:issue>
             </xsl:for-each>
@@ -84,11 +84,11 @@
         <!-- empty-literal: the extractor's statement branches, restricted to literal outcomes -->
         <xsl:for-each select="$element[@property][
                 (: literal via @content/@datatype (rule 5.2 branch) :)
-                ((@content or @datatype) and string((@content, rdfa:literal-value($element))[1]) = '')
+                ((@content or @datatype) and string((@content, rdfax:literal-value($element))[1]) = '')
                 or
                 (: plain text literal branch: no IRI object, no typeof chaining :)
                 (not(@content) and not(@datatype) and not(@resource) and not(@href) and not(@src)
-                    and not(@typeof and not(@about)) and rdfa:literal-value($element) = '')]">
+                    and not(@typeof and not(@about)) and rdfax:literal-value($element) = '')]">
             <lint:issue code="empty-literal" path="{lint:path($element)}">@property '<xsl:value-of
                 select="@property"/>' extracts an empty literal</lint:issue>
         </xsl:for-each>

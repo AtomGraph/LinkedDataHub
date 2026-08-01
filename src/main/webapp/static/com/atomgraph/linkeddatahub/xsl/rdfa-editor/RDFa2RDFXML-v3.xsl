@@ -4,9 +4,9 @@
     xmlns:xs="http://www.w3.org/2001/XMLSchema"
     xmlns:map="http://www.w3.org/2005/xpath-functions/map"
     xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
-    xmlns:rdfa="urn:rdfa:functions"
+    xmlns:rdfax="https://w3id.org/atomgraph/rdfa-editor/rdfa#"
     xpath-default-namespace="http://www.w3.org/1999/xhtml"
-    exclude-result-prefixes="xs map rdfa"
+    exclude-result-prefixes="xs map rdfax"
     version="3.0">
 
 <!--
@@ -31,7 +31,7 @@
     xml:base.
 -->
 
-    <xsl:mode name="rdfa:extract" on-no-match="deep-skip"/>
+    <xsl:mode name="rdfax:extract" on-no-match="deep-skip"/>
 
     <xsl:output method="xml" indent="yes" encoding="UTF-8"/>
 
@@ -39,7 +39,7 @@
     <xsl:param name="base-uri" as="xs:string?" select="()"/>
 
     <!-- RDFa 1.1 initial context (subset) -->
-    <xsl:variable name="rdfa:default-prefixes" as="map(xs:string, xs:string)" select="map{
+    <xsl:variable name="rdfax:default-prefixes" as="map(xs:string, xs:string)" select="map{
         'rdf': 'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
         'rdfs': 'http://www.w3.org/2000/01/rdf-schema#',
         'xsd': 'http://www.w3.org/2001/XMLSchema#',
@@ -56,7 +56,7 @@
             select="if ($doc//base/@href) then string(resolve-uri(($doc//base/@href)[1], $base)) else $base"/>
 
         <rdf:RDF>
-            <xsl:apply-templates select="$doc/*" mode="rdfa:extract">
+            <xsl:apply-templates select="$doc/*" mode="rdfax:extract">
                 <!-- RDFa initializes the parent object to the base URI -->
                 <xsl:with-param name="subject" select="$effective-base"/>
                 <xsl:with-param name="base" select="$effective-base" tunnel="yes"/>
@@ -64,24 +64,24 @@
         </rdf:RDF>
     </xsl:template>
 
-    <xsl:template match="head | script | style | *[@data-role]" mode="rdfa:extract"/>
+    <xsl:template match="head | script | style | *[@data-role]" mode="rdfax:extract"/>
 
-    <xsl:template match="*" mode="rdfa:extract">
+    <xsl:template match="*" mode="rdfax:extract">
         <xsl:param name="subject" as="xs:string?" select="()"/>
-        <xsl:param name="prefixes" as="map(xs:string, xs:string)" select="$rdfa:default-prefixes"/>
+        <xsl:param name="prefixes" as="map(xs:string, xs:string)" select="$rdfax:default-prefixes"/>
         <xsl:param name="vocab" as="xs:string?" select="()"/>
         <xsl:param name="lang" as="xs:string?" select="()"/>
         <xsl:param name="base" as="xs:string" tunnel="yes"/>
 
         <!-- evaluation context updates. Empty @vocab/@lang reset; @xml:lang wins over @lang -->
         <xsl:variable name="prefixes" as="map(xs:string, xs:string)"
-            select="map:merge(($prefixes, rdfa:in-scope-namespaces(.), rdfa:parse-prefix-attr(@prefix)), map{ 'duplicates': 'use-last' })"/>
+            select="map:merge(($prefixes, rdfax:in-scope-namespaces(.), rdfax:parse-prefix-attr(@prefix)), map{ 'duplicates': 'use-last' })"/>
         <xsl:variable name="vocab" as="xs:string?"
             select="if (exists(@vocab)) then @vocab[. ne ''] else $vocab"/>
         <xsl:variable name="lang" as="xs:string?"
             select="if (exists((@xml:lang, @lang))) then string((@xml:lang, @lang)[1])[. ne ''] else $lang"/>
 
-        <xsl:variable name="new-subject" as="xs:string?" select="rdfa:new-subject(., $prefixes, $base)"/>
+        <xsl:variable name="new-subject" as="xs:string?" select="rdfax:new-subject(., $prefixes, $base)"/>
 
         <!-- section 7.5 step 2: @vocab asserts (base, rdfa:usesVocabulary, vocab IRI) -->
         <xsl:for-each select="@vocab[. ne '']">
@@ -93,9 +93,9 @@
         </xsl:for-each>
 
         <!-- @typeof: one rdf:type triple per token; the typed node is the new subject -->
-        <xsl:for-each select="@typeof ! tokenize(.) ! rdfa:resolve-term-or-curie(., $prefixes, $vocab)">
+        <xsl:for-each select="@typeof ! tokenize(.) ! rdfax:resolve-term-or-curie(., $prefixes, $vocab)">
             <rdf:Description>
-                <xsl:sequence select="rdfa:subject-attribute($new-subject)"/>
+                <xsl:sequence select="rdfax:subject-attribute($new-subject)"/>
                 <rdf:type rdf:resource="{.}"/>
             </rdf:Description>
         </xsl:for-each>
@@ -109,8 +109,8 @@
                 <xsl:when test="@content or @datatype">
                     <xsl:sequence select="map{
                         'subject': ($new-subject, $subject)[1],
-                        'literal': string((@content, rdfa:literal-value(.))[1]),
-                        'datatype': @datatype ! rdfa:resolve-term-or-curie(., $prefixes, $vocab),
+                        'literal': string((@content, rdfax:literal-value(.))[1]),
+                        'datatype': @datatype ! rdfax:resolve-term-or-curie(., $prefixes, $vocab),
                         'lang': $lang
                     }"/>
                 </xsl:when>
@@ -118,7 +118,7 @@
                 <xsl:when test="@resource or @href or @src">
                     <xsl:sequence select="map{
                         'subject': (@about ! $new-subject, $subject)[1],
-                        'object': rdfa:resolve-iri((@resource, @href, @src)[1], $prefixes, $base)
+                        'object': rdfax:resolve-iri((@resource, @href, @src)[1], $prefixes, $base)
                     }"/>
                 </xsl:when>
                 <!-- @typeof without @about: the typed node becomes the object (RDFa 1.1 chaining) -->
@@ -129,7 +129,7 @@
                 <xsl:otherwise>
                     <xsl:sequence select="map{
                         'subject': (@about ! $new-subject, $subject)[1],
-                        'literal': rdfa:literal-value(.),
+                        'literal': rdfax:literal-value(.),
                         'lang': $lang
                     }"/>
                 </xsl:otherwise>
@@ -137,16 +137,16 @@
         </xsl:variable>
 
         <xsl:if test="exists($statement) and exists($statement?subject)">
-            <xsl:for-each select="tokenize(@property) ! rdfa:resolve-term-or-curie(., $prefixes, $vocab)">
-                <xsl:variable name="property-parts" as="map(xs:string, xs:string)" select="rdfa:split-uri(.)"/>
+            <xsl:for-each select="tokenize(@property) ! rdfax:resolve-term-or-curie(., $prefixes, $vocab)">
+                <xsl:variable name="property-parts" as="map(xs:string, xs:string)" select="rdfax:split-uri(.)"/>
                 <xsl:choose>
                     <xsl:when test="matches($property-parts?local, '^[\i-[:]][\c-[:]]*$') and $property-parts?namespace ne ''">
                         <rdf:Description>
-                            <xsl:sequence select="rdfa:subject-attribute($statement?subject)"/>
-                            <xsl:element name="{rdfa:prefixed-name($property-parts, $prefixes)}" namespace="{$property-parts?namespace}">
+                            <xsl:sequence select="rdfax:subject-attribute($statement?subject)"/>
+                            <xsl:element name="{rdfax:prefixed-name($property-parts, $prefixes)}" namespace="{$property-parts?namespace}">
                                 <xsl:choose>
                                     <xsl:when test="exists($statement?object)">
-                                        <xsl:sequence select="rdfa:object-attribute($statement?object)"/>
+                                        <xsl:sequence select="rdfax:object-attribute($statement?object)"/>
                                     </xsl:when>
                                     <xsl:otherwise>
                                         <xsl:choose>
@@ -174,7 +174,7 @@
              (@typeof without @about, rule 5.1) - else the new subject, else the current one -->
         <xsl:variable name="chains" as="xs:boolean"
             select="exists(@property) and not(@content) and not(@datatype) and exists(@typeof) and not(@about)"/>
-        <xsl:apply-templates select="*" mode="rdfa:extract">
+        <xsl:apply-templates select="*" mode="rdfax:extract">
             <xsl:with-param name="subject" select="if ($chains) then $statement?object else ($new-subject, $subject)[1]"/>
             <xsl:with-param name="prefixes" select="$prefixes"/>
             <xsl:with-param name="vocab" select="$vocab"/>
@@ -188,23 +188,23 @@
         present) @resource/@href/@src establish the subject; @typeof mints a node
         identified by @resource/@href/@src or a fresh blank node; else none (inherit).
     -->
-    <xsl:function name="rdfa:new-subject" as="xs:string?">
+    <xsl:function name="rdfax:new-subject" as="xs:string?">
         <xsl:param name="element" as="element()"/>
         <xsl:param name="prefixes" as="map(xs:string, xs:string)"/>
         <xsl:param name="base" as="xs:string"/>
 
         <xsl:choose>
             <xsl:when test="$element/@about">
-                <xsl:sequence select="rdfa:resolve-iri($element/@about, $prefixes, $base)"/>
+                <xsl:sequence select="rdfax:resolve-iri($element/@about, $prefixes, $base)"/>
             </xsl:when>
             <xsl:when test="$element/(@resource, @href, @src)
                     and (not($element/@property) or $element/@content or $element/@datatype)">
-                <xsl:sequence select="rdfa:resolve-iri(($element/@resource, $element/@href, $element/@src)[1], $prefixes, $base)"/>
+                <xsl:sequence select="rdfax:resolve-iri(($element/@resource, $element/@href, $element/@src)[1], $prefixes, $base)"/>
             </xsl:when>
             <xsl:when test="$element/@typeof">
                 <xsl:sequence select="if ($element/(@resource, @href, @src))
-                    then rdfa:resolve-iri(($element/@resource, $element/@href, $element/@src)[1], $prefixes, $base)
-                    else '_:' || rdfa:bnode-label($element)"/>
+                    then rdfax:resolve-iri(($element/@resource, $element/@href, $element/@src)[1], $prefixes, $base)
+                    else '_:' || rdfax:bnode-label($element)"/>
             </xsl:when>
             <xsl:otherwise>
                 <xsl:sequence select="()"/>
@@ -213,16 +213,16 @@
     </xsl:function>
 
     <!-- the subject in scope at an element, for UI display: fold new-subject over the ancestor axis -->
-    <xsl:function name="rdfa:in-scope-subject" as="xs:string?">
+    <xsl:function name="rdfax:in-scope-subject" as="xs:string?">
         <xsl:param name="element" as="element()"/>
         <xsl:param name="base" as="xs:string"/>
 
         <xsl:sequence select="fold-left($element/ancestor-or-self::*, $base,
-            function($subject, $e) { (rdfa:new-subject($e, $rdfa:default-prefixes, $base), $subject)[1] })"/>
+            function($subject, $e) { (rdfax:new-subject($e, $rdfax:default-prefixes, $base), $subject)[1] })"/>
     </xsl:function>
 
     <!-- IRI attribute values (@about/@resource/@href/@src): blank node, CURIE, or (relative) IRI -->
-    <xsl:function name="rdfa:resolve-iri" as="xs:string">
+    <xsl:function name="rdfax:resolve-iri" as="xs:string">
         <xsl:param name="value" as="xs:string"/>
         <xsl:param name="prefixes" as="map(xs:string, xs:string)"/>
         <xsl:param name="base" as="xs:string"/>
@@ -242,7 +242,7 @@
     </xsl:function>
 
     <!-- @property/@typeof/@datatype values: absolute IRI, CURIE, or bare term against @vocab -->
-    <xsl:function name="rdfa:resolve-term-or-curie" as="xs:string?">
+    <xsl:function name="rdfax:resolve-term-or-curie" as="xs:string?">
         <xsl:param name="value" as="xs:string"/>
         <xsl:param name="prefixes" as="map(xs:string, xs:string)"/>
         <xsl:param name="vocab" as="xs:string?"/>
@@ -266,7 +266,7 @@
     </xsl:function>
 
     <!-- @prefix attribute: 'prefix: IRI prefix: IRI ...' -->
-    <xsl:function name="rdfa:parse-prefix-attr" as="map(xs:string, xs:string)">
+    <xsl:function name="rdfax:parse-prefix-attr" as="map(xs:string, xs:string)">
         <xsl:param name="attr" as="xs:string?"/>
 
         <xsl:variable name="entries" as="map(xs:string, xs:string)*">
@@ -280,7 +280,7 @@
     </xsl:function>
 
     <!-- legacy xmlns:* declarations, via the namespace axis (XDM) and attribute names (HTML DOM) -->
-    <xsl:function name="rdfa:in-scope-namespaces" as="map(xs:string, xs:string)">
+    <xsl:function name="rdfax:in-scope-namespaces" as="map(xs:string, xs:string)">
         <xsl:param name="element" as="element()"/>
 
         <xsl:variable name="entries" as="map(xs:string, xs:string)*" select="
@@ -290,7 +290,7 @@
     </xsl:function>
 
     <!-- literal value of an element: its text content minus rendering/script/style subtrees -->
-    <xsl:function name="rdfa:literal-value" as="xs:string">
+    <xsl:function name="rdfax:literal-value" as="xs:string">
         <xsl:param name="element" as="element()"/>
 
         <xsl:sequence select="normalize-space(string-join(
@@ -298,13 +298,13 @@
     </xsl:function>
 
     <!-- stable across processors and runs, unlike generate-id(): position path of the element -->
-    <xsl:function name="rdfa:bnode-label" as="xs:string">
+    <xsl:function name="rdfax:bnode-label" as="xs:string">
         <xsl:param name="element" as="element()"/>
 
         <xsl:sequence select="'b' || string-join($element/ancestor-or-self::* ! string(count(preceding-sibling::*) + 1), '.')"/>
     </xsl:function>
 
-    <xsl:function name="rdfa:subject-attribute" as="attribute()">
+    <xsl:function name="rdfax:subject-attribute" as="attribute()">
         <xsl:param name="subject" as="xs:string"/>
 
         <xsl:choose>
@@ -317,7 +317,7 @@
         </xsl:choose>
     </xsl:function>
 
-    <xsl:function name="rdfa:object-attribute" as="attribute()">
+    <xsl:function name="rdfax:object-attribute" as="attribute()">
         <xsl:param name="object" as="xs:string"/>
 
         <xsl:choose>
@@ -331,7 +331,7 @@
     </xsl:function>
 
     <!-- namespace/local split on the last '#' or '/' for RDF/XML property element names -->
-    <xsl:function name="rdfa:split-uri" as="map(xs:string, xs:string)">
+    <xsl:function name="rdfax:split-uri" as="map(xs:string, xs:string)">
         <xsl:param name="uri" as="xs:string"/>
 
         <xsl:variable name="namespace" as="xs:string"
@@ -343,7 +343,7 @@
     </xsl:function>
 
     <!-- prefer a declared prefix for readable RDF/XML output -->
-    <xsl:function name="rdfa:prefixed-name" as="xs:string">
+    <xsl:function name="rdfax:prefixed-name" as="xs:string">
         <xsl:param name="parts" as="map(xs:string, xs:string)"/>
         <xsl:param name="prefixes" as="map(xs:string, xs:string)"/>
 

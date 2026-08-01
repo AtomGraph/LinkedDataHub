@@ -4,7 +4,7 @@ xmlns="http://www.w3.org/1999/xhtml"
 xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
 xmlns:ixsl="http://saxonica.com/ns/interactiveXSLT"
 xmlns:xs="http://www.w3.org/2001/XMLSchema"
-xmlns:local="urn:rdfa-editor:functions"
+xmlns:rdfae="https://w3id.org/atomgraph/rdfa-editor#"
 extension-element-prefixes="ixsl"
 xpath-default-namespace="http://www.w3.org/1999/xhtml"
 version="3.0">
@@ -32,7 +32,7 @@ version="3.0">
     round-trips byte-identically wherever the content model admits a div.
 
     The core knows no block vocabulary: $object-block-types is empty and the
-    local:render-island mode ships a neutral placeholder card. An extension
+    rdfae:render-island mode ships a neutral placeholder card. An extension
     stylesheet (src/ldh-blocks.xsl here; LinkedDataHub's client.xsl in
     production) imports the editor, re-declares the param and overrides the mode
     per @typeof - and for reference blocks by dereferencing the @about URI -
@@ -50,38 +50,38 @@ version="3.0">
          malformed @about can never error out of a predicate that runs on every
          gesture; relative/fragment @about values (document parts, or the
          about-relative lint case) are never islands -->
-    <xsl:function name="local:reference-block" as="xs:boolean">
+    <xsl:function name="rdfae:reference-block" as="xs:boolean">
         <xsl:param name="element" as="element()?"/>
         <xsl:sequence select="exists($element[self::div]
             [matches(normalize-space(@about), '^[A-Za-z][A-Za-z0-9+.\-]*:')]
-            [substring-before(normalize-space(@about) || '#', '#') ne local:document-uri()]
+            [substring-before(normalize-space(@about) || '#', '#') ne rdfae:document-uri()]
             [empty((node() except *[@data-role])[not(self::text()[not(normalize-space())])])])"/>
     </xsl:function>
 
     <!-- THE island predicate: every island decision (init, navigation, merge
          boundaries, the delete machine, undo re-render) routes through here -->
-    <xsl:function name="local:island" as="xs:boolean">
+    <xsl:function name="rdfae:island" as="xs:boolean">
         <xsl:param name="element" as="element()?"/>
         <xsl:sequence select="exists($element[self::div][tokenize(@typeof) = $object-block-types])
-            or local:reference-block($element)"/>
+            or rdfae:reference-block($element)"/>
     </xsl:function>
 
     <!-- the render hook. Context item = the island div. Contract: inject exactly
          one div[@data-role='rendering'] as the island's last child via
-         local:replace-rendering - async renderers only in the completion callback
+         rdfae:replace-rendering - async renderers only in the completion callback
          (loading state = the ephemeral rdfa-editor-loading class), so an island
          without a rendering div always reads as "render needed" (the undo-restore
          re-render pass keys on that); never touch the RDFa spans; never push undo
          (rendering is ephemeral by construction); idempotent (replace, not append) -->
-    <xsl:mode name="local:render-island" on-no-match="deep-skip"/>
+    <xsl:mode name="rdfae:render-island" on-no-match="deep-skip"/>
 
     <!-- neutral default: a static card naming the block's type (a reference
          block has none - it reads as 'Resource') and resource. Extension
          templates matching per @typeof / reference win on import precedence -->
-    <xsl:template match="*" mode="local:render-island">
+    <xsl:template match="*" mode="rdfae:render-island">
         <xsl:variable name="type" as="xs:string?"
             select="(tokenize(@typeof)[. = $object-block-types], tokenize(@typeof), 'Resource')[1]"/>
-        <xsl:call-template name="local:replace-rendering">
+        <xsl:call-template name="rdfae:replace-rendering">
             <xsl:with-param name="island" select="."/>
             <xsl:with-param name="content">
                 <div class="rdfa-editor-island-card">
@@ -96,13 +96,13 @@ version="3.0">
     </xsl:template>
 
     <!-- idempotent rendering-container swap: the only writer of the rendering div -->
-    <xsl:template name="local:replace-rendering">
+    <xsl:template name="rdfae:replace-rendering">
         <xsl:param name="island" as="element()"/>
         <xsl:param name="content" as="node()*"/>
         <xsl:for-each select="$island/*[@data-role = 'rendering']">
             <xsl:sequence select="ixsl:call(., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:for-each>
-        <xsl:variable name="rendering" as="element()" select="local:element('div')"/>
+        <xsl:variable name="rendering" as="element()" select="rdfae:element('div')"/>
         <xsl:for-each select="$rendering">
             <ixsl:set-attribute name="data-role" select="'rendering'"/>
         </xsl:for-each>
@@ -118,13 +118,13 @@ version="3.0">
     <!-- no-op extension points, overridden at higher import precedence: dialogs
          appended to body at init, toolbar Insert-group buttons, slash-menu items,
          and slash-command dispatch for those items -->
-    <xsl:template name="local:render-extra-dialogs"/>
+    <xsl:template name="rdfae:render-extra-dialogs"/>
 
-    <xsl:template name="local:render-extra-insert-buttons"/>
+    <xsl:template name="rdfae:render-extra-insert-buttons"/>
 
-    <xsl:template name="local:render-extra-slash-items"/>
+    <xsl:template name="rdfae:render-extra-slash-items"/>
 
-    <xsl:template name="local:run-extra-slash-command">
+    <xsl:template name="rdfae:run-extra-slash-command">
         <xsl:param name="command" as="xs:string"/>
         <xsl:param name="host" as="element()?"/>
     </xsl:template>

@@ -68,7 +68,7 @@ xmlns:schema1="&schema1;"
 xmlns:schema2="&schema2;"
 xmlns:dbpo="&dbpo;"
 xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
-xmlns:local="urn:rdfa-editor:functions"
+xmlns:rdfae="https://w3id.org/atomgraph/rdfa-editor#"
 exclude-result-prefixes="#all"
 extension-element-prefixes="ixsl"
 >
@@ -262,7 +262,7 @@ WHERE
         <ixsl:set-property name="graphs" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/> <!-- used by graph3d.xsl -->
         <ixsl:set-property name="yasqe" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
         <!-- create the RDFa editor state container (editor chrome initializes lazily, on the first editable region) -->
-        <xsl:call-template name="local:init-state"/>
+        <xsl:call-template name="rdfae:init-state"/>
 
         <!-- handle OAuth ID token from URL fragment -->
         <xsl:variable name="location-hash" select="ixsl:get(ixsl:get(ixsl:window(), 'location'), 'hash')" as="xs:string?"/>
