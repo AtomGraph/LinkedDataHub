@@ -210,7 +210,7 @@ WHERE
                     <div class="main offset2 span7">
                         <div class="alert alert-success row-fluid">
                             <div class="span1">
-                                <img src="{resolve-uri('static/com/atomgraph/linkeddatahub/icons/baseline_done_white_48dp.png', lapp:origin())}" alt="Signup complete"/>
+                                <img src="{resolve-uri('static/com/atomgraph/linkeddatahub/icons/baseline_done_white_48dp.png', $lapp:origin)}" alt="Signup complete"/>
                             </div>
                             <div class="span11">
                                 <p>Congratulations! Your WebID profile has been created. You can see its data below.</p>
@@ -1477,7 +1477,7 @@ WHERE
             <!-- delete existing content -->
             <xsl:when test="$about">
                 <!-- show a confirmation prompt -->
-                <xsl:if test="ixsl:call(ixsl:window(), 'confirm', [ ac:label(key('resources', 'are-you-sure', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', lapp:origin())))) ])">
+                <xsl:if test="ixsl:call(ixsl:window(), 'confirm', [ ac:label(key('resources', 'are-you-sure', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))) ])">
                     <xsl:sequence select="ixsl:call($block, 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
 
                     <xsl:variable name="where-pattern" as="element()">

@@ -24,19 +24,19 @@ xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
 exclude-result-prefixes="#all">
     
     <xsl:template match="*[@rdf:about = '&sp;Ask']" mode="ac:label">
-        <xsl:apply-templates select="key('resources', 'ask-query', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', lapp:origin())))" mode="#current"/>
+        <xsl:apply-templates select="key('resources', 'ask-query', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="#current"/>
     </xsl:template>
 
     <xsl:template match="*[@rdf:about = '&sp;Select']" mode="ac:label">
-        <xsl:apply-templates select="key('resources', 'select-query', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', lapp:origin())))" mode="#current"/>
+        <xsl:apply-templates select="key('resources', 'select-query', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="#current"/>
     </xsl:template>
 
     <xsl:template match="*[@rdf:about = '&sp;Describe']" mode="ac:label">
-        <xsl:apply-templates select="key('resources', 'describe-query', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', lapp:origin())))" mode="#current"/>
+        <xsl:apply-templates select="key('resources', 'describe-query', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="#current"/>
     </xsl:template>
 
     <xsl:template match="*[@rdf:about = '&sp;Construct']" mode="ac:label">
-        <xsl:apply-templates select="key('resources', 'construct-query', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', lapp:origin())))" mode="#current"/>
+        <xsl:apply-templates select="key('resources', 'construct-query', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="#current"/>
     </xsl:template>
 
     <!-- ROW: WRONG IMPORT PRECEDENCE! -->
