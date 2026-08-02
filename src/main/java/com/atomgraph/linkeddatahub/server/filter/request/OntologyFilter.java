@@ -190,8 +190,12 @@ public class OntologyFilter implements ContainerRequestFilter
         Model promotions = ModelFactory.createDefaultModel();
         ontology.listSubjectsWithProperty(RDF.type, RDFS.Class).forEach(r -> promotions.add(r, RDF.type, OWL.Class));
         if (!promotions.isEmpty()) union.addSubGraph(promotions.getGraph());
-        // cache closure graphs under their fragment-stripped document URIs too
+        // cache closure graphs under their fragment-stripped document URIs too. ontapi keys imports under
+        // their declared ontology IRIs, which need not be repository entries (a content-addressed upload is
+        // cached under its uploads/ URI while declaring a foreign ontology IRI) — only alias ids the shared
+        // repository actually holds, lest the lookup dereference a foreign IRI over HTTP
         scoped.ids().filter(closureURI -> closureURI.startsWith("http://") || closureURI.startsWith("https://")).
+            filter(repository::isCached).
             forEach(closureURI -> addDocumentModel(repository, closureURI));
         if (log.isDebugEnabled()) log.debug("Finished loading ontology with URI '{}'", uri);
         return union;
