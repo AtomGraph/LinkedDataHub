@@ -21,7 +21,10 @@ import com.atomgraph.client.util.HTMLMediaTypePredicate;
 import com.atomgraph.client.vocabulary.AC;
 import com.atomgraph.core.exception.BadGatewayException;
 import com.atomgraph.core.util.ModelUtils;
+import com.atomgraph.client.util.jena.PrefixGraphRepository;
+import com.atomgraph.linkeddatahub.apps.model.Application;
 import com.atomgraph.linkeddatahub.apps.model.Dataset;
+import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import org.apache.jena.ontapi.model.OntModel;
 import com.atomgraph.linkeddatahub.client.GraphStoreClient;
 import com.atomgraph.linkeddatahub.client.filter.auth.IDTokenDelegationFilter;
@@ -186,12 +189,29 @@ public class ProxyRequestFilter implements ContainerRequestFilter
             return;
         }
 
-        // serve terms from the app's in-memory namespace ontology (full imports closure) via DESCRIBE.
-        // covers both slash-based term URIs (e.g. schema:category) and hash-based namespaces
-        // (e.g. sioc:UserAccount → ac:document-uri strips to sioc:ns, so we also describe all
-        // ?term where STR(?term) starts with "<targetURI>#")
         if (isSafeMethod && getOntology().isPresent())
         {
+            // serve documents of the app's ontology imports closure with their raw graphs — asserted triples
+            // only, identical to a direct document GET. Hash-based term URIs (e.g. ldh:View) arrive here
+            // fragment-stripped as their document URI. The isCached guard restricts serving to graphs already
+            // loaded as part of the closure, so arbitrary external URIs cannot trigger repository loading
+            // outside the SSRF-validated external client path below.
+            Optional<Application> appOpt = (Optional<Application>)requestContext.getProperty(LAPP.Application.getURI());
+            PrefixGraphRepository repository = appOpt != null && appOpt.isPresent() && appOpt.get().canAs(EndUserApplication.class) ?
+                getSystem().getRepository(appOpt.get().as(EndUserApplication.class)) : getSystem().getRepository();
+            if (repository.isCached(targetURI.toString()))
+            {
+                if (log.isDebugEnabled()) log.debug("Serving URI from the ontology closure cache: {}", targetURI);
+                Model model = org.apache.jena.rdf.model.ModelFactory.createModelForGraph(repository.get(targetURI.toString()));
+                requestContext.abortWith(getResponse(model, Response.Status.OK));
+                return;
+            }
+
+            // fall back to DESCRIBE over the in-memory closure union (asserted triples only — no inference)
+            // for term URIs whose document is not a closure graph: terms minted in external namespaces but
+            // defined in the app ontology. Covers both slash-based term URIs (e.g. schema:category) and
+            // hash-based namespaces (e.g. sioc:UserAccount → ac:document-uri strips to sioc:ns, so we also
+            // describe all ?term where STR(?term) starts with "<targetURI>#")
             ParameterizedSparqlString pss = new ParameterizedSparqlString(
                 "DESCRIBE ?doc ?term WHERE { ?term ?p ?o FILTER(STRSTARTS(STR(?term), CONCAT(STR(?doc), \"#\"))) }");
             pss.setIri("doc", targetURI.toString());

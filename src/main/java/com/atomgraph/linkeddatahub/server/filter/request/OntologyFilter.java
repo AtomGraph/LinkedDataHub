@@ -19,14 +19,13 @@ package com.atomgraph.linkeddatahub.server.filter.request;
 import com.atomgraph.linkeddatahub.apps.model.Application;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import com.atomgraph.client.util.jena.PrefixGraphRepository;
+import com.atomgraph.linkeddatahub.server.util.ScopedGraphRepository;
 import com.atomgraph.linkeddatahub.vocabulary.LAPP;
 import com.atomgraph.server.exception.OntologyException;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.HashSet;
 import java.util.Optional;
-import java.util.Set;
 import jakarta.annotation.Priority;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.container.ContainerRequestContext;
@@ -34,12 +33,13 @@ import jakarta.ws.rs.container.ContainerRequestFilter;
 import jakarta.ws.rs.container.PreMatching;
 import org.apache.jena.ontapi.OntModelFactory;
 import org.apache.jena.ontapi.OntSpecification;
+import org.apache.jena.ontapi.UnionGraph;
 import org.apache.jena.ontapi.model.OntModel;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
-import org.apache.jena.vocabulary.OWL;
 import org.apache.jena.vocabulary.RDF;
 import org.apache.jena.vocabulary.RDFS;
+import org.apache.jena.vocabulary.OWL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -131,8 +131,9 @@ public class OntologyFilter implements ContainerRequestFilter
     }
 
     /**
-     * Loads the ontology model for the specified ontology URI, building its owl:imports closure with
-     * RDFS inference and materializing the inferences into the repository cache.
+     * Returns the ontology model for the specified ontology URI, assembling its owl:imports closure
+     * on a cache miss. The returned model is a fresh per-request wrapper over the shared closure
+     * union graph.
      *
      * @param app application resource
      * @param uri ontology URI
@@ -146,64 +147,54 @@ public class OntologyFilter implements ContainerRequestFilter
         final PrefixGraphRepository repository = app.canAs(EndUserApplication.class) ?
             getSystem().getRepository(app.as(EndUserApplication.class)) : getSystem().getRepository();
 
-        // only build the materialized model if the ontology is not already cached; the double check under the
-        // repository lock ensures a single thread materializes it (loadOntology is a compound load + inference +
-        // put, not atomic), so concurrent cold requests don't duplicate the work or race each other's writes
-        if (!repository.isCached(uri))
+        // only assemble the closure if it is not already cached; the double check under the repository
+        // lock ensures a single thread assembles it (loadOntology is a compound load + union build, not
+        // atomic), so concurrent cold requests don't duplicate the work or race each other's writes
+        UnionGraph union = getSystem().getOntologyGraphs().get(uri);
+        if (union == null)
         {
             synchronized (repository)
             {
-                if (!repository.isCached(uri)) loadOntology(repository, uri);
+                union = getSystem().getOntologyGraphs().get(uri);
+                if (union == null)
+                {
+                    union = loadOntology(repository, uri);
+                    getSystem().getOntologyGraphs().put(uri, union);
+                }
             }
         }
 
-        return OntModelFactory.createModel(repository.get(uri), OntSpecification.OWL2_FULL_MEM);
+        return OntModelFactory.createModel(union, OntSpecification.OWL2_FULL_MEM);
     }
 
     /**
-     * Builds and caches the materialized ontology model. Assembles the owl:imports closure into a single
-     * graph (so ontapi never manages a union-graph hierarchy over the shared repository), applies RDFS
-     * inference over the flattened closure, and materializes the inferences into the repository cache so
-     * the rules engine is not invoked on every request.
+     * Assembles the ontology's owl:imports closure as a union graph. ontapi resolves the closure through
+     * a scoped repository view: raw per-document graphs are read through (and cached in) the shared
+     * repository, while ontapi's union-graph bookkeeping stays local to the view — the shared repository
+     * keeps serving raw document graphs, and duplicate ontology IDs across applications cannot collide.
+     * No inference is applied: all consumers traverse class/property hierarchies explicitly.
      *
      * @param repository graph repository
      * @param uri ontology URI
+     * @return closure union graph
      */
-    public static void loadOntology(PrefixGraphRepository repository, String uri)
+    public static UnionGraph loadOntology(PrefixGraphRepository repository, String uri)
     {
         if (log.isDebugEnabled()) log.debug("Started loading ontology with URI '{}'", uri);
-        Model union = ModelFactory.createDefaultModel();
-        Set<String> closure = new HashSet<>();
-        loadClosure(repository, uri, union, closure);
-        OntModel inferred = OntModelFactory.createModel(union.getGraph(), OntSpecification.OWL2_FULL_MEM_RDFS_INF);
-        OntModel materialized = OntModelFactory.createModel(OntSpecification.OWL2_FULL_MEM);
-        materialized.add(inferred);
-        // promote rdfs:Class to owl:Class so OWL2 profiles recognise third-party vocab terms (e.g. sp:Describe in sp.ttl)
-        inferred.listSubjectsWithProperty(RDF.type, RDFS.Class).forEach(r -> materialized.add(r, RDF.type, OWL.Class));
-        repository.put(uri, materialized.getGraph());
-        // cache imported graphs under their fragment-stripped document URIs too
-        closure.stream().filter(closureURI -> !closureURI.equals(uri)).forEach(importURI -> addDocumentModel(repository, importURI));
+        ScopedGraphRepository scoped = new ScopedGraphRepository(repository);
+        OntModel ontology = OntModelFactory.createModel(repository.get(uri), OntSpecification.OWL2_FULL_MEM, scoped);
+        UnionGraph union = (UnionGraph)ontology.getGraph();
+        // promote rdfs:Class to owl:Class so the OWL2 profile recognises third-party vocab terms (e.g. sp:Describe
+        // in sp.ttl) as named classes. The promotions live in their own union member so no document graph is
+        // polluted; carrying no owl:Ontology header, the member is ignored by ontapi's union-graph listener
+        Model promotions = ModelFactory.createDefaultModel();
+        ontology.listSubjectsWithProperty(RDF.type, RDFS.Class).forEach(r -> promotions.add(r, RDF.type, OWL.Class));
+        if (!promotions.isEmpty()) union.addSubGraph(promotions.getGraph());
+        // cache closure graphs under their fragment-stripped document URIs too
+        scoped.ids().filter(closureURI -> closureURI.startsWith("http://") || closureURI.startsWith("https://")).
+            forEach(closureURI -> addDocumentModel(repository, closureURI));
         if (log.isDebugEnabled()) log.debug("Finished loading ontology with URI '{}'", uri);
-    }
-
-    /**
-     * Recursively loads the transitive owl:imports closure of an ontology into a single union model,
-     * fetching each graph via the repository (SPARQL-first / bundled mappings).
-     *
-     * @param repository graph repository
-     * @param uri ontology URI
-     * @param union accumulator model
-     * @param seen accumulator of visited URIs (prevents cycles)
-     */
-    public static void loadClosure(PrefixGraphRepository repository, String uri, Model union, Set<String> seen)
-    {
-        if (!seen.add(uri)) return;
-        Model model = ModelFactory.createModelForGraph(repository.get(uri));
-        union.add(model);
-        model.listObjectsOfProperty(OWL.imports).toList().forEach(imp ->
-        {
-            if (imp.isURIResource()) loadClosure(repository, imp.asResource().getURI(), union, seen);
-        });
+        return union;
     }
 
     /**

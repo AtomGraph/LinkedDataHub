@@ -49,9 +49,9 @@ clear-ontology.sh \
   --ontology "$namespace"
 
 # request the namespace document URI (without fragment) via ?uri= proxy.
-# the namespace document is not DataManager-mapped and not a registered app,
-# so ProxyRequestFilter falls through to the OntModel DESCRIBE path, which
-# returns descriptions of all #-fragment terms in that namespace.
+# the namespace document is not DataManager-mapped, not a registered app and not a graph
+# in the ontology closure, so ProxyRequestFilter falls through to the closure DESCRIBE
+# fallback, which returns descriptions of all #-fragment terms in that namespace.
 
 response=$(curl -k -f -s \
   -G \
@@ -60,7 +60,24 @@ response=$(curl -k -f -s \
   --data-urlencode "uri=${namespace_uri}" \
   "$END_USER_BASE_URL")
 
-# verify both class descriptions are present in the response
+# verify both class descriptions are present in the response and no inferred triples leak
 
 echo "$response" | grep -q "$class1"
 echo "$response" | grep -q "$class2"
+! echo "$response" | grep -q "http://www.w3.org/2000/01/rdf-schema#Resource"
+
+# request the ontology document itself via ?uri= proxy: it is a graph in the ontology closure,
+# so it must be served with its raw graph — asserted triples only, identical to a direct
+# document GET. Inferred rdf:type rdfs:Resource used to leak from the RDFS-materialized
+# in-memory model here, breaking client-side @typeof matching of View blocks.
+
+doc_response=$(curl -k -f -s \
+  -G \
+  -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
+  -H "Accept: application/n-triples" \
+  --data-urlencode "uri=${ontology_doc}" \
+  "$END_USER_BASE_URL")
+
+echo "$doc_response" | grep -q "$class1"
+echo "$doc_response" | grep -q "$class2"
+! echo "$doc_response" | grep -q "http://www.w3.org/2000/01/rdf-schema#Resource"

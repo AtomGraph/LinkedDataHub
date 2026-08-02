@@ -1,3 +1,11 @@
+## [Unreleased]
+### Changed
+- Application ontologies resolved as a native ontapi `owl:imports` union graph (cached per ontology URI) instead of a manually flattened, RDFS-materialized model — no RDFS inference
+- `Namespace` no-query GET serves the raw ontology graph from the shared repository instead of rebuilding a repository per request
+
+### Fixed
+- Raw ontology graphs no longer leak inferred `rdf:type rdfs:Resource`, which produced multi-token `@typeof` that broke View block rendering
+
 ## [5.7.1] - 2026-08-06
 ### Changed
 - RDFa editor: annotation overlay rebuilt on demand (`rdfa-editor/overlay.xsl`)
