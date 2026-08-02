@@ -3,6 +3,7 @@
 - WYMEditor replaced with the RDFa editor for `rdf:XMLLiteral` editing (#336)
 - RDFa annotation dialog controls grouped into Subject and Object fieldsets
 - Entity-inlining and SEF compilation moved to the pre-integration-test Maven phase
+- Dependency and Maven plugin upgrades: slf4j-reload4j 2.0.18, Mockito 5.23.0, Surefire 3.5.6, maven-compiler-plugin 3.15.0, frontend-maven-plugin 2.0.0, maven-gpg-plugin 3.2.8
 
 ### Fixed
 - Static asset URIs resolve against the shell-origin `$lapp:origin`, fixing CORS-blocked fetches on proxied dataspaces
