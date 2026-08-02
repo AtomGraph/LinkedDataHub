@@ -91,7 +91,21 @@ public class ScopedGraphRepository implements GraphRepository
     @Override
     public boolean contains(String id)
     {
-        return local.containsKey(id) || getBacking().contains(id);
+        if (local.containsKey(id) || getBacking().contains(id)) return true;
+
+        // the backing repository's contains() only reports already-cached graphs, but ontapi consults
+        // contains() before get() when resolving imports — a false negative for a resolvable id (bundled
+        // mapping, SPARQL-first, HTTP) makes ontapi silently substitute an empty ontology graph for the
+        // import. Attempt resolution instead: the backing repository loads and caches the graph, and only
+        // a genuinely unresolvable id reports absent
+        try
+        {
+            return getBacking().get(id) != null;
+        }
+        catch (RuntimeException ex)
+        {
+            return false;
+        }
     }
 
     @Override
