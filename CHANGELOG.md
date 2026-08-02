@@ -1,3 +1,12 @@
+## [5.7.0] - 2026-08-02
+### Changed
+- WYMEditor replaced with the RDFa editor for `rdf:XMLLiteral` editing (#336)
+- RDFa annotation dialog controls grouped into Subject and Object fieldsets
+- Entity-inlining and SEF compilation moved to the pre-integration-test Maven phase
+
+### Fixed
+- Static asset URIs resolve against the shell-origin `$lapp:origin`, fixing CORS-blocked fetches on proxied dataspaces
+
 ## [5.6.1] - 2026-07-26
 ### Security
 - SSRF: `URLValidator` blocks wildcard/any-local (`0.0.0.0`, `::`) addresses and checks every resolved address; loopback stays reachable, `ALLOW_INTERNAL_URLS` remains the escape hatch (LNK-003/LNK-009)
