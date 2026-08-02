@@ -47,6 +47,7 @@ xmlns:sh="&sh;"
 xmlns:sioc="&sioc;"
 xmlns:spin="&spin;"
 xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
+xmlns:rdfae="https://w3id.org/atomgraph/rdfa-editor#"
 extension-element-prefixes="ixsl"
 exclude-result-prefixes="#all"
 >
@@ -141,22 +142,275 @@ WHERE
         <xsl:sequence select="ixsl:call(., 'addEventListener', [ 'change', ixsl:get(ixsl:window(), 'onSubjectTypeChange') ])[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
     
-    <xsl:template match="textarea[contains-token(@class, 'wymeditor')]" mode="ldh:RenderRowForm" priority="1">
-        <!-- call .wymeditor() on textarea to show WYMEditor with current origin's iframe path -->
-        <xsl:variable name="iframe-base-path" select="resolve-uri('static/com/atomgraph/linkeddatahub/js/wymeditor/iframe/default/', ldt:base())" as="xs:anyURI"/>
-        <xsl:variable name="wymeditor-config" select="ldh:new-object()"/>
-        <ixsl:set-property name="iframeBasePath" select="$iframe-base-path" object="$wymeditor-config"/>
-        <xsl:sequence select="ixsl:call(ixsl:call(ixsl:window(), 'jQuery', [ . ]), 'wymeditor', [ $wymeditor-config ])[current-date() lt xs:date('2000-01-01')]"/>
-        <xsl:variable name="wymeditor" select="ixsl:call(ixsl:get(ixsl:window(), 'jQuery'), 'getWymeditorByTextarea', [ . ])" as="item()"/>
-        <xsl:variable name="char-count" select="sum(.//text()/string-length())" as="xs:integer"/>
-        <xsl:variable name="iframe" select="ixsl:get($wymeditor, '_iframe')" as="element()"/>
-        
-        <!-- attempt to infer WYMEditor height from the length of textarea's content (though min 30em and max 100em) -->
-        <xsl:for-each select="$iframe">
-            <xsl:variable name="height-in-em" select="$char-count idiv 16" as="xs:integer"/>
-            <xsl:variable name="height-in-em" select="if ($height-in-em &lt; 30) then 30 else if ($height-in-em &gt; 100) then 100 else $height-in-em" as="xs:integer"/>
-            <ixsl:set-style name="height" select="string($height-in-em) || 'em'" object="."/>
+    <!-- the RDFa editor toolbar mounts in the active document's editor-bar, below the action bar (LDH pages have no nav element) -->
+    <xsl:function name="rdfae:toolbar-host" as="element()*">
+        <xsl:sequence select="(id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')][contains-token(@class, 'active')]//div[contains-token(@class, 'editor-bar')]/div[contains-token(@class, 'container-fluid')])[1]"/>
+    </xsl:function>
+
+    <!-- first editable region on the page: full editor bring-up (chrome, dialogs, drawers, all regions) -->
+    <xsl:template match="div[contains-token(@class, 'rdfa-editor-content')][empty(id('edit-toolbar', ixsl:page()))]" mode="ldh:RenderRowForm" priority="2">
+        <xsl:call-template name="rdfae:init-editor"/>
+        <xsl:for-each select="(.//*[@contenteditable = 'true'])[1]">
+            <xsl:sequence select="ixsl:call(., 'focus', [])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:for-each>
+    </xsl:template>
+
+    <!-- additional region: editor chrome already in the DOM; init only this region's blocks -->
+    <xsl:template match="div[contains-token(@class, 'rdfa-editor-content')]" mode="ldh:RenderRowForm" priority="1">
+        <!-- adopt the singleton toolbar into this document's editor-bar (it may have initialized in another tab) -->
+        <xsl:for-each select="rdfae:toolbar-host()[not(descendant::*[@id = 'edit-toolbar'])]">
+            <xsl:sequence select="ixsl:call(., 'appendChild', [ id('edit-toolbar', ixsl:page()) ])[current-date() lt xs:date('2000-01-01')]"/>
+        </xsl:for-each>
+        <xsl:call-template name="rdfae:init-region">
+            <xsl:with-param name="region" select="."/>
+        </xsl:call-template>
+        <xsl:for-each select="(.//*[@contenteditable = 'true'])[1]">
+            <xsl:sequence select="ixsl:call(., 'focus', [])[current-date() lt xs:date('2000-01-01')]"/>
+        </xsl:for-each>
+    </xsl:template>
+
+    <!-- override RDFa editor annotation typeahead: use LDH's /ns-querying bs2:Lookup instead of doc()-on-vocabs -->
+    <xsl:function name="rdfae:typeahead-field" as="element()">
+        <xsl:param name="field" as="xs:string"/>
+        <xsl:variable name="for-class" as="xs:anyURI" select="if ($field = 'typeof') then xs:anyURI('&owl;Class') else xs:anyURI('&rdf;Property')"/>
+        <span data-field="{$field}" class="typeahead-field rdfa-editor-ui">
+            <xsl:call-template name="bs2:Lookup">
+                <xsl:with-param name="class" select="'property-typeahead typeahead'"/>
+                <xsl:with-param name="id" select="'annotation-' || $field"/>
+                <xsl:with-param name="list-class" select="'property-typeahead typeahead dropdown-menu'"/>
+                <xsl:with-param name="forClass" select="$for-class"/>
+            </xsl:call-template>
+        </span>
+    </xsl:function>
+
+    <!-- rebuild the typeahead field and pre-populate with IRI; clears any prior committed button state -->
+    <xsl:template name="rdfae:typeahead-set-value">
+        <xsl:param name="form" as="element()"/>
+        <xsl:param name="field" as="xs:string"/>
+        <xsl:param name="iri" as="xs:string"/>
+        <xsl:variable name="for-class" as="xs:anyURI" select="if ($field = 'typeof') then xs:anyURI('&owl;Class') else xs:anyURI('&rdf;Property')"/>
+        <xsl:for-each select="($form//span[@data-field = $field])[1]">
+            <xsl:result-document href="?." method="ixsl:replace-content">
+                <xsl:call-template name="bs2:Lookup">
+                    <xsl:with-param name="class" select="'property-typeahead typeahead'"/>
+                    <xsl:with-param name="id" select="'annotation-' || $field"/>
+                    <xsl:with-param name="list-class" select="'property-typeahead typeahead dropdown-menu'"/>
+                    <xsl:with-param name="forClass" select="$for-class"/>
+                    <xsl:with-param name="value" select="if ($iri ne '') then $iri else ()"/>
+                </xsl:call-template>
+            </xsl:result-document>
+        </xsl:for-each>
+    </xsl:template>
+
+    <!-- read back the IRI from span[@data-field]: committed (hidden input) or typed (property-typeahead text) -->
+    <xsl:function name="rdfae:typeahead-value" as="xs:string?">
+        <xsl:param name="form" as="element()"/>
+        <xsl:param name="field" as="xs:string"/>
+        <xsl:variable name="wrapper" as="element()?" select="($form//span[@data-field = $field])[1]"/>
+        <xsl:variable name="hidden" as="element()?" select="($wrapper//input[@type = 'hidden'])[1]"/>
+        <xsl:choose>
+            <xsl:when test="exists($hidden)">
+                <xsl:sequence select="string(ixsl:get($hidden, 'value'))[. ne '']"/>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:variable name="input" as="element()?" select="($wrapper//input[contains-token(@class, 'property-typeahead')])[1]"/>
+                <xsl:variable name="text" as="xs:string" select="normalize-space(string(ixsl:get($input, 'value')))"/>
+                <xsl:sequence select="if (rdfae:is-absolute-iri($text)) then $text else ()"/>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:function>
+
+    <!-- Bootstrap-styled annotation overlay (replaces rdfa-editor's custom HTML structure) -->
+    <xsl:template name="rdfae:render-overlay">
+        <div id="{$rdfae:overlay-id}" class="modal rdfa-editor-ui" role="dialog" aria-modal="true" aria-label="RDFa annotation" style="display: none;">
+            <div class="modal-header">
+                <button type="button" class="close cancel-action">&#215;</button>
+                <legend>RDFa Annotation</legend>
+            </div>
+            <div class="modal-body">
+                <form id="annotation-form" class="form-horizontal">
+                    <div class="control-group">
+                        <label class="control-label" for="stmt-subject">Subject</label>
+                        <div class="controls">
+                            <div id="stmt-subject" class="uneditable-input"/>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label" for="annotation-property">Property</label>
+                        <div class="controls">
+                            <xsl:sequence select="rdfae:typeahead-field('property')"/>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label" for="annotation-value">Value</label>
+                        <div class="controls">
+                            <input type="text" id="annotation-value" name="value" class="input-xlarge" placeholder="Literal value"/>
+                            <span class="help-block">The selected text; change to emit a machine-readable content value</span>
+                        </div>
+                    </div>
+                    <fieldset>
+                        <legend>Subject</legend>
+                        <div class="control-group">
+                            <label class="control-label" for="annotation-subject">Subject (about)</label>
+                            <div class="controls">
+                                <input type="text" id="annotation-subject" name="subject" class="input-xlarge" placeholder="Overrides the subject in scope"/>
+                                <span class="help-block">IRI or _:blank-node identifier</span>
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label class="control-label" for="annotation-typeof">Type (typeof)</label>
+                            <div class="controls">
+                                <xsl:sequence select="rdfae:typeahead-field('typeof')"/>
+                                <span class="help-block">Types the annotated resource; without a subject the typed resource becomes the object of the property (chaining)</span>
+                            </div>
+                        </div>
+                    </fieldset>
+                    <fieldset>
+                        <legend>Object</legend>
+                        <div class="control-group">
+                            <label class="control-label" for="annotation-object">Object (resource)</label>
+                            <div class="controls">
+                                <input type="text" id="annotation-object" name="object" class="input-xlarge" placeholder="Object IRI"/>
+                                <span class="help-block">Makes the object a resource instead of the literal value</span>
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label class="control-label" for="annotation-datatype">Datatype</label>
+                            <div class="controls">
+                                <select id="annotation-datatype" name="datatype">
+                                    <option value="">(plain literal)</option>
+                                    <xsl:variable name="xsd" as="xs:string" select="'http://www.w3.org/2001/XMLSchema#'"/>
+                                    <xsl:for-each select="'string', 'date', 'dateTime', 'time', 'integer', 'decimal', 'double', 'float', 'boolean', 'anyURI'">
+                                        <option value="{$xsd || .}">xsd:<xsl:value-of select="."/></option>
+                                    </xsl:for-each>
+                                    <option value="{$rdfae:custom}">-- Custom datatype --</option>
+                                </select>
+                                <input type="text" name="custom-datatype" class="input-xlarge" placeholder="Datatype IRI" style="display: none;"/>
+                                <span class="help-block">Types the literal; mutually exclusive with a language tag</span>
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label class="control-label" for="annotation-lang">Language</label>
+                            <div class="controls">
+                                <input type="text" id="annotation-lang" name="lang" class="input-small" placeholder="e.g. en, fr-CA"/>
+                                <span class="help-block">Language tag for the literal; ignored when a datatype is set</span>
+                            </div>
+                        </div>
+                    </fieldset>
+                    <div class="form-actions modal-footer">
+                        <button type="button" class="btn btn-danger remove-action" style="display: none;">Remove</button>
+                        <button type="button" class="btn btn-primary spo-action">Annotate</button>
+                        <button type="button" class="btn cancel-action">Cancel</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </xsl:template>
+
+    <!-- Bootstrap-styled toolbar dialogs (replace rdfa-editor's custom HTML) -->
+
+    <xsl:template name="rdfae:render-table-dialog">
+        <div id="table-dialog" class="rdfa-editor-ui edit-dialog" role="dialog" aria-modal="true" aria-label="Insert table" style="display: none;">
+            <label for="table-rows">Body rows</label>
+            <input type="number" id="table-rows" name="rows" value="3" min="1" max="50"/>
+            <label for="table-cols">Columns</label>
+            <input type="number" id="table-cols" name="cols" value="3" min="1" max="20"/>
+            <label class="checkbox"><input type="checkbox" name="header-row" checked="checked"/> Header row</label>
+            <label for="table-caption">Caption</label>
+            <input type="text" id="table-caption" name="caption"/>
+            <div class="action-buttons">
+                <button type="button" class="btn btn-primary table-save">Insert</button>
+                <button type="button" class="btn table-cancel">Cancel</button>
+            </div>
+        </div>
+    </xsl:template>
+
+    <xsl:template name="rdfae:render-link-dialog">
+        <div id="link-dialog" class="rdfa-editor-ui edit-dialog" role="dialog" aria-modal="true" aria-label="Link" style="display: none;">
+            <label for="link-href">Link target (href)</label>
+            <input type="text" id="link-href" name="href" placeholder="https://..."/>
+            <div class="action-buttons">
+                <button type="button" class="btn btn-danger link-remove" style="display: none;">Remove link</button>
+                <button type="button" class="btn btn-primary link-save">Save</button>
+                <button type="button" class="btn link-cancel">Cancel</button>
+            </div>
+        </div>
+    </xsl:template>
+
+    <xsl:template name="rdfae:render-figure-dialog">
+        <div id="figure-dialog" class="rdfa-editor-ui edit-dialog" role="dialog" aria-modal="true" aria-label="Insert figure" style="display: none;">
+            <label for="figure-src">Image URL (src)</label>
+            <input type="text" id="figure-src" name="src" placeholder="https://... or relative path"/>
+            <label for="figure-alt">Alternate text (alt)</label>
+            <input type="text" id="figure-alt" name="alt"/>
+            <label for="figure-caption">Caption</label>
+            <input type="text" id="figure-caption" name="caption"/>
+            <div class="action-buttons">
+                <button type="button" class="btn btn-primary figure-save">Insert</button>
+                <button type="button" class="btn figure-cancel">Cancel</button>
+            </div>
+        </div>
+    </xsl:template>
+
+    <xsl:template name="rdfae:render-find-dialog">
+        <div id="find-dialog" class="rdfa-editor-ui edit-dialog" role="dialog" aria-modal="true" aria-label="Find and replace" style="display: none;">
+            <label for="find-text">Find</label>
+            <input type="text" id="find-text" name="find"/>
+            <label for="find-replace">Replace with</label>
+            <input type="text" id="find-replace" name="replace"/>
+            <label class="checkbox"><input type="checkbox" name="match-case"/> Match case</label>
+            <div class="action-buttons">
+                <button type="button" class="btn btn-primary find-next">Find next</button>
+                <button type="button" class="btn replace-current">Replace</button>
+                <button type="button" class="btn replace-all">Replace all</button>
+                <button type="button" class="btn find-close">Close</button>
+            </div>
+            <span id="find-status" class="help-block"/>
+        </div>
+    </xsl:template>
+
+    <xsl:template name="rdfae:render-extra-dialogs">
+        <div id="ldh-block-dialog" class="rdfa-editor-ui edit-dialog" role="dialog" aria-modal="true" aria-label="Insert block" style="display: none;">
+            <label for="ldh-block-type">Block type</label>
+            <select id="ldh-block-type" name="block-type-iri">
+                <option value="https://w3id.org/atomgraph/rdfa-editor#reference">Resource</option>
+                <option value="&ldh;View">View</option>
+                <option value="&ldh;ResultSetChart">Result set chart</option>
+            </select>
+            <div class="ldh-fields ldh-fields-reference">
+                <label for="ldh-reference-uri">Resource URI</label>
+                <input type="text" id="ldh-reference-uri" name="reference-uri" placeholder="http://dbpedia.org/resource/Ada_Lovelace"/>
+            </div>
+            <div class="ldh-fields ldh-fields-frag" style="display: none;">
+                <label for="ldh-about">Fragment id</label>
+                <input type="text" id="ldh-about" name="about" placeholder="#chart-1"/>
+            </div>
+            <div class="ldh-fields ldh-fields-view" style="display: none;">
+                <label for="ldh-view-query">Query URI</label>
+                <input type="text" id="ldh-view-query" name="view-query"/>
+                <label for="ldh-view-mode">Mode URI (optional)</label>
+                <input type="text" id="ldh-view-mode" name="view-mode"/>
+            </div>
+            <div class="ldh-fields ldh-fields-chart" style="display: none;">
+                <label for="ldh-chart-query">Query URI</label>
+                <input type="text" id="ldh-chart-query" name="chart-query"/>
+                <label for="ldh-chart-type">Chart type</label>
+                <select id="ldh-chart-type" name="chart-type">
+                    <option value="&ac;Table">Table</option>
+                    <option value="&ac;BarChart">Bar chart</option>
+                    <option value="&ac;LineChart">Line chart</option>
+                    <option value="&ac;ScatterChart">Scatter chart</option>
+                </select>
+                <label for="ldh-chart-category">Category variable</label>
+                <input type="text" id="ldh-chart-category" name="chart-category"/>
+                <label for="ldh-chart-series">Series variable</label>
+                <input type="text" id="ldh-chart-series" name="chart-series"/>
+            </div>
+            <div class="action-buttons">
+                <button type="button" class="btn btn-primary ldh-block-save">Insert</button>
+                <button type="button" class="btn ldh-block-cancel">Cancel</button>
+            </div>
+        </div>
     </xsl:template>
 
     <!-- TO-DO: phase out as regular ixsl: event templates -->
@@ -181,6 +435,17 @@ WHERE
     
     <xsl:template match="text()" mode="ldh:FormPreSubmit"/>
     
+    <!-- serialize canonicalized editor content into the hidden ol input before form submission -->
+    <xsl:template match="div[contains-token(@class, 'rdfa-editor-content')]" mode="ldh:FormPreSubmit" priority="1">
+        <xsl:variable name="canonical" as="node()*">
+            <xsl:apply-templates select="node()" mode="canonical"/>
+        </xsl:variable>
+        <xsl:variable name="value" select="serialize($canonical, map{ 'method': 'xml' })" as="xs:string"/>
+        <xsl:for-each select="following-sibling::input[@name = 'ol'][1]">
+            <ixsl:set-property name="value" select="$value" object="."/>
+        </xsl:for-each>
+    </xsl:template>
+
     <!-- trim whitespace in bnode/URI values -->
     <xsl:template match="input[@name = ('ob', 'ou')][ixsl:get(., 'value')]" mode="ldh:FormPreSubmit" priority="1">
         <ixsl:set-attribute name="value" select="normalize-space(ixsl:get(., 'value'))"/>
@@ -210,7 +475,7 @@ WHERE
                     <div class="main offset2 span7">
                         <div class="alert alert-success row-fluid">
                             <div class="span1">
-                                <img src="{resolve-uri('static/com/atomgraph/linkeddatahub/icons/baseline_done_white_48dp.png', lapp:origin())}" alt="Signup complete"/>
+                                <img src="{resolve-uri('static/com/atomgraph/linkeddatahub/icons/baseline_done_white_48dp.png', $lapp:origin)}" alt="Signup complete"/>
                             </div>
                             <div class="span11">
                                 <p>Congratulations! Your WebID profile has been created. You can see its data below.</p>
@@ -702,15 +967,7 @@ WHERE
         <xsl:param name="method" select="upper-case(@method)" as="xs:string"/>
         <xsl:param name="callback" select="ldh:row-form-response#1" as="function(map(*)) as item()*"/>
         <xsl:param name="elements" select=".//input | .//textarea | .//select" as="element()*"/>
-        <xsl:param name="triples" select="ldh:parse-rdf-post($elements)" as="element()*"/>
-        <xsl:param name="resources" as="document-node()">
-            <xsl:document>
-                <rdf:RDF>
-                    <xsl:sequence select="ldh:triples-to-descriptions($triples)"/>
-                </rdf:RDF>
-            </xsl:document>
-        </xsl:param>
-        <xsl:param name="request-body" select="$resources" as="document-node()"/>
+        <xsl:param name="request-body" as="document-node()?"/> <!-- no default: built below from the parsed triples, which must follow the ldh:FormPreSubmit pass -->
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <xsl:variable name="id" select="ixsl:get($form, 'id')" as="xs:string"/>
         <xsl:variable name="action" select="ixsl:get($form, 'action')" as="xs:anyURI"/>
@@ -720,16 +977,28 @@ WHERE
 
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
+        <!-- pre-process form before submitting it: syncs input values, so it must precede ldh:parse-rdf-post.
+             A wrapping handler that supplied $request-body has already run the pass -->
+        <xsl:if test="empty($request-body)">
+            <xsl:apply-templates select="." mode="ldh:FormPreSubmit"/>
+        </xsl:if>
+
+        <xsl:variable name="triples" select="ldh:parse-rdf-post($elements)" as="element()*"/>
         <!-- canonicalize XML in rdf:XMLLiterals -->
         <xsl:variable name="triples" as="element()*">
             <xsl:apply-templates select="$triples" mode="ldh:CanonicalizeXML"/>
         </xsl:variable>
+        <xsl:variable name="resources" as="document-node()">
+            <xsl:document>
+                <rdf:RDF>
+                    <xsl:sequence select="ldh:triples-to-descriptions($triples)"/>
+                </rdf:RDF>
+            </xsl:document>
+        </xsl:variable>
+        <xsl:variable name="request-body" select="($request-body, $resources)[1]" as="document-node()"/>
         <xsl:variable name="doc-uri" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/>
         <xsl:variable name="request-uri" select="ldh:href($action, map{})" as="xs:anyURI"/>
 
-        <!-- pre-process form before submitting it -->
-        <xsl:apply-templates select="." mode="ldh:FormPreSubmit"/>
-            
         <xsl:choose>
             <!-- we need to handle multipart requests specially because of Saxon-JS 2 limitations: https://saxonica.plan.io/issues/4732 -->
             <xsl:when test="$enctype = 'multipart/form-data'">
@@ -1477,7 +1746,7 @@ WHERE
             <!-- delete existing content -->
             <xsl:when test="$about">
                 <!-- show a confirmation prompt -->
-                <xsl:if test="ixsl:call(ixsl:window(), 'confirm', [ ac:label(key('resources', 'are-you-sure', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', lapp:origin())))) ])">
+                <xsl:if test="ixsl:call(ixsl:window(), 'confirm', [ ac:label(key('resources', 'are-you-sure', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))) ])">
                     <xsl:sequence select="ixsl:call($block, 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
 
                     <xsl:variable name="where-pattern" as="element()">

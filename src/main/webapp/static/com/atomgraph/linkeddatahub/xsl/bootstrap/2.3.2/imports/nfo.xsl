@@ -25,7 +25,7 @@ exclude-result-prefixes="#all">
     <xsl:preserve-space elements="nfo:fileName"/>
     
     <xsl:template match="*[@rdf:about = '&nfo;FileDataObject']" mode="ac:label">
-        <xsl:apply-templates select="key('resources', 'file', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', lapp:origin())))" mode="#current"/>
+        <xsl:apply-templates select="key('resources', 'file', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="#current"/>
     </xsl:template>
 
     <xsl:template match="nfo:fileName/@rdf:nodeID[key('resources', .)[not(* except rdf:type[@rdf:resource = '&xsd;string'])]]" mode="bs2:FormControl">

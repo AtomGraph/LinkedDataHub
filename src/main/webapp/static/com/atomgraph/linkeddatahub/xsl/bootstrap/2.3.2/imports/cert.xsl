@@ -18,7 +18,7 @@ xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
 exclude-result-prefixes="#all">
 
     <xsl:template match="*[@rdf:about = '&cert;PublicKey']" mode="ac:label">
-        <xsl:apply-templates select="key('resources', 'public-key', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', lapp:origin())))" mode="#current"/>
+        <xsl:apply-templates select="key('resources', 'public-key', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="#current"/>
     </xsl:template>
 
 </xsl:stylesheet>
