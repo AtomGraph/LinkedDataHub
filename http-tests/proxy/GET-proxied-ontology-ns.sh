@@ -20,9 +20,11 @@ namespace_uri="http://made-up-test-ns.example/ns"
 class1="${namespace_uri}#ClassOne"
 class2="${namespace_uri}#ClassTwo"
 ontology_doc="${ADMIN_BASE_URL}ontologies/namespace/"
+class3="${ontology_doc}#ClassThree"
 namespace="${END_USER_BASE_URL}ns#"
 
-# add two classes with URIs in the made-up namespace to the app's ontology
+# add two classes with URIs in the made-up namespace to the app's ontology,
+# plus one in the ontology document's own hash namespace
 
 add-class.sh \
   -f "$OWNER_CERT_FILE" \
@@ -38,6 +40,14 @@ add-class.sh \
   -b "$ADMIN_BASE_URL" \
   --uri "$class2" \
   --label "Class Two" \
+  "$ontology_doc"
+
+add-class.sh \
+  -f "$OWNER_CERT_FILE" \
+  -p "$OWNER_CERT_PWD" \
+  -b "$ADMIN_BASE_URL" \
+  --uri "$class3" \
+  --label "Class Three" \
   "$ontology_doc"
 
 # clear the in-memory ontology so the new classes are present on next request
@@ -66,10 +76,11 @@ echo "$response" | grep -q "$class1"
 echo "$response" | grep -q "$class2"
 ! echo "$response" | grep -q "http://www.w3.org/2000/01/rdf-schema#Resource"
 
-# request the ontology document itself via ?uri= proxy: it is a graph in the ontology closure,
-# so it must be served with its raw graph — asserted triples only, identical to a direct
-# document GET. Inferred rdf:type rdfs:Resource used to leak from the RDFS-materialized
-# in-memory model here, breaking client-side @typeof matching of View blocks.
+# request the ontology document itself via ?uri= proxy. The ontology is stored in this admin
+# document but keyed in the closure under the <ns#> ontology URI, so this too is answered by the
+# closure DESCRIBE fallback: descriptions of the document's own #-fragment terms, asserted triples
+# only. Inferred rdf:type rdfs:Resource used to leak from the RDFS-materialized in-memory model
+# here, producing multi-token @typeof that broke client-side matching of View blocks.
 
 doc_response=$(curl -k -f -s \
   -G \
@@ -78,6 +89,5 @@ doc_response=$(curl -k -f -s \
   --data-urlencode "uri=${ontology_doc}" \
   "$END_USER_BASE_URL")
 
-echo "$doc_response" | grep -q "$class1"
-echo "$doc_response" | grep -q "$class2"
+echo "$doc_response" | grep -q "$class3"
 ! echo "$doc_response" | grep -q "http://www.w3.org/2000/01/rdf-schema#Resource"
