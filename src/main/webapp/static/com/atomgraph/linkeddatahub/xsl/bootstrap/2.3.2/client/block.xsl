@@ -44,6 +44,7 @@ xmlns:srx="&srx;"
 xmlns:spin="&spin;"
 xmlns:dct="&dct;"
 xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
+xmlns:rdfae="https://w3id.org/atomgraph/rdfa-editor#"
 extension-element-prefixes="ixsl"
 exclude-result-prefixes="#all"
 >
@@ -341,9 +342,19 @@ exclude-result-prefixes="#all"
 
     <xsl:template match="div[@typeof = '&ldh;XHTML'][not(descendant::form)][acl:mode() = '&acl;Write']//div[contains-token(@class, 'main')]" mode="ixsl:onclick">
         <xsl:if test="ixsl:call(ixsl:call(ixsl:window(), 'getSelection', []), 'toString', []) = ''">
+            <xsl:variable name="main" select="." as="element()"/>
             <xsl:variable name="block" select="ancestor::div[contains-token(@class, 'block')][1]" as="element()"/>
             <xsl:variable name="btn-edit" select="($block//button[contains-token(@class, 'btn-edit')][not(contains-token(@class, 'disabled'))])[1]" as="element()?"/>
             <xsl:if test="$btn-edit">
+                <!-- Anchor the caret to the content structure, not pixels: record which content block the
+                     click landed in and the char offset within it, re-resolved in the editor DOM after
+                     render (ldh:focus-editable) - immune to the read/edit re-render and chrome. -->
+                <xsl:variable name="ldh-state" select="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+                <xsl:variable name="caret" as="map(*)?" select="rdfae:caret-at-point(xs:double(ixsl:get(ixsl:event(), 'clientX')), xs:double(ixsl:get(ixsl:event(), 'clientY')))"/>
+                <!-- the content block: a top-level element of the XHTML content (div.main > content-div > block) -->
+                <xsl:variable name="content-block" as="element()?" select="$caret?node/ancestor-or-self::*[parent::*[parent::* is $main]][1]"/>
+                <ixsl:set-property name="pendingCaretBlock" select="$content-block ! count(preceding-sibling::*)" object="$ldh-state"/>
+                <ixsl:set-property name="pendingCaretOffset" select="$content-block ! ldh:char-offset-before(., $caret?node, $caret?offset)" object="$ldh-state"/>
                 <xsl:sequence select="ixsl:call($btn-edit, 'click', [])"/>
             </xsl:if>
         </xsl:if>
