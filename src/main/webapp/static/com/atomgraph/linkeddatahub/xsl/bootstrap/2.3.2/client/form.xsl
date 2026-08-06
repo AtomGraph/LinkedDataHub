@@ -150,9 +150,9 @@ WHERE
     <!-- first editable region on the page: full editor bring-up (chrome, dialogs, drawers, all regions) -->
     <xsl:template match="div[contains-token(@class, 'rdfa-editor-content')][empty(id('edit-toolbar', ixsl:page()))]" mode="ldh:RenderRowForm" priority="2">
         <xsl:call-template name="rdfae:init-editor"/>
-        <xsl:for-each select="(.//*[@contenteditable = 'true'])[1]">
-            <xsl:sequence select="ixsl:call(., 'focus', [])[current-date() lt xs:date('2000-01-01')]"/>
-        </xsl:for-each>
+        <xsl:call-template name="ldh:focus-editable">
+            <xsl:with-param name="region" select="."/>
+        </xsl:call-template>
     </xsl:template>
 
     <!-- additional region: editor chrome already in the DOM; init only this region's blocks -->
@@ -164,9 +164,64 @@ WHERE
         <xsl:call-template name="rdfae:init-region">
             <xsl:with-param name="region" select="."/>
         </xsl:call-template>
-        <xsl:for-each select="(.//*[@contenteditable = 'true'])[1]">
-            <xsl:sequence select="ixsl:call(., 'focus', [])[current-date() lt xs:date('2000-01-01')]"/>
-        </xsl:for-each>
+        <xsl:call-template name="ldh:focus-editable">
+            <xsl:with-param name="region" select="."/>
+        </xsl:call-template>
+    </xsl:template>
+
+    <!-- characters of real (non-chrome) text in $block before the (node, offset) caret position; a
+         Range gives an exact count that maps 1:1 to the same text re-rendered in the editor DOM -->
+    <xsl:function name="ldh:char-offset-before" as="xs:integer">
+        <xsl:param name="block" as="element()"/>
+        <xsl:param name="node"/>
+        <xsl:param name="offset"/>
+        <xsl:variable name="range" select="ixsl:call(ixsl:page(), 'createRange', [])"/>
+        <xsl:sequence select="ixsl:call($range, 'setStart', [ $block, 0 ])[current-date() lt xs:date('2000-01-01')]"/>
+        <xsl:sequence select="ixsl:call($range, 'setEnd', [ $node, $offset ])[current-date() lt xs:date('2000-01-01')]"/>
+        <xsl:sequence select="string-length(string(ixsl:call($range, 'toString', [])))"/>
+    </xsl:function>
+
+    <!-- the (text node, local offset) at character $offset into $block's real text, skipping chrome -->
+    <xsl:function name="ldh:text-position" as="map(*)?">
+        <xsl:param name="block" as="element()?"/>
+        <xsl:param name="offset" as="xs:integer"/>
+        <xsl:variable name="texts" as="text()*" select="$block//text()[not(ancestor::*[@data-role])]"/>
+        <xsl:variable name="i" as="xs:integer?" select="(for $n in 1 to count($texts)
+            return if (sum($texts[position() le $n] ! string-length(.)) ge $offset) then $n else ())[1]"/>
+        <xsl:sequence select="if (empty($texts)) then ()
+            else if (empty($i)) then map{ 'node': $texts[last()], 'offset': string-length($texts[last()]) }
+            else map{ 'node': $texts[$i], 'offset': $offset - xs:integer(sum($texts[position() lt $i] ! string-length(.))) }"/>
+    </xsl:function>
+
+    <!-- Focus the region's first editable host. When a click-to-edit stashed a structural caret anchor
+         (window.LinkedDataHub pendingCaretBlock/Offset, set in block.xsl), re-resolve it against the
+         editor DOM - the same content block at the same character offset - and place the caret there.
+         Falls back to plain focus (block start) for non-click entry or when the anchor no longer resolves. -->
+    <xsl:template name="ldh:focus-editable">
+        <xsl:param name="region" as="element()"/>
+
+        <xsl:variable name="ldh-state" select="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+        <xsl:variable name="block-idx" select="ixsl:get($ldh-state, 'pendingCaretBlock')"/>
+        <xsl:variable name="char-off" select="ixsl:get($ldh-state, 'pendingCaretOffset')"/>
+        <ixsl:set-property name="pendingCaretBlock" select="()" object="$ldh-state"/>
+        <ixsl:set-property name="pendingCaretOffset" select="()" object="$ldh-state"/>
+
+        <xsl:variable name="pos" as="map(*)?" select="if (exists($block-idx) and exists($char-off))
+            then ldh:text-position(($region/*[not(@data-role)])[xs:integer($block-idx) + 1], xs:integer($char-off)) else ()"/>
+
+        <xsl:choose>
+            <xsl:when test="exists($pos)">
+                <xsl:call-template name="rdfae:focus-caret">
+                    <xsl:with-param name="node" select="$pos?node"/>
+                    <xsl:with-param name="offset" select="$pos?offset"/>
+                </xsl:call-template>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:for-each select="($region//*[@contenteditable = 'true'])[1]">
+                    <xsl:sequence select="ixsl:call(., 'focus', [])[current-date() lt xs:date('2000-01-01')]"/>
+                </xsl:for-each>
+            </xsl:otherwise>
+        </xsl:choose>
     </xsl:template>
 
     <!-- override RDFa editor annotation typeahead: use LDH's /ns-querying bs2:Lookup instead of doc()-on-vocabs -->
@@ -1254,10 +1309,13 @@ WHERE
                 </xsl:otherwise>
             </xsl:choose>
 
+            <!-- the editor has reverted to read-only; dismiss the annotation overlay so it does
+                 not linger orphaned over the read view (it rebuilds on the next right-click) -->
+            <xsl:call-template name="rdfae:hide-overlay"/>
             <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
         </xsl:for-each>
     </xsl:function>
-    
+
     <xsl:function name="ldh:form-submit-created" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
         <xsl:variable name="response" select="$context('response')" as="map(*)"/>

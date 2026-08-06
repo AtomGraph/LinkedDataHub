@@ -257,6 +257,13 @@ version="3.0">
         <xsl:param name="event"/>
         <xsl:param name="in-scope-subject" as="xs:string?" select="()"/>
 
+        <!-- the overlay is a render-once singleton, but a host may re-render the page
+             DOM (or dispose it as a modal) between invocations; rebuild on demand so
+             show-at always has an element to position -->
+        <xsl:if test="empty(id($rdfae:overlay-id, ixsl:page()))">
+            <xsl:call-template name="rdfae:init-overlay"/>
+        </xsl:if>
+
         <xsl:call-template name="rdfae:show-at">
             <xsl:with-param name="element" select="id($rdfae:overlay-id, ixsl:page())"/>
             <xsl:with-param name="event" select="$event"/>
