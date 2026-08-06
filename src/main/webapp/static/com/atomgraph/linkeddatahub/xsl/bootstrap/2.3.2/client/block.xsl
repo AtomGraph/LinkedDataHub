@@ -373,6 +373,41 @@ exclude-result-prefixes="#all"
         </xsl:if>
     </xsl:template>
 
+    <!-- rdfae:inject-chrome (edit.xsl) injects the block drag handle with class="drag-handle" -
+         a leftover token from when this file's WYMeditor block handle was ported into the editor.
+         In LDH that token collides with bootstrap.css's `.row-fluid.block .drag-handle { display: none }`,
+         which hides every chrome handle rendered inside an edited ldh:XHTML document block. Re-inject the
+         handle under an editor-specific class so the shared RDFa-Editor code needs no change (and so
+         block.xsl's own key('elements-by-class', 'drag-handle') stops miscounting the chrome as an old
+         block handle); the two drag gestures below re-match that class. Styling is unaffected - the
+         handle is styled off data-role="chrome" in rdfa-editor.css. Keep the body in sync with edit.xsl's
+         rdfae:inject-chrome (XSLT overrides the whole named template, so only the class string differs). -->
+    <xsl:template name="rdfae:inject-chrome">
+        <xsl:param name="block" as="element()"/>
+        <xsl:if test="empty($block/*[@data-role = 'chrome'])">
+            <xsl:variable name="chrome" as="element()" select="rdfae:element('span')"/>
+            <ixsl:set-attribute name="data-role" select="'chrome'" object="$chrome"/>
+            <ixsl:set-attribute name="class" select="'rdfa-editor-drag-handle'" object="$chrome"/>
+            <ixsl:set-attribute name="contenteditable" select="'false'" object="$chrome"/>
+            <ixsl:set-attribute name="title" select="'Drag to reorder'" object="$chrome"/>
+            <ixsl:set-property name="textContent" select="'&#x283F;'" object="$chrome"/>
+            <xsl:sequence select="ixsl:call($block, 'prepend', [ $chrome ])[current-date() lt xs:date('2000-01-01')]"/>
+        </xsl:if>
+    </xsl:template>
+
+    <xsl:template match="span[contains-token(@class, 'rdfa-editor-drag-handle')]" mode="ixsl:onmousedown">
+        <xsl:for-each select="rdfae:handle-block(.)">
+            <ixsl:set-attribute name="draggable" select="'true'"/>
+        </xsl:for-each>
+    </xsl:template>
+
+    <xsl:template match="span[contains-token(@class, 'rdfa-editor-drag-handle')]" mode="ixsl:onmouseup">
+        <xsl:for-each select="rdfae:handle-block(.)">
+            <ixsl:remove-attribute name="draggable"/>
+        </xsl:for-each>
+        <xsl:call-template name="rdfae:disarm-sweep"/>
+    </xsl:template>
+
     <!-- override inline editing form for block types (do nothing if the button is disabled) - prioritize over form.xsl -->
 
     <xsl:template match="div[following-sibling::div[@typeof = ('&ldh;XHTML', '&ldh;Object')]]//button[contains-token(@class, 'btn-edit')][not(contains-token(@class, 'disabled'))]" mode="ixsl:onclick" priority="1">
@@ -485,9 +520,14 @@ exclude-result-prefixes="#all"
     </xsl:template>
 
     <!-- dragging block over other block -->
-    <!-- only handle if drag originated from drag-handle (has text/uri-list item) --> 
+    <!-- only handle if drag originated from drag-handle (has text/uri-list item) -->
+    <!-- these four document-block DnD handlers (ondragover/enter/leave/drop) exclude the RDFa editor
+         subtree: the editor renders inside a .content-body > .block, so without the guard this pattern
+         also matches every element in .rdfa-editor-content and - having higher import precedence than
+         the imported edit.xsl - shadows the editor's own block DnD (edit.xsl), killing its drop marks
+         and reorder. Excluding the editor lets those events fall through to the editor's handlers. -->
 
-    <xsl:template match="*[ancestor-or-self::div[contains-token(@class, 'block')][parent::div[contains-token(@class, 'content-body')]][acl:mode() = '&acl;Write']]" mode="ixsl:ondragover" priority="1">
+    <xsl:template match="*[ancestor-or-self::div[contains-token(@class, 'block')][parent::div[contains-token(@class, 'content-body')]][acl:mode() = '&acl;Write']][not(ancestor-or-self::*[contains-token(@class, 'rdfa-editor-content')])]" mode="ixsl:ondragover" priority="1">
         <xsl:variable name="block" select="ancestor-or-self::div[contains-token(@class, 'block')][parent::div[contains-token(@class, 'content-body')]][1]" as="element()"/>
         <xsl:variable name="uri" select="xs:anyURI($block/parent::div/parent::div[contains-token(@class, 'document-body')]/@about)" as="xs:anyURI"/>
         <xsl:variable name="results" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $uri || '`'), 'results')" as="document-node()"/>
@@ -506,7 +546,7 @@ exclude-result-prefixes="#all"
     <!-- change the style of blocks when block is dragged over them -->
     <!-- only handle if drag originated from drag-handle (has text/uri-list item) -->
 
-    <xsl:template match="*[ancestor-or-self::div[contains-token(@class, 'block')][parent::div[contains-token(@class, 'content-body')]][acl:mode() = '&acl;Write']]" mode="ixsl:ondragenter" priority="1">
+    <xsl:template match="*[ancestor-or-self::div[contains-token(@class, 'block')][parent::div[contains-token(@class, 'content-body')]][acl:mode() = '&acl;Write']][not(ancestor-or-self::*[contains-token(@class, 'rdfa-editor-content')])]" mode="ixsl:ondragenter" priority="1">
         <xsl:variable name="block" select="ancestor-or-self::div[contains-token(@class, 'block')][parent::div[contains-token(@class, 'content-body')]][1]" as="element()"/>
         <xsl:variable name="uri" select="xs:anyURI($block/parent::div/parent::div[contains-token(@class, 'document-body')]/@about)" as="xs:anyURI"/>
         <xsl:variable name="results" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $uri || '`'), 'results')" as="document-node()"/>
@@ -523,7 +563,7 @@ exclude-result-prefixes="#all"
 
     <!-- only handle if drag originated from drag-handle (has text/uri-list item) -->
 
-    <xsl:template match="*[ancestor-or-self::div[contains-token(@class, 'block')][parent::div[contains-token(@class, 'content-body')]][acl:mode() = '&acl;Write']]" mode="ixsl:ondragleave" priority="1">
+    <xsl:template match="*[ancestor-or-self::div[contains-token(@class, 'block')][parent::div[contains-token(@class, 'content-body')]][acl:mode() = '&acl;Write']][not(ancestor-or-self::*[contains-token(@class, 'rdfa-editor-content')])]" mode="ixsl:ondragleave" priority="1">
         <xsl:variable name="block" select="ancestor-or-self::div[contains-token(@class, 'block')][parent::div[contains-token(@class, 'content-body')]][1]" as="element()"/>
         <xsl:variable name="uri" select="xs:anyURI($block/parent::div/parent::div[contains-token(@class, 'document-body')]/@about)" as="xs:anyURI"/>
         <xsl:variable name="results" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $uri || '`'), 'results')" as="document-node()"/>
@@ -546,7 +586,7 @@ exclude-result-prefixes="#all"
     <!-- dropping block over other top-level block -->
     <!-- only handle if drag originated from drag-handle (has text/uri-list item) -->
 
-    <xsl:template match="*[ancestor-or-self::div[contains-token(@class, 'block')][parent::div[contains-token(@class, 'content-body')]][acl:mode() = '&acl;Write']]" mode="ixsl:ondrop" priority="1">
+    <xsl:template match="*[ancestor-or-self::div[contains-token(@class, 'block')][parent::div[contains-token(@class, 'content-body')]][acl:mode() = '&acl;Write']][not(ancestor-or-self::*[contains-token(@class, 'rdfa-editor-content')])]" mode="ixsl:ondrop" priority="1">
         <xsl:variable name="block" select="ancestor-or-self::div[contains-token(@class, 'block')][parent::div[contains-token(@class, 'content-body')]][1]" as="element()"/>
         <xsl:variable name="uri" select="xs:anyURI($block/parent::div/parent::div[contains-token(@class, 'document-body')]/@about)" as="xs:anyURI"/>
         <xsl:variable name="results" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $uri || '`'), 'results')" as="document-node()"/>

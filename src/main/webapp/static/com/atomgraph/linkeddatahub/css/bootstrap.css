@@ -231,3 +231,7 @@ circle { cursor: move; }
 .edit-dialog .rdfa-editor-ui .action-buttons { margin-top: 10px; }
 .edit-dialog .rdfa-editor-ui .checkbox-label { display: inline-flex; gap: 6px; align-items: center; font-weight: 400; margin-top: 8px; }
 .editor-bar:not(:has(#edit-toolbar)), body:not(:has(.rdfa-editor-content)) .editor-bar, body:not(:has(.rdfa-editor-content)) #rdfa-editor-breadcrumb { display: none; }
+/* Host-page gutter for the block drag handles (rendered at left:-1.5em, outside each block's box).
+   The editor documents this as a host requirement (padding-left >= 2.5em); LDH must reserve it since
+   the .rdfa-editor-content div is generated bare by the XMLLiteral form control. */
+.rdfa-editor-content { padding-left: 2.5em; }
