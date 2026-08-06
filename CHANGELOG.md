@@ -6,6 +6,9 @@
 ### Fixed
 - Raw ontology graphs no longer leak inferred `rdf:type rdfs:Resource`, which produced multi-token `@typeof` that broke View block rendering
 
+### Removed
+- The Linked Data proxy no longer serves ontology terms; it is now dumb transport (bundled-vocab file cache + SSRF-checked external fetch), with ontology terms served by `/ns`
+
 ## [5.7.1] - 2026-08-06
 ### Changed
 - RDFa editor: annotation overlay rebuilt on demand (`rdfa-editor/overlay.xsl`)

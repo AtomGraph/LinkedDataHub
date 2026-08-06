@@ -41,8 +41,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import org.apache.jena.query.ParameterizedSparqlString;
-import org.apache.jena.query.QueryExecution;
 import jakarta.annotation.Priority;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.NotAllowedException;
@@ -205,25 +203,6 @@ public class ProxyRequestFilter implements ContainerRequestFilter
                 Model model = org.apache.jena.rdf.model.ModelFactory.createModelForGraph(repository.get(targetURI.toString()));
                 requestContext.abortWith(getResponse(model, Response.Status.OK));
                 return;
-            }
-
-            // fall back to DESCRIBE over the in-memory closure union (asserted triples only — no inference)
-            // for term URIs whose document is not a closure graph: terms minted in external namespaces but
-            // defined in the app ontology. Covers both slash-based term URIs (e.g. schema:category) and
-            // hash-based namespaces (e.g. sioc:UserAccount → ac:document-uri strips to sioc:ns, so we also
-            // describe all ?term where STR(?term) starts with "<targetURI>#")
-            ParameterizedSparqlString pss = new ParameterizedSparqlString(
-                "DESCRIBE ?doc ?term WHERE { ?term ?p ?o FILTER(STRSTARTS(STR(?term), CONCAT(STR(?doc), \"#\"))) }");
-            pss.setIri("doc", targetURI.toString());
-            try (QueryExecution qe = QueryExecution.create(pss.asQuery(), getOntology().get()))
-            {
-                Model description = qe.execDescribe();
-                if (!description.isEmpty())
-                {
-                    if (log.isDebugEnabled()) log.debug("Serving URI from namespace ontology: {}", targetURI);
-                    requestContext.abortWith(getResponse(description, Response.Status.OK));
-                    return;
-                }
             }
         }
 
@@ -439,7 +418,7 @@ public class ProxyRequestFilter implements ContainerRequestFilter
 
     /**
      * Builds a response for the given RDF model with type-appropriate content negotiation.
-     * Used for locally-served responses (DataManager cache, namespace ontology DESCRIBE) and for
+     * Used for locally-served responses (DataManager cache, ontology closure cache) and for
      * the proxy's Model branch.
      *
      * @param model RDF model
