@@ -1,3 +1,12 @@
+## [5.7.1] - 2026-08-06
+### Changed
+- RDFa editor: annotation overlay rebuilt on demand (`rdfa-editor/overlay.xsl`)
+
+### Fixed
+- RDFa editor: exit-canvas save fired a duplicate PATCH that 412'd on a stale `If-Match`; `onfocusout` is now the sole save trigger
+- RDFa editor: block drag-handle visibility (bootstrap.css collision) and dropping blocks inside a LinkedDataHub document
+- RDFa editor: annotation overlay dismissed on teardown; caret lands at the clicked word
+
 ## [5.7.0] - 2026-08-02
 ### Changed
 - WYMEditor replaced with the RDFa editor for `rdf:XMLLiteral` editing (#336)
