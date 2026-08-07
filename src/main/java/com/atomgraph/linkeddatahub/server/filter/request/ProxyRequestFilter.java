@@ -21,11 +21,7 @@ import com.atomgraph.client.util.HTMLMediaTypePredicate;
 import com.atomgraph.client.vocabulary.AC;
 import com.atomgraph.core.exception.BadGatewayException;
 import com.atomgraph.core.util.ModelUtils;
-import com.atomgraph.client.util.jena.PrefixGraphRepository;
-import com.atomgraph.linkeddatahub.apps.model.Application;
 import com.atomgraph.linkeddatahub.apps.model.Dataset;
-import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
-import org.apache.jena.ontapi.model.OntModel;
 import com.atomgraph.linkeddatahub.client.GraphStoreClient;
 import com.atomgraph.linkeddatahub.client.filter.auth.IDTokenDelegationFilter;
 import com.atomgraph.linkeddatahub.client.filter.auth.WebIDDelegationFilter;
@@ -134,7 +130,6 @@ public class ProxyRequestFilter implements ContainerRequestFilter
         "Age");
 
     @Inject com.atomgraph.linkeddatahub.Application system;
-    @Inject jakarta.inject.Provider<Optional<OntModel>> ontology;
     @Inject MediaTypes mediaTypes;
     @Context Request request;
 
@@ -185,25 +180,6 @@ public class ProxyRequestFilter implements ContainerRequestFilter
             Model model = org.apache.jena.rdf.model.ModelFactory.createModelForGraph(getSystem().getRepository().get(targetURI.toString()));
             requestContext.abortWith(getResponse(model, Response.Status.OK));
             return;
-        }
-
-        if (isSafeMethod && getOntology().isPresent())
-        {
-            // serve documents of the app's ontology imports closure with their raw graphs — asserted triples
-            // only, identical to a direct document GET. Hash-based term URIs (e.g. ldh:View) arrive here
-            // fragment-stripped as their document URI. The isCached guard restricts serving to graphs already
-            // loaded as part of the closure, so arbitrary external URIs cannot trigger repository loading
-            // outside the SSRF-validated external client path below.
-            Optional<Application> appOpt = (Optional<Application>)requestContext.getProperty(LAPP.Application.getURI());
-            PrefixGraphRepository repository = appOpt != null && appOpt.isPresent() && appOpt.get().canAs(EndUserApplication.class) ?
-                getSystem().getRepository(appOpt.get().as(EndUserApplication.class)) : getSystem().getRepository();
-            if (repository.isCached(targetURI.toString()))
-            {
-                if (log.isDebugEnabled()) log.debug("Serving URI from the ontology closure cache: {}", targetURI);
-                Model model = org.apache.jena.rdf.model.ModelFactory.createModelForGraph(repository.get(targetURI.toString()));
-                requestContext.abortWith(getResponse(model, Response.Status.OK));
-                return;
-            }
         }
 
         boolean isRegisteredApp = getSystem().matchApp(targetURI) != null;
@@ -418,7 +394,7 @@ public class ProxyRequestFilter implements ContainerRequestFilter
 
     /**
      * Builds a response for the given RDF model with type-appropriate content negotiation.
-     * Used for locally-served responses (DataManager cache, ontology closure cache) and for
+     * Used for locally-served responses (DataManager cache) and for
      * the proxy's Model branch.
      *
      * @param model RDF model
@@ -478,16 +454,6 @@ public class ProxyRequestFilter implements ContainerRequestFilter
     public com.atomgraph.linkeddatahub.Application getSystem()
     {
         return system;
-    }
-
-    /**
-     * Returns the current application's namespace ontology, if available.
-     *
-     * @return optional ontology
-     */
-    public Optional<OntModel> getOntology()
-    {
-        return ontology.get();
     }
 
     /**
