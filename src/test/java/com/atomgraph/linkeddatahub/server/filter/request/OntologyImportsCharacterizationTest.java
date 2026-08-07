@@ -19,6 +19,7 @@ package com.atomgraph.linkeddatahub.server.filter.request;
 import com.atomgraph.client.util.jena.PrefixGraphRepository;
 import org.apache.jena.ontapi.OntModelFactory;
 import org.apache.jena.ontapi.OntSpecification;
+import org.apache.jena.ontapi.UnionGraph;
 import org.apache.jena.ontapi.model.OntModel;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
@@ -31,9 +32,10 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Pins {@link OntologyFilter#loadOntology}: it flattens the owl:imports closure into one graph,
- * applies RDFS inference, and materializes the inferences into the repository cache — without ontapi
- * managing a union-graph hierarchy over the shared repository (which collides on duplicate ontology IDs).
+ * Pins {@link OntologyFilter#loadOntology}: it assembles the owl:imports closure as a union graph
+ * (resolved natively by ontapi over a scoped repository view), applies <em>no</em> inference, and
+ * leaves the shared repository holding raw per-document graphs — which is what proxied and direct
+ * document GETs serve.
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
@@ -45,7 +47,7 @@ public class OntologyImportsCharacterizationTest
     private static final String NS = "http://example.org/ns#";
 
     @Test
-    public void testLoadOntologyFlattensClosureWithMaterializedRDFSInference()
+    public void testLoadOntologyResolvesClosureWithoutInference()
     {
         PrefixGraphRepository repository = new PrefixGraphRepository(null);
 
@@ -70,22 +72,52 @@ public class OntologyImportsCharacterizationTest
         base.add(baseOnt, OWL.imports, base.createResource(IMPORT_URI));
         repository.put(BASE_URI, base.getGraph());
 
-        OntologyFilter.loadOntology(repository, BASE_URI);
+        UnionGraph union = OntologyFilter.loadOntology(repository, BASE_URI);
+        Model closure = ModelFactory.createModelForGraph(union);
 
-        Model result = ModelFactory.createModelForGraph(repository.get(BASE_URI));
-        // (a) imported terms flattened into the cached graph
-        assertTrue(result.contains(b, RDFS.subClassOf, a), "imported terms should be flattened in");
-        // (b) RDFS inference materialized as a concrete triple: x a A
-        assertTrue(result.contains(x, RDF.type, a), "RDFS-inferred 'x a A' should be materialized in the cached graph");
-        // (c) the import is also cached under its (fragment-stripped) document URI
-        assertTrue(repository.isCached(IMPORT_URI), "import should remain cached");
-        // (d) REGRESSION GUARD: both owl:Class and rdfs:Class-only terms must be recognized as OntClasses by the returned
-        // model, so GET /ns?forClass=<URI> resolves the class and runs its SPIN constructor.
-        // OntologyFilter promotes all rdfs:Class subjects to owl:Class so OWL2 profiles (which do not recognize bare
-        // rdfs:Class) can find third-party vocab terms like sp:Describe.
-        OntModel ontology = OntModelFactory.createModel(repository.get(BASE_URI), OntSpecification.OWL2_FULL_MEM);
+        // (a) imported terms are visible through the closure union
+        assertTrue(closure.contains(b, RDFS.subClassOf, a), "imported terms should be visible through the closure union");
+        // (b) no inference: neither type propagation nor vacuous rdfs:Resource typing appears
+        assertFalse(closure.contains(x, RDF.type, a), "no RDFS type propagation expected in the closure");
+        assertFalse(closure.contains(x, RDF.type, RDFS.Resource), "no vacuous rdfs:Resource typing expected in the closure");
+        // (c) the shared repository still holds the RAW document graphs — this is what document GETs serve
+        assertTrue(ModelFactory.createModelForGraph(repository.get(BASE_URI)).isIsomorphicWith(base), "repository must keep serving the raw base ontology graph");
+        assertTrue(ModelFactory.createModelForGraph(repository.get(IMPORT_URI)).isIsomorphicWith(imported), "repository must keep serving the raw imported ontology graph");
+        // (d) REGRESSION GUARD: both owl:Class and rdfs:Class-only terms must be recognized as OntClasses by the model
+        // wrapped over the union, so GET /ns?forClass=<URI> resolves the class and runs its SPIN constructor.
+        // OntologyFilter promotes rdfs:Class subjects to owl:Class in a separate union member so the OWL2 profile
+        // (which does not recognize bare rdfs:Class) can find third-party vocab terms like sp:Describe.
+        OntModel ontology = OntModelFactory.createModel(union, OntSpecification.OWL2_FULL_MEM);
         assertNotNull(ontology.getOntClass(NS + "A"), "owl:Class term must be recognized as an OntClass under OWL2_FULL_MEM");
         assertNotNull(ontology.getOntClass(NS + "B"), "rdfs:Class-only term must be recognized as an OntClass after promotion");
+        // the promotion must not leak into the raw document graphs
+        assertFalse(ModelFactory.createModelForGraph(repository.get(IMPORT_URI)).contains(b, RDF.type, OWL.Class), "owl:Class promotion must not be written into the raw document graph");
+    }
+
+    @Test
+    public void testLoadOntologyToleratesImportCycles()
+    {
+        PrefixGraphRepository repository = new PrefixGraphRepository(null);
+
+        String firstURI = "http://example.org/first";
+        String secondURI = "http://example.org/second";
+        Resource term = ResourceFactory.createResource(NS + "Term");
+
+        Model first = ModelFactory.createDefaultModel();
+        Resource firstOnt = first.createResource(firstURI);
+        first.add(firstOnt, RDF.type, OWL.Ontology);
+        first.add(firstOnt, OWL.imports, first.createResource(secondURI));
+        repository.put(firstURI, first.getGraph());
+
+        Model second = ModelFactory.createDefaultModel();
+        Resource secondOnt = second.createResource(secondURI);
+        second.add(secondOnt, RDF.type, OWL.Ontology);
+        second.add(secondOnt, OWL.imports, second.createResource(firstURI));
+        second.add(term, RDF.type, OWL.Class);
+        repository.put(secondURI, second.getGraph());
+
+        UnionGraph union = OntologyFilter.loadOntology(repository, firstURI);
+        assertTrue(ModelFactory.createModelForGraph(union).contains(term, RDF.type, OWL.Class), "cyclic imports must resolve without recursing infinitely");
     }
 
 }

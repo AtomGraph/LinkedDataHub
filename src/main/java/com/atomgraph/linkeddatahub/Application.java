@@ -161,6 +161,7 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManagerFactory;
 import jakarta.servlet.ServletContext;
 import javax.xml.transform.Source;
+import org.apache.jena.ontapi.UnionGraph;
 import org.apache.jena.ontapi.model.OntModel;
 import org.apache.jena.query.Dataset;
 import org.apache.jena.query.Query;
@@ -199,6 +200,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.stream.StreamSource;
+import net.jodah.expiringmap.ExpirationPolicy;
 import net.jodah.expiringmap.ExpiringMap;
 import net.sf.saxon.om.TreeInfo;
 import net.sf.saxon.s9api.Processor;
@@ -288,6 +290,7 @@ public class Application extends ResourceConfig
     private final KeyStore keyStore, trustStore;
     private final URI secretaryWebIDURI;
     private final List<Locale> supportedLanguages;
+    private final ExpiringMap<String, UnionGraph> ontologyGraphs = ExpiringMap.builder().maxSize(1000).expirationPolicy(ExpirationPolicy.ACCESSED).expiration(1, TimeUnit.HOURS).build(); // assembled ontology imports-closure union graphs, keyed by ontology URI; evicted entries are transparently rebuilt by OntologyFilter on the next cache miss
     private final ExpiringMap<URI, Model> webIDmodelCache = ExpiringMap.builder().expiration(Long.parseLong(System.getProperty("com.atomgraph.linkeddatahub.webIDCacheExpiration", "86400")), TimeUnit.SECONDS).build(); // TTL (seconds) configurable via WEBID_CACHE_EXPIRATION; a lower value bounds how long a revoked WebID stays cached
     private final ExpiringMap<String, Model> oidcModelCache = ExpiringMap.builder().variableExpiration().build();
     private final ExpiringMap<String, jakarta.json.JsonObject> jwksCache = ExpiringMap.builder().expiration(Long.parseLong(System.getProperty("com.atomgraph.linkeddatahub.jwksCacheExpiration", "86400")), TimeUnit.SECONDS).build(); // Cache JWKS responses; TTL (seconds) configurable via JWKS_CACHE_EXPIRATION
@@ -1804,10 +1807,23 @@ public class Application extends ResourceConfig
 
         return appRepository;
     }
-    
+
+    /**
+     * Returns the cache of assembled ontology imports-closure union graphs, keyed by ontology URI
+     * (origin-scoped per dataspace, so a single map cannot collide across applications).
+     * The union graph is ontapi's view over the raw per-document graphs cached in the (per-app or
+     * system) repository; it is not a document graph itself and is never served on the wire.
+     *
+     * @return ontology URI to union graph map
+     */
+    public Map<String, UnionGraph> getOntologyGraphs()
+    {
+        return ontologyGraphs;
+    }
+
     /**
      * Returns a registry of readable and writeable media types.
-     * 
+     *
      * @return registry object
      */
     public MediaTypes getMediaTypes()

@@ -63,11 +63,8 @@ public class SPINConstraintValidationTest
             "com/atomgraph/linkeddatahub/ldh.ttl" })
             RDFDataMgr.read(closure, classpath);
 
-        // mirror OntologyFilter.loadOntology: RDFS-infer then materialize into a plain OWL2_FULL_MEM graph
-        OntModel inferred = OntModelFactory.createModel(closure.getGraph(), OntSpecification.OWL2_FULL_MEM_RDFS_INF);
-        OntModel materialized = OntModelFactory.createModel(OntSpecification.OWL2_FULL_MEM);
-        materialized.add(inferred);
-        return materialized;
+        // mirror OntologyFilter.loadOntology: a plain OWL2_FULL_MEM model over the assembled closure, no inference
+        return OntModelFactory.createModel(closure.getGraph(), OntSpecification.OWL2_FULL_MEM);
     }
 
     /** A dh:Item with NO dct:title — violates the MissingTitle constraint. */
