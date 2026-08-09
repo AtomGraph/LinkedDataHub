@@ -312,7 +312,8 @@ LIMIT   10
                                             <xsl:apply-templates select="key('resources', 'load-schema', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
                                         </xsl:value-of>
                                     </button>
-                                    <button type="submit" class="{$button-class}">
+                                    <!-- disabled until the schema is loaded; ldh:endpoint-classes-response enables it -->
+                                    <button type="submit" class="{$button-class}" disabled="disabled">
                                         <xsl:value-of>
                                             <xsl:apply-templates select="key('resources', 'generate', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
                                         </xsl:value-of>
@@ -1043,12 +1044,19 @@ LIMIT   10
 
     <xsl:template match="button[contains-token(@class, 'btn-generate-containers')]" mode="ixsl:onclick">
         <xsl:variable name="target" select="id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')][contains-token(@class, 'active')]/div[contains-token(@class, 'document-body')]/div[contains-token(@class, 'content-body')]" as="element()"/>
+        <xsl:variable name="graph" select="ldh:base-uri(.)" as="xs:anyURI"/>
 
         <xsl:call-template name="ldh:ShowModalForm">
             <xsl:with-param name="form" as="element()">
                 <xsl:call-template name="ldh:GenerateContainersForm"/>
             </xsl:with-param>
             <xsl:with-param name="target" select="$target"/>
+        </xsl:call-template>
+
+        <!-- initialise the parent typeahead with the current container -->
+        <xsl:call-template name="ldh:LoadTypeaheads">
+            <xsl:with-param name="typeahead-spans" select="id('generate-containers-parent', ixsl:page())/.."/>
+            <xsl:with-param name="graph" select="$graph"/>
         </xsl:call-template>
     </xsl:template>
 
@@ -1392,35 +1400,63 @@ LIMIT   10
         <xsl:variable name="query-json-string" select="xml-to-json($select-xml)" as="xs:string"/>
         <xsl:variable name="query-json" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'parse', [ $query-json-string ])"/>
         <xsl:variable name="query-string" select="ixsl:call(ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromQuery', [ $query-json ]), 'toString', [])" as="xs:string"/>
-        <!-- use the specified endpoint if any, fall back to the internal one otherwise -->
-        <xsl:variable name="endpoint" as="xs:anyURI">
-            <xsl:choose>
-                <xsl:when test="$service-uri">
-                    <!-- TO-DO: asynchronous request -->
-                    <xsl:variable name="service-doc" select="document(ldh:href(ac:build-uri(ldt:base(), map{ 'uri': ac:document-uri($service-uri), 'accept': 'application/rdf+xml' }), map{}))" as="document-node()"/> <!-- TO-DO: replace with <ixsl:schedule-action> -->
-                    <xsl:sequence select="key('resources', $service-uri, $service-doc)/sd:endpoint/@rdf:resource"/>
-                 </xsl:when>
-                 <xsl:otherwise>
-                     <xsl:sequence select="sd:endpoint()"/>
-                 </xsl:otherwise>
-            </xsl:choose>
-        </xsl:variable>    
-        <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': $query-string })" as="xs:anyURI"/>
-        <xsl:variable name="request-uri" select="ldh:href($results-uri)" as="xs:anyURI"/>
-        <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml' } }" as="map(*)"/>
+        <!-- resolve the endpoint (async fetch of the service description when a service is selected, otherwise local), then fetch the class-discovery results; keeps the whole flow non-blocking so the progress cursor shows -->
         <xsl:variable name="context" as="map(*)" select="
           map{
-            'request': $request,
-            'container': $fieldset
+            'query-string': $query-string,
+            'service-uri': $service-uri,
+            'local-endpoint': sd:endpoint(),
+            'fieldset': $fieldset
           }"/>
-
         <ixsl:promise select="
-          ixsl:http-request($context('request'))
-            => ixsl:then(ldh:rethread-response($context, ?))
-            => ixsl:then(ldh:handle-response#1)
-            => ixsl:then(ldh:endpoint-classes-response#1)
+          ixsl:resolve($context)
+            => ixsl:then(ldh:load-schema-endpoint#1)
+            => ixsl:then(ldh:load-schema-results#1)
         " on-failure="ldh:promise-failure#1"/>
     </xsl:template>
+
+    <!-- resolve the SPARQL endpoint for schema discovery: when a service is selected, asynchronously fetch its description and read sd:endpoint; otherwise use the local endpoint. Returns a promise of the context with 'endpoint' set. -->
+    <xsl:function name="ldh:load-schema-endpoint" as="item()*" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:variable name="service-uri" select="$context('service-uri')" as="xs:anyURI?"/>
+        <xsl:choose>
+            <xsl:when test="$service-uri">
+                <xsl:variable name="request" select="map{ 'method': 'GET', 'href': ldh:href(ac:build-uri(ldt:base(), map{ 'uri': ac:document-uri($service-uri), 'accept': 'application/rdf+xml' })), 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
+                <xsl:sequence select="
+                  ixsl:http-request($request)
+                    => ixsl:then(ldh:rethread-response($context, ?))
+                    => ixsl:then(ldh:handle-response#1)
+                    => ixsl:then(ldh:load-schema-endpoint-from-service#1)
+                "/>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:sequence select="ixsl:resolve(map:put($context, 'endpoint', $context('local-endpoint')))"/>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:function>
+
+    <!-- extract the sd:endpoint of the selected service from its fetched description -->
+    <xsl:function name="ldh:load-schema-endpoint-from-service" as="map(*)">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:variable name="service-uri" select="$context('service-uri')" as="xs:anyURI"/>
+        <xsl:variable name="body" select="$context('response')?body" as="document-node()"/>
+        <xsl:variable name="endpoint" select="key('resources', $service-uri, $body)/sd:endpoint/@rdf:resource" as="xs:anyURI"/>
+        <xsl:sequence select="map:put($context, 'endpoint', $endpoint)"/>
+    </xsl:function>
+
+    <!-- fetch the class-discovery SELECT results from the resolved endpoint and render the class list -->
+    <xsl:function name="ldh:load-schema-results" as="item()*" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:variable name="results-uri" select="ac:build-uri($context('endpoint'), map{ 'query': $context('query-string') })" as="xs:anyURI"/>
+        <xsl:variable name="request" select="map{ 'method': 'GET', 'href': ldh:href($results-uri), 'headers': map{ 'Accept': 'application/sparql-results+xml' } }" as="map(*)"/>
+        <xsl:variable name="ctx" as="map(*)" select="map:merge(($context, map{ 'request': $request, 'container': $context('fieldset') }))"/>
+        <xsl:sequence select="
+          ixsl:http-request($request)
+            => ixsl:then(ldh:rethread-response($ctx, ?))
+            => ixsl:then(ldh:handle-response#1)
+            => ixsl:then(ldh:endpoint-classes-response#1)
+        "/>
+    </xsl:function>
 
     <!-- validate form before submitting it and show errors on required control-groups where input values are missing -->
     <xsl:template match="form[@id = 'form-request-access']" mode="ixsl:onsubmit" priority="1">
@@ -1618,6 +1654,11 @@ LIMIT   10
                                 </xsl:for-each>
                             </ul>
                         </xsl:result-document>
+                    </xsl:for-each>
+
+                    <!-- schema loaded: enable the Generate button -->
+                    <xsl:for-each select="$container/ancestor::form//button[contains-token(@class, 'btn-save')]">
+                        <ixsl:set-property name="disabled" select="false()" object="."/>
                     </xsl:for-each>
                 </xsl:for-each>
             </xsl:when>
