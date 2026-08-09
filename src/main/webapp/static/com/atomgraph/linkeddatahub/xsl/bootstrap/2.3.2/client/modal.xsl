@@ -1352,20 +1352,28 @@ LIMIT   10
                 <xsl:variable name="form" select="." as="element()"/>
                 <xsl:variable name="source" select="$control-groups[input[@name = 'pu'][@value = '&dct;source']]/descendant::input[@name = 'ou']/ixsl:get(., 'value')" as="xs:anyURI"/>
                 <xsl:variable name="target" select="$control-groups[input[@name = 'pu'][@value = '&sd;name']]/descendant::input[@name = 'ou']/ixsl:get(., 'value')" as="xs:anyURI"/>
-                <!-- ldh:href routes the arbitrary external $source through the same-origin ?uri= proxy (CORS); the proxy also converts any Jena-parseable format to the requested RDF/XML -->
-                <xsl:variable name="request" select="map{ 'method': 'GET', 'href': ldh:href($source), 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
-                <xsl:variable name="context" as="map(*)" select="
-                  map{
-                    'request': $request,
-                    'form': $form,
-                    'target-uri': $target
-                  }"/>
-                <ixsl:promise select="
-                  ixsl:http-request($context('request'))
-                    => ixsl:then(ldh:rethread-response($context, ?))
-                    => ixsl:then(ldh:handle-response#1)
-                    => ixsl:then(ldh:add-data-source-response#1)
-                " on-failure="ldh:promise-failure#1"/>
+                <xsl:choose>
+                    <!-- the append target must be a local document; a cross-origin target would proxy the write to a remote server (which rejects it) -->
+                    <xsl:when test="not(starts-with($target, lapp:origin(ldh:request-uri()) || '/'))">
+                        <xsl:sequence select="ldh:add-data-form-error(map{ 'form': $form, 'message': 'The target document must be local (a document in this hub); choose a local container' })"/> <!-- TO-DO: localize -->
+                    </xsl:when>
+                    <xsl:otherwise>
+                        <!-- ldh:href routes the arbitrary external $source through the same-origin ?uri= proxy (CORS); the proxy also converts any Jena-parseable format to the requested RDF/XML. The target is local, so its ldh:href is a pass-through and the POST goes directly to it. -->
+                        <xsl:variable name="request" select="map{ 'method': 'GET', 'href': ldh:href($source), 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
+                        <xsl:variable name="context" as="map(*)" select="
+                          map{
+                            'request': $request,
+                            'form': $form,
+                            'target-uri': $target
+                          }"/>
+                        <ixsl:promise select="
+                          ixsl:http-request($context('request'))
+                            => ixsl:then(ldh:rethread-response($context, ?))
+                            => ixsl:then(ldh:handle-response#1)
+                            => ixsl:then(ldh:add-data-source-response#1)
+                        " on-failure="ldh:promise-failure#1"/>
+                    </xsl:otherwise>
+                </xsl:choose>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
@@ -1998,25 +2006,26 @@ LIMIT   10
         </xsl:choose>
     </xsl:function>
 
-    <!-- render an inline error alert in the add/clone form's fieldset; $context may carry an optional 'message' override, otherwise the response message is used -->
+    <!-- render an inline error alert in the add/clone form's fieldset; $context may carry an optional 'message' override, otherwise the response message is used. 'response' is optional so pre-fetch validation errors (e.g. a non-local target) can reuse this. -->
     <xsl:function name="ldh:add-data-form-error" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
-        <xsl:variable name="response" select="$context('response')" as="map(*)"/>
-        <xsl:variable name="status" select="$response?status" as="xs:double"/>
+        <xsl:variable name="response" select="$context('response')" as="map(*)?"/>
+        <xsl:variable name="status" select="$response?status" as="xs:double?"/>
         <xsl:variable name="form" select="$context('form')" as="element()?"/>
 
         <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
 
-        <xsl:variable name="status-code" select="xs:integer($status)" as="xs:integer"/>
         <xsl:variable name="message" select="if (map:contains($context, 'message')) then $context('message') else $response?message" as="xs:string?"/>
         <!-- render error message -->
         <xsl:for-each select="$form//fieldset">
             <xsl:result-document href="?." method="ixsl:append-content">
                 <div class="alert">
-                    <p>
-                        <!-- lookup status message by code because Tomcat does not send any -->
-                        <xsl:apply-templates select="key('status-by-code', $status-code, document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/http-statusCodes.rdf', $lapp:origin)))" mode="ac:label"/>
-                    </p>
+                    <xsl:if test="exists($status)">
+                        <p>
+                            <!-- lookup status message by code because Tomcat does not send any -->
+                            <xsl:apply-templates select="key('status-by-code', xs:integer($status), document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/http-statusCodes.rdf', $lapp:origin)))" mode="ac:label"/>
+                        </p>
+                    </xsl:if>
                     <xsl:if test="$message">
                         <p>
                             <xsl:value-of select="$message"/>
