@@ -1,13 +1,15 @@
 ## [Unreleased]
 ### Changed
-- Application ontologies resolved as a native ontapi `owl:imports` union graph (cached per ontology URI) instead of a manually flattened, RDFS-materialized model — no RDFS inference
-- `Namespace` no-query GET serves the raw ontology graph from the shared repository instead of rebuilding a repository per request
+- Application ontologies resolved as a native ontapi `owl:imports` union graph (cached per ontology URI), no RDFS inference — replaces the manually flattened, RDFS-materialized model
+- `Namespace` no-query GET serves the raw ontology graph from the shared repository instead of rebuilding one per request
+- **BREAKING**: "Add data" and "Generate containers" orchestrated client-side over the Graph Store Protocol (POST-append via `?uri=` proxy; per-class container PUT fan-out embedding the view as `ldh:Object` → `rdf:value` → `ldh:View`), replacing the `/add` and `/generate` endpoints
 
 ### Fixed
-- Raw ontology graphs no longer leak inferred `rdf:type rdfs:Resource`, which produced multi-token `@typeof` that broke View block rendering
+- Raw ontology graphs no longer leak inferred `rdf:type rdfs:Resource` that broke View block rendering via multi-token `@typeof`
 
 ### Removed
-- The Linked Data proxy no longer serves ontology terms; it is now dumb transport (bundled-vocab file cache + SSRF-checked external fetch), with ontology terms served by `/ns`
+- Linked Data proxy no longer serves ontology terms (now dumb transport: bundled-vocab file cache + SSRF-checked external fetch); ontology terms served by `/ns`
+- **BREAKING**: `/add` and `/generate` server-side endpoints (`Add`/`Generate` JAX-RS resources), superseded by the client-orchestrated writes; removes their server-side fetch/SSRF surface (LNK-002); `/transform` retained until a client-side SPARQL engine lands
 
 ## [5.7.1] - 2026-08-06
 ### Changed

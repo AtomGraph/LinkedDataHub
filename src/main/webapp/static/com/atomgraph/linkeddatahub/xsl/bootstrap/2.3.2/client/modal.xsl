@@ -40,6 +40,9 @@ xmlns:ldt="&ldt;"
 xmlns:sd="&sd;"
 xmlns:sioc="&sioc;"
 xmlns:dct="&dct;"
+xmlns:dh="&dh;"
+xmlns:sp="&sp;"
+xmlns:spin="&spin;"
 xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
 extension-element-prefixes="ixsl"
 exclude-result-prefixes="#all"
@@ -82,7 +85,7 @@ LIMIT   10
         <xsl:param name="id" select="'add-data'" as="xs:string?"/>
         <xsl:param name="button-class" select="'btn btn-primary btn-save'" as="xs:string?"/>
         <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
-        <xsl:param name="action" select="ldh:href(resolve-uri('add', ldt:base()), map{})" as="xs:anyURI"/>
+        <xsl:param name="action" as="xs:anyURI?"/> <!-- when set (transform variant), the form RDF/POSTs to it; when absent (add/clone variant), the submit handler orchestrates a proxy fetch + GSP append -->
         <xsl:param name="source" as="xs:anyURI?"/>
         <xsl:param name="query" as="xs:anyURI?"/>
         <xsl:param name="legend-label" select="ac:label(key('resources', 'add-rdf-data', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin))))" as="xs:string"/>
@@ -101,7 +104,10 @@ LIMIT   10
             </div>
 
             <div class="modal-body">
-                <form id="form-clone-data" method="POST" action="{$action}">
+                <form id="form-clone-data" method="POST">
+                    <xsl:if test="$action">
+                        <xsl:attribute name="action" select="$action"/>
+                    </xsl:if>
                     <xsl:comment>This form uses RDF/POST encoding: https://atomgraph.github.io/RDF-POST/</xsl:comment>
                     <xsl:call-template name="xhtml:Input">
                         <xsl:with-param name="name" select="'rdf'"/>
@@ -200,7 +206,7 @@ LIMIT   10
                 </form>
 
                 <div class="alert alert-info">
-                    <p>Adding data this way will cause a blocking request, so use it for small amounts of data only (e.g. a few thousands of RDF triples). For larger data, use asynchronous <a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/reference/imports/rdf/" target="_blank">RDF imports</a>.</p>
+                    <p>Adding data this way fetches the source through the server's Linked Data proxy and appends it to the target document in a blocking request, so use it for small amounts of data only (e.g. a few thousand RDF triples). For larger data, use asynchronous <a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/reference/imports/rdf/" target="_blank">RDF imports</a>.</p>
                 </div>
             </div>
         </div>
@@ -210,9 +216,7 @@ LIMIT   10
         <xsl:param name="id" select="'generate-containers'" as="xs:string?"/>
         <xsl:param name="button-class" select="'btn btn-primary btn-save'" as="xs:string?"/>
         <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
-        <xsl:param name="action" select="ldh:href(resolve-uri('generate', ldt:base()), map{})" as="xs:anyURI"/>
         <xsl:param name="legend-label" select="ac:label(key('resources', 'generate-containers', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin))))" as="xs:string"/>
-        <xsl:param name="arg-bnode-id" select="'generate'" as="xs:string"/>
         <xsl:param name="default-limit" select="10" as="xs:integer"/>
         
         <div class="modal modal-constructor fade in">
@@ -243,16 +247,9 @@ LIMIT   10
                         <div>
                             <!--<xsl:attribute name="class" select="'tab-pane ' || (if (not($source)) then 'active' else ())"/>-->
 
-                            <form id="form-generate-containers" method="POST" action="{$action}">
-                                <xsl:comment>This form uses RDF/POST encoding: https://atomgraph.github.io/RDF-POST/</xsl:comment>
-                                <xsl:call-template name="xhtml:Input">
-                                    <xsl:with-param name="name" select="'rdf'"/>
-                                    <xsl:with-param name="type" select="'hidden'"/>
-                                </xsl:call-template>
-            
+                            <!-- no @action: the submit handler orchestrates client-side PUTs of the generated container documents -->
+                            <form id="form-generate-containers" method="POST">
                                 <fieldset>
-                                    <input type="hidden" name="sb" value="{$arg-bnode-id}"/>
-
                                     <div class="control-group required">
                                         <input name="pu" type="hidden" value="&sioc;has_parent"/>
                                         <label class="control-label" for="generate-containers-parent">
@@ -315,7 +312,8 @@ LIMIT   10
                                             <xsl:apply-templates select="key('resources', 'load-schema', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
                                         </xsl:value-of>
                                     </button>
-                                    <button type="submit" class="{$button-class}">
+                                    <!-- disabled until the schema is loaded; ldh:endpoint-classes-response enables it -->
+                                    <button type="submit" class="{$button-class}" disabled="disabled">
                                         <xsl:value-of>
                                             <xsl:apply-templates select="key('resources', 'generate', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
                                         </xsl:value-of>
@@ -1046,12 +1044,19 @@ LIMIT   10
 
     <xsl:template match="button[contains-token(@class, 'btn-generate-containers')]" mode="ixsl:onclick">
         <xsl:variable name="target" select="id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')][contains-token(@class, 'active')]/div[contains-token(@class, 'document-body')]/div[contains-token(@class, 'content-body')]" as="element()"/>
+        <xsl:variable name="graph" select="ldh:base-uri(.)" as="xs:anyURI"/>
 
         <xsl:call-template name="ldh:ShowModalForm">
             <xsl:with-param name="form" as="element()">
                 <xsl:call-template name="ldh:GenerateContainersForm"/>
             </xsl:with-param>
             <xsl:with-param name="target" select="$target"/>
+        </xsl:call-template>
+
+        <!-- initialise the parent typeahead with the current container -->
+        <xsl:call-template name="ldh:LoadTypeaheads">
+            <xsl:with-param name="typeahead-spans" select="id('generate-containers-parent', ixsl:page())/.."/>
+            <xsl:with-param name="graph" select="$graph"/>
         </xsl:call-template>
     </xsl:template>
 
@@ -1218,8 +1223,8 @@ LIMIT   10
         </xsl:call-template>
     </xsl:template>
     
-    <!-- validate form before submitting it and show errors on required control-groups where input values are missing -->
-    <xsl:template match="form[@id = 'form-clone-data'] | form[@id = 'form-generate-containers']" mode="ixsl:onsubmit" priority="1">
+    <!-- validate form before submitting it and show errors on required control-groups where input values are missing; RDF/POST-submits the form (used by the transform variant via xsl:next-match) -->
+    <xsl:template match="form[@id = 'form-clone-data']" mode="ixsl:onsubmit" priority="1">
         <xsl:param name="callback" as="function(map(*)) as item()*"/>
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <xsl:variable name="control-groups" select="descendant::div[contains-token(@class, 'control-group')]" as="element()*"/>
@@ -1265,18 +1270,112 @@ LIMIT   10
         </xsl:choose>
     </xsl:template>
 
-    <!-- submit generate containers modal form with custom callback -->
+    <!-- generate containers: client-orchestrated. For each checked class, build a container document (an Object-wrapped View over a $type-parameterized SELECT) and PUT it under the parent. Parallel fan-out joined by ixsl:all. Replaces the former server-side /generate endpoint. -->
     <xsl:template match="form[@id = 'form-generate-containers']" mode="ixsl:onsubmit" priority="2">
-        <xsl:next-match>
-            <xsl:with-param name="callback" select="ldh:generate-containers-form-response#1"/>
-        </xsl:next-match>
+        <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
+        <xsl:variable name="control-groups" select="descendant::div[contains-token(@class, 'control-group')]" as="element()*"/>
+        <xsl:variable name="required-control-groups" select="$control-groups[contains-token(@class, 'required')]" as="element()*"/>
+        <xsl:variable name="checked-classes" select="descendant::div[contains-token(@class, 'endpoint-classes')]//input[@type = 'checkbox'][ixsl:get(., 'checked')]" as="element()*"/>
+
+        <!-- clear the errors initially -->
+        <xsl:for-each select="$control-groups">
+            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'error', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+        </xsl:for-each>
+
+        <xsl:choose>
+            <!-- required input values missing (parent, limit), throw an error -->
+            <xsl:when test="exists($required-control-groups/descendant::input[@name = ('ol', 'ou')][not(ixsl:get(., 'value'))])">
+                <xsl:sequence select="$required-control-groups[descendant::input[@name = ('ol', 'ou')][not(ixsl:get(., 'value'))]]/ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'error', true() ])[current-date() lt xs:date('2000-01-01')]"/>
+            </xsl:when>
+            <!-- no class checked (or schema never loaded): flag the classes control-group -->
+            <xsl:when test="empty($checked-classes)">
+                <xsl:sequence select="descendant::div[contains-token(@class, 'endpoint-classes')]/ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'error', true() ])[current-date() lt xs:date('2000-01-01')]"/>
+            </xsl:when>
+            <!-- all required values present: build and PUT one container document per checked class -->
+            <xsl:otherwise>
+                <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+
+                <xsl:variable name="form" select="." as="element()"/>
+                <xsl:variable name="parent" select="$control-groups[input[@name = 'pu'][@value = '&sioc;has_parent']]/descendant::input[@name = 'ou']/ixsl:get(., 'value')" as="xs:anyURI"/>
+                <!-- normalize the parent to a trailing slash so container URIs resolve as its children -->
+                <xsl:variable name="parent" select="xs:anyURI(if (ends-with($parent, '/')) then $parent else $parent || '/')" as="xs:anyURI"/>
+                <xsl:variable name="service" select="$control-groups[input[@name = 'pu'][@value = '&ldh;service']]/descendant::input[@name = 'ou']/ixsl:get(., 'value')[. != '']" as="xs:anyURI?"/>
+                <!-- extract the checked classes as pure data; the http-requests are fired later, inside the promise context (ldh:generate-containers-fanout) -->
+                <xsl:variable name="parts" as="map(*)*" select="
+                  for $checkbox in $checked-classes return
+                    map{
+                      'class': xs:anyURI(ixsl:get($checkbox, 'value')),
+                      'query-uri': xs:anyURI($checkbox/ancestor::li/input[@name = 'ou'][@value = ('&ldh;SelectInstances', '&ldh;SelectInstancesInGraphs')]/@value)
+                    }"/>
+
+                <xsl:variable name="context" as="map(*)" select="map{ 'form': $form, 'parent': $parent, 'service': $service, 'parts': $parts }"/>
+
+                <!-- seed a resolved promise so the fan-out's ixsl:http-request calls run in an active promise context (mirrors ldh:fire-load-set-parallel kickoff) -->
+                <ixsl:promise select="
+                  ixsl:resolve($context)
+                    => ixsl:then(ldh:generate-containers-fanout#1)
+                " on-failure="ldh:promise-failure#1"/>
+            </xsl:otherwise>
+        </xsl:choose>
     </xsl:template>
 
-    <!-- submit add data / clone data modal forms with custom callback -->
-    <xsl:template match="form[@id = 'form-clone-data']" mode="ixsl:onsubmit" priority="2">
+    <!-- import-ontology / transform variant (carries a spin:query): keep RDF/POSTing the form to the /transform endpoint -->
+    <xsl:template match="form[@id = 'form-clone-data'][fieldset/input[@name = 'pu'][@value = '&spin;query']]" mode="ixsl:onsubmit" priority="2">
         <xsl:next-match>
             <xsl:with-param name="callback" select="ldh:add-data-form-response#1"/>
         </xsl:next-match>
+    </xsl:template>
+
+    <!-- add/clone variant (no spin:query): client-orchestrated. Fetch the dct:source through the same-origin ?uri= proxy as RDF/XML, then GSP-append it to the sd:name target document. Replaces the former server-side /add endpoint. -->
+    <xsl:template match="form[@id = 'form-clone-data'][not(fieldset/input[@name = 'pu'][@value = '&spin;query'])]" mode="ixsl:onsubmit" priority="2">
+        <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
+        <xsl:variable name="control-groups" select="descendant::div[contains-token(@class, 'control-group')]" as="element()*"/>
+        <xsl:variable name="required-control-groups" select="$control-groups[contains-token(@class, 'required')]" as="element()*"/>
+
+        <!-- clear the errors initially -->
+        <xsl:for-each select="$control-groups">
+            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'error', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+        </xsl:for-each>
+
+        <xsl:choose>
+            <!-- required input values missing, throw an error -->
+            <xsl:when test="exists($required-control-groups/descendant::input[@name = ('ol', 'ou')][not(ixsl:get(., 'value'))])">
+                <xsl:sequence select="$required-control-groups[descendant::input[@name = ('ol', 'ou')][not(ixsl:get(., 'value'))]]/ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'error', true() ])[current-date() lt xs:date('2000-01-01')]"/>
+            </xsl:when>
+            <!-- all required values present, orchestrate the proxy fetch + append -->
+            <xsl:otherwise>
+                <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+
+                <!-- pre-process form before submitting it (trims ou values) -->
+                <xsl:apply-templates select="." mode="ldh:FormPreSubmit"/>
+
+                <xsl:variable name="form" select="." as="element()"/>
+                <xsl:variable name="source" select="$control-groups[input[@name = 'pu'][@value = '&dct;source']]/descendant::input[@name = 'ou']/ixsl:get(., 'value')" as="xs:anyURI"/>
+                <xsl:variable name="target" select="$control-groups[input[@name = 'pu'][@value = '&sd;name']]/descendant::input[@name = 'ou']/ixsl:get(., 'value')" as="xs:anyURI"/>
+                <xsl:choose>
+                    <!-- the append target must be a local document; a cross-origin target would proxy the write to a remote server (which rejects it) -->
+                    <xsl:when test="not(starts-with($target, lapp:origin(ldh:request-uri()) || '/'))">
+                        <xsl:sequence select="ldh:add-data-form-error(map{ 'form': $form, 'message': 'The target document must be local (a document in this hub); choose a local container' })"/> <!-- TO-DO: localize -->
+                    </xsl:when>
+                    <xsl:otherwise>
+                        <!-- ldh:href routes the arbitrary external $source through the same-origin ?uri= proxy (CORS); the proxy also converts any Jena-parseable format to the requested RDF/XML. The target is local, so its ldh:href is a pass-through and the POST goes directly to it. -->
+                        <xsl:variable name="request" select="map{ 'method': 'GET', 'href': ldh:href($source), 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
+                        <xsl:variable name="context" as="map(*)" select="
+                          map{
+                            'request': $request,
+                            'form': $form,
+                            'target-uri': $target
+                          }"/>
+                        <ixsl:promise select="
+                          ixsl:http-request($context('request'))
+                            => ixsl:then(ldh:rethread-response($context, ?))
+                            => ixsl:then(ldh:handle-response#1)
+                            => ixsl:then(ldh:add-data-source-response#1)
+                        " on-failure="ldh:promise-failure#1"/>
+                    </xsl:otherwise>
+                </xsl:choose>
+            </xsl:otherwise>
+        </xsl:choose>
     </xsl:template>
 
     <xsl:template match="button[contains-token(@class, 'btn-load-endpoint-schema')]" mode="ixsl:onclick">
@@ -1309,35 +1408,63 @@ LIMIT   10
         <xsl:variable name="query-json-string" select="xml-to-json($select-xml)" as="xs:string"/>
         <xsl:variable name="query-json" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'parse', [ $query-json-string ])"/>
         <xsl:variable name="query-string" select="ixsl:call(ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromQuery', [ $query-json ]), 'toString', [])" as="xs:string"/>
-        <!-- use the specified endpoint if any, fall back to the internal one otherwise -->
-        <xsl:variable name="endpoint" as="xs:anyURI">
-            <xsl:choose>
-                <xsl:when test="$service-uri">
-                    <!-- TO-DO: asynchronous request -->
-                    <xsl:variable name="service-doc" select="document(ldh:href(ac:build-uri(ldt:base(), map{ 'uri': ac:document-uri($service-uri), 'accept': 'application/rdf+xml' }), map{}))" as="document-node()"/> <!-- TO-DO: replace with <ixsl:schedule-action> -->
-                    <xsl:sequence select="key('resources', $service-uri, $service-doc)/sd:endpoint/@rdf:resource"/>
-                 </xsl:when>
-                 <xsl:otherwise>
-                     <xsl:sequence select="sd:endpoint()"/>
-                 </xsl:otherwise>
-            </xsl:choose>
-        </xsl:variable>    
-        <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': $query-string })" as="xs:anyURI"/>
-        <xsl:variable name="request-uri" select="ldh:href($results-uri)" as="xs:anyURI"/>
-        <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml' } }" as="map(*)"/>
+        <!-- resolve the endpoint (async fetch of the service description when a service is selected, otherwise local), then fetch the class-discovery results; keeps the whole flow non-blocking so the progress cursor shows -->
         <xsl:variable name="context" as="map(*)" select="
           map{
-            'request': $request,
-            'container': $fieldset
+            'query-string': $query-string,
+            'service-uri': $service-uri,
+            'local-endpoint': sd:endpoint(),
+            'fieldset': $fieldset
           }"/>
-
         <ixsl:promise select="
-          ixsl:http-request($context('request'))
-            => ixsl:then(ldh:rethread-response($context, ?))
-            => ixsl:then(ldh:handle-response#1)
-            => ixsl:then(ldh:endpoint-classes-response#1)
+          ixsl:resolve($context)
+            => ixsl:then(ldh:load-schema-endpoint#1)
+            => ixsl:then(ldh:load-schema-results#1)
         " on-failure="ldh:promise-failure#1"/>
     </xsl:template>
+
+    <!-- resolve the SPARQL endpoint for schema discovery: when a service is selected, asynchronously fetch its description and read sd:endpoint; otherwise use the local endpoint. Returns a promise of the context with 'endpoint' set. -->
+    <xsl:function name="ldh:load-schema-endpoint" as="item()*" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:variable name="service-uri" select="$context('service-uri')" as="xs:anyURI?"/>
+        <xsl:choose>
+            <xsl:when test="$service-uri">
+                <xsl:variable name="request" select="map{ 'method': 'GET', 'href': ldh:href(ac:build-uri(ldt:base(), map{ 'uri': ac:document-uri($service-uri), 'accept': 'application/rdf+xml' })), 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
+                <xsl:sequence select="
+                  ixsl:http-request($request)
+                    => ixsl:then(ldh:rethread-response($context, ?))
+                    => ixsl:then(ldh:handle-response#1)
+                    => ixsl:then(ldh:load-schema-endpoint-from-service#1)
+                "/>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:sequence select="ixsl:resolve(map:put($context, 'endpoint', $context('local-endpoint')))"/>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:function>
+
+    <!-- extract the sd:endpoint of the selected service from its fetched description -->
+    <xsl:function name="ldh:load-schema-endpoint-from-service" as="map(*)">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:variable name="service-uri" select="$context('service-uri')" as="xs:anyURI"/>
+        <xsl:variable name="body" select="$context('response')?body" as="document-node()"/>
+        <xsl:variable name="endpoint" select="key('resources', $service-uri, $body)/sd:endpoint/@rdf:resource" as="xs:anyURI"/>
+        <xsl:sequence select="map:put($context, 'endpoint', $endpoint)"/>
+    </xsl:function>
+
+    <!-- fetch the class-discovery SELECT results from the resolved endpoint and render the class list -->
+    <xsl:function name="ldh:load-schema-results" as="item()*" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:variable name="results-uri" select="ac:build-uri($context('endpoint'), map{ 'query': $context('query-string') })" as="xs:anyURI"/>
+        <xsl:variable name="request" select="map{ 'method': 'GET', 'href': ldh:href($results-uri), 'headers': map{ 'Accept': 'application/sparql-results+xml' } }" as="map(*)"/>
+        <xsl:variable name="ctx" as="map(*)" select="map:merge(($context, map{ 'request': $request, 'container': $context('fieldset') }))"/>
+        <xsl:sequence select="
+          ixsl:http-request($request)
+            => ixsl:then(ldh:rethread-response($ctx, ?))
+            => ixsl:then(ldh:handle-response#1)
+            => ixsl:then(ldh:endpoint-classes-response#1)
+        "/>
+    </xsl:function>
 
     <!-- validate form before submitting it and show errors on required control-groups where input values are missing -->
     <xsl:template match="form[@id = 'form-request-access']" mode="ixsl:onsubmit" priority="1">
@@ -1485,7 +1612,6 @@ LIMIT   10
         <xsl:variable name="status" select="$response?status" as="xs:double"/>
         <xsl:variable name="media-type" select="$response?media-type" as="xs:string?"/>
         <xsl:variable name="container" select="$context('container')" as="element()"/>
-        <xsl:variable name="arg-bnode-id" select="if (map:contains($context, 'arg-bnode-id')) then $context('arg-bnode-id') else 'generate'" as="xs:string"/>
 
         <xsl:message>ldh:endpoint-classes-response</xsl:message>
 
@@ -1516,12 +1642,7 @@ LIMIT   10
                             <ul class="unstyled">
                                 <xsl:for-each select="$results/srx:sparql/srx:results/srx:result">
                                     <li>
-                                        <input type="hidden" name="sb" value="{$arg-bnode-id}"/>
-                                        <input type="hidden" name="pu" value="&dct;hasPart"/>
-                                        <input type="hidden" name="ob" value="dataset-{position()}"/> <!-- unique bnode ID for each item -->
-                                        <input type="hidden" name="sb" value="dataset-{position()}"/> <!-- unique bnode ID for each item -->
-                                        <input type="hidden" name="pu" value="&spin;query"/>
-
+                                        <!-- the query URI the submit handler reads (SELECT whose $type it substitutes with the checked class); the checkbox carries the class URI -->
                                         <xsl:choose>
                                             <xsl:when test="srx:binding[@name = 'namedGraph']/srx:uri">
                                                 <input type="hidden" name="ou" value="&ldh;SelectInstancesInGraphs"/>
@@ -1530,8 +1651,6 @@ LIMIT   10
                                                 <input type="hidden" name="ou" value="&ldh;SelectInstances"/>
                                             </xsl:otherwise>
                                         </xsl:choose>
-
-                                        <input type="hidden" name="pu" value="&void;class"/>
 
                                         <label class="checkbox">
                                             <input type="checkbox" checked="checked" name="ou" value="{srx:binding[@name = 'type']/srx:uri}"/>
@@ -1543,6 +1662,11 @@ LIMIT   10
                                 </xsl:for-each>
                             </ul>
                         </xsl:result-document>
+                    </xsl:for-each>
+
+                    <!-- schema loaded: enable the Generate button -->
+                    <xsl:for-each select="$container/ancestor::form//button[contains-token(@class, 'btn-save')]">
+                        <ixsl:set-property name="disabled" select="false()" object="."/>
                     </xsl:for-each>
                 </xsl:for-each>
             </xsl:when>
@@ -1708,30 +1832,148 @@ LIMIT   10
         </xsl:choose>
     </xsl:function>
 
-    <xsl:function name="ldh:generate-containers-form-response" ixsl:updating="yes">
+    <!-- build the PUT request for one generated container: mint the container URI under $parent, load the SELECT text from the ldh ontology and substitute $type with the class IRI, then build the container document -->
+    <xsl:function name="ldh:generate-container-request" as="map(*)">
+        <xsl:param name="parent" as="xs:anyURI"/>
+        <xsl:param name="class" as="xs:anyURI"/>
+        <xsl:param name="query-uri" as="xs:anyURI"/>
+        <xsl:param name="service" as="xs:anyURI?"/>
+
+        <xsl:variable name="uuid" select="ac:uuid()" as="xs:string"/>
+        <xsl:variable name="container-uri" select="xs:anyURI($parent || encode-for-uri($uuid) || '/')" as="xs:anyURI"/>
+        <xsl:variable name="query-text" select="key('resources', $query-uri, document(ac:document-uri('&ldh;')))/sp:text" as="xs:string"/>
+        <!-- substitute the $type variable with the class IRI (literal-pattern replace, precedent navigation.xsl SelectChildren/$this) -->
+        <xsl:variable name="query-text" select="replace($query-text, '$type', '&lt;' || $class || '&gt;', 'q')" as="xs:string"/>
+        <xsl:variable name="body" select="ldh:generate-container-doc($container-uri, $parent, $class, $query-text, $uuid, $service)" as="document-node()"/>
+        <xsl:sequence select="map{ 'method': 'PUT', 'href': ldh:href($container-uri), 'media-type': 'application/rdf+xml', 'body': $body, 'headers': map{ 'Accept': 'application/rdf+xml' } }"/>
+    </xsl:function>
+
+    <!-- build a container document graph equivalent to the former Generate.java output, with the content block correctly wrapped as ldh:Object -> rdf:value -> ldh:View (the bare ldh:View the endpoint wrote bypassed validation and would be rejected by ldh:InvalidContentBlockType on the HTTP path). The server stamps dct:created/creator/owner and skolemizes the blank nodes on PUT. -->
+    <xsl:function name="ldh:generate-container-doc" as="document-node()">
+        <xsl:param name="container-uri" as="xs:anyURI"/>
+        <xsl:param name="parent" as="xs:anyURI"/>
+        <xsl:param name="class" as="xs:anyURI"/>
+        <xsl:param name="query-text" as="xs:string"/>
+        <xsl:param name="slug" as="xs:string"/>
+        <xsl:param name="service" as="xs:anyURI?"/>
+
+        <xsl:variable name="local-name" select="if (contains($class, '#')) then substring-after($class, '#') else tokenize($class, '/')[last()]" as="xs:string"/>
+        <xsl:document>
+            <rdf:RDF>
+                <rdf:Description rdf:about="{$container-uri}">
+                    <rdf:type rdf:resource="&dh;Container"/>
+                    <sioc:has_parent rdf:resource="{$parent}"/>
+                    <dct:title><xsl:value-of select="$local-name || 's'"/></dct:title>
+                    <dh:slug><xsl:value-of select="$slug"/></dh:slug>
+                    <rdf:_1>
+                        <rdf:Description>
+                            <rdf:type rdf:resource="&ldh;Object"/>
+                            <rdf:value>
+                                <rdf:Description>
+                                    <rdf:type rdf:resource="&ldh;View"/>
+                                    <spin:query>
+                                        <rdf:Description>
+                                            <rdf:type rdf:resource="&sp;Select"/>
+                                            <dct:title><xsl:value-of select="'Select ' || $local-name"/></dct:title>
+                                            <sp:text><xsl:value-of select="$query-text"/></sp:text>
+                                            <xsl:if test="$service">
+                                                <ldh:service rdf:resource="{$service}"/>
+                                            </xsl:if>
+                                        </rdf:Description>
+                                    </spin:query>
+                                </rdf:Description>
+                            </rdf:value>
+                        </rdf:Description>
+                    </rdf:_1>
+                </rdf:Description>
+            </rdf:RDF>
+        </xsl:document>
+    </xsl:function>
+
+    <!-- fan-out driver: runs as a promise callback (so ixsl:http-request is called in an active promise context), fires one PUT per class part, and joins them with ixsl:all. Returns the joined promise chain for the outer ixsl:then to adopt (idiom: ldh:fire-load-set-parallel). -->
+    <xsl:function name="ldh:generate-containers-fanout" as="item()*" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+
+        <xsl:variable name="promises" as="array(*)" select="
+          array {
+            for $part in $context('parts') return
+              ixsl:http-request(ldh:generate-container-request($context('parent'), $part('class'), $part('query-uri'), $context('service')))
+                => ixsl:then(ldh:rethread-response(map{ 'class': $part('class') }, ?))
+                => ixsl:then(ldh:handle-response#1)
+          }"/>
+
+        <xsl:sequence select="ixsl:all($promises) => ixsl:then(ldh:generate-containers-join($context, ?))"/>
+    </xsl:function>
+
+    <!-- join callback for the generate fan-out. ixsl:all resolves to an array of the per-PUT contexts (each { class, response }); $results?* expands its members. If every container was created, close the modal and navigate to the parent; otherwise leave the created containers in place and report the failed classes inline. -->
+    <xsl:function name="ldh:generate-containers-join" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:param name="results" as="array(*)"/>
+
+        <xsl:message>ldh:generate-containers-join</xsl:message>
+
+        <xsl:variable name="form" select="$context('form')" as="element()?"/>
+        <xsl:variable name="failures" select="$results?*[?response?status ge 400]" as="item()*"/>
+
+        <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
+
+        <xsl:choose>
+            <xsl:when test="empty($failures)">
+                <!-- all containers created: remove the modal and navigate to the parent -->
+                <xsl:sequence select="ixsl:call($form/ancestor::div[contains-token(@class, 'modal')], 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
+                <xsl:call-template name="ldh:DocumentNavigate">
+                    <xsl:with-param name="doc-uri" select="ac:absolute-path($context('parent'))"/>
+                    <xsl:with-param name="fragment" select="()"/>
+                </xsl:call-template>
+            </xsl:when>
+            <xsl:otherwise>
+                <!-- partial failure: created containers stay; report the classes that failed -->
+                <xsl:for-each select="$form//fieldset">
+                    <xsl:result-document href="?." method="ixsl:append-content">
+                        <div class="alert">
+                            <p>Some containers could not be created:</p> <!-- TO-DO: localize -->
+                            <ul>
+                                <xsl:for-each select="$failures">
+                                    <li><samp><xsl:value-of select="?class"/></samp> (<xsl:value-of select="?response?status"/>)</li>
+                                </xsl:for-each>
+                            </ul>
+                        </div>
+                    </xsl:result-document>
+                </xsl:for-each>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:function>
+
+    <!-- callback for the add/clone source fetch (T3): on a successful RDF/XML response, GSP-append the fetched triples to the target document, then reuse ldh:add-data-form-response to close the modal and navigate. Returns the append promise chain so the outer ixsl:then adopts it (idiom: ldh:fetch-and-load-edited-resource). -->
+    <xsl:function name="ldh:add-data-source-response" as="item()*" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
         <xsl:variable name="response" select="$context('response')" as="map(*)"/>
         <xsl:variable name="status" select="$response?status" as="xs:double"/>
-        <xsl:variable name="form" select="$context('form')" as="element()?"/>
+        <xsl:variable name="media-type" select="$response?media-type" as="xs:string?"/>
 
-        <xsl:message>ldh:generate-containers-form-response</xsl:message>
+        <xsl:message>ldh:add-data-source-response</xsl:message>
 
         <xsl:choose>
-            <!-- Success: redirect to parent container with refresh -->
-            <xsl:when test="$status = (200, 201, 204)">
-                <xsl:variable name="control-group" select="$form/descendant::div[contains-token(@class, 'control-group')][input[@name = 'pu'][@value = '&sioc;has_parent']]" as="element()*"/>
-                <xsl:variable name="uri" select="$control-group/descendant::input[@name = 'ou']/ixsl:get(., 'value')" as="xs:anyURI"/>
-                <!-- Remove the modal -->
-                <xsl:sequence select="ixsl:call($form/ancestor::div[contains-token(@class, 'modal')], 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
-
-                <xsl:call-template name="ldh:DocumentNavigate">
-                    <xsl:with-param name="doc-uri" select="ac:absolute-path($uri)"/>
-                    <xsl:with-param name="fragment" select="ac:fragment-id($uri)"/>
-                </xsl:call-template>
+            <!-- source fetched as RDF/XML: append it to the target document graph -->
+            <xsl:when test="$status = 200 and starts-with($media-type, 'application/rdf+xml')">
+                <xsl:variable name="target-uri" select="$context('target-uri')" as="xs:anyURI"/>
+                <xsl:variable name="post-request" select="map{ 'method': 'POST', 'href': ldh:href($target-uri), 'media-type': 'application/rdf+xml', 'body': $response?body, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
+                <!-- re-thread 'request' so ldh:handle-response's 429/Retry-After retry re-issues the POST, not the original GET -->
+                <xsl:variable name="post-context" select="map:put($context, 'request', $post-request)" as="map(*)"/>
+                <xsl:sequence select="
+                  ixsl:http-request($post-request)
+                    => ixsl:then(ldh:rethread-response($post-context, ?))
+                    => ixsl:then(ldh:handle-response#1)
+                    => ixsl:then(ldh:add-data-form-response#1)
+                "/>
             </xsl:when>
-            <!-- Error -->
+            <!-- 200 but not RDF/XML (e.g. the source URI returned an HTML page): explicit error, do NOT fall through to the success navigation of ldh:add-data-form-response -->
+            <xsl:when test="$status = 200">
+                <xsl:sequence select="ldh:add-data-form-error(map:put($context, 'message', 'The source URI did not return RDF data'))"/> <!-- TO-DO: localize -->
+            </xsl:when>
+            <!-- fetch failed -->
             <xsl:otherwise>
-                <xsl:sequence select="ldh:error-response-alert($context)"/>
+                <xsl:sequence select="ldh:add-data-form-error($context)"/>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:function>
@@ -1759,28 +2001,39 @@ LIMIT   10
             </xsl:when>
             <!-- Error: render error message inline in the form's fieldset -->
             <xsl:otherwise>
-                <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
-
-                <xsl:variable name="status-code" select="xs:integer($status)" as="xs:integer"/>
-                <xsl:variable name="message" select="$response?message" as="xs:string?"/>
-                <!-- render error message -->
-                <xsl:for-each select="$form//fieldset">
-                    <xsl:result-document href="?." method="ixsl:append-content">
-                        <div class="alert">
-                            <p>
-                                <!-- lookup status message by code because Tomcat does not send any -->
-                                <xsl:apply-templates select="key('status-by-code', $status-code, document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/http-statusCodes.rdf', $lapp:origin)))" mode="ac:label"/>
-                            </p>
-                            <xsl:if test="$message">
-                                <p>
-                                    <xsl:value-of select="$message"/>
-                                </p>
-                            </xsl:if>
-                        </div>
-                    </xsl:result-document>
-                </xsl:for-each>
+                <xsl:sequence select="ldh:add-data-form-error($context)"/>
             </xsl:otherwise>
         </xsl:choose>
+    </xsl:function>
+
+    <!-- render an inline error alert in the add/clone form's fieldset; $context may carry an optional 'message' override, otherwise the response message is used. 'response' is optional so pre-fetch validation errors (e.g. a non-local target) can reuse this. -->
+    <xsl:function name="ldh:add-data-form-error" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:variable name="response" select="$context('response')" as="map(*)?"/>
+        <xsl:variable name="status" select="$response?status" as="xs:double?"/>
+        <xsl:variable name="form" select="$context('form')" as="element()?"/>
+
+        <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
+
+        <xsl:variable name="message" select="if (map:contains($context, 'message')) then $context('message') else $response?message" as="xs:string?"/>
+        <!-- render error message -->
+        <xsl:for-each select="$form//fieldset">
+            <xsl:result-document href="?." method="ixsl:append-content">
+                <div class="alert">
+                    <xsl:if test="exists($status)">
+                        <p>
+                            <!-- lookup status message by code because Tomcat does not send any -->
+                            <xsl:apply-templates select="key('status-by-code', xs:integer($status), document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/http-statusCodes.rdf', $lapp:origin)))" mode="ac:label"/>
+                        </p>
+                    </xsl:if>
+                    <xsl:if test="$message">
+                        <p>
+                            <xsl:value-of select="$message"/>
+                        </p>
+                    </xsl:if>
+                </div>
+            </xsl:result-document>
+        </xsl:for-each>
     </xsl:function>
 
     <!-- Kicks off the async metadata-fetch chain for the constraint-violation re-render of a modal form (Container/Item creation and document edit). $context carries response/about/block/form from the form submit handler — $about is the resource discriminator (set by the submit handler from $block/@about or $form/@action). Harvest types/property-uris from the edited resource; object-uris from the whole body. Terminates in ldh:render-modal-form-violation. -->

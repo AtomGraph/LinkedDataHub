@@ -1177,9 +1177,10 @@ WHERE
             <xsl:with-param name="target" select="$target"/>
         </xsl:call-template>
 
+        <!-- seed the target graph typeahead with the local dataspace document (request URI); ldh:base-uri resolves to the proxied remote resource when viewing one, which is never a valid write target -->
         <xsl:call-template name="ldh:LoadTypeaheads">
             <xsl:with-param name="typeahead-spans" select="(id('upload-rdf-doc', ixsl:page())/.., id('remote-rdf-doc', ixsl:page())/..)"/>
-            <xsl:with-param name="graph" select="$graph"/>
+            <xsl:with-param name="graph" select="ac:absolute-path(ldh:request-uri())"/>
         </xsl:call-template>
     </xsl:template>
     
