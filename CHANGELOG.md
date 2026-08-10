@@ -3,7 +3,7 @@
 - Bundled client-side SPARQL engine (Comunica) for in-browser CONSTRUCT execution, lazily loaded on first use
 
 ### Changed
-- **BREAKING**: "Import ontology" transform orchestrated client-side — the browser runs the CONSTRUCT in-browser (bundled SPARQL engine), the CLI (`import-ontology.sh`) runs it via Jena `arq`; replaces the `/transform` endpoint
+- **BREAKING**: "Import ontology" transform orchestrated client-side — the browser runs the CONSTRUCT in-browser (bundled SPARQL engine), the CLI (`import-ontology.sh`) runs it via Jena `sparql`; replaces the `/transform` endpoint
 - Application ontologies resolved as a native ontapi `owl:imports` union graph (cached per ontology URI), no RDFS inference — replaces the manually flattened, RDFS-materialized model
 - `Namespace` no-query GET serves the raw ontology graph from the shared repository instead of rebuilding one per request
 - **BREAKING**: "Add data" and "Generate containers" orchestrated client-side over the Graph Store Protocol (POST-append via `?uri=` proxy; per-class container PUT fan-out embedding the view as `ldh:Object` → `rdf:value` → `ldh:View`), replacing the `/add` and `/generate` endpoints

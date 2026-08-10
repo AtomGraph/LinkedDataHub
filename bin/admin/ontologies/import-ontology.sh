@@ -5,7 +5,7 @@ print_usage()
     printf "Imports an external ontology into a document.\n"
     printf "\n"
     printf "Fetches the source ontology, runs the construct-constructors CONSTRUCT query over it locally\n"
-    printf "(Jena arq), and appends the result to the target graph over the Graph Store Protocol.\n"
+    printf "(Jena sparql), and appends the result to the target graph over the Graph Store Protocol.\n"
     printf "\n"
     printf "Usage:  %s options\n" "$0"
     printf "\n"
@@ -19,9 +19,9 @@ print_usage()
     printf "  --graph GRAPH_URI                    URI of the target document the result is appended to\n"
 }
 
-hash arq 2>/dev/null || { echo >&2 "arq (Jena) not on \$PATH. Aborting."; exit 1; }
+hash sparql 2>/dev/null || { echo >&2 "sparql (Jena) not on \$PATH. Aborting."; exit 1; }
 hash curl 2>/dev/null || { echo >&2 "curl not on \$PATH. Aborting."; exit 1; }
-hash perl 2>/dev/null || { echo >&2 "perl not on \$PATH. Aborting."; exit 1; }
+hash xmllint 2>/dev/null || { echo >&2 "xmllint not on \$PATH. Aborting."; exit 1; }
 
 args=()
 while [[ $# -gt 0 ]]
@@ -110,10 +110,17 @@ graph_url=$(rewrite_proxy "$graph")
 tmp_dir=$(mktemp -d)
 trap 'rm -rf "$tmp_dir"' EXIT
 
-# 1. fetch the construct-constructors query and extract its sp:text as a standalone .rq
+# 1. fetch the construct-constructors query document, then extract its exact sp:text via a SPARQL SELECT
 
-curl -s -k -E "$cert_pem_file":"$cert_password" -H "Accept: application/n-triples" "$query_url" \
-  | perl -ne 'if (/spinrdf\.org\/spin#text>\s+"(.*)"(?:\^\^\S+|\@\S+)?\s*\.\s*$/) { $s=$1; $s=~s/\\n/\n/g; $s=~s/\\r/\r/g; $s=~s/\\t/\t/g; $s=~s/\\"/"/g; $s=~s/\\\\/\\/g; print $s; exit }' \
+curl -s -k -E "$cert_pem_file":"$cert_password" -H "Accept: text/turtle" "$query_url" > "$tmp_dir/query.ttl"
+
+cat > "$tmp_dir/extract-text.rq" <<RQ
+PREFIX sp: <http://spinrdf.org/spin#>
+SELECT ?text WHERE { <${base}queries/construct-constructors/#this> sp:text ?text }
+RQ
+
+sparql --data "$tmp_dir/query.ttl" --query "$tmp_dir/extract-text.rq" --results=XML \
+  | xmllint --xpath 'string(//*[local-name()="literal"])' - \
   > "$tmp_dir/construct.rq"
 
 if [ ! -s "$tmp_dir/construct.rq" ]; then
@@ -123,7 +130,7 @@ fi
 
 # 2. run the CONSTRUCT over the source ontology locally, producing Turtle
 
-arq --data "$source" --query "$tmp_dir/construct.rq" --results=Turtle > "$tmp_dir/result.ttl"
+sparql --data "$source" --query "$tmp_dir/construct.rq" --results=Turtle > "$tmp_dir/result.ttl"
 
 # 3. append the transformed triples to the target graph (Graph Store Protocol POST)
 
