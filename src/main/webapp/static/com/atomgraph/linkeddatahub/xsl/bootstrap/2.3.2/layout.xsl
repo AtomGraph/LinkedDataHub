@@ -449,6 +449,8 @@ exclude-result-prefixes="#all">
         <xsl:if test="$load-sparql-builder">
             <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/SPARQLBuilder.js', lapp:origin())}" defer="defer"></script>
             <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/SPARQL.js', lapp:origin())}" defer="defer"></script>
+            <!-- client-side SPARQL CONSTRUCT execution (import-ontology transform); lazily loads the engine bundle on first use -->
+            <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/SPARQLTransform.js', lapp:origin())}" defer="defer"></script>
         </xsl:if>
         <xsl:if test="$load-sparql-map">
             <link href="{resolve-uri('static/com/atomgraph/linkeddatahub/css/ol.css', lapp:origin())}" rel="stylesheet" type="text/css"></link>

@@ -1223,53 +1223,6 @@ LIMIT   10
         </xsl:call-template>
     </xsl:template>
     
-    <!-- validate form before submitting it and show errors on required control-groups where input values are missing; RDF/POST-submits the form (used by the transform variant via xsl:next-match) -->
-    <xsl:template match="form[@id = 'form-clone-data']" mode="ixsl:onsubmit" priority="1">
-        <xsl:param name="callback" as="function(map(*)) as item()*"/>
-        <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
-        <xsl:variable name="control-groups" select="descendant::div[contains-token(@class, 'control-group')]" as="element()*"/>
-        <xsl:variable name="required-control-groups" select="$control-groups[contains-token(@class, 'required')]" as="element()*"/>
-
-        <!-- clear the errors initially -->
-        <xsl:for-each select="$control-groups">
-            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'error', false() ])[current-date() lt xs:date('2000-01-01')]"/>
-        </xsl:for-each>
-
-        <xsl:choose>
-            <!-- required input values missing, throw an error -->
-            <xsl:when test="exists($required-control-groups/descendant::input[@name = ('ol', 'ou')][not(ixsl:get(., 'value'))])">
-                <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
-                <xsl:sequence select="$required-control-groups[descendant::input[@name = ('ol', 'ou')][not(ixsl:get(., 'value'))]]/ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'error', true() ])[current-date() lt xs:date('2000-01-01')]"/>
-            </xsl:when>
-            <!-- all required values present, proceed to submit form-->
-            <xsl:otherwise>
-                <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
-
-                <!-- pre-process form before submitting it -->
-                <xsl:apply-templates select="." mode="ldh:FormPreSubmit"/>
-
-                <xsl:variable name="form" select="." as="element()"/>
-                <xsl:variable name="method" select="ixsl:get(., 'method')" as="xs:string"/>
-                <xsl:variable name="action" select="ixsl:get(., 'action')" as="xs:anyURI"/>
-                <xsl:variable name="enctype" select="ixsl:get(., 'enctype')" as="xs:string"/>
-                <xsl:variable name="form-data" select="ixsl:new('URLSearchParams', [ ixsl:new('FormData', [ $form ]) ])"/>
-                <xsl:variable name="request-uri" select="ldh:href($action, map{})" as="xs:anyURI"/>
-                <xsl:variable name="request" select="map{ 'method': $method, 'href': $request-uri, 'media-type': $enctype, 'body': $form-data, 'headers': map{} }" as="map(*)"/>
-                <xsl:variable name="context" as="map(*)" select="
-                  map{
-                    'request': $request,
-                    'form': $form
-                  }"/>
-                <ixsl:promise select="
-                  ixsl:http-request($context('request'))
-                    => ixsl:then(ldh:rethread-response($context, ?))
-                    => ixsl:then(ldh:handle-response#1)
-                    => ixsl:then($callback)
-                " on-failure="ldh:promise-failure#1"/>
-            </xsl:otherwise>
-        </xsl:choose>
-    </xsl:template>
-
     <!-- generate containers: client-orchestrated. For each checked class, build a container document (an Object-wrapped View over a $type-parameterized SELECT) and PUT it under the parent. Parallel fan-out joined by ixsl:all. Replaces the former server-side /generate endpoint. -->
     <xsl:template match="form[@id = 'form-generate-containers']" mode="ixsl:onsubmit" priority="2">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
@@ -1319,11 +1272,58 @@ LIMIT   10
         </xsl:choose>
     </xsl:template>
 
-    <!-- import-ontology / transform variant (carries a spin:query): keep RDF/POSTing the form to the /transform endpoint -->
+    <!-- import-ontology / transform variant (carries a spin:query): client-orchestrated, same shape as the add/clone variant but the dct:source is transformed by the spin:query CONSTRUCT (run in-browser by the SPARQL engine) before it is GSP-appended to the sd:name target. Replaces the former server-side /transform endpoint. -->
     <xsl:template match="form[@id = 'form-clone-data'][fieldset/input[@name = 'pu'][@value = '&spin;query']]" mode="ixsl:onsubmit" priority="2">
-        <xsl:next-match>
-            <xsl:with-param name="callback" select="ldh:add-data-form-response#1"/>
-        </xsl:next-match>
+        <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
+        <xsl:variable name="control-groups" select="descendant::div[contains-token(@class, 'control-group')]" as="element()*"/>
+        <xsl:variable name="required-control-groups" select="$control-groups[contains-token(@class, 'required')]" as="element()*"/>
+
+        <!-- clear the errors initially -->
+        <xsl:for-each select="$control-groups">
+            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'error', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+        </xsl:for-each>
+
+        <xsl:choose>
+            <!-- required input values missing, throw an error -->
+            <xsl:when test="exists($required-control-groups/descendant::input[@name = ('ol', 'ou')][not(ixsl:get(., 'value'))])">
+                <xsl:sequence select="$required-control-groups[descendant::input[@name = ('ol', 'ou')][not(ixsl:get(., 'value'))]]/ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'error', true() ])[current-date() lt xs:date('2000-01-01')]"/>
+            </xsl:when>
+            <!-- all required values present, orchestrate the query load, transform and append -->
+            <xsl:otherwise>
+                <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+
+                <!-- pre-process form before submitting it (trims ou values) -->
+                <xsl:apply-templates select="." mode="ldh:FormPreSubmit"/>
+
+                <xsl:variable name="form" select="." as="element()"/>
+                <xsl:variable name="source" select="$control-groups[input[@name = 'pu'][@value = '&dct;source']]/descendant::input[@name = 'ou']/ixsl:get(., 'value')" as="xs:anyURI"/>
+                <xsl:variable name="target" select="$control-groups[input[@name = 'pu'][@value = '&sd;name']]/descendant::input[@name = 'ou']/ixsl:get(., 'value')" as="xs:anyURI"/>
+                <xsl:variable name="query-uri" select="xs:anyURI(descendant::fieldset/input[@name = 'pu'][@value = '&spin;query']/following-sibling::input[@name = 'ou'][1]/@value)" as="xs:anyURI"/>
+                <xsl:choose>
+                    <!-- the append target must be a local document; a cross-origin target would proxy the write to a remote server (which rejects it) -->
+                    <xsl:when test="not(starts-with($target, lapp:origin(ldh:request-uri()) || '/'))">
+                        <xsl:sequence select="ldh:add-data-form-error(map{ 'form': $form, 'message': 'The target document must be local (a document in this hub); choose a local container' })"/> <!-- TO-DO: localize -->
+                    </xsl:when>
+                    <xsl:otherwise>
+                        <!-- fetch the CONSTRUCT query (sp:text) first; ldh:transform-query-response then runs it in-browser over the proxied source and appends the result to the local target -->
+                        <xsl:variable name="request" select="map{ 'method': 'GET', 'href': ldh:href(ac:document-uri($query-uri)), 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
+                        <xsl:variable name="context" as="map(*)" select="
+                          map{
+                            'request': $request,
+                            'form': $form,
+                            'source-uri': $source,
+                            'target-uri': $target
+                          }"/>
+                        <ixsl:promise select="
+                          ixsl:http-request($context('request'))
+                            => ixsl:then(ldh:rethread-response($context, ?))
+                            => ixsl:then(ldh:handle-response#1)
+                            => ixsl:then(ldh:transform-query-response#1)
+                        " on-failure="ldh:promise-failure#1"/>
+                    </xsl:otherwise>
+                </xsl:choose>
+            </xsl:otherwise>
+        </xsl:choose>
     </xsl:template>
 
     <!-- add/clone variant (no spin:query): client-orchestrated. Fetch the dct:source through the same-origin ?uri= proxy as RDF/XML, then GSP-append it to the sd:name target document. Replaces the former server-side /add endpoint. -->
@@ -1976,6 +1976,61 @@ LIMIT   10
                 <xsl:sequence select="ldh:add-data-form-error($context)"/>
             </xsl:otherwise>
         </xsl:choose>
+    </xsl:function>
+
+    <!-- callback for the import-ontology query fetch: extract the CONSTRUCT query text (sp:text), run it in-browser over the proxied dct:source via the SPARQL engine, then hand the Turtle result to ldh:transform-construct-response. Returns the transform+append promise chain so the outer ixsl:then adopts it. -->
+    <xsl:function name="ldh:transform-query-response" as="item()*" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:variable name="response" select="$context('response')" as="map(*)"/>
+        <xsl:variable name="status" select="$response?status" as="xs:double"/>
+        <xsl:variable name="media-type" select="$response?media-type" as="xs:string?"/>
+
+        <xsl:message>ldh:transform-query-response</xsl:message>
+
+        <xsl:choose>
+            <!-- query document loaded as RDF/XML -->
+            <xsl:when test="$status = 200 and starts-with($media-type, 'application/rdf+xml')">
+                <xsl:variable name="query-doc" select="parse-xml($response?body)" as="document-node()"/>
+                <xsl:choose>
+                    <!-- extract sp:text and run the CONSTRUCT client-side over the proxied source -->
+                    <xsl:when test="$query-doc//sp:text">
+                        <xsl:variable name="query-string" select="string($query-doc//sp:text[1])" as="xs:string"/>
+                        <xsl:variable name="engine-src" select="resolve-uri('static/com/atomgraph/linkeddatahub/js/comunica-browser.js', $lapp:origin)" as="xs:anyURI"/>
+                        <xsl:variable name="source-url" select="ldh:href($context('source-uri'))" as="xs:anyURI"/>
+                        <xsl:sequence select="
+                          ixsl:call(ixsl:get(ixsl:window(), 'LinkedDataHub'), 'construct', [ string($engine-src), string($source-url), $query-string ])
+                            => ixsl:then(ldh:transform-construct-response($context, ?))
+                        "/>
+                    </xsl:when>
+                    <xsl:otherwise>
+                        <xsl:sequence select="ldh:add-data-form-error(map:put($context, 'message', 'The transformation query carries no sp:text'))"/> <!-- TO-DO: localize -->
+                    </xsl:otherwise>
+                </xsl:choose>
+            </xsl:when>
+            <!-- query document could not be loaded -->
+            <xsl:otherwise>
+                <xsl:sequence select="ldh:add-data-form-error($context)"/>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:function>
+
+    <!-- callback for the client-side CONSTRUCT: GSP-append the transformed Turtle to the target document, then reuse ldh:add-data-form-response to close the modal and navigate. Mirrors ldh:add-data-source-response's append step. -->
+    <xsl:function name="ldh:transform-construct-response" as="item()*" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:param name="turtle" as="xs:string"/>
+        <xsl:variable name="target-uri" select="$context('target-uri')" as="xs:anyURI"/>
+
+        <xsl:message>ldh:transform-construct-response</xsl:message>
+
+        <xsl:variable name="post-request" select="map{ 'method': 'POST', 'href': ldh:href($target-uri), 'media-type': 'text/turtle', 'body': $turtle, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
+        <!-- re-thread 'request' so ldh:handle-response's 429/Retry-After retry re-issues the POST -->
+        <xsl:variable name="post-context" select="map:put($context, 'request', $post-request)" as="map(*)"/>
+        <xsl:sequence select="
+          ixsl:http-request($post-request)
+            => ixsl:then(ldh:rethread-response($post-context, ?))
+            => ixsl:then(ldh:handle-response#1)
+            => ixsl:then(ldh:add-data-form-response#1)
+        "/>
     </xsl:function>
 
     <xsl:function name="ldh:add-data-form-response" ixsl:updating="yes">
