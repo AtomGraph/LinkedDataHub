@@ -48,4 +48,22 @@
         </xsl:copy>
     </xsl:template>
 
+    <!-- Merge two RDF/XML documents into one via the ldh:MergeRDF mode. Guards an absent/failed side (e.g. a non-2xx metadata response) with an empty rdf:RDF so the merge still runs. -->
+    <xsl:function name="ldh:merge-metadata" as="document-node()">
+        <xsl:param name="base" as="document-node()?"/>
+        <xsl:param name="new-rdf" as="document-node()?"/>
+
+        <xsl:variable name="empty-rdf" as="document-node()">
+            <xsl:document>
+                <rdf:RDF/>
+            </xsl:document>
+        </xsl:variable>
+
+        <xsl:document>
+            <xsl:apply-templates select="($base[rdf:RDF], $empty-rdf)[1]" mode="ldh:MergeRDF">
+                <xsl:with-param name="new-rdf" select="($new-rdf[rdf:RDF], $empty-rdf)[1]" tunnel="yes"/>
+            </xsl:apply-templates>
+        </xsl:document>
+    </xsl:function>
+
 </xsl:stylesheet>

@@ -892,8 +892,10 @@ LIMIT   10
                  [ function($ctx as map(*)) as map(*) { $ctx }, 'type-metadata-request',     'type-metadata-response',     ldh:set-type-metadata#1 ],
                  [ ldh:load-property-metadata#1,                'property-metadata-request', 'property-metadata-response', ldh:set-property-metadata#1 ],
                  [ ldh:load-constraints#1,                      'constraints-request',       'constraints-response',       ldh:set-constraints#1 ],
-                 [ ldh:load-object-metadata#1,                  'metadata-request',          'metadata-response',          ldh:set-object-metadata#1 ]
+                 [ ldh:load-object-metadata#1,                  'metadata-request',          'metadata-response',          ldh:set-object-metadata#1 ],
+                 [ ldh:load-object-metadata#1,                  'ns-metadata-request',       'ns-metadata-response',       ldh:set-object-metadata-ns#1 ]
                ]))
+            => ixsl:then(ldh:merge-object-metadata#1)
             => ixsl:then(ldh:render-form#1)
             => ixsl:finally(ldh:reset-cursor#0)
         " on-failure="ldh:promise-failure#1"/>
@@ -1113,8 +1115,10 @@ LIMIT   10
                  [ function($ctx as map(*)) as map(*) { $ctx }, 'type-metadata-request',     'type-metadata-response',     ldh:set-type-metadata#1 ],
                  [ ldh:load-property-metadata#1,                'property-metadata-request', 'property-metadata-response', ldh:set-property-metadata#1 ],
                  [ ldh:load-constraints#1,                      'constraints-request',       'constraints-response',       ldh:set-constraints#1 ],
-                 [ ldh:load-object-metadata#1,                  'metadata-request',          'metadata-response',          ldh:set-object-metadata#1 ]
+                 [ ldh:load-object-metadata#1,                  'metadata-request',          'metadata-response',          ldh:set-object-metadata#1 ],
+                 [ ldh:load-object-metadata#1,                  'ns-metadata-request',       'ns-metadata-response',       ldh:set-object-metadata-ns#1 ]
                ]))
+            => ixsl:then(ldh:merge-object-metadata#1)
             => ixsl:then(ldh:render-app-settings-form#1)
             => ixsl:finally(ldh:reset-cursor#0)
         " on-failure="ldh:promise-failure#1"/>
@@ -2065,8 +2069,10 @@ LIMIT   10
               [ ldh:load-type-metadata#1,     'type-metadata-request',     'type-metadata-response',     ldh:set-type-metadata#1 ],
               [ ldh:load-property-metadata#1, 'property-metadata-request', 'property-metadata-response', ldh:set-property-metadata#1 ],
               [ ldh:load-constraints#1,       'constraints-request',       'constraints-response',       ldh:set-constraints#1 ],
-              [ ldh:load-object-metadata#1,   'metadata-request',          'metadata-response',          ldh:set-object-metadata#1 ]
+              [ ldh:load-object-metadata#1,   'metadata-request',          'metadata-response',          ldh:set-object-metadata#1 ],
+              [ ldh:load-object-metadata#1,   'ns-metadata-request',       'ns-metadata-response',       ldh:set-object-metadata-ns#1 ]
             ])) =>
+            ixsl:then(ldh:merge-object-metadata#1) =>
             ixsl:then(ldh:render-modal-form-violation#1) =>
             ixsl:finally(ldh:reset-cursor#0)"
             on-failure="ldh:promise-failure#1"/>
