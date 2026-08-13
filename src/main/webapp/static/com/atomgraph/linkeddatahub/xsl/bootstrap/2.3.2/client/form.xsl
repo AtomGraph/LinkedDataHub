@@ -589,8 +589,10 @@ WHERE
                  [ ldh:load-shapes#1,                           'shapes-request',            'shapes-response',            ldh:set-shapes#1 ],
                  [ ldh:load-property-metadata#1,                'property-metadata-request', 'property-metadata-response', ldh:set-property-metadata#1 ],
                  [ ldh:load-constraints#1,                      'constraints-request',       'constraints-response',       ldh:set-constraints#1 ],
-                 [ ldh:load-object-metadata#1,                  'metadata-request',          'metadata-response',          ldh:set-object-metadata#1 ]
+                 [ ldh:load-object-metadata#1,                  'metadata-request',          'metadata-response',          ldh:set-object-metadata#1 ],
+                 [ ldh:load-object-metadata#1,                  'ns-metadata-request',       'ns-metadata-response',       ldh:set-object-metadata-ns#1 ]
                ]))
+            => ixsl:then(ldh:merge-object-metadata#1)
             => ixsl:then(ldh:render-row-form#1)
             => ixsl:finally(ldh:reset-cursor#0)
         " on-failure="ldh:promise-failure#1"/>
@@ -1363,8 +1365,10 @@ WHERE
               [ ldh:load-type-metadata#1,     'type-metadata-request',     'type-metadata-response',     ldh:set-type-metadata#1 ],
               [ ldh:load-property-metadata#1, 'property-metadata-request', 'property-metadata-response', ldh:set-property-metadata#1 ],
               [ ldh:load-constraints#1,       'constraints-request',       'constraints-response',       ldh:set-constraints#1 ],
-              [ ldh:load-object-metadata#1,   'metadata-request',          'metadata-response',          ldh:set-object-metadata#1 ]
+              [ ldh:load-object-metadata#1,   'metadata-request',          'metadata-response',          ldh:set-object-metadata#1 ],
+              [ ldh:load-object-metadata#1,   'ns-metadata-request',       'ns-metadata-response',       ldh:set-object-metadata-ns#1 ]
             ])) =>
+            ixsl:then(ldh:merge-object-metadata#1) =>
             ixsl:then(ldh:render-row-form-violation#1) =>
             ixsl:finally(ldh:reset-cursor#0)"
             on-failure="ldh:promise-failure#1"/>
