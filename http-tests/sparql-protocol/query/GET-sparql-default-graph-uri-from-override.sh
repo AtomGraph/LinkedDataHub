@@ -38,17 +38,12 @@ result=$(curl -k -f -s -G \
   --data-urlencode "query=SELECT ?title FROM <${container_two}> WHERE { ?s <http://purl.org/dc/terms/title> ?title }" \
   --data-urlencode "default-graph-uri=${container_one}")
 
-echo "DEBUG: FROM: $container_two"
-echo "DEBUG: default-graph-uri: $container_one"
-echo "DEBUG: Got: $result"
-
 # the protocol-specified graph's title is visible
 
-echo "$result" | grep -q "Graph scope one" || { echo "DEBUG: expected 'Graph scope one' - protocol dataset should win over FROM"; exit 1; }
+echo "$result" | grep -q "Graph scope one"
 
 # the FROM graph's title is not
 
 if echo "$result" | grep -q "Graph scope two"; then
-    echo "DEBUG: 'Graph scope two' visible - FROM clause overrode the protocol dataset"
     exit 1
 fi

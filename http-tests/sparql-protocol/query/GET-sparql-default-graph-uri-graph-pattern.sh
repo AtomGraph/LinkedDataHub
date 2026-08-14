@@ -30,13 +30,7 @@ control=$(curl -k -f -s -G \
 
 control_count=$(echo "$control" | grep -c "<result>" || true)
 
-echo "DEBUG: default-graph-uri: $container"
-echo "DEBUG: control result count: $control_count"
-
-if [ "$control_count" -eq 0 ]; then
-    echo "DEBUG: control query returned no results - scoped default graph unexpectedly empty"
-    exit 1
-fi
+[ "$control_count" -gt 0 ]
 
 # the protocol dataset contains no named graphs, so GRAPH patterns must match nothing
 
@@ -49,10 +43,4 @@ result=$(curl -k -f -s -G \
 
 result_count=$(echo "$result" | grep -c "<result>" || true)
 
-echo "DEBUG: Expected GRAPH-pattern result count: 0"
-echo "DEBUG: Got: $result_count"
-
-if [ "$result_count" -ne 0 ]; then
-    echo "DEBUG: GRAPH pattern escaped the default-graph-uri scope"
-    exit 1
-fi
+[ "$result_count" -eq 0 ]

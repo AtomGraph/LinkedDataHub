@@ -41,16 +41,12 @@ result=$(curl -k -f -s -X POST \
   "${END_USER_BASE_URL}sparql?default-graph-uri=${container_one_enc}" \
   --data-binary "SELECT ?title { ?s <http://purl.org/dc/terms/title> ?title }")
 
-echo "DEBUG: default-graph-uri: $container_one"
-echo "DEBUG: Got: $result"
-
 # the scoped graph's title is visible
 
-echo "$result" | grep -q "Graph scope one" || { echo "DEBUG: expected 'Graph scope one' in scoped results"; exit 1; }
+echo "$result" | grep -q "Graph scope one"
 
 # the other document's graph is invisible
 
 if echo "$result" | grep -q "Graph scope two"; then
-    echo "DEBUG: 'Graph scope two' leaked into results scoped to $container_one"
     exit 1
 fi
