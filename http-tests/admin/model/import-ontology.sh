@@ -23,22 +23,36 @@ item=$(create-item.sh \
   --slug "$slug" \
   --container "${ADMIN_BASE_URL}ontologies/")
 
-# load the ontology, transform it and append it to the item document
+# import the ontology into the item document and derive class constructors from it
 
-curl -w "%{http_code}\n" -o /dev/null -k -s \
+import-ontology.sh \
+  -f "$OWNER_CERT_FILE" \
+  -p "$OWNER_CERT_PWD" \
+  -b "$ADMIN_BASE_URL" \
+  --source "$import_uri" \
+  --graph "$item"
+
+# check that the item graph holds the raw ontology, using a query scoped to it via the SPARQL Protocol dataset specification
+
+curl -k -f -s \
+  -G \
   -E "$OWNER_CERT_FILE":"$OWNER_CERT_PWD" \
-  -H "Accept: text/turtle" \
-  -H "Content-Type: application/x-www-form-urlencoded" \
-  --data-urlencode "rdf=" \
-  --data-urlencode "sb=transform" \
-  --data-urlencode "pu=http://spinrdf.org/spin#query" \
-  --data-urlencode "ou=${ADMIN_BASE_URL}queries/construct-constructors/#this" \
-  --data-urlencode "pu=http://purl.org/dc/terms/source" \
-  --data-urlencode "ou=${import_uri}" \
-  --data-urlencode "pu=http://www.w3.org/ns/sparql-service-description#name" \
-  --data-urlencode "ou=${item}" \
-  "${ADMIN_BASE_URL}transform" \
-| grep -q "$STATUS_NO_CONTENT"
+  -H 'Accept: application/sparql-results+xml' \
+  --data-urlencode "query=SELECT * { <${import_uri}> ?p ?o }" \
+  --data-urlencode "default-graph-uri=${item}" \
+  "${ADMIN_BASE_URL}sparql" \
+| grep '<literal xml:lang="en">SKOS Vocabulary</literal>' > /dev/null
+
+# check that constructors were derived into the item graph
+
+curl -k -f -s \
+  -G \
+  -E "$OWNER_CERT_FILE":"$OWNER_CERT_PWD" \
+  -H 'Accept: application/sparql-results+xml' \
+  --data-urlencode "query=SELECT * { ?class <http://spinrdf.org/spin#constructor> ?constructor }" \
+  --data-urlencode "default-graph-uri=${item}" \
+  "${ADMIN_BASE_URL}sparql" \
+| grep '<result>' > /dev/null
 
 # add ontology import
 
@@ -57,6 +71,9 @@ clear-ontology.sh \
   --ontology "$namespace"
 
 # check that the imported ontology is present in the ontology model TO-DO: replace with an ASK query when #118 is fixed
+# (SKOS is a bundled vocabulary: OntologyRepository serves the shipped file authoritatively, so the closure carries
+# its terms but not the constructors derived into the local document — those reach the closure only for
+# ontologies that are not bundled. The constructor derivation itself is asserted on the document graph above.)
 
 curl -k -f -s \
   -G \
