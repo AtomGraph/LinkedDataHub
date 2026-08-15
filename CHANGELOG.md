@@ -1,4 +1,7 @@
 ## [Unreleased]
+### Added
+- HTTP tests pinning graph-scoped queries via SPARQL Protocol dataset parameters on `/sparql` (`default-graph-uri=<doc-uri>` scopes a query to one document's graph; overrides `FROM`; `GRAPH` patterns match nothing) — the read-side counterpart of graph-scoped `PATCH`, no server changes needed
+
 ### Changed
 - Application ontologies resolved as a native ontapi `owl:imports` union graph (cached per ontology URI), no RDFS inference — replaces the manually flattened, RDFS-materialized model
 - `Namespace` no-query GET serves the raw ontology graph from the shared repository instead of rebuilding one per request
