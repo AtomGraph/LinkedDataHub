@@ -1,6 +1,7 @@
 ## [Unreleased]
 ### Changed
 - Application ontologies resolved as a native ontapi `owl:imports` union graph (cached per ontology URI), no RDFS inference — replaces the manually flattened, RDFS-materialized model
+- "Import ontology" orchestrated client-side: proxy fetch → GSP append of the raw ontology to the target document → `construct-constructors` CONSTRUCT scoped to that document's graph via the SPARQL Protocol dataset specification (`default-graph-uri` on `/sparql`) → GSP append of the result; `import-ontology.sh` rewritten curl-only (drops the `turtle` CLI dependency)
 - `Namespace` no-query GET serves the raw ontology graph from the shared repository instead of rebuilding one per request
 - **BREAKING**: "Add data" and "Generate containers" orchestrated client-side over the Graph Store Protocol (POST-append via `?uri=` proxy; per-class container PUT fan-out embedding the view as `ldh:Object` → `rdf:value` → `ldh:View`), replacing the `/add` and `/generate` endpoints
 
@@ -9,7 +10,8 @@
 
 ### Removed
 - Linked Data proxy no longer serves ontology terms (now dumb transport: bundled-vocab file cache + SSRF-checked external fetch); ontology terms served by `/ns`
-- **BREAKING**: `/add` and `/generate` server-side endpoints (`Add`/`Generate` JAX-RS resources), superseded by the client-orchestrated writes; removes their server-side fetch/SSRF surface (LNK-002); `/transform` retained until a client-side SPARQL engine lands
+- **BREAKING**: `/add` and `/generate` server-side endpoints (`Add`/`Generate` JAX-RS resources), superseded by the client-orchestrated writes; removes their server-side fetch/SSRF surface (LNK-002)
+- **BREAKING**: `/transform` endpoint (`Transform` JAX-RS resource), superseded by the client-orchestrated "Import ontology" flow — the last bespoke server-side fetch/SSRF surface (LNK-002) is gone
 
 ## [5.7.1] - 2026-08-06
 ### Changed
