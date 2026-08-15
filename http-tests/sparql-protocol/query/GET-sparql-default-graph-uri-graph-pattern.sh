@@ -28,7 +28,7 @@ control=$(curl -k -f -s -G \
   --data-urlencode "query=SELECT * { ?s ?p ?o }" \
   --data-urlencode "default-graph-uri=${container}")
 
-control_count=$(echo "$control" | grep -c "<result>" || true)
+control_count=$(echo "$control" | xmllint --xpath 'count(//*[local-name()="result"])' -)
 
 [ "$control_count" -gt 0 ]
 
@@ -41,6 +41,6 @@ result=$(curl -k -f -s -G \
   --data-urlencode "query=SELECT * { GRAPH ?g { ?s ?p ?o } }" \
   --data-urlencode "default-graph-uri=${container}")
 
-result_count=$(echo "$result" | grep -c "<result>" || true)
+result_count=$(echo "$result" | xmllint --xpath 'count(//*[local-name()="result"])' -)
 
 [ "$result_count" -eq 0 ]
