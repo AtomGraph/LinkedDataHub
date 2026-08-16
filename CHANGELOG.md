@@ -1,4 +1,4 @@
-## [Unreleased]
+## [5.8.0]
 ### Added
 - HTTP tests pinning graph-scoped queries via SPARQL Protocol dataset parameters on `/sparql` (`default-graph-uri=<doc-uri>` scopes a query to one document's graph; overrides `FROM`; `GRAPH` patterns match nothing) — the read-side counterpart of graph-scoped `PATCH`, no server changes needed
 
