@@ -689,6 +689,10 @@ exclude-result-prefixes="#all"
                         ixsl:then(ldh:http-request-threaded(?, 'metadata-request', 'metadata-response')) =>
                         ixsl:then(ldh:handle-response(?, 'metadata-response')) =>
                         ixsl:then(ldh:set-object-metadata#1) =>
+                        ixsl:then(ldh:http-request-threaded(?, 'ns-metadata-request', 'ns-metadata-response')) =>
+                        ixsl:then(ldh:handle-response(?, 'ns-metadata-response')) =>
+                        ixsl:then(ldh:set-object-metadata-ns#1) =>
+                        ixsl:then(ldh:merge-object-metadata#1) =>
                         ixsl:then(ldh:load-property-metadata#1) =>
                         ixsl:then(ldh:http-request-threaded(?, 'property-metadata-request', 'property-metadata-response')) =>
                         ixsl:then(ldh:handle-response(?, 'property-metadata-response')) =>
@@ -768,13 +772,17 @@ exclude-result-prefixes="#all"
                 return if ($response?status = 200 and $response?media-type = 'application/rdf+xml')
                        then distinct-values($response?body/rdf:RDF/rdf:Description/*/@rdf:resource[not(key('resources', .))])
                        else ()"/>
-        <xsl:variable name="query-string" select="$object-metadata-query || ' VALUES $this { ' || string-join(for $uri in $object-uris return '&lt;' || $uri || '&gt;', ' ') || ' }'" as="xs:string"/>
+        <xsl:variable name="values" select="' VALUES $this { ' || string-join(for $uri in $object-uris return '&lt;' || $uri || '&gt;', ' ') || ' }'" as="xs:string"/>
+        <xsl:variable name="query-string" select="$object-metadata-query || $values" as="xs:string"/>
         <xsl:variable name="request" select="map{ 'method': 'POST', 'href': ldh:href($endpoint), 'media-type': 'application/sparql-query', 'body': $query-string, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
+        <!-- second request resolves labels of object URIs that are ontology terms (rdf:type/class values etc.) from the /ns endpoint, whose graph-free query targets the in-memory ontology default graph; merged with the /sparql result by ldh:merge-object-metadata -->
+        <xsl:variable name="ns-query-string" select="$object-metadata-ns-query || $values" as="xs:string"/>
+        <xsl:variable name="ns-request" select="map{ 'method': 'POST', 'href': ldh:href(resolve-uri('ns', ldt:base())), 'media-type': 'application/sparql-query', 'body': $ns-query-string, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
 
         <xsl:message>ldh:load-object-metadata</xsl:message>
 
-        <!-- always emit a metadata-request so the downstream http-request-threaded step has a key to read; empty VALUES results in an empty response which set-object-metadata stores as an empty object-metadata document and ac:object-label falls through to its fragment fallback -->
-        <xsl:sequence select="map:merge(($context, map{ 'metadata-request': $request }))"/>
+        <!-- always emit both requests so the downstream http-request-threaded steps have keys to read; empty VALUES results in empty responses which set-object-metadata / set-object-metadata-ns store as empty documents and ac:object-label falls through to its fragment fallback -->
+        <xsl:sequence select="map:merge(($context, map{ 'metadata-request': $request, 'ns-metadata-request': $ns-request }))"/>
     </xsl:function>
 
     <xsl:function name="ldh:set-object-metadata" as="map(*)" ixsl:updating="yes">
@@ -800,6 +808,37 @@ exclude-result-prefixes="#all"
                 </xsl:otherwise>
             </xsl:choose>
         </xsl:for-each>
+    </xsl:function>
+
+    <!-- stores the /ns object-metadata response (labels for object URIs that are ontology terms) under 'object-metadata-ns'; ldh:merge-object-metadata folds it into 'object-metadata'. Error-tolerant: a non-2xx response is treated as empty metadata -->
+    <xsl:function name="ldh:set-object-metadata-ns" as="map(*)" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:variable name="response" select="$context('ns-metadata-response')" as="map(*)"/>
+
+        <xsl:message>ldh:set-object-metadata-ns</xsl:message>
+
+        <xsl:for-each select="$response">
+            <xsl:choose>
+                <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
+                    <xsl:variable name="object-metadata-ns" select="?body" as="document-node()?"/>
+                    <xsl:sequence select="map:merge(($context, map{ 'object-metadata-ns': $object-metadata-ns }))"/>
+                </xsl:when>
+                <xsl:otherwise>
+                    <!-- ignore ontology metadata loading errors - treat as empty metadata -->
+                    <xsl:sequence select="$context"/>
+                </xsl:otherwise>
+            </xsl:choose>
+        </xsl:for-each>
+    </xsl:function>
+
+    <!-- merges the /sparql ('object-metadata') and /ns ('object-metadata-ns') label documents into a single 'object-metadata' document (via ldh:merge-metadata → ldh:MergeRDF mode) consumed by ac:object-label. use-last because 'object-metadata' already exists in the context -->
+    <xsl:function name="ldh:merge-object-metadata" as="map(*)" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+
+        <xsl:message>ldh:merge-object-metadata</xsl:message>
+
+        <xsl:variable name="merged" select="ldh:merge-metadata($context('object-metadata'), $context('object-metadata-ns'))" as="document-node()"/>
+        <xsl:sequence select="map:merge(($context, map{ 'object-metadata': $merged }), map{ 'duplicates': 'use-last' })"/>
     </xsl:function>
 
     <!-- property-metadata fetch helpers: mirror the object-metadata pair above, but DESCRIBE the property URIs (rdfs:label / skos:prefLabel etc. resolved via the application's /ns ontology store) so that ac:property-label can resolve vocabulary labels client-side. Chain wiring: ldh:http-request-threaded(?, 'property-metadata-request', 'property-metadata-response') then ldh:set-property-metadata stores the body under 'property-metadata' for the tunnel consumed by ac:property-label. -->

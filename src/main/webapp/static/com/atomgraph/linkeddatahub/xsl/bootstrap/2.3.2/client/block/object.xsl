@@ -148,6 +148,8 @@ exclude-result-prefixes="#all"
                     ixsl:http-request($context('object-metadata-request')) =>
                         ixsl:then(ldh:rethread-response($context, ?, 'object-metadata-response')) =>
                         ixsl:then(ldh:handle-response(?, 'object-metadata-response')) =>
+                        ixsl:then(ldh:http-request-threaded(?, 'ns-object-metadata-request', 'ns-object-metadata-response')) =>
+                        ixsl:then(ldh:handle-response(?, 'ns-object-metadata-response')) =>
                         ixsl:then(ldh:block-object-metadata-response#1) =>
                         ixsl:then(ldh:block-object-apply#1) =>
                         ixsl:then(ldh:invoke-factory#1)
@@ -190,10 +192,15 @@ exclude-result-prefixes="#all"
                             <!-- only attempt to load object metadata for local resources -->
                             <xsl:when test="$resource">
                                 <xsl:variable name="object-uris" select="distinct-values($resource/*/@rdf:resource[starts-with(., ldt:base())][not(key('resources', ., root($resource)))])" as="xs:string*"/>
-                                <xsl:variable name="query-string" select="$object-metadata-query || ' VALUES $this { ' || string-join(for $uri in $object-uris return '&lt;' || $uri || '&gt;', ' ') || ' }'" as="xs:string"/>
+                                <xsl:variable name="values" select="' VALUES $this { ' || string-join(for $uri in $object-uris return '&lt;' || $uri || '&gt;', ' ') || ' }'" as="xs:string"/>
+                                <xsl:variable name="query-string" select="$object-metadata-query || $values" as="xs:string"/>
                                 <xsl:variable name="request" select="map{ 'method': 'POST', 'href': ldh:href(sd:endpoint()), 'media-type': 'application/sparql-query', 'body': $query-string, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
+                                <!-- second request resolves ontology-term object labels (rdf:type/class values etc.) from the /ns endpoint; merged with the /sparql result in ldh:block-object-metadata-response -->
+                                <xsl:variable name="ns-query-string" select="$object-metadata-ns-query || $values" as="xs:string"/>
+                                <xsl:variable name="ns-request" select="map{ 'method': 'POST', 'href': ldh:href(resolve-uri('ns', ldt:base())), 'media-type': 'application/sparql-query', 'body': $ns-query-string, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
                                 <xsl:sequence select="map:merge(($context, map{
                                     'object-metadata-request': $request,
+                                    'ns-object-metadata-request': $ns-request,
                                     'resource': $resource
                                 }))"/>
                             </xsl:when>
@@ -273,7 +280,10 @@ exclude-result-prefixes="#all"
                 <xsl:for-each select="$response">
                     <xsl:choose>
                         <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
-                            <xsl:variable name="object-metadata" select="?body" as="document-node()"/>
+                            <!-- merge the /sparql object-metadata with the /ns ontology-term labels (ldh:MergeRDF via ldh:merge-metadata); only a 200 rdf+xml /ns response has a document-node body to merge -->
+                            <xsl:variable name="ns-response" select="$context('ns-object-metadata-response')" as="map(*)?"/>
+                            <xsl:variable name="ns-metadata" select="if ($ns-response?status = 200 and $ns-response?media-type = 'application/rdf+xml') then $ns-response?body else ()" as="document-node()?"/>
+                            <xsl:variable name="object-metadata" select="ldh:merge-metadata(?body, $ns-metadata)" as="document-node()"/>
 
                             <xsl:variable name="row" as="node()*">
                                 <xsl:apply-templates select="$resource" mode="bs2:Row">

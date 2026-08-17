@@ -231,6 +231,32 @@ WHERE
         ]]>
         <!-- VALUES $this goes here -->
     </xsl:param>
+    <!-- graph-free variant of object-metadata-query for the /ns ontology endpoint: its dataset is the in-memory OntModel served as the default graph (no named graphs), so a GRAPH ?graph pattern would match nothing -->
+    <xsl:param name="object-metadata-ns-query" as="xs:string">
+        <![CDATA[
+            PREFIX  rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+            PREFIX  xsd:  <http://www.w3.org/2001/XMLSchema#>
+            PREFIX  dct:  <http://purl.org/dc/terms/>
+            PREFIX  schema2: <https://schema.org/>
+            PREFIX  schema1: <http://schema.org/>
+            PREFIX  skos: <http://www.w3.org/2004/02/skos/core#>
+            PREFIX  rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+            PREFIX  foaf: <http://xmlns.com/foaf/0.1/>
+            PREFIX  sioc: <http://rdfs.org/sioc/ns#>
+            PREFIX  dc:   <http://purl.org/dc/elements/1.1/>
+
+            CONSTRUCT
+              {
+                $this ?p ?literal .
+              }
+            WHERE
+              { $this  ?p  ?literal
+                FILTER ( ( datatype(?literal) = xsd:string ) || ( datatype(?literal) = rdf:langString ) )
+                FILTER ( ?p IN (rdfs:label, dc:title, dct:title, foaf:name, foaf:givenName, foaf:familyName, sioc:name, skos:prefLabel, schema1:name, schema2:name) )
+              }
+        ]]>
+        <!-- VALUES $this goes here -->
+    </xsl:param>
     <xsl:param name="property-metadata-query" as="xs:string">
         <![CDATA[
             DESCRIBE $Type
@@ -992,6 +1018,10 @@ WHERE
             ixsl:then(ldh:http-request-threaded(?, 'metadata-request', 'metadata-response')) =>
             ixsl:then(ldh:handle-response(?, 'metadata-response')) =>
             ixsl:then(ldh:set-object-metadata#1) =>
+            ixsl:then(ldh:http-request-threaded(?, 'ns-metadata-request', 'ns-metadata-response')) =>
+            ixsl:then(ldh:handle-response(?, 'ns-metadata-response')) =>
+            ixsl:then(ldh:set-object-metadata-ns#1) =>
+            ixsl:then(ldh:merge-object-metadata#1) =>
             ixsl:then(ldh:load-property-metadata#1) =>
             ixsl:then(ldh:http-request-threaded(?, 'property-metadata-request', 'property-metadata-response')) =>
             ixsl:then(ldh:handle-response(?, 'property-metadata-response')) =>
@@ -1177,9 +1207,10 @@ WHERE
             <xsl:with-param name="target" select="$target"/>
         </xsl:call-template>
 
+        <!-- seed the target graph typeahead with the local dataspace document (request URI); ldh:base-uri resolves to the proxied remote resource when viewing one, which is never a valid write target -->
         <xsl:call-template name="ldh:LoadTypeaheads">
             <xsl:with-param name="typeahead-spans" select="(id('upload-rdf-doc', ixsl:page())/.., id('remote-rdf-doc', ixsl:page())/..)"/>
-            <xsl:with-param name="graph" select="$graph"/>
+            <xsl:with-param name="graph" select="ac:absolute-path(ldh:request-uri())"/>
         </xsl:call-template>
     </xsl:template>
     

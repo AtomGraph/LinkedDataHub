@@ -96,7 +96,10 @@ exclude-result-prefixes="#all">
     <xsl:import href="imports/lapp.xsl"/>
     <xsl:import href="imports/services/youtube.xsl"/>
     <xsl:import href="document.xsl"/>
-    
+
+    <!-- ldh:MergeRDF mode + ldh:merge-metadata() for merging /sparql + /ns object-metadata on the initial server render (SSR-safe: no ixsl). The client SEF gets this via client.xsl → graph3d.xsl. -->
+    <xsl:include href="client/merge-rdfxml.xsl"/>
+
     <!--  To use xsl:import-schema, you need the schema-aware version of Saxon -->
     <!-- <xsl:import-schema namespace="http://www.w3.org/1999/xhtml" schema-location="http://www.w3.org/2002/08/xhtml/xhtml1-transitional.xsd"/> -->
 
@@ -252,7 +255,33 @@ exclude-result-prefixes="#all">
         ]]>
         <!-- VALUES $this goes here -->
     </xsl:param>
-    
+    <!-- graph-free variant of object-metadata-query for the /ns ontology endpoint: its dataset is the in-memory OntModel served as the default graph (no named graphs), so a GRAPH ?graph pattern would match nothing -->
+    <xsl:param name="object-metadata-ns-query" as="xs:string">
+        <![CDATA[
+            PREFIX  rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+            PREFIX  xsd:  <http://www.w3.org/2001/XMLSchema#>
+            PREFIX  dct:  <http://purl.org/dc/terms/>
+            PREFIX  schema2: <https://schema.org/>
+            PREFIX  schema1: <http://schema.org/>
+            PREFIX  skos: <http://www.w3.org/2004/02/skos/core#>
+            PREFIX  rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+            PREFIX  foaf: <http://xmlns.com/foaf/0.1/>
+            PREFIX  sioc: <http://rdfs.org/sioc/ns#>
+            PREFIX  dc:   <http://purl.org/dc/elements/1.1/>
+
+            CONSTRUCT
+              {
+                $this ?p ?literal .
+              }
+            WHERE
+              { $this  ?p  ?literal
+                FILTER ( ( datatype(?literal) = xsd:string ) || ( datatype(?literal) = rdf:langString ) )
+                FILTER ( ?p IN (rdfs:label, dc:title, dct:title, foaf:name, foaf:givenName, foaf:familyName, sioc:name, skos:prefLabel, schema1:name, schema2:name) )
+              }
+        ]]>
+        <!-- VALUES $this goes here -->
+    </xsl:param>
+
     <xsl:key name="violations-by-root" match="*[@rdf:about] | *[@rdf:nodeID]" use="spin:violationRoot/@rdf:resource | spin:violationRoot/@rdf:nodeID"/>
     <xsl:key name="violations-by-value" match="*" use="ldh:violationValue/text()"/>
     <xsl:key name="violations-by-focus-node" match="*" use="sh:focusNode/@rdf:resource | sh:focusNode/@rdf:nodeID"/>
@@ -835,9 +864,19 @@ WHERE
                         <xsl:variable name="object-uris" select="rdf:Description/*/@rdf:resource[not(key('resources', .))]" as="xs:anyURI*"/>
                         <xsl:variable name="object-metadata" as="document-node()?">
                             <xsl:if test="exists($object-uris)">
-                                <xsl:try select="ldh:send-request(sd:endpoint(), 'POST', 'application/sparql-query', $object-metadata-query || ' VALUES $this { ' || string-join(for $uri in $object-uris return '&lt;' || $uri || '&gt;', ' ') || ' }', map{ 'Accept': 'application/rdf+xml' })">
-                                    <xsl:catch/>
-                                </xsl:try>
+                                <xsl:variable name="values" select="' VALUES $this { ' || string-join(for $uri in $object-uris return '&lt;' || $uri || '&gt;', ' ') || ' }'" as="xs:string"/>
+                                <!-- instance labels from /sparql merged with ontology-term (rdf:type/class) labels from /ns, so ac:object-label resolves both on the initial server render (matches the client-side merge) -->
+                                <xsl:variable name="sparql-metadata" as="document-node()?">
+                                    <xsl:try select="ldh:send-request(sd:endpoint(), 'POST', 'application/sparql-query', $object-metadata-query || $values, map{ 'Accept': 'application/rdf+xml' })">
+                                        <xsl:catch/>
+                                    </xsl:try>
+                                </xsl:variable>
+                                <xsl:variable name="ns-metadata" as="document-node()?">
+                                    <xsl:try select="ldh:send-request(resolve-uri('ns', ldt:base()), 'POST', 'application/sparql-query', $object-metadata-ns-query || $values, map{ 'Accept': 'application/rdf+xml' })">
+                                        <xsl:catch/>
+                                    </xsl:try>
+                                </xsl:variable>
+                                <xsl:sequence select="ldh:merge-metadata($sparql-metadata, $ns-metadata)"/>
                             </xsl:if>
                         </xsl:variable>
                         <xsl:variable name="local-pane" as="element()">

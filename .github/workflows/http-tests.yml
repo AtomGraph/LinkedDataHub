@@ -12,9 +12,9 @@ jobs:
       BASE_URI: https://localhost:4443/
     steps:
       - name: Install Linux packages
-        run: sudo apt-get update && sudo apt-get install -qq raptor2-utils && sudo apt-get install curl
+        run: sudo apt-get update && sudo apt-get install -qq raptor2-utils libxml2-utils && sudo apt-get install curl
       - name: Set up Java 21
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: 'temurin'
           java-version: '21'
@@ -27,7 +27,7 @@ jobs:
         run: |
           echo "${{ runner.temp }}/apache-jena-${{ env.JENA_VERSION }}/bin" >> $GITHUB_PATH
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v7
       - name: Add bin/ and its subdirectories to PATH
         run: |
           find "$GITHUB_WORKSPACE/bin" -type d >> "$GITHUB_PATH"

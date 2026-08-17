@@ -22,7 +22,6 @@ import com.atomgraph.client.vocabulary.AC;
 import com.atomgraph.core.exception.BadGatewayException;
 import com.atomgraph.core.util.ModelUtils;
 import com.atomgraph.linkeddatahub.apps.model.Dataset;
-import org.apache.jena.ontapi.model.OntModel;
 import com.atomgraph.linkeddatahub.client.GraphStoreClient;
 import com.atomgraph.linkeddatahub.client.filter.auth.IDTokenDelegationFilter;
 import com.atomgraph.linkeddatahub.client.filter.auth.WebIDDelegationFilter;
@@ -38,8 +37,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import org.apache.jena.query.ParameterizedSparqlString;
-import org.apache.jena.query.QueryExecution;
 import jakarta.annotation.Priority;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.NotAllowedException;
@@ -133,7 +130,6 @@ public class ProxyRequestFilter implements ContainerRequestFilter
         "Age");
 
     @Inject com.atomgraph.linkeddatahub.Application system;
-    @Inject jakarta.inject.Provider<Optional<OntModel>> ontology;
     @Inject MediaTypes mediaTypes;
     @Context Request request;
 
@@ -184,27 +180,6 @@ public class ProxyRequestFilter implements ContainerRequestFilter
             Model model = org.apache.jena.rdf.model.ModelFactory.createModelForGraph(getSystem().getRepository().get(targetURI.toString()));
             requestContext.abortWith(getResponse(model, Response.Status.OK));
             return;
-        }
-
-        // serve terms from the app's in-memory namespace ontology (full imports closure) via DESCRIBE.
-        // covers both slash-based term URIs (e.g. schema:category) and hash-based namespaces
-        // (e.g. sioc:UserAccount → ac:document-uri strips to sioc:ns, so we also describe all
-        // ?term where STR(?term) starts with "<targetURI>#")
-        if (isSafeMethod && getOntology().isPresent())
-        {
-            ParameterizedSparqlString pss = new ParameterizedSparqlString(
-                "DESCRIBE ?doc ?term WHERE { ?term ?p ?o FILTER(STRSTARTS(STR(?term), CONCAT(STR(?doc), \"#\"))) }");
-            pss.setIri("doc", targetURI.toString());
-            try (QueryExecution qe = QueryExecution.create(pss.asQuery(), getOntology().get()))
-            {
-                Model description = qe.execDescribe();
-                if (!description.isEmpty())
-                {
-                    if (log.isDebugEnabled()) log.debug("Serving URI from namespace ontology: {}", targetURI);
-                    requestContext.abortWith(getResponse(description, Response.Status.OK));
-                    return;
-                }
-            }
         }
 
         boolean isRegisteredApp = getSystem().matchApp(targetURI) != null;
@@ -419,7 +394,7 @@ public class ProxyRequestFilter implements ContainerRequestFilter
 
     /**
      * Builds a response for the given RDF model with type-appropriate content negotiation.
-     * Used for locally-served responses (DataManager cache, namespace ontology DESCRIBE) and for
+     * Used for locally-served responses (DataManager cache) and for
      * the proxy's Model branch.
      *
      * @param model RDF model
@@ -479,16 +454,6 @@ public class ProxyRequestFilter implements ContainerRequestFilter
     public com.atomgraph.linkeddatahub.Application getSystem()
     {
         return system;
-    }
-
-    /**
-     * Returns the current application's namespace ontology, if available.
-     *
-     * @return optional ontology
-     */
-    public Optional<OntModel> getOntology()
-    {
-        return ontology.get();
     }
 
     /**

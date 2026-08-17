@@ -16,10 +16,7 @@
  */
 package com.atomgraph.linkeddatahub.server.model.impl;
 
-import com.atomgraph.linkeddatahub.resource.Add;
-import com.atomgraph.linkeddatahub.resource.Generate;
 import com.atomgraph.linkeddatahub.resource.Namespace;
-import com.atomgraph.linkeddatahub.resource.Transform;
 import com.atomgraph.linkeddatahub.resource.admin.ClearOntology;
 import com.atomgraph.linkeddatahub.resource.admin.pkg.InstallPackage;
 import com.atomgraph.linkeddatahub.resource.admin.pkg.UninstallPackage;
@@ -132,39 +129,6 @@ public class Dispatcher
     public Class getFileItem()
     {
         return com.atomgraph.linkeddatahub.resource.upload.Item.class;
-    }
-
-    /**
-     * Returns the endpoint for synchronous RDF imports.
-     *
-     * @return endpoint resource
-     */
-    @Path("add")
-    public Class getAddEndpoint()
-    {
-        return Add.class;
-    }
-
-    /**
-     * Returns the endpoint for synchronous RDF imports with a <code>CONSTRUCT</code> query transformation.
-     *
-     * @return endpoint resource
-     */
-    @Path("transform")
-    public Class getTransformEndpoint()
-    {
-        return Transform.class;
-    }
-
-    /**
-     * Returns the endpoint for container generation.
-     *
-     * @return endpoint resource
-     */
-    @Path("generate")
-    public Class getGenerateEndpoint()
-    {
-        return Generate.class;
     }
 
     /**

@@ -239,8 +239,9 @@ public class ValidatingModelProvider extends com.atomgraph.server.io.ValidatingM
 
         if (getApplication().isPresent() && getApplication().get().canAs(AdminApplication.class) && resource.hasProperty(RDF.type, OWL.Ontology))
         {
-            // clear cached OntModel if ontology is updated. TO-DO: send event instead
+            // clear cached raw graph and closure union graph if ontology is updated. TO-DO: send event instead
             getSystem().getRepository().remove(resource.getURI());
+            getSystem().getOntologyGraphs().remove(resource.getURI());
         }
 
         if (getApplication().isPresent() && resource.hasProperty(RDF.type, ACL.Authorization))

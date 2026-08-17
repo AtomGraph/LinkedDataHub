@@ -1,3 +1,26 @@
+## [5.8.0] - 2026-08-17
+### Added
+- HTTP tests pinning graph-scoped queries via SPARQL Protocol dataset parameters on `/sparql` (`default-graph-uri=<doc-uri>` scopes a query to one document's graph; overrides `FROM`; `GRAPH` patterns match nothing) — the read-side counterpart of graph-scoped `PATCH`, no server changes needed
+
+### Changed
+- Application ontologies resolved as a native ontapi `owl:imports` union graph (cached per ontology URI), no RDFS inference — replaces the manually flattened, RDFS-materialized model
+- "Import ontology" orchestrated client-side: proxy fetch → GSP append of the raw ontology to the target document → `construct-constructors` CONSTRUCT scoped to that document's graph via the SPARQL Protocol dataset specification (`default-graph-uri` on `/sparql`) → GSP append of the result; `import-ontology.sh` rewritten curl-only (drops the `turtle` CLI dependency)
+- `Namespace` no-query GET serves the raw ontology graph from the shared repository instead of rebuilding one per request
+- View controls (order-by dropdown, facet headers, parallax, `rdf:type` facet values) resolve term labels via `/ns` instead of per-term Linked Data proxy fetches (#340)
+- Dependency bumps: Jersey 3.1.12, csv2rdf 2.2.1, java-jwt 4.6.0, jsoup 1.23.1, central-publishing-maven-plugin 0.11.0, frontend-maven-plugin 2.0.2
+- GitHub Actions bumps: checkout v7, setup-java v5, docker build/push actions v4
+- HTTP tests count SPARQL results with `xmllint` instead of `grep -c` (#348); flaky DBpedia proxy test replaced with a local cross-origin query
+- **BREAKING**: "Add data" and "Generate containers" orchestrated client-side over the Graph Store Protocol (POST-append via `?uri=` proxy; per-class container PUT fan-out embedding the view as `ldh:Object` → `rdf:value` → `ldh:View`), replacing the `/add` and `/generate` endpoints
+
+### Fixed
+- Raw ontology graphs no longer leak inferred `rdf:type rdfs:Resource` that broke View block rendering via multi-token `@typeof`
+- Missing labels on class-valued objects (e.g. `rdf:type`): `/ns` ontology labels merged into object-metadata, SSR and CSR (#345)
+
+### Removed
+- Linked Data proxy no longer serves ontology terms (now dumb transport: bundled-vocab file cache + SSRF-checked external fetch); ontology terms served by `/ns`
+- **BREAKING**: `/add` and `/generate` server-side endpoints (`Add`/`Generate` JAX-RS resources), superseded by the client-orchestrated writes; removes their server-side fetch/SSRF surface (LNK-002)
+- **BREAKING**: `/transform` endpoint (`Transform` JAX-RS resource), superseded by the client-orchestrated "Import ontology" flow — the last bespoke server-side fetch/SSRF surface (LNK-002) is gone
+
 ## [5.7.1] - 2026-08-06
 ### Changed
 - RDFa editor: annotation overlay rebuilt on demand (`rdfa-editor/overlay.xsl`)

@@ -78,12 +78,14 @@ public class ClearOntology
 
         EndUserApplication endUserApp = getApplication().as(AdminApplication.class).getEndUserApplication(); // we're assuming the current app is admin
         OntologyRepository repository = getSystem().getRepository(endUserApp);
-        if (repository.isCached(ontologyURI))
+        if (repository.isCached(ontologyURI) || getSystem().getOntologyGraphs().containsKey(ontologyURI))
         {
             if (log.isDebugEnabled()) log.debug("Clearing ontology with URI '{}' from memory", ontologyURI);
             repository.remove(ontologyURI);
+            getSystem().getOntologyGraphs().remove(ontologyURI);
 
             URI ontologyDocURI = UriBuilder.fromUri(ontologyURI).fragment(null).build(); // skip fragment from the ontology URI to get its graph URI
+            repository.remove(ontologyDocURI.toString()); // the raw graph is also aliased under the fragment-stripped document URI
             // frontend proxy still uses URL-pattern BAN for direct document GETs (until Stage 3 brings xkey tagging to varnish-frontend).
             // xkey purge covers proxied SPARQL CONSTRUCT/SELECT responses tagged by their backend (varnish-admin / varnish-end-user).
             URI frontendProxy = getSystem().getFrontendProxy();
@@ -110,7 +112,7 @@ public class ClearOntology
             }
             
             // !!! we need to reload the ontology model before returning a response, to make sure the next request already gets the new version !!!
-            OntologyFilter.loadOntology(repository, ontologyURI);
+            getSystem().getOntologyGraphs().put(ontologyURI, OntologyFilter.loadOntology(repository, ontologyURI));
         }
         
         if (referer != null) return Response.seeOther(referer).build();
