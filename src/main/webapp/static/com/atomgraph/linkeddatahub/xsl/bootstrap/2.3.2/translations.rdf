@@ -505,4 +505,20 @@
         <rdfs:label xml:lang="en-US">Error during query execution:</rdfs:label>
         <rdfs:label xml:lang="es-ES">Error durante la ejecución de la consulta:</rdfs:label>
     </rdf:Description>
+    <rdf:Description rdf:nodeID="history">
+        <rdfs:label xml:lang="en-US">History</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Historial</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="history-description">
+        <rdfs:label xml:lang="en-US">Every change to this document is saved as a version. Click a version to view the document as it was at that time.</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Cada cambio en este documento se guarda como una versión. Haga clic en una versión para ver el documento tal como era en ese momento.</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="version">
+        <rdfs:label xml:lang="en-US">Version</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Versión</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="agent">
+        <rdfs:label xml:lang="en-US">Agent</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Agente</rdfs:label>
+    </rdf:Description>
 </rdf:RDF>

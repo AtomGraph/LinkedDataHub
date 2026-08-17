@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE xsl:stylesheet [
     <!ENTITY ldh     "https://w3id.org/atomgraph/linkeddatahub#">
+    <!ENTITY lapp    "https://w3id.org/atomgraph/linkeddatahub/apps#">
+    <!ENTITY ac      "https://w3id.org/atomgraph/client#">
     <!ENTITY rdf     "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
     <!ENTITY memento "http://mementoweb.org/ns#">
 ]>
@@ -9,6 +11,8 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
 xmlns:ixsl="http://saxonica.com/ns/interactiveXSLT"
 xmlns:xs="http://www.w3.org/2001/XMLSchema"
 xmlns:ldh="&ldh;"
+xmlns:lapp="&lapp;"
+xmlns:ac="&ac;"
 xmlns:rdf="&rdf;"
 xmlns:memento="&memento;"
 xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
@@ -52,7 +56,16 @@ version="3.0"
                     <div class="modal modal-constructor fade in" id="document-history-modal">
                         <div class="modal-header">
                             <button type="button" class="close">&#215;</button>
-                            <legend>History</legend>
+                            <legend>
+                                <xsl:value-of>
+                                    <xsl:apply-templates select="key('resources', 'history', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                                </xsl:value-of>
+                            </legend>
+                            <p class="text-info">
+                                <xsl:value-of>
+                                    <xsl:apply-templates select="key('resources', 'history-description', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                                </xsl:value-of>
+                            </p>
                         </div>
                         <div class="modal-body">
                             <xsl:choose>
@@ -64,8 +77,16 @@ version="3.0"
                                         </colgroup>
                                         <thead>
                                             <tr>
-                                                <th>Version</th>
-                                                <th>Agent</th>
+                                                <th>
+                                                    <xsl:value-of>
+                                                        <xsl:apply-templates select="key('resources', 'version', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                                                    </xsl:value-of>
+                                                </th>
+                                                <th>
+                                                    <xsl:value-of>
+                                                        <xsl:apply-templates select="key('resources', 'agent', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                                                    </xsl:value-of>
+                                                </th>
                                             </tr>
                                         </thead>
                                         <tbody>
