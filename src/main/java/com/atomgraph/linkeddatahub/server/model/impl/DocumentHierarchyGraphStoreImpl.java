@@ -239,6 +239,9 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
 
         String version = getUriInfo().getQueryParameters().getFirst(VERSION_PARAM_NAME);
         if (version == null) return super.get();
+        // commit SHAs only: movable refs (branches, tags) must not be served with immutable caching,
+        // and the hex-only value doubles as the ETag (the HTML writer per-agent-perturbs ETags as hex numbers)
+        if (!version.matches("[0-9a-f]{4,64}")) throw new NotFoundException("Version '" + version + "' of graph <" + getURI() + "> not found");
 
         com.atomgraph.linkeddatahub.server.util.GraphVersioningService.Version graphVersion = getSystem().getGraphVersioningService().
             getVersion(getApplication().getURI(), getApplication().getBaseURI(), getURI(), version).
@@ -249,7 +252,7 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
         cacheControl.getCacheExtension().put("immutable", "");
 
         Response.ResponseBuilder rb = getResponseBuilder(graphVersion.model(), getURI()).
-            tag(new EntityTag("git-" + version)).
+            tag(new EntityTag(version)).
             cacheControl(cacheControl);
         if (graphVersion.datetime() != null)
             rb.header("Memento-Datetime", DateTimeFormatter.RFC_1123_DATE_TIME.format(graphVersion.datetime().atZone(ZoneId.of("GMT"))));
