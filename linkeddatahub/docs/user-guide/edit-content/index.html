@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html><html xmlns="http://www.w3.org/1999/xhtml">
    <head>
       <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
-      <title>LinkedDataHub v5 — Query data</title>
-      <meta name="description" content="Learn how to query application data with SPARQL, store queries and charts"/>
+      <title>LinkedDataHub v5 — Edit content</title>
+      <meta name="description" content="Edit XHTML documents in-place and annotate text with RDFa"/>
       <meta name="last-modified" content="2026-08-17T16:49:45Z"/>
       <link href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/files/css/bootstrap.css" rel="stylesheet" type="text/css"/>
       <link href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/files/css/bootstrap-responsive.css" rel="stylesheet" type="text/css"/>
@@ -108,7 +108,7 @@
                               <li><a href="../create-data/create-resources/">Create instances</a></li>
                            </ul>
                         </li>
-                        <li><a href="../edit-content/">Edit content</a></li>
+                        <li class="active"><a href="">Edit content</a></li>
                         <li><a href="../import-data/">Import data</a><ul class="nav nav-list">
                               <li><a href="../import-data/import-csv-data/">Import CSV data</a></li>
                               <li><a href="../import-data/import-rdf-data/">Import RDF data</a></li>
@@ -117,7 +117,7 @@
                         <li><a href="../manage-dataspaces/">Manage dataspaces</a></li>
                         <li><a href="../manage-packages/">Manage packages</a></li>
                         <li><a href="../navigate-data/">Navigate data</a></li>
-                        <li class="active"><a href="">Query data</a></li>
+                        <li><a href="../query-data/">Query data</a></li>
                         <li><a href="../search-data/">Search data</a></li>
                         <li><a href="../upload-file/">Upload file</a></li>
                      </ul>
@@ -126,59 +126,142 @@
             </nav>
             <main class="span7">
                <header>
-                  <h1>Query data</h1>
+                  <h1>Edit content</h1>
                </header>
                <div xmlns:dct="http://purl.org/dc/terms/" xmlns:dh="https://www.w3.org/ns/ldt/document-hierarchy#" xmlns:ldh="https://w3id.org/atomgraph/linkeddatahub#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
                   
-                  <p class="lead">This guide describes how the application dataset can be queried using SPARQL.</p>
+                  <p class="lead">Edit XHTML documents in-place and annotate text with RDFa</p>
                   
-                  <p>The <a href="../../reference/dataspace/#end-user-apps">end-user application</a> dataset can be queried using SPARQL 1.1
-                     endpoint, which is available via link in the <a href="../../reference/user-interface/#nav-bar">navigation bar</a>.</p>
-                  
-                  <p>All forms of SPARQL queries are allowed; SPARQL updates are <em>not</em> allowed. A result limit might apply.</p>
-                  
-                  <p>For <code>DESCRIBE</code> and <code>CONSTRUCT</code> results, it is possible to switch the
-                     <a href="../../reference/user-interface/#layout-modes">layout mode</a> using a button above to the results.</p>
-                  
-                  <p>
-                     <img alt="SPARQL endpoint" src="../../files/user-guide/query-data/sparql endpoint.jpg"/>
-                     </p>
+                  <p>XHTML content blocks in LinkedDataHub are living documents: authenticated users with
+                     write access can click directly into the content to edit it, apply rich-text formatting,
+                     and annotate any span of text with <a href="https://www.w3.org/TR/rdfa-primer/" target="_blank">RDFa</a> — linking words and phrases to terms in the Knowledge Graph without leaving the page.</p>
                   
                   <div>
                      
-                     <h2 id="save-query">Saving queries</h2>
+                     <h2 id="entering-edit-mode">Entering edit mode</h2>
                      
-                     <p>If you want to save the query string which is currently in the editor, click the <span class="btn btn-save-query btn-save">Save</span> button underneath the editor form. A document creation form will open where the query
-                        string will be filled in, you only need to enter the titles of the query and its document.
-                        You can then access the query by navigating to the query container via the dropdown
-                        in the
-                        <a href="../../reference/user-interface/#action-bar" target="_blank">breadcrumb bar</a>.</p>
+                     <p>Click anywhere inside an <a href="../../reference/data-model/blocks/xhtml/">XHTML block</a> to enter edit mode. The block gains a focus outline and the editor toolbar appears
+                        above the action bar. Clicking outside the block (including the surrounding column
+                        margins) returns the block to read mode.</p>
                      
-                     <p>You will not be able to save invalid query strings.</p>
+                     <p>Edit mode is only available to authenticated users who have write access to the document.
+                        The block remains read-only for all other visitors.</p>
                      </div>
                   
                   <div>
                      
-                     <h2 id="save-chart">Saving charts</h2>
+                     <h2 id="toolbar">Editor toolbar</h2>
                      
-                     <p>The SPARQL editor includes an interactive chart pane which can be used to visualize
-                        the query results. You can change the chart type, select its category and one or more
-                        series.</p>
+                     <p>The toolbar appears at the top of the page when an XHTML block is active. It provides
+                        standard rich-text controls grouped by function:</p>
                      
-                     <p>The chart pane supports both graph query (<code>CONSTRUCT</code>, <code>DESCRIBE</code>) and result set query (<code>SELECT</code>, <code>ASK</code>) results. For graph results, the category and series are
-                        rendered from resource properties; for result sets, they are rendered from variable
-                        names.</p>
+                     <dl>
+                        
+                        <dt>Block type</dt>
+                        
+                        <dd>Paragraph, Heading 1–4, Blockquote, Code block, Preformatted</dd>
+                        
+                        <dt>Inline formatting</dt>
+                        
+                        <dd>Bold, Italic, Inline code, Link</dd>
+                        
+                        <dt>Lists</dt>
+                        
+                        <dd>Bullet list, Numbered list</dd>
+                        
+                        <dt>Inserts</dt>
+                        
+                        <dd>Image, Table</dd>
+                        
+                        <dt>Table operations</dt>
+                        
+                        <dd>Add/remove row or column (active only when the caret is inside a table cell)</dd>
+                        
+                        <dt>View</dt>
+                        
+                        <dd>Show/hide RDFa annotations, Search within the document, View source XHTML</dd>
+                        </dl>
                      
-                     <p>If you want to save the chart with properties which are currently selected, click
-                        the <span class="btn btn-primary btn-save-chart btn-save">Save</span> button underneath the chart pane. That will open two document creation forms: one
-                        for
-                        the query, and the second one for the chart (as the chart depends on the query). The
-                        query string and chart properties will be filled in, you only need to
-                        enter the titles of the query and the chart and their document. You can then access
-                        the chart by navigating to the chart container via the dropdown in the
-                        <a href="../../reference/user-interface/#action-bar" target="_blank">breadcrumb bar</a>.</p>
+                     <p>Toolbar buttons reflect the current caret position: the block-type selector and toggle
+                        buttons (Bold, Italic etc.) update as you move the cursor.</p>
+                     </div>
+                  
+                  <div>
                      
-                     <p>You will not be able to save invalid query strings.</p>
+                     <h2 id="rdfa-annotations">RDFa annotations</h2>
+                     
+                     <p>RDFa annotations embed machine-readable RDF statements directly in the XHTML markup.
+                        A single annotation expresses a statement of the form <em>subject — property — object</em>, where subject and object are IRIs or typed literals drawn from your Knowledge Graph.</p>
+                     
+                     <h3>Adding an annotation</h3>
+                     
+                     <ol>
+                        
+                        <li>Enter edit mode by clicking inside the XHTML block.</li>
+                        
+                        <li>Select the text you want to annotate.</li>
+                        
+                        <li>Right-click (or use the context menu) and choose <strong>Annotate</strong>.</li>
+                        
+                        <li>In the annotation dialog:
+                           
+                           <ul>
+                              
+                              <li><strong>Property</strong> — start typing to search ontology terms; select one from the typeahead dropdown.</li>
+                              
+                              <li><strong>Value</strong> — pre-filled with the selected text; change it to emit a different machine-readable
+                                 value (e.g. a canonical form).</li>
+                              
+                              <li>Expand <strong>Type, subject &amp; object</strong> for advanced fields:
+                                 
+                                 <ul>
+                                    
+                                    <li><strong>Type (typeof)</strong> — assign an <code>rdf:type</code> to the annotated span.</li>
+                                    
+                                    <li><strong>Subject (about)</strong> — override the in-scope subject IRI.</li>
+                                    
+                                    <li><strong>Object (resource)</strong> — make the object a resource IRI instead of a literal.</li>
+                                    
+                                    <li><strong>Datatype</strong> — type the literal (e.g. <code>xsd:date</code>).</li>
+                                    
+                                    <li><strong>Language</strong> — tag the literal with a BCP 47 language code.</li>
+                                    </ul>
+                                 </li>
+                              </ul>
+                           </li>
+                        
+                        <li>Click <strong>Annotate</strong>. The selected text is wrapped in a <code>span</code> carrying the appropriate RDFa attributes.</li>
+                        </ol>
+                     
+                     <h3>Editing an existing annotation</h3>
+                     
+                     <p>Right-click an already-annotated span to reopen the dialog pre-populated with the
+                        current values. Change any field and click <strong>Annotate</strong> to update, or click <strong>Remove</strong> to delete the annotation while keeping the text.</p>
+                     
+                     <h3>Toggling annotation visibility</h3>
+                     
+                     <p>The <strong>Show annotations</strong> button in the toolbar toggles a visual highlight on all annotated spans so you can
+                        see at a glance which text carries machine-readable meaning.</p>
+                     </div>
+                  
+                  <div>
+                     
+                     <h2 id="saving">Saving changes</h2>
+                     
+                     <p>Changes are saved automatically when focus leaves the editor — clicking outside the
+                        block or tabbing away serialises the current XHTML content as an <code>XMLLiteral</code> and sends a SPARQL Update <code>PATCH</code> request that replaces the stored value. There is no separate Save button.</p>
+                     
+                     <p>Moving focus to the editor's own controls (the toolbar, the breadcrumb or the find
+                        bar) does not trigger a save; only leaving the editor region does.</p>
+                     </div>
+                  
+                  <div>
+                     
+                     <h2 id="xhtml-source">Viewing the XHTML source</h2>
+                     
+                     <p>Click the <strong>Source</strong> button in the toolbar to open a read-only view of the serialised XHTML markup, including
+                        all RDFa attributes. This is useful for verifying the exact markup that will be stored
+                        or for copying fragments into other documents.</p>
                      </div>
                   </div>
             </main>

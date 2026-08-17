@@ -3,7 +3,7 @@
       <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
       <title>LinkedDataHub v5 — Configuration</title>
       <meta name="description" content="Overview of configuration options"/>
-      <meta name="last-modified" content="2026-07-12T20:56:11Z"/>
+      <meta name="last-modified" content="2026-08-17T16:49:45Z"/>
       <link href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/files/css/bootstrap.css" rel="stylesheet" type="text/css"/>
       <link href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/files/css/bootstrap-responsive.css" rel="stylesheet" type="text/css"/>
       <link href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/files/css/linkeddatahub-bootstrap.css" rel="stylesheet" type="text/css"/>
@@ -108,6 +108,7 @@
                               <li><a href="../../user-guide/create-data/create-resources/">Create instances</a></li>
                            </ul>
                         </li>
+                        <li><a href="../../user-guide/edit-content/">Edit content</a></li>
                         <li><a href="../../user-guide/import-data/">Import data</a><ul class="nav nav-list">
                               <li><a href="../../user-guide/import-data/import-csv-data/">Import CSV data</a></li>
                               <li><a href="../../user-guide/import-data/import-rdf-data/">Import RDF data</a></li>
@@ -276,6 +277,16 @@
                            <dd><samp>false</samp> to disable. Enabled by default.</dd>
                            
                            <dd><em>Currently this will only hide the signup button in the UI, without disabling the endpoint</em></dd>
+                           
+                           <dt><samp>WEBID_CACHE_EXPIRATION</samp></dt>
+                           
+                           <dd>Expiration time (in seconds) of cached WebID profiles, bounding how long a revoked
+                              WebID stays authenticated. By default <samp>86400</samp>.</dd>
+                           
+                           <dt><samp>JWKS_CACHE_EXPIRATION</samp></dt>
+                           
+                           <dd>Expiration time (in seconds) of cached JWKS keys used for OpenID Connect token verification.
+                              By default <samp>86400</samp>.</dd>
                            </dl>
                         </div>
                      

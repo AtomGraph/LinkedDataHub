@@ -3,7 +3,7 @@
       <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
       <title>LinkedDataHub v5 — Views</title>
       <meta name="description" content="Paginated views based on SPARQL queries"/>
-      <meta name="last-modified" content="2026-07-12T20:56:11Z"/>
+      <meta name="last-modified" content="2026-08-17T16:49:45Z"/>
       <link href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/files/css/bootstrap.css" rel="stylesheet" type="text/css"/>
       <link href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/files/css/bootstrap-responsive.css" rel="stylesheet" type="text/css"/>
       <link href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/files/css/linkeddatahub-bootstrap.css" rel="stylesheet" type="text/css"/>
@@ -108,6 +108,7 @@
                               <li><a href="../../../../user-guide/create-data/create-resources/">Create instances</a></li>
                            </ul>
                         </li>
+                        <li><a href="../../../../user-guide/edit-content/">Edit content</a></li>
                         <li><a href="../../../../user-guide/import-data/">Import data</a><ul class="nav nav-list">
                               <li><a href="../../../../user-guide/import-data/import-csv-data/">Import CSV data</a></li>
                               <li><a href="../../../../user-guide/import-data/import-rdf-data/">Import RDF data</a></li>
@@ -152,6 +153,27 @@
                   <p>Views can be rendered in multiple layout modes: properties, list, grid, table, map,
                      chart, and graph. They also show
                      the total number of results and allow result ordering by property.</p>
+                  
+                  <div>
+                     
+                     <h2 id="projecting-variables">Projecting variables</h2>
+                     
+                     <p>Because the <code>SELECT</code> is rewritten into a <code>DESCRIBE</code> over its projected variables, a view can only render terms that the triplestore is
+                        able to describe:</p>
+                     
+                     <ul>
+                        
+                        <li>Project <em>resources</em> (IRIs) that exist in the dataset — their labels, images and links are resolved from
+                           each resource's own description. Projecting <em>literals</em> (a <code>?label</code>, a <code>?date</code>, or any computed value) describes nothing, so the view renders empty.</li>
+                        
+                        <li>Project IRIs that are stored <em>locally</em>. An IRI that only occurs as an object but is not itself described in the dataset
+                           — for example an external image URL — contributes no triples.</li>
+                        
+                        <li>Project a <em>single</em> entity type. Projecting several resource variables of different types blends their
+                           descriptions into one result set, which rarely renders coherently; select the one
+                           type you want to list and reach the related resources through their properties instead.</li>
+                        </ul>
+                     </div>
                   
                   <div>
                      

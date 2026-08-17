@@ -3,7 +3,7 @@
       <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
       <title>LinkedDataHub v5 — HTTP API</title>
       <meta name="description" content="Learn how to access and manage RDF data over generic HTTP API"/>
-      <meta name="last-modified" content="2026-07-12T20:56:11Z"/>
+      <meta name="last-modified" content="2026-08-17T16:49:45Z"/>
       <link href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/files/css/bootstrap.css" rel="stylesheet" type="text/css"/>
       <link href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/files/css/bootstrap-responsive.css" rel="stylesheet" type="text/css"/>
       <link href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/files/css/linkeddatahub-bootstrap.css" rel="stylesheet" type="text/css"/>
@@ -108,6 +108,7 @@
                               <li><a href="../../user-guide/create-data/create-resources/">Create instances</a></li>
                            </ul>
                         </li>
+                        <li><a href="../../user-guide/edit-content/">Edit content</a></li>
                         <li><a href="../../user-guide/import-data/">Import data</a><ul class="nav nav-list">
                               <li><a href="../../user-guide/import-data/import-csv-data/">Import CSV data</a></li>
                               <li><a href="../../user-guide/import-data/import-rdf-data/">Import RDF data</a></li>
@@ -438,6 +439,14 @@ Content-Type: text/turtle</code></pre>
                      <p>Every LinkedDataHub application provides a SPARQL endpoint on <code>sparql</code> path (relative to the application's base URI). It supports the
                         <a href="https://www.w3.org/TR/sparql11-protocol/" target="_blank">SPARQL 1.1 Protocol</a> and serves as a proxy for the backend endpoint of the
                         application.</p>
+                     
+                     <p>The protocol's dataset parameters can be used to scope a query to a single document's
+                        graph: passing <code>default-graph-uri=&lt;document-uri&gt;</code>
+                        makes that document's named graph the query's default graph. The dataset specified
+                        this way overrides any <code>FROM</code>/<code>FROM NAMED</code>
+                        clauses in the query, and <code>GRAPH</code> patterns match nothing since no named graphs are part of the dataset. This is the
+                        read-side counterpart
+                        of the graph-scoped <code>PATCH</code> method.</p>
                      </div>
                   
                   <div>
@@ -450,19 +459,9 @@ Content-Type: text/turtle</code></pre>
                      
                      <dl>
                         
-                        <dt><samp>add</samp></dt>
-                        
-                        <dd>Reads data from the specified URL location or uploaded file into the specified named
-                           graph</dd>
-                        
                         <dt><samp>ns</samp></dt>
                         
                         <dd>In-memory namespace ontology as well as its SPARQL endpoint</dd>
-                        
-                        <dt><samp>transform</samp></dt>
-                        
-                        <dd>Reads data from the specified URL location or uploaded file, transforms it using the
-                           specified <code>CONSTRUCT</code> query, and stores the result into the specified named graph</dd>
                         </dl>
                      
                      <h3>Admin app only</h3>
