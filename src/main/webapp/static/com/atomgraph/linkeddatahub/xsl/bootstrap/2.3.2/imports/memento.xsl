@@ -25,13 +25,20 @@ exclude-result-prefixes="#all"
         <xsl:variable name="current-memento" select="if (map:contains(ldh:query-params(), 'version')) then xs:anyURI(ac:absolute-path(ldh:request-uri()) || '?version=' || ldh:query-params()?version) else ()" as="xs:anyURI?"/>
 
         <tr>
-            <xsl:if test="@rdf:about = $current-memento">
-                <xsl:attribute name="class" select="'info'"/>
-            </xsl:if>
             <td>
-                <a href="{@rdf:about}">
-                    <xsl:apply-templates select="memento:mementoDatetime/text()"/>
-                </a>
+                <xsl:choose>
+                    <!-- the version being viewed: bold, no self-link -->
+                    <xsl:when test="@rdf:about = $current-memento">
+                        <strong>
+                            <xsl:apply-templates select="memento:mementoDatetime/text()"/>
+                        </strong>
+                    </xsl:when>
+                    <xsl:otherwise>
+                        <a href="{@rdf:about}">
+                            <xsl:apply-templates select="memento:mementoDatetime/text()"/>
+                        </a>
+                    </xsl:otherwise>
+                </xsl:choose>
             </td>
             <td>
                 <xsl:apply-templates select="dct:creator/@rdf:resource"/>
