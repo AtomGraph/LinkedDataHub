@@ -71,8 +71,14 @@ public class ResponseHeadersFilter implements ContainerResponseFilter
             response.getHeaders().add(HttpHeaders.LINK, new Link(URI.create(agent.getURI()), ACL.agent.getURI(), null));
         }
 
+        // historical version and TimeMap views are read-only: advertise acl:Read at most, so the UI disables edit affordances
+        boolean isSnapshotRequest = request.getUriInfo().getQueryParameters().containsKey(DocumentHierarchyGraphStoreImpl.VERSION_PARAM_NAME) ||
+            request.getUriInfo().getQueryParameters().containsKey(DocumentHierarchyGraphStoreImpl.TIMEMAP_PARAM_NAME);
+
         if (getAuthorizationContext().isPresent())
-            getAuthorizationContext().get().getModeURIs().forEach(mode -> response.getHeaders().add(HttpHeaders.LINK, new Link(mode, ACL.mode.getURI(), null)));
+            getAuthorizationContext().get().getModeURIs().stream().
+                filter(mode -> !isSnapshotRequest || mode.toString().equals(ACL.Read.getURI())).
+                forEach(mode -> response.getHeaders().add(HttpHeaders.LINK, new Link(mode, ACL.mode.getURI(), null)));
 
         // for proxy requests the external Link headers are forwarded by ProxyRequestFilter; suppress local-only hypermedia
         boolean isProxyRequest = request.getProperty(AC.uri.getURI()) != null;

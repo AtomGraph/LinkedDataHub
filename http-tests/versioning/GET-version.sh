@@ -100,3 +100,20 @@ echo "$response_headers"
 
 echo "$response_headers" | grep -qi '^Memento-Datetime:'
 echo "$response_headers" | grep -qi '^Cache-Control:.*immutable'
+
+# a historical version is read-only: no write modes advertised, writes rejected with 405
+
+if echo "$response_headers" | grep -q 'acl#Write'; then
+    echo "DEBUG: version response advertises acl:Write"
+    exit 1
+fi
+
+(
+curl -k -w "%{http_code}\n" -o /dev/null -s \
+  -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
+  -X PUT \
+  -H "Content-Type: application/n-triples" \
+  --data-binary "<${doc_url}> <http://purl.org/dc/terms/title> \"Overwrite attempt\" ." \
+  "${doc_url}?version=${sha1}"
+) \
+| grep -q '405'

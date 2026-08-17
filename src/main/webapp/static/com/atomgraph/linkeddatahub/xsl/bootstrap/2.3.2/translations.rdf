@@ -521,4 +521,12 @@
         <rdfs:label xml:lang="en-US">Agent</rdfs:label>
         <rdfs:label xml:lang="es-ES">Agente</rdfs:label>
     </rdf:Description>
+    <rdf:Description rdf:nodeID="historical-version-notice">
+        <rdfs:label xml:lang="en-US">You are viewing a read-only historical version of this document</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Está viendo una versión histórica de solo lectura de este documento</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="view-current-version">
+        <rdfs:label xml:lang="en-US">View the current version</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Ver la versión actual</rdfs:label>
+    </rdf:Description>
 </rdf:RDF>

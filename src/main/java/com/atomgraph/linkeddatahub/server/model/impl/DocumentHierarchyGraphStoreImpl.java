@@ -50,6 +50,7 @@ import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.HttpMethod;
 import jakarta.ws.rs.InternalServerErrorException;
+import jakarta.ws.rs.NotAllowedException;
 import jakarta.ws.rs.NotFoundException;
 import jakarta.ws.rs.OPTIONS;
 import jakarta.ws.rs.PATCH;
@@ -215,6 +216,19 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
             !ownerDocURI.equals(uri) &&
             !secretaryDocURI.equals(uri))
             allowedMethods.add(HttpMethod.DELETE);
+
+        // historical version and TimeMap views are read-only
+        if (uriInfo.getQueryParameters().containsKey(VERSION_PARAM_NAME) || uriInfo.getQueryParameters().containsKey(TIMEMAP_PARAM_NAME))
+            allowedMethods.retainAll(Set.of(HttpMethod.GET));
+    }
+
+    /**
+     * Rejects the request if it addresses a historical version or TimeMap view, which are read-only.
+     */
+    private void checkSnapshotReadOnly()
+    {
+        if (getUriInfo().getQueryParameters().containsKey(VERSION_PARAM_NAME) || getUriInfo().getQueryParameters().containsKey(TIMEMAP_PARAM_NAME))
+            throw new NotAllowedException(HttpMethod.GET, new String[]{ HttpMethod.OPTIONS });
     }
 
     /**
@@ -271,6 +285,8 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
     @POST
     public Response post(Model model)
     {
+        checkSnapshotReadOnly();
+
         if (log.isTraceEnabled()) log.trace("POST Graph Store request with RDF payload: {} payload size(): {}", model, model.size());
 
         final Model existingModel = getSystem().getServiceContext(getService()).getGraphStoreClient().getModel(getURI().toString());
@@ -312,6 +328,8 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
     // the AuthorizationFilter only allows creating new child URIs for existing containers (i.e. there has to be a .. container already)
     public Response put(Model model)
     {
+        checkSnapshotReadOnly();
+
         if (log.isTraceEnabled()) log.trace("PUT Graph Store request with RDF payload: {} payload size(): {}", model, model.size());
 
         if (!getAllowedMethods().contains(HttpMethod.PUT))
@@ -421,6 +439,8 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
     @Override
     public Response patch(UpdateRequest updateRequest)
     {
+        checkSnapshotReadOnly();
+
         if (updateRequest == null) throw new BadRequestException("SPARQL update not specified");
         if (log.isDebugEnabled()) log.debug("PATCH request on named graph with URI: {}", getURI());
         if (log.isDebugEnabled()) log.debug("PATCH update string: {}", updateRequest.toString());
@@ -506,6 +526,8 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     public Response postMultipart(FormDataMultiPart multiPart)
     {
+        checkSnapshotReadOnly();
+
         if (log.isDebugEnabled()) log.debug("MultiPart fields: {} body parts: {}", multiPart.getFields(), multiPart.getBodyParts());
 
         try
@@ -548,6 +570,8 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     public Response putMultipart(FormDataMultiPart multiPart)
     {
+        checkSnapshotReadOnly();
+
         if (log.isDebugEnabled()) log.debug("MultiPart fields: {} body parts: {}", multiPart.getFields(), multiPart.getBodyParts());
 
         try
@@ -585,6 +609,8 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
     @Override
     public Response delete()
     {
+        checkSnapshotReadOnly();
+
         if (!getAllowedMethods().contains(HttpMethod.DELETE))
             throw new WebApplicationException("Cannot delete document", Response.status(Response.Status.METHOD_NOT_ALLOWED).allow(getAllowedMethods()).build());
 

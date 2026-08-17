@@ -524,16 +524,21 @@ extension-element-prefixes="ixsl"
             <!-- notice shown when a historical version is displayed (?version= query parameter) -->
             <xsl:if test="map:contains(ldh:query-params(), 'version')">
                 <div class="alert alert-info">
-                    <xsl:text>You are viewing a historical version of this document</xsl:text>
+                    <xsl:value-of>
+                        <xsl:apply-templates select="key('resources', 'historical-version-notice', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                    </xsl:value-of>
                     <xsl:if test="exists(ldh:memento-datetime())">
-                        <xsl:text> from </xsl:text>
+                        <xsl:text> (</xsl:text>
                         <strong>
                             <xsl:value-of select="ldh:memento-datetime()"/>
                         </strong>
+                        <xsl:text>)</xsl:text>
                     </xsl:if>
                     <xsl:text>. </xsl:text>
                     <a href="{ac:absolute-path(ldh:base-uri(.))}">
-                        <xsl:text>View the current version</xsl:text>
+                        <xsl:value-of>
+                            <xsl:apply-templates select="key('resources', 'view-current-version', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                        </xsl:value-of>
                     </a>
                 </div>
             </xsl:if>
