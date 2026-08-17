@@ -16,10 +16,15 @@
  */
 package com.atomgraph.linkeddatahub.server.util;
 
+import com.atomgraph.linkeddatahub.client.GitHubClient;
+import com.atomgraph.linkeddatahub.vocabulary.MEM;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
+import java.util.List;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
+import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.vocabulary.DCTerms;
 import org.apache.jena.vocabulary.RDF;
@@ -84,6 +89,25 @@ public class GraphVersioningServiceTest
         String[] lines = new String(GraphVersioningService.toSortedNTriples(model), StandardCharsets.UTF_8).split("\n");
         assertEquals(2, lines.length);
         assertTrue(lines[0].compareTo(lines[1]) < 0);
+    }
+
+    @Test
+    public void testTimeMap()
+    {
+        URI graphURI = URI.create("https://localhost:4443/doc/");
+        Model model = GraphVersioningService.toTimeMap(graphURI, List.of(
+            new GitHubClient.CommitInfo("sha-2", Instant.parse("2026-08-17T11:00:00Z"), "https://localhost/agent#this"),
+            new GitHubClient.CommitInfo("sha-1", Instant.parse("2026-08-17T10:00:00Z"), "Not A URI")));
+
+        Resource timeMap = model.createResource("https://localhost:4443/doc/?timemap");
+        Resource memento = model.createResource("https://localhost:4443/doc/?version=sha-2");
+        assertTrue(model.contains(timeMap, RDF.type, MEM.TimeMap));
+        assertTrue(model.contains(memento, RDF.type, MEM.Memento));
+        assertTrue(model.contains(memento, MEM.original, model.createResource(graphURI.toString())));
+        assertEquals("2026-08-17T11:00:00Z", memento.getProperty(MEM.mementoDatetime).getString());
+        assertEquals("https://localhost/agent#this", memento.getPropertyResourceValue(DCTerms.creator).getURI());
+        // the non-URI author name must not become a creator resource
+        assertTrue(model.createResource("https://localhost:4443/doc/?version=sha-1").getPropertyResourceValue(DCTerms.creator) == null);
     }
 
     @Test

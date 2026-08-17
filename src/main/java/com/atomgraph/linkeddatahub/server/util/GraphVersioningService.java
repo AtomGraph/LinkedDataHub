@@ -20,15 +20,18 @@ import com.atomgraph.core.vocabulary.A;
 import com.atomgraph.linkeddatahub.client.GitHubClient;
 import com.atomgraph.linkeddatahub.model.ServiceContext;
 import com.atomgraph.linkeddatahub.vocabulary.LAPP;
+import com.atomgraph.linkeddatahub.vocabulary.MEM;
 import jakarta.ws.rs.NotFoundException;
 import jakarta.ws.rs.client.Client;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -42,9 +45,12 @@ import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.rdf.model.StmtIterator;
+import org.apache.jena.datatypes.xsd.XSDDatatype;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.sparql.vocabulary.DOAP;
+import org.apache.jena.vocabulary.DCTerms;
+import org.apache.jena.vocabulary.RDF;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -214,6 +220,69 @@ public class GraphVersioningService
 
     /** A historical graph version: the model and the commit datetime */
     public record Version(Model model, Instant datetime) { }
+
+    /**
+     * Retrieves a graph's version history as a Memento TimeMap model.
+     *
+     * @param appURI application URI
+     * @param appBase application base URI
+     * @param graphURI graph (document) URI
+     * @return TimeMap model, or empty if the application is not versioned
+     */
+    public Optional<Model> getTimeMap(String appURI, URI appBase, URI graphURI)
+    {
+        Repository repository = repositories.get(appURI);
+        if (repository == null) return Optional.empty();
+
+        String path = path(repository.pathPrefix(), appBase, graphURI);
+        return Optional.of(toTimeMap(graphURI, repository.client().listCommits(path)));
+    }
+
+    /**
+     * Builds a Memento TimeMap model from a graph's commit history.
+     * Memento URIs use the <code>version</code> query parameter with the commit SHA.
+     *
+     * @param graphURI graph (document) URI
+     * @param commits commit history, most recent first
+     * @return TimeMap model
+     */
+    public static Model toTimeMap(URI graphURI, List<GitHubClient.CommitInfo> commits)
+    {
+        Model model = ModelFactory.createDefaultModel();
+        Resource original = model.createResource(graphURI.toString()).
+            addProperty(RDF.type, MEM.OriginalResource);
+        Resource timeMap = model.createResource(graphURI + "?timemap").
+            addProperty(RDF.type, MEM.TimeMap).
+            addProperty(MEM.original, original);
+        original.addProperty(MEM.timemap, timeMap);
+
+        for (GitHubClient.CommitInfo commit : commits)
+        {
+            Resource memento = model.createResource(graphURI + "?version=" + commit.sha()).
+                addProperty(RDF.type, MEM.Memento).
+                addProperty(MEM.original, original).
+                addProperty(MEM.mementoDatetime, model.createTypedLiteral(commit.datetime().toString(), XSDDatatype.XSDdateTime));
+            if (isAbsoluteURI(commit.authorName())) memento.addProperty(DCTerms.creator, model.createResource(commit.authorName()));
+
+            original.addProperty(MEM.memento, memento);
+        }
+
+        return model;
+    }
+
+    private static boolean isAbsoluteURI(String string)
+    {
+        if (string == null) return false;
+
+        try
+        {
+            return new URI(string).isAbsolute();
+        }
+        catch (URISyntaxException ex)
+        {
+            return false;
+        }
+    }
 
     /**
      * Maps a graph URI to its repository file path.

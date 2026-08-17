@@ -144,6 +144,21 @@ public class GitHubClientTest
             return;
         }
 
+        if (path.equals("/repos/acme/graphs/commits"))
+        {
+            respond(exchange, 200, Json.createArrayBuilder().
+                add(Json.createObjectBuilder().
+                    add("sha", "sha-2").
+                    add("commit", Json.createObjectBuilder().
+                        add("author", Json.createObjectBuilder().add("date", "2026-08-17T11:00:00Z").add("name", "https://localhost/agent#this")))).
+                add(Json.createObjectBuilder().
+                    add("sha", "sha-1").
+                    add("commit", Json.createObjectBuilder().
+                        add("author", Json.createObjectBuilder().add("date", "2026-08-17T10:00:00Z").add("name", "https://localhost/agent#this")))).
+                build().toString());
+            return;
+        }
+
         if (path.startsWith("/repos/acme/graphs/commits/"))
         {
             respond(exchange, 200, Json.createObjectBuilder().
@@ -254,6 +269,16 @@ public class GitHubClientTest
     public void testGetCommitDate()
     {
         assertEquals(Optional.of(Instant.parse("2026-08-17T10:00:00Z")), gitHubClient.getCommitDate("commit-1"));
+    }
+
+    @Test
+    public void testListCommits()
+    {
+        var commits = gitHubClient.listCommits("graphs/doc.nt");
+
+        assertEquals(2, commits.size());
+        assertEquals(new GitHubClient.CommitInfo("sha-2", Instant.parse("2026-08-17T11:00:00Z"), "https://localhost/agent#this"), commits.get(0));
+        assertTrue(received.get(0).uri().contains("path=graphs") && received.get(0).uri().contains("sha=main"));
     }
 
 }

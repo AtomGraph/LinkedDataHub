@@ -248,8 +248,18 @@ extension-element-prefixes="ixsl"
                 </xsl:apply-templates>
                 
                 <div id="doc-controls" class="span4">
-                    <xsl:apply-templates select="key('resources', ac:absolute-path(ldh:base-uri(.)))" mode="bs2:Timestamp"/>
-                </div>                
+                    <xsl:choose>
+                        <!-- versioned document: the timestamp links to its version history (Memento TimeMap) -->
+                        <xsl:when test="exists(ldh:timemap())">
+                            <a href="{ldh:timemap()}" class="document-history" title="History">
+                                <xsl:apply-templates select="key('resources', ac:absolute-path(ldh:base-uri(.)))" mode="bs2:Timestamp"/>
+                            </a>
+                        </xsl:when>
+                        <xsl:otherwise>
+                            <xsl:apply-templates select="key('resources', ac:absolute-path(ldh:base-uri(.)))" mode="bs2:Timestamp"/>
+                        </xsl:otherwise>
+                    </xsl:choose>
+                </div>
             </div>
         </div>
     </xsl:template>
@@ -510,6 +520,23 @@ extension-element-prefixes="ixsl"
             <xsl:apply-templates select="." mode="bs2:ActionBar">
                 <xsl:with-param name="active-mode" select="$mode"/>
             </xsl:apply-templates>
+
+            <!-- notice shown when a historical version is displayed (?version= query parameter) -->
+            <xsl:if test="map:contains(ldh:query-params(), 'version')">
+                <div class="alert alert-info">
+                    <xsl:text>You are viewing a historical version of this document</xsl:text>
+                    <xsl:if test="exists(ldh:memento-datetime())">
+                        <xsl:text> from </xsl:text>
+                        <strong>
+                            <xsl:value-of select="ldh:memento-datetime()"/>
+                        </strong>
+                    </xsl:if>
+                    <xsl:text>. </xsl:text>
+                    <a href="{ac:absolute-path(ldh:base-uri(.))}">
+                        <xsl:text>View the current version</xsl:text>
+                    </a>
+                </div>
+            </xsl:if>
 
             <!-- host for the RDFa editor toolbar (appended by rdfae:init-editing); empty until an editable region initializes -->
             <div class="navbar-inner editor-bar">

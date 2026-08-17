@@ -140,6 +140,11 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
      * Name of the query parameter that selects a historical graph version by commit SHA.
      */
     public static final String VERSION_PARAM_NAME = "version";
+
+    /**
+     * Name of the query parameter that retrieves the graph's version history as a Memento TimeMap.
+     */
+    public static final String TIMEMAP_PARAM_NAME = "timemap";
     
     private final com.atomgraph.linkeddatahub.apps.model.Application application;
     private final OntModel ontology;
@@ -223,6 +228,15 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
     @GET
     public Response get()
     {
+        if (getUriInfo().getQueryParameters().containsKey(TIMEMAP_PARAM_NAME))
+        {
+            Model timeMap = getSystem().getGraphVersioningService().
+                getTimeMap(getApplication().getURI(), getApplication().getBaseURI(), getURI()).
+                orElseThrow(() -> new NotFoundException("Document <" + getURI() + "> is not versioned"));
+
+            return getResponseBuilder(timeMap, getURI()).build();
+        }
+
         String version = getUriInfo().getQueryParameters().getFirst(VERSION_PARAM_NAME);
         if (version == null) return super.get();
 

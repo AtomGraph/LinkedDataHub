@@ -24,9 +24,11 @@ import com.atomgraph.linkeddatahub.apps.model.Application;
 import com.atomgraph.linkeddatahub.apps.model.Dataset;
 import com.atomgraph.linkeddatahub.model.auth.Agent;
 import com.atomgraph.linkeddatahub.server.model.impl.Dispatcher;
+import com.atomgraph.linkeddatahub.server.model.impl.DocumentHierarchyGraphStoreImpl;
 import com.atomgraph.linkeddatahub.server.security.AuthorizationContext;
 import com.atomgraph.linkeddatahub.vocabulary.ACL;
 import com.atomgraph.linkeddatahub.vocabulary.LAPP;
+import com.atomgraph.linkeddatahub.vocabulary.MEM;
 import java.io.IOException;
 import java.net.URI;
 import java.util.Optional;
@@ -52,6 +54,7 @@ public class ResponseHeadersFilter implements ContainerResponseFilter
 
     private static final Logger log = LoggerFactory.getLogger(ResponseHeadersFilter.class);
 
+    @Inject com.atomgraph.linkeddatahub.Application system;
     @Inject jakarta.inject.Provider<Optional<Application>> app;
     @Inject jakarta.inject.Provider<Optional<Dataset>> dataset;
     @Inject jakarta.inject.Provider<Optional<AuthorizationContext>> authorizationContext;
@@ -86,6 +89,10 @@ public class ResponseHeadersFilter implements ContainerResponseFilter
             // add Link rel=ldt:ontology, if the ontology URI is specified
             if (application.getOntology() != null)
                 response.getHeaders().add(HttpHeaders.LINK, new Link(URI.create(application.getOntology().getURI()), LDT.ontology.getURI(), null));
+            // add Link rel=mem:timemap, if the document is versioned
+            if (getSystem().getGraphVersioningService().getRepository(application.getURI()).isPresent() &&
+                    request.getUriInfo().getMatchedResources().stream().anyMatch(DocumentHierarchyGraphStoreImpl.class::isInstance))
+                response.getHeaders().add(HttpHeaders.LINK, new Link(URI.create(request.getUriInfo().getAbsolutePath() + "?" + DocumentHierarchyGraphStoreImpl.TIMEMAP_PARAM_NAME), MEM.timemap.getURI(), null));
             // add Link rel=ac:stylesheet, if the stylesheet URI is specified
             if (application.getStylesheet() != null)
                 response.getHeaders().add(HttpHeaders.LINK, new Link(URI.create(application.getStylesheet().getURI()), AC.stylesheet.getURI(), null));
@@ -97,6 +104,16 @@ public class ResponseHeadersFilter implements ContainerResponseFilter
             String linkValue = response.getHeaders().get(HttpHeaders.LINK).toString();
             response.getHeaders().putSingle(HttpHeaders.LINK, linkValue.substring(1, linkValue.length() - 1)); // trim leading and trailing bracket added by toString()
         }
+    }
+
+    /**
+     * Returns the system application.
+     *
+     * @return system application
+     */
+    public com.atomgraph.linkeddatahub.Application getSystem()
+    {
+        return system;
     }
 
     /**

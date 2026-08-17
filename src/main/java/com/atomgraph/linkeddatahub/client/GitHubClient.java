@@ -17,8 +17,10 @@
 package com.atomgraph.linkeddatahub.client;
 
 import jakarta.json.Json;
+import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonObjectBuilder;
+import jakarta.json.JsonValue;
 import jakarta.ws.rs.client.Client;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.client.Invocation;
@@ -28,7 +30,9 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import java.net.URI;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Base64;
+import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
 import org.glassfish.jersey.client.ClientProperties;
@@ -172,6 +176,39 @@ public class GitHubClient
             if (response.getStatus() == Response.Status.NOT_FOUND.getStatusCode()) return Optional.empty();
 
             throw new RuntimeException("GitHub retrieval of '" + path + "' at '" + ref + "' from " + owner + "/" + repo + " failed with status " + response.getStatus());
+        }
+    }
+
+    /** A commit in a file's history: SHA, datetime, author name */
+    public record CommitInfo(String sha, Instant datetime, String authorName) { }
+
+    /**
+     * Lists commits that touched a file on the branch, most recent first.
+     *
+     * @param path file path within the repository
+     * @return commit list (up to 100), empty if the file has no history
+     */
+    public List<CommitInfo> listCommits(String path)
+    {
+        try (Response response = invoke(() -> endpoint.path("repos/{owner}/{repo}/commits").
+                queryParam("path", path).
+                queryParam("sha", branch).
+                queryParam("per_page", 100).
+                resolveTemplate("owner", owner).resolveTemplate("repo", repo).
+                request(GITHUB_JSON).
+                header(HttpHeaders.AUTHORIZATION, authorization).
+                buildGet()))
+        {
+            if (response.getStatus() != Response.Status.OK.getStatusCode()) return List.of();
+
+            List<CommitInfo> commits = new ArrayList<>();
+            for (JsonValue value : response.readEntity(JsonArray.class))
+            {
+                JsonObject commit = value.asJsonObject();
+                JsonObject author = commit.getJsonObject("commit").getJsonObject("author");
+                commits.add(new CommitInfo(commit.getString("sha"), Instant.parse(author.getString("date")), author.getString("name")));
+            }
+            return commits;
         }
     }
 

@@ -102,6 +102,7 @@ extension-element-prefixes="ixsl"
     <xsl:import href="bootstrap/2.3.2/imports/sioc.xsl"/>
     <xsl:import href="bootstrap/2.3.2/imports/sp.xsl"/>
     <xsl:import href="bootstrap/2.3.2/imports/sh.xsl"/>
+    <xsl:import href="bootstrap/2.3.2/imports/memento.xsl"/>
     <xsl:import href="bootstrap/2.3.2/document.xsl"/>
     <xsl:import href="bootstrap/2.3.2/imports/services/youtube.xsl"/>
     <xsl:import href="converters/RDFXML2DataTable.xsl"/>
@@ -116,6 +117,7 @@ extension-element-prefixes="ixsl"
     <xsl:include href="bootstrap/2.3.2/client/navigation.xsl"/>
     <xsl:include href="bootstrap/2.3.2/client/block.xsl"/>
     <xsl:include href="bootstrap/2.3.2/client/modal.xsl"/>
+    <xsl:include href="bootstrap/2.3.2/client/memento.xsl"/>
     <xsl:include href="bootstrap/2.3.2/client/form.xsl"/>
     <xsl:include href="bootstrap/2.3.2/client/map.xsl"/> <!-- include in view.xsl and object.xsl instead? -->
     <xsl:include href="bootstrap/2.3.2/client/graph3d.xsl"/>
@@ -439,6 +441,10 @@ WHERE
                     <xsl:if test="$application">
                         <ixsl:set-property name="application" select="$application" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
                     </xsl:if>
+                    <!-- store TimeMap URI from Link header (present when the document is versioned); blank it when absent so non-versioned documents don't show the History link -->
+                    <xsl:variable name="timemap-link" select="tokenize(?headers?link, ',')[contains(., 'mementoweb.org/ns#timemap')][1]" as="xs:string?"/>
+                    <xsl:variable name="timemap" select="if ($timemap-link) then xs:anyURI(substring-before(substring-after(substring-before($timemap-link, ';'), '&lt;'), '&gt;')) else ()" as="xs:anyURI?"/>
+                    <ixsl:set-property name="timemap" select="($timemap, '')[1]" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
                     <xsl:for-each select="?body">
                         <xsl:variable name="results" select="." as="document-node()"/>
                         <ixsl:set-property name="{'`' || $doc-uri || '`'}" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.contents')"/>
