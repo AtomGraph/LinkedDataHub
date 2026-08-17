@@ -49,19 +49,31 @@ version="3.0"
 
             <xsl:for-each select="$container">
                 <xsl:result-document href="?." method="ixsl:append-content">
-                    <div class="modal fade in" id="document-history-modal">
+                    <div class="modal modal-constructor fade in" id="document-history-modal">
                         <div class="modal-header">
                             <button type="button" class="close">&#215;</button>
-                            <h3>History</h3>
+                            <legend>History</legend>
                         </div>
                         <div class="modal-body">
                             <xsl:choose>
                                 <xsl:when test="$response?status = 200 and $response?media-type = 'application/rdf+xml'">
-                                    <ul class="unstyled">
-                                        <xsl:apply-templates select="$response?body//*[@rdf:about][rdf:type/@rdf:resource = '&memento;Memento']" mode="bs2:MementoList">
-                                            <xsl:sort select="memento:mementoDatetime" order="descending"/>
-                                        </xsl:apply-templates>
-                                    </ul>
+                                    <table class="table table-striped">
+                                        <colgroup>
+                                            <col style="width: 60%;"/>
+                                            <col style="width: 40%;"/>
+                                        </colgroup>
+                                        <thead>
+                                            <tr>
+                                                <th>Version</th>
+                                                <th>Agent</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <xsl:apply-templates select="$response?body//*[@rdf:about][rdf:type/@rdf:resource = '&memento;Memento']" mode="bs2:MementoList">
+                                                <xsl:sort select="memento:mementoDatetime" order="descending"/>
+                                            </xsl:apply-templates>
+                                        </tbody>
+                                    </table>
                                 </xsl:when>
                                 <xsl:otherwise>
                                     <div class="alert alert-error">

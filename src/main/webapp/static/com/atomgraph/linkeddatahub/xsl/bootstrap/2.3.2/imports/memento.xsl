@@ -7,6 +7,9 @@
 <xsl:stylesheet version="3.0"
 xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
 xmlns:xs="http://www.w3.org/2001/XMLSchema"
+xmlns:map="http://www.w3.org/2005/xpath-functions/map"
+xmlns:ldh="https://w3id.org/atomgraph/linkeddatahub#"
+xmlns:ac="https://w3id.org/atomgraph/client#"
 xmlns:rdf="&rdf;"
 xmlns:memento="&memento;"
 xmlns:dct="&dct;"
@@ -16,18 +19,24 @@ exclude-result-prefixes="#all"
 
     <!-- Memento (RFC 7089) version history rendering -->
 
-    <!-- a version entry: datetime links to the memento (?version= URI); opens in a new tab so the CSR navigation (which drops query params) is bypassed -->
+    <!-- a version entry: datetime links to the memento (?version= URI), which navigates like any document link -->
     <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&memento;Memento']" mode="bs2:MementoList">
-        <li>
-            <a href="{@rdf:about}" target="_blank">
-                <xsl:apply-templates select="memento:mementoDatetime/text()"/>
-            </a>
-            <xsl:if test="dct:creator/@rdf:resource">
-                <span class="pull-right">
-                    <xsl:apply-templates select="dct:creator/@rdf:resource"/>
-                </span>
+        <!-- the memento URI of the version currently being viewed, when a ?version= view is active -->
+        <xsl:variable name="current-memento" select="if (map:contains(ldh:query-params(), 'version')) then xs:anyURI(ac:absolute-path(ldh:request-uri()) || '?version=' || ldh:query-params()?version) else ()" as="xs:anyURI?"/>
+
+        <tr>
+            <xsl:if test="@rdf:about = $current-memento">
+                <xsl:attribute name="class" select="'info'"/>
             </xsl:if>
-        </li>
+            <td>
+                <a href="{@rdf:about}">
+                    <xsl:apply-templates select="memento:mementoDatetime/text()"/>
+                </a>
+            </td>
+            <td>
+                <xsl:apply-templates select="dct:creator/@rdf:resource"/>
+            </td>
+        </tr>
     </xsl:template>
 
 </xsl:stylesheet>

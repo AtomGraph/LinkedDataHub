@@ -326,20 +326,14 @@ WHERE
                     </xsl:for-each>
                 </xsl:if>
 
-                <xsl:choose>
-                    <!-- historical version (?version=) or TimeMap (?timemap) view of a local document: the server-rendered snapshot is the content.
-                         Re-fetching would load the *live* document over it and rewrite the URL (ldh:rdf-document-response pushes mode-only URLs). -->
-                    <xsl:when test="not(ac:uri()) and (map:contains(ldh:query-params(), 'version') or map:contains(ldh:query-params(), 'timemap'))"/>
-                    <xsl:otherwise>
-                        <!-- doc URI: proxied target if ?uri= set (keep its query — part of the resource identity), else local request URI (strip display params).
-                             fragment: always from the OUTER URL (ldh:request-uri()) per RFC 3986 — LDH-built URLs put the fragment outside ?uri= -->
-                        <xsl:call-template name="ldh:DocumentNavigate">
-                            <xsl:with-param name="doc-uri" select="if (ac:uri()) then ac:document-uri(ac:uri()) else ac:absolute-path(ldh:request-uri())"/>
-                            <xsl:with-param name="fragment" select="ac:fragment-id(ldh:request-uri())"/>
-                            <xsl:with-param name="push-state" select="false()"/>
-                        </xsl:call-template>
-                    </xsl:otherwise>
-                </xsl:choose>
+                <!-- doc URI: proxied target if ?uri= set (keep its query — part of the resource identity), else local request URI (strip display params, keep representation-selecting ones).
+                     fragment: always from the OUTER URL (ldh:request-uri()) per RFC 3986 — LDH-built URLs put the fragment outside ?uri= -->
+                <xsl:call-template name="ldh:DocumentNavigate">
+                    <xsl:with-param name="doc-uri" select="if (ac:uri()) then ac:document-uri(ac:uri()) else ac:absolute-path(ldh:request-uri())"/>
+                    <xsl:with-param name="fragment" select="ac:fragment-id(ldh:request-uri())"/>
+                    <xsl:with-param name="query-params" select="if (ac:uri()) then map{} else ldh:query-params()"/>
+                    <xsl:with-param name="push-state" select="false()"/>
+                </xsl:call-template>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
@@ -418,6 +412,7 @@ WHERE
         <xsl:variable name="response" select="$context('response')" as="map(*)"/>
         <xsl:variable name="doc-uri" select="$context('doc-uri')" as="xs:anyURI"/>
         <xsl:variable name="fragment" select="$context('fragment')" as="xs:string?"/>
+        <xsl:variable name="query-params" select="if (map:contains($context, 'query-params')) then $context('query-params') else map{}" as="map(xs:string, xs:string*)"/>
         <xsl:variable name="refresh-content" select="$context('refresh-content')" as="xs:boolean?"/>
 
         <xsl:for-each select="$response">
@@ -473,7 +468,7 @@ WHERE
 
                         <!-- align URL with the mode detected from the RDF document -->
                         <xsl:call-template name="ldh:PushState">
-                            <xsl:with-param name="href" select="ldh:href($doc-uri, ldh:build-query($mode), $fragment)"/>
+                            <xsl:with-param name="href" select="ldh:href($doc-uri, map:merge(($query-params, ldh:build-query($mode))), $fragment)"/>
                             <xsl:with-param name="title" select="$label"/>
                             <xsl:with-param name="container" select="id($body-id, ixsl:page())"/>
                         </xsl:call-template>
@@ -661,7 +656,7 @@ WHERE
                     <ixsl:set-property name="title" select="$label" object="ixsl:page()"/>
 
                     <xsl:call-template name="ldh:PushState">
-                        <xsl:with-param name="href" select="ldh:href($doc-uri, ldh:build-query($mode), $fragment)"/>
+                        <xsl:with-param name="href" select="ldh:href($doc-uri, map:merge(($query-params, ldh:build-query($mode))), $fragment)"/>
                         <xsl:with-param name="title" select="$label"/>
                         <xsl:with-param name="container" select="id($body-id, ixsl:page())"/>
                     </xsl:call-template>
@@ -1001,6 +996,7 @@ WHERE
         <xsl:call-template name="ldh:RDFDocumentLoad">
             <xsl:with-param name="doc-uri" select="$doc-uri"/>
             <xsl:with-param name="fragment" select="$fragment"/>
+            <xsl:with-param name="query-params" select="$query-params"/>
             <xsl:with-param name="controller" select="$controller"/>
         </xsl:call-template>
     </xsl:template>
@@ -1010,17 +1006,21 @@ WHERE
     <xsl:template name="ldh:RDFDocumentLoad">
         <xsl:param name="doc-uri" as="xs:anyURI"/>
         <xsl:param name="fragment" as="xs:string?"/>
+        <xsl:param name="query-params" select="map{}" as="map(xs:string, xs:string*)"/>
         <xsl:param name="refresh-content" as="xs:boolean?"/>
         <xsl:param name="controller" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), 'saxonController')"/>
+        <!-- representation-selecting params (?version=, ?timemap) ride along on the RDF request; display params do not -->
+        <xsl:variable name="snapshot-params" select="ldh:snapshot-params($query-params)" as="map(xs:string, xs:string*)"/>
         <!-- if the URI is external, dereference it through the proxy -->
         <!-- HTTP requests carry no fragment (protocol-level) -->
-        <xsl:variable name="request-uri" select="ldh:href($doc-uri, map{}, ())" as="xs:anyURI"/>
+        <xsl:variable name="request-uri" select="ldh:href($doc-uri, $snapshot-params, ())" as="xs:anyURI"/>
         <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
         <xsl:variable name="context" as="map(*)" select="
           map{
             'request': $request,
             'doc-uri': $doc-uri,
             'fragment': $fragment,
+            'query-params': $snapshot-params,
             'refresh-content': $refresh-content,
             'endpoint': sd:endpoint()
           }"/>

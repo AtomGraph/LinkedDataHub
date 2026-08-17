@@ -183,6 +183,13 @@ exclude-result-prefixes="#all"
         <!-- ac:document-uri strips the URL's #fragment so it doesn't get glued onto the last query value -->
         <xsl:sequence select="ldh:parse-query-params(substring-after(ac:document-uri(ldh:request-uri()), '?'))"/>
     </xsl:function>
+
+    <!-- representation-selecting query params (unlike display state such as ?mode, these select a different representation of the document URI) - they must survive the RDF re-fetch and every URL rebuild -->
+    <xsl:function name="ldh:snapshot-params" as="map(xs:string, xs:string*)">
+        <xsl:param name="query-params" as="map(xs:string, xs:string*)"/>
+
+        <xsl:sequence select="map:merge((if (map:contains($query-params, 'version')) then map{ 'version': $query-params?version } else (), if (map:contains($query-params, 'timemap')) then map{ 'timemap': $query-params?timemap } else ()))"/>
+    </xsl:function>
     
     <xsl:function name="ldh:base-uri" as="xs:anyURI" use-when="system-property('xsl:product-name') = 'SAXON'">
         <xsl:param name="arg" as="node()"/>
