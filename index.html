@@ -15,15 +15,15 @@
 
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <meta name="description" content="LinkedDataHub is open source software you can use to manage data, create visualizations and build apps on RDF Knowledge Graphs">
-    <meta name="keywords" content="RDF, SPARQL, Linked Data, Linked Data Templates, Linked Open Data, Knowledge Graph, declarative, triplestore, Semantic Web, XSLT, LDT, ontology, OWL, hypermedia, WebID, data driven, structured content">
+    <meta name="description" content="LinkedDataHub is open source software you can use to manage data, create visualizations and build apps on RDF Knowledge Graphs — readable by humans as hypertext and by AI agents as data, from the same URIs">
+    <meta name="keywords" content="RDF, SPARQL, Linked Data, Linked Data Templates, Linked Open Data, Knowledge Graph, AI agents, LLM grounding, GraphRAG, Model Context Protocol, MCP, machine-readable, content negotiation, declarative, triplestore, Semantic Web, XSLT, LDT, ontology, OWL, hypermedia, WebID, data driven, structured content">
     <meta name="author" content="AtomGraph">
-    <meta name="twitter:title" content="LinkedDataHub – The low-code Knowledge Graph application platform">
+    <meta name="twitter:title" content="LinkedDataHub – The Knowledge Graph application platform for humans and agents">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:site" content="@atomgraphhq">
     <meta property="og:url" content="https://atomgraph.github.io/LinkedDataHub/">
-    <meta property="og:title" content="LinkedDataHub – The low-code Knowledge Graph application platform">
-    <meta property="og:description" content="LinkedDataHub is open source software you can use to manage data, create visualizations and build apps on RDF Knowledge Graphs">
+    <meta property="og:title" content="LinkedDataHub – The Knowledge Graph application platform for humans and agents">
+    <meta property="og:description" content="LinkedDataHub is open source software you can use to manage data, create visualizations and build apps on RDF Knowledge Graphs — readable by humans as hypertext and by AI agents as data, from the same URIs">
     <meta property="og:image" content="https://atomgraph.github.io/LinkedDataHub/img/og-image.png">
     <meta property="og:image:type" content="image/png">
     <meta property="og:image:width" content="679">
@@ -32,7 +32,7 @@
 
     <!-- schema.org metadata -->
     <script type="application/ld+json">
-        { "@context": "https://schema.org", "@type": "WebApplication", "name": "LinkedDataHub", "description": "The low-code Knowledge Graph application platform", "url": "https://atomgraph.github.io/LinkedDataHub/", "operatingSystem": "Docker", "applicationCategory": [ "Data management", "Browser", "Analytics" ], "screenshot": "LDHChartMode.png", "downloadUrl": "https://github.com/AtomGraph/LinkedDataHub", "license": "https://www.apache.org/licenses/LICENSE-2.0", "keywords": [ "RDF", "SPARQL", "Linked Data", "Linked Data Templates", "Linked Open Data", "Knowledge Graph", "fair", "fair data", "declarative", "triplestore", "Semantic Web", "XSLT", "LDT", "ontology", "OWL", "hypermedia", "WebID", "data driven", "structured content" ] , "publisher": { "@type": "Organization", "name": "AtomGraph", "url": "https://atomgraph.com" } }
+        { "@context": "https://schema.org", "@type": "WebApplication", "name": "LinkedDataHub", "description": "The Knowledge Graph application platform for humans and agents", "url": "https://atomgraph.github.io/LinkedDataHub/", "operatingSystem": "Docker", "applicationCategory": [ "Data management", "Browser", "Analytics" ], "screenshot": "LDHChartMode.png", "downloadUrl": "https://github.com/AtomGraph/LinkedDataHub", "license": "https://www.apache.org/licenses/LICENSE-2.0", "keywords": [ "RDF", "SPARQL", "Linked Data", "Linked Data Templates", "Linked Open Data", "Knowledge Graph", "AI agents", "LLM grounding", "Model Context Protocol", "machine-readable", "content negotiation", "fair", "fair data", "declarative", "triplestore", "Semantic Web", "XSLT", "LDT", "ontology", "OWL", "hypermedia", "WebID", "data driven", "structured content" ] , "publisher": { "@type": "Organization", "name": "AtomGraph", "url": "https://atomgraph.com" } }
     </script>
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
@@ -45,21 +45,21 @@
             text-rendering: optimizeLegibility;
             -webkit-font-smoothing: antialiased;
         }
-        
+
         .jumbotron {
             background: linear-gradient(0deg, #04286E 0%, #182848 100%);
             /* background-image: url('img/cool-background.png'); */
             color: white;
         }
-        
+
         .jumbotron h1 {
             /* text-shadow: 2px 2px 2px grey; */
         }
-        
+
         h5.card-title {
             color: #EA607E;
         }
-        
+
         .card {
             box-shadow: 0 8px 40px rgba(0, 0, 0, 0.2);
         }
@@ -74,6 +74,7 @@
             font-size: 20px;
         }
 
+
         #github-button { background-image: url('img/GitHub_Logo_White.png'); background-position: center center; background-repeat: no-repeat; width: 100px; background-size: 80%; }
         #aws-marketplace-button { background-image: url('img/AWSMP_NewLogo_RGB_REV.svg'); background-position: center center; background-repeat: no-repeat; width: 200px; background-size: 80%; }
         .gh-button { margin-top: 5px; } /* GH button */
@@ -81,7 +82,7 @@
 
         .footer { margin-top: 4em; margin-bottom: 3em; }
     </style>
-    <title>LinkedDataHub – The low-code Knowledge Graph application platform</title>
+    <title>LinkedDataHub – The Knowledge Graph application platform for humans and agents</title>
 </head>
 
 <body>
@@ -120,18 +121,19 @@
 
     <div class="jumbotron jumbotron-fluid">
         <div class="container text-center">
-            <h1 class="display-4">The <em>low-code</em><br>Knowledge Graph<br> application platform</h1>
-            <p class="lead">LinkedDataHub is open source software you can use to manage data,
-                <br> create visualizations and build apps on RDF Knowledge Graphs</p>
+            <h1 class="display-4">The Knowledge Graph<br>application platform<br>for humans <em>and</em> agents</h1>
+            <p class="lead">LinkedDataHub is open source, low-code software you can use to manage data,<br>
+                create visualizations and build apps on RDF Knowledge Graphs.<br>
+                People get hypertext. Agents get data. Same URIs, same API.</p>
              <a href="linkeddatahub/docs/get-started/" class="btn btn-primary btn-lg active" role="button" aria-pressed="true">Get started</a>
              <a href="https://github.com/AtomGraph/LinkedDataHub" class="btn btn-primary btn-lg active" role="button" aria-pressed="true" id="github-button">&nbsp;</a>
              <!-- <a href="https://aws.amazon.com/marketplace/pp/prodview-vqbeztc3f2nni" class="btn btn-primary btn-lg active" role="button" aria-pressed="true" id="aws-marketplace-button">&nbsp;</a> -->
         </div>
     </div>
 
-    <div class="container-fluid">
+    <div class="container-fluid mt-5">
         <div class="row">
-            <div class="col-sm-4 offset-sm-2">
+            <div class="col-sm-4">
                 <div class="card">
                     <div class="card-body">
                         <h5 class="card-title">For researchers and data scientists</h5>
@@ -157,6 +159,21 @@
                             <li>Create or import ontologies to model your domain</li>
                             <li>Use the standard SPARQL 1.1 APIs to query and manage data</li>
                             <li>Control access using built-in authentication and authorization</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">For AI agents and their builders</h5>
+                        <p class="card-text lead">Machine-readable by architecture</p>
+                        <ul>
+                            <li>Read any document as RDF via content negotiation, no scraping</li>
+                            <li>Query with standard SPARQL 1.1, answers computed from facts</li>
+                            <li>Write through declarative updates you can review and log</li>
+                            <li>Authenticate like any other user via WebID or OpenID Connect</li>
+                            <li>Drive it from AI assistants via the <a href="https://github.com/AtomGraph/Web-Algebra">Web-Algebra</a> MCP server</li>
                         </ul>
                     </div>
                 </div>
@@ -277,7 +294,7 @@
                         <ul class="list-group list-group-flush">
                             <li class="list-group-item">WebID and OpenID Connect authentication</li>
                             <li class="list-group-item">Graph-level access control and requests</li>
-                            <li class="list-group-item">Rich library of of extensible UI components</li>
+                            <li class="list-group-item">Rich library of extensible UI components</li>
                             <li class="list-group-item">Ontology-driven domain model</li>
                             <li class="list-group-item">SPARQL-based templates for editing forms</li>
                             <li class="list-group-item">Command line interface</li>
@@ -287,15 +304,15 @@
             </div>
             <div class="col-sm-3">
                 <div class="card">
-                    <h5 class="card-header">Infrastructure</h5>
+                    <h5 class="card-header">Infrastructure &amp; agents</h5>
                     <div class="card-body">
                         <ul class="list-group list-group-flush">
                             <li class="list-group-item">SPARQL endpoint</li>
                             <li class="list-group-item">Read-write Linked Data API</li>
-                            <li class="list-group-item">Linked Data proxy</li>
-                            <li class="list-group-item">SPARQL result cache</li>
-                            <li class="list-group-item">Docker-based deployment</li>
-                            <li class="list-group-item">AWS-based deployment</li>
+                            <li class="list-group-item">HTML and RDF from the same URIs</li>
+                            <li class="list-group-item">MCP server for AI assistants via <a href="https://github.com/AtomGraph/Web-Algebra">Web-Algebra</a></li>
+                            <li class="list-group-item">Linked Data proxy and SPARQL result cache</li>
+                            <li class="list-group-item">Docker- and AWS-based deployment</li>
                         </ul>
                     </div>
                 </div>
