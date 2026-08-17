@@ -131,6 +131,25 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="$ac:uri"/>
     </xsl:function>
 
+    <!-- TimeMap URI from the Link response header (rel=mem:timemap), present when the document is versioned -->
+    <xsl:function name="ldh:timemap" as="xs:anyURI?" use-when="system-property('xsl:product-name') = 'SAXON'">
+        <xsl:variable name="entries" as="xs:string*">
+            <xsl:for-each select="$ldh:httpHeaders('Link')">
+                <xsl:analyze-string select="." regex="&lt;[^&gt;]+&gt;[^&lt;]*">
+                    <xsl:matching-substring>
+                        <xsl:sequence select="."/>
+                    </xsl:matching-substring>
+                </xsl:analyze-string>
+            </xsl:for-each>
+        </xsl:variable>
+        <xsl:sequence select="(for $entry in $entries return if (matches($entry, '^&lt;[^&gt;]+&gt;\s*;.*[;\s]rel\s*=\s*&quot;?[^&quot;\s,;]*mementoweb\.org/ns#timemap&quot;?')) then xs:anyURI(replace($entry, '^&lt;([^&gt;]+)&gt;.*$', '$1')) else ())[1]"/>
+    </xsl:function>
+
+    <!-- Memento-Datetime response header value, present on ?version= responses -->
+    <xsl:function name="ldh:memento-datetime" as="xs:string?" use-when="system-property('xsl:product-name') = 'SAXON'">
+        <xsl:sequence select="$ldh:httpHeaders('Memento-Datetime')[1]"/>
+    </xsl:function>
+
     <!-- Strips the leftmost subdomain and returns parent dataspace origin (scheme + host + port) -->
     <xsl:function name="ldh:parent-origin" as="xs:anyURI?">
         <xsl:param name="uri" as="xs:anyURI"/>
@@ -163,6 +182,13 @@ exclude-result-prefixes="#all"
     <xsl:function name="ldh:query-params" as="map(xs:string, xs:string*)">
         <!-- ac:document-uri strips the URL's #fragment so it doesn't get glued onto the last query value -->
         <xsl:sequence select="ldh:parse-query-params(substring-after(ac:document-uri(ldh:request-uri()), '?'))"/>
+    </xsl:function>
+
+    <!-- representation-selecting query params (unlike display state such as ?mode, these select a different representation of the document URI) - they must survive the RDF re-fetch and every URL rebuild -->
+    <xsl:function name="ldh:snapshot-params" as="map(xs:string, xs:string*)">
+        <xsl:param name="query-params" as="map(xs:string, xs:string*)"/>
+
+        <xsl:sequence select="map:merge((if (map:contains($query-params, 'version')) then map{ 'version': $query-params?version } else (), if (map:contains($query-params, 'timemap')) then map{ 'timemap': $query-params?timemap } else ()))"/>
     </xsl:function>
     
     <xsl:function name="ldh:base-uri" as="xs:anyURI" use-when="system-property('xsl:product-name') = 'SAXON'">
@@ -1505,6 +1531,50 @@ exclude-result-prefixes="#all"
     <!-- resolve relative @src URIs against base in proxy mode -->
     <xsl:template match="@src[not(ac:absolute-path(ldh:base-uri(.)) = ac:absolute-path(ldh:request-uri()))][not(starts-with(., '/')) and not(starts-with(., '#')) and not(contains(., ':'))]" mode="ldh:XHTMLContent" priority="1">
         <xsl:attribute name="{name()}" select="resolve-uri(., ldh:base-uri(.))"/>
+    </xsl:template>
+
+    <!-- DATE/DATETIME LITERALS -->
+    <!-- overrides the Web-Client templates that pass $ac:lang to format-date(Time): Saxon only ships English date names, so any other language makes it prepend a '[Language: en]' fallback marker to the output. TO-DO: upstream to Web-Client -->
+
+    <xsl:template match="text()[. castable as xs:date][../@rdf:datatype = '&xsd;date'] | srx:literal[@datatype = '&xsd;date']" priority="1">
+        <xsl:param name="id" as="xs:string?"/>
+        <xsl:param name="title" select="../@rdf:datatype" as="xs:string?"/>
+        <xsl:param name="class" as="xs:string?"/>
+
+        <span>
+            <xsl:if test="$id">
+                <xsl:attribute name="id" select="$id"/>
+            </xsl:if>
+            <xsl:if test="$title">
+                <xsl:attribute name="title" select="$title"/>
+            </xsl:if>
+            <xsl:if test="$class">
+                <xsl:attribute name="class" select="$class"/>
+            </xsl:if>
+
+            <xsl:sequence select="format-date(., '[D] [MNn] [Y]')"/>
+        </span>
+    </xsl:template>
+
+    <xsl:template match="text()[. castable as xs:dateTime][../@rdf:datatype = '&xsd;dateTime'] | srx:literal[@datatype = '&xsd;dateTime']" priority="1">
+        <xsl:param name="id" as="xs:string?"/>
+        <xsl:param name="title" select="../@rdf:datatype" as="xs:string?"/>
+        <xsl:param name="class" as="xs:string?"/>
+        <xsl:param name="timezone" select="implicit-timezone()" as="xs:dayTimeDuration?"/>
+
+        <span>
+            <xsl:if test="$id">
+                <xsl:attribute name="id" select="$id"/>
+            </xsl:if>
+            <xsl:if test="$title">
+                <xsl:attribute name="title" select="$title"/>
+            </xsl:if>
+            <xsl:if test="$class">
+                <xsl:attribute name="class" select="$class"/>
+            </xsl:if>
+
+            <xsl:sequence select="format-dateTime(adjust-dateTime-to-timezone(., $timezone), '[D] [MNn] [Y] [H01]:[m01]')"/>
+        </span>
     </xsl:template>
 
 </xsl:stylesheet>

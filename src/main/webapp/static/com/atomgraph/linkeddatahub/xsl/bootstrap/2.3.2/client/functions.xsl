@@ -89,6 +89,16 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="if (ixsl:contains(ixsl:window(), 'LinkedDataHub.application')) then xs:anyURI(ixsl:get(ixsl:window(), 'LinkedDataHub.application')) else ()"/>
     </xsl:function>
 
+    <!-- TimeMap URI extracted from the Link response header by ldh:rdf-document-response; blank when the document is not versioned -->
+    <xsl:function name="ldh:timemap" as="xs:anyURI?">
+        <xsl:sequence select="if (ixsl:contains(ixsl:window(), 'LinkedDataHub.timemap') and not(ixsl:get(ixsl:window(), 'LinkedDataHub.timemap') = '')) then xs:anyURI(ixsl:get(ixsl:window(), 'LinkedDataHub.timemap')) else ()"/>
+    </xsl:function>
+
+    <!-- Memento-Datetime is a response header, not available in the client context; ?version= pages render server-side -->
+    <xsl:function name="ldh:memento-datetime" as="xs:string?">
+        <xsl:sequence select="()"/>
+    </xsl:function>
+
     <xsl:function name="lapp:origin" as="xs:anyURI">
         <xsl:sequence select="lapp:origin(ldt:base())"/>
     </xsl:function>
