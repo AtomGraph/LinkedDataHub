@@ -47,6 +47,7 @@ import jakarta.inject.Inject;
 import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
+import jakarta.ws.rs.GET;
 import jakarta.ws.rs.HttpMethod;
 import jakarta.ws.rs.InternalServerErrorException;
 import jakarta.ws.rs.NotFoundException;
@@ -55,7 +56,9 @@ import jakarta.ws.rs.PATCH;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.WebApplicationException;
+import jakarta.ws.rs.core.CacheControl;
 import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.EntityTag;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Request;
@@ -74,6 +77,8 @@ import java.io.InputStream;
 import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.security.DigestInputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -130,6 +135,11 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
      * The relative path of the content-addressed file container.
      */
     public static final String UPLOADS_PATH = "uploads";
+
+    /**
+     * Name of the query parameter that selects a historical graph version by commit SHA.
+     */
+    public static final String VERSION_PARAM_NAME = "version";
     
     private final com.atomgraph.linkeddatahub.apps.model.Application application;
     private final OntModel ontology;
@@ -201,7 +211,38 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
             !secretaryDocURI.equals(uri))
             allowedMethods.add(HttpMethod.DELETE);
     }
-    
+
+    /**
+     * Implements <code>GET</code> method of SPARQL Graph Store Protocol.
+     * With a <code>version</code> query parameter, returns the graph's state at that commit from the
+     * versioning repository instead of the triplestore. Version responses are immutable.
+     *
+     * @return HTTP response
+     */
+    @Override
+    @GET
+    public Response get()
+    {
+        String version = getUriInfo().getQueryParameters().getFirst(VERSION_PARAM_NAME);
+        if (version == null) return super.get();
+
+        com.atomgraph.linkeddatahub.server.util.GraphVersioningService.Version graphVersion = getSystem().getGraphVersioningService().
+            getVersion(getApplication().getURI(), getApplication().getBaseURI(), getURI(), version).
+            orElseThrow(() -> new NotFoundException("Version '" + version + "' of graph <" + getURI() + "> not found"));
+
+        CacheControl cacheControl = new CacheControl();
+        cacheControl.setMaxAge(31536000);
+        cacheControl.getCacheExtension().put("immutable", "");
+
+        Response.ResponseBuilder rb = getResponseBuilder(graphVersion.model(), getURI()).
+            tag(new EntityTag("git-" + version)).
+            cacheControl(cacheControl);
+        if (graphVersion.datetime() != null)
+            rb.header("Memento-Datetime", DateTimeFormatter.RFC_1123_DATE_TIME.format(graphVersion.datetime().atZone(ZoneId.of("GMT"))));
+
+        return rb.build();
+    }
+
     /**
      * Implements <code>POST</code> method of SPARQL Graph Store Protocol.
      * Adds triples to the existing graph, skolemizes blank nodes, updates modification timestamp, and submits any imports.

@@ -105,6 +105,7 @@ import com.atomgraph.linkeddatahub.server.filter.request.ContentLengthLimitFilte
 import com.atomgraph.linkeddatahub.server.filter.request.auth.ProxiedWebIDFilter;
 import com.atomgraph.linkeddatahub.server.filter.response.ResponseHeadersFilter;
 import com.atomgraph.linkeddatahub.server.filter.response.CacheInvalidationFilter;
+import com.atomgraph.linkeddatahub.server.filter.response.VersioningFilter;
 import com.atomgraph.linkeddatahub.server.filter.response.XsltExecutableFilter;
 import com.atomgraph.linkeddatahub.server.interceptor.RDFPostMediaTypeInterceptor;
 import com.atomgraph.linkeddatahub.server.mapper.auth.oauth2.TokenExpiredExceptionMapper;
@@ -269,7 +270,7 @@ public class Application extends ResourceConfig
     private final SameSiteSourceResolver resolver;
     private final Map<String, OntologyRepository> endUserRepositories;
     private final MediaTypes mediaTypes;
-    private final Client client, externalClient, importClient, noCertClient;
+    private final Client client, externalClient, importClient, noCertClient, verifiedClient;
     private final Query documentTypeQuery, documentOwnerQuery, aclQuery, ownerAclQuery, webIDQuery, agentQuery, userAccountQuery, ontologyQuery; // no relative URIs
     private final Integer maxGetRequestSize;
     private final Processor xsltProc = new Processor(false);
@@ -305,6 +306,7 @@ public class Application extends ResourceConfig
     private final URI backendProxyAdmin;
     private final URI backendProxyEndUser;
     private Map<String, com.atomgraph.linkeddatahub.model.ServiceContext> serviceContextMap;
+    private final com.atomgraph.linkeddatahub.server.util.GraphVersioningService graphVersioningService;
 
     /**
      * Constructs system application and configures it using sevlet config.
@@ -701,7 +703,8 @@ public class Application extends ResourceConfig
             externalClient = getClient(keyStore, clientKeyStorePassword, trustStore, maxConnPerRoute, maxTotalConn, null, false, connectionRequestTimeout, socketTimeout, connectTimeout, connectionTimeToLive, validateAfterInactivity);
             importClient = getClient(keyStore, clientKeyStorePassword, trustStore, maxConnPerRoute, maxTotalConn, maxRequestRetries, true, connectionRequestTimeout, socketTimeout, connectTimeout, connectionTimeToLive, validateAfterInactivity);
             noCertClient = getNoCertClient(trustStore, maxConnPerRoute, maxTotalConn, maxRequestRetries, connectionRequestTimeout, socketTimeout, connectTimeout, connectionTimeToLive, validateAfterInactivity);
-            
+            verifiedClient = getVerifiedClient(maxConnPerRoute, maxTotalConn, maxRequestRetries, connectionRequestTimeout, socketTimeout, connectTimeout, connectionTimeToLive, validateAfterInactivity);
+
             if (maxContentLength != null)
             {
                 client.register(new ContentLengthLimitFilter(maxContentLength));
@@ -783,6 +786,9 @@ public class Application extends ResourceConfig
             {
                 serviceIt.close();
             }
+
+            graphVersioningService = new com.atomgraph.linkeddatahub.server.util.GraphVersioningService(ctxUnion, verifiedClient);
+            servletConfig.getServletContext().setAttribute(com.atomgraph.linkeddatahub.server.util.GraphVersioningService.class.getName(), graphVersioningService); // used in GraphVersioningListener to shut down its executor
 
             endUserRepositories = new ConcurrentHashMap<>();
             // global graph repository: bundled vocabularies/ontologies mapped from the prefix-mapping config
@@ -1100,6 +1106,7 @@ public class Application extends ResourceConfig
         register(new ResponseHeadersFilter());
         register(new XsltExecutableFilter());
         if (isInvalidateCache()) register(new CacheInvalidationFilter());
+        register(new VersioningFilter());
 //        register(new ProvenanceFilter());
     }
     
@@ -1727,11 +1734,113 @@ public class Application extends ResourceConfig
             throw new IllegalStateException(ex);
         }
     }
-    
+
+    /**
+     * Builds an HTTP client with standard TLS server verification (JVM default truststore and hostname verification).
+     * The other client factories disable hostname verification against a truststore that includes public CAs,
+     * which is unsafe for public-web API hosts — use this client for those.
+     *
+     * @param maxConnPerRoute max connections per route
+     * @param maxTotalConn max total connections
+     * @param maxRequestRetries maximum number of times that the HTTP client will retry a request
+     * @param connectionRequestTimeout timeout in milliseconds to wait for a connection lease from the pool (null to leave unset)
+     * @param socketTimeout socket (read) timeout in milliseconds (null to leave unset)
+     * @param connectTimeout connection (connect) timeout in milliseconds (null to leave unset)
+     * @param connectionTimeToLive time-to-live in milliseconds after which pooled connections are discarded (null to leave unset)
+     * @param validateAfterInactivity period of inactivity in milliseconds after which a pooled connection is revalidated before reuse (null to leave unset)
+     * @return client instance
+     */
+    public static Client getVerifiedClient(Integer maxConnPerRoute, Integer maxTotalConn, Integer maxRequestRetries, Integer connectionRequestTimeout, Integer socketTimeout, Integer connectTimeout, Long connectionTimeToLive, Integer validateAfterInactivity)
+    {
+        try
+        {
+            SSLContext ctx = SSLContext.getDefault();
+
+            Registry<ConnectionSocketFactory> socketFactoryRegistry = RegistryBuilder.<ConnectionSocketFactory>create().
+                register("https", new SSLConnectionSocketFactory(ctx, SSLConnectionSocketFactory.getDefaultHostnameVerifier())).
+                register("http", new PlainConnectionSocketFactory()).
+                build();
+
+            PoolingHttpClientConnectionManager conman = new PoolingHttpClientConnectionManager(socketFactoryRegistry, null, null, null, connectionTimeToLive != null ? connectionTimeToLive : -1L, TimeUnit.MILLISECONDS)
+            {
+
+                // https://github.com/eclipse-ee4j/jersey/issues/4449
+
+                @Override
+                public void close()
+                {
+                    super.shutdown();
+                }
+
+                @Override
+                public void shutdown()
+                {
+                    // Disable shutdown of the pool. This will be done later, when this factory is closed
+                    // This is a workaround for finalize method on jerseys ClientRuntime which
+                    // closes the client and shuts down the connection pool when it is garbage collected
+                };
+
+                // https://github.com/eclipse-ee4j/jersey/issues/2855
+
+                @Override
+                public void releaseConnection(final HttpClientConnection managedConn, final Object state, final long keepalive, final TimeUnit timeUnit)
+                {
+                    // set state to null to allow reuse of connections
+                    super.releaseConnection(managedConn, null, keepalive, timeUnit);
+                }
+
+            };
+            if (maxConnPerRoute != null) conman.setDefaultMaxPerRoute(maxConnPerRoute);
+            if (maxTotalConn != null) conman.setMaxTotal(maxTotalConn);
+            if (validateAfterInactivity != null) conman.setValidateAfterInactivity(validateAfterInactivity);
+
+            ClientConfig config = new ClientConfig();
+            config.connectorProvider(new ApacheConnectorProvider());
+            config.property(ClientProperties.FOLLOW_REDIRECTS, true);
+            config.property(ClientProperties.REQUEST_ENTITY_PROCESSING, RequestEntityProcessing.BUFFERED); // https://stackoverflow.com/questions/42139436/jersey-client-throws-cannot-retry-request-with-a-non-repeatable-request-entity
+            config.property(ApacheClientProperties.CONNECTION_MANAGER, conman);
+            RequestConfig.Builder requestConfig = RequestConfig.custom();
+            if (connectionRequestTimeout != null) requestConfig.setConnectionRequestTimeout(connectionRequestTimeout);
+            if (socketTimeout != null) requestConfig.setSocketTimeout(socketTimeout);
+            if (connectTimeout != null) requestConfig.setConnectTimeout(connectTimeout);
+            config.property(ApacheClientProperties.REQUEST_CONFIG, requestConfig.build());
+
+            if (maxRequestRetries != null)
+                config.property(ApacheClientProperties.RETRY_HANDLER, (HttpRequestRetryHandler) (IOException ex, int executionCount, HttpContext context) ->
+                {
+                    // Extract the HTTP host from the context
+                    HttpHost targetHost = (HttpHost)context.getAttribute(HttpCoreContext.HTTP_TARGET_HOST);
+                    String serverName = targetHost != null ? targetHost.getHostName() : "Unknown";
+
+                    if (executionCount > maxRequestRetries)
+                    {
+                        if (log.isWarnEnabled()) log.warn("Maximum tries reached for client HTTP pool to server '{}'", serverName);
+                        return false;
+                    }
+                    if (ex instanceof org.apache.http.NoHttpResponseException)
+                    {
+                        if (log.isWarnEnabled()) log.warn("No response from server '{}' on {} call", serverName, executionCount);
+                        return true;
+                    }
+                    return false;
+                });
+
+            return ClientBuilder.newBuilder().
+                withConfig(config).
+                sslContext(ctx).
+                build();
+        }
+        catch (NoSuchAlgorithmException ex)
+        {
+            if ( log.isErrorEnabled()) log.error("No such algorithm: {}", ex);
+            throw new IllegalStateException(ex);
+        }
+    }
+
     /**
      * Returns servlet configuration.
      * Context parameters can be accessed through it.
-     * 
+     *
      * @return servlet config object
      */
     public ServletConfig getServletConfig()
@@ -2249,7 +2358,27 @@ public class Application extends ResourceConfig
     {
         return noCertClient;
     }
-    
+
+    /**
+     * HTTP client instance with standard TLS server verification, for public-web API hosts.
+     *
+     * @return client instance
+     */
+    public Client getVerifiedClient()
+    {
+        return verifiedClient;
+    }
+
+    /**
+     * Service mirroring named graphs of versioning-enabled applications into GitHub repositories.
+     *
+     * @return versioning service
+     */
+    public com.atomgraph.linkeddatahub.server.util.GraphVersioningService getGraphVersioningService()
+    {
+        return graphVersioningService;
+    }
+
     /**
      * The email address from which notification emails are sent.
      * 

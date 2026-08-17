@@ -1,0 +1,265 @@
+/**
+ *  Copyright 2026 Martynas Jusevičius <martynas@atomgraph.com>
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ */
+package com.atomgraph.linkeddatahub.server.util;
+
+import com.atomgraph.core.vocabulary.A;
+import com.atomgraph.linkeddatahub.client.GitHubClient;
+import com.atomgraph.linkeddatahub.model.ServiceContext;
+import com.atomgraph.linkeddatahub.vocabulary.LAPP;
+import jakarta.ws.rs.NotFoundException;
+import jakarta.ws.rs.client.Client;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.net.URI;
+import java.nio.charset.StandardCharsets;
+import java.time.Instant;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import org.apache.jena.rdf.model.Model;
+import org.apache.jena.rdf.model.ModelFactory;
+import org.apache.jena.rdf.model.Property;
+import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.rdf.model.ResourceFactory;
+import org.apache.jena.rdf.model.Statement;
+import org.apache.jena.rdf.model.StmtIterator;
+import org.apache.jena.riot.Lang;
+import org.apache.jena.riot.RDFDataMgr;
+import org.apache.jena.sparql.vocabulary.DOAP;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+/**
+ * Mirrors named graphs of versioning-enabled applications into GitHub repositories.
+ * The unit of work is reconciliation: a task re-reads the graph from the application's
+ * SPARQL service at execution time and makes the repository file match — including deleting
+ * the file when the graph is gone. Tasks for the same file are chained sequentially so
+ * commits never race the GitHub Contents API's SHA-based optimistic locking.
+ * Versioning is best-effort: task failures are logged, never propagated.
+ *
+ * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
+ */
+public class GraphVersioningService
+{
+
+    private static final Logger log = LoggerFactory.getLogger(GraphVersioningService.class);
+
+    /** Auth token property (established by <code>select-root-services.rq</code>; Core's A vocabulary class lacks the constant) */
+    public static final Property authToken = ResourceFactory.createProperty(A.NS + "authToken");
+
+    /** Per-repository client and file path prefix */
+    public record Repository(GitHubClient client, String pathPrefix) { }
+
+    private final Map<String, Repository> repositories;
+    private final Map<String, CompletableFuture<Void>> commitChains = new ConcurrentHashMap<>();
+    private final ExecutorService executor = Executors.newFixedThreadPool(4);
+
+    /**
+     * Builds the per-application repository map from the context model.
+     * Applications without a <code>lapp:versioningRepository</code> are not versioned.
+     *
+     * @param contextModel union model of the context dataset
+     * @param client HTTP client with standard TLS server verification
+     */
+    public GraphVersioningService(Model contextModel, Client client)
+    {
+        repositories = new HashMap<>();
+
+        StmtIterator it = contextModel.listStatements(null, LAPP.versioningRepository, (org.apache.jena.rdf.model.RDFNode)null);
+        try
+        {
+            while (it.hasNext())
+            {
+                Statement stmt = it.nextStatement();
+                Resource app = stmt.getSubject();
+                Resource repo = stmt.getResource();
+
+                Repository repository = repository(app, repo, client);
+                if (repository != null) repositories.put(app.getURI(), repository);
+            }
+        }
+        finally
+        {
+            it.close();
+        }
+    }
+
+    private Repository repository(Resource app, Resource repo, Client client)
+    {
+        if (!repo.hasProperty(DOAP.location) || !repo.hasProperty(authToken))
+        {
+            if (log.isWarnEnabled()) log.warn("Versioning repository of application <{}> is missing doap:location or a:authToken, versioning disabled for it", app.getURI());
+            return null;
+        }
+
+        URI location = URI.create(repo.getPropertyResourceValue(DOAP.location).getURI());
+        String[] segments = location.getPath().substring(1).split("/");
+        if (segments.length != 2)
+        {
+            if (log.isWarnEnabled()) log.warn("Versioning repository location <{}> of application <{}> is not an owner/repository URL, versioning disabled for it", location, app.getURI());
+            return null;
+        }
+
+        String token = repo.getProperty(authToken).getString();
+        String branch = repo.hasProperty(LAPP.branch) ? repo.getProperty(LAPP.branch).getString() : "main";
+        String pathPrefix = repo.hasProperty(LAPP.pathPrefix) ? repo.getProperty(LAPP.pathPrefix).getString() : "graphs";
+
+        if (log.isInfoEnabled()) log.info("Graph versioning enabled for application <{}> into {} (branch '{}', path prefix '{}')", app.getURI(), location, branch, pathPrefix);
+        return new Repository(new GitHubClient(client, GitHubClient.API_BASE, token, segments[0], segments[1], branch), pathPrefix);
+    }
+
+    /**
+     * Returns the repository configured for an application, if any.
+     *
+     * @param appURI application URI
+     * @return repository, or empty if the application is not versioned
+     */
+    public Optional<Repository> getRepository(String appURI)
+    {
+        return Optional.ofNullable(repositories.get(appURI));
+    }
+
+    /**
+     * Schedules asynchronous reconciliation of a graph's repository file with its current store state.
+     * Chained per file path; returns immediately.
+     *
+     * @param serviceContext deployment context of the application's SPARQL service
+     * @param appURI application URI
+     * @param appBase application base URI
+     * @param graphURI graph (document) URI
+     * @param agentWebID WebID of the agent whose write triggered the commit (author of the commit)
+     * @param method HTTP method of the triggering request (part of the commit message)
+     */
+    public void commitAsync(ServiceContext serviceContext, String appURI, URI appBase, URI graphURI, String agentWebID, String method)
+    {
+        Repository repository = repositories.get(appURI);
+        if (repository == null) return;
+
+        String path = path(repository.pathPrefix(), appBase, graphURI);
+        String message = method + " " + graphURI;
+
+        commitChains.compute(path, (key, chain) ->
+        {
+            CompletableFuture<Void> previous = chain != null ? chain : CompletableFuture.completedFuture(null);
+            CompletableFuture<Void> next = previous.thenRunAsync(() -> reconcile(serviceContext, repository, path, graphURI, message, agentWebID), executor).
+                exceptionally(ex ->
+                {
+                    if (log.isErrorEnabled()) log.error("Failed to version graph <{}> as '{}': {}", graphURI, path, ex.getMessage());
+                    return null;
+                });
+            next.whenComplete((result, ex) -> commitChains.remove(key, next));
+            return next;
+        });
+    }
+
+    private void reconcile(ServiceContext serviceContext, Repository repository, String path, URI graphURI, String message, String agentWebID)
+    {
+        Model model;
+        try
+        {
+            model = serviceContext.getGraphStoreClient().getModel(graphURI.toString());
+        }
+        catch (NotFoundException ex)
+        {
+            repository.client().deleteFile(path, message, agentWebID);
+            if (log.isDebugEnabled()) log.debug("Deleted '{}' (graph <{}> is gone)", path, graphURI);
+            return;
+        }
+
+        GitHubClient.Commit commit = repository.client().putFile(path, toSortedNTriples(model), message, agentWebID);
+        if (log.isDebugEnabled()) log.debug("Committed graph <{}> as '{}': {}", graphURI, path, commit.commitSha());
+    }
+
+    /**
+     * Retrieves a graph's state at a given commit.
+     *
+     * @param appURI application URI
+     * @param appBase application base URI
+     * @param graphURI graph (document) URI
+     * @param ref commit SHA
+     * @return the graph model with its blob SHA, or empty if not versioned at that commit
+     */
+    public Optional<Version> getVersion(String appURI, URI appBase, URI graphURI, String ref)
+    {
+        Repository repository = repositories.get(appURI);
+        if (repository == null) return Optional.empty();
+
+        String path = path(repository.pathPrefix(), appBase, graphURI);
+        return repository.client().getFileAtCommit(path, ref).map(content ->
+        {
+            Model model = ModelFactory.createDefaultModel();
+            RDFDataMgr.read(model, new ByteArrayInputStream(content), graphURI.toString(), Lang.NTRIPLES);
+            return new Version(model, repository.client().getCommitDate(ref).orElse(null));
+        });
+    }
+
+    /** A historical graph version: the model and the commit datetime */
+    public record Version(Model model, Instant datetime) { }
+
+    /**
+     * Maps a graph URI to its repository file path.
+     *
+     * @param pathPrefix repository path prefix
+     * @param base application base URI
+     * @param graphURI graph URI
+     * @return file path
+     */
+    public static String path(String pathPrefix, URI base, URI graphURI)
+    {
+        String relative = base.relativize(graphURI).getPath();
+        if (relative.isEmpty()) relative = "root"; // the app base document itself
+        if (relative.endsWith("/")) relative = relative.substring(0, relative.length() - 1);
+
+        return pathPrefix + "/" + relative + ".nt";
+    }
+
+    /**
+     * Serializes a model as N-Triples with sorted lines, so successive serializations
+     * of the same graph are byte-identical and git diffs are minimal.
+     *
+     * @param model the model
+     * @return sorted N-Triples bytes
+     */
+    public static byte[] toSortedNTriples(Model model)
+    {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        RDFDataMgr.write(out, model, Lang.NTRIPLES);
+
+        String[] lines = out.toString(StandardCharsets.UTF_8).split("\n");
+        Arrays.sort(lines);
+
+        StringBuilder sorted = new StringBuilder();
+        for (String line : lines)
+            if (!line.isBlank()) sorted.append(line.stripTrailing()).append('\n');
+
+        return sorted.toString().getBytes(StandardCharsets.UTF_8);
+    }
+
+    /**
+     * Shuts down the background executor.
+     */
+    public void shutdown()
+    {
+        executor.shutdown();
+    }
+
+}

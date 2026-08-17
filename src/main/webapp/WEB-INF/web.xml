@@ -358,6 +358,9 @@ support@atomgraph.com]]></param-value>
     <listener>
         <listener-class>com.atomgraph.linkeddatahub.listener.EMailListener</listener-class>
     </listener>
+    <listener>
+        <listener-class>com.atomgraph.linkeddatahub.listener.GraphVersioningListener</listener-class>
+    </listener>
     <servlet-mapping>
         <servlet-name>default</servlet-name>
         <url-pattern>/static/*</url-pattern>

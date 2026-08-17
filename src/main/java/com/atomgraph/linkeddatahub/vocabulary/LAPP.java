@@ -98,4 +98,13 @@ public class LAPP
     /** Application property (for Link header rel) */
     public static final Property application = m_model.createObjectProperty( NS + "application" );
 
+    /** Versioning repository property linking an application to a <code>doap:GitRepository</code> */
+    public static final Property versioningRepository = m_model.createObjectProperty( NS + "versioningRepository" );
+
+    /** Git branch property of a versioning repository */
+    public static final Property branch = m_model.createDataProperty( NS + "branch" );
+
+    /** Path prefix property for graph files in a versioning repository */
+    public static final Property pathPrefix = m_model.createDataProperty( NS + "pathPrefix" );
+
 }
