@@ -101,10 +101,17 @@ echo "$response_headers"
 echo "$response_headers" | grep -qi '^Memento-Datetime:'
 echo "$response_headers" | grep -qi '^Cache-Control:.*immutable'
 
-# a historical version is read-only: no write modes advertised, writes rejected with 405
+# a historical version is read-only: acl:Read advertised but no write modes, writes rejected with 405
+
+echo "$response_headers" | grep -q 'acl#Read'
 
 if echo "$response_headers" | grep -q 'acl#Write'; then
     echo "DEBUG: version response advertises acl:Write"
+    exit 1
+fi
+
+if echo "$response_headers" | grep -q 'acl#Append'; then
+    echo "DEBUG: version response advertises acl:Append"
     exit 1
 fi
 
