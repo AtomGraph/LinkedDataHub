@@ -21,8 +21,8 @@ exclude-result-prefixes="#all"
 
     <!-- a version entry: datetime links to the memento (?version= URI), which navigates like any document link -->
     <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&memento;Memento']" mode="bs2:MementoList">
-        <!-- the memento URI of the version currently being viewed, when a ?version= view is active -->
-        <xsl:variable name="current-memento" select="if (map:contains(ldh:query-params(), 'version')) then xs:anyURI(ac:absolute-path(ldh:request-uri()) || '?version=' || ldh:query-params()?version) else ()" as="xs:anyURI?"/>
+        <!-- the memento URI of the version currently being viewed; when the live document is viewed, callers pass the latest memento -->
+        <xsl:param name="current-memento" select="if (map:contains(ldh:query-params(), 'version')) then xs:anyURI(ac:absolute-path(ldh:request-uri()) || '?version=' || ldh:query-params()?version) else ()" as="xs:anyURI?"/>
 
         <tr>
             <td>

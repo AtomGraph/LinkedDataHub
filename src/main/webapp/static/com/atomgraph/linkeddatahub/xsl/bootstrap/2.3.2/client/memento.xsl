@@ -10,6 +10,7 @@
 xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
 xmlns:ixsl="http://saxonica.com/ns/interactiveXSLT"
 xmlns:xs="http://www.w3.org/2001/XMLSchema"
+xmlns:map="http://www.w3.org/2005/xpath-functions/map"
 xmlns:ldh="&ldh;"
 xmlns:lapp="&lapp;"
 xmlns:ac="&ac;"
@@ -90,8 +91,12 @@ version="3.0"
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            <xsl:apply-templates select="$response?body//*[@rdf:about][rdf:type/@rdf:resource = '&memento;Memento']" mode="bs2:MementoList">
+                                            <xsl:variable name="mementos" select="$response?body//*[@rdf:about][rdf:type/@rdf:resource = '&memento;Memento']" as="element()*"/>
+                                            <!-- on the live document view, the latest version is the one being viewed -->
+                                            <xsl:variable name="latest-memento" select="sort($mementos, (), function($memento) { string($memento/memento:mementoDatetime) })[last()]/@rdf:about" as="attribute()?"/>
+                                            <xsl:apply-templates select="$mementos" mode="bs2:MementoList">
                                                 <xsl:sort select="memento:mementoDatetime" order="descending"/>
+                                                <xsl:with-param name="current-memento" select="if (map:contains(ldh:query-params(), 'version')) then xs:anyURI(ac:absolute-path(ldh:request-uri()) || '?version=' || ldh:query-params()?version) else xs:anyURI($latest-memento)"/>
                                             </xsl:apply-templates>
                                         </tbody>
                                     </table>
