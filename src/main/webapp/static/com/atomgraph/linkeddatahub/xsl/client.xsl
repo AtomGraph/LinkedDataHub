@@ -326,13 +326,20 @@ WHERE
                     </xsl:for-each>
                 </xsl:if>
 
-                <!-- doc URI: proxied target if ?uri= set (keep its query — part of the resource identity), else local request URI (strip display params).
-                     fragment: always from the OUTER URL (ldh:request-uri()) per RFC 3986 — LDH-built URLs put the fragment outside ?uri= -->
-                <xsl:call-template name="ldh:DocumentNavigate">
-                    <xsl:with-param name="doc-uri" select="if (ac:uri()) then ac:document-uri(ac:uri()) else ac:absolute-path(ldh:request-uri())"/>
-                    <xsl:with-param name="fragment" select="ac:fragment-id(ldh:request-uri())"/>
-                    <xsl:with-param name="push-state" select="false()"/>
-                </xsl:call-template>
+                <xsl:choose>
+                    <!-- historical version (?version=) or TimeMap (?timemap) view of a local document: the server-rendered snapshot is the content.
+                         Re-fetching would load the *live* document over it and rewrite the URL (ldh:rdf-document-response pushes mode-only URLs). -->
+                    <xsl:when test="not(ac:uri()) and (map:contains(ldh:query-params(), 'version') or map:contains(ldh:query-params(), 'timemap'))"/>
+                    <xsl:otherwise>
+                        <!-- doc URI: proxied target if ?uri= set (keep its query — part of the resource identity), else local request URI (strip display params).
+                             fragment: always from the OUTER URL (ldh:request-uri()) per RFC 3986 — LDH-built URLs put the fragment outside ?uri= -->
+                        <xsl:call-template name="ldh:DocumentNavigate">
+                            <xsl:with-param name="doc-uri" select="if (ac:uri()) then ac:document-uri(ac:uri()) else ac:absolute-path(ldh:request-uri())"/>
+                            <xsl:with-param name="fragment" select="ac:fragment-id(ldh:request-uri())"/>
+                            <xsl:with-param name="push-state" select="false()"/>
+                        </xsl:call-template>
+                    </xsl:otherwise>
+                </xsl:choose>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
