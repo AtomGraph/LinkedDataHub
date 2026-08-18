@@ -809,7 +809,21 @@ exclude-result-prefixes="#all"
                         <xsl:value-of select="($container/descendant::*[@property = '&dct;title']/text())[1]"/>
                     </h2>
                 </xsl:where-populated>
-  
+
+                <!-- inline creation: Create button for views carrying ldh:container metadata (stamped as data-* attributes by ldh:ontology-view-insert, RDFa as fallback for hand-authored view blocks). PUT into the container requires acl:Write there (checked on the parent URI for new documents); forward views additionally PATCH the linking triple into the current document, hence acl:Write here too -->
+                <xsl:variable name="view-block" select="$container/ancestor::div[contains-token(@class, 'block')][1]" as="element()?"/>
+                <xsl:variable name="create-container" select="($view-block/@data-container, $container/descendant::*[@property = '&ldh;container']/@resource)[1]" as="xs:string?"/>
+                <xsl:variable name="create-for-class" select="$view-block/@data-for-class" as="xs:string?"/>
+                <xsl:if test="exists($create-container) and exists($create-for-class) and tokenize($view-block/@data-acl-modes, ' ') = '&acl;Write' and (exists($view-block/@data-inverse) or acl:mode() = '&acl;Write')">
+                    <div class="pull-right">
+                        <button type="button" class="btn add-instance" data-for-class="{$create-for-class}" data-container="{$create-container}" title="{ac:label(key('resources', 'create-instance-title', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin))))}">
+                            <xsl:value-of>
+                                <xsl:apply-templates select="key('resources', '&ac;ConstructMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
+                            </xsl:value-of>
+                        </button>
+                    </div>
+                </xsl:if>
+
                 <xsl:call-template name="bs2:ViewModeList">
                     <xsl:with-param name="active-mode" select="$active-mode"/>
                 </xsl:call-template>
@@ -895,6 +909,18 @@ exclude-result-prefixes="#all"
         <xsl:variable name="limit" select="if ($select-xml/json:map/json:number[@key = 'limit']) then xs:integer($select-xml/json:map/json:number[@key = 'limit']) else 0" as="xs:integer"/>
         <xsl:variable name="offset" select="if ($select-xml/json:map/json:number[@key = 'offset']) then xs:integer($select-xml/json:map/json:number[@key = 'offset']) else 0" as="xs:integer"/>
         <xsl:variable name="exact-count" select="count($results/rdf:RDF/rdf:Description)" as="xs:integer"/>
+
+        <!-- ldh:showWhenEmpty (default true): when false, hide the whole injected view block while the query returns no results and un-hide it when results appear on a later refresh. Only evaluated on the first page: at offset 0 an empty page means an empty result set, while a non-zero offset implies interaction with a visible block -->
+        <xsl:if test="$offset = 0">
+            <xsl:variable name="view-block" select="$container/ancestor::div[contains-token(@class, 'block')][1]" as="element()?"/>
+            <xsl:variable name="show-when-empty" select="not(($view-block/@data-show-when-empty, $container/descendant::*[@property = '&ldh;showWhenEmpty']/text())[1] = ('false', '0'))" as="xs:boolean"/>
+            <xsl:if test="not($show-when-empty)">
+                <xsl:for-each select="$view-block">
+                    <ixsl:set-style name="display" select="if ($exact-count = 0) then 'none' else ''" object="."/>
+                </xsl:for-each>
+            </xsl:if>
+        </xsl:if>
+
         <xsl:choose>
             <xsl:when test="$offset = 0 and ($limit = 0 or $exact-count lt $limit)">
                 <xsl:for-each select="id($result-count-container-id, ixsl:page())">
@@ -2266,6 +2292,241 @@ exclude-result-prefixes="#all"
         </xsl:for-each>
 
         <xsl:sequence select="$context"/>
+    </xsl:function>
+
+    <!-- INLINE CREATION -->
+
+    <!-- update template for the forward linking triple, substituted with the same replace() idiom as the constructor update strings. INSERT/WHERE form: PATCH only accepts INSERT/WHERE and DELETE WHERE (DocumentHierarchyGraphStoreImpl) -->
+    <xsl:variable name="view-instance-link-string" as="xs:string">
+        <![CDATA[
+            INSERT
+              { $about  $property  $this }
+            WHERE
+              {}
+        ]]>
+    </xsl:variable>
+
+    <!-- open the instance creation modal form for a view carrying ldh:container metadata (stamped as data-* attributes by ldh:ontology-view-insert) -->
+    <xsl:template match="div[contains-token(@class, 'block')]//button[contains-token(@class, 'add-instance')][@data-for-class][@data-container]" mode="ixsl:onclick">
+        <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])[current-date() lt xs:date('2000-01-01')]"/>
+        <xsl:variable name="view-block" select="ancestor::div[contains-token(@class, 'block')][@data-property][1]" as="element()"/>
+        <xsl:variable name="content-body" select="ancestor::div[contains-token(@class, 'document-body')]/div[contains-token(@class, 'content-body')]" as="element()"/>
+        <xsl:variable name="forClass" select="xs:anyURI(@data-for-class)" as="xs:anyURI"/>
+        <xsl:variable name="container-uri" select="xs:anyURI(@data-container)" as="xs:anyURI"/>
+        <xsl:variable name="doc-uri" select="resolve-uri(ac:uuid() || '/', $container-uri)" as="xs:anyURI"/> <!-- build a relative URI for the container's child document -->
+        <xsl:variable name="this" select="$doc-uri" as="xs:anyURI"/>
+
+        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+
+        <!-- 'base-uri' = the container, so the form treats the new document as a child of it; 'view-*' keys carry the linkage metadata through the chain -->
+        <xsl:variable name="context" as="map(*)" select="map{
+            'content-body': $content-body,
+            'forClass': $forClass,
+            'doc-uri': $doc-uri,
+            'base-uri': $container-uri,
+            'this': $this,
+            'view-property': xs:anyURI($view-block/@data-property),
+            'view-inverse': exists($view-block/@data-inverse),
+            'view-about': xs:anyURI($view-block/ancestor::*[@about][1]/@about),
+            'view-block-id': string($view-block/@id)
+        }"/>
+
+        <ixsl:promise select="ixsl:resolve($context) =>
+            ixsl:then(ldh:fire-load-set-parallel(?, [
+              [ ldh:load-constructed-doc#1, 'constructed-doc-request', 'constructed-doc-response', ldh:set-constructed-doc#1 ]
+            ])) =>
+            ixsl:then(ldh:set-add-modal-form-resource#1) =>
+            ixsl:then(ldh:set-view-instance-resource#1) =>
+            ixsl:then(ldh:fire-load-set-parallel(?, [
+              [ ldh:load-type-metadata#1,     'type-metadata-request',     'type-metadata-response',     ldh:set-type-metadata#1 ],
+              [ ldh:load-property-metadata#1, 'property-metadata-request', 'property-metadata-response', ldh:set-property-metadata#1 ],
+              [ ldh:load-constraints#1,       'constraints-request',       'constraints-response',       ldh:set-constraints#1 ]
+            ])) =>
+            ixsl:then(ldh:render-view-instance-modal-form#1) =>
+            ixsl:finally(ldh:reset-cursor#0)"
+            on-failure="ldh:promise-failure#1"/>
+    </xsl:template>
+
+    <!-- Promise-chain step after ldh:set-add-modal-form-resource: rename the SPIN-constructed bnode resource to the new document URI (document-as-instance, uniform with Container/Item creation). Without this the server would skolemize the bnode into an unpredictable fragment URI and the linking triple could not be built client-side. Pure-XSLT (no I/O). -->
+    <xsl:function name="ldh:set-view-instance-resource" as="map(*)" ixsl:updating="no">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:variable name="constructed-doc" select="$context('constructed-doc')" as="document-node()"/>
+        <xsl:variable name="resource" select="$context('resource')" as="element()"/>
+        <xsl:variable name="doc-uri" select="$context('doc-uri')" as="xs:anyURI"/>
+        <!-- safe to rename: ldh:set-add-modal-form-resource only selects a resource that no other description references -->
+        <xsl:variable name="renamed-doc" as="document-node()">
+            <xsl:document>
+                <rdf:RDF>
+                    <xsl:for-each select="$constructed-doc/rdf:RDF/*">
+                        <xsl:choose>
+                            <xsl:when test=". is $resource">
+                                <rdf:Description rdf:about="{$doc-uri}">
+                                    <xsl:copy-of select="@* except @rdf:nodeID, node()"/>
+                                </rdf:Description>
+                            </xsl:when>
+                            <xsl:otherwise>
+                                <xsl:copy-of select="."/>
+                            </xsl:otherwise>
+                        </xsl:choose>
+                    </xsl:for-each>
+                </rdf:RDF>
+            </xsl:document>
+        </xsl:variable>
+
+        <xsl:sequence select="map:merge(($context, map{ 'constructed-doc': $renamed-doc, 'resource': key('resources', $doc-uri, $renamed-doc) }), map{ 'duplicates': 'use-last' })"/>
+    </xsl:function>
+
+    <!-- renders the creation modal via ldh:render-add-modal-form, then stamps the linkage metadata on the modal element so the submit and response handlers (separate events) can read it -->
+    <xsl:function name="ldh:render-view-instance-modal-form" as="item()*" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:variable name="content-body" select="$context('content-body')" as="element()"/>
+        <xsl:variable name="doc-uri" select="$context('doc-uri')" as="xs:anyURI"/>
+
+        <xsl:message>ldh:render-view-instance-modal-form</xsl:message>
+
+        <xsl:sequence select="ldh:render-add-modal-form($context)"/>
+
+        <xsl:for-each select="$content-body/div[contains-token(@class, 'modal-constructor')][@about = $doc-uri]">
+            <ixsl:set-attribute name="data-property" select="string($context('view-property'))" object="."/>
+            <xsl:if test="$context('view-inverse')">
+                <ixsl:set-attribute name="data-inverse" select="'true'" object="."/>
+            </xsl:if>
+            <ixsl:set-attribute name="data-about" select="string($context('view-about'))" object="."/>
+            <ixsl:set-attribute name="data-block-id" select="$context('view-block-id')" object="."/>
+        </xsl:for-each>
+    </xsl:function>
+
+    <!-- submit inline creation modal form: forward view — the linking triple <about> <property> <new> is PATCHed into the current document by the response callback -->
+    <xsl:template match="div[contains-token(@class, 'modal-constructor')][@data-property][not(@data-inverse)]//form[contains-token(@class, 'form-horizontal')][upper-case(@method) = 'PUT']" mode="ixsl:onsubmit" priority="3"> <!-- prioritize over modal.xsl -->
+        <xsl:next-match>
+            <xsl:with-param name="callback" select="ldh:view-instance-form-response#1"/>
+        </xsl:next-match>
+    </xsl:template>
+
+    <!-- submit inline creation modal form: inverse view — the linking triple <new> <property> <about> belongs in the new document's graph, so it ships inside the PUT body -->
+    <xsl:template match="div[contains-token(@class, 'modal-constructor')][@data-property][@data-inverse]//form[contains-token(@class, 'form-horizontal')][upper-case(@method) = 'PUT']" mode="ixsl:onsubmit" priority="3"> <!-- prioritize over modal.xsl -->
+        <xsl:param name="elements" select=".//input | .//textarea | .//select" as="element()*"/>
+        <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
+        <xsl:variable name="modal" select="ancestor::div[contains-token(@class, 'modal-constructor')][1]" as="element()"/>
+        <!-- pre-process form before submitting it: syncs input values, so it must precede ldh:parse-rdf-post -->
+        <xsl:apply-templates select="." mode="ldh:FormPreSubmit"/>
+        <xsl:variable name="triples" select="ldh:parse-rdf-post($elements)" as="element()*"/>
+        <!-- canonicalize XML in rdf:XMLLiterals -->
+        <xsl:variable name="triples" as="element()*">
+            <xsl:apply-templates select="$triples" mode="ldh:CanonicalizeXML"/>
+        </xsl:variable>
+        <xsl:variable name="link-triple" as="element()">
+            <json:map>
+                <json:string key="subject"><xsl:sequence select="string($modal/@about)"/></json:string>
+                <json:string key="predicate"><xsl:sequence select="string($modal/@data-property)"/></json:string>
+                <json:string key="object"><xsl:sequence select="string($modal/@data-about)"/></json:string>
+            </json:map>
+        </xsl:variable>
+
+        <xsl:next-match>
+            <xsl:with-param name="callback" select="ldh:view-instance-form-response#1"/>
+            <!-- append $link-triple to the $request-body sent with the request, but not to the $resources rendered afterwards -->
+            <xsl:with-param name="request-body" as="document-node()">
+                <xsl:document>
+                    <rdf:RDF>
+                        <xsl:sequence select="ldh:triples-to-descriptions(($triples, $link-triple))"/>
+                    </rdf:RDF>
+                </xsl:document>
+            </xsl:with-param>
+        </xsl:next-match>
+    </xsl:template>
+
+    <!-- Per-flow callback for the inline creation PUT response. On 201 Created: close the modal, establish the forward linking triple (inverse ones shipped in the PUT body), refresh the view. Everything else delegates to the plain constructor modal flow (violation re-render, error alert). -->
+    <xsl:function name="ldh:view-instance-form-response" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:variable name="response" select="$context('response')" as="map(*)"/>
+
+        <xsl:message>ldh:view-instance-form-response</xsl:message>
+
+        <xsl:choose>
+            <xsl:when test="$response?status = 201 and map:contains($response?headers, 'location')">
+                <xsl:variable name="modal" select="$context('block')" as="element()"/>
+                <!-- read the linkage metadata off the modal before removing it -->
+                <xsl:variable name="property" select="$modal/@data-property" as="xs:string"/>
+                <xsl:variable name="inverse" select="exists($modal/@data-inverse)" as="xs:boolean"/>
+                <xsl:variable name="about" select="$modal/@data-about" as="xs:string"/>
+                <xsl:variable name="block-id" select="$modal/@data-block-id" as="xs:string"/>
+                <xsl:variable name="created-uri" select="ac:absolute-path(xs:anyURI($response?headers?location))" as="xs:anyURI"/> <!-- server-authoritative -->
+                <xsl:variable name="doc-uri" select="$context('doc-uri')" as="xs:anyURI"/>
+                <xsl:sequence select="ixsl:call($modal, 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
+
+                <xsl:choose>
+                    <!-- inverse linking triple already shipped inside the PUT body: refresh straight away -->
+                    <xsl:when test="$inverse">
+                        <xsl:sequence select="ldh:refresh-view($block-id)"/>
+                    </xsl:when>
+                    <!-- forward: INSERT the linking triple into the current document, then refresh -->
+                    <xsl:otherwise>
+                        <xsl:variable name="update-string" select="replace($view-instance-link-string, '$about', '&lt;' || $about || '&gt;', 'q')" as="xs:string"/>
+                        <xsl:variable name="update-string" select="replace($update-string, '$property', '&lt;' || $property || '&gt;', 'q')" as="xs:string"/>
+                        <xsl:variable name="update-string" select="replace($update-string, '$this', '&lt;' || $created-uri || '&gt;', 'q')" as="xs:string"/>
+                        <xsl:variable name="etag" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $doc-uri || '`'), 'etag')" as="xs:string"/>
+                        <!-- If-Match header checks preconditions, i.e. that the graph has not been modified in the meanwhile -->
+                        <xsl:variable name="link-request" select="map{ 'method': 'PATCH', 'href': ldh:href($doc-uri, map{}), 'media-type': 'application/sparql-update', 'body': $update-string, 'headers': map{ 'If-Match': $etag, 'Accept': 'application/rdf+xml', 'Cache-Control': 'no-cache' } }" as="map(*)"/>
+                        <xsl:variable name="link-context" as="map(*)" select="map{ 'request': $link-request, 'doc-uri': $doc-uri, 'block-id': $block-id }"/>
+
+                        <ixsl:promise select="
+                            ixsl:http-request($link-context('request')) =>
+                                ixsl:then(ldh:rethread-response($link-context, ?)) =>
+                                ixsl:then(ldh:handle-response#1) =>
+                                ixsl:then(ldh:view-instance-link-response#1)
+                            "
+                            on-failure="ldh:promise-failure#1"/>
+                    </xsl:otherwise>
+                </xsl:choose>
+            </xsl:when>
+            <!-- 200/204, constraint violations and errors take the same path as the plain constructor modal flow -->
+            <xsl:otherwise>
+                <xsl:sequence select="ldh:constructor-form-response($context)"/>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:function>
+
+    <!-- callback for the forward linking triple PATCH -->
+    <xsl:function name="ldh:view-instance-link-response" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:variable name="response" select="$context('response')" as="map(*)"/>
+        <xsl:variable name="doc-uri" select="$context('doc-uri')" as="xs:anyURI"/>
+        <xsl:variable name="block-id" select="$context('block-id')" as="xs:string"/>
+
+        <xsl:message>ldh:view-instance-link-response</xsl:message>
+
+        <xsl:choose>
+            <xsl:when test="$response?status = (200, 204)">
+                <xsl:variable name="etag" select="$response?headers?etag" as="xs:string?"/>
+                <xsl:if test="$etag">
+                    <!-- store ETag header value under window.LinkedDataHub.contents[$doc-uri].etag so subsequent edits of the current document don't fail preconditions -->
+                    <ixsl:set-property name="etag" select="$etag" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $doc-uri || '`')"/>
+                </xsl:if>
+
+                <xsl:sequence select="ldh:refresh-view($block-id)"/>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:sequence select="ldh:error-response-alert($context)"/>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:function>
+
+    <!-- re-run the view block's RenderRow chain with fresh results (Cache-Control: no-cache). Applied directly to the View element because $refresh-content is not tunneled and would not survive the generic block.xsl re-entry -->
+    <xsl:function name="ldh:refresh-view" as="item()*" ixsl:updating="yes">
+        <xsl:param name="block-id" as="xs:string"/>
+
+        <xsl:for-each select="id($block-id, ixsl:page())/div[contains-token(@class, 'span12')]/div[@typeof = '&ldh;View']">
+            <xsl:variable name="factories" as="(function(item()?) as item()*)*">
+                <xsl:apply-templates select="." mode="ldh:RenderRow">
+                    <xsl:with-param name="refresh-content" select="true()"/>
+                </xsl:apply-templates>
+            </xsl:variable>
+            <xsl:for-each select="$factories">
+                <xsl:variable name="factory" select="."/>
+                <ixsl:promise select="$factory(())" on-failure="ldh:promise-failure#1"/>
+            </xsl:for-each>
+        </xsl:for-each>
     </xsl:function>
 
 </xsl:stylesheet>

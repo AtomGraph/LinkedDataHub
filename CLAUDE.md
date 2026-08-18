@@ -123,6 +123,10 @@ Key implementation files:
 
 The SPARQL endpoint forwarding chain ensures ContentMode blocks (charts, maps) query the **remote** app's SPARQL endpoint, not the local one. `LinkedDataHub.endpoint` is reset to the local endpoint by `ldh:HTMLDocumentLoaded` on every HTML page navigation, so there is no stale state when navigating back to local documents.
 
+### UI Conventions
+
+**Form placement follows document membership.** A creation/edit form for a resource that lives (or will live) in its **own document** renders as a modal (`div.modal.modal-constructor` — Container/Item creation, document edit, inline creation in views); a form for a resource being added **to the current document** renders inline in the content body (`ldh:render-add-row-form`, content-block forms). The main content body renders only the current document's content.
+
 ### Key Extension Points
 - **Vocabulary definitions** in `com.atomgraph.linkeddatahub.vocabulary`
 - **Custom resource handlers** in `com.atomgraph.linkeddatahub.resource`

@@ -718,9 +718,12 @@ LIMIT   10
     <!-- submit instance creation modal form using PUT -->
 
     <xsl:template match="div[contains-token(@class, 'modal-constructor')]//form[contains-token(@class, 'form-horizontal')][upper-case(@method) = 'PUT']" mode="ixsl:onsubmit" priority="2">
+        <!-- ldh:constructor-form-response stamps render-fn=ldh:render-constructor-form#2 (mode="bs2:Form") so the violation re-render keeps co-shipped peer Descriptions (content blocks) visible. Higher-priority flow templates (e.g. inline view creation) re-stamp $callback and/or supply $request-body via xsl:next-match. -->
+        <xsl:param name="callback" select="ldh:constructor-form-response#1" as="function(map(*)) as item()*"/>
+        <xsl:param name="request-body" as="document-node()?"/>
         <xsl:next-match>
-            <!-- ldh:constructor-form-response stamps render-fn=ldh:render-constructor-form#2 (mode="bs2:Form") so the violation re-render keeps co-shipped peer Descriptions (content blocks) visible. -->
-            <xsl:with-param name="callback" select="ldh:constructor-form-response#1"/>
+            <xsl:with-param name="callback" select="$callback"/>
+            <xsl:with-param name="request-body" select="$request-body"/>
         </xsl:next-match>
     </xsl:template>
     

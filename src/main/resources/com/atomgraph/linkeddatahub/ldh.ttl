@@ -22,7 +22,7 @@
     owl:imports dh:, ac:, <http://spinrdf.org/spin>, foaf:, sd:, nfo:, owl: ;
     rdfs:label "LinkedDataHub ontology" ;
     rdfs:comment "Should be imported and reused by all extending applications" ;
-    owl:versionInfo "1.1.6" .
+    owl:versionInfo "1.1.7" .
 
 # PROPERTIES
 
@@ -103,6 +103,20 @@
     rdfs:range :View ;
     rdfs:label "Inverse property view" ;
     rdfs:comment "Attaches a view to a property for inverse relationships (?value property $about)" ;
+    rdfs:isDefinedBy : .
+
+:container a owl:ObjectProperty ;
+    rdfs:domain :View ;
+    rdfs:range dh:Container ;
+    rdfs:label "Item container" ;
+    rdfs:comment "Container under which instances created inline from the view are stored as child documents" ;
+    rdfs:isDefinedBy : .
+
+:showWhenEmpty a owl:DatatypeProperty ;
+    rdfs:domain :View ;
+    rdfs:range xsd:boolean ;
+    rdfs:label "Show when empty" ;
+    rdfs:comment "Whether the view block is shown when its query returns no results. Defaults to true" ;
     rdfs:isDefinedBy : .
 
 # CLASSES
@@ -324,11 +338,15 @@
       PREFIX spin:  <http://spinrdf.org/spin#>
       PREFIX sp:    <http://spinrdf.org/sp#>
       PREFIX rdfs:  <http://www.w3.org/2000/01/rdf-schema#>
+      PREFIX xsd:   <http://www.w3.org/2001/XMLSchema#>
       PREFIX ac:    <https://w3id.org/atomgraph/client#>
+      PREFIX ldh:   <https://w3id.org/atomgraph/linkeddatahub#>
 
       CONSTRUCT {
           $this spin:query [ a sp:Select ] ;
-              ac:mode [ a rdfs:Resource ] .
+              ac:mode [ a rdfs:Resource ] ;
+              ldh:container [ a rdfs:Resource ] ;
+              ldh:showWhenEmpty [ a xsd:boolean ] .
       }
       WHERE {}""" ;
     rdfs:label "View constructor" ;
