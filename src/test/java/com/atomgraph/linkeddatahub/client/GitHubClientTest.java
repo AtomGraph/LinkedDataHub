@@ -38,6 +38,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -59,6 +60,7 @@ public class GitHubClientTest
     private String fileSha = null; // null = file does not exist on the fake server
     private byte[] fileContent = null;
     private int rateLimitResponses = 0; // number of upcoming requests to answer with 429
+    private int conflictResponses = 0; // number of upcoming write requests to answer with 409
 
     @BeforeEach
     public void setUp() throws IOException
@@ -103,6 +105,13 @@ public class GitHubClientTest
 
         if (path.startsWith("/repos/acme/graphs/contents/"))
         {
+            if (("PUT".equals(method) || "DELETE".equals(method)) && conflictResponses > 0)
+            {
+                conflictResponses--;
+                respond(exchange, 409, "{\"message\": \"main is at x but expected y\"}");
+                return;
+            }
+
             switch (method)
             {
                 case "GET" ->
@@ -263,6 +272,36 @@ public class GitHubClientTest
 
         assertTrue(content.isPresent());
         assertEquals(2, received.size()); // 429 response, then the retry
+    }
+
+    @Test
+    public void testConflictedCommitIsRetriedWithFreshSha()
+    {
+        gitHubClient.putFile("graphs/doc.nt", "v1".getBytes(StandardCharsets.UTF_8), "PUT", "agent");
+        received.clear();
+        conflictResponses = 1;
+
+        gitHubClient.putFile("graphs/doc.nt", "v2".getBytes(StandardCharsets.UTF_8), "PUT", "agent");
+
+        // SHA probe + conflicted PUT, then a fresh SHA probe + successful PUT
+        assertEquals(4, received.size());
+        assertEquals(List.of("GET", "PUT", "GET", "PUT"), received.stream().map(Received::method).toList());
+        JsonObject put = Json.createReader(new ByteArrayInputStream(received.get(3).body().getBytes(StandardCharsets.UTF_8))).readObject();
+        assertTrue(put.containsKey("sha"));
+        assertArrayEquals("v2".getBytes(StandardCharsets.UTF_8), fileContent);
+    }
+
+    @Test
+    public void testConflictedDeleteIsRetried()
+    {
+        gitHubClient.putFile("graphs/doc.nt", "v1".getBytes(StandardCharsets.UTF_8), "PUT", "agent");
+        received.clear();
+        conflictResponses = 1;
+
+        gitHubClient.deleteFile("graphs/doc.nt", "DELETE", "agent");
+
+        assertEquals(List.of("GET", "DELETE", "GET", "DELETE"), received.stream().map(Received::method).toList());
+        assertNull(fileSha);
     }
 
     @Test

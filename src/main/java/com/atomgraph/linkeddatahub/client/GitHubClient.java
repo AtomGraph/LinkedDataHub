@@ -61,6 +61,8 @@ public class GitHubClient
     public static final String AUTHOR_EMAIL = "noreply@linkeddatahub.invalid";
     /** Maximum retries on rate-limited requests */
     public static final int MAX_RETRIES = 2;
+    /** Maximum retries of a commit that lost the branch-head race (409) */
+    public static final int MAX_CONFLICT_RETRIES = 5;
 
     private final WebTarget endpoint;
     private final String authorization;
@@ -91,6 +93,8 @@ public class GitHubClient
     /**
      * Creates or updates a file on the branch.
      * The current blob SHA is fetched first, as the Contents API requires it for updates (optimistic locking).
+     * A Contents API commit is a compare-and-swap on the branch head, so concurrent commits conflict (409)
+     * even when they touch different files; conflicted commits are retried with a fresh SHA.
      *
      * @param path file path within the repository
      * @param content file content
@@ -100,32 +104,39 @@ public class GitHubClient
      */
     public Commit putFile(String path, byte[] content, String message, String authorName)
     {
-        Optional<String> sha = getFileSha(path);
-
-        JsonObjectBuilder json = Json.createObjectBuilder().
-            add("message", message).
-            add("content", Base64.getEncoder().encodeToString(content)).
-            add("branch", branch).
-            add("author", author(authorName));
-        sha.ifPresent(s -> json.add("sha", s));
-
-        try (Response response = invoke(() -> contents(path).
-                request(GITHUB_JSON).
-                header(HttpHeaders.AUTHORIZATION, authorization).
-                buildPut(Entity.entity(json.build(), MediaType.APPLICATION_JSON_TYPE))))
+        for (int retry = 0; ; retry++)
         {
-            if (response.getStatus() == Response.Status.OK.getStatusCode() || response.getStatus() == Response.Status.CREATED.getStatusCode())
+            Optional<String> sha = getFileSha(path);
+
+            JsonObjectBuilder json = Json.createObjectBuilder().
+                add("message", message).
+                add("content", Base64.getEncoder().encodeToString(content)).
+                add("branch", branch).
+                add("author", author(authorName));
+            sha.ifPresent(s -> json.add("sha", s));
+
+            try (Response response = invoke(() -> contents(path).
+                    request(GITHUB_JSON).
+                    header(HttpHeaders.AUTHORIZATION, authorization).
+                    buildPut(Entity.entity(json.build(), MediaType.APPLICATION_JSON_TYPE))))
             {
-                JsonObject result = response.readEntity(JsonObject.class);
-                return new Commit(result.getJsonObject("commit").getString("sha"), result.getJsonObject("content").getString("sha"));
+                if (response.getStatus() == Response.Status.OK.getStatusCode() || response.getStatus() == Response.Status.CREATED.getStatusCode())
+                {
+                    JsonObject result = response.readEntity(JsonObject.class);
+                    return new Commit(result.getJsonObject("commit").getString("sha"), result.getJsonObject("content").getString("sha"));
+                }
+
+                if (response.getStatus() != Response.Status.CONFLICT.getStatusCode() || retry == MAX_CONFLICT_RETRIES)
+                    throw new RuntimeException("GitHub commit of '" + path + "' to " + owner + "/" + repo + " failed with status " + response.getStatus());
             }
 
-            throw new RuntimeException("GitHub commit of '" + path + "' to " + owner + "/" + repo + " failed with status " + response.getStatus());
+            conflictBackoff(path, retry);
         }
     }
 
     /**
      * Deletes a file from the branch. A no-op if the file does not exist.
+     * Deletions that lost the branch-head race (409) are retried like commits.
      *
      * @param path file path within the repository
      * @param message commit message
@@ -133,28 +144,35 @@ public class GitHubClient
      */
     public void deleteFile(String path, String message, String authorName)
     {
-        Optional<String> sha = getFileSha(path);
-        if (sha.isEmpty())
+        for (int retry = 0; ; retry++)
         {
-            if (log.isDebugEnabled()) log.debug("File '{}' not found in {}/{}, nothing to delete", path, owner, repo);
-            return;
-        }
+            Optional<String> sha = getFileSha(path);
+            if (sha.isEmpty())
+            {
+                if (log.isDebugEnabled()) log.debug("File '{}' not found in {}/{}, nothing to delete", path, owner, repo);
+                return;
+            }
 
-        JsonObject json = Json.createObjectBuilder().
-            add("message", message).
-            add("sha", sha.get()).
-            add("branch", branch).
-            add("author", author(authorName)).
-            build();
+            JsonObject json = Json.createObjectBuilder().
+                add("message", message).
+                add("sha", sha.get()).
+                add("branch", branch).
+                add("author", author(authorName)).
+                build();
 
-        try (Response response = invoke(() -> contents(path).
-                request(GITHUB_JSON).
-                property(ClientProperties.SUPPRESS_HTTP_COMPLIANCE_VALIDATION, true). // the Contents API requires a body on DELETE
-                header(HttpHeaders.AUTHORIZATION, authorization).
-                build("DELETE", Entity.entity(json, MediaType.APPLICATION_JSON_TYPE))))
-        {
-            if (response.getStatus() != Response.Status.OK.getStatusCode())
-                throw new RuntimeException("GitHub deletion of '" + path + "' from " + owner + "/" + repo + " failed with status " + response.getStatus());
+            try (Response response = invoke(() -> contents(path).
+                    request(GITHUB_JSON).
+                    property(ClientProperties.SUPPRESS_HTTP_COMPLIANCE_VALIDATION, true). // the Contents API requires a body on DELETE
+                    header(HttpHeaders.AUTHORIZATION, authorization).
+                    build("DELETE", Entity.entity(json, MediaType.APPLICATION_JSON_TYPE))))
+            {
+                if (response.getStatus() == Response.Status.OK.getStatusCode()) return;
+
+                if (response.getStatus() != Response.Status.CONFLICT.getStatusCode() || retry == MAX_CONFLICT_RETRIES)
+                    throw new RuntimeException("GitHub deletion of '" + path + "' from " + owner + "/" + repo + " failed with status " + response.getStatus());
+            }
+
+            conflictBackoff(path, retry);
         }
     }
 
@@ -264,6 +282,27 @@ public class GitHubClient
     private JsonObject author(String name)
     {
         return Json.createObjectBuilder().add("name", name).add("email", AUTHOR_EMAIL).build();
+    }
+
+    /**
+     * Waits before retrying a write that lost the branch-head race. The first retry is immediate —
+     * the winning commit has already landed — with linear backoff after that for sustained contention.
+     */
+    private void conflictBackoff(String path, int retry)
+    {
+        long delaySeconds = retry;
+        if (log.isWarnEnabled()) log.warn("GitHub commit conflict on '{}' in {}/{}, retrying after {}s", path, owner, repo, delaySeconds);
+        if (delaySeconds == 0) return;
+
+        try
+        {
+            Thread.sleep(delaySeconds * 1000);
+        }
+        catch (InterruptedException ex)
+        {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException(ex);
+        }
     }
 
     /**
