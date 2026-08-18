@@ -1,3 +1,21 @@
+## [5.9.0]
+### Added
+- GitHub-backed graph versioning: writes mirror each document into a repository as a sorted N-Triples commit authored with the agent's WebID (per-dataspace `lapp:versioningRepository` → `doap:GitRepository` in `system.trig`; token as `a:authToken` in `secrets/credentials.trig`) (#350)
+- `GET ?version=<commit-sha>` serves a historical version with `Memento-Datetime`, a SHA `ETag`, and immutable `Cache-Control`
+- `GET ?timemap` serves the version history as an RFC 7089 TimeMap in RDF (Memento vocabulary), advertised via a `Link rel=memento:timemap` header
+- History modal opened from the document's action-bar timestamp: version table with agent attribution, current version marked
+- Historical-version notice banner with a link back to the current version
+- Gated `http-tests/versioning/` suite (runs when `VERSIONING_TEST_REPO` and `GITHUB_TOKEN` are set)
+
+### Changed
+- Historical version and TimeMap views are read-only: only `acl:Read` advertised in `Link` headers, write methods rejected with `405`
+- `version`/`timemap` query params ride the client-side RDF re-fetch and survive URL rebuilds, so snapshot pages render fully (content blocks included)
+- Date literals no longer render Saxon's `[Language: en]` fallback marker (no language argument passed; TO-DO: upstream to Web-Client)
+- New hostname-verified HTTP client factory for public-web API hosts (the existing clients disable hostname verification against a truststore that includes public CAs)
+
+### Fixed
+- Entrypoint parses the credentials secret from a `.trig`-suffixed copy — the extensionless secret mount made `riot` fail silently and killed startup whenever the `credentials` secret was enabled
+
 ## [5.8.0] - 2026-08-17
 ### Added
 - HTTP tests pinning graph-scoped queries via SPARQL Protocol dataset parameters on `/sparql` (`default-graph-uri=<doc-uri>` scopes a query to one document's graph; overrides `FROM`; `GRAPH` patterns match nothing) — the read-side counterpart of graph-scoped `PATCH`, no server changes needed
