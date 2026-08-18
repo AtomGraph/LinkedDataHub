@@ -23,6 +23,9 @@ exclude-result-prefixes="#all"
     <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&memento;Memento']" mode="bs2:MementoList">
         <!-- the memento URI of the version currently being viewed; when the live document is viewed, callers pass the latest memento -->
         <xsl:param name="current-memento" select="if (map:contains(ldh:query-params(), 'version')) then xs:anyURI(ac:absolute-path(ldh:request-uri()) || '?version=' || ldh:query-params()?version) else ()" as="xs:anyURI?"/>
+        <!-- preselected diff endpoints: the version being viewed and its predecessor -->
+        <xsl:param name="from-memento" as="xs:anyURI?"/>
+        <xsl:param name="to-memento" as="xs:anyURI?"/>
 
         <tr>
             <td>
@@ -43,7 +46,76 @@ exclude-result-prefixes="#all"
             <td>
                 <xsl:apply-templates select="dct:creator/@rdf:resource"/>
             </td>
+            <td>
+                <input type="radio" name="from" value="{@rdf:about}">
+                    <xsl:if test="@rdf:about = $from-memento">
+                        <xsl:attribute name="checked" select="'checked'"/>
+                    </xsl:if>
+                </input>
+            </td>
+            <td>
+                <input type="radio" name="to" value="{@rdf:about}">
+                    <xsl:if test="@rdf:about = $to-memento">
+                        <xsl:attribute name="checked" select="'checked'"/>
+                    </xsl:if>
+                </input>
+            </td>
         </tr>
     </xsl:template>
+
+    <!-- Turtle display form of an RDF/XML property element's subject (read from the parent rdf:Description) -->
+    <xsl:function name="ldh:format-subject" as="xs:string">
+        <xsl:param name="property" as="element()"/>
+
+        <xsl:sequence select="if ($property/../@rdf:about) then '&lt;' || $property/../@rdf:about || '&gt;' else '_:' || $property/../@rdf:nodeID"/>
+    </xsl:function>
+
+    <!-- Turtle display form of an RDF/XML property element's predicate and object -->
+    <xsl:function name="ldh:format-predicate-object" as="xs:string">
+        <xsl:param name="property" as="element()"/>
+
+        <xsl:variable name="predicate" select="'&lt;' || namespace-uri($property) || local-name($property) || '&gt;'" as="xs:string"/>
+        <xsl:variable name="object" select="if ($property/@rdf:resource) then '&lt;' || $property/@rdf:resource || '&gt;' else if ($property/@rdf:nodeID) then '_:' || $property/@rdf:nodeID else if ($property/@rdf:parseType = 'Literal') then '&quot;' || serialize($property/node()) || '&quot;^^&lt;&rdf;XMLLiteral&gt;' else if ($property/@rdf:datatype) then '&quot;' || string($property) || '&quot;^^&lt;' || $property/@rdf:datatype || '&gt;' else if ($property/@xml:lang) then '&quot;' || string($property) || '&quot;@' || $property/@xml:lang else '&quot;' || string($property) || '&quot;'" as="xs:string"/>
+
+        <xsl:sequence select="$predicate || ' ' || $object || ' ;'"/>
+    </xsl:function>
+
+    <!-- triple diff rendered as Turtle-style hunks: subject header, then one -/+ predicate-object line per removed/added triple, sorted so changed values of the same property pair up -->
+    <xsl:function name="ldh:version-diff" as="element()">
+        <xsl:param name="removed" as="element()*"/>
+        <xsl:param name="added" as="element()*"/>
+
+        <pre class="pre-scrollable">
+            <xsl:for-each-group select="$removed, $added" group-by="ldh:format-subject(.)">
+                <xsl:sort select="current-grouping-key()"/>
+
+                <xsl:value-of select="current-grouping-key()"/>
+                <xsl:text>&#10;</xsl:text>
+
+                <xsl:for-each select="current-group()">
+                    <xsl:sort select="ldh:format-predicate-object(.)"/>
+                    <xsl:sort select="if (exists(. intersect $removed)) then 0 else 1"/>
+
+                    <xsl:choose>
+                        <xsl:when test="exists(. intersect $removed)">
+                            <span class="text-error">
+                                <xsl:value-of select="'-   ' || ldh:format-predicate-object(.)"/>
+                            </span>
+                        </xsl:when>
+                        <xsl:otherwise>
+                            <span class="text-success">
+                                <xsl:value-of select="'+   ' || ldh:format-predicate-object(.)"/>
+                            </span>
+                        </xsl:otherwise>
+                    </xsl:choose>
+                    <xsl:text>&#10;</xsl:text>
+                </xsl:for-each>
+
+                <xsl:if test="position() != last()">
+                    <xsl:text>&#10;</xsl:text>
+                </xsl:if>
+            </xsl:for-each-group>
+        </pre>
+    </xsl:function>
 
 </xsl:stylesheet>

@@ -478,6 +478,22 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="distinct-values($arg1[not(.=$arg2)])"/>
     </xsl:function>
 
+    <!-- one map entry per triple of a flat RDF/XML document, keyed on subject | predicate | object identity.
+         With $normalize-numerics, numeric literals are normalized so lexically different but equal values (1 vs 1.0) compare
+         equal across serializations; without it, comparison is exactly lexical (canonical same-writer output makes that safe).
+         XMLLiterals are keyed on their serialized content. Blank node labels are serializer-generated, so bnode-involving
+         triples never compare equal across two documents -->
+    <xsl:function name="ldh:triples-map" as="map(xs:string, element())">
+        <xsl:param name="doc" as="document-node()"/>
+        <xsl:param name="normalize-numerics" as="xs:boolean"/>
+
+        <xsl:map>
+            <xsl:for-each select="$doc/rdf:RDF/rdf:Description/*">
+                <xsl:map-entry key="concat(../@rdf:about, '|', ../@rdf:nodeID, '|', namespace-uri(), local-name(), '|', @rdf:resource, @rdf:nodeID, if (@rdf:parseType = 'Literal') then serialize(node()) else if ($normalize-numerics and text() castable as xs:float) then xs:float(text()) else text(), '|', @rdf:datatype, @xml:lang)" select="."/>
+            </xsl:for-each>
+        </xsl:map>
+    </xsl:function>
+
     <xsl:function name="ldh:url-decode" as="xs:string" use-when="system-property('xsl:product-name') eq 'SaxonJS'">
         <xsl:param name="encoded-string" as="xs:string"/>
         
