@@ -1533,48 +1533,4 @@ exclude-result-prefixes="#all"
         <xsl:attribute name="{name()}" select="resolve-uri(., ldh:base-uri(.))"/>
     </xsl:template>
 
-    <!-- DATE/DATETIME LITERALS -->
-    <!-- overrides the Web-Client templates that pass $ac:lang to format-date(Time): Saxon only ships English date names, so any other language makes it prepend a '[Language: en]' fallback marker to the output. TO-DO: upstream to Web-Client -->
-
-    <xsl:template match="text()[. castable as xs:date][../@rdf:datatype = '&xsd;date'] | srx:literal[@datatype = '&xsd;date']" priority="1">
-        <xsl:param name="id" as="xs:string?"/>
-        <xsl:param name="title" select="../@rdf:datatype" as="xs:string?"/>
-        <xsl:param name="class" as="xs:string?"/>
-
-        <span>
-            <xsl:if test="$id">
-                <xsl:attribute name="id" select="$id"/>
-            </xsl:if>
-            <xsl:if test="$title">
-                <xsl:attribute name="title" select="$title"/>
-            </xsl:if>
-            <xsl:if test="$class">
-                <xsl:attribute name="class" select="$class"/>
-            </xsl:if>
-
-            <xsl:sequence select="format-date(., '[D] [MNn] [Y]')"/>
-        </span>
-    </xsl:template>
-
-    <xsl:template match="text()[. castable as xs:dateTime][../@rdf:datatype = '&xsd;dateTime'] | srx:literal[@datatype = '&xsd;dateTime']" priority="1">
-        <xsl:param name="id" as="xs:string?"/>
-        <xsl:param name="title" select="../@rdf:datatype" as="xs:string?"/>
-        <xsl:param name="class" as="xs:string?"/>
-        <xsl:param name="timezone" select="implicit-timezone()" as="xs:dayTimeDuration?"/>
-
-        <span>
-            <xsl:if test="$id">
-                <xsl:attribute name="id" select="$id"/>
-            </xsl:if>
-            <xsl:if test="$title">
-                <xsl:attribute name="title" select="$title"/>
-            </xsl:if>
-            <xsl:if test="$class">
-                <xsl:attribute name="class" select="$class"/>
-            </xsl:if>
-
-            <xsl:sequence select="format-dateTime(adjust-dateTime-to-timezone(., $timezone), '[D] [MNn] [Y] [H01]:[m01]')"/>
-        </span>
-    </xsl:template>
-
 </xsl:stylesheet>

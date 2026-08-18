@@ -10,7 +10,6 @@
 ### Changed
 - Historical version and TimeMap views are read-only: only `acl:Read` advertised in `Link` headers, write methods rejected with `405`
 - `version`/`timemap` query params ride the client-side RDF re-fetch and survive URL rebuilds, so snapshot pages render fully (content blocks included)
-- Date literals no longer render Saxon's `[Language: en]` fallback marker (no language argument passed; TO-DO: upstream to Web-Client)
 - New hostname-verified HTTP client factory for public-web API hosts (the existing clients disable hostname verification against a truststore that includes public CAs)
 
 ### Fixed
