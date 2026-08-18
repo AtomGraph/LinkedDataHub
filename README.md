@@ -190,8 +190,8 @@ _:warning: Do not use blank nodes to identify applications or services. We recom
      {
          <urn:linkeddatahub:versioning/end-user> a doap:GitRepository ;
              doap:location <https://github.com/OWNER/REPO> ;
-             lapp:branch "main" ;
-             lapp:pathPrefix "graphs" .
+             github:branch "main" ;
+             github:pathPrefix "graphs" .
      }
      ```
   4. Put the token into `secrets/credentials.trig` (create the file if it does not exist) as an `a:authToken` of the repository resource:

@@ -4,6 +4,7 @@
 @prefix sd:	    <http://www.w3.org/ns/sparql-service-description#> .
 @prefix dct:	<http://purl.org/dc/terms/> .
 @prefix doap:	<http://usefulinc.com/ns/doap#> .
+@prefix github:	<https://w3id.org/atomgraph/linkeddatahub/services/github#> .
 
 ### internal deployment wiring - not for public sharing ###
 ### maps apps to their backend SPARQL services, and assigns admin/end-user roles ###
@@ -47,8 +48,8 @@
 # {
 #     <urn:linkeddatahub:versioning/end-user> a doap:GitRepository ;
 #         doap:location <https://github.com/OWNER/REPO> ;
-#         lapp:branch "main" ;
-#         lapp:pathPrefix "graphs" .
+#         github:branch "main" ;
+#         github:pathPrefix "graphs" .
 # }
 
 # root end-user - service description

@@ -19,6 +19,7 @@ package com.atomgraph.linkeddatahub.server.util;
 import com.atomgraph.core.vocabulary.A;
 import com.atomgraph.linkeddatahub.client.GitHubClient;
 import com.atomgraph.linkeddatahub.model.ServiceContext;
+import com.atomgraph.linkeddatahub.vocabulary.GitHub;
 import com.atomgraph.linkeddatahub.vocabulary.LAPP;
 import com.atomgraph.linkeddatahub.vocabulary.MEM;
 import jakarta.ws.rs.NotFoundException;
@@ -126,8 +127,8 @@ public class GraphVersioningService
         }
 
         String token = repo.getProperty(authToken).getString();
-        String branch = repo.hasProperty(LAPP.branch) ? repo.getProperty(LAPP.branch).getString() : "main";
-        String pathPrefix = repo.hasProperty(LAPP.pathPrefix) ? repo.getProperty(LAPP.pathPrefix).getString() : "graphs";
+        String branch = repo.hasProperty(GitHub.branch) ? repo.getProperty(GitHub.branch).getString() : "main";
+        String pathPrefix = repo.hasProperty(GitHub.pathPrefix) ? repo.getProperty(GitHub.pathPrefix).getString() : "graphs";
 
         if (log.isInfoEnabled()) log.info("Graph versioning enabled for application <{}> into {} (branch '{}', path prefix '{}')", app.getURI(), location, branch, pathPrefix);
         return new Repository(new GitHubClient(client, GitHubClient.API_BASE, token, segments[0], segments[1], branch), pathPrefix);
