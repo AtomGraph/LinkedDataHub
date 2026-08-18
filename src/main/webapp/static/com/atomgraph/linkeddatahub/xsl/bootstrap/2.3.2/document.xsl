@@ -248,8 +248,18 @@ extension-element-prefixes="ixsl"
                 </xsl:apply-templates>
                 
                 <div id="doc-controls" class="span4">
-                    <xsl:apply-templates select="key('resources', ac:absolute-path(ldh:base-uri(.)))" mode="bs2:Timestamp"/>
-                </div>                
+                    <xsl:choose>
+                        <!-- versioned document: the timestamp links to its version history (Memento TimeMap) -->
+                        <xsl:when test="exists(ldh:timemap())">
+                            <a href="{ldh:timemap()}" class="document-history" title="History">
+                                <xsl:apply-templates select="key('resources', ac:absolute-path(ldh:base-uri(.)))" mode="bs2:Timestamp"/>
+                            </a>
+                        </xsl:when>
+                        <xsl:otherwise>
+                            <xsl:apply-templates select="key('resources', ac:absolute-path(ldh:base-uri(.)))" mode="bs2:Timestamp"/>
+                        </xsl:otherwise>
+                    </xsl:choose>
+                </div>
             </div>
         </div>
     </xsl:template>
@@ -510,6 +520,28 @@ extension-element-prefixes="ixsl"
             <xsl:apply-templates select="." mode="bs2:ActionBar">
                 <xsl:with-param name="active-mode" select="$mode"/>
             </xsl:apply-templates>
+
+            <!-- notice shown when a historical version is displayed (?version= query parameter) -->
+            <xsl:if test="map:contains(ldh:query-params(), 'version')">
+                <div class="alert alert-info">
+                    <xsl:value-of>
+                        <xsl:apply-templates select="key('resources', 'historical-version-notice', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                    </xsl:value-of>
+                    <xsl:if test="exists(ldh:memento-datetime())">
+                        <xsl:text> (</xsl:text>
+                        <strong>
+                            <xsl:value-of select="ldh:memento-datetime()"/>
+                        </strong>
+                        <xsl:text>)</xsl:text>
+                    </xsl:if>
+                    <xsl:text>. </xsl:text>
+                    <a href="{ac:absolute-path(ldh:base-uri(.))}">
+                        <xsl:value-of>
+                            <xsl:apply-templates select="key('resources', 'view-current-version', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                        </xsl:value-of>
+                    </a>
+                </div>
+            </xsl:if>
 
             <!-- host for the RDFa editor toolbar (appended by rdfae:init-editing); empty until an editable region initializes -->
             <div class="navbar-inner editor-bar">

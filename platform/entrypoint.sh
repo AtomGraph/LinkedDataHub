@@ -694,7 +694,10 @@ CREDENTIALS_DATASET=/run/secrets/credentials
 
 if [ -f "$CREDENTIALS_DATASET" ]; then
     printf "\n### Loading credentials dataset from: %s\n" "$CREDENTIALS_DATASET"
-    trig --base="$BASE_URI" "$CONTEXT_DATASET" "$SERVICES_DATASET" "$CREDENTIALS_DATASET" > "$based_context_dataset"
+    # the secret mounts without a .trig extension, which riot needs to pick the parser - parse a suffixed copy
+    CREDENTIALS_DATASET_TRIG="$(mktemp).trig"
+    cat "$CREDENTIALS_DATASET" > "$CREDENTIALS_DATASET_TRIG"
+    trig --base="$BASE_URI" "$CONTEXT_DATASET" "$SERVICES_DATASET" "$CREDENTIALS_DATASET_TRIG" > "$based_context_dataset"
 else
     trig --base="$BASE_URI" "$CONTEXT_DATASET" "$SERVICES_DATASET" > "$based_context_dataset"
 fi

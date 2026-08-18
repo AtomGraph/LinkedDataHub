@@ -165,6 +165,49 @@ The following tools are required for CLI scripts in the `bin/` directory:
 
 _:warning: Do not use blank nodes to identify applications or services. We recommend using the `urn:` URI scheme, since LinkedDataHub application resources are not accessible under their own dataspace._
 
+  ### Graph versioning
+
+  Since version 5.9.0, LinkedDataHub can mirror every document of a dataspace into a GitHub repository. Each document (named graph) becomes an N-Triples file, and every write (`POST`/`PUT`/`PATCH`/`DELETE`) becomes a commit authored with the agent's WebID — giving you a full history, audit trail, and undo capability using plain git tooling. Commits happen asynchronously in the background and are best-effort: if GitHub is unavailable or the token is invalid, writes succeed as usual and the failures are only logged.
+
+  Historical versions can be retrieved with the `version` query parameter using a commit SHA:
+  ```shell
+  curl -k -E ./ssl/owner/cert.pem:<your cert password> -H "Accept: text/turtle" 'https://localhost:4443/my-doc/?version=<commit-sha>'
+  ```
+  Version responses are immutable and carry a `Memento-Datetime` header with the commit's datetime. They are subject to the same access control as the live document.
+
+  Versioning is **disabled by default**. To enable it for a dataspace:
+
+  1. Create a GitHub repository (a private one is recommended) that will store the graph files.
+  2. Obtain an access token: on GitHub, go to **Settings > Developer settings > Personal access tokens > Fine-grained tokens > Generate new token**. Under **Repository access** select **Only select repositories** and pick the repository from step 1; under **Permissions > Repository permissions** set **Contents** to **Read and write**. Generate the token and copy it (it starts with `github_pat_`). A classic token with the `repo` scope works as well, but grants far broader access.
+  3. Describe the repository in [`config/system.trig`](https://github.com/AtomGraph/LinkedDataHub/blob/master/config/system.trig) and link the application to it (an example is included in the file):
+     ```turtle
+     <urn:linkeddatahub:apps/end-user>
+     {
+         <urn:linkeddatahub:apps/end-user> lapp:versioningRepository <urn:linkeddatahub:versioning/end-user> .
+     }
+
+     <urn:linkeddatahub:versioning/end-user>
+     {
+         <urn:linkeddatahub:versioning/end-user> a doap:GitRepository ;
+             doap:location <https://github.com/OWNER/REPO> ;
+             github:branch "main" ;
+             github:pathPrefix "graphs" .
+     }
+     ```
+  4. Put the token into `secrets/credentials.trig` (create the file if it does not exist) as an `a:authToken` of the repository resource:
+     ```turtle
+     @prefix a: <https://w3id.org/atomgraph/core#> .
+
+     <urn:linkeddatahub:versioning/end-user>
+     {
+         <urn:linkeddatahub:versioning/end-user> a:authToken "github_pat_..." .
+     }
+     ```
+  5. Enable the `credentials` secret in `docker-compose.yml` by uncommenting it in the top-level `secrets:` block and in the `linkeddatahub` service's `secrets:` list.
+  6. Restart with `docker-compose up`. The startup log will confirm: `Graph versioning enabled for application <...>`.
+
+  Multiple dataspaces can be versioned into different repositories with different tokens. The token never appears in the environment or the process table — it is merged into the internal context dataset from the Docker secret, the same mechanism used for SPARQL service credentials.
+
   ### Secrets
 
   Secrets used in `docker-compose.yml`:
@@ -181,6 +224,8 @@ _:warning: Do not use blank nodes to identify applications or services. We recom
     <dd>Login with Google authentication is enabled when this value is provided</dd>
     <dt><code>google_client_secret</code></dt>
     <dd>Google's OAuth client secret</dd>
+    <dt><code>credentials</code></dt>
+    <dd>TriG dataset (<code>secrets/credentials.trig</code>) with service credentials such as SPARQL auth and <a href="#graph-versioning">graph versioning</a> tokens, merged into the system dataset at startup</dd>
   </dl>
 
   ### Environment

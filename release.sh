@@ -82,9 +82,14 @@ if ! command -v gpg &> /dev/null; then
 fi
 
 # Check if GPG has at least one secret key
-if ! gpg --list-secret-keys --keyid-format=long 2>/dev/null | grep -q "sec"; then
+GPG_KEYS=$(gpg --list-secret-keys --keyid-format=long 2>&1)
+if ! echo "$GPG_KEYS" | grep -q "^sec"; then
     print_error "No GPG secret key found. You need a GPG key to sign Maven artifacts."
-    print_error "Generate one with: gpg --gen-key"
+    print_error "gpg --list-secret-keys output was:"
+    echo "$GPG_KEYS" >&2
+    print_error "If keys exist but gpg reports a lock timeout, a stale lock is blocking it:"
+    print_error "run 'gpgconf --kill all' and remove ~/.gnupg/public-keys.d/*.lock"
+    print_error "Otherwise generate a key with: gpg --gen-key"
     exit 1
 fi
 

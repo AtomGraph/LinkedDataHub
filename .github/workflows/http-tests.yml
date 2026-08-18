@@ -10,6 +10,8 @@ jobs:
       ASF_ARCHIVE: https://archive.apache.org/dist/
       JENA_VERSION: 6.1.0
       BASE_URI: https://localhost:4443/
+      VERSIONING_TEST_TOKEN: ${{ secrets.VERSIONING_TEST_TOKEN }} # absent on forks - the versioning suite then skips
+      VERSIONING_TEST_REPO: ${{ vars.VERSIONING_TEST_REPO }}
     steps:
       - name: Install Linux packages
         run: sudo apt-get update && sudo apt-get install -qq raptor2-utils libxml2-utils && sudo apt-get install curl
@@ -42,8 +44,35 @@ jobs:
           printf "%s" "${{ secrets.HTTP_TEST_SECRETARY_CERT_PASSWORD }}" > ./secrets/secretary_cert_password.txt
           printf "%s" "${{ secrets.HTTP_TEST_SECRETARY_CERT_PASSWORD }}" > ./secrets/client_truststore_password.txt
         shell: bash
+      - name: Enable graph versioning
+        if: env.VERSIONING_TEST_TOKEN != ''
+        run: |
+          printf '@prefix a:\t<https://w3id.org/atomgraph/core#> .\n\n<urn:linkeddatahub:versioning/end-user>\n{\n    <urn:linkeddatahub:versioning/end-user> a:authToken "%s" .\n}\n' "$VERSIONING_TEST_TOKEN" > ./secrets/credentials.trig
+          cat >> ./http-tests/config/system.trig <<EOF
+
+          # GitHub-backed graph versioning (appended by CI; per-run path prefix isolates concurrent runs)
+
+          @prefix doap:	<http://usefulinc.com/ns/doap#> .
+          @prefix github:	<https://w3id.org/atomgraph/linkeddatahub/services/github#> .
+
+          <urn:linkeddatahub:apps/end-user>
+          {
+              <urn:linkeddatahub:apps/end-user> lapp:versioningRepository <urn:linkeddatahub:versioning/end-user> .
+          }
+
+          <urn:linkeddatahub:versioning/end-user>
+          {
+              <urn:linkeddatahub:versioning/end-user> a doap:GitRepository ;
+                  doap:location <https://github.com/$VERSIONING_TEST_REPO> ;
+                  github:branch "main" ;
+                  github:pathPrefix "graphs-${{ github.run_id }}" .
+          }
+          EOF
+          echo "COMPOSE_VERSIONING=-f ./http-tests/docker-compose.versioning.yml" >> "$GITHUB_ENV"
+          echo "VERSIONING_PATH_PREFIX=graphs-${{ github.run_id }}" >> "$GITHUB_ENV"
+        shell: bash
       - name: Build Docker image & Run Docker containers
-        run: docker compose -f docker-compose.yml -f ./http-tests/docker-compose.http-tests.yml --env-file ./http-tests/.env up --build -d
+        run: docker compose -f docker-compose.yml -f ./http-tests/docker-compose.http-tests.yml ${COMPOSE_VERSIONING:-} --env-file ./http-tests/.env up --build -d
       - name: Wait for the server to start...
         run: while ! (status=$(curl -k -s -w "%{http_code}\n" https://localhost:4443 -o /dev/null) && echo "$status" && echo "$status" | grep "403") ; do sleep 1 ; done # wait for the webapp to start (returns 403 by default)
       - name: Fix certificate permissions on the host
@@ -54,6 +83,8 @@ jobs:
         run: ./run.sh "$PWD/ssl/owner/cert.pem" "${{ secrets.HTTP_TEST_OWNER_CERT_PASSWORD }}" "$PWD/ssl/secretary/cert.pem" "${{ secrets.HTTP_TEST_SECRETARY_CERT_PASSWORD }}"
         shell: bash
         working-directory: http-tests
+        env:
+          GITHUB_TOKEN: ${{ secrets.VERSIONING_TEST_TOKEN }} # the versioning suite (and its gh api calls) authenticate with this; empty = suite skips
       - name: Generate test summary
         if: always()
         run: python3 scripts/generate_test_summary.py http-tests/out http-tests/out/report.md

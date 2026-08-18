@@ -131,6 +131,25 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="$ac:uri"/>
     </xsl:function>
 
+    <!-- TimeMap URI from the Link response header (rel=mem:timemap), present when the document is versioned -->
+    <xsl:function name="ldh:timemap" as="xs:anyURI?" use-when="system-property('xsl:product-name') = 'SAXON'">
+        <xsl:variable name="entries" as="xs:string*">
+            <xsl:for-each select="$ldh:httpHeaders('Link')">
+                <xsl:analyze-string select="." regex="&lt;[^&gt;]+&gt;[^&lt;]*">
+                    <xsl:matching-substring>
+                        <xsl:sequence select="."/>
+                    </xsl:matching-substring>
+                </xsl:analyze-string>
+            </xsl:for-each>
+        </xsl:variable>
+        <xsl:sequence select="(for $entry in $entries return if (matches($entry, '^&lt;[^&gt;]+&gt;\s*;.*[;\s]rel\s*=\s*&quot;?[^&quot;\s,;]*mementoweb\.org/ns#timemap&quot;?')) then xs:anyURI(replace($entry, '^&lt;([^&gt;]+)&gt;.*$', '$1')) else ())[1]"/>
+    </xsl:function>
+
+    <!-- Memento-Datetime response header value, present on ?version= responses -->
+    <xsl:function name="ldh:memento-datetime" as="xs:string?" use-when="system-property('xsl:product-name') = 'SAXON'">
+        <xsl:sequence select="$ldh:httpHeaders('Memento-Datetime')[1]"/>
+    </xsl:function>
+
     <!-- Strips the leftmost subdomain and returns parent dataspace origin (scheme + host + port) -->
     <xsl:function name="ldh:parent-origin" as="xs:anyURI?">
         <xsl:param name="uri" as="xs:anyURI"/>
@@ -163,6 +182,13 @@ exclude-result-prefixes="#all"
     <xsl:function name="ldh:query-params" as="map(xs:string, xs:string*)">
         <!-- ac:document-uri strips the URL's #fragment so it doesn't get glued onto the last query value -->
         <xsl:sequence select="ldh:parse-query-params(substring-after(ac:document-uri(ldh:request-uri()), '?'))"/>
+    </xsl:function>
+
+    <!-- representation-selecting query params (unlike display state such as ?mode, these select a different representation of the document URI) - they must survive the RDF re-fetch and every URL rebuild -->
+    <xsl:function name="ldh:snapshot-params" as="map(xs:string, xs:string*)">
+        <xsl:param name="query-params" as="map(xs:string, xs:string*)"/>
+
+        <xsl:sequence select="map:merge((if (map:contains($query-params, 'version')) then map{ 'version': $query-params?version } else (), if (map:contains($query-params, 'timemap')) then map{ 'timemap': $query-params?timemap } else ()))"/>
     </xsl:function>
     
     <xsl:function name="ldh:base-uri" as="xs:anyURI" use-when="system-property('xsl:product-name') = 'SAXON'">

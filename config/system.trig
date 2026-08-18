@@ -3,6 +3,8 @@
 @prefix ldt:	<https://www.w3.org/ns/ldt#> .
 @prefix sd:	    <http://www.w3.org/ns/sparql-service-description#> .
 @prefix dct:	<http://purl.org/dc/terms/> .
+@prefix doap:	<http://usefulinc.com/ns/doap#> .
+@prefix github:	<https://w3id.org/atomgraph/linkeddatahub/services/github#> .
 
 ### internal deployment wiring - not for public sharing ###
 ### maps apps to their backend SPARQL services, and assigns admin/end-user roles ###
@@ -33,7 +35,22 @@
 {
     <urn:linkeddatahub:apps/end-user> a lapp:EndUserApplication ;
         ldt:service <urn:linkeddatahub:services/end-user> .
+
+    # uncomment to enable GitHub-backed graph versioning for this dataspace:
+    # <urn:linkeddatahub:apps/end-user> lapp:versioningRepository <urn:linkeddatahub:versioning/end-user> .
 }
+
+# root end-user - versioning repository (GitHub-backed graph versioning)
+# the access token goes into secrets/credentials.trig as:
+#     <urn:linkeddatahub:versioning/end-user> { <urn:linkeddatahub:versioning/end-user> a:authToken "github_pat_..." . }
+
+# <urn:linkeddatahub:versioning/end-user>
+# {
+#     <urn:linkeddatahub:versioning/end-user> a doap:GitRepository ;
+#         doap:location <https://github.com/OWNER/REPO> ;
+#         github:branch "main" ;
+#         github:pathPrefix "graphs" .
+# }
 
 # root end-user - service description
 

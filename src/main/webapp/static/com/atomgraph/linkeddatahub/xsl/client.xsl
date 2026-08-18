@@ -102,6 +102,7 @@ extension-element-prefixes="ixsl"
     <xsl:import href="bootstrap/2.3.2/imports/sioc.xsl"/>
     <xsl:import href="bootstrap/2.3.2/imports/sp.xsl"/>
     <xsl:import href="bootstrap/2.3.2/imports/sh.xsl"/>
+    <xsl:import href="bootstrap/2.3.2/imports/memento.xsl"/>
     <xsl:import href="bootstrap/2.3.2/document.xsl"/>
     <xsl:import href="bootstrap/2.3.2/imports/services/youtube.xsl"/>
     <xsl:import href="converters/RDFXML2DataTable.xsl"/>
@@ -116,6 +117,7 @@ extension-element-prefixes="ixsl"
     <xsl:include href="bootstrap/2.3.2/client/navigation.xsl"/>
     <xsl:include href="bootstrap/2.3.2/client/block.xsl"/>
     <xsl:include href="bootstrap/2.3.2/client/modal.xsl"/>
+    <xsl:include href="bootstrap/2.3.2/client/memento.xsl"/>
     <xsl:include href="bootstrap/2.3.2/client/form.xsl"/>
     <xsl:include href="bootstrap/2.3.2/client/map.xsl"/> <!-- include in view.xsl and object.xsl instead? -->
     <xsl:include href="bootstrap/2.3.2/client/graph3d.xsl"/>
@@ -324,11 +326,12 @@ WHERE
                     </xsl:for-each>
                 </xsl:if>
 
-                <!-- doc URI: proxied target if ?uri= set (keep its query — part of the resource identity), else local request URI (strip display params).
+                <!-- doc URI: proxied target if ?uri= set (keep its query — part of the resource identity), else local request URI (strip display params, keep representation-selecting ones).
                      fragment: always from the OUTER URL (ldh:request-uri()) per RFC 3986 — LDH-built URLs put the fragment outside ?uri= -->
                 <xsl:call-template name="ldh:DocumentNavigate">
                     <xsl:with-param name="doc-uri" select="if (ac:uri()) then ac:document-uri(ac:uri()) else ac:absolute-path(ldh:request-uri())"/>
                     <xsl:with-param name="fragment" select="ac:fragment-id(ldh:request-uri())"/>
+                    <xsl:with-param name="query-params" select="if (ac:uri()) then map{} else ldh:query-params()"/>
                     <xsl:with-param name="push-state" select="false()"/>
                 </xsl:call-template>
             </xsl:otherwise>
@@ -409,6 +412,7 @@ WHERE
         <xsl:variable name="response" select="$context('response')" as="map(*)"/>
         <xsl:variable name="doc-uri" select="$context('doc-uri')" as="xs:anyURI"/>
         <xsl:variable name="fragment" select="$context('fragment')" as="xs:string?"/>
+        <xsl:variable name="query-params" select="if (map:contains($context, 'query-params')) then $context('query-params') else map{}" as="map(xs:string, xs:string*)"/>
         <xsl:variable name="refresh-content" select="$context('refresh-content')" as="xs:boolean?"/>
 
         <xsl:for-each select="$response">
@@ -439,6 +443,10 @@ WHERE
                     <xsl:if test="$application">
                         <ixsl:set-property name="application" select="$application" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
                     </xsl:if>
+                    <!-- store TimeMap URI from Link header (present when the document is versioned); blank it when absent so non-versioned documents don't show the History link -->
+                    <xsl:variable name="timemap-link" select="tokenize(?headers?link, ',')[contains(., 'mementoweb.org/ns#timemap')][1]" as="xs:string?"/>
+                    <xsl:variable name="timemap" select="if ($timemap-link) then xs:anyURI(substring-before(substring-after(substring-before($timemap-link, ';'), '&lt;'), '&gt;')) else ()" as="xs:anyURI?"/>
+                    <ixsl:set-property name="timemap" select="($timemap, '')[1]" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
                     <xsl:for-each select="?body">
                         <xsl:variable name="results" select="." as="document-node()"/>
                         <ixsl:set-property name="{'`' || $doc-uri || '`'}" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.contents')"/>
@@ -460,7 +468,7 @@ WHERE
 
                         <!-- align URL with the mode detected from the RDF document -->
                         <xsl:call-template name="ldh:PushState">
-                            <xsl:with-param name="href" select="ldh:href($doc-uri, ldh:build-query($mode), $fragment)"/>
+                            <xsl:with-param name="href" select="ldh:href($doc-uri, map:merge(($query-params, ldh:build-query($mode))), $fragment)"/>
                             <xsl:with-param name="title" select="$label"/>
                             <xsl:with-param name="container" select="id($body-id, ixsl:page())"/>
                         </xsl:call-template>
@@ -648,7 +656,7 @@ WHERE
                     <ixsl:set-property name="title" select="$label" object="ixsl:page()"/>
 
                     <xsl:call-template name="ldh:PushState">
-                        <xsl:with-param name="href" select="ldh:href($doc-uri, ldh:build-query($mode), $fragment)"/>
+                        <xsl:with-param name="href" select="ldh:href($doc-uri, map:merge(($query-params, ldh:build-query($mode))), $fragment)"/>
                         <xsl:with-param name="title" select="$label"/>
                         <xsl:with-param name="container" select="id($body-id, ixsl:page())"/>
                     </xsl:call-template>
@@ -988,6 +996,7 @@ WHERE
         <xsl:call-template name="ldh:RDFDocumentLoad">
             <xsl:with-param name="doc-uri" select="$doc-uri"/>
             <xsl:with-param name="fragment" select="$fragment"/>
+            <xsl:with-param name="query-params" select="$query-params"/>
             <xsl:with-param name="controller" select="$controller"/>
         </xsl:call-template>
     </xsl:template>
@@ -997,17 +1006,21 @@ WHERE
     <xsl:template name="ldh:RDFDocumentLoad">
         <xsl:param name="doc-uri" as="xs:anyURI"/>
         <xsl:param name="fragment" as="xs:string?"/>
+        <xsl:param name="query-params" select="map{}" as="map(xs:string, xs:string*)"/>
         <xsl:param name="refresh-content" as="xs:boolean?"/>
         <xsl:param name="controller" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), 'saxonController')"/>
+        <!-- representation-selecting params (?version=, ?timemap) ride along on the RDF request; display params do not -->
+        <xsl:variable name="snapshot-params" select="ldh:snapshot-params($query-params)" as="map(xs:string, xs:string*)"/>
         <!-- if the URI is external, dereference it through the proxy -->
         <!-- HTTP requests carry no fragment (protocol-level) -->
-        <xsl:variable name="request-uri" select="ldh:href($doc-uri, map{}, ())" as="xs:anyURI"/>
+        <xsl:variable name="request-uri" select="ldh:href($doc-uri, $snapshot-params, ())" as="xs:anyURI"/>
         <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
         <xsl:variable name="context" as="map(*)" select="
           map{
             'request': $request,
             'doc-uri': $doc-uri,
             'fragment': $fragment,
+            'query-params': $snapshot-params,
             'refresh-content': $refresh-content,
             'endpoint': sd:endpoint()
           }"/>

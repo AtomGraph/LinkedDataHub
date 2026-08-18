@@ -47,15 +47,19 @@ import jakarta.inject.Inject;
 import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
+import jakarta.ws.rs.GET;
 import jakarta.ws.rs.HttpMethod;
 import jakarta.ws.rs.InternalServerErrorException;
+import jakarta.ws.rs.NotAllowedException;
 import jakarta.ws.rs.NotFoundException;
 import jakarta.ws.rs.OPTIONS;
 import jakarta.ws.rs.PATCH;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.WebApplicationException;
+import jakarta.ws.rs.core.CacheControl;
 import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.EntityTag;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Request;
@@ -74,6 +78,8 @@ import java.io.InputStream;
 import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.security.DigestInputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -130,6 +136,16 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
      * The relative path of the content-addressed file container.
      */
     public static final String UPLOADS_PATH = "uploads";
+
+    /**
+     * Name of the query parameter that selects a historical graph version by commit SHA.
+     */
+    public static final String VERSION_PARAM_NAME = "version";
+
+    /**
+     * Name of the query parameter that retrieves the graph's version history as a Memento TimeMap.
+     */
+    public static final String TIMEMAP_PARAM_NAME = "timemap";
     
     private final com.atomgraph.linkeddatahub.apps.model.Application application;
     private final OntModel ontology;
@@ -200,8 +216,64 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
             !ownerDocURI.equals(uri) &&
             !secretaryDocURI.equals(uri))
             allowedMethods.add(HttpMethod.DELETE);
+
+        // historical version and TimeMap views are read-only
+        if (uriInfo.getQueryParameters().containsKey(VERSION_PARAM_NAME) || uriInfo.getQueryParameters().containsKey(TIMEMAP_PARAM_NAME))
+            allowedMethods.retainAll(Set.of(HttpMethod.GET));
     }
-    
+
+    /**
+     * Rejects the request if it addresses a historical version or TimeMap view, which are read-only.
+     */
+    private void checkSnapshotReadOnly()
+    {
+        if (getUriInfo().getQueryParameters().containsKey(VERSION_PARAM_NAME) || getUriInfo().getQueryParameters().containsKey(TIMEMAP_PARAM_NAME))
+            throw new NotAllowedException(HttpMethod.GET, new String[]{ HttpMethod.OPTIONS });
+    }
+
+    /**
+     * Implements <code>GET</code> method of SPARQL Graph Store Protocol.
+     * With a <code>version</code> query parameter, returns the graph's state at that commit from the
+     * versioning repository instead of the triplestore. Version responses are immutable.
+     *
+     * @return HTTP response
+     */
+    @Override
+    @GET
+    public Response get()
+    {
+        if (getUriInfo().getQueryParameters().containsKey(TIMEMAP_PARAM_NAME))
+        {
+            Model timeMap = getSystem().getGraphVersioningService().
+                getTimeMap(getApplication().getURI(), getApplication().getBaseURI(), getURI()).
+                orElseThrow(() -> new NotFoundException("Document <" + getURI() + "> is not versioned"));
+
+            return getResponseBuilder(timeMap, getURI()).build();
+        }
+
+        String version = getUriInfo().getQueryParameters().getFirst(VERSION_PARAM_NAME);
+        if (version == null) return super.get();
+        // commit SHAs only: movable refs (branches, tags) must not be served with immutable caching,
+        // and the hex-only value doubles as the ETag (the HTML writer per-agent-perturbs ETags as hex numbers)
+        if (!version.matches("[0-9a-f]{4,64}")) throw new NotFoundException("Version '" + version + "' of graph <" + getURI() + "> not found");
+
+        com.atomgraph.linkeddatahub.server.util.GraphVersioningService.Version graphVersion = getSystem().getGraphVersioningService().
+            getVersion(getApplication().getURI(), getApplication().getBaseURI(), getURI(), version).
+            orElseThrow(() -> new NotFoundException("Version '" + version + "' of graph <" + getURI() + "> not found"));
+
+        CacheControl cacheControl = new CacheControl();
+        cacheControl.setMaxAge(31536000);
+        cacheControl.getCacheExtension().put("immutable", "");
+
+        Response.ResponseBuilder rb = getResponseBuilder(graphVersion.model(), getURI()).
+            tag(new EntityTag(version)).
+            cacheControl(cacheControl);
+        if (graphVersion.datetime() != null)
+            rb.header("Memento-Datetime", DateTimeFormatter.RFC_1123_DATE_TIME.format(graphVersion.datetime().atZone(ZoneId.of("GMT"))));
+
+        return rb.build();
+    }
+
     /**
      * Implements <code>POST</code> method of SPARQL Graph Store Protocol.
      * Adds triples to the existing graph, skolemizes blank nodes, updates modification timestamp, and submits any imports.
@@ -213,6 +285,8 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
     @POST
     public Response post(Model model)
     {
+        checkSnapshotReadOnly();
+
         if (log.isTraceEnabled()) log.trace("POST Graph Store request with RDF payload: {} payload size(): {}", model, model.size());
 
         final Model existingModel = getSystem().getServiceContext(getService()).getGraphStoreClient().getModel(getURI().toString());
@@ -254,6 +328,8 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
     // the AuthorizationFilter only allows creating new child URIs for existing containers (i.e. there has to be a .. container already)
     public Response put(Model model)
     {
+        checkSnapshotReadOnly();
+
         if (log.isTraceEnabled()) log.trace("PUT Graph Store request with RDF payload: {} payload size(): {}", model, model.size());
 
         if (!getAllowedMethods().contains(HttpMethod.PUT))
@@ -363,6 +439,8 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
     @Override
     public Response patch(UpdateRequest updateRequest)
     {
+        checkSnapshotReadOnly();
+
         if (updateRequest == null) throw new BadRequestException("SPARQL update not specified");
         if (log.isDebugEnabled()) log.debug("PATCH request on named graph with URI: {}", getURI());
         if (log.isDebugEnabled()) log.debug("PATCH update string: {}", updateRequest.toString());
@@ -448,6 +526,8 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     public Response postMultipart(FormDataMultiPart multiPart)
     {
+        checkSnapshotReadOnly();
+
         if (log.isDebugEnabled()) log.debug("MultiPart fields: {} body parts: {}", multiPart.getFields(), multiPart.getBodyParts());
 
         try
@@ -490,6 +570,8 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     public Response putMultipart(FormDataMultiPart multiPart)
     {
+        checkSnapshotReadOnly();
+
         if (log.isDebugEnabled()) log.debug("MultiPart fields: {} body parts: {}", multiPart.getFields(), multiPart.getBodyParts());
 
         try
@@ -527,6 +609,8 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
     @Override
     public Response delete()
     {
+        checkSnapshotReadOnly();
+
         if (!getAllowedMethods().contains(HttpMethod.DELETE))
             throw new WebApplicationException("Cannot delete document", Response.status(Response.Status.METHOD_NOT_ALLOWED).allow(getAllowedMethods()).build());
 
