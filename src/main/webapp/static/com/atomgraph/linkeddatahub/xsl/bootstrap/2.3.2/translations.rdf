@@ -537,4 +537,20 @@
         <rdfs:label xml:lang="en-US">View the current version</rdfs:label>
         <rdfs:label xml:lang="es-ES">Ver la versión actual</rdfs:label>
     </rdf:Description>
+    <rdf:Description rdf:nodeID="from">
+        <rdfs:label xml:lang="en-US">From</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Desde</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="to">
+        <rdfs:label xml:lang="en-US">To</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Hasta</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="compare">
+        <rdfs:label xml:lang="en-US">Compare</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Comparar</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="no-changes">
+        <rdfs:label xml:lang="en-US">No changes between the selected versions</rdfs:label>
+        <rdfs:label xml:lang="es-ES">No hay cambios entre las versiones seleccionadas</rdfs:label>
+    </rdf:Description>
 </rdf:RDF>
