@@ -6,6 +6,7 @@
     <!ENTITY rdf    "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
     <!ENTITY rdfs   "http://www.w3.org/2000/01/rdf-schema#">
     <!ENTITY xsd    "http://www.w3.org/2001/XMLSchema#">
+    <!ENTITY owl    "http://www.w3.org/2002/07/owl#">
     <!ENTITY srx    "http://www.w3.org/2005/sparql-results#">
     <!ENTITY ldt    "https://www.w3.org/ns/ldt#">
     <!ENTITY spin   "http://spinrdf.org/spin#">
@@ -406,7 +407,7 @@ exclude-result-prefixes="#all"
                 <xsl:variable name="uuid" select="ixsl:call(ixsl:window(), 'generateUUID', [])" as="xs:string"/>
 
                 <xsl:call-template name="bs2:Lookup">
-                    <xsl:with-param name="forClass" select="xs:anyURI('&rdfs;Class')"/>
+                    <xsl:with-param name="forClass" select="(xs:anyURI('&rdfs;Class'), xs:anyURI('&owl;Class'))"/> <!-- ontologies are served without inference, so owl:Class subjects do not carry the rdfs:Class type -->
                     <xsl:with-param name="class" select="'class-typeahead typeahead'"/>
                     <xsl:with-param name="id" select="'input-' || $uuid"/>
                     <xsl:with-param name="list-class" select="'class-typeahead typeahead dropdown-menu'"/>
