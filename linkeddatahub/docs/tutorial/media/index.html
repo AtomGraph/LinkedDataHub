@@ -1,0 +1,236 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html><html xmlns="http://www.w3.org/1999/xhtml">
+   <head>
+      <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+      <title>LinkedDataHub v5 — Media</title>
+      <meta name="description" content="Upload files and link them to resources"/>
+      <meta name="last-modified" content="2026-08-18T20:14:17Z"/>
+      <link href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/files/css/bootstrap.css" rel="stylesheet" type="text/css"/>
+      <link href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/files/css/bootstrap-responsive.css" rel="stylesheet" type="text/css"/>
+      <link href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/files/css/linkeddatahub-bootstrap.css" rel="stylesheet" type="text/css"/>
+      <style type="text/css">
+                body { padding-top: 60px; }
+                object { width: 100%; min-height: 640px; }
+            </style><script type="text/javascript" src="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/files/js/jquery.min.js"></script><script type="text/javascript" src="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/files/js/bootstrap.min.js"></script><script type="text/javascript">
+                    $(document).ready(function() {
+                        $("ul.nav-tabs a").on("click", function() {
+                            $(this).closest("ul").children().toggleClass("active", false);
+                            $(this).closest("li").toggleClass("active", true);
+                            $(this).closest("ul").next().children().toggleClass("active", false);
+                            $(this).closest("ul").next().children().eq($(this).closest("li").index()).toggleClass("active", true);
+                        });
+                    });
+                </script><script async="async" src="https://www.googletagmanager.com/gtag/js?id=UA-38402002-6"></script><script>
+                    window.dataLayer = window.dataLayer || [];
+                    function gtag(){dataLayer.push(arguments);}
+                    gtag('js', new Date());
+                    gtag('config', 'UA-38402002-6');
+                </script></head>
+   <body>
+      <div class="navbar navbar-fixed-top">
+         <div class="navbar-inner">
+            <div class="container-fluid"><a class="brand" href="../../">LinkedDataHub</a><div class="nav-collapse collapse">
+                  <ul class="nav">
+                     <li class="active">
+                        <div class="btn-group"><a class="btn" href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/">Documentation v5</a><button class="btn dropdown-toggle" data-toggle="dropdown"><span class="caret"></span></button><ul class="dropdown-menu">
+                              <li><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/v3/">Documentation v3</a></li>
+                              <li><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/v2/">Documentation v2</a></li>
+                           </ul>
+                        </div>
+                     </li>
+                     <li><a href="https://github.com/AtomGraph/LinkedDataHub" target="_blank">Code</a></li>
+                  </ul>
+               </div>
+            </div>
+         </div>
+      </div>
+      <div class="container-fluid">
+         <div class="row-fluid">
+            <nav class="span2">
+               <ul class="nav nav-list">
+                  <li><a href="../../about/">About LinkedDataHub</a></li>
+                  <li><a href="../../get-started/">Get started</a><ul class="nav nav-list">
+                        <li><a href="../../get-started/get-an-account/">Get an account</a></li>
+                        <li><a href="../../get-started/request-access/">Request access</a></li>
+                        <li><a href="../../get-started/setup/">Setup</a></li>
+                     </ul>
+                  </li>
+                  <li><a href="../../reference/">Reference</a><ul class="nav nav-list">
+                        <li><a href="../../reference/administration/">Administration</a><ul class="nav nav-list">
+                              <li><a href="../../reference/administration/acl/">Access control</a></li>
+                              <li><a href="../../reference/administration/ontologies/">Ontologies</a></li>
+                              <li><a href="../../reference/administration/packages/">Packages</a></li>
+                           </ul>
+                        </li>
+                        <li><a href="../../reference/command-line-interface/">Command line interface</a></li>
+                        <li><a href="../../reference/configuration/">Configuration</a></li>
+                        <li><a href="../../reference/data-model/">Data model</a><ul class="nav nav-list">
+                              <li><a href="../../reference/data-model/blocks/">Content blocks</a><ul class="nav nav-list">
+                                    <li><a href="../../reference/data-model/blocks/objects/">Object blocks</a></li>
+                                    <li><a href="../../reference/data-model/blocks/xhtml/">XHTML blocks</a></li>
+                                 </ul>
+                              </li>
+                              <li><a href="../../reference/data-model/documents/">Documents</a><ul class="nav nav-list">
+                                    <li><a href="../../reference/data-model/documents/containers/">Containers</a></li>
+                                    <li><a href="../../reference/data-model/documents/items/">Items</a></li>
+                                 </ul>
+                              </li>
+                              <li><a href="../../reference/data-model/resources/">Resources</a><ul class="nav nav-list">
+                                    <li><a href="../../reference/data-model/resources/charts/">Charts</a></li>
+                                    <li><a href="../../reference/data-model/resources/queries/">Queries</a></li>
+                                    <li><a href="../../reference/data-model/resources/views/">Views</a></li>
+                                 </ul>
+                              </li>
+                           </ul>
+                        </li>
+                        <li><a href="../../reference/dataspace/">Dataspace</a></li>
+                        <li><a href="../../reference/http-api/">HTTP API</a></li>
+                        <li><a href="../../reference/imports/">Imports</a><ul class="nav nav-list">
+                              <li><a href="../../reference/imports/csv/">CSV imports</a></li>
+                              <li><a href="../../reference/imports/rdf/">RDF imports</a></li>
+                           </ul>
+                        </li>
+                        <li><a href="../../reference/dataset/">RDF dataset</a></li>
+                        <li><a href="../../reference/stylesheets/">Stylesheets</a></li>
+                        <li><a href="../../reference/triplestores/">Triplestores</a></li>
+                        <li><a href="../../reference/user-interface/">User interface</a></li>
+                     </ul>
+                  </li>
+                  <li><a href="../">Tutorial</a><ul class="nav nav-list">
+                        <li><a href="../app-as-repository/">App as a repository</a></li>
+                        <li><a href="../beyond-low-code/">Beyond low-code</a></li>
+                        <li><a href="../composition/">Composition</a></li>
+                        <li><a href="../data/">Data</a></li>
+                        <li><a href="../hello-dataspace/">Hello dataspace</a></li>
+                        <li><a href="../insight/">Insight</a></li>
+                        <li class="active"><a href="">Media</a></li>
+                        <li><a href="../model/">Model</a></li>
+                        <li><a href="../publish/">Publish</a></li>
+                        <li><a href="../structure/">Structure</a></li>
+                     </ul>
+                  </li>
+                  <li><a href="../../user-guide/">User guide</a><ul class="nav nav-list">
+                        <li><a href="../../user-guide/add-data/">Add data</a></li>
+                        <li><a href="../../user-guide/browse-data/">Browse data</a></li>
+                        <li><a href="../../user-guide/build-apps/">Build apps</a></li>
+                        <li><a href="../../user-guide/change-layout/">Change layout</a></li>
+                        <li><a href="../../user-guide/change-system-base-uri/">Change system base URI</a></li>
+                        <li><a href="../../user-guide/change-model/">Change the model</a></li>
+                        <li><a href="../../user-guide/create-data/">Create data</a><ul class="nav nav-list">
+                              <li><a href="../../user-guide/create-data/create-content/">Create content</a></li>
+                              <li><a href="../../user-guide/create-data/create-documents/">Create documents</a></li>
+                              <li><a href="../../user-guide/create-data/create-resources/">Create instances</a></li>
+                           </ul>
+                        </li>
+                        <li><a href="../../user-guide/edit-content/">Edit content</a></li>
+                        <li><a href="../../user-guide/import-data/">Import data</a><ul class="nav nav-list">
+                              <li><a href="../../user-guide/import-data/import-csv-data/">Import CSV data</a></li>
+                              <li><a href="../../user-guide/import-data/import-rdf-data/">Import RDF data</a></li>
+                           </ul>
+                        </li>
+                        <li><a href="../../user-guide/manage-dataspaces/">Manage dataspaces</a></li>
+                        <li><a href="../../user-guide/manage-packages/">Manage packages</a></li>
+                        <li><a href="../../user-guide/navigate-data/">Navigate data</a></li>
+                        <li><a href="../../user-guide/query-data/">Query data</a></li>
+                        <li><a href="../../user-guide/search-data/">Search data</a></li>
+                        <li><a href="../../user-guide/upload-file/">Upload file</a></li>
+                     </ul>
+                  </li>
+               </ul>
+            </nav>
+            <main class="span7">
+               <header>
+                  <h1>Media</h1>
+               </header>
+               <div xmlns:dct="http://purl.org/dc/terms/" xmlns:dh="https://www.w3.org/ns/ldt/document-hierarchy#" xmlns:ldh="https://w3id.org/atomgraph/linkeddatahub#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+                  
+                  <p class="lead">Upload files and link them to resources</p>
+                  
+                  <p>Northwind comes with images: a photo per employee, an icon per category. Uploaded
+                     files are stored <strong>content-addressed</strong> — the file's URL is derived from the SHA-1 hash of its
+                     content, under <samp>${base}uploads/</samp>. The same bytes always land at the same URL, which is what makes file references
+                     stable enough to bake into import mappings.</p>
+                  
+                  <div>
+                     
+                     <h2 id="browser">In the browser</h2>
+                     
+                     <p>Upload a file with the file upload form as shown in the <a href="../../user-guide/upload-file/" target="_blank">Upload file</a> guide.</p>
+                     </div>
+                  
+                  <div>
+                     
+                     <h2 id="cli">From the command line</h2>
+                     
+                     <pre>add-file.sh \
+    -b "$base" \
+    -f "$cert_pem_file" \
+    -p "$cert_password" \
+    --title "Nancy Davolio" \
+    --file "$PWD/employees/nancy.jpg" \
+    --content-type "image/jpeg" \
+    "$base"</pre>
+                     </div>
+                  
+                  <div>
+                     
+                     <h2 id="linking">Linking files to resources</h2>
+                     
+                     <p>A file becomes part of the graph the moment something points at it. The category mapping
+                        from the <a href="../data/">Data</a> stage does exactly that — the CSV carries each image's hash,
+                        and the mapping mints the upload URL from it:</p>
+                     
+                     <pre>?category foaf:depiction ?picture .
+...
+BIND(uri(concat(str($base), "uploads/", encode_for_uri(?pictureHash))) AS ?picture)</pre>
+                     </div>
+                  
+                  <div>
+                     
+                     <h2 id="result">What you now see</h2>
+                     
+                     <p>Category and employee documents now render with their images — <code>foaf:depiction</code> is picked up by the default layout, no template work required.</p>
+                     <!-- screenshot: an employee document with the photo rendered -->
+                     </div>
+                  
+                  <p class="lead">Next: <a href="../insight/">Insight</a></p>
+                  </div>
+            </main>
+         </div>
+      </div>
+      <div class="footer container-fluid">
+         <div class="row-fluid">
+            <div class="offset2 span8">
+               <div class="span3">
+                  <h2 class="nav-header">About</h2>
+                  <ul class="nav nav-list">
+                     <li><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/about/" target="_blank">LinkedDataHub</a></li>
+                     <li><a href="https://atomgraph.com" target="_blank">AtomGraph</a></li>
+                  </ul>
+               </div>
+               <div class="span3">
+                  <h2 class="nav-header">Resources</h2>
+                  <ul class="nav nav-list">
+                     <li><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/" target="_blank">Documentation</a></li>
+                     <li><a href="https://www.youtube.com/channel/UCtrdvnVjM99u9hrjESwfCeg" target="_blank">Screencasts</a></li>
+                  </ul>
+               </div>
+               <div class="span3">
+                  <h2 class="nav-header">Support</h2>
+                  <ul class="nav nav-list">
+                     <li><a href="https://groups.io/g/linkeddatahub" target="_blank">Mailing list</a></li>
+                     <li><a href="https://github.com/AtomGraph/LinkedDataHub/issues" target="_blank">Report issues</a></li>
+                     <li><a href="mailto:support@linkeddatahub.com">Contact support</a></li>
+                  </ul>
+               </div>
+               <div class="span3">
+                  <h2 class="nav-header">Follow us</h2>
+                  <ul class="nav nav-list">
+                     <li><a href="https://twitter.com/atomgraphhq" target="_blank">@atomgraphhq</a></li>
+                     <li><a href="https://github.com/AtomGraph" target="_blank">github.com/AtomGraph</a></li>
+                  </ul>
+               </div>
+            </div>
+         </div>
+      </div>
+   </body>
+</html>
