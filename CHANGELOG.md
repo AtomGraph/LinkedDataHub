@@ -1,4 +1,4 @@
-## [5.9.0]
+## [5.9.0] - 2026-08-18
 ### Added
 - GitHub-backed graph versioning: writes mirror each document into a repository as a sorted N-Triples commit authored with the agent's WebID (per-dataspace `lapp:versioningRepository` → `doap:GitRepository` in `system.trig`; token as `a:authToken` in `secrets/credentials.trig`) (#350)
 - `GET ?version=<commit-sha>` serves a historical version with `Memento-Datetime`, a SHA `ETag`, and immutable `Cache-Control`
