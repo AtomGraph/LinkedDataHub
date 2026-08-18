@@ -38,7 +38,7 @@ echo "<${doc_url}> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://ww
 
 # wait for the async versioning commit to appear in the repository
 
-path="graphs/${slug}.nt"
+path="${VERSIONING_PATH_PREFIX:-graphs}/${slug}.nt"
 
 for i in $(seq 1 30); do
     if gh api "repos/${VERSIONING_TEST_REPO}/contents/${path}?ref=main" > /dev/null 2>&1; then

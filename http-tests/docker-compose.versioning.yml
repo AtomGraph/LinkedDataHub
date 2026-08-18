@@ -1,0 +1,8 @@
+# enables the credentials secret for the graph versioning http-tests; added by CI only when the test token is configured
+secrets:
+  credentials:
+    file: ../secrets/credentials.trig
+services:
+  linkeddatahub:
+    secrets:
+      - credentials

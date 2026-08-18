@@ -25,7 +25,7 @@ add-agent-to-group.sh \
 
 slug=$(uuidgen | tr '[:upper:]' '[:lower:]')
 doc_url="${END_USER_BASE_URL}${slug}/"
-path="graphs/${slug}.nt"
+path="${VERSIONING_PATH_PREFIX:-graphs}/${slug}.nt"
 
 put_document()
 {
