@@ -543,6 +543,27 @@ extension-element-prefixes="ixsl"
                 </div>
             </xsl:if>
 
+            <!-- legend shown when a version diff is displayed (?diff= query parameter): removed content comes from the compared version, added content from the viewed one -->
+            <xsl:if test="map:contains(ldh:query-params(), 'diff')">
+                <div class="alert alert-info">
+                    <xsl:value-of>
+                        <xsl:apply-templates select="key('resources', 'comparing-versions', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                    </xsl:value-of>
+                    <xsl:text>: </xsl:text>
+                    <span class="text-error">
+                        <xsl:value-of>
+                            <xsl:apply-templates select="key('resources', 'removed', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                        </xsl:value-of>
+                    </span>
+                    <xsl:text> / </xsl:text>
+                    <span class="text-success">
+                        <xsl:value-of>
+                            <xsl:apply-templates select="key('resources', 'added', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                        </xsl:value-of>
+                    </span>
+                </div>
+            </xsl:if>
+
             <!-- host for the RDFa editor toolbar (appended by rdfae:init-editing); empty until an editable region initializes -->
             <div class="navbar-inner editor-bar">
                 <div class="container-fluid"></div>
