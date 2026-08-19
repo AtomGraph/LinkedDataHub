@@ -541,8 +541,16 @@
         <rdfs:label xml:lang="en-US">Compare</rdfs:label>
         <rdfs:label xml:lang="es-ES">Comparar</rdfs:label>
     </rdf:Description>
-    <rdf:Description rdf:nodeID="no-changes">
-        <rdfs:label xml:lang="en-US">No changes between the selected versions</rdfs:label>
-        <rdfs:label xml:lang="es-ES">No hay cambios entre las versiones seleccionadas</rdfs:label>
+    <rdf:Description rdf:nodeID="comparing-versions">
+        <rdfs:label xml:lang="en-US">You are comparing two versions of this document</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Está comparando dos versiones de este documento</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="removed">
+        <rdfs:label xml:lang="en-US">removed</rdfs:label>
+        <rdfs:label xml:lang="es-ES">eliminado</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="added">
+        <rdfs:label xml:lang="en-US">added</rdfs:label>
+        <rdfs:label xml:lang="es-ES">añadido</rdfs:label>
     </rdf:Description>
 </rdf:RDF>

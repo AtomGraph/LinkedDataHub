@@ -5,6 +5,7 @@
     <!ENTITY ac      "https://w3id.org/atomgraph/client#">
     <!ENTITY rdf     "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
     <!ENTITY memento "http://mementoweb.org/ns#">
+    <!ENTITY sp      "http://spinrdf.org/sp#">
 ]>
 <xsl:stylesheet
 xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
@@ -16,6 +17,7 @@ xmlns:lapp="&lapp;"
 xmlns:ac="&ac;"
 xmlns:rdf="&rdf;"
 xmlns:memento="&memento;"
+xmlns:sp="&sp;"
 xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
 xmlns:xhtml="http://www.w3.org/1999/xhtml"
 exclude-result-prefixes="#all"
@@ -23,7 +25,7 @@ extension-element-prefixes="ixsl"
 version="3.0"
 >
 
-    <!-- Memento (RFC 7089) version history modal -->
+    <!-- Memento (RFC 7089) version history modal and version diff loading -->
 
     <!-- open the version history modal instead of navigating to the TimeMap URL -->
     <xsl:template match="a[contains-token(@class, 'document-history')]" mode="ixsl:onclick" priority="1">
@@ -98,7 +100,7 @@ version="3.0"
                                                             <xsl:apply-templates select="key('resources', 'agent', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
                                                         </xsl:value-of>
                                                     </th>
-                                                    <!-- header colors match the diff line colors: - lines come from the From version, + lines from the To version -->
+                                                    <!-- header colors match the diff colors: removed content comes from the From version, added content from the To version -->
                                                     <th class="text-error">
                                                         <xsl:value-of>
                                                             <xsl:apply-templates select="key('resources', 'from', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
@@ -133,7 +135,6 @@ version="3.0"
                                             </button>
                                         </div>
                                     </form>
-                                    <div id="version-diff"/>
                                 </xsl:when>
                                 <xsl:otherwise>
                                     <div class="alert alert-error">
@@ -148,75 +149,75 @@ version="3.0"
         </xsl:for-each>
     </xsl:function>
 
-    <!-- runs the version diff instead of submitting the form -->
+    <!-- navigates to the version diff view instead of submitting the form -->
     <xsl:template match="form[@id = 'form-version-diff']" mode="ixsl:onsubmit">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <xsl:variable name="from-uri" select=".//input[@name = 'from'][ixsl:get(., 'checked')] ! xs:anyURI(ixsl:get(., 'value'))" as="xs:anyURI?"/>
         <xsl:variable name="to-uri" select=".//input[@name = 'to'][ixsl:get(., 'checked')] ! xs:anyURI(ixsl:get(., 'value'))" as="xs:anyURI?"/>
 
         <xsl:if test="exists($from-uri) and exists($to-uri)">
-            <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+            <!-- the memento URI is <doc>?version=<sha>; the diff view URL appends the compared version's SHA as display state -->
+            <xsl:variable name="href" select="xs:anyURI($to-uri || '&amp;diff=' || substring-after($from-uri, '?version='))" as="xs:anyURI"/>
+            <xsl:variable name="parsed" select="ldh:parse-href($href)" as="map(xs:string, item()?)"/>
 
-            <xsl:variable name="context" select="map{ 'from-uri': $from-uri, 'to-uri': $to-uri }" as="map(*)"/>
-            <!-- seed a resolved promise so the fan-out's ixsl:http-request calls run in an active promise context -->
-            <ixsl:promise select="ixsl:resolve($context) => ixsl:then(ldh:version-diff-fanout#1)" on-failure="ldh:promise-failure#1"/>
+            <xsl:for-each select="ancestor::div[contains-token(@class, 'modal')]">
+                <xsl:sequence select="ixsl:call(., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
+            </xsl:for-each>
+
+            <xsl:call-template name="ldh:DocumentNavigate">
+                <xsl:with-param name="doc-uri" select="map:get($parsed, 'doc-uri')"/>
+                <xsl:with-param name="fragment" select="map:get($parsed, 'fragment')"/>
+                <xsl:with-param name="query-params" select="map:get($parsed, 'query-params')"/>
+            </xsl:call-template>
         </xsl:if>
     </xsl:template>
 
-    <!-- fan-out driver: runs as a promise callback (so ixsl:http-request is called in an active promise context), fetches both versions and joins them with ixsl:all -->
-    <xsl:function name="ldh:version-diff-fanout" as="item()*" ixsl:updating="yes">
+    <!-- fetches the ?diff= comparison version when the context carries a diff request; passes the context through otherwise -->
+    <xsl:function name="ldh:load-diff-version" as="item()*" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
 
-        <xsl:variable name="promises" as="array(*)" select="
-          array {
-            for $uri in ($context('from-uri'), $context('to-uri')) return
-              let $request := map{ 'method': 'GET', 'href': $uri, 'headers': map{ 'Accept': 'application/rdf+xml' } } return
-                ixsl:http-request($request)
-                  => ixsl:then(ldh:rethread-response(map{ 'request': $request }, ?))
-                  => ixsl:then(ldh:handle-response#1)
-          }"/>
-        <xsl:sequence select="ixsl:all($promises) => ixsl:then(ldh:version-diff-response#1)"/>
+        <xsl:choose>
+            <xsl:when test="map:contains($context, 'diff-request')">
+                <xsl:sequence select="
+                  ixsl:http-request($context('diff-request'))
+                    => ixsl:then(ldh:rethread-response($context, ?, 'diff-response'))
+                    => ixsl:then(ldh:handle-response(?, 'diff-response'))
+                "/>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:sequence select="$context"/>
+            </xsl:otherwise>
+        </xsl:choose>
     </xsl:function>
 
-    <!-- renders the triple diff between the two selected versions into the history modal -->
-    <xsl:function name="ldh:version-diff-response" as="item()?" ixsl:updating="yes">
-        <xsl:param name="results" as="array(*)"/>
+    <!-- union of the two versions' descriptions for the diff view, merged via ldh:MergeRDF; a changed typed block keeps only its current rdf:value because its render factory cannot handle two -->
+    <xsl:function name="ldh:diff-union" as="document-node()">
+        <xsl:param name="to-doc" as="document-node()"/>
+        <xsl:param name="from-doc" as="document-node()"/>
+        <xsl:param name="removed-keys" as="xs:string*"/>
 
-        <xsl:variable name="from-response" select="$results?1?response" as="map(*)"/>
-        <xsl:variable name="to-response" select="$results?2?response" as="map(*)"/>
-
-        <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
-
-        <xsl:for-each select="id('version-diff', ixsl:page())">
-            <xsl:result-document href="?." method="ixsl:replace-content">
-                <xsl:choose>
-                    <xsl:when test="every $response in ($from-response, $to-response) satisfies ($response?status = 200 and $response?media-type = 'application/rdf+xml')">
-                        <xsl:variable name="from-triples" select="ldh:triples-map($from-response?body, false())" as="map(xs:string, element())"/>
-                        <xsl:variable name="to-triples" select="ldh:triples-map($to-response?body, false())" as="map(xs:string, element())"/>
-                        <xsl:variable name="removed" select="for $triple-key in ac:value-except(map:keys($from-triples), map:keys($to-triples)) return map:get($from-triples, $triple-key)" as="element()*"/>
-                        <xsl:variable name="added" select="for $triple-key in ac:value-except(map:keys($to-triples), map:keys($from-triples)) return map:get($to-triples, $triple-key)" as="element()*"/>
-
-                        <xsl:choose>
-                            <xsl:when test="exists(($removed, $added))">
-                                <xsl:sequence select="ldh:version-diff($removed, $added)"/>
-                            </xsl:when>
-                            <xsl:otherwise>
-                                <p class="text-info">
-                                    <xsl:value-of>
-                                        <xsl:apply-templates select="key('resources', 'no-changes', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
-                                    </xsl:value-of>
-                                </p>
-                            </xsl:otherwise>
-                        </xsl:choose>
-                    </xsl:when>
-                    <xsl:otherwise>
-                        <div class="alert alert-error">
-                            <xsl:text>Could not load the versions</xsl:text>
-                        </div>
-                    </xsl:otherwise>
-                </xsl:choose>
-            </xsl:result-document>
-        </xsl:for-each>
+        <xsl:variable name="merged" select="ldh:merge-metadata($to-doc, $from-doc)" as="document-node()"/>
+        <xsl:document>
+            <xsl:apply-templates select="$merged" mode="ldh:DiffPruneValues">
+                <xsl:with-param name="removed-keys" select="$removed-keys" tunnel="yes"/>
+            </xsl:apply-templates>
+        </xsl:document>
     </xsl:function>
+
+    <!-- identity transform for ldh:DiffPruneValues mode -->
+    <xsl:template match="@* | node()" mode="ldh:DiffPruneValues">
+        <xsl:copy>
+            <xsl:apply-templates select="@* | node()" mode="#current"/>
+        </xsl:copy>
+    </xsl:template>
+
+    <!-- drop a typed block's removed rdf:value, but only when the block survives in the To version (has triples outside the removed set) -->
+    <xsl:template match="*[rdf:type/@rdf:resource = ('&ldh;Object', '&ldh;View', '&ldh;GraphChart', '&ldh;ResultSetChart', '&sp;Describe', '&sp;Construct', '&sp;Ask', '&sp;Select')]/rdf:value" mode="ldh:DiffPruneValues">
+        <xsl:param name="removed-keys" as="xs:string*" tunnel="yes"/>
+
+        <xsl:if test="not(ldh:triple-key(., false()) = $removed-keys and ../*[not(ldh:triple-key(., false()) = $removed-keys)])">
+            <xsl:next-match/>
+        </xsl:if>
+    </xsl:template>
 
 </xsl:stylesheet>
