@@ -2,7 +2,6 @@
 ### Added
 - Inline creation in views: views carrying the new `ldh:container` metadata render a Create button that creates a linked instance in that container (#351)
 - `ldh:showWhenEmpty` hides a view while its query returns no results
-- Version diffs in the history modal, rendered on the document page
 
 ### Changed
 - Bundled SKOS package view queries tolerate untagged `skos:prefLabel` literals
