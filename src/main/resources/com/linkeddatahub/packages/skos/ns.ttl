@@ -55,7 +55,7 @@ WHERE
         GRAPH ?narrowerGraph
         {
           ?narrower skos:prefLabel ?prefLabel .
-          FILTER (langMatches(lang(?prefLabel), "en"))
+          FILTER (langMatches(lang(?prefLabel), "en") || lang(?prefLabel) = "")
         }
       }
   }
@@ -84,7 +84,7 @@ WHERE
         GRAPH ?broaderGraph
         {
           ?broader skos:prefLabel ?prefLabel .
-          FILTER (langMatches(lang(?prefLabel), "en"))
+          FILTER (langMatches(lang(?prefLabel), "en") || lang(?prefLabel) = "")
         }
       }
   }
@@ -130,7 +130,7 @@ WHERE
         GRAPH ?memberGraph
         {
           ?member skos:prefLabel ?prefLabel .
-          FILTER (langMatches(lang(?prefLabel), "en"))
+          FILTER (langMatches(lang(?prefLabel), "en") || lang(?prefLabel) = "")
         }
       }
   }
@@ -174,7 +174,7 @@ WHERE
   { GRAPH ?graph
       { ?concept  skos:inScheme  $about ;
             skos:prefLabel ?prefLabel .
-        FILTER (langMatches(lang(?prefLabel), "en"))
+        FILTER (langMatches(lang(?prefLabel), "en") || lang(?prefLabel) = "")
       }
   }
 ORDER BY ?prefLabel

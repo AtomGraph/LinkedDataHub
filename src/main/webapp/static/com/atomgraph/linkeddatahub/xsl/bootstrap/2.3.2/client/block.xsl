@@ -116,19 +116,28 @@ exclude-result-prefixes="#all"
         ]]>
     </xsl:variable>
     
-    <!-- combined forward + inverse view-block lookup; substitutes VALUES ?type { ... } from the resource's rdf:types -->
+    <!-- combined forward + inverse view-block lookup; substitutes VALUES ?type { ... } from the resource's rdf:types.
+         Besides ?block, binds the inline-creation metadata: attachment ?property, ?inverse direction flag, the ?forClass
+         to construct (property range for forward views, domain for inverse ones) and the view's ldh:container/ldh:showWhenEmpty.
+         Runs against the /ns ontology union, so ldh:container asserted on a package view from the app's own namespace is visible. -->
     <xsl:variable name="ontology-view-query" as="xs:string">
         <![CDATA[
             PREFIX  rdfs: <http://www.w3.org/2000/01/rdf-schema#>
             PREFIX  ldh:  <https://w3id.org/atomgraph/linkeddatahub#>
 
-            SELECT DISTINCT ?block
+            SELECT DISTINCT ?block ?property ?inverse ?forClass ?container ?showWhenEmpty
             WHERE {
               {
                 ?property  ldh:view  ?block .
                   { ?property  rdfs:domain  ?type }
                 UNION
                   { ?property  rdfs:subPropertyOf+/rdfs:domain  ?type }
+                BIND(false AS ?inverse)
+                OPTIONAL {
+                    { ?property  rdfs:range  ?forClass }
+                  UNION
+                    { ?property  rdfs:subPropertyOf+/rdfs:range  ?forClass }
+                }
               }
               UNION
               {
@@ -136,7 +145,15 @@ exclude-result-prefixes="#all"
                   { ?property  rdfs:range  ?type }
                 UNION
                   { ?property  rdfs:subPropertyOf+/rdfs:range  ?type }
+                BIND(true AS ?inverse)
+                OPTIONAL {
+                    { ?property  rdfs:domain  ?forClass }
+                  UNION
+                    { ?property  rdfs:subPropertyOf+/rdfs:domain  ?forClass }
+                }
               }
+              OPTIONAL { ?block  ldh:container  ?container }
+              OPTIONAL { ?block  ldh:showWhenEmpty  ?showWhenEmpty }
             }
         ]]>
         <!-- VALUES ?type goes here -->
@@ -673,13 +690,31 @@ exclude-result-prefixes="#all"
 
         <xsl:if test="$response?status = 200 and $response?media-type = 'application/sparql-results+xml'">
             <xsl:variable name="results" select="$response?body" as="document-node()"/>
-            <xsl:variable name="view-uris" select="distinct-values($results/srx:sparql/srx:results/srx:result/srx:binding[@name = 'block']/srx:uri/xs:anyURI(.))" as="xs:anyURI*"/>
 
-            <xsl:for-each select="$view-uris">
-                <xsl:variable name="view-uri" select="xs:anyURI(.)" as="xs:anyURI"/>
+            <!-- one fetch per view; the first row of each group supplies the inline-creation metadata (multiple ?type/?forClass rows can occur) -->
+            <xsl:for-each-group select="$results/srx:sparql/srx:results/srx:result[srx:binding[@name = 'block']/srx:uri]" group-by="srx:binding[@name = 'block']/srx:uri">
+                <xsl:variable name="view-uri" select="xs:anyURI(current-grouping-key())" as="xs:anyURI"/>
                 <xsl:variable name="view-request-uri" select="ldh:href(ac:document-uri($view-uri), map{})" as="xs:anyURI"/>
                 <xsl:variable name="view-request" select="map{ 'method': 'GET', 'href': $view-request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
-                <xsl:variable name="view-context" as="map(*)" select="map:merge(($context, map{ 'request': $view-request, 'view-uri': $view-uri }))"/>
+                <!-- ?forClass is read from srx:uri only: bnode ranges (e.g. owl:unionOf lists) cannot be constructed -->
+                <xsl:variable name="view-metadata" as="map(*)*">
+                    <xsl:for-each select="srx:binding[@name = 'property']/srx:uri">
+                        <xsl:sequence select="map{ 'view-property': xs:anyURI(.) }"/>
+                    </xsl:for-each>
+                    <xsl:if test="srx:binding[@name = 'inverse']/srx:literal = 'true'">
+                        <xsl:sequence select="map{ 'view-inverse': true() }"/>
+                    </xsl:if>
+                    <xsl:for-each select="srx:binding[@name = 'forClass']/srx:uri">
+                        <xsl:sequence select="map{ 'view-for-class': xs:anyURI(.) }"/>
+                    </xsl:for-each>
+                    <xsl:for-each select="srx:binding[@name = 'container']/srx:uri">
+                        <xsl:sequence select="map{ 'view-container': xs:anyURI(.) }"/>
+                    </xsl:for-each>
+                    <xsl:for-each select="srx:binding[@name = 'showWhenEmpty']/srx:literal">
+                        <xsl:sequence select="map{ 'view-show-when-empty': string(.) }"/>
+                    </xsl:for-each>
+                </xsl:variable>
+                <xsl:variable name="view-context" as="map(*)" select="map:merge(($context, map{ 'request': $view-request, 'view-uri': $view-uri }, $view-metadata))"/>
 
                 <ixsl:promise select="
                     ixsl:http-request($view-request) =>
@@ -700,14 +735,52 @@ exclude-result-prefixes="#all"
                         ixsl:then(ldh:ontology-view-render-thunk#1)
                     "
                     on-failure="ldh:promise-failure#1"/>
-            </xsl:for-each>
+            </xsl:for-each-group>
         </xsl:if>
 
         <xsl:sequence select="$context"/>
     </xsl:function>
 
-    <!-- render one view block from its loaded RDF, append into the wrapper's .span12 alongside the typed resource block, hydrate via existing ldh:RenderRow chain -->
+    <!-- render one view block from its loaded RDF. Creatable views (ldh:container + inferred forClass) first HEAD the container for its acl:mode Link headers, which gate the Create button; the rest insert directly -->
     <xsl:function name="ldh:ontology-view-render-thunk" as="map(*)" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+
+        <xsl:message>ldh:ontology-view-render-thunk</xsl:message>
+
+        <xsl:choose>
+            <xsl:when test="map:contains($context, 'view-container') and map:contains($context, 'view-for-class')">
+                <xsl:variable name="container-request" select="map{ 'method': 'HEAD', 'href': ldh:href($context('view-container'), map{}), 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
+                <xsl:variable name="container-context" select="map:merge(($context, map{ 'container-request': $container-request }))" as="map(*)"/>
+
+                <ixsl:promise select="
+                    ixsl:resolve($container-context) =>
+                        ixsl:then(ldh:http-request-threaded(?, 'container-request', 'container-response')) =>
+                        ixsl:then(ldh:handle-response(?, 'container-response')) =>
+                        ixsl:then(ldh:set-container-acl-modes#1) =>
+                        ixsl:then(ldh:ontology-view-insert#1)
+                    "
+                    on-failure="ldh:promise-failure#1"/>
+
+                <xsl:sequence select="$context"/>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:sequence select="ldh:ontology-view-insert($context)"/>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:function>
+
+    <!-- extract acl:mode URIs from the container HEAD response's Link headers (emitted by ResponseHeadersFilter, forwarded for remote containers by ProxyRequestFilter); same parsing as ldh:rdf-document-response. A non-200 response yields no modes, which downstream reads as no Create button -->
+    <xsl:function name="ldh:set-container-acl-modes" as="map(*)" ixsl:updating="no">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:variable name="response" select="$context('container-response')" as="map(*)"/>
+        <xsl:variable name="acl-mode-links" select="tokenize($response?headers?link, ',')[contains(., '&acl;mode')]" as="xs:string*"/>
+        <xsl:variable name="acl-modes" select="for $mode-link in $acl-mode-links return xs:anyURI(substring-before(substring-after(substring-before($mode-link, ';'), '&lt;'), '&gt;'))" as="xs:anyURI*"/>
+
+        <xsl:sequence select="map:merge(($context, map{ 'container-acl-modes': $acl-modes }))"/>
+    </xsl:function>
+
+    <!-- append the rendered view block into the wrapper's .span12 alongside the typed resource block, stamp the inline-creation metadata as data-* attributes, hydrate via existing ldh:RenderRow chain -->
+    <xsl:function name="ldh:ontology-view-insert" as="map(*)" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
         <xsl:variable name="response" select="$context('response')" as="map(*)"/>
         <xsl:variable name="container" select="$context('container')" as="element()"/>
@@ -715,7 +788,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="view-uri" select="$context('view-uri')" as="xs:anyURI"/>
         <xsl:variable name="base-uri" select="$context('base-uri')" as="xs:anyURI"/>
 
-        <xsl:message>ldh:ontology-view-render-thunk</xsl:message>
+        <xsl:message>ldh:ontology-view-insert</xsl:message>
 
         <xsl:if test="$response?status = 200 and $response?media-type = 'application/rdf+xml'">
             <xsl:variable name="view-rdf" select="$response?body" as="document-node()"/>
@@ -738,6 +811,27 @@ exclude-result-prefixes="#all"
                 <!-- hydrate the freshly-injected wrapper via the existing view.xsl:62 RenderRow handler -->
                 <xsl:variable name="injected" select="$span12/*[last()]" as="element()?"/>
                 <xsl:if test="$injected">
+                    <!-- stamp inline-creation metadata before hydration so ldh:RenderViewResults can read it off the wrapper -->
+                    <xsl:for-each select="$injected">
+                        <xsl:if test="map:contains($context, 'view-property')">
+                            <ixsl:set-attribute name="data-property" select="string($context('view-property'))" object="."/>
+                        </xsl:if>
+                        <xsl:if test="map:contains($context, 'view-inverse')">
+                            <ixsl:set-attribute name="data-inverse" select="'true'" object="."/>
+                        </xsl:if>
+                        <xsl:if test="map:contains($context, 'view-for-class')">
+                            <ixsl:set-attribute name="data-for-class" select="string($context('view-for-class'))" object="."/>
+                        </xsl:if>
+                        <xsl:if test="map:contains($context, 'view-container')">
+                            <ixsl:set-attribute name="data-container" select="string($context('view-container'))" object="."/>
+                        </xsl:if>
+                        <xsl:if test="map:contains($context, 'view-show-when-empty')">
+                            <ixsl:set-attribute name="data-show-when-empty" select="string($context('view-show-when-empty'))" object="."/>
+                        </xsl:if>
+                        <xsl:if test="map:contains($context, 'container-acl-modes')">
+                            <ixsl:set-attribute name="data-acl-modes" select="string-join($context('container-acl-modes'), ' ')" object="."/>
+                        </xsl:if>
+                    </xsl:for-each>
                     <xsl:variable name="factories" as="(function(item()?) as item()*)*">
                         <xsl:apply-templates select="$injected" mode="ldh:RenderRow"/>
                     </xsl:variable>
