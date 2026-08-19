@@ -1,3 +1,16 @@
+## [5.9.1] - 2026-08-19
+### Added
+- Inline creation in views: views carrying the new `ldh:container` metadata render a Create button that creates a linked instance in that container (#351)
+- `ldh:showWhenEmpty` hides a view while its query returns no results
+- Version diffs in the history modal, rendered on the document page
+
+### Changed
+- Bundled SKOS package view queries tolerate untagged `skos:prefLabel` literals
+
+### Fixed
+- Type/class typeaheads dropped `owl:Class`-typed classes under inference-free ontology serving
+- SKOS package URLs moved to LinkedDataHub-Apps `master` after the `develop` branch was deleted (package installs 404ed)
+
 ## [5.9.0] - 2026-08-18
 ### Added
 - GitHub-backed graph versioning: writes mirror each document into a repository as a sorted N-Triples commit authored with the agent's WebID (per-dataspace `lapp:versioningRepository` → `doap:GitRepository` in `system.trig`; token as `a:authToken` in `secrets/credentials.trig`) (#350)
