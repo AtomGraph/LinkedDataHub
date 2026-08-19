@@ -2476,10 +2476,8 @@ exclude-result-prefixes="#all"
                 <xsl:sequence select="ixsl:call($modal, 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
 
                 <xsl:choose>
-                    <!-- inverse linking triple already shipped inside the PUT body: refresh straight away -->
+                    <!-- inverse linking triple already shipped inside the PUT body: refresh straight away. The cursor stays 'progress' (set on form submit) until ldh:render-view restores it -->
                     <xsl:when test="$inverse">
-                        <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
-
                         <xsl:sequence select="ldh:refresh-view($block-id)"/>
                     </xsl:when>
                     <!-- forward: INSERT the linking triple into the current document, then refresh -->
@@ -2526,8 +2524,7 @@ exclude-result-prefixes="#all"
                     <ixsl:set-property name="etag" select="$etag" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $doc-uri || '`')"/>
                 </xsl:if>
 
-                <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
-
+                <!-- the cursor stays 'progress' (set on form submit) until ldh:render-view restores it -->
                 <xsl:sequence select="ldh:refresh-view($block-id)"/>
             </xsl:when>
             <xsl:otherwise>
