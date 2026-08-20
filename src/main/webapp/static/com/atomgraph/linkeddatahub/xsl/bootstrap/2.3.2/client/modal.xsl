@@ -1107,7 +1107,8 @@ LIMIT   10
                  [ ldh:load-property-metadata#1,                'property-metadata-request', 'property-metadata-response', ldh:set-property-metadata#1 ],
                  [ ldh:load-constraints#1,                      'constraints-request',       'constraints-response',       ldh:set-constraints#1 ],
                  [ ldh:load-object-metadata#1,                  'metadata-request',          'metadata-response',          ldh:set-object-metadata#1 ],
-                 [ ldh:load-object-metadata#1,                  'ns-metadata-request',       'ns-metadata-response',       ldh:set-object-metadata-ns#1 ]
+                 [ ldh:load-object-metadata#1,                  'ns-metadata-request',       'ns-metadata-response',       ldh:set-object-metadata-ns#1 ],
+                 [ ldh:load-package-catalog#1,                  'package-catalog-request',   'package-catalog-response',   ldh:set-package-catalog#1 ]
                ]))
             => ixsl:then(ldh:merge-object-metadata#1)
             => ixsl:then(ldh:render-app-settings-form#1)

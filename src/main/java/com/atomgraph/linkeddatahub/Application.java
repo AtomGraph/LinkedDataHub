@@ -17,7 +17,7 @@
 package com.atomgraph.linkeddatahub;
 
 import com.atomgraph.client.util.jena.PrefixGraphRepository;
-import com.atomgraph.client.util.StylesheetResolver;
+import com.atomgraph.linkeddatahub.server.util.LocalStylesheetResolver;
 import com.atomgraph.linkeddatahub.writer.impl.SameSiteSourceResolver;
 import com.atomgraph.linkeddatahub.server.util.OntologyRepository;
 import org.apache.jena.riot.RDFParser;
@@ -256,12 +256,6 @@ public class Application extends ResourceConfig
 {
 
     private static final Logger log = LoggerFactory.getLogger(Application.class);
-
-    /**
-     * Path to the master XSLT stylesheet for server-side transformations.
-     * Package stylesheets are imported into this master stylesheet.
-     */
-    public static final String MASTER_STYLESHEET_PATH = "/static/xsl/layout.xsl";
 
     private final ExecutorService importThreadPool;
     private final ServletConfig servletConfig;
@@ -860,7 +854,7 @@ public class Application extends ResourceConfig
             
             xsltComp = xsltProc.newXsltCompiler();
             xsltComp.setParameter(new QName("ldh", LDH.base.getNameSpace(), LDH.base.getLocalName()), new XdmAtomicValue(baseURI));
-            xsltComp.setURIResolver(new StylesheetResolver(client)); // resolves xsl:import to raw stylesheet sources
+            xsltComp.setURIResolver(new LocalStylesheetResolver(this, servletConfig.getServletContext(), client)); // resolves xsl:import to raw stylesheet sources, app-origin /static/ URLs locally
             xsltExec = xsltComp.compile(stylesheet);
         }
         catch (FileNotFoundException ex)
