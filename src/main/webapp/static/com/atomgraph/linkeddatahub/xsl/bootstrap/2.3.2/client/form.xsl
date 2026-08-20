@@ -966,6 +966,10 @@ WHERE
 
             <xsl:result-document href="?." method="ixsl:replace-content">
                 <xsl:copy-of select="$form"/>
+
+                <xsl:apply-templates select="$context('package-catalog')/rdf:RDF" mode="ldh:PackageList">
+                    <xsl:with-param name="installed" select="for $import in $document//*[@rdf:about = $context('about')]/ldh:import/@rdf:resource return xs:anyURI($import)"/>
+                </xsl:apply-templates>
             </xsl:result-document>
         </xsl:for-each>
 

@@ -2,13 +2,23 @@
 ### Changed
 - Constructor instances are instantiated client-side: one SPARQL SELECT fetches the type set's `spin:constructor` queries (subclass closure, deduplicated) and their CONSTRUCT templates are expanded onto a single instance typed with all the resource's classes — the template mirrors the instance. Fixes nondeterministically missing constructor-supplied inputs (the intermittently vanishing app-settings Description field) and multi-range predicate cardinality errors; same-range duplicate properties are collapsed. Constructors must have an empty `WHERE` clause to be client-instantiable
 - Server-rendered edit forms show data properties only; the client re-render supplies the constructor controls (`ldh:construct-forClass` is an empty stub under SAXON, the `ac:construct` stub pattern)
+- Packages are declarative: an application imports a package with a single `<app> ldh:import <package-uri>` triple in its dataspace settings — in `config/dataspaces.trig` (permanent, applied on restart) or live via `PATCH /settings` (effective on the next request, no restart). The package's components are discovered from its Linked Data description (bundled descriptions resolve from the classpath); its stylesheet is loaded from its source URL and composed into the application stylesheet in memory at compile time, per dataspace. Nothing is downloaded ahead, copied into the webapp, or registered anywhere — `/static/` is never modified
+- The available-package catalog is data at the registry URI `https://packages.linkeddatahub.com/` (bundled one-entry copy listing the SKOS package, served through the Linked Data proxy's mapped-URI resolution until the registry is live)
+- The application settings modal lists the available packages with a per-row Installed checkbox; Save applies the checkbox changes as one `ldh:import` PATCH through `/settings` and reloads the page
+- XSLT compilation resolves `xsl:import` URLs under an application origin's `/static/` path to local webapp files (`LocalStylesheetResolver`) instead of HTTPS round-trips through nginx, and modules imported via different routes deduplicate under one URL
+- `ac:stylesheet` values in `config/dataspaces.trig` are absolute URLs on the application's own origin (previously relative, absolutized against the root base URI)
 
 ### Removed
 - **BREAKING**: `/ns?forClass=` constructed-instance responses — the client-side instantiation is the only consumer path; the `Namespace` endpoint serves SPARQL queries and the raw ontology graph only
+- `packages/install` and `packages/uninstall` endpoints, the admin `packages/` container and their ACL entries, the package Actions UI (`imports/lapp.xsl`), and `bin/admin/packages/` CLI scripts — the `ldh:import` declaration itself is the installation. Packages installed with earlier releases were webapp-file mutations and do not carry over: re-declare them with `ldh:import`
+- `XSLTMasterUpdater`, `Package.getStylesheetPath()` and the bundled `packages/skos/layout.xsl` copy — dead now that the webapp-file installation path is gone
 
 ### Fixed
 - Modal violation re-renders harvested `property-uris` from everything except the edited resource, degrading property labels to their local-name fallback; violation/response machinery no longer pollutes the `property-uris`/`object-uris` metadata harvests
 - The `required` function on the modal violation context is stamped per flow by the response handlers, matching each flow's initial-render chain (the shared Container/Item test disagreed with the app-settings chain)
+
+### Known limitations
+- Package ontologies are not yet auto-imported from `ldh:import`: add `owl:imports <package-ontology>` to the application's namespace ontology manually (automatic inclusion is planned)
 
 ## [5.9.1] - 2026-08-19
 ### Added

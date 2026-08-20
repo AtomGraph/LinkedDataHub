@@ -7,6 +7,6 @@
     <!-- System admin stylesheet (lowest priority) -->
     <xsl:import href="../../com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/layout.xsl"/>
 
-    <!-- Package stylesheets will be added here by InstallPackage endpoint -->
+    <!-- package stylesheet imports are composed in-memory at compile time from the application's ldh:import data; this file is never modified -->
 
 </xsl:stylesheet>

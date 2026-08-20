@@ -14,7 +14,7 @@
         dct:title "LinkedDataHub admin" ;
         lapp:origin <https://admin.localhost:4443> ;
         ldt:ontology <https://w3id.org/atomgraph/linkeddatahub/admin#> ;
-        ac:stylesheet <static/xsl/admin/layout.xsl> .
+        ac:stylesheet <https://admin.localhost:4443/static/xsl/admin/layout.xsl> .
 
 }
 
@@ -26,7 +26,7 @@
         dct:title "LinkedDataHub" ;
         lapp:origin <https://localhost:4443> ;
         ldt:ontology <https://localhost:4443/ns#> ;
-        ac:stylesheet <static/xsl/layout.xsl> ;
+        ac:stylesheet <https://localhost:4443/static/xsl/layout.xsl> ;
         lapp:public true .
 
 }
@@ -39,7 +39,7 @@
         dct:title "Northwind Traders admin" ;
         lapp:origin <https://admin.northwind-traders.demo.localhost:4443> ;
         ldt:ontology <https://w3id.org/atomgraph/linkeddatahub/admin#> ;
-        ac:stylesheet <static/xsl/admin/layout.xsl> .
+        ac:stylesheet <https://admin.northwind-traders.demo.localhost:4443/static/xsl/admin/layout.xsl> .
 
 }
 
@@ -51,7 +51,7 @@
         dct:title "Northwind Traders" ;
         lapp:origin <https://northwind-traders.demo.localhost:4443> ;
         ldt:ontology <https://northwind-traders.demo.localhost:4443/ns#> ;
-        ac:stylesheet <static/xsl/layout.xsl> ;
+        ac:stylesheet <https://northwind-traders.demo.localhost:4443/static/xsl/layout.xsl> ;
         lapp:public true .
 
 }

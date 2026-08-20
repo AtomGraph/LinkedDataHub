@@ -18,8 +18,6 @@ package com.atomgraph.linkeddatahub.server.model.impl;
 
 import com.atomgraph.linkeddatahub.resource.Namespace;
 import com.atomgraph.linkeddatahub.resource.admin.ClearOntology;
-import com.atomgraph.linkeddatahub.resource.admin.pkg.InstallPackage;
-import com.atomgraph.linkeddatahub.resource.admin.pkg.UninstallPackage;
 import com.atomgraph.linkeddatahub.resource.Settings;
 import com.atomgraph.linkeddatahub.resource.admin.SignUp;
 import com.atomgraph.linkeddatahub.resource.acl.Access;
@@ -140,28 +138,6 @@ public class Dispatcher
     public Class getClearEndpoint()
     {
         return ClearOntology.class;
-    }
-
-    /**
-     * Returns the endpoint for installing LinkedDataHub packages.
-     *
-     * @return endpoint resource
-     */
-    @Path("packages/install")
-    public Class getInstallPackageEndpoint()
-    {
-        return InstallPackage.class;
-    }
-
-    /**
-     * Returns the endpoint for uninstalling LinkedDataHub packages.
-     *
-     * @return endpoint resource
-     */
-    @Path("packages/uninstall")
-    public Class getUninstallPackageEndpoint()
-    {
-        return UninstallPackage.class;
     }
 
     /**
