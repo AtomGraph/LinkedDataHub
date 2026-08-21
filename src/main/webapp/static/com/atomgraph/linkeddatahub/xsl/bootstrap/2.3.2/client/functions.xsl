@@ -478,25 +478,24 @@ exclude-result-prefixes="#all"
         <xsl:variable name="raw-triples" as="element()*">
             <xsl:for-each select="$texts">
                 <xsl:variable name="pos" select="position()" as="xs:integer"/>
-                <xsl:variable name="query" select="ixsl:call($sparql-parser, 'parse', [ . ])"/>
+                <!-- read the parse tree through JSON serialization (the form.xsl SELECT-builder idiom) - SaxonJS does not marshal plain JS arrays for ixsl:get() access -->
+                <xsl:variable name="query-xml" select="json-to-xml(ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ ixsl:call($sparql-parser, 'parse', [ string(.) ]) ]))" as="document-node()"/>
                 <xsl:choose>
-                    <xsl:when test="xs:integer(ixsl:get(ixsl:get($query, 'where'), 'length')) gt 0">
+                    <xsl:when test="exists($query-xml/json:map/json:array[@key = 'where']/*)">
                         <xsl:message>Constructor skipped: a non-empty WHERE clause cannot be instantiated client-side: <xsl:value-of select="."/></xsl:message>
                     </xsl:when>
                     <xsl:otherwise>
-                        <xsl:variable name="template" select="ixsl:get($query, 'template')"/>
-                        <xsl:for-each select="0 to xs:integer(ixsl:get($template, 'length')) - 1">
-                            <xsl:variable name="triple" select="ixsl:get($template, string(.))"/>
-                            <xsl:variable name="predicate" select="ixsl:get($triple, 'predicate')" as="xs:string"/>
+                        <xsl:for-each select="$query-xml/json:map/json:array[@key = 'template']/json:map">
+                            <xsl:variable name="predicate" select="json:string[@key = 'predicate']" as="xs:string"/>
                             <xsl:choose>
                                 <xsl:when test="starts-with($predicate, '?') or starts-with($predicate, '$')">
                                     <xsl:message>Constructor template triple skipped: variable predicate <xsl:value-of select="$predicate"/></xsl:message>
                                 </xsl:when>
                                 <xsl:otherwise>
                                     <json:map>
-                                        <json:string key="subject"><xsl:value-of select="ldh:instance-term(ixsl:get($triple, 'subject'), $pos)"/></json:string>
+                                        <json:string key="subject"><xsl:value-of select="ldh:instance-term(json:string[@key = 'subject'], $pos)"/></json:string>
                                         <json:string key="predicate"><xsl:value-of select="$predicate"/></json:string>
-                                        <json:string key="object"><xsl:value-of select="ldh:instance-term(ixsl:get($triple, 'object'), $pos)"/></json:string>
+                                        <json:string key="object"><xsl:value-of select="ldh:instance-term(json:string[@key = 'object'], $pos)"/></json:string>
                                     </json:map>
                                 </xsl:otherwise>
                             </xsl:choose>
