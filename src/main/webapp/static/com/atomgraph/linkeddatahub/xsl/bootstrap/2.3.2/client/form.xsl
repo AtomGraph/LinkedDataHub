@@ -1208,7 +1208,7 @@ WHERE
         <xsl:variable name="property-control-group" select="../.." as="element()"/>
         <xsl:variable name="fieldset" select="$property-control-group/.." as="element()"/>
         <xsl:variable name="property-uri" select="../preceding-sibling::*/select/option[ixsl:get(., 'selected') = true()]/ixsl:get(., 'value')" as="xs:anyURI"/>
-        <xsl:variable name="forClass" select="ancestor::div[@typeof][contains-token(@class, 'row-fluid')]/@typeof" as="xs:anyURI*"/>
+        <xsl:variable name="forClass" select="for $type in tokenize(ancestor::div[@typeof][contains-token(@class, 'row-fluid')]/@typeof) return xs:anyURI($type)" as="xs:anyURI*"/>
 
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 

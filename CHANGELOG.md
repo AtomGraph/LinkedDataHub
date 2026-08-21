@@ -1,3 +1,7 @@
+## [Unreleased]
+### Changed
+- Constructor instances for client-side forms are instantiated client-side: one SPARQL SELECT fetches the type set's `spin:constructor` queries (subclass closure, deduplicated) and their CONSTRUCT templates are expanded onto a single instance typed with all the resource's classes — the template mirrors the instance. Fixes nondeterministically missing constructor-supplied inputs (the intermittently vanishing app-settings Description field) and multi-range predicate cardinality errors; same-range duplicate properties are collapsed. Constructors must have an empty `WHERE` clause to be client-instantiable; server-side rendering keeps `/ns?forClass=`
+
 ## [5.9.1] - 2026-08-19
 ### Added
 - Inline creation in views: views carrying the new `ldh:container` metadata render a Create button that creates a linked instance in that container (#351)
