@@ -310,15 +310,19 @@ exclude-result-prefixes="#all"
         </xsl:choose>
     </xsl:function>
     
-    <!-- SSR variant: /ns?forClass= constructs one prototype per class server-side. The SaxonJS variant
-    in client/functions.xsl instantiates the constructor queries client-side onto a single multi-typed
-    instance instead. -->
+    <!-- SSR stub: constructor instantiation is client-side only (the SaxonJS variant in
+    client/functions.xsl instantiates the constructor queries onto a single multi-typed instance).
+    Server-rendered forms show the data properties; the client re-render supplies the constructor
+    controls. Same pattern as Web-Client's ac:construct stub. -->
     <xsl:function name="ldh:construct-forClass" as="document-node()" use-when="system-property('xsl:product-name') = 'SAXON'">
         <xsl:param name="forClass" as="xs:anyURI+"/>
-        <xsl:variable name="results-uri" select="ac:build-uri(resolve-uri('ns', ldt:base()), map{ 'forClass': for $class in $forClass return string($class), 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
-        <xsl:variable name="request-uri" select="ldh:href($results-uri, map{})" as="xs:anyURI"/>
 
-        <xsl:sequence select="document($request-uri)"/>
+        <xsl:variable name="doc" as="document-node()">
+            <xsl:document>
+                <rdf:RDF/>
+            </xsl:document>
+        </xsl:variable>
+        <xsl:sequence select="$doc"/>
     </xsl:function>
 
     <!-- Pure derivation: produces an instance document from a class-keyed, bnode-prototyped constructor by re-keying the prototype Description (the one whose rdf:type matches $forClass) under the given identity. The input constructor is not modified. Pass $about to mint a URI-identified instance (the document-creation case and the fragment-instance case) or $nodeID to mint a bnode-identified instance with a deterministic label. Implementation reuses the existing mode="ldh:SetResourceID" pass — it's the same identity-rewrite, just exposed as a function so call sites can keep the constructor pure and derive the instance separately. -->

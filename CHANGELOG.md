@@ -1,6 +1,10 @@
 ## [Unreleased]
 ### Changed
-- Constructor instances for client-side forms are instantiated client-side: one SPARQL SELECT fetches the type set's `spin:constructor` queries (subclass closure, deduplicated) and their CONSTRUCT templates are expanded onto a single instance typed with all the resource's classes — the template mirrors the instance. Fixes nondeterministically missing constructor-supplied inputs (the intermittently vanishing app-settings Description field) and multi-range predicate cardinality errors; same-range duplicate properties are collapsed. Constructors must have an empty `WHERE` clause to be client-instantiable; server-side rendering keeps `/ns?forClass=`
+- Constructor instances are instantiated client-side: one SPARQL SELECT fetches the type set's `spin:constructor` queries (subclass closure, deduplicated) and their CONSTRUCT templates are expanded onto a single instance typed with all the resource's classes — the template mirrors the instance. Fixes nondeterministically missing constructor-supplied inputs (the intermittently vanishing app-settings Description field) and multi-range predicate cardinality errors; same-range duplicate properties are collapsed. Constructors must have an empty `WHERE` clause to be client-instantiable
+- Server-rendered edit forms show data properties only; the client re-render supplies the constructor controls (`ldh:construct-forClass` is an empty stub under SAXON, the `ac:construct` stub pattern)
+
+### Removed
+- **BREAKING**: `/ns?forClass=` constructed-instance responses — the client-side instantiation is the only consumer path; the `Namespace` endpoint serves SPARQL queries and the raw ontology graph only
 
 ## [5.9.1] - 2026-08-19
 ### Added
