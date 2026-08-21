@@ -1128,12 +1128,18 @@ LIMIT   10
     <xsl:template match="rdf:RDF" mode="ldh:AppSettingsForm">
         <xsl:param name="method" select="'patch'" as="xs:string"/>
         <xsl:param name="form-actions-class" select="'form-actions modal-footer'" as="xs:string?"/>
+        <xsl:param name="package-catalog" as="document-node()?" tunnel="yes"/>
         <xsl:call-template name="bs2:Form">
             <xsl:with-param name="method" select="$method"/>
             <xsl:with-param name="form-actions-class" select="$form-actions-class"/>
             <xsl:with-param name="body" as="node()*">
                 <xsl:apply-templates mode="bs2:Exception"/>
                 <xsl:apply-templates mode="#current"/>
+
+                <!-- package checkboxes serialize as RDF/POST ldh:import inputs, submitted by the same form -->
+                <xsl:apply-templates select="$package-catalog/rdf:RDF" mode="ldh:PackageList">
+                    <xsl:with-param name="installed" select="for $import in */ldh:import/@rdf:resource return xs:anyURI($import)"/>
+                </xsl:apply-templates>
             </xsl:with-param>
         </xsl:call-template>
     </xsl:template>
@@ -1166,6 +1172,9 @@ LIMIT   10
             <xsl:with-param name="type" select="'hidden'"/>
         </xsl:apply-templates>
     </xsl:template>
+
+    <!-- ldh:import is represented by the package checkboxes in the same form, not round-tripped as hidden inputs -->
+    <xsl:template match="*[rdf:type/@rdf:resource = '&lapp;Application']/ldh:import" mode="ldh:AppSettingsForm" priority="2"/>
 
     <!-- dct:title / dct:description / rdf:type fall through to the generic bs2:FormControl rendering. Forward the with-params from the shell's default body iteration (violations / constructor / type-constraints / type-shapes) so the per-property template at imports/default.xsl:744 can compute $required correctly (required-class bolding) and render constraint violations. -->
     <xsl:template match="*[rdf:type/@rdf:resource = '&lapp;Application']/*" mode="ldh:AppSettingsForm">
@@ -1785,13 +1794,9 @@ LIMIT   10
         <xsl:message>ldh:settings-form-response</xsl:message>
 
         <xsl:choose>
-            <!-- 200/204: settings saved successfully, close the modal -->
+            <!-- 200/204: settings saved successfully, reload so the page re-renders with the updated settings and stylesheet composition -->
             <xsl:when test="$status = (200, 204)">
-                <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
-                <!-- close the modal -->
-                <xsl:if test="$form">
-                    <xsl:sequence select="ixsl:call($form/ancestor::div[contains-token(@class, 'modal')], 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
-                </xsl:if>
+                <xsl:sequence select="ixsl:call(ixsl:get(ixsl:window(), 'location'), 'reload', [])[current-date() lt xs:date('2000-01-01')]"/>
             </xsl:when>
             <!-- validation errors: inject render-fn so the violation re-render uses ldh:AppSettingsForm mode (the modal-form-submit-violation chain is shared with the Container/Item flow which renders via ldh:DocumentForm); 'required' mirrors the always-true function of the initial app-settings chain -->
             <xsl:when test="$status = (400, 422) and starts-with($media-type, 'application/rdf+xml')">
