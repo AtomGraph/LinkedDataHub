@@ -1342,7 +1342,8 @@ WHERE
         <xsl:message>ldh:row-form-submit-violation</xsl:message>
 
         <xsl:variable name="body" select="$response?body" as="document-node()"/>
-        <xsl:variable name="types" select="for $t in distinct-values($body/rdf:RDF/*[not(@rdf:about = $doc-uri)]/rdf:type/@rdf:resource) return xs:anyURI($t)" as="xs:anyURI*"/>
+        <!-- exclude the violation/response machinery Descriptions (the suppression list above) - their types must not pollute the instance type set, or the union-typed constructor prototype fails bs2:FormControl's subset test -->
+        <xsl:variable name="types" select="for $t in distinct-values($body/rdf:RDF/*[not(@rdf:about = $doc-uri)][not(rdf:type/@rdf:resource = ('&spin;ConstraintViolation', '&sh;ValidationResult', '&sh;ValidationReport', '&http;Response'))]/rdf:type/@rdf:resource) return xs:anyURI($t)" as="xs:anyURI*"/>
 
         <xsl:variable name="new-context" as="map(*)" select="map:merge((
             $context,
