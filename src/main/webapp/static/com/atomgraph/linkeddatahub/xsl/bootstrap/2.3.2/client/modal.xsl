@@ -1515,15 +1515,15 @@ LIMIT   10
     
     <!-- CALLBACKS -->
 
-    <!-- Per-flow wrappers that stamp 'render-fn' before delegating to the shared ldh:modal-form-response. ixsl:updating="yes" is required because ldh:modal-form-response writes to result documents (via ldh:DocumentNavigate / ldh:form-submit-created); an inline function literal can't carry that attribute, hence these named wrappers. -->
+    <!-- Per-flow wrappers that stamp 'render-fn' and 'required' before delegating to the shared ldh:modal-form-response. The 'required' function mirrors each flow's initial-render chain so the violation re-render agrees with it. ixsl:updating="yes" is required because ldh:modal-form-response writes to result documents (via ldh:DocumentNavigate / ldh:form-submit-created); an inline function literal can't carry that attribute, hence these named wrappers. -->
     <xsl:function name="ldh:constructor-form-response" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
-        <xsl:sequence select="ldh:modal-form-response(map:put($context, 'render-fn', ldh:render-constructor-form#2))"/>
+        <xsl:sequence select="ldh:modal-form-response(map:merge(($context, map{ 'render-fn': ldh:render-constructor-form#2, 'required': function($r as element()) as xs:boolean { $r/rdf:type/@rdf:resource = ('&dh;Container', '&dh;Item') } }), map{ 'duplicates': 'use-last' }))"/>
     </xsl:function>
 
     <xsl:function name="ldh:edit-form-response" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
-        <xsl:sequence select="ldh:modal-form-response(map:put($context, 'render-fn', ldh:render-document-form#2))"/>
+        <xsl:sequence select="ldh:modal-form-response(map:merge(($context, map{ 'render-fn': ldh:render-document-form#2, 'required': function($r as element()) as xs:boolean { $r/rdf:type/@rdf:resource = ('&dh;Container', '&dh;Item') } }), map{ 'duplicates': 'use-last' }))"/>
     </xsl:function>
 
     <xsl:function name="ldh:modal-form-response" ixsl:updating="yes">
@@ -1792,9 +1792,9 @@ LIMIT   10
                     <xsl:sequence select="ixsl:call($form/ancestor::div[contains-token(@class, 'modal')], 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
                 </xsl:if>
             </xsl:when>
-            <!-- validation errors: inject render-fn so the violation re-render uses ldh:AppSettingsForm mode (the modal-form-submit-violation chain is shared with the Container/Item flow which renders via ldh:DocumentForm) -->
+            <!-- validation errors: inject render-fn so the violation re-render uses ldh:AppSettingsForm mode (the modal-form-submit-violation chain is shared with the Container/Item flow which renders via ldh:DocumentForm); 'required' mirrors the always-true function of the initial app-settings chain -->
             <xsl:when test="$status = (400, 422) and starts-with($media-type, 'application/rdf+xml')">
-                <xsl:sequence select="ldh:modal-form-submit-violation(map:put($context, 'render-fn', ldh:render-app-settings-form#2))"/>
+                <xsl:sequence select="ldh:modal-form-submit-violation(map:merge(($context, map{ 'render-fn': ldh:render-app-settings-form#2, 'required': function($r as element()) as xs:boolean { true() } }), map{ 'duplicates': 'use-last' }))"/>
             </xsl:when>
             <!-- other errors -->
             <xsl:otherwise>
@@ -2190,8 +2190,8 @@ LIMIT   10
                 'body': $body,
                 'types': $types,
                 'endpoint': sd:endpoint(),
-                'property-uris': distinct-values($body/rdf:RDF/*[not(@rdf:about = $about)]/*/concat(namespace-uri(), local-name())),
-                'object-uris': distinct-values($body/rdf:RDF/*/*/@rdf:resource[not(key('resources', .))])
+                'property-uris': distinct-values($body/rdf:RDF/*[@rdf:about = $about]/*/concat(namespace-uri(), local-name())),
+                'object-uris': distinct-values($body/rdf:RDF/*[not(rdf:type/@rdf:resource = $system-types)]/*/@rdf:resource[not(key('resources', .))])
             }
         ), map{ 'duplicates': 'use-last' })"/>
 
@@ -2210,20 +2210,19 @@ LIMIT   10
             on-failure="ldh:promise-failure#1"/>
     </xsl:function>
 
-    <!-- Terminal callback for the modal-form-submit-violation chain. All metadata is in $context from the upstream chain steps. constructors and shapes stay () because the modal form is only used for Container/Item instances. $context('render-fn') is uniformly populated by each flow's response handler — ldh:constructor-form-response stamps ldh:render-constructor-form#2 (mode="bs2:Form") for Container/Item creation (PUT), ldh:edit-form-response stamps ldh:render-document-form#2 (mode="ldh:DocumentForm") for Container/Item edit (PATCH), ldh:settings-form-response stamps ldh:render-app-settings-form#2 for app-settings — so the violation re-render uses the same mode as the initial render. The mode-per-flow split keeps the edit form's narrow @rdf:about=$about filter while letting the creation flow surface co-shipped peer Descriptions (content blocks). -->
+    <!-- Terminal callback for the modal-form-submit-violation chain. All metadata is in $context from the upstream chain steps. constructors and shapes stay () to match the initial modal renders: none of the three flows fetches them, and bs2:FormControl's constructor param default sources the constructor client-side. $context('render-fn') and $context('required') are uniformly populated by each flow's response handler — ldh:constructor-form-response stamps ldh:render-constructor-form#2 (mode="bs2:Form") for Container/Item creation (PUT), ldh:edit-form-response stamps ldh:render-document-form#2 (mode="ldh:DocumentForm") for Container/Item edit (PATCH), ldh:settings-form-response stamps ldh:render-app-settings-form#2 for app-settings — so the violation re-render uses the same mode as the initial render. The mode-per-flow split keeps the edit form's narrow @rdf:about=$about filter while letting the creation flow surface co-shipped peer Descriptions (content blocks). -->
     <xsl:function name="ldh:render-modal-form-violation" as="item()*" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
         <xsl:variable name="body" select="$context('body')" as="document-node()"/>
         <xsl:variable name="block" select="$context('block')" as="element()"/>
         <xsl:variable name="form" select="$context('form')" as="element()?"/>
 
-        <!-- no 'base-uri' entry: the render dispatchers fall back to $ctx('about'), same as the initial render. The response body's base URI equals $about in the creation/edit flows but not in the app-settings flow (urn: subject), where it flipped $show-subject and exposed the URI control -->
+        <!-- no 'base-uri' entry: the render dispatchers fall back to $ctx('about'), same as the initial render. The response body's base URI equals $about in the creation/edit flows but not in the app-settings flow (urn: subject), where it flipped $show-subject and exposed the URI control. No 'required' entry either: the response handlers stamp it per flow, matching each flow's initial chain -->
         <xsl:variable name="render-ctx" as="map(*)" select="map:merge(($context, map{
             'method':            string($form/@method),
             'action':            xs:anyURI(string($form/@action)),
             'constructors':      (),
-            'shapes':            (),
-            'required':          function($r as element()) as xs:boolean { $r/rdf:type/@rdf:resource = ('&dh;Container', '&dh;Item') }
+            'shapes':            ()
         }), map{ 'duplicates': 'use-last' })"/>
         <xsl:variable name="render-fn" select="$context('render-fn')" as="function(document-node(), map(*)) as element()*"/>
         <xsl:variable name="rendered" select="$render-fn($body, $render-ctx)" as="element()*"/>

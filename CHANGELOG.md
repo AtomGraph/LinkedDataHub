@@ -6,6 +6,10 @@
 ### Removed
 - **BREAKING**: `/ns?forClass=` constructed-instance responses — the client-side instantiation is the only consumer path; the `Namespace` endpoint serves SPARQL queries and the raw ontology graph only
 
+### Fixed
+- Modal violation re-renders harvested `property-uris` from everything except the edited resource, degrading property labels to their local-name fallback; violation/response machinery no longer pollutes the `property-uris`/`object-uris` metadata harvests
+- The `required` function on the modal violation context is stamped per flow by the response handlers, matching each flow's initial-render chain (the shared Container/Item test disagreed with the app-settings chain)
+
 ## [5.9.1] - 2026-08-19
 ### Added
 - Inline creation in views: views carrying the new `ldh:container` metadata render a Create button that creates a linked instance in that container (#351)
