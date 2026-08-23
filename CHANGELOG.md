@@ -1,7 +1,11 @@
 ## [Unreleased]
+### Added
+- `http-tests/federation/` self-federation suite: one dataspace's client browses, queries and writes against another origin's dataspace through the Linked Data proxy — runtime endpoint discovery from forwarded `Link` headers, the constructor SELECT against the remote `ns`, and a graph-scoped SPARQL Update `PATCH` under the origin's `If-Match` precondition, plus the unauthenticated negative
+
 ### Changed
 - Constructor instances are instantiated client-side: one SPARQL SELECT fetches the type set's `spin:constructor` queries (subclass closure, deduplicated) and their CONSTRUCT templates are expanded onto a single instance typed with all the resource's classes — the template mirrors the instance. Fixes nondeterministically missing constructor-supplied inputs (the intermittently vanishing app-settings Description field) and multi-range predicate cardinality errors; same-range duplicate properties are collapsed. Constructors must have an empty `WHERE` clause to be client-instantiable
 - Server-rendered edit forms show data properties only; the client re-render supplies the constructor controls (`ldh:construct-forClass` is an empty stub under SAXON, the `ac:construct` stub pattern)
+- "Add data" accepts foreign target documents: the proxied append carries the delegated agent identity, so the target instance's access control arbitrates and its refusal surfaces as the form error (the local-only guard is gone); "Import ontology" keeps the local-target requirement because its constructor derivation is scoped to the local `/sparql` endpoint
 
 ### Removed
 - **BREAKING**: `/ns?forClass=` constructed-instance responses — the client-side instantiation is the only consumer path; the `Namespace` endpoint serves SPARQL queries and the raw ontology graph only
@@ -9,6 +13,7 @@
 ### Fixed
 - Modal violation re-renders harvested `property-uris` from everything except the edited resource, degrading property labels to their local-name fallback; violation/response machinery no longer pollutes the `property-uris`/`object-uris` metadata harvests
 - The `required` function on the modal violation context is stamped per flow by the response handlers, matching each flow's initial-render chain (the shared Container/Item test disagreed with the app-settings chain)
+- The Linked Data proxy forwards the origin's `ETag`/`Last-Modified` on RDF responses instead of stamping re-serialization validators, so `If-Match`-preconditioned writes against proxied documents validate at the origin rather than failing with `412`
 
 ## [5.9.1] - 2026-08-19
 ### Added

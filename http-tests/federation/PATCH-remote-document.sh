@@ -1,0 +1,85 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+initialize_dataset "$END_USER_BASE_URL" "$TMP_END_USER_DATASET" "$END_USER_ENDPOINT_URL"
+initialize_dataset "$ADMIN_BASE_URL" "$TMP_ADMIN_DATASET" "$ADMIN_ENDPOINT_URL"
+purge_cache "$END_USER_VARNISH_SERVICE"
+purge_cache "$ADMIN_VARNISH_SERVICE"
+purge_cache "$FRONTEND_VARNISH_SERVICE"
+
+# Federation write leg: A's client submits a graph-scoped SPARQL Update delta as a PATCH against
+# B's document, through A's proxy, under an If-Match precondition using B's own ETag (forwarded
+# by the proxy on the read). The proxy forwards the method, body and the agent's identity; B's
+# ACL arbitrates. This is the read-write half of the federation test: browse, query, and write
+# crossing the wire on spec-terms only.
+
+remote_base="https://test.localhost:4443/"
+
+# create the document on B (the owner is authorized on both dataspaces in the test setup)
+
+item=$(create-item.sh \
+  -f "$OWNER_CERT_FILE" \
+  -p "$OWNER_CERT_PWD" \
+  -b "$remote_base" \
+  --title "Federation write target" \
+  --slug "federation-patch-$(date +%s)" \
+  --container "$remote_base")
+
+# read the document through A's proxy, capturing B's ETag for the precondition
+
+etag=$(curl -k -f -s -o /dev/null -D - \
+  -G \
+  -E "$OWNER_CERT_FILE":"$OWNER_CERT_PWD" \
+  -H "Accept: application/rdf+xml" \
+  --data-urlencode "uri=${item}" \
+  "$END_USER_BASE_URL" \
+| grep -i '^etag:' | tr -d '\r' | awk '{print $2}')
+
+echo "DEBUG: ETag for If-Match: $etag"
+if [ -z "$etag" ]; then
+  echo "DEBUG: no ETag on the proxied response"
+  exit 1
+fi
+
+update=$(cat <<EOF
+PREFIX dct: <http://purl.org/dc/terms/>
+
+INSERT
+{
+  <${item}> dct:description "Updated across instances" .
+}
+WHERE {}
+EOF
+)
+
+# a stale precondition is rejected by B - proves If-Match is evaluated at the origin
+
+curl -k -w "%{http_code}\n" -o /dev/null -s \
+  -X PATCH \
+  -E "$OWNER_CERT_FILE":"$OWNER_CERT_PWD" \
+  -H 'Content-Type: application/sparql-update' \
+  -H 'If-Match: "stale"' \
+  --url-query "uri=${item}" \
+  --data-binary "$update" \
+  "$END_USER_BASE_URL" \
+| grep -q "$STATUS_PRECONDITION_FAILED"
+
+# the delta with B's current ETag succeeds
+
+curl -k -w "%{http_code}\n" -o /dev/null -f -s \
+  -X PATCH \
+  -E "$OWNER_CERT_FILE":"$OWNER_CERT_PWD" \
+  -H 'Content-Type: application/sparql-update' \
+  -H "If-Match: $etag" \
+  --url-query "uri=${item}" \
+  --data-binary "$update" \
+  "$END_USER_BASE_URL" \
+| grep -q "$STATUS_NO_CONTENT"
+
+# the delta landed on B - confirmed on B directly, not through the proxy
+
+curl -k -f -s \
+  -E "$OWNER_CERT_FILE":"$OWNER_CERT_PWD" \
+  -H "Accept: application/n-triples" \
+  "$item" \
+| grep "Updated across instances" > /dev/null

@@ -1295,7 +1295,7 @@ LIMIT   10
                 <xsl:variable name="target" select="$control-groups[input[@name = 'pu'][@value = '&sd;name']]/descendant::input[@name = 'ou']/ixsl:get(., 'value')" as="xs:anyURI"/>
                 <xsl:variable name="query-uri" select="fieldset/input[@name = 'pu'][@value = '&spin;query']/following-sibling::input[@name = 'ou'][1]/@value" as="xs:anyURI"/>
                 <xsl:choose>
-                    <!-- the append target must be a local document; a cross-origin target would proxy the write to a remote server (which rejects it) -->
+                    <!-- the target must be local because the constructor derivation runs on the local /sparql endpoint scoped to the target graph via ?default-graph-uri= - another instance's graphs are invisible to it (the add/clone variant below has no such constraint and accepts foreign targets) -->
                     <xsl:when test="not(starts-with($target, lapp:origin(ldh:request-uri()) || '/'))">
                         <xsl:sequence select="ldh:add-data-form-error(map{ 'form': $form, 'message': 'The target document must be local (a document in this hub); choose a local container' })"/> <!-- TO-DO: localize -->
                     </xsl:when>
@@ -1347,28 +1347,20 @@ LIMIT   10
                 <xsl:variable name="form" select="." as="element()"/>
                 <xsl:variable name="source" select="$control-groups[input[@name = 'pu'][@value = '&dct;source']]/descendant::input[@name = 'ou']/ixsl:get(., 'value')" as="xs:anyURI"/>
                 <xsl:variable name="target" select="$control-groups[input[@name = 'pu'][@value = '&sd;name']]/descendant::input[@name = 'ou']/ixsl:get(., 'value')" as="xs:anyURI"/>
-                <xsl:choose>
-                    <!-- the append target must be a local document; a cross-origin target would proxy the write to a remote server (which rejects it) -->
-                    <xsl:when test="not(starts-with($target, lapp:origin(ldh:request-uri()) || '/'))">
-                        <xsl:sequence select="ldh:add-data-form-error(map{ 'form': $form, 'message': 'The target document must be local (a document in this hub); choose a local container' })"/> <!-- TO-DO: localize -->
-                    </xsl:when>
-                    <xsl:otherwise>
-                        <!-- ldh:href routes the arbitrary external $source through the same-origin ?uri= proxy (CORS); the proxy also converts any Jena-parseable format to the requested RDF/XML. The target is local, so its ldh:href is a pass-through and the POST goes directly to it. -->
-                        <xsl:variable name="request" select="map{ 'method': 'GET', 'href': ldh:href($source), 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
-                        <xsl:variable name="context" as="map(*)" select="
-                          map{
-                            'request': $request,
-                            'form': $form,
-                            'target-uri': $target
-                          }"/>
-                        <ixsl:promise select="
-                          ixsl:http-request($context('request'))
-                            => ixsl:then(ldh:rethread-response($context, ?))
-                            => ixsl:then(ldh:handle-response#1)
-                            => ixsl:then(ldh:add-data-source-response#1)
-                        " on-failure="ldh:promise-failure#1"/>
-                    </xsl:otherwise>
-                </xsl:choose>
+                <!-- ldh:href routes the arbitrary external $source through the same-origin ?uri= proxy (CORS); the proxy also converts any Jena-parseable format to the requested RDF/XML. The target may be foreign too: its POST rides the same proxy, which forwards the method, body and delegated agent identity - the target instance's ACL arbitrates and a 403 surfaces as the form error -->
+                <xsl:variable name="request" select="map{ 'method': 'GET', 'href': ldh:href($source), 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
+                <xsl:variable name="context" as="map(*)" select="
+                  map{
+                    'request': $request,
+                    'form': $form,
+                    'target-uri': $target
+                  }"/>
+                <ixsl:promise select="
+                  ixsl:http-request($context('request'))
+                    => ixsl:then(ldh:rethread-response($context, ?))
+                    => ixsl:then(ldh:handle-response#1)
+                    => ixsl:then(ldh:add-data-source-response#1)
+                " on-failure="ldh:promise-failure#1"/>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>

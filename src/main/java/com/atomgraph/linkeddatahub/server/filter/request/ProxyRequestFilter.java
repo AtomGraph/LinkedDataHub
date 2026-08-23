@@ -289,9 +289,9 @@ public class ProxyRequestFilter implements ContainerRequestFilter
      * entity class is known.
      * <p>
      * {@code Link} headers and end-to-end cache/content headers from upstream are overlaid on top
-     * of all three branches; {@code ETag}/{@code Last-Modified} are skipped on the typed branches
-     * because the Model/ResultSet builders stamp their own validators that describe the
-     * re-serialized representation, not the upstream bytes.
+     * of all three branches. The Model and raw branches forward the origin's {@code ETag}/{@code Last-Modified}
+     * (writes against the proxied document send {@code If-Match} through this proxy to the origin, which
+     * compares against its own validator); only the ResultSet branch keeps the builder-stamped validators.
      *
      * @param clientResponse response from the proxy target
      * @param targetURI upstream URI (used as the parse base URI hint for {@code ModelProvider})
@@ -344,7 +344,12 @@ public class ProxyRequestFilter implements ContainerRequestFilter
             // base URI hint so ModelProvider (and HtmlJsonLDReader through it) resolve relative IRIs against the upstream URI
             clientResponse.getHeaders().putSingle(ModelProvider.REQUEST_URI_HEADER, targetURI.toString());
             Model model = clientResponse.readEntity(Model.class);
-            return overlayHeaders(getResponse(model, clientResponse.getStatusInfo()), clientResponse, false);
+            // forward the origin's validators (replacing the ones the Model builder stamps off the re-serialized
+            // bytes): a client editing the proxied document sends If-Match through this proxy to the origin, which
+            // compares against its own ETag - a re-serialization validator would 412 every proxied write. The proxy
+            // performs no byte-validator-dependent features of its own (no Range, no conditional evaluation), so the
+            // origin's resource-state validator is the correct one to surface
+            return overlayHeaders(getResponse(model, clientResponse.getStatusInfo()), clientResponse, true);
         }
 
         // upstream is neither RDF nor SPARQL results — pipe raw bytes
@@ -361,9 +366,10 @@ public class ProxyRequestFilter implements ContainerRequestFilter
 
     /**
      * Copies the upstream {@code Link} and end-to-end cache/content headers onto the given
-     * built response. {@code ETag}/{@code Last-Modified} are skipped when {@code copyValidators}
-     * is {@code false} (typed branches), because the Model/ResultSet builders stamp their own
-     * validators that describe the re-serialized representation rather than the upstream bytes.
+     * built response, replacing any locally stamped values. {@code ETag}/{@code Last-Modified}
+     * are skipped when {@code copyValidators} is {@code false} (the ResultSet branch), where the
+     * builder-stamped validators stand. The Model branch forwards the origin's validators so
+     * {@code If-Match} preconditions on proxied writes validate against the origin's own ETag.
      *
      * @param response the response built by the typed or raw branch
      * @param clientResponse upstream response to copy headers from
@@ -386,7 +392,7 @@ public class ProxyRequestFilter implements ContainerRequestFilter
         {
             if (!copyValidators && (HttpHeaders.ETAG.equalsIgnoreCase(name) || HttpHeaders.LAST_MODIFIED.equalsIgnoreCase(name))) continue;
             String value = clientResponse.getHeaderString(name);
-            if (value != null) rb.header(name, value);
+            if (value != null) rb.header(name, null).header(name, value); // replace, not append - the upstream value overlays any locally stamped one
         }
 
         return rb.build();
