@@ -1355,8 +1355,8 @@ WHERE
                 'types': $types,
                 'forClass': $types,
                 'endpoint': sd:endpoint(),
-                'property-uris': distinct-values($body/rdf:RDF/*[not(@rdf:about = $doc-uri)]/*/concat(namespace-uri(), local-name())),
-                'object-uris': distinct-values($body/rdf:RDF/*/*/@rdf:resource[not(key('resources', .))])
+                'property-uris': distinct-values($body/rdf:RDF/*[not(@rdf:about = $doc-uri)][not(rdf:type/@rdf:resource = $system-types)]/*/concat(namespace-uri(), local-name())),
+                'object-uris': distinct-values($body/rdf:RDF/*[not(rdf:type/@rdf:resource = $system-types)]/*/@rdf:resource[not(key('resources', .))])
             }
         ), map{ 'duplicates': 'use-last' })"/>
 
