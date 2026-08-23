@@ -310,13 +310,19 @@ exclude-result-prefixes="#all"
         </xsl:choose>
     </xsl:function>
     
-    <xsl:function name="ldh:construct-forClass" as="document-node()">
+    <!-- SSR stub: constructor instantiation is client-side only (the SaxonJS variant in
+    client/functions.xsl instantiates the constructor queries onto a single multi-typed instance).
+    Server-rendered forms show the data properties; the client re-render supplies the constructor
+    controls. Same pattern as Web-Client's ac:construct stub. -->
+    <xsl:function name="ldh:construct-forClass" as="document-node()" use-when="system-property('xsl:product-name') = 'SAXON'">
         <xsl:param name="forClass" as="xs:anyURI+"/>
-        <!-- DEPRECATED: prefer ldh:load-constructed-doc / ldh:set-constructed-doc in a promise chain. -->
-        <xsl:variable name="results-uri" select="ac:build-uri(resolve-uri('ns', ldt:base()), map{ 'forClass': for $class in $forClass return string($class), 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
-        <xsl:variable name="request-uri" select="ldh:href($results-uri, map{})" as="xs:anyURI"/>
 
-        <xsl:sequence select="document($request-uri)"/>
+        <xsl:variable name="doc" as="document-node()">
+            <xsl:document>
+                <rdf:RDF/>
+            </xsl:document>
+        </xsl:variable>
+        <xsl:sequence select="$doc"/>
     </xsl:function>
 
     <!-- Pure derivation: produces an instance document from a class-keyed, bnode-prototyped constructor by re-keying the prototype Description (the one whose rdf:type matches $forClass) under the given identity. The input constructor is not modified. Pass $about to mint a URI-identified instance (the document-creation case and the fragment-instance case) or $nodeID to mint a bnode-identified instance with a deterministic label. Implementation reuses the existing mode="ldh:SetResourceID" pass — it's the same identity-rewrite, just exposed as a function so call sites can keep the constructor pure and derive the instance separately. -->
@@ -1066,25 +1072,27 @@ exclude-result-prefixes="#all"
 
     <xsl:template match="@rdf:resource" mode="bs2:FormControlTypeLabel">
         <xsl:param name="type" as="xs:string?"/>
-        <xsl:param name="forClass" as="xs:anyURI?"/>
+        <xsl:param name="forClass" as="xs:anyURI*"/>
 
         <xsl:if test="not($type = 'hidden')">
             <xsl:choose>
-                <xsl:when test="$forClass">
-                    <!-- SAXON checks the catalog; SaxonJS only inspects the documentPool to avoid cross-origin fetches that would trigger mixed-content for slash-vocab term URIs (e.g. foaf) -->
-                    <xsl:variable name="doc-loaded" select="doc-available(ac:document-uri($forClass))" as="xs:boolean" use-when="system-property('xsl:product-name') = 'SAXON'"/>
-                    <xsl:variable name="doc-loaded" select="ixsl:doc-fetched(ac:document-uri($forClass))" as="xs:boolean" use-when="system-property('xsl:product-name') eq 'SaxonJS'"/>
+                <xsl:when test="exists($forClass)">
                     <span class="help-inline">
-                        <xsl:choose>
-                            <xsl:when test="$doc-loaded and key('resources', $forClass, document(ac:document-uri($forClass)))">
-                                <xsl:value-of>
-                                    <xsl:apply-templates select="key('resources', $forClass, document(ac:document-uri($forClass)))" mode="ac:label"/>
-                                </xsl:value-of>
-                            </xsl:when>
-                            <xsl:otherwise>
-                                <xsl:value-of select="$forClass"/>
-                            </xsl:otherwise>
-                        </xsl:choose>
+                        <xsl:for-each select="$forClass">
+                            <!-- SAXON checks the catalog; SaxonJS only inspects the documentPool to avoid cross-origin fetches that would trigger mixed-content for slash-vocab term URIs (e.g. foaf) -->
+                            <xsl:variable name="doc-loaded" select="doc-available(ac:document-uri(.))" as="xs:boolean" use-when="system-property('xsl:product-name') = 'SAXON'"/>
+                            <xsl:variable name="doc-loaded" select="ixsl:doc-fetched(ac:document-uri(.))" as="xs:boolean" use-when="system-property('xsl:product-name') eq 'SaxonJS'"/>
+                            <xsl:choose>
+                                <xsl:when test="$doc-loaded and key('resources', ., document(ac:document-uri(.)))">
+                                    <xsl:value-of>
+                                        <xsl:apply-templates select="key('resources', ., document(ac:document-uri(.)))" mode="ac:label"/>
+                                    </xsl:value-of>
+                                </xsl:when>
+                                <xsl:otherwise>
+                                    <xsl:value-of select="."/>
+                                </xsl:otherwise>
+                            </xsl:choose>
+                        </xsl:for-each>
                     </span>
                 </xsl:when>
                 <xsl:otherwise>
@@ -1130,7 +1138,7 @@ exclude-result-prefixes="#all"
                 </xsl:apply-templates>
             </xsl:when>
             <xsl:when test="$resource">
-                <xsl:variable name="forClass" select="if ($constructor) then distinct-values(key('resources', key('resources-by-type', ../../rdf:type/@rdf:resource, $constructor)/*[concat(namespace-uri(), local-name()) = current()/../concat(namespace-uri(), local-name())]/@rdf:nodeID, $constructor)/rdf:type/@rdf:resource[not(. = '&rdfs;Class')]) else ()" as="xs:anyURI?"/>
+                <xsl:variable name="forClass" select="if ($constructor) then distinct-values(key('resources', key('resources-by-type', ../../rdf:type/@rdf:resource, $constructor)/*[concat(namespace-uri(), local-name()) = current()/../concat(namespace-uri(), local-name())]/@rdf:nodeID, $constructor)/rdf:type/@rdf:resource[not(. = '&rdfs;Class')]) else ()" as="xs:anyURI*"/>
                 <xsl:apply-templates select="$resource" mode="ldh:Typeahead">
                     <xsl:with-param name="forClass" select="$forClass"/>
                 </xsl:apply-templates>

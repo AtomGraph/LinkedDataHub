@@ -101,13 +101,16 @@ WHERE
     <xsl:key name="violations-by-value" match="*" use="ldh:violationValue/text()"/>
     <xsl:key name="violations-by-focus-node" match="*" use="sh:focusNode/@rdf:resource | sh:focusNode/@rdf:nodeID"/>
 
+    <!-- types of the violation/response machinery resources that accompany form submissions - suppressed from form rendering and excluded from instance type harvesting -->
+    <xsl:variable name="system-types" select="('&spin;ConstraintViolation', '&sh;ValidationResult', '&sh;ValidationReport', '&http;Response')" as="xs:string*"/>
+
     <!-- TEMPLATES -->
     
     <!-- suppress constraint violations and HTTP responses in the row form - they are displayed as errors on the edited resources -->
-    <xsl:template match="*[rdf:type/@rdf:resource = ('&spin;ConstraintViolation', '&sh;ValidationResult', '&sh;ValidationReport', '&http;Response')]" mode="bs2:RowForm" priority="3"/>
+    <xsl:template match="*[rdf:type/@rdf:resource = $system-types]" mode="bs2:RowForm" priority="3"/>
 
     <!-- suppress constraint violations and HTTP responses in the form - they are displayed as errors on the edited resources -->
-    <xsl:template match="*[rdf:type/@rdf:resource = ('&spin;ConstraintViolation', '&sh;ValidationResult', '&sh;ValidationReport', '&http;Response')]" mode="bs2:Form" priority="3"/>
+    <xsl:template match="*[rdf:type/@rdf:resource = $system-types]" mode="bs2:Form" priority="3"/>
 
     <!-- suppress the system properties of document resources (they are set automatically by LinkedDataHub) -->
     <xsl:template match="*[rdf:type/@rdf:resource = ('&def;Root', '&dh;Container', '&dh;Item')]/dct:created | *[rdf:type/@rdf:resource = ('&def;Root', '&dh;Container', '&dh;Item')]/dct:modified | *[rdf:type/@rdf:resource = ('&def;Root', '&dh;Container', '&dh;Item')]/sioc:has_container | *[rdf:type/@rdf:resource = ('&def;Root', '&dh;Container', '&dh;Item')]/sioc:has_parent | *[rdf:type/@rdf:resource = ('&def;Root', '&dh;Container', '&dh;Item')]/dct:creator | *[rdf:type/@rdf:resource = ('&def;Root', '&dh;Container', '&dh;Item')]/acl:owner | *[rdf:type/@rdf:resource = ('&def;Root', '&dh;Container')]/*[namespace-uri() = '&rdf;'][starts-with(local-name(), '_')][@rdf:resource] | *[rdf:type/@rdf:resource = '&dh;Item']/*[namespace-uri() = '&rdf;'][starts-with(local-name(), '_')]" mode="bs2:FormControl" priority="1"/>
@@ -1208,7 +1211,7 @@ WHERE
         <xsl:variable name="property-control-group" select="../.." as="element()"/>
         <xsl:variable name="fieldset" select="$property-control-group/.." as="element()"/>
         <xsl:variable name="property-uri" select="../preceding-sibling::*/select/option[ixsl:get(., 'selected') = true()]/ixsl:get(., 'value')" as="xs:anyURI"/>
-        <xsl:variable name="forClass" select="ancestor::div[@typeof][contains-token(@class, 'row-fluid')]/@typeof" as="xs:anyURI*"/>
+        <xsl:variable name="forClass" select="for $type in tokenize(ancestor::div[@typeof][contains-token(@class, 'row-fluid')]/@typeof) return xs:anyURI($type)" as="xs:anyURI*"/>
 
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
@@ -1342,7 +1345,8 @@ WHERE
         <xsl:message>ldh:row-form-submit-violation</xsl:message>
 
         <xsl:variable name="body" select="$response?body" as="document-node()"/>
-        <xsl:variable name="types" select="for $t in distinct-values($body/rdf:RDF/*[not(@rdf:about = $doc-uri)]/rdf:type/@rdf:resource) return xs:anyURI($t)" as="xs:anyURI*"/>
+        <!-- exclude the violation/response machinery Descriptions (the suppression list above) - their types must not pollute the instance type set, or the union-typed constructor prototype fails bs2:FormControl's subset test -->
+        <xsl:variable name="types" select="for $t in distinct-values($body/rdf:RDF/*[not(@rdf:about = $doc-uri)][not(rdf:type/@rdf:resource = $system-types)]/rdf:type/@rdf:resource) return xs:anyURI($t)" as="xs:anyURI*"/>
 
         <xsl:variable name="new-context" as="map(*)" select="map:merge((
             $context,
