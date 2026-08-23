@@ -1790,9 +1790,9 @@ LIMIT   10
             <xsl:when test="$status = (200, 204)">
                 <xsl:sequence select="ixsl:call(ixsl:get(ixsl:window(), 'location'), 'reload', [])[current-date() lt xs:date('2000-01-01')]"/>
             </xsl:when>
-            <!-- validation errors: inject render-fn so the violation re-render uses ldh:AppSettingsForm mode (the modal-form-submit-violation chain is shared with the Container/Item flow which renders via ldh:DocumentForm); 'required' mirrors the always-true function of the initial app-settings chain -->
+            <!-- validation errors: inject render-fn so the violation re-render uses ldh:AppSettingsForm mode (the modal-form-submit-violation chain is shared with the Container/Item flow which renders via ldh:DocumentForm); 'required' mirrors the always-true function of the initial app-settings chain; the package-catalog load pair rides as 'load-pairs' so the re-rendered form keeps the package checkboxes - without them Save would submit no ldh:import triples and uninstall every package -->
             <xsl:when test="$status = (400, 422) and starts-with($media-type, 'application/rdf+xml')">
-                <xsl:sequence select="ldh:modal-form-submit-violation(map:merge(($context, map{ 'render-fn': ldh:render-app-settings-form#2, 'required': function($r as element()) as xs:boolean { true() } }), map{ 'duplicates': 'use-last' }))"/>
+                <xsl:sequence select="ldh:modal-form-submit-violation(map:merge(($context, map{ 'render-fn': ldh:render-app-settings-form#2, 'required': function($r as element()) as xs:boolean { true() }, 'load-pairs': [ [ ldh:load-package-catalog#1, 'package-catalog-request', 'package-catalog-response', ldh:set-package-catalog#1 ] ] }), map{ 'duplicates': 'use-last' }))"/>
             </xsl:when>
             <!-- other errors -->
             <xsl:otherwise>
@@ -2193,15 +2193,18 @@ LIMIT   10
             }
         ), map{ 'duplicates': 'use-last' })"/>
 
-        <!-- $new-context is built synchronously above; types/property-uris/object-uris populated from the violation response body. No pre-baked type-metadata-request here, so the type-metadata pair uses the normal ldh:load-type-metadata. -->
-        <ixsl:promise select="ixsl:resolve($new-context) =>
-            ixsl:then(ldh:fire-load-set-parallel(?, [
+        <!-- flow-specific pairs stamped as 'load-pairs' by the response handler (e.g. the app-settings package catalog) join the shared list; every pair must bake a request, so optional fetches ride per flow rather than in the shared list -->
+        <xsl:variable name="pairs" as="array(*)" select="array:join(([
               [ ldh:load-type-metadata#1,     'type-metadata-request',     'type-metadata-response',     ldh:set-type-metadata#1 ],
               [ ldh:load-property-metadata#1, 'property-metadata-request', 'property-metadata-response', ldh:set-property-metadata#1 ],
               [ ldh:load-constraints#1,       'constraints-request',       'constraints-response',       ldh:set-constraints#1 ],
               [ ldh:load-object-metadata#1,   'metadata-request',          'metadata-response',          ldh:set-object-metadata#1 ],
               [ ldh:load-object-metadata#1,   'ns-metadata-request',       'ns-metadata-response',       ldh:set-object-metadata-ns#1 ]
-            ])) =>
+            ], ($context('load-pairs'), [ ])[1]))"/>
+
+        <!-- $new-context is built synchronously above; types/property-uris/object-uris populated from the violation response body. No pre-baked type-metadata-request here, so the type-metadata pair uses the normal ldh:load-type-metadata. -->
+        <ixsl:promise select="ixsl:resolve($new-context) =>
+            ixsl:then(ldh:fire-load-set-parallel(?, $pairs)) =>
             ixsl:then(ldh:merge-object-metadata#1) =>
             ixsl:then(ldh:render-modal-form-violation#1) =>
             ixsl:finally(ldh:reset-cursor#0)"
