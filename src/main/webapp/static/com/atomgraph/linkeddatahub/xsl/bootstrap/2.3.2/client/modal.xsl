@@ -34,6 +34,7 @@ xmlns:lapp="&lapp;"
 xmlns:ac="&ac;"
 xmlns:ldh="&ldh;"
 xmlns:rdf="&rdf;"
+xmlns:owl="&owl;"
 xmlns:acl="&acl;"
 xmlns:srx="&srx;"
 xmlns:ldt="&ldt;"
@@ -1277,7 +1278,7 @@ LIMIT   10
         </xsl:choose>
     </xsl:template>
 
-    <!-- import-ontology variant (carries a spin:query): client-orchestrated. Fetch the dct:source through the same-origin ?uri= proxy as RDF/XML and GSP-append it to the sd:name target document (as the add/clone variant does), then derive constructors: run the spin:query CONSTRUCT over the target's graph via the SPARQL Protocol dataset specification (?default-graph-uri=) on the /sparql endpoint and append the result to the same document. Replaces the server-side /transform endpoint. -->
+    <!-- import-ontology variant (carries a spin:query): client-orchestrated. Fetch the dct:source through the same-origin ?uri= proxy as RDF/XML and PUT it into a scratch document (document metadata + raw vocabulary in one graph), run the spin:query CONSTRUCT over the scratch graph via the SPARQL Protocol dataset specification (?default-graph-uri=) on the /sparql endpoint, append the derived constructors plus the annotation-ontology header (sd:name target a owl:Ontology; owl:imports dct:source) to the target document, then delete the scratch. Only the derived annotations persist - the vocabulary resolves live through the graph repository (bundled mapping or HTTP), so the target holds the same artifact shape a package ontology ships (constructors + owl:imports of the canonical vocabulary URI). -->
     <xsl:template match="form[@id = 'form-clone-data'][fieldset/input[@name = 'pu'][@value = '&spin;query']]" mode="ixsl:onsubmit" priority="2">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <xsl:variable name="control-groups" select="descendant::div[contains-token(@class, 'control-group')]" as="element()*"/>
@@ -1316,8 +1317,10 @@ LIMIT   10
                           map{
                             'request': $request,
                             'form': $form,
+                            'source-uri': $source,
                             'target-uri': $target,
-                            'query-uri': $query-uri
+                            'query-uri': $query-uri,
+                            'scratch-uri': resolve-uri(ac:uuid() || '/', ldt:base())
                           }"/>
                         <ixsl:promise select="
                           ixsl:http-request($context('request'))
@@ -1979,7 +1982,7 @@ LIMIT   10
         </xsl:choose>
     </xsl:function>
 
-    <!-- import-ontology chain, step 1 (source fetched): GSP-append the raw ontology to the target document, then continue with the constructor derivation. Mirrors ldh:add-data-source-response but continues the chain instead of terminating. -->
+    <!-- import-ontology chain, step 1 (source fetched): PUT the raw ontology into the scratch document (scaffolding for the constructor derivation - deleted at the end of the chain). The PUT body carries the scratch document's own metadata alongside the vocabulary so the document-hierarchy constraints validate. -->
     <xsl:function name="ldh:import-ontology-source-response" as="item()*" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
         <xsl:variable name="response" select="$context('response')" as="map(*)"/>
@@ -1989,15 +1992,27 @@ LIMIT   10
         <xsl:message>ldh:import-ontology-source-response</xsl:message>
 
         <xsl:choose>
-            <!-- source fetched as RDF/XML: append it to the target document graph -->
+            <!-- source fetched as RDF/XML: PUT it into the scratch document graph -->
             <xsl:when test="$status = 200 and starts-with($media-type, 'application/rdf+xml')">
-                <xsl:variable name="target-uri" select="$context('target-uri')" as="xs:anyURI"/>
-                <xsl:variable name="post-request" select="map{ 'method': 'POST', 'href': ldh:href($target-uri), 'media-type': 'application/rdf+xml', 'body': $response?body, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
-                <!-- re-thread 'request' so ldh:handle-response's 429/Retry-After retry re-issues the POST, not the original GET -->
-                <xsl:variable name="post-context" select="map:put($context, 'request', $post-request)" as="map(*)"/>
+                <xsl:variable name="scratch-uri" select="$context('scratch-uri')" as="xs:anyURI"/>
+                <xsl:variable name="scratch-body" as="document-node()">
+                    <xsl:document>
+                        <rdf:RDF>
+                            <rdf:Description rdf:about="{$scratch-uri}">
+                                <rdf:type rdf:resource="&dh;Item"/>
+                                <sioc:has_container rdf:resource="{ldt:base()}"/>
+                                <dct:title>Import ontology scratch</dct:title>
+                            </rdf:Description>
+                            <xsl:copy-of select="$response?body/rdf:RDF/*"/>
+                        </rdf:RDF>
+                    </xsl:document>
+                </xsl:variable>
+                <xsl:variable name="put-request" select="map{ 'method': 'PUT', 'href': ldh:href($scratch-uri), 'media-type': 'application/rdf+xml', 'body': $scratch-body, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
+                <!-- re-thread 'request' so ldh:handle-response's 429/Retry-After retry re-issues the PUT, not the original GET; 'scratch-created' arms the error wrapper's cleanup from here on -->
+                <xsl:variable name="put-context" select="map:merge(($context, map{ 'request': $put-request, 'scratch-created': true() }), map{ 'duplicates': 'use-last' })" as="map(*)"/>
                 <xsl:sequence select="
-                  ixsl:http-request($post-request)
-                    => ixsl:then(ldh:rethread-response($post-context, ?))
+                  ixsl:http-request($put-request)
+                    => ixsl:then(ldh:rethread-response($put-context, ?))
                     => ixsl:then(ldh:handle-response#1)
                     => ixsl:then(ldh:import-ontology-query-thunk#1)
                 "/>
@@ -2013,7 +2028,7 @@ LIMIT   10
         </xsl:choose>
     </xsl:function>
 
-    <!-- import-ontology chain, step 2 (raw ontology appended): fetch the spin:query document as RDF/XML so its sp:text can be read -->
+    <!-- import-ontology chain, step 2 (raw ontology PUT into the scratch document): fetch the spin:query document as RDF/XML so its sp:text can be read -->
     <xsl:function name="ldh:import-ontology-query-thunk" as="item()*" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
         <xsl:variable name="response" select="$context('response')" as="map(*)"/>
@@ -2021,7 +2036,7 @@ LIMIT   10
         <xsl:message>ldh:import-ontology-query-thunk</xsl:message>
 
         <xsl:choose>
-            <xsl:when test="$response?status = (200, 204)">
+            <xsl:when test="$response?status = (200, 201, 204)">
                 <xsl:variable name="query-uri" select="$context('query-uri')" as="xs:anyURI"/>
                 <xsl:variable name="request" select="map{ 'method': 'GET', 'href': ldh:href(ac:document-uri($query-uri)), 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
                 <xsl:variable name="query-context" select="map:put($context, 'request', $request)" as="map(*)"/>
@@ -2033,12 +2048,12 @@ LIMIT   10
                 "/>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:sequence select="ldh:add-data-form-error($context)"/>
+                <xsl:sequence select="ldh:import-ontology-error($context)"/>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:function>
 
-    <!-- import-ontology chain, step 3 (query document fetched): run its sp:text CONSTRUCT over the target document's graph via the SPARQL Protocol dataset specification (?default-graph-uri=) on the /sparql endpoint -->
+    <!-- import-ontology chain, step 3 (query document fetched): run its sp:text CONSTRUCT over the scratch document's graph via the SPARQL Protocol dataset specification (?default-graph-uri=) on the /sparql endpoint -->
     <xsl:function name="ldh:import-ontology-query-response" as="item()*" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
         <xsl:variable name="response" select="$context('response')" as="map(*)"/>
@@ -2048,8 +2063,8 @@ LIMIT   10
         <xsl:variable name="query-string" select="if ($response?status = 200 and starts-with($response?media-type, 'application/rdf+xml')) then key('resources', $context('query-uri'), $response?body)/sp:text else ()" as="xs:string?"/>
         <xsl:choose>
             <xsl:when test="$query-string">
-                <xsl:variable name="target-uri" select="$context('target-uri')" as="xs:anyURI"/>
-                <xsl:variable name="endpoint" select="ac:build-uri(resolve-uri('sparql', ldt:base()), map{ 'default-graph-uri': string($target-uri) })" as="xs:anyURI"/>
+                <xsl:variable name="scratch-uri" select="$context('scratch-uri')" as="xs:anyURI"/>
+                <xsl:variable name="endpoint" select="ac:build-uri(resolve-uri('sparql', ldt:base()), map{ 'default-graph-uri': string($scratch-uri) })" as="xs:anyURI"/>
                 <xsl:variable name="request" select="map{ 'method': 'POST', 'href': $endpoint, 'media-type': 'application/sparql-query', 'body': $query-string, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
                 <xsl:variable name="construct-context" select="map:put($context, 'request', $request)" as="map(*)"/>
                 <xsl:sequence select="
@@ -2060,12 +2075,12 @@ LIMIT   10
                 "/>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:sequence select="ldh:add-data-form-error(map:put($context, 'message', 'Could not load the transformation query'))"/> <!-- TO-DO: localize -->
+                <xsl:sequence select="ldh:import-ontology-error(map:put($context, 'message', 'Could not load the transformation query'))"/> <!-- TO-DO: localize -->
             </xsl:otherwise>
         </xsl:choose>
     </xsl:function>
 
-    <!-- import-ontology chain, step 4 (constructors constructed): GSP-append them to the target document; an empty CONSTRUCT result is not an error (the raw import already succeeded) -->
+    <!-- import-ontology chain, step 4 (constructors constructed): GSP-append the derived constructors plus the annotation-ontology header (target a owl:Ontology; owl:imports source) to the target document. The header is appended even when the CONSTRUCT result is empty - the owl:imports wiring is the import's essence; the vocabulary itself resolves live through the graph repository. -->
     <xsl:function name="ldh:import-ontology-constructors-response" as="item()*" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
         <xsl:variable name="response" select="$context('response')" as="map(*)"/>
@@ -2073,20 +2088,68 @@ LIMIT   10
         <xsl:message>ldh:import-ontology-constructors-response</xsl:message>
 
         <xsl:choose>
-            <xsl:when test="$response?status = 200 and starts-with($response?media-type, 'application/rdf+xml') and exists($response?body/rdf:RDF/*)">
+            <xsl:when test="$response?status = 200 and starts-with($response?media-type, 'application/rdf+xml')">
                 <xsl:variable name="target-uri" select="$context('target-uri')" as="xs:anyURI"/>
-                <xsl:variable name="post-request" select="map{ 'method': 'POST', 'href': ldh:href($target-uri), 'media-type': 'application/rdf+xml', 'body': $response?body, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
+                <xsl:variable name="target-body" as="document-node()">
+                    <xsl:document>
+                        <rdf:RDF>
+                            <rdf:Description rdf:about="{$target-uri}">
+                                <rdf:type rdf:resource="&owl;Ontology"/>
+                                <owl:imports rdf:resource="{$context('source-uri')}"/>
+                            </rdf:Description>
+                            <xsl:copy-of select="$response?body/rdf:RDF/*"/>
+                        </rdf:RDF>
+                    </xsl:document>
+                </xsl:variable>
+                <xsl:variable name="post-request" select="map{ 'method': 'POST', 'href': ldh:href($target-uri), 'media-type': 'application/rdf+xml', 'body': $target-body, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
                 <xsl:variable name="post-context" select="map:put($context, 'request', $post-request)" as="map(*)"/>
                 <xsl:sequence select="
                   ixsl:http-request($post-request)
                     => ixsl:then(ldh:rethread-response($post-context, ?))
                     => ixsl:then(ldh:handle-response#1)
+                    => ixsl:then(ldh:import-ontology-scratch-delete#1)
+                "/>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:sequence select="ldh:import-ontology-error($context)"/>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:function>
+
+    <!-- import-ontology chain, step 5 (annotations appended to the target): delete the scratch document - the vocabulary scaffolding must not outlive the derivation -->
+    <xsl:function name="ldh:import-ontology-scratch-delete" as="item()*" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:variable name="response" select="$context('response')" as="map(*)"/>
+
+        <xsl:message>ldh:import-ontology-scratch-delete</xsl:message>
+
+        <xsl:choose>
+            <xsl:when test="$response?status = (200, 204)">
+                <xsl:variable name="delete-request" select="map{ 'method': 'DELETE', 'href': ldh:href($context('scratch-uri')), 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
+                <xsl:variable name="delete-context" select="map:put($context, 'request', $delete-request)" as="map(*)"/>
+                <xsl:sequence select="
+                  ixsl:http-request($delete-request)
+                    => ixsl:then(ldh:rethread-response($delete-context, ?))
+                    => ixsl:then(ldh:handle-response#1)
                     => ixsl:then(ldh:import-ontology-clear#1)
                 "/>
             </xsl:when>
-            <!-- no constructors derived: skip the append, still clear the app ontology so its imports closure picks up the imported document -->
-            <xsl:when test="$response?status = 200">
-                <xsl:sequence select="ldh:import-ontology-clear($context)"/>
+            <xsl:otherwise>
+                <xsl:sequence select="ldh:import-ontology-error($context)"/>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:function>
+
+    <!-- error wrapper for the import-ontology chain: once the scratch document exists ('scratch-created'), delete it best-effort before rendering the error; the original failed 'response' stays in $context for the message -->
+    <xsl:function name="ldh:import-ontology-error" as="item()*" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+
+        <xsl:choose>
+            <xsl:when test="map:contains($context, 'scratch-created')">
+                <xsl:sequence select="
+                  ixsl:http-request(map{ 'method': 'DELETE', 'href': ldh:href($context('scratch-uri')) })
+                    => ixsl:then(ldh:import-ontology-error-cleaned($context, ?))
+                "/>
             </xsl:when>
             <xsl:otherwise>
                 <xsl:sequence select="ldh:add-data-form-error($context)"/>
@@ -2094,7 +2157,15 @@ LIMIT   10
         </xsl:choose>
     </xsl:function>
 
-    <!-- import-ontology chain, step 5: clear the end-user app ontology from the server-side cache so its owl:imports closure picks up the imported document (idempotent when the app ontology does not import the source yet), then terminate via ldh:add-data-form-response -->
+    <!-- renders the error after the scratch cleanup; the DELETE response is ignored -->
+    <xsl:function name="ldh:import-ontology-error-cleaned" as="item()*" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:param name="delete-response" as="map(*)"/>
+
+        <xsl:sequence select="ldh:add-data-form-error($context)"/>
+    </xsl:function>
+
+    <!-- import-ontology chain, step 6 (scratch deleted): clear the end-user app ontology from the server-side cache so its owl:imports closure picks up the annotation document (idempotent when the app ontology does not import it yet), then terminate via ldh:add-data-form-response -->
     <xsl:function name="ldh:import-ontology-clear" as="item()*" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
         <xsl:variable name="response" select="$context('response')" as="map(*)"/>
