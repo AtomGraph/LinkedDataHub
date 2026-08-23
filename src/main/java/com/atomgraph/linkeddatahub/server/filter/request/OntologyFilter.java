@@ -25,6 +25,7 @@ import com.atomgraph.server.exception.OntologyException;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.List;
 import java.util.Optional;
 import jakarta.annotation.Priority;
 import jakarta.inject.Inject;
@@ -158,7 +159,7 @@ public class OntologyFilter implements ContainerRequestFilter
                 union = getSystem().getOntologyGraphs().get(uri);
                 if (union == null)
                 {
-                    union = loadOntology(repository, uri);
+                    union = loadOntology(repository, uri, getSystem().getPackageOntologies(app));
                     getSystem().getOntologyGraphs().put(uri, union);
                 }
             }
@@ -178,6 +179,38 @@ public class OntologyFilter implements ContainerRequestFilter
      * @param uri ontology URI
      * @return closure union graph
      */
+    /**
+     * Assembles the ontology's owl:imports closure composed with the ontologies of the imported
+     * packages. Each package ontology is assembled as its own closure union (so its owl:imports
+     * resolve too) and added as a member of the application ontology's union — derived in memory,
+     * mirroring the stylesheet composition in {@code XsltExecutableFilter}; no owl:imports triple
+     * is materialized anywhere. A package ontology that fails to load is skipped so a broken
+     * package cannot take the application ontology down.
+     *
+     * @param repository graph repository
+     * @param uri ontology URI
+     * @param packageOntologies package ontology URIs
+     * @return closure union graph
+     */
+    public static UnionGraph loadOntology(PrefixGraphRepository repository, String uri, List<URI> packageOntologies)
+    {
+        UnionGraph union = loadOntology(repository, uri);
+
+        for (URI packageOntology : packageOntologies)
+        {
+            try
+            {
+                union.addSubGraph(loadOntology(repository, packageOntology.toString()));
+            }
+            catch (RuntimeException ex)
+            {
+                if (log.isErrorEnabled()) log.error("Could not load package ontology '{}', skipping it", packageOntology, ex);
+            }
+        }
+
+        return union;
+    }
+
     public static UnionGraph loadOntology(PrefixGraphRepository repository, String uri)
     {
         if (log.isDebugEnabled()) log.debug("Started loading ontology with URI '{}'", uri);

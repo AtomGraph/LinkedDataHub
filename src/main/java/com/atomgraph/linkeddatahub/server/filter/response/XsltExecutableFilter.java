@@ -18,7 +18,6 @@ package com.atomgraph.linkeddatahub.server.filter.response;
 
 import com.atomgraph.client.vocabulary.AC;
 import com.atomgraph.linkeddatahub.MediaType;
-import com.atomgraph.linkeddatahub.client.GraphStoreClient;
 import com.atomgraph.linkeddatahub.server.util.SecureXML;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -56,9 +55,6 @@ import net.sf.saxon.s9api.XsltCompiler;
 import net.sf.saxon.s9api.XsltExecutable;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.io.IOUtils;
-import org.apache.jena.ontology.ConversionException;
-import org.apache.jena.rdf.model.Model;
-import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Resource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -216,35 +212,7 @@ public class XsltExecutableFilter implements ContainerResponseFilter
      */
     public com.atomgraph.linkeddatahub.apps.model.Package getPackage(String packageURI)
     {
-        final Model model;
-
-        if (getSystem().getRepository().isCached(packageURI) || getSystem().getRepository().isMapped(packageURI))
-            model = ModelFactory.createModelForGraph(getSystem().getRepository().get(packageURI));
-        else
-        {
-            try
-            {
-                // validate package URI to prevent SSRF attacks
-                getSystem().getURLValidator().validate(URI.create(packageURI));
-
-                model = GraphStoreClient.create(getClient(), getSystem().getMediaTypes()).getModel(packageURI);
-            }
-            catch (RuntimeException ex) // invalid URI, 404 from the package server, connection refused, timeout...
-            {
-                if (log.isErrorEnabled()) log.error("Loading package description failed: {}", packageURI, ex);
-                return null;
-            }
-        }
-
-        try
-        {
-            return model.getResource(packageURI).as(com.atomgraph.linkeddatahub.apps.model.Package.class);
-        }
-        catch (ConversionException ex)
-        {
-            if (log.isErrorEnabled()) log.error("Resource is not a package: {}", packageURI);
-            return null;
-        }
+        return getSystem().getPackage(packageURI);
     }
 
     /**

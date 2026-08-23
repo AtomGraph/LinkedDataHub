@@ -112,7 +112,7 @@ public class ClearOntology
             }
             
             // !!! we need to reload the ontology model before returning a response, to make sure the next request already gets the new version !!!
-            getSystem().getOntologyGraphs().put(ontologyURI, OntologyFilter.loadOntology(repository, ontologyURI));
+            getSystem().getOntologyGraphs().put(ontologyURI, OntologyFilter.loadOntology(repository, ontologyURI, getSystem().getPackageOntologies(endUserApp)));
         }
         
         if (referer != null) return Response.seeOther(referer).build();
