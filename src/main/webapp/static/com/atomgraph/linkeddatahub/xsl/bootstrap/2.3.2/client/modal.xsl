@@ -2217,10 +2217,10 @@ LIMIT   10
         <xsl:variable name="block" select="$context('block')" as="element()"/>
         <xsl:variable name="form" select="$context('form')" as="element()?"/>
 
+        <!-- no 'base-uri' entry: the render dispatchers fall back to $ctx('about'), same as the initial render. The response body's base URI equals $about in the creation/edit flows but not in the app-settings flow (urn: subject), where it flipped $show-subject and exposed the URI control -->
         <xsl:variable name="render-ctx" as="map(*)" select="map:merge(($context, map{
             'method':            string($form/@method),
             'action':            xs:anyURI(string($form/@action)),
-            'base-uri':          ac:absolute-path(ldh:base-uri($body)),
             'constructors':      (),
             'shapes':            (),
             'required':          function($r as element()) as xs:boolean { $r/rdf:type/@rdf:resource = ('&dh;Container', '&dh;Item') }
