@@ -5,6 +5,7 @@
 - Packages are declarative: an application imports a package with a single `<app> ldh:import <package-uri>` triple in its dataspace settings — in `config/dataspaces.trig` (permanent, applied on restart) or live via `PATCH /settings` (effective on the next request, no restart). The package's components are discovered from its Linked Data description (bundled descriptions resolve from the classpath); its stylesheet is loaded from its source URL and composed into the application stylesheet in memory at compile time, per dataspace. Nothing is downloaded ahead, copied into the webapp, or registered anywhere — `/static/` is never modified
 - The available-package catalog is data at the registry URI `https://packages.linkeddatahub.com/` (bundled one-entry copy listing the SKOS package, served through the Linked Data proxy's mapped-URI resolution until the registry is live)
 - The application settings modal lists the available packages with a per-row Installed checkbox serialized as an RDF/POST `ldh:import` input — the form's single Save submits settings and package imports as one PATCH through `/settings` and reloads the page
+- The package's ontology joins the application's ontology imports closure automatically, derived from `ldh:import` at ontology-load time: each package ontology is assembled as its own `owl:imports` closure and added as a union member — no `owl:imports` triple is materialized anywhere. A `/settings` PATCH evicts the assembled closure, so package installs/uninstalls take effect on the next request; a package ontology that fails to load is skipped
 - XSLT compilation resolves `xsl:import` URLs under an application origin's `/static/` path to local webapp files (`LocalStylesheetResolver`) instead of HTTPS round-trips through nginx, and modules imported via different routes deduplicate under one URL
 - `ac:stylesheet` values in `config/dataspaces.trig` are absolute URLs on the application's own origin (previously relative, absolutized against the root base URI)
 
@@ -17,8 +18,6 @@
 - Modal violation re-renders harvested `property-uris` from everything except the edited resource, degrading property labels to their local-name fallback; violation/response machinery no longer pollutes the `property-uris`/`object-uris` metadata harvests
 - The `required` function on the modal violation context is stamped per flow by the response handlers, matching each flow's initial-render chain (the shared Container/Item test disagreed with the app-settings chain)
 
-### Known limitations
-- Package ontologies are not yet auto-imported from `ldh:import`: add `owl:imports <package-ontology>` to the application's namespace ontology manually (automatic inclusion is planned)
 
 ## [5.9.1] - 2026-08-19
 ### Added

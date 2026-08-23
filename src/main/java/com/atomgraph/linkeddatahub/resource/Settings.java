@@ -147,6 +147,10 @@ public class Settings
         // Write the updated model back to the context dataset file
         getSystem().updateApp(getApplication(), mutableModel);
 
+        // evict the assembled ontology closure - the next request re-derives it with the updated ldh:import set (package ontologies are union members, not materialized owl:imports)
+        if (getApplication().getOntology() != null)
+            getSystem().getOntologyGraphs().remove(getApplication().getOntology().getURI());
+
         if (log.isInfoEnabled()) log.info("Updated settings for dataspace <{}> via PATCH", getApplication().getURI());
 
         return Response.noContent().build();
