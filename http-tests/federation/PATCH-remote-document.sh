@@ -52,12 +52,15 @@ WHERE {}
 EOF
 )
 
-# a stale precondition is rejected by B - proves the proxy forwards If-Match and B evaluates it
+# a stale precondition is rejected by B - proves the proxy forwards If-Match and B evaluates it.
+# Accept must match the read: LDH ETags are variant-specific (the negotiated media type folds into
+# the tag), so the conditional PATCH negotiates the same rdf+xml variant the ETag above was read for.
 
 stale_code=$(curl -k -w "%{http_code}" -o /dev/null -s \
   -X PATCH \
   -E "$OWNER_CERT_FILE":"$OWNER_CERT_PWD" \
   -H 'Content-Type: application/sparql-update' \
+  -H 'Accept: application/rdf+xml' \
   -H 'If-Match: "stale"' \
   --url-query "uri=${item}" \
   --data-binary "$update" \
@@ -74,6 +77,7 @@ valid_code=$(curl -k -w "%{http_code}" -o /dev/null -s \
   -X PATCH \
   -E "$OWNER_CERT_FILE":"$OWNER_CERT_PWD" \
   -H 'Content-Type: application/sparql-update' \
+  -H 'Accept: application/rdf+xml' \
   -H "If-Match: $etag" \
   --url-query "uri=${item}" \
   --data-binary "$update" \
