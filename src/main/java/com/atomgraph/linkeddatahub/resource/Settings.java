@@ -18,8 +18,11 @@ package com.atomgraph.linkeddatahub.resource;
 
 import com.atomgraph.core.util.ModelUtils;
 import com.atomgraph.linkeddatahub.apps.model.Application;
+import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import com.atomgraph.linkeddatahub.server.io.ValidatingModelProvider;
+import com.atomgraph.linkeddatahub.server.util.OntologyRepository;
 import com.atomgraph.linkeddatahub.vocabulary.LAPP;
+import jakarta.ws.rs.core.UriBuilder;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.GET;
@@ -147,9 +150,19 @@ public class Settings
         // Write the updated model back to the context dataset file
         getSystem().updateApp(getApplication(), mutableModel);
 
-        // evict the assembled ontology closure - the next request re-derives it with the updated ldh:import set (package ontologies are union members, not materialized owl:imports)
-        if (getApplication().getOntology() != null)
-            getSystem().getOntologyGraphs().remove(getApplication().getOntology().getURI());
+        // evict the assembled ontology closure AND the repository's cached ontology graphs so the next
+        // request re-derives from scratch with the updated ldh:import set. Clearing only the closure
+        // union is not enough: the OWL2 imports build materializes imported terms into the cached base
+        // graph, so a removed package's terms would linger in the repository - the same full eviction
+        // ClearOntology performs (repository + closure), minus the proxy purge (settings are not cached)
+        if (getApplication().getOntology() != null && getApplication().canAs(EndUserApplication.class))
+        {
+            String ontologyURI = getApplication().getOntology().getURI();
+            OntologyRepository repository = getSystem().getRepository(getApplication().as(EndUserApplication.class));
+            repository.remove(ontologyURI);
+            repository.remove(UriBuilder.fromUri(ontologyURI).fragment(null).build().toString()); // raw graph aliased under the fragment-stripped document URI
+            getSystem().getOntologyGraphs().remove(ontologyURI);
+        }
 
         if (log.isInfoEnabled()) log.info("Updated settings for dataspace <{}> via PATCH", getApplication().getURI());
 
