@@ -72,5 +72,11 @@ purge_cache "$FRONTEND_VARNISH_SERVICE"
 count=$(constructor_count)
 if [ "$count" != "0" ]; then
   echo "DEBUG: Expected 0 skos:Concept constructors after removal, got: $count"
+  echo "DEBUG: does /settings still carry the ldh:import triple after the DELETE?"
+  curl -k -s \
+    -E "$OWNER_CERT_FILE":"$OWNER_CERT_PWD" \
+    -H "Accept: application/n-triples" \
+    "${END_USER_BASE_URL}settings" \
+  | grep -c "linkeddatahub#import" | sed 's/^/DEBUG: ldh:import triple count in settings = /'
   exit 1
 fi
