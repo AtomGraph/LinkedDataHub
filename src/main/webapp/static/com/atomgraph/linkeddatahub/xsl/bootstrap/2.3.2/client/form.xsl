@@ -1232,6 +1232,75 @@ WHERE
             on-failure="ldh:promise-failure#1"/>
     </xsl:template>
 
+    <!-- sync open editing forms with the constructor structure -->
+
+    <!-- Fans out over the open editing forms after a constructor edit: every fieldset with property
+         control groups re-fetches its type set's constructor and reconciles its controls with it. -->
+    <xsl:template name="ldh:SyncFormsWithConstructor">
+        <xsl:apply-templates select="ixsl:page()//fieldset[./div[contains-token(@class, 'control-group')]/input[@name = 'pu']][ancestor::div[@typeof][contains-token(@class, 'row-fluid')]]" mode="ldh:SyncFormWithConstructor"/>
+    </xsl:template>
+
+    <xsl:template match="fieldset" mode="ldh:SyncFormWithConstructor">
+        <xsl:variable name="forClass" select="for $type in tokenize(ancestor::div[@typeof][contains-token(@class, 'row-fluid')][1]/@typeof) return xs:anyURI($type)" as="xs:anyURI*"/>
+        <xsl:variable name="context" as="map(*)" select="map{ 'fieldset': ., 'forClass': $forClass }"/>
+
+        <ixsl:promise select="ixsl:resolve($context) =>
+            ixsl:then(ldh:load-constructed-doc#1) =>
+            ixsl:then(ldh:http-request-threaded(?, 'constructed-doc-request', 'constructed-doc-response')) =>
+            ixsl:then(ldh:handle-response(?, 'constructed-doc-response')) =>
+            ixsl:then(ldh:set-constructed-doc#1) =>
+            ixsl:then(ldh:sync-form-with-constructor#1)"
+            on-failure="ldh:promise-failure#1"/>
+    </xsl:template>
+
+    <!-- Terminal callback for the constructor-sync promise chain. Diffs the fresh constructor prototype
+         against the fieldset's property control groups: properties the form is missing get controls
+         appended at the end (before the re-appended property picker), value-less controls for properties
+         the constructor no longer asserts are removed. Controls holding entered values and rdf:type
+         controls are never removed; a failed constructor fetch leaves the form untouched. -->
+    <xsl:function name="ldh:sync-form-with-constructor" as="item()*" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:variable name="fieldset" select="$context('fieldset')" as="element()"/>
+        <xsl:variable name="forClass" select="$context('forClass')" as="xs:anyURI*"/>
+
+        <xsl:if test="map:contains($context, 'constructed-doc')">
+            <xsl:variable name="constructed-doc" select="$context('constructed-doc')" as="document-node()"/>
+            <xsl:variable name="resource" select="key('resources-by-type', $forClass, $constructed-doc)[not(key('predicates-by-object', @rdf:nodeID))]" as="element()*"/>
+            <xsl:variable name="arcs" select="$resource/*[not(concat(namespace-uri(), local-name()) = '&rdf;type')]" as="element()*"/>
+            <xsl:variable name="arc-uris" select="distinct-values(for $arc in $arcs return concat(namespace-uri($arc), local-name($arc)))" as="xs:string*"/>
+            <xsl:variable name="existing-uris" select="$fieldset/div[contains-token(@class, 'control-group')]/input[@name = 'pu']/@value" as="xs:string*"/>
+            <xsl:variable name="new-arcs" select="$arcs[not(concat(namespace-uri(), local-name()) = $existing-uris)]" as="element()*"/>
+
+            <!-- remove value-less control groups whose property the constructor no longer asserts -->
+            <xsl:for-each select="$fieldset/div[contains-token(@class, 'control-group')][input[@name = 'pu']/@value[not(. = ($arc-uris, '&rdf;type'))]][empty(descendant::*[self::input or self::textarea][@name = ('ou', 'ol', 'ob')][ixsl:get(., 'value') ne ''])]">
+                <xsl:sequence select="ixsl:call(., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
+            </xsl:for-each>
+
+            <xsl:if test="exists($new-arcs)">
+                <xsl:variable name="property-control-group" select="$fieldset/div[contains-token(@class, 'control-group')][descendant::button[contains-token(@class, 'add-value')]]" as="element()?"/>
+                <xsl:sequence select="$property-control-group/ixsl:call(., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
+                <xsl:variable name="control-group-count" select="count($fieldset/div[contains-token(@class, 'control-group')][input/@name = 'pu'])" as="xs:integer"/>
+
+                <xsl:for-each select="$fieldset">
+                    <xsl:result-document href="?." method="ixsl:append-content">
+                        <xsl:for-each select="$new-arcs">
+                            <xsl:apply-templates select="." mode="bs2:FormControl">
+                                <!-- generate fresh $for value because otherwise we can generate existing IDs from the same constructor -->
+                                <xsl:with-param name="for" select="'id' || ac:uuid()"/>
+                            </xsl:apply-templates>
+                        </xsl:for-each>
+
+                        <!-- re-append the property picker control group at the end of the fieldset -->
+                        <xsl:copy-of select="$property-control-group"/>
+                    </xsl:result-document>
+
+                    <!-- initialize the appended property control groups -->
+                    <xsl:apply-templates select="./div[contains-token(@class, 'control-group')][input/@name = 'pu'][position() gt $control-group-count]" mode="ldh:RenderRowForm"/>
+                </xsl:for-each>
+            </xsl:if>
+        </xsl:if>
+    </xsl:function>
+
     <xsl:function name="ldh:row-form-response" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
         <xsl:variable name="response" select="$context('response')" as="map(*)"/>
