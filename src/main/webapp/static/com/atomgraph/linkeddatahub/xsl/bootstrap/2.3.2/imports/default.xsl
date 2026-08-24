@@ -272,15 +272,8 @@ exclude-result-prefixes="#all"
 
     <xsl:function name="ldh:build-query" as="map(xs:string, xs:string*)">
         <xsl:param name="mode" as="xs:anyURI*"/>
-        
-        <xsl:sequence select="ldh:build-query($mode, ())"/>
-    </xsl:function>
 
-    <xsl:function name="ldh:build-query" as="map(xs:string, xs:string*)">
-        <xsl:param name="mode" as="xs:anyURI*"/>
-        <xsl:param name="forClass" as="xs:anyURI?"/>
-        
-        <xsl:sequence select="map:merge((if (exists($mode)) then map{ 'mode': for $m in $mode return string($m) } else (), if ($forClass) then map{ 'forClass': string($forClass) } else ()))"/>
+        <xsl:sequence select="if (exists($mode)) then map{ 'mode': for $m in $mode return string($m) } else map{}"/>
     </xsl:function>
 
     <xsl:function name="ldh:query-result" as="document-node()">
@@ -409,7 +402,7 @@ exclude-result-prefixes="#all"
         </xsl:copy>
     </xsl:template>
 
-    <!-- Builds the pure, bnode-prototyped constructor consumed by bs2:FormControl from the two raw inputs the promise chain has fetched: $shapes (SHACL NodeShape RDF) and $constructed-doc (SPIN constructor RDF from /ns?forClass=…). Shared by every flow that ends in bs2:FormControl (ldh:render-row-form for EDIT, ldh:render-row-form-violation for violation re-render, and the Phase 4 modal/app-settings/signup renderers to come) so the merge logic lives in exactly one place. Returns the SPIN side unchanged when shapes are absent (typical for system classes like sp:Describe), returns the merged doc when both sides exist (user-defined classes like skos:Concept with both SPIN defaults and SHACL constraints), or empty if neither side provides input. -->
+    <!-- Builds the pure, bnode-prototyped constructor consumed by bs2:FormControl from the two raw inputs the promise chain has fetched: $shapes (SHACL NodeShape RDF) and $constructed-doc (SPIN constructor RDF fetched via the ns SPARQL endpoint). Shared by every flow that ends in bs2:FormControl (ldh:render-row-form for EDIT, ldh:render-row-form-violation for violation re-render, and the Phase 4 modal/app-settings/signup renderers to come) so the merge logic lives in exactly one place. Returns the SPIN side unchanged when shapes are absent (typical for system classes like sp:Describe), returns the merged doc when both sides exist (user-defined classes like skos:Concept with both SPIN defaults and SHACL constraints), or empty if neither side provides input. -->
     <xsl:function name="ldh:build-merged-constructor" as="document-node()?">
         <xsl:param name="shapes" as="document-node()?"/>
         <xsl:param name="constructed-doc" as="document-node()?"/>
