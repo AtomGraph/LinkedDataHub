@@ -690,7 +690,10 @@ extension-element-prefixes="ixsl"
                         </xsl:apply-templates>
                     </xsl:when>
                     <xsl:when test="$mode = '&ac;GraphMode'">
-                        <xsl:apply-templates select=".." mode="bs2:Graph"/>
+                        <!-- whole loaded document, deliberately not $doc: the graph shows the link structure between all resources in the response -->
+                        <xsl:apply-templates select=".." mode="bs2:Graph">
+                            <xsl:with-param name="canvas-id" select="generate-id() || '-graph-canvas'"/>
+                        </xsl:apply-templates>
                     </xsl:when>
                     <xsl:when test="$mode = '&ac;EditMode'">
                         <xsl:apply-templates select="." mode="bs2:Form">
