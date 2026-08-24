@@ -52,29 +52,37 @@ WHERE {}
 EOF
 )
 
-# a stale precondition is rejected by B - proves If-Match is evaluated at the origin
+# a stale precondition is rejected by B - proves the proxy forwards If-Match and B evaluates it
 
-curl -k -w "%{http_code}\n" -o /dev/null -s \
+stale_code=$(curl -k -w "%{http_code}" -o /dev/null -s \
   -X PATCH \
   -E "$OWNER_CERT_FILE":"$OWNER_CERT_PWD" \
   -H 'Content-Type: application/sparql-update' \
   -H 'If-Match: "stale"' \
   --url-query "uri=${item}" \
   --data-binary "$update" \
-  "$END_USER_BASE_URL" \
-| grep -q "$STATUS_PRECONDITION_FAILED"
+  "$END_USER_BASE_URL")
+
+echo "DEBUG: stale If-Match returned: $stale_code (expected $STATUS_PRECONDITION_FAILED)"
+if [ "$stale_code" != "$STATUS_PRECONDITION_FAILED" ]; then
+  exit 1
+fi
 
 # the delta with B's current ETag succeeds
 
-curl -k -w "%{http_code}\n" -o /dev/null -f -s \
+valid_code=$(curl -k -w "%{http_code}" -o /dev/null -s \
   -X PATCH \
   -E "$OWNER_CERT_FILE":"$OWNER_CERT_PWD" \
   -H 'Content-Type: application/sparql-update' \
   -H "If-Match: $etag" \
   --url-query "uri=${item}" \
   --data-binary "$update" \
-  "$END_USER_BASE_URL" \
-| grep -q "$STATUS_NO_CONTENT"
+  "$END_USER_BASE_URL")
+
+echo "DEBUG: valid If-Match returned: $valid_code (expected $STATUS_NO_CONTENT)"
+if [ "$valid_code" != "$STATUS_NO_CONTENT" ]; then
+  exit 1
+fi
 
 # the delta landed on B - confirmed on B directly, not through the proxy
 

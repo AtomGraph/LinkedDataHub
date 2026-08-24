@@ -13,7 +13,7 @@
 ### Fixed
 - Modal violation re-renders harvested `property-uris` from everything except the edited resource, degrading property labels to their local-name fallback; violation/response machinery no longer pollutes the `property-uris`/`object-uris` metadata harvests
 - The `required` function on the modal violation context is stamped per flow by the response handlers, matching each flow's initial-render chain (the shared Container/Item test disagreed with the app-settings chain)
-- The Linked Data proxy forwards the origin's `ETag`/`Last-Modified` on RDF responses instead of stamping re-serialization validators, so `If-Match`-preconditioned writes against proxied documents validate at the origin rather than failing with `412`
+- The Linked Data proxy forwards the origin's `ETag`/`Last-Modified` on RDF responses instead of stamping re-serialization validators, and forwards conditional request headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) to the origin, so `If-Match`-preconditioned writes against proxied documents are evaluated at the origin instead of silently losing their optimistic-concurrency guard
 
 ## [5.9.1] - 2026-08-19
 ### Added

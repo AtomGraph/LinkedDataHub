@@ -128,6 +128,19 @@ public class ProxyRequestFilter implements ContainerRequestFilter
         HttpHeaders.LOCATION,
         HttpHeaders.RETRY_AFTER,
         "Age");
+    /**
+     * Conditional request headers forwarded verbatim to the upstream so preconditions are evaluated
+     * at the origin: {@code If-Match}/{@code If-Unmodified-Since} carry optimistic-concurrency
+     * validators on writes, {@code If-None-Match}/{@code If-Modified-Since} carry cache validation on
+     * reads. Excludes {@code Authorization}/{@code Cookie} (agent identity is delegated explicitly via
+     * {@link WebIDDelegationFilter}/{@link IDTokenDelegationFilter}) and {@code Range}, whose byte
+     * offsets do not survive the Model re-serialization the proxy performs.
+     */
+    private static final Set<String> FORWARDED_REQUEST_HEADERS = Set.of(
+        HttpHeaders.IF_MATCH,
+        HttpHeaders.IF_NONE_MATCH,
+        HttpHeaders.IF_MODIFIED_SINCE,
+        HttpHeaders.IF_UNMODIFIED_SINCE);
 
     @Inject com.atomgraph.linkeddatahub.Application system;
     @Inject MediaTypes mediaTypes;
@@ -209,6 +222,15 @@ public class ProxyRequestFilter implements ContainerRequestFilter
             Invocation.Builder builder = target.request().
                 accept(clientAcceptTypes).
                 header(HttpHeaders.USER_AGENT, GraphStoreClient.USER_AGENT);
+
+            // forward conditional request headers so preconditions reach the origin, which owns the
+            // validators - without this the origin sees an unconditional request and a proxied If-Match
+            // write silently loses its optimistic-concurrency guard
+            for (String name : FORWARDED_REQUEST_HEADERS)
+            {
+                String value = requestContext.getHeaderString(name);
+                if (value != null) builder.header(name, value);
+            }
 
             Response clientResponse = requestContext.hasEntity()
                 ? builder.method(requestContext.getMethod(),
