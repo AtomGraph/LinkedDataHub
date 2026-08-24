@@ -345,6 +345,21 @@ public class ProxyRequestFilter implements ContainerRequestFilter
             return rb.build();
         }
 
+        // error responses relay verbatim: the body is a diagnostic representation, not negotiable
+        // content, so it must not go through the Model/ResultSet re-serialization branches - parsing a
+        // non-RDF or empty error body there throws and masks the origin's status as 502/406. A proxied
+        // write that the origin rejects (412 on a stale If-Match, 401/403 on an unauthorized delta)
+        // must reach the client as that status, with the origin's validators forwarded
+        Response.Status.Family family = clientResponse.getStatusInfo().getFamily();
+        if (family == Response.Status.Family.CLIENT_ERROR || family == Response.Status.Family.SERVER_ERROR)
+        {
+            clientResponse.bufferEntity();
+            Response.ResponseBuilder rb = Response.status(clientResponse.getStatus()).
+                type(clientResponse.getMediaType()).
+                entity(clientResponse.readEntity(InputStream.class));
+            return overlayHeaders(rb.build(), clientResponse, true);
+        }
+
         // dispatch on the live Jena RIOT registry — same predicate ModelProvider.isReadable uses,
         // so any RDF lang Jersey can read into a Model (including HTML via HtmlJsonLDReader and
         // RDFPOST) routes to the Model branch. We can't use MediaTypes.getReadable(Model.class)
