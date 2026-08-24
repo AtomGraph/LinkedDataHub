@@ -1977,10 +1977,7 @@ public class Application extends ResourceConfig
      */
     public List<URI> getPackageOntologies(com.atomgraph.linkeddatahub.apps.model.Application app)
     {
-        java.util.Set<Resource> imported = app.getImportedPackages();
-        if (log.isInfoEnabled()) log.info("getPackageOntologies for app <{}>: imported packages = {}", app.getURI(),
-            imported.stream().map(r -> r.isURIResource() ? r.getURI() : r.toString()).collect(Collectors.toList()));
-        return imported.stream().
+        return app.getImportedPackages().stream().
             filter(Resource::isURIResource).
             map(Resource::getURI).
             sorted().
