@@ -118,6 +118,7 @@ extension-element-prefixes="ixsl"
     <xsl:include href="bootstrap/2.3.2/client/block.xsl"/>
     <xsl:include href="bootstrap/2.3.2/client/modal.xsl"/>
     <xsl:include href="bootstrap/2.3.2/client/memento.xsl"/>
+    <xsl:include href="bootstrap/2.3.2/client/packages.xsl"/>
     <xsl:include href="bootstrap/2.3.2/client/form.xsl"/>
     <xsl:include href="bootstrap/2.3.2/client/map.xsl"/> <!-- include in view.xsl and object.xsl instead? -->
     <xsl:include href="bootstrap/2.3.2/client/graph3d.xsl"/>

@@ -981,6 +981,7 @@ WHERE
         <xsl:param name="ctx"  as="map(*)"/>
         <xsl:apply-templates select="$body" mode="ldh:AppSettingsForm">
             <xsl:with-param name="about"             select="$ctx('about')"             tunnel="yes"/>
+            <xsl:with-param name="package-catalog"   select="$ctx('package-catalog')"   tunnel="yes"/>
             <xsl:with-param name="method"            select="$ctx('method')"/>
             <xsl:with-param name="action"            select="$ctx('action')"            tunnel="yes"/>
             <xsl:with-param name="base-uri"          select="if (map:contains($ctx, 'base-uri')) then $ctx('base-uri') else $ctx('about')" tunnel="yes"/>

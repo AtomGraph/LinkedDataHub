@@ -364,6 +364,14 @@
         <rdfs:label xml:lang="en-US">Package</rdfs:label>
         <rdfs:label xml:lang="es-ES">Paquete</rdfs:label>
     </rdf:Description>
+    <rdf:Description rdf:nodeID="packages">
+        <rdfs:label xml:lang="en-US">Packages</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Paquetes</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="installed">
+        <rdfs:label xml:lang="en-US">Installed</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Instalado</rdfs:label>
+    </rdf:Description>
     <rdf:Description rdf:nodeID="ontology">
         <rdfs:label xml:lang="en-US">Ontology</rdfs:label>
         <rdfs:label xml:lang="es-ES">Ontología</rdfs:label>

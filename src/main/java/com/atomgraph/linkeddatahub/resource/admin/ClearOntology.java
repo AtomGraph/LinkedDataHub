@@ -76,7 +76,20 @@ public class ClearOntology
     {
         if (ontologyURI == null) throw new BadRequestException("Ontology URI not specified");
 
-        EndUserApplication endUserApp = getApplication().as(AdminApplication.class).getEndUserApplication(); // we're assuming the current app is admin
+        // resolve both apps regardless of which one the request matched: /clear is admin, but Settings
+        // delegates here on the end-user app (its PATCH origin), and both backends need purging either way
+        final EndUserApplication endUserApp;
+        final AdminApplication adminApp;
+        if (getApplication().canAs(AdminApplication.class))
+        {
+            adminApp = getApplication().as(AdminApplication.class);
+            endUserApp = adminApp.getEndUserApplication();
+        }
+        else
+        {
+            endUserApp = getApplication().as(EndUserApplication.class);
+            adminApp = endUserApp.getAdminApplication();
+        }
         OntologyRepository repository = getSystem().getRepository(endUserApp);
         if (repository.isCached(ontologyURI) || getSystem().getOntologyGraphs().containsKey(ontologyURI))
         {
@@ -94,7 +107,7 @@ public class ClearOntology
                 if (log.isDebugEnabled()) log.debug("Purge ontology document with URI '{}' from frontend proxy cache", ontologyDocURI);
                 ban(frontendProxy, ontologyDocURI.toString(), false);
             }
-            URI adminBackendProxy = getSystem().getServiceContext(getApplication().getService()).getBackendProxy();
+            URI adminBackendProxy = getSystem().getServiceContext(adminApp.getService()).getBackendProxy();
             if (adminBackendProxy != null)
             {
                 // URL-pattern BAN of the ontology URI is a no-op on the SPARQL proxy (its req.url namespace is /ds/?query=...,
@@ -112,7 +125,7 @@ public class ClearOntology
             }
             
             // !!! we need to reload the ontology model before returning a response, to make sure the next request already gets the new version !!!
-            getSystem().getOntologyGraphs().put(ontologyURI, OntologyFilter.loadOntology(repository, ontologyURI));
+            getSystem().getOntologyGraphs().put(ontologyURI, OntologyFilter.loadOntology(repository, ontologyURI, getSystem().getPackageOntologies(endUserApp)));
         }
         
         if (referer != null) return Response.seeOther(referer).build();

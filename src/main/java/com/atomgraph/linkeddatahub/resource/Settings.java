@@ -18,8 +18,10 @@ package com.atomgraph.linkeddatahub.resource;
 
 import com.atomgraph.core.util.ModelUtils;
 import com.atomgraph.linkeddatahub.apps.model.Application;
+import com.atomgraph.linkeddatahub.resource.admin.ClearOntology;
 import com.atomgraph.linkeddatahub.server.io.ValidatingModelProvider;
 import com.atomgraph.linkeddatahub.vocabulary.LAPP;
+import jakarta.ws.rs.container.ResourceContext;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.GET;
@@ -61,6 +63,7 @@ public class Settings
     private final com.atomgraph.linkeddatahub.Application system;
     private final Providers providers;
     private final Request request;
+    private final ResourceContext resourceContext;
 
     /**
      * Constructs the Settings endpoint.
@@ -69,14 +72,16 @@ public class Settings
      * @param system the system application
      * @param providers JAX-RS provider registry
      * @param request JAX-RS request context
+     * @param resourceContext JAX-RS resource context (for delegating to sub-resources)
      */
     @Inject
-    public Settings(Application application, com.atomgraph.linkeddatahub.Application system, @Context Providers providers, @Context Request request)
+    public Settings(Application application, com.atomgraph.linkeddatahub.Application system, @Context Providers providers, @Context Request request, @Context ResourceContext resourceContext)
     {
         this.application = application;
         this.system = system;
         this.providers = providers;
         this.request = request;
+        this.resourceContext = resourceContext;
     }
 
     /**
@@ -147,6 +152,13 @@ public class Settings
         // Write the updated model back to the context dataset file
         getSystem().updateApp(getApplication(), mutableModel);
 
+        // clear and reload the ontology so the next request re-derives with the updated ldh:import set.
+        // Delegate to ClearOntology (context-agnostic) for the full eviction - repository graph + closure
+        // union + proxy cache purges - rather than duplicating it: clearing only the in-memory caches
+        // would leave stale /ns SPARQL responses in varnish after a package add/remove
+        if (getApplication().getOntology() != null)
+            getResourceContext().getResource(ClearOntology.class).post(getApplication().getOntology().getURI(), null);
+
         if (log.isInfoEnabled()) log.info("Updated settings for dataspace <{}> via PATCH", getApplication().getURI());
 
         return Response.noContent().build();
@@ -180,6 +192,16 @@ public class Settings
     public Providers getProviders()
     {
         return providers;
+    }
+
+    /**
+     * Returns the JAX-RS resource context, used to obtain fully-injected sub-resource instances.
+     *
+     * @return the resource context
+     */
+    public ResourceContext getResourceContext()
+    {
+        return resourceContext;
     }
 
     /**

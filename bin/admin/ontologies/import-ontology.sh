@@ -3,9 +3,9 @@ set -eo pipefail
 
 print_usage()
 {
-    printf "Imports an external ontology: appends its triples to a document and derives class constructors from them.\n"
-    printf "The CONSTRUCT transformation runs on the /sparql endpoint, scoped to the document graph via the SPARQL Protocol dataset specification.\n"
-    printf "Use add-ontology-import.sh and clear-ontology.sh to make the imported document part of the application ontology.\n"
+    printf "Imports an external ontology: derives class constructors from its triples and appends them, together with an owl:imports of the source, to a document.\n"
+    printf "The vocabulary itself is fetched into a scratch document (deleted afterwards) that scopes the CONSTRUCT transformation on the /sparql endpoint via the SPARQL Protocol dataset specification - only the derived annotations persist; the vocabulary resolves live through the graph repository.\n"
+    printf "Use add-ontology-import.sh and clear-ontology.sh to make the annotation document part of the application ontology.\n"
     printf "\n"
     printf "Usage:  %s options\n" "$0"
     printf "\n"
@@ -21,6 +21,7 @@ print_usage()
 
 hash curl 2>/dev/null || { echo >&2 "curl not on \$PATH. Aborting."; exit 1; }
 hash xmllint 2>/dev/null || { echo >&2 "xmllint not on \$PATH. Aborting."; exit 1; }
+hash uuidgen 2>/dev/null || { echo >&2 "uuidgen not on \$PATH. Aborting."; exit 1; }
 
 args=()
 while [[ $# -gt 0 ]]
@@ -112,14 +113,35 @@ curl -f -s -k \
   -H "Accept: application/rdf+xml" \
   > "$tmp_source"
 
-# append the raw ontology to the document graph
+# create the scratch document that holds the vocabulary during the constructor derivation
+
+scratch="${base}$(uuidgen | tr '[:upper:]' '[:lower:]')/"
+scratch_url="$scratch"
+
+if [ -n "$proxy" ]; then
+    scratch_url="${scratch/$base_host/$proxy_host}"
+fi
+
+printf '@prefix dh:\t<https://www.w3.org/ns/ldt/document-hierarchy#> .\n@prefix dct:\t<http://purl.org/dc/terms/> .\n<%s> a dh:Item ;\n    dct:title "Import ontology scratch" .\n' "$scratch" \
+| curl -f -s -k -o /dev/null \
+  -E "$cert_pem_file":"$cert_password" \
+  -X PUT --data-binary @- \
+  -H "Content-Type: text/turtle" \
+  -H "Accept: application/rdf+xml" \
+  "$scratch_url"
+
+# the scratch document must not outlive the derivation - delete it on exit, the failure paths included
+
+trap 'rm -f "$tmp_source" "$tmp_query" "$tmp_constructors"; curl -s -k -o /dev/null -E "$cert_pem_file":"$cert_password" -X DELETE "$scratch_url"' EXIT
+
+# append the raw ontology to the scratch document graph
 
 curl -f -s -k -o /dev/null \
   -E "$cert_pem_file":"$cert_password" \
   -X POST --data-binary "@$tmp_source" \
   -H "Content-Type: application/rdf+xml" \
   -H "Accept: application/rdf+xml" \
-  "$graph_url"
+  "$scratch_url"
 
 # read the construct-constructors query text, scoped to its own document graph
 
@@ -137,13 +159,13 @@ if [ ! -s "$tmp_query" ]; then
     exit 1
 fi
 
-# run the CONSTRUCT over the document graph via the SPARQL Protocol dataset specification
+# run the CONSTRUCT over the scratch graph via the SPARQL Protocol dataset specification
 
 curl -f -s -k \
   -E "$cert_pem_file":"$cert_password" \
   -X POST "${endpoint_base}sparql" \
   --data-urlencode "query@${tmp_query}" \
-  --data-urlencode "default-graph-uri=${graph}" \
+  --data-urlencode "default-graph-uri=${scratch}" \
   -H "Accept: application/rdf+xml" \
   > "$tmp_constructors"
 
@@ -153,5 +175,15 @@ curl -f -s -k -o /dev/null \
   -E "$cert_pem_file":"$cert_password" \
   -X POST --data-binary "@$tmp_constructors" \
   -H "Content-Type: application/rdf+xml" \
+  -H "Accept: application/rdf+xml" \
+  "$graph_url"
+
+# append the annotation-ontology header: the document imports the source vocabulary, which resolves live through the graph repository
+
+printf '@prefix owl:\t<http://www.w3.org/2002/07/owl#> .\n<%s> a owl:Ontology ;\n    owl:imports <%s> .\n' "$graph" "$source" \
+| curl -f -s -k -o /dev/null \
+  -E "$cert_pem_file":"$cert_password" \
+  -X POST --data-binary @- \
+  -H "Content-Type: text/turtle" \
   -H "Accept: application/rdf+xml" \
   "$graph_url"
