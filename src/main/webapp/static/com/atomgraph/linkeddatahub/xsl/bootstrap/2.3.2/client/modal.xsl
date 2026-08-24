@@ -1547,6 +1547,8 @@ LIMIT   10
                 <xsl:call-template name="ldh:DocumentNavigate">
                     <xsl:with-param name="doc-uri" select="$doc-uri"/>
                     <xsl:with-param name="fragment" select="()"/>
+                    <!-- carry the active layout mode over the reload, but only when reloading the document the page currently displays (a PUT overwrite lands here too, with $doc-uri pointing at a different document); ?version/?timemap must not survive the save — they would pin the pre-edit snapshot -->
+                    <xsl:with-param name="query-params" select="if ($doc-uri = ldh:parse-href(ldh:request-uri())?doc-uri and exists(ldh:query-params()?mode)) then map{ 'mode': ldh:query-params()?mode } else map{}"/>
                 </xsl:call-template>
             </xsl:when>
             <xsl:when test="$status = 201 and map:contains($response?headers, 'location')">
