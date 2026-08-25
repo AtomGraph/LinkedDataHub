@@ -543,7 +543,7 @@ extension-element-prefixes="ixsl"
                 </div>
             </xsl:if>
 
-            <!-- legend shown when a version diff is displayed (?diff= query parameter): removed content comes from the compared version, added content from the viewed one -->
+            <!-- legend shown when a version diff is displayed (?diff= query parameter): removed content comes from the compared version, added content from the viewed one, changed content exists in both -->
             <xsl:if test="map:contains(ldh:query-params(), 'diff')">
                 <div class="alert alert-info">
                     <xsl:value-of>
@@ -559,6 +559,13 @@ extension-element-prefixes="ixsl"
                     <span class="text-success">
                         <xsl:value-of>
                             <xsl:apply-templates select="key('resources', 'added', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                        </xsl:value-of>
+                    </span>
+                    <xsl:text> / </xsl:text>
+                    <!-- .text-warning is #ff7518 in this theme, the same value as the diff-changed block border -->
+                    <span class="text-warning">
+                        <xsl:value-of>
+                            <xsl:apply-templates select="key('resources', 'changed', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
                         </xsl:value-of>
                     </span>
                 </div>

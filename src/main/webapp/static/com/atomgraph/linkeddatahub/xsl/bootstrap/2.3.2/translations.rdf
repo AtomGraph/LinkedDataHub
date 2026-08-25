@@ -561,4 +561,8 @@
         <rdfs:label xml:lang="en-US">added</rdfs:label>
         <rdfs:label xml:lang="es-ES">añadido</rdfs:label>
     </rdf:Description>
+    <rdf:Description rdf:nodeID="changed">
+        <rdfs:label xml:lang="en-US">changed</rdfs:label>
+        <rdfs:label xml:lang="es-ES">modificado</rdfs:label>
+    </rdf:Description>
 </rdf:RDF>
