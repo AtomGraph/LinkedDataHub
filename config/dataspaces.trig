@@ -2,6 +2,8 @@
 @prefix ac:	    <https://w3id.org/atomgraph/client#> .
 @prefix ldt:	<https://www.w3.org/ns/ldt#> .
 @prefix dct:	<http://purl.org/dc/terms/> .
+@prefix doap:	<http://usefulinc.com/ns/doap#> .
+@prefix github:	<https://w3id.org/atomgraph/linkeddatahub/services/github#> .
 
 ### do not use blank nodes to identify resources! ###
 ### urn: URI scheme is used because applications are not accessible in their own dataspace (under $BASE_URI) ###
@@ -27,7 +29,21 @@
         lapp:origin <https://localhost:4443> ;
         ldt:ontology <https://localhost:4443/ns#> ;
         ac:stylesheet <https://localhost:4443/static/xsl/layout.xsl> ;
-        lapp:public true .
+        lapp:public true ;
+        lapp:versioningRepository <urn:linkeddatahub:versioning/end-user> .
+
+}
+
+# root end-user - versioning repository (GitHub-backed graph versioning)
+# the access token goes into secrets/credentials.trig as:
+#     <urn:linkeddatahub:versioning/end-user> { <urn:linkeddatahub:versioning/end-user> a:authToken "github_pat_..." . }
+
+<urn:linkeddatahub:versioning/end-user>
+{
+    <urn:linkeddatahub:versioning/end-user> a doap:GitRepository ;
+        doap:location <https://github.com/namedgraph/LinkedDataHub-Versioning-Test> ;
+        github:branch "main" ;
+        github:pathPrefix "graphs" .
 
 }
 
