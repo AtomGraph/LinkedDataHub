@@ -21,7 +21,7 @@ import com.atomgraph.linkeddatahub.client.GitHubClient;
 import com.atomgraph.linkeddatahub.model.ServiceContext;
 import com.atomgraph.linkeddatahub.vocabulary.GitHub;
 import com.atomgraph.linkeddatahub.vocabulary.LAPP;
-import com.atomgraph.linkeddatahub.vocabulary.MEM;
+import com.atomgraph.linkeddatahub.vocabulary.PROV;
 import jakarta.ws.rs.NotFoundException;
 import jakarta.ws.rs.client.Client;
 import java.io.ByteArrayInputStream;
@@ -29,8 +29,10 @@ import java.io.ByteArrayOutputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -223,12 +225,49 @@ public class GraphVersioningService
     public record Version(Model model, Instant datetime) { }
 
     /**
-     * Retrieves a graph's version history as a Memento TimeMap model.
+     * Selects the graph's Memento for a requested datetime, as a TimeGate does.
      *
      * @param appURI application URI
      * @param appBase application base URI
      * @param graphURI graph (document) URI
-     * @return TimeMap model, or empty if the application is not versioned
+     * @param datetime the requested datetime, or null for the most recent Memento
+     * @return the selected commit, or empty if the application is not versioned or the graph has no history
+     */
+    public Optional<GitHubClient.CommitInfo> getMemento(String appURI, URI appBase, URI graphURI, Instant datetime)
+    {
+        Repository repository = repositories.get(appURI);
+        if (repository == null) return Optional.empty();
+
+        String path = path(repository.pathPrefix(), appBase, graphURI);
+        return selectMemento(repository.client().listCommits(path), datetime);
+    }
+
+    /**
+     * Selects the commit closest in time to a requested datetime.
+     * RFC 7089 leaves the algorithm to the server but requires it to be consistent: this one takes the
+     * smallest absolute distance, resolving ties towards the more recent Memento. With no datetime
+     * requested the most recent Memento is selected.
+     *
+     * @param commits commit history, most recent first
+     * @param datetime the requested datetime, or null for the most recent commit
+     * @return the selected commit, or empty if there is no history
+     */
+    public static Optional<GitHubClient.CommitInfo> selectMemento(List<GitHubClient.CommitInfo> commits, Instant datetime)
+    {
+        if (commits.isEmpty()) return Optional.empty();
+        if (datetime == null) return Optional.of(commits.get(0));
+
+        // min() keeps the first of equally distant commits, and the most recent one comes first
+        return commits.stream().min(Comparator.comparing(commit -> Duration.between(commit.datetime(), datetime).abs()));
+    }
+
+    /**
+     * Retrieves a graph's version history as a TimeMap model.
+     *
+     * @param appURI application URI
+     * @param appBase application base URI
+     * @param graphURI graph (document) URI
+     * @return TimeMap model, or empty if the application is not versioned or the graph has no history
      */
     public Optional<Model> getTimeMap(String appURI, URI appBase, URI graphURI)
     {
@@ -236,12 +275,19 @@ public class GraphVersioningService
         if (repository == null) return Optional.empty();
 
         String path = path(repository.pathPrefix(), appBase, graphURI);
-        return Optional.of(toTimeMap(graphURI, repository.client().listCommits(path)));
+        List<GitHubClient.CommitInfo> commits = repository.client().listCommits(path);
+        // a TimeMap is a list of Mementos; without any, there is no history to describe and the Original Resource
+        // would not be derivable from the model either (it is reached through prov:specializationOf)
+        if (commits.isEmpty()) return Optional.empty();
+
+        return Optional.of(toTimeMap(graphURI, commits));
     }
 
     /**
-     * Builds a Memento TimeMap model from a graph's commit history.
-     * Memento URIs use the <code>version</code> query parameter with the commit SHA.
+     * Builds a TimeMap model from a graph's commit history, described with PROV-O.
+     * The TimeMap is a <code>prov:Collection</code> of Mementos, each a <code>prov:Entity</code> that is a
+     * <code>prov:specializationOf</code> the Original Resource. Memento URIs use the <code>version</code>
+     * query parameter with the commit SHA.
      *
      * @param graphURI graph (document) URI
      * @param commits commit history, most recent first
@@ -250,22 +296,24 @@ public class GraphVersioningService
     public static Model toTimeMap(URI graphURI, List<GitHubClient.CommitInfo> commits)
     {
         Model model = ModelFactory.createDefaultModel();
-        Resource original = model.createResource(graphURI.toString()).
-            addProperty(RDF.type, MEM.OriginalResource);
+        Resource original = model.createResource(graphURI.toString());
         Resource timeMap = model.createResource(graphURI + "?timemap").
-            addProperty(RDF.type, MEM.TimeMap).
-            addProperty(MEM.original, original);
-        original.addProperty(MEM.timemap, timeMap);
+            addProperty(RDF.type, PROV.Collection);
 
+        Resource successor = null; // the memento of the next-more-recent commit that touched this file
         for (GitHubClient.CommitInfo commit : commits)
         {
             Resource memento = model.createResource(graphURI + "?version=" + commit.sha()).
-                addProperty(RDF.type, MEM.Memento).
-                addProperty(MEM.original, original).
-                addProperty(MEM.mementoDatetime, model.createTypedLiteral(commit.datetime().toString(), XSDDatatype.XSDdateTime));
+                addProperty(RDF.type, PROV.Entity).
+                addProperty(PROV.specializationOf, original).
+                addProperty(PROV.generatedAtTime, model.createTypedLiteral(commit.datetime().toString(), XSDDatatype.XSDdateTime));
             if (isAbsoluteURI(commit.authorName())) memento.addProperty(DCTerms.creator, model.createResource(commit.authorName()));
 
-            original.addProperty(MEM.memento, memento);
+            timeMap.addProperty(PROV.hadMember, memento);
+            // the commit list is filtered by path, so adjacent entries are adjacent revisions of this graph
+            // (unlike git parents, which are repository-wide and usually did not touch the file)
+            if (successor != null) successor.addProperty(PROV.wasRevisionOf, memento);
+            successor = memento;
         }
 
         return model;

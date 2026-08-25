@@ -140,15 +140,17 @@ public class SignUp extends DocumentHierarchyGraphStoreImpl
      * @param providers registry of JAX-RS providers
      * @param system system application
      * @param servletConfig servlet config
+     * @param httpHeaders request headers
      */
     // TO-DO: move to AuthenticationExceptionMapper and handle as state instead of URI resource?
     @Inject
     public SignUp(@Context Request request, @Context UriInfo uriInfo, MediaTypes mediaTypes,
             com.atomgraph.linkeddatahub.apps.model.Application application, Optional<OntModel> ontology, Optional<Service> service,
             @Context SecurityContext securityContext, Optional<AgentContext> agentContext,
-            @Context Providers providers, com.atomgraph.linkeddatahub.Application system, @Context ServletConfig servletConfig)
+            @Context Providers providers, com.atomgraph.linkeddatahub.Application system, @Context ServletConfig servletConfig,
+            @Context HttpHeaders httpHeaders)
     {
-        super(request, uriInfo, mediaTypes, application, ontology, service, securityContext, agentContext, providers, system);
+        super(request, uriInfo, mediaTypes, application, ontology, service, securityContext, agentContext, providers, system, httpHeaders);
         if (log.isDebugEnabled()) log.debug("Constructing {}", getClass());
         
         if (!application.canAs(AdminApplication.class)) // we are supposed to be in the admin app

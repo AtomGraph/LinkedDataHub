@@ -4,7 +4,7 @@
     <!ENTITY lapp    "https://w3id.org/atomgraph/linkeddatahub/apps#">
     <!ENTITY ac      "https://w3id.org/atomgraph/client#">
     <!ENTITY rdf     "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
-    <!ENTITY memento "http://mementoweb.org/ns#">
+    <!ENTITY prov    "http://www.w3.org/ns/prov#">
 ]>
 <xsl:stylesheet
 xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
@@ -15,7 +15,7 @@ xmlns:ldh="&ldh;"
 xmlns:lapp="&lapp;"
 xmlns:ac="&ac;"
 xmlns:rdf="&rdf;"
-xmlns:memento="&memento;"
+xmlns:prov="&prov;"
 xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
 xmlns:xhtml="http://www.w3.org/1999/xhtml"
 exclude-result-prefixes="#all"
@@ -91,11 +91,11 @@ version="3.0"
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            <xsl:variable name="mementos" select="$response?body//*[@rdf:about][rdf:type/@rdf:resource = '&memento;Memento']" as="element()*"/>
+                                            <xsl:variable name="mementos" select="$response?body//*[@rdf:about][prov:specializationOf/@rdf:resource]" as="element()*"/>
                                             <!-- on the live document view, the latest version is the one being viewed -->
-                                            <xsl:variable name="latest-memento" select="sort($mementos, (), function($memento) { string($memento/memento:mementoDatetime) })[last()]/@rdf:about" as="attribute()?"/>
+                                            <xsl:variable name="latest-memento" select="sort($mementos, (), function($memento) { string($memento/prov:generatedAtTime) })[last()]/@rdf:about" as="attribute()?"/>
                                             <xsl:apply-templates select="$mementos" mode="bs2:MementoList">
-                                                <xsl:sort select="memento:mementoDatetime" order="descending"/>
+                                                <xsl:sort select="prov:generatedAtTime" order="descending"/>
                                                 <xsl:with-param name="current-memento" select="if (map:contains(ldh:query-params(), 'version')) then xs:anyURI(ac:absolute-path(ldh:request-uri()) || '?version=' || ldh:query-params()?version) else xs:anyURI($latest-memento)"/>
                                             </xsl:apply-templates>
                                         </tbody>

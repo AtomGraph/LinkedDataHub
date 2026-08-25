@@ -64,6 +64,18 @@ public class PROV {
     /** Agent class */
     public static final Resource Agent = m_model.createOntClass( NS + "Agent" );
 
+    /** Collection class */
+    public static final Resource Collection = m_model.createOntClass( NS + "Collection" );
+
+    /** Had member property */
+    public static final Property hadMember = m_model.createObjectProperty( NS + "hadMember" );
+
+    /** Specialization of property */
+    public static final Property specializationOf = m_model.createObjectProperty( NS + "specializationOf" );
+
+    /** Was revision of property */
+    public static final Property wasRevisionOf = m_model.createObjectProperty( NS + "wasRevisionOf" );
+
     /** Was attributed to property */
     public static final Property wasAttributedTo = m_model.createObjectProperty( NS + "wasAttributedTo" );
 

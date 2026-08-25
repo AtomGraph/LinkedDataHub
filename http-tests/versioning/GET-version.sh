@@ -101,6 +101,13 @@ echo "$response_headers"
 echo "$response_headers" | grep -qi '^Memento-Datetime:'
 echo "$response_headers" | grep -qi '^Cache-Control:.*immutable'
 
+# RFC 7089: the Memento-Datetime value is RFC 1123 with a zero-padded day of month,
+# and a Memento MUST link to its Original Resource
+
+echo "$response_headers" | grep -qiE '^Memento-Datetime: [A-Z][a-z]{2}, [0-9]{2} [A-Z][a-z]{2} [0-9]{4} [0-9]{2}:[0-9]{2}:[0-9]{2} GMT'
+echo "$response_headers" | grep -q "<${doc_url}>; rel=original"
+echo "$response_headers" | grep -q 'rel=timemap'
+
 # a historical version is read-only: acl:Read advertised but no write modes, writes rejected with 405
 
 echo "$response_headers" | grep -q 'acl#Read'

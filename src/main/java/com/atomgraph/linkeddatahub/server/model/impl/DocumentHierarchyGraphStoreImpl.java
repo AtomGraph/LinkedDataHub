@@ -22,6 +22,7 @@ import com.atomgraph.core.MediaTypes;
 import com.atomgraph.core.model.EndpointAccessor;
 import com.atomgraph.core.riot.lang.RDFPostReader;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
+import com.atomgraph.linkeddatahub.client.GitHubClient;
 import com.atomgraph.linkeddatahub.client.GraphStoreClient;
 import com.atomgraph.linkeddatahub.model.CSVImport;
 import com.atomgraph.linkeddatahub.model.RDFImport;
@@ -36,6 +37,7 @@ import com.atomgraph.linkeddatahub.vocabulary.DH;
 import com.atomgraph.linkeddatahub.vocabulary.LDH;
 import com.atomgraph.linkeddatahub.vocabulary.NFO;
 import com.atomgraph.linkeddatahub.vocabulary.SIOC;
+import com.atomgraph.linkeddatahub.writer.TimeMapWriter;
 import static com.atomgraph.server.status.UnprocessableEntityStatus.UNPROCESSABLE_ENTITY;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -78,6 +80,8 @@ import java.io.InputStream;
 import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
+import java.time.DateTimeException;
+import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.security.DigestInputStream;
@@ -146,6 +150,17 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
      * Name of the query parameter that retrieves the graph's version history as a Memento TimeMap.
      */
     public static final String TIMEMAP_PARAM_NAME = "timemap";
+
+    /**
+     * Name of the query parameter that addresses the graph's Memento TimeGate, which negotiates on
+     * <code>Accept-Datetime</code>.
+     */
+    public static final String TIMEGATE_PARAM_NAME = "timegate";
+
+    /**
+     * Name of the request header conveying the datetime a TimeGate negotiates on.
+     */
+    public static final String ACCEPT_DATETIME_HEADER = "Accept-Datetime";
     
     private final com.atomgraph.linkeddatahub.apps.model.Application application;
     private final OntModel ontology;
@@ -159,6 +174,7 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
     private final SecurityContext securityContext;
     private final Optional<AgentContext> agentContext;
     private final Set<String> allowedMethods;
+    private final HttpHeaders httpHeaders;
 
     /**
      * Constructs Graph Store.
@@ -173,12 +189,13 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
      * @param agentContext authenticated agent's context
      * @param providers registry of JAX-RS providers
      * @param system system application
+     * @param httpHeaders request headers
      */
     @Inject
     public DocumentHierarchyGraphStoreImpl(@Context Request request, @Context UriInfo uriInfo, MediaTypes mediaTypes,
         com.atomgraph.linkeddatahub.apps.model.Application application, Optional<OntModel> ontology, Optional<Service> service,
         @Context SecurityContext securityContext, Optional<AgentContext> agentContext,
-        @Context Providers providers, com.atomgraph.linkeddatahub.Application system)
+        @Context Providers providers, com.atomgraph.linkeddatahub.Application system, @Context HttpHeaders httpHeaders)
     {
         super(request, system.getServiceContext(service.get()).getGraphStoreClient(), mediaTypes, uriInfo);
         if (ontology.isEmpty()) throw new InternalServerErrorException("Ontology is not specified");
@@ -190,6 +207,7 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
         this.agentContext = agentContext;
         this.providers = providers;
         this.system = system;
+        this.httpHeaders = httpHeaders;
         this.messageDigest = system.getMessageDigest();
         uploadsUriBuilder = uriInfo.getBaseUriBuilder().path(UPLOADS_PATH);
         URI ownerURI = URI.create(application.getMaker().getURI());
@@ -217,18 +235,30 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
             !secretaryDocURI.equals(uri))
             allowedMethods.add(HttpMethod.DELETE);
 
-        // historical version and TimeMap views are read-only
-        if (uriInfo.getQueryParameters().containsKey(VERSION_PARAM_NAME) || uriInfo.getQueryParameters().containsKey(TIMEMAP_PARAM_NAME))
-            allowedMethods.retainAll(Set.of(HttpMethod.GET));
+        // historical version, TimeMap and TimeGate views are read-only
+        if (isSnapshotRequest(uriInfo)) allowedMethods.retainAll(Set.of(HttpMethod.GET));
     }
 
     /**
-     * Rejects the request if it addresses a historical version or TimeMap view, which are read-only.
+     * Returns true if the request addresses a historical version, a TimeMap or a TimeGate rather than the
+     * document itself.
+     *
+     * @param uriInfo URI info of the request
+     * @return true if this is a Memento, TimeMap or TimeGate request
+     */
+    public static boolean isSnapshotRequest(UriInfo uriInfo)
+    {
+        return uriInfo.getQueryParameters().containsKey(VERSION_PARAM_NAME) ||
+            uriInfo.getQueryParameters().containsKey(TIMEMAP_PARAM_NAME) ||
+            uriInfo.getQueryParameters().containsKey(TIMEGATE_PARAM_NAME);
+    }
+
+    /**
+     * Rejects the request if it addresses a historical version, TimeMap or TimeGate view, which are read-only.
      */
     private void checkSnapshotReadOnly()
     {
-        if (getUriInfo().getQueryParameters().containsKey(VERSION_PARAM_NAME) || getUriInfo().getQueryParameters().containsKey(TIMEMAP_PARAM_NAME))
-            throw new NotAllowedException(HttpMethod.GET, new String[]{ HttpMethod.OPTIONS });
+        if (isSnapshotRequest(getUriInfo())) throw new NotAllowedException(HttpMethod.GET, new String[]{ HttpMethod.OPTIONS });
     }
 
     /**
@@ -242,13 +272,58 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
     @GET
     public Response get()
     {
+        if (getUriInfo().getQueryParameters().containsKey(TIMEGATE_PARAM_NAME))
+        {
+            String acceptDatetime = getHttpHeaders().getHeaderString(ACCEPT_DATETIME_HEADER);
+            final Instant datetime;
+            try
+            {
+                // parse leniently (RFC 1123 permits an unpadded day and numeric offsets), format strictly
+                datetime = acceptDatetime != null ? Instant.from(DateTimeFormatter.RFC_1123_DATE_TIME.parse(acceptDatetime)) : null;
+            }
+            catch (DateTimeException ex)
+            {
+                throw new BadRequestException("Value '" + acceptDatetime + "' of the '" + ACCEPT_DATETIME_HEADER + "' header is not an RFC 1123 datetime");
+            }
+
+            GitHubClient.CommitInfo commit = getSystem().getGraphVersioningService().
+                getMemento(getApplication().getURI(), getApplication().getBaseURI(), getURI(), datetime).
+                orElseThrow(() -> new NotFoundException("Document <" + getURI() + "> has no version history"));
+
+            // negotiation has to see the current history, and Accept-Datetime takes unbounded values, so the
+            // redirect is not stored: a cached one would outlive the commit that made it the most recent
+            CacheControl noStore = new CacheControl();
+            noStore.setNoStore(true);
+
+            // a 302 TimeGate response carries no Memento-Datetime; the Memento it points at does
+            return Response.status(Response.Status.FOUND).
+                location(getUriInfo().getAbsolutePathBuilder().queryParam(VERSION_PARAM_NAME, commit.sha()).build()).
+                header(HttpHeaders.VARY, ACCEPT_DATETIME_HEADER.toLowerCase(Locale.ROOT)).
+                cacheControl(noStore).
+                build();
+        }
+
         if (getUriInfo().getQueryParameters().containsKey(TIMEMAP_PARAM_NAME))
         {
             Model timeMap = getSystem().getGraphVersioningService().
                 getTimeMap(getApplication().getURI(), getApplication().getBaseURI(), getURI()).
-                orElseThrow(() -> new NotFoundException("Document <" + getURI() + "> is not versioned"));
+                orElseThrow(() -> new NotFoundException("Document <" + getURI() + "> has no version history"));
 
-            return getResponseBuilder(timeMap, getURI()).build();
+            // link-format is only offered on the TimeMap, where it is meaningful; it leads the list so that
+            // Accept: */* clients get the RFC 7089 serialization, while browsers still resolve to HTML on q-value
+            List<jakarta.ws.rs.core.MediaType> timeMapMediaTypes = new ArrayList<>();
+            timeMapMediaTypes.add(TimeMapWriter.APPLICATION_LINK_FORMAT_TYPE);
+            timeMapMediaTypes.addAll(getWritableMediaTypes(Model.class));
+
+            return new com.atomgraph.core.model.impl.Response(getRequest(),
+                    timeMap,
+                    null,
+                    getEntityTag(timeMap),
+                    timeMapMediaTypes,
+                    getLanguages(),
+                    getEncodings(),
+                    new HTMLMediaTypePredicate()).
+                getResponseBuilder().build();
         }
 
         String version = getUriInfo().getQueryParameters().getFirst(VERSION_PARAM_NAME);
@@ -269,7 +344,7 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
             tag(new EntityTag(version)).
             cacheControl(cacheControl);
         if (graphVersion.datetime() != null)
-            rb.header("Memento-Datetime", DateTimeFormatter.RFC_1123_DATE_TIME.format(graphVersion.datetime().atZone(ZoneId.of("GMT"))));
+            rb.header("Memento-Datetime", TimeMapWriter.RFC_1123_GMT.format(graphVersion.datetime().atZone(ZoneId.of("GMT"))));
 
         return rb.build();
     }
@@ -1169,7 +1244,17 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
     {
         return system;
     }
-    
+
+    /**
+     * Returns the request headers.
+     *
+     * @return HTTP headers
+     */
+    public HttpHeaders getHttpHeaders()
+    {
+        return httpHeaders;
+    }
+
     /**
      * Returns URI of the WebID document of the applications owner.
      * 

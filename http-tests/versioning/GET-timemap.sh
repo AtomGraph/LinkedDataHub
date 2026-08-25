@@ -59,9 +59,17 @@ get.sh \
 echo "DEBUG: Response headers:"
 echo "$response_headers"
 
-echo "$response_headers" | grep -q "mementoweb.org/ns#timemap"
+# RFC 7089: the Original Resource advertises rel=timemap with the link-format media type,
+# and MUST NOT carry rel=original
+echo "$response_headers" | grep -q 'rel=timemap'
+echo "$response_headers" | grep -q 'type="application/link-format"'
 
-# retrieve the TimeMap and check the memento entries
+if echo "$response_headers" | grep -q 'rel=original'; then
+    echo "DEBUG: Original Resource must not carry rel=original"
+    exit 1
+fi
+
+# retrieve the TimeMap as RDF and check the PROV description
 
 timemap=$(
 get.sh \
@@ -73,8 +81,38 @@ get.sh \
 echo "DEBUG: TimeMap:"
 echo "$timemap"
 
-echo "$timemap" | grep -q "mementoweb.org/ns#TimeMap"
-echo "$timemap" | grep -q "mementoweb.org/ns#Memento"
+echo "$timemap" | grep -q "ns/prov#Collection"
+echo "$timemap" | grep -q "ns/prov#hadMember"
+echo "$timemap" | grep -q "ns/prov#specializationOf"
+echo "$timemap" | grep -q "ns/prov#generatedAtTime"
 echo "$timemap" | grep -q "${doc_url}?version="
-echo "$timemap" | grep -q "mementoweb.org/ns#mementoDatetime"
 echo "$timemap" | grep -q "$AGENT_URI"
+
+# the same TimeMap in the serialization RFC 7089 requires
+
+link_format=$(
+get.sh \
+  -f "$AGENT_CERT_FILE" \
+  -p "$AGENT_CERT_PWD" \
+  --accept 'application/link-format' \
+  "${doc_url}?timemap")
+
+echo "DEBUG: link-format TimeMap:"
+echo "$link_format"
+
+echo "$link_format" | grep -q "<${doc_url}>;rel=\"original\""
+echo "$link_format" | grep -q "<${doc_url}?timemap>;rel=\"self\";type=\"application/link-format\""
+echo "$link_format" | grep -q "<${doc_url}?timegate>;rel=\"timegate\""
+echo "$link_format" | grep -q 'rel="first' # first memento, or "first last memento" on a single-version document
+echo "$link_format" | grep -q 'datetime="'
+
+# link-format is scoped to the TimeMap: an ordinary document does not offer it
+
+status=$(
+curl -k -w "%{http_code}\n" -o /dev/null -s \
+  -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
+  -H "Accept: application/link-format" \
+  "$doc_url")
+
+echo "DEBUG: link-format status on the document itself: $status (expected 406)"
+[ "$status" = "406" ]

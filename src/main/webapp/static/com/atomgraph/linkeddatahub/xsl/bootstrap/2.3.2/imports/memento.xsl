@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE xsl:stylesheet [
     <!ENTITY rdf     "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
-    <!ENTITY memento "http://mementoweb.org/ns#">
+    <!ENTITY prov    "http://www.w3.org/ns/prov#">
     <!ENTITY dct     "http://purl.org/dc/terms/">
 ]>
 <xsl:stylesheet version="3.0"
@@ -11,7 +11,7 @@ xmlns:map="http://www.w3.org/2005/xpath-functions/map"
 xmlns:ldh="https://w3id.org/atomgraph/linkeddatahub#"
 xmlns:ac="https://w3id.org/atomgraph/client#"
 xmlns:rdf="&rdf;"
-xmlns:memento="&memento;"
+xmlns:prov="&prov;"
 xmlns:dct="&dct;"
 xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
 exclude-result-prefixes="#all"
@@ -20,7 +20,7 @@ exclude-result-prefixes="#all"
     <!-- Memento (RFC 7089) version history rendering -->
 
     <!-- a version entry: datetime links to the memento (?version= URI), which navigates like any document link -->
-    <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&memento;Memento']" mode="bs2:MementoList">
+    <xsl:template match="*[@rdf:about][prov:specializationOf/@rdf:resource]" mode="bs2:MementoList">
         <!-- the memento URI of the version currently being viewed; when the live document is viewed, callers pass the latest memento -->
         <xsl:param name="current-memento" select="if (map:contains(ldh:query-params(), 'version')) then xs:anyURI(ac:absolute-path(ldh:request-uri()) || '?version=' || ldh:query-params()?version) else ()" as="xs:anyURI?"/>
 
@@ -30,12 +30,12 @@ exclude-result-prefixes="#all"
                     <!-- the version being viewed: bold, no self-link -->
                     <xsl:when test="@rdf:about = $current-memento">
                         <strong>
-                            <xsl:apply-templates select="memento:mementoDatetime/text()"/>
+                            <xsl:apply-templates select="prov:generatedAtTime/text()"/>
                         </strong>
                     </xsl:when>
                     <xsl:otherwise>
                         <a href="{@rdf:about}">
-                            <xsl:apply-templates select="memento:mementoDatetime/text()"/>
+                            <xsl:apply-templates select="prov:generatedAtTime/text()"/>
                         </a>
                     </xsl:otherwise>
                 </xsl:choose>
