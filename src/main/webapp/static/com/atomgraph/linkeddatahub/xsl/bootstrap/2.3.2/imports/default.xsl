@@ -131,7 +131,7 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="$ac:uri"/>
     </xsl:function>
 
-    <!-- TimeMap URI from the Link response header (rel=mem:timemap), present when the document is versioned -->
+    <!-- TimeMap URI from the Link response header (rel=timemap), present when the document is versioned -->
     <xsl:function name="ldh:timemap" as="xs:anyURI?" use-when="system-property('xsl:product-name') = 'SAXON'">
         <xsl:variable name="entries" as="xs:string*">
             <xsl:for-each select="$ldh:httpHeaders('Link')">
@@ -142,7 +142,7 @@ exclude-result-prefixes="#all"
                 </xsl:analyze-string>
             </xsl:for-each>
         </xsl:variable>
-        <xsl:sequence select="(for $entry in $entries return if (matches($entry, '^&lt;[^&gt;]+&gt;\s*;.*[;\s]rel\s*=\s*&quot;?[^&quot;\s,;]*mementoweb\.org/ns#timemap&quot;?')) then xs:anyURI(replace($entry, '^&lt;([^&gt;]+)&gt;.*$', '$1')) else ())[1]"/>
+        <xsl:sequence select="(for $entry in $entries return if (matches($entry, '^&lt;[^&gt;]+&gt;\s*;.*[;\s]rel\s*=\s*&quot;?timemap&quot;?([;\s]|$)')) then xs:anyURI(replace($entry, '^&lt;([^&gt;]+)&gt;.*$', '$1')) else ())[1]"/>
     </xsl:function>
 
     <!-- Memento-Datetime response header value, present on ?version= responses -->

@@ -80,7 +80,6 @@ import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
 import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
 import java.security.DigestInputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -284,7 +283,7 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
             tag(new EntityTag(version)).
             cacheControl(cacheControl);
         if (graphVersion.datetime() != null)
-            rb.header("Memento-Datetime", DateTimeFormatter.RFC_1123_DATE_TIME.format(graphVersion.datetime().atZone(ZoneId.of("GMT"))));
+            rb.header("Memento-Datetime", TimeMapWriter.RFC_1123_GMT.format(graphVersion.datetime().atZone(ZoneId.of("GMT"))));
 
         return rb.build();
     }

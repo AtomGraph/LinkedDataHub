@@ -445,7 +445,7 @@ WHERE
                         <ixsl:set-property name="application" select="$application" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
                     </xsl:if>
                     <!-- store TimeMap URI from Link header (present when the document is versioned); blank it when absent so non-versioned documents don't show the History link -->
-                    <xsl:variable name="timemap-link" select="tokenize(?headers?link, ',')[contains(., 'mementoweb.org/ns#timemap')][1]" as="xs:string?"/>
+                    <xsl:variable name="timemap-link" select="tokenize(?headers?link, ',')[contains(., 'rel=timemap')][1]" as="xs:string?"/>
                     <xsl:variable name="timemap" select="if ($timemap-link) then xs:anyURI(substring-before(substring-after(substring-before($timemap-link, ';'), '&lt;'), '&gt;')) else ()" as="xs:anyURI?"/>
                     <ixsl:set-property name="timemap" select="($timemap, '')[1]" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
                     <xsl:for-each select="?body">
