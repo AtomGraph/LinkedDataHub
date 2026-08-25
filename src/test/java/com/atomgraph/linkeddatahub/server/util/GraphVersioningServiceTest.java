@@ -17,7 +17,7 @@
 package com.atomgraph.linkeddatahub.server.util;
 
 import com.atomgraph.linkeddatahub.client.GitHubClient;
-import com.atomgraph.linkeddatahub.vocabulary.MEM;
+import com.atomgraph.linkeddatahub.vocabulary.PROV;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
@@ -101,13 +101,33 @@ public class GraphVersioningServiceTest
 
         Resource timeMap = model.createResource("https://localhost:4443/doc/?timemap");
         Resource memento = model.createResource("https://localhost:4443/doc/?version=sha-2");
-        assertTrue(model.contains(timeMap, RDF.type, MEM.TimeMap));
-        assertTrue(model.contains(memento, RDF.type, MEM.Memento));
-        assertTrue(model.contains(memento, MEM.original, model.createResource(graphURI.toString())));
-        assertEquals("2026-08-17T11:00:00Z", memento.getProperty(MEM.mementoDatetime).getString());
+        Resource earlier = model.createResource("https://localhost:4443/doc/?version=sha-1");
+        assertTrue(model.contains(timeMap, RDF.type, PROV.Collection));
+        assertTrue(model.contains(timeMap, PROV.hadMember, memento));
+        assertTrue(model.contains(memento, RDF.type, PROV.Entity));
+        assertTrue(model.contains(memento, PROV.specializationOf, model.createResource(graphURI.toString())));
+        assertEquals("2026-08-17T11:00:00Z", memento.getProperty(PROV.generatedAtTime).getString());
         assertEquals("https://localhost/agent#this", memento.getPropertyResourceValue(DCTerms.creator).getURI());
         // the non-URI author name must not become a creator resource
-        assertTrue(model.createResource("https://localhost:4443/doc/?version=sha-1").getPropertyResourceValue(DCTerms.creator) == null);
+        assertTrue(earlier.getPropertyResourceValue(DCTerms.creator) == null);
+    }
+
+    @Test
+    public void testTimeMapRevisionChain()
+    {
+        URI graphURI = URI.create("https://localhost:4443/doc/");
+        Model model = GraphVersioningService.toTimeMap(graphURI, List.of(
+            new GitHubClient.CommitInfo("sha-3", Instant.parse("2026-08-17T12:00:00Z"), "https://localhost/agent#this"),
+            new GitHubClient.CommitInfo("sha-2", Instant.parse("2026-08-17T11:00:00Z"), "https://localhost/agent#this"),
+            new GitHubClient.CommitInfo("sha-1", Instant.parse("2026-08-17T10:00:00Z"), "https://localhost/agent#this")));
+
+        Resource latest = model.createResource("https://localhost:4443/doc/?version=sha-3");
+        Resource middle = model.createResource("https://localhost:4443/doc/?version=sha-2");
+        Resource earliest = model.createResource("https://localhost:4443/doc/?version=sha-1");
+        // each memento is a revision of the next-older one; the earliest has no predecessor
+        assertTrue(model.contains(latest, PROV.wasRevisionOf, middle));
+        assertTrue(model.contains(middle, PROV.wasRevisionOf, earliest));
+        assertTrue(earliest.getPropertyResourceValue(PROV.wasRevisionOf) == null);
     }
 
     @Test
