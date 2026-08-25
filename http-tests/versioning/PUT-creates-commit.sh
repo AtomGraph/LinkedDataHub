@@ -41,16 +41,16 @@ echo "<${doc_url}> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://ww
 path="${VERSIONING_PATH_PREFIX:-graphs}/${slug}.nt"
 
 for i in $(seq 1 30); do
-    if gh api "repos/${VERSIONING_TEST_REPO}/contents/${path}?ref=main" > /dev/null 2>&1; then
+    if gh api "repos/${VERSIONING_TEST_REPO}/contents/${path}?ref=${VERSIONING_TEST_BRANCH:-main}" > /dev/null 2>&1; then
         break
     fi
     sleep 1
 done
-gh api "repos/${VERSIONING_TEST_REPO}/contents/${path}?ref=main" > /dev/null
+gh api "repos/${VERSIONING_TEST_REPO}/contents/${path}?ref=${VERSIONING_TEST_BRANCH:-main}" > /dev/null
 
 # check that the commit author is the agent's WebID
 
-author=$(gh api "repos/${VERSIONING_TEST_REPO}/commits?path=${path}&per_page=1" --jq '.[0].commit.author.name')
+author=$(gh api "repos/${VERSIONING_TEST_REPO}/commits?path=${path}&sha=${VERSIONING_TEST_BRANCH:-main}&per_page=1" --jq '.[0].commit.author.name')
 echo "DEBUG: Expected author: $AGENT_URI"
 echo "DEBUG: Got author: $author"
 [ "$author" = "$AGENT_URI" ]

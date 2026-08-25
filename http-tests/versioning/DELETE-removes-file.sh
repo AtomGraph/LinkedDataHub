@@ -38,12 +38,12 @@ echo "<${doc_url}> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://ww
     "$doc_url"
 
 for i in $(seq 1 30); do
-    if gh api "repos/${VERSIONING_TEST_REPO}/contents/${path}?ref=main" > /dev/null 2>&1; then
+    if gh api "repos/${VERSIONING_TEST_REPO}/contents/${path}?ref=${VERSIONING_TEST_BRANCH:-main}" > /dev/null 2>&1; then
         break
     fi
     sleep 1
 done
-gh api "repos/${VERSIONING_TEST_REPO}/contents/${path}?ref=main" > /dev/null
+gh api "repos/${VERSIONING_TEST_REPO}/contents/${path}?ref=${VERSIONING_TEST_BRANCH:-main}" > /dev/null
 
 # delete the document and check that the file disappears
 
@@ -53,7 +53,7 @@ delete.sh \
   "$doc_url"
 
 for i in $(seq 1 30); do
-    if ! gh api "repos/${VERSIONING_TEST_REPO}/contents/${path}?ref=main" > /dev/null 2>&1; then
+    if ! gh api "repos/${VERSIONING_TEST_REPO}/contents/${path}?ref=${VERSIONING_TEST_BRANCH:-main}" > /dev/null 2>&1; then
         exit 0
     fi
     sleep 1

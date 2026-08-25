@@ -40,7 +40,7 @@ put_document()
 
 head_sha()
 {
-    gh api "repos/${VERSIONING_TEST_REPO}/commits?path=${path}&per_page=1" --jq '.[0].sha' 2> /dev/null || true
+    gh api "repos/${VERSIONING_TEST_REPO}/commits?path=${path}&sha=${VERSIONING_TEST_BRANCH:-main}&per_page=1" --jq '.[0].sha' 2> /dev/null || true
 }
 
 # create the first version and wait for its commit
