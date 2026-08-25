@@ -477,6 +477,55 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="distinct-values($arg1[not(.=$arg2)])"/>
     </xsl:function>
 
+    <!-- identity of one triple given its RDF/XML property element, as subject | predicate | object.
+         With $normalize-numerics, numeric literals are normalized so lexically different but equal values (1 vs 1.0) compare
+         equal across serializations; without it, comparison is exactly lexical (canonical same-writer output makes that safe).
+         XMLLiterals are keyed on their serialized content. Blank node labels are serializer-generated, so bnode-involving
+         triples never compare equal across two documents -->
+    <xsl:function name="ldh:triple-key" as="xs:string">
+        <xsl:param name="property" as="element()"/>
+        <xsl:param name="normalize-numerics" as="xs:boolean"/>
+
+        <xsl:for-each select="$property">
+            <xsl:sequence select="concat(../@rdf:about, '|', ../@rdf:nodeID, '|', namespace-uri(), local-name(), '|', @rdf:resource, @rdf:nodeID, if (@rdf:parseType = 'Literal') then serialize(node()) else if ($normalize-numerics and text() castable as xs:float) then xs:float(text()) else text(), '|', @rdf:datatype, @xml:lang)"/>
+        </xsl:for-each>
+    </xsl:function>
+
+    <!-- one map entry per triple of a flat RDF/XML document, keyed with ldh:triple-key() -->
+    <xsl:function name="ldh:triples-map" as="map(xs:string, element())">
+        <xsl:param name="doc" as="document-node()"/>
+        <xsl:param name="normalize-numerics" as="xs:boolean"/>
+
+        <xsl:map>
+            <xsl:for-each select="$doc/rdf:RDF/rdf:Description/*">
+                <xsl:map-entry key="ldh:triple-key(., $normalize-numerics)" select="."/>
+            </xsl:for-each>
+        </xsl:map>
+    </xsl:function>
+
+    <!-- version-diff status of a whole resource description: added/removed when every one of its triples is one-sided, changed when only some are -->
+    <xsl:function name="ldh:diff-class" as="xs:string?">
+        <xsl:param name="resource" as="element()"/>
+        <xsl:param name="added-keys" as="xs:string*"/>
+        <xsl:param name="removed-keys" as="xs:string*"/>
+
+        <xsl:variable name="triple-keys" select="$resource/* ! ldh:triple-key(., false())" as="xs:string*"/>
+        <xsl:choose>
+            <xsl:when test="exists($triple-keys) and (every $triple-key in $triple-keys satisfies $triple-key = $added-keys)">
+                <xsl:sequence select="'diff-added'"/>
+            </xsl:when>
+            <xsl:when test="exists($triple-keys) and (every $triple-key in $triple-keys satisfies $triple-key = $removed-keys)">
+                <xsl:sequence select="'diff-removed'"/>
+            </xsl:when>
+            <xsl:when test="$triple-keys = ($added-keys, $removed-keys)">
+                <xsl:sequence select="'diff-changed'"/>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:sequence select="()"/>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:function>
+
     <xsl:function name="ldh:url-decode" as="xs:string" use-when="system-property('xsl:product-name') eq 'SaxonJS'">
         <xsl:param name="encoded-string" as="xs:string"/>
         
@@ -635,17 +684,31 @@ exclude-result-prefixes="#all"
     <!-- RDFa overrides -->
 
     <xsl:template match="@rdf:resource" mode="xhtml:DefinitionDescription">
+        <xsl:param name="diff-added-keys" as="xs:string*" tunnel="yes"/>
+        <xsl:param name="diff-removed-keys" as="xs:string*" tunnel="yes"/>
         <xsl:variable name="property-uri" select="../concat(namespace-uri(), local-name())" as="xs:string"/>
-        
+        <xsl:variable name="diff-class" select="ldh:value-diff-class(.., $diff-added-keys, $diff-removed-keys)" as="xs:string?"/>
+
         <dd property="{$property-uri}" resource="{.}">
+            <xsl:if test="$diff-class">
+                <xsl:attribute name="class" select="$diff-class"/>
+            </xsl:if>
+
             <xsl:apply-templates select="."/>
         </dd>
     </xsl:template>
-    
+
     <xsl:template match="text()[../@xml:lang]" mode="xhtml:DefinitionDescription">
+        <xsl:param name="diff-added-keys" as="xs:string*" tunnel="yes"/>
+        <xsl:param name="diff-removed-keys" as="xs:string*" tunnel="yes"/>
         <xsl:variable name="property-uri" select="../concat(namespace-uri(), local-name())" as="xs:string"/>
+        <xsl:variable name="diff-class" select="ldh:value-diff-class(.., $diff-added-keys, $diff-removed-keys)" as="xs:string?"/>
 
         <dd property="{$property-uri}">
+            <xsl:if test="$diff-class">
+                <xsl:attribute name="class" select="$diff-class"/>
+            </xsl:if>
+
             <span class="label label-info pull-right">
                 <xsl:value-of select="../@xml:lang"/>
             </span>
@@ -653,14 +716,31 @@ exclude-result-prefixes="#all"
             <xsl:apply-templates select="."/>
         </dd>
     </xsl:template>
-    
+
     <xsl:template match="node()" mode="xhtml:DefinitionDescription">
+        <xsl:param name="diff-added-keys" as="xs:string*" tunnel="yes"/>
+        <xsl:param name="diff-removed-keys" as="xs:string*" tunnel="yes"/>
         <xsl:variable name="property-uri" select="../concat(namespace-uri(), local-name())" as="xs:string"/>
-        
+        <xsl:variable name="diff-class" select="ldh:value-diff-class(.., $diff-added-keys, $diff-removed-keys)" as="xs:string?"/>
+
         <dd property="{$property-uri}">
+            <xsl:if test="$diff-class">
+                <xsl:attribute name="class" select="$diff-class"/>
+            </xsl:if>
+
             <xsl:apply-templates select="."/>
         </dd>
     </xsl:template>
+
+    <!-- version-diff status of a single property value -->
+    <xsl:function name="ldh:value-diff-class" as="xs:string?">
+        <xsl:param name="property" as="element()"/>
+        <xsl:param name="added-keys" as="xs:string*"/>
+        <xsl:param name="removed-keys" as="xs:string*"/>
+
+        <xsl:variable name="triple-key" select="ldh:triple-key($property, false())" as="xs:string"/>
+        <xsl:sequence select="if ($triple-key = $added-keys) then 'diff-added' else if ($triple-key = $removed-keys) then 'diff-removed' else ()"/>
+    </xsl:function>
     
     <!-- DEFAULT -->
     

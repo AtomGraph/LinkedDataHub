@@ -23,6 +23,9 @@ exclude-result-prefixes="#all"
     <xsl:template match="*[@rdf:about][prov:specializationOf/@rdf:resource]" mode="bs2:MementoList">
         <!-- the memento URI of the version currently being viewed; when the live document is viewed, callers pass the latest memento -->
         <xsl:param name="current-memento" select="if (map:contains(ldh:query-params(), 'version')) then xs:anyURI(ac:absolute-path(ldh:request-uri()) || '?version=' || ldh:query-params()?version) else ()" as="xs:anyURI?"/>
+        <!-- preselected diff endpoints: the version being viewed and its predecessor -->
+        <xsl:param name="from-memento" as="xs:anyURI?"/>
+        <xsl:param name="to-memento" as="xs:anyURI?"/>
 
         <tr>
             <td>
@@ -42,6 +45,20 @@ exclude-result-prefixes="#all"
             </td>
             <td>
                 <xsl:apply-templates select="dct:creator/@rdf:resource"/>
+            </td>
+            <td>
+                <input type="radio" name="from" value="{@rdf:about}">
+                    <xsl:if test="@rdf:about = $from-memento">
+                        <xsl:attribute name="checked" select="'checked'"/>
+                    </xsl:if>
+                </input>
+            </td>
+            <td>
+                <input type="radio" name="to" value="{@rdf:about}">
+                    <xsl:if test="@rdf:about = $to-memento">
+                        <xsl:attribute name="checked" select="'checked'"/>
+                    </xsl:if>
+                </input>
             </td>
         </tr>
     </xsl:template>
