@@ -30,6 +30,7 @@ import java.io.Writer;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
@@ -144,7 +145,7 @@ public class TimeMapWriter implements MessageBodyWriter<Model>
             if (member.isURIResource()) mementos.add(member.asResource());
         });
 
-        mementos.sort(Comparator.comparing(memento -> memento.getProperty(PROV.generatedAtTime).getString()));
+        mementos.sort(Comparator.comparing(memento -> Instant.parse(memento.getProperty(PROV.generatedAtTime).getString())));
         return mementos;
     }
 

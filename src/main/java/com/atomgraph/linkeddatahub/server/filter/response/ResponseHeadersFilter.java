@@ -109,7 +109,8 @@ public class ResponseHeadersFilter implements ContainerResponseFilter
                 else
                     response.getHeaders().add(HttpHeaders.LINK, new Link(timeMapURI, "timemap", TimeMapWriter.APPLICATION_LINK_FORMAT));
 
-                // a Memento MUST link to its Original Resource, which in turn MUST NOT carry rel=original
+                // a Memento MUST link to its Original Resource and a TimeMap lists it; the Original Resource
+                // itself MUST NOT carry rel=original
                 if (isSnapshotRequest)
                     response.getHeaders().add(HttpHeaders.LINK, new Link(originalURI, "original", null));
             }
