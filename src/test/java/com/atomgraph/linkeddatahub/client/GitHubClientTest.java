@@ -19,6 +19,7 @@ package com.atomgraph.linkeddatahub.client;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
 import jakarta.json.Json;
+import jakarta.json.JsonArrayBuilder;
 import jakarta.json.JsonObject;
 import jakarta.ws.rs.client.Client;
 import jakarta.ws.rs.client.ClientBuilder;
@@ -59,6 +60,17 @@ public class GitHubClientTest
     private String fileSha = null; // null = file does not exist on the fake server
     private byte[] fileContent = null;
     private int rateLimitResponses = 0; // number of upcoming requests to answer with 429
+    private int commitCount = 2; // number of commits in the fake file history
+
+    private static Optional<String> queryParam(String query, String name)
+    {
+        if (query == null) return Optional.empty();
+
+        for (String pair : query.split("&"))
+            if (pair.startsWith(name + "=")) return Optional.of(pair.substring(name.length() + 1));
+
+        return Optional.empty();
+    }
 
     @BeforeEach
     public void setUp() throws IOException
@@ -146,16 +158,23 @@ public class GitHubClientTest
 
         if (path.equals("/repos/acme/graphs/commits"))
         {
-            respond(exchange, 200, Json.createArrayBuilder().
-                add(Json.createObjectBuilder().
-                    add("sha", "sha-2").
+            // serve the requested page of a synthetic history of commitCount commits, most recent first
+            int page = Integer.parseInt(queryParam(exchange.getRequestURI().getQuery(), "page").orElse("1"));
+            int offset = (page - 1) * GitHubClient.COMMITS_PER_PAGE;
+
+            JsonArrayBuilder array = Json.createArrayBuilder();
+            for (int i = offset; i < Math.min(offset + GitHubClient.COMMITS_PER_PAGE, commitCount); i++)
+            {
+                int sequence = commitCount - i; // sha-N counts down from the newest commit
+                array.add(Json.createObjectBuilder().
+                    add("sha", "sha-" + sequence).
                     add("commit", Json.createObjectBuilder().
-                        add("author", Json.createObjectBuilder().add("date", "2026-08-17T11:00:00Z").add("name", "https://localhost/agent#this")))).
-                add(Json.createObjectBuilder().
-                    add("sha", "sha-1").
-                    add("commit", Json.createObjectBuilder().
-                        add("author", Json.createObjectBuilder().add("date", "2026-08-17T10:00:00Z").add("name", "https://localhost/agent#this")))).
-                build().toString());
+                        add("author", Json.createObjectBuilder().
+                            add("date", Instant.parse("2026-08-17T10:00:00Z").plusSeconds(3600L * (sequence - 1)).toString()).
+                            add("name", "https://localhost/agent#this"))));
+            }
+
+            respond(exchange, 200, array.build().toString());
             return;
         }
 
@@ -279,6 +298,33 @@ public class GitHubClientTest
         assertEquals(2, commits.size());
         assertEquals(new GitHubClient.CommitInfo("sha-2", Instant.parse("2026-08-17T11:00:00Z"), "https://localhost/agent#this"), commits.get(0));
         assertTrue(received.get(0).uri().contains("path=graphs") && received.get(0).uri().contains("sha=main"));
+    }
+
+    @Test
+    public void testListCommitsPagesThroughHistory()
+    {
+        commitCount = GitHubClient.COMMITS_PER_PAGE + 50;
+
+        var commits = gitHubClient.listCommits("graphs/doc.nt");
+
+        // a TimeMap has to be comprehensive, so a full first page must not end the walk
+        assertEquals(GitHubClient.COMMITS_PER_PAGE + 50, commits.size());
+        assertEquals(2, received.size());
+        assertTrue(received.get(1).uri().contains("page=2"));
+        assertEquals("sha-" + (GitHubClient.COMMITS_PER_PAGE + 50), commits.get(0).sha()); // newest first
+        assertEquals("sha-1", commits.get(commits.size() - 1).sha());
+    }
+
+    @Test
+    public void testListCommitsStopsOnExactPageBoundary()
+    {
+        commitCount = GitHubClient.COMMITS_PER_PAGE;
+
+        var commits = gitHubClient.listCommits("graphs/doc.nt");
+
+        // a full page is followed by an empty one, which ends the walk
+        assertEquals(GitHubClient.COMMITS_PER_PAGE, commits.size());
+        assertEquals(2, received.size());
     }
 
 }
