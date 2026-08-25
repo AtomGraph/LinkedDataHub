@@ -38,20 +38,38 @@ version="3.0"
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
         <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $timemap-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
-        <xsl:variable name="context" select="map{ 'request': $request, 'timemap-uri': $timemap-uri, 'container': $container }" as="map(*)"/>
+        <!-- ac:absolute-path() drops the ?version= that distinguishes a memento from the document it specializes -->
+        <xsl:variable name="context" select="map{ 'request': $request, 'timemap-uri': $timemap-uri, 'doc-uri': ac:absolute-path(ldh:request-uri()), 'container': $container }" as="map(*)"/>
         <ixsl:promise select="
           ixsl:http-request($context('request'))
             => ixsl:then(ldh:rethread-response($context, ?))
             => ixsl:then(ldh:handle-response#1)
+            => ixsl:then(ldh:load-document-modes#1)
             => ixsl:then(ldh:timemap-response#1)
         " on-failure="ldh:promise-failure#1"/>
     </xsl:template>
+
+    <!-- reads the live document's access modes, which decide whether a version can be restored.
+         Neither the memento nor the TimeMap response can answer this: both are snapshot views and
+         ResponseHeadersFilter caps them at acl:Read, so the modes are read from the document itself. -->
+    <xsl:function name="ldh:load-document-modes" as="item()*" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+
+        <xsl:variable name="request" select="map{ 'method': 'HEAD', 'href': ldh:href($context('doc-uri')), 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
+        <xsl:sequence select="
+          ixsl:http-request($request)
+            => ixsl:then(ldh:rethread-response($context, ?, 'doc-response'))
+        "/>
+    </xsl:function>
 
     <!-- renders the version history modal from the TimeMap RDF response -->
     <xsl:function name="ldh:timemap-response" as="item()?" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
         <xsl:variable name="response" select="$context('response')" as="map(*)"/>
         <xsl:variable name="container" select="$context('container')" as="element()"/>
+        <!-- same Link header parse as client.xsl uses to seed acl:mode(), but against the live document's response -->
+        <xsl:variable name="acl-modes" select="tokenize($context('doc-response')?headers?link, ',')[contains(., '&acl;mode')] ! xs:anyURI(substring-before(substring-after(substring-before(., ';'), '&lt;'), '&gt;'))" as="xs:anyURI*"/>
+        <xsl:variable name="writable" select="$acl-modes = '&acl;Write'" as="xs:boolean"/>
 
         <xsl:for-each select="$response">
             <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
@@ -83,9 +101,6 @@ version="3.0"
                                     <!-- preselect the viewed version as the diff target and its predecessor as the diff source (the viewed version itself when there is none) -->
                                     <xsl:variable name="from-memento" select="(xs:anyURI($sorted-mementos[$current-index - 1]/@rdf:about), $current-memento)[1]" as="xs:anyURI?"/>
                                     <form id="form-version-diff">
-                                        <!-- a restore rewrites the live document, so it needs acl:Write there. On a ?version= view the
-                                             response advertises acl:Read at most, so the restore buttons only appear from the live document. -->
-                                        <xsl:variable name="writable" select="acl:mode() = '&acl;Write'" as="xs:boolean"/>
                                         <table class="table table-striped">
                                             <colgroup>
                                                 <col style="width: 38%;"/>
