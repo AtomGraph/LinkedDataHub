@@ -3,12 +3,14 @@
     <!ENTITY rdf     "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
     <!ENTITY prov    "http://www.w3.org/ns/prov#">
     <!ENTITY dct     "http://purl.org/dc/terms/">
+    <!ENTITY lapp    "https://w3id.org/atomgraph/linkeddatahub/apps#">
 ]>
 <xsl:stylesheet version="3.0"
 xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
 xmlns:xs="http://www.w3.org/2001/XMLSchema"
 xmlns:map="http://www.w3.org/2005/xpath-functions/map"
 xmlns:ldh="https://w3id.org/atomgraph/linkeddatahub#"
+xmlns:lapp="&lapp;"
 xmlns:ac="https://w3id.org/atomgraph/client#"
 xmlns:rdf="&rdf;"
 xmlns:prov="&prov;"
@@ -26,6 +28,8 @@ exclude-result-prefixes="#all"
         <!-- preselected diff endpoints: the version being viewed and its predecessor -->
         <xsl:param name="from-memento" as="xs:anyURI?"/>
         <xsl:param name="to-memento" as="xs:anyURI?"/>
+        <!-- whether the agent can write the live document, which is what a restore rewrites -->
+        <xsl:param name="writable" select="false()" as="xs:boolean"/>
 
         <tr>
             <td>
@@ -59,6 +63,17 @@ exclude-result-prefixes="#all"
                         <xsl:attribute name="checked" select="'checked'"/>
                     </xsl:if>
                 </input>
+            </td>
+            <td>
+                <!-- restoring is a point action on one version, unlike the From/To pair that bounds a comparison.
+                     The version being viewed is skipped: writing it back would only commit identical content. -->
+                <xsl:if test="$writable and not(@rdf:about = $current-memento)">
+                    <button type="button" class="btn btn-restore" value="{@rdf:about}">
+                        <xsl:value-of>
+                            <xsl:apply-templates select="key('resources', 'restore', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                        </xsl:value-of>
+                    </button>
+                </xsl:if>
             </td>
         </tr>
     </xsl:template>

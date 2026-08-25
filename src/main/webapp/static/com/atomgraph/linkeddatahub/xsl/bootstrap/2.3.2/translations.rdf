@@ -565,4 +565,8 @@
         <rdfs:label xml:lang="en-US">changed</rdfs:label>
         <rdfs:label xml:lang="es-ES">modificado</rdfs:label>
     </rdf:Description>
+    <rdf:Description rdf:nodeID="restore">
+        <rdfs:label xml:lang="en-US">Restore</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Restaurar</rdfs:label>
+    </rdf:Description>
 </rdf:RDF>
