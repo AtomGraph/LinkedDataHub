@@ -290,10 +290,16 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
                 getMemento(getApplication().getURI(), getApplication().getBaseURI(), getURI(), datetime).
                 orElseThrow(() -> new NotFoundException("Document <" + getURI() + "> has no version history"));
 
+            // negotiation has to see the current history, and Accept-Datetime takes unbounded values, so the
+            // redirect is not stored: a cached one would outlive the commit that made it the most recent
+            CacheControl noStore = new CacheControl();
+            noStore.setNoStore(true);
+
             // a 302 TimeGate response carries no Memento-Datetime; the Memento it points at does
             return Response.status(Response.Status.FOUND).
                 location(getUriInfo().getAbsolutePathBuilder().queryParam(VERSION_PARAM_NAME, commit.sha()).build()).
                 header(HttpHeaders.VARY, ACCEPT_DATETIME_HEADER.toLowerCase(Locale.ROOT)).
+                cacheControl(noStore).
                 build();
         }
 
