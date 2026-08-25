@@ -102,6 +102,7 @@ echo "$link_format"
 
 echo "$link_format" | grep -q "<${doc_url}>;rel=\"original\""
 echo "$link_format" | grep -q "<${doc_url}?timemap>;rel=\"self\";type=\"application/link-format\""
+echo "$link_format" | grep -q "<${doc_url}?timegate>;rel=\"timegate\""
 echo "$link_format" | grep -q 'rel="first' # first memento, or "first last memento" on a single-version document
 echo "$link_format" | grep -q 'datetime="'
 

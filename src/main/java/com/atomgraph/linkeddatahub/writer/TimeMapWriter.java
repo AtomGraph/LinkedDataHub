@@ -16,11 +16,14 @@
  */
 package com.atomgraph.linkeddatahub.writer;
 
+import com.atomgraph.linkeddatahub.server.model.impl.DocumentHierarchyGraphStoreImpl;
 import com.atomgraph.linkeddatahub.vocabulary.PROV;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.WebApplicationException;
+import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.MultivaluedMap;
+import jakarta.ws.rs.core.UriInfo;
 import jakarta.ws.rs.ext.MessageBodyWriter;
 import jakarta.ws.rs.ext.Provider;
 import java.io.IOException;
@@ -29,6 +32,7 @@ import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.ZoneId;
@@ -38,6 +42,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
@@ -59,6 +64,8 @@ import org.apache.jena.vocabulary.RDF;
 @Produces(TimeMapWriter.APPLICATION_LINK_FORMAT)
 public class TimeMapWriter implements MessageBodyWriter<Model>
 {
+
+    @Context private UriInfo uriInfo;
 
     /** The link-format media type as a string */
     public static final String APPLICATION_LINK_FORMAT = "application/link-format";
@@ -93,6 +100,8 @@ public class TimeMapWriter implements MessageBodyWriter<Model>
         links.add("<" + original.getURI() + ">;rel=\"original\"");
         links.add("<" + timeMap.getURI() + ">;rel=\"self\";type=\"" + APPLICATION_LINK_FORMAT + "\"" +
             ";from=\"" + datetime(first) + "\";until=\"" + datetime(last) + "\"");
+        // the TimeGate is deployment hypermedia rather than part of the version history, so it comes from the request
+        getTimeGateURI().ifPresent(timeGate -> links.add("<" + timeGate + ">;rel=\"timegate\""));
 
         for (Resource memento : mementos)
         {
@@ -108,6 +117,28 @@ public class TimeMapWriter implements MessageBodyWriter<Model>
         Writer writer = new OutputStreamWriter(entityStream, StandardCharsets.UTF_8);
         writer.write(String.join(",\n", links));
         writer.flush();
+    }
+
+    /**
+     * Returns the TimeGate URI of the resource being served, if there is a request to derive it from.
+     *
+     * @return TimeGate URI, or empty outside a request
+     */
+    protected Optional<URI> getTimeGateURI()
+    {
+        if (getUriInfo() == null) return Optional.empty();
+
+        return Optional.of(URI.create(getUriInfo().getAbsolutePath() + "?" + DocumentHierarchyGraphStoreImpl.TIMEGATE_PARAM_NAME));
+    }
+
+    /**
+     * Returns the URI info of the current request.
+     *
+     * @return URI info, or null outside a request
+     */
+    public UriInfo getUriInfo()
+    {
+        return uriInfo;
     }
 
     /**

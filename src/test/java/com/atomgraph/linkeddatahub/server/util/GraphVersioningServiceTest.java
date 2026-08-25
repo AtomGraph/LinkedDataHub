@@ -131,6 +131,44 @@ public class GraphVersioningServiceTest
     }
 
     @Test
+    public void testSelectMementoClosestToRequestedDatetime()
+    {
+        // most recent first, as the commits API returns them
+        List<GitHubClient.CommitInfo> commits = List.of(
+            new GitHubClient.CommitInfo("sha-3", Instant.parse("2026-08-17T12:00:00Z"), "https://localhost/agent#this"),
+            new GitHubClient.CommitInfo("sha-2", Instant.parse("2026-08-17T11:00:00Z"), "https://localhost/agent#this"),
+            new GitHubClient.CommitInfo("sha-1", Instant.parse("2026-08-17T10:00:00Z"), "https://localhost/agent#this"));
+
+        // closest in either direction, not merely the closest preceding
+        assertEquals("sha-2", GraphVersioningService.selectMemento(commits, Instant.parse("2026-08-17T11:10:00Z")).get().sha());
+        assertEquals("sha-3", GraphVersioningService.selectMemento(commits, Instant.parse("2026-08-17T11:50:00Z")).get().sha());
+        // outside the covered interval the nearest end wins
+        assertEquals("sha-1", GraphVersioningService.selectMemento(commits, Instant.parse("2020-01-01T00:00:00Z")).get().sha());
+        assertEquals("sha-3", GraphVersioningService.selectMemento(commits, Instant.parse("2030-01-01T00:00:00Z")).get().sha());
+    }
+
+    @Test
+    public void testSelectMementoResolvesTiesTowardsTheMoreRecent()
+    {
+        List<GitHubClient.CommitInfo> commits = List.of(
+            new GitHubClient.CommitInfo("sha-2", Instant.parse("2026-08-17T12:00:00Z"), "https://localhost/agent#this"),
+            new GitHubClient.CommitInfo("sha-1", Instant.parse("2026-08-17T10:00:00Z"), "https://localhost/agent#this"));
+
+        assertEquals("sha-2", GraphVersioningService.selectMemento(commits, Instant.parse("2026-08-17T11:00:00Z")).get().sha());
+    }
+
+    @Test
+    public void testSelectMementoWithoutDatetimeIsMostRecent()
+    {
+        List<GitHubClient.CommitInfo> commits = List.of(
+            new GitHubClient.CommitInfo("sha-2", Instant.parse("2026-08-17T12:00:00Z"), "https://localhost/agent#this"),
+            new GitHubClient.CommitInfo("sha-1", Instant.parse("2026-08-17T10:00:00Z"), "https://localhost/agent#this"));
+
+        assertEquals("sha-2", GraphVersioningService.selectMemento(commits, null).get().sha());
+        assertTrue(GraphVersioningService.selectMemento(List.of(), null).isEmpty());
+    }
+
+    @Test
     public void testSortedNTriplesRoundTrips()
     {
         Model model = ModelFactory.createDefaultModel();

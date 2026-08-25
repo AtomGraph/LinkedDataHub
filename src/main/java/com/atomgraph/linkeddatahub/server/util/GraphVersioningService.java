@@ -29,8 +29,10 @@ import java.io.ByteArrayOutputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -221,6 +223,43 @@ public class GraphVersioningService
 
     /** A historical graph version: the model and the commit datetime */
     public record Version(Model model, Instant datetime) { }
+
+    /**
+     * Selects the graph's Memento for a requested datetime, as a TimeGate does.
+     *
+     * @param appURI application URI
+     * @param appBase application base URI
+     * @param graphURI graph (document) URI
+     * @param datetime the requested datetime, or null for the most recent Memento
+     * @return the selected commit, or empty if the application is not versioned or the graph has no history
+     */
+    public Optional<GitHubClient.CommitInfo> getMemento(String appURI, URI appBase, URI graphURI, Instant datetime)
+    {
+        Repository repository = repositories.get(appURI);
+        if (repository == null) return Optional.empty();
+
+        String path = path(repository.pathPrefix(), appBase, graphURI);
+        return selectMemento(repository.client().listCommits(path), datetime);
+    }
+
+    /**
+     * Selects the commit closest in time to a requested datetime.
+     * RFC 7089 leaves the algorithm to the server but requires it to be consistent: this one takes the
+     * smallest absolute distance, resolving ties towards the more recent Memento. With no datetime
+     * requested the most recent Memento is selected.
+     *
+     * @param commits commit history, most recent first
+     * @param datetime the requested datetime, or null for the most recent commit
+     * @return the selected commit, or empty if there is no history
+     */
+    public static Optional<GitHubClient.CommitInfo> selectMemento(List<GitHubClient.CommitInfo> commits, Instant datetime)
+    {
+        if (commits.isEmpty()) return Optional.empty();
+        if (datetime == null) return Optional.of(commits.get(0));
+
+        // min() keeps the first of equally distant commits, and the most recent one comes first
+        return commits.stream().min(Comparator.comparing(commit -> Duration.between(commit.datetime(), datetime).abs()));
+    }
 
     /**
      * Retrieves a graph's version history as a TimeMap model.

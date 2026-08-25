@@ -71,10 +71,10 @@ public class ResponseHeadersFilter implements ContainerResponseFilter
             response.getHeaders().add(HttpHeaders.LINK, new Link(URI.create(agent.getURI()), ACL.agent.getURI(), null));
         }
 
-        boolean isMemento = request.getUriInfo().getQueryParameters().containsKey(DocumentHierarchyGraphStoreImpl.VERSION_PARAM_NAME);
         boolean isTimeMap = request.getUriInfo().getQueryParameters().containsKey(DocumentHierarchyGraphStoreImpl.TIMEMAP_PARAM_NAME);
-        // historical version and TimeMap views are read-only: advertise acl:Read at most, so the UI disables edit affordances
-        boolean isSnapshotRequest = isMemento || isTimeMap;
+        boolean isTimeGate = request.getUriInfo().getQueryParameters().containsKey(DocumentHierarchyGraphStoreImpl.TIMEGATE_PARAM_NAME);
+        // historical version, TimeMap and TimeGate views are read-only: advertise acl:Read at most, so the UI disables edit affordances
+        boolean isSnapshotRequest = DocumentHierarchyGraphStoreImpl.isSnapshotRequest(request.getUriInfo());
 
         if (getAuthorizationContext().isPresent())
             getAuthorizationContext().get().getModeURIs().stream().
@@ -100,8 +100,9 @@ public class ResponseHeadersFilter implements ContainerResponseFilter
             if (getSystem().getGraphVersioningService().getRepository(application.getURI()).isPresent() &&
                     request.getUriInfo().getMatchedResources().stream().anyMatch(DocumentHierarchyGraphStoreImpl.class::isInstance))
             {
-                URI originalURI = request.getUriInfo().getAbsolutePath(); // the query is what makes a URI a Memento or a TimeMap
+                URI originalURI = request.getUriInfo().getAbsolutePath(); // the query is what makes a URI a Memento, TimeMap or TimeGate
                 URI timeMapURI = URI.create(originalURI + "?" + DocumentHierarchyGraphStoreImpl.TIMEMAP_PARAM_NAME);
+                URI timeGateURI = URI.create(originalURI + "?" + DocumentHierarchyGraphStoreImpl.TIMEGATE_PARAM_NAME);
 
                 // the TimeMap identifies itself with rel=self; everything else points at it with rel=timemap
                 if (isTimeMap)
@@ -109,8 +110,12 @@ public class ResponseHeadersFilter implements ContainerResponseFilter
                 else
                     response.getHeaders().add(HttpHeaders.LINK, new Link(timeMapURI, "timemap", TimeMapWriter.APPLICATION_LINK_FORMAT));
 
-                // a Memento MUST link to its Original Resource and a TimeMap lists it; the Original Resource
-                // itself MUST NOT carry rel=original
+                // the Original Resource MUST advertise a preferred TimeGate; the TimeGate does not link to itself
+                if (!isTimeGate)
+                    response.getHeaders().add(HttpHeaders.LINK, new Link(timeGateURI, "timegate", null));
+
+                // a Memento and a TimeGate MUST link to the Original Resource, and a TimeMap lists it;
+                // the Original Resource itself MUST NOT carry rel=original
                 if (isSnapshotRequest)
                     response.getHeaders().add(HttpHeaders.LINK, new Link(originalURI, "original", null));
             }

@@ -24,6 +24,7 @@ import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 import org.apache.jena.rdf.model.Model;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -74,6 +75,28 @@ public class TimeMapWriterTest
             <https://localhost:4443/doc/?timemap>;rel="self";type="application/link-format";from="Mon, 17 Aug 2026 10:00:00 GMT";until="Mon, 17 Aug 2026 10:00:00 GMT",
             <https://localhost:4443/doc/?version=sha-1>;rel="first last memento";datetime="Mon, 17 Aug 2026 10:00:00 GMT\"""",
             write(timeMap));
+    }
+
+    @Test
+    public void testTimeGateIsListed() throws IOException
+    {
+        Model timeMap = GraphVersioningService.toTimeMap(GRAPH, List.of(
+            new GitHubClient.CommitInfo("sha-1", Instant.parse("2026-08-17T10:00:00Z"), "https://localhost/agent#this")));
+
+        // the TimeGate comes from the request rather than the model, since PROV has no term for it
+        TimeMapWriter writer = new TimeMapWriter()
+        {
+            @Override
+            protected Optional<URI> getTimeGateURI()
+            {
+                return Optional.of(URI.create("https://localhost:4443/doc/?timegate"));
+            }
+        };
+
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        writer.writeTo(timeMap, Model.class, null, null, TimeMapWriter.APPLICATION_LINK_FORMAT_TYPE, null, out);
+
+        assertEquals(true, out.toString(StandardCharsets.UTF_8).contains("<https://localhost:4443/doc/?timegate>;rel=\"timegate\""));
     }
 
     @Test
