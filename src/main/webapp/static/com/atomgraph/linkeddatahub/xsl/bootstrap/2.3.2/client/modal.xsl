@@ -151,14 +151,14 @@ LIMIT   10
                                     <button type="button" class="btn dropdown-toggle create-action"></button>
                                     <ul class="dropdown-menu">
                                         <li>
-                                            <button data-for-class="&dh;Container" href="{ldh:href(ac:absolute-path(ldh:base-uri(.)), ldh:build-query(xs:anyURI('&ac;ModalMode'), xs:anyURI('&dh;Container')))}" class="btn add-constructor" title="&dh;Container" id="{generate-id()}-remote-rdf-container">
+                                            <button data-for-class="&dh;Container" class="btn add-constructor" title="&dh;Container" id="{generate-id()}-remote-rdf-container">
                                                 <xsl:value-of>
                                                     <xsl:apply-templates select="key('resources', '&dh;Container', document(ac:document-uri('&dh;')))" mode="ac:label"/>
                                                 </xsl:value-of>
                                             </button>
                                         </li>
                                         <li>
-                                            <button data-for-class="&dh;Item" href="{ldh:href(ac:absolute-path(ldh:base-uri(.)), ldh:build-query(xs:anyURI('&ac;ModalMode'), xs:anyURI('&dh;Item')))}" type="button" class="btn add-constructor" title="&dh;Item" id="{generate-id()}-remote-rdf-item">
+                                            <button data-for-class="&dh;Item" type="button" class="btn add-constructor" title="&dh;Item" id="{generate-id()}-remote-rdf-item">
                                                 <xsl:value-of>
                                                     <xsl:apply-templates select="key('resources', '&dh;Item', document(ac:document-uri('&dh;')))" mode="ac:label"/>
                                                 </xsl:value-of>
@@ -1547,6 +1547,8 @@ LIMIT   10
                 <xsl:call-template name="ldh:DocumentNavigate">
                     <xsl:with-param name="doc-uri" select="$doc-uri"/>
                     <xsl:with-param name="fragment" select="()"/>
+                    <!-- carry the active layout mode over the reload, but only when reloading the document the page currently displays (a PUT overwrite lands here too, with $doc-uri pointing at a different document); ?version/?timemap must not survive the save — they would pin the pre-edit snapshot -->
+                    <xsl:with-param name="query-params" select="if ($doc-uri = ldh:parse-href(ldh:request-uri())?doc-uri and exists(ldh:query-params()?mode)) then map{ 'mode': ldh:query-params()?mode } else map{}"/>
                 </xsl:call-template>
             </xsl:when>
             <xsl:when test="$status = 201 and map:contains($response?headers, 'location')">
