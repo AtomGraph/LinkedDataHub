@@ -6,6 +6,7 @@
     <!ENTITY rdf     "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
     <!ENTITY prov    "http://www.w3.org/ns/prov#">
     <!ENTITY sp      "http://spinrdf.org/sp#">
+    <!ENTITY acl     "http://www.w3.org/ns/auth/acl#">
 ]>
 <xsl:stylesheet
 xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
@@ -18,6 +19,7 @@ xmlns:ac="&ac;"
 xmlns:rdf="&rdf;"
 xmlns:prov="&prov;"
 xmlns:sp="&sp;"
+xmlns:acl="&acl;"
 xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
 xmlns:xhtml="http://www.w3.org/1999/xhtml"
 exclude-result-prefixes="#all"
@@ -36,20 +38,38 @@ version="3.0"
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
         <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $timemap-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
-        <xsl:variable name="context" select="map{ 'request': $request, 'timemap-uri': $timemap-uri, 'container': $container }" as="map(*)"/>
+        <!-- ac:absolute-path() drops the ?version= that distinguishes a memento from the document it specializes -->
+        <xsl:variable name="context" select="map{ 'request': $request, 'timemap-uri': $timemap-uri, 'doc-uri': ac:absolute-path(ldh:request-uri()), 'container': $container }" as="map(*)"/>
         <ixsl:promise select="
           ixsl:http-request($context('request'))
             => ixsl:then(ldh:rethread-response($context, ?))
             => ixsl:then(ldh:handle-response#1)
+            => ixsl:then(ldh:load-document-modes#1)
             => ixsl:then(ldh:timemap-response#1)
         " on-failure="ldh:promise-failure#1"/>
     </xsl:template>
+
+    <!-- reads the live document's access modes, which decide whether a version can be restored.
+         Neither the memento nor the TimeMap response can answer this: both are snapshot views and
+         ResponseHeadersFilter caps them at acl:Read, so the modes are read from the document itself. -->
+    <xsl:function name="ldh:load-document-modes" as="item()*" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+
+        <xsl:variable name="request" select="map{ 'method': 'HEAD', 'href': ldh:href($context('doc-uri')), 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
+        <xsl:sequence select="
+          ixsl:http-request($request)
+            => ixsl:then(ldh:rethread-response($context, ?, 'doc-response'))
+        "/>
+    </xsl:function>
 
     <!-- renders the version history modal from the TimeMap RDF response -->
     <xsl:function name="ldh:timemap-response" as="item()?" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
         <xsl:variable name="response" select="$context('response')" as="map(*)"/>
         <xsl:variable name="container" select="$context('container')" as="element()"/>
+        <!-- same Link header parse as client.xsl uses to seed acl:mode(), but against the live document's response -->
+        <xsl:variable name="acl-modes" select="tokenize($context('doc-response')?headers?link, ',')[contains(., '&acl;mode')] ! xs:anyURI(substring-before(substring-after(substring-before(., ';'), '&lt;'), '&gt;'))" as="xs:anyURI*"/>
+        <xsl:variable name="writable" select="$acl-modes = '&acl;Write'" as="xs:boolean"/>
 
         <xsl:for-each select="$response">
             <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
@@ -83,10 +103,11 @@ version="3.0"
                                     <form id="form-version-diff">
                                         <table class="table table-striped">
                                             <colgroup>
-                                                <col style="width: 45%;"/>
-                                                <col style="width: 25%;"/>
-                                                <col style="width: 15%;"/>
-                                                <col style="width: 15%;"/>
+                                                <col style="width: 38%;"/>
+                                                <col style="width: 22%;"/>
+                                                <col style="width: 12%;"/>
+                                                <col style="width: 12%;"/>
+                                                <col style="width: 16%;"/>
                                             </colgroup>
                                             <thead>
                                                 <tr>
@@ -111,6 +132,8 @@ version="3.0"
                                                             <xsl:apply-templates select="key('resources', 'to', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
                                                         </xsl:value-of>
                                                     </th>
+                                                    <!-- the restore column has no heading: the buttons name the action themselves -->
+                                                    <th></th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -119,6 +142,7 @@ version="3.0"
                                                     <xsl:with-param name="current-memento" select="$current-memento"/>
                                                     <xsl:with-param name="from-memento" select="$from-memento"/>
                                                     <xsl:with-param name="to-memento" select="$current-memento"/>
+                                                    <xsl:with-param name="writable" select="$writable"/>
                                                 </xsl:apply-templates>
                                             </tbody>
                                         </table>
@@ -171,6 +195,88 @@ version="3.0"
             </xsl:call-template>
         </xsl:if>
     </xsl:template>
+
+    <!-- restores a version: reads it back and writes it to the live document, which the versioning filter
+         records as a new commit. The memento itself is never written to, so it stays immutable per RFC 7089. -->
+    <xsl:template match="button[contains-token(@class, 'btn-restore')]" mode="ixsl:onclick">
+        <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
+        <xsl:variable name="memento-uri" select="xs:anyURI(ixsl:get(., 'value'))" as="xs:anyURI"/>
+        <!-- ac:absolute-path() drops the ?version= that distinguishes a memento from the document it specializes -->
+        <xsl:variable name="doc-uri" select="ac:absolute-path(ldh:request-uri())" as="xs:anyURI"/>
+        <xsl:variable name="modal" select="ancestor::div[contains-token(@class, 'modal')]" as="element()?"/>
+
+        <xsl:if test="ixsl:call(ixsl:window(), 'confirm', [ ac:label(key('resources', 'are-you-sure', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))) ])">
+            <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+
+            <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $memento-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
+            <xsl:variable name="context" select="map{ 'request': $request, 'doc-uri': $doc-uri, 'modal': $modal }" as="map(*)"/>
+            <ixsl:promise select="
+              ixsl:http-request($context('request'))
+                => ixsl:then(ldh:rethread-response($context, ?))
+                => ixsl:then(ldh:handle-response#1)
+                => ixsl:then(ldh:restore-version#1)
+            " on-failure="ldh:promise-failure#1"/>
+        </xsl:if>
+    </xsl:template>
+
+    <!-- writes the retrieved version back to the live document -->
+    <xsl:function name="ldh:restore-version" as="item()*" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:variable name="response" select="$context('response')" as="map(*)"/>
+
+        <xsl:choose>
+            <xsl:when test="$response?status = 200 and exists($response?body)">
+                <!-- the graph store takes the document node directly; the server restamps dct:modified -->
+                <xsl:variable name="request" select="map{ 'method': 'PUT', 'href': ldh:href($context('doc-uri')), 'media-type': 'application/rdf+xml', 'body': $response?body, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
+                <xsl:sequence select="
+                  ixsl:http-request($request)
+                    => ixsl:then(ldh:rethread-response(map:remove($context, 'response'), ?))
+                    => ixsl:then(ldh:restored-version#1)"/>
+            </xsl:when>
+            <xsl:otherwise>
+                <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
+                <xsl:sequence select="ldh:restore-failed($context, 'Could not read the selected version')"/>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:function>
+
+    <!-- dismisses the modal and re-renders the document, whose newest version is now the restored one -->
+    <xsl:function name="ldh:restored-version" as="item()*" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:variable name="response" select="$context('response')" as="map(*)"/>
+
+        <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
+
+        <xsl:choose>
+            <xsl:when test="$response?status = (200, 201, 204)">
+                <xsl:for-each select="$context('modal')">
+                    <xsl:sequence select="ixsl:call(., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
+                </xsl:for-each>
+
+                <!-- land on the live document rather than the ?version= view the restore was started from, which is now stale -->
+                <xsl:call-template name="ldh:DocumentNavigate">
+                    <xsl:with-param name="doc-uri" select="$context('doc-uri')"/>
+                </xsl:call-template>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:sequence select="ldh:restore-failed($context, 'Could not restore this version')"/>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:function>
+
+    <!-- reports a failed restore inside the modal, so the agent keeps the version list they were working from -->
+    <xsl:function name="ldh:restore-failed" as="item()?" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:param name="message" as="xs:string"/>
+
+        <xsl:for-each select="$context('modal')/div[contains-token(@class, 'modal-body')]">
+            <xsl:result-document href="?." method="ixsl:prepend-content">
+                <div class="alert alert-error">
+                    <xsl:value-of select="$message || ' (HTTP ' || $context('response')?status || ')'"/>
+                </div>
+            </xsl:result-document>
+        </xsl:for-each>
+    </xsl:function>
 
     <!-- fetches the ?diff= comparison version when the context carries a diff request; passes the context through otherwise -->
     <xsl:function name="ldh:load-diff-version" as="item()*" ixsl:updating="yes">
