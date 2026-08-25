@@ -36,6 +36,7 @@ import com.atomgraph.linkeddatahub.vocabulary.DH;
 import com.atomgraph.linkeddatahub.vocabulary.LDH;
 import com.atomgraph.linkeddatahub.vocabulary.NFO;
 import com.atomgraph.linkeddatahub.vocabulary.SIOC;
+import com.atomgraph.linkeddatahub.writer.TimeMapWriter;
 import static com.atomgraph.server.status.UnprocessableEntityStatus.UNPROCESSABLE_ENTITY;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -246,9 +247,23 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
         {
             Model timeMap = getSystem().getGraphVersioningService().
                 getTimeMap(getApplication().getURI(), getApplication().getBaseURI(), getURI()).
-                orElseThrow(() -> new NotFoundException("Document <" + getURI() + "> is not versioned"));
+                orElseThrow(() -> new NotFoundException("Document <" + getURI() + "> has no version history"));
 
-            return getResponseBuilder(timeMap, getURI()).build();
+            // link-format is only offered on the TimeMap, where it is meaningful; it leads the list so that
+            // Accept: */* clients get the RFC 7089 serialization, while browsers still resolve to HTML on q-value
+            List<jakarta.ws.rs.core.MediaType> timeMapMediaTypes = new ArrayList<>();
+            timeMapMediaTypes.add(TimeMapWriter.APPLICATION_LINK_FORMAT_TYPE);
+            timeMapMediaTypes.addAll(getWritableMediaTypes(Model.class));
+
+            return new com.atomgraph.core.model.impl.Response(getRequest(),
+                    timeMap,
+                    null,
+                    getEntityTag(timeMap),
+                    timeMapMediaTypes,
+                    getLanguages(),
+                    getEncodings(),
+                    new HTMLMediaTypePredicate()).
+                getResponseBuilder().build();
         }
 
         String version = getUriInfo().getQueryParameters().getFirst(VERSION_PARAM_NAME);

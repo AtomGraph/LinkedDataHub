@@ -75,6 +75,7 @@ import com.atomgraph.linkeddatahub.io.HtmlJsonLDReaderFactory;
 import com.atomgraph.linkeddatahub.io.SchemaOrgDocumentLoader;
 import com.atomgraph.linkeddatahub.listener.EMailListener;
 import com.atomgraph.linkeddatahub.writer.ModelXSLTWriter;
+import com.atomgraph.linkeddatahub.writer.TimeMapWriter;
 import com.atomgraph.linkeddatahub.model.Import;
 import com.atomgraph.linkeddatahub.model.RDFImport;
 import com.atomgraph.linkeddatahub.model.UserAccount;
@@ -925,6 +926,7 @@ public class Application extends ResourceConfig
         register(new UpdateRequestProvider());
         register(new ModelXSLTWriter(getXsltExecutable(), getResolver(), getMessageDigest())); // writes (X)HTML responses
         register(new ResultSetXSLTWriter(getXsltExecutable(), getResolver(), getMessageDigest())); // writes (X)HTML responses
+        register(new TimeMapWriter()); // writes link-format TimeMap responses
 
         final com.atomgraph.linkeddatahub.Application system = this;
         register(new AbstractBinder()
