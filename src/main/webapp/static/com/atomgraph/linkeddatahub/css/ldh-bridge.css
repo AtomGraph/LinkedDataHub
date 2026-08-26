@@ -22,6 +22,8 @@
 :where(.btn.disabled, .btn[disabled]) { opacity: 0.4; pointer-events: none; }
 :where(.btn-primary, .btn.btn-primary) { border: 0; background: var(--bg-accent); color: var(--fg-on-accent); }
 :where(.btn-primary, .btn.btn-primary):hover { background: var(--bg-accent-hover); }
+/* real specificity: something upstream colors buttons with the link color, which disappears on the accent fill */
+.btn-primary { color: var(--fg-on-accent); }
 :where(.pull-right) { float: right; }
 :where(.pull-left) { float: left; }
 .caret {
@@ -282,6 +284,9 @@ ul.pager > li > a.active:hover { background: var(--bg-hover); text-decoration: n
   border-top: 1px solid var(--border-muted, var(--border-default));
 }
 .ldh-block dl > dt:first-of-type, .ldh-block dl > dt:first-of-type + dd { border-top: 0; }
+/* explicit columns: a dt can be followed by several dds, which auto-placement would drop into column 1 */
+.ldh-block dl > dt { grid-column: 1; }
+.ldh-block dl > dd { grid-column: 2; }
 /* diff decorations ride on the dd */
 .ldh-block dl > dd.diff-added { background: var(--success-50); }
 .ldh-block dl > dd.diff-removed { background: var(--danger-50); }
