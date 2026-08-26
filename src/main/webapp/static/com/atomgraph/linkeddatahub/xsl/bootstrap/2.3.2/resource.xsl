@@ -920,7 +920,7 @@ extension-element-prefixes="ixsl"
 
                             <xsl:apply-templates select="key('resources', 'reconcile', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
                             <xsl:text> </xsl:text>
-                            <span class="caret"></span>
+                            <span class="msi caret" aria-hidden="true">expand_more</span>
                         </button>
                         <ul class="dropdown-menu">
                             <xsl:for-each select="$apps//*[@rdf:about][sd:endpoint/@rdf:resource]">
@@ -1417,7 +1417,7 @@ extension-element-prefixes="ixsl"
                                         <xsl:value-of>
                                             <xsl:apply-templates select="key('resources', 'actions', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
                                         </xsl:value-of>
-                                        <span class="caret"></span>
+                                        <span class="msi caret" aria-hidden="true">expand_more</span>
                                     </button>
                                     <ul class="dropdown-menu">
                                         <xsl:for-each select="$constructor-classes">
@@ -1698,7 +1698,7 @@ extension-element-prefixes="ixsl"
                         <xsl:apply-templates select="." mode="ac:label"/>
                     </xsl:value-of>
                 </span>
-                <span class="caret pull-right"></span>
+                <span class="msi caret pull-right" aria-hidden="true">expand_more</span>
 
                 <xsl:if test="@rdf:about">
                     <input type="hidden" name="ou" value="{@rdf:about}"/>

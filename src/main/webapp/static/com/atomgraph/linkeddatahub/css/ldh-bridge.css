@@ -26,8 +26,9 @@
 .btn-primary { color: var(--fg-on-accent); }
 :where(.pull-right) { float: right; }
 :where(.pull-left) { float: left; }
-/* carets are Material glyphs: ported markup ships <span class="msi caret">expand_more</span>;
-   legacy empty <span class="caret"/> spans get the same glyph via ::before */
+/* carets are Material glyphs. Static ones ship <span class="msi caret">expand_more</span>;
+   CSR-toggled collapse indicators stay empty spans on purpose - the handlers flip the
+   caret-reversed class, and only ::before content can follow a class change */
 .caret { display: inline-flex; align-items: center; opacity: 0.85; }
 .caret:empty::before { font-family: 'Material Symbols Rounded'; font-size: 16px; line-height: 1; content: 'expand_more'; }
 .caret-reversed:empty::before { content: 'expand_less'; }

@@ -438,7 +438,7 @@ exclude-result-prefixes="#all"
                 <xsl:attribute name="class" select="'btn dropdown-toggle ' || (map:get($mode-button-classes, string($active-mode)), 'btn-read')[1]"/>
 
                 <xsl:text> </xsl:text>
-                <span class="caret"></span>
+                <span class="msi caret" aria-hidden="true">expand_more</span>
             </button>
 
             <ul class="dropdown-menu view-mode-list">

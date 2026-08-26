@@ -760,7 +760,7 @@ WHERE
                         <xsl:apply-templates select="key('resources', 'login', document('translations.rdf'))" mode="ac:label"/>
                     </xsl:value-of>
                     <xsl:text> </xsl:text>
-                    <span class="caret"></span>
+                    <span class="msi caret" aria-hidden="true">expand_more</span>
                 </button>
                 <ul class="dropdown-menu pull-right">
                     <xsl:if test="$google-signup">
