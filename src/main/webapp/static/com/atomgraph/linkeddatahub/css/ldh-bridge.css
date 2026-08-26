@@ -206,14 +206,26 @@ body:has(.modal.fade.in)::after {
 }
 .modal.fade { opacity: 0; transition: opacity var(--dur-fast) var(--ease-out-soft); }
 .modal.fade.in { opacity: 1; }
+/* grid, not flex: the legacy markup puts button.close FIRST and titles the modal with a <legend>,
+   so layout must not follow DOM order - title column left, close pinned top-right */
 .modal-header {
-  display: flex; align-items: center; gap: var(--sp-3);
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: start;
+  column-gap: var(--sp-3);
   padding: var(--sp-4) var(--sp-5) var(--sp-3);
   border-bottom: 1px solid var(--border-default);
 }
-.modal-header h2, .modal-header h3 { font-size: var(--fs-lg); margin: 0; font-weight: var(--fw-semibold); flex: 1; min-width: 0; }
+.modal-header legend, .modal-header h2, .modal-header h3 {
+  grid-column: 1; grid-row: 1;
+  font-size: var(--fs-lg); margin: 0; font-weight: var(--fw-semibold);
+  border: 0; padding: 0; line-height: var(--lh-snug); color: var(--fg-1);
+  min-width: 0;
+}
+.modal-header > p { grid-column: 1; margin: 4px 0 0; font-size: var(--fs-sm); color: var(--fg-muted); }
 .modal-header .close {
-  margin-left: auto; border: 0; background: transparent;
+  grid-column: 2; grid-row: 1;
+  border: 0; background: transparent;
   width: 28px; height: 28px; border-radius: var(--r-sm);
   color: var(--fg-hint); font-size: var(--fs-lg); line-height: 1;
 }
