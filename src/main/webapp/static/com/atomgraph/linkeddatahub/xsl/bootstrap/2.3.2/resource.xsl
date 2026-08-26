@@ -662,17 +662,18 @@ extension-element-prefixes="ixsl"
     <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:Row">
         <!-- TO-DO: use ldh:request-uri() to resolve URIs server-side -->
         <xsl:param name="id" select="if (contains(@rdf:about, ac:absolute-path(ldh:base-uri(.)) || '#')) then substring-after(@rdf:about, ac:absolute-path(ldh:base-uri(.)) || '#') else generate-id()" as="xs:string?"/>
-        <xsl:param name="class" select="'row-fluid block'" as="xs:string?"/>
+        <!-- 'block' is the token every CSR handler anchors on; 'ldh-block' is what app.css styles -->
+        <xsl:param name="class" select="'block ldh-block'" as="xs:string?"/>
         <xsl:param name="about" select="@rdf:about" as="xs:anyURI?"/>
         <xsl:param name="typeof" select="rdf:type/@rdf:resource/xs:anyURI(.)" as="xs:anyURI*"/>
         <xsl:param name="mode" as="xs:anyURI?"/>
         <xsl:param name="style" as="xs:string?"/>
-        <xsl:param name="main-class" select="'main span7'" as="xs:string?"/>
+        <xsl:param name="main-class" select="'main ldh-block-body'" as="xs:string?"/>
         <xsl:param name="diff-added-keys" as="xs:string*" tunnel="yes"/>
         <xsl:param name="diff-removed-keys" as="xs:string*" tunnel="yes"/>
         <xsl:variable name="diff-class" select="ldh:diff-class(., $diff-added-keys, $diff-removed-keys)" as="xs:string?"/>
 
-        <div>
+        <article>
             <xsl:if test="$id">
                 <xsl:attribute name="id" select="$id"/>
             </xsl:if>
@@ -688,8 +689,6 @@ extension-element-prefixes="ixsl"
             <xsl:if test="$style">
                 <xsl:attribute name="style" select="$style"/>
             </xsl:if>
-            
-            <xsl:apply-templates select="." mode="bs2:Left"/>
 
             <div>
                 <xsl:if test="$main-class">
@@ -733,17 +732,24 @@ extension-element-prefixes="ixsl"
                 </xsl:choose>
             </div>
 
-            <xsl:apply-templates select="." mode="bs2:Right"/>
-        </div>
+            <!-- backlinks/related/parallax: grid columns under bs2, a block-scoped drawer in the design system.
+                 Both are CSR fill targets, so the placeholders are emitted unconditionally and the drawer stays
+                 collapsed until something populates them. -->
+            <aside class="ldh-drawer">
+                <xsl:apply-templates select="." mode="bs2:Left"/>
+
+                <xsl:apply-templates select="." mode="bs2:Right"/>
+            </aside>
+        </article>
     </xsl:template>
-    
+
     <!-- HEADER -->
 
     <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:Header">
         <xsl:param name="id" as="xs:string?"/>
-        <xsl:param name="class" select="'well'" as="xs:string?"/>
+        <xsl:param name="class" select="'ldh-block-head'" as="xs:string?"/>
 
-        <div>
+        <header>
             <xsl:if test="$id">
                 <xsl:attribute name="id" select="$id"/>
             </xsl:if>
@@ -751,28 +757,33 @@ extension-element-prefixes="ixsl"
                 <xsl:attribute name="class" select="$class"/>
             </xsl:if>
 
-            <xsl:apply-templates select="." mode="bs2:Timestamp"/>
-
             <xsl:apply-templates select="." mode="bs2:Image"/>
-            
-            <xsl:apply-templates select="." mode="bs2:Actions"/>
 
-            <h2>
-                <xsl:apply-templates select="@rdf:about | @rdf:nodeID" mode="xhtml:Anchor">
-                    <xsl:with-param name="class" as="xs:string?">
-                        <xsl:apply-templates select="." mode="ldh:logo"/>
-                    </xsl:with-param>
-                </xsl:apply-templates>
-            </h2>
+            <!-- titles group: the type list reads as the block's badge, the description as its subtitle -->
+            <div style="min-width: 0">
+                <xsl:apply-templates select="." mode="bs2:TypeList"/>
 
-            <xsl:where-populated>
-                <p>
-                    <xsl:apply-templates select="." mode="ac:description"/>
-                </p>
-            </xsl:where-populated>
+                <h2 class="ttl">
+                    <xsl:apply-templates select="@rdf:about | @rdf:nodeID" mode="xhtml:Anchor">
+                        <xsl:with-param name="class" as="xs:string?">
+                            <xsl:apply-templates select="." mode="ldh:logo"/>
+                        </xsl:with-param>
+                    </xsl:apply-templates>
+                </h2>
 
-            <xsl:apply-templates select="." mode="bs2:TypeList"/>
-        </div>
+                <xsl:where-populated>
+                    <span class="sub">
+                        <xsl:apply-templates select="." mode="ac:description"/>
+                    </span>
+                </xsl:where-populated>
+            </div>
+
+            <div class="actions">
+                <xsl:apply-templates select="." mode="bs2:Timestamp"/>
+
+                <xsl:apply-templates select="." mode="bs2:Actions"/>
+            </div>
+        </header>
     </xsl:template>
 
     <!-- PROPERTY LIST -->

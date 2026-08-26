@@ -255,7 +255,7 @@ exclude-result-prefixes="#all"
     <!-- render chart block -->
     
     <xsl:template match="*[@typeof = ('&ldh;ResultSetChart', '&ldh;GraphChart')][descendant::*[@property = '&spin;query'][@resource]][descendant::*[@property = '&ldh;chartType'][@resource]]" mode="ldh:RenderRow" as="function(item()?) as map(*)" priority="2"> <!-- prioritize above block.xsl -->
-        <xsl:param name="block" select="ancestor-or-self::div[contains-token(@class, 'block')][1]" as="element()"/>
+        <xsl:param name="block" select="ancestor-or-self::*[contains-token(@class, 'block')][1]" as="element()"/>
         <xsl:param name="about" select="$block/@about" as="xs:anyURI"/>
         <xsl:param name="container" select="." as="element()"/>
         <xsl:param name="graph" select="descendant::*[@property = '&ldh;graph']/@resource" as="xs:anyURI?"/>
@@ -384,7 +384,7 @@ exclude-result-prefixes="#all"
         <xsl:message>ldh:render-chart</xsl:message>
 
         <xsl:for-each select="$container//div[contains-token(@class, 'main')]">
-            <xsl:variable name="header" select="./div/div[@class = 'well']" as="element()"/>
+            <xsl:variable name="header" select=".//*[contains-token(@class, 'ldh-block-head')][1]" as="element()"/>
 
             <xsl:result-document href="?." method="ixsl:replace-content">
                 <xsl:copy-of select="$header"/>
@@ -489,7 +489,7 @@ exclude-result-prefixes="#all"
                 </xsl:for-each>
             </xsl:for-each>
         </xsl:variable>
-        <xsl:variable name="block" select="ancestor::div[contains-token(@class, 'block')][1]" as="element()?"/>
+        <xsl:variable name="block" select="ancestor::*[contains-token(@class, 'block')][1]" as="element()?"/>
         <xsl:variable name="block-id" select="$block/@id" as="xs:string?"/>
         <!-- if there is no block, the chart is rendering the current document -->
         <xsl:variable name="block-uri" select="if ($block/@about) then $block/@about else (if ($block-id) then xs:anyURI(ac:absolute-path(ldh:base-uri(.)) || '#' || $block-id) else ac:absolute-path(ldh:base-uri(.)))" as="xs:anyURI"/>
@@ -525,7 +525,7 @@ exclude-result-prefixes="#all"
                 </xsl:for-each>
             </xsl:for-each>
         </xsl:variable>
-        <xsl:variable name="block" select="ancestor::div[contains-token(@class, 'block')][1]" as="element()?"/>
+        <xsl:variable name="block" select="ancestor::*[contains-token(@class, 'block')][1]" as="element()?"/>
         <xsl:variable name="block-id" select="$block/@id" as="xs:string?"/>
         <!-- if there is no block, the chart is rendering the current document -->
         <xsl:variable name="block-uri" select="if ($block/@about) then $block/@about else (if ($block-id) then xs:anyURI(ac:absolute-path(ldh:base-uri(.)) || '#' || $block-id) else ac:absolute-path(ldh:base-uri(.)))" as="xs:anyURI"/>
@@ -559,7 +559,7 @@ exclude-result-prefixes="#all"
                 <xsl:sequence select="ixsl:get(ixsl:call(ixsl:get($select, 'selectedOptions'), 'item', [ . ]), 'value')"/>
             </xsl:for-each>
         </xsl:variable>
-        <xsl:variable name="block" select="ancestor::div[contains-token(@class, 'block')][1]" as="element()?"/>
+        <xsl:variable name="block" select="ancestor::*[contains-token(@class, 'block')][1]" as="element()?"/>
         <xsl:variable name="block-id" select="$block/@id" as="xs:string?"/>
         <!-- if there is no block, the chart is rendering the current document -->
         <xsl:variable name="block-uri" select="if ($block/@about) then $block/@about else (if ($block-id) then xs:anyURI(ac:absolute-path(ldh:base-uri(.)) || '#' || $block-id) else ac:absolute-path(ldh:base-uri(.)))" as="xs:anyURI"/>
@@ -639,9 +639,9 @@ exclude-result-prefixes="#all"
 
     <!-- create chart onclick (appends a new chart block after this, with query and category/series fields filled out) -->
 
-    <xsl:template match="div[contains-token(@class, 'block')][@about][@typeof]//button[contains-token(@class, 'btn-create-chart')]" mode="ixsl:onclick">
+    <xsl:template match="*[contains-token(@class, 'block')][@about][@typeof]//button[contains-token(@class, 'btn-create-chart')]" mode="ixsl:onclick">
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
-        <xsl:variable name="block" select="ancestor::div[contains-token(@class, 'block')][1]" as="element()"/>
+        <xsl:variable name="block" select="ancestor::*[contains-token(@class, 'block')][1]" as="element()"/>
         <xsl:variable name="textarea-id" select="$block//textarea[@name = 'query']/ixsl:get(., 'id')" as="xs:string"/>
         <xsl:variable name="yasqe" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.yasqe'), $textarea-id)"/>
         <xsl:variable name="query-string" select="ixsl:call($yasqe, 'getValue', [])" as="xs:string"/> <!-- get query string from YASQE -->
@@ -721,7 +721,7 @@ exclude-result-prefixes="#all"
     
     <xsl:template match="div[@typeof]//button[contains-token(@class, 'btn-save-chart')]" mode="ixsl:onclick">
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
-        <xsl:variable name="block" select="ancestor::div[contains-token(@class, 'block')][1]" as="element()"/>
+        <xsl:variable name="block" select="ancestor::*[contains-token(@class, 'block')][1]" as="element()"/>
         <xsl:variable name="container" select="ancestor::div[@typeof][1]" as="element()"/>
         <xsl:variable name="about" select="$block/@about" as="xs:anyURI"/>
         <xsl:variable name="query-uri" select="$container//descendant::*[@property = '&spin;query']/@resource" as="xs:anyURI"/>
