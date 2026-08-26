@@ -37,7 +37,8 @@ sudo rm -rf data uploads && docker-compose down -v  # Complete reset
 
 ### Testing
 ```bash
-# HTTP tests (requires running application)
+# HTTP tests (requires running application and the ldh CLI on PATH - see cli/)
+cd cli && mvn package && export PATH="$PWD/bin:$PATH" && cd ..
 cd http-tests
 ./run.sh ssl/owner/cert.pem [password] ssl/secretary/cert.pem [password]
 
@@ -134,13 +135,25 @@ The SPARQL endpoint forwarding chain ensures ContentMode blocks (charts, maps) q
 - **XSLT transformations** in `src/main/webapp/static/com/atomgraph/linkeddatahub/xsl`
 
 ## CLI Tools
-LinkedDataHub includes extensive CLI tools in the `bin/` directory:
-- Resource management: `create-container.sh`, `create-item.sh`, `get.sh`, `post.sh`, `put.sh`
-- Import functionality: `imports/create-csv-import.sh`, `imports/import-rdf.sh`
-- Admin operations: `admin/model/add-class.sh`, `admin/acl/create-authorization.sh`
-- Certificate management: `webid-keygen.sh`, `server-cert-gen.sh`
 
-Add CLI tools to PATH for development:
+`ldh` (in `cli/`) is the command line interface for the HTTP API — one command per `bin/` script,
+same option names, `bin/` subdirectories as nested subcommand groups. See `cli/README.md` for the
+full script → command table.
+
+```bash
+cd cli && mvn package && export PATH="$PWD/bin:$PATH"
+
+ldh create-container --parent "$LDH_BASE" --title "Some" --slug some
+ldh admin acl add-agent-to-group --agent "$AGENT_URI" "${ADMIN_BASE}acl/groups/writers/"
+```
+
+The `bin/` HTTP API scripts are **deprecated** — `ldh` replaces them, and http-tests build their
+fixtures with it. Authentication moves from the `.pem` the scripts feed `curl -E` to the PKCS12
+keystore beside it (`-f ssl/owner/keystore.p12`).
+
+Certificate and WebID tooling stays in `bin/` and is not deprecated: `webid-keygen.sh`,
+`webid-keygen-pem.sh`, `webid-uri.sh`, `webid-modulus.sh`, `server-cert-gen.sh`.
+
 ```bash
 export PATH="$(find bin -type d -exec realpath {} \; | tr '\n' ':')$PATH"
 ```

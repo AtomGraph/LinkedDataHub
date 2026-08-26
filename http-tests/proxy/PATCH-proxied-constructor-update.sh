@@ -41,8 +41,8 @@ curl -k -f -s -o /dev/null \
 
 # Rebuild the in-memory ontology so the constructor hash URI enters the OntModel.
 # After this, the DESCRIBE check in ProxyRequestFilter will fire for the PATCH.
-clear-ontology.sh \
-  -f "$OWNER_CERT_FILE" \
+ldh admin clear-ontology \
+  -f "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   -b "$ADMIN_BASE_URL" \
   --ontology "$namespace"

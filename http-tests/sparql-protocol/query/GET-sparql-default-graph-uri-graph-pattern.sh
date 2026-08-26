@@ -11,8 +11,8 @@ purge_cache "$FRONTEND_VARNISH_SERVICE"
 
 slug=$(uuidgen | tr '[:upper:]' '[:lower:]')
 
-container=$(create-container.sh \
-  -f "$OWNER_CERT_FILE" \
+container=$(ldh create-container \
+  -f "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   -b "$END_USER_BASE_URL" \
   --title "Graph scope one" \

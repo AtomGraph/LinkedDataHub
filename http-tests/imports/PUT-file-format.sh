@@ -11,8 +11,8 @@ pwd=$(realpath "$PWD")
 
 # add agent to the writers group
 
-add-agent-to-group.sh \
-  -f "$OWNER_CERT_FILE" \
+ldh admin acl add-agent-to-group \
+  -f "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   --agent "$AGENT_URI" \
   "${ADMIN_BASE_URL}acl/groups/writers/"
@@ -27,8 +27,8 @@ echo "4,5,6" >> "$test_file"
 slug=$(uuidgen | tr '[:upper:]' '[:lower:]')
 
 # Create an item document to hold the file
-file_doc=$(create-item.sh \
-  -f "$AGENT_CERT_FILE" \
+file_doc=$(ldh create-item \
+  -f "$AGENT_CERT_KEYSTORE" \
   -p "$AGENT_CERT_PWD" \
   -b "$END_USER_BASE_URL" \
   --title "Test File for Browser Media Type" \
@@ -36,8 +36,8 @@ file_doc=$(create-item.sh \
   --slug "$slug")
 
 # upload file WITHOUT explicit media type (rely on browser detection via `file -b --mime-type`)
-add-file.sh \
-  -f "$AGENT_CERT_FILE" \
+ldh add-file \
+  -f "$AGENT_CERT_KEYSTORE" \
   -p "$AGENT_CERT_PWD" \
   -b "$END_USER_BASE_URL" \
   --title "Test File for Browser Media Type" \
@@ -50,8 +50,8 @@ file_uri="${END_USER_BASE_URL}uploads/${sha1sum}"
 
 # get the file resource URI and initial dct:format
 
-file_doc_ntriples=$(get.sh \
-  -f "$AGENT_CERT_FILE" \
+file_doc_ntriples=$(ldh get \
+  -f "$AGENT_CERT_KEYSTORE" \
   -p "$AGENT_CERT_PWD" \
   --accept 'application/n-triples' \
   "$file_doc")
@@ -65,8 +65,8 @@ initial_format=$(echo "$file_doc_ntriples" | sed -rn "s/<${file_uri//\//\\/}> <h
 # re-upload the same file but WITH explicit media type: text/csv
 # this simulates editing and uploading with a corrected format after browser auto-detection was wrong
 
-add-file.sh \
-  -f "$AGENT_CERT_FILE" \
+ldh add-file \
+  -f "$AGENT_CERT_KEYSTORE" \
   -p "$AGENT_CERT_PWD" \
   -b "$END_USER_BASE_URL" \
   --title "Test File for Browser Media Type" \
@@ -77,8 +77,8 @@ add-file.sh \
 
 # get updated document
 
-updated_ntriples=$(get.sh \
-  -f "$AGENT_CERT_FILE" \
+updated_ntriples=$(ldh get \
+  -f "$AGENT_CERT_KEYSTORE" \
   -p "$AGENT_CERT_PWD" \
   --accept 'application/n-triples' \
   "$file_doc")

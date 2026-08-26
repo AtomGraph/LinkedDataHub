@@ -33,6 +33,11 @@ jobs:
       - name: Add bin/ and its subdirectories to PATH
         run: |
           find "$GITHUB_WORKSPACE/bin" -type d >> "$GITHUB_PATH"
+      - name: Build the ldh CLI
+        run: mvn -B package # the CLI unit tests run here; the suite drives ldh for its fixtures
+        working-directory: cli
+      - name: Add the ldh launcher to PATH
+        run: echo "$GITHUB_WORKSPACE/cli/bin" >> "$GITHUB_PATH"
       - name: Generating server certificate
         run: |
           server-cert-gen.sh .env nginx ssl
@@ -89,7 +94,7 @@ jobs:
         run: while ! (status=$(curl -k -s -w "%{http_code}\n" https://localhost:4443 -o /dev/null) && echo "$status" && echo "$status" | grep "403") ; do sleep 1 ; done # wait for the webapp to start (returns 403 by default)
       - name: Fix certificate permissions on the host
         run: |
-          sudo chmod 644 ./ssl/owner/cert.pem ./ssl/secretary/cert.pem
+          sudo chmod 644 ./ssl/owner/cert.pem ./ssl/secretary/cert.pem ./ssl/owner/keystore.p12 ./ssl/secretary/keystore.p12
         working-directory: http-tests
       - name: Run HTTP test scripts
         run: ./run.sh "$PWD/ssl/owner/cert.pem" "${{ secrets.HTTP_TEST_OWNER_CERT_PASSWORD }}" "$PWD/ssl/secretary/cert.pem" "${{ secrets.HTTP_TEST_SECRETARY_CERT_PASSWORD }}"

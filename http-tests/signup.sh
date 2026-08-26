@@ -7,7 +7,6 @@ given_name="John"
 family_name="Doe"
 password="$AGENT_CERT_PWD"
 title="whatever"
-agent_p12_cert=$(mktemp)
 
 curl -k -s -f \
   -H "Content-Type: application/x-www-form-urlencoded" \
@@ -50,14 +49,13 @@ curl -k -s -f \
   --data-urlencode "pu=http://xmlns.com/foaf/0.1/primaryTopic" \
   --data-urlencode "ob=agent" \
   "${ADMIN_BASE_URL}sign%20up?download=true" \
-> "$agent_p12_cert"
+> "$AGENT_CERT_KEYSTORE"
 
-# convert PKCS12 to PEM
+# the signup download is already the PKCS12 keystore ldh reads; derive the PEM the curl
+# assertions and webid-uri.sh need
 
 openssl pkcs12 \
-  -in "$agent_p12_cert" \
+  -in "$AGENT_CERT_KEYSTORE" \
   -out "$AGENT_CERT_FILE" \
   -passin pass:"$AGENT_CERT_PWD" \
   -passout pass:"$AGENT_CERT_PWD"
-
-rm "$agent_p12_cert"

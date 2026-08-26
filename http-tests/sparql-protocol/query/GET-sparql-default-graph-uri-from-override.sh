@@ -12,16 +12,16 @@ purge_cache "$FRONTEND_VARNISH_SERVICE"
 slug_one=$(uuidgen | tr '[:upper:]' '[:lower:]')
 slug_two=$(uuidgen | tr '[:upper:]' '[:lower:]')
 
-container_one=$(create-container.sh \
-  -f "$OWNER_CERT_FILE" \
+container_one=$(ldh create-container \
+  -f "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   -b "$END_USER_BASE_URL" \
   --title "Graph scope one" \
   --slug "$slug_one" \
   --parent "$END_USER_BASE_URL")
 
-container_two=$(create-container.sh \
-  -f "$OWNER_CERT_FILE" \
+container_two=$(ldh create-container \
+  -f "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   -b "$END_USER_BASE_URL" \
   --title "Graph scope two" \

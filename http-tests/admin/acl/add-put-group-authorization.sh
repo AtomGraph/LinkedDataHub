@@ -24,8 +24,8 @@ EOF
 
 # create group
 
-group_doc=$(create-group.sh \
-  -f "$OWNER_CERT_FILE" \
+group_doc=$(ldh admin acl create-group \
+  -f "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   -b "$ADMIN_BASE_URL" \
   --name "Test group" \
@@ -40,8 +40,8 @@ group=$(curl -s -k \
 
 # create fake test.localhost authorization (should be filtered out)
 
-create-authorization.sh \
-  -f "$OWNER_CERT_FILE" \
+ldh admin acl create-authorization \
+  -f "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   -b "https://admin.test.localhost:4443/" \
   --label "Fake PUT group authorization from test.localhost" \
@@ -66,8 +66,8 @@ EOF
 
 # create real localhost authorization
 
-create-authorization.sh \
-  -f "$OWNER_CERT_FILE" \
+ldh admin acl create-authorization \
+  -f "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   -b "$ADMIN_BASE_URL" \
   --label "DELETE authorization" \
@@ -77,8 +77,8 @@ create-authorization.sh \
 
 # get the graph content
 
-root_ntriples=$(get.sh \
-  -f "$OWNER_CERT_FILE" \
+root_ntriples=$(ldh get \
+  -f "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   --accept 'application/n-triples' \
   "$END_USER_BASE_URL")
