@@ -50,6 +50,29 @@
 }
 .dropdown-menu > li.divider { height: 1px; margin: var(--sp-2) 0; background: var(--border-default); }
 
+/* ---------- action bar: ul.breadcrumb is CSR-built li/a with span.divider ---------- */
+.ldh-actionbar .ab-mid { display: flex; align-items: center; gap: var(--sp-4); min-width: 0; }
+.ldh-actionbar .ldh-add-wrap, .ldh-actionbar .ldh-actions { display: flex; align-items: center; gap: var(--sp-2); }
+.ldh-actionbar .btn-group { position: relative; }
+ul.breadcrumb.ldh-bc {
+  display: flex; align-items: center; gap: 2px;
+  list-style: none; margin: 0; padding: 0;
+  background: none; border: 0;
+  min-width: 0; overflow: hidden;
+}
+ul.breadcrumb.ldh-bc > li { display: inline-flex; align-items: center; gap: 2px; white-space: nowrap; }
+ul.breadcrumb.ldh-bc a {
+  display: inline-flex; align-items: center; gap: var(--sp-2);
+  padding: 4px 8px;
+  border-radius: var(--r-sm);
+  color: var(--fg-link);
+  transition: background var(--dur-fast) var(--ease-out-soft);
+  white-space: nowrap;
+}
+ul.breadcrumb.ldh-bc a:hover { background: var(--bg-hover); text-decoration: none; }
+ul.breadcrumb.ldh-bc .divider { color: var(--fg-hint); font-size: var(--fs-sm); }
+ul.breadcrumb.ldh-bc > li.active { color: var(--fg-1); font-weight: var(--fw-medium); padding: 4px 8px; }
+
 /* ---------- block header actions / drawer content hydrated by CSR ---------- */
 .ldh-block-head .actions .pull-right { display: flex; gap: var(--sp-1); }
 .ldh-block-head .actions .tb.disabled { opacity: 0.4; pointer-events: none; }
@@ -62,6 +85,56 @@
 }
 .ldh-drawer .db ul.nav a:hover { background: var(--bg-hover); color: var(--fg-1); text-decoration: none; }
 .ldh-drawer .dh2 { display: flex; align-items: center; justify-content: space-between; margin: 0; cursor: pointer; }
+
+/* ---------- type badges: ul.inline of typed-object anchors ---------- */
+ul.ldh-typelist { display: flex; flex-wrap: wrap; gap: var(--sp-1); list-style: none; margin: 0 0 var(--sp-1); padding: 0; }
+ul.ldh-typelist > li > a, ul.ldh-typelist > li > span {
+  display: inline-flex; align-items: center; gap: 4px;
+  height: 20px; padding: 0 8px;
+  border-radius: var(--r-full, 999px);
+  background: var(--ldh-blue-50); color: var(--ldh-blue-700);
+  font-size: var(--fs-xs); font-weight: var(--fw-medium);
+  white-space: nowrap;
+}
+ul.ldh-typelist > li > a:hover { text-decoration: none; background: var(--ldh-blue-100, var(--bg-hover)); }
+
+/* ---------- view pager: exact-class markup the CSR paging handlers match on ---------- */
+ul.pager { display: flex; justify-content: space-between; align-items: center; list-style: none; margin: var(--sp-3) 0 0; padding: 0; }
+ul.pager > li > a {
+  display: inline-flex; align-items: center; gap: var(--sp-2);
+  height: 30px; padding: 0 12px;
+  border: 1px solid var(--border-default); border-radius: var(--r-sm);
+  background: var(--surface-0); color: var(--fg-hint);
+  font-size: var(--fs-sm); pointer-events: none;
+}
+ul.pager > li > a.active { color: var(--fg-1); pointer-events: auto; cursor: pointer; }
+ul.pager > li > a.active:hover { background: var(--bg-hover); text-decoration: none; }
+
+/* ---------- read-mode property lists: dt/dd pairs styled as property rows ---------- */
+.ldh-block dl {
+  display: grid;
+  grid-template-columns: minmax(140px, 220px) 1fr;
+  column-gap: var(--sp-6); row-gap: 0;
+  margin: 0;
+}
+.ldh-block dl > dt {
+  padding: var(--sp-2) 0;
+  font-size: var(--fs-sm); font-weight: var(--fw-medium);
+  color: var(--fg-muted);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  border-top: 1px solid var(--border-muted, var(--border-default));
+}
+.ldh-block dl > dd {
+  margin: 0;
+  padding: var(--sp-2) 0;
+  font-size: var(--fs-sm); color: var(--fg-1);
+  min-width: 0; overflow-wrap: break-word;
+  border-top: 1px solid var(--border-muted, var(--border-default));
+}
+.ldh-block dl > dt:first-of-type, .ldh-block dl > dt:first-of-type + dd { border-top: 0; }
+/* diff decorations ride on the dd */
+.ldh-block dl > dd.diff-added { background: var(--success-50); }
+.ldh-block dl > dd.diff-removed { background: var(--danger-50); }
 
 /* ---------- left sidebar: flyout mechanics are CSR-driven inline styles ---------- */
 /* hidden by default; the body-edge onmousemove handler sets display: block, onmouseout hides it */

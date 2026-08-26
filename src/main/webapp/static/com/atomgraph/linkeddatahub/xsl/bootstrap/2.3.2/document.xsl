@@ -138,7 +138,7 @@ extension-element-prefixes="ixsl"
     
     <xsl:template match="rdf:RDF" mode="bs2:ActionBarLeft">
         <xsl:param name="id" as="xs:string?"/>
-        <xsl:param name="class" select="'span2'" as="xs:string?"/>
+        <xsl:param name="class" select="'ldh-add-wrap'" as="xs:string?"/>
         
         <div>
             <xsl:if test="$id">
@@ -169,7 +169,7 @@ extension-element-prefixes="ixsl"
         
     <xsl:template match="rdf:RDF[acl:mode() = '&acl;Append']" mode="bs2:AddData" priority="1">
         <div class="btn-group pull-left">
-            <button type="button" class="btn btn-primary dropdown-toggle" title="{ac:label(key('resources', 'add', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin))))}">
+            <button type="button" class="btn btn-primary dropdown-toggle ldhc-btn in-neutral sz-sm" title="{ac:label(key('resources', 'add', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin))))}">
                 <xsl:value-of>
                     <xsl:apply-templates select="key('resources', 'add', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
                 </xsl:value-of>
@@ -193,7 +193,7 @@ extension-element-prefixes="ixsl"
          Admin apps are identified by the 'admin.' subdomain prefix on lapp:origin() (nginx wildcard routing convention). -->
     <xsl:template match="rdf:RDF[acl:mode() = '&acl;Append'][starts-with(replace(lapp:origin(), '^https?://', ''), 'admin.')]" mode="bs2:AddData" priority="2">
         <div class="btn-group pull-left">
-            <button type="button" class="btn btn-primary dropdown-toggle" title="{ac:label(key('resources', 'add', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin))))}">
+            <button type="button" class="btn btn-primary dropdown-toggle ldhc-btn in-neutral sz-sm" title="{ac:label(key('resources', 'add', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin))))}">
                 <xsl:value-of>
                     <xsl:apply-templates select="key('resources', 'add', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
                 </xsl:value-of>
@@ -231,7 +231,7 @@ extension-element-prefixes="ixsl"
 
     <xsl:template match="rdf:RDF | srx:sparql" mode="bs2:ActionBarMain">
         <xsl:param name="id" as="xs:string?"/>
-        <xsl:param name="class" select="'span7'" as="xs:string?"/>
+        <xsl:param name="class" select="'ab-mid'" as="xs:string?"/>
 
         <div>
             <xsl:if test="$id">
@@ -241,32 +241,30 @@ extension-element-prefixes="ixsl"
                 <xsl:attribute name="class" select="$class"/>
             </xsl:if>
             
-            <div class="row-fluid">
-                <xsl:apply-templates select="." mode="bs2:BreadCrumbBar">
-                    <xsl:with-param name="class" select="'breadcrumb-nav span8'"/>
-                    <xsl:with-param name="uri" select="ac:absolute-path(ldh:base-uri(.))"/>
-                </xsl:apply-templates>
-                
-                <div id="doc-controls" class="span4">
-                    <xsl:choose>
-                        <!-- versioned document: the timestamp links to its version history (Memento TimeMap) -->
-                        <xsl:when test="exists(ldh:timemap())">
-                            <a href="{ldh:timemap()}" class="document-history" title="History">
-                                <xsl:apply-templates select="key('resources', ac:absolute-path(ldh:base-uri(.)))" mode="bs2:Timestamp"/>
-                            </a>
-                        </xsl:when>
-                        <xsl:otherwise>
+            <xsl:apply-templates select="." mode="bs2:BreadCrumbBar">
+                <xsl:with-param name="class" select="'breadcrumb-nav'"/>
+                <xsl:with-param name="uri" select="ac:absolute-path(ldh:base-uri(.))"/>
+            </xsl:apply-templates>
+
+            <div id="doc-controls" class="ldh-ab-ts">
+                <xsl:choose>
+                    <!-- versioned document: the timestamp links to its version history (Memento TimeMap) -->
+                    <xsl:when test="exists(ldh:timemap())">
+                        <a href="{ldh:timemap()}" class="document-history" title="History">
                             <xsl:apply-templates select="key('resources', ac:absolute-path(ldh:base-uri(.)))" mode="bs2:Timestamp"/>
-                        </xsl:otherwise>
-                    </xsl:choose>
-                </div>
+                        </a>
+                    </xsl:when>
+                    <xsl:otherwise>
+                        <xsl:apply-templates select="key('resources', ac:absolute-path(ldh:base-uri(.)))" mode="bs2:Timestamp"/>
+                    </xsl:otherwise>
+                </xsl:choose>
             </div>
         </div>
     </xsl:template>
     
     <xsl:template match="rdf:RDF | srx:sparql" mode="bs2:ActionBarRight">
         <xsl:param name="id" as="xs:string?"/>
-        <xsl:param name="class" select="'span3'" as="xs:string?"/>
+        <xsl:param name="class" select="'ldh-actions'" as="xs:string?"/>
         <xsl:param name="active-mode" as="xs:anyURI"/>
 
         <div>
@@ -306,7 +304,7 @@ extension-element-prefixes="ixsl"
             <!-- placeholder for client.xsl callbacks -->
 
             <xsl:if test="not($ldh:ajaxRendering)">
-                <ul class="breadcrumb pull-left">
+                <ul class="breadcrumb ldh-bc ldh-breadcrumb">
                     <!-- render breadcrumbs server-side -->
                     <xsl:apply-templates select="key('resources', $uri)" mode="bs2:BreadCrumbListItem"/>
                 </ul>
@@ -333,48 +331,22 @@ extension-element-prefixes="ixsl"
         <xsl:param name="edit-disabled" select="not(acl:mode() = '&acl;Write')" as="xs:boolean"/>
         
         <xsl:if test="$foaf:Agent//@rdf:about">
-            <div class="pull-right">
-                <button type="button" title="{ac:label(key('resources', 'nav-bar-action-delete-title', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin))))}">
-                    <xsl:apply-templates select="key('resources', '&ac;Delete', document(ac:document-uri('&ac;')))" mode="ldh:logo">
-                        <xsl:with-param name="class" select="'btn' || (if ($delete-disabled) then ' disabled' else ())"/>
-                    </xsl:apply-templates>
-                    
-                    <xsl:apply-templates select="key('resources', '&ac;Delete', document(ac:document-uri('&ac;')))" mode="ac:label"/>
-                </button>
-            </div>
-            
+            <button type="button" class="btn-delete tb{if ($delete-disabled) then ' disabled' else ()}" title="{ac:label(key('resources', 'nav-bar-action-delete-title', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin))))}">
+                <span class="msi sm" aria-hidden="true">delete</span>
+            </button>
+
             <xsl:if test="$ldh:ajaxRendering">
-                <div class="pull-right">
-                    <button type="button" title="{ac:label(key('resources', 'save-as-title', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin))))}">
-                        <xsl:apply-templates select="key('resources', 'save-as', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ldh:logo">
-                            <xsl:with-param name="class" select="'btn' || (if ($save-as-disabled) then ' disabled' else ())"/>
-                        </xsl:apply-templates>
+                <button type="button" class="btn-save-as tb{if ($save-as-disabled) then ' disabled' else ()}" title="{ac:label(key('resources', 'save-as-title', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin))))}">
+                    <span class="msi sm" aria-hidden="true">save_as</span>
+                </button>
 
-                        <xsl:value-of>
-                            <xsl:apply-templates select="key('resources', 'save-as', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
-                            <xsl:text>...</xsl:text>
-                        </xsl:value-of>
-                    </button>
-                </div>
-            
-                <div class="pull-right">
-                    <button type="button" title="{ac:label(key('resources', 'acl-list-title', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin))))}">
-                        <xsl:apply-templates select="key('resources', '&acl;Access', document(ac:document-uri('&acl;')))" mode="ldh:logo">
-                            <xsl:with-param name="class" select="'btn'"/>
-                        </xsl:apply-templates>
-                        <xsl:apply-templates select="key('resources', '&acl;Access', document(ac:document-uri('&acl;')))" mode="ac:label"/>
-                    </button>
-                </div>
+                <button type="button" class="btn-acl btn-access-form tb" title="{ac:label(key('resources', 'acl-list-title', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin))))}">
+                    <span class="msi sm" aria-hidden="true">lock_person</span>
+                </button>
 
-                <div class="pull-right">
-                    <button type="button" class="btn btn-edit pull-right" title="{ac:label(key('resources', '&ac;EditMode', document(ac:document-uri('&ac;'))))}">
-                        <xsl:apply-templates select="key('resources', '&ac;EditMode', document(ac:document-uri('&ac;')))" mode="ldh:logo">
-                            <xsl:with-param name="class" select="'btn' || (if ($edit-disabled) then ' disabled' else ())"/>
-                        </xsl:apply-templates>
-
-                        <xsl:apply-templates select="key('resources', '&ac;EditMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
-                    </button>
-                </div>
+                <button type="button" class="btn-edit tb{if ($edit-disabled) then ' disabled' else ()}" title="{ac:label(key('resources', '&ac;EditMode', document(ac:document-uri('&ac;'))))}">
+                    <span class="msi sm" aria-hidden="true">edit</span>
+                </button>
             </xsl:if>
         </xsl:if>
     </xsl:template>
@@ -391,22 +363,23 @@ extension-element-prefixes="ixsl"
         <xsl:param name="id" select="()" as="xs:string?"/>
 
         <div class="btn-group pull-right">
-            <button type="button" class="layout-modes" title="{ac:label(key('resources', '&ac;Mode', document(ac:document-uri('&ac;'))))}">
+            <button type="button" class="layout-modes btn dropdown-toggle tb" title="{ac:label(key('resources', '&ac;Mode', document(ac:document-uri('&ac;'))))}">
                 <xsl:if test="$id">
                     <xsl:attribute name="id" select="$id"/>
                 </xsl:if>
 
-                <xsl:apply-templates select="key('resources', $active-mode, document(ac:document-uri(string($active-mode))))" mode="ldh:logo">
-                    <xsl:with-param name="class" select="'btn dropdown-toggle'"/>
-                </xsl:apply-templates>
-                <xsl:text> </xsl:text>
+                <span class="msi sm" aria-hidden="true">
+                    <xsl:value-of select="map:get($ldh:mode-icons, string($active-mode))"/>
+                </span>
                 <span class="caret"></span>
             </button>
 
             <ul class="dropdown-menu">
                 <li class="content-mode{if ($active-mode = '&ldh;ContentMode') then ' active' else() }">
                     <a href="{ldh:href(ac:document-uri(ldh:base-uri(.)), ldh:build-query(xs:anyURI('&ldh;ContentMode')))}">
-                        <xsl:apply-templates select="key('resources', '&ldh;ContentMode', document(ac:document-uri('&ldh;')))" mode="ldh:logo"/>
+                        <span class="msi sm" aria-hidden="true">
+                            <xsl:value-of select="map:get($ldh:mode-icons, '&ldh;ContentMode')"/>
+                        </span>
                         <xsl:value-of>
                             <xsl:apply-templates select="key('resources', 'content', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
                         </xsl:value-of>
@@ -433,14 +406,8 @@ extension-element-prefixes="ixsl"
         <xsl:param name="uri" as="xs:anyURI"/>
         
         <div class="btn-group pull-right">
-            <button type="button" id="export-rdf" title="{ac:label(key('resources', 'nav-bar-action-export-rdf-title', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin))))}">
-                <xsl:apply-templates select="key('resources', '&ac;Export', document(ac:document-uri('&ac;')))" mode="ldh:logo">
-                    <xsl:with-param name="class" select="'btn dropdown-toggle'"/>
-                </xsl:apply-templates>
-                
-                <xsl:apply-templates select="key('resources', '&ac;Export', document(ac:document-uri('&ac;')))" mode="ac:label"/>
-                
-                <span class="caret"></span>
+            <button type="button" id="export-rdf" class="btn dropdown-toggle tb" title="{ac:label(key('resources', 'nav-bar-action-export-rdf-title', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin))))}">
+                <span class="msi sm" aria-hidden="true">download</span>
             </button>
             <ul class="dropdown-menu">
                 <li>
@@ -666,7 +633,7 @@ extension-element-prefixes="ixsl"
     
     <xsl:template match="rdf:RDF | srx:sparql" mode="bs2:ActionBar">
         <xsl:param name="id" as="xs:string?"/>
-        <xsl:param name="class" select="'navbar-inner action-bar'" as="xs:string?"/>
+        <xsl:param name="class" select="'action-bar ldh-actionbar ldh-actionbar--zoned ldh-actionbar--bc-classic'" as="xs:string?"/>
 
         <div>
             <xsl:if test="$id">
@@ -676,17 +643,13 @@ extension-element-prefixes="ixsl"
                 <xsl:attribute name="class" select="$class"/>
             </xsl:if>
 
-            <div class="container-fluid">
-                <div class="row-fluid">
-                    <xsl:apply-templates select="." mode="bs2:ActionBarLeft"/>
+            <xsl:apply-templates select="." mode="bs2:ActionBarLeft"/>
 
-                    <xsl:apply-templates select="." mode="bs2:ActionBarMain"/>
-                    
-                    <xsl:apply-templates select="." mode="bs2:ActionBarRight">
-                        <xsl:with-param name="active-mode" select="ac:mode(root())"/>
-                    </xsl:apply-templates>
-                </div>
-            </div>
+            <xsl:apply-templates select="." mode="bs2:ActionBarMain"/>
+
+            <xsl:apply-templates select="." mode="bs2:ActionBarRight">
+                <xsl:with-param name="active-mode" select="ac:mode(root())"/>
+            </xsl:apply-templates>
         </div>
     </xsl:template>
 

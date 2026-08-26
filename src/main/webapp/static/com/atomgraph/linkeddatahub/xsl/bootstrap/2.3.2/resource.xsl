@@ -65,6 +65,18 @@ extension-element-prefixes="ixsl"
     
     <xsl:key name="shapes-by-target-class" match="*[@rdf:about] | *[@rdf:nodeID]" use="sh:targetClass/@rdf:resource | sh:targetClass/@rdf:resource"/>
 
+    <!-- Material Symbols glyph per layout mode (shared by the action-bar mode switcher and the mode list) -->
+    <xsl:variable name="ldh:mode-icons" as="map(xs:string, xs:string)" select="map{
+        '&ldh;ContentMode': 'view_module',
+        '&ac;ReadMode': 'visibility',
+        '&ac;ListMode': 'view_list',
+        '&ac;TableMode': 'table',
+        '&ac;GridMode': 'grid_view',
+        '&ac;MapMode': 'map',
+        '&ac;ChartMode': 'bar_chart',
+        '&ac;GraphMode': 'hub'
+    }"/>
+
     <!-- LABEL -->
 
     <xsl:template match="*[@rdf:about = '&owl;NamedIndividual']" mode="ac:label">
@@ -453,7 +465,9 @@ extension-element-prefixes="ixsl"
                 <xsl:if test="$href">
                     <xsl:attribute name="href" select="$href"/>
                 </xsl:if>
-                <xsl:apply-templates select="." mode="ldh:logo"/>
+                <span class="msi sm" aria-hidden="true">
+                    <xsl:value-of select="map:get($ldh:mode-icons, string(@rdf:about))"/>
+                </span>
                 <xsl:value-of>
                     <xsl:apply-templates select="." mode="ac:label"/>
                 </xsl:value-of>
@@ -960,7 +974,7 @@ extension-element-prefixes="ixsl"
     <xsl:template match="*[sioc:has_parent] | *[sioc:has_container]" mode="bs2:TypeList" priority="0.8"/>
 
     <xsl:template match="*[@rdf:about or @rdf:nodeID][rdf:type/@rdf:resource]" mode="bs2:TypeList">
-        <ul class="inline">
+        <ul class="inline ldh-typelist">
             <xsl:for-each select="rdf:type/@rdf:resource">
                 <xsl:sort select="ac:object-label(.)" order="ascending" lang="{$ac:lang}"/>
 
