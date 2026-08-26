@@ -119,12 +119,17 @@ document.addEventListener("DOMContentLoaded", function()
         input.setAttribute("autocomplete", "off");
     });
 
-    // close open dropdowns on outside click
+    // close open dropdowns on outside click, and after picking a menu item.
+    // Deferred so it settles after the IXSL btn-group toggle that handles the same click.
     document.body.addEventListener("click", function(event)
     {
-        document.querySelectorAll(".btn-group.open").forEach(function(group)
+        var pickedItem = event.target.closest(".ldh-add-menu, .ldh-of-menu, .modes-pop, .dropdown-menu");
+        setTimeout(function()
         {
-            if (!group.contains(event.target)) group.classList.remove("open");
-        });
+            document.querySelectorAll(".btn-group.open").forEach(function(group)
+            {
+                if (!group.contains(event.target) || pickedItem) group.classList.remove("open");
+            });
+        }, 0);
     });
 });

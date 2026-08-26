@@ -72,7 +72,7 @@ ul.typeahead.dropdown-menu {
   min-width: 248px; max-height: 320px; overflow-y: auto;
   background: var(--bg-card); border: 1px solid var(--border-default);
   border-radius: var(--r-md); box-shadow: 0 16px 40px -12px rgba(15, 23, 42, 0.28);
-  padding: var(--sp-1); margin: 0; list-style: none; z-index: 120;
+  padding: var(--sp-1); margin: 0; list-style: none; z-index: 1120;
 }
 ul.typeahead.dropdown-menu > li > a { display: block; padding: 6px 10px; border-radius: var(--r-sm); font-size: var(--fs-sm); color: var(--fg-1); }
 ul.typeahead.dropdown-menu > li.active > a, ul.typeahead.dropdown-menu > li > a:hover { background: var(--bg-accent-quiet); text-decoration: none; }
@@ -183,7 +183,15 @@ div.breadcrumb.ldh-bc { min-width: 0; overflow: hidden; }
   box-shadow: var(--shadow-xl, 0 24px 64px -16px rgba(15, 23, 42, 0.4));
   display: flex; flex-direction: column;
   overflow: hidden;
-  z-index: 110;
+  z-index: 1050;
+}
+/* dim the page behind an open modal (non-interactive: LDH modals close via their own buttons) */
+body:has(.modal.fade.in)::after {
+  content: '';
+  position: fixed; inset: 0;
+  background: rgba(10, 14, 30, 0.45);
+  z-index: 1049;
+  pointer-events: none;
 }
 .modal.fade { opacity: 0; transition: opacity var(--dur-fast) var(--ease-out-soft); }
 .modal.fade.in { opacity: 1; }
