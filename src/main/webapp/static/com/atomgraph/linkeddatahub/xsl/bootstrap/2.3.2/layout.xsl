@@ -358,8 +358,15 @@ exclude-result-prefixes="#all">
         </xsl:for-each>
     </xsl:template>
 
+    <!-- design system skin selectors on the root element (app.css/retro.css key on them) -->
+    <xsl:template match="/">
+        <html lang="{$ac:lang}" data-retro="m3" data-theme="light">
+            <xsl:apply-templates/>
+        </html>
+    </xsl:template>
+
     <!-- STYLE -->
-    
+
     <xsl:template match="rdf:RDF[lapp:origin()] | srx:sparql[lapp:origin()]" mode="xhtml:Style">
         <xsl:param name="load-rdfa-editor" select="exists($foaf:Agent//@rdf:about)" as="xs:boolean"/>
         <xsl:param name="load-yasqe" select="true()" as="xs:boolean"/>
@@ -374,6 +381,11 @@ exclude-result-prefixes="#all">
         <xsl:if test="$load-yasqe">
             <link href="{resolve-uri('static/css/yasqe.css', lapp:origin())}" rel="stylesheet" type="text/css"/>
         </xsl:if>
+        <!-- design system: fonts (vendored), tokens, components, m3 skin - after the Bootstrap links so its resets win during the transition -->
+        <link href="{resolve-uri('static/com/atomgraph/linkeddatahub/css/fonts.css', lapp:origin())}" rel="stylesheet" type="text/css"/>
+        <link href="{resolve-uri('static/com/atomgraph/linkeddatahub/css/colors_and_type.css', lapp:origin())}" rel="stylesheet" type="text/css"/>
+        <link href="{resolve-uri('static/com/atomgraph/linkeddatahub/css/app.css', lapp:origin())}" rel="stylesheet" type="text/css"/>
+        <link href="{resolve-uri('static/com/atomgraph/linkeddatahub/css/retro.css', lapp:origin())}" rel="stylesheet" type="text/css"/>
     </xsl:template>
 
     <!-- SCRIPT -->

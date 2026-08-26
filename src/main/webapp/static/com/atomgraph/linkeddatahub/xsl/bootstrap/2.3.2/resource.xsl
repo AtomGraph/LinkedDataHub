@@ -463,7 +463,7 @@ extension-element-prefixes="ixsl"
     <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = ('&ldh;Object', '&ldh;View', '&ldh;GraphChart', '&ldh;ResultSetChart', '&sp;Describe', '&sp;Construct', '&sp;Ask', '&sp;Select')]" mode="bs2:Row" priority="1">
         <!-- TO-DO: use ldh:request-uri() to resolve URIs server-side -->
         <xsl:param name="id" select="if (contains(@rdf:about, ac:absolute-path(ldh:base-uri(.)) || '#')) then substring-after(@rdf:about, ac:absolute-path(ldh:base-uri(.)) || '#') else generate-id()" as="xs:string?"/>
-        <xsl:param name="class" select="'row-fluid block'" as="xs:string?"/>
+        <xsl:param name="class" select="'block ldh-block'" as="xs:string?"/>
         <xsl:param name="about" select="@rdf:about" as="xs:anyURI?"/>
         <xsl:param name="typeof" select="rdf:type/@rdf:resource/xs:anyURI(.)" as="xs:anyURI*"/>
         <xsl:param name="draggable" select="false()" as="xs:boolean?"/>
@@ -516,8 +516,8 @@ extension-element-prefixes="ixsl"
 
                 <!-- client-side $container -->
                 <xsl:next-match>
-                    <xsl:with-param name="id" select="()"/> <!-- only block <div>s have @id-->
-                    <xsl:with-param name="about" select="()"/> <!-- only block <div>s have @about -->
+                    <xsl:with-param name="id" select="()"/> <!-- only block wrappers have @id-->
+                    <xsl:with-param name="about" select="()"/> <!-- only block wrappers have @about -->
                     <xsl:with-param name="class" select="'row-fluid'"/>
                 </xsl:next-match>
             </div>
@@ -527,10 +527,10 @@ extension-element-prefixes="ixsl"
     <!-- XHTML content overrides -->
     <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&ldh;XHTML'][rdf:value[@rdf:parseType = 'Literal']/xhtml:div]" mode="bs2:Row" priority="1">
         <xsl:param name="id" select="if (contains(@rdf:about, ac:absolute-path(ldh:base-uri(.)) || '#')) then substring-after(@rdf:about, ac:absolute-path(ldh:base-uri(.)) || '#') else generate-id()" as="xs:string?"/>
-        <xsl:param name="class" select="'row-fluid block'" as="xs:string?"/>
+        <xsl:param name="class" select="'block ldh-block'" as="xs:string?"/>
         <xsl:param name="about" select="@rdf:about" as="xs:anyURI?"/>
         <xsl:param name="typeof" select="rdf:type/@rdf:resource/xs:anyURI(.)" as="xs:anyURI*"/>
-        <xsl:param name="main-class" select="'main span7'" as="xs:string?"/>
+        <xsl:param name="main-class" select="'main ldh-block-body'" as="xs:string?"/>
         <xsl:param name="draggable" select="false()" as="xs:boolean?"/>
         <xsl:param name="diff-added-keys" as="xs:string*" tunnel="yes"/>
         <xsl:param name="diff-removed-keys" as="xs:string*" tunnel="yes"/>
@@ -626,7 +626,7 @@ extension-element-prefixes="ixsl"
     <!-- TO-DO: replace with fully client-side wrapper in ldh:RenderRow in block.xsl -->
     <xsl:template match="*[*][@rdf:about][not(rdf:type/@rdf:resource = ('&http;Response', '&ldh;Object', '&ldh;View', '&ldh;GraphChart', '&ldh;ResultSetChart', '&sp;Describe', '&sp;Construct', '&sp;Ask', '&sp;Select'))] | *[*][@rdf:nodeID][not(rdf:type/@rdf:resource = ('&http;Response', '&ldh;Object', '&ldh;View', '&ldh;GraphChart', '&ldh;ResultSetChart', '&sp;Describe', '&sp;Construct', '&sp;Ask', '&sp;Select'))]" mode="bs2:Row" priority="0.7" use-when="system-property('xsl:product-name') eq 'SaxonJS'">
         <xsl:param name="id" select="if (contains(@rdf:about, ac:absolute-path(ldh:base-uri(.)) || '#')) then substring-after(@rdf:about, ac:absolute-path(ldh:base-uri(.)) || '#') else generate-id()" as="xs:string?"/>
-        <xsl:param name="class" select="'row-fluid block'" as="xs:string?"/>
+        <xsl:param name="class" select="'block ldh-block'" as="xs:string?"/>
         <xsl:param name="about" select="@rdf:about" as="xs:anyURI?"/>
         <xsl:param name="typeof" select="rdf:type/@rdf:resource/xs:anyURI(.)" as="xs:anyURI*"/>
         <xsl:param name="mode" as="xs:anyURI?"/>
@@ -673,7 +673,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="diff-removed-keys" as="xs:string*" tunnel="yes"/>
         <xsl:variable name="diff-class" select="ldh:diff-class(., $diff-added-keys, $diff-removed-keys)" as="xs:string?"/>
 
-        <article>
+        <div>
             <xsl:if test="$id">
                 <xsl:attribute name="id" select="$id"/>
             </xsl:if>
@@ -735,12 +735,12 @@ extension-element-prefixes="ixsl"
             <!-- backlinks/related/parallax: grid columns under bs2, a block-scoped drawer in the design system.
                  Both are CSR fill targets, so the placeholders are emitted unconditionally and the drawer stays
                  collapsed until something populates them. -->
-            <aside class="ldh-drawer">
+            <div class="ldh-drawer">
                 <xsl:apply-templates select="." mode="bs2:Left"/>
 
                 <xsl:apply-templates select="." mode="bs2:Right"/>
-            </aside>
-        </article>
+            </div>
+        </div>
     </xsl:template>
 
     <!-- HEADER -->
@@ -749,7 +749,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="class" select="'ldh-block-head'" as="xs:string?"/>
 
-        <header>
+        <div>
             <xsl:if test="$id">
                 <xsl:attribute name="id" select="$id"/>
             </xsl:if>
@@ -783,7 +783,7 @@ extension-element-prefixes="ixsl"
 
                 <xsl:apply-templates select="." mode="bs2:Actions"/>
             </div>
-        </header>
+        </div>
     </xsl:template>
 
     <!-- PROPERTY LIST -->
@@ -1130,7 +1130,7 @@ extension-element-prefixes="ixsl"
 
     <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:RowForm">
         <xsl:param name="id" select="if (contains(@rdf:about, ac:absolute-path(ldh:base-uri(.)) || '#')) then substring-after(@rdf:about, ac:absolute-path(ldh:base-uri(.)) || '#') else generate-id()" as="xs:string?"/>
-        <xsl:param name="class" select="'row-fluid block'" as="xs:string?"/>
+        <xsl:param name="class" select="'block ldh-block'" as="xs:string?"/>
         <xsl:param name="about" select="@rdf:about" as="xs:anyURI?"/>
         <xsl:param name="typeof" select="rdf:type/@rdf:resource/xs:anyURI(.)" as="xs:anyURI*"/>
         <xsl:param name="form-id" select="'form-' || generate-id()" as="xs:string?"/>
@@ -1142,7 +1142,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
         <xsl:param name="show-cancel-button" select="true()" as="xs:boolean"/>
         <xsl:param name="show-form-actions" select="true()" as="xs:boolean"/>
-        <xsl:param name="main-class" select="'main span7'" as="xs:string?"/>
+        <xsl:param name="main-class" select="'main ldh-block-body'" as="xs:string?"/>
 
         <div>
             <xsl:if test="$id">

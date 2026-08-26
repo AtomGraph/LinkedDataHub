@@ -62,7 +62,7 @@ exclude-result-prefixes="#all"
     <!-- render view -->
 
     <xsl:template match="*[@typeof = '&ldh;View'][descendant::*[@property = '&spin;query'][@resource]]" mode="ldh:RenderRow" as="function(item()?) as map(*)" priority="2"> <!-- prioritize above block.xsl -->
-        <xsl:param name="block" select="ancestor-or-self::*[contains-token(@class, 'block')][1]" as="element()"/>
+        <xsl:param name="block" select="ancestor-or-self::div[contains-token(@class, 'block')][1]" as="element()"/>
         <xsl:param name="this" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/> <!-- document URL -->
         <xsl:param name="parent-about" select="$block/ancestor::*[@about][1]/@about" as="xs:anyURI"/> <!-- outer @about context -->
         <xsl:param name="container" select="." as="element()"/>
@@ -882,7 +882,7 @@ exclude-result-prefixes="#all"
                 </div>
 
                 <!-- inline creation: Create button for views carrying ldh:container metadata (stamped as data-* attributes by ldh:ontology-view-insert, RDFa as fallback for hand-authored view blocks). Floated last so it lines up left of the mandatory order-by/mode controls, which keep their position across views. PUT into the container requires acl:Write there (checked on the parent URI for new documents); forward views additionally PATCH the linking triple into the current document, hence acl:Write here too -->
-                <xsl:variable name="view-block" select="$container/ancestor::*[contains-token(@class, 'block')][1]" as="element()?"/>
+                <xsl:variable name="view-block" select="$container/ancestor::div[contains-token(@class, 'block')][1]" as="element()?"/>
                 <xsl:variable name="create-container" select="($view-block/@data-container, $container/descendant::*[@property = '&ldh;container']/@resource)[1]" as="xs:string?"/>
                 <xsl:variable name="create-for-class" select="$view-block/@data-for-class" as="xs:string?"/>
                 <xsl:if test="exists($create-container) and exists($create-for-class) and tokenize($view-block/@data-acl-modes, ' ') = '&acl;Write' and (exists($view-block/@data-inverse) or acl:mode() = '&acl;Write')">
@@ -912,7 +912,7 @@ exclude-result-prefixes="#all"
 
         <!-- ldh:showWhenEmpty (default true): when false, hide the whole injected view block while the query returns no results and un-hide it when results appear on a later refresh. Only evaluated on the first page: at offset 0 an empty page means an empty result set, while a non-zero offset implies interaction with a visible block -->
         <xsl:if test="$offset = 0">
-            <xsl:variable name="view-block" select="$container/ancestor::*[contains-token(@class, 'block')][1]" as="element()?"/>
+            <xsl:variable name="view-block" select="$container/ancestor::div[contains-token(@class, 'block')][1]" as="element()?"/>
             <xsl:variable name="show-when-empty" select="not(($view-block/@data-show-when-empty, $container/descendant::*[@property = '&ldh;showWhenEmpty']/text())[1] = ('false', '0'))" as="xs:boolean"/>
             <xsl:if test="not($show-when-empty)">
                 <xsl:for-each select="$view-block">
@@ -1528,7 +1528,7 @@ exclude-result-prefixes="#all"
     <!-- facet header onclick -->
     
     <xsl:template match="div[@typeof = '&ldh;View']//div[contains-token(@class, 'faceted-nav')]//*[contains-token(@class, 'nav-header')]" mode="ixsl:onclick">
-        <xsl:variable name="block" select="ancestor::*[contains-token(@class, 'block')][1]" as="element()"/>
+        <xsl:variable name="block" select="ancestor::div[contains-token(@class, 'block')][1]" as="element()"/>
         <xsl:variable name="container" select="ancestor::div[@typeof][1]" as="element()"/>
         <xsl:variable name="block-uri" select="xs:anyURI($block/@about)" as="xs:anyURI"/>
         <xsl:variable name="facet-container" select="ancestor::div[contains-token(@class, 'faceted-nav')]" as="element()"/>
@@ -1633,7 +1633,7 @@ exclude-result-prefixes="#all"
     <!-- facet onchange -->
 
     <xsl:template match="div[@typeof = '&ldh;View']//div[contains-token(@class, 'faceted-nav')]//input[@type = 'checkbox']" mode="ixsl:onchange">
-        <xsl:variable name="block" select="ancestor::*[contains-token(@class, 'block')][1]" as="element()"/>
+        <xsl:variable name="block" select="ancestor::div[contains-token(@class, 'block')][1]" as="element()"/>
         <xsl:variable name="container" select="ancestor::div[@typeof][1]" as="element()"/>
         <xsl:variable name="block-uri" select="xs:anyURI($block/@about)" as="xs:anyURI"/>
         <xsl:variable name="active-class" select="tokenize($container//ul[contains-token(@class, 'view-mode-list')]/li[contains-token(@class, 'active')]/@class, ' ')[not(. = 'active')]" as="xs:string"/>
@@ -1684,7 +1684,7 @@ exclude-result-prefixes="#all"
     <!-- parallax onclick -->
     
     <xsl:template match="div[@typeof = '&ldh;View']//div[contains-token(@class, 'parallax-nav')]/ul/li/a" mode="ixsl:onclick">
-        <xsl:variable name="block" select="ancestor::*[contains-token(@class, 'block')][1]" as="element()"/>
+        <xsl:variable name="block" select="ancestor::div[contains-token(@class, 'block')][1]" as="element()"/>
         <xsl:variable name="container" select="ancestor::div[@typeof][1]" as="element()"/>
         <xsl:variable name="block-uri" select="xs:anyURI($block/@about)" as="xs:anyURI"/>
         <xsl:variable name="active-class" select="tokenize($container//ul[contains-token(@class, 'view-mode-list')]/li[contains-token(@class, 'active')]/@class, ' ')[not(. = 'active')]" as="xs:string"/>
@@ -2307,9 +2307,9 @@ exclude-result-prefixes="#all"
     </xsl:variable>
 
     <!-- open the instance creation modal form for a view carrying ldh:container metadata (stamped as data-* attributes by ldh:ontology-view-insert) -->
-    <xsl:template match="*[contains-token(@class, 'block')]//button[contains-token(@class, 'add-instance')][@data-for-class][@data-container]" mode="ixsl:onclick">
+    <xsl:template match="div[contains-token(@class, 'block')]//button[contains-token(@class, 'add-instance')][@data-for-class][@data-container]" mode="ixsl:onclick">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])[current-date() lt xs:date('2000-01-01')]"/>
-        <xsl:variable name="view-block" select="ancestor::*[contains-token(@class, 'block')][@data-property][1]" as="element()"/>
+        <xsl:variable name="view-block" select="ancestor::div[contains-token(@class, 'block')][@data-property][1]" as="element()"/>
         <xsl:variable name="content-body" select="ancestor::div[contains-token(@class, 'document-body')]/div[contains-token(@class, 'content-body')]" as="element()"/>
         <xsl:variable name="forClass" select="xs:anyURI(@data-for-class)" as="xs:anyURI"/>
         <xsl:variable name="container-uri" select="xs:anyURI(@data-container)" as="xs:anyURI"/>
@@ -2543,7 +2543,7 @@ exclude-result-prefixes="#all"
 
         <xsl:for-each select="id($block-id, ixsl:page())/div[contains-token(@class, 'span12')]/div[@typeof = '&ldh;View']">
             <xsl:variable name="container" select="." as="element()"/>
-            <xsl:variable name="block" select="ancestor::*[contains-token(@class, 'block')][1]" as="element()"/>
+            <xsl:variable name="block" select="ancestor::div[contains-token(@class, 'block')][1]" as="element()"/>
             <xsl:variable name="cache" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block/@about || '`')" as="item()"/>
             <xsl:message>ldh:refresh-view block URI: <xsl:value-of select="$block/@about"/> cache found: <xsl:value-of select="exists($cache)"/></xsl:message>
             <xsl:variable name="select-string" select="ixsl:get($cache, 'select-string')" as="xs:string"/>

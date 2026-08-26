@@ -179,7 +179,7 @@ exclude-result-prefixes="#all"
         <!--
             inject ontology-driven view blocks for any Saxon-JS wrapper produced by resource.xsl:
             outer div.block[@about] whose div.span12 child contains the inner typed resource block
-            (class='row-fluid block').
+            (class='block ldh-block').
 
             Typed-block wrappers (Object/View/Query/Chart from resource.xsl:463) are excluded
             automatically: the wrapper template no longer matches those types, and even if
@@ -187,7 +187,7 @@ exclude-result-prefixes="#all"
             [contains-token(@class, 'block')] predicate excludes their inner (class='row-fluid'
             from resource.xsl:518).
         -->
-        <xsl:for-each select="self::*[contains-token(@class, 'block')][@about]/div[contains-token(@class, 'span12')]/*[contains-token(@class, 'block')][@typeof]">
+        <xsl:for-each select="self::div[contains-token(@class, 'block')][@about]/div[contains-token(@class, 'span12')]/div[contains-token(@class, 'block')][@typeof]">
             <xsl:variable name="typeof-uris" select="tokenize(@typeof, ' ') ! xs:anyURI(.)" as="xs:anyURI*"/>
             <xsl:variable name="values-clause" select="' VALUES ?type { ' || string-join(for $t in $typeof-uris return '&lt;' || $t || '&gt;', ' ') || ' }'" as="xs:string"/>
             <xsl:variable name="request-uri" select="ldh:href(ac:build-uri(resolve-uri('ns', ldt:base()), map{ 'query': $ontology-view-query || $values-clause }), map{})" as="xs:anyURI"/>
@@ -239,7 +239,7 @@ exclude-result-prefixes="#all"
     
     <!-- show block controls -->
     
-    <xsl:template match="*[contains-token(@class, 'block')][key('elements-by-class', 'row-block-controls', .)][acl:mode() = '&acl;Write']" mode="ixsl:onmousemove"> <!-- TO-DO: better selector -->        
+    <xsl:template match="div[contains-token(@class, 'block')][key('elements-by-class', 'row-block-controls', .)][acl:mode() = '&acl;Write']" mode="ixsl:onmousemove"> <!-- TO-DO: better selector -->        
         <!-- there might be multiple .row-block-controls in a block if the main block is followed by blocks rendered from ldh:block -->
         <xsl:variable name="row-block-controls" select="key('elements-by-class', 'row-block-controls', .)[1]" as="element()"/>
         <xsl:variable name="btn-edit" select="key('elements-by-class', 'btn-edit', $row-block-controls)" as="element()?"/>
@@ -269,7 +269,7 @@ exclude-result-prefixes="#all"
 
     <!-- show drag handle on left edge hover, but not when left sidebar is active -->
 
-    <xsl:template match="*[contains-token(@class, 'block')][key('elements-by-class', 'drag-handle', .)][acl:mode() = '&acl;Write'][not(ixsl:style(ancestor::div[contains-token(@class, 'tab-pane')]/div[contains-token(@class, 'left-sidebar')])?display = 'block')]" mode="ixsl:onmousemove" priority="2">
+    <xsl:template match="div[contains-token(@class, 'block')][key('elements-by-class', 'drag-handle', .)][acl:mode() = '&acl;Write'][not(ixsl:style(ancestor::div[contains-token(@class, 'tab-pane')]/div[contains-token(@class, 'left-sidebar')])?display = 'block')]" mode="ixsl:onmousemove" priority="2">
         <xsl:variable name="uri" select="xs:anyURI(ancestor::div[contains-token(@class, 'document-body')]/@about)" as="xs:anyURI"/>
         <xsl:variable name="contents" select="ixsl:get(ixsl:window(), 'LinkedDataHub.contents')"/>
         <xsl:variable name="cache-key" select="'`' || $uri || '`'" as="xs:string"/>
@@ -331,7 +331,7 @@ exclude-result-prefixes="#all"
 
     <!-- hide drag handle when mouse leaves block -->
     
-    <xsl:template match="*[contains-token(@class, 'block')][key('elements-by-class', 'drag-handle', .)][acl:mode() = '&acl;Write']" mode="ixsl:onmouseout">
+    <xsl:template match="div[contains-token(@class, 'block')][key('elements-by-class', 'drag-handle', .)][acl:mode() = '&acl;Write']" mode="ixsl:onmouseout">
         <xsl:variable name="related-target" select="ixsl:get(ixsl:event(), 'relatedTarget')" as="element()?"/> <!-- the element mouse entered -->
         <xsl:variable name="drag-handle" select="key('elements-by-class', 'drag-handle', .)[1]" as="element()"/>
         
@@ -352,7 +352,7 @@ exclude-result-prefixes="#all"
     <xsl:template match="div[@typeof = '&ldh;XHTML'][not(descendant::form)][acl:mode() = '&acl;Write']//div[contains-token(@class, 'main')]" mode="ixsl:onclick">
         <xsl:if test="ixsl:call(ixsl:call(ixsl:window(), 'getSelection', []), 'toString', []) = ''">
             <xsl:variable name="main" select="." as="element()"/>
-            <xsl:variable name="block" select="ancestor::*[contains-token(@class, 'block')][1]" as="element()"/>
+            <xsl:variable name="block" select="ancestor::div[contains-token(@class, 'block')][1]" as="element()"/>
             <xsl:variable name="btn-edit" select="($block//button[contains-token(@class, 'btn-edit')][not(contains-token(@class, 'disabled'))])[1]" as="element()?"/>
             <xsl:if test="$btn-edit">
                 <!-- Anchor the caret to the content structure, not pixels: record which content block the
@@ -420,7 +420,7 @@ exclude-result-prefixes="#all"
     <!-- override inline editing form for block types (do nothing if the button is disabled) - prioritize over form.xsl -->
 
     <xsl:template match="div[following-sibling::div[@typeof = ('&ldh;XHTML', '&ldh;Object')]]//button[contains-token(@class, 'btn-edit')][not(contains-token(@class, 'disabled'))]" mode="ixsl:onclick" priority="1">
-        <xsl:param name="block" select="ancestor::*[contains-token(@class, 'block')][1]" as="element()"/>
+        <xsl:param name="block" select="ancestor::div[contains-token(@class, 'block')][1]" as="element()"/>
         <!-- for block types, button.btn-edit is placed in its own div.row-fluid, therefore the next row is the actual container -->
         <xsl:param name="container" select="$block/descendant::div[@typeof][1]" as="element()"/> <!-- other resources can be nested within object -->
         
@@ -442,7 +442,7 @@ exclude-result-prefixes="#all"
             <xsl:apply-templates select="$triples" mode="ldh:CanonicalizeXML"/>
         </xsl:variable>
         <xsl:variable name="container" select="ancestor::div[@typeof][1]" as="element()"/>
-        <xsl:variable name="block" select="ancestor::*[contains-token(@class, 'block')][1]" as="element()"/>
+        <xsl:variable name="block" select="ancestor::div[contains-token(@class, 'block')][1]" as="element()"/>
         <xsl:variable name="block-uri" select="xs:anyURI(.//input[@name = 'su'] => ixsl:get('value'))" as="xs:anyURI"/>
         <xsl:variable name="sequence-number" select="count($block/preceding-sibling::div[@about]) + 1" as="xs:integer"/>
         <xsl:variable name="sequence-property" select="xs:anyURI('&rdf;_' || $sequence-number)" as="xs:anyURI"/>
@@ -470,7 +470,7 @@ exclude-result-prefixes="#all"
     <!-- delete block onclick (increased priority to take precedence over form.xsl .btn-remove-resource) -->
     
     <xsl:template match="div[@typeof = ('&ldh;XHTML', '&ldh;Object')]//button[contains-token(@class, 'btn-remove-resource')]" mode="ixsl:onclick" priority="3">
-        <xsl:variable name="block" select="ancestor::*[contains-token(@class, 'block')][1]" as="element()"/>
+        <xsl:variable name="block" select="ancestor::div[contains-token(@class, 'block')][1]" as="element()"/>
 
         <xsl:choose>
             <!-- delete existing block -->
@@ -506,7 +506,7 @@ exclude-result-prefixes="#all"
     
     <xsl:template match="div[contains-token(@class, 'drag-handle')]" mode="ixsl:ondragstart">
         <!-- find the parent block to drag -->
-        <xsl:variable name="block" select="ancestor::*[contains-token(@class, 'block')][parent::div[contains-token(@class, 'content-body')]][1]" as="element()?"/>
+        <xsl:variable name="block" select="ancestor::div[contains-token(@class, 'block')][parent::div[contains-token(@class, 'content-body')]][1]" as="element()?"/>
         <xsl:for-each select="$block">
             <ixsl:set-property name="dataTransfer.effectAllowed" select="'move'" object="ixsl:event()"/>
             <xsl:variable name="block-uri" select="@about" as="xs:anyURI"/>
@@ -522,7 +522,7 @@ exclude-result-prefixes="#all"
         <!-- hide the drag-handle -->
         <ixsl:set-style name="display" select="'none'" object="."/>
         <!-- disable draggable on the parent block -->
-        <xsl:variable name="block" select="ancestor::*[contains-token(@class, 'block')][1]" as="element()?"/>
+        <xsl:variable name="block" select="ancestor::div[contains-token(@class, 'block')][1]" as="element()?"/>
         <xsl:if test="exists($block)">
             <ixsl:set-attribute name="draggable" select="'false'" object="$block"/>
         </xsl:if>
@@ -536,8 +536,8 @@ exclude-result-prefixes="#all"
          the imported edit.xsl - shadows the editor's own block DnD (edit.xsl), killing its drop marks
          and reorder. Excluding the editor lets those events fall through to the editor's handlers. -->
 
-    <xsl:template match="*[ancestor-or-self::*[contains-token(@class, 'block')][parent::div[contains-token(@class, 'content-body')]][acl:mode() = '&acl;Write']][not(ancestor-or-self::*[contains-token(@class, 'rdfa-editor-content')])]" mode="ixsl:ondragover" priority="1">
-        <xsl:variable name="block" select="ancestor-or-self::*[contains-token(@class, 'block')][parent::div[contains-token(@class, 'content-body')]][1]" as="element()"/>
+    <xsl:template match="*[ancestor-or-self::div[contains-token(@class, 'block')][parent::div[contains-token(@class, 'content-body')]][acl:mode() = '&acl;Write']][not(ancestor-or-self::*[contains-token(@class, 'rdfa-editor-content')])]" mode="ixsl:ondragover" priority="1">
+        <xsl:variable name="block" select="ancestor-or-self::div[contains-token(@class, 'block')][parent::div[contains-token(@class, 'content-body')]][1]" as="element()"/>
         <xsl:variable name="uri" select="xs:anyURI($block/parent::div/parent::div[contains-token(@class, 'document-body')]/@about)" as="xs:anyURI"/>
         <xsl:variable name="results" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $uri || '`'), 'results')" as="document-node()"/>
         <xsl:variable name="mode" select="ac:mode($results)" as="xs:anyURI"/>
@@ -555,8 +555,8 @@ exclude-result-prefixes="#all"
     <!-- change the style of blocks when block is dragged over them -->
     <!-- only handle if drag originated from drag-handle (has text/uri-list item) -->
 
-    <xsl:template match="*[ancestor-or-self::*[contains-token(@class, 'block')][parent::div[contains-token(@class, 'content-body')]][acl:mode() = '&acl;Write']][not(ancestor-or-self::*[contains-token(@class, 'rdfa-editor-content')])]" mode="ixsl:ondragenter" priority="1">
-        <xsl:variable name="block" select="ancestor-or-self::*[contains-token(@class, 'block')][parent::div[contains-token(@class, 'content-body')]][1]" as="element()"/>
+    <xsl:template match="*[ancestor-or-self::div[contains-token(@class, 'block')][parent::div[contains-token(@class, 'content-body')]][acl:mode() = '&acl;Write']][not(ancestor-or-self::*[contains-token(@class, 'rdfa-editor-content')])]" mode="ixsl:ondragenter" priority="1">
+        <xsl:variable name="block" select="ancestor-or-self::div[contains-token(@class, 'block')][parent::div[contains-token(@class, 'content-body')]][1]" as="element()"/>
         <xsl:variable name="uri" select="xs:anyURI($block/parent::div/parent::div[contains-token(@class, 'document-body')]/@about)" as="xs:anyURI"/>
         <xsl:variable name="results" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $uri || '`'), 'results')" as="document-node()"/>
         <xsl:variable name="mode" select="ac:mode($results)" as="xs:anyURI"/>
@@ -572,8 +572,8 @@ exclude-result-prefixes="#all"
 
     <!-- only handle if drag originated from drag-handle (has text/uri-list item) -->
 
-    <xsl:template match="*[ancestor-or-self::*[contains-token(@class, 'block')][parent::div[contains-token(@class, 'content-body')]][acl:mode() = '&acl;Write']][not(ancestor-or-self::*[contains-token(@class, 'rdfa-editor-content')])]" mode="ixsl:ondragleave" priority="1">
-        <xsl:variable name="block" select="ancestor-or-self::*[contains-token(@class, 'block')][parent::div[contains-token(@class, 'content-body')]][1]" as="element()"/>
+    <xsl:template match="*[ancestor-or-self::div[contains-token(@class, 'block')][parent::div[contains-token(@class, 'content-body')]][acl:mode() = '&acl;Write']][not(ancestor-or-self::*[contains-token(@class, 'rdfa-editor-content')])]" mode="ixsl:ondragleave" priority="1">
+        <xsl:variable name="block" select="ancestor-or-self::div[contains-token(@class, 'block')][parent::div[contains-token(@class, 'content-body')]][1]" as="element()"/>
         <xsl:variable name="uri" select="xs:anyURI($block/parent::div/parent::div[contains-token(@class, 'document-body')]/@about)" as="xs:anyURI"/>
         <xsl:variable name="results" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $uri || '`'), 'results')" as="document-node()"/>
         <xsl:variable name="mode" select="ac:mode($results)" as="xs:anyURI"/>
@@ -595,8 +595,8 @@ exclude-result-prefixes="#all"
     <!-- dropping block over other top-level block -->
     <!-- only handle if drag originated from drag-handle (has text/uri-list item) -->
 
-    <xsl:template match="*[ancestor-or-self::*[contains-token(@class, 'block')][parent::div[contains-token(@class, 'content-body')]][acl:mode() = '&acl;Write']][not(ancestor-or-self::*[contains-token(@class, 'rdfa-editor-content')])]" mode="ixsl:ondrop" priority="1">
-        <xsl:variable name="block" select="ancestor-or-self::*[contains-token(@class, 'block')][parent::div[contains-token(@class, 'content-body')]][1]" as="element()"/>
+    <xsl:template match="*[ancestor-or-self::div[contains-token(@class, 'block')][parent::div[contains-token(@class, 'content-body')]][acl:mode() = '&acl;Write']][not(ancestor-or-self::*[contains-token(@class, 'rdfa-editor-content')])]" mode="ixsl:ondrop" priority="1">
+        <xsl:variable name="block" select="ancestor-or-self::div[contains-token(@class, 'block')][parent::div[contains-token(@class, 'content-body')]][1]" as="element()"/>
         <xsl:variable name="uri" select="xs:anyURI($block/parent::div/parent::div[contains-token(@class, 'document-body')]/@about)" as="xs:anyURI"/>
         <xsl:variable name="results" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $uri || '`'), 'results')" as="document-node()"/>
         <xsl:variable name="mode" select="ac:mode($results)" as="xs:anyURI"/>
