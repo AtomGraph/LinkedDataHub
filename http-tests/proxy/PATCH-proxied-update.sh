@@ -9,16 +9,16 @@ purge_cache "$FRONTEND_VARNISH_SERVICE"
 
 # add agent to the writers group
 
-add-agent-to-group.sh \
-  -f "$OWNER_CERT_FILE" \
+ldh admin acl add-agent-to-group \
+  -f "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   --agent "$AGENT_URI" \
   "${ADMIN_BASE_URL}acl/groups/writers/"
 
 # create item document to PATCH
 
-item=$(create-item.sh \
-  -f "$AGENT_CERT_FILE" \
+item=$(ldh create-item \
+  -f "$AGENT_CERT_KEYSTORE" \
   -p "$AGENT_CERT_PWD" \
   -b "$END_USER_BASE_URL" \
   --title "Test Item" \

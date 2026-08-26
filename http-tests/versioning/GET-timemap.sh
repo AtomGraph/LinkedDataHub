@@ -17,8 +17,8 @@ purge_cache "$FRONTEND_VARNISH_SERVICE"
 
 # add agent to the writers group
 
-add-agent-to-group.sh \
-  -f "$OWNER_CERT_FILE" \
+ldh admin acl add-agent-to-group \
+  -f "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   --agent "$AGENT_URI" \
   "${ADMIN_BASE_URL}acl/groups/writers/"
@@ -31,8 +31,8 @@ path="${VERSIONING_PATH_PREFIX:-graphs}/${slug}.nt"
 
 echo "<${doc_url}> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.w3.org/ns/ldt/document-hierarchy#Item> .
 <${doc_url}> <http://purl.org/dc/terms/title> \"TimeMap test\" ." | \
-  put.sh \
-    -f "$AGENT_CERT_FILE" \
+  ldh put \
+    -f "$AGENT_CERT_KEYSTORE" \
     -p "$AGENT_CERT_PWD" \
     -t "application/n-triples" \
     "$doc_url"
@@ -48,8 +48,8 @@ gh api "repos/${VERSIONING_TEST_REPO}/contents/${path}?ref=${VERSIONING_TEST_BRA
 # check that the document advertises its TimeMap via the Link header
 
 response_headers=$(
-get.sh \
-  -f "$AGENT_CERT_FILE" \
+ldh get \
+  -f "$AGENT_CERT_KEYSTORE" \
   -p "$AGENT_CERT_PWD" \
   --accept 'application/n-triples' \
   --head \
@@ -72,8 +72,8 @@ fi
 # retrieve the TimeMap as RDF and check the PROV description
 
 timemap=$(
-get.sh \
-  -f "$AGENT_CERT_FILE" \
+ldh get \
+  -f "$AGENT_CERT_KEYSTORE" \
   -p "$AGENT_CERT_PWD" \
   --accept 'application/n-triples' \
   "${doc_url}?timemap")
@@ -91,8 +91,8 @@ echo "$timemap" | grep -q "$AGENT_URI"
 # the same TimeMap in the serialization RFC 7089 requires
 
 link_format=$(
-get.sh \
-  -f "$AGENT_CERT_FILE" \
+ldh get \
+  -f "$AGENT_CERT_KEYSTORE" \
   -p "$AGENT_CERT_PWD" \
   --accept 'application/link-format' \
   "${doc_url}?timemap")

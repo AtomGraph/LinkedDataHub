@@ -17,8 +17,8 @@ purge_cache "$FRONTEND_VARNISH_SERVICE"
 
 # add agent to the writers group
 
-add-agent-to-group.sh \
-  -f "$OWNER_CERT_FILE" \
+ldh admin acl add-agent-to-group \
+  -f "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   --agent "$AGENT_URI" \
   "${ADMIN_BASE_URL}acl/groups/writers/"
@@ -31,8 +31,8 @@ put_document()
 {
     echo "<${doc_url}> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.w3.org/ns/ldt/document-hierarchy#Item> .
 <${doc_url}> <http://purl.org/dc/terms/title> \"${1}\" ." | \
-      put.sh \
-        -f "$AGENT_CERT_FILE" \
+      ldh put \
+        -f "$AGENT_CERT_KEYSTORE" \
         -p "$AGENT_CERT_PWD" \
         -t "application/n-triples" \
         "$doc_url"
@@ -68,8 +68,8 @@ done
 # the document advertises its TimeGate (RFC 7089 4.1.1)
 
 response_headers=$(
-get.sh \
-  -f "$AGENT_CERT_FILE" \
+ldh get \
+  -f "$AGENT_CERT_KEYSTORE" \
   -p "$AGENT_CERT_PWD" \
   --accept 'application/n-triples' \
   --head \

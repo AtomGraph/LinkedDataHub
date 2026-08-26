@@ -9,8 +9,8 @@ purge_cache "$FRONTEND_VARNISH_SERVICE"
 
 # add agent to the writers group
 
-add-agent-to-group.sh \
-  -f "$OWNER_CERT_FILE" \
+ldh admin acl add-agent-to-group \
+  -f "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   --agent "$AGENT_URI" \
   "${ADMIN_BASE_URL}acl/groups/writers/"
@@ -19,8 +19,8 @@ add-agent-to-group.sh \
 
 slug="test"
 
-container=$(create-container.sh \
-  -f "$AGENT_CERT_FILE" \
+container=$(ldh create-container \
+  -f "$AGENT_CERT_KEYSTORE" \
   -p "$AGENT_CERT_PWD" \
   -b "$END_USER_BASE_URL" \
   --title "Test" \
@@ -29,8 +29,8 @@ container=$(create-container.sh \
 
 # check that the container was created at the expected URL and attached to the document hierarchy
 
-get.sh \
-  -f "$AGENT_CERT_FILE" \
+ldh get \
+  -f "$AGENT_CERT_KEYSTORE" \
   -p "$AGENT_CERT_PWD" \
   --accept 'application/n-triples' \
   "$container" \

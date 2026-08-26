@@ -15,8 +15,8 @@ import_uri="http://www.w3.org/2004/02/skos/core"
 
 slug="test"
 
-item=$(create-item.sh \
-  -f "$OWNER_CERT_FILE" \
+item=$(ldh create-item \
+  -f "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   -b "$ADMIN_BASE_URL" \
   --title "Test" \
@@ -26,8 +26,8 @@ item=$(create-item.sh \
 # import the ontology: derive class constructors into the item document; the vocabulary itself only
 # passes through a scratch document and is not persisted
 
-import-ontology.sh \
-  -f "$OWNER_CERT_FILE" \
+ldh admin ontologies import-ontology \
+  -f "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   -b "$ADMIN_BASE_URL" \
   --source "$import_uri" \
@@ -74,16 +74,16 @@ curl -k -f -s \
 # make the annotation document part of the application ontology (the vocabulary rides in via the
 # document's own owl:imports)
 
-add-ontology-import.sh \
-  -f "$OWNER_CERT_FILE" \
+ldh admin add-ontology-import \
+  -f "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   --import "$item" \
   "$ontology_doc"
 
 # clear the namespace ontology from memory
 
-clear-ontology.sh \
-  -f "$OWNER_CERT_FILE" \
+ldh admin clear-ontology \
+  -f "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   -b "$ADMIN_BASE_URL" \
   --ontology "$namespace"

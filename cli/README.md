@@ -6,6 +6,10 @@ implemented in Java on top of AtomGraph [Core](https://github.com/AtomGraph/Core
 (picocli + Apache Jena). It replaces the scripts' external dependencies (`curl`, `turtle`, `python`,
 `uuidgen`, `shasum`) with a single executable jar.
 
+The `bin/` HTTP API scripts it replaces are deprecated. The [http-tests](../http-tests) suite builds
+all of its fixtures with `ldh`, so the commands are exercised against a live instance on every CI run;
+`run.sh` aborts if `ldh` is not on `PATH`.
+
 ## Build
 
 Requires Java 21 and Maven:

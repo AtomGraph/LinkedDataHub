@@ -18,8 +18,8 @@ remote_base="https://test.localhost:4443/"
 # create the target on B as the owner (authorized), so only the *writer* differs from the
 # positive test
 
-item=$(create-item.sh \
-  -f "$OWNER_CERT_FILE" \
+item=$(ldh create-item \
+  -f "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   -b "$remote_base" \
   --title "Federation unauthorized target" \

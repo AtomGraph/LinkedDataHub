@@ -9,8 +9,8 @@ purge_cache "$FRONTEND_VARNISH_SERVICE"
 
 # check that the acl:delegates triple exists in the agent's description
 
-get.sh \
-  -f "$AGENT_CERT_FILE" \
+ldh get \
+  -f "$AGENT_CERT_KEYSTORE" \
   -p "$AGENT_CERT_PWD" \
   --accept 'application/n-triples' \
   "$AGENT_URI" \
@@ -27,8 +27,8 @@ curl --head -k -w "%{http_code}\n" -o /dev/null -s \
 
 # add agent to the owners group to be able to control the admin app
 
-add-agent-to-group.sh \
-  -f "$OWNER_CERT_FILE" \
+ldh admin acl add-agent-to-group \
+  -f "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   --agent "$AGENT_URI" \
   "${ADMIN_BASE_URL}acl/groups/owners/"
