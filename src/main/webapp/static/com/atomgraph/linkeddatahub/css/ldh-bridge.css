@@ -357,7 +357,10 @@ form .control-group > .controls > .btn-group { order: 99; margin-left: auto; }
 
 /* ---------- left sidebar: flyout mechanics are CSR-driven inline styles ---------- */
 /* hidden by default; the body-edge onmousemove handler sets display: block, onmouseout hides it */
-.left-sidebar.ldh-sidebar { display: none; }
+/* the tree flyout's CSR handlers carry show/hide as inline display (mouse at x=0 → block, mouseout → none);
+   neutralize the design's translateX(-100%)/.is-open slide so display alone controls visibility, and start
+   the panel below the sticky header instead of the design's full-height top:0 */
+.left-sidebar.ldh-sidebar { display: none; transform: none; top: var(--ldh-header-height); z-index: 1001; box-shadow: var(--shadow-lg); }
 /* tree/class lists are ul/li (CSR appends nested uls and toggles li .active) */
 .ldh-sidebar ul.nav { list-style: none; margin: 0; padding: 0; }
 .ldh-sidebar .sb-tree ul { list-style: none; margin: 0 0 0 var(--sp-4); padding: 0; }
