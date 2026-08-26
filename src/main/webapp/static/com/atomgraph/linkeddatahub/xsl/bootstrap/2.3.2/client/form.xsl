@@ -533,7 +533,7 @@ WHERE
                     <div class="main">
                         <div class="alert alert-success block-row">
                             <div class="span1">
-                                <img src="{resolve-uri('static/com/atomgraph/linkeddatahub/icons/baseline_done_white_48dp.png', $lapp:origin)}" alt="Signup complete"/>
+                                <span class="msi" aria-label="Signup complete">check_circle</span>
                             </div>
                             <div class="span11">
                                 <p>Congratulations! Your WebID profile has been created. You can see its data below.</p>

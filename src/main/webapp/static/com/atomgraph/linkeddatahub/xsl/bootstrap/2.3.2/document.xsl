@@ -683,14 +683,18 @@ extension-element-prefixes="ixsl"
         <xsl:if test="acl:mode() = '&acl;Append'">
             <div class="create-resource block-row">
                 <div class="main">
-                    <p>
-                        <button type="button" class="btn btn-primary create-action add-constructor" data-for-class="&ldh;XHTML">
+                    <button type="button" class="ldh-btn is-ghost create-action add-constructor" data-for-class="&ldh;XHTML">
+                        <span class="msi sm" aria-hidden="true">notes</span>
+                        <span>
                             <xsl:apply-templates select="key('resources', '&ldh;XHTML', document(ac:document-uri('&ldh;')))" mode="ac:label"/>
-                        </button>
-                        <button type="button" class="btn btn-primary create-action add-constructor" data-for-class="&ldh;Object">
+                        </span>
+                    </button>
+                    <button type="button" class="ldh-btn is-ghost create-action add-constructor" data-for-class="&ldh;Object">
+                        <span class="msi sm" aria-hidden="true">data_object</span>
+                        <span>
                             <xsl:apply-templates select="key('resources', '&ldh;Object', document(ac:document-uri('&ldh;')))" mode="ac:label"/>
-                        </button>
-                    </p>
+                        </span>
+                    </button>
                 </div>
             </div>
         </xsl:if>
