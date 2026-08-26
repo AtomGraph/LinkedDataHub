@@ -55,11 +55,13 @@
 .progress .bar { height: 100%; background: var(--bg-accent); transition: width var(--dur-base) var(--ease-out-soft); }
 table.table { width: 100%; border-collapse: collapse; font-size: var(--fs-sm); }
 table.table th, table.table td { padding: var(--sp-2) var(--sp-3); border-bottom: 1px solid var(--border-default); text-align: left; vertical-align: top; }
+table.table tr:last-child > td { border-bottom: 0; }
 table.table th { font-weight: var(--fw-semibold); color: var(--fg-muted); }
 .content-body { padding: var(--sp-4) var(--sp-6); max-width: 1280px; margin: 0 auto; }
 /* stacking rhythm between block cards and alerts (Bootstrap's row margins are gone) */
 .content-body .ldh-block, .content-body .ldhc-alert, .content-body :where(.alert) { margin-bottom: var(--sp-4); }
-.ldh-block .ldh-block { margin-bottom: var(--sp-3); }
+/* one card layer only: CSR hydration can re-render a row as a card inside the SSR wrapper card */
+.ldh-block .ldh-block { border: 0; box-shadow: none; border-radius: 0; background: transparent; margin-bottom: 0; }
 .row-block-controls { min-height: 30px; }
 .fade { opacity: 0; transition: opacity var(--dur-fast) var(--ease-out-soft); }
 .fade.in { opacity: 1; }
@@ -73,6 +75,21 @@ ul.typeahead.dropdown-menu {
 }
 ul.typeahead.dropdown-menu > li > a { display: block; padding: 6px 10px; border-radius: var(--r-sm); font-size: var(--fs-sm); color: var(--fg-1); }
 ul.typeahead.dropdown-menu > li.active > a, ul.typeahead.dropdown-menu > li > a:hover { background: var(--bg-accent-quiet); text-decoration: none; }
+
+/* ---------- cards: the m3 skin's resting M3-elevation shadow reads as a doubled bottom border;
+     the design's card preview shows the bordered treatment, so keep the m3 palette but rest flat ---------- */
+:root[data-retro^="m3"] .ldh-block {
+  border: 1px solid var(--border-default);
+  box-shadow: none;
+}
+:root[data-retro^="m3"] .ldh-block.is-quiet { border: 0; background: transparent; }
+/* a block whose content collapsed to a single alert (failed object/chart/query load) goes quiet:
+   the alert brings its own surface, so card chrome around it reads as stray double borders */
+.ldh-block:has(> :is(.row-main, .main, .block-row) > :is(.block-row, .main) > .alert:only-child),
+.ldh-block:has(> :is(.block-row, .main) > .alert:only-child) {
+  border: 0; background: transparent; box-shadow: none;
+}
+.ldh-block :is(.alert, .ldhc-alert) { margin: 0; }
 
 /* ---------- sticky chrome: header on top, action bar (legacy --action-bar-top) right under it ---------- */
 :root { --ldh-header-height: 56px; --action-bar-top: var(--ldh-header-height); }
