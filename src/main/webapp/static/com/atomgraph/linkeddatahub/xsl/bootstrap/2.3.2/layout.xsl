@@ -371,11 +371,10 @@ exclude-result-prefixes="#all">
         <xsl:param name="load-rdfa-editor" select="exists($foaf:Agent//@rdf:about)" as="xs:boolean"/>
         <xsl:param name="load-yasqe" select="true()" as="xs:boolean"/>
 
-        <!-- the Bootstrap 2 framework (static/css/bootstrap.css + bootstrap-responsive.css) is no longer
-             linked - ldh-bridge.css carries the replacements; the two remaining files are app-specific
-             (Web-Client's and LDH's own rules that happen to keep the historical file name) -->
+        <!-- Bootstrap 2 is gone; ldh-bridge.css carries the replacements for the primitives LDH still emits.
+             Web-Client's bootstrap.css remains only because it styles Web-Client-emitted markup and lives in that repo. -->
         <link href="{resolve-uri('static/com/atomgraph/client/css/bootstrap.css', lapp:origin())}" rel="stylesheet" type="text/css"/>
-        <link href="{resolve-uri('static/com/atomgraph/linkeddatahub/css/bootstrap.css', lapp:origin())}" rel="stylesheet" type="text/css"/>
+        <link href="{resolve-uri('static/com/atomgraph/linkeddatahub/css/ldh.css', lapp:origin())}" rel="stylesheet" type="text/css"/>
         <xsl:if test="$load-rdfa-editor">
             <link href="{resolve-uri('static/com/atomgraph/linkeddatahub/css/rdfa-editor.css', lapp:origin())}" rel="stylesheet" type="text/css"/>
         </xsl:if>

@@ -17,7 +17,6 @@ ul.dropdown-menu { max-height: 26em; overflow-x: hidden; overflow-y: auto; }
 ul.dropdown-menu ul { margin: 0; }
 .label { min-width: unset; min-height: unset; }
 .brand.context { background-image: url('../icons/baseline_arrow_upward_white_18dp.png'); background-repeat: no-repeat; background-position: center center; height: 20px; width: 20px; background-size: 20px 20px; }
-.btn.dropdown-toggle.btn-context { background-image: url('../icons/ic_apps_white_24px.svg'); background-position: center center; background-repeat: no-repeat; width: 34px; height: 34px; }
 .btn.dropdown-toggle.btn-notifications { background-image: url('../icons/notifications-white-24dp.svg'); background-position: center center; background-repeat: no-repeat; width: 34px; height: 34px; }
 .btn.dropdown-toggle.btn-apps { background-image: url('../icons/ic_apps_white_24px.svg'); background-position: center center; background-repeat: no-repeat; width: 34px; height: 34px; }
 .btn.dropdown-toggle.btn-settings { background-image: url('../icons/settings_white_24dp.svg'); background-position: center center; background-repeat: no-repeat; width: 34px; height: 34px; }
@@ -32,13 +31,10 @@ ul.dropdown-menu ul { margin: 0; }
 .search-form .input-append .btn-search, .search-form-modal .input-append .btn-search { flex: 0 0 34px; margin: 0; }
 .action-bar { position: sticky; top: var(--action-bar-top, 51px); z-index: 999; background: #dfdfdf; padding: 0; box-shadow: none; }
 .action-bar form { margin-bottom: 0; }
-.action-bar .span7 .row-fluid > * { margin-top: 10px; }
 .action-bar .row-fluid > .span2, .action-bar .row-fluid > .span3 { margin-top: 10px; }
 .action-bar .add-constructor, .dropdown-menu .add-constructor { background-color: inherit; display: block; text-align: left; width: 100%; }
 .action-bar .add-constructor:hover { color: #ffffff; background-color: #007af5; }
 .action-bar .breadcrumb { background-color: inherit; margin-bottom: 0; padding-left: 0; padding-top: 5px; }
-.action-bar .breadcrumb .container-logo { background-image: url('../icons/folder.svg'); background-position: left center; background-repeat: no-repeat; padding-left: 28px; }
-.action-bar .breadcrumb .item-logo { background-image: url('../icons/file.svg'); background-position: left center; background-repeat: no-repeat; padding-left: 28px; }
 .action-bar .breadcrumb .btn-group { margin-top: -4px; }
 .action-bar .breadcrumb-nav > .label-info { padding: 8px 15px; margin-right: 8px; font-size: inherit; background-color: #9954bb; }
 .action-bar #doc-controls { text-align: right; padding-top: 5px; }
@@ -68,7 +64,6 @@ li button.btn-edit-constructors, li button.btn-add-data, li button.btn-add-ontol
 .btn-logo { background-position: left; background-repeat: no-repeat; padding-left: 32px; }
 .dropdown-menu .btn-logo { background-position: 12px center; padding-left: 40px; }
 .btn.btn-toggle-content { font-size: 0; color: transparent; background-image: url('../icons/baseline-expand_less-24px.svg'); background-position: center center; background-repeat: no-repeat; width: 48px; }
-.btn.btn-ban { font-size: 0; color: transparent; background-image: url('../icons/ic_refresh_black_24px.svg'); background-position: center center; background-repeat: no-repeat; width: 48px; }
 .action-bar .btn.btn-delete { font-size: 0; color: transparent; background-image: url('../icons/ic_delete_forever_black_24px.svg'); background-position: center center; background-repeat: no-repeat; width: 48px; }
 .btn.dropdown-toggle.btn-export { text-align: right; font-size: 0; color: transparent; background-image: url('../icons/ic_file_download_black_24px.svg'); background-position: center center; background-repeat: no-repeat; width: 64px; }
 .btn.btn-acl { text-align: right; font-size: 0; color: transparent; background-image: url('../icons/baseline-remove_red_eye-24px.svg'); background-position: center center; background-repeat: no-repeat; width: 48px; }
@@ -104,8 +99,6 @@ li button.btn-edit-constructors, li button.btn-add-data, li button.btn-add-ontol
     .left-sidebar { display: block; width: auto; position: unset; top: unset; height: auto; z-index: auto; }
     .left-sidebar .nav { max-height: 20em; overflow: auto; }
 }
-.left-sidebar .nav-list > li > a.btn-container { padding-left: 24px; }
-.left-sidebar .nav-list > li > a { margin-left: 0; margin-right: 0; }
 .left-sidebar ul { max-height: 22em; overflow: auto; }
 .left-sidebar li > a { display: inline-block; }
 .left-sidebar .btn-latest { background-image: url('../icons/ic_new_releases_black_24px.svg'); background-color: inherit; }
@@ -138,8 +131,6 @@ legend.create-action { background-image: url('../icons/ic_note_add_black_24px.sv
 alert.violation { background-image: url('../icons/ic_error_white_24px.svg '); background-position: 12px center; background-repeat: no-repeat; padding-left: 40px; }
 .hero-unit { background-color: #0f82f530; box-shadow: 5px 5px 3px 0px rgb(192,192,192); }
 h2.access-required { background-image: url('../icons/baseline-warning-24px.svg'); background-position: 12px center; background-repeat: no-repeat; padding-left: 40px; }
-h2.container-logo { background-image: url('../icons/folder.svg'); background-position: left center; background-repeat: no-repeat; padding-left: 28px; }
-h2.item-logo { background-image: url('../icons/file.svg'); background-position: left center; background-repeat: no-repeat; padding-left: 28px; }
 .nav-tabs .content-mode a { background-image: url('../icons/view_list_black_24dp.svg'); background-position: 12px center; background-repeat: no-repeat; padding-left: 40px; }
 .nav-tabs .read-mode a { background-image: url('../icons/ic_details_black_24px.svg'); background-position: 12px center; background-repeat: no-repeat; padding-left: 40px; }
 .nav-tabs .list-mode a { background-image: url('../icons/ic_view_list_black_24px.svg'); background-position: 12px center; background-repeat: no-repeat; padding-left: 40px; }
@@ -198,7 +189,6 @@ div[typeof="https://w3id.org/atomgraph/linkeddatahub#XHTML"] form fieldset { bor
 /* .content .btn.add-typeahead { margin-top: -10px; } */
 object { display: block; margin: auto; max-height: 400px; overflow: hidden; width: 100%; }
 .chart-canvas { width: 100%; height: 400px; }
-.chart-canvas .google-visualization-table { width: 100%; }
 .graph-3d-canvas { width: 100%; height: 600px; overflow: hidden; background: #141414; position: relative; }
 .graph-3d-tooltip { display: none; position: absolute; background: rgba(0,0,0,0.75); color: #fff; padding: 4px 8px; border-radius: 4px; pointer-events: none; font-size: 12px; z-index: 10; }
 .graph-3d-info-panel { position: absolute; top: 10px; right: 10px; z-index: 10; background: rgba(0,0,0,0.7); color: #fff; padding: 8px 12px; border-radius: 4px; max-width: 280px; font-size: 12px; }
