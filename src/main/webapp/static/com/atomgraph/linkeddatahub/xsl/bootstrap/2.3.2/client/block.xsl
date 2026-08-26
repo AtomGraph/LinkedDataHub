@@ -267,6 +267,24 @@ exclude-result-prefixes="#all"
         </xsl:if>
     </xsl:template>
 
+    <!-- open the block links drawer (backlinks/related/parallax) from the header toolbar -->
+
+    <xsl:template match="button[contains-token(@class, 'tb-links')]" mode="ixsl:onclick">
+        <xsl:variable name="drawer" select="ancestor::div[contains-token(@class, 'block')][1]/descendant::div[contains-token(@class, 'ldh-drawer')][1]" as="element()?"/>
+
+        <xsl:for-each select="$drawer">
+            <ixsl:set-style name="display" select="'flex'" object="."/>
+        </xsl:for-each>
+    </xsl:template>
+
+    <!-- close the block links drawer -->
+
+    <xsl:template match="div[contains-token(@class, 'ldh-drawer')]/div[contains-token(@class, 'dh')]/button[contains-token(@class, 'close')]" mode="ixsl:onclick">
+        <xsl:for-each select="ancestor::div[contains-token(@class, 'ldh-drawer')][1]">
+            <ixsl:set-style name="display" select="'none'" object="."/>
+        </xsl:for-each>
+    </xsl:template>
+
     <!-- show drag handle on left edge hover, but not when left sidebar is active -->
 
     <xsl:template match="div[contains-token(@class, 'block')][key('elements-by-class', 'drag-handle', .)][acl:mode() = '&acl;Write'][not(ixsl:style(ancestor::div[contains-token(@class, 'tab-pane')]/div[contains-token(@class, 'left-sidebar')])?display = 'block')]" mode="ixsl:onmousemove" priority="2">

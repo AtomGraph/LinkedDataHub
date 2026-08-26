@@ -334,11 +334,39 @@ extension-element-prefixes="ixsl"
         </li>
     </xsl:template>
     
+    <!-- BLOCK LINKS DRAWER -->
+
+    <!-- backlinks/related/parallax: grid columns under bs2, a block-scoped drawer in the design system.
+         bs2:Left/bs2:Right stay CSR fill targets, so the placeholders are emitted unconditionally;
+         .ldh-drawer is position:fixed and exists visibly only while open, so it ships hidden until the
+         header toolbar links button opens it. -->
+    <xsl:template name="ldh:BlockLinksDrawer">
+        <xsl:context-item as="element()" use="required"/>
+
+        <div class="ldh-drawer" style="display: none">
+            <div class="dh">
+                <h3>
+                    <xsl:apply-templates select="." mode="ac:label"/>
+                </h3>
+
+                <button type="button" class="close">
+                    <span class="msi sm" aria-hidden="true">close</span>
+                </button>
+            </div>
+
+            <div class="db">
+                <xsl:apply-templates select="." mode="bs2:Left"/>
+
+                <xsl:apply-templates select="." mode="bs2:Right"/>
+            </div>
+        </div>
+    </xsl:template>
+
     <!-- LEFT NAV -->
     
     <xsl:template match="*[*][@rdf:about or @rdf:nodeID]" mode="bs2:Left" priority="1">
         <xsl:param name="id" as="xs:string?"/>
-        <xsl:param name="class" select="'left-nav span2'" as="xs:string?"/>
+        <xsl:param name="class" select="'left-nav dgroup'" as="xs:string?"/>
         
         <div>
             <xsl:if test="$id">
@@ -354,7 +382,7 @@ extension-element-prefixes="ixsl"
     
     <xsl:template match="*[rdf:type/@rdf:resource = '&ldh;Object'][rdf:value/@rdf:resource]" mode="bs2:Right" priority="1">
         <xsl:param name="id" as="xs:string?"/>
-        <xsl:param name="class" select="'right-nav span3'" as="xs:string?"/>
+        <xsl:param name="class" select="'right-nav dgroup'" as="xs:string?"/>
         
         <div>
             <xsl:if test="$id">
@@ -370,7 +398,7 @@ extension-element-prefixes="ixsl"
 
     <xsl:template match="*[*][@rdf:about or @rdf:nodeID]" mode="bs2:Right">
         <xsl:param name="id" as="xs:string?"/>
-        <xsl:param name="class" select="'right-nav span3'" as="xs:string?"/>
+        <xsl:param name="class" select="'right-nav dgroup'" as="xs:string?"/>
         
         <div>
             <xsl:if test="$id">
@@ -381,8 +409,8 @@ extension-element-prefixes="ixsl"
             </xsl:if>
             
             <xsl:if test="@rdf:about">
-                <div class="well well-small sidebar-nav backlinks-nav">
-                    <h2 class="nav-header btn">
+                <div class="backlinks-nav dgroup">
+                    <h2 class="nav-header dh2">
                         <xsl:value-of>
                             <xsl:apply-templates select="key('resources', 'backlinks', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
                         </xsl:value-of>
@@ -579,8 +607,6 @@ extension-element-prefixes="ixsl"
                         <xsl:attribute name="typeof" select="string-join($typeof, ' ')"/>
                     </xsl:if>
             
-                    <xsl:apply-templates select="." mode="bs2:Left"/>
-
                     <div>
                         <xsl:if test="$main-class">
                             <xsl:attribute name="class" select="$main-class"/>
@@ -604,7 +630,7 @@ extension-element-prefixes="ixsl"
                         </xsl:for-each>
                     </div>
 
-                    <xsl:apply-templates select="." mode="bs2:Right"/>
+                    <xsl:call-template name="ldh:BlockLinksDrawer"/>
                 </div>
             </div>
         </div>
@@ -732,15 +758,7 @@ extension-element-prefixes="ixsl"
                 </xsl:choose>
             </div>
 
-            <!-- backlinks/related/parallax: grid columns under bs2, a block-scoped drawer in the design system.
-                 Both are CSR fill targets, so the placeholders are emitted unconditionally; .ldh-drawer is
-                 position:fixed and exists visibly only while open, so it ships hidden until the toolbar
-                 links button (or edge hover) opens it. -->
-            <div class="ldh-drawer" style="display: none">
-                <xsl:apply-templates select="." mode="bs2:Left"/>
-
-                <xsl:apply-templates select="." mode="bs2:Right"/>
-            </div>
+            <xsl:call-template name="ldh:BlockLinksDrawer"/>
         </div>
     </xsl:template>
 
@@ -781,6 +799,16 @@ extension-element-prefixes="ixsl"
 
             <div class="actions">
                 <xsl:apply-templates select="." mode="bs2:Timestamp"/>
+
+                <xsl:if test="@rdf:about">
+                    <button type="button" class="tb tb-links">
+                        <xsl:attribute name="title">
+                            <xsl:apply-templates select="key('resources', 'backlinks', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                        </xsl:attribute>
+
+                        <span class="msi sm" aria-hidden="true">link</span>
+                    </button>
+                </xsl:if>
 
                 <xsl:apply-templates select="." mode="bs2:Actions"/>
             </div>
@@ -894,23 +922,21 @@ extension-element-prefixes="ixsl"
             </xsl:if>
             -->
             
-            <button type="button">
+            <button type="button" class="btn-copy-uri tb">
                 <xsl:attribute name="title">
                     <xsl:apply-templates select="key('resources', 'copy-uri', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
                 </xsl:attribute>
-                
-                <xsl:apply-templates select="key('resources', 'copy-uri', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ldh:logo">
-                    <xsl:with-param name="class" select="'btn'"/>
-                </xsl:apply-templates>
-                
-                <xsl:value-of>
-                    <xsl:apply-templates select="key('resources', 'copy-uri', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
-                </xsl:value-of>
+
+                <span class="msi sm" aria-hidden="true">content_copy</span>
             </button>
-            
+
             <xsl:if test="$show-edit-button">
-                <button type="button" class="btn btn-edit">
-                    <xsl:apply-templates select="key('resources', '&ac;EditMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
+                <button type="button" class="btn-edit tb">
+                    <xsl:attribute name="title">
+                        <xsl:apply-templates select="key('resources', '&ac;EditMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
+                    </xsl:attribute>
+
+                    <span class="msi sm" aria-hidden="true">edit</span>
                 </button>
             </xsl:if>
         </div>
@@ -1159,8 +1185,6 @@ extension-element-prefixes="ixsl"
                 <xsl:attribute name="typeof" select="string-join($typeof, ' ')"/>
             </xsl:if>
             
-            <xsl:apply-templates select="." mode="bs2:Left"/>
-
             <div>
                 <xsl:if test="$main-class">
                     <xsl:attribute name="class" select="$main-class"/>
@@ -1221,7 +1245,7 @@ extension-element-prefixes="ixsl"
                 </form>
             </div>
 
-            <xsl:apply-templates select="." mode="bs2:Right"/>
+            <xsl:call-template name="ldh:BlockLinksDrawer"/>
         </div>
     </xsl:template>
     
