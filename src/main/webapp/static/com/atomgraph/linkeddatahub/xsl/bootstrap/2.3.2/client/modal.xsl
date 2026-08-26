@@ -75,8 +75,8 @@ LIMIT   10
                 <h2>Unlock the value of your Knowledge Graph with data-driven content and low code apps.</h2>
                 <p>Create structured content backed by live data, intuitively explore graph datasets, model and manage RDF data, control data quality and more. <em>Without writing code</em>.</p>
                 <p>
-                    <a class="btn btn-primary btn-large" href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/get-started/" target="_blank">Get started</a>
-                    <a class="btn btn-large" href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/" target="_blank">Learn more</a>
+                    <a class="btn btn-primary" href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/get-started/" target="_blank">Get started</a>
+                    <a class="btn" href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/" target="_blank">Learn more</a>
                 </p>
             </div>
         </div>
@@ -121,7 +121,7 @@ LIMIT   10
                                 </xsl:value-of>
                             </label>
                             <div class="controls">
-                                <input type="text" id="remote-rdf-source" name="ou" class="input-xxlarge">
+                                <input type="text" id="remote-rdf-source" name="ou">
                                     <xsl:if test="$source">
                                         <xsl:attribute name="value" select="$source"/>
                                     </xsl:if>
@@ -359,7 +359,7 @@ LIMIT   10
             </div>
 
             <div class="modal-body">
-                <form id="form-request-access" class="form-horizontal" method="POST" action="{$action}">
+                <form id="form-request-access" class="ldh-prop-form" method="POST" action="{$action}">
                     <xsl:comment>This form uses RDF/POST encoding: https://atomgraph.github.io/RDF-POST/</xsl:comment>
                     <xsl:call-template name="xhtml:Input">
                         <xsl:with-param name="name" select="'rdf'"/>
@@ -422,7 +422,7 @@ LIMIT   10
                     <xsl:apply-templates select="key('resources', 'url-based-access', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
                 </xsl:value-of>
             </legend>
-            <table class="table table-striped">
+            <table class="table">
                 <colgroup>
                     <col style="width: 55%;"/>
                     <col style="width: 15%;"/>
@@ -479,7 +479,7 @@ LIMIT   10
                     <xsl:apply-templates select="key('resources', 'class-based-access', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
                 </xsl:value-of>
             </legend>
-            <table class="table table-striped">
+            <table class="table">
                 <colgroup>
                     <col style="width: 55%;"/>
                     <col style="width: 15%;"/>
@@ -672,7 +672,7 @@ LIMIT   10
                                 </xsl:value-of>
                             </label>
                             <div class="controls">
-                                <input id="same-as-resource" type="text" value="{$label}" class="input-xxlarge"/>
+                                <input id="same-as-resource" type="text" value="{$label}"/>
                                 
                                 <span class="help-inline">
                                     <xsl:value-of>
@@ -718,7 +718,7 @@ LIMIT   10
     
     <!-- submit instance creation modal form using PUT -->
 
-    <xsl:template match="div[contains-token(@class, 'modal-constructor')]//form[contains-token(@class, 'form-horizontal')][upper-case(@method) = 'PUT']" mode="ixsl:onsubmit" priority="2">
+    <xsl:template match="div[contains-token(@class, 'modal-constructor')]//form[contains-token(@class, 'ldh-prop-form')][upper-case(@method) = 'PUT']" mode="ixsl:onsubmit" priority="2">
         <!-- ldh:constructor-form-response stamps render-fn=ldh:render-constructor-form#2 (mode="bs2:Form") so the violation re-render keeps co-shipped peer Descriptions (content blocks) visible. Higher-priority flow templates (e.g. inline view creation) re-stamp $callback and/or supply $request-body via xsl:next-match. -->
         <xsl:param name="callback" select="ldh:constructor-form-response#1" as="function(map(*)) as item()*"/>
         <xsl:param name="request-body" as="document-node()?"/>
@@ -896,7 +896,7 @@ LIMIT   10
 
     <!-- submit document update modal form using PATCH TO-DO: unify!!! -->
     
-    <xsl:template match="div[contains-token(@class, 'modal-constructor')]//form[contains-token(@class, 'form-horizontal')][upper-case(@method) = 'PATCH']" mode="ixsl:onsubmit" priority="2">
+    <xsl:template match="div[contains-token(@class, 'modal-constructor')]//form[contains-token(@class, 'ldh-prop-form')][upper-case(@method) = 'PATCH']" mode="ixsl:onsubmit" priority="2">
         <xsl:param name="block" select="ancestor::div[contains-token(@class, 'modal-constructor')]" as="element()"/>
         <xsl:param name="about" select="$block/@about" as="xs:anyURI"/>
         <!-- ldh:edit-form-response stamps render-fn=ldh:render-document-form#2 (mode="ldh:DocumentForm", narrow @rdf:about=$about filter) so the violation re-render stays focused on the edited resource. -->

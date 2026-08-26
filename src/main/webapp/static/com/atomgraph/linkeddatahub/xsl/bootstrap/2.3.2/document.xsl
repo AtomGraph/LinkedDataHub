@@ -120,7 +120,7 @@ extension-element-prefixes="ixsl"
     <!-- always show errors (except ConstraintViolations) in block mode -->
     <xsl:template match="rdf:RDF[not(key('resources', ac:absolute-path(ldh:base-uri(.))))][key('resources-by-type', '&http;Response')][not(key('resources-by-type', '&spin;ConstraintViolation'))] | rdf:RDF[not(key('resources', ac:absolute-path(ldh:base-uri(.))))][key('resources-by-type', '&http;Response')][not(key('resources-by-type', '&sh;ValidationResult'))]" mode="xhtml:Body" priority="1">
         <xsl:param name="id" as="xs:string?"/>
-        <xsl:param name="class" select="'span12'" as="xs:string?"/>
+        <xsl:param name="class" select="'row-main'" as="xs:string?"/>
         
         <div>
             <xsl:if test="$id">
@@ -290,7 +290,7 @@ extension-element-prefixes="ixsl"
     
     <xsl:template match="rdf:RDF" mode="bs2:BreadCrumbBar">
         <xsl:param name="id" as="xs:string?"/>
-        <xsl:param name="class" select="'span8'" as="xs:string?"/>
+        <xsl:param name="class" select="()" as="xs:string?"/>
         <xsl:param name="uri" as="xs:string?"/>
 
         <div>
@@ -540,7 +540,7 @@ extension-element-prefixes="ixsl"
 
             <!-- host for the RDFa editor toolbar (appended by rdfae:init-editing); empty until an editable region initializes -->
             <div class="navbar-inner editor-bar">
-                <div class="container-fluid"></div>
+                <div></div>
             </div>
 
             <xsl:apply-templates select="." mode="bs2:ContentBody">
@@ -553,7 +553,7 @@ extension-element-prefixes="ixsl"
 
     <xsl:template match="rdf:RDF[key('resources-by-type', '&http;Response') and not(key('resources-by-type', '&spin;ConstraintViolation')) and not(key('resources-by-type', '&sh;ValidationResult'))]" mode="bs2:ContentBody" priority="1">
         <xsl:param name="id" as="xs:string?"/>
-        <xsl:param name="class" select="'container-fluid content-body'" as="xs:string?"/>
+        <xsl:param name="class" select="'content-body'" as="xs:string?"/>
 
         <div>
             <xsl:if test="$id">
@@ -572,7 +572,7 @@ extension-element-prefixes="ixsl"
     
     <xsl:template match="srx:sparql" mode="bs2:ContentBody">
         <xsl:param name="id" as="xs:string?"/>
-        <xsl:param name="class" select="'container-fluid content-body'" as="xs:string?"/>
+        <xsl:param name="class" select="'content-body'" as="xs:string?"/>
 
         <div>
             <xsl:if test="$id">
@@ -588,7 +588,7 @@ extension-element-prefixes="ixsl"
     
     <xsl:template match="rdf:RDF" mode="bs2:ContentBody">
         <xsl:param name="id" as="xs:string?"/>
-        <xsl:param name="class" select="'container-fluid content-body'" as="xs:string?"/>
+        <xsl:param name="class" select="'content-body'" as="xs:string?"/>
         <xsl:param name="mode" select="ac:mode(root())" as="xs:anyURI"/>
 
         <div>
@@ -660,8 +660,8 @@ extension-element-prefixes="ixsl"
         
         <!-- only show buttons to agents who have sufficient access to modify them -->
         <xsl:if test="acl:mode() = '&acl;Append'">
-            <div class="create-resource row-fluid">
-                <div class="main offset2 span7">
+            <div class="create-resource block-row">
+                <div class="main">
                     <p>
                         <button type="button" class="btn btn-primary create-action add-constructor" data-for-class="&ldh;XHTML">
                             <xsl:apply-templates select="key('resources', '&ldh;XHTML', document(ac:document-uri('&ldh;')))" mode="ac:label"/>
@@ -700,8 +700,8 @@ extension-element-prefixes="ixsl"
         </xsl:apply-templates>
         
         <xsl:if test="$create-resource and acl:mode() = '&acl;Append' and not(key('resources-by-type', '&http;Response'))">
-            <div class="create-resource row-fluid">
-                <div class="main offset2 span7">
+            <div class="create-resource block-row">
+                <div class="main">
                     <xsl:apply-templates select="." mode="bs2:Create">
                         <xsl:with-param name="classes" select="$classes"/>
                     </xsl:apply-templates>
@@ -714,7 +714,7 @@ extension-element-prefixes="ixsl"
          Admin apps are identified by the 'admin.' subdomain prefix on lapp:origin() (nginx wildcard routing convention). -->
     <xsl:template match="rdf:RDF[starts-with(replace(lapp:origin(), '^https?://', ''), 'admin.')]" mode="bs2:Row">
         <xsl:param name="id" select="concat('form-', generate-id())" as="xs:string?"/>
-        <xsl:param name="class" select="'row-fluid'" as="xs:string?"/>
+        <xsl:param name="class" select="'block-row'" as="xs:string?"/>
         <xsl:param name="method" select="'patch'" as="xs:string"/>
         <xsl:param name="action" select="ldh:href(ac:build-uri(ac:absolute-path(ldh:base-uri(.)), map{ '_method': 'PUT' }))" as="xs:anyURI" tunnel="yes"/>
         <xsl:param name="enctype" select="'multipart/form-data'" as="xs:string?"/>
@@ -740,7 +740,7 @@ extension-element-prefixes="ixsl"
 
     <xsl:template match="rdf:RDF" mode="xhtml:Table">
         <xsl:param name="id" as="xs:string?"/>
-        <xsl:param name="class" select="'table table-bordered table-striped'" as="xs:string?"/>
+        <xsl:param name="class" select="'table'" as="xs:string?"/>
         <xsl:param name="property-uris" select="distinct-values(*/*/concat(namespace-uri(), local-name()))" as="xs:string*"/>
         <xsl:param name="property-metadata" select="if (exists($property-uris)) then ldh:send-request(resolve-uri('ns', ldt:base()), 'POST', 'application/sparql-query', 'DESCRIBE $Type' || ' VALUES $Type { ' || string-join(for $uri in $property-uris return '&lt;' || $uri || '&gt;', ' ') || ' }', map{ 'Accept': 'application/rdf+xml' }) else ()" as="document-node()?" tunnel="yes"/>
         <xsl:param name="predicates" as="element()*">
@@ -796,7 +796,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="canvas-class" select="'chart-canvas'" as="xs:string?"/>
         <xsl:param name="method" select="'post'" as="xs:string"/>
         <xsl:param name="id" as="xs:string?"/>
-        <xsl:param name="class" select="'form-horizontal'" as="xs:string?"/>
+        <xsl:param name="class" select="'ldh-prop-form'" as="xs:string?"/>
         <xsl:param name="button-class" select="'btn'" as="xs:string?"/>
         <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
         <xsl:param name="enctype" as="xs:string?"/>
@@ -842,15 +842,15 @@ extension-element-prefixes="ixsl"
                 </xsl:if>
                 
                 <fieldset>
-                    <div class="row-fluid">
-                        <div class="span4">
+                    <div class="block-row">
+                        <div>
                             <label for="{$chart-type-id}">
                                 <xsl:value-of>
                                     <xsl:apply-templates select="key('resources', '&ldh;chartType', document(ac:document-uri('&ldh;')))" mode="ac:label"/>
                                 </xsl:value-of>
                             </label>
                             <!-- TO-DO: replace with xsl:apply-templates on ac:Chart subclasses as in imports/ldh.xsl -->
-                            <select id="{$chart-type-id}" name="ou" class="input-medium chart-type">
+                            <select id="{$chart-type-id}" name="ou" class="chart-type">
                                 <option value="&ac;Table">
                                     <xsl:if test="$chart-type = '&ac;Table'">
                                         <xsl:attribute name="selected" select="'selected'"/>
@@ -888,9 +888,9 @@ extension-element-prefixes="ixsl"
                                 </option>
                             </select>
                         </div>
-                        <div class="span4">
+                        <div>
                             <label for="{$category-id}">Category</label>
-                            <select id="{$category-id}" name="ou" class="input-large chart-category">
+                            <select id="{$category-id}" name="ou" class="chart-category">
                                 <option value="">
                                     <!-- URI is the default category -->
                                     <xsl:if test="not($category)">
@@ -915,9 +915,9 @@ extension-element-prefixes="ixsl"
                                 </xsl:for-each-group>
                             </select>
                         </div>
-                        <div class="span4">
+                        <div>
                             <label for="{$series-id}">Series</label>
-                            <select id="{$series-id}" name="ou" multiple="multiple" class="input-large chart-series">
+                            <select id="{$series-id}" name="ou" multiple="multiple" class="chart-series">
                                 <xsl:for-each-group select="*/*" group-by="concat(namespace-uri(), local-name())">
                                     <xsl:sort select="ac:property-label(.)" order="ascending" lang="{$ac:lang}"/>
 
@@ -957,7 +957,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="canvas-class" select="'chart-canvas'" as="xs:string?"/>
         <xsl:param name="method" select="'post'" as="xs:string"/>
         <xsl:param name="id" as="xs:string?"/>
-        <xsl:param name="class" select="'form-horizontal'" as="xs:string?"/>
+        <xsl:param name="class" select="'ldh-prop-form'" as="xs:string?"/>
         <xsl:param name="button-class" select="'btn'" as="xs:string?"/>
         <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
         <xsl:param name="enctype" as="xs:string?"/>
@@ -1003,14 +1003,14 @@ extension-element-prefixes="ixsl"
                 </xsl:if>
                 
                 <fieldset>
-                    <div class="row-fluid">
-                        <div class="span4">
+                    <div class="block-row">
+                        <div>
                             <label for="{$chart-type-id}">
                                 <xsl:value-of>
                                     <xsl:apply-templates select="key('resources', '&ldh;chartType', document(ac:document-uri('&ldh;')))" mode="ac:label"/>
                                 </xsl:value-of>
                             </label>
-                            <select id="{$chart-type-id}" name="ou" class="input-medium chart-type">
+                            <select id="{$chart-type-id}" name="ou" class="chart-type">
                                 <option value="&ac;Table">
                                     <xsl:if test="$chart-type = '&ac;Table'">
                                         <xsl:attribute name="selected" select="'selected'"/>
@@ -1048,7 +1048,7 @@ extension-element-prefixes="ixsl"
                                 </option>
                             </select>
                         </div>
-                        <div class="span4">
+                        <div>
                             <xsl:call-template name="xhtml:Input">
                                 <xsl:with-param name="name" select="'pu'"/>
                                 <xsl:with-param name="type" select="'hidden'"/>
@@ -1056,7 +1056,7 @@ extension-element-prefixes="ixsl"
                             </xsl:call-template>
 
                             <label for="{$category-id}">Category</label>
-                            <select id="{$category-id}" name="ol" class="input-large chart-category">
+                            <select id="{$category-id}" name="ol" class="chart-category">
                                 <xsl:for-each select="srx:head/srx:variable">
                                     <!-- leave the original variable order so it can be controlled from query -->
 
@@ -1070,9 +1070,9 @@ extension-element-prefixes="ixsl"
                                 </xsl:for-each>
                             </select>
                         </div>
-                        <div class="span4">
+                        <div>
                             <label for="{$series-id}">Series</label>
-                            <select id="{$series-id}" name="ol" multiple="multiple" class="input-large chart-series">
+                            <select id="{$series-id}" name="ol" multiple="multiple" class="chart-series">
                                 <xsl:for-each select="srx:head/srx:variable">
                                     <!-- leave the original variable order so it can be controlled from query -->
 
@@ -1175,7 +1175,7 @@ extension-element-prefixes="ixsl"
         <!-- predicate decides whether a given child resource is "required" (i.e. its fieldset hides the .btn-remove-resource); default treats no resource as required, callers opt in -->
         <xsl:param name="required" select="function($r as element()) as xs:boolean { false() }" as="function(element()) as xs:boolean" tunnel="yes"/>
         <xsl:param name="id" select="concat('form-', generate-id())" as="xs:string?"/>
-        <xsl:param name="class" select="'form-horizontal'" as="xs:string?"/>
+        <xsl:param name="class" select="'ldh-prop-form'" as="xs:string?"/>
         <xsl:param name="form-actions-class" select="'form-actions'" as="xs:string?"/>
         <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
         <xsl:param name="enctype" as="xs:string?"/>
@@ -1351,7 +1351,7 @@ extension-element-prefixes="ixsl"
 
     <xsl:template match="*[rdf:type/@rdf:resource = '&http;Response'][lacl:requestAccess/@rdf:resource][$foaf:Agent]" mode="bs2:Header" priority="2">
         <xsl:param name="id" as="xs:string?"/>
-        <xsl:param name="class" select="'alert alert-info well'" as="xs:string?"/>
+        <xsl:param name="class" select="'alert alert-info'" as="xs:string?"/>
 
         <div>
             <xsl:if test="$id">
@@ -1377,7 +1377,7 @@ extension-element-prefixes="ixsl"
 
     <xsl:template match="*[rdf:type/@rdf:resource = '&http;Response']" mode="bs2:Header" priority="1">
         <xsl:param name="id" as="xs:string?"/>
-        <xsl:param name="class" select="'alert alert-error well'" as="xs:string?"/>
+        <xsl:param name="class" select="'alert va-danger'" as="xs:string?"/>
 
         <div>
             <xsl:if test="$id">

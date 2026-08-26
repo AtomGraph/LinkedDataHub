@@ -62,7 +62,7 @@ exclude-result-prefixes="#all">
         <!-- we're not using the form's default action so we're not tunneling the param here -->
         <xsl:param name="action" select="ldh:href(resolve-uri(ac:uuid() || '/', resolve-uri('acl/authorizations/', ldt:base())), map{ '_method': 'PUT' })" as="xs:anyURI"/> <!-- create new authorization document -->
         <xsl:param name="id" select="concat('form-', generate-id())" as="xs:string?"/>
-        <xsl:param name="class" select="'form-horizontal'" as="xs:string?"/>
+        <xsl:param name="class" select="'ldh-prop-form'" as="xs:string?"/>
         <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
         <xsl:param name="enctype" as="xs:string?"/> <!-- TO-DO: override with "multipart/form-data" for File instances -->
 
@@ -76,7 +76,7 @@ exclude-result-prefixes="#all">
             </div>
         </xsl:if>
 
-        <!-- .form-horizontal is required so that client.xsl can match this form and intercept its onsubmit event -->
+        <!-- .ldh-prop-form is required so that client.xsl can match this form and intercept its onsubmit event -->
         <form method="{$method}" action="{$action}">
             <xsl:if test="$id">
                 <xsl:attribute name="id" select="$id"/>

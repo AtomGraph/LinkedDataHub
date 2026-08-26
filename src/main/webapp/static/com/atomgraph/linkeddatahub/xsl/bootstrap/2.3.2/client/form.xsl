@@ -147,7 +147,7 @@ WHERE
     
     <!-- the RDFa editor toolbar mounts in the active document's editor-bar, below the action bar (LDH pages have no nav element) -->
     <xsl:function name="rdfae:toolbar-host" as="element()*">
-        <xsl:sequence select="(id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')][contains-token(@class, 'active')]//div[contains-token(@class, 'editor-bar')]/div[contains-token(@class, 'container-fluid')])[1]"/>
+        <xsl:sequence select="(id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')][contains-token(@class, 'active')]//div[contains-token(@class, 'editor-bar')]/div[contains-token(@class, 'content-body')])[1]"/>
     </xsl:function>
 
     <!-- first editable region on the page: full editor bring-up (chrome, dialogs, drawers, all regions) -->
@@ -286,7 +286,7 @@ WHERE
                 <legend>RDFa Annotation</legend>
             </div>
             <div class="modal-body">
-                <form id="annotation-form" class="form-horizontal">
+                <form id="annotation-form" class="ldh-prop-form">
                     <div class="control-group">
                         <label class="control-label" for="stmt-subject">Subject</label>
                         <div class="controls">
@@ -302,7 +302,7 @@ WHERE
                     <div class="control-group">
                         <label class="control-label" for="annotation-value">Value</label>
                         <div class="controls">
-                            <input type="text" id="annotation-value" name="value" class="input-xlarge" placeholder="Literal value"/>
+                            <input type="text" id="annotation-value" name="value" placeholder="Literal value"/>
                             <span class="help-block">The selected text; change to emit a machine-readable content value</span>
                         </div>
                     </div>
@@ -311,7 +311,7 @@ WHERE
                         <div class="control-group">
                             <label class="control-label" for="annotation-subject">Subject (about)</label>
                             <div class="controls">
-                                <input type="text" id="annotation-subject" name="subject" class="input-xlarge" placeholder="Overrides the subject in scope"/>
+                                <input type="text" id="annotation-subject" name="subject" placeholder="Overrides the subject in scope"/>
                                 <span class="help-block">IRI or _:blank-node identifier</span>
                             </div>
                         </div>
@@ -328,7 +328,7 @@ WHERE
                         <div class="control-group">
                             <label class="control-label" for="annotation-object">Object (resource)</label>
                             <div class="controls">
-                                <input type="text" id="annotation-object" name="object" class="input-xlarge" placeholder="Object IRI"/>
+                                <input type="text" id="annotation-object" name="object" placeholder="Object IRI"/>
                                 <span class="help-block">Makes the object a resource instead of the literal value</span>
                             </div>
                         </div>
@@ -343,20 +343,20 @@ WHERE
                                     </xsl:for-each>
                                     <option value="{$rdfae:custom}">-- Custom datatype --</option>
                                 </select>
-                                <input type="text" name="custom-datatype" class="input-xlarge" placeholder="Datatype IRI" style="display: none;"/>
+                                <input type="text" name="custom-datatype" placeholder="Datatype IRI" style="display: none;"/>
                                 <span class="help-block">Types the literal; mutually exclusive with a language tag</span>
                             </div>
                         </div>
                         <div class="control-group">
                             <label class="control-label" for="annotation-lang">Language</label>
                             <div class="controls">
-                                <input type="text" id="annotation-lang" name="lang" class="input-small" placeholder="e.g. en, fr-CA"/>
+                                <input type="text" id="annotation-lang" name="lang" placeholder="e.g. en, fr-CA"/>
                                 <span class="help-block">Language tag for the literal; ignored when a datatype is set</span>
                             </div>
                         </div>
                     </fieldset>
                     <div class="form-actions modal-footer">
-                        <button type="button" class="btn btn-danger remove-action" style="display: none;">Remove</button>
+                        <button type="button" class="ldhc-btn in-negative sz-sm remove-action" style="display: none;">Remove</button>
                         <button type="button" class="btn btn-primary spo-action">Annotate</button>
                         <button type="button" class="btn cancel-action">Cancel</button>
                     </div>
@@ -388,7 +388,7 @@ WHERE
             <label for="link-href">Link target (href)</label>
             <input type="text" id="link-href" name="href" placeholder="https://..."/>
             <div class="action-buttons">
-                <button type="button" class="btn btn-danger link-remove" style="display: none;">Remove link</button>
+                <button type="button" class="ldhc-btn in-negative sz-sm link-remove" style="display: none;">Remove link</button>
                 <button type="button" class="btn btn-primary link-save">Save</button>
                 <button type="button" class="btn link-cancel">Cancel</button>
             </div>
@@ -529,9 +529,9 @@ WHERE
 
         <xsl:for-each select="$content-body">
             <xsl:result-document href="?." method="ixsl:replace-content">
-                <div class="row-fluid">
-                    <div class="main offset2 span7">
-                        <div class="alert alert-success row-fluid">
+                <div class="block-row">
+                    <div class="main">
+                        <div class="alert alert-success block-row">
                             <div class="span1">
                                 <img src="{resolve-uri('static/com/atomgraph/linkeddatahub/icons/baseline_done_white_48dp.png', $lapp:origin)}" alt="Signup complete"/>
                             </div>
@@ -999,7 +999,7 @@ WHERE
     <xsl:template match="div[ancestor::div[contains-token(@class, 'block')]]//button[contains-token(@class, 'btn-cancel')][not(contains-token(@class, 'disabled'))]" mode="ixsl:onclick">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <xsl:variable name="block" select="ancestor::div[contains-token(@class, 'block')][1]" as="element()"/>
-        <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'row-fluid')][1]" as="element()"/>
+        <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'block-row')][1]" as="element()"/>
         <xsl:variable name="about" select="$block/@about" as="xs:anyURI"/>
 
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
@@ -1022,7 +1022,7 @@ WHERE
     
     <!-- submit instance creation row-form using POST -->
     
-    <xsl:template match="form[ancestor::div[@typeof]][contains-token(@class, 'form-horizontal')]" mode="ixsl:onsubmit">
+    <xsl:template match="form[ancestor::div[@typeof]][contains-token(@class, 'ldh-prop-form')]" mode="ixsl:onsubmit">
         <xsl:param name="block" select="ancestor::div[@typeof][1]" as="element()"/> <!-- block has no @about at this stage (before saving it) -->
         <xsl:param name="form" select="." as="element()"/>
         <xsl:param name="method" select="upper-case(@method)" as="xs:string"/>
@@ -1097,7 +1097,7 @@ WHERE
 
     <!-- submit instance update row-form using PATCH -->
 
-    <xsl:template match="div[contains-token(@class, 'block')]//form[contains-token(@class, 'form-horizontal')][upper-case(@method) = 'PATCH']" mode="ixsl:onsubmit" priority="1">
+    <xsl:template match="div[contains-token(@class, 'block')]//form[contains-token(@class, 'ldh-prop-form')][upper-case(@method) = 'PATCH']" mode="ixsl:onsubmit" priority="1">
         <xsl:param name="block" select="ancestor::div[contains-token(@class, 'block')][1]" as="element()"/>
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <xsl:variable name="form" select="." as="element()"/>
@@ -1212,7 +1212,7 @@ WHERE
         <xsl:variable name="property-control-group" select="../.." as="element()"/>
         <xsl:variable name="fieldset" select="$property-control-group/.." as="element()"/>
         <xsl:variable name="property-uri" select="../preceding-sibling::*/select/option[ixsl:get(., 'selected') = true()]/ixsl:get(., 'value')" as="xs:anyURI"/>
-        <xsl:variable name="forClass" select="for $type in tokenize(ancestor::div[@typeof][contains-token(@class, 'row-fluid')]/@typeof) return xs:anyURI($type)" as="xs:anyURI*"/>
+        <xsl:variable name="forClass" select="for $type in tokenize(ancestor::div[@typeof][contains-token(@class, 'block-row')]/@typeof) return xs:anyURI($type)" as="xs:anyURI*"/>
 
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
@@ -1237,11 +1237,11 @@ WHERE
     <!-- Fans out over the open editing forms after a constructor edit: every fieldset with property
          control groups re-fetches its type set's constructor and reconciles its controls with it. -->
     <xsl:template name="ldh:SyncFormsWithConstructor">
-        <xsl:apply-templates select="ixsl:page()//fieldset[./div[contains-token(@class, 'control-group')]/input[@name = 'pu']][ancestor::div[@typeof][contains-token(@class, 'row-fluid')]]" mode="ldh:SyncFormWithConstructor"/>
+        <xsl:apply-templates select="ixsl:page()//fieldset[./div[contains-token(@class, 'control-group')]/input[@name = 'pu']][ancestor::div[@typeof][contains-token(@class, 'block-row')]]" mode="ldh:SyncFormWithConstructor"/>
     </xsl:template>
 
     <xsl:template match="fieldset" mode="ldh:SyncFormWithConstructor">
-        <xsl:variable name="forClass" select="for $type in tokenize(ancestor::div[@typeof][contains-token(@class, 'row-fluid')][1]/@typeof) return xs:anyURI($type)" as="xs:anyURI*"/>
+        <xsl:variable name="forClass" select="for $type in tokenize(ancestor::div[@typeof][contains-token(@class, 'block-row')][1]/@typeof) return xs:anyURI($type)" as="xs:anyURI*"/>
         <xsl:variable name="context" as="map(*)" select="map{ 'fieldset': ., 'forClass': $forClass }"/>
 
         <ixsl:promise select="ixsl:resolve($context) =>
@@ -1525,9 +1525,9 @@ WHERE
     </xsl:template>
     
     <!-- appends new SPIN-constructed instance to the page -->
-    <xsl:template match="div[contains-token(@class, 'row-fluid')]//button[contains-token(@class, 'add-constructor')][@data-for-class]" mode="ixsl:onclick" priority="1">
+    <xsl:template match="div[contains-token(@class, 'block-row')]//button[contains-token(@class, 'add-constructor')][@data-for-class]" mode="ixsl:onclick" priority="1">
         <xsl:param name="method" select="'post'" as="xs:string"/>
-        <xsl:param name="container" select="ancestor::div[contains-token(@class, 'row-fluid')][1]" as="element()"/>
+        <xsl:param name="container" select="ancestor::div[contains-token(@class, 'block-row')][1]" as="element()"/>
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])[current-date() lt xs:date('2000-01-01')]"/>
         <xsl:variable name="forClass" select="xs:anyURI(@data-for-class)" as="xs:anyURI"/>
         <xsl:variable name="doc-uri" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/>
@@ -1787,7 +1787,7 @@ WHERE
     <xsl:template match="ul[contains-token(@class, 'dropdown-menu')][contains-token(@class, 'type-typeahead')]/li" mode="ixsl:onmousedown" priority="1">
         <xsl:param name="typeahead-class" select="'btn add-typeahead add-type-typeahead'" as="xs:string"/>
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
-        <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'row-fluid')][1]" as="element()"/>
+        <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'block-row')][1]" as="element()"/>
         <xsl:variable name="fieldset" select="ancestor::fieldset" as="element()"/>
         <xsl:variable name="doc-uri" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/>
         <xsl:variable name="resource-id" select="input[@name = ('ou', 'ob')]/ixsl:get(., 'value')" as="xs:string"/> <!-- can be URI resource or blank node ID -->

@@ -884,7 +884,7 @@ exclude-result-prefixes="#all"
     <xsl:template match="*[rdf:type/@rdf:resource = ('&dh;Container', '&dh;Item')]/@rdf:about | *[rdf:type/@rdf:resource = ('&dh;Container', '&dh;Item')]/@rdf:nodeID" mode="bs2:FormControl" priority="1">
         <xsl:param name="type" select="'text'" as="xs:string"/>
         <xsl:param name="id" select="generate-id()" as="xs:string"/>
-        <xsl:param name="class" select="'subject-slug input-xxlarge'" as="xs:string?"/>
+        <xsl:param name="class" select="'subject-slug'" as="xs:string?"/>
         <xsl:param name="disabled" select="false()" as="xs:boolean"/>
         <xsl:param name="action" tunnel="yes"/>
         <!-- cut slug segment from form action URL -->
@@ -896,12 +896,12 @@ exclude-result-prefixes="#all"
             </xsl:if>
             
             <span class="control-label">
-                <select class="subject-type input-medium" disabled="disabled">
+                <select class="subject-type" disabled="disabled">
                     <option value="su" selected="selected">URI</option>
                 </select>
             </span>
             <div class="controls">
-                <span class="input-prepend input-append">
+                <span class="input-prepend">
                     <input type="hidden" name="su" value="{$action}"/>
                     
                     <span class="add-on">
@@ -928,7 +928,7 @@ exclude-result-prefixes="#all"
     <xsl:template match="*[*]/@rdf:about | *[*]/@rdf:nodeID" mode="bs2:FormControl">
         <xsl:param name="type" select="'text'" as="xs:string"/>
         <xsl:param name="id" select="generate-id()" as="xs:string"/>
-        <xsl:param name="class" select="'subject input-xxlarge'" as="xs:string?"/>
+        <xsl:param name="class" select="'subject'" as="xs:string?"/>
         <xsl:param name="disabled" select="false()" as="xs:boolean"/>
         <xsl:param name="document-uri" as="xs:anyURI?" tunnel="yes"/>
         <xsl:param name="about" select="xs:anyURI(ac:absolute-path(ldh:base-uri(.)) || '#id' || ac:uuid())" as="xs:anyURI?"/>
@@ -940,7 +940,7 @@ exclude-result-prefixes="#all"
             
             <span class="control-label">
                 <input type="hidden" class="old subject-type" value="{if (local-name() = 'about') then 'su' else if (local-name() = 'nodeID') then 'sb' else ()}"/>
-                <select class="subject-type input-medium">
+                <select class="subject-type">
                     <option value="su">
                         <xsl:if test="local-name() = 'about'">
                             <xsl:attribute name="selected" select="'selected'"/>
@@ -1029,7 +1029,7 @@ exclude-result-prefixes="#all"
             
             <xsl:if test="$cloneable">
                 <div class="btn-group pull-right">
-                    <button type="button" class="btn btn-small pull-right btn-add" title="Add another statement">&#x271a;</button>
+                    <button type="button" class="btn pull-right btn-add" title="Add another statement">&#x271a;</button>
                 </div>
             </xsl:if>
 
@@ -1044,7 +1044,7 @@ exclude-result-prefixes="#all"
                             </xsl:attribute>
                             
                             <xsl:apply-templates select="key('resources', 'remove', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ldh:logo">
-                                <xsl:with-param name="class" select="'btn btn-small pull-right'"/>
+                                <xsl:with-param name="class" select="'btn pull-right'"/>
                             </xsl:apply-templates>
                         </button>
                     </div>

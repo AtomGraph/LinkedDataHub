@@ -88,7 +88,7 @@ exclude-result-prefixes="#all">
                                     </xsl:attribute>
 
                                     <xsl:apply-templates select="key('resources', 'remove', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ldh:logo">
-                                        <xsl:with-param name="class" select="'btn btn-small pull-right'"/>
+                                        <xsl:with-param name="class" select="'btn pull-right'"/>
                                     </xsl:apply-templates>
                                 </button>
                             </div>
@@ -104,7 +104,7 @@ exclude-result-prefixes="#all">
     <xsl:template match="rdf:type/@rdf:resource" mode="bs2:TypeControl">
         <xsl:param name="type" select="'text'" as="xs:string"/>
         <xsl:param name="id" select="generate-id()" as="xs:string"/>
-        <xsl:param name="class" select="'subject input-xxlarge'" as="xs:string?"/>
+        <xsl:param name="class" select="'subject'" as="xs:string?"/>
         <xsl:param name="disabled" select="false()" as="xs:boolean"/>
         <xsl:param name="auto" select="local-name() = 'nodeID' or starts-with(., ldt:base())" as="xs:boolean"/>
         <xsl:param name="type-metadata" as="document-node()?" tunnel="yes"/>

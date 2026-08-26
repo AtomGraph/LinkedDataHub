@@ -398,15 +398,15 @@ exclude-result-prefixes="#all"
                     </xsl:if>
 
                     <fieldset>
-                        <div class="row-fluid">
-                            <div class="span4">
+                        <div class="block-row">
+                            <div>
                                 <label for="{$chart-type-id}">
                                     <xsl:value-of>
                                         <xsl:apply-templates select="key('resources', '&ldh;chartType', document(ac:document-uri('&ldh;')))" mode="ac:label"/>
                                     </xsl:value-of>
                                 </label>
                                 <!--  TO-DO: replace with xsl:apply-templates on ac:Chart subclasses as in imports/ldh.xsl -->
-                                <select id="{$chart-type-id}" name="ou" class="input-medium chart-type">
+                                <select id="{$chart-type-id}" name="ou" class="chart-type">
                                     <option value="&ac;Table">
                                         <xsl:if test="$chart-type = '&ac;Table'">
                                             <xsl:attribute name="selected" select="'selected'"/>
@@ -444,13 +444,13 @@ exclude-result-prefixes="#all"
                                     </option>
                                 </select>
                             </div>
-                            <div class="span4">
+                            <div>
                                 <label for="{$category-id}">Category</label>
-                                <select id="{$category-id}" name="ou" class="input-large chart-category"></select>
+                                <select id="{$category-id}" name="ou" class="chart-category"></select>
                             </div>
-                            <div class="span4">
+                            <div>
                                 <label for="{$series-id}">Series</label>
-                                <select id="{$series-id}" name="ou" multiple="multiple" class="input-large chart-series"></select>
+                                <select id="{$series-id}" name="ou" multiple="multiple" class="chart-series"></select>
                             </div>
                         </div>
                     </fieldset>

@@ -222,7 +222,7 @@ exclude-result-prefixes="#all"
                 <xsl:when test="?status = 406">
                     <xsl:for-each select="$container">
                         <xsl:result-document href="?." method="ixsl:replace-content">
-                            <div class="offset2 span7 main">
+                            <div class="main">
                                 <object data="{$resource-uri}"/>
                             </div>
                         </xsl:result-document>
@@ -300,7 +300,7 @@ exclude-result-prefixes="#all"
                             <xsl:for-each select="$container">
                                 <xsl:result-document href="?." method="ixsl:replace-content">
                                     <!-- wrap the row -->
-                                    <div id="{$obj-value-id}" class="span12">
+                                    <div id="{$obj-value-id}" class="row-main">
                                         <xsl:copy-of select="$row"/>
                                     </div>
                                 </xsl:result-document>

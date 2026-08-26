@@ -290,7 +290,7 @@ exclude-result-prefixes="#all"
     <!-- facet predicate block -->
     <xsl:template match="rdf:Description[@rdf:about]" mode="bs2:FilterIn">
         <xsl:param name="id" as="xs:string?"/>
-        <xsl:param name="class" select="'sidebar-nav faceted-nav'" as="xs:string?"/>
+        <xsl:param name="class" select="'faceted-nav'" as="xs:string?"/>
         <xsl:param name="subject-var-name" as="xs:string"/>
         <xsl:param name="object-var-name" as="xs:string"/>
 
@@ -820,7 +820,7 @@ exclude-result-prefixes="#all"
                             <!-- currently no space for the label in the layout -->
                             <!--<xsl:text>Order by </xsl:text>-->
 
-                            <select id="{$order-by-container-id}" name="order-by" class="input-medium container-order">
+                            <select id="{$order-by-container-id}" name="order-by" class="container-order">
                                 <!-- show the default option if the container query does not have an ORDER BY -->
                                 <xsl:if test="not($select-xml/json:map/json:array[@key = 'order'])">
                                     <option>
@@ -1020,7 +1020,7 @@ exclude-result-prefixes="#all"
     
     <xsl:template match="*" mode="ldh:RenderFacets">
         <xsl:param name="id" as="xs:string?"/>
-        <xsl:param name="class" select="'well well-small'" as="xs:string?"/>
+        <xsl:param name="class" select="()" as="xs:string?"/>
                 
         <div>
             <xsl:if test="$id">
@@ -1053,7 +1053,7 @@ exclude-result-prefixes="#all"
 
     <xsl:template match="*[key('resources', foaf:primaryTopic/@rdf:resource)]" mode="bs2:List" priority="1">
         <xsl:param name="id" as="xs:string?"/>
-        <xsl:param name="class" select="'well'" as="xs:string?"/>
+        <xsl:param name="class" select="()" as="xs:string?"/>
 
         <div>
             <xsl:if test="$id">
@@ -1064,7 +1064,7 @@ exclude-result-prefixes="#all"
             </xsl:if>
 
             <xsl:apply-templates select="." mode="ldh:logo">
-                <xsl:with-param name="class" select="'well'"/>
+                <xsl:with-param name="class" select="()"/>
             </xsl:apply-templates>
             
             <!-- don't show actions on a document that wraps a thing -->
@@ -1077,7 +1077,7 @@ exclude-result-prefixes="#all"
             <xsl:apply-templates select="@rdf:about | @rdf:nodeID" mode="xhtml:Anchor"/>
 
             <xsl:apply-templates select="key('resources', foaf:primaryTopic/@rdf:resource)" mode="bs2:Header">
-                <xsl:with-param name="class" select="'well well-small'"/>
+                <xsl:with-param name="class" select="()"/>
             </xsl:apply-templates>
         </div>
     </xsl:template>
@@ -1104,7 +1104,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="items" select="$prelim-items/self::*" as="element()*"/>
         
         <xsl:for-each-group select="$items" group-adjacent="(position() - 1) idiv $thumbnails-per-row">
-            <div class="row-fluid">
+            <div class="block-row">
                 <ul class="thumbnails">
                     <xsl:copy-of select="current-group()"/>
                 </ul>
@@ -1211,7 +1211,7 @@ exclude-result-prefixes="#all"
 
     <xsl:template match="*" mode="bs2:ParallaxNav">
         <xsl:param name="id" as="xs:string?"/>
-        <xsl:param name="class" select="'well well-small sidebar-nav parallax-nav'" as="xs:string?"/>
+        <xsl:param name="class" select="'parallax-nav'" as="xs:string?"/>
         <xsl:param name="properties-container-id" as="xs:string"/>
 
         <div>
@@ -1226,7 +1226,7 @@ exclude-result-prefixes="#all"
                 <xsl:apply-templates select="key('resources', 'related-results', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
             </h2>
 
-            <ul id="{$properties-container-id}" class="well well-small nav nav-list">
+            <ul id="{$properties-container-id}" class="nav">
                 <!-- <li> with properties will go here -->
             </ul>
         </div>
@@ -2130,7 +2130,7 @@ exclude-result-prefixes="#all"
                                 <xsl:when test="$predicate = '&rdf;type'">
                                     <xsl:for-each select="$container">
                                         <xsl:result-document href="?." method="ixsl:append-content">
-                                            <ul class="well well-small nav nav-list"></ul>
+                                            <ul class="nav"></ul>
                                         </xsl:result-document>
                                     </xsl:for-each>
 
@@ -2164,7 +2164,7 @@ exclude-result-prefixes="#all"
 
                                     <xsl:for-each select="$container">
                                         <xsl:result-document href="?." method="ixsl:append-content">
-                                            <ul class="well well-small nav nav-list">
+                                            <ul class="nav">
                                                 <xsl:apply-templates select="$results//srx:result[srx:binding[@name = $object-var-name]]" mode="bs2:FacetValueItem">
                                                     <!-- order by count first -->
                                                     <xsl:sort select="xs:integer(srx:binding[@name = $count-var-name]/srx:literal)" order="descending"/>
@@ -2417,14 +2417,14 @@ exclude-result-prefixes="#all"
     </xsl:function>
 
     <!-- submit inline creation modal form: forward view — the linking triple <about> <property> <new> is PATCHed into the current document by the response callback -->
-    <xsl:template match="div[contains-token(@class, 'modal-constructor')][@data-property][not(@data-inverse)]//form[contains-token(@class, 'form-horizontal')][upper-case(@method) = 'PUT']" mode="ixsl:onsubmit" priority="3"> <!-- prioritize over modal.xsl -->
+    <xsl:template match="div[contains-token(@class, 'modal-constructor')][@data-property][not(@data-inverse)]//form[contains-token(@class, 'ldh-prop-form')][upper-case(@method) = 'PUT']" mode="ixsl:onsubmit" priority="3"> <!-- prioritize over modal.xsl -->
         <xsl:next-match>
             <xsl:with-param name="callback" select="ldh:view-instance-form-response#1"/>
         </xsl:next-match>
     </xsl:template>
 
     <!-- submit inline creation modal form: inverse view — the linking triple <new> <property> <about> belongs in the new document's graph, so it ships inside the PUT body -->
-    <xsl:template match="div[contains-token(@class, 'modal-constructor')][@data-property][@data-inverse]//form[contains-token(@class, 'form-horizontal')][upper-case(@method) = 'PUT']" mode="ixsl:onsubmit" priority="3"> <!-- prioritize over modal.xsl -->
+    <xsl:template match="div[contains-token(@class, 'modal-constructor')][@data-property][@data-inverse]//form[contains-token(@class, 'ldh-prop-form')][upper-case(@method) = 'PUT']" mode="ixsl:onsubmit" priority="3"> <!-- prioritize over modal.xsl -->
         <xsl:param name="elements" select=".//input | .//textarea | .//select" as="element()*"/>
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <xsl:variable name="modal" select="ancestor::div[contains-token(@class, 'modal-constructor')][1]" as="element()"/>
@@ -2539,9 +2539,9 @@ exclude-result-prefixes="#all"
     <xsl:function name="ldh:refresh-view" as="item()*" ixsl:updating="yes">
         <xsl:param name="block-id" as="xs:string"/>
 
-        <xsl:message>ldh:refresh-view block-id: '<xsl:value-of select="$block-id"/>' matched views: <xsl:value-of select="count(id($block-id, ixsl:page())/div[contains-token(@class, 'span12')]/div[@typeof = '&ldh;View'])"/></xsl:message>
+        <xsl:message>ldh:refresh-view block-id: '<xsl:value-of select="$block-id"/>' matched views: <xsl:value-of select="count(id($block-id, ixsl:page())/div[contains-token(@class, 'row-main')]/div[@typeof = '&ldh;View'])"/></xsl:message>
 
-        <xsl:for-each select="id($block-id, ixsl:page())/div[contains-token(@class, 'span12')]/div[@typeof = '&ldh;View']">
+        <xsl:for-each select="id($block-id, ixsl:page())/div[contains-token(@class, 'row-main')]/div[@typeof = '&ldh;View']">
             <xsl:variable name="container" select="." as="element()"/>
             <xsl:variable name="block" select="ancestor::div[contains-token(@class, 'block')][1]" as="element()"/>
             <xsl:variable name="cache" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block/@about || '`')" as="item()"/>

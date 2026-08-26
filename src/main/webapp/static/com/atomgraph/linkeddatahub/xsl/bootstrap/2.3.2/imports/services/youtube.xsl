@@ -62,7 +62,7 @@ exclude-result-prefixes="#all"
 
             <xsl:apply-templates select="." mode="bs2:Timestamp"/>
 
-            <div class="well-small text-center">
+            <div class="text-center">
                 <iframe width="560" height="315" 
                         src="https://www.youtube.com/embed/{$video-id}" 
                         frameborder="0" 

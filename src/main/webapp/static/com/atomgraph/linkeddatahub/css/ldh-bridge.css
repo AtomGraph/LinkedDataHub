@@ -7,6 +7,71 @@
    Rules move out of here (or die) as components finish porting.
    ========================================================================= */
 
+/* ---------- Bootstrap-framework replacements (bootstrap.css core is no longer linked) ---------- */
+/* buttons: every legacy .btn falls back to the neutral core-button look */
+:where(.btn) {
+  display: inline-flex; align-items: center; justify-content: center; gap: var(--sp-2);
+  height: 30px; padding: 0 12px;
+  border: 1px solid var(--border-default); border-radius: var(--r-sm);
+  background: var(--surface-0); color: var(--fg-1);
+  font-family: var(--font-sans); font-size: var(--fs-sm); font-weight: var(--fw-medium);
+  cursor: pointer; white-space: nowrap;
+  transition: background var(--dur-fast) var(--ease-out-soft);
+}
+:where(.btn):hover { background: var(--bg-hover); text-decoration: none; }
+:where(.btn.disabled, .btn[disabled]) { opacity: 0.4; pointer-events: none; }
+:where(.btn-primary, .btn.btn-primary) { border: 0; background: var(--bg-accent); color: var(--fg-on-accent); }
+:where(.btn-primary, .btn.btn-primary):hover { background: var(--bg-accent-hover); }
+:where(.pull-right) { float: right; }
+:where(.pull-left) { float: left; }
+.caret {
+  display: inline-block; width: 0; height: 0;
+  border-left: 4px solid transparent; border-right: 4px solid transparent;
+  border-top: 4px solid currentColor; opacity: 0.7;
+}
+:where(.badge) {
+  display: inline-flex; align-items: center;
+  min-width: 18px; height: 18px; padding: 0 6px;
+  border-radius: var(--r-full, 999px); justify-content: center;
+  background: var(--surface-3); color: var(--fg-2);
+  font-size: var(--fs-xs); font-weight: var(--fw-semibold);
+}
+:where(.alert) {
+  display: flex; align-items: flex-start; gap: var(--sp-3);
+  padding: var(--sp-3) var(--sp-4); margin: var(--sp-2) 0;
+  border: 1px solid color-mix(in srgb, var(--warning-500, #b45309) 30%, transparent);
+  border-radius: var(--r-md);
+  background: var(--warning-50, #fef3c7); color: var(--fg-1);
+  font-size: var(--fs-sm);
+}
+.alert-error, .alert.alert-error { background: var(--danger-50); border-color: color-mix(in srgb, var(--danger-500) 30%, transparent); }
+.alert .close { margin-left: auto; border: 0; background: none; color: var(--fg-hint); }
+.progress {
+  height: 8px; border-radius: var(--r-full, 999px);
+  background: var(--surface-2); overflow: hidden; margin: var(--sp-2) 0;
+}
+.progress .bar { height: 100%; background: var(--bg-accent); transition: width var(--dur-base) var(--ease-out-soft); }
+table.table { width: 100%; border-collapse: collapse; font-size: var(--fs-sm); }
+table.table th, table.table td { padding: var(--sp-2) var(--sp-3); border-bottom: 1px solid var(--border-default); text-align: left; vertical-align: top; }
+table.table th { font-weight: var(--fw-semibold); color: var(--fg-muted); }
+.content-body { padding: var(--sp-4) var(--sp-6); max-width: 1280px; margin: 0 auto; }
+/* stacking rhythm between block cards and alerts (Bootstrap's row margins are gone) */
+.content-body .ldh-block, .content-body .ldhc-alert, .content-body :where(.alert) { margin-bottom: var(--sp-4); }
+.ldh-block .ldh-block { margin-bottom: var(--sp-3); }
+.row-block-controls { min-height: 30px; }
+.fade { opacity: 0; transition: opacity var(--dur-fast) var(--ease-out-soft); }
+.fade.in { opacity: 1; }
+/* typeahead suggestions: shown/positioned via inline styles by the CSR */
+ul.typeahead.dropdown-menu {
+  position: absolute;
+  min-width: 248px; max-height: 320px; overflow-y: auto;
+  background: var(--bg-card); border: 1px solid var(--border-default);
+  border-radius: var(--r-md); box-shadow: 0 16px 40px -12px rgba(15, 23, 42, 0.28);
+  padding: var(--sp-1); margin: 0; list-style: none; z-index: 120;
+}
+ul.typeahead.dropdown-menu > li > a { display: block; padding: 6px 10px; border-radius: var(--r-sm); font-size: var(--fs-sm); color: var(--fg-1); }
+ul.typeahead.dropdown-menu > li.active > a, ul.typeahead.dropdown-menu > li > a:hover { background: var(--bg-accent-quiet); text-decoration: none; }
+
 /* ---------- header actions: the right-side ul.nav is a flex strip ---------- */
 .ldh-header-actions ul.nav {
   display: flex; align-items: center; gap: var(--sp-2);
@@ -253,7 +318,6 @@ ul.pager > li > a.active:hover { background: var(--bg-hover); text-decoration: n
 
 /* ---------- document tab bar: CSR toggles .active on the <li> ---------- */
 #tab-bar { display: block; }
-#tab-bar .container-fluid, #tab-bar .row-fluid { display: contents; }
 #tab-bar-list {
   display: flex; align-items: stretch; gap: 2px;
   padding: 0 var(--sp-6); margin: 0;

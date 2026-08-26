@@ -371,8 +371,9 @@ exclude-result-prefixes="#all">
         <xsl:param name="load-rdfa-editor" select="exists($foaf:Agent//@rdf:about)" as="xs:boolean"/>
         <xsl:param name="load-yasqe" select="true()" as="xs:boolean"/>
 
-        <link href="{resolve-uri('static/css/bootstrap.css', lapp:origin())}" rel="stylesheet" type="text/css"/>
-        <link href="{resolve-uri('static/css/bootstrap-responsive.css', lapp:origin())}" rel="stylesheet" type="text/css"/>
+        <!-- the Bootstrap 2 framework (static/css/bootstrap.css + bootstrap-responsive.css) is no longer
+             linked - ldh-bridge.css carries the replacements; the two remaining files are app-specific
+             (Web-Client's and LDH's own rules that happen to keep the historical file name) -->
         <link href="{resolve-uri('static/com/atomgraph/client/css/bootstrap.css', lapp:origin())}" rel="stylesheet" type="text/css"/>
         <link href="{resolve-uri('static/com/atomgraph/linkeddatahub/css/bootstrap.css', lapp:origin())}" rel="stylesheet" type="text/css"/>
         <xsl:if test="$load-rdfa-editor">
@@ -812,9 +813,9 @@ WHERE
                 <div id="tab-body">
                     <!-- tab bar — sticky, hidden until first external tab is opened -->
                     <div id="tab-bar" class="navbar-inner" style="display: none">
-                        <div class="container-fluid">
-                            <div class="row-fluid">
-                                <ul class="nav nav-tabs span12" id="tab-bar-list">
+                        <div>
+                            <div class="block-row">
+                                <ul class="nav nav-tabs row-main" id="tab-bar-list">
                                     <li data-uri="{ac:absolute-path(ldh:base-uri(.))}">
                                         <a href="{ldh:href(ac:absolute-path(ldh:base-uri(.)), ldh:build-query(ac:mode(root())))}">
                                             <xsl:apply-templates select="key('resources', ac:absolute-path(ldh:base-uri(.)))" mode="ac:label"/>
@@ -1044,12 +1045,11 @@ WHERE
     <!-- FOOTER -->
     
     <xsl:template match="rdf:RDF | srx:sparql" mode="bs2:Footer">
-        <div class="footer container-fluid">
-            <div class="row-fluid">
-                <div class="offset2 span8">
-                    <div class="span3">
-                        <h2 class="nav-header">About</h2>
-                        <ul class="nav nav-list">
+        <div class="footer ldh-footer">
+            <div class="cols">
+                    <div class="col">
+                        <p class="ftitle">About</p>
+                        <ul class="nav">
                             <li>
                                 <a href="https://linkeddatahub.com" target="_blank">LinkedDataHub</a>
                             </li>
@@ -1058,9 +1058,9 @@ WHERE
                             </li>
                         </ul>
                     </div>
-                    <div class="span3">
-                        <h2 class="nav-header">Resources</h2>
-                        <ul class="nav nav-list">
+                    <div class="col">
+                        <p class="ftitle">Resources</p>
+                        <ul class="nav">
                             <li>
                                 <a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/" target="_blank">Documentation</a>
                             </li>
@@ -1069,9 +1069,9 @@ WHERE
                             </li>
                         </ul>
                     </div>
-                    <div class="span3">
-                        <h2 class="nav-header">Support</h2>
-                        <ul class="nav nav-list">
+                    <div class="col">
+                        <p class="ftitle">Support</p>
+                        <ul class="nav">
                             <li>
                                 <a href="https://groups.io/g/linkeddatahub" target="_blank">Mailing list</a>
                             </li>
@@ -1083,9 +1083,9 @@ WHERE
                             </li>
                         </ul>
                     </div>
-                    <div class="span3">
-                        <h2 class="nav-header">Follow us</h2>
-                        <ul class="nav nav-list">
+                    <div class="col">
+                        <p class="ftitle">Follow us</p>
+                        <ul class="nav">
                             <li>
                                 <a href="https://twitter.com/atomgraphhq" target="_blank">@atomgraphhq</a>
                             </li>
@@ -1097,9 +1097,8 @@ WHERE
                             </li>-->
                         </ul>
                     </div>
-                </div>
             </div>
         </div>
     </xsl:template>
-    
+
 </xsl:stylesheet>

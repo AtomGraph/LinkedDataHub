@@ -107,7 +107,7 @@ ORDER BY DESC(?created)
             </xsl:if>
 
             <!-- dataspace-scoped search form -->
-            <form class="form-search search-form sb-search" accept-charset="UTF-8" title="{ac:label(key('resources', 'search-title', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin))))}">
+            <form class="search-form sb-search" accept-charset="UTF-8" title="{ac:label(key('resources', 'search-title', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin))))}">
                 <span class="msi sm" aria-hidden="true">search</span>
                 <input type="text" name="q" class="search-query" placeholder="{ac:label(key('resources', 'search-placeholder', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin))))}"/>
             </form>
@@ -118,7 +118,7 @@ ORDER BY DESC(?created)
                     <xsl:apply-templates select="key('resources', 'document-tree', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
                 </h2>
 
-                <ul class="nav nav-list sb-tree">
+                <ul class="nav sb-tree">
                     <li>
                         <button class="btn-expand-tree sb-caret"></button>
                         <a href="{$base}" class="btn-container">
@@ -137,7 +137,7 @@ ORDER BY DESC(?created)
                     <xsl:apply-templates select="key('resources', 'classes', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
                 </h2>
 
-                <ul class="nav nav-list sb-classes">
+                <ul class="nav sb-classes">
                     <!-- class list will be loaded dynamically -->
                 </ul>
             </div>
@@ -148,7 +148,7 @@ ORDER BY DESC(?created)
                     <xsl:apply-templates select="key('resources', 'other', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
                 </h2>
 
-                <ul class="nav nav-list sb-other">
+                <ul class="nav sb-other">
                     <li>
                         <button type="button" class="btn-geo sb-other-row">
                             <span class="msi sm" aria-hidden="true">location_on</span>
@@ -350,7 +350,7 @@ ORDER BY DESC(?created)
 
                 <xsl:for-each select="$container">
                     <xsl:result-document href="?." method="ixsl:append-content">
-                        <ul class="well well-small nav nav-list">
+                        <ul class="nav">
                             <!-- list items will be injected by ldh:DocTreeResourceLoad -->
                         </ul>
                     </xsl:result-document>
@@ -519,7 +519,7 @@ ORDER BY DESC(?created)
                         <!-- Create <ul> for children -->
                         <xsl:for-each select="$current-li">
                             <xsl:result-document href="?." method="ixsl:append-content">
-                                <ul class="well well-small nav nav-list"></ul>
+                                <ul class="nav"></ul>
                             </xsl:result-document>
                         </xsl:for-each>
 
@@ -683,7 +683,7 @@ ORDER BY DESC(?created)
                     <xsl:for-each select="$backlinks-container">
                         <xsl:variable name="doc-uri" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/>
                         <xsl:result-document href="?." method="ixsl:append-content">
-                            <ul class="well well-small nav nav-list">
+                            <ul class="nav">
                                 <xsl:apply-templates select="$results/rdf:RDF/rdf:Description[not(@rdf:about = $doc-uri)]" mode="xhtml:ListItem">
                                     <xsl:sort select="ac:label(.)" order="ascending" lang="{$ac:lang}"/>
                                     <xsl:with-param name="mode" select="ldh:query-params()?mode[1]" tunnel="yes"/> <!-- TO-DO: support multiple modes -->
@@ -887,18 +887,18 @@ ORDER BY DESC(?created)
                     </legend>
                 </div>
                 <div class="modal-body">
-                    <div class="row-fluid block">
-                        <div class="span12 progress progress-striped active">
-                            <div class="row-fluid row-block-controls" style="position: relative; top: 30px; margin-top: -30px; z-index: 1;">
-                                <div class="span12">
-                                    <div class="row-fluid">
-                                        <div style="width: 0%;" class="span12 bar"></div>
+                    <div class="block-row block">
+                        <div class="row-main progress active">
+                            <div class="block-row row-block-controls" style="position: relative; top: 30px; margin-top: -30px; z-index: 1;">
+                                <div class="row-main">
+                                    <div class="block-row">
+                                        <div style="width: 0%;" class="row-main bar"></div>
                                     </div>
                                 </div>
                             </div>
 
-                            <div id="{$container-id}" class="row-fluid" typeof="&ldh;View">
-                                <div class="main span12">
+                            <div id="{$container-id}" class="block-row" typeof="&ldh;View">
+                                <div class="main row-main">
                                     <!-- View results will be rendered here -->
                                 </div>
                             </div>
@@ -1026,18 +1026,18 @@ ORDER BY DESC(?created)
                     </legend>
                 </div>
                 <div class="modal-body">
-                    <div class="row-fluid block">
-                        <div class="span12 progress progress-striped active">
-                            <div class="row-fluid row-block-controls" style="position: relative; top: 30px; margin-top: -30px; z-index: 1;">
-                                <div class="span12">
-                                    <div class="row-fluid">
-                                        <div style="width: 0%;" class="span12 bar"></div>
+                    <div class="block-row block">
+                        <div class="row-main progress active">
+                            <div class="block-row row-block-controls" style="position: relative; top: 30px; margin-top: -30px; z-index: 1;">
+                                <div class="row-main">
+                                    <div class="block-row">
+                                        <div style="width: 0%;" class="row-main bar"></div>
                                     </div>
                                 </div>
                             </div>
 
-                            <div id="{$container-id}" class="row-fluid" typeof="&ldh;View">
-                                <div class="main span12">
+                            <div id="{$container-id}" class="block-row" typeof="&ldh;View">
+                                <div class="main row-main">
                                     <!-- View results will be rendered here -->
                                 </div>
                             </div>
@@ -1138,18 +1138,18 @@ ORDER BY DESC(?created)
                     </legend>
                 </div>
                 <div class="modal-body">
-                    <div class="row-fluid block">
-                        <div class="span12 progress progress-striped active">
-                            <div class="row-fluid row-block-controls" style="position: relative; top: 30px; margin-top: -30px; z-index: 1;">
-                                <div class="span12">
-                                    <div class="row-fluid">
-                                        <div style="width: 0%;" class="span12 bar"></div>
+                    <div class="block-row block">
+                        <div class="row-main progress active">
+                            <div class="block-row row-block-controls" style="position: relative; top: 30px; margin-top: -30px; z-index: 1;">
+                                <div class="row-main">
+                                    <div class="block-row">
+                                        <div style="width: 0%;" class="row-main bar"></div>
                                     </div>
                                 </div>
                             </div>
 
-                            <div id="{$container-id}" class="row-fluid" typeof="&ldh;View">
-                                <div class="main span12">
+                            <div id="{$container-id}" class="block-row" typeof="&ldh;View">
+                                <div class="main row-main">
                                     <!-- view results will be rendered here -->
                                 </div>
                             </div>
@@ -1259,8 +1259,8 @@ ORDER BY DESC(?created)
                     <legend>
                         <xsl:apply-templates select="key('resources', 'search', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
                     </legend>
-                    <form class="form-search search-form-modal" accept-charset="UTF-8">
-                        <div class="input-append">
+                    <form class="search-form-modal" accept-charset="UTF-8">
+                        <div>
                             <input type="text" name="q" class="search-query" value="{$text}" placeholder="{ac:label(key('resources', 'search-placeholder', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin))))}"/>
                             <button type="submit">
                                 <xsl:apply-templates select="key('resources', 'search', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ldh:logo">
@@ -1271,18 +1271,18 @@ ORDER BY DESC(?created)
                     </form>
                 </div>
                 <div class="modal-body">
-                    <div class="row-fluid block">
-                        <div class="span12 progress progress-striped active">
-                            <div class="row-fluid row-block-controls" style="position: relative; top: 30px; margin-top: -30px; z-index: 1;">
-                                <div class="span12">
-                                    <div class="row-fluid">
-                                        <div style="width: 0%;" class="span12 bar"></div>
+                    <div class="block-row block">
+                        <div class="row-main progress active">
+                            <div class="block-row row-block-controls" style="position: relative; top: 30px; margin-top: -30px; z-index: 1;">
+                                <div class="row-main">
+                                    <div class="block-row">
+                                        <div style="width: 0%;" class="row-main bar"></div>
                                     </div>
                                 </div>
                             </div>
 
-                            <div id="{$container-id}" class="row-fluid" typeof="&ldh;View">
-                                <div class="main span12">
+                            <div id="{$container-id}" class="block-row" typeof="&ldh;View">
+                                <div class="main row-main">
                                     <!-- view results will be rendered here -->
                                 </div>
                             </div>

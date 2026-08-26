@@ -101,7 +101,7 @@ version="3.0"
                                     <!-- preselect the viewed version as the diff target and its predecessor as the diff source (the viewed version itself when there is none) -->
                                     <xsl:variable name="from-memento" select="(xs:anyURI($sorted-mementos[$current-index - 1]/@rdf:about), $current-memento)[1]" as="xs:anyURI?"/>
                                     <form id="form-version-diff">
-                                        <table class="table table-striped">
+                                        <table class="table">
                                             <colgroup>
                                                 <col style="width: 38%;"/>
                                                 <col style="width: 22%;"/>
@@ -161,7 +161,7 @@ version="3.0"
                                     </form>
                                 </xsl:when>
                                 <xsl:otherwise>
-                                    <div class="alert alert-error">
+                                    <div class="ldhc-alert va-danger">
                                         <xsl:text>Could not load the version history</xsl:text>
                                     </div>
                                 </xsl:otherwise>
@@ -271,7 +271,7 @@ version="3.0"
 
         <xsl:for-each select="$context('modal')/div[contains-token(@class, 'modal-body')]">
             <xsl:result-document href="?." method="ixsl:prepend-content">
-                <div class="alert alert-error">
+                <div class="ldhc-alert va-danger">
                     <xsl:value-of select="$message || ' (HTTP ' || $context('response')?status || ')'"/>
                 </div>
             </xsl:result-document>

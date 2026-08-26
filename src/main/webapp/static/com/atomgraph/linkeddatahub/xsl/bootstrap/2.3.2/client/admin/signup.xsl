@@ -76,7 +76,7 @@ exclude-result-prefixes="#all">
     </xsl:function>
 
     <xsl:template match="rdf:RDF[ac:absolute-path(ldh:request-uri()) = resolve-uri(encode-for-uri('sign up'), ldt:base())]" mode="bs2:ContentBody" priority="2">
-        <div class="container-fluid content-body">
+        <div class="content-body">
             <xsl:apply-templates select="key('resources', ac:absolute-path(ldh:base-uri(.)))" mode="ldh:ContentList"/>
 
             <xsl:apply-templates select="." mode="bs2:Row"/>

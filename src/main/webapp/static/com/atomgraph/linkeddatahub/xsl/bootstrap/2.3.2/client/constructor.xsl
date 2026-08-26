@@ -119,7 +119,7 @@ exclude-result-prefixes="#all"
                 <xsl:for-each select="$container">
                     <xsl:result-document href="?." method="ixsl:append-content">
                         <div class="modal modal-constructor fade in">
-                            <form class="form-horizontal constructor-template" about="{$type}">
+                            <form class="ldh-prop-form constructor-template" about="{$type}">
                                 <div class="modal-header">
                                     <button type="button" class="close">&#215;</button>
 
@@ -253,7 +253,7 @@ exclude-result-prefixes="#all"
 
         <div class="controls">
             <div class="btn-group pull-right">
-                <button type="button" class="btn btn-small pull-right btn-remove-property" tabindex="-1">
+                <button type="button" class="btn pull-right btn-remove-property" tabindex="-1">
                     <xsl:attribute name="title">
                         <xsl:value-of>
                             <xsl:apply-templates select="key('resources', 'remove-stmt', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>

@@ -114,7 +114,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="mode" select="descendant::*[@property = '&ac;mode']/@resource" as="xs:anyURI?"/>
         <xsl:param name="show-edit-button" select="false()" as="xs:boolean?"/>
         <xsl:param name="textarea-id" select="generate-id() || '-textarea'" as="xs:string?"/>
-        <xsl:param name="textarea-class" select="'span12 sparql-query-string'" as="xs:string?"/>
+        <xsl:param name="textarea-class" select="'row-main sparql-query-string'" as="xs:string?"/>
         <xsl:param name="textarea-name" select="'query'" as="xs:string?"/>
         <xsl:param name="textarea-rows" select="15" as="xs:integer?"/>
         <xsl:param name="service-uri" select="descendant::*[@property = '&ldh;service']/@resource" as="xs:anyURI?"/>
@@ -176,7 +176,7 @@ exclude-result-prefixes="#all"
             <xsl:result-document href="?." method="ixsl:replace-content">
                 <xsl:copy-of select="$header"/>
                                 
-                <form class="sparql-query-form form-horizontal" method="get" action="">
+                <form class="sparql-query-form ldh-prop-form" method="get" action="">
                     <div class="control-group">
                         <xsl:call-template name="xhtml:Input">
                             <xsl:with-param name="name" select="'pu'"/>

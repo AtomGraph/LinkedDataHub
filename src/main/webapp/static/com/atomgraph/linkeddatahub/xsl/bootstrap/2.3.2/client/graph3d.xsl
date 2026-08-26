@@ -476,8 +476,8 @@ WHERE
                         <label class="sub-option"><input type="checkbox" id="show-locale-literals-{$canvas-id}" data-canvas-id="{$canvas-id}" class="graph-3d-filter" disabled="disabled"/> Matching locale only</label>
                     </label>
                 </div>
-                <button data-canvas-id="{$canvas-id}" class="graph-3d-zoom btn btn-small">Zoom to fit</button>
-                <button data-canvas-id="{$canvas-id}" class="graph-3d-fullscreen btn btn-small">Fullscreen</button>
+                <button data-canvas-id="{$canvas-id}" class="graph-3d-zoom btn">Zoom to fit</button>
+                <button data-canvas-id="{$canvas-id}" class="graph-3d-fullscreen btn">Fullscreen</button>
             </xsl:result-document>
         </xsl:for-each>
     </xsl:template>

@@ -533,24 +533,24 @@ extension-element-prefixes="ixsl"
                 <xsl:attribute name="draggable" select="'true'"/>
             </xsl:if>
 
-            <div class="span12">
+            <div class="row-main">
                 <xsl:if test="$show-row-block-controls">
-                    <xsl:attribute name="class" select="'span12 progress progress-striped active'"/>
+                    <xsl:attribute name="class" select="'row-main progress active'"/>
                     
                     <div class="drag-handle">
                         <xsl:if test="acl:mode() = '&acl;Write'">
                             <xsl:attribute name="draggable" select="'true'"/>
                         </xsl:if>
                     </div>
-                    <div class="row-fluid row-block-controls" style="position: relative; top: 30px; margin-top: -30px; z-index: 1;">
-                        <div class="span12">
+                    <div class="block-row row-block-controls" style="position: relative; top: 30px; margin-top: -30px; z-index: 1;">
+                        <div class="row-main">
                             <xsl:if test="acl:mode() = '&acl;Write'">
                                 <button type="button" class="btn btn-edit pull-right" style="display: none;">
                                     <xsl:apply-templates select="key('resources', '&ac;EditMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
                                 </button>
                             </xsl:if>
-                            <div class="row-fluid">
-                                <div style="width: 0%;" class="span12 bar"></div>
+                            <div class="block-row">
+                                <div style="width: 0%;" class="row-main bar"></div>
                             </div>
                         </div>
                     </div>
@@ -560,7 +560,7 @@ extension-element-prefixes="ixsl"
                 <xsl:next-match>
                     <xsl:with-param name="id" select="()"/> <!-- only block wrappers have @id-->
                     <xsl:with-param name="about" select="()"/> <!-- only block wrappers have @about -->
-                    <xsl:with-param name="class" select="'row-fluid'"/>
+                    <xsl:with-param name="class" select="'block-row'"/>
                 </xsl:next-match>
             </div>
         </div>
@@ -597,14 +597,14 @@ extension-element-prefixes="ixsl"
                 <xsl:attribute name="draggable" select="'true'"/>
             </xsl:if>
             
-            <div class="span12">
+            <div class="row-main">
                 <div class="drag-handle">
                     <xsl:if test="acl:mode() = '&acl;Write'">
                         <xsl:attribute name="draggable" select="'true'"/>
                     </xsl:if>
                 </div>
-                <div class="row-fluid row-block-controls" style="position: relative; top: 30px; margin-top: -30px; z-index: 1;">
-                    <div class="span12">
+                <div class="block-row row-block-controls" style="position: relative; top: 30px; margin-top: -30px; z-index: 1;">
+                    <div class="row-main">
                         <xsl:if test="acl:mode() = '&acl;Write'">
                             <button type="button" class="btn btn-edit pull-right" style="display: none;">
                                 <xsl:apply-templates select="key('resources', '&ac;EditMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
@@ -613,7 +613,7 @@ extension-element-prefixes="ixsl"
                     </div>
                 </div>
 
-                <div id="row-{generate-id()}" class="row-fluid">
+                <div id="row-{generate-id()}" class="block-row">
                     <xsl:if test="$about">
                         <xsl:attribute name="about" select="$about"/>
                     </xsl:if>
@@ -686,7 +686,7 @@ extension-element-prefixes="ixsl"
                 <xsl:attribute name="about" select="$about"/>
             </xsl:if>
 
-            <div class="span12">
+            <div class="row-main">
                 <xsl:next-match>
                     <xsl:with-param name="id" select="()"/> <!-- only the wrapper carries @id -->
                     <xsl:with-param name="class" select="$class"/>
@@ -974,7 +974,7 @@ extension-element-prefixes="ixsl"
     <xsl:template match="*[sioc:has_parent] | *[sioc:has_container]" mode="bs2:TypeList" priority="0.8"/>
 
     <xsl:template match="*[@rdf:about or @rdf:nodeID][rdf:type/@rdf:resource]" mode="bs2:TypeList">
-        <ul class="inline ldh-typelist">
+        <ul class="ldh-typelist">
             <xsl:for-each select="rdf:type/@rdf:resource">
                 <xsl:sort select="ac:object-label(.)" order="ascending" lang="{$ac:lang}"/>
 
@@ -1017,8 +1017,8 @@ extension-element-prefixes="ixsl"
         </xsl:variable>
         
         <xsl:if test="exists($anchor)">
-            <div class="row-fluid">
-                <div class="main offset2 span7">
+            <div class="block-row">
+                <div class="main">
                     <h2>
                         <xsl:sequence select="$anchor"/>
                     </h2>
@@ -1204,7 +1204,7 @@ extension-element-prefixes="ixsl"
                     <xsl:attribute name="class" select="$main-class"/>
                 </xsl:if>
                 
-                <form method="{$method}" action="{$action}" class="form-horizontal">
+                <form method="{$method}" action="{$action}" class="ldh-prop-form">
                     <xsl:if test="$form-id">
                         <xsl:attribute name="id" select="$form-id"/>
                     </xsl:if>
@@ -1279,7 +1279,7 @@ extension-element-prefixes="ixsl"
     <!-- EXCEPTION -->
     
     <xsl:template match="*[http:sc/@rdf:resource = '&sc;Conflict']" mode="bs2:Exception" priority="1">
-        <xsl:param name="class" select="'alert alert-error'" as="xs:string?"/>
+        <xsl:param name="class" select="'alert va-danger'" as="xs:string?"/>
 
         <div>
             <xsl:if test="$class">
@@ -1376,7 +1376,7 @@ extension-element-prefixes="ixsl"
                         <xsl:if test="not($required)">
                             <!-- the button has to be inside <legend> for it to float to the top/right corner properly -->
                             <div class="btn-group pull-right">
-                                <button type="button" class="btn btn-large pull-right btn-remove-resource" title="Remove this resource"></button>
+                                <button type="button" class="btn pull-right btn-remove-resource" title="Remove this resource"></button>
                             </div>
                         </xsl:if>
                         
@@ -1442,7 +1442,7 @@ extension-element-prefixes="ixsl"
                 </xsl:when>
                 <xsl:when test="not($required)">
                     <div class="btn-group pull-right">
-                        <button type="button" class="btn btn-large pull-right btn-remove-resource" title="Remove this resource"></button>
+                        <button type="button" class="btn pull-right btn-remove-resource" title="Remove this resource"></button>
                     </div>
                 </xsl:when>
             </xsl:choose>
@@ -1519,7 +1519,7 @@ extension-element-prefixes="ixsl"
 
         <div class="control-group">
             <span class="control-label">
-                <select class="input-medium">
+                <select>
                     <xsl:apply-templates select="key('resources', '&rdf;type', document(ac:document-uri('&rdf;type')))" mode="xhtml:Option"/>
                     
                     <!-- group properties by URI - there might be duplicates in the constructor; filter out rdf:type because it's included by default -->
@@ -1579,7 +1579,7 @@ extension-element-prefixes="ixsl"
     <!-- VIOLATION -->
 
     <xsl:template match="*[rdf:type/@rdf:resource = '&ldh;URISyntaxViolation']" mode="bs2:Violation">
-        <xsl:param name="class" select="'alert alert-error'" as="xs:string?"/>
+        <xsl:param name="class" select="'alert va-danger'" as="xs:string?"/>
 
         <div>
             <xsl:if test="$class">
@@ -1596,7 +1596,7 @@ extension-element-prefixes="ixsl"
         
     <!-- take constraint labels from sitemap instead of response, if possible -->
     <xsl:template match="*[rdf:type/@rdf:resource = '&spin;ConstraintViolation']" mode="bs2:Violation">
-        <xsl:param name="class" select="'alert alert-error'" as="xs:string?"/>
+        <xsl:param name="class" select="'alert va-danger'" as="xs:string?"/>
         <xsl:param name="request-uri" select="ldh:href(ac:document-uri(rdf:type/@rdf:resource), map{ 'accept': 'application/rdf+xml' }, ())" as="xs:anyURI" use-when="system-property('xsl:product-name') = 'SaxonJS'"/>
         <xsl:param name="request-uri" select="ac:document-uri(rdf:type/@rdf:resource)" as="xs:anyURI" use-when="system-property('xsl:product-name') = 'SAXON'"/>
 
@@ -1616,7 +1616,7 @@ extension-element-prefixes="ixsl"
     </xsl:template>
     
     <xsl:template match="*[rdf:type/@rdf:resource = '&sh;ValidationResult']" mode="bs2:Violation">
-        <xsl:param name="class" select="'alert alert-error'" as="xs:string?"/>
+        <xsl:param name="class" select="'alert va-danger'" as="xs:string?"/>
         <xsl:param name="request-uri" select="ldh:href(ac:document-uri(rdf:type/@rdf:resource), map{ 'accept': 'application/rdf+xml' }, ())" as="xs:anyURI" use-when="system-property('xsl:product-name') = 'SaxonJS'"/>
         <xsl:param name="request-uri" select="ac:document-uri(rdf:type/@rdf:resource)" as="xs:anyURI" use-when="system-property('xsl:product-name') = 'SAXON'"/>
 

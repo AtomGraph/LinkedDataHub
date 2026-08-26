@@ -73,7 +73,7 @@ version="3.0"
                         <xsl:apply-templates select="key('resources', 'packages', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
                     </xsl:value-of>
                 </legend>
-                <table class="table table-striped">
+                <table class="table">
                     <colgroup>
                         <col style="width: 25%;"/>
                         <col style="width: 60%;"/>

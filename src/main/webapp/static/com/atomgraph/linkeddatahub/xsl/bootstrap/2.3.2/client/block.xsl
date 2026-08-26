@@ -187,7 +187,7 @@ exclude-result-prefixes="#all"
             [contains-token(@class, 'block')] predicate excludes their inner (class='row-fluid'
             from resource.xsl:518).
         -->
-        <xsl:for-each select="self::div[contains-token(@class, 'block')][@about]/div[contains-token(@class, 'span12')]/div[contains-token(@class, 'block')][@typeof]">
+        <xsl:for-each select="self::div[contains-token(@class, 'block')][@about]/div[contains-token(@class, 'row-main')]/div[contains-token(@class, 'block')][@typeof]">
             <xsl:variable name="typeof-uris" select="tokenize(@typeof, ' ') ! xs:anyURI(.)" as="xs:anyURI*"/>
             <xsl:variable name="values-clause" select="' VALUES ?type { ' || string-join(for $t in $typeof-uris return '&lt;' || $t || '&gt;', ' ') || ' }'" as="xs:string"/>
             <xsl:variable name="request-uri" select="ldh:href(ac:build-uri(resolve-uri('ns', ldt:base()), map{ 'query': $ontology-view-query || $values-clause }), map{})" as="xs:anyURI"/>
@@ -308,7 +308,7 @@ exclude-result-prefixes="#all"
             <xsl:choose>
                 <xsl:when test="$offset-x &lt;= $left-edge-threshold and ixsl:style($drag-handle)?display = 'none'">
                     <!-- get both block and span12 rectangles to calculate intersection -->
-                    <xsl:variable name="span12" select="$drag-handle/parent::*[contains-token(@class, 'span12')]" as="element()"/>
+                    <xsl:variable name="span12" select="$drag-handle/parent::*[contains-token(@class, 'row-main')]" as="element()"/>
                     <xsl:variable name="block-rect" select="$rect"/> <!-- block's getBoundingClientRect -->
                     <xsl:variable name="span12-rect" select="ixsl:call($span12, 'getBoundingClientRect', [])"/>
 
@@ -393,7 +393,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="self" select="." as="element()"/>
         <xsl:variable name="related" select="ixsl:get(ixsl:event(), 'relatedTarget')" as="item()?"/>
         <xsl:if test="empty($related) or empty($related/ancestor-or-self::*[. is $self or @id = ('edit-toolbar', 'rdfa-editor-breadcrumb') or contains-token(@class, 'rdfa-editor-ui')])">
-            <xsl:variable name="form" select="ancestor::form[contains-token(@class, 'form-horizontal')][1]" as="element()?"/>
+            <xsl:variable name="form" select="ancestor::form[contains-token(@class, 'ldh-prop-form')][1]" as="element()?"/>
             <xsl:if test="$form">
                 <xsl:sequence select="ixsl:call($form, 'requestSubmit', [])"/>
             </xsl:if>
@@ -449,7 +449,7 @@ exclude-result-prefixes="#all"
     
     <!-- append new block form onsubmit (using POST) -->
     
-    <xsl:template match="div[@typeof = ('&ldh;XHTML', '&ldh;Object')]//form[contains-token(@class, 'form-horizontal')][upper-case(@method) = 'POST']" mode="ixsl:onsubmit" priority="2"> <!-- prioritize over form.xsl -->
+    <xsl:template match="div[@typeof = ('&ldh;XHTML', '&ldh;Object')]//form[contains-token(@class, 'ldh-prop-form')][upper-case(@method) = 'POST']" mode="ixsl:onsubmit" priority="2"> <!-- prioritize over form.xsl -->
         <xsl:param name="elements" select=".//input | .//textarea | .//select" as="element()*"/>
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <!-- pre-process form before submitting it: syncs input values, so it must precede ldh:parse-rdf-post -->
@@ -802,7 +802,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="context" as="map(*)"/>
         <xsl:variable name="response" select="$context('response')" as="map(*)"/>
         <xsl:variable name="container" select="$context('container')" as="element()"/>
-        <xsl:variable name="span12" select="$container/div[contains-token(@class, 'span12')]" as="element()"/>
+        <xsl:variable name="span12" select="$container/div[contains-token(@class, 'row-main')]" as="element()"/>
         <xsl:variable name="view-uri" select="$context('view-uri')" as="xs:anyURI"/>
         <xsl:variable name="base-uri" select="$context('base-uri')" as="xs:anyURI"/>
 
@@ -1007,7 +1007,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="container" select="$context('container')" as="element()"/>
         
         <!-- hide the progress bar -->
-        <xsl:for-each select="$container/ancestor::div[contains-token(@class, 'span12')][contains-token(@class, 'progress')][contains-token(@class, 'active')]">
+        <xsl:for-each select="$container/ancestor::div[contains-token(@class, 'row-main')][contains-token(@class, 'progress')][contains-token(@class, 'active')]">
             <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'progress', false() ])[current-date() lt xs:date('2000-01-01')]"/>
             <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'progress-striped', false() ])[current-date() lt xs:date('2000-01-01')]"/>
             <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'active', false() ])[current-date() lt xs:date('2000-01-01')]"/>
