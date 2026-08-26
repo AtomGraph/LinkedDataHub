@@ -26,6 +26,11 @@ export PATH="$PATH:$(pwd)/bin"
 ldh --help
 ```
 
+The launcher starts the JVM with `-XX:TieredStopAtLevel=1 -XX:+UseSerialGC`, trading peak
+throughput for startup time — a command exits long before C2 could pay for itself, and spends
+most of its life waiting on HTTP. `LDH_JAVA_OPTS` replaces those flags outright, and `LDH_JAR`
+points the launcher at a jar elsewhere.
+
 ## Authentication
 
 Commands authenticate with a WebID client certificate from a **PKCS12 (.p12) keystore** — the format
