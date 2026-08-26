@@ -437,3 +437,7 @@ form .control-group > .controls > .btn-group { order: 99; margin-left: auto; }
 
 /* typeahead suggestion metadata (type labels) trails the row */
 .dropdown-menu li a .meta { margin-left: auto; font-size: var(--fs-xs); color: var(--fg-muted); }
+
+/* the wordmark's white ink is header-bar styling; on the footer's light surface it takes body ink
+   (the design sets this inline on the footer wordmark) */
+.ldh-footer .ldh-wordmark { color: var(--fg-1); }

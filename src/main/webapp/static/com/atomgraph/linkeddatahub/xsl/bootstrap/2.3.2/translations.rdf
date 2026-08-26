@@ -596,6 +596,9 @@
     <rdf:Description rdf:nodeID="support">
         <rdfs:label xml:lang="en-US">Support</rdfs:label>
     </rdf:Description>
+    <rdf:Description rdf:nodeID="footer-tagline">
+        <rdfs:label xml:lang="en-US">The low-code Knowledge Graph application platform. Built on RDF, SPARQL and Linked Data principles.</rdfs:label>
+    </rdf:Description>
     <rdf:Description rdf:nodeID="follow-us">
         <rdfs:label xml:lang="en-US">Follow us</rdfs:label>
     </rdf:Description>

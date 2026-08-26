@@ -1044,56 +1044,38 @@ WHERE
     <xsl:template match="rdf:RDF | srx:sparql" mode="bs2:Footer">
         <div class="footer ldh-footer">
             <div class="cols">
+                    <div class="col brand-col">
+                        <a class="ldh-wordmark" href="{$ldt:base}">
+                            <span class="mark"></span>
+                            <span>LinkedDataHub</span>
+                        </a>
+                        <p><xsl:value-of select="ac:label(key('resources', 'footer-tagline', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', lapp:origin()))))"/></p>
+                    </div>
                     <div class="col">
                         <p class="ftitle"><xsl:value-of select="ac:label(key('resources', 'about', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', lapp:origin()))))"/></p>
-                        <ul class="nav">
-                            <li>
-                                <a href="https://linkeddatahub.com" target="_blank">LinkedDataHub</a>
-                            </li>
-                            <li>
-                                <a href="https://atomgraph.com" target="_blank">AtomGraph</a>
-                            </li>
-                        </ul>
+                        <a href="https://linkeddatahub.com" target="_blank">LinkedDataHub</a>
+                        <a href="https://atomgraph.com" target="_blank">AtomGraph</a>
                     </div>
                     <div class="col">
                         <p class="ftitle"><xsl:value-of select="ac:label(key('resources', 'resources', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', lapp:origin()))))"/></p>
-                        <ul class="nav">
-                            <li>
-                                <a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/" target="_blank"><xsl:value-of select="ac:label(key('resources', 'documentation', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', lapp:origin()))))"/></a>
-                            </li>
-                            <li>
-                                <a href="https://www.youtube.com/channel/UCtrdvnVjM99u9hrjESwfCeg" target="_blank"><xsl:value-of select="ac:label(key('resources', 'screencasts', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', lapp:origin()))))"/></a>
-                            </li>
-                        </ul>
+                        <a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/" target="_blank"><xsl:value-of select="ac:label(key('resources', 'documentation', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', lapp:origin()))))"/></a>
+                        <a href="https://www.youtube.com/channel/UCtrdvnVjM99u9hrjESwfCeg" target="_blank"><xsl:value-of select="ac:label(key('resources', 'screencasts', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', lapp:origin()))))"/></a>
                     </div>
                     <div class="col">
                         <p class="ftitle"><xsl:value-of select="ac:label(key('resources', 'support', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', lapp:origin()))))"/></p>
-                        <ul class="nav">
-                            <li>
-                                <a href="https://groups.io/g/linkeddatahub" target="_blank"><xsl:value-of select="ac:label(key('resources', 'mailing-list', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', lapp:origin()))))"/></a>
-                            </li>
-                            <li>
-                                <a href="https://github.com/AtomGraph/LinkedDataHub/issues" target="_blank"><xsl:value-of select="ac:label(key('resources', 'report-issues', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', lapp:origin()))))"/></a>
-                            </li>
-                            <li>
-                                <a href="mailto:support@linkeddatahub.com"><xsl:value-of select="ac:label(key('resources', 'contact-support', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', lapp:origin()))))"/></a>
-                            </li>
-                        </ul>
+                        <a href="https://groups.io/g/linkeddatahub" target="_blank"><xsl:value-of select="ac:label(key('resources', 'mailing-list', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', lapp:origin()))))"/></a>
+                        <a href="https://github.com/AtomGraph/LinkedDataHub/issues" target="_blank"><xsl:value-of select="ac:label(key('resources', 'report-issues', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', lapp:origin()))))"/></a>
+                        <a href="mailto:support@linkeddatahub.com"><xsl:value-of select="ac:label(key('resources', 'contact-support', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', lapp:origin()))))"/></a>
                     </div>
                     <div class="col">
                         <p class="ftitle"><xsl:value-of select="ac:label(key('resources', 'follow-us', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', lapp:origin()))))"/></p>
-                        <ul class="nav">
-                            <li>
-                                <a href="https://twitter.com/atomgraphhq" target="_blank">@atomgraphhq</a>
-                            </li>
-                            <li>
-                                <a href="https://github.com/AtomGraph" target="_blank">github.com/AtomGraph</a>
-                            </li>
-<!--                            <li>
-                                <a href="https://www.facebook.com/AtomGraph" target="_blank">facebook.com/AtomGraph</a>
-                            </li>-->
-                        </ul>
+                        <a href="https://twitter.com/atomgraphhq" target="_blank">@atomgraphhq</a>
+                        <a href="https://github.com/AtomGraph" target="_blank">github.com/AtomGraph</a>
                     </div>
+            </div>
+            <div class="legal">
+                <span>© <xsl:value-of select="format-date(current-date(), '[Y]')"/> AtomGraph · LinkedDataHub</span>
+                <span><xsl:value-of select="$ldt:base"/></span>
             </div>
         </div>
     </xsl:template>
