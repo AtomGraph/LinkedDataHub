@@ -26,11 +26,11 @@
 .btn-primary { color: var(--fg-on-accent); }
 :where(.pull-right) { float: right; }
 :where(.pull-left) { float: left; }
-.caret {
-  display: inline-block; width: 0; height: 0;
-  border-left: 4px solid transparent; border-right: 4px solid transparent;
-  border-top: 4px solid currentColor; opacity: 0.7;
-}
+/* carets are Material glyphs: ported markup ships <span class="msi caret">expand_more</span>;
+   legacy empty <span class="caret"/> spans get the same glyph via ::before */
+.caret { display: inline-flex; align-items: center; opacity: 0.85; }
+.caret:empty::before { font-family: 'Material Symbols Rounded'; font-size: 16px; line-height: 1; content: 'expand_more'; }
+.caret-reversed:empty::before { content: 'expand_less'; }
 :where(.badge) {
   display: inline-flex; align-items: center;
   min-width: 18px; height: 18px; padding: 0 6px;
