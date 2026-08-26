@@ -111,6 +111,13 @@ ul.typeahead.dropdown-menu > li.active > a, ul.typeahead.dropdown-menu > li > a:
 .ldh-header-actions .btn-group { position: relative; }
 
 /* ---------- dropdown menus: .open is toggled by the CSR btn-group handler ---------- */
+/* the m3 skin paints every .ldh-header descendant with the inverse (near-white) text color for the
+   dark bar; light dropdown panels inside the header need their ink back at higher specificity */
+:root[data-retro^="m3"] .ldh-header .dropdown-menu,
+:root[data-retro^="m3"] .ldh-header .dropdown-menu * { color: var(--fg-1); }
+:root[data-retro^="m3"] .ldh-header .dropdown-menu .nav-header { color: var(--fg-hint); }
+:root[data-retro^="m3"] .ldh-header .ldh-avatar:hover,
+:root[data-retro^="m3"] .ldh-header .btn-group.open .ldh-avatar { color: var(--fg-1); }
 .btn-group .dropdown-menu { display: none; }
 .btn-group.open .dropdown-menu {
   display: block;
@@ -128,6 +135,8 @@ ul.typeahead.dropdown-menu > li.active > a, ul.typeahead.dropdown-menu > li > a:
   margin: 0;
 }
 .btn-group.open .dropdown-menu.pull-right { left: auto; right: 0; }
+/* header menus hug the viewport's right edge regardless of the pull-right token */
+.ldh-header-actions .btn-group.open .dropdown-menu { left: auto; right: 0; }
 .dropdown-menu > li > a, .dropdown-menu > li > button {
   display: flex; align-items: center; gap: var(--sp-2);
   width: 100%;
