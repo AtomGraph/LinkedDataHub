@@ -74,6 +74,16 @@ ul.typeahead.dropdown-menu {
 ul.typeahead.dropdown-menu > li > a { display: block; padding: 6px 10px; border-radius: var(--r-sm); font-size: var(--fs-sm); color: var(--fg-1); }
 ul.typeahead.dropdown-menu > li.active > a, ul.typeahead.dropdown-menu > li > a:hover { background: var(--bg-accent-quiet); text-decoration: none; }
 
+/* ---------- sticky chrome: header on top, action bar (legacy --action-bar-top) right under it ---------- */
+:root { --ldh-header-height: 56px; --action-bar-top: var(--ldh-header-height); }
+.navbar.ldh-header { position: sticky; top: 0; z-index: 1001; }
+#tab-bar { top: var(--ldh-header-height); }
+.action-bar.ldh-actionbar {
+  background: var(--surface-0);
+  border-bottom: 1px solid var(--border-default);
+  padding: var(--sp-3) var(--sp-6);
+}
+
 /* ---------- header actions: the right-side ul.nav is a flex strip ---------- */
 .ldh-header-actions ul.nav {
   display: flex; align-items: center; gap: var(--sp-2);
