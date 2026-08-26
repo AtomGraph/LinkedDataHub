@@ -99,8 +99,6 @@ Shell completion: `source <(ldh generate-completion)` (bash/zsh).
 | `admin/acl/create-authorization.sh` | `ldh admin acl create-authorization` |
 | `admin/acl/add-agent-to-group.sh` | `ldh admin acl add-agent-to-group` |
 | `admin/acl/make-public.sh` | `ldh admin acl make-public` |
-| `admin/packages/install-package.sh` | `ldh admin packages install-package` |
-| `admin/packages/uninstall-package.sh` | `ldh admin packages uninstall-package` |
 | `content/add-object-block.sh` | `ldh content add-object-block` |
 | `content/add-xhtml-block.sh` | `ldh content add-xhtml-block` |
 | `content/remove-block.sh` | `ldh content remove-block` |
@@ -113,6 +111,9 @@ Local certificate tooling (`webid-keygen.sh`, `webid-keygen-pem.sh`, `webid-uri.
 `webid-modulus.sh`, `server-cert-gen.sh`) and the experimental `sitemap/` generator remain
 shell scripts.
 
+Packages have no command: an application imports one with a single `<app> ldh:import <package-uri>`
+triple, so `ldh patch` on the application's `/settings` document is the whole interface.
+
 ### Differences from the scripts
 
 - `-f/--cert-pem-file` is now `-f/--cert-file` and takes the `.p12` keystore directly — no
@@ -122,7 +123,8 @@ shell scripts.
 - `add-generic-service` drops the documented-but-unparsed `--slug` option.
 - `add-csv-import`/`import-csv` default `--delimiter` to `,` (the script required it despite
   documenting a default).
-- `install-package`/`uninstall-package` print nothing on success instead of the raw HTTP status
-  code; use the exit code.
 - `import-csv`/`import-rdf` run their steps in-process instead of spawning subscripts, and pass
   `--description` through to the import metadata.
+- `import-ontology` reads the `construct-constructors` query text by dereferencing its document
+  instead of going through a `SELECT` on `/sparql`; the CONSTRUCT it then runs over the scratch
+  graph is unchanged.

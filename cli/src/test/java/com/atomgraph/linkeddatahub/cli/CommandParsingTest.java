@@ -52,7 +52,7 @@ public class CommandParsingTest
             forEach(name -> assertTrue(root.getSubcommands().containsKey(name), name));
 
         CommandLine admin = root.getSubcommands().get("admin");
-        List.of("ontologies", "acl", "packages", "clear-ontology", "add-ontology-import").
+        List.of("ontologies", "acl", "clear-ontology", "add-ontology-import").
             forEach(name -> assertTrue(admin.getSubcommands().containsKey(name), name));
 
         List.of("create-ontology", "import-ontology", "add-class", "add-constructor", "add-select",
@@ -61,9 +61,6 @@ public class CommandParsingTest
 
         List.of("create-group", "create-authorization", "add-agent-to-group", "make-public").
             forEach(name -> assertTrue(admin.getSubcommands().get("acl").getSubcommands().containsKey(name), name));
-
-        List.of("install-package", "uninstall-package").
-            forEach(name -> assertTrue(admin.getSubcommands().get("packages").getSubcommands().containsKey(name), name));
 
         List.of("add-object-block", "add-xhtml-block", "remove-block").
             forEach(name -> assertTrue(root.getSubcommands().get("content").getSubcommands().containsKey(name), name));

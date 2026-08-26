@@ -19,6 +19,7 @@ package com.atomgraph.linkeddatahub.cli.command;
 import com.atomgraph.linkeddatahub.cli.command.admin.acl.CreateAuthorization;
 import com.atomgraph.linkeddatahub.cli.command.admin.acl.CreateGroup;
 import com.atomgraph.linkeddatahub.cli.command.admin.ontologies.CreateOntology;
+import com.atomgraph.linkeddatahub.cli.command.admin.ontologies.ImportOntology;
 import com.atomgraph.linkeddatahub.cli.command.content.AddXHTMLBlock;
 import com.atomgraph.linkeddatahub.cli.command.imports.AddCSVImport;
 import com.atomgraph.linkeddatahub.cli.command.imports.AddRDFImport;
@@ -235,6 +236,28 @@ public class ModelBuildersTest
                 rdf:value "<p>Hello</p>"^^rdf:XMLLiteral .
             """),
             AddXHTMLBlock.buildModel(TARGET, RDF.li(4), null, "<p>Hello</p>", null, null));
+    }
+
+    @Test
+    public void importOntologyScratch()
+    {
+        URI scratch = URI.create("https://admin.localhost:4443/9a1e4b7c-0d2f-4a63-8b51-6c7d8e9f0a1b/");
+
+        assertIsomorphic(parse("""
+            <https://admin.localhost:4443/9a1e4b7c-0d2f-4a63-8b51-6c7d8e9f0a1b/> a dh:Item ;
+                dct:title "Import ontology scratch" .
+            """),
+            ImportOntology.buildScratchModel(scratch));
+    }
+
+    @Test
+    public void importOntologyAnnotation()
+    {
+        assertIsomorphic(parse("""
+            <> a owl:Ontology ;
+                owl:imports <http://www.w3.org/2004/02/skos/core#> .
+            """),
+            ImportOntology.buildAnnotationModel(TARGET, URI.create("http://www.w3.org/2004/02/skos/core#")));
     }
 
 }

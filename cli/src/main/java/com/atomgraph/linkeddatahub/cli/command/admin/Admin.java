@@ -18,7 +18,6 @@ package com.atomgraph.linkeddatahub.cli.command.admin;
 
 import com.atomgraph.linkeddatahub.cli.command.admin.acl.Acl;
 import com.atomgraph.linkeddatahub.cli.command.admin.ontologies.Ontologies;
-import com.atomgraph.linkeddatahub.cli.command.admin.packages.Packages;
 import java.util.concurrent.Callable;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Model.CommandSpec;
@@ -32,7 +31,7 @@ import picocli.CommandLine.Spec;
  */
 @Command(name = "admin",
     description = "Administrative commands.",
-    subcommands = { Ontologies.class, Acl.class, Packages.class, ClearOntology.class, AddOntologyImport.class })
+    subcommands = { Ontologies.class, Acl.class, ClearOntology.class, AddOntologyImport.class })
 public class Admin implements Callable<Integer>
 {
 
