@@ -1,0 +1,103 @@
+/* =========================================================================
+   Transitional bridge between LDH's CSR state tokens and the design system.
+   The CSR handlers toggle Bootstrap-era state classes (.open on .btn-group,
+   .active on tab <li>s) and emit a few structural wrappers (ul.nav in the
+   header, #tab-bar) that app.css has no rules for. This file styles those
+   with the design system's tokens so no interaction wiring has to change.
+   Rules move out of here (or die) as components finish porting.
+   ========================================================================= */
+
+/* ---------- header actions: the right-side ul.nav is a flex strip ---------- */
+.ldh-header-actions ul.nav {
+  display: flex; align-items: center; gap: var(--sp-2);
+  list-style: none; margin: 0; padding: 0;
+}
+.ldh-header-actions ul.nav > li { display: flex; align-items: center; }
+.ldh-header-actions .btn-group { position: relative; }
+
+/* ---------- dropdown menus: .open is toggled by the CSR btn-group handler ---------- */
+.btn-group .dropdown-menu { display: none; }
+.btn-group.open .dropdown-menu {
+  display: block;
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  min-width: 248px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-default);
+  border-radius: var(--r-md);
+  box-shadow: 0 16px 40px -12px rgba(15, 23, 42, 0.28), 0 4px 12px -4px rgba(15, 23, 42, 0.18);
+  padding: var(--sp-2);
+  z-index: 70;
+  list-style: none;
+  margin: 0;
+}
+.btn-group.open .dropdown-menu.pull-right { left: auto; right: 0; }
+.dropdown-menu > li > a, .dropdown-menu > li > button {
+  display: flex; align-items: center; gap: var(--sp-2);
+  width: 100%;
+  padding: 8px 10px;
+  border: 0; background: transparent;
+  border-radius: var(--r-sm);
+  font-size: var(--fs-sm); color: var(--fg-1); text-align: left;
+}
+.dropdown-menu > li > a:hover, .dropdown-menu > li > button:hover { background: var(--bg-hover); text-decoration: none; }
+.dropdown-menu > li.nav-header {
+  padding: 6px 10px 2px;
+  font-size: var(--fs-xs); font-weight: var(--fw-semibold);
+  letter-spacing: 0.06em; text-transform: uppercase;
+  color: var(--fg-hint);
+}
+.dropdown-menu > li.divider { height: 1px; margin: var(--sp-2) 0; background: var(--border-default); }
+
+/* ---------- left sidebar: flyout mechanics are CSR-driven inline styles ---------- */
+/* hidden by default; the body-edge onmousemove handler sets display: block, onmouseout hides it */
+.left-sidebar.ldh-sidebar { display: none; }
+/* tree/class lists are ul/li (CSR appends nested uls and toggles li .active) */
+.ldh-sidebar ul.nav { list-style: none; margin: 0; padding: 0; }
+.ldh-sidebar .sb-tree ul { list-style: none; margin: 0 0 0 var(--sp-4); padding: 0; }
+.ldh-sidebar .sb-tree li, .ldh-sidebar .sb-classes li, .ldh-sidebar .sb-other li { display: flex; align-items: center; }
+.ldh-sidebar .sb-tree li { flex-wrap: wrap; }
+.ldh-sidebar .sb-tree li > ul { flex-basis: 100%; }
+.ldh-sidebar .sb-tree li > a {
+  display: flex; align-items: center; gap: var(--sp-2);
+  flex: 1; min-width: 0;
+  padding: 5px 8px;
+  border-radius: var(--r-sm);
+  font-size: var(--fs-sm); color: var(--fg-2);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.ldh-sidebar .sb-tree li > a:hover { background: var(--bg-hover); color: var(--fg-1); text-decoration: none; }
+.ldh-sidebar .sb-tree li.active > a { background: var(--bg-accent-quiet); color: var(--ldh-blue-700); font-weight: var(--fw-medium); }
+/* expand/collapse carets: state is carried by btn-expand-tree <-> btn-expanded-tree */
+.btn-expand-tree, .btn-expanded-tree {
+  width: 18px; height: 18px; flex-shrink: 0;
+  border: 0; background: transparent; padding: 0;
+  color: var(--fg-hint);
+  font-family: 'Material Symbols Rounded'; font-size: 16px; line-height: 18px;
+}
+.btn-expand-tree::before { content: 'chevron_right'; }
+.btn-expanded-tree::before { content: 'expand_more'; }
+.btn-expand-tree:hover, .btn-expanded-tree:hover { color: var(--fg-1); }
+
+/* ---------- document tab bar: CSR toggles .active on the <li> ---------- */
+#tab-bar { display: block; }
+#tab-bar .container-fluid, #tab-bar .row-fluid { display: contents; }
+#tab-bar-list {
+  display: flex; align-items: stretch; gap: 2px;
+  padding: 0 var(--sp-6); margin: 0;
+  background: var(--surface-1);
+  border-bottom: 1px solid var(--border-default);
+  list-style: none;
+}
+#tab-bar-list > li { display: flex; }
+#tab-bar-list > li > a {
+  display: inline-flex; align-items: center; gap: var(--sp-2);
+  padding: var(--sp-2) var(--sp-4);
+  font-size: var(--fs-sm); font-weight: var(--fw-medium);
+  color: var(--fg-muted);
+  border-bottom: 2px solid transparent;
+  transition: color var(--dur-fast) var(--ease-out-soft), border-color var(--dur-fast) var(--ease-out-soft);
+}
+#tab-bar-list > li > a:hover { color: var(--fg-1); text-decoration: none; }
+#tab-bar-list > li.active > a { color: var(--fg-1); border-bottom-color: var(--ldh-blue-500); }

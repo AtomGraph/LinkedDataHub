@@ -6,7 +6,7 @@
 
 /* Core primitives (incl. the .msi icon base) — app pages link app.css directly,
    so the dependency is declared here rather than assumed from styles.css. */
-@import url('../core/core.css');
+@import url('core.css');
 
 * { box-sizing: border-box; }
 html, body { margin: 0; padding: 0; }

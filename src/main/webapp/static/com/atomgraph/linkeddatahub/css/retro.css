@@ -17,7 +17,7 @@
    the "blue is the only action colour" rule is suspended inside a retro theme.
    ========================================================================= */
 
-@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400..800&family=Audiowide&family=Antonio:wght@300..700&family=Share+Tech+Mono&family=Space+Mono:wght@400;700&display=swap');
+/* external skin fonts (Orbitron etc.) removed - only non-m3 retro skins reference them and LDH vendors all fonts locally */
 
 /* =========================================================================
    1 · TERMINAL DUSK  (Halt & Catch Fire)

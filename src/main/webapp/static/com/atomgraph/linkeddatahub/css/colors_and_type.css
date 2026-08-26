@@ -6,7 +6,7 @@
    ========================================================================= */
 
 /* Fonts loaded via Google Fonts — substitutions noted in README. */
-@import url('https://fonts.googleapis.com/css2?family=Geist:wght@300..800&family=Geist+Mono:wght@400..700&family=Instrument+Serif:ital@0;1&display=swap');
+/* Geist / Geist Mono / Instrument Serif vendored locally in fonts.css */
 
 :root {
   /* ---------- Color: Brand / Primary ---------- */

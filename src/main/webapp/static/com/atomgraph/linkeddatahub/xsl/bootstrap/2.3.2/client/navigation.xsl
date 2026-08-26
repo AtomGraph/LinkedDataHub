@@ -96,7 +96,7 @@ ORDER BY DESC(?created)
     <xsl:template name="ldh:LeftSidebar">
         <xsl:param name="base" select="ldt:base()" as="xs:anyURI"/>
         <xsl:param name="id" as="xs:string?"/>
-        <xsl:param name="class" select="'left-sidebar well well-small sidebar-nav'" as="xs:string?"/>
+        <xsl:param name="class" select="'left-sidebar ldh-sidebar'" as="xs:string?"/>
 
         <div>
             <xsl:if test="$id">
@@ -107,59 +107,62 @@ ORDER BY DESC(?created)
             </xsl:if>
 
             <!-- dataspace-scoped search form -->
-            <form class="form-search search-form" accept-charset="UTF-8" title="{ac:label(key('resources', 'search-title', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin))))}">
-                <div class="input-append">
-                    <input type="text" name="q" class="search-query" placeholder="{ac:label(key('resources', 'search-placeholder', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin))))}"/>
-                    <button type="submit">
-                        <xsl:apply-templates select="key('resources', 'search', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ldh:logo">
-                            <xsl:with-param name="class" select="'btn btn-primary'"/>
-                        </xsl:apply-templates>
-                    </button>
-                </div>
+            <form class="form-search search-form sb-search" accept-charset="UTF-8" title="{ac:label(key('resources', 'search-title', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin))))}">
+                <span class="msi sm" aria-hidden="true">search</span>
+                <input type="text" name="q" class="search-query" placeholder="{ac:label(key('resources', 'search-placeholder', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin))))}"/>
             </form>
 
             <!-- document tree container -->
-            <div class="document-tree">
-                <h2 class="nav-header btn">
+            <div class="document-tree sb-section">
+                <h2 class="nav-header sb-heading">
                     <xsl:apply-templates select="key('resources', 'document-tree', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
                 </h2>
 
-                <ul class="well well-small nav nav-list">
+                <ul class="nav nav-list sb-tree">
                     <li>
-                        <button class="btn btn-small btn-expand-tree"></button>
-                        <a href="{$base}" class="btn-logo btn-container">
-                            <xsl:apply-templates select="key('resources', 'root', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                        <button class="btn-expand-tree sb-caret"></button>
+                        <a href="{$base}" class="btn-container">
+                            <span class="msi sm sb-icon" aria-hidden="true">home</span>
+                            <span class="sb-label">
+                                <xsl:apply-templates select="key('resources', 'root', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                            </span>
                         </a>
                     </li>
                 </ul>
             </div>
 
             <!-- class list container -->
-            <div class="class-list">
-                <h2 class="nav-header btn">
+            <div class="class-list sb-section">
+                <h2 class="nav-header sb-heading">
                     <xsl:apply-templates select="key('resources', 'classes', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
                 </h2>
 
-                <ul class="well well-small nav nav-list">
+                <ul class="nav nav-list sb-classes">
                     <!-- class list will be loaded dynamically -->
                 </ul>
             </div>
 
             <!-- other section -->
-            <div class="other-views">
-                <h2 class="nav-header btn">
+            <div class="other-views sb-section">
+                <h2 class="nav-header sb-heading">
                     <xsl:apply-templates select="key('resources', 'other', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
                 </h2>
 
-                <ul class="well well-small nav nav-list">
+                <ul class="nav nav-list sb-other">
                     <li>
-                        <button type="button" class="btn btn-logo btn-geo">
-                            <xsl:apply-templates select="key('resources', 'geo', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                        <button type="button" class="btn-geo sb-other-row">
+                            <span class="msi sm" aria-hidden="true">location_on</span>
+                            <span>
+                                <xsl:apply-templates select="key('resources', 'geo', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                            </span>
                         </button>
                     </li>
                     <li>
-                        <button type="button" class="btn btn-logo btn-latest">
-                            <xsl:apply-templates select="key('resources', 'latest', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                        <button type="button" class="btn-latest sb-other-row">
+                            <span class="msi sm" aria-hidden="true">history</span>
+                            <span>
+                                <xsl:apply-templates select="key('resources', 'latest', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                            </span>
                         </button>
                     </li>
                 </ul>
@@ -282,7 +285,7 @@ ORDER BY DESC(?created)
         <li>
             <!-- only containers have can have children resources -->
             <xsl:if test="sioc:has_parent">
-                <button class="btn btn-small btn-expand-tree"></button>
+                <button class="btn-expand-tree sb-caret"></button>
             </xsl:if>
             
             <xsl:apply-templates select="@rdf:about" mode="xhtml:Anchor">

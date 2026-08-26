@@ -733,9 +733,10 @@ extension-element-prefixes="ixsl"
             </div>
 
             <!-- backlinks/related/parallax: grid columns under bs2, a block-scoped drawer in the design system.
-                 Both are CSR fill targets, so the placeholders are emitted unconditionally and the drawer stays
-                 collapsed until something populates them. -->
-            <div class="ldh-drawer">
+                 Both are CSR fill targets, so the placeholders are emitted unconditionally; .ldh-drawer is
+                 position:fixed and exists visibly only while open, so it ships hidden until the toolbar
+                 links button (or edge hover) opens it. -->
+            <div class="ldh-drawer" style="display: none">
                 <xsl:apply-templates select="." mode="bs2:Left"/>
 
                 <xsl:apply-templates select="." mode="bs2:Right"/>
