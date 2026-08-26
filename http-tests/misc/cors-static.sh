@@ -6,7 +6,7 @@ set -euo pipefail
 
 response=$(curl -i -k -s \
   -H "Origin: https://example.com" \
-  "${END_USER_BASE_URL}static/com/atomgraph/linkeddatahub/css/bootstrap.css")
+  "${END_USER_BASE_URL}static/com/atomgraph/linkeddatahub/css/ldh.css")
 
 # Verify Access-Control-Allow-Origin header is present
 if ! echo "$response" | grep -q "Access-Control-Allow-Origin: \*"; then
@@ -26,7 +26,7 @@ preflight=$(curl -i -k -s \
   -X OPTIONS \
   -H "Origin: https://example.com" \
   -H "Access-Control-Request-Method: GET" \
-  "${END_USER_BASE_URL}static/com/atomgraph/linkeddatahub/css/bootstrap.css")
+  "${END_USER_BASE_URL}static/com/atomgraph/linkeddatahub/css/ldh.css")
 
 # Verify preflight response has CORS headers
 if ! echo "$preflight" | grep -q "Access-Control-Allow-Origin: \*"; then
