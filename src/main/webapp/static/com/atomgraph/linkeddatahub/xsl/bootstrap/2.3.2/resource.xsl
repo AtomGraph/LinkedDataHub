@@ -569,7 +569,8 @@ extension-element-prefixes="ixsl"
     <!-- XHTML content overrides -->
     <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&ldh;XHTML'][rdf:value[@rdf:parseType = 'Literal']/xhtml:div]" mode="bs2:Row" priority="1">
         <xsl:param name="id" select="if (contains(@rdf:about, ac:absolute-path(ldh:base-uri(.)) || '#')) then substring-after(@rdf:about, ac:absolute-path(ldh:base-uri(.)) || '#') else generate-id()" as="xs:string?"/>
-        <xsl:param name="class" select="'block ldh-block'" as="xs:string?"/>
+        <!-- XHTML content is prose: quiet block, no card surface, reads as part of the page flow -->
+        <xsl:param name="class" select="'block ldh-block is-quiet'" as="xs:string?"/>
         <xsl:param name="about" select="@rdf:about" as="xs:anyURI?"/>
         <xsl:param name="typeof" select="rdf:type/@rdf:resource/xs:anyURI(.)" as="xs:anyURI*"/>
         <xsl:param name="main-class" select="'main ldh-block-body'" as="xs:string?"/>
@@ -679,9 +680,9 @@ extension-element-prefixes="ixsl"
             <xsl:if test="$id">
                 <xsl:attribute name="id" select="$id"/>
             </xsl:if>
-            <xsl:if test="$class or $diff-class">
-                <xsl:attribute name="class" select="string-join(($class, $diff-class), ' ')"/>
-            </xsl:if>
+            <!-- the wrapper keeps the 'block' anchor token but not the ldh-block card skin:
+                 the inner next-match block is the card, and skinning both stacked two cards -->
+            <xsl:attribute name="class" select="string-join(('block', $diff-class), ' ')"/>
             <xsl:if test="$about">
                 <xsl:attribute name="about" select="$about"/>
             </xsl:if>
