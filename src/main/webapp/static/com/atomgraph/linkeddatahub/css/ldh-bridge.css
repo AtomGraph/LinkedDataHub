@@ -460,3 +460,19 @@ form .control-group > .controls > .btn-group { order: 99; margin-left: auto; }
 .ldh-create-dock .ldh-add-wrap.open .ldh-add-menu { top: auto; bottom: calc(100% + 6px); }
 /* the modal dim overlay is pointer-inert, so hide the dock while a modal is open */
 body:has(.modal.fade.in) .ldh-create-dock { display: none; }
+
+/* ---------- toolbar buttons outside the design's scoped containers: app.css only styles .tb
+   inside .ldh-toolbar / .ldh-of-wrap / .ldh-block-head .actions, so the form-row remove/add
+   buttons (tb btn-remove-property, tb btn-add, tb btn-remove-resource) fell back to browser
+   chrome. Zero-specificity base so every scoped recipe still wins ---------- */
+:where(button.tb) {
+  width: 28px; height: 28px; padding: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: transparent;
+  border: 0; border-radius: var(--r-sm);
+  color: var(--fg-hint);
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease-out-soft), color var(--dur-fast) var(--ease-out-soft);
+}
+:where(button.tb):hover { background: var(--bg-hover); color: var(--fg-1); }
+:where(button.tb.btn-remove-property, button.tb.btn-remove-resource):hover { background: var(--danger-50); color: var(--danger-500); }
