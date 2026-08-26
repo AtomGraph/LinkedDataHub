@@ -38,7 +38,6 @@ body:has(#edit-toolbar) .action-bar { border-bottom: 1px solid #aaa; }
 button.btn.create-action { height: 30px; }
 a.external::after { content: "⤴"; padding-left: 0.2em; }
 a.btn.create-action { height: 20px; }
-.create-resource .btn.create-action { margin-top: 1em; }
 .btn-class { background: inherit; }
 .btn-class span { color: black; }
 li button.btn-edit-constructors, li button.btn-add-data, li button.btn-add-ontology, li button.btn-generate-containers { text-align: left; width: 100%; background-color: inherit; }

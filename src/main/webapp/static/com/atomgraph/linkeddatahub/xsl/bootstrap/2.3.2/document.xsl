@@ -701,23 +701,22 @@ extension-element-prefixes="ixsl"
     <xsl:template match="rdf:RDF" mode="ldh:ContentList">
         <xsl:apply-templates select="key('resources', ac:absolute-path(ldh:base-uri(.)))" mode="#current"/>
         
-        <!-- only show buttons to agents who have sufficient access to modify them -->
+        <!-- only show buttons to agents who have sufficient access to modify them.
+             The dock floats bottom-right, clear of the right-edge drawer strip -->
         <xsl:if test="acl:mode() = '&acl;Append'">
-            <div class="create-resource block-row">
-                <div class="main">
-                    <button type="button" class="ldh-btn is-ghost create-action add-constructor" data-for-class="&ldh;XHTML">
-                        <span class="msi sm" aria-hidden="true">notes</span>
-                        <span>
-                            <xsl:apply-templates select="key('resources', '&ldh;XHTML', document(ac:document-uri('&ldh;')))" mode="ac:label"/>
-                        </span>
-                    </button>
-                    <button type="button" class="ldh-btn is-ghost create-action add-constructor" data-for-class="&ldh;Object">
-                        <span class="msi sm" aria-hidden="true">data_object</span>
-                        <span>
-                            <xsl:apply-templates select="key('resources', '&ldh;Object', document(ac:document-uri('&ldh;')))" mode="ac:label"/>
-                        </span>
-                    </button>
-                </div>
+            <div class="create-resource ldh-create-dock">
+                <button type="button" class="ldh-btn create-action add-constructor" data-for-class="&ldh;XHTML">
+                    <span class="msi sm" aria-hidden="true">add</span>
+                    <span>
+                        <xsl:apply-templates select="key('resources', '&ldh;XHTML', document(ac:document-uri('&ldh;')))" mode="ac:label"/>
+                    </span>
+                </button>
+                <button type="button" class="ldh-btn create-action add-constructor" data-for-class="&ldh;Object">
+                    <span class="msi sm" aria-hidden="true">add</span>
+                    <span>
+                        <xsl:apply-templates select="key('resources', '&ldh;Object', document(ac:document-uri('&ldh;')))" mode="ac:label"/>
+                    </span>
+                </button>
             </div>
         </xsl:if>
     </xsl:template>
@@ -747,12 +746,10 @@ extension-element-prefixes="ixsl"
         </xsl:apply-templates>
         
         <xsl:if test="$create-resource and acl:mode() = '&acl;Append' and not(key('resources-by-type', '&http;Response'))">
-            <div class="create-resource block-row">
-                <div class="main">
-                    <xsl:apply-templates select="." mode="bs2:Create">
-                        <xsl:with-param name="classes" select="$classes"/>
-                    </xsl:apply-templates>
-                </div>
+            <div class="create-resource ldh-create-dock">
+                <xsl:apply-templates select="." mode="bs2:Create">
+                    <xsl:with-param name="classes" select="$classes"/>
+                </xsl:apply-templates>
             </div>
         </xsl:if>
     </xsl:template>

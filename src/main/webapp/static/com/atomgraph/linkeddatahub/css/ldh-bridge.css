@@ -441,3 +441,22 @@ form .control-group > .controls > .btn-group { order: 99; margin-left: auto; }
 /* the wordmark's white ink is header-bar styling; on the footer's light surface it takes body ink
    (the design sets this inline on the footer wordmark) */
 .ldh-footer .ldh-wordmark { color: var(--fg-1); }
+
+/* ---------- floating create dock: document-level creation (content mode's XHTML/Object,
+   the row modes' Create picker) floats bottom-right, like Drive's compose cluster.
+   Its right edge clears the right-edge drawer strip (and so aligns with the action bar's
+   timestamp control, which ends where that strip begins) ---------- */
+:root { --ldh-drawer-w: 360px; } /* mirrors app.css .ldh-drawer width */
+.ldh-create-dock {
+  position: fixed;
+  right: calc(min(var(--ldh-drawer-w), 92vw) + var(--sp-6));
+  bottom: var(--sp-6);
+  display: flex; align-items: center; gap: var(--sp-2);
+  z-index: 24; /* above content, below the drawer (25) and modal chrome */
+  margin: 0;
+}
+.ldh-create-dock .ldh-btn { box-shadow: var(--shadow-lg); }
+/* the class-picker menu opens upward from the dock, not into the viewport edge */
+.ldh-create-dock .ldh-add-wrap.open .ldh-add-menu { top: auto; bottom: calc(100% + 6px); }
+/* the modal dim overlay is pointer-inert, so hide the dock while a modal is open */
+body:has(.modal.fade.in) .ldh-create-dock { display: none; }
