@@ -313,6 +313,16 @@ ul.pager > li > a {
 ul.pager > li > a.active { color: var(--fg-1); pointer-events: auto; cursor: pointer; }
 ul.pager > li > a.active:hover { background: var(--bg-hover); text-decoration: none; }
 
+/* ---------- fieldsets/legends: sections, not Bootstrap-era boxes ---------- */
+fieldset { border: 0; padding: 0; margin: 0 0 var(--sp-4); min-inline-size: 0; }
+legend {
+  padding: 0; margin: 0 0 var(--sp-2);
+  font-family: var(--font-mono); font-size: 10px;
+  letter-spacing: var(--tracking-wide); text-transform: uppercase;
+  color: var(--fg-muted);
+}
+.chart-controls .field select[multiple] { height: auto; }
+
 /* ---------- read-mode property lists: dt/dd pairs styled as property rows ---------- */
 .ldh-block dl {
   display: grid;

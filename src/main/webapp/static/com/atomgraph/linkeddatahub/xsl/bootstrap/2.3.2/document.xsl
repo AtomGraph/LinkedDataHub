@@ -867,8 +867,8 @@ extension-element-prefixes="ixsl"
                 </xsl:if>
                 
                 <fieldset>
-                    <div class="block-row">
-                        <div>
+                    <div class="chart-controls">
+                        <div class="field">
                             <label for="{$chart-type-id}">
                                 <xsl:value-of>
                                     <xsl:apply-templates select="key('resources', '&ldh;chartType', document(ac:document-uri('&ldh;')))" mode="ac:label"/>
@@ -913,7 +913,7 @@ extension-element-prefixes="ixsl"
                                 </option>
                             </select>
                         </div>
-                        <div>
+                        <div class="field">
                             <label for="{$category-id}">Category</label>
                             <select id="{$category-id}" name="ou" class="chart-category">
                                 <option value="">
@@ -940,7 +940,7 @@ extension-element-prefixes="ixsl"
                                 </xsl:for-each-group>
                             </select>
                         </div>
-                        <div>
+                        <div class="field">
                             <label for="{$series-id}">Series</label>
                             <select id="{$series-id}" name="ou" multiple="multiple" class="chart-series">
                                 <xsl:for-each-group select="*/*" group-by="concat(namespace-uri(), local-name())">
@@ -1028,8 +1028,8 @@ extension-element-prefixes="ixsl"
                 </xsl:if>
                 
                 <fieldset>
-                    <div class="block-row">
-                        <div>
+                    <div class="chart-controls">
+                        <div class="field">
                             <label for="{$chart-type-id}">
                                 <xsl:value-of>
                                     <xsl:apply-templates select="key('resources', '&ldh;chartType', document(ac:document-uri('&ldh;')))" mode="ac:label"/>
@@ -1073,7 +1073,7 @@ extension-element-prefixes="ixsl"
                                 </option>
                             </select>
                         </div>
-                        <div>
+                        <div class="field">
                             <xsl:call-template name="xhtml:Input">
                                 <xsl:with-param name="name" select="'pu'"/>
                                 <xsl:with-param name="type" select="'hidden'"/>
@@ -1095,7 +1095,7 @@ extension-element-prefixes="ixsl"
                                 </xsl:for-each>
                             </select>
                         </div>
-                        <div>
+                        <div class="field">
                             <label for="{$series-id}">Series</label>
                             <select id="{$series-id}" name="ol" multiple="multiple" class="chart-series">
                                 <xsl:for-each select="srx:head/srx:variable">
