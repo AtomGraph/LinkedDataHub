@@ -280,6 +280,8 @@ extension-element-prefixes="ixsl"
                 <xsl:with-param name="active-mode" select="$active-mode"/>
                 <xsl:with-param name="ajax-rendering" select="$ldh:ajaxRendering"/>
             </xsl:apply-templates>
+
+            <xsl:apply-templates select="." mode="bs2:ExportList"/>
         </div>
     </xsl:template>
     
@@ -363,6 +365,35 @@ extension-element-prefixes="ixsl"
                         <span class="ldh-of-div" aria-hidden="true"></span>
                     </xsl:if>
 
+                    <button type="button" class="it is-danger btn-delete{if ($delete-disabled) then ' disabled' else ()}">
+                        <span class="msi sm" aria-hidden="true">delete</span>
+                        <span class="it-txt">
+                            <xsl:apply-templates select="key('resources', '&ac;Delete', document(ac:document-uri('&ac;')))" mode="ac:label"/>
+                        </span>
+                    </button>
+                </div>
+            </div>
+        </xsl:if>
+    </xsl:template>
+    
+    <!-- EXPORT LIST -->
+
+    <xsl:template match="rdf:RDF[key('resources-by-type', '&http;Response')]" mode="bs2:ExportList" priority="1"/>
+
+    <xsl:template match="rdf:RDF | srx:sparql" mode="bs2:ExportList">
+        <xsl:param name="uri" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/>
+
+        <xsl:if test="$foaf:Agent//@rdf:about">
+            <div class="ldh-of-wrap btn-group">
+                <button type="button" class="ldh-btn is-ghost dropdown-toggle">
+                    <xsl:attribute name="title">
+                        <xsl:apply-templates select="key('resources', 'nav-bar-action-export-rdf-title', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                    </xsl:attribute>
+
+                    <span class="msi sm" aria-hidden="true">download</span>
+                </button>
+
+                <div class="ldh-of-menu">
                     <!-- RDF export links, one per serialization (target=_blank exempts them from CSR link interception) -->
                     <a class="it" href="{ac:build-uri(ac:absolute-path(ldh:request-uri()), let $params := map{ 'accept': 'application/rdf+xml' } return if (ac:uri()) then map:merge(($params, map{ 'uri': string($uri) })) else $params)}" title="application/rdf+xml" target="_blank">
                         <span class="msi sm" aria-hidden="true">download</span>
@@ -376,20 +407,11 @@ extension-element-prefixes="ixsl"
                         <span class="msi sm" aria-hidden="true">download</span>
                         <span class="it-txt"><xsl:value-of select="ac:label(key('resources', 'json-ld', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin))))"/></span>
                     </a>
-
-                    <span class="ldh-of-div" aria-hidden="true"></span>
-
-                    <button type="button" class="it is-danger btn-delete{if ($delete-disabled) then ' disabled' else ()}">
-                        <span class="msi sm" aria-hidden="true">delete</span>
-                        <span class="it-txt">
-                            <xsl:apply-templates select="key('resources', '&ac;Delete', document(ac:document-uri('&ac;')))" mode="ac:label"/>
-                        </span>
-                    </button>
                 </div>
             </div>
         </xsl:if>
     </xsl:template>
-    
+
     <!-- MODE LIST -->
 
     <xsl:template match="rdf:RDF[key('resources-by-type', '&http;Response')][not(key('resources-by-type', '&spin;ConstraintViolation'))] | rdf:RDF[key('resources-by-type', '&http;Response')][not(key('resources-by-type', '&sh;ValidationResult'))]" mode="bs2:ModeList" priority="1"/>
