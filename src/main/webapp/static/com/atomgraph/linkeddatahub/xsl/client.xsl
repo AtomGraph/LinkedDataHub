@@ -397,7 +397,7 @@ WHERE
 
         <xsl:for-each select="$container">
             <xsl:result-document href="?." method="ixsl:replace-content">
-                <ul class="breadcrumb pull-left"/>
+                <ul class="breadcrumb ldh-bc ldh-breadcrumb"/>
             </xsl:result-document>
         </xsl:for-each>
         <xsl:sequence select="ldh:breadcrumb-resource-response(map{

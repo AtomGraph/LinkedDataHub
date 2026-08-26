@@ -275,12 +275,12 @@ extension-element-prefixes="ixsl"
                 <xsl:attribute name="class" select="$class"/>
             </xsl:if>
 
+            <xsl:apply-templates select="." mode="bs2:NavBarActions"/>
+
             <xsl:apply-templates select="." mode="bs2:MediaTypeList">
                 <xsl:with-param name="uri" select="ac:absolute-path(ldh:base-uri(.))"/>
             </xsl:apply-templates>
 
-            <xsl:apply-templates select="." mode="bs2:NavBarActions"/>
-            
             <xsl:apply-templates select="." mode="bs2:ModeList">
                 <xsl:with-param name="active-mode" select="$active-mode"/>
                 <xsl:with-param name="ajax-rendering" select="$ldh:ajaxRendering"/>
@@ -331,23 +331,23 @@ extension-element-prefixes="ixsl"
         <xsl:param name="edit-disabled" select="not(acl:mode() = '&acl;Write')" as="xs:boolean"/>
         
         <xsl:if test="$foaf:Agent//@rdf:about">
-            <button type="button" class="btn-delete tb{if ($delete-disabled) then ' disabled' else ()}" title="{ac:label(key('resources', 'nav-bar-action-delete-title', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin))))}">
-                <span class="msi sm" aria-hidden="true">delete</span>
-            </button>
-
             <xsl:if test="$ldh:ajaxRendering">
-                <button type="button" class="btn-save-as tb{if ($save-as-disabled) then ' disabled' else ()}" title="{ac:label(key('resources', 'save-as-title', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin))))}">
-                    <span class="msi sm" aria-hidden="true">save_as</span>
+                <button type="button" class="btn-edit tb{if ($edit-disabled) then ' disabled' else ()}" title="{ac:label(key('resources', '&ac;EditMode', document(ac:document-uri('&ac;'))))}">
+                    <span class="msi sm" aria-hidden="true">edit</span>
                 </button>
 
                 <button type="button" class="btn-acl btn-access-form tb" title="{ac:label(key('resources', 'acl-list-title', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin))))}">
                     <span class="msi sm" aria-hidden="true">lock_person</span>
                 </button>
 
-                <button type="button" class="btn-edit tb{if ($edit-disabled) then ' disabled' else ()}" title="{ac:label(key('resources', '&ac;EditMode', document(ac:document-uri('&ac;'))))}">
-                    <span class="msi sm" aria-hidden="true">edit</span>
+                <button type="button" class="btn-save-as tb{if ($save-as-disabled) then ' disabled' else ()}" title="{ac:label(key('resources', 'save-as-title', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin))))}">
+                    <span class="msi sm" aria-hidden="true">save_as</span>
                 </button>
             </xsl:if>
+
+            <button type="button" class="btn-delete tb{if ($delete-disabled) then ' disabled' else ()}" title="{ac:label(key('resources', 'nav-bar-action-delete-title', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin))))}">
+                <span class="msi sm" aria-hidden="true">delete</span>
+            </button>
         </xsl:if>
     </xsl:template>
     

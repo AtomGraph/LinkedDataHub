@@ -330,18 +330,31 @@ extension-element-prefixes="ixsl"
 
     <xsl:template match="*[@rdf:about]" mode="bs2:BreadCrumbListItem">
         <xsl:param name="leaf" select="true()" as="xs:boolean"/>
-        
+        <!-- crumb icon by document type, as in the design system's breadcrumb -->
+        <xsl:param name="icon" as="xs:string">
+            <xsl:choose>
+                <xsl:when test="rdf:type/@rdf:resource = ('&def;Root', '&dh;Container')">folder</xsl:when>
+                <xsl:when test="rdf:type/@rdf:resource = '&dh;Item'">description</xsl:when>
+                <xsl:otherwise>link</xsl:otherwise>
+            </xsl:choose>
+        </xsl:param>
+
+        <!-- same href recipe as the xhtml:Anchor override in imports/default.xsl; the crumb builds its
+             own <a> because the design puts a glyph inside it, which the anchor mode cannot emit -->
+        <xsl:variable name="fragment" select="ac:fragment-id(@rdf:about)" as="xs:string?"/>
+
         <li>
-            <xsl:variable name="class" as="xs:string?">
-                <xsl:apply-templates select="." mode="ldh:logo"/>
-            </xsl:variable>
-            <xsl:apply-templates select="@rdf:about" mode="xhtml:Anchor">
-                <xsl:with-param name="id" select="()"/>
-                <xsl:with-param name="class" select="$class"/>
-            </xsl:apply-templates>
+            <a href="{ldh:href(ac:document-uri(xs:anyURI(@rdf:about)), map{}, $fragment)}" title="{@rdf:about}" class="crumb{if ($leaf) then ' is-current' else ()}">
+                <span class="msi sm" aria-hidden="true">
+                    <xsl:value-of select="$icon"/>
+                </span>
+                <span>
+                    <xsl:apply-templates select="." mode="ac:label"/>
+                </span>
+            </a>
 
             <xsl:if test="not($leaf)">
-                <span class="divider">/</span>
+                <span class="sep">/</span>
             </xsl:if>
         </li>
     </xsl:template>

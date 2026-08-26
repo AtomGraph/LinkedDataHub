@@ -138,17 +138,7 @@ ul.breadcrumb.ldh-bc {
   min-width: 0; overflow: hidden;
 }
 ul.breadcrumb.ldh-bc > li { display: inline-flex; align-items: center; gap: 2px; white-space: nowrap; }
-ul.breadcrumb.ldh-bc a {
-  display: inline-flex; align-items: center; gap: var(--sp-2);
-  padding: 4px 8px;
-  border-radius: var(--r-sm);
-  color: var(--fg-link);
-  transition: background var(--dur-fast) var(--ease-out-soft);
-  white-space: nowrap;
-}
-ul.breadcrumb.ldh-bc a:hover { background: var(--bg-hover); text-decoration: none; }
-ul.breadcrumb.ldh-bc .divider { color: var(--fg-hint); font-size: var(--fs-sm); }
-ul.breadcrumb.ldh-bc > li.active { color: var(--fg-1); font-weight: var(--fw-medium); padding: 4px 8px; }
+/* .crumb / .sep / .is-current inside the items are styled by app.css (.ldh-breadcrumb) */
 
 /* ---------- block header actions / drawer content hydrated by CSR ---------- */
 .ldh-block-head .actions .pull-right { display: flex; gap: var(--sp-1); }
