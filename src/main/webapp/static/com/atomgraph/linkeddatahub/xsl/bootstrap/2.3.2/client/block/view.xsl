@@ -307,7 +307,7 @@ exclude-result-prefixes="#all"
                     <xsl:apply-templates select="." mode="ac:label"/>
                 </xsl:value-of>
 
-                <span class="caret caret-reversed pull-right"></span>
+                <span class="caret caret-reversed"></span>
                 <input type="hidden" name="subject" value="{$subject-var-name}"/>
                 <input type="hidden" name="predicate" value="{@rdf:about}"/>
                 <input type="hidden" name="object" value="{$object-var-name}"/>

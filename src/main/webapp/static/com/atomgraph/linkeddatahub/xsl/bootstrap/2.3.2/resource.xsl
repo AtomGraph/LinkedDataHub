@@ -438,7 +438,7 @@ extension-element-prefixes="ixsl"
                             <xsl:apply-templates select="key('resources', 'backlinks', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
                         </xsl:value-of>
 
-                        <span class="caret caret-reversed pull-right"></span>
+                        <span class="caret caret-reversed"></span>
                     </h2>
                     <!-- will be hydrated by client.xsl TO-DO: move to client-side -->
                 </div>
@@ -904,15 +904,15 @@ extension-element-prefixes="ixsl"
 
     <xsl:template match="*[@rdf:about]" mode="bs2:Actions" priority="1">
         <xsl:param name="show-edit-button" select="true()" as="xs:boolean" tunnel="yes"/>
-        
-        <div class="pull-right">
+
+        <div>
             <!--
             <xsl:if test="doc-available($app-request-uri)">
                 <xsl:variable name="apps" select="document($app-request-uri)" as="document-node()"/>
                 <xsl:if test="$apps//*[sd:endpoint/@rdf:resource]">
                     <xsl:variable name="resource" select="." as="element()"/>
                     
-                    <div class="btn-group pull-left">
+                    <div class="btn-group">
                         <button type="button" class="btn dropdown-toggle">
                             <xsl:attribute name="title">
                                 <xsl:apply-templates select="key('resources', 'reconcile-title', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
@@ -1693,12 +1693,12 @@ extension-element-prefixes="ixsl"
                     <xsl:attribute name="title" select="$title"/>
                 </xsl:if>
 
-                <span class="pull-left">
+                <span>
                     <xsl:value-of>
                         <xsl:apply-templates select="." mode="ac:label"/>
                     </xsl:value-of>
                 </span>
-                <span class="msi caret pull-right" aria-hidden="true">expand_more</span>
+                <span class="msi caret" aria-hidden="true">expand_more</span>
 
                 <xsl:if test="@rdf:about">
                     <input type="hidden" name="ou" value="{@rdf:about}"/>

@@ -584,7 +584,7 @@ exclude-result-prefixes="#all">
          TO-DO: refactor into component templates -->
     <xsl:template match="rdf:RDF[starts-with(replace(lapp:origin(), '^https?://', ''), 'admin.')]" mode="bs2:NavBarNavList" priority="1">
         <xsl:if test="$foaf:Agent//@rdf:about">
-            <ul class="nav pull-right">
+            <ul class="nav">
                 <xsl:variable name="notification-query" as="xs:string">
                     <![CDATA[
 PREFIX  rdfs: <http://www.w3.org/2000/01/rdf-schema#>
@@ -662,7 +662,7 @@ WHERE
 
     <xsl:template match="rdf:RDF[lapp:origin()][key('apps-by-origin', lapp:origin(), $lapp:Context)/rdf:type/@rdf:resource = '&lapp;EndUserApplication'] | srx:sparql[lapp:origin()][key('apps-by-origin', lapp:origin(), $lapp:Context)/rdf:type/@rdf:resource = '&lapp;EndUserApplication']" mode="bs2:DataspaceNavList" priority="1">
         <xsl:param name="id"  as="xs:string?"/>
-        <xsl:param name="class" select="'nav pull-right'" as="xs:string?"/>
+        <xsl:param name="class" select="'nav'" as="xs:string?"/>
 
         <ul>
             <xsl:if test="$id">
@@ -754,7 +754,7 @@ WHERE
 
         <!-- OAuth providers dropdown -->
         <xsl:if test="$google-signup or $orcid-signup">
-            <div class="btn-group pull-right">
+            <div class="btn-group">
                 <button type="button" class="btn btn-primary dropdown-toggle ldhc-btn in-primary sz-sm">
                     <xsl:value-of>
                         <xsl:apply-templates select="key('resources', 'login', document('translations.rdf'))" mode="ac:label"/>
@@ -788,7 +788,7 @@ WHERE
         </xsl:if>
         <!-- WebID signup - separate button -->
         <xsl:if test="$webid-signup">
-            <div class="pull-right">
+            <div>
                 <a class="btn btn-primary ldhc-btn in-primary sz-sm" href="{if (not(starts-with($ldt:base, lapp:origin()))) then ac:build-uri((), map{ 'uri': string($webid-signup-uri) }) else $webid-signup-uri}">
                     <xsl:value-of>
                         <xsl:apply-templates select="key('resources', 'sign-up', document('translations.rdf'))" mode="ac:label"/>
@@ -1006,7 +1006,7 @@ WHERE
     <!-- SETTINGS -->
     
     <xsl:template match="rdf:RDF[lapp:origin()] | srx:sparql[lapp:origin()]" mode="bs2:Settings" priority="1">
-        <div class="btn-group pull-right">
+        <div class="btn-group">
             <button type="button" class="btn dropdown-toggle ldh-icon-btn" title="{ac:label(key('resources', 'nav-bar-action-settings-title', document('translations.rdf')))}">
                 <span class="msi outline" aria-hidden="true">settings</span>
             </button>

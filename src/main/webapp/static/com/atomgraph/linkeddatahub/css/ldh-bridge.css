@@ -24,6 +24,8 @@
 :where(.btn-primary, .btn.btn-primary):hover { background: var(--bg-accent-hover); }
 /* real specificity: something upstream colors buttons with the link color, which disappears on the accent fill */
 .btn-primary { color: var(--fg-on-accent); }
+/* pull-left/right survive only in unported interior markup (form rows, typeahead metadata)
+   and as the alignment signal on ul.dropdown-menu; floats are inert in the flex chrome */
 :where(.pull-right) { float: right; }
 :where(.pull-left) { float: left; }
 /* carets are Material glyphs. Static ones ship <span class="msi caret">expand_more</span>;
@@ -170,7 +172,7 @@ div.breadcrumb.ldh-bc { min-width: 0; overflow: hidden; }
 .ldh-address input[type="text"]:focus { border: 0; box-shadow: none; }
 
 /* ---------- block header actions / drawer content hydrated by CSR ---------- */
-.ldh-block-head .actions .pull-right { display: flex; gap: var(--sp-1); }
+.ldh-block-head .actions > div { display: flex; gap: var(--sp-1); }
 .ldh-block-head .actions .tb.disabled { opacity: 0.4; pointer-events: none; }
 .ldh-drawer .db ul.nav { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
 .ldh-drawer .db ul.nav a {
