@@ -908,8 +908,9 @@ for app in "${apps[@]}"; do
             owner_auth_dataset_path="/var/linkeddatahub/datasets/${app_folder}/owner-authorization.trig"
             mkdir -p "$(dirname "$owner_auth_dataset_path")"
 
-            OWNER_AUTH_UUID=$(uuidgen | tr '[:upper:]' '[:lower:]')
-            OWNER_AUTH_DOC_URI="${app_origin}/acl/authorizations/${OWNER_AUTH_UUID}/"
+            # a stable slug, like every authorization bundled in admin.trig: a fresh UUID per run made this
+            # document new every time, so each container recreate left another copy of the same grant behind
+            OWNER_AUTH_DOC_URI="${app_origin}/acl/authorizations/owner-webid/"
             OWNER_AUTH_URI="${OWNER_AUTH_DOC_URI}#auth"
 
             export OWNER_URI OWNER_DOC_URI OWNER_KEY_DOC_URI OWNER_AUTH_DOC_URI OWNER_AUTH_URI
@@ -923,8 +924,7 @@ for app in "${apps[@]}"; do
             secretary_auth_dataset_path="/var/linkeddatahub/datasets/${app_folder}/secretary-authorization.trig"
             mkdir -p "$(dirname "$secretary_auth_dataset_path")"
 
-            SECRETARY_AUTH_UUID=$(uuidgen | tr '[:upper:]' '[:lower:]')
-            SECRETARY_AUTH_DOC_URI="${app_origin}/acl/authorizations/${SECRETARY_AUTH_UUID}/"
+            SECRETARY_AUTH_DOC_URI="${app_origin}/acl/authorizations/secretary-webid/"
             SECRETARY_AUTH_URI="${SECRETARY_AUTH_DOC_URI}#auth"
 
             export SECRETARY_URI SECRETARY_DOC_URI SECRETARY_KEY_DOC_URI SECRETARY_AUTH_DOC_URI SECRETARY_AUTH_URI
