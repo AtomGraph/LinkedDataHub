@@ -464,7 +464,7 @@ ORDER BY DESC(?created)
                         </xsl:if>
 
                         <!-- append to the breadcrumb list -->
-                        <xsl:for-each select="$container/ul">
+                        <xsl:for-each select="$container/div[contains-token(@class, 'ldh-bc')]">
                             <xsl:variable name="content" select="*" as="element()*"/>
                             <!-- we want to prepend the parent resource to the beginning of the breadcrumb list -->
                             <xsl:result-document href="?." method="ixsl:replace-content">

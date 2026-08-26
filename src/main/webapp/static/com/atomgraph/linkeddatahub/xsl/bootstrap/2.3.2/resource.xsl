@@ -343,20 +343,18 @@ extension-element-prefixes="ixsl"
              own <a> because the design puts a glyph inside it, which the anchor mode cannot emit -->
         <xsl:variable name="fragment" select="ac:fragment-id(@rdf:about)" as="xs:string?"/>
 
-        <li>
-            <a href="{ldh:href(ac:document-uri(xs:anyURI(@rdf:about)), map{}, $fragment)}" title="{@rdf:about}" class="crumb{if ($leaf) then ' is-current' else ()}">
-                <span class="msi sm" aria-hidden="true">
-                    <xsl:value-of select="$icon"/>
-                </span>
-                <span>
-                    <xsl:apply-templates select="." mode="ac:label"/>
-                </span>
-            </a>
+        <a href="{ldh:href(ac:document-uri(xs:anyURI(@rdf:about)), map{}, $fragment)}" title="{@rdf:about}" class="bc-pill{if ($leaf) then ' is-current' else ()}">
+            <span class="msi sm" aria-hidden="true">
+                <xsl:value-of select="$icon"/>
+            </span>
+            <span>
+                <xsl:apply-templates select="." mode="ac:label"/>
+            </span>
+        </a>
 
-            <xsl:if test="not($leaf)">
-                <span class="sep">/</span>
-            </xsl:if>
-        </li>
+        <xsl:if test="not($leaf)">
+            <span class="msi sm bc-sep" aria-hidden="true">chevron_right</span>
+        </xsl:if>
     </xsl:template>
     
     <!-- BLOCK LINKS DRAWER -->
@@ -467,25 +465,19 @@ extension-element-prefixes="ixsl"
                 <xsl:map-entry key="'&ac;GraphMode'" select="'graph-mode'"/>
             </xsl:map>
         </xsl:param>
-        <xsl:param name="class" select="map:get($mode-classes, @rdf:about) || (if ($active) then ' active' else ())" as="xs:string?"/>
+        <xsl:param name="class" select="map:get($mode-classes, @rdf:about) || (if ($active) then ' is-active active' else ())" as="xs:string?"/>
 
-        <li>
-            <xsl:if test="$class">
-                <xsl:attribute name="class" select="$class"/>
+        <a class="mi{if ($class) then ' ' || $class else ()}">
+            <xsl:if test="$href">
+                <xsl:attribute name="href" select="$href"/>
             </xsl:if>
-
-            <a>
-                <xsl:if test="$href">
-                    <xsl:attribute name="href" select="$href"/>
-                </xsl:if>
-                <span class="msi sm" aria-hidden="true">
-                    <xsl:value-of select="map:get($ldh:mode-icons, string(@rdf:about))"/>
-                </span>
-                <xsl:value-of>
-                    <xsl:apply-templates select="." mode="ac:label"/>
-                </xsl:value-of>
-            </a>
-        </li>
+            <span class="msi sm" aria-hidden="true">
+                <xsl:value-of select="map:get($ldh:mode-icons, string(@rdf:about))"/>
+            </span>
+            <span class="label-col">
+                <xsl:apply-templates select="." mode="ac:label"/>
+            </span>
+        </a>
     </xsl:template>
 
     <!-- DEFAULT -->
@@ -1083,15 +1075,31 @@ extension-element-prefixes="ixsl"
         <xsl:param name="request-uri" select="ldh:href(ac:document-uri(@rdf:about), map{ 'accept': 'application/rdf+xml' }, ())" as="xs:anyURI" use-when="system-property('xsl:product-name') = 'SaxonJS'"/>
         <xsl:param name="request-uri" select="ac:document-uri(@rdf:about)" as="xs:anyURI" use-when="system-property('xsl:product-name') = 'SAXON'"/>
 
+        <xsl:param name="icon" as="xs:string">
+            <xsl:choose>
+                <xsl:when test="@rdf:about = '&dh;Container'">folder</xsl:when>
+                <xsl:when test="@rdf:about = '&dh;Item'">description</xsl:when>
+                <xsl:otherwise>category</xsl:otherwise>
+            </xsl:choose>
+        </xsl:param>
+
         <xsl:if test="doc-available($request-uri)">
-            <li>
-                <xsl:apply-templates select="." mode="bs2:Constructor">
-                    <xsl:with-param name="id" select="()"/>
-                    <xsl:with-param name="with-label" select="$with-label"/>
-                    <xsl:with-param name="create-graph" select="$create-graph"/>
-                    <xsl:with-param name="request-uri" select="$request-uri"/>
-                </xsl:apply-templates>
-            </li>
+            <button type="button" class="it add-constructor" title="{@rdf:about}" data-for-class="{@rdf:about}">
+                <xsl:if test="$create-graph">
+                    <xsl:attribute name="data-create-graph" select="'true'"/>
+                </xsl:if>
+
+                <span class="ico">
+                    <span class="msi sm" aria-hidden="true">
+                        <xsl:value-of select="$icon"/>
+                    </span>
+                </span>
+                <span class="body">
+                    <span class="lbl">
+                        <xsl:apply-templates select="." mode="ac:label"/>
+                    </span>
+                </span>
+            </button>
         </xsl:if>
     </xsl:template>
     

@@ -567,7 +567,7 @@ exclude-result-prefixes="#all">
     <xsl:template match="rdf:RDF[doc-available(resolve-uri('sparql?query=ASK%20%7B%7D', $ldt:base))] | srx:sparql[doc-available(resolve-uri('sparql?query=ASK%20%7B%7D', $ldt:base))]" mode="bs2:SearchBar" priority="1">
         <form action="{ac:absolute-path(ldh:request-uri())}" method="get" class="navbar-form ldh-address" accept-charset="UTF-8" title="{ac:label(key('resources', 'address-bar-title', document('translations.rdf')))}">
             <span class="msi outline" aria-hidden="true">public</span>
-            <input type="text" id="uri" name="uri" spellcheck="false" autocomplete="off"/>
+            <input type="text" id="uri" name="uri" value="{ac:absolute-path(ldh:request-uri())}" spellcheck="false" autocomplete="off"/>
         </form>
     </xsl:template>
 

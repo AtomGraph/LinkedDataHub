@@ -397,7 +397,7 @@ WHERE
 
         <xsl:for-each select="$container">
             <xsl:result-document href="?." method="ixsl:replace-content">
-                <ul class="breadcrumb ldh-bc ldh-breadcrumb"/>
+                <div class="breadcrumb ldh-bc ldh-bc-pills"/>
             </xsl:result-document>
         </xsl:for-each>
         <xsl:sequence select="ldh:breadcrumb-resource-response(map{
@@ -909,16 +909,9 @@ WHERE
 
         <xsl:variable name="href" select="ldh:href($doc-uri, $query-params, $fragment)" as="xs:anyURI"/>
 
-        <!-- address bar shows the resource URI (with fragment) for external, blank for local -->
+        <!-- address bar always shows the document URI (with fragment), as in the design system's Header -->
         <xsl:for-each select="id('uri', ixsl:page())">
-            <xsl:choose>
-                <xsl:when test="not(starts-with($doc-uri, lapp:origin(ldh:request-uri()) || '/'))">
-                    <ixsl:set-property name="value" select="$doc-uri || (if ($fragment) then '#' || $fragment else '')" object="."/>
-                </xsl:when>
-                <xsl:otherwise>
-                    <ixsl:set-property name="value" select="''" object="."/>
-                </xsl:otherwise>
-            </xsl:choose>
+            <ixsl:set-property name="value" select="$doc-uri || (if ($fragment) then '#' || $fragment else '')" object="."/>
         </xsl:for-each>
 
         <xsl:if test="$push-state">
@@ -970,17 +963,9 @@ WHERE
 
         <xsl:variable name="href" select="ldh:href($doc-uri, $query-params, $fragment)" as="xs:anyURI"/>
 
-        <!-- update address bar input: show resource URI (with fragment) for external, clear for local docs -->
-        <!-- use browser origin (not ldt:base()) so the check is correct even when an external tab is active: ldt:base() reads the active pane's data-base, which would mis-classify same-origin proxy URIs as "local" and cross-dataspace URIs as "external" mid-switch -->
+        <!-- address bar always shows the document URI (with fragment), as in the design system's Header -->
         <xsl:for-each select="id('uri', ixsl:page())">
-            <xsl:choose>
-                <xsl:when test="not(starts-with($doc-uri, lapp:origin(ldh:request-uri()) || '/'))">
-                    <ixsl:set-property name="value" select="$doc-uri || (if ($fragment) then '#' || $fragment else '')" object="."/>
-                </xsl:when>
-                <xsl:otherwise>
-                    <ixsl:set-property name="value" select="''" object="."/>
-                </xsl:otherwise>
-            </xsl:choose>
+            <ixsl:set-property name="value" select="$doc-uri || (if ($fragment) then '#' || $fragment else '')" object="."/>
         </xsl:for-each>
 
         <!-- hide local tab pane for external URIs -->
@@ -1097,7 +1082,6 @@ WHERE
     </xsl:template>
 
     <!-- do not intercept RDF download links -->
-    <xsl:template match="button[@id = 'export-rdf']/following-sibling::ul//a" mode="ixsl:onclick" priority="1"/>
     
     <!-- intercept all HTML and SVG link clicks except to /uploads/ and those in the navbar (except breadcrumb bar, .brand and app list) and the footer -->
     <!-- resolve URLs against the current document URL because they can be relative -->

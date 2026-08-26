@@ -144,18 +144,20 @@ ul.typeahead.dropdown-menu > li.active > a, ul.typeahead.dropdown-menu > li > a:
 }
 .dropdown-menu > li.divider { height: 1px; margin: var(--sp-2) 0; background: var(--border-default); }
 
-/* ---------- action bar: ul.breadcrumb is CSR-built li/a with span.divider ---------- */
+/* ---------- action bar: design menus open via the CSR btn-group 'open' toggle ---------- */
 .ldh-actionbar .ab-mid { display: flex; align-items: center; gap: var(--sp-4); min-width: 0; }
-.ldh-actionbar .ldh-add-wrap, .ldh-actionbar .ldh-actions { display: flex; align-items: center; gap: var(--sp-2); }
+.ldh-actionbar > .ldh-add-wrap { display: flex; align-items: center; gap: var(--sp-2); }
 .ldh-actionbar .btn-group { position: relative; }
-ul.breadcrumb.ldh-bc {
-  display: flex; align-items: center; gap: 2px;
-  list-style: none; margin: 0; padding: 0;
-  background: none; border: 0;
-  min-width: 0; overflow: hidden;
-}
-ul.breadcrumb.ldh-bc > li { display: inline-flex; align-items: center; gap: 2px; white-space: nowrap; }
-/* .crumb / .sep / .is-current inside the items are styled by app.css (.ldh-breadcrumb) */
+.ldh-add-wrap .ldh-add-menu, .ldh-of-wrap .ldh-of-menu, .ldh-mode .modes-pop { display: none; }
+.ldh-add-wrap.open .ldh-add-menu, .ldh-mode.open .modes-pop { display: block; }
+.ldh-of-wrap.open .ldh-of-menu { display: flex; }
+.ldh-of-menu .it.disabled, .ldh-add-menu .it.disabled { opacity: 0.4; pointer-events: none; }
+.ldh-of-menu a.it { text-decoration: none; }
+/* the CSR-built breadcrumb container (bc-pill / bc-sep styled by app.css) */
+div.breadcrumb.ldh-bc { min-width: 0; overflow: hidden; }
+/* address bar: the field is skinned by app.css .ldh-address, not the form-field bridge */
+.ldh-address input[type="text"] { background: transparent; border: 0; box-shadow: none; min-height: 0; padding: 0; }
+.ldh-address input[type="text"]:focus { border: 0; box-shadow: none; }
 
 /* ---------- block header actions / drawer content hydrated by CSR ---------- */
 .ldh-block-head .actions .pull-right { display: flex; gap: var(--sp-1); }
