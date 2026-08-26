@@ -355,10 +355,10 @@ WHERE
                             </div>
                         </div>
                     </fieldset>
-                    <div class="form-actions modal-footer">
+                    <div class="ldh-block-foot modal-footer">
                         <button type="button" class="ldhc-btn in-negative sz-sm remove-action" style="display: none;"><xsl:value-of select="ac:label(key('resources', 'remove', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin))))"/></button>
-                        <button type="button" class="btn btn-primary spo-action">Annotate</button>
-                        <button type="button" class="btn cancel-action">Cancel</button>
+                        <button type="button" class="ldh-btn is-ghost cancel-action">Cancel</button>
+                        <button type="button" class="ldh-btn spo-action">Annotate</button>
                     </div>
                 </form>
             </div>

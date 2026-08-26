@@ -226,7 +226,9 @@ body:has(.modal.fade.in)::after {
 }
 .modal-header .close:hover { background: var(--bg-hover); color: var(--fg-1); }
 .modal-body { padding: var(--sp-4) var(--sp-5); overflow-y: auto; min-height: 0; }
-.modal-footer, .form-actions {
+/* app.css gives .ldh-block-foot the band chrome with space-between (hint left, buttons right);
+   LDH footers are bare button rows, so cluster them at the right edge instead */
+.modal-footer, .ldh-block-foot {
   display: flex; align-items: center; justify-content: flex-end; gap: var(--sp-2);
   padding: var(--sp-3) var(--sp-5);
   border-top: 1px solid var(--border-default);
@@ -275,7 +277,7 @@ form input:focus, form textarea:focus, form select:focus {
 }
 form .help-inline { font-size: var(--fs-xs); color: var(--fg-hint); }
 form .control-group.error .help-inline, form .error > .help-inline { color: var(--danger-500); }
-form .btn-primary, .form-actions .btn-primary {
+form .btn-primary {
   display: inline-flex; align-items: center; gap: var(--sp-2);
   height: 30px; padding: 0 12px;
   border: 0; border-radius: var(--r-sm);

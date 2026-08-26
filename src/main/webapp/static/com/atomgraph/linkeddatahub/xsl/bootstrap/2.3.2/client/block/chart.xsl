@@ -270,7 +270,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="category-id" select="'category-' || generate-id()" as="xs:string"/>
         <xsl:param name="series-id" select="'series-' || generate-id()" as="xs:string"/>
         <xsl:param name="form-actions" as="element()?">
-            <div class="form-actions">
+            <div class="ldh-block-foot">
                 <button class="btn btn-primary btn-save-chart" type="button">
                     <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ldh:logo">
                         <xsl:with-param name="class" select="'btn btn-primary btn-save-chart'"/>

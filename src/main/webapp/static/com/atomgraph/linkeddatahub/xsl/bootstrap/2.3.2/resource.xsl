@@ -1197,7 +1197,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="base-uri" select="ldh:base-uri(.)" as="xs:anyURI" tunnel="yes"/>
         <xsl:param name="action" select="ldh:href(ac:absolute-path($base-uri))" as="xs:anyURI" tunnel="yes"/>
         <xsl:param name="enctype" select="if ($typeof = '&nfo;FileDataObject') then 'multipart/form-data' else ()" as="xs:string?"/>
-        <xsl:param name="button-class" select="'btn btn-primary'" as="xs:string?"/>
+        <xsl:param name="button-class" select="'ldh-btn'" as="xs:string?"/>
         <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
         <xsl:param name="show-cancel-button" select="true()" as="xs:boolean"/>
         <xsl:param name="show-form-actions" select="true()" as="xs:boolean"/>
@@ -1248,30 +1248,31 @@ extension-element-prefixes="ixsl"
                     </xsl:apply-templates>
 
                     <xsl:if test="$show-form-actions">
-                        <div class="form-actions">
-                            <button type="submit" class="btn-primary">
-                                <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ldh:logo">
-                                    <xsl:with-param name="class" select="$button-class"/>
-                                </xsl:apply-templates>
-
-                                <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
-                            </button>
-
-                            <button type="reset" class="btn">
-                                <xsl:apply-templates select="key('resources', 'reset', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ldh:logo">
-                                    <xsl:with-param name="class" select="'btn'"/>
-                                </xsl:apply-templates>
-
-                                <xsl:apply-templates select="key('resources', 'reset', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
-                            </button>
-
+                        <div class="ldh-block-foot">
                             <xsl:if test="$show-cancel-button">
-                                <button type="button" class="btn btn-cancel">
+                                <button type="button" class="ldh-btn is-ghost btn-cancel">
                                     <xsl:value-of>
                                         <xsl:apply-templates select="key('resources', 'cancel', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
                                     </xsl:value-of>
                                 </button>
                             </xsl:if>
+
+                            <button type="reset" class="ldh-btn is-ghost">
+                                <xsl:apply-templates select="key('resources', 'reset', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ldh:logo">
+                                    <xsl:with-param name="class" select="'ldh-btn is-ghost'"/>
+                                </xsl:apply-templates>
+
+                                <xsl:apply-templates select="key('resources', 'reset', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                            </button>
+
+                            <button type="submit" class="ldh-btn">
+                                <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ldh:logo">
+                                    <xsl:with-param name="class" select="$button-class"/>
+                                </xsl:apply-templates>
+
+                                <span class="msi sm" aria-hidden="true">save</span>
+                                <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                            </button>
                         </div>
                     </xsl:if>
                 </form>

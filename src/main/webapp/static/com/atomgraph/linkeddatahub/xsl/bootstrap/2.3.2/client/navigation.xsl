@@ -905,8 +905,8 @@ ORDER BY DESC(?created)
                         </div>
                     </div>
                 </div>
-                <div class="form-actions modal-footer">
-                    <button type="button" class="btn btn-primary btn-close">
+                <div class="ldh-block-foot modal-footer">
+                    <button type="button" class="ldh-btn is-ghost btn-close">
                         <xsl:value-of>
                             <xsl:apply-templates select="key('resources', 'close', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
                         </xsl:value-of>
@@ -1044,8 +1044,8 @@ ORDER BY DESC(?created)
                         </div>
                     </div>
                 </div>
-                <div class="form-actions modal-footer">
-                    <button type="button" class="btn btn-primary btn-close">
+                <div class="ldh-block-foot modal-footer">
+                    <button type="button" class="ldh-btn is-ghost btn-close">
                         <xsl:value-of>
                             <xsl:apply-templates select="key('resources', 'close', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
                         </xsl:value-of>
@@ -1156,8 +1156,8 @@ ORDER BY DESC(?created)
                         </div>
                     </div>
                 </div>
-                <div class="form-actions modal-footer">
-                    <button type="button" class="btn btn-primary btn-close">
+                <div class="ldh-block-foot modal-footer">
+                    <button type="button" class="ldh-btn is-ghost btn-close">
                         <xsl:value-of>
                             <xsl:apply-templates select="key('resources', 'close', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
                         </xsl:value-of>
@@ -1287,8 +1287,8 @@ ORDER BY DESC(?created)
                         </div>
                     </div>
                 </div>
-                <div class="form-actions modal-footer">
-                    <button type="button" class="btn btn-primary btn-close">
+                <div class="ldh-block-foot modal-footer">
+                    <button type="button" class="ldh-btn is-ghost btn-close">
                         <xsl:value-of>
                             <xsl:apply-templates select="key('resources', 'close', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
                         </xsl:value-of>

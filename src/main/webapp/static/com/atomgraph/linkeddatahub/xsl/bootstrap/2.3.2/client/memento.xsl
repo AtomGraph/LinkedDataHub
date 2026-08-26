@@ -146,15 +146,16 @@ version="3.0"
                                                 </xsl:apply-templates>
                                             </tbody>
                                         </table>
-                                        <div class="form-actions modal-footer">
-                                            <button type="submit" class="btn btn-primary">
-                                                <xsl:value-of>
-                                                    <xsl:apply-templates select="key('resources', 'compare', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
-                                                </xsl:value-of>
-                                            </button>
-                                            <button type="button" class="btn btn-close">
+                                        <div class="ldh-block-foot modal-footer">
+                                            <button type="button" class="ldh-btn is-ghost btn-close">
                                                 <xsl:value-of>
                                                     <xsl:apply-templates select="key('resources', 'close', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                                                </xsl:value-of>
+                                            </button>
+                                            <button type="submit" class="ldh-btn">
+                                                <span class="msi sm" aria-hidden="true">compare_arrows</span>
+                                                <xsl:value-of>
+                                                    <xsl:apply-templates select="key('resources', 'compare', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
                                                 </xsl:value-of>
                                             </button>
                                         </div>

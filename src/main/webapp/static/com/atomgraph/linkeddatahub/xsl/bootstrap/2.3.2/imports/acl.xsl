@@ -219,8 +219,13 @@ exclude-result-prefixes="#all">
                 <xsl:with-param name="type" select="'hidden'"/>
             </xsl:call-template>
 
-            <div class="form-actions">
-                <button type="submit" class="btn btn-primary">Allow</button>
+            <div class="ldh-block-foot">
+                <button type="submit" class="ldh-btn">
+                    <span class="msi sm" aria-hidden="true">check</span>
+                    <xsl:value-of>
+                        <xsl:apply-templates select="key('resources', 'allow', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                    </xsl:value-of>
+                </button>
             </div>
         </form>
     </xsl:template>

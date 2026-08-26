@@ -74,7 +74,7 @@ dd.diff-removed, .main > div.diff-removed { border-left: 4px solid #ff0039; padd
 .modal-header legend { margin-bottom: 0; }
 .close { font-size: 35px; opacity: 0.4; }
 .modal-body { max-height: 80vh; }
-.modal-footer { position: sticky; bottom: 0; background-color: white; z-index: 1060; }
+.modal-footer { position: sticky; bottom: 0; background-color: var(--surface-1); z-index: 1060; }
 .modal-first-time-message { margin-left: 0; width: 80%; left: 10%; }
 .modal-first-time-message .hero-unit { margin-bottom: 0; }
 /* Annotation overlay */

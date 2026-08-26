@@ -176,7 +176,7 @@ LIMIT   10
                         </div>
                     </fieldset>
 
-                    <div class="form-actions modal-footer">
+                    <div class="ldh-block-foot modal-footer">
                         <button type="submit" class="{$button-class}">
                             <xsl:value-of>
                                 <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
@@ -296,7 +296,7 @@ LIMIT   10
                                     </div>
                                 </fieldset>
 
-                                <div class="form-actions modal-footer">
+                                <div class="ldh-block-foot modal-footer">
                                     <button type="button" class="btn btn-primary btn-load-endpoint-schema">
                                         <xsl:value-of>
                                             <xsl:apply-templates select="key('resources', 'load-schema', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
@@ -387,7 +387,7 @@ LIMIT   10
                         <!-- content replaced by the ldh:access-response callback -->
                     </div>
                    
-                    <div class="form-actions modal-footer">
+                    <div class="ldh-block-foot modal-footer">
                         <button type="submit" class="{$button-class}">
                             <xsl:value-of>
                                 <xsl:apply-templates select="key('resources', 'request', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>

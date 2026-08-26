@@ -861,12 +861,13 @@ extension-element-prefixes="ixsl"
         <xsl:param name="show-save" select="true()" as="xs:boolean"/>
         <xsl:param name="form-actions" as="element()?">
             <xsl:if test="$show-save">
-                <div class="form-actions">
-                    <button class="btn btn-primary btn-save-chart" type="button">
+                <div class="ldh-block-foot">
+                    <button class="ldh-btn btn-save-chart" type="button">
                         <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ldh:logo">
-                            <xsl:with-param name="class" select="'btn btn-primary btn-save-chart'"/>
+                            <xsl:with-param name="class" select="'ldh-btn'"/>
                         </xsl:apply-templates>
 
+                        <span class="msi sm" aria-hidden="true">save</span>
                         <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
                     </button>
                 </div>
@@ -1022,12 +1023,13 @@ extension-element-prefixes="ixsl"
         <xsl:param name="show-save" select="true()" as="xs:boolean"/>
         <xsl:param name="form-actions" as="element()?">
             <xsl:if test="$show-save">
-                <div class="form-actions">
-                    <button class="btn btn-primary btn-save-chart" type="button">
+                <div class="ldh-block-foot">
+                    <button class="ldh-btn btn-save-chart" type="button">
                         <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ldh:logo">
-                            <xsl:with-param name="class" select="'btn btn-primary btn-save-chart'"/>
+                            <xsl:with-param name="class" select="'ldh-btn'"/>
                         </xsl:apply-templates>
 
+                        <span class="msi sm" aria-hidden="true">save</span>
                         <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
                     </button>
                 </div>
@@ -1223,10 +1225,10 @@ extension-element-prefixes="ixsl"
         <xsl:param name="required" select="function($r as element()) as xs:boolean { false() }" as="function(element()) as xs:boolean" tunnel="yes"/>
         <xsl:param name="id" select="concat('form-', generate-id())" as="xs:string?"/>
         <xsl:param name="class" select="'ldh-prop-form'" as="xs:string?"/>
-        <xsl:param name="form-actions-class" select="'form-actions'" as="xs:string?"/>
+        <xsl:param name="form-actions-class" select="'ldh-block-foot'" as="xs:string?"/>
         <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
         <xsl:param name="enctype" as="xs:string?"/>
-        <xsl:param name="button-class" select="'btn btn-primary'" as="xs:string?"/>
+        <xsl:param name="button-class" select="'ldh-btn'" as="xs:string?"/>
         <xsl:param name="create-resource" select="true()" as="xs:boolean"/>
         <xsl:param name="classes" as="element()*"/>
         <xsl:param name="types" select="distinct-values(rdf:Description/rdf:type/@rdf:resource)" as="xs:anyURI*"/>
@@ -1294,20 +1296,21 @@ extension-element-prefixes="ixsl"
             <xsl:sequence select="$body"/>
 
             <div class="{$form-actions-class}">
-                <button type="submit" class="btn btn-primary'">
+                <button type="reset" class="ldh-btn is-ghost">
+                    <xsl:apply-templates select="key('resources', 'reset', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ldh:logo">
+                        <xsl:with-param name="class" select="'ldh-btn is-ghost'"/>
+                    </xsl:apply-templates>
+
+                    <xsl:apply-templates select="key('resources', 'reset', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                </button>
+
+                <button type="submit" class="ldh-btn">
                     <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ldh:logo">
                         <xsl:with-param name="class" select="$button-class"/>
                     </xsl:apply-templates>
 
+                    <span class="msi sm" aria-hidden="true">save</span>
                     <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
-                </button>
-
-                <button type="reset" class="btn">
-                    <xsl:apply-templates select="key('resources', 'reset', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ldh:logo">
-                        <xsl:with-param name="class" select="'btn'"/>
-                    </xsl:apply-templates>
-
-                    <xsl:apply-templates select="key('resources', 'reset', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
                 </button>
             </div>
         </form>

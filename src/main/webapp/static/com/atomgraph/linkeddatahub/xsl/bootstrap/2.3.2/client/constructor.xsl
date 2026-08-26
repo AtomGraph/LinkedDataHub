@@ -154,15 +154,16 @@ exclude-result-prefixes="#all"
                                         </button>
                                     </p>
                                 </div>
-                                <div class="form-actions modal-footer">
-                                    <button type="button" class="btn btn-primary btn-save">
-                                        <xsl:value-of>
-                                            <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
-                                        </xsl:value-of>
-                                    </button>
-                                    <button type="button" class="btn btn-close">
+                                <div class="ldh-block-foot modal-footer">
+                                    <button type="button" class="ldh-btn is-ghost btn-close">
                                         <xsl:value-of>
                                             <xsl:apply-templates select="key('resources', 'cancel', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                                        </xsl:value-of>
+                                    </button>
+                                    <button type="button" class="ldh-btn btn-save">
+                                        <span class="msi sm" aria-hidden="true">save</span>
+                                        <xsl:value-of>
+                                            <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
                                         </xsl:value-of>
                                     </button>
                                 </div>
@@ -538,7 +539,7 @@ exclude-result-prefixes="#all"
     </xsl:template>
     
     <!-- save constructor form onclick. Validate it before update updating constructors -->
-    <xsl:template match="form[contains-token(@class, 'constructor-template')]//div[contains-token(@class, 'form-actions')]/button[contains-token(@class, 'btn-save')]" mode="ixsl:onclick">
+    <xsl:template match="form[contains-token(@class, 'constructor-template')]//div[contains-token(@class, 'ldh-block-foot')]/button[contains-token(@class, 'btn-save')]" mode="ixsl:onclick">
         <xsl:variable name="form" select="ancestor::form" as="element()"/>
         <xsl:variable name="control-groups" select="$form/descendant::div[contains-token(@class, 'control-group')]" as="element()*"/>
 

@@ -223,7 +223,7 @@ exclude-result-prefixes="#all"
                         <xsl:value-of select="$query"/>
                     </textarea>
 
-                    <div class="form-actions">
+                    <div class="ldh-block-foot">
                         <button type="submit">
                             <xsl:apply-templates select="key('resources', 'run', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ldh:logo">
                                 <xsl:with-param name="class" select="'btn btn-primary btn-run-query'"/>
@@ -568,7 +568,7 @@ exclude-result-prefixes="#all"
                                 <xsl:with-param name="category" select="$category"/>
                                 <xsl:with-param name="series" select="$series"/>
                                 <xsl:with-param name="form-actions" as="element()">
-                                    <div class="form-actions">
+                                    <div class="ldh-block-foot">
                                         <button class="btn btn-primary btn-create-chart" type="button">
                                             <xsl:apply-templates select="key('resources', '&ac;ConstructMode', document(ac:document-uri('&ac;')))" mode="ldh:logo">
                                                 <xsl:with-param name="class" select="'btn btn-primary create-action btn-create-chart'"/>

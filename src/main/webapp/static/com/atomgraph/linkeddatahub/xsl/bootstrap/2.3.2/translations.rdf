@@ -569,6 +569,9 @@
         <rdfs:label xml:lang="en-US">Restore</rdfs:label>
         <rdfs:label xml:lang="es-ES">Restaurar</rdfs:label>
     </rdf:Description>
+    <rdf:Description rdf:nodeID="allow">
+        <rdfs:label xml:lang="en-US">Allow</rdfs:label>
+    </rdf:Description>
     <rdf:Description rdf:nodeID="add-stmt">
         <rdfs:label xml:lang="en-US">Add another statement</rdfs:label>
     </rdf:Description>
