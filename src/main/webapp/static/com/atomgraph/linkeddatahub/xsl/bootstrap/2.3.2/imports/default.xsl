@@ -1029,7 +1029,7 @@ exclude-result-prefixes="#all"
             
             <xsl:if test="$cloneable">
                 <div class="btn-group pull-right">
-                    <button type="button" class="btn pull-right btn-add" title="Add another statement">&#x271a;</button>
+                    <button type="button" class="tb btn-add" title="Add another statement"><span class="msi sm" aria-hidden="true">add</span></button>
                 </div>
             </xsl:if>
 
@@ -1043,9 +1043,9 @@ exclude-result-prefixes="#all"
                                 </xsl:value-of>
                             </xsl:attribute>
                             
-                            <xsl:apply-templates select="key('resources', 'remove', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ldh:logo">
-                                <xsl:with-param name="class" select="'btn pull-right'"/>
-                            </xsl:apply-templates>
+                            <xsl:attribute name="class" select="'tb btn-remove-property'"/>
+
+                            <span class="msi sm" aria-hidden="true">close</span>
                         </button>
                     </div>
                 </xsl:if>

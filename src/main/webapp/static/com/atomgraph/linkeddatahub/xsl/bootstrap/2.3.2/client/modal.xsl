@@ -783,6 +783,9 @@ LIMIT   10
                         <button type="button" class="close">&#215;</button>
 
                         <legend>
+                            <xsl:try select="ac:object-label($forClass)">
+                                <xsl:catch select="replace($forClass, '.*[#/]', '')"/>
+                            </xsl:try>
                         </legend>
                     </div>
 
@@ -838,7 +841,7 @@ LIMIT   10
         <xsl:param name="about" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/> <!-- editing the current document resources -->
         <xsl:param name="method" select="'patch'" as="xs:string"/>
         <xsl:param name="form-actions-class" select="'form-actions modal-footer'" as="xs:string?"/>
-        <xsl:param name="button-class" select="'btn btn-primary wymupdate'" as="xs:string?"/>
+        <xsl:param name="button-class" select="'btn btn-primary'" as="xs:string?"/>
         <xsl:variable name="content-body" select="ancestor::div[contains-token(@class, 'tab-pane')]/div[contains-token(@class, 'document-body')]/div[contains-token(@class, 'content-body')]" as="element()"/>
 
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>

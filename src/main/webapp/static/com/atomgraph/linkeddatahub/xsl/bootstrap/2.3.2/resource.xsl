@@ -803,11 +803,7 @@ extension-element-prefixes="ixsl"
                 <xsl:apply-templates select="." mode="bs2:TypeList"/>
 
                 <h2 class="ttl">
-                    <xsl:apply-templates select="@rdf:about | @rdf:nodeID" mode="xhtml:Anchor">
-                        <xsl:with-param name="class" as="xs:string?">
-                            <xsl:apply-templates select="." mode="ldh:logo"/>
-                        </xsl:with-param>
-                    </xsl:apply-templates>
+                    <xsl:apply-templates select="@rdf:about | @rdf:nodeID" mode="xhtml:Anchor"/>
                 </h2>
 
                 <xsl:where-populated>
@@ -848,7 +844,7 @@ extension-element-prefixes="ixsl"
 
         <xsl:variable name="definitions" as="document-node()">
             <xsl:document>
-                <dl class="dl-horizontal">
+                <dl>
                     <xsl:apply-templates select="*" mode="#current">
                         <xsl:sort select="if ($property-metadata) then ac:property-label(., $property-metadata) else ac:property-label(.)" order="ascending" lang="{$ac:lang}"/>
                         <xsl:sort select="if (exists((text(), @rdf:resource, @rdf:nodeID))) then (if ($object-metadata) then ac:object-label((text(), @rdf:resource, @rdf:nodeID)[1], $object-metadata) else ac:object-label((text(), @rdf:resource, @rdf:nodeID)[1])) else ()" order="ascending" lang="{$ac:lang}"/>
@@ -1201,7 +1197,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="base-uri" select="ldh:base-uri(.)" as="xs:anyURI" tunnel="yes"/>
         <xsl:param name="action" select="ldh:href(ac:absolute-path($base-uri))" as="xs:anyURI" tunnel="yes"/>
         <xsl:param name="enctype" select="if ($typeof = '&nfo;FileDataObject') then 'multipart/form-data' else ()" as="xs:string?"/>
-        <xsl:param name="button-class" select="'btn btn-primary wymupdate'" as="xs:string?"/>
+        <xsl:param name="button-class" select="'btn btn-primary'" as="xs:string?"/>
         <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
         <xsl:param name="show-cancel-button" select="true()" as="xs:boolean"/>
         <xsl:param name="show-form-actions" select="true()" as="xs:boolean"/>
@@ -1398,7 +1394,7 @@ extension-element-prefixes="ixsl"
                         <xsl:if test="not($required)">
                             <!-- the button has to be inside <legend> for it to float to the top/right corner properly -->
                             <div class="btn-group pull-right">
-                                <button type="button" class="btn pull-right btn-remove-resource" title="Remove this resource"></button>
+                                <button type="button" class="tb btn-remove-resource" title="Remove this resource"><span class="msi sm" aria-hidden="true">close</span></button>
                             </div>
                         </xsl:if>
                         
@@ -1464,7 +1460,7 @@ extension-element-prefixes="ixsl"
                 </xsl:when>
                 <xsl:when test="not($required)">
                     <div class="btn-group pull-right">
-                        <button type="button" class="btn pull-right btn-remove-resource" title="Remove this resource"></button>
+                        <button type="button" class="tb btn-remove-resource" title="Remove this resource"><span class="msi sm" aria-hidden="true">close</span></button>
                     </div>
                 </xsl:when>
             </xsl:choose>
