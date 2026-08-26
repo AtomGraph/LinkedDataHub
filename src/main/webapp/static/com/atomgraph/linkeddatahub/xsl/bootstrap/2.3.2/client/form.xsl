@@ -893,13 +893,14 @@ WHERE
     <!-- ldh:DocumentForm: form-flavor mode that reuses the bs2:Form shell but replaces its body with a match-template-driven Description iteration. Only the Description at @rdf:about = $about is rendered as a fieldset; everything else in the response graph is suppressed declaratively. Used by both the initial document-edit/settings/add-instance render paths and their constraint-violation re-render paths. -->
     <xsl:template match="rdf:RDF" mode="ldh:DocumentForm">
         <xsl:param name="method" select="'post'" as="xs:string"/>
-        <xsl:param name="form-actions-class" select="'form-actions modal-footer'" as="xs:string?"/>
+        <xsl:param name="form-actions-class" select="'ldh-block-foot modal-footer'" as="xs:string?"/>
         <!-- tunnel params (about, action, base-uri, required, constructors, constraints,
              shapes, type-metadata, property-metadata, object-metadata) propagate through
              to bs2:Form and to the per-Description templates automatically -->
         <xsl:call-template name="bs2:Form">
             <xsl:with-param name="method" select="$method"/>
             <xsl:with-param name="form-actions-class" select="$form-actions-class"/>
+            <xsl:with-param name="show-close-button" select="true()"/>
             <xsl:with-param name="body" as="node()*">
                 <xsl:apply-templates mode="bs2:Exception"/>
                 <xsl:apply-templates mode="#current"/>
@@ -951,7 +952,8 @@ WHERE
             <xsl:with-param name="shapes"            select="$ctx('shapes')"            tunnel="yes"/>
             <xsl:with-param name="object-metadata"   select="$ctx('object-metadata')"   tunnel="yes"/>
             <xsl:with-param name="required"          select="$ctx('required')"          tunnel="yes"/>
-            <xsl:with-param name="form-actions-class" select="'form-actions modal-footer'" as="xs:string?"/>
+            <xsl:with-param name="form-actions-class" select="'ldh-block-foot modal-footer'" as="xs:string?"/>
+            <xsl:with-param name="show-close-button" select="true()"/>
         </xsl:apply-templates>
     </xsl:function>
 

@@ -2385,7 +2385,8 @@ exclude-result-prefixes="#all"
                 <xsl:apply-templates select="$instance-doc" mode="bs2:Form">
                     <xsl:with-param name="method" select="'put'"/>
                     <xsl:with-param name="action" select="ldh:href($doc-uri)" as="xs:anyURI" tunnel="yes"/>
-                    <xsl:with-param name="form-actions-class" select="'form-actions modal-footer'" as="xs:string?"/>
+                    <xsl:with-param name="form-actions-class" select="'ldh-block-foot modal-footer'" as="xs:string?"/>
+                    <xsl:with-param name="show-close-button" select="true()"/>
                     <xsl:with-param name="classes" select="$classes"/>
                     <xsl:with-param name="type-metadata" select="$type-metadata" tunnel="yes"/>
                     <xsl:with-param name="property-metadata" select="$property-metadata" tunnel="yes"/>

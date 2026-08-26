@@ -182,7 +182,8 @@ div.breadcrumb.ldh-bc { min-width: 0; overflow: hidden; }
 /* ---------- modals: CSR appends div.modal.fade.in and removes it on close ---------- */
 .modal {
   position: fixed; top: 48px; left: 50%; transform: translateX(-50%);
-  width: min(880px, calc(100vw - var(--sp-12)));
+  /* match the content column: blocks span .content-body's inner width (max 1280px minus its side padding) */
+  width: calc(min(1280px, 100vw) - 2 * var(--sp-6));
   max-height: calc(100vh - 96px);
   background: var(--surface-0);
   border: 0; border-radius: var(--r-lg);

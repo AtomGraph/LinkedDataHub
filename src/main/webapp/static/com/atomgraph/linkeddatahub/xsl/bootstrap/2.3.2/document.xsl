@@ -1226,6 +1226,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="id" select="concat('form-', generate-id())" as="xs:string?"/>
         <xsl:param name="class" select="'ldh-prop-form'" as="xs:string?"/>
         <xsl:param name="form-actions-class" select="'ldh-block-foot'" as="xs:string?"/>
+        <xsl:param name="show-close-button" select="false()" as="xs:boolean"/>
         <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
         <xsl:param name="enctype" as="xs:string?"/>
         <xsl:param name="button-class" select="'ldh-btn'" as="xs:string?"/>
@@ -1296,6 +1297,14 @@ extension-element-prefixes="ixsl"
             <xsl:sequence select="$body"/>
 
             <div class="{$form-actions-class}">
+                <xsl:if test="$show-close-button">
+                    <button type="button" class="ldh-btn is-ghost btn-close">
+                        <xsl:value-of>
+                            <xsl:apply-templates select="key('resources', 'close', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                        </xsl:value-of>
+                    </button>
+                </xsl:if>
+
                 <button type="reset" class="ldh-btn is-ghost">
                     <xsl:apply-templates select="key('resources', 'reset', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ldh:logo">
                         <xsl:with-param name="class" select="'ldh-btn is-ghost'"/>

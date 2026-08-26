@@ -84,7 +84,7 @@ LIMIT   10
     
     <xsl:template name="ldh:AddDataForm">
         <xsl:param name="id" select="'add-data'" as="xs:string?"/>
-        <xsl:param name="button-class" select="'btn btn-primary btn-save'" as="xs:string?"/>
+        <xsl:param name="button-class" select="'ldh-btn btn-save'" as="xs:string?"/>
         <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
         <xsl:param name="source" as="xs:anyURI?"/>
         <xsl:param name="query" as="xs:anyURI?"/>
@@ -177,19 +177,19 @@ LIMIT   10
                     </fieldset>
 
                     <div class="ldh-block-foot modal-footer">
-                        <button type="submit" class="{$button-class}">
-                            <xsl:value-of>
-                                <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
-                            </xsl:value-of>
-                        </button>
-                        <button type="button" class="btn btn-close">
+                        <button type="button" class="ldh-btn is-ghost btn-close">
                             <xsl:value-of>
                                 <xsl:apply-templates select="key('resources', 'close', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
                             </xsl:value-of>
                         </button>
-                        <button type="reset" class="btn btn-reset">
+                        <button type="reset" class="ldh-btn is-ghost btn-reset">
                             <xsl:value-of>
                                 <xsl:apply-templates select="key('resources', 'reset', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                            </xsl:value-of>
+                        </button>
+                        <button type="submit" class="{$button-class}">
+                            <xsl:value-of>
+                                <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
                             </xsl:value-of>
                         </button>
                     </div>
@@ -204,7 +204,7 @@ LIMIT   10
 
     <xsl:template name="ldh:GenerateContainersForm">
         <xsl:param name="id" select="'generate-containers'" as="xs:string?"/>
-        <xsl:param name="button-class" select="'btn btn-primary btn-save'" as="xs:string?"/>
+        <xsl:param name="button-class" select="'ldh-btn btn-save'" as="xs:string?"/>
         <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
         <xsl:param name="legend-label" select="ac:label(key('resources', 'generate-containers', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin))))" as="xs:string"/>
         <xsl:param name="default-limit" select="10" as="xs:integer"/>
@@ -308,12 +308,12 @@ LIMIT   10
                                             <xsl:apply-templates select="key('resources', 'generate', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
                                         </xsl:value-of>
                                     </button>
-                                    <button type="button" class="btn btn-close">
+                                    <button type="button" class="ldh-btn is-ghost btn-close">
                                         <xsl:value-of>
                                             <xsl:apply-templates select="key('resources', 'close', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
                                         </xsl:value-of>
                                     </button>
-                                    <button type="reset" class="btn btn-reset">
+                                    <button type="reset" class="ldh-btn is-ghost btn-reset">
                                         <xsl:value-of>
                                             <xsl:apply-templates select="key('resources', 'reset', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
                                         </xsl:value-of>
@@ -332,7 +332,7 @@ LIMIT   10
     
     <xsl:template match="rdf:RDF" mode="ldh:RequestAccessForm">
         <xsl:param name="id" select="'request-access'" as="xs:string?"/>
-        <xsl:param name="button-class" select="'btn btn-primary btn-access-form'" as="xs:string?"/>
+        <xsl:param name="button-class" select="'ldh-btn btn-access-form'" as="xs:string?"/>
         <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
         <xsl:param name="this" as="xs:anyURI"/>
         <xsl:param name="action" select="ldh:href(resolve-uri('access/request', lapp:origin($this)))" as="xs:anyURI"/>
@@ -388,19 +388,19 @@ LIMIT   10
                     </div>
                    
                     <div class="ldh-block-foot modal-footer">
-                        <button type="submit" class="{$button-class}">
-                            <xsl:value-of>
-                                <xsl:apply-templates select="key('resources', 'request', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
-                            </xsl:value-of>
-                        </button>
-                        <button type="button" class="btn btn-close">
+                        <button type="button" class="ldh-btn is-ghost btn-close">
                             <xsl:value-of>
                                 <xsl:apply-templates select="key('resources', 'close', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
                             </xsl:value-of>
                         </button>
-                        <button type="reset" class="btn btn-reset">
+                        <button type="reset" class="ldh-btn is-ghost btn-reset">
                             <xsl:value-of>
                                 <xsl:apply-templates select="key('resources', 'reset', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                            </xsl:value-of>
+                        </button>
+                        <button type="submit" class="{$button-class}">
+                            <xsl:value-of>
+                                <xsl:apply-templates select="key('resources', 'request', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
                             </xsl:value-of>
                         </button>
                     </div>
@@ -632,7 +632,7 @@ LIMIT   10
     
     <xsl:template name="ldh:ReconcileForm">
         <xsl:param name="id" select="'form-reconcile'" as="xs:string?"/>
-        <xsl:param name="button-class" select="'btn btn-primary btn-save'" as="xs:string?"/>
+        <xsl:param name="button-class" select="'ldh-btn btn-save'" as="xs:string?"/>
         <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
         <xsl:param name="action" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/>
         <xsl:param name="legend-label" select="ac:label(key('resources', 'reconcile-entity', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin))))" as="xs:string"/>
@@ -764,7 +764,8 @@ LIMIT   10
                     <xsl:with-param name="about" select="()"/>
                     <xsl:with-param name="method" select="'put'"/>
                     <xsl:with-param name="action" select="ldh:href($doc-uri)" as="xs:anyURI" tunnel="yes"/>
-                    <xsl:with-param name="form-actions-class" select="'form-actions modal-footer'" as="xs:string?"/>
+                    <xsl:with-param name="form-actions-class" select="'ldh-block-foot modal-footer'" as="xs:string?"/>
+                    <xsl:with-param name="show-close-button" select="true()"/>
                     <xsl:with-param name="classes" select="$classes"/>
                     <xsl:with-param name="type-metadata" select="$type-metadata" tunnel="yes"/>
                     <xsl:with-param name="property-metadata" select="$property-metadata" tunnel="yes"/>
@@ -840,8 +841,8 @@ LIMIT   10
     <xsl:template match="div[contains-token(@class, 'action-bar')]//button[contains-token(@class, 'btn-edit')][not(contains-token(@class, 'disabled'))]" mode="ixsl:onclick">
         <xsl:param name="about" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/> <!-- editing the current document resources -->
         <xsl:param name="method" select="'patch'" as="xs:string"/>
-        <xsl:param name="form-actions-class" select="'form-actions modal-footer'" as="xs:string?"/>
-        <xsl:param name="button-class" select="'btn btn-primary'" as="xs:string?"/>
+        <xsl:param name="form-actions-class" select="'ldh-block-foot modal-footer'" as="xs:string?"/>
+        <xsl:param name="button-class" select="'ldh-btn'" as="xs:string?"/>
         <xsl:variable name="content-body" select="ancestor::div[contains-token(@class, 'tab-pane')]/div[contains-token(@class, 'document-body')]/div[contains-token(@class, 'content-body')]" as="element()"/>
 
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
@@ -1131,11 +1132,12 @@ LIMIT   10
     <!-- form-flavor wrapper mode parallel to ldh:DocumentForm; scopes the app-settings UI restrictions (dct:title / dct:description visible, everything else hidden) to this flow. The mode itself is the discriminator — instances of lapp:Application created via the generic Create button continue to render through ldh:DocumentForm → bs2:FormControl unaffected. -->
     <xsl:template match="rdf:RDF" mode="ldh:AppSettingsForm">
         <xsl:param name="method" select="'patch'" as="xs:string"/>
-        <xsl:param name="form-actions-class" select="'form-actions modal-footer'" as="xs:string?"/>
+        <xsl:param name="form-actions-class" select="'ldh-block-foot modal-footer'" as="xs:string?"/>
         <xsl:param name="package-catalog" as="document-node()?" tunnel="yes"/>
         <xsl:call-template name="bs2:Form">
             <xsl:with-param name="method" select="$method"/>
             <xsl:with-param name="form-actions-class" select="$form-actions-class"/>
+            <xsl:with-param name="show-close-button" select="true()"/>
             <xsl:with-param name="body" as="node()*">
                 <xsl:apply-templates mode="bs2:Exception"/>
                 <xsl:apply-templates mode="#current"/>
