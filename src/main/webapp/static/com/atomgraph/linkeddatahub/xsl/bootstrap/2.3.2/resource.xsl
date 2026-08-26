@@ -550,7 +550,7 @@ extension-element-prefixes="ixsl"
                     <div class="block-row row-block-controls" style="position: relative; top: 30px; margin-top: -30px; z-index: 1;">
                         <div class="row-main">
                             <xsl:if test="acl:mode() = '&acl;Write'">
-                                <button type="button" class="btn btn-edit pull-right" style="display: none;">
+                                <button type="button" class="btn btn-edit" style="display: none;">
                                     <xsl:apply-templates select="key('resources', '&ac;EditMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
                                 </button>
                             </xsl:if>
@@ -612,7 +612,7 @@ extension-element-prefixes="ixsl"
                 <div class="block-row row-block-controls" style="position: relative; top: 30px; margin-top: -30px; z-index: 1;">
                     <div class="row-main">
                         <xsl:if test="acl:mode() = '&acl;Write'">
-                            <button type="button" class="btn btn-edit pull-right" style="display: none;">
+                            <button type="button" class="btn btn-edit" style="display: none;">
                                 <xsl:apply-templates select="key('resources', '&ac;EditMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
                             </button>
                         </xsl:if>
@@ -1391,14 +1391,9 @@ extension-element-prefixes="ixsl"
             <xsl:choose>
                 <xsl:when test="$legend">
                     <legend>
-                        <xsl:if test="not($required)">
-                            <!-- the button has to be inside <legend> for it to float to the top/right corner properly -->
-                            <div class="btn-group pull-right">
-                                <button type="button" class="tb btn-remove-resource" title="Remove this resource"><span class="msi sm" aria-hidden="true">close</span></button>
-                            </div>
-                        </xsl:if>
-                        
-                        <div class="pull-right">
+                        <xsl:value-of select="ac:label(.)"/>
+
+                        <div class="actions">
                             <xsl:if test="exists($type-metadata) and exists($constructors)">
                                 <div class="btn-group">
                                     <!-- show list of types that have constructors (excluding built-in system classes) -->
@@ -1454,13 +1449,29 @@ extension-element-prefixes="ixsl"
                                 <xsl:apply-templates select="key('resources', 'copy-uri', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
                             </xsl:value-of>
                         </button>
-                        
-                        <xsl:value-of select="ac:label(.)"/>
+
+                        <xsl:if test="not($required)">
+                            <div class="btn-group">
+                                <button type="button" class="tb btn-remove-resource">
+                                    <xsl:attribute name="title">
+                                        <xsl:apply-templates select="key('resources', 'remove-resource', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                                    </xsl:attribute>
+
+                                    <span class="msi sm" aria-hidden="true">close</span>
+                                </button>
+                            </div>
+                        </xsl:if>
                     </legend>
                 </xsl:when>
                 <xsl:when test="not($required)">
-                    <div class="btn-group pull-right">
-                        <button type="button" class="tb btn-remove-resource" title="Remove this resource"><span class="msi sm" aria-hidden="true">close</span></button>
+                    <div class="btn-group">
+                        <button type="button" class="tb btn-remove-resource">
+                            <xsl:attribute name="title">
+                                <xsl:apply-templates select="key('resources', 'remove-resource', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                            </xsl:attribute>
+
+                            <span class="msi sm" aria-hidden="true">close</span>
+                        </button>
                     </div>
                 </xsl:when>
             </xsl:choose>

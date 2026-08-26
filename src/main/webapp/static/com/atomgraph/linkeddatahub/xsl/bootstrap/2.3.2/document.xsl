@@ -249,7 +249,7 @@ extension-element-prefixes="ixsl"
                 <xsl:choose>
                     <!-- versioned document: the timestamp links to its version history (Memento TimeMap) -->
                     <xsl:when test="exists(ldh:timemap())">
-                        <a href="{ldh:timemap()}" class="document-history" title="History">
+                        <a href="{ldh:timemap()}" class="document-history" title="{ac:label(key('resources', 'history', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin))))}">
                             <xsl:apply-templates select="key('resources', ac:absolute-path(ldh:base-uri(.)))" mode="bs2:Timestamp"/>
                         </a>
                     </xsl:when>
@@ -366,15 +366,15 @@ extension-element-prefixes="ixsl"
                     <!-- RDF export links, one per serialization (target=_blank exempts them from CSR link interception) -->
                     <a class="it" href="{ac:build-uri(ac:absolute-path(ldh:request-uri()), let $params := map{ 'accept': 'application/rdf+xml' } return if (ac:uri()) then map:merge(($params, map{ 'uri': string($uri) })) else $params)}" title="application/rdf+xml" target="_blank">
                         <span class="msi sm" aria-hidden="true">download</span>
-                        <span class="it-txt">RDF/XML</span>
+                        <span class="it-txt"><xsl:value-of select="ac:label(key('resources', 'rdf-xml', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin))))"/></span>
                     </a>
                     <a class="it" href="{ac:build-uri(ac:absolute-path(ldh:request-uri()), let $params := map{ 'accept': 'text/turtle' } return if (ac:uri()) then map:merge(($params, map{ 'uri': string($uri) })) else $params)}" title="text/turtle" target="_blank">
                         <span class="msi sm" aria-hidden="true">download</span>
-                        <span class="it-txt">Turtle</span>
+                        <span class="it-txt"><xsl:value-of select="ac:label(key('resources', 'turtle', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin))))"/></span>
                     </a>
                     <a class="it" href="{ac:build-uri(ac:absolute-path(ldh:request-uri()), let $params := map{ 'accept': 'application/ld+json' } return if (ac:uri()) then map:merge(($params, map{ 'uri': string($uri) })) else $params)}" title="application/ld+json" target="_blank">
                         <span class="msi sm" aria-hidden="true">download</span>
-                        <span class="it-txt">JSON-LD</span>
+                        <span class="it-txt"><xsl:value-of select="ac:label(key('resources', 'json-ld', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin))))"/></span>
                     </a>
 
                     <span class="ldh-of-div" aria-hidden="true"></span>

@@ -627,7 +627,7 @@ WHERE
                                 <button class="btn btn-primary dropdown-toggle ldh-icon-btn has-dot" title="{ac:label(key('resources', 'notifications', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', lapp:origin()))))}">
                                     <span class="msi outline" aria-hidden="true">notifications</span>
                                 </button>
-                                <ul class="dropdown-menu pull-right">
+                                <ul class="dropdown-menu">
                                     <xsl:for-each select="$notifications/rdf:RDF/*[@rdf:about]">
                                         <xsl:sort select="dct:created[1]/xs:dateTime(.)" order="descending"/>
 
@@ -645,7 +645,7 @@ WHERE
                         <button type="button" class="btn dropdown-toggle ldh-avatar" title="{$agent-label}">
                             <xsl:value-of select="string-join(for $word in tokenize(normalize-space($agent-label), ' ')[position() le 2] return upper-case(substring($word, 1, 1)))"/>
                         </button>
-                        <ul class="dropdown-menu pull-right">
+                        <ul class="dropdown-menu">
                             <li>
                                 <xsl:for-each select="key('resources-by-type', '&foaf;Agent', $foaf:Agent)">
                                     <xsl:apply-templates select="@rdf:about" mode="xhtml:Anchor"/>
@@ -681,7 +681,7 @@ WHERE
                         <button class="btn dropdown-toggle ldh-icon-btn btn-apps" title="{ac:label(key('resources', 'application-list-title', document('translations.rdf')))}">
                             <span class="msi" aria-hidden="true">apps</span>
                         </button>
-                        <ul class="dropdown-menu pull-right">
+                        <ul class="dropdown-menu">
                             <xsl:if test="exists($user-defined-apps)">
                                 <li class="nav-header">
                                     <xsl:value-of select="ac:label(key('resources', 'user-defined-apps', document('translations.rdf')))"/>
@@ -727,7 +727,7 @@ WHERE
                         <button type="button" class="btn dropdown-toggle ldh-avatar" title="{$agent-label}">
                             <xsl:value-of select="string-join(for $word in tokenize(normalize-space($agent-label), ' ')[position() le 2] return upper-case(substring($word, 1, 1)))"/>
                         </button>
-                        <ul class="dropdown-menu pull-right">
+                        <ul class="dropdown-menu">
                             <li>
                                 <xsl:for-each select="key('resources-by-type', '&foaf;Agent', $foaf:Agent)">
                                     <xsl:apply-templates select="@rdf:about" mode="xhtml:Anchor"/>
@@ -762,7 +762,7 @@ WHERE
                     <xsl:text> </xsl:text>
                     <span class="msi caret" aria-hidden="true">expand_more</span>
                 </button>
-                <ul class="dropdown-menu pull-right">
+                <ul class="dropdown-menu">
                     <xsl:if test="$google-signup">
                         <li>
                             <xsl:variable name="google-signup-uri" select="ac:build-uri(resolve-uri('oauth2/authorize/google', $ac:contextUri), map{ 'referer': string(ac:absolute-path(ldh:request-uri())) })" as="xs:anyURI"/>
@@ -1045,7 +1045,7 @@ WHERE
         <div class="footer ldh-footer">
             <div class="cols">
                     <div class="col">
-                        <p class="ftitle">About</p>
+                        <p class="ftitle"><xsl:value-of select="ac:label(key('resources', 'about', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', lapp:origin()))))"/></p>
                         <ul class="nav">
                             <li>
                                 <a href="https://linkeddatahub.com" target="_blank">LinkedDataHub</a>
@@ -1056,32 +1056,32 @@ WHERE
                         </ul>
                     </div>
                     <div class="col">
-                        <p class="ftitle">Resources</p>
+                        <p class="ftitle"><xsl:value-of select="ac:label(key('resources', 'resources', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', lapp:origin()))))"/></p>
                         <ul class="nav">
                             <li>
-                                <a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/" target="_blank">Documentation</a>
+                                <a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/" target="_blank"><xsl:value-of select="ac:label(key('resources', 'documentation', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', lapp:origin()))))"/></a>
                             </li>
                             <li>
-                                <a href="https://www.youtube.com/channel/UCtrdvnVjM99u9hrjESwfCeg" target="_blank">Screencasts</a>
+                                <a href="https://www.youtube.com/channel/UCtrdvnVjM99u9hrjESwfCeg" target="_blank"><xsl:value-of select="ac:label(key('resources', 'screencasts', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', lapp:origin()))))"/></a>
                             </li>
                         </ul>
                     </div>
                     <div class="col">
-                        <p class="ftitle">Support</p>
+                        <p class="ftitle"><xsl:value-of select="ac:label(key('resources', 'support', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', lapp:origin()))))"/></p>
                         <ul class="nav">
                             <li>
-                                <a href="https://groups.io/g/linkeddatahub" target="_blank">Mailing list</a>
+                                <a href="https://groups.io/g/linkeddatahub" target="_blank"><xsl:value-of select="ac:label(key('resources', 'mailing-list', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', lapp:origin()))))"/></a>
                             </li>
                             <li>
-                                <a href="https://github.com/AtomGraph/LinkedDataHub/issues" target="_blank">Report issues</a>
+                                <a href="https://github.com/AtomGraph/LinkedDataHub/issues" target="_blank"><xsl:value-of select="ac:label(key('resources', 'report-issues', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', lapp:origin()))))"/></a>
                             </li>
                             <li>
-                                <a href="mailto:support@linkeddatahub.com">Contact support</a>
+                                <a href="mailto:support@linkeddatahub.com"><xsl:value-of select="ac:label(key('resources', 'contact-support', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', lapp:origin()))))"/></a>
                             </li>
                         </ul>
                     </div>
                     <div class="col">
-                        <p class="ftitle">Follow us</p>
+                        <p class="ftitle"><xsl:value-of select="ac:label(key('resources', 'follow-us', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', lapp:origin()))))"/></p>
                         <ul class="nav">
                             <li>
                                 <a href="https://twitter.com/atomgraphhq" target="_blank">@atomgraphhq</a>

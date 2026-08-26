@@ -252,7 +252,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="object-type" select="../../json:map[json:string[@key = 'subject'] = $object-bnode-id]/json:string[@key = 'object']" as="xs:anyURI?"/>
 
         <div class="controls">
-            <div class="btn-group pull-right">
+            <div class="btn-group">
                 <button type="button" class="tb btn-remove-property" tabindex="-1">
                     <xsl:attribute name="title">
                         <xsl:value-of>

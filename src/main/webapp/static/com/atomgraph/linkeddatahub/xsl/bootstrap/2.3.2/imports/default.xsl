@@ -709,11 +709,11 @@ exclude-result-prefixes="#all"
                 <xsl:attribute name="class" select="$diff-class"/>
             </xsl:if>
 
-            <span class="label label-info pull-right">
+            <xsl:apply-templates select="."/>
+
+            <span class="label label-info">
                 <xsl:value-of select="../@xml:lang"/>
             </span>
-
-            <xsl:apply-templates select="."/>
         </dd>
     </xsl:template>
 
@@ -1028,14 +1028,20 @@ exclude-result-prefixes="#all"
             </xsl:if>
             
             <xsl:if test="$cloneable">
-                <div class="btn-group pull-right">
-                    <button type="button" class="tb btn-add" title="Add another statement"><span class="msi sm" aria-hidden="true">add</span></button>
+                <div class="btn-group">
+                    <button type="button" class="tb btn-add">
+                        <xsl:attribute name="title">
+                            <xsl:apply-templates select="key('resources', 'add-stmt', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                        </xsl:attribute>
+
+                        <span class="msi sm" aria-hidden="true">add</span>
+                    </button>
                 </div>
             </xsl:if>
 
             <div class="controls">
                 <xsl:if test="not($required)">
-                    <div class="btn-group pull-right">
+                    <div class="btn-group">
                         <button type="button" tabindex="-1">
                             <xsl:attribute name="title">
                                 <xsl:value-of>

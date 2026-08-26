@@ -569,4 +569,52 @@
         <rdfs:label xml:lang="en-US">Restore</rdfs:label>
         <rdfs:label xml:lang="es-ES">Restaurar</rdfs:label>
     </rdf:Description>
+    <rdf:Description rdf:nodeID="add-stmt">
+        <rdfs:label xml:lang="en-US">Add another statement</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="remove-resource">
+        <rdfs:label xml:lang="en-US">Remove this resource</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="remove-link">
+        <rdfs:label xml:lang="en-US">Remove link</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="get-started">
+        <rdfs:label xml:lang="en-US">Get started</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="learn-more">
+        <rdfs:label xml:lang="en-US">Learn more</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="about">
+        <rdfs:label xml:lang="en-US">About</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="resources">
+        <rdfs:label xml:lang="en-US">Resources</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="support">
+        <rdfs:label xml:lang="en-US">Support</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="follow-us">
+        <rdfs:label xml:lang="en-US">Follow us</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="screencasts">
+        <rdfs:label xml:lang="en-US">Screencasts</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="mailing-list">
+        <rdfs:label xml:lang="en-US">Mailing list</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="report-issues">
+        <rdfs:label xml:lang="en-US">Report issues</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="contact-support">
+        <rdfs:label xml:lang="en-US">Contact support</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="rdf-xml">
+        <rdfs:label xml:lang="en-US">RDF/XML</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="turtle">
+        <rdfs:label xml:lang="en-US">Turtle</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="json-ld">
+        <rdfs:label xml:lang="en-US">JSON-LD</rdfs:label>
+    </rdf:Description>
 </rdf:RDF>

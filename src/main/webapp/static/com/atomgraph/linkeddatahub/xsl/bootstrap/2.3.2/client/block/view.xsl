@@ -287,10 +287,10 @@ exclude-result-prefixes="#all"
         </li>
     </xsl:template>
     
-    <!-- facet predicate block -->
+    <!-- facet predicate block: a toolbar dropdown — the pill button opens a popover of value checkboxes -->
     <xsl:template match="rdf:Description[@rdf:about]" mode="bs2:FilterIn">
         <xsl:param name="id" as="xs:string?"/>
-        <xsl:param name="class" select="'faceted-nav'" as="xs:string?"/>
+        <xsl:param name="class" select="'facet faceted-nav'" as="xs:string?"/>
         <xsl:param name="subject-var-name" as="xs:string"/>
         <xsl:param name="object-var-name" as="xs:string"/>
 
@@ -302,16 +302,18 @@ exclude-result-prefixes="#all"
                 <xsl:attribute name="class" select="$class"/>
             </xsl:if>
 
-            <h2 class="nav-header dh2" title="{@rdf:about}">
-                <xsl:value-of>
-                    <xsl:apply-templates select="." mode="ac:label"/>
-                </xsl:value-of>
+            <button type="button" class="facet-pill nav-header" title="{@rdf:about}">
+                <span class="pred">
+                    <xsl:value-of>
+                        <xsl:apply-templates select="." mode="ac:label"/>
+                    </xsl:value-of>
+                </span>
 
-                <span class="caret caret-reversed"></span>
+                <span class="caret"></span>
                 <input type="hidden" name="subject" value="{$subject-var-name}"/>
                 <input type="hidden" name="predicate" value="{@rdf:about}"/>
                 <input type="hidden" name="object" value="{$object-var-name}"/>
-            </h2>
+            </button>
 
             <!-- facet values will be loaded into an <ul> here -->
         </div>
@@ -429,7 +431,7 @@ exclude-result-prefixes="#all"
             </xsl:map>
         </xsl:param>
 
-        <div class="btn-group pull-right">
+        <div class="btn-group">
             <button type="button" title="{ac:label(key('resources', '&ac;Mode', document(ac:document-uri('&ac;'))))}">
                 <xsl:if test="$id">
                     <xsl:attribute name="id" select="$id"/>
@@ -437,7 +439,7 @@ exclude-result-prefixes="#all"
 
                 <xsl:attribute name="class" select="'btn dropdown-toggle ' || (map:get($mode-button-classes, string($active-mode)), 'btn-read')[1]"/>
 
-                <xsl:text> </xsl:text>
+                <span class="msi sm" aria-hidden="true"><xsl:value-of select="(map:get($ldh:mode-icons, string($active-mode)), 'view_list')[1]"/></span>
                 <span class="msi caret" aria-hidden="true">expand_more</span>
             </button>
 
@@ -810,11 +812,32 @@ exclude-result-prefixes="#all"
                     </h2>
                 </xsl:where-populated>
 
-                <xsl:call-template name="bs2:ViewModeList">
-                    <xsl:with-param name="active-mode" select="$active-mode"/>
-                </xsl:call-template>
+                <div class="ldh-view-toolbar">
+                    <div class="left">
+                        <span class="facet-lead">
+                            <xsl:attribute name="title">
+                                <xsl:apply-templates select="key('resources', 'filter-title', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                            </xsl:attribute>
 
-                <div class="pull-right">
+                            <span class="msi sm" aria-hidden="true">filter_alt</span>
+                        </span>
+                        <!-- facet pills are appended here by ldh:RenderFacets -->
+                    </div>
+                    <div class="right">
+                        <!-- inline creation: Create button for views carrying ldh:container metadata (stamped as data-* attributes by ldh:ontology-view-insert, RDFa as fallback for hand-authored view blocks). PUT into the container requires acl:Write there (checked on the parent URI for new documents); forward views additionally PATCH the linking triple into the current document, hence acl:Write here too -->
+                        <xsl:variable name="view-block" select="$container/ancestor::div[contains-token(@class, 'block')][1]" as="element()?"/>
+                        <xsl:variable name="create-container" select="($view-block/@data-container, $container/descendant::*[@property = '&ldh;container']/@resource)[1]" as="xs:string?"/>
+                        <xsl:variable name="create-for-class" select="$view-block/@data-for-class" as="xs:string?"/>
+                        <xsl:if test="exists($create-container) and exists($create-for-class) and tokenize($view-block/@data-acl-modes, ' ') = '&acl;Write' and (exists($view-block/@data-inverse) or acl:mode() = '&acl;Write')">
+                            <button type="button" class="btn btn-primary add-instance" data-for-class="{$create-for-class}" data-container="{$create-container}" title="{ac:label(key('resources', 'create-instance-title', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin))))}">
+                                <xsl:value-of>
+                                    <xsl:apply-templates select="key('resources', '&ac;ConstructMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
+                                </xsl:value-of>
+                            </button>
+                        </xsl:if>
+
+                        <p id="{$result-count-container-id}" class="result-count count"/>
+
                     <form class="form-inline">
                         <label for="{$order-by-container-id}">
                             <!-- currently no space for the label in the layout -->
@@ -879,25 +902,14 @@ exclude-result-prefixes="#all"
                             </xsl:choose>
                         </label>
                     </form>
+
+                        <xsl:call-template name="bs2:ViewModeList">
+                            <xsl:with-param name="active-mode" select="$active-mode"/>
+                        </xsl:call-template>
+                    </div>
                 </div>
 
-                <!-- inline creation: Create button for views carrying ldh:container metadata (stamped as data-* attributes by ldh:ontology-view-insert, RDFa as fallback for hand-authored view blocks). Floated last so it lines up left of the mandatory order-by/mode controls, which keep their position across views. PUT into the container requires acl:Write there (checked on the parent URI for new documents); forward views additionally PATCH the linking triple into the current document, hence acl:Write here too -->
-                <xsl:variable name="view-block" select="$container/ancestor::div[contains-token(@class, 'block')][1]" as="element()?"/>
-                <xsl:variable name="create-container" select="($view-block/@data-container, $container/descendant::*[@property = '&ldh;container']/@resource)[1]" as="xs:string?"/>
-                <xsl:variable name="create-for-class" select="$view-block/@data-for-class" as="xs:string?"/>
-                <xsl:if test="exists($create-container) and exists($create-for-class) and tokenize($view-block/@data-acl-modes, ' ') = '&acl;Write' and (exists($view-block/@data-inverse) or acl:mode() = '&acl;Write')">
-                    <div class="pull-right">
-                        <button type="button" class="btn btn-primary add-instance" data-for-class="{$create-for-class}" data-container="{$create-container}" title="{ac:label(key('resources', 'create-instance-title', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin))))}">
-                            <xsl:value-of>
-                                <xsl:apply-templates select="key('resources', '&ac;ConstructMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
-                            </xsl:value-of>
-                        </button>
-                    </div>
-                </xsl:if>
-
                 <div>
-                    <p id="{$result-count-container-id}" class="result-count"/>
-
                     <!-- persistent host for the 3d-force-graph canvas; lives for the lifetime of this view block so the WebGL context + simulation state survive re-renders. Hidden when active-mode is not GraphMode. -->
                     <div id="{$container-id}-graph-host" class="graph-3d-host" style="display: none;"></div>
                     <div id="{$container-results-id}" class="container-results"></div>
@@ -979,6 +991,7 @@ exclude-result-prefixes="#all"
             <xsl:result-document href="?." method="ixsl:append-content">
                 <xsl:apply-templates select="." mode="ldh:RenderFacets">
                     <xsl:with-param name="id" select="$sub-container-id"/>
+                    <xsl:with-param name="class" select="'facets'"/>
                 </xsl:apply-templates>
             </xsl:result-document>
 
@@ -1959,11 +1972,11 @@ exclude-result-prefixes="#all"
                 </xsl:call-template>
             </xsl:for-each>
 
-            <!-- use the initial (not the current transformed) SELECT query and focus var name for facet rendering -->
-            <xsl:for-each select="$container/descendant::*[contains-token(@class, 'left-nav')][1]">
+            <!-- use the initial (not the current transformed) SELECT query and focus var name for facet rendering. Facets render as dropdown pills in the view toolbar's left zone, not in the drawer -->
+            <xsl:for-each select="$container/descendant::div[contains-token(@class, 'ldh-view-toolbar')][1]/div[contains-token(@class, 'left')]">
                 <xsl:call-template name="ldh:RenderFacets">
                     <xsl:with-param name="select-string" select="$select-string"/>
-                    <xsl:with-param name="sub-container-id" select="$container-id || '-left-nav'"/>
+                    <xsl:with-param name="sub-container-id" select="$container-id || '-facets'"/>
                     <xsl:with-param name="property-metadata" select="$property-metadata"/>
                 </xsl:call-template>
             </xsl:for-each>
@@ -2130,7 +2143,7 @@ exclude-result-prefixes="#all"
                                 <xsl:when test="$predicate = '&rdf;type'">
                                     <xsl:for-each select="$container">
                                         <xsl:result-document href="?." method="ixsl:append-content">
-                                            <ul class="nav"></ul>
+                                            <ul class="nav facet-pop"></ul>
                                         </xsl:result-document>
                                     </xsl:for-each>
 
@@ -2158,13 +2171,13 @@ exclude-result-prefixes="#all"
                                 </xsl:when>
                                 <xsl:otherwise>
                                     <!-- toggle the caret direction -->
-                                    <xsl:for-each select="$container/h2/span[contains-token(@class, 'caret')]">
+                                    <xsl:for-each select="$container/*[contains-token(@class, 'nav-header')]/span[contains-token(@class, 'caret')]">
                                         <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'caret-reversed' ])[current-date() lt xs:date('2000-01-01')]"/>
                                     </xsl:for-each>
 
                                     <xsl:for-each select="$container">
                                         <xsl:result-document href="?." method="ixsl:append-content">
-                                            <ul class="nav">
+                                            <ul class="nav facet-pop">
                                                 <xsl:apply-templates select="$results//srx:result[srx:binding[@name = $object-var-name]]" mode="bs2:FacetValueItem">
                                                     <!-- order by count first -->
                                                     <xsl:sort select="xs:integer(srx:binding[@name = $count-var-name]/srx:literal)" order="descending"/>

@@ -75,8 +75,8 @@ LIMIT   10
                 <h2>Unlock the value of your Knowledge Graph with data-driven content and low code apps.</h2>
                 <p>Create structured content backed by live data, intuitively explore graph datasets, model and manage RDF data, control data quality and more. <em>Without writing code</em>.</p>
                 <p>
-                    <a class="btn btn-primary" href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/get-started/" target="_blank">Get started</a>
-                    <a class="btn" href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/" target="_blank">Learn more</a>
+                    <a class="btn btn-primary" href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/get-started/" target="_blank"><xsl:value-of select="ac:label(key('resources', 'get-started', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin))))"/></a>
+                    <a class="btn" href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/" target="_blank"><xsl:value-of select="ac:label(key('resources', 'learn-more', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin))))"/></a>
                 </p>
             </div>
         </div>

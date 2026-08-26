@@ -24,10 +24,6 @@
 :where(.btn-primary, .btn.btn-primary):hover { background: var(--bg-accent-hover); }
 /* real specificity: something upstream colors buttons with the link color, which disappears on the accent fill */
 .btn-primary { color: var(--fg-on-accent); }
-/* pull-left/right survive only in unported interior markup (form rows, typeahead metadata)
-   and as the alignment signal on ul.dropdown-menu; floats are inert in the flex chrome */
-:where(.pull-right) { float: right; }
-:where(.pull-left) { float: left; }
 /* carets are Material glyphs. Static ones ship <span class="msi caret">expand_more</span>;
    CSR-toggled collapse indicators stay empty spans on purpose - the handlers flip the
    caret-reversed class, and only ::before content can follow a class change */
@@ -136,9 +132,8 @@ ul.typeahead.dropdown-menu > li.active > a, ul.typeahead.dropdown-menu > li > a:
   list-style: none;
   margin: 0;
 }
-.btn-group.open .dropdown-menu.pull-right { left: auto; right: 0; }
-/* header menus hug the viewport's right edge regardless of the pull-right token */
-.ldh-header-actions .btn-group.open .dropdown-menu { left: auto; right: 0; }
+/* header menus hug the viewport's right edge */
+.ldh-header .btn-group.open .dropdown-menu { left: auto; right: 0; }
 .dropdown-menu > li > a, .dropdown-menu > li > button {
   display: flex; align-items: center; gap: var(--sp-2);
   width: 100%;
@@ -316,11 +311,19 @@ ul.pager > li > a.active:hover { background: var(--bg-hover); text-decoration: n
 /* ---------- fieldsets/legends: sections, not Bootstrap-era boxes ---------- */
 fieldset { border: 0; padding: 0; margin: 0 0 var(--sp-4); min-inline-size: 0; }
 legend {
+  display: flex; align-items: center; gap: var(--sp-2);
+  width: 100%;
   padding: 0; margin: 0 0 var(--sp-2);
   font-family: var(--font-mono); font-size: 10px;
   letter-spacing: var(--tracking-wide); text-transform: uppercase;
   color: var(--fg-muted);
 }
+/* subject controls (type picker, subject edit toggle) hug the legend's right edge */
+legend > .actions { display: flex; align-items: center; gap: var(--sp-1); margin-left: auto; }
+/* remove-resource button on legendless fieldsets rides its own top row, right-aligned */
+fieldset > .btn-group { display: flex; justify-content: flex-end; }
+/* remove-statement/add-statement groups trail their form row instead of floating */
+form .control-group > .controls > .btn-group { order: 99; margin-left: auto; }
 .chart-controls .field select[multiple] { height: auto; }
 
 /* ---------- read-mode property lists: dt/dd pairs styled as property rows ---------- */
@@ -402,3 +405,29 @@ legend {
 }
 #tab-bar-list > li > a:hover { color: var(--fg-1); text-decoration: none; }
 #tab-bar-list > li.active > a { color: var(--fg-1); border-bottom-color: var(--ldh-blue-500); }
+
+/* ---------- view toolbar: facet pills + sort + mode switcher (ViewBlocks contract) ---------- */
+/* the CSR facet renderer appends a .facets sub-container (id-gated against re-render); it must not break the pill row */
+.ldh-view-toolbar .left > .facets { display: contents; }
+.ldh-view-toolbar .facet { position: relative; }
+/* the hydrated value list doubles as the pill's popover */
+.facet > ul.facet-pop { list-style: none; margin: 0; display: block; }
+.facet > ul.facet-pop > li > label.checkbox {
+  display: flex; align-items: center; gap: var(--sp-2);
+  margin: 0; padding: 6px var(--sp-2);
+  border-radius: var(--r-sm);
+  font-size: var(--fs-sm); color: var(--fg-2);
+  cursor: pointer; white-space: nowrap;
+}
+.facet > ul.facet-pop > li > label.checkbox:hover { background: var(--bg-hover); color: var(--fg-1); }
+.facet > ul.facet-pop > li > label.checkbox input[type="checkbox"] { margin: 0; }
+.ldh-view-toolbar .result-count { margin: 0; white-space: nowrap; }
+.ldh-view-toolbar .form-inline { display: flex; align-items: center; gap: var(--sp-1); margin: 0; }
+.ldh-view-toolbar .form-inline label { display: flex; align-items: center; gap: var(--sp-1); margin: 0; }
+.ldh-view-toolbar .btn-group { position: relative; }
+.ldh-view-toolbar .btn-group.open .dropdown-menu { left: auto; right: 0; }
+/* facets moved from the drawer to the toolbar; hide the drawer group they left behind */
+.ldh-drawer .dgroup:empty { display: none; }
+
+/* typeahead suggestion metadata (type labels) trails the row */
+.dropdown-menu li a .meta { margin-left: auto; font-size: var(--fs-xs); color: var(--fg-muted); }

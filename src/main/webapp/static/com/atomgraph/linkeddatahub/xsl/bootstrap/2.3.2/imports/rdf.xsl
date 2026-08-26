@@ -79,7 +79,7 @@ exclude-result-prefixes="#all">
 
                     <div class="controls">
                         <xsl:if test="not($required)">
-                            <div class="btn-group pull-right">
+                            <div class="btn-group">
                                 <button type="button" tabindex="-1">
                                     <xsl:attribute name="title">
                                         <xsl:value-of>
