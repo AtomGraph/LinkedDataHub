@@ -18,8 +18,13 @@ package com.atomgraph.linkeddatahub.cli.command;
 
 import com.atomgraph.linkeddatahub.cli.command.admin.acl.CreateAuthorization;
 import com.atomgraph.linkeddatahub.cli.command.admin.acl.CreateGroup;
+import com.atomgraph.linkeddatahub.cli.command.admin.ontologies.AddClass;
+import com.atomgraph.linkeddatahub.cli.command.admin.ontologies.AddConstructor;
+import com.atomgraph.linkeddatahub.cli.command.admin.ontologies.AddPropertyConstraint;
+import com.atomgraph.linkeddatahub.cli.command.admin.ontologies.AddRestriction;
 import com.atomgraph.linkeddatahub.cli.command.admin.ontologies.CreateOntology;
 import com.atomgraph.linkeddatahub.cli.command.admin.ontologies.ImportOntology;
+import com.atomgraph.linkeddatahub.cli.command.content.AddObjectBlock;
 import com.atomgraph.linkeddatahub.cli.command.content.AddXHTMLBlock;
 import com.atomgraph.linkeddatahub.cli.command.imports.AddCSVImport;
 import com.atomgraph.linkeddatahub.cli.command.imports.AddRDFImport;
@@ -51,6 +56,7 @@ public class ModelBuildersTest
         @prefix spin:	<http://spinrdf.org/spin#> .
         @prefix sp:	<http://spinrdf.org/sp#> .
         @prefix ac:	<https://w3id.org/atomgraph/client#> .
+        @prefix a:	<https://w3id.org/atomgraph/core#> .
         @prefix acl:	<http://www.w3.org/ns/auth/acl#> .
         @prefix sd:	<http://www.w3.org/ns/sparql-service-description#> .
         @prefix owl:	<http://www.w3.org/2002/07/owl#> .
@@ -236,6 +242,137 @@ public class ModelBuildersTest
                 rdf:value "<p>Hello</p>"^^rdf:XMLLiteral .
             """),
             AddXHTMLBlock.buildModel(TARGET, RDF.li(4), null, "<p>Hello</p>", null, null));
+    }
+
+    @Test
+    public void addGenericServiceWithGraphStoreAndAuth()
+    {
+        assertIsomorphic(parse("""
+            <#service> a sd:Service ;
+                dct:title "Remote" ;
+                sd:endpoint <https://remote.example/sparql> ;
+                sd:supportedLanguage sd:SPARQL11Query, sd:SPARQL11Update ;
+                a:graphStore <https://remote.example/service> ;
+                a:authUser "user" ;
+                a:authPwd "pwd" .
+            """),
+            AddGenericService.buildModel(TARGET, "#service", "Remote", URI.create("https://remote.example/sparql"),
+                URI.create("https://remote.example/service"), "user", "pwd", null));
+    }
+
+    @Test
+    public void addGenericServiceMinimal()
+    {
+        assertIsomorphic(parse("""
+            <#service> a sd:Service ;
+                dct:title "Remote" ;
+                sd:endpoint <https://remote.example/sparql> ;
+                sd:supportedLanguage sd:SPARQL11Query, sd:SPARQL11Update .
+            """),
+            AddGenericService.buildModel(TARGET, "#service", "Remote", URI.create("https://remote.example/sparql"),
+                null, null, null, null));
+    }
+
+    @Test
+    public void addResultSetChart()
+    {
+        assertIsomorphic(parse("""
+            <#chart> a ldh:ResultSetChart ;
+                dct:title "Chart" ;
+                dct:description "Desc" ;
+                spin:query <https://localhost:4443/queries/select/#this> ;
+                ldh:chartType <https://w3id.org/atomgraph/client#BarChart> ;
+                ldh:categoryVarName "category" ;
+                ldh:seriesVarName "series" .
+            """),
+            AddResultSetChart.buildModel(TARGET, "#chart", "Chart", URI.create("https://localhost:4443/queries/select/#this"),
+                URI.create("https://w3id.org/atomgraph/client#BarChart"), "category", "series", "Desc"));
+    }
+
+    @Test
+    public void addClassWithSuperClasses()
+    {
+        assertIsomorphic(parse("""
+            <#Concept> a owl:Class ;
+                rdfs:label "Concept" ;
+                rdfs:comment "A concept" ;
+                spin:constructor <https://localhost:4443/queries/construct/#this> ;
+                spin:constraint <https://localhost:4443/constraints/#this> ;
+                rdfs:subClassOf <https://localhost:4443/ns#Thing>, <https://localhost:4443/ns#Other> .
+            """),
+            AddClass.buildModel(TARGET, "#Concept", "Concept", "A concept",
+                URI.create("https://localhost:4443/queries/construct/#this"),
+                URI.create("https://localhost:4443/constraints/#this"),
+                List.of(URI.create("https://localhost:4443/ns#Thing"), URI.create("https://localhost:4443/ns#Other"))));
+    }
+
+    @Test
+    public void addClassMinimal()
+    {
+        assertIsomorphic(parse("""
+            <#Concept> a owl:Class ;
+                rdfs:label "Concept" .
+            """),
+            AddClass.buildModel(TARGET, "#Concept", "Concept", null, null, null, List.of()));
+    }
+
+    @Test
+    public void addConstructor()
+    {
+        assertIsomorphic(parse("""
+            <#constructor> a sp:Construct ;
+                rdfs:label "Constructor" ;
+                rdfs:comment "Builds a Concept" ;
+                sp:text "CONSTRUCT { ?s ?p ?o } WHERE { ?s ?p ?o }" ;
+                ldh:service <https://localhost:4443/services/remote/#this> .
+            """),
+            AddConstructor.buildModel(TARGET, "#constructor", SP.Construct, "Constructor",
+                "CONSTRUCT { ?s ?p ?o } WHERE { ?s ?p ?o }",
+                URI.create("https://localhost:4443/services/remote/#this"), "Builds a Concept"));
+    }
+
+    @Test
+    public void addPropertyConstraint()
+    {
+        assertIsomorphic(parse("""
+            <#constraint> a ldh:MissingPropertyValue ;
+                rdfs:label "Title required" ;
+                sp:arg1 dct:title .
+            """),
+            AddPropertyConstraint.buildModel(TARGET, "#constraint", "Title required",
+                URI.create("http://purl.org/dc/terms/title"), null));
+    }
+
+    @Test
+    public void addRestriction()
+    {
+        assertIsomorphic(parse("""
+            <#restriction> a owl:Restriction ;
+                rdfs:label "Has title" ;
+                rdfs:comment "Every instance carries a title" ;
+                owl:onProperty dct:title ;
+                owl:allValuesFrom rdfs:Literal ;
+                owl:hasValue <https://localhost:4443/values/default/> .
+            """),
+            AddRestriction.buildModel(TARGET, "#restriction", "Has title", "Every instance carries a title",
+                URI.create("http://purl.org/dc/terms/title"),
+                URI.create("http://www.w3.org/2000/01/rdf-schema#Literal"),
+                URI.create("https://localhost:4443/values/default/")));
+    }
+
+    @Test
+    public void addObjectBlock()
+    {
+        assertIsomorphic(parse("""
+            <> rdf:_2 _:block .
+            _:block a ldh:Object ;
+                rdf:value <https://localhost:4443/other/> ;
+                dct:title "Block" ;
+                dct:description "Desc" ;
+                ac:mode <https://w3id.org/atomgraph/client#ReadMode> .
+            """),
+            AddObjectBlock.buildModel(TARGET, RDF.li(2), null, URI.create("https://localhost:4443/other/"),
+                "Block", "Desc", URI.create("https://w3id.org/atomgraph/client#ReadMode")));
     }
 
     @Test
