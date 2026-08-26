@@ -87,9 +87,9 @@ exclude-result-prefixes="#all">
                                         </xsl:value-of>
                                     </xsl:attribute>
 
-                                    <xsl:apply-templates select="key('resources', 'remove', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ldh:logo">
-                                        <xsl:with-param name="class" select="'btn pull-right'"/>
-                                    </xsl:apply-templates>
+                                    <xsl:attribute name="class" select="'tb btn-remove-property'"/>
+
+                                    <span class="msi sm" aria-hidden="true">close</span>
                                 </button>
                             </div>
                         </xsl:if>

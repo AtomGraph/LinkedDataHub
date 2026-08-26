@@ -1437,7 +1437,7 @@ extension-element-prefixes="ixsl"
                             </xsl:if>
                             
                             <!-- button that toggles the .control-group for subject URI/bnode ID editing -->
-                            <button type="button" class="btn btn-edit-subj {if ($show-subject) then 'open' else ()}"></button>
+                            <button type="button" class="btn btn-edit-subj {if ($show-subject) then 'open' else ()}"><span class="msi sm" aria-hidden="true">edit</span></button>
                         </div>
                         
                         <!-- "Copy URI" button -->
@@ -1589,6 +1589,8 @@ extension-element-prefixes="ixsl"
                     <xsl:apply-templates select="key('resources', 'add', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ldh:logo">
                         <xsl:with-param name="class" select="'btn add-value'"/>
                     </xsl:apply-templates>
+
+                    <span class="msi sm" aria-hidden="true">add</span>
                 </button>
             </div>
         </div>

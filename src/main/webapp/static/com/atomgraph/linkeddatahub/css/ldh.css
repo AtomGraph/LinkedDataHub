@@ -53,11 +53,8 @@ li button.btn-edit-constructors, li button.btn-add-data, li button.btn-add-ontol
 }
 .left-sidebar ul { max-height: 22em; overflow: auto; }
 .left-sidebar li > a { display: inline-block; }
-.btn.btn-expand-tree:hover, .btn.btn-expand-tree:focus { background-position: 0 0; }
-.btn.btn-expanded-tree:hover, .btn.btn-expanded-tree:focus { background-position: 0 0; }
 .left-nav .nav, .right-nav .nav { max-height: 20em; overflow: auto; }
 .left-nav, .right-nav { position: sticky; top: 0; }
-.caret.caret-reversed { border-bottom: 4px solid #000000; border-top-width: 0; }
 .faceted-nav input[type=checkbox]:checked + span { font-weight: bold; }
 .parallax-nav a { cursor: pointer; }
 .content-body { min-height: calc(100% - 14em); margin-top: 14px; }
