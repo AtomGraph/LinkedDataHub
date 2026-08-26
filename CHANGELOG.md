@@ -52,6 +52,7 @@
 - `MEM` vocabulary class — no consumers left once the Memento namespace gave way to PROV-O and the IANA relation types
 - Vestigial `forClass` URL params: the `add-constructor` button `@href`s (the onclick reads `@data-for-class`), the chart form's `@action` (`btn-save-chart` `PATCH`es the current document), `ldh:build-query`'s `forClass` arity, and `CacheInvalidationFilter`'s unreachable ban branch
 - `ldh:NoOp`, replaced by the constructor-sync fan-out on `ldh:ClearNamespace`
+- `ProvenanceFilter` — a 2021 skeleton whose registration was commented out since it was written; the PROV-O provenance sidecar (P2.3) will not start from its graph-per-request shape
 
 ### Fixed
 - GraphMode rendering of `ldh:Object` blocks crashed with a cardinality error: the `bs2:Row` branch applied `bs2:Graph` without the required `canvas-id` param; the 3D force graph now initializes after the row is rendered

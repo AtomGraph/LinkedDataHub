@@ -1105,7 +1105,6 @@ public class Application extends ResourceConfig
         register(new XsltExecutableFilter());
         if (isInvalidateCache()) register(new CacheInvalidationFilter());
         register(new VersioningFilter());
-//        register(new ProvenanceFilter());
     }
     
     /**
