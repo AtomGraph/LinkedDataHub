@@ -86,6 +86,91 @@ ul.breadcrumb.ldh-bc > li.active { color: var(--fg-1); font-weight: var(--fw-med
 .ldh-drawer .db ul.nav a:hover { background: var(--bg-hover); color: var(--fg-1); text-decoration: none; }
 .ldh-drawer .dh2 { display: flex; align-items: center; justify-content: space-between; margin: 0; cursor: pointer; }
 
+/* ---------- modals: CSR appends div.modal.fade.in and removes it on close ---------- */
+.modal {
+  position: fixed; top: 48px; left: 50%; transform: translateX(-50%);
+  width: min(880px, calc(100vw - var(--sp-12)));
+  max-height: calc(100vh - 96px);
+  background: var(--surface-0);
+  border: 0; border-radius: var(--r-lg);
+  box-shadow: var(--shadow-xl, 0 24px 64px -16px rgba(15, 23, 42, 0.4));
+  display: flex; flex-direction: column;
+  overflow: hidden;
+  z-index: 110;
+}
+.modal.fade { opacity: 0; transition: opacity var(--dur-fast) var(--ease-out-soft); }
+.modal.fade.in { opacity: 1; }
+.modal-header {
+  display: flex; align-items: center; gap: var(--sp-3);
+  padding: var(--sp-4) var(--sp-5) var(--sp-3);
+  border-bottom: 1px solid var(--border-default);
+}
+.modal-header h2, .modal-header h3 { font-size: var(--fs-lg); margin: 0; font-weight: var(--fw-semibold); flex: 1; min-width: 0; }
+.modal-header .close {
+  margin-left: auto; border: 0; background: transparent;
+  width: 28px; height: 28px; border-radius: var(--r-sm);
+  color: var(--fg-hint); font-size: var(--fs-lg); line-height: 1;
+}
+.modal-header .close:hover { background: var(--bg-hover); color: var(--fg-1); }
+.modal-body { padding: var(--sp-4) var(--sp-5); overflow-y: auto; min-height: 0; }
+.modal-footer, .form-actions {
+  display: flex; align-items: center; justify-content: flex-end; gap: var(--sp-2);
+  padding: var(--sp-3) var(--sp-5);
+  border-top: 1px solid var(--border-default);
+  background: var(--surface-1);
+  margin: 0;
+}
+
+/* ---------- forms: control-group/control-label/controls tokens are CSR anchors ---------- */
+form .control-group {
+  display: grid;
+  grid-template-columns: minmax(140px, 220px) 1fr;
+  column-gap: var(--sp-6);
+  align-items: start;
+  padding: var(--sp-2) 0;
+  border-top: 1px solid var(--border-muted, var(--border-default));
+}
+form .control-group:first-of-type { border-top: 0; }
+form .control-group > .control-label {
+  padding-top: 6px;
+  font-size: var(--fs-sm); font-weight: var(--fw-medium);
+  color: var(--fg-muted);
+  overflow: hidden; text-overflow: ellipsis;
+}
+form .control-group > .controls { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-2); min-width: 0; }
+/* explicit placement: RDF/POST hidden inputs and <hr> separators are also direct children */
+form .control-group > * { grid-column: 2; }
+form .control-group > .control-label { grid-column: 1; grid-row: 1; }
+form .control-group > .controls { grid-column: 2; grid-row: 1; }
+form .control-group > hr { display: none; }
+form .controls input[type="text"], form .controls input[type="url"], form .controls textarea { flex: 1 1 240px; min-width: 0; }
+form .controls textarea { min-height: 72px; }
+form .control-group.error > .control-label { color: var(--danger-500); }
+form .control-group.error input, form .control-group.error textarea { border-color: var(--danger-500); }
+form .control-group.required > .control-label::after { content: ' *'; color: var(--danger-500); }
+form input[type="text"], form input[type="url"], form input[type="number"], form input[type="password"],
+form input[type="datetime-local"], form input[type="date"], form textarea, form select {
+  border: 1px solid var(--border-default); border-radius: var(--r-sm);
+  background: var(--surface-0); color: var(--fg-1);
+  font-family: var(--font-sans); font-size: var(--fs-sm);
+  padding: 5px 10px; min-height: 30px;
+  transition: border-color var(--dur-fast) var(--ease-out-soft), box-shadow var(--dur-fast) var(--ease-out-soft);
+}
+form input:focus, form textarea:focus, form select:focus {
+  outline: none; border-color: var(--ldh-blue-400);
+  box-shadow: 0 0 0 3px var(--bg-accent-quiet);
+}
+form .help-inline { font-size: var(--fs-xs); color: var(--fg-hint); }
+form .control-group.error .help-inline, form .error > .help-inline { color: var(--danger-500); }
+form .btn-primary, .form-actions .btn-primary {
+  display: inline-flex; align-items: center; gap: var(--sp-2);
+  height: 30px; padding: 0 12px;
+  border: 0; border-radius: var(--r-sm);
+  background: var(--bg-accent); color: var(--fg-on-accent);
+  font-size: var(--fs-sm); font-weight: var(--fw-medium);
+}
+form .btn-primary:hover { background: var(--bg-accent-hover); }
+
 /* ---------- type badges: ul.inline of typed-object anchors ---------- */
 ul.ldh-typelist { display: flex; flex-wrap: wrap; gap: var(--sp-1); list-style: none; margin: 0 0 var(--sp-1); padding: 0; }
 ul.ldh-typelist > li > a, ul.ldh-typelist > li > span {
