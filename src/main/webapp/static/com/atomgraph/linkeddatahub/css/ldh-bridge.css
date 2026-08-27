@@ -326,6 +326,10 @@ legend {
 }
 /* subject controls (type picker, subject edit toggle) hug the legend's right edge */
 legend > .actions { display: flex; align-items: center; gap: var(--sp-1); margin-left: auto; }
+/* the edit/create form titles itself with its fieldset legend (ac:label of the subject) - the modal
+   header carries only the close button. In a modal that legend IS the heading (Bootstrap sized it as
+   one); match .modal-header legend instead of the mono section-label treatment above */
+.modal .modal-body form > fieldset > legend { font-family: var(--font-sans); font-size: var(--fs-lg); font-weight: var(--fw-semibold); letter-spacing: normal; text-transform: none; color: var(--fg-1); }
 /* remove-resource button on legendless fieldsets rides its own top row, right-aligned */
 fieldset > .btn-group { display: flex; justify-content: flex-end; }
 /* remove-statement/add-statement groups trail their form row instead of floating */
