@@ -513,6 +513,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="typeof" select="rdf:type/@rdf:resource/xs:anyURI(.)" as="xs:anyURI*"/>
         <xsl:param name="draggable" select="false()" as="xs:boolean?"/>
         <xsl:param name="show-row-block-controls" select="true()" as="xs:boolean"/>
+        <xsl:param name="show-drag-handle" select="true()" as="xs:boolean" tunnel="yes"/>
         <xsl:param name="diff-added-keys" as="xs:string*" tunnel="yes"/>
         <xsl:param name="diff-removed-keys" as="xs:string*" tunnel="yes"/>
         <xsl:variable name="diff-class" select="ldh:diff-class(., $diff-added-keys, $diff-removed-keys)" as="xs:string?"/>
@@ -539,12 +540,14 @@ extension-element-prefixes="ixsl"
             <div class="row-main">
                 <xsl:if test="$show-row-block-controls">
                     <xsl:attribute name="class" select="'row-main progress active'"/>
-                    
-                    <div class="drag-handle">
-                        <xsl:if test="acl:mode() = '&acl;Write'">
-                            <xsl:attribute name="draggable" select="'true'"/>
-                        </xsl:if>
-                    </div>
+
+                    <xsl:if test="$show-drag-handle">
+                        <div class="drag-handle">
+                            <xsl:if test="acl:mode() = '&acl;Write'">
+                                <xsl:attribute name="draggable" select="'true'"/>
+                            </xsl:if>
+                        </div>
+                    </xsl:if>
                     <div class="block-row row-block-controls" style="position: relative; top: 30px; margin-top: -30px; z-index: 1;">
                         <div class="row-main">
                             <xsl:if test="acl:mode() = '&acl;Write'">
@@ -578,6 +581,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="typeof" select="rdf:type/@rdf:resource/xs:anyURI(.)" as="xs:anyURI*"/>
         <xsl:param name="main-class" select="'main ldh-block-body'" as="xs:string?"/>
         <xsl:param name="draggable" select="false()" as="xs:boolean?"/>
+        <xsl:param name="show-drag-handle" select="true()" as="xs:boolean" tunnel="yes"/>
         <xsl:param name="diff-added-keys" as="xs:string*" tunnel="yes"/>
         <xsl:param name="diff-removed-keys" as="xs:string*" tunnel="yes"/>
         <xsl:variable name="diff-class" select="ldh:diff-class(., $diff-added-keys, $diff-removed-keys)" as="xs:string?"/>
@@ -602,11 +606,13 @@ extension-element-prefixes="ixsl"
             </xsl:if>
             
             <div class="row-main">
-                <div class="drag-handle">
-                    <xsl:if test="acl:mode() = '&acl;Write'">
-                        <xsl:attribute name="draggable" select="'true'"/>
-                    </xsl:if>
-                </div>
+                <xsl:if test="$show-drag-handle">
+                    <div class="drag-handle">
+                        <xsl:if test="acl:mode() = '&acl;Write'">
+                            <xsl:attribute name="draggable" select="'true'"/>
+                        </xsl:if>
+                    </div>
+                </xsl:if>
                 <div class="block-row row-block-controls" style="position: relative; top: 30px; margin-top: -30px; z-index: 1;">
                     <div class="row-main">
                         <xsl:if test="acl:mode() = '&acl;Write'">

@@ -635,4 +635,8 @@
     <rdf:Description rdf:nodeID="json-ld">
         <rdfs:label xml:lang="en-US">JSON-LD</rdfs:label>
     </rdf:Description>
+    <rdf:Description rdf:nodeID="could-not-move-block">
+        <rdfs:label xml:lang="en-US">Could not move block</rdfs:label>
+        <rdfs:label xml:lang="es-ES">No se pudo mover el bloque</rdfs:label>
+    </rdf:Description>
 </rdf:RDF>

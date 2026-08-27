@@ -70,42 +70,46 @@ exclude-result-prefixes="#all"
             }
         ]]>
     </xsl:variable>
-    <xsl:variable name="block-swap-string" as="xs:string">
+    <!-- moves ?source after ?target in ?doc's rdf:_N sequence, shifting the members between them by one.
+         The VALUES row is substituted at the call site. The OPTIONAL re-derives the source/target indexes:
+         BINDs inside the left join cannot see the outer bindings, so the duplication is required. -->
+    <xsl:variable name="block-move-string" as="xs:string">
         <![CDATA[
             PREFIX  xsd:  <http://www.w3.org/2001/XMLSchema#>
             PREFIX  rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 
             DELETE {
-              $this ?sourceSeq $sourceBlock .
-              $this ?targetSeq $targetBlock .
-              $this ?seq ?block .
+              ?doc ?sourceSeq ?source .
+              ?doc ?targetSeq ?target .
+              ?doc ?seq ?block .
             }
             INSERT {
-              $this ?newSourceSeq $sourceBlock .
-              $this ?newTargetSeq $targetBlock .
-              $this ?newSeq ?block .
+              ?doc ?newSourceSeq ?source .
+              ?doc ?newTargetSeq ?target .
+              ?doc ?newSeq ?block .
             }
             WHERE
-              { $this  ?sourceSeq  $sourceBlock
-                FILTER(strstarts(str(?sourceSeq), concat(str(rdf:), "_")))
-                BIND(xsd:integer(substr(str(?sourceSeq), 45)) AS ?sourceIndex)
-                $this  ?targetSeq  $targetBlock
-                FILTER(strstarts(str(?targetSeq), concat(str(rdf:), "_")))
-                BIND(xsd:integer(substr(str(?targetSeq), 45)) AS ?targetIndex)
+              { VALUES (?doc ?source ?target) { ($doc $source $target) }
+                ?doc  ?sourceSeq  ?source
+                FILTER(strstarts(str(?sourceSeq), str(rdf:_)))
+                BIND(xsd:integer(strafter(str(?sourceSeq), str(rdf:_))) AS ?sourceIndex)
+                ?doc  ?targetSeq  ?target
+                FILTER(strstarts(str(?targetSeq), str(rdf:_)))
+                BIND(xsd:integer(strafter(str(?targetSeq), str(rdf:_))) AS ?targetIndex)
                 BIND(if(( ?sourceIndex < ?targetIndex ), ( ?targetIndex - 1 ), ?targetIndex) AS ?newTargetIndex)
                 BIND(if(( ?sourceIndex < ?targetIndex ), ?targetIndex, ( ?targetIndex + 1 )) AS ?newSourceIndex)
                 BIND(IRI(concat(str(rdf:), "_", str(?newSourceIndex))) AS ?newSourceSeq)
                 BIND(IRI(concat(str(rdf:), "_", str(?newTargetIndex))) AS ?newTargetSeq)
                 OPTIONAL
-                  { $this  ?sourceSeq  $sourceBlock
-                    FILTER(strstarts(str(?sourceSeq), concat(str(rdf:), "_")))
-                    BIND(xsd:integer(substr(str(?sourceSeq), 45)) AS ?sourceIndex)
-                    $this  ?targetSeq  $targetBlock
-                    FILTER(strstarts(str(?targetSeq), concat(str(rdf:), "_")))
-                    BIND(xsd:integer(substr(str(?targetSeq), 45)) AS ?targetIndex)
-                    $this  ?seq  ?block
-                    FILTER strstarts(str(?seq), str(rdf:_))
-                    BIND(xsd:integer(substr(str(?seq), 45)) AS ?index)
+                  { ?doc  ?sourceSeq  ?source
+                    FILTER(strstarts(str(?sourceSeq), str(rdf:_)))
+                    BIND(xsd:integer(strafter(str(?sourceSeq), str(rdf:_))) AS ?sourceIndex)
+                    ?doc  ?targetSeq  ?target
+                    FILTER(strstarts(str(?targetSeq), str(rdf:_)))
+                    BIND(xsd:integer(strafter(str(?targetSeq), str(rdf:_))) AS ?targetIndex)
+                    ?doc  ?seq  ?block
+                    FILTER(strstarts(str(?seq), str(rdf:_)))
+                    BIND(xsd:integer(strafter(str(?seq), str(rdf:_))) AS ?index)
                     BIND(( ( ?index > ?sourceIndex ) && ( ?index < ?targetIndex ) ) AS ?isBetweenSourceAndTarget)
                     BIND(( ( ?index < ?sourceIndex ) && ( ?index > ?targetIndex ) ) AS ?isBetweenTargetAndSource)
                     FILTER ( ?isBetweenSourceAndTarget || ?isBetweenTargetAndSource )
@@ -447,9 +451,14 @@ exclude-result-prefixes="#all"
         <xsl:for-each select="$block">
             <ixsl:set-property name="dataTransfer.effectAllowed" select="'move'" object="ixsl:event()"/>
             <xsl:variable name="block-uri" select="@about" as="xs:anyURI"/>
+            <!-- the app-specific type marks the drag as a block reorder for the dragover/enter/drop guards:
+                 only dataTransfer.types is readable before drop, and text/uri-list alone would also match
+                 any dragged hyperlink -->
+            <xsl:sequence select="ixsl:call(ixsl:get(ixsl:event(), 'dataTransfer'), 'setData', [ 'application/vnd.linkeddatahub.block', '' ])"/>
             <xsl:sequence select="ixsl:call(ixsl:get(ixsl:event(), 'dataTransfer'), 'setData', [ 'text/uri-list', $block-uri ])"/>
-            <!-- make it appear like the whole block is being dragged -->
-            <xsl:sequence select="ixsl:call(ixsl:get(ixsl:event(), 'dataTransfer'), 'setDragImage', [ ., 0, 0 ])"/>
+            <!-- make it appear like the whole block is being dragged, keeping the grab point under the pointer -->
+            <xsl:variable name="rect" select="ixsl:call(., 'getBoundingClientRect', [])"/>
+            <xsl:sequence select="ixsl:call(ixsl:get(ixsl:event(), 'dataTransfer'), 'setDragImage', [ ., ixsl:get(ixsl:event(), 'clientX') - ixsl:get($rect, 'x'), ixsl:get(ixsl:event(), 'clientY') - ixsl:get($rect, 'y') ])"/>
         </xsl:for-each>
     </xsl:template>
     
@@ -462,110 +471,75 @@ exclude-result-prefixes="#all"
     </xsl:template>
 
     <!-- dragging block over other block -->
-    <!-- only handle if drag originated from drag-handle (has text/uri-list item) -->
-    <!-- these four document-block DnD handlers (ondragover/enter/leave/drop) exclude the RDFa editor
-         subtree: the editor renders inside a .content-body > .block, so without the guard this pattern
-         also matches every element in .rdfa-editor-content and - having higher import precedence than
-         the imported edit.xsl - shadows the editor's own block DnD (edit.xsl), killing its drop marks
-         and reorder. Excluding the editor lets those events fall through to the editor's handlers. -->
+    <!-- the application/vnd.linkeddatahub.block payload type proves the drag started on a block drag
+         handle, which only renders draggable in ContentMode under acl:Write - so no mode or access
+         checks are needed here. These three document-block DnD handlers (ondragover/enter/drop)
+         exclude the RDFa editor subtree: the editor renders inside a .content-body > .block, so
+         without the guard this pattern also matches every element in .rdfa-editor-content and -
+         having higher import precedence than the imported edit.xsl - shadows the editor's own block
+         DnD (edit.xsl), killing its drop marks and reorder. Excluding the editor lets those events
+         fall through to the editor's handlers. -->
 
-    <xsl:template match="*[ancestor-or-self::div[contains-token(@class, 'block')][parent::div[contains-token(@class, 'content-body')]][acl:mode() = '&acl;Write']][not(ancestor-or-self::*[contains-token(@class, 'rdfa-editor-content')])]" mode="ixsl:ondragover" priority="1">
-        <xsl:variable name="block" select="ancestor-or-self::div[contains-token(@class, 'block')][parent::div[contains-token(@class, 'content-body')]][1]" as="element()"/>
-        <xsl:variable name="uri" select="xs:anyURI($block/parent::div/parent::div[contains-token(@class, 'document-body')]/@about)" as="xs:anyURI"/>
-        <xsl:variable name="results" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $uri || '`'), 'results')" as="document-node()"/>
-        <xsl:variable name="mode" select="ac:mode($results)" as="xs:anyURI"/>
-
-        <xsl:if test="$mode = xs:anyURI('&ldh;ContentMode')">
-            <xsl:variable name="items" select="ixsl:get(ixsl:get(ixsl:event(), 'dataTransfer'), 'items')"/>
-            <xsl:variable name="has-uri-item" select="if (ixsl:get($items, 'length') > 0) then ixsl:get(ixsl:get($items, '0'), 'type') = 'text/uri-list' else false()" as="xs:boolean"/>
-            <xsl:if test="$has-uri-item">
-                <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
-                <ixsl:set-property name="dataTransfer.dropEffect" select="'move'" object="ixsl:event()"/>
-            </xsl:if>
+    <xsl:template match="*[ancestor-or-self::div[contains-token(@class, 'block')][parent::div[contains-token(@class, 'content-body')]]][not(ancestor-or-self::*[contains-token(@class, 'rdfa-editor-content')])]" mode="ixsl:ondragover" priority="1">
+        <xsl:if test="ixsl:call(ixsl:get(ixsl:get(ixsl:event(), 'dataTransfer'), 'types'), 'includes', [ 'application/vnd.linkeddatahub.block' ])">
+            <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
+            <ixsl:set-property name="dataTransfer.dropEffect" select="'move'" object="ixsl:event()"/>
         </xsl:if>
     </xsl:template>
 
-    <!-- change the style of blocks when block is dragged over them -->
-    <!-- only handle if drag originated from drag-handle (has text/uri-list item) -->
+    <!-- move the drop marker onto the block being dragged over. The marker moves between blocks
+         (single-marker invariant), so no dragleave handler is needed and the marker does not flicker
+         over the gaps between cards; a cancelled drag is cleaned up by ondragend -->
 
-    <xsl:template match="*[ancestor-or-self::div[contains-token(@class, 'block')][parent::div[contains-token(@class, 'content-body')]][acl:mode() = '&acl;Write']][not(ancestor-or-self::*[contains-token(@class, 'rdfa-editor-content')])]" mode="ixsl:ondragenter" priority="1">
+    <xsl:template match="*[ancestor-or-self::div[contains-token(@class, 'block')][parent::div[contains-token(@class, 'content-body')]]][not(ancestor-or-self::*[contains-token(@class, 'rdfa-editor-content')])]" mode="ixsl:ondragenter" priority="1">
         <xsl:variable name="block" select="ancestor-or-self::div[contains-token(@class, 'block')][parent::div[contains-token(@class, 'content-body')]][1]" as="element()"/>
-        <xsl:variable name="uri" select="xs:anyURI($block/parent::div/parent::div[contains-token(@class, 'document-body')]/@about)" as="xs:anyURI"/>
-        <xsl:variable name="results" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $uri || '`'), 'results')" as="document-node()"/>
-        <xsl:variable name="mode" select="ac:mode($results)" as="xs:anyURI"/>
 
-        <xsl:if test="$mode = xs:anyURI('&ldh;ContentMode')">
-            <xsl:variable name="items" select="ixsl:get(ixsl:get(ixsl:event(), 'dataTransfer'), 'items')"/>
-            <xsl:variable name="has-uri-item" select="if (ixsl:get($items, 'length') > 0) then ixsl:get(ixsl:get($items, '0'), 'type') = 'text/uri-list' else false()" as="xs:boolean"/>
-            <xsl:if test="$has-uri-item">
-                <xsl:sequence select="ixsl:call(ixsl:get($block, 'classList'), 'toggle', [ 'drag-over', true() ])[current-date() lt xs:date('2000-01-01')]"/>
-            </xsl:if>
+        <xsl:if test="ixsl:call(ixsl:get(ixsl:get(ixsl:event(), 'dataTransfer'), 'types'), 'includes', [ 'application/vnd.linkeddatahub.block' ])">
+            <xsl:for-each select="$block/../div[contains-token(@class, 'block')][contains-token(@class, 'drag-over')][not(. is $block)]">
+                <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'drag-over', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+            </xsl:for-each>
+            <xsl:sequence select="ixsl:call(ixsl:get($block, 'classList'), 'toggle', [ 'drag-over', true() ])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:if>
     </xsl:template>
 
-    <!-- only handle if drag originated from drag-handle (has text/uri-list item) -->
+    <!-- dropping block over other top-level block: move the dragged block after it -->
 
-    <xsl:template match="*[ancestor-or-self::div[contains-token(@class, 'block')][parent::div[contains-token(@class, 'content-body')]][acl:mode() = '&acl;Write']][not(ancestor-or-self::*[contains-token(@class, 'rdfa-editor-content')])]" mode="ixsl:ondragleave" priority="1">
+    <xsl:template match="*[ancestor-or-self::div[contains-token(@class, 'block')][parent::div[contains-token(@class, 'content-body')]]][not(ancestor-or-self::*[contains-token(@class, 'rdfa-editor-content')])]" mode="ixsl:ondrop" priority="1">
         <xsl:variable name="block" select="ancestor-or-self::div[contains-token(@class, 'block')][parent::div[contains-token(@class, 'content-body')]][1]" as="element()"/>
-        <xsl:variable name="uri" select="xs:anyURI($block/parent::div/parent::div[contains-token(@class, 'document-body')]/@about)" as="xs:anyURI"/>
-        <xsl:variable name="results" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $uri || '`'), 'results')" as="document-node()"/>
-        <xsl:variable name="mode" select="ac:mode($results)" as="xs:anyURI"/>
 
-        <xsl:if test="$mode = xs:anyURI('&ldh;ContentMode')">
-            <xsl:variable name="items" select="ixsl:get(ixsl:get(ixsl:event(), 'dataTransfer'), 'items')"/>
-            <xsl:variable name="has-uri-item" select="if (ixsl:get($items, 'length') > 0) then ixsl:get(ixsl:get($items, '0'), 'type') = 'text/uri-list' else false()" as="xs:boolean"/>
-            <xsl:if test="$has-uri-item">
-                <xsl:variable name="related-target" select="ixsl:get(ixsl:event(), 'relatedTarget')" as="element()?"/> <!-- the element drag entered (optional) -->
+        <xsl:if test="ixsl:call(ixsl:get(ixsl:get(ixsl:event(), 'dataTransfer'), 'types'), 'includes', [ 'application/vnd.linkeddatahub.block' ])">
+            <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
+            <xsl:sequence select="ixsl:call(ixsl:get($block, 'classList'), 'toggle', [ 'drag-over', false() ])[current-date() lt xs:date('2000-01-01')]"/>
 
-                <!-- only remove class if the related target does not have the block as ancestor (i.e. drag actually left the block) -->
-                <xsl:if test="not($related-target/ancestor-or-self::div[. is $block])">
-                    <xsl:sequence select="ixsl:call(ixsl:get($block, 'classList'), 'toggle', [ 'drag-over', false() ])[current-date() lt xs:date('2000-01-01')]"/>
-                </xsl:if>
-            </xsl:if>
-        </xsl:if>
-    </xsl:template>
+            <xsl:variable name="target-uri" select="$block/@about" as="xs:anyURI?"/>
+            <xsl:variable name="source-uri" select="ixsl:call(ixsl:get(ixsl:event(), 'dataTransfer'), 'getData', [ 'text/uri-list' ])" as="xs:anyURI"/>
+            <!-- resolve the dragged block within this document only: @about is duplicated on the inner
+                 block-row, and the drag can originate from another document (tab pane or window) - such
+                 drops are ignored -->
+            <xsl:variable name="document-body" select="$block/ancestor::div[contains-token(@class, 'document-body')][1]" as="element()"/>
+            <xsl:variable name="source-block" select="key('element-by-about', $source-uri, $document-body)[contains-token(@class, 'block')][parent::div[contains-token(@class, 'content-body')]]" as="element()?"/>
 
-    <!-- dropping block over other top-level block -->
-    <!-- only handle if drag originated from drag-handle (has text/uri-list item) -->
+            <!-- only persist if the target block is saved (has @about) and the source is a different block of the same document -->
+            <xsl:if test="$target-uri and exists($source-block) and not($target-uri = $source-uri)">
+                <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
-    <xsl:template match="*[ancestor-or-self::div[contains-token(@class, 'block')][parent::div[contains-token(@class, 'content-body')]][acl:mode() = '&acl;Write']][not(ancestor-or-self::*[contains-token(@class, 'rdfa-editor-content')])]" mode="ixsl:ondrop" priority="1">
-        <xsl:variable name="block" select="ancestor-or-self::div[contains-token(@class, 'block')][parent::div[contains-token(@class, 'content-body')]][1]" as="element()"/>
-        <xsl:variable name="uri" select="xs:anyURI($block/parent::div/parent::div[contains-token(@class, 'document-body')]/@about)" as="xs:anyURI"/>
-        <xsl:variable name="results" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $uri || '`'), 'results')" as="document-node()"/>
-        <xsl:variable name="mode" select="ac:mode($results)" as="xs:anyURI"/>
+                <!-- remember the source position so a failed PATCH can revert the optimistic move -->
+                <xsl:variable name="source-next" select="$source-block/following-sibling::*[1]" as="element()?"/>
+                <xsl:sequence select="ixsl:call($block, 'after', [ $source-block ])"/>
 
-        <xsl:if test="$mode = xs:anyURI('&ldh;ContentMode')">
-            <xsl:variable name="items" select="ixsl:get(ixsl:get(ixsl:event(), 'dataTransfer'), 'items')"/>
-            <xsl:variable name="has-uri-item" select="if (ixsl:get($items, 'length') > 0) then ixsl:get(ixsl:get($items, '0'), 'type') = 'text/uri-list' else false()" as="xs:boolean"/>
-            <xsl:if test="$has-uri-item">
-                <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
-                <xsl:variable name="block-uri" select="$block/@about" as="xs:anyURI?"/>
-                <xsl:variable name="drop-block-uri" select="ixsl:call(ixsl:get(ixsl:event(), 'dataTransfer'), 'getData', [ 'text/uri-list' ])" as="xs:anyURI"/>
+                <xsl:variable name="values-row" select="'(&lt;' || ac:absolute-path(ldh:base-uri(.)) || '&gt; &lt;' || $source-uri || '&gt; &lt;' || $target-uri || '&gt;)'" as="xs:string"/>
+                <xsl:variable name="update-string" select="replace($block-move-string, '($doc $source $target)', $values-row, 'q')" as="xs:string"/>
+                <xsl:variable name="request-uri" select="ldh:href(ac:absolute-path(ldh:base-uri(.)), map{})" as="xs:anyURI"/>
+                <xsl:variable name="request" select="map{ 'method': 'PATCH', 'href': $request-uri, 'media-type': 'application/sparql-update', 'body': $update-string }" as="map(*)"/>
+                <xsl:variable name="context" select="map{ 'request': $request, 'source-block': $source-block, 'source-next': $source-next }" as="map(*)"/>
 
-                <xsl:sequence select="ixsl:call(ixsl:get($block, 'classList'), 'toggle', [ 'drag-over', false() ])[current-date() lt xs:date('2000-01-01')]"/>
-
-                <!-- only persist the change if the block is already saved and has an @about -->
-                <xsl:if test="$block-uri">
-                    <!-- move dropped element after this element, if they're not the same -->
-                    <xsl:if test="not($block-uri = $drop-block-uri)">
-                        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
-
-                        <!-- TO-DO: sketchy workaround to select block-level elements only because we might have duplicate @about values -->
-                        <xsl:variable name="drop-block" select="key('element-by-about', $drop-block-uri)[contains-token(@class, 'block')]" as="element()"/>
-                        <xsl:sequence select="ixsl:call($block, 'after', [ $drop-block ])"/>
-                        <!-- TO-DO: use a VALUES block instead -->
-                        <xsl:variable name="update-string" select="replace($block-swap-string, '$this', '&lt;' || ac:absolute-path(ldh:base-uri(.)) || '&gt;', 'q')" as="xs:string"/>
-                        <xsl:variable name="update-string" select="replace($update-string, '$targetBlock', '&lt;' || $block-uri || '&gt;', 'q')" as="xs:string"/>
-                        <xsl:variable name="update-string" select="replace($update-string, '$sourceBlock', '&lt;' || $drop-block-uri || '&gt;', 'q')" as="xs:string"/>
-                        <xsl:variable name="request-uri" select="ldh:href(ac:absolute-path(ldh:base-uri(.)), map{})" as="xs:anyURI"/>
-                        <xsl:variable name="request" as="item()*">
-                            <ixsl:schedule-action http-request="map{ 'method': 'PATCH', 'href': $request-uri, 'media-type': 'application/sparql-update', 'body': $update-string }">
-                                <xsl:call-template name="onBlockSwap"/>
-                            </ixsl:schedule-action>
-                        </xsl:variable>
-                        <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
-                    </xsl:if>
-                </xsl:if>
+                <ixsl:promise select="
+                    ixsl:resolve($context) =>
+                        ixsl:then(ldh:http-request-threaded#1) =>
+                        ixsl:then(ldh:handle-response#1) =>
+                        ixsl:then(ldh:block-moved#1)
+                    "
+                    on-failure="ldh:promise-failure#1"/>
             </xsl:if>
         </xsl:if>
     </xsl:template>
@@ -1014,20 +988,30 @@ exclude-result-prefixes="#all"
         </xsl:choose>
     </xsl:template>
     
-    <!-- block swap (drag & drop) -->
-    
-    <xsl:template name="onBlockSwap">
-        <xsl:context-item as="map(*)" use="required"/>
+    <!-- block move (drag & drop) -->
 
-        <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
-        
-        <xsl:choose>
-            <xsl:when test="?status = 204">
-            </xsl:when>
-            <xsl:otherwise>
-                <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ 'Could not swap block' ])[current-date() lt xs:date('2000-01-01')]"/>
-            </xsl:otherwise>
-        </xsl:choose>
-    </xsl:template>
+    <xsl:function name="ldh:block-moved" as="map(*)" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:variable name="response" select="$context('response')" as="map(*)"/>
+
+        <ixsl:set-style name="cursor" select="''" object="ixsl:page()//body"/>
+
+        <!-- revert the optimistic DOM move if the PATCH failed -->
+        <xsl:if test="not($response?status = 204)">
+            <xsl:variable name="source-block" select="$context('source-block')" as="element()"/>
+            <xsl:choose>
+                <xsl:when test="exists($context('source-next'))">
+                    <xsl:sequence select="ixsl:call($context('source-next'), 'before', [ $source-block ])[current-date() lt xs:date('2000-01-01')]"/>
+                </xsl:when>
+                <xsl:otherwise>
+                    <xsl:sequence select="ixsl:call($source-block/.., 'append', [ $source-block ])[current-date() lt xs:date('2000-01-01')]"/>
+                </xsl:otherwise>
+            </xsl:choose>
+
+            <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ ac:label(key('resources', 'could-not-move-block', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))) ])[current-date() lt xs:date('2000-01-01')]"/>
+        </xsl:if>
+
+        <xsl:sequence select="$context"/>
+    </xsl:function>
     
 </xsl:stylesheet>

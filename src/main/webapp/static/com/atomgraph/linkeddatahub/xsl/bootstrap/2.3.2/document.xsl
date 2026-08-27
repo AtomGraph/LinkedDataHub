@@ -655,6 +655,8 @@ extension-element-prefixes="ixsl"
                 <xsl:otherwise>
                     <xsl:apply-templates select="." mode="bs2:Row">
                         <xsl:sort select="ac:label(.)"/>
+                        <!-- block reorder is a ContentMode affordance: rows here are not rdf:_N content members -->
+                        <xsl:with-param name="show-drag-handle" select="false()" tunnel="yes"/>
                     </xsl:apply-templates>
                 </xsl:otherwise>
             </xsl:choose>

@@ -1321,21 +1321,37 @@ WHERE
 
     <!-- file drop -->
 
+    <!-- both templates yield non-file drags (e.g. block reorder): this blanket div match has higher import
+         precedence than the block DnD handlers in block.xsl, so without the fallthrough it would consume
+         their events whenever the drag pointer is over a div (card padding, block-row gaps) -->
+
     <xsl:template match="div[acl:mode() = '&acl;Write']" mode="ixsl:ondragover">
-        <xsl:variable name="uri" select="ac:absolute-path(ldh:request-uri())" as="xs:anyURI"/>
-        <xsl:variable name="results" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $uri || '`'), 'results')" as="document-node()"/>
-        <xsl:variable name="mode" select="ac:mode($results)" as="xs:anyURI"/>
-        
-        <xsl:if test="$mode = xs:anyURI('&ac;ReadMode')">
-            <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
-        </xsl:if>
+        <xsl:choose>
+            <xsl:when test="not(ixsl:call(ixsl:get(ixsl:get(ixsl:event(), 'dataTransfer'), 'types'), 'includes', [ 'Files' ]))">
+                <xsl:next-match/>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:variable name="uri" select="ac:absolute-path(ldh:request-uri())" as="xs:anyURI"/>
+                <xsl:variable name="results" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $uri || '`'), 'results')" as="document-node()"/>
+                <xsl:variable name="mode" select="ac:mode($results)" as="xs:anyURI"/>
+
+                <xsl:if test="$mode = xs:anyURI('&ac;ReadMode')">
+                    <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
+                </xsl:if>
+            </xsl:otherwise>
+        </xsl:choose>
     </xsl:template>
 
     <xsl:template match="div[acl:mode() = '&acl;Write']" mode="ixsl:ondrop">
+        <xsl:choose>
+            <xsl:when test="not(ixsl:call(ixsl:get(ixsl:get(ixsl:event(), 'dataTransfer'), 'types'), 'includes', [ 'Files' ]))">
+                <xsl:next-match/>
+            </xsl:when>
+            <xsl:otherwise>
         <xsl:variable name="uri" select="ac:absolute-path(ldh:request-uri())" as="xs:anyURI"/>
         <xsl:variable name="results" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $uri || '`'), 'results')" as="document-node()"/>
         <xsl:variable name="mode" select="ac:mode($results)" as="xs:anyURI"/>
-        
+
         <xsl:if test="$mode = xs:anyURI('&ac;ReadMode')">
             <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
             <xsl:variable name="base-uri" select="ldh:base-uri(.)" as="xs:anyURI"/>
@@ -1380,6 +1396,8 @@ WHERE
                 </xsl:message>
             </xsl:if>
         </xsl:if>
+            </xsl:otherwise>
+        </xsl:choose>
     </xsl:template>
 
     <!-- this callback will be invoked for every uploaded file -->
