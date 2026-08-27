@@ -138,7 +138,7 @@ extension-element-prefixes="ixsl"
     
     <xsl:template match="rdf:RDF" mode="bs2:ActionBarLeft">
         <xsl:param name="id" as="xs:string?"/>
-        <xsl:param name="class" select="'ldh-add-wrap'" as="xs:string?"/>
+        <xsl:param name="class" select="'ab-left'" as="xs:string?"/>
         
         <div>
             <xsl:if test="$id">
@@ -168,6 +168,15 @@ extension-element-prefixes="ixsl"
     </xsl:template>
         
     <xsl:template match="rdf:RDF[acl:mode() = '&acl;Append']" mode="bs2:AddData" priority="1">
+        <xsl:param name="menu-items" as="element()*">
+            <button type="button" class="it btn-generate-containers" title="{ac:label(key('resources', 'generate-containers-title', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin))))}">
+                <span class="msi sm" aria-hidden="true">library_add</span>
+                <span class="it-txt">
+                    <xsl:apply-templates select="key('resources', 'generate-containers', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                </span>
+            </button>
+        </xsl:param>
+
         <div class="ldh-of-wrap btn-group">
             <button type="button" class="ldh-btn is-ghost dropdown-toggle" title="{ac:label(key('resources', 'add', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin))))}">
                 <span class="msi sm" aria-hidden="true">upload</span>
@@ -178,12 +187,7 @@ extension-element-prefixes="ixsl"
             </button>
 
             <div class="ldh-of-menu">
-                <button type="button" class="it btn-generate-containers" title="{ac:label(key('resources', 'generate-containers-title', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin))))}">
-                    <span class="msi sm" aria-hidden="true">library_add</span>
-                    <span class="it-txt">
-                        <xsl:apply-templates select="key('resources', 'generate-containers', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
-                    </span>
-                </button>
+                <xsl:sequence select="$menu-items"/>
             </div>
         </div>
     </xsl:template>
@@ -191,24 +195,16 @@ extension-element-prefixes="ixsl"
     <!-- Admin app override: replace the default "Generate containers" with "Import ontology".
          Admin apps are identified by the 'admin.' subdomain prefix on lapp:origin() (nginx wildcard routing convention). -->
     <xsl:template match="rdf:RDF[acl:mode() = '&acl;Append'][starts-with(replace(lapp:origin(), '^https?://', ''), 'admin.')]" mode="bs2:AddData" priority="2">
-        <div class="ldh-of-wrap btn-group">
-            <button type="button" class="ldh-btn is-ghost dropdown-toggle" title="{ac:label(key('resources', 'add', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin))))}">
-                <span class="msi sm" aria-hidden="true">upload</span>
-                <span>
-                    <xsl:apply-templates select="key('resources', 'add', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
-                </span>
-                <span class="msi caret" aria-hidden="true">expand_more</span>
-            </button>
-
-            <div class="ldh-of-menu">
+        <xsl:next-match>
+            <xsl:with-param name="menu-items" as="element()*">
                 <button type="button" class="it btn-add-ontology" title="{ac:label(key('resources', 'import-ontology-title', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin))))}">
                     <span class="msi sm" aria-hidden="true">library_add</span>
                     <span class="it-txt">
                         <xsl:apply-templates select="key('resources', 'import-ontology', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
                     </span>
                 </button>
-            </div>
-        </div>
+            </xsl:with-param>
+        </xsl:next-match>
     </xsl:template>
 
     <xsl:template match="*" mode="bs2:AddData"/>
@@ -281,7 +277,7 @@ extension-element-prefixes="ixsl"
                 <xsl:with-param name="ajax-rendering" select="$ldh:ajaxRendering"/>
             </xsl:apply-templates>
 
-            <xsl:apply-templates select="." mode="bs2:ExportList"/>
+            <xsl:apply-templates select="." mode="bs2:MediaTypeList"/>
         </div>
     </xsl:template>
     
@@ -326,8 +322,6 @@ extension-element-prefixes="ixsl"
         <xsl:param name="delete-disabled" select="not(acl:mode() = '&acl;Write')" as="xs:boolean"/>
         <xsl:param name="save-as-disabled" select="false()" as="xs:boolean"/>
         <xsl:param name="edit-disabled" select="not(acl:mode() = '&acl;Write')" as="xs:boolean"/>
-        
-        <xsl:param name="uri" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/>
 
         <xsl:if test="$foaf:Agent//@rdf:about">
             <div class="ldh-of-wrap btn-group">
@@ -378,9 +372,9 @@ extension-element-prefixes="ixsl"
     
     <!-- EXPORT LIST -->
 
-    <xsl:template match="rdf:RDF[key('resources-by-type', '&http;Response')]" mode="bs2:ExportList" priority="1"/>
+    <xsl:template match="rdf:RDF[key('resources-by-type', '&http;Response')]" mode="bs2:MediaTypeList" priority="1"/>
 
-    <xsl:template match="rdf:RDF | srx:sparql" mode="bs2:ExportList">
+    <xsl:template match="rdf:RDF | srx:sparql" mode="bs2:MediaTypeList">
         <xsl:param name="uri" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/>
 
         <xsl:if test="$foaf:Agent//@rdf:about">
@@ -395,18 +389,15 @@ extension-element-prefixes="ixsl"
 
                 <div class="ldh-of-menu">
                     <!-- RDF export links, one per serialization (target=_blank exempts them from CSR link interception) -->
-                    <a class="it" href="{ac:build-uri(ac:absolute-path(ldh:request-uri()), let $params := map{ 'accept': 'application/rdf+xml' } return if (ac:uri()) then map:merge(($params, map{ 'uri': string($uri) })) else $params)}" title="application/rdf+xml" target="_blank">
-                        <span class="msi sm" aria-hidden="true">download</span>
-                        <span class="it-txt"><xsl:value-of select="ac:label(key('resources', 'rdf-xml', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin))))"/></span>
-                    </a>
-                    <a class="it" href="{ac:build-uri(ac:absolute-path(ldh:request-uri()), let $params := map{ 'accept': 'text/turtle' } return if (ac:uri()) then map:merge(($params, map{ 'uri': string($uri) })) else $params)}" title="text/turtle" target="_blank">
-                        <span class="msi sm" aria-hidden="true">download</span>
-                        <span class="it-txt"><xsl:value-of select="ac:label(key('resources', 'turtle', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin))))"/></span>
-                    </a>
-                    <a class="it" href="{ac:build-uri(ac:absolute-path(ldh:request-uri()), let $params := map{ 'accept': 'application/ld+json' } return if (ac:uri()) then map:merge(($params, map{ 'uri': string($uri) })) else $params)}" title="application/ld+json" target="_blank">
-                        <span class="msi sm" aria-hidden="true">download</span>
-                        <span class="it-txt"><xsl:value-of select="ac:label(key('resources', 'json-ld', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin))))"/></span>
-                    </a>
+                    <xsl:variable name="translations" select="document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin))" as="document-node()"/>
+                    <xsl:variable name="request-uri" select="ac:absolute-path(ldh:request-uri())" as="xs:anyURI"/>
+                    <xsl:variable name="proxied" select="exists(ac:uri())" as="xs:boolean"/>
+                    <xsl:for-each select="map{ 'accept': 'application/rdf+xml', 'label': 'rdf-xml' }, map{ 'accept': 'text/turtle', 'label': 'turtle' }, map{ 'accept': 'application/ld+json', 'label': 'json-ld' }">
+                        <a class="it" href="{ac:build-uri($request-uri, let $params := map{ 'accept': .('accept') } return if ($proxied) then map:merge(($params, map{ 'uri': string($uri) })) else $params)}" title="{.('accept')}" target="_blank">
+                            <span class="msi sm" aria-hidden="true">download</span>
+                            <span class="it-txt"><xsl:value-of select="ac:label(key('resources', .('label'), $translations))"/></span>
+                        </a>
+                    </xsl:for-each>
                 </div>
             </div>
         </xsl:if>
@@ -446,7 +437,7 @@ extension-element-prefixes="ixsl"
             </button>
 
             <div class="modes-pop">
-                <a class="mi content-mode{if ($active-mode = '&ldh;ContentMode') then ' is-active active' else() }" href="{ldh:href(ac:document-uri(ldh:base-uri(.)), ldh:build-query(xs:anyURI('&ldh;ContentMode')))}">
+                <a class="mi content-mode{if ($active-mode = '&ldh;ContentMode') then ' is-active' else() }" href="{ldh:href(ac:document-uri(ldh:base-uri(.)), ldh:build-query(xs:anyURI('&ldh;ContentMode')))}">
                     <span class="msi sm" aria-hidden="true">
                         <xsl:value-of select="map:get($ldh:mode-icons, '&ldh;ContentMode')"/>
                     </span>
@@ -702,7 +693,7 @@ extension-element-prefixes="ixsl"
         <xsl:apply-templates select="key('resources', ac:absolute-path(ldh:base-uri(.)))" mode="#current"/>
         
         <!-- only show buttons to agents who have sufficient access to modify them.
-             The dock floats bottom-right, clear of the right-edge drawer strip -->
+             The dock is a full-bleed sticky bar that parks on the footer, per tab pane -->
         <xsl:if test="acl:mode() = '&acl;Append'">
             <div class="create-resource ldh-create-dock">
                 <button type="button" class="ldh-btn create-action add-constructor" data-for-class="&ldh;XHTML">
@@ -860,10 +851,6 @@ extension-element-prefixes="ixsl"
             <xsl:if test="$show-save">
                 <div class="ldh-block-foot">
                     <button class="ldh-btn btn-save-chart" type="button">
-                        <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ldh:logo">
-                            <xsl:with-param name="class" select="'ldh-btn'"/>
-                        </xsl:apply-templates>
-
                         <span class="msi sm" aria-hidden="true">save</span>
                         <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
                     </button>
@@ -1022,10 +1009,6 @@ extension-element-prefixes="ixsl"
             <xsl:if test="$show-save">
                 <div class="ldh-block-foot">
                     <button class="ldh-btn btn-save-chart" type="button">
-                        <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ldh:logo">
-                            <xsl:with-param name="class" select="'ldh-btn'"/>
-                        </xsl:apply-templates>
-
                         <span class="msi sm" aria-hidden="true">save</span>
                         <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
                     </button>
@@ -1302,19 +1285,11 @@ extension-element-prefixes="ixsl"
                     </button>
                 </xsl:if>
 
-                <button type="reset" class="ldh-btn is-ghost">
-                    <xsl:apply-templates select="key('resources', 'reset', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ldh:logo">
-                        <xsl:with-param name="class" select="'ldh-btn is-ghost'"/>
-                    </xsl:apply-templates>
-
+                <button type="reset" class="ldh-btn is-ghost btn-reset">
                     <xsl:apply-templates select="key('resources', 'reset', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
                 </button>
 
-                <button type="submit" class="ldh-btn">
-                    <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ldh:logo">
-                        <xsl:with-param name="class" select="$button-class"/>
-                    </xsl:apply-templates>
-
+                <button type="submit" class="{$button-class} btn-save">
                     <span class="msi sm" aria-hidden="true">save</span>
                     <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
                 </button>
@@ -1430,7 +1405,7 @@ extension-element-prefixes="ixsl"
 
     <xsl:template match="*[rdf:type/@rdf:resource = '&http;Response']" mode="bs2:Header" priority="1">
         <xsl:param name="id" as="xs:string?"/>
-        <xsl:param name="class" select="'alert va-danger'" as="xs:string?"/>
+        <xsl:param name="class" select="'alert alert-error'" as="xs:string?"/>
 
         <div>
             <xsl:if test="$id">

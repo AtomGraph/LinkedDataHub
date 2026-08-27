@@ -76,6 +76,12 @@ extension-element-prefixes="ixsl"
         '&ac;ChartMode': 'bar_chart',
         '&ac;GraphMode': 'hub'
     }"/>
+    <!-- document-class glyphs shared by the breadcrumb and constructor items; sites supply their own fallback -->
+    <xsl:variable name="ldh:class-icons" as="map(xs:string, xs:string)" select="map{
+        '&def;Root': 'folder',
+        '&dh;Container': 'folder',
+        '&dh;Item': 'description'
+    }"/>
 
     <!-- LABEL -->
 
@@ -331,13 +337,7 @@ extension-element-prefixes="ixsl"
     <xsl:template match="*[@rdf:about]" mode="bs2:BreadCrumbListItem">
         <xsl:param name="leaf" select="true()" as="xs:boolean"/>
         <!-- crumb icon by document type, as in the design system's breadcrumb -->
-        <xsl:param name="icon" as="xs:string">
-            <xsl:choose>
-                <xsl:when test="rdf:type/@rdf:resource = ('&def;Root', '&dh;Container')">folder</xsl:when>
-                <xsl:when test="rdf:type/@rdf:resource = '&dh;Item'">description</xsl:when>
-                <xsl:otherwise>link</xsl:otherwise>
-            </xsl:choose>
-        </xsl:param>
+        <xsl:param name="icon" select="((rdf:type/@rdf:resource ! map:get($ldh:class-icons, string(.))), 'link')[1]" as="xs:string"/>
 
         <!-- same href recipe as the xhtml:Anchor override in imports/default.xsl; the crumb builds its
              own <a> because the design puts a glyph inside it, which the anchor mode cannot emit -->
@@ -363,9 +363,7 @@ extension-element-prefixes="ixsl"
          bs2:Left/bs2:Right stay CSR fill targets, so the placeholders are emitted unconditionally;
          .ldh-drawer is position:fixed and exists visibly only while open, so it ships hidden until the
          header toolbar links button opens it. -->
-    <xsl:template name="ldh:BlockLinksDrawer">
-        <xsl:context-item as="element()" use="required"/>
-
+    <xsl:template match="*" mode="ldh:BlockLinksDrawer">
         <div class="ldh-drawer" style="display: none">
             <div class="dh">
                 <h3>
@@ -465,7 +463,7 @@ extension-element-prefixes="ixsl"
                 <xsl:map-entry key="'&ac;GraphMode'" select="'graph-mode'"/>
             </xsl:map>
         </xsl:param>
-        <xsl:param name="class" select="map:get($mode-classes, @rdf:about) || (if ($active) then ' is-active active' else ())" as="xs:string?"/>
+        <xsl:param name="class" select="map:get($mode-classes, @rdf:about) || (if ($active) then ' is-active' else ())" as="xs:string?"/>
 
         <a class="mi{if ($class) then ' ' || $class else ()}">
             <xsl:if test="$href">
@@ -650,7 +648,7 @@ extension-element-prefixes="ixsl"
                         </xsl:for-each>
                     </div>
 
-                    <xsl:call-template name="ldh:BlockLinksDrawer"/>
+                    <xsl:apply-templates select="." mode="ldh:BlockLinksDrawer"/>
                 </div>
             </div>
         </div>
@@ -778,7 +776,7 @@ extension-element-prefixes="ixsl"
                 </xsl:choose>
             </div>
 
-            <xsl:call-template name="ldh:BlockLinksDrawer"/>
+            <xsl:apply-templates select="." mode="ldh:BlockLinksDrawer"/>
         </div>
     </xsl:template>
 
@@ -1065,19 +1063,11 @@ extension-element-prefixes="ixsl"
     <!-- CONSTRUCTOR -->
 
     <xsl:template match="*[*][@rdf:about]" mode="bs2:ConstructorListItem">
-        <xsl:param name="with-label" select="true()" as="xs:boolean"/>
         <xsl:param name="create-graph" select="false()" as="xs:boolean"/>
         <!-- on SaxonJS proxy via ldh:href (no browser catalog, cross-origin term URIs would otherwise hit mixed-content); on SAXON keep the raw URI so Jena's location-mapping resolves it locally -->
         <xsl:param name="request-uri" select="ldh:href(ac:document-uri(@rdf:about), map{ 'accept': 'application/rdf+xml' }, ())" as="xs:anyURI" use-when="system-property('xsl:product-name') = 'SaxonJS'"/>
         <xsl:param name="request-uri" select="ac:document-uri(@rdf:about)" as="xs:anyURI" use-when="system-property('xsl:product-name') = 'SAXON'"/>
-
-        <xsl:param name="icon" as="xs:string">
-            <xsl:choose>
-                <xsl:when test="@rdf:about = '&dh;Container'">folder</xsl:when>
-                <xsl:when test="@rdf:about = '&dh;Item'">description</xsl:when>
-                <xsl:otherwise>category</xsl:otherwise>
-            </xsl:choose>
-        </xsl:param>
+        <xsl:param name="icon" select="(map:get($ldh:class-icons, string(@rdf:about)), 'category')[1]" as="xs:string"/>
 
         <xsl:if test="doc-available($request-uri)">
             <button type="button" class="it add-constructor" title="{@rdf:about}" data-for-class="{@rdf:about}">
@@ -1099,89 +1089,6 @@ extension-element-prefixes="ixsl"
         </xsl:if>
     </xsl:template>
     
-    <xsl:template match="*[*][@rdf:about]" mode="bs2:Constructor">
-        <xsl:param name="id" select="concat('constructor-', generate-id())" as="xs:string?"/>
-        <xsl:param name="subclasses" as="attribute()*"/>
-        <xsl:param name="with-label" select="false()" as="xs:boolean"/>
-        <xsl:param name="base-uri" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI" tunnel="yes"/>
-        <xsl:param name="request-uri" select="ldh:href(ac:document-uri(@rdf:about), map{ 'accept': 'application/rdf+xml' }, ())" as="xs:anyURI" use-when="system-property('xsl:product-name') = 'SaxonJS'"/>
-        <xsl:param name="request-uri" select="ac:document-uri(@rdf:about)" as="xs:anyURI" use-when="system-property('xsl:product-name') = 'SAXON'"/>
-
-        <xsl:if test="doc-available($request-uri)">
-            <!-- if subclasses exist, render a dropdown with multiple constructor choices. Otherwise, only render a single constructor button -->
-            <xsl:choose>
-                <xsl:when test="exists($subclasses)">
-                    <div class="btn-group">
-                        <button type="button">
-                            <xsl:choose>
-                                <xsl:when test="$with-label">
-                                    <xsl:apply-templates select="." mode="ldh:logo">
-                                        <xsl:with-param name="class" select="'btn dropdown-toggle'"/>
-                                    </xsl:apply-templates>
-                                    <xsl:text> </xsl:text>
-                                    <xsl:value-of>
-                                        <xsl:apply-templates select="." mode="ac:label"/>
-                                    </xsl:value-of>
-                                </xsl:when>
-                                <xsl:otherwise>
-                                    <xsl:apply-templates select="key('resources', '&ac;ConstructMode', document(ac:document-uri('&ac;')))" mode="ldh:logo">
-                                        <xsl:with-param name="class" select="'btn dropdown-toggle'"/>
-                                    </xsl:apply-templates>
-                                </xsl:otherwise>
-                            </xsl:choose>
-                        </button>
-                        <ul class="dropdown-menu">
-                            <xsl:variable name="self-and-subclasses" select="key('resources', @rdf:about, document($request-uri)), $subclasses/.." as="element()*"/>
-
-                            <!-- apply on the "deepest" subclass and its subclasses -->
-                            <!-- eliminate matches where a class is a subclass of itself (happens in inferenced ontology models) -->
-                            <xsl:for-each-group select="$self-and-subclasses[let $about := @rdf:about return not($about = $self-and-subclasses[not(@rdf:about = $about)]/rdfs:subClassOf/@rdf:resource)]" group-by="@rdf:about">
-                                <xsl:sort select="ac:label(.)" order="ascending" lang="{$ac:lang}"/>
-
-                                <!-- won't traverse blank nodes, only URI resources -->
-                                <li>
-                                    <button class="btn add-constructor" title="{current-grouping-key()}" data-for-class="{current-grouping-key()}">
-                                        <xsl:if test="$id">
-                                            <xsl:attribute name="id" select="$id"/>
-                                        </xsl:if>
-                                        
-                                        <xsl:value-of>
-                                            <xsl:apply-templates select="." mode="ac:label"/>
-                                        </xsl:value-of>
-                                    </button>
-                                </li>
-                            </xsl:for-each-group>
-                        </ul>
-                    </div>
-                </xsl:when>
-                <xsl:otherwise>
-                    <button title="{@rdf:about}" data-for-class="{@rdf:about}">
-                        <xsl:if test="$id">
-                            <xsl:attribute name="id" select="$id"/>
-                        </xsl:if>
-
-                        <xsl:choose>
-                            <xsl:when test="$with-label">
-                                <xsl:apply-templates select="." mode="ldh:logo">
-                                    <xsl:with-param name="class" select="'btn add-constructor'"/>
-                                </xsl:apply-templates>
-
-                                <xsl:value-of>
-                                    <xsl:apply-templates select="." mode="ac:label"/>
-                                </xsl:value-of>
-                            </xsl:when>
-                            <xsl:otherwise>
-                                <xsl:apply-templates select="key('resources', '&ac;ConstructMode', document(ac:document-uri('&ac;')))" mode="ldh:logo">
-                                    <xsl:with-param name="class" select="'btn add-constructor'"/>
-                                </xsl:apply-templates>
-                            </xsl:otherwise>
-                        </xsl:choose>
-                    </button>
-                </xsl:otherwise>
-            </xsl:choose>
-        </xsl:if>
-    </xsl:template>
-
     <!-- ROW FORM -->
 
     <!-- hide object blank nodes that only have a single rdf:type property from constructed models, unless the type is owl:NamedIndividual -->
@@ -1257,19 +1164,11 @@ extension-element-prefixes="ixsl"
                                 </button>
                             </xsl:if>
 
-                            <button type="reset" class="ldh-btn is-ghost">
-                                <xsl:apply-templates select="key('resources', 'reset', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ldh:logo">
-                                    <xsl:with-param name="class" select="'ldh-btn is-ghost'"/>
-                                </xsl:apply-templates>
-
+                            <button type="reset" class="ldh-btn is-ghost btn-reset">
                                 <xsl:apply-templates select="key('resources', 'reset', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
                             </button>
 
-                            <button type="submit" class="ldh-btn">
-                                <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ldh:logo">
-                                    <xsl:with-param name="class" select="$button-class"/>
-                                </xsl:apply-templates>
-
+                            <button type="submit" class="{$button-class} btn-save">
                                 <span class="msi sm" aria-hidden="true">save</span>
                                 <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
                             </button>
@@ -1278,7 +1177,7 @@ extension-element-prefixes="ixsl"
                 </form>
             </div>
 
-            <xsl:call-template name="ldh:BlockLinksDrawer"/>
+            <xsl:apply-templates select="." mode="ldh:BlockLinksDrawer"/>
         </div>
     </xsl:template>
     
@@ -1298,7 +1197,7 @@ extension-element-prefixes="ixsl"
     <!-- EXCEPTION -->
     
     <xsl:template match="*[http:sc/@rdf:resource = '&sc;Conflict']" mode="bs2:Exception" priority="1">
-        <xsl:param name="class" select="'alert va-danger'" as="xs:string?"/>
+        <xsl:param name="class" select="'alert alert-error'" as="xs:string?"/>
 
         <div>
             <xsl:if test="$class">
@@ -1598,10 +1497,6 @@ extension-element-prefixes="ixsl"
 
             <div class="controls">
                 <button type="button" id="button-{generate-id()}" class="btn add-value">
-                    <xsl:apply-templates select="key('resources', 'add', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ldh:logo">
-                        <xsl:with-param name="class" select="'btn add-value'"/>
-                    </xsl:apply-templates>
-
                     <span class="msi sm" aria-hidden="true">add</span>
                 </button>
             </div>
@@ -1611,7 +1506,7 @@ extension-element-prefixes="ixsl"
     <!-- VIOLATION -->
 
     <xsl:template match="*[rdf:type/@rdf:resource = '&ldh;URISyntaxViolation']" mode="bs2:Violation">
-        <xsl:param name="class" select="'alert va-danger'" as="xs:string?"/>
+        <xsl:param name="class" select="'alert alert-error'" as="xs:string?"/>
 
         <div>
             <xsl:if test="$class">
@@ -1628,7 +1523,7 @@ extension-element-prefixes="ixsl"
         
     <!-- take constraint labels from sitemap instead of response, if possible -->
     <xsl:template match="*[rdf:type/@rdf:resource = '&spin;ConstraintViolation']" mode="bs2:Violation">
-        <xsl:param name="class" select="'alert va-danger'" as="xs:string?"/>
+        <xsl:param name="class" select="'alert alert-error'" as="xs:string?"/>
         <xsl:param name="request-uri" select="ldh:href(ac:document-uri(rdf:type/@rdf:resource), map{ 'accept': 'application/rdf+xml' }, ())" as="xs:anyURI" use-when="system-property('xsl:product-name') = 'SaxonJS'"/>
         <xsl:param name="request-uri" select="ac:document-uri(rdf:type/@rdf:resource)" as="xs:anyURI" use-when="system-property('xsl:product-name') = 'SAXON'"/>
 
@@ -1648,7 +1543,7 @@ extension-element-prefixes="ixsl"
     </xsl:template>
     
     <xsl:template match="*[rdf:type/@rdf:resource = '&sh;ValidationResult']" mode="bs2:Violation">
-        <xsl:param name="class" select="'alert va-danger'" as="xs:string?"/>
+        <xsl:param name="class" select="'alert alert-error'" as="xs:string?"/>
         <xsl:param name="request-uri" select="ldh:href(ac:document-uri(rdf:type/@rdf:resource), map{ 'accept': 'application/rdf+xml' }, ())" as="xs:anyURI" use-when="system-property('xsl:product-name') = 'SaxonJS'"/>
         <xsl:param name="request-uri" select="ac:document-uri(rdf:type/@rdf:resource)" as="xs:anyURI" use-when="system-property('xsl:product-name') = 'SAXON'"/>
 

@@ -121,7 +121,7 @@ ORDER BY DESC(?created)
                 <ul class="nav sb-tree">
                     <li>
                         <button class="btn-expand-tree sb-caret"></button>
-                        <a href="{$base}" class="btn-container">
+                        <a href="{$base}">
                             <span class="msi sm sb-icon" aria-hidden="true">home</span>
                             <span class="sb-label">
                                 <xsl:apply-templates select="key('resources', 'root', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
@@ -1436,7 +1436,7 @@ ORDER BY DESC(?created)
         <xsl:sequence select="ldh:update-progress-counter($cache, map{'container': $container}, 'init', 3)"/>
 
         <!-- preserve user's chosen view mode across re-runs of the same search container; default to ListMode on first render (no view-mode-list yet) -->
-        <xsl:variable name="active-class" select="tokenize($container//ul[contains-token(@class, 'view-mode-list')]/li[contains-token(@class, 'active')]/@class, ' ')[not(. = 'active')]" as="xs:string?"/>
+        <xsl:variable name="active-class" select="tokenize($container//*[contains-token(@class, 'view-mode-list')]/a[contains-token(@class, 'is-active')]/@class, ' ')[. = map:keys($class-modes)]" as="xs:string?"/>
         <xsl:variable name="active-mode" select="if (exists($active-class)) then map:get($class-modes, $active-class) else xs:anyURI('&ac;ListMode')" as="xs:anyURI"/>
 
         <xsl:variable name="view-context" as="map(*)">

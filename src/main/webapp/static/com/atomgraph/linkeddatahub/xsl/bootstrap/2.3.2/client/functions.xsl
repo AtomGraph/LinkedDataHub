@@ -782,5 +782,13 @@ exclude-result-prefixes="#all"
         <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
         <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ $response?message ])"/>
     </xsl:function>
-    
+
+    <!-- target URIs of the Link header entries whose parameters contain $marker (e.g. a rel URI or 'rel=timemap') -->
+    <xsl:function name="ldh:link-targets" as="xs:anyURI*">
+        <xsl:param name="link-header" as="xs:string?"/>
+        <xsl:param name="marker" as="xs:string"/>
+
+        <xsl:sequence select="tokenize($link-header, ',')[contains(., $marker)] ! xs:anyURI(substring-before(substring-after(substring-before(., ';'), '&lt;'), '&gt;'))"/>
+    </xsl:function>
+
 </xsl:stylesheet>

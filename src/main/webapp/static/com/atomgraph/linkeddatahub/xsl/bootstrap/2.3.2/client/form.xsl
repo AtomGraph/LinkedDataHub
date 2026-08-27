@@ -1526,10 +1526,10 @@ WHERE
         </xsl:for-each>
     </xsl:template>
     
-    <!-- appends new SPIN-constructed instance to the page -->
-    <xsl:template match="div[contains-token(@class, 'block-row')]//button[contains-token(@class, 'add-constructor')][@data-for-class]" mode="ixsl:onclick" priority="1">
+    <!-- appends new SPIN-constructed instance to the page (block-row inline affordances and the create-resource dock) -->
+    <xsl:template match="div[contains-token(@class, 'block-row')]//button[contains-token(@class, 'add-constructor')][@data-for-class] | div[contains-token(@class, 'create-resource')]//button[contains-token(@class, 'add-constructor')][@data-for-class]" mode="ixsl:onclick" priority="1">
         <xsl:param name="method" select="'post'" as="xs:string"/>
-        <xsl:param name="container" select="ancestor::div[contains-token(@class, 'block-row')][1]" as="element()"/>
+        <xsl:param name="container" select="ancestor::div[contains-token(@class, 'block-row') or contains-token(@class, 'create-resource')][1]" as="element()"/>
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])[current-date() lt xs:date('2000-01-01')]"/>
         <xsl:variable name="forClass" select="xs:anyURI(@data-for-class)" as="xs:anyURI"/>
         <xsl:variable name="doc-uri" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/>

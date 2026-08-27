@@ -421,8 +421,7 @@ WHERE
 
             <!-- extract acl:mode from the response Link headers here because this template is called after every document load (also the initial load) and has access to ?headers -->
             <!-- for proxied documents these are the *remote* node's modes, forwarded by ProxyRequestFilter -->
-            <xsl:variable name="acl-mode-links" select="tokenize(?headers?link, ',')[contains(., '&acl;mode')]" as="xs:string*"/>
-            <xsl:variable name="acl-modes" select="for $mode-link in $acl-mode-links return xs:anyURI(substring-before(substring-after(substring-before($mode-link, ';'), '&lt;'), '&gt;'))" as="xs:anyURI*"/>
+            <xsl:variable name="acl-modes" select="ldh:link-targets(?headers?link, '&acl;mode')" as="xs:anyURI*"/>
             <!-- set LinkedDataHub.acl-modes flags which are later used by the acl:mode function; re-synced per pane by ldh:ActivateTab -->
             <xsl:call-template name="ldh:SetAclModes">
                 <xsl:with-param name="acl-modes" select="$acl-modes"/>
@@ -433,27 +432,26 @@ WHERE
             <xsl:choose>
                 <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
                     <!-- store external SPARQL endpoint from Link header, same pattern as acl:mode above -->
-                    <xsl:variable name="endpoint-link" select="tokenize(?headers?link, ',')[contains(., '&sd;endpoint')]" as="xs:string?"/>
-                    <xsl:variable name="endpoint" select="if ($endpoint-link) then xs:anyURI(substring-before(substring-after(substring-before($endpoint-link, ';'), '&lt;'), '&gt;')) else ()" as="xs:anyURI?"/>
+                    <xsl:variable name="endpoint" select="ldh:link-targets(?headers?link, '&sd;endpoint')[1]" as="xs:anyURI?"/>
                     <xsl:if test="$endpoint">
                         <ixsl:set-property name="endpoint" select="$endpoint" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
                     </xsl:if>
                     <!-- store application URI from Link header -->
-                    <xsl:variable name="application-link" select="tokenize(?headers?link, ',')[contains(., '&lapp;application')]" as="xs:string?"/>
-                    <xsl:variable name="application" select="if ($application-link) then xs:anyURI(substring-before(substring-after(substring-before($application-link, ';'), '&lt;'), '&gt;')) else ()" as="xs:anyURI?"/>
+                    <xsl:variable name="application" select="ldh:link-targets(?headers?link, '&lapp;application')[1]" as="xs:anyURI?"/>
                     <xsl:if test="$application">
                         <ixsl:set-property name="application" select="$application" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
                     </xsl:if>
                     <!-- store TimeMap URI from Link header (present when the document is versioned); blank it when absent so non-versioned documents don't show the History link -->
-                    <xsl:variable name="timemap-link" select="tokenize(?headers?link, ',')[contains(., 'rel=timemap')][1]" as="xs:string?"/>
-                    <xsl:variable name="timemap" select="if ($timemap-link) then xs:anyURI(substring-before(substring-after(substring-before($timemap-link, ';'), '&lt;'), '&gt;')) else ()" as="xs:anyURI?"/>
+                    <xsl:variable name="timemap" select="ldh:link-targets(?headers?link, 'rel=timemap')[1]" as="xs:anyURI?"/>
                     <ixsl:set-property name="timemap" select="($timemap, '')[1]" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
                     <xsl:for-each select="?body">
                         <xsl:variable name="results" select="." as="document-node()"/>
                         <!-- ?diff= view: render the union of both versions' descriptions, with the one-sided triple keys classifying added/removed content -->
                         <xsl:variable name="diff-results" select="if ($context('diff-response')?status = 200 and $context('diff-response')?media-type = 'application/rdf+xml') then $context('diff-response')?body else ()" as="document-node()?"/>
-                        <xsl:variable name="diff-added-keys" select="if (exists($diff-results)) then ac:value-except(map:keys(ldh:triples-map($results, false())), map:keys(ldh:triples-map($diff-results, false()))) else ()" as="xs:string*"/>
-                        <xsl:variable name="diff-removed-keys" select="if (exists($diff-results)) then ac:value-except(map:keys(ldh:triples-map($diff-results, false())), map:keys(ldh:triples-map($results, false()))) else ()" as="xs:string*"/>
+                        <xsl:variable name="result-keys" select="if (exists($diff-results)) then map:keys(ldh:triples-map($results, false())) else ()" as="xs:string*"/>
+                        <xsl:variable name="diff-keys" select="if (exists($diff-results)) then map:keys(ldh:triples-map($diff-results, false())) else ()" as="xs:string*"/>
+                        <xsl:variable name="diff-added-keys" select="ac:value-except($result-keys, $diff-keys)" as="xs:string*"/>
+                        <xsl:variable name="diff-removed-keys" select="ac:value-except($diff-keys, $result-keys)" as="xs:string*"/>
                         <xsl:variable name="render-results" select="if (exists($diff-results)) then ldh:diff-union($results, $diff-results, $diff-removed-keys) else $results" as="document-node()"/>
                         <ixsl:set-property name="{'`' || $doc-uri || '`'}" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.contents')"/>
                         <!-- store document under window.LinkedDataHub.contents[$doc-uri].results -->
@@ -1081,8 +1079,6 @@ WHERE
         </xsl:if>
     </xsl:template>
 
-    <!-- do not intercept RDF download links -->
-    
     <!-- intercept all HTML and SVG link clicks except to /uploads/ and those in the navbar (except breadcrumb bar, .brand and app list) and the footer -->
     <!-- resolve URLs against the current document URL because they can be relative -->
     <xsl:template match="a[not(@target)][starts-with(resolve-uri(@href, ldh:base-uri(.)), 'http://') or starts-with(resolve-uri(@href, ldh:base-uri(.)), 'https://')][not(starts-with(resolve-uri(@href, ldh:base-uri(.)), resolve-uri('uploads/', ldt:base())))][ancestor::div[contains-token(@class, 'breadcrumb-nav')] or not(ancestor::div[tokenize(@class, ' ') = ('navbar', 'footer')])] | a[contains-token(@class, 'brand')] | div[button[contains-token(@class, 'btn-apps')]]/ul//a | svg:a[not(@target)][starts-with(resolve-uri(@href, ldh:base-uri(.)), 'http://') or starts-with(resolve-uri(@href, ldh:base-uri(.)), 'https://')][not(starts-with(resolve-uri(@href, ldh:base-uri(.)), resolve-uri('uploads/', ldt:base())))]" mode="ixsl:onclick">
@@ -1155,10 +1151,18 @@ WHERE
         </xsl:choose>
     </xsl:template>
     
-    <!-- open drop-down by toggling its CSS class -->
+    <!-- open drop-down by toggling its CSS class. The menu flips upward ('drop-up') when the group
+         has less viewport space below it than above, so it never opens into the nearer viewport edge -->
 
     <xsl:template match="*[contains-token(@class, 'btn-group')][*[contains-token(@class, 'dropdown-toggle')]]" mode="ixsl:onclick">
-        <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'open' ])[current-date() lt xs:date('2000-01-01')]"/>
+        <xsl:variable name="rect" select="ixsl:call(., 'getBoundingClientRect', [])"/>
+        <xsl:variable name="drop-up" select="(ixsl:get(ixsl:window(), 'innerHeight') - ixsl:get($rect, 'bottom')) lt ixsl:get($rect, 'top')" as="xs:boolean"/>
+        <xsl:variable name="open" select="not(contains-token(@class, 'open'))" as="xs:boolean"/>
+        <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'drop-up', $drop-up ])[current-date() lt xs:date('2000-01-01')]"/>
+        <!-- 'open' is the CSR state token the handlers and bridge key on; 'is-open' mirrors it so
+             app.css's native open-state rules (caret rotation, trigger hover) apply without bridging -->
+        <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'open', $open ])[current-date() lt xs:date('2000-01-01')]"/>
+        <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'is-open', $open ])[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
 
     <xsl:template match="button[contains-token(@class, 'btn-delete')][not(contains-token(@class, 'disabled'))]" mode="ixsl:onclick">

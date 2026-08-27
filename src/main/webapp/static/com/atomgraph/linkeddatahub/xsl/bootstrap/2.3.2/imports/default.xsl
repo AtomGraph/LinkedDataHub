@@ -509,7 +509,8 @@ exclude-result-prefixes="#all"
         <xsl:param name="added-keys" as="xs:string*"/>
         <xsl:param name="removed-keys" as="xs:string*"/>
 
-        <xsl:variable name="triple-keys" select="$resource/* ! ldh:triple-key(., false())" as="xs:string*"/>
+        <!-- non-diff renders pass empty key sets - skip the per-triple key serialization entirely -->
+        <xsl:variable name="triple-keys" select="if (empty(($added-keys, $removed-keys))) then () else $resource/* ! ldh:triple-key(., false())" as="xs:string*"/>
         <xsl:choose>
             <xsl:when test="exists($triple-keys) and (every $triple-key in $triple-keys satisfies $triple-key = $added-keys)">
                 <xsl:sequence select="'diff-added'"/>
@@ -738,8 +739,11 @@ exclude-result-prefixes="#all"
         <xsl:param name="added-keys" as="xs:string*"/>
         <xsl:param name="removed-keys" as="xs:string*"/>
 
-        <xsl:variable name="triple-key" select="ldh:triple-key($property, false())" as="xs:string"/>
-        <xsl:sequence select="if ($triple-key = $added-keys) then 'diff-added' else if ($triple-key = $removed-keys) then 'diff-removed' else ()"/>
+        <!-- non-diff renders pass empty key sets - skip the key serialization entirely -->
+        <xsl:if test="exists(($added-keys, $removed-keys))">
+            <xsl:variable name="triple-key" select="ldh:triple-key($property, false())" as="xs:string"/>
+            <xsl:sequence select="if ($triple-key = $added-keys) then 'diff-added' else if ($triple-key = $removed-keys) then 'diff-removed' else ()"/>
+        </xsl:if>
     </xsl:function>
     
     <!-- DEFAULT -->

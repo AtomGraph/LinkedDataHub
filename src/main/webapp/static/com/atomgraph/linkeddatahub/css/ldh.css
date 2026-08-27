@@ -1,26 +1,22 @@
-/* only the main navbar is fixed-top now; tab bar + action bar are sticky inside #tab-body */
-#tab-bar { position: sticky; top: 51px; z-index: 1000; margin-bottom: 0; }
+/* only the main navbar is fixed-top now; tab bar + action bar are sticky inside #tab-body;
+   the tab skin itself lives in ldh-bridge.css on the design tokens */
+#tab-bar { position: sticky; top: var(--ldh-header-height); z-index: 1000; margin-bottom: 0; min-height: 36px; padding: 4px 0; }
 /* Override Bootstrap's overflow:auto which would make action-bar sticky relative to #tab-content instead of the viewport */
 #tab-content { overflow: visible; }
-#tab-bar { min-height: 36px; padding: 4px 0; }
-#tab-bar-list.nav-tabs { margin-bottom: 0; border-bottom: none; }
-#tab-bar-list.nav-tabs > li > a { color: #007fff; padding: 8px 12px; text-shadow: none; border-color: #aaa #aaa transparent; }
-#tab-bar-list.nav-tabs > li.active > a, #tab-bar .nav-tabs > li.active > a:hover { color: #555555; background: rgb(223, 223, 223); border-color: #aaa #aaa transparent; }
 #tab-bar-list > li { position: relative; }
 #tab-bar-list.nav-tabs > li > a { padding-right: 22px; }
-#tab-bar-list .tab-close { position: absolute; top: 6px; right: 6px; line-height: 1; font-size: 11px; color: #888; cursor: pointer; padding: 1px 3px; }
-#tab-bar-list .tab-close:hover { color: #333; }
+#tab-bar-list .tab-close { position: absolute; top: 6px; right: 6px; line-height: 1; font-size: 11px; color: var(--fg-hint); cursor: pointer; padding: 1px 3px; }
+#tab-bar-list .tab-close:hover { color: var(--fg-1); }
 ul.dropdown-menu { max-height: 26em; overflow-x: hidden; overflow-y: auto; }
 ul.dropdown-menu ul { margin: 0; }
 .label { min-width: unset; min-height: unset; }
 .dropdown-menu .btn-app-settings { background-color: inherit; display: block; text-align: left; width: 100%; padding-left: 20px; }
 .dropdown-menu li form { margin-bottom: 0; }
 .dropdown-menu li form button { width: 100%; text-align: left; }
-#collapsing-top-navbar .brand.context { display: inline-block; vertical-align: middle; }
 .search-form, .search-form-modal { display: flex; width: 100%; align-items: stretch; }
 .search-form .search-query, .search-form-modal .search-query { flex: 1 1 auto; min-width: 0; height: 34px; box-sizing: border-box; margin: 0; }
-.search-form .btn-search, .search-form-modal .btn-search { flex: 0 0 34px; margin: 0; }
-.action-bar { position: sticky; top: var(--action-bar-top, 51px); z-index: 999; background: #dfdfdf; padding: 0; box-shadow: none; }
+.search-form-modal .btn-search { flex: 0 0 34px; margin: 0; }
+.action-bar { position: sticky; top: var(--action-bar-top); z-index: 999; padding: 0; box-shadow: none; }
 .action-bar form { margin-bottom: 0; }
 .action-bar .add-constructor, .dropdown-menu .add-constructor { background-color: inherit; display: block; text-align: left; width: 100%; }
 .action-bar .add-constructor:hover { color: #ffffff; background-color: #007af5; }
@@ -28,7 +24,6 @@ ul.dropdown-menu ul { margin: 0; }
 .action-bar .breadcrumb .btn-group { margin-top: -4px; }
 .action-bar .breadcrumb-nav > .label-info { padding: 8px 15px; margin-right: 8px; font-size: inherit; background-color: #9954bb; }
 .action-bar #doc-controls { text-align: right; padding-top: 5px; }
-.action-bar #doc-controls .btn-edit { margin-top: -5px; margin-left: 10px; }
 .action-bar p.alert { margin-bottom: 0; }
 body:has(#edit-toolbar) .action-bar { border-bottom: 1px solid #aaa; }
 .nav-header.btn { color: inherit; }
@@ -38,9 +33,7 @@ a.btn.create-action { height: 20px; }
 .btn-class { background: inherit; }
 .btn-class span { color: black; }
 li button.btn-edit-constructors, li button.btn-add-data, li button.btn-add-ontology, li button.btn-generate-containers { text-align: left; width: 100%; background-color: inherit; }
-.btn-logo { background-position: left; background-repeat: no-repeat; padding-left: 32px; }
-.dropdown-menu .btn-logo { background-position: 12px center; padding-left: 40px; }
-.left-sidebar { display: none; width: 15%; position: fixed; left: 0; top: var(--action-bar-top, 51px); height: calc(100% - var(--action-bar-top, 51px)); overflow-y: auto; z-index: 1001; }
+.left-sidebar { display: none; width: 15%; position: fixed; left: 0; top: var(--action-bar-top); height: calc(100% - var(--action-bar-top)); overflow-y: auto; z-index: 1001; }
 @media (max-width: 979px)
 {
     body { padding-top: 0; }
@@ -65,7 +58,7 @@ dd.diff-removed, .main > div.diff-removed { border-left: 4px solid #ff0039; padd
 .hero-unit { background-color: #0f82f530; box-shadow: 5px 5px 3px 0px rgb(192,192,192); }
 .modal { max-height: 80%; overflow-y: auto; overflow-x: hidden; }
 .modal .dropdown-menu { z-index: 1100; }
-.modal-header { position: sticky; top: 0; background-color: white; z-index: 1060; }
+.modal-header { position: sticky; top: 0; background-color: var(--surface-0); z-index: 1060; }
 .modal-header legend { margin-bottom: 0; }
 .close { font-size: 35px; opacity: 0.4; }
 .modal-body { max-height: 80vh; }

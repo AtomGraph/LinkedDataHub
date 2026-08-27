@@ -68,7 +68,7 @@ version="3.0"
         <xsl:variable name="response" select="$context('response')" as="map(*)"/>
         <xsl:variable name="container" select="$context('container')" as="element()"/>
         <!-- same Link header parse as client.xsl uses to seed acl:mode(), but against the live document's response -->
-        <xsl:variable name="acl-modes" select="tokenize($context('doc-response')?headers?link, ',')[contains(., '&acl;mode')] ! xs:anyURI(substring-before(substring-after(substring-before(., ';'), '&lt;'), '&gt;'))" as="xs:anyURI*"/>
+        <xsl:variable name="acl-modes" select="ldh:link-targets($context('doc-response')?headers?link, '&acl;mode')" as="xs:anyURI*"/>
         <xsl:variable name="writable" select="$acl-modes = '&acl;Write'" as="xs:boolean"/>
 
         <xsl:for-each select="$response">
@@ -162,7 +162,7 @@ version="3.0"
                                     </form>
                                 </xsl:when>
                                 <xsl:otherwise>
-                                    <div class="ldhc-alert va-danger">
+                                    <div class="ldhc-alert alert-error">
                                         <xsl:text>Could not load the version history</xsl:text>
                                     </div>
                                 </xsl:otherwise>
@@ -272,7 +272,7 @@ version="3.0"
 
         <xsl:for-each select="$context('modal')/div[contains-token(@class, 'modal-body')]">
             <xsl:result-document href="?." method="ixsl:prepend-content">
-                <div class="ldhc-alert va-danger">
+                <div class="ldhc-alert alert-error">
                     <xsl:value-of select="$message || ' (HTTP ' || $context('response')?status || ')'"/>
                 </div>
             </xsl:result-document>

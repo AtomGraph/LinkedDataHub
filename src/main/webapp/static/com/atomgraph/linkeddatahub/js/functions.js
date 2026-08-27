@@ -123,12 +123,14 @@ document.addEventListener("DOMContentLoaded", function()
     // Deferred so it settles after the IXSL btn-group toggle that handles the same click.
     document.body.addEventListener("click", function(event)
     {
+        if (!document.querySelector(".btn-group.open")) return; // nothing open - skip the deferred scan
+
         var pickedItem = event.target.closest(".ldh-add-menu, .ldh-of-menu, .modes-pop, .dropdown-menu");
         setTimeout(function()
         {
             document.querySelectorAll(".btn-group.open").forEach(function(group)
             {
-                if (!group.contains(event.target) || pickedItem) group.classList.remove("open");
+                if (!group.contains(event.target) || pickedItem) group.classList.remove("open", "is-open");
             });
         }, 0);
     });

@@ -33,7 +33,7 @@
 :where(.badge) {
   display: inline-flex; align-items: center;
   min-width: 18px; height: 18px; padding: 0 6px;
-  border-radius: var(--r-full, 999px); justify-content: center;
+  border-radius: var(--r-pill); justify-content: center;
   background: var(--surface-3); color: var(--fg-2);
   font-size: var(--fs-xs); font-weight: var(--fw-semibold);
 }
@@ -48,7 +48,7 @@
 .alert-error, .alert.alert-error { background: var(--danger-50); border-color: color-mix(in srgb, var(--danger-500) 30%, transparent); }
 .alert .close { margin-left: auto; border: 0; background: none; color: var(--fg-hint); }
 .progress {
-  height: 8px; border-radius: var(--r-full, 999px);
+  height: 8px; border-radius: var(--r-pill);
   background: var(--surface-2); overflow: hidden; margin: var(--sp-2) 0;
 }
 .progress .bar { height: 100%; background: var(--bg-accent); transition: width var(--dur-base) var(--ease-out-soft); }
@@ -56,7 +56,7 @@ table.table { width: 100%; border-collapse: collapse; font-size: var(--fs-sm); }
 table.table th, table.table td { padding: var(--sp-2) var(--sp-3); border-bottom: 1px solid var(--border-default); text-align: left; vertical-align: top; }
 table.table tr:last-child > td { border-bottom: 0; }
 table.table th { font-weight: var(--fw-semibold); color: var(--fg-muted); }
-.content-body { padding: var(--sp-4) var(--sp-6); max-width: 1280px; margin: 0 auto; }
+.content-body { padding: var(--sp-4) var(--sp-6); max-width: var(--ldh-content-w); margin: 0 auto; }
 /* stacking rhythm between block cards and alerts (Bootstrap's row margins are gone) */
 .content-body .ldh-block, .content-body .ldhc-alert, .content-body :where(.alert) { margin-bottom: var(--sp-4); }
 /* one card layer only: CSR hydration can re-render a row as a card inside the SSR wrapper card */
@@ -69,7 +69,7 @@ ul.typeahead.dropdown-menu {
   position: absolute;
   min-width: 248px; max-height: 320px; overflow-y: auto;
   background: var(--bg-card); border: 1px solid var(--border-default);
-  border-radius: var(--r-md); box-shadow: 0 16px 40px -12px rgba(15, 23, 42, 0.28);
+  border-radius: var(--r-md); box-shadow: var(--shadow-lg);
   padding: var(--sp-1); margin: 0; list-style: none; z-index: 1120;
 }
 ul.typeahead.dropdown-menu > li > a { display: block; padding: 6px 10px; border-radius: var(--r-sm); font-size: var(--fs-sm); color: var(--fg-1); }
@@ -84,16 +84,14 @@ ul.typeahead.dropdown-menu > li.active > a, ul.typeahead.dropdown-menu > li > a:
 :root[data-retro^="m3"] .ldh-block.is-quiet { border: 0; background: transparent; }
 /* a block whose content collapsed to a single alert (failed object/chart/query load) goes quiet:
    the alert brings its own surface, so card chrome around it reads as stray double borders */
-.ldh-block:has(> :is(.row-main, .main, .block-row) > :is(.block-row, .main) > .alert:only-child),
-.ldh-block:has(> :is(.block-row, .main) > .alert:only-child) {
+.ldh-block:has(> :is(.row-main, .main, .block-row) > :is(.block-row, .main) > .alert:only-child), .ldh-block:has(> :is(.block-row, .main) > .alert:only-child) {
   border: 0; background: transparent; box-shadow: none;
 }
 .ldh-block :is(.alert, .ldhc-alert) { margin: 0; }
 
 /* ---------- sticky chrome: header on top, action bar (legacy --action-bar-top) right under it ---------- */
-:root { --ldh-header-height: 56px; --action-bar-top: var(--ldh-header-height); }
+:root { --ldh-header-height: 56px; --action-bar-top: var(--ldh-header-height); --ldh-content-w: 1280px; --ldh-drawer-w: 360px; /* mirrors app.css .ldh-drawer width */ }
 .navbar.ldh-header { position: sticky; top: 0; z-index: 1001; }
-#tab-bar { top: var(--ldh-header-height); }
 .action-bar.ldh-actionbar {
   background: var(--surface-0);
   border-bottom: 1px solid var(--border-default);
@@ -106,16 +104,14 @@ ul.typeahead.dropdown-menu > li.active > a, ul.typeahead.dropdown-menu > li > a:
   list-style: none; margin: 0; padding: 0;
 }
 .ldh-header-actions ul.nav > li { display: flex; align-items: center; }
-.ldh-header-actions .btn-group { position: relative; }
 
 /* ---------- dropdown menus: .open is toggled by the CSR btn-group handler ---------- */
 /* the m3 skin paints every .ldh-header descendant with the inverse (near-white) text color for the
    dark bar; light dropdown panels inside the header need their ink back at higher specificity */
-:root[data-retro^="m3"] .ldh-header .dropdown-menu,
-:root[data-retro^="m3"] .ldh-header .dropdown-menu * { color: var(--fg-1); }
+:root[data-retro^="m3"] .ldh-header .dropdown-menu, :root[data-retro^="m3"] .ldh-header .dropdown-menu * { color: var(--fg-1); }
 :root[data-retro^="m3"] .ldh-header .dropdown-menu .nav-header { color: var(--fg-hint); }
-:root[data-retro^="m3"] .ldh-header .ldh-avatar:hover,
-:root[data-retro^="m3"] .ldh-header .btn-group.open .ldh-avatar { color: var(--fg-1); }
+:root[data-retro^="m3"] .ldh-header .ldh-avatar:hover, :root[data-retro^="m3"] .ldh-header .btn-group.open .ldh-avatar { color: var(--fg-1); }
+.btn-group { position: relative; }
 .btn-group .dropdown-menu { display: none; }
 .btn-group.open .dropdown-menu {
   display: block;
@@ -126,7 +122,7 @@ ul.typeahead.dropdown-menu > li.active > a, ul.typeahead.dropdown-menu > li > a:
   background: var(--bg-card);
   border: 1px solid var(--border-default);
   border-radius: var(--r-md);
-  box-shadow: 0 16px 40px -12px rgba(15, 23, 42, 0.28), 0 4px 12px -4px rgba(15, 23, 42, 0.18);
+  box-shadow: var(--shadow-lg);
   padding: var(--sp-2);
   z-index: 70;
   list-style: none;
@@ -153,10 +149,11 @@ ul.typeahead.dropdown-menu > li.active > a, ul.typeahead.dropdown-menu > li > a:
 
 /* ---------- action bar: design menus open via the CSR btn-group 'open' toggle ---------- */
 .ldh-actionbar .ab-mid { display: flex; align-items: center; gap: var(--sp-4); min-width: 0; }
-.ldh-actionbar > .ldh-add-wrap { display: flex; align-items: center; gap: var(--sp-2); }
-.ldh-actionbar .btn-group { position: relative; }
+.ldh-actionbar > .ab-left { display: flex; align-items: center; gap: var(--sp-2); }
 .ldh-add-wrap .ldh-add-menu, .ldh-of-wrap .ldh-of-menu, .ldh-mode .modes-pop { display: none; }
 .ldh-add-wrap.open .ldh-add-menu, .ldh-mode.open .modes-pop { display: block; }
+/* the toggle handler stamps 'drop-up' when the group is closer to the viewport bottom than the top */
+.ldh-add-wrap.drop-up .ldh-add-menu { top: auto; bottom: calc(100% + 6px); }
 .ldh-of-wrap.open .ldh-of-menu { display: flex; }
 .ldh-of-menu .it.disabled, .ldh-add-menu .it.disabled { opacity: 0.4; pointer-events: none; }
 .ldh-of-menu a.it { text-decoration: none; }
@@ -183,11 +180,11 @@ div.breadcrumb.ldh-bc { min-width: 0; overflow: hidden; }
 .modal {
   position: fixed; top: 48px; left: 50%; transform: translateX(-50%);
   /* match the content column: blocks span .content-body's inner width (max 1280px minus its side padding) */
-  width: calc(min(1280px, 100vw) - 2 * var(--sp-6));
+  width: calc(min(var(--ldh-content-w), 100vw) - 2 * var(--sp-6));
   max-height: calc(100vh - 96px);
   background: var(--surface-0);
   border: 0; border-radius: var(--r-lg);
-  box-shadow: var(--shadow-xl, 0 24px 64px -16px rgba(15, 23, 42, 0.4));
+  box-shadow: var(--shadow-xl);
   display: flex; flex-direction: column;
   overflow: hidden;
   z-index: 1050;
@@ -244,7 +241,7 @@ form .control-group {
   column-gap: var(--sp-6);
   align-items: start;
   padding: var(--sp-2) 0;
-  border-top: 1px solid var(--border-muted, var(--border-default));
+  border-top: 1px solid var(--border-default);
 }
 form .control-group:first-of-type { border-top: 0; }
 form .control-group > .control-label {
@@ -264,8 +261,7 @@ form .controls textarea { min-height: 72px; }
 form .control-group.error > .control-label { color: var(--danger-500); }
 form .control-group.error input, form .control-group.error textarea { border-color: var(--danger-500); }
 form .control-group.required > .control-label::after { content: ' *'; color: var(--danger-500); }
-form input[type="text"], form input[type="url"], form input[type="number"], form input[type="password"],
-form input[type="datetime-local"], form input[type="date"], form textarea, form select {
+form input[type="text"], form input[type="url"], form input[type="number"], form input[type="password"], form input[type="datetime-local"], form input[type="date"], form textarea, form select {
   border: 1px solid var(--border-default); border-radius: var(--r-sm);
   background: var(--surface-0); color: var(--fg-1);
   font-family: var(--font-sans); font-size: var(--fs-sm);
@@ -292,7 +288,7 @@ ul.ldh-typelist { display: flex; flex-wrap: wrap; gap: var(--sp-1); list-style: 
 ul.ldh-typelist > li > a, ul.ldh-typelist > li > span {
   display: inline-flex; align-items: center; gap: 4px;
   height: 20px; padding: 0 8px;
-  border-radius: var(--r-full, 999px);
+  border-radius: var(--r-pill);
   background: var(--ldh-blue-50); color: var(--ldh-blue-700);
   font-size: var(--fs-xs); font-weight: var(--fw-medium);
   white-space: nowrap;
@@ -341,14 +337,14 @@ form .control-group > .controls > .btn-group { order: 99; margin-left: auto; }
   font-size: var(--fs-sm); font-weight: var(--fw-medium);
   color: var(--fg-muted);
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-  border-top: 1px solid var(--border-muted, var(--border-default));
+  border-top: 1px solid var(--border-default);
 }
 .ldh-block dl > dd {
   margin: 0;
   padding: var(--sp-2) 0;
   font-size: var(--fs-sm); color: var(--fg-1);
   min-width: 0; overflow-wrap: break-word;
-  border-top: 1px solid var(--border-muted, var(--border-default));
+  border-top: 1px solid var(--border-default);
 }
 .ldh-block dl > dt:first-of-type, .ldh-block dl > dt:first-of-type + dd { border-top: 0; }
 /* explicit columns: a dt can be followed by several dds, which auto-placement would drop into column 1 */
@@ -430,7 +426,6 @@ form .control-group > .controls > .btn-group { order: 99; margin-left: auto; }
 .ldh-view-toolbar .result-count { margin: 0; white-space: nowrap; }
 .ldh-view-toolbar .form-inline { display: flex; align-items: center; gap: var(--sp-1); margin: 0; }
 .ldh-view-toolbar .form-inline label { display: flex; align-items: center; gap: var(--sp-1); margin: 0; }
-.ldh-view-toolbar .btn-group { position: relative; }
 .ldh-view-toolbar .btn-group.open .dropdown-menu { left: auto; right: 0; }
 /* facets moved from the drawer to the toolbar; hide the drawer group they left behind */
 .ldh-drawer .dgroup:empty { display: none; }
@@ -442,32 +437,42 @@ form .control-group > .controls > .btn-group { order: 99; margin-left: auto; }
    (the design sets this inline on the footer wordmark) */
 .ldh-footer .ldh-wordmark { color: var(--fg-1); }
 
-/* ---------- floating create dock: document-level creation (content mode's XHTML/Object,
-   the row modes' Create picker) floats bottom-right, like Drive's compose cluster.
-   Sticky, not fixed: it rides the viewport bottom while the content scrolls, but parks at
-   its flow position at the end of the content - above the footer, never over it. The
-   right margin clears the drawer strip (and so aligns with the action bar's timestamp
-   control, which ends where that strip begins) ---------- */
-:root { --ldh-drawer-w: 360px; } /* mirrors app.css .ldh-drawer width */
+/* ---------- create bar: document-level creation (content mode's XHTML/Object, the row
+   modes' Create picker) sits in a full-bleed navbar-like row. Sticky, not fixed: it rides
+   the viewport bottom while the content scrolls, but parks at its flow position at the end
+   of the content - stacked on the footer, never over it. The negative side margins bleed
+   the row out of the centered content column to the viewport edges; the right padding keeps
+   the buttons clear of the right-edge drawer strip ---------- */
+html { overflow-x: clip; } /* the 50vw bleed overshoots by half a classic scrollbar; clip never creates a scroll container */
 .ldh-create-dock {
   position: sticky;
-  bottom: var(--sp-6);
-  width: fit-content;
-  display: flex; align-items: center; gap: var(--sp-2);
+  bottom: 0;
+  display: flex; align-items: center; justify-content: flex-end; gap: var(--sp-2);
   z-index: 24; /* above content, below the drawer (25) and modal chrome */
-  margin: var(--sp-4) max(0px, calc(var(--ldh-drawer-w) - (100vw - min(1280px, 100vw)) / 2)) 0 auto;
+  margin: auto calc(50% - 50vw) 0; /* margin-top: auto parks it at the bottom of the stretched column */
+  padding: var(--sp-2) max(calc((100vw - min(var(--ldh-content-w), 100vw)) / 2 + var(--sp-6)), var(--ldh-drawer-w)) var(--sp-2) var(--sp-6);
+  background: var(--bg-card);
+  border-top: 1px solid var(--border-default);
 }
-.ldh-create-dock .ldh-btn { box-shadow: var(--shadow-lg); }
-/* the class-picker menu opens upward from the dock, not into the viewport edge */
-.ldh-create-dock .ldh-add-wrap.open .ldh-add-menu { top: auto; bottom: calc(100% + 6px); }
 /* the modal dim overlay is pointer-inert, so hide the dock while a modal is open */
 body:has(.modal.fade.in) .ldh-create-dock { display: none; }
+/* the bar sits directly on the footer - no detached gap between them */
+body:has(.ldh-create-dock) .ldh-footer { margin-top: 0; }
 
-/* ---------- sticky footer: the page column is a flex stack, the tab area absorbs the
-   slack, so short pages pin the footer to the viewport bottom with no painted void below
-   (the legacy body { height: calc(100% - 51px) } that painted past the footer is gone) ---------- */
+/* ---------- sticky footer + create-bar parking: the page column is a flex stack all the
+   way down to .content-body, so short pages pin the footer to the viewport bottom and the
+   create bar parks above it instead of stranding under the action bar (position: sticky
+   can only pull an element up from its flow position, never push it down) ---------- */
 #visible-body { min-height: 100vh; display: flex; flex-direction: column; }
-#visible-body > #tab-body { flex: 1 0 auto; }
+#visible-body > #tab-body { flex: 1 0 auto; display: flex; flex-direction: column; }
+#tab-body > .tab-content { flex: 1 0 auto; display: flex; flex-direction: column; }
+/* the Bootstrap tab contract (only the active pane shows) left with bootstrap.css; the bridge
+   carries it, so an inactive tab's content - its create bar included - never lingers */
+.tab-content > .tab-pane { display: none; }
+.tab-content > .tab-pane.active { flex: 1 0 auto; display: flex; flex-direction: column; }
+.tab-pane > .document-body { flex: 1 0 auto; display: flex; flex-direction: column; }
+/* only create-bar pages need the column itself stretched (its children become flex items) */
+.document-body > .content-body:has(> .ldh-create-dock) { flex: 1 0 auto; display: flex; flex-direction: column; padding-bottom: 0; }
 
 /* ---------- toolbar buttons outside the design's scoped containers: app.css only styles .tb
    inside .ldh-toolbar / .ldh-of-wrap / .ldh-block-head .actions, so the form-row remove/add

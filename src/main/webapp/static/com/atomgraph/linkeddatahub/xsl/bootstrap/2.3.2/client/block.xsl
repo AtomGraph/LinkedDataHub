@@ -178,14 +178,12 @@ exclude-result-prefixes="#all"
 
         <!--
             inject ontology-driven view blocks for any Saxon-JS wrapper produced by resource.xsl:
-            outer div.block[@about] whose div.span12 child contains the inner typed resource block
+            outer div.block[@about] whose div.row-main child contains the inner typed resource block
             (class='block ldh-block').
 
-            Typed-block wrappers (Object/View/Query/Chart from resource.xsl:463) are excluded
-            automatically: the wrapper template no longer matches those types, and even if
-            RenderRow visits their resource.xsl:463-produced wrapper, the inner
-            [contains-token(@class, 'block')] predicate excludes their inner (class='row-fluid'
-            from resource.xsl:518).
+            Typed-block wrappers (Object/View/Query/Chart) are excluded automatically: the wrapper
+            template no longer matches those types, and even if RenderRow visits their wrapper, the
+            inner [contains-token(@class, 'block')] predicate excludes their inner block-row.
         -->
         <xsl:for-each select="self::div[contains-token(@class, 'block')][@about]/div[contains-token(@class, 'row-main')]/div[contains-token(@class, 'block')][@typeof]">
             <xsl:variable name="typeof-uris" select="tokenize(@typeof, ' ') ! xs:anyURI(.)" as="xs:anyURI*"/>
@@ -791,8 +789,7 @@ exclude-result-prefixes="#all"
     <xsl:function name="ldh:set-container-acl-modes" as="map(*)" ixsl:updating="no">
         <xsl:param name="context" as="map(*)"/>
         <xsl:variable name="response" select="$context('container-response')" as="map(*)"/>
-        <xsl:variable name="acl-mode-links" select="tokenize($response?headers?link, ',')[contains(., '&acl;mode')]" as="xs:string*"/>
-        <xsl:variable name="acl-modes" select="for $mode-link in $acl-mode-links return xs:anyURI(substring-before(substring-after(substring-before($mode-link, ';'), '&lt;'), '&gt;'))" as="xs:anyURI*"/>
+        <xsl:variable name="acl-modes" select="ldh:link-targets($response?headers?link, '&acl;mode')" as="xs:anyURI*"/>
 
         <xsl:sequence select="map:merge(($context, map{ 'container-acl-modes': $acl-modes }))"/>
     </xsl:function>
