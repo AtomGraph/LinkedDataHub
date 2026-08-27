@@ -371,9 +371,7 @@ exclude-result-prefixes="#all">
         <xsl:param name="load-rdfa-editor" select="exists($foaf:Agent//@rdf:about)" as="xs:boolean"/>
         <xsl:param name="load-yasqe" select="true()" as="xs:boolean"/>
 
-        <!-- Bootstrap 2 is gone; ldh-bridge.css carries the replacements for the primitives LDH still emits.
-             Web-Client's bootstrap.css remains only because it styles Web-Client-emitted markup and lives in that repo. -->
-        <link href="{resolve-uri('static/com/atomgraph/client/css/bootstrap.css', lapp:origin())}" rel="stylesheet" type="text/css"/>
+        <!-- Bootstrap 2 is gone; ldh-bridge.css carries the replacements for the primitives LDH still emits. -->
         <link href="{resolve-uri('static/com/atomgraph/linkeddatahub/css/ldh.css', lapp:origin())}" rel="stylesheet" type="text/css"/>
         <xsl:if test="$load-rdfa-editor">
             <link href="{resolve-uri('static/com/atomgraph/linkeddatahub/css/rdfa-editor.css', lapp:origin())}" rel="stylesheet" type="text/css"/>
@@ -381,7 +379,7 @@ exclude-result-prefixes="#all">
         <xsl:if test="$load-yasqe">
             <link href="{resolve-uri('static/css/yasqe.css', lapp:origin())}" rel="stylesheet" type="text/css"/>
         </xsl:if>
-        <!-- design system: fonts (vendored), tokens, components, m3 skin - after the Bootstrap links so its resets win during the transition -->
+        <!-- design system: fonts (vendored), tokens, components, m3 skin - after the legacy links so its resets win during the transition -->
         <link href="{resolve-uri('static/com/atomgraph/linkeddatahub/css/fonts.css', lapp:origin())}" rel="stylesheet" type="text/css"/>
         <link href="{resolve-uri('static/com/atomgraph/linkeddatahub/css/colors_and_type.css', lapp:origin())}" rel="stylesheet" type="text/css"/>
         <link href="{resolve-uri('static/com/atomgraph/linkeddatahub/css/app.css', lapp:origin())}" rel="stylesheet" type="text/css"/>
