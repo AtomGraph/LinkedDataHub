@@ -283,80 +283,6 @@ exclude-result-prefixes="#all"
         </xsl:for-each>
     </xsl:template>
 
-    <!-- show drag handle on left edge hover, but not when left sidebar is active -->
-
-    <xsl:template match="div[contains-token(@class, 'block')][key('elements-by-class', 'drag-handle', .)][acl:mode() = '&acl;Write'][not(ixsl:style(ancestor::div[contains-token(@class, 'tab-pane')]/div[contains-token(@class, 'left-sidebar')])?display = 'block')]" mode="ixsl:onmousemove" priority="2">
-        <xsl:variable name="uri" select="xs:anyURI(ancestor::div[contains-token(@class, 'document-body')]/@about)" as="xs:anyURI"/>
-        <xsl:variable name="contents" select="ixsl:get(ixsl:window(), 'LinkedDataHub.contents')"/>
-        <xsl:variable name="cache-key" select="'`' || $uri || '`'" as="xs:string"/>
-        <!-- cache may not have an entry for the hovered block's document URI (e.g. inactive tab); skip silently to avoid an ixsl:get warning on every mousemove -->
-        <xsl:if test="ixsl:contains($contents, $cache-key) and ixsl:contains(ixsl:get($contents, $cache-key), 'results')">
-            <xsl:variable name="results" select="ixsl:get(ixsl:get($contents, $cache-key), 'results')" as="document-node()"/>
-            <xsl:variable name="mode" select="ac:mode($results)" as="xs:anyURI"/>
-
-            <xsl:if test="$mode = xs:anyURI('&ldh;ContentMode')">
-            <xsl:variable name="dom-x" select="ixsl:get(ixsl:event(), 'clientX')" as="xs:double"/>
-            <xsl:variable name="rect" select="ixsl:call(., 'getBoundingClientRect', [])"/>
-            <xsl:variable name="offset-x" select="$dom-x - ixsl:get($rect, 'x')" as="xs:double"/>
-            <xsl:variable name="left-edge-threshold" select="30" as="xs:double"/>
-
-            <xsl:variable name="drag-handle" select="key('elements-by-class', 'drag-handle', .)[1]" as="element()"/>
-
-            <!-- check that the mouse is on the left edge -->
-            <xsl:choose>
-                <xsl:when test="$offset-x &lt;= $left-edge-threshold and ixsl:style($drag-handle)?display = 'none'">
-                    <!-- get both block and span12 rectangles to calculate intersection -->
-                    <xsl:variable name="span12" select="$drag-handle/parent::*[contains-token(@class, 'row-main')]" as="element()"/>
-                    <xsl:variable name="block-rect" select="$rect"/> <!-- block's getBoundingClientRect -->
-                    <xsl:variable name="span12-rect" select="ixsl:call($span12, 'getBoundingClientRect', [])"/>
-
-                    <!-- calculate intersection of block and span12 -->
-                    <xsl:variable name="left" select="max((ixsl:get($block-rect, 'left'), ixsl:get($span12-rect, 'left')))" as="xs:double"/>
-                    <xsl:variable name="top" select="max((ixsl:get($block-rect, 'top'), ixsl:get($span12-rect, 'top')))" as="xs:double"/>
-                    <xsl:variable name="right" select="min((ixsl:get($block-rect, 'right'), ixsl:get($span12-rect, 'right')))" as="xs:double"/>
-                    <xsl:variable name="bottom" select="min((ixsl:get($block-rect, 'bottom'), ixsl:get($span12-rect, 'bottom')))" as="xs:double"/>
-                    <xsl:variable name="visible-height" select="max((0, $bottom - $top))" as="xs:double"/>
-
-                    <!-- only show drag-handle if there's actually visible area -->
-                    <xsl:if test="$visible-height > 0">
-                        <!-- position drag-handle to cover the visible intersection area -->
-                        <ixsl:set-style name="position" select="'fixed'" object="$drag-handle"/>
-                        <ixsl:set-style name="left" select="$left || 'px'" object="$drag-handle"/>
-                        <ixsl:set-style name="top" select="$top || 'px'" object="$drag-handle"/>
-                        <ixsl:set-style name="height" select="$visible-height || 'px'" object="$drag-handle"/>
-                        <ixsl:set-style name="z-index" select="'999'" object="$drag-handle"/>
-                        <!-- enable draggable on the block when drag-handle is shown -->
-                        <ixsl:set-attribute name="draggable" select="'true'" object="."/>
-                        <!-- show drag-handle -->
-                        <ixsl:set-style name="display" select="'block'" object="$drag-handle"/>
-                    </xsl:if>
-                </xsl:when>
-                <xsl:when test="$offset-x &gt; $left-edge-threshold and ixsl:style($drag-handle)?display = 'block'">
-                    <!-- disable draggable on the block when drag-handle is hidden -->
-                    <ixsl:set-attribute name="draggable" select="'false'" object="."/>
-                    <!-- hide drag-handle when mouse moves away from left edge -->
-                    <ixsl:set-style name="display" select="'none'" object="$drag-handle"/>
-                </xsl:when>
-            </xsl:choose>
-
-            <!-- call the next matching template to preserve existing block controls functionality -->
-                <xsl:next-match/>
-            </xsl:if>
-        </xsl:if>
-    </xsl:template>
-
-    <!-- hide drag handle when mouse leaves block -->
-    
-    <xsl:template match="div[contains-token(@class, 'block')][key('elements-by-class', 'drag-handle', .)][acl:mode() = '&acl;Write']" mode="ixsl:onmouseout">
-        <xsl:variable name="related-target" select="ixsl:get(ixsl:event(), 'relatedTarget')" as="element()?"/> <!-- the element mouse entered -->
-        <xsl:variable name="drag-handle" select="key('elements-by-class', 'drag-handle', .)[1]" as="element()"/>
-        
-        <!-- only hide if the related target does not have this div as ancestor (is not its child) -->
-        <xsl:if test="not($related-target/ancestor-or-self::div[. is current()])">
-            <ixsl:set-style name="display" select="'none'" object="$drag-handle"/>
-        </xsl:if>
-    </xsl:template>
-
     <!-- exit/save on click-outside is handled by the ixsl:onfocusout autosave below: the canvas holds
          focus throughout editing (toolbar/breadcrumb/find chrome all preventDefault on mousedown to keep
          it), so any exit click blurs the canvas and fires focusout. A separate onclick handler here would
@@ -400,12 +326,11 @@ exclude-result-prefixes="#all"
 
     <!-- rdfae:inject-chrome (edit.xsl) injects the block drag handle with class="drag-handle" -
          a leftover token from when this file's WYMeditor block handle was ported into the editor.
-         In LDH that token collides with bootstrap.css's `.row-fluid.block .drag-handle { display: none }`,
-         which hides every chrome handle rendered inside an edited ldh:XHTML document block. Re-inject the
-         handle under an editor-specific class so the shared RDFa-Editor code needs no change (and so
-         block.xsl's own key('elements-by-class', 'drag-handle') stops miscounting the chrome as an old
-         block handle); the two drag gestures below re-match that class. Styling is unaffected - the
-         handle is styled off data-role="chrome" in rdfa-editor.css. Keep the body in sync with edit.xsl's
+         In LDH that token collides with ldh.css's `.block .drag-handle { display: none }`, which hides
+         every chrome handle rendered inside an edited ldh:XHTML document block. Re-inject the handle
+         under an editor-specific class so the shared RDFa-Editor code needs no change; the two drag
+         gestures below re-match that class. Styling is unaffected - the handle is styled off
+         data-role="chrome" in rdfa-editor.css. Keep the body in sync with edit.xsl's
          rdfae:inject-chrome (XSLT overrides the whole named template, so only the class string differs). -->
     <xsl:template name="rdfae:inject-chrome">
         <xsl:param name="block" as="element()"/>
@@ -532,16 +457,12 @@ exclude-result-prefixes="#all"
         </xsl:for-each>
     </xsl:template>
     
-    <!-- cleanup after drag ends -->
-    
+    <!-- cleanup after drag ends: a cancelled drag (Esc, drop outside a target) can leave the drop marker behind -->
+
     <xsl:template match="div[contains-token(@class, 'drag-handle')]" mode="ixsl:ondragend">
-        <!-- hide the drag-handle -->
-        <ixsl:set-style name="display" select="'none'" object="."/>
-        <!-- disable draggable on the parent block -->
-        <xsl:variable name="block" select="ancestor::div[contains-token(@class, 'block')][1]" as="element()?"/>
-        <xsl:if test="exists($block)">
-            <ixsl:set-attribute name="draggable" select="'false'" object="$block"/>
-        </xsl:if>
+        <xsl:for-each select="ixsl:page()//div[contains-token(@class, 'content-body')]/div[contains-token(@class, 'block')][contains-token(@class, 'drag-over')]">
+            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'drag-over', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+        </xsl:for-each>
     </xsl:template>
 
     <!-- dragging block over other block -->

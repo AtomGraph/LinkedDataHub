@@ -380,9 +380,23 @@ form .control-group > .controls > .btn-group { order: 99; margin-left: auto; }
    like the design, hovering the label alone leaves the value unlit */
 .ldh-block dl > dt, .ldh-block dl > dd { transition: background var(--dur-fast) var(--ease-out-soft); }
 .ldh-block dl > dt:hover, .ldh-block dl > dd:hover, .ldh-block dl > dt:has(+ dd:hover, + dd + dd:hover, + dd + dd + dd:hover, + dd + dd + dd + dd:hover) { background: var(--surface-1); box-shadow: calc(-1 * var(--sp-6)) 0 0 var(--surface-1), var(--sp-6) 0 0 var(--surface-1); }
+/* ---------- version diff decorations (?diff= view) ---------- */
+/* Block-level state rides on outline, not border: the skins legitimately zero block borders
+   (quiet prose blocks, alert-only cards, the retro card treatments) and nothing else in the
+   system sets outline, so the diff state cannot be clobbered by any skin */
+.content-body > [about].block.diff-added { outline: 2px solid var(--success-500); }
+.content-body > [about].block.diff-removed { outline: 2px solid var(--danger-500); }
+.content-body > [about].block.diff-changed { outline: 2px solid var(--warning-500); }
+/* sub-block values: the two XHTML literal sides inside a changed block, property values on the dd */
+dd.diff-added, .main > div.diff-added { border-left: 4px solid var(--success-500); padding-left: 8px; }
+dd.diff-removed, .main > div.diff-removed { border-left: 4px solid var(--danger-500); padding-left: 8px; }
 /* diff decorations ride on the dd */
 .ldh-block dl > dd.diff-added { background: var(--success-50); }
 .ldh-block dl > dd.diff-removed { background: var(--danger-50); }
+/* the comparing-versions banner legend (document.xsl) keys its labels to the same tokens */
+.text-success { color: var(--success-500); }
+.text-error { color: var(--danger-500); }
+.text-warning { color: var(--warning-500); }
 
 /* ---------- left sidebar: flyout mechanics are CSR-driven inline styles ---------- */
 /* hidden by default; the body-edge onmousemove handler sets display: block, onmouseout hides it */

@@ -124,6 +124,14 @@
         <rdfs:label xml:lang="en-US">Charts</rdfs:label>
         <rdfs:label xml:lang="es-ES">Gráficos</rdfs:label>
     </rdf:Description>
+    <rdf:Description rdf:nodeID="category">
+        <rdfs:label xml:lang="en-US">Category</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Categoría</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="series">
+        <rdfs:label xml:lang="en-US">Series</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Series</rdfs:label>
+    </rdf:Description>
     <rdf:Description rdf:nodeID="services">
         <rdfs:label xml:lang="en-US">Services</rdfs:label>
         <rdfs:label xml:lang="es-ES">Servicios</rdfs:label>

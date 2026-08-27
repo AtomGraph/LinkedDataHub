@@ -1166,11 +1166,20 @@ exclude-result-prefixes="#all"
         <xsl:variable name="pos" select="position()" as="xs:integer"/>
 
         <a class="card" href="{ldh:href(ac:document-uri(xs:anyURI(@rdf:about)), map{})}" title="{@rdf:about}">
-            <div class="img {('img-sky', 'img-mint', 'img-peach', 'img-lavender', 'img-blush', 'img-sand')[($pos - 1) mod 6 + 1]}">
-                <span class="msi" aria-hidden="true">
-                    <xsl:value-of select="(rdf:type/@rdf:resource ! map:get($ldh:class-icons, string(.)), 'description')[1]"/>
-                </span>
-            </div>
+            <xsl:choose>
+                <xsl:when test="ac:image($subject)">
+                    <div class="img">
+                        <img src="{ac:image($subject)[1]}" alt="{ac:label($subject)}"/>
+                    </div>
+                </xsl:when>
+                <xsl:otherwise>
+                    <div class="img {('img-sky', 'img-mint', 'img-peach', 'img-lavender', 'img-blush', 'img-sand')[($pos - 1) mod 6 + 1]}">
+                        <span class="msi" aria-hidden="true">
+                            <xsl:value-of select="(rdf:type/@rdf:resource ! map:get($ldh:class-icons, string(.)), 'description')[1]"/>
+                        </span>
+                    </div>
+                </xsl:otherwise>
+            </xsl:choose>
             <div class="card-body">
                 <span class="ti">
                     <xsl:apply-templates select="$subject" mode="ac:label"/>
@@ -1189,11 +1198,20 @@ exclude-result-prefixes="#all"
         <xsl:variable name="pos" select="position()" as="xs:integer"/>
 
         <div class="card">
-            <div class="img {('img-sky', 'img-mint', 'img-peach', 'img-lavender', 'img-blush', 'img-sand')[($pos - 1) mod 6 + 1]}">
-                <span class="msi" aria-hidden="true">
-                    <xsl:value-of select="(rdf:type/@rdf:resource ! map:get($ldh:class-icons, string(.)), 'description')[1]"/>
-                </span>
-            </div>
+            <xsl:choose>
+                <xsl:when test="ac:image(.)">
+                    <div class="img">
+                        <img src="{ac:image(.)[1]}" alt="{ac:label(.)}"/>
+                    </div>
+                </xsl:when>
+                <xsl:otherwise>
+                    <div class="img {('img-sky', 'img-mint', 'img-peach', 'img-lavender', 'img-blush', 'img-sand')[($pos - 1) mod 6 + 1]}">
+                        <span class="msi" aria-hidden="true">
+                            <xsl:value-of select="(rdf:type/@rdf:resource ! map:get($ldh:class-icons, string(.)), 'description')[1]"/>
+                        </span>
+                    </div>
+                </xsl:otherwise>
+            </xsl:choose>
             <div class="card-body">
                 <span class="ti">
                     <xsl:apply-templates select="." mode="ac:label"/>

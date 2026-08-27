@@ -505,6 +505,21 @@ WHERE
         </xsl:for-each>
     </xsl:template>
 
+    <!-- view source (overrides edit.xsl): an LDH region is chrome around an XMLLiteral fragment, not the
+         RDFa document root the standalone editor serializes - canonicalize the region's children (the same
+         payload ldh:FormPreSubmit stores in the ol input), not the region element, which rule C7b unwraps -->
+    <xsl:template match="button[@id = 'view-source']" mode="ixsl:onclick">
+        <xsl:variable name="canonical" as="node()*">
+            <xsl:apply-templates select="rdfae:active-root()/node()" mode="cm:canonical"/>
+        </xsl:variable>
+        <xsl:call-template name="rdfae:show-output">
+            <xsl:with-param name="title" select="'Canonical XHTML+RDFa'"/>
+            <xsl:with-param name="text" select="serialize($canonical, map{ 'method': 'xml' })"/>
+            <xsl:with-param name="filename" select="'content.xhtml'"/>
+            <xsl:with-param name="media-type" select="'application/xhtml+xml'"/>
+        </xsl:call-template>
+    </xsl:template>
+
     <!-- trim whitespace in bnode/URI values -->
     <xsl:template match="input[@name = ('ob', 'ou')][ixsl:get(., 'value')]" mode="ldh:FormPreSubmit" priority="1">
         <ixsl:set-attribute name="value" select="normalize-space(ixsl:get(., 'value'))"/>

@@ -561,7 +561,7 @@ extension-element-prefixes="ixsl"
                         </xsl:value-of>
                     </span>
                     <xsl:text> / </xsl:text>
-                    <!-- .text-warning is #ff7518 in this theme, the same value as the diff-changed block border -->
+                    <!-- the legend's .text-* classes resolve to the same tokens as the diff decorations (ldh-bridge.css) -->
                     <span class="text-warning">
                         <xsl:value-of>
                             <xsl:apply-templates select="key('resources', 'changed', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
@@ -913,47 +913,20 @@ extension-element-prefixes="ixsl"
                         <xsl:apply-templates select="key('resources', '&ldh;chartType', document(ac:document-uri('&ldh;')))" mode="ac:label"/>
                     </xsl:value-of>
                 </label>
-                <!-- TO-DO: replace with xsl:apply-templates on ac:Chart subclasses as in imports/ldh.xsl -->
                 <select id="{$chart-type-id}" name="ou" class="chart-type">
-                    <option value="&ac;Table">
-                        <xsl:if test="$chart-type = '&ac;Table'">
-                            <xsl:attribute name="selected" select="'selected'"/>
-                        </xsl:if>
+                    <xsl:for-each select="key('resources-by-subclass', '&ac;Chart', document(ac:document-uri('&ldh;')))">
+                        <xsl:sort select="ac:label(.)" lang="{$ac:lang}"/>
 
-                        <xsl:text>Table</xsl:text>
-                    </option>
-                    <option value="&ac;ScatterChart">
-                        <xsl:if test="$chart-type = '&ac;ScatterChart'">
-                            <xsl:attribute name="selected" select="'selected'"/>
-                        </xsl:if>
-
-                        <xsl:text>Scatter chart</xsl:text>
-                    </option>
-                    <option value="&ac;LineChart">
-                        <xsl:if test="$chart-type = '&ac;LineChart'">
-                            <xsl:attribute name="selected" select="'selected'"/>
-                        </xsl:if>
-
-                        <xsl:text>Line chart</xsl:text>
-                    </option>
-                    <option value="&ac;BarChart">
-                        <xsl:if test="$chart-type = '&ac;BarChart'">
-                            <xsl:attribute name="selected" select="'selected'"/>
-                        </xsl:if>
-
-                        <xsl:text>Bar chart</xsl:text>
-                    </option>
-                    <option value="&ac;Timeline">
-                        <xsl:if test="$chart-type = '&ac;Timeline'">
-                            <xsl:attribute name="selected" select="'selected'"/>
-                        </xsl:if>
-
-                        <xsl:text>Timeline</xsl:text>
-                    </option>
+                        <xsl:apply-templates select="." mode="xhtml:Option">
+                            <xsl:with-param name="selected" select="@rdf:about = $chart-type"/>
+                        </xsl:apply-templates>
+                    </xsl:for-each>
                 </select>
             </div>
             <div class="field">
-                <label for="{$category-id}">Category</label>
+                <label for="{$category-id}">
+                    <xsl:apply-templates select="key('resources', 'category', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                </label>
                 <select id="{$category-id}" name="ou" class="chart-category">
                     <option value="">
                         <!-- URI is the default category -->
@@ -980,7 +953,9 @@ extension-element-prefixes="ixsl"
                 </select>
             </div>
             <div class="field">
-                <label for="{$series-id}">Series</label>
+                <label for="{$series-id}">
+                    <xsl:apply-templates select="key('resources', 'series', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                </label>
                 <select id="{$series-id}" name="ou" multiple="multiple" class="chart-series">
                     <xsl:for-each-group select="*/*" group-by="concat(namespace-uri(), local-name())">
                         <xsl:sort select="ac:property-label(.)" order="ascending" lang="{$ac:lang}"/>
@@ -1017,43 +992,14 @@ extension-element-prefixes="ixsl"
                         <xsl:apply-templates select="key('resources', '&ldh;chartType', document(ac:document-uri('&ldh;')))" mode="ac:label"/>
                     </xsl:value-of>
                 </label>
-                <!-- TO-DO: replace with xsl:apply-templates on ac:Chart subclasses as in imports/ldh.xsl -->
                 <select id="{$chart-type-id}" name="ou" class="chart-type">
-                    <option value="&ac;Table">
-                        <xsl:if test="$chart-type = '&ac;Table'">
-                            <xsl:attribute name="selected" select="'selected'"/>
-                        </xsl:if>
+                    <xsl:for-each select="key('resources-by-subclass', '&ac;Chart', document(ac:document-uri('&ldh;')))">
+                        <xsl:sort select="ac:label(.)" lang="{$ac:lang}"/>
 
-                        <xsl:text>Table</xsl:text>
-                    </option>
-                    <option value="&ac;ScatterChart">
-                        <xsl:if test="$chart-type = '&ac;ScatterChart'">
-                            <xsl:attribute name="selected" select="'selected'"/>
-                        </xsl:if>
-
-                        <xsl:text>Scatter chart</xsl:text>
-                    </option>
-                    <option value="&ac;LineChart">
-                        <xsl:if test="$chart-type = '&ac;LineChart'">
-                            <xsl:attribute name="selected" select="'selected'"/>
-                        </xsl:if>
-
-                        <xsl:text>Line chart</xsl:text>
-                    </option>
-                    <option value="&ac;BarChart">
-                        <xsl:if test="$chart-type = '&ac;BarChart'">
-                            <xsl:attribute name="selected" select="'selected'"/>
-                        </xsl:if>
-
-                        <xsl:text>Bar chart</xsl:text>
-                    </option>
-                    <option value="&ac;Timeline">
-                        <xsl:if test="$chart-type = '&ac;Timeline'">
-                            <xsl:attribute name="selected" select="'selected'"/>
-                        </xsl:if>
-
-                        <xsl:text>Timeline</xsl:text>
-                    </option>
+                        <xsl:apply-templates select="." mode="xhtml:Option">
+                            <xsl:with-param name="selected" select="@rdf:about = $chart-type"/>
+                        </xsl:apply-templates>
+                    </xsl:for-each>
                 </select>
             </div>
             <div class="field">
@@ -1063,7 +1009,9 @@ extension-element-prefixes="ixsl"
                     <xsl:with-param name="value" select="'&ldh;categoryVarName'"/>
                 </xsl:call-template>
 
-                <label for="{$category-id}">Category</label>
+                <label for="{$category-id}">
+                    <xsl:apply-templates select="key('resources', 'category', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                </label>
                 <select id="{$category-id}" name="ol" class="chart-category">
                     <xsl:for-each select="srx:head/srx:variable">
                         <!-- leave the original variable order so it can be controlled from query -->
@@ -1079,7 +1027,9 @@ extension-element-prefixes="ixsl"
                 </select>
             </div>
             <div class="field">
-                <label for="{$series-id}">Series</label>
+                <label for="{$series-id}">
+                    <xsl:apply-templates select="key('resources', 'series', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                </label>
                 <select id="{$series-id}" name="ol" multiple="multiple" class="chart-series">
                     <xsl:for-each select="srx:head/srx:variable">
                         <!-- leave the original variable order so it can be controlled from query -->
