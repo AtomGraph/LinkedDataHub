@@ -1147,27 +1147,62 @@ exclude-result-prefixes="#all"
 
     <!-- grid -->
 
-    <!-- override Web-Client's template to avoid sort by ac:label() -->
+    <!-- override Web-Client's template to avoid sort by ac:label(); the design-system grid lays items out itself, so no row chunking -->
     <xsl:template match="rdf:RDF" mode="bs2:Grid">
-        <xsl:param name="thumbnails-per-row" select="2" as="xs:integer"/>
-        <xsl:param name="sort-property" as="xs:anyURI?"/>
-
-        <xsl:variable name="prelim-items" as="item()*">
-            <xsl:apply-templates mode="#current">
-                <xsl:with-param name="thumbnails-per-row" select="$thumbnails-per-row" tunnel="yes"/>
-            </xsl:apply-templates>
-        </xsl:variable>
-        <xsl:variable name="items" select="$prelim-items/self::*" as="element()*"/>
-        
-        <xsl:for-each-group select="$items" group-adjacent="(position() - 1) idiv $thumbnails-per-row">
-            <div class="block-row">
-                <ul class="thumbnails">
-                    <xsl:copy-of select="current-group()"/>
-                </ul>
-            </div>
-        </xsl:for-each-group>
+        <xsl:apply-templates select="*" mode="#current"/>
     </xsl:template>
-    
+
+    <!-- hide resources that will be shown paired/nested with a document -->
+    <xsl:template match="*[key('resources-by-primary-topic', @rdf:about)]" mode="bs2:Grid" priority="1"/>
+
+    <!-- a document paired with its primary topic renders as one card carrying the topic's label and description -->
+    <xsl:template match="*[*][@rdf:about]" mode="bs2:Grid" priority="0.8">
+        <xsl:variable name="subject" select="(key('resources', foaf:primaryTopic/@rdf:resource), .)[1]" as="element()"/>
+        <xsl:variable name="pos" select="position()" as="xs:integer"/>
+
+        <a class="card" href="{ldh:href(ac:document-uri(xs:anyURI(@rdf:about)), map{})}" title="{@rdf:about}">
+            <div class="img {('img-sky', 'img-mint', 'img-peach', 'img-lavender', 'img-blush', 'img-sand')[($pos - 1) mod 6 + 1]}">
+                <span class="msi" aria-hidden="true">
+                    <xsl:value-of select="(rdf:type/@rdf:resource ! map:get($ldh:class-icons, string(.)), 'description')[1]"/>
+                </span>
+            </div>
+            <div class="card-body">
+                <span class="ti">
+                    <xsl:apply-templates select="$subject" mode="ac:label"/>
+                </span>
+
+                <xsl:where-populated>
+                    <span class="meta">
+                        <xsl:apply-templates select="$subject" mode="ac:description"/>
+                    </span>
+                </xsl:where-populated>
+            </div>
+        </a>
+    </xsl:template>
+
+    <xsl:template match="*[*][@rdf:nodeID]" mode="bs2:Grid" priority="0.8">
+        <xsl:variable name="pos" select="position()" as="xs:integer"/>
+
+        <div class="card">
+            <div class="img {('img-sky', 'img-mint', 'img-peach', 'img-lavender', 'img-blush', 'img-sand')[($pos - 1) mod 6 + 1]}">
+                <span class="msi" aria-hidden="true">
+                    <xsl:value-of select="(rdf:type/@rdf:resource ! map:get($ldh:class-icons, string(.)), 'description')[1]"/>
+                </span>
+            </div>
+            <div class="card-body">
+                <span class="ti">
+                    <xsl:apply-templates select="." mode="ac:label"/>
+                </span>
+
+                <xsl:where-populated>
+                    <span class="meta">
+                        <xsl:apply-templates select="." mode="ac:description"/>
+                    </span>
+                </xsl:where-populated>
+            </div>
+        </div>
+    </xsl:template>
+
     <xsl:template match="rdf:RDF" mode="bs2:ContainerGrid" use-when="system-property('xsl:product-name') eq 'SaxonJS'">
         <xsl:param name="select-xml" as="document-node()"/>
         <xsl:variable name="result-count" select="count(rdf:Description)" as="xs:integer"/>
@@ -1177,16 +1212,15 @@ exclude-result-prefixes="#all"
             <xsl:with-param name="select-xml" select="$select-xml"/>
         </xsl:call-template>
 
-        <xsl:apply-templates select="." mode="bs2:Grid"/>
+        <div class="ldh-grid-block">
+            <xsl:apply-templates select="." mode="bs2:Grid"/>
+        </div>
 
         <xsl:call-template name="bs2:PagerList">
             <xsl:with-param name="result-count" select="$result-count"/>
             <xsl:with-param name="select-xml" select="$select-xml"/>
         </xsl:call-template>
     </xsl:template>
-
-    <!-- hide documents that are paired with resources -->
-    <xsl:template match="*[key('resources', foaf:primaryTopic/@rdf:resource)]" mode="bs2:Grid"/>
 
     <!-- table -->
 

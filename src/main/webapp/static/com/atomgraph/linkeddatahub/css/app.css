@@ -1878,6 +1878,8 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
    ~48px while the block title sat at 24px). Drop the redundant horizontal inset
    and the grid's doubled bottom padding so everything aligns to the title. */
 .ldh-block-body > .ldh-grid-block { padding: var(--sp-2) 0 0; }
+/* .container-results clips at its edge (overflow: auto), so the grid keeps a bottom inset to keep the last row's card borders and corners clear of the clip line */
+.container-results > .ldh-grid-block { padding: var(--sp-2) 0; }
 .ldh-block-body > .ldh-view-toolbar { padding-left: 0; padding-right: 0; }
 .ldh-grid-block .card {
   position: relative;
