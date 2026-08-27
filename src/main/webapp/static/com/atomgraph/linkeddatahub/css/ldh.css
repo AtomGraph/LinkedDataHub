@@ -44,14 +44,12 @@ li button.btn-edit-constructors, li button.btn-add-data, li button.btn-add-ontol
 .left-nav, .right-nav { position: sticky; top: 0; }
 .faceted-nav input[type=checkbox]:checked + span { font-weight: bold; }
 .parallax-nav a { cursor: pointer; }
-.content-body > [about].block { overflow-x: auto; }
 .content-body > [about].block.drag-over { border-bottom: 4px dotted #0f82f5; }
 .content-body > [about].block.diff-added { border: 2px solid #3fb618; }
 .content-body > [about].block.diff-removed { border: 2px solid #ff0039; }
 .content-body > [about].block.diff-changed { border: 2px solid #ff7518; }
 dd.diff-added, .main > div.diff-added { border-left: 4px solid #3fb618; padding-left: 8px; }
 dd.diff-removed, .main > div.diff-removed { border-left: 4px solid #ff0039; padding-left: 8px; }
-.block { max-height: 80em; }
 .block .drag-handle { display: none; width: 30px; background-color: #149bdf; background-image: radial-gradient(circle at 3px 3px, #0480be 1px, transparent 1.5px); background-size: 6px 6px; border-radius: 2px; cursor: move; }
 .hero-unit { background-color: #0f82f530; box-shadow: 5px 5px 3px 0px rgb(192,192,192); }
 .modal { max-height: 80%; overflow-y: auto; overflow-x: hidden; }
@@ -68,7 +66,7 @@ dd.diff-removed, .main > div.diff-removed { border-left: 4px solid #ff0039; padd
 .control-group.endpoint-classes ul { max-height: 20em; overflow: auto; }
 .nav-tabs > li > a, .pager > li > a.active { cursor: pointer; }
 .result-count { padding-top: 8px; padding-bottom: 8px; height: 20px; }
-#container-results { overflow-y: auto; }
+.container-results { max-height: 80em; overflow: auto; }
 .map-canvas { height: 45em; width: 100%; }
 fieldset { border: 1px outset #999; /* padding-top: 3%; */ }
 fieldset fieldset { margin-left: 3%; margin-bottom: 3%; }
@@ -85,7 +83,7 @@ button.add-typeahead { width: 219px; }
 .control-group.required .control-label { font-weight: bold; }
 .description { display: none; }
 .content .dl-horizontal { max-height: 35em; overflow: auto; }
-div[typeof="https://w3id.org/atomgraph/linkeddatahub#XHTML"] .main { font-size: larger; line-height: 25px; }
+div[typeof="https://w3id.org/atomgraph/linkeddatahub#XHTML"] .main { font-size: larger; line-height: 25px; overflow-x: auto; }
 div[typeof="https://w3id.org/atomgraph/linkeddatahub#XHTML"]:not(:has(form)) .main { cursor: pointer; }
 div[typeof="https://w3id.org/atomgraph/linkeddatahub#XHTML"] .btn-edit { display: none; }
 div[typeof="https://w3id.org/atomgraph/linkeddatahub#XHTML"] .ldh-prop-form .control-label { display: none; }

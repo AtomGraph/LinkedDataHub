@@ -956,10 +956,12 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
   background: var(--bg-card);
   border: 1px solid var(--border-default);
   border-radius: var(--r-lg);
-  overflow: hidden;
+  /* no overflow clipping: dropdown menus (.modes-pop, .ldh-add-menu) render inline inside the card and must escape its box; the block body's inset keeps content clear of the corner arcs */
   transition: box-shadow var(--dur-base) var(--ease-out-soft), border-color var(--dur-base) var(--ease-out-soft);
 }
 .ldh-block:hover { box-shadow: var(--shadow-sm); }
+/* hover-lift transforms (retro themes) make the card a stacking context, trapping its inline dropdowns below later positioned rows; while a popup is open the card must win the paint order over subsequent blocks (but stay under the z-70 action bar) */
+.ldh-block:has(.is-open) { position: relative; z-index: 60; }
 .ldh-block.is-quiet { border: 0; background: transparent; }
 .ldh-block.is-quiet:hover { box-shadow: none; }
 .ldh-block-head {
