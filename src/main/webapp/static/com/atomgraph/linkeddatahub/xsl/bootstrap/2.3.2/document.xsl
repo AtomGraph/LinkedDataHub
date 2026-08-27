@@ -574,7 +574,7 @@ extension-element-prefixes="ixsl"
 
             <!-- host for the RDFa editor toolbar (appended by rdfae:init-editing); empty until an editable region initializes -->
             <div class="navbar-inner editor-bar">
-                <div></div>
+                <div class="content-body"></div>
             </div>
 
             <xsl:apply-templates select="." mode="bs2:ContentBody">
