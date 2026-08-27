@@ -90,7 +90,7 @@ ul.typeahead.dropdown-menu > li.active > a, ul.typeahead.dropdown-menu > li > a:
 .ldh-block :is(.alert, .ldhc-alert) { margin: 0; }
 
 /* ---------- sticky chrome: header on top, action bar (legacy --action-bar-top) right under it ---------- */
-:root { --ldh-header-height: 56px; --action-bar-top: var(--ldh-header-height); --ldh-content-w: 1280px; --ldh-drawer-w: 360px; /* mirrors app.css .ldh-drawer width */ }
+:root { --ldh-header-height: 56px; --action-bar-top: var(--ldh-header-height); --ldh-content-w: 1280px; }
 .navbar.ldh-header { position: sticky; top: 0; z-index: 1001; }
 .action-bar.ldh-actionbar {
   background: var(--surface-0);
@@ -441,8 +441,8 @@ form .control-group > .controls > .btn-group { order: 99; margin-left: auto; }
    modes' Create picker) sits in a full-bleed navbar-like row. Sticky, not fixed: it rides
    the viewport bottom while the content scrolls, but parks at its flow position at the end
    of the content - stacked on the footer, never over it. The negative side margins bleed
-   the row out of the centered content column to the viewport edges; the right padding keeps
-   the buttons clear of the right-edge drawer strip ---------- */
+   the row out of the centered content column to the viewport edges; the right padding brings
+   the buttons back to the content column's right edge, flush with the blocks ---------- */
 html { overflow-x: clip; } /* the 50vw bleed overshoots by half a classic scrollbar; clip never creates a scroll container */
 .ldh-create-dock {
   position: sticky;
@@ -450,7 +450,7 @@ html { overflow-x: clip; } /* the 50vw bleed overshoots by half a classic scroll
   display: flex; align-items: center; justify-content: flex-end; gap: var(--sp-2);
   z-index: 24; /* above content, below the drawer (25) and modal chrome */
   margin: auto calc(50% - 50vw) 0; /* margin-top: auto parks it at the bottom of the stretched column */
-  padding: var(--sp-2) max(calc((100vw - min(var(--ldh-content-w), 100vw)) / 2 + var(--sp-6)), var(--ldh-drawer-w)) var(--sp-2) var(--sp-6);
+  padding: var(--sp-2) calc((100vw - min(var(--ldh-content-w), 100vw)) / 2 + var(--sp-6)) var(--sp-2) var(--sp-6);
   background: var(--bg-card);
   border-top: 1px solid var(--border-default);
 }
