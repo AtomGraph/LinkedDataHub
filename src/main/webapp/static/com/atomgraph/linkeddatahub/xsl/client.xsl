@@ -777,6 +777,13 @@ WHERE
             <xsl:call-template name="ldh:SetAclModes">
                 <xsl:with-param name="acl-modes" select="if (ixsl:contains(., 'dataset.aclModes')) then (for $mode in tokenize(ixsl:get(., 'dataset.aclModes'), ' ')[.] return xs:anyURI($mode)) else ()"/>
             </xsl:call-template>
+
+            <!-- adopt the singleton editor toolbar into this pane's editor-bar when the pane is in editing mode (fetch-less switches don't re-render regions, so form.xsl's region-init adoption never fires here) -->
+            <xsl:if test=".//div[contains-token(@class, 'rdfa-editor-content')] and exists(id('edit-toolbar', ixsl:page()))">
+                <xsl:for-each select="rdfae:toolbar-host()[not(descendant::*[@id = 'edit-toolbar'])]">
+                    <xsl:sequence select="ixsl:call(., 'appendChild', [ id('edit-toolbar', ixsl:page()) ])[current-date() lt xs:date('2000-01-01')]"/>
+                </xsl:for-each>
+            </xsl:if>
         </xsl:for-each>
     </xsl:template>
 
