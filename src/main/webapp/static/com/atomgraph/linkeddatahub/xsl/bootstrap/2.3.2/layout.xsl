@@ -744,7 +744,7 @@ WHERE
         <!-- OAuth providers dropdown -->
         <xsl:if test="$google-signup or $orcid-signup">
             <div class="btn-group">
-                <button type="button" class="dropdown-toggle ldhc-btn in-primary sz-sm">
+                <button type="button" class="dropdown-toggle ldhc-btn in-primary ap-solid sz-sm">
                     <xsl:value-of>
                         <xsl:apply-templates select="key('resources', 'login', document('translations.rdf'))" mode="ac:label"/>
                     </xsl:value-of>
@@ -778,7 +778,7 @@ WHERE
         <!-- WebID signup - separate button -->
         <xsl:if test="$webid-signup">
             <div>
-                <a class="ldhc-btn in-primary sz-sm" href="{if (not(starts-with($ldt:base, lapp:origin()))) then ac:build-uri((), map{ 'uri': string($webid-signup-uri) }) else $webid-signup-uri}">
+                <a class="ldhc-btn in-primary ap-solid sz-sm" href="{if (not(starts-with($ldt:base, lapp:origin()))) then ac:build-uri((), map{ 'uri': string($webid-signup-uri) }) else $webid-signup-uri}">
                     <xsl:value-of>
                         <xsl:apply-templates select="key('resources', 'sign-up', document('translations.rdf'))" mode="ac:label"/>
                     </xsl:value-of>

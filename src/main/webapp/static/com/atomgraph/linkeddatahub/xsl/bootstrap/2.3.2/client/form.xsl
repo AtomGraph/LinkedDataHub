@@ -356,7 +356,7 @@ WHERE
                         </div>
                     </fieldset>
                     <div class="ldh-block-foot modal-footer">
-                        <button type="button" class="ldhc-btn in-negative sz-sm remove-action" style="display: none;"><xsl:value-of select="ac:label(key('resources', 'remove', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin))))"/></button>
+                        <button type="button" class="ldhc-btn in-negative ap-solid sz-sm remove-action" style="display: none;"><xsl:value-of select="ac:label(key('resources', 'remove', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin))))"/></button>
                         <button type="button" class="ldh-btn is-ghost cancel-action">Cancel</button>
                         <button type="button" class="ldh-btn spo-action">Annotate</button>
                     </div>
@@ -388,7 +388,7 @@ WHERE
             <label for="link-href">Link target (href)</label>
             <input type="text" id="link-href" name="href" placeholder="https://..."/>
             <div class="action-buttons">
-                <button type="button" class="ldhc-btn in-negative sz-sm link-remove" style="display: none;"><xsl:value-of select="ac:label(key('resources', 'remove-link', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin))))"/></button>
+                <button type="button" class="ldhc-btn in-negative ap-solid sz-sm link-remove" style="display: none;"><xsl:value-of select="ac:label(key('resources', 'remove-link', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin))))"/></button>
                 <button type="button" class="btn btn-primary link-save">Save</button>
                 <button type="button" class="btn link-cancel">Cancel</button>
             </div>
