@@ -328,6 +328,10 @@
         <rdfs:label xml:lang="en-US">None</rdfs:label>
         <rdfs:label xml:lang="es-ES">Nada</rdfs:label>
     </rdf:Description>
+    <rdf:Description rdf:nodeID="no-values">
+        <rdfs:label xml:lang="en-US">No values</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Sin valores</rdfs:label>
+    </rdf:Description>
     <rdf:Description rdf:nodeID="ascending">
         <rdfs:label xml:lang="en-US">Ascending</rdfs:label>
         <rdfs:label xml:lang="es-ES">Ascendente</rdfs:label>

@@ -1635,11 +1635,32 @@ exclude-result-prefixes="#all"
         <!-- TO-DO: can we get multiple BGPs here with the same ?s/p/?o ? -->
         <xsl:variable name="bgp-triples-map" select="$select-xml//json:map[json:string[@key = 'type'] = 'bgp']/json:array[@key = 'triples']/json:map[json:string[@key = 'subject'] = '?' || $subject-var-name][json:string[@key = 'predicate'] = $predicate][json:string[@key = 'object'] = '?' || $object-var-name]" as="element()"/>
 
+        <!-- opening one facet closes the others in the same toolbar -->
+        <xsl:apply-templates select="$facet-container/../div[contains-token(@class, 'faceted-nav')][not(. is $facet-container)]/ul[contains-token(@class, 'facet-pop')][not(ixsl:style(.)?display = 'none')]" mode="ldh:CloseFacetPopover"/>
+
         <!-- is the current facet loaded? -->
         <xsl:variable name="loaded" select="exists(following-sibling::ul)" as="xs:boolean"/>
         <xsl:choose>
             <!-- if not, load and render its values -->
             <xsl:when test="not($loaded)">
+                <!-- toggle the caret direction -->
+                <xsl:for-each select="span[contains-token(@class, 'caret')]">
+                    <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'caret-reversed' ])[current-date() lt xs:date('2000-01-01')]"/>
+                </xsl:for-each>
+
+                <!-- open the popover immediately with a loading state; the response replaces it with the value list -->
+                <xsl:for-each select="$facet-container">
+                    <xsl:result-document href="?." method="ixsl:append-content">
+                        <ul class="nav facet-pop">
+                            <li class="facet-loading">
+                                <div class="progress progress-indeterminate">
+                                    <div class="bar"></div>
+                                </div>
+                            </li>
+                        </ul>
+                    </xsl:result-document>
+                </xsl:for-each>
+
                 <xsl:for-each select="$container">
                     <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
@@ -1725,6 +1746,25 @@ exclude-result-prefixes="#all"
         </xsl:choose>
     </xsl:template>
     
+    <!-- closes a facet popover: hides the value list and resets its pill's caret -->
+
+    <xsl:template match="ul[contains-token(@class, 'facet-pop')]" mode="ldh:CloseFacetPopover">
+        <ixsl:set-style name="display" select="'none'" object="."/>
+        <xsl:for-each select="preceding-sibling::*[contains-token(@class, 'nav-header')]/span[contains-token(@class, 'caret')]">
+            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'caret-reversed', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+        </xsl:for-each>
+    </xsl:template>
+
+    <!-- clicks that no other handler claims bubble up to body: dismiss any open facet popovers -->
+
+    <xsl:template match="body" mode="ixsl:onclick">
+        <xsl:apply-templates select="ixsl:page()//div[contains-token(@class, 'faceted-nav')]/ul[contains-token(@class, 'facet-pop')][not(ixsl:style(.)?display = 'none')]" mode="ldh:CloseFacetPopover"/>
+    </xsl:template>
+
+    <!-- clicks inside the popover (value checkboxes) stop here instead of bubbling to body and dismissing it -->
+
+    <xsl:template match="div[contains-token(@class, 'faceted-nav')]/ul[contains-token(@class, 'facet-pop')]" mode="ixsl:onclick"/>
+
     <!-- facet onchange -->
 
     <xsl:template match="div[@typeof = '&ldh;View']//div[contains-token(@class, 'faceted-nav')]//input[@type = 'checkbox']" mode="ixsl:onchange">
@@ -2219,47 +2259,37 @@ exclude-result-prefixes="#all"
                 <xsl:when test="?status = 200 and ?media-type = 'application/sparql-results+xml'">
                     <xsl:for-each select="?body">
                         <xsl:variable name="results" select="." as="document-node()"/>
-                        <xsl:if test="$results//srx:result[srx:binding[@name = $object-var-name]]">
-                            <xsl:choose>
-                                <!-- special case for rdf:type - we expect its values to be in the ontology (classes), not in the instance data -->
-                                <xsl:when test="$predicate = '&rdf;type'">
-                                    <xsl:for-each select="$container">
-                                        <xsl:result-document href="?." method="ixsl:append-content">
-                                            <ul class="nav facet-pop"></ul>
-                                        </xsl:result-document>
-                                    </xsl:for-each>
-
-                                    <xsl:for-each select="$results//srx:result[srx:binding[@name = $object-var-name]]">
-                                        <xsl:variable name="object-type" select="srx:binding[@name = $object-var-name]/srx:uri" as="xs:anyURI"/>
-                                        <xsl:variable name="value-result" select="." as="element()"/>
-                                        <!-- DESCRIBE the class over the application's /ns ontology endpoint (ACL-enforced) instead of proxying its vocab document -->
-                                        <xsl:variable name="query-string" select="$property-metadata-query || ' VALUES $Type { &lt;' || $object-type || '&gt; }'" as="xs:string"/>
-                                        <xsl:variable name="request" select="map{ 'method': 'POST', 'href': ldh:href(resolve-uri('ns', ldt:base())), 'media-type': 'application/sparql-query', 'body': $query-string, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
-                                        <xsl:variable name="context" as="map(*)" select="
-                                          map{
-                                            'request': $request,
-                                            'container': $container,
-                                            'object-var-name': $object-var-name,
-                                            'count-var-name': $count-var-name,
-                                            'object-type': $object-type,
-                                            'value-result': $value-result
-                                          }"/>
-                                        <ixsl:promise select="ixsl:http-request($context('request')) =>
-                                            ixsl:then(ldh:rethread-response($context, ?)) =>
-                                            ixsl:then(ldh:handle-response#1) =>
-                                            ixsl:then(ldh:facet-value-type-response#1)"
-                                            on-failure="ldh:promise-failure#1"/>
-                                    </xsl:for-each>
-                                </xsl:when>
-                                <xsl:otherwise>
-                                    <!-- toggle the caret direction -->
-                                    <xsl:for-each select="$container/*[contains-token(@class, 'nav-header')]/span[contains-token(@class, 'caret')]">
-                                        <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'caret-reversed' ])[current-date() lt xs:date('2000-01-01')]"/>
-                                    </xsl:for-each>
-
-                                    <xsl:for-each select="$container">
-                                        <xsl:result-document href="?." method="ixsl:append-content">
-                                            <ul class="nav facet-pop">
+                        <xsl:choose>
+                            <xsl:when test="$results//srx:result[srx:binding[@name = $object-var-name]]">
+                                <xsl:choose>
+                                    <!-- special case for rdf:type - we expect its values to be in the ontology (classes), not in the instance data -->
+                                    <xsl:when test="$predicate = '&rdf;type'">
+                                        <xsl:for-each select="$results//srx:result[srx:binding[@name = $object-var-name]]">
+                                            <xsl:variable name="object-type" select="srx:binding[@name = $object-var-name]/srx:uri" as="xs:anyURI"/>
+                                            <xsl:variable name="value-result" select="." as="element()"/>
+                                            <!-- DESCRIBE the class over the application's /ns ontology endpoint (ACL-enforced) instead of proxying its vocab document -->
+                                            <xsl:variable name="query-string" select="$property-metadata-query || ' VALUES $Type { &lt;' || $object-type || '&gt; }'" as="xs:string"/>
+                                            <xsl:variable name="request" select="map{ 'method': 'POST', 'href': ldh:href(resolve-uri('ns', ldt:base())), 'media-type': 'application/sparql-query', 'body': $query-string, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
+                                            <xsl:variable name="context" as="map(*)" select="
+                                              map{
+                                                'request': $request,
+                                                'container': $container,
+                                                'object-var-name': $object-var-name,
+                                                'count-var-name': $count-var-name,
+                                                'object-type': $object-type,
+                                                'value-result': $value-result
+                                              }"/>
+                                            <ixsl:promise select="ixsl:http-request($context('request')) =>
+                                                ixsl:then(ldh:rethread-response($context, ?)) =>
+                                                ixsl:then(ldh:handle-response#1) =>
+                                                ixsl:then(ldh:facet-value-type-response#1)"
+                                                on-failure="ldh:promise-failure#1"/>
+                                        </xsl:for-each>
+                                    </xsl:when>
+                                    <xsl:otherwise>
+                                        <!-- replace the loading state with the value list -->
+                                        <xsl:for-each select="$container/ul[contains-token(@class, 'facet-pop')]">
+                                            <xsl:result-document href="?." method="ixsl:replace-content">
                                                 <xsl:apply-templates select="$results//srx:result[srx:binding[@name = $object-var-name]]" mode="bs2:FacetValueItem">
                                                     <!-- order by count first -->
                                                     <xsl:sort select="xs:integer(srx:binding[@name = $count-var-name]/srx:literal)" order="descending"/>
@@ -2271,24 +2301,36 @@ exclude-result-prefixes="#all"
                                                     <xsl:with-param name="count-var-name" select="$count-var-name"/>
                                                     <xsl:with-param name="label-sample-var-name" select="$label-sample-var-name"/>
                                                 </xsl:apply-templates>
-                                            </ul>
-                                        </xsl:result-document>
-                                    </xsl:for-each>
-                                </xsl:otherwise>
-                            </xsl:choose>
-                        </xsl:if>
+                                            </xsl:result-document>
+                                        </xsl:for-each>
+                                    </xsl:otherwise>
+                                </xsl:choose>
+                            </xsl:when>
+                            <xsl:otherwise>
+                                <!-- no values - replace the loading state with the empty state -->
+                                <xsl:for-each select="$container/ul[contains-token(@class, 'facet-pop')]">
+                                    <xsl:result-document href="?." method="ixsl:replace-content">
+                                        <li class="facet-empty">
+                                            <xsl:apply-templates select="key('resources', 'no-values', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                                        </li>
+                                    </xsl:result-document>
+                                </xsl:for-each>
+                            </xsl:otherwise>
+                        </xsl:choose>
                     </xsl:for-each>
                 </xsl:when>
                 <xsl:otherwise>
                     <!-- error response - could not load facet results -->
-                    <xsl:for-each select="$container">
-                        <xsl:result-document href="?." method="ixsl:append-content">
-                            <div class="alert alert-block">
-                                <strong>Error during query execution:</strong>
-                                <pre>
-                                    <xsl:value-of select="$response?message"/>
-                                </pre>
-                            </div>
+                    <xsl:for-each select="$container/ul[contains-token(@class, 'facet-pop')]">
+                        <xsl:result-document href="?." method="ixsl:replace-content">
+                            <li>
+                                <div class="alert alert-block">
+                                    <strong>Error during query execution:</strong>
+                                    <pre>
+                                        <xsl:value-of select="$response?message"/>
+                                    </pre>
+                                </div>
+                            </li>
                         </xsl:result-document>
                     </xsl:for-each>
                 </xsl:otherwise>
@@ -2314,7 +2356,7 @@ exclude-result-prefixes="#all"
 
         <xsl:for-each select="$response">
             <xsl:variable name="results" select="if (?status = 200 and ?media-type = 'application/rdf+xml') then ?body else ()" as="document-node()?"/>
-            <xsl:variable name="existing-items" select="$container/ul/li" as="element()*"/>
+            <xsl:variable name="existing-items" select="$container/ul/li[not(contains-token(@class, 'facet-loading'))]" as="element()*"/>
             <xsl:variable name="new-item" as="element()">
                 <xsl:apply-templates select="$value-result" mode="bs2:FacetValueItem">
                     <xsl:with-param name="object-var-name" select="$object-var-name"/>

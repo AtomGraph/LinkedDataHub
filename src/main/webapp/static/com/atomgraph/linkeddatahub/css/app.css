@@ -2054,53 +2054,6 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
 .graph-detail dt { font-family: var(--font-mono); font-size: 10px; color: rgba(255,255,255,0.55); text-align: right; letter-spacing: 0.02em; }
 .graph-detail dd { margin: 0; color: rgba(255,255,255,0.92); }
 
-/* Map canvas — in flow (sized by the legacy .map-canvas height rule); positioned only so the ::before grid, pins and attribution anchor to it. Absolute inset is reserved for the fullbleed wrapper. */
-.map-canvas {
-  position: relative;
-  background:
-    radial-gradient(ellipse at 30% 40%, #f5edd9 0%, #f5edd9 12%, transparent 14%),
-    radial-gradient(ellipse at 55% 50%, #f5edd9 0%, #f5edd9 18%, transparent 20%),
-    radial-gradient(ellipse at 75% 35%, #f5edd9 0%, #f5edd9 10%, transparent 12%),
-    radial-gradient(ellipse at 65% 70%, #f5edd9 0%, #f5edd9 14%, transparent 16%),
-    linear-gradient(180deg, #d6e7f5 0%, #c4dbef 100%);
-  background-size: 200% 180%, 240% 200%, 180% 160%, 200% 180%, 100% 100%;
-  background-position: -40% 30%, 25% 20%, 60% -10%, 40% 60%, 0 0;
-  background-repeat: no-repeat;
-}
-.ldh-fullbleed .map-canvas { position: absolute; inset: 0; }
-.map-canvas::before {
-  content: "";
-  position: absolute; inset: 0;
-  background-image:
-    linear-gradient(0deg, transparent 49%, rgba(78, 128, 178, 0.12) 50%, transparent 51%),
-    linear-gradient(90deg, transparent 49%, rgba(78, 128, 178, 0.12) 50%, transparent 51%);
-  background-size: 80px 80px;
-  opacity: 0.5;
-}
-.map-pin {
-  position: absolute;
-  width: 16px; height: 16px; border-radius: 50%;
-  background: var(--ldh-blue-500);
-  border: 3px solid #fff;
-  box-shadow: 0 4px 10px -2px rgba(15,23,42,0.45);
-  transform: translate(-50%, -100%);
-}
-.map-pin.warn { background: var(--warning-500); }
-.map-pin.good { background: var(--success-500); }
-.map-pin.accent { background: var(--ldh-violet-500); }
-.map-attrib {
-  position: absolute; bottom: 6px; right: 8px;
-  font-size: 10px; color: rgba(0,0,0,0.55); font-family: var(--font-sans);
-  background: rgba(255,255,255,0.7); padding: 1px 6px; border-radius: 3px;
-}
-.map-scale {
-  position: absolute; bottom: 28px; left: 14px;
-  display: flex; align-items: center; gap: 6px;
-  background: rgba(255,255,255,0.85); padding: 3px 8px; border-radius: 4px;
-  font-family: var(--font-mono); font-size: 10px; color: var(--fg-2);
-}
-.map-scale .bar { display: inline-block; width: 50px; height: 4px; background: var(--ink-2); border-radius: 1px; }
-
 /* Document edit modal — larger than search; reuses .ldh-prop-* primitives */
 .ldh-doc-edit { width: min(880px, calc(100vw - var(--sp-12))); max-height: calc(100vh - 96px); }
 .ldh-doc-edit .mhead {
