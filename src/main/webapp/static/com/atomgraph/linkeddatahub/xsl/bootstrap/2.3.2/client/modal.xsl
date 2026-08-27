@@ -925,11 +925,7 @@ LIMIT   10
         <xsl:apply-templates select="." mode="ldh:FormPreSubmit"/>
 
         <xsl:variable name="elements" select=".//input | .//textarea | .//select" as="element()*"/>
-        <xsl:variable name="triples" select="ldh:parse-rdf-post($elements)" as="element()*"/>        
-        <!-- canonicalize XML in rdf:XMLLiterals -->
-        <xsl:variable name="triples" as="element()*">
-            <xsl:apply-templates select="$triples" mode="ldh:CanonicalizeXML"/>
-        </xsl:variable>
+        <xsl:variable name="triples" select="ldh:parse-rdf-post($elements)" as="element()*"/>
         <!-- need a customer DELETE/WHERE pattern because the default $about ?p ?o would delete system properties such as dct:created or sioc:has_parent -->
         <xsl:variable name="where-pattern" as="element()*">
             <json:map>

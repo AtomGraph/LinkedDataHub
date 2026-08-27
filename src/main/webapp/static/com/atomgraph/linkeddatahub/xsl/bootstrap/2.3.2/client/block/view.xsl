@@ -2587,10 +2587,6 @@ exclude-result-prefixes="#all"
         <!-- pre-process form before submitting it: syncs input values, so it must precede ldh:parse-rdf-post -->
         <xsl:apply-templates select="." mode="ldh:FormPreSubmit"/>
         <xsl:variable name="triples" select="ldh:parse-rdf-post($elements)" as="element()*"/>
-        <!-- canonicalize XML in rdf:XMLLiterals -->
-        <xsl:variable name="triples" as="element()*">
-            <xsl:apply-templates select="$triples" mode="ldh:CanonicalizeXML"/>
-        </xsl:variable>
         <xsl:variable name="link-triple" as="element()">
             <json:map>
                 <json:string key="subject"><xsl:sequence select="string($modal/@data-instance)"/></json:string>

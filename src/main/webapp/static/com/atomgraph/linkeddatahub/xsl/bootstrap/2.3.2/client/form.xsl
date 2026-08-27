@@ -116,25 +116,6 @@ WHERE
     <!-- suppress the system properties of document resources (they are set automatically by LinkedDataHub) -->
     <xsl:template match="*[rdf:type/@rdf:resource = ('&def;Root', '&dh;Container', '&dh;Item')]/dct:created | *[rdf:type/@rdf:resource = ('&def;Root', '&dh;Container', '&dh;Item')]/dct:modified | *[rdf:type/@rdf:resource = ('&def;Root', '&dh;Container', '&dh;Item')]/sioc:has_container | *[rdf:type/@rdf:resource = ('&def;Root', '&dh;Container', '&dh;Item')]/sioc:has_parent | *[rdf:type/@rdf:resource = ('&def;Root', '&dh;Container', '&dh;Item')]/dct:creator | *[rdf:type/@rdf:resource = ('&def;Root', '&dh;Container', '&dh;Item')]/acl:owner | *[rdf:type/@rdf:resource = ('&def;Root', '&dh;Container')]/*[namespace-uri() = '&rdf;'][starts-with(local-name(), '_')][@rdf:resource] | *[rdf:type/@rdf:resource = '&dh;Item']/*[namespace-uri() = '&rdf;'][starts-with(local-name(), '_')]" mode="bs2:FormControl" priority="1"/>
     
-    <!-- canonicalize XML in rdf:XMLLiterals -->
-    <xsl:template match="json:string[@key = 'object'][ends-with(., '^^&rdf;XMLLiteral')]" mode="ldh:CanonicalizeXML" priority="1">
-        <xsl:copy>
-            <xsl:apply-templates select="@*" mode="#current"/>
-
-            <xsl:variable name="xml-string" select="substring-before(substring-after(., '&quot;'), '&quot;^^')" as="xs:string"/>
-            <xsl:variable name="xml-literal" select="parse-xml($xml-string)" as="document-node()"/>
-            <xsl:variable name="xml-c14n-string" select="ldh:canonicalize-xml($xml-literal)" as="xs:string"/>
-            <xsl:sequence select="'&quot;' || $xml-c14n-string || '&quot;^^&rdf;XMLLiteral'"/>
-        </xsl:copy>
-    </xsl:template>
-    
-    <!-- identity transform -->
-    <xsl:template match="@* | node()" mode="ldh:CanonicalizeXML">
-        <xsl:copy>
-            <xsl:apply-templates select="@* | node()" mode="#current"/>
-        </xsl:copy>
-    </xsl:template>
-    
     <xsl:template match="*" mode="ldh:RenderRowForm">
         <xsl:apply-templates mode="#current"/>
     </xsl:template>
@@ -494,7 +475,9 @@ WHERE
     
     <xsl:template match="text()" mode="ldh:FormPreSubmit"/>
     
-    <!-- serialize canonicalized editor content into the hidden ol input before form submission -->
+    <!-- serialize canonicalized editor content into the hidden ol input before form submission. This is the
+         single canonicalization point for rdf:XMLLiteral values: the RDFa editor's canonical form (cm:canonical,
+         canonical-xhtml.xsl) serialized by Saxon is the stored lexical form -->
     <xsl:template match="div[contains-token(@class, 'rdfa-editor-content')]" mode="ldh:FormPreSubmit" priority="1">
         <xsl:variable name="canonical" as="node()*">
             <xsl:apply-templates select="node()" mode="cm:canonical"/>
@@ -1074,10 +1057,6 @@ WHERE
         </xsl:if>
 
         <xsl:variable name="triples" select="ldh:parse-rdf-post($elements)" as="element()*"/>
-        <!-- canonicalize XML in rdf:XMLLiterals -->
-        <xsl:variable name="triples" as="element()*">
-            <xsl:apply-templates select="$triples" mode="ldh:CanonicalizeXML"/>
-        </xsl:variable>
         <xsl:variable name="resources" as="document-node()">
             <xsl:document>
                 <rdf:RDF>
@@ -1144,10 +1123,6 @@ WHERE
 
         <xsl:variable name="elements" select=".//input | .//textarea | .//select" as="element()*"/>
         <xsl:variable name="triples" select="ldh:parse-rdf-post($elements)" as="element()*"/>
-        <!-- canonicalize XML in rdf:XMLLiterals -->
-        <xsl:variable name="triples" as="element()*">
-            <xsl:apply-templates select="$triples" mode="ldh:CanonicalizeXML"/>
-        </xsl:variable>
 
         <xsl:variable name="update-string" select="ldh:insertdelete-update(ldh:triples-to-bgp(ldh:uri-po-pattern($about)), ldh:triples-to-bgp($triples), ldh:triples-to-bgp(ldh:uri-po-pattern($about)))" as="xs:string"/>
         <xsl:variable name="resources" as="document-node()">

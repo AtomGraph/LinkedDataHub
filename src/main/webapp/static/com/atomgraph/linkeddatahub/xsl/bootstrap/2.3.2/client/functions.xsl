@@ -430,22 +430,6 @@ exclude-result-prefixes="#all"
         </xsl:for-each>
     </xsl:function>
     
-    <!-- canonicalizes an XML document, returns canonical XML as string -->
-    
-    <xsl:function name="ldh:canonicalize-xml" as="xs:string">
-        <xsl:param name="doc" as="document-node()"/>
-        <xsl:variable name="js-statement" as="xs:string">
-            <![CDATA[
-                function (document) {
-                    var canonicaliser = window['xml-c14n-sync.js']().createCanonicaliser('http://www.w3.org/2001/10/xml-exc-c14n#WithComments');
-                    return canonicaliser.canonicaliseSync(document.documentElement);
-                }
-            ]]>
-        </xsl:variable>
-        <xsl:variable name="js-function" select="ixsl:eval(normalize-space($js-statement))"/> <!-- need normalize-space() due to Saxon-JS 2.4 bug: https://saxonica.plan.io/issues/5667 -->
-        <xsl:sequence select="ixsl:call($js-function, 'call', [ (), $doc ])"/>
-    </xsl:function>
-    
     <!-- constructor instantiation: the template mirrors the instance. One SELECT fetches the
     spin:constructor query texts for the whole type set (subclass closure, DISTINCT), and the
     CONSTRUCT templates are expanded onto a single instance — one bnode prototype typed with all
