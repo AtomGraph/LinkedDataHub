@@ -25,7 +25,7 @@ ul.dropdown-menu ul { margin: 0; }
 .action-bar .breadcrumb-nav > .label-info { padding: 8px 15px; margin-right: 8px; font-size: inherit; background-color: #9954bb; }
 .action-bar #doc-controls { text-align: right; padding-top: 5px; }
 .action-bar p.alert { margin-bottom: 0; }
-body:has(#edit-toolbar) .action-bar { border-bottom: 1px solid #aaa; }
+body:has(#edit-toolbar) .action-bar { border-bottom: 1px solid var(--border-default); }
 .nav-header.btn { color: inherit; }
 button.btn.create-action { height: 30px; }
 a.external::after { content: "⤴"; padding-left: 0.2em; }
@@ -91,7 +91,8 @@ div[typeof="https://w3id.org/atomgraph/linkeddatahub#XHTML"] .main { font-size: 
 div[typeof="https://w3id.org/atomgraph/linkeddatahub#XHTML"]:not(:has(form)) .main { cursor: pointer; }
 div[typeof="https://w3id.org/atomgraph/linkeddatahub#XHTML"] .btn-edit { display: none; }
 div[typeof="https://w3id.org/atomgraph/linkeddatahub#XHTML"] .ldh-prop-form .control-label { display: none; }
-div[typeof="https://w3id.org/atomgraph/linkeddatahub#XHTML"] .ldh-prop-form .controls { margin-left: 0; }
+/* collapse the bridge's label-column grid: the region spans the block as a document surface, not a form row */
+div[typeof="https://w3id.org/atomgraph/linkeddatahub#XHTML"] .ldh-prop-form .control-group, div[typeof="https://w3id.org/atomgraph/linkeddatahub#XHTML"] .ldh-prop-form .control-group > .controls { display: block; }
 div[typeof="https://w3id.org/atomgraph/linkeddatahub#XHTML"] form fieldset { border: none; }
 .row-main.progress .row-block-controls { background-color: #e9ecef; }
 .row-main.progress .bar { height: 20px; }
@@ -121,15 +122,15 @@ object { display: block; margin: auto; max-height: 400px; overflow: hidden; widt
 /* SVG graph specific */
 circle { cursor: move; }
 /* RDFa editor specific */
-.editor-bar { position: sticky; top: calc(var(--action-bar-top, 51px) + 50px); z-index: 998; background: #dfdfdf; padding: 0; box-shadow: none; display: flex; align-items: center; }
-#edit-toolbar { order: -1; margin-right: auto; display: flex; gap: 6px; align-items: center; }
-#edit-toolbar button, #edit-toolbar select { padding: 4px 8px; border: 1px solid #ccc; border-radius: 4px; background: white; font-size: 13px; font-family: inherit; cursor: pointer; margin-top: auto; margin-bottom: auto; }
+.editor-bar { position: sticky; top: calc(var(--action-bar-top, 51px) + 50px); z-index: 998; background: var(--bg-recess); padding: 0; box-shadow: none; display: flex; align-items: center; }
+#edit-toolbar { order: -1; margin-right: auto; display: flex; gap: var(--sp-1); align-items: center; }
+#edit-toolbar button, #edit-toolbar select { padding: 4px 8px; border: 0; border-radius: var(--r-sm); background: transparent; color: var(--fg-2); font-size: var(--fs-sm); font-family: inherit; cursor: pointer; margin-top: auto; margin-bottom: auto; transition: background var(--dur-fast) var(--ease-out-soft), color var(--dur-fast) var(--ease-out-soft); }
 #edit-toolbar button:disabled { opacity: 0.4; cursor: default; }
-#edit-toolbar button:hover { background: #f5f5f5; }
-#edit-toolbar button[aria-pressed="true"] { background: #e3f0ff; border-color: #6aa3e0; color: #1a5fb4; }
-#edit-toolbar .tb-group { display: flex; gap: 6px; align-items: center; }
-#edit-toolbar .tb-group + .tb-group { border-left: 1px solid #e0e0e0; padding-left: 6px; }
-#edit-toolbar .tb-group.table-ops.active { background: #e3f0ff; border-radius: 4px; }
+#edit-toolbar button:hover, #edit-toolbar select:hover { background: var(--bg-hover); color: var(--fg-1); }
+#edit-toolbar button[aria-pressed="true"] { background: var(--bg-selected); color: var(--fg-selected); }
+#edit-toolbar .tb-group { display: flex; gap: var(--sp-1); align-items: center; }
+#edit-toolbar .tb-group + .tb-group { border-left: 1px solid var(--border-default); padding-left: var(--sp-2); }
+#edit-toolbar .tb-group.table-ops.active { background: var(--bg-selected); border-radius: var(--r-sm); }
 .edit-dialog { background: white; border: 1px solid #ccc; border-radius: 4px; box-shadow: 0 2px 8px rgba(0,0,0,.2); padding: 12px; min-width: 280px; z-index: 10000; }
 .edit-dialog .rdfa-editor-ui .action-buttons { margin-top: 10px; }
 .edit-dialog .rdfa-editor-ui .checkbox-label { display: inline-flex; gap: 6px; align-items: center; font-weight: 400; margin-top: 8px; }

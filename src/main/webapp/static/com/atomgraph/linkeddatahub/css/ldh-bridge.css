@@ -484,6 +484,12 @@ body:has(.ldh-create-dock) .ldh-footer { margin-top: 0; }
 /* only create-bar pages need the column itself stretched (its children become flex items) */
 .document-body > .content-body:has(> .ldh-create-dock) { flex: 1 0 auto; display: flex; flex-direction: column; padding-bottom: 0; }
 
+/* ---------- RDFa editor toolbar: the bar's inner .content-body is a flex item whose auto side
+   margins opt it out of cross-axis stretch (same as the pane rule above); full width left-aligns
+   the toolbar buttons with the content column and the breadcrumb zone. Compact vertical padding -
+   the band is chrome, not content ---------- */
+.editor-bar > .content-body { width: 100%; padding-top: var(--sp-2); padding-bottom: var(--sp-2); }
+
 /* ---------- toolbar buttons outside the design's scoped containers: app.css only styles .tb
    inside .ldh-toolbar / .ldh-of-wrap / .ldh-block-head .actions, so the form-row remove/add
    buttons (tb btn-remove-property, tb btn-add, tb btn-remove-resource) fell back to browser
