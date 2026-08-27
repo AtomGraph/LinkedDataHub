@@ -127,7 +127,7 @@ object { display: block; margin: auto; max-height: 400px; overflow: hidden; widt
 /* SVG graph specific */
 circle { cursor: move; }
 /* RDFa editor specific */
-.editor-bar { position: sticky; top: calc(var(--action-bar-top, 51px) + 50px); z-index: 998; background: var(--bg-recess); padding: 0; box-shadow: none; display: flex; align-items: center; }
+.editor-bar { position: sticky; top: calc(var(--action-bar-top, 51px) + var(--ldh-actionbar-height, 50px)); z-index: 998; background: var(--bg-recess); padding: 0; box-shadow: none; display: flex; align-items: center; }
 #edit-toolbar { order: -1; margin-right: auto; display: flex; gap: var(--sp-1); align-items: center; }
 #edit-toolbar button, #edit-toolbar select { padding: 4px 8px; border: 0; border-radius: var(--r-sm); background: transparent; color: var(--fg-2); font-size: var(--fs-sm); font-family: inherit; cursor: pointer; margin-top: auto; margin-bottom: auto; transition: background var(--dur-fast) var(--ease-out-soft), color var(--dur-fast) var(--ease-out-soft); }
 #edit-toolbar button:disabled { opacity: 0.4; cursor: default; }

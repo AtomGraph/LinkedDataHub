@@ -89,10 +89,14 @@ ul.typeahead.dropdown-menu > li.active > a, ul.typeahead.dropdown-menu > li > a:
 }
 .ldh-block :is(.alert, .ldhc-alert) { margin: 0; }
 
-/* ---------- sticky chrome: header on top, action bar (legacy --action-bar-top) right under it ---------- */
-:root { --ldh-header-height: 56px; --action-bar-top: var(--ldh-header-height); --ldh-content-w: 1280px; }
+/* ---------- sticky chrome: header on top, action bar (legacy --action-bar-top) right under it.
+   Bar heights are tokens that size the bars, not mirrors of their content, so stacked sticky
+   offsets (.editor-bar) can compose them without drifting ---------- */
+:root { --ldh-header-height: 56px; --ldh-actionbar-height: 61px; --action-bar-top: var(--ldh-header-height); --ldh-content-w: 1280px; }
 .navbar.ldh-header { position: sticky; top: 0; z-index: 1001; }
 .action-bar.ldh-actionbar {
+  box-sizing: border-box;
+  height: var(--ldh-actionbar-height);
   background: var(--surface-0);
   border-bottom: 1px solid var(--border-default);
   padding: var(--sp-3) var(--sp-6);
