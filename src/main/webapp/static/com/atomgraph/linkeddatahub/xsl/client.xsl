@@ -768,10 +768,10 @@ WHERE
             <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'remove', [ 'active' ])[current-date() lt xs:date('2000-01-01')]"/>
             <ixsl:set-style name="display" select="'none'" object="."/>
         </xsl:for-each>
-        <!-- activate and show tab pane -->
+        <!-- activate and show tab pane (flex, not block: the pane is a link in the flex chain that parks the create bar above the footer) -->
         <xsl:for-each select="id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')][./div[contains-token(@class, 'document-body')]/@about = $doc-uri]">
             <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'add', [ 'active' ])[current-date() lt xs:date('2000-01-01')]"/>
-            <ixsl:set-style name="display" select="'block'" object="."/>
+            <ixsl:set-style name="display" select="'flex'" object="."/>
 
             <!-- sync acl:mode() to this pane's data-acl-modes (stamped from its document's Link header); the window flags otherwise go stale on fetch-less tab switches between panes -->
             <xsl:call-template name="ldh:SetAclModes">
@@ -822,7 +822,7 @@ WHERE
                 </xsl:for-each>
                 <xsl:for-each select="id($tab-pane-id, ixsl:page())">
                     <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'add', ['active'])[current-date() lt xs:date('2000-01-01')]"/>
-                    <ixsl:set-style name="display" select="'block'" object="."/>
+                    <ixsl:set-style name="display" select="'flex'" object="."/>
                 </xsl:for-each>
             </xsl:otherwise>
         </xsl:choose>
