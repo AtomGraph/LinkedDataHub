@@ -488,6 +488,8 @@ html { overflow-x: clip; } /* the 50vw bleed overshoots by half a classic scroll
 }
 /* the modal dim overlay is pointer-inert, so hide the dock while a modal is open */
 body:has(.modal.fade.in) .ldh-create-dock { display: none; }
+/* the RDFa editor owns the bottom strip while an XHTML block is being edited — its fixed breadcrumb bar would paint over the dock */
+body:has(.rdfa-editor-content) .ldh-create-dock { display: none; }
 /* the bar sits directly on the footer - no detached gap between them */
 body:has(.ldh-create-dock) .ldh-footer { margin-top: 0; }
 
