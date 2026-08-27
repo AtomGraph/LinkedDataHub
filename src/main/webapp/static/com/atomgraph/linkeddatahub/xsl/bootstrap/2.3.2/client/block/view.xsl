@@ -38,6 +38,7 @@ xmlns:sd="&sd;"
 xmlns:sp="&sp;"
 xmlns:spin="&spin;"
 xmlns:foaf="&foaf;"
+xmlns:dct="&dct;"
 xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
 extension-element-prefixes="ixsl"
 exclude-result-prefixes="#all"
@@ -1056,7 +1057,9 @@ exclude-result-prefixes="#all"
             <xsl:with-param name="select-xml" select="$select-xml"/>
         </xsl:call-template>
 
-        <xsl:apply-templates select="." mode="bs2:List"/>
+        <div class="ldh-list-block">
+            <xsl:apply-templates select="." mode="bs2:List"/>
+        </div>
 
         <xsl:call-template name="bs2:PagerList">
             <xsl:with-param name="result-count" select="$result-count"/>
@@ -1064,42 +1067,82 @@ exclude-result-prefixes="#all"
         </xsl:call-template>
     </xsl:template>
 
-    <xsl:template match="*[key('resources', foaf:primaryTopic/@rdf:resource)]" mode="bs2:List" priority="1">
-        <xsl:param name="id" as="xs:string?"/>
-        <xsl:param name="class" select="()" as="xs:string?"/>
+    <!-- hide resources that will be shown paired/nested with a document -->
+    <xsl:template match="*[key('resources-by-primary-topic', @rdf:about)]" mode="bs2:List" priority="1"/>
 
-        <div>
-            <xsl:if test="$id">
-                <xsl:attribute name="id" select="$id"/>
-            </xsl:if>
-            <xsl:if test="$class">
-                <xsl:attribute name="class" select="$class"/>
-            </xsl:if>
+    <!-- a document paired with its primary topic renders as one row carrying the topic's label, description and type -->
+    <xsl:template match="*[*][@rdf:about]" mode="bs2:List" priority="0.8">
+        <xsl:variable name="subject" select="(key('resources', foaf:primaryTopic/@rdf:resource), .)[1]" as="element()"/>
 
-            <xsl:apply-templates select="." mode="ldh:logo">
-                <xsl:with-param name="class" select="()"/>
-            </xsl:apply-templates>
-            
-            <!-- don't show actions on a document that wraps a thing -->
-            <!--<xsl:apply-templates select="." mode="bs2:Actions"/>-->
+        <a class="row" href="{ldh:href(ac:document-uri(xs:anyURI(@rdf:about)), map{})}" title="{@rdf:about}">
+            <span class="ic">
+                <span class="msi sm" aria-hidden="true">
+                    <xsl:value-of select="(rdf:type/@rdf:resource ! map:get($ldh:class-icons, string(.)), 'description')[1]"/>
+                </span>
+            </span>
+            <span class="ti">
+                <xsl:apply-templates select="$subject" mode="ac:label"/>
 
-            <xsl:apply-templates select="." mode="bs2:TypeList"/>
+                <xsl:where-populated>
+                    <span class="desc">
+                        <xsl:apply-templates select="$subject" mode="ac:description"/>
+                    </span>
+                </xsl:where-populated>
+            </span>
 
-            <xsl:apply-templates select="." mode="bs2:Timestamp"/>
-            <xsl:text> </xsl:text>
-            <xsl:apply-templates select="@rdf:about | @rdf:nodeID" mode="xhtml:Anchor"/>
+            <xsl:apply-templates select="." mode="ldh:ListRowTimestamp"/>
+            <xsl:apply-templates select="$subject" mode="ldh:ListRowType"/>
+        </a>
+    </xsl:template>
 
-            <xsl:apply-templates select="key('resources', foaf:primaryTopic/@rdf:resource)" mode="bs2:Header">
-                <xsl:with-param name="class" select="()"/>
-            </xsl:apply-templates>
+    <xsl:template match="*[*][@rdf:nodeID]" mode="bs2:List" priority="0.8">
+        <div class="row">
+            <span class="ic">
+                <span class="msi sm" aria-hidden="true">
+                    <xsl:value-of select="(rdf:type/@rdf:resource ! map:get($ldh:class-icons, string(.)), 'description')[1]"/>
+                </span>
+            </span>
+            <span class="ti">
+                <xsl:apply-templates select="." mode="ac:label"/>
+
+                <xsl:where-populated>
+                    <span class="desc">
+                        <xsl:apply-templates select="." mode="ac:description"/>
+                    </span>
+                </xsl:where-populated>
+            </span>
+
+            <xsl:apply-templates select="." mode="ldh:ListRowTimestamp"/>
+            <xsl:apply-templates select="." mode="ldh:ListRowType"/>
         </div>
     </xsl:template>
 
-    <!-- hide resources that will be shown paired/nested with a document -->
-    <xsl:template match="*[key('resources-by-primary-topic', @rdf:about)]" mode="bs2:List" priority="1"/>
-    
-    <xsl:template match="*[*][@rdf:*[local-name() = ('about', 'nodeID')]]" mode="bs2:List" priority="0.8">
-        <xsl:apply-templates select="." mode="bs2:Header"/>
+    <!-- .ts cell: the latest of dct:created/dct:modified as a short date -->
+    <xsl:template match="*" mode="ldh:ListRowTimestamp">
+        <xsl:variable name="sorted-date-time-properties" as="element()*">
+            <xsl:perform-sort select="(dct:created, dct:modified)[text()[. castable as xs:date or . castable as xs:dateTime]]">
+                <xsl:sort select="if (text() castable as xs:date) then xs:dateTime(concat(text(), 'T00:00:00')) else xs:dateTime(text())" order="ascending"/>
+            </xsl:perform-sort>
+        </xsl:variable>
+
+        <xsl:for-each select="$sorted-date-time-properties[last()]">
+            <span class="ts">
+                <xsl:value-of select="format-date(if (text() castable as xs:date) then xs:date(text()) else xs:date(xs:dateTime(text())), '[D] [MNn] [Y]', $ac:lang, (), ())"/>
+            </span>
+        </xsl:for-each>
+    </xsl:template>
+
+    <!-- .type cell: the first type by label -->
+    <xsl:template match="*" mode="ldh:ListRowType">
+        <xsl:for-each select="rdf:type/@rdf:resource">
+            <xsl:sort select="ac:object-label(.)" order="ascending" lang="{$ac:lang}"/>
+
+            <xsl:if test="position() = 1">
+                <span class="type">
+                    <xsl:value-of select="ac:object-label(.)"/>
+                </span>
+            </xsl:if>
+        </xsl:for-each>
     </xsl:template>
 
     <!-- grid -->
