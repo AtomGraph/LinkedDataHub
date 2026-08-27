@@ -329,7 +329,7 @@ version="3.0">
          rdf:Description per subject (via rdfae:group-triples) for readability -->
     <xsl:template match="button[@id = 'parse-rdf']" mode="ixsl:onclick">
         <xsl:variable name="rdf" as="element(rdf:RDF)">
-            <xsl:call-template name="extract-rdfa">
+            <xsl:call-template name="rdfax:extract-rdfa">
                 <xsl:with-param name="doc" select="ixsl:page()"/>
                 <xsl:with-param name="base" select="rdfae:document-uri()"/>
             </xsl:call-template>

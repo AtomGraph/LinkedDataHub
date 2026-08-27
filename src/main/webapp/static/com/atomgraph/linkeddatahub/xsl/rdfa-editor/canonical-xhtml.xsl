@@ -15,11 +15,11 @@ version="3.0">
     (index.xsl does; the test driver is tests/canonical-driver.xsl).
 
     Two passes in a fixed order:
-    1. mode="canonical"     strips editing ephemera per the LDH v6 convention
+    1. mode="cm:canonical"     strips editing ephemera per the LDH v6 convention
                             (everything carrying @data-role is removable by
                             construction), sanitizes, and normalizes browser mess.
                             Nesting analysis must never see chrome, so this runs first.
-    2. mode="cm-normalize"  coerces the result to the XHTML Strict content model
+    2. mode="cm:normalize"  coerces the result to the XHTML Strict content model
                             (blockquote is block-only, p is inline-only, ul holds
                             only li, ...), always RDFa-preserving. The load-init
                             path (edit.xsl) runs this pass ALONE on host content.
@@ -32,13 +32,13 @@ version="3.0">
     <!-- serialization is the caller's job (view-source runs exclusive XML c14n via
          rdfae:canonicalize-xml in edit.xsl, tests use -o output); no xsl:output
          here - it would conflict with the including stylesheet's -->
-    <xsl:mode name="canonical" on-no-match="shallow-copy"/>
-    <xsl:mode name="cm-normalize" on-no-match="shallow-copy"/>
+    <xsl:mode name="cm:canonical" on-no-match="shallow-copy"/>
+    <xsl:mode name="cm:normalize" on-no-match="shallow-copy"/>
 
-    <xsl:template name="canonical-xhtml">
+    <xsl:template name="cm:canonical-xhtml">
         <xsl:param name="content" as="element()" select="/*"/>
         <xsl:variable name="pass1" as="node()*">
-            <xsl:apply-templates select="$content" mode="canonical"/>
+            <xsl:apply-templates select="$content" mode="cm:canonical"/>
         </xsl:variable>
         <xsl:for-each select="$pass1/self::*">
             <xsl:copy>
@@ -50,15 +50,15 @@ version="3.0">
     </xsl:template>
 
     <!-- -im:canonical entry for CLI fallback -->
-    <xsl:template match="/" mode="canonical">
-        <xsl:call-template name="canonical-xhtml"/>
+    <xsl:template match="/" mode="cm:canonical">
+        <xsl:call-template name="cm:canonical-xhtml"/>
     </xsl:template>
 
     <!-- ................ shared coercion primitives ................ -->
 
     <xsl:function name="cm:normalize" as="node()*">
         <xsl:param name="nodes" as="node()*"/>
-        <xsl:apply-templates select="$nodes" mode="cm-normalize"/>
+        <xsl:apply-templates select="$nodes" mode="cm:normalize"/>
     </xsl:function>
 
     <!-- the wrapper is inline-only, so only text and KNOWN-INLINE elements may be
@@ -114,62 +114,62 @@ version="3.0">
         </xsl:for-each-group>
     </xsl:function>
 
-    <!-- ................ pass 1: mode="canonical" ................ -->
+    <!-- ................ pass 1: mode="cm:canonical" ................ -->
 
     <!-- C1: everything carrying @data-role is ephemeral (chrome, rendering) -->
-    <xsl:template match="*[@data-role]" mode="canonical" priority="2"/>
+    <xsl:template match="*[@data-role]" mode="cm:canonical" priority="2"/>
 
     <!-- S1: active/embedding elements never survive into stored content (the
          canonical form is the sanitization boundary for multi-user content) -->
     <xsl:template match="script | style | iframe | object | embed | applet
-        | form | input | button | select | textarea | link | meta | base" mode="canonical" priority="3"/>
+        | form | input | button | select | textarea | link | meta | base" mode="cm:canonical" priority="3"/>
 
     <!-- S1b: comments and processing instructions are noise (Word/HTML paste junk) -->
-    <xsl:template match="comment() | processing-instruction()" mode="canonical"/>
+    <xsl:template match="comment() | processing-instruction()" mode="cm:canonical"/>
 
     <!-- S2: event-handler attributes are always stripped -->
-    <xsl:template match="@*[matches(local-name(), '^on', 'i')]" mode="canonical"/>
+    <xsl:template match="@*[matches(local-name(), '^on', 'i')]" mode="cm:canonical"/>
 
     <!-- S3: scripting/data URL schemes are dropped from link and media targets
          (the attribute, not the element); data:image/* remains valid in @src -->
     <xsl:template match="@href[matches(normalize-space(.), '^(javascript|vbscript|data):', 'i')]
         | @src[matches(normalize-space(.), '^(javascript|vbscript):', 'i')]
         | @src[matches(normalize-space(.), '^data:', 'i')][not(matches(normalize-space(.), '^data:image/', 'i'))]"
-        mode="canonical"/>
+        mode="cm:canonical"/>
 
     <!-- C2: editing-state and styling-hook attributes never serialize (tabindex is
          injected to make block images focusable navigation islands) -->
     <xsl:template match="@contenteditable | @draggable | @class | @id | @style | @tabindex
-        | @*[starts-with(name(), 'aria-')] | @*[starts-with(name(), 'data-')]" mode="canonical"/>
+        | @*[starts-with(name(), 'aria-')] | @*[starts-with(name(), 'data-')]" mode="cm:canonical"/>
 
     <!-- C3/C4: presentational aliases to their semantic elements -->
-    <xsl:template match="b" mode="canonical">
+    <xsl:template match="b" mode="cm:canonical">
         <strong>
             <xsl:apply-templates select="@* | node()" mode="#current"/>
         </strong>
     </xsl:template>
 
-    <xsl:template match="i" mode="canonical">
+    <xsl:template match="i" mode="cm:canonical">
         <em>
             <xsl:apply-templates select="@* | node()" mode="#current"/>
         </em>
     </xsl:template>
 
     <!-- C5: legacy presentational wrappers are dropped, content kept -->
-    <xsl:template match="font | u" mode="canonical">
+    <xsl:template match="font | u" mode="cm:canonical">
         <xsl:apply-templates select="node()" mode="#current"/>
     </xsl:template>
 
     <!-- C6: a span left without RDFa or language attributes carries no meaning -->
     <xsl:template match="span[not(@property or @about or @typeof or @resource or @content
-            or @datatype or @lang or @xml:lang)]" mode="canonical">
+            or @datatype or @lang or @xml:lang)]" mode="cm:canonical">
         <xsl:apply-templates select="node()" mode="#current"/>
     </xsl:template>
 
     <!-- C7a: browser-generated attributeless div with inline content becomes a
          paragraph; RDFa-bearing divs pass -->
     <xsl:template match="div[not(@property or @about or @typeof or @resource)]
-            [empty(*[cm:block(local-name(.))])]" mode="canonical">
+            [empty(*[cm:block(local-name(.))])]" mode="cm:canonical">
         <p>
             <xsl:apply-templates select="@* | node()" mode="#current"/>
         </p>
@@ -179,7 +179,7 @@ version="3.0">
          wrapper (p may not contain blocks) - unwrap to its children; stray inline
          residue is re-coerced by pass 2 in the parent's context -->
     <xsl:template match="div[not(@property or @about or @typeof or @resource)]
-            [exists(*[cm:block(local-name(.))])]" mode="canonical">
+            [exists(*[cm:block(local-name(.))])]" mode="cm:canonical">
         <xsl:apply-templates select="node()" mode="#current"/>
     </xsl:template>
 
@@ -189,7 +189,7 @@ version="3.0">
          has become real content and stays a p -->
     <xsl:template match="p[contains-token(@class, 'rdfa-editor-run')]
             [not(@property or @about or @typeof or @resource or @content or @datatype)]"
-        mode="canonical" priority="1">
+        mode="cm:canonical" priority="1">
         <xsl:apply-templates select="node()" mode="#current"/>
     </xsl:template>
 
@@ -197,29 +197,29 @@ version="3.0">
          clipboard/host wrappers, keep RDFa-bearing ones (dropping them would lose
          triples; lint reports them as unknown-element) -->
     <xsl:template match="(section | article | main | aside | header | footer | nav | hgroup)
-            [not(@property or @about or @typeof or @resource)]" mode="canonical">
+            [not(@property or @about or @typeof or @resource)]" mode="cm:canonical">
         <xsl:apply-templates select="node()" mode="#current"/>
     </xsl:template>
 
     <!-- C8: empty non-RDFa inline elements are junk; RDFa-bearing empties
          (hidden <span property resource/> definitions) are kept by C6's predicates -->
     <xsl:template match="(strong | em | a | code)[not(normalize-space(.))][not(.//img)]
-            [not(@property or @about or @typeof or @resource or @content)]" mode="canonical" priority="1"/>
+            [not(@property or @about or @typeof or @resource or @content)]" mode="cm:canonical" priority="1"/>
 
     <!-- C10: line structure inside pre is text, not markup -->
-    <xsl:template match="br[ancestor::pre]" mode="canonical" priority="1">
+    <xsl:template match="br[ancestor::pre]" mode="cm:canonical" priority="1">
         <xsl:text>&#10;</xsl:text>
     </xsl:template>
 
     <!-- C9: a trailing <br> is a caret placeholder, not content -->
     <xsl:template match="br[not(following-sibling::node()[self::* or self::text()[normalize-space()]])]"
-        mode="canonical"/>
+        mode="cm:canonical"/>
 
-    <!-- ................ pass 2: mode="cm-normalize" ................ -->
+    <!-- ................ pass 2: mode="cm:normalize" ................ -->
 
     <!-- N0: ephemera are placed by the editor, not judged by the DTD (the load-init
          path runs this pass alone, where chrome and rendering subtrees still exist) -->
-    <xsl:template match="*[@data-role]" mode="cm-normalize" priority="2">
+    <xsl:template match="*[@data-role]" mode="cm:normalize" priority="2">
         <xsl:copy-of select="."/>
     </xsl:template>
 
@@ -227,13 +227,13 @@ version="3.0">
          Matches EVERY inline-only element and decides on the PROCESSED children, so
          blocks surfaced by inner splits are handled in the same bottom-up pass (one
          invocation reaches the fixed point). An RDFa-bearing parent stays whole -
-         its block children demote to inline via mode="cm-demote" (recursive, all
+         its block children demote to inline via mode="cm:demote" (recursive, all
          attributes kept), so the extracted literal and triples are unchanged. A
          plain parent splits around its block children; inline runs keep a shell
          copying ALL attributes (safe: this branch is non-RDFa by construction, so
          nothing duplicates a triple - an <a href> split by a block keeps its target
          on both halves); whitespace-only residue between blocks drops -->
-    <xsl:template match="*[cm:inline-only(local-name(.))]" mode="cm-normalize">
+    <xsl:template match="*[cm:inline-only(local-name(.))]" mode="cm:normalize">
         <xsl:variable name="name" as="xs:string" select="local-name(.)"/>
         <xsl:variable name="kids" as="node()*">
             <xsl:apply-templates select="node()" mode="#current"/>
@@ -248,7 +248,7 @@ version="3.0">
             <xsl:when test="@property or @about or @typeof or @resource or @content or @datatype">
                 <xsl:copy>
                     <xsl:copy-of select="@*"/>
-                    <xsl:apply-templates select="$kids" mode="cm-demote"/>
+                    <xsl:apply-templates select="$kids" mode="cm:demote"/>
                 </xsl:copy>
             </xsl:when>
             <xsl:otherwise>
@@ -277,9 +277,9 @@ version="3.0">
          kept), recursively - a demoted list becomes nested spans, never a bare li
          inside a span. Text, inline and unknown elements pass through with their
          children demoted likewise -->
-    <xsl:mode name="cm-demote" on-no-match="shallow-copy"/>
+    <xsl:mode name="cm:demote" on-no-match="shallow-copy"/>
 
-    <xsl:template match="*[cm:known(local-name(.))][not(cm:inline(local-name(.)))]" mode="cm-demote">
+    <xsl:template match="*[cm:known(local-name(.))][not(cm:inline(local-name(.)))]" mode="cm:demote">
         <span>
             <xsl:copy-of select="@*"/>
             <xsl:apply-templates select="node()" mode="#current"/>
@@ -288,7 +288,7 @@ version="3.0">
 
     <!-- N2: blockquote (and noscript) is block-only per Strict - stray text/inline
          runs become paragraphs; RDFa attributes on the container are untouched -->
-    <xsl:template match="blockquote | noscript" mode="cm-normalize">
+    <xsl:template match="blockquote | noscript" mode="cm:normalize">
         <xsl:variable name="kids" as="node()*">
             <xsl:apply-templates select="node()" mode="#current"/>
         </xsl:variable>
@@ -299,7 +299,7 @@ version="3.0">
     </xsl:template>
 
     <!-- N3: ul/ol hold only li - stray children become item content (li is flow) -->
-    <xsl:template match="ul | ol" mode="cm-normalize">
+    <xsl:template match="ul | ol" mode="cm:normalize">
         <xsl:variable name="kids" as="node()*">
             <xsl:apply-templates select="node()" mode="#current"/>
         </xsl:variable>
@@ -310,7 +310,7 @@ version="3.0">
     </xsl:template>
 
     <!-- N4: dl holds only dt/dd - strays become dd content (dd is flow, dt is not) -->
-    <xsl:template match="dl" mode="cm-normalize">
+    <xsl:template match="dl" mode="cm:normalize">
         <xsl:variable name="kids" as="node()*">
             <xsl:apply-templates select="node()" mode="#current"/>
         </xsl:variable>
@@ -321,7 +321,7 @@ version="3.0">
     </xsl:template>
 
     <!-- N5: tr holds only th/td - strays become cell content (td is flow) -->
-    <xsl:template match="tr" mode="cm-normalize">
+    <xsl:template match="tr" mode="cm:normalize">
         <xsl:variable name="kids" as="node()*">
             <xsl:apply-templates select="node()" mode="#current"/>
         </xsl:variable>
@@ -333,7 +333,7 @@ version="3.0">
 
     <!-- N5b: table sections hold only tr - a stray cell run keeps its cells in a
          fresh row; anything else becomes a one-cell row -->
-    <xsl:template match="thead | tbody | tfoot" mode="cm-normalize">
+    <xsl:template match="thead | tbody | tfoot" mode="cm:normalize">
         <xsl:variable name="kids" as="node()*">
             <xsl:apply-templates select="node()" mode="#current"/>
         </xsl:variable>
@@ -370,7 +370,7 @@ version="3.0">
 
     <!-- N6: children a table cannot hold are hoisted before it (mirrors browser
          foster parenting); whitespace and ephemera stay put -->
-    <xsl:template match="table" mode="cm-normalize">
+    <xsl:template match="table" mode="cm:normalize">
         <xsl:variable name="kids" as="node()*">
             <xsl:apply-templates select="node()" mode="#current"/>
         </xsl:variable>
@@ -387,24 +387,24 @@ version="3.0">
 
     <!-- N7: Appendix B pre exclusions, text-preserving: size/position markup
          unwraps, replaced objects fall back to their alternative text -->
-    <xsl:template match="(big | small | sub | sup)[ancestor::pre]" mode="cm-normalize" priority="1">
+    <xsl:template match="(big | small | sub | sup)[ancestor::pre]" mode="cm:normalize" priority="1">
         <xsl:apply-templates select="node()" mode="#current"/>
     </xsl:template>
 
-    <xsl:template match="(img | object)[ancestor::pre]" mode="cm-normalize" priority="1">
+    <xsl:template match="(img | object)[ancestor::pre]" mode="cm:normalize" priority="1">
         <xsl:value-of select="@alt"/>
     </xsl:template>
 
     <!-- N8: Appendix B nesting prohibitions - the inner element keeps all its
          attributes (RDFa preserved; a dead @href is harmless) under a valid name -->
-    <xsl:template match="a[ancestor::a]" mode="cm-normalize" priority="1">
+    <xsl:template match="a[ancestor::a]" mode="cm:normalize" priority="1">
         <span>
             <xsl:copy-of select="@*"/>
             <xsl:apply-templates select="node()" mode="#current"/>
         </span>
     </xsl:template>
 
-    <xsl:template match="label[ancestor::label]" mode="cm-normalize" priority="1">
+    <xsl:template match="label[ancestor::label]" mode="cm:normalize" priority="1">
         <xsl:apply-templates select="node()" mode="#current"/>
     </xsl:template>
 

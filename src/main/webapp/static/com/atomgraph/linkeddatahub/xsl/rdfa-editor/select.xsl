@@ -445,7 +445,7 @@ version="3.0">
     <!-- a cross-host selection is copied in its storage form: the editing DOM
          (chrome, contenteditable, marker classes) would otherwise travel to the
          clipboard's HTML flavor. The fragment runs the same canonical +
-         cm-normalize pipeline as paste, in reverse; RDFa attributes survive, so
+         cm:normalize pipeline as paste, in reverse; RDFa attributes survive, so
          annotated content round-trips between documents. Within-host copy stays
          native. The union match covers both dispatch shapes: the focused host,
          or body after a background-origin sweep -->
@@ -485,7 +485,7 @@ version="3.0">
             <xsl:sequence select="ixsl:call($carrier, 'appendChild',
                 [ ixsl:call($work, 'cloneContents', []) ])[current-date() lt xs:date('2000-01-01')]"/>
             <xsl:variable name="pass1">
-                <xsl:apply-templates select="$carrier/node()" mode="canonical"/>
+                <xsl:apply-templates select="$carrier/node()" mode="cm:canonical"/>
             </xsl:variable>
             <xsl:variable name="clean">
                 <xsl:sequence select="cm:normalize($pass1/node())"/>

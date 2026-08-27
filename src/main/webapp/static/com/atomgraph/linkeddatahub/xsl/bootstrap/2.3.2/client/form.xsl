@@ -48,6 +48,7 @@ xmlns:sioc="&sioc;"
 xmlns:spin="&spin;"
 xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
 xmlns:rdfae="https://w3id.org/atomgraph/rdfa-editor#"
+xmlns:cm="https://w3id.org/atomgraph/rdfa-editor/content-model#"
 extension-element-prefixes="ixsl"
 exclude-result-prefixes="#all"
 >
@@ -496,7 +497,7 @@ WHERE
     <!-- serialize canonicalized editor content into the hidden ol input before form submission -->
     <xsl:template match="div[contains-token(@class, 'rdfa-editor-content')]" mode="ldh:FormPreSubmit" priority="1">
         <xsl:variable name="canonical" as="node()*">
-            <xsl:apply-templates select="node()" mode="canonical"/>
+            <xsl:apply-templates select="node()" mode="cm:canonical"/>
         </xsl:variable>
         <xsl:variable name="value" select="serialize($canonical, map{ 'method': 'xml' })" as="xs:string"/>
         <xsl:for-each select="following-sibling::input[@name = 'ol'][1]">

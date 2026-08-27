@@ -1601,7 +1601,7 @@ version="3.0">
     </xsl:template>
 
     <!-- clipboard HTML: browser-parse it on a DETACHED element (scripts inert),
-         sanitize/normalize via mode="canonical" + mode="cm-normalize", then insert
+         sanitize/normalize via mode="cm:canonical" + mode="cm:normalize", then insert
          where the content model allows - inline fragments at the caret, blocks
          inside a flow host (li, td, ...) or as new siblings between the split
          halves of an inline-only host; hosts that can take blocks neither way
@@ -1613,7 +1613,7 @@ version="3.0">
         <xsl:variable name="carrier" as="element()" select="rdfae:element('div')"/>
         <ixsl:set-property name="innerHTML" select="$html" object="$carrier"/>
         <xsl:variable name="pass1">
-            <xsl:apply-templates select="$carrier/node()" mode="canonical"/>
+            <xsl:apply-templates select="$carrier/node()" mode="cm:canonical"/>
         </xsl:variable>
         <xsl:variable name="clean">
             <xsl:sequence select="cm:normalize($pass1/node())"/>
@@ -2564,7 +2564,7 @@ version="3.0">
 
     <xsl:template match="button[@id = 'view-source']" mode="ixsl:onclick">
         <xsl:variable name="canonical" as="element()?">
-            <xsl:call-template name="canonical-xhtml">
+            <xsl:call-template name="cm:canonical-xhtml">
                 <xsl:with-param name="content" select="rdfae:active-root()"/>
             </xsl:call-template>
         </xsl:variable>
