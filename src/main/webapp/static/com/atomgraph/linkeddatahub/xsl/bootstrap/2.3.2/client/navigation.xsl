@@ -849,15 +849,16 @@ ORDER BY DESC(?created)
         <xsl:param name="count" as="xs:integer"/>
 
         <li>
-            <button class="btn btn-class" data-class-uri="{@rdf:about}">
-                <span>
+            <button class="btn-class sb-class-row" data-class-uri="{@rdf:about}">
+                <span class="sb-class-dot" aria-hidden="true"></span>
+                <span class="sb-label">
                     <xsl:apply-templates select="." mode="ac:label"/>
                 </span>
-                
+
                 <xsl:if test="exists($count)">
-                    <xsl:text> (</xsl:text>
-                    <xsl:value-of select="$count"/>
-                    <xsl:text>)</xsl:text>
+                    <span class="sb-count">
+                        <xsl:value-of select="$count"/>
+                    </span>
                 </xsl:if>
             </button>
         </li>

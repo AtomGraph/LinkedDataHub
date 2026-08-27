@@ -367,6 +367,11 @@ form .control-group > .controls > .btn-group { order: 99; margin-left: auto; }
    neutralize the design's translateX(-100%)/.is-open slide so display alone controls visibility, and start
    the panel below the sticky header instead of the design's full-height top:0 */
 .left-sidebar.ldh-sidebar { display: none; transform: none; top: var(--ldh-header-height); z-index: 1001; box-shadow: var(--shadow-lg); }
+/* the generic form-input chrome above (form input[type="text"]) outweighs app.css's .sb-search input reset,
+   painting a second box inside the search pill; restore the design's borderless transparent input -
+   the wrapper carries the border and the :focus-within ring */
+.sb-search input[type="text"] { border: 0; background: transparent; box-shadow: none; min-height: 0; height: 100%; padding: 0; }
+.sb-search input[type="text"]:focus { border: 0; box-shadow: none; }
 /* tree/class lists are ul/li (CSR appends nested uls and toggles li .active) */
 .ldh-sidebar ul.nav { list-style: none; margin: 0; padding: 0; }
 .ldh-sidebar .sb-tree ul { list-style: none; margin: 0 0 0 var(--sp-4); padding: 0; }
