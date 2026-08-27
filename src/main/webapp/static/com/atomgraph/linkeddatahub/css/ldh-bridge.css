@@ -176,6 +176,10 @@ div.breadcrumb.ldh-bc { min-width: 0; overflow: hidden; }
 
 /* ---------- block header actions / drawer content hydrated by CSR ---------- */
 .ldh-block-head .actions > div { display: flex; gap: var(--sp-1); }
+/* bs2:Row nests bs2:Header inside .ldh-block-body (the design keeps head and body as siblings), so the
+   head's --sp-6 side padding stacked on the body's and pushed pills/headings right of the rows below;
+   the body already provides the horizontal inset */
+.ldh-block-body .ldh-block-head { padding-left: 0; padding-right: 0; }
 .ldh-block-head .actions .tb.disabled { opacity: 0.4; pointer-events: none; }
 .ldh-drawer .db ul.nav { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
 .ldh-drawer .db ul.nav a {
