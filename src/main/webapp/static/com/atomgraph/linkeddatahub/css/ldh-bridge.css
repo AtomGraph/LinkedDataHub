@@ -444,22 +444,30 @@ form .control-group > .controls > .btn-group { order: 99; margin-left: auto; }
 
 /* ---------- floating create dock: document-level creation (content mode's XHTML/Object,
    the row modes' Create picker) floats bottom-right, like Drive's compose cluster.
-   Its right edge clears the right-edge drawer strip (and so aligns with the action bar's
-   timestamp control, which ends where that strip begins) ---------- */
+   Sticky, not fixed: it rides the viewport bottom while the content scrolls, but parks at
+   its flow position at the end of the content - above the footer, never over it. The
+   right margin clears the drawer strip (and so aligns with the action bar's timestamp
+   control, which ends where that strip begins) ---------- */
 :root { --ldh-drawer-w: 360px; } /* mirrors app.css .ldh-drawer width */
 .ldh-create-dock {
-  position: fixed;
-  right: calc(min(var(--ldh-drawer-w), 92vw) + var(--sp-6));
+  position: sticky;
   bottom: var(--sp-6);
+  width: fit-content;
   display: flex; align-items: center; gap: var(--sp-2);
   z-index: 24; /* above content, below the drawer (25) and modal chrome */
-  margin: 0;
+  margin: var(--sp-4) max(0px, calc(var(--ldh-drawer-w) - (100vw - min(1280px, 100vw)) / 2)) 0 auto;
 }
 .ldh-create-dock .ldh-btn { box-shadow: var(--shadow-lg); }
 /* the class-picker menu opens upward from the dock, not into the viewport edge */
 .ldh-create-dock .ldh-add-wrap.open .ldh-add-menu { top: auto; bottom: calc(100% + 6px); }
 /* the modal dim overlay is pointer-inert, so hide the dock while a modal is open */
 body:has(.modal.fade.in) .ldh-create-dock { display: none; }
+
+/* ---------- sticky footer: the page column is a flex stack, the tab area absorbs the
+   slack, so short pages pin the footer to the viewport bottom with no painted void below
+   (the legacy body { height: calc(100% - 51px) } that painted past the footer is gone) ---------- */
+#visible-body { min-height: 100vh; display: flex; flex-direction: column; }
+#visible-body > #tab-body { flex: 1 0 auto; }
 
 /* ---------- toolbar buttons outside the design's scoped containers: app.css only styles .tb
    inside .ldh-toolbar / .ldh-of-wrap / .ldh-block-head .actions, so the form-row remove/add

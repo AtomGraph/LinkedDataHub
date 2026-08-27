@@ -1,6 +1,4 @@
-html { height: 100%; }
 /* only the main navbar is fixed-top now; tab bar + action bar are sticky inside #tab-body */
-body { height: calc(100% - 51px); padding-top: 51px; padding-bottom: 0; }
 #tab-bar { position: sticky; top: 51px; z-index: 1000; margin-bottom: 0; }
 /* Override Bootstrap's overflow:auto which would make action-bar sticky relative to #tab-content instead of the viewport */
 #tab-content { overflow: visible; }
@@ -12,7 +10,6 @@ body { height: calc(100% - 51px); padding-top: 51px; padding-bottom: 0; }
 #tab-bar-list.nav-tabs > li > a { padding-right: 22px; }
 #tab-bar-list .tab-close { position: absolute; top: 6px; right: 6px; line-height: 1; font-size: 11px; color: #888; cursor: pointer; padding: 1px 3px; }
 #tab-bar-list .tab-close:hover { color: #333; }
-body.embed { padding-top: 0; }
 ul.dropdown-menu { max-height: 26em; overflow-x: hidden; overflow-y: auto; }
 ul.dropdown-menu ul { margin: 0; }
 .label { min-width: unset; min-height: unset; }
@@ -56,7 +53,6 @@ li button.btn-edit-constructors, li button.btn-add-data, li button.btn-add-ontol
 .left-nav, .right-nav { position: sticky; top: 0; }
 .faceted-nav input[type=checkbox]:checked + span { font-weight: bold; }
 .parallax-nav a { cursor: pointer; }
-.content-body { min-height: calc(100% - 14em); margin-top: 14px; }
 .content-body > [about].block { overflow-x: auto; }
 .content-body > [about].block.drag-over { border-bottom: 4px dotted #0f82f5; }
 .content-body > [about].block.diff-added { border: 2px solid #3fb618; }
