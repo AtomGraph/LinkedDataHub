@@ -369,6 +369,14 @@ form .control-group > .controls > .btn-group { order: 99; margin-left: auto; }
 /* explicit columns: a dt can be followed by several dds, which auto-placement would drop into column 1 */
 .ldh-block dl > dt { grid-column: 1; }
 .ldh-block dl > dd { grid-column: 2; }
+/* the design's .ldh-prop-group hover: the row under the pointer reads as one continuous
+   band across label, value, the sp-6 column gap and the sp-6 card padding - the gaps are
+   filled by offset box-shadow copies of the cell, clipped at the card edge by the block's
+   overflow:hidden. The flat dl (repeated dts are deduped away) stands in for the design's
+   group grid, so a hovered dd lights its dt via :has(), covered up to four values deep;
+   like the design, hovering the label alone leaves the value unlit */
+.ldh-block dl > dt, .ldh-block dl > dd { transition: background var(--dur-fast) var(--ease-out-soft); }
+.ldh-block dl > dt:hover, .ldh-block dl > dd:hover, .ldh-block dl > dt:has(+ dd:hover, + dd + dd:hover, + dd + dd + dd:hover, + dd + dd + dd + dd:hover) { background: var(--surface-1); box-shadow: calc(-1 * var(--sp-6)) 0 0 var(--surface-1), var(--sp-6) 0 0 var(--surface-1); }
 /* diff decorations ride on the dd */
 .ldh-block dl > dd.diff-added { background: var(--success-50); }
 .ldh-block dl > dd.diff-removed { background: var(--danger-50); }
