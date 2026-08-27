@@ -118,6 +118,11 @@ exclude-result-prefixes="#all"
         </xsl:if>
         
         <xsl:variable name="chart" select="ixsl:new($chart-class, [ id($canvas-id, ixsl:page()) ])"/>
+        <!-- design tokens resolved at draw time - Google Charts takes concrete color strings, not var() references -->
+        <xsl:variable name="axis-text-style" select="map{ 'color': ldh:css-token('--fg-muted') }" as="map(*)"/>
+        <xsl:variable name="axis-title-style" select="map{ 'color': ldh:css-token('--fg-2'), 'italic': false() }" as="map(*)"/>
+        <xsl:variable name="gridline-style" select="map{ 'color': ldh:css-token('--border-default') }" as="map(*)"/>
+        <xsl:variable name="baseline-color" select="ldh:css-token('--border-strong')" as="xs:string"/>
         <xsl:variable name="options" as="map(xs:string, item())">
             <xsl:map>
                 <xsl:if test="exists($width)">
@@ -126,17 +131,26 @@ exclude-result-prefixes="#all"
                 <xsl:if test="exists($height)">
                     <xsl:map-entry key="'height'" select="$height"/>
                 </xsl:if>
-                <xsl:if test="$chart-type = '&ac;Table'">
-                    <xsl:map-entry key="'allowHtml'" select="true()"/>
-                </xsl:if>
                 <xsl:choose>
-                    <xsl:when test="$chart-type = '&ac;BarChart'">
-                        <xsl:map-entry key="'hAxis'" select="map{ 'title': $series[1] }"/>
-                        <xsl:map-entry key="'vAxis'" select="map{ 'title': $category }"/>
+                    <!-- the Table chart renders as HTML - it is skinned by CSS in ldh.css, not draw options -->
+                    <xsl:when test="$chart-type = '&ac;Table'">
+                        <xsl:map-entry key="'allowHtml'" select="true()"/>
                     </xsl:when>
                     <xsl:otherwise>
-                        <xsl:map-entry key="'hAxis'" select="map{ 'title': $category }"/>
-                        <xsl:map-entry key="'vAxis'" select="map{ 'title': $series[1] }"/>
+                        <xsl:map-entry key="'colors'" select="array{ ('--ldh-blue-500', '--ldh-violet-500', '--success-500', '--warning-500', '--danger-500', '--ldh-blue-300', '--ldh-violet-300') ! ldh:css-token(.)[. ne ''] }"/>
+                        <xsl:map-entry key="'backgroundColor'" select="'transparent'"/>
+                        <xsl:map-entry key="'fontName'" select="normalize-space(translate((tokenize(ldh:css-token('--font-sans'), ',')[1], '')[1], '''&quot;', ''))"/>
+                        <xsl:map-entry key="'legend'" select="map{ 'textStyle': $axis-title-style }"/>
+                    </xsl:otherwise>
+                </xsl:choose>
+                <xsl:choose>
+                    <xsl:when test="$chart-type = '&ac;BarChart'">
+                        <xsl:map-entry key="'hAxis'" select="map{ 'title': $series[1], 'textStyle': $axis-text-style, 'titleTextStyle': $axis-title-style, 'gridlines': $gridline-style, 'baselineColor': $baseline-color }"/>
+                        <xsl:map-entry key="'vAxis'" select="map{ 'title': $category, 'textStyle': $axis-text-style, 'titleTextStyle': $axis-title-style, 'gridlines': $gridline-style, 'baselineColor': $baseline-color }"/>
+                    </xsl:when>
+                    <xsl:otherwise>
+                        <xsl:map-entry key="'hAxis'" select="map{ 'title': $category, 'textStyle': $axis-text-style, 'titleTextStyle': $axis-title-style, 'gridlines': $gridline-style, 'baselineColor': $baseline-color }"/>
+                        <xsl:map-entry key="'vAxis'" select="map{ 'title': $series[1], 'textStyle': $axis-text-style, 'titleTextStyle': $axis-title-style, 'gridlines': $gridline-style, 'baselineColor': $baseline-color }"/>
                     </xsl:otherwise>
                 </xsl:choose>
             </xsl:map>

@@ -115,6 +115,14 @@ exclude-result-prefixes="#all"
         </xsl:variable>
         <xsl:sequence select="ixsl:eval(string($js-statement/@statement))"/>
     </xsl:function>
+
+    <!-- resolved value of a design token (CSS custom property on the root element), for canvas
+         libraries (Google Charts, 3d-force-graph, OpenLayers) that take concrete color strings -->
+    <xsl:function name="ldh:css-token" as="xs:string">
+        <xsl:param name="name" as="xs:string"/>
+
+        <xsl:sequence select="normalize-space(ixsl:call(ixsl:call(ixsl:window(), 'getComputedStyle', [ ixsl:page()/* ]), 'getPropertyValue', [ $name ]))"/>
+    </xsl:function>
     
     <!-- Deprecated: use ixsl:new() instead (available in SaxonJS 3.0+) -->
     <!--
