@@ -1327,7 +1327,7 @@ WHERE
 
     <xsl:template match="div[acl:mode() = '&acl;Write']" mode="ixsl:ondragover">
         <xsl:choose>
-            <xsl:when test="not(ixsl:call(ixsl:get(ixsl:get(ixsl:event(), 'dataTransfer'), 'types'), 'includes', [ 'Files' ]))">
+            <xsl:when test="not(array:flatten(ixsl:get(ixsl:get(ixsl:event(), 'dataTransfer'), 'types')) = 'Files')">
                 <xsl:next-match/>
             </xsl:when>
             <xsl:otherwise>
@@ -1344,7 +1344,7 @@ WHERE
 
     <xsl:template match="div[acl:mode() = '&acl;Write']" mode="ixsl:ondrop">
         <xsl:choose>
-            <xsl:when test="not(ixsl:call(ixsl:get(ixsl:get(ixsl:event(), 'dataTransfer'), 'types'), 'includes', [ 'Files' ]))">
+            <xsl:when test="not(array:flatten(ixsl:get(ixsl:get(ixsl:event(), 'dataTransfer'), 'types')) = 'Files')">
                 <xsl:next-match/>
             </xsl:when>
             <xsl:otherwise>

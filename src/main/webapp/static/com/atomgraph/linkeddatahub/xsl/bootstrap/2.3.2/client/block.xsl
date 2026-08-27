@@ -481,7 +481,7 @@ exclude-result-prefixes="#all"
          fall through to the editor's handlers. -->
 
     <xsl:template match="*[ancestor-or-self::div[contains-token(@class, 'block')][parent::div[contains-token(@class, 'content-body')]]][not(ancestor-or-self::*[contains-token(@class, 'rdfa-editor-content')])]" mode="ixsl:ondragover" priority="1">
-        <xsl:if test="ixsl:call(ixsl:get(ixsl:get(ixsl:event(), 'dataTransfer'), 'types'), 'includes', [ 'application/vnd.linkeddatahub.block' ])">
+        <xsl:if test="array:flatten(ixsl:get(ixsl:get(ixsl:event(), 'dataTransfer'), 'types')) = 'application/vnd.linkeddatahub.block'">
             <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
             <ixsl:set-property name="dataTransfer.dropEffect" select="'move'" object="ixsl:event()"/>
         </xsl:if>
@@ -494,7 +494,7 @@ exclude-result-prefixes="#all"
     <xsl:template match="*[ancestor-or-self::div[contains-token(@class, 'block')][parent::div[contains-token(@class, 'content-body')]]][not(ancestor-or-self::*[contains-token(@class, 'rdfa-editor-content')])]" mode="ixsl:ondragenter" priority="1">
         <xsl:variable name="block" select="ancestor-or-self::div[contains-token(@class, 'block')][parent::div[contains-token(@class, 'content-body')]][1]" as="element()"/>
 
-        <xsl:if test="ixsl:call(ixsl:get(ixsl:get(ixsl:event(), 'dataTransfer'), 'types'), 'includes', [ 'application/vnd.linkeddatahub.block' ])">
+        <xsl:if test="array:flatten(ixsl:get(ixsl:get(ixsl:event(), 'dataTransfer'), 'types')) = 'application/vnd.linkeddatahub.block'">
             <xsl:for-each select="$block/../div[contains-token(@class, 'block')][contains-token(@class, 'drag-over')][not(. is $block)]">
                 <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'drag-over', false() ])[current-date() lt xs:date('2000-01-01')]"/>
             </xsl:for-each>
@@ -507,7 +507,7 @@ exclude-result-prefixes="#all"
     <xsl:template match="*[ancestor-or-self::div[contains-token(@class, 'block')][parent::div[contains-token(@class, 'content-body')]]][not(ancestor-or-self::*[contains-token(@class, 'rdfa-editor-content')])]" mode="ixsl:ondrop" priority="1">
         <xsl:variable name="block" select="ancestor-or-self::div[contains-token(@class, 'block')][parent::div[contains-token(@class, 'content-body')]][1]" as="element()"/>
 
-        <xsl:if test="ixsl:call(ixsl:get(ixsl:get(ixsl:event(), 'dataTransfer'), 'types'), 'includes', [ 'application/vnd.linkeddatahub.block' ])">
+        <xsl:if test="array:flatten(ixsl:get(ixsl:get(ixsl:event(), 'dataTransfer'), 'types')) = 'application/vnd.linkeddatahub.block'">
             <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
             <xsl:sequence select="ixsl:call(ixsl:get($block, 'classList'), 'toggle', [ 'drag-over', false() ])[current-date() lt xs:date('2000-01-01')]"/>
 
