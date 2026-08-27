@@ -471,6 +471,9 @@ body:has(.ldh-create-dock) .ldh-footer { margin-top: 0; }
 .tab-content > .tab-pane { display: none; }
 .tab-content > .tab-pane.active { flex: 1 0 auto; display: flex; flex-direction: column; }
 .tab-pane > .document-body { flex: 1 0 auto; display: flex; flex-direction: column; }
+/* .content-body centers with auto side margins, which opt a flex item out of cross-axis
+   stretch (it would shrink-wrap to its widest child); explicit width restores the full column */
+.tab-pane > .document-body > .content-body { width: 100%; }
 /* only create-bar pages need the column itself stretched (its children become flex items) */
 .document-body > .content-body:has(> .ldh-create-dock) { flex: 1 0 auto; display: flex; flex-direction: column; padding-bottom: 0; }
 
