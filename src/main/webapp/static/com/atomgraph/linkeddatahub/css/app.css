@@ -2054,9 +2054,9 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
 .graph-detail dt { font-family: var(--font-mono); font-size: 10px; color: rgba(255,255,255,0.55); text-align: right; letter-spacing: 0.02em; }
 .graph-detail dd { margin: 0; color: rgba(255,255,255,0.92); }
 
-/* Map canvas */
+/* Map canvas — in flow (sized by the legacy .map-canvas height rule); positioned only so the ::before grid, pins and attribution anchor to it. Absolute inset is reserved for the fullbleed wrapper. */
 .map-canvas {
-  position: absolute; inset: 0;
+  position: relative;
   background:
     radial-gradient(ellipse at 30% 40%, #f5edd9 0%, #f5edd9 12%, transparent 14%),
     radial-gradient(ellipse at 55% 50%, #f5edd9 0%, #f5edd9 18%, transparent 20%),
@@ -2067,6 +2067,7 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
   background-position: -40% 30%, 25% 20%, 60% -10%, 40% 60%, 0 0;
   background-repeat: no-repeat;
 }
+.ldh-fullbleed .map-canvas { position: absolute; inset: 0; }
 .map-canvas::before {
   content: "";
   position: absolute; inset: 0;
