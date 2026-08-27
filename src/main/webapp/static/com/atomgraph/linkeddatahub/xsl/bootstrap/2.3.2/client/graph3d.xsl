@@ -496,7 +496,7 @@ WHERE
                 <xsl:with-param name="container" select="$canvas"/>
                 <xsl:with-param name="builder" select="ixsl:apply(ixsl:get(ixsl:window(), 'ForceGraph3D'), [])"/>
                 <xsl:with-param name="graph-width" select="xs:double(ixsl:get($canvas, 'offsetWidth'))"/>
-                <xsl:with-param name="graph-height" select="xs:double(600)"/>
+                <xsl:with-param name="graph-height" select="xs:double(ixsl:get($canvas, 'offsetHeight'))"/>
                 <xsl:with-param name="node-rel-size" select="xs:double(4)"/>
                 <xsl:with-param name="link-width" select="xs:double(1.5)"/>
                 <xsl:with-param name="node-label-color" select="'white'"/>

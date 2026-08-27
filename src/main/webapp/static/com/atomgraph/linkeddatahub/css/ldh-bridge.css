@@ -493,6 +493,13 @@ body:has(.ldh-create-dock) .ldh-footer { margin-top: 0; }
 /* only create-bar pages need the column itself stretched (its children become flex items) */
 .document-body > .content-body:has(> .ldh-create-dock) { flex: 1 0 auto; display: flex; flex-direction: column; padding-bottom: 0; }
 
+/* ---------- document-level graph mode: the canvas fills the whole space between the action bar
+   and the footer at full viewport width; graphs nested inside view blocks keep their fixed
+   height (the canvas is a direct .content-body child only at document level) ---------- */
+.document-body > .content-body:has(> .graph-3d-canvas) { flex: 1 0 auto; display: flex; flex-direction: column; max-width: none; padding: 0; }
+.content-body > .graph-3d-canvas { flex: 1 0 auto; height: auto; min-height: 520px; }
+body:has(.document-body > .content-body > .graph-3d-canvas) .ldh-footer { margin-top: 0; }
+
 /* ---------- RDFa editor toolbar: the bar's inner .content-body is a flex item whose auto side
    margins opt it out of cross-axis stretch (same as the pane rule above); full width left-aligns
    the toolbar buttons with the content column and the breadcrumb zone. Compact vertical padding -
