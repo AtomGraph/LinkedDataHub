@@ -571,13 +571,13 @@ exclude-result-prefixes="#all"
          retarget the drag to the body per the HTML processing model, refusing the drop over the line -->
 
     <xsl:template match="div[contains-token(@class, 'content-body')][not(ancestor::*[contains-token(@class, 'rdfa-editor-content')])]" mode="ixsl:ondragenter">
-        <xsl:if test="array:flatten(ixsl:get(ixsl:get(ixsl:event(), 'dataTransfer'), 'types')) = 'application/vnd.atomgraph.linkeddatahub.block' and div[contains-token(@class, 'drag-over')]">
+        <xsl:if test="array:flatten(ixsl:get(ixsl:get(ixsl:event(), 'dataTransfer'), 'types')) = 'application/vnd.atomgraph.linkeddatahub.block' and ./div[contains-token(@class, 'drag-over')]">
             <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         </xsl:if>
     </xsl:template>
 
     <xsl:template match="div[contains-token(@class, 'content-body')][not(ancestor::*[contains-token(@class, 'rdfa-editor-content')])]" mode="ixsl:ondragover">
-        <xsl:if test="array:flatten(ixsl:get(ixsl:get(ixsl:event(), 'dataTransfer'), 'types')) = 'application/vnd.atomgraph.linkeddatahub.block' and div[contains-token(@class, 'drag-over')]">
+        <xsl:if test="array:flatten(ixsl:get(ixsl:get(ixsl:event(), 'dataTransfer'), 'types')) = 'application/vnd.atomgraph.linkeddatahub.block' and ./div[contains-token(@class, 'drag-over')]">
             <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
             <ixsl:set-property name="dataTransfer.dropEffect" select="'move'" object="ixsl:event()"/>
         </xsl:if>
@@ -585,7 +585,7 @@ exclude-result-prefixes="#all"
 
     <xsl:template match="div[contains-token(@class, 'content-body')][not(ancestor::*[contains-token(@class, 'rdfa-editor-content')])]" mode="ixsl:ondrop">
         <xsl:if test="array:flatten(ixsl:get(ixsl:get(ixsl:event(), 'dataTransfer'), 'types')) = 'application/vnd.atomgraph.linkeddatahub.block'">
-            <xsl:apply-templates select="div[contains-token(@class, 'drag-over')]" mode="#current"/>
+            <xsl:apply-templates select="./div[contains-token(@class, 'drag-over')]" mode="#current"/>
         </xsl:if>
     </xsl:template>
 
