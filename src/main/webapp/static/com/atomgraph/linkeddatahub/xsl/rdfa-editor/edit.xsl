@@ -2338,7 +2338,7 @@ version="3.0">
         <xsl:call-template name="rdfae:disarm-sweep"/>
         <ixsl:set-property name="draggedBlock" select="." object="rdfae:editor-state()"/>
         <ixsl:set-property name="effectAllowed" select="'move'" object="$transfer"/>
-        <xsl:sequence select="ixsl:call($transfer, 'setData', [ 'application/x-rdfa-editor-block', '' ])[current-date() lt xs:date('2000-01-01')]"/>
+        <xsl:sequence select="ixsl:call($transfer, 'setData', [ 'application/vnd.atomgraph.rdfa-editor.block', '' ])[current-date() lt xs:date('2000-01-01')]"/>
         <xsl:sequence select="ixsl:call($transfer, 'setDragImage', [ ., 0, 0 ])[current-date() lt xs:date('2000-01-01')]"/>
         <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'add', [ 'dragging' ])[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
@@ -2364,7 +2364,7 @@ version="3.0">
         <xsl:for-each select="ancestor-or-self::*[rdfae:draggable-block(.)][1]">
             <ixsl:set-property name="draggedBlock" select="." object="rdfae:editor-state()"/>
             <ixsl:set-property name="effectAllowed" select="'move'" object="$transfer"/>
-            <xsl:sequence select="ixsl:call($transfer, 'setData', [ 'application/x-rdfa-editor-block', '' ])[current-date() lt xs:date('2000-01-01')]"/>
+            <xsl:sequence select="ixsl:call($transfer, 'setData', [ 'application/vnd.atomgraph.rdfa-editor.block', '' ])[current-date() lt xs:date('2000-01-01')]"/>
             <xsl:sequence select="ixsl:call($transfer, 'setDragImage', [ ., 0, 0 ])[current-date() lt xs:date('2000-01-01')]"/>
             <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'add', [ 'dragging' ])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:for-each>
@@ -2375,7 +2375,7 @@ version="3.0">
         <xsl:variable name="dragged" select="ixsl:get(rdfae:editor-state(), 'draggedBlock')"/>
         <xsl:variable name="target" as="element()?" select="rdfae:drop-target-of(., $event)"/>
         <xsl:if test="exists($dragged) and exists($target)
-                and rdfae:has-transfer-type($event, 'application/x-rdfa-editor-block')">
+                and rdfae:has-transfer-type($event, 'application/vnd.atomgraph.rdfa-editor.block')">
             <xsl:sequence select="ixsl:call($event, 'preventDefault', [])[current-date() lt xs:date('2000-01-01')]"/>
             <ixsl:set-property name="dropEffect" select="'move'" object="ixsl:get($event, 'dataTransfer')"/>
             <xsl:call-template name="rdfae:clear-drop-marks"/>
@@ -2393,7 +2393,7 @@ version="3.0">
         <xsl:variable name="dragged" select="ixsl:get(rdfae:editor-state(), 'draggedBlock')"/>
         <xsl:variable name="target" as="element()?" select="rdfae:drop-target-of(., $event)"/>
         <xsl:if test="exists($dragged) and exists($target)
-                and rdfae:has-transfer-type($event, 'application/x-rdfa-editor-block')">
+                and rdfae:has-transfer-type($event, 'application/vnd.atomgraph.rdfa-editor.block')">
             <xsl:sequence select="ixsl:call($event, 'preventDefault', [])[current-date() lt xs:date('2000-01-01')]"/>
             <xsl:call-template name="rdfae:clear-drop-marks"/>
             <!-- transient drag state must not reach the undo snapshot -->

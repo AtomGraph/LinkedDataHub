@@ -177,14 +177,14 @@ version="3.0">
         <ixsl:set-property name="draggedSectionHeading"
             select="(ixsl:get(rdfae:editor-state(), 'tocRoot')/(h1 | h2 | h3))[$index]" object="rdfae:editor-state()"/>
         <ixsl:set-property name="effectAllowed" select="'move'" object="$transfer"/>
-        <xsl:sequence select="ixsl:call($transfer, 'setData', [ 'application/x-rdfa-editor-section', '' ])[current-date() lt xs:date('2000-01-01')]"/>
+        <xsl:sequence select="ixsl:call($transfer, 'setData', [ 'application/vnd.atomgraph.rdfa-editor.section', '' ])[current-date() lt xs:date('2000-01-01')]"/>
         <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'add', [ 'dragging' ])[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
 
     <xsl:template match="li[contains-token(@class, 'toc-item')]" mode="ixsl:ondragover">
         <xsl:variable name="event" select="ixsl:event()"/>
         <xsl:if test="exists(ixsl:get(rdfae:editor-state(), 'draggedSectionHeading'))
-                and rdfae:has-transfer-type($event, 'application/x-rdfa-editor-section')">
+                and rdfae:has-transfer-type($event, 'application/vnd.atomgraph.rdfa-editor.section')">
             <xsl:sequence select="ixsl:call($event, 'preventDefault', [])[current-date() lt xs:date('2000-01-01')]"/>
             <ixsl:set-property name="dropEffect" select="'move'" object="ixsl:get($event, 'dataTransfer')"/>
             <xsl:call-template name="rdfae:clear-drop-marks">
@@ -203,7 +203,7 @@ version="3.0">
         <xsl:call-template name="rdfae:clear-drop-marks">
             <xsl:with-param name="scope" select="id('toc-list', ixsl:page())//li"/>
         </xsl:call-template>
-        <xsl:if test="exists($source) and rdfae:has-transfer-type($event, 'application/x-rdfa-editor-section')">
+        <xsl:if test="exists($source) and rdfae:has-transfer-type($event, 'application/vnd.atomgraph.rdfa-editor.section')">
             <xsl:sequence select="ixsl:call($event, 'preventDefault', [])[current-date() lt xs:date('2000-01-01')]"/>
             <!-- bare-variable positional predicate: SaxonJS evaluates computed numeric
                  predicates as booleans in this context -->
