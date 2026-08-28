@@ -59,6 +59,15 @@ table.table { width: 100%; border-collapse: collapse; font-size: var(--fs-sm); }
 table.table th, table.table td { padding: var(--sp-2) var(--sp-3); border-bottom: 1px solid var(--border-default); text-align: left; vertical-align: top; }
 table.table tr:last-child > td { border-bottom: 0; }
 table.table th { font-weight: var(--fw-semibold); color: var(--fg-muted); }
+/* view table: the header row pins under the view toolbar while the rows scroll inside .container-results */
+.container-results > table.table thead th { position: sticky; top: 0; z-index: 1; background: var(--surface-1); border-bottom: 1px solid var(--border-strong); }
+/* sortable columns: the arrow surfaces on hover as the affordance and stays lit on the active sort column (aria-sort) */
+table.table th.sortable { cursor: pointer; user-select: none; white-space: nowrap; }
+table.table th.sortable:hover { color: var(--fg-1); background: var(--surface-2); }
+table.table th.sortable .sort-arrow { vertical-align: middle; margin-left: 2px; visibility: hidden; color: var(--fg-muted); }
+table.table th.sortable:hover .sort-arrow { visibility: visible; }
+table.table th.sortable[aria-sort] { color: var(--fg-1); }
+table.table th.sortable[aria-sort] .sort-arrow { visibility: visible; color: var(--fg-1); }
 .content-body { padding: var(--sp-4) var(--sp-6); max-width: var(--ldh-content-w); margin: 0 auto; }
 /* stacking rhythm between block cards and alerts (Bootstrap's row margins are gone) */
 .content-body .ldh-block, .content-body .ldhc-alert, .content-body :where(.alert) { margin-bottom: var(--sp-4); }
