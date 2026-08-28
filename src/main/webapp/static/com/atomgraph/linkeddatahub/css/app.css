@@ -879,14 +879,6 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
   min-width: 0;
 }
 
-/* Per-view-block row: the block-scoped drawer (backlinks/related/parallax)
-   slides in from the right edge of the block and overlays its right portion.
-   The drawer is scoped to the block's height — no global push, no body scroll
-   hijack. The row stays display:block so its content keeps full width when
-   the drawer is closed AND when it's open. */
-.ldh-block-row { position: relative; }
-.ldh-block-row > .row-main { min-width: 0; }
-
 /* Backlinks / related panel */
 .ldh-panel {
   background: var(--bg-card);
@@ -988,28 +980,22 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
 /* Delete (×) — quiet at rest, danger on hover. The block-removal affordance. */
 .ldh-block-head .actions .tb-danger:hover { background: var(--danger-50); color: var(--danger-500); }
 
-/* Links button — opens block-scoped drawer (backlinks / related / parallax) */
-.ldh-block-head .actions .tb-links,
-.hero-actions .tb-links {
-  width: auto;
+/* Links button — opens the block links popover (backlinks). The button always
+   sits inside its .links-nav anchor, so one selector covers every host: block
+   head actions, the view toolbar's right zone, the content block's corner. */
+.links-nav > .tb-links {
+  height: 32px;
   min-width: 32px;
   padding: 0 8px 0 6px;
+  display: inline-flex; align-items: center; justify-content: center;
   gap: 4px;
   background: var(--bg-accent-quiet);
   color: var(--ldh-blue-700);
   border: 1px solid var(--ldh-blue-100);
+  border-radius: var(--r-sm);
 }
-.ldh-block-head .actions .tb-links:hover,
-.hero-actions .tb-links:hover {
-  background: var(--ldh-blue-100);
-  color: var(--ldh-blue-700);
-}
-.ldh-block-head .actions .tb-links.is-on,
-.hero-actions .tb-links.is-on {
-  background: var(--ldh-blue-600);
-  color: #fff;
-  border-color: var(--ldh-blue-600);
-}
+.links-nav > .tb-links:hover { background: var(--ldh-blue-100); color: var(--ldh-blue-700); }
+.links-nav > .tb-links.is-on { background: var(--ldh-blue-600); color: #fff; border-color: var(--ldh-blue-600); }
 
 .hero-actions {
   position: absolute;
@@ -1028,115 +1014,30 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
   border-color: rgba(255,255,255,0.85);
 }
 
-/* Block drawer — fixed to the viewport's right edge so it sits FLUSH against
-   the page edge regardless of where the block lives inside the centered
-   .ldh-main container. Top/height are set inline by the React component to
-   match the anchor block's bounding rect, so the drawer stays block-scoped
-   vertically. */
-.ldh-drawer {
-  /* absolute against the .ldh-block anchor, not fixed: retro-theme hover-lift transforms make the card a fixed-position containing block, so a fixed drawer would re-anchor between card and viewport as hover toggles */
-  position: absolute;
-  top: 0; right: 0; bottom: 0;
-  width: min(360px, 100%);
-  background: var(--surface-0);
-  border: 0;
-  border-left: 1px solid var(--border-default);
-  border-radius: 0 var(--r-lg) var(--r-lg) 0;
-  box-shadow: -8px 0 24px -22px rgba(15, 23, 42, 0.16);
-  display: flex; flex-direction: column;
-  z-index: 25;
-  animation: drawer-slide var(--dur-base) var(--ease-out-soft);
-  overflow: hidden;
+/* Block links popover — backlinks as jump-off navigation, anchored to the
+   header/toolbar links button. Modeled on .facet-pop; content lazy-loads on
+   first open. */
+.links-nav { position: relative; }
+.links-pop {
+  position: absolute; top: calc(100% + 6px); right: 0;
+  min-width: 260px; max-width: 320px;
+  background: var(--surface-0); border: 1px solid var(--border-default);
+  border-radius: var(--r-md); box-shadow: var(--shadow-lg);
+  padding: var(--sp-2);
+  z-index: 40;
+  display: none;
 }
-@keyframes drawer-slide {
-  from { transform: translateX(100%); opacity: 0; }
-  to   { transform: translateX(0);    opacity: 1; }
-}
-
-/* Edge-hover sensor — invisible hot-zone flush to the viewport's right edge,
-   vertically scoped to its block (top/height set inline). Reaching it slides
-   the drawer out, no click needed. A faint handle peeks in so the gesture is
-   discoverable. */
-.ldh-edge-sensor {
-  position: fixed;
-  right: 0;
-  width: 20px;
-  z-index: 24;
-  display: flex; align-items: center; justify-content: flex-end;
-  cursor: pointer;
-}
-.ldh-edge-handle {
-  display: flex; align-items: center; justify-content: center;
-  width: 17px; height: 54px;
-  border-radius: var(--r-pill) 0 0 var(--r-pill);
-  background: var(--surface-0);
-  border: 1px solid var(--border-default);
-  border-right: 0;
-  color: var(--fg-hint);
-  box-shadow: -8px 0 18px -14px rgba(15, 23, 42, 0.28);
-  opacity: 0.5;
-  transform: translateX(7px);
-  transition: opacity var(--dur-base) var(--ease-out-soft),
-              transform var(--dur-base) var(--ease-out-soft),
-              color var(--dur-fast) var(--ease-out-soft),
-              border-color var(--dur-fast) var(--ease-out-soft);
-}
-.ldh-edge-handle .msi { font-size: 18px; }
-.ldh-edge-sensor:hover .ldh-edge-handle {
-  opacity: 1;
-  transform: translateX(0);
-  color: var(--accent);
-  border-color: var(--accent);
-}
-.ldh-drawer .dh {
-  display: flex; align-items: flex-start; justify-content: space-between;
-  padding: var(--sp-5) var(--sp-5) var(--sp-4);
-  border-bottom: 1px solid var(--border-default);
-}
-.ldh-drawer .dh .eyebrow {
-  font-family: var(--font-mono); font-size: 10px;
-  letter-spacing: var(--tracking-wide); text-transform: uppercase;
-  color: var(--fg-muted);
-}
-.ldh-drawer .dh h3 {
-  margin: 4px 0 0;
-  font-size: var(--fs-lg);
-  font-weight: var(--fw-semibold);
-  letter-spacing: var(--tracking-snug);
-  color: var(--fg-1);
-}
-.ldh-drawer .dh .close {
-  width: 32px; height: 32px;
-  background: transparent; border: 0; border-radius: var(--r-sm);
-  color: var(--fg-muted);
-  display: inline-flex; align-items: center; justify-content: center;
-  cursor: pointer;
-}
-.ldh-drawer .dh .close:hover { background: var(--bg-hover); color: var(--fg-1); }
-
-.ldh-drawer .db {
-  flex: 1;
-  overflow: auto;
-  padding: var(--sp-3) var(--sp-3) var(--sp-5);
-  display: flex; flex-direction: column; gap: var(--sp-4);
-}
-.ldh-drawer .dgroup { display: flex; flex-direction: column; gap: 2px; }
-.ldh-drawer .dh2 {
-  display: flex; align-items: baseline; justify-content: space-between;
+.links-nav.is-open .links-pop { display: block; }
+.links-pop .dh2 {
+  margin: 0;
   padding: var(--sp-2) var(--sp-2) 4px;
   font-family: var(--font-mono); font-size: 10px;
   letter-spacing: var(--tracking-wide); text-transform: uppercase;
+  font-weight: var(--fw-medium);
   color: var(--fg-muted);
 }
-.ldh-drawer .dh2 em {
-  font-style: normal;
-  font-family: var(--font-mono); font-size: 10px;
-  color: var(--fg-hint);
-  background: var(--surface-2);
-  padding: 1px 6px; border-radius: var(--r-pill);
-  letter-spacing: 0;
-}
-.ldh-drawer .drow {
+.links-pop .dgroup { display: flex; flex-direction: column; gap: 2px; }
+.links-pop .drow {
   display: flex; align-items: center; gap: 8px;
   padding: 6px 8px;
   border-radius: var(--r-sm);
@@ -1145,30 +1046,14 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
   font-size: var(--fs-sm);
   transition: background var(--dur-fast) var(--ease-out-soft);
 }
-.ldh-drawer .drow:hover { background: var(--bg-hover); color: var(--fg-1); text-decoration: none; }
-.ldh-drawer .drow .msi { color: var(--fg-hint); flex-shrink: 0; }
-.ldh-drawer .drow .lbl { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.ldh-drawer .drow .tag {
-  font-family: var(--font-mono); font-size: 9.5px; color: var(--fg-hint);
-  background: var(--surface-2); padding: 1px 6px; border-radius: var(--r-pill);
-}
-.ldh-drawer .drow.is-current {
-  background: var(--bg-accent-quiet);
-  color: var(--ldh-blue-700);
-  font-weight: var(--fw-medium);
-}
-.ldh-drawer .drow.is-current .msi { color: var(--ldh-blue-600); }
-.ldh-drawer .drow.is-current .tag { background: var(--surface-0); color: var(--ldh-blue-600); }
+.links-pop .drow:hover { background: var(--bg-hover); color: var(--fg-1); text-decoration: none; }
+.links-pop .drow .msi { color: var(--fg-hint); flex-shrink: 0; }
+.links-pop .drow .lbl { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-.ldh-drawer .df {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: var(--sp-3) var(--sp-4);
-  border-top: 1px solid var(--border-default);
-  background: var(--surface-1);
-  font-family: var(--font-mono);
-  font-size: var(--fs-xs);
-  color: var(--fg-muted);
-}
+/* content (XHTML) blocks have no header row — their popover anchors to the
+   card's top right corner and surfaces on card hover, staying put while open */
+.ldh-block .block-row > .links-nav { position: absolute; top: var(--sp-3); right: var(--sp-3); opacity: 0; transition: opacity var(--dur-fast) var(--ease-out-soft); }
+.ldh-block:hover .block-row > .links-nav, .ldh-block .block-row > .links-nav.is-open { opacity: 1; }
 .ldh-block-body { padding: 0 var(--sp-6) var(--sp-6); }
 .ldh-block-body.is-flush { padding: 0; }
 .ldh-block-foot {
@@ -1844,6 +1729,51 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
 }
 .facet-pop .head .clear:hover { text-decoration: underline; }
 
+/* Parallax row — second row of the view's control header: onward pivots derived
+   from the current result set. Query inputs (filters, sort, modes) stay in the
+   toolbar above; this row reads as output. Mirrors the toolbar's surface and
+   dashed hairline; hidden until bs2:ParallaxNav delivers chips. */
+.parallax-nav {
+  display: flex; align-items: center; flex-wrap: wrap; gap: var(--sp-2);
+  padding: var(--sp-3) var(--sp-6);
+  background: var(--surface-1);
+  border-bottom: 1px dashed var(--border-default);
+}
+.parallax-nav:not(:has(.pchip)) { display: none; }
+.parallax-nav .plabel {
+  font-family: var(--font-mono); font-size: 10px;
+  letter-spacing: var(--tracking-wide); text-transform: uppercase;
+  color: var(--fg-muted);
+  margin-right: var(--sp-2);
+}
+.parallax-nav .pchips { display: flex; align-items: center; flex-wrap: wrap; gap: var(--sp-2); }
+.parallax-nav .pchip {
+  display: inline-flex; align-items: center; gap: 6px;
+  height: 28px; padding: 0 12px 0 9px;
+  background: var(--surface-0); border: 1px solid var(--border-default);
+  border-radius: var(--r-pill);
+  font-size: var(--fs-sm); color: var(--fg-2);
+  cursor: pointer;
+  transition: border-color var(--dur-fast) var(--ease-out-soft), background var(--dur-fast) var(--ease-out-soft), color var(--dur-fast) var(--ease-out-soft);
+}
+.parallax-nav .pchip:hover { border-color: var(--ldh-blue-300); color: var(--ldh-blue-700); background: var(--bg-accent-quiet); text-decoration: none; }
+.parallax-nav .pchip .msi { font-size: 15px; color: var(--fg-hint); }
+.parallax-nav .pchip:hover .msi { color: var(--ldh-blue-600); }
+
+/* applied parallax steps read as removable chips beside the facet pills — the
+   pivot's undo affordance; clicking one rewinds the view to before that step */
+.ldh-view-toolbar .parallax-steps { display: inline-flex; align-items: center; flex-wrap: wrap; gap: var(--sp-2); }
+.ldh-view-toolbar .parallax-steps:empty { display: none; }
+.facet-pill.parallax-step { background: var(--ldh-blue-50); color: var(--ldh-blue-700); border-color: var(--ldh-blue-200); }
+.facet-pill.parallax-step .pred { color: var(--ldh-blue-600); }
+.facet-pill.parallax-step .x {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  color: var(--ldh-blue-600);
+}
+.facet-pill.parallax-step .x:hover { background: rgba(0,0,0,0.06); }
+
 /* View-mode switcher inside the view-toolbar (grid / list / map / chart) */
 .view-mode-seg {
   display: inline-flex; align-items: center;
@@ -1884,7 +1814,7 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
 .ldh-block-body > .ldh-grid-block { padding: var(--sp-2) 0 0; }
 /* .container-results clips at its edge (overflow: auto), so the grid keeps a bottom inset to keep the last row's card borders and corners clear of the clip line */
 .container-results > .ldh-grid-block { padding: var(--sp-2) 0; }
-.ldh-block-body > .ldh-view-toolbar { padding-left: 0; padding-right: 0; }
+.ldh-block-body > .ldh-view-toolbar, .ldh-block-body > .parallax-nav { padding-left: 0; padding-right: 0; }
 .ldh-grid-block .card {
   position: relative;
   display: flex; flex-direction: column; align-items: stretch;

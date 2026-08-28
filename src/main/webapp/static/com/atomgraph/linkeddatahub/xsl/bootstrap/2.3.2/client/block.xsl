@@ -269,23 +269,64 @@ exclude-result-prefixes="#all"
         </xsl:if>
     </xsl:template>
 
-    <!-- open the block links drawer (backlinks/related/parallax) from the header toolbar -->
+    <!-- toggle the block links popover (backlinks) from the header/toolbar links button -->
 
-    <xsl:template match="button[contains-token(@class, 'tb-links')]" mode="ixsl:onclick">
-        <xsl:variable name="drawer" select="ancestor::div[contains-token(@class, 'block')][1]/descendant::div[contains-token(@class, 'ldh-drawer')][1]" as="element()?"/>
+    <xsl:template match="div[contains-token(@class, 'links-nav')]/button[contains-token(@class, 'tb-links')]" mode="ixsl:onclick">
+        <xsl:variable name="links-nav" select="ancestor::div[contains-token(@class, 'links-nav')][1]" as="element()"/>
 
-        <xsl:for-each select="$drawer">
-            <ixsl:set-style name="display" select="'flex'" object="."/>
+        <xsl:choose>
+            <xsl:when test="contains-token($links-nav/@class, 'is-open')">
+                <xsl:apply-templates select="$links-nav" mode="ldh:CloseLinksPopover"/>
+            </xsl:when>
+            <xsl:otherwise>
+                <!-- opening one popover closes the others -->
+                <xsl:apply-templates select="ixsl:page()//div[contains-token(@class, 'links-nav')][contains-token(@class, 'is-open')]" mode="ldh:CloseLinksPopover"/>
+
+                <xsl:sequence select="ixsl:call(ixsl:get($links-nav, 'classList'), 'add', [ 'is-open' ])[current-date() lt xs:date('2000-01-01')]"/>
+                <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'add', [ 'is-on' ])[current-date() lt xs:date('2000-01-01')]"/>
+
+                <!-- backlink row list is not rendered yet - load it -->
+                <xsl:variable name="backlinks-container" select="$links-nav/descendant::div[contains-token(@class, 'backlinks-nav')][1]" as="element()"/>
+                <xsl:if test="not($backlinks-container/div)">
+                    <xsl:variable name="block-uri" select="ancestor::div[contains-token(@class, 'block')][1]/@about" as="xs:anyURI"/>
+                    <xsl:variable name="query-string" select="replace($backlinks-string, '$this', '&lt;' || $block-uri || '&gt;', 'q')" as="xs:string"/>
+                    <xsl:variable name="service-uri" select="if (ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`')) then (if (ixsl:contains(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`'), 'service-uri')) then ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`'), 'service-uri') else ()) else ()" as="xs:anyURI?"/>
+                    <xsl:variable name="service" select="if ($service-uri) then key('resources', $service-uri, document(ldh:href(ac:document-uri($service-uri), map{ 'accept': 'application/rdf+xml' }, ()))) else ()" as="element()?"/> <!-- TO-DO: refactor asynchronously -->
+                    <xsl:variable name="endpoint" select="($service/sd:endpoint/@rdf:resource/xs:anyURI(.), sd:endpoint())[1]" as="xs:anyURI"/>
+                    <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': string($query-string) })" as="xs:anyURI"/>
+                    <xsl:variable name="request-uri" select="ldh:href($results-uri, map{})" as="xs:anyURI"/>
+
+                    <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+
+                    <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
+                    <xsl:variable name="context" as="map(*)" select="
+                      map{
+                        'request': $request,
+                        'backlinks-container': $backlinks-container
+                      }"/>
+                    <ixsl:promise select="ixsl:http-request($context('request')) =>
+                        ixsl:then(ldh:rethread-response($context, ?)) =>
+                        ixsl:then(ldh:handle-response#1) =>
+                        ixsl:then(ldh:backlinks-response#1)"
+                        on-failure="ldh:promise-failure#1"/>
+                </xsl:if>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:template>
+
+    <!-- closes a block links popover and resets its button state -->
+
+    <xsl:template match="div[contains-token(@class, 'links-nav')]" mode="ldh:CloseLinksPopover">
+        <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'remove', [ 'is-open' ])[current-date() lt xs:date('2000-01-01')]"/>
+
+        <xsl:for-each select="button[contains-token(@class, 'tb-links')]">
+            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'remove', [ 'is-on' ])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:for-each>
     </xsl:template>
 
-    <!-- close the block links drawer -->
+    <!-- clicks inside the popover (e.g. on the group header) stop here instead of bubbling to body and dismissing it -->
 
-    <xsl:template match="div[contains-token(@class, 'ldh-drawer')]/div[contains-token(@class, 'dh')]/button[contains-token(@class, 'close')]" mode="ixsl:onclick">
-        <xsl:for-each select="ancestor::div[contains-token(@class, 'ldh-drawer')][1]">
-            <ixsl:set-style name="display" select="'none'" object="."/>
-        </xsl:for-each>
-    </xsl:template>
+    <xsl:template match="div[contains-token(@class, 'links-nav')]/div[contains-token(@class, 'links-pop')]" mode="ixsl:onclick"/>
 
     <!-- exit/save on click-outside is handled by the ixsl:onfocusout autosave below: the canvas holds
          focus throughout editing (toolbar/breadcrumb/find chrome all preventDefault on mousedown to keep

@@ -383,52 +383,8 @@ ORDER BY DESC(?created)
         <ixsl:set-style name="display" select="'none'" object="$container/ul"/>
     </xsl:template>
 
-    <!-- backlinks -->
-    
-    <xsl:template match="div[contains-token(@class, 'backlinks-nav')]//*[contains-token(@class, 'nav-header')]" mode="ixsl:onclick">
-        <xsl:variable name="backlinks-container" select="ancestor::div[contains-token(@class, 'backlinks-nav')]" as="element()"/>
-        <xsl:variable name="block" select="ancestor::div[contains-token(@class, 'block')][1]" as="element()"/>
-        <xsl:variable name="block-uri" select="$block/@about" as="xs:anyURI"/>
-        <xsl:variable name="query-string" select="replace($backlinks-string, '$this', '&lt;' || $block-uri || '&gt;', 'q')" as="xs:string"/>
-        <xsl:variable name="service-uri" select="if (ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`')) then (if (ixsl:contains(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`'), 'service-uri')) then ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`'), 'service-uri') else ()) else ()" as="xs:anyURI?"/>
-        <xsl:variable name="service" select="if ($service-uri) then key('resources', $service-uri, document(ldh:href(ac:document-uri($service-uri), map{ 'accept': 'application/rdf+xml' }, ()))) else ()" as="element()?"/> <!-- TO-DO: refactor asynchronously -->
-        <xsl:variable name="endpoint" select="($service/sd:endpoint/@rdf:resource/xs:anyURI(.), sd:endpoint())[1]" as="xs:anyURI"/>
-        <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': string($query-string) })" as="xs:anyURI"/>
-        <xsl:variable name="request-uri" select="ldh:href($results-uri, map{})" as="xs:anyURI"/>
-        
-        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+    <!-- backlinks load from the block links popover - the trigger is the tb-links onclick in block.xsl -->
 
-        <xsl:choose>
-            <!-- backlink row list is not rendered yet - load it -->
-            <xsl:when test="not(following-sibling::*[contains-token(@class, 'dgroup')])">
-                <!-- toggle the caret direction -->
-                <xsl:for-each select="span[contains-token(@class, 'caret')]">
-                    <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'caret-reversed' ])[current-date() lt xs:date('2000-01-01')]"/>
-                </xsl:for-each>
-
-                <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
-                <xsl:variable name="context" as="map(*)" select="
-                  map{
-                    'request': $request,
-                    'backlinks-container': $backlinks-container
-                  }"/>
-                <ixsl:promise select="ixsl:http-request($context('request')) =>
-                    ixsl:then(ldh:rethread-response($context, ?)) =>
-                    ixsl:then(ldh:handle-response#1) =>
-                    ixsl:then(ldh:backlinks-response#1)"
-                    on-failure="ldh:promise-failure#1"/>
-            </xsl:when>
-            <!-- show the row list -->
-            <xsl:when test="ixsl:style(following-sibling::*[contains-token(@class, 'dgroup')])?display = 'none'">
-                <ixsl:set-style name="display" select="'flex'" object="following-sibling::*[contains-token(@class, 'dgroup')]"/>
-            </xsl:when>
-            <!-- hide the row list -->
-            <xsl:otherwise>
-                <ixsl:set-style name="display" select="'none'" object="following-sibling::*[contains-token(@class, 'dgroup')]"/>
-            </xsl:otherwise>
-        </xsl:choose>
-    </xsl:template>
-    
     <!-- CALLBACKS -->
         
     <xsl:function name="ldh:breadcrumb-resource-response" as="map(*)" ixsl:updating="yes">
@@ -684,7 +640,7 @@ ORDER BY DESC(?created)
                         <xsl:variable name="doc-uri" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/>
                         <xsl:result-document href="?." method="ixsl:append-content">
                             <div class="dgroup">
-                                <xsl:apply-templates select="$results/rdf:RDF/rdf:Description[not(@rdf:about = $doc-uri)]" mode="ldh:DrawerRow">
+                                <xsl:apply-templates select="$results/rdf:RDF/rdf:Description[not(@rdf:about = $doc-uri)]" mode="ldh:LinkRow">
                                     <xsl:sort select="ac:label(.)" order="ascending" lang="{$ac:lang}"/>
                                 </xsl:apply-templates>
                             </div>

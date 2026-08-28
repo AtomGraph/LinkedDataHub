@@ -104,7 +104,7 @@ ul.typeahead.dropdown-menu > li.active > a, ul.typeahead.dropdown-menu > li > a:
 /* ---------- sticky chrome: header on top, action bar (legacy --action-bar-top) right under it.
    Bar heights are tokens that size the bars, not mirrors of their content, so stacked sticky
    offsets (.editor-bar) can compose them without drifting ---------- */
-:root { --ldh-header-height: 56px; --ldh-actionbar-height: 61px; --action-bar-top: var(--ldh-header-height); --ldh-content-w: 1280px; }
+:root { --ldh-header-height: 56px; --ldh-tabbar-height: 40px; --ldh-actionbar-height: 61px; --action-bar-top: var(--ldh-header-height); --ldh-content-w: 1280px; }
 .navbar.ldh-header { position: sticky; top: 0; z-index: 1001; }
 .action-bar.ldh-actionbar {
   box-sizing: border-box;
@@ -189,22 +189,13 @@ div.breadcrumb.ldh-bc { min-width: 0; overflow: hidden; }
 .ldh-actionbar--zoned > .ldh-actions { min-width: calc((100vw - min(var(--ldh-content-w), 100vw)) / 2 - var(--sp-6)); justify-content: flex-end; }
 .ldh-header .ldh-address { justify-self: start; margin-left: max(0px, calc((100vw - min(var(--ldh-content-w), 100vw)) / 2 - 220px - var(--sp-6))); }
 
-/* ---------- block header actions / drawer content hydrated by CSR ---------- */
+/* ---------- block header actions hydrated by CSR ---------- */
 .ldh-block-head .actions > div { display: flex; gap: var(--sp-1); }
 /* bs2:Row nests bs2:Header inside .ldh-block-body (the design keeps head and body as siblings), so the
    head's --sp-6 side padding stacked on the body's and pushed pills/headings right of the rows below;
    the body already provides the horizontal inset */
 .ldh-block-body .ldh-block-head { padding-left: 0; padding-right: 0; }
 .ldh-block-head .actions .tb.disabled { opacity: 0.4; pointer-events: none; }
-.ldh-drawer .db ul.nav { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
-.ldh-drawer .db ul.nav a {
-  display: flex; align-items: center; gap: var(--sp-2);
-  padding: 6px 8px; border-radius: var(--r-sm);
-  font-size: var(--fs-sm); color: var(--fg-2);
-  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-}
-.ldh-drawer .db ul.nav a:hover { background: var(--bg-hover); color: var(--fg-1); text-decoration: none; }
-.ldh-drawer .dh2 { display: flex; align-items: center; justify-content: space-between; margin: 0; cursor: pointer; }
 
 /* ---------- modals: CSR appends div.modal.fade.in and removes it on close ---------- */
 .modal {
@@ -442,12 +433,12 @@ dd.diff-removed, .main > div.diff-removed { border-left: 4px solid var(--danger-
 .btn-expand-tree:hover, .btn-expanded-tree:hover { color: var(--fg-1); }
 
 /* ---------- document tab bar: CSR toggles .active on the <li> ---------- */
-#tab-bar { display: block; }
+/* the sticky bar paints its own surface: scrolled content passes underneath, and the
+   wrapper divs between #tab-bar and the list make child percentage heights unreliable */
+#tab-bar { display: block; background: var(--surface-1); border-bottom: 1px solid var(--border-default); }
 #tab-bar-list {
   display: flex; align-items: stretch; gap: 2px;
   padding: 0 var(--sp-6); margin: 0;
-  background: var(--surface-1);
-  border-bottom: 1px solid var(--border-default);
   list-style: none;
 }
 #tab-bar-list > li { display: flex; }
@@ -483,8 +474,13 @@ dd.diff-removed, .main > div.diff-removed { border-left: 4px solid var(--danger-
 .ldh-view-toolbar .form-inline { display: flex; align-items: center; gap: var(--sp-1); margin: 0; }
 .ldh-view-toolbar .form-inline label { display: flex; align-items: center; gap: var(--sp-1); margin: 0; }
 .ldh-view-toolbar .btn-group.open .dropdown-menu { left: auto; right: 0; }
-/* facets moved from the drawer to the toolbar; hide the drawer group they left behind */
-.ldh-drawer .dgroup:empty { display: none; }
+/* direction toggle mirrors the column-header arrows: the handlers only flip btn-order-by-desc
+   (never the button's content), so the class picks the visible label and the ::before glyph -
+   same pattern as the caret */
+.btn-order-by .sort-arrow::before { content: 'arrow_upward'; }
+.btn-order-by.btn-order-by-desc .sort-arrow::before { content: 'arrow_downward'; }
+.btn-order-by .dir-desc, .btn-order-by.btn-order-by-desc .dir-asc { display: none; }
+.btn-order-by.btn-order-by-desc .dir-desc { display: inline; }
 
 /* typeahead suggestion metadata (type labels) trails the row */
 .dropdown-menu li a .meta { margin-left: auto; font-size: var(--fs-xs); color: var(--fg-muted); }
@@ -504,7 +500,7 @@ html { overflow-x: clip; } /* the 50vw bleed overshoots by half a classic scroll
   position: sticky;
   bottom: 0;
   display: flex; align-items: center; justify-content: flex-end; gap: var(--sp-2);
-  z-index: 24; /* above content, below the drawer (25) and modal chrome */
+  z-index: 24; /* above content, below popovers (40) and modal chrome */
   margin: auto calc(50% - 50vw) 0; /* margin-top: auto parks it at the bottom of the stretched column */
   padding: var(--sp-2) calc((100vw - min(var(--ldh-content-w), 100vw)) / 2 + var(--sp-6)) var(--sp-2) var(--sp-6);
   background: var(--bg-card);

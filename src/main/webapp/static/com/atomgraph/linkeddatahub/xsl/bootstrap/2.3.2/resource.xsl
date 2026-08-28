@@ -357,96 +357,39 @@ extension-element-prefixes="ixsl"
         </xsl:if>
     </xsl:template>
     
-    <!-- BLOCK LINKS DRAWER -->
+    <!-- BLOCK LINKS POPOVER -->
 
-    <!-- backlinks/related/parallax: grid columns under bs2, a block-scoped drawer in the design system.
-         bs2:Left/bs2:Right stay CSR fill targets, so the placeholders are emitted unconditionally;
-         .ldh-drawer is position:fixed and exists visibly only while open, so it ships hidden until the
-         header toolbar links button opens it. -->
-    <xsl:template match="*" mode="ldh:BlockLinksDrawer">
-        <div class="ldh-drawer" style="display: none">
-            <div class="dh">
-                <h3>
-                    <xsl:apply-templates select="." mode="ac:label"/>
-                </h3>
+    <!-- backlinks: jump-off navigation in a popover anchored to the links button in the block header
+         (or the view toolbar). Ships closed and empty; the tb-links onclick lazy-loads the row list
+         on first open, resolving the block URI from the ancestor block's @about at click time, so the
+         markup needs no resource context of its own. -->
+    <xsl:template match="*" mode="ldh:BlockLinksPopover">
+        <div class="links-nav">
+            <button type="button" class="tb tb-links">
+                <xsl:attribute name="title">
+                    <xsl:apply-templates select="key('resources', 'backlinks', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                </xsl:attribute>
 
-                <button type="button" class="close">
-                    <span class="msi sm" aria-hidden="true">close</span>
-                </button>
-            </div>
+                <span class="msi sm" aria-hidden="true">link</span>
+            </button>
 
-            <div class="db">
-                <xsl:apply-templates select="." mode="bs2:Left"/>
+            <div class="links-pop">
+                <h2 class="dh2">
+                    <xsl:value-of>
+                        <xsl:apply-templates select="key('resources', 'backlinks', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                    </xsl:value-of>
+                </h2>
 
-                <xsl:apply-templates select="." mode="bs2:Right"/>
-            </div>
-        </div>
-    </xsl:template>
-
-    <!-- LEFT NAV -->
-    
-    <xsl:template match="*[*][@rdf:about or @rdf:nodeID]" mode="bs2:Left" priority="1">
-        <xsl:param name="id" as="xs:string?"/>
-        <xsl:param name="class" select="'left-nav dgroup'" as="xs:string?"/>
-        
-        <div>
-            <xsl:if test="$id">
-                <xsl:attribute name="id" select="$id"/>
-            </xsl:if>
-            <xsl:if test="$class">
-                <xsl:attribute name="class" select="$class"/>
-            </xsl:if>
-        </div>
-    </xsl:template>
-    
-    <!-- RIGHT NAV -->
-    
-    <xsl:template match="*[rdf:type/@rdf:resource = '&ldh;Object'][rdf:value/@rdf:resource]" mode="bs2:Right" priority="1">
-        <xsl:param name="id" as="xs:string?"/>
-        <xsl:param name="class" select="'right-nav dgroup'" as="xs:string?"/>
-        
-        <div>
-            <xsl:if test="$id">
-                <xsl:attribute name="id" select="$id"/>
-            </xsl:if>
-            <xsl:if test="$class">
-                <xsl:attribute name="class" select="$class"/>
-            </xsl:if>
-            
-            <!-- will be hydrated by client.xsl -->
-        </div>
-    </xsl:template>
-
-    <xsl:template match="*[*][@rdf:about or @rdf:nodeID]" mode="bs2:Right">
-        <xsl:param name="id" as="xs:string?"/>
-        <xsl:param name="class" select="'right-nav dgroup'" as="xs:string?"/>
-        
-        <div>
-            <xsl:if test="$id">
-                <xsl:attribute name="id" select="$id"/>
-            </xsl:if>
-            <xsl:if test="$class">
-                <xsl:attribute name="class" select="$class"/>
-            </xsl:if>
-            
-            <xsl:if test="@rdf:about">
                 <div class="backlinks-nav dgroup">
-                    <h2 class="nav-header dh2">
-                        <xsl:value-of>
-                            <xsl:apply-templates select="key('resources', 'backlinks', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
-                        </xsl:value-of>
-
-                        <span class="caret caret-reversed"></span>
-                    </h2>
-                    <!-- will be hydrated by client.xsl TO-DO: move to client-side -->
+                    <!-- ldh:backlinks-response appends the row list here on first open -->
                 </div>
-            </xsl:if>
+            </div>
         </div>
     </xsl:template>
 
-    <!-- DRAWER ROW -->
+    <!-- LINK ROW -->
 
-    <xsl:template match="*[@rdf:about]" mode="ldh:DrawerRow">
+    <xsl:template match="*[@rdf:about]" mode="ldh:LinkRow">
         <xsl:param name="icon" select="'link'" as="xs:string"/>
 
         <a href="{ldh:href(ac:document-uri(xs:anyURI(@rdf:about)), map{}, ac:fragment-id(@rdf:about))}" title="{@rdf:about}" class="drow{if (not(starts-with(@rdf:about, ldt:base()))) then ' external' else ''}">
@@ -669,12 +612,15 @@ extension-element-prefixes="ixsl"
                         </xsl:for-each>
                     </div>
 
-                    <xsl:apply-templates select="." mode="ldh:BlockLinksDrawer"/>
+                    <!-- content blocks have no header - the popover anchors to the card's top right corner instead, surfaced on card hover by CSS -->
+                    <xsl:if test="$about">
+                        <xsl:apply-templates select="." mode="ldh:BlockLinksPopover"/>
+                    </xsl:if>
                 </div>
             </div>
         </div>
     </xsl:template>
-    
+
     <!-- hide inlined blank node resources from the main block flow -->
     <xsl:template match="*[*][key('resources', @rdf:nodeID)][count(key('predicates-by-object', @rdf:nodeID)[not(self::foaf:primaryTopic)]) = 1]" mode="bs2:Row" priority="1">
         <xsl:param name="display" select="false()" as="xs:boolean" tunnel="yes"/>
@@ -796,8 +742,6 @@ extension-element-prefixes="ixsl"
                     </xsl:otherwise>
                 </xsl:choose>
             </div>
-
-            <xsl:apply-templates select="." mode="ldh:BlockLinksDrawer"/>
         </div>
     </xsl:template>
 
@@ -836,13 +780,7 @@ extension-element-prefixes="ixsl"
                 <xsl:apply-templates select="." mode="bs2:Timestamp"/>
 
                 <xsl:if test="@rdf:about">
-                    <button type="button" class="tb tb-links">
-                        <xsl:attribute name="title">
-                            <xsl:apply-templates select="key('resources', 'backlinks', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
-                        </xsl:attribute>
-
-                        <span class="msi sm" aria-hidden="true">link</span>
-                    </button>
+                    <xsl:apply-templates select="." mode="ldh:BlockLinksPopover"/>
                 </xsl:if>
 
                 <xsl:apply-templates select="." mode="bs2:Actions"/>
@@ -1197,8 +1135,6 @@ extension-element-prefixes="ixsl"
                     </xsl:if>
                 </form>
             </div>
-
-            <xsl:apply-templates select="." mode="ldh:BlockLinksDrawer"/>
         </div>
     </xsl:template>
     

@@ -91,8 +91,8 @@ exclude-result-prefixes="#all">
 
     <xsl:template match="rdf:RDF[ac:absolute-path(ldh:request-uri()) = resolve-uri(encode-for-uri('sign up'), ldt:base())]" mode="bs2:ModeList" priority="2"/>
 
-    <!-- disable the right nav (backlinks etc.) -->
-    <xsl:template match="*[*][@rdf:about or @rdf:nodeID][ac:absolute-path(ldh:request-uri()) = resolve-uri(encode-for-uri('sign up'), ldt:base())]" mode="bs2:Right"/>
+    <!-- disable the block links popover (backlinks) -->
+    <xsl:template match="*[ac:absolute-path(ldh:request-uri()) = resolve-uri(encode-for-uri('sign up'), ldt:base())]" mode="ldh:BlockLinksPopover"/>
 
     <xsl:template match="rdf:RDF[ac:absolute-path(ldh:request-uri()) = resolve-uri(encode-for-uri('sign up'), ldt:base())]" mode="bs2:Row" priority="2">
         <xsl:variable name="placeholder-id" select="'signup-form-placeholder'" as="xs:string"/>

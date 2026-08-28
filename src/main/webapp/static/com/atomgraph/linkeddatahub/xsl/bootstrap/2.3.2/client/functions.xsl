@@ -110,10 +110,7 @@ exclude-result-prefixes="#all"
     </xsl:function>
 
     <xsl:function name="ldh:new-object">
-        <xsl:variable name="js-statement" as="element()">
-            <root statement="{{ }}"/>
-        </xsl:variable>
-        <xsl:sequence select="ixsl:eval(string($js-statement/@statement))"/>
+        <xsl:sequence select="ixsl:new('Object', [])"/>
     </xsl:function>
 
     <!-- resolved value of a design token (CSS custom property on the root element), for canvas

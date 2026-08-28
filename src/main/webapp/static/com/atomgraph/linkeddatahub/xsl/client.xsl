@@ -749,7 +749,7 @@ WHERE
 
         <!-- show the tab bar -->
         <ixsl:set-style name="display" select="'block'" object="id('tab-bar', ixsl:page())"/>
-        <xsl:sequence select="ixsl:call(ixsl:get(ixsl:page(), 'documentElement.style'), 'setProperty', ['--action-bar-top', '98px'])[current-date() lt xs:date('2000-01-01')]"/>
+        <xsl:sequence select="ixsl:call(ixsl:get(ixsl:page(), 'documentElement.style'), 'setProperty', ['--action-bar-top', 'calc(var(--ldh-header-height) + var(--ldh-tabbar-height))'])[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
 
     <!-- activate an existing tab; matches pane by @about = $doc-uri (document scope, no fragment) -->

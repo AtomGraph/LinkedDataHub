@@ -648,7 +648,10 @@ WHERE
                     <xsl:variable name="etag" select="?headers?etag" as="xs:string?"/>
 
                     <xsl:for-each select="?body">
-                        <ixsl:set-property name="{'`' || ac:absolute-path(ldh:base-uri(.)) || '`'}" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.contents')"/>
+                        <!-- reuse the existing per-URI object: replacing it would wipe the 'block-html' snapshot stored by the btn-edit handler when $about equals the document URI (proxied external resources) -->
+                        <xsl:if test="not(ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path(ldh:base-uri(.)) || '`'))">
+                            <ixsl:set-property name="{'`' || ac:absolute-path(ldh:base-uri(.)) || '`'}" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.contents')"/>
+                        </xsl:if>
                         <!-- store document under window.LinkedDataHub.contents[$base-uri].results -->
                         <ixsl:set-property name="results" select="." object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path(ldh:base-uri(.)) || '`')"/>
                         <!-- store ETag header value under window.LinkedDataHub.contents[$base-uri].etag -->

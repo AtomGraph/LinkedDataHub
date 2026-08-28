@@ -495,7 +495,7 @@
         is a discrete "pane". Big Apple radii + luminous edge + specular top. -- */
 :root[data-retro="glass"] .ldh-block,
 :root[data-retro="glass"] .ldh-panel,
-:root[data-retro="glass"] .ldh-drawer,
+:root[data-retro="glass"] .links-pop,
 :root[data-retro="glass"] .ldh-modal,
 :root[data-retro="glass"] .ldh-add-menu,
 :root[data-retro="glass"] .ldh-form-actions-menu,
@@ -696,7 +696,7 @@
 
 /* ---- FLOATING CHROME: real frosted glass (these float above the document) ---- */
 :root[data-retro="glasspro"] .ldh-modal,
-:root[data-retro="glasspro"] .ldh-drawer,
+:root[data-retro="glasspro"] .links-pop,
 :root[data-retro="glasspro"] .ldh-add-menu,
 :root[data-retro="glasspro"] .ldh-form-actions-menu,
 :root[data-retro="glasspro"] .ldh-mode .modes-pop {
@@ -1106,18 +1106,11 @@
 :root[data-retro^="m3"] .ldh-modal { background: var(--md-surface-container-lowest); border-radius: 28px; }
 :root[data-retro^="m3"] .ldh-add-menu,
 :root[data-retro^="m3"] .ldh-form-actions-menu,
+:root[data-retro^="m3"] .links-pop,
 :root[data-retro^="m3"] .ldh-mode .modes-pop {
   background: var(--md-surface-container);
   border: 1px solid var(--md-outline-variant);
   border-radius: 12px;
-}
-/* The block drawer is edge-anchored, not a floating menu — square it off with a
-   hairline left border so it reads as a quiet panel matching the flow blocks. */
-:root[data-retro^="m3"] .ldh-drawer {
-  background: var(--md-surface-container);
-  border: 0;
-  border-left: 1px solid var(--md-outline-variant);
-  border-radius: 0;
 }
 
 /* ---- Buttons: full pill, M3 "Label large" type, flat at rest (filled = level 0),
