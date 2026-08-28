@@ -221,9 +221,6 @@ extension-element-prefixes="ixsl"
         </xsl:copy>
     </xsl:template>
     
-    <!-- reset the OFFSET on parallax because otherwise we can get an empty result -->
-    <xsl:template match="/json:map/json:number[@key = 'offset']" mode="ldh:add-parallax-step" priority="1"/>
-
     <!-- change ORDER BY -->
 
     <!-- identity transform -->

@@ -651,6 +651,42 @@ exclude-result-prefixes="#all"
         </xsl:document>
     </xsl:template>
 
+    <xsl:template name="ldh:ViewFilter">
+        <xsl:param name="select-xml" as="document-node()"/>
+        <xsl:param name="var-name" as="xs:string"/>
+        <xsl:param name="values" as="array(map(xs:string, xs:string))"/>
+
+        <xsl:variable name="select-xml" as="document-node()">
+            <xsl:document>
+                <xsl:apply-templates select="$select-xml" mode="ldh:filter-in">
+                    <xsl:with-param name="var-name" select="$var-name" tunnel="yes"/>
+                    <xsl:with-param name="values" select="$values" tunnel="yes"/>
+                </xsl:apply-templates>
+            </xsl:document>
+        </xsl:variable>
+        <!-- a changed filter changes the result set, so paging restarts from the first page (no tunneled $offset removes OFFSET) -->
+        <xsl:document>
+            <xsl:apply-templates select="$select-xml" mode="ldh:replace-offset"/>
+        </xsl:document>
+    </xsl:template>
+
+    <xsl:template name="ldh:ViewParallax">
+        <xsl:param name="select-xml" as="document-node()"/>
+        <xsl:param name="predicate" as="xs:anyURI"/>
+
+        <xsl:variable name="select-xml" as="document-node()">
+            <xsl:document>
+                <xsl:apply-templates select="$select-xml" mode="ldh:add-parallax-step">
+                    <xsl:with-param name="predicate" select="$predicate" tunnel="yes"/>
+                </xsl:apply-templates>
+            </xsl:document>
+        </xsl:variable>
+        <!-- a parallax step changes the result set, so paging restarts from the first page (no tunneled $offset removes OFFSET) -->
+        <xsl:document>
+            <xsl:apply-templates select="$select-xml" mode="ldh:replace-offset"/>
+        </xsl:document>
+    </xsl:template>
+
     <!-- $container here is the inner result container, not the content container! -->
     <xsl:template name="ldh:RenderViewMode">
         <xsl:param name="container" as="element()"/>
@@ -1986,12 +2022,11 @@ exclude-result-prefixes="#all"
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
         <xsl:variable name="select-xml" as="document-node()">
-            <xsl:document>
-                <xsl:apply-templates select="$select-xml" mode="ldh:filter-in">
-                    <xsl:with-param name="var-name" select="$var-name" tunnel="yes"/>
-                    <xsl:with-param name="values" select="$values" tunnel="yes"/>
-                </xsl:apply-templates>
-            </xsl:document>
+            <xsl:call-template name="ldh:ViewFilter">
+                <xsl:with-param name="select-xml" select="$select-xml"/>
+                <xsl:with-param name="var-name" select="$var-name"/>
+                <xsl:with-param name="values" select="$values"/>
+            </xsl:call-template>
         </xsl:variable>
         <!-- store the transformed query XML -->
         <ixsl:set-property name="select-xml" select="$select-xml" object="$cache"/>
@@ -2034,11 +2069,10 @@ exclude-result-prefixes="#all"
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
         <xsl:variable name="select-xml" as="document-node()">
-            <xsl:document>
-                <xsl:apply-templates select="$select-xml" mode="ldh:add-parallax-step">
-                    <xsl:with-param name="predicate" select="$predicate" tunnel="yes"/>
-                </xsl:apply-templates>
-            </xsl:document>
+            <xsl:call-template name="ldh:ViewParallax">
+                <xsl:with-param name="select-xml" select="$select-xml"/>
+                <xsl:with-param name="predicate" select="$predicate"/>
+            </xsl:call-template>
         </xsl:variable>
 
         <!-- store the transformed query XML -->
