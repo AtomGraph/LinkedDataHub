@@ -135,6 +135,10 @@ exclude-result-prefixes="#all"
                     <!-- the Table chart renders as HTML - it is skinned by CSS in ldh.css, not draw options -->
                     <xsl:when test="$chart-type = '&ac;Table'">
                         <xsl:map-entry key="'allowHtml'" select="true()"/>
+                        <!-- the HTML table sizes to content by default, unlike the SVG charts which fill their container -->
+                        <xsl:if test="not(exists($width))">
+                            <xsl:map-entry key="'width'" select="'100%'"/>
+                        </xsl:if>
                     </xsl:when>
                     <xsl:otherwise>
                         <xsl:map-entry key="'colors'" select="array{ ('--ldh-blue-500', '--ldh-violet-500', '--success-500', '--warning-500', '--danger-500', '--ldh-blue-300', '--ldh-violet-300') ! ldh:css-token(.)[. ne ''] }"/>
