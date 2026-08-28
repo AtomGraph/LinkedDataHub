@@ -68,7 +68,8 @@ fieldset fieldset { margin-left: 3%; margin-bottom: 3%; }
 .control-group.required .control-label { font-weight: bold; }
 .description { display: none; }
 div[typeof="https://w3id.org/atomgraph/linkeddatahub#XHTML"] .main { font-size: larger; line-height: 25px; overflow-x: auto; }
-div[typeof="https://w3id.org/atomgraph/linkeddatahub#XHTML"]:not(:has(form)) .main { cursor: pointer; }
+/* click-to-edit affordance only when the pane's document grants acl:Write (mirrors the ixsl:onclick guard in block.xsl) */
+div[data-acl-modes~="http://www.w3.org/ns/auth/acl#Write"] div[typeof="https://w3id.org/atomgraph/linkeddatahub#XHTML"]:not(:has(form)) .main { cursor: pointer; }
 div[typeof="https://w3id.org/atomgraph/linkeddatahub#XHTML"] .btn-edit { display: none; }
 div[typeof="https://w3id.org/atomgraph/linkeddatahub#XHTML"] .ldh-prop-form .control-label { display: none; }
 /* collapse the bridge's label-column grid: the region spans the block as a document surface, not a form row */
