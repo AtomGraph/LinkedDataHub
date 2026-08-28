@@ -1211,8 +1211,8 @@ WHERE
     <!-- copy resource's URI into clipboard -->
     
     <xsl:template match="button[contains-token(@class, 'btn-copy-uri')]" mode="ixsl:onclick">
-        <!-- get resource URI from its heading title attribute, both in bs2:Actions and bs2:FormControl mode -->
-        <xsl:variable name="uri-or-bnode" select="../../h2/a/@title | ../following-sibling::div//input[@name = ('su', 'sb')]/@value" as="xs:string"/>
+        <!-- resolve the URI by placement: the block header's title anchor (bs2:Actions), the subject URI/bnode ID inputs (bs2:FormControl legend), or the ancestor block's @about (view toolbar and XHTML content corner, which render no title anchor) -->
+        <xsl:variable name="uri-or-bnode" select="(ancestor::div[contains-token(@class, 'ldh-block-head')][1]//h2/a/@title, ../following-sibling::div//input[@name = ('su', 'sb')]/@value, ancestor::div[contains-token(@class, 'block')][1]/@about)[1]" as="xs:string"/>
         <xsl:sequence select="ixsl:call(ixsl:get(ixsl:window(), 'navigator.clipboard'), 'writeText', [ $uri-or-bnode ])"/>
     </xsl:template>
 

@@ -240,20 +240,23 @@ extension-element-prefixes="ixsl"
                 <xsl:with-param name="uri" select="ac:absolute-path(ldh:base-uri(.))"/>
             </xsl:apply-templates>
 
-            <div id="doc-controls" class="ldh-ab-ts">
-                <span class="msi sm" aria-hidden="true">schedule</span>
-                <xsl:choose>
-                    <!-- versioned document: the timestamp links to its version history (Memento TimeMap) -->
-                    <xsl:when test="exists(ldh:timemap())">
-                        <a href="{ldh:timemap()}" class="document-history" title="{ac:label(key('resources', 'history', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin))))}">
-                            <xsl:apply-templates select="key('resources', ac:absolute-path(ldh:base-uri(.)))" mode="bs2:Timestamp"/>
-                        </a>
-                    </xsl:when>
-                    <xsl:otherwise>
-                        <xsl:apply-templates select="key('resources', ac:absolute-path(ldh:base-uri(.)))" mode="bs2:Timestamp"/>
-                    </xsl:otherwise>
-                </xsl:choose>
-            </div>
+            <xsl:variable name="document" select="key('resources', ac:absolute-path(ldh:base-uri(.)))" as="element()?"/>
+            <xsl:if test="$document/(dct:created, dct:modified)[text()[. castable as xs:date or . castable as xs:dateTime]]">
+                <div id="doc-controls" class="ldh-ab-ts">
+                    <span class="msi sm" aria-hidden="true">schedule</span>
+                    <xsl:choose>
+                        <!-- versioned document: the timestamp links to its version history (Memento TimeMap) -->
+                        <xsl:when test="exists(ldh:timemap())">
+                            <a href="{ldh:timemap()}" class="document-history" title="{ac:label(key('resources', 'history', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin))))}">
+                                <xsl:apply-templates select="$document" mode="bs2:Timestamp"/>
+                            </a>
+                        </xsl:when>
+                        <xsl:otherwise>
+                            <xsl:apply-templates select="$document" mode="bs2:Timestamp"/>
+                        </xsl:otherwise>
+                    </xsl:choose>
+                </div>
+            </xsl:if>
         </div>
     </xsl:template>
     

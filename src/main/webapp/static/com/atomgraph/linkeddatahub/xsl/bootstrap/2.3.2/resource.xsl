@@ -387,6 +387,21 @@ extension-element-prefixes="ixsl"
         </div>
     </xsl:template>
 
+    <!-- COPY URI BUTTON -->
+
+    <!-- copies the resource's URI to the clipboard. Context-free markup like ldh:BlockLinksPopover:
+         the onclick handler in client.xsl resolves the URI from the header's title anchor or the
+         ancestor block's @about at click time. -->
+    <xsl:template match="*" mode="ldh:CopyUriButton">
+        <button type="button" class="btn-copy-uri tb">
+            <xsl:attribute name="title">
+                <xsl:apply-templates select="key('resources', 'copy-uri', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+            </xsl:attribute>
+
+            <span class="msi sm" aria-hidden="true">content_copy</span>
+        </button>
+    </xsl:template>
+
     <!-- LINK ROW -->
 
     <xsl:template match="*[@rdf:about]" mode="ldh:LinkRow">
@@ -612,9 +627,10 @@ extension-element-prefixes="ixsl"
                         </xsl:for-each>
                     </div>
 
-                    <!-- content blocks have no header - the popover anchors to the card's top right corner instead, surfaced on card hover by CSS -->
+                    <!-- content blocks have no header - the popover and the copy-URI button anchor to the card's top right corner instead, surfaced on card hover by CSS -->
                     <xsl:if test="$about">
                         <xsl:apply-templates select="." mode="ldh:BlockLinksPopover"/>
+                        <xsl:apply-templates select="." mode="ldh:CopyUriButton"/>
                     </xsl:if>
                 </div>
             </div>
@@ -895,13 +911,7 @@ extension-element-prefixes="ixsl"
             </xsl:if>
             -->
             
-            <button type="button" class="btn-copy-uri tb">
-                <xsl:attribute name="title">
-                    <xsl:apply-templates select="key('resources', 'copy-uri', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
-                </xsl:attribute>
-
-                <span class="msi sm" aria-hidden="true">content_copy</span>
-            </button>
+            <xsl:apply-templates select="." mode="ldh:CopyUriButton"/>
 
             <xsl:if test="$show-edit-button">
                 <button type="button" class="btn-edit tb">

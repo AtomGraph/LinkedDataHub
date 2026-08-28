@@ -1054,6 +1054,14 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
    card's top right corner and surfaces on card hover, staying put while open */
 .ldh-block .block-row > .links-nav { position: absolute; top: var(--sp-3); right: var(--sp-3); opacity: 0; transition: opacity var(--dur-fast) var(--ease-out-soft); }
 .ldh-block:hover .block-row > .links-nav, .ldh-block .block-row > .links-nav.is-open { opacity: 1; }
+
+/* Copy-URI button — the header actions' quiet icon treatment for hosts outside
+   the block head: the view toolbar's right zone and the content block's corner,
+   where it sits left of the links button and surfaces on the same card hover */
+.ldh-view-toolbar .right .btn-copy-uri, .ldh-block .block-row > .btn-copy-uri { width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center; background: transparent; border: 0; border-radius: var(--r-sm); color: var(--fg-muted); }
+.ldh-view-toolbar .right .btn-copy-uri:hover, .ldh-block .block-row > .btn-copy-uri:hover { background: var(--bg-hover); color: var(--fg-1); }
+.ldh-block .block-row > .btn-copy-uri { position: absolute; top: var(--sp-3); right: calc(var(--sp-3) + 32px + var(--sp-1)); opacity: 0; transition: opacity var(--dur-fast) var(--ease-out-soft); }
+.ldh-block:hover .block-row > .btn-copy-uri { opacity: 1; }
 .ldh-block-body { padding: 0 var(--sp-6) var(--sp-6); }
 .ldh-block-body.is-flush { padding: 0; }
 .ldh-block-foot {

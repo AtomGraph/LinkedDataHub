@@ -1088,6 +1088,8 @@ exclude-result-prefixes="#all"
                         </xsl:call-template>
 
                         <xsl:apply-templates select="." mode="ldh:BlockLinksPopover"/>
+
+                        <xsl:apply-templates select="." mode="ldh:CopyUriButton"/>
                     </div>
                 </div>
 
@@ -1966,7 +1968,11 @@ exclude-result-prefixes="#all"
         <xsl:variable name="predicate" select="input[@name = 'predicate']/@value" as="xs:anyURI"/>
         <xsl:variable name="object-var-name" select="input[@name = 'object']/@value" as="xs:string"/>
         <xsl:variable name="cache" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`')" as="item()"/>
-        <xsl:variable name="select-xml" select="ixsl:get($cache, 'select-xml')" as="document-node()"/>
+        <!-- load facet values using the initial (not the current transformed) SELECT query, so that one facet's selection does not constrain another facet's value list -->
+        <xsl:variable name="select-string" select="ixsl:get($cache, 'select-string')" as="xs:string"/>
+        <xsl:variable name="select-builder" select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromString', [ $select-string ])"/>
+        <xsl:variable name="select-json-string" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ ixsl:call($select-builder, 'build', []) ])" as="xs:string"/>
+        <xsl:variable name="select-xml" select="json-to-xml($select-json-string)" as="document-node()"/>
         <!-- TO-DO: can we get multiple BGPs here with the same ?s/p/?o ? -->
         <xsl:variable name="bgp-triples-map" select="$select-xml//json:map[json:string[@key = 'type'] = 'bgp']/json:array[@key = 'triples']/json:map[json:string[@key = 'subject'] = '?' || $subject-var-name][json:string[@key = 'predicate'] = $predicate][json:string[@key = 'object'] = '?' || $object-var-name]" as="element()"/>
 
