@@ -172,9 +172,12 @@ div.breadcrumb.ldh-bc { min-width: 0; overflow: hidden; }
 /* the breadcrumb zone and the address bar left-align with the content column's blocks (mirror of
    the create dock's right alignment): the column edge is (100vw - column)/2 + the sp-6 inset.
    Widening the left zone floats ab-mid onto that edge (bar padding + grid gap cover 2*sp-6);
-   the address bar trades centering for a start margin discounting the 220px wordmark column
-   (app.css header grid) plus padding and gap. Below column width both clamp to no-op. */
+   the same widening on the right zone lands ab-mid's end — the dateTime stamp — on the column's
+   right edge (flex-end keeps the action buttons on the viewport edge); the address bar trades
+   centering for a start margin discounting the 220px wordmark column (app.css header grid) plus
+   padding and gap. Below column width all clamp to no-op. */
 .ldh-actionbar--zoned > .ab-left { min-width: calc((100vw - min(var(--ldh-content-w), 100vw)) / 2 - var(--sp-6)); }
+.ldh-actionbar--zoned > .ldh-actions { min-width: calc((100vw - min(var(--ldh-content-w), 100vw)) / 2 - var(--sp-6)); justify-content: flex-end; }
 .ldh-header .ldh-address { justify-self: start; margin-left: max(0px, calc((100vw - min(var(--ldh-content-w), 100vw)) / 2 - 220px - var(--sp-6))); }
 
 /* ---------- block header actions / drawer content hydrated by CSR ---------- */

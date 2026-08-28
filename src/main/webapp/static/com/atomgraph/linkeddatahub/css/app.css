@@ -829,6 +829,7 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
   font-weight: var(--fw-medium);
   margin-right: var(--sp-2);
 }
+.ldh-mode > button { background: transparent; border: 0; padding: 0; color: inherit; font: inherit; }
 .ldh-mode .label-row { display: inline-flex; align-items: center; gap: var(--sp-2); }
 .ldh-mode .label { letter-spacing: 0.02em; }
 .ldh-mode .modes-pop {
@@ -953,6 +954,8 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
 
 /* ---------- Generic Block (view block wrapper) ---------- */
 .ldh-block {
+  /* positioned: the anchor for the block-scoped .ldh-drawer */
+  position: relative;
   background: var(--bg-card);
   border: 1px solid var(--border-default);
   border-radius: var(--r-lg);
@@ -1031,13 +1034,14 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
    match the anchor block's bounding rect, so the drawer stays block-scoped
    vertically. */
 .ldh-drawer {
-  position: fixed;
-  right: 0;
-  width: min(360px, 92vw);
+  /* absolute against the .ldh-block anchor, not fixed: retro-theme hover-lift transforms make the card a fixed-position containing block, so a fixed drawer would re-anchor between card and viewport as hover toggles */
+  position: absolute;
+  top: 0; right: 0; bottom: 0;
+  width: min(360px, 100%);
   background: var(--surface-0);
   border: 0;
   border-left: 1px solid var(--border-default);
-  border-radius: 0;
+  border-radius: 0 var(--r-lg) var(--r-lg) 0;
   box-shadow: -8px 0 24px -22px rgba(15, 23, 42, 0.16);
   display: flex; flex-direction: column;
   z-index: 25;
