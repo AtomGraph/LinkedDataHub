@@ -313,18 +313,6 @@ ul.ldh-typelist > li > a, ul.ldh-typelist > li > span {
 }
 ul.ldh-typelist > li > a:hover { text-decoration: none; background: var(--ldh-blue-100, var(--bg-hover)); }
 
-/* ---------- view pager: exact-class markup the CSR paging handlers match on ---------- */
-ul.pager { display: flex; justify-content: space-between; align-items: center; list-style: none; margin: var(--sp-3) 0 0; padding: 0; }
-ul.pager > li > a {
-  display: inline-flex; align-items: center; gap: var(--sp-2);
-  height: 30px; padding: 0 12px;
-  border: 1px solid var(--border-default); border-radius: var(--r-sm);
-  background: var(--surface-0); color: var(--fg-hint);
-  font-size: var(--fs-sm); pointer-events: none;
-}
-ul.pager > li > a.active { color: var(--fg-1); pointer-events: auto; cursor: pointer; }
-ul.pager > li > a.active:hover { background: var(--bg-hover); text-decoration: none; }
-
 /* ---------- fieldsets/legends: sections, not Bootstrap-era boxes ---------- */
 fieldset { border: 0; padding: 0; margin: 0 0 var(--sp-4); min-inline-size: 0; }
 legend {
@@ -372,6 +360,11 @@ form .control-group > .controls > .btn-group { order: 99; margin-left: auto; }
 /* explicit columns: a dt can be followed by several dds, which auto-placement would drop into column 1 */
 .ldh-block dl > dt { grid-column: 1; }
 .ldh-block dl > dd { grid-column: 2; }
+/* a block header with an image adopts the property-list geometry (dt track + column gap), so the
+   titles group left-aligns with the dd values below regardless of the image's natural size;
+   imageless headers stay flex, their titles flush at the card edge like the dt labels */
+.ldh-block-head:has(> a > img, > img) { display: grid; grid-template-columns: minmax(140px, 220px) minmax(0, 1fr) auto; column-gap: var(--sp-6); }
+.ldh-block-head > a > img, .ldh-block-head > img { width: 100%; height: auto; }
 /* the design's .ldh-prop-group hover: the row under the pointer reads as one continuous
    band across label, value, the sp-6 column gap and the sp-6 card padding - the gaps are
    filled by offset box-shadow copies of the cell, clipped at the card edge by the block's

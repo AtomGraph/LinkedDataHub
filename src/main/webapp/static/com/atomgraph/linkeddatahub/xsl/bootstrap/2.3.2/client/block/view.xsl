@@ -324,6 +324,7 @@ exclude-result-prefixes="#all"
     
     <xsl:template name="ldh:ResultCount">
         <xsl:context-item as="element()" use="required"/>
+        <xsl:param name="container-id" as="xs:string?"/>
         <xsl:param name="count-var-name" select="'count'" as="xs:string"/>
         <xsl:param name="endpoint" as="xs:anyURI"/>
         <xsl:param name="select-xml" as="document-node()"/>
@@ -362,6 +363,7 @@ exclude-result-prefixes="#all"
           map {
             'request': $request,
             'container': .,
+            'container-id': $container-id,
             'count-var-name': $count-var-name,
             'cache': $cache
           }"/>
@@ -375,43 +377,134 @@ exclude-result-prefixes="#all"
     
     <!-- pager -->
 
-    <xsl:template name="bs2:PagerList">
+    <xsl:template name="bs2:Pager">
+        <xsl:param name="container-id" as="xs:string?"/>
         <xsl:param name="result-count" as="xs:integer?"/>
         <xsl:param name="select-xml" as="document-node()"/>
+        <xsl:param name="total-count" as="xs:integer?"/>
         <xsl:variable name="offset" select="if ($select-xml/json:map/json:number[@key = 'offset']) then xs:integer($select-xml/json:map/json:number[@key = 'offset']) else 0" as="xs:integer"/>
         <xsl:variable name="limit" select="if ($select-xml/json:map/json:number[@key = 'limit']) then xs:integer($select-xml/json:map/json:number[@key = 'limit']) else 0" as="xs:integer"/>
-        <xsl:variable name="show" select="($offset - $limit) &gt;= 0 or $result-count &gt;= $limit" as="xs:boolean"/>
+        <xsl:variable name="show" select="$limit gt 0 and (($offset - $limit) ge 0 or $result-count ge $limit)" as="xs:boolean"/>
 
         <!-- do not show pagination if the children document count is less than the page limit -->
         <xsl:if test="$show">
-            <ul class="pager">
-                <li class="previous">
-                    <xsl:choose>
-                        <xsl:when test="($offset - $limit) &gt;= 0">
-                            <a class="active">
-                                <!-- event listener will handle the click -->
-                            </a>
-                        </xsl:when>
-                        <xsl:otherwise>
-                            <xsl:attribute name="class" select="'previous disabled'"/>
-                            <a></a>
-                        </xsl:otherwise>
-                    </xsl:choose>
-                </li>
-                <li class="next">
-                    <xsl:choose>
-                        <xsl:when test="$result-count &gt;= $limit">
-                            <a class="active">
-                                <!-- event listener will handle the click -->
-                            </a>
-                        </xsl:when>
-                        <xsl:otherwise>
-                            <xsl:attribute name="class" select="'next disabled'"/>
-                            <a></a>
-                        </xsl:otherwise>
-                    </xsl:choose>
-                </li>
-            </ul>
+            <div class="ldh-pager" role="navigation">
+                <xsl:call-template name="bs2:PagerControls">
+                    <xsl:with-param name="container-id" select="$container-id"/>
+                    <xsl:with-param name="result-count" select="$result-count"/>
+                    <xsl:with-param name="select-xml" select="$select-xml"/>
+                    <xsl:with-param name="total-count" select="$total-count"/>
+                </xsl:call-template>
+            </div>
+        </xsl:if>
+    </xsl:template>
+
+    <!-- the three pager zones (page-size selector · prev/status/next · page count), re-rendered by ldh:result-count-response once the COUNT total arrives -->
+    <xsl:template name="bs2:PagerControls">
+        <xsl:param name="container-id" as="xs:string?"/>
+        <xsl:param name="result-count" as="xs:integer?"/>
+        <xsl:param name="select-xml" as="document-node()"/>
+        <xsl:param name="total-count" as="xs:integer?"/>
+        <xsl:variable name="offset" select="if ($select-xml/json:map/json:number[@key = 'offset']) then xs:integer($select-xml/json:map/json:number[@key = 'offset']) else 0" as="xs:integer"/>
+        <xsl:variable name="limit" select="if ($select-xml/json:map/json:number[@key = 'limit']) then xs:integer($select-xml/json:map/json:number[@key = 'limit']) else 0" as="xs:integer"/>
+        <xsl:variable name="select-id" select="$container-id ! (. || '-pager-size')" as="xs:string?"/>
+
+        <div class="ldh-pager-size">
+            <label>
+                <xsl:if test="$select-id">
+                    <xsl:attribute name="for" select="$select-id"/>
+                </xsl:if>
+
+                <xsl:apply-templates select="key('resources', 'rows-per-page', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+            </label>
+            <div class="ldh-pager-select">
+                <select class="pager-size" title="{ac:label(key('resources', 'rows-per-page', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin))))}">
+                    <xsl:if test="$select-id">
+                        <xsl:attribute name="id" select="$select-id"/>
+                    </xsl:if>
+
+                    <xsl:for-each select="distinct-values(((20, 50, 100), $limit[. gt 0]))">
+                        <xsl:sort select="." data-type="number"/>
+
+                        <option value="{.}">
+                            <xsl:if test=". = $limit">
+                                <xsl:attribute name="selected">selected</xsl:attribute>
+                            </xsl:if>
+
+                            <xsl:value-of select="."/>
+                        </option>
+                    </xsl:for-each>
+                </select>
+                <span class="msi sm caret" aria-hidden="true">unfold_more</span>
+            </div>
+        </div>
+
+        <div class="ldh-pager-nav">
+            <xsl:choose>
+                <xsl:when test="($offset - $limit) ge 0">
+                    <a class="ldh-pager-btn pager-prev">
+                        <span class="msi sm" aria-hidden="true">chevron_left</span>
+                        <span>
+                            <xsl:apply-templates select="key('resources', 'previous', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                        </span>
+                    </a>
+                </xsl:when>
+                <xsl:otherwise>
+                    <span class="ldh-pager-btn is-disabled" aria-disabled="true">
+                        <span class="msi sm" aria-hidden="true">chevron_left</span>
+                        <span>
+                            <xsl:apply-templates select="key('resources', 'previous', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                        </span>
+                    </span>
+                </xsl:otherwise>
+            </xsl:choose>
+
+            <span class="ldh-pager-status">
+                <b>
+                    <xsl:value-of select="$offset + 1"/>
+                    <xsl:text>&#8211;</xsl:text>
+                    <xsl:value-of select="$offset + ($result-count, 0)[1]"/>
+                </b>
+                <xsl:if test="exists($total-count)">
+                    <span class="of">
+                        <xsl:apply-templates select="key('resources', 'of', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                        <xsl:text> </xsl:text>
+                        <xsl:value-of select="$total-count"/>
+                    </span>
+                </xsl:if>
+            </span>
+
+            <!-- next stays active while the current page is full and, when the total is known, rows remain beyond it -->
+            <xsl:choose>
+                <xsl:when test="$result-count ge $limit and (empty($total-count) or ($offset + $limit) lt $total-count)">
+                    <a class="ldh-pager-btn pager-next">
+                        <span>
+                            <xsl:apply-templates select="key('resources', 'next', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                        </span>
+                        <span class="msi sm" aria-hidden="true">chevron_right</span>
+                    </a>
+                </xsl:when>
+                <xsl:otherwise>
+                    <span class="ldh-pager-btn is-disabled" aria-disabled="true">
+                        <span>
+                            <xsl:apply-templates select="key('resources', 'next', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                        </span>
+                        <span class="msi sm" aria-hidden="true">chevron_right</span>
+                    </span>
+                </xsl:otherwise>
+            </xsl:choose>
+        </div>
+
+        <xsl:if test="exists($total-count) and $limit gt 0">
+            <div class="ldh-pager-page">
+                <xsl:apply-templates select="key('resources', 'page', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                <xsl:text> </xsl:text>
+                <b>
+                    <xsl:value-of select="$offset idiv $limit + 1"/>
+                </b>
+                <xsl:text> / </xsl:text>
+                <xsl:value-of select="max((xs:integer(ceiling($total-count div $limit)), 1))"/>
+            </div>
         </xsl:if>
     </xsl:template>
 
@@ -507,13 +600,32 @@ exclude-result-prefixes="#all"
         <xsl:param name="select-xml" as="document-node()"/>
         <xsl:param name="direction" as="xs:string"/> <!-- 'previous' or 'next' -->
 
+        <!-- step by the query's own LIMIT so paging stays aligned after the page size is changed -->
+        <xsl:variable name="limit" select="if ($select-xml/json:map/json:number[@key = 'limit']) then xs:integer($select-xml/json:map/json:number[@key = 'limit']) else $page-size" as="xs:integer"/>
         <xsl:variable name="offset" select="if ($select-xml/json:map/json:number[@key = 'offset']) then xs:integer($select-xml/json:map/json:number[@key = 'offset']) else 0" as="xs:integer"/>
-        <xsl:variable name="offset" select="if ($direction = 'previous') then $offset - $page-size else $offset + $page-size" as="xs:integer"/>
+        <xsl:variable name="offset" select="if ($direction = 'previous') then $offset - $limit else $offset + $limit" as="xs:integer"/>
 
         <xsl:document>
             <xsl:apply-templates select="$select-xml" mode="ldh:replace-offset">
                 <xsl:with-param name="offset" select="$offset" tunnel="yes"/>
             </xsl:apply-templates>
+        </xsl:document>
+    </xsl:template>
+
+    <xsl:template name="ldh:ViewLimit">
+        <xsl:param name="select-xml" as="document-node()"/>
+        <xsl:param name="limit" as="xs:integer"/>
+
+        <xsl:variable name="select-xml" as="document-node()">
+            <xsl:document>
+                <xsl:apply-templates select="$select-xml" mode="ldh:replace-limit">
+                    <xsl:with-param name="limit" select="$limit" tunnel="yes"/>
+                </xsl:apply-templates>
+            </xsl:document>
+        </xsl:variable>
+        <!-- a new page size restarts paging from the first page (no tunneled $offset removes OFFSET) -->
+        <xsl:document>
+            <xsl:apply-templates select="$select-xml" mode="ldh:replace-offset"/>
         </xsl:document>
     </xsl:template>
 
@@ -552,6 +664,9 @@ exclude-result-prefixes="#all"
 
         <!-- Skip ViewModeChoice replace-content for GraphMode: its canvas lives in the persistent graph-host (sibling of $container), not in container-results, so re-rendering this area would only churn unused DOM. -->
         <xsl:if test="not($active-mode = '&ac;GraphMode')">
+            <!-- total cached by ldh:result-count-response (or the exact-count short-circuit); empty until the first COUNT response arrives -->
+            <xsl:variable name="total-count" select="if (ixsl:contains($cache, 'result-count')) then xs:integer(ixsl:get($cache, 'result-count')) else ()" as="xs:integer?"/>
+
             <xsl:for-each select="$container">
                 <xsl:result-document href="?." method="ixsl:replace-content">
                     <xsl:call-template name="ldh:ViewModeChoice">
@@ -561,6 +676,7 @@ exclude-result-prefixes="#all"
                         <xsl:with-param name="results" select="$results"/>
                         <xsl:with-param name="active-mode" select="$active-mode"/>
                         <xsl:with-param name="object-metadata" select="$object-metadata"/>
+                        <xsl:with-param name="total-count" select="$total-count"/>
                     </xsl:call-template>
                 </xsl:result-document>
             </xsl:for-each>
@@ -726,18 +842,23 @@ exclude-result-prefixes="#all"
         <xsl:param name="results" as="document-node()"/>
         <xsl:param name="object-metadata" as="document-node()?"/>
         <xsl:param name="active-mode" as="xs:anyURI"/>
+        <xsl:param name="total-count" as="xs:integer?"/>
 
         <xsl:choose>
             <xsl:when test="$active-mode = '&ac;ListMode'">
                 <xsl:apply-templates select="$results" mode="bs2:ContainerBlockList">
+                    <xsl:with-param name="container-id" select="$container-id"/>
                     <xsl:with-param name="select-xml" select="$select-xml"/>
+                    <xsl:with-param name="total-count" select="$total-count"/>
                     <xsl:with-param name="show-edit-button" select="false()" tunnel="yes"/>
                     <xsl:with-param name="endpoint" select="if (not($endpoint = sd:endpoint())) then $endpoint else ()" tunnel="yes"/>
                 </xsl:apply-templates>
             </xsl:when>
             <xsl:when test="$active-mode = '&ac;TableMode'">
                 <xsl:apply-templates select="$results" mode="bs2:ContainerTable">
+                    <xsl:with-param name="container-id" select="$container-id"/>
                     <xsl:with-param name="select-xml" select="$select-xml"/>
+                    <xsl:with-param name="total-count" select="$total-count"/>
                     <xsl:with-param name="show-edit-button" select="false()" tunnel="yes"/>
                     <xsl:with-param name="endpoint" select="if (not($endpoint = sd:endpoint())) then $endpoint else ()" tunnel="yes"/>
                     <xsl:with-param name="object-metadata" select="$object-metadata" tunnel="yes"/>
@@ -745,7 +866,9 @@ exclude-result-prefixes="#all"
             </xsl:when>
             <xsl:when test="$active-mode = '&ac;GridMode'">
                 <xsl:apply-templates select="$results" mode="bs2:ContainerGrid">
+                    <xsl:with-param name="container-id" select="$container-id"/>
                     <xsl:with-param name="select-xml" select="$select-xml"/>
+                    <xsl:with-param name="total-count" select="$total-count"/>
                     <xsl:with-param name="show-edit-button" select="false()" tunnel="yes"/>
                     <xsl:with-param name="endpoint" select="if (not($endpoint = sd:endpoint())) then $endpoint else ()" tunnel="yes"/>
                 </xsl:apply-templates>
@@ -941,6 +1064,9 @@ exclude-result-prefixes="#all"
 
         <xsl:choose>
             <xsl:when test="$offset = 0 and ($limit = 0 or $exact-count lt $limit)">
+                <!-- the whole result set fits on one page, so its size is the total -->
+                <ixsl:set-property name="result-count" select="$exact-count" object="$cache"/>
+
                 <xsl:for-each select="id($result-count-container-id, ixsl:page())">
                     <xsl:result-document href="?." method="ixsl:replace-content">
                         <strong>
@@ -955,6 +1081,7 @@ exclude-result-prefixes="#all"
             <xsl:otherwise>
                 <xsl:for-each select="id($result-count-container-id, ixsl:page())">
                     <xsl:call-template name="ldh:ResultCount">
+                        <xsl:with-param name="container-id" select="$container-id"/>
                         <xsl:with-param name="focus-var-name" select="$focus-var-name"/>
                         <xsl:with-param name="endpoint" select="$endpoint"/>
                         <xsl:with-param name="select-xml" select="$select-xml"/>
@@ -1054,21 +1181,20 @@ exclude-result-prefixes="#all"
     <!-- block list -->
 
     <xsl:template match="rdf:RDF" mode="bs2:ContainerBlockList" use-when="system-property('xsl:product-name') eq 'SaxonJS'">
+        <xsl:param name="container-id" as="xs:string?"/>
         <xsl:param name="select-xml" as="document-node()"/>
+        <xsl:param name="total-count" as="xs:integer?"/>
         <xsl:variable name="result-count" select="count(rdf:Description)" as="xs:integer"/>
-
-        <xsl:call-template name="bs2:PagerList">
-            <xsl:with-param name="result-count" select="$result-count"/>
-            <xsl:with-param name="select-xml" select="$select-xml"/>
-        </xsl:call-template>
 
         <div class="ldh-list-block">
             <xsl:apply-templates select="." mode="bs2:List"/>
         </div>
 
-        <xsl:call-template name="bs2:PagerList">
+        <xsl:call-template name="bs2:Pager">
+            <xsl:with-param name="container-id" select="$container-id"/>
             <xsl:with-param name="result-count" select="$result-count"/>
             <xsl:with-param name="select-xml" select="$select-xml"/>
+            <xsl:with-param name="total-count" select="$total-count"/>
         </xsl:call-template>
     </xsl:template>
 
@@ -1227,40 +1353,38 @@ exclude-result-prefixes="#all"
     </xsl:template>
 
     <xsl:template match="rdf:RDF" mode="bs2:ContainerGrid" use-when="system-property('xsl:product-name') eq 'SaxonJS'">
+        <xsl:param name="container-id" as="xs:string?"/>
         <xsl:param name="select-xml" as="document-node()"/>
+        <xsl:param name="total-count" as="xs:integer?"/>
         <xsl:variable name="result-count" select="count(rdf:Description)" as="xs:integer"/>
-
-        <xsl:call-template name="bs2:PagerList">
-            <xsl:with-param name="result-count" select="$result-count"/>
-            <xsl:with-param name="select-xml" select="$select-xml"/>
-        </xsl:call-template>
 
         <div class="ldh-grid-block">
             <xsl:apply-templates select="." mode="bs2:Grid"/>
         </div>
 
-        <xsl:call-template name="bs2:PagerList">
+        <xsl:call-template name="bs2:Pager">
+            <xsl:with-param name="container-id" select="$container-id"/>
             <xsl:with-param name="result-count" select="$result-count"/>
             <xsl:with-param name="select-xml" select="$select-xml"/>
+            <xsl:with-param name="total-count" select="$total-count"/>
         </xsl:call-template>
     </xsl:template>
 
     <!-- table -->
 
     <xsl:template match="rdf:RDF" mode="bs2:ContainerTable" use-when="system-property('xsl:product-name') eq 'SaxonJS'">
+        <xsl:param name="container-id" as="xs:string?"/>
         <xsl:param name="select-xml" as="document-node()"/>
+        <xsl:param name="total-count" as="xs:integer?"/>
         <xsl:variable name="result-count" select="count(rdf:Description)" as="xs:integer"/>
-
-        <xsl:call-template name="bs2:PagerList">
-            <xsl:with-param name="result-count" select="$result-count"/>
-            <xsl:with-param name="select-xml" select="$select-xml"/>
-        </xsl:call-template>
 
         <xsl:apply-templates select="." mode="xhtml:Table"/>
 
-        <xsl:call-template name="bs2:PagerList">
+        <xsl:call-template name="bs2:Pager">
+            <xsl:with-param name="container-id" select="$container-id"/>
             <xsl:with-param name="result-count" select="$result-count"/>
             <xsl:with-param name="select-xml" select="$select-xml"/>
+            <xsl:with-param name="total-count" select="$total-count"/>
         </xsl:call-template>
     </xsl:template>
 
@@ -1364,7 +1488,7 @@ exclude-result-prefixes="#all"
 
     <!-- pager prev links -->
 
-    <xsl:template match="div[@about][contains-token(@class, 'block')]//div[@typeof = '&ldh;View']//ul[@class = 'pager']/li[@class = 'previous']/a[@class = 'active']" mode="ixsl:onclick" priority="1">
+    <xsl:template match="div[@about][contains-token(@class, 'block')]//div[@typeof = '&ldh;View']//div[contains-token(@class, 'ldh-pager')]//a[contains-token(@class, 'pager-prev')]" mode="ixsl:onclick" priority="1">
         <xsl:message>BLOCK DELEGATION: pager previous triggered</xsl:message>
         <xsl:variable name="block" select="ancestor::div[@about][contains-token(@class, 'block')][1]" as="element()"/>
         <xsl:variable name="block-uri" select="xs:anyURI($block/@about)" as="xs:anyURI"/>
@@ -1379,8 +1503,23 @@ exclude-result-prefixes="#all"
 
     <!-- pager next links -->
 
-    <xsl:template match="div[@about][contains-token(@class, 'block')]//div[@typeof = '&ldh;View']//ul[@class = 'pager']/li[@class = 'next']/a[@class = 'active']" mode="ixsl:onclick" priority="1">
+    <xsl:template match="div[@about][contains-token(@class, 'block')]//div[@typeof = '&ldh;View']//div[contains-token(@class, 'ldh-pager')]//a[contains-token(@class, 'pager-next')]" mode="ixsl:onclick" priority="1">
         <xsl:message>BLOCK DELEGATION: pager next triggered</xsl:message>
+        <xsl:variable name="block" select="ancestor::div[@about][contains-token(@class, 'block')][1]" as="element()"/>
+        <xsl:variable name="block-uri" select="xs:anyURI($block/@about)" as="xs:anyURI"/>
+        <xsl:message>BLOCK DELEGATION: block URI = <xsl:value-of select="$block-uri"/></xsl:message>
+        <xsl:variable name="cache" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`')" as="item()"/>
+        <xsl:message>BLOCK DELEGATION: cache found: <xsl:value-of select="exists($cache)"/></xsl:message>
+
+        <xsl:next-match>
+            <xsl:with-param name="cache" select="$cache"/>
+        </xsl:next-match>
+    </xsl:template>
+
+    <!-- pager page size onchange -->
+
+    <xsl:template match="div[@about][contains-token(@class, 'block')]//div[@typeof = '&ldh;View']//select[contains-token(@class, 'pager-size')]" mode="ixsl:onchange" priority="1">
+        <xsl:message>BLOCK DELEGATION: pager-size triggered</xsl:message>
         <xsl:variable name="block" select="ancestor::div[@about][contains-token(@class, 'block')][1]" as="element()"/>
         <xsl:variable name="block-uri" select="xs:anyURI($block/@about)" as="xs:anyURI"/>
         <xsl:message>BLOCK DELEGATION: block URI = <xsl:value-of select="$block-uri"/></xsl:message>
@@ -1424,7 +1563,7 @@ exclude-result-prefixes="#all"
     </xsl:template>
 
     <!-- View pagination - previous page (generic handler for all Views) -->
-    <xsl:template match="div[@typeof = '&ldh;View']//ul[@class = 'pager']/li[@class = 'previous']/a[@class = 'active']" mode="ixsl:onclick">
+    <xsl:template match="div[@typeof = '&ldh;View']//div[contains-token(@class, 'ldh-pager')]//a[contains-token(@class, 'pager-prev')]" mode="ixsl:onclick">
         <xsl:param name="container" select="ancestor::div[@typeof = '&ldh;View'][1]" as="element()"/>
         <xsl:param name="cache" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $container/@id || '`')" as="item()"/>
         <xsl:variable name="select-string" select="ixsl:get($cache, 'select-string')" as="xs:string"/>
@@ -1466,7 +1605,7 @@ exclude-result-prefixes="#all"
     </xsl:template>
 
     <!-- View pagination - next page (generic handler for all Views) -->
-    <xsl:template match="div[@typeof = '&ldh;View']//ul[@class = 'pager']/li[@class = 'next']/a[@class = 'active']" mode="ixsl:onclick">
+    <xsl:template match="div[@typeof = '&ldh;View']//div[contains-token(@class, 'ldh-pager')]//a[contains-token(@class, 'pager-next')]" mode="ixsl:onclick">
         <xsl:param name="container" select="ancestor::div[@typeof = '&ldh;View'][1]" as="element()"/>
         <xsl:param name="cache" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $container/@id || '`')" as="item()"/>
         <xsl:variable name="select-string" select="ixsl:get($cache, 'select-string')" as="xs:string"/>
@@ -1482,6 +1621,49 @@ exclude-result-prefixes="#all"
             <xsl:call-template name="ldh:ViewPage">
                 <xsl:with-param name="select-xml" select="$select-xml"/>
                 <xsl:with-param name="direction" select="'next'"/>
+            </xsl:call-template>
+        </xsl:variable>
+
+        <ixsl:set-property name="select-xml" select="$select-xml" object="$cache"/>
+
+        <xsl:variable name="view-context" as="map(*)">
+            <xsl:call-template name="ldh:RenderView">
+                <xsl:with-param name="container" select="$container"/>
+                <xsl:with-param name="active-mode" select="$active-mode"/>
+                <xsl:with-param name="select-string" select="$select-string"/>
+                <xsl:with-param name="select-xml" select="$select-xml"/>
+                <xsl:with-param name="initial-var-name" select="$initial-var-name"/>
+                <xsl:with-param name="endpoint" select="$endpoint"/>
+                <xsl:with-param name="cache" select="$cache"/>
+            </xsl:call-template>
+        </xsl:variable>
+        <xsl:variable name="context" select="map:merge((map{ 'block': $container }, $view-context))" as="map(*)"/>
+
+        <ixsl:promise select="
+            ixsl:resolve($context) =>
+                ixsl:then(ldh:view-results-thunk#1)
+            "
+            on-failure="ldh:promise-failure#1"/>
+    </xsl:template>
+
+    <!-- View page size - rows per page (generic handler for all Views) -->
+    <xsl:template match="div[@typeof = '&ldh;View']//select[contains-token(@class, 'pager-size')]" mode="ixsl:onchange">
+        <xsl:param name="container" select="ancestor::div[@typeof = '&ldh;View'][1]" as="element()"/>
+        <xsl:param name="cache" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $container/@id || '`')" as="item()"/>
+        <xsl:variable name="limit" select="xs:integer(ixsl:get(., 'value'))" as="xs:integer"/>
+        <xsl:variable name="select-string" select="ixsl:get($cache, 'select-string')" as="xs:string"/>
+        <xsl:variable name="select-xml" select="ixsl:get($cache, 'select-xml')" as="document-node()"/>
+        <xsl:variable name="initial-var-name" select="ixsl:get($cache, 'initial-var-name')" as="xs:string"/>
+        <xsl:variable name="endpoint" select="ixsl:get($cache, 'endpoint')" as="xs:anyURI"/>
+        <xsl:variable name="active-class" select="tokenize($container//*[contains-token(@class, 'view-mode-list')]/a[contains-token(@class, 'is-active')]/@class, ' ')[. = map:keys($class-modes)]" as="xs:string"/>
+        <xsl:variable name="active-mode" select="map:get($class-modes, $active-class)" as="xs:anyURI"/>
+
+        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+
+        <xsl:variable name="select-xml" as="document-node()">
+            <xsl:call-template name="ldh:ViewLimit">
+                <xsl:with-param name="select-xml" select="$select-xml"/>
+                <xsl:with-param name="limit" select="$limit"/>
             </xsl:call-template>
         </xsl:variable>
 
@@ -2434,6 +2616,27 @@ exclude-result-prefixes="#all"
                                 </xsl:apply-templates>
                             </xsl:result-document>
                         </xsl:for-each>
+
+                        <!-- cache the total so pagers rendered on later page flips know it immediately, and refresh the pager already on the page with it -->
+                        <xsl:variable name="total-count" select="xs:integer(($results//srx:binding[@name = $count-var-name]/srx:literal)[1])" as="xs:integer?"/>
+                        <xsl:variable name="container-id" select="$context('container-id')" as="xs:string?"/>
+                        <xsl:if test="exists($total-count)">
+                            <ixsl:set-property name="result-count" select="$total-count" object="$context('cache')"/>
+
+                            <xsl:if test="$container-id">
+                                <xsl:variable name="view-results" select="if (ixsl:contains($context('cache'), 'results')) then ixsl:get($context('cache'), 'results') else ()" as="document-node()?"/>
+                                <xsl:for-each select="id($container-id || '-container-results', ixsl:page())//div[contains-token(@class, 'ldh-pager')]">
+                                    <xsl:result-document href="?." method="ixsl:replace-content">
+                                        <xsl:call-template name="bs2:PagerControls">
+                                            <xsl:with-param name="container-id" select="$container-id"/>
+                                            <xsl:with-param name="result-count" select="count($view-results/rdf:RDF/rdf:Description)"/>
+                                            <xsl:with-param name="select-xml" select="ixsl:get($context('cache'), 'select-xml')"/>
+                                            <xsl:with-param name="total-count" select="$total-count"/>
+                                        </xsl:call-template>
+                                    </xsl:result-document>
+                                </xsl:for-each>
+                            </xsl:if>
+                        </xsl:if>
                     </xsl:for-each>
                 </xsl:when>
                 <xsl:otherwise>

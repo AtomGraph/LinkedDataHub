@@ -446,6 +446,26 @@
     <rdf:Description rdf:nodeID="total-results">
         <rdfs:label xml:lang="en-US">Total results</rdfs:label>
     </rdf:Description>
+    <rdf:Description rdf:nodeID="previous">
+        <rdfs:label xml:lang="en-US">Previous</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Anterior</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="next">
+        <rdfs:label xml:lang="en-US">Next</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Siguiente</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="rows-per-page">
+        <rdfs:label xml:lang="en-US">Rows</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Filas</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="page">
+        <rdfs:label xml:lang="en-US">Page</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Página</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="of">
+        <rdfs:label xml:lang="en-US">of</rdfs:label>
+        <rdfs:label xml:lang="es-ES">de</rdfs:label>
+    </rdf:Description>
     <rdf:Description rdf:nodeID="load-schema">
         <rdfs:label xml:lang="en-US">Load schema</rdfs:label>
     </rdf:Description>

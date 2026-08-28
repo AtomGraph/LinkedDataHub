@@ -55,7 +55,7 @@ li button.btn-edit-constructors, li button.btn-add-data, li button.btn-add-ontol
 /* Annotation overlay */
 #rdfa-editor-overlay { position: absolute; min-width: 360px; max-width: 520px; z-index: 10001; }
 .control-group.endpoint-classes ul { max-height: 20em; overflow: auto; }
-.nav-tabs > li > a, .pager > li > a.active { cursor: pointer; }
+.nav-tabs > li > a { cursor: pointer; }
 .container-results { max-height: 80em; overflow: auto; }
 .map-canvas { height: 45em; width: 100%; }
 fieldset { border: 1px outset #999; /* padding-top: 3%; */ }
