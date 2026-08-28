@@ -526,10 +526,10 @@ version="3.0">
                 <input type="checkbox" name="match-case"/> Match case
             </label>
             <div class="action-buttons">
-                <button type="button" class="btn-primary find-next">Find next</button>
-                <button type="button" class="btn-secondary replace-current">Replace</button>
-                <button type="button" class="btn-secondary replace-all">Replace all</button>
-                <button type="button" class="btn-secondary find-close">Close</button>
+                <button type="button" class="ldhc-btn in-primary ap-solid sz-sm find-next">Find next</button>
+                <button type="button" class="ldhc-btn in-neutral ap-solid sz-sm replace-current">Replace</button>
+                <button type="button" class="ldhc-btn in-neutral ap-solid sz-sm replace-all">Replace all</button>
+                <button type="button" class="ldhc-btn in-neutral ap-solid sz-sm find-close">Close</button>
             </div>
             <span id="find-status" class="helper-text"/>
         </div>

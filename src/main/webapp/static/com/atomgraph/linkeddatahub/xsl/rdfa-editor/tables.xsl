@@ -125,8 +125,8 @@ version="3.0">
             <label>Caption</label>
             <input type="text" name="caption"/>
             <div class="action-buttons">
-                <button type="button" class="btn-primary table-save">Insert</button>
-                <button type="button" class="btn-secondary table-cancel">Cancel</button>
+                <button type="button" class="ldhc-btn in-primary ap-solid sz-sm table-save">Insert</button>
+                <button type="button" class="ldhc-btn in-neutral ap-solid sz-sm table-cancel">Cancel</button>
             </div>
         </div>
     </xsl:template>

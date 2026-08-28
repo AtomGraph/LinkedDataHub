@@ -92,9 +92,9 @@ version="3.0">
                 </details>
 
                 <div class="action-buttons">
-                    <button type="button" class="btn-danger remove-action" style="display: none;">Remove</button>
-                    <button type="button" class="btn-primary spo-action">Annotate</button>
-                    <button type="button" class="btn-secondary cancel-action">Cancel</button>
+                    <button type="button" class="ldhc-btn in-negative ap-solid sz-sm remove-action" style="display: none;">Remove</button>
+                    <button type="button" class="ldhc-btn in-primary ap-solid sz-sm spo-action">Annotate</button>
+                    <button type="button" class="ldhc-btn in-neutral ap-solid sz-sm cancel-action">Cancel</button>
                 </div>
             </form>
         </div>

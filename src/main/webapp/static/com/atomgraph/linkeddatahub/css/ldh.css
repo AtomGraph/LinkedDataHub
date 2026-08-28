@@ -9,19 +9,17 @@
 #tab-bar-list .tab-close:hover { color: var(--fg-1); }
 ul.dropdown-menu { max-height: 26em; overflow-x: hidden; overflow-y: auto; }
 ul.dropdown-menu ul { margin: 0; }
-.dropdown-menu .btn-app-settings { background-color: inherit; display: block; text-align: left; width: 100%; padding-left: 20px; }
 .dropdown-menu li form { margin-bottom: 0; }
 .dropdown-menu li form button { width: 100%; text-align: left; }
 .search-form, .search-form-modal { display: flex; width: 100%; align-items: stretch; }
-.search-form .search-query, .search-form-modal .search-query { flex: 1 1 auto; min-width: 0; height: 34px; box-sizing: border-box; margin: 0; }
-.search-form-modal .btn-search { flex: 0 0 34px; margin: 0; }
+.search-form .search-query, .search-form-modal .search-query { flex: 1 1 auto; min-width: 0; height: 36px; box-sizing: border-box; margin: 0; }
+.search-form-modal .btn-search { flex: 0 0 36px; margin: 0; }
 .action-bar { position: sticky; top: var(--action-bar-top); z-index: 999; padding: 0; box-shadow: none; }
 .action-bar form { margin-bottom: 0; }
 .action-bar .add-constructor, .dropdown-menu .add-constructor { background-color: inherit; display: block; text-align: left; width: 100%; }
 .action-bar .add-constructor:hover { color: #ffffff; background-color: #007af5; }
 .action-bar p.alert { margin-bottom: 0; }
 body:has(#edit-toolbar) .action-bar { border-bottom: 1px solid var(--border-default); }
-.nav-header.btn { color: inherit; }
 a.external::after { content: "⤴"; padding-left: 0.2em; }
 li button.btn-edit-constructors, li button.btn-add-data, li button.btn-add-ontology, li button.btn-generate-containers { text-align: left; width: 100%; background-color: inherit; }
 .left-sidebar { display: none; width: 15%; position: fixed; left: 0; top: var(--action-bar-top); height: calc(100% - var(--action-bar-top)); overflow-y: auto; z-index: 1001; }

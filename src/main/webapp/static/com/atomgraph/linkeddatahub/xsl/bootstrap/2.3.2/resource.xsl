@@ -566,7 +566,7 @@ extension-element-prefixes="ixsl"
                     <div class="block-row row-block-controls" style="position: relative; top: 30px; margin-top: -30px; z-index: 1;">
                         <div class="row-main">
                             <xsl:if test="acl:mode() = '&acl;Write'">
-                                <button type="button" class="btn btn-edit" style="display: none;">
+                                <button type="button" class="ldhc-btn in-neutral ap-solid sz-sm btn-edit" style="display: none;">
                                     <xsl:apply-templates select="key('resources', '&ac;EditMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
                                 </button>
                             </xsl:if>
@@ -631,7 +631,7 @@ extension-element-prefixes="ixsl"
                 <div class="block-row row-block-controls" style="position: relative; top: 30px; margin-top: -30px; z-index: 1;">
                     <div class="row-main">
                         <xsl:if test="acl:mode() = '&acl;Write'">
-                            <button type="button" class="btn btn-edit" style="display: none;">
+                            <button type="button" class="ldhc-btn in-neutral ap-solid sz-sm btn-edit" style="display: none;">
                                 <xsl:apply-templates select="key('resources', '&ac;EditMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
                             </button>
                         </xsl:if>
@@ -928,7 +928,7 @@ extension-element-prefixes="ixsl"
                     <xsl:variable name="resource" select="." as="element()"/>
                     
                     <div class="btn-group">
-                        <button type="button" class="btn dropdown-toggle">
+                        <button type="button" class="ldhc-btn in-neutral ap-solid sz-sm dropdown-toggle">
                             <xsl:attribute name="title">
                                 <xsl:apply-templates select="key('resources', 'reconcile-title', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
                             </xsl:attribute>
@@ -942,7 +942,7 @@ extension-element-prefixes="ixsl"
                                 <xsl:sort select="ac:label(.)" order="ascending" lang="{$ac:lang}"/>
                                 
                                 <li>
-                                    <button class="btn btn-reconcile">
+                                    <button class="btn-reconcile">
                                         <input type="hidden" name="resource" value="{$resource/@rdf:about}"/>
                                         <input type="hidden" name="label" value="{ac:label($resource)}"/>
                                         <input type="hidden" name="service" value="{sd:endpoint/@rdf:resource}"/>
@@ -1065,7 +1065,7 @@ extension-element-prefixes="ixsl"
             <xsl:choose>
                 <xsl:when test="$with-label">
                     <xsl:apply-templates select="." mode="ldh:logo">
-                        <xsl:with-param name="class" select="'btn add-constructor'"/>
+                        <xsl:with-param name="class" select="'it add-constructor'"/>
                     </xsl:apply-templates>
 
                     <xsl:value-of>
@@ -1074,7 +1074,7 @@ extension-element-prefixes="ixsl"
                 </xsl:when>
                 <xsl:otherwise>
                     <xsl:apply-templates select="key('resources', '&ac;ConstructMode', document(ac:document-uri('&ac;')))" mode="ldh:logo">
-                        <xsl:with-param name="class" select="'btn add-constructor'"/>
+                        <xsl:with-param name="class" select="'it add-constructor'"/>
                     </xsl:apply-templates>
                 </xsl:otherwise>
             </xsl:choose>
@@ -1320,7 +1320,7 @@ extension-element-prefixes="ixsl"
                                     <!-- show list of types that have constructors (excluding built-in system classes) -->
                                     <xsl:variable name="constructor-classes" select="distinct-values($constructors//srx:binding[@name = 'Type']/srx:uri)[not(starts-with(., '&dh;') or starts-with(., '&ldh;') or starts-with(., '&def;') or starts-with(., '&lapp;') or starts-with(., '&sp;') or starts-with(., '&nfo;'))]" as="xs:anyURI*"/>
 
-                                    <button type="button" class="btn dropdown-toggle btn-edit-actions">
+                                    <button type="button" class="ldhc-btn in-neutral ap-solid sz-sm dropdown-toggle btn-edit-actions">
                                         <!-- only admins should see the button as only they have access to the ontologies with constructors in them -->
                                         <xsl:if test="not(acl:mode() = '&acl;Control' and exists($constructor-classes))">
                                             <xsl:attribute name="style" select="'display: none'"/>
@@ -1334,7 +1334,7 @@ extension-element-prefixes="ixsl"
                                     <ul class="dropdown-menu">
                                         <xsl:for-each select="$constructor-classes">
                                             <li>
-                                                <button type="button" class="btn btn-edit-constructors" data-resource-type="{.}">
+                                                <button type="button" class="btn-edit-constructors" data-resource-type="{.}">
                                                     <xsl:value-of>
                                                         <xsl:apply-templates select="key('resources', 'edit', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
                                                     </xsl:value-of>
@@ -1353,7 +1353,7 @@ extension-element-prefixes="ixsl"
                             </xsl:if>
                             
                             <!-- button that toggles the .control-group for subject URI/bnode ID editing -->
-                            <button type="button" class="btn btn-edit-subj {if ($show-subject) then 'open' else ()}"><span class="msi sm" aria-hidden="true">edit</span></button>
+                            <button type="button" class="ldhc-btn in-neutral ap-ghost sz-sm is-iconly btn-edit-subj {if ($show-subject) then 'open' else ()}"><span class="msi sm" aria-hidden="true">edit</span></button>
                         </div>
                         
                         <!-- "Copy URI" button -->
@@ -1363,7 +1363,7 @@ extension-element-prefixes="ixsl"
                             </xsl:attribute>
 
                             <xsl:apply-templates select="key('resources', 'copy-uri', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ldh:logo">
-                                <xsl:with-param name="class" select="'btn'"/>
+                                <xsl:with-param name="class" select="'ldhc-btn in-neutral ap-ghost sz-sm'"/>
                             </xsl:apply-templates>
 
                             <xsl:value-of>
@@ -1517,7 +1517,7 @@ extension-element-prefixes="ixsl"
             </span>
 
             <div class="controls">
-                <button type="button" id="button-{generate-id()}" class="btn add-value">
+                <button type="button" id="button-{generate-id()}" class="tb add-value">
                     <span class="msi sm" aria-hidden="true">add</span>
                 </button>
             </div>
@@ -1595,7 +1595,7 @@ extension-element-prefixes="ixsl"
     
     <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="ldh:Typeahead">
         <xsl:param name="id" select="generate-id()" as="xs:string"/>
-        <xsl:param name="class" select="'btn add-typeahead'" as="xs:string?"/>
+        <xsl:param name="class" select="'ldhc-btn in-neutral ap-solid sz-sm add-typeahead'" as="xs:string?"/>
         <xsl:param name="disabled" select="false()" as="xs:boolean"/>
         <xsl:param name="title" select="(@rdf:about, @rdf:nodeID)[1]" as="xs:string?"/>
         <xsl:param name="forClass" as="xs:anyURI*"/>

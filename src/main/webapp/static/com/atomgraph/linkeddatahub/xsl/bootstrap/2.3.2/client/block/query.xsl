@@ -226,19 +226,19 @@ exclude-result-prefixes="#all"
                     <div class="ldh-block-foot">
                         <button type="submit">
                             <xsl:apply-templates select="key('resources', 'run', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ldh:logo">
-                                <xsl:with-param name="class" select="'btn btn-primary btn-run-query'"/>
+                                <xsl:with-param name="class" select="'ldhc-btn in-primary ap-solid sz-md'"/>
                             </xsl:apply-templates>
 
                             <xsl:value-of>
                                 <xsl:apply-templates select="key('resources', 'run', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
                             </xsl:value-of>
                         </button>
-                        <button type="button" class="btn btn-primary btn-open-query">
+                        <button type="button" class="ldhc-btn in-primary ap-solid sz-md btn-open-query">
                             <xsl:value-of>
                                 <xsl:apply-templates select="key('resources', 'open', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
                             </xsl:value-of>
                         </button>
-                        <button type="button" class="btn btn-primary btn-save btn-save-query">
+                        <button type="button" class="ldhc-btn in-primary ap-solid sz-md btn-save btn-save-query">
                             <xsl:value-of>
                                 <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
                             </xsl:value-of>
@@ -569,9 +569,9 @@ exclude-result-prefixes="#all"
                                 <xsl:with-param name="series" select="$series"/>
                                 <xsl:with-param name="form-actions" as="element()">
                                     <div class="ldh-block-foot">
-                                        <button class="btn btn-primary btn-create-chart" type="button">
+                                        <button class="ldhc-btn in-primary ap-solid sz-md btn-create-chart" type="button">
                                             <xsl:apply-templates select="key('resources', '&ac;ConstructMode', document(ac:document-uri('&ac;')))" mode="ldh:logo">
-                                                <xsl:with-param name="class" select="'btn btn-primary create-action btn-create-chart'"/>
+                                                <xsl:with-param name="class" select="'ldhc-btn in-primary ap-solid sz-md btn-create-chart'"/>
                                             </xsl:apply-templates>
 
                                             <xsl:value-of>

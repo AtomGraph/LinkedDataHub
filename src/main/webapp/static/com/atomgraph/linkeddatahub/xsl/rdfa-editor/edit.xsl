@@ -2139,9 +2139,9 @@ version="3.0">
             <label>Link target (href)</label>
             <input type="text" name="href" placeholder="https://..."/>
             <div class="action-buttons">
-                <button type="button" class="btn-danger link-remove" style="display: none;">Remove link</button>
-                <button type="button" class="btn-primary link-save">Save</button>
-                <button type="button" class="btn-secondary link-cancel">Cancel</button>
+                <button type="button" class="ldhc-btn in-negative ap-solid sz-sm link-remove" style="display: none;">Remove link</button>
+                <button type="button" class="ldhc-btn in-primary ap-solid sz-sm link-save">Save</button>
+                <button type="button" class="ldhc-btn in-neutral ap-solid sz-sm link-cancel">Cancel</button>
             </div>
         </div>
     </xsl:template>
@@ -2277,8 +2277,8 @@ version="3.0">
             <label>Caption</label>
             <input type="text" name="caption"/>
             <div class="action-buttons">
-                <button type="button" class="btn-primary figure-save">Insert</button>
-                <button type="button" class="btn-secondary figure-cancel">Cancel</button>
+                <button type="button" class="ldhc-btn in-primary ap-solid sz-sm figure-save">Insert</button>
+                <button type="button" class="ldhc-btn in-neutral ap-solid sz-sm figure-cancel">Cancel</button>
             </div>
         </div>
     </xsl:template>

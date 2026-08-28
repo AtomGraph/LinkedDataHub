@@ -359,8 +359,8 @@ WHERE
             <label for="table-caption">Caption</label>
             <input type="text" id="table-caption" name="caption"/>
             <div class="action-buttons">
-                <button type="button" class="btn btn-primary table-save">Insert</button>
-                <button type="button" class="btn table-cancel">Cancel</button>
+                <button type="button" class="ldhc-btn in-primary ap-solid sz-sm table-save">Insert</button>
+                <button type="button" class="ldhc-btn in-neutral ap-solid sz-sm table-cancel">Cancel</button>
             </div>
         </div>
     </xsl:template>
@@ -371,8 +371,8 @@ WHERE
             <input type="text" id="link-href" name="href" placeholder="https://..."/>
             <div class="action-buttons">
                 <button type="button" class="ldhc-btn in-negative ap-solid sz-sm link-remove" style="display: none;"><xsl:value-of select="ac:label(key('resources', 'remove-link', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin))))"/></button>
-                <button type="button" class="btn btn-primary link-save">Save</button>
-                <button type="button" class="btn link-cancel">Cancel</button>
+                <button type="button" class="ldhc-btn in-primary ap-solid sz-sm link-save">Save</button>
+                <button type="button" class="ldhc-btn in-neutral ap-solid sz-sm link-cancel">Cancel</button>
             </div>
         </div>
     </xsl:template>
@@ -386,8 +386,8 @@ WHERE
             <label for="figure-caption">Caption</label>
             <input type="text" id="figure-caption" name="caption"/>
             <div class="action-buttons">
-                <button type="button" class="btn btn-primary figure-save">Insert</button>
-                <button type="button" class="btn figure-cancel">Cancel</button>
+                <button type="button" class="ldhc-btn in-primary ap-solid sz-sm figure-save">Insert</button>
+                <button type="button" class="ldhc-btn in-neutral ap-solid sz-sm figure-cancel">Cancel</button>
             </div>
         </div>
     </xsl:template>
@@ -400,10 +400,10 @@ WHERE
             <input type="text" id="find-replace" name="replace"/>
             <label class="checkbox"><input type="checkbox" name="match-case"/> Match case</label>
             <div class="action-buttons">
-                <button type="button" class="btn btn-primary find-next">Find next</button>
-                <button type="button" class="btn replace-current">Replace</button>
-                <button type="button" class="btn replace-all">Replace all</button>
-                <button type="button" class="btn find-close">Close</button>
+                <button type="button" class="ldhc-btn in-primary ap-solid sz-sm find-next">Find next</button>
+                <button type="button" class="ldhc-btn in-neutral ap-solid sz-sm replace-current">Replace</button>
+                <button type="button" class="ldhc-btn in-neutral ap-solid sz-sm replace-all">Replace all</button>
+                <button type="button" class="ldhc-btn in-neutral ap-solid sz-sm find-close">Close</button>
             </div>
             <span id="find-status" class="help-block"/>
         </div>
@@ -447,8 +447,8 @@ WHERE
                 <input type="text" id="ldh-chart-series" name="chart-series"/>
             </div>
             <div class="action-buttons">
-                <button type="button" class="btn btn-primary ldh-block-save">Insert</button>
-                <button type="button" class="btn ldh-block-cancel">Cancel</button>
+                <button type="button" class="ldhc-btn in-primary ap-solid sz-sm ldh-block-save">Insert</button>
+                <button type="button" class="ldhc-btn in-neutral ap-solid sz-sm ldh-block-cancel">Cancel</button>
             </div>
         </div>
     </xsl:template>
@@ -1659,7 +1659,7 @@ WHERE
                     <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/> <!-- prevent form submit -->
                 
                     <xsl:variable name="resource-id" select="input[@name = ('ou', 'ob')]/ixsl:get(., 'value')" as="xs:anyURI"/>
-                    <xsl:variable name="typeahead-class" select="'btn add-typeahead'" as="xs:string"/>
+                    <xsl:variable name="typeahead-class" select="'ldhc-btn in-neutral ap-solid sz-sm add-typeahead'" as="xs:string"/>
                     <xsl:variable name="typeahead-doc" select="ixsl:get(ixsl:window(), 'LinkedDataHub.typeahead.rdfXml')" as="document-node()"/> <!-- set by typeahead:xml-loaded -->
                     <xsl:variable name="resource" select="key('resources', $resource-id, $typeahead-doc)"/>
 
@@ -1796,7 +1796,7 @@ WHERE
     </xsl:function>
 
     <xsl:template match="ul[contains-token(@class, 'dropdown-menu')][contains-token(@class, 'type-typeahead')]/li" mode="ixsl:onmousedown" priority="1">
-        <xsl:param name="typeahead-class" select="'btn add-typeahead add-type-typeahead'" as="xs:string"/>
+        <xsl:param name="typeahead-class" select="'ldhc-btn in-neutral ap-solid sz-sm add-typeahead add-type-typeahead'" as="xs:string"/>
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'block')][1]" as="element()"/>
         <xsl:variable name="fieldset" select="ancestor::fieldset" as="element()"/>
@@ -1859,7 +1859,7 @@ WHERE
     <!-- select typeahead item -->
     
     <xsl:template match="ul[contains-token(@class, 'dropdown-menu')][contains-token(@class, 'typeahead')]/li" mode="ixsl:onmousedown">
-        <xsl:param name="typeahead-class" select="'btn add-typeahead'" as="xs:string"/>
+        <xsl:param name="typeahead-class" select="'ldhc-btn in-neutral ap-solid sz-sm add-typeahead'" as="xs:string"/>
         <xsl:variable name="resource-id" select="input[@name = ('ou', 'ob')]/ixsl:get(., 'value')" as="xs:string"/> <!-- can be URI resource or blank node ID -->
         <xsl:variable name="typeahead-doc" select="ixsl:get(ixsl:window(), 'LinkedDataHub.typeahead.rdfXml')" as="document-node()"/>
         <xsl:variable name="resource" select="key('resources', $resource-id, $typeahead-doc)" as="element()"/>

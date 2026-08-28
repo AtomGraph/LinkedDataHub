@@ -147,7 +147,7 @@ exclude-result-prefixes="#all"
                                     </xsl:for-each>
 
                                     <p>
-                                        <button type="button" class="btn btn-primary create-action add-constructor">
+                                        <button type="button" class="ldhc-btn in-primary ap-solid sz-sm create-action add-constructor">
                                             <xsl:value-of>
                                                 <xsl:apply-templates select="key('resources', 'constructor', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
                                             </xsl:value-of>
@@ -214,7 +214,7 @@ exclude-result-prefixes="#all"
                     <xsl:choose>
                         <xsl:when test="exists($resource)">
                             <xsl:apply-templates select="$resource" mode="ldh:Typeahead">
-                                <xsl:with-param name="class" select="'btn add-typeahead add-property-typeahead'"/>
+                                <xsl:with-param name="class" select="'ldhc-btn in-neutral ap-solid sz-sm add-typeahead add-property-typeahead'"/>
                             </xsl:apply-templates>
                         </xsl:when>
                         <xsl:otherwise>
@@ -229,7 +229,7 @@ exclude-result-prefixes="#all"
                                 </xsl:document>
                             </xsl:variable>
                             <xsl:apply-templates select="$synthetic/rdf:RDF/rdf:Description" mode="ldh:Typeahead">
-                                <xsl:with-param name="class" select="'btn add-typeahead add-property-typeahead'"/>
+                                <xsl:with-param name="class" select="'ldhc-btn in-neutral ap-solid sz-sm add-typeahead add-property-typeahead'"/>
                             </xsl:apply-templates>
                         </xsl:otherwise>
                     </xsl:choose>
@@ -321,7 +321,7 @@ exclude-result-prefixes="#all"
 
             <div class="control-group">
                 <label class="control-label">
-                    <button type="button" class="btn btn-primary create-action add-triple-template">
+                    <button type="button" class="ldhc-btn in-primary ap-solid sz-sm create-action add-triple-template">
                         <xsl:value-of>
                             <xsl:apply-templates select="key('resources', '&rdf;Property', document(ac:document-uri('&rdf;')))" mode="ac:label"/>
                         </xsl:value-of>
@@ -403,7 +403,7 @@ exclude-result-prefixes="#all"
                 <xsl:variable name="request-uri" select="ldh:href(ac:build-uri(resolve-uri('ns', ldt:base()), map{ 'query': 'DESCRIBE &lt;' || $object-type || '&gt;', 'accept': 'application/rdf+xml' }), map{})" as="xs:anyURI"/>
 
                 <xsl:apply-templates select="key('resources', $object-type, document($request-uri))" mode="ldh:Typeahead">
-                    <xsl:with-param name="class" select="'btn add-typeahead add-class-typeahead'"/>
+                    <xsl:with-param name="class" select="'ldhc-btn in-neutral ap-solid sz-sm add-typeahead add-class-typeahead'"/>
                 </xsl:apply-templates>
             </xsl:when>
             <xsl:otherwise>
@@ -442,13 +442,13 @@ exclude-result-prefixes="#all"
 
     <xsl:template match="ul[contains-token(@class, 'dropdown-menu')][contains-token(@class, 'class-typeahead')]/li" mode="ixsl:onmousedown" priority="2">
         <xsl:next-match>
-            <xsl:with-param name="typeahead-class" select="'btn add-typeahead add-class-typeahead'"/>
+            <xsl:with-param name="typeahead-class" select="'ldhc-btn in-neutral ap-solid sz-sm add-typeahead add-class-typeahead'"/>
         </xsl:next-match>
     </xsl:template>
 
     <xsl:template match="ul[contains-token(@class, 'dropdown-menu')][contains-token(@class, 'property-typeahead')]/li" mode="ixsl:onmousedown" priority="2">
         <xsl:next-match>
-            <xsl:with-param name="typeahead-class" select="'btn add-typeahead add-property-typeahead'"/>
+            <xsl:with-param name="typeahead-class" select="'ldhc-btn in-neutral ap-solid sz-sm add-typeahead add-property-typeahead'"/>
         </xsl:next-match>
     </xsl:template>
 

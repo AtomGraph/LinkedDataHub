@@ -618,7 +618,7 @@ WHERE
                     <xsl:if test="$notifications/rdf:RDF/*[@rdf:about]">
                         <li>
                             <div class="btn-group">
-                                <button class="btn btn-primary dropdown-toggle ldh-icon-btn has-dot" title="{ac:label(key('resources', 'notifications', document('translations.rdf')))}">
+                                <button class="dropdown-toggle ldh-icon-btn has-dot" title="{ac:label(key('resources', 'notifications', document('translations.rdf')))}">
                                     <span class="msi outline" aria-hidden="true">notifications</span>
                                 </button>
                                 <ul class="dropdown-menu">
@@ -658,7 +658,7 @@ WHERE
             <xsl:if test="exists($user-defined-apps) or exists($system-apps)">
                 <li>
                     <div class="btn-group">
-                        <button class="btn dropdown-toggle ldh-icon-btn btn-apps" title="{ac:label(key('resources', 'application-list-title', document('translations.rdf')))}">
+                        <button class="dropdown-toggle ldh-icon-btn btn-apps" title="{ac:label(key('resources', 'application-list-title', document('translations.rdf')))}">
                             <span class="msi" aria-hidden="true">apps</span>
                         </button>
                         <ul class="dropdown-menu">
@@ -713,7 +713,7 @@ WHERE
         <li>
             <div class="btn-group">
                 <xsl:variable name="agent-label" select="ac:label($foaf:Agent//*[@rdf:about][1])" as="xs:string?"/>
-                <button type="button" class="btn dropdown-toggle ldh-avatar" title="{$agent-label}">
+                <button type="button" class="dropdown-toggle ldh-avatar" title="{$agent-label}">
                     <xsl:value-of select="string-join(for $word in tokenize(normalize-space($agent-label), ' ')[position() le 2] return upper-case(substring($word, 1, 1)))"/>
                 </button>
                 <ul class="dropdown-menu">
@@ -740,7 +740,7 @@ WHERE
         <!-- OAuth providers dropdown -->
         <xsl:if test="$google-signup or $orcid-signup">
             <div class="btn-group">
-                <button type="button" class="dropdown-toggle ldhc-btn in-primary ap-solid sz-sm">
+                <button type="button" class="dropdown-toggle ldhc-btn in-primary ap-solid sz-md">
                     <xsl:value-of>
                         <xsl:apply-templates select="key('resources', 'login', document('translations.rdf'))" mode="ac:label"/>
                     </xsl:value-of>
@@ -774,7 +774,7 @@ WHERE
         <!-- WebID signup - separate button -->
         <xsl:if test="$webid-signup">
             <div>
-                <a class="ldhc-btn in-primary ap-solid sz-sm" href="{if (not(starts-with($ldt:base, lapp:origin()))) then ac:build-uri((), map{ 'uri': string($webid-signup-uri) }) else $webid-signup-uri}">
+                <a class="ldhc-btn in-primary ap-solid sz-md" href="{if (not(starts-with($ldt:base, lapp:origin()))) then ac:build-uri((), map{ 'uri': string($webid-signup-uri) }) else $webid-signup-uri}">
                     <xsl:value-of>
                         <xsl:apply-templates select="key('resources', 'sign-up', document('translations.rdf'))" mode="ac:label"/>
                     </xsl:value-of>
@@ -886,7 +886,7 @@ WHERE
         <xsl:variable name="properties-original" select="for $triple-key in ac:value-except(map:keys($triples-original), map:keys($triples-local)) return map:get($triples-original, $triple-key)" as="element()*"/>
         <xsl:if test="exists($properties-original)">
             <div>
-                <h2 class="nav-header btn">
+                <h2 class="nav-header">
                     <xsl:value-of>
                         <xsl:apply-templates select="key('resources', 'from-origin', document('translations.rdf'))" mode="ac:label"/>
                     </xsl:value-of>
@@ -911,7 +911,7 @@ WHERE
         <xsl:variable name="properties-local" select="for $triple-key in ac:value-except(map:keys($triples-local), map:keys($triples-original)) return map:get($triples-local, $triple-key)" as="element()*"/>
         <xsl:if test="exists($properties-local)">
             <div>
-                <h2 class="nav-header btn">
+                <h2 class="nav-header">
                     <xsl:value-of>
                         <xsl:apply-templates select="key('resources', 'local', document('translations.rdf'))" mode="ac:label"/>
                     </xsl:value-of>
@@ -936,7 +936,7 @@ WHERE
         <xsl:variable name="properties-common" select="for $triple-key in ac:value-intersect(map:keys($triples-original), map:keys($triples-local)) return map:get($triples-original, $triple-key)" as="element()*"/>
         <xsl:if test="exists($properties-common)">
             <div>
-                <h2 class="nav-header btn">
+                <h2 class="nav-header">
                     <xsl:value-of>
                         <xsl:apply-templates select="key('resources', 'common', document('translations.rdf'))" mode="ac:label"/>
                     </xsl:value-of>
@@ -992,14 +992,14 @@ WHERE
     
     <xsl:template match="rdf:RDF[lapp:origin()] | srx:sparql[lapp:origin()]" mode="bs2:Settings" priority="1">
         <div class="btn-group">
-            <button type="button" class="btn dropdown-toggle ldh-icon-btn" title="{ac:label(key('resources', 'nav-bar-action-settings-title', document('translations.rdf')))}">
+            <button type="button" class="dropdown-toggle ldh-icon-btn" title="{ac:label(key('resources', 'nav-bar-action-settings-title', document('translations.rdf')))}">
                 <span class="msi outline" aria-hidden="true">settings</span>
             </button>
 
             <ul class="dropdown-menu">
                 <xsl:if test="$foaf:Agent//@rdf:about and key('apps-by-origin', lapp:origin(), $lapp:Context)/rdf:type/@rdf:resource = '&lapp;EndUserApplication'">
                     <li>
-                        <button class="btn btn-app-settings">
+                        <button class="btn-app-settings">
                             <xsl:value-of>
                                 <xsl:apply-templates select="key('resources', '&lapp;Application', document(ac:document-uri('&lapp;')))" mode="ac:label"/>
                             </xsl:value-of>

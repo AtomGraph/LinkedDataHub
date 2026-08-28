@@ -213,7 +213,7 @@ extension-element-prefixes="ixsl"
         <form action="{resolve-uri('clear', ldt:base())}" method="post">
             <input type="hidden" name="uri" value="{@rdf:about}"/>
 
-            <button class="btn btn-primary" type="submit">
+            <button class="ldhc-btn in-primary ap-solid sz-md" type="submit">
                 <xsl:value-of>
                     <xsl:apply-templates select="key('resources', 'clear', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
                 </xsl:value-of>
@@ -458,7 +458,7 @@ extension-element-prefixes="ixsl"
         </div>
     </xsl:template>       
 
-         <!-- TAB BODY -->
+    <!-- TAB BODY -->
     
     <xsl:template match="rdf:RDF" mode="bs2:TabBody">
         <xsl:param name="id" select="'tab-pane-' || ac:uuid()" as="xs:string?"/>
@@ -832,7 +832,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="method" select="'post'" as="xs:string"/>
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="class" select="'ldh-prop-form'" as="xs:string?"/>
-        <xsl:param name="button-class" select="'btn'" as="xs:string?"/>
+        <xsl:param name="button-class" select="'ldhc-btn in-primary ap-solid sz-md'" as="xs:string?"/>
         <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
         <xsl:param name="enctype" as="xs:string?"/>
         <xsl:param name="chart-type" select="xs:anyURI('&ac;Table')" as="xs:anyURI?"/> <!-- table is the default chart type -->
@@ -1311,7 +1311,7 @@ extension-element-prefixes="ixsl"
 
                 <xsl:apply-templates select="." mode="ac:label"/>
 
-                <button type="button" class="btn btn-primary btn-access-form">
+                <button type="button" class="ldhc-btn in-primary ap-solid sz-md btn-access-form">
                     <xsl:value-of>
                         <xsl:apply-templates select="key('resources', 'request-access', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
                     </xsl:value-of>
