@@ -184,10 +184,12 @@ div.breadcrumb.ldh-bc { min-width: 0; overflow: hidden; }
    the same widening on the right zone lands ab-mid's end — the dateTime stamp — on the column's
    right edge (flex-end keeps the action buttons on the viewport edge); the address bar trades
    centering for a start margin discounting the 220px wordmark column (app.css header grid) plus
-   padding and gap. Below column width all clamp to no-op. */
+   padding and gap, and spans the column width (lifting app.css's 720px cap) — width discounts the
+   margin because a grid item's 100% resolves against the area, so the margin would otherwise push
+   the bar under the header actions. Below column width all clamp to no-op. */
 .ldh-actionbar--zoned > .ab-left { min-width: calc((100vw - min(var(--ldh-content-w), 100vw)) / 2 - var(--sp-6)); }
 .ldh-actionbar--zoned > .ldh-actions { min-width: calc((100vw - min(var(--ldh-content-w), 100vw)) / 2 - var(--sp-6)); justify-content: flex-end; }
-.ldh-header .ldh-address { justify-self: start; margin-left: max(0px, calc((100vw - min(var(--ldh-content-w), 100vw)) / 2 - 220px - var(--sp-6))); }
+.ldh-header .ldh-address { --address-offset: max(0px, calc((100vw - min(var(--ldh-content-w), 100vw)) / 2 - 220px - var(--sp-6))); justify-self: start; margin-left: var(--address-offset); width: calc(100% - var(--address-offset)); max-width: calc(min(var(--ldh-content-w), 100vw) - 2 * var(--sp-6)); }
 
 /* ---------- block header actions hydrated by CSR ---------- */
 .ldh-block-head .actions > div { display: flex; gap: var(--sp-1); }

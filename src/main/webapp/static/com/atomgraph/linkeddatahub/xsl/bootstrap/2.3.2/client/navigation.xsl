@@ -1215,12 +1215,10 @@ ORDER BY DESC(?created)
                         <xsl:apply-templates select="key('resources', 'search', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
                     </legend>
                     <form class="search-form-modal" accept-charset="UTF-8">
-                        <div>
-                            <input type="text" name="q" class="search-query" value="{$text}" placeholder="{ac:label(key('resources', 'search-placeholder', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin))))}"/>
-                            <button type="submit" class="ldhc-btn in-primary ap-solid sz-md is-iconly btn-search">
-                                <span class="msi sm" aria-hidden="true">search</span>
-                            </button>
-                        </div>
+                        <input type="text" name="q" class="search-query" value="{$text}" placeholder="{ac:label(key('resources', 'search-placeholder', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin))))}"/>
+                        <button type="submit" class="ldhc-btn in-primary ap-solid sz-md is-iconly btn-search">
+                            <span class="msi sm" aria-hidden="true">search</span>
+                        </button>
                     </form>
                 </div>
                 <div class="modal-body">

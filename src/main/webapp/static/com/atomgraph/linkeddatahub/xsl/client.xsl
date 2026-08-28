@@ -291,6 +291,8 @@ WHERE
         <ixsl:set-property name="typeahead" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/> <!-- used by typeahead.xsl -->
         <ixsl:set-property name="graphs" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/> <!-- used by graph3d.xsl -->
         <ixsl:set-property name="yasqe" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+        <ixsl:set-property name="pending-scrolls" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/> <!-- deferred fragment scrolls awaiting block hydration, keyed by scroll id (ldh:RenderTab/ldh:block-hydrated) -->
+
         <!-- create the RDFa editor state container (editor chrome initializes lazily, on the first editable region) -->
         <xsl:call-template name="rdfae:init-state"/>
 
@@ -840,17 +842,30 @@ WHERE
         </xsl:call-template>
 
         <!-- fire factories for top-level content blocks in the rendered pane -->
-        <xsl:for-each select="id($tab-pane-id, ixsl:page())/div[contains-token(@class, 'document-body')]/div[contains-token(@class, 'content-body')]/div">
-            <xsl:variable name="factories" as="(function(item()?) as item()*)*">
+        <xsl:variable name="factories" as="(function(item()?) as item()*)*">
+            <xsl:for-each select="id($tab-pane-id, ixsl:page())/div[contains-token(@class, 'document-body')]/div[contains-token(@class, 'content-body')]/div">
                 <xsl:apply-templates select="." mode="ldh:RenderRow">
                     <xsl:with-param name="refresh-content" select="$refresh-content"/>
                 </xsl:apply-templates>
-            </xsl:variable>
-            <xsl:for-each select="$factories">
-                <xsl:variable name="factory" select="."/>
-                <ixsl:promise select="$factory(())" on-failure="ldh:promise-failure#1"/>
             </xsl:for-each>
-        </xsl:for-each>
+        </xsl:variable>
+        <xsl:choose>
+            <!-- a fragment scroll cannot run until the blocks hydrate (their async loads shift the layout under it): chain each factory so ldh:block-hydrated counts them down and scrolls on the last one -->
+            <xsl:when test="$fragment and exists($factories)">
+                <xsl:variable name="scroll-id" select="ac:uuid()" as="xs:string"/>
+                <ixsl:set-property name="{'`' || $scroll-id || '`'}" select="count($factories)" object="ixsl:get(ixsl:window(), 'LinkedDataHub.pending-scrolls')"/>
+                <xsl:for-each select="$factories">
+                    <xsl:variable name="factory" select="."/>
+                    <ixsl:promise select="$factory(()) => ixsl:then(ldh:block-hydrated($scroll-id, $doc-uri, $fragment, ?))" on-failure="ldh:block-hydration-failure($scroll-id, $doc-uri, $fragment, ?)"/>
+                </xsl:for-each>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:for-each select="$factories">
+                    <xsl:variable name="factory" select="."/>
+                    <ixsl:promise select="$factory(())" on-failure="ldh:promise-failure#1"/>
+                </xsl:for-each>
+            </xsl:otherwise>
+        </xsl:choose>
 
         <!-- bs2:ActionBar always renders breadcrumb-nav inside bs2:ActionBarMain -->
         <xsl:variable name="pane-breadcrumb-nav" select="id($tab-pane-id, ixsl:page())//*[contains-token(@class, 'breadcrumb-nav')]" as="element()?"/>
@@ -862,10 +877,24 @@ WHERE
             </xsl:call-template>
         </xsl:if>
 
-        <!-- scroll to the fragment-targeted element if present, otherwise to top -->
-        <!-- look up the rendered RDFa resource container in the active pane via @about; sidesteps the multi-pane @id uniqueness constraint (two panes may both render a resource at the same fragment) -->
+        <!-- with content blocks pending, the fragment scroll is deferred to ldh:block-hydrated (chained above); otherwise scroll now -->
+        <xsl:if test="not($fragment and exists($factories))">
+            <xsl:call-template name="ldh:ScrollToFragment">
+                <xsl:with-param name="doc-uri" select="$doc-uri"/>
+                <xsl:with-param name="fragment" select="$fragment"/>
+            </xsl:call-template>
+        </xsl:if>
+    </xsl:template>
+
+    <!-- scroll to the fragment-targeted element if present, otherwise to top -->
+    <xsl:template name="ldh:ScrollToFragment">
+        <xsl:param name="doc-uri" as="xs:anyURI"/>
+        <xsl:param name="fragment" as="xs:string?"/>
+
         <xsl:variable name="resource-uri" select="xs:anyURI($doc-uri || (if ($fragment) then '#' || $fragment else ''))" as="xs:anyURI"/>
-        <xsl:variable name="scroll-target" as="element()?" select="if ($fragment) then (id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')][contains-token(@class, 'active')]//*[@about = $resource-uri])[1] else ()"/>
+        <xsl:variable name="active-pane" select="id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')][contains-token(@class, 'active')]" as="element()*"/>
+        <!-- look up the rendered RDFa resource container in the active pane via @about; sidesteps the multi-pane @id uniqueness constraint (two panes may both render a resource at the same fragment). Fall back to @id for fragments no RDFa container carries (e.g. anchors authored inside XHTML content) -->
+        <xsl:variable name="scroll-target" as="element()?" select="if ($fragment) then ($active-pane//*[@about = $resource-uri], $active-pane//*[@id = $fragment])[1] else ()"/>
         <xsl:choose>
             <xsl:when test="exists($scroll-target)">
                 <xsl:sequence select="ixsl:call($scroll-target, 'scrollIntoView', [])[current-date() lt xs:date('2000-01-01')]"/>
@@ -875,6 +904,43 @@ WHERE
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
+
+    <!-- counts down one hydrated block for the deferred fragment scroll (LinkedDataHub.pending-scrolls); the last block triggers the scroll, unless the user has switched to another document's pane meanwhile -->
+    <xsl:function name="ldh:block-hydrated" ixsl:updating="yes">
+        <xsl:param name="scroll-id" as="xs:string"/>
+        <xsl:param name="doc-uri" as="xs:anyURI"/>
+        <xsl:param name="fragment" as="xs:string"/>
+        <xsl:param name="context" as="item()*"/> <!-- resolved factory chain value, unused -->
+
+        <xsl:if test="ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub.pending-scrolls'), '`' || $scroll-id || '`')">
+            <xsl:variable name="pending" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.pending-scrolls'), '`' || $scroll-id || '`')" as="xs:double"/>
+            <xsl:choose>
+                <xsl:when test="$pending gt 1">
+                    <ixsl:set-property name="{'`' || $scroll-id || '`'}" select="$pending - 1" object="ixsl:get(ixsl:window(), 'LinkedDataHub.pending-scrolls')"/>
+                </xsl:when>
+                <xsl:otherwise>
+                    <xsl:sequence select="ixsl:call(ixsl:window(), 'Reflect.deleteProperty', [ ixsl:get(ixsl:window(), 'LinkedDataHub.pending-scrolls'), $scroll-id ])[current-date() lt xs:date('2000-01-01')]"/>
+                    <xsl:if test="id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')][contains-token(@class, 'active')]/div[contains-token(@class, 'document-body')]/@about = $doc-uri">
+                        <xsl:call-template name="ldh:ScrollToFragment">
+                            <xsl:with-param name="doc-uri" select="$doc-uri"/>
+                            <xsl:with-param name="fragment" select="$fragment"/>
+                        </xsl:call-template>
+                    </xsl:if>
+                </xsl:otherwise>
+            </xsl:choose>
+        </xsl:if>
+    </xsl:function>
+
+    <!-- failure twin of ldh:block-hydrated: reports the error like ldh:promise-failure would, then counts the block down all the same so the deferred scroll is not stuck pending -->
+    <xsl:function name="ldh:block-hydration-failure" ixsl:updating="yes">
+        <xsl:param name="scroll-id" as="xs:string"/>
+        <xsl:param name="doc-uri" as="xs:anyURI"/>
+        <xsl:param name="fragment" as="xs:string"/>
+        <xsl:param name="error" as="map(*)"/>
+
+        <xsl:sequence select="ldh:promise-failure($error)"/>
+        <xsl:sequence select="ldh:block-hydrated($scroll-id, $doc-uri, $fragment, ())"/>
+    </xsl:function>
 
     <!-- push state -->
 
@@ -935,18 +1001,11 @@ WHERE
             <xsl:with-param name="href" select="$href"/>
         </xsl:call-template>
 
-        <!-- scroll to the fragment-targeted element if present, otherwise to top -->
-        <!-- look up the rendered RDFa resource container in the active pane via @about; sidesteps the multi-pane @id uniqueness constraint (two panes may both render a resource at the same fragment) -->
-        <xsl:variable name="resource-uri" select="xs:anyURI($doc-uri || (if ($fragment) then '#' || $fragment else ''))" as="xs:anyURI"/>
-        <xsl:variable name="scroll-target" as="element()?" select="if ($fragment) then (id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')][contains-token(@class, 'active')]//*[@about = $resource-uri])[1] else ()"/>
-        <xsl:choose>
-            <xsl:when test="exists($scroll-target)">
-                <xsl:sequence select="ixsl:call($scroll-target, 'scrollIntoView', [])[current-date() lt xs:date('2000-01-01')]"/>
-            </xsl:when>
-            <xsl:otherwise>
-                <xsl:sequence select="ixsl:call(ixsl:window(), 'scrollTo', [ 0, 0 ])[current-date() lt xs:date('2000-01-01')]"/>
-            </xsl:otherwise>
-        </xsl:choose>
+        <!-- the pane's blocks are already hydrated, so the fragment scroll can run right away -->
+        <xsl:call-template name="ldh:ScrollToFragment">
+            <xsl:with-param name="doc-uri" select="$doc-uri"/>
+            <xsl:with-param name="fragment" select="$fragment"/>
+        </xsl:call-template>
     </xsl:template>
 
     <!-- document navigation: handles local/external branching -->

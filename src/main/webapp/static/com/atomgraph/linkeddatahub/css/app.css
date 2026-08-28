@@ -1748,16 +1748,11 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
   border-bottom: 1px dashed var(--border-default);
 }
 .parallax-nav:not(:has(.pchip)) { display: none; }
-.parallax-nav .plabel {
-  font-family: var(--font-mono); font-size: 10px;
-  letter-spacing: var(--tracking-wide); text-transform: uppercase;
-  color: var(--fg-muted);
-  margin-right: var(--sp-2);
-}
+.parallax-nav .plabel { display: inline-flex; align-items: center; color: var(--fg-muted); }
 .parallax-nav .pchips { display: flex; align-items: center; flex-wrap: wrap; gap: var(--sp-2); }
 .parallax-nav .pchip {
   display: inline-flex; align-items: center; gap: 6px;
-  height: 28px; padding: 0 12px 0 9px;
+  height: 28px; padding: 0 12px;
   background: var(--surface-0); border: 1px solid var(--border-default);
   border-radius: var(--r-pill);
   font-size: var(--fs-sm); color: var(--fg-2);
@@ -1765,8 +1760,6 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
   transition: border-color var(--dur-fast) var(--ease-out-soft), background var(--dur-fast) var(--ease-out-soft), color var(--dur-fast) var(--ease-out-soft);
 }
 .parallax-nav .pchip:hover { border-color: var(--ldh-blue-300); color: var(--ldh-blue-700); background: var(--bg-accent-quiet); text-decoration: none; }
-.parallax-nav .pchip .msi { font-size: 15px; color: var(--fg-hint); }
-.parallax-nav .pchip:hover .msi { color: var(--ldh-blue-600); }
 
 /* applied parallax steps read as removable chips beside the facet pills — the
    pivot's undo affordance; clicking one rewinds the view to before that step */
