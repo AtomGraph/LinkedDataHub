@@ -399,8 +399,8 @@ ORDER BY DESC(?created)
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
         <xsl:choose>
-            <!-- backlink nav list is not rendered yet - load it -->
-            <xsl:when test="not(following-sibling::*[contains-token(@class, 'nav')])">
+            <!-- backlink row list is not rendered yet - load it -->
+            <xsl:when test="not(following-sibling::*[contains-token(@class, 'dgroup')])">
                 <!-- toggle the caret direction -->
                 <xsl:for-each select="span[contains-token(@class, 'caret')]">
                     <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'caret-reversed' ])[current-date() lt xs:date('2000-01-01')]"/>
@@ -418,13 +418,13 @@ ORDER BY DESC(?created)
                     ixsl:then(ldh:backlinks-response#1)"
                     on-failure="ldh:promise-failure#1"/>
             </xsl:when>
-            <!-- show the nav list -->
-            <xsl:when test="ixsl:style(following-sibling::*[contains-token(@class, 'nav')])?display = 'none'">
-                <ixsl:set-style name="display" select="'block'" object="following-sibling::*[contains-token(@class, 'nav')]"/>
+            <!-- show the row list -->
+            <xsl:when test="ixsl:style(following-sibling::*[contains-token(@class, 'dgroup')])?display = 'none'">
+                <ixsl:set-style name="display" select="'flex'" object="following-sibling::*[contains-token(@class, 'dgroup')]"/>
             </xsl:when>
-            <!-- hide the nav list -->
+            <!-- hide the row list -->
             <xsl:otherwise>
-                <ixsl:set-style name="display" select="'none'" object="following-sibling::*[contains-token(@class, 'nav')]"/>
+                <ixsl:set-style name="display" select="'none'" object="following-sibling::*[contains-token(@class, 'dgroup')]"/>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
@@ -683,13 +683,11 @@ ORDER BY DESC(?created)
                     <xsl:for-each select="$backlinks-container">
                         <xsl:variable name="doc-uri" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/>
                         <xsl:result-document href="?." method="ixsl:append-content">
-                            <ul class="nav">
-                                <xsl:apply-templates select="$results/rdf:RDF/rdf:Description[not(@rdf:about = $doc-uri)]" mode="xhtml:ListItem">
+                            <div class="dgroup">
+                                <xsl:apply-templates select="$results/rdf:RDF/rdf:Description[not(@rdf:about = $doc-uri)]" mode="ldh:DrawerRow">
                                     <xsl:sort select="ac:label(.)" order="ascending" lang="{$ac:lang}"/>
-                                    <xsl:with-param name="mode" select="ldh:query-params()?mode[1]" tunnel="yes"/> <!-- TO-DO: support multiple modes -->
-                                    <xsl:with-param name="render-id" select="false()" tunnel="yes"/>
                                 </xsl:apply-templates>
-                            </ul>
+                            </div>
                         </xsl:result-document>
                     </xsl:for-each>
                 </xsl:when>

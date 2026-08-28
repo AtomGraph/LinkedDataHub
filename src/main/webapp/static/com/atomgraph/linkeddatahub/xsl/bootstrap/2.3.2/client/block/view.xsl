@@ -1071,6 +1071,14 @@ exclude-result-prefixes="#all"
                         <xsl:call-template name="bs2:ViewModeList">
                             <xsl:with-param name="active-mode" select="$active-mode"/>
                         </xsl:call-template>
+
+                        <button type="button" class="tb tb-links">
+                            <xsl:attribute name="title">
+                                <xsl:apply-templates select="key('resources', 'links', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                            </xsl:attribute>
+
+                            <span class="msi sm" aria-hidden="true">link</span>
+                        </button>
                     </div>
                 </div>
 
@@ -1484,7 +1492,7 @@ exclude-result-prefixes="#all"
 
     <xsl:template match="*" mode="bs2:ParallaxNav">
         <xsl:param name="id" as="xs:string?"/>
-        <xsl:param name="class" select="'parallax-nav'" as="xs:string?"/>
+        <xsl:param name="class" select="'parallax-nav dgroup'" as="xs:string?"/>
         <xsl:param name="properties-container-id" as="xs:string"/>
 
         <div>
@@ -1494,14 +1502,14 @@ exclude-result-prefixes="#all"
             <xsl:if test="$class">
                 <xsl:attribute name="class" select="$class"/>
             </xsl:if>
-            
-            <h2 class="nav-header dh2">
+
+            <h2 class="dh2">
                 <xsl:apply-templates select="key('resources', 'related-results', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
             </h2>
 
-            <ul id="{$properties-container-id}" class="nav">
-                <!-- <li> with properties will go here -->
-            </ul>
+            <div id="{$properties-container-id}" class="dgroup">
+                <!-- property rows will go here -->
+            </div>
         </div>
     </xsl:template>
     
@@ -2053,7 +2061,7 @@ exclude-result-prefixes="#all"
 
     <!-- parallax onclick -->
     
-    <xsl:template match="div[@typeof = '&ldh;View']//div[contains-token(@class, 'parallax-nav')]/ul/li/a" mode="ixsl:onclick">
+    <xsl:template match="div[@typeof = '&ldh;View']//div[contains-token(@class, 'parallax-nav')]//a[contains-token(@class, 'drow')]" mode="ixsl:onclick">
         <xsl:variable name="block" select="ancestor::div[contains-token(@class, 'block')][1]" as="element()"/>
         <xsl:variable name="container" select="ancestor::div[@typeof][1]" as="element()"/>
         <xsl:variable name="block-uri" select="xs:anyURI($block/@about)" as="xs:anyURI"/>
@@ -2429,11 +2437,12 @@ exclude-result-prefixes="#all"
 
         <xsl:for-each select="$response">
             <xsl:variable name="results" select="if (?status = 200 and ?media-type = 'application/rdf+xml') then ?body else ()" as="document-node()?"/>
-            <xsl:variable name="existing-items" select="$container/li" as="element()*"/>
+            <xsl:variable name="existing-items" select="$container/a" as="element()*"/>
             <xsl:variable name="new-item" as="element()">
-                <li>
-                    <a title="{$predicate}">
-                        <input name="ou" type="hidden" value="{$predicate}"/>
+                <a class="drow" title="{$predicate}">
+                    <input name="ou" type="hidden" value="{$predicate}"/>
+                    <span class="msi sm" aria-hidden="true">arrow_forward</span>
+                    <span class="lbl">
                         <xsl:variable name="resource" select="if ($results) then key('resources', $predicate, $results) else ()" as="element()?"/>
 
                         <xsl:choose>
@@ -2455,14 +2464,14 @@ exclude-result-prefixes="#all"
                                 <xsl:value-of select="$predicate"/>
                             </xsl:otherwise>
                         </xsl:choose>
-                    </a>
-                </li>
+                    </span>
+                </a>
             </xsl:variable>
             <xsl:variable name="items" as="element()*">
-                <!-- sort the existing <li> items together with the new item -->
+                <!-- sort the existing rows together with the new item -->
                 <xsl:perform-sort select="($existing-items, $new-item)">
-                    <!-- sort by the link text content (property label) -->
-                    <xsl:sort select="a/text()" lang="{$ac:lang}"/>
+                    <!-- sort by the label text (property label) -->
+                    <xsl:sort select="span[contains-token(@class, 'lbl')]" lang="{$ac:lang}"/>
                 </xsl:perform-sort>
             </xsl:variable>
 

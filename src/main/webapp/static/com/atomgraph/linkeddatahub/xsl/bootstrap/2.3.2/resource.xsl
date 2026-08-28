@@ -444,6 +444,21 @@ extension-element-prefixes="ixsl"
         </div>
     </xsl:template>
 
+    <!-- DRAWER ROW -->
+
+    <xsl:template match="*[@rdf:about]" mode="ldh:DrawerRow">
+        <xsl:param name="icon" select="'link'" as="xs:string"/>
+
+        <a href="{ldh:href(ac:document-uri(xs:anyURI(@rdf:about)), map{}, ac:fragment-id(@rdf:about))}" title="{@rdf:about}" class="drow{if (not(starts-with(@rdf:about, ldt:base()))) then ' external' else ''}">
+            <span class="msi sm" aria-hidden="true">
+                <xsl:value-of select="$icon"/>
+            </span>
+            <span class="lbl">
+                <xsl:apply-templates select="." mode="ac:label"/>
+            </span>
+        </a>
+    </xsl:template>
+
     <!-- MODE LIST -->
 
     <xsl:template match="*[@rdf:about]" mode="bs2:ModeListItem">

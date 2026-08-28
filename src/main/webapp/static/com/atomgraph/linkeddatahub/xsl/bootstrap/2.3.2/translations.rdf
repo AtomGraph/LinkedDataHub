@@ -260,6 +260,10 @@
         <rdfs:label xml:lang="en-US">Backlinks</rdfs:label>
         <rdfs:label xml:lang="es-ES">Backlinks</rdfs:label> <!-- I didn't find an easy translation of Backlinks to Spanish, maybe "enlaces de vuelta" ? -->
     </rdf:Description>
+    <rdf:Description rdf:nodeID="links">
+        <rdfs:label xml:lang="en-US">Links</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Enlaces</rdfs:label>
+    </rdf:Description>
     <rdf:Description rdf:nodeID="email">
         <rdfs:label xml:lang="en-US">E-mail</rdfs:label>
         <rdfs:label xml:lang="es-ES">Correo electrónico</rdfs:label>
