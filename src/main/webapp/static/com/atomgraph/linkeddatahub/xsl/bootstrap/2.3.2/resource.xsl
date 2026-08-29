@@ -829,6 +829,30 @@ extension-element-prefixes="ixsl"
         <xsl:apply-templates select="$definitions" mode="bs2:PropertyListIdentity"/>
     </xsl:template>
 
+    <!-- wrap each predicate's dt/dd run in a <div> name-value group (HTML's dl grouping element), keyed
+         on the dds' RDFa @property URI - the group is the styling unit (border, full-height hover band).
+         Only the first dt of a group survives, replacing the outer label-based dt dedup: labels can
+         collide across predicates, property URIs cannot -->
+    <xsl:template match="xhtml:dl" mode="bs2:PropertyListIdentity">
+        <xsl:copy>
+            <xsl:apply-templates select="@*" mode="#current"/>
+
+            <xsl:for-each-group select="*" group-adjacent="string((self::xhtml:dd/@property, following-sibling::xhtml:dd[preceding-sibling::xhtml:dt[1] is current()][1]/@property)[1])">
+                <div>
+                    <xsl:apply-templates select="(current-group()/self::xhtml:dt)[1], current-group()/self::xhtml:dd" mode="#current"/>
+                </div>
+            </xsl:for-each-group>
+        </xsl:copy>
+    </xsl:template>
+
+    <!-- neutralize the outer label-based dt dedup (adjacent predicates sharing a label would lose the
+         second group's dt) - the grouping above already drops repeated dts -->
+    <xsl:template match="xhtml:dt" mode="bs2:PropertyListIdentity">
+        <xsl:copy>
+            <xsl:apply-templates select="@* | node()" mode="#current"/>
+        </xsl:copy>
+    </xsl:template>
+
     <!-- IMAGE -->
     
     <!-- TO-DO: move down to Web-Client -->

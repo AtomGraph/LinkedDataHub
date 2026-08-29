@@ -347,44 +347,44 @@ fieldset > .btn-group { display: flex; justify-content: flex-end; }
 form .control-group > .controls > .btn-group { order: 99; margin-left: auto; }
 .chart-controls .field select[multiple] { height: auto; }
 
-/* ---------- read-mode property lists: dt/dd pairs styled as property rows ---------- */
+/* ---------- read-mode property lists: dt/dd name-value groups styled as property rows ---------- */
+/* bs2:PropertyListIdentity wraps each predicate's dt + dds in a <div> group (HTML's dl grouping
+   element - the design's .ldh-prop-group); subgrid slots every group's cells into the dl's shared
+   label/value tracks so labels align across groups */
 .ldh-block dl {
   display: grid;
   grid-template-columns: minmax(140px, 220px) 1fr;
   column-gap: var(--sp-6); row-gap: 0;
   margin: 0;
 }
-.ldh-block dl > dt {
+.ldh-block dl > div { grid-column: 1 / -1; display: grid; grid-template-columns: subgrid; border-top: 1px solid var(--border-default); transition: background var(--dur-fast) var(--ease-out-soft); }
+.ldh-block dl > div:first-child { border-top: 0; }
+.ldh-block dl > div > dt {
+  grid-column: 1;
   padding: var(--sp-2) 0;
   font-size: var(--fs-sm); font-weight: var(--fw-medium);
   color: var(--fg-muted);
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-  border-top: 1px solid var(--border-default);
 }
-.ldh-block dl > dd {
+.ldh-block dl > div > dd {
+  grid-column: 2;
   margin: 0;
   padding: var(--sp-2) 0;
   font-size: var(--fs-sm); color: var(--fg-1);
   min-width: 0; overflow-wrap: break-word;
-  border-top: 1px solid var(--border-default);
 }
-.ldh-block dl > dt:first-of-type, .ldh-block dl > dt:first-of-type + dd { border-top: 0; }
-/* explicit columns: a dt can be followed by several dds, which auto-placement would drop into column 1 */
-.ldh-block dl > dt { grid-column: 1; }
-.ldh-block dl > dd { grid-column: 2; }
+/* dividers between a predicate's values run in the value column only; the group's top border covers both */
+.ldh-block dl > div > dd ~ dd { border-top: 1px solid var(--border-default); }
+/* the design's .ldh-prop-group hover: the group under the pointer reads as one continuous band -
+   label at full group height, values, the column gap (painted by the group's own background) and
+   the sp-6 card padding, filled by offset box-shadow copies of the group, clipped at the card
+   edge by the block's overflow:hidden */
+.ldh-block dl > div:hover { background: var(--surface-1); box-shadow: calc(-1 * var(--sp-6)) 0 0 var(--surface-1), var(--sp-6) 0 0 var(--surface-1); }
 /* a block header with an image adopts the property-list geometry (dt track + column gap), so the
    titles group left-aligns with the dd values below regardless of the image's natural size;
    imageless headers stay flex, their titles flush at the card edge like the dt labels */
 .ldh-block-head:has(> a > img, > img) { display: grid; grid-template-columns: minmax(140px, 220px) minmax(0, 1fr) auto; column-gap: var(--sp-6); }
 .ldh-block-head > a > img, .ldh-block-head > img { width: 100%; height: auto; }
-/* the design's .ldh-prop-group hover: the row under the pointer reads as one continuous
-   band across label, value, the sp-6 column gap and the sp-6 card padding - the gaps are
-   filled by offset box-shadow copies of the cell, clipped at the card edge by the block's
-   overflow:hidden. The flat dl (repeated dts are deduped away) stands in for the design's
-   group grid, so a hovered dd lights its dt via :has(), covered up to four values deep;
-   like the design, hovering the label alone leaves the value unlit */
-.ldh-block dl > dt, .ldh-block dl > dd { transition: background var(--dur-fast) var(--ease-out-soft); }
-.ldh-block dl > dt:hover, .ldh-block dl > dd:hover, .ldh-block dl > dt:has(+ dd:hover, + dd + dd:hover, + dd + dd + dd:hover, + dd + dd + dd + dd:hover) { background: var(--surface-1); box-shadow: calc(-1 * var(--sp-6)) 0 0 var(--surface-1), var(--sp-6) 0 0 var(--surface-1); }
 /* ---------- version diff decorations (?diff= view) ---------- */
 /* Block-level state rides on outline, not border: the skins legitimately zero block borders
    (quiet prose blocks, alert-only cards, the retro card treatments) and nothing else in the
@@ -396,8 +396,8 @@ form .control-group > .controls > .btn-group { order: 99; margin-left: auto; }
 dd.diff-added, .main > div.diff-added { border-left: 4px solid var(--success-500); padding-left: 8px; }
 dd.diff-removed, .main > div.diff-removed { border-left: 4px solid var(--danger-500); padding-left: 8px; }
 /* diff decorations ride on the dd */
-.ldh-block dl > dd.diff-added { background: var(--success-50); }
-.ldh-block dl > dd.diff-removed { background: var(--danger-50); }
+.ldh-block dl > div > dd.diff-added { background: var(--success-50); }
+.ldh-block dl > div > dd.diff-removed { background: var(--danger-50); }
 /* the comparing-versions banner legend (document.xsl) keys its labels to the same tokens */
 .text-success { color: var(--success-500); }
 .text-error { color: var(--danger-500); }
@@ -544,10 +544,14 @@ body:has(.ldh-create-dock) .ldh-footer { margin-top: 0; }
 .document-body > .content-body:has(> .ldh-create-dock) { flex: 1 0 auto; display: flex; flex-direction: column; padding-bottom: 0; }
 
 /* ---------- document-level graph and map modes: the canvas fills the whole space between the
-   action bar and the footer at full viewport width; canvases nested inside view blocks keep
-   their fixed height (a canvas is a direct .content-body child only at document level) ---------- */
+   action bar and the viewport's bottom edge at full viewport width; canvases nested inside view
+   blocks keep their fixed height (a canvas is a direct .content-body child only at document
+   level). The tab-body min-height makes header (fixed 56px) + tab-body sum to exactly one
+   viewport, so the canvas bottom lands on the viewport edge and the footer falls below the
+   fold - in flow, revealed by scroll ---------- */
 .document-body > .content-body:has(> :is(.graph-3d-canvas, .map-canvas)) { flex: 1 0 auto; display: flex; flex-direction: column; max-width: none; padding: 0; }
 .content-body > :is(.graph-3d-canvas, .map-canvas) { flex: 1 0 0; height: auto; min-height: 520px; }
+body:has(.document-body > .content-body > :is(.graph-3d-canvas, .map-canvas)) #tab-body { min-height: calc(100dvh - 56px); }
 body:has(.document-body > .content-body > :is(.graph-3d-canvas, .map-canvas)) .ldh-footer { margin-top: 0; }
 
 /* ---------- RDFa editor toolbar: the bar's inner .content-body is a flex item whose auto side

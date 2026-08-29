@@ -1895,8 +1895,10 @@ exclude-result-prefixes="#all"
                     <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'caret-reversed' ])[current-date() lt xs:date('2000-01-01')]"/>
                 </xsl:for-each>
 
-                <!-- open the popover immediately with a loading state; the response replaces it with the value list -->
+                <!-- open the popover immediately with a loading state; the response replaces it with the value list.
+                     'is-open' elevates the host .ldh-block (app.css :has() rule) so the popover paints above subsequent blocks -->
                 <xsl:for-each select="$facet-container">
+                    <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'add', [ 'is-open' ])[current-date() lt xs:date('2000-01-01')]"/>
                     <xsl:result-document href="?." method="ixsl:append-content">
                         <ul class="nav facet-pop">
                             <li class="facet-loading">
@@ -1980,7 +1982,7 @@ exclude-result-prefixes="#all"
                     <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'caret-reversed' ])[current-date() lt xs:date('2000-01-01')]"/>
                 </xsl:for-each>
 
-                <!-- toggle the value list visibility -->
+                <!-- toggle the value list visibility, mirroring it as the container's 'is-open' state -->
                 <xsl:choose>
                     <xsl:when test="$hidden">
                         <ixsl:set-style name="display" select="'block'" object="following-sibling::*[contains-token(@class, 'nav')]"/>
@@ -1989,14 +1991,16 @@ exclude-result-prefixes="#all"
                         <ixsl:set-style name="display" select="'none'" object="following-sibling::*[contains-token(@class, 'nav')]"/>
                     </xsl:otherwise>
                 </xsl:choose>
+                <xsl:sequence select="ixsl:call(ixsl:get($facet-container, 'classList'), 'toggle', [ 'is-open', $hidden ])[current-date() lt xs:date('2000-01-01')]"/>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
     
-    <!-- closes a facet popover: hides the value list and resets its pill's caret -->
+    <!-- closes a facet popover: hides the value list, drops the container's 'is-open' state and resets its pill's caret -->
 
     <xsl:template match="ul[contains-token(@class, 'facet-pop')]" mode="ldh:CloseFacetPopover">
         <ixsl:set-style name="display" select="'none'" object="."/>
+        <xsl:sequence select="ixsl:call(ixsl:get(.., 'classList'), 'remove', [ 'is-open' ])[current-date() lt xs:date('2000-01-01')]"/>
         <xsl:for-each select="preceding-sibling::*[contains-token(@class, 'nav-header')]/span[contains-token(@class, 'caret')]">
             <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'caret-reversed', false() ])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:for-each>
@@ -2404,6 +2408,15 @@ exclude-result-prefixes="#all"
                         <xsl:copy>
                             <xsl:perform-sort select="*">
                                 <!-- sort key COALESCEs across $order-by-predicates in path order, preferring values whose @xml:lang primary subtag matches $ac:lang. Inlined rather than calling ldh:sort-key() because SaxonJS xsl:sort doesn't appear to thread the user-function return value back into the comparison even though the function executes. -->
+                                <!-- numeric key first: number() yields NaN for non-numeric values, so numeric columns (xsd:float totals, integer quantities) compare numerically while text columns tie on NaN and fall through to the string key below -->
+                                <xsl:sort select="
+                                    number((let $children := for $p in $order-by-predicates return *[concat(namespace-uri(), local-name()) = $p]
+                                     return (
+                                       ($children[tokenize(@xml:lang, '-')[1] = tokenize($ac:lang, '-')[1]]/string(text()))[1],
+                                       ($children[not(@xml:lang)]/string(text()))[1],
+                                       ($children/string((text(), @rdf:resource, @rdf:nodeID)[1]))[1]
+                                     )[. ne ''][1]))
+                                " order="{if ($desc) then 'descending' else 'ascending'}"/>
                                 <xsl:sort select="
                                     (let $children := for $p in $order-by-predicates return *[concat(namespace-uri(), local-name()) = $p]
                                      return (
@@ -2412,7 +2425,17 @@ exclude-result-prefixes="#all"
                                        ($children/string((text(), @rdf:resource, @rdf:nodeID)[1]))[1]
                                      )[. ne ''][1])
                                 " order="{if ($desc) then 'descending' else 'ascending'}"/>
-                                <!-- secondary sort by $default-order-by-predicates if distinct from the primary -->
+                                <!-- secondary sort by $default-order-by-predicates if distinct from the primary; same numeric-then-string pairing -->
+                                <xsl:sort select="
+                                    number(if (exists($default-order-by-predicates) and not(deep-equal($order-by-predicates, $default-order-by-predicates))) then
+                                        (let $children := for $p in $default-order-by-predicates return *[concat(namespace-uri(), local-name()) = $p]
+                                         return (
+                                           ($children[tokenize(@xml:lang, '-')[1] = tokenize($ac:lang, '-')[1]]/string(text()))[1],
+                                           ($children[not(@xml:lang)]/string(text()))[1],
+                                           ($children/string((text(), @rdf:resource, @rdf:nodeID)[1]))[1]
+                                         )[. ne ''][1])
+                                    else ())
+                                " order="{if ($default-desc) then 'descending' else 'ascending'}"/>
                                 <xsl:sort select="
                                     if (exists($default-order-by-predicates) and not(deep-equal($order-by-predicates, $default-order-by-predicates))) then
                                         (let $children := for $p in $default-order-by-predicates return *[concat(namespace-uri(), local-name()) = $p]

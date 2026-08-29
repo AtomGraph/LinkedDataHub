@@ -699,6 +699,21 @@ exclude-result-prefixes="#all"
         </dd>
     </xsl:template>
 
+    <xsl:template match="@rdf:nodeID" mode="xhtml:DefinitionDescription">
+        <xsl:param name="diff-added-keys" as="xs:string*" tunnel="yes"/>
+        <xsl:param name="diff-removed-keys" as="xs:string*" tunnel="yes"/>
+        <xsl:variable name="property-uri" select="../concat(namespace-uri(), local-name())" as="xs:string"/>
+        <xsl:variable name="diff-class" select="ldh:value-diff-class(.., $diff-added-keys, $diff-removed-keys)" as="xs:string?"/>
+
+        <dd property="{$property-uri}" resource="_:{.}">
+            <xsl:if test="$diff-class">
+                <xsl:attribute name="class" select="$diff-class"/>
+            </xsl:if>
+
+            <xsl:apply-templates select="."/>
+        </dd>
+    </xsl:template>
+
     <xsl:template match="text()[../@xml:lang]" mode="xhtml:DefinitionDescription">
         <xsl:param name="diff-added-keys" as="xs:string*" tunnel="yes"/>
         <xsl:param name="diff-removed-keys" as="xs:string*" tunnel="yes"/>
