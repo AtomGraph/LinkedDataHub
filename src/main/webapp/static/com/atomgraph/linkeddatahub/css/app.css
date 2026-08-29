@@ -1991,7 +1991,7 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
 .graph-detail dd { margin: 0; color: rgba(255,255,255,0.92); }
 
 /* Document edit modal — larger than search; reuses .ldh-prop-* primitives */
-.ldh-doc-edit { width: min(880px, calc(100vw - var(--sp-12))); max-height: calc(100vh - 96px); }
+.ldh-doc-edit { width: min(880px, calc(100% - var(--sp-12))); max-height: calc(100vh - 96px); }
 .ldh-doc-edit .mhead {
   padding: var(--sp-4) var(--sp-5);
 }
@@ -2060,7 +2060,7 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
 }
 
 /* ---------- Constructor modal ---------- */
-.ldh-ctor-modal { width: min(760px, calc(100vw - var(--sp-12))); max-height: calc(100vh - 96px); display: flex; flex-direction: column; }
+.ldh-ctor-modal { width: min(760px, calc(100% - var(--sp-12))); max-height: calc(100vh - 96px); display: flex; flex-direction: column; }
 .ldh-ctor-body { flex: 1; overflow: auto; padding: var(--sp-5) var(--sp-6); display: flex; flex-direction: column; gap: var(--sp-4); }
 .ldh-ctor-lede { margin: 0; font-size: var(--fs-sm); color: var(--fg-2); line-height: var(--lh-base); }
 .ldh-ctor-card {
@@ -2301,7 +2301,7 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
   padding-top: 64px;
 }
 .ldh-modal {
-  width: min(880px, calc(100vw - var(--sp-12)));
+  width: min(880px, calc(100% - var(--sp-12)));
   max-height: calc(100vh - 128px);
   background: var(--surface-0);
   border-radius: var(--r-lg);
@@ -2324,7 +2324,7 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
 .ldh-modal .mhead .close:hover { background: var(--bg-hover); color: var(--fg-1); }
 
 /* ---------- Access-request modal ---------- */
-.ldh-modal--access { width: min(560px, calc(100vw - var(--sp-12))); }
+.ldh-modal--access { width: min(560px, calc(100% - var(--sp-12))); }
 .ldh-modal--access .mhead { gap: var(--sp-2); align-items: center; }
 .ldh-modal--access .mhead-ic {
   width: 32px; height: 32px; flex-shrink: 0;

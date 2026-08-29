@@ -178,8 +178,12 @@ div.breadcrumb.ldh-bc { min-width: 0; overflow: hidden; }
 /* address bar: the field is skinned by app.css .ldh-address, not the form-field bridge */
 .ldh-address input[type="text"] { background: transparent; border: 0; box-shadow: none; min-height: 0; padding: 0; }
 .ldh-address input[type="text"]:focus { border: 0; box-shadow: none; }
-/* the breadcrumb zone and the address bar left-align with the content column's blocks (mirror of
-   the create dock's right alignment): the column edge is (100vw - column)/2 + the sp-6 inset.
+/* the breadcrumb zone and the address bar left-align with the content column's blocks: the column
+   edge is (layout width - column)/2 + the sp-6 inset. The layout width comes from container units,
+   not 100vw: 100vw includes the classic scrollbar while the column centers via margin auto in the
+   scrollbar-less layout width, so vw math sat half a scrollbar to the right of the blocks; both
+   bars span the layout width with sp-6 side padding, so 100cqw + 2*sp-6 recovers it (their fixed
+   descendants are none, so the containment reroutes no containing blocks).
    Widening the left zone floats ab-mid onto that edge (bar padding + grid gap cover 2*sp-6);
    the same widening on the right zone lands ab-mid's end — the dateTime stamp — on the column's
    right edge (flex-end keeps the action buttons on the viewport edge); the address bar trades
@@ -187,9 +191,10 @@ div.breadcrumb.ldh-bc { min-width: 0; overflow: hidden; }
    padding and gap, and spans the column width (lifting app.css's 720px cap) — width discounts the
    margin because a grid item's 100% resolves against the area, so the margin would otherwise push
    the bar under the header actions. Below column width all clamp to no-op. */
-.ldh-actionbar--zoned > .ab-left { min-width: calc((100vw - min(var(--ldh-content-w), 100vw)) / 2 - var(--sp-6)); }
-.ldh-actionbar--zoned > .ldh-actions { min-width: calc((100vw - min(var(--ldh-content-w), 100vw)) / 2 - var(--sp-6)); justify-content: flex-end; }
-.ldh-header .ldh-address { --address-offset: max(0px, calc((100vw - min(var(--ldh-content-w), 100vw)) / 2 - 220px - var(--sp-6))); justify-self: start; margin-left: var(--address-offset); width: calc(100% - var(--address-offset)); max-width: calc(min(var(--ldh-content-w), 100vw) - 2 * var(--sp-6)); }
+.ldh-header, .ldh-actionbar--zoned { container-type: inline-size; --layout-w: calc(100cqw + 2 * var(--sp-6)); --wing: calc((var(--layout-w) - min(var(--ldh-content-w), var(--layout-w))) / 2); }
+.ldh-actionbar--zoned > .ab-left { min-width: calc(var(--wing) - var(--sp-6)); }
+.ldh-actionbar--zoned > .ldh-actions { min-width: calc(var(--wing) - var(--sp-6)); justify-content: flex-end; }
+.ldh-header .ldh-address { --address-offset: max(0px, calc(var(--wing) - 220px - var(--sp-6))); justify-self: start; margin-left: var(--address-offset); width: calc(100% - var(--address-offset)); max-width: calc(min(var(--ldh-content-w), var(--layout-w)) - 2 * var(--sp-6)); }
 
 /* ---------- block header actions hydrated by CSR ---------- */
 .ldh-block-head .actions > div { display: flex; gap: var(--sp-1); }
@@ -202,8 +207,10 @@ div.breadcrumb.ldh-bc { min-width: 0; overflow: hidden; }
 /* ---------- modals: CSR appends div.modal.fade.in and removes it on close ---------- */
 .modal {
   position: fixed; top: 48px; left: 50%; transform: translateX(-50%);
-  /* match the content column: blocks span .content-body's inner width (max 1280px minus its side padding) */
-  width: calc(min(var(--ldh-content-w), 100vw) - 2 * var(--sp-6));
+  /* match the content column: blocks span .content-body's inner width (max 1280px minus its side
+     padding); 100%, not 100vw — a fixed element's percentages resolve against the scrollbar-less
+     viewport that also centers the column (100vw would overhang half a classic scrollbar per side) */
+  width: calc(min(var(--ldh-content-w), 100%) - 2 * var(--sp-6));
   max-height: calc(100vh - 96px);
   background: var(--surface-0);
   border: 0; border-radius: var(--r-lg);
@@ -496,7 +503,10 @@ dd.diff-removed, .main > div.diff-removed { border-left: 4px solid var(--danger-
    the viewport bottom while the content scrolls, but parks at its flow position at the end
    of the content - stacked on the footer, never over it. The negative side margins bleed
    the row out of the centered content column to the viewport edges; the right padding brings
-   the buttons back to the content column's right edge, flush with the blocks ---------- */
+   the buttons back to the content column's right edge, flush with the blocks. The margin bleed
+   and the padding must share the 100vw base: each is half a classic scrollbar off the layout
+   width, in the same direction, so the errors cancel and the buttons land exactly on the column
+   edge - rebasing one without the other breaks the alignment ---------- */
 html { overflow-x: clip; } /* the 50vw bleed overshoots by half a classic scrollbar; clip never creates a scroll container */
 .ldh-create-dock {
   position: sticky;
