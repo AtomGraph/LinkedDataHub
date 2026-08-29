@@ -687,7 +687,7 @@
   border-radius: 18px;
   box-shadow: var(--shadow-sm);
 }
-:root[data-retro="glasspro"] .ldh-block:hover { box-shadow: var(--shadow-md); transform: translateY(-1px); }
+:root[data-retro="glasspro"] .ldh-block:not(.is-quiet):hover { box-shadow: var(--shadow-md); transform: translateY(-1px); }
 :root[data-retro="glasspro"] .ldh-block.is-quiet { border: 0; background: transparent; box-shadow: none; }
 :root[data-retro="glasspro"] .ldh-grid-block .card { overflow: hidden; }
 /* Keep the property editor / statement list flat-white for max legibility */
@@ -1046,7 +1046,10 @@
   transition: box-shadow var(--md-duration-medium) var(--md-easing-emphasized),
               transform var(--md-duration-medium) var(--md-easing-emphasized);
 }
-:root[data-retro^="m3"] .ldh-block:hover {
+/* The lift belongs to the card, so it is scoped away from .is-quiet blocks:
+   prose (ldh:XHTML content) dissolves its card below, and a frameless run of
+   text that shifts a pixel under the cursor reads as a wiggle, not elevation. */
+:root[data-retro^="m3"] .ldh-block:not(.is-quiet):hover {
   box-shadow: 0 2px 4px rgba(0,0,0,0.18), 0 8px 18px 1px rgba(0,0,0,0.14);
   transform: translateY(-1px);
 }
@@ -1391,7 +1394,7 @@
 :root[data-retro="m3-dark"] .ldh-header::before { opacity: 0.06; }
 
 /* State layers flip to LIGHT overlays in dark (state layer = on-colour) */
-:root[data-retro="m3-dark"] .ldh-block:hover {
+:root[data-retro="m3-dark"] .ldh-block:not(.is-quiet):hover {
   box-shadow: 0 2px 4px rgba(0,0,0,0.40), 0 8px 18px 1px rgba(0,0,0,0.34);
   transform: translateY(-1px);
 }
