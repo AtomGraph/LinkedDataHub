@@ -56,7 +56,10 @@
 .progress.progress-indeterminate .bar { width: 35%; animation: ldh-progress-indet 1.3s var(--ease-in-out) infinite; }
 @keyframes ldh-progress-indet { from { margin-left: -35%; } to { margin-left: 100%; } }
 table.table { width: 100%; border-collapse: collapse; font-size: var(--fs-sm); }
-table.table th, table.table td { padding: var(--sp-2) var(--sp-3); border-bottom: 1px solid var(--border-default); text-align: left; vertical-align: top; }
+/* middle, not top: cells hold single-line values sitting beside taller things - a type pill, an image - and the
+   design system centres a label against a control everywhere (.ldhc-btn, .ldhc-tag, .ldhc-badge), reserving
+   flex-start for a wrapping text block beside a fixed-height one (.ldhc-help, .ldhc-choice, .ldhc-toast) */
+table.table th, table.table td { padding: var(--sp-2) var(--sp-3); border-bottom: 1px solid var(--border-default); text-align: left; vertical-align: middle; }
 table.table tr:last-child > td { border-bottom: 0; }
 /* the row lights as one band, the property-list hover's analog for a row-per-resource surface;
    no sp-6 bleed into the card padding here - .container-results (overflow: auto) clips at the table edge */
@@ -321,9 +324,11 @@ form .btn-primary {
 }
 form .btn-primary:hover { background: var(--bg-accent-hover); }
 
-/* ---------- type badges: ul.inline of typed-object anchors ---------- */
-ul.ldh-typelist { display: flex; flex-wrap: wrap; gap: var(--sp-1); list-style: none; margin: 0 0 var(--sp-1); padding: 0; }
-ul.ldh-typelist > li > a, ul.ldh-typelist > li > span {
+/* ---------- type pills: Tag em-quiet co-primary sz-sm, for every rendered rdf:type value ----------
+   the pill belongs to .btn-type itself rather than to a position inside the header type list, so a type
+   reads the same wherever it lands - the resource description header, a table cell, a row. Without this
+   it is only the header that matches, and the rest fall through to the 30px :where(.btn) legacy look. */
+.btn-type {
   display: inline-flex; align-items: center; gap: 4px;
   height: 20px; padding: 0 8px;
   border-radius: var(--r-pill);
@@ -331,7 +336,8 @@ ul.ldh-typelist > li > a, ul.ldh-typelist > li > span {
   font-size: var(--fs-xs); font-weight: var(--fw-medium);
   white-space: nowrap;
 }
-ul.ldh-typelist > li > a:hover { text-decoration: none; background: var(--ldh-blue-100, var(--bg-hover)); }
+.btn-type:hover { text-decoration: none; background: var(--ldh-blue-100, var(--bg-hover)); }
+ul.ldh-typelist { display: flex; flex-wrap: wrap; gap: var(--sp-1); list-style: none; margin: 0 0 var(--sp-1); padding: 0; }
 
 /* ---------- fieldsets/legends: sections, not Bootstrap-era boxes ---------- */
 fieldset { border: 0; padding: 0; margin: 0 0 var(--sp-4); min-inline-size: 0; }
