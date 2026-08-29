@@ -784,6 +784,17 @@ exclude-result-prefixes="#all"
         </xsl:choose>
     </xsl:function>
 
+    <!-- the xs:dateTime value of a date or dateTime literal, or () when it is neither, so the two granularities can be compared
+         against each other - xs:date and xs:dateTime are not mutually comparable, and a timestamp property carries either.
+         Casting through xs:date rather than appending 'T00:00:00' to the lexical form is what makes a zoned date work: the
+         concatenation puts the timezone before the time part, and the result is not a valid xs:dateTime. -->
+
+    <xsl:function name="ldh:date-time" as="xs:dateTime?">
+        <xsl:param name="value" as="xs:string?"/>
+
+        <xsl:sequence select="if ($value castable as xs:dateTime) then xs:dateTime($value) else if ($value castable as xs:date) then xs:dateTime(xs:date($value)) else ()"/>
+    </xsl:function>
+
     <!-- DEFAULT -->
 
     <!-- property -->

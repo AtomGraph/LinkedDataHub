@@ -241,7 +241,7 @@ extension-element-prefixes="ixsl"
             </xsl:apply-templates>
 
             <xsl:variable name="document" select="key('resources', ac:absolute-path(ldh:base-uri(.)))" as="element()?"/>
-            <xsl:if test="$document/(dct:created, dct:modified)[text()[. castable as xs:date or . castable as xs:dateTime]]">
+            <xsl:if test="$document/(dct:created, dct:modified)[exists(ldh:date-time(string(.)))]">
                 <div id="doc-controls" class="ldh-ab-ts">
                     <span class="msi sm" aria-hidden="true">schedule</span>
                     <xsl:choose>

@@ -1321,14 +1321,14 @@ exclude-result-prefixes="#all"
     <!-- .ts cell: the latest of dct:created/dct:modified as a short date -->
     <xsl:template match="*" mode="ldh:ListRowTimestamp">
         <xsl:variable name="sorted-date-time-properties" as="element()*">
-            <xsl:perform-sort select="(dct:created, dct:modified)[text()[. castable as xs:date or . castable as xs:dateTime]]">
-                <xsl:sort select="if (text() castable as xs:date) then xs:dateTime(concat(text(), 'T00:00:00')) else xs:dateTime(text())" order="ascending"/>
+            <xsl:perform-sort select="(dct:created, dct:modified)[exists(ldh:date-time(string(.)))]">
+                <xsl:sort select="ldh:date-time(string(.))" order="ascending"/>
             </xsl:perform-sort>
         </xsl:variable>
 
         <xsl:for-each select="$sorted-date-time-properties[last()]">
             <span class="ts">
-                <xsl:value-of select="format-date(if (text() castable as xs:date) then xs:date(text()) else xs:date(xs:dateTime(text())), '[D] [MNn] [Y]', $ac:lang, (), ())"/>
+                <xsl:value-of select="format-date(xs:date(ldh:date-time(string(.))), '[D] [MNn] [Y]', $ac:lang, (), ())"/>
             </span>
         </xsl:for-each>
     </xsl:template>

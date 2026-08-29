@@ -955,8 +955,8 @@ extension-element-prefixes="ixsl"
     
     <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:Timestamp">
         <xsl:variable name="sorted-date-time-properties" as="element()*">
-            <xsl:perform-sort select="(dct:created, dct:modified)[text()[. castable as xs:date or . castable as xs:dateTime]]">
-                <xsl:sort select="if (text() castable as xs:date) then xs:dateTime(concat(text(), 'T00:00:00')) else xs:dateTime(text())" order="ascending"/>
+            <xsl:perform-sort select="(dct:created, dct:modified)[exists(ldh:date-time(string(.)))]">
+                <xsl:sort select="ldh:date-time(string(.))" order="ascending"/>
             </xsl:perform-sort>
         </xsl:variable>
         <xsl:apply-templates select="$sorted-date-time-properties[last()]/text()"/>
