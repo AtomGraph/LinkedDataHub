@@ -896,7 +896,8 @@ extension-element-prefixes="ixsl"
     <!-- ACTIONS -->
 
     <xsl:template match="*[@rdf:about]" mode="bs2:Actions" priority="1">
-        <xsl:param name="show-edit-button" select="true()" as="xs:boolean" tunnel="yes"/>
+        <!-- the edit form submits a PATCH, which AuthorizationFilter requires acl:Write for - so without that mode the button opens a form that cannot be saved -->
+        <xsl:param name="show-edit-button" select="acl:mode() = '&acl;Write'" as="xs:boolean" tunnel="yes"/>
 
         <div>
             <!--
