@@ -3093,8 +3093,8 @@ exclude-result-prefixes="#all"
 
             <ixsl:promise select="
                 ixsl:resolve($context) =>
-                    ixsl:then(ldh:view-results-thunk#1)
-                "
+                    ixsl:then(ldh:view-results-thunk#1) =>
+                    ixsl:finally(ldh:reset-cursor#0)"
                 on-failure="ldh:promise-failure#1"/>
         </xsl:for-each>
     </xsl:function>

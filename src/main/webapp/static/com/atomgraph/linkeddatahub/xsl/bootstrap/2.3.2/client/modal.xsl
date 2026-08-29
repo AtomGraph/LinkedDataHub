@@ -1317,7 +1317,7 @@ LIMIT   10
                 <xsl:choose>
                     <!-- the target must be local because the constructor derivation runs on the local /sparql endpoint scoped to the target graph via ?default-graph-uri= - another instance's graphs are invisible to it (the add/clone variant below has no such constraint and accepts foreign targets) -->
                     <xsl:when test="not(starts-with($target, lapp:origin(ldh:request-uri()) || '/'))">
-                        <xsl:sequence select="ldh:add-data-form-error(map{ 'form': $form, 'explanation-key': 'target-must-be-local' })"/>
+                        <xsl:sequence select="ldh:add-data-form-error(map{ 'form': $form }, 'target-must-be-local')"/>
                     </xsl:when>
                     <xsl:otherwise>
                         <!-- ldh:href routes the arbitrary external $source through the same-origin ?uri= proxy (CORS); the proxy also converts any Jena-parseable format to the requested RDF/XML. The target is local, so its ldh:href is a pass-through and the POST goes directly to it. -->
@@ -1969,11 +1969,11 @@ LIMIT   10
             </xsl:when>
             <!-- 200 but not RDF/XML (e.g. the source URI returned an HTML page): explicit error, do NOT fall through to the success navigation of ldh:add-data-form-response -->
             <xsl:when test="$status = 200">
-                <xsl:sequence select="ldh:add-data-form-error(map:put($context, 'explanation-key', 'source-not-rdf'))"/>
+                <xsl:sequence select="ldh:add-data-form-error($context, 'source-not-rdf')"/>
             </xsl:when>
             <!-- fetch failed -->
             <xsl:otherwise>
-                <xsl:sequence select="ldh:add-data-form-error($context)"/>
+                <xsl:sequence select="ldh:add-data-form-error($context, ())"/>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:function>
@@ -2015,11 +2015,11 @@ LIMIT   10
             </xsl:when>
             <!-- 200 but not RDF/XML (e.g. the source URI returned an HTML page): explicit error -->
             <xsl:when test="$status = 200">
-                <xsl:sequence select="ldh:add-data-form-error(map:put($context, 'explanation-key', 'source-not-rdf'))"/>
+                <xsl:sequence select="ldh:add-data-form-error($context, 'source-not-rdf')"/>
             </xsl:when>
             <!-- fetch failed -->
             <xsl:otherwise>
-                <xsl:sequence select="ldh:add-data-form-error($context)"/>
+                <xsl:sequence select="ldh:add-data-form-error($context, ())"/>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:function>
@@ -2044,7 +2044,7 @@ LIMIT   10
                 "/>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:sequence select="ldh:import-ontology-error($context)"/>
+                <xsl:sequence select="ldh:import-ontology-error($context, ())"/>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:function>
@@ -2071,7 +2071,7 @@ LIMIT   10
                 "/>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:sequence select="ldh:import-ontology-error(map:put($context, 'explanation-key', 'transformation-query-not-loaded'))"/>
+                <xsl:sequence select="ldh:import-ontology-error($context, 'transformation-query-not-loaded')"/>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:function>
@@ -2107,7 +2107,7 @@ LIMIT   10
                 "/>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:sequence select="ldh:import-ontology-error($context)"/>
+                <xsl:sequence select="ldh:import-ontology-error($context, ())"/>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:function>
@@ -2131,7 +2131,7 @@ LIMIT   10
                 "/>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:sequence select="ldh:import-ontology-error($context)"/>
+                <xsl:sequence select="ldh:import-ontology-error($context, ())"/>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:function>
@@ -2139,16 +2139,17 @@ LIMIT   10
     <!-- error wrapper for the import-ontology chain: once the scratch document exists ('scratch-created'), delete it best-effort before rendering the error; the original failed 'response' stays in $context for the message -->
     <xsl:function name="ldh:import-ontology-error" as="item()*" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
+        <xsl:param name="explanation-key" as="xs:string?"/>
 
         <xsl:choose>
             <xsl:when test="map:contains($context, 'scratch-created')">
                 <xsl:sequence select="
                   ixsl:http-request(map{ 'method': 'DELETE', 'href': ldh:href($context('scratch-uri')) })
-                    => ixsl:then(ldh:import-ontology-error-cleaned($context, ?))
+                    => ixsl:then(ldh:import-ontology-error-cleaned($context, $explanation-key, ?))
                 "/>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:sequence select="ldh:add-data-form-error($context)"/>
+                <xsl:sequence select="ldh:add-data-form-error($context, $explanation-key)"/>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:function>
@@ -2156,9 +2157,10 @@ LIMIT   10
     <!-- renders the error after the scratch cleanup; the DELETE response is ignored -->
     <xsl:function name="ldh:import-ontology-error-cleaned" as="item()*" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
+        <xsl:param name="explanation-key" as="xs:string?"/>
         <xsl:param name="delete-response" as="map(*)"/>
 
-        <xsl:sequence select="ldh:add-data-form-error($context)"/>
+        <xsl:sequence select="ldh:add-data-form-error($context, $explanation-key)"/>
     </xsl:function>
 
     <!-- import-ontology chain, step 6 (scratch deleted): clear the end-user app ontology from the server-side cache so its owl:imports closure picks up the annotation document (idempotent when the app ontology does not import it yet), then terminate via ldh:add-data-form-response -->
@@ -2182,7 +2184,7 @@ LIMIT   10
                 "/>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:sequence select="ldh:add-data-form-error($context)"/>
+                <xsl:sequence select="ldh:add-data-form-error($context, ())"/>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:function>
@@ -2210,22 +2212,22 @@ LIMIT   10
             </xsl:when>
             <!-- Error: render error message inline in the form's fieldset -->
             <xsl:otherwise>
-                <xsl:sequence select="ldh:add-data-form-error($context)"/>
+                <xsl:sequence select="ldh:add-data-form-error($context, ())"/>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:function>
 
-    <!-- render an inline error alert in the add/clone form's fieldset; $context may carry an optional
-         'explanation-key' override for failures that never reached the network (e.g. a non-local target),
-         otherwise the sentence is derived from the response status. 'response' is optional for the same reason. -->
+    <!-- render an inline error alert in the add/clone form's fieldset. $explanation-key names the sentence for a
+         failure that never reached the network (e.g. a non-local target); pass () to derive it from the response
+         status instead. 'response' is optional for the same reason. -->
     <xsl:function name="ldh:add-data-form-error" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
+        <xsl:param name="explanation-key" as="xs:string?"/>
         <xsl:variable name="response" select="$context('response')" as="map(*)?"/>
 
         <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
 
-        <xsl:variable name="explanation-key" select="if (map:contains($context, 'explanation-key')) then $context('explanation-key') else ldh:http-error-key($response?status)" as="xs:string"/>
-        <xsl:sequence select="ldh:render-form-error($context('form'), 'data-not-added', $explanation-key, ldh:response-detail($response))"/>
+        <xsl:sequence select="ldh:render-form-error($context('form'), 'data-not-added', ($explanation-key, ldh:http-error-key($response?status))[1], ldh:response-detail($response))"/>
     </xsl:function>
 
     <!-- Kicks off the async metadata-fetch chain for the constraint-violation re-render of a modal form (Container/Item creation and document edit). $context carries response/about/block/form from the form submit handler — $about is the resource discriminator (set by the submit handler from $block/@about or $form/@action). Harvest types/property-uris from the edited resource; object-uris from the whole body. Terminates in ldh:render-modal-form-violation. -->

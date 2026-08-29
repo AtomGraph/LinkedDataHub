@@ -1216,12 +1216,13 @@ WHERE
         </xsl:if>
     </xsl:template>
     
-    <xsl:template name="onDelete">
-        <xsl:context-item as="map(*)" use="required"/>
-        <xsl:param name="doc-uri" as="xs:anyURI"/>
+    <xsl:function name="ldh:delete-response" as="map(*)" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:variable name="response" select="$context('response')" as="map(*)"/>
+        <xsl:variable name="doc-uri" select="$context('doc-uri')" as="xs:anyURI"/>
 
         <xsl:choose>
-            <xsl:when test="?status = 204"> <!-- No Content -->
+            <xsl:when test="$response?status = 204"> <!-- No Content -->
                 <!-- parent directory; no fragment relevant here -->
                 <xsl:variable name="parent-doc-uri" select="resolve-uri('..', $doc-uri)" as="xs:anyURI"/>
 
@@ -1232,10 +1233,12 @@ WHERE
             </xsl:when>
             <xsl:otherwise>
                 <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
-                <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ ?message ])[current-date() lt xs:date('2000-01-01')]"/>
+                <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ $response?message ])[current-date() lt xs:date('2000-01-01')]"/>
             </xsl:otherwise>
         </xsl:choose>
-    </xsl:template>
+
+        <xsl:sequence select="$context"/>
+    </xsl:function>
     
     <!-- open drop-down by toggling its CSS class. The menu flips upward ('drop-up') when the group
          has less viewport space below it than above, so it never opens into the nearer viewport edge -->
@@ -1255,14 +1258,17 @@ WHERE
         <xsl:variable name="request-uri" select="ldh:href(ac:absolute-path(ldh:base-uri(.)), map{})" as="xs:anyURI"/>
 
         <xsl:if test="ixsl:call(ixsl:window(), 'confirm', [ ac:label(key('resources', 'are-you-sure', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))) ])">
-            <xsl:variable name="request" as="item()*">
-                <ixsl:schedule-action http-request="map{ 'method': 'DELETE', 'href': $request-uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
-                    <xsl:call-template name="onDelete">
-                        <xsl:with-param name="doc-uri" select="ac:absolute-path(ldh:base-uri(.))"/>
-                    </xsl:call-template>
-                </ixsl:schedule-action>
-            </xsl:variable>
-            <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
+            <xsl:variable name="context" as="map(*)" select="
+              map{
+                'request': map{ 'method': 'DELETE', 'href': $request-uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } },
+                'doc-uri': ac:absolute-path(ldh:base-uri(.))
+              }"/>
+            <!-- no ixsl:finally here: on success the chain hands over to ldh:DocumentNavigate, which raises the busy
+                 cursor for its own load, and a finally would settle first and clear it. The failure branch resets. -->
+            <ixsl:promise select="ixsl:http-request($context('request')) =>
+                ixsl:then(ldh:rethread-response($context, ?)) =>
+                ixsl:then(ldh:delete-response#1)"
+                on-failure="ldh:promise-failure#1"/>
         </xsl:if>
     </xsl:template>
 

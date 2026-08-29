@@ -466,14 +466,17 @@ exclude-result-prefixes="#all"
                     <xsl:variable name="update-string" select="replace($block-delete-string, '$this', '&lt;' || ac:absolute-path(ldh:base-uri(.)) || '&gt;', 'q')" as="xs:string"/>
                     <xsl:variable name="update-string" select="replace($update-string, '$block', '&lt;' || $block-uri || '&gt;', 'q')" as="xs:string"/>
                     <xsl:variable name="request-uri" select="ldh:href(ac:absolute-path(ldh:base-uri(.)), map{})" as="xs:anyURI"/>
-                    <xsl:variable name="request" as="item()*">
-                        <ixsl:schedule-action http-request="map{ 'method': 'PATCH', 'href': $request-uri, 'media-type': 'application/sparql-update', 'body': $update-string }">
-                            <xsl:call-template name="onBlockDelete">
-                                <xsl:with-param name="block" select="$block"/>
-                            </xsl:call-template>
-                        </ixsl:schedule-action>
-                    </xsl:variable>
-                    <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
+                    <xsl:variable name="context" as="map(*)" select="
+                      map{
+                        'request': map{ 'method': 'PATCH', 'href': $request-uri, 'media-type': 'application/sparql-update', 'body': $update-string },
+                        'block': $block
+                      }"/>
+                    <!-- no ldh:handle-response in the chain: a failed PATCH is reported here rather than raised, so it must reach the callback -->
+                    <ixsl:promise select="ixsl:http-request($context('request')) =>
+                        ixsl:then(ldh:rethread-response($context, ?)) =>
+                        ixsl:then(ldh:block-delete-response#1) =>
+                        ixsl:finally(ldh:reset-cursor#0)"
+                        on-failure="ldh:promise-failure#1"/>
                 </xsl:if>
             </xsl:when>
             <!-- remove block that hasn't been saved yet -->
@@ -1057,14 +1060,13 @@ exclude-result-prefixes="#all"
 
     <!-- block delete -->
 
-    <xsl:template name="onBlockDelete">
-        <xsl:context-item as="map(*)" use="required"/>
-        <xsl:param name="block" as="element()"/>
-
-        <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
+    <xsl:function name="ldh:block-delete-response" as="map(*)" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:variable name="response" select="$context('response')" as="map(*)"/>
+        <xsl:variable name="block" select="$context('block')" as="element()"/>
 
         <xsl:choose>
-            <xsl:when test="?status = (200, 204)">
+            <xsl:when test="$response?status = (200, 204)">
                 <xsl:for-each select="$block">
                     <xsl:sequence select="ixsl:call(., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
                 </xsl:for-each>
@@ -1073,7 +1075,9 @@ exclude-result-prefixes="#all"
                 <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ 'Could not delete block' ])[current-date() lt xs:date('2000-01-01')]"/>
             </xsl:otherwise>
         </xsl:choose>
-    </xsl:template>
+
+        <xsl:sequence select="$context"/>
+    </xsl:function>
     
     <!-- block move (drag & drop) -->
 

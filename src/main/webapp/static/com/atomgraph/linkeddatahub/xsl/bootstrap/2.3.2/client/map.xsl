@@ -145,10 +145,13 @@ exclude-result-prefixes="#all"
             'map': $map,
             'initial-load': $initial-load
           }"/>
+        <!-- the busy cursor is raised by ldh:RenderViewMode, which calls this template; the finally that lowers it
+             belongs here, on the chain that actually does the loading -->
         <ixsl:promise select="ixsl:http-request($context('request')) =>
             ixsl:then(ldh:rethread-response($context, ?)) =>
             ixsl:then(ldh:handle-response#1) =>
-            ixsl:then(ldh:geo-results-response#1)"
+            ixsl:then(ldh:geo-results-response#1) =>
+            ixsl:finally(ldh:reset-cursor#0)"
             on-failure="ldh:promise-failure#1"/>
     </xsl:template>
     
@@ -333,8 +336,6 @@ exclude-result-prefixes="#all"
         <xsl:variable name="map" select="$context('map')" as="item()"/> <!-- OpenLayers map object -->
         <xsl:variable name="initial-load" select="$context('initial-load')" as="xs:boolean"/>
 
-        <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
-        
         <xsl:for-each select="$response">
             <xsl:choose>
                 <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
@@ -354,9 +355,6 @@ exclude-result-prefixes="#all"
                 </xsl:otherwise>
             </xsl:choose>
         </xsl:for-each>
-        
-        <!-- loading is done - restore the default mouse cursor -->
-        <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
         
         <xsl:sequence select="$context"/>
     </xsl:function>
@@ -383,31 +381,34 @@ exclude-result-prefixes="#all"
 
                 <xsl:sequence select="ldh:busy-cursor()"/>
 
-                <xsl:variable name="request" as="item()*">
-                    <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
-                        <xsl:call-template name="onFeatureDescriptionLoad">
-                            <xsl:with-param name="event" select="$event"/>
-                            <xsl:with-param name="map" select="$map"/>
-                            <xsl:with-param name="feature" select="$feature"/>
-                            <xsl:with-param name="uri" select="$uri"/>
-                        </xsl:call-template>
-                    </ixsl:schedule-action>
-                </xsl:variable>
-                <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
+                <xsl:variable name="context" as="map(*)" select="
+                  map{
+                    'request': map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } },
+                    'event': $event,
+                    'map': $map,
+                    'feature': $feature,
+                    'uri': $uri
+                  }"/>
+                <!-- no ldh:handle-response in the chain: a failed fetch is reported here rather than raised, so it must reach the callback -->
+                <ixsl:promise select="ixsl:http-request($context('request')) =>
+                    ixsl:then(ldh:rethread-response($context, ?)) =>
+                    ixsl:then(ldh:feature-description-response#1) =>
+                    ixsl:finally(ldh:reset-cursor#0)"
+                    on-failure="ldh:promise-failure#1"/>
             </xsl:if>
         </xsl:if>
     </xsl:template>
     
-    <xsl:template name="onFeatureDescriptionLoad">
-        <xsl:context-item as="map(*)" use="required"/>
-        <xsl:param name="event"/>
-        <xsl:param name="map"/>
-        <xsl:param name="feature"/>
-        <xsl:param name="uri" as="xs:anyURI"/>
-        
+    <xsl:function name="ldh:feature-description-response" as="map(*)" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:variable name="response" select="$context('response')" as="map(*)"/>
+        <xsl:variable name="event" select="$context('event')"/>
+        <xsl:variable name="map" select="$context('map')"/>
+        <xsl:variable name="uri" select="$context('uri')" as="xs:anyURI"/>
+
         <xsl:choose>
-            <xsl:when test="?status = 200 and starts-with(?media-type, 'application/rdf+xml')">
-                <xsl:for-each select="?body">
+            <xsl:when test="$response?status = 200 and starts-with($response?media-type, 'application/rdf+xml')">
+                <xsl:for-each select="$response?body">
                     <xsl:variable name="info-window-options" select="ldh:new-object()"/>
                     <xsl:variable name="info-window-html" as="element()">
                         <xsl:apply-templates select="key('resources', $uri)">
@@ -451,13 +452,12 @@ exclude-result-prefixes="#all"
                 </xsl:for-each>
             </xsl:when>
             <xsl:otherwise>
-                <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
-                <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ ?message ])[current-date() lt xs:date('2000-01-01')]"/>
+                <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ $response?message ])[current-date() lt xs:date('2000-01-01')]"/>
             </xsl:otherwise>
         </xsl:choose>
-        
-        <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
-    </xsl:template>
+
+        <xsl:sequence select="$context"/>
+    </xsl:function>
     
     <!-- close popup overlay (info window) -->
     
