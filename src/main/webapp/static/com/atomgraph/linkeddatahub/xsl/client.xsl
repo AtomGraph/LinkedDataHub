@@ -470,13 +470,14 @@ WHERE
                         <!-- set document title from RDF; look up by the resource URI (with fragment) since SKOS Concepts etc. live at doc/#frag -->
                         <xsl:variable name="resource-uri" select="xs:anyURI($doc-uri || (if ($fragment) then '#' || $fragment else ''))" as="xs:anyURI"/>
                         <xsl:variable name="label" select="if (exists(key('resources', $resource-uri, $results))) then ac:label(key('resources', $resource-uri, $results)) else string($resource-uri)" as="xs:string"/>
-                        <ixsl:set-property name="title" select="$label" object="ixsl:page()"/>
 
-                        <!-- align URL with the mode detected from the RDF document -->
-                        <xsl:call-template name="ldh:PushState">
-                            <xsl:with-param name="href" select="ldh:href($doc-uri, map:merge(($query-params, ldh:build-query($mode))), $fragment)"/>
-                            <xsl:with-param name="title" select="$label"/>
-                            <xsl:with-param name="container" select="id($body-id, ixsl:page())"/>
+                        <!-- align title and URL with the mode detected from the RDF document -->
+                        <xsl:call-template name="ldh:SetDocumentState">
+                            <xsl:with-param name="doc-uri" select="$doc-uri"/>
+                            <xsl:with-param name="fragment" select="$fragment"/>
+                            <xsl:with-param name="query-params" select="$query-params"/>
+                            <xsl:with-param name="mode" select="$mode"/>
+                            <xsl:with-param name="label" select="$label"/>
                         </xsl:call-template>
 
                         <!-- reuse exact-match pane, or same-origin pane (avoids accumulating panes for the same dataspace) -->
@@ -663,12 +664,12 @@ WHERE
                     <xsl:variable name="effective-pane-id" select="if ($tab-pane) then $tab-pane/@id else $tab-body-id" as="xs:string"/>
                     <xsl:variable name="label" select="concat('HTTP ', ?status, if (?message) then ' ' || ?message else '')" as="xs:string"/>
 
-                    <ixsl:set-property name="title" select="$label" object="ixsl:page()"/>
-
-                    <xsl:call-template name="ldh:PushState">
-                        <xsl:with-param name="href" select="ldh:href($doc-uri, map:merge(($query-params, ldh:build-query($mode))), $fragment)"/>
-                        <xsl:with-param name="title" select="$label"/>
-                        <xsl:with-param name="container" select="id($body-id, ixsl:page())"/>
+                    <xsl:call-template name="ldh:SetDocumentState">
+                        <xsl:with-param name="doc-uri" select="$doc-uri"/>
+                        <xsl:with-param name="fragment" select="$fragment"/>
+                        <xsl:with-param name="query-params" select="$query-params"/>
+                        <xsl:with-param name="mode" select="$mode"/>
+                        <xsl:with-param name="label" select="$label"/>
                     </xsl:call-template>
 
                     <!-- external-only, new pane only: add tab bar item and hide local panes (mirrors the 200/RDF success path) -->
@@ -948,9 +949,10 @@ WHERE
          <!-- $href has to be a proxied URI with the actual URI encoded as ?uri, otherwise we get a "DOMException: The operation is insecure" -->
         <xsl:param name="href" as="xs:anyURI"/>
         <xsl:param name="title" as="xs:string?"/>
-        <xsl:param name="container" as="element()"/>
+        <xsl:param name="container" as="element()" select="id($body-id, ixsl:page())"/>
         <xsl:param name="query" as="xs:string?"/>
-        
+        <xsl:param name="replace" select="false()" as="xs:boolean"/>
+
         <xsl:variable name="state" as="map(xs:string, item())">
             <xsl:map>
                 <xsl:map-entry key="'href'" select="$href"/>
@@ -959,10 +961,28 @@ WHERE
         </xsl:variable>
         <xsl:variable name="state-obj" select="ixsl:call(ixsl:window(), 'JSON.parse', [ $state => serialize(map{ 'method': 'json' }) ])"/>
 
-        <!-- push the latest state into history -->
-        <xsl:sequence select="ixsl:call(ixsl:window(), 'history.pushState', [ $state-obj, $title, $href ])[current-date() lt xs:date('2000-01-01')]"/>
+        <!-- push the latest state into history, or overwrite the current entry when it already stands for this navigation (ldh:SetDocumentState) -->
+        <xsl:sequence select="ixsl:call(ixsl:window(), if ($replace) then 'history.replaceState' else 'history.pushState', [ $state-obj, $title, $href ])[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
-    
+
+    <!-- reflect the loaded document in the browser chrome: page title, and the address bar aligned with the mode the document resolves to.
+    Overwrites the current history entry instead of adding one: that entry already stands for this navigation - pushed by ldh:DocumentNavigate, or the browser's own on a full page load or back-navigation - and the resolved mode is the default the bare URL already denotes, so pushing would cost two back presses per navigation and would append after a popstate, dropping the forward stack. -->
+    <xsl:template name="ldh:SetDocumentState">
+        <xsl:param name="doc-uri" as="xs:anyURI"/>
+        <xsl:param name="fragment" as="xs:string?"/>
+        <xsl:param name="query-params" select="map{}" as="map(xs:string, xs:string*)"/>
+        <xsl:param name="mode" as="xs:anyURI"/>
+        <xsl:param name="label" as="xs:string"/>
+
+        <ixsl:set-property name="title" select="$label" object="ixsl:page()"/>
+
+        <xsl:call-template name="ldh:PushState">
+            <xsl:with-param name="href" select="ldh:href($doc-uri, map:merge(($query-params, ldh:build-query($mode))), $fragment)"/>
+            <xsl:with-param name="title" select="$label"/>
+            <xsl:with-param name="replace" select="true()"/>
+        </xsl:call-template>
+    </xsl:template>
+
     <!-- switch to a tab whose pane DOM and LinkedDataHub.contents[$doc-uri] are already populated: no fetch, no re-render -->
     <xsl:template name="ldh:TabSwitch">
         <xsl:param name="doc-uri" as="xs:anyURI"/>
