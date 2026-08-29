@@ -664,11 +664,14 @@ exclude-result-prefixes="#all"
     <xsl:template name="ldh:ViewParallax">
         <xsl:param name="select-xml" as="document-node()"/>
         <xsl:param name="predicate" as="xs:anyURI"/>
+        <!-- an inverse step pivots onto the subjects pointing at the current results, rather than onto their objects -->
+        <xsl:param name="inverse" select="false()" as="xs:boolean"/>
 
         <xsl:variable name="select-xml" as="document-node()">
             <xsl:document>
                 <xsl:apply-templates select="$select-xml" mode="ldh:add-parallax-step">
                     <xsl:with-param name="predicate" select="$predicate" tunnel="yes"/>
+                    <xsl:with-param name="inverse" select="$inverse" tunnel="yes"/>
                 </xsl:apply-templates>
             </xsl:document>
         </xsl:variable>
@@ -1071,7 +1074,8 @@ exclude-result-prefixes="#all"
                 <!-- parallax row: the second row of the view's control header. Query inputs (filters, sort, modes) stay in the toolbar above; onward pivots derived from the current result set land here, filled by bs2:ParallaxNav after every results render. Hidden by CSS while it has no chips. -->
                 <div class="parallax-nav">
                     <span class="plabel">
-                        <span class="msi sm" aria-hidden="true">arrow_forward</span>
+                        <!-- the chips carry their own direction arrows, so the row's own glyph stays neutral -->
+                        <span class="msi sm" aria-hidden="true">alt_route</span>
                         <span class="ldhc-vh">
                             <xsl:apply-templates select="key('resources', 'related-results', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
                         </span>
@@ -1473,37 +1477,91 @@ exclude-result-prefixes="#all"
     
     <!-- parallax -->
     
+    <!-- Loads the chips for the parallax row: the predicates linking the result set to the rest of
+         the graph, both outgoing and incoming. Discovery asks the endpoint over the whole result
+         set (LIMIT/OFFSET/ORDER stripped off the subquery) rather than reading the loaded page, so
+         properties held only by resources on other pages are found too, and objects that are dead
+         ends - never subjects themselves - are excluded by the query. -->
     <xsl:template name="bs2:ParallaxNav">
         <xsl:param name="properties-container-id" as="xs:string"/>
-        <xsl:param name="results" as="document-node()"/>
+        <xsl:param name="empty-results" as="xs:boolean"/>
         <xsl:param name="select-xml" as="document-node()"/>
         <xsl:param name="endpoint" as="xs:anyURI"/>
         <xsl:param name="focus-var-name" as="xs:string"/>
+        <xsl:param name="property-metadata" as="document-node()?"/>
+        <xsl:param name="cache" as="item()"/>
 
         <!-- the chips container is emitted with the parallax row by ldh:RenderViewResults' initial markup -->
         <xsl:for-each select="id($properties-container-id, ixsl:page())">
-            <!-- clear chips from the previous result set -->
-            <xsl:result-document href="?." method="ixsl:replace-content"/>
+            <!-- a SELECT * view has no named focus variable to pivot on -->
+            <xsl:if test="not($empty-results) and $focus-var-name != ''">
+                <xsl:variable name="select-xml" as="document-node()">
+                    <xsl:document>
+                        <xsl:apply-templates select="$select-xml" mode="ldh:replace-limit"/>
+                    </xsl:document>
+                </xsl:variable>
+                <xsl:variable name="select-xml" as="document-node()">
+                    <xsl:document>
+                        <xsl:apply-templates select="$select-xml" mode="ldh:replace-offset"/>
+                    </xsl:document>
+                </xsl:variable>
+                <!-- an ordered subquery has to be materialized in full and defeats the outer LIMIT -->
+                <xsl:variable name="select-xml" as="document-node()">
+                    <xsl:document>
+                        <xsl:apply-templates select="$select-xml" mode="ldh:strip-order-by"/>
+                    </xsl:document>
+                </xsl:variable>
+                <!-- deduplicate the focus resources before the property fan-out, unless the query aggregates (re-projecting a GROUP BY query onto a non-grouping variable is invalid SPARQL) -->
+                <xsl:variable name="select-xml" as="document-node()">
+                    <xsl:choose>
+                        <xsl:when test="$select-xml/json:map/json:array[@key = 'group'] or $select-xml/json:map/json:array[@key = 'variables']/json:map">
+                            <xsl:sequence select="$select-xml"/>
+                        </xsl:when>
+                        <xsl:otherwise>
+                            <xsl:document>
+                                <xsl:apply-templates select="$select-xml" mode="ldh:replace-variables">
+                                    <xsl:with-param name="var-names" select="$focus-var-name" tunnel="yes"/>
+                                </xsl:apply-templates>
+                            </xsl:document>
+                        </xsl:otherwise>
+                    </xsl:choose>
+                </xsl:variable>
 
-            <!-- only render parallax if the RDF result contains object resources -->
-            <xsl:if test="$results/rdf:RDF/*/*[@rdf:resource]">
-                <xsl:variable name="query-json-string" select="xml-to-json($select-xml)" as="xs:string"/>
-                <xsl:variable name="query-json" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'parse', [ $query-json-string ])"/>
-                <xsl:variable name="query-string" select="ixsl:call(ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromQuery', [ $query-json ]), 'toString', [])" as="xs:string"/>
-                <xsl:variable name="request-uri" select="ldh:href($endpoint, map{})" as="xs:anyURI"/>
-                <xsl:variable name="request" select="map{ 'method': 'POST', 'href': $request-uri, 'media-type': 'application/sparql-query', 'body': $query-string, 'headers': map{ 'Accept': 'application/sparql-results+xml' } }" as="map(*)"/>
-                <xsl:variable name="context" as="map(*)" select="
-                  map{
-                    'request': $request,
-                    'container': .,
-                    'var-name': $focus-var-name,
-                    'results': $results
-                  }"/>
-                <ixsl:promise select="ixsl:http-request($context('request')) =>
-                    ixsl:then(ldh:rethread-response($context, ?)) =>
-                    ixsl:then(ldh:handle-response#1) =>
-                    ixsl:then(ldh:parallax-response#1)"
-                    on-failure="ldh:promise-failure#1"/>
+                <!-- paging, sorting and mode switches re-render the view without changing the result set - only re-discover when the stripped query actually differs -->
+                <xsl:variable name="parallax-key" select="serialize($select-xml)" as="xs:string"/>
+                <xsl:if test="not(ixsl:contains($cache, 'parallax-key') and ixsl:get($cache, 'parallax-key') = $parallax-key)">
+                    <ixsl:set-property name="parallax-key" select="$parallax-key" object="$cache"/>
+
+                    <!-- clear chips from the previous result set -->
+                    <xsl:result-document href="?." method="ixsl:replace-content"/>
+
+                    <xsl:variable name="uuid" select="ac:uuid()" as="xs:string"/>
+                    <xsl:variable name="query-xml" as="document-node()">
+                        <xsl:document>
+                            <xsl:apply-templates select="$select-xml" mode="ldh:link-predicates">
+                                <xsl:with-param name="uuid" select="$uuid" tunnel="yes"/>
+                            </xsl:apply-templates>
+                        </xsl:document>
+                    </xsl:variable>
+                    <xsl:variable name="query-json-string" select="xml-to-json($query-xml)" as="xs:string"/>
+                    <xsl:variable name="query-json" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'parse', [ $query-json-string ])"/>
+                    <xsl:variable name="query-string" select="ixsl:call(ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromQuery', [ $query-json ]), 'toString', [])" as="xs:string"/>
+                    <xsl:variable name="request-uri" select="ldh:href($endpoint, map{})" as="xs:anyURI"/>
+                    <xsl:variable name="request" select="map{ 'method': 'POST', 'href': $request-uri, 'media-type': 'application/sparql-query', 'body': $query-string, 'headers': map{ 'Accept': 'application/sparql-results+xml' } }" as="map(*)"/>
+                    <xsl:variable name="context" as="map(*)" select="
+                      map{
+                        'request': $request,
+                        'container': .,
+                        'predicate-var-name': 'predicate' || translate($uuid, '-', '_'),
+                        'inverse-var-name': 'inverse' || translate($uuid, '-', '_'),
+                        'property-metadata': $property-metadata
+                      }"/>
+                    <ixsl:promise select="ixsl:http-request($context('request')) =>
+                        ixsl:then(ldh:rethread-response($context, ?)) =>
+                        ixsl:then(ldh:handle-response#1) =>
+                        ixsl:then(ldh:parallax-response#1)"
+                        on-failure="ldh:promise-failure#1"/>
+                </xsl:if>
             </xsl:if>
         </xsl:for-each>
     </xsl:template>
@@ -2050,6 +2108,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="active-mode" select="map:get($class-modes, $active-class)" as="xs:anyURI"/>
         <xsl:variable name="predicate" select="input/@value" as="xs:anyURI"/>
         <xsl:variable name="label" select="string(span[contains-token(@class, 'lbl')])" as="xs:string"/>
+        <xsl:variable name="inverse" select="@data-dir = 'in'" as="xs:boolean"/>
         <xsl:variable name="select-string" select="ixsl:get($cache, 'select-string')" as="xs:string"/>
         <xsl:variable name="select-xml" select="ixsl:get($cache, 'select-xml')" as="document-node()"/>
         <xsl:variable name="initial-var-name" select="ixsl:get($cache, 'initial-var-name')" as="xs:string"/>
@@ -2061,6 +2120,7 @@ exclude-result-prefixes="#all"
             <xsl:call-template name="ldh:ViewParallax">
                 <xsl:with-param name="select-xml" select="$select-xml"/>
                 <xsl:with-param name="predicate" select="$predicate"/>
+                <xsl:with-param name="inverse" select="$inverse"/>
             </xsl:call-template>
         </xsl:variable>
 
@@ -2069,7 +2129,7 @@ exclude-result-prefixes="#all"
 
         <!-- record the applied step and re-render the toolbar's step chips -->
         <xsl:variable name="steps-json" select="if (ixsl:contains($cache, 'parallax-steps')) then string(ixsl:get($cache, 'parallax-steps')) else '[]'" as="xs:string"/>
-        <xsl:variable name="steps" select="array:append(parse-json($steps-json), map{ 'predicate': string($predicate), 'label': $label })" as="array(*)"/>
+        <xsl:variable name="steps" select="array:append(parse-json($steps-json), map{ 'predicate': string($predicate), 'label': $label, 'inverse': $inverse })" as="array(*)"/>
         <ixsl:set-property name="parallax-steps" select="serialize($steps, map{ 'method': 'json' })" object="$cache"/>
         <xsl:apply-templates select="$container" mode="ldh:RenderParallaxSteps">
             <xsl:with-param name="steps" select="$steps"/>
@@ -2104,11 +2164,16 @@ exclude-result-prefixes="#all"
             <xsl:result-document href="?." method="ixsl:replace-content">
                 <xsl:for-each select="1 to array:size($steps)">
                     <xsl:variable name="step" select="array:get($steps, .)" as="map(*)"/>
+                    <xsl:variable name="inverse" select="($step('inverse'), false())[1]" as="xs:boolean"/>
 
                     <button type="button" class="facet-pill parallax-step" title="{$step('predicate')}">
                         <input name="ou" type="hidden" value="{$step('predicate')}"/>
+                        <!-- the arrow is what distinguishes a step taken backwards from the same predicate followed forwards -->
+                        <span class="msi xs" aria-hidden="true">
+                            <xsl:value-of select="if ($inverse) then 'arrow_back' else 'arrow_forward'"/>
+                        </span>
                         <span class="pred">
-                            <xsl:apply-templates select="key('resources', 'via', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                            <xsl:apply-templates select="key('resources', if ($inverse) then 'via-incoming' else 'via', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
                         </span>
                         <span class="val">
                             <xsl:value-of select="$step('label')"/>
@@ -2144,7 +2209,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="select-xml" as="document-node()">
             <xsl:call-template name="ldh:ReplayParallaxSteps">
                 <xsl:with-param name="select-xml" select="json-to-xml($select-json-string)"/>
-                <xsl:with-param name="predicates" select="(1 to array:size($kept)) ! xs:anyURI(array:get($kept, .)('predicate'))"/>
+                <xsl:with-param name="steps" select="$kept"/>
             </xsl:call-template>
         </xsl:variable>
 
@@ -2174,27 +2239,29 @@ exclude-result-prefixes="#all"
             on-failure="ldh:promise-failure#1"/>
     </xsl:template>
 
-    <!-- re-applies parallax steps to the query XML one predicate at a time -->
+    <!-- re-applies parallax steps to the query XML one at a time, each in its recorded direction -->
 
     <xsl:template name="ldh:ReplayParallaxSteps">
         <xsl:param name="select-xml" as="document-node()"/>
-        <xsl:param name="predicates" as="xs:anyURI*"/>
+        <xsl:param name="steps" as="array(*)"/>
 
         <xsl:choose>
-            <xsl:when test="empty($predicates)">
+            <xsl:when test="array:size($steps) = 0">
                 <xsl:sequence select="$select-xml"/>
             </xsl:when>
             <xsl:otherwise>
+                <xsl:variable name="step" select="array:head($steps)" as="map(*)"/>
                 <xsl:variable name="stepped" as="document-node()">
                     <xsl:call-template name="ldh:ViewParallax">
                         <xsl:with-param name="select-xml" select="$select-xml"/>
-                        <xsl:with-param name="predicate" select="head($predicates)"/>
+                        <xsl:with-param name="predicate" select="xs:anyURI($step('predicate'))"/>
+                        <xsl:with-param name="inverse" select="($step('inverse'), false())[1]"/>
                     </xsl:call-template>
                 </xsl:variable>
 
                 <xsl:call-template name="ldh:ReplayParallaxSteps">
                     <xsl:with-param name="select-xml" select="$stepped"/>
-                    <xsl:with-param name="predicates" select="tail($predicates)"/>
+                    <xsl:with-param name="steps" select="array:tail($steps)"/>
                 </xsl:call-template>
             </xsl:otherwise>
         </xsl:choose>
@@ -2479,10 +2546,12 @@ exclude-result-prefixes="#all"
             </xsl:for-each>
 
             <xsl:call-template name="bs2:ParallaxNav">
-                <xsl:with-param name="results" select="$sorted-results"/>
+                <xsl:with-param name="empty-results" select="empty($sorted-results/rdf:RDF/*)"/>
                 <xsl:with-param name="select-xml" select="$select-xml"/>
                 <xsl:with-param name="endpoint" select="$endpoint"/>
                 <xsl:with-param name="focus-var-name" select="$focus-var-name"/>
+                <xsl:with-param name="property-metadata" select="$property-metadata"/>
+                <xsl:with-param name="cache" select="$cache"/>
                 <xsl:with-param name="properties-container-id" select="$container-id || '-parallax-properties'"/>
             </xsl:call-template>
 
@@ -2498,32 +2567,41 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="$context"/>
     </xsl:function>
 
+    <!-- the discovered predicates arrive as (predicate, direction) pairs - one chip each, so a predicate
+         used both ways yields two. Their labels live in the ontology rather than the end-user dataset,
+         so they are fetched from the /ns endpoint in a single batched request. -->
     <xsl:function name="ldh:parallax-response" as="map(*)" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
         <xsl:variable name="response" select="$context('response')" as="map(*)"/>
         <xsl:variable name="container" select="$context('container')" as="element()"/>
-        <xsl:variable name="var-name" select="$context('var-name')" as="xs:string"/>       
-        <xsl:variable name="results" select="$context('results')" as="document-node()"/>
-        
+        <xsl:variable name="predicate-var-name" select="$context('predicate-var-name')" as="xs:string"/>
+        <xsl:variable name="inverse-var-name" select="$context('inverse-var-name')" as="xs:string"/>
+
         <xsl:message>ldh:parallax-response</xsl:message>
 
         <xsl:for-each select="$response">
             <xsl:choose>
                 <xsl:when test="?status = 200 and ?media-type = 'application/sparql-results+xml'">
                     <xsl:for-each select="?body">
-                        <xsl:variable name="var-name-resources" select="//srx:binding[@name = $var-name]/srx:uri" as="xs:anyURI*"/>
+                        <xsl:variable name="links" as="map(*)*">
+                            <xsl:for-each select="//srx:result[srx:binding[@name = $predicate-var-name]/srx:uri]">
+                                <xsl:sequence select="map{ 'predicate': xs:anyURI(srx:binding[@name = $predicate-var-name]/srx:uri), 'inverse': xs:boolean(srx:binding[@name = $inverse-var-name]/srx:literal) }"/>
+                            </xsl:for-each>
+                        </xsl:variable>
 
-                        <xsl:for-each-group select="$results/rdf:RDF/*[@rdf:about = $var-name-resources]/*[@rdf:resource or @rdf:nodeID]" group-by="concat(namespace-uri(), local-name())">
-                            <xsl:variable name="predicate" select="xs:anyURI(namespace-uri() || local-name())" as="xs:anyURI"/>
-                            <!-- DESCRIBE the predicate over the application's /ns ontology endpoint (ACL-enforced) instead of proxying its vocab document -->
-                            <xsl:variable name="query-string" select="$property-metadata-query || ' VALUES $Type { &lt;' || $predicate || '&gt; }'" as="xs:string"/>
+                        <xsl:if test="exists($links)">
+                            <!-- render synchronously with whatever labels are already known, then re-render when the batch arrives -->
+                            <xsl:sequence select="ldh:render-parallax-chips($container, $links, $context('property-metadata'))"/>
+
+                            <xsl:variable name="values" select="' VALUES $this { ' || string-join(distinct-values($links ! ('&lt;' || ?predicate || '&gt;')), ' ') || ' }'" as="xs:string"/>
+                            <xsl:variable name="query-string" select="$object-metadata-ns-query || $values" as="xs:string"/>
                             <xsl:variable name="request" select="map{ 'method': 'POST', 'href': ldh:href(resolve-uri('ns', ldt:base())), 'media-type': 'application/sparql-query', 'body': $query-string, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
                             <xsl:variable name="context" select="map:merge((
                               $context,
                               map{
                                 'request': $request,
                                 'container': $container,
-                                'predicate': $predicate
+                                'links': $links
                               }
                             ), map{ 'duplicates': 'use-last' })"/>
                             <ixsl:promise select="ixsl:http-request($context('request')) =>
@@ -2531,7 +2609,7 @@ exclude-result-prefixes="#all"
                                 ixsl:then(ldh:handle-response#1) =>
                                 ixsl:then(ldh:parallax-property-response#1)"
                                 on-failure="ldh:promise-failure#1"/>
-                        </xsl:for-each-group>
+                        </xsl:if>
                     </xsl:for-each>
                 </xsl:when>
                 <xsl:otherwise>
@@ -2553,63 +2631,76 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="$context"/>
     </xsl:function>
 
+    <!-- re-renders the chip strip once the batched labels arrive -->
     <xsl:function name="ldh:parallax-property-response" as="map(*)" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
         <xsl:variable name="response" select="$context('response')" as="map(*)"/>
         <xsl:variable name="container" select="$context('container')" as="element()"/>
-        <xsl:variable name="class" select="$context('class')" as="xs:string?"/>
-        <xsl:variable name="id" select="$context('id')" as="xs:string?"/>
-        <xsl:variable name="predicate" select="$context('predicate')" as="xs:anyURI"/>
-        
+        <xsl:variable name="links" select="$context('links')" as="map(*)*"/>
+
         <xsl:message>ldh:parallax-property-response</xsl:message>
 
         <xsl:for-each select="$response">
-            <xsl:variable name="results" select="if (?status = 200 and ?media-type = 'application/rdf+xml') then ?body else ()" as="document-node()?"/>
-            <xsl:variable name="existing-items" select="$container/a" as="element()*"/>
-            <xsl:variable name="new-item" as="element()">
-                <a class="pchip" title="{$predicate}">
-                    <input name="ou" type="hidden" value="{$predicate}"/>
-                    <span class="lbl">
-                        <xsl:variable name="resource" select="if ($results) then key('resources', $predicate, $results) else ()" as="element()?"/>
+            <xsl:variable name="metadata" select="if (?status = 200 and ?media-type = 'application/rdf+xml') then ?body else ()" as="document-node()?"/>
 
-                        <xsl:choose>
-                            <xsl:when test="$resource">
-                                <xsl:value-of>
-                                    <xsl:apply-templates select="$resource" mode="ac:label"/>
-                                </xsl:value-of>
-                            </xsl:when>
-                            <!-- attempt to use the fragment as label -->
-                            <xsl:when test="contains($predicate, '#') and not(ends-with($predicate, '#'))">
-                                <xsl:value-of select="substring-after($predicate, '#')"/>
-                            </xsl:when>
-                            <!-- attempt to use the last path segment as label -->
-                            <xsl:when test="string-length(tokenize($predicate, '/')[last()]) &gt; 0">
-                                <xsl:value-of select="translate(tokenize($predicate, '/')[last()], '_', ' ')"/>
-                            </xsl:when>
-                            <!-- fallback to simply displaying the full URI -->
-                            <xsl:otherwise>
-                                <xsl:value-of select="$predicate"/>
-                            </xsl:otherwise>
-                        </xsl:choose>
+            <xsl:sequence select="ldh:render-parallax-chips($container, $links, $metadata)"/>
+        </xsl:for-each>
+
+        <xsl:sequence select="$context"/>
+    </xsl:function>
+
+    <!-- the whole strip renders at once from the complete link list: outgoing chips first, then incoming, each group by label -->
+    <xsl:function name="ldh:render-parallax-chips" ixsl:updating="yes">
+        <xsl:param name="container" as="element()"/>
+        <xsl:param name="links" as="map(*)*"/>
+        <xsl:param name="metadata" as="document-node()?"/>
+
+        <xsl:variable name="chips" as="element()*">
+            <xsl:for-each select="$links">
+                <xsl:sort select="number(?inverse)"/>
+                <xsl:sort select="ldh:predicate-label(?predicate, $metadata)" lang="{$ac:lang}"/>
+
+                <a class="pchip{if (?inverse) then ' pchip-in' else ()}" title="{?predicate}" data-dir="{if (?inverse) then 'in' else 'out'}">
+                    <input name="ou" type="hidden" value="{?predicate}"/>
+                    <span class="msi sm" aria-hidden="true">
+                        <xsl:value-of select="if (?inverse) then 'arrow_back' else 'arrow_forward'"/>
+                    </span>
+                    <span class="lbl">
+                        <xsl:value-of select="ldh:predicate-label(?predicate, $metadata)"/>
                     </span>
                 </a>
-            </xsl:variable>
-            <xsl:variable name="items" as="element()*">
-                <!-- sort the existing rows together with the new item -->
-                <xsl:perform-sort select="($existing-items, $new-item)">
-                    <!-- sort by the label text (property label) -->
-                    <xsl:sort select="span[contains-token(@class, 'lbl')]" lang="{$ac:lang}"/>
-                </xsl:perform-sort>
-            </xsl:variable>
-
-            <xsl:for-each select="$container">
-                <xsl:result-document href="?." method="ixsl:replace-content">
-                    <xsl:sequence select="$items"/>
-                </xsl:result-document>
             </xsl:for-each>
+        </xsl:variable>
+
+        <xsl:for-each select="$container">
+            <xsl:result-document href="?." method="ixsl:replace-content">
+                <xsl:sequence select="$chips"/>
+            </xsl:result-document>
         </xsl:for-each>
-        
-        <xsl:sequence select="$context"/>
+    </xsl:function>
+
+    <!-- the ontology's label for a predicate, falling back to its fragment, then its last path segment, then the URI itself -->
+    <xsl:function name="ldh:predicate-label" as="xs:string">
+        <xsl:param name="predicate" as="xs:anyURI"/>
+        <xsl:param name="metadata" as="document-node()?"/>
+        <xsl:variable name="resource" select="if ($metadata) then key('resources', $predicate, $metadata) else ()" as="element()?"/>
+
+        <xsl:choose>
+            <xsl:when test="$resource">
+                <xsl:value-of>
+                    <xsl:apply-templates select="$resource" mode="ac:label"/>
+                </xsl:value-of>
+            </xsl:when>
+            <xsl:when test="contains($predicate, '#') and not(ends-with($predicate, '#'))">
+                <xsl:value-of select="substring-after($predicate, '#')"/>
+            </xsl:when>
+            <xsl:when test="string-length(tokenize($predicate, '/')[last()]) &gt; 0">
+                <xsl:value-of select="translate(tokenize($predicate, '/')[last()], '_', ' ')"/>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:value-of select="$predicate"/>
+            </xsl:otherwise>
+        </xsl:choose>
     </xsl:function>
     
     <xsl:function name="ldh:facet-value-response" as="map(*)" ixsl:updating="yes">

@@ -1809,13 +1809,20 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
   transition: border-color var(--dur-fast) var(--ease-out-soft), background var(--dur-fast) var(--ease-out-soft), color var(--dur-fast) var(--ease-out-soft);
 }
 .parallax-nav .pchip:hover { border-color: var(--ldh-blue-300); color: var(--ldh-blue-700); background: var(--bg-accent-quiet); text-decoration: none; }
+.parallax-nav .pchip .msi { color: var(--fg-hint); }
+.parallax-nav .pchip:hover .msi { color: var(--ldh-blue-600); }
+/* incoming pivots leave the result set behind rather than extending it, so their chips sit
+   a shade quieter than the outgoing ones — the arrow carries the distinction, this backs it up */
+.parallax-nav .pchip-in { background: var(--surface-1); }
+.parallax-nav .pchip-in .lbl { color: var(--fg-muted); }
+.parallax-nav .pchip-in:hover .lbl { color: var(--ldh-blue-700); }
 
 /* applied parallax steps read as removable chips beside the facet pills — the
    pivot's undo affordance; clicking one rewinds the view to before that step */
 .ldh-view-toolbar .parallax-steps { display: inline-flex; align-items: center; flex-wrap: wrap; gap: var(--sp-2); }
 .ldh-view-toolbar .parallax-steps:empty { display: none; }
 .facet-pill.parallax-step { background: var(--ldh-blue-50); color: var(--ldh-blue-700); border-color: var(--ldh-blue-200); }
-.facet-pill.parallax-step .pred { color: var(--ldh-blue-600); }
+.facet-pill.parallax-step .pred, .facet-pill.parallax-step .msi { color: var(--ldh-blue-600); }
 .facet-pill.parallax-step .x {
   display: inline-flex; align-items: center; justify-content: center;
   width: 16px; height: 16px;

@@ -400,6 +400,10 @@
         <rdfs:label xml:lang="en-US">via</rdfs:label>
         <rdfs:label xml:lang="es-ES">vía</rdfs:label>
     </rdf:Description>
+    <rdf:Description rdf:nodeID="via-incoming">
+        <rdfs:label xml:lang="en-US">linked by</rdfs:label>
+        <rdfs:label xml:lang="es-ES">enlazado por</rdfs:label>
+    </rdf:Description>
     <rdf:Description rdf:nodeID="document-tree">
         <rdfs:label xml:lang="en-US">Document tree</rdfs:label>
     </rdf:Description>
