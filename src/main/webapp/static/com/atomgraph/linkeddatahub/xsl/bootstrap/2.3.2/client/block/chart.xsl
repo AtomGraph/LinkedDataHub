@@ -477,13 +477,12 @@ exclude-result-prefixes="#all"
         <!-- apply client-side templates on the appended row form (now following sibling of the $block) -->
         <xsl:apply-templates select="$block/following-sibling::*[1]" mode="ldh:RenderRowForm"/>
 
-        <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
     </xsl:function>
 
     <!-- create chart onclick (appends a new chart block after this, with query and category/series fields filled out) -->
 
     <xsl:template match="div[contains-token(@class, 'block')][@about][@typeof]//button[contains-token(@class, 'btn-create-chart')]" mode="ixsl:onclick">
-        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+        <xsl:sequence select="ldh:busy-cursor()"/>
         <xsl:variable name="block" select="ancestor::div[contains-token(@class, 'block')][1]" as="element()"/>
         <xsl:variable name="textarea-id" select="$block//textarea[@name = 'query']/ixsl:get(., 'id')" as="xs:string"/>
         <xsl:variable name="yasqe" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.yasqe'), $textarea-id)"/>
@@ -555,7 +554,8 @@ exclude-result-prefixes="#all"
             ixsl:then(ldh:http-request-threaded(?, 'shapes-request', 'shapes-response')) =>
             ixsl:then(ldh:handle-response(?, 'shapes-response')) =>
             ixsl:then(ldh:set-shapes#1) =>
-            ixsl:then(ldh:render-chart-row-form#1)"
+            ixsl:then(ldh:render-chart-row-form#1) =>
+            ixsl:finally(ldh:reset-cursor#0)"
             on-failure="ldh:promise-failure#1"/>
     </xsl:template>
     
@@ -563,7 +563,7 @@ exclude-result-prefixes="#all"
     <!-- TO-DO: use @typeof in match so that we don't need a custom button.btn-save-chart class -->
     
     <xsl:template match="div[@typeof]//button[contains-token(@class, 'btn-save-chart')]" mode="ixsl:onclick">
-        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+        <xsl:sequence select="ldh:busy-cursor()"/>
         <xsl:variable name="block" select="ancestor::div[contains-token(@class, 'block')][1]" as="element()"/>
         <xsl:variable name="container" select="ancestor::div[@typeof][1]" as="element()"/>
         <xsl:variable name="about" select="$block/@about" as="xs:anyURI"/>
@@ -615,7 +615,8 @@ exclude-result-prefixes="#all"
           ixsl:http-request($context('request'))
             => ixsl:then(ldh:rethread-response($context, ?))
             => ixsl:then(ldh:handle-response#1)
-            => ixsl:then(ldh:row-form-response#1)
+            => ixsl:then(ldh:row-form-response#1) =>
+            ixsl:finally(ldh:reset-cursor#0)
         "/>
     </xsl:template>
     

@@ -744,7 +744,7 @@ exclude-result-prefixes="#all"
                 </xsl:document>
             </xsl:variable>
 
-            <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+            <xsl:sequence select="ldh:busy-cursor()"/>
 
             <xsl:variable name="canvas-id" select="$container-id || '-map-canvas'" as="xs:string"/>
             <xsl:variable name="initial-load" select="not(ixsl:contains($cache, 'map'))" as="xs:boolean"/>
@@ -1529,7 +1529,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="active-class" select="tokenize($container//*[contains-token(@class, 'view-mode-list')]/a[contains-token(@class, 'is-active')]/@class, ' ')[. = map:keys($class-modes)]" as="xs:string"/>
         <xsl:variable name="active-mode" select="map:get($class-modes, $active-class)" as="xs:anyURI"/>
 
-        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+        <xsl:sequence select="ldh:busy-cursor()"/>
 
         <xsl:variable name="select-xml" as="document-node()">
             <xsl:call-template name="ldh:ViewPage">
@@ -1555,8 +1555,8 @@ exclude-result-prefixes="#all"
 
         <ixsl:promise select="
             ixsl:resolve($context) =>
-                ixsl:then(ldh:view-results-thunk#1)
-            "
+                ixsl:then(ldh:view-results-thunk#1) =>
+                ixsl:finally(ldh:reset-cursor#0)"
             on-failure="ldh:promise-failure#1"/>
     </xsl:template>
 
@@ -1571,7 +1571,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="active-class" select="tokenize($container//*[contains-token(@class, 'view-mode-list')]/a[contains-token(@class, 'is-active')]/@class, ' ')[. = map:keys($class-modes)]" as="xs:string"/>
         <xsl:variable name="active-mode" select="map:get($class-modes, $active-class)" as="xs:anyURI"/>
 
-        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+        <xsl:sequence select="ldh:busy-cursor()"/>
 
         <xsl:variable name="select-xml" as="document-node()">
             <xsl:call-template name="ldh:ViewPage">
@@ -1597,8 +1597,8 @@ exclude-result-prefixes="#all"
 
         <ixsl:promise select="
             ixsl:resolve($context) =>
-                ixsl:then(ldh:view-results-thunk#1)
-            "
+                ixsl:then(ldh:view-results-thunk#1) =>
+                ixsl:finally(ldh:reset-cursor#0)"
             on-failure="ldh:promise-failure#1"/>
     </xsl:template>
 
@@ -1614,7 +1614,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="active-class" select="tokenize($container//*[contains-token(@class, 'view-mode-list')]/a[contains-token(@class, 'is-active')]/@class, ' ')[. = map:keys($class-modes)]" as="xs:string"/>
         <xsl:variable name="active-mode" select="map:get($class-modes, $active-class)" as="xs:anyURI"/>
 
-        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+        <xsl:sequence select="ldh:busy-cursor()"/>
 
         <xsl:variable name="select-xml" as="document-node()">
             <xsl:call-template name="ldh:ViewLimit">
@@ -1640,8 +1640,8 @@ exclude-result-prefixes="#all"
 
         <ixsl:promise select="
             ixsl:resolve($context) =>
-                ixsl:then(ldh:view-results-thunk#1)
-            "
+                ixsl:then(ldh:view-results-thunk#1) =>
+                ixsl:finally(ldh:reset-cursor#0)"
             on-failure="ldh:promise-failure#1"/>
     </xsl:template>
 
@@ -1657,7 +1657,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="active-class" select="tokenize($container//*[contains-token(@class, 'view-mode-list')]/a[contains-token(@class, 'is-active')]/@class, ' ')[. = map:keys($class-modes)]" as="xs:string"/>
         <xsl:variable name="active-mode" select="map:get($class-modes, $active-class)" as="xs:anyURI"/>
 
-        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+        <xsl:sequence select="ldh:busy-cursor()"/>
 
         <xsl:variable name="select-xml" as="document-node()">
             <xsl:call-template name="ldh:ViewOrder">
@@ -1683,8 +1683,8 @@ exclude-result-prefixes="#all"
 
         <ixsl:promise select="
             ixsl:resolve($context) =>
-                ixsl:then(ldh:view-results-thunk#1)
-            "
+                ixsl:then(ldh:view-results-thunk#1) =>
+                ixsl:finally(ldh:reset-cursor#0)"
             on-failure="ldh:promise-failure#1"/>
     </xsl:template>
 
@@ -1700,7 +1700,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="active-class" select="tokenize($container//*[contains-token(@class, 'view-mode-list')]/a[contains-token(@class, 'is-active')]/@class, ' ')[. = map:keys($class-modes)]" as="xs:string"/>
         <xsl:variable name="active-mode" select="map:get($class-modes, $active-class)" as="xs:anyURI"/>
 
-        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+        <xsl:sequence select="ldh:busy-cursor()"/>
 
         <xsl:variable name="select-xml" as="document-node()">
             <xsl:call-template name="ldh:ViewOrderDirection">
@@ -1726,8 +1726,8 @@ exclude-result-prefixes="#all"
 
         <ixsl:promise select="
             ixsl:resolve($context) =>
-                ixsl:then(ldh:view-results-thunk#1)
-            "
+                ixsl:then(ldh:view-results-thunk#1) =>
+                ixsl:finally(ldh:reset-cursor#0)"
             on-failure="ldh:promise-failure#1"/>
 
         <!-- toggle the arrow direction -->
@@ -1748,7 +1748,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="order-by-var-name" select="$select-xml/json:map/json:array[@key = 'order']/json:map[1]/json:string[@key = 'expression']/substring-after(., '?')" as="xs:string?"/>
         <xsl:variable name="desc" select="boolean($select-xml/json:map/json:array[@key = 'order']/json:map[1]/json:boolean[@key = 'descending'][. = 'true'])" as="xs:boolean"/>
 
-        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+        <xsl:sequence select="ldh:busy-cursor()"/>
 
         <xsl:variable name="select-xml" as="document-node()">
             <xsl:choose>
@@ -1793,8 +1793,8 @@ exclude-result-prefixes="#all"
 
         <ixsl:promise select="
             ixsl:resolve($context) =>
-                ixsl:then(ldh:view-results-thunk#1)
-            "
+                ixsl:then(ldh:view-results-thunk#1) =>
+                ixsl:finally(ldh:reset-cursor#0)"
             on-failure="ldh:promise-failure#1"/>
     </xsl:template>
 
@@ -1809,7 +1809,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="initial-var-name" select="ixsl:get($cache, 'initial-var-name')" as="xs:string"/>
         <xsl:variable name="endpoint" select="ixsl:get($cache, 'endpoint')" as="xs:anyURI"/>
 
-        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+        <xsl:sequence select="ldh:busy-cursor()"/>
 
         <!-- deactivate the other mode items -->
         <xsl:for-each select="../a">
@@ -1835,8 +1835,8 @@ exclude-result-prefixes="#all"
 
         <ixsl:promise select="
             ixsl:resolve($context) =>
-                ixsl:then(ldh:view-results-thunk#1)
-            "
+                ixsl:then(ldh:view-results-thunk#1) =>
+                ixsl:finally(ldh:reset-cursor#0)"
             on-failure="ldh:promise-failure#1"/>
     </xsl:template>
 
@@ -1886,7 +1886,7 @@ exclude-result-prefixes="#all"
                 </xsl:for-each>
 
                 <xsl:for-each select="$container">
-                    <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+                    <xsl:sequence select="ldh:busy-cursor()"/>
 
                     <!-- the subject is a variable - trim the leading question mark -->
                     <xsl:variable name="subject-var-name" select="substring-after($bgp-triples-map/json:string[@key = 'subject'], '?')" as="xs:string"/>
@@ -1944,7 +1944,8 @@ exclude-result-prefixes="#all"
                     <ixsl:promise select="ixsl:http-request($context('request')) =>
                         ixsl:then(ldh:rethread-response($context, ?)) =>
                         ixsl:then(ldh:handle-response#1) =>
-                        ixsl:then(ldh:facet-value-response#1)"
+                        ixsl:then(ldh:facet-value-response#1) =>
+                        ixsl:finally(ldh:reset-cursor#0)"
                         on-failure="ldh:promise-failure#1"/>
                 </xsl:for-each>
             </xsl:when>
@@ -2008,7 +2009,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="initial-var-name" select="ixsl:get($cache, 'initial-var-name')" as="xs:string"/>
         <xsl:variable name="endpoint" select="ixsl:get($cache, 'endpoint')" as="xs:anyURI"/>
 
-        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+        <xsl:sequence select="ldh:busy-cursor()"/>
 
         <xsl:variable name="select-xml" as="document-node()">
             <xsl:call-template name="ldh:ViewFilter">
@@ -2035,8 +2036,8 @@ exclude-result-prefixes="#all"
 
         <ixsl:promise select="
             ixsl:resolve($context) =>
-                ixsl:then(ldh:view-results-thunk#1)
-            "
+                ixsl:then(ldh:view-results-thunk#1) =>
+                ixsl:finally(ldh:reset-cursor#0)"
             on-failure="ldh:promise-failure#1"/>
     </xsl:template>
 
@@ -2054,7 +2055,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="initial-var-name" select="ixsl:get($cache, 'initial-var-name')" as="xs:string"/>
         <xsl:variable name="endpoint" select="ixsl:get($cache, 'endpoint')" as="xs:anyURI"/>
 
-        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+        <xsl:sequence select="ldh:busy-cursor()"/>
 
         <xsl:variable name="select-xml" as="document-node()">
             <xsl:call-template name="ldh:ViewParallax">
@@ -2089,8 +2090,8 @@ exclude-result-prefixes="#all"
 
         <ixsl:promise select="
             ixsl:resolve($context) =>
-                ixsl:then(ldh:view-results-thunk#1)
-            "
+                ixsl:then(ldh:view-results-thunk#1) =>
+                ixsl:finally(ldh:reset-cursor#0)"
             on-failure="ldh:promise-failure#1"/>
     </xsl:template>
 
@@ -2135,7 +2136,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="steps" select="parse-json(string(ixsl:get($cache, 'parallax-steps')))" as="array(*)"/>
         <xsl:variable name="kept" select="array:subarray($steps, 1, $position - 1)" as="array(*)"/>
 
-        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+        <xsl:sequence select="ldh:busy-cursor()"/>
 
         <!-- rebuild the initial query XML from the cached SELECT string -->
         <xsl:variable name="select-builder" select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromString', [ $select-string ])"/>
@@ -2168,8 +2169,8 @@ exclude-result-prefixes="#all"
 
         <ixsl:promise select="
             ixsl:resolve($context) =>
-                ixsl:then(ldh:view-results-thunk#1)
-            "
+                ixsl:then(ldh:view-results-thunk#1) =>
+                ixsl:finally(ldh:reset-cursor#0)"
             on-failure="ldh:promise-failure#1"/>
     </xsl:template>
 
@@ -2700,8 +2701,6 @@ exclude-result-prefixes="#all"
                 </xsl:otherwise>
             </xsl:choose>
 
-            <!-- done loading, restore normal cursor -->
-            <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
         </xsl:for-each>
         
         <xsl:sequence select="$context"/>
@@ -2845,7 +2844,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="doc-uri" select="resolve-uri(ac:uuid() || '/', $container-uri)" as="xs:anyURI"/> <!-- build a relative URI for the container's child document -->
         <xsl:variable name="this" select="xs:anyURI($doc-uri || '#id' || ac:uuid())" as="xs:anyURI"/> <!-- the instance is a fragment resource within the new document, same minting as the type-typeahead flow -->
 
-        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+        <xsl:sequence select="ldh:busy-cursor()"/>
 
         <!-- 'types' is initially set to ($forClass) so the shape fetch targets the right class, same as the type-typeahead flow; 'view-*' keys carry the linkage metadata through the chain -->
         <xsl:variable name="context" as="map(*)" select="map{

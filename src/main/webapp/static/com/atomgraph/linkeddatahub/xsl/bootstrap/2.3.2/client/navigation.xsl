@@ -254,7 +254,7 @@ ORDER BY DESC(?created)
         </xsl:param>
         <xsl:param name="endpoint" as="xs:anyURI"/>
 
-        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+        <xsl:sequence select="ldh:busy-cursor()"/>
         
         <!-- wrap SELECT into a DESCRIBE -->
         <xsl:variable name="query-xml" as="element()">
@@ -275,7 +275,8 @@ ORDER BY DESC(?created)
         <ixsl:promise select="ixsl:http-request($context('request')) =>
             ixsl:then(ldh:rethread-response($context, ?)) =>
             ixsl:then(ldh:handle-response#1) =>
-            ixsl:then(ldh:left-sidebar-resource-response#1)"
+            ixsl:then(ldh:left-sidebar-resource-response#1) =>
+            ixsl:finally(ldh:reset-cursor#0)"
             on-failure="ldh:promise-failure#1"/>
     </xsl:template>
     
@@ -653,8 +654,6 @@ ORDER BY DESC(?created)
             </xsl:choose>
         </xsl:for-each>
 
-        <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
-
         <xsl:sequence select="$context"/>
     </xsl:function>
 
@@ -663,7 +662,7 @@ ORDER BY DESC(?created)
         <xsl:param name="container" as="element()"/> <!-- the <ul> inside <div class="class-list"> -->
         <xsl:param name="endpoint" as="xs:anyURI"/>
 
-        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+        <xsl:sequence select="ldh:busy-cursor()"/>
 
         <xsl:variable name="select-string" select="$class-types-string" as="xs:string"/>
         <xsl:variable name="select-json" as="item()">
@@ -686,12 +685,15 @@ ORDER BY DESC(?created)
         <ixsl:promise select="ixsl:http-request($context('request')) =>
             ixsl:then(ldh:rethread-response($context, ?)) =>
             ixsl:then(ldh:handle-response#1) =>
-            ixsl:then(ldh:class-list-response#1)"
+            ixsl:then(ldh:class-list-response#1) =>
+            ixsl:finally(ldh:reset-cursor#0)"
             on-failure="ldh:promise-failure#1"/>
     </xsl:template>
 
-    <!-- handle the response from loading classes - extract type URIs and query ns endpoint -->
-    <xsl:function name="ldh:class-list-response" as="map(*)" ixsl:updating="yes">
+    <!-- handle the response from loading classes - extract type URIs and query ns endpoint. Returns the DESCRIBE
+         chain rather than firing it, so the caller's ixsl:then adopts it and the chain does not settle - and the
+         busy cursor does not drop - until the second hop has rendered (idiom: ldh:fetch-and-load-edited-resource). -->
+    <xsl:function name="ldh:class-list-response" as="item()*" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
         <xsl:variable name="response" select="$context('response')" as="map(*)"/>
         <xsl:variable name="container" select="$context('container')" as="element()"/>
@@ -720,15 +722,14 @@ ORDER BY DESC(?created)
                                     'container': $container,
                                     'type-results': $results
                                   }"/>
-                                <ixsl:promise select="ixsl:http-request($new-context('request')) =>
+                                <xsl:sequence select="ixsl:http-request($new-context('request')) =>
                                     ixsl:then(ldh:rethread-response($new-context, ?)) =>
                                     ixsl:then(ldh:handle-response#1) =>
-                                    ixsl:then(ldh:class-list-describe-response#1)"
-                                    on-failure="ldh:promise-failure#1"/>
+                                    ixsl:then(ldh:class-list-describe-response#1)"/>
                             </xsl:when>
                             <xsl:otherwise>
                                 <xsl:message>No class types found</xsl:message>
-                                <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
+                                <xsl:sequence select="ixsl:resolve($context)"/>
                             </xsl:otherwise>
                         </xsl:choose>
                     </xsl:for-each>
@@ -737,12 +738,10 @@ ORDER BY DESC(?created)
                     <xsl:message>
                         Error loading class types from sparql endpoint
                     </xsl:message>
-                    <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
+                    <xsl:sequence select="ixsl:resolve($context)"/>
                 </xsl:otherwise>
             </xsl:choose>
         </xsl:for-each>
-
-        <xsl:sequence select="$context"/>
     </xsl:function>
 
     <!-- handle the response from describing class types -->
@@ -784,13 +783,11 @@ ORDER BY DESC(?created)
                         </xsl:result-document>
                     </xsl:for-each>
 
-                    <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
                 </xsl:when>
                 <xsl:otherwise>
                     <xsl:message>
                         Error loading class descriptions from ns endpoint
                     </xsl:message>
-                    <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
                 </xsl:otherwise>
             </xsl:choose>
         </xsl:for-each>
@@ -896,7 +893,7 @@ ORDER BY DESC(?created)
         <xsl:param name="cache" as="item()"/>
         <xsl:variable name="container-id" select="$container/@id" as="xs:string"/>
         
-        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+        <xsl:sequence select="ldh:busy-cursor()"/>
 
         <!-- determine which query to use based on whether instances are in named graphs -->
         <!-- TODO: we need to check if instances are in named graphs - for now use SelectInstancesInGraphs -->
@@ -947,8 +944,8 @@ ORDER BY DESC(?created)
 
         <ixsl:promise select="
             ixsl:resolve($context) =>
-                ixsl:then(ldh:view-results-thunk#1)
-            "
+                ixsl:then(ldh:view-results-thunk#1) =>
+                ixsl:finally(ldh:reset-cursor#0)"
             on-failure="ldh:promise-failure#1"/>
     </xsl:template>
 
@@ -1037,7 +1034,7 @@ ORDER BY DESC(?created)
         <xsl:param name="cache" as="item()"/>
         <xsl:param name="select-string" as="xs:string"/>
 
-        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+        <xsl:sequence select="ldh:busy-cursor()"/>
 
         <xsl:variable name="select-json" as="item()">
             <xsl:variable name="select-builder" select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromString', [ $select-string ])"/>
@@ -1071,8 +1068,8 @@ ORDER BY DESC(?created)
 
         <ixsl:promise select="
             ixsl:resolve($context) =>
-                ixsl:then(ldh:view-results-thunk#1)
-            "
+                ixsl:then(ldh:view-results-thunk#1) =>
+                ixsl:finally(ldh:reset-cursor#0)"
             on-failure="ldh:promise-failure#1"/>
     </xsl:template>
 
@@ -1152,7 +1149,7 @@ ORDER BY DESC(?created)
         <xsl:param name="page-size" select="20" as="xs:integer"/>
         <xsl:param name="cache" as="item()"/>
 
-        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+        <xsl:sequence select="ldh:busy-cursor()"/>
 
         <xsl:variable name="select-json" as="item()">
             <xsl:variable name="select-builder" select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromString', [ $select-string ])"/>
@@ -1193,8 +1190,8 @@ ORDER BY DESC(?created)
 
         <ixsl:promise select="
             ixsl:resolve($context) =>
-                ixsl:then(ldh:view-results-thunk#1)
-            "
+                ixsl:then(ldh:view-results-thunk#1) =>
+                ixsl:finally(ldh:reset-cursor#0)"
             on-failure="ldh:promise-failure#1"/>
     </xsl:template>
 
@@ -1357,7 +1354,7 @@ ORDER BY DESC(?created)
         <xsl:param name="select-string" select="$select-labelled-string" as="xs:string"/>
         <xsl:param name="label-var-name" select="'label'" as="xs:string"/>
 
-        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+        <xsl:sequence select="ldh:busy-cursor()"/>
 
         <xsl:variable name="select-json" as="item()">
             <xsl:variable name="select-builder" select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromString', [ $select-string ])"/>
@@ -1407,8 +1404,8 @@ ORDER BY DESC(?created)
 
         <ixsl:promise select="
             ixsl:resolve($context) =>
-                ixsl:then(ldh:view-results-thunk#1)
-            "
+                ixsl:then(ldh:view-results-thunk#1) =>
+                ixsl:finally(ldh:reset-cursor#0)"
             on-failure="ldh:promise-failure#1"/>
     </xsl:template>
 

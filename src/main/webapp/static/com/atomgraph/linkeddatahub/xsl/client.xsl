@@ -1037,7 +1037,7 @@ WHERE
         <xsl:param name="push-state" select="true()" as="xs:boolean"/>
         <xsl:param name="container" as="element()" select="id($body-id, ixsl:page())"/>
 
-        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+        <xsl:sequence select="ldh:busy-cursor()"/>
         <xsl:if test="ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub'), 'saxonController')">
             <xsl:message>Aborting HTTP request that has already been sent</xsl:message>
             <xsl:sequence select="ixsl:call(ixsl:get(ixsl:window(), 'LinkedDataHub.saxonController'), 'abort', [])[current-date() lt xs:date('2000-01-01')]"/>
@@ -1463,7 +1463,7 @@ WHERE
                                 <ixsl:set-property name="Content-Type" select="$media-type" object="$headers"/>
                                 <ixsl:set-property name="Accept" select="'application/rdf+xml'" object="$headers"/>
 
-                                <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+                                <xsl:sequence select="ldh:busy-cursor()"/>
 
                                 <xsl:sequence select="js:fetchDispatchXML($base-uri, 'POST', $headers, $file, ., (), (), (), 'RDFFileUpload')[current-date() lt xs:date('2000-01-01')]"/>
                             </xsl:when>

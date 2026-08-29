@@ -381,7 +381,7 @@ exclude-result-prefixes="#all"
                 <xsl:variable name="uri" select="xs:anyURI($id)" as="xs:anyURI"/>
                 <xsl:variable name="request-uri" select="ldh:href(ac:absolute-path($uri), map{})" as="xs:anyURI"/>
 
-                <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+                <xsl:sequence select="ldh:busy-cursor()"/>
 
                 <xsl:variable name="request" as="item()*">
                     <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">

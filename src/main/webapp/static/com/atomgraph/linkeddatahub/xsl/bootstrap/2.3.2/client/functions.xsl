@@ -737,7 +737,16 @@ exclude-result-prefixes="#all"
         "/>
     </xsl:function>
 
-    <!-- Promise-chain cleanup callback for ixsl:finally — resets the body cursor. ixsl:finally requires a 0-arg handler and ignores its return value (the original promise outcome flows through to on-failure / on-completion). Idempotent with ldh:promise-failure's own cursor reset, so chains that use both don't conflict. -->
+    <!-- Raises the busy cursor when an interaction starts async work. Its counterpart is not a matching call at
+         every terminal branch but ixsl:finally(ldh:reset-cursor#0) on the chain the work runs in, which settles
+         once whatever the outcome: the branch-by-branch resets this replaced were missing from error branches
+         (a response that resolved with a 4xx/5xx left the cursor spinning) and duplicated across the success
+         ones. Pair every ldh:busy-cursor() with a finally on the promise it precedes. -->
+    <xsl:function name="ldh:busy-cursor" as="empty-sequence()" ixsl:updating="yes">
+        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+    </xsl:function>
+
+    <!-- Promise-chain cleanup callback for ixsl:finally — resets the body cursor. ixsl:finally requires a 0-arg handler and ignores its return value (the original promise outcome flows through to on-failure / on-completion). -->
     <xsl:function name="ldh:reset-cursor" ixsl:updating="yes">
         <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
     </xsl:function>

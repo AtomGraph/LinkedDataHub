@@ -35,7 +35,7 @@ version="3.0"
         <xsl:variable name="timemap-uri" select="xs:anyURI(resolve-uri(@href, ldh:base-uri(.)))" as="xs:anyURI"/>
         <xsl:variable name="container" select="id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')][contains-token(@class, 'active')]/div[contains-token(@class, 'document-body')]/div[contains-token(@class, 'content-body')]" as="element()"/>
 
-        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+        <xsl:sequence select="ldh:busy-cursor()"/>
 
         <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $timemap-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
         <!-- ac:absolute-path() drops the ?version= that distinguishes a memento from the document it specializes -->
@@ -45,7 +45,8 @@ version="3.0"
             => ixsl:then(ldh:rethread-response($context, ?))
             => ixsl:then(ldh:handle-response#1)
             => ixsl:then(ldh:load-document-modes#1)
-            => ixsl:then(ldh:timemap-response#1)
+            => ixsl:then(ldh:timemap-response#1) =>
+            ixsl:finally(ldh:reset-cursor#0)
         " on-failure="ldh:promise-failure#1"/>
     </xsl:template>
 
@@ -72,8 +73,6 @@ version="3.0"
         <xsl:variable name="writable" select="$acl-modes = '&acl;Write'" as="xs:boolean"/>
 
         <xsl:for-each select="$response">
-            <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
-
             <xsl:for-each select="$container">
                 <xsl:result-document href="?." method="ixsl:append-content">
                     <div class="modal modal-constructor fade in" id="document-history-modal">
@@ -205,7 +204,7 @@ version="3.0"
         <xsl:variable name="modal" select="ancestor::div[contains-token(@class, 'modal')]" as="element()?"/>
 
         <xsl:if test="ixsl:call(ixsl:window(), 'confirm', [ ac:label(key('resources', 'are-you-sure', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))) ])">
-            <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+            <xsl:sequence select="ldh:busy-cursor()"/>
 
             <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $memento-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
             <xsl:variable name="context" select="map{ 'request': $request, 'doc-uri': $doc-uri, 'modal': $modal }" as="map(*)"/>
@@ -213,7 +212,8 @@ version="3.0"
               ixsl:http-request($context('request'))
                 => ixsl:then(ldh:rethread-response($context, ?))
                 => ixsl:then(ldh:handle-response#1)
-                => ixsl:then(ldh:restore-version#1)
+                => ixsl:then(ldh:restore-version#1) =>
+                ixsl:finally(ldh:reset-cursor#0)
             " on-failure="ldh:promise-failure#1"/>
         </xsl:if>
     </xsl:template>
@@ -233,7 +233,6 @@ version="3.0"
                     => ixsl:then(ldh:restored-version#1)"/>
             </xsl:when>
             <xsl:otherwise>
-                <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
                 <xsl:sequence select="ldh:restore-failed($context, 'version-not-read')"/>
             </xsl:otherwise>
         </xsl:choose>

@@ -811,7 +811,7 @@ LIMIT   10
         <xsl:variable name="this" select="$doc-uri" as="xs:anyURI"/>
         <xsl:variable name="base-uri" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/>
 
-        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+        <xsl:sequence select="ldh:busy-cursor()"/>
 
         <xsl:variable name="context" as="map(*)" select="map{
             'content-body': $content-body,
@@ -845,7 +845,7 @@ LIMIT   10
         <xsl:param name="button-class" select="'ldh-btn'" as="xs:string?"/>
         <xsl:variable name="content-body" select="ancestor::div[contains-token(@class, 'tab-pane')]/div[contains-token(@class, 'document-body')]/div[contains-token(@class, 'content-body')]" as="element()"/>
 
-        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+        <xsl:sequence select="ldh:busy-cursor()"/>
 
 <!--        <xsl:if test="ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path(ldh:base-uri(.)) || '`')">
             <xsl:variable name="etag" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path(ldh:base-uri(.)) || '`'), 'etag')" as="xs:string"/>
@@ -899,8 +899,8 @@ LIMIT   10
                  [ ldh:load-object-metadata#1,                  'ns-metadata-request',       'ns-metadata-response',       ldh:set-object-metadata-ns#1 ]
                ]))
             => ixsl:then(ldh:merge-object-metadata#1)
-            => ixsl:then(ldh:render-form#1)
-            => ixsl:finally(ldh:reset-cursor#0)
+            => ixsl:then(ldh:render-form#1) =>
+            ixsl:finally(ldh:reset-cursor#0)
         " on-failure="ldh:promise-failure#1"/>
     </xsl:template>
 
@@ -919,7 +919,7 @@ LIMIT   10
         <xsl:variable name="enctype" select="ixsl:get($form, 'enctype')" as="xs:string"/>
         <xsl:variable name="etag" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path(ldh:base-uri(.)) || '`'), 'etag')" as="xs:string"/>
 
-        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+        <xsl:sequence select="ldh:busy-cursor()"/>
         
         <!-- pre-process form before submitting it -->
         <xsl:apply-templates select="." mode="ldh:FormPreSubmit"/>
@@ -1018,7 +1018,8 @@ LIMIT   10
           ixsl:http-request($context('request'))
             => ixsl:then(ldh:rethread-response($context, ?))
             => ixsl:then(ldh:handle-response#1)
-            => ixsl:then($callback)
+            => ixsl:then($callback) =>
+            ixsl:finally(ldh:reset-cursor#0)
         " on-failure="ldh:promise-failure#1"/>
     </xsl:template>
     
@@ -1065,7 +1066,7 @@ LIMIT   10
         <xsl:param name="method" select="'patch'" as="xs:string"/>
         <xsl:variable name="content-body" select="id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')][contains-token(@class, 'active')]/div[contains-token(@class, 'document-body')]/div[contains-token(@class, 'content-body')]" as="element()"/>
 
-        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+        <xsl:sequence select="ldh:busy-cursor()"/>
 
         <xsl:for-each select="$content-body">
             <xsl:result-document href="?." method="ixsl:append-content">
@@ -1118,8 +1119,8 @@ LIMIT   10
                  [ ldh:load-package-catalog#1,                  'package-catalog-request',   'package-catalog-response',   ldh:set-package-catalog#1 ]
                ]))
             => ixsl:then(ldh:merge-object-metadata#1)
-            => ixsl:then(ldh:render-app-settings-form#1)
-            => ixsl:finally(ldh:reset-cursor#0)
+            => ixsl:then(ldh:render-app-settings-form#1) =>
+            ixsl:finally(ldh:reset-cursor#0)
         " on-failure="ldh:promise-failure#1"/>
     </xsl:template>
 
@@ -1259,7 +1260,7 @@ LIMIT   10
             </xsl:when>
             <!-- all required values present: build and PUT one container document per checked class -->
             <xsl:otherwise>
-                <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+                <xsl:sequence select="ldh:busy-cursor()"/>
 
                 <xsl:variable name="form" select="." as="element()"/>
                 <xsl:variable name="parent" select="$control-groups[input[@name = 'pu'][@value = '&sioc;has_parent']]/descendant::input[@name = 'ou']/ixsl:get(., 'value')" as="xs:anyURI"/>
@@ -1279,7 +1280,8 @@ LIMIT   10
                 <!-- seed a resolved promise so the fan-out's ixsl:http-request calls run in an active promise context (mirrors ldh:fire-load-set-parallel kickoff) -->
                 <ixsl:promise select="
                   ixsl:resolve($context)
-                    => ixsl:then(ldh:generate-containers-fanout#1)
+                    => ixsl:then(ldh:generate-containers-fanout#1) =>
+                    ixsl:finally(ldh:reset-cursor#0)
                 " on-failure="ldh:promise-failure#1"/>
             </xsl:otherwise>
         </xsl:choose>
@@ -1303,7 +1305,7 @@ LIMIT   10
             </xsl:when>
             <!-- all required values present, orchestrate the import + constructor derivation -->
             <xsl:otherwise>
-                <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+                <xsl:sequence select="ldh:busy-cursor()"/>
 
                 <!-- pre-process form before submitting it (trims ou values) -->
                 <xsl:apply-templates select="." mode="ldh:FormPreSubmit"/>
@@ -1333,7 +1335,8 @@ LIMIT   10
                           ixsl:http-request($context('request'))
                             => ixsl:then(ldh:rethread-response($context, ?))
                             => ixsl:then(ldh:handle-response#1)
-                            => ixsl:then(ldh:import-ontology-source-response#1)
+                            => ixsl:then(ldh:import-ontology-source-response#1) =>
+                            ixsl:finally(ldh:reset-cursor#0)
                         " on-failure="ldh:promise-failure#1"/>
                     </xsl:otherwise>
                 </xsl:choose>
@@ -1359,7 +1362,7 @@ LIMIT   10
             </xsl:when>
             <!-- all required values present, orchestrate the proxy fetch + append -->
             <xsl:otherwise>
-                <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+                <xsl:sequence select="ldh:busy-cursor()"/>
 
                 <!-- pre-process form before submitting it (trims ou values) -->
                 <xsl:apply-templates select="." mode="ldh:FormPreSubmit"/>
@@ -1379,14 +1382,15 @@ LIMIT   10
                   ixsl:http-request($context('request'))
                     => ixsl:then(ldh:rethread-response($context, ?))
                     => ixsl:then(ldh:handle-response#1)
-                    => ixsl:then(ldh:add-data-source-response#1)
+                    => ixsl:then(ldh:add-data-source-response#1) =>
+                    ixsl:finally(ldh:reset-cursor#0)
                 " on-failure="ldh:promise-failure#1"/>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
 
     <xsl:template match="button[contains-token(@class, 'btn-load-endpoint-schema')]" mode="ixsl:onclick">
-        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+        <xsl:sequence select="ldh:busy-cursor()"/>
 
         <xsl:variable name="fieldset" select="ancestor::form/fieldset" as="element()"/>
         <xsl:variable name="control-groups" select="descendant::div[contains-token(@class, 'control-group')]" as="element()*"/>
@@ -1426,7 +1430,8 @@ LIMIT   10
         <ixsl:promise select="
           ixsl:resolve($context)
             => ixsl:then(ldh:load-schema-endpoint#1)
-            => ixsl:then(ldh:load-schema-results#1)
+            => ixsl:then(ldh:load-schema-results#1) =>
+            ixsl:finally(ldh:reset-cursor#0)
         " on-failure="ldh:promise-failure#1"/>
     </xsl:template>
 
@@ -1479,7 +1484,7 @@ LIMIT   10
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <xsl:variable name="form" select="." as="element()"/>
 
-        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+        <xsl:sequence select="ldh:busy-cursor()"/>
 
         <!-- disable hidden inputs on table rows where all acl:mode checkboxes are a) disabled by default b) enabled but left unchecked -->
         <!-- otherwise RDF/POST will generate acl:Authorization instances without acl:mode values which will fail constraint validation -->
@@ -1503,7 +1508,8 @@ LIMIT   10
           ixsl:http-request($context('request'))
             => ixsl:then(ldh:rethread-response($context, ?))
             => ixsl:then(ldh:handle-response#1)
-            => ixsl:then($callback)
+            => ixsl:then($callback) =>
+            ixsl:finally(ldh:reset-cursor#0)
         " on-failure="ldh:promise-failure#1"/>
     </xsl:template>
 

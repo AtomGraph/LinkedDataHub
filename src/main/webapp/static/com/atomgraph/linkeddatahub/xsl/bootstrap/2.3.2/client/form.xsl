@@ -562,7 +562,7 @@ WHERE
         <xsl:param name="about" select="$block/@about" as="xs:anyURI"/>
 
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
-        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+        <xsl:sequence select="ldh:busy-cursor()"/>
         
         <xsl:if test="not(ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $about || '`'))">
             <ixsl:set-property name="{'`' || $about || '`'}" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.contents')"/>
@@ -595,8 +595,8 @@ WHERE
                  [ ldh:load-object-metadata#1,                  'ns-metadata-request',       'ns-metadata-response',       ldh:set-object-metadata-ns#1 ]
                ]))
             => ixsl:then(ldh:merge-object-metadata#1)
-            => ixsl:then(ldh:render-row-form#1)
-            => ixsl:finally(ldh:reset-cursor#0)
+            => ixsl:then(ldh:render-row-form#1) =>
+            ixsl:finally(ldh:reset-cursor#0)
         " on-failure="ldh:promise-failure#1"/>
     </xsl:template>
 
@@ -824,7 +824,6 @@ WHERE
         <!-- apply client-side templates on the appended row form (now preceding sibling of the $container) -->
         <xsl:apply-templates select="$container/preceding-sibling::*[1]" mode="ldh:RenderRowForm"/>
 
-        <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
     </xsl:function>
     
     <xsl:function name="ldh:render-row-form" as="item()*" ixsl:updating="yes">
@@ -888,7 +887,6 @@ WHERE
 
         <xsl:sequence select="ldh:replace-block-element($block, $form)"/>
 
-        <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
     </xsl:function>
 
     <!-- ldh:DocumentForm: form-flavor mode that reuses the bs2:Form shell but replaces its body with a match-template-driven Description iteration. Only the Description at @rdf:about = $about is rendered as a fieldset; everything else in the response graph is suppressed declaratively. Used by both the initial document-edit/settings/add-instance render paths and their constraint-violation re-render paths. -->
@@ -987,7 +985,6 @@ WHERE
         <!-- initialize event listeners -->
         <xsl:apply-templates select="$block" mode="ldh:RenderRowForm"/>
 
-        <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
     </xsl:function>
 
     <!-- thin dispatcher parallel to ldh:render-document-form#2, but mode="ldh:AppSettingsForm". Same tunnel-param set so violation re-renders work identically. -->
@@ -1017,7 +1014,7 @@ WHERE
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'block-row')][1]" as="element()"/>
         <xsl:variable name="about" select="$block/@about" as="xs:anyURI"/>
 
-        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+        <xsl:sequence select="ldh:busy-cursor()"/>
         
         <!-- retrieve HTML stored before editing mode was enabled -->
         <xsl:variable name="block-html" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $about || '`'), 'block-html')" as="element()"/>
@@ -1051,7 +1048,7 @@ WHERE
         <xsl:variable name="accept" select="'application/rdf+xml'" as="xs:string"/>
         <xsl:variable name="etag" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path(ldh:base-uri(.)) || '`'), 'etag')" as="xs:string"/>
 
-        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+        <xsl:sequence select="ldh:busy-cursor()"/>
 
         <!-- pre-process form before submitting it: syncs input values, so it must precede ldh:parse-rdf-post.
              A wrapping handler that supplied $request-body has already run the pass -->
@@ -1100,7 +1097,8 @@ WHERE
                   ixsl:http-request($context('request'))
                     => ixsl:then(ldh:rethread-response($context, ?))
                     => ixsl:then(ldh:handle-response#1)
-                    => ixsl:then($callback)
+                    => ixsl:then($callback) =>
+                    ixsl:finally(ldh:reset-cursor#0)
                 " on-failure="ldh:promise-failure#1"/>
             </xsl:otherwise>
         </xsl:choose>
@@ -1119,7 +1117,7 @@ WHERE
         <xsl:variable name="about" select="$block/@about" as="xs:anyURI"/>
         <xsl:variable name="etag" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path(ldh:base-uri(.)) || '`'), 'etag')" as="xs:string"/>
 
-        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+        <xsl:sequence select="ldh:busy-cursor()"/>
         
         <!-- pre-process form before submitting it -->
         <xsl:apply-templates select="." mode="ldh:FormPreSubmit"/>
@@ -1150,7 +1148,8 @@ WHERE
           ixsl:http-request($context('request'))
             => ixsl:then(ldh:rethread-response($context, ?))
             => ixsl:then(ldh:handle-response#1)
-            => ixsl:then(ldh:row-form-response#1)
+            => ixsl:then(ldh:row-form-response#1) =>
+            ixsl:finally(ldh:reset-cursor#0)
         " on-failure="ldh:promise-failure#1"/>
     </xsl:template>
     
@@ -1213,7 +1212,6 @@ WHERE
             <xsl:apply-templates select="(./div[contains-token(@class, 'control-group')][input/@name = 'pu'])[last()]" mode="ldh:RenderRowForm"/>
         </xsl:for-each>
 
-        <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
     </xsl:function>
 
     <xsl:template match="div[@typeof]//form//button[contains-token(@class, 'add-value')]" mode="ixsl:onclick">
@@ -1222,7 +1220,7 @@ WHERE
         <xsl:variable name="property-uri" select="../preceding-sibling::*/select/option[ixsl:get(., 'selected') = true()]/ixsl:get(., 'value')" as="xs:anyURI"/>
         <xsl:variable name="forClass" select="for $type in tokenize(ancestor::div[@typeof][contains-token(@class, 'block')][1]/@typeof) return xs:anyURI($type)" as="xs:anyURI*"/>
 
-        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+        <xsl:sequence select="ldh:busy-cursor()"/>
 
         <xsl:variable name="context" as="map(*)" select="map{
             'property-control-group': $property-control-group,
@@ -1238,7 +1236,8 @@ WHERE
                 [ ldh:load-constructed-doc#1, 'constructed-doc-request', 'constructed-doc-response', ldh:set-constructed-doc#1 ],
                 [ ldh:load-shapes#1,          'shapes-request',          'shapes-response',          ldh:set-shapes#1 ]
             ])) =>
-            ixsl:then(ldh:render-add-value#1)"
+            ixsl:then(ldh:render-add-value#1) =>
+            ixsl:finally(ldh:reset-cursor#0)"
             on-failure="ldh:promise-failure#1"/>
     </xsl:template>
 
@@ -1548,7 +1547,7 @@ WHERE
         <xsl:variable name="id" select="'id' || ac:uuid()" as="xs:string"/>
         <xsl:variable name="this" select="xs:anyURI($doc-uri || '#' || $id)" as="xs:anyURI"/>
 
-        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+        <xsl:sequence select="ldh:busy-cursor()"/>
 
         <xsl:variable name="context" as="map(*)" select="map{
             'method': $method,
@@ -1573,7 +1572,8 @@ WHERE
             ixsl:then(ldh:http-request-threaded(?, 'shapes-request', 'shapes-response')) =>
             ixsl:then(ldh:handle-response(?, 'shapes-response')) =>
             ixsl:then(ldh:set-shapes#1) =>
-            ixsl:then(ldh:render-add-row-form#1)"
+            ixsl:then(ldh:render-add-row-form#1) =>
+            ixsl:finally(ldh:reset-cursor#0)"
             on-failure="ldh:promise-failure#1"/>
     </xsl:template>
     
@@ -1800,7 +1800,7 @@ WHERE
 
     <xsl:template match="ul[contains-token(@class, 'dropdown-menu')][contains-token(@class, 'type-typeahead')]/li" mode="ixsl:onmousedown" priority="1">
         <xsl:param name="typeahead-class" select="'ldhc-btn in-neutral ap-solid sz-sm add-typeahead add-type-typeahead'" as="xs:string"/>
-        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+        <xsl:sequence select="ldh:busy-cursor()"/>
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'block')][1]" as="element()"/>
         <xsl:variable name="fieldset" select="ancestor::fieldset" as="element()"/>
         <xsl:variable name="doc-uri" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/>

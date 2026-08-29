@@ -296,7 +296,7 @@ exclude-result-prefixes="#all"
                     <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': string($query-string) })" as="xs:anyURI"/>
                     <xsl:variable name="request-uri" select="ldh:href($results-uri, map{})" as="xs:anyURI"/>
 
-                    <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+                    <xsl:sequence select="ldh:busy-cursor()"/>
 
                     <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
                     <xsl:variable name="context" as="map(*)" select="
@@ -307,7 +307,8 @@ exclude-result-prefixes="#all"
                     <ixsl:promise select="ixsl:http-request($context('request')) =>
                         ixsl:then(ldh:rethread-response($context, ?)) =>
                         ixsl:then(ldh:handle-response#1) =>
-                        ixsl:then(ldh:backlinks-response#1)"
+                        ixsl:then(ldh:backlinks-response#1) =>
+                        ixsl:finally(ldh:reset-cursor#0)"
                         on-failure="ldh:promise-failure#1"/>
                 </xsl:if>
             </xsl:otherwise>
@@ -459,7 +460,7 @@ exclude-result-prefixes="#all"
             <xsl:when test="$block/@about">
                 <!-- show a confirmation prompt -->
                 <xsl:if test="ixsl:call(ixsl:window(), 'confirm', [ ac:label(key('resources', 'are-you-sure', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))) ])">
-                    <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+                    <xsl:sequence select="ldh:busy-cursor()"/>
 
                     <xsl:variable name="block-uri" select="$block/@about" as="xs:anyURI"/>
                     <xsl:variable name="update-string" select="replace($block-delete-string, '$this', '&lt;' || ac:absolute-path(ldh:base-uri(.)) || '&gt;', 'q')" as="xs:string"/>
@@ -583,7 +584,7 @@ exclude-result-prefixes="#all"
 
             <!-- only persist if the target block is saved (has @about) and the source is a different block of the same document -->
             <xsl:if test="$target-uri and exists($source-block) and not($target-uri = $source-uri)">
-                <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+                <xsl:sequence select="ldh:busy-cursor()"/>
 
                 <!-- remember the source position so a failed PATCH can revert the optimistic move -->
                 <xsl:variable name="source-next" select="$source-block/following-sibling::*[1]" as="element()?"/>
@@ -599,8 +600,8 @@ exclude-result-prefixes="#all"
                     ixsl:resolve($context) =>
                         ixsl:then(ldh:http-request-threaded#1) =>
                         ixsl:then(ldh:handle-response#1) =>
-                        ixsl:then(ldh:block-moved#1)
-                    "
+                        ixsl:then(ldh:block-moved#1) =>
+                        ixsl:finally(ldh:reset-cursor#0)"
                     on-failure="ldh:promise-failure#1"/>
             </xsl:if>
         </xsl:if>

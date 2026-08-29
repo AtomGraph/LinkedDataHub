@@ -550,7 +550,7 @@ exclude-result-prefixes="#all"
             </xsl:when>
             <!-- all required values present, proceed to update the constructors -->
             <xsl:otherwise>
-                <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+                <xsl:sequence select="ldh:busy-cursor()"/>
 
                 <xsl:for-each select="$form//fieldset">
                     <xsl:variable name="container" select="." as="element()"/>

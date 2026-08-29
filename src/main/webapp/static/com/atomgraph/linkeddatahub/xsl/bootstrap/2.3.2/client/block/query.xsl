@@ -262,7 +262,7 @@ exclude-result-prefixes="#all"
     <!-- submit SPARQL query form (prioritize over default template in form.xsl) -->
     
     <xsl:template match="div[@typeof = ('&sp;Ask', '&sp;Select', '&sp;Describe', '&sp;Construct')]//form[contains-token(@class, 'sparql-query-form ')]" mode="ixsl:onsubmit" priority="2"> <!-- prioritize over form.xsl -->
-        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+        <xsl:sequence select="ldh:busy-cursor()"/>
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <xsl:variable name="textarea-id" select="descendant::textarea[@name = 'query']/ixsl:get(., 'id')" as="xs:string"/>
         <xsl:variable name="yasqe" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.yasqe'), $textarea-id)"/>
@@ -357,7 +357,7 @@ exclude-result-prefixes="#all"
             <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'active', true() ])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:for-each>
         
-        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+        <xsl:sequence select="ldh:busy-cursor()"/>
         
         <xsl:variable name="view-container" select="$container//div[contains-token(@class, 'sparql-query-results')]" as="element()"/>
         <!-- ensure the HTML structure is compatible with what view expects -->
@@ -408,7 +408,7 @@ exclude-result-prefixes="#all"
             <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'active', true() ])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:for-each>
         
-        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+        <xsl:sequence select="ldh:busy-cursor()"/>
                 
         <xsl:variable name="view-container" select="$container//div[contains-token(@class, 'sparql-query-results')]" as="element()"/>
         <!-- ensure the HTML structure is compatible with what view expects -->
@@ -430,14 +430,14 @@ exclude-result-prefixes="#all"
         </xsl:variable>
         
         <!-- invoke the factory -->
-        <ixsl:promise select="$factory(())"/>
+        <ixsl:promise select="$factory(()) => ixsl:finally(ldh:reset-cursor#0)"/>
     </xsl:template>
     
     <!-- save query onclick -->
     <!-- TO-DO: use @typeof in match so that we don't need a custom button.btn-save-query class -->
     
     <xsl:template match="div[@typeof]//button[contains-token(@class, 'btn-save-query')]" mode="ixsl:onclick">
-        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+        <xsl:sequence select="ldh:busy-cursor()"/>
         <xsl:variable name="block" select="ancestor::div[contains-token(@class, 'block')][1]" as="element()"/>
         <xsl:variable name="container" select="ancestor::div[@typeof][1]" as="element()"/>
         <xsl:variable name="about" select="$block/@about" as="xs:anyURI"/>
@@ -484,7 +484,8 @@ exclude-result-prefixes="#all"
           ixsl:http-request($context('request'))
             => ixsl:then(ldh:rethread-response($context, ?))
             => ixsl:then(ldh:handle-response#1)
-            => ixsl:then(ldh:row-form-response#1)
+            => ixsl:then(ldh:row-form-response#1) =>
+            ixsl:finally(ldh:reset-cursor#0)
         "/>
     </xsl:template>
     
@@ -509,7 +510,7 @@ exclude-result-prefixes="#all"
             <xsl:otherwise>
                 <xsl:variable name="href" select="ldh:href($endpoint, map{})" as="xs:anyURI"/>
 
-                <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+                <xsl:sequence select="ldh:busy-cursor()"/>
 
                 <xsl:if test="ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub'), 'saxonController')">
                     <xsl:message>Aborting HTTP request that has already been sent</xsl:message>
@@ -528,7 +529,8 @@ exclude-result-prefixes="#all"
                   ixsl:http-request($context('request'), $controller)
                     => ixsl:then(ldh:rethread-response($context, ?))
                     => ixsl:then(ldh:handle-response#1)
-                    => ixsl:then(ldh:rdf-document-response#1)
+                    => ixsl:then(ldh:rdf-document-response#1) =>
+                    ixsl:finally(ldh:reset-cursor#0)
                 " on-failure="ldh:promise-failure#1"/>
             </xsl:otherwise>
         </xsl:choose>

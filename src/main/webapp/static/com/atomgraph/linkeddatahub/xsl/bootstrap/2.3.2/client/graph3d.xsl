@@ -122,12 +122,13 @@ WHERE
                         'graph-state': $graph-state
                     }" as="map(*)"/>
 
-                    <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+                    <xsl:sequence select="ldh:busy-cursor()"/>
 
                     <ixsl:promise select="
                         ixsl:http-request($request)
-                            => ixsl:then(ldh:handle-graph3d-rdf-response($context, ?))
-                    " on-failure="ldh:promise-failure#1"/>
+                            => ixsl:then(ldh:handle-graph3d-rdf-response($context, ?)) =>
+                            ixsl:finally(ldh:reset-cursor#0)
+                        " on-failure="ldh:promise-failure#1"/>
                 </xsl:otherwise>
             </xsl:choose>
         </xsl:if>
@@ -162,12 +163,13 @@ WHERE
                     'graph-state': $graph-state
                 }" as="map(*)"/>
 
-                <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+                <xsl:sequence select="ldh:busy-cursor()"/>
 
                 <ixsl:promise select="
                     ixsl:http-request($request)
-                        => ixsl:then(ldh:handle-graph3d-backlinks-response($context, ?))
-                " on-failure="ldh:promise-failure#1"/>
+                        => ixsl:then(ldh:handle-graph3d-backlinks-response($context, ?)) =>
+                        ixsl:finally(ldh:reset-cursor#0)
+                    " on-failure="ldh:promise-failure#1"/>
             </xsl:if>
         </xsl:if>
     </xsl:template>
