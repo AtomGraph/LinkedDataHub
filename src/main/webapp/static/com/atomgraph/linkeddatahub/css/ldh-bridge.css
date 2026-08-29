@@ -63,6 +63,10 @@ table.table tr:last-child > td { border-bottom: 0; }
 table.table tbody td { transition: background var(--dur-fast) var(--ease-out-soft); }
 table.table tbody tr:hover > td { background: var(--surface-1); }
 table.table th { font-weight: var(--fw-semibold); color: var(--fg-muted); }
+/* image objects in a data cell: cap the height alone so the row height is uniform down the column
+   and the width stays proportional - a forced box would have to crop or letterbox, and a depiction
+   is as often a logo or a scan as it is a headshot. The <a> wrapper keeps the full image one click away */
+table.table td img { max-height: var(--thumb-sm); border-radius: var(--r-xs); vertical-align: middle; }
 /* view table: the header row pins under the view toolbar while the rows scroll inside .container-results */
 .container-results > table.table thead th { position: sticky; top: 0; z-index: 1; background: var(--surface-1); border-bottom: 1px solid var(--border-strong); }
 /* sortable columns read full-strength at rest so non-sortable headers (which keep the base th --fg-muted) visibly recede; the arrow surfaces on hover and stays lit on the active sort column (aria-sort) */
@@ -381,6 +385,10 @@ form .control-group > .controls > .btn-group { order: 99; margin-left: auto; }
   min-width: 0; overflow-wrap: break-word;
   transition: background var(--dur-fast) var(--ease-out-soft);
 }
+/* a value is a whole row here rather than a table cell, so the image gets more height than in
+   table.table - enough to read, still short of pushing the rest of the property list off-screen.
+   This also lands in the map info window, whose overlay hosts a .ldh-block property list */
+.ldh-block dl > div > dd img { max-width: 100%; max-height: var(--thumb-md); border-radius: var(--r-sm); }
 /* dividers between a predicate's values run in the value column only; the group's top border covers both */
 .ldh-block dl > div > dd ~ dd { border-top: 1px solid var(--border-default); }
 /* the design's .ldh-prop-group hover: the label lights at full group height whenever the pointer
@@ -393,7 +401,10 @@ form .control-group > .controls > .btn-group { order: 99; margin-left: auto; }
    titles group left-aligns with the dd values below regardless of the image's natural size;
    imageless headers stay flex, their titles flush at the card edge like the dt labels */
 .ldh-block-head:has(> a > img, > img) { display: grid; grid-template-columns: minmax(140px, 220px) minmax(0, 1fr) auto; column-gap: var(--sp-6); }
-.ldh-block-head > a > img, .ldh-block-head > img { width: 100%; height: auto; }
+/* both axes are caps rather than width: 100%: the track is a fixed 140-220px whatever the image
+   does, so filling it bought nothing but an upscaled logo, and a portrait source needs the height
+   bound or the header grows past the property list it heads */
+.ldh-block-head > a > img, .ldh-block-head > img { max-width: 100%; max-height: var(--thumb-lg); border-radius: var(--r-sm); }
 /* ---------- version diff decorations (?diff= view) ---------- */
 /* Block-level state rides on outline, not border: the skins legitimately zero block borders
    (quiet prose blocks, alert-only cards, the retro card treatments) and nothing else in the
