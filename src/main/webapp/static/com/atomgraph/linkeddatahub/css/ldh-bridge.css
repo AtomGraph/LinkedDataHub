@@ -61,12 +61,11 @@ table.table tr:last-child > td { border-bottom: 0; }
 table.table th { font-weight: var(--fw-semibold); color: var(--fg-muted); }
 /* view table: the header row pins under the view toolbar while the rows scroll inside .container-results */
 .container-results > table.table thead th { position: sticky; top: 0; z-index: 1; background: var(--surface-1); border-bottom: 1px solid var(--border-strong); }
-/* sortable columns: the arrow surfaces on hover as the affordance and stays lit on the active sort column (aria-sort) */
-table.table th.sortable { cursor: pointer; user-select: none; white-space: nowrap; }
-table.table th.sortable:hover { color: var(--fg-1); background: var(--surface-2); }
+/* sortable columns read full-strength at rest so non-sortable headers (which keep the base th --fg-muted) visibly recede; the arrow surfaces on hover and stays lit on the active sort column (aria-sort) */
+table.table th.sortable { cursor: pointer; user-select: none; white-space: nowrap; color: var(--fg-1); }
+table.table th.sortable:hover { background: var(--surface-2); }
 table.table th.sortable .sort-arrow { vertical-align: middle; margin-left: 2px; visibility: hidden; color: var(--fg-muted); }
 table.table th.sortable:hover .sort-arrow { visibility: visible; }
-table.table th.sortable[aria-sort] { color: var(--fg-1); }
 table.table th.sortable[aria-sort] .sort-arrow { visibility: visible; color: var(--fg-1); }
 .content-body { padding: var(--sp-4) var(--sp-6); max-width: var(--ldh-content-w); margin: 0 auto; }
 /* stacking rhythm between block cards and alerts (Bootstrap's row margins are gone) */
@@ -357,14 +356,18 @@ form .control-group > .controls > .btn-group { order: 99; margin-left: auto; }
   column-gap: var(--sp-6); row-gap: 0;
   margin: 0;
 }
-.ldh-block dl > div { grid-column: 1 / -1; display: grid; grid-template-columns: subgrid; border-top: 1px solid var(--border-default); transition: background var(--dur-fast) var(--ease-out-soft); }
+.ldh-block dl > div { grid-column: 1 / -1; display: grid; grid-template-columns: subgrid; border-top: 1px solid var(--border-default); }
 .ldh-block dl > div:first-child { border-top: 0; }
 .ldh-block dl > div > dt {
   grid-column: 1;
+  /* span all value rows (surplus implicit tracks collapse to zero height) so the label cell -
+     and its hover band - covers the group's full height, like the design's row-spanning .label */
+  grid-row: 1 / span 99;
   padding: var(--sp-2) 0;
   font-size: var(--fs-sm); font-weight: var(--fw-medium);
   color: var(--fg-muted);
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  transition: background var(--dur-fast) var(--ease-out-soft);
 }
 .ldh-block dl > div > dd {
   grid-column: 2;
@@ -372,14 +375,16 @@ form .control-group > .controls > .btn-group { order: 99; margin-left: auto; }
   padding: var(--sp-2) 0;
   font-size: var(--fs-sm); color: var(--fg-1);
   min-width: 0; overflow-wrap: break-word;
+  transition: background var(--dur-fast) var(--ease-out-soft);
 }
 /* dividers between a predicate's values run in the value column only; the group's top border covers both */
 .ldh-block dl > div > dd ~ dd { border-top: 1px solid var(--border-default); }
-/* the design's .ldh-prop-group hover: the group under the pointer reads as one continuous band -
-   label at full group height, values, the column gap (painted by the group's own background) and
-   the sp-6 card padding, filled by offset box-shadow copies of the group, clipped at the card
-   edge by the block's overflow:hidden */
-.ldh-block dl > div:hover { background: var(--surface-1); box-shadow: calc(-1 * var(--sp-6)) 0 0 var(--surface-1), var(--sp-6) 0 0 var(--surface-1); }
+/* the design's .ldh-prop-group hover: the label lights at full group height whenever the pointer
+   is anywhere in the group, but in the value column only the dd under the pointer lights - the
+   dt's box-shadow copies fill the sp-6 card padding (clipped at the card edge by the block's
+   overflow:hidden) and the column gap, the dd's fill the gap and the right card padding */
+.ldh-block dl > div:hover > dt { background: var(--surface-1); box-shadow: calc(-1 * var(--sp-6)) 0 0 var(--surface-1), var(--sp-6) 0 0 var(--surface-1); }
+.ldh-block dl > div > dd:hover { background: var(--surface-1); box-shadow: calc(-1 * var(--sp-6)) 0 0 var(--surface-1), var(--sp-6) 0 0 var(--surface-1); }
 /* a block header with an image adopts the property-list geometry (dt track + column gap), so the
    titles group left-aligns with the dd values below regardless of the image's natural size;
    imageless headers stay flex, their titles flush at the card edge like the dt labels */
