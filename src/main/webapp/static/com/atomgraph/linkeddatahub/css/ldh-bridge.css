@@ -58,6 +58,10 @@
 table.table { width: 100%; border-collapse: collapse; font-size: var(--fs-sm); }
 table.table th, table.table td { padding: var(--sp-2) var(--sp-3); border-bottom: 1px solid var(--border-default); text-align: left; vertical-align: top; }
 table.table tr:last-child > td { border-bottom: 0; }
+/* the row lights as one band, the property-list hover's analog for a row-per-resource surface;
+   no sp-6 bleed into the card padding here - .container-results (overflow: auto) clips at the table edge */
+table.table tbody td { transition: background var(--dur-fast) var(--ease-out-soft); }
+table.table tbody tr:hover > td { background: var(--surface-1); }
 table.table th { font-weight: var(--fw-semibold); color: var(--fg-muted); }
 /* view table: the header row pins under the view toolbar while the rows scroll inside .container-results */
 .container-results > table.table thead th { position: sticky; top: 0; z-index: 1; background: var(--surface-1); border-bottom: 1px solid var(--border-strong); }
