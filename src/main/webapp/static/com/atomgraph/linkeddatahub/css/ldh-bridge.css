@@ -101,11 +101,12 @@ ul.typeahead.dropdown-menu > li.active > a, ul.typeahead.dropdown-menu > li > a:
   box-shadow: none;
 }
 :root[data-retro^="m3"] .ldh-block.is-quiet { border: 0; background: transparent; }
-/* a block whose content collapsed to a single alert (failed object/chart/query load) goes quiet:
-   the alert brings its own surface, so card chrome around it reads as stray double borders */
-.ldh-block:has(> :is(.row-main, .main, .block-row) > :is(.block-row, .main) > .alert:only-child), .ldh-block:has(> :is(.block-row, .main) > .alert:only-child) {
-  border: 0; background: transparent; box-shadow: none;
-}
+/* A failed block used to go quiet here - the alert brought its own surface, so
+   the card chrome around it read as stray double borders. The design system
+   decided the other way (Components → Block states): the card and its header
+   stay in every state, because the header carries what a broken block needs
+   (copy IRI, edit, delete) and holding the footprint keeps the document from
+   reflowing. The failure now shows as the app.css ring instead. */
 .ldh-block :is(.alert, .ldhc-alert) { margin: 0; }
 
 /* ---------- sticky chrome: header on top, action bar (legacy --action-bar-top) right under it.

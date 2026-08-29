@@ -1315,7 +1315,7 @@ LIMIT   10
                 <xsl:choose>
                     <!-- the target must be local because the constructor derivation runs on the local /sparql endpoint scoped to the target graph via ?default-graph-uri= - another instance's graphs are invisible to it (the add/clone variant below has no such constraint and accepts foreign targets) -->
                     <xsl:when test="not(starts-with($target, lapp:origin(ldh:request-uri()) || '/'))">
-                        <xsl:sequence select="ldh:add-data-form-error(map{ 'form': $form, 'message': 'The target document must be local (a document in this hub); choose a local container' })"/> <!-- TO-DO: localize -->
+                        <xsl:sequence select="ldh:add-data-form-error(map{ 'form': $form, 'explanation-key': 'target-must-be-local' })"/>
                     </xsl:when>
                     <xsl:otherwise>
                         <!-- ldh:href routes the arbitrary external $source through the same-origin ?uri= proxy (CORS); the proxy also converts any Jena-parseable format to the requested RDF/XML. The target is local, so its ldh:href is a pass-through and the POST goes directly to it. -->
@@ -1689,20 +1689,10 @@ LIMIT   10
                 </xsl:for-each>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:variable name="message" select="$response?message" as="xs:string?"/>
-
                 <xsl:for-each select="$container//div[contains-token(@class, 'endpoint-classes')]/div">
                     <xsl:result-document href="?." method="ixsl:replace-content">
-                        <div class="alert alert-block">
-                            <strong>
-                                <xsl:value-of>
-                                    <xsl:apply-templates select="key('resources', 'error-during-query', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
-                                </xsl:value-of>
-                            </strong>
-                            <pre>
-                                <xsl:value-of select="$message"/>
-                            </pre>
-                        </div>
+                        <!-- a region of the modal form, not a block body, so the bare alert -->
+                        <xsl:sequence select="ldh:error-alert('classes-not-loaded', ldh:http-error-key($response?status), ())"/>
                     </xsl:result-document>
                 </xsl:for-each>
             </xsl:otherwise>
@@ -1941,19 +1931,9 @@ LIMIT   10
                 </xsl:call-template>
             </xsl:when>
             <xsl:otherwise>
-                <!-- partial failure: created containers stay; report the classes that failed -->
-                <xsl:for-each select="$form//fieldset">
-                    <xsl:result-document href="?." method="ixsl:append-content">
-                        <div class="alert">
-                            <p>Some containers could not be created:</p> <!-- TO-DO: localize -->
-                            <ul>
-                                <xsl:for-each select="$failures">
-                                    <li><samp><xsl:value-of select="?class"/></samp> (<xsl:value-of select="?response?status"/>)</li>
-                                </xsl:for-each>
-                            </ul>
-                        </div>
-                    </xsl:result-document>
-                </xsl:for-each>
+                <!-- partial failure: created containers stay; the classes that failed are the technical detail,
+                     one 'HTTP <status> <class>' line each, so this reports through the same form error surface -->
+                <xsl:sequence select="ldh:render-form-error($form, 'containers-not-created', 'containers-partial-failure', string-join($failures ! ('HTTP ' || ?response?status || ' ' || ?class), '&#xA;'))"/>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:function>
@@ -1983,7 +1963,7 @@ LIMIT   10
             </xsl:when>
             <!-- 200 but not RDF/XML (e.g. the source URI returned an HTML page): explicit error, do NOT fall through to the success navigation of ldh:add-data-form-response -->
             <xsl:when test="$status = 200">
-                <xsl:sequence select="ldh:add-data-form-error(map:put($context, 'message', 'The source URI did not return RDF data'))"/> <!-- TO-DO: localize -->
+                <xsl:sequence select="ldh:add-data-form-error(map:put($context, 'explanation-key', 'source-not-rdf'))"/>
             </xsl:when>
             <!-- fetch failed -->
             <xsl:otherwise>
@@ -2029,7 +2009,7 @@ LIMIT   10
             </xsl:when>
             <!-- 200 but not RDF/XML (e.g. the source URI returned an HTML page): explicit error -->
             <xsl:when test="$status = 200">
-                <xsl:sequence select="ldh:add-data-form-error(map:put($context, 'message', 'The source URI did not return RDF data'))"/> <!-- TO-DO: localize -->
+                <xsl:sequence select="ldh:add-data-form-error(map:put($context, 'explanation-key', 'source-not-rdf'))"/>
             </xsl:when>
             <!-- fetch failed -->
             <xsl:otherwise>
@@ -2085,7 +2065,7 @@ LIMIT   10
                 "/>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:sequence select="ldh:import-ontology-error(map:put($context, 'message', 'Could not load the transformation query'))"/> <!-- TO-DO: localize -->
+                <xsl:sequence select="ldh:import-ontology-error(map:put($context, 'explanation-key', 'transformation-query-not-loaded'))"/>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:function>
@@ -2229,34 +2209,17 @@ LIMIT   10
         </xsl:choose>
     </xsl:function>
 
-    <!-- render an inline error alert in the add/clone form's fieldset; $context may carry an optional 'message' override, otherwise the response message is used. 'response' is optional so pre-fetch validation errors (e.g. a non-local target) can reuse this. -->
+    <!-- render an inline error alert in the add/clone form's fieldset; $context may carry an optional
+         'explanation-key' override for failures that never reached the network (e.g. a non-local target),
+         otherwise the sentence is derived from the response status. 'response' is optional for the same reason. -->
     <xsl:function name="ldh:add-data-form-error" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
         <xsl:variable name="response" select="$context('response')" as="map(*)?"/>
-        <xsl:variable name="status" select="$response?status" as="xs:double?"/>
-        <xsl:variable name="form" select="$context('form')" as="element()?"/>
 
         <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
 
-        <xsl:variable name="message" select="if (map:contains($context, 'message')) then $context('message') else $response?message" as="xs:string?"/>
-        <!-- render error message -->
-        <xsl:for-each select="$form//fieldset">
-            <xsl:result-document href="?." method="ixsl:append-content">
-                <div class="alert">
-                    <xsl:if test="exists($status)">
-                        <p>
-                            <!-- lookup status message by code because Tomcat does not send any -->
-                            <xsl:apply-templates select="key('status-by-code', xs:integer($status), document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/http-statusCodes.rdf', $lapp:origin)))" mode="ac:label"/>
-                        </p>
-                    </xsl:if>
-                    <xsl:if test="$message">
-                        <p>
-                            <xsl:value-of select="$message"/>
-                        </p>
-                    </xsl:if>
-                </div>
-            </xsl:result-document>
-        </xsl:for-each>
+        <xsl:variable name="explanation-key" select="if (map:contains($context, 'explanation-key')) then $context('explanation-key') else ldh:http-error-key($response?status)" as="xs:string"/>
+        <xsl:sequence select="ldh:render-form-error($context('form'), 'data-not-added', $explanation-key, ldh:response-detail($response))"/>
     </xsl:function>
 
     <!-- Kicks off the async metadata-fetch chain for the constraint-violation re-render of a modal form (Container/Item creation and document edit). $context carries response/about/block/form from the form submit handler — $about is the resource discriminator (set by the submit handler from $block/@about or $form/@action). Harvest types/property-uris from the edited resource; object-uris from the whole body. Terminates in ldh:render-modal-form-violation. -->

@@ -549,9 +549,120 @@
         <rdfs:label xml:lang="en-US">Classes</rdfs:label>
         <rdfs:label xml:lang="es-ES">Clases</rdfs:label>
     </rdf:Description>
-    <rdf:Description rdf:nodeID="error-during-query">
-        <rdfs:label xml:lang="en-US">Error during query execution:</rdfs:label>
-        <rdfs:label xml:lang="es-ES">Error durante la ejecución de la consulta:</rdfs:label>
+    <!-- block failure headlines: what failed, named as the reader sees it -->
+    <rdf:Description rdf:nodeID="block-query-failed">
+        <rdfs:label xml:lang="en-US">This block's query failed</rdfs:label>
+        <rdfs:label xml:lang="es-ES">La consulta de este bloque falló</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="block-query-not-loaded">
+        <rdfs:label xml:lang="en-US">This block's query could not be loaded</rdfs:label>
+        <rdfs:label xml:lang="es-ES">No se pudo cargar la consulta de este bloque</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="block-service-not-loaded">
+        <rdfs:label xml:lang="en-US">This block's service could not be loaded</rdfs:label>
+        <rdfs:label xml:lang="es-ES">No se pudo cargar el servicio de este bloque</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="block-resource-not-loaded">
+        <rdfs:label xml:lang="en-US">This resource could not be loaded</rdfs:label>
+        <rdfs:label xml:lang="es-ES">No se pudo cargar este recurso</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="block-resource-not-described">
+        <rdfs:label xml:lang="en-US">The document does not describe this resource</rdfs:label>
+        <rdfs:label xml:lang="es-ES">El documento no describe este recurso</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="block-self-reference">
+        <rdfs:label xml:lang="en-US">This block embeds its own document</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Este bloque incrusta su propio documento</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="block-count-failed">
+        <rdfs:label xml:lang="en-US">The result count could not be loaded</rdfs:label>
+        <rdfs:label xml:lang="es-ES">No se pudo cargar el número de resultados</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="block-values-failed">
+        <rdfs:label xml:lang="en-US">The values could not be loaded</rdfs:label>
+        <rdfs:label xml:lang="es-ES">No se pudieron cargar los valores</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="classes-not-loaded">
+        <rdfs:label xml:lang="en-US">The classes could not be loaded</rdfs:label>
+        <rdfs:label xml:lang="es-ES">No se pudieron cargar las clases</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="data-not-added">
+        <rdfs:label xml:lang="en-US">The data could not be added</rdfs:label>
+        <rdfs:label xml:lang="es-ES">No se pudieron añadir los datos</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="containers-not-created">
+        <rdfs:label xml:lang="en-US">Some containers could not be created</rdfs:label>
+        <rdfs:label xml:lang="es-ES">No se pudieron crear algunos contenedores</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="containers-partial-failure">
+        <rdfs:label xml:lang="en-US">The containers that succeeded are in place. The classes that failed are listed in the technical detail.</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Los contenedores que se crearon siguen en su sitio. Las clases que fallaron se enumeran en el detalle técnico.</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="target-must-be-local">
+        <rdfs:label xml:lang="en-US">The target document must be local. Choose a container in this hub.</rdfs:label>
+        <rdfs:label xml:lang="es-ES">El documento de destino debe ser local. Elige un contenedor de este hub.</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="source-not-rdf">
+        <rdfs:label xml:lang="en-US">The source URI did not return RDF data.</rdfs:label>
+        <rdfs:label xml:lang="es-ES">El URI de origen no devolvió datos RDF.</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="transformation-query-not-loaded">
+        <rdfs:label xml:lang="en-US">The transformation query could not be loaded.</rdfs:label>
+        <rdfs:label xml:lang="es-ES">No se pudo cargar la consulta de transformación.</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="version-history-not-loaded">
+        <rdfs:label xml:lang="en-US">The version history could not be loaded</rdfs:label>
+        <rdfs:label xml:lang="es-ES">No se pudo cargar el historial de versiones</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="version-not-read">
+        <rdfs:label xml:lang="en-US">The selected version could not be read</rdfs:label>
+        <rdfs:label xml:lang="es-ES">No se pudo leer la versión seleccionada</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="version-not-restored">
+        <rdfs:label xml:lang="en-US">This version could not be restored</rdfs:label>
+        <rdfs:label xml:lang="es-ES">No se pudo restaurar esta versión</rdfs:label>
+    </rdf:Description>
+    <!-- block failure explanations: the sentence under the headline. The two below are specific to a
+         failure that has no HTTP status behind it; the http-error-* set covers the ones that do -->
+    <rdf:Description rdf:nodeID="block-self-reference-explanation">
+        <rdfs:label xml:lang="en-US">An object block cannot embed the document it is part of.</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Un bloque de objeto no puede incrustar el documento del que forma parte.</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="block-resource-not-described-explanation">
+        <rdfs:label xml:lang="en-US">The document was retrieved, but it contains no description of this resource.</rdfs:label>
+        <rdfs:label xml:lang="es-ES">El documento se obtuvo, pero no contiene ninguna descripción de este recurso.</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="http-error-malformed">
+        <rdfs:label xml:lang="en-US">The endpoint rejected the request as malformed.</rdfs:label>
+        <rdfs:label xml:lang="es-ES">El punto de acceso rechazó la solicitud por estar mal formada.</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="http-error-unauthorized">
+        <rdfs:label xml:lang="en-US">You need to sign in to see this.</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Necesitas iniciar sesión para ver esto.</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="http-error-forbidden">
+        <rdfs:label xml:lang="en-US">You do not have access to this.</rdfs:label>
+        <rdfs:label xml:lang="es-ES">No tienes acceso a esto.</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="http-error-not-found">
+        <rdfs:label xml:lang="en-US">The requested resource was not found.</rdfs:label>
+        <rdfs:label xml:lang="es-ES">No se encontró el recurso solicitado.</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="http-error-unreachable">
+        <rdfs:label xml:lang="en-US">The endpoint could not be reached.</rdfs:label>
+        <rdfs:label xml:lang="es-ES">No se pudo contactar con el punto de acceso.</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="http-error-server">
+        <rdfs:label xml:lang="en-US">The server failed while handling the request.</rdfs:label>
+        <rdfs:label xml:lang="es-ES">El servidor falló al procesar la solicitud.</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="http-error-unknown">
+        <rdfs:label xml:lang="en-US">The request did not complete.</rdfs:label>
+        <rdfs:label xml:lang="es-ES">La solicitud no se completó.</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="technical-detail">
+        <rdfs:label xml:lang="en-US">Technical detail</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Detalle técnico</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="history">
         <rdfs:label xml:lang="en-US">History</rdfs:label>

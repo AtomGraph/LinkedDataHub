@@ -162,9 +162,7 @@ version="3.0"
                                     </form>
                                 </xsl:when>
                                 <xsl:otherwise>
-                                    <div class="ldhc-alert alert-error">
-                                        <xsl:text>Could not load the version history</xsl:text>
-                                    </div>
+                                    <xsl:sequence select="ldh:error-alert('version-history-not-loaded', ldh:http-error-key($response?status), ())"/>
                                 </xsl:otherwise>
                             </xsl:choose>
                         </div>
@@ -236,7 +234,7 @@ version="3.0"
             </xsl:when>
             <xsl:otherwise>
                 <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
-                <xsl:sequence select="ldh:restore-failed($context, 'Could not read the selected version')"/>
+                <xsl:sequence select="ldh:restore-failed($context, 'version-not-read')"/>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:function>
@@ -260,7 +258,7 @@ version="3.0"
                 </xsl:call-template>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:sequence select="ldh:restore-failed($context, 'Could not restore this version')"/>
+                <xsl:sequence select="ldh:restore-failed($context, 'version-not-restored')"/>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:function>
@@ -268,13 +266,11 @@ version="3.0"
     <!-- reports a failed restore inside the modal, so the agent keeps the version list they were working from -->
     <xsl:function name="ldh:restore-failed" as="item()?" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
-        <xsl:param name="message" as="xs:string"/>
+        <xsl:param name="title-key" as="xs:string"/> <!-- translations.rdf nodeID naming which step of the restore failed -->
 
         <xsl:for-each select="$context('modal')/div[contains-token(@class, 'modal-body')]">
             <xsl:result-document href="?." method="ixsl:prepend-content">
-                <div class="ldhc-alert alert-error">
-                    <xsl:value-of select="$message || ' (HTTP ' || $context('response')?status || ')'"/>
-                </div>
+                <xsl:sequence select="ldh:error-alert($title-key, ldh:http-error-key($context('response')?status), ())"/>
             </xsl:result-document>
         </xsl:for-each>
     </xsl:function>

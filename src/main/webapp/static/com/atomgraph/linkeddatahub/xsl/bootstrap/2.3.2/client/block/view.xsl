@@ -184,16 +184,7 @@ exclude-result-prefixes="#all"
                     <xsl:sequence select="$context"/>
                 </xsl:when>
                 <xsl:otherwise>
-                    <xsl:for-each select="$container">
-                        <xsl:result-document href="?." method="ixsl:replace-content">
-                            <div class="alert alert-block">
-                                <strong>Could not load query results from <a href="{$endpoint}"><xsl:value-of select="$endpoint"/></a></strong>
-                                <pre>
-                                    <xsl:value-of select="$response?message"/>
-                                </pre>
-                            </div>
-                        </xsl:result-document>
-                    </xsl:for-each>
+                    <xsl:sequence select="ldh:render-block-error($container, 'block-query-failed', ldh:http-error-key($response?status), $endpoint, $response)"/>
 
                     <xsl:sequence select="ldh:hide-block-progress-bar($context, ())[current-date() lt xs:date('2000-01-01')]"/>
 
@@ -857,22 +848,6 @@ exclude-result-prefixes="#all"
                 <xsl:with-param name="graph-instance" select="$graph-instance"/>
             </xsl:call-template>
         </xsl:if>
-    </xsl:template>
-    
-    <xsl:template name="render-container-error">
-        <xsl:param name="container" as="element()"/>
-        <xsl:param name="message" as="xs:string"/>
-
-        <xsl:for-each select="$container">
-            <xsl:result-document href="?." method="ixsl:replace-content">
-                <div class="alert alert-block">
-                    <strong>Error during query execution:</strong>
-                    <pre>
-                        <xsl:value-of select="$message"/>
-                    </pre>
-                </div>
-            </xsl:result-document>
-        </xsl:for-each>
     </xsl:template>
     
     <!-- view mode choice -->
@@ -2317,16 +2292,9 @@ exclude-result-prefixes="#all"
                                 <xsl:sequence select="map:merge((map{ 'block': $block }, $view-context))"/>
                             </xsl:when>
                             <xsl:otherwise>
-                                <xsl:for-each select="$container//div[contains-token(@class, 'main')]">
-                                    <xsl:result-document href="?." method="ixsl:replace-content">
-                                        <div class="alert alert-block">
-                                            <strong>Could not load service resource: <a href="{$service-uri}"><xsl:value-of select="$service-uri"/></a></strong>
-                                            <pre>
-                                                <xsl:value-of select="$response?message"/>
-                                            </pre>
-                                        </div>
-                                    </xsl:result-document>
-                                </xsl:for-each>
+                                <!-- the query document loaded (200); the service resource is simply absent from it, so there is no
+                                     HTTP failure to report and passing $response here would head the detail with a misleading 'HTTP 200' -->
+                                <xsl:sequence select="ldh:render-block-error($container//div[contains-token(@class, 'main')], 'block-service-not-loaded', 'block-resource-not-described-explanation', $service-uri, ())"/>
 
                                 <xsl:sequence select="ldh:hide-block-progress-bar($context, ())[current-date() lt xs:date('2000-01-01')]"/>
                             </xsl:otherwise>
@@ -2334,16 +2302,7 @@ exclude-result-prefixes="#all"
                     </xsl:for-each>
                 </xsl:when>
                 <xsl:otherwise>
-                    <xsl:for-each select="$container//div[contains-token(@class, 'main')]">
-                        <xsl:result-document href="?." method="ixsl:replace-content">
-                            <div class="alert alert-block">
-                                <strong>Could not load query resource: <a href="{$query-uri}"><xsl:value-of select="$query-uri"/></a></strong>
-                                <pre>
-                                    <xsl:value-of select="$response?message"/>
-                                </pre>
-                            </div>
-                        </xsl:result-document>
-                    </xsl:for-each>
+                    <xsl:sequence select="ldh:render-block-error($container//div[contains-token(@class, 'main')], 'block-query-not-loaded', ldh:http-error-key($response?status), $query-uri, $response)"/>
 
                     <xsl:sequence select="ldh:hide-block-progress-bar($context, ())[current-date() lt xs:date('2000-01-01')]"/>
 
@@ -2579,12 +2538,9 @@ exclude-result-prefixes="#all"
                     <!-- error response - could not load parallax results -->
                     <xsl:for-each select="$container">
                         <xsl:result-document href="?." method="ixsl:append-content">
-                            <div class="alert alert-block">
-                                <strong>Error during query execution:</strong>
-                                <pre>
-                                    <xsl:value-of select="$response?message"/>
-                                </pre>
-                            </div>
+                            <!-- appended beside the parallax rows rather than filling a block body, so the bare alert
+                                 without the ldh-block-error wrapper - it must not ring the view card it sits in -->
+                            <xsl:sequence select="ldh:error-alert('block-query-failed', ldh:http-error-key($response?status), ())"/>
                         </xsl:result-document>
                     </xsl:for-each>
 
@@ -2737,12 +2693,7 @@ exclude-result-prefixes="#all"
                     <xsl:for-each select="$container/ul[contains-token(@class, 'facet-pop')]">
                         <xsl:result-document href="?." method="ixsl:replace-content">
                             <li>
-                                <div class="alert alert-block">
-                                    <strong>Error during query execution:</strong>
-                                    <pre>
-                                        <xsl:value-of select="$response?message"/>
-                                    </pre>
-                                </div>
+                                <xsl:sequence select="ldh:error-alert('block-values-failed', ldh:http-error-key($response?status), ())"/>
                             </li>
                         </xsl:result-document>
                     </xsl:for-each>
@@ -2855,7 +2806,14 @@ exclude-result-prefixes="#all"
                 <xsl:otherwise>
                     <xsl:for-each select="$container">
                         <xsl:result-document href="?." method="ixsl:replace-content">
-                            <span class="alert">Error loading result count</span>
+                            <!-- the count sits inline in the view toolbar, where a full alert would outweigh the row it
+                                 reports on - the design system's compact negative tag is the status marker at this size -->
+                            <span class="ldhc-tag em-quiet co-negative sz-sm">
+                                <span class="msi outline" aria-hidden="true">error</span>
+                                <span class="ldhc-tag-lbl">
+                                    <xsl:apply-templates select="key('resources', 'block-count-failed', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                                </span>
+                            </span>
                         </xsl:result-document>
                     </xsl:for-each>
                 </xsl:otherwise>

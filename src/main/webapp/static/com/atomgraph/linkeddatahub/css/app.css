@@ -1627,6 +1627,55 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
   padding: var(--sp-6); text-align: center; color: var(--fg-hint); font-size: var(--fs-sm);
 }
 
+/* =========================================================================
+   Block failure state (design system: Components → Block states)
+   A block keeps its card chrome and header when its content fails to load —
+   it does not collapse to a bare alert. The header carries the affordances a
+   broken block needs most (copy IRI, edit, delete), the title is known from
+   RDF before the query resolves, and holding the footprint keeps the document
+   from reflowing. Only the body swaps.
+   ========================================================================= */
+
+/* The design system sets an `is-failed` class on the card. Here the ring is
+   derived from the body content instead: the failed state is a function of
+   what the error handler rendered, so :has() recomputes it on every re-render
+   and a block that later succeeds cannot keep a stale ring. Nothing needs to
+   clear it. Only block bodies get .ldh-block-error — the small hosts (facet
+   popover, result count, parallax rows) emit the bare .ldhc-alert, so they
+   cannot ring the card they happen to sit in.
+   An `outline`, not a border: skins differ on whether cards have borders at
+   all (m3 uses elevation and sets border-width: 0), and an outline survives
+   both without fighting the skin's shadow. Offset inward so it lands on the
+   card edge rather than outside it. */
+.ldh-block:has(.ldh-block-error) {
+  outline: 1px solid color-mix(in srgb, var(--danger-500) 38%, transparent);
+  outline-offset: -1px;
+  border-color: color-mix(in srgb, var(--danger-500) 28%, var(--border-default));
+}
+
+/* Error body: the alert owns the message, the raw detail is demoted. */
+.ldh-block-error { display: flex; flex-direction: column; gap: var(--sp-3); }
+/* Technical detail — collapsed by default, mono and muted when open. Never the
+   first thing read, but never hidden from the person who needs it either. */
+.ldh-block-detail { border-top: 1px dashed var(--border-default); padding-top: var(--sp-3); }
+.ldh-block-detail > summary {
+  display: inline-flex; align-items: center; gap: 5px;
+  cursor: pointer; list-style: none;
+  font-family: var(--font-sans); font-size: var(--fs-xs); font-weight: var(--fw-medium);
+  color: var(--fg-muted); border-radius: var(--r-xs);
+}
+.ldh-block-detail > summary::-webkit-details-marker { display: none; }
+.ldh-block-detail > summary:hover { color: var(--fg-1); }
+.ldh-block-detail > summary:focus-visible { outline: 0; box-shadow: var(--focus-ring); }
+.ldh-block-detail > summary .msi { font-size: 15px; transition: transform var(--dur-fast) var(--ease-out-soft); }
+.ldh-block-detail[open] > summary .msi { transform: rotate(90deg); }
+.ldh-block-detail pre {
+  margin: var(--sp-2) 0 0; padding: var(--sp-3); overflow-x: auto;
+  background: var(--surface-2); border-radius: var(--r-sm);
+  font-family: var(--font-mono); font-size: var(--fs-xs); line-height: 1.6;
+  color: var(--fg-muted); white-space: pre-wrap; word-break: break-word;
+}
+
 /* ---------- View-block toolbar (facets / sort / count, sits inside .ldh-block between head and body) ---------- */
 .ldh-view-toolbar {
   display: flex; align-items: center; gap: var(--sp-2);
