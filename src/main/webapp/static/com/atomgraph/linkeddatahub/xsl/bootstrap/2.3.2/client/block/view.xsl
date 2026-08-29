@@ -2408,14 +2408,15 @@ exclude-result-prefixes="#all"
                         <xsl:copy>
                             <xsl:perform-sort select="*">
                                 <!-- sort key COALESCEs across $order-by-predicates in path order, preferring values whose @xml:lang primary subtag matches $ac:lang. Inlined rather than calling ldh:sort-key() because SaxonJS xsl:sort doesn't appear to thread the user-function return value back into the comparison even though the function executes. -->
-                                <!-- numeric key first: number() yields NaN for non-numeric values, so numeric columns (xsd:float totals, integer quantities) compare numerically while text columns tie on NaN and fall through to the string key below -->
+                                <!-- numeric key first: numeric columns (xsd:float totals, integer quantities) compare numerically while non-numeric values yield the empty sequence, tie, and fall through to the string key below. Must not yield NaN: a NaN key freezes SaxonJS's comparison entirely - later keys are never consulted and document order leaks through -->
                                 <xsl:sort select="
-                                    number((let $children := for $p in $order-by-predicates return *[concat(namespace-uri(), local-name()) = $p]
+                                    let $key := (let $children := for $p in $order-by-predicates return *[concat(namespace-uri(), local-name()) = $p]
                                      return (
                                        ($children[tokenize(@xml:lang, '-')[1] = tokenize($ac:lang, '-')[1]]/string(text()))[1],
                                        ($children[not(@xml:lang)]/string(text()))[1],
                                        ($children/string((text(), @rdf:resource, @rdf:nodeID)[1]))[1]
-                                     )[. ne ''][1]))
+                                     )[. ne ''][1])
+                                    return if ($key castable as xs:double) then xs:double($key) else ()
                                 " order="{if ($desc) then 'descending' else 'ascending'}"/>
                                 <xsl:sort select="
                                     (let $children := for $p in $order-by-predicates return *[concat(namespace-uri(), local-name()) = $p]
@@ -2427,14 +2428,15 @@ exclude-result-prefixes="#all"
                                 " order="{if ($desc) then 'descending' else 'ascending'}"/>
                                 <!-- secondary sort by $default-order-by-predicates if distinct from the primary; same numeric-then-string pairing -->
                                 <xsl:sort select="
-                                    number(if (exists($default-order-by-predicates) and not(deep-equal($order-by-predicates, $default-order-by-predicates))) then
+                                    let $key := if (exists($default-order-by-predicates) and not(deep-equal($order-by-predicates, $default-order-by-predicates))) then
                                         (let $children := for $p in $default-order-by-predicates return *[concat(namespace-uri(), local-name()) = $p]
                                          return (
                                            ($children[tokenize(@xml:lang, '-')[1] = tokenize($ac:lang, '-')[1]]/string(text()))[1],
                                            ($children[not(@xml:lang)]/string(text()))[1],
                                            ($children/string((text(), @rdf:resource, @rdf:nodeID)[1]))[1]
                                          )[. ne ''][1])
-                                    else ())
+                                    else ()
+                                    return if ($key castable as xs:double) then xs:double($key) else ()
                                 " order="{if ($default-desc) then 'descending' else 'ascending'}"/>
                                 <xsl:sort select="
                                     if (exists($default-order-by-predicates) and not(deep-equal($order-by-predicates, $default-order-by-predicates))) then
