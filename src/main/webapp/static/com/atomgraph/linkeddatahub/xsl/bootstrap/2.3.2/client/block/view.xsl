@@ -2359,6 +2359,72 @@ exclude-result-prefixes="#all"
         </xsl:for-each>
     </xsl:function>
     
+    <!-- the lexical sort key of a result: COALESCEs across $predicates in path order, preferring values whose @xml:lang primary subtag matches $ac:lang -->
+
+    <xsl:function name="ldh:sort-key-lexical" as="xs:string?">
+        <xsl:param name="resource" as="element()"/>
+        <xsl:param name="predicates" as="xs:anyURI*"/>
+
+        <xsl:variable name="children" select="for $p in $predicates return $resource/*[concat(namespace-uri(), local-name()) = $p]" as="element()*"/>
+        <xsl:sequence select="(($children[tokenize(@xml:lang, '-')[1] = tokenize($ac:lang, '-')[1]]/string(text()))[1], ($children[not(@xml:lang)]/string(text()))[1], ($children/string((text(), @rdf:resource, @rdf:nodeID)[1]))[1])[. ne ''][1]"/>
+    </xsl:function>
+
+    <!-- the RDF datatype shared by a sort column's literals, or () when the column carries none (plain or language-tagged literals, resources) or mixes several. The wrapped DESCRIBE returns an unordered graph, so the view re-sorts the page client-side; keying off the datatype is what keeps that order agreeing with the SPARQL ORDER BY that chose the page's members. -->
+
+    <xsl:function name="ldh:sort-datatype" as="xs:anyURI?">
+        <xsl:param name="resources" as="element()*"/>
+        <xsl:param name="predicates" as="xs:anyURI*"/>
+
+        <xsl:variable name="datatypes" select="distinct-values(for $p in $predicates return $resources/*[concat(namespace-uri(), local-name()) = $p]/@rdf:datatype/string(.))" as="xs:string*"/>
+        <xsl:sequence select="if (count($datatypes) eq 1) then xs:anyURI($datatypes) else ()"/>
+    </xsl:function>
+
+    <!-- casts a lexical sort key to the XSD type that orders it. Returns () for datatypes XPath does not order (strings and their subtypes, xs:anyURI, binaries, gregorians, QNames) and for values that fail to cast - those tie here and are ordered by the lexical key instead. -->
+
+    <xsl:function name="ldh:sort-key" as="xs:anyAtomicType?">
+        <xsl:param name="key" as="xs:string?"/>
+        <xsl:param name="datatype" as="xs:anyURI?"/>
+
+        <xsl:choose>
+            <!-- exact rather than promoted to xs:double, so integers beyond double's 2^53 keep their order -->
+            <xsl:when test="$datatype = ('&xsd;integer', '&xsd;long', '&xsd;int', '&xsd;short', '&xsd;byte', '&xsd;nonNegativeInteger', '&xsd;positiveInteger', '&xsd;nonPositiveInteger', '&xsd;negativeInteger', '&xsd;unsignedLong', '&xsd;unsignedInt', '&xsd;unsignedShort', '&xsd;unsignedByte')">
+                <xsl:sequence select="if ($key castable as xs:integer) then xs:integer($key) else ()"/>
+            </xsl:when>
+            <xsl:when test="$datatype = '&xsd;decimal'">
+                <xsl:sequence select="if ($key castable as xs:decimal) then xs:decimal($key) else ()"/>
+            </xsl:when>
+            <!-- 'NaN' is a valid xs:double lexical form, and a NaN sort key freezes SaxonJS's comparison outright - the remaining keys are never consulted and the results fall back to document order - so it is filtered back out to () here -->
+            <xsl:when test="$datatype = ('&xsd;double', '&xsd;float')">
+                <xsl:sequence select="if ($key castable as xs:double) then xs:double($key)[. eq .] else ()"/>
+            </xsl:when>
+            <xsl:when test="$datatype = ('&xsd;dateTime', '&xsd;dateTimeStamp')">
+                <xsl:sequence select="if ($key castable as xs:dateTime) then xs:dateTime($key) else ()"/>
+            </xsl:when>
+            <xsl:when test="$datatype = '&xsd;date'">
+                <xsl:sequence select="if ($key castable as xs:date) then xs:date($key) else ()"/>
+            </xsl:when>
+            <xsl:when test="$datatype = '&xsd;time'">
+                <xsl:sequence select="if ($key castable as xs:time) then xs:time($key) else ()"/>
+            </xsl:when>
+            <xsl:when test="$datatype = '&xsd;yearMonthDuration'">
+                <xsl:sequence select="if ($key castable as xs:yearMonthDuration) then xs:yearMonthDuration($key) else ()"/>
+            </xsl:when>
+            <xsl:when test="$datatype = '&xsd;dayTimeDuration'">
+                <xsl:sequence select="if ($key castable as xs:dayTimeDuration) then xs:dayTimeDuration($key) else ()"/>
+            </xsl:when>
+            <!-- xs:duration is only partially ordered (P1M and P30D do not compare), so only its two ordered subtypes get a typed key -->
+            <xsl:when test="$datatype = '&xsd;duration'">
+                <xsl:sequence select="if ($key castable as xs:yearMonthDuration) then xs:yearMonthDuration($key) else if ($key castable as xs:dayTimeDuration) then xs:dayTimeDuration($key) else ()"/>
+            </xsl:when>
+            <xsl:when test="$datatype = '&xsd;boolean'">
+                <xsl:sequence select="if ($key castable as xs:boolean) then xs:boolean($key) else ()"/>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:sequence select="()"/>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:function>
+
     <!-- when view RDF/XML results load, render them -->
     <xsl:function name="ldh:render-view" as="item()*" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
@@ -2400,54 +2466,22 @@ exclude-result-prefixes="#all"
             <xsl:variable name="order-by-predicates" select="if ($order-by-var-name and map:contains($var-predicates, $order-by-var-name)) then $var-predicates($order-by-var-name) else ()" as="xs:anyURI*"/>
             <xsl:variable name="desc" select="$select-xml/json:map/json:array[@key = 'order']/json:map[1]/json:boolean[@key = 'descending']" as="xs:boolean?"/>
             <xsl:variable name="default-order-by-var-name" select="$select-xml/json:map/json:array[@key = 'order']/json:map[2]/json:string[@key = 'expression']/substring-after(., '?')" as="xs:string?"/>
-            <xsl:variable name="default-order-by-predicates" select="if ($default-order-by-var-name and map:contains($var-predicates, $default-order-by-var-name)) then $var-predicates($default-order-by-var-name) else ()" as="xs:anyURI*"/>
+            <!-- empty unless distinct from the primary, so the secondary keys below collapse to () when both ORDER BY conditions resolve to the same predicates -->
+            <xsl:variable name="default-order-by-predicates" select="if ($default-order-by-var-name and map:contains($var-predicates, $default-order-by-var-name) and not(deep-equal($order-by-predicates, $var-predicates($default-order-by-var-name)))) then $var-predicates($default-order-by-var-name) else ()" as="xs:anyURI*"/>
             <xsl:variable name="default-desc" select="$select-xml/json:map/json:array[@key = 'order']/json:map[2]/json:boolean[@key = 'descending']" as="xs:boolean?"/>
+            <!-- each column's datatype is resolved once over the whole result set, not per row: xsl:sort requires every key to be mutually comparable, so the type has to be a property of the column rather than of the value -->
+            <xsl:variable name="order-by-datatype" select="ldh:sort-datatype(/rdf:RDF/*, $order-by-predicates)" as="xs:anyURI?"/>
+            <xsl:variable name="default-order-by-datatype" select="ldh:sort-datatype(/rdf:RDF/*, $default-order-by-predicates)" as="xs:anyURI?"/>
             <xsl:variable name="sorted-results" as="document-node()">
                 <xsl:document>
                     <xsl:for-each select="/rdf:RDF">
                         <xsl:copy>
+                            <!-- the typed key orders the column by its XSD datatype and the lexical key breaks its ties, which is also where untyped columns and values that fail to cast are ordered -->
                             <xsl:perform-sort select="*">
-                                <!-- sort key COALESCEs across $order-by-predicates in path order, preferring values whose @xml:lang primary subtag matches $ac:lang. Inlined rather than calling ldh:sort-key() because SaxonJS xsl:sort doesn't appear to thread the user-function return value back into the comparison even though the function executes. -->
-                                <!-- numeric key first: numeric columns (xsd:float totals, integer quantities) compare numerically while non-numeric values yield the empty sequence, tie, and fall through to the string key below. Must not yield NaN: a NaN key freezes SaxonJS's comparison entirely - later keys are never consulted and document order leaks through -->
-                                <xsl:sort select="
-                                    let $key := (let $children := for $p in $order-by-predicates return *[concat(namespace-uri(), local-name()) = $p]
-                                     return (
-                                       ($children[tokenize(@xml:lang, '-')[1] = tokenize($ac:lang, '-')[1]]/string(text()))[1],
-                                       ($children[not(@xml:lang)]/string(text()))[1],
-                                       ($children/string((text(), @rdf:resource, @rdf:nodeID)[1]))[1]
-                                     )[. ne ''][1])
-                                    return if ($key castable as xs:double) then xs:double($key) else ()
-                                " order="{if ($desc) then 'descending' else 'ascending'}"/>
-                                <xsl:sort select="
-                                    (let $children := for $p in $order-by-predicates return *[concat(namespace-uri(), local-name()) = $p]
-                                     return (
-                                       ($children[tokenize(@xml:lang, '-')[1] = tokenize($ac:lang, '-')[1]]/string(text()))[1],
-                                       ($children[not(@xml:lang)]/string(text()))[1],
-                                       ($children/string((text(), @rdf:resource, @rdf:nodeID)[1]))[1]
-                                     )[. ne ''][1])
-                                " order="{if ($desc) then 'descending' else 'ascending'}"/>
-                                <!-- secondary sort by $default-order-by-predicates if distinct from the primary; same numeric-then-string pairing -->
-                                <xsl:sort select="
-                                    let $key := if (exists($default-order-by-predicates) and not(deep-equal($order-by-predicates, $default-order-by-predicates))) then
-                                        (let $children := for $p in $default-order-by-predicates return *[concat(namespace-uri(), local-name()) = $p]
-                                         return (
-                                           ($children[tokenize(@xml:lang, '-')[1] = tokenize($ac:lang, '-')[1]]/string(text()))[1],
-                                           ($children[not(@xml:lang)]/string(text()))[1],
-                                           ($children/string((text(), @rdf:resource, @rdf:nodeID)[1]))[1]
-                                         )[. ne ''][1])
-                                    else ()
-                                    return if ($key castable as xs:double) then xs:double($key) else ()
-                                " order="{if ($default-desc) then 'descending' else 'ascending'}"/>
-                                <xsl:sort select="
-                                    if (exists($default-order-by-predicates) and not(deep-equal($order-by-predicates, $default-order-by-predicates))) then
-                                        (let $children := for $p in $default-order-by-predicates return *[concat(namespace-uri(), local-name()) = $p]
-                                         return (
-                                           ($children[tokenize(@xml:lang, '-')[1] = tokenize($ac:lang, '-')[1]]/string(text()))[1],
-                                           ($children[not(@xml:lang)]/string(text()))[1],
-                                           ($children/string((text(), @rdf:resource, @rdf:nodeID)[1]))[1]
-                                         )[. ne ''][1])
-                                    else ()
-                                " order="{if ($default-desc) then 'descending' else 'ascending'}"/>
+                                <xsl:sort select="ldh:sort-key(ldh:sort-key-lexical(., $order-by-predicates), $order-by-datatype)" order="{if ($desc) then 'descending' else 'ascending'}"/>
+                                <xsl:sort select="ldh:sort-key-lexical(., $order-by-predicates)" order="{if ($desc) then 'descending' else 'ascending'}"/>
+                                <xsl:sort select="ldh:sort-key(ldh:sort-key-lexical(., $default-order-by-predicates), $default-order-by-datatype)" order="{if ($default-desc) then 'descending' else 'ascending'}"/>
+                                <xsl:sort select="ldh:sort-key-lexical(., $default-order-by-predicates)" order="{if ($default-desc) then 'descending' else 'ascending'}"/>
                                 <!-- soft by URI/bnode ID otherwise -->
                                 <xsl:sort select="if (@rdf:about) then @rdf:about else @rdf:nodeID" order="{if ($default-desc) then 'descending' else 'ascending'}"/>
                             </xsl:perform-sort>
