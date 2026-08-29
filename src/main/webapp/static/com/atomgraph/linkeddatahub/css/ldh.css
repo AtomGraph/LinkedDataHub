@@ -103,6 +103,10 @@ object { display: block; margin: auto; max-height: 400px; overflow: hidden; widt
    clips the property-list hover's sp-6 bleed at the rounded edge */
 .ol-overlay-container { width: 60%; max-height: 75%; background: var(--bg-card); border: 1px solid var(--border-default); border-radius: var(--r-lg); box-shadow: var(--shadow-lg); overflow: auto; }
 .ol-overlay-container img { max-width: 100%; }
+/* the block has no .ldh-block-body wrapper here (the default resource template emits head + property
+   list only), so the modal-body inset is the only one: drop the head's own side padding or the title
+   sits sp-6 right of the labels below it, and its top padding stacks on the body's */
+.ol-overlay-container .ldh-block-head { padding: 0 0 var(--sp-3); }
 /* SVG graph specific */
 circle { cursor: move; }
 /* RDFa editor specific */
