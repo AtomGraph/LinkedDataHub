@@ -414,8 +414,9 @@ exclude-result-prefixes="#all"
                     <xsl:variable name="info-window-options" select="ldh:new-object()"/>
                     <xsl:variable name="info-window-html" as="element()">
                         <xsl:apply-templates select="key('resources', $uri)">
-                            <!-- the design-system property-list CSS is scoped to .ldh-block, which the bs2:Row card wrapper provides elsewhere -->
-                            <xsl:with-param name="class" select="'ldh-block'"/>
+                            <!-- the design-system property-list CSS is scoped to .ldh-block, which the bs2:Row card wrapper provides elsewhere;
+                                 is-quiet drops the card chrome that would otherwise paint a second bordered surface inside the info window panel -->
+                            <xsl:with-param name="class" select="'ldh-block is-quiet'"/>
                             <xsl:with-param name="show-edit-button" select="false()" tunnel="yes"/>
                         </xsl:apply-templates>
                     </xsl:variable>

@@ -97,7 +97,11 @@ object { display: block; margin: auto; max-height: 400px; overflow: hidden; widt
 .graph-3d-fullscreen { position: absolute; bottom: 10px; right: 10px; z-index: 10; }
 .graph-3d-canvas.graph-3d-maximized { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1000; }
 /* OpenLayers specific */
-.ol-overlay-container { width: 60%; max-height: 75%; background-color: white; overflow: auto; }
+/* the marker info window borrows the modal's chrome (modal-header + modal-body) but its host is
+   ol.Overlay's own wrapper, not .modal - so the panel treatment lands here: the overlay IS the card,
+   which is why the resource inside renders as a quiet block. overflow (already the scroll container)
+   clips the property-list hover's sp-6 bleed at the rounded edge */
+.ol-overlay-container { width: 60%; max-height: 75%; background: var(--bg-card); border: 1px solid var(--border-default); border-radius: var(--r-lg); box-shadow: var(--shadow-lg); overflow: auto; }
 .ol-overlay-container img { max-width: 100%; }
 /* SVG graph specific */
 circle { cursor: move; }
