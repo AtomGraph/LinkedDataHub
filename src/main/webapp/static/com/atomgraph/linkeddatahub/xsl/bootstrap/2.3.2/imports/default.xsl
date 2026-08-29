@@ -761,8 +761,31 @@ exclude-result-prefixes="#all"
         </xsl:if>
     </xsl:function>
     
+    <!-- reduces an RDF literal's datatype to the XSD type that processing keys off: the derived types collapse onto the primitive
+         that carries their ordering and value space, so consumers switch on a handful of families instead of enumerating XSD.
+         'string' is the fallback for datatypes with no ordering of their own - xs:string and its subtypes, xs:anyURI, the binaries,
+         the gregorians, QNames - and for untyped values, which are plain literals and therefore strings under RDF 1.1. -->
+
+    <xsl:function name="ldh:datatype-family" as="xs:string">
+        <xsl:param name="datatype" as="xs:anyURI?"/>
+
+        <xsl:choose>
+            <xsl:when test="$datatype = ('&xsd;integer', '&xsd;long', '&xsd;int', '&xsd;short', '&xsd;byte', '&xsd;nonNegativeInteger', '&xsd;positiveInteger', '&xsd;nonPositiveInteger', '&xsd;negativeInteger', '&xsd;unsignedLong', '&xsd;unsignedInt', '&xsd;unsignedShort', '&xsd;unsignedByte')">integer</xsl:when>
+            <xsl:when test="$datatype = '&xsd;decimal'">decimal</xsl:when>
+            <xsl:when test="$datatype = ('&xsd;double', '&xsd;float')">double</xsl:when>
+            <xsl:when test="$datatype = ('&xsd;dateTime', '&xsd;dateTimeStamp')">dateTime</xsl:when>
+            <xsl:when test="$datatype = '&xsd;date'">date</xsl:when>
+            <xsl:when test="$datatype = '&xsd;time'">time</xsl:when>
+            <xsl:when test="$datatype = '&xsd;yearMonthDuration'">yearMonthDuration</xsl:when>
+            <xsl:when test="$datatype = '&xsd;dayTimeDuration'">dayTimeDuration</xsl:when>
+            <xsl:when test="$datatype = '&xsd;duration'">duration</xsl:when>
+            <xsl:when test="$datatype = '&xsd;boolean'">boolean</xsl:when>
+            <xsl:otherwise>string</xsl:otherwise>
+        </xsl:choose>
+    </xsl:function>
+
     <!-- DEFAULT -->
-    
+
     <!-- property -->
     <xsl:template match="*[@rdf:about or @rdf:nodeID]/*">
         <xsl:param name="id" as="xs:string?"/>

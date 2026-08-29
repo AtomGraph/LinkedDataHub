@@ -2387,36 +2387,36 @@ exclude-result-prefixes="#all"
 
         <xsl:choose>
             <!-- exact rather than promoted to xs:double, so integers beyond double's 2^53 keep their order -->
-            <xsl:when test="$datatype = ('&xsd;integer', '&xsd;long', '&xsd;int', '&xsd;short', '&xsd;byte', '&xsd;nonNegativeInteger', '&xsd;positiveInteger', '&xsd;nonPositiveInteger', '&xsd;negativeInteger', '&xsd;unsignedLong', '&xsd;unsignedInt', '&xsd;unsignedShort', '&xsd;unsignedByte')">
+            <xsl:when test="ldh:datatype-family($datatype) = 'integer'">
                 <xsl:sequence select="if ($key castable as xs:integer) then xs:integer($key) else ()"/>
             </xsl:when>
-            <xsl:when test="$datatype = '&xsd;decimal'">
+            <xsl:when test="ldh:datatype-family($datatype) = 'decimal'">
                 <xsl:sequence select="if ($key castable as xs:decimal) then xs:decimal($key) else ()"/>
             </xsl:when>
             <!-- 'NaN' is a valid xs:double lexical form, and a NaN sort key freezes SaxonJS's comparison outright - the remaining keys are never consulted and the results fall back to document order - so it is filtered back out to () here -->
-            <xsl:when test="$datatype = ('&xsd;double', '&xsd;float')">
+            <xsl:when test="ldh:datatype-family($datatype) = 'double'">
                 <xsl:sequence select="if ($key castable as xs:double) then xs:double($key)[. eq .] else ()"/>
             </xsl:when>
-            <xsl:when test="$datatype = ('&xsd;dateTime', '&xsd;dateTimeStamp')">
+            <xsl:when test="ldh:datatype-family($datatype) = 'dateTime'">
                 <xsl:sequence select="if ($key castable as xs:dateTime) then xs:dateTime($key) else ()"/>
             </xsl:when>
-            <xsl:when test="$datatype = '&xsd;date'">
+            <xsl:when test="ldh:datatype-family($datatype) = 'date'">
                 <xsl:sequence select="if ($key castable as xs:date) then xs:date($key) else ()"/>
             </xsl:when>
-            <xsl:when test="$datatype = '&xsd;time'">
+            <xsl:when test="ldh:datatype-family($datatype) = 'time'">
                 <xsl:sequence select="if ($key castable as xs:time) then xs:time($key) else ()"/>
             </xsl:when>
-            <xsl:when test="$datatype = '&xsd;yearMonthDuration'">
+            <xsl:when test="ldh:datatype-family($datatype) = 'yearMonthDuration'">
                 <xsl:sequence select="if ($key castable as xs:yearMonthDuration) then xs:yearMonthDuration($key) else ()"/>
             </xsl:when>
-            <xsl:when test="$datatype = '&xsd;dayTimeDuration'">
+            <xsl:when test="ldh:datatype-family($datatype) = 'dayTimeDuration'">
                 <xsl:sequence select="if ($key castable as xs:dayTimeDuration) then xs:dayTimeDuration($key) else ()"/>
             </xsl:when>
             <!-- xs:duration is only partially ordered (P1M and P30D do not compare), so only its two ordered subtypes get a typed key -->
-            <xsl:when test="$datatype = '&xsd;duration'">
+            <xsl:when test="ldh:datatype-family($datatype) = 'duration'">
                 <xsl:sequence select="if ($key castable as xs:yearMonthDuration) then xs:yearMonthDuration($key) else if ($key castable as xs:dayTimeDuration) then xs:dayTimeDuration($key) else ()"/>
             </xsl:when>
-            <xsl:when test="$datatype = '&xsd;boolean'">
+            <xsl:when test="ldh:datatype-family($datatype) = 'boolean'">
                 <xsl:sequence select="if ($key castable as xs:boolean) then xs:boolean($key) else ()"/>
             </xsl:when>
             <xsl:otherwise>
