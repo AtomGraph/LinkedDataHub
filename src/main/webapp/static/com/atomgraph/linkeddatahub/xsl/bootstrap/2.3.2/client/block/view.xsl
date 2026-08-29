@@ -304,7 +304,7 @@ exclude-result-prefixes="#all"
             </xsl:if>
 
             <button type="button" class="facet-pill nav-header" title="{@rdf:about}">
-                <span class="pred">
+                <span>
                     <xsl:value-of>
                         <xsl:apply-templates select="." mode="ac:label"/>
                     </xsl:value-of>
