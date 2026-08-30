@@ -76,8 +76,10 @@ The following tools are required for CLI scripts in the `bin/` directory:
      The one you will need to remember in order to authenticate with LinkedDataHub using WebID client certificate is `owner_cert_password`.
   5. Launch the application services by running this from command line:
      ```shell
-     docker-compose up --build
+     make up -- --build
      ```
+     `make up` passes its arguments on to `docker-compose up`. The `--` is required before any argument starting with `-`, otherwise `make` treats it as one of its own options.
+
      It will build LinkedDataHub's Docker image, start its container and mount the following sub-folders:
      - `ssl`
        * `owner` stores root owner's WebID certificate, keystore, and public key
@@ -129,7 +131,7 @@ The following tools are required for CLI scripts in the `bin/` directory:
   ```
   and re-login with your user. An alternative, but not recommended, is to run
   ```shell
-  sudo docker-compose up
+  sudo make up
   ```
 </details>
 
@@ -204,7 +206,7 @@ _:warning: Do not use blank nodes to identify applications or services. We recom
      }
      ```
   5. Enable the `credentials` secret in `docker-compose.yml` by uncommenting it in the top-level `secrets:` block and in the `linkeddatahub` service's `secrets:` list.
-  6. Restart with `docker-compose up`. The startup log will confirm: `Graph versioning enabled for application <...>`.
+  6. Restart with `make up`. The startup log will confirm: `Graph versioning enabled for application <...>`.
 
   Multiple dataspaces can be versioned into different repositories with different tokens. The token never appears in the environment or the process table — it is merged into the internal context dataset from the Docker secret, the same mechanism used for SPARQL service credentials.
 

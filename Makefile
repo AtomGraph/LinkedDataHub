@@ -1,8 +1,24 @@
-.PHONY: sef drop cert release tests
+TARGETS := sef drop cert release tests up
+.PHONY: $(TARGETS)
+
+# Treat goals that are not targets as arguments for docker-compose, not as make goals
+ifneq (,$(filter up,$(MAKECMDGOALS)))
+UP_ARGS := $(filter-out $(TARGETS),$(MAKECMDGOALS))
+$(eval $(UP_ARGS):;@:)
+endif
+
+# Start the Docker Compose stack; extra arguments are passed to `docker-compose up`
+# (e.g. `make up -- --build -d`, `make up nginx`, or `make up ARGS="--build -d"`)
+up:
+	docker-compose up $(ARGS) $(UP_ARGS)
 
 # Generate Saxon-JS SEF files for client-side XSLT transformations
 sef:
-	./generate-sef.sh
+	mvn war:war
+# expand entities in XSLT stylesheets. Same logic as in pom.xml using net.sf.saxon.Query.
+	find ./target/ROOT/static/com/atomgraph -type f -name "*.xsl" -exec sh -c 'xmlstarlet c14n "$$1" > "$$1".c14n && mv "$$1".c14n "$$1"' x {} \;
+# compile client.xsl to SEF. The output path is mounted in docker-compose.override.yml
+	npx xslt3-he -t -xsl:./target/ROOT/static/com/atomgraph/linkeddatahub/xsl/client.xsl -export:./target/ROOT/static/com/atomgraph/linkeddatahub/xsl/client.xsl.sef.json -nogo -ns:##html5 -relocate:on
 
 # Wipe local data directories (datasets, Fuseki, SSL certs, uploads) — irreversible!
 drop:

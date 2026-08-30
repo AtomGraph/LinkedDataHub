@@ -14,7 +14,7 @@ LinkedDataHub uses Maven as the primary build system with Docker for containeriz
 ```bash
 # Initial setup (requires .env file configuration)
 ./bin/server-cert-gen.sh .env nginx ssl
-docker-compose up --build
+make up -- --build
 ```
 
 Service credentials (used by the entrypoint for Bearer auth) are stored in `secrets/credentials.trig`.
@@ -29,8 +29,11 @@ mvn -Pstandalone clean install  # Standalone WAR
 mvn -Pdependency clean install  # JAR dependency
 mvn -Prelease clean install     # Release with signing
 
-# Docker-based development
-docker-compose up --build                    # Start all services
+# Docker-based development. `make up` forwards its arguments to `docker-compose up`;
+# `--` is needed before any argument starting with `-` so make does not claim it
+make up                                      # Start all services
+make up -- --build                           # Rebuild images and start
+make up nginx                                # Start named services only
 docker-compose down -v                       # Stop and remove volumes
 sudo rm -rf data uploads && docker-compose down -v  # Complete reset
 ```
@@ -39,6 +42,9 @@ sudo rm -rf data uploads && docker-compose down -v  # Complete reset
 ```bash
 # HTTP tests (requires running application and the ldh CLI on PATH - see cli/)
 cd cli && mvn package && export PATH="$PWD/bin:$PATH" && cd ..
+make tests  # runs http-tests/run.sh with the certificates and secrets/ passwords
+
+# For other certificates, invoke the runner directly
 cd http-tests
 ./run.sh ssl/owner/cert.pem [password] ssl/secretary/cert.pem [password]
 
