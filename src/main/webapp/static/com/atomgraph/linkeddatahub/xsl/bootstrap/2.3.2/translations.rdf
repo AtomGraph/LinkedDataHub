@@ -464,6 +464,9 @@
     <rdf:Description rdf:nodeID="no-results-explanation">
         <rdfs:label xml:lang="en-US">The query ran cleanly and matched nothing.</rdfs:label>
     </rdf:Description>
+    <rdf:Description rdf:nodeID="block-state-empty">
+        <rdfs:label xml:lang="en-US">No results</rdfs:label>
+    </rdf:Description>
     <rdf:Description rdf:nodeID="previous">
         <rdfs:label xml:lang="en-US">Previous</rdfs:label>
         <rdfs:label xml:lang="es-ES">Anterior</rdfs:label>

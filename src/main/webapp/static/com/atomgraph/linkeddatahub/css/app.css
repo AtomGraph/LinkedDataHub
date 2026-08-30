@@ -1628,12 +1628,12 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
 }
 
 /* =========================================================================
-   Block failure state (design system: Components → Block states)
-   A block keeps its card chrome and header when its content fails to load —
-   it does not collapse to a bare alert. The header carries the affordances a
-   broken block needs most (copy IRI, edit, delete), the title is known from
-   RDF before the query resolves, and holding the footprint keeps the document
-   from reflowing. Only the body swaps.
+   Block states (design system: Components → Block states)
+   A block keeps its card chrome and header when its content fails to load or
+   resolves to nothing — it does not collapse to a bare alert. The header
+   carries the affordances a broken block needs most (copy IRI, edit, delete),
+   the title is known from RDF before the query resolves, and holding the
+   footprint keeps the document from reflowing. Only the body swaps.
    ========================================================================= */
 
 /* The design system sets an `is-failed` class on the card. Here the ring is
@@ -1690,6 +1690,26 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
 .ldh-block-blank .bb-msg { font-size: var(--fs-base); color: var(--fg-2); font-weight: var(--fw-medium); }
 .ldh-block-blank .bb-sub { font-size: var(--fs-sm); color: var(--fg-hint); max-width: 46ch; line-height: var(--lh-base); }
 .ldh-block-blank .bb-act { margin-top: var(--sp-2); }
+
+/* Header status marker — sits after the title, before the actions, so the state
+   is legible when the block is collapsed or scrolled past.
+   The design system stamps this marker only in the state it names. Here every
+   block header carries it and the body reveals it, the same way the ring above
+   is derived rather than set: a block that goes from empty to having rows drops
+   its marker on re-render with nothing to clear, and no code path has to
+   remember what it stamped. Hence `display: none` where the design system has
+   `inline-flex`. Only the empty variant is wired — the failed and loading
+   variants arrive with the markup that reveals them. */
+.ldh-block-state {
+  display: none; align-items: center; gap: 4px;
+  margin-left: var(--sp-2); padding: 1px 8px;
+  border-radius: var(--r-pill); flex-shrink: 0;
+  font-family: var(--font-mono); font-size: var(--fs-xs); font-weight: var(--fw-medium);
+  white-space: nowrap; vertical-align: middle;
+}
+.ldh-block-state .msi { font-size: 13px; }
+.ldh-block-state.is-empty { background: var(--surface-2); color: var(--fg-muted); }
+.ldh-block:has(.ldh-block-blank) .ldh-block-state.is-empty { display: inline-flex; }
 
 /* ---------- View-block toolbar (facets / sort / count, sits inside .ldh-block between head and body) ---------- */
 .ldh-view-toolbar {

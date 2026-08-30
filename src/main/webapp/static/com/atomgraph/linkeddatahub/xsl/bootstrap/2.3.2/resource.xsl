@@ -783,6 +783,15 @@ extension-element-prefixes="ixsl"
 
                 <h2 class="ttl">
                     <xsl:apply-templates select="@rdf:about | @rdf:nodeID" mode="xhtml:Anchor"/>
+
+                    <!-- the block state marker travels with every header and app.css reveals it only where this
+                         block's body holds the empty state, so it cannot outlive the state it names -->
+                    <span class="ldh-block-state is-empty">
+                        <span class="msi outline" aria-hidden="true">inbox</span>
+                        <span>
+                            <xsl:apply-templates select="key('resources', 'block-state-empty', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                        </span>
+                    </span>
                 </h2>
 
                 <xsl:where-populated>
