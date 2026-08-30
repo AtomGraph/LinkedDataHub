@@ -800,14 +800,17 @@ WHERE
         }), map{ 'duplicates': 'use-last' })"/>
     </xsl:function>
 
-    <!-- Terminal callback for the create-new-instance chain (row-fluid add-constructor onclick).
-         Reads context('constructed-doc'/'resource'/'types'/'constructors'/'shapes'/'method'/'container'/'doc-uri'),
-         does the remaining (still-sync) type-metadata/property-metadata/constraints fetches inline,
-         and inserts the rendered row-form before context('container'). -->
+    <!-- Terminal callback for every create-instance chain: the document-level add-constructor onclick here,
+         and the chart/view block creation in client/block.xsl. Reads
+         context('constructed-doc'/'resource'/'types'/'constructors'/'shapes'/'method'/'doc-uri'), does the
+         remaining (still-sync) type-metadata/property-metadata/constraints fetches inline, and inserts the
+         rendered row-form relative to context('insert-anchor'). Each flow stamps its own anchor and
+         'insert-position' - the dock inserts before its own container, a block inserts after itself. -->
     <xsl:function name="ldh:render-add-row-form" as="item()*" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
         <xsl:variable name="method" select="$context('method')" as="xs:string"/>
-        <xsl:variable name="container" select="$context('container')" as="element()"/>
+        <xsl:variable name="anchor" select="$context('insert-anchor')" as="element()"/>
+        <xsl:variable name="position" select="$context('insert-position')" as="xs:string"/>
         <xsl:variable name="doc-uri" select="$context('doc-uri')" as="xs:anyURI"/>
         <xsl:variable name="base-uri" select="$context('base-uri')" as="xs:anyURI"/>
         <xsl:variable name="constructed-doc" select="$context('constructed-doc')" as="document-node()"/>
@@ -846,11 +849,11 @@ WHERE
             </xsl:apply-templates>
         </xsl:variable>
 
-        <!-- insert $row-form before the .add-constructor container TO-DO: replace with <xsl:result-document href="?." method="ixsl:insert-after"> when SaxonJS 3 is available https://saxonica.plan.io/issues/5543 -->
-        <xsl:sequence select="ixsl:call($container, 'before', [ $row-form ])[current-date() lt xs:date('2000-01-01')]"/>
+        <!-- insert $row-form relative to the anchor TO-DO: replace with <xsl:result-document href="?." method="ixsl:insert-after"> when SaxonJS 3 is available https://saxonica.plan.io/issues/5543 -->
+        <xsl:sequence select="ixsl:call($anchor, $position, [ $row-form ])[current-date() lt xs:date('2000-01-01')]"/>
 
-        <!-- apply client-side templates on the appended row form (now preceding sibling of the $container) -->
-        <xsl:apply-templates select="$container/preceding-sibling::*[1]" mode="ldh:RenderRowForm"/>
+        <!-- apply client-side templates on the row form, now the anchor's sibling on whichever side it landed -->
+        <xsl:apply-templates select="if ($position = 'before') then $anchor/preceding-sibling::*[1] else $anchor/following-sibling::*[1]" mode="ldh:RenderRowForm"/>
 
     </xsl:function>
     
@@ -1583,7 +1586,9 @@ WHERE
             'forClass': $forClass,
             'doc-uri': $doc-uri,
             'base-uri': $doc-uri,
-            'this': $this
+            'this': $this,
+            'insert-anchor': $container,
+            'insert-position': 'before'
         }"/>
 
         <ixsl:promise select="ixsl:resolve($context) =>

@@ -7,11 +7,13 @@
     <!ENTITY rdf    "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
     <!ENTITY xsd    "http://www.w3.org/2001/XMLSchema#">
     <!ENTITY srx    "http://www.w3.org/2005/sparql-results#">
+    <!ENTITY acl    "http://www.w3.org/ns/auth/acl#">
     <!ENTITY ldt    "https://www.w3.org/ns/ldt#">
     <!ENTITY sd     "http://www.w3.org/ns/sparql-service-description#">
     <!ENTITY sioc   "http://rdfs.org/sioc/ns#">
     <!ENTITY sp     "http://spinrdf.org/sp#">
     <!ENTITY spin   "http://spinrdf.org/spin#">
+    <!ENTITY dct    "http://purl.org/dc/terms/">
 ]>
 <xsl:stylesheet version="3.0"
 xmlns="http://www.w3.org/1999/xhtml"
@@ -28,10 +30,12 @@ xmlns:ldh="&ldh;"
 xmlns:lapp="&lapp;"
 xmlns:rdf="&rdf;"
 xmlns:srx="&srx;"
+xmlns:acl="&acl;"
 xmlns:ldt="&ldt;"
 xmlns:sd="&sd;"
 xmlns:sp="&sp;"
 xmlns:spin="&spin;"
+xmlns:dct="&dct;"
 xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
 extension-element-prefixes="ixsl"
 exclude-result-prefixes="#all"
@@ -238,11 +242,14 @@ exclude-result-prefixes="#all"
                                 <xsl:apply-templates select="key('resources', 'open', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
                             </xsl:value-of>
                         </button>
-                        <button type="button" class="ldhc-btn in-primary ap-solid sz-md btn-save btn-save-query">
-                            <xsl:value-of>
-                                <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
-                            </xsl:value-of>
-                        </button>
+                        <!-- saving PATCHes the query back into the current document, so the button only appears to an agent who may write to it -->
+                        <xsl:if test="acl:mode() = '&acl;Write'">
+                            <button type="button" class="ldhc-btn in-primary ap-solid sz-md btn-save btn-save-query">
+                                <xsl:value-of>
+                                    <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                                </xsl:value-of>
+                            </button>
+                        </xsl:if>
                     </div>
                 </form>
             </xsl:result-document>
@@ -355,11 +362,13 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
 
-    <!-- move the active state onto the clicked tab. The design system component's roving tabindex and
-         arrow-key navigation are not ported: both buttons stay natural tab stops, so neither goes
-         keyboard-unreachable, and Enter reaches the ixsl:onclick rules below. -->
+    <!-- Move the active state onto the clicked tab of a design-system tablist. Not to be confused with
+         ldh:ActivateTab in client.xsl, which activates a document tab in the tab bar and re-syncs that
+         pane's acl:mode() flags. The component's roving tabindex and arrow-key navigation are not
+         ported: both buttons stay natural tab stops, so neither goes keyboard-unreachable, and Enter
+         reaches the ixsl:onclick rules below. -->
 
-    <xsl:template match="button[contains-token(@class, 'ldhc-tab')]" mode="ldh:ActivateTab">
+    <xsl:template match="button[contains-token(@class, 'ldhc-tab')]" mode="ldh:SelectTab">
         <xsl:variable name="tab-id" select="@id" as="xs:string"/>
 
         <!-- deactivate the other tabs. Excluding this one is not just tidiness: ixsl:call on classList
@@ -385,7 +394,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="container" select="ancestor::div[@typeof][1]" as="element()"/>
         <xsl:variable name="form" select="$container//form[contains-token(@class, 'sparql-query-form')]" as="element()"/>
 
-        <xsl:apply-templates select="." mode="ldh:ActivateTab"/>
+        <xsl:apply-templates select="." mode="ldh:SelectTab"/>
 
         <xsl:sequence select="ldh:busy-cursor()"/>
         
@@ -429,7 +438,7 @@ exclude-result-prefixes="#all"
         </xsl:variable>
         <xsl:variable name="this" select="ancestor::div[@about][1]/@about" as="xs:anyURI"/> <!-- not the same as $block/@about! -->
 
-        <xsl:apply-templates select="." mode="ldh:ActivateTab"/>
+        <xsl:apply-templates select="." mode="ldh:SelectTab"/>
 
         <xsl:sequence select="ldh:busy-cursor()"/>
                 
@@ -443,12 +452,32 @@ exclude-result-prefixes="#all"
             </xsl:result-document>
         </xsl:for-each>
         
+        <!-- the view counterpart of the chart tab's Create button, stamped here rather than derived inside
+             the view: only this flow renders a view that is not yet a block of its own. Creating POSTs a new
+             view block into the current document, so it only appears to an agent who may append to it -->
+        <xsl:variable name="form-actions" as="element()?">
+            <xsl:if test="acl:mode() = '&acl;Append'">
+                <div class="ldh-block-foot">
+                    <button class="ldhc-btn in-primary ap-solid sz-md btn-create-view" type="button">
+                        <xsl:apply-templates select="key('resources', '&ac;ConstructMode', document(ac:document-uri('&ac;')))" mode="ldh:logo">
+                            <xsl:with-param name="class" select="'ldhc-btn in-primary ap-solid sz-md btn-create-view'"/>
+                        </xsl:apply-templates>
+
+                        <xsl:value-of>
+                            <xsl:apply-templates select="key('resources', '&ac;ConstructMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
+                        </xsl:value-of>
+                    </button>
+                </div>
+            </xsl:if>
+        </xsl:variable>
+
         <xsl:variable name="factory" as="function(item()?) as item()*?">
             <xsl:apply-templates select="$view-html" mode="ldh:RenderRow">
                 <xsl:with-param name="block" select="$block"/>
                 <xsl:with-param name="container" select="$view-container"/>
                 <xsl:with-param name="this" select="$this"/>
                 <xsl:with-param name="base-uri" select="ac:absolute-path(ldh:base-uri(.))"/>
+                <xsl:with-param name="form-actions" select="$form-actions"/>
             </xsl:apply-templates>
         </xsl:variable>
         
@@ -592,18 +621,21 @@ exclude-result-prefixes="#all"
                                 <xsl:with-param name="chart-type" select="$chart-type"/>
                                 <xsl:with-param name="category" select="$category"/>
                                 <xsl:with-param name="series" select="$series"/>
-                                <xsl:with-param name="form-actions" as="element()">
-                                    <div class="ldh-block-foot">
-                                        <button class="ldhc-btn in-primary ap-solid sz-md btn-create-chart" type="button">
-                                            <xsl:apply-templates select="key('resources', '&ac;ConstructMode', document(ac:document-uri('&ac;')))" mode="ldh:logo">
-                                                <xsl:with-param name="class" select="'ldhc-btn in-primary ap-solid sz-md btn-create-chart'"/>
-                                            </xsl:apply-templates>
+                                <xsl:with-param name="form-actions" as="element()?">
+                                    <!-- creating POSTs a new chart block into the current document, so the button only appears to an agent who may append to it -->
+                                    <xsl:if test="acl:mode() = '&acl;Append'">
+                                        <div class="ldh-block-foot">
+                                            <button class="ldhc-btn in-primary ap-solid sz-md btn-create-chart" type="button">
+                                                <xsl:apply-templates select="key('resources', '&ac;ConstructMode', document(ac:document-uri('&ac;')))" mode="ldh:logo">
+                                                    <xsl:with-param name="class" select="'ldhc-btn in-primary ap-solid sz-md btn-create-chart'"/>
+                                                </xsl:apply-templates>
 
-                                            <xsl:value-of>
-                                                <xsl:apply-templates select="key('resources', '&ac;ConstructMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
-                                            </xsl:value-of>
-                                        </button>
-                                    </div>
+                                                <xsl:value-of>
+                                                    <xsl:apply-templates select="key('resources', '&ac;ConstructMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
+                                                </xsl:value-of>
+                                            </button>
+                                        </div>
+                                    </xsl:if>
                                 </xsl:with-param>
                             </xsl:apply-templates>
                         </xsl:result-document>

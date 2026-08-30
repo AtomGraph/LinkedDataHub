@@ -634,8 +634,142 @@ exclude-result-prefixes="#all"
         </xsl:if>
     </xsl:template>
 
+    <!-- BLOCK CREATION -->
+
+    <!-- Creates a block of $forClass after $block, reusing the document-level create-instance chain from
+         form.xsl wholesale: the class's SPIN constructor is fetched and instantiated exactly as it is for
+         the action-bar Create button, so a chart or view picks up ldh:TitleConstructor and
+         ldh:DescriptionConstructor (def.ttl) rather than hand-rolling a dct:title slot. The only thing this
+         flow adds is $properties - the triples that bind the new block to its query - folded into the
+         constructor prototype by ldh:add-constructed-properties below.
+         Called with the clicked button as the context item: $doc-uri is resolved off it. -->
+
+    <xsl:template name="ldh:CreateBlock">
+        <xsl:context-item as="element()" use="required"/>
+        <xsl:param name="block" as="element()"/> <!-- the block the new one is inserted after -->
+        <xsl:param name="forClass" as="xs:anyURI"/>
+        <xsl:param name="properties" as="element()*"/> <!-- RDF/XML property elements for the new instance -->
+
+        <xsl:sequence select="ldh:busy-cursor()"/>
+
+        <xsl:variable name="doc-uri" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/>
+        <xsl:variable name="id" select="'id' || ac:uuid()" as="xs:string"/>
+
+        <xsl:variable name="context" as="map(*)" select="map{
+            'method': 'post',
+            'forClass': $forClass,
+            'doc-uri': $doc-uri,
+            'base-uri': $doc-uri,
+            'this': xs:anyURI($doc-uri || '#' || $id),
+            'properties': $properties,
+            'insert-anchor': $block,
+            'insert-position': 'after'
+        }"/>
+
+        <ixsl:promise select="ixsl:resolve($context) =>
+            ixsl:then(ldh:load-constructed-doc#1) =>
+            ixsl:then(ldh:http-request-threaded(?, 'constructed-doc-request', 'constructed-doc-response')) =>
+            ixsl:then(ldh:handle-response(?, 'constructed-doc-response')) =>
+            ixsl:then(ldh:set-constructed-doc#1) =>
+            ixsl:then(ldh:add-constructed-properties#1) =>
+            ixsl:then(ldh:set-row-form-resource#1) =>
+            ixsl:then(ldh:load-constructors#1) =>
+            ixsl:then(ldh:http-request-threaded(?, 'constructors-request', 'constructors-response')) =>
+            ixsl:then(ldh:handle-response(?, 'constructors-response')) =>
+            ixsl:then(ldh:set-constructors#1) =>
+            ixsl:then(ldh:load-shapes#1) =>
+            ixsl:then(ldh:http-request-threaded(?, 'shapes-request', 'shapes-response')) =>
+            ixsl:then(ldh:handle-response(?, 'shapes-response')) =>
+            ixsl:then(ldh:set-shapes#1) =>
+            ixsl:then(ldh:render-add-row-form#1) =>
+            ixsl:finally(ldh:reset-cursor#0)"
+            on-failure="ldh:promise-failure#1"/>
+    </xsl:template>
+
+    <!-- folds context('properties') into the constructor prototype for context('forClass'), between the
+         constructor fetch and its instantiation, so the added triples go through ldh:SetResourceID with
+         the rest and end up on the same subject -->
+    <xsl:function name="ldh:add-constructed-properties" as="map(*)" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:variable name="properties" select="$context('properties')" as="element()*"/>
+
+        <xsl:choose>
+            <xsl:when test="empty($properties)">
+                <xsl:sequence select="$context"/>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:variable name="constructed-doc" as="document-node()">
+                    <xsl:document>
+                        <xsl:apply-templates select="$context('constructed-doc')" mode="ldh:AddConstructedProperties">
+                            <xsl:with-param name="forClass" select="$context('forClass')" tunnel="yes"/>
+                            <xsl:with-param name="properties" select="$properties" tunnel="yes"/>
+                        </xsl:apply-templates>
+                    </xsl:document>
+                </xsl:variable>
+
+                <xsl:sequence select="map:merge(($context, map{ 'constructed-doc': $constructed-doc }), map{ 'duplicates': 'use-last' })"/>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:function>
+
+    <!-- identity transform -->
+    <xsl:template match="@* | node()" mode="ldh:AddConstructedProperties">
+        <xsl:copy>
+            <xsl:apply-templates select="@* | node()" mode="#current"/>
+        </xsl:copy>
+    </xsl:template>
+
+    <!-- The prototype carries rdf:type $forClass; the tunnelled class cannot go in the match pattern, hence
+         the test inside. A caller's value takes over the constructor's slot for the same predicate rather
+         than being appended beside it - the row form renders one control per slot, so appending shows the
+         predicate twice, once empty. Predicates the caller says nothing about keep their constructor slot,
+         which is how title and description survive.
+         The value comes from the caller, the type from the constructor: a slot pointing at a marker bnode
+         (a blank node carrying nothing but rdf:type) declares that predicate's range, so a literal value
+         inherits the marker's datatype. Nothing here knows which predicates it is handling. -->
+    <xsl:template match="rdf:Description[rdf:type/@rdf:resource]" mode="ldh:AddConstructedProperties" priority="1">
+        <xsl:param name="forClass" as="xs:anyURI" tunnel="yes"/>
+        <xsl:param name="properties" as="element()*" tunnel="yes"/>
+
+        <xsl:choose>
+            <xsl:when test="rdf:type/@rdf:resource = $forClass">
+                <xsl:variable name="prototype" select="." as="element()"/>
+                <!-- A property the caller left blank carries no value to hand over, so it does not displace
+                     anything: the constructor's slot stays and renders as the empty control it is for. Taking
+                     the slot over with a valueless property loses the control entirely, since bs2:FormControl
+                     builds a literal's input from its text() node and there is none. -->
+                <xsl:variable name="values" select="$properties[node() or @rdf:resource or @rdf:nodeID]" as="element()*"/>
+                <xsl:variable name="names" select="for $value in $values return node-name($value)" as="xs:QName*"/>
+
+                <xsl:copy>
+                    <xsl:apply-templates select="@* | node()[empty(node-name(.)[. = $names])]" mode="#current"/>
+
+                    <xsl:for-each select="$values">
+                        <xsl:variable name="property" select="." as="element()"/>
+                        <!-- the marker the constructor pointed this predicate at, if it declared one -->
+                        <xsl:variable name="marker" select="$prototype/*[node-name(.) = node-name($property)]/@rdf:nodeID/key('resources', ., root($prototype))[not(* except rdf:type)]" as="element()*"/>
+                        <xsl:variable name="datatype" select="$marker/rdf:type/@rdf:resource[starts-with(., '&xsd;')][1]" as="attribute()?"/>
+
+                        <xsl:copy>
+                            <xsl:apply-templates select="@* | node()" mode="#current"/>
+
+                            <xsl:if test="$datatype and not(@rdf:resource) and not(@rdf:nodeID) and not(@rdf:datatype)">
+                                <xsl:attribute name="rdf:datatype" select="$datatype"/>
+                            </xsl:if>
+                        </xsl:copy>
+                    </xsl:for-each>
+                </xsl:copy>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:copy>
+                    <xsl:apply-templates select="@* | node()" mode="#current"/>
+                </xsl:copy>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:template>
+
     <!-- CALLBACKS -->
-    
+
     <xsl:function name="ldh:load-block" ixsl:updating="yes" as="map(*)">
         <xsl:param name="context" as="map(*)"/>
         <xsl:param name="thunk" as="function(map(*)) as item()*"/>

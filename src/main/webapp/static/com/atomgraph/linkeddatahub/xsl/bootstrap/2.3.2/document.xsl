@@ -851,7 +851,8 @@ extension-element-prefixes="ixsl"
         <xsl:param name="show-controls" select="true()" as="xs:boolean"/>
         <xsl:param name="show-save" select="true()" as="xs:boolean"/>
         <xsl:param name="form-actions" as="element()?">
-            <xsl:if test="$show-save">
+            <!-- saving PATCHes the current document, so the button only appears to an agent who may write to it -->
+            <xsl:if test="$show-save and acl:mode() = '&acl;Write'">
                 <div class="ldh-block-foot">
                     <button class="ldh-btn btn-save-chart" type="button">
                         <span class="msi sm" aria-hidden="true">save</span>

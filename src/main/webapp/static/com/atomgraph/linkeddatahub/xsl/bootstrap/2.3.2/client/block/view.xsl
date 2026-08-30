@@ -71,6 +71,9 @@ exclude-result-prefixes="#all"
         <xsl:param name="mode" select="descendant::*[@property = '&ac;mode']/@resource" as="xs:anyURI?"/>
         <xsl:param name="refresh-content" as="xs:boolean?"/>
         <xsl:param name="query-uri" select="descendant::*[@property = '&spin;query']/@resource" as="xs:anyURI"/>
+        <!-- footer emitted below the results by ldh:RenderViewResults, the same slot bs2:Chart offers charts.
+             Empty for a saved view block; the query block fills it with its Create button -->
+        <xsl:param name="form-actions" as="element()?"/>
 
         <!-- create cache entry for the block -->
         <xsl:if test="not(ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block/@about || '`'))">
@@ -95,6 +98,7 @@ exclude-result-prefixes="#all"
             'mode': $mode,
             'refresh-content': $refresh-content,
             'query-uri': $query-uri,
+            'form-actions': $form-actions,
             'cache': ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block/@about || '`')
           }"/>
 
@@ -553,6 +557,9 @@ exclude-result-prefixes="#all"
         <xsl:param name="active-mode" as="xs:anyURI"/>
         <xsl:param name="refresh-content" as="xs:boolean?"/>
         <xsl:param name="cache" as="item()"/>
+        <!-- carried into the returned context so it survives to ldh:RenderViewResults. Only the initial load
+             emits it, so the re-render call sites (paging, sort, facets) leave it empty and lose nothing -->
+        <xsl:param name="form-actions" as="element()?"/>
 
         <!-- wrap SELECT into a DESCRIBE -->
         <xsl:variable name="query-xml" as="element()">
@@ -583,6 +590,7 @@ exclude-result-prefixes="#all"
             'initial-var-name': $initial-var-name,
             'focus-var-name': $focus-var-name,
             'endpoint': $endpoint,
+            'form-actions': $form-actions,
             'cache': $cache
           }"/>
     </xsl:template>
@@ -948,6 +956,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="object-metadata" as="document-node()?"/>
         <xsl:param name="property-metadata" as="document-node()?"/>
         <xsl:param name="cache" as="item()"/>
+        <xsl:param name="form-actions" as="element()?"/>
         <!-- if  the container is full-width row (.row-fluid), render results in the middle column (.main) -->
         <xsl:variable name="order-by-container-id" select="$container-id || '-container-order'" as="xs:string"/>
         <xsl:variable name="container-results-id" select="$container-id || '-container-results'" as="xs:string"/>
@@ -1089,6 +1098,10 @@ exclude-result-prefixes="#all"
                     <div id="{$container-id}-graph-host" class="graph-3d-host" style="display: none;"></div>
                     <div id="{$container-results-id}" class="container-results"></div>
                 </div>
+
+                <!-- outside .container-results on purpose: ldh:RenderViewMode replaces that div's content on
+                     every mode, facet, sort and page change, which would take the footer with it -->
+                <xsl:sequence select="$form-actions"/>
             </xsl:result-document>
         </xsl:if>
 
@@ -1575,6 +1588,24 @@ exclude-result-prefixes="#all"
     </xsl:function>
 
     <!-- EVENT LISTENERS -->
+
+    <!-- create view onclick: inserts a row form for a new view block after the query block, bound to the same
+         query resource. Its chart counterpart is the btn-create-chart handler in chart.xsl; both hand off to
+         ldh:CreateBlock (client/block.xsl), which is the document-level create-instance chain. Unlike the
+         chart, a view has no presentation settings to read off the results, so the query is all it carries. -->
+
+    <xsl:template match="div[contains-token(@class, 'block')][@about]//button[contains-token(@class, 'btn-create-view')]" mode="ixsl:onclick">
+        <xsl:variable name="block" select="ancestor::div[contains-token(@class, 'block')][1]" as="element()"/>
+        <xsl:variable name="forClass" select="xs:anyURI('&ldh;View')" as="xs:anyURI"/>
+
+        <xsl:call-template name="ldh:CreateBlock">
+            <xsl:with-param name="block" select="$block"/>
+            <xsl:with-param name="forClass" select="$forClass"/>
+            <xsl:with-param name="properties" as="element()*">
+                <spin:query rdf:resource="{$block/@about}"/>
+            </xsl:with-param>
+        </xsl:call-template>
+    </xsl:template>
 
     <!-- View pagination - previous page (generic handler for all Views) -->
     <xsl:template match="div[@typeof = '&ldh;View']//div[contains-token(@class, 'ldh-pager')]//a[contains-token(@class, 'pager-prev')]" mode="ixsl:onclick">
@@ -2354,6 +2385,7 @@ exclude-result-prefixes="#all"
                                         <xsl:with-param name="active-mode" select="if ($mode) then $mode else xs:anyURI('&ac;ListMode')"/>
                                         <xsl:with-param name="refresh-content" select="$refresh-content"/>
                                         <xsl:with-param name="cache" select="$cache"/>
+                                        <xsl:with-param name="form-actions" select="$context('form-actions')"/>
                                     </xsl:call-template>
                                 </xsl:variable>
                                 <!-- Mark query response as complete -->
@@ -2470,6 +2502,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="object-metadata" select="$context('object-metadata')" as="document-node()?"/>
         <xsl:variable name="property-metadata" select="$context('property-metadata')" as="document-node()?"/>
         <xsl:variable name="cache" select="$context('cache')" as="item()"/>
+        <xsl:variable name="form-actions" select="$context('form-actions')" as="element()?"/>
         <xsl:variable name="result-count-container-id" select="$container-id || '-result-count'" as="xs:string"/>
 
         <xsl:message>ldh:render-view</xsl:message>
@@ -2535,6 +2568,7 @@ exclude-result-prefixes="#all"
                     <xsl:with-param name="object-metadata" select="$object-metadata"/>
                     <xsl:with-param name="property-metadata" select="$property-metadata"/>
                     <xsl:with-param name="cache" select="$cache"/>
+                    <xsl:with-param name="form-actions" select="$form-actions"/>
                 </xsl:call-template>
             </xsl:for-each>
 
