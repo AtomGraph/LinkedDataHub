@@ -16,11 +16,8 @@
 
 package com.atomgraph.linkeddatahub.cli.command.admin.ontologies;
 
-import java.util.concurrent.Callable;
+import com.atomgraph.linkeddatahub.cli.CommandGroup;
 import picocli.CommandLine.Command;
-import picocli.CommandLine.Model.CommandSpec;
-import picocli.CommandLine.ParameterException;
-import picocli.CommandLine.Spec;
 
 /**
  * Ontology management command group.
@@ -31,16 +28,6 @@ import picocli.CommandLine.Spec;
     description = "Ontology management commands.",
     subcommands = { CreateOntology.class, ImportOntology.class, AddClass.class, AddConstructor.class,
         AddSelect.class, AddPropertyConstraint.class, AddRestriction.class })
-public class Ontologies implements Callable<Integer>
+public class Ontologies extends CommandGroup
 {
-
-    @Spec
-    private CommandSpec spec;
-
-    @Override
-    public Integer call()
-    {
-        throw new ParameterException(spec.commandLine(), "Missing required subcommand");
-    }
-
 }

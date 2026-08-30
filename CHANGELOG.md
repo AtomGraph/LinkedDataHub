@@ -55,6 +55,7 @@
 - `ProvenanceFilter` — a 2021 skeleton whose registration was commented out since it was written; the PROV-O provenance sidecar (P2.3) will not start from its graph-per-request shape
 
 ### Fixed
+- `--help` was unrecognized on every `ldh` subcommand — `mixinStandardHelpOptions` only reaches the root command, so the option now lives in `BaseCommand` and in a new `CommandGroup` base that the five subcommand groups extend in place of their duplicated `@Spec`/`call()` pairs
 - GraphMode rendering of `ldh:Object` blocks crashed with a cardinality error: the `bs2:Row` branch applied `bs2:Graph` without the required `canvas-id` param; the 3D force graph now initializes after the row is rendered
 - Constructor edits never surfaced in instance forms: the callback cleared the ontology derived from the class' `rdfs:isDefinedBy` and left the annotation graph cached, so it now clears the document its `PATCH` just updated (`ac:document-uri($constructor-uri)`)
 - Modal document save re-rendered in the default layout mode instead of the active one; the post-save navigation now carries the URL's `?mode=`, guarded to same-document reloads

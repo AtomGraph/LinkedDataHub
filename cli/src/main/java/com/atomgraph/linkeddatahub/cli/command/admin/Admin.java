@@ -16,13 +16,10 @@
 
 package com.atomgraph.linkeddatahub.cli.command.admin;
 
+import com.atomgraph.linkeddatahub.cli.CommandGroup;
 import com.atomgraph.linkeddatahub.cli.command.admin.acl.Acl;
 import com.atomgraph.linkeddatahub.cli.command.admin.ontologies.Ontologies;
-import java.util.concurrent.Callable;
 import picocli.CommandLine.Command;
-import picocli.CommandLine.Model.CommandSpec;
-import picocli.CommandLine.ParameterException;
-import picocli.CommandLine.Spec;
 
 /**
  * Administrative command group.
@@ -32,16 +29,6 @@ import picocli.CommandLine.Spec;
 @Command(name = "admin",
     description = "Administrative commands.",
     subcommands = { Ontologies.class, Acl.class, ClearOntology.class, AddOntologyImport.class })
-public class Admin implements Callable<Integer>
+public class Admin extends CommandGroup
 {
-
-    @Spec
-    private CommandSpec spec;
-
-    @Override
-    public Integer call()
-    {
-        throw new ParameterException(spec.commandLine(), "Missing required subcommand");
-    }
-
 }

@@ -17,6 +17,7 @@
 package com.atomgraph.linkeddatahub.cli;
 
 import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.io.Writer;
 import java.net.URI;
 import java.util.List;
@@ -86,6 +87,33 @@ public class CommandParsingTest
     {
         assertEquals(CommandLine.ExitCode.USAGE, commandLine().execute("admin"));
         assertEquals(CommandLine.ExitCode.USAGE, commandLine().execute("admin", "acl"));
+    }
+
+    @Test
+    public void helpIsRecognizedAtEveryNestingLevel()
+    {
+        List.of(new String[] { "--help" },
+                new String[] { "get", "--help" },
+                new String[] { "admin", "--help" },
+                new String[] { "content", "--help" },
+                new String[] { "imports", "--help" },
+                new String[] { "admin", "acl", "--help" },
+                new String[] { "admin", "ontologies", "--help" },
+                new String[] { "content", "remove-block", "--help" },
+                new String[] { "imports", "import-csv", "-h" },
+                new String[] { "admin", "ontologies", "add-class", "--help" }).
+            forEach(args -> assertEquals(CommandLine.ExitCode.OK, commandLine().execute(args), String.join(" ", args)));
+    }
+
+    @Test
+    public void helpPrintsTheUsageOfTheCommandItWasAskedOn()
+    {
+        StringWriter out = new StringWriter();
+        CommandLine cmd = commandLine();
+        cmd.setOut(new PrintWriter(out));
+        cmd.execute("content", "remove-block", "--help");
+
+        assertTrue(out.toString().startsWith("Usage: ldh content remove-block"), out.toString());
     }
 
     @Test

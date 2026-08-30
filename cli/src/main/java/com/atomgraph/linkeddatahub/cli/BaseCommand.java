@@ -36,6 +36,7 @@ import org.apache.jena.riot.RDFLanguages;
 import org.apache.jena.riot.RDFParser;
 import picocli.CommandLine.Mixin;
 import picocli.CommandLine.Model.CommandSpec;
+import picocli.CommandLine.Option;
 import picocli.CommandLine.ParameterException;
 import picocli.CommandLine.Spec;
 
@@ -54,6 +55,9 @@ public abstract class BaseCommand implements Callable<Integer>
     protected static final MediaType[] ACCEPT_NTRIPLES = { com.atomgraph.core.MediaType.APPLICATION_NTRIPLES_TYPE };
     /** Turtle request body media type */
     protected static final MediaType TEXT_TURTLE_TYPE = com.atomgraph.core.MediaType.TEXT_TURTLE_TYPE;
+
+    @Option(names = { "-h", "--help" }, usageHelp = true, description = "Show this help message and exit.")
+    private boolean help;
 
     @Spec
     private CommandSpec spec;

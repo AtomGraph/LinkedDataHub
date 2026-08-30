@@ -16,11 +16,8 @@
 
 package com.atomgraph.linkeddatahub.cli.command.imports;
 
-import java.util.concurrent.Callable;
+import com.atomgraph.linkeddatahub.cli.CommandGroup;
 import picocli.CommandLine.Command;
-import picocli.CommandLine.Model.CommandSpec;
-import picocli.CommandLine.ParameterException;
-import picocli.CommandLine.Spec;
 
 /**
  * Data import command group.
@@ -30,16 +27,6 @@ import picocli.CommandLine.Spec;
 @Command(name = "imports",
     description = "Data import commands.",
     subcommands = { AddCSVImport.class, AddRDFImport.class, ImportCSV.class, ImportRDF.class })
-public class Imports implements Callable<Integer>
+public class Imports extends CommandGroup
 {
-
-    @Spec
-    private CommandSpec spec;
-
-    @Override
-    public Integer call()
-    {
-        throw new ParameterException(spec.commandLine(), "Missing required subcommand");
-    }
-
 }

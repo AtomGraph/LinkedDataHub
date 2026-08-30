@@ -16,11 +16,8 @@
 
 package com.atomgraph.linkeddatahub.cli.command.content;
 
-import java.util.concurrent.Callable;
+import com.atomgraph.linkeddatahub.cli.CommandGroup;
 import picocli.CommandLine.Command;
-import picocli.CommandLine.Model.CommandSpec;
-import picocli.CommandLine.ParameterException;
-import picocli.CommandLine.Spec;
 
 /**
  * Content block command group.
@@ -30,16 +27,6 @@ import picocli.CommandLine.Spec;
 @Command(name = "content",
     description = "Content block commands.",
     subcommands = { AddObjectBlock.class, AddXHTMLBlock.class, RemoveBlock.class })
-public class Content implements Callable<Integer>
+public class Content extends CommandGroup
 {
-
-    @Spec
-    private CommandSpec spec;
-
-    @Override
-    public Integer call()
-    {
-        throw new ParameterException(spec.commandLine(), "Missing required subcommand");
-    }
-
 }

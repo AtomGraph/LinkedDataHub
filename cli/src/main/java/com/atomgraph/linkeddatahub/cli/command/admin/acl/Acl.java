@@ -16,11 +16,8 @@
 
 package com.atomgraph.linkeddatahub.cli.command.admin.acl;
 
-import java.util.concurrent.Callable;
+import com.atomgraph.linkeddatahub.cli.CommandGroup;
 import picocli.CommandLine.Command;
-import picocli.CommandLine.Model.CommandSpec;
-import picocli.CommandLine.ParameterException;
-import picocli.CommandLine.Spec;
 
 /**
  * Access control command group.
@@ -30,16 +27,6 @@ import picocli.CommandLine.Spec;
 @Command(name = "acl",
     description = "Access control commands.",
     subcommands = { CreateGroup.class, CreateAuthorization.class, AddAgentToGroup.class, MakePublic.class })
-public class Acl implements Callable<Integer>
+public class Acl extends CommandGroup
 {
-
-    @Spec
-    private CommandSpec spec;
-
-    @Override
-    public Integer call()
-    {
-        throw new ParameterException(spec.commandLine(), "Missing required subcommand");
-    }
-
 }
