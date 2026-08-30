@@ -43,9 +43,18 @@ container=$(ldh create-container \
   --parent "$END_USER_BASE_URL")
 
 # execute SPARQL query again - the new container should appear (verifies cache invalidation)
+#
+# The assertion reads from a here-string rather than piping curl into `grep -q`: `grep -q`
+# closes the pipe on its first match, and with `set -o pipefail` the SIGPIPE'd curl fails
+# the whole pipeline whenever it is still writing at that moment.
 
-curl -k -f -s \
+response=$(curl -k -f -s \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
   -H "Accept: application/n-triples" \
-  "${END_USER_BASE_URL}sparql?query=${encoded_query}" \
-| grep -q "<${container}>"
+  "${END_USER_BASE_URL}sparql?query=${encoded_query}")
+
+if ! grep -qF "<${container}>" <<< "$response"; then
+  echo "DEBUG: Expected the new container in the query results: <${container}>"
+  echo "DEBUG: Got: $response"
+  exit 1
+fi

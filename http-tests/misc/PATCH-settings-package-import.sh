@@ -17,42 +17,89 @@ package_uri="https://packages.linkeddatahub.com/skos/#this"
 # stylesheet marker injected into every page by the SKOS package layout.xsl
 marker="com/linkeddatahub/demo/skos/css/bootstrap.css"
 
+# The rendered homepage is tens of KiB and the marker sits in <head>, within its first
+# 2 KiB. Assertions therefore read the response from a here-string rather than piping
+# curl into `grep -q`: `grep -q` closes the pipe on its first match, and with
+# `set -o pipefail` the SIGPIPE'd curl fails the whole pipeline. That only happens when
+# curl is still writing at the moment grep exits, which made this test fail randomly.
+
+function homepage()
+{
+  curl -k -s \
+    -H "Accept: text/html" \
+    -E "$OWNER_CERT_FILE":"$OWNER_CERT_PWD" \
+    "$END_USER_BASE_URL"
+}
+
+function patch_settings()
+{
+  curl -k -w "%{http_code}" -o /dev/null -s \
+    -X PATCH \
+    -E "$OWNER_CERT_FILE":"$OWNER_CERT_PWD" \
+    -H "Content-Type: application/sparql-update" \
+    -d "$1" \
+    "${END_USER_BASE_URL}settings"
+}
+
+function import_triple_count()
+{
+  curl -k -s \
+    -E "$OWNER_CERT_FILE":"$OWNER_CERT_PWD" \
+    -H "Accept: application/n-triples" \
+    "${END_USER_BASE_URL}settings" \
+  | grep -c "linkeddatahub#import" || true
+}
+
+# The settings live in the in-memory application model, which initialize_dataset does not
+# reset - an import left behind by a failed assertion would stay for the rest of the suite.
+
+function remove_import()
+{
+  patch_settings "DELETE { <${app_uri}> <https://w3id.org/atomgraph/linkeddatahub#import> <${package_uri}> . } WHERE { }" > /dev/null || true
+}
+
+trap remove_import EXIT
+
 # verify the homepage is not rendered with the package stylesheet initially
-if curl -k -s -H "Accept: text/html" -E "$OWNER_CERT_FILE":"$OWNER_CERT_PWD" "$END_USER_BASE_URL" \
-  | grep -q "$marker"; then
+response=$(homepage)
+
+if grep -qF "$marker" <<< "$response"; then
   echo "DEBUG: package stylesheet marker present before import"
   exit 1
 fi
 
 # declare the package import
-(
-curl -k -w "%{http_code}\n" -o /dev/null -s \
-  -X PATCH \
-  -E "$OWNER_CERT_FILE":"$OWNER_CERT_PWD" \
-  -H "Content-Type: application/sparql-update" \
-  -d "INSERT { <${app_uri}> <https://w3id.org/atomgraph/linkeddatahub#import> <${package_uri}> . } WHERE { }" \
-  "${END_USER_BASE_URL}settings"
-) \
-| grep -q "$STATUS_NO_CONTENT"
+status=$(patch_settings "INSERT { <${app_uri}> <https://w3id.org/atomgraph/linkeddatahub#import> <${package_uri}> . } WHERE { }")
+
+if [[ ! "$status" =~ ^($STATUS_NO_CONTENT)$ ]]; then
+  echo "DEBUG: Expected $STATUS_NO_CONTENT from the INSERT PATCH, got: $status"
+  exit 1
+fi
 
 # verify the homepage is rendered with the package stylesheet — no restart, no sleep
-curl -k -s -H "Accept: text/html" -E "$OWNER_CERT_FILE":"$OWNER_CERT_PWD" "$END_USER_BASE_URL" \
-| grep -q "$marker"
+response=$(homepage)
+
+if ! grep -qF "$marker" <<< "$response"; then
+  echo "DEBUG: package stylesheet marker missing after import"
+  echo "DEBUG: Expected marker: $marker"
+  echo "DEBUG: Response size: $(wc -c <<< "$response") bytes"
+  echo "DEBUG: ldh:import triple count in settings = $(import_triple_count)"
+  exit 1
+fi
 
 # remove the package import
-(
-curl -k -w "%{http_code}\n" -o /dev/null -s \
-  -X PATCH \
-  -E "$OWNER_CERT_FILE":"$OWNER_CERT_PWD" \
-  -H "Content-Type: application/sparql-update" \
-  -d "DELETE { <${app_uri}> <https://w3id.org/atomgraph/linkeddatahub#import> <${package_uri}> . } WHERE { }" \
-  "${END_USER_BASE_URL}settings"
-) \
-| grep -q "$STATUS_NO_CONTENT"
+status=$(patch_settings "DELETE { <${app_uri}> <https://w3id.org/atomgraph/linkeddatahub#import> <${package_uri}> . } WHERE { }")
+
+if [[ ! "$status" =~ ^($STATUS_NO_CONTENT)$ ]]; then
+  echo "DEBUG: Expected $STATUS_NO_CONTENT from the DELETE PATCH, got: $status"
+  exit 1
+fi
 
 # verify the homepage is no longer rendered with the package stylesheet
-if curl -k -s -H "Accept: text/html" -E "$OWNER_CERT_FILE":"$OWNER_CERT_PWD" "$END_USER_BASE_URL" \
-  | grep -q "$marker"; then
+response=$(homepage)
+
+if grep -qF "$marker" <<< "$response"; then
   echo "DEBUG: package stylesheet marker still present after removal"
+  echo "DEBUG: ldh:import triple count in settings = $(import_triple_count)"
   exit 1
 fi
