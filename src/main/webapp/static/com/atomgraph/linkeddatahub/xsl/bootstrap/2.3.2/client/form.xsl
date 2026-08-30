@@ -2005,7 +2005,7 @@ WHERE
     <xsl:template match="button[contains-token(@class, 'add-type')]" mode="ixsl:onclick" priority="1">
         <xsl:param name="lookup-class" select="'type-typeahead typeahead'" as="xs:string"/>
         <xsl:param name="lookup-list-class" select="'type-typeahead typeahead dropdown-menu'" as="xs:string"/>
-        <xsl:variable name="uuid" select="ixsl:call(ixsl:window(), 'generateUUID', [])" as="xs:string"/>
+        <xsl:variable name="uuid" select="ac:uuid()" as="xs:string"/>
         
         <xsl:for-each select="..">
             <xsl:variable name="lookup" as="element()">
@@ -2042,7 +2042,7 @@ WHERE
     <xsl:template match="button[contains-token(@class, 'add-typeahead')]" mode="ixsl:onclick">
         <xsl:param name="lookup-class" select="'resource-typeahead typeahead'" as="xs:string"/>
         <xsl:param name="lookup-list-class" select="'resource-typeahead typeahead dropdown-menu'" as="xs:string"/>
-        <xsl:variable name="uuid" select="ixsl:call(ixsl:window(), 'generateUUID', [])" as="xs:string"/>
+        <xsl:variable name="uuid" select="ac:uuid()" as="xs:string"/>
         
         <xsl:variable name="lookup">
             <xsl:call-template name="bs2:Lookup">

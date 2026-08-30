@@ -238,7 +238,7 @@ exclude-result-prefixes="#all"
                     </xsl:choose>
                 </xsl:when>
                 <xsl:otherwise>
-                    <xsl:variable name="uuid" select="ixsl:call(ixsl:window(), 'generateUUID', [])" as="xs:string"/>
+                    <xsl:variable name="uuid" select="ac:uuid()" as="xs:string"/>
 
                     <xsl:call-template name="bs2:Lookup">
                         <xsl:with-param name="forClass" select="xs:anyURI('&rdf;Property')"/>
@@ -410,7 +410,7 @@ exclude-result-prefixes="#all"
                 </xsl:apply-templates>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:variable name="uuid" select="ixsl:call(ixsl:window(), 'generateUUID', [])" as="xs:string"/>
+                <xsl:variable name="uuid" select="ac:uuid()" as="xs:string"/>
 
                 <xsl:call-template name="bs2:Lookup">
                     <xsl:with-param name="forClass" select="(xs:anyURI('&rdfs;Class'), xs:anyURI('&owl;Class'))"/> <!-- ontologies are served without inference, so owl:Class subjects do not carry the rdfs:Class type -->
@@ -653,7 +653,7 @@ exclude-result-prefixes="#all"
                 <xsl:for-each select="?body">
                     <xsl:for-each select="//srx:result">
                         <xsl:variable name="graph" select="srx:binding[@name = 'graph']/srx:uri" as="xs:anyURI"/>
-                        <xsl:variable name="uuid" select="ixsl:call(ixsl:window(), 'generateUUID', [])" as="xs:string"/>
+                        <xsl:variable name="uuid" select="ac:uuid()" as="xs:string"/>
                         <xsl:variable name="constructor-uri" select="xs:anyURI($graph || '#id' || $uuid)" as="xs:anyURI"/>
                         <xsl:variable name="update-string" select="replace($constructor-insert-string, '$this', '&lt;' || $constructor-uri || '&gt;', 'q')" as="xs:string"/>
                         <xsl:variable name="update-string" select="replace($update-string, '$Type', '&lt;' || $type || '&gt;', 'q')" as="xs:string"/>

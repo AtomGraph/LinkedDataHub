@@ -401,8 +401,6 @@ exclude-result-prefixes="#all">
         <xsl:param name="output-schema-org" select="true()" as="xs:boolean"/>
         <xsl:param name="location-mapping" select="$location-mapping" as="map(xs:anyURI, xs:anyURI)"/>
 
-        <!-- Web-Client scripts -->
-        <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/client/js/UUID.js', lapp:origin())}" defer="defer"></script>
         <!-- LinkedDataHub scripts -->
         <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/functions.js', lapp:origin())}" defer="defer"></script>
         <script type="text/javascript">

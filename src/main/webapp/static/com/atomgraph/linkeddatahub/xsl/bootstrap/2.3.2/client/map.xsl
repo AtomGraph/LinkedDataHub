@@ -421,7 +421,7 @@ exclude-result-prefixes="#all"
                     <xsl:variable name="coord" select="ixsl:get($event, 'coordinate')"/>
                     <xsl:variable name="container" select="ixsl:call(ixsl:page(), 'createElement', [ 'div' ])" as="element()"/>
                     <xsl:sequence select="ixsl:call(ixsl:call($map, 'getOverlayContainerStopEvent', []), 'appendChild', [ $container ])[current-date() lt xs:date('2000-01-01')]"/>
-                    <xsl:variable name="uuid" select="ixsl:call(ixsl:window(), 'generateUUID', [])" as="xs:string"/>
+                    <xsl:variable name="uuid" select="ac:uuid()" as="xs:string"/>
                     <ixsl:set-attribute name="id" select="'id' || $uuid" object="$container"/>
 
                     <xsl:variable name="overlay-options" select="ldh:new-object()"/>

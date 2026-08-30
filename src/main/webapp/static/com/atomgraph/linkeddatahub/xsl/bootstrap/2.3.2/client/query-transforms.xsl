@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE xsl:stylesheet [
+    <!ENTITY ac         "https://w3id.org/atomgraph/client#">
     <!ENTITY ldh        "https://w3id.org/atomgraph/linkeddatahub#">
     <!ENTITY rdf        "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
     <!ENTITY xsd        "http://www.w3.org/2001/XMLSchema#">
@@ -13,6 +14,7 @@ xmlns:xs="http://www.w3.org/2001/XMLSchema"
 xmlns:map="http://www.w3.org/2005/xpath-functions/map"
 xmlns:json="http://www.w3.org/2005/xpath-functions"
 xmlns:array="http://www.w3.org/2005/xpath-functions/array"
+xmlns:ac="&ac;"
 xmlns:ldh="&ldh;"
 exclude-result-prefixes="#all"
 extension-element-prefixes="ixsl"
@@ -325,7 +327,7 @@ extension-element-prefixes="ixsl"
     <xsl:template match="/json:map" mode="ldh:add-parallax-step" priority="1">
         <!-- use the first ?var from the SELECT -->
         <xsl:param name="var-name" select="/json:map/json:array[@key = 'variables']/json:string[1]/substring-after(., '?')" as="xs:string" tunnel="yes"/>
-        <xsl:param name="uuid" select="ixsl:call(ixsl:window(), 'generateUUID', [])" as="xs:string" tunnel="yes"/>
+        <xsl:param name="uuid" select="ac:uuid()" as="xs:string" tunnel="yes"/>
         <xsl:param name="new-var-name" select="'subject' || translate($uuid, '-', '_')" as="xs:string" tunnel="yes"/>
         <xsl:param name="graph-var-name" select="'graph' || translate($uuid, '-', '_')" as="xs:string" tunnel="yes"/>
 
