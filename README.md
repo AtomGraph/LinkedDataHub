@@ -33,13 +33,9 @@ It takes a few clicks and filling out a form to install the product into your ow
 * [Docker](https://docs.docker.com/install/) installed. At least 8GB of memory dedicated to Docker is recommended.
 * [Docker Compose](https://docs.docker.com/compose/install/) installed
 
-#### CLI scripts
+#### CLI
 
-The following tools are required for CLI scripts in the `bin/` directory:
-
-* [`curl`](https://curl.se/)
-* [`openssl`](https://www.openssl.org/)
-* `python` 3.x
+Building the [`ldh` command line interface](#command-line-interface) requires Java 21 and [Maven](https://maven.apache.org/). The certificate and WebID scripts that remain in the `bin/` directory require [`openssl`](https://www.openssl.org/) and `keytool` (part of the JDK).
 
 ### Steps
 
@@ -94,14 +90,17 @@ The following tools are required for CLI scripts in the `bin/` directory:
      - Mozilla Firefox: `Options > Privacy > Security > View Certificates... > Import...`
      - Apple Safari: The file is installed directly into the operating system. Open the file and import it using the [Keychain Access](https://support.apple.com/guide/keychain-access/what-is-keychain-access-kyca1083/mac) tool (drag it to the `local` section).
      - Microsoft Edge: Does not support certificate management, you need to install the file into Windows. [Read more here](https://social.technet.microsoft.com/Forums/en-US/18301fff-0467-4e41-8dee-4e44823ed5bf/microsoft-edge-browser-and-ssl-certificates?forum=win10itprogeneral).
-  7. For authenticated API access use the `ssl/owner/cert.pem` HTTPS client certificate.
+  7. For authenticated API access use the `ssl/owner/cert.pem` HTTPS client certificate with `curl`, or the `ssl/owner/keystore.p12` keystore beside it with the [`ldh` CLI](#command-line-interface).
      If you are running Linux with user other than `root`, you might need to fix the certificate permissions because Docker bind mounts are owned by `root` by default. For example:
      ```shell
      sudo setfacl -m u:$(whoami):r ./ssl/owner/*
      ```
-  8. Open **https://localhost:4443/** in the web browser or use `curl` for API access, for example:
+  8. Open **https://localhost:4443/** in the web browser or use the API, for example:
      ```shell
      curl -k -E ./ssl/owner/cert.pem:<your cert password> -H "Accept: text/turtle" 'https://localhost:4443/'
+     ```
+     ```shell
+     ldh get -f ./ssl/owner/keystore.p12 -p <your cert password> --accept text/turtle 'https://localhost:4443/'
      ```
 
   ### Notes
@@ -272,23 +271,35 @@ _:warning: This will **remove the persisted data and files** as well as Docker v
 
 ## [Command line interface](https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/reference/command-line-interface/)
 
-LinkedDataHub CLI wraps the HTTP API into a set of shell scripts with convenient parameters. The scripts can be used for testing, automation, scheduled execution and such. It is usually much quicker to perform actions using CLI rather than the user interface, as well as easier to reproduce.
+`ldh` wraps the HTTP API into a single executable with convenient parameters. It can be used for testing, automation, scheduled execution and such. It is usually much quicker to perform actions using the CLI rather than the user interface, as well as easier to reproduce.
 
-The scripts can be found in the [`bin`](https://github.com/AtomGraph/LinkedDataHub/tree/master/bin) subfolder. In order to use them, add the `bin` folder and its subfolders to the `$PATH`. For example:
+The CLI lives in the [`cli`](https://github.com/AtomGraph/LinkedDataHub/tree/master/cli) subfolder. Build it with Maven and put its launcher on the `$PATH`:
 
 ```shell
-export PATH="$(find bin -type d -exec realpath {} \; | tr '\n' ':')$PATH"
+cd cli
+mvn package
+export PATH="$PWD/bin:$PATH"
+cd ..
+
+ldh --help
 ```
-If you will be using LinkedDataHub's CLI regurarly, add the above command to your shell profile.
 
-_:warning: The CLI scripts internally use [Jena's CLI commands](https://jena.apache.org/documentation/tools/). Set up the Jena environment before running the scripts._
+If you will be using LinkedDataHub's CLI regularly, add the `export` to your shell profile.
 
-The environment variable `JENA_HOME` is used by all the command line tools to configure the class path automatically for you. You can set this up as follows:
+Commands authenticate with a WebID client certificate read from a **PKCS12 keystore** — `ssl/owner/keystore.p12` for the owner. Options that repeat across commands can be set once as environment variables:
 
-**On Linux / Mac**
+```shell
+export LDH_CERT_FILE=./ssl/owner/keystore.p12
+export LDH_CERT_PASSWORD=$(cat secrets/owner_cert_password.txt)
+export LDH_BASE=https://localhost:4443/
 
-    export JENA_HOME=the directory you downloaded Jena to
-    export PATH="$PATH:$JENA_HOME/bin"
+ldh create-container --parent "$LDH_BASE" --title "Concepts" --slug concepts
+ldh create-item --container "${LDH_BASE}concepts/" --title "Example" --slug example
+```
+
+Commands that create or append to a document print its URL as the only line on stdout, so they compose in shell pipelines: `item=$(ldh create-item ...)`. The `bin/` subdirectories became nested subcommand groups — `ldh admin acl create-group`, `ldh content add-xhtml-block`, `ldh imports import-csv`. See [`cli/README.md`](https://github.com/AtomGraph/LinkedDataHub/blob/master/cli/README.md) for the full command table and the differences from the scripts.
+
+_:warning: The `bin/` HTTP API scripts that `ldh` replaces are **deprecated**. The certificate and WebID tooling (`webid-keygen.sh`, `webid-keygen-pem.sh`, `webid-uri.sh`, `webid-modulus.sh`, `server-cert-gen.sh`) talks to no API and stays in `bin/`._
 
 ## Sample applications
 
@@ -335,7 +346,7 @@ See the [Web-Algebra repository](https://github.com/AtomGraph/Web-Algebra) for s
 
 ## Test suite
 
-LinkedDataHub includes an HTTP [test suite](https://github.com/AtomGraph/LinkedDataHub/tree/master/http-tests). The server implementation is also covered by the [Processor test suite](https://github.com/AtomGraph/Processor/tree/master/http-tests).
+LinkedDataHub includes an HTTP [test suite](https://github.com/AtomGraph/LinkedDataHub/tree/master/http-tests). It builds its fixtures with `ldh`, so [build the CLI](#command-line-interface) and put it on the `$PATH` before running `make tests`. The server implementation is also covered by the [Processor test suite](https://github.com/AtomGraph/Processor/tree/master/http-tests).
 
 ![HTTP-tests](https://github.com/AtomGraph/LinkedDataHub/actions/workflows/http-tests.yml/badge.svg)
 

@@ -35,7 +35,7 @@ Writes go through the **document URLs**, never through the SPARQL endpoint (whic
 | Update a document in place | `PATCH` document URL | `Content-Type: application/sparql-update` | A SPARQL Update (`INSERT`/`DELETE`) applied to that named graph |
 | Delete a document | `DELETE` document URL | — | Removes the named graph |
 
-Relative URIs in a request body resolve against the target URL. See `bin/post.sh`, `bin/put.sh`, `bin/patch.sh`, `bin/delete.sh` for exact, working invocations.
+Relative URIs in a request body resolve against the target URL. The `ldh post`, `ldh put`, `ldh patch` and `ldh delete` commands are working implementations of the four rows above.
 
 ## Querying (read-only)
 
@@ -55,7 +55,7 @@ A single instance hosts multiple **dataspaces**, each a subdomain (origin). Each
 
 ## Tooling
 
-- **CLI**: the `bin/` scripts wrap every operation above (`get.sh`, `post.sh`, `put.sh`, `patch.sh`, `delete.sh`, `create-container.sh`, `create-item.sh`, `add-view.sh`, `add-select.sh`, `add-construct.sh`, `add-result-set-chart.sh`, `add-file.sh`, `webid-keygen.sh`). They are the authoritative reference for request shapes.
+- **CLI**: `ldh` (built from `cli/`) wraps every operation above — `get`, `post`, `put`, `patch`, `delete`, `create-container`, `create-item`, `add-view`, `add-select`, `add-construct`, `add-result-set-chart`, `add-file`, plus the `admin`, `content` and `imports` subcommand groups. It is the authoritative reference for request shapes. Authentication is a PKCS12 WebID keystore (`-f ssl/owner/keystore.p12 -p <password>`, or `LDH_CERT_FILE`/`LDH_CERT_PASSWORD`); commands print the created document's URL on stdout so they compose in pipelines. Certificate tooling (`webid-keygen.sh`, `server-cert-gen.sh`) remains in `bin/`; the `bin/` HTTP API scripts `ldh` replaces are deprecated.
 - **Programmatic / MCP**: [Web-Algebra](https://github.com/AtomGraph/Web-Algebra) is the recommended path for agent-composed workflows — a JSON DSL and MCP server whose operations (create container/item, add view/chart, generate portal, …) compose multi-step LDH writes atomically under WebID auth.
 
 ## Standards

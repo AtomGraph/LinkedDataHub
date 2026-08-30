@@ -145,8 +145,9 @@ The SPARQL endpoint forwarding chain ensures ContentMode blocks (charts, maps) q
 ## CLI Tools
 
 `ldh` (in `cli/`) is the command line interface for the HTTP API — one command per `bin/` script,
-same option names, `bin/` subdirectories as nested subcommand groups. See `cli/README.md` for the
-full script → command table.
+same option names, `bin/` subdirectories as nested subcommand groups. Built with Maven on Java 21
+into a shaded `cli/target/ldh.jar` that `cli/bin/ldh` launches. See `cli/README.md` for the full
+script → command table and the behavioral differences from the scripts.
 
 ```bash
 cd cli && mvn package && export PATH="$PWD/bin:$PATH"
@@ -154,6 +155,14 @@ cd cli && mvn package && export PATH="$PWD/bin:$PATH"
 ldh create-container --parent "$LDH_BASE" --title "Some" --slug some
 ldh admin acl add-agent-to-group --agent "$AGENT_URI" "${ADMIN_BASE}acl/groups/writers/"
 ```
+
+`LDH_CERT_FILE`, `LDH_CERT_PASSWORD`, `LDH_BASE` and `LDH_PROXY` supply defaults for `-f`, `-p`,
+`-b` and `--proxy`. Commands that create or append to a document print its URL as the only line on
+stdout (diagnostics go to stderr), so `item=$(ldh create-item ...)` works; exit codes are `0`
+success, `1` HTTP or runtime failure, `2` usage error.
+
+Packages have no command — an application imports one with a single `<app> ldh:import <package>`
+triple, so `ldh patch` on the application's `settings` document is the whole interface.
 
 The `bin/` HTTP API scripts are **deprecated** — `ldh` replaces them, and http-tests build their
 fixtures with it. Authentication moves from the `.pem` the scripts feed `curl -E` to the PKCS12
