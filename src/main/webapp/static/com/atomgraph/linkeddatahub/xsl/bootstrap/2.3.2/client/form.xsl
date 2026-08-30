@@ -1518,12 +1518,14 @@ WHERE
         <xsl:variable name="row-form" as="node()*">
             <!-- filter out the current document which might be in the constraint violation response attached by an rdf:_N property to a block resource -->
             <xsl:apply-templates select="$body/rdf:RDF/*[not(@rdf:about = $doc-uri)]" mode="bs2:RowForm">
-                <!-- $form is optional here, and the flows that PATCH from a button rather than submitting a
-                     form (saving a query, saving a chart) never put one in context - so fall back to the
-                     method of the request that was rejected, and only then to the param's own default.
-                     Passing the empty sequence on into a required xs:string turned every violation this
-                     branch exists to display into a type error instead. -->
-                <xsl:with-param name="method" select="($form/@method/string(), lower-case($context('request')?method), 'post')[1]"/>
+                <!-- DO NOT make this tolerate an absent $form without fixing what follows. The flows that
+                     PATCH from a button rather than submitting a form (saving a query, saving a chart) put
+                     no 'form' in context, so this passes an empty sequence into a required xs:string and the
+                     violation surfaces as a type error. Supplying a fallback instead lets the path proceed -
+                     and it then resubmits in a loop: one rejected query save produced ~130 PATCHes and
+                     deleted the query resource outright, since the save is a DELETE/INSERT. The loop has to
+                     be fixed first; until then failing here is the lesser harm. -->
+                <xsl:with-param name="method" select="$form/@method"/>
                 <xsl:with-param name="type-metadata" select="$type-metadata" tunnel="yes"/>
                 <xsl:with-param name="property-metadata" select="$property-metadata" tunnel="yes"/>
                 <xsl:with-param name="constructor" select="$constructor" tunnel="yes"/>
