@@ -449,6 +449,19 @@ exclude-result-prefixes="#all"
                     </xsl:for-each>
                 
                     <xsl:sequence select="ixsl:call($map, 'addOverlay', [ $overlay ])[current-date() lt xs:date('2000-01-01')]"/>
+
+                    <!-- ol.Overlay autoPans when the overlay joins the map, which is before SaxonJS applies the
+                         xsl:result-document above: it measures an empty container, finds it inside the viewport and
+                         never pans. Re-run it once the content is in the DOM, or a popup anchored high on the map
+                         keeps its head outside the viewport, where overflow: hidden cuts it off under the view controls -->
+                    <xsl:variable name="pan" as="item()*">
+                        <ixsl:schedule-action wait="0">
+                            <xsl:call-template name="ldh:PanInfoWindowIntoView">
+                                <xsl:with-param name="overlay" select="$overlay"/>
+                            </xsl:call-template>
+                        </ixsl:schedule-action>
+                    </xsl:variable>
+                    <xsl:sequence select="$pan[current-date() lt xs:date('2000-01-01')]"/>
                 </xsl:for-each>
             </xsl:when>
             <xsl:otherwise>
@@ -459,6 +472,14 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="$context"/>
     </xsl:function>
     
+    <!-- pans the map until the whole info window sits inside the viewport (deferred: see the call site) -->
+
+    <xsl:template name="ldh:PanInfoWindowIntoView">
+        <xsl:param name="overlay" as="item()"/>
+
+        <xsl:sequence select="ixsl:call($overlay, 'panIntoView', [])[current-date() lt xs:date('2000-01-01')]"/>
+    </xsl:template>
+
     <!-- close popup overlay (info window) -->
     
     <xsl:template match="div[contains-token(@class, 'ol-overlay-container')]//div[contains-token(@class, 'modal-header')]/button[contains-token(@class, 'close')]" mode="ixsl:onclick">
