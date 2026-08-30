@@ -485,9 +485,11 @@ exclude-result-prefixes="#all"
                     <xsl:variable name="view" select="ixsl:call($map, 'getView', [])"/>
                     <xsl:variable name="target-center" select="ixsl:call($map, 'getCoordinateFromPixel', [ [ $map-width div 2 - $shift-x, $map-height div 2 - $shift-y ] ])"/>
                     <xsl:variable name="center" select="ixsl:call($view, 'getConstrainedCenter', [ $target-center ])"/>
-                    <xsl:variable name="center-pixel" select="ixsl:call($map, 'getPixelFromCoordinate', [ $center ])" as="array(*)"/>
-                    <xsl:variable name="panned-x" select="$map-width div 2 - xs:double(array:get($center-pixel, 1))" as="xs:double"/>
-                    <xsl:variable name="panned-y" select="$map-height div 2 - xs:double(array:get($center-pixel, 2))" as="xs:double"/>
+                    <!-- ol's coordinates and pixels arrive as sequences of two doubles rather than arrays, so they are
+                         indexed, not read with ixsl:get; asking for one as array(*) hangs the renderer rather than failing -->
+                    <xsl:variable name="center-pixel" select="ixsl:call($map, 'getPixelFromCoordinate', [ $center ])" as="xs:double*"/>
+                    <xsl:variable name="panned-x" select="$map-width div 2 - $center-pixel[1]" as="xs:double"/>
+                    <xsl:variable name="panned-y" select="$map-height div 2 - $center-pixel[2]" as="xs:double"/>
                     <xsl:sequence select="ixsl:call($view, 'setCenter', [ $center ])[current-date() lt xs:date('2000-01-01')]"/>
                     <xsl:sequence select="ixsl:call($overlay, 'setOffset', [ [ $shift-x - $panned-x, $shift-y - $panned-y ] ])[current-date() lt xs:date('2000-01-01')]"/>
                 </xsl:for-each>
