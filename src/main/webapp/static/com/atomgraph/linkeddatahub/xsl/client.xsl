@@ -1260,11 +1260,31 @@ WHERE
     </xsl:template>
 
     <!-- dismisses an open drop-down by dropping the state tokens the toggle above sets. Applied from the
-         three places a drop-down stops being current: another one opens, a click lands outside it (the
-         body handler in view.xsl), or a menu pick mounts a modal (ldh:ShowModalForm) -->
+         places a drop-down stops being current: another one opens, a press lands outside it (below), a
+         click lands outside it (the body handler in view.xsl), or a menu pick mounts a modal (ldh:ShowModalForm) -->
 
     <xsl:template match="*[contains-token(@class, 'btn-group')]" mode="ldh:CloseDropdown">
         <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'remove', [ 'open', 'is-open' ])[current-date() lt xs:date('2000-01-01')]"/>
+    </xsl:template>
+
+    <!-- every press dismisses the open drop-downs that do not contain it. This rides on pointerdown rather
+         than click because an event reaches exactly one template rule - the target, or the nearest ancestor
+         matching it - so a click rule on body only ever sees the clicks no specific handler took, and pressing
+         something like btn-delete would leave a drop-down open. No other template claims pointerdown, so the
+         walk up from the target always arrives here. Keep it that way: an ixsl:onpointerdown rule matching
+         anything more specific would shadow this one for that subtree.
+
+         Presses only - keyboard activation raises click with no pointerdown before it, and that case stays
+         with the body click handler. The containment test is what lets a toggle still close its own group:
+         pointerdown precedes click, so closing here first would leave the toggle re-opening what it closed. -->
+
+    <xsl:template match="body" mode="ixsl:onpointerdown">
+        <xsl:variable name="target" select="ixsl:get(ixsl:event(), 'target')"/>
+        <xsl:for-each select="ixsl:page()//*[contains-token(@class, 'btn-group')][contains-token(@class, 'open')]">
+            <xsl:if test="not(ixsl:call(., 'contains', [ $target ]))">
+                <xsl:apply-templates select="." mode="ldh:CloseDropdown"/>
+            </xsl:if>
+        </xsl:for-each>
     </xsl:template>
 
     <xsl:template match="button[contains-token(@class, 'btn-delete')][not(contains-token(@class, 'disabled'))]" mode="ixsl:onclick">
