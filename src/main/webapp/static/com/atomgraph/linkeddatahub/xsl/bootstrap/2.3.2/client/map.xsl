@@ -409,6 +409,10 @@ exclude-result-prefixes="#all"
         <xsl:choose>
             <xsl:when test="$response?status = 200 and starts-with($response?media-type, 'application/rdf+xml')">
                 <xsl:for-each select="$response?body">
+                    <!-- info windows are the only overlays this map carries, and they read one at a time the way popups
+                         do elsewhere: the one being opened replaces whatever is already up, rather than stacking over it -->
+                    <xsl:sequence select="ixsl:call(ixsl:call($map, 'getOverlays', []), 'clear', [])[current-date() lt xs:date('2000-01-01')]"/>
+
                     <xsl:variable name="info-window-options" select="ldh:new-object()"/>
                     <xsl:variable name="info-window-html" as="element()">
                         <xsl:apply-templates select="key('resources', $uri)">
@@ -426,10 +430,9 @@ exclude-result-prefixes="#all"
 
                     <xsl:variable name="overlay-options" select="ldh:new-object()"/>
                     <ixsl:set-property name="element" select="$container" object="$overlay-options"/>
-                    <!-- deliberately no autoPan: it answers an overhanging popup by moving the map centre, and the view
-                         constrains that centre to the projection extent, so a marker near the edge of the world runs the
-                         pan out part-way and the popup keeps the rest of its head outside. The popup is fitted to the
-                         viewport below instead, which holds wherever the marker sits. -->
+                    <!-- no autoPan: it fires while the overlay joins the map, before the panel's own size is known here,
+                         and it can only move the map - which is not enough on its own. The pan and the fitting that has
+                         to finish it are done together below. -->
                     <ixsl:set-property name="positioning" select="'bottom-center'" object="$overlay-options"/>
                     <!--<ixsl:set-property name="className" select="'ol-overlay-container ol-selectable'" object="$overlay-options"/>-->
                     <xsl:variable name="overlay" select="ixsl:new('ol.Overlay', [ $overlay-options ])"/>
@@ -454,8 +457,8 @@ exclude-result-prefixes="#all"
 
                     <!-- the popup only takes on the panel's width and max-height once ol has wrapped it, so where it can
                          sit is settled here rather than in the options above. The map's overflow is hidden, so anything
-                         hanging over an edge is cut off - under the view controls at the top - and the popup is inset
-                         into the viewport by the same margin ol's own autoPan would have left it. -->
+                         hanging over an edge is cut off - under the view controls at the top - and the popup is worked
+                         back into the viewport, inset by the same margin ol's own autoPan would have left it. -->
                     <xsl:variable name="map-box" select="ixsl:call(ixsl:call($map, 'getTargetElement', []), 'getBoundingClientRect', [])"/>
                     <!-- ol builds its own .ol-overlay-container around $container, and that wrapper is what the panel CSS sizes -->
                     <xsl:variable name="popup-box" select="ixsl:call($container/.., 'getBoundingClientRect', [])"/>
@@ -470,10 +473,23 @@ exclude-result-prefixes="#all"
                     <!-- stay above the marker while there is room for that, drop below it when only that side has room -->
                     <xsl:variable name="positioning" select="if ($popup-height + $margin le $marker-y or $popup-height + $margin gt $map-height - $marker-y) then 'bottom-center' else 'top-center'" as="xs:string"/>
                     <xsl:variable name="natural-top" select="if ($positioning = 'bottom-center') then $marker-y - $popup-height else $marker-y" as="xs:double"/>
-                    <xsl:variable name="left" select="max(($margin, min(($natural-left, $map-width - $popup-width - $margin))))" as="xs:double"/>
-                    <xsl:variable name="top" select="max(($margin, min(($natural-top, $map-height - $popup-height - $margin))))" as="xs:double"/>
+                    <xsl:variable name="shift-x" select="max(($margin, min(($natural-left, $map-width - $popup-width - $margin)))) - $natural-left" as="xs:double"/>
+                    <xsl:variable name="shift-y" select="max(($margin, min(($natural-top, $map-height - $popup-height - $margin)))) - $natural-top" as="xs:double"/>
                     <xsl:sequence select="ixsl:call($overlay, 'setPositioning', [ $positioning ])[current-date() lt xs:date('2000-01-01')]"/>
-                    <xsl:sequence select="ixsl:call($overlay, 'setOffset', [ [ $left - $natural-left, $top - $natural-top ] ])[current-date() lt xs:date('2000-01-01')]"/>
+
+                    <!-- the shift is offered to the map first, the way every popup implementation moves the least it can
+                         to reveal itself, so the panel keeps its foot on the marker. The view constrains its centre to
+                         the projection extent, so ask it which centre it can actually reach and read that back through
+                         the frame the measurements above came from: at the edge of the world the pan stops short, and
+                         only what it could not absorb becomes the overlay's own offset. -->
+                    <xsl:variable name="view" select="ixsl:call($map, 'getView', [])"/>
+                    <xsl:variable name="target-center" select="ixsl:call($map, 'getCoordinateFromPixel', [ [ $map-width div 2 - $shift-x, $map-height div 2 - $shift-y ] ])"/>
+                    <xsl:variable name="center" select="ixsl:call($view, 'getConstrainedCenter', [ $target-center ])"/>
+                    <xsl:variable name="center-pixel" select="ixsl:call($map, 'getPixelFromCoordinate', [ $center ])" as="array(*)"/>
+                    <xsl:variable name="panned-x" select="$map-width div 2 - xs:double(array:get($center-pixel, 1))" as="xs:double"/>
+                    <xsl:variable name="panned-y" select="$map-height div 2 - xs:double(array:get($center-pixel, 2))" as="xs:double"/>
+                    <xsl:sequence select="ixsl:call($view, 'setCenter', [ $center ])[current-date() lt xs:date('2000-01-01')]"/>
+                    <xsl:sequence select="ixsl:call($overlay, 'setOffset', [ [ $shift-x - $panned-x, $shift-y - $panned-y ] ])[current-date() lt xs:date('2000-01-01')]"/>
                 </xsl:for-each>
             </xsl:when>
             <xsl:otherwise>
