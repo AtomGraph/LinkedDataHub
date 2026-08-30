@@ -1,4 +1,4 @@
-## [Unreleased]
+## [5.10.0] - 2026-08-30
 ### Added
 - `ldh` command line interface (`cli/`): a standalone picocli/Jena port of the `bin/` HTTP API scripts — one command per script with the same option names, `bin/` subdirectories as nested subcommand groups, PKCS12 WebID keystore authentication, env-var defaults and a shaded executable jar
 - Every release attaches an `ldh-<version>.tar.gz` archive of the CLI launcher and jar, stamped with the platform version, so using `ldh` needs a Java runtime rather than a source checkout and a Maven build
