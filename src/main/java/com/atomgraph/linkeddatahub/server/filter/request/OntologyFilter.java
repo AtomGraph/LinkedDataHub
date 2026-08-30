@@ -32,10 +32,15 @@ import jakarta.inject.Inject;
 import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.container.ContainerRequestFilter;
 import jakarta.ws.rs.container.PreMatching;
+import org.apache.jena.graph.Graph;
+import org.apache.jena.graph.Node;
+import org.apache.jena.graph.NodeFactory;
+import org.apache.jena.graph.Triple;
 import org.apache.jena.ontapi.OntModelFactory;
 import org.apache.jena.ontapi.OntSpecification;
 import org.apache.jena.ontapi.UnionGraph;
 import org.apache.jena.ontapi.model.OntModel;
+import org.apache.jena.ontapi.utils.Graphs;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.vocabulary.RDF;
@@ -169,6 +174,84 @@ public class OntologyFilter implements ContainerRequestFilter
     }
 
     /**
+     * Assembles the ontology's owl:imports closure composed with the ontologies of the imported
+     * packages. Each package ontology is declared as an owl:imports of the application ontology, and
+     * ontapi resolves it — along with its own transitive imports — as part of the closure, through the
+     * same scoped repository view as every other import. The declaration is derived from the
+     * application's ldh:import data on every load and never persisted, so the ldh:import triples remain
+     * the single source of truth. A package ontology that cannot be resolved is skipped so a broken
+     * package cannot take the application ontology down.
+     *
+     * @param repository graph repository
+     * @param uri ontology URI
+     * @param packageOntologies package ontology URIs
+     * @return closure union graph
+     */
+    public static UnionGraph loadOntology(PrefixGraphRepository repository, String uri, List<URI> packageOntologies)
+    {
+        if (!packageOntologies.isEmpty()) declarePackageImports(repository, uri, packageOntologies);
+
+        return loadOntology(repository, uri);
+    }
+
+    /**
+     * Declares the package ontologies as owl:imports of the application ontology on its base graph, so
+     * that ontapi pulls them into the imports closure when the model is constructed.
+     * <p>
+     * The declaration is additive: {@code ClearOntology} evicts the raw graph before every reload, so an
+     * uninstalled package's import cannot survive in the cached copy. A reload path that skipped that
+     * eviction would need this to reconcile against {@code packageOntologies} rather than only add.
+     *
+     * @param repository graph repository
+     * @param uri ontology URI
+     * @param packageOntologies package ontology URIs
+     */
+    public static void declarePackageImports(PrefixGraphRepository repository, String uri, List<URI> packageOntologies)
+    {
+        Graph base = repository.get(uri);
+        Optional<Node> name = Graphs.findOntologyNameNode(base);
+        if (name.isEmpty())
+        {
+            if (log.isErrorEnabled()) log.error("Ontology with URI '{}' carries no ontology header, cannot import packages {} into it", uri, packageOntologies);
+            return;
+        }
+
+        for (URI packageOntology : packageOntologies)
+        {
+            // the model is constructed with ignoreUnresolvedImports, which silently substitutes an empty
+            // graph for an import it cannot resolve — resolve it here so that a broken package is reported
+            // instead of composing as nothing
+            if (!isResolvable(repository, packageOntology.toString()))
+            {
+                if (log.isErrorEnabled()) log.error("Could not load package ontology '{}', skipping it", packageOntology);
+                continue;
+            }
+
+            base.add(Triple.create(name.get(), OWL.imports.asNode(), NodeFactory.createURI(packageOntology.toString())));
+        }
+    }
+
+    /**
+     * Returns true if the repository can supply a graph for the given ID.
+     *
+     * @param repository graph repository
+     * @param id graph ID
+     * @return true if resolvable
+     */
+    public static boolean isResolvable(PrefixGraphRepository repository, String id)
+    {
+        try
+        {
+            return repository.get(id) != null;
+        }
+        catch (RuntimeException ex) // unmapped location, 404, connection refused, unparseable document...
+        {
+            if (log.isDebugEnabled()) log.debug("Could not resolve graph with ID '{}'", id, ex);
+            return false;
+        }
+    }
+
+    /**
      * Assembles the ontology's owl:imports closure as a union graph. ontapi resolves the closure through
      * a scoped repository view: raw per-document graphs are read through (and cached in) the shared
      * repository, while ontapi's union-graph bookkeeping stays local to the view — the shared repository
@@ -179,38 +262,6 @@ public class OntologyFilter implements ContainerRequestFilter
      * @param uri ontology URI
      * @return closure union graph
      */
-    /**
-     * Assembles the ontology's owl:imports closure composed with the ontologies of the imported
-     * packages. Each package ontology is assembled as its own closure union (so its owl:imports
-     * resolve too) and added as a member of the application ontology's union — derived in memory,
-     * mirroring the stylesheet composition in {@code XsltExecutableFilter}; no owl:imports triple
-     * is materialized anywhere. A package ontology that fails to load is skipped so a broken
-     * package cannot take the application ontology down.
-     *
-     * @param repository graph repository
-     * @param uri ontology URI
-     * @param packageOntologies package ontology URIs
-     * @return closure union graph
-     */
-    public static UnionGraph loadOntology(PrefixGraphRepository repository, String uri, List<URI> packageOntologies)
-    {
-        UnionGraph union = loadOntology(repository, uri);
-
-        for (URI packageOntology : packageOntologies)
-        {
-            try
-            {
-                union.addSubGraph(loadOntology(repository, packageOntology.toString()));
-            }
-            catch (RuntimeException ex)
-            {
-                if (log.isErrorEnabled()) log.error("Could not load package ontology '{}', skipping it", packageOntology, ex);
-            }
-        }
-
-        return union;
-    }
-
     public static UnionGraph loadOntology(PrefixGraphRepository repository, String uri)
     {
         if (log.isDebugEnabled()) log.debug("Started loading ontology with URI '{}'", uri);
