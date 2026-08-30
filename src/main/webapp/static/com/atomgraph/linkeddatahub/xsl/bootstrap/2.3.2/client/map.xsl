@@ -426,10 +426,12 @@ exclude-result-prefixes="#all"
 
                     <xsl:variable name="overlay-options" select="ldh:new-object()"/>
                     <ixsl:set-property name="element" select="$container" object="$overlay-options"/>
-                    <ixsl:set-property name="autoPan" select="true()" object="$overlay-options"/>
+                    <!-- deliberately no autoPan: it answers an overhanging popup by moving the map centre, and the view
+                         constrains that centre to the projection extent, so a marker near the edge of the world runs the
+                         pan out part-way and the popup keeps the rest of its head outside. The popup is fitted to the
+                         viewport below instead, which holds wherever the marker sits. -->
                     <ixsl:set-property name="positioning" select="'bottom-center'" object="$overlay-options"/>
                     <!--<ixsl:set-property name="className" select="'ol-overlay-container ol-selectable'" object="$overlay-options"/>-->
-                    <!--<ixsl:set-property name="autoPanAnimation" select="" object="$overlay-options"/>-->
                     <xsl:variable name="overlay" select="ixsl:new('ol.Overlay', [ $overlay-options ])"/>
                     <xsl:sequence select="ixsl:call($overlay, 'setPosition', [ $coord ])[current-date() lt xs:date('2000-01-01')]"/>
 
@@ -450,18 +452,28 @@ exclude-result-prefixes="#all"
                 
                     <xsl:sequence select="ixsl:call($map, 'addOverlay', [ $overlay ])[current-date() lt xs:date('2000-01-01')]"/>
 
-                    <!-- ol.Overlay autoPans when the overlay joins the map, which is before SaxonJS applies the
-                         xsl:result-document above: it measures an empty container, finds it inside the viewport and
-                         never pans. Re-run it once the content is in the DOM, or a popup anchored high on the map
-                         keeps its head outside the viewport, where overflow: hidden cuts it off under the view controls -->
-                    <xsl:variable name="pan" as="item()*">
-                        <ixsl:schedule-action wait="0">
-                            <xsl:call-template name="ldh:PanInfoWindowIntoView">
-                                <xsl:with-param name="overlay" select="$overlay"/>
-                            </xsl:call-template>
-                        </ixsl:schedule-action>
-                    </xsl:variable>
-                    <xsl:sequence select="$pan[current-date() lt xs:date('2000-01-01')]"/>
+                    <!-- the popup only takes on the panel's width and max-height once ol has wrapped it, so where it can
+                         sit is settled here rather than in the options above. The map's overflow is hidden, so anything
+                         hanging over an edge is cut off - under the view controls at the top - and the popup is inset
+                         into the viewport by the same margin ol's own autoPan would have left it. -->
+                    <xsl:variable name="map-box" select="ixsl:call(ixsl:call($map, 'getTargetElement', []), 'getBoundingClientRect', [])"/>
+                    <!-- ol builds its own .ol-overlay-container around $container, and that wrapper is what the panel CSS sizes -->
+                    <xsl:variable name="popup-box" select="ixsl:call($container/.., 'getBoundingClientRect', [])"/>
+                    <xsl:variable name="margin" select="20" as="xs:double"/>
+                    <xsl:variable name="map-width" select="xs:double(ixsl:get($map-box, 'width'))" as="xs:double"/>
+                    <xsl:variable name="map-height" select="xs:double(ixsl:get($map-box, 'height'))" as="xs:double"/>
+                    <xsl:variable name="popup-width" select="xs:double(ixsl:get($popup-box, 'width'))" as="xs:double"/>
+                    <xsl:variable name="popup-height" select="xs:double(ixsl:get($popup-box, 'height'))" as="xs:double"/>
+                    <!-- the overlay is already rendered bottom-centred on the marker, so its own box locates the marker -->
+                    <xsl:variable name="natural-left" select="xs:double(ixsl:get($popup-box, 'left')) - xs:double(ixsl:get($map-box, 'left'))" as="xs:double"/>
+                    <xsl:variable name="marker-y" select="xs:double(ixsl:get($popup-box, 'top')) - xs:double(ixsl:get($map-box, 'top')) + $popup-height" as="xs:double"/>
+                    <!-- stay above the marker while there is room for that, drop below it when only that side has room -->
+                    <xsl:variable name="positioning" select="if ($popup-height + $margin le $marker-y or $popup-height + $margin gt $map-height - $marker-y) then 'bottom-center' else 'top-center'" as="xs:string"/>
+                    <xsl:variable name="natural-top" select="if ($positioning = 'bottom-center') then $marker-y - $popup-height else $marker-y" as="xs:double"/>
+                    <xsl:variable name="left" select="max(($margin, min(($natural-left, $map-width - $popup-width - $margin))))" as="xs:double"/>
+                    <xsl:variable name="top" select="max(($margin, min(($natural-top, $map-height - $popup-height - $margin))))" as="xs:double"/>
+                    <xsl:sequence select="ixsl:call($overlay, 'setPositioning', [ $positioning ])[current-date() lt xs:date('2000-01-01')]"/>
+                    <xsl:sequence select="ixsl:call($overlay, 'setOffset', [ [ $left - $natural-left, $top - $natural-top ] ])[current-date() lt xs:date('2000-01-01')]"/>
                 </xsl:for-each>
             </xsl:when>
             <xsl:otherwise>
@@ -472,14 +484,6 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="$context"/>
     </xsl:function>
     
-    <!-- pans the map until the whole info window sits inside the viewport (deferred: see the call site) -->
-
-    <xsl:template name="ldh:PanInfoWindowIntoView">
-        <xsl:param name="overlay" as="item()"/>
-
-        <xsl:sequence select="ixsl:call($overlay, 'panIntoView', [])[current-date() lt xs:date('2000-01-01')]"/>
-    </xsl:template>
-
     <!-- close popup overlay (info window) -->
     
     <xsl:template match="div[contains-token(@class, 'ol-overlay-container')]//div[contains-token(@class, 'modal-header')]/button[contains-token(@class, 'close')]" mode="ixsl:onclick">
