@@ -810,7 +810,8 @@ WHERE
         <xsl:param name="context" as="map(*)"/>
         <xsl:variable name="method" select="$context('method')" as="xs:string"/>
         <xsl:variable name="anchor" select="$context('insert-anchor')" as="element()"/>
-        <xsl:variable name="method" select="$context('insert-method')" as="xs:string"/>
+        <!-- not $method: that is the form's HTTP method, and shadowing it here sends the row form's save as IXSL:INSERT-AFTER -->
+        <xsl:variable name="insert-method" select="$context('insert-method')" as="xs:string"/>
         <xsl:variable name="doc-uri" select="$context('doc-uri')" as="xs:anyURI"/>
         <xsl:variable name="base-uri" select="$context('base-uri')" as="xs:anyURI"/>
         <xsl:variable name="constructed-doc" select="$context('constructed-doc')" as="document-node()"/>
@@ -851,13 +852,13 @@ WHERE
 
         <!-- insert $row-form relative to the anchor; each flow stamps the method it wants -->
         <xsl:for-each select="$anchor">
-            <xsl:result-document href="?." method="{$method}">
+            <xsl:result-document href="?." method="{$insert-method}">
                 <xsl:sequence select="$row-form"/>
             </xsl:result-document>
         </xsl:for-each>
 
         <!-- apply client-side templates on the row form, now the anchor's sibling on whichever side it landed -->
-        <xsl:apply-templates select="if ($method = 'ixsl:insert-before') then $anchor/preceding-sibling::*[1] else $anchor/following-sibling::*[1]" mode="ldh:RenderRowForm"/>
+        <xsl:apply-templates select="if ($insert-method = 'ixsl:insert-before') then $anchor/preceding-sibling::*[1] else $anchor/following-sibling::*[1]" mode="ldh:RenderRowForm"/>
 
     </xsl:function>
     

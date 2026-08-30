@@ -751,11 +751,15 @@ exclude-result-prefixes="#all"
                         <xsl:variable name="datatype" select="$marker/rdf:type/@rdf:resource[starts-with(., '&xsd;')][1]" as="attribute()?"/>
 
                         <xsl:copy>
-                            <xsl:apply-templates select="@* | node()" mode="#current"/>
+                            <!-- attributes before children: a literal property carries its value as a text
+                                 node, and writing the datatype after that is an error -->
+                            <xsl:apply-templates select="@*" mode="#current"/>
 
                             <xsl:if test="$datatype and not(@rdf:resource) and not(@rdf:nodeID) and not(@rdf:datatype)">
                                 <xsl:attribute name="rdf:datatype" select="$datatype"/>
                             </xsl:if>
+
+                            <xsl:apply-templates select="node()" mode="#current"/>
                         </xsl:copy>
                     </xsl:for-each>
                 </xsl:copy>
