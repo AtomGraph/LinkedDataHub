@@ -46,7 +46,7 @@ import picocli.CommandLine.ScopeType;
  */
 @Command(name = "ldh",
     mixinStandardHelpOptions = true,
-    version = "ldh 1.0.0-SNAPSHOT",
+    versionProvider = LDH.ManifestVersion.class,
     description = "Command line interface for the LinkedDataHub HTTP API.",
     subcommands = {
         Get.class, Post.class, Put.class, Patch.class, Delete.class,
@@ -60,6 +60,23 @@ public class LDH
 
     @Option(names = "--verbose", scope = ScopeType.INHERIT, description = "Print stack traces of errors")
     boolean verbose;
+
+    /**
+     * Reports the version the jar was built at, read from its manifest. Classes loaded outside a jar
+     * (an IDE run, the unit tests) have no manifest, hence the fallback.
+     */
+    static class ManifestVersion implements CommandLine.IVersionProvider
+    {
+
+        @Override
+        public String[] getVersion()
+        {
+            String version = LDH.class.getPackage().getImplementationVersion();
+
+            return new String[] { "ldh " + (version != null ? version : "(development build)") };
+        }
+
+    }
 
     /**
      * CLI entry point.

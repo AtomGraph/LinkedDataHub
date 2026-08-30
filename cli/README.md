@@ -10,26 +10,48 @@ The `bin/` HTTP API scripts it replaces are deprecated. The [http-tests](../http
 all of its fixtures with `ldh`, so the commands are exercised against a live instance on every CI run;
 `run.sh` aborts if `ldh` is not on `PATH`.
 
+## Install
+
+Every LinkedDataHub release attaches an `ldh-<version>.tar.gz` archive holding the launcher and the
+jar. It needs a Java 21 runtime and nothing else:
+
+```bash
+tar -xzf ldh-<version>.tar.gz
+export PATH="$PWD/ldh-<version>:$PATH"
+ldh --help
+```
+
 ## Build
 
-Requires Java 21 and Maven:
+Building from source requires Java 21 and Maven. From the repository root:
+
+```bash
+make cli
+```
+
+which prints the `export PATH=...` line to run afterwards. It is the equivalent of:
 
 ```bash
 cd cli
 mvn package
+export PATH="$PWD/bin:$PATH"
 ```
 
-This produces the self-contained `target/ldh.jar`. The `cli/bin/ldh` launcher runs it:
-
-```bash
-export PATH="$PATH:$(pwd)/bin"
-ldh --help
-```
+This produces the self-contained `target/ldh.jar`, which the `cli/bin/ldh` launcher runs. The
+launcher prefers `LDH_JAR`, then a jar sitting beside it (the release archive layout), then
+`../target/ldh.jar` (the source checkout layout).
 
 The launcher starts the JVM with `-XX:TieredStopAtLevel=1 -XX:+UseSerialGC`, trading peak
 throughput for startup time — a command exits long before C2 could pay for itself, and spends
-most of its life waiting on HTTP. `LDH_JAVA_OPTS` replaces those flags outright, and `LDH_JAR`
-points the launcher at a jar elsewhere.
+most of its life waiting on HTTP. `LDH_JAVA_OPTS` replaces those flags outright.
+
+The CLI carries the same version as the platform: it ships with a LinkedDataHub release and is
+exercised by the same http-tests, so `cli/pom.xml` tracks the root `pom.xml`. `release.sh` keeps
+the two in step across the release bumps, and `make cli-version` sets `cli/pom.xml` from the
+platform version if they ever drift.
+
+`ldh --version` reports the version the jar was built at, read back from its `Implementation-Version`
+manifest entry.
 
 ## Authentication
 

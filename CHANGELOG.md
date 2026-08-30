@@ -1,6 +1,9 @@
 ## [Unreleased]
 ### Added
 - `ldh` command line interface (`cli/`): a standalone picocli/Jena port of the `bin/` HTTP API scripts — one command per script with the same option names, `bin/` subdirectories as nested subcommand groups, PKCS12 WebID keystore authentication, env-var defaults and a shaded executable jar
+- Every release attaches an `ldh-<version>.tar.gz` archive of the CLI launcher and jar, stamped with the platform version, so using `ldh` needs a Java runtime rather than a source checkout and a Maven build
+- `make cli` builds the CLI and prints the `PATH` export to run, and `make tests` depends on it — the suite builds its fixtures with `ldh` and used to abort telling you to go build it by hand
+- `make cli-version` sets `cli/pom.xml` to the platform version, which `release.sh` now runs around both release bumps so the CLI shares the platform's version line instead of its own `1.0.0-SNAPSHOT`
 - Restore a document to an earlier version from the history modal: the memento is read back and written to the live document, so the restore rolls forward as a new commit and the versions rolled past stay in the TimeMap; gated on `acl:Write`, hidden on the version being viewed, and confirmed first
 - Version diffs in the history modal: From/To selection navigates to `?version=<to>&diff=<from>` and the diff renders on the document page — `diff-added`/`diff-removed`/`diff-changed` block borders, marked property values, a changed XHTML block stacking its old content above the new, and a color legend
 - `diff` is display state read from the URL at render time and never sent to the server, so back/forward re-render it and a plain reload degrades to the `?version=` snapshot
@@ -55,6 +58,7 @@
 - `ProvenanceFilter` — a 2021 skeleton whose registration was commented out since it was written; the PROV-O provenance sidecar (P2.3) will not start from its graph-per-request shape
 
 ### Fixed
+- `ldh --version` reported a hardcoded `1.0.0-SNAPSHOT` regardless of the build; it now reads `Implementation-Version` back from the jar manifest
 - `--help` was unrecognized on every `ldh` subcommand — `mixinStandardHelpOptions` only reaches the root command, so the option now lives in `BaseCommand` and in a new `CommandGroup` base that the five subcommand groups extend in place of their duplicated `@Spec`/`call()` pairs
 - GraphMode rendering of `ldh:Object` blocks crashed with a cardinality error: the `bs2:Row` branch applied `bs2:Graph` without the required `canvas-id` param; the 3D force graph now initializes after the row is rendered
 - Constructor edits never surfaced in instance forms: the callback cleared the ontology derived from the class' `rdfs:isDefinedBy` and left the annotation graph cached, so it now clears the document its `PATCH` just updated (`ac:document-uri($constructor-uri)`)

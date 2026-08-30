@@ -4,7 +4,7 @@
 
     <groupId>com.atomgraph</groupId>
     <artifactId>linkeddatahub-cli</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>5.10.0-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <name>LinkedDataHub CLI</name>
@@ -110,6 +110,14 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>3.5.2</version>
             </plugin>
+            <!-- no executions: declared so that the `versions:set` invocations that keep this project
+            in step with the platform version (make cli-version, release.sh) pin the plugin instead of
+            resolving whatever is newest -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>versions-maven-plugin</artifactId>
+                <version>2.21.0</version>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
@@ -127,6 +135,9 @@
                                     <mainClass>com.atomgraph.linkeddatahub.cli.LDH</mainClass>
                                     <manifestEntries>
                                         <Multi-Release>true</Multi-Release>
+                                        <!-- read back by the version option, so a released jar reports the version it was built at -->
+                                        <Implementation-Title>${project.artifactId}</Implementation-Title>
+                                        <Implementation-Version>${project.version}</Implementation-Version>
                                     </manifestEntries>
                                 </transformer>
                                 <!-- merges META-INF/services/* across Jena jars; without it JenaSystem/RIOT initialization breaks in the shaded jar -->

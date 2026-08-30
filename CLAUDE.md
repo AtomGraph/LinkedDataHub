@@ -21,7 +21,7 @@ Service credentials (used by the entrypoint for Bearer auth) are stored in `secr
 
 ### Core Build Commands
 ```bash
-# Maven build (Java 17 required)
+# Maven build (Java 21 required)
 mvn clean install
 
 # Build specific profiles
@@ -38,12 +38,15 @@ make up nginx                                # Start named services only
 make down                                    # Stop the services
 make down -- -v                              # Stop and remove volumes
 make drop                                    # Complete reset (down -v, then wipe local dirs)
+
+make cli                                     # Build the ldh CLI, print the PATH export to run
+make cli-version                             # Set cli/pom.xml to the platform version in pom.xml
 ```
 
 ### Testing
 ```bash
-# HTTP tests (requires running application and the ldh CLI on PATH - see cli/)
-cd cli && mvn package && export PATH="$PWD/bin:$PATH" && cd ..
+# HTTP tests (requires a running application). Depends on the `cli` target, so it builds
+# the CLI and puts it on PATH for run.sh, which builds the suite's fixtures with it
 make tests  # runs http-tests/run.sh with the certificates and secrets/ passwords
 
 # For other certificates, invoke the runner directly
@@ -156,6 +159,10 @@ ldh create-container --parent "$LDH_BASE" --title "Some" --slug some
 ldh admin acl add-agent-to-group --agent "$AGENT_URI" "${ADMIN_BASE}acl/groups/writers/"
 ```
 
+`cli/` is not a module of the platform reactor (the root pom is the webapp artifact, so it cannot
+carry `<modules>`), but it shares the platform's version: `release.sh` runs `versions:set` on it
+around both release bumps, and `make cli-version` re-aligns it if it drifts.
+
 `LDH_CERT_FILE`, `LDH_CERT_PASSWORD`, `LDH_BASE` and `LDH_PROXY` supply defaults for `-f`, `-p`,
 `-b` and `--proxy`. Commands that create or append to a document print its URL as the only line on
 stdout (diagnostics go to stderr), so `item=$(ldh create-item ...)` works; exit codes are `0`
@@ -176,7 +183,7 @@ export PATH="$(find bin -type d -exec realpath {} \; | tr '\n' ':')$PATH"
 ```
 
 ## Development Notes
-- Java 17 is required for compilation
+- Java 21 is required for compilation (both the platform and the `cli/` project)
 - The application uses AtomGraph's Processor and Web-Client libraries as core dependencies
 - XSLT stylesheets are processed during build to inline XML entities
 - Saxon-JS SEF files are generated during Maven package phase for client-side XSLT

@@ -44,3 +44,48 @@ jobs:
             atomgraph/linkeddatahub:${{ env.FULL_VERSION }}
             atomgraph/linkeddatahub:${{ env.MINOR }}
             atomgraph/linkeddatahub:${{ env.MAJOR }}
+
+  cli:
+    name: Attach the ldh CLI to the release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # gh release create/upload
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Set up Java 21
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+          cache: maven
+
+      - name: Extract version
+        run: |
+          RAW_REF="${{ github.ref_name }}"
+          # strip the literal prefix
+          echo "FULL_VERSION=${RAW_REF#linkeddatahub-}" >> $GITHUB_ENV
+
+      # release.sh keeps cli/pom.xml at the platform version, so the tagged commit already carries it
+      # and the jar manifest ldh --version reads gets it from there
+      - name: Build the ldh CLI
+        run: mvn -B package
+        working-directory: cli
+
+      # the launcher prefers a jar beside it, so the archive runs from wherever it is unpacked
+      - name: Package the archive
+        run: |
+          mkdir -p "ldh-${FULL_VERSION}"
+          cp cli/bin/ldh cli/target/ldh.jar "ldh-${FULL_VERSION}/"
+          tar -czf "ldh-${FULL_VERSION}.tar.gz" "ldh-${FULL_VERSION}"
+
+      - name: Attach to the release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # the tag may be pushed before the release exists (maven-release-plugin tags, the release
+          # is drafted afterwards), so create it if it is not there yet
+          gh release view "${{ github.ref_name }}" > /dev/null 2>&1 || \
+            gh release create "${{ github.ref_name }}" --title "${{ github.ref_name }}" --notes ""
+          gh release upload "${{ github.ref_name }}" "ldh-${FULL_VERSION}.tar.gz" --clobber

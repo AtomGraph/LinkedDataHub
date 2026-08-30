@@ -1,4 +1,4 @@
-TARGETS := sef drop cert release tests up down
+TARGETS := sef drop cert release tests up down cli cli-version
 COMPOSE_TARGETS := up down
 .PHONY: $(TARGETS)
 
@@ -40,6 +40,23 @@ cert:
 release:
 	./release.sh
 
-# Run HTTP tests using owner and secretary certificates with passwords from secrets/
-tests:
-	cd http-tests && ./run.sh ../ssl/owner/cert.pem $$(cat ../secrets/owner_cert_password.txt) ../ssl/secretary/cert.pem $$(cat ../secrets/secretary_cert_password.txt)
+# Set cli/pom.xml to the platform version in pom.xml. The CLI ships with the platform release, so
+# the two versions are kept in step; release.sh runs this around the release version bumps, and this
+# target is for drift and for manual SNAPSHOT bumps
+cli-version:
+	@version=$$(mvn -q help:evaluate -Dexpression=project.version -DforceStdout); \
+	cd cli && mvn -B -q versions:set -DnewVersion="$$version" -DgenerateBackupPoms=false && \
+	echo "cli/pom.xml set to $$version"
+
+# Build the ldh CLI (requires Java 21 and Maven) and print the line that puts it on $PATH.
+# Released versions are also attached to the GitHub release, which needs neither.
+cli:
+	cd cli && mvn -B package
+	@echo
+	@echo "Add the ldh launcher to your \$$PATH:"
+	@echo "    export PATH=\"$(CURDIR)/cli/bin:\$$PATH\""
+
+# Run HTTP tests using owner and secretary certificates with passwords from secrets/.
+# The suite builds its fixtures with ldh, so the CLI is built first and put on $PATH for run.sh
+tests: cli
+	cd http-tests && PATH="$(CURDIR)/cli/bin:$$PATH" ./run.sh ../ssl/owner/cert.pem $$(cat ../secrets/owner_cert_password.txt) ../ssl/secretary/cert.pem $$(cat ../secrets/secretary_cert_password.txt)

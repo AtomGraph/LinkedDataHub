@@ -35,7 +35,7 @@ It takes a few clicks and filling out a form to install the product into your ow
 
 #### CLI
 
-Building the [`ldh` command line interface](#command-line-interface) requires Java 21 and [Maven](https://maven.apache.org/). The certificate and WebID scripts that remain in the `bin/` directory require [`openssl`](https://www.openssl.org/) and `keytool` (part of the JDK).
+The [`ldh` command line interface](#command-line-interface) is attached to every release and needs only a Java 21 runtime; building it from source additionally requires [Maven](https://maven.apache.org/). The certificate and WebID scripts that remain in the `bin/` directory require [`openssl`](https://www.openssl.org/) and `keytool` (part of the JDK).
 
 ### Steps
 
@@ -273,18 +273,22 @@ _:warning: This will **remove the persisted data and files** as well as Docker v
 
 `ldh` wraps the HTTP API into a single executable with convenient parameters. It can be used for testing, automation, scheduled execution and such. It is usually much quicker to perform actions using the CLI rather than the user interface, as well as easier to reproduce.
 
-The CLI lives in the [`cli`](https://github.com/AtomGraph/LinkedDataHub/tree/master/cli) subfolder. Build it with Maven and put its launcher on the `$PATH`:
+Every release attaches an `ldh-<version>.tar.gz` archive, which needs only a Java 21 runtime — no build tools and no source checkout:
 
 ```shell
-cd cli
-mvn package
-export PATH="$PWD/bin:$PATH"
-cd ..
+tar -xzf ldh-<version>.tar.gz
+export PATH="$PWD/ldh-<version>:$PATH"
 
 ldh --help
 ```
 
-If you will be using LinkedDataHub's CLI regularly, add the `export` to your shell profile.
+To build it from source instead — the CLI lives in the [`cli`](https://github.com/AtomGraph/LinkedDataHub/tree/master/cli) subfolder and needs Java 21 and Maven:
+
+```shell
+make cli
+```
+
+which prints the `export PATH=...` line to run afterwards. If you will be using LinkedDataHub's CLI regularly, add that `export` to your shell profile.
 
 Commands authenticate with a WebID client certificate read from a **PKCS12 keystore** — `ssl/owner/keystore.p12` for the owner. Options that repeat across commands can be set once as environment variables:
 
@@ -346,7 +350,7 @@ See the [Web-Algebra repository](https://github.com/AtomGraph/Web-Algebra) for s
 
 ## Test suite
 
-LinkedDataHub includes an HTTP [test suite](https://github.com/AtomGraph/LinkedDataHub/tree/master/http-tests). It builds its fixtures with `ldh`, so [build the CLI](#command-line-interface) and put it on the `$PATH` before running `make tests`. The server implementation is also covered by the [Processor test suite](https://github.com/AtomGraph/Processor/tree/master/http-tests).
+LinkedDataHub includes an HTTP [test suite](https://github.com/AtomGraph/LinkedDataHub/tree/master/http-tests), run with `make tests`. It builds its fixtures with `ldh`, which `make tests` builds and puts on the `$PATH` for the run. The server implementation is also covered by the [Processor test suite](https://github.com/AtomGraph/Processor/tree/master/http-tests).
 
 ![HTTP-tests](https://github.com/AtomGraph/LinkedDataHub/actions/workflows/http-tests.yml/badge.svg)
 
