@@ -117,6 +117,9 @@ exclude-result-prefixes="#all"
                 <xsl:variable name="constructors" select="$context('constructors')" as="document-node()"/>
 
                 <xsl:for-each select="$container">
+
+                    <!-- a modal takes over from the chrome that opened it: a drop-down the pick came from is dismissed here, once its own handler has run -->
+                    <xsl:apply-templates select="ixsl:page()//*[contains-token(@class, 'btn-group')][contains-token(@class, 'open')]" mode="ldh:CloseDropdown"/>
                     <xsl:result-document href="?." method="ixsl:append-content">
                         <div class="modal modal-constructor fade in">
                             <form class="ldh-prop-form constructor-template" about="{$type}">

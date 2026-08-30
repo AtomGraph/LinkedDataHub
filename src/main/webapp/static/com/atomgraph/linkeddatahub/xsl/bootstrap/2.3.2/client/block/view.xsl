@@ -2040,12 +2040,13 @@ exclude-result-prefixes="#all"
         </xsl:for-each>
     </xsl:template>
 
-    <!-- clicks that no other handler claims bubble up to body: dismiss any open facet and block links popovers, and any open drop-down -->
+    <!-- clicks that no other handler claims bubble up to body: dismiss any open facet and block links popovers.
+         Drop-downs are not dismissed here - the pointerdown rule in client.xsl reaches every press, including
+         the ones a specific handler takes, so this rule never saw a case it had left to close -->
 
     <xsl:template match="body" mode="ixsl:onclick">
         <xsl:apply-templates select="ixsl:page()//div[contains-token(@class, 'faceted-nav')]/ul[contains-token(@class, 'facet-pop')][not(ixsl:style(.)?display = 'none')]" mode="ldh:CloseFacetPopover"/>
         <xsl:apply-templates select="ixsl:page()//div[contains-token(@class, 'links-nav')][contains-token(@class, 'is-open')]" mode="ldh:CloseLinksPopover"/>
-        <xsl:apply-templates select="ixsl:page()//*[contains-token(@class, 'btn-group')][contains-token(@class, 'open')]" mode="ldh:CloseDropdown"/>
     </xsl:template>
 
     <!-- clicks inside the popover (value checkboxes) stop here instead of bubbling to body and dismissing it -->
@@ -3005,6 +3006,9 @@ exclude-result-prefixes="#all"
                 </xsl:apply-templates>
             </xsl:variable>
 
+
+            <!-- a modal takes over from the chrome that opened it: a drop-down the pick came from is dismissed here, once its own handler has run -->
+            <xsl:apply-templates select="ixsl:page()//*[contains-token(@class, 'btn-group')][contains-token(@class, 'open')]" mode="ldh:CloseDropdown"/>
             <xsl:result-document href="?." method="ixsl:append-content">
                 <div class="modal modal-constructor fade in" about="{$doc-uri}" typeof="{$forClass}"> <!-- @about identifies the new document URL (uniform with the other modals so submit handlers can read $block/@about); the instance URI travels on @data-instance -->
                     <div class="modal-header">

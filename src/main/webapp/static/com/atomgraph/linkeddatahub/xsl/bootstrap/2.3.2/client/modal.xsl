@@ -778,6 +778,9 @@ LIMIT   10
                 </xsl:apply-templates>
             </xsl:variable>
 
+
+            <!-- a modal takes over from the chrome that opened it: a drop-down the pick came from is dismissed here, once its own handler has run -->
+            <xsl:apply-templates select="ixsl:page()//*[contains-token(@class, 'btn-group')][contains-token(@class, 'open')]" mode="ldh:CloseDropdown"/>
             <xsl:result-document href="?." method="ixsl:append-content">
                 <div class="modal modal-constructor fade in" about="{$doc-uri}" typeof="{$forClass}"> <!-- @about identifies the new resource URL (uniform with edit/settings modals so submit handlers can read $block/@about without a fallback); $forClass used by ldh:ResourceUpdated in case of 4xx response -->
                     <div class="modal-header">
@@ -856,6 +859,9 @@ LIMIT   10
 
         <xsl:variable name="block-id" select="'block-' || generate-id()" as="xs:string"/>
         <xsl:for-each select="$content-body">
+
+            <!-- a modal takes over from the chrome that opened it: a drop-down the pick came from is dismissed here, once its own handler has run -->
+            <xsl:apply-templates select="ixsl:page()//*[contains-token(@class, 'btn-group')][contains-token(@class, 'open')]" mode="ldh:CloseDropdown"/>
             <xsl:result-document href="?." method="ixsl:append-content">
                 <div class="modal modal-constructor fade in" about="{$about}">
                     <div class="modal-header">
@@ -1069,6 +1075,9 @@ LIMIT   10
         <xsl:sequence select="ldh:busy-cursor()"/>
 
         <xsl:for-each select="$content-body">
+
+            <!-- a modal takes over from the chrome that opened it: a drop-down the pick came from is dismissed here, once its own handler has run -->
+            <xsl:apply-templates select="ixsl:page()//*[contains-token(@class, 'btn-group')][contains-token(@class, 'open')]" mode="ldh:CloseDropdown"/>
             <xsl:result-document href="?." method="ixsl:append-content">
                 <div class="modal modal-constructor fade in" about="{lapp:application()}">
                     <xsl:if test="$id">

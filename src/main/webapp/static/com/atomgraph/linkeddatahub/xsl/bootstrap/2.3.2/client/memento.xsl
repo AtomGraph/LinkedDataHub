@@ -74,6 +74,9 @@ version="3.0"
 
         <xsl:for-each select="$response">
             <xsl:for-each select="$container">
+
+                <!-- a modal takes over from the chrome that opened it: a drop-down the pick came from is dismissed here, once its own handler has run -->
+                <xsl:apply-templates select="ixsl:page()//*[contains-token(@class, 'btn-group')][contains-token(@class, 'open')]" mode="ldh:CloseDropdown"/>
                 <xsl:result-document href="?." method="ixsl:append-content">
                     <div class="modal modal-constructor fade in" id="document-history-modal">
                         <div class="modal-header">
