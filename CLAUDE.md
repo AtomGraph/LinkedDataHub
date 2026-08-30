@@ -29,12 +29,14 @@ mvn -Pstandalone clean install  # Standalone WAR
 mvn -Pdependency clean install  # JAR dependency
 mvn -Prelease clean install     # Release with signing
 
-# Docker-based development. `make up` forwards its arguments to `docker-compose up`;
-# `--` is needed before any argument starting with `-` so make does not claim it
+# Docker-based development. `make up`/`make down` forward their arguments to
+# `docker-compose`; `--` is needed before any argument starting with `-` so make
+# does not claim it as one of its own options
 make up                                      # Start all services
 make up -- --build                           # Rebuild images and start
 make up nginx                                # Start named services only
-docker-compose down -v                       # Stop and remove volumes
+make down                                    # Stop the services
+make down -- -v                              # Stop and remove volumes
 make drop                                    # Complete reset (down -v, then wipe local dirs)
 ```
 

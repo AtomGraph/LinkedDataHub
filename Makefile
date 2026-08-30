@@ -1,16 +1,22 @@
-TARGETS := sef drop cert release tests up
+TARGETS := sef drop cert release tests up down
+COMPOSE_TARGETS := up down
 .PHONY: $(TARGETS)
 
 # Treat goals that are not targets as arguments for docker-compose, not as make goals
-ifneq (,$(filter up,$(MAKECMDGOALS)))
-UP_ARGS := $(filter-out $(TARGETS),$(MAKECMDGOALS))
-$(eval $(UP_ARGS):;@:)
+ifneq (,$(filter $(COMPOSE_TARGETS),$(MAKECMDGOALS)))
+COMPOSE_ARGS := $(filter-out $(TARGETS),$(MAKECMDGOALS))
+$(eval $(COMPOSE_ARGS):;@:)
 endif
 
 # Start the Docker Compose stack; extra arguments are passed to `docker-compose up`
 # (e.g. `make up -- --build -d`, `make up nginx`, or `make up ARGS="--build -d"`)
 up:
-	docker-compose up $(ARGS) $(UP_ARGS)
+	docker-compose up $(ARGS) $(COMPOSE_ARGS)
+
+# Stop the Docker Compose stack; extra arguments are passed to `docker-compose down`
+# (e.g. `make down -- -v` to remove the Varnish cache volumes as well)
+down:
+	docker-compose down $(ARGS) $(COMPOSE_ARGS)
 
 # Generate Saxon-JS SEF files for client-side XSLT transformations
 sef:
