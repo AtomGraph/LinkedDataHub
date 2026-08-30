@@ -663,7 +663,7 @@ exclude-result-prefixes="#all"
             'this': xs:anyURI($doc-uri || '#' || $id),
             'properties': $properties,
             'insert-anchor': $block,
-            'insert-position': 'after'
+            'insert-method': 'ixsl:insert-after'
         }"/>
 
         <ixsl:promise select="ixsl:resolve($context) =>
