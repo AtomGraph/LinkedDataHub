@@ -122,11 +122,45 @@ WHERE
     
     <xsl:template match="text()" mode="ldh:RenderRowForm"/>
 
-    <!-- subject type change -->
-    <xsl:template match="select[contains-token(@class, 'subject-type')]" mode="ldh:RenderRowForm" priority="1">
-        <xsl:sequence select="ixsl:call(., 'addEventListener', [ 'change', ixsl:get(ixsl:window(), 'onSubjectTypeChange') ])[current-date() lt xs:date('2000-01-01')]"/>
+    <!-- flip the RDF/POST input names when the subject type changes between URI ("su") and blank node ("sb"), restoring the values last stored for the new type -->
+    <xsl:template match="select[contains-token(@class, 'subject-type')]" mode="ixsl:onchange">
+        <xsl:variable name="new-type" select="string(ixsl:get(., 'value'))" as="xs:string"/>
+        <xsl:variable name="control-group" select="ancestor::div[contains-token(@class, 'control-group')][1]" as="element()"/>
+        <xsl:variable name="old-subject-type" select="$control-group//input[contains-token(@class, 'subject-type')][contains-token(@class, 'old')]" as="element()"/> <!-- old value in a hidden input -->
+        <xsl:variable name="old-type" select="string(ixsl:get($old-subject-type, 'value'))" as="xs:string"/>
+        <xsl:variable name="value" select="string(ixsl:get($control-group//input[contains-token(@class, 'subject')], 'value'))" as="xs:string"/>
+        <xsl:variable name="new-type-old-subject" select="$control-group//div[contains-token(@class, 'controls')]//input[contains-token(@class, 'old')][contains-token(@class, $new-type)]" as="element()"/> <!-- old value (of the new type) in a hidden input -->
+        <xsl:variable name="new-type-old-value" select="string(ixsl:get($new-type-old-subject, 'value'))" as="xs:string"/>
+        <xsl:variable name="object-type" select="map{ 'su': 'ou', 'sb': 'ob' }" as="map(xs:string, xs:string)"/>
+
+        <!-- the subject and object names are disjoint, so a single pass over their union cannot re-match an input it has just renamed -->
+        <xsl:for-each select="ancestor::form[1]//input[@name = ($old-type, $object-type($old-type))][ixsl:get(., 'value') = $value]">
+            <ixsl:set-attribute name="name" select="if (@name = $old-type) then $new-type else $object-type($new-type)" object="."/>
+            <ixsl:set-property name="value" select="$new-type-old-value" object="."/>
+        </xsl:for-each>
+
+        <!-- store the current subject type and value which will be the old ones next time -->
+        <ixsl:set-property name="value" select="$new-type" object="$old-subject-type"/>
+        <ixsl:set-property name="value" select="$new-type-old-value" object="$new-type-old-subject"/>
     </xsl:template>
-    
+
+    <!-- propagate a changed subject URI/bnode value to every RDF/POST input that carried the old one -->
+    <xsl:template match="fieldset//input[contains-token(@class, 'subject')]" mode="ixsl:onchange">
+        <xsl:variable name="new-value" select="string(ixsl:get(., 'value'))" as="xs:string"/>
+        <xsl:variable name="control-group" select="ancestor::div[contains-token(@class, 'control-group')][1]" as="element()"/>
+        <xsl:variable name="subject-type" select="string(ixsl:get($control-group//select[contains-token(@class, 'subject-type')], 'value'))" as="xs:string"/> <!-- "su" (URI) or "sb" (bnode) -->
+        <xsl:variable name="old-subject" select="$control-group//input[contains-token(@class, 'old')][contains-token(@class, $subject-type)]" as="element()"/>
+        <xsl:variable name="old-value" select="string(ixsl:get($old-subject, 'value'))" as="xs:string"/>
+        <xsl:variable name="object-type" select="map{ 'su': 'ou', 'sb': 'ob' }" as="map(xs:string, xs:string)"/>
+
+        <xsl:for-each select="ancestor::form[1]//input[@name = ($subject-type, $object-type($subject-type))][ixsl:get(., 'value') = $old-value]">
+            <ixsl:set-property name="value" select="$new-value" object="."/>
+        </xsl:for-each>
+
+        <!-- store the value in the hidden input -->
+        <ixsl:set-property name="value" select="$new-value" object="$old-subject"/>
+    </xsl:template>
+
     <!-- the RDFa editor toolbar mounts in the active document's editor-bar, below the action bar (LDH pages have no nav element) -->
     <xsl:function name="rdfae:toolbar-host" as="element()*">
         <xsl:sequence select="(id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')][contains-token(@class, 'active')]//div[contains-token(@class, 'editor-bar')]/div[contains-token(@class, 'content-body')])[1]"/>
@@ -453,13 +487,7 @@ WHERE
         </div>
     </xsl:template>
 
-    <!-- TO-DO: phase out as regular ixsl: event templates -->
     <xsl:template match="fieldset//input" mode="ldh:RenderRowForm" priority="1">
-        <!-- subject value change -->
-        <xsl:if test="contains-token(@class, 'subject')">
-            <xsl:sequence select="ixsl:call(., 'addEventListener', [ 'change', ixsl:get(ixsl:window(), 'onSubjectValueChange') ])[current-date() lt xs:date('2000-01-01')]"/>
-        </xsl:if>
-        
         <!-- TO-DO: move to a better place. Does not take effect if typeahead is reset -->
         <ixsl:set-property object="." name="autocomplete" select="'off'"/>
     </xsl:template>
