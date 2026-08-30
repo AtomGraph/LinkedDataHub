@@ -49,12 +49,31 @@ exclude-result-prefixes="#all"
         <xsl:attribute name="class" select="concat($class, ' ', 'btn-run-query')"/>
     </xsl:template>
     
+    <!-- update the query resource before saving. A mode of its own, not shared with the chart save: the
+         two rewrite different resources and have nothing in common but the identity walk. -->
+
+    <!-- identity transform -->
+    <xsl:template match="@* | node()" mode="ldh:replace-query">
+        <xsl:copy>
+            <xsl:apply-templates select="@* | node()" mode="#current"/>
+        </xsl:copy>
+    </xsl:template>
+
     <!-- set query string -->
 
-    <xsl:template match="sp:text/text()" mode="ldh:Identity" priority="1">
+    <xsl:template match="sp:text/text()" mode="ldh:replace-query" priority="1">
         <xsl:param name="query-string" as="xs:string" tunnel="yes"/>
 
         <xsl:sequence select="$query-string"/>
+    </xsl:template>
+
+    <!-- set query form. Only the four query-form types are matched, so any other rdf:type on the resource is
+         left alone, and an absent $query-type (an unparseable query string) keeps the existing type. -->
+
+    <xsl:template match="rdf:type/@rdf:resource[. = ('&sp;Ask', '&sp;Select', '&sp;Construct', '&sp;Describe')]" mode="ldh:replace-query" priority="1">
+        <xsl:param name="query-type" as="xs:anyURI?" tunnel="yes"/>
+
+        <xsl:attribute name="rdf:resource" select="($query-type, .)[1]"/>
     </xsl:template>
     
     <!-- render query editor -->
@@ -501,16 +520,21 @@ exclude-result-prefixes="#all"
         <xsl:variable name="accept" select="'application/rdf+xml'" as="xs:string"/>
         <xsl:variable name="etag" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path(ldh:base-uri(.)) || '`'), 'etag')" as="xs:string"/>
         <xsl:variable name="service-uri" select="ancestor::form/descendant::select[contains-token(@class, 'input-query-service')]/ixsl:get(., 'value')" as="xs:anyURI?"/>
-        <xsl:variable name="query-type" select="ldh:query-type($query-string)" as="xs:string?"/>
+        <!-- the query form the agent has just typed: editing an ASK into a SELECT has to retype the resource,
+             since leaving sp:Ask on SELECT text is exactly what the server rejects. Empty when the string
+             does not parse, in which case the existing type is kept. -->
+        <xsl:variable name="query-form" select="ldh:query-type($query-string)" as="xs:string?"/>
+        <xsl:variable name="query-type" select="if ($query-form) then xs:anyURI('&sp;' || upper-case(substring($query-form, 1, 1)) || lower-case(substring($query-form, 2))) else ()" as="xs:anyURI?"/>
         <!-- not using ldh:base-uri(.) because it goes stale when DOM is replaced -->
         <xsl:variable name="doc" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path(ldh:request-uri()) || '`'), 'results')" as="document-node()"/>
         <!-- TO-DO: this breaks if the query resource has not yet been loaded as part of the $doc (e.g. freshly saved) -->
         <xsl:variable name="query" select="key('resources', $about, $doc)" as="element()"/>
        
-        <!-- replace the query string (sp:text value) on the query resource -->
+        <!-- replace the query string (sp:text value) and the query form (rdf:type), which the edit may have changed -->
         <xsl:variable name="query" as="element()">
-            <xsl:apply-templates select="$query" mode="ldh:Identity">
+            <xsl:apply-templates select="$query" mode="ldh:replace-query">
                 <xsl:with-param name="query-string" select="$query-string" tunnel="yes"/>
+                <xsl:with-param name="query-type" select="$query-type" tunnel="yes"/>
             </xsl:apply-templates>
         </xsl:variable>
         <xsl:variable name="triples" select="ldh:descriptions-to-triples($query)" as="element()*"/>

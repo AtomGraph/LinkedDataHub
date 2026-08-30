@@ -1518,7 +1518,12 @@ WHERE
         <xsl:variable name="row-form" as="node()*">
             <!-- filter out the current document which might be in the constraint violation response attached by an rdf:_N property to a block resource -->
             <xsl:apply-templates select="$body/rdf:RDF/*[not(@rdf:about = $doc-uri)]" mode="bs2:RowForm">
-                <xsl:with-param name="method" select="$form/@method"/>
+                <!-- $form is optional here, and the flows that PATCH from a button rather than submitting a
+                     form (saving a query, saving a chart) never put one in context - so fall back to the
+                     method of the request that was rejected, and only then to the param's own default.
+                     Passing the empty sequence on into a required xs:string turned every violation this
+                     branch exists to display into a type error instead. -->
+                <xsl:with-param name="method" select="($form/@method/string(), lower-case($context('request')?method), 'post')[1]"/>
                 <xsl:with-param name="type-metadata" select="$type-metadata" tunnel="yes"/>
                 <xsl:with-param name="property-metadata" select="$property-metadata" tunnel="yes"/>
                 <xsl:with-param name="constructor" select="$constructor" tunnel="yes"/>

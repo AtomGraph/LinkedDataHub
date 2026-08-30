@@ -43,11 +43,20 @@ exclude-result-prefixes="#all"
 
     <!-- TEMPLATES -->
     
+    <!-- update the chart resource before saving. A mode of its own, not shared with the query save. -->
+
+    <!-- identity transform -->
+    <xsl:template match="@* | node()" mode="ldh:replace-chart">
+        <xsl:copy>
+            <xsl:apply-templates select="@* | node()" mode="#current"/>
+        </xsl:copy>
+    </xsl:template>
+
     <!-- set chart properties -->
 
-    <xsl:template match="ldh:chartType | ldh:categoryVarName | ldh:categoryProperty | ldh:seriesVarName | ldh:seriesProperty" mode="ldh:Identity" priority="1"/>
+    <xsl:template match="ldh:chartType | ldh:categoryVarName | ldh:categoryProperty | ldh:seriesVarName | ldh:seriesProperty" mode="ldh:replace-chart" priority="1"/>
 
-    <xsl:template match="*[rdf:type/@rdf:resource = '&ldh;ResultSetChart']" mode="ldh:Identity" priority="1">
+    <xsl:template match="*[rdf:type/@rdf:resource = '&ldh;ResultSetChart']" mode="ldh:replace-chart" priority="1">
         <xsl:param name="chart-type" as="xs:anyURI" tunnel="yes"/>
         <xsl:param name="category" as="xs:string?" tunnel="yes"/>
         <xsl:param name="series" as="xs:string*" tunnel="yes"/>
@@ -71,7 +80,7 @@ exclude-result-prefixes="#all"
         </xsl:copy>
     </xsl:template>
     
-    <xsl:template match="*[rdf:type/@rdf:resource = '&ldh;GraphChart']" mode="ldh:Identity" priority="1">
+    <xsl:template match="*[rdf:type/@rdf:resource = '&ldh;GraphChart']" mode="ldh:replace-chart" priority="1">
         <xsl:param name="chart-type" as="xs:anyURI" tunnel="yes"/>
         <xsl:param name="category" as="xs:string?" tunnel="yes"/>
         <xsl:param name="series" as="xs:string*" tunnel="yes"/>
@@ -510,7 +519,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="chart" select="key('resources', $about, $doc)" as="element()"/>
         <!-- update the properties on the chart resource -->
         <xsl:variable name="chart" as="element()">
-            <xsl:apply-templates select="$chart" mode="ldh:Identity">
+            <xsl:apply-templates select="$chart" mode="ldh:replace-chart">
                 <xsl:with-param name="chart-type" select="$chart-type" tunnel="yes"/>
                 <xsl:with-param name="series" select="$series" tunnel="yes"/>
                 <xsl:with-param name="category" select="$category" tunnel="yes"/>
