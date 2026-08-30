@@ -1833,7 +1833,10 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
 }
 .parallax-nav:not(:has(.pchip)) { display: none; }
 .parallax-nav .plabel { display: inline-flex; align-items: center; color: var(--fg-muted); }
-.parallax-nav .pchips { display: flex; align-items: center; flex-wrap: wrap; gap: var(--sp-2); }
+/* the chips' host is a flex item of the row, so its max-content width pushes it off the label's line
+   as soon as the chips outgrow the row; dissolving it lets them wrap alongside the label the way the
+   facet pills wrap alongside their funnel (.ldh-view-toolbar .left > .facets does the same) */
+.parallax-nav .pchips { display: contents; }
 .parallax-nav .pchip {
   display: inline-flex; align-items: center; gap: 6px;
   height: 28px; padding: 0 12px;
