@@ -20,9 +20,11 @@ sef:
 # compile client.xsl to SEF. The output path is mounted in docker-compose.override.yml
 	npx xslt3-he -t -xsl:./target/ROOT/static/com/atomgraph/linkeddatahub/xsl/client.xsl -export:./target/ROOT/static/com/atomgraph/linkeddatahub/xsl/client.xsl.sef.json -nogo -ns:##html5 -relocate:on
 
-# Wipe local data directories (datasets, Fuseki, SSL certs, uploads) — irreversible!
+# Tear down the stack (including the Varnish cache volumes) and wipe local data
+# directories (datasets, Fuseki, SSL certs, uploads) — irreversible!
 drop:
-	@read -p "Are you sure? [y/N] " ans && [ "$$ans" = "y" ] && sudo rm -rf datasets fuseki ssl uploads || echo "Aborted."
+	@read -p "Are you sure? [y/N] " ans && [ "$$ans" = "y" ] || { echo "Aborted."; exit 0; }; \
+	docker-compose down -v && sudo rm -rf datasets fuseki ssl uploads
 
 # Generate server SSL certificate using the .env config
 cert:

@@ -35,7 +35,7 @@ make up                                      # Start all services
 make up -- --build                           # Rebuild images and start
 make up nginx                                # Start named services only
 docker-compose down -v                       # Stop and remove volumes
-sudo rm -rf data uploads && docker-compose down -v  # Complete reset
+make drop                                    # Complete reset (down -v, then wipe local dirs)
 ```
 
 ### Testing
