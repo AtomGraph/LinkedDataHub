@@ -1244,14 +1244,27 @@ WHERE
          has less viewport space below it than above, so it never opens into the nearer viewport edge -->
 
     <xsl:template match="*[contains-token(@class, 'btn-group')][*[contains-token(@class, 'dropdown-toggle')]]" mode="ixsl:onclick">
+        <xsl:variable name="group" select="." as="element()"/>
         <xsl:variable name="rect" select="ixsl:call(., 'getBoundingClientRect', [])"/>
         <xsl:variable name="drop-up" select="(ixsl:get(ixsl:window(), 'innerHeight') - ixsl:get($rect, 'bottom')) lt ixsl:get($rect, 'top')" as="xs:boolean"/>
         <xsl:variable name="open" select="not(contains-token(@class, 'open'))" as="xs:boolean"/>
+
+        <!-- one drop-down at a time: whichever group was open yields to this one -->
+        <xsl:apply-templates select="ixsl:page()//*[contains-token(@class, 'btn-group')][contains-token(@class, 'open')][not(. is $group)]" mode="ldh:CloseDropdown"/>
+
         <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'drop-up', $drop-up ])[current-date() lt xs:date('2000-01-01')]"/>
         <!-- 'open' is the CSR state token the handlers and bridge key on; 'is-open' mirrors it so
              app.css's native open-state rules (caret rotation, trigger hover) apply without bridging -->
         <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'open', $open ])[current-date() lt xs:date('2000-01-01')]"/>
         <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'is-open', $open ])[current-date() lt xs:date('2000-01-01')]"/>
+    </xsl:template>
+
+    <!-- dismisses an open drop-down by dropping the state tokens the toggle above sets. Applied from the
+         three places a drop-down stops being current: another one opens, a click lands outside it (the
+         body handler in view.xsl), or a menu pick mounts a modal (ldh:ShowModalForm) -->
+
+    <xsl:template match="*[contains-token(@class, 'btn-group')]" mode="ldh:CloseDropdown">
+        <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'remove', [ 'open', 'is-open' ])[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
 
     <xsl:template match="button[contains-token(@class, 'btn-delete')][not(contains-token(@class, 'disabled'))]" mode="ixsl:onclick">

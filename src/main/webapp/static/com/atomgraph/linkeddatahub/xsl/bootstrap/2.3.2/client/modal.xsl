@@ -142,7 +142,7 @@ LIMIT   10
                             </label>
                             <div class="controls">
                                 <span data-for-class="&dh;Container &dh;Item">
-                                    <input type="text" name="ou" id="remote-rdf-doc" class="resource-typeahead typeahead"/>
+                                    <input type="text" name="ou" id="remote-rdf-doc" class="resource-typeahead typeahead" autocomplete="off"/>
                                     <ul class="resource-typeahead typeahead dropdown-menu" id="ul-upload-rdf-doc" style="display: none;"></ul>
                                 </span>
 
@@ -1591,6 +1591,9 @@ LIMIT   10
     <xsl:template name="ldh:ShowModalForm">
         <xsl:param name="form" as="element()"/>
         <xsl:param name="target" as="element()"/>
+
+        <!-- the menu pick that reached here has served its purpose - the drop-down it came from closes behind the modal -->
+        <xsl:apply-templates select="ixsl:page()//*[contains-token(@class, 'btn-group')][contains-token(@class, 'open')]" mode="ldh:CloseDropdown"/>
 
         <!-- per-pane modal ids guarantee uniqueness, so the page-wide existence check suffices -->
         <xsl:if test="not(id($form/@id, ixsl:page()))">

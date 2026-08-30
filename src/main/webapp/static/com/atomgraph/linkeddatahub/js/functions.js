@@ -40,28 +40,3 @@ var ixslTemplateListener = function(eventName, map, olEvent)
     // no need to add event listeners here, that is done by IXSL
     document.dispatchEvent(event);
 };
-
-document.addEventListener("DOMContentLoaded", function()
-{
-    // turn off browser autocomplete for inputs with our own autocomplete
-    document.querySelectorAll("input.typeahead").forEach(function(input)
-    {
-        input.setAttribute("autocomplete", "off");
-    });
-
-    // close open dropdowns on outside click, and after picking a menu item.
-    // Deferred so it settles after the IXSL btn-group toggle that handles the same click.
-    document.body.addEventListener("click", function(event)
-    {
-        if (!document.querySelector(".btn-group.open")) return; // nothing open - skip the deferred scan
-
-        var pickedItem = event.target.closest(".ldh-add-menu, .ldh-of-menu, .modes-pop, .dropdown-menu");
-        setTimeout(function()
-        {
-            document.querySelectorAll(".btn-group.open").forEach(function(group)
-            {
-                if (!group.contains(event.target) || pickedItem) group.classList.remove("open", "is-open");
-            });
-        }, 0);
-    });
-});

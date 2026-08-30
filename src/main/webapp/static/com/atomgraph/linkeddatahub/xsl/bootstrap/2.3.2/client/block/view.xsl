@@ -2040,11 +2040,12 @@ exclude-result-prefixes="#all"
         </xsl:for-each>
     </xsl:template>
 
-    <!-- clicks that no other handler claims bubble up to body: dismiss any open facet and block links popovers -->
+    <!-- clicks that no other handler claims bubble up to body: dismiss any open facet and block links popovers, and any open drop-down -->
 
     <xsl:template match="body" mode="ixsl:onclick">
         <xsl:apply-templates select="ixsl:page()//div[contains-token(@class, 'faceted-nav')]/ul[contains-token(@class, 'facet-pop')][not(ixsl:style(.)?display = 'none')]" mode="ldh:CloseFacetPopover"/>
         <xsl:apply-templates select="ixsl:page()//div[contains-token(@class, 'links-nav')][contains-token(@class, 'is-open')]" mode="ldh:CloseLinksPopover"/>
+        <xsl:apply-templates select="ixsl:page()//*[contains-token(@class, 'btn-group')][contains-token(@class, 'open')]" mode="ldh:CloseDropdown"/>
     </xsl:template>
 
     <!-- clicks inside the popover (value checkboxes) stop here instead of bubbling to body and dismissing it -->
