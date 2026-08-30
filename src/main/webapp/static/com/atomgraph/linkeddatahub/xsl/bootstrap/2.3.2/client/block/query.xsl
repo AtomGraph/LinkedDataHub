@@ -291,37 +291,50 @@ exclude-result-prefixes="#all"
         <xsl:if test="not(id($results-container-id, ixsl:page()))">
             <!-- TO-DO: find a better solution. $container in ContentMode is the whole .content row but in ReadMode it's .main -->
             <xsl:for-each select="if ($container//div[contains-token(@class, 'main')]) then $container//div[contains-token(@class, 'main')] else $container">
-                <xsl:variable name="active-mode" select="xs:anyURI('&ac;ChartMode')" as="xs:anyURI"/>
+                <!-- View wraps the query into a DESCRIBE subquery and SPARQL only admits SELECT subqueries, so
+                     chart is the only mode a non-SELECT has - and a tablist of one has nothing to switch to -->
+                <xsl:variable name="show-tabs" select="boolean($query-string) and ancestor::*[@typeof][1]/@typeof = '&sp;Select'" as="xs:boolean"/>
+                <xsl:variable name="chart-tab-id" select="$block-id || '-chart-tab'" as="xs:string"/>
+                <xsl:variable name="view-tab-id" select="$block-id || '-view-tab'" as="xs:string"/>
+                <!-- built once: the tabs wrap it when there are tabs, otherwise it stands on its own -->
+                <xsl:variable name="results-container" as="element()">
+                    <div class="{$results-container-class || (if ($show-tabs) then ' ldhc-tabpanel' else ())}" id="{$results-container-id}" about="{$results-container-about}">
+                        <xsl:if test="$show-tabs">
+                            <xsl:attribute name="role" select="'tabpanel'"/>
+                            <!-- the tabs share this one panel, so its label follows whichever of them is active -->
+                            <xsl:attribute name="aria-labelledby" select="$chart-tab-id"/>
+                            <xsl:attribute name="tabindex" select="'0'"/>
+                        </xsl:if>
+                    </div>
+                </xsl:variable>
 
                 <xsl:result-document href="?." method="ixsl:append-content">
-                    <xsl:if test="$query-string">
-                        <ul class="nav nav-tabs nav-query-results">
-                            <li class="chart-mode">
-                                <xsl:if test="$active-mode = '&ac;ChartMode'">
-                                    <xsl:attribute name="class" select="'chart-mode active'"/>
-                                </xsl:if>
+                    <xsl:choose>
+                        <xsl:when test="$show-tabs">
+                            <div class="ldhc-tabs or-horizontal">
+                                <div class="ldhc-tablist sz-sm va-line query-results-tabs" role="tablist" aria-label="{ac:label(key('resources', '&ac;Mode', document(ac:document-uri('&ac;'))))}">
+                                    <button type="button" class="ldhc-tab chart-mode is-on" id="{$chart-tab-id}" role="tab" aria-selected="true" aria-controls="{$results-container-id}">
+                                        <span class="msi sm" aria-hidden="true">bar_chart</span>
+                                        <span class="ldhc-tab-lbl">
+                                            <xsl:apply-templates select="key('resources', '&ldh;Chart', document(ac:document-uri('&ldh;')))" mode="ac:label"/>
+                                        </span>
+                                    </button>
 
-                                <a>
-                                    <xsl:apply-templates select="key('resources', '&ldh;Chart', document(ac:document-uri('&ldh;')))" mode="ac:label"/>
-                                </a>
-                            </li>
-                            
-                            <!-- view mode only avaible for SELECT query results -->
-                            <xsl:if test="ancestor::*[@typeof][1]/@typeof = '&sp;Select'">
-                                <li class="view-mode">
-                                    <xsl:if test="$active-mode = '&ac;ViewMode'">
-                                        <xsl:attribute name="class" select="'view-mode active'"/>
-                                    </xsl:if>
+                                    <button type="button" class="ldhc-tab view-mode" id="{$view-tab-id}" role="tab" aria-selected="false" aria-controls="{$results-container-id}">
+                                        <span class="msi sm" aria-hidden="true">view_module</span>
+                                        <span class="ldhc-tab-lbl">
+                                            <xsl:apply-templates select="key('resources', '&ldh;View', document(ac:document-uri('&ldh;')))" mode="ac:label"/>
+                                        </span>
+                                    </button>
+                                </div>
 
-                                    <a>
-                                        <xsl:apply-templates select="key('resources', '&ldh;View', document(ac:document-uri('&ldh;')))" mode="ac:label"/>
-                                    </a>
-                                </li>
-                            </xsl:if>
-                        </ul>
-                    </xsl:if>
-
-                    <div class="{$results-container-class}" id="{$results-container-id}" about="{$results-container-about}"></div>
+                                <xsl:copy-of select="$results-container"/>
+                            </div>
+                        </xsl:when>
+                        <xsl:otherwise>
+                            <xsl:copy-of select="$results-container"/>
+                        </xsl:otherwise>
+                    </xsl:choose>
                 </xsl:result-document>
             </xsl:for-each>
         </xsl:if>
@@ -342,21 +355,38 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
 
+    <!-- move the active state onto the clicked tab. The design system component's roving tabindex and
+         arrow-key navigation are not ported: both buttons stay natural tab stops, so neither goes
+         keyboard-unreachable, and Enter reaches the ixsl:onclick rules below. -->
+
+    <xsl:template match="button[contains-token(@class, 'ldhc-tab')]" mode="ldh:ActivateTab">
+        <xsl:variable name="tab-id" select="@id" as="xs:string"/>
+
+        <!-- deactivate the other tabs. Excluding this one is not just tidiness: ixsl:call on classList
+             applies at once while ixsl:set-attribute is queued to the end of the transform, so clearing
+             this tab and then re-setting it would hang the outcome on the order updates are applied in. -->
+        <xsl:for-each select="../button except .">
+            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'is-on', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+            <ixsl:set-attribute name="aria-selected" select="'false'"/>
+        </xsl:for-each>
+        <!-- activate this tab -->
+        <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'is-on', true() ])[current-date() lt xs:date('2000-01-01')]"/>
+        <ixsl:set-attribute name="aria-selected" select="'true'"/>
+
+        <!-- the tabs share one panel, so its label follows the active tab -->
+        <xsl:for-each select="id(@aria-controls, ixsl:page())">
+            <ixsl:set-attribute name="aria-labelledby" select="$tab-id"/>
+        </xsl:for-each>
+    </xsl:template>
+
     <!-- toggle query results to chart mode (prioritize over view.xsl) -->
-    
-    <xsl:template match="ul[contains-token(@class, 'nav-tabs')][contains-token(@class, 'nav-query-results')]/li[contains-token(@class, 'chart-mode')][not(contains-token(@class, 'active'))]/a" mode="ixsl:onclick" priority="1">
+
+    <xsl:template match="div[contains-token(@class, 'query-results-tabs')]/button[contains-token(@class, 'chart-mode')][not(contains-token(@class, 'is-on'))]" mode="ixsl:onclick" priority="1">
         <xsl:variable name="container" select="ancestor::div[@typeof][1]" as="element()"/>
         <xsl:variable name="form" select="$container//form[contains-token(@class, 'sparql-query-form')]" as="element()"/>
 
-        <!-- deactivate other tabs -->
-        <xsl:for-each select="../../li">
-            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'active', false() ])[current-date() lt xs:date('2000-01-01')]"/>
-        </xsl:for-each>
-        <!-- activate this tab -->
-        <xsl:for-each select="..">
-            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'active', true() ])[current-date() lt xs:date('2000-01-01')]"/>
-        </xsl:for-each>
-        
+        <xsl:apply-templates select="." mode="ldh:ActivateTab"/>
+
         <xsl:sequence select="ldh:busy-cursor()"/>
         
         <xsl:variable name="view-container" select="$container//div[contains-token(@class, 'sparql-query-results')]" as="element()"/>
@@ -374,7 +404,7 @@ exclude-result-prefixes="#all"
     
     <!-- toggle query results to view mode (prioritize over view.xsl) -->
     
-    <xsl:template match="ul[contains-token(@class, 'nav-tabs')][contains-token(@class, 'nav-query-results')]/li[contains-token(@class, 'view-mode')][not(contains-token(@class, 'active'))]/a" mode="ixsl:onclick" priority="1">
+    <xsl:template match="div[contains-token(@class, 'query-results-tabs')]/button[contains-token(@class, 'view-mode')][not(contains-token(@class, 'is-on'))]" mode="ixsl:onclick" priority="1">
         <xsl:variable name="block" select="ancestor::div[contains-token(@class, 'block')][1]" as="element()"/>
         <xsl:variable name="container" select="ancestor::div[@typeof][1]" as="element()"/>
         <xsl:variable name="form" select="$container//form[contains-token(@class, 'sparql-query-form')]" as="element()"/>
@@ -399,15 +429,8 @@ exclude-result-prefixes="#all"
         </xsl:variable>
         <xsl:variable name="this" select="ancestor::div[@about][1]/@about" as="xs:anyURI"/> <!-- not the same as $block/@about! -->
 
-        <!-- deactivate other tabs -->
-        <xsl:for-each select="../../li">
-            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'active', false() ])[current-date() lt xs:date('2000-01-01')]"/>
-        </xsl:for-each>
-        <!-- activate this tab -->
-        <xsl:for-each select="..">
-            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'active', true() ])[current-date() lt xs:date('2000-01-01')]"/>
-        </xsl:for-each>
-        
+        <xsl:apply-templates select="." mode="ldh:ActivateTab"/>
+
         <xsl:sequence select="ldh:busy-cursor()"/>
                 
         <xsl:variable name="view-container" select="$container//div[contains-token(@class, 'sparql-query-results')]" as="element()"/>

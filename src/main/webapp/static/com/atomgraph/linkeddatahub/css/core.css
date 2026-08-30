@@ -584,3 +584,93 @@
 }
 .ldhc-toggletip-btn:hover { color: var(--fg-1); background: var(--bg-hover); }
 .ldhc-toggletip-btn:focus-visible { outline: 0; box-shadow: var(--focus-ring); }
+
+/* =========================================================================
+   Tabs — a tablist whose tabs own PANELS. (ContentSwitcher above is the
+   paneless segmented control; the app shell's .ldh-tabs is the dataspace
+   switcher.) Three variants: line (underline), enclosed (card), subtle (pill).
+   ========================================================================= */
+.ldhc-tabs { display: flex; flex-direction: column; min-width: 0; }
+.ldhc-tabs.or-vertical { flex-direction: row; gap: var(--sp-5); }
+
+.ldhc-tablist { display: flex; align-items: stretch; min-width: 0; }
+.ldhc-tabs.or-horizontal > .ldhc-tablist { overflow-x: auto; scrollbar-width: none; }
+.ldhc-tabs.or-horizontal > .ldhc-tablist::-webkit-scrollbar { display: none; }
+.ldhc-tabs.or-vertical > .ldhc-tablist { flex-direction: column; flex-shrink: 0; overflow-x: visible; }
+.ldhc-tablist.is-fitted { width: 100%; }
+.ldhc-tablist.is-fitted .ldhc-tab { flex: 1 1 0; justify-content: center; }
+
+.ldhc-tab {
+  display: inline-flex; align-items: center; gap: 7px;
+  border: 0; background: transparent; cursor: pointer; white-space: nowrap;
+  font-family: var(--font-sans); font-weight: var(--fw-medium); color: var(--fg-muted);
+  box-sizing: border-box; position: relative;
+  transition: color var(--dur-fast) var(--ease-out-soft),
+              background var(--dur-fast) var(--ease-out-soft),
+              border-color var(--dur-fast) var(--ease-out-soft);
+}
+.ldhc-tablist.sz-sm .ldhc-tab { height: 32px; padding: 0 12px; font-size: var(--fs-sm); }
+.ldhc-tablist.sz-md .ldhc-tab { height: 40px; padding: 0 16px; font-size: var(--fs-sm); }
+.ldhc-tablist.sz-lg .ldhc-tab { height: 48px; padding: 0 20px; font-size: var(--fs-base); }
+.ldhc-tab:hover:not(:disabled) { color: var(--fg-1); }
+.ldhc-tab:focus-visible { outline: 0; box-shadow: var(--focus-ring); border-radius: var(--r-sm); z-index: 1; }
+.ldhc-tab:disabled { color: var(--ink-5); cursor: not-allowed; }
+.ldhc-tab-lbl { overflow: hidden; text-overflow: ellipsis; }
+.ldhc-tab-count {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 18px; height: 18px; padding: 0 5px;
+  border-radius: var(--r-pill); background: var(--surface-3); color: var(--fg-muted);
+  font-family: var(--font-mono); font-size: 10px; font-weight: var(--fw-semibold);
+}
+.ldhc-tab.is-on .ldhc-tab-count { background: var(--bg-accent-quiet); color: var(--fg-selected); }
+
+/* line — the default. An underline on the active tab, a rule under the list. */
+.ldhc-tablist.va-line { border-bottom: 1px solid var(--border-default); gap: var(--sp-1); }
+.ldhc-tabs.or-vertical .ldhc-tablist.va-line {
+  border-bottom: 0; border-right: 1px solid var(--border-default);
+}
+.ldhc-tablist.va-line .ldhc-tab::after {
+  content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 2px;
+  background: transparent; border-radius: 2px 2px 0 0;
+  transition: background var(--dur-fast) var(--ease-out-soft);
+}
+.ldhc-tabs.or-vertical .ldhc-tablist.va-line .ldhc-tab {
+  justify-content: flex-start;
+}
+.ldhc-tabs.or-vertical .ldhc-tablist.va-line .ldhc-tab::after {
+  left: auto; right: -1px; top: 0; bottom: 0; width: 2px; height: auto;
+  border-radius: 2px 0 0 2px;
+}
+.ldhc-tablist.va-line .ldhc-tab.is-on { color: var(--fg-selected); }
+/* The indicator uses --fg-selected rather than --bg-accent: a skin whose accent
+   is a pale fill (base44's highlighter) would vanish as a 2px rule. */
+.ldhc-tablist.va-line .ldhc-tab.is-on::after { background: var(--fg-selected); }
+
+/* enclosed — card tabs sitting on the list rule. */
+.ldhc-tablist.va-enclosed { border-bottom: 1px solid var(--border-default); gap: 2px; }
+.ldhc-tablist.va-enclosed .ldhc-tab {
+  border: 1px solid transparent; border-bottom: 0;
+  border-radius: var(--r-md) var(--r-md) 0 0; margin-bottom: -1px;
+}
+.ldhc-tablist.va-enclosed .ldhc-tab:hover:not(:disabled):not(.is-on) { background: var(--bg-hover); }
+.ldhc-tablist.va-enclosed .ldhc-tab.is-on {
+  background: var(--surface-0); border-color: var(--border-default);
+  color: var(--fg-1); padding-bottom: 1px;
+}
+
+/* subtle — a pill track, matching the segmented control's resting language. */
+.ldhc-tablist.va-subtle {
+  gap: 2px; padding: 3px; align-self: flex-start;
+  background: var(--surface-2); border: 1px solid var(--border-default);
+  border-radius: var(--r-md);
+}
+.ldhc-tablist.va-subtle .ldhc-tab { border-radius: var(--r-sm); }
+.ldhc-tablist.va-subtle .ldhc-tab:hover:not(:disabled):not(.is-on) { background: var(--bg-hover); }
+.ldhc-tablist.va-subtle .ldhc-tab.is-on {
+  background: var(--surface-0); color: var(--fg-selected); box-shadow: var(--shadow-xs);
+}
+
+.ldhc-tabpanel { padding-top: var(--sp-4); min-width: 0; flex: 1; }
+.ldhc-tabpanel:focus-visible { outline: 0; box-shadow: var(--focus-ring); border-radius: var(--r-sm); }
+.ldhc-tabs.or-vertical .ldhc-tabpanel { padding-top: 0; }
+.ldhc-tabpanel[hidden] { display: none; }
