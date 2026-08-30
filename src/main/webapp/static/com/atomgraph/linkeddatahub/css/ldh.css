@@ -75,6 +75,8 @@ div[typeof="https://w3id.org/atomgraph/linkeddatahub#XHTML"] .ldh-prop-form .con
 div[typeof="https://w3id.org/atomgraph/linkeddatahub#XHTML"] form fieldset { border: none; }
 object { display: block; margin: auto; max-height: 400px; overflow: hidden; width: 100%; }
 .chart-canvas { width: 100%; height: 400px; }
+/* an empty result set replaces the plot with the block empty state, which would otherwise sit stranded above 400px of nothing; its own padding supplies the inset the canvas would add */
+.chart-canvas:has(> .ldh-block-blank) { height: auto; padding: 0; }
 /* Google Charts Table specific (the ac:Table chart type renders as HTML, skinned here rather than via draw options) */
 .chart-canvas .google-visualization-table-table { font-family: var(--font-sans); font-size: var(--fs-sm); color: var(--fg-1); }
 .chart-canvas .google-visualization-table-table th { background: var(--surface-1); color: var(--fg-muted); font-weight: var(--fw-semibold); border-color: var(--border-default); }

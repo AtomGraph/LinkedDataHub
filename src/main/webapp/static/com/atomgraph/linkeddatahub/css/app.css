@@ -1676,6 +1676,21 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
   color: var(--fg-muted); white-space: pre-wrap; word-break: break-word;
 }
 
+/* Empty body: literal, quiet, with the one action that resolves it. Per the
+   copy rules — "No results." not "Nothing here yet 👀". The action row is
+   optional: a chart block has no filters to clear, so it renders message-only.
+   Unlike the failed state, an empty block gets no ring — a query that matched
+   nothing is an answer, not a fault, and nothing needs finding in a long
+   document. */
+.ldh-block-blank {
+  display: flex; flex-direction: column; align-items: center; gap: var(--sp-2);
+  padding: var(--sp-8) var(--sp-4); text-align: center;
+}
+.ldh-block-blank > .msi { font-size: 28px; color: var(--ink-5); }
+.ldh-block-blank .bb-msg { font-size: var(--fs-base); color: var(--fg-2); font-weight: var(--fw-medium); }
+.ldh-block-blank .bb-sub { font-size: var(--fs-sm); color: var(--fg-hint); max-width: 46ch; line-height: var(--lh-base); }
+.ldh-block-blank .bb-act { margin-top: var(--sp-2); }
+
 /* ---------- View-block toolbar (facets / sort / count, sits inside .ldh-block between head and body) ---------- */
 .ldh-view-toolbar {
   display: flex; align-items: center; gap: var(--sp-2);

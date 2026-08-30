@@ -170,14 +170,36 @@ exclude-result-prefixes="#all"
         <xsl:param name="category" as="xs:string?"/>
         <xsl:param name="series" as="xs:string*"/>
         
-        <xsl:call-template name="ac:draw-chart">
-            <xsl:with-param name="data-table" select="$data-table"/>
-            <xsl:with-param name="canvas-id" select="$canvas-id"/>
-            <xsl:with-param name="chart-type" select="$chart-type"/>
-            <xsl:with-param name="category" select="$category"/>
-            <xsl:with-param name="series" select="$series"/>
-            <xsl:with-param name="height" select="400"/>
-        </xsl:call-template>
+        <xsl:choose>
+            <!-- a result set with no rows has nothing to chart, and Google Charts validates column types whether or not there are rows to draw: a variable bound in no result types as a string, which it refuses on a value axis, so the absence of data was reported as a datatype error -->
+            <xsl:when test="xs:double(ixsl:call($data-table, 'getNumberOfRows', [])) = 0">
+                <xsl:variable name="translations" select="document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin))" as="document-node()"/>
+
+                <xsl:for-each select="id($canvas-id, ixsl:page())">
+                    <xsl:result-document href="?." method="ixsl:replace-content">
+                        <div class="ldh-block-blank" role="status">
+                            <span class="msi outline" aria-hidden="true">inbox</span>
+                            <span class="bb-msg">
+                                <xsl:apply-templates select="key('resources', 'no-results', $translations)" mode="ac:label"/>
+                            </span>
+                            <span class="bb-sub">
+                                <xsl:apply-templates select="key('resources', 'no-results-explanation', $translations)" mode="ac:label"/>
+                            </span>
+                        </div>
+                    </xsl:result-document>
+                </xsl:for-each>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:call-template name="ac:draw-chart">
+                    <xsl:with-param name="data-table" select="$data-table"/>
+                    <xsl:with-param name="canvas-id" select="$canvas-id"/>
+                    <xsl:with-param name="chart-type" select="$chart-type"/>
+                    <xsl:with-param name="category" select="$category"/>
+                    <xsl:with-param name="series" select="$series"/>
+                    <xsl:with-param name="height" select="400"/>
+                </xsl:call-template>
+            </xsl:otherwise>
+        </xsl:choose>
     </xsl:template>
     
     <!-- render chart block -->
