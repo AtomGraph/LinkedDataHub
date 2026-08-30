@@ -1,3 +1,9 @@
+## [Unreleased]
+### Fixed
+- `release.sh` published to Maven Central before its `git checkout master`, so a failed checkout left 5.10.0 on Central with no tag: the switches are now proven possible first, and once published the trap prints recovery steps instead of deleting the tag that records what was published
+- `release.sh`'s clean check could not see `skip-worktree`/`assume-unchanged` files — git reports them as matching the index whatever is on disk, while a branch switch refuses to overwrite them; they are now warned about at startup and checked precisely before publishing
+- `release.sh` derived the release and snapshot commits positionally (`git log -2`), which breaks as soon as anything else commits in between; they are derived from an anchor taken before `release:prepare`
+
 ## [5.10.0] - 2026-08-30
 ### Added
 - `ldh` command line interface (`cli/`): a standalone picocli/Jena port of the `bin/` HTTP API scripts — one command per script with the same option names, `bin/` subdirectories as nested subcommand groups, PKCS12 WebID keystore authentication, env-var defaults and a shaded executable jar

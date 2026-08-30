@@ -23,6 +23,9 @@ print_error() {
 
 # Track if release completed successfully
 RELEASE_SUCCESSFUL=false
+# Set once release:perform has deployed. Publishing to Maven Central cannot be undone, so past this
+# point the local git state is the only record of what was published and must not be thrown away.
+PUBLISHED=false
 
 # Trap handler for automatic cleanup on failure
 cleanup_on_failure() {
@@ -30,6 +33,17 @@ cleanup_on_failure() {
 
     # Only clean up if release failed (non-zero exit) and wasn't successful
     if [ $exit_code -ne 0 ] && [ "$RELEASE_SUCCESSFUL" = false ]; then
+        if [ "$PUBLISHED" = true ]; then
+            print_error "Release failed AFTER publishing $RELEASE_VERSION to Maven Central."
+            print_error "Not rolling back: the tag and commits are the only record of what was published."
+            print_error "Finish by hand from the current state:"
+            print_error "  git checkout master && git merge --no-ff $RELEASE_TAG^{commit} -m \"Release version $RELEASE_VERSION\""
+            print_error "  git push origin master && git push origin $RELEASE_TAG"
+            print_error "  git checkout develop && git merge --no-ff $RELEASE_BRANCH -m \"Post-release version bump\""
+            print_error "  git push origin develop"
+            exit $exit_code
+        fi
+
         print_error "Release failed! Rolling back changes..."
 
         # Clean up Maven release artifacts
@@ -48,7 +62,7 @@ cleanup_on_failure() {
             git branch -D "$RELEASE_BRANCH" 2>/dev/null || true
         fi
 
-        print_status "Rollback complete. You're back on develop branch."
+        print_status "Rollback complete. You're back on develop branch. Nothing was published."
         exit $exit_code
     fi
 }
@@ -72,6 +86,24 @@ fi
 if ! git diff-index --quiet HEAD --; then
     print_error "Working directory is not clean. Please commit or stash changes first."
     exit 1
+fi
+
+# git diff-index above cannot see files marked skip-worktree or assume-unchanged: git reports them as
+# matching the index no matter what is on disk. A branch switch is not so forgiving - it refuses to
+# overwrite one whose content has diverged, which is how a release once died on `git checkout master`
+# after Maven Central had already been published to.
+DIVERGED_HIDDEN=$(git ls-files -v | grep -vE '^H ' | cut -c3- | while read -r file; do
+    [ -e "$file" ] || continue
+    [ "$(git hash-object "$file")" = "$(git rev-parse "HEAD:$file" 2>/dev/null)" ] || echo "  $file"
+done)
+
+# Only a warning: keeping local config out of commits this way is deliberate and usually harmless.
+# It becomes fatal solely when such a file also differs between the branches being switched between,
+# which assert_can_switch_to checks precisely, right before the irreversible step.
+if [ -n "$DIVERGED_HIDDEN" ]; then
+    print_warning "Hidden from git status (skip-worktree/assume-unchanged) but differing from HEAD:"
+    echo "$DIVERGED_HIDDEN" >&2
+    print_warning "Harmless unless one also differs between develop and master - checked before publishing."
 fi
 
 # Check if GPG is installed and configured
@@ -144,29 +176,57 @@ if git tag -l | grep -q "^$RELEASE_TAG$"; then
     fi
 fi
 
-# Align the CLI before release:prepare, so its version is already correct in the commit that gets
-# tagged - and so the two commits release:prepare adds stay the last two, which the merge below reads
-# by position
+# Align the CLI before release:prepare, so its version is already correct in the commit that gets tagged
 sync_cli_version "$RELEASE_VERSION"
+
+# Anchor for deriving the commits release:prepare is about to add. Reading them back positionally
+# (git log -2) breaks the moment anything else commits in between.
+PREPARE_BASE=$(git rev-parse HEAD)
 
 # Configure Maven release plugin to not push changes automatically
 mvn release:clean release:prepare -DpushChanges=false -DlocalCheckout=true
 
-print_status "Performing Maven release (deploying to Sonatype)..."
-mvn release:perform -DlocalCheckout=true
-
-# Capture the commit hashes
-RELEASE_COMMIT=$(git log --oneline -2 --pretty=format:"%H" | tail -1)
-SNAPSHOT_COMMIT=$(git log --oneline -1 --pretty=format:"%H")
+# release:prepare adds the release commit and then the next-development commit on top of PREPARE_BASE
+RELEASE_COMMIT=$(git rev-list --ancestry-path "$PREPARE_BASE"..HEAD | tail -1)
+SNAPSHOT_COMMIT=$(git rev-parse HEAD)
 
 print_status "Release commit: $RELEASE_COMMIT"
 print_status "Development commit (SNAPSHOT bump): $SNAPSHOT_COMMIT"
 
 # Follow the platform onto the next development version. Deliberately after the two hashes are
-# captured: it adds a commit on top, and both are read by position. Master merges $RELEASE_COMMIT
-# alone so it does not go there, develop merges the whole branch so it does.
+# captured, so it does not land between $PREPARE_BASE and the commits derived from it. Master merges
+# $RELEASE_COMMIT alone so it does not go there, develop merges the whole branch so it does.
 NEXT_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
 sync_cli_version "$NEXT_VERSION"
+
+# Everything below release:perform is unwindable; release:perform itself is not - Maven Central does
+# not take artifacts back. So prove the branch switches it is followed by can actually happen while
+# failing is still free. This is git's own checkout refusal condition: a file that differs between
+# the branches, whose working-tree copy differs from HEAD.
+assert_can_switch_to() {
+    local target="$1" blocked="" file
+
+    # process substitution, not a pipe: a `while read` on the right of a pipe runs in a subshell,
+    # where the exit below would only kill the subshell and let the release carry on regardless
+    while read -r file; do
+        [ -e "$file" ] || continue
+        [ "$(git hash-object "$file")" = "$(git rev-parse "HEAD:$file" 2>/dev/null)" ] || blocked+="  $file"$'\n'
+    done < <(git diff --name-only HEAD "$target")
+
+    if [ -n "$blocked" ]; then
+        print_error "Cannot switch to '$target' - these files would be overwritten:"
+        printf '%s' "$blocked" >&2
+        print_error "Aborting before publishing to Maven Central, which cannot be undone."
+        exit 1
+    fi
+}
+
+assert_can_switch_to master
+assert_can_switch_to develop
+
+print_status "Performing Maven release (deploying to Sonatype)..."
+mvn release:perform -DlocalCheckout=true
+PUBLISHED=true
 
 # Switch to master and merge only the release commit
 print_status "Merging release commit to master branch..."
