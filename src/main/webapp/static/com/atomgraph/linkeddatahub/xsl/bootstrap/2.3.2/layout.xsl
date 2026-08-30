@@ -93,7 +93,6 @@ exclude-result-prefixes="#all">
     <xsl:import href="imports/sioc.xsl"/>
     <xsl:import href="imports/sp.xsl"/>
     <xsl:import href="imports/sh.xsl"/>
-    <xsl:import href="imports/lapp.xsl"/>
     <xsl:import href="imports/memento.xsl"/>
     <xsl:import href="imports/services/youtube.xsl"/>
     <xsl:import href="document.xsl"/>
@@ -932,20 +931,8 @@ WHERE
             </xsl:try>
         </xsl:variable>
 
-        <xsl:variable name="triples-original" as="map(xs:string, element())">
-            <xsl:map>
-                <xsl:for-each select="$original-doc/rdf:RDF/rdf:Description/*">
-                    <xsl:map-entry key="concat(../@rdf:about, '|', ../@rdf:nodeID, '|', namespace-uri(), local-name(), '|', @rdf:resource, @rdf:nodeID, if (text() castable as xs:float) then xs:float(text()) else text(), '|', @rdf:datatype, @xml:lang)" select="."/>
-                </xsl:for-each>
-            </xsl:map>
-        </xsl:variable>
-        <xsl:variable name="triples-local" as="map(xs:string, element())">
-            <xsl:map>
-                <xsl:for-each select="$local-doc/rdf:RDF/rdf:Description/*">
-                    <xsl:map-entry key="concat(../@rdf:about, '|', ../@rdf:nodeID, '|', namespace-uri(), local-name(), '|', @rdf:resource, @rdf:nodeID, if (text() castable as xs:float) then xs:float(text()) else text(), '|', @rdf:datatype, @xml:lang)" select="."/>
-                </xsl:for-each>
-            </xsl:map>
-        </xsl:variable>
+        <xsl:variable name="triples-original" select="ldh:triples-map($original-doc, true())" as="map(xs:string, element())"/>
+        <xsl:variable name="triples-local" select="ldh:triples-map($local-doc, true())" as="map(xs:string, element())"/>
 
         <xsl:variable name="properties-original" select="for $triple-key in ac:value-except(map:keys($triples-original), map:keys($triples-local)) return map:get($triples-original, $triple-key)" as="element()*"/>
         <xsl:if test="exists($properties-original)">

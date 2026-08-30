@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+
+# Launcher for the LinkedDataHub CLI.
+#
+# The default JVM flags trade peak throughput for startup time: a command is a short-lived
+# process that exits long before C2 could pay for itself, and it spends most of its life
+# waiting on HTTP. The http-tests suite pays this cost 260 times per run.
+#
+# LDH_JAVA_OPTS replaces the defaults outright - it is not appended, so a different collector
+# does not collide with the one set here.
+
+dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# LDH_JAR wins; otherwise the jar beside the launcher (release archive layout), then the one
+# `mvn package` writes (source checkout layout)
+
+if [ -n "${LDH_JAR:-}" ]; then jar="$LDH_JAR"
+elif [ -f "$dir/ldh.jar" ]; then jar="$dir/ldh.jar"
+else jar="$dir/../target/ldh.jar"
+fi
+
+if [ ! -f "$jar" ]; then
+    echo >&2 "ldh jar not found at $jar. Build it with 'make cli' (or 'mvn package' in cli/), or point LDH_JAR at one."
+    exit 1
+fi
+
+# shellcheck disable=SC2086 # unquoted on purpose: the flags must word-split
+exec java ${LDH_JAVA_OPTS:--XX:TieredStopAtLevel=1 -XX:+UseSerialGC} -jar "$jar" "$@"

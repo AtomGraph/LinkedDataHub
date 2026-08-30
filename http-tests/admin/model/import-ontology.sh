@@ -15,33 +15,39 @@ import_uri="http://www.w3.org/2004/02/skos/core"
 
 slug="test"
 
-item=$(create-item.sh \
-  -f "$OWNER_CERT_FILE" \
+item=$(ldh create-item \
+  -f "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   -b "$ADMIN_BASE_URL" \
   --title "Test" \
   --slug "$slug" \
   --container "${ADMIN_BASE_URL}ontologies/")
 
-# import the ontology into the item document and derive class constructors from it
+# import the ontology: derive class constructors into the item document; the vocabulary itself only
+# passes through a scratch document and is not persisted
 
-import-ontology.sh \
-  -f "$OWNER_CERT_FILE" \
+ldh admin ontologies import-ontology \
+  -f "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   -b "$ADMIN_BASE_URL" \
   --source "$import_uri" \
   --graph "$item"
 
-# check that the item graph holds the raw ontology, using a query scoped to it via the SPARQL Protocol dataset specification
+# check that the item graph does NOT hold the raw vocabulary, using a query scoped to it via the
+# SPARQL Protocol dataset specification
 
-curl -k -f -s \
+result=$(curl -k -f -s \
   -G \
   -E "$OWNER_CERT_FILE":"$OWNER_CERT_PWD" \
   -H 'Accept: application/sparql-results+xml' \
   --data-urlencode "query=SELECT * { <${import_uri}> ?p ?o }" \
   --data-urlencode "default-graph-uri=${item}" \
-  "${ADMIN_BASE_URL}sparql" \
-| grep '<literal xml:lang="en">SKOS Vocabulary</literal>' > /dev/null
+  "${ADMIN_BASE_URL}sparql")
+count=$(echo "$result" | xmllint --xpath "count(//*[local-name() = 'result'])" -)
+if [ "$count" != "0" ]; then
+  echo "DEBUG: Expected 0 raw vocabulary triples in the item graph, got: $count"
+  exit 1
+fi
 
 # check that constructors were derived into the item graph
 
@@ -54,26 +60,36 @@ curl -k -f -s \
   "${ADMIN_BASE_URL}sparql" \
 | grep '<result>' > /dev/null
 
-# add ontology import
+# check that the item carries the annotation-ontology header importing the source vocabulary
 
-add-ontology-import.sh \
-  -f "$OWNER_CERT_FILE" \
+curl -k -f -s \
+  -G \
+  -E "$OWNER_CERT_FILE":"$OWNER_CERT_PWD" \
+  -H 'Accept: application/sparql-results+xml' \
+  --data-urlencode "query=SELECT * { <${item}> a <http://www.w3.org/2002/07/owl#Ontology> ; <http://www.w3.org/2002/07/owl#imports> <${import_uri}> }" \
+  --data-urlencode "default-graph-uri=${item}" \
+  "${ADMIN_BASE_URL}sparql" \
+| grep '<result>' > /dev/null
+
+# make the annotation document part of the application ontology (the vocabulary rides in via the
+# document's own owl:imports)
+
+ldh admin add-ontology-import \
+  -f "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
-  --import "$import_uri" \
+  --import "$item" \
   "$ontology_doc"
 
 # clear the namespace ontology from memory
 
-clear-ontology.sh \
-  -f "$OWNER_CERT_FILE" \
+ldh admin clear-ontology \
+  -f "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   -b "$ADMIN_BASE_URL" \
   --ontology "$namespace"
 
-# check that the imported ontology is present in the ontology model TO-DO: replace with an ASK query when #118 is fixed
-# (SKOS is a bundled vocabulary: OntologyRepository serves the shipped file authoritatively, so the closure carries
-# its terms but not the constructors derived into the local document — those reach the closure only for
-# ontologies that are not bundled. The constructor derivation itself is asserted on the document graph above.)
+# check that the vocabulary is present in the ontology closure (resolved through the graph
+# repository - SKOS is a bundled vocabulary - via the annotation document's owl:imports)
 
 curl -k -f -s \
   -G \
@@ -82,3 +98,14 @@ curl -k -f -s \
   --data-urlencode "query=SELECT * { <${import_uri}> ?p ?o }" \
   "$namespace_doc" \
 | grep '<literal xml:lang="en">SKOS Vocabulary</literal>' > /dev/null
+
+# check that the derived constructors reached the closure too - impossible under the old model for
+# bundled vocabularies, where the shipped file shadowed the local copy that held the constructors
+
+curl -k -f -s \
+  -G \
+  -E "$OWNER_CERT_FILE":"$OWNER_CERT_PWD" \
+  -H 'Accept: application/sparql-results+xml' \
+  --data-urlencode "query=SELECT * { <http://www.w3.org/2004/02/skos/core#Concept> <http://spinrdf.org/spin#constructor> ?constructor }" \
+  "$namespace_doc" \
+| grep '<result>' > /dev/null

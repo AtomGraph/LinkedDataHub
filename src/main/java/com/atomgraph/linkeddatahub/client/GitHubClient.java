@@ -61,6 +61,10 @@ public class GitHubClient
     public static final String AUTHOR_EMAIL = "noreply@linkeddatahub.invalid";
     /** Maximum retries on rate-limited requests */
     public static final int MAX_RETRIES = 2;
+    /** Commits requested per page when walking a file's history */
+    public static final int COMMITS_PER_PAGE = 100;
+    /** Maximum history pages retrieved, bounding the API calls a single TimeMap request can make */
+    public static final int MAX_COMMIT_PAGES = 10;
 
     private final WebTarget endpoint;
     private final String authorization;
@@ -184,32 +188,48 @@ public class GitHubClient
 
     /**
      * Lists commits that touched a file on the branch, most recent first.
+     * Pages through the history so the result is the file's complete history, up to
+     * {@link #MAX_COMMIT_PAGES} pages.
      *
      * @param path file path within the repository
-     * @return commit list (up to 100), empty if the file has no history
+     * @return commit list, empty if the file has no history
      */
     public List<CommitInfo> listCommits(String path)
     {
-        try (Response response = invoke(() -> endpoint.path("repos/{owner}/{repo}/commits").
-                queryParam("path", path).
-                queryParam("sha", branch).
-                queryParam("per_page", 100).
-                resolveTemplate("owner", owner).resolveTemplate("repo", repo).
-                request(GITHUB_JSON).
-                header(HttpHeaders.AUTHORIZATION, authorization).
-                buildGet()))
-        {
-            if (response.getStatus() != Response.Status.OK.getStatusCode()) return List.of();
+        List<CommitInfo> commits = new ArrayList<>();
 
-            List<CommitInfo> commits = new ArrayList<>();
-            for (JsonValue value : response.readEntity(JsonArray.class))
+        for (int page = 1; page <= MAX_COMMIT_PAGES; page++)
+        {
+            final int currentPage = page;
+            try (Response response = invoke(() -> endpoint.path("repos/{owner}/{repo}/commits").
+                    queryParam("path", path).
+                    queryParam("sha", branch).
+                    queryParam("per_page", COMMITS_PER_PAGE).
+                    queryParam("page", currentPage).
+                    resolveTemplate("owner", owner).resolveTemplate("repo", repo).
+                    request(GITHUB_JSON).
+                    header(HttpHeaders.AUTHORIZATION, authorization).
+                    buildGet()))
             {
-                JsonObject commit = value.asJsonObject();
-                JsonObject author = commit.getJsonObject("commit").getJsonObject("author");
-                commits.add(new CommitInfo(commit.getString("sha"), Instant.parse(author.getString("date")), author.getString("name")));
+                if (response.getStatus() != Response.Status.OK.getStatusCode()) return commits;
+
+                JsonArray array = response.readEntity(JsonArray.class);
+                for (JsonValue value : array)
+                {
+                    JsonObject commit = value.asJsonObject();
+                    JsonObject author = commit.getJsonObject("commit").getJsonObject("author");
+                    commits.add(new CommitInfo(commit.getString("sha"), Instant.parse(author.getString("date")), author.getString("name")));
+                }
+
+                if (array.size() < COMMITS_PER_PAGE) return commits; // last page
             }
-            return commits;
         }
+
+        // the history is longer than we retrieve, so the oldest commit returned is not the file's first
+        if (log.isWarnEnabled()) log.warn("History of '{}' in {}/{} exceeds {} commits, TimeMap is truncated to the most recent ones",
+            path, owner, repo, MAX_COMMIT_PAGES * COMMITS_PER_PAGE);
+
+        return commits;
     }
 
     /**

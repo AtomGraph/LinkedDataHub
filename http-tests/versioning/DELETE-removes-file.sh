@@ -17,8 +17,8 @@ purge_cache "$FRONTEND_VARNISH_SERVICE"
 
 # add agent to the writers group
 
-add-agent-to-group.sh \
-  -f "$OWNER_CERT_FILE" \
+ldh admin acl add-agent-to-group \
+  -f "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   --agent "$AGENT_URI" \
   "${ADMIN_BASE_URL}acl/groups/writers/"
@@ -31,29 +31,29 @@ path="${VERSIONING_PATH_PREFIX:-graphs}/${slug}.nt"
 
 echo "<${doc_url}> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.w3.org/ns/ldt/document-hierarchy#Item> .
 <${doc_url}> <http://purl.org/dc/terms/title> \"To be deleted\" ." | \
-  put.sh \
-    -f "$AGENT_CERT_FILE" \
+  ldh put \
+    -f "$AGENT_CERT_KEYSTORE" \
     -p "$AGENT_CERT_PWD" \
     -t "application/n-triples" \
     "$doc_url"
 
 for i in $(seq 1 30); do
-    if gh api "repos/${VERSIONING_TEST_REPO}/contents/${path}?ref=main" > /dev/null 2>&1; then
+    if gh api "repos/${VERSIONING_TEST_REPO}/contents/${path}?ref=${VERSIONING_TEST_BRANCH:-main}" > /dev/null 2>&1; then
         break
     fi
     sleep 1
 done
-gh api "repos/${VERSIONING_TEST_REPO}/contents/${path}?ref=main" > /dev/null
+gh api "repos/${VERSIONING_TEST_REPO}/contents/${path}?ref=${VERSIONING_TEST_BRANCH:-main}" > /dev/null
 
 # delete the document and check that the file disappears
 
-delete.sh \
-  -f "$AGENT_CERT_FILE" \
+ldh delete \
+  -f "$AGENT_CERT_KEYSTORE" \
   -p "$AGENT_CERT_PWD" \
   "$doc_url"
 
 for i in $(seq 1 30); do
-    if ! gh api "repos/${VERSIONING_TEST_REPO}/contents/${path}?ref=main" > /dev/null 2>&1; then
+    if ! gh api "repos/${VERSIONING_TEST_REPO}/contents/${path}?ref=${VERSIONING_TEST_BRANCH:-main}" > /dev/null 2>&1; then
         exit 0
     fi
     sleep 1

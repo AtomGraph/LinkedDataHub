@@ -17,7 +17,7 @@
 package com.atomgraph.linkeddatahub;
 
 import com.atomgraph.client.util.jena.PrefixGraphRepository;
-import com.atomgraph.client.util.StylesheetResolver;
+import com.atomgraph.linkeddatahub.server.util.LocalStylesheetResolver;
 import com.atomgraph.linkeddatahub.writer.impl.SameSiteSourceResolver;
 import com.atomgraph.linkeddatahub.server.util.OntologyRepository;
 import org.apache.jena.riot.RDFParser;
@@ -75,6 +75,7 @@ import com.atomgraph.linkeddatahub.io.HtmlJsonLDReaderFactory;
 import com.atomgraph.linkeddatahub.io.SchemaOrgDocumentLoader;
 import com.atomgraph.linkeddatahub.listener.EMailListener;
 import com.atomgraph.linkeddatahub.writer.ModelXSLTWriter;
+import com.atomgraph.linkeddatahub.writer.TimeMapWriter;
 import com.atomgraph.linkeddatahub.model.Import;
 import com.atomgraph.linkeddatahub.model.RDFImport;
 import com.atomgraph.linkeddatahub.model.UserAccount;
@@ -134,6 +135,7 @@ import com.atomgraph.server.mapper.jena.RiotExceptionMapper;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import org.apache.jena.enhanced.BuiltinPersonalities;
+import org.apache.jena.ontology.ConversionException;
 import org.apache.jena.riot.RDFParserRegistry;
 import org.slf4j.Logger;
 import java.net.URI;
@@ -182,6 +184,7 @@ import java.security.MessageDigest;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.TreeMap;
 import java.util.concurrent.ExecutorService;
@@ -256,12 +259,6 @@ public class Application extends ResourceConfig
 {
 
     private static final Logger log = LoggerFactory.getLogger(Application.class);
-
-    /**
-     * Path to the master XSLT stylesheet for server-side transformations.
-     * Package stylesheets are imported into this master stylesheet.
-     */
-    public static final String MASTER_STYLESHEET_PATH = "/static/xsl/layout.xsl";
 
     private final ExecutorService importThreadPool;
     private final ServletConfig servletConfig;
@@ -860,7 +857,7 @@ public class Application extends ResourceConfig
             
             xsltComp = xsltProc.newXsltCompiler();
             xsltComp.setParameter(new QName("ldh", LDH.base.getNameSpace(), LDH.base.getLocalName()), new XdmAtomicValue(baseURI));
-            xsltComp.setURIResolver(new StylesheetResolver(client)); // resolves xsl:import to raw stylesheet sources
+            xsltComp.setURIResolver(new LocalStylesheetResolver(this, servletConfig.getServletContext(), client)); // resolves xsl:import to raw stylesheet sources, app-origin /static/ URLs locally
             xsltExec = xsltComp.compile(stylesheet);
         }
         catch (FileNotFoundException ex)
@@ -929,6 +926,7 @@ public class Application extends ResourceConfig
         register(new UpdateRequestProvider());
         register(new ModelXSLTWriter(getXsltExecutable(), getResolver(), getMessageDigest())); // writes (X)HTML responses
         register(new ResultSetXSLTWriter(getXsltExecutable(), getResolver(), getMessageDigest())); // writes (X)HTML responses
+        register(new TimeMapWriter()); // writes link-format TimeMap responses
 
         final com.atomgraph.linkeddatahub.Application system = this;
         register(new AbstractBinder()
@@ -1107,7 +1105,6 @@ public class Application extends ResourceConfig
         register(new XsltExecutableFilter());
         if (isInvalidateCache()) register(new CacheInvalidationFilter());
         register(new VersioningFilter());
-//        register(new ProvenanceFilter());
     }
     
     /**
@@ -1928,6 +1925,69 @@ public class Application extends ResourceConfig
     public Map<String, UnionGraph> getOntologyGraphs()
     {
         return ontologyGraphs;
+    }
+
+    /**
+     * Loads the package description from its URI.
+     * Mapped locations (e.g. bundled package descriptions) and cached graphs are read from the graph
+     * repository; other URIs are dereferenced over HTTP.
+     *
+     * @param packageURI package URI
+     * @return package resource, or null if the description could not be resolved
+     */
+    public com.atomgraph.linkeddatahub.apps.model.Package getPackage(String packageURI)
+    {
+        final Model model;
+
+        if (getRepository().isCached(packageURI) || getRepository().isMapped(packageURI))
+            model = ModelFactory.createModelForGraph(getRepository().get(packageURI));
+        else
+        {
+            try
+            {
+                // validate package URI to prevent SSRF attacks
+                getURLValidator().validate(URI.create(packageURI));
+
+                model = GraphStoreClient.create(getClient(), getMediaTypes()).getModel(packageURI);
+            }
+            catch (RuntimeException ex) // invalid URI, 404 from the package server, connection refused, timeout...
+            {
+                if (log.isErrorEnabled()) log.error("Loading package description failed: {}", packageURI, ex);
+                return null;
+            }
+        }
+
+        try
+        {
+            return model.getResource(packageURI).as(com.atomgraph.linkeddatahub.apps.model.Package.class);
+        }
+        catch (ConversionException ex)
+        {
+            if (log.isErrorEnabled()) log.error("Resource <{}> cannot be converted to a Package", packageURI, ex);
+            return null;
+        }
+    }
+
+    /**
+     * Resolves the descriptions of the packages imported by the application and returns their
+     * ontology URIs, ordered by package URI. Packages whose description cannot be resolved, or
+     * without an ontology (stylesheet-only), are skipped.
+     *
+     * @param app application resource
+     * @return list of package ontology URIs
+     */
+    public List<URI> getPackageOntologies(com.atomgraph.linkeddatahub.apps.model.Application app)
+    {
+        return app.getImportedPackages().stream().
+            filter(Resource::isURIResource).
+            map(Resource::getURI).
+            sorted().
+            map(this::getPackage).
+            filter(Objects::nonNull).
+            map(com.atomgraph.linkeddatahub.apps.model.Package::getOntology).
+            filter(Objects::nonNull).
+            map(ontology -> URI.create(ontology.getURI())).
+            collect(Collectors.toList());
     }
 
     /**

@@ -14,8 +14,8 @@ namespace="${namespace_doc}#"
 ontology_doc="${ADMIN_BASE_URL}ontologies/namespace/"
 restriction="${namespace_doc}#Restriction"
 
-add-restriction.sh \
-  -f "$OWNER_CERT_FILE" \
+ldh admin ontologies add-restriction \
+  -f "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   -b "$ADMIN_BASE_URL" \
   --uri "$restriction" \
@@ -26,8 +26,8 @@ add-restriction.sh \
 
 # clear ontology from memory
 
-clear-ontology.sh \
-  -f "$OWNER_CERT_FILE" \
+ldh admin clear-ontology \
+  -f "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   -b "$ADMIN_BASE_URL" \
   --ontology "$namespace"

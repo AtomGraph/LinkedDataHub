@@ -16,7 +16,6 @@
  */
 package com.atomgraph.linkeddatahub.server.filter.response;
 
-import com.atomgraph.client.vocabulary.AC;
 import com.atomgraph.linkeddatahub.apps.model.AdminApplication;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import java.io.IOException;
@@ -83,14 +82,6 @@ public class CacheInvalidationFilter implements ContainerResponseFilter
             {
                 banIfNotNull(getSystem().getFrontendProxy(), relativeParentURI.toString());
                 banIfNotNull(getSystem().getServiceContext(getApplication().get().getService()).getBackendProxy(), relativeParentURI.toString());
-            }
-
-            // ban all results of queries that use forClass type
-            if (req.getUriInfo().getQueryParameters().containsKey(AC.forClass.getLocalName()))
-            {
-                String forClass = req.getUriInfo().getQueryParameters().getFirst(AC.forClass.getLocalName());
-                banIfNotNull(getSystem().getFrontendProxy(), forClass);
-                banIfNotNull(getSystem().getServiceContext(getApplication().get().getService()).getBackendProxy(), forClass);
             }
         }
 

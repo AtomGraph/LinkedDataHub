@@ -7,10 +7,23 @@ if [ "$#" -ne 4 ]; then
   exit 1
 fi
 
+hash ldh 2>/dev/null || { echo >&2 "ldh not on \$PATH. Build it with 'mvn package' in cli/ and add cli/bin to \$PATH. Aborting."; exit 1; }
+
 export OWNER_CERT_FILE="$(realpath "$1")"
 export OWNER_CERT_PWD="$2"
 export SECRETARY_CERT_FILE="$(realpath "$3")"
 export SECRETARY_CERT_PWD="$4"
+
+# the platform generates a PKCS12 keystore and derives the PEM beside it: ldh reads the keystore,
+# the curl assertions read the PEM
+
+export OWNER_CERT_KEYSTORE="$(dirname "$OWNER_CERT_FILE")/keystore.p12"
+export SECRETARY_CERT_KEYSTORE="$(dirname "$SECRETARY_CERT_FILE")/keystore.p12"
+
+for keystore in "$OWNER_CERT_KEYSTORE" "$SECRETARY_CERT_KEYSTORE"
+do
+    [ -f "$keystore" ] || { echo >&2 "PKCS12 keystore not found next to the certificate: $keystore. Aborting."; exit 1; }
+done
 
 export STATUS_OK=200
 export STATUS_DELETE_SUCCESS='200|204'
@@ -230,6 +243,7 @@ error_count=0
 ### Signup test ###
 
 export AGENT_CERT_FILE=$(mktemp)
+export AGENT_CERT_KEYSTORE=$(mktemp)
 export AGENT_CERT_PWD="changeit"
 
 start_time=$(date +%s)
@@ -263,6 +277,8 @@ run_tests "document-hierarchy" $(find ./document-hierarchy/ -type f -name '*.sh'
 run_tests "misc" $(find ./misc/ -type f -name '*.sh')
 (( error_count += $? ))
 run_tests "proxy" $(find ./proxy/ -type f -name '*.sh')
+(( error_count += $? ))
+run_tests "federation" $(find ./federation/ -type f -name '*.sh')
 (( error_count += $? ))
 run_tests "sparql-protocol" $(find ./sparql-protocol/ -type f -name '*.sh')
 (( error_count += $? ))

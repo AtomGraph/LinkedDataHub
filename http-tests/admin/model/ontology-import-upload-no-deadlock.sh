@@ -19,8 +19,8 @@ pwd=$(realpath "$PWD")
 
 # add agent to the writers group so they can upload files
 
-add-agent-to-group.sh \
-  -f "$OWNER_CERT_FILE" \
+ldh admin acl add-agent-to-group \
+  -f "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   --agent "$AGENT_URI" \
   "${ADMIN_BASE_URL}acl/groups/writers/"
@@ -31,8 +31,8 @@ file_content_type="text/turtle"
 slug=$(uuidgen | tr '[:upper:]' '[:lower:]')
 
 # Create an item document to hold the file
-file_doc=$(create-item.sh \
-  -f "$AGENT_CERT_FILE" \
+file_doc=$(ldh create-item \
+  -f "$AGENT_CERT_KEYSTORE" \
   -p "$AGENT_CERT_PWD" \
   -b "$END_USER_BASE_URL" \
   --title "Test ontology for upload import" \
@@ -40,8 +40,8 @@ file_doc=$(create-item.sh \
   --slug "$slug")
 
 # Add the file to the document
-add-file.sh \
-  -f "$AGENT_CERT_FILE" \
+ldh add-file \
+  -f "$AGENT_CERT_KEYSTORE" \
   -p "$AGENT_CERT_PWD" \
   -b "$END_USER_BASE_URL" \
   --title "Test ontology for upload import" \
@@ -67,16 +67,16 @@ namespace_doc="${END_USER_BASE_URL}ns"
 namespace="${namespace_doc}#"
 ontology_doc="${ADMIN_BASE_URL}ontologies/namespace/"
 
-add-ontology-import.sh \
-  -f "$OWNER_CERT_FILE" \
+ldh admin add-ontology-import \
+  -f "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   --import "$upload_uri" \
   "$ontology_doc"
 
 # Step 4: Clear the namespace ontology from memory to force reload on next request
 
-clear-ontology.sh \
-  -f "$OWNER_CERT_FILE" \
+ldh admin clear-ontology \
+  -f "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   -b "$ADMIN_BASE_URL" \
   --ontology "$namespace"

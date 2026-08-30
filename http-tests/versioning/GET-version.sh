@@ -17,8 +17,8 @@ purge_cache "$FRONTEND_VARNISH_SERVICE"
 
 # add agent to the writers group
 
-add-agent-to-group.sh \
-  -f "$OWNER_CERT_FILE" \
+ldh admin acl add-agent-to-group \
+  -f "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   --agent "$AGENT_URI" \
   "${ADMIN_BASE_URL}acl/groups/writers/"
@@ -31,8 +31,8 @@ put_document()
 {
     echo "<${doc_url}> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.w3.org/ns/ldt/document-hierarchy#Item> .
 <${doc_url}> <http://purl.org/dc/terms/title> \"${1}\" ." | \
-      put.sh \
-        -f "$AGENT_CERT_FILE" \
+      ldh put \
+        -f "$AGENT_CERT_KEYSTORE" \
         -p "$AGENT_CERT_PWD" \
         -t "application/n-triples" \
         "$doc_url"
@@ -40,7 +40,7 @@ put_document()
 
 head_sha()
 {
-    gh api "repos/${VERSIONING_TEST_REPO}/commits?path=${path}&per_page=1" --jq '.[0].sha' 2> /dev/null || true
+    gh api "repos/${VERSIONING_TEST_REPO}/commits?path=${path}&sha=${VERSIONING_TEST_BRANCH:-main}&per_page=1" --jq '.[0].sha' 2> /dev/null || true
 }
 
 # create the first version and wait for its commit
@@ -68,8 +68,8 @@ done
 # retrieve the first version and check its content
 
 response_body=$(
-get.sh \
-  -f "$AGENT_CERT_FILE" \
+ldh get \
+  -f "$AGENT_CERT_KEYSTORE" \
   -p "$AGENT_CERT_PWD" \
   --accept 'application/n-triples' \
   "${doc_url}?version=${sha1}")
@@ -87,8 +87,8 @@ fi
 # check the Memento-Datetime and immutable caching headers
 
 response_headers=$(
-get.sh \
-  -f "$AGENT_CERT_FILE" \
+ldh get \
+  -f "$AGENT_CERT_KEYSTORE" \
   -p "$AGENT_CERT_PWD" \
   --accept 'application/n-triples' \
   --head \
@@ -100,6 +100,13 @@ echo "$response_headers"
 
 echo "$response_headers" | grep -qi '^Memento-Datetime:'
 echo "$response_headers" | grep -qi '^Cache-Control:.*immutable'
+
+# RFC 7089: the Memento-Datetime value is RFC 1123 with a zero-padded day of month,
+# and a Memento MUST link to its Original Resource
+
+echo "$response_headers" | grep -qiE '^Memento-Datetime: [A-Z][a-z]{2}, [0-9]{2} [A-Z][a-z]{2} [0-9]{4} [0-9]{2}:[0-9]{2}:[0-9]{2} GMT'
+echo "$response_headers" | grep -q "<${doc_url}>; rel=original"
+echo "$response_headers" | grep -q 'rel=timemap'
 
 # a historical version is read-only: acl:Read advertised but no write modes, writes rejected with 405
 

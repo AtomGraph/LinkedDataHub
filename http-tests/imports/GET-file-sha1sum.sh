@@ -11,8 +11,8 @@ pwd=$(realpath "$PWD")
 
 # add agent to the writers group
 
-add-agent-to-group.sh \
-  -f "$OWNER_CERT_FILE" \
+ldh admin acl add-agent-to-group \
+  -f "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   --agent "$AGENT_URI" \
   "${ADMIN_BASE_URL}acl/groups/writers/"
@@ -24,8 +24,8 @@ time dd if=/dev/urandom of="$filename" bs=1 count=1024
 file_content_type="application/octet-stream"
 
 # Create a container for files first
-create-container.sh \
-  -f "$AGENT_CERT_FILE" \
+ldh create-container \
+  -f "$AGENT_CERT_KEYSTORE" \
   -p "$AGENT_CERT_PWD" \
   -b "$END_USER_BASE_URL" \
   --title "Files" \
@@ -33,16 +33,16 @@ create-container.sh \
   --slug "files"
 
 # Create an item document to hold the file
-file_doc=$(create-item.sh \
-  -f "$AGENT_CERT_FILE" \
+file_doc=$(ldh create-item \
+  -f "$AGENT_CERT_KEYSTORE" \
   -p "$AGENT_CERT_PWD" \
   -b "$END_USER_BASE_URL" \
   --title "Random file" \
   --container "${END_USER_BASE_URL}files/")
 
 # Add the file to the document
-add-file.sh \
-  -f "$AGENT_CERT_FILE" \
+ldh add-file \
+  -f "$AGENT_CERT_KEYSTORE" \
   -p "$AGENT_CERT_PWD" \
   -b "$END_USER_BASE_URL" \
   --title "Random file" \

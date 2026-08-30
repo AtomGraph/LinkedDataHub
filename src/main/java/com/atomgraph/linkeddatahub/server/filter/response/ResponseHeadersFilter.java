@@ -18,7 +18,6 @@ package com.atomgraph.linkeddatahub.server.filter.response;
 
 import com.atomgraph.client.vocabulary.AC;
 import com.atomgraph.client.vocabulary.LDT;
-import com.atomgraph.core.util.Link;
 import com.atomgraph.core.vocabulary.SD;
 import com.atomgraph.linkeddatahub.apps.model.Application;
 import com.atomgraph.linkeddatahub.apps.model.Dataset;
@@ -26,9 +25,10 @@ import com.atomgraph.linkeddatahub.model.auth.Agent;
 import com.atomgraph.linkeddatahub.server.model.impl.Dispatcher;
 import com.atomgraph.linkeddatahub.server.model.impl.DocumentHierarchyGraphStoreImpl;
 import com.atomgraph.linkeddatahub.server.security.AuthorizationContext;
+import com.atomgraph.linkeddatahub.server.util.Link;
 import com.atomgraph.linkeddatahub.vocabulary.ACL;
 import com.atomgraph.linkeddatahub.vocabulary.LAPP;
-import com.atomgraph.linkeddatahub.vocabulary.MEM;
+import com.atomgraph.linkeddatahub.writer.TimeMapWriter;
 import java.io.IOException;
 import java.net.URI;
 import java.util.Optional;
@@ -71,9 +71,10 @@ public class ResponseHeadersFilter implements ContainerResponseFilter
             response.getHeaders().add(HttpHeaders.LINK, new Link(URI.create(agent.getURI()), ACL.agent.getURI(), null));
         }
 
-        // historical version and TimeMap views are read-only: advertise acl:Read at most, so the UI disables edit affordances
-        boolean isSnapshotRequest = request.getUriInfo().getQueryParameters().containsKey(DocumentHierarchyGraphStoreImpl.VERSION_PARAM_NAME) ||
-            request.getUriInfo().getQueryParameters().containsKey(DocumentHierarchyGraphStoreImpl.TIMEMAP_PARAM_NAME);
+        boolean isTimeMap = request.getUriInfo().getQueryParameters().containsKey(DocumentHierarchyGraphStoreImpl.TIMEMAP_PARAM_NAME);
+        boolean isTimeGate = request.getUriInfo().getQueryParameters().containsKey(DocumentHierarchyGraphStoreImpl.TIMEGATE_PARAM_NAME);
+        // historical version, TimeMap and TimeGate views are read-only: advertise acl:Read at most, so the UI disables edit affordances
+        boolean isSnapshotRequest = DocumentHierarchyGraphStoreImpl.isSnapshotRequest(request.getUriInfo());
 
         if (getAuthorizationContext().isPresent())
             getAuthorizationContext().get().getModeURIs().stream().
@@ -95,10 +96,29 @@ public class ResponseHeadersFilter implements ContainerResponseFilter
             // add Link rel=ldt:ontology, if the ontology URI is specified
             if (application.getOntology() != null)
                 response.getHeaders().add(HttpHeaders.LINK, new Link(URI.create(application.getOntology().getURI()), LDT.ontology.getURI(), null));
-            // add Link rel=mem:timemap, if the document is versioned
+            // add Memento (RFC 7089) hypermedia, if the document is versioned
             if (getSystem().getGraphVersioningService().getRepository(application.getURI()).isPresent() &&
                     request.getUriInfo().getMatchedResources().stream().anyMatch(DocumentHierarchyGraphStoreImpl.class::isInstance))
-                response.getHeaders().add(HttpHeaders.LINK, new Link(URI.create(request.getUriInfo().getAbsolutePath() + "?" + DocumentHierarchyGraphStoreImpl.TIMEMAP_PARAM_NAME), MEM.timemap.getURI(), null));
+            {
+                URI originalURI = request.getUriInfo().getAbsolutePath(); // the query is what makes a URI a Memento, TimeMap or TimeGate
+                URI timeMapURI = URI.create(originalURI + "?" + DocumentHierarchyGraphStoreImpl.TIMEMAP_PARAM_NAME);
+                URI timeGateURI = URI.create(originalURI + "?" + DocumentHierarchyGraphStoreImpl.TIMEGATE_PARAM_NAME);
+
+                // the TimeMap identifies itself with rel=self; everything else points at it with rel=timemap
+                if (isTimeMap)
+                    response.getHeaders().add(HttpHeaders.LINK, new Link(timeMapURI, "self", TimeMapWriter.APPLICATION_LINK_FORMAT));
+                else
+                    response.getHeaders().add(HttpHeaders.LINK, new Link(timeMapURI, "timemap", TimeMapWriter.APPLICATION_LINK_FORMAT));
+
+                // the Original Resource MUST advertise a preferred TimeGate; the TimeGate does not link to itself
+                if (!isTimeGate)
+                    response.getHeaders().add(HttpHeaders.LINK, new Link(timeGateURI, "timegate", null));
+
+                // a Memento and a TimeGate MUST link to the Original Resource, and a TimeMap lists it;
+                // the Original Resource itself MUST NOT carry rel=original
+                if (isSnapshotRequest)
+                    response.getHeaders().add(HttpHeaders.LINK, new Link(originalURI, "original", null));
+            }
             // add Link rel=ac:stylesheet, if the stylesheet URI is specified
             if (application.getStylesheet() != null)
                 response.getHeaders().add(HttpHeaders.LINK, new Link(URI.create(application.getStylesheet().getURI()), AC.stylesheet.getURI(), null));

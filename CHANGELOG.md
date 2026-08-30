@@ -1,3 +1,80 @@
+## [5.10.0] - 2026-08-30
+### Added
+- `ldh` command line interface (`cli/`): a standalone picocli/Jena port of the `bin/` HTTP API scripts — one command per script with the same option names, `bin/` subdirectories as nested subcommand groups, PKCS12 WebID keystore authentication, env-var defaults and a shaded executable jar
+- Every release attaches an `ldh-<version>.tar.gz` archive of the CLI launcher and jar, stamped with the platform version, so using `ldh` needs a Java runtime rather than a source checkout and a Maven build
+- `make cli` builds the CLI and prints the `PATH` export to run, and `make tests` depends on it — the suite builds its fixtures with `ldh` and used to abort telling you to go build it by hand
+- `make cli-version` sets `cli/pom.xml` to the platform version, which `release.sh` now runs around both release bumps so the CLI shares the platform's version line instead of its own `1.0.0-SNAPSHOT`
+- Restore a document to an earlier version from the history modal: the memento is read back and written to the live document, so the restore rolls forward as a new commit and the versions rolled past stay in the TimeMap; gated on `acl:Write`, hidden on the version being viewed, and confirmed first
+- Version diffs in the history modal: From/To selection navigates to `?version=<to>&diff=<from>` and the diff renders on the document page — `diff-added`/`diff-removed`/`diff-changed` block borders, marked property values, a changed XHTML block stacking its old content above the new, and a color legend
+- `diff` is display state read from the URL at render time and never sent to the server, so back/forward re-render it and a plain reload degrades to the `?version=` snapshot
+- Memento TimeGate (`?timegate`): `Accept-Datetime` negotiation answers `302` with the closest Memento in `Location` — smallest absolute distance, ties towards the more recent, most recent when no datetime is asked for — carrying `Vary: accept-datetime`
+- TimeMaps serialized as `application/link-format` (`TimeMapWriter`), the representation RFC 7089 requires, derived from the PROV description and scoped to the `?timemap` response so ordinary documents answer `406` for it
+- `http-tests/versioning/` covers the RFC 7089 contract: datetime negotiation (`GET-timegate.sh`), the PROV description of the TimeMap, its link-format serialization and `406` scoping, `rel=original` on Mementos but not the Original Resource, and a zero-padded RFC 1123 `Memento-Datetime`
+- CLI unit tests for `HttpException.check`, the stdout contract the shell pipelines depend on, and stdin handling in `put`/`patch`, driven against a `com.sun.net.httpserver` stub — 41 tests to 63
+- `http-tests/federation/` self-federation suite: one dataspace's client browses, queries and writes against another origin's dataspace through the Linked Data proxy — endpoint discovery from forwarded `Link` headers, the constructor SELECT against the remote `ns`, a graph-scoped SPARQL Update `PATCH` under the origin's `If-Match` precondition, and the unauthenticated negative
+
+### Changed
+- http-tests build their fixtures with `ldh` instead of the `bin/` HTTP API scripts — 260 invocations of 19 commands per CI run, making the suite the CLI's end-to-end coverage; only the arrange phase moves, every assertion stays a `curl` call
+- **DEPRECATED**: the `bin/` HTTP API scripts, superseded by `ldh`; the certificate and WebID tooling (`webid-keygen.sh`, `webid-keygen-pem.sh`, `webid-uri.sh`, `webid-modulus.sh`, `server-cert-gen.sh`) talks to no API and is not deprecated
+- Test authentication splits by consumer: `ldh` reads the PKCS12 keystore, `curl` keeps the PEM derived beside it, and `run.sh` derives the keystore paths from the certificate paths it is given (its four-argument interface is unchanged)
+- `signup.sh` keeps the keystore it downloads instead of deleting it after the PEM conversion
+- CI builds `cli/`, runs its unit tests, puts the launcher on `PATH`, and extends the certificate permission fix to the keystores
+- The CLI JVM starts with `-XX:TieredStopAtLevel=1 -XX:+UseSerialGC`, tuned for startup rather than throughput (0.231s to 0.201s per invocation locally); `LDH_JAVA_OPTS` replaces those defaults rather than appending
+- `ldh import-ontology` mirrors the rewritten script's scratch-document flow (proxy fetch → PUT into a UUID-slugged scratch document → `construct-constructors` scoped to that graph → append the constructors and an `owl:imports` header to the target → delete the scratch document on every exit path), replacing the `POST` to the deleted `/transform` endpoint
+- **BREAKING**: TimeMaps are described with PROV-O instead of `http://mementoweb.org/ns#`, which has no published vocabulary — a `prov:Collection` of `prov:Entity` mementos, each `prov:specializationOf` the Original Resource, `prov:generatedAtTime` its commit datetime and `prov:wasRevisionOf` its predecessor; a TimeMap with no mementos `404`s
+- Memento hypermedia uses the IANA-registered relation types with `type="application/link-format"`, branching per response type: the Original Resource advertises `timemap`/`timegate` and never `original`, a Memento links back to its Original Resource, the TimeMap identifies itself with `self`
+- The `type` parameter of `Link` response headers is emitted as a quoted-string per RFC 8288 — a media type containing a solidus is not a token
+- `Memento-Datetime` uses the same zero-padded RFC 1123 formatter as the TimeMap body; `DateTimeFormatter.RFC_1123_DATE_TIME` leaves the day of month unpadded where the RFC 7089 grammar wants `2DIGIT`
+- TimeMap commit history is paged, bounded at `MAX_COMMIT_PAGES` with truncation logged, instead of stopping at the first 100 commits; mementos are ordered by parsed instant rather than datetime string
+- TimeGate redirects are `no-store`: `Vary: accept-datetime` gives Varnish an unbounded key space, and the write-time ban matches the document URL, never the `?timegate` URL
+- Install metadata is applied by one SPARQL update per app with the existence check in the `WHERE` clause, replacing `enrich_document_metadata`'s blind append
+- The owner and secretary authorizations get stable slugs (`acl/authorizations/owner-webid/`, `acl/authorizations/secretary-webid/`) instead of a fresh UUID per dataset load, and the test owner fixture points at the same slug
+- CI gives each run its own versioning branch, branched from `main` and deleted afterwards
+- Editing forms already open on the page reconcile with the constructor after a constructor save: missing properties get `bs2:FormControl` groups appended, value-less groups the constructor no longer asserts are removed, controls holding entered values and `rdf:type` controls are untouched, and a failed fetch leaves the form as it was
+- Snapshot params (`?version`/`?timemap`) deliberately do not survive a modal document save
+- Constructor instances are instantiated client-side: one SPARQL SELECT fetches the type set's `spin:constructor` queries (subclass closure, deduplicated) and their CONSTRUCT templates are expanded onto a single instance typed with all the resource's classes — same-range duplicate properties collapse, and a constructor must have an empty `WHERE` clause to be client-instantiable
+- Server-rendered edit forms show data properties only; the client re-render supplies the constructor controls (`ldh:construct-forClass` is an empty stub under SAXON, the `ac:construct` stub pattern)
+- "Add data" accepts foreign target documents: the proxied append carries the delegated agent identity, so the target instance's access control arbitrates and its refusal surfaces as the form error
+- "Import ontology" keeps the local-target requirement because its constructor derivation is scoped to the local `/sparql` endpoint
+- Packages are declarative: an application imports a package with a single `<app> ldh:import <package-uri>` triple in its dataspace settings — in `config/dataspaces.trig` (permanent, applied on restart) or live via `PATCH /settings` (effective on the next request, no restart)
+- A package's components are discovered from its Linked Data description (bundled ones resolve from the classpath) and its stylesheet is composed into the application stylesheet in memory at compile time, per dataspace — nothing is copied into the webapp and `/static/` is never modified
+- The available-package catalog is data at the registry URI `https://packages.linkeddatahub.com/` (bundled one-entry copy listing the SKOS package, served through the Linked Data proxy's mapped-URI resolution until the registry is live)
+- The application settings modal lists the available packages with a per-row Installed checkbox serialized as an RDF/POST `ldh:import` input, and the form's single Save submits settings and package imports as one PATCH through `/settings`
+- The package's ontology joins the application's ontology imports closure automatically, derived from `ldh:import` at ontology-load time: each package ontology is assembled as its own `owl:imports` closure and added as a union member, with no `owl:imports` triple materialized anywhere
+- A `/settings` PATCH evicts the assembled closure, so package installs and uninstalls take effect on the next request; a package ontology that fails to load is skipped
+- "Import ontology" persists only the derived annotation ontology — generated class constructors plus `owl:imports` of the canonical vocabulary URI, the artifact shape a package ontology ships; the fetched vocabulary is scaffolding in a scratch document deleted on every exit path
+- The vocabulary resolves live through the graph repository, so constructors derived for bundled vocabularies now reach the ontology closure — the shipped file previously shadowed the local copy holding them
+- The annotation document is wired into the namespace ontology itself (`add-ontology-import.sh --import <document>`)
+- XSLT compilation resolves `xsl:import` URLs under an application origin's `/static/` path to local webapp files (`LocalStylesheetResolver`) instead of HTTPS round-trips through nginx, and modules imported via different routes deduplicate under one URL
+- `ac:stylesheet` values in `config/dataspaces.trig` are absolute URLs on the application's own origin (previously relative, absolutized against the root base URI)
+
+### Removed
+- **BREAKING**: `/ns?forClass=` constructed-instance responses — the client-side instantiation is the only consumer path; the `Namespace` endpoint serves SPARQL queries and the raw ontology graph only
+- **BREAKING**: `packages/install` and `packages/uninstall` endpoints, the admin `packages/` container and their ACL entries, the package Actions UI (`imports/lapp.xsl`), and `bin/admin/packages/` CLI scripts — the `ldh:import` declaration itself is the installation. Packages installed with earlier releases were webapp-file mutations and do not carry over: re-declare them with `ldh:import`
+- `XSLTMasterUpdater`, `Package.getStylesheetPath()` and the bundled `packages/skos/layout.xsl` copy — dead now that the webapp-file installation path is gone
+- `MEM` vocabulary class — no consumers left once the Memento namespace gave way to PROV-O and the IANA relation types
+- Vestigial `forClass` URL params: the `add-constructor` button `@href`s (the onclick reads `@data-for-class`), the chart form's `@action` (`btn-save-chart` `PATCH`es the current document), `ldh:build-query`'s `forClass` arity, and `CacheInvalidationFilter`'s unreachable ban branch
+- `ldh:NoOp`, replaced by the constructor-sync fan-out on `ldh:ClearNamespace`
+- `ProvenanceFilter` — a 2021 skeleton whose registration was commented out since it was written; the PROV-O provenance sidecar (P2.3) will not start from its graph-per-request shape
+
+### Fixed
+- `ldh --version` reported a hardcoded `1.0.0-SNAPSHOT` regardless of the build; it now reads `Implementation-Version` back from the jar manifest
+- `--help` was unrecognized on every `ldh` subcommand — `mixinStandardHelpOptions` only reaches the root command, so the option now lives in `BaseCommand` and in a new `CommandGroup` base that the five subcommand groups extend in place of their duplicated `@Spec`/`call()` pairs
+- GraphMode rendering of `ldh:Object` blocks crashed with a cardinality error: the `bs2:Row` branch applied `bs2:Graph` without the required `canvas-id` param; the 3D force graph now initializes after the row is rendered
+- Constructor edits never surfaced in instance forms: the callback cleared the ontology derived from the class' `rdfs:isDefinedBy` and left the annotation graph cached, so it now clears the document its `PATCH` just updated (`ac:document-uri($constructor-uri)`)
+- Modal document save re-rendered in the default layout mode instead of the active one; the post-save navigation now carries the URL's `?mode=`, guarded to same-document reloads
+- Restore buttons were missing when History was opened from a `?version=` view: `acl:mode()` reflects the snapshot response, which `ResponseHeadersFilter` caps at `acl:Read`, so the modal now `HEAD`s the live document and reads its `acl:mode` links
+- Documents accumulated a `dct:created` value per container recreate — 201 on one development instance — because the dataset load appends rather than replaces; documents that already carry one keep the timestamp they have
+- Every dataset load left another copy of the owner's and secretary's authorizations behind, 60 on one development instance; the stable slugs make re-running the load a no-op
+- Concurrent CI runs silently lost versioning commits to the GitHub Contents API's optimistic lock on the branch head, timing out unrelated tests waiting for them
+- `create-file.sh` carried two lines on stdout once `ldh add-file` printed the content-addressed upload URI, mangling the URL `GET-file-304.sh` captures from it
+- `cache: 'maven'` failed the CLI job outright — `setup-java` runs before the checkout in that workflow, so there was no `pom.xml` to hash
+- Constructor-supplied inputs went nondeterministically missing (the intermittently vanishing app-settings Description field) and multi-range predicates raised cardinality errors — both fixed by the client-side instantiation
+- Modal violation re-renders harvested `property-uris` from everything except the edited resource, degrading property labels to their local-name fallback; the violation/response machinery no longer pollutes the `property-uris`/`object-uris` harvests
+- The `required` function on the modal violation context is stamped per flow by the response handlers, matching each flow's initial-render chain — the shared Container/Item test disagreed with the app-settings chain
+- The Linked Data proxy stamped re-serialization validators instead of forwarding the origin's `ETag`/`Last-Modified`, dropped conditional request headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`), and parsed the origin's `4xx`/`5xx` error bodies as RDF (turning a proxied `412`/`403` into a `502`) — preconditioned and access-controlled writes against proxied documents are now evaluated at the origin and their real status reaches the client
+
+
 ## [5.9.1] - 2026-08-19
 ### Added
 - Inline creation in views: views carrying the new `ldh:container` metadata render a Create button that creates a linked instance in that container (#351)

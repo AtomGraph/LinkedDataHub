@@ -468,6 +468,9 @@ extension-element-prefixes="ixsl"
         <xsl:param name="typeof" select="rdf:type/@rdf:resource/xs:anyURI(.)" as="xs:anyURI*"/>
         <xsl:param name="draggable" select="false()" as="xs:boolean?"/>
         <xsl:param name="show-row-block-controls" select="true()" as="xs:boolean"/>
+        <xsl:param name="diff-added-keys" as="xs:string*" tunnel="yes"/>
+        <xsl:param name="diff-removed-keys" as="xs:string*" tunnel="yes"/>
+        <xsl:variable name="diff-class" select="ldh:diff-class(., $diff-added-keys, $diff-removed-keys)" as="xs:string?"/>
 
         <xsl:apply-templates select="key('resources', .)" mode="bs2:RowContentHeader"/>
 
@@ -475,8 +478,8 @@ extension-element-prefixes="ixsl"
             <xsl:if test="$id">
                 <xsl:attribute name="id" select="$id"/>
             </xsl:if>
-            <xsl:if test="$class">
-                <xsl:attribute name="class" select="$class"/>
+            <xsl:if test="$class or $diff-class">
+                <xsl:attribute name="class" select="string-join(($class, $diff-class), ' ')"/>
             </xsl:if>
             <xsl:if test="$about">
                 <xsl:attribute name="about" select="$about"/>
@@ -529,6 +532,9 @@ extension-element-prefixes="ixsl"
         <xsl:param name="typeof" select="rdf:type/@rdf:resource/xs:anyURI(.)" as="xs:anyURI*"/>
         <xsl:param name="main-class" select="'main span7'" as="xs:string?"/>
         <xsl:param name="draggable" select="false()" as="xs:boolean?"/>
+        <xsl:param name="diff-added-keys" as="xs:string*" tunnel="yes"/>
+        <xsl:param name="diff-removed-keys" as="xs:string*" tunnel="yes"/>
+        <xsl:variable name="diff-class" select="ldh:diff-class(., $diff-added-keys, $diff-removed-keys)" as="xs:string?"/>
 
         <xsl:apply-templates select="." mode="bs2:RowContentHeader"/>
 
@@ -536,8 +542,8 @@ extension-element-prefixes="ixsl"
             <xsl:if test="$id">
                 <xsl:attribute name="id" select="$id"/>
             </xsl:if>
-            <xsl:if test="$class">
-                <xsl:attribute name="class" select="$class"/>
+            <xsl:if test="$class or $diff-class">
+                <xsl:attribute name="class" select="string-join(($class, $diff-class), ' ')"/>
             </xsl:if>
             <xsl:if test="$about">
                 <xsl:attribute name="about" select="$about"/>
@@ -580,7 +586,22 @@ extension-element-prefixes="ixsl"
                             <xsl:attribute name="class" select="$main-class"/>
                         </xsl:if>
 
-                        <xsl:apply-templates select="rdf:value[@rdf:parseType = 'Literal']/xhtml:div" mode="ldh:XHTMLContent"/>
+                        <!-- the diff union can carry two values (removed and added); mark each and show the removed one first -->
+                        <xsl:for-each select="rdf:value[@rdf:parseType = 'Literal']">
+                            <xsl:sort select="if (ldh:value-diff-class(., $diff-added-keys, $diff-removed-keys) = 'diff-removed') then 0 else 1"/>
+
+                            <xsl:variable name="value-diff-class" select="ldh:value-diff-class(., $diff-added-keys, $diff-removed-keys)" as="xs:string?"/>
+                            <xsl:choose>
+                                <xsl:when test="$value-diff-class">
+                                    <div class="{$value-diff-class}">
+                                        <xsl:apply-templates select="xhtml:div" mode="ldh:XHTMLContent"/>
+                                    </div>
+                                </xsl:when>
+                                <xsl:otherwise>
+                                    <xsl:apply-templates select="xhtml:div" mode="ldh:XHTMLContent"/>
+                                </xsl:otherwise>
+                            </xsl:choose>
+                        </xsl:for-each>
                     </div>
 
                     <xsl:apply-templates select="." mode="bs2:Right"/>
@@ -610,13 +631,16 @@ extension-element-prefixes="ixsl"
         <xsl:param name="typeof" select="rdf:type/@rdf:resource/xs:anyURI(.)" as="xs:anyURI*"/>
         <xsl:param name="mode" as="xs:anyURI?"/>
         <xsl:param name="style" as="xs:string?"/>
+        <xsl:param name="diff-added-keys" as="xs:string*" tunnel="yes"/>
+        <xsl:param name="diff-removed-keys" as="xs:string*" tunnel="yes"/>
+        <xsl:variable name="diff-class" select="ldh:diff-class(., $diff-added-keys, $diff-removed-keys)" as="xs:string?"/>
 
         <div>
             <xsl:if test="$id">
                 <xsl:attribute name="id" select="$id"/>
             </xsl:if>
-            <xsl:if test="$class">
-                <xsl:attribute name="class" select="$class"/>
+            <xsl:if test="$class or $diff-class">
+                <xsl:attribute name="class" select="string-join(($class, $diff-class), ' ')"/>
             </xsl:if>
             <xsl:if test="$about">
                 <xsl:attribute name="about" select="$about"/>
@@ -644,13 +668,16 @@ extension-element-prefixes="ixsl"
         <xsl:param name="mode" as="xs:anyURI?"/>
         <xsl:param name="style" as="xs:string?"/>
         <xsl:param name="main-class" select="'main span7'" as="xs:string?"/>
+        <xsl:param name="diff-added-keys" as="xs:string*" tunnel="yes"/>
+        <xsl:param name="diff-removed-keys" as="xs:string*" tunnel="yes"/>
+        <xsl:variable name="diff-class" select="ldh:diff-class(., $diff-added-keys, $diff-removed-keys)" as="xs:string?"/>
 
         <div>
             <xsl:if test="$id">
                 <xsl:attribute name="id" select="$id"/>
             </xsl:if>
-            <xsl:if test="$class">
-                <xsl:attribute name="class" select="$class"/>
+            <xsl:if test="$class or $diff-class">
+                <xsl:attribute name="class" select="string-join(($class, $diff-class), ' ')"/>
             </xsl:if>
             <xsl:if test="$about">
                 <xsl:attribute name="about" select="$about"/>
@@ -690,7 +717,10 @@ extension-element-prefixes="ixsl"
                         </xsl:apply-templates>
                     </xsl:when>
                     <xsl:when test="$mode = '&ac;GraphMode'">
-                        <xsl:apply-templates select=".." mode="bs2:Graph"/>
+                        <!-- whole loaded document, deliberately not $doc: the graph shows the link structure between all resources in the response -->
+                        <xsl:apply-templates select=".." mode="bs2:Graph">
+                            <xsl:with-param name="canvas-id" select="generate-id() || '-graph-canvas'"/>
+                        </xsl:apply-templates>
                     </xsl:when>
                     <xsl:when test="$mode = '&ac;EditMode'">
                         <xsl:apply-templates select="." mode="bs2:Form">

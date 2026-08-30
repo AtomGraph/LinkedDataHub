@@ -118,6 +118,7 @@ extension-element-prefixes="ixsl"
     <xsl:include href="bootstrap/2.3.2/client/block.xsl"/>
     <xsl:include href="bootstrap/2.3.2/client/modal.xsl"/>
     <xsl:include href="bootstrap/2.3.2/client/memento.xsl"/>
+    <xsl:include href="bootstrap/2.3.2/client/packages.xsl"/>
     <xsl:include href="bootstrap/2.3.2/client/form.xsl"/>
     <xsl:include href="bootstrap/2.3.2/client/map.xsl"/> <!-- include in view.xsl and object.xsl instead? -->
     <xsl:include href="bootstrap/2.3.2/client/graph3d.xsl"/>
@@ -444,11 +445,16 @@ WHERE
                         <ixsl:set-property name="application" select="$application" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
                     </xsl:if>
                     <!-- store TimeMap URI from Link header (present when the document is versioned); blank it when absent so non-versioned documents don't show the History link -->
-                    <xsl:variable name="timemap-link" select="tokenize(?headers?link, ',')[contains(., 'mementoweb.org/ns#timemap')][1]" as="xs:string?"/>
+                    <xsl:variable name="timemap-link" select="tokenize(?headers?link, ',')[contains(., 'rel=timemap')][1]" as="xs:string?"/>
                     <xsl:variable name="timemap" select="if ($timemap-link) then xs:anyURI(substring-before(substring-after(substring-before($timemap-link, ';'), '&lt;'), '&gt;')) else ()" as="xs:anyURI?"/>
                     <ixsl:set-property name="timemap" select="($timemap, '')[1]" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
                     <xsl:for-each select="?body">
                         <xsl:variable name="results" select="." as="document-node()"/>
+                        <!-- ?diff= view: render the union of both versions' descriptions, with the one-sided triple keys classifying added/removed content -->
+                        <xsl:variable name="diff-results" select="if ($context('diff-response')?status = 200 and $context('diff-response')?media-type = 'application/rdf+xml') then $context('diff-response')?body else ()" as="document-node()?"/>
+                        <xsl:variable name="diff-added-keys" select="if (exists($diff-results)) then ac:value-except(map:keys(ldh:triples-map($results, false())), map:keys(ldh:triples-map($diff-results, false()))) else ()" as="xs:string*"/>
+                        <xsl:variable name="diff-removed-keys" select="if (exists($diff-results)) then ac:value-except(map:keys(ldh:triples-map($diff-results, false())), map:keys(ldh:triples-map($results, false()))) else ()" as="xs:string*"/>
+                        <xsl:variable name="render-results" select="if (exists($diff-results)) then ldh:diff-union($results, $diff-results, $diff-removed-keys) else $results" as="document-node()"/>
                         <ixsl:set-property name="{'`' || $doc-uri || '`'}" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.contents')"/>
                         <!-- store document under window.LinkedDataHub.contents[$doc-uri].results -->
                         <!-- should be possible to cache the document using SaxonJS when this issue is resolved: https://saxonica.plan.io/issues/6355 -->
@@ -498,11 +504,13 @@ WHERE
 
                                 <xsl:for-each select="$reuse-pane/div[contains-token(@class, 'document-body')]">
                                     <xsl:result-document href="?." method="ixsl:replace-element">
-                                        <xsl:apply-templates select="$results/rdf:RDF" mode="bs2:DocumentBody">
+                                        <xsl:apply-templates select="$render-results/rdf:RDF" mode="bs2:DocumentBody">
                                             <xsl:with-param name="mode" select="$mode"/>
                                             <xsl:with-param name="about" select="$doc-uri"/>
                                             <xsl:with-param name="object-metadata" select="$context('object-metadata')" tunnel="yes"/>
                                             <xsl:with-param name="property-metadata" select="$context('property-metadata')" tunnel="yes"/>
+                                            <xsl:with-param name="diff-added-keys" select="$diff-added-keys" tunnel="yes"/>
+                                            <xsl:with-param name="diff-removed-keys" select="$diff-removed-keys" tunnel="yes"/>
                                         </xsl:apply-templates>
                                     </xsl:result-document>
                                 </xsl:for-each>
@@ -530,7 +538,7 @@ WHERE
                             <xsl:otherwise>
                                 <xsl:variable name="tab-body" as="element()">
                                     <!-- inert class: ldh:ActivateTab (called from ldh:RenderTab below) is the single source of truth for the 'active' token. Defaulting to 'tab-pane active' here would briefly leave two panes active (this one + the currently-active local one) and crash ldt:base()/sd:endpoint() in any code that runs between append and ActivateTab (e.g. ldh:LeftSidebar). -->
-                                    <xsl:apply-templates select="$results/rdf:RDF" mode="bs2:TabBody">
+                                    <xsl:apply-templates select="$render-results/rdf:RDF" mode="bs2:TabBody">
                                         <xsl:with-param name="id" select="$tab-body-id"/>
                                         <xsl:with-param name="class" select="'tab-pane'"/>
                                         <xsl:with-param name="mode" select="$mode"/>
@@ -541,6 +549,8 @@ WHERE
                                         <xsl:with-param name="about" select="$doc-uri"/>
                                         <xsl:with-param name="object-metadata" select="$context('object-metadata')" tunnel="yes"/>
                                         <xsl:with-param name="property-metadata" select="$context('property-metadata')" tunnel="yes"/>
+                                        <xsl:with-param name="diff-added-keys" select="$diff-added-keys" tunnel="yes"/>
+                                        <xsl:with-param name="diff-removed-keys" select="$diff-removed-keys" tunnel="yes"/>
                                     </xsl:apply-templates>
                                 </xsl:variable>
 
@@ -1011,22 +1021,28 @@ WHERE
         <xsl:param name="controller" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), 'saxonController')"/>
         <!-- representation-selecting params (?version=, ?timemap) ride along on the RDF request; display params do not -->
         <xsl:variable name="snapshot-params" select="ldh:snapshot-params($query-params)" as="map(xs:string, xs:string*)"/>
+        <!-- ?diff= is display state (like ?mode=): the compared version is fetched client-side, the param never reaches the server but must survive into ldh:PushState -->
+        <xsl:variable name="diff-version" select="if (map:contains($query-params, 'diff')) then $query-params('diff')[1] else ()" as="xs:string?"/>
         <!-- if the URI is external, dereference it through the proxy -->
         <!-- HTTP requests carry no fragment (protocol-level) -->
         <xsl:variable name="request-uri" select="ldh:href($doc-uri, $snapshot-params, ())" as="xs:anyURI"/>
         <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
         <xsl:variable name="context" as="map(*)" select="
-          map{
-            'request': $request,
-            'doc-uri': $doc-uri,
-            'fragment': $fragment,
-            'query-params': $snapshot-params,
-            'refresh-content': $refresh-content,
-            'endpoint': sd:endpoint()
-          }"/>
+          map:merge((
+            map{
+              'request': $request,
+              'doc-uri': $doc-uri,
+              'fragment': $fragment,
+              'query-params': map:merge(($snapshot-params, if (exists($diff-version)) then map{ 'diff': $diff-version } else map{})),
+              'refresh-content': $refresh-content,
+              'endpoint': sd:endpoint()
+            },
+            if (exists($diff-version)) then map{ 'diff-request': map{ 'method': 'GET', 'href': ldh:href($doc-uri, map{ 'version': $diff-version }, ()), 'headers': map{ 'Accept': 'application/rdf+xml' } } } else map{}
+          ))"/>
         <ixsl:promise select="ixsl:http-request($context('request'), $controller) =>
             ixsl:then(ldh:rethread-response($context, ?)) =>
             ixsl:then(ldh:handle-response#1) =>
+            ixsl:then(ldh:load-diff-version#1) =>
             ixsl:then(ldh:load-object-metadata#1) =>
             ixsl:then(ldh:http-request-threaded(?, 'metadata-request', 'metadata-response')) =>
             ixsl:then(ldh:handle-response(?, 'metadata-response')) =>

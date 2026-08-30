@@ -95,6 +95,23 @@ fi
 
 print_status "GPG check passed"
 
+# Set cli/pom.xml to the given version and commit it. The CLI is not a module of the platform
+# reactor, so maven-release-plugin does not rewrite it - it is kept in step here instead, once for
+# the release version and once for the next development version.
+sync_cli_version() {
+    local version="$1"
+
+    (cd cli && mvn -B -q versions:set -DnewVersion="$version" -DgenerateBackupPoms=false)
+
+    if git diff --quiet -- cli/pom.xml; then
+        print_status "cli/pom.xml already at $version"
+    else
+        git add cli/pom.xml
+        git commit -m "Set the CLI version to $version"
+        print_status "cli/pom.xml set to $version"
+    fi
+}
+
 # Get current version from pom.xml
 CURRENT_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
 print_status "Current version: $CURRENT_VERSION"
@@ -127,6 +144,11 @@ if git tag -l | grep -q "^$RELEASE_TAG$"; then
     fi
 fi
 
+# Align the CLI before release:prepare, so its version is already correct in the commit that gets
+# tagged - and so the two commits release:prepare adds stay the last two, which the merge below reads
+# by position
+sync_cli_version "$RELEASE_VERSION"
+
 # Configure Maven release plugin to not push changes automatically
 mvn release:clean release:prepare -DpushChanges=false -DlocalCheckout=true
 
@@ -139,6 +161,12 @@ SNAPSHOT_COMMIT=$(git log --oneline -1 --pretty=format:"%H")
 
 print_status "Release commit: $RELEASE_COMMIT"
 print_status "Development commit (SNAPSHOT bump): $SNAPSHOT_COMMIT"
+
+# Follow the platform onto the next development version. Deliberately after the two hashes are
+# captured: it adds a commit on top, and both are read by position. Master merges $RELEASE_COMMIT
+# alone so it does not go there, develop merges the whole branch so it does.
+NEXT_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+sync_cli_version "$NEXT_VERSION"
 
 # Switch to master and merge only the release commit
 print_status "Merging release commit to master branch..."

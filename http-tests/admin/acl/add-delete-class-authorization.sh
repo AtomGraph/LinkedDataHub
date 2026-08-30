@@ -20,8 +20,8 @@ curl -k -w "%{http_code}\n" -o /dev/null -s \
 
 slug="test"
 
-container=$(create-container.sh \
-  -f "$OWNER_CERT_FILE" \
+container=$(ldh create-container \
+  -f "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   -b "$END_USER_BASE_URL" \
   --title "Test" \
@@ -30,8 +30,8 @@ container=$(create-container.sh \
 
 # create fake test.localhost authorization (should be filtered out)
 
-create-authorization.sh \
-  -f "$OWNER_CERT_FILE" \
+ldh admin acl create-authorization \
+  -f "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   -b "https://admin.test.localhost:4443/" \
   --label "Fake DELETE class authorization from test.localhost" \
@@ -50,8 +50,8 @@ curl -k -w "%{http_code}\n" -o /dev/null -s \
 
 # create real localhost authorization
 
-create-authorization.sh \
-  -f "$OWNER_CERT_FILE" \
+ldh admin acl create-authorization \
+  -f "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   -b "$ADMIN_BASE_URL" \
   --label "DELETE authorization" \

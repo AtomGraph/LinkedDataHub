@@ -11,8 +11,8 @@ pwd=$(realpath "$PWD")
 
 # add agent to the writers group
 
-add-agent-to-group.sh \
-  -f "$OWNER_CERT_FILE" \
+ldh admin acl add-agent-to-group \
+  -f "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   --agent "$AGENT_URI" \
   "${ADMIN_BASE_URL}acl/groups/writers/"
@@ -23,27 +23,31 @@ file_content_type="text/csv"
 slug=$(uuidgen | tr '[:upper:]' '[:lower:]')
 
 # Create an item document to hold the file
-file_doc=$(create-item.sh \
-  -f "$AGENT_CERT_FILE" \
+file_doc=$(ldh create-item \
+  -f "$AGENT_CERT_KEYSTORE" \
   -p "$AGENT_CERT_PWD" \
   -b "$END_USER_BASE_URL" \
   --title "Test CSV" \
   --container "$END_USER_BASE_URL" \
   --slug "$slug")
 
-# Add the file to the document
-add-file.sh \
-  -f "$AGENT_CERT_FILE" \
+# Add the file to the document. ldh prints the content-addressed upload URI, which the shell
+# script did not - capture it, or it lands on this script's stdout alongside the URL below.
+file=$(ldh add-file \
+  -f "$AGENT_CERT_KEYSTORE" \
   -p "$AGENT_CERT_PWD" \
   -b "$END_USER_BASE_URL" \
   --title "Test CSV" \
   --file "$pwd/test.csv" \
   --content-type "${file_content_type}" \
-  "$file_doc"
+  "$file_doc")
 
-# Calculate file URI from SHA1 hash
+# the upload URI is content-addressed, so an independently computed digest must reproduce it
+
 sha1sum=$(shasum -a 1 "$pwd/test.csv" | awk '{print $1}')
-file="${END_USER_BASE_URL}uploads/${sha1sum}"
+echo "DEBUG: Expected: ${END_USER_BASE_URL}uploads/${sha1sum}" >&2
+echo "DEBUG: Got: $file" >&2
+[ "$file" = "${END_USER_BASE_URL}uploads/${sha1sum}" ]
 
 echo "$file" # file URL used in other tests
 

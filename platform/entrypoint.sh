@@ -339,6 +339,55 @@ wait_for_url()
     fi
 }
 
+# Adds install metadata to every document that does not already carry it, so fixtures look like documents
+# created through put(). One request rather than a query per document: the check lives in the WHERE clause.
+# The dataset load appends rather than replaces, so without the check a document would collect one
+# dct:created per container recreate. Creator and owner are guarded by the same condition rather than
+# inserted unconditionally: $OWNER_URI is whoever the install owner is now, and re-asserting it would
+# both accumulate a value each time that WebID changes (regenerated certs) and override ownership that
+# has legitimately moved to another agent. Documents that have dct:created always have the other two.
+insert_document_metadata()
+{
+    local endpoint_url="$1"
+    local auth_user="$2"
+    local auth_pwd="$3"
+    local auth_token="$4"
+    local owner_uri="$5"
+
+    local now
+    now=$(date -u +"%Y-%m-%dT%H:%M:%S.000Z")
+
+    # in the LDH data model every named graph IS a document, so every graph is a candidate
+    local update="PREFIX dct: <http://purl.org/dc/terms/>
+PREFIX acl: <http://www.w3.org/ns/auth/acl#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+
+INSERT
+{
+    GRAPH ?g
+    {
+        ?g dct:created \"${now}\"^^xsd:dateTime ;
+            dct:creator <${owner_uri}> ;
+            acl:owner <${owner_uri}> .
+    }
+}
+WHERE
+{
+    { SELECT DISTINCT ?g WHERE { GRAPH ?g { ?s ?p ?o } } }
+    FILTER NOT EXISTS { GRAPH ?g { ?g dct:created ?created } }
+}"
+
+    printf "\n### Adding dct:created=%s, dct:creator=acl:owner=<%s> to documents that lack it\n" "$now" "$owner_uri"
+
+    if [ -n "$auth_token" ]; then
+        curl -k -s -f -X POST "$endpoint_url" -H "Authorization: Bearer $auth_token" -H "Content-Type: application/sparql-update" --data-binary "$update" > /dev/null
+    elif [ -n "$auth_user" ] && [ -n "$auth_pwd" ]; then
+        curl -k -s -f -X POST "$endpoint_url" --user "$auth_user":"$auth_pwd" -H "Content-Type: application/sparql-update" --data-binary "$update" > /dev/null
+    else
+        curl -k -s -f -X POST "$endpoint_url" -H "Content-Type: application/sparql-update" --data-binary "$update" > /dev/null
+    fi
+}
+
 # function to append quad data to an RDF graph store
 
 append_quads()
@@ -447,36 +496,6 @@ EOF
             rm -f "$temp_file" "$extract_query"
         fi
     done <<< "$graph_uris"
-}
-
-# Mirrors what DocumentHierarchyGraphStoreImpl.put() sets on newly-created documents, so install fixtures
-# carry the same dct:created/dct:creator/acl:owner metadata that user-created docs get from put().
-# In the LDH data model every named graph IS a document, so we enrich each distinct graph URI.
-enrich_document_metadata()
-{
-    local nq_file="$1"
-    local owner_uri="$2"
-
-    [ -f "$nq_file" ] || return 0
-
-    local now
-    now=$(date -u +"%Y-%m-%dT%H:%M:%S.000Z")
-
-    local graphs
-    graphs=$(awk '{print $(NF-1)}' "$nq_file" | sort -u)
-    local graph_count
-    graph_count=$(printf '%s\n' "$graphs" | grep -c '^.')
-
-    printf "\n### Enriching %s document(s) in %s with dct:created=%s, dct:creator=acl:owner=<%s>\n" "$graph_count" "$nq_file" "$now" "$owner_uri"
-
-    printf '%s\n' "$graphs" | while IFS= read -r g; do
-        [ -z "$g" ] && continue
-        cat >> "$nq_file" <<EOQ
-$g <http://purl.org/dc/terms/created> "${now}"^^<http://www.w3.org/2001/XMLSchema#dateTime> $g .
-$g <http://purl.org/dc/terms/creator> <${owner_uri}> $g .
-$g <http://www.w3.org/ns/auth/acl#owner> <${owner_uri}> $g .
-EOQ
-    done
 }
 
 generate_cert()
@@ -652,10 +671,6 @@ SECRETARY_KEY_URI="${SECRETARY_KEY_DOC_URI}#this"
 
 printf "\n### Owner's WebID URI: %s\n" "$OWNER_URI"
 printf "\n### Secretary's WebID URI: %s\n" "$SECRETARY_URI"
-
-# Enrich the owner and secretary nq datasets in-place with dct:created/creator + acl:owner
-enrich_document_metadata /var/linkeddatahub/based-datasets/root-owner.nq "$OWNER_URI"
-enrich_document_metadata /var/linkeddatahub/based-datasets/root-secretary.nq "$OWNER_URI"
 
 # Note: LOAD_DATASETS check is now done per-app inside the loop
 
@@ -836,7 +851,6 @@ for app in "${apps[@]}"; do
             esac
 
             trig --base="${app_origin}/" "$END_USER_DATASET" > "/var/linkeddatahub/based-datasets/${app_folder}/end-user.nq"
-            enrich_document_metadata "/var/linkeddatahub/based-datasets/${app_folder}/end-user.nq" "$OWNER_URI"
 
             printf "\n### Waiting for %s...\n" "$app_store_url"
             wait_for_url "$app_store_url" "$app_service_auth_user" "$app_service_auth_pwd" "$TIMEOUT" "$app_store_content_type" "$app_service_auth_token"
@@ -860,7 +874,6 @@ for app in "${apps[@]}"; do
             esac
 
             trig --base="${app_origin}/" "$ADMIN_DATASET" > "/var/linkeddatahub/based-datasets/${app_folder}/admin.nq"
-            enrich_document_metadata "/var/linkeddatahub/based-datasets/${app_folder}/admin.nq" "$OWNER_URI"
 
             printf "\n### Waiting for %s...\n" "$app_store_url"
             wait_for_url "$app_store_url" "$app_service_auth_user" "$app_service_auth_pwd" "$TIMEOUT" "$app_store_content_type" "$app_service_auth_token"
@@ -877,7 +890,6 @@ for app in "${apps[@]}"; do
             envsubst < namespace-ontology.trig.template > "$namespace_ontology_dataset_path"
 
             trig --base="${app_origin}/" --output=nq "$namespace_ontology_dataset_path" > "/var/linkeddatahub/based-datasets/${app_folder}/namespace-ontology.nq"
-            enrich_document_metadata "/var/linkeddatahub/based-datasets/${app_folder}/namespace-ontology.nq" "$OWNER_URI"
 
             printf "\n### Loading namespace ontology into the admin triplestore...\n"
             "$app_store_fn" "$app_store_url" "$app_service_auth_user" "$app_service_auth_pwd" "/var/linkeddatahub/based-datasets/${app_folder}/namespace-ontology.nq" "$app_store_content_type" "$app_service_auth_token"
@@ -896,15 +908,15 @@ for app in "${apps[@]}"; do
             owner_auth_dataset_path="/var/linkeddatahub/datasets/${app_folder}/owner-authorization.trig"
             mkdir -p "$(dirname "$owner_auth_dataset_path")"
 
-            OWNER_AUTH_UUID=$(uuidgen | tr '[:upper:]' '[:lower:]')
-            OWNER_AUTH_DOC_URI="${app_origin}/acl/authorizations/${OWNER_AUTH_UUID}/"
+            # a stable slug, like every authorization bundled in admin.trig: a fresh UUID per run made this
+            # document new every time, so each container recreate left another copy of the same grant behind
+            OWNER_AUTH_DOC_URI="${app_origin}/acl/authorizations/owner-webid/"
             OWNER_AUTH_URI="${OWNER_AUTH_DOC_URI}#auth"
 
             export OWNER_URI OWNER_DOC_URI OWNER_KEY_DOC_URI OWNER_AUTH_DOC_URI OWNER_AUTH_URI
             envsubst < root-owner-authorization.trig.template > "$owner_auth_dataset_path"
 
             trig --base="${app_origin}/" --output=nq "$owner_auth_dataset_path" > "/var/linkeddatahub/based-datasets/${app_folder}/owner-authorization.nq"
-            enrich_document_metadata "/var/linkeddatahub/based-datasets/${app_folder}/owner-authorization.nq" "$OWNER_URI"
 
             printf "\n### Uploading owner authorizations for this app...\n\n"
             "$app_store_fn" "$app_store_url" "$app_service_auth_user" "$app_service_auth_pwd" "/var/linkeddatahub/based-datasets/${app_folder}/owner-authorization.nq" "$app_store_content_type" "$app_service_auth_token"
@@ -912,20 +924,21 @@ for app in "${apps[@]}"; do
             secretary_auth_dataset_path="/var/linkeddatahub/datasets/${app_folder}/secretary-authorization.trig"
             mkdir -p "$(dirname "$secretary_auth_dataset_path")"
 
-            SECRETARY_AUTH_UUID=$(uuidgen | tr '[:upper:]' '[:lower:]')
-            SECRETARY_AUTH_DOC_URI="${app_origin}/acl/authorizations/${SECRETARY_AUTH_UUID}/"
+            SECRETARY_AUTH_DOC_URI="${app_origin}/acl/authorizations/secretary-webid/"
             SECRETARY_AUTH_URI="${SECRETARY_AUTH_DOC_URI}#auth"
 
             export SECRETARY_URI SECRETARY_DOC_URI SECRETARY_KEY_DOC_URI SECRETARY_AUTH_DOC_URI SECRETARY_AUTH_URI
             envsubst < root-secretary-authorization.trig.template > "$secretary_auth_dataset_path"
 
             trig --base="${app_origin}/" --output=nq "$secretary_auth_dataset_path" > "/var/linkeddatahub/based-datasets/${app_folder}/secretary-authorization.nq"
-            enrich_document_metadata "/var/linkeddatahub/based-datasets/${app_folder}/secretary-authorization.nq" "$OWNER_URI"
 
             printf "\n### Uploading secretary authorizations for this app...\n\n"
             "$app_store_fn" "$app_store_url" "$app_service_auth_user" "$app_service_auth_pwd" "/var/linkeddatahub/based-datasets/${app_folder}/secretary-authorization.nq" "$app_store_content_type" "$app_service_auth_token"
 
         fi
+
+        # after the uploads, so it covers every document this app just loaded, whichever branch loaded it
+        insert_document_metadata "$app_endpoint_url" "$app_service_auth_user" "$app_service_auth_pwd" "$app_service_auth_token" "$OWNER_URI"
     fi
 done
 

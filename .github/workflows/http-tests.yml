@@ -33,6 +33,11 @@ jobs:
       - name: Add bin/ and its subdirectories to PATH
         run: |
           find "$GITHUB_WORKSPACE/bin" -type d >> "$GITHUB_PATH"
+      - name: Build the ldh CLI
+        run: mvn -B package # the CLI unit tests run here; the suite drives ldh for its fixtures
+        working-directory: cli
+      - name: Add the ldh launcher to PATH
+        run: echo "$GITHUB_WORKSPACE/cli/bin" >> "$GITHUB_PATH"
       - name: Generating server certificate
         run: |
           server-cert-gen.sh .env nginx ssl
@@ -46,11 +51,22 @@ jobs:
         shell: bash
       - name: Enable graph versioning
         if: env.VERSIONING_TEST_TOKEN != ''
+        env:
+          GH_TOKEN: ${{ secrets.VERSIONING_TEST_TOKEN }}
         run: |
+          # Each run commits to its own branch. The Contents API takes an optimistic lock on the branch
+          # head rather than the file, so concurrent runs sharing one branch lose the race against each
+          # other; versioning is best-effort and async, so the lost commits surface as unrelated test
+          # timeouts. A per-run path prefix isolates the files but not the head, which is the contended part.
+          branch="ci-${{ github.run_id }}"
+          base_sha=$(gh api "repos/$VERSIONING_TEST_REPO/git/ref/heads/main" --jq '.object.sha')
+          gh api "repos/$VERSIONING_TEST_REPO/git/refs" -f ref="refs/heads/$branch" -f sha="$base_sha" > /dev/null
+          echo "Created versioning test branch '$branch' at ${base_sha:0:9}"
+
           printf '@prefix a:\t<https://w3id.org/atomgraph/core#> .\n\n<urn:linkeddatahub:versioning/end-user>\n{\n    <urn:linkeddatahub:versioning/end-user> a:authToken "%s" .\n}\n' "$VERSIONING_TEST_TOKEN" > ./secrets/credentials.trig
           cat >> ./http-tests/config/system.trig <<EOF
 
-          # GitHub-backed graph versioning (appended by CI; per-run path prefix isolates concurrent runs)
+          # GitHub-backed graph versioning (appended by CI; per-run branch isolates concurrent runs)
 
           @prefix doap:	<http://usefulinc.com/ns/doap#> .
           @prefix github:	<https://w3id.org/atomgraph/linkeddatahub/services/github#> .
@@ -64,12 +80,13 @@ jobs:
           {
               <urn:linkeddatahub:versioning/end-user> a doap:GitRepository ;
                   doap:location <https://github.com/$VERSIONING_TEST_REPO> ;
-                  github:branch "main" ;
+                  github:branch "$branch" ;
                   github:pathPrefix "graphs-${{ github.run_id }}" .
           }
           EOF
           echo "COMPOSE_VERSIONING=-f ./http-tests/docker-compose.versioning.yml" >> "$GITHUB_ENV"
           echo "VERSIONING_PATH_PREFIX=graphs-${{ github.run_id }}" >> "$GITHUB_ENV"
+          echo "VERSIONING_TEST_BRANCH=$branch" >> "$GITHUB_ENV"
         shell: bash
       - name: Build Docker image & Run Docker containers
         run: docker compose -f docker-compose.yml -f ./http-tests/docker-compose.http-tests.yml ${COMPOSE_VERSIONING:-} --env-file ./http-tests/.env up --build -d
@@ -77,7 +94,7 @@ jobs:
         run: while ! (status=$(curl -k -s -w "%{http_code}\n" https://localhost:4443 -o /dev/null) && echo "$status" && echo "$status" | grep "403") ; do sleep 1 ; done # wait for the webapp to start (returns 403 by default)
       - name: Fix certificate permissions on the host
         run: |
-          sudo chmod 644 ./ssl/owner/cert.pem ./ssl/secretary/cert.pem
+          sudo chmod 644 ./ssl/owner/cert.pem ./ssl/secretary/cert.pem ./ssl/owner/keystore.p12 ./ssl/secretary/keystore.p12
         working-directory: http-tests
       - name: Run HTTP test scripts
         run: ./run.sh "$PWD/ssl/owner/cert.pem" "${{ secrets.HTTP_TEST_OWNER_CERT_PASSWORD }}" "$PWD/ssl/secretary/cert.pem" "${{ secrets.HTTP_TEST_SECRETARY_CERT_PASSWORD }}"
@@ -85,6 +102,7 @@ jobs:
         working-directory: http-tests
         env:
           GITHUB_TOKEN: ${{ secrets.VERSIONING_TEST_TOKEN }} # the versioning suite (and its gh api calls) authenticate with this; empty = suite skips
+          VERSIONING_TEST_BRANCH: ${{ env.VERSIONING_TEST_BRANCH }} # the per-run branch the suite polls; unset = main
       - name: Generate test summary
         if: always()
         run: python3 scripts/generate_test_summary.py http-tests/out http-tests/out/report.md
@@ -104,6 +122,11 @@ jobs:
       - name: Dump Tomcat logs from linkeddatahub container on failure
         if: failure()
         run: docker compose --env-file ./http-tests/.env exec -T linkeddatahub sh -c 'for f in /usr/local/tomcat/logs/*; do echo "=== $f ==="; cat "$f"; done' || true
+      - name: Delete the versioning test branch
+        if: always() && env.VERSIONING_TEST_BRANCH != ''
+        env:
+          GH_TOKEN: ${{ secrets.VERSIONING_TEST_TOKEN }}
+        run: gh api -X DELETE "repos/$VERSIONING_TEST_REPO/git/refs/heads/$VERSIONING_TEST_BRANCH" || true
       - name: Stop Docker containers and remove volumes
         run: docker compose --env-file ./http-tests/.env down -v
       - name: Remove Docker containers

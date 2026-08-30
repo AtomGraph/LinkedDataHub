@@ -9,8 +9,8 @@ purge_cache "$FRONTEND_VARNISH_SERVICE"
 
 # add agent to the writers group
 
-add-agent-to-group.sh \
-  -f "$OWNER_CERT_FILE" \
+ldh admin acl add-agent-to-group \
+  -f "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   --agent "$AGENT_URI" \
   "${ADMIN_BASE_URL}acl/groups/writers/"
@@ -19,8 +19,7 @@ add-agent-to-group.sh \
 
 item="${END_USER_BASE_URL}new-item/"
 
-(
-curl -k -w "%{http_code}\n" -o /dev/null -f -s \
+status=$(curl -k -w "%{http_code}" -o /dev/null -s \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
   -X PUT \
   -H "Accept: application/n-triples" \
@@ -30,15 +29,31 @@ curl -k -w "%{http_code}\n" -o /dev/null -f -s \
 <named-subject-put> <http://example.com/default-predicate> "named object PUT" .
 <named-subject-put> <http://example.com/another-predicate> "another named object PUT" .
 EOF
-) \
-| grep -q "$STATUS_CREATED"
+)
+
+if [ "$status" != "$STATUS_CREATED" ]; then
+  echo "DEBUG: Expected $STATUS_CREATED from the PUT, got: $status"
+  exit 1
+fi
 
 # check that resource is accessible
+#
+# Assertions read from a here-string rather than piping curl into `grep -q`: `grep -q`
+# closes the pipe on its first match, and with `set -o pipefail` the SIGPIPE'd upstream
+# command fails the whole pipeline whenever it is still writing at that moment.
 
-curl -k -f -G -s \
+response=$(curl -k -f -G -s \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
   -H "Accept: application/n-triples" \
-  "$item" \
-| tr -d '\n' \
-| grep "<${item}> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.w3.org/ns/ldt/document-hierarchy#Item>" \
-| grep -q "<${item}named-subject-put> <http://example.com/default-predicate> \"named object PUT\" ."
+  "$item")
+
+for triple in \
+  "<${item}> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.w3.org/ns/ldt/document-hierarchy#Item>" \
+  "<${item}named-subject-put> <http://example.com/default-predicate> \"named object PUT\" ."
+do
+  if ! grep -qF "$triple" <<< "$response"; then
+    echo "DEBUG: Expected triple: $triple"
+    echo "DEBUG: Got: $response"
+    exit 1
+  fi
+done

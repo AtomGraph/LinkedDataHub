@@ -131,7 +131,7 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="$ac:uri"/>
     </xsl:function>
 
-    <!-- TimeMap URI from the Link response header (rel=mem:timemap), present when the document is versioned -->
+    <!-- TimeMap URI from the Link response header (rel=timemap), present when the document is versioned -->
     <xsl:function name="ldh:timemap" as="xs:anyURI?" use-when="system-property('xsl:product-name') = 'SAXON'">
         <xsl:variable name="entries" as="xs:string*">
             <xsl:for-each select="$ldh:httpHeaders('Link')">
@@ -142,7 +142,7 @@ exclude-result-prefixes="#all"
                 </xsl:analyze-string>
             </xsl:for-each>
         </xsl:variable>
-        <xsl:sequence select="(for $entry in $entries return if (matches($entry, '^&lt;[^&gt;]+&gt;\s*;.*[;\s]rel\s*=\s*&quot;?[^&quot;\s,;]*mementoweb\.org/ns#timemap&quot;?')) then xs:anyURI(replace($entry, '^&lt;([^&gt;]+)&gt;.*$', '$1')) else ())[1]"/>
+        <xsl:sequence select="(for $entry in $entries return if (matches($entry, '^&lt;[^&gt;]+&gt;\s*;.*[;\s]rel\s*=\s*&quot;?timemap&quot;?([;\s]|$)')) then xs:anyURI(replace($entry, '^&lt;([^&gt;]+)&gt;.*$', '$1')) else ())[1]"/>
     </xsl:function>
 
     <!-- Memento-Datetime response header value, present on ?version= responses -->
@@ -272,15 +272,8 @@ exclude-result-prefixes="#all"
 
     <xsl:function name="ldh:build-query" as="map(xs:string, xs:string*)">
         <xsl:param name="mode" as="xs:anyURI*"/>
-        
-        <xsl:sequence select="ldh:build-query($mode, ())"/>
-    </xsl:function>
 
-    <xsl:function name="ldh:build-query" as="map(xs:string, xs:string*)">
-        <xsl:param name="mode" as="xs:anyURI*"/>
-        <xsl:param name="forClass" as="xs:anyURI?"/>
-        
-        <xsl:sequence select="map:merge((if (exists($mode)) then map{ 'mode': for $m in $mode return string($m) } else (), if ($forClass) then map{ 'forClass': string($forClass) } else ()))"/>
+        <xsl:sequence select="if (exists($mode)) then map{ 'mode': for $m in $mode return string($m) } else map{}"/>
     </xsl:function>
 
     <xsl:function name="ldh:query-result" as="document-node()">
@@ -310,13 +303,19 @@ exclude-result-prefixes="#all"
         </xsl:choose>
     </xsl:function>
     
-    <xsl:function name="ldh:construct-forClass" as="document-node()">
+    <!-- SSR stub: constructor instantiation is client-side only (the SaxonJS variant in
+    client/functions.xsl instantiates the constructor queries onto a single multi-typed instance).
+    Server-rendered forms show the data properties; the client re-render supplies the constructor
+    controls. Same pattern as Web-Client's ac:construct stub. -->
+    <xsl:function name="ldh:construct-forClass" as="document-node()" use-when="system-property('xsl:product-name') = 'SAXON'">
         <xsl:param name="forClass" as="xs:anyURI+"/>
-        <!-- DEPRECATED: prefer ldh:load-constructed-doc / ldh:set-constructed-doc in a promise chain. -->
-        <xsl:variable name="results-uri" select="ac:build-uri(resolve-uri('ns', ldt:base()), map{ 'forClass': for $class in $forClass return string($class), 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
-        <xsl:variable name="request-uri" select="ldh:href($results-uri, map{})" as="xs:anyURI"/>
 
-        <xsl:sequence select="document($request-uri)"/>
+        <xsl:variable name="doc" as="document-node()">
+            <xsl:document>
+                <rdf:RDF/>
+            </xsl:document>
+        </xsl:variable>
+        <xsl:sequence select="$doc"/>
     </xsl:function>
 
     <!-- Pure derivation: produces an instance document from a class-keyed, bnode-prototyped constructor by re-keying the prototype Description (the one whose rdf:type matches $forClass) under the given identity. The input constructor is not modified. Pass $about to mint a URI-identified instance (the document-creation case and the fragment-instance case) or $nodeID to mint a bnode-identified instance with a deterministic label. Implementation reuses the existing mode="ldh:SetResourceID" pass — it's the same identity-rewrite, just exposed as a function so call sites can keep the constructor pure and derive the instance separately. -->
@@ -403,7 +402,7 @@ exclude-result-prefixes="#all"
         </xsl:copy>
     </xsl:template>
 
-    <!-- Builds the pure, bnode-prototyped constructor consumed by bs2:FormControl from the two raw inputs the promise chain has fetched: $shapes (SHACL NodeShape RDF) and $constructed-doc (SPIN constructor RDF from /ns?forClass=…). Shared by every flow that ends in bs2:FormControl (ldh:render-row-form for EDIT, ldh:render-row-form-violation for violation re-render, and the Phase 4 modal/app-settings/signup renderers to come) so the merge logic lives in exactly one place. Returns the SPIN side unchanged when shapes are absent (typical for system classes like sp:Describe), returns the merged doc when both sides exist (user-defined classes like skos:Concept with both SPIN defaults and SHACL constraints), or empty if neither side provides input. -->
+    <!-- Builds the pure, bnode-prototyped constructor consumed by bs2:FormControl from the two raw inputs the promise chain has fetched: $shapes (SHACL NodeShape RDF) and $constructed-doc (SPIN constructor RDF fetched via the ns SPARQL endpoint). Shared by every flow that ends in bs2:FormControl (ldh:render-row-form for EDIT, ldh:render-row-form-violation for violation re-render, and the Phase 4 modal/app-settings/signup renderers to come) so the merge logic lives in exactly one place. Returns the SPIN side unchanged when shapes are absent (typical for system classes like sp:Describe), returns the merged doc when both sides exist (user-defined classes like skos:Concept with both SPIN defaults and SHACL constraints), or empty if neither side provides input. -->
     <xsl:function name="ldh:build-merged-constructor" as="document-node()?">
         <xsl:param name="shapes" as="document-node()?"/>
         <xsl:param name="constructed-doc" as="document-node()?"/>
@@ -476,6 +475,55 @@ exclude-result-prefixes="#all"
         <xsl:param name="arg2" as="xs:anyAtomicType*"/>
 
         <xsl:sequence select="distinct-values($arg1[not(.=$arg2)])"/>
+    </xsl:function>
+
+    <!-- identity of one triple given its RDF/XML property element, as subject | predicate | object.
+         With $normalize-numerics, numeric literals are normalized so lexically different but equal values (1 vs 1.0) compare
+         equal across serializations; without it, comparison is exactly lexical (canonical same-writer output makes that safe).
+         XMLLiterals are keyed on their serialized content. Blank node labels are serializer-generated, so bnode-involving
+         triples never compare equal across two documents -->
+    <xsl:function name="ldh:triple-key" as="xs:string">
+        <xsl:param name="property" as="element()"/>
+        <xsl:param name="normalize-numerics" as="xs:boolean"/>
+
+        <xsl:for-each select="$property">
+            <xsl:sequence select="concat(../@rdf:about, '|', ../@rdf:nodeID, '|', namespace-uri(), local-name(), '|', @rdf:resource, @rdf:nodeID, if (@rdf:parseType = 'Literal') then serialize(node()) else if ($normalize-numerics and text() castable as xs:float) then xs:float(text()) else text(), '|', @rdf:datatype, @xml:lang)"/>
+        </xsl:for-each>
+    </xsl:function>
+
+    <!-- one map entry per triple of a flat RDF/XML document, keyed with ldh:triple-key() -->
+    <xsl:function name="ldh:triples-map" as="map(xs:string, element())">
+        <xsl:param name="doc" as="document-node()"/>
+        <xsl:param name="normalize-numerics" as="xs:boolean"/>
+
+        <xsl:map>
+            <xsl:for-each select="$doc/rdf:RDF/rdf:Description/*">
+                <xsl:map-entry key="ldh:triple-key(., $normalize-numerics)" select="."/>
+            </xsl:for-each>
+        </xsl:map>
+    </xsl:function>
+
+    <!-- version-diff status of a whole resource description: added/removed when every one of its triples is one-sided, changed when only some are -->
+    <xsl:function name="ldh:diff-class" as="xs:string?">
+        <xsl:param name="resource" as="element()"/>
+        <xsl:param name="added-keys" as="xs:string*"/>
+        <xsl:param name="removed-keys" as="xs:string*"/>
+
+        <xsl:variable name="triple-keys" select="$resource/* ! ldh:triple-key(., false())" as="xs:string*"/>
+        <xsl:choose>
+            <xsl:when test="exists($triple-keys) and (every $triple-key in $triple-keys satisfies $triple-key = $added-keys)">
+                <xsl:sequence select="'diff-added'"/>
+            </xsl:when>
+            <xsl:when test="exists($triple-keys) and (every $triple-key in $triple-keys satisfies $triple-key = $removed-keys)">
+                <xsl:sequence select="'diff-removed'"/>
+            </xsl:when>
+            <xsl:when test="$triple-keys = ($added-keys, $removed-keys)">
+                <xsl:sequence select="'diff-changed'"/>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:sequence select="()"/>
+            </xsl:otherwise>
+        </xsl:choose>
     </xsl:function>
 
     <xsl:function name="ldh:url-decode" as="xs:string" use-when="system-property('xsl:product-name') eq 'SaxonJS'">
@@ -636,17 +684,31 @@ exclude-result-prefixes="#all"
     <!-- RDFa overrides -->
 
     <xsl:template match="@rdf:resource" mode="xhtml:DefinitionDescription">
+        <xsl:param name="diff-added-keys" as="xs:string*" tunnel="yes"/>
+        <xsl:param name="diff-removed-keys" as="xs:string*" tunnel="yes"/>
         <xsl:variable name="property-uri" select="../concat(namespace-uri(), local-name())" as="xs:string"/>
-        
+        <xsl:variable name="diff-class" select="ldh:value-diff-class(.., $diff-added-keys, $diff-removed-keys)" as="xs:string?"/>
+
         <dd property="{$property-uri}" resource="{.}">
+            <xsl:if test="$diff-class">
+                <xsl:attribute name="class" select="$diff-class"/>
+            </xsl:if>
+
             <xsl:apply-templates select="."/>
         </dd>
     </xsl:template>
-    
+
     <xsl:template match="text()[../@xml:lang]" mode="xhtml:DefinitionDescription">
+        <xsl:param name="diff-added-keys" as="xs:string*" tunnel="yes"/>
+        <xsl:param name="diff-removed-keys" as="xs:string*" tunnel="yes"/>
         <xsl:variable name="property-uri" select="../concat(namespace-uri(), local-name())" as="xs:string"/>
+        <xsl:variable name="diff-class" select="ldh:value-diff-class(.., $diff-added-keys, $diff-removed-keys)" as="xs:string?"/>
 
         <dd property="{$property-uri}">
+            <xsl:if test="$diff-class">
+                <xsl:attribute name="class" select="$diff-class"/>
+            </xsl:if>
+
             <span class="label label-info pull-right">
                 <xsl:value-of select="../@xml:lang"/>
             </span>
@@ -654,14 +716,31 @@ exclude-result-prefixes="#all"
             <xsl:apply-templates select="."/>
         </dd>
     </xsl:template>
-    
+
     <xsl:template match="node()" mode="xhtml:DefinitionDescription">
+        <xsl:param name="diff-added-keys" as="xs:string*" tunnel="yes"/>
+        <xsl:param name="diff-removed-keys" as="xs:string*" tunnel="yes"/>
         <xsl:variable name="property-uri" select="../concat(namespace-uri(), local-name())" as="xs:string"/>
-        
+        <xsl:variable name="diff-class" select="ldh:value-diff-class(.., $diff-added-keys, $diff-removed-keys)" as="xs:string?"/>
+
         <dd property="{$property-uri}">
+            <xsl:if test="$diff-class">
+                <xsl:attribute name="class" select="$diff-class"/>
+            </xsl:if>
+
             <xsl:apply-templates select="."/>
         </dd>
     </xsl:template>
+
+    <!-- version-diff status of a single property value -->
+    <xsl:function name="ldh:value-diff-class" as="xs:string?">
+        <xsl:param name="property" as="element()"/>
+        <xsl:param name="added-keys" as="xs:string*"/>
+        <xsl:param name="removed-keys" as="xs:string*"/>
+
+        <xsl:variable name="triple-key" select="ldh:triple-key($property, false())" as="xs:string"/>
+        <xsl:sequence select="if ($triple-key = $added-keys) then 'diff-added' else if ($triple-key = $removed-keys) then 'diff-removed' else ()"/>
+    </xsl:function>
     
     <!-- DEFAULT -->
     
@@ -1066,25 +1145,27 @@ exclude-result-prefixes="#all"
 
     <xsl:template match="@rdf:resource" mode="bs2:FormControlTypeLabel">
         <xsl:param name="type" as="xs:string?"/>
-        <xsl:param name="forClass" as="xs:anyURI?"/>
+        <xsl:param name="forClass" as="xs:anyURI*"/>
 
         <xsl:if test="not($type = 'hidden')">
             <xsl:choose>
-                <xsl:when test="$forClass">
-                    <!-- SAXON checks the catalog; SaxonJS only inspects the documentPool to avoid cross-origin fetches that would trigger mixed-content for slash-vocab term URIs (e.g. foaf) -->
-                    <xsl:variable name="doc-loaded" select="doc-available(ac:document-uri($forClass))" as="xs:boolean" use-when="system-property('xsl:product-name') = 'SAXON'"/>
-                    <xsl:variable name="doc-loaded" select="ixsl:doc-fetched(ac:document-uri($forClass))" as="xs:boolean" use-when="system-property('xsl:product-name') eq 'SaxonJS'"/>
+                <xsl:when test="exists($forClass)">
                     <span class="help-inline">
-                        <xsl:choose>
-                            <xsl:when test="$doc-loaded and key('resources', $forClass, document(ac:document-uri($forClass)))">
-                                <xsl:value-of>
-                                    <xsl:apply-templates select="key('resources', $forClass, document(ac:document-uri($forClass)))" mode="ac:label"/>
-                                </xsl:value-of>
-                            </xsl:when>
-                            <xsl:otherwise>
-                                <xsl:value-of select="$forClass"/>
-                            </xsl:otherwise>
-                        </xsl:choose>
+                        <xsl:for-each select="$forClass">
+                            <!-- SAXON checks the catalog; SaxonJS only inspects the documentPool to avoid cross-origin fetches that would trigger mixed-content for slash-vocab term URIs (e.g. foaf) -->
+                            <xsl:variable name="doc-loaded" select="doc-available(ac:document-uri(.))" as="xs:boolean" use-when="system-property('xsl:product-name') = 'SAXON'"/>
+                            <xsl:variable name="doc-loaded" select="ixsl:doc-fetched(ac:document-uri(.))" as="xs:boolean" use-when="system-property('xsl:product-name') eq 'SaxonJS'"/>
+                            <xsl:choose>
+                                <xsl:when test="$doc-loaded and key('resources', ., document(ac:document-uri(.)))">
+                                    <xsl:value-of>
+                                        <xsl:apply-templates select="key('resources', ., document(ac:document-uri(.)))" mode="ac:label"/>
+                                    </xsl:value-of>
+                                </xsl:when>
+                                <xsl:otherwise>
+                                    <xsl:value-of select="."/>
+                                </xsl:otherwise>
+                            </xsl:choose>
+                        </xsl:for-each>
                     </span>
                 </xsl:when>
                 <xsl:otherwise>
@@ -1130,7 +1211,7 @@ exclude-result-prefixes="#all"
                 </xsl:apply-templates>
             </xsl:when>
             <xsl:when test="$resource">
-                <xsl:variable name="forClass" select="if ($constructor) then distinct-values(key('resources', key('resources-by-type', ../../rdf:type/@rdf:resource, $constructor)/*[concat(namespace-uri(), local-name()) = current()/../concat(namespace-uri(), local-name())]/@rdf:nodeID, $constructor)/rdf:type/@rdf:resource[not(. = '&rdfs;Class')]) else ()" as="xs:anyURI?"/>
+                <xsl:variable name="forClass" select="if ($constructor) then distinct-values(key('resources', key('resources-by-type', ../../rdf:type/@rdf:resource, $constructor)/*[concat(namespace-uri(), local-name()) = current()/../concat(namespace-uri(), local-name())]/@rdf:nodeID, $constructor)/rdf:type/@rdf:resource[not(. = '&rdfs;Class')]) else ()" as="xs:anyURI*"/>
                 <xsl:apply-templates select="$resource" mode="ldh:Typeahead">
                     <xsl:with-param name="forClass" select="$forClass"/>
                 </xsl:apply-templates>

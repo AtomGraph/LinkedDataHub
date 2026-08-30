@@ -198,6 +198,7 @@ exclude-result-prefixes="#all"
             <xsl:when test="$inputs[1]/@name = 'rdf'">
                 <xsl:variable name="value-inputs" select="subsequence($inputs, 2)[ixsl:contains(., 'value')]" as="element()*"/> <!-- skip the initial <input name="rdf"/> -->
                 <xsl:variable name="value-inputs" select="$value-inputs[@name = 'su' or not(ixsl:get(., 'value') = '')]" as="element()*"/> <!-- filter out empty literal values (empty 'su' values are valid: those are relative subject URIs) -->
+                <xsl:variable name="value-inputs" select="$value-inputs[not(@type = 'checkbox') or ixsl:get(., 'checked')]" as="element()*"/> <!-- unchecked checkboxes are not successful controls, as in HTML form submission -->
                 <xsl:iterate select="$value-inputs">
                     <xsl:param name="subj-input" select="if ($value-inputs[1]/@name = ('sb', 'su')) then $value-inputs[1] else ()" as="element()?"/>
                     <xsl:param name="pred-input" as="element()?"/>
@@ -437,8 +438,116 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="ixsl:call($js-function, 'call', [ (), $doc ])"/>
     </xsl:function>
     
+    <!-- constructor instantiation: the template mirrors the instance. One SELECT fetches the
+    spin:constructor query texts for the whole type set (subclass closure, DISTINCT), and the
+    CONSTRUCT templates are expanded onto a single instance — one bnode prototype typed with all
+    the classes, value-range markers as sibling Descriptions in the same document. -->
+
+    <xsl:function name="ldh:constructor-query" as="xs:string">
+        <xsl:param name="types" as="xs:anyURI*"/>
+
+        <xsl:sequence select="'SELECT DISTINCT ?constructor ?text WHERE { VALUES ?type { ' || string-join(for $type in $types return '&lt;' || $type || '&gt;', ' ') || ' } ?type &lt;http://www.w3.org/2000/01/rdf-schema#subClassOf&gt;* ?class . ?class &lt;http://spinrdf.org/spin#constructor&gt; ?constructor . ?constructor &lt;http://spinrdf.org/sp#text&gt; ?text . }'"/>
+    </xsl:function>
+
+    <!-- rewrites a CONSTRUCT template term: ?this becomes the shared instance label, other blank
+    node labels are prefixed per constructor position so markers from different templates cannot collide -->
+    <xsl:function name="ldh:instance-term" as="xs:string">
+        <xsl:param name="term" as="xs:string"/>
+        <xsl:param name="pos" as="xs:integer"/>
+
+        <xsl:sequence select="if ($term = ('?this', '$this')) then '_:instance' else if (starts-with($term, '_:')) then '_:c' || $pos || '_' || substring-after($term, '_:') else $term"/>
+    </xsl:function>
+
+    <!-- returns the sorted type set of a pure value-range marker (a blank node carrying only rdf:type),
+    or the empty string when the label is not a pure marker -->
+    <xsl:function name="ldh:marker-types" as="xs:string">
+        <xsl:param name="label" as="xs:string"/>
+        <xsl:param name="triples" as="element()*"/>
+
+        <xsl:variable name="subject-triples" select="$triples[json:string[@key = 'subject'] = $label]" as="element()*"/>
+        <xsl:sequence select="if (starts-with($label, '_:') and exists($subject-triples) and not($subject-triples[not(json:string[@key = 'predicate'] = '&rdf;type')])) then string-join(sort($subject-triples/json:string[@key = 'object']), ' ') else ''"/>
+    </xsl:function>
+
+    <!-- instantiates spin:constructor CONSTRUCT templates onto a single instance typed with $types.
+    Constructors must be pure templates: a non-empty WHERE clause cannot be instantiated client-side
+    and is skipped with a warning. Properties asserted by several constructors with the same value
+    range are collapsed; different ranges on one predicate all survive. -->
+    <xsl:function name="ldh:construct-instance" as="document-node()">
+        <xsl:param name="texts" as="xs:string*"/>
+        <xsl:param name="types" as="xs:anyURI*"/>
+
+        <xsl:variable name="raw-triples" as="element()*">
+            <xsl:for-each select="$texts">
+                <xsl:variable name="pos" select="position()" as="xs:integer"/>
+                <!-- read the parse tree through JSON serialization (the form.xsl SELECT-builder idiom) - SaxonJS does not marshal plain JS arrays for ixsl:get() access -->
+                <xsl:variable name="query-xml" select="json-to-xml(ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ ixsl:call($sparql-parser, 'parse', [ string(.) ]) ]))" as="document-node()"/>
+                <xsl:choose>
+                    <xsl:when test="exists($query-xml/json:map/json:array[@key = 'where']/*)">
+                        <xsl:message>Constructor skipped: a non-empty WHERE clause cannot be instantiated client-side: <xsl:value-of select="."/></xsl:message>
+                    </xsl:when>
+                    <xsl:otherwise>
+                        <xsl:for-each select="$query-xml/json:map/json:array[@key = 'template']/json:map">
+                            <xsl:variable name="predicate" select="json:string[@key = 'predicate']" as="xs:string"/>
+                            <xsl:choose>
+                                <xsl:when test="starts-with($predicate, '?') or starts-with($predicate, '$')">
+                                    <xsl:message>Constructor template triple skipped: variable predicate <xsl:value-of select="$predicate"/></xsl:message>
+                                </xsl:when>
+                                <xsl:otherwise>
+                                    <json:map>
+                                        <json:string key="subject"><xsl:value-of select="ldh:instance-term(json:string[@key = 'subject'], $pos)"/></json:string>
+                                        <json:string key="predicate"><xsl:value-of select="$predicate"/></json:string>
+                                        <json:string key="object"><xsl:value-of select="ldh:instance-term(json:string[@key = 'object'], $pos)"/></json:string>
+                                    </json:map>
+                                </xsl:otherwise>
+                            </xsl:choose>
+                        </xsl:for-each>
+                    </xsl:otherwise>
+                </xsl:choose>
+            </xsl:for-each>
+        </xsl:variable>
+
+        <!-- collapse instance properties whose (predicate, marker type set) coincide - the same property
+        asserted by several constructors (e.g. dct:title via a superclass and the class's own constructor) -->
+        <xsl:variable name="dropped-markers" as="xs:string*">
+            <xsl:for-each-group select="$raw-triples[json:string[@key = 'subject'] = '_:instance'][not(ldh:marker-types(json:string[@key = 'object'], $raw-triples) = '')]" group-by="json:string[@key = 'predicate'] || ' ' || ldh:marker-types(json:string[@key = 'object'], $raw-triples)">
+                <xsl:sequence select="for $duplicate in subsequence(current-group(), 2) return string($duplicate/json:string[@key = 'object'])"/>
+            </xsl:for-each-group>
+        </xsl:variable>
+        <xsl:variable name="triples" select="$raw-triples[not(json:string[@key = 'subject'] = '_:instance' and json:string[@key = 'object'] = $dropped-markers)][not(json:string[@key = 'subject'] = $dropped-markers)]" as="element()*"/>
+
+        <xsl:variable name="type-triples" as="element()*">
+            <xsl:for-each select="$types">
+                <json:map>
+                    <json:string key="subject">_:instance</json:string>
+                    <json:string key="predicate">&rdf;type</json:string>
+                    <json:string key="object"><xsl:value-of select="."/></json:string>
+                </json:map>
+            </xsl:for-each>
+        </xsl:variable>
+
+        <xsl:variable name="doc" as="document-node()">
+            <xsl:document>
+                <rdf:RDF>
+                    <xsl:sequence select="ldh:triples-to-descriptions(($triples, $type-triples))"/>
+                </rdf:RDF>
+            </xsl:document>
+        </xsl:variable>
+        <xsl:sequence select="$doc"/>
+    </xsl:function>
+
+    <!-- CSR variant of ldh:construct-forClass (imports/default.xsl declares the SAXON one) -->
+    <xsl:function name="ldh:construct-forClass" as="document-node()">
+        <xsl:param name="forClass" as="xs:anyURI+"/>
+
+        <xsl:variable name="results-uri" select="ac:build-uri(resolve-uri('ns', ldt:base()), map{ 'query': ldh:constructor-query($forClass), 'accept': 'application/sparql-results+xml' })" as="xs:anyURI"/>
+        <xsl:variable name="request-uri" select="ldh:href($results-uri, map{})" as="xs:anyURI"/>
+        <xsl:variable name="results" select="document($request-uri)" as="document-node()"/>
+
+        <xsl:sequence select="ldh:construct-instance(distinct-values($results//srx:binding[@name = 'text']/srx:literal), $forClass)"/>
+    </xsl:function>
+
     <!-- builds an <$about> ?p ?o triple pattern for the given $about URI -->
-    
+
     <xsl:function name="ldh:uri-po-pattern" as="element()*">
         <xsl:param name="about" as="xs:anyURI"/>
 
@@ -579,13 +688,18 @@ exclude-result-prefixes="#all"
         "/>
     </xsl:function>
 
-    <!-- Async load/set pair for /ns?forClass=… — builds the request from context('forClass'); store result at context('constructed-doc'). forClass is relaxed to xs:anyURI* so EDIT chains (which derive forClass from the resource's rdf:types and may legitimately have zero) can include this step unconditionally — an empty forClass sends no ?forClass= query parameter and the server responds with an empty graph, which downstream merge/instantiate handle as a no-op. -->
+    <!-- Async load/set pair for constructor instantiation — builds the constructor SELECT request from
+    context('forClass'); the set fn instantiates the fetched constructor texts onto a single instance and
+    stores the result at context('constructed-doc'). forClass is relaxed to xs:anyURI* so EDIT chains
+    (which derive forClass from the resource's rdf:types and may legitimately have zero) can include this
+    step unconditionally — an empty forClass sends an empty VALUES block, the SELECT returns no rows and
+    the instantiated document is empty, which downstream merge/instantiate handle as a no-op. -->
     <xsl:function name="ldh:load-constructed-doc" as="map(*)" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
         <xsl:variable name="forClass" select="$context('forClass')" as="xs:anyURI*"/>
-        <xsl:variable name="results-uri" select="ac:build-uri(resolve-uri('ns', ldt:base()), map{ 'forClass': for $class in $forClass return string($class), 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
+        <xsl:variable name="results-uri" select="ac:build-uri(resolve-uri('ns', ldt:base()), map{ 'query': ldh:constructor-query($forClass), 'accept': 'application/sparql-results+xml' })" as="xs:anyURI"/>
         <xsl:variable name="request-uri" select="ldh:href($results-uri, map{})" as="xs:anyURI"/>
-        <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
+        <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml' } }" as="map(*)"/>
         <xsl:sequence select="map:merge(($context, map{ 'constructed-doc-request': $request }))"/>
     </xsl:function>
 
@@ -594,8 +708,9 @@ exclude-result-prefixes="#all"
         <xsl:variable name="response" select="$context('constructed-doc-response')" as="map(*)"/>
         <xsl:for-each select="$response">
             <xsl:choose>
-                <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
-                    <xsl:sequence select="map:merge(($context, map{ 'constructed-doc': ?body }))"/>
+                <xsl:when test="?status = 200 and ?media-type = 'application/sparql-results+xml'">
+                    <xsl:variable name="texts" select="distinct-values(?body//srx:binding[@name = 'text']/srx:literal)" as="xs:string*"/>
+                    <xsl:sequence select="map:merge(($context, map{ 'constructed-doc': ldh:construct-instance($texts, $context('forClass')) }))"/>
                 </xsl:when>
                 <xsl:otherwise>
                     <xsl:sequence select="$context"/>

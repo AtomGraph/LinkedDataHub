@@ -41,8 +41,8 @@ curl -k -f -s -o /dev/null \
 
 # Rebuild the in-memory ontology so the constructor hash URI enters the OntModel.
 # After this, the DESCRIBE check in ProxyRequestFilter will fire for the PATCH.
-clear-ontology.sh \
-  -f "$OWNER_CERT_FILE" \
+ldh admin clear-ontology \
+  -f "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   -b "$ADMIN_BASE_URL" \
   --ontology "$namespace"
@@ -57,18 +57,31 @@ WHERE  { OPTIONAL { <${constructor}> sp:text ?old . } }
 EOF
 )
 
-curl -k -w "%{http_code}" -o /dev/null -s \
+status=$(curl -k -w "%{http_code}" -o /dev/null -s \
   -X PATCH \
   -E "$OWNER_CERT_FILE":"$OWNER_CERT_PWD" \
   -H "Content-Type: application/sparql-update" \
   --url-query "uri=${ontology_doc}" \
   --data-binary "$update" \
-  "$END_USER_BASE_URL" \
-| grep -qE "$STATUS_PATCH_SUCCESS"
+  "$END_USER_BASE_URL")
+
+if [[ ! "$status" =~ ^($STATUS_PATCH_SUCCESS)$ ]]; then
+  echo "DEBUG: Expected $STATUS_PATCH_SUCCESS from the proxied PATCH, got: $status"
+  exit 1
+fi
 
 # Verify the update landed in the admin document (not silently swallowed).
-curl -k -f -s \
+# Assertions read from a here-string rather than piping curl into `grep -q`: `grep -q`
+# closes the pipe on its first match, and with `set -o pipefail` the SIGPIPE'd curl
+# fails the whole pipeline whenever it is still writing at that moment.
+
+response=$(curl -k -f -s \
   -E "$OWNER_CERT_FILE":"$OWNER_CERT_PWD" \
   -H "Accept: application/n-triples" \
-  "$ontology_doc" \
-| grep -q "TestClassUpdated"
+  "$ontology_doc")
+
+if ! grep -qF "TestClassUpdated" <<< "$response"; then
+  echo "DEBUG: Expected the constructor text to contain: TestClassUpdated"
+  echo "DEBUG: Got: $response"
+  exit 1
+fi

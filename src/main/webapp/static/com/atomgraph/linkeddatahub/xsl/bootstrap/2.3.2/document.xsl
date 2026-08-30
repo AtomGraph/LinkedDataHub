@@ -543,6 +543,34 @@ extension-element-prefixes="ixsl"
                 </div>
             </xsl:if>
 
+            <!-- legend shown when a version diff is displayed (?diff= query parameter): removed content comes from the compared version, added content from the viewed one, changed content exists in both -->
+            <xsl:if test="map:contains(ldh:query-params(), 'diff')">
+                <div class="alert alert-info">
+                    <xsl:value-of>
+                        <xsl:apply-templates select="key('resources', 'comparing-versions', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                    </xsl:value-of>
+                    <xsl:text>: </xsl:text>
+                    <span class="text-error">
+                        <xsl:value-of>
+                            <xsl:apply-templates select="key('resources', 'removed', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                        </xsl:value-of>
+                    </span>
+                    <xsl:text> / </xsl:text>
+                    <span class="text-success">
+                        <xsl:value-of>
+                            <xsl:apply-templates select="key('resources', 'added', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                        </xsl:value-of>
+                    </span>
+                    <xsl:text> / </xsl:text>
+                    <!-- .text-warning is #ff7518 in this theme, the same value as the diff-changed block border -->
+                    <span class="text-warning">
+                        <xsl:value-of>
+                            <xsl:apply-templates select="key('resources', 'changed', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                        </xsl:value-of>
+                    </span>
+                </div>
+            </xsl:if>
+
             <!-- host for the RDFa editor toolbar (appended by rdfae:init-editing); empty until an editable region initializes -->
             <div class="navbar-inner editor-bar">
                 <div class="container-fluid"></div>
@@ -804,9 +832,6 @@ extension-element-prefixes="ixsl"
         <xsl:param name="canvas-id" as="xs:string"/>
         <xsl:param name="canvas-class" select="'chart-canvas'" as="xs:string?"/>
         <xsl:param name="method" select="'post'" as="xs:string"/>
-        <xsl:param name="doc-type" select="xs:anyURI('&dh;Item')" as="xs:anyURI"/>
-        <xsl:param name="type" select="xs:anyURI('&ldh;GraphChart')" as="xs:anyURI"/>
-        <xsl:param name="action" select="ac:build-uri(resolve-uri('charts/', ldt:base()), map{ 'forClass': string($type) })" as="xs:anyURI" tunnel="yes"/>
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="class" select="'form-horizontal'" as="xs:string?"/>
         <xsl:param name="button-class" select="'btn'" as="xs:string?"/>
@@ -839,7 +864,7 @@ extension-element-prefixes="ixsl"
         </xsl:param>
 
         <xsl:if test="$show-controls">
-            <form method="{$method}" action="{$action}">
+            <form method="{$method}">
                 <xsl:if test="$id">
                     <xsl:attribute name="id" select="$id"/>
                 </xsl:if>
@@ -968,9 +993,6 @@ extension-element-prefixes="ixsl"
         <xsl:param name="canvas-id" as="xs:string"/>
         <xsl:param name="canvas-class" select="'chart-canvas'" as="xs:string?"/>
         <xsl:param name="method" select="'post'" as="xs:string"/>
-        <xsl:param name="doc-type" select="xs:anyURI('&dh;Item')" as="xs:anyURI"/>
-        <xsl:param name="type" select="xs:anyURI('&ldh;ResultSetChart')" as="xs:anyURI"/>
-        <xsl:param name="action" select="ac:build-uri(resolve-uri('charts/', ldt:base()), map{ 'forClass': string($type) })" as="xs:anyURI" tunnel="yes"/>
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="class" select="'form-horizontal'" as="xs:string?"/>
         <xsl:param name="button-class" select="'btn'" as="xs:string?"/>
@@ -1003,7 +1025,7 @@ extension-element-prefixes="ixsl"
         </xsl:param>
         
         <xsl:if test="$show-controls">
-            <form method="{$method}" action="{$action}">
+            <form method="{$method}">
                 <xsl:if test="$id">
                     <xsl:attribute name="id" select="$id"/>
                 </xsl:if>

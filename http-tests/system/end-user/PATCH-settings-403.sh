@@ -10,8 +10,8 @@ purge_cache "$FRONTEND_VARNISH_SERVICE"
 # PATCH /settings with a writer (not owner) should return 403
 # /settings is only in the full-control authorization which is restricted to owners
 
-add-agent-to-group.sh \
-  -f "$OWNER_CERT_FILE" \
+ldh admin acl add-agent-to-group \
+  -f "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   --agent "$AGENT_URI" \
   "${ADMIN_BASE_URL}acl/groups/writers/"

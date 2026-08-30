@@ -364,6 +364,20 @@ exclude-result-prefixes="#all"
                                     </xsl:call-template>
                                 </xsl:for-each>
                             </xsl:if>
+                            <xsl:if test="$mode = '&ac;GraphMode' and key('elements-by-class', 'graph-3d-canvas', $block)">
+                                <!-- initialize 3D force graphs -->
+                                <xsl:for-each select="key('elements-by-class', 'graph-3d-canvas', $block)">
+                                    <xsl:variable name="canvas-id" select="@id" as="xs:string"/>
+                                    <xsl:if test="not(ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub.graphs'), $canvas-id))">
+                                        <xsl:call-template name="ldh:InitDocumentGraph3D">
+                                            <xsl:with-param name="canvas" select="."/>
+                                            <xsl:with-param name="canvas-id" select="$canvas-id"/>
+                                            <!-- whole loaded document, deliberately not $resource-doc: matches the bs2:Graph rendering in bs2:Row -->
+                                            <xsl:with-param name="rdf-doc" select="root($resource)"/>
+                                        </xsl:call-template>
+                                    </xsl:if>
+                                </xsl:for-each>
+                            </xsl:if>
                         </xsl:when>
                         <xsl:otherwise>
                             <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ ?message ])[current-date() lt xs:date('2000-01-01')]"/>

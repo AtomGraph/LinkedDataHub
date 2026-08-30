@@ -18,8 +18,8 @@ curl -k -w "%{http_code}\n" -o /dev/null -s \
 
 # create group
 
-group_doc=$(create-group.sh \
-  -f "$OWNER_CERT_FILE" \
+group_doc=$(ldh admin acl create-group \
+  -f "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   -b "$ADMIN_BASE_URL" \
   --name "Test group" \
@@ -36,8 +36,8 @@ group=$(curl -s -k \
 
 slug="test"
 
-container=$(create-container.sh \
-  -f "$OWNER_CERT_FILE" \
+container=$(ldh create-container \
+  -f "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   -b "$END_USER_BASE_URL" \
   --title "Test" \
@@ -46,8 +46,8 @@ container=$(create-container.sh \
 
 # create fake test.localhost authorization (should be filtered out)
 
-create-authorization.sh \
-  -f "$OWNER_CERT_FILE" \
+ldh admin acl create-authorization \
+  -f "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   -b "https://admin.test.localhost:4443/" \
   --label "Fake DELETE group authorization from test.localhost" \
@@ -66,8 +66,8 @@ curl -k -w "%{http_code}\n" -o /dev/null -s \
 
 # create real localhost authorization
 
-create-authorization.sh \
-  -f "$OWNER_CERT_FILE" \
+ldh admin acl create-authorization \
+  -f "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   -b "$ADMIN_BASE_URL" \
   --label "DELETE authorization" \

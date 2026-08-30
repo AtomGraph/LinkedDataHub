@@ -364,6 +364,14 @@
         <rdfs:label xml:lang="en-US">Package</rdfs:label>
         <rdfs:label xml:lang="es-ES">Paquete</rdfs:label>
     </rdf:Description>
+    <rdf:Description rdf:nodeID="packages">
+        <rdfs:label xml:lang="en-US">Packages</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Paquetes</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="installed">
+        <rdfs:label xml:lang="en-US">Installed</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Instalado</rdfs:label>
+    </rdf:Description>
     <rdf:Description rdf:nodeID="ontology">
         <rdfs:label xml:lang="en-US">Ontology</rdfs:label>
         <rdfs:label xml:lang="es-ES">Ontología</rdfs:label>
@@ -528,5 +536,37 @@
     <rdf:Description rdf:nodeID="view-current-version">
         <rdfs:label xml:lang="en-US">View the current version</rdfs:label>
         <rdfs:label xml:lang="es-ES">Ver la versión actual</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="from">
+        <rdfs:label xml:lang="en-US">From</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Desde</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="to">
+        <rdfs:label xml:lang="en-US">To</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Hasta</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="compare">
+        <rdfs:label xml:lang="en-US">Compare</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Comparar</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="comparing-versions">
+        <rdfs:label xml:lang="en-US">You are comparing two versions of this document</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Está comparando dos versiones de este documento</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="removed">
+        <rdfs:label xml:lang="en-US">removed</rdfs:label>
+        <rdfs:label xml:lang="es-ES">eliminado</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="added">
+        <rdfs:label xml:lang="en-US">added</rdfs:label>
+        <rdfs:label xml:lang="es-ES">añadido</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="changed">
+        <rdfs:label xml:lang="en-US">changed</rdfs:label>
+        <rdfs:label xml:lang="es-ES">modificado</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="restore">
+        <rdfs:label xml:lang="en-US">Restore</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Restaurar</rdfs:label>
     </rdf:Description>
 </rdf:RDF>

@@ -16,8 +16,6 @@
  */
 package com.atomgraph.linkeddatahub.resource;
 
-import com.atomgraph.client.util.Constructor;
-import com.atomgraph.client.vocabulary.AC;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Request;
 import jakarta.ws.rs.core.Response;
@@ -46,13 +44,10 @@ import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.Response.Status;
 import jakarta.ws.rs.core.SecurityContext;
 import jakarta.ws.rs.core.UriInfo;
-import org.apache.jena.irix.IRIx;
 import org.apache.jena.ontapi.model.OntModel;
 import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.query.Query;
 import org.apache.jena.query.QueryFactory;
-import org.apache.jena.rdf.model.Model;
-import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.update.UpdateRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -99,18 +94,17 @@ public class Namespace extends com.atomgraph.core.model.impl.SPARQLEndpointImpl
 
     /**
      * If SPARQL query is provided, returns its result over the in-memory namespace ontology graph.
-     * If query is not provided
-     * <ul>
-     * <li>returns constructed instance if <samp>forClass</samp> URL param value (ontology class URI) is provided</li>
-     * <li>otherwise, returns the namespace ontology graph (which is standalone, i.e. <em>not</em> the full ontology imports closure)</li>
-     * </ul>
-     * 
+     * If query is not provided, returns the namespace ontology graph (which is standalone, i.e.
+     * <em>not</em> the full ontology imports closure).
+     * Constructor instances are instantiated client-side from the ontology's <code>spin:constructor</code>
+     * queries (fetched with a SPARQL query on this endpoint).
+     *
      * @param query SPARQL query string (optional)
      * @param defaultGraphUris default graph URI (ignored)
      * @param namedGraphUris named graph URIs (ignored)
-     * 
+     *
      * {@link com.atomgraph.linkeddatahub.server.model.impl.Dispatcher#getNamespace()}
-     * 
+     *
      * @return response
      */
     @Override
@@ -121,20 +115,6 @@ public class Namespace extends com.atomgraph.core.model.impl.SPARQLEndpointImpl
         // if query param is not provided and the app is end-user, return the namespace ontology associated with this document
         if (query == null)
         {
-            // construct instances for a list of ontology classes whose URIs are provided as ?forClass
-            if (getUriInfo().getQueryParameters().containsKey(AC.forClass.getLocalName()))
-            {
-                List<String> forClasses = getUriInfo().getQueryParameters().get(AC.forClass.getLocalName());
-                Model instances = ModelFactory.createDefaultModel();
-                
-                forClasses.stream().
-                    map(forClass -> Optional.ofNullable(getOntology().getOntClass(checkURI(forClass).toString()))).
-                    flatMap(Optional::stream).
-                    forEach(forClass -> new Constructor().construct(forClass, instances, getApplication().getBase().getURI()));
-                
-                return getResponseBuilder(instances).build();
-            }
-            
             if (getApplication().canAs(EndUserApplication.class))
             {
                 // the application ontology MUST use a <ns> URI! This is the URI this ontology endpoint is deployed on by the Dispatcher class
@@ -173,20 +153,6 @@ public class Namespace extends com.atomgraph.core.model.impl.SPARQLEndpointImpl
     public Response post(UpdateRequest update, @QueryParam(USING_GRAPH_URI) List<URI> usingGraphUris, @QueryParam(USING_NAMED_GRAPH_URI) List<URI> usingNamedGraphUris)
     {
         throw new WebApplicationException("SPARQL updates are not allowed on the <ns> endpoint", Status.METHOD_NOT_ALLOWED);
-    }
-    
-    /**
-     * Checks URI syntax. Throws exception if invalid.
-     * 
-     * @param classIRIStr URI string
-     * @return IRI
-     */
-    public static IRIx checkURI(String classIRIStr)
-    {
-        if (classIRIStr == null) throw new IllegalArgumentException("URI String cannot be null");
-
-        // IRIx.create() validates and throws IRIException on bad URIs
-        return IRIx.create(classIRIStr);
     }
     
     /**
