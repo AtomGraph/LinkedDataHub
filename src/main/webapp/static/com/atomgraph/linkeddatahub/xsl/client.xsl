@@ -336,6 +336,8 @@ WHERE
                     <xsl:with-param name="fragment" select="ac:fragment-id(ldh:request-uri())"/>
                     <xsl:with-param name="query-params" select="if (ac:uri()) then map{} else ldh:query-params()"/>
                     <xsl:with-param name="push-state" select="false()"/>
+                    <!-- this is the only flow where a server-rendered document body is already in the DOM, so stamp it here rather than have the shared response handler infer it from page state. Not for proxied URIs: ProxyRequestFilter bypasses rendering and returns the local shell, so no body for the external resource was rendered -->
+                    <xsl:with-param name="server-rendered" select="not(ac:uri())"/>
                 </xsl:call-template>
             </xsl:otherwise>
         </xsl:choose>
@@ -417,6 +419,7 @@ WHERE
         <xsl:variable name="fragment" select="$context('fragment')" as="xs:string?"/>
         <xsl:variable name="query-params" select="if (map:contains($context, 'query-params')) then $context('query-params') else map{}" as="map(xs:string, xs:string*)"/>
         <xsl:variable name="refresh-content" select="$context('refresh-content')" as="xs:boolean?"/>
+        <xsl:variable name="server-rendered" select="$context('server-rendered')" as="xs:boolean?"/>
 
         <xsl:for-each select="$response">
             <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
@@ -503,18 +506,21 @@ WHERE
                             <xsl:when test="$reuse-pane">
                                 <xsl:variable name="old-about" select="string($reuse-pane/div[contains-token(@class, 'document-body')]/@about)" as="xs:string"/>
 
-                                <xsl:for-each select="$reuse-pane/div[contains-token(@class, 'document-body')]">
-                                    <xsl:result-document href="?." method="ixsl:replace-element">
-                                        <xsl:apply-templates select="$render-results/rdf:RDF" mode="bs2:DocumentBody">
-                                            <xsl:with-param name="mode" select="$mode"/>
-                                            <xsl:with-param name="about" select="$doc-uri"/>
-                                            <xsl:with-param name="object-metadata" select="$context('object-metadata')" tunnel="yes"/>
-                                            <xsl:with-param name="property-metadata" select="$context('property-metadata')" tunnel="yes"/>
-                                            <xsl:with-param name="diff-added-keys" select="$diff-added-keys" tunnel="yes"/>
-                                            <xsl:with-param name="diff-removed-keys" select="$diff-removed-keys" tunnel="yes"/>
-                                        </xsl:apply-templates>
-                                    </xsl:result-document>
-                                </xsl:for-each>
+                                <!-- on the initial load the server already rendered this body: keep it instead of re-rendering over it. The client SEF carries no package stylesheet imports (SEF is generated at build time), so re-rendering silently drops every package rendering rule the server applied - e.g. the SKOS package's suppression of skos:broader in bs2:PropertyList. ldh:RenderTab below still runs, so the content-block factories populate the pane as usual -->
+                                <xsl:if test="not($server-rendered and $old-about = string($doc-uri))">
+                                    <xsl:for-each select="$reuse-pane/div[contains-token(@class, 'document-body')]">
+                                        <xsl:result-document href="?." method="ixsl:replace-element">
+                                            <xsl:apply-templates select="$render-results/rdf:RDF" mode="bs2:DocumentBody">
+                                                <xsl:with-param name="mode" select="$mode"/>
+                                                <xsl:with-param name="about" select="$doc-uri"/>
+                                                <xsl:with-param name="object-metadata" select="$context('object-metadata')" tunnel="yes"/>
+                                                <xsl:with-param name="property-metadata" select="$context('property-metadata')" tunnel="yes"/>
+                                                <xsl:with-param name="diff-added-keys" select="$diff-added-keys" tunnel="yes"/>
+                                                <xsl:with-param name="diff-removed-keys" select="$diff-removed-keys" tunnel="yes"/>
+                                            </xsl:apply-templates>
+                                        </xsl:result-document>
+                                    </xsl:for-each>
+                                </xsl:if>
 
                                 <!-- re-stamp the pane's modes: acl:mode is per-document, and the reused pane now shows a different document -->
                                 <xsl:for-each select="$reuse-pane">
@@ -1036,6 +1042,8 @@ WHERE
         <xsl:param name="query-params" select="map{}" as="map(xs:string, xs:string*)"/>
         <xsl:param name="push-state" select="true()" as="xs:boolean"/>
         <xsl:param name="container" as="element()" select="id($body-id, ixsl:page())"/>
+        <!-- true when the document body currently in the DOM was rendered by the server; see the caller in the 'main' template -->
+        <xsl:param name="server-rendered" select="false()" as="xs:boolean"/>
 
         <xsl:sequence select="ldh:busy-cursor()"/>
         <xsl:if test="ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub'), 'saxonController')">
@@ -1077,6 +1085,7 @@ WHERE
             <xsl:with-param name="fragment" select="$fragment"/>
             <xsl:with-param name="query-params" select="$query-params"/>
             <xsl:with-param name="controller" select="$controller"/>
+            <xsl:with-param name="server-rendered" select="$server-rendered"/>
         </xsl:call-template>
     </xsl:template>
 
@@ -1087,6 +1096,7 @@ WHERE
         <xsl:param name="fragment" as="xs:string?"/>
         <xsl:param name="query-params" select="map{}" as="map(xs:string, xs:string*)"/>
         <xsl:param name="refresh-content" as="xs:boolean?"/>
+        <xsl:param name="server-rendered" select="false()" as="xs:boolean"/>
         <xsl:param name="controller" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), 'saxonController')"/>
         <!-- representation-selecting params (?version=, ?timemap) ride along on the RDF request; display params do not -->
         <xsl:variable name="snapshot-params" select="ldh:snapshot-params($query-params)" as="map(xs:string, xs:string*)"/>
@@ -1104,6 +1114,7 @@ WHERE
               'fragment': $fragment,
               'query-params': map:merge(($snapshot-params, if (exists($diff-version)) then map{ 'diff': $diff-version } else map{})),
               'refresh-content': $refresh-content,
+              'server-rendered': $server-rendered,
               'endpoint': sd:endpoint()
             },
             if (exists($diff-version)) then map{ 'diff-request': map{ 'method': 'GET', 'href': ldh:href($doc-uri, map{ 'version': $diff-version }, ()), 'headers': map{ 'Accept': 'application/rdf+xml' } } } else map{}
