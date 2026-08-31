@@ -281,6 +281,14 @@ exclude-result-prefixes="#all">
         ]]>
         <!-- VALUES $this goes here -->
     </xsl:param>
+    <!-- server-side twin of client.xsl's $property-metadata-query, so ac:property-label resolves predicate labels from
+         the application ontology on the initial render as it does client-side -->
+    <xsl:param name="property-metadata-query" as="xs:string">
+        <![CDATA[
+            DESCRIBE $Type
+        ]]>
+        <!-- VALUES $Type goes here -->
+    </xsl:param>
 
     <xsl:key name="violations-by-root" match="*[@rdf:about] | *[@rdf:nodeID]" use="spin:violationRoot/@rdf:resource | spin:violationRoot/@rdf:nodeID"/>
     <xsl:key name="violations-by-value" match="*" use="ldh:violationValue/text()"/>
@@ -826,6 +834,19 @@ WHERE
                                 <xsl:sequence select="ldh:merge-metadata($sparql-metadata, $ns-metadata)"/>
                             </xsl:if>
                         </xsl:variable>
+                        <xsl:variable name="property-uris" select="distinct-values(rdf:Description/*/concat(namespace-uri(), local-name()))" as="xs:string*"/>
+                        <!-- predicate labels from /ns, the counterpart of the object labels above and of the client's own
+                             property-metadata fetch. Without it ac:property-label finds nothing in $property-metadata and
+                             falls through to the published vocabulary, whose labels are English-only - so a reader whose
+                             language the application ontology does translate still got English predicates -->
+                        <xsl:variable name="property-metadata" as="document-node()?">
+                            <xsl:if test="exists($property-uris)">
+                                <xsl:variable name="values" select="' VALUES $Type { ' || string-join(for $uri in $property-uris return '&lt;' || $uri || '&gt;', ' ') || ' }'" as="xs:string"/>
+                                <xsl:try select="ldh:send-request(resolve-uri('ns', ldt:base()), 'POST', 'application/sparql-query', $property-metadata-query || $values, map{ 'Accept': 'application/rdf+xml' })">
+                                    <xsl:catch/>
+                                </xsl:try>
+                            </xsl:if>
+                        </xsl:variable>
                         <xsl:variable name="local-pane" as="element()">
                             <xsl:apply-templates select="." mode="bs2:TabBody">
                                 <xsl:with-param name="mode" select="ac:mode(root())"/>
@@ -834,6 +855,7 @@ WHERE
                                 <xsl:with-param name="acl-modes" select="acl:mode()"/>
                                 <xsl:with-param name="about" select="ac:absolute-path(ldh:base-uri(.))"/>
                                 <xsl:with-param name="object-metadata" select="$object-metadata" tunnel="yes"/>
+                                <xsl:with-param name="property-metadata" select="$property-metadata" tunnel="yes"/>
                             </xsl:apply-templates>
                         </xsl:variable>
                         <xsl:for-each select="$local-pane">
