@@ -131,6 +131,16 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="$ac:uri"/>
     </xsl:function>
 
+    <!-- position of a value's language in $ac:langs, used as a property-list sort key so each property leads with the
+         reader's language. Values in a language the reader does not accept, and untagged values, rank last and so sort
+         after the accepted ones - they are ordered, never withheld. Takes the node explicitly: the one-argument fn:lang
+         tests the context item, and a rank computed over a range of integers has no node to test. -->
+    <xsl:function name="ldh:lang-rank" as="xs:integer">
+        <xsl:param name="value" as="element()"/>
+
+        <xsl:sequence select="((for $i in 1 to count($ac:langs) return if (lang($ac:langs[$i], $value)) then $i else ())[1], count($ac:langs) + 1)[1]"/>
+    </xsl:function>
+
     <!-- TimeMap URI from the Link response header (rel=timemap), present when the document is versioned -->
     <xsl:function name="ldh:timemap" as="xs:anyURI?" use-when="system-property('xsl:product-name') = 'SAXON'">
         <xsl:variable name="entries" as="xs:string*">
@@ -922,14 +932,6 @@ exclude-result-prefixes="#all"
 
     <!-- object -->
     <xsl:template match="*[@rdf:about or @rdf:nodeID]/*/@*" mode="bs2:TypeControl"/>
-
-    <!-- PROPERTY LIST -->
-
-    <!-- suppress values in a language the user doesn't accept. TO-DO: move to Web-Client? -->
-    <xsl:template match="*[@rdf:about or @rdf:nodeID]/*[@xml:lang and not(some $lang in $ac:langs satisfies lang($lang))]" mode="bs2:PropertyList"/>
-
-    <!-- suppress values outranked by a more preferred language on the same property -->
-    <xsl:template match="*[@rdf:about or @rdf:nodeID]/*[@xml:lang][let $rank := (for $i in 1 to count($ac:langs) return $i[lang($ac:langs[$i])])[1] return exists(../*[node-name() = node-name(current())][some $i in 1 to $rank - 1 satisfies lang($ac:langs[$i])])]" mode="bs2:PropertyList"/>
 
     <!-- FORM CONTROL -->
     
