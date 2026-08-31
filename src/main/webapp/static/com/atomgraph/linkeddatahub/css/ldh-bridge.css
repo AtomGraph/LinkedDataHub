@@ -400,6 +400,15 @@ form .control-group > .controls > .btn-group { order: 99; margin-left: auto; }
 .ldh-block dl > div > dd img { max-width: 100%; max-height: var(--thumb-md); border-radius: var(--r-sm); }
 /* dividers between a predicate's values run in the value column only; the group's top border covers both */
 .ldh-block dl > div > dd ~ dd { border-top: 1px solid var(--border-default); }
+/* language tag on a value. A property renders every language it carries, ordered by the reader's preference, so the tag
+   is what tells the values apart - it earns a pill rather than the bare text the retired .label-info left behind. Same
+   treatment as the design's .ldh-prop-row .value .chip-inline, written for the dl the property list actually emits */
+.ldh-block dl > div > dd .chip-inline {
+  display: inline-flex; align-items: center; gap: 4px; margin-left: var(--sp-2);
+  padding: 0 6px; border-radius: var(--r-pill);
+  background: var(--ldh-violet-50); color: var(--ldh-violet-700);
+  font-family: var(--font-sans); font-size: var(--fs-xs); font-weight: var(--fw-medium);
+}
 /* the design's .ldh-prop-group hover: the label lights at full group height whenever the pointer
    is anywhere in the group, but in the value column only the dd under the pointer lights - the
    dt's box-shadow copies fill the sp-6 card padding (clipped at the card edge by the block's

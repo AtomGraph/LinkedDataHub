@@ -747,7 +747,7 @@ WHERE
             <li data-uri="{$doc-uri}">
                 <a href="{ldh:href($doc-uri, ldh:build-query($mode), $fragment)}" title="{$doc-uri}{if ($fragment) then '#' || $fragment else ''}">
                     <xsl:if test="$error">
-                        <i class="icon-warning-sign"/>
+                        <span class="msi sm" aria-hidden="true">warning</span>
                         <xsl:text> </xsl:text>
                     </xsl:if>
                     <xsl:value-of select="$label"/>

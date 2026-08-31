@@ -737,7 +737,7 @@ exclude-result-prefixes="#all"
 
             <xsl:apply-templates select="."/>
 
-            <span class="label label-info">
+            <span class="chip-inline">
                 <xsl:value-of select="../@xml:lang"/>
             </span>
         </dd>
@@ -956,10 +956,10 @@ exclude-result-prefixes="#all"
                 </select>
             </span>
             <div class="controls">
-                <span class="input-prepend">
+                <span>
                     <input type="hidden" name="su" value="{$action}"/>
                     
-                    <span class="add-on">
+                    <span>
                         <xsl:value-of select="ac:absolute-path(ldh:base-uri(.))"/>
                     </span>
                     
@@ -971,7 +971,7 @@ exclude-result-prefixes="#all"
                         <xsl:with-param name="disabled" select="$disabled"/>
                     </xsl:call-template>
                     
-                    <span class="add-on">/</span>
+                    <span>/</span>
                 </span>
             </div>
 

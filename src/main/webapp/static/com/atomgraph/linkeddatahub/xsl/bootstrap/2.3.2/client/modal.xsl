@@ -609,7 +609,7 @@ LIMIT   10
             <td>
                 <label class="checkbox">
                     <xsl:if test="$is-owner">
-                        <xsl:attribute name="class" select="'checkbox label label-info'"/>
+                        <xsl:attribute name="class" select="'checkbox'"/>
                     </xsl:if>
                     
                     <input type="checkbox" name="ou" value="{$current-mode}">

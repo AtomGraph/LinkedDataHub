@@ -319,7 +319,7 @@ WHERE
                         <label class="control-label" for="annotation-value">Value</label>
                         <div class="controls">
                             <input type="text" id="annotation-value" name="value" placeholder="Literal value"/>
-                            <span class="help-block">The selected text; change to emit a machine-readable content value</span>
+                            <span class="help-inline">The selected text; change to emit a machine-readable content value</span>
                         </div>
                     </div>
                     <fieldset>
@@ -328,14 +328,14 @@ WHERE
                             <label class="control-label" for="annotation-subject">Subject (about)</label>
                             <div class="controls">
                                 <input type="text" id="annotation-subject" name="subject" placeholder="Overrides the subject in scope"/>
-                                <span class="help-block">IRI or _:blank-node identifier</span>
+                                <span class="help-inline">IRI or _:blank-node identifier</span>
                             </div>
                         </div>
                         <div class="control-group">
                             <label class="control-label" for="annotation-typeof">Type (typeof)</label>
                             <div class="controls">
                                 <xsl:sequence select="rdfae:typeahead-field('typeof')"/>
-                                <span class="help-block">Types the annotated resource; without a subject the typed resource becomes the object of the property (chaining)</span>
+                                <span class="help-inline">Types the annotated resource; without a subject the typed resource becomes the object of the property (chaining)</span>
                             </div>
                         </div>
                     </fieldset>
@@ -345,7 +345,7 @@ WHERE
                             <label class="control-label" for="annotation-object">Object (resource)</label>
                             <div class="controls">
                                 <input type="text" id="annotation-object" name="object" placeholder="Object IRI"/>
-                                <span class="help-block">Makes the object a resource instead of the literal value</span>
+                                <span class="help-inline">Makes the object a resource instead of the literal value</span>
                             </div>
                         </div>
                         <div class="control-group">
@@ -360,14 +360,14 @@ WHERE
                                     <option value="{$rdfae:custom}">-- Custom datatype --</option>
                                 </select>
                                 <input type="text" name="custom-datatype" placeholder="Datatype IRI" style="display: none;"/>
-                                <span class="help-block">Types the literal; mutually exclusive with a language tag</span>
+                                <span class="help-inline">Types the literal; mutually exclusive with a language tag</span>
                             </div>
                         </div>
                         <div class="control-group">
                             <label class="control-label" for="annotation-lang">Language</label>
                             <div class="controls">
                                 <input type="text" id="annotation-lang" name="lang" placeholder="e.g. en, fr-CA"/>
-                                <span class="help-block">Language tag for the literal; ignored when a datatype is set</span>
+                                <span class="help-inline">Language tag for the literal; ignored when a datatype is set</span>
                             </div>
                         </div>
                     </fieldset>
@@ -439,7 +439,7 @@ WHERE
                 <button type="button" class="ldhc-btn in-neutral ap-solid sz-sm replace-all">Replace all</button>
                 <button type="button" class="ldhc-btn in-neutral ap-solid sz-sm find-close">Close</button>
             </div>
-            <span id="find-status" class="help-block"/>
+            <span id="find-status" class="help-inline"/>
         </div>
     </xsl:template>
 
@@ -572,11 +572,11 @@ WHERE
             <xsl:result-document href="?." method="ixsl:replace-content">
                 <div class="block-row">
                     <div class="main">
-                        <div class="alert alert-success block-row">
-                            <div class="span1">
+                        <div class="alert block-row">
+                            <div>
                                 <span class="msi" aria-label="Signup complete">check_circle</span>
                             </div>
-                            <div class="span11">
+                            <div>
                                 <p>Congratulations! Your WebID profile has been created. You can see its data below.</p>
                                 <p>
                                     <strong>Authentication details have been sent to your email address.</strong>

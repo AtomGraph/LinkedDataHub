@@ -892,7 +892,7 @@ WHERE
 
                 <xsl:variable name="definitions" as="document-node()">
                     <xsl:document>
-                        <dl class="dl-horizontal">
+                        <dl>
                             <xsl:apply-templates select="$properties-original" mode="#current">
                                 <xsl:sort select="ac:property-label(., $property-metadata)" order="ascending" lang="{$ac:lang}"/>
                                 <xsl:sort select="ldh:lang-rank(.)" order="ascending"/>
@@ -918,7 +918,7 @@ WHERE
                 
                 <xsl:variable name="definitions" as="document-node()">
                     <xsl:document>
-                        <dl class="dl-horizontal">
+                        <dl>
                             <xsl:apply-templates select="$properties-local" mode="#current">
                                 <xsl:sort select="ac:property-label(., $property-metadata)" order="ascending" lang="{$ac:lang}"/>
                                 <xsl:sort select="ldh:lang-rank(.)" order="ascending"/>
@@ -944,7 +944,7 @@ WHERE
 
                 <xsl:variable name="definitions" as="document-node()">
                     <xsl:document>
-                        <dl class="dl-horizontal">
+                        <dl>
                             <xsl:apply-templates select="$properties-common" mode="#current">
                                 <xsl:sort select="ac:property-label(., $property-metadata)" order="ascending" lang="{$ac:lang}"/>
                                 <xsl:sort select="ldh:lang-rank(.)" order="ascending"/>
