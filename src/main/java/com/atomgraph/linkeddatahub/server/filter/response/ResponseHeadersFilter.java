@@ -31,6 +31,7 @@ import com.atomgraph.linkeddatahub.vocabulary.LAPP;
 import com.atomgraph.linkeddatahub.writer.TimeMapWriter;
 import java.io.IOException;
 import java.net.URI;
+import java.util.Locale;
 import java.util.Optional;
 import jakarta.annotation.Priority;
 import jakarta.inject.Inject;
@@ -64,6 +65,15 @@ public class ResponseHeadersFilter implements ContainerResponseFilter
     {
         if (response.getStatusInfo().equals(Response.Status.NO_CONTENT))
             response.getHeaders().remove(HttpHeaders.CONTENT_TYPE); // needs to be explicitly unset for some reason
+
+        // the XSLT rendering negotiates over Accept-Language ($ac:langs, built from the full q-sorted acceptable language
+        // list), so a representation's content depends on the header whether or not a declared language variant matched it.
+        // Core's Response retries with selectVariant(removeLanguages(variants)) when none matched, and Jersey derives Vary
+        // from that language-free list - so everything except an exact Accept-Language: en request advertised a cache key
+        // that ignores language, letting a Lithuanian rendering be served to a reader who asked for English, and back again
+        Object vary = response.getHeaders().getFirst(HttpHeaders.VARY);
+        if (vary != null && !vary.toString().equals("*") && !vary.toString().toLowerCase(Locale.ROOT).contains(HttpHeaders.ACCEPT_LANGUAGE.toLowerCase(Locale.ROOT)))
+            response.getHeaders().putSingle(HttpHeaders.VARY, vary + "," + HttpHeaders.ACCEPT_LANGUAGE);
 
         if (request.getSecurityContext().getUserPrincipal() instanceof Agent)
         {
