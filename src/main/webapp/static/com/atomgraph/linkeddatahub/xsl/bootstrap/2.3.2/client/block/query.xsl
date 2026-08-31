@@ -86,7 +86,12 @@ exclude-result-prefixes="#all"
         </xsl:variable>
         <ixsl:set-property name="{$textarea-id}" select="ixsl:eval(string($js-statement/@statement))" object="ixsl:get(ixsl:window(), 'LinkedDataHub.yasqe')"/>
     </xsl:template>
-    
+
+    <!-- YASQE.fromTextArea() hides the textarea it was built from, so focusing it does nothing: the editor instance takes the focus instead -->
+    <xsl:template match="textarea[@id][contains-token(@class, 'sparql-query-string')]" mode="ldh:FocusControl" priority="1">
+        <xsl:sequence select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.yasqe'), ixsl:get(., 'id')), 'focus', [])[current-date() lt xs:date('2000-01-01')]"/>
+    </xsl:template>
+
 <!--    <xsl:template name="onQueryServiceLoad">
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="container" as="element()"/>

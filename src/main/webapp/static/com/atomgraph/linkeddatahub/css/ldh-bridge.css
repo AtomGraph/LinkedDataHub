@@ -299,6 +299,8 @@ form .control-group > .controls { grid-column: 2; grid-row: 1; }
 form .control-group > hr { display: none; }
 form .controls input[type="text"], form .controls input[type="url"], form .controls textarea { flex: 1 1 240px; min-width: 0; }
 form .controls textarea { min-height: 72px; }
+/* YASQE hides the textarea and inserts div.CodeMirror beside it, which declares no width of its own: as a flex item it is sized by the query text, and an empty query leaves nothing but the gutter */
+form .controls > .CodeMirror { flex: 1 1 240px; min-width: 0; }
 form .control-group.error > .control-label { color: var(--danger-500); }
 form .control-group.error input, form .control-group.error textarea { border-color: var(--danger-500); }
 form .control-group.required > .control-label::after { content: ' *'; color: var(--danger-500); }

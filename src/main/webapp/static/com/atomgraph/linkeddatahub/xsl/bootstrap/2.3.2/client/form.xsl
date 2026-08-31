@@ -492,8 +492,22 @@ WHERE
         <ixsl:set-property object="." name="autocomplete" select="'off'"/>
     </xsl:template>
 
-    <!-- set focus on the first required input -->
-    <xsl:template match="fieldset//div[contains-token(@class, 'required')][1]//input" mode="ldh:RenderRowForm" priority="1">
+    <!-- The control a user would fill in first. Hidden RDF/POST inputs are skipped - focus() on them is a no-op - and a typeahead whose value already resolves renders as a button rather than an input. -->
+    <xsl:function name="ldh:focusable-control" as="element()?">
+        <xsl:param name="container" as="element()"/>
+
+        <xsl:sequence select="($container//*[self::input[not(@type = 'hidden')] or self::textarea or self::select or self::button[contains-token(@class, 'add-typeahead')]])[1]"/>
+    </xsl:function>
+
+    <!-- Focus the control-group the form opens on: the first required one, or - for a class that constrains nothing, a bare owl:NamedIndividual - the type control, since choosing the class is then the only thing left to do. Matching the group rather than the control itself keeps the focus out of the way of the templates that turn a control into a widget: block/query.xsl replaces the query textarea with a YASQE editor in this same mode, and two priority-1 rules on the same textarea would leave only the later-included one running. The group's own children go first, so by the time ldh:FocusControl is dispatched the widget exists. -->
+    <xsl:template match="fieldset//div[contains-token(@class, 'required')][1] | fieldset[not(div[contains-token(@class, 'required')])]/div[contains-token(@class, 'control-group')][input[@name = 'pu'][@value = '&rdf;type']]" mode="ldh:RenderRowForm" priority="1">
+        <xsl:apply-templates mode="#current"/>
+
+        <xsl:apply-templates select="ldh:focusable-control(.)" mode="ldh:FocusControl"/>
+    </xsl:template>
+
+    <!-- focus a form control; overridden where a widget stands in for the control -->
+    <xsl:template match="*" mode="ldh:FocusControl">
         <xsl:sequence select="ixsl:call(., 'focus', [])[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
     
@@ -1589,6 +1603,9 @@ WHERE
         <xsl:variable name="doc-uri" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/>
         <xsl:variable name="id" select="'id' || ac:uuid()" as="xs:string"/>
         <xsl:variable name="this" select="xs:anyURI($doc-uri || '#' || $id)" as="xs:anyURI"/>
+
+        <!-- the class is picked, so the menu it was picked from is done: dismissed here rather than when the instance lands, because the chain that renders it takes several round-trips. The body pointerdown handler leaves this one alone - the press is inside the group it would close. Empty for the dock buttons that sit outside a drop-down. -->
+        <xsl:apply-templates select="ancestor::*[contains-token(@class, 'btn-group')][1]" mode="ldh:CloseDropdown"/>
 
         <xsl:sequence select="ldh:busy-cursor()"/>
 
