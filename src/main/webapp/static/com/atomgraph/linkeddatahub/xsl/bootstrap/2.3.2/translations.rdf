@@ -174,9 +174,11 @@
     </rdf:Description>
     <rdf:Description rdf:nodeID="user-defined-apps">
         <rdfs:label xml:lang="en-US">User-defined</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Definido por el usuario</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="system-apps">
         <rdfs:label xml:lang="en-US">System</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Sistema</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="mode-list-title">
         <rdfs:label xml:lang="en-US">Change layout mode</rdfs:label>
@@ -200,9 +202,11 @@
     </rdf:Description>
     <rdf:Description rdf:nodeID="import-ontology">
         <rdfs:label xml:lang="en-US">Import ontology</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Importar ontología</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="import-ontology-title">
         <rdfs:label xml:lang="en-US">Import RDF ontology and create constructors</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Importar ontología RDF y crear constructores</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="nav-bar-action-delete-title">
         <rdfs:label xml:lang="en-US">Delete the graph of this resource</rdfs:label>
@@ -406,27 +410,35 @@
     </rdf:Description>
     <rdf:Description rdf:nodeID="document-tree">
         <rdfs:label xml:lang="en-US">Document tree</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Árbol de documentos</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="reconcile-title">
         <rdfs:label xml:lang="en-US">Reconcile this resource against resources in the selected service</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Reconciliar este recurso con los recursos del servicio seleccionado</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="reconcile">
         <rdfs:label xml:lang="en-US">Reconcile</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Reconciliar</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="reconcile-entity">
         <rdfs:label xml:lang="en-US">Reconcile entity</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Reconciliar entidad</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="resource">
         <rdfs:label xml:lang="en-US">Resource</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Recurso</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="html">
         <rdfs:label xml:lang="en-US">HTML</rdfs:label>
+        <rdfs:label xml:lang="es-ES">HTML</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="sparql">
         <rdfs:label xml:lang="en-US">SPARQL</rdfs:label>
+        <rdfs:label xml:lang="es-ES">SPARQL</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="literal">
         <rdfs:label xml:lang="en-US">Literal</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Literal</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="open">
         <rdfs:label xml:lang="en-US">Open</rdfs:label>
@@ -438,6 +450,7 @@
     </rdf:Description>
     <rdf:Description rdf:nodeID="are-you-sure">
         <rdfs:label xml:lang="en-US">Are you sure?</rdfs:label>
+        <rdfs:label xml:lang="es-ES">¿Estás seguro?</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="cancel">
         <rdfs:label xml:lang="en-US">Cancel</rdfs:label>
@@ -445,27 +458,35 @@
     </rdf:Description>
     <rdf:Description rdf:nodeID="constructor">
         <rdfs:label xml:lang="en-US">Constructor</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Constructor</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="actions">
         <rdfs:label xml:lang="en-US">Actions</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Acciones</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="edit">
         <rdfs:label xml:lang="en-US">Edit</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Editar</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="constructors">
         <rdfs:label xml:lang="en-US">constructor(s)</rdfs:label>
+        <rdfs:label xml:lang="es-ES">constructor(es)</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="total-results">
         <rdfs:label xml:lang="en-US">Total results</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Resultados totales</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="no-results">
         <rdfs:label xml:lang="en-US">No results.</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Sin resultados.</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="no-results-explanation">
         <rdfs:label xml:lang="en-US">The query ran cleanly and matched nothing.</rdfs:label>
+        <rdfs:label xml:lang="es-ES">La consulta se ejecutó correctamente y no coincidió con nada.</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="block-state-empty">
         <rdfs:label xml:lang="en-US">No results</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Sin resultados</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="previous">
         <rdfs:label xml:lang="en-US">Previous</rdfs:label>
@@ -489,18 +510,23 @@
     </rdf:Description>
     <rdf:Description rdf:nodeID="load-schema">
         <rdfs:label xml:lang="en-US">Load schema</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Cargar esquema</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="generate-containers">
         <rdfs:label xml:lang="en-US">Generate containers</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Generar contenedores</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="generate">
         <rdfs:label xml:lang="en-US">Generate</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Generar</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="generate-containers-title">
         <rdfs:label xml:lang="en-US">Create containers for the most populated classes in a SPARQL endpoint</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Crear contenedores para las clases más pobladas de un punto de acceso SPARQL</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="limit">
         <rdfs:label xml:lang="en-US">Limit</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Límite</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="service">
         <rdfs:label xml:lang="en-US">Service</rdfs:label>
@@ -508,15 +534,19 @@
     </rdf:Description>
     <rdf:Description rdf:nodeID="has-parent">
         <rdfs:label xml:lang="en-US">Has parent</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Tiene padre</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="from-sparql-service">
         <rdfs:label xml:lang="en-US">From SPARQL service</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Desde servicio SPARQL</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="instance">
         <rdfs:label xml:lang="en-US">Instance</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Instancia</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="remove-stmt">
         <rdfs:label xml:lang="en-US">Remove this statement</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Eliminar esta declaración</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="application-settings">
         <rdfs:label xml:lang="en-US">Application settings</rdfs:label>
@@ -735,57 +765,75 @@
     </rdf:Description>
     <rdf:Description rdf:nodeID="allow">
         <rdfs:label xml:lang="en-US">Allow</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Permitir</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="add-stmt">
         <rdfs:label xml:lang="en-US">Add another statement</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Añadir otra declaración</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="remove-resource">
         <rdfs:label xml:lang="en-US">Remove this resource</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Eliminar este recurso</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="remove-link">
         <rdfs:label xml:lang="en-US">Remove link</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Eliminar enlace</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="get-started">
         <rdfs:label xml:lang="en-US">Get started</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Empezar</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="learn-more">
         <rdfs:label xml:lang="en-US">Learn more</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Saber más</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="about">
         <rdfs:label xml:lang="en-US">About</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Acerca de</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="resources">
         <rdfs:label xml:lang="en-US">Resources</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Recursos</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="support">
         <rdfs:label xml:lang="en-US">Support</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Soporte</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="footer-tagline">
         <rdfs:label xml:lang="en-US">The low-code Knowledge Graph application platform. Built on RDF, SPARQL and Linked Data principles.</rdfs:label>
+        <rdfs:label xml:lang="es-ES">La plataforma de aplicaciones de grafos de conocimiento low-code. Construida sobre RDF, SPARQL y los principios de Linked Data.</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="follow-us">
         <rdfs:label xml:lang="en-US">Follow us</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Síguenos</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="screencasts">
         <rdfs:label xml:lang="en-US">Screencasts</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Videotutoriales</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="mailing-list">
         <rdfs:label xml:lang="en-US">Mailing list</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Lista de correo</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="report-issues">
         <rdfs:label xml:lang="en-US">Report issues</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Informar de problemas</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="contact-support">
         <rdfs:label xml:lang="en-US">Contact support</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Contactar con soporte</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="rdf-xml">
         <rdfs:label xml:lang="en-US">RDF/XML</rdfs:label>
+        <rdfs:label xml:lang="es-ES">RDF/XML</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="turtle">
         <rdfs:label xml:lang="en-US">Turtle</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Turtle</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="json-ld">
         <rdfs:label xml:lang="en-US">JSON-LD</rdfs:label>
+        <rdfs:label xml:lang="es-ES">JSON-LD</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="could-not-move-block">
         <rdfs:label xml:lang="en-US">Could not move block</rdfs:label>
