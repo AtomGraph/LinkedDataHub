@@ -730,7 +730,11 @@ exclude-result-prefixes="#all"
         <xsl:variable name="property-uri" select="../concat(namespace-uri(), local-name())" as="xs:string"/>
         <xsl:variable name="diff-class" select="ldh:value-diff-class(.., $diff-added-keys, $diff-removed-keys)" as="xs:string?"/>
 
-        <dd property="{$property-uri}">
+        <!-- the value declares its own language rather than inheriting the document's. A property renders every language it
+             carries, so the two sit side by side and the document default is wrong for at least one of them: without @lang a
+             screen reader reads "Square" with Lithuanian phonetics on an lt page, and "Aikštė" with an English voice on an en
+             one. This is WCAG 3.1.2, and it also makes the RDFa faithful - the extracted literal keeps its language tag -->
+        <dd property="{$property-uri}" lang="{../@xml:lang}">
             <xsl:if test="$diff-class">
                 <xsl:attribute name="class" select="$diff-class"/>
             </xsl:if>
@@ -752,6 +756,14 @@ exclude-result-prefixes="#all"
         <dd property="{$property-uri}">
             <xsl:if test="$diff-class">
                 <xsl:attribute name="class" select="$diff-class"/>
+            </xsl:if>
+
+            <!-- an untagged literal makes no language claim, so it must not inherit the document's: lang="" is HTML's
+                 "unknown", the exact counterpart of RDF's absent tag. Only plain strings get it - a number or a date is not
+                 prose, and you do want those read out in the reader's language, so they inherit. XHTML literals are skipped
+                 too: they are markup and carry their own lang where it matters -->
+            <xsl:if test="self::text() and (not(../@rdf:datatype) or ../@rdf:datatype = '&xsd;string')">
+                <xsl:attribute name="lang" select="''"/>
             </xsl:if>
 
             <xsl:apply-templates select="."/>
