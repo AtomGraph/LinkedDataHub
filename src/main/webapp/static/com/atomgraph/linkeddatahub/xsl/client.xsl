@@ -137,6 +137,9 @@ extension-element-prefixes="ixsl"
     <xsl:param name="acl:agent" as="xs:anyURI?"/>
     <xsl:param name="foaf:Agent" select="if ($acl:agent) then document(ac:document-uri($acl:agent)) else ()" as="document-node()?"/> <!-- should be in SaxonJS documentPool -->
     <xsl:param name="ac:langs" select="for $lang in ixsl:get(ixsl:window(), 'navigator.languages') return tokenize($lang, '-')[1]" as="xs:string*"/> <!-- overrides the Web-Client default with the browser's ordered preference list -->
+    <!-- Web-Client declares $ac:lang in bootstrap/2.3.2/layout.xsl, which client.xsl does not import, so it is unbound in the
+         client-side compilation - the same reason $ac:langs is redeclared above. Kept identical to the Web-Client definition -->
+    <xsl:param name="ac:lang" select="($ac:langs[1], 'en')[1]" as="xs:string"/>
     <xsl:param name="ac:forClass" as="xs:anyURI?"/> <!-- used by Web-Client -->
     <xsl:param name="ac:query" select="ldh:query-params()?query" as="xs:string?"/>
     <xsl:param name="ac:googleMapsKey" select="''" as="xs:string"/>  <!-- cannot remove yet as it's used by container.xsl in Web-Client -->

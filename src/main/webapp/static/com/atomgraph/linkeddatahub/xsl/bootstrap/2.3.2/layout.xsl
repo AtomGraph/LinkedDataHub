@@ -366,9 +366,15 @@ exclude-result-prefixes="#all">
         </xsl:for-each>
     </xsl:template>
 
-    <!-- design system skin selectors on the root element (app.css/retro.css key on them) -->
+    <!-- design system skin selectors on the root element (app.css/retro.css key on them).
+
+         lang is the language the page is composed in, taken from the Content-Language this response already carries rather
+         than from $ac:lang, which is the language the reader asked for - asking for German does not make the page German, and
+         reporting the request here is what put lang="de" on a page written entirely in English. Deriving it from the header
+         rather than recomputing it is what makes the two agree structurally instead of by two computations staying in step.
+         Falls back to en, never to the request: with nothing to go on, the honest answer is the language the chrome ships in -->
     <xsl:template match="/">
-        <html lang="{$ac:lang}" data-retro="m3" data-theme="light">
+        <html lang="{($ldh:httpHeaders('Content-Language')[1], 'en')[1]}" data-retro="m3" data-theme="light">
             <xsl:apply-templates/>
         </html>
     </xsl:template>
