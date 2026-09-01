@@ -2549,38 +2549,6 @@ public class Application extends ResourceConfig
     }
 
     /**
-     * Returns the language a representation is composed in: the highest-ranked language the reader accepts that the UI
-     * bundle actually provides, falling back to the first supported language when the reader accepts none of them.
-     *
-     * This is the value both <code>Content-Language</code> and the document's <code>lang</code> attribute carry, computed
-     * once so the two cannot disagree. It is deliberately not the reader's top preference: asking for German does not make
-     * a page German, and reporting it as such is what produced <code>lang="de"</code> on pages written entirely in English.
-     *
-     * Matching is RFC 4647 Basic Filtering via {@link Locale#filter}, because the bundle is tagged with region-qualified
-     * tags (<code>en-US</code>) while Accept-Language arrives as primary subtags (<code>en</code>). Lookup would not match
-     * that direction.
-     *
-     * @param acceptableLanguages the reader's languages, highest priority first
-     * @param supportedLanguages the languages the UI bundle provides
-     * @return the effective language, never null
-     */
-    public static Locale getEffectiveLanguage(List<Locale> acceptableLanguages, List<Locale> supportedLanguages)
-    {
-        if (supportedLanguages.isEmpty()) return Locale.ENGLISH;
-
-        for (Locale acceptable : acceptableLanguages)
-        {
-            // JAX-RS reports a wildcard Accept-Language as a locale with "*" as its language; it expresses no preference
-            if (acceptable.getLanguage().isEmpty() || acceptable.getLanguage().equals("*")) continue;
-
-            List<Locale> matches = Locale.filter(List.of(new Locale.LanguageRange(acceptable.toLanguageTag())), supportedLanguages);
-            if (!matches.isEmpty()) return matches.get(0);
-        }
-
-        return supportedLanguages.get(0);
-    }
-
-    /**
      * Reads the languages present in a UI translation bundle.
      *
      * @param translations RDF/XML translation bundle

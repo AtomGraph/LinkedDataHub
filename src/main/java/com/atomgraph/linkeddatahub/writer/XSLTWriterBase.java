@@ -17,6 +17,7 @@ package com.atomgraph.linkeddatahub.writer;
 
 import com.atomgraph.client.util.RDFSourceResolver;
 import com.atomgraph.client.vocabulary.AC;
+import com.atomgraph.linkeddatahub.server.util.LanguageNegotiator;
 import com.atomgraph.linkeddatahub.writer.factory.xslt.XsltExecutableSupplier;
 import com.atomgraph.linkeddatahub.model.auth.Agent;
 import com.atomgraph.linkeddatahub.vocabulary.ACL;
@@ -121,7 +122,7 @@ public abstract class XSLTWriterBase extends com.atomgraph.client.writer.XSLTWri
             // ResponseHeadersFilter sets Content-Language from the same computation, which is how the two cannot disagree.
             // Addressed by namespace rather than through AC.contentLang because that constant ships in a later client release
             params.put(new QName("ac", AC.NS, "contentLang"),
-                new XdmAtomicValue(com.atomgraph.linkeddatahub.Application.getEffectiveLanguage(getHttpHeaders().getAcceptableLanguages(), getSystem().getSupportedLanguages()).toLanguageTag()));
+                new XdmAtomicValue(LanguageNegotiator.negotiate(getHttpHeaders().getAcceptableLanguages(), getSystem().getSupportedLanguages()).toLanguageTag()));
 
             URI proxyTargetURI = (URI) getContainerRequestContext().getProperty(AC.uri.getURI());
             if (proxyTargetURI != null) params.put(new QName("ac", AC.uri.getNameSpace(), AC.uri.getLocalName()), new XdmAtomicValue(proxyTargetURI));

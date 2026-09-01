@@ -16,6 +16,7 @@
  */
 package com.atomgraph.linkeddatahub;
 
+import com.atomgraph.linkeddatahub.server.util.LanguageNegotiator;
 import com.atomgraph.linkeddatahub.writer.XSLTWriterBase;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -158,14 +159,14 @@ public class BundleLanguagesTest
         assertEquals("en-US", effective("de,fr;q=0.9", bundle));
 
         // no preference expressed at all
-        assertEquals("en-US", Application.getEffectiveLanguage(List.of(), bundle).toLanguageTag());
+        assertEquals("en-US", LanguageNegotiator.negotiate(List.of(), bundle).toLanguageTag());
     }
 
     /** With no bundle there is nothing to compose in; English is the documented floor rather than an empty header. */
     @Test
     public void testEffectiveLanguageWithoutBundle()
     {
-        assertEquals(Locale.ENGLISH, Application.getEffectiveLanguage(List.of(Locale.forLanguageTag("lt")), List.of()));
+        assertEquals(Locale.ENGLISH, LanguageNegotiator.negotiate(List.of(Locale.forLanguageTag("lt")), List.of()));
     }
 
     private static String effective(String acceptLanguage, List<Locale> bundle)
@@ -174,7 +175,7 @@ public class BundleLanguagesTest
             map(range -> Locale.forLanguageTag(range.getRange())).
             toList();
 
-        return Application.getEffectiveLanguage(acceptable, bundle).toLanguageTag();
+        return LanguageNegotiator.negotiate(acceptable, bundle).toLanguageTag();
     }
 
 }

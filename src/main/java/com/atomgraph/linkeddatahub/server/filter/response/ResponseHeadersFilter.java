@@ -19,6 +19,7 @@ package com.atomgraph.linkeddatahub.server.filter.response;
 import com.atomgraph.client.vocabulary.AC;
 import com.atomgraph.client.vocabulary.LDT;
 import com.atomgraph.core.vocabulary.SD;
+import com.atomgraph.linkeddatahub.server.util.LanguageNegotiator;
 import com.atomgraph.linkeddatahub.apps.model.Application;
 import com.atomgraph.linkeddatahub.apps.model.Dataset;
 import com.atomgraph.linkeddatahub.model.auth.Agent;
@@ -71,7 +72,7 @@ public class ResponseHeadersFilter implements ContainerResponseFilter
         // at all on a page that was entirely Lithuanian
         if (response.hasEntity() && getApplication().isPresent())
             response.getHeaders().putSingle(HttpHeaders.CONTENT_LANGUAGE,
-                com.atomgraph.linkeddatahub.Application.getEffectiveLanguage(request.getAcceptableLanguages(), getSystem().getSupportedLanguages()).toLanguageTag());
+                LanguageNegotiator.negotiate(request.getAcceptableLanguages(), getSystem().getSupportedLanguages()).toLanguageTag());
 
         if (request.getSecurityContext().getUserPrincipal() instanceof Agent)
         {
