@@ -131,4 +131,50 @@ public class BundleLanguagesTest
         return matches.isEmpty() ? null : matches.get(0).toLanguageTag();
     }
 
+    /**
+     * The effective language is what the page is composed in, not what the reader asked for. These are the cases that were
+     * wrong before: a reader asking for a language the bundle lacks got that language reported anyway.
+     */
+    @Test
+    public void testEffectiveLanguage()
+    {
+        List<Locale> bundle = List.of(Locale.forLanguageTag("en-US"), Locale.forLanguageTag("es-ES"));
+
+        // primary subtag matches the region-qualified bundle tag
+        assertEquals("en-US", effective("en", bundle));
+        assertEquals("es-ES", effective("es", bundle));
+
+        // a real browser header: en wins because it is the first accepted language the bundle has
+        assertEquals("en-US", effective("en-US,en;q=0.9,da;q=0.8,lt;q=0.7", bundle));
+
+        // Lithuanian first, but the bundle has no Lithuanian - the page is composed in the next language it does have
+        assertEquals("en-US", effective("lt,en-US;q=0.9,en;q=0.8", bundle));
+
+        // preference order is honoured over bundle order
+        assertEquals("es-ES", effective("es,en;q=0.9", bundle));
+
+        // none of the reader's languages are available: fall back rather than report a language the page is not in.
+        // This is the lang="de" bug - "de" used to be reported for this request
+        assertEquals("en-US", effective("de,fr;q=0.9", bundle));
+
+        // no preference expressed at all
+        assertEquals("en-US", Application.getEffectiveLanguage(List.of(), bundle).toLanguageTag());
+    }
+
+    /** With no bundle there is nothing to compose in; English is the documented floor rather than an empty header. */
+    @Test
+    public void testEffectiveLanguageWithoutBundle()
+    {
+        assertEquals(Locale.ENGLISH, Application.getEffectiveLanguage(List.of(Locale.forLanguageTag("lt")), List.of()));
+    }
+
+    private static String effective(String acceptLanguage, List<Locale> bundle)
+    {
+        List<Locale> acceptable = Locale.LanguageRange.parse(acceptLanguage).stream().
+            map(range -> Locale.forLanguageTag(range.getRange())).
+            toList();
+
+        return Application.getEffectiveLanguage(acceptable, bundle).toLanguageTag();
+    }
+
 }

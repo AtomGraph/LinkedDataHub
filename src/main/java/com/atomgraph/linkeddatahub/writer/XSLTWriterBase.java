@@ -117,6 +117,12 @@ public abstract class XSLTWriterBase extends com.atomgraph.client.writer.XSLTWri
         {
             params.put(new QName("ldh", LDH.requestUri.getNameSpace(), LDH.requestUri.getLocalName()), new XdmAtomicValue(getRequestURI()));
 
+            // the language the page is composed in, so <html lang> states what the document is rather than what was asked for.
+            // ResponseHeadersFilter sets Content-Language from the same computation, which is how the two cannot disagree.
+            // Addressed by namespace rather than through AC.contentLang because that constant ships in a later client release
+            params.put(new QName("ac", AC.NS, "contentLang"),
+                new XdmAtomicValue(com.atomgraph.linkeddatahub.Application.getEffectiveLanguage(getHttpHeaders().getAcceptableLanguages(), getSystem().getSupportedLanguages()).toLanguageTag()));
+
             URI proxyTargetURI = (URI) getContainerRequestContext().getProperty(AC.uri.getURI());
             if (proxyTargetURI != null) params.put(new QName("ac", AC.uri.getNameSpace(), AC.uri.getLocalName()), new XdmAtomicValue(proxyTargetURI));
             params.put(new QName("lapp", LAPP.Context.getNameSpace(), LAPP.Context.getLocalName()),

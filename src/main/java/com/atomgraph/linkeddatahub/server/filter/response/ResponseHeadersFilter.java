@@ -65,6 +65,14 @@ public class ResponseHeadersFilter implements ContainerResponseFilter
         if (response.getStatusInfo().equals(Response.Status.NO_CONTENT))
             response.getHeaders().remove(HttpHeaders.CONTENT_TYPE); // needs to be explicitly unset for some reason
 
+        // Content-Language states the language of the representation, and must agree with the document's own <html lang>.
+        // Both come from this one computation. Variant selection cannot supply it: it matched only when the reader's top
+        // preference happened to be an offered language, so it announced es on a page holding no Spanish and said nothing
+        // at all on a page that was entirely Lithuanian
+        if (response.hasEntity() && getApplication().isPresent())
+            response.getHeaders().putSingle(HttpHeaders.CONTENT_LANGUAGE,
+                com.atomgraph.linkeddatahub.Application.getEffectiveLanguage(request.getAcceptableLanguages(), getSystem().getSupportedLanguages()).toLanguageTag());
+
         if (request.getSecurityContext().getUserPrincipal() instanceof Agent)
         {
             Agent agent = ((Agent)(request.getSecurityContext().getUserPrincipal()));
