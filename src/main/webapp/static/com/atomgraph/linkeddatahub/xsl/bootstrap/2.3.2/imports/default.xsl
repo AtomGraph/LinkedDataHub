@@ -836,7 +836,25 @@ exclude-result-prefixes="#all"
             <xsl:if test="$class">
                 <xsl:attribute name="class" select="$class"/>
             </xsl:if>
-            
+
+            <!-- the predicate label declares the language it was negotiated into, the same as a value does. Without it the
+                 label inherits the document language, which is the language the page is composed in and not necessarily the
+                 one the ontology had: a Lithuanian reader gets Lithuanian predicates inside a document whose chrome, and so
+                 whose lang, is English. Resolved through the mode rather than ac:property-label() because the function is
+                 declared as xs:string? and drops the winning literal's tag at its own boundary -->
+            <xsl:variable name="label" as="item()*">
+                <xsl:apply-templates select="." mode="ac:property-label">
+                    <xsl:with-param name="property-metadata" select="$property-metadata"/>
+                </xsl:apply-templates>
+            </xsl:variable>
+            <!-- item()*, not node()*: the fallback branches of ac:property-label return computed strings rather than the
+                 label node - substring-after($this, '#') for a predicate the ontology does not describe - and binding an
+                 atomic value to node()* is XTTE0570 at run time, which compiles clean and fails on a real page -->
+            <xsl:variable name="label-node" select="$label[1][. instance of node()]" as="node()?"/>
+            <xsl:if test="$label-node/../@xml:lang">
+                <xsl:attribute name="lang" select="$label-node/../@xml:lang"/>
+            </xsl:if>
+
             <xsl:choose>
                 <xsl:when test="$property-metadata">
                     <xsl:sequence select="ac:property-label(., $property-metadata)"/>
