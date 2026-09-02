@@ -1,5 +1,68 @@
-## [Unreleased]
+## [5.11.0]
+### Added
+- Design system port: the app shell (header, sidebar, footer), content blocks, action bar, breadcrumbs, mode lists, type badges, property lists, pager, modals and forms all render the design system's class vocabulary
+- Vendored design system stylesheets and typefaces, with latin-ext subsets so Latin Extended-A no longer falls back mid-word
+- `ldh-bridge.css` carries the primitives LDH still emits, replacing the Web-Client Bootstrap stylesheet link
+- `ac:langs()` returns the reader's accepted languages, normalised to deduped primary subtags with an `en` floor — one function, an SSR body reading the writer-supplied parameter and a SaxonJS body reading `navigator.languages`
+- `ac:lang-rank()` ranks a value's language against that list, so property values sort by the reader's preference
+- `Content-Language` on HTML responses, negotiated against the languages the UI translation bundle actually ships
+- `Vary: Accept-Language` and language-sensitive entity tags on language-negotiated representations, so a shared cache cannot serve one reader's rendering to another
+- Every rendered literal declares its own language: lang-tagged values carry their tag, untagged values carry `lang=""`, typed non-string values inherit
+- Predicate labels, object links and table cells declare the language their label was chosen in, which may differ from the document's
+- `http-tests/language/`: six scripts covering `Content-Language` by reader and by media type, `Vary`, per-language entity tags, `<html lang>` agreement and per-literal marking
+- `ResponseHeadersFilterTest` covers the response filter's hypermedia — snapshot read-only modes, proxy suppression, the RFC 7089 relations and `Link` folding — alongside the language labelling
+- `BundleLanguagesTest` covers deriving the supported languages from the translation bundle and the RFC 4647 matching behind it
+- Spanish translations completed, so the bundle covers every UI string it claims to
+- View table columns are sortable, keyed off each column's XSD datatype through `ldh:sort-key()`
+- Facet toolbar, three-zone pager, chart controls grid, design-system list and grid modes
+- Block drag-and-drop is payload-typed with an app MIME marker, with a single moving drop marker
+- Copy-URI button reaches every block type through a context-free `ldh:CopyUriButton` mode
+- Empty blocks and empty chart result sets say so through the design system's block-state component
+- `ldh:date-time()`, `ldh:datatype-family()`, `ldh:css-token()` and `ldh:view-cache()` replace logic that had been written out at every call site
+- Package ontologies are declared as `owl:imports` instead of grafted, with an imports characterization test
+
+### Changed
+- `<html lang>` is taken from the `Content-Language` the response carries, so the header and the document agree by construction rather than by two computations staying in step
+- The language a page reports is the first accepted language the UI bundle has, not the reader's top preference — asking for German no longer puts `lang="de"` on a page written entirely in English
+- Published language tags are the shortest the bundle justifies (`en`, not `en-US`), keeping a region subtag only where the bundle distinguishes two variants of one language
+- Supported UI languages are derived from `translations.rdf` rather than declared beside it in `web.xml`
+- Property lists and table cells order their values by the reader's language instead of hiding the ones that do not match, so a reader whose language the data lacks still sees every value
+- Language negotiation moved out of `Application` into `LanguageNegotiator`
+- Object metadata merges on the RDF term rather than the lexical form, so a tagged literal is no longer collapsed into an untagged twin
+- Document responses pass the accepted languages into entity tag computation, so tags stop colliding across languages
+- Legacy Bootstrap buttons move to the `ldhc-btn` intent/appearance/size vocabulary
+- Block link columns route through the `ldh-drawer`; backlinks and copy-URI split into two placements chosen by what a click does
+- Charts draw with resolved design tokens; the HTML Table chart is skinned in CSS and fills the block width
+- Client-side HTTP moves to promise chains, retiring the legacy `ixsl:schedule-action` `http-request` form
+- The busy cursor becomes a promise concern rather than 53 copies of the same `ixsl:set-style`
+- Dropdown dismissal moves into IXSL, and the `DOMContentLoaded` block retires into an `ldh:CloseDropdown` mode
+- Subject-control change handlers move from JavaScript into `ixsl:onchange` templates
+- `ac:uuid()` generates through the platform, and the seven call sites that went around it stop doing so
+- One navigation leaves one history entry
+- CSR failures render through the design system's block states instead of `div.alert.alert-block`
+- The RDFa editor's XMLLiteral canonicalization runs as a single `cm:canonical` pass in `ldh:FormPreSubmit`
+- RDFa editor template names and modes move into their module namespaces
+- Document-level map and graph modes fill the space between action bar and footer
+- The map marker info window is the card itself, fitted into the map viewport and panning the least it can to reveal itself
+- Editing forms already open on the page reconcile with the constructor after a constructor save
+- The edit pencil on a resource description appears only under `acl:Write`
+- `http-tests` assertions read captured responses from a here-string instead of piping `curl` into `grep -q`
+
+### Removed
+- Bootstrap 2: the framework stylesheets, `bootstrap.js`, jQuery, WYMEditor, the sprite icon layer and the `pull-left`/`pull-right` tokens
+- The Bootstrap 2 class vocabulary that no stylesheet backed
+- `$ac:langs` and `$ac:lang` parameters, replaced by `ac:langs()` and `ac:langs()[1]` at 36 call sites
+- `ldt:lang`, which nothing declared, read or wrote
+
 ### Fixed
+- `curl ... | grep -q` was a race under `pipefail`: `grep -q` closes the pipe on its first match and `curl` dies with 141, failing the pipeline even though the assertion passed
+- View sort's numeric keys yield an empty sequence rather than `NaN` for non-numeric values
+- `DataTransfer.types` marshals to an XDM array under SaxonJS, so payload guards compare via `array:flatten`
+- The content-body drag-and-drop guards spell the child step `./div`, since after `and` a bare `div` parses as the division operator
+- Reading an `ixsl:call` result of two numbers as an XDM array hung the renderer with no diagnostic; it arrives as a sequence of doubles
+- Nested cards no longer draw doubled borders, and `dl` column placement is corrected
+- The DataTable converters recognise the derived numeric and dateTime types
+- The violation renderer fails on an absent form again, rather than falling back to the rejected rendering
 - `release.sh` published to Maven Central before its `git checkout master`, so a failed checkout left 5.10.0 on Central with no tag: the switches are now proven possible first, and once published the trap prints recovery steps instead of deleting the tag that records what was published
 - `release.sh`'s clean check could not see `skip-worktree`/`assume-unchanged` files — git reports them as matching the index whatever is on disk, while a branch switch refuses to overwrite them; they are now warned about at startup and checked precisely before publishing
 - `release.sh` derived the release and snapshot commits positionally (`git log -2`), which breaks as soon as anything else commits in between; they are derived from an anchor taken before `release:prepare`
