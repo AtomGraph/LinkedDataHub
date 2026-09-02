@@ -642,7 +642,7 @@ ORDER BY DESC(?created)
                         <xsl:result-document href="?." method="ixsl:append-content">
                             <div class="dgroup">
                                 <xsl:apply-templates select="$results/rdf:RDF/rdf:Description[not(@rdf:about = $doc-uri)]" mode="ldh:LinkRow">
-                                    <xsl:sort select="ac:label(.)" order="ascending" lang="{$ac:lang}"/>
+                                    <xsl:sort select="ac:label(.)" order="ascending" lang="{ac:langs()[1]}"/>
                                 </xsl:apply-templates>
                             </div>
                         </xsl:result-document>

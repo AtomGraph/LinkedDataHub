@@ -828,9 +828,9 @@ extension-element-prefixes="ixsl"
             <xsl:document>
                 <dl>
                     <xsl:apply-templates select="*" mode="#current">
-                        <xsl:sort select="if ($property-metadata) then ac:property-label(., $property-metadata) else ac:property-label(.)" order="ascending" lang="{$ac:lang}"/>
+                        <xsl:sort select="if ($property-metadata) then ac:property-label(., $property-metadata) else ac:property-label(.)" order="ascending" lang="{ac:langs()[1]}"/>
                         <xsl:sort select="ac:lang-rank(.)" order="ascending"/>
-                        <xsl:sort select="if (exists((text(), @rdf:resource, @rdf:nodeID))) then (if ($object-metadata) then ac:object-label((text(), @rdf:resource, @rdf:nodeID)[1], $object-metadata) else ac:object-label((text(), @rdf:resource, @rdf:nodeID)[1])) else ()" order="ascending" lang="{$ac:lang}"/>
+                        <xsl:sort select="if (exists((text(), @rdf:resource, @rdf:nodeID))) then (if ($object-metadata) then ac:object-label((text(), @rdf:resource, @rdf:nodeID)[1], $object-metadata) else ac:object-label((text(), @rdf:resource, @rdf:nodeID)[1])) else ()" order="ascending" lang="{ac:langs()[1]}"/>
                     </xsl:apply-templates>
                 </dl>
             </xsl:document>
@@ -928,7 +928,7 @@ extension-element-prefixes="ixsl"
                         </button>
                         <ul class="dropdown-menu">
                             <xsl:for-each select="$apps//*[@rdf:about][sd:endpoint/@rdf:resource]">
-                                <xsl:sort select="ac:label(.)" order="ascending" lang="{$ac:lang}"/>
+                                <xsl:sort select="ac:label(.)" order="ascending" lang="{ac:langs()[1]}"/>
                                 
                                 <li>
                                     <button class="btn-reconcile">
@@ -980,7 +980,7 @@ extension-element-prefixes="ixsl"
     <xsl:template match="*[@rdf:about or @rdf:nodeID][rdf:type/@rdf:resource]" mode="bs2:TypeList">
         <ul class="ldh-typelist">
             <xsl:for-each select="rdf:type/@rdf:resource">
-                <xsl:sort select="ac:object-label(.)" order="ascending" lang="{$ac:lang}"/>
+                <xsl:sort select="ac:object-label(.)" order="ascending" lang="{ac:langs()[1]}"/>
 
                 <!-- TO-DO: find a way to use only cached documents, otherwise this will execute a synchronous HTTP request which slows down the UI -->
                 <li>

@@ -127,6 +127,19 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="for $entry in $entries return if (matches($entry, '^&lt;[^&gt;]+&gt;\s*;.*[;\s]rel\s*=\s*&quot;?[^&quot;\s,;]*acl#mode&quot;?')) then xs:anyURI(replace($entry, '^&lt;([^&gt;]+)&gt;.*$', '$1')) else ()"/>
     </xsl:function>
 
+    <!-- the browser's own language preferences, overriding the Web-Client body that reads the writer-supplied parameter.
+         Same normalisation as that one: primary subtags, deduped, 'en' when the browser offers nothing.
+
+         navigator.languages comes back as a sequence of xs:untypedAtomic, so a for clause iterates the tags themselves -
+         measured in the browser, where reaching into it with ?* instead reports "Required item type is function(*);
+         supplied value is xs:untypedAtomic". Not every JS array converts this way: DataTransfer.types arrives as an XDM
+         array and does need flattening, so check the shape rather than assuming either. -->
+    <xsl:function name="ac:langs" as="xs:string*" use-when="system-property('xsl:product-name') = 'SaxonJS'">
+        <xsl:variable name="langs" select="distinct-values(for $lang in ixsl:get(ixsl:window(), 'navigator.languages') return tokenize($lang, '-')[1])[not(. = ('', '*'))]" as="xs:string*"/>
+
+        <xsl:sequence select="if (exists($langs)) then $langs else 'en'"/>
+    </xsl:function>
+
     <xsl:function name="ac:uri" as="xs:anyURI?" use-when="system-property('xsl:product-name') = 'SAXON'">
         <xsl:sequence select="$ac:uri"/>
     </xsl:function>

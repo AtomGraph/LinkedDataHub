@@ -1320,7 +1320,7 @@ exclude-result-prefixes="#all"
 
         <xsl:for-each select="$sorted-date-time-properties[last()]">
             <span class="ts">
-                <xsl:value-of select="format-date(xs:date(ldh:date-time(string(.))), '[D] [MNn] [Y]', $ac:lang, (), ())"/>
+                <xsl:value-of select="format-date(xs:date(ldh:date-time(string(.))), '[D] [MNn] [Y]', ac:langs()[1], (), ())"/>
             </span>
         </xsl:for-each>
     </xsl:template>
@@ -1328,7 +1328,7 @@ exclude-result-prefixes="#all"
     <!-- .type cell: the first type by label -->
     <xsl:template match="*" mode="ldh:ListRowType">
         <xsl:for-each select="rdf:type/@rdf:resource">
-            <xsl:sort select="ac:object-label(.)" order="ascending" lang="{$ac:lang}"/>
+            <xsl:sort select="ac:object-label(.)" order="ascending" lang="{ac:langs()[1]}"/>
 
             <xsl:if test="position() = 1">
                 <span class="type">
@@ -2420,14 +2420,14 @@ exclude-result-prefixes="#all"
         </xsl:for-each>
     </xsl:function>
     
-    <!-- the lexical sort key of a result: COALESCEs across $predicates in path order, preferring values whose @xml:lang primary subtag matches $ac:lang -->
+    <!-- the lexical sort key of a result: COALESCEs across $predicates in path order, preferring values whose @xml:lang primary subtag matches the reader's first accepted language -->
 
     <xsl:function name="ldh:sort-key-lexical" as="xs:string?">
         <xsl:param name="resource" as="element()"/>
         <xsl:param name="predicates" as="xs:anyURI*"/>
 
         <xsl:variable name="children" select="for $p in $predicates return $resource/*[concat(namespace-uri(), local-name()) = $p]" as="element()*"/>
-        <xsl:sequence select="(($children[tokenize(@xml:lang, '-')[1] = tokenize($ac:lang, '-')[1]]/string(text()))[1], ($children[not(@xml:lang)]/string(text()))[1], ($children/string((text(), @rdf:resource, @rdf:nodeID)[1]))[1])[. ne ''][1]"/>
+        <xsl:sequence select="(($children[tokenize(@xml:lang, '-')[1] = tokenize(ac:langs()[1], '-')[1]]/string(text()))[1], ($children[not(@xml:lang)]/string(text()))[1], ($children/string((text(), @rdf:resource, @rdf:nodeID)[1]))[1])[. ne ''][1]"/>
     </xsl:function>
 
     <!-- the RDF datatype shared by a sort column's literals, or () when the column carries none (plain or language-tagged literals, resources) or mixes several. The wrapped DESCRIBE returns an unordered graph, so the view re-sorts the page client-side; keying off the datatype is what keeps that order agreeing with the SPARQL ORDER BY that chose the page's members. -->
@@ -2694,7 +2694,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="chips" as="element()*">
             <xsl:for-each select="$links">
                 <xsl:sort select="number(?inverse)"/>
-                <xsl:sort select="ldh:predicate-label(?predicate, $metadata)" lang="{$ac:lang}"/>
+                <xsl:sort select="ldh:predicate-label(?predicate, $metadata)" lang="{ac:langs()[1]}"/>
 
                 <a class="pchip{if (?inverse) then ' pchip-in' else ()}" title="{?predicate}" data-dir="{if (?inverse) then 'in' else 'out'}">
                     <input name="ou" type="hidden" value="{?predicate}"/>
@@ -2869,7 +2869,7 @@ exclude-result-prefixes="#all"
                     <!-- sort by count in a hidden input first -->
                     <xsl:sort select="xs:integer(input[@name = 'count']/@value)" order="descending"/>
                     <!-- sort by the link text content (value label) -->
-                    <xsl:sort select="a/text()" lang="{$ac:lang}"/>
+                    <xsl:sort select="a/text()" lang="{ac:langs()[1]}"/>
                 </xsl:perform-sort>
             </xsl:variable>
 

@@ -284,7 +284,7 @@ WHERE
         <xsl:variable name="show-literals" select="if (exists($show-literals-cb)) then xs:boolean(ixsl:get($show-literals-cb, 'checked')) else false()" as="xs:boolean"/>
 
         <xsl:variable name="locale-cb" select="id('show-locale-literals-' || $canvas-id, ixsl:page())"/>
-        <xsl:variable name="locale-filter" select="if ($show-literals and exists($locale-cb) and xs:boolean(ixsl:get($locale-cb, 'checked'))) then tokenize($ac:lang, '-')[1] else ()" as="xs:string?"/>
+        <xsl:variable name="locale-filter" select="if ($show-literals and exists($locale-cb) and xs:boolean(ixsl:get($locale-cb, 'checked'))) then tokenize(ac:langs()[1], '-')[1] else ()" as="xs:string?"/>
 
         <xsl:variable name="rdf-doc" select="ixsl:get($graph-state, 'document')" as="document-node()"/>
         <xsl:variable name="graph-data" as="item()">

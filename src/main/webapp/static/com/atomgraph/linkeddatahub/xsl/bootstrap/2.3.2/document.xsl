@@ -783,7 +783,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="property-metadata" select="if (exists($property-uris)) then ldh:send-request(resolve-uri('ns', ldt:base()), 'POST', 'application/sparql-query', 'DESCRIBE $Type' || ' VALUES $Type { ' || string-join(for $uri in $property-uris return '&lt;' || $uri || '&gt;', ' ') || ' }', map{ 'Accept': 'application/rdf+xml' }) else ()" as="document-node()?" tunnel="yes"/>
         <xsl:param name="predicates" as="element()*">
             <xsl:for-each-group select="*/*" group-by="concat(namespace-uri(), local-name())">
-                <xsl:sort select="if ($property-metadata) then ac:property-label(., $property-metadata) else ac:property-label(.)" order="ascending" lang="{$ac:lang}"/>
+                <xsl:sort select="if ($property-metadata) then ac:property-label(., $property-metadata) else ac:property-label(.)" order="ascending" lang="{ac:langs()[1]}"/>
 
                 <xsl:sequence select="current-group()[1]"/>
             </xsl:for-each-group>
@@ -921,7 +921,7 @@ extension-element-prefixes="ixsl"
                 </label>
                 <select id="{$chart-type-id}" name="ou" class="chart-type">
                     <xsl:for-each select="key('resources-by-subclass', '&ac;Chart', document(ac:document-uri('&ldh;')))">
-                        <xsl:sort select="ac:label(.)" lang="{$ac:lang}"/>
+                        <xsl:sort select="ac:label(.)" lang="{ac:langs()[1]}"/>
 
                         <xsl:apply-templates select="." mode="xhtml:Option">
                             <xsl:with-param name="selected" select="@rdf:about = $chart-type"/>
@@ -944,7 +944,7 @@ extension-element-prefixes="ixsl"
                     </option>
 
                     <xsl:for-each-group select="*/*" group-by="concat(namespace-uri(), local-name())">
-                        <xsl:sort select="ac:property-label(.)" order="ascending" lang="{$ac:lang}"/>
+                        <xsl:sort select="ac:property-label(.)" order="ascending" lang="{ac:langs()[1]}"/>
 
                         <option value="{current-grouping-key()}">
                             <xsl:if test="$category = current-grouping-key()">
@@ -964,7 +964,7 @@ extension-element-prefixes="ixsl"
                 </label>
                 <select id="{$series-id}" name="ou" multiple="multiple" class="chart-series">
                     <xsl:for-each-group select="*/*" group-by="concat(namespace-uri(), local-name())">
-                        <xsl:sort select="ac:property-label(.)" order="ascending" lang="{$ac:lang}"/>
+                        <xsl:sort select="ac:property-label(.)" order="ascending" lang="{ac:langs()[1]}"/>
 
                         <option value="{current-grouping-key()}">
                             <xsl:if test="$series = current-grouping-key()">
@@ -1000,7 +1000,7 @@ extension-element-prefixes="ixsl"
                 </label>
                 <select id="{$chart-type-id}" name="ou" class="chart-type">
                     <xsl:for-each select="key('resources-by-subclass', '&ac;Chart', document(ac:document-uri('&ldh;')))">
-                        <xsl:sort select="ac:label(.)" lang="{$ac:lang}"/>
+                        <xsl:sort select="ac:label(.)" lang="{ac:langs()[1]}"/>
 
                         <xsl:apply-templates select="." mode="xhtml:Option">
                             <xsl:with-param name="selected" select="@rdf:about = $chart-type"/>
