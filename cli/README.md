@@ -100,6 +100,33 @@ ldh create-item --container https://localhost:4443/some/ --title "My item" --slu
 
 Shell completion: `source <(ldh generate-completion)` (bash/zsh).
 
+## Memento
+
+`get` also addresses the three [RFC 7089](https://datatracker.ietf.org/doc/html/rfc7089) roles a
+document serves when its application is versioned — the version history, a historical version, and
+the TimeGate that negotiates between them on datetime. They are mutually exclusive:
+
+```bash
+doc=https://localhost:4443/some/
+
+ldh get --accept text/turtle --timemap "$doc"          # version history, described with PROV-O
+ldh get --accept application/link-format --timemap "$doc"
+ldh get --accept text/turtle --version <sha> "$doc"    # that version, with a Memento-Datetime
+```
+
+`--timegate` asks the server which version was current at a given time and prints the selected
+version's URI as the only line on stdout, so it composes:
+
+```bash
+memento=$(ldh get --timegate --datetime "2026-08-20T10:00:00Z" "$doc")
+ldh get --accept text/turtle "$memento"
+```
+
+`--datetime` takes either an RFC 1123 (`Wed, 20 Aug 2026 10:00:00 GMT`) or an ISO 8601
+(`2026-08-20T10:00:00Z`) datetime, so a `prov:generatedAtTime` read out of a TimeMap can be handed
+straight back. Without it the TimeGate selects the most recent version. `--accept` is required for
+every other request but not for `--timegate`, whose `302` has no representation of its own.
+
 ## Script → command migration
 
 | Script | Command |

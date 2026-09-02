@@ -21,6 +21,9 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
+import java.util.LinkedHashMap;
+import java.util.Locale;
+import java.util.Map;
 
 /**
  * In-process HTTP server that answers every request with a canned status and body, and records
@@ -35,10 +38,12 @@ public class StubServer implements AutoCloseable
     private volatile int status = 200;
     private volatile String body = "";
     private volatile String contentType = "text/turtle";
+    private final Map<String, String> responseHeaders = new LinkedHashMap<>();
 
     private volatile String lastMethod;
     private volatile String lastTarget;
     private volatile String lastBody;
+    private volatile Map<String, String> lastHeaders = Map.of();
 
     /**
      * Starts the server on an ephemeral loopback port.
@@ -55,8 +60,13 @@ public class StubServer implements AutoCloseable
             lastTarget = exchange.getRequestURI().toString();
             lastBody = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
 
+            Map<String, String> headers = new LinkedHashMap<>();
+            exchange.getRequestHeaders().forEach((name, values) -> headers.put(name.toLowerCase(Locale.ROOT), values.get(0)));
+            lastHeaders = headers;
+
             byte[] out = body.getBytes(StandardCharsets.UTF_8);
             exchange.getResponseHeaders().add("Content-Type", contentType);
+            responseHeaders.forEach((name, value) -> exchange.getResponseHeaders().add(name, value));
             exchange.sendResponseHeaders(status, out.length == 0 ? -1 : out.length);
             if (out.length > 0) exchange.getResponseBody().write(out);
             exchange.close();
@@ -102,6 +112,19 @@ public class StubServer implements AutoCloseable
     }
 
     /**
+     * Adds a header to the canned response.
+     *
+     * @param name header name
+     * @param value header value
+     * @return this server
+     */
+    public StubServer respondsWithHeader(String name, String value)
+    {
+        responseHeaders.put(name, value);
+        return this;
+    }
+
+    /**
      * Returns the method of the last request.
      *
      * @return HTTP method, or null if no request was made
@@ -119,6 +142,17 @@ public class StubServer implements AutoCloseable
     public String getLastTarget()
     {
         return lastTarget;
+    }
+
+    /**
+     * Returns a request header of the last request.
+     *
+     * @param name header name, matched case-insensitively
+     * @return header value, or null if the header was not sent
+     */
+    public String getLastHeader(String name)
+    {
+        return lastHeaders.get(name.toLowerCase(Locale.ROOT));
     }
 
     /**

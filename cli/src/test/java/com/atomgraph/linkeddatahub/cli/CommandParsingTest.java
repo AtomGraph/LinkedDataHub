@@ -138,4 +138,19 @@ public class CommandParsingTest
         assertEquals(CommandLine.ExitCode.USAGE, commandLine().execute("delete", "https://localhost:4443/some/"));
     }
 
+    @Test
+    public void mementoRolesAreMutuallyExclusive()
+    {
+        assertEquals(CommandLine.ExitCode.USAGE, commandLine().execute("get", "--timemap", "--version", "a1b2c3", "https://localhost:4443/some/"));
+        assertEquals(CommandLine.ExitCode.USAGE, commandLine().execute("get", "--timemap", "--timegate", "https://localhost:4443/some/"));
+    }
+
+    @Test
+    public void datetimeIsOnlyValidWithTheTimeGate()
+    {
+        assertNotNull(commandLine().parseArgs("get", "--timegate", "--datetime", "2026-08-20T10:00:00Z", "https://localhost:4443/some/"));
+        assertEquals(CommandLine.ExitCode.USAGE, commandLine().execute("get",
+            "--accept", "text/turtle", "--datetime", "2026-08-20T10:00:00Z", "https://localhost:4443/some/"));
+    }
+
 }

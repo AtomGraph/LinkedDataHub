@@ -232,4 +232,98 @@ public class CommandOutputTest
         assertTrue(err.toString().contains("Connection refused"), err.toString());
     }
 
+    @Test
+    public void timeGatePrintsTheMementoURIAsTheOnlyLineOnStdout() throws Exception
+    {
+        try (StubServer server = new StubServer())
+        {
+            URI base = server.baseURI();
+            server.responds(302, "").respondsWithHeader("Location", base + "some/?version=a1b2c3");
+            StringWriter out = new StringWriter(), err = new StringWriter();
+
+            int code = commandLine(out, err).execute("get",
+                "-f", keyStorePath().toString(), "-p", "changeit",
+                "--timegate", "--datetime", "2026-08-20T10:00:00Z", base.resolve("some/").toString());
+
+            assertEquals(0, code);
+            assertEquals(base + "some/?version=a1b2c3", out.toString().strip());
+            assertEquals(1, out.toString().strip().lines().count(), "stdout carries more than the Memento URI");
+            assertEquals("", err.toString(), "stderr is not empty on success");
+            assertEquals("/some/?timegate", server.getLastTarget());
+            assertEquals("Thu, 20 Aug 2026 10:00:00 GMT", server.getLastHeader("Accept-Datetime"));
+        }
+    }
+
+    @Test
+    public void aBareTimeGateNegotiatesWithoutADatetime() throws Exception
+    {
+        try (StubServer server = new StubServer())
+        {
+            URI base = server.baseURI();
+            server.responds(302, "").respondsWithHeader("Location", base + "some/?version=a1b2c3");
+            StringWriter out = new StringWriter(), err = new StringWriter();
+
+            int code = commandLine(out, err).execute("get",
+                "-f", keyStorePath().toString(), "-p", "changeit",
+                "--timegate", base.resolve("some/").toString());
+
+            assertEquals(0, code);
+            assertNull(server.getLastHeader("Accept-Datetime"), "a bare --timegate must not send Accept-Datetime");
+        }
+    }
+
+    @Test
+    public void aTimeGateThatDoesNotRedirectExitsOneWithEmptyStdout() throws Exception
+    {
+        try (StubServer server = new StubServer())
+        {
+            server.responds(200, "");
+            StringWriter out = new StringWriter(), err = new StringWriter();
+
+            int code = commandLine(out, err).execute("get",
+                "-f", keyStorePath().toString(), "-p", "changeit",
+                "--timegate", server.baseURI().resolve("some/").toString());
+
+            assertEquals(CommandLine.ExitCode.SOFTWARE, code);
+            assertEquals("", out.toString(), "a failed command must print nothing on stdout");
+        }
+    }
+
+    @Test
+    public void mementoOptionsAddressTheDocumentsOwnQueryParams() throws Exception
+    {
+        try (StubServer server = new StubServer())
+        {
+            server.responds(200, "");
+            URI doc = server.baseURI().resolve("some/");
+            StringWriter out = new StringWriter(), err = new StringWriter();
+
+            assertEquals(0, commandLine(out, err).execute("get",
+                "-f", keyStorePath().toString(), "-p", "changeit",
+                "--accept", "text/turtle", "--version", "a1b2c3", doc.toString()));
+            assertEquals("/some/?version=a1b2c3", server.getLastTarget());
+
+            assertEquals(0, commandLine(out, err).execute("get",
+                "-f", keyStorePath().toString(), "-p", "changeit",
+                "--accept", "text/turtle", "--timemap", doc.toString()));
+            assertEquals("/some/?timemap", server.getLastTarget());
+        }
+    }
+
+    @Test
+    public void acceptIsRequiredForEverythingButTheTimeGate() throws Exception
+    {
+        try (StubServer server = new StubServer())
+        {
+            server.responds(200, "");
+            StringWriter out = new StringWriter(), err = new StringWriter();
+
+            int code = commandLine(out, err).execute("get",
+                "-f", keyStorePath().toString(), "-p", "changeit", server.baseURI().toString());
+
+            assertEquals(CommandLine.ExitCode.USAGE, code);
+            assertNull(server.getLastMethod(), "a request went out without a requested media type");
+        }
+    }
+
 }

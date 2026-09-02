@@ -90,7 +90,8 @@ ldh get \
   -f "$AGENT_CERT_KEYSTORE" \
   -p "$AGENT_CERT_PWD" \
   --accept 'application/n-triples' \
-  "${doc_url}?timemap")
+  --timemap \
+  "$doc_url")
 
 echo "DEBUG: TimeMap:"
 echo "$timemap"
@@ -109,7 +110,8 @@ ldh get \
   -f "$AGENT_CERT_KEYSTORE" \
   -p "$AGENT_CERT_PWD" \
   --accept 'application/link-format' \
-  "${doc_url}?timemap")
+  --timemap \
+  "$doc_url")
 
 echo "DEBUG: link-format TimeMap:"
 echo "$link_format"

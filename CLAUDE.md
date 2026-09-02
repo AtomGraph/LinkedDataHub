@@ -171,6 +171,11 @@ success, `1` HTTP or runtime failure, `2` usage error.
 Packages have no command — an application imports one with a single `<app> ldh:import <package>`
 triple, so `ldh patch` on the application's `settings` document is the whole interface.
 
+`ldh get` also addresses the RFC 7089 Memento roles of a versioned document, as mutually exclusive
+options: `--timemap` (version history), `--version <sha>` (a historical version) and `--timegate`
+with an optional `--datetime` (RFC 1123 or ISO 8601), which prints the selected version's URI as the
+only line on stdout so it pipes into another `ldh get`.
+
 The `bin/` HTTP API scripts are **deprecated** — `ldh` replaces them, and http-tests build their
 fixtures with it. Authentication moves from the `.pem` the scripts feed `curl -E` to the PKCS12
 keystore beside it (`-f ssl/owner/keystore.p12`).

@@ -72,7 +72,8 @@ ldh get \
   -f "$AGENT_CERT_KEYSTORE" \
   -p "$AGENT_CERT_PWD" \
   --accept 'application/n-triples' \
-  "${doc_url}?version=${sha1}")
+  --version "$sha1" \
+  "$doc_url")
 
 echo "DEBUG: Response body:"
 echo "$response_body"
@@ -92,7 +93,8 @@ ldh get \
   -p "$AGENT_CERT_PWD" \
   --accept 'application/n-triples' \
   --head \
-  "${doc_url}?version=${sha1}" \
+  --version "$sha1" \
+  "$doc_url" \
 | tr -d '\r')
 
 echo "DEBUG: Response headers:"

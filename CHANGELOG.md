@@ -20,6 +20,7 @@
 - Empty blocks and empty chart result sets say so through the design system's block-state component
 - `ldh:date-time()`, `ldh:datatype-family()`, `ldh:css-token()` and `ldh:view-cache()` replace logic that had been written out at every call site
 - Package ontologies are declared as `owl:imports` instead of grafted, with an imports characterization test
+- `ldh get` reaches the RFC 7089 Memento roles of a versioned document through mutually exclusive `--timemap`, `--version <sha>` and `--timegate` options; `--timegate` takes an optional `--datetime` in RFC 1123 or ISO 8601 and prints the negotiated version's URI as the only line on stdout, so `http-tests/versioning/` no longer drops to `curl` for datetime negotiation
 
 ### Changed
 - `<html lang>` is taken from the `Content-Language` the response carries, so the header and the document agree by construction rather than by two computations staying in step
