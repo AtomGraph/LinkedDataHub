@@ -668,6 +668,9 @@ extension-element-prefixes="ixsl"
 
     <!-- ACTION BAR -->
     
+    <!-- error responses have no breadcrumbs, actions or modes - the bar would render as an empty strip -->
+    <xsl:template match="rdf:RDF[key('resources-by-type', '&http;Response') and not(key('resources-by-type', '&spin;ConstraintViolation')) and not(key('resources-by-type', '&sh;ValidationResult'))]" mode="bs2:ActionBar" priority="1"/>
+
     <xsl:template match="rdf:RDF | srx:sparql" mode="bs2:ActionBar">
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="class" select="'action-bar ldh-actionbar ldh-actionbar--zoned ldh-actionbar--bc-pills'" as="xs:string?"/>
