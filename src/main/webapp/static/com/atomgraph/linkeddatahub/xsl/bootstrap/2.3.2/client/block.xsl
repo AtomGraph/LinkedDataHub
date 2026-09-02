@@ -924,7 +924,7 @@ exclude-result-prefixes="#all"
                 <xsl:variable name="id" select="'id' || ac:uuid()" as="xs:string"/>
                 <xsl:variable name="view-block-html" as="element()">
                     <xsl:apply-templates select="$view-resource" mode="bs2:Row">
-                        <xsl:with-param name="about" select="xs:anyURI($base-uri || $id)"/>
+                        <xsl:with-param name="about" select="xs:anyURI($base-uri || '#' || $id)"/>
                         <xsl:with-param name="id" select="$id"/>
                         <xsl:with-param name="property-metadata" select="$context('property-metadata')" tunnel="yes"/>
                         <xsl:with-param name="object-metadata" select="$context('object-metadata')" tunnel="yes"/>
