@@ -284,6 +284,8 @@ run_tests "sparql-protocol" $(find ./sparql-protocol/ -type f -name '*.sh')
 (( error_count += $? ))
 run_tests "versioning" $(find ./versioning/ -type f -name '*.sh')
 (( error_count += $? ))
+run_tests "language" $(find ./language/ -type f -name '*.sh')
+(( error_count += $? ))
 
 end_time=$(date +%s)
 runtime=$((end_time-start_time))
