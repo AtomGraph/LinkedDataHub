@@ -744,10 +744,16 @@ exclude-result-prefixes="#all"
 
             <xsl:apply-templates select="."/>
 
-            <span class="chip-inline">
-                <xsl:value-of select="../@xml:lang"/>
-            </span>
+            <xsl:apply-templates select="../@xml:lang" mode="ac:lang-tag"/>
         </dd>
+    </xsl:template>
+
+    <!-- the property list and the table cell both put a value's languages side by side, so the pill that tells them apart
+         is written once here and applied from wherever the values are laid out -->
+    <xsl:template match="@xml:lang" mode="ac:lang-tag">
+        <span class="chip-inline">
+            <xsl:value-of select="."/>
+        </span>
     </xsl:template>
 
     <xsl:template match="node()" mode="xhtml:DefinitionDescription">

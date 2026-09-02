@@ -70,6 +70,15 @@ table.table th { font-weight: var(--fw-semibold); color: var(--fg-muted); }
    and the width stays proportional - a forced box would have to crop or letterbox, and a depiction
    is as often a logo or a scan as it is a headshot. The <a> wrapper keeps the full image one click away */
 table.table td img { max-height: var(--thumb-sm); border-radius: var(--r-xs); vertical-align: middle; }
+/* a property gets one cell however many values it has, so the values stack inside it, divided the way a predicate's
+   dd's are in the property list. A table cell cannot bound its own height, so the cap rides the stack the cell holds:
+   every value stays in the DOM and reachable by scrolling, instead of an order with fifty line items setting the row
+   height for the whole table */
+table.table td > .values { max-height: 12em; overflow-y: auto; min-width: 0; overflow-wrap: break-word; }
+table.table td > .values > .value { padding: var(--sp-1) 0; }
+table.table td > .values > .value:first-child { padding-top: 0; }
+table.table td > .values > .value:last-child { padding-bottom: 0; }
+table.table td > .values > .value ~ .value { border-top: 1px solid var(--border-default); }
 /* view table: the header row pins under the view toolbar while the rows scroll inside .container-results */
 .container-results > table.table thead th { position: sticky; top: 0; z-index: 1; background: var(--surface-1); border-bottom: 1px solid var(--border-strong); }
 /* sortable columns read full-strength at rest so non-sortable headers (which keep the base th --fg-muted) visibly recede; the arrow surfaces on hover and stays lit on the active sort column (aria-sort) */
