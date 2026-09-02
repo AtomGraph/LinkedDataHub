@@ -1,0 +1,615 @@
+/* =========================================================================
+   Transitional bridge between LDH's CSR state tokens and the design system.
+   The CSR handlers toggle Bootstrap-era state classes (.open on .btn-group,
+   .active on tab <li>s) and emit a few structural wrappers (ul.nav in the
+   header, #tab-bar) that app.css has no rules for. This file styles those
+   with the design system's tokens so no interaction wiring has to change.
+   Rules move out of here (or die) as components finish porting.
+   ========================================================================= */
+
+/* ---------- Bootstrap-framework replacements (bootstrap.css core is no longer linked) ---------- */
+/* buttons: every legacy .btn falls back to the neutral core-button look */
+:where(.btn) {
+  display: inline-flex; align-items: center; justify-content: center; gap: var(--sp-2);
+  height: 30px; padding: 0 12px;
+  border: 1px solid var(--border-default); border-radius: var(--r-sm);
+  background: var(--surface-0); color: var(--fg-1);
+  font-family: var(--font-sans); font-size: var(--fs-sm); font-weight: var(--fw-medium);
+  cursor: pointer; white-space: nowrap;
+  transition: background var(--dur-fast) var(--ease-out-soft);
+}
+:where(.btn):hover { background: var(--bg-hover); text-decoration: none; }
+:where(.btn.disabled, .btn[disabled]) { opacity: 0.4; pointer-events: none; }
+:where(.btn-primary, .btn.btn-primary) { border: 0; background: var(--bg-accent); color: var(--fg-on-accent); }
+:where(.btn-primary, .btn.btn-primary):hover { background: var(--bg-accent-hover); }
+/* real specificity: something upstream colors buttons with the link color, which disappears on the accent fill */
+.btn-primary { color: var(--fg-on-accent); }
+/* carets are Material glyphs. Static ones ship <span class="msi caret">expand_more</span>;
+   CSR-toggled collapse indicators stay empty spans on purpose - the handlers flip the
+   caret-reversed class, and only ::before content can follow a class change */
+.caret { display: inline-flex; align-items: center; opacity: 0.85; }
+.caret:empty::before { font-family: 'Material Symbols Rounded'; font-size: 16px; line-height: 1; content: 'expand_more'; }
+.caret-reversed:empty::before { content: 'expand_less'; }
+:where(.badge) {
+  display: inline-flex; align-items: center;
+  min-width: 18px; height: 18px; padding: 0 6px;
+  border-radius: var(--r-pill); justify-content: center;
+  background: var(--surface-3); color: var(--fg-2);
+  font-size: var(--fs-xs); font-weight: var(--fw-semibold);
+}
+:where(.alert) {
+  display: flex; align-items: flex-start; gap: var(--sp-3);
+  padding: var(--sp-3) var(--sp-4); margin: var(--sp-2) 0;
+  border: 1px solid color-mix(in srgb, var(--warning-500, #b45309) 30%, transparent);
+  border-radius: var(--r-md);
+  background: var(--warning-50, #fef3c7); color: var(--fg-1);
+  font-size: var(--fs-sm);
+}
+.alert-error, .alert.alert-error { background: var(--danger-50); border-color: color-mix(in srgb, var(--danger-500) 30%, transparent); }
+.alert .close { margin-left: auto; border: 0; background: none; color: var(--fg-hint); }
+.progress {
+  height: 8px; border-radius: var(--r-pill);
+  background: var(--surface-2); overflow: hidden; margin: var(--sp-2) 0;
+}
+.progress .bar { height: 100%; background: var(--bg-accent); transition: width var(--dur-base) var(--ease-out-soft); }
+/* indeterminate variant: nothing to report a percent for, the fill sweeps instead (facet popover loading) */
+.progress.progress-indeterminate .bar { width: 35%; animation: ldh-progress-indet 1.3s var(--ease-in-out) infinite; }
+@keyframes ldh-progress-indet { from { margin-left: -35%; } to { margin-left: 100%; } }
+table.table { width: 100%; border-collapse: collapse; font-size: var(--fs-sm); }
+/* middle, not top: cells hold single-line values sitting beside taller things - a type pill, an image - and the
+   design system centres a label against a control everywhere (.ldhc-btn, .ldhc-tag, .ldhc-badge), reserving
+   flex-start for a wrapping text block beside a fixed-height one (.ldhc-help, .ldhc-choice, .ldhc-toast) */
+table.table th, table.table td { padding: var(--sp-2) var(--sp-3); border-bottom: 1px solid var(--border-default); text-align: left; vertical-align: middle; }
+table.table tr:last-child > td { border-bottom: 0; }
+/* the row lights as one band, the property-list hover's analog for a row-per-resource surface;
+   no sp-6 bleed into the card padding here - .container-results (overflow: auto) clips at the table edge */
+table.table tbody td { transition: background var(--dur-fast) var(--ease-out-soft); }
+table.table tbody tr:hover > td { background: var(--surface-1); }
+table.table th { font-weight: var(--fw-semibold); color: var(--fg-muted); }
+/* image objects in a data cell: cap the height alone so the row height is uniform down the column
+   and the width stays proportional - a forced box would have to crop or letterbox, and a depiction
+   is as often a logo or a scan as it is a headshot. The <a> wrapper keeps the full image one click away */
+table.table td img { max-height: var(--thumb-sm); border-radius: var(--r-xs); vertical-align: middle; }
+/* view table: the header row pins under the view toolbar while the rows scroll inside .container-results */
+.container-results > table.table thead th { position: sticky; top: 0; z-index: 1; background: var(--surface-1); border-bottom: 1px solid var(--border-strong); }
+/* sortable columns read full-strength at rest so non-sortable headers (which keep the base th --fg-muted) visibly recede; the arrow surfaces on hover and stays lit on the active sort column (aria-sort) */
+table.table th.sortable { cursor: pointer; user-select: none; white-space: nowrap; color: var(--fg-1); }
+table.table th.sortable:hover { background: var(--surface-2); }
+table.table th.sortable .sort-arrow { vertical-align: middle; margin-left: 2px; visibility: hidden; color: var(--fg-muted); }
+table.table th.sortable:hover .sort-arrow { visibility: visible; }
+table.table th.sortable[aria-sort] .sort-arrow { visibility: visible; color: var(--fg-1); }
+.content-body { padding: var(--sp-4) var(--sp-6); max-width: var(--ldh-content-w); margin: 0 auto; }
+/* stacking rhythm between block cards and alerts (Bootstrap's row margins are gone) */
+.content-body .ldh-block, .content-body .ldhc-alert, .content-body :where(.alert) { margin-bottom: var(--sp-4); }
+/* one card layer only: CSR hydration can re-render a row as a card inside the SSR wrapper card */
+.ldh-block .ldh-block { border: 0; box-shadow: none; border-radius: 0; background: transparent; margin-bottom: 0; }
+.row-block-controls { min-height: 30px; }
+.fade { opacity: 0; transition: opacity var(--dur-fast) var(--ease-out-soft); }
+.fade.in { opacity: 1; }
+/* typeahead suggestions: shown/positioned via inline styles by the CSR */
+ul.typeahead.dropdown-menu {
+  position: absolute;
+  min-width: 248px; max-height: 320px; overflow-y: auto;
+  background: var(--bg-card); border: 1px solid var(--border-default);
+  border-radius: var(--r-md); box-shadow: var(--shadow-lg);
+  padding: var(--sp-1); margin: 0; list-style: none; z-index: 1120;
+}
+ul.typeahead.dropdown-menu > li > a { display: block; padding: 6px 10px; border-radius: var(--r-sm); font-size: var(--fs-sm); color: var(--fg-1); }
+ul.typeahead.dropdown-menu > li.active > a, ul.typeahead.dropdown-menu > li > a:hover { background: var(--bg-accent-quiet); text-decoration: none; }
+
+/* ---------- cards: the m3 skin's resting M3-elevation shadow reads as a doubled bottom border;
+     the design's card preview shows the bordered treatment, so keep the m3 palette but rest flat ---------- */
+:root[data-retro^="m3"] .ldh-block {
+  border: 1px solid var(--border-default);
+  box-shadow: none;
+}
+:root[data-retro^="m3"] .ldh-block.is-quiet { border: 0; background: transparent; }
+/* A failed block used to go quiet here - the alert brought its own surface, so
+   the card chrome around it read as stray double borders. The design system
+   decided the other way (Components → Block states): the card and its header
+   stay in every state, because the header carries what a broken block needs
+   (copy IRI, edit, delete) and holding the footprint keeps the document from
+   reflowing. The failure now shows as the app.css ring instead. */
+.ldh-block :is(.alert, .ldhc-alert) { margin: 0; }
+
+/* ---------- sticky chrome: header on top, action bar (legacy --action-bar-top) right under it.
+   Bar heights are tokens that size the bars, not mirrors of their content, so stacked sticky
+   offsets (.editor-bar) can compose them without drifting ---------- */
+:root { --ldh-header-height: 56px; --ldh-tabbar-height: 40px; --ldh-actionbar-height: 61px; --action-bar-top: var(--ldh-header-height); --ldh-content-w: 1280px; }
+.navbar.ldh-header { position: sticky; top: 0; z-index: 1001; }
+.action-bar.ldh-actionbar {
+  box-sizing: border-box;
+  height: var(--ldh-actionbar-height);
+  background: var(--surface-0);
+  border-bottom: 1px solid var(--border-default);
+  padding: var(--sp-3) var(--sp-6);
+}
+
+/* ---------- header actions: the right-side ul.nav is a flex strip ---------- */
+.ldh-header-actions ul.nav {
+  display: flex; align-items: center; gap: var(--sp-2);
+  list-style: none; margin: 0; padding: 0;
+}
+.ldh-header-actions ul.nav > li { display: flex; align-items: center; }
+
+/* ---------- dropdown menus: .open is toggled by the CSR btn-group handler ---------- */
+/* the m3 skin paints every .ldh-header descendant with the inverse (near-white) text color for the
+   dark bar; light dropdown panels inside the header need their ink back at higher specificity */
+:root[data-retro^="m3"] .ldh-header .dropdown-menu, :root[data-retro^="m3"] .ldh-header .dropdown-menu * { color: var(--fg-1); }
+:root[data-retro^="m3"] .ldh-header .dropdown-menu .nav-header { color: var(--fg-hint); }
+:root[data-retro^="m3"] .ldh-header .ldh-avatar:hover, :root[data-retro^="m3"] .ldh-header .btn-group.open .ldh-avatar { color: var(--fg-1); }
+.btn-group { position: relative; }
+.btn-group .dropdown-menu { display: none; }
+.btn-group.open .dropdown-menu {
+  display: block;
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  min-width: 248px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-default);
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow-lg);
+  padding: var(--sp-2);
+  z-index: 70;
+  list-style: none;
+  margin: 0;
+}
+/* header menus hug the viewport's right edge */
+.ldh-header .btn-group.open .dropdown-menu { left: auto; right: 0; }
+.dropdown-menu > li > a, .dropdown-menu > li > button {
+  display: flex; align-items: center; gap: var(--sp-2);
+  width: 100%;
+  padding: 8px 10px;
+  border: 0; background: transparent;
+  border-radius: var(--r-sm);
+  font-size: var(--fs-sm); color: var(--fg-1); text-align: left;
+}
+.dropdown-menu > li > a:hover, .dropdown-menu > li > button:hover { background: var(--bg-hover); text-decoration: none; }
+.dropdown-menu > li.nav-header {
+  padding: 6px 10px 2px;
+  font-size: var(--fs-xs); font-weight: var(--fw-semibold);
+  letter-spacing: 0.06em; text-transform: uppercase;
+  color: var(--fg-hint);
+}
+.dropdown-menu > li.divider { height: 1px; margin: var(--sp-2) 0; background: var(--border-default); }
+
+/* ---------- action bar: design menus open via the CSR btn-group 'open' toggle ---------- */
+.ldh-actionbar .ab-mid { display: flex; align-items: center; gap: var(--sp-4); min-width: 0; }
+.ldh-actionbar > .ab-left { display: flex; align-items: center; gap: var(--sp-2); }
+.ldh-add-wrap .ldh-add-menu, .ldh-of-wrap .ldh-of-menu, .ldh-mode .modes-pop { display: none; }
+.ldh-add-wrap.open .ldh-add-menu, .ldh-mode.open .modes-pop { display: block; }
+/* the toggle handler stamps 'drop-up' when the group is closer to the viewport bottom than the top */
+.ldh-add-wrap.drop-up .ldh-add-menu { top: auto; bottom: calc(100% + 6px); }
+.ldh-of-wrap.open .ldh-of-menu { display: flex; }
+.ldh-of-menu .it.disabled, .ldh-add-menu .it.disabled { opacity: 0.4; pointer-events: none; }
+.ldh-of-menu a.it { text-decoration: none; }
+/* the CSR-built breadcrumb container (bc-pill / bc-sep styled by app.css) */
+div.breadcrumb.ldh-bc { min-width: 0; overflow: hidden; }
+/* address bar: the field is skinned by app.css .ldh-address, not the form-field bridge */
+.ldh-address input[type="text"] { background: transparent; border: 0; box-shadow: none; min-height: 0; padding: 0; }
+.ldh-address input[type="text"]:focus { border: 0; box-shadow: none; }
+/* the breadcrumb zone and the address bar left-align with the content column's blocks: the column
+   edge is (layout width - column)/2 + the sp-6 inset. The layout width comes from container units,
+   not 100vw: 100vw includes the classic scrollbar while the column centers via margin auto in the
+   scrollbar-less layout width, so vw math sat half a scrollbar to the right of the blocks; both
+   bars span the layout width with sp-6 side padding, so 100cqw + 2*sp-6 recovers it (their fixed
+   descendants are none, so the containment reroutes no containing blocks).
+   Widening the left zone floats ab-mid onto that edge (bar padding + grid gap cover 2*sp-6);
+   the same widening on the right zone lands ab-mid's end — the dateTime stamp — on the column's
+   right edge (flex-end keeps the action buttons on the viewport edge); the address bar trades
+   centering for a start margin discounting the 220px wordmark column (app.css header grid) plus
+   padding and gap, and spans the column width (lifting app.css's 720px cap) — width discounts the
+   margin because a grid item's 100% resolves against the area, so the margin would otherwise push
+   the bar under the header actions. Below column width all clamp to no-op. */
+.ldh-header, .ldh-actionbar--zoned { container-type: inline-size; --layout-w: calc(100cqw + 2 * var(--sp-6)); --wing: calc((var(--layout-w) - min(var(--ldh-content-w), var(--layout-w))) / 2); }
+.ldh-actionbar--zoned > .ab-left { min-width: calc(var(--wing) - var(--sp-6)); }
+.ldh-actionbar--zoned > .ldh-actions { min-width: calc(var(--wing) - var(--sp-6)); justify-content: flex-end; }
+.ldh-header .ldh-address { --address-offset: max(0px, calc(var(--wing) - 220px - var(--sp-6))); justify-self: start; margin-left: var(--address-offset); width: calc(100% - var(--address-offset)); max-width: calc(min(var(--ldh-content-w), var(--layout-w)) - 2 * var(--sp-6)); }
+
+/* ---------- block header actions hydrated by CSR ---------- */
+.ldh-block-head .actions > div { display: flex; gap: var(--sp-1); }
+/* bs2:Row nests bs2:Header inside .ldh-block-body (the design keeps head and body as siblings), so the
+   head's --sp-6 side padding stacked on the body's and pushed pills/headings right of the rows below;
+   the body already provides the horizontal inset */
+.ldh-block-body .ldh-block-head { padding-left: 0; padding-right: 0; }
+.ldh-block-head .actions .tb.disabled { opacity: 0.4; pointer-events: none; }
+
+/* ---------- modals: CSR appends div.modal.fade.in and removes it on close ---------- */
+.modal {
+  position: fixed; top: 48px; left: 50%; transform: translateX(-50%);
+  /* match the content column: blocks span .content-body's inner width (max 1280px minus its side
+     padding); 100%, not 100vw — a fixed element's percentages resolve against the scrollbar-less
+     viewport that also centers the column (100vw would overhang half a classic scrollbar per side) */
+  width: calc(min(var(--ldh-content-w), 100%) - 2 * var(--sp-6));
+  max-height: calc(100vh - 96px);
+  background: var(--surface-0);
+  border: 0; border-radius: var(--r-lg);
+  box-shadow: var(--shadow-xl);
+  display: flex; flex-direction: column;
+  overflow: hidden;
+  z-index: 1050;
+}
+/* dim the page behind an open modal (non-interactive: LDH modals close via their own buttons) */
+body:has(.modal.fade.in)::after {
+  content: '';
+  position: fixed; inset: 0;
+  background: rgba(10, 14, 30, 0.45);
+  z-index: 1049;
+  pointer-events: none;
+}
+.modal.fade { opacity: 0; transition: opacity var(--dur-fast) var(--ease-out-soft); }
+.modal.fade.in { opacity: 1; }
+/* grid, not flex: the legacy markup puts button.close FIRST and titles the modal with a <legend>,
+   so layout must not follow DOM order - title column left, close pinned top-right */
+.modal-header {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: start;
+  column-gap: var(--sp-3);
+  padding: var(--sp-4) var(--sp-5) var(--sp-3);
+  border-bottom: 1px solid var(--border-default);
+}
+.modal-header legend, .modal-header h2, .modal-header h3 {
+  grid-column: 1; grid-row: 1;
+  font-size: var(--fs-lg); margin: 0; font-weight: var(--fw-semibold);
+  border: 0; padding: 0; line-height: var(--lh-snug); color: var(--fg-1);
+  min-width: 0;
+}
+.modal-header > p { grid-column: 1; margin: 4px 0 0; font-size: var(--fs-sm); color: var(--fg-muted); }
+.modal-header .close {
+  grid-column: 2; grid-row: 1;
+  border: 0; background: transparent;
+  width: 28px; height: 28px; border-radius: var(--r-sm);
+  color: var(--fg-hint); font-size: var(--fs-lg); line-height: 1;
+}
+.modal-header .close:hover { background: var(--bg-hover); color: var(--fg-1); }
+.modal-body { padding: var(--sp-4) var(--sp-5); overflow-y: auto; min-height: 0; }
+/* app.css gives .ldh-block-foot the band chrome with space-between (hint left, buttons right);
+   LDH footers are bare button rows, so cluster them at the right edge instead */
+.modal-footer, .ldh-block-foot {
+  display: flex; align-items: center; justify-content: flex-end; gap: var(--sp-2);
+  padding: var(--sp-3) var(--sp-5);
+  border-top: 1px solid var(--border-default);
+  background: var(--surface-1);
+  margin: 0;
+}
+
+/* ---------- forms: control-group/control-label/controls tokens are CSR anchors ---------- */
+form .control-group {
+  display: grid;
+  grid-template-columns: minmax(140px, 220px) 1fr;
+  column-gap: var(--sp-6);
+  align-items: start;
+  padding: var(--sp-2) 0;
+  border-top: 1px solid var(--border-default);
+}
+form .control-group:first-of-type { border-top: 0; }
+form .control-group > .control-label {
+  padding-top: 6px;
+  font-size: var(--fs-sm); font-weight: var(--fw-medium);
+  color: var(--fg-muted);
+  overflow: hidden; text-overflow: ellipsis;
+}
+form .control-group > .controls { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-2); min-width: 0; }
+/* explicit placement: RDF/POST hidden inputs and <hr> separators are also direct children */
+form .control-group > * { grid-column: 2; }
+form .control-group > .control-label { grid-column: 1; grid-row: 1; }
+form .control-group > .controls { grid-column: 2; grid-row: 1; }
+form .control-group > hr { display: none; }
+form .controls input[type="text"], form .controls input[type="url"], form .controls textarea { flex: 1 1 240px; min-width: 0; }
+form .controls textarea { min-height: 72px; }
+/* YASQE hides the textarea and inserts div.CodeMirror beside it, which declares no width of its own: as a flex item it is sized by the query text, and an empty query leaves nothing but the gutter */
+form .controls > .CodeMirror { flex: 1 1 240px; min-width: 0; }
+form .control-group.error > .control-label { color: var(--danger-500); }
+form .control-group.error input, form .control-group.error textarea { border-color: var(--danger-500); }
+form .control-group.required > .control-label::after { content: ' *'; color: var(--danger-500); }
+form input[type="text"], form input[type="url"], form input[type="number"], form input[type="password"], form input[type="datetime-local"], form input[type="date"], form textarea, form select {
+  border: 1px solid var(--border-default); border-radius: var(--r-sm);
+  background: var(--surface-0); color: var(--fg-1);
+  font-family: var(--font-sans); font-size: var(--fs-sm);
+  padding: 5px 10px; min-height: 30px;
+  transition: border-color var(--dur-fast) var(--ease-out-soft), box-shadow var(--dur-fast) var(--ease-out-soft);
+}
+form input:focus, form textarea:focus, form select:focus {
+  outline: none; border-color: var(--ldh-blue-400);
+  box-shadow: 0 0 0 3px var(--bg-accent-quiet);
+}
+form .help-inline { font-size: var(--fs-xs); color: var(--fg-hint); }
+form .control-group.error .help-inline, form .error > .help-inline { color: var(--danger-500); }
+form .btn-primary {
+  display: inline-flex; align-items: center; gap: var(--sp-2);
+  height: 30px; padding: 0 12px;
+  border: 0; border-radius: var(--r-sm);
+  background: var(--bg-accent); color: var(--fg-on-accent);
+  font-size: var(--fs-sm); font-weight: var(--fw-medium);
+}
+form .btn-primary:hover { background: var(--bg-accent-hover); }
+
+/* ---------- type pills: Tag em-quiet co-primary sz-sm, for every rendered rdf:type value ----------
+   the pill belongs to .btn-type itself rather than to a position inside the header type list, so a type
+   reads the same wherever it lands - the resource description header, a table cell, a row. Without this
+   it is only the header that matches, and the rest fall through to the 30px :where(.btn) legacy look. */
+.btn-type {
+  display: inline-flex; align-items: center; gap: 4px;
+  height: 20px; padding: 0 8px;
+  border-radius: var(--r-pill);
+  background: var(--ldh-blue-50); color: var(--ldh-blue-700);
+  font-size: var(--fs-xs); font-weight: var(--fw-medium);
+  white-space: nowrap;
+}
+.btn-type:hover { text-decoration: none; background: var(--ldh-blue-100, var(--bg-hover)); }
+ul.ldh-typelist { display: flex; flex-wrap: wrap; gap: var(--sp-1); list-style: none; margin: 0 0 var(--sp-1); padding: 0; }
+
+/* ---------- fieldsets/legends: sections, not Bootstrap-era boxes ---------- */
+fieldset { border: 0; padding: 0; margin: 0 0 var(--sp-4); min-inline-size: 0; }
+legend {
+  display: flex; align-items: center; gap: var(--sp-2);
+  width: 100%;
+  padding: 0; margin: 0 0 var(--sp-2);
+  font-family: var(--font-mono); font-size: 10px;
+  letter-spacing: var(--tracking-wide); text-transform: uppercase;
+  color: var(--fg-muted);
+}
+/* subject controls (type picker, subject edit toggle) hug the legend's right edge */
+legend > .actions { display: flex; align-items: center; gap: var(--sp-1); margin-left: auto; }
+/* the edit/create form titles itself with its fieldset legend (ac:label of the subject) - the modal
+   header carries only the close button. In a modal that legend IS the heading (Bootstrap sized it as
+   one); match .modal-header legend instead of the mono section-label treatment above */
+.modal .modal-body form > fieldset > legend { font-family: var(--font-sans); font-size: var(--fs-lg); font-weight: var(--fw-semibold); letter-spacing: normal; text-transform: none; color: var(--fg-1); }
+/* remove-resource button on legendless fieldsets rides its own top row, right-aligned */
+fieldset > .btn-group { display: flex; justify-content: flex-end; }
+/* remove-statement/add-statement groups trail their form row instead of floating */
+form .control-group > .controls > .btn-group { order: 99; margin-left: auto; }
+.chart-controls .field select[multiple] { height: auto; }
+
+/* ---------- read-mode property lists: dt/dd name-value groups styled as property rows ---------- */
+/* bs2:PropertyListIdentity wraps each predicate's dt + dds in a <div> group (HTML's dl grouping
+   element - the design's .ldh-prop-group); subgrid slots every group's cells into the dl's shared
+   label/value tracks so labels align across groups */
+.ldh-block dl {
+  display: grid;
+  grid-template-columns: minmax(140px, 220px) 1fr;
+  column-gap: var(--sp-6); row-gap: 0;
+  margin: 0;
+}
+.ldh-block dl > div { grid-column: 1 / -1; display: grid; grid-template-columns: subgrid; border-top: 1px solid var(--border-default); }
+.ldh-block dl > div:first-child { border-top: 0; }
+.ldh-block dl > div > dt {
+  grid-column: 1;
+  /* span all value rows (surplus implicit tracks collapse to zero height) so the label cell -
+     and its hover band - covers the group's full height, like the design's row-spanning .label */
+  grid-row: 1 / span 99;
+  padding: var(--sp-2) 0;
+  font-size: var(--fs-sm); font-weight: var(--fw-medium);
+  color: var(--fg-muted);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  transition: background var(--dur-fast) var(--ease-out-soft);
+}
+.ldh-block dl > div > dd {
+  grid-column: 2;
+  margin: 0;
+  padding: var(--sp-2) 0;
+  font-size: var(--fs-sm); color: var(--fg-1);
+  min-width: 0; overflow-wrap: break-word;
+  transition: background var(--dur-fast) var(--ease-out-soft);
+}
+/* a value is a whole row here rather than a table cell, so the image gets more height than in
+   table.table - enough to read, still short of pushing the rest of the property list off-screen.
+   This also lands in the map info window, whose overlay hosts a .ldh-block property list */
+.ldh-block dl > div > dd img { max-width: 100%; max-height: var(--thumb-md); border-radius: var(--r-sm); }
+/* dividers between a predicate's values run in the value column only; the group's top border covers both */
+.ldh-block dl > div > dd ~ dd { border-top: 1px solid var(--border-default); }
+/* language tag on a value. A property renders every language it carries, ordered by the reader's preference, so the tag
+   is what tells the values apart - it earns a pill rather than the bare text the retired .label-info left behind. Same
+   treatment as the design's .ldh-prop-row .value .chip-inline, written for the dl the property list actually emits */
+.ldh-block dl > div > dd .chip-inline {
+  display: inline-flex; align-items: center; gap: 4px; margin-left: var(--sp-2);
+  padding: 0 6px; border-radius: var(--r-pill);
+  background: var(--ldh-violet-50); color: var(--ldh-violet-700);
+  font-family: var(--font-sans); font-size: var(--fs-xs); font-weight: var(--fw-medium);
+}
+/* the design's .ldh-prop-group hover: the label lights at full group height whenever the pointer
+   is anywhere in the group, but in the value column only the dd under the pointer lights - the
+   dt's box-shadow copies fill the sp-6 card padding (clipped at the card edge by the block's
+   overflow:hidden) and the column gap, the dd's fill the gap and the right card padding */
+.ldh-block dl > div:hover > dt { background: var(--surface-1); box-shadow: calc(-1 * var(--sp-6)) 0 0 var(--surface-1), var(--sp-6) 0 0 var(--surface-1); }
+.ldh-block dl > div > dd:hover { background: var(--surface-1); box-shadow: calc(-1 * var(--sp-6)) 0 0 var(--surface-1), var(--sp-6) 0 0 var(--surface-1); }
+/* a block header with an image adopts the property-list geometry (dt track + column gap), so the
+   titles group left-aligns with the dd values below regardless of the image's natural size;
+   imageless headers stay flex, their titles flush at the card edge like the dt labels */
+.ldh-block-head:has(> a > img, > img) { display: grid; grid-template-columns: minmax(140px, 220px) minmax(0, 1fr) auto; column-gap: var(--sp-6); }
+/* both axes are caps rather than width: 100%: the track is a fixed 140-220px whatever the image
+   does, so filling it bought nothing but an upscaled logo, and a portrait source needs the height
+   bound or the header grows past the property list it heads */
+.ldh-block-head > a > img, .ldh-block-head > img { max-width: 100%; max-height: var(--thumb-lg); border-radius: var(--r-sm); }
+/* ---------- version diff decorations (?diff= view) ---------- */
+/* Block-level state rides on outline, not border: the skins legitimately zero block borders
+   (quiet prose blocks, alert-only cards, the retro card treatments) and nothing else in the
+   system sets outline, so the diff state cannot be clobbered by any skin */
+.content-body > [about].block.diff-added { outline: 2px solid var(--success-500); }
+.content-body > [about].block.diff-removed { outline: 2px solid var(--danger-500); }
+.content-body > [about].block.diff-changed { outline: 2px solid var(--warning-500); }
+/* sub-block values: the two XHTML literal sides inside a changed block, property values on the dd */
+dd.diff-added, .main > div.diff-added { border-left: 4px solid var(--success-500); padding-left: 8px; }
+dd.diff-removed, .main > div.diff-removed { border-left: 4px solid var(--danger-500); padding-left: 8px; }
+/* diff decorations ride on the dd */
+.ldh-block dl > div > dd.diff-added { background: var(--success-50); }
+.ldh-block dl > div > dd.diff-removed { background: var(--danger-50); }
+/* the comparing-versions banner legend (document.xsl) keys its labels to the same tokens */
+.text-success { color: var(--success-500); }
+.text-error { color: var(--danger-500); }
+.text-warning { color: var(--warning-500); }
+
+/* ---------- left sidebar: flyout mechanics are CSR-driven inline styles ---------- */
+/* hidden by default; the body-edge onmousemove handler sets display: block, onmouseout hides it */
+/* the tree flyout's CSR handlers carry show/hide as inline display (mouse at x=0 → block, mouseout → none);
+   neutralize the design's translateX(-100%)/.is-open slide so display alone controls visibility, and start
+   the panel below the sticky header instead of the design's full-height top:0 */
+.left-sidebar.ldh-sidebar { display: none; transform: none; top: var(--ldh-header-height); z-index: 1001; box-shadow: var(--shadow-lg); }
+/* the generic form-input chrome above (form input[type="text"]) outweighs app.css's .sb-search input reset,
+   painting a second box inside the search pill; restore the design's borderless transparent input -
+   the wrapper carries the border and the :focus-within ring */
+.sb-search input[type="text"] { border: 0; background: transparent; box-shadow: none; min-height: 0; height: 100%; padding: 0; }
+.sb-search input[type="text"]:focus { border: 0; box-shadow: none; }
+/* tree/class lists are ul/li (CSR appends nested uls and toggles li .active) */
+.ldh-sidebar ul.nav { list-style: none; margin: 0; padding: 0; }
+.ldh-sidebar .sb-tree ul { list-style: none; margin: 0 0 0 var(--sp-4); padding: 0; }
+.ldh-sidebar .sb-tree li, .ldh-sidebar .sb-classes li, .ldh-sidebar .sb-other li { display: flex; align-items: center; }
+.ldh-sidebar .sb-tree li { flex-wrap: wrap; }
+.ldh-sidebar .sb-tree li > ul { flex-basis: 100%; }
+.ldh-sidebar .sb-tree li > a {
+  display: flex; align-items: center; gap: var(--sp-2);
+  flex: 1; min-width: 0;
+  padding: 5px 8px;
+  border-radius: var(--r-sm);
+  font-size: var(--fs-sm); color: var(--fg-2);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.ldh-sidebar .sb-tree li > a:hover { background: var(--bg-hover); color: var(--fg-1); text-decoration: none; }
+.ldh-sidebar .sb-tree li.active > a { background: var(--bg-accent-quiet); color: var(--ldh-blue-700); font-weight: var(--fw-medium); }
+/* expand/collapse carets: state is carried by btn-expand-tree <-> btn-expanded-tree */
+.btn-expand-tree, .btn-expanded-tree {
+  width: 18px; height: 18px; flex-shrink: 0;
+  border: 0; background: transparent; padding: 0;
+  color: var(--fg-hint);
+  font-family: 'Material Symbols Rounded'; font-size: 16px; line-height: 18px;
+}
+.btn-expand-tree::before { content: 'chevron_right'; }
+.btn-expanded-tree::before { content: 'expand_more'; }
+.btn-expand-tree:hover, .btn-expanded-tree:hover { color: var(--fg-1); }
+
+/* ---------- document tab bar: CSR toggles .active on the <li> ---------- */
+/* the sticky bar paints its own surface: scrolled content passes underneath, and the
+   wrapper divs between #tab-bar and the list make child percentage heights unreliable */
+#tab-bar { display: block; background: var(--surface-1); border-bottom: 1px solid var(--border-default); }
+#tab-bar-list {
+  display: flex; align-items: stretch; gap: 2px;
+  padding: 0 var(--sp-6); margin: 0;
+  list-style: none;
+}
+#tab-bar-list > li { display: flex; }
+#tab-bar-list > li > a {
+  display: inline-flex; align-items: center; gap: var(--sp-2);
+  padding: var(--sp-2) var(--sp-4);
+  font-size: var(--fs-sm); font-weight: var(--fw-medium);
+  color: var(--fg-muted);
+  border-bottom: 2px solid transparent;
+  transition: color var(--dur-fast) var(--ease-out-soft), border-color var(--dur-fast) var(--ease-out-soft);
+}
+#tab-bar-list > li > a:hover { color: var(--fg-1); text-decoration: none; }
+#tab-bar-list > li.active > a { color: var(--fg-1); border-bottom-color: var(--ldh-blue-500); }
+
+/* ---------- view toolbar: facet pills + sort + mode switcher (ViewBlocks contract) ---------- */
+/* the CSR facet renderer appends a .facets sub-container (id-gated against re-render); it must not break the pill row */
+.ldh-view-toolbar .left > .facets { display: contents; }
+.ldh-view-toolbar .facet { position: relative; }
+/* the hydrated value list doubles as the pill's popover; value items sit directly under the ul
+   (no .facet-values wrapper), so the design's overflow cap applies to the ul itself */
+.facet > ul.facet-pop { list-style: none; margin: 0; display: block; max-height: 264px; overflow-y: auto; }
+.facet > ul.facet-pop > li.facet-loading { padding: 8px var(--sp-2); }
+.facet > ul.facet-pop > li > label.checkbox {
+  display: flex; align-items: center; gap: var(--sp-2);
+  margin: 0; padding: 6px var(--sp-2);
+  border-radius: var(--r-sm);
+  font-size: var(--fs-sm); color: var(--fg-2);
+  cursor: pointer; white-space: nowrap;
+}
+.facet > ul.facet-pop > li > label.checkbox:hover { background: var(--bg-hover); color: var(--fg-1); }
+.facet > ul.facet-pop > li > label.checkbox input[type="checkbox"] { margin: 0; }
+.ldh-view-toolbar .result-count { margin: 0; white-space: nowrap; }
+.ldh-view-toolbar .form-inline { display: flex; align-items: center; gap: var(--sp-1); margin: 0; }
+.ldh-view-toolbar .form-inline label { display: flex; align-items: center; gap: var(--sp-1); margin: 0; }
+.ldh-view-toolbar .btn-group.open .dropdown-menu { left: auto; right: 0; }
+/* direction toggle mirrors the column-header arrows: the handlers only flip btn-order-by-desc
+   (never the button's content), so the class picks the visible label and the ::before glyph -
+   same pattern as the caret */
+.btn-order-by .sort-arrow::before { content: 'arrow_upward'; }
+.btn-order-by.btn-order-by-desc .sort-arrow::before { content: 'arrow_downward'; }
+.btn-order-by .dir-desc, .btn-order-by.btn-order-by-desc .dir-asc { display: none; }
+.btn-order-by.btn-order-by-desc .dir-desc { display: inline; }
+
+/* typeahead suggestion metadata (type labels) trails the row */
+.dropdown-menu li a .meta { margin-left: auto; font-size: var(--fs-xs); color: var(--fg-muted); }
+
+/* the wordmark's white ink is header-bar styling; on the footer's light surface it takes body ink
+   (the design sets this inline on the footer wordmark) */
+.ldh-footer .ldh-wordmark { color: var(--fg-1); }
+
+/* ---------- create bar: document-level creation (content mode's XHTML/Object, the row
+   modes' Create picker) sits in a full-bleed navbar-like row. Sticky, not fixed: it rides
+   the viewport bottom while the content scrolls, but parks at its flow position at the end
+   of the content - stacked on the footer, never over it. The negative side margins bleed
+   the row out of the centered content column to the viewport edges; the right padding brings
+   the buttons back to the content column's right edge, flush with the blocks. The margin bleed
+   and the padding must share the 100vw base: each is half a classic scrollbar off the layout
+   width, in the same direction, so the errors cancel and the buttons land exactly on the column
+   edge - rebasing one without the other breaks the alignment ---------- */
+html { overflow-x: clip; } /* the 50vw bleed overshoots by half a classic scrollbar; clip never creates a scroll container */
+.ldh-create-dock {
+  position: sticky;
+  bottom: 0;
+  display: flex; align-items: center; justify-content: flex-end; gap: var(--sp-2);
+  z-index: 24; /* above content, below popovers (40) and modal chrome */
+  margin: auto calc(50% - 50vw) 0; /* margin-top: auto parks it at the bottom of the stretched column */
+  padding: var(--sp-2) calc((100vw - min(var(--ldh-content-w), 100vw)) / 2 + var(--sp-6)) var(--sp-2) var(--sp-6);
+  background: var(--bg-card);
+  border-top: 1px solid var(--border-default);
+}
+/* the modal dim overlay is pointer-inert, so hide the dock while a modal is open */
+body:has(.modal.fade.in) .ldh-create-dock { display: none; }
+/* the RDFa editor owns the bottom strip while an XHTML block is being edited — its fixed breadcrumb bar would paint over the dock */
+body:has(.rdfa-editor-content) .ldh-create-dock { display: none; }
+/* the bar sits directly on the footer - no detached gap between them */
+body:has(.ldh-create-dock) .ldh-footer { margin-top: 0; }
+
+/* ---------- sticky footer + create-bar parking: the page column is a flex stack all the
+   way down to .content-body, so short pages pin the footer to the viewport bottom and the
+   create bar parks above it instead of stranding under the action bar (position: sticky
+   can only pull an element up from its flow position, never push it down) ---------- */
+#visible-body { min-height: 100vh; display: flex; flex-direction: column; }
+#visible-body > #tab-body { flex: 1 0 auto; display: flex; flex-direction: column; }
+#tab-body > .tab-content { flex: 1 0 auto; display: flex; flex-direction: column; }
+/* the Bootstrap tab contract (only the active pane shows) left with bootstrap.css; the bridge
+   carries it, so an inactive tab's content - its create bar included - never lingers */
+.tab-content > .tab-pane { display: none; }
+.tab-content > .tab-pane.active { flex: 1 0 auto; display: flex; flex-direction: column; }
+.tab-pane > .document-body { flex: 1 0 auto; display: flex; flex-direction: column; }
+/* .content-body centers with auto side margins, which opt a flex item out of cross-axis
+   stretch (it would shrink-wrap to its widest child); explicit width restores the full column */
+.tab-pane > .document-body > .content-body { width: 100%; }
+/* only create-bar pages need the column itself stretched (its children become flex items) */
+.document-body > .content-body:has(> .ldh-create-dock) { flex: 1 0 auto; display: flex; flex-direction: column; padding-bottom: 0; }
+
+/* ---------- document-level graph and map modes: the canvas fills the whole space between the
+   action bar and the viewport's bottom edge at full viewport width; canvases nested inside view
+   blocks keep their fixed height (a canvas is a direct .content-body child only at document
+   level). The tab-body min-height makes header (fixed 56px) + tab-body sum to exactly one
+   viewport, so the canvas bottom lands on the viewport edge and the footer falls below the
+   fold - in flow, revealed by scroll ---------- */
+.document-body > .content-body:has(> :is(.graph-3d-canvas, .map-canvas)) { flex: 1 0 auto; display: flex; flex-direction: column; max-width: none; padding: 0; }
+.content-body > :is(.graph-3d-canvas, .map-canvas) { flex: 1 0 0; height: auto; min-height: 520px; }
+body:has(.document-body > .content-body > :is(.graph-3d-canvas, .map-canvas)) #tab-body { min-height: calc(100dvh - 56px); }
+body:has(.document-body > .content-body > :is(.graph-3d-canvas, .map-canvas)) .ldh-footer { margin-top: 0; }
+
+/* ---------- RDFa editor toolbar: the bar's inner .content-body is a flex item whose auto side
+   margins opt it out of cross-axis stretch (same as the pane rule above); full width left-aligns
+   the toolbar buttons with the content column and the breadcrumb zone. Compact vertical padding -
+   the band is chrome, not content ---------- */
+.editor-bar > .content-body { width: 100%; padding-top: var(--sp-2); padding-bottom: var(--sp-2); }
+
+/* ---------- toolbar buttons outside the design's scoped containers: app.css only styles .tb
+   inside .ldh-toolbar / .ldh-of-wrap / .ldh-block-head .actions, so the form-row remove/add
+   buttons (tb btn-remove-property, tb btn-add, tb btn-remove-resource) fell back to browser
+   chrome. Zero-specificity base so every scoped recipe still wins ---------- */
+:where(button.tb) {
+  width: 28px; height: 28px; padding: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: transparent;
+  border: 0; border-radius: var(--r-sm);
+  color: var(--fg-hint);
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease-out-soft), color var(--dur-fast) var(--ease-out-soft);
+}
+:where(button.tb):hover { background: var(--bg-hover); color: var(--fg-1); }
+:where(button.tb.btn-remove-property, button.tb.btn-remove-resource):hover { background: var(--danger-50); color: var(--danger-500); }

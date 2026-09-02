@@ -76,7 +76,7 @@ exclude-result-prefixes="#all">
     </xsl:function>
 
     <xsl:template match="rdf:RDF[ac:absolute-path(ldh:request-uri()) = resolve-uri(encode-for-uri('sign up'), ldt:base())]" mode="bs2:ContentBody" priority="2">
-        <div class="container-fluid content-body">
+        <div class="content-body">
             <xsl:apply-templates select="key('resources', ac:absolute-path(ldh:base-uri(.)))" mode="ldh:ContentList"/>
 
             <xsl:apply-templates select="." mode="bs2:Row"/>
@@ -91,8 +91,8 @@ exclude-result-prefixes="#all">
 
     <xsl:template match="rdf:RDF[ac:absolute-path(ldh:request-uri()) = resolve-uri(encode-for-uri('sign up'), ldt:base())]" mode="bs2:ModeList" priority="2"/>
 
-    <!-- disable the right nav (backlinks etc.) -->
-    <xsl:template match="*[*][@rdf:about or @rdf:nodeID][ac:absolute-path(ldh:request-uri()) = resolve-uri(encode-for-uri('sign up'), ldt:base())]" mode="bs2:Right"/>
+    <!-- disable the block links popover (backlinks) -->
+    <xsl:template match="*[ac:absolute-path(ldh:request-uri()) = resolve-uri(encode-for-uri('sign up'), ldt:base())]" mode="ldh:BlockLinksPopover"/>
 
     <xsl:template match="rdf:RDF[ac:absolute-path(ldh:request-uri()) = resolve-uri(encode-for-uri('sign up'), ldt:base())]" mode="bs2:Row" priority="2">
         <xsl:variable name="placeholder-id" select="'signup-form-placeholder'" as="xs:string"/>
@@ -173,7 +173,7 @@ exclude-result-prefixes="#all">
             
             <xsl:variable name="selected" select="." as="xs:anyURI"/>
             <xsl:for-each select="document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/admin/countries.rdf', $lapp:origin))/rdf:RDF/*[@rdf:about]">
-                <xsl:sort select="ac:label(.)" lang="{$ac:lang}"/>
+                <xsl:sort select="ac:label(.)" lang="{ac:langs()[1]}"/>
                 <xsl:apply-templates select="." mode="xhtml:Option">
                     <xsl:with-param name="selected" select="@rdf:about = $selected"/>
                 </xsl:apply-templates>

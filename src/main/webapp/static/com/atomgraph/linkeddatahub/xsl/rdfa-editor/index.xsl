@@ -51,7 +51,7 @@ version="3.0">
          Everything here is synchronous: the host page preloads the vocabulary
          documents into the SaxonJS document pool (SaxonJS.getResource +
          documentPool), keyed by page-relative URI -->
-    <xsl:template name="main">
+    <xsl:template name="rdfae:main">
         <xsl:call-template name="rdfae:init-state"/>
         <xsl:call-template name="rdfae:init-editor"/>
     </xsl:template>

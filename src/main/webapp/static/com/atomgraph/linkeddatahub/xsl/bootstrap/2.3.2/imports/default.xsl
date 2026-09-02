@@ -127,6 +127,19 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="for $entry in $entries return if (matches($entry, '^&lt;[^&gt;]+&gt;\s*;.*[;\s]rel\s*=\s*&quot;?[^&quot;\s,;]*acl#mode&quot;?')) then xs:anyURI(replace($entry, '^&lt;([^&gt;]+)&gt;.*$', '$1')) else ()"/>
     </xsl:function>
 
+    <!-- the browser's own language preferences, overriding the Web-Client body that reads the writer-supplied parameter.
+         Same normalisation as that one: primary subtags, deduped, 'en' when the browser offers nothing.
+
+         navigator.languages comes back as a sequence of xs:untypedAtomic, so a for clause iterates the tags themselves -
+         measured in the browser, where reaching into it with ?* instead reports "Required item type is function(*);
+         supplied value is xs:untypedAtomic". Not every JS array converts this way: DataTransfer.types arrives as an XDM
+         array and does need flattening, so check the shape rather than assuming either. -->
+    <xsl:function name="ac:langs" as="xs:string*" use-when="system-property('xsl:product-name') = 'SaxonJS'">
+        <xsl:variable name="langs" select="distinct-values(for $lang in ixsl:get(ixsl:window(), 'navigator.languages') return tokenize($lang, '-')[1])[not(. = ('', '*'))]" as="xs:string*"/>
+
+        <xsl:sequence select="if (exists($langs)) then $langs else 'en'"/>
+    </xsl:function>
+
     <xsl:function name="ac:uri" as="xs:anyURI?" use-when="system-property('xsl:product-name') = 'SAXON'">
         <xsl:sequence select="$ac:uri"/>
     </xsl:function>
@@ -509,7 +522,8 @@ exclude-result-prefixes="#all"
         <xsl:param name="added-keys" as="xs:string*"/>
         <xsl:param name="removed-keys" as="xs:string*"/>
 
-        <xsl:variable name="triple-keys" select="$resource/* ! ldh:triple-key(., false())" as="xs:string*"/>
+        <!-- non-diff renders pass empty key sets - skip the per-triple key serialization entirely -->
+        <xsl:variable name="triple-keys" select="if (empty(($added-keys, $removed-keys))) then () else $resource/* ! ldh:triple-key(., false())" as="xs:string*"/>
         <xsl:choose>
             <xsl:when test="exists($triple-keys) and (every $triple-key in $triple-keys satisfies $triple-key = $added-keys)">
                 <xsl:sequence select="'diff-added'"/>
@@ -698,22 +712,41 @@ exclude-result-prefixes="#all"
         </dd>
     </xsl:template>
 
+    <xsl:template match="@rdf:nodeID" mode="xhtml:DefinitionDescription">
+        <xsl:param name="diff-added-keys" as="xs:string*" tunnel="yes"/>
+        <xsl:param name="diff-removed-keys" as="xs:string*" tunnel="yes"/>
+        <xsl:variable name="property-uri" select="../concat(namespace-uri(), local-name())" as="xs:string"/>
+        <xsl:variable name="diff-class" select="ldh:value-diff-class(.., $diff-added-keys, $diff-removed-keys)" as="xs:string?"/>
+
+        <dd property="{$property-uri}" resource="_:{.}">
+            <xsl:if test="$diff-class">
+                <xsl:attribute name="class" select="$diff-class"/>
+            </xsl:if>
+
+            <xsl:apply-templates select="."/>
+        </dd>
+    </xsl:template>
+
     <xsl:template match="text()[../@xml:lang]" mode="xhtml:DefinitionDescription">
         <xsl:param name="diff-added-keys" as="xs:string*" tunnel="yes"/>
         <xsl:param name="diff-removed-keys" as="xs:string*" tunnel="yes"/>
         <xsl:variable name="property-uri" select="../concat(namespace-uri(), local-name())" as="xs:string"/>
         <xsl:variable name="diff-class" select="ldh:value-diff-class(.., $diff-added-keys, $diff-removed-keys)" as="xs:string?"/>
 
-        <dd property="{$property-uri}">
+        <!-- the value declares its own language rather than inheriting the document's. A property renders every language it
+             carries, so the two sit side by side and the document default is wrong for at least one of them: without @lang a
+             screen reader reads "Square" with Lithuanian phonetics on an lt page, and "Aikštė" with an English voice on an en
+             one. This is WCAG 3.1.2, and it also makes the RDFa faithful - the extracted literal keeps its language tag -->
+        <dd property="{$property-uri}" lang="{../@xml:lang}">
             <xsl:if test="$diff-class">
                 <xsl:attribute name="class" select="$diff-class"/>
             </xsl:if>
 
-            <span class="label label-info pull-right">
+            <xsl:apply-templates select="."/>
+
+            <span class="chip-inline">
                 <xsl:value-of select="../@xml:lang"/>
             </span>
-
-            <xsl:apply-templates select="."/>
         </dd>
     </xsl:template>
 
@@ -728,6 +761,14 @@ exclude-result-prefixes="#all"
                 <xsl:attribute name="class" select="$diff-class"/>
             </xsl:if>
 
+            <!-- an untagged literal makes no language claim, so it must not inherit the document's: lang="" is HTML's
+                 "unknown", the exact counterpart of RDF's absent tag. Only plain strings get it - a number or a date is not
+                 prose, and you do want those read out in the reader's language, so they inherit. XHTML literals are skipped
+                 too: they are markup and carry their own lang where it matters -->
+            <xsl:if test="self::text() and (not(../@rdf:datatype) or ../@rdf:datatype = '&xsd;string')">
+                <xsl:attribute name="lang" select="''"/>
+            </xsl:if>
+
             <xsl:apply-templates select="."/>
         </dd>
     </xsl:template>
@@ -738,12 +779,49 @@ exclude-result-prefixes="#all"
         <xsl:param name="added-keys" as="xs:string*"/>
         <xsl:param name="removed-keys" as="xs:string*"/>
 
-        <xsl:variable name="triple-key" select="ldh:triple-key($property, false())" as="xs:string"/>
-        <xsl:sequence select="if ($triple-key = $added-keys) then 'diff-added' else if ($triple-key = $removed-keys) then 'diff-removed' else ()"/>
+        <!-- non-diff renders pass empty key sets - skip the key serialization entirely -->
+        <xsl:if test="exists(($added-keys, $removed-keys))">
+            <xsl:variable name="triple-key" select="ldh:triple-key($property, false())" as="xs:string"/>
+            <xsl:sequence select="if ($triple-key = $added-keys) then 'diff-added' else if ($triple-key = $removed-keys) then 'diff-removed' else ()"/>
+        </xsl:if>
     </xsl:function>
     
+    <!-- reduces an RDF literal's datatype to the XSD type that processing keys off: the derived types collapse onto the primitive
+         that carries their ordering and value space, so consumers switch on a handful of families instead of enumerating XSD.
+         'string' is the fallback for datatypes with no ordering of their own - xs:string and its subtypes, xs:anyURI, the binaries,
+         the gregorians, QNames - and for untyped values, which are plain literals and therefore strings under RDF 1.1. -->
+
+    <xsl:function name="ldh:datatype-family" as="xs:string">
+        <xsl:param name="datatype" as="xs:anyURI?"/>
+
+        <xsl:choose>
+            <xsl:when test="$datatype = ('&xsd;integer', '&xsd;long', '&xsd;int', '&xsd;short', '&xsd;byte', '&xsd;nonNegativeInteger', '&xsd;positiveInteger', '&xsd;nonPositiveInteger', '&xsd;negativeInteger', '&xsd;unsignedLong', '&xsd;unsignedInt', '&xsd;unsignedShort', '&xsd;unsignedByte')">integer</xsl:when>
+            <xsl:when test="$datatype = '&xsd;decimal'">decimal</xsl:when>
+            <xsl:when test="$datatype = ('&xsd;double', '&xsd;float')">double</xsl:when>
+            <xsl:when test="$datatype = ('&xsd;dateTime', '&xsd;dateTimeStamp')">dateTime</xsl:when>
+            <xsl:when test="$datatype = '&xsd;date'">date</xsl:when>
+            <xsl:when test="$datatype = '&xsd;time'">time</xsl:when>
+            <xsl:when test="$datatype = '&xsd;yearMonthDuration'">yearMonthDuration</xsl:when>
+            <xsl:when test="$datatype = '&xsd;dayTimeDuration'">dayTimeDuration</xsl:when>
+            <xsl:when test="$datatype = '&xsd;duration'">duration</xsl:when>
+            <xsl:when test="$datatype = '&xsd;boolean'">boolean</xsl:when>
+            <xsl:otherwise>string</xsl:otherwise>
+        </xsl:choose>
+    </xsl:function>
+
+    <!-- the xs:dateTime value of a date or dateTime literal, or () when it is neither, so the two granularities can be compared
+         against each other - xs:date and xs:dateTime are not mutually comparable, and a timestamp property carries either.
+         Casting through xs:date rather than appending 'T00:00:00' to the lexical form is what makes a zoned date work: the
+         concatenation puts the timezone before the time part, and the result is not a valid xs:dateTime. -->
+
+    <xsl:function name="ldh:date-time" as="xs:dateTime?">
+        <xsl:param name="value" as="xs:string?"/>
+
+        <xsl:sequence select="if ($value castable as xs:dateTime) then xs:dateTime($value) else if ($value castable as xs:date) then xs:dateTime(xs:date($value)) else ()"/>
+    </xsl:function>
+
     <!-- DEFAULT -->
-    
+
     <!-- property -->
     <xsl:template match="*[@rdf:about or @rdf:nodeID]/*">
         <xsl:param name="id" as="xs:string?"/>
@@ -761,7 +839,25 @@ exclude-result-prefixes="#all"
             <xsl:if test="$class">
                 <xsl:attribute name="class" select="$class"/>
             </xsl:if>
-            
+
+            <!-- the predicate label declares the language it was negotiated into, the same as a value does. Without it the
+                 label inherits the document language, which is the language the page is composed in and not necessarily the
+                 one the ontology had: a Lithuanian reader gets Lithuanian predicates inside a document whose chrome, and so
+                 whose lang, is English. Resolved through the mode rather than ac:property-label() because the function is
+                 declared as xs:string? and drops the winning literal's tag at its own boundary -->
+            <xsl:variable name="label" as="item()*">
+                <xsl:apply-templates select="." mode="ac:property-label">
+                    <xsl:with-param name="property-metadata" select="$property-metadata"/>
+                </xsl:apply-templates>
+            </xsl:variable>
+            <!-- item()*, not node()*: the fallback branches of ac:property-label return computed strings rather than the
+                 label node - substring-after($this, '#') for a predicate the ontology does not describe - and binding an
+                 atomic value to node()* is XTTE0570 at run time, which compiles clean and fails on a real page -->
+            <xsl:variable name="label-node" select="$label[1][. instance of node()]" as="node()?"/>
+            <xsl:if test="$label-node/../@xml:lang">
+                <xsl:attribute name="lang" select="$label-node/../@xml:lang"/>
+            </xsl:if>
+
             <xsl:choose>
                 <xsl:when test="$property-metadata">
                     <xsl:sequence select="ac:property-label(., $property-metadata)"/>
@@ -870,21 +966,13 @@ exclude-result-prefixes="#all"
     <!-- object -->
     <xsl:template match="*[@rdf:about or @rdf:nodeID]/*/@*" mode="bs2:TypeControl"/>
 
-    <!-- PROPERTY LIST -->
-
-    <!-- suppress values in a language the user doesn't accept. TO-DO: move to Web-Client? -->
-    <xsl:template match="*[@rdf:about or @rdf:nodeID]/*[@xml:lang and not(some $lang in $ac:langs satisfies lang($lang))]" mode="bs2:PropertyList"/>
-
-    <!-- suppress values outranked by a more preferred language on the same property -->
-    <xsl:template match="*[@rdf:about or @rdf:nodeID]/*[@xml:lang][let $rank := (for $i in 1 to count($ac:langs) return $i[lang($ac:langs[$i])])[1] return exists(../*[node-name() = node-name(current())][some $i in 1 to $rank - 1 satisfies lang($ac:langs[$i])])]" mode="bs2:PropertyList"/>
-
     <!-- FORM CONTROL -->
     
     <!-- Container/Item subject input: slug-style UI (base URI + editable slug + trailing /). Matches both @rdf:nodeID (initial SPIN-constructed creation: resource is a blank node) and @rdf:about (constraint-violation re-render: response body carries the submitted URI). Same body works for both because $action carries the resource URL in either case. -->
     <xsl:template match="*[rdf:type/@rdf:resource = ('&dh;Container', '&dh;Item')]/@rdf:about | *[rdf:type/@rdf:resource = ('&dh;Container', '&dh;Item')]/@rdf:nodeID" mode="bs2:FormControl" priority="1">
         <xsl:param name="type" select="'text'" as="xs:string"/>
         <xsl:param name="id" select="generate-id()" as="xs:string"/>
-        <xsl:param name="class" select="'subject-slug input-xxlarge'" as="xs:string?"/>
+        <xsl:param name="class" select="'subject-slug'" as="xs:string?"/>
         <xsl:param name="disabled" select="false()" as="xs:boolean"/>
         <xsl:param name="action" tunnel="yes"/>
         <!-- cut slug segment from form action URL -->
@@ -896,15 +984,15 @@ exclude-result-prefixes="#all"
             </xsl:if>
             
             <span class="control-label">
-                <select class="subject-type input-medium" disabled="disabled">
+                <select class="subject-type" disabled="disabled">
                     <option value="su" selected="selected">URI</option>
                 </select>
             </span>
             <div class="controls">
-                <span class="input-prepend input-append">
+                <span>
                     <input type="hidden" name="su" value="{$action}"/>
                     
-                    <span class="add-on">
+                    <span>
                         <xsl:value-of select="ac:absolute-path(ldh:base-uri(.))"/>
                     </span>
                     
@@ -916,7 +1004,7 @@ exclude-result-prefixes="#all"
                         <xsl:with-param name="disabled" select="$disabled"/>
                     </xsl:call-template>
                     
-                    <span class="add-on">/</span>
+                    <span>/</span>
                 </span>
             </div>
 
@@ -928,7 +1016,7 @@ exclude-result-prefixes="#all"
     <xsl:template match="*[*]/@rdf:about | *[*]/@rdf:nodeID" mode="bs2:FormControl">
         <xsl:param name="type" select="'text'" as="xs:string"/>
         <xsl:param name="id" select="generate-id()" as="xs:string"/>
-        <xsl:param name="class" select="'subject input-xxlarge'" as="xs:string?"/>
+        <xsl:param name="class" select="'subject'" as="xs:string?"/>
         <xsl:param name="disabled" select="false()" as="xs:boolean"/>
         <xsl:param name="document-uri" as="xs:anyURI?" tunnel="yes"/>
         <xsl:param name="about" select="xs:anyURI(ac:absolute-path(ldh:base-uri(.)) || '#id' || ac:uuid())" as="xs:anyURI?"/>
@@ -940,7 +1028,7 @@ exclude-result-prefixes="#all"
             
             <span class="control-label">
                 <input type="hidden" class="old subject-type" value="{if (local-name() = 'about') then 'su' else if (local-name() = 'nodeID') then 'sb' else ()}"/>
-                <select class="subject-type input-medium">
+                <select class="subject-type">
                     <option value="su">
                         <xsl:if test="local-name() = 'about'">
                             <xsl:attribute name="selected" select="'selected'"/>
@@ -1028,14 +1116,20 @@ exclude-result-prefixes="#all"
             </xsl:if>
             
             <xsl:if test="$cloneable">
-                <div class="btn-group pull-right">
-                    <button type="button" class="btn btn-small pull-right btn-add" title="Add another statement">&#x271a;</button>
+                <div class="btn-group">
+                    <button type="button" class="tb btn-add">
+                        <xsl:attribute name="title">
+                            <xsl:apply-templates select="key('resources', 'add-stmt', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                        </xsl:attribute>
+
+                        <span class="msi sm" aria-hidden="true">add</span>
+                    </button>
                 </div>
             </xsl:if>
 
             <div class="controls">
                 <xsl:if test="not($required)">
-                    <div class="btn-group pull-right">
+                    <div class="btn-group">
                         <button type="button" tabindex="-1">
                             <xsl:attribute name="title">
                                 <xsl:value-of>
@@ -1043,9 +1137,9 @@ exclude-result-prefixes="#all"
                                 </xsl:value-of>
                             </xsl:attribute>
                             
-                            <xsl:apply-templates select="key('resources', 'remove', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ldh:logo">
-                                <xsl:with-param name="class" select="'btn btn-small pull-right'"/>
-                            </xsl:apply-templates>
+                            <xsl:attribute name="class" select="'tb btn-remove-property'"/>
+
+                            <span class="msi sm" aria-hidden="true">close</span>
                         </button>
                     </div>
                 </xsl:if>

@@ -124,6 +124,14 @@
         <rdfs:label xml:lang="en-US">Charts</rdfs:label>
         <rdfs:label xml:lang="es-ES">Gráficos</rdfs:label>
     </rdf:Description>
+    <rdf:Description rdf:nodeID="category">
+        <rdfs:label xml:lang="en-US">Category</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Categoría</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="series">
+        <rdfs:label xml:lang="en-US">Series</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Series</rdfs:label>
+    </rdf:Description>
     <rdf:Description rdf:nodeID="services">
         <rdfs:label xml:lang="en-US">Services</rdfs:label>
         <rdfs:label xml:lang="es-ES">Servicios</rdfs:label>
@@ -166,9 +174,11 @@
     </rdf:Description>
     <rdf:Description rdf:nodeID="user-defined-apps">
         <rdfs:label xml:lang="en-US">User-defined</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Definido por el usuario</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="system-apps">
         <rdfs:label xml:lang="en-US">System</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Sistema</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="mode-list-title">
         <rdfs:label xml:lang="en-US">Change layout mode</rdfs:label>
@@ -192,9 +202,11 @@
     </rdf:Description>
     <rdf:Description rdf:nodeID="import-ontology">
         <rdfs:label xml:lang="en-US">Import ontology</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Importar ontología</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="import-ontology-title">
         <rdfs:label xml:lang="en-US">Import RDF ontology and create constructors</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Importar ontología RDF y crear constructores</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="nav-bar-action-delete-title">
         <rdfs:label xml:lang="en-US">Delete the graph of this resource</rdfs:label>
@@ -251,6 +263,10 @@
     <rdf:Description rdf:nodeID="backlinks">
         <rdfs:label xml:lang="en-US">Backlinks</rdfs:label>
         <rdfs:label xml:lang="es-ES">Backlinks</rdfs:label> <!-- I didn't find an easy translation of Backlinks to Spanish, maybe "enlaces de vuelta" ? -->
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="links">
+        <rdfs:label xml:lang="en-US">Links</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Enlaces</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="email">
         <rdfs:label xml:lang="en-US">E-mail</rdfs:label>
@@ -328,6 +344,10 @@
         <rdfs:label xml:lang="en-US">None</rdfs:label>
         <rdfs:label xml:lang="es-ES">Nada</rdfs:label>
     </rdf:Description>
+    <rdf:Description rdf:nodeID="no-values">
+        <rdfs:label xml:lang="en-US">No values</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Sin valores</rdfs:label>
+    </rdf:Description>
     <rdf:Description rdf:nodeID="ascending">
         <rdfs:label xml:lang="en-US">Ascending</rdfs:label>
         <rdfs:label xml:lang="es-ES">Ascendente</rdfs:label>
@@ -380,29 +400,45 @@
         <rdfs:label xml:lang="en-US">Related results</rdfs:label>
         <rdfs:label xml:lang="es-ES">Resultados relacionados</rdfs:label>
     </rdf:Description>
+    <rdf:Description rdf:nodeID="via">
+        <rdfs:label xml:lang="en-US">via</rdfs:label>
+        <rdfs:label xml:lang="es-ES">vía</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="via-incoming">
+        <rdfs:label xml:lang="en-US">linked by</rdfs:label>
+        <rdfs:label xml:lang="es-ES">enlazado por</rdfs:label>
+    </rdf:Description>
     <rdf:Description rdf:nodeID="document-tree">
         <rdfs:label xml:lang="en-US">Document tree</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Árbol de documentos</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="reconcile-title">
         <rdfs:label xml:lang="en-US">Reconcile this resource against resources in the selected service</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Reconciliar este recurso con los recursos del servicio seleccionado</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="reconcile">
         <rdfs:label xml:lang="en-US">Reconcile</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Reconciliar</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="reconcile-entity">
         <rdfs:label xml:lang="en-US">Reconcile entity</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Reconciliar entidad</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="resource">
         <rdfs:label xml:lang="en-US">Resource</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Recurso</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="html">
         <rdfs:label xml:lang="en-US">HTML</rdfs:label>
+        <rdfs:label xml:lang="es-ES">HTML</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="sparql">
         <rdfs:label xml:lang="en-US">SPARQL</rdfs:label>
+        <rdfs:label xml:lang="es-ES">SPARQL</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="literal">
         <rdfs:label xml:lang="en-US">Literal</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Literal</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="open">
         <rdfs:label xml:lang="en-US">Open</rdfs:label>
@@ -414,6 +450,7 @@
     </rdf:Description>
     <rdf:Description rdf:nodeID="are-you-sure">
         <rdfs:label xml:lang="en-US">Are you sure?</rdfs:label>
+        <rdfs:label xml:lang="es-ES">¿Estás seguro?</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="cancel">
         <rdfs:label xml:lang="en-US">Cancel</rdfs:label>
@@ -421,33 +458,75 @@
     </rdf:Description>
     <rdf:Description rdf:nodeID="constructor">
         <rdfs:label xml:lang="en-US">Constructor</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Constructor</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="actions">
         <rdfs:label xml:lang="en-US">Actions</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Acciones</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="edit">
         <rdfs:label xml:lang="en-US">Edit</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Editar</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="constructors">
         <rdfs:label xml:lang="en-US">constructor(s)</rdfs:label>
+        <rdfs:label xml:lang="es-ES">constructor(es)</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="total-results">
         <rdfs:label xml:lang="en-US">Total results</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Resultados totales</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="no-results">
+        <rdfs:label xml:lang="en-US">No results.</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Sin resultados.</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="no-results-explanation">
+        <rdfs:label xml:lang="en-US">The query ran cleanly and matched nothing.</rdfs:label>
+        <rdfs:label xml:lang="es-ES">La consulta se ejecutó correctamente y no coincidió con nada.</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="block-state-empty">
+        <rdfs:label xml:lang="en-US">No results</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Sin resultados</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="previous">
+        <rdfs:label xml:lang="en-US">Previous</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Anterior</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="next">
+        <rdfs:label xml:lang="en-US">Next</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Siguiente</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="rows-per-page">
+        <rdfs:label xml:lang="en-US">Rows</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Filas</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="page">
+        <rdfs:label xml:lang="en-US">Page</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Página</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="of">
+        <rdfs:label xml:lang="en-US">of</rdfs:label>
+        <rdfs:label xml:lang="es-ES">de</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="load-schema">
         <rdfs:label xml:lang="en-US">Load schema</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Cargar esquema</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="generate-containers">
         <rdfs:label xml:lang="en-US">Generate containers</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Generar contenedores</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="generate">
         <rdfs:label xml:lang="en-US">Generate</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Generar</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="generate-containers-title">
         <rdfs:label xml:lang="en-US">Create containers for the most populated classes in a SPARQL endpoint</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Crear contenedores para las clases más pobladas de un punto de acceso SPARQL</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="limit">
         <rdfs:label xml:lang="en-US">Limit</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Límite</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="service">
         <rdfs:label xml:lang="en-US">Service</rdfs:label>
@@ -455,15 +534,19 @@
     </rdf:Description>
     <rdf:Description rdf:nodeID="has-parent">
         <rdfs:label xml:lang="en-US">Has parent</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Tiene padre</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="from-sparql-service">
         <rdfs:label xml:lang="en-US">From SPARQL service</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Desde servicio SPARQL</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="instance">
         <rdfs:label xml:lang="en-US">Instance</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Instancia</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="remove-stmt">
         <rdfs:label xml:lang="en-US">Remove this statement</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Eliminar esta declaración</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="application-settings">
         <rdfs:label xml:lang="en-US">Application settings</rdfs:label>
@@ -509,9 +592,120 @@
         <rdfs:label xml:lang="en-US">Classes</rdfs:label>
         <rdfs:label xml:lang="es-ES">Clases</rdfs:label>
     </rdf:Description>
-    <rdf:Description rdf:nodeID="error-during-query">
-        <rdfs:label xml:lang="en-US">Error during query execution:</rdfs:label>
-        <rdfs:label xml:lang="es-ES">Error durante la ejecución de la consulta:</rdfs:label>
+    <!-- block failure headlines: what failed, named as the reader sees it -->
+    <rdf:Description rdf:nodeID="block-query-failed">
+        <rdfs:label xml:lang="en-US">This block's query failed</rdfs:label>
+        <rdfs:label xml:lang="es-ES">La consulta de este bloque falló</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="block-query-not-loaded">
+        <rdfs:label xml:lang="en-US">This block's query could not be loaded</rdfs:label>
+        <rdfs:label xml:lang="es-ES">No se pudo cargar la consulta de este bloque</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="block-service-not-loaded">
+        <rdfs:label xml:lang="en-US">This block's service could not be loaded</rdfs:label>
+        <rdfs:label xml:lang="es-ES">No se pudo cargar el servicio de este bloque</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="block-resource-not-loaded">
+        <rdfs:label xml:lang="en-US">This resource could not be loaded</rdfs:label>
+        <rdfs:label xml:lang="es-ES">No se pudo cargar este recurso</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="block-resource-not-described">
+        <rdfs:label xml:lang="en-US">The document does not describe this resource</rdfs:label>
+        <rdfs:label xml:lang="es-ES">El documento no describe este recurso</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="block-self-reference">
+        <rdfs:label xml:lang="en-US">This block embeds its own document</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Este bloque incrusta su propio documento</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="block-count-failed">
+        <rdfs:label xml:lang="en-US">The result count could not be loaded</rdfs:label>
+        <rdfs:label xml:lang="es-ES">No se pudo cargar el número de resultados</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="block-values-failed">
+        <rdfs:label xml:lang="en-US">The values could not be loaded</rdfs:label>
+        <rdfs:label xml:lang="es-ES">No se pudieron cargar los valores</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="classes-not-loaded">
+        <rdfs:label xml:lang="en-US">The classes could not be loaded</rdfs:label>
+        <rdfs:label xml:lang="es-ES">No se pudieron cargar las clases</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="data-not-added">
+        <rdfs:label xml:lang="en-US">The data could not be added</rdfs:label>
+        <rdfs:label xml:lang="es-ES">No se pudieron añadir los datos</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="containers-not-created">
+        <rdfs:label xml:lang="en-US">Some containers could not be created</rdfs:label>
+        <rdfs:label xml:lang="es-ES">No se pudieron crear algunos contenedores</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="containers-partial-failure">
+        <rdfs:label xml:lang="en-US">The containers that succeeded are in place. The classes that failed are listed in the technical detail.</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Los contenedores que se crearon siguen en su sitio. Las clases que fallaron se enumeran en el detalle técnico.</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="target-must-be-local">
+        <rdfs:label xml:lang="en-US">The target document must be local. Choose a container in this hub.</rdfs:label>
+        <rdfs:label xml:lang="es-ES">El documento de destino debe ser local. Elige un contenedor de este hub.</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="source-not-rdf">
+        <rdfs:label xml:lang="en-US">The source URI did not return RDF data.</rdfs:label>
+        <rdfs:label xml:lang="es-ES">El URI de origen no devolvió datos RDF.</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="transformation-query-not-loaded">
+        <rdfs:label xml:lang="en-US">The transformation query could not be loaded.</rdfs:label>
+        <rdfs:label xml:lang="es-ES">No se pudo cargar la consulta de transformación.</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="version-history-not-loaded">
+        <rdfs:label xml:lang="en-US">The version history could not be loaded</rdfs:label>
+        <rdfs:label xml:lang="es-ES">No se pudo cargar el historial de versiones</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="version-not-read">
+        <rdfs:label xml:lang="en-US">The selected version could not be read</rdfs:label>
+        <rdfs:label xml:lang="es-ES">No se pudo leer la versión seleccionada</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="version-not-restored">
+        <rdfs:label xml:lang="en-US">This version could not be restored</rdfs:label>
+        <rdfs:label xml:lang="es-ES">No se pudo restaurar esta versión</rdfs:label>
+    </rdf:Description>
+    <!-- block failure explanations: the sentence under the headline. The two below are specific to a
+         failure that has no HTTP status behind it; the http-error-* set covers the ones that do -->
+    <rdf:Description rdf:nodeID="block-self-reference-explanation">
+        <rdfs:label xml:lang="en-US">An object block cannot embed the document it is part of.</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Un bloque de objeto no puede incrustar el documento del que forma parte.</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="block-resource-not-described-explanation">
+        <rdfs:label xml:lang="en-US">The document was retrieved, but it contains no description of this resource.</rdfs:label>
+        <rdfs:label xml:lang="es-ES">El documento se obtuvo, pero no contiene ninguna descripción de este recurso.</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="http-error-malformed">
+        <rdfs:label xml:lang="en-US">The endpoint rejected the request as malformed.</rdfs:label>
+        <rdfs:label xml:lang="es-ES">El punto de acceso rechazó la solicitud por estar mal formada.</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="http-error-unauthorized">
+        <rdfs:label xml:lang="en-US">You need to sign in to see this.</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Necesitas iniciar sesión para ver esto.</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="http-error-forbidden">
+        <rdfs:label xml:lang="en-US">You do not have access to this.</rdfs:label>
+        <rdfs:label xml:lang="es-ES">No tienes acceso a esto.</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="http-error-not-found">
+        <rdfs:label xml:lang="en-US">The requested resource was not found.</rdfs:label>
+        <rdfs:label xml:lang="es-ES">No se encontró el recurso solicitado.</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="http-error-unreachable">
+        <rdfs:label xml:lang="en-US">The endpoint could not be reached.</rdfs:label>
+        <rdfs:label xml:lang="es-ES">No se pudo contactar con el punto de acceso.</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="http-error-server">
+        <rdfs:label xml:lang="en-US">The server failed while handling the request.</rdfs:label>
+        <rdfs:label xml:lang="es-ES">El servidor falló al procesar la solicitud.</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="http-error-unknown">
+        <rdfs:label xml:lang="en-US">The request did not complete.</rdfs:label>
+        <rdfs:label xml:lang="es-ES">La solicitud no se completó.</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="technical-detail">
+        <rdfs:label xml:lang="en-US">Technical detail</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Detalle técnico</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="history">
         <rdfs:label xml:lang="en-US">History</rdfs:label>
@@ -568,5 +762,81 @@
     <rdf:Description rdf:nodeID="restore">
         <rdfs:label xml:lang="en-US">Restore</rdfs:label>
         <rdfs:label xml:lang="es-ES">Restaurar</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="allow">
+        <rdfs:label xml:lang="en-US">Allow</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Permitir</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="add-stmt">
+        <rdfs:label xml:lang="en-US">Add another statement</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Añadir otra declaración</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="remove-resource">
+        <rdfs:label xml:lang="en-US">Remove this resource</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Eliminar este recurso</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="remove-link">
+        <rdfs:label xml:lang="en-US">Remove link</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Eliminar enlace</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="get-started">
+        <rdfs:label xml:lang="en-US">Get started</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Empezar</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="learn-more">
+        <rdfs:label xml:lang="en-US">Learn more</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Saber más</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="about">
+        <rdfs:label xml:lang="en-US">About</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Acerca de</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="resources">
+        <rdfs:label xml:lang="en-US">Resources</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Recursos</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="support">
+        <rdfs:label xml:lang="en-US">Support</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Soporte</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="footer-tagline">
+        <rdfs:label xml:lang="en-US">The low-code Knowledge Graph application platform. Built on RDF, SPARQL and Linked Data principles.</rdfs:label>
+        <rdfs:label xml:lang="es-ES">La plataforma de aplicaciones de grafos de conocimiento low-code. Construida sobre RDF, SPARQL y los principios de Linked Data.</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="follow-us">
+        <rdfs:label xml:lang="en-US">Follow us</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Síguenos</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="screencasts">
+        <rdfs:label xml:lang="en-US">Screencasts</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Videotutoriales</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="mailing-list">
+        <rdfs:label xml:lang="en-US">Mailing list</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Lista de correo</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="report-issues">
+        <rdfs:label xml:lang="en-US">Report issues</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Informar de problemas</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="contact-support">
+        <rdfs:label xml:lang="en-US">Contact support</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Contactar con soporte</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="rdf-xml">
+        <rdfs:label xml:lang="en-US">RDF/XML</rdfs:label>
+        <rdfs:label xml:lang="es-ES">RDF/XML</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="turtle">
+        <rdfs:label xml:lang="en-US">Turtle</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Turtle</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="json-ld">
+        <rdfs:label xml:lang="en-US">JSON-LD</rdfs:label>
+        <rdfs:label xml:lang="es-ES">JSON-LD</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="could-not-move-block">
+        <rdfs:label xml:lang="en-US">Could not move block</rdfs:label>
+        <rdfs:label xml:lang="es-ES">No se pudo mover el bloque</rdfs:label>
     </rdf:Description>
 </rdf:RDF>

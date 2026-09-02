@@ -45,9 +45,11 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="if (ldh:query-params()?uri) then xs:anyURI(ldh:query-params()?uri) else ()"/>
     </xsl:function>
 
-    <!-- overrides the Web-Client stub; server-side ac:uuid() is the com.atomgraph.client.writer.function.UUID extension function -->
+    <!-- overrides the Web-Client stub; server-side ac:uuid() is the com.atomgraph.client.writer.function.UUID extension function.
+         crypto.randomUUID() is the platform's own generator, which retires the hand-written UUID.js the page used to load for this
+         alone. It is a secure-context API, and LDH is served over https - on an insecure origin crypto.randomUUID is undefined -->
     <xsl:function name="ac:uuid" as="xs:string">
-        <xsl:value-of select="ixsl:call(ixsl:window(), 'generateUUID', [])"/>
+        <xsl:value-of select="ixsl:call(ixsl:get(ixsl:window(), 'crypto'), 'randomUUID', [])"/>
     </xsl:function>
 
     <!-- ldh:query-params is defined once in imports/default.xsl and works in both contexts via ldh:request-uri -->
@@ -110,10 +112,15 @@ exclude-result-prefixes="#all"
     </xsl:function>
 
     <xsl:function name="ldh:new-object">
-        <xsl:variable name="js-statement" as="element()">
-            <root statement="{{ }}"/>
-        </xsl:variable>
-        <xsl:sequence select="ixsl:eval(string($js-statement/@statement))"/>
+        <xsl:sequence select="ixsl:new('Object', [])"/>
+    </xsl:function>
+
+    <!-- resolved value of a design token (CSS custom property on the root element), for canvas
+         libraries (Google Charts, 3d-force-graph, OpenLayers) that take concrete color strings -->
+    <xsl:function name="ldh:css-token" as="xs:string">
+        <xsl:param name="name" as="xs:string"/>
+
+        <xsl:sequence select="normalize-space(ixsl:call(ixsl:call(ixsl:window(), 'getComputedStyle', [ ixsl:page()/* ]), 'getPropertyValue', [ $name ]))"/>
     </xsl:function>
     
     <!-- Deprecated: use ixsl:new() instead (available in SaxonJS 3.0+) -->
@@ -420,22 +427,6 @@ exclude-result-prefixes="#all"
                 </xsl:choose>
             </json:map>
         </xsl:for-each>
-    </xsl:function>
-    
-    <!-- canonicalizes an XML document, returns canonical XML as string -->
-    
-    <xsl:function name="ldh:canonicalize-xml" as="xs:string">
-        <xsl:param name="doc" as="document-node()"/>
-        <xsl:variable name="js-statement" as="xs:string">
-            <![CDATA[
-                function (document) {
-                    var canonicaliser = window['xml-c14n-sync.js']().createCanonicaliser('http://www.w3.org/2001/10/xml-exc-c14n#WithComments');
-                    return canonicaliser.canonicaliseSync(document.documentElement);
-                }
-            ]]>
-        </xsl:variable>
-        <xsl:variable name="js-function" select="ixsl:eval(normalize-space($js-statement))"/> <!-- need normalize-space() due to Saxon-JS 2.4 bug: https://saxonica.plan.io/issues/5667 -->
-        <xsl:sequence select="ixsl:call($js-function, 'call', [ (), $doc ])"/>
     </xsl:function>
     
     <!-- constructor instantiation: the template mirrors the instance. One SELECT fetches the
@@ -748,7 +739,16 @@ exclude-result-prefixes="#all"
         "/>
     </xsl:function>
 
-    <!-- Promise-chain cleanup callback for ixsl:finally — resets the body cursor. ixsl:finally requires a 0-arg handler and ignores its return value (the original promise outcome flows through to on-failure / on-completion). Idempotent with ldh:promise-failure's own cursor reset, so chains that use both don't conflict. -->
+    <!-- Raises the busy cursor when an interaction starts async work. Its counterpart is not a matching call at
+         every terminal branch but ixsl:finally(ldh:reset-cursor#0) on the chain the work runs in, which settles
+         once whatever the outcome: the branch-by-branch resets this replaced were missing from error branches
+         (a response that resolved with a 4xx/5xx left the cursor spinning) and duplicated across the success
+         ones. Pair every ldh:busy-cursor() with a finally on the promise it precedes. -->
+    <xsl:function name="ldh:busy-cursor" as="empty-sequence()" ixsl:updating="yes">
+        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+    </xsl:function>
+
+    <!-- Promise-chain cleanup callback for ixsl:finally — resets the body cursor. ixsl:finally requires a 0-arg handler and ignores its return value (the original promise outcome flows through to on-failure / on-completion). -->
     <xsl:function name="ldh:reset-cursor" ixsl:updating="yes">
         <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
     </xsl:function>
@@ -782,5 +782,131 @@ exclude-result-prefixes="#all"
         <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
         <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ $response?message ])"/>
     </xsl:function>
-    
+
+    <!-- ERROR UI: one alert builder, one detail builder, and a render function per host (block body, modal form) -->
+
+    <!-- The nodeID of the sentence that explains an HTTP status in the reader's own terms, rather than
+         restating the upstream text. The upstream text is still shown, demoted, in the technical detail. -->
+    <xsl:function name="ldh:http-error-key" as="xs:string">
+        <xsl:param name="status" as="xs:double?"/> <!-- xs:double, not xs:integer: SaxonJS surfaces the response status as a JS number, and integers promote into this but doubles do not promote the other way -->
+
+
+        <xsl:sequence select="if ($status = 400) then 'http-error-malformed' else if ($status = 401) then 'http-error-unauthorized' else if ($status = 403) then 'http-error-forbidden' else if ($status = 404) then 'http-error-not-found' else if ($status = (502, 503, 504)) then 'http-error-unreachable' else if ($status ge 500) then 'http-error-server' else 'http-error-unknown'"/>
+    </xsl:function>
+
+    <!-- The negative alert every failure surface is built from (design system: Core → Status, InlineAlert).
+         The headline names what failed, the sentence under it explains why - neither restates the upstream
+         text, which belongs in the technical detail. -->
+    <xsl:function name="ldh:error-alert" as="element()">
+        <xsl:param name="title-key" as="xs:string"/> <!-- translations.rdf nodeID of the headline -->
+        <xsl:param name="explanation-key" as="xs:string"/> <!-- nodeID of the sentence under it; ldh:http-error-key() derives one from a status -->
+        <xsl:param name="uri" as="xs:anyURI?"/> <!-- what could not be reached, linked under the sentence -->
+
+        <xsl:variable name="translations" select="document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin))" as="document-node()"/>
+
+        <div class="ldhc-alert va-negative" role="alert">
+            <span class="ldhc-alert-ic">
+                <span class="msi outline" aria-hidden="true">error</span>
+            </span>
+            <div class="ldhc-alert-body">
+                <span class="ldhc-alert-title">
+                    <xsl:apply-templates select="key('resources', $title-key, $translations)" mode="ac:label"/>
+                </span>
+                <span class="ldhc-alert-text">
+                    <xsl:apply-templates select="key('resources', $explanation-key, $translations)" mode="ac:label"/>
+                </span>
+                <!-- the URI takes the alert body's link slot, its own row, so the sentence above it stays a
+                     sentence and a long IRI wraps without breaking the prose -->
+                <xsl:if test="$uri">
+                    <a class="ldh-code" href="{$uri}">
+                        <xsl:value-of select="$uri"/>
+                    </a>
+                </xsl:if>
+            </div>
+        </div>
+    </xsl:function>
+
+    <!-- The upstream text, demoted into a collapsed disclosure: never the first thing read, never withheld from
+         whoever needs it. Empty when there is nothing to show, so callers can hand it whatever they have. -->
+    <xsl:function name="ldh:error-detail" as="element()?">
+        <xsl:param name="detail" as="xs:string?"/>
+
+        <xsl:if test="normalize-space($detail)">
+            <details class="ldh-block-detail">
+                <summary>
+                    <span class="msi" aria-hidden="true">chevron_right</span>
+                    <xsl:apply-templates select="key('resources', 'technical-detail', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                </summary>
+                <pre>
+                    <xsl:value-of select="$detail"/>
+                </pre>
+            </details>
+        </xsl:if>
+    </xsl:function>
+
+    <!-- The status line and message a failed response contributes to the technical detail. -->
+    <xsl:function name="ldh:response-detail" as="xs:string">
+        <xsl:param name="response" as="map(*)?"/>
+
+        <xsl:sequence select="string-join(($response?status ! ('HTTP ' || .), $response?message), '&#xA;')"/>
+    </xsl:function>
+
+    <!-- The body a block shows when its content could not be loaded (design system: Components → Block states).
+         The card and header around this stay as they are - app.css derives the failure ring from the presence
+         of .ldh-block-error. Small hosts that are not a block body (facet popover, result count, parallax rows)
+         call ldh:error-alert directly, so they cannot ring the card they happen to sit in. -->
+    <xsl:function name="ldh:block-error" as="element()">
+        <xsl:param name="title-key" as="xs:string"/>
+        <xsl:param name="explanation-key" as="xs:string"/>
+        <xsl:param name="uri" as="xs:anyURI?"/>
+        <xsl:param name="response" as="map(*)?"/> <!-- the failed response; its status and message make the technical detail -->
+
+        <div class="ldh-block-error">
+            <xsl:sequence select="ldh:error-alert($title-key, $explanation-key, $uri)"/>
+            <xsl:sequence select="ldh:error-detail(ldh:response-detail($response))"/>
+        </div>
+    </xsl:function>
+
+    <!-- Replaces a block's content with the failure body. Every block-body error path goes through here: the
+         for-each over the container and the replace-content result-document were written out at each of them,
+         and $container is a sequence because some callers narrow it (e.g. to the block's div.main) and may
+         narrow it to nothing. -->
+    <xsl:function name="ldh:render-block-error" as="empty-sequence()" ixsl:updating="yes">
+        <xsl:param name="container" as="element()*"/>
+        <xsl:param name="title-key" as="xs:string"/>
+        <xsl:param name="explanation-key" as="xs:string"/>
+        <xsl:param name="uri" as="xs:anyURI?"/>
+        <xsl:param name="response" as="map(*)?"/>
+
+        <xsl:for-each select="$container">
+            <xsl:result-document href="?." method="ixsl:replace-content">
+                <xsl:sequence select="ldh:block-error($title-key, $explanation-key, $uri, $response)"/>
+            </xsl:result-document>
+        </xsl:for-each>
+    </xsl:function>
+
+    <!-- Appends the same alert to a modal form's fieldset, which is where form-level failures report. No
+         .ldh-block-error wrapper: a form is not a block body, and the wrapper is what app.css rings a card on. -->
+    <xsl:function name="ldh:render-form-error" as="empty-sequence()" ixsl:updating="yes">
+        <xsl:param name="form" as="element()?"/>
+        <xsl:param name="title-key" as="xs:string"/>
+        <xsl:param name="explanation-key" as="xs:string"/>
+        <xsl:param name="detail" as="xs:string?"/>
+
+        <xsl:for-each select="$form//fieldset">
+            <xsl:result-document href="?." method="ixsl:append-content">
+                <xsl:sequence select="ldh:error-alert($title-key, $explanation-key, ())"/>
+                <xsl:sequence select="ldh:error-detail($detail)"/>
+            </xsl:result-document>
+        </xsl:for-each>
+    </xsl:function>
+
+    <!-- target URIs of the Link header entries whose parameters contain $marker (e.g. a rel URI or 'rel=timemap') -->
+    <xsl:function name="ldh:link-targets" as="xs:anyURI*">
+        <xsl:param name="link-header" as="xs:string?"/>
+        <xsl:param name="marker" as="xs:string"/>
+
+        <xsl:sequence select="tokenize($link-header, ',')[contains(., $marker)] ! xs:anyURI(substring-before(substring-after(substring-before(., ';'), '&lt;'), '&gt;'))"/>
+    </xsl:function>
+
 </xsl:stylesheet>

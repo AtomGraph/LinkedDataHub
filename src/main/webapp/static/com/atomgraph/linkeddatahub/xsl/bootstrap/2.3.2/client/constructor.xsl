@@ -117,9 +117,12 @@ exclude-result-prefixes="#all"
                 <xsl:variable name="constructors" select="$context('constructors')" as="document-node()"/>
 
                 <xsl:for-each select="$container">
+
+                    <!-- a modal takes over from the chrome that opened it: a drop-down the pick came from is dismissed here, once its own handler has run -->
+                    <xsl:apply-templates select="ixsl:page()//*[contains-token(@class, 'btn-group')][contains-token(@class, 'open')]" mode="ldh:CloseDropdown"/>
                     <xsl:result-document href="?." method="ixsl:append-content">
                         <div class="modal modal-constructor fade in">
-                            <form class="form-horizontal constructor-template" about="{$type}">
+                            <form class="ldh-prop-form constructor-template" about="{$type}">
                                 <div class="modal-header">
                                     <button type="button" class="close">&#215;</button>
 
@@ -147,22 +150,23 @@ exclude-result-prefixes="#all"
                                     </xsl:for-each>
 
                                     <p>
-                                        <button type="button" class="btn btn-primary create-action add-constructor">
+                                        <button type="button" class="ldhc-btn in-primary ap-solid sz-sm create-action add-constructor">
                                             <xsl:value-of>
                                                 <xsl:apply-templates select="key('resources', 'constructor', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
                                             </xsl:value-of>
                                         </button>
                                     </p>
                                 </div>
-                                <div class="form-actions modal-footer">
-                                    <button type="button" class="btn btn-primary btn-save">
-                                        <xsl:value-of>
-                                            <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
-                                        </xsl:value-of>
-                                    </button>
-                                    <button type="button" class="btn btn-close">
+                                <div class="ldh-block-foot modal-footer">
+                                    <button type="button" class="ldh-btn is-ghost btn-close">
                                         <xsl:value-of>
                                             <xsl:apply-templates select="key('resources', 'cancel', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                                        </xsl:value-of>
+                                    </button>
+                                    <button type="button" class="ldh-btn btn-save">
+                                        <span class="msi sm" aria-hidden="true">save</span>
+                                        <xsl:value-of>
+                                            <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
                                         </xsl:value-of>
                                     </button>
                                 </div>
@@ -213,7 +217,7 @@ exclude-result-prefixes="#all"
                     <xsl:choose>
                         <xsl:when test="exists($resource)">
                             <xsl:apply-templates select="$resource" mode="ldh:Typeahead">
-                                <xsl:with-param name="class" select="'btn add-typeahead add-property-typeahead'"/>
+                                <xsl:with-param name="class" select="'ldhc-btn in-neutral ap-solid sz-sm add-typeahead add-property-typeahead'"/>
                             </xsl:apply-templates>
                         </xsl:when>
                         <xsl:otherwise>
@@ -228,13 +232,13 @@ exclude-result-prefixes="#all"
                                 </xsl:document>
                             </xsl:variable>
                             <xsl:apply-templates select="$synthetic/rdf:RDF/rdf:Description" mode="ldh:Typeahead">
-                                <xsl:with-param name="class" select="'btn add-typeahead add-property-typeahead'"/>
+                                <xsl:with-param name="class" select="'ldhc-btn in-neutral ap-solid sz-sm add-typeahead add-property-typeahead'"/>
                             </xsl:apply-templates>
                         </xsl:otherwise>
                     </xsl:choose>
                 </xsl:when>
                 <xsl:otherwise>
-                    <xsl:variable name="uuid" select="ixsl:call(ixsl:window(), 'generateUUID', [])" as="xs:string"/>
+                    <xsl:variable name="uuid" select="ac:uuid()" as="xs:string"/>
 
                     <xsl:call-template name="bs2:Lookup">
                         <xsl:with-param name="forClass" select="xs:anyURI('&rdf;Property')"/>
@@ -252,13 +256,15 @@ exclude-result-prefixes="#all"
         <xsl:param name="object-type" select="../../json:map[json:string[@key = 'subject'] = $object-bnode-id]/json:string[@key = 'object']" as="xs:anyURI?"/>
 
         <div class="controls">
-            <div class="btn-group pull-right">
-                <button type="button" class="btn btn-small pull-right btn-remove-property" tabindex="-1">
+            <div class="btn-group">
+                <button type="button" class="tb btn-remove-property" tabindex="-1">
                     <xsl:attribute name="title">
                         <xsl:value-of>
                             <xsl:apply-templates select="key('resources', 'remove-stmt', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
                         </xsl:value-of>
                     </xsl:attribute>
+
+                    <span class="msi sm" aria-hidden="true">close</span>
                 </button>
             </div>
                     
@@ -318,7 +324,7 @@ exclude-result-prefixes="#all"
 
             <div class="control-group">
                 <label class="control-label">
-                    <button type="button" class="btn btn-primary create-action add-triple-template">
+                    <button type="button" class="ldhc-btn in-primary ap-solid sz-sm create-action add-triple-template">
                         <xsl:value-of>
                             <xsl:apply-templates select="key('resources', '&rdf;Property', document(ac:document-uri('&rdf;')))" mode="ac:label"/>
                         </xsl:value-of>
@@ -400,11 +406,11 @@ exclude-result-prefixes="#all"
                 <xsl:variable name="request-uri" select="ldh:href(ac:build-uri(resolve-uri('ns', ldt:base()), map{ 'query': 'DESCRIBE &lt;' || $object-type || '&gt;', 'accept': 'application/rdf+xml' }), map{})" as="xs:anyURI"/>
 
                 <xsl:apply-templates select="key('resources', $object-type, document($request-uri))" mode="ldh:Typeahead">
-                    <xsl:with-param name="class" select="'btn add-typeahead add-class-typeahead'"/>
+                    <xsl:with-param name="class" select="'ldhc-btn in-neutral ap-solid sz-sm add-typeahead add-class-typeahead'"/>
                 </xsl:apply-templates>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:variable name="uuid" select="ixsl:call(ixsl:window(), 'generateUUID', [])" as="xs:string"/>
+                <xsl:variable name="uuid" select="ac:uuid()" as="xs:string"/>
 
                 <xsl:call-template name="bs2:Lookup">
                     <xsl:with-param name="forClass" select="(xs:anyURI('&rdfs;Class'), xs:anyURI('&owl;Class'))"/> <!-- ontologies are served without inference, so owl:Class subjects do not carry the rdfs:Class type -->
@@ -439,13 +445,13 @@ exclude-result-prefixes="#all"
 
     <xsl:template match="ul[contains-token(@class, 'dropdown-menu')][contains-token(@class, 'class-typeahead')]/li" mode="ixsl:onmousedown" priority="2">
         <xsl:next-match>
-            <xsl:with-param name="typeahead-class" select="'btn add-typeahead add-class-typeahead'"/>
+            <xsl:with-param name="typeahead-class" select="'ldhc-btn in-neutral ap-solid sz-sm add-typeahead add-class-typeahead'"/>
         </xsl:next-match>
     </xsl:template>
 
     <xsl:template match="ul[contains-token(@class, 'dropdown-menu')][contains-token(@class, 'property-typeahead')]/li" mode="ixsl:onmousedown" priority="2">
         <xsl:next-match>
-            <xsl:with-param name="typeahead-class" select="'btn add-typeahead add-property-typeahead'"/>
+            <xsl:with-param name="typeahead-class" select="'ldhc-btn in-neutral ap-solid sz-sm add-typeahead add-property-typeahead'"/>
         </xsl:next-match>
     </xsl:template>
 
@@ -536,7 +542,7 @@ exclude-result-prefixes="#all"
     </xsl:template>
     
     <!-- save constructor form onclick. Validate it before update updating constructors -->
-    <xsl:template match="form[contains-token(@class, 'constructor-template')]//div[contains-token(@class, 'form-actions')]/button[contains-token(@class, 'btn-save')]" mode="ixsl:onclick">
+    <xsl:template match="form[contains-token(@class, 'constructor-template')]//div[contains-token(@class, 'ldh-block-foot')]/button[contains-token(@class, 'btn-save')]" mode="ixsl:onclick">
         <xsl:variable name="form" select="ancestor::form" as="element()"/>
         <xsl:variable name="control-groups" select="$form/descendant::div[contains-token(@class, 'control-group')]" as="element()*"/>
 
@@ -547,7 +553,7 @@ exclude-result-prefixes="#all"
             </xsl:when>
             <!-- all required values present, proceed to update the constructors -->
             <xsl:otherwise>
-                <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+                <xsl:sequence select="ldh:busy-cursor()"/>
 
                 <xsl:for-each select="$form//fieldset">
                     <xsl:variable name="container" select="." as="element()"/>
@@ -647,7 +653,7 @@ exclude-result-prefixes="#all"
                 <xsl:for-each select="?body">
                     <xsl:for-each select="//srx:result">
                         <xsl:variable name="graph" select="srx:binding[@name = 'graph']/srx:uri" as="xs:anyURI"/>
-                        <xsl:variable name="uuid" select="ixsl:call(ixsl:window(), 'generateUUID', [])" as="xs:string"/>
+                        <xsl:variable name="uuid" select="ac:uuid()" as="xs:string"/>
                         <xsl:variable name="constructor-uri" select="xs:anyURI($graph || '#id' || $uuid)" as="xs:anyURI"/>
                         <xsl:variable name="update-string" select="replace($constructor-insert-string, '$this', '&lt;' || $constructor-uri || '&gt;', 'q')" as="xs:string"/>
                         <xsl:variable name="update-string" select="replace($update-string, '$Type', '&lt;' || $type || '&gt;', 'q')" as="xs:string"/>

@@ -75,7 +75,7 @@ version="3.0"
                     </xsl:choose>
                 </xsl:for-each>
                 
-                <span class="pull-right" style="font-size: smaller;">
+                <span class="meta">
                     <xsl:for-each select="rdf:type/@rdf:resource">
                         <xsl:apply-templates select="." mode="ac:object-label"/>
                         <xsl:if test="position() != last()">

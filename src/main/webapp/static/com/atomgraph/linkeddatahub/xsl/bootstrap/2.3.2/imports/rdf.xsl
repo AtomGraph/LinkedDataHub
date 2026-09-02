@@ -79,7 +79,7 @@ exclude-result-prefixes="#all">
 
                     <div class="controls">
                         <xsl:if test="not($required)">
-                            <div class="btn-group pull-right">
+                            <div class="btn-group">
                                 <button type="button" tabindex="-1">
                                     <xsl:attribute name="title">
                                         <xsl:value-of>
@@ -87,9 +87,9 @@ exclude-result-prefixes="#all">
                                         </xsl:value-of>
                                     </xsl:attribute>
 
-                                    <xsl:apply-templates select="key('resources', 'remove', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ldh:logo">
-                                        <xsl:with-param name="class" select="'btn btn-small pull-right'"/>
-                                    </xsl:apply-templates>
+                                    <xsl:attribute name="class" select="'tb btn-remove-property'"/>
+
+                                    <span class="msi sm" aria-hidden="true">close</span>
                                 </button>
                             </div>
                         </xsl:if>
@@ -104,7 +104,7 @@ exclude-result-prefixes="#all">
     <xsl:template match="rdf:type/@rdf:resource" mode="bs2:TypeControl">
         <xsl:param name="type" select="'text'" as="xs:string"/>
         <xsl:param name="id" select="generate-id()" as="xs:string"/>
-        <xsl:param name="class" select="'subject input-xxlarge'" as="xs:string?"/>
+        <xsl:param name="class" select="'subject'" as="xs:string?"/>
         <xsl:param name="disabled" select="false()" as="xs:boolean"/>
         <xsl:param name="auto" select="local-name() = 'nodeID' or starts-with(., ldt:base())" as="xs:boolean"/>
         <xsl:param name="type-metadata" as="document-node()?" tunnel="yes"/>
@@ -114,7 +114,7 @@ exclude-result-prefixes="#all">
         <xsl:choose>
             <xsl:when test="if ($type-metadata) then key('resources', ., $type-metadata) else false()">
                 <xsl:apply-templates select="key('resources', ., $type-metadata)" mode="ldh:Typeahead">
-                    <xsl:with-param name="class" select="'btn add-typeahead add-type-typeahead'"/>
+                    <xsl:with-param name="class" select="'ldhc-btn in-neutral ap-solid sz-sm add-typeahead add-type-typeahead'"/>
                     <xsl:with-param name="forClass" select="(xs:anyURI('&rdfs;Class'), xs:anyURI('&owl;Class'))"/> <!-- ontologies are served without inference, so owl:Class subjects do not carry the rdfs:Class type -->
                 </xsl:apply-templates>
             </xsl:when>

@@ -41,8 +41,12 @@
             <xsl:apply-templates select="@*" mode="#current"/>
 
             <xsl:variable name="resource-uri" select="@rdf:about" as="xs:anyURI"/>
+            <!-- the group key is the RDF triple's object, so it carries @xml:lang and @rdf:datatype: "Concept" and "Concept"@en are
+                 distinct RDF terms, and keying on the lexical form alone collapsed them and kept whichever came first. Ontology terms
+                 routinely carry both an untagged label from the vocabulary (dh.ttl: rdfs:label "Item") and tagged ones from the app
+                 ontology, so the tagged label lost - dropping the only value a language the reader accepts could match -->
             <xsl:for-each-group select="* | key('resources', $resource-uri, $new-rdf)/*"
-                group-by="concat(node-name(.), '|', (@rdf:resource, @rdf:nodeID, string(.))[1])">
+                group-by="concat(node-name(.), '|', (@rdf:resource, @rdf:nodeID, string(.))[1], '|', @xml:lang, '|', @rdf:datatype)">
                 <xsl:apply-templates select="current-group()[1]" mode="#current"/>
             </xsl:for-each-group>
         </xsl:copy>

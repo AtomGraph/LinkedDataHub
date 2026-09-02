@@ -1601,7 +1601,7 @@ version="3.0">
     </xsl:template>
 
     <!-- clipboard HTML: browser-parse it on a DETACHED element (scripts inert),
-         sanitize/normalize via mode="canonical" + mode="cm-normalize", then insert
+         sanitize/normalize via mode="cm:canonical" + mode="cm:normalize", then insert
          where the content model allows - inline fragments at the caret, blocks
          inside a flow host (li, td, ...) or as new siblings between the split
          halves of an inline-only host; hosts that can take blocks neither way
@@ -1613,7 +1613,7 @@ version="3.0">
         <xsl:variable name="carrier" as="element()" select="rdfae:element('div')"/>
         <ixsl:set-property name="innerHTML" select="$html" object="$carrier"/>
         <xsl:variable name="pass1">
-            <xsl:apply-templates select="$carrier/node()" mode="canonical"/>
+            <xsl:apply-templates select="$carrier/node()" mode="cm:canonical"/>
         </xsl:variable>
         <xsl:variable name="clean">
             <xsl:sequence select="cm:normalize($pass1/node())"/>
@@ -2139,9 +2139,9 @@ version="3.0">
             <label>Link target (href)</label>
             <input type="text" name="href" placeholder="https://..."/>
             <div class="action-buttons">
-                <button type="button" class="btn-danger link-remove" style="display: none;">Remove link</button>
-                <button type="button" class="btn-primary link-save">Save</button>
-                <button type="button" class="btn-secondary link-cancel">Cancel</button>
+                <button type="button" class="ldhc-btn in-negative ap-solid sz-sm link-remove" style="display: none;">Remove link</button>
+                <button type="button" class="ldhc-btn in-primary ap-solid sz-sm link-save">Save</button>
+                <button type="button" class="ldhc-btn in-neutral ap-solid sz-sm link-cancel">Cancel</button>
             </div>
         </div>
     </xsl:template>
@@ -2277,8 +2277,8 @@ version="3.0">
             <label>Caption</label>
             <input type="text" name="caption"/>
             <div class="action-buttons">
-                <button type="button" class="btn-primary figure-save">Insert</button>
-                <button type="button" class="btn-secondary figure-cancel">Cancel</button>
+                <button type="button" class="ldhc-btn in-primary ap-solid sz-sm figure-save">Insert</button>
+                <button type="button" class="ldhc-btn in-neutral ap-solid sz-sm figure-cancel">Cancel</button>
             </div>
         </div>
     </xsl:template>
@@ -2338,7 +2338,7 @@ version="3.0">
         <xsl:call-template name="rdfae:disarm-sweep"/>
         <ixsl:set-property name="draggedBlock" select="." object="rdfae:editor-state()"/>
         <ixsl:set-property name="effectAllowed" select="'move'" object="$transfer"/>
-        <xsl:sequence select="ixsl:call($transfer, 'setData', [ 'application/x-rdfa-editor-block', '' ])[current-date() lt xs:date('2000-01-01')]"/>
+        <xsl:sequence select="ixsl:call($transfer, 'setData', [ 'application/vnd.atomgraph.rdfa-editor.block', '' ])[current-date() lt xs:date('2000-01-01')]"/>
         <xsl:sequence select="ixsl:call($transfer, 'setDragImage', [ ., 0, 0 ])[current-date() lt xs:date('2000-01-01')]"/>
         <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'add', [ 'dragging' ])[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
@@ -2364,7 +2364,7 @@ version="3.0">
         <xsl:for-each select="ancestor-or-self::*[rdfae:draggable-block(.)][1]">
             <ixsl:set-property name="draggedBlock" select="." object="rdfae:editor-state()"/>
             <ixsl:set-property name="effectAllowed" select="'move'" object="$transfer"/>
-            <xsl:sequence select="ixsl:call($transfer, 'setData', [ 'application/x-rdfa-editor-block', '' ])[current-date() lt xs:date('2000-01-01')]"/>
+            <xsl:sequence select="ixsl:call($transfer, 'setData', [ 'application/vnd.atomgraph.rdfa-editor.block', '' ])[current-date() lt xs:date('2000-01-01')]"/>
             <xsl:sequence select="ixsl:call($transfer, 'setDragImage', [ ., 0, 0 ])[current-date() lt xs:date('2000-01-01')]"/>
             <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'add', [ 'dragging' ])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:for-each>
@@ -2375,7 +2375,7 @@ version="3.0">
         <xsl:variable name="dragged" select="ixsl:get(rdfae:editor-state(), 'draggedBlock')"/>
         <xsl:variable name="target" as="element()?" select="rdfae:drop-target-of(., $event)"/>
         <xsl:if test="exists($dragged) and exists($target)
-                and rdfae:has-transfer-type($event, 'application/x-rdfa-editor-block')">
+                and rdfae:has-transfer-type($event, 'application/vnd.atomgraph.rdfa-editor.block')">
             <xsl:sequence select="ixsl:call($event, 'preventDefault', [])[current-date() lt xs:date('2000-01-01')]"/>
             <ixsl:set-property name="dropEffect" select="'move'" object="ixsl:get($event, 'dataTransfer')"/>
             <xsl:call-template name="rdfae:clear-drop-marks"/>
@@ -2393,7 +2393,7 @@ version="3.0">
         <xsl:variable name="dragged" select="ixsl:get(rdfae:editor-state(), 'draggedBlock')"/>
         <xsl:variable name="target" as="element()?" select="rdfae:drop-target-of(., $event)"/>
         <xsl:if test="exists($dragged) and exists($target)
-                and rdfae:has-transfer-type($event, 'application/x-rdfa-editor-block')">
+                and rdfae:has-transfer-type($event, 'application/vnd.atomgraph.rdfa-editor.block')">
             <xsl:sequence select="ixsl:call($event, 'preventDefault', [])[current-date() lt xs:date('2000-01-01')]"/>
             <xsl:call-template name="rdfae:clear-drop-marks"/>
             <!-- transient drag state must not reach the undo snapshot -->
@@ -2564,7 +2564,7 @@ version="3.0">
 
     <xsl:template match="button[@id = 'view-source']" mode="ixsl:onclick">
         <xsl:variable name="canonical" as="element()?">
-            <xsl:call-template name="canonical-xhtml">
+            <xsl:call-template name="cm:canonical-xhtml">
                 <xsl:with-param name="content" select="rdfae:active-root()"/>
             </xsl:call-template>
         </xsl:variable>

@@ -105,13 +105,7 @@ exclude-result-prefixes="#all"
             <xsl:when test="$resource-uri = $about">
                 <!-- self-reference detected - render error and return resolved context -->
                 <xsl:variable name="container" select="$context('container')" as="element()"/>
-                <xsl:for-each select="$container">
-                    <xsl:result-document href="?." method="ixsl:replace-content">
-                        <div class="alert alert-block">
-                            <strong>Self-referencing object detected: <a href="{$resource-uri}"><xsl:value-of select="$resource-uri"/></a></strong>
-                        </div>
-                    </xsl:result-document>
-                </xsl:for-each>
+                <xsl:sequence select="ldh:render-block-error($container, 'block-self-reference', 'block-self-reference-explanation', $resource-uri, ())"/>
                 <xsl:sequence select="ldh:hide-block-progress-bar($context, ())[current-date() lt xs:date('2000-01-01')]"/>
                 <xsl:sequence select="ixsl:resolve($context)"/>
             </xsl:when>
@@ -205,13 +199,8 @@ exclude-result-prefixes="#all"
                                 }))"/>
                             </xsl:when>
                             <xsl:otherwise>
-                                <xsl:for-each select="$container">
-                                    <xsl:result-document href="?." method="ixsl:replace-content">
-                                        <div class="alert alert-block">
-                                            <strong>Document loaded successfully but resource was not found: <a href="{$resource-uri}"><xsl:value-of select="$resource-uri"/></a></strong>
-                                        </div>
-                                    </xsl:result-document>
-                                </xsl:for-each>
+                                <!-- the fetch succeeded, so there is no HTTP failure to report in the technical detail -->
+                                <xsl:sequence select="ldh:render-block-error($container, 'block-resource-not-described', 'block-resource-not-described-explanation', $resource-uri, ())"/>
 
                                 <xsl:sequence select="ldh:hide-block-progress-bar($context, ())[current-date() lt xs:date('2000-01-01')]"/>
                                 <xsl:sequence select="$context"/>
@@ -222,7 +211,7 @@ exclude-result-prefixes="#all"
                 <xsl:when test="?status = 406">
                     <xsl:for-each select="$container">
                         <xsl:result-document href="?." method="ixsl:replace-content">
-                            <div class="offset2 span7 main">
+                            <div class="main">
                                 <object data="{$resource-uri}"/>
                             </div>
                         </xsl:result-document>
@@ -232,13 +221,7 @@ exclude-result-prefixes="#all"
                     <xsl:sequence select="$context"/>
                 </xsl:when>
                 <xsl:otherwise>
-                    <xsl:for-each select="$container">
-                        <xsl:result-document href="?." method="ixsl:replace-content">
-                            <div class="alert alert-block">
-                                <strong>Could not load resource: <a href="{$resource-uri}"><xsl:value-of select="$resource-uri"/></a></strong>
-                            </div>
-                        </xsl:result-document>
-                    </xsl:for-each>
+                    <xsl:sequence select="ldh:render-block-error($container, 'block-resource-not-loaded', ldh:http-error-key($response?status), $resource-uri, $response)"/>
 
                     <xsl:sequence select="ldh:hide-block-progress-bar($context, ())[current-date() lt xs:date('2000-01-01')]"/>
                     <xsl:sequence select="
@@ -300,7 +283,7 @@ exclude-result-prefixes="#all"
                             <xsl:for-each select="$container">
                                 <xsl:result-document href="?." method="ixsl:replace-content">
                                     <!-- wrap the row -->
-                                    <div id="{$obj-value-id}" class="span12">
+                                    <div id="{$obj-value-id}" class="row-main">
                                         <xsl:copy-of select="$row"/>
                                     </div>
                                 </xsl:result-document>

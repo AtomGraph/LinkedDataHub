@@ -28,16 +28,16 @@ xmlns:rdf="&rdf;"
 xmlns:sh="&sh;"
 exclude-result-prefixes="#all">
 
-    <xsl:template match="*[sh:name[some $lang in $ac:langs satisfies lang($lang)]/text()]" mode="ac:label" priority="1">
-        <xsl:sequence select="(for $lang in $ac:langs return sh:name[lang($lang)])[1]/text()"/>
+    <xsl:template match="*[sh:name[some $lang in ac:langs() satisfies lang($lang)]/text()]" mode="ac:label" priority="1">
+        <xsl:sequence select="(for $lang in ac:langs() return sh:name[lang($lang)])[1]/text()"/>
     </xsl:template>
 
     <xsl:template match="*[sh:name/text()]" mode="ac:label">
         <xsl:sequence select="(sh:name[not(@xml:lang)], sh:name)[1]/text()"/>
     </xsl:template>
 
-    <xsl:template match="*[sh:description[some $lang in $ac:langs satisfies lang($lang)]/text()]" mode="ac:description" priority="1">
-        <xsl:sequence select="(for $lang in $ac:langs return sh:description[lang($lang)])[1]/text()"/>
+    <xsl:template match="*[sh:description[some $lang in ac:langs() satisfies lang($lang)]/text()]" mode="ac:description" priority="1">
+        <xsl:sequence select="(for $lang in ac:langs() return sh:description[lang($lang)])[1]/text()"/>
     </xsl:template>
 
     <xsl:template match="*[sh:description/text()]" mode="ac:description">

@@ -75,8 +75,8 @@ LIMIT   10
                 <h2>Unlock the value of your Knowledge Graph with data-driven content and low code apps.</h2>
                 <p>Create structured content backed by live data, intuitively explore graph datasets, model and manage RDF data, control data quality and more. <em>Without writing code</em>.</p>
                 <p>
-                    <a class="btn btn-primary btn-large" href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/get-started/" target="_blank">Get started</a>
-                    <a class="btn btn-large" href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/" target="_blank">Learn more</a>
+                    <a class="ldhc-btn in-primary ap-solid sz-lg" href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/get-started/" target="_blank"><xsl:value-of select="ac:label(key('resources', 'get-started', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin))))"/></a>
+                    <a class="ldhc-btn in-neutral ap-solid sz-lg" href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/" target="_blank"><xsl:value-of select="ac:label(key('resources', 'learn-more', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin))))"/></a>
                 </p>
             </div>
         </div>
@@ -84,7 +84,7 @@ LIMIT   10
     
     <xsl:template name="ldh:AddDataForm">
         <xsl:param name="id" select="'add-data'" as="xs:string?"/>
-        <xsl:param name="button-class" select="'btn btn-primary btn-save'" as="xs:string?"/>
+        <xsl:param name="button-class" select="'ldh-btn btn-save'" as="xs:string?"/>
         <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
         <xsl:param name="source" as="xs:anyURI?"/>
         <xsl:param name="query" as="xs:anyURI?"/>
@@ -121,7 +121,7 @@ LIMIT   10
                                 </xsl:value-of>
                             </label>
                             <div class="controls">
-                                <input type="text" id="remote-rdf-source" name="ou" class="input-xxlarge">
+                                <input type="text" id="remote-rdf-source" name="ou">
                                     <xsl:if test="$source">
                                         <xsl:attribute name="value" select="$source"/>
                                     </xsl:if>
@@ -142,7 +142,7 @@ LIMIT   10
                             </label>
                             <div class="controls">
                                 <span data-for-class="&dh;Container &dh;Item">
-                                    <input type="text" name="ou" id="remote-rdf-doc" class="resource-typeahead typeahead"/>
+                                    <input type="text" name="ou" id="remote-rdf-doc" class="resource-typeahead typeahead" autocomplete="off"/>
                                     <ul class="resource-typeahead typeahead dropdown-menu" id="ul-upload-rdf-doc" style="display: none;"></ul>
                                 </span>
 
@@ -176,20 +176,20 @@ LIMIT   10
                         </div>
                     </fieldset>
 
-                    <div class="form-actions modal-footer">
-                        <button type="submit" class="{$button-class}">
-                            <xsl:value-of>
-                                <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
-                            </xsl:value-of>
-                        </button>
-                        <button type="button" class="btn btn-close">
+                    <div class="ldh-block-foot modal-footer">
+                        <button type="button" class="ldh-btn is-ghost btn-close">
                             <xsl:value-of>
                                 <xsl:apply-templates select="key('resources', 'close', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
                             </xsl:value-of>
                         </button>
-                        <button type="reset" class="btn btn-reset">
+                        <button type="reset" class="ldh-btn is-ghost btn-reset">
                             <xsl:value-of>
                                 <xsl:apply-templates select="key('resources', 'reset', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                            </xsl:value-of>
+                        </button>
+                        <button type="submit" class="{$button-class}">
+                            <xsl:value-of>
+                                <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
                             </xsl:value-of>
                         </button>
                     </div>
@@ -204,7 +204,7 @@ LIMIT   10
 
     <xsl:template name="ldh:GenerateContainersForm">
         <xsl:param name="id" select="'generate-containers'" as="xs:string?"/>
-        <xsl:param name="button-class" select="'btn btn-primary btn-save'" as="xs:string?"/>
+        <xsl:param name="button-class" select="'ldh-btn btn-save'" as="xs:string?"/>
         <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
         <xsl:param name="legend-label" select="ac:label(key('resources', 'generate-containers', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin))))" as="xs:string"/>
         <xsl:param name="default-limit" select="10" as="xs:integer"/>
@@ -296,8 +296,8 @@ LIMIT   10
                                     </div>
                                 </fieldset>
 
-                                <div class="form-actions modal-footer">
-                                    <button type="button" class="btn btn-primary btn-load-endpoint-schema">
+                                <div class="ldh-block-foot modal-footer">
+                                    <button type="button" class="ldhc-btn in-primary ap-solid sz-md btn-load-endpoint-schema">
                                         <xsl:value-of>
                                             <xsl:apply-templates select="key('resources', 'load-schema', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
                                         </xsl:value-of>
@@ -308,12 +308,12 @@ LIMIT   10
                                             <xsl:apply-templates select="key('resources', 'generate', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
                                         </xsl:value-of>
                                     </button>
-                                    <button type="button" class="btn btn-close">
+                                    <button type="button" class="ldh-btn is-ghost btn-close">
                                         <xsl:value-of>
                                             <xsl:apply-templates select="key('resources', 'close', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
                                         </xsl:value-of>
                                     </button>
-                                    <button type="reset" class="btn btn-reset">
+                                    <button type="reset" class="ldh-btn is-ghost btn-reset">
                                         <xsl:value-of>
                                             <xsl:apply-templates select="key('resources', 'reset', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
                                         </xsl:value-of>
@@ -332,7 +332,7 @@ LIMIT   10
     
     <xsl:template match="rdf:RDF" mode="ldh:RequestAccessForm">
         <xsl:param name="id" select="'request-access'" as="xs:string?"/>
-        <xsl:param name="button-class" select="'btn btn-primary btn-access-form'" as="xs:string?"/>
+        <xsl:param name="button-class" select="'ldh-btn btn-access-form'" as="xs:string?"/>
         <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
         <xsl:param name="this" as="xs:anyURI"/>
         <xsl:param name="action" select="ldh:href(resolve-uri('access/request', lapp:origin($this)))" as="xs:anyURI"/>
@@ -359,7 +359,7 @@ LIMIT   10
             </div>
 
             <div class="modal-body">
-                <form id="form-request-access" class="form-horizontal" method="POST" action="{$action}">
+                <form id="form-request-access" class="ldh-prop-form" method="POST" action="{$action}">
                     <xsl:comment>This form uses RDF/POST encoding: https://atomgraph.github.io/RDF-POST/</xsl:comment>
                     <xsl:call-template name="xhtml:Input">
                         <xsl:with-param name="name" select="'rdf'"/>
@@ -387,20 +387,20 @@ LIMIT   10
                         <!-- content replaced by the ldh:access-response callback -->
                     </div>
                    
-                    <div class="form-actions modal-footer">
-                        <button type="submit" class="{$button-class}">
-                            <xsl:value-of>
-                                <xsl:apply-templates select="key('resources', 'request', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
-                            </xsl:value-of>
-                        </button>
-                        <button type="button" class="btn btn-close">
+                    <div class="ldh-block-foot modal-footer">
+                        <button type="button" class="ldh-btn is-ghost btn-close">
                             <xsl:value-of>
                                 <xsl:apply-templates select="key('resources', 'close', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
                             </xsl:value-of>
                         </button>
-                        <button type="reset" class="btn btn-reset">
+                        <button type="reset" class="ldh-btn is-ghost btn-reset">
                             <xsl:value-of>
                                 <xsl:apply-templates select="key('resources', 'reset', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                            </xsl:value-of>
+                        </button>
+                        <button type="submit" class="{$button-class}">
+                            <xsl:value-of>
+                                <xsl:apply-templates select="key('resources', 'request', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
                             </xsl:value-of>
                         </button>
                     </div>
@@ -422,7 +422,7 @@ LIMIT   10
                     <xsl:apply-templates select="key('resources', 'url-based-access', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
                 </xsl:value-of>
             </legend>
-            <table class="table table-striped">
+            <table class="table">
                 <colgroup>
                     <col style="width: 55%;"/>
                     <col style="width: 15%;"/>
@@ -479,7 +479,7 @@ LIMIT   10
                     <xsl:apply-templates select="key('resources', 'class-based-access', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
                 </xsl:value-of>
             </legend>
-            <table class="table table-striped">
+            <table class="table">
                 <colgroup>
                     <col style="width: 55%;"/>
                     <col style="width: 15%;"/>
@@ -609,7 +609,7 @@ LIMIT   10
             <td>
                 <label class="checkbox">
                     <xsl:if test="$is-owner">
-                        <xsl:attribute name="class" select="'checkbox label label-info'"/>
+                        <xsl:attribute name="class" select="'checkbox'"/>
                     </xsl:if>
                     
                     <input type="checkbox" name="ou" value="{$current-mode}">
@@ -632,7 +632,7 @@ LIMIT   10
     
     <xsl:template name="ldh:ReconcileForm">
         <xsl:param name="id" select="'form-reconcile'" as="xs:string?"/>
-        <xsl:param name="button-class" select="'btn btn-primary btn-save'" as="xs:string?"/>
+        <xsl:param name="button-class" select="'ldh-btn btn-save'" as="xs:string?"/>
         <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
         <xsl:param name="action" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/>
         <xsl:param name="legend-label" select="ac:label(key('resources', 'reconcile-entity', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin))))" as="xs:string"/>
@@ -672,7 +672,7 @@ LIMIT   10
                                 </xsl:value-of>
                             </label>
                             <div class="controls">
-                                <input id="same-as-resource" type="text" value="{$label}" class="input-xxlarge"/>
+                                <input id="same-as-resource" type="text" value="{$label}"/>
                                 
                                 <span class="help-inline">
                                     <xsl:value-of>
@@ -718,7 +718,7 @@ LIMIT   10
     
     <!-- submit instance creation modal form using PUT -->
 
-    <xsl:template match="div[contains-token(@class, 'modal-constructor')]//form[contains-token(@class, 'form-horizontal')][upper-case(@method) = 'PUT']" mode="ixsl:onsubmit" priority="2">
+    <xsl:template match="div[contains-token(@class, 'modal-constructor')]//form[contains-token(@class, 'ldh-prop-form')][upper-case(@method) = 'PUT']" mode="ixsl:onsubmit" priority="2">
         <!-- ldh:constructor-form-response stamps render-fn=ldh:render-constructor-form#2 (mode="bs2:Form") so the violation re-render keeps co-shipped peer Descriptions (content blocks) visible. Higher-priority flow templates (e.g. inline view creation) re-stamp $callback and/or supply $request-body via xsl:next-match. -->
         <xsl:param name="callback" select="ldh:constructor-form-response#1" as="function(map(*)) as item()*"/>
         <xsl:param name="request-body" as="document-node()?"/>
@@ -764,7 +764,8 @@ LIMIT   10
                     <xsl:with-param name="about" select="()"/>
                     <xsl:with-param name="method" select="'put'"/>
                     <xsl:with-param name="action" select="ldh:href($doc-uri)" as="xs:anyURI" tunnel="yes"/>
-                    <xsl:with-param name="form-actions-class" select="'form-actions modal-footer'" as="xs:string?"/>
+                    <xsl:with-param name="form-actions-class" select="'ldh-block-foot modal-footer'" as="xs:string?"/>
+                    <xsl:with-param name="show-close-button" select="true()"/>
                     <xsl:with-param name="classes" select="$classes"/>
                     <xsl:with-param name="type-metadata" select="$type-metadata" tunnel="yes"/>
                     <xsl:with-param name="property-metadata" select="$property-metadata" tunnel="yes"/>
@@ -777,12 +778,18 @@ LIMIT   10
                 </xsl:apply-templates>
             </xsl:variable>
 
+
+            <!-- a modal takes over from the chrome that opened it: a drop-down the pick came from is dismissed here, once its own handler has run -->
+            <xsl:apply-templates select="ixsl:page()//*[contains-token(@class, 'btn-group')][contains-token(@class, 'open')]" mode="ldh:CloseDropdown"/>
             <xsl:result-document href="?." method="ixsl:append-content">
                 <div class="modal modal-constructor fade in" about="{$doc-uri}" typeof="{$forClass}"> <!-- @about identifies the new resource URL (uniform with edit/settings modals so submit handlers can read $block/@about without a fallback); $forClass used by ldh:ResourceUpdated in case of 4xx response -->
                     <div class="modal-header">
                         <button type="button" class="close">&#215;</button>
 
                         <legend>
+                            <xsl:try select="ac:object-label($forClass)">
+                                <xsl:catch select="replace($forClass, '.*[#/]', '')"/>
+                            </xsl:try>
                         </legend>
                     </div>
 
@@ -807,7 +814,7 @@ LIMIT   10
         <xsl:variable name="this" select="$doc-uri" as="xs:anyURI"/>
         <xsl:variable name="base-uri" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/>
 
-        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+        <xsl:sequence select="ldh:busy-cursor()"/>
 
         <xsl:variable name="context" as="map(*)" select="map{
             'content-body': $content-body,
@@ -837,11 +844,11 @@ LIMIT   10
     <xsl:template match="div[contains-token(@class, 'action-bar')]//button[contains-token(@class, 'btn-edit')][not(contains-token(@class, 'disabled'))]" mode="ixsl:onclick">
         <xsl:param name="about" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/> <!-- editing the current document resources -->
         <xsl:param name="method" select="'patch'" as="xs:string"/>
-        <xsl:param name="form-actions-class" select="'form-actions modal-footer'" as="xs:string?"/>
-        <xsl:param name="button-class" select="'btn btn-primary wymupdate'" as="xs:string?"/>
+        <xsl:param name="form-actions-class" select="'ldh-block-foot modal-footer'" as="xs:string?"/>
+        <xsl:param name="button-class" select="'ldh-btn'" as="xs:string?"/>
         <xsl:variable name="content-body" select="ancestor::div[contains-token(@class, 'tab-pane')]/div[contains-token(@class, 'document-body')]/div[contains-token(@class, 'content-body')]" as="element()"/>
 
-        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+        <xsl:sequence select="ldh:busy-cursor()"/>
 
 <!--        <xsl:if test="ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path(ldh:base-uri(.)) || '`')">
             <xsl:variable name="etag" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path(ldh:base-uri(.)) || '`'), 'etag')" as="xs:string"/>
@@ -852,13 +859,19 @@ LIMIT   10
 
         <xsl:variable name="block-id" select="'block-' || generate-id()" as="xs:string"/>
         <xsl:for-each select="$content-body">
+
+            <!-- a modal takes over from the chrome that opened it: a drop-down the pick came from is dismissed here, once its own handler has run -->
+            <xsl:apply-templates select="ixsl:page()//*[contains-token(@class, 'btn-group')][contains-token(@class, 'open')]" mode="ldh:CloseDropdown"/>
             <xsl:result-document href="?." method="ixsl:append-content">
                 <div class="modal modal-constructor fade in" about="{$about}">
                     <div class="modal-header">
                         <button type="button" class="close">&#215;</button>
                     </div>
-                    <div class="modal-body" id="{$block-id}">
-                        <!-- to be injected -->
+                    <div class="modal-body">
+                        <!-- empty host block, uniform with the inline edit flow: ldh:render-form transplants the rendered form's block root onto it -->
+                        <div id="{$block-id}" class="block ldh-block">
+                            <!-- to be injected -->
+                        </div>
                     </div>
                 </div>
             </xsl:result-document>
@@ -877,26 +890,29 @@ LIMIT   10
             'endpoint': sd:endpoint(),
             'required': function($r as element()) as xs:boolean { $r/rdf:type/@rdf:resource = ('&dh;Container', '&dh;Item') }
           }"/>
-        <!-- Same structure as the app-settings chain below: ldh:fetch-and-load-edited-resource bakes a GET-style type-metadata-request, so the type-metadata pair uses an identity load-fn. ldh:render-form has its own cursor reset (shared with app-settings); the finally here is the backstop for the failure-on-parallel path. -->
+        <!-- Same structure as the app-settings chain below: ldh:fetch-and-load-edited-resource bakes a GET-style type-metadata-request, so the type-metadata pair uses an identity load-fn. The constructed-doc/constructors/shapes pairs mirror the inline row-form EDIT chain; ldh:render-document-form folds shapes + constructed-doc via ldh:build-merged-constructor into the 'constructor' tunnel. ldh:render-form has its own cursor reset (shared with app-settings); the finally here is the backstop for the failure-on-parallel path. -->
         <ixsl:promise select="
           ixsl:resolve($context)
             => ixsl:then(ldh:fetch-and-load-edited-resource#1)
             => ixsl:then(ldh:fire-load-set-parallel(?, [
                  [ function($ctx as map(*)) as map(*) { $ctx }, 'type-metadata-request',     'type-metadata-response',     ldh:set-type-metadata#1 ],
+                 [ ldh:load-constructed-doc#1,                  'constructed-doc-request',   'constructed-doc-response',   ldh:set-constructed-doc#1 ],
+                 [ ldh:load-constructors#1,                     'constructors-request',      'constructors-response',      ldh:set-constructors#1 ],
+                 [ ldh:load-shapes#1,                           'shapes-request',            'shapes-response',            ldh:set-shapes#1 ],
                  [ ldh:load-property-metadata#1,                'property-metadata-request', 'property-metadata-response', ldh:set-property-metadata#1 ],
                  [ ldh:load-constraints#1,                      'constraints-request',       'constraints-response',       ldh:set-constraints#1 ],
                  [ ldh:load-object-metadata#1,                  'metadata-request',          'metadata-response',          ldh:set-object-metadata#1 ],
                  [ ldh:load-object-metadata#1,                  'ns-metadata-request',       'ns-metadata-response',       ldh:set-object-metadata-ns#1 ]
                ]))
             => ixsl:then(ldh:merge-object-metadata#1)
-            => ixsl:then(ldh:render-form#1)
-            => ixsl:finally(ldh:reset-cursor#0)
+            => ixsl:then(ldh:render-form#1) =>
+            ixsl:finally(ldh:reset-cursor#0)
         " on-failure="ldh:promise-failure#1"/>
     </xsl:template>
 
     <!-- submit document update modal form using PATCH TO-DO: unify!!! -->
     
-    <xsl:template match="div[contains-token(@class, 'modal-constructor')]//form[contains-token(@class, 'form-horizontal')][upper-case(@method) = 'PATCH']" mode="ixsl:onsubmit" priority="2">
+    <xsl:template match="div[contains-token(@class, 'modal-constructor')]//form[contains-token(@class, 'ldh-prop-form')][upper-case(@method) = 'PATCH']" mode="ixsl:onsubmit" priority="2">
         <xsl:param name="block" select="ancestor::div[contains-token(@class, 'modal-constructor')]" as="element()"/>
         <xsl:param name="about" select="$block/@about" as="xs:anyURI"/>
         <!-- ldh:edit-form-response stamps render-fn=ldh:render-document-form#2 (mode="ldh:DocumentForm", narrow @rdf:about=$about filter) so the violation re-render stays focused on the edited resource. -->
@@ -909,17 +925,13 @@ LIMIT   10
         <xsl:variable name="enctype" select="ixsl:get($form, 'enctype')" as="xs:string"/>
         <xsl:variable name="etag" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path(ldh:base-uri(.)) || '`'), 'etag')" as="xs:string"/>
 
-        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+        <xsl:sequence select="ldh:busy-cursor()"/>
         
         <!-- pre-process form before submitting it -->
         <xsl:apply-templates select="." mode="ldh:FormPreSubmit"/>
 
         <xsl:variable name="elements" select=".//input | .//textarea | .//select" as="element()*"/>
-        <xsl:variable name="triples" select="ldh:parse-rdf-post($elements)" as="element()*"/>        
-        <!-- canonicalize XML in rdf:XMLLiterals -->
-        <xsl:variable name="triples" as="element()*">
-            <xsl:apply-templates select="$triples" mode="ldh:CanonicalizeXML"/>
-        </xsl:variable>
+        <xsl:variable name="triples" select="ldh:parse-rdf-post($elements)" as="element()*"/>
         <!-- need a customer DELETE/WHERE pattern because the default $about ?p ?o would delete system properties such as dct:created or sioc:has_parent -->
         <xsl:variable name="where-pattern" as="element()*">
             <json:map>
@@ -1012,7 +1024,8 @@ LIMIT   10
           ixsl:http-request($context('request'))
             => ixsl:then(ldh:rethread-response($context, ?))
             => ixsl:then(ldh:handle-response#1)
-            => ixsl:then($callback)
+            => ixsl:then($callback) =>
+            ixsl:finally(ldh:reset-cursor#0)
         " on-failure="ldh:promise-failure#1"/>
     </xsl:template>
     
@@ -1059,9 +1072,12 @@ LIMIT   10
         <xsl:param name="method" select="'patch'" as="xs:string"/>
         <xsl:variable name="content-body" select="id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')][contains-token(@class, 'active')]/div[contains-token(@class, 'document-body')]/div[contains-token(@class, 'content-body')]" as="element()"/>
 
-        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+        <xsl:sequence select="ldh:busy-cursor()"/>
 
         <xsl:for-each select="$content-body">
+
+            <!-- a modal takes over from the chrome that opened it: a drop-down the pick came from is dismissed here, once its own handler has run -->
+            <xsl:apply-templates select="ixsl:page()//*[contains-token(@class, 'btn-group')][contains-token(@class, 'open')]" mode="ldh:CloseDropdown"/>
             <xsl:result-document href="?." method="ixsl:append-content">
                 <div class="modal modal-constructor fade in" about="{lapp:application()}">
                     <xsl:if test="$id">
@@ -1112,8 +1128,8 @@ LIMIT   10
                  [ ldh:load-package-catalog#1,                  'package-catalog-request',   'package-catalog-response',   ldh:set-package-catalog#1 ]
                ]))
             => ixsl:then(ldh:merge-object-metadata#1)
-            => ixsl:then(ldh:render-app-settings-form#1)
-            => ixsl:finally(ldh:reset-cursor#0)
+            => ixsl:then(ldh:render-app-settings-form#1) =>
+            ixsl:finally(ldh:reset-cursor#0)
         " on-failure="ldh:promise-failure#1"/>
     </xsl:template>
 
@@ -1128,11 +1144,12 @@ LIMIT   10
     <!-- form-flavor wrapper mode parallel to ldh:DocumentForm; scopes the app-settings UI restrictions (dct:title / dct:description visible, everything else hidden) to this flow. The mode itself is the discriminator — instances of lapp:Application created via the generic Create button continue to render through ldh:DocumentForm → bs2:FormControl unaffected. -->
     <xsl:template match="rdf:RDF" mode="ldh:AppSettingsForm">
         <xsl:param name="method" select="'patch'" as="xs:string"/>
-        <xsl:param name="form-actions-class" select="'form-actions modal-footer'" as="xs:string?"/>
+        <xsl:param name="form-actions-class" select="'ldh-block-foot modal-footer'" as="xs:string?"/>
         <xsl:param name="package-catalog" as="document-node()?" tunnel="yes"/>
         <xsl:call-template name="bs2:Form">
             <xsl:with-param name="method" select="$method"/>
             <xsl:with-param name="form-actions-class" select="$form-actions-class"/>
+            <xsl:with-param name="show-close-button" select="true()"/>
             <xsl:with-param name="body" as="node()*">
                 <xsl:apply-templates mode="bs2:Exception"/>
                 <xsl:apply-templates mode="#current"/>
@@ -1252,7 +1269,7 @@ LIMIT   10
             </xsl:when>
             <!-- all required values present: build and PUT one container document per checked class -->
             <xsl:otherwise>
-                <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+                <xsl:sequence select="ldh:busy-cursor()"/>
 
                 <xsl:variable name="form" select="." as="element()"/>
                 <xsl:variable name="parent" select="$control-groups[input[@name = 'pu'][@value = '&sioc;has_parent']]/descendant::input[@name = 'ou']/ixsl:get(., 'value')" as="xs:anyURI"/>
@@ -1272,7 +1289,8 @@ LIMIT   10
                 <!-- seed a resolved promise so the fan-out's ixsl:http-request calls run in an active promise context (mirrors ldh:fire-load-set-parallel kickoff) -->
                 <ixsl:promise select="
                   ixsl:resolve($context)
-                    => ixsl:then(ldh:generate-containers-fanout#1)
+                    => ixsl:then(ldh:generate-containers-fanout#1) =>
+                    ixsl:finally(ldh:reset-cursor#0)
                 " on-failure="ldh:promise-failure#1"/>
             </xsl:otherwise>
         </xsl:choose>
@@ -1296,7 +1314,7 @@ LIMIT   10
             </xsl:when>
             <!-- all required values present, orchestrate the import + constructor derivation -->
             <xsl:otherwise>
-                <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+                <xsl:sequence select="ldh:busy-cursor()"/>
 
                 <!-- pre-process form before submitting it (trims ou values) -->
                 <xsl:apply-templates select="." mode="ldh:FormPreSubmit"/>
@@ -1308,7 +1326,7 @@ LIMIT   10
                 <xsl:choose>
                     <!-- the target must be local because the constructor derivation runs on the local /sparql endpoint scoped to the target graph via ?default-graph-uri= - another instance's graphs are invisible to it (the add/clone variant below has no such constraint and accepts foreign targets) -->
                     <xsl:when test="not(starts-with($target, lapp:origin(ldh:request-uri()) || '/'))">
-                        <xsl:sequence select="ldh:add-data-form-error(map{ 'form': $form, 'message': 'The target document must be local (a document in this hub); choose a local container' })"/> <!-- TO-DO: localize -->
+                        <xsl:sequence select="ldh:add-data-form-error(map{ 'form': $form }, 'target-must-be-local')"/>
                     </xsl:when>
                     <xsl:otherwise>
                         <!-- ldh:href routes the arbitrary external $source through the same-origin ?uri= proxy (CORS); the proxy also converts any Jena-parseable format to the requested RDF/XML. The target is local, so its ldh:href is a pass-through and the POST goes directly to it. -->
@@ -1326,7 +1344,8 @@ LIMIT   10
                           ixsl:http-request($context('request'))
                             => ixsl:then(ldh:rethread-response($context, ?))
                             => ixsl:then(ldh:handle-response#1)
-                            => ixsl:then(ldh:import-ontology-source-response#1)
+                            => ixsl:then(ldh:import-ontology-source-response#1) =>
+                            ixsl:finally(ldh:reset-cursor#0)
                         " on-failure="ldh:promise-failure#1"/>
                     </xsl:otherwise>
                 </xsl:choose>
@@ -1352,7 +1371,7 @@ LIMIT   10
             </xsl:when>
             <!-- all required values present, orchestrate the proxy fetch + append -->
             <xsl:otherwise>
-                <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+                <xsl:sequence select="ldh:busy-cursor()"/>
 
                 <!-- pre-process form before submitting it (trims ou values) -->
                 <xsl:apply-templates select="." mode="ldh:FormPreSubmit"/>
@@ -1372,14 +1391,15 @@ LIMIT   10
                   ixsl:http-request($context('request'))
                     => ixsl:then(ldh:rethread-response($context, ?))
                     => ixsl:then(ldh:handle-response#1)
-                    => ixsl:then(ldh:add-data-source-response#1)
+                    => ixsl:then(ldh:add-data-source-response#1) =>
+                    ixsl:finally(ldh:reset-cursor#0)
                 " on-failure="ldh:promise-failure#1"/>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
 
     <xsl:template match="button[contains-token(@class, 'btn-load-endpoint-schema')]" mode="ixsl:onclick">
-        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+        <xsl:sequence select="ldh:busy-cursor()"/>
 
         <xsl:variable name="fieldset" select="ancestor::form/fieldset" as="element()"/>
         <xsl:variable name="control-groups" select="descendant::div[contains-token(@class, 'control-group')]" as="element()*"/>
@@ -1419,7 +1439,8 @@ LIMIT   10
         <ixsl:promise select="
           ixsl:resolve($context)
             => ixsl:then(ldh:load-schema-endpoint#1)
-            => ixsl:then(ldh:load-schema-results#1)
+            => ixsl:then(ldh:load-schema-results#1) =>
+            ixsl:finally(ldh:reset-cursor#0)
         " on-failure="ldh:promise-failure#1"/>
     </xsl:template>
 
@@ -1472,7 +1493,7 @@ LIMIT   10
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <xsl:variable name="form" select="." as="element()"/>
 
-        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+        <xsl:sequence select="ldh:busy-cursor()"/>
 
         <!-- disable hidden inputs on table rows where all acl:mode checkboxes are a) disabled by default b) enabled but left unchecked -->
         <!-- otherwise RDF/POST will generate acl:Authorization instances without acl:mode values which will fail constraint validation -->
@@ -1496,7 +1517,8 @@ LIMIT   10
           ixsl:http-request($context('request'))
             => ixsl:then(ldh:rethread-response($context, ?))
             => ixsl:then(ldh:handle-response#1)
-            => ixsl:then($callback)
+            => ixsl:then($callback) =>
+            ixsl:finally(ldh:reset-cursor#0)
         " on-failure="ldh:promise-failure#1"/>
     </xsl:template>
 
@@ -1528,7 +1550,16 @@ LIMIT   10
 
     <xsl:function name="ldh:edit-form-response" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
-        <xsl:sequence select="ldh:modal-form-response(map:merge(($context, map{ 'render-fn': ldh:render-document-form#2, 'required': function($r as element()) as xs:boolean { $r/rdf:type/@rdf:resource = ('&dh;Container', '&dh;Item') } }), map{ 'duplicates': 'use-last' }))"/>
+        <!-- 'load-pairs' rides the violation chain's shared pair list so the re-render gets the same constructed-doc/constructors/shapes input as the initial edit render (ldh:render-document-form folds them into the 'constructor' tunnel) -->
+        <xsl:sequence select="ldh:modal-form-response(map:merge(($context, map{
+            'render-fn': ldh:render-document-form#2,
+            'required': function($r as element()) as xs:boolean { $r/rdf:type/@rdf:resource = ('&dh;Container', '&dh;Item') },
+            'load-pairs': [
+                [ ldh:load-constructed-doc#1, 'constructed-doc-request', 'constructed-doc-response', ldh:set-constructed-doc#1 ],
+                [ ldh:load-constructors#1,    'constructors-request',    'constructors-response',    ldh:set-constructors#1 ],
+                [ ldh:load-shapes#1,          'shapes-request',          'shapes-response',          ldh:set-shapes#1 ]
+            ]
+        }), map{ 'duplicates': 'use-last' }))"/>
     </xsl:function>
 
     <xsl:function name="ldh:modal-form-response" ixsl:updating="yes">
@@ -1569,6 +1600,9 @@ LIMIT   10
     <xsl:template name="ldh:ShowModalForm">
         <xsl:param name="form" as="element()"/>
         <xsl:param name="target" as="element()"/>
+
+        <!-- the menu pick that reached here has served its purpose - the drop-down it came from closes behind the modal -->
+        <xsl:apply-templates select="ixsl:page()//*[contains-token(@class, 'btn-group')][contains-token(@class, 'open')]" mode="ldh:CloseDropdown"/>
 
         <!-- per-pane modal ids guarantee uniqueness, so the page-wide existence check suffices -->
         <xsl:if test="not(id($form/@id, ixsl:page()))">
@@ -1673,20 +1707,10 @@ LIMIT   10
                 </xsl:for-each>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:variable name="message" select="$response?message" as="xs:string?"/>
-
                 <xsl:for-each select="$container//div[contains-token(@class, 'endpoint-classes')]/div">
                     <xsl:result-document href="?." method="ixsl:replace-content">
-                        <div class="alert alert-block">
-                            <strong>
-                                <xsl:value-of>
-                                    <xsl:apply-templates select="key('resources', 'error-during-query', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
-                                </xsl:value-of>
-                            </strong>
-                            <pre>
-                                <xsl:value-of select="$message"/>
-                            </pre>
-                        </div>
+                        <!-- a region of the modal form, not a block body, so the bare alert -->
+                        <xsl:sequence select="ldh:error-alert('classes-not-loaded', ldh:http-error-key($response?status), ())"/>
                     </xsl:result-document>
                 </xsl:for-each>
             </xsl:otherwise>
@@ -1925,19 +1949,9 @@ LIMIT   10
                 </xsl:call-template>
             </xsl:when>
             <xsl:otherwise>
-                <!-- partial failure: created containers stay; report the classes that failed -->
-                <xsl:for-each select="$form//fieldset">
-                    <xsl:result-document href="?." method="ixsl:append-content">
-                        <div class="alert">
-                            <p>Some containers could not be created:</p> <!-- TO-DO: localize -->
-                            <ul>
-                                <xsl:for-each select="$failures">
-                                    <li><samp><xsl:value-of select="?class"/></samp> (<xsl:value-of select="?response?status"/>)</li>
-                                </xsl:for-each>
-                            </ul>
-                        </div>
-                    </xsl:result-document>
-                </xsl:for-each>
+                <!-- partial failure: created containers stay; the classes that failed are the technical detail,
+                     one 'HTTP <status> <class>' line each, so this reports through the same form error surface -->
+                <xsl:sequence select="ldh:render-form-error($form, 'containers-not-created', 'containers-partial-failure', string-join($failures ! ('HTTP ' || ?response?status || ' ' || ?class), '&#xA;'))"/>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:function>
@@ -1967,11 +1981,11 @@ LIMIT   10
             </xsl:when>
             <!-- 200 but not RDF/XML (e.g. the source URI returned an HTML page): explicit error, do NOT fall through to the success navigation of ldh:add-data-form-response -->
             <xsl:when test="$status = 200">
-                <xsl:sequence select="ldh:add-data-form-error(map:put($context, 'message', 'The source URI did not return RDF data'))"/> <!-- TO-DO: localize -->
+                <xsl:sequence select="ldh:add-data-form-error($context, 'source-not-rdf')"/>
             </xsl:when>
             <!-- fetch failed -->
             <xsl:otherwise>
-                <xsl:sequence select="ldh:add-data-form-error($context)"/>
+                <xsl:sequence select="ldh:add-data-form-error($context, ())"/>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:function>
@@ -2013,11 +2027,11 @@ LIMIT   10
             </xsl:when>
             <!-- 200 but not RDF/XML (e.g. the source URI returned an HTML page): explicit error -->
             <xsl:when test="$status = 200">
-                <xsl:sequence select="ldh:add-data-form-error(map:put($context, 'message', 'The source URI did not return RDF data'))"/> <!-- TO-DO: localize -->
+                <xsl:sequence select="ldh:add-data-form-error($context, 'source-not-rdf')"/>
             </xsl:when>
             <!-- fetch failed -->
             <xsl:otherwise>
-                <xsl:sequence select="ldh:add-data-form-error($context)"/>
+                <xsl:sequence select="ldh:add-data-form-error($context, ())"/>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:function>
@@ -2042,7 +2056,7 @@ LIMIT   10
                 "/>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:sequence select="ldh:import-ontology-error($context)"/>
+                <xsl:sequence select="ldh:import-ontology-error($context, ())"/>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:function>
@@ -2069,7 +2083,7 @@ LIMIT   10
                 "/>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:sequence select="ldh:import-ontology-error(map:put($context, 'message', 'Could not load the transformation query'))"/> <!-- TO-DO: localize -->
+                <xsl:sequence select="ldh:import-ontology-error($context, 'transformation-query-not-loaded')"/>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:function>
@@ -2105,7 +2119,7 @@ LIMIT   10
                 "/>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:sequence select="ldh:import-ontology-error($context)"/>
+                <xsl:sequence select="ldh:import-ontology-error($context, ())"/>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:function>
@@ -2129,7 +2143,7 @@ LIMIT   10
                 "/>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:sequence select="ldh:import-ontology-error($context)"/>
+                <xsl:sequence select="ldh:import-ontology-error($context, ())"/>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:function>
@@ -2137,16 +2151,17 @@ LIMIT   10
     <!-- error wrapper for the import-ontology chain: once the scratch document exists ('scratch-created'), delete it best-effort before rendering the error; the original failed 'response' stays in $context for the message -->
     <xsl:function name="ldh:import-ontology-error" as="item()*" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
+        <xsl:param name="explanation-key" as="xs:string?"/>
 
         <xsl:choose>
             <xsl:when test="map:contains($context, 'scratch-created')">
                 <xsl:sequence select="
                   ixsl:http-request(map{ 'method': 'DELETE', 'href': ldh:href($context('scratch-uri')) })
-                    => ixsl:then(ldh:import-ontology-error-cleaned($context, ?))
+                    => ixsl:then(ldh:import-ontology-error-cleaned($context, $explanation-key, ?))
                 "/>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:sequence select="ldh:add-data-form-error($context)"/>
+                <xsl:sequence select="ldh:add-data-form-error($context, $explanation-key)"/>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:function>
@@ -2154,9 +2169,10 @@ LIMIT   10
     <!-- renders the error after the scratch cleanup; the DELETE response is ignored -->
     <xsl:function name="ldh:import-ontology-error-cleaned" as="item()*" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
+        <xsl:param name="explanation-key" as="xs:string?"/>
         <xsl:param name="delete-response" as="map(*)"/>
 
-        <xsl:sequence select="ldh:add-data-form-error($context)"/>
+        <xsl:sequence select="ldh:add-data-form-error($context, $explanation-key)"/>
     </xsl:function>
 
     <!-- import-ontology chain, step 6 (scratch deleted): clear the end-user app ontology from the server-side cache so its owl:imports closure picks up the annotation document (idempotent when the app ontology does not import it yet), then terminate via ldh:add-data-form-response -->
@@ -2180,7 +2196,7 @@ LIMIT   10
                 "/>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:sequence select="ldh:add-data-form-error($context)"/>
+                <xsl:sequence select="ldh:add-data-form-error($context, ())"/>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:function>
@@ -2208,39 +2224,22 @@ LIMIT   10
             </xsl:when>
             <!-- Error: render error message inline in the form's fieldset -->
             <xsl:otherwise>
-                <xsl:sequence select="ldh:add-data-form-error($context)"/>
+                <xsl:sequence select="ldh:add-data-form-error($context, ())"/>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:function>
 
-    <!-- render an inline error alert in the add/clone form's fieldset; $context may carry an optional 'message' override, otherwise the response message is used. 'response' is optional so pre-fetch validation errors (e.g. a non-local target) can reuse this. -->
+    <!-- render an inline error alert in the add/clone form's fieldset. $explanation-key names the sentence for a
+         failure that never reached the network (e.g. a non-local target); pass () to derive it from the response
+         status instead. 'response' is optional for the same reason. -->
     <xsl:function name="ldh:add-data-form-error" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
+        <xsl:param name="explanation-key" as="xs:string?"/>
         <xsl:variable name="response" select="$context('response')" as="map(*)?"/>
-        <xsl:variable name="status" select="$response?status" as="xs:double?"/>
-        <xsl:variable name="form" select="$context('form')" as="element()?"/>
 
         <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
 
-        <xsl:variable name="message" select="if (map:contains($context, 'message')) then $context('message') else $response?message" as="xs:string?"/>
-        <!-- render error message -->
-        <xsl:for-each select="$form//fieldset">
-            <xsl:result-document href="?." method="ixsl:append-content">
-                <div class="alert">
-                    <xsl:if test="exists($status)">
-                        <p>
-                            <!-- lookup status message by code because Tomcat does not send any -->
-                            <xsl:apply-templates select="key('status-by-code', xs:integer($status), document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/http-statusCodes.rdf', $lapp:origin)))" mode="ac:label"/>
-                        </p>
-                    </xsl:if>
-                    <xsl:if test="$message">
-                        <p>
-                            <xsl:value-of select="$message"/>
-                        </p>
-                    </xsl:if>
-                </div>
-            </xsl:result-document>
-        </xsl:for-each>
+        <xsl:sequence select="ldh:render-form-error($context('form'), 'data-not-added', ($explanation-key, ldh:http-error-key($response?status))[1], ldh:response-detail($response))"/>
     </xsl:function>
 
     <!-- Kicks off the async metadata-fetch chain for the constraint-violation re-render of a modal form (Container/Item creation and document edit). $context carries response/about/block/form from the form submit handler — $about is the resource discriminator (set by the submit handler from $block/@about or $form/@action). Harvest types/property-uris from the edited resource; object-uris from the whole body. Terminates in ldh:render-modal-form-violation. -->
@@ -2260,6 +2259,7 @@ LIMIT   10
             map{
                 'body': $body,
                 'types': $types,
+                'forClass': $types,
                 'endpoint': sd:endpoint(),
                 'property-uris': distinct-values($body/rdf:RDF/*[@rdf:about = $about]/*/concat(namespace-uri(), local-name())),
                 'object-uris': distinct-values($body/rdf:RDF/*[not(rdf:type/@rdf:resource = $system-types)]/*/@rdf:resource[not(key('resources', .))])
@@ -2284,7 +2284,7 @@ LIMIT   10
             on-failure="ldh:promise-failure#1"/>
     </xsl:function>
 
-    <!-- Terminal callback for the modal-form-submit-violation chain. All metadata is in $context from the upstream chain steps. constructors and shapes stay () to match the initial modal renders: none of the three flows fetches them, and bs2:FormControl's constructor param default sources the constructor client-side. $context('render-fn') and $context('required') are uniformly populated by each flow's response handler — ldh:constructor-form-response stamps ldh:render-constructor-form#2 (mode="bs2:Form") for Container/Item creation (PUT), ldh:edit-form-response stamps ldh:render-document-form#2 (mode="ldh:DocumentForm") for Container/Item edit (PATCH), ldh:settings-form-response stamps ldh:render-app-settings-form#2 for app-settings — so the violation re-render uses the same mode as the initial render. The mode-per-flow split keeps the edit form's narrow @rdf:about=$about filter while letting the creation flow surface co-shipped peer Descriptions (content blocks). -->
+    <!-- Terminal callback for the modal-form-submit-violation chain. All metadata is in $context from the upstream chain steps. constructors/shapes/constructed-doc arrive per flow: a flow that stamps them as 'load-pairs' in its response handler (the document-edit flow) gets the same constructor input as its initial render; the other flows leave them unset and bs2:FormControl's constructor param default sources the constructor client-side. $context('render-fn') and $context('required') are uniformly populated by each flow's response handler — ldh:constructor-form-response stamps ldh:render-constructor-form#2 (mode="bs2:Form") for Container/Item creation (PUT), ldh:edit-form-response stamps ldh:render-document-form#2 (mode="ldh:DocumentForm") for Container/Item edit (PATCH), ldh:settings-form-response stamps ldh:render-app-settings-form#2 for app-settings — so the violation re-render uses the same mode as the initial render. The mode-per-flow split keeps the edit form's narrow @rdf:about=$about filter while letting the creation flow surface co-shipped peer Descriptions (content blocks). -->
     <xsl:function name="ldh:render-modal-form-violation" as="item()*" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
         <xsl:variable name="body" select="$context('body')" as="document-node()"/>
@@ -2294,9 +2294,7 @@ LIMIT   10
         <!-- no 'base-uri' entry: the render dispatchers fall back to $ctx('about'), same as the initial render. The response body's base URI equals $about in the creation/edit flows but not in the app-settings flow (urn: subject), where it flipped $show-subject and exposed the URI control. No 'required' entry either: the response handlers stamp it per flow, matching each flow's initial chain -->
         <xsl:variable name="render-ctx" as="map(*)" select="map:merge(($context, map{
             'method':            string($form/@method),
-            'action':            xs:anyURI(string($form/@action)),
-            'constructors':      (),
-            'shapes':            ()
+            'action':            xs:anyURI(string($form/@action))
         }), map{ 'duplicates': 'use-last' })"/>
         <xsl:variable name="render-fn" select="$context('render-fn')" as="function(document-node(), map(*)) as element()*"/>
         <xsl:variable name="rendered" select="$render-fn($body, $render-ctx)" as="element()*"/>
