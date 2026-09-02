@@ -66,6 +66,11 @@ fieldset fieldset { margin-left: 3%; margin-bottom: 3%; }
 .control-group.required .control-label { font-weight: bold; }
 .description { display: none; }
 div[typeof="https://w3id.org/atomgraph/linkeddatahub#XHTML"] .main { font-size: larger; line-height: 25px; overflow-x: auto; }
+/* preformatted prose (code samples, Turtle listings) sits on the design system's code surface - the
+   recessed well the inline .ldh-code chip and the error-detail listing (.ldh-block-detail pre) already use,
+   so it tints with the theme instead of a literal white that would invert wrong in dark mode. Long IRIs
+   scroll the block rather than wrap, keeping a listing's line structure readable */
+div[typeof="https://w3id.org/atomgraph/linkeddatahub#XHTML"] .main pre { margin: var(--sp-4) 0; padding: var(--sp-3) var(--sp-4); background: var(--surface-2); border-radius: var(--r-sm); font-family: var(--font-mono); font-size: 0.92em; line-height: var(--lh-base); color: var(--ink-2); overflow-x: auto; }
 /* click-to-edit affordance only when the pane's document grants acl:Write (mirrors the ixsl:onclick guard in block.xsl) */
 div[data-acl-modes~="http://www.w3.org/ns/auth/acl#Write"] div[typeof="https://w3id.org/atomgraph/linkeddatahub#XHTML"]:not(:has(form)) .main { cursor: pointer; }
 div[typeof="https://w3id.org/atomgraph/linkeddatahub#XHTML"] .btn-edit { display: none; }
