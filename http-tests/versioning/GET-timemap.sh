@@ -37,13 +37,27 @@ echo "<${doc_url}> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://ww
     -t "application/n-triples" \
     "$doc_url"
 
+# wait for the commit listing, not for the file: the TimeMap is built from that listing, and GitHub
+# indexes it per path asynchronously, so it lags behind the Contents API by seconds
+
+head_sha()
+{
+    gh api "repos/${VERSIONING_TEST_REPO}/commits?path=${path}&sha=${VERSIONING_TEST_BRANCH:-main}&per_page=1" --jq '.[0].sha' 2> /dev/null || true
+}
+
+sha=""
+
 for i in $(seq 1 30); do
-    if gh api "repos/${VERSIONING_TEST_REPO}/contents/${path}?ref=${VERSIONING_TEST_BRANCH:-main}" > /dev/null 2>&1; then
-        break
-    fi
+    sha=$(head_sha)
+    if [ -n "$sha" ]; then break; fi
     sleep 1
 done
-gh api "repos/${VERSIONING_TEST_REPO}/contents/${path}?ref=${VERSIONING_TEST_BRANCH:-main}" > /dev/null
+
+if [ -z "$sha" ]; then
+    echo "DEBUG: no commit listed for '${path}' on branch '${VERSIONING_TEST_BRANCH:-main}' after 30 s; the file itself:"
+    gh api "repos/${VERSIONING_TEST_REPO}/contents/${path}?ref=${VERSIONING_TEST_BRANCH:-main}" || true
+    exit 1
+fi
 
 # check that the document advertises its TimeMap via the Link header
 

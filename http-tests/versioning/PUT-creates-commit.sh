@@ -36,21 +36,32 @@ echo "<${doc_url}> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://ww
     -t "application/n-triples" \
     "$doc_url"
 
-# wait for the async versioning commit to appear in the repository
+# wait for the async versioning commit to appear in the repository, and check that its author is
+# the agent's WebID. The wait polls the commit listing rather than the file: the listing is what
+# carries the author, and GitHub indexes it per path asynchronously, so it lags behind the Contents
+# API by seconds - a file that is already readable can still have an empty commit history.
 
 path="${VERSIONING_PATH_PREFIX:-graphs}/${slug}.nt"
 
+commit_author()
+{
+    gh api "repos/${VERSIONING_TEST_REPO}/commits?path=${path}&sha=${VERSIONING_TEST_BRANCH:-main}&per_page=1" --jq '.[0].commit.author.name' 2> /dev/null || true
+}
+
+author=""
+
 for i in $(seq 1 30); do
-    if gh api "repos/${VERSIONING_TEST_REPO}/contents/${path}?ref=${VERSIONING_TEST_BRANCH:-main}" > /dev/null 2>&1; then
-        break
-    fi
+    author=$(commit_author)
+    if [ -n "$author" ]; then break; fi
     sleep 1
 done
-gh api "repos/${VERSIONING_TEST_REPO}/contents/${path}?ref=${VERSIONING_TEST_BRANCH:-main}" > /dev/null
 
-# check that the commit author is the agent's WebID
-
-author=$(gh api "repos/${VERSIONING_TEST_REPO}/commits?path=${path}&sha=${VERSIONING_TEST_BRANCH:-main}&per_page=1" --jq '.[0].commit.author.name')
 echo "DEBUG: Expected author: $AGENT_URI"
 echo "DEBUG: Got author: $author"
+
+if [ -z "$author" ]; then
+    echo "DEBUG: no commit listed for '${path}' on branch '${VERSIONING_TEST_BRANCH:-main}' after 30 s; the file itself:"
+    gh api "repos/${VERSIONING_TEST_REPO}/contents/${path}?ref=${VERSIONING_TEST_BRANCH:-main}" || true
+fi
+
 [ "$author" = "$AGENT_URI" ]
