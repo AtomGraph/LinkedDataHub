@@ -188,8 +188,14 @@ ul.typeahead.dropdown-menu > li.active > a, ul.typeahead.dropdown-menu > li > a:
 .ldh-actionbar > .ab-left { display: flex; align-items: center; gap: var(--sp-2); }
 .ldh-add-wrap .ldh-add-menu, .ldh-of-wrap .ldh-of-menu, .ldh-mode .modes-pop { display: none; }
 .ldh-add-wrap.open .ldh-add-menu, .ldh-mode.open .modes-pop { display: block; }
-/* the toggle handler stamps 'drop-up' when the group is closer to the viewport bottom than the top */
-.ldh-add-wrap.drop-up .ldh-add-menu { top: auto; bottom: calc(100% + 6px); }
+/* The toggle handler stamps 'drop-up' when the group is closer to the viewport bottom than the top,
+   and 'drop-left' when it is closer to the right edge than the left, so a menu always opens into the
+   side that has room for it instead of being clipped. The same trigger appears in both action-bar
+   zones (the overflow menu sits left of the breadcrumb and right of it), so the horizontal alignment
+   cannot be baked into the menu class: it follows from where the group ended up on screen. */
+.ldh-add-wrap.drop-up .ldh-add-menu, .ldh-of-wrap.drop-up .ldh-of-menu, .ldh-mode.drop-up .modes-pop { top: auto; bottom: calc(100% + 6px); }
+.ldh-add-wrap.drop-left .ldh-add-menu, .ldh-of-wrap.drop-left .ldh-of-menu, .ldh-mode.drop-left .modes-pop { left: auto; right: 0; }
+.ldh-add-wrap:not(.drop-left) .ldh-add-menu, .ldh-of-wrap:not(.drop-left) .ldh-of-menu, .ldh-mode:not(.drop-left) .modes-pop { left: 0; right: auto; }
 .ldh-of-wrap.open .ldh-of-menu { display: flex; }
 .ldh-of-menu .it.disabled, .ldh-add-menu .it.disabled { opacity: 0.4; pointer-events: none; }
 .ldh-of-menu a.it { text-decoration: none; }
