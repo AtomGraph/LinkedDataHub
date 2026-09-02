@@ -61,8 +61,9 @@ import org.slf4j.LoggerFactory;
  * Mirrors named graphs of versioning-enabled applications into GitHub repositories.
  * The unit of work is reconciliation: a task re-reads the graph from the application's
  * SPARQL service at execution time and makes the repository file match — including deleting
- * the file when the graph is gone. Tasks for the same file are chained sequentially so
- * commits never race the GitHub Contents API's SHA-based optimistic locking.
+ * the file when the graph is gone. Tasks for the same repository branch are chained sequentially:
+ * the GitHub Contents API takes its optimistic lock on the branch head rather than on the file, so
+ * commits to one branch conflict with each other no matter which files they touch.
  * Versioning is best-effort: task failures are logged, never propagated.
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
@@ -79,7 +80,7 @@ public class GraphVersioningService
     public record Repository(GitHubClient client, String pathPrefix) { }
 
     private final Map<String, Repository> repositories;
-    private final Map<String, CompletableFuture<Void>> commitChains = new ConcurrentHashMap<>();
+    private final Map<String, CompletableFuture<Void>> commitChains = new ConcurrentHashMap<>(); // keyed by repository branch
     private final ExecutorService executor = Executors.newFixedThreadPool(4);
 
     /**
@@ -149,7 +150,7 @@ public class GraphVersioningService
 
     /**
      * Schedules asynchronous reconciliation of a graph's repository file with its current store state.
-     * Chained per file path; returns immediately.
+     * Chained per repository branch; returns immediately.
      *
      * @param serviceContext deployment context of the application's SPARQL service
      * @param appURI application URI
@@ -165,8 +166,10 @@ public class GraphVersioningService
 
         String path = path(repository.pathPrefix(), appBase, graphURI);
         String message = method + " " + graphURI;
+        // all commits to a branch share one chain: two files committed concurrently would race the branch head
+        String repositoryBranch = repository.client().getOwner() + "/" + repository.client().getRepo() + "/" + repository.client().getBranch();
 
-        commitChains.compute(path, (key, chain) ->
+        commitChains.compute(repositoryBranch, (key, chain) ->
         {
             CompletableFuture<Void> previous = chain != null ? chain : CompletableFuture.completedFuture(null);
             CompletableFuture<Void> next = previous.thenRunAsync(() -> reconcile(serviceContext, repository, path, graphURI, message, agentWebID), executor).

@@ -63,6 +63,9 @@
 - Nested cards no longer draw doubled borders, and `dl` column placement is corrected
 - The DataTable converters recognise the derived numeric and dateTime types
 - The violation renderer fails on an absent form again, rather than falling back to the rejected rendering
+- Concurrent writes to a versioned application silently lost commits: the commit chain was keyed by file path, while the GitHub Contents API takes its optimistic lock on the branch head — two documents committing at once conflicted and the loser was dropped with only a log line. Commits to one branch now share a single chain
+- A conflicting write is retried with a re-read blob SHA (`MAX_CONFLICT_RETRIES`) instead of being abandoned, so a writer outside this JVM no longer costs a version
+- A rate-limited commit retried with an empty request body: the builder had already been spent by the first attempt, and `JsonObjectBuilder` yields its object only once
 - `release.sh` published to Maven Central before its `git checkout master`, so a failed checkout left 5.10.0 on Central with no tag: the switches are now proven possible first, and once published the trap prints recovery steps instead of deleting the tag that records what was published
 - `release.sh`'s clean check could not see `skip-worktree`/`assume-unchanged` files — git reports them as matching the index whatever is on disk, while a branch switch refuses to overwrite them; they are now warned about at startup and checked precisely before publishing
 - `release.sh` derived the release and snapshot commits positionally (`git log -2`), which breaks as soon as anything else commits in between; they are derived from an anchor taken before `release:prepare`
