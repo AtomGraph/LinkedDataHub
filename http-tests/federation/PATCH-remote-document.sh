@@ -35,9 +35,7 @@ etag=$(curl -k -f -s -o /dev/null -D - \
   "$END_USER_BASE_URL" \
 | grep -i '^etag:' | tr -d '\r' | awk '{print $2}')
 
-echo "DEBUG: ETag for If-Match: $etag"
 if [ -z "$etag" ]; then
-  echo "DEBUG: no ETag on the proxied response"
   exit 1
 fi
 
@@ -66,7 +64,6 @@ stale_code=$(curl -k -w "%{http_code}" -o /dev/null -s \
   --data-binary "$update" \
   "$END_USER_BASE_URL")
 
-echo "DEBUG: stale If-Match returned: $stale_code (expected $STATUS_PRECONDITION_FAILED)"
 if [ "$stale_code" != "$STATUS_PRECONDITION_FAILED" ]; then
   exit 1
 fi
@@ -83,7 +80,6 @@ valid_code=$(curl -k -w "%{http_code}" -o /dev/null -s \
   --data-binary "$update" \
   "$END_USER_BASE_URL")
 
-echo "DEBUG: valid If-Match returned: $valid_code (expected $STATUS_NO_CONTENT)"
 if [ "$valid_code" != "$STATUS_NO_CONTENT" ]; then
   exit 1
 fi

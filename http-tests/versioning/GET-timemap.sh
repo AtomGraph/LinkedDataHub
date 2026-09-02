@@ -54,8 +54,6 @@ for i in $(seq 1 30); do
 done
 
 if [ -z "$sha" ]; then
-    echo "DEBUG: no commit listed for '${path}' on branch '${VERSIONING_TEST_BRANCH:-main}' after 30 s; the file itself:"
-    gh api "repos/${VERSIONING_TEST_REPO}/contents/${path}?ref=${VERSIONING_TEST_BRANCH:-main}" || true
     exit 1
 fi
 
@@ -70,16 +68,12 @@ ldh get \
   "$doc_url" \
 | tr -d '\r')
 
-echo "DEBUG: Response headers:"
-echo "$response_headers"
-
 # RFC 7089: the Original Resource advertises rel=timemap with the link-format media type,
 # and MUST NOT carry rel=original
 echo "$response_headers" | grep -q 'rel=timemap'
 echo "$response_headers" | grep -q 'type="application/link-format"'
 
 if echo "$response_headers" | grep -q 'rel=original'; then
-    echo "DEBUG: Original Resource must not carry rel=original"
     exit 1
 fi
 
@@ -92,9 +86,6 @@ ldh get \
   --accept 'application/n-triples' \
   --timemap \
   "$doc_url")
-
-echo "DEBUG: TimeMap:"
-echo "$timemap"
 
 echo "$timemap" | grep -q "ns/prov#Collection"
 echo "$timemap" | grep -q "ns/prov#hadMember"
@@ -113,9 +104,6 @@ ldh get \
   --timemap \
   "$doc_url")
 
-echo "DEBUG: link-format TimeMap:"
-echo "$link_format"
-
 echo "$link_format" | grep -q "<${doc_url}>;rel=\"original\""
 echo "$link_format" | grep -q "<${doc_url}?timemap>;rel=\"self\";type=\"application/link-format\""
 echo "$link_format" | grep -q "<${doc_url}?timegate>;rel=\"timegate\""
@@ -130,5 +118,4 @@ curl -k -w "%{http_code}\n" -o /dev/null -s \
   -H "Accept: application/link-format" \
   "$doc_url")
 
-echo "DEBUG: link-format status on the document itself: $status (expected 406)"
 [ "$status" = "406" ]

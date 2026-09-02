@@ -76,9 +76,6 @@ ldh get \
   "$doc_url" \
 | tr -d '\r')
 
-echo "DEBUG: Original Resource headers:"
-echo "$response_headers"
-
 echo "$response_headers" | grep -q "<${doc_url}?timegate>; rel=timegate"
 
 # without Accept-Datetime the TimeGate selects the most recent Memento
@@ -92,9 +89,6 @@ ldh get \
   "$doc_url" \
 | tr -d '\r')
 
-echo "DEBUG: TimeGate headers (no Accept-Datetime):"
-echo "$timegate_headers"
-
 echo "$timegate_headers" | grep -q '^HTTP 302'
 echo "$timegate_headers" | grep -qi "^Location: ${doc_url}?version=${sha2}"
 echo "$timegate_headers" | grep -qi '^Vary:.*accept-datetime'
@@ -105,7 +99,6 @@ echo "$timegate_headers" | grep -qi '^Cache-Control:.*no-store'
 # a 302 TimeGate response must not carry Memento-Datetime
 
 if echo "$timegate_headers" | grep -qi '^Memento-Datetime:'; then
-    echo "DEBUG: TimeGate 302 response must not carry Memento-Datetime"
     exit 1
 fi
 
@@ -118,14 +111,10 @@ ldh get \
   --timegate \
   "$doc_url")
 
-echo "DEBUG: Expected: ${doc_url}?version=${sha2}"
-echo "DEBUG: Got: $memento"
 [ "$memento" = "${doc_url}?version=${sha2}" ]
 
 # with Accept-Datetime at the first commit's time, the TimeGate selects the first Memento.
 # --datetime takes the ISO 8601 datetime the commit carries, no shell date conversion
-
-echo "DEBUG: Accept-Datetime: $first_datetime (commit $sha1)"
 
 dated_memento=$(
 ldh get \
@@ -135,8 +124,6 @@ ldh get \
   --datetime "$first_datetime" \
   "$doc_url")
 
-echo "DEBUG: Expected: ${doc_url}?version=${sha1}"
-echo "DEBUG: Got: $dated_memento"
 [ "$dated_memento" = "${doc_url}?version=${sha1}" ]
 
 # a malformed Accept-Datetime is rejected
@@ -147,7 +134,6 @@ curl -k -w "%{http_code}\n" -o /dev/null -s \
   -H "Accept-Datetime: yesterday afternoon" \
   "${doc_url}?timegate")
 
-echo "DEBUG: malformed Accept-Datetime status: $status (expected 400)"
 [ "$status" = "400" ]
 
 # the TimeGate is read-only
@@ -160,5 +146,4 @@ curl -k -w "%{http_code}\n" -o /dev/null -s \
   --data-binary "<${doc_url}> <http://purl.org/dc/terms/title> \"Overwrite attempt\" ." \
   "${doc_url}?timegate")
 
-echo "DEBUG: PUT to TimeGate status: $status (expected 405)"
 [ "$status" = "405" ]

@@ -44,8 +44,6 @@ direct_etag=$(curl -k -f -s -I \
   "$remote_base" \
 | grep -i '^etag:' | tr -d '\r' | awk '{print $2}')
 
-echo "DEBUG: proxied ETag: $proxied_etag direct ETag: $direct_etag"
 if [ -z "$proxied_etag" ] || [ "$proxied_etag" != "$direct_etag" ]; then
-  echo "DEBUG: proxied ETag does not match the origin's ETag"
   exit 1
 fi

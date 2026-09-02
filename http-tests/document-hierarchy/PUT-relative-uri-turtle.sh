@@ -32,7 +32,6 @@ EOF
 )
 
 if [ "$status" != "$STATUS_CREATED" ]; then
-  echo "DEBUG: Expected $STATUS_CREATED from the PUT, got: $status"
   exit 1
 fi
 
@@ -52,8 +51,6 @@ for triple in \
   "<${item}named-subject-put> <http://example.com/default-predicate> \"named object PUT\" ."
 do
   if ! grep -qF "$triple" <<< "$response"; then
-    echo "DEBUG: Expected triple: $triple"
-    echo "DEBUG: Got: $response"
     exit 1
   fi
 done

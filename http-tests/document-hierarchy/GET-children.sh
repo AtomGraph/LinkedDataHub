@@ -54,7 +54,5 @@ response=$(curl -k -f -s \
   "${END_USER_BASE_URL}sparql?query=${encoded_query}")
 
 if ! grep -qF "<${container}>" <<< "$response"; then
-  echo "DEBUG: Expected the new container in the query results: <${container}>"
-  echo "DEBUG: Got: $response"
   exit 1
 fi

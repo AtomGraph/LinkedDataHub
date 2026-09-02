@@ -66,7 +66,6 @@ status=$(curl -k -w "%{http_code}" -o /dev/null -s \
   "$END_USER_BASE_URL")
 
 if [[ ! "$status" =~ ^($STATUS_PATCH_SUCCESS)$ ]]; then
-  echo "DEBUG: Expected $STATUS_PATCH_SUCCESS from the proxied PATCH, got: $status"
   exit 1
 fi
 
@@ -81,7 +80,5 @@ response=$(curl -k -f -s \
   "$ontology_doc")
 
 if ! grep -qF "TestClassUpdated" <<< "$response"; then
-  echo "DEBUG: Expected the constructor text to contain: TestClassUpdated"
-  echo "DEBUG: Got: $response"
   exit 1
 fi

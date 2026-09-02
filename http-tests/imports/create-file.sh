@@ -45,8 +45,6 @@ file=$(ldh add-file \
 # the upload URI is content-addressed, so an independently computed digest must reproduce it
 
 sha1sum=$(shasum -a 1 "$pwd/test.csv" | awk '{print $1}')
-echo "DEBUG: Expected: ${END_USER_BASE_URL}uploads/${sha1sum}" >&2
-echo "DEBUG: Got: $file" >&2
 [ "$file" = "${END_USER_BASE_URL}uploads/${sha1sum}" ]
 
 echo "$file" # file URL used in other tests

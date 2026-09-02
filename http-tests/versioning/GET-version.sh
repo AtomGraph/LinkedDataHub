@@ -75,13 +75,9 @@ ldh get \
   --version "$sha1" \
   "$doc_url")
 
-echo "DEBUG: Response body:"
-echo "$response_body"
-
 echo "$response_body" | grep -q "First version"
 
 if echo "$response_body" | grep -q "Second version"; then
-    echo "DEBUG: historical version response contains the updated title"
     exit 1
 fi
 
@@ -96,9 +92,6 @@ ldh get \
   --version "$sha1" \
   "$doc_url" \
 | tr -d '\r')
-
-echo "DEBUG: Response headers:"
-echo "$response_headers"
 
 echo "$response_headers" | grep -qi '^Memento-Datetime:'
 echo "$response_headers" | grep -qi '^Cache-Control:.*immutable'
@@ -115,12 +108,10 @@ echo "$response_headers" | grep -q 'rel=timemap'
 echo "$response_headers" | grep -q 'acl#Read'
 
 if echo "$response_headers" | grep -q 'acl#Write'; then
-    echo "DEBUG: version response advertises acl:Write"
     exit 1
 fi
 
 if echo "$response_headers" | grep -q 'acl#Append'; then
-    echo "DEBUG: version response advertises acl:Append"
     exit 1
 fi
 

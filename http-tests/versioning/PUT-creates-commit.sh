@@ -56,12 +56,4 @@ for i in $(seq 1 30); do
     sleep 1
 done
 
-echo "DEBUG: Expected author: $AGENT_URI"
-echo "DEBUG: Got author: $author"
-
-if [ -z "$author" ]; then
-    echo "DEBUG: no commit listed for '${path}' on branch '${VERSIONING_TEST_BRANCH:-main}' after 30 s; the file itself:"
-    gh api "repos/${VERSIONING_TEST_REPO}/contents/${path}?ref=${VERSIONING_TEST_BRANCH:-main}" || true
-fi
-
 [ "$author" = "$AGENT_URI" ]

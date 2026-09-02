@@ -40,13 +40,11 @@ view_count() {
 # the skos:Concept constructor is not in the app ontology closure initially
 count=$(constructor_count)
 if [ "$count" != "0" ]; then
-  echo "DEBUG: Expected 0 skos:Concept constructors before import, got: $count"
   exit 1
 fi
 
 views=$(view_count)
 if [ "$views" != "0" ]; then
-  echo "DEBUG: Expected 0 ldh:view declarations before import, got: $views"
   exit 1
 fi
 
@@ -68,13 +66,11 @@ purge_cache "$FRONTEND_VARNISH_SERVICE"
 # the package ontology joined the closure - no restart, no sleep
 count=$(constructor_count)
 if [ "$count" != "1" ]; then
-  echo "DEBUG: Expected 1 skos:Concept constructor after import, got: $count"
   exit 1
 fi
 
 views=$(view_count)
 if [ "$views" != "2" ]; then
-  echo "DEBUG: Expected 2 ldh:view declarations (skos:broader, skos:narrower) after import, got: $views"
   exit 1
 fi
 
@@ -95,18 +91,10 @@ purge_cache "$FRONTEND_VARNISH_SERVICE"
 # the package ontology left the closure
 views=$(view_count)
 if [ "$views" != "0" ]; then
-  echo "DEBUG: Expected 0 ldh:view declarations after removal, got: $views"
   exit 1
 fi
 
 count=$(constructor_count)
 if [ "$count" != "0" ]; then
-  echo "DEBUG: Expected 0 skos:Concept constructors after removal, got: $count"
-  echo "DEBUG: does /settings still carry the ldh:import triple after the DELETE?"
-  curl -k -s \
-    -E "$OWNER_CERT_FILE":"$OWNER_CERT_PWD" \
-    -H "Accept: application/n-triples" \
-    "${END_USER_BASE_URL}settings" \
-  | grep -c "linkeddatahub#import" | sed 's/^/DEBUG: ldh:import triple count in settings = /'
   exit 1
 fi

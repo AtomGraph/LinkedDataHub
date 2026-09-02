@@ -45,7 +45,6 @@ result=$(curl -k -f -s \
   "${ADMIN_BASE_URL}sparql")
 count=$(echo "$result" | xmllint --xpath "count(//*[local-name() = 'result'])" -)
 if [ "$count" != "0" ]; then
-  echo "DEBUG: Expected 0 raw vocabulary triples in the item graph, got: $count"
   exit 1
 fi
 

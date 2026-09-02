@@ -48,9 +48,7 @@ code=$(curl -k -w "%{http_code}" -o /dev/null -s \
   --data-binary "$update" \
   "$END_USER_BASE_URL")
 
-echo "DEBUG: unauthorized cross-instance PATCH returned: $code"
 if ! echo "$code" | grep -qE "^($STATUS_UNAUTHORIZED|$STATUS_FORBIDDEN)$"; then
-  echo "DEBUG: expected 401 or 403 for the unauthorized delegated write, got: $code"
   exit 1
 fi
 
@@ -61,6 +59,5 @@ if curl -k -f -s \
   -H "Accept: application/n-triples" \
   "$item" \
 | grep -q "Should not land"; then
-  echo "DEBUG: unauthorized delta landed on the remote document"
   exit 1
 fi

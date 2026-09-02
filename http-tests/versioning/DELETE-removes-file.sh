@@ -51,8 +51,6 @@ for i in $(seq 1 30); do
 done
 
 if [ -z "$found" ]; then
-    echo "DEBUG: file '${path}' did not appear in ${VERSIONING_TEST_REPO} on branch '${VERSIONING_TEST_BRANCH:-main}' within 30 s; its commit history:"
-    gh api "repos/${VERSIONING_TEST_REPO}/commits?path=${path}&sha=${VERSIONING_TEST_BRANCH:-main}&per_page=1" || true
     exit 1
 fi
 
@@ -70,5 +68,4 @@ for i in $(seq 1 30); do
     sleep 1
 done
 
-echo "DEBUG: file '${path}' still present in ${VERSIONING_TEST_REPO} after document deletion"
 exit 1
