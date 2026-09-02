@@ -36,10 +36,10 @@ assert_agrees()
     [ "$header" = "$expected" ] && [ "$document" = "$expected" ]
 }
 
-assert_agrees "en" "en-US"
-assert_agrees "es" "es-ES"
+assert_agrees "en" "en"
+assert_agrees "es" "es"
 
 # the bundle has no Lithuanian and no German: the root must not claim a language the page is not written in
 
-assert_agrees "lt,en;q=0.9" "en-US"
-assert_agrees "de" "en-US"
+assert_agrees "lt,en;q=0.9" "en"
+assert_agrees "de" "en"

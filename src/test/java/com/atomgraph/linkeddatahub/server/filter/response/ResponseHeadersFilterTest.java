@@ -164,8 +164,9 @@ public class ResponseHeadersFilterTest
 
         filter.filter(request, response);
 
-        // the bundle has no Lithuanian, so the page is composed in the next language it does have
-        assertEquals("en-US", contentLanguage());
+        // the bundle has no Lithuanian, so the page is composed in the next language it does have. The published
+        // tag drops the bundle key's region, which distinguishes nothing while the bundle holds one English
+        assertEquals("en", contentLanguage());
     }
 
     @Test
@@ -175,7 +176,7 @@ public class ResponseHeadersFilterTest
 
         filter.filter(request, response);
 
-        assertEquals("es-ES", contentLanguage());
+        assertEquals("es", contentLanguage());
     }
 
     /** A reader whose languages the bundle has none of still gets an honest label, not their own request echoed back. */
@@ -186,7 +187,7 @@ public class ResponseHeadersFilterTest
 
         filter.filter(request, response);
 
-        assertEquals("en-US", contentLanguage());
+        assertEquals("en", contentLanguage());
     }
 
     /** Both HTML flavours are language-significant, so whichever is negotiated carries the label. */
@@ -197,7 +198,7 @@ public class ResponseHeadersFilterTest
 
         filter.filter(request, response);
 
-        assertEquals("en-US", contentLanguage());
+        assertEquals("en", contentLanguage());
     }
 
     /**
@@ -258,7 +259,7 @@ public class ResponseHeadersFilterTest
 
         filter.filter(request, response);
 
-        assertEquals("en-US", contentLanguage());
+        assertEquals("en", contentLanguage());
     }
 
     // CONTENT TYPE

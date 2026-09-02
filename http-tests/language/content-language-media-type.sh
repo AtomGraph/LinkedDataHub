@@ -30,7 +30,7 @@ assert_labelled()
 
     actual=$(echo "$response" | grep -i "^Content-Language:" | sed 's/^Content-Language: *//i' || true)
 
-    [ "$actual" = "en-US" ]
+    [ "$actual" = "en" ]
 }
 
 assert_unlabelled()

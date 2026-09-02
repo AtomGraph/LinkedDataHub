@@ -169,6 +169,64 @@ public class BundleLanguagesTest
         assertEquals(Locale.ENGLISH, LanguageNegotiator.negotiate(List.of(Locale.forLanguageTag("lt")), List.of()));
     }
 
+    /**
+     * What goes on the wire is not the bundle key. BCP 47 says a region subtag "MAY be omitted, as when it adds no
+     * distinguishing value to the tag" (RFC 5646 section 2.2.4), and the region in en-US records how translations.rdf is
+     * keyed rather than a claim that the page is American English.
+     */
+    @Test
+    public void testPublishedTagDropsAnUndistinguishingRegion()
+    {
+        List<Locale> bundle = List.of(Locale.forLanguageTag("en-US"), Locale.forLanguageTag("es-ES"));
+
+        assertEquals("en", published("en-US,en;q=0.9,da;q=0.8,lt;q=0.7", bundle));
+        assertEquals("es", published("es", bundle));
+        assertEquals("en", published("lt,en;q=0.9", bundle));
+        assertEquals("en", published("de,fr;q=0.9", bundle));
+        assertEquals("en", LanguageNegotiator.publishedTag(List.of(), bundle));
+
+        // and with no bundle at all, still a tag rather than an empty header
+        assertEquals("en", LanguageNegotiator.publishedTag(List.of(Locale.forLanguageTag("lt")), List.of()));
+    }
+
+    /**
+     * Where the bundle really does distinguish two variants of one language, the region carries information and stays. This
+     * is what a blanket Locale#getLanguage would get wrong.
+     */
+    @Test
+    public void testPublishedTagKeepsADistinguishingRegion()
+    {
+        List<Locale> bundle = List.of(Locale.forLanguageTag("pt-BR"), Locale.forLanguageTag("pt-PT"), Locale.forLanguageTag("en-US"));
+
+        assertEquals("pt-BR", published("pt-BR", bundle));
+        assertEquals("pt-PT", published("pt-PT", bundle));
+        // English is unambiguous in the same bundle, so it still loses its region
+        assertEquals("en", published("en", bundle));
+    }
+
+    /**
+     * The cost of over-specifying, in RFC 4647 terms: a reader asking for es-MX reaches a page tagged es by truncating their
+     * own range under Lookup, and never reaches one tagged es-ES.
+     */
+    @Test
+    public void testShorterTagStaysReachableForOtherRegions()
+    {
+        List<String> overSpecified = List.of("es-ES");
+        List<String> published = List.of("es");
+
+        assertEquals(null, Locale.lookupTag(Locale.LanguageRange.parse("es-MX"), overSpecified));
+        assertEquals("es", Locale.lookupTag(Locale.LanguageRange.parse("es-MX"), published));
+    }
+
+    private static String published(String acceptLanguage, List<Locale> bundle)
+    {
+        List<Locale> acceptable = Locale.LanguageRange.parse(acceptLanguage).stream().
+            map(range -> Locale.forLanguageTag(range.getRange())).
+            toList();
+
+        return LanguageNegotiator.publishedTag(acceptable, bundle);
+    }
+
     private static String effective(String acceptLanguage, List<Locale> bundle)
     {
         List<Locale> acceptable = Locale.LanguageRange.parse(acceptLanguage).stream().

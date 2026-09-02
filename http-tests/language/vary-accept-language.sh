@@ -34,6 +34,6 @@ fetch_language()
     | sed 's/^Content-Language: *//i' || true
 }
 
-[ "$(fetch_language "en")" = "en-US" ]
-[ "$(fetch_language "es")" = "es-ES" ]
-[ "$(fetch_language "en")" = "en-US" ]
+[ "$(fetch_language "en")" = "en" ]
+[ "$(fetch_language "es")" = "es" ]
+[ "$(fetch_language "en")" = "en" ]

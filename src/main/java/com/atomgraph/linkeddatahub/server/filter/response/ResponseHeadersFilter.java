@@ -77,7 +77,7 @@ public class ResponseHeadersFilter implements ContainerResponseFilter
         // Accept-Language dimension for exactly the same reason
         if (response.hasEntity() && response.getMediaType() != null && getApplication().isPresent() && new HTMLMediaTypePredicate().test(response.getMediaType()))
             response.getHeaders().putSingle(HttpHeaders.CONTENT_LANGUAGE,
-                LanguageNegotiator.negotiate(request.getAcceptableLanguages(), getSystem().getSupportedLanguages()).toLanguageTag());
+                LanguageNegotiator.publishedTag(request.getAcceptableLanguages(), getSystem().getSupportedLanguages()));
 
         if (request.getSecurityContext().getUserPrincipal() instanceof Agent)
         {
