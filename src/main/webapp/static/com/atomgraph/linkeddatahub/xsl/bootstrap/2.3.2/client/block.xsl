@@ -808,43 +808,66 @@ exclude-result-prefixes="#all"
         "/>
     </xsl:function>
 
-    <!-- handle SPARQL XML response: fan out one HTTP fetch per view URI -->
-    <xsl:function name="ldh:ontology-view-fetch-thunk" as="map(*)" ixsl:updating="yes">
+    <!-- handle SPARQL XML response: fan out one HTTP fetch per view URI. ixsl:http-request only runs inside an
+         active promise, so the fan-out itself is built in a callback (idiom: ldh:generate-containers-fanout) -->
+    <xsl:function name="ldh:ontology-view-fetch-thunk" as="item()*" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
-        <xsl:variable name="response" select="$context('response')" as="map(*)"/>
 
         <xsl:message>ldh:ontology-view-fetch-thunk</xsl:message>
 
-        <xsl:if test="$response?status = 200 and $response?media-type = 'application/sparql-results+xml'">
-            <xsl:variable name="results" select="$response?body" as="document-node()"/>
+        <xsl:sequence select="ixsl:resolve($context) => ixsl:then(ldh:ontology-view-fanout#1)"/>
+    </xsl:function>
 
-            <!-- one fetch per view; the first row of each group supplies the inline-creation metadata (multiple ?type/?forClass rows can occur) -->
-            <xsl:for-each-group select="$results/srx:sparql/srx:results/srx:result[srx:binding[@name = 'block']/srx:uri]" group-by="srx:binding[@name = 'block']/srx:uri">
-                <xsl:variable name="view-uri" select="xs:anyURI(current-grouping-key())" as="xs:anyURI"/>
-                <xsl:variable name="view-request-uri" select="ldh:href(ac:document-uri($view-uri), map{})" as="xs:anyURI"/>
-                <xsl:variable name="view-request" select="map{ 'method': 'GET', 'href': $view-request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
-                <!-- ?forClass is read from srx:uri only: bnode ranges (e.g. owl:unionOf lists) cannot be constructed -->
-                <xsl:variable name="view-metadata" as="map(*)*">
-                    <xsl:for-each select="srx:binding[@name = 'property']/srx:uri">
-                        <xsl:sequence select="map{ 'view-property': xs:anyURI(.) }"/>
-                    </xsl:for-each>
-                    <xsl:if test="srx:binding[@name = 'inverse']/srx:literal = 'true'">
-                        <xsl:sequence select="map{ 'view-inverse': true() }"/>
-                    </xsl:if>
-                    <xsl:for-each select="srx:binding[@name = 'forClass']/srx:uri">
-                        <xsl:sequence select="map{ 'view-for-class': xs:anyURI(.) }"/>
-                    </xsl:for-each>
-                    <xsl:for-each select="srx:binding[@name = 'container']/srx:uri">
-                        <xsl:sequence select="map{ 'view-container': xs:anyURI(.) }"/>
-                    </xsl:for-each>
-                    <xsl:for-each select="srx:binding[@name = 'showWhenEmpty']/srx:literal">
-                        <xsl:sequence select="map{ 'view-show-when-empty': string(.) }"/>
-                    </xsl:for-each>
-                </xsl:variable>
-                <xsl:variable name="view-context" as="map(*)" select="map:merge(($context, map{ 'request': $view-request, 'view-uri': $view-uri }, $view-metadata))"/>
+    <!-- one fetch → render → insert chain per view, joined with ixsl:all so this settles only once every view block
+         is in the DOM. While the chains ran detached the caller settled as soon as the /ns query returned, and the
+         deferred fragment scroll in ldh:RenderTab - which counts these factories down - ran against a document that
+         held none of the injected blocks yet, falling through to the top of the page.
+         ixsl:all is fail-fast, but an HTTP error status resolves rather than rejects (ldh:handle-response only
+         retries a 429, and ldh:ontology-view-insert guards on 200), so only a network- or runtime-level failure
+         rejects the join; it then surfaces through ldh:block-hydration-failure, which reports it and still counts
+         the block down, leaving the scroll unblocked -->
+    <xsl:function name="ldh:ontology-view-fanout" as="item()*" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:variable name="response" select="$context('response')" as="map(*)"/>
 
-                <ixsl:promise select="
-                    ixsl:http-request($view-request) =>
+        <xsl:variable name="view-contexts" as="map(*)*">
+            <xsl:if test="$response?status = 200 and $response?media-type = 'application/sparql-results+xml'">
+                <xsl:variable name="results" select="$response?body" as="document-node()"/>
+
+                <!-- one fetch per view; the first row of each group supplies the inline-creation metadata (multiple ?type/?forClass rows can occur) -->
+                <xsl:for-each-group select="$results/srx:sparql/srx:results/srx:result[srx:binding[@name = 'block']/srx:uri]" group-by="srx:binding[@name = 'block']/srx:uri">
+                    <xsl:variable name="view-uri" select="xs:anyURI(current-grouping-key())" as="xs:anyURI"/>
+                    <xsl:variable name="view-request-uri" select="ldh:href(ac:document-uri($view-uri), map{})" as="xs:anyURI"/>
+                    <xsl:variable name="view-request" select="map{ 'method': 'GET', 'href': $view-request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
+                    <!-- ?forClass is read from srx:uri only: bnode ranges (e.g. owl:unionOf lists) cannot be constructed -->
+                    <xsl:variable name="view-metadata" as="map(*)*">
+                        <xsl:for-each select="srx:binding[@name = 'property']/srx:uri">
+                            <xsl:sequence select="map{ 'view-property': xs:anyURI(.) }"/>
+                        </xsl:for-each>
+                        <xsl:if test="srx:binding[@name = 'inverse']/srx:literal = 'true'">
+                            <xsl:sequence select="map{ 'view-inverse': true() }"/>
+                        </xsl:if>
+                        <xsl:for-each select="srx:binding[@name = 'forClass']/srx:uri">
+                            <xsl:sequence select="map{ 'view-for-class': xs:anyURI(.) }"/>
+                        </xsl:for-each>
+                        <xsl:for-each select="srx:binding[@name = 'container']/srx:uri">
+                            <xsl:sequence select="map{ 'view-container': xs:anyURI(.) }"/>
+                        </xsl:for-each>
+                        <xsl:for-each select="srx:binding[@name = 'showWhenEmpty']/srx:literal">
+                            <xsl:sequence select="map{ 'view-show-when-empty': string(.) }"/>
+                        </xsl:for-each>
+                    </xsl:variable>
+                    <!-- use-last: $context arrives carrying the /ns view query under 'request' and the view fetch has to
+                         displace it, since ldh:retry-request re-fires whatever 'request' holds when a 429 comes back -->
+                    <xsl:sequence select="map:merge(($context, map{ 'request': $view-request, 'view-uri': $view-uri }, $view-metadata), map{ 'duplicates': 'use-last' })"/>
+                </xsl:for-each-group>
+            </xsl:if>
+        </xsl:variable>
+
+        <xsl:sequence select="
+            ixsl:all(array {
+                for $view-context in $view-contexts return
+                    ixsl:http-request($view-context('request')) =>
                         ixsl:then(ldh:rethread-response($view-context, ?)) =>
                         ixsl:then(ldh:handle-response#1) =>
                         ixsl:then(ldh:load-object-metadata#1) =>
@@ -860,16 +883,22 @@ exclude-result-prefixes="#all"
                         ixsl:then(ldh:handle-response(?, 'property-metadata-response')) =>
                         ixsl:then(ldh:set-property-metadata#1) =>
                         ixsl:then(ldh:ontology-view-render-thunk#1)
-                    "
-                    on-failure="ldh:promise-failure#1"/>
-            </xsl:for-each-group>
-        </xsl:if>
+            }) => ixsl:then(ldh:ontology-views-inserted($context, ?))
+            "/>
+    </xsl:function>
+
+    <!-- join callback for the view fan-out. The per-view contexts have served their purpose by the time their blocks
+         are in the DOM, so the outer context flows on unchanged and the chain's only remaining job is having settled -->
+    <xsl:function name="ldh:ontology-views-inserted" as="map(*)" ixsl:updating="no">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:param name="results" as="item()*"/>
 
         <xsl:sequence select="$context"/>
     </xsl:function>
 
-    <!-- render one view block from its loaded RDF. Creatable views (ldh:container + inferred forClass) first HEAD the container for its acl:mode Link headers, which gate the Create button; the rest insert directly -->
-    <xsl:function name="ldh:ontology-view-render-thunk" as="map(*)" ixsl:updating="yes">
+    <!-- render one view block from its loaded RDF. Creatable views (ldh:container + inferred forClass) first HEAD the container for its acl:mode Link headers, which gate the Create button; the rest insert directly.
+         The HEAD chain is returned rather than fired: the caller has to settle after the block is in the DOM, not before it is fetched (see ldh:ontology-view-fanout) -->
+    <xsl:function name="ldh:ontology-view-render-thunk" as="item()*" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
 
         <xsl:message>ldh:ontology-view-render-thunk</xsl:message>
@@ -879,16 +908,13 @@ exclude-result-prefixes="#all"
                 <xsl:variable name="container-request" select="map{ 'method': 'HEAD', 'href': ldh:href($context('view-container'), map{}), 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
                 <xsl:variable name="container-context" select="map:merge(($context, map{ 'container-request': $container-request }))" as="map(*)"/>
 
-                <ixsl:promise select="
+                <xsl:sequence select="
                     ixsl:resolve($container-context) =>
                         ixsl:then(ldh:http-request-threaded(?, 'container-request', 'container-response')) =>
                         ixsl:then(ldh:handle-response(?, 'container-response')) =>
                         ixsl:then(ldh:set-container-acl-modes#1) =>
                         ixsl:then(ldh:ontology-view-insert#1)
-                    "
-                    on-failure="ldh:promise-failure#1"/>
-
-                <xsl:sequence select="$context"/>
+                    "/>
             </xsl:when>
             <xsl:otherwise>
                 <xsl:sequence select="ldh:ontology-view-insert($context)"/>
@@ -906,7 +932,7 @@ exclude-result-prefixes="#all"
     </xsl:function>
 
     <!-- append the rendered view block into the wrapper's .span12 alongside the typed resource block, stamp the inline-creation metadata as data-* attributes, hydrate via existing ldh:RenderRow chain -->
-    <xsl:function name="ldh:ontology-view-insert" as="map(*)" ixsl:updating="yes">
+    <xsl:function name="ldh:ontology-view-insert" as="item()*" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
         <xsl:variable name="response" select="$context('response')" as="map(*)"/>
         <xsl:variable name="container" select="$context('container')" as="element()"/>
@@ -916,60 +942,79 @@ exclude-result-prefixes="#all"
 
         <xsl:message>ldh:ontology-view-insert</xsl:message>
 
-        <xsl:if test="$response?status = 200 and $response?media-type = 'application/rdf+xml'">
-            <xsl:variable name="view-rdf" select="$response?body" as="document-node()"/>
-            <xsl:variable name="view-resource" select="key('resources', $view-uri, $view-rdf)" as="element()?"/>
+        <xsl:choose>
+            <xsl:when test="$response?status = 200 and $response?media-type = 'application/rdf+xml'">
+                <xsl:variable name="view-rdf" select="$response?body" as="document-node()"/>
+                <xsl:variable name="view-resource" select="key('resources', $view-uri, $view-rdf)" as="element()?"/>
 
-            <xsl:if test="$view-resource">
-                <xsl:variable name="id" select="'id' || ac:uuid()" as="xs:string"/>
-                <xsl:variable name="view-block-html" as="element()">
-                    <xsl:apply-templates select="$view-resource" mode="bs2:Row">
-                        <xsl:with-param name="about" select="xs:anyURI($base-uri || '#' || $id)"/>
-                        <xsl:with-param name="id" select="$id"/>
-                        <xsl:with-param name="property-metadata" select="$context('property-metadata')" tunnel="yes"/>
-                        <xsl:with-param name="object-metadata" select="$context('object-metadata')" tunnel="yes"/>
-                    </xsl:apply-templates>
-                </xsl:variable>
+                <xsl:choose>
+                    <xsl:when test="exists($view-resource)">
+                        <!-- the block is derived, not stored: re-deriving it on the next load has to reproduce the same
+                             subject URI, so the fragment is a function of what identifies the block - the host resource
+                             and the view attached to it. Both are needed: ldh:RenderRow visits every wrapper, so a
+                             container listing injects the same view under each of its children, and the view URI alone
+                             would give them all one @about. A space separates the two because a URI cannot contain one -->
+                        <xsl:variable name="id" select="'id' || ldh:hash-code($container/@about || ' ' || $view-uri)" as="xs:string"/>
+                        <xsl:variable name="view-block-html" as="element()">
+                            <xsl:apply-templates select="$view-resource" mode="bs2:Row">
+                                <xsl:with-param name="about" select="xs:anyURI($base-uri || '#' || $id)"/>
+                                <xsl:with-param name="id" select="$id"/>
+                                <xsl:with-param name="property-metadata" select="$context('property-metadata')" tunnel="yes"/>
+                                <xsl:with-param name="object-metadata" select="$context('object-metadata')" tunnel="yes"/>
+                            </xsl:apply-templates>
+                        </xsl:variable>
 
-                <!-- append into the wrapper's .span12 so the new block's ancestor::*[@about][1] is the outer #this with @about ending in #this -->
-                <xsl:sequence select="ixsl:call($span12, 'append', [ $view-block-html ])[current-date() lt xs:date('2000-01-01')]"/>
+                        <!-- append into the wrapper's .span12 so the new block's ancestor::*[@about][1] is the outer #this with @about ending in #this -->
+                        <xsl:sequence select="ixsl:call($span12, 'append', [ $view-block-html ])[current-date() lt xs:date('2000-01-01')]"/>
 
-                <!-- hydrate the freshly-injected wrapper via the existing view.xsl:62 RenderRow handler -->
-                <xsl:variable name="injected" select="$span12/*[last()]" as="element()?"/>
-                <xsl:if test="$injected">
-                    <!-- stamp inline-creation metadata before hydration so ldh:RenderViewResults can read it off the wrapper -->
-                    <xsl:for-each select="$injected">
-                        <xsl:if test="map:contains($context, 'view-property')">
-                            <ixsl:set-attribute name="data-property" select="string($context('view-property'))" object="."/>
-                        </xsl:if>
-                        <xsl:if test="map:contains($context, 'view-inverse')">
-                            <ixsl:set-attribute name="data-inverse" select="'true'" object="."/>
-                        </xsl:if>
-                        <xsl:if test="map:contains($context, 'view-for-class')">
-                            <ixsl:set-attribute name="data-for-class" select="string($context('view-for-class'))" object="."/>
-                        </xsl:if>
-                        <xsl:if test="map:contains($context, 'view-container')">
-                            <ixsl:set-attribute name="data-container" select="string($context('view-container'))" object="."/>
-                        </xsl:if>
-                        <xsl:if test="map:contains($context, 'view-show-when-empty')">
-                            <ixsl:set-attribute name="data-show-when-empty" select="string($context('view-show-when-empty'))" object="."/>
-                        </xsl:if>
-                        <xsl:if test="map:contains($context, 'container-acl-modes')">
-                            <ixsl:set-attribute name="data-acl-modes" select="string-join($context('container-acl-modes'), ' ')" object="."/>
-                        </xsl:if>
-                    </xsl:for-each>
-                    <xsl:variable name="factories" as="(function(item()?) as item()*)*">
-                        <xsl:apply-templates select="$injected" mode="ldh:RenderRow"/>
-                    </xsl:variable>
-                    <xsl:for-each select="$factories">
-                        <xsl:variable name="factory" select="."/>
-                        <ixsl:promise select="$factory(())" on-failure="ldh:promise-failure#1"/>
-                    </xsl:for-each>
-                </xsl:if>
-            </xsl:if>
-        </xsl:if>
+                        <!-- hydrate the freshly-injected wrapper via the existing view.xsl:62 RenderRow handler -->
+                        <xsl:variable name="injected" select="$span12/*[last()]" as="element()?"/>
+                        <xsl:choose>
+                            <xsl:when test="exists($injected)">
+                                <!-- stamp inline-creation metadata before hydration so ldh:RenderViewResults can read it off the wrapper -->
+                                <xsl:for-each select="$injected">
+                                    <xsl:if test="map:contains($context, 'view-property')">
+                                        <ixsl:set-attribute name="data-property" select="string($context('view-property'))" object="."/>
+                                    </xsl:if>
+                                    <xsl:if test="map:contains($context, 'view-inverse')">
+                                        <ixsl:set-attribute name="data-inverse" select="'true'" object="."/>
+                                    </xsl:if>
+                                    <xsl:if test="map:contains($context, 'view-for-class')">
+                                        <ixsl:set-attribute name="data-for-class" select="string($context('view-for-class'))" object="."/>
+                                    </xsl:if>
+                                    <xsl:if test="map:contains($context, 'view-container')">
+                                        <ixsl:set-attribute name="data-container" select="string($context('view-container'))" object="."/>
+                                    </xsl:if>
+                                    <xsl:if test="map:contains($context, 'view-show-when-empty')">
+                                        <ixsl:set-attribute name="data-show-when-empty" select="string($context('view-show-when-empty'))" object="."/>
+                                    </xsl:if>
+                                    <xsl:if test="map:contains($context, 'container-acl-modes')">
+                                        <ixsl:set-attribute name="data-acl-modes" select="string-join($context('container-acl-modes'), ' ')" object="."/>
+                                    </xsl:if>
+                                </xsl:for-each>
 
-        <xsl:sequence select="$context"/>
+                                <xsl:variable name="factories" as="(function(item()?) as item()*)*">
+                                    <xsl:apply-templates select="$injected" mode="ldh:RenderRow"/>
+                                </xsl:variable>
+
+                                <!-- joined rather than fired: the block's own view results are what give it its height, and
+                                     the deferred fragment scroll upstream would otherwise land on a block that then grows under it -->
+                                <xsl:sequence select="ixsl:all(array { for $factory in $factories return $factory(()) }) => ixsl:then(ldh:ontology-views-inserted($context, ?))"/>
+                            </xsl:when>
+                            <xsl:otherwise>
+                                <xsl:sequence select="$context"/>
+                            </xsl:otherwise>
+                        </xsl:choose>
+                    </xsl:when>
+                    <xsl:otherwise>
+                        <xsl:sequence select="$context"/>
+                    </xsl:otherwise>
+                </xsl:choose>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:sequence select="$context"/>
+            </xsl:otherwise>
+        </xsl:choose>
     </xsl:function>
 
     <!-- object-metadata fetch helpers: shared between view.xsl's view-results chain and client.xsl's document-load chain. Build a metadata-request from the cross-doc object URIs in the response RDF (read from $response-key in context); the chain then fires it via ldh:http-request-threaded(?, 'metadata-request', 'metadata-response') and ldh:set-object-metadata stores the result body under 'object-metadata' for the $object-metadata tunnel consumed by ac:object-label. -->

@@ -52,6 +52,17 @@ exclude-result-prefixes="#all"
         <xsl:value-of select="ixsl:call(ixsl:get(ixsl:window(), 'crypto'), 'randomUUID', [])"/>
     </xsl:function>
 
+    <!-- deterministic 32-bit djb2 over the string's codepoints, for identifiers that have to survive a reload -
+         the counterpart to ac:uuid() wherever the thing being named is re-derived rather than stored.
+         Multiplication and addition only: XPath 3.1 has no bitwise operators, so FNV-1a's XOR is out. The running
+         value stays below 2^38, well inside exact double range, so the result is identical under Saxon-HE and
+         Saxon-JS however each of them backs xs:integer -->
+    <xsl:function name="ldh:hash-code" as="xs:integer">
+        <xsl:param name="string" as="xs:string"/>
+
+        <xsl:sequence select="fold-left(string-to-codepoints($string), 5381, function($acc as xs:integer, $codepoint as xs:integer) as xs:integer { ($acc * 33 + $codepoint) mod 4294967296 })"/>
+    </xsl:function>
+
     <!-- ldh:query-params is defined once in imports/default.xsl and works in both contexts via ldh:request-uri -->
 
     <xsl:function name="ldh:base-uri" as="xs:anyURI">
