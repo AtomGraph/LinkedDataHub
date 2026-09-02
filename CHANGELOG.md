@@ -20,7 +20,7 @@
 - Empty blocks and empty chart result sets say so through the design system's block-state component
 - `ldh:date-time()`, `ldh:datatype-family()`, `ldh:css-token()` and `ldh:view-cache()` replace logic that had been written out at every call site
 - Package ontologies are declared as `owl:imports` instead of grafted, with an imports characterization test
-- `ldh get` reaches the RFC 7089 Memento roles of a versioned document through mutually exclusive `--timemap`, `--version <sha>` and `--timegate` options; `--timegate` takes an optional `--datetime` in RFC 1123 or ISO 8601 and prints the negotiated version's URI as the only line on stdout, so `http-tests/versioning/` no longer drops to `curl` for datetime negotiation
+- `ldh get` reaches a versioned document's RFC 7089 Memento roles through mutually exclusive `--timemap`, `--version <sha>` and `--timegate` options, the last taking a `--datetime` in RFC 1123 or ISO 8601 and printing the negotiated version's URI as its only output
 
 ### Changed
 - `<html lang>` is taken from the `Content-Language` the response carries, so the header and the document agree by construction rather than by two computations staying in step
@@ -54,6 +54,7 @@
 - The Bootstrap 2 class vocabulary that no stylesheet backed
 - `$ac:langs` and `$ac:lang` parameters, replaced by `ac:langs()` and `ac:langs()[1]` at 36 call sites
 - `ldt:lang`, which nothing declared, read or wrote
+- `DEBUG:` output from `http-tests`, with the diagnostic-only `gh api` and `curl` calls and the helper that fed them
 
 ### Fixed
 - `curl ... | grep -q` was a race under `pipefail`: `grep -q` closes the pipe on its first match and `curl` dies with 141, failing the pipeline even though the assertion passed
