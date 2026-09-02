@@ -829,7 +829,7 @@ extension-element-prefixes="ixsl"
                 <dl>
                     <xsl:apply-templates select="*" mode="#current">
                         <xsl:sort select="if ($property-metadata) then ac:property-label(., $property-metadata) else ac:property-label(.)" order="ascending" lang="{$ac:lang}"/>
-                        <xsl:sort select="ldh:lang-rank(.)" order="ascending"/>
+                        <xsl:sort select="ac:lang-rank(.)" order="ascending"/>
                         <xsl:sort select="if (exists((text(), @rdf:resource, @rdf:nodeID))) then (if ($object-metadata) then ac:object-label((text(), @rdf:resource, @rdf:nodeID)[1], $object-metadata) else ac:object-label((text(), @rdf:resource, @rdf:nodeID)[1])) else ()" order="ascending" lang="{$ac:lang}"/>
                     </xsl:apply-templates>
                 </dl>
