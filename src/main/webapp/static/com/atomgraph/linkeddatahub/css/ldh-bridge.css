@@ -389,8 +389,10 @@ form .control-group > .controls > .btn-group { order: 99; margin-left: auto; }
 /* ---------- read-mode property lists: dt/dd name-value groups styled as property rows ---------- */
 /* bs2:PropertyListIdentity wraps each predicate's dt + dds in a <div> group (HTML's dl grouping
    element - the design's .ldh-prop-group); subgrid slots every group's cells into the dl's shared
-   label/value tracks so labels align across groups */
-.ldh-block dl {
+   label/value tracks so labels align across groups. The :has() guard keys the grid to that wrapped
+   shape - a plain dl in an XHTML content literal has bare dt/dd children that auto-placement would
+   scatter across both columns */
+.ldh-block dl:has(> div) {
   display: grid;
   grid-template-columns: minmax(140px, 220px) 1fr;
   column-gap: var(--sp-6); row-gap: 0;
