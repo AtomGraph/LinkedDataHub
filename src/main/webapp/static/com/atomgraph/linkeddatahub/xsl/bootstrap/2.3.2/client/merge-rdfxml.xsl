@@ -44,9 +44,11 @@
             <!-- the group key is the RDF triple's object, so it carries @xml:lang and @rdf:datatype: "Concept" and "Concept"@en are
                  distinct RDF terms, and keying on the lexical form alone collapsed them and kept whichever came first. Ontology terms
                  routinely carry both an untagged label from the vocabulary (dh.ttl: rdfs:label "Item") and tagged ones from the app
-                 ontology, so the tagged label lost - dropping the only value a language the reader accepts could match -->
+                 ontology, so the tagged label lost - dropping the only value a language the reader accepts could match.
+                 The object value is bounded via ldh:bounded-key(): xsl:for-each-group hashes the key through SaxonJS's
+                 per-character trie recursion, which oversized literal values (e.g. XHTML content blocks) overflow -->
             <xsl:for-each-group select="* | key('resources', $resource-uri, $new-rdf)/*"
-                group-by="concat(node-name(.), '|', (@rdf:resource, @rdf:nodeID, string(.))[1], '|', @xml:lang, '|', @rdf:datatype)">
+                group-by="concat(node-name(.), '|', ldh:bounded-key((@rdf:resource, @rdf:nodeID, string(.))[1]), '|', @xml:lang, '|', @rdf:datatype)">
                 <xsl:apply-templates select="current-group()[1]" mode="#current"/>
             </xsl:for-each-group>
         </xsl:copy>

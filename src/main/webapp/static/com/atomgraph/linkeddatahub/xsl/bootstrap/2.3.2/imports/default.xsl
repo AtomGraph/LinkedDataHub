@@ -490,17 +490,27 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="distinct-values($arg1[not(.=$arg2)])"/>
     </xsl:function>
 
+    <!-- caps a key component's length: SaxonJS backs distinct-values() and xsl:for-each-group with a hash trie whose
+         insert recurses once per character of the key, so keys over the JS stack limit (~6-7K frames) crash the transform
+         ("too much recursion"). Long values keep a prefix and fold the whole string into a length + rolling hash -->
+    <xsl:function name="ldh:bounded-key" as="xs:string?">
+        <xsl:param name="value" as="xs:string?"/>
+
+        <xsl:sequence select="if (string-length($value) le 1000) then $value else concat(substring($value, 1, 100), '#', string-length($value), '#', fold-left(string-to-codepoints($value), 0, function($hash, $codepoint) { ($hash * 31 + $codepoint) mod 4294967296 }))"/>
+    </xsl:function>
+
     <!-- identity of one triple given its RDF/XML property element, as subject | predicate | object.
          With $normalize-numerics, numeric literals are normalized so lexically different but equal values (1 vs 1.0) compare
          equal across serializations; without it, comparison is exactly lexical (canonical same-writer output makes that safe).
-         XMLLiterals are keyed on their serialized content. Blank node labels are serializer-generated, so bnode-involving
+         XMLLiterals are keyed on their serialized content, bounded via ldh:bounded-key() so oversized literals don't overflow
+         SaxonJS's per-character key recursion. Blank node labels are serializer-generated, so bnode-involving
          triples never compare equal across two documents -->
     <xsl:function name="ldh:triple-key" as="xs:string">
         <xsl:param name="property" as="element()"/>
         <xsl:param name="normalize-numerics" as="xs:boolean"/>
 
         <xsl:for-each select="$property">
-            <xsl:sequence select="concat(../@rdf:about, '|', ../@rdf:nodeID, '|', namespace-uri(), local-name(), '|', @rdf:resource, @rdf:nodeID, if (@rdf:parseType = 'Literal') then serialize(node()) else if ($normalize-numerics and text() castable as xs:float) then xs:float(text()) else text(), '|', @rdf:datatype, @xml:lang)"/>
+            <xsl:sequence select="concat(../@rdf:about, '|', ../@rdf:nodeID, '|', namespace-uri(), local-name(), '|', @rdf:resource, @rdf:nodeID, ldh:bounded-key(if (@rdf:parseType = 'Literal') then serialize(node()) else if ($normalize-numerics and text() castable as xs:float) then string(xs:float(text())) else text()), '|', @rdf:datatype, @xml:lang)"/>
         </xsl:for-each>
     </xsl:function>
 
