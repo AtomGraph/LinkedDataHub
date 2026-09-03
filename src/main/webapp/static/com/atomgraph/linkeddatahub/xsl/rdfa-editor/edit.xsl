@@ -379,6 +379,16 @@ version="3.0">
     <xsl:template name="rdfae:init-region">
         <xsl:param name="region" as="element()"/>
 
+        <!-- the region is the canvas' focusable floor. Only leaf text hosts are
+             contenteditable, so the surface between them - sibling margins, the
+             handle gutter, a structural container's own box, chrome on a structural
+             block - has no focusable ancestor at all, and a press there drops focus
+             out of the editor entirely (which hosts read as leaving it, and a press
+             on a drag handle cannot preventDefault without killing dragstart). With
+             tabindex the region absorbs that focus instead: same idiom as the block
+             images and object-block islands in rdfae:init-block, out of the tab
+             order, and stripped by the canonical form -->
+        <ixsl:set-attribute name="tabindex" select="'-1'" object="$region"/>
         <!-- boundary-normalize invalid host markup (bare text in blockquote,
              blocks inside p, stray inline at region level, ...) before
              editability init; the probe keeps the valid case zero-churn -->
