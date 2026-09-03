@@ -166,8 +166,22 @@ WHERE
         <xsl:sequence select="(id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')][contains-token(@class, 'active')]//div[contains-token(@class, 'editor-bar')]/div[contains-token(@class, 'content-body')])[1]"/>
     </xsl:function>
 
+    <!-- the region's canonical lexical form: the single canonicalization point for rdf:XMLLiteral values
+         (cm:canonical, canonical-xhtml.xsl, serialized by Saxon). Shared by the ol-input serialization,
+         the activation baseline and the autosave dirty check, so their verdicts can't drift -->
+    <xsl:function name="ldh:canonical-content" as="xs:string">
+        <xsl:param name="region" as="element()"/>
+
+        <xsl:variable name="canonical" as="node()*">
+            <xsl:apply-templates select="$region/node()" mode="cm:canonical"/>
+        </xsl:variable>
+        <xsl:sequence select="serialize($canonical, map{ 'method': 'xml' })"/>
+    </xsl:function>
+
     <!-- first editable region on the page: full editor bring-up (chrome, dialogs, drawers, all regions) -->
     <xsl:template match="div[contains-token(@class, 'rdfa-editor-content')][empty(id('edit-toolbar', ixsl:page()))]" mode="ldh:RenderRowForm" priority="2">
+        <!-- canonical form at activation: the autosave compares against it and skips the no-op save -->
+        <ixsl:set-property name="canonicalBaseline" select="ldh:canonical-content(.)" object="."/>
         <xsl:call-template name="rdfae:init-editor"/>
         <xsl:call-template name="ldh:focus-editable">
             <xsl:with-param name="region" select="."/>
@@ -176,6 +190,7 @@ WHERE
 
     <!-- additional region: editor chrome already in the DOM; init only this region's blocks -->
     <xsl:template match="div[contains-token(@class, 'rdfa-editor-content')]" mode="ldh:RenderRowForm" priority="1">
+        <ixsl:set-property name="canonicalBaseline" select="ldh:canonical-content(.)" object="."/>
         <!-- adopt the singleton toolbar into this document's editor-bar (it may have initialized in another tab) -->
         <xsl:for-each select="rdfae:toolbar-host()[not(descendant::*[@id = 'edit-toolbar'])]">
             <xsl:sequence select="ixsl:call(., 'appendChild', [ id('edit-toolbar', ixsl:page()) ])[current-date() lt xs:date('2000-01-01')]"/>
@@ -517,14 +532,10 @@ WHERE
     
     <xsl:template match="text()" mode="ldh:FormPreSubmit"/>
     
-    <!-- serialize canonicalized editor content into the hidden ol input before form submission. This is the
-         single canonicalization point for rdf:XMLLiteral values: the RDFa editor's canonical form (cm:canonical,
-         canonical-xhtml.xsl) serialized by Saxon is the stored lexical form -->
+    <!-- serialize canonicalized editor content into the hidden ol input before form submission
+         (ldh:canonical-content is the canonical lexical form of the stored rdf:XMLLiteral) -->
     <xsl:template match="div[contains-token(@class, 'rdfa-editor-content')]" mode="ldh:FormPreSubmit" priority="1">
-        <xsl:variable name="canonical" as="node()*">
-            <xsl:apply-templates select="node()" mode="cm:canonical"/>
-        </xsl:variable>
-        <xsl:variable name="value" select="serialize($canonical, map{ 'method': 'xml' })" as="xs:string"/>
+        <xsl:variable name="value" select="ldh:canonical-content(.)" as="xs:string"/>
         <xsl:for-each select="following-sibling::input[@name = 'ol'][1]">
             <ixsl:set-property name="value" select="$value" object="."/>
         </xsl:for-each>
@@ -1060,21 +1071,27 @@ WHERE
     <!-- TO-DO: unify -->
     <xsl:template match="div[ancestor::div[contains-token(@class, 'block')]]//button[contains-token(@class, 'btn-cancel')][not(contains-token(@class, 'disabled'))]" mode="ixsl:onclick">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
-        <xsl:variable name="block" select="ancestor::div[contains-token(@class, 'block')][1]" as="element()"/>
-        <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'block-row')][1]" as="element()"/>
-        <xsl:variable name="about" select="$block/@about" as="xs:anyURI"/>
+
+        <xsl:apply-templates select="ancestor::div[contains-token(@class, 'block')][1]" mode="ldh:CancelEditing"/>
+    </xsl:template>
+
+    <!-- restores the block's pre-editing snapshot (stashed by the btn-edit handler) and drops it: the edit
+         form is replaced by the read-mode content without a save. Shared by the Cancel button and the
+         clean-focusout path of the XMLLiteral autosave (block.xsl) -->
+    <xsl:template match="div[contains-token(@class, 'block')]" mode="ldh:CancelEditing">
+        <xsl:variable name="about" select="@about" as="xs:anyURI"/>
 
         <xsl:sequence select="ldh:busy-cursor()"/>
-        
+
         <!-- retrieve HTML stored before editing mode was enabled -->
         <xsl:variable name="block-html" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $about || '`'), 'block-html')" as="element()"/>
 
-        <!-- restore snapshot of block HTML that was captured before entering editing mode -->
-        <xsl:for-each select="$block">
-            <xsl:result-document href="?." method="ixsl:replace-content">
-                <xsl:sequence select="$block-html/*"/>
-            </xsl:result-document>
-        </xsl:for-each>
+        <!-- restore the whole snapshot element, not just its children: the edit-mode render replaces the
+             block wrapper itself, and its class differs from the read-mode wrapper's (an XHTML block is
+             quiet prose in read mode but carded while editing) -->
+        <xsl:result-document href="?." method="ixsl:replace-element">
+            <xsl:sequence select="$block-html"/>
+        </xsl:result-document>
 
         <!-- remove the $block-html value -->
         <ixsl:remove-property name="block-html" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $about || '`')"/>

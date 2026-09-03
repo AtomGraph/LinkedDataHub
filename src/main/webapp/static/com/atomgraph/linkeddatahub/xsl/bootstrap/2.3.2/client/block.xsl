@@ -375,7 +375,13 @@ exclude-result-prefixes="#all"
         </xsl:if>
     </xsl:template>
 
-    <!-- autosave XMLLiteral when focus leaves the editor region (but not to the toolbar or other editor UI) -->
+    <!-- autosave XMLLiteral when focus leaves the editor region (but not to the toolbar or other editor UI).
+         Dirty-gated: the canonical form is compared against the baseline stashed at region activation
+         (ldh:RenderRowForm). A click-in/click-out with no edits saves nothing - it neither rewrites the
+         stored literal nor mints a version - and instead restores the read-mode block the way Cancel does,
+         so leaving the editor always exits it. The baseline moves forward when a save is requested, so
+         continued editing only saves further changes; a failed save leaves the form re-rendered with
+         violations, which re-dirties on the fix -->
 
     <xsl:template match="div[contains-token(@class, 'rdfa-editor-content')]" mode="ixsl:onfocusout">
         <xsl:variable name="self" select="." as="element()"/>
@@ -383,7 +389,16 @@ exclude-result-prefixes="#all"
         <xsl:if test="empty($related) or empty($related/ancestor-or-self::*[. is $self or @id = ('edit-toolbar', 'rdfa-editor-breadcrumb') or contains-token(@class, 'rdfa-editor-ui')])">
             <xsl:variable name="form" select="ancestor::form[contains-token(@class, 'ldh-prop-form')][1]" as="element()?"/>
             <xsl:if test="$form">
-                <xsl:sequence select="ixsl:call($form, 'requestSubmit', [])"/>
+                <xsl:variable name="canonical" select="ldh:canonical-content(.)" as="xs:string"/>
+                <xsl:choose>
+                    <xsl:when test="not($canonical = ixsl:get(., 'canonicalBaseline'))">
+                        <ixsl:set-property name="canonicalBaseline" select="$canonical" object="."/>
+                        <xsl:sequence select="ixsl:call($form, 'requestSubmit', [])"/>
+                    </xsl:when>
+                    <xsl:otherwise>
+                        <xsl:apply-templates select="ancestor::div[contains-token(@class, 'block')][1]" mode="ldh:CancelEditing"/>
+                    </xsl:otherwise>
+                </xsl:choose>
             </xsl:if>
         </xsl:if>
     </xsl:template>
