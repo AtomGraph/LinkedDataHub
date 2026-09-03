@@ -100,6 +100,9 @@ exclude-result-prefixes="#all">
     <!-- ldh:MergeRDF mode + ldh:merge-metadata() for merging /sparql + /ns object-metadata on the initial server render (SSR-safe: no ixsl). The client SEF gets this via client.xsl → graph3d.xsl. -->
     <xsl:include href="client/merge-rdfxml.xsl"/>
 
+    <!-- signup page overrides, shared with the client (client.xsl includes it too); the browser-only submit handling inside is use-when-guarded to SaxonJS -->
+    <xsl:include href="admin/signup.xsl"/>
+
     <!--  To use xsl:import-schema, you need the schema-aware version of Saxon -->
     <!-- <xsl:import-schema namespace="http://www.w3.org/1999/xhtml" schema-location="http://www.w3.org/2002/08/xhtml/xhtml1-transitional.xsd"/> -->
 

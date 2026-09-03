@@ -1245,7 +1245,9 @@ extension-element-prefixes="ixsl"
                     <xsl:sequence select="ldh:reserialize($constructor)"/>
                 </xsl:when>
                 <xsl:when test="exists($forClass)">
-                    <xsl:sequence select="ldh:construct-forClass($forClass)"/>
+                    <xsl:variable name="results-uri" select="ac:build-uri(resolve-uri('ns', ldt:base()), map{ 'query': ldh:constructor-query($forClass), 'accept': 'application/sparql-results+xml' })" as="xs:anyURI"/>
+                    <xsl:variable name="results" select="document(ldh:href($results-uri, map{}))" as="document-node()"/>
+                    <xsl:sequence select="ldh:construct-instance(distinct-values($results//srx:binding[@name = 'text']/srx:literal), $forClass)"/>
                 </xsl:when>
             </xsl:choose>
         </xsl:param>

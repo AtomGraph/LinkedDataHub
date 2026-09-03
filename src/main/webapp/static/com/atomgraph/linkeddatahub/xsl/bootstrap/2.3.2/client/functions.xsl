@@ -134,16 +134,6 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="normalize-space(ixsl:call(ixsl:call(ixsl:window(), 'getComputedStyle', [ ixsl:page()/* ]), 'getPropertyValue', [ $name ]))"/>
     </xsl:function>
     
-    <!-- Deprecated: use ixsl:new() instead (available in SaxonJS 3.0+) -->
-    <!--
-    <xsl:function name="ldh:new" as="item()">
-        <xsl:param name="target" as="xs:string"/>
-        <xsl:param name="arguments" as="array(*)"/>
-
-        <xsl:sequence select="ixsl:call(ixsl:window(), 'Reflect.construct', [ ixsl:get(ixsl:window(), $target), $arguments ] )"/>
-    </xsl:function>
-    -->
-
     <!-- format URLs in DataTable as HTML links. !!! Saxon-JS cannot intercept Google Charts events, therefore set a full proxied URL !!! -->
     <xsl:template match="@rdf:about[starts-with(., 'http://')] | @rdf:about[starts-with(., 'https://')] | @rdf:resource[starts-with(., 'http://')] | @rdf:resource[starts-with(., 'https://')] | srx:uri[starts-with(., 'http://')] | srx:uri[starts-with(., 'https://')]" mode="ac:DataTable">
         <json:string key="v">&lt;a href="<xsl:value-of select="ldh:href(xs:anyURI(.), map{})"/>"&gt;<xsl:value-of select="."/>&lt;/a&gt;</json:string>
@@ -197,13 +187,6 @@ exclude-result-prefixes="#all"
 
         <xsl:variable name="json-obj" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'parse', [ $json ])"/>
         <xsl:sequence select="ixsl:new('google.visualization.DataTable', [ $json-obj ])"/>
-    </xsl:function>
-
-    <xsl:function name="ldh:parse-html" as="document-node()">
-        <xsl:param name="string" as="xs:string"/>
-        <xsl:param name="mime-type" as="xs:string"/>
-        
-        <xsl:sequence select="ixsl:call(ixsl:new('DOMParser', []), 'parseFromString', [ $string, $mime-type ])"/>
     </xsl:function>
 
     <!-- parses RDF/POST inputs into a sequence of SPARQL.js triple maps (they need to be wrapped into <array key="triples">) -->
@@ -314,84 +297,6 @@ exclude-result-prefixes="#all"
         </xsl:choose>
     </xsl:function>
     
-    <!-- parses SPARQL.js triple maps into RDF/XML. Depends on the SPARQL.js serialization used in the ldh:parse-rdf-post() function -->
-    <xsl:function name="ldh:triples-to-descriptions" as="element()*">
-        <xsl:param name="triples" as="element()*"/>
-        
-        <xsl:for-each-group select="$triples" group-by="json:string[@key = 'subject']">
-            <rdf:Description>
-                <!-- subject -->
-                <xsl:choose>
-                    <xsl:when test="starts-with(current-grouping-key(), '_:')">
-                        <xsl:attribute name="rdf:nodeID" select="substring-after(current-grouping-key(), '_:')"/>
-                    </xsl:when>
-                    <xsl:otherwise>
-                        <xsl:attribute name="rdf:about" select="current-grouping-key()"/>
-                    </xsl:otherwise>
-                </xsl:choose>
-
-                <xsl:for-each select="current-group()">
-                    <!-- split predicate URI into namespace and local name -->
-                    <xsl:variable name="namespace" select="xs:anyURI(if (contains(json:string[@key = 'predicate'], '#')) then substring-before(json:string[@key = 'predicate'], '#') || '#' else string-join(tokenize(json:string[@key = 'predicate'], '/')[not(position() = last())], '/') || '/')" as="xs:anyURI"/>
-                    <xsl:variable name="local-name" select="substring-after(json:string[@key = 'predicate'], $namespace)" as="xs:string"/>
-                    
-                    <!-- predicate -->
-                    <xsl:element namespace="{$namespace}" name="ns:{$local-name}">
-                        <xsl:for-each select="json:string[@key = 'object']">
-                            <!-- object -->
-                            <!-- TO-DO: upgrade SPARQL.js to 3.x. We need regex functions in the following logic because quoting/escaping sucks in SPARQL.js 2.x -->
-                            <xsl:choose>
-                                <!-- XML literal -->
-                                <!-- note: SPARQL.js 2.x does NOT wrap the datatype URI into <> -->
-                                <xsl:when test="matches(., '^&quot;(.*)&quot;\^\^&rdf;XMLLiteral$', 's')">
-                                    <xsl:attribute name="rdf:parseType" select="'Literal'"/>
-                                    <!-- XML literal has to be fixed previously, otherwise parse-xml() will fail -->
-                                    <xsl:analyze-string select="." regex="^&quot;(.*)&quot;\^\^&rdf;XMLLiteral$" flags="s">
-                                        <xsl:matching-substring>
-                                            <xsl:sequence select="parse-xml(regex-group(1))"/>
-                                        </xsl:matching-substring>
-                                    </xsl:analyze-string>
-                                </xsl:when>
-                                <!-- typed literal -->
-                                <!-- note: SPARQL.js 2.x does NOT wrap the datatype URI into <> -->
-                                <xsl:when test="matches(., '^&quot;(.*)&quot;\^\^(.*)$', 's')">
-                                    <xsl:analyze-string select="." regex="^&quot;(.*)&quot;\^\^(.*)$" flags="s">
-                                        <xsl:matching-substring>
-                                            <xsl:attribute name="rdf:datatype" select="regex-group(2)"/>
-
-                                            <xsl:sequence select="regex-group(1)"/>
-                                        </xsl:matching-substring>
-                                    </xsl:analyze-string>
-                                </xsl:when>
-                                <!-- language-tagged literal -->
-                                <xsl:when test="matches(., '^&quot;(.*?)&quot;@(.*)$', 's')">
-                                    <xsl:analyze-string select="." regex="^&quot;(.*?)&quot;@(.*)$" flags="s">
-                                        <xsl:matching-substring>
-                                            <xsl:attribute name="xml:lang" select="regex-group(2)"/>
-
-                                            <xsl:sequence select="regex-group(1)"/>
-                                        </xsl:matching-substring>
-                                    </xsl:analyze-string>
-                                </xsl:when>
-                                <!-- plain literal -->
-                                <xsl:when test="starts-with(., '&quot;') and ends-with(., '&quot;')">
-                                    <xsl:sequence select="substring(., 2, string-length(.) - 2)"/> <!-- trim first and last character -->
-                                </xsl:when>
-                                <!-- blank node -->
-                                <xsl:when test="starts-with(., '_:')">
-                                    <xsl:attribute name="rdf:nodeID" select="substring-after(., '_:')"/>
-                                </xsl:when>
-                                <xsl:otherwise>
-                                    <xsl:attribute name="rdf:resource" select="."/>
-                                </xsl:otherwise>
-                            </xsl:choose>
-                        </xsl:for-each>
-                    </xsl:element>
-                </xsl:for-each>
-            </rdf:Description>
-        </xsl:for-each-group>
-    </xsl:function>
-
     <!-- parses RDF/XML resources into SPARQL.js triples -->
     <xsl:function name="ldh:descriptions-to-triples" as="element()*">
         <xsl:param name="descriptions" as="element()*"/> <!-- rdf:Description sequence -->
@@ -440,114 +345,6 @@ exclude-result-prefixes="#all"
         </xsl:for-each>
     </xsl:function>
     
-    <!-- constructor instantiation: the template mirrors the instance. One SELECT fetches the
-    spin:constructor query texts for the whole type set (subclass closure, DISTINCT), and the
-    CONSTRUCT templates are expanded onto a single instance — one bnode prototype typed with all
-    the classes, value-range markers as sibling Descriptions in the same document. -->
-
-    <xsl:function name="ldh:constructor-query" as="xs:string">
-        <xsl:param name="types" as="xs:anyURI*"/>
-
-        <xsl:sequence select="'SELECT DISTINCT ?constructor ?text WHERE { VALUES ?type { ' || string-join(for $type in $types return '&lt;' || $type || '&gt;', ' ') || ' } ?type &lt;http://www.w3.org/2000/01/rdf-schema#subClassOf&gt;* ?class . ?class &lt;http://spinrdf.org/spin#constructor&gt; ?constructor . ?constructor &lt;http://spinrdf.org/sp#text&gt; ?text . }'"/>
-    </xsl:function>
-
-    <!-- rewrites a CONSTRUCT template term: ?this becomes the shared instance label, other blank
-    node labels are prefixed per constructor position so markers from different templates cannot collide -->
-    <xsl:function name="ldh:instance-term" as="xs:string">
-        <xsl:param name="term" as="xs:string"/>
-        <xsl:param name="pos" as="xs:integer"/>
-
-        <xsl:sequence select="if ($term = ('?this', '$this')) then '_:instance' else if (starts-with($term, '_:')) then '_:c' || $pos || '_' || substring-after($term, '_:') else $term"/>
-    </xsl:function>
-
-    <!-- returns the sorted type set of a pure value-range marker (a blank node carrying only rdf:type),
-    or the empty string when the label is not a pure marker -->
-    <xsl:function name="ldh:marker-types" as="xs:string">
-        <xsl:param name="label" as="xs:string"/>
-        <xsl:param name="triples" as="element()*"/>
-
-        <xsl:variable name="subject-triples" select="$triples[json:string[@key = 'subject'] = $label]" as="element()*"/>
-        <xsl:sequence select="if (starts-with($label, '_:') and exists($subject-triples) and not($subject-triples[not(json:string[@key = 'predicate'] = '&rdf;type')])) then string-join(sort($subject-triples/json:string[@key = 'object']), ' ') else ''"/>
-    </xsl:function>
-
-    <!-- instantiates spin:constructor CONSTRUCT templates onto a single instance typed with $types.
-    Constructors must be pure templates: a non-empty WHERE clause cannot be instantiated client-side
-    and is skipped with a warning. Properties asserted by several constructors with the same value
-    range are collapsed; different ranges on one predicate all survive. -->
-    <xsl:function name="ldh:construct-instance" as="document-node()">
-        <xsl:param name="texts" as="xs:string*"/>
-        <xsl:param name="types" as="xs:anyURI*"/>
-
-        <xsl:variable name="raw-triples" as="element()*">
-            <xsl:for-each select="$texts">
-                <xsl:variable name="pos" select="position()" as="xs:integer"/>
-                <!-- read the parse tree through JSON serialization (the form.xsl SELECT-builder idiom) - SaxonJS does not marshal plain JS arrays for ixsl:get() access -->
-                <xsl:variable name="query-xml" select="json-to-xml(ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ ixsl:call($sparql-parser, 'parse', [ string(.) ]) ]))" as="document-node()"/>
-                <xsl:choose>
-                    <xsl:when test="exists($query-xml/json:map/json:array[@key = 'where']/*)">
-                        <xsl:message>Constructor skipped: a non-empty WHERE clause cannot be instantiated client-side: <xsl:value-of select="."/></xsl:message>
-                    </xsl:when>
-                    <xsl:otherwise>
-                        <xsl:for-each select="$query-xml/json:map/json:array[@key = 'template']/json:map">
-                            <xsl:variable name="predicate" select="json:string[@key = 'predicate']" as="xs:string"/>
-                            <xsl:choose>
-                                <xsl:when test="starts-with($predicate, '?') or starts-with($predicate, '$')">
-                                    <xsl:message>Constructor template triple skipped: variable predicate <xsl:value-of select="$predicate"/></xsl:message>
-                                </xsl:when>
-                                <xsl:otherwise>
-                                    <json:map>
-                                        <json:string key="subject"><xsl:value-of select="ldh:instance-term(json:string[@key = 'subject'], $pos)"/></json:string>
-                                        <json:string key="predicate"><xsl:value-of select="$predicate"/></json:string>
-                                        <json:string key="object"><xsl:value-of select="ldh:instance-term(json:string[@key = 'object'], $pos)"/></json:string>
-                                    </json:map>
-                                </xsl:otherwise>
-                            </xsl:choose>
-                        </xsl:for-each>
-                    </xsl:otherwise>
-                </xsl:choose>
-            </xsl:for-each>
-        </xsl:variable>
-
-        <!-- collapse instance properties whose (predicate, marker type set) coincide - the same property
-        asserted by several constructors (e.g. dct:title via a superclass and the class's own constructor) -->
-        <xsl:variable name="dropped-markers" as="xs:string*">
-            <xsl:for-each-group select="$raw-triples[json:string[@key = 'subject'] = '_:instance'][not(ldh:marker-types(json:string[@key = 'object'], $raw-triples) = '')]" group-by="json:string[@key = 'predicate'] || ' ' || ldh:marker-types(json:string[@key = 'object'], $raw-triples)">
-                <xsl:sequence select="for $duplicate in subsequence(current-group(), 2) return string($duplicate/json:string[@key = 'object'])"/>
-            </xsl:for-each-group>
-        </xsl:variable>
-        <xsl:variable name="triples" select="$raw-triples[not(json:string[@key = 'subject'] = '_:instance' and json:string[@key = 'object'] = $dropped-markers)][not(json:string[@key = 'subject'] = $dropped-markers)]" as="element()*"/>
-
-        <xsl:variable name="type-triples" as="element()*">
-            <xsl:for-each select="$types">
-                <json:map>
-                    <json:string key="subject">_:instance</json:string>
-                    <json:string key="predicate">&rdf;type</json:string>
-                    <json:string key="object"><xsl:value-of select="."/></json:string>
-                </json:map>
-            </xsl:for-each>
-        </xsl:variable>
-
-        <xsl:variable name="doc" as="document-node()">
-            <xsl:document>
-                <rdf:RDF>
-                    <xsl:sequence select="ldh:triples-to-descriptions(($triples, $type-triples))"/>
-                </rdf:RDF>
-            </xsl:document>
-        </xsl:variable>
-        <xsl:sequence select="$doc"/>
-    </xsl:function>
-
-    <!-- CSR variant of ldh:construct-forClass (imports/default.xsl declares the SAXON one) -->
-    <xsl:function name="ldh:construct-forClass" as="document-node()">
-        <xsl:param name="forClass" as="xs:anyURI+"/>
-
-        <xsl:variable name="results-uri" select="ac:build-uri(resolve-uri('ns', ldt:base()), map{ 'query': ldh:constructor-query($forClass), 'accept': 'application/sparql-results+xml' })" as="xs:anyURI"/>
-        <xsl:variable name="request-uri" select="ldh:href($results-uri, map{})" as="xs:anyURI"/>
-        <xsl:variable name="results" select="document($request-uri)" as="document-node()"/>
-
-        <xsl:sequence select="ldh:construct-instance(distinct-values($results//srx:binding[@name = 'text']/srx:literal), $forClass)"/>
-    </xsl:function>
-
     <!-- builds an <$about> ?p ?o triple pattern for the given $about URI -->
 
     <xsl:function name="ldh:uri-po-pattern" as="element()*">

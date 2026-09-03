@@ -833,6 +833,7 @@ public class Application extends ResourceConfig
             xsltProc.registerExtensionFunction(new DecodeURI());
             xsltProc.registerExtensionFunction(new com.atomgraph.linkeddatahub.writer.function.URLDecode());
             xsltProc.registerExtensionFunction(new com.atomgraph.linkeddatahub.writer.function.SendHTTPRequest(xsltProc, client));
+            xsltProc.registerExtensionFunction(new com.atomgraph.linkeddatahub.writer.function.ParseQuery());
             
             try
             {
