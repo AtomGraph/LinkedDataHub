@@ -1,4 +1,13 @@
-## [5.11.0]
+## [6.0.0]
+Bootstrap 2 is gone, and with it the class vocabulary application stylesheets were written against. An app's `ac:stylesheet` points at its own XSLT, which imports the platform's `xsl/bootstrap/2.3.2/layout.xsl` — that import path is unchanged, and the `bs2:` modes it defines are all still there. An override that emits Bootstrap 2 markup therefore still compiles and still runs; it just emits classes no stylesheet backs any more, and renders unstyled with no diagnostic. Hence the major version: the failure gives no signal of its own.
+
+### Migration
+- Legacy Bootstrap buttons (`btn`, `btn-primary`, `btn-large`, …) become the `ldhc-btn` intent/appearance/size vocabulary — `ldhc-btn in-primary ap-solid sz-md`
+- `$ac:langs` and `$ac:lang` stylesheet parameters become the `ac:langs()` and `ac:langs()[1]` functions; an `xsl:with-param` left behind is silently ignored rather than reported
+- `pull-left` and `pull-right` have no replacement — the design system lays out with flex and grid
+- Overrides depending on `bootstrap.js`, jQuery, WYMEditor or the sprite icon layer need rewriting: dropdowns and modals are driven by IXSL templates, icons by the `msi` font, and `rdf:XMLLiteral` editing by the RDFa editor
+- Stylesheets extending the removed vocabulary can be diffed against `ldh-bridge.css`, which carries the primitives LDH still emits
+
 ### Added
 - Design system port: the app shell (header, sidebar, footer), content blocks, action bar, breadcrumbs, mode lists, type badges, property lists, pager, modals and forms all render the design system's class vocabulary
 - Vendored design system stylesheets and typefaces, with latin-ext subsets so Latin Extended-A no longer falls back mid-word
@@ -49,6 +58,7 @@
 - Editing forms already open on the page reconcile with the constructor after a constructor save
 - The edit pencil on a resource description appears only under `acl:Write`
 - `http-tests` assertions read captured responses from a here-string instead of piping `curl` into `grep -q`
+- Web-Client dependency bumped to 5.0.4
 
 ### Removed
 - Bootstrap 2: the framework stylesheets, `bootstrap.js`, jQuery, WYMEditor, the sprite icon layer and the `pull-left`/`pull-right` tokens
@@ -72,6 +82,13 @@
 - `release.sh` published to Maven Central before its `git checkout master`, so a failed checkout left 5.10.0 on Central with no tag: the switches are now proven possible first, and once published the trap prints recovery steps instead of deleting the tag that records what was published
 - `release.sh`'s clean check could not see `skip-worktree`/`assume-unchanged` files — git reports them as matching the index whatever is on disk, while a branch switch refuses to overwrite them; they are now warned about at startup and checked precisely before publishing
 - `release.sh` derived the release and snapshot commits positionally (`git log -2`), which breaks as soon as anything else commits in between; they are derived from an anchor taken before `release:prepare`
+- A drop-down flips to whichever side of its trigger has room, on both axes, so the action bar's left-zone menu no longer opens off the viewport edge
+- The language tag renders as a pill wherever a value is laid out rather than only inside a property list, so a table cell's tag stops running into the value it annotates
+- A view block derived from the ontology keeps its URI across reloads: the fragment is hashed from the host resource and the view instead of drawn from `ac:uuid()`, and a fragment scroll waits for the injected blocks to hydrate
+- An injected view block's subject keeps the hash that makes it a fragment
+- A `pre` in an `ldh:XHTML` block takes the recessed code surface the inline chip and error listing already share, instead of running on the bare page background
+- The property-list grid keys on the wrapped `dt`/`dd` shape, leaving prose `dl`s to their own layout
+- An error page renders without the action bar, which had nothing left to act on
 
 ## [5.10.0] - 2026-08-30
 ### Added
