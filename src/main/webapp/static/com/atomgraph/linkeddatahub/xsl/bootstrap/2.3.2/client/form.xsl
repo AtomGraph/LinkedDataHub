@@ -918,26 +918,19 @@ WHERE
         <xsl:sequence select="ldh:replace-block-element($block, $row)"/>
     </xsl:function>
 
-    <!-- Emulates ixsl:replace-element (TO-DO: use method="ixsl:replace-element" in SaxonJS 3: https://saxonica.plan.io/issues/6303#note-2): the rendered element's attributes replace the host block's attributes and its content replaces the host's content, keeping the host DOM node in place, then form listeners are initialized. Shared DOM-update tail of the inline (ldh:render-row-form) and modal (ldh:render-form) flows so both transplant the rendered form's block root the same way. -->
+    <!-- Replaces the host block element with the rendered element, then form listeners are initialized. The replacement detaches $block, so the inserted node is re-resolved by the rendered element's id. Shared DOM-update tail of the inline (ldh:render-row-form) and modal (ldh:render-form) flows so both transplant the rendered form's block root the same way. -->
     <xsl:function name="ldh:replace-block-element" as="item()*" ixsl:updating="yes">
         <xsl:param name="block" as="element()"/>
         <xsl:param name="element" as="element()"/>
 
         <xsl:for-each select="$block">
-            <xsl:for-each select="@*">
-                <ixsl:remove-attribute object="$block" name="{name()}"/>
-            </xsl:for-each>
-            <xsl:for-each select="$element/@*">
-                <ixsl:set-attribute object="$block" name="{name()}" select="."/>
-            </xsl:for-each>
-
-            <xsl:result-document href="?." method="ixsl:replace-content">
-                <xsl:copy-of select="$element/*"/>
+            <xsl:result-document href="?." method="ixsl:replace-element">
+                <xsl:copy-of select="$element"/>
             </xsl:result-document>
         </xsl:for-each>
 
         <!-- initialize event listeners -->
-        <xsl:apply-templates select="$block" mode="ldh:RenderRowForm"/>
+        <xsl:apply-templates select="id($element/@id, ixsl:page())" mode="ldh:RenderRowForm"/>
     </xsl:function>
 
     <xsl:function name="ldh:render-form" as="item()*" ixsl:updating="yes">
@@ -1226,7 +1219,6 @@ WHERE
     <xsl:function name="ldh:render-add-value" as="item()*" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
         <xsl:variable name="property-control-group" select="$context('property-control-group')" as="element()"/>
-        <xsl:variable name="fieldset" select="$context('fieldset')" as="element()"/>
         <xsl:variable name="property-uri" select="$context('property-uri')" as="xs:anyURI"/>
         <xsl:variable name="forClass" select="$context('forClass')" as="xs:anyURI*"/>
         <xsl:variable name="constructed-doc" select="$context('constructed-doc')" as="document-node()"/>
@@ -1249,11 +1241,9 @@ WHERE
         </xsl:variable>
         <xsl:variable name="property" select="$resource/*[concat(namespace-uri(), local-name()) = $property-uri]" as="element()"/>
 
-        <!-- remove the current property control group from the current position -->
-        <xsl:sequence select="ixsl:call($property-control-group, 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
-
-        <xsl:for-each select="$fieldset">
-            <xsl:result-document href="?." method="ixsl:append-content">
+        <!-- insert the new control group above the property control group, which stays at the end of the fieldset -->
+        <xsl:for-each select="$property-control-group">
+            <xsl:result-document href="?." method="ixsl:insert-before">
                 <xsl:choose>
                     <!-- TO-DO: unify bs2:TypeControl and bs2:FormControl? -->
                     <xsl:when test="$property-uri = '&rdf;type'">
@@ -1270,20 +1260,16 @@ WHERE
                         </xsl:apply-templates>
                     </xsl:otherwise>
                 </xsl:choose>
-
-                <!-- append the property control group at the end of the fieldset -->
-                <xsl:copy-of select="$property-control-group"/>
             </xsl:result-document>
 
-            <!-- initialize the last property control group after it's appended -->
-            <xsl:apply-templates select="(./div[contains-token(@class, 'control-group')][input/@name = 'pu'])[last()]" mode="ldh:RenderRowForm"/>
+            <!-- initialize the new control group after it's inserted -->
+            <xsl:apply-templates select="preceding-sibling::div[1]" mode="ldh:RenderRowForm"/>
         </xsl:for-each>
 
     </xsl:function>
 
     <xsl:template match="div[@typeof]//form//button[contains-token(@class, 'add-value')]" mode="ixsl:onclick">
         <xsl:variable name="property-control-group" select="../.." as="element()"/>
-        <xsl:variable name="fieldset" select="$property-control-group/.." as="element()"/>
         <xsl:variable name="property-uri" select="../preceding-sibling::*/select/option[ixsl:get(., 'selected') = true()]/ixsl:get(., 'value')" as="xs:anyURI"/>
         <xsl:variable name="forClass" select="for $type in tokenize(ancestor::div[@typeof][contains-token(@class, 'block')][1]/@typeof) return xs:anyURI($type)" as="xs:anyURI*"/>
 
@@ -1291,7 +1277,6 @@ WHERE
 
         <xsl:variable name="context" as="map(*)" select="map{
             'property-control-group': $property-control-group,
-            'fieldset': $fieldset,
             'property-uri': $property-uri,
             'forClass': $forClass,
             'types': $forClass
@@ -1358,25 +1343,41 @@ WHERE
 
             <xsl:if test="exists($new-arcs)">
                 <xsl:variable name="property-control-group" select="$fieldset/div[contains-token(@class, 'control-group')][descendant::button[contains-token(@class, 'add-value')]]" as="element()?"/>
-                <xsl:sequence select="$property-control-group/ixsl:call(., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
-                <xsl:variable name="control-group-count" select="count($fieldset/div[contains-token(@class, 'control-group')][input/@name = 'pu'])" as="xs:integer"/>
+                <xsl:variable name="control-groups" as="element()*">
+                    <xsl:for-each select="$new-arcs">
+                        <xsl:apply-templates select="." mode="bs2:FormControl">
+                            <!-- generate fresh $for value because otherwise we can generate existing IDs from the same constructor -->
+                            <xsl:with-param name="for" select="'id' || ac:uuid()"/>
+                        </xsl:apply-templates>
+                    </xsl:for-each>
+                </xsl:variable>
 
-                <xsl:for-each select="$fieldset">
-                    <xsl:result-document href="?." method="ixsl:append-content">
-                        <xsl:for-each select="$new-arcs">
-                            <xsl:apply-templates select="." mode="bs2:FormControl">
-                                <!-- generate fresh $for value because otherwise we can generate existing IDs from the same constructor -->
-                                <xsl:with-param name="for" select="'id' || ac:uuid()"/>
-                            </xsl:apply-templates>
+                <xsl:choose>
+                    <!-- insert the new control groups above the property picker, which stays at the end of the fieldset -->
+                    <xsl:when test="exists($property-control-group)">
+                        <xsl:for-each select="$property-control-group">
+                            <xsl:result-document href="?." method="ixsl:insert-before">
+                                <xsl:copy-of select="$control-groups"/>
+                            </xsl:result-document>
+
+                            <!-- initialize the inserted property control groups -->
+                            <xsl:apply-templates select="preceding-sibling::div[contains-token(@class, 'control-group')][position() le count($control-groups)]" mode="ldh:RenderRowForm"/>
                         </xsl:for-each>
+                    </xsl:when>
+                    <!-- no property picker in the fieldset — append the new control groups at the end -->
+                    <xsl:otherwise>
+                        <xsl:variable name="control-group-count" select="count($fieldset/div[contains-token(@class, 'control-group')][input/@name = 'pu'])" as="xs:integer"/>
 
-                        <!-- re-append the property picker control group at the end of the fieldset -->
-                        <xsl:copy-of select="$property-control-group"/>
-                    </xsl:result-document>
+                        <xsl:for-each select="$fieldset">
+                            <xsl:result-document href="?." method="ixsl:append-content">
+                                <xsl:copy-of select="$control-groups"/>
+                            </xsl:result-document>
 
-                    <!-- initialize the appended property control groups -->
-                    <xsl:apply-templates select="./div[contains-token(@class, 'control-group')][input/@name = 'pu'][position() gt $control-group-count]" mode="ldh:RenderRowForm"/>
-                </xsl:for-each>
+                            <!-- initialize the appended property control groups -->
+                            <xsl:apply-templates select="./div[contains-token(@class, 'control-group')][input/@name = 'pu'][position() gt $control-group-count]" mode="ldh:RenderRowForm"/>
+                        </xsl:for-each>
+                    </xsl:otherwise>
+                </xsl:choose>
             </xsl:if>
         </xsl:if>
     </xsl:function>
@@ -1439,22 +1440,14 @@ WHERE
                     </xsl:variable>
 
                     <xsl:for-each select="$block">
-                        <!-- replace block element attributes TO-DO: shouldn't be necessary in SaxonJS 3 using method="ixsl:replace-element": https://saxonica.plan.io/issues/6303#note-2 -->
-                        <xsl:for-each select="@*">
-                            <ixsl:remove-attribute object="$block" name="{name()}"/>
-                        </xsl:for-each>
-                        <xsl:for-each select="$new-block/@*">
-                            <ixsl:set-attribute object="$block" name="{name()}" select="."/>
-                        </xsl:for-each>
-
-                        <xsl:result-document href="?." method="ixsl:replace-content">
-                            <xsl:copy-of select="$new-block/*"/>
+                        <xsl:result-document href="?." method="ixsl:replace-element">
+                            <xsl:copy-of select="$new-block"/>
                         </xsl:result-document>
                     </xsl:for-each>
 
-                    <!-- cannot be in $block context because it contains old DOM (pre-ixsl:replace-content) -->
+                    <!-- the replacement detaches $block — re-resolve the inserted block by the rendered element's id -->
                     <xsl:variable name="factory" as="function(item()?) as item()*?">
-                        <xsl:apply-templates select="id($block/@id, ixsl:page())" mode="ldh:RenderRow"/>
+                        <xsl:apply-templates select="id($new-block/@id, ixsl:page())" mode="ldh:RenderRow"/>
                     </xsl:variable>
 
                     <xsl:if test="exists($factory)">
@@ -1577,19 +1570,6 @@ WHERE
         <xsl:for-each select="id($block/@id, ixsl:page())">
             <xsl:apply-templates select="." mode="ldh:RenderRowForm"/>
         </xsl:for-each>
-    </xsl:function>
-
-    <xsl:function name="ldh:replace-content" as="map(*)" ixsl:updating="yes">
-        <xsl:param name="context" as="map(*)"/>
-
-        <xsl:variable name="target" select="$context('target')" as="element()"/>
-        <xsl:variable name="content" select="$context('content')" as="item()*"/>
-
-        <xsl:result-document href="?." method="ixsl:replace-content">
-          <xsl:copy-of select="$content"/>
-        </xsl:result-document>
-
-        <xsl:sequence select="$context"/>
     </xsl:function>
 
     <!-- toggles the .control-group for subject URI/bnode ID editing -->
@@ -2103,15 +2083,9 @@ WHERE
             </xsl:call-template>
         </xsl:variable>
 
-        <!-- workaround for https://saxonica.plan.io/issues/6303 -->
-        <xsl:variable name="this" select="." as="element()"/>
-        <xsl:for-each select="..">
-            <xsl:result-document href="?." method="ixsl:replace-content">
-                <xsl:sequence select="$this/preceding-sibling::node()"/>
-                <xsl:sequence select="$lookup/span/*"/>
-                <xsl:sequence select="$this/following-sibling::node()"/>
-            </xsl:result-document>
-        </xsl:for-each>
+        <xsl:result-document href="?." method="ixsl:replace-element">
+            <xsl:sequence select="$lookup/span/*"/>
+        </xsl:result-document>
 
         <xsl:for-each select="id('input-' || $uuid, ixsl:page())">
             <xsl:sequence select="ixsl:call(., 'focus', [])[current-date() lt xs:date('2000-01-01')]"/>

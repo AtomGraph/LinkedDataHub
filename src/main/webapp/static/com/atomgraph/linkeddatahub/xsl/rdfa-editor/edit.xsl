@@ -390,8 +390,11 @@ version="3.0">
         <xsl:if test="$invalid">
             <xsl:variable name="fixed" as="node()*"
                 select="cm:wrap-inline-runs(cm:normalize($region/node()), 'p')"/>
-            <ixsl:set-property name="innerHTML"
-                select="serialize($fixed, map{ 'method': 'html' })" object="$region"/>
+            <xsl:for-each select="$region">
+                <xsl:result-document href="?." method="ixsl:replace-content">
+                    <xsl:copy-of select="$fixed"/>
+                </xsl:result-document>
+            </xsl:for-each>
         </xsl:if>
         <!-- an empty region cannot hold a caret: seed a paragraph (the
              empty-blockquote idiom in rdfae:init-block) -->
@@ -1651,19 +1654,12 @@ version="3.0">
                     <xsl:with-param name="host" select="$host"/>
                     <xsl:with-param name="range" select="$range"/>
                 </xsl:call-template>
-                <!-- method html: XML's self-closing <p/> reads as an OPEN tag to the
-                     HTML fragment parser and swallows following siblings -->
-                <xsl:variable name="stage" as="element()" select="rdfae:element('div')"/>
-                <ixsl:set-property name="innerHTML" select="serialize($blocks, map{ 'method': 'html' })" object="$stage"/>
-                <xsl:variable name="count" as="xs:integer" select="xs:integer(ixsl:get($stage, 'childNodes.length'))"/>
-                <xsl:iterate select="1 to $count">
-                    <xsl:param name="anchor" select="$host"/>
-                    <xsl:variable name="node" select="ixsl:get($stage, 'firstChild')"/>
-                    <xsl:sequence select="ixsl:call($anchor, 'after', [ $node ])[current-date() lt xs:date('2000-01-01')]"/>
-                    <xsl:next-iteration>
-                        <xsl:with-param name="anchor" select="$node"/>
-                    </xsl:next-iteration>
-                </xsl:iterate>
+                <xsl:variable name="count" as="xs:integer" select="count($blocks)"/>
+                <xsl:for-each select="$host">
+                    <xsl:result-document href="?." method="ixsl:insert-after">
+                        <xsl:copy-of select="$blocks"/>
+                    </xsl:result-document>
+                </xsl:for-each>
                 <xsl:for-each select="$host/following-sibling::*[position() le $count]">
                     <xsl:call-template name="rdfae:init-block">
                         <xsl:with-param name="block" select="."/>

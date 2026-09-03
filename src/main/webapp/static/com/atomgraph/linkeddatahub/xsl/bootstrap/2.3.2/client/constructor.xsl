@@ -519,7 +519,6 @@ exclude-result-prefixes="#all"
     
     <!-- appends new constructor -->
     <xsl:template match="div[contains-token(@class, 'modal-body')]//button[contains-token(@class, 'create-action')][contains-token(@class, 'add-constructor')]" mode="ixsl:onclick">
-        <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'modal-body')]" as="element()"/>
         <xsl:variable name="button-div" select=".." as="element()"/>
         <xsl:variable name="type" select="ancestor::form/@about" as="xs:anyURI"/> <!-- the URI of the class that constructors are attached to -->
         <xsl:variable name="query-string" select="replace($type-graph-query, '$Type', '&lt;' || $type || '&gt;', 'q')" as="xs:string"/>
@@ -532,7 +531,6 @@ exclude-result-prefixes="#all"
         <xsl:variable name="request" as="item()*">
             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml' } }">
                 <xsl:call-template name="onTypeGraphLoad">
-                    <xsl:with-param name="container" select="$container"/>
                     <xsl:with-param name="type" select="$type"/>
                     <xsl:with-param name="button-div" select="$button-div"/>
                 </xsl:call-template>
@@ -644,7 +642,6 @@ exclude-result-prefixes="#all"
     
     <xsl:template name="onTypeGraphLoad">
         <xsl:context-item as="map(*)" use="required"/>
-        <xsl:param name="container" as="element()"/>
         <xsl:param name="type" as="xs:anyURI"/> <!-- the URI of the class that constructors are attached to -->
         <xsl:param name="button-div" as="element()"/>
 
@@ -662,7 +659,6 @@ exclude-result-prefixes="#all"
                         <xsl:variable name="request" as="item()*">
                             <ixsl:schedule-action http-request="map{ 'method': 'PATCH', 'href': $request-uri, 'media-type': 'application/sparql-update', 'body': $update-string }">
                                 <xsl:call-template name="onConstructorAppend">
-                                    <xsl:with-param name="container" select="$container"/>
                                     <xsl:with-param name="button-div" select="$button-div"/>
                                     <xsl:with-param name="constructor-uri" select="$constructor-uri"/>
                                 </xsl:call-template>
@@ -680,25 +676,17 @@ exclude-result-prefixes="#all"
     
     <xsl:template name="onConstructorAppend">
         <xsl:context-item as="map(*)" use="required"/>
-        <xsl:param name="container" as="element()"/>
         <xsl:param name="button-div" as="element()"/>
         <xsl:param name="constructor-uri" as="xs:anyURI"/>
 
         <xsl:choose>
             <xsl:when test="?status = 200">
-                <!-- remove the "Add constructor" button -->
+                <!-- insert the fieldset above the "Add constructor" button, which stays at the bottom of the form -->
                 <xsl:for-each select="$button-div">
-                    <xsl:sequence select="ixsl:call(., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
-                </xsl:for-each>
-                
-                <xsl:for-each select="$container">
-                    <xsl:result-document href="?." method="ixsl:append-content">
+                    <xsl:result-document href="?." method="ixsl:insert-before">
                         <xsl:call-template name="ldh:ConstructorFieldset">
                             <xsl:with-param name="constructor-uri" select="$constructor-uri"/>
                         </xsl:call-template>
-                        
-                        <!-- re-append the "Add constructor" button at the bottom of the form -->
-                        <xsl:copy-of select="$button-div"/>
                     </xsl:result-document>
                 </xsl:for-each>
             </xsl:when>
