@@ -168,8 +168,10 @@ around both release bumps, and `make cli-version` re-aligns it if it drifts.
 stdout (diagnostics go to stderr), so `item=$(ldh create-item ...)` works; exit codes are `0`
 success, `1` HTTP or runtime failure, `2` usage error.
 
-Packages have no command — an application imports one with a single `<app> ldh:import <package>`
-triple, so `ldh patch` on the application's `settings` document is the whole interface.
+Packages are declarative: an application imports one with a single `<app> ldh:import <package>`
+triple in its settings, and `ldh list-packages`, `ldh add-package-import` and
+`ldh remove-package-import` write that triple through `PATCH /settings`. `list-packages` reads the
+registry catalog through the Linked Data proxy, marking the imported ones.
 
 `ldh get` also addresses the RFC 7089 Memento roles of a versioned document, as mutually exclusive
 options: `--timemap` (version history), `--version <sha>` (a historical version) and `--timegate`

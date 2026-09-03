@@ -20,6 +20,7 @@
 - Empty blocks and empty chart result sets say so through the design system's block-state component
 - `ldh:date-time()`, `ldh:datatype-family()`, `ldh:css-token()` and `ldh:view-cache()` replace logic that had been written out at every call site
 - Package ontologies are declared as `owl:imports` instead of grafted, with an imports characterization test
+- `ldh list-packages`, `ldh add-package-import` and `ldh remove-package-import` give the CLI the package management the settings modal has: the catalog read through the Linked Data proxy with the imported packages marked, and the `ldh:import` declaration written through `PATCH /settings`
 - `ldh get` reaches a versioned document's RFC 7089 Memento roles through mutually exclusive `--timemap`, `--version <sha>` and `--timegate` options, the last taking a `--datetime` in RFC 1123 or ISO 8601 and printing the negotiated version's URI as its only output
 
 ### Changed

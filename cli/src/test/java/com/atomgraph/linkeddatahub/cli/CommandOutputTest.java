@@ -25,6 +25,7 @@ import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import picocli.CommandLine;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -323,6 +324,49 @@ public class CommandOutputTest
 
             assertEquals(CommandLine.ExitCode.USAGE, code);
             assertNull(server.getLastMethod(), "a request went out without a requested media type");
+        }
+    }
+
+    @Test
+    public void listPackagesMarksTheImportedOnes() throws Exception
+    {
+        String settings = """
+            @prefix ldh: <https://w3id.org/atomgraph/linkeddatahub#> .
+            <urn:linkeddatahub:apps/end-user> ldh:import <https://packages.linkeddatahub.com/skos/#this> .
+            """;
+        String catalog = """
+            <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+                xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#" xmlns:dct="http://purl.org/dc/terms/">
+              <rdf:Description rdf:about="https://packages.linkeddatahub.com/">
+                <rdfs:member rdf:resource="https://packages.linkeddatahub.com/skos/#this"/>
+                <rdfs:member rdf:resource="https://packages.linkeddatahub.com/foaf/#this"/>
+              </rdf:Description>
+              <rdf:Description rdf:about="https://packages.linkeddatahub.com/skos/#this">
+                <dct:title>SKOS</dct:title>
+              </rdf:Description>
+              <rdf:Description rdf:about="https://packages.linkeddatahub.com/foaf/#this">
+                <dct:title>FOAF</dct:title>
+              </rdf:Description>
+            </rdf:RDF>
+            """;
+
+        try (StubServer server = new StubServer())
+        {
+            server.respondsTo("/settings", 200, "text/turtle", settings);
+            server.respondsTo("/", 200, "application/rdf+xml", catalog);
+            URI base = server.baseURI();
+            StringWriter out = new StringWriter(), err = new StringWriter();
+
+            int code = commandLine(out, err).execute("list-packages",
+                "-f", keyStorePath().toString(), "-p", "changeit", "-b", base.toString());
+
+            assertEquals(0, code);
+            assertEquals(List.of("available\thttps://packages.linkeddatahub.com/foaf/#this\tFOAF",
+                                 "installed\thttps://packages.linkeddatahub.com/skos/#this\tSKOS"),
+                out.toString().lines().toList());
+            assertEquals("", err.toString(), "stderr is not empty on success");
+            // the registry is not the application's own URI, so the catalog is read through the proxy
+            assertEquals("/?uri=https%3A%2F%2Fpackages.linkeddatahub.com%2F", server.getLastTarget());
         }
     }
 

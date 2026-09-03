@@ -39,6 +39,7 @@ public class StubServer implements AutoCloseable
     private volatile String body = "";
     private volatile String contentType = "text/turtle";
     private final Map<String, String> responseHeaders = new LinkedHashMap<>();
+    private final Map<String, Route> routes = new LinkedHashMap<>();
 
     private volatile String lastMethod;
     private volatile String lastTarget;
@@ -64,10 +65,11 @@ public class StubServer implements AutoCloseable
             exchange.getRequestHeaders().forEach((name, values) -> headers.put(name.toLowerCase(Locale.ROOT), values.get(0)));
             lastHeaders = headers;
 
-            byte[] out = body.getBytes(StandardCharsets.UTF_8);
-            exchange.getResponseHeaders().add("Content-Type", contentType);
+            Route route = routes.get(exchange.getRequestURI().getPath());
+            byte[] out = (route != null ? route.body() : body).getBytes(StandardCharsets.UTF_8);
+            exchange.getResponseHeaders().add("Content-Type", route != null ? route.contentType() : contentType);
             responseHeaders.forEach((name, value) -> exchange.getResponseHeaders().add(name, value));
-            exchange.sendResponseHeaders(status, out.length == 0 ? -1 : out.length);
+            exchange.sendResponseHeaders(route != null ? route.status() : status, out.length == 0 ? -1 : out.length);
             if (out.length > 0) exchange.getResponseBody().write(out);
             exchange.close();
         });
@@ -83,6 +85,24 @@ public class StubServer implements AutoCloseable
     public URI baseURI()
     {
         return URI.create("http://127.0.0.1:" + server.getAddress().getPort() + "/");
+    }
+
+    /** A canned response bound to one request path, for the commands that read more than one document. */
+    private record Route(int status, String contentType, String body) { }
+
+    /**
+     * Binds a canned response to a request path, taking precedence over the default one.
+     *
+     * @param path request path
+     * @param status HTTP status code
+     * @param contentType response media type
+     * @param body response body
+     * @return this server
+     */
+    public StubServer respondsTo(String path, int status, String contentType, String body)
+    {
+        routes.put(path, new Route(status, contentType, body));
+        return this;
     }
 
     /**

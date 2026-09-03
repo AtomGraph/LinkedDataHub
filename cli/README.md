@@ -127,6 +127,40 @@ ldh get --accept text/turtle "$memento"
 straight back. Without it the TimeGate selects the most recent version. `--accept` is required for
 every other request but not for `--timegate`, whose `302` has no representation of its own.
 
+## Packages
+
+A package bundles an ontology with an optional stylesheet, and an application imports one by
+declaring a single `ldh:import` triple in its settings — the declaration *is* the installation.
+The commands write that triple; they do not install anything of their own.
+
+```bash
+ldh list-packages
+# available	https://packages.linkeddatahub.com/skos/#this	SKOS
+
+ldh add-package-import --package https://packages.linkeddatahub.com/skos/#this
+ldh remove-package-import --package https://packages.linkeddatahub.com/skos/#this
+```
+
+Both take effect on the next request, with no restart: the package ontology joins the
+application's `owl:imports` closure and its stylesheet is composed into the application
+stylesheet. `remove-package-import` is idempotent — removing an import the application does not
+have succeeds and changes nothing.
+
+`list-packages` prints one tab-separated line per package — state, URI, title — so the listing
+greps and cuts:
+
+```bash
+ldh list-packages | grep ^available | cut -f2
+```
+
+The registry defaults to `https://packages.linkeddatahub.com/` and `--registry` overrides it. It is
+read through the application's Linked Data proxy rather than fetched directly, the same way the
+application settings modal reads it, so `list-packages` needs `--base` as much as the other two do.
+
+The commands go through `PATCH /settings`, which is the live path: the change is in effect
+immediately but lives in the running application's context dataset. Declaring the same
+`ldh:import` triple in `config/dataspaces.trig` is the permanent one, applied on restart.
+
 ## Script → command migration
 
 | Script | Command |
@@ -169,8 +203,9 @@ Local certificate tooling (`webid-keygen.sh`, `webid-keygen-pem.sh`, `webid-uri.
 `webid-modulus.sh`, `server-cert-gen.sh`) and the experimental `sitemap/` generator remain
 shell scripts.
 
-Packages have no command: an application imports one with a single `<app> ldh:import <package-uri>`
-triple, so `ldh patch` on the application's `/settings` document is the whole interface.
+`bin/admin/packages/` has no counterpart under that name: a package is imported by declaring an
+`ldh:import` triple rather than by installing files, and `ldh list-packages`,
+`ldh add-package-import` and `ldh remove-package-import` write that declaration.
 
 ### Differences from the scripts
 

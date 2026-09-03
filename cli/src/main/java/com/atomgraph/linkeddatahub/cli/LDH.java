@@ -19,6 +19,7 @@ package com.atomgraph.linkeddatahub.cli;
 import com.atomgraph.linkeddatahub.cli.command.AddConstruct;
 import com.atomgraph.linkeddatahub.cli.command.AddFile;
 import com.atomgraph.linkeddatahub.cli.command.AddGenericService;
+import com.atomgraph.linkeddatahub.cli.command.AddPackageImport;
 import com.atomgraph.linkeddatahub.cli.command.AddResultSetChart;
 import com.atomgraph.linkeddatahub.cli.command.AddSelect;
 import com.atomgraph.linkeddatahub.cli.command.AddView;
@@ -26,9 +27,11 @@ import com.atomgraph.linkeddatahub.cli.command.CreateContainer;
 import com.atomgraph.linkeddatahub.cli.command.CreateItem;
 import com.atomgraph.linkeddatahub.cli.command.Delete;
 import com.atomgraph.linkeddatahub.cli.command.Get;
+import com.atomgraph.linkeddatahub.cli.command.ListPackages;
 import com.atomgraph.linkeddatahub.cli.command.Patch;
 import com.atomgraph.linkeddatahub.cli.command.Post;
 import com.atomgraph.linkeddatahub.cli.command.Put;
+import com.atomgraph.linkeddatahub.cli.command.RemovePackageImport;
 import com.atomgraph.linkeddatahub.cli.command.admin.Admin;
 import com.atomgraph.linkeddatahub.cli.command.content.Content;
 import com.atomgraph.linkeddatahub.cli.command.imports.Imports;
@@ -52,6 +55,7 @@ import picocli.CommandLine.ScopeType;
         Get.class, Post.class, Put.class, Patch.class, Delete.class,
         CreateItem.class, CreateContainer.class,
         AddView.class, AddConstruct.class, AddSelect.class, AddResultSetChart.class, AddFile.class, AddGenericService.class,
+        ListPackages.class, AddPackageImport.class, RemovePackageImport.class,
         Admin.class, Content.class, Imports.class,
         AutoComplete.GenerateCompletion.class
     })

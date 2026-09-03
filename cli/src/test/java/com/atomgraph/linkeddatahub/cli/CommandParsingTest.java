@@ -49,6 +49,7 @@ public class CommandParsingTest
 
         List.of("get", "post", "put", "patch", "delete", "create-item", "create-container",
                 "add-view", "add-construct", "add-select", "add-result-set-chart", "add-file", "add-generic-service",
+                "list-packages", "add-package-import", "remove-package-import",
                 "admin", "content", "imports").
             forEach(name -> assertTrue(root.getSubcommands().containsKey(name), name));
 
