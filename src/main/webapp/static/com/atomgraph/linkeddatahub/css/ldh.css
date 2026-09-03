@@ -134,3 +134,6 @@ circle { cursor: move; }
    The editor documents this as a host requirement (padding-left >= 2.5em); LDH must reserve it since
    the .rdfa-editor-content div is generated bare by the XMLLiteral form control. */
 .rdfa-editor-content { padding-left: 2.5em; }
+/* While a region is edited, every tab panel stacks visibly and editably: the editor presents the
+   structure; one-pane-visible is ReadMode's rendering of it. hidden reasserts itself on restore. */
+.rdfa-editor-content [role="tabpanel"][hidden] { display: block; }

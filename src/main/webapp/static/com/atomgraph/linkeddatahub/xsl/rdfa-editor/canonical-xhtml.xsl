@@ -120,9 +120,11 @@ version="3.0">
     <xsl:template match="*[@data-role]" mode="cm:canonical" priority="2"/>
 
     <!-- S1: active/embedding elements never survive into stored content (the
-         canonical form is the sanitization boundary for multi-user content) -->
+         canonical form is the sanitization boundary for multi-user content).
+         button is exempt: inert markup once S2 strips its handlers, and content
+         components (e.g. tab strips) legitimately store it -->
     <xsl:template match="script | style | iframe | object | embed | applet
-        | form | input | button | select | textarea | link | meta | base" mode="cm:canonical" priority="3"/>
+        | form | input | select | textarea | link | meta | base" mode="cm:canonical" priority="3"/>
 
     <!-- S1b: comments and processing instructions are noise (Word/HTML paste junk) -->
     <xsl:template match="comment() | processing-instruction()" mode="cm:canonical"/>
@@ -137,10 +139,41 @@ version="3.0">
         | @src[matches(normalize-space(.), '^data:', 'i')][not(matches(normalize-space(.), '^data:image/', 'i'))]"
         mode="cm:canonical"/>
 
-    <!-- C2: editing-state and styling-hook attributes never serialize (tabindex is
-         injected to make block images focusable navigation islands) -->
-    <xsl:template match="@contenteditable | @draggable | @class | @id | @style | @tabindex
-        | @*[starts-with(name(), 'aria-')] | @*[starts-with(name(), 'data-')]" mode="cm:canonical"/>
+    <!-- the class tokens the editor itself puts on content elements: the region and
+         run/island markers plus transient gesture and lint state. Everything else in
+         @class is authored content -->
+    <xsl:function name="cm:authored-class-tokens" as="xs:string*">
+        <xsl:param name="class" as="xs:string?"/>
+        <xsl:sequence select="tokenize($class, '\s+')[.][not(starts-with(., 'rdfa-editor-') or . = ('dragging', 'drop-before', 'drop-after', 'drop-into', 'rdfa-invalid'))]"/>
+    </xsl:function>
+
+    <!-- attributes that survive canonicalization and so count as authored meaning:
+         everything except the editor's own injections (C2) and stripped handlers (S2).
+         C6/C7's meaninglessness tests consult this, so an element keeping an authored
+         class, id, aria-* etc. is never unwrapped as browser junk -->
+    <xsl:function name="cm:authored-attributes" as="attribute()*">
+        <xsl:param name="element" as="element()"/>
+        <xsl:sequence select="$element/@*[not(name() = ('contenteditable', 'draggable', 'style') or (name() = 'tabindex' and . = '-1') or matches(local-name(), '^on', 'i') or (name() = 'class' and empty(cm:authored-class-tokens(.))))]"/>
+    </xsl:function>
+
+    <!-- C2: only the editing-state attributes the editor itself injects are stripped
+         (tabindex="-1" makes block images/islands focusable navigation islands), plus
+         @style, which no editing gesture can author - browsers mint styled spans during
+         editing and paste, so inline style is browser mess like font/u, not content.
+         Authored attributes - class, id, aria-*, data-*, role, hidden - are content
+         and round-trip untouched: the canonical form owes the author fidelity. A host
+         with a stricter storage policy layers its own stripping by overriding these
+         templates at higher import precedence -->
+    <xsl:template match="@contenteditable | @draggable | @style | @tabindex[. = '-1']" mode="cm:canonical"/>
+
+    <!-- C2b: the editor's own class tokens are subtracted from @class; authored tokens
+         survive, and an attribute left empty drops -->
+    <xsl:template match="@class" mode="cm:canonical">
+        <xsl:variable name="tokens" select="cm:authored-class-tokens(.)" as="xs:string*"/>
+        <xsl:if test="exists($tokens)">
+            <xsl:attribute name="class" select="string-join($tokens, ' ')"/>
+        </xsl:if>
+    </xsl:template>
 
     <!-- C3/C4: presentational aliases to their semantic elements -->
     <xsl:template match="b" mode="cm:canonical">
@@ -160,15 +193,15 @@ version="3.0">
         <xsl:apply-templates select="node()" mode="#current"/>
     </xsl:template>
 
-    <!-- C6: a span left without RDFa or language attributes carries no meaning -->
-    <xsl:template match="span[not(@property or @about or @typeof or @resource or @content
-            or @datatype or @lang or @xml:lang)]" mode="cm:canonical">
+    <!-- C6: a span left without any authored attribute carries no meaning; RDFa,
+         language, class, id etc. all count as meaning -->
+    <xsl:template match="span[empty(cm:authored-attributes(.))]" mode="cm:canonical">
         <xsl:apply-templates select="node()" mode="#current"/>
     </xsl:template>
 
     <!-- C7a: browser-generated attributeless div with inline content becomes a
-         paragraph; RDFa-bearing divs pass -->
-    <xsl:template match="div[not(@property or @about or @typeof or @resource)]
+         paragraph; divs bearing any authored attribute pass -->
+    <xsl:template match="div[empty(cm:authored-attributes(.))]
             [empty(*[cm:block(local-name(.))])]" mode="cm:canonical">
         <p>
             <xsl:apply-templates select="@* | node()" mode="#current"/>
@@ -178,7 +211,7 @@ version="3.0">
     <!-- C7b: an attributeless div holding blocks is a semantics-free grouping
          wrapper (p may not contain blocks) - unwrap to its children; stray inline
          residue is re-coerced by pass 2 in the parent's context -->
-    <xsl:template match="div[not(@property or @about or @typeof or @resource)]
+    <xsl:template match="div[empty(cm:authored-attributes(.))]
             [exists(*[cm:block(local-name(.))])]" mode="cm:canonical">
         <xsl:apply-templates select="node()" mode="#current"/>
     </xsl:template>
@@ -202,8 +235,9 @@ version="3.0">
     </xsl:template>
 
     <!-- C8: empty non-RDFa inline elements are junk; RDFa-bearing empties
-         (hidden <span property resource/> definitions) are kept by C6's predicates -->
-    <xsl:template match="(strong | em | a | code)[not(normalize-space(.))][not(.//img)]
+         (hidden <span property resource/> definitions) are kept by C6's predicates,
+         and an empty a[@id] is an anchor target, not junk -->
+    <xsl:template match="(strong | em | a | code)[not(normalize-space(.))][not(.//img)][not(@id)]
             [not(@property or @about or @typeof or @resource or @content)]" mode="cm:canonical" priority="1"/>
 
     <!-- C10: line structure inside pre is text, not markup -->

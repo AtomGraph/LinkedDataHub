@@ -261,6 +261,32 @@ exclude-result-prefixes="#all"
         </xsl:if>
     </xsl:template>
 
+    <!-- ARIA content tabs (design-system .ldhc-tabs with .ldhc-tabpanel panes, e.g. authored in XHTML content):
+         move is-on/aria-selected to the clicked tab and unhide only the panel it aria-controls. Paneless tablists
+         (the query block's mode tabs re-render results and carry their own priority-1 handlers) fail the panel guard -->
+
+    <xsl:template match="button[contains-token(@class, 'ldhc-tab')][@role = 'tab'][not(contains-token(@class, 'is-on'))]" mode="ixsl:onclick">
+        <xsl:variable name="tab" select="." as="element()"/>
+        <xsl:variable name="panels" select="ancestor::div[contains-token(@class, 'ldhc-tabs')][1]/div[contains-token(@class, 'ldhc-tabpanel')]" as="element()*"/>
+
+        <xsl:if test="exists($panels)">
+            <xsl:for-each select="../button[contains-token(@class, 'ldhc-tab')]">
+                <ixsl:set-attribute name="aria-selected" select="'false'"/>
+                <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'remove', [ 'is-on' ])[current-date() lt xs:date('2000-01-01')]"/>
+            </xsl:for-each>
+            <xsl:for-each select="$panels">
+                <ixsl:set-attribute name="hidden" select="'hidden'"/>
+            </xsl:for-each>
+            <xsl:for-each select="$tab">
+                <ixsl:set-attribute name="aria-selected" select="'true'"/>
+                <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'add', [ 'is-on' ])[current-date() lt xs:date('2000-01-01')]"/>
+            </xsl:for-each>
+            <xsl:for-each select="$panels[@id = $tab/@aria-controls]">
+                <ixsl:remove-attribute name="hidden"/>
+            </xsl:for-each>
+        </xsl:if>
+    </xsl:template>
+
     <!-- toggle the block links popover (backlinks) from the header/toolbar links button -->
 
     <xsl:template match="div[contains-token(@class, 'links-nav')]/button[contains-token(@class, 'tb-links')]" mode="ixsl:onclick">

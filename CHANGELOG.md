@@ -90,6 +90,9 @@ Bootstrap 2 is gone, and with it the class vocabulary application stylesheets we
 - The property-list grid keys on the wrapped `dt`/`dd` shape, leaving prose `dl`s to their own layout
 - An error page renders without the action bar, which had nothing left to act on
 
+### Known limitations
+- The in-place editor edits tab-group content but cannot create tab groups: while a region is edited every tab panel is shown stacked and editable, and the markup round-trips intact, but there is no gesture that inserts a new tab group — that markup is authored via the HTTP API (e.g. `ldh put`) for now
+
 ## [5.10.0] - 2026-08-30
 ### Added
 - `ldh` command line interface (`cli/`): a standalone picocli/Jena port of the `bin/` HTTP API scripts — one command per script with the same option names, `bin/` subdirectories as nested subcommand groups, PKCS12 WebID keystore authentication, env-var defaults and a shaded executable jar
