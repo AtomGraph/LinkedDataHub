@@ -12,7 +12,20 @@
                    Focus is ALWAYS a visible ring; never removed.
    · Inverse     — anything that can land on a dark surface has .is-inverse.
    · Floating    — menus/popovers/tooltips share .ldhc-float positioning.
+
+   INVENTORY (this file, then the two imported below)
+     core.css      Icon · Button · UtilityButton · TextLink · Label · HelpText ·
+                   VisuallyHidden · TextField · TextArea · Checkbox ·
+                   CheckboxGroup · RadioButton · RadioGroup · Toggle · Tag ·
+                   Badge · InlineAlert · Toast · ProgressBar · ProgressCircle ·
+                   Skeleton · Divider · ContentSwitcher · Tabs · Tooltip ·
+                   Toggletip
+     controls.css  Select · Combobox · IconButton · FileInput · CodeField
+     overlays.css  Menu (+ ActionOverflow) · Popover · Modal
    ========================================================================= */
+
+@import url('controls.css');
+@import url('overlays.css');
 
 /* ---------- Icon — the Material Symbols primitive ----------
    Five sizes aligned to the text/control scale; colour inherits from the
@@ -86,7 +99,7 @@
 .ldhc-btn.in-primary  { --btn-bg: var(--bg-accent);      --btn-bg-hover: var(--bg-accent-hover); --btn-fg: var(--fg-on-accent); }
 .ldhc-btn.in-neutral  { --btn-bg: var(--surface-2);      --btn-bg-hover: var(--surface-3);       --btn-fg: var(--fg-1); }
 .ldhc-btn.in-accent   { --btn-bg: var(--ldh-violet-600); --btn-bg-hover: var(--ldh-violet-700);  --btn-fg: #ffffff; }
-.ldhc-btn.in-negative { --btn-bg: var(--danger-500);     --btn-bg-hover: var(--danger-600, #b62f2f); --btn-fg: #ffffff; }
+.ldhc-btn.in-negative { --btn-bg: var(--danger-500);     --btn-bg-hover: var(--danger-600); --btn-fg: var(--fg-on-danger); }
 .ldhc-btn.in-inverse  { --btn-bg: #ffffff;               --btn-bg-hover: rgba(255,255,255,0.88); --btn-fg: var(--ink-1); }
 
 /* appearance: solid — the intent colour as a fill */
@@ -468,7 +481,7 @@
 /* ---------- Toast ---------- */
 .ldhc-toast-region {
   position: fixed; z-index: 60; display: flex; flex-direction: column; gap: var(--sp-2);
-  max-width: min(400px, calc(100% - 32px));
+  max-width: min(400px, calc(100vw - 32px));
 }
 .ldhc-toast-region.rg-bottom-right { right: var(--sp-6); bottom: var(--sp-6); }
 .ldhc-toast-region.rg-top-right { right: var(--sp-6); top: var(--sp-6); }

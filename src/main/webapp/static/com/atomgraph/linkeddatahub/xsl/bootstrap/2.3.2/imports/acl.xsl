@@ -41,6 +41,7 @@ exclude-result-prefixes="#all">
         <xsl:variable name="properties" select="../../*[concat(namespace-uri(), local-name()) = $this]" as="element()*"/>
 
         <xsl:variable name="modes" select="key('resources-by-subclass', '&acl;Access', document(ac:document-uri('&acl;')))" as="element()*"/>
+        <span class="ldhc-select sz-sm is-multiple">
         <select name="ou" id="{generate-id()}" multiple="multiple" size="{count($modes)}">
             <xsl:for-each select="$modes">
                 <xsl:sort select="ac:label(.)" lang="{ac:langs()[1]}"/>
@@ -49,6 +50,7 @@ exclude-result-prefixes="#all">
                 </xsl:apply-templates>
             </xsl:for-each>
         </select>
+        </span>
 
         <xsl:if test="$type-label">
             <xsl:apply-templates select="." mode="bs2:FormControlTypeLabel"/>
@@ -220,7 +222,7 @@ exclude-result-prefixes="#all">
             </xsl:call-template>
 
             <div class="ldh-block-foot">
-                <button type="submit" class="ldh-btn">
+                <button type="submit" class="ldhc-btn in-primary ap-solid sz-md">
                     <span class="msi sm" aria-hidden="true">check</span>
                     <xsl:value-of>
                         <xsl:apply-templates select="key('resources', 'allow', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>

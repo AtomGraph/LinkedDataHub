@@ -369,7 +369,7 @@ exclude-result-prefixes="#all">
         </xsl:for-each>
     </xsl:template>
 
-    <!-- design system skin selectors on the root element (app.css/retro.css key on them).
+    <!-- the m3 skin selector on the root element (retro.css keys on it) is the product's shipped look, not an optional theme.
 
          lang is the language the page is composed in, taken from the Content-Language this response already carries rather
          than from the languages the reader accepts - asking for German does not make the page German, and
@@ -396,7 +396,7 @@ exclude-result-prefixes="#all">
         <xsl:if test="$load-yasqe">
             <link href="{resolve-uri('static/css/yasqe.css', lapp:origin())}" rel="stylesheet" type="text/css"/>
         </xsl:if>
-        <!-- design system: fonts (vendored), tokens, components, m3 skin - after the legacy links so its resets win during the transition -->
+        <!-- design system: fonts (vendored), tokens, components (app.css imports core.css, which imports controls.css and overlays.css), m3 skin - after the legacy links so its resets win during the transition -->
         <link href="{resolve-uri('static/com/atomgraph/linkeddatahub/css/fonts.css', lapp:origin())}" rel="stylesheet" type="text/css"/>
         <link href="{resolve-uri('static/com/atomgraph/linkeddatahub/css/colors_and_type.css', lapp:origin())}" rel="stylesheet" type="text/css"/>
         <link href="{resolve-uri('static/com/atomgraph/linkeddatahub/css/app.css', lapp:origin())}" rel="stylesheet" type="text/css"/>
@@ -633,8 +633,14 @@ WHERE
                     <xsl:if test="$notifications/rdf:RDF/*[@rdf:about]">
                         <li>
                             <div class="btn-group">
-                                <button class="dropdown-toggle ldh-icon-btn has-dot" title="{ac:label(key('resources', 'notifications', document('translations.rdf')))}">
-                                    <span class="msi outline" aria-hidden="true">notifications</span>
+                                <!-- the button doubles as the badge anchor (ldhc-badge-wrap): the generic dropdown handler needs dropdown-toggle as a direct child of the btn-group, so a wrapping span is not an option -->
+                                <button class="dropdown-toggle ldhc-iconbtn sz-lg in-neutral ap-ghost ldhc-badge-wrap" title="{ac:label(key('resources', 'notifications', document('translations.rdf')))}">
+                                    <span class="msi outline sm" aria-hidden="true">notifications</span>
+                                    <span class="ldhc-badge co-informative sz-md pl-top-right is-dot" style="border-color: transparent">
+                                        <span class="ldhc-vh">
+                                            <xsl:value-of select="ac:label(key('resources', 'notifications', document('translations.rdf')))"/>
+                                        </span>
+                                    </span>
                                 </button>
                                 <ul class="dropdown-menu">
                                     <xsl:for-each select="$notifications/rdf:RDF/*[@rdf:about]">
@@ -673,8 +679,8 @@ WHERE
             <xsl:if test="exists($user-defined-apps) or exists($system-apps)">
                 <li>
                     <div class="btn-group">
-                        <button class="dropdown-toggle ldh-icon-btn btn-apps" title="{ac:label(key('resources', 'application-list-title', document('translations.rdf')))}">
-                            <span class="msi" aria-hidden="true">apps</span>
+                        <button class="dropdown-toggle ldhc-iconbtn sz-lg in-neutral ap-ghost btn-apps" title="{ac:label(key('resources', 'application-list-title', document('translations.rdf')))}">
+                            <span class="msi sm" aria-hidden="true">apps</span>
                         </button>
                         <ul class="dropdown-menu">
                             <xsl:if test="exists($user-defined-apps)">
@@ -1024,8 +1030,8 @@ WHERE
     
     <xsl:template match="rdf:RDF[lapp:origin()] | srx:sparql[lapp:origin()]" mode="bs2:Settings" priority="1">
         <div class="btn-group">
-            <button type="button" class="dropdown-toggle ldh-icon-btn" title="{ac:label(key('resources', 'nav-bar-action-settings-title', document('translations.rdf')))}">
-                <span class="msi outline" aria-hidden="true">settings</span>
+            <button type="button" class="dropdown-toggle ldhc-iconbtn sz-lg in-neutral ap-ghost" title="{ac:label(key('resources', 'nav-bar-action-settings-title', document('translations.rdf')))}">
+                <span class="msi outline sm" aria-hidden="true">settings</span>
             </button>
 
             <ul class="dropdown-menu">

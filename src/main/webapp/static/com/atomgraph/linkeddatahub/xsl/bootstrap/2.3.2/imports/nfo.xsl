@@ -34,13 +34,21 @@ exclude-result-prefixes="#all">
         <xsl:param name="accept" as="xs:string?"/>
         <xsl:param name="type-label" select="true()" as="xs:boolean"/>
 
-        <xsl:call-template name="xhtml:Input">
-            <xsl:with-param name="name" select="'ol'"/>
-            <xsl:with-param name="type" select="'file'"/>
-            <xsl:with-param name="id" select="$id"/>
-            <xsl:with-param name="class" select="$class"/>
-        </xsl:call-template>
-        
+        <div class="ldhc-fileinput">
+            <label class="ldhc-file-drop" for="{$id}" tabindex="0">
+                <span class="msi outline sm" aria-hidden="true">upload_file</span>
+                <span>
+                    <xsl:apply-templates select="key('resources', 'upload', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                </span>
+                <xsl:call-template name="xhtml:Input">
+                    <xsl:with-param name="name" select="'ol'"/>
+                    <xsl:with-param name="type" select="'file'"/>
+                    <xsl:with-param name="id" select="$id"/>
+                    <xsl:with-param name="class" select="$class"/>
+                </xsl:call-template>
+            </label>
+        </div>
+
         <xsl:if test="$type-label">
             <xsl:apply-templates select="." mode="bs2:FormControlTypeLabel"/>
         </xsl:if>
@@ -56,7 +64,11 @@ exclude-result-prefixes="#all">
         <xsl:param name="type" as="xs:string?"/>
 
         <xsl:if test="not($type = 'hidden')">
-            <span class="help-inline">Upload</span>
+            <div class="ldh-annot">
+                <span class="ldhc-tag sz-sm em-quiet co-neutral">
+                    <xsl:apply-templates select="key('resources', 'upload', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                </span>
+            </div>
         </xsl:if>
     </xsl:template>
     

@@ -1,0 +1,361 @@
+/* =========================================================================
+   ui_kits/core/controls.css — form-control primitives
+   Select · Combobox · IconButton · FileInput · CodeField
+
+   Every control here carries the full core contract: default / hover / active /
+   focus-visible / disabled, plus loading and invalid where relevant. Metrics
+   match .ldhc-field-box exactly (sm 32 / md 40 / lg 48) so a select, a combobox
+   and a text field line up in the same row.
+
+   ONE FOCUS RING. Everything below uses --focus-ring. No control defines its
+   own; the transitional bridge's separate ring is retired.
+   ========================================================================= */
+
+/* =========================================================================
+   Select — the design-system replacement for a native <select>.
+   Single, multiple (size), grouped (optgroup), and a LOCKED display for the
+   disabled single-option case (the Container/Item subject row): that one reads
+   as a static value with a lock affordance, NOT as a dead dropdown, because a
+   greyed-out control invites clicking at something that can never respond.
+   ========================================================================= */
+.ldhc-select { position: relative; display: inline-flex; align-items: center; width: 100%; min-width: 0; }
+.ldhc-select > select {
+  appearance: none; -webkit-appearance: none;
+  width: 100%; min-width: 0; box-sizing: border-box;
+  font-family: var(--font-sans); color: var(--fg-1);
+  background: var(--surface-0);
+  border: 1px solid var(--border-default); border-radius: var(--r-md);
+  cursor: pointer;
+  transition: border-color var(--dur-fast) var(--ease-out-soft), box-shadow var(--dur-fast) var(--ease-out-soft), background var(--dur-fast) var(--ease-out-soft);
+}
+.ldhc-select.sz-sm > select { height: 32px; padding: 0 30px 0 10px; font-size: var(--fs-sm); }
+.ldhc-select.sz-md > select { height: 40px; padding: 0 34px 0 12px; font-size: var(--fs-base); }
+.ldhc-select.sz-lg > select { height: 48px; padding: 0 38px 0 14px; font-size: var(--fs-base); }
+.ldhc-select > select:hover { border-color: var(--border-strong); }
+.ldhc-select > select:focus-visible { outline: 0; border-color: var(--ldh-blue-400); box-shadow: var(--focus-ring); }
+.ldhc-select > select:disabled { background: var(--surface-1); color: var(--fg-hint); cursor: not-allowed; opacity: 0.65; }
+.ldhc-select > .ldhc-select-caret { position: absolute; right: 9px; pointer-events: none; color: var(--fg-hint); }
+.ldhc-select > select:disabled ~ .ldhc-select-caret { opacity: 0.5; }
+/* Grouped options — optgroup labels take the mono eyebrow treatment where the
+   platform lets us style them. */
+.ldhc-select optgroup {
+  font-family: var(--font-mono); font-size: var(--fs-xs); font-weight: var(--fw-medium);
+  color: var(--fg-hint); text-transform: uppercase; letter-spacing: var(--tracking-wide);
+}
+.ldhc-select option { font-family: var(--font-sans); font-size: var(--fs-base); color: var(--fg-1); }
+/* Multiple — a real list box, so it drops the caret and takes its own height. */
+.ldhc-select.is-multiple > select { height: auto; padding: 4px; cursor: default; }
+.ldhc-select.is-multiple > .ldhc-select-caret { display: none; }
+.ldhc-select.is-multiple option { padding: 5px 8px; border-radius: var(--r-xs); }
+.ldhc-select.is-multiple option:checked { background: var(--bg-selected); color: var(--fg-selected); }
+/* Invalid — reaches the select, not just inputs. */
+.ldhc-select.st-invalid > select { border-color: var(--danger-500); }
+.ldhc-select.st-invalid > select:focus-visible { box-shadow: 0 0 0 4px color-mix(in srgb, var(--danger-500) 18%, transparent); }
+.ldhc-select.st-valid > select { border-color: var(--success-500); }
+
+/* Locked display — one immutable option. A static value + lock glyph, with the
+   real (disabled) select kept in the DOM for form serialisation. */
+.ldhc-select-locked {
+  display: inline-flex; align-items: center; gap: var(--sp-2);
+  box-sizing: border-box; min-width: 0;
+  background: var(--surface-2); border: 1px solid transparent; border-radius: var(--r-md);
+  color: var(--fg-2); font-family: var(--font-sans);
+}
+.ldhc-select-locked.sz-sm { height: 32px; padding: 0 10px; font-size: var(--fs-sm); }
+.ldhc-select-locked.sz-md { height: 40px; padding: 0 12px; font-size: var(--fs-base); }
+.ldhc-select-locked > .msi { color: var(--fg-hint); flex-shrink: 0; }
+.ldhc-select-locked > .lk-val { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ldhc-select-locked > select { display: none; }
+
+/* =========================================================================
+   Combobox / Autocomplete — ONE primitive replacing the three bespoke variants
+   (typeahead result list, resource picker, constructor predicate cell).
+
+   Committed value renders as a TAG with a change affordance, not a button with
+   a chevron: the old chip read as a dropdown trigger when its real meaning is
+   "selected value — click to change".
+   ========================================================================= */
+.ldhc-combobox { position: relative; display: flex; flex-direction: column; min-width: 0; width: 100%; }
+.ldhc-cb-box {
+  display: flex; align-items: center; gap: var(--sp-2);
+  box-sizing: border-box; background: var(--surface-0);
+  border: 1px solid var(--border-default); border-radius: var(--r-md);
+  transition: border-color var(--dur-fast) var(--ease-out-soft), box-shadow var(--dur-fast) var(--ease-out-soft);
+}
+.ldhc-combobox.sz-sm .ldhc-cb-box { min-height: 32px; padding: 0 8px; }
+.ldhc-combobox.sz-md .ldhc-cb-box { min-height: 40px; padding: 0 10px; }
+.ldhc-combobox.sz-lg .ldhc-cb-box { min-height: 48px; padding: 0 12px; }
+.ldhc-cb-box:hover { border-color: var(--border-strong); }
+.ldhc-cb-box:focus-within { border-color: var(--ldh-blue-400); box-shadow: var(--focus-ring); }
+.ldhc-combobox.st-invalid .ldhc-cb-box { border-color: var(--danger-500); }
+.ldhc-combobox.st-invalid .ldhc-cb-box:focus-within { box-shadow: 0 0 0 4px color-mix(in srgb, var(--danger-500) 18%, transparent); }
+.ldhc-combobox.is-disabled .ldhc-cb-box { background: var(--surface-1); opacity: 0.6; pointer-events: none; }
+.ldhc-cb-box > .msi { color: var(--fg-hint); flex-shrink: 0; }
+.ldhc-cb-box > input {
+  flex: 1; min-width: 0; border: 0; background: transparent; outline: none;
+  font-family: var(--font-sans); font-size: var(--fs-sm); color: var(--fg-1); padding: 6px 0;
+}
+.ldhc-cb-box > input::placeholder { color: var(--fg-hint); }
+/* IRI-valued comboboxes type in mono — the value is machine-readable. */
+.ldhc-combobox.is-iri .ldhc-cb-box > input { font-family: var(--font-mono); font-size: var(--fs-xs); }
+.ldhc-cb-clear {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 22px; height: 22px; flex-shrink: 0; padding: 0;
+  border: 0; background: transparent; cursor: pointer; color: var(--fg-hint); border-radius: var(--r-xs);
+}
+.ldhc-cb-clear:hover { background: var(--bg-hover); color: var(--fg-1); }
+.ldhc-cb-clear:focus-visible { outline: 0; box-shadow: var(--focus-ring); }
+
+/* Result panel */
+.ldhc-cb-panel {
+  position: absolute; top: calc(100% + 4px); left: 0; right: 0; z-index: 40;
+  max-height: 268px; overflow-y: auto;
+  background: var(--surface-0);
+  border: 1px solid var(--border-default); border-radius: var(--r-md);
+  box-shadow: var(--shadow-lg);
+  padding: 4px;
+  animation: ldhc-cb-in var(--dur-fast) var(--ease-out-soft);
+}
+@keyframes ldhc-cb-in { from { opacity: 0; transform: translateY(-3px); } }
+.ldhc-cb-section {
+  padding: 7px 10px 4px;
+  font-family: var(--font-mono); font-size: var(--fs-xs); font-weight: var(--fw-medium);
+  letter-spacing: var(--tracking-wide); text-transform: uppercase; color: var(--fg-hint);
+}
+.ldhc-cb-item {
+  display: flex; align-items: center; gap: var(--sp-2); width: 100%;
+  padding: 7px 10px; border: 0; background: transparent; cursor: pointer;
+  text-align: left; border-radius: var(--r-sm);
+  font-family: var(--font-sans); font-size: var(--fs-sm); color: var(--fg-1);
+}
+.ldhc-cb-item:hover { background: var(--bg-hover); }
+/* Keyboard-active item is a distinct state from hover — the pointer and the
+   arrow keys can be in different places, and only one of them is "active". */
+.ldhc-cb-item.is-active { background: var(--bg-selected); color: var(--fg-selected); }
+.ldhc-cb-item[aria-selected="true"] .msi.tick { color: var(--fg-selected); }
+.ldhc-cb-item > .ldhc-cb-ic { color: var(--fg-hint); flex-shrink: 0; }
+.ldhc-cb-item.is-active > .ldhc-cb-ic { color: var(--fg-selected); }
+.ldhc-cb-item-body { display: flex; flex-direction: column; min-width: 0; gap: 1px; }
+.ldhc-cb-item-lbl { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ldhc-cb-item-sub { font-family: var(--font-mono); font-size: var(--fs-xs); color: var(--fg-hint); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ldhc-cb-item.is-active .ldhc-cb-item-sub { color: color-mix(in srgb, var(--fg-selected) 72%, transparent); }
+/* Match highlight — the token the live markup never had. Weight + tint, no
+   background box, so a match inside a long label stays readable. */
+.ldhc-cb-mark { font-weight: var(--fw-bold); color: var(--fg-selected); background: none; }
+.ldhc-cb-item.is-active .ldhc-cb-mark { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
+
+/* Panel states: loading / empty / fetch error. A failed fetch is a designed
+   state here — it used to be a window.alert. */
+.ldhc-cb-state {
+  display: flex; align-items: center; gap: var(--sp-2);
+  padding: 12px 10px; font-family: var(--font-sans); font-size: var(--fs-sm); color: var(--fg-muted);
+}
+.ldhc-cb-state.is-error { color: var(--danger-500); flex-wrap: wrap; }
+.ldhc-cb-state.is-error .msi { color: var(--danger-500); }
+.ldhc-cb-state .ldhc-cb-retry {
+  margin-left: auto; border: 0; background: transparent; cursor: pointer;
+  font-family: var(--font-sans); font-size: var(--fs-sm); font-weight: var(--fw-medium);
+  color: var(--fg-link); text-decoration: underline; border-radius: var(--r-xs);
+}
+.ldhc-cb-state .ldhc-cb-retry:focus-visible { outline: 0; box-shadow: var(--focus-ring); }
+.ldhc-cb-skel { display: flex; flex-direction: column; gap: 6px; padding: 8px 10px; }
+
+/* Committed value — a tag, with change + clear. Reads as "selected value". */
+.ldhc-cb-committed { display: inline-flex; align-items: center; gap: 6px; min-width: 0; max-width: 100%; }
+.ldhc-cb-chip {
+  display: inline-flex; align-items: center; gap: 5px; min-width: 0; max-width: 100%;
+  box-sizing: border-box; height: 26px; padding: 0 4px 0 10px;
+  background: var(--bg-accent-quiet); color: var(--fg-selected);
+  border: 1px solid color-mix(in srgb, var(--fg-selected) 24%, transparent);
+  border-radius: var(--r-pill);
+  font-family: var(--font-mono); font-size: var(--fs-xs); font-weight: var(--fw-medium);
+}
+.ldhc-cb-chip > .cb-chip-lbl { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ldhc-cb-chip > .cb-chip-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 18px; height: 18px; padding: 0; flex-shrink: 0;
+  border: 0; background: transparent; color: inherit; cursor: pointer; border-radius: 50%;
+}
+.ldhc-cb-chip > .cb-chip-btn:hover { background: color-mix(in srgb, currentColor 16%, transparent); }
+.ldhc-cb-chip > .cb-chip-btn:focus-visible { outline: 0; box-shadow: var(--focus-ring); }
+.ldhc-cb-chip > .cb-chip-btn .msi { font-size: 14px; }
+
+/* =========================================================================
+   IconButton — .tb promoted out of scoped recipes into a named primitive.
+   Sizes 28 / 32 / 34 (all three occur in the port). Intents neutral /
+   destructive / accent. `is-reveal` is the row-hover behaviour: invisible until
+   its container is hovered or anything inside it takes focus — never
+   display:none, so it keeps its footprint and the row doesn't shift.
+   ========================================================================= */
+.ldhc-iconbtn {
+  display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;
+  padding: 0; box-sizing: border-box;
+  border: 1px solid transparent; border-radius: var(--r-sm);
+  background: transparent; color: var(--fg-muted); cursor: pointer;
+  transition: background var(--dur-fast) var(--ease-out-soft), color var(--dur-fast) var(--ease-out-soft),
+              border-color var(--dur-fast) var(--ease-out-soft), opacity var(--dur-fast) var(--ease-out-soft);
+}
+.ldhc-iconbtn.sz-xs { width: 28px; height: 28px; }
+.ldhc-iconbtn.sz-sm { width: 32px; height: 32px; }
+.ldhc-iconbtn.sz-md { width: 34px; height: 34px; }
+.ldhc-iconbtn.sz-lg { width: 36px; height: 36px; }
+.ldhc-iconbtn:hover { background: var(--bg-hover); color: var(--fg-1); }
+.ldhc-iconbtn:active { background: var(--bg-active); }
+.ldhc-iconbtn:focus-visible { outline: 0; box-shadow: var(--focus-ring); }
+.ldhc-iconbtn:disabled { cursor: not-allowed; opacity: 0.4; pointer-events: none; }
+.ldhc-iconbtn.ap-solid { background: var(--surface-0); border-color: var(--border-default); }
+.ldhc-iconbtn.ap-solid:hover { border-color: var(--border-strong); }
+.ldhc-iconbtn.in-destructive:hover { background: var(--danger-50); color: var(--danger-500); }
+.ldhc-iconbtn.in-accent:hover { background: var(--bg-accent-quiet); color: var(--fg-selected); }
+/* On a dark surface (the header bar) the neutral hover tokens are invisible, so
+   this intent tints with white-alpha instead. It exists so the header does not
+   need its own icon-button class. */
+.ldhc-iconbtn.in-inverse { color: rgba(255, 255, 255, 0.82); }
+.ldhc-iconbtn.in-inverse:hover { background: rgba(255, 255, 255, 0.12); color: #fff; }
+.ldhc-iconbtn.in-inverse:active { background: rgba(255, 255, 255, 0.18); }
+/* Pressed — the named state the subject bar's pencil toggle lacked. */
+.ldhc-iconbtn[aria-pressed="true"] { background: var(--bg-selected); color: var(--fg-selected); }
+.ldhc-iconbtn[aria-pressed="true"]:hover { background: var(--bg-selected); }
+.ldhc-iconbtn.is-loading { pointer-events: none; }
+/* Reveal-on-hover: opacity only, so layout is stable. Always visible once
+   focused, so keyboard users are never chasing an invisible control. */
+.ldhc-iconbtn.is-reveal { opacity: 0; }
+:hover > .ldhc-iconbtn.is-reveal,
+:focus-within > .ldhc-iconbtn.is-reveal,
+.ldhc-iconbtn.is-reveal:focus-visible { opacity: 1; }
+/* Transient confirmation (copy-URI): the glyph swaps to a tick and the button
+   flashes positive, then returns. */
+.ldhc-iconbtn.is-confirmed { background: var(--success-50); color: var(--success-500); }
+
+/* =========================================================================
+   FileInput at VALUE-ROW scale — idle / drag-over / selected / uploading /
+   error. Distinct from .ldh-dropzone, which is the big Imports-flow target;
+   this one has to sit inside a 32px property row.
+   ========================================================================= */
+.ldhc-fileinput { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.ldhc-file-drop {
+  display: flex; align-items: center; gap: var(--sp-2);
+  box-sizing: border-box; min-height: 32px; padding: 4px 10px;
+  background: var(--surface-0);
+  border: 1px dashed var(--border-strong); border-radius: var(--r-md);
+  cursor: pointer; color: var(--fg-muted);
+  font-family: var(--font-sans); font-size: var(--fs-sm);
+  transition: border-color var(--dur-fast) var(--ease-out-soft), background var(--dur-fast) var(--ease-out-soft), color var(--dur-fast) var(--ease-out-soft);
+}
+.ldhc-file-drop:hover { border-color: var(--ldh-blue-400); background: var(--bg-accent-quiet); color: var(--fg-2); }
+.ldhc-file-drop:focus-visible { outline: 0; border-color: var(--ldh-blue-400); box-shadow: var(--focus-ring); }
+.ldhc-file-drop > .msi { color: var(--fg-hint); flex-shrink: 0; }
+.ldhc-file-drop .fd-link { color: var(--fg-link); text-decoration: underline; }
+.ldhc-file-drop input[type="file"] { display: none; }
+/* Drag-over is a solid border + accent wash: a dashed edge under an actively
+   hovering file reads as "still waiting", which is the wrong signal. */
+.ldhc-fileinput.is-dragover .ldhc-file-drop {
+  border-style: solid; border-color: var(--ldh-blue-500);
+  background: var(--bg-accent-quiet); color: var(--fg-selected);
+}
+.ldhc-fileinput.st-invalid .ldhc-file-drop { border-color: var(--danger-500); background: var(--danger-50); }
+.ldhc-fileinput.is-disabled { opacity: 0.55; pointer-events: none; }
+/* Selected chip — name, size, remove. Row-scale sibling of .ldh-file-chip. */
+.ldhc-file-sel {
+  display: flex; align-items: center; gap: var(--sp-2);
+  box-sizing: border-box; min-height: 32px; padding: 4px 6px 4px 10px;
+  background: var(--surface-2); border: 1px solid var(--border-default); border-radius: var(--r-md);
+  min-width: 0;
+}
+.ldhc-file-sel > .msi { color: var(--fg-muted); flex-shrink: 0; }
+.ldhc-file-sel .fs-name { font-family: var(--font-mono); font-size: var(--fs-xs); color: var(--fg-1); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ldhc-file-sel .fs-size { font-family: var(--font-mono); font-size: var(--fs-xs); color: var(--fg-hint); flex-shrink: 0; }
+.ldhc-file-sel .fs-x { margin-left: auto; flex-shrink: 0; }
+.ldhc-file-prog { display: flex; align-items: center; gap: var(--sp-2); }
+.ldhc-file-prog .fp-bar { flex: 1; min-width: 0; }
+
+/* =========================================================================
+   CodeField — EDITABLE, LIGHT, in-a-form-row code surface. Hosts CodeMirror /
+   YASQE for SPARQL-valued properties. Deliberately not .ldh-sparql-*, which is
+   a dark read-only display pane: a dark editable field inside a white form row
+   reads as output, not input.
+   ========================================================================= */
+.ldhc-codefield {
+  display: flex; min-width: 0; box-sizing: border-box; overflow: hidden;
+  background: var(--surface-0);
+  border: 1px solid var(--border-default); border-radius: var(--r-md);
+  transition: border-color var(--dur-fast) var(--ease-out-soft), box-shadow var(--dur-fast) var(--ease-out-soft);
+}
+.ldhc-codefield:hover { border-color: var(--border-strong); }
+.ldhc-codefield:focus-within { border-color: var(--ldh-blue-400); box-shadow: var(--focus-ring); }
+.ldhc-codefield.st-invalid { border-color: var(--danger-500); }
+.ldhc-codefield.st-invalid:focus-within { box-shadow: 0 0 0 4px color-mix(in srgb, var(--danger-500) 18%, transparent); }
+.ldhc-codefield.is-disabled { background: var(--surface-1); opacity: 0.65; pointer-events: none; }
+.ldhc-cf-gutter {
+  flex-shrink: 0; padding: 8px 8px 8px 10px; text-align: right; user-select: none;
+  background: var(--surface-2); border-right: 1px solid var(--border-default);
+  font-family: var(--font-mono); font-size: var(--fs-xs); line-height: 1.65; color: var(--ink-5);
+}
+.ldhc-cf-area {
+  flex: 1; min-width: 0; border: 0; background: transparent; outline: none; resize: vertical;
+  padding: 8px 10px; tab-size: 2;
+  font-family: var(--font-mono); font-size: var(--fs-xs); line-height: 1.65; color: var(--fg-1);
+  white-space: pre; overflow-x: auto;
+}
+.ldhc-cf-area::placeholder { color: var(--fg-hint); }
+/* Light-theme SPARQL tokens, for a highlighted (non-textarea) host. */
+.ldhc-codefield .t-kw  { color: #a33ea3; font-weight: var(--fw-semibold); }
+.ldhc-codefield .t-fn  { color: var(--ldh-blue-700); }
+.ldhc-codefield .t-var { color: #b06000; }
+.ldhc-codefield .t-str { color: var(--success-500); }
+.ldhc-codefield .t-num { color: #b06000; }
+.ldhc-codefield .t-pn, .ldhc-codefield .t-op { color: var(--fg-muted); }
+
+
+/* =========================================================================
+   ChoiceButton — a full-width, two-line option button: a title, an optional
+   explanatory sub-line, an optional leading glyph or brand slot, and an
+   optional trailing chevron.
+
+   It exists because a plain Button cannot carry a second line, and the auth
+   screens had grown their own `.ldh-auth-btn` to do it — a fourth button
+   system with its own hover/active/focus rules. This is that need, expressed
+   once, on the same tokens as .ldhc-btn (same radius, same --focus-ring, same
+   translateY press).
+   ========================================================================= */
+.ldhc-choicebtn {
+  display: flex; align-items: center; gap: var(--sp-3);
+  width: 100%; box-sizing: border-box; text-align: left;
+  padding: var(--sp-3) var(--sp-4);
+  background: var(--surface-0); color: var(--fg-1);
+  border: 1px solid var(--border-default); border-radius: var(--r-md);
+  cursor: pointer; font-family: var(--font-sans);
+  transition: background var(--dur-fast) var(--ease-out-soft),
+              border-color var(--dur-fast) var(--ease-out-soft),
+              color var(--dur-fast) var(--ease-out-soft),
+              transform var(--dur-fast) var(--ease-out-soft);
+}
+.ldhc-choicebtn:hover { background: var(--bg-hover); border-color: var(--border-strong); }
+.ldhc-choicebtn:active { transform: translateY(1px); }
+.ldhc-choicebtn:focus-visible { outline: 0; border-color: var(--ldh-blue-400); box-shadow: var(--focus-ring); }
+.ldhc-choicebtn:disabled { cursor: not-allowed; opacity: 0.45; pointer-events: none; }
+.ldhc-cb-titles { display: flex; flex-direction: column; min-width: 0; gap: 1px; }
+.ldhc-cb-title { font-size: var(--fs-base); font-weight: var(--fw-semibold); color: inherit; }
+.ldhc-cb-sub { font-size: var(--fs-xs); color: var(--fg-muted); line-height: var(--lh-base); }
+.ldhc-choicebtn > .ldhc-cb-chev { margin-left: auto; flex-shrink: 0; color: var(--fg-hint); }
+.ldhc-choicebtn > .msi:first-child { flex-shrink: 0; color: var(--fg-muted); }
+/* Primary: the accent fill. Ink comes from --fg-on-accent, which inverts in
+   skins whose accent is pale, so the sub-line is derived from it rather than
+   hardcoded white-alpha. */
+.ldhc-choicebtn.in-primary {
+  background: var(--bg-accent); border-color: var(--bg-accent); color: var(--fg-on-accent);
+}
+.ldhc-choicebtn.in-primary:hover { background: var(--bg-accent-hover); border-color: var(--bg-accent-hover); }
+.ldhc-choicebtn.in-primary .ldhc-cb-sub { color: color-mix(in srgb, var(--fg-on-accent) 72%, transparent); }
+.ldhc-choicebtn.in-primary > .msi:first-child,
+.ldhc-choicebtn.in-primary > .ldhc-cb-chev { color: var(--fg-on-accent); }
+/* Centred variant for a form's submit, where there is no sub-line to align. */
+.ldhc-choicebtn.al-center { justify-content: center; text-align: center; }
+.ldhc-choicebtn.al-center .ldhc-cb-titles { align-items: center; }
+/* Brand slot — a third-party mark (e.g. Google) on its own white tile, so the
+   logo keeps its own colours whatever the surrounding theme. */
+.ldhc-cb-brand {
+  width: 30px; height: 30px; flex-shrink: 0; border-radius: var(--r-sm);
+  background: #fff; border: 1px solid var(--border-default);
+  display: inline-flex; align-items: center; justify-content: center;
+}

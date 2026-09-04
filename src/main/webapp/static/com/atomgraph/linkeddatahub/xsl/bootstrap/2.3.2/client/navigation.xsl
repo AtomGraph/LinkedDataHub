@@ -826,7 +826,7 @@ ORDER BY DESC(?created)
         <xsl:variable name="modal" as="element()">
             <div class="modal modal-constructor modal-class-instances fade in" id="{$modal-id}" data-container-id="{$container-id}">
                 <div class="modal-header">
-                    <button type="button" class="close">×</button>
+                    <button type="button" class="ldhc-iconbtn sz-sm in-neutral ap-ghost close" aria-label="{ac:label(key('resources', 'close', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin))))}"><span class="msi sm">close</span></button>
                     <legend>
                         <xsl:choose>
                             <xsl:when test="doc-available(ac:document-uri($class-uri))">
@@ -858,7 +858,7 @@ ORDER BY DESC(?created)
                     </div>
                 </div>
                 <div class="ldh-block-foot modal-footer">
-                    <button type="button" class="ldh-btn is-ghost btn-close">
+                    <button type="button" class="ldhc-btn in-neutral ap-outline sz-md btn-close">
                         <xsl:value-of>
                             <xsl:apply-templates select="key('resources', 'close', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
                         </xsl:value-of>
@@ -972,7 +972,7 @@ ORDER BY DESC(?created)
         <xsl:variable name="modal" as="element()">
             <div class="modal modal-constructor modal-geo fade in" id="{$modal-id}" data-container-id="{$container-id}">
                 <div class="modal-header">
-                    <button type="button" class="close">×</button>
+                    <button type="button" class="ldhc-iconbtn sz-sm in-neutral ap-ghost close" aria-label="{ac:label(key('resources', 'close', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin))))}"><span class="msi sm">close</span></button>
                     <legend>
                         <xsl:apply-templates select="key('resources', 'geo', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
                     </legend>
@@ -997,7 +997,7 @@ ORDER BY DESC(?created)
                     </div>
                 </div>
                 <div class="ldh-block-foot modal-footer">
-                    <button type="button" class="ldh-btn is-ghost btn-close">
+                    <button type="button" class="ldhc-btn in-neutral ap-outline sz-md btn-close">
                         <xsl:value-of>
                             <xsl:apply-templates select="key('resources', 'close', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
                         </xsl:value-of>
@@ -1084,7 +1084,7 @@ ORDER BY DESC(?created)
         <xsl:variable name="modal" as="element()">
             <div class="modal modal-constructor modal-latest fade in" id="{$modal-id}" data-container-id="{$container-id}">
                 <div class="modal-header">
-                    <button type="button" class="close">×</button>
+                    <button type="button" class="ldhc-iconbtn sz-sm in-neutral ap-ghost close" aria-label="{ac:label(key('resources', 'close', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin))))}"><span class="msi sm">close</span></button>
                     <legend>
                         <xsl:apply-templates select="key('resources', 'latest', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
                     </legend>
@@ -1109,7 +1109,7 @@ ORDER BY DESC(?created)
                     </div>
                 </div>
                 <div class="ldh-block-foot modal-footer">
-                    <button type="button" class="ldh-btn is-ghost btn-close">
+                    <button type="button" class="ldhc-btn in-neutral ap-outline sz-md btn-close">
                         <xsl:value-of>
                             <xsl:apply-templates select="key('resources', 'close', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
                         </xsl:value-of>
@@ -1207,7 +1207,7 @@ ORDER BY DESC(?created)
         <xsl:variable name="modal" as="element()">
             <div class="modal modal-constructor modal-search fade in" id="{$modal-id}" data-container-id="{$container-id}">
                 <div class="modal-header">
-                    <button type="button" class="close">×</button>
+                    <button type="button" class="ldhc-iconbtn sz-sm in-neutral ap-ghost close" aria-label="{ac:label(key('resources', 'close', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin))))}"><span class="msi sm">close</span></button>
                     <legend>
                         <xsl:apply-templates select="key('resources', 'search', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
                     </legend>
@@ -1238,7 +1238,7 @@ ORDER BY DESC(?created)
                     </div>
                 </div>
                 <div class="ldh-block-foot modal-footer">
-                    <button type="button" class="ldh-btn is-ghost btn-close">
+                    <button type="button" class="ldhc-btn in-neutral ap-outline sz-md btn-close">
                         <xsl:value-of>
                             <xsl:apply-templates select="key('resources', 'close', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
                         </xsl:value-of>

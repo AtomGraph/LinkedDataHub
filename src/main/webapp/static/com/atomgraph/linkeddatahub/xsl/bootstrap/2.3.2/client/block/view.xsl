@@ -437,20 +437,20 @@ exclude-result-prefixes="#all"
         <div class="ldh-pager-nav">
             <xsl:choose>
                 <xsl:when test="($offset - $limit) ge 0">
-                    <a class="ldh-pager-btn pager-prev">
-                        <span class="msi sm" aria-hidden="true">chevron_left</span>
+                    <a class="ldhc-btn in-neutral ap-outline sz-sm pager-prev">
+                        <span class="msi outline sm" aria-hidden="true">chevron_left</span>
                         <span>
                             <xsl:apply-templates select="key('resources', 'previous', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
                         </span>
                     </a>
                 </xsl:when>
                 <xsl:otherwise>
-                    <span class="ldh-pager-btn is-disabled" aria-disabled="true">
-                        <span class="msi sm" aria-hidden="true">chevron_left</span>
+                    <button type="button" class="ldhc-btn in-neutral ap-outline sz-sm" disabled="disabled" aria-disabled="true">
+                        <span class="msi outline sm" aria-hidden="true">chevron_left</span>
                         <span>
                             <xsl:apply-templates select="key('resources', 'previous', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
                         </span>
-                    </span>
+                    </button>
                 </xsl:otherwise>
             </xsl:choose>
 
@@ -472,20 +472,20 @@ exclude-result-prefixes="#all"
             <!-- next stays active while the current page is full and, when the total is known, rows remain beyond it -->
             <xsl:choose>
                 <xsl:when test="$result-count ge $limit and (empty($total-count) or ($offset + $limit) lt $total-count)">
-                    <a class="ldh-pager-btn pager-next">
+                    <a class="ldhc-btn in-neutral ap-outline sz-sm pager-next">
                         <span>
                             <xsl:apply-templates select="key('resources', 'next', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
                         </span>
-                        <span class="msi sm" aria-hidden="true">chevron_right</span>
+                        <span class="msi outline sm" aria-hidden="true">chevron_right</span>
                     </a>
                 </xsl:when>
                 <xsl:otherwise>
-                    <span class="ldh-pager-btn is-disabled" aria-disabled="true">
+                    <button type="button" class="ldhc-btn in-neutral ap-outline sz-sm" disabled="disabled" aria-disabled="true">
                         <span>
                             <xsl:apply-templates select="key('resources', 'next', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
                         </span>
-                        <span class="msi sm" aria-hidden="true">chevron_right</span>
-                    </span>
+                        <span class="msi outline sm" aria-hidden="true">chevron_right</span>
+                    </button>
                 </xsl:otherwise>
             </xsl:choose>
         </div>
@@ -3027,7 +3027,7 @@ exclude-result-prefixes="#all"
                 <xsl:apply-templates select="$instance-doc" mode="bs2:Form">
                     <xsl:with-param name="method" select="'put'"/>
                     <xsl:with-param name="action" select="ldh:href($doc-uri)" as="xs:anyURI" tunnel="yes"/>
-                    <xsl:with-param name="form-actions-class" select="'ldh-block-foot modal-footer'" as="xs:string?"/>
+                    <xsl:with-param name="form-actions-class" select="'ldh-form-bar'" as="xs:string?"/>
                     <xsl:with-param name="show-close-button" select="true()"/>
                     <xsl:with-param name="classes" select="$classes"/>
                     <xsl:with-param name="type-metadata" select="$type-metadata" tunnel="yes"/>
@@ -3042,18 +3042,19 @@ exclude-result-prefixes="#all"
 
 
             <!-- a modal takes over from the chrome that opened it: a drop-down the pick came from is dismissed here, once its own handler has run -->
-            <xsl:apply-templates select="ixsl:page()//*[contains-token(@class, 'btn-group')][contains-token(@class, 'open')]" mode="ldh:CloseDropdown"/>
+            <xsl:apply-templates select="ixsl:page()//*[contains-token(@class, 'btn-group')][contains-token(@class, 'open')] | ixsl:page()//*[contains-token(@class, 'ldh-form-actions-wrap')][contains-token(@class, 'is-open')]" mode="ldh:CloseDropdown"/>
             <xsl:result-document href="?." method="ixsl:append-content">
-                <div class="modal modal-constructor fade in" about="{$doc-uri}" typeof="{$forClass}"> <!-- @about identifies the new document URL (uniform with the other modals so submit handlers can read $block/@about); the instance URI travels on @data-instance -->
-                    <div class="modal-header">
-                        <button type="button" class="close">&#215;</button>
+                <div class="ldhc-backdrop pos-top modal modal-constructor" about="{$doc-uri}" typeof="{$forClass}"> <!-- @about identifies the new document URL (uniform with the other modals so submit handlers can read $block/@about); the instance URI travels on @data-instance -->
+                    <div class="ldhc-modal sz-lg" role="dialog" aria-modal="true">
+                        <div class="ldhc-modal-head">
+                            <span class="ldhc-modal-x">
+                                <button type="button" class="ldhc-iconbtn sz-sm in-neutral ap-ghost close" aria-label="{ac:label(key('resources', 'close', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin))))}"><span class="msi sm">close</span></button>
+                            </span>
+                        </div>
 
-                        <legend>
-                        </legend>
-                    </div>
-
-                    <div class="modal-body">
-                        <xsl:copy-of select="$form"/>
+                        <div class="ldhc-modal-body">
+                            <xsl:copy-of select="$form"/>
+                        </div>
                     </div>
                 </div>
             </xsl:result-document>
@@ -3076,14 +3077,14 @@ exclude-result-prefixes="#all"
     </xsl:function>
 
     <!-- submit inline creation modal form: forward view — the linking triple <about> <property> <new> is PATCHed into the current document by the response callback -->
-    <xsl:template match="div[contains-token(@class, 'modal-constructor')][@data-property][not(@data-inverse)]//form[contains-token(@class, 'ldh-prop-form')][upper-case(@method) = 'PUT']" mode="ixsl:onsubmit" priority="3"> <!-- prioritize over modal.xsl -->
+    <xsl:template match="div[contains-token(@class, 'modal-constructor')][@data-property][not(@data-inverse)]//form[tokenize(@class, ' ') = ('ldh-prop-form', 'ldh-edit-form')][upper-case(@method) = 'PUT']" mode="ixsl:onsubmit" priority="3"> <!-- prioritize over modal.xsl -->
         <xsl:next-match>
             <xsl:with-param name="callback" select="ldh:view-instance-form-response#1"/>
         </xsl:next-match>
     </xsl:template>
 
     <!-- submit inline creation modal form: inverse view — the linking triple <new> <property> <about> belongs in the new document's graph, so it ships inside the PUT body -->
-    <xsl:template match="div[contains-token(@class, 'modal-constructor')][@data-property][@data-inverse]//form[contains-token(@class, 'ldh-prop-form')][upper-case(@method) = 'PUT']" mode="ixsl:onsubmit" priority="3"> <!-- prioritize over modal.xsl -->
+    <xsl:template match="div[contains-token(@class, 'modal-constructor')][@data-property][@data-inverse]//form[tokenize(@class, ' ') = ('ldh-prop-form', 'ldh-edit-form')][upper-case(@method) = 'PUT']" mode="ixsl:onsubmit" priority="3"> <!-- prioritize over modal.xsl -->
         <xsl:param name="elements" select=".//input | .//textarea | .//select" as="element()*"/>
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <xsl:variable name="modal" select="ancestor::div[contains-token(@class, 'modal-constructor')][1]" as="element()"/>

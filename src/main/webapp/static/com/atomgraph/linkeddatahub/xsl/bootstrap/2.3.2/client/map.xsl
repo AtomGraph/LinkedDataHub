@@ -6,6 +6,7 @@
     <!ENTITY rdf    "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
     <!ENTITY geo    "http://www.w3.org/2003/01/geo/wgs84_pos#">
     <!ENTITY ldt    "https://www.w3.org/ns/ldt#">
+    <!ENTITY lapp   "https://w3id.org/atomgraph/linkeddatahub/apps#">
     <!ENTITY gs     "http://www.opengis.net/ont/geosparql#">
 ]>
 <xsl:stylesheet version="3.0"
@@ -21,6 +22,7 @@ xmlns:json="http://www.w3.org/2005/xpath-functions"
 xmlns:array="http://www.w3.org/2005/xpath-functions/array"
 xmlns:ac="&ac;"
 xmlns:ldh="&ldh;"
+xmlns:lapp="&lapp;"
 xmlns:rdf="&rdf;"
 xmlns:geo="&geo;"
 xmlns:ldt="&ldt;"
@@ -444,7 +446,7 @@ exclude-result-prefixes="#all"
                     <xsl:for-each select="$container">
                         <xsl:result-document href="?." method="ixsl:replace-content">
                             <div class="modal-header">
-                                <button type="button" class="close">&#215;</button>
+                                <button type="button" class="ldhc-iconbtn sz-sm in-neutral ap-ghost close" aria-label="{ac:label(key('resources', 'close', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin))))}"><span class="msi sm">close</span></button>
                             </div>
                             
                             <div class="modal-body">

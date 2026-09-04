@@ -29,7 +29,12 @@ li button.btn-edit-constructors, li button.btn-add-data, li button.btn-add-ontol
     .left-sidebar { display: block; width: auto; position: unset; top: unset; height: auto; z-index: auto; }
     .left-sidebar .nav { max-height: 20em; overflow: auto; }
 }
-.left-sidebar ul { max-height: 22em; overflow: auto; }
+/* the tree gets half the sidebar's height (the sidebar is fixed-positioned, so the percentage
+   resolves); the outer ul is the sole scroll container - nested uls stay uncapped so a deep
+   subtree scrolls the whole tree instead of growing its own scrollbar */
+.left-sidebar .document-tree { max-height: 50%; }
+.left-sidebar .document-tree > ul { overflow: auto; min-height: 0; }
+.left-sidebar .class-list ul, .left-sidebar .other-views ul { max-height: 22em; overflow: auto; }
 .left-sidebar li > a { display: inline-block; }
 .left-nav .nav, .right-nav .nav { max-height: 20em; overflow: auto; }
 .left-nav, .right-nav { position: sticky; top: 0; }
@@ -58,11 +63,7 @@ li button.btn-edit-constructors, li button.btn-add-data, li button.btn-add-ontol
 .map-canvas { height: 45em; width: 100%; }
 fieldset { border: 1px outset #999; /* padding-top: 3%; */ }
 fieldset fieldset { margin-left: 3%; margin-bottom: 3%; }
-.constructor-template .control-label { text-align: left; }
-.constructor-triple .controls label.radio { display: inline-block; padding-top: 10px; margin-right: 10px; }
-.constructor-triple .controls .help-inline { vertical-align: top; padding-top: 5px; }
 #uri { height: 24px; width: 100%; }
-.ldh-prop-form span.control-label { padding-top: 1px; }
 .control-group.required .control-label { font-weight: bold; }
 .description { display: none; }
 div[typeof="https://w3id.org/atomgraph/linkeddatahub#XHTML"] .main { font-size: larger; line-height: 25px; overflow-x: auto; }
@@ -74,9 +75,10 @@ div[typeof="https://w3id.org/atomgraph/linkeddatahub#XHTML"] .main pre { margin:
 /* click-to-edit affordance only when the pane's document grants acl:Write (mirrors the ixsl:onclick guard in block.xsl) */
 div[data-acl-modes~="http://www.w3.org/ns/auth/acl#Write"] div[typeof="https://w3id.org/atomgraph/linkeddatahub#XHTML"]:not(:has(form)) .main { cursor: pointer; }
 div[typeof="https://w3id.org/atomgraph/linkeddatahub#XHTML"] .btn-edit { display: none; }
-div[typeof="https://w3id.org/atomgraph/linkeddatahub#XHTML"] .ldh-prop-form .control-label { display: none; }
-/* collapse the bridge's label-column grid: the region spans the block as a document surface, not a form row */
-div[typeof="https://w3id.org/atomgraph/linkeddatahub#XHTML"] .ldh-prop-form .control-group, div[typeof="https://w3id.org/atomgraph/linkeddatahub#XHTML"] .ldh-prop-form .control-group > .controls { display: block; }
+/* collapse the property grid in the XHTML block's edit form: the region spans the block as a document
+   surface, not a "value" form row - the predicate label goes, and group/row/value become plain flow */
+div[typeof="https://w3id.org/atomgraph/linkeddatahub#XHTML"] .ldh-edit-form .ldh-prop-group > .label { display: none; }
+div[typeof="https://w3id.org/atomgraph/linkeddatahub#XHTML"] .ldh-edit-form .ldh-prop-form, div[typeof="https://w3id.org/atomgraph/linkeddatahub#XHTML"] .ldh-edit-form .ldh-prop-group, div[typeof="https://w3id.org/atomgraph/linkeddatahub#XHTML"] .ldh-edit-form .ldh-prop-row, div[typeof="https://w3id.org/atomgraph/linkeddatahub#XHTML"] .ldh-edit-form .ldh-prop-row > .value, div[typeof="https://w3id.org/atomgraph/linkeddatahub#XHTML"] .ldh-edit-form .val-main { display: block; padding-left: 0; padding-right: 0; }
 div[typeof="https://w3id.org/atomgraph/linkeddatahub#XHTML"] form fieldset { border: none; }
 object { display: block; margin: auto; max-height: 400px; overflow: hidden; width: 100%; }
 .chart-canvas { width: 100%; height: 400px; }

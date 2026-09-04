@@ -1281,6 +1281,32 @@ WHERE
         <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'remove', [ 'open', 'is-open' ])[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
 
+    <!-- the form Actions overflow shares the drop-down lifecycle: the wrap's is-open shows the menu
+         (bridge rule) and the trigger's is-open rotates its caret (app.css). Menu-item clicks match their
+         own onclick rules, so this only fires for presses on the trigger -->
+
+    <xsl:template match="div[contains-token(@class, 'ldh-form-actions-wrap')]" mode="ixsl:onclick">
+        <xsl:variable name="wrap" select="." as="element()"/>
+        <xsl:variable name="open" select="not(contains-token(@class, 'is-open'))" as="xs:boolean"/>
+
+        <!-- one drop-down at a time: whichever group or wrap was open yields to this one -->
+        <xsl:apply-templates select="ixsl:page()//*[contains-token(@class, 'btn-group')][contains-token(@class, 'open')] | ixsl:page()//*[contains-token(@class, 'ldh-form-actions-wrap')][contains-token(@class, 'is-open')][not(. is $wrap)]" mode="ldh:CloseDropdown"/>
+
+        <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'is-open', $open ])[current-date() lt xs:date('2000-01-01')]"/>
+        <xsl:for-each select="*[contains-token(@class, 'ldh-form-action')]">
+            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'is-open', $open ])[current-date() lt xs:date('2000-01-01')]"/>
+            <ixsl:set-property name="ariaExpanded" select="if ($open) then 'true' else 'false'" object="."/>
+        </xsl:for-each>
+    </xsl:template>
+
+    <xsl:template match="*[contains-token(@class, 'ldh-form-actions-wrap')]" mode="ldh:CloseDropdown">
+        <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'remove', [ 'is-open' ])[current-date() lt xs:date('2000-01-01')]"/>
+        <xsl:for-each select="*[contains-token(@class, 'ldh-form-action')]">
+            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'remove', [ 'is-open' ])[current-date() lt xs:date('2000-01-01')]"/>
+            <ixsl:set-property name="ariaExpanded" select="'false'" object="."/>
+        </xsl:for-each>
+    </xsl:template>
+
     <!-- every press dismisses the open drop-downs that do not contain it. This rides on pointerdown rather
          than click because an event reaches exactly one template rule - the target, or the nearest ancestor
          matching it - so a click rule on body only ever sees the clicks no specific handler took, and pressing
@@ -1294,7 +1320,7 @@ WHERE
 
     <xsl:template match="body" mode="ixsl:onpointerdown">
         <xsl:variable name="target" select="ixsl:get(ixsl:event(), 'target')"/>
-        <xsl:for-each select="ixsl:page()//*[contains-token(@class, 'btn-group')][contains-token(@class, 'open')]">
+        <xsl:for-each select="ixsl:page()//*[contains-token(@class, 'btn-group')][contains-token(@class, 'open')] | ixsl:page()//*[contains-token(@class, 'ldh-form-actions-wrap')][contains-token(@class, 'is-open')]">
             <xsl:if test="not(ixsl:call(., 'contains', [ $target ]))">
                 <xsl:apply-templates select="." mode="ldh:CloseDropdown"/>
             </xsl:if>
@@ -1343,9 +1369,29 @@ WHERE
     <!-- copy resource's URI into clipboard -->
     
     <xsl:template match="button[contains-token(@class, 'btn-copy-uri')]" mode="ixsl:onclick">
-        <!-- resolve the URI by placement: the block header's title anchor (bs2:Actions), the subject URI/bnode ID inputs (bs2:FormControl legend), or the ancestor block's @about (view toolbar and XHTML content corner, which render no title anchor) -->
-        <xsl:variable name="uri-or-bnode" select="(ancestor::div[contains-token(@class, 'ldh-block-head')][1]//h2/a/@title, ../following-sibling::div//input[@name = ('su', 'sb')]/@value, ancestor::div[contains-token(@class, 'block')][1]/@about)[1]" as="xs:string"/>
+        <!-- resolve the URI by placement: the block header's title anchor (bs2:Actions), the subject URI/bnode ID inputs (the .ldh-subject row hosting the button in edit forms), or the ancestor block's @about (view toolbar and XHTML content corner, which render no title anchor) -->
+        <xsl:variable name="uri-or-bnode" select="(ancestor::div[contains-token(@class, 'ldh-block-head')][1]//h2/a/@title, ancestor::div[contains-token(@class, 'ldh-subject')][1]//input[@name = ('su', 'sb')]/@value, ancestor::div[contains-token(@class, 'block')][1]/@about)[1]" as="xs:string"/>
         <xsl:sequence select="ixsl:call(ixsl:get(ixsl:window(), 'navigator.clipboard'), 'writeText', [ $uri-or-bnode ])"/>
+
+        <!-- transient confirmation: the glyph flips to a check and reverts after a beat -->
+        <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'add', [ 'is-confirmed' ])[current-date() lt xs:date('2000-01-01')]"/>
+        <xsl:for-each select="descendant::span[contains-token(@class, 'msi')][1]">
+            <ixsl:set-property name="textContent" select="'check'" object="."/>
+        </xsl:for-each>
+        <ixsl:schedule-action wait="1500">
+            <xsl:call-template name="ldh:ResetCopyUriConfirmation">
+                <xsl:with-param name="button" select="."/>
+            </xsl:call-template>
+        </ixsl:schedule-action>
+    </xsl:template>
+
+    <xsl:template name="ldh:ResetCopyUriConfirmation">
+        <xsl:param name="button" as="element()"/>
+
+        <xsl:sequence select="ixsl:call(ixsl:get($button, 'classList'), 'remove', [ 'is-confirmed' ])[current-date() lt xs:date('2000-01-01')]"/>
+        <xsl:for-each select="$button/descendant::span[contains-token(@class, 'msi')][1]">
+            <ixsl:set-property name="textContent" select="'content_copy'" object="."/>
+        </xsl:for-each>
     </xsl:template>
 
     <!-- open a form to save RDF document (do nothing if the button is disabled) -->

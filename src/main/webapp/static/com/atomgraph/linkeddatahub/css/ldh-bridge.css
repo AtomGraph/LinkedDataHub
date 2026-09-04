@@ -51,7 +51,8 @@
   height: 8px; border-radius: var(--r-pill);
   background: var(--surface-2); overflow: hidden; margin: var(--sp-2) 0;
 }
-.progress .bar { height: 100%; background: var(--bg-accent); transition: width var(--dur-base) var(--ease-out-soft); }
+/* fixed height, not 100%: the block markup nests .bar under auto-height wrappers (.row-block-controls > .row-main > .block-row), where a percentage resolves to 0 */
+.progress .bar { height: 8px; background: var(--bg-accent); transition: width var(--dur-base) var(--ease-out-soft); }
 /* indeterminate variant: nothing to report a percent for, the fill sweeps instead (facet popover loading) */
 .progress.progress-indeterminate .bar { width: 35%; animation: ldh-progress-indet 1.3s var(--ease-in-out) infinite; }
 @keyframes ldh-progress-indet { from { margin-left: -35%; } to { margin-left: 100%; } }
@@ -230,8 +231,10 @@ div.breadcrumb.ldh-bc { min-width: 0; overflow: hidden; }
 .ldh-block-body .ldh-block-head { padding-left: 0; padding-right: 0; }
 .ldh-block-head .actions .tb.disabled { opacity: 0.4; pointer-events: none; }
 
-/* ---------- modals: CSR appends div.modal.fade.in and removes it on close ---------- */
-.modal {
+/* ---------- modals: CSR appends div.modal.fade.in and removes it on close ----------
+   the ported dialogs carry the modal token on a .ldhc-backdrop (core chrome) instead;
+   :not() keeps this legacy positioning off them while the remaining modals migrate */
+.modal:not(.ldhc-backdrop) {
   position: fixed; top: 48px; left: 50%; transform: translateX(-50%);
   /* match the content column: blocks span .content-body's inner width (max 1280px minus its side
      padding); 100%, not 100vw — a fixed element's percentages resolve against the scrollbar-less
@@ -394,55 +397,15 @@ fieldset > .btn-group { display: flex; justify-content: flex-end; }
 form .control-group > .controls > .btn-group { order: 99; margin-left: auto; }
 .chart-controls .field select[multiple] { height: auto; }
 
-/* ---------- read-mode property lists: dt/dd name-value groups styled as property rows ---------- */
-/* bs2:PropertyListIdentity wraps each predicate's dt + dds in a <div> group (HTML's dl grouping
-   element - the design's .ldh-prop-group); subgrid slots every group's cells into the dl's shared
-   label/value tracks so labels align across groups. The :has() guard keys the grid to that wrapped
-   shape - a plain dl in an XHTML content literal has bare dt/dd children that auto-placement would
-   scatter across both columns */
-.ldh-block dl:has(> div) {
-  display: grid;
-  grid-template-columns: minmax(140px, 220px) 1fr;
-  column-gap: var(--sp-6); row-gap: 0;
-  margin: 0;
-}
-.ldh-block dl > div { grid-column: 1 / -1; display: grid; grid-template-columns: subgrid; border-top: 1px solid var(--border-default); }
-.ldh-block dl > div:first-child { border-top: 0; }
-.ldh-block dl > div > dt {
-  grid-column: 1;
-  /* span all value rows (surplus implicit tracks collapse to zero height) so the label cell -
-     and its hover band - covers the group's full height, like the design's row-spanning .label */
-  grid-row: 1 / span 99;
-  padding: var(--sp-2) 0;
-  font-size: var(--fs-sm); font-weight: var(--fw-medium);
-  color: var(--fg-muted);
-  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-  transition: background var(--dur-fast) var(--ease-out-soft);
-}
-.ldh-block dl > div > dd {
-  grid-column: 2;
-  margin: 0;
-  padding: var(--sp-2) 0;
-  font-size: var(--fs-sm); color: var(--fg-1);
-  min-width: 0; overflow-wrap: break-word;
-  transition: background var(--dur-fast) var(--ease-out-soft);
-}
-/* a value is a whole row here rather than a table cell, so the image gets more height than in
+/* ---------- read-mode property lists now emit the design's .ldh-prop-group grid (app.css) ---------- */
+/* a value is a whole row rather than a table cell, so the image gets more height than in
    table.table - enough to read, still short of pushing the rest of the property list off-screen.
    This also lands in the map info window, whose overlay hosts a .ldh-block property list */
-.ldh-block dl > div > dd img { max-width: 100%; max-height: var(--thumb-md); border-radius: var(--r-sm); }
-/* dividers between a predicate's values run in the value column only; the group's top border covers both */
-.ldh-block dl > div > dd ~ dd { border-top: 1px solid var(--border-default); }
-/* the design's .ldh-prop-group hover: the label lights at full group height whenever the pointer
-   is anywhere in the group, but in the value column only the dd under the pointer lights - the
-   dt's box-shadow copies fill the sp-6 card padding (clipped at the card edge by the block's
-   overflow:hidden) and the column gap, the dd's fill the gap and the right card padding */
-.ldh-block dl > div:hover > dt { background: var(--surface-1); box-shadow: calc(-1 * var(--sp-6)) 0 0 var(--surface-1), var(--sp-6) 0 0 var(--surface-1); }
-.ldh-block dl > div > dd:hover { background: var(--surface-1); box-shadow: calc(-1 * var(--sp-6)) 0 0 var(--surface-1), var(--sp-6) 0 0 var(--surface-1); }
-/* a block header with an image adopts the property-list geometry (dt track + column gap), so the
-   titles group left-aligns with the dd values below regardless of the image's natural size;
-   imageless headers stay flex, their titles flush at the card edge like the dt labels */
-.ldh-block-head:has(> a > img, > img) { display: grid; grid-template-columns: minmax(140px, 220px) minmax(0, 1fr) auto; column-gap: var(--sp-6); }
+.ldh-prop-row > .value img { max-width: 100%; max-height: var(--thumb-md); border-radius: var(--r-sm); }
+/* a block header with an image adopts the property-grid geometry (label track + gutter), so the
+   titles group left-aligns with the value cells below regardless of the image's natural size;
+   imageless headers stay flex, their titles flush at the card edge like the labels */
+.ldh-block-head:has(> a > img, > img) { display: grid; grid-template-columns: 200px minmax(0, 1fr) auto; column-gap: var(--sp-3); }
 /* both axes are caps rather than width: 100%: the track is a fixed 140-220px whatever the image
    does, so filling it bought nothing but an upscaled logo, and a portrait source needs the height
    bound or the header grows past the property list it heads */
@@ -454,12 +417,12 @@ form .control-group > .controls > .btn-group { order: 99; margin-left: auto; }
 .content-body > [about].block.diff-added { outline: 2px solid var(--success-500); }
 .content-body > [about].block.diff-removed { outline: 2px solid var(--danger-500); }
 .content-body > [about].block.diff-changed { outline: 2px solid var(--warning-500); }
-/* sub-block values: the two XHTML literal sides inside a changed block, property values on the dd */
-dd.diff-added, .main > div.diff-added { border-left: 4px solid var(--success-500); padding-left: 8px; }
-dd.diff-removed, .main > div.diff-removed { border-left: 4px solid var(--danger-500); padding-left: 8px; }
-/* diff decorations ride on the dd */
-.ldh-block dl > div > dd.diff-added { background: var(--success-50); }
-.ldh-block dl > div > dd.diff-removed { background: var(--danger-50); }
+/* sub-block values: the two XHTML literal sides inside a changed block, property values on the value cell */
+.ldh-prop-row > .value.diff-added, .main > div.diff-added { border-left: 4px solid var(--success-500); padding-left: 8px; }
+.ldh-prop-row > .value.diff-removed, .main > div.diff-removed { border-left: 4px solid var(--danger-500); padding-left: 8px; }
+/* diff decorations ride on the value cell */
+.ldh-prop-row > .value.diff-added { background: var(--success-50); }
+.ldh-prop-row > .value.diff-removed { background: var(--danger-50); }
 /* the comparing-versions banner legend (document.xsl) keys its labels to the same tokens */
 .text-success { color: var(--success-500); }
 .text-error { color: var(--danger-500); }
@@ -637,3 +600,194 @@ body:has(.document-body > .content-body > :is(.graph-3d-canvas, .map-canvas)) .l
 }
 :where(button.tb):hover { background: var(--bg-hover); color: var(--fg-1); }
 :where(button.tb.btn-remove-property, button.tb.btn-remove-resource):hover { background: var(--danger-50); color: var(--danger-500); }
+
+/* form Actions overflow: the design renders the menu only while open; the static
+   markup ships it closed, so the is-open class the onclick handler toggles is what shows it */
+.ldh-form-actions-wrap:not(.is-open) > .ldh-form-actions-menu { display: none; }
+
+/* constructor dialog: the form element sits between .ldhc-modal and its head/body,
+   so it must relay the modal's column layout for the body to get its scroll box */
+.ldhc-modal > form.constructor-template { display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
+/* Save validation marks value-less constructor rows */
+.ldh-ctor-row.error { box-shadow: inset 2px 0 0 var(--danger-500); background: var(--danger-50); }
+
+/* combobox result panels host the same li items the legacy ul menus do (one shared renderer
+   and keyboard-nav path in typeahead.xsl); these mirror the ul menu's item treatment */
+.ldhc-cb-panel { padding: var(--sp-1); }
+.ldhc-cb-panel > li { list-style: none; }
+.ldhc-cb-panel > li > a { display: block; padding: var(--sp-2); border-radius: var(--r-sm); color: var(--fg-1); text-decoration: none; font-size: var(--fs-sm); cursor: pointer; }
+.ldhc-cb-panel > li.active > a, .ldhc-cb-panel > li > a:hover { background: var(--bg-accent-quiet); }
+.ldhc-cb-panel > li a .meta { color: var(--fg-hint); font-size: var(--fs-xs); margin-left: var(--sp-2); }
+
+/* =========================================================================
+   LDH-local rules recovered from the previous vendored app.css: the vendor
+   refresh replaced the file wholesale, and these never lived in the design
+   repo. They stay here so the next re-vendor cannot lose them again.
+   ========================================================================= */
+/* hover-lift transforms (retro themes) make the card a stacking context, trapping its inline dropdowns below later positioned rows; while a popup is open the card must win the paint order over subsequent blocks (but stay under the z-70 action bar) */
+.ldh-block:has(.is-open) { position: relative; z-index: 60; }
+
+/* Links button — opens the block links popover (backlinks). The button always
+   sits inside its .links-nav anchor, so one selector covers every host: block
+   head actions, the view toolbar's right zone, the content block's corner. */
+.links-nav > .tb-links {
+  height: 32px;
+  min-width: 32px;
+  padding: 0 8px 0 6px;
+  display: inline-flex; align-items: center; justify-content: center;
+  gap: 4px;
+  background: var(--bg-accent-quiet);
+  color: var(--ldh-blue-700);
+  border: 1px solid var(--ldh-blue-100);
+  border-radius: var(--r-sm);
+}
+.links-nav > .tb-links:hover { background: var(--ldh-blue-100); color: var(--ldh-blue-700); }
+.links-nav > .tb-links.is-on { background: var(--ldh-blue-600); color: #fff; border-color: var(--ldh-blue-600); }
+
+
+/* Block links popover — backlinks as jump-off navigation, anchored to the
+   header/toolbar links button. Modeled on .facet-pop; content lazy-loads on
+   first open. */
+.links-nav { position: relative; }
+.links-pop {
+  position: absolute; top: calc(100% + 6px); right: 0;
+  min-width: 260px; max-width: 320px;
+  background: var(--surface-0); border: 1px solid var(--border-default);
+  border-radius: var(--r-md); box-shadow: var(--shadow-lg);
+  padding: var(--sp-2);
+  z-index: 40;
+  display: none;
+}
+.links-nav.is-open .links-pop { display: block; }
+.links-pop .dh2 {
+  margin: 0;
+  padding: var(--sp-2) var(--sp-2) 4px;
+  font-family: var(--font-mono); font-size: 10px;
+  letter-spacing: var(--tracking-wide); text-transform: uppercase;
+  font-weight: var(--fw-medium);
+  color: var(--fg-muted);
+}
+.links-pop .dgroup { display: flex; flex-direction: column; gap: 2px; }
+.links-pop .drow {
+  display: flex; align-items: center; gap: 8px;
+  padding: 6px 8px;
+  border-radius: var(--r-sm);
+  text-decoration: none;
+  color: var(--fg-2);
+  font-size: var(--fs-sm);
+  transition: background var(--dur-fast) var(--ease-out-soft);
+}
+.links-pop .drow:hover { background: var(--bg-hover); color: var(--fg-1); text-decoration: none; }
+.links-pop .drow .msi { color: var(--fg-hint); flex-shrink: 0; }
+.links-pop .drow .lbl { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* content (XHTML) blocks have no header row — their popover anchors to the
+   card's top right corner and surfaces on card hover, staying put while open */
+.ldh-block .block-row > .links-nav { position: absolute; top: var(--sp-3); right: var(--sp-3); opacity: 0; transition: opacity var(--dur-fast) var(--ease-out-soft); }
+.ldh-block:hover .block-row > .links-nav, .ldh-block .block-row > .links-nav.is-open { opacity: 1; }
+
+/* Copy-URI button — the header actions' quiet icon treatment for hosts outside
+   the block head: the view toolbar's right zone and the content block's corner,
+   where it sits left of the links button and surfaces on the same card hover */
+.ldh-view-toolbar .right .btn-copy-uri, .ldh-block .block-row > .btn-copy-uri { width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center; background: transparent; border: 0; border-radius: var(--r-sm); color: var(--fg-muted); }
+.ldh-view-toolbar .right .btn-copy-uri:hover, .ldh-block .block-row > .btn-copy-uri:hover { background: var(--bg-hover); color: var(--fg-1); }
+.ldh-block .block-row > .btn-copy-uri { position: absolute; top: var(--sp-3); right: calc(var(--sp-3) + 32px + var(--sp-1)); opacity: 0; transition: opacity var(--dur-fast) var(--ease-out-soft); }
+.ldh-block:hover .block-row > .btn-copy-uri { opacity: 1; }
+
+/* The design system sets an `is-failed` class on the card. Here the ring is
+   derived from the body content instead: the failed state is a function of
+   what the error handler rendered, so :has() recomputes it on every re-render
+   and a block that later succeeds cannot keep a stale ring. Nothing needs to
+   clear it. Only block bodies get .ldh-block-error — the small hosts (facet
+   popover, result count, parallax rows) emit the bare .ldhc-alert, so they
+   cannot ring the card they happen to sit in.
+   An `outline`, not a border: skins differ on whether cards have borders at
+   all (m3 uses elevation and sets border-width: 0), and an outline survives
+   both without fighting the skin's shadow. Offset inward so it lands on the
+   card edge rather than outside it. */
+.ldh-block:has(.ldh-block-error) {
+  outline: 1px solid color-mix(in srgb, var(--danger-500) 38%, transparent);
+  outline-offset: -1px;
+  border-color: color-mix(in srgb, var(--danger-500) 28%, var(--border-default));
+}
+
+/* Header status marker — sits after the title, before the actions, so the state
+   is legible when the block is collapsed or scrolled past.
+   The design system stamps this marker only in the state it names. Here every
+   block header carries it and the body reveals it, the same way the ring above
+   is derived rather than set: a block that goes from empty to having rows drops
+   its marker on re-render with nothing to clear, and no code path has to
+   remember what it stamped. Hence `display: none` where the design system has
+   `inline-flex`. Only the empty variant is wired — the failed and loading
+   variants arrive with the markup that reveals them. */
+.ldh-block-state {
+  display: none; align-items: center; gap: 4px;
+  margin-left: var(--sp-2); padding: 1px 8px;
+  border-radius: var(--r-pill); flex-shrink: 0;
+  font-family: var(--font-mono); font-size: var(--fs-xs); font-weight: var(--fw-medium);
+  white-space: nowrap; vertical-align: middle;
+}
+.ldh-block-state .msi { font-size: 13px; }
+.ldh-block-state.is-empty { background: var(--surface-2); color: var(--fg-muted); }
+.ldh-block:has(.ldh-block-blank) .ldh-block-state.is-empty { display: inline-flex; }
+
+/* Parallax row — second row of the view's control header: onward pivots derived
+   from the current result set. Query inputs (filters, sort, modes) stay in the
+   toolbar above; this row reads as output. Mirrors the toolbar's surface and
+   dashed hairline; hidden until bs2:ParallaxNav delivers chips. */
+.parallax-nav {
+  display: flex; align-items: center; flex-wrap: wrap; gap: var(--sp-2);
+  padding: var(--sp-3) var(--sp-6);
+  background: var(--surface-1);
+  border-bottom: 1px dashed var(--border-default);
+}
+.parallax-nav:not(:has(.pchip)) { display: none; }
+.parallax-nav .plabel { display: inline-flex; align-items: center; color: var(--fg-muted); }
+/* the chips' host is a flex item of the row, so its max-content width pushes it off the label's line
+   as soon as the chips outgrow the row; dissolving it lets them wrap alongside the label the way the
+   facet pills wrap alongside their funnel (.ldh-view-toolbar .left > .facets does the same) */
+.parallax-nav .pchips { display: contents; }
+.parallax-nav .pchip {
+  display: inline-flex; align-items: center; gap: 6px;
+  height: 28px; padding: 0 12px;
+  background: var(--surface-0); border: 1px solid var(--border-default);
+  border-radius: var(--r-pill);
+  font-size: var(--fs-sm); color: var(--fg-2);
+  cursor: pointer;
+  transition: border-color var(--dur-fast) var(--ease-out-soft), background var(--dur-fast) var(--ease-out-soft), color var(--dur-fast) var(--ease-out-soft);
+}
+.parallax-nav .pchip:hover { border-color: var(--ldh-blue-300); color: var(--ldh-blue-700); background: var(--bg-accent-quiet); text-decoration: none; }
+.parallax-nav .pchip .msi { color: var(--fg-hint); }
+.parallax-nav .pchip:hover .msi { color: var(--ldh-blue-600); }
+/* incoming pivots leave the result set behind rather than extending it, so their chips sit
+   a shade quieter than the outgoing ones — the arrow carries the distinction, this backs it up */
+.parallax-nav .pchip-in { background: var(--surface-1); }
+.parallax-nav .pchip-in .lbl { color: var(--fg-muted); }
+.parallax-nav .pchip-in:hover .lbl { color: var(--ldh-blue-700); }
+.ldh-block-body > .ldh-view-toolbar, .ldh-block-body > .parallax-nav { padding-left: 0; padding-right: 0; }
+
+/* applied parallax steps read as removable chips beside the facet pills — the
+   pivot's undo affordance; clicking one rewinds the view to before that step */
+.ldh-view-toolbar .parallax-steps { display: inline-flex; align-items: center; flex-wrap: wrap; gap: var(--sp-2); }
+.ldh-view-toolbar .parallax-steps:empty { display: none; }
+.facet-pill.parallax-step { background: var(--ldh-blue-50); color: var(--ldh-blue-700); border-color: var(--ldh-blue-200); }
+.facet-pill.parallax-step .pred, .facet-pill.parallax-step .msi { color: var(--ldh-blue-600); }
+.facet-pill.parallax-step .x {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  color: var(--ldh-blue-600);
+}
+.facet-pill.parallax-step .x:hover { background: rgba(0,0,0,0.06); }
+
+/* the card anchors its corner affordances (.links-nav, .btn-copy-uri) and the block-scoped
+   .ldh-drawer, and must not clip the dropdown menus (.modes-pop, .ldh-add-menu) that render
+   inline inside it - the design repo's card re-introduced overflow clipping and dropped the anchor */
+.ldh-block { position: relative; overflow: visible; }
+
+/* mode switchers (the document- and view-scoped variants share the template): the trigger is a
+   native button inside the .ldh-mode pill, so it must not paint its own chrome */
+.ldh-mode > button { background: transparent; border: 0; padding: 0; color: inherit; font: inherit; }
+/* Create/Add drop-down triggers: the caret rotates while the wrap is open (the old rule keyed on the retired .ldh-btn) */
+.ldh-add-wrap .caret { transition: transform var(--dur-fast) var(--ease-out-soft); }
+.ldh-add-wrap.is-open .caret { transform: rotate(180deg); }

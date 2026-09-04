@@ -17,7 +17,7 @@
    the "blue is the only action colour" rule is suspended inside a retro theme.
    ========================================================================= */
 
-/* external skin fonts (Orbitron etc.) removed - only non-m3 retro skins reference them and LDH vendors all fonts locally */
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400..800&family=Audiowide&family=Antonio:wght@300..700&family=Share+Tech+Mono&family=Space+Mono:wght@400;700&display=swap');
 
 /* =========================================================================
    1 · TERMINAL DUSK  (Halt & Catch Fire)
@@ -58,7 +58,8 @@
   /* Semantic */
   --success-500: #34c79a;  --success-50: #0d2a22;
   --warning-500: #ffb347;  --warning-50: #2e2210;
-  --danger-500:  #ff6b6b;  --danger-50:  #2e1414;
+  --danger-500:  #ff6b6b;  --danger-600: #e35555;  --danger-50:  #2e1414;
+  --fg-on-danger: #2b0d0d;
 
   /* RDF data-encoding — retro hues */
   --rdf-class:    #ffb347;  /* amber  */
@@ -140,7 +141,7 @@
   /* Semantic */
   --success-500: #0a7d4f;  --success-50: #e2efe5;
   --warning-500: #b8860b;  --warning-50: #f6ecc9;
-  --danger-500:  #c8161d;  --danger-50:  #f7e3d8;
+  --danger-500:  #c8161d;  --danger-600: #a41117;  --danger-50:  #f7e3d8;
 
   /* RDF data-encoding — Italian palette */
   --rdf-class:    #0a5c3e;  /* racing green */
@@ -212,7 +213,8 @@
   /* Semantic */
   --success-500: #2ee6b0;  --success-50: #07261f;
   --warning-500: #ffe14f;  --warning-50: #2e2a0c;
-  --danger-500:  #ff5a7a;  --danger-50:  #2e0f18;
+  --danger-500:  #ff5a7a;  --danger-600: #e34364;  --danger-50:  #2e0f18;
+  --fg-on-danger: #2b0812;
 
   /* RDF data-encoding — full neon */
   --rdf-class:    #b14fff;  /* violet */
@@ -288,16 +290,15 @@
 :root[data-retro="neon"] .ldh-wordmark,
 :root[data-retro="neon"] .ldh-hero h1 { text-shadow: 0 0 18px rgba(255,79,163,0.45); }
 :root[data-retro="dusk"] .ldh-hero h1 { text-shadow: 0 0 18px rgba(0,180,166,0.30); }
-
 /* ---- Chrome / beveled primary buttons (machined-metal edge) ---- */
-:root[data-retro] .ldh-btn:not(.is-ghost):not(.is-quiet) {
+:root[data-retro] .ldhc-btn.ap-solid {
   background-image: linear-gradient(180deg, rgba(255,255,255,0.22), rgba(0,0,0,0.10));
   box-shadow:
     inset 0 1px 0 rgba(255,255,255,0.45),
     inset 0 -1px 0 rgba(0,0,0,0.28),
     0 1px 2px rgba(0,0,0,0.35);
 }
-:root[data-retro] .ldh-btn:not(.is-ghost):not(.is-quiet):active {
+:root[data-retro] .ldhc-btn.ap-solid:active {
   background-image: linear-gradient(180deg, rgba(0,0,0,0.12), rgba(255,255,255,0.12));
 }
 /* Mode switcher + tabs get a thin inset chrome line too */
@@ -436,7 +437,8 @@
   /* Semantic — Apple system colours */
   --success-500: #34c759;  --success-50: rgba(52,199,89,0.14);
   --warning-500: #ff9f0a;  --warning-50: rgba(255,159,10,0.16);
-  --danger-500:  #ff3b30;  --danger-50:  rgba(255,59,48,0.14);
+  --danger-500:  #e02b21;  --danger-600: #c22219;  --danger-50:  rgba(255,59,48,0.14);
+  --fg-on-danger: #ffffff;
 
   /* RDF data-encoding — Apple system palette */
   --rdf-class:    #ff9f0a;  /* orange */
@@ -495,7 +497,7 @@
         is a discrete "pane". Big Apple radii + luminous edge + specular top. -- */
 :root[data-retro="glass"] .ldh-block,
 :root[data-retro="glass"] .ldh-panel,
-:root[data-retro="glass"] .links-pop,
+:root[data-retro="glass"] .ldh-drawer,
 :root[data-retro="glass"] .ldh-modal,
 :root[data-retro="glass"] .ldh-add-menu,
 :root[data-retro="glass"] .ldh-form-actions-menu,
@@ -546,22 +548,23 @@
   mix-blend-mode: screen;
 }
 :root[data-retro="glass"] .ldh-hero > * { position: relative; z-index: 1; }
-
-/* ---- Liquid buttons: pill, glossy white sheen, blue glow — overrides the
+/* ---- Liquid buttons: pill,
+glossy white sheen,
+blue glow — overrides the
         generic retro "machined chrome" bevel for this skin only ---- */
-:root[data-retro="glass"] .ldh-btn:not(.is-ghost):not(.is-quiet) {
+:root[data-retro="glass"] .ldhc-btn.ap-solid {
   border-radius: 999px;
   background-image: linear-gradient(180deg, rgba(255,255,255,0.30), rgba(255,255,255,0.0));
   -webkit-backdrop-filter: blur(8px) saturate(160%);
   backdrop-filter: blur(8px) saturate(160%);
   box-shadow: inset 0 1px 0 rgba(255,255,255,0.55), 0 4px 16px rgba(10,132,255,0.30);
 }
-:root[data-retro="glass"] .ldh-btn:not(.is-ghost):not(.is-quiet):active {
+:root[data-retro="glass"] .ldhc-btn.ap-solid:active {
   background-image: linear-gradient(180deg, rgba(0,0,0,0.07), rgba(255,255,255,0.10));
 }
-:root[data-retro="glass"] .ldh-btn.is-ghost,
-:root[data-retro="glass"] .ldh-btn.is-quiet,
-:root[data-retro="glass"] .ldh-icon-btn { border-radius: 999px; }
+:root[data-retro="glass"] .ldhc-iconbtn,
+:root[data-retro="glass"] .ldhc-btn.ap-outline,
+:root[data-retro="glass"] .ldhc-btn.ap-ghost { border-radius: 999px; }
 
 /* ---- Type: clean, tight, no glow. Undo the wide-display retro flourish ---- */
 :root[data-retro="glass"] .ldh-wordmark,
@@ -626,7 +629,10 @@
   /* Semantic — Apple system */
   --success-500: #2ca84a;  --success-50: #e3f7e8;
   --warning-500: #e08600;  --warning-50: #fdf0d8;
-  --danger-500:  #e0352b;  --danger-50:  #fde4e2;
+  /* #e0352b measured 4.46:1 against white — just under AA for the 13px button
+     label; darkened to clear it (4.73:1). --danger-600 stays darker still. */
+  --danger-500:  #d93227;  --danger-600: #bd2a22;  --danger-50:  #fde4e2;
+  --fg-on-danger: #ffffff;
 
   /* RDF data-encoding */
   --rdf-class:    #e08600;
@@ -687,7 +693,7 @@
   border-radius: 18px;
   box-shadow: var(--shadow-sm);
 }
-:root[data-retro="glasspro"] .ldh-block:not(.is-quiet):hover { box-shadow: var(--shadow-md); transform: translateY(-1px); }
+:root[data-retro="glasspro"] .ldh-block:hover { box-shadow: var(--shadow-md); transform: translateY(-1px); }
 :root[data-retro="glasspro"] .ldh-block.is-quiet { border: 0; background: transparent; box-shadow: none; }
 :root[data-retro="glasspro"] .ldh-grid-block .card { overflow: hidden; }
 /* Keep the property editor / statement list flat-white for max legibility */
@@ -696,7 +702,7 @@
 
 /* ---- FLOATING CHROME: real frosted glass (these float above the document) ---- */
 :root[data-retro="glasspro"] .ldh-modal,
-:root[data-retro="glasspro"] .links-pop,
+:root[data-retro="glasspro"] .ldh-drawer,
 :root[data-retro="glasspro"] .ldh-add-menu,
 :root[data-retro="glasspro"] .ldh-form-actions-menu,
 :root[data-retro="glasspro"] .ldh-mode .modes-pop {
@@ -735,19 +741,19 @@
   mix-blend-mode: screen;
 }
 :root[data-retro="glasspro"] .ldh-hero > * { position: relative; z-index: 1; }
-
-/* ---- Buttons: glossy blue pills (match Glass), but a touch more solid ---- */
-:root[data-retro="glasspro"] .ldh-btn:not(.is-ghost):not(.is-quiet) {
+/* ---- Buttons: glossy blue pills (match Glass),
+but a touch more solid ---- */
+:root[data-retro="glasspro"] .ldhc-btn.ap-solid {
   border-radius: 999px;
   background-image: linear-gradient(180deg, rgba(255,255,255,0.28), rgba(255,255,255,0));
   box-shadow: inset 0 1px 0 rgba(255,255,255,0.5), 0 3px 12px rgba(10,132,255,0.26);
 }
-:root[data-retro="glasspro"] .ldh-btn:not(.is-ghost):not(.is-quiet):active {
+:root[data-retro="glasspro"] .ldhc-btn.ap-solid:active {
   background-image: linear-gradient(180deg, rgba(0,0,0,0.06), rgba(255,255,255,0.08));
 }
-:root[data-retro="glasspro"] .ldh-btn.is-ghost,
-:root[data-retro="glasspro"] .ldh-btn.is-quiet,
-:root[data-retro="glasspro"] .ldh-icon-btn { border-radius: 999px; }
+:root[data-retro="glasspro"] .ldhc-iconbtn,
+:root[data-retro="glasspro"] .ldhc-btn.ap-outline,
+:root[data-retro="glasspro"] .ldhc-btn.ap-ghost { border-radius: 999px; }
 
 /* ---- Type: clean, tight, no glow ---- */
 :root[data-retro="glasspro"] .ldh-wordmark,
@@ -947,7 +953,8 @@
   /* Semantic → M3 system colours */
   --success-500: #2e6c4a;  --success-50: #b6f2c9;
   --warning-500: #7d5800;  --warning-50: #ffdea8;
-  --danger-500:  var(--md-error);  --danger-50: var(--md-error-container);
+  --danger-500:  var(--md-error);  --danger-600: color-mix(in srgb, var(--md-error) 82%, black);  --danger-50: var(--md-error-container);
+  --fg-on-danger: var(--md-on-error);
 
   /* RDF node coding → M3 key colours */
   --rdf-class:    var(--md-tertiary);   /* tertiary  */
@@ -1046,10 +1053,7 @@
   transition: box-shadow var(--md-duration-medium) var(--md-easing-emphasized),
               transform var(--md-duration-medium) var(--md-easing-emphasized);
 }
-/* The lift belongs to the card, so it is scoped away from .is-quiet blocks:
-   prose (ldh:XHTML content) dissolves its card below, and a frameless run of
-   text that shifts a pixel under the cursor reads as a wiggle, not elevation. */
-:root[data-retro^="m3"] .ldh-block:not(.is-quiet):hover {
+:root[data-retro^="m3"] .ldh-block:hover {
   box-shadow: 0 2px 4px rgba(0,0,0,0.18), 0 8px 18px 1px rgba(0,0,0,0.14);
   transform: translateY(-1px);
 }
@@ -1088,8 +1092,15 @@
   background: var(--md-inverse-surface);
   border-bottom: 1px solid rgba(0,0,0,0.22);
 }
-:root[data-retro^="m3"] .ldh-header,
-:root[data-retro^="m3"] .ldh-header * { color: var(--md-inverse-on-surface); }
+/* Chrome ink: set on the bar and INHERITED by chrome-level elements. Deliberately
+   not `.ldh-header *` — a forced literal on every descendant cannot tell chrome
+   text on the dark bar from the content of a light panel anchored in the header
+   (the account menu), and its specificity forces every consumer to out-specific
+   it. `color: inherit` on the elements that would otherwise lose to base rules
+   (link colour, UA button styles) keeps the win; any panel that pins its own
+   colour now beats it naturally, because its descendants inherit from the panel. */
+:root[data-retro^="m3"] .ldh-header { color: var(--md-inverse-on-surface); }
+:root[data-retro^="m3"] .ldh-header :is(a, button, input, .msi) { color: inherit; }
 :root[data-retro^="m3"] .ldh-header::before { opacity: 0.10; }
 
 /* ---- Hero → primary-container surface, on-primary-container text, 28 radius,
@@ -1109,41 +1120,50 @@
 :root[data-retro^="m3"] .ldh-modal { background: var(--md-surface-container-lowest); border-radius: 28px; }
 :root[data-retro^="m3"] .ldh-add-menu,
 :root[data-retro^="m3"] .ldh-form-actions-menu,
-:root[data-retro^="m3"] .links-pop,
 :root[data-retro^="m3"] .ldh-mode .modes-pop {
   background: var(--md-surface-container);
   border: 1px solid var(--md-outline-variant);
   border-radius: 12px;
 }
-
-/* ---- Buttons: full pill, M3 "Label large" type, flat at rest (filled = level 0),
-        STATE LAYERS via inset shadow (hover 8%, pressed 10%). ---- */
-:root[data-retro^="m3"] .ldh-btn {
+/* The block drawer is edge-anchored, not a floating menu — square it off with a
+   hairline left border so it reads as a quiet panel matching the flow blocks. */
+:root[data-retro^="m3"] .ldh-drawer {
+  background: var(--md-surface-container);
+  border: 0;
+  border-left: 1px solid var(--md-outline-variant);
+  border-radius: 0;
+}
+/* ---- Buttons: full pill,
+M3 "Label large" type,
+flat at rest (filled = level 0),
+STATE LAYERS via inset shadow (hover 8%,
+pressed 10%). ---- */
+:root[data-retro^="m3"] .ldhc-btn {
   border-radius: 999px;
   font-family: var(--font-sans);
   font-weight: 500;
   letter-spacing: 0.1px;
 }
 /* Filled (primary) button — on-primary state layer (white). */
-:root[data-retro^="m3"] .ldh-btn:not(.is-ghost):not(.is-quiet) { box-shadow: none; }
-:root[data-retro^="m3"] .ldh-btn:not(.is-ghost):not(.is-quiet):hover {
+:root[data-retro^="m3"] .ldhc-btn.ap-solid { box-shadow: none; }
+:root[data-retro^="m3"] .ldhc-btn.ap-solid:hover {
   box-shadow: 0 1px 2px rgba(0,0,0,0.30), 0 1px 3px 1px rgba(0,0,0,0.15),
               inset 0 0 0 999px rgba(255,255,255,0.10);
 }
-:root[data-retro^="m3"] .ldh-btn:not(.is-ghost):not(.is-quiet):active {
+:root[data-retro^="m3"] .ldhc-btn.ap-solid:active {
   box-shadow: inset 0 0 0 999px rgba(255,255,255,0.14);
 }
 /* Text / ghost button — primary state layer. */
-:root[data-retro^="m3"] .ldh-btn.is-ghost,
-:root[data-retro^="m3"] .ldh-btn.is-quiet { border-radius: 999px; }
-:root[data-retro^="m3"] .ldh-btn.is-ghost:hover,
-:root[data-retro^="m3"] .ldh-btn.is-quiet:hover { box-shadow: inset 0 0 0 999px rgba(0,97,164,0.08); }
-:root[data-retro^="m3"] .ldh-btn.is-ghost:active,
-:root[data-retro^="m3"] .ldh-btn.is-quiet:active { box-shadow: inset 0 0 0 999px rgba(0,97,164,0.12); }
+:root[data-retro^="m3"] .ldhc-btn.ap-outline,
+:root[data-retro^="m3"] .ldhc-btn.ap-ghost { border-radius: 999px; }
+:root[data-retro^="m3"] .ldhc-btn.ap-outline:hover,
+:root[data-retro^="m3"] .ldhc-btn.ap-ghost:hover { box-shadow: inset 0 0 0 999px rgba(0,97,164,0.08); }
+:root[data-retro^="m3"] .ldhc-btn.ap-outline:active,
+:root[data-retro^="m3"] .ldhc-btn.ap-ghost:active { box-shadow: inset 0 0 0 999px rgba(0,97,164,0.12); }
 /* Icon buttons — circular, on-surface-variant state layer. */
-:root[data-retro^="m3"] .ldh-icon-btn,
+:root[data-retro^="m3"] .ldhc-iconbtn,
 :root[data-retro^="m3"] .ldh-toolbar .tb { border-radius: 999px; }
-:root[data-retro^="m3"] .ldh-icon-btn:hover,
+:root[data-retro^="m3"] .ldhc-iconbtn:hover,
 :root[data-retro^="m3"] .ldh-toolbar .tb:hover { box-shadow: inset 0 0 0 999px rgba(67,71,78,0.08); }
 /* Mode-switcher trigger is a button-like control — give it the M3 pill shape so
    it shares the shape language of the Create button instead of a 12px chip. */
@@ -1302,7 +1322,8 @@
 
   --success-500: #7fd99a;  --success-50: #0c3a22;
   --warning-500: #f4bd6a;  --warning-50: #3a2a00;
-  --danger-500:  var(--md-error);  --danger-50: var(--md-error-container);
+  --danger-500:  var(--md-error);  --danger-600: color-mix(in srgb, var(--md-error) 82%, black);  --danger-50: var(--md-error-container);
+  --fg-on-danger: var(--md-on-error);
 
   --rdf-class:    var(--md-tertiary);
   --rdf-resource: var(--md-primary);
@@ -1389,25 +1410,27 @@
   background: var(--md-surface-container-high);
   border-bottom: 1px solid var(--md-outline-variant);
 }
-:root[data-retro="m3-dark"] .ldh-header,
-:root[data-retro="m3-dark"] .ldh-header * { color: var(--md-on-surface); }
+:root[data-retro="m3-dark"] .ldh-header { color: var(--md-on-surface); }
+:root[data-retro="m3-dark"] .ldh-header :is(a, button, input, .msi) { color: inherit; }
 :root[data-retro="m3-dark"] .ldh-header::before { opacity: 0.06; }
 
 /* State layers flip to LIGHT overlays in dark (state layer = on-colour) */
-:root[data-retro="m3-dark"] .ldh-block:not(.is-quiet):hover {
+:root[data-retro="m3-dark"] .ldh-block:hover {
   box-shadow: 0 2px 4px rgba(0,0,0,0.40), 0 8px 18px 1px rgba(0,0,0,0.34);
   transform: translateY(-1px);
 }
-:root[data-retro="m3-dark"] .ldh-btn.is-ghost:hover,
-:root[data-retro="m3-dark"] .ldh-btn.is-quiet:hover { box-shadow: inset 0 0 0 999px rgba(158,202,255,0.08); }
-:root[data-retro="m3-dark"] .ldh-btn.is-ghost:active,
-:root[data-retro="m3-dark"] .ldh-btn.is-quiet:active { box-shadow: inset 0 0 0 999px rgba(158,202,255,0.12); }
-:root[data-retro="m3-dark"] .ldh-icon-btn:hover { box-shadow: inset 0 0 0 999px rgba(195,198,207,0.08); }
-/* Filled button in dark: on-primary is dark, so its state layer is a dark overlay */
-:root[data-retro="m3-dark"] .ldh-btn:not(.is-ghost):not(.is-quiet):hover {
+:root[data-retro="m3-dark"] .ldhc-btn.ap-outline:hover,
+:root[data-retro="m3-dark"] .ldhc-btn.ap-ghost:hover { box-shadow: inset 0 0 0 999px rgba(158,202,255,0.08); }
+:root[data-retro="m3-dark"] .ldhc-btn.ap-outline:active,
+:root[data-retro="m3-dark"] .ldhc-btn.ap-ghost:active { box-shadow: inset 0 0 0 999px rgba(158,202,255,0.12); }
+:root[data-retro="m3-dark"] .ldhc-iconbtn:hover { box-shadow: inset 0 0 0 999px rgba(195,198,207,0.08); }
+/* Filled button in dark: on-primary is dark,
+so its state layer is a dark overlay */
+so its state layer is a dark overlay */
+:root[data-retro="m3-dark"] .ldhc-btn.ap-solid:hover {
   box-shadow: 0 1px 2px rgba(0,0,0,0.30), 0 1px 3px 1px rgba(0,0,0,0.15),
               inset 0 0 0 999px rgba(0,0,0,0.08);
 }
-:root[data-retro="m3-dark"] .ldh-btn:not(.is-ghost):not(.is-quiet):active {
+:root[data-retro="m3-dark"] .ldhc-btn.ap-solid:active {
   box-shadow: inset 0 0 0 999px rgba(0,0,0,0.12);
 }

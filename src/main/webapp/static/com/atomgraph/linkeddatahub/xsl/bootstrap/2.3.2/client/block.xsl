@@ -387,7 +387,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="self" select="." as="element()"/>
         <xsl:variable name="related" select="ixsl:get(ixsl:event(), 'relatedTarget')" as="item()?"/>
         <xsl:if test="empty($related) or empty($related/ancestor-or-self::*[. is $self or @id = ('edit-toolbar', 'rdfa-editor-breadcrumb') or contains-token(@class, 'rdfa-editor-ui')])">
-            <xsl:variable name="form" select="ancestor::form[contains-token(@class, 'ldh-prop-form')][1]" as="element()?"/>
+            <xsl:variable name="form" select="ancestor::form[tokenize(@class, ' ') = ('ldh-prop-form', 'ldh-edit-form')][1]" as="element()?"/>
             <xsl:if test="$form">
                 <xsl:variable name="canonical" select="ldh:canonical-content(.)" as="xs:string"/>
                 <xsl:choose>
@@ -451,7 +451,7 @@ exclude-result-prefixes="#all"
     
     <!-- append new block form onsubmit (using POST) -->
     
-    <xsl:template match="div[@typeof = ('&ldh;XHTML', '&ldh;Object')]//form[contains-token(@class, 'ldh-prop-form')][upper-case(@method) = 'POST']" mode="ixsl:onsubmit" priority="2"> <!-- prioritize over form.xsl -->
+    <xsl:template match="div[@typeof = ('&ldh;XHTML', '&ldh;Object')]//form[tokenize(@class, ' ') = ('ldh-prop-form', 'ldh-edit-form')][upper-case(@method) = 'POST']" mode="ixsl:onsubmit" priority="2"> <!-- prioritize over form.xsl -->
         <xsl:param name="elements" select=".//input | .//textarea | .//select" as="element()*"/>
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <!-- pre-process form before submitting it: syncs input values, so it must precede ldh:parse-rdf-post -->
@@ -483,8 +483,16 @@ exclude-result-prefixes="#all"
         </xsl:next-match>
     </xsl:template>
 
+    <!-- pressing the remove button must not blur the editor: the focus loss would fire the focusout
+         autosave above before the click below decides the block's fate, racing a save (or cancel)
+         against the removal - the same keep-focus idiom as the toolbar/breadcrumb chrome -->
+
+    <xsl:template match="div[@typeof = ('&ldh;XHTML', '&ldh;Object')]//button[contains-token(@class, 'btn-remove-resource')]" mode="ixsl:onmousedown">
+        <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
+    </xsl:template>
+
     <!-- delete block onclick (increased priority to take precedence over form.xsl .btn-remove-resource) -->
-    
+
     <xsl:template match="div[@typeof = ('&ldh;XHTML', '&ldh;Object')]//button[contains-token(@class, 'btn-remove-resource')]" mode="ixsl:onclick" priority="3">
         <xsl:variable name="block" select="ancestor::div[contains-token(@class, 'block')][1]" as="element()"/>
 

@@ -26,7 +26,7 @@ exclude-result-prefixes="#all">
     
     <xsl:template match="rdfs:comment/text()" mode="bs2:FormControl">
         <xsl:param name="type-label" select="true()" as="xs:boolean"/>
-        <xsl:param name="rows" select="10" as="xs:integer"/>
+        <xsl:param name="rows" select="3" as="xs:integer"/>
         
         <textarea name="ol" id="{generate-id()}" rows="{$rows}">
             <xsl:value-of select="."/>

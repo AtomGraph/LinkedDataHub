@@ -76,7 +76,11 @@
   --warning-500: #d48a08;
   --warning-50:  #fff4dc;
   --danger-500:  #d63a3a;
+  --danger-600:  #b62f2f;
   --danger-50:   #ffe6e6;
+  /* Ink for text/icons sitting ON a --danger-500 fill. A token, not a literal:
+     skins whose danger is a light tint need dark ink here instead of white. */
+  --fg-on-danger: #ffffff;
   --info-500:    var(--ldh-blue-500);
   --info-50:     var(--ldh-blue-50);
 
@@ -178,14 +182,6 @@
   --sp-24: 96px;
   --sp-32: 128px;
 
-  /* ---------- Media scale ----------
-     Height caps for an image object rendered at its source's natural size. The object templates
-     emit a bare <a><img></a>, so the pixel size is whatever the dataset points at - one surface
-     gets a 200px headshot and the next a 3000px photo. Width follows the ratio; nothing crops. */
-  --thumb-sm:  48px;  /* table cell */
-  --thumb-md: 160px;  /* property value */
-  --thumb-lg: 240px;  /* block head */
-
   /* ---------- Elevation (shadows) ---------- */
   /* Soft, low-contrast shadows — Base44 / glass vibe, not Material's harder cast. */
   --shadow-xs: 0 1px 2px rgba(15, 23, 42, 0.04);
@@ -284,7 +280,8 @@
   --ldh-violet-700: #c9a6ed;
   --success-500: #3ecb8f;  --success-50: #102619;
   --warning-500: #e6a52a;  --warning-50: #2c2410;
-  --danger-500:  #f06a6a;  --danger-50:  #2e1414;
+  --danger-500:  #f06a6a;  --danger-600: #d94f4f;  --danger-50:  #2e1414;
+  --fg-on-danger: #2e0f0f;
 
   /* Accent FILL stays a literal saturated blue so white button text keeps
      AA (≈4.6:1) — independent of the now-light blue-600 text primitive. */

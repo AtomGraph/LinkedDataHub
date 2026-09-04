@@ -70,7 +70,7 @@ LIMIT   10
     <xsl:template name="ldh:FirstTimeMessage">
         <div class="modal modal-first-time-message">
             <div class="hero-unit">
-                <button type="button" class="close">×</button>
+                <button type="button" class="ldhc-iconbtn sz-sm in-neutral ap-ghost close" aria-label="{ac:label(key('resources', 'close', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin))))}"><span class="msi sm">close</span></button>
                 <h1>Your LinkedDataHub is ready!</h1>
                 <h2>Unlock the value of your Knowledge Graph with data-driven content and low code apps.</h2>
                 <p>Create structured content backed by live data, intuitively explore graph datasets, model and manage RDF data, control data quality and more. <em>Without writing code</em>.</p>
@@ -84,7 +84,7 @@ LIMIT   10
     
     <xsl:template name="ldh:AddDataForm">
         <xsl:param name="id" select="'add-data'" as="xs:string?"/>
-        <xsl:param name="button-class" select="'ldh-btn btn-save'" as="xs:string?"/>
+        <xsl:param name="button-class" select="'ldhc-btn in-primary ap-solid sz-md btn-save'" as="xs:string?"/>
         <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
         <xsl:param name="source" as="xs:anyURI?"/>
         <xsl:param name="query" as="xs:anyURI?"/>
@@ -96,7 +96,7 @@ LIMIT   10
             </xsl:if>
 
             <div class="modal-header">
-                <button type="button" class="close">&#215;</button>
+                <button type="button" class="ldhc-iconbtn sz-sm in-neutral ap-ghost close" aria-label="{ac:label(key('resources', 'close', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin))))}"><span class="msi sm">close</span></button>
 
                 <legend>
                     <xsl:value-of select="$legend-label"/>
@@ -177,12 +177,12 @@ LIMIT   10
                     </fieldset>
 
                     <div class="ldh-block-foot modal-footer">
-                        <button type="button" class="ldh-btn is-ghost btn-close">
+                        <button type="button" class="ldhc-btn in-neutral ap-outline sz-md btn-close">
                             <xsl:value-of>
                                 <xsl:apply-templates select="key('resources', 'close', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
                             </xsl:value-of>
                         </button>
-                        <button type="reset" class="ldh-btn is-ghost btn-reset">
+                        <button type="reset" class="ldhc-btn in-neutral ap-outline sz-md btn-reset">
                             <xsl:value-of>
                                 <xsl:apply-templates select="key('resources', 'reset', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
                             </xsl:value-of>
@@ -204,7 +204,7 @@ LIMIT   10
 
     <xsl:template name="ldh:GenerateContainersForm">
         <xsl:param name="id" select="'generate-containers'" as="xs:string?"/>
-        <xsl:param name="button-class" select="'ldh-btn btn-save'" as="xs:string?"/>
+        <xsl:param name="button-class" select="'ldhc-btn in-primary ap-solid sz-md btn-save'" as="xs:string?"/>
         <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
         <xsl:param name="legend-label" select="ac:label(key('resources', 'generate-containers', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin))))" as="xs:string"/>
         <xsl:param name="default-limit" select="10" as="xs:integer"/>
@@ -215,7 +215,7 @@ LIMIT   10
             </xsl:if>
 
             <div class="modal-header">
-                <button type="button" class="close">&#215;</button>
+                <button type="button" class="ldhc-iconbtn sz-sm in-neutral ap-ghost close" aria-label="{ac:label(key('resources', 'close', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin))))}"><span class="msi sm">close</span></button>
 
                 <legend>
                     <xsl:value-of select="$legend-label"/>
@@ -308,12 +308,12 @@ LIMIT   10
                                             <xsl:apply-templates select="key('resources', 'generate', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
                                         </xsl:value-of>
                                     </button>
-                                    <button type="button" class="ldh-btn is-ghost btn-close">
+                                    <button type="button" class="ldhc-btn in-neutral ap-outline sz-md btn-close">
                                         <xsl:value-of>
                                             <xsl:apply-templates select="key('resources', 'close', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
                                         </xsl:value-of>
                                     </button>
-                                    <button type="reset" class="ldh-btn is-ghost btn-reset">
+                                    <button type="reset" class="ldhc-btn in-neutral ap-outline sz-md btn-reset">
                                         <xsl:value-of>
                                             <xsl:apply-templates select="key('resources', 'reset', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
                                         </xsl:value-of>
@@ -332,7 +332,7 @@ LIMIT   10
     
     <xsl:template match="rdf:RDF" mode="ldh:RequestAccessForm">
         <xsl:param name="id" select="'request-access'" as="xs:string?"/>
-        <xsl:param name="button-class" select="'ldh-btn btn-access-form'" as="xs:string?"/>
+        <xsl:param name="button-class" select="'ldhc-btn in-primary ap-solid sz-md btn-access-form'" as="xs:string?"/>
         <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
         <xsl:param name="this" as="xs:anyURI"/>
         <xsl:param name="action" select="ldh:href(resolve-uri('access/request', lapp:origin($this)))" as="xs:anyURI"/>
@@ -345,7 +345,7 @@ LIMIT   10
             </xsl:if>
 
             <div class="modal-header">
-                <button type="button" class="close">&#215;</button>
+                <button type="button" class="ldhc-iconbtn sz-sm in-neutral ap-ghost close" aria-label="{ac:label(key('resources', 'close', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin))))}"><span class="msi sm">close</span></button>
 
                 <legend>
                     <xsl:value-of select="$legend-label"/>
@@ -388,12 +388,12 @@ LIMIT   10
                     </div>
                    
                     <div class="ldh-block-foot modal-footer">
-                        <button type="button" class="ldh-btn is-ghost btn-close">
+                        <button type="button" class="ldhc-btn in-neutral ap-outline sz-md btn-close">
                             <xsl:value-of>
                                 <xsl:apply-templates select="key('resources', 'close', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
                             </xsl:value-of>
                         </button>
-                        <button type="reset" class="ldh-btn is-ghost btn-reset">
+                        <button type="reset" class="ldhc-btn in-neutral ap-outline sz-md btn-reset">
                             <xsl:value-of>
                                 <xsl:apply-templates select="key('resources', 'reset', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
                             </xsl:value-of>
@@ -632,7 +632,7 @@ LIMIT   10
     
     <xsl:template name="ldh:ReconcileForm">
         <xsl:param name="id" select="'form-reconcile'" as="xs:string?"/>
-        <xsl:param name="button-class" select="'ldh-btn btn-save'" as="xs:string?"/>
+        <xsl:param name="button-class" select="'ldhc-btn in-primary ap-solid sz-md btn-save'" as="xs:string?"/>
         <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
         <xsl:param name="action" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/>
         <xsl:param name="legend-label" select="ac:label(key('resources', 'reconcile-entity', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin))))" as="xs:string"/>
@@ -646,7 +646,7 @@ LIMIT   10
             </xsl:if>
 
             <div class="modal-header">
-                <button type="button" class="close">&#215;</button>
+                <button type="button" class="ldhc-iconbtn sz-sm in-neutral ap-ghost close" aria-label="{ac:label(key('resources', 'close', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin))))}"><span class="msi sm">close</span></button>
 
                 <legend>
                     <xsl:value-of select="$legend-label"/>
@@ -708,6 +708,16 @@ LIMIT   10
         </xsl:for-each>
     </xsl:template>
 
+    <!-- a press on the backdrop itself (outside the dialog card) dismisses the dialog; presses inside land on a child, which the containment test filters out -->
+
+    <xsl:template match="div[contains-token(@class, 'ldhc-backdrop')]" mode="ixsl:onclick">
+        <xsl:variable name="target" select="ixsl:get(ixsl:event(), 'target')"/>
+
+        <xsl:if test="empty(*[ixsl:call(., 'contains', [ $target ])])">
+            <xsl:sequence select="ixsl:call(., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
+        </xsl:if>
+    </xsl:template>
+
     <!-- Esc closes the topmost modal; predicate guard keeps Esc available to other widgets when no modal is open. priority="1" wins over graph3d.xsl's body keydown if both happen to match. -->
     <xsl:template match="body[descendant::div[contains-token(@class, 'modal')]]" mode="ixsl:onkeydown" priority="1">
         <xsl:if test="ixsl:get(ixsl:event(), 'key') = 'Escape'">
@@ -718,7 +728,7 @@ LIMIT   10
     
     <!-- submit instance creation modal form using PUT -->
 
-    <xsl:template match="div[contains-token(@class, 'modal-constructor')]//form[contains-token(@class, 'ldh-prop-form')][upper-case(@method) = 'PUT']" mode="ixsl:onsubmit" priority="2">
+    <xsl:template match="div[contains-token(@class, 'modal-constructor')]//form[tokenize(@class, ' ') = ('ldh-prop-form', 'ldh-edit-form')][upper-case(@method) = 'PUT']" mode="ixsl:onsubmit" priority="2">
         <!-- ldh:constructor-form-response stamps render-fn=ldh:render-constructor-form#2 (mode="bs2:Form") so the violation re-render keeps co-shipped peer Descriptions (content blocks) visible. Higher-priority flow templates (e.g. inline view creation) re-stamp $callback and/or supply $request-body via xsl:next-match. -->
         <xsl:param name="callback" select="ldh:constructor-form-response#1" as="function(map(*)) as item()*"/>
         <xsl:param name="request-body" as="document-node()?"/>
@@ -764,7 +774,7 @@ LIMIT   10
                     <xsl:with-param name="about" select="()"/>
                     <xsl:with-param name="method" select="'put'"/>
                     <xsl:with-param name="action" select="ldh:href($doc-uri)" as="xs:anyURI" tunnel="yes"/>
-                    <xsl:with-param name="form-actions-class" select="'ldh-block-foot modal-footer'" as="xs:string?"/>
+                    <xsl:with-param name="form-actions-class" select="'ldh-form-bar'" as="xs:string?"/>
                     <xsl:with-param name="show-close-button" select="true()"/>
                     <xsl:with-param name="classes" select="$classes"/>
                     <xsl:with-param name="type-metadata" select="$type-metadata" tunnel="yes"/>
@@ -780,21 +790,26 @@ LIMIT   10
 
 
             <!-- a modal takes over from the chrome that opened it: a drop-down the pick came from is dismissed here, once its own handler has run -->
-            <xsl:apply-templates select="ixsl:page()//*[contains-token(@class, 'btn-group')][contains-token(@class, 'open')]" mode="ldh:CloseDropdown"/>
+            <xsl:apply-templates select="ixsl:page()//*[contains-token(@class, 'btn-group')][contains-token(@class, 'open')] | ixsl:page()//*[contains-token(@class, 'ldh-form-actions-wrap')][contains-token(@class, 'is-open')]" mode="ldh:CloseDropdown"/>
             <xsl:result-document href="?." method="ixsl:append-content">
-                <div class="modal modal-constructor fade in" about="{$doc-uri}" typeof="{$forClass}"> <!-- @about identifies the new resource URL (uniform with edit/settings modals so submit handlers can read $block/@about without a fallback); $forClass used by ldh:ResourceUpdated in case of 4xx response -->
-                    <div class="modal-header">
-                        <button type="button" class="close">&#215;</button>
+                <div class="ldhc-backdrop pos-top modal modal-constructor" about="{$doc-uri}" typeof="{$forClass}"> <!-- @about identifies the new resource URL (uniform with edit/settings modals so submit handlers can read $block/@about without a fallback); $forClass used by ldh:ResourceUpdated in case of 4xx response -->
+                    <div class="ldhc-modal sz-lg" role="dialog" aria-modal="true" aria-labelledby="modal-title-{generate-id()}">
+                        <div class="ldhc-modal-head">
+                            <div class="ldhc-modal-titles">
+                                <h2 class="ldhc-modal-title" id="modal-title-{generate-id()}">
+                                    <xsl:try select="ac:object-label($forClass)">
+                                        <xsl:catch select="replace($forClass, '.*[#/]', '')"/>
+                                    </xsl:try>
+                                </h2>
+                            </div>
+                            <span class="ldhc-modal-x">
+                                <button type="button" class="ldhc-iconbtn sz-sm in-neutral ap-ghost close" aria-label="{ac:label(key('resources', 'close', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin))))}"><span class="msi sm">close</span></button>
+                            </span>
+                        </div>
 
-                        <legend>
-                            <xsl:try select="ac:object-label($forClass)">
-                                <xsl:catch select="replace($forClass, '.*[#/]', '')"/>
-                            </xsl:try>
-                        </legend>
-                    </div>
-
-                    <div class="modal-body">
-                        <xsl:copy-of select="$form"/>
+                        <div class="ldhc-modal-body">
+                            <xsl:copy-of select="$form"/>
+                        </div>
                     </div>
                 </div>
             </xsl:result-document>
@@ -844,8 +859,8 @@ LIMIT   10
     <xsl:template match="div[contains-token(@class, 'action-bar')]//button[contains-token(@class, 'btn-edit')][not(contains-token(@class, 'disabled'))]" mode="ixsl:onclick">
         <xsl:param name="about" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/> <!-- editing the current document resources -->
         <xsl:param name="method" select="'patch'" as="xs:string"/>
-        <xsl:param name="form-actions-class" select="'ldh-block-foot modal-footer'" as="xs:string?"/>
-        <xsl:param name="button-class" select="'ldh-btn'" as="xs:string?"/>
+        <xsl:param name="form-actions-class" select="'ldh-form-bar'" as="xs:string?"/>
+        <xsl:param name="button-class" select="'ldhc-btn in-primary ap-solid sz-sm'" as="xs:string?"/>
         <xsl:variable name="content-body" select="ancestor::div[contains-token(@class, 'tab-pane')]/div[contains-token(@class, 'document-body')]/div[contains-token(@class, 'content-body')]" as="element()"/>
 
         <xsl:sequence select="ldh:busy-cursor()"/>
@@ -861,16 +876,20 @@ LIMIT   10
         <xsl:for-each select="$content-body">
 
             <!-- a modal takes over from the chrome that opened it: a drop-down the pick came from is dismissed here, once its own handler has run -->
-            <xsl:apply-templates select="ixsl:page()//*[contains-token(@class, 'btn-group')][contains-token(@class, 'open')]" mode="ldh:CloseDropdown"/>
+            <xsl:apply-templates select="ixsl:page()//*[contains-token(@class, 'btn-group')][contains-token(@class, 'open')] | ixsl:page()//*[contains-token(@class, 'ldh-form-actions-wrap')][contains-token(@class, 'is-open')]" mode="ldh:CloseDropdown"/>
             <xsl:result-document href="?." method="ixsl:append-content">
-                <div class="modal modal-constructor fade in" about="{$about}">
-                    <div class="modal-header">
-                        <button type="button" class="close">&#215;</button>
-                    </div>
-                    <div class="modal-body">
-                        <!-- empty host block, uniform with the inline edit flow: ldh:render-form transplants the rendered form's block root onto it -->
-                        <div id="{$block-id}" class="block ldh-block">
-                            <!-- to be injected -->
+                <div class="ldhc-backdrop pos-top modal modal-constructor" about="{$about}">
+                    <div class="ldhc-modal sz-lg" role="dialog" aria-modal="true">
+                        <div class="ldhc-modal-head">
+                            <span class="ldhc-modal-x">
+                                <button type="button" class="ldhc-iconbtn sz-sm in-neutral ap-ghost close" aria-label="{ac:label(key('resources', 'close', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin))))}"><span class="msi sm">close</span></button>
+                            </span>
+                        </div>
+                        <div class="ldhc-modal-body">
+                            <!-- empty host block, uniform with the inline edit flow: ldh:render-form transplants the rendered form's block root onto it -->
+                            <div id="{$block-id}" class="block ldh-block">
+                                <!-- to be injected -->
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -912,7 +931,7 @@ LIMIT   10
 
     <!-- submit document update modal form using PATCH TO-DO: unify!!! -->
     
-    <xsl:template match="div[contains-token(@class, 'modal-constructor')]//form[contains-token(@class, 'ldh-prop-form')][upper-case(@method) = 'PATCH']" mode="ixsl:onsubmit" priority="2">
+    <xsl:template match="div[contains-token(@class, 'modal-constructor')]//form[tokenize(@class, ' ') = ('ldh-prop-form', 'ldh-edit-form')][upper-case(@method) = 'PATCH']" mode="ixsl:onsubmit" priority="2">
         <xsl:param name="block" select="ancestor::div[contains-token(@class, 'modal-constructor')]" as="element()"/>
         <xsl:param name="about" select="$block/@about" as="xs:anyURI"/>
         <!-- ldh:edit-form-response stamps render-fn=ldh:render-document-form#2 (mode="ldh:DocumentForm", narrow @rdf:about=$about filter) so the violation re-render stays focused on the edited resource. -->
@@ -1077,31 +1096,34 @@ LIMIT   10
         <xsl:for-each select="$content-body">
 
             <!-- a modal takes over from the chrome that opened it: a drop-down the pick came from is dismissed here, once its own handler has run -->
-            <xsl:apply-templates select="ixsl:page()//*[contains-token(@class, 'btn-group')][contains-token(@class, 'open')]" mode="ldh:CloseDropdown"/>
+            <xsl:apply-templates select="ixsl:page()//*[contains-token(@class, 'btn-group')][contains-token(@class, 'open')] | ixsl:page()//*[contains-token(@class, 'ldh-form-actions-wrap')][contains-token(@class, 'is-open')]" mode="ldh:CloseDropdown"/>
             <xsl:result-document href="?." method="ixsl:append-content">
-                <div class="modal modal-constructor fade in" about="{lapp:application()}">
+                <div class="ldhc-backdrop pos-top modal modal-constructor" about="{lapp:application()}">
                     <xsl:if test="$id">
                         <xsl:attribute name="id" select="$id"/>
                     </xsl:if>
-            
-                    <div class="modal-header">
-                        <button type="button" class="close">&#215;</button>
 
-                        <legend>
-                            <xsl:value-of>
+                    <div class="ldhc-modal sz-lg" role="dialog" aria-modal="true" aria-labelledby="modal-title-{generate-id()}">
+                    <div class="ldhc-modal-head">
+                        <div class="ldhc-modal-titles">
+                            <h2 class="ldhc-modal-title" id="modal-title-{generate-id()}">
                                 <xsl:apply-templates select="key('resources', 'application-settings', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
-                            </xsl:value-of>
-                        </legend>
+                            </h2>
+                        </div>
+                        <span class="ldhc-modal-x">
+                            <button type="button" class="ldhc-iconbtn sz-sm in-neutral ap-ghost close" aria-label="{ac:label(key('resources', 'close', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin))))}"><span class="msi sm">close</span></button>
+                        </span>
                     </div>
-                    <div class="modal-body">
+                    <div class="ldhc-modal-body">
                         <!-- to be injected -->
+                    </div>
                     </div>
                 </div>
             </xsl:result-document>
         </xsl:for-each>
 
         <xsl:variable name="modal" select="$content-body/div[contains-token(@class, 'modal')][last()]" as="element()"/>
-        <xsl:variable name="block" select="$modal/div[contains-token(@class, 'modal-body')]" as="element()"/>
+        <xsl:variable name="block" select="($modal//div[contains-token(@class, 'ldhc-modal-body')])[1]" as="element()"/>
         <!-- settings UI is a single global button, not per-tab; target the local app's settings, not the active tab's dataspace -->
         <xsl:variable name="settings-uri" select="resolve-uri('settings', xs:anyURI(lapp:origin(ldh:request-uri()) || '/'))" as="xs:anyURI"/>
         <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $settings-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
@@ -1144,7 +1166,7 @@ LIMIT   10
     <!-- form-flavor wrapper mode parallel to ldh:DocumentForm; scopes the app-settings UI restrictions (dct:title / dct:description visible, everything else hidden) to this flow. The mode itself is the discriminator — instances of lapp:Application created via the generic Create button continue to render through ldh:DocumentForm → bs2:FormControl unaffected. -->
     <xsl:template match="rdf:RDF" mode="ldh:AppSettingsForm">
         <xsl:param name="method" select="'patch'" as="xs:string"/>
-        <xsl:param name="form-actions-class" select="'ldh-block-foot modal-footer'" as="xs:string?"/>
+        <xsl:param name="form-actions-class" select="'ldh-form-bar'" as="xs:string?"/>
         <xsl:param name="package-catalog" as="document-node()?" tunnel="yes"/>
         <xsl:call-template name="bs2:Form">
             <xsl:with-param name="method" select="$method"/>
@@ -1602,7 +1624,7 @@ LIMIT   10
         <xsl:param name="target" as="element()"/>
 
         <!-- the menu pick that reached here has served its purpose - the drop-down it came from closes behind the modal -->
-        <xsl:apply-templates select="ixsl:page()//*[contains-token(@class, 'btn-group')][contains-token(@class, 'open')]" mode="ldh:CloseDropdown"/>
+        <xsl:apply-templates select="ixsl:page()//*[contains-token(@class, 'btn-group')][contains-token(@class, 'open')] | ixsl:page()//*[contains-token(@class, 'ldh-form-actions-wrap')][contains-token(@class, 'is-open')]" mode="ldh:CloseDropdown"/>
 
         <!-- per-pane modal ids guarantee uniqueness, so the page-wide existence check suffices -->
         <xsl:if test="not(id($form/@id, ixsl:page()))">
@@ -2299,17 +2321,17 @@ LIMIT   10
         <xsl:variable name="render-fn" select="$context('render-fn')" as="function(document-node(), map(*)) as element()*"/>
         <xsl:variable name="rendered" select="$render-fn($body, $render-ctx)" as="element()*"/>
 
-        <xsl:for-each select="$block">
+        <!-- resolve the dialog shell from whichever element the flow stamped as 'block': the backdrop (edit/create submits) or the modal body (app-settings) -->
+        <xsl:variable name="dialog" select="($block/ancestor-or-self::div[contains-token(@class, 'ldhc-modal')], $block/descendant::div[contains-token(@class, 'ldhc-modal')])[1]" as="element()"/>
+        <xsl:for-each select="$dialog">
             <xsl:result-document href="?." method="ixsl:replace-content">
-                <div class="modal-header">
-                    <button type="button" class="close">&#215;</button>
-
-                    <legend>
-                        <!-- <xsl:value-of select="$legend-label"/> -->
-                    </legend>
+                <div class="ldhc-modal-head">
+                    <span class="ldhc-modal-x">
+                        <button type="button" class="ldhc-iconbtn sz-sm in-neutral ap-ghost close" aria-label="{ac:label(key('resources', 'close', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin))))}"><span class="msi sm">close</span></button>
+                    </span>
                 </div>
 
-                <div class="modal-body">
+                <div class="ldhc-modal-body">
                     <xsl:copy-of select="$rendered"/>
                 </div>
             </xsl:result-document>

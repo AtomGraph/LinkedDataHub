@@ -76,11 +76,11 @@ version="3.0"
             <xsl:for-each select="$container">
 
                 <!-- a modal takes over from the chrome that opened it: a drop-down the pick came from is dismissed here, once its own handler has run -->
-                <xsl:apply-templates select="ixsl:page()//*[contains-token(@class, 'btn-group')][contains-token(@class, 'open')]" mode="ldh:CloseDropdown"/>
+                <xsl:apply-templates select="ixsl:page()//*[contains-token(@class, 'btn-group')][contains-token(@class, 'open')] | ixsl:page()//*[contains-token(@class, 'ldh-form-actions-wrap')][contains-token(@class, 'is-open')]" mode="ldh:CloseDropdown"/>
                 <xsl:result-document href="?." method="ixsl:append-content">
                     <div class="modal modal-constructor fade in" id="document-history-modal">
                         <div class="modal-header">
-                            <button type="button" class="close">&#215;</button>
+                            <button type="button" class="ldhc-iconbtn sz-sm in-neutral ap-ghost close" aria-label="{ac:label(key('resources', 'close', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin))))}"><span class="msi sm">close</span></button>
                             <legend>
                                 <xsl:value-of>
                                     <xsl:apply-templates select="key('resources', 'history', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
@@ -149,12 +149,12 @@ version="3.0"
                                             </tbody>
                                         </table>
                                         <div class="ldh-block-foot modal-footer">
-                                            <button type="button" class="ldh-btn is-ghost btn-close">
+                                            <button type="button" class="ldhc-btn in-neutral ap-outline sz-md btn-close">
                                                 <xsl:value-of>
                                                     <xsl:apply-templates select="key('resources', 'close', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
                                                 </xsl:value-of>
                                             </button>
-                                            <button type="submit" class="ldh-btn">
+                                            <button type="submit" class="ldhc-btn in-primary ap-solid sz-md">
                                                 <span class="msi sm" aria-hidden="true">compare_arrows</span>
                                                 <xsl:value-of>
                                                     <xsl:apply-templates select="key('resources', 'compare', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>

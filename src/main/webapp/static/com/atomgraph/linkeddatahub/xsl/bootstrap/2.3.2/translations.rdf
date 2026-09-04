@@ -464,6 +464,26 @@
         <rdfs:label xml:lang="en-US">Actions</rdfs:label>
         <rdfs:label xml:lang="es-ES">Acciones</rdfs:label>
     </rdf:Description>
+    <rdf:Description rdf:nodeID="upload">
+        <rdfs:label xml:lang="en-US">Upload</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Subir</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="language-tag">
+        <rdfs:label xml:lang="en-US">Language tag (BCP 47)</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Etiqueta de idioma (BCP 47)</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="required">
+        <rdfs:label xml:lang="en-US">Required</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Obligatorio</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="edit-constructors">
+        <rdfs:label xml:lang="en-US">Edit constructors</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Editar constructores</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="subject-uri-actions">
+        <rdfs:label xml:lang="en-US">Subject URI &amp; actions</rdfs:label>
+        <rdfs:label xml:lang="es-ES">URI del sujeto y acciones</rdfs:label>
+    </rdf:Description>
     <rdf:Description rdf:nodeID="edit">
         <rdfs:label xml:lang="en-US">Edit</rdfs:label>
         <rdfs:label xml:lang="es-ES">Editar</rdfs:label>

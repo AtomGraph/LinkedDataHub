@@ -393,7 +393,9 @@ extension-element-prefixes="ixsl"
          the onclick handler in client.xsl resolves the URI from the header's title anchor or the
          ancestor block's @about at click time. -->
     <xsl:template match="*" mode="ldh:CopyUriButton">
-        <button type="button" class="btn-copy-uri tb">
+        <xsl:param name="class" select="'btn-copy-uri tb'" as="xs:string"/>
+
+        <button type="button" class="{$class}">
             <xsl:attribute name="title">
                 <xsl:apply-templates select="key('resources', 'copy-uri', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
             </xsl:attribute>
@@ -839,28 +841,45 @@ extension-element-prefixes="ixsl"
         <xsl:apply-templates select="$definitions" mode="bs2:PropertyListIdentity"/>
     </xsl:template>
 
-    <!-- wrap each predicate's dt/dd run in a <div> name-value group (HTML's dl grouping element), keyed
-         on the dds' RDFa @property URI - the group is the styling unit (border, full-height hover band).
-         Only the first dt of a group survives, replacing the outer label-based dt dedup: labels can
-         collide across predicates, property URIs cannot -->
+    <!-- project the intermediate dt/dd list onto the design's property grid: one .ldh-prop-group per
+         predicate (keyed on the dds' RDFa @property URI - labels can collide across predicates, property
+         URIs cannot), the dt's label in the spanning .label cell, each dd as a .ldh-prop-row value cell
+         carrying the dd's RDFa attributes. The trailing empty .row-actions cell completes the grid row
+         so the statement delimiter reaches the card's right inset -->
     <xsl:template match="xhtml:dl" mode="bs2:PropertyListIdentity">
-        <xsl:copy>
-            <xsl:apply-templates select="@*" mode="#current"/>
-
+        <div class="ldh-prop-form">
             <xsl:for-each-group select="*" group-adjacent="string((self::xhtml:dd/@property, following-sibling::xhtml:dd[preceding-sibling::xhtml:dt[1] is current()][1]/@property)[1])">
-                <div>
-                    <xsl:apply-templates select="(current-group()/self::xhtml:dt)[1], current-group()/self::xhtml:dd" mode="#current"/>
+                <xsl:variable name="property-uri" select="current-grouping-key()" as="xs:string"/>
+                <xsl:variable name="dt" select="(current-group()/self::xhtml:dt)[1]" as="element()?"/>
+                <xsl:variable name="dds" select="current-group()/self::xhtml:dd" as="element()*"/>
+
+                <div class="ldh-prop-group">
+                    <xsl:if test="count($dds) gt 1">
+                        <xsl:attribute name="style" select="'--rows: ' || count($dds)"/>
+                    </xsl:if>
+
+                    <div class="label">
+                        <xsl:if test="count($dds) gt 1">
+                            <xsl:attribute name="style" select="'grid-row: span ' || count($dds)"/>
+                        </xsl:if>
+
+                        <span class="pred" title="{$property-uri}">
+                            <xsl:sequence select="$dt/node()"/>
+                        </span>
+                    </div>
+
+                    <xsl:for-each select="$dds">
+                        <div class="ldh-prop-row{if (position() = last()) then ' is-last' else ()}">
+                            <div class="value{@class ! (' ' || .)}">
+                                <xsl:copy-of select="@* except @class"/>
+                                <xsl:sequence select="node()"/>
+                            </div>
+                            <div class="row-actions"></div>
+                        </div>
+                    </xsl:for-each>
                 </div>
             </xsl:for-each-group>
-        </xsl:copy>
-    </xsl:template>
-
-    <!-- neutralize the outer label-based dt dedup (adjacent predicates sharing a label would lose the
-         second group's dt) - the grouping above already drops repeated dts -->
-    <xsl:template match="xhtml:dt" mode="bs2:PropertyListIdentity">
-        <xsl:copy>
-            <xsl:apply-templates select="@* | node()" mode="#current"/>
-        </xsl:copy>
+        </div>
     </xsl:template>
 
     <!-- IMAGE -->
@@ -1108,7 +1127,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="base-uri" select="ldh:base-uri(.)" as="xs:anyURI" tunnel="yes"/>
         <xsl:param name="action" select="ldh:href(ac:absolute-path($base-uri))" as="xs:anyURI" tunnel="yes"/>
         <xsl:param name="enctype" select="if ($typeof = '&nfo;FileDataObject') then 'multipart/form-data' else ()" as="xs:string?"/>
-        <xsl:param name="button-class" select="'ldh-btn'" as="xs:string?"/>
+        <xsl:param name="button-class" select="'ldhc-btn in-primary ap-solid sz-sm'" as="xs:string?"/>
         <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
         <xsl:param name="show-cancel-button" select="true()" as="xs:boolean"/>
         <xsl:param name="show-form-actions" select="true()" as="xs:boolean"/>
@@ -1133,7 +1152,7 @@ extension-element-prefixes="ixsl"
                     <xsl:attribute name="class" select="$main-class"/>
                 </xsl:if>
                 
-                <form method="{$method}" action="{$action}" class="ldh-prop-form">
+                <form method="{$method}" action="{$action}" class="ldh-edit-form">
                     <xsl:if test="$form-id">
                         <xsl:attribute name="id" select="$form-id"/>
                     </xsl:if>
@@ -1159,23 +1178,30 @@ extension-element-prefixes="ixsl"
                     </xsl:apply-templates>
 
                     <xsl:if test="$show-form-actions">
-                        <div class="ldh-block-foot">
-                            <xsl:if test="$show-cancel-button">
-                                <button type="button" class="ldh-btn is-ghost btn-cancel">
-                                    <xsl:value-of>
-                                        <xsl:apply-templates select="key('resources', 'cancel', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
-                                    </xsl:value-of>
+                        <div class="ldh-form-bar pl-inline">
+                            <span class="fb-end">
+                                <button type="reset" class="ldhc-btn in-neutral ap-ghost sz-sm btn-reset">
+                                    <span class="msi outline sm" aria-hidden="true">restart_alt</span>
+                                    <span>
+                                        <xsl:apply-templates select="key('resources', 'reset', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                                    </span>
                                 </button>
-                            </xsl:if>
 
-                            <button type="reset" class="ldh-btn is-ghost btn-reset">
-                                <xsl:apply-templates select="key('resources', 'reset', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
-                            </button>
+                                <xsl:if test="$show-cancel-button">
+                                    <button type="button" class="ldhc-btn in-neutral ap-outline sz-sm btn-cancel">
+                                        <span>
+                                            <xsl:apply-templates select="key('resources', 'cancel', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                                        </span>
+                                    </button>
+                                </xsl:if>
 
-                            <button type="submit" class="{$button-class} btn-save">
-                                <span class="msi sm" aria-hidden="true">save</span>
-                                <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
-                            </button>
+                                <button type="submit" class="{$button-class} btn-save">
+                                    <span class="msi outline sm" aria-hidden="true">check</span>
+                                    <span>
+                                        <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                                    </span>
+                                </button>
+                            </span>
                         </div>
                     </xsl:if>
                 </form>
@@ -1199,20 +1225,15 @@ extension-element-prefixes="ixsl"
     <!-- EXCEPTION -->
     
     <xsl:template match="*[http:sc/@rdf:resource = '&sc;Conflict']" mode="bs2:Exception" priority="1">
-        <xsl:param name="class" select="'alert alert-error'" as="xs:string?"/>
-
-        <div>
-            <xsl:if test="$class">
-                <xsl:attribute name="class" select="$class"/>
-            </xsl:if>
-
-            <xsl:apply-templates select="key('resources', '&ldh;ResourceExistsException', document(ac:document-uri('&ldh;')))" mode="ldh:logo">
-                <xsl:with-param name="class" select="$class"/>
-            </xsl:apply-templates>
-            <xsl:text> </xsl:text>
-            <xsl:value-of>
-                <xsl:apply-templates select="key('resources', '&ldh;ResourceExistsException', document(ac:document-uri('&ldh;')))" mode="ac:label"/>
-            </xsl:value-of>
+        <div class="ldh-form-alert">
+            <div class="ldhc-alert va-negative" role="alert">
+                <span class="ldhc-alert-ic"><span class="msi outline" aria-hidden="true">error</span></span>
+                <div class="ldhc-alert-body">
+                    <span class="ldhc-alert-text">
+                        <xsl:apply-templates select="key('resources', '&ldh;ResourceExistsException', document(ac:document-uri('&ldh;')))" mode="ac:label"/>
+                    </span>
+                </div>
+            </div>
         </div>
     </xsl:template>
     
@@ -1288,97 +1309,111 @@ extension-element-prefixes="ixsl"
             <xsl:if test="$id">
                 <xsl:attribute name="id" select="$id"/>
             </xsl:if>
-            <xsl:if test="$class">
-                <xsl:attribute name="class" select="$class"/>
+            <xsl:attribute name="class" select="string-join(('ldh-fieldset', $class), ' ')"/>
+
+            <!-- list of types that have constructors (excluding built-in system classes) -->
+            <xsl:variable name="constructor-classes" select="if (exists($type-metadata) and exists($constructors)) then distinct-values($constructors//srx:binding[@name = 'Type']/srx:uri)[not(starts-with(., '&dh;') or starts-with(., '&ldh;') or starts-with(., '&def;') or starts-with(., '&lapp;') or starts-with(., '&sp;') or starts-with(., '&nfo;'))] else ()" as="xs:anyURI*"/>
+            <!-- subject-row tools, revealed together with the subject row: copy-URI (keeps the btn-copy-uri class the clipboard handler matches on) and the constructor actions. One action renders as a direct labelled button, two or more collapse into the overflow menu -->
+            <xsl:variable name="subject-tools" as="element()*">
+                <xsl:apply-templates select="." mode="ldh:CopyUriButton">
+                    <xsl:with-param name="class" select="'ldh-subject-copy btn-copy-uri'"/>
+                </xsl:apply-templates>
+
+                <xsl:choose>
+                    <xsl:when test="count($constructor-classes) = 1">
+                        <button type="button" class="ldh-form-action btn-edit-constructors" data-resource-type="{$constructor-classes}">
+                            <!-- only admins should see the button as only they have access to the ontologies with constructors in them -->
+                            <xsl:if test="not(acl:mode() = '&acl;Control')">
+                                <xsl:attribute name="style" select="'display: none'"/>
+                            </xsl:if>
+
+                            <span class="msi outline sm" aria-hidden="true">tune</span>
+                            <span>
+                                <xsl:apply-templates select="key('resources', 'edit-constructors', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                            </span>
+                        </button>
+                    </xsl:when>
+                    <xsl:when test="count($constructor-classes) gt 1">
+                        <div class="ldh-form-actions-wrap">
+                            <!-- only admins should see the menu as only they have access to the ontologies with constructors in them -->
+                            <xsl:if test="not(acl:mode() = '&acl;Control')">
+                                <xsl:attribute name="style" select="'display: none'"/>
+                            </xsl:if>
+
+                            <button type="button" class="ldh-form-action" aria-haspopup="menu" aria-expanded="false">
+                                <span class="msi outline sm" aria-hidden="true">bolt</span>
+                                <span>
+                                    <xsl:apply-templates select="key('resources', 'actions', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                                </span>
+                                <span class="msi sm caret" aria-hidden="true">expand_more</span>
+                            </button>
+                            <div class="ldh-form-actions-menu" role="menu">
+                                <xsl:for-each select="$constructor-classes">
+                                    <button type="button" role="menuitem" class="it btn-edit-constructors" data-resource-type="{.}">
+                                        <span class="ico"><span class="msi outline sm" aria-hidden="true">tune</span></span>
+                                        <span class="body">
+                                            <span class="lbl">
+                                                <!-- query class description from the namespace ontology (because it might not be available as Linked Data) -->
+                                                <xsl:apply-templates select="key('resources', ., $type-metadata)" mode="ac:label"/>
+                                            </span>
+                                            <span class="sub">
+                                                <xsl:apply-templates select="key('resources', 'edit-constructors', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                                            </span>
+                                        </span>
+                                    </button>
+                                </xsl:for-each>
+                            </div>
+                        </div>
+                    </xsl:when>
+                </xsl:choose>
+            </xsl:variable>
+
+            <xsl:if test="$legend">
+                <legend class="lg-eyebrow">
+                    <xsl:value-of select="ac:label(.)"/>
+                </legend>
             </xsl:if>
 
-            <xsl:choose>
-                <xsl:when test="$legend">
-                    <legend>
-                        <xsl:value-of select="ac:label(.)"/>
+            <xsl:if test="$legend or not($required)">
+                <div class="ldh-form-subjbar">
+                    <xsl:if test="$legend">
+                        <!-- button that toggles the .ldh-subject row for subject URI/bnode ID editing -->
+                        <button type="button" class="ldhc-iconbtn sz-sm in-neutral ap-ghost btn-edit-subj" aria-pressed="{if ($show-subject) then 'true' else 'false'}">
+                            <xsl:attribute name="title">
+                                <xsl:apply-templates select="key('resources', 'subject-uri-actions', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                            </xsl:attribute>
 
-                        <div class="actions">
-                            <xsl:if test="exists($type-metadata) and exists($constructors)">
-                                <div class="btn-group">
-                                    <!-- show list of types that have constructors (excluding built-in system classes) -->
-                                    <xsl:variable name="constructor-classes" select="distinct-values($constructors//srx:binding[@name = 'Type']/srx:uri)[not(starts-with(., '&dh;') or starts-with(., '&ldh;') or starts-with(., '&def;') or starts-with(., '&lapp;') or starts-with(., '&sp;') or starts-with(., '&nfo;'))]" as="xs:anyURI*"/>
+                            <span class="msi outline sm" aria-hidden="true">link</span>
+                        </button>
+                    </xsl:if>
 
-                                    <button type="button" class="ldhc-btn in-neutral ap-solid sz-sm dropdown-toggle btn-edit-actions">
-                                        <!-- only admins should see the button as only they have access to the ontologies with constructors in them -->
-                                        <xsl:if test="not(acl:mode() = '&acl;Control' and exists($constructor-classes))">
-                                            <xsl:attribute name="style" select="'display: none'"/>
-                                        </xsl:if>
-
-                                        <xsl:value-of>
-                                            <xsl:apply-templates select="key('resources', 'actions', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
-                                        </xsl:value-of>
-                                        <span class="msi caret" aria-hidden="true">expand_more</span>
-                                    </button>
-                                    <ul class="dropdown-menu">
-                                        <xsl:for-each select="$constructor-classes">
-                                            <li>
-                                                <button type="button" class="btn-edit-constructors" data-resource-type="{.}">
-                                                    <xsl:value-of>
-                                                        <xsl:apply-templates select="key('resources', 'edit', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
-                                                    </xsl:value-of>
-                                                    <xsl:text> </xsl:text>
-                                                    <!-- query class description from the namespace ontology (because it might not be available as Linked Data) -->
-                                                    <xsl:apply-templates select="key('resources', ., $type-metadata)" mode="ac:label"/>
-                                                    <xsl:text> </xsl:text>
-                                                    <xsl:value-of>
-                                                        <xsl:apply-templates select="key('resources', 'constructors', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
-                                                    </xsl:value-of>
-                                                </button>
-                                            </li>
-                                        </xsl:for-each>
-                                    </ul>
-                                </div>
-                            </xsl:if>
-                            
-                            <!-- button that toggles the .control-group for subject URI/bnode ID editing -->
-                            <button type="button" class="ldhc-btn in-neutral ap-ghost sz-sm is-iconly btn-edit-subj {if ($show-subject) then 'open' else ()}"><span class="msi sm" aria-hidden="true">edit</span></button>
-                        </div>
-                        
-                        <xsl:apply-templates select="." mode="ldh:CopyUriButton"/>
-
-                        <xsl:if test="not($required)">
-                            <div class="btn-group">
-                                <button type="button" class="tb btn-remove-resource">
-                                    <xsl:attribute name="title">
-                                        <xsl:apply-templates select="key('resources', 'remove-resource', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
-                                    </xsl:attribute>
-
-                                    <span class="msi sm" aria-hidden="true">close</span>
-                                </button>
-                            </div>
-                        </xsl:if>
-                    </legend>
-                </xsl:when>
-                <xsl:when test="not($required)">
-                    <div class="btn-group">
-                        <button type="button" class="tb btn-remove-resource">
+                    <xsl:if test="not($required)">
+                        <button type="button" class="ldhc-iconbtn sz-sm in-destructive ap-ghost btn-remove-resource">
                             <xsl:attribute name="title">
                                 <xsl:apply-templates select="key('resources', 'remove-resource', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
                             </xsl:attribute>
 
                             <span class="msi sm" aria-hidden="true">close</span>
                         </button>
-                    </div>
-                </xsl:when>
-            </xsl:choose>
+                    </xsl:if>
+                </div>
+            </xsl:if>
 
             <!-- @rdf:about / @rdf:nodeID rendering is shell behavior, not per-flow customizable; dispatch in bs2:FormControl mode explicitly so it works regardless of whether the shell was entered via the match template (mode=bs2:FormControl) or the named template (e.g. from ldh:DocumentForm / ldh:AppSettingsForm wrapper modes) -->
             <xsl:apply-templates select="@rdf:about | @rdf:nodeID" mode="bs2:FormControl">
                 <xsl:with-param name="type" select="if ($show-subject) then 'text' else 'hidden'"/>
-            </xsl:apply-templates>
-    
-            <xsl:apply-templates select="." mode="bs2:TypeControl">
-                <xsl:with-param name="type-metadata" select="$type-metadata" tunnel="yes"/>
-                <xsl:with-param name="hidden" select="$type-hidden"/>
+                <xsl:with-param name="tools" select="$subject-tools"/>
             </xsl:apply-templates>
 
-            <!-- no fieldset-level alert stack: violations surface at the affected rows - .error decoration for missing mandatory properties, inline .ldhc-help messages for every other kind (see the property template in imports/default.xsl) -->
-            <xsl:sequence select="$body"/>
+            <div class="ldh-prop-form is-form-mode">
+                <xsl:apply-templates select="." mode="bs2:TypeControl">
+                    <xsl:with-param name="type-metadata" select="$type-metadata" tunnel="yes"/>
+                    <xsl:with-param name="hidden" select="$type-hidden"/>
+                </xsl:apply-templates>
+
+                <!-- no fieldset-level alert stack: violations surface at the affected rows - .error decoration for missing mandatory properties, inline .ldhc-help messages for every other kind (see the property template in imports/default.xsl) -->
+                <xsl:sequence select="$body"/>
+            </div>
 
             <xsl:if test="$show-property-control">
                 <xsl:apply-templates select="." mode="bs2:PropertyControl">
@@ -1432,8 +1467,8 @@ extension-element-prefixes="ixsl"
         <xsl:variable name="seq-properties" select="for $property in ../rdf:Description/*/concat(namespace-uri(), local-name())[starts-with(., '&rdf;' || '_')] return xs:anyURI($property)" as="xs:anyURI*"/>
         <xsl:variable name="max-seq-index" select="if (empty($seq-properties)) then 0 else max(for $seq-property in $seq-properties return xs:integer(substring-after($seq-property, '&rdf;' || '_')))" as="xs:integer"/>
 
-        <div class="control-group">
-            <span class="control-label">
+        <div class="ldh-prop-addrow">
+            <span class="ldhc-select sz-sm">
                 <select>
                     <xsl:apply-templates select="key('resources', '&rdf;type', document(ac:document-uri('&rdf;type')))" mode="xhtml:Option"/>
                     
@@ -1479,13 +1514,15 @@ extension-element-prefixes="ixsl"
                         </xsl:for-each>
                     </xsl:for-each-group>
                 </select>
+                <span class="msi sm ldhc-select-caret" aria-hidden="true">unfold_more</span>
             </span>
 
-            <div class="controls">
-                <button type="button" id="button-{generate-id()}" class="tb add-value">
-                    <span class="msi sm" aria-hidden="true">add</span>
-                </button>
-            </div>
+            <button type="button" id="button-{generate-id()}" class="ldhc-btn in-primary ap-solid sz-sm add-value">
+                <span class="msi outline sm" aria-hidden="true">add</span>
+                <span>
+                    <xsl:apply-templates select="key('resources', 'add', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                </span>
+            </button>
         </div>
     </xsl:template>
     
@@ -1560,44 +1597,52 @@ extension-element-prefixes="ixsl"
     
     <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="ldh:Typeahead">
         <xsl:param name="id" select="generate-id()" as="xs:string"/>
-        <xsl:param name="class" select="'ldhc-btn in-neutral ap-solid sz-sm add-typeahead'" as="xs:string?"/>
+        <xsl:param name="class" select="'cb-chip-btn add-typeahead'" as="xs:string?"/>
         <xsl:param name="disabled" select="false()" as="xs:boolean"/>
         <xsl:param name="title" select="(@rdf:about, @rdf:nodeID)[1]" as="xs:string?"/>
         <xsl:param name="forClass" as="xs:anyURI*"/>
 
-        <span>
+        <span class="ldhc-cb-committed">
             <xsl:if test="exists($forClass)">
                 <xsl:attribute name="data-for-class" select="string-join($forClass, ' ')"/>
             </xsl:if>
-            
-            <button type="button">
-                <xsl:if test="$id">
-                    <xsl:attribute name="id" select="$id"/>
-                </xsl:if>
-                <xsl:if test="$class">
-                    <xsl:attribute name="class" select="$class"/>
-                </xsl:if>
-                <xsl:if test="$disabled">
-                    <xsl:attribute name="disabled" select="'disabled'"/>
-                </xsl:if>
-                <xsl:if test="$title">
-                    <xsl:attribute name="title" select="$title"/>
-                </xsl:if>
 
-                <span>
+            <span class="ldhc-cb-chip">
+                <span class="msi outline sm" aria-hidden="true">link</span>
+                <span class="cb-chip-lbl">
+                    <xsl:if test="$title">
+                        <xsl:attribute name="title" select="$title"/>
+                    </xsl:if>
+
                     <xsl:value-of>
                         <xsl:apply-templates select="." mode="ac:label"/>
                     </xsl:value-of>
                 </span>
-                <span class="msi caret" aria-hidden="true">expand_more</span>
+                <!-- the edit button carries the committed term's RDF/POST input, so re-picking replaces both together -->
+                <button type="button">
+                    <xsl:if test="$id">
+                        <xsl:attribute name="id" select="$id"/>
+                    </xsl:if>
+                    <xsl:if test="$class">
+                        <xsl:attribute name="class" select="$class"/>
+                    </xsl:if>
+                    <xsl:if test="$disabled">
+                        <xsl:attribute name="disabled" select="'disabled'"/>
+                    </xsl:if>
+                    <xsl:if test="$title">
+                        <xsl:attribute name="title" select="$title"/>
+                    </xsl:if>
 
-                <xsl:if test="@rdf:about">
-                    <input type="hidden" name="ou" value="{@rdf:about}"/>
-                </xsl:if>
-                <xsl:if test="@rdf:nodeID">
-                    <input type="hidden" name="ob" value="{@rdf:nodeID}"/>
-                </xsl:if>
-            </button>
+                    <span class="msi" aria-hidden="true">edit</span>
+
+                    <xsl:if test="@rdf:about">
+                        <input type="hidden" name="ou" value="{@rdf:about}"/>
+                    </xsl:if>
+                    <xsl:if test="@rdf:nodeID">
+                        <input type="hidden" name="ob" value="{@rdf:nodeID}"/>
+                    </xsl:if>
+                </button>
+            </span>
         </span>
     </xsl:template>
     

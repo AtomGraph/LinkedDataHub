@@ -147,43 +147,19 @@ button { font-family: inherit; cursor: pointer; }
 }
 
 .ldh-header-actions { display: flex; align-items: center; gap: var(--sp-2); }
-.ldh-icon-btn {
-  width: 36px; height: 36px;
-  display: inline-flex; align-items: center; justify-content: center;
-  border-radius: var(--r-md);
-  background: transparent;
-  border: 0;
-  color: rgba(255,255,255,0.85);
-  transition: background var(--dur-fast) var(--ease-out-soft), color var(--dur-fast) var(--ease-out-soft);
-}
-.ldh-icon-btn:hover { background: rgba(255,255,255,0.10); color: #fff; }
-.ldh-icon-btn.has-dot { position: relative; }
-.ldh-icon-btn.has-dot::after {
-  content: ""; position: absolute; top: 8px; right: 9px; width: 7px; height: 7px; border-radius: 50%;
-  background: var(--ldh-blue-400); box-shadow: 0 0 0 2px rgba(10,45,87,0.95);
-}
+/* The header's icon buttons take the HEADER's ink by inheritance, never a
+   hardcoded literal: m3 makes the bar dark (light ink) while base44 makes it
+   light (dark ink), and `intent="inverse"` would pin white in both. Hover tints
+   with currentColor so it lands correctly on either. This is why the button
+   needs no per-skin colour patch at all. */
+.ldh-header .ldhc-iconbtn { color: inherit; }
+.ldh-header .ldhc-iconbtn:hover { background: color-mix(in srgb, currentColor 12%, transparent); color: inherit; }
+.ldh-header .ldhc-iconbtn:active { background: color-mix(in srgb, currentColor 18%, transparent); }
 
-.ldh-avatar {
-  width: 32px; height: 32px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, var(--ldh-blue-400), var(--ldh-violet-400));
-  color: #fff;
-  display: inline-flex; align-items: center; justify-content: center;
-  font-size: var(--fs-xs);
-  font-weight: var(--fw-semibold);
-  letter-spacing: 0.04em;
-  margin-left: var(--sp-1);
-  cursor: pointer;
-  border: 2px solid transparent;
-  transition: box-shadow var(--dur-fast) var(--ease-out-soft), border-color var(--dur-fast) var(--ease-out-soft);
-}
-.ldh-avatar:hover,
-.ldh-avatar.is-open {
-  border-color: rgba(255,255,255,0.55);
-  box-shadow: 0 0 0 3px rgba(77, 148, 248, 0.22);
-}
+/* Header icon buttons are core <IconButton size="lg">; the
+   unread dot is a core <Badge dot>. The old .ldh-icon-btn hardcoded
+   rgba(255,255,255,.10) and rgba(10,45,87,.95) — raw values, not tokens. */
 
-/* User dropdown — popover anchored under the header avatar */
 .ldh-avatar-wrap { position: relative; display: inline-flex; }
 .ldh-user-menu {
   position: absolute;
@@ -250,7 +226,7 @@ button { font-family: inherit; cursor: pointer; }
   font-family: inherit;
 }
 .ldh-user-menu .umitem:hover { background: var(--surface-2); }
-.ldh-user-menu .umitem.is-danger { color: var(--ldh-red-600, #b42318); }
+.ldh-user-menu .umitem.is-danger { color: var(--danger-500); }
 .ldh-user-menu .umitem.is-danger:hover { background: rgba(180, 35, 24, 0.08); }
 .ldh-user-menu .umitem .msi { color: inherit; }
 
@@ -276,18 +252,20 @@ button { font-family: inherit; cursor: pointer; }
   transition: color var(--dur-fast) var(--ease-out-soft), border-color var(--dur-fast) var(--ease-out-soft);
 }
 .ldh-tab:hover { color: var(--fg-1); }
-.ldh-tab.is-active { color: var(--fg-1); border-bottom-color: var(--ldh-blue-500); }
-.ldh-tab .close {
+/* Active marker uses the semantic --fg-selected (not a raw ramp step), so it
+   matches core's .ldhc-tab.is-on and follows any skin without a per-skin patch. */
+.ldh-tab.is-active { color: var(--fg-selected); border-bottom-color: var(--fg-selected); }
+.ldh-tab .tab-close {
   width: 18px; height: 18px; display: inline-flex; align-items: center; justify-content: center;
   border-radius: var(--r-xs); color: var(--fg-hint);
 }
-.ldh-tab .close:hover { background: var(--bg-hover); color: var(--fg-1); }
+.ldh-tab .tab-close:hover { background: var(--bg-hover); color: var(--fg-1); }
 
 /* ---------- Action bar (Add / Breadcrumb / Toolbar) ---------- */
 /* Action bar Create dropdown — Container / Item picker. */
 .ldh-add-wrap { position: relative; display: inline-flex; }
-.ldh-add-wrap .ldh-btn.is-open .caret { transform: rotate(180deg); }
-.ldh-add-wrap .ldh-btn .caret { transition: transform var(--dur-fast) var(--ease-out-soft); }
+.ldh-add-wrap .ldhc-btn.is-open .caret { transform: rotate(180deg); }
+.ldh-add-wrap .ldhc-btn .caret { transition: transform var(--dur-fast) var(--ease-out-soft); }
 .ldh-add-menu {
   position: absolute;
   top: calc(100% + 6px);
@@ -300,6 +278,7 @@ button { font-family: inherit; cursor: pointer; }
   padding: var(--sp-2);
   z-index: 50;
   animation: menu-pop var(--dur-fast) var(--ease-out-soft);
+  color: var(--fg-1);
 }
 .ldh-add-menu .hd {
   padding: 6px 8px 4px;
@@ -354,58 +333,8 @@ button { font-family: inherit; cursor: pointer; }
   flex-shrink: 0;
 }
 
-/* Primary button (Add / Create / Save) */
-.ldh-btn {
-  display: inline-flex; align-items: center; gap: var(--sp-2);
-  height: 36px;
-  padding: 0 var(--sp-4);
-  border-radius: var(--r-md);
-  font-family: var(--font-sans);
-  font-size: var(--fs-sm);
-  font-weight: var(--fw-medium);
-  border: 1px solid transparent;
-  transition: background var(--dur-fast) var(--ease-out-soft), box-shadow var(--dur-fast) var(--ease-out-soft), transform 80ms var(--ease-out-soft);
-  background: var(--bg-accent);
-  color: var(--fg-on-accent);
-}
-.ldh-btn:hover  { background: var(--bg-accent-hover); }
-.ldh-btn:active { transform: translateY(1px); }
-.ldh-btn:focus-visible { outline: 0; box-shadow: var(--shadow-glow-blue); }
-.ldh-btn.is-ghost {
-  background: transparent;
-  color: var(--fg-2);
-  border-color: var(--border-default);
-}
-.ldh-btn.is-ghost:hover { background: var(--bg-hover); color: var(--fg-1); }
-.ldh-btn.is-quiet {
-  background: transparent;
-  color: var(--fg-2);
-  border-color: transparent;
-  padding: 0 var(--sp-3);
-  height: 32px;
-}
-.ldh-btn.is-quiet:hover { background: var(--bg-hover); color: var(--fg-1); }
-.ldh-btn .caret { font-size: 16px; opacity: 0.85; }
-
-/* Breadcrumb */
-.ldh-breadcrumb {
-  display: flex; align-items: center; gap: var(--sp-2);
-  font-size: var(--fs-sm);
-  color: var(--fg-muted);
-  min-width: 0;
-}
-.ldh-breadcrumb .crumb {
-  display: inline-flex; align-items: center; gap: var(--sp-2);
-  padding: 4px 8px;
-  border-radius: var(--r-sm);
-  color: var(--fg-link);
-  transition: background var(--dur-fast) var(--ease-out-soft);
-  white-space: nowrap;
-}
-.ldh-breadcrumb .crumb:hover { background: var(--surface-2); text-decoration: none; }
-.ldh-breadcrumb .crumb .msi { color: var(--fg-muted); font-size: 18px; }
-.ldh-breadcrumb .crumb.is-current { color: var(--fg-1); font-weight: var(--fw-medium); }
-.ldh-breadcrumb .sep { color: var(--fg-hint); opacity: 0.6; }
+/* Buttons live in ui_kits/core/core.css as .ldhc-btn — the ONE button system.
+   The app kit's legacy .ldh-btn is gone; markup uses the core class directly. */
 
 /* ---------- Breadcrumb · Drive (Google-Drive-flavored, default) ----------
    Roomy horizontal path. Ancestors are quiet medium-weight links with a hover
@@ -530,11 +459,14 @@ button { font-family: inherit; cursor: pointer; }
 /* ---------- Breadcrumb · Pills ---------- */
 .ldh-bc-pills {
   display: flex; align-items: center; gap: 4px;
-  flex-wrap: wrap;
+  /* NOWRAP on purpose: see .ab-mid above. A wrapping breadcrumb stops reading
+     as a path. Overflow is absorbed by truncating pill labels instead. */
+  flex-wrap: nowrap;
   min-width: 0;
 }
 .ldh-bc-pills .bc-pill {
   display: inline-flex; align-items: center; gap: 6px;
+  min-width: 0;
   padding: 4px 10px;
   height: 26px;
   border-radius: var(--r-pill);
@@ -552,7 +484,12 @@ button { font-family: inherit; cursor: pointer; }
   color: var(--ldh-blue-700);
   font-weight: var(--fw-medium);
 }
-.ldh-bc-pills .bc-pill .msi { font-size: 14px; opacity: 0.85; }
+.ldh-bc-pills .bc-pill .msi { font-size: 14px; opacity: 0.85; flex-shrink: 0; }
+/* The label truncates; the icon and the current pill do not. Keeping the
+   current step whole matters most — it is where you are. */
+.ldh-bc-pills .bc-pill > span:not(.msi) { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.ldh-bc-pills .bc-pill.is-current { flex-shrink: 0; }
+.ldh-bc-pills .bc-sep { flex-shrink: 0; }
 .ldh-bc-pills .bc-sep {
   color: var(--fg-hint);
   font-size: 14px;
@@ -600,14 +537,6 @@ button { font-family: inherit; cursor: pointer; }
    Set by index.html based on the Tweaks panel state.
    ───────────────────────────────────────────────────────────────────────── */
 
-/* Predicate IRIs — "always" pins the IRI label above the human label even
-   when the row isn't hovered. */
-html[data-tweak-pred-iris="always"] .ldh-prop-group > .label .pred-iri {
-  opacity: 1;
-  transform: translateY(0);
-  pointer-events: auto;
-  user-select: text;
-}
 
 /* Density — compact tightens row padding across the property editor. */
 html[data-tweak-density="compact"] .ldh-prop-row > .value,
@@ -738,7 +667,7 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
 /* ─── Redesigned action cluster (declutter): mode · contextual primary · ⋯ ── */
 .ldh-actions { display: flex; align-items: center; gap: var(--sp-1); color: var(--fg-muted); }
 .ldh-actions-div { width: 1px; height: 20px; background: var(--border-default); margin: 0 var(--sp-2); }
-.ldh-actions .ldh-btn .msi { font-size: 18px; }
+.ldh-actions .ldhc-btn .msi { font-size: 18px; }
 
 /* Document dateTime as quiet metadata — never a control */
 .ldh-ab-ts {
@@ -764,6 +693,7 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
   background: var(--surface-0); border: 1px solid var(--border-default);
   border-radius: var(--r-md); box-shadow: var(--shadow-lg);
   display: flex; flex-direction: column; gap: 2px;
+  color: var(--fg-1);
 }
 .ldh-of-menu .it {
   display: flex; align-items: center; gap: var(--sp-2);
@@ -787,6 +717,13 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
 .ldh-actionbar--zoned .ab-mid,
 .ldh-actionbar--contextual .ab-mid {
   display: flex; align-items: center; gap: var(--sp-4); min-width: 0;
+  /* The mid zone holds two different KINDS of thing: the breadcrumb, which is
+     navigation and must stay legible, and the timestamp, which is metadata.
+     When they don't both fit, the METADATA yields — it drops to a second line.
+     This was nowrap, so the only thing that could give was the breadcrumb's own
+     wrap, which stacked the pills one per row and doubled the bar's height. */
+  flex-wrap: wrap;
+  row-gap: 2px;
 }
 .ldh-actionbar--zoned .ab-mid .ldh-ab-ts,
 .ldh-actionbar--contextual .ab-mid .ldh-ab-ts { margin-left: auto; padding-left: var(--sp-4); }
@@ -803,13 +740,13 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
 
 /* CONTEXTUAL — minimal at rest; secondary actions (Edit + ⋯) reveal on hover/
    focus of the bar. Mode switcher stays visible as the one persistent control. */
-.ldh-actionbar--contextual .ldh-actions .ldh-btn,
+.ldh-actionbar--contextual .ldh-actions .ldhc-btn,
 .ldh-actionbar--contextual .ldh-actions .ldh-of-wrap,
 .ldh-actionbar--contextual .ldh-actions .ldh-actions-div {
   opacity: 0; transition: opacity var(--dur-base) var(--ease-out-soft);
 }
-.ldh-actionbar--contextual:hover .ldh-actions .ldh-btn,
-.ldh-actionbar--contextual:focus-within .ldh-actions .ldh-btn,
+.ldh-actionbar--contextual:hover .ldh-actions .ldhc-btn,
+.ldh-actionbar--contextual:focus-within .ldh-actions .ldhc-btn,
 .ldh-actionbar--contextual:hover .ldh-actions .ldh-of-wrap,
 .ldh-actionbar--contextual:focus-within .ldh-actions .ldh-of-wrap,
 .ldh-actionbar--contextual:hover .ldh-actions .ldh-actions-div,
@@ -829,7 +766,6 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
   font-weight: var(--fw-medium);
   margin-right: var(--sp-2);
 }
-.ldh-mode > button { background: transparent; border: 0; padding: 0; color: inherit; font: inherit; }
 .ldh-mode .label-row { display: inline-flex; align-items: center; gap: var(--sp-2); }
 .ldh-mode .label { letter-spacing: 0.02em; }
 .ldh-mode .modes-pop {
@@ -842,6 +778,7 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
   padding: var(--sp-1);
   display: none;
   z-index: 50;
+  color: var(--fg-1);
 }
 .ldh-mode.is-open .modes-pop { display: block; }
 .ldh-mode .mi {
@@ -878,6 +815,14 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
   display: flex; flex-direction: column; gap: var(--sp-6);
   min-width: 0;
 }
+
+/* Per-view-block row: the block-scoped drawer (backlinks/related/parallax)
+   slides in from the right edge of the block and overlays its right portion.
+   The drawer is scoped to the block's height — no global push, no body scroll
+   hijack. The row stays display:block so its content keeps full width when
+   the drawer is closed AND when it's open. */
+.ldh-block-row { position: relative; }
+.ldh-block-row > .row-main { min-width: 0; }
 
 /* Backlinks / related panel */
 .ldh-panel {
@@ -946,17 +891,13 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
 
 /* ---------- Generic Block (view block wrapper) ---------- */
 .ldh-block {
-  /* positioned: the anchor for the block-scoped .ldh-drawer */
-  position: relative;
   background: var(--bg-card);
   border: 1px solid var(--border-default);
   border-radius: var(--r-lg);
-  /* no overflow clipping: dropdown menus (.modes-pop, .ldh-add-menu) render inline inside the card and must escape its box; the block body's inset keeps content clear of the corner arcs */
+  overflow: hidden;
   transition: box-shadow var(--dur-base) var(--ease-out-soft), border-color var(--dur-base) var(--ease-out-soft);
 }
 .ldh-block:hover { box-shadow: var(--shadow-sm); }
-/* hover-lift transforms (retro themes) make the card a stacking context, trapping its inline dropdowns below later positioned rows; while a popup is open the card must win the paint order over subsequent blocks (but stay under the z-70 action bar) */
-.ldh-block:has(.is-open) { position: relative; z-index: 60; }
 .ldh-block.is-quiet { border: 0; background: transparent; }
 .ldh-block.is-quiet:hover { box-shadow: none; }
 .ldh-block-head {
@@ -980,22 +921,28 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
 /* Delete (×) — quiet at rest, danger on hover. The block-removal affordance. */
 .ldh-block-head .actions .tb-danger:hover { background: var(--danger-50); color: var(--danger-500); }
 
-/* Links button — opens the block links popover (backlinks). The button always
-   sits inside its .links-nav anchor, so one selector covers every host: block
-   head actions, the view toolbar's right zone, the content block's corner. */
-.links-nav > .tb-links {
-  height: 32px;
+/* Links button — opens block-scoped drawer (backlinks / related / parallax) */
+.ldh-block-head .actions .tb-links,
+.hero-actions .tb-links {
+  width: auto;
   min-width: 32px;
   padding: 0 8px 0 6px;
-  display: inline-flex; align-items: center; justify-content: center;
   gap: 4px;
   background: var(--bg-accent-quiet);
   color: var(--ldh-blue-700);
   border: 1px solid var(--ldh-blue-100);
-  border-radius: var(--r-sm);
 }
-.links-nav > .tb-links:hover { background: var(--ldh-blue-100); color: var(--ldh-blue-700); }
-.links-nav > .tb-links.is-on { background: var(--ldh-blue-600); color: #fff; border-color: var(--ldh-blue-600); }
+.ldh-block-head .actions .tb-links:hover,
+.hero-actions .tb-links:hover {
+  background: var(--ldh-blue-100);
+  color: var(--ldh-blue-700);
+}
+.ldh-block-head .actions .tb-links.is-on,
+.hero-actions .tb-links.is-on {
+  background: var(--ldh-blue-600);
+  color: #fff;
+  border-color: var(--ldh-blue-600);
+}
 
 .hero-actions {
   position: absolute;
@@ -1014,30 +961,113 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
   border-color: rgba(255,255,255,0.85);
 }
 
-/* Block links popover — backlinks as jump-off navigation, anchored to the
-   header/toolbar links button. Modeled on .facet-pop; content lazy-loads on
-   first open. */
-.links-nav { position: relative; }
-.links-pop {
-  position: absolute; top: calc(100% + 6px); right: 0;
-  min-width: 260px; max-width: 320px;
-  background: var(--surface-0); border: 1px solid var(--border-default);
-  border-radius: var(--r-md); box-shadow: var(--shadow-lg);
-  padding: var(--sp-2);
-  z-index: 40;
-  display: none;
+/* Block drawer — fixed to the viewport's right edge so it sits FLUSH against
+   the page edge regardless of where the block lives inside the centered
+   .ldh-main container. Top/height are set inline by the React component to
+   match the anchor block's bounding rect, so the drawer stays block-scoped
+   vertically. */
+.ldh-drawer {
+  position: fixed;
+  right: 0;
+  width: min(360px, 92vw);
+  color: var(--fg-1);
+  background: var(--surface-0);
+  border: 0;
+  border-left: 1px solid var(--border-default);
+  border-radius: 0;
+  box-shadow: -8px 0 24px -22px rgba(15, 23, 42, 0.16);
+  display: flex; flex-direction: column;
+  z-index: 25;
+  animation: drawer-slide var(--dur-base) var(--ease-out-soft);
+  overflow: hidden;
 }
-.links-nav.is-open .links-pop { display: block; }
-.links-pop .dh2 {
-  margin: 0;
+@keyframes drawer-slide {
+  from { transform: translateX(100%); opacity: 0; }
+  to   { transform: translateX(0);    opacity: 1; }
+}
+
+/* Edge-hover sensor — invisible hot-zone flush to the viewport's right edge,
+   vertically scoped to its block (top/height set inline). Reaching it slides
+   the drawer out, no click needed. A faint handle peeks in so the gesture is
+   discoverable. */
+.ldh-edge-sensor {
+  position: fixed;
+  right: 0;
+  width: 20px;
+  z-index: 24;
+  display: flex; align-items: center; justify-content: flex-end;
+  cursor: pointer;
+}
+.ldh-edge-handle {
+  display: flex; align-items: center; justify-content: center;
+  width: 17px; height: 54px;
+  border-radius: var(--r-pill) 0 0 var(--r-pill);
+  background: var(--surface-0);
+  border: 1px solid var(--border-default);
+  border-right: 0;
+  color: var(--fg-hint);
+  box-shadow: -8px 0 18px -14px rgba(15, 23, 42, 0.28);
+  opacity: 0.5;
+  transform: translateX(7px);
+  transition: opacity var(--dur-base) var(--ease-out-soft),
+              transform var(--dur-base) var(--ease-out-soft),
+              color var(--dur-fast) var(--ease-out-soft),
+              border-color var(--dur-fast) var(--ease-out-soft);
+}
+.ldh-edge-handle .msi { font-size: 18px; }
+.ldh-edge-sensor:hover .ldh-edge-handle {
+  opacity: 1;
+  transform: translateX(0);
+  /* --accent is set only at RUNTIME by index.html's accent tweak, so on every
+     other surface (preview cards, templates, screen-*.html) it is undefined and
+     the hover colour silently fell back to inherited body ink. The tweak stays
+     as an override; --fg-link is the static default because it is the system's
+     interactive colour and remaps per skin (base44 → lime). */
+  color: var(--accent, var(--fg-link));
+  border-color: var(--accent, var(--fg-link));
+}
+.ldh-drawer .dh {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  padding: var(--sp-5) var(--sp-5) var(--sp-4);
+  border-bottom: 1px solid var(--border-default);
+}
+.ldh-drawer .dh .eyebrow {
+  font-family: var(--font-mono); font-size: 10px;
+  letter-spacing: var(--tracking-wide); text-transform: uppercase;
+  color: var(--fg-muted);
+}
+.ldh-drawer .dh h3 {
+  margin: 4px 0 0;
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-semibold);
+  letter-spacing: var(--tracking-snug);
+  color: var(--fg-1);
+}
+/* Drawer close is core <IconButton size="sm"> — no bespoke rule needed. */
+
+.ldh-drawer .db {
+  flex: 1;
+  overflow: auto;
+  padding: var(--sp-3) var(--sp-3) var(--sp-5);
+  display: flex; flex-direction: column; gap: var(--sp-4);
+}
+.ldh-drawer .dgroup { display: flex; flex-direction: column; gap: 2px; }
+.ldh-drawer .dh2 {
+  display: flex; align-items: baseline; justify-content: space-between;
   padding: var(--sp-2) var(--sp-2) 4px;
   font-family: var(--font-mono); font-size: 10px;
   letter-spacing: var(--tracking-wide); text-transform: uppercase;
-  font-weight: var(--fw-medium);
   color: var(--fg-muted);
 }
-.links-pop .dgroup { display: flex; flex-direction: column; gap: 2px; }
-.links-pop .drow {
+.ldh-drawer .dh2 em {
+  font-style: normal;
+  font-family: var(--font-mono); font-size: 10px;
+  color: var(--fg-hint);
+  background: var(--surface-2);
+  padding: 1px 6px; border-radius: var(--r-pill);
+  letter-spacing: 0;
+}
+.ldh-drawer .drow {
   display: flex; align-items: center; gap: 8px;
   padding: 6px 8px;
   border-radius: var(--r-sm);
@@ -1046,22 +1076,30 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
   font-size: var(--fs-sm);
   transition: background var(--dur-fast) var(--ease-out-soft);
 }
-.links-pop .drow:hover { background: var(--bg-hover); color: var(--fg-1); text-decoration: none; }
-.links-pop .drow .msi { color: var(--fg-hint); flex-shrink: 0; }
-.links-pop .drow .lbl { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ldh-drawer .drow:hover { background: var(--bg-hover); color: var(--fg-1); text-decoration: none; }
+.ldh-drawer .drow .msi { color: var(--fg-hint); flex-shrink: 0; }
+.ldh-drawer .drow .lbl { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ldh-drawer .drow .tag {
+  font-family: var(--font-mono); font-size: 9.5px; color: var(--fg-hint);
+  background: var(--surface-2); padding: 1px 6px; border-radius: var(--r-pill);
+}
+.ldh-drawer .drow.is-current {
+  background: var(--bg-accent-quiet);
+  color: var(--ldh-blue-700);
+  font-weight: var(--fw-medium);
+}
+.ldh-drawer .drow.is-current .msi { color: var(--ldh-blue-600); }
+.ldh-drawer .drow.is-current .tag { background: var(--surface-0); color: var(--ldh-blue-600); }
 
-/* content (XHTML) blocks have no header row — their popover anchors to the
-   card's top right corner and surfaces on card hover, staying put while open */
-.ldh-block .block-row > .links-nav { position: absolute; top: var(--sp-3); right: var(--sp-3); opacity: 0; transition: opacity var(--dur-fast) var(--ease-out-soft); }
-.ldh-block:hover .block-row > .links-nav, .ldh-block .block-row > .links-nav.is-open { opacity: 1; }
-
-/* Copy-URI button — the header actions' quiet icon treatment for hosts outside
-   the block head: the view toolbar's right zone and the content block's corner,
-   where it sits left of the links button and surfaces on the same card hover */
-.ldh-view-toolbar .right .btn-copy-uri, .ldh-block .block-row > .btn-copy-uri { width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center; background: transparent; border: 0; border-radius: var(--r-sm); color: var(--fg-muted); }
-.ldh-view-toolbar .right .btn-copy-uri:hover, .ldh-block .block-row > .btn-copy-uri:hover { background: var(--bg-hover); color: var(--fg-1); }
-.ldh-block .block-row > .btn-copy-uri { position: absolute; top: var(--sp-3); right: calc(var(--sp-3) + 32px + var(--sp-1)); opacity: 0; transition: opacity var(--dur-fast) var(--ease-out-soft); }
-.ldh-block:hover .block-row > .btn-copy-uri { opacity: 1; }
+.ldh-drawer .df {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: var(--sp-3) var(--sp-4);
+  border-top: 1px solid var(--border-default);
+  background: var(--surface-1);
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  color: var(--fg-muted);
+}
 .ldh-block-body { padding: 0 var(--sp-6) var(--sp-6); }
 .ldh-block-body.is-flush { padding: 0; }
 .ldh-block-foot {
@@ -1128,34 +1166,8 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
   border-bottom: 1px dashed var(--border-default);
   border-top: 1px dashed var(--border-default);
 }
-.chart-controls .field label {
-  display: block;
-  font-family: var(--font-mono);
-  font-size: 10px;
-  letter-spacing: var(--tracking-wide);
-  text-transform: uppercase;
-  color: var(--fg-muted);
-  margin-bottom: 6px;
-}
-.chart-controls .field select,
-.chart-controls .field .multi {
-  width: 100%;
-  font-family: var(--font-sans);
-  font-size: var(--fs-sm);
-  padding: 6px 10px;
-  background: var(--surface-0);
-  border: 1px solid var(--border-default);
-  border-radius: var(--r-sm);
-  color: var(--fg-1);
-}
-.chart-controls .field .multi {
-  height: auto;
-  padding: 4px;
-  display: flex; flex-direction: column; gap: 2px;
-}
-.chart-controls .field .multi .opt { padding: 3px 8px; border-radius: 3px; font-size: var(--fs-sm); }
-.chart-controls .field .multi .opt.is-on { background: var(--ldh-blue-50); color: var(--ldh-blue-700); }
-.chart-controls .field .multi .opt:not(.is-on) { color: var(--fg-2); }
+.chart-controls .field { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+/* The controls themselves are core <Label> + <Select>. */
 .chart-canvas { padding: var(--sp-6); }
 /* ChartMode hero canvas — the chart fills the full block width (fluid SVG),
    so it never gets letterboxed inside a fixed-height box like the small
@@ -1267,14 +1279,15 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
 .ldh-prop-group {
   display: grid;
   grid-template-columns: 200px 1fr 64px;
-  column-gap: var(--sp-3);
+  /* MUST stay 0 — see the statement-delimiter block below. */
+  column-gap: 0;
 }
 
 /* Shared label cell. Spans all value rows when there are >1; align text to
    the right and vertically center across the spanned rows. */
 .ldh-prop-group > .label {
   position: relative;
-  padding: var(--sp-3) 0 var(--sp-3) var(--sp-6);
+  padding: var(--sp-3) var(--sp-3) var(--sp-3) var(--sp-6);
   text-align: right;
   line-height: 1.25;
   display: flex;
@@ -1282,32 +1295,9 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
   justify-content: center;
   align-self: stretch;
 }
-.ldh-prop-group > .label .pred-iri {
-  position: absolute;
-  right: 0;
-  top: var(--sp-2);
-  font-family: var(--font-mono);
-  font-size: 10px;
-  color: var(--fg-hint);
-  letter-spacing: 0.02em;
-  white-space: nowrap;
-  pointer-events: none;
-  opacity: 0;
-  /* Hidden CURIEs must not join text selection / copy either. */
-  user-select: none;
-  transform: translateY(-2px);
-  transition:
-    opacity var(--dur-fast) var(--ease-out-soft),
-    transform var(--dur-fast) var(--ease-out-soft);
-}
-.ldh-prop-group:hover > .label .pred-iri,
-.ldh-prop-group:focus-within > .label .pred-iri,
-.ldh-prop-group:has(.ldh-prop-row.is-editing) > .label .pred-iri {
-  opacity: 1;
-  transform: translateY(0);
-  pointer-events: auto;
-  user-select: text;
-}
+/* No predicate CURIE in the label column. The label column shows the human
+   label only; the machine name is the group's identity in the data, reachable
+   through the rdfs:comment toggletip and the row's own actions. */
 .ldh-prop-group > .label .pred {
   color: var(--fg-2);
   font-family: var(--font-sans);
@@ -1320,12 +1310,37 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
 .ldh-prop-row { display: contents; }
 .ldh-prop-row > .value,
 .ldh-prop-row > .row-actions {
+  /* MUST stretch: these share a grid row with the (spanning) label cell, and
+     the statement hairline + hover band are drawn on all three. A cell that
+     sizes to its content draws its rule at a different y than its neighbours. */
+  align-self: stretch;
   padding-top: var(--sp-3);
   padding-bottom: var(--sp-3);
-  align-self: center;
+  padding-left: var(--sp-3);
   transition: background var(--dur-fast) var(--ease-out-soft);
 }
 .ldh-prop-row > .row-actions { padding-right: var(--sp-6); }
+
+/* =========================================================================
+   STATEMENT DELIMITERS — a hairline under each statement, as in the product.
+   .ldh-prop-row is display:contents, so the rule has to go on the CELLS; put
+   it on all three and they line up into one continuous rule.
+
+   The label cell SPANS a multi-value group, so its border draws once at the
+   bottom of the whole span while .value / .row-actions draw per value. That
+   falls out exactly right: a single-value statement gets one full-width rule,
+   and extra values of the same predicate are separated only across columns
+   2–3 — the unbroken label column reads as "still the same predicate".
+
+   The final statement has no rule: the card edge already ends the list, and a
+   trailing hairline reads as a dangling separator.
+   ========================================================================= */
+.ldh-prop-form .ldh-prop-group > .label,
+.ldh-prop-form .ldh-prop-row > .value,
+.ldh-prop-form .ldh-prop-row > .row-actions { border-bottom: 1px solid var(--border-default); }
+.ldh-prop-form > .ldh-prop-group:last-child > .label,
+.ldh-prop-form > .ldh-prop-group:last-child .ldh-prop-row:last-child > .value,
+.ldh-prop-form > .ldh-prop-group:last-child .ldh-prop-row:last-child > .row-actions { border-bottom: 0; }
 .ldh-prop-group:hover > .label,
 .ldh-prop-row:hover > .value,
 .ldh-prop-row:hover > .row-actions {
@@ -1334,9 +1349,8 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
 /* Bridge the grid column-gaps so the hover highlight reads as one continuous
    band rather than three segments separated by white gaps. Each end cell
    extends only toward the value; the value extends both ways. */
-.ldh-prop-group:hover > .label     { box-shadow: var(--sp-3) 0 0 var(--surface-1); }
-.ldh-prop-row:hover > .value       { box-shadow: calc(-1 * var(--sp-3)) 0 0 var(--surface-1), var(--sp-3) 0 0 var(--surface-1); }
-.ldh-prop-row:hover > .row-actions { box-shadow: calc(-1 * var(--sp-3)) 0 0 var(--surface-1); }
+/* No bridging shadows needed now that column-gap is 0 — the three cells are
+   adjacent, so their hover backgrounds already form one continuous band. */
 
 /* Value cell — looks like plain text in read mode. Clickable interactive rows
    get a subtle hover affordance. Inputs only appear when editing. */
@@ -1368,6 +1382,8 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
 .ldh-prop-row.is-editing .value {
   background: var(--surface-2);
   border-color: var(--ldh-blue-300);
+  /* the delimiter is the list's, not the field's — keep it through editing */
+  border-bottom-color: var(--border-default);
   box-shadow: var(--shadow-glow-blue);
   padding: 4px 6px;
 }
@@ -1529,16 +1545,35 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
   color: var(--ldh-blue-700);
 }
 
-/* Right-side row actions — edit (interactive rows) + remove. Reveal on hover. */
+/* Right-side row actions — edit (interactive rows) + remove.
+   The reveal is on the BUTTONS, not on the cell: the cell carries the statement
+   delimiter, and fading the cell faded its border too, so the hairline stopped
+   short of the actions column. Fading the controls keeps the cell (and its
+   rule) present while the row is at rest, and the footprint never shifts. */
 .ldh-prop-row .row-actions {
   display: flex; gap: 2px;
   justify-content: flex-end;
+  align-items: center;
+}
+.ldh-prop-row .row-actions > * {
   opacity: 0;
   transition: opacity var(--dur-fast) var(--ease-out-soft);
 }
-.ldh-prop-row:hover .row-actions,
-.ldh-prop-row.is-editing .row-actions,
-.ldh-prop-row:focus-within .row-actions { opacity: 1; }
+.ldh-prop-row:hover .row-actions > *,
+.ldh-prop-row.is-editing .row-actions > *,
+.ldh-prop-row:focus-within .row-actions > * { opacity: 1; }
+/* ALWAYS-ON API. Because the reveal moved from the cell to its children, the
+   old `.row-actions { opacity: 1 }` override silently stopped working — it now
+   sets a cell that is already opaque and never reaches the buttons. Anything
+   that needs the affordances permanently visible (documentation specimens, a
+   touch-only surface with no hover) must use one of these instead of setting
+   opacity on the cell:
+     · .row-actions.is-always-on   — one row
+     · .ldh-prop-form.is-specimen  — every row in the form
+   Cell-level opacity is deliberately no longer a knob: it hides the statement
+   delimiter drawn on that cell along with the buttons. */
+.ldh-prop-row .row-actions.is-always-on > *,
+.ldh-prop-form.is-specimen .ldh-prop-row .row-actions > * { opacity: 1; }
 
 .ldh-prop-row .row-actions .rb {
   width: 28px; height: 28px;
@@ -1628,32 +1663,46 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
 }
 
 /* =========================================================================
-   Block states (design system: Components → Block states)
-   A block keeps its card chrome and header when its content fails to load or
-   resolves to nothing — it does not collapse to a bare alert. The header
-   carries the affordances a broken block needs most (copy IRI, edit, delete),
-   the title is known from RDF before the query resolves, and holding the
-   footprint keeps the document from reflowing. Only the body swaps.
+   BLOCK STATES — failed / empty / loading.
+
+   DECISION: a block KEEPS its card chrome and header in every state; only the
+   BODY swaps. It does not collapse to a bare alert. Three reasons:
+     1. A block is a persistent addressable object — it has an IRI and block
+        actions (copy IRI, edit query, delete). Collapsing to an alert strips
+        exactly the affordances the failure case needs most.
+     2. The title comes from RDF and is known before the query resolves, so
+        there is nothing to gain by hiding it while loading.
+     3. Layout stability — the card holds its footprint, so the document does
+        not reflow as blocks resolve.
+   The header gains one status marker so the state is legible when the block is
+   scrolled past or collapsed.
    ========================================================================= */
 
-/* The design system sets an `is-failed` class on the card. Here the ring is
-   derived from the body content instead: the failed state is a function of
-   what the error handler rendered, so :has() recomputes it on every re-render
-   and a block that later succeeds cannot keep a stale ring. Nothing needs to
-   clear it. Only block bodies get .ldh-block-error — the small hosts (facet
-   popover, result count, parallax rows) emit the bare .ldhc-alert, so they
-   cannot ring the card they happen to sit in.
-   An `outline`, not a border: skins differ on whether cards have borders at
-   all (m3 uses elevation and sets border-width: 0), and an outline survives
-   both without fighting the skin's shadow. Offset inward so it lands on the
-   card edge rather than outside it. */
-.ldh-block:has(.ldh-block-error) {
+/* Header status marker — sits after the title, before the actions. */
+.ldh-block-state {
+  display: inline-flex; align-items: center; gap: 4px;
+  margin-left: var(--sp-2); padding: 1px 8px;
+  border-radius: var(--r-pill); flex-shrink: 0;
+  font-family: var(--font-mono); font-size: var(--fs-xs); font-weight: var(--fw-medium);
+  white-space: nowrap; vertical-align: middle;
+}
+.ldh-block-state .msi { font-size: 13px; }
+.ldh-block-state.is-failed  { background: var(--danger-50);  color: var(--danger-500); }
+.ldh-block-state.is-empty   { background: var(--surface-2);  color: var(--fg-muted); }
+.ldh-block-state.is-loading { background: var(--surface-2);  color: var(--fg-muted); }
+.ldh-block-state.is-loading .msi { animation: spin 1.1s linear infinite; }
+/* A failed block gets a warm ring so it's findable in a long document. This is
+   an `outline`, not a border: skins differ on whether cards even have borders
+   (m3 uses box-shadow elevation and sets border-width: 0), and an outline
+   survives both without fighting the skin's elevation shadow. Offset inward so
+   it lands on the card edge rather than outside it. */
+.ldh-block.is-failed {
   outline: 1px solid color-mix(in srgb, var(--danger-500) 38%, transparent);
   outline-offset: -1px;
   border-color: color-mix(in srgb, var(--danger-500) 28%, var(--border-default));
 }
 
-/* Error body: the alert owns the message, the raw detail is demoted. */
+/* Error body: the alert owns the message; the raw detail is demoted. */
 .ldh-block-error { display: flex; flex-direction: column; gap: var(--sp-3); }
 /* Technical detail — collapsed by default, mono and muted when open. Never the
    first thing read, but never hidden from the person who needs it either. */
@@ -1677,11 +1726,7 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
 }
 
 /* Empty body: literal, quiet, with the one action that resolves it. Per the
-   copy rules — "No results." not "Nothing here yet 👀". The action row is
-   optional: a chart block has no filters to clear, so it renders message-only.
-   Unlike the failed state, an empty block gets no ring — a query that matched
-   nothing is an answer, not a fault, and nothing needs finding in a long
-   document. */
+   copy rules — "No results." not "Nothing here yet 👀". */
 .ldh-block-blank {
   display: flex; flex-direction: column; align-items: center; gap: var(--sp-2);
   padding: var(--sp-8) var(--sp-4); text-align: center;
@@ -1691,25 +1736,15 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
 .ldh-block-blank .bb-sub { font-size: var(--fs-sm); color: var(--fg-hint); max-width: 46ch; line-height: var(--lh-base); }
 .ldh-block-blank .bb-act { margin-top: var(--sp-2); }
 
-/* Header status marker — sits after the title, before the actions, so the state
-   is legible when the block is collapsed or scrolled past.
-   The design system stamps this marker only in the state it names. Here every
-   block header carries it and the body reveals it, the same way the ring above
-   is derived rather than set: a block that goes from empty to having rows drops
-   its marker on re-render with nothing to clear, and no code path has to
-   remember what it stamped. Hence `display: none` where the design system has
-   `inline-flex`. Only the empty variant is wired — the failed and loading
-   variants arrive with the markup that reveals them. */
-.ldh-block-state {
-  display: none; align-items: center; gap: 4px;
-  margin-left: var(--sp-2); padding: 1px 8px;
-  border-radius: var(--r-pill); flex-shrink: 0;
-  font-family: var(--font-mono); font-size: var(--fs-xs); font-weight: var(--fw-medium);
-  white-space: nowrap; vertical-align: middle;
-}
-.ldh-block-state .msi { font-size: 13px; }
-.ldh-block-state.is-empty { background: var(--surface-2); color: var(--fg-muted); }
-.ldh-block:has(.ldh-block-blank) .ldh-block-state.is-empty { display: inline-flex; }
+/* Loading body: skeleton shaped like the content it replaces. */
+.ldh-block-loading { display: flex; flex-direction: column; gap: var(--sp-3); }
+.ldh-block-loading .bl-row { display: flex; align-items: center; gap: var(--sp-3); }
+/* Core's .ldhc-skel-group is width:100% (it's normally a block-level stack), so
+   a fixed-width skeleton used as a flex child still claims a 100% flex base and
+   over-subscribes the row — leaving no free space for a flex:1 sibling to grow
+   into, which collapses it to 0. Pin the fixed columns to their content width so
+   the fluid column keeps the remainder. */
+.ldh-block-loading .bl-row > .ldhc-skel-group { flex: 0 0 auto; width: auto; }
 
 /* ---------- View-block toolbar (facets / sort / count, sits inside .ldh-block between head and body) ---------- */
 .ldh-view-toolbar {
@@ -1821,54 +1856,6 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
 }
 .facet-pop .head .clear:hover { text-decoration: underline; }
 
-/* Parallax row — second row of the view's control header: onward pivots derived
-   from the current result set. Query inputs (filters, sort, modes) stay in the
-   toolbar above; this row reads as output. Mirrors the toolbar's surface and
-   dashed hairline; hidden until bs2:ParallaxNav delivers chips. */
-.parallax-nav {
-  display: flex; align-items: center; flex-wrap: wrap; gap: var(--sp-2);
-  padding: var(--sp-3) var(--sp-6);
-  background: var(--surface-1);
-  border-bottom: 1px dashed var(--border-default);
-}
-.parallax-nav:not(:has(.pchip)) { display: none; }
-.parallax-nav .plabel { display: inline-flex; align-items: center; color: var(--fg-muted); }
-/* the chips' host is a flex item of the row, so its max-content width pushes it off the label's line
-   as soon as the chips outgrow the row; dissolving it lets them wrap alongside the label the way the
-   facet pills wrap alongside their funnel (.ldh-view-toolbar .left > .facets does the same) */
-.parallax-nav .pchips { display: contents; }
-.parallax-nav .pchip {
-  display: inline-flex; align-items: center; gap: 6px;
-  height: 28px; padding: 0 12px;
-  background: var(--surface-0); border: 1px solid var(--border-default);
-  border-radius: var(--r-pill);
-  font-size: var(--fs-sm); color: var(--fg-2);
-  cursor: pointer;
-  transition: border-color var(--dur-fast) var(--ease-out-soft), background var(--dur-fast) var(--ease-out-soft), color var(--dur-fast) var(--ease-out-soft);
-}
-.parallax-nav .pchip:hover { border-color: var(--ldh-blue-300); color: var(--ldh-blue-700); background: var(--bg-accent-quiet); text-decoration: none; }
-.parallax-nav .pchip .msi { color: var(--fg-hint); }
-.parallax-nav .pchip:hover .msi { color: var(--ldh-blue-600); }
-/* incoming pivots leave the result set behind rather than extending it, so their chips sit
-   a shade quieter than the outgoing ones — the arrow carries the distinction, this backs it up */
-.parallax-nav .pchip-in { background: var(--surface-1); }
-.parallax-nav .pchip-in .lbl { color: var(--fg-muted); }
-.parallax-nav .pchip-in:hover .lbl { color: var(--ldh-blue-700); }
-
-/* applied parallax steps read as removable chips beside the facet pills — the
-   pivot's undo affordance; clicking one rewinds the view to before that step */
-.ldh-view-toolbar .parallax-steps { display: inline-flex; align-items: center; flex-wrap: wrap; gap: var(--sp-2); }
-.ldh-view-toolbar .parallax-steps:empty { display: none; }
-.facet-pill.parallax-step { background: var(--ldh-blue-50); color: var(--ldh-blue-700); border-color: var(--ldh-blue-200); }
-.facet-pill.parallax-step .pred, .facet-pill.parallax-step .msi { color: var(--ldh-blue-600); }
-.facet-pill.parallax-step .x {
-  display: inline-flex; align-items: center; justify-content: center;
-  width: 16px; height: 16px;
-  border-radius: 50%;
-  color: var(--ldh-blue-600);
-}
-.facet-pill.parallax-step .x:hover { background: rgba(0,0,0,0.06); }
-
 /* View-mode switcher inside the view-toolbar (grid / list / map / chart) */
 .view-mode-seg {
   display: inline-flex; align-items: center;
@@ -1907,9 +1894,7 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
    ~48px while the block title sat at 24px). Drop the redundant horizontal inset
    and the grid's doubled bottom padding so everything aligns to the title. */
 .ldh-block-body > .ldh-grid-block { padding: var(--sp-2) 0 0; }
-/* .container-results clips at its edge (overflow: auto), so the grid keeps a bottom inset to keep the last row's card borders and corners clear of the clip line */
-.container-results > .ldh-grid-block { padding: var(--sp-2) 0; }
-.ldh-block-body > .ldh-view-toolbar, .ldh-block-body > .parallax-nav { padding-left: 0; padding-right: 0; }
+.ldh-block-body > .ldh-view-toolbar { padding-left: 0; padding-right: 0; }
 .ldh-grid-block .card {
   position: relative;
   display: flex; flex-direction: column; align-items: stretch;
@@ -1932,7 +1917,6 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
   color: rgba(0,0,0,0.45);
 }
 .ldh-grid-block .card .img .msi { font-size: 56px; }
-.ldh-grid-block .card .img img { width: 100%; height: 100%; object-fit: cover; }
 .ldh-grid-block .card .card-body { padding: var(--sp-3) var(--sp-4); display: flex; flex-direction: column; gap: 4px; }
 .ldh-grid-block .card .ti { display: block; font-weight: var(--fw-semibold); color: var(--ldh-blue-700); font-size: var(--fs-base); line-height: var(--lh-snug); }
 .ldh-grid-block .card .meta { display: block; font-size: var(--fs-xs); color: var(--fg-muted); line-height: var(--lh-base); }
@@ -2084,11 +2068,54 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
 .graph-detail dt { font-family: var(--font-mono); font-size: 10px; color: rgba(255,255,255,0.55); text-align: right; letter-spacing: 0.02em; }
 .graph-detail dd { margin: 0; color: rgba(255,255,255,0.92); }
 
-/* Document edit modal — larger than search; reuses .ldh-prop-* primitives */
-.ldh-doc-edit { width: min(880px, calc(100% - var(--sp-12))); max-height: calc(100vh - 96px); }
-.ldh-doc-edit .mhead {
-  padding: var(--sp-4) var(--sp-5);
+/* Map canvas */
+.map-canvas {
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse at 30% 40%, #f5edd9 0%, #f5edd9 12%, transparent 14%),
+    radial-gradient(ellipse at 55% 50%, #f5edd9 0%, #f5edd9 18%, transparent 20%),
+    radial-gradient(ellipse at 75% 35%, #f5edd9 0%, #f5edd9 10%, transparent 12%),
+    radial-gradient(ellipse at 65% 70%, #f5edd9 0%, #f5edd9 14%, transparent 16%),
+    linear-gradient(180deg, #d6e7f5 0%, #c4dbef 100%);
+  background-size: 200% 180%, 240% 200%, 180% 160%, 200% 180%, 100% 100%;
+  background-position: -40% 30%, 25% 20%, 60% -10%, 40% 60%, 0 0;
+  background-repeat: no-repeat;
 }
+.map-canvas::before {
+  content: "";
+  position: absolute; inset: 0;
+  background-image:
+    linear-gradient(0deg, transparent 49%, rgba(78, 128, 178, 0.12) 50%, transparent 51%),
+    linear-gradient(90deg, transparent 49%, rgba(78, 128, 178, 0.12) 50%, transparent 51%);
+  background-size: 80px 80px;
+  opacity: 0.5;
+}
+.map-pin {
+  position: absolute;
+  width: 16px; height: 16px; border-radius: 50%;
+  background: var(--ldh-blue-500);
+  border: 3px solid #fff;
+  box-shadow: 0 4px 10px -2px rgba(15,23,42,0.45);
+  transform: translate(-50%, -100%);
+}
+.map-pin.warn { background: var(--warning-500); }
+.map-pin.good { background: var(--success-500); }
+.map-pin.accent { background: var(--ldh-violet-500); }
+.map-attrib {
+  position: absolute; bottom: 6px; right: 8px;
+  font-size: 10px; color: rgba(0,0,0,0.55); font-family: var(--font-sans);
+  background: rgba(255,255,255,0.7); padding: 1px 6px; border-radius: 3px;
+}
+.map-scale {
+  position: absolute; bottom: 28px; left: 14px;
+  display: flex; align-items: center; gap: 6px;
+  background: rgba(255,255,255,0.85); padding: 3px 8px; border-radius: 4px;
+  font-family: var(--font-mono); font-size: 10px; color: var(--fg-2);
+}
+.map-scale .bar { display: inline-block; width: 50px; height: 4px; background: var(--ink-2); border-radius: 1px; }
+
+/* Document edit modal — larger than search; reuses .ldh-prop-* primitives */
+/* size="lg" + core header replace the old .ldh-doc-edit width/.mhead rules. */
 
 /* IRI bar under the modal header */
 .ldh-doc-iri-edit {
@@ -2154,7 +2181,7 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
 }
 
 /* ---------- Constructor modal ---------- */
-.ldh-ctor-modal { width: min(760px, calc(100% - var(--sp-12))); max-height: calc(100vh - 96px); display: flex; flex-direction: column; }
+.ldh-ctor-modal { width: min(760px, calc(100vw - var(--sp-12))); max-height: calc(100vh - 96px); display: flex; flex-direction: column; }
 .ldh-ctor-body { flex: 1; overflow: auto; padding: var(--sp-5) var(--sp-6); display: flex; flex-direction: column; gap: var(--sp-4); }
 .ldh-ctor-lede { margin: 0; font-size: var(--fs-sm); color: var(--fg-2); line-height: var(--lh-base); }
 .ldh-ctor-card {
@@ -2385,46 +2412,13 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
 .ldh-form-actions-menu .it .sub { font-size: var(--fs-xs); color: var(--fg-2); }
 .ldh-form-actions-menu .it.is-danger .ico { background: var(--danger-50); color: var(--danger-500); }
 
-/* ---------- Search modal (overlay) ---------- */
-.ldh-modal-backdrop {
-  position: fixed; inset: 0;
-  background: rgba(10, 14, 30, 0.55);
-  backdrop-filter: blur(4px);
-  z-index: 100;
-  display: flex; align-items: flex-start; justify-content: center;
-  padding-top: 64px;
-}
-.ldh-modal {
-  width: min(880px, calc(100% - var(--sp-12)));
-  max-height: calc(100vh - 128px);
-  background: var(--surface-0);
-  border-radius: var(--r-lg);
-  box-shadow: var(--shadow-xl);
-  display: flex; flex-direction: column;
-  overflow: hidden;
-}
-.ldh-modal .mhead {
-  display: flex; align-items: center; padding: var(--sp-4) var(--sp-5) var(--sp-3);
-  border-bottom: 1px solid var(--border-default);
-}
-.ldh-modal .mhead h2 { font-size: var(--fs-lg); margin: 0; font-weight: var(--fw-semibold); }
-.ldh-modal .mhead .close {
-  margin-left: auto;
-  width: 32px; height: 32px;
-  border: 0; background: transparent; border-radius: var(--r-sm);
-  color: var(--fg-muted);
-  display: inline-flex; align-items: center; justify-content: center;
-}
-.ldh-modal .mhead .close:hover { background: var(--bg-hover); color: var(--fg-1); }
-
+/* Modal chrome is core: .ldhc-backdrop / .ldhc-modal / .ldhc-modal-head|body|foot
+   (ui_kits/core/overlays.css). The old .ldh-modal-backdrop + .ldh-modal + .mhead
+   set was a SECOND modal system with no focus trap, no Escape handling and no
+   depth stacking; all five dialogs now use core <Modal>, which has all three.
+   What remains below is per-dialog BODY styling only. */
 /* ---------- Access-request modal ---------- */
-.ldh-modal--access { width: min(560px, calc(100% - var(--sp-12))); }
-.ldh-modal--access .mhead { gap: var(--sp-2); align-items: center; }
-.ldh-modal--access .mhead-ic {
-  width: 32px; height: 32px; flex-shrink: 0;
-  display: inline-flex; align-items: center; justify-content: center;
-  border-radius: var(--r-md); background: var(--bg-accent-quiet); color: var(--bg-accent);
-}
+/* The dialog's leading glyph is core <Modal icon>; .ldhc-modal-icon styles it. */
 .ar-body { padding: var(--sp-5); display: flex; flex-direction: column; gap: var(--sp-4); overflow-y: auto; }
 .ar-pair { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-3); }
 .ar-card {
@@ -2492,58 +2486,58 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
 .ar-sent-ic .msi { font-size: 28px; }
 .ar-sent h3 { margin: 0; font-size: var(--fs-lg); font-weight: var(--fw-semibold); color: var(--fg-1); }
 .ar-sent p { margin: 0 0 var(--sp-3); font-size: var(--fs-sm); color: var(--fg-muted); max-width: 360px; }
-.ldh-modal .minput {
+.ldhc-modal .minput {
   display: flex; align-items: center; gap: var(--sp-2);
   padding: 0 var(--sp-6);
   border-bottom: 1px solid var(--border-default);
   height: 64px;
 }
-.ldh-modal .minput input {
+.ldhc-modal .minput input {
   flex: 1; height: 100%; border: 0; outline: 0;
   background: transparent; font: inherit; font-size: var(--fs-lg); color: var(--fg-1);
 }
-.ldh-modal .minput .msi { color: var(--fg-muted); }
-.ldh-modal .mtoolbar {
+.ldhc-modal .minput .msi { color: var(--fg-muted); }
+.ldhc-modal .mtoolbar {
   display: flex; align-items: center; gap: var(--sp-2);
   padding: var(--sp-2) var(--sp-5);
   background: var(--surface-1);
   border-bottom: 1px solid var(--border-default);
   font-size: var(--fs-sm); color: var(--fg-muted);
 }
-.ldh-modal .mtoolbar .count b {
+.ldhc-modal .mtoolbar .count b {
   display: inline-block; min-width: 20px; padding: 2px 6px;
   background: var(--ink-1); color: #fff; border-radius: var(--r-pill);
   font-family: var(--font-mono); font-size: 10px; font-weight: 600; text-align: center;
   margin-left: 6px;
 }
-.ldh-modal .mtoolbar .right { margin-left: auto; display: flex; align-items: center; gap: var(--sp-2); }
-.ldh-modal .mlist { overflow-y: auto; flex: 1; padding: var(--sp-2); }
-.ldh-modal .mresult {
+.ldhc-modal .mtoolbar .right { margin-left: auto; display: flex; align-items: center; gap: var(--sp-2); }
+.ldhc-modal .mlist { overflow-y: auto; flex: 1; padding: var(--sp-2); }
+.ldhc-modal .mresult {
   display: grid; grid-template-columns: 32px 1fr auto;
   gap: var(--sp-3); align-items: center;
   padding: var(--sp-3); border-radius: var(--r-sm);
   cursor: pointer;
 }
-.ldh-modal .mresult:hover { background: var(--surface-1); }
-.ldh-modal .mresult .ic {
+.ldhc-modal .mresult:hover { background: var(--surface-1); }
+.ldhc-modal .mresult .ic {
   width: 32px; height: 32px; border-radius: var(--r-sm);
   background: var(--bg-accent-quiet); color: var(--ldh-blue-700);
   display: inline-flex; align-items: center; justify-content: center;
 }
-.ldh-modal .mresult .ti { font-weight: var(--fw-medium); color: var(--ldh-blue-700); }
-.ldh-modal .mresult .meta { display: block; font-size: var(--fs-xs); color: var(--fg-muted); margin-top: 2px; font-family: var(--font-mono); }
-.ldh-modal .mresult .badge {
+.ldhc-modal .mresult .ti { font-weight: var(--fw-medium); color: var(--ldh-blue-700); }
+.ldhc-modal .mresult .meta { display: block; font-size: var(--fs-xs); color: var(--fg-muted); margin-top: 2px; font-family: var(--font-mono); }
+.ldhc-modal .mresult .badge {
   font-family: var(--font-mono); font-size: 10px; color: var(--fg-muted);
   padding: 2px 8px; background: var(--surface-2); border-radius: var(--r-pill);
 }
-.ldh-modal .mhint {
+.ldhc-modal .mhint {
   display: flex; align-items: center; gap: var(--sp-3);
   padding: var(--sp-3) var(--sp-5);
   background: var(--surface-1);
   border-top: 1px solid var(--border-default);
   font-size: var(--fs-xs); color: var(--fg-muted);
 }
-.ldh-modal .mhint kbd {
+.ldhc-modal .mhint kbd {
   font-family: var(--font-mono); font-size: 10px;
   padding: 2px 6px; border: 1px solid var(--border-default); border-radius: 4px;
   background: var(--surface-0);
@@ -2796,26 +2790,8 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
 }
 
 .ldh-pager-nav { display: flex; align-items: center; gap: var(--sp-2); }
-.ldh-pager-btn {
-  display: inline-flex; align-items: center; gap: 4px;
-  height: 32px; padding: 0 12px;
-  font-family: var(--font-sans); font-size: var(--fs-sm); font-weight: var(--fw-medium);
-  color: var(--fg-2);
-  background: var(--surface-0);
-  border: 1px solid var(--border-default); border-radius: var(--r-sm);
-  cursor: pointer; text-decoration: none; white-space: nowrap;
-  transition: background var(--dur-fast) var(--ease-out-soft), border-color var(--dur-fast) var(--ease-out-soft), color var(--dur-fast) var(--ease-out-soft);
-}
-.ldh-pager-btn:hover { background: var(--bg-hover); color: var(--fg-1); border-color: var(--border-strong); text-decoration: none; }
-.ldh-pager-btn:active { transform: translateY(1px); }
-.ldh-pager-btn:focus-visible { outline: 0; border-color: var(--ldh-blue-400); box-shadow: var(--focus-ring); }
-.ldh-pager-btn.is-disabled {
-  color: var(--ink-5); background: var(--surface-1);
-  border-color: var(--border-default);
-  cursor: not-allowed; pointer-events: none;
-}
-.ldh-pager-btn.is-disabled .msi { opacity: 0.6; }
-
+/* Pager prev/next are core <Button size="sm" appearance="outline">, which
+   renders an <a> when given href, so paging stays URL-driven. */
 .ldh-pager-status {
   display: inline-flex; align-items: baseline; gap: 5px;
   padding: 0 var(--sp-2);
@@ -2964,7 +2940,9 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
 .ldh-admin-lede { margin: 6px 0 0; font-size: var(--fs-base); color: var(--fg-muted); line-height: var(--lh-base); max-width: 68ch; }
 .ldh-admin-head-actions { display: flex; align-items: center; gap: var(--sp-2); flex-shrink: 0; }
 
-/* Segmented tabs (import type / query history / etc.) */
+/* Legacy segmented control. No JSX consumer remains — the import-type and
+   per-browser pickers moved to core <Tabs>, the view-mode picker to core
+   <ContentSwitcher>. Kept for hand-written markup; prefer those components. */
 .ldh-seg {
   display: inline-flex; align-items: center; gap: 2px;
   padding: 3px; background: var(--surface-2);
@@ -3039,6 +3017,7 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
 
 /* ---------- Imports ---------- */
 .ldh-import-flow { display: flex; flex-direction: column; gap: var(--sp-5); }
+.ldh-import-tabs > .ldhc-tabpanel { padding-top: var(--sp-5); }
 .ldh-import-step {
   background: var(--bg-card); border: 1px solid var(--border-default);
   border-radius: var(--r-lg); padding: var(--sp-5);
@@ -3310,27 +3289,8 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
 .ldh-auth-eyebrow { font-family: var(--font-mono); font-size: var(--fs-xs); letter-spacing: var(--tracking-wide); text-transform: uppercase; color: var(--ldh-blue-600); display: inline-flex; align-items: center; gap: 5px; }
 .ldh-auth-eyebrow.ok { color: var(--success-500); }
 
-.ldh-auth-btn {
-  display: flex; align-items: center; gap: var(--sp-3); width: 100%; text-align: left;
-  padding: var(--sp-3) var(--sp-4); border-radius: var(--r-md); cursor: pointer;
-  background: var(--surface-0); border: 1px solid var(--border-default);
-  transition: border-color var(--dur-fast) var(--ease-out-soft), background var(--dur-fast) var(--ease-out-soft), box-shadow var(--dur-fast) var(--ease-out-soft), transform var(--dur-fast) var(--ease-out-soft);
-}
-.ldh-auth-btn .lbl { display: flex; flex-direction: column; min-width: 0; }
-.ldh-auth-btn .lbl .t { font-size: var(--fs-base); font-weight: var(--fw-semibold); color: var(--fg-1); }
-.ldh-auth-btn .lbl .s { font-size: var(--fs-xs); color: var(--fg-muted); }
-.ldh-auth-btn .chev { margin-left: auto; color: var(--fg-hint); }
-.ldh-auth-btn:hover { border-color: var(--border-strong); background: var(--bg-hover); }
-.ldh-auth-btn:active { transform: translateY(1px); }
-.ldh-auth-btn:focus-visible { outline: 0; border-color: var(--ldh-blue-400); box-shadow: var(--focus-ring); }
-.ldh-auth-btn.is-primary { background: var(--bg-accent); border-color: var(--bg-accent); }
-.ldh-auth-btn.is-primary .lbl .t, .ldh-auth-btn.is-primary > .msi, .ldh-auth-btn.is-primary .chev { color: var(--fg-on-accent); }
-.ldh-auth-btn.is-primary .lbl .s { color: rgba(255,255,255,0.82); }
-.ldh-auth-btn.is-primary:hover { background: var(--bg-accent-hover); border-color: var(--bg-accent-hover); }
-.ldh-auth-btn.as-submit { justify-content: center; text-align: center; }
-.ldh-auth-btn.as-submit .lbl { align-items: center; }
-.ldh-auth-btn.is-google .ldh-g { width: 30px; height: 30px; border-radius: var(--r-sm); background: #fff; border: 1px solid var(--border-default); display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
-
+/* The auth screens' option buttons are core <ChoiceButton> — a two-line button
+   on the shared button tokens. .ldh-auth-btn was a fourth button system. */
 .ldh-auth-or { display: flex; align-items: center; gap: var(--sp-3); color: var(--fg-hint); font-family: var(--font-mono); font-size: var(--fs-xs); text-transform: uppercase; letter-spacing: var(--tracking-wide); }
 .ldh-auth-or::before, .ldh-auth-or::after { content: ""; flex: 1; height: 1px; background: var(--border-default); }
 .ldh-auth-note { display: flex; align-items: flex-start; gap: 8px; font-size: var(--fs-sm); color: var(--fg-muted); line-height: var(--lh-base); margin: var(--sp-2) 0 0; }
@@ -3345,12 +3305,16 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
 .ldh-p12-card .p12-body { display: flex; flex-direction: column; min-width: 0; }
 .ldh-p12-card .p12-name { font-family: var(--font-mono); font-size: var(--fs-sm); font-weight: var(--fw-semibold); color: var(--fg-1); }
 .ldh-p12-card .p12-meta { font-family: var(--font-mono); font-size: 11px; color: var(--fg-hint); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.ldh-p12-card .ldh-btn { margin-left: auto; flex-shrink: 0; }
+.ldh-p12-card .ldhc-btn { margin-left: auto; flex-shrink: 0; }
 
 /* Per-browser install steps */
 .ldh-install { display: flex; flex-direction: column; gap: var(--sp-3); }
+/* The install tablist sits inline in the head row, so it must not stretch.
+   The height override needs the sz-sm class too, or it loses on specificity to
+   `.ldhc-tablist.sz-sm .ldhc-tab`. */
+.ldh-install-tabs .ldhc-tablist { align-self: center; }
+.ldh-install-tabs .ldhc-tablist.sz-sm .ldhc-tab { height: 28px; }
 .ldh-install-head { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-3); flex-wrap: wrap; }
-.ldh-install-seg button { height: 28px; padding: 0 12px; }
 .ldh-install-steps { margin: 0; padding-left: 0; list-style: none; counter-reset: step; display: flex; flex-direction: column; gap: var(--sp-2); }
 .ldh-install-steps li { position: relative; padding-left: 32px; font-size: var(--fs-sm); color: var(--fg-2); line-height: var(--lh-base); counter-increment: step; }
 .ldh-install-steps li::before {
@@ -3365,3 +3329,444 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
   .ldh-auth { grid-template-columns: 1fr; }
   .ldh-auth-hero { display: none; }
 }
+
+
+/* =========================================================================
+   FORM MODE — the transitional whole-resource form.
+
+   The end state is the per-row model above: click a value, edit in place,
+   optimistic per-row saves. This variant keeps the SAME row anatomy but shows
+   every control simultaneously and commits everything from one action bar.
+   Both live side by side, chosen by `.is-form-mode` on .ldh-prop-form, so the
+   port can move surface by surface and the per-row model is untouched.
+   ========================================================================= */
+
+/* Form mode looks EXACTLY like the resource-description block: values read as
+   plain text on the same grid, with the same hover band and the same
+   reveal-on-hover row actions. The only additions are the subject URI field +
+   constructor button above, and the form action bar below.
+   The difference from the per-row model is behavioural, not visual: every value
+   is already an editable control, so there is no click-to-enter-edit step. The
+   control's chrome therefore appears on hover and focus rather than on a
+   committed "is-editing" state. Nothing here overrides the read row's
+   geometry — that is the point. */
+/* No per-row edit surface: the control carries its own (revealed) chrome, so
+   the recessed .is-editing cell would be a box inside a box. */
+.ldh-prop-form.is-form-mode .ldh-prop-row.is-editing .value {
+  background: transparent; border-color: transparent; padding: 0;
+  border-bottom-color: var(--border-default);
+}
+
+/* ---- Value stack: control, annotations, messages ----
+   DECISION (C8): controls sit NAKED in the value cell — no per-control
+   .ldhc-field-box wrapper. The core controls already carry field-box metrics
+   (32/40/48), so wrapping would double the border and double the port's markup.
+   The cell becomes a vertical stack instead, which is where the two lines the
+   drawn row never had now live. */
+.ldh-prop-row > .value > .val-stack,
+.ldh-prop-row > .value.val-stack {
+  display: flex; flex-direction: column; gap: 4px; min-width: 0; width: 100%;
+  /* MUST be stretch: the base .value cell is a centered flex row (right for
+     read mode), and a column that inherits align-items:center puts every
+     control and tag in the middle of a 1fr column while any align-self:start
+     child jumps to the left edge. */
+  align-items: stretch;
+}
+/* Control + annotations on ONE line, so a form row is the same height as a
+   read row. The control is capped rather than filling 1fr — a 1200px-wide
+   text input next to a 60px label reads as a mistake, and the cap leaves the
+   annotations sitting immediately after the value they describe. */
+/* Control + annotations on ONE line, so a form row is the same height as a
+   read row. Controls are capped rather than filling 1fr — a 1200px-wide text
+   input next to a 60px label reads as a mistake, and the cap leaves the
+   annotations sitting immediately after the value they describe.
+
+   ONE width for every capped control, so their right edges align into a column.
+   Per-control-type caps (text 280 / select 240 / combobox 340) were tried and
+   rejected: sitting in the same form they read as ragged accidents, not as
+   three intentional sizes. A control that genuinely needs the full column
+   (code editor, upload target) opts out via `flex: 1 1 100%` below. */
+.ldh-prop-row {
+  --prop-control-w: 340px;
+}
+.ldh-prop-row .val-main {
+  display: flex; align-items: center; gap: var(--sp-3); min-width: 0; flex-wrap: wrap;
+  /* MUST be a definite width. As a stretched auto-width item of the .val-stack
+     column, Chromium can freeze the intrinsic height computed at a pre-stretch
+     width where the annot wraps under the control — the row then renders one
+     line but keeps the two-line height, breaking the read-row-height promise
+     above. A definite width sizes the line as drawn. */
+  width: 100%;
+}
+.ldh-prop-row .val-main > .ldhc-select { flex: 0 1 var(--prop-control-w); max-width: var(--prop-control-w); }
+.ldh-prop-row .val-main > .ldhc-combobox { flex: 0 1 var(--prop-control-w); max-width: var(--prop-control-w); }
+.ldh-prop-row .val-main > .ldh-dt-pair { flex: 0 1 var(--prop-control-w); max-width: var(--prop-control-w); }
+.ldh-prop-row .val-main > .ldhc-cb-committed { flex: 0 1 auto; }
+.ldh-prop-row .val-main > .ldh-bool-seg { flex: 0 0 auto; }
+/* Full-width controls: a code editor or an upload target needs the column. */
+.ldh-prop-row .val-main > .ldhc-codefield,
+.ldh-prop-row .val-main > .ldhc-fileinput { flex: 1 1 100%; }
+/* basis 0 + shrink: the annot fills whatever space is left on the control's
+   line and never pushes itself onto a second one. A wrapped annot line still
+   occupies height even at opacity 0, which is exactly what made form rows
+   taller than read rows. */
+.ldh-annot { flex: 1 1 0; min-width: 0; overflow: hidden; }
+/* NOTE: there is deliberately NO second "grow to fill" rule for these controls.
+   An earlier revision added `flex: 1; min-width: 0` here for select / combobox /
+   codefield / fileinput. For the first two it was dead (the caps above win), but
+   for codefield and fileinput it silently REPLACED their `flex: 1 1 100%` with
+   basis 0 — so the full-width controls the rule above promises were sized to
+   content instead. One regime only: capped controls above, full-width controls
+   at `1 1 100%`, and nothing re-declaring flex further down. */
+/* TEXT-LIKE AT REST. An input styled like the surrounding read value, so a
+   form row is indistinguishable from a description row until you touch it.
+   Border stays in the box model (transparent) so revealing it shifts nothing. */
+.ldh-prop-form.is-form-mode .ldh-prop-row .val-main > input[type="text"],
+.ldh-prop-form.is-form-mode .ldh-prop-row .val-main > input[type="url"],
+.ldh-prop-form.is-form-mode .ldh-prop-row .val-main > input[type="datetime-local"],
+.ldh-prop-form.is-form-mode .ldh-prop-row .val-main > textarea {
+  flex: 0 1 var(--prop-control-w); max-width: var(--prop-control-w); min-width: 0; box-sizing: border-box;
+  padding: 3px 6px;
+  font-family: var(--font-sans); font-size: var(--fs-sm); color: var(--fg-1);
+  line-height: 1.5;
+  background: transparent;
+  border: 1px solid transparent; border-radius: var(--r-sm);
+  transition: background var(--dur-fast) var(--ease-out-soft), border-color var(--dur-fast) var(--ease-out-soft), box-shadow var(--dur-fast) var(--ease-out-soft);
+}
+.ldh-prop-form.is-form-mode .ldh-prop-row .val-main > textarea {
+  flex: 1 1 100%; max-width: none; min-height: 3em; resize: vertical; white-space: pre-wrap;
+}
+/* Revealed on row hover — the same cue the read row gives a clickable value. */
+.ldh-prop-form.is-form-mode .ldh-prop-row:hover .val-main > input,
+.ldh-prop-form.is-form-mode .ldh-prop-row:hover .val-main > textarea {
+  background: var(--surface-0); border-color: var(--border-default);
+}
+/* Focused — the recessed active surface the per-row editor uses, so "the field
+   I am typing in" looks the same in both models. ONE focus ring. */
+.ldh-prop-form.is-form-mode .ldh-prop-row .val-main > input:focus,
+.ldh-prop-form.is-form-mode .ldh-prop-row .val-main > textarea:focus {
+  outline: 0; background: var(--surface-0);
+  border-color: var(--ldh-blue-400); box-shadow: var(--focus-ring);
+}
+/* Selects, comboboxes and the dateTime pair follow the same rule: text at rest,
+   chrome on hover/focus. Otherwise a row with a select reads as a "form row"
+   next to rows that read as description rows. */
+.ldh-prop-form.is-form-mode .val-main > .ldhc-select > select,
+.ldh-prop-form.is-form-mode .val-main > .ldh-dt-pair,
+.ldh-prop-form.is-form-mode .val-main > .ldhc-combobox .ldhc-cb-box {
+  background: transparent; border-color: transparent;
+}
+.ldh-prop-form.is-form-mode .ldh-prop-row:hover .val-main > .ldhc-select > select,
+.ldh-prop-form.is-form-mode .ldh-prop-row:hover .val-main > .ldh-dt-pair,
+.ldh-prop-form.is-form-mode .ldh-prop-row:hover .val-main > .ldhc-combobox .ldhc-cb-box {
+  background: var(--surface-0); border-color: var(--border-default);
+}
+.ldh-prop-form.is-form-mode .val-main > .ldhc-select > select:focus-visible,
+.ldh-prop-form.is-form-mode .val-main > .ldh-dt-pair:focus-within,
+.ldh-prop-form.is-form-mode .val-main > .ldhc-combobox .ldhc-cb-box:focus-within {
+  background: var(--surface-0); border-color: var(--ldh-blue-400); box-shadow: var(--focus-ring);
+}
+/* The select caret is chrome too — hidden until the row is live. */
+.ldh-prop-form.is-form-mode .val-main > .ldhc-select .ldhc-select-caret { opacity: 0; }
+.ldh-prop-form.is-form-mode .ldh-prop-row:hover .val-main > .ldhc-select .ldhc-select-caret,
+.ldh-prop-form.is-form-mode .ldh-prop-row:focus-within .val-main > .ldhc-select .ldhc-select-caret { opacity: 1; }
+/* A committed resource value reads as the read row's IRI link, not a pill,
+   until the row is live. */
+.ldh-prop-form.is-form-mode .val-main > .ldhc-cb-committed .ldhc-cb-chip {
+  background: transparent; border-color: transparent; color: var(--ldh-blue-700);
+}
+.ldh-prop-form.is-form-mode .ldh-prop-row:hover .val-main > .ldhc-cb-committed .ldhc-cb-chip,
+.ldh-prop-form.is-form-mode .ldh-prop-row:focus-within .val-main > .ldhc-cb-committed .ldhc-cb-chip {
+  background: var(--bg-accent-quiet); color: var(--fg-selected);
+  border-color: color-mix(in srgb, var(--fg-selected) 24%, transparent);
+}
+.ldh-prop-form.is-form-mode .val-main > .ldhc-cb-committed .cb-chip-btn { opacity: 0; }
+.ldh-prop-form.is-form-mode .ldh-prop-row:hover .val-main .cb-chip-btn,
+.ldh-prop-form.is-form-mode .ldh-prop-row:focus-within .val-main .cb-chip-btn { opacity: 1; }
+/* Annotations are editing metadata, not description content: inline (so they
+   never add height) and revealed with the rest of the row's chrome. */
+.ldh-prop-form.is-form-mode .ldh-annot {
+  opacity: 0; transition: opacity var(--dur-fast) var(--ease-out-soft);
+}
+.ldh-prop-form.is-form-mode .ldh-prop-row:hover .ldh-annot,
+.ldh-prop-form.is-form-mode .ldh-prop-row:focus-within .ldh-annot { opacity: 1; }
+
+/* IRI-typed values are machine-readable, so they type in mono. */
+.ldh-prop-row .val-main > input.is-iri { font-family: var(--font-mono); font-size: var(--fs-xs); }
+
+
+/* ---- Annotations line (C10): ONE system for term kind, datatype, language ----
+   The read side used pills and the edit side grey micro-text; both now use
+   .ldhc-tag sz-sm em-quiet, so a datatype reads identically in a read row and
+   an edit row. Term kind is encoded by colour via the RDF hues. */
+/* NOWRAP is load-bearing. With flex-basis 0 (set below so the annot never
+   pushes itself onto its own line) the tags wrap against a 0-width hypothetical
+   box BEFORE the item grows, so a wrapping annot silently became 3-4 line boxes
+   tall and inflated every form row to twice a read row. Clipping revealed
+   metadata is the right trade. */
+.ldh-annot { display: flex; align-items: center; gap: 6px; flex-wrap: nowrap; min-width: 0; }
+.ldh-annot > .ldhc-tag { flex-shrink: 0; }
+.ldh-annot .an-term.is-literal  { background: var(--success-50); color: var(--rdf-literal); }
+.ldh-annot .an-term.is-resource { background: var(--bg-accent-quiet); color: var(--rdf-resource); }
+.ldh-annot .an-term.is-class    { background: var(--ldh-violet-100); color: var(--rdf-class); }
+.ldh-annot .an-term.is-blank    { background: var(--warning-50); color: var(--rdf-blank); }
+/* Language tag input — BCP-47, so it is short, mono and validated. */
+.ldh-lang {
+  display: inline-flex; align-items: center; gap: 4px;
+  height: 22px; padding: 0 6px; box-sizing: border-box;
+  background: var(--surface-0); border: 1px solid var(--border-default); border-radius: var(--r-pill);
+}
+.ldh-lang > .msi { font-size: 13px; color: var(--fg-hint); }
+.ldh-lang > input {
+  width: 5.5ch; min-width: 0; border: 0; background: transparent; outline: none;
+  font-family: var(--font-mono); font-size: var(--fs-xs); color: var(--fg-1);
+}
+.ldh-lang > input::placeholder { color: var(--ink-5); }
+.ldh-lang:focus-within { border-color: var(--ldh-blue-400); box-shadow: var(--focus-ring); }
+.ldh-lang.is-invalid { border-color: var(--danger-500); background: var(--danger-50); }
+.ldh-lang.is-invalid > .msi { color: var(--danger-500); }
+/* dateTime twin inputs — the value and its timezone are one logical field, so
+   they are bound in a single bordered shell with a divider between. */
+.ldh-dt-pair {
+  display: inline-flex; align-items: stretch; min-width: 0;
+  background: var(--surface-0); border: 1px solid var(--border-default);
+  border-radius: var(--r-md); overflow: hidden;
+}
+.ldh-dt-pair:focus-within { border-color: var(--ldh-blue-400); box-shadow: var(--focus-ring); }
+.ldh-dt-pair > input {
+  border: 0; background: transparent; outline: none; min-width: 0;
+  padding: 6px 10px; font-family: var(--font-mono); font-size: var(--fs-xs); color: var(--fg-1);
+  /* The datetime input absorbs any squeeze from the row's control cap; the
+     fixed-width timezone beside it must not (see .dt-tz). It has the slack —
+     a formatted date does not need its full intrinsic width. */
+  flex: 1 1 auto;
+}
+/* The timezone is a fixed 8-character field. `width` here is declared as a
+   CONTENT width on purpose: under the project-wide border-box, `8ch` would
+   include the 21px of padding + divider border, leaving ~5ch of text room for a
+   6-character value like "+00:00" — clipping it. content-box makes the
+   declaration mean what it says, and keeps working if the padding changes.
+   `flex: 0 0 auto` then stops the row's 340px control cap shrinking it, with
+   the sibling datetime input absorbing the squeeze instead. */
+.ldh-dt-pair > .dt-tz {
+  border-left: 1px solid var(--border-default);
+  box-sizing: content-box;
+  width: 8ch;
+  text-align: center;
+  flex: 0 0 auto;
+}
+.ldh-dt-pair.is-invalid { border-color: var(--danger-500); }
+
+/* ---- Boolean values (C11) ----
+   DECISION: a 3-way segmented control, NOT .ldhc-toggle. A toggle means "takes
+   effect immediately", which is wrong inside an explicit Save/Cancel form, and
+   a two-state toggle cannot express an RDF boolean that is simply absent.
+   true / false / unset are all reachable in one click. */
+.ldh-bool-seg { display: inline-flex; align-self: flex-start; }
+.ldh-bool-seg .ldhc-switch-seg[aria-checked="true"] { color: var(--fg-selected); }
+.ldh-bool-seg .seg-unset[aria-checked="true"] { color: var(--fg-muted); }
+
+/* ---- Violation + help messages (C9) ----
+   Reaches EVERY control kind, not just input/textarea: the invalid decoration
+   is driven from the row, so a select, combobox chip, file input and code field
+   all pick it up. */
+.ldh-vmsgs { display: flex; flex-direction: column; gap: 3px; }
+.ldh-prop-group.is-violation > .label .pred { color: var(--danger-500); }
+.ldh-prop-group.is-violation > .label { box-shadow: inset 2px 0 0 var(--danger-500); }
+.ldh-prop-row.is-violation .val-main > input,
+.ldh-prop-row.is-violation .val-main > textarea,
+.ldh-prop-row.is-violation .val-main > .ldhc-select > select,
+.ldh-prop-row.is-violation .val-main > .ldhc-combobox .ldhc-cb-box,
+.ldh-prop-row.is-violation .val-main > .ldhc-codefield,
+.ldh-prop-row.is-violation .val-main > .ldh-dt-pair { border-color: var(--danger-500); }
+.ldh-prop-row.is-violation .val-main > .ldhc-fileinput .ldhc-file-drop { border-color: var(--danger-500); background: var(--danger-50); }
+.ldh-prop-row.is-violation .val-main > .ldhc-cb-committed .ldhc-cb-chip { border-color: var(--danger-500); color: var(--danger-500); background: var(--danger-50); }
+
+/* ---- Label slots: required marker + predicate description (C8) ----
+   DECISION (rdfs:comment): a TOGGLETIP on the label, not a hint line under it.
+   The label column is a fixed 200px and right-aligned; a wrapped sentence in it
+   would push every value row apart and destroy the scan-down rhythm the read
+   view depends on. The description is reference material, not guidance you need
+   before typing — click-to-read is the right cost, and a toggletip works on
+   touch where a tooltip does not. */
+.ldh-prop-group > .label .lbl-row { display: inline-flex; align-items: center; gap: 4px; justify-content: flex-end; flex-wrap: wrap; }
+.ldh-prop-group > .label .ldhc-label-aux {
+  margin-left: 0; font-family: var(--font-mono); font-size: var(--fs-xs); color: var(--fg-hint);
+}
+/* Required marker — .ldhc-label-aux is its home, replacing the bridge's
+   ::after ' *'. It carries a text label for assistive tech, not just a glyph. */
+.ldh-prop-group > .label .req { color: var(--danger-500); font-weight: var(--fw-bold); }
+.ldh-prop-group > .label .ldhc-toggletip-btn { width: 18px; height: 18px; }
+.ldh-prop-group > .label .ldhc-toggletip-btn .msi { font-size: 14px; }
+
+/* ---- Per-property add-value affordance ----
+   It is the small + in .row-actions (see .rb / .ldhc-iconbtn), matching the
+   per-row model exactly. A labelled dashed strip under each group was tried and
+   rejected: it added a row of height to every predicate, which pushed the form
+   off the read view's layout entirely. */
+
+/* ---- Arrival treatment (C12): a just-added row announces itself once ---- */
+@keyframes ldh-row-arrive {
+  from { background: var(--bg-accent-quiet); }
+  to   { background: transparent; }
+}
+.ldh-prop-row.is-arrived > .value,
+.ldh-prop-row.is-arrived > .row-actions { animation: ldh-row-arrive 1.1s var(--ease-out-soft); }
+@media (prefers-reduced-motion: reduce) {
+  .ldh-prop-row.is-arrived > .value,
+  .ldh-prop-row.is-arrived > .row-actions { animation: none; }
+}
+
+/* =========================================================================
+   FORM ACTION BAR (A) — one button vocabulary.
+   Spec'd in the .ldhc-btn matrix — the one button system in the design system.
+   Save is gated on dirty. 2-button (Save/Cancel) and 3-button (+ Reset) forms
+   are the same bar with a conditional child.
+   ========================================================================= */
+.ldh-form-bar {
+  display: flex; align-items: center; gap: var(--sp-2); flex-wrap: wrap;
+  padding: var(--sp-3) var(--sp-6);
+  border-top: 1px solid var(--border-default);
+  background: var(--surface-1);
+}
+/* Inline placement (a form in a block) keeps the card's bottom radius; the
+   modal-footer placement is .ldhc-modal-foot and needs neither. */
+.ldh-form-bar.pl-inline { border-radius: 0 0 var(--r-lg) var(--r-lg); }
+.ldh-form-bar .fb-end { margin-left: auto; display: flex; align-items: center; gap: var(--sp-2); }
+/* Dirty-state readout — the form says what will happen, so Save being disabled
+   is never a mystery. */
+.ldh-form-status {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-family: var(--font-mono); font-size: var(--fs-xs); color: var(--fg-hint);
+}
+.ldh-form-status .msi { font-size: 14px; }
+.ldh-form-status.is-dirty { color: var(--warning-500); }
+.ldh-form-status.is-saving { color: var(--fg-muted); }
+.ldh-form-status.is-saved { color: var(--success-500); }
+/* Submitting: the whole field area goes inert and loses pointer events, so a
+   second Save can't race the first. Opacity stays high — this is a lock, not a
+   disabled form, and the values must remain readable while it commits. */
+.ldh-prop-form.is-submitting { pointer-events: none; opacity: 0.72; }
+.ldh-prop-form.is-submitting * { cursor: progress !important; }
+
+/* Conflict alert (A) — .ldhc-alert at the top of the form, replacing the legacy
+   .alert.alert-error. Sits inside the form's own scroll area so it travels with
+   the fields it describes. */
+.ldh-form-alert { padding: var(--sp-4) var(--sp-6) 0; }
+.ldh-form-alert:empty { display: none; }
+
+/* =========================================================================
+   FIELDSET / SECTION (C14) — two legend styles, both intentional.
+     .lg-eyebrow  10px mono uppercase, inline in the flow — for grouping rows
+                  inside an already-titled surface (a block, a modal body).
+                  It is a divider with a name, not a heading.
+     .lg-heading  18px semibold — for a section that is its own subject, e.g.
+                  a blank-node child whose statements are about a new resource.
+   Nesting: each level indents by --sp-4 and takes a left rule, capped at depth
+   3 for the same reason nested blocks are — beyond that, indentation stops
+   carrying meaning and the label column has nowhere left to go.
+   ========================================================================= */
+.ldh-fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
+.ldh-fieldset > legend { padding: 0; }
+.ldh-fieldset > legend.lg-eyebrow {
+  display: block; width: 100%; box-sizing: border-box;
+  padding: var(--sp-4) var(--sp-6) var(--sp-2);
+  font-family: var(--font-mono); font-size: var(--fs-xs); font-weight: var(--fw-medium);
+  letter-spacing: var(--tracking-wide); text-transform: uppercase; color: var(--fg-hint);
+}
+.ldh-fieldset > legend.lg-heading {
+  padding: var(--sp-4) var(--sp-6) var(--sp-1);
+  font-family: var(--font-sans); font-size: var(--fs-lg); font-weight: var(--fw-semibold);
+  letter-spacing: var(--tracking-snug); color: var(--fg-1);
+}
+.ldh-fieldset > .fs-desc { padding: 0 var(--sp-6) var(--sp-2); font-size: var(--fs-sm); color: var(--fg-muted); }
+/* Legendless variant — a group that needs the nesting frame but no name. */
+.ldh-fieldset.is-bare > legend { display: none; }
+.ldh-fieldset[data-depth="1"], .ldh-fieldset[data-depth="2"], .ldh-fieldset[data-depth="3"] {
+  margin-left: var(--sp-4); border-left: 1px solid var(--border-default);
+}
+.ldh-fieldset[data-depth="2"] { border-left-color: var(--border-strong); }
+.ldh-fieldset[data-depth="3"] { border-left-style: dashed; }
+
+/* =========================================================================
+   PERMISSION-GATED ACTIONS (C17)
+   DECISION: three distinct treatments, never display:none-until-known.
+     · pending  → rendered DISABLED with a "checking permissions" title, so the
+                  layout is final before the answer arrives and nothing shifts.
+     · denied   → ABSENT. An action the user can never take is not information;
+                  a permanently disabled button is just a dead end they keep
+                  returning to.
+     · allowed  → rendered normally.
+   The inline display:none the live product uses is the one option ruled out —
+   it reflows the toolbar the moment permissions resolve.
+   ========================================================================= */
+.ldh-perm-pending { opacity: 0.5; pointer-events: none; }
+
+
+/* The subject-URI toggle. A single quiet control on its own line, right-aligned
+   over the statements' actions column so it reads as belonging to the form's
+   chrome rather than to any one statement. */
+.ldh-form-subjbar {
+  display: flex; justify-content: flex-end;
+  padding: var(--sp-2) var(--sp-6) 0 0;
+}
+
+/* =========================================================================
+   SUBJECT ROW IN FORM MODE
+   The standalone .ldh-subject bar is a chunky bordered strip — it reads as a
+   legacy form header bolted above a description block. In form mode it sits on
+   the SAME grid as the property rows instead: term type in the label column,
+   the URI field in the value column, tools at the right. It becomes "one more
+   row of the description" that happens to describe the subject itself.
+   Column 3 is auto rather than the grid's 64px because the constructor action
+   is a labelled button, and 64px clipped it outside the card.
+   ========================================================================= */
+.ldh-edit-form .ldh-subject {
+  display: grid;
+  grid-template-columns: 200px minmax(0, 1fr) auto;
+  column-gap: var(--sp-3);
+  align-items: center;
+  padding: var(--sp-2) 0;
+  background: transparent;
+}
+.ldh-edit-form .ldh-subject-tools { padding-right: var(--sp-6); }
+/* The term-type select acts as this row's label, so it aligns like one. */
+.ldh-edit-form .ldh-subject .term-select {
+  justify-self: end;
+  height: 28px; padding: 0 6px 0 8px;
+  background: transparent; border-color: transparent;
+  font-size: var(--fs-sm); color: var(--fg-2);
+  transition: background var(--dur-fast) var(--ease-out-soft), border-color var(--dur-fast) var(--ease-out-soft);
+}
+.ldh-edit-form .ldh-subject:hover .term-select { background: var(--surface-0); border-color: var(--border-default); }
+.ldh-edit-form .ldh-subject .term-select:focus-visible { background: var(--surface-0); border-color: var(--ldh-blue-400); box-shadow: var(--focus-ring); }
+/* URI field: mono text at rest, exactly like the read row's IRI, with chrome on
+   hover/focus like every other control in form mode. */
+.ldh-edit-form .ldh-subject .uri-field,
+.ldh-edit-form .ldh-subject .bnode-inline {
+  height: 28px; padding: 0 6px;
+  background: transparent; border-color: transparent;
+}
+.ldh-edit-form .ldh-subject:hover .uri-field { background: var(--surface-0); border-color: var(--border-default); }
+.ldh-edit-form .ldh-subject .uri-field:focus-within {
+  background: var(--surface-0); border-color: var(--ldh-blue-400); box-shadow: var(--focus-ring);
+}
+.ldh-edit-form .ldh-subject .uri-field > .msi { opacity: 0; transition: opacity var(--dur-fast) var(--ease-out-soft); }
+.ldh-edit-form .ldh-subject:hover .uri-field > .msi,
+.ldh-edit-form .ldh-subject:focus-within .uri-field > .msi { opacity: 1; }
+/* The invalid ring is a real state, so it stays visible at rest. */
+.ldh-edit-form .ldh-subject .uri-field.invalid { border-color: var(--danger-500); }
+.ldh-edit-form .ldh-subject .uri-field.invalid > .msi.warn { opacity: 1; }
+.ldh-edit-form .ldh-subject-tools { justify-self: end; }
+/* Copy + constructor reveal with the row, like the property rows' actions. */
+.ldh-edit-form .ldh-subject .ldh-subject-copy,
+.ldh-edit-form .ldh-subject .ldh-form-action,
+.ldh-edit-form .ldh-subject .ldh-form-actions-wrap {
+  opacity: 0; transition: opacity var(--dur-fast) var(--ease-out-soft);
+}
+.ldh-edit-form .ldh-subject:hover .ldh-subject-copy,
+.ldh-edit-form .ldh-subject:hover .ldh-form-action,
+.ldh-edit-form .ldh-subject:hover .ldh-form-actions-wrap,
+.ldh-edit-form .ldh-subject:focus-within .ldh-subject-copy,
+.ldh-edit-form .ldh-subject:focus-within .ldh-form-action,
+.ldh-edit-form .ldh-subject:focus-within .ldh-form-actions-wrap { opacity: 1; }
