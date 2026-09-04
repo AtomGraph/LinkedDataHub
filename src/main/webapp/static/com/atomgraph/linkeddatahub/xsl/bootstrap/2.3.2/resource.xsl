@@ -841,13 +841,16 @@ extension-element-prefixes="ixsl"
         <xsl:apply-templates select="$definitions" mode="bs2:PropertyListIdentity"/>
     </xsl:template>
 
-    <!-- project the intermediate dt/dd list onto the design's property grid: one .ldh-prop-group per
-         predicate (keyed on the dds' RDFa @property URI - labels can collide across predicates, property
-         URIs cannot), the dt's label in the spanning .label cell, each dd as a .ldh-prop-row value cell
-         carrying the dd's RDFa attributes. The trailing empty .row-actions cell completes the grid row
-         so the statement delimiter reaches the card's right inset -->
+    <!-- project the intermediate dt/dd list onto the design's property grid, keeping the dl/dt/dd
+         carriers: a resource description is an association list, which is exactly what dl is specified
+         for, so the semantic elements and the RDFa attributes ride the same markup the grid styles.
+         One .ldh-prop-group per predicate (keyed on the dds' RDFa @property URI - labels can collide
+         across predicates, property URIs cannot; the div group wrapper is the HTML spec's own dl
+         grouping element), the dt's label in the spanning .label cell, each dd as a .ldh-prop-row
+         carrying its RDFa attributes on the dd itself. The trailing empty .row-actions cell completes
+         the grid row so the statement delimiter reaches the card's right inset -->
     <xsl:template match="xhtml:dl" mode="bs2:PropertyListIdentity">
-        <div class="ldh-prop-form">
+        <dl class="ldh-prop-form">
             <xsl:for-each-group select="*" group-adjacent="string((self::xhtml:dd/@property, following-sibling::xhtml:dd[preceding-sibling::xhtml:dt[1] is current()][1]/@property)[1])">
                 <xsl:variable name="property-uri" select="current-grouping-key()" as="xs:string"/>
                 <xsl:variable name="dt" select="(current-group()/self::xhtml:dt)[1]" as="element()?"/>
@@ -858,7 +861,7 @@ extension-element-prefixes="ixsl"
                         <xsl:attribute name="style" select="'--rows: ' || count($dds)"/>
                     </xsl:if>
 
-                    <div class="label">
+                    <dt class="label">
                         <xsl:if test="count($dds) gt 1">
                             <xsl:attribute name="style" select="'grid-row: span ' || count($dds)"/>
                         </xsl:if>
@@ -866,20 +869,21 @@ extension-element-prefixes="ixsl"
                         <span class="pred" title="{$property-uri}">
                             <xsl:sequence select="$dt/node()"/>
                         </span>
-                    </div>
+                    </dt>
 
                     <xsl:for-each select="$dds">
-                        <div class="ldh-prop-row{if (position() = last()) then ' is-last' else ()}">
+                        <dd class="ldh-prop-row{if (position() = last()) then ' is-last' else ()}">
+                            <xsl:copy-of select="@* except @class"/>
+
                             <div class="value{@class ! (' ' || .)}">
-                                <xsl:copy-of select="@* except @class"/>
                                 <xsl:sequence select="node()"/>
                             </div>
                             <div class="row-actions"></div>
-                        </div>
+                        </dd>
                     </xsl:for-each>
                 </div>
             </xsl:for-each-group>
-        </div>
+        </dl>
     </xsl:template>
 
     <!-- IMAGE -->

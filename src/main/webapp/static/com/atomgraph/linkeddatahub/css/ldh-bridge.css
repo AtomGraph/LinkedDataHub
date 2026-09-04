@@ -373,6 +373,10 @@ form .control-group > .controls > .btn-group { order: 99; margin-left: auto; }
 .chart-controls .field select[multiple] { height: auto; }
 
 /* ---------- read-mode property lists now emit the design's .ldh-prop-group grid (app.css) ---------- */
+/* the read-mode list rides dl/dt/dd (a resource description is an association list); the dl's UA
+   block margin has to go. Drops once the design system carries margin: 0 on .ldh-prop-form itself.
+   The dd needs no reset - display:contents generates no box, so its UA margin never applies */
+dl.ldh-prop-form { margin: 0; }
 /* a value is a whole row rather than a table cell, so the image gets more height than in
    table.table - enough to read, still short of pushing the rest of the property list off-screen.
    This also lands in the map info window, whose overlay hosts a .ldh-block property list */
