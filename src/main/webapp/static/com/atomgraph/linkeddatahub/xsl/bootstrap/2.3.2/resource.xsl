@@ -1339,20 +1339,7 @@ extension-element-prefixes="ixsl"
                             <button type="button" class="ldhc-btn in-neutral ap-ghost sz-sm is-iconly btn-edit-subj {if ($show-subject) then 'open' else ()}"><span class="msi sm" aria-hidden="true">edit</span></button>
                         </div>
                         
-                        <!-- "Copy URI" button -->
-                        <button type="button">
-                            <xsl:attribute name="title">
-                                <xsl:apply-templates select="key('resources', 'copy-uri', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
-                            </xsl:attribute>
-
-                            <xsl:apply-templates select="key('resources', 'copy-uri', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ldh:logo">
-                                <xsl:with-param name="class" select="'ldhc-btn in-neutral ap-ghost sz-sm'"/>
-                            </xsl:apply-templates>
-
-                            <xsl:value-of>
-                                <xsl:apply-templates select="key('resources', 'copy-uri', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
-                            </xsl:value-of>
-                        </button>
+                        <xsl:apply-templates select="." mode="ldh:CopyUriButton"/>
 
                         <xsl:if test="not($required)">
                             <div class="btn-group">
